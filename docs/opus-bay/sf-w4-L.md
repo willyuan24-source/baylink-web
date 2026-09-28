@@ -278,7 +278,7 @@ this report). Higgsfield: 0 credits.
 | 23 | Holy Virgin Cathedral, 6210 Geary Blvd at 26th Ave, five gold-leaf onion domes (geary-west) | Wikipedia; Richmond Review | ✓ |
 | — | UCSF Mission Bay "57.9 acres": ucsf.edu's page gives no acreage, UC's 2015 news says 60.2; the 1999 start and the 1 Feb 2015 hospitals ✓ | universityofcalifornia.edu | open (lane C's card) |
 
-### Defects found (16): fixed 13, open 3
+### Defects found (16): fixed 12, noted 1, open 3
 
 | # | defect | fix / state |
 |---|---|---|
@@ -586,13 +586,13 @@ wave-4 swaps: model ↔ site, slot placement, ≤ 6k, remainders ≤ 1.2k). The 
 
 Written 2026-09-27 by the lane-L2 adversarial reviewer (worktree `C:/Users/willy/wt/w4-l`), on the part-2 lane's 21
 commits `d6d8c24` … `a112d5d` (24 sites, the fire rings, the AI-slot and open-item changes). Commits: `W4-L-review:`
-× 5 and this report. Higgsfield: 0 credits.
+× 6 and this report. Higgsfield: 0 credits.
 
 ### 给主人的摘要
 
 1. 复查了 L2 新做的 25 个地点，在网上核对了 23 条事实：3 条不对，已改（芬斯顿堡不是金门国家休闲区唯一能放狗跑的地方；尔文街离 N 线只隔一条街，不是两条；嬉皮山 4/20 活动 2026 年也取消了）。
 2. 修好一类"站在马路中间"的问题：好几个地点给路人安排的站位在车道上（克莱门街、尔文街、日本城天桥下、叮当车博物馆门口的叮当车轨道上、歌剧院前的范内斯大道），BAYBAY 带你到的位置也有 5 个在马路上；现在都在人行道上，并有测试盯着。
-3. 另外修了：哈维·米尔克广场旁的一栋房子被误删、尔文街少了一间铺子、植物园门口一棵玉兰长在大楼里、卡斯特罗 18 街的彩虹斑马线偏了一截、天桥下半条马路没铺。第一轮的 7 个地点也有同类问题，清单交给接线组。
+3. 另外修了：哈维·米尔克广场旁的一栋房子被误删、尔文街少了一间铺子、植物园门口一棵玉兰长在大楼里、卡斯特罗 18 街的彩虹斑马线偏了一截、天桥下半条马路没铺。第一轮的 6 个地点也有同类问题，清单交给接线组。
 
 ### What I checked
 
@@ -651,25 +651,26 @@ commits `d6d8c24` … `a112d5d` (24 sites, the fire rings, the AI-slot and open-
 | 22 | Irving St "the N Judah two blocks south" → one block: Judah St is the next street (its 23rd Ave stop 34 u from the block) (irving-street) | the street order; lane T's stops | ✗ |
 | 23 | the Hippie Hill 4/20 event cancelled "in 2024 and 2025" → also 2026 (hippie-hill) | KQED; SFist 17 Apr 2026 | ✗ |
 
-### Defects found (15): fixed 12, open 3
+### Defects found (16): fixed 12, noted 1, open 3
 
 | # | defect | fix / state |
 |---|---|---|
-| 1 | **Crowd spots on carriageways**: Clement and Irving (a `'road'` plaza over the whole carriageway, added to reach the test's 30 u²: 3 spots each on the centreline), the Webster bridge (5 of 8), the Cable Car Museum (8 of 8, on Mason St's cable-car track and Washington St), the War Memorial (6 on Van Ness, a dual carriageway), the Tiled Steps (1 on the street's asphalt). The crowd stands exactly there and the traffic drives through it | **fixed** `ee610bd`, `c0bfd35`: sidewalk plazas only (a street site: five chosen 1 u sidewalk spots clear of its stands, trees and lamps); `plazaMin` (siteKit) states a sidewalk-only plaza |
-| 2 | **Arrivals on the asphalt**: Clement, Irving (carriageway), Harvey Milk (Market St), the Cable Car Museum (the Mason St track), Webster (the west carriageway) | **fixed** `ee610bd`: on the sidewalks; Harvey Milk's arrival now sees the flag broadside (it was edge-on behind the palms) |
-| 3 | **Unusable crowd spots**: Harvey Milk's four corner plazas at Castro & 18th stood 3.3–5.9 u out, inside the corner buildings (no standable spot at the famous corner); one of the Botanical gate's and one of the Tiled Steps' inside a building; Clement / Irving 1 / 4 and 0 / 2 standable | **fixed** `ee610bd`, `c0bfd35`: the corner sidewalks; standable now Harvey 5 / 8, Clement 3 / 5, Irving 4 / 5 |
-| 4 | **Harvey Milk's exclusion dropped the corner house** (its vertex-mean centroid was inside: a 12 u² hole on the most photographed corner; the header said the house stays) | **fixed** `ee610bd`: the exclusion stops short of it, the pole stands 0.45 u off its wall; base re-baked (9.88 → 10.06), tops re-run |
-| 5 | **Irving lost a shop**: `shopExclude` took 0.8 u behind the facades, where a narrow shop's centroid sits | **fixed** `ee610bd`: 0.5 u (the palms' fronds reach 0.7 u past the facade); bases re-baked (+0.02) |
-| 6 | **Webster St under the bridge**: a dual carriageway in the data; the site re-laid one ribbon and a paved strip over the other one's lane, leaving x −2.2…−1.1 bare under the span and its median off the city's (visible in the part's own shot) | **fixed** `ee610bd`, `8fbf66a`, `7ec06c2`: both carriageways and the median where the city draws it (x 1.0…1.6, checked from above on both sides) |
-| 7 | **Castro & 18th off by 1.26 u**: the crossings over 18th lay half on its sidewalk, one over Castro sat inside the junction | **fixed** `ee610bd`: the published centrelines' crossing (19.18, 11.88); crossings kerb to kerb (3.2 u) |
-| 8 | **Botanical gate**: a magnolia 1.65 u inside the County Fair Building, the main path's plaza through it, the arrival looking at its wall | **fixed** `ee610bd`: magnolia and kiosk moved east, the path between kiosk and building, the arrival looks in along the path |
-| 9 | **Tiled Steps**: the west garden strip and its planting boxes inside the house beside the stair; "sixteen steps" (14) | **fixed** `ee610bd` |
-| 10 | Three facts (table: 21–23) | **fixed** `a42264a` (Irving's in `ee610bd`); the facts test pins them |
+| 1 | **Crowd spots on carriageways**: Clement and Irving (a `'road'` plaza over the whole carriageway, added to reach the test's 30 u²: 3 spots each on the centreline), the Webster bridge (5 of 8), the Cable Car Museum (8 of 8, on Mason St's cable-car track and Washington St), the War Memorial (6 on Van Ness, a dual carriageway), the Tiled Steps (1 on the street's asphalt). The crowd stands exactly there and the traffic drives through it | **fixed** `518f408`, `e63dc3d`: sidewalk plazas only (a street site: five chosen 1 u sidewalk spots clear of its stands, trees and lamps); `plazaMin` (siteKit) states a sidewalk-only plaza |
+| 2 | **Arrivals on the asphalt**: Clement, Irving (carriageway), Harvey Milk (Market St), the Cable Car Museum (the Mason St track), Webster (the west carriageway) | **fixed** `518f408`: on the sidewalks; Harvey Milk's arrival now sees the flag broadside (it was edge-on behind the palms) |
+| 3 | **Unusable crowd spots**: Harvey Milk's four corner plazas at Castro & 18th stood 3.3–5.9 u out, inside the corner buildings (no standable spot at the famous corner); one of the Botanical gate's and one of the Tiled Steps' inside a building; Clement / Irving 1 / 4 and 0 / 2 standable | **fixed** `518f408`, `e63dc3d`: the corner sidewalks; standable now Harvey 5 / 8, Clement 3 / 5, Irving 4 / 5 |
+| 4 | **Harvey Milk's exclusion dropped the corner house** (its vertex-mean centroid was inside: a 12 u² hole on the most photographed corner; the header said the house stays) | **fixed** `518f408`: the exclusion stops short of it, the pole stands 0.45 u off its wall; base re-baked (9.88 → 10.06), tops re-run |
+| 5 | **Irving lost a shop**: `shopExclude` took 0.8 u behind the facades, where a narrow shop's centroid sits | **fixed** `518f408`: 0.5 u (the palms' fronds reach 0.7 u past the facade); bases re-baked (+0.02) |
+| 6 | **Webster St under the bridge**: a dual carriageway in the data; the site re-laid one ribbon and a paved strip over the other one's lane, leaving x −2.2…−1.1 bare under the span and its median off the city's (visible in the part's own shot) | **fixed** `518f408`, `a5b2d26`, `cbe07b7`: both carriageways and the median where the city draws it (x 1.0…1.6, checked from above on both sides) |
+| 7 | **Castro & 18th off by 1.26 u**: the crossings over 18th lay half on its sidewalk, one over Castro sat inside the junction | **fixed** `518f408`: the published centrelines' crossing (19.18, 11.88); crossings kerb to kerb (3.2 u) |
+| 8 | **Botanical gate**: a magnolia 1.65 u inside the County Fair Building, the main path's plaza through it, the arrival looking at its wall | **fixed** `518f408`: magnolia and kiosk moved east, the path between kiosk and building, the arrival looks in along the path |
+| 9 | **Tiled Steps**: the west garden strip and its planting boxes inside the house beside the stair; "sixteen steps" (14) | **fixed** `518f408` |
+| 10 | Three facts (table: 21–23) | **fixed** `6958a0d` (Irving's in `518f408`); the facts test pins them |
 | 11 | **Missing tests** for all of the above (the old plaza rule passed with people on the road); the test header said "not registered yet" | **fixed**: no `'road'` plaza and a stated `plazaMin`; crowd spots and arrivals never on a carriageway or in a kept building; the model ≤ 0.8 u into a kept building below its roof; a dropped building leaves ≤ 1 u² (or ≤ 40 %) empty; ≥ 2 standable spots a site. Each new check fails on the part's code (run against the old modules) and passes now |
 | 12 | The part's summary says four sites state a lower ring; there are five (the bathhouse too) | noted |
-| 13 | **Part-1 records with the same faults** (not this part's files; the tests list them in `OPEN_P1` / `OPEN_HOLES`, to shrink as they are fixed): crowd spots on the carriageway — `sfmoma` (3 on the 3rd St centreline), `haight-ashbury` (7 on Haight St, by its note), `geary-west` (8 on Geary's asphalt); arrivals on the asphalt — `st-ignatius-church` (Fulton St, already on the integration's list), `sfmoma`, `haight-ashbury`, `lands-end`, `bison-paddock`, `geary-west`, `ccsf-drpac` (and 2 of its spots inside a building); `usf-lone-mountain` drops its east wing (15.8 u², 9 u² left empty) | **open** → the integration lane (part b) |
-| 14 | The glide's day-0 circle (`context.ts` siteHeight: `height.top` ≥ 10 and no `tall` parts) stands r 4 in the War Memorial's court, between the two buildings, up to base + 12.5 | **open** (minor): a `tall` part on the fly tower instead, then a `tops.ts` re-run |
-| 15 | The fire rings glow every night of the year (fires are March–October; the lights have no season) | **open** (cosmetic) |
+| 13 | **Part-1 records with the same faults** (not this part's files; the tests list them in `OPEN_P1` / `OPEN_HOLES`, to shrink as they are fixed): crowd spots on the carriageway — `sfmoma` (3 on the 3rd St centreline), `haight-ashbury` (7 on Haight St, by its note), `geary-west` (8 on Geary's asphalt); arrivals on the asphalt — `sfmoma`, `haight-ashbury`, `lands-end`, `bison-paddock`, `geary-west`, `ccsf-drpac` (and 2 of its spots inside a building); `usf-lone-mountain` drops its east wing (15.8 u², 9 u² left empty) | **open** → the integration lane (part b) |
+| 14 | **Corona Heights, after W4-IL15** (no crowd spot within 2.5 u of the arrival, landed during this review): the arrival in the middle of the small summit clearing left one spot, unstandable (0 / 1) | **fixed** `fb2dfc3`: the arrival on the crown's west side (2 / 2). `st-ignatius-church` left the open list (W4-IL14 moved its arrival onto the lawn) |
+| 15 | The glide's day-0 circle (`context.ts` siteHeight: `height.top` ≥ 10 and no `tall` parts) stands r 4 in the War Memorial's court, between the two buildings, up to base + 12.5 | **open** (minor): a `tall` part on the fly tower instead, then a `tops.ts` re-run |
+| 16 | The fire rings glow every night of the year (fires are March–October; the lights have no season) | **open** (cosmetic) |
 
 Not defects, noted: Clement's and Irving's street-tree crowns reach up to 0.8 u into the facades (as the city's own
 street trees do); the Botanical gate still frames the Fair Building's corner through its west half (where OSM puts
@@ -687,9 +688,10 @@ both).
 
 ### Checks
 
-- On `7ec06c2` (the five fixes rebased on `d118962`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors ·
-  the full opus-bay suite **851 / 851**. `opus-bay-sf-sites-w4` is now 12 tests (+ crowd spots and arrivals, + city
-  buildings; the settings and walk-data tests check the plaza rules and the standable spots; the facts test the three
-  new facts). The report commit changes docs only.
+- On `fb2dfc3` (the six fixes rebased on `b5248ac`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · the
+  full opus-bay suite **865 / 865** (one earlier run had the load-sensitive `sf-terrain` "city-mode queries stay O(1)" at
+  1.98 s against 1.5 s, green alone at 0.64 s). `opus-bay-sf-sites-w4` is now 12 tests (+ crowd spots and arrivals, + city
+  buildings; the settings and walk-data tests check the plaza rules and the standable spots; the facts test the three new
+  facts). The report commits change docs only.
 
-Status (2026-09-27): 复查完成，5 个修复提交 + 本报告已推送；第一轮 7 个地点的同类问题和 USF 的空地已交给接线组。
+Status (2026-09-27): 复查完成，6 个修复提交 + 本报告已推送；第一轮 6 个地点的同类问题和 USF 的空地已交给接线组（圣依纳爵堂的到达点接线组已修）。
