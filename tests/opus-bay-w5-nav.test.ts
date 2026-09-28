@@ -857,3 +857,135 @@ test('W5-N5 a landing never lands on another level: an open area on a deck above
   assert.deepEqual(FT.arrivalSpot({ x: 0, z: 0 }, open, env((x) => (x > 5 ? 15.2 : 0.6), false)), deck);
   assert.equal(FT.LEVEL_STEP, 4);
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// Part c · the mid-wave checkpoint's findings (CP-1, CP-2, CP-7, CP-13)
+// ---------------------------------------------------------------------------------------------------------------
+
+test('CP-1 yieldSpot: across the waiting car\'s axis to 4.5 u — pressed against its body on the own side, clear ahead toward the walk, else the far side', () => {
+  // a car at the origin heading +x (heading π/2: forward (1, 0)); its right normal is (0, −1)
+  const car = { x: 0, z: 0, heading: Math.PI / 2 };
+  const all = () => true;
+  // pressed against its side (along 2 < the body), on the −z side: steps out to z −4.5, straight across (x kept)
+  const side = AT.yieldSpot({ x: 2, z: -1.3 }, car, all, { x: 0, z: 50 })!;
+  assert.ok(Math.abs(side.x - 2) < 1e-9 && Math.abs(side.z - -AT.YIELD_SIDE) < 1e-9, JSON.stringify(side));
+  // clear ahead of its nose (along 7): toward the walk's side (+z) first
+  const ahead = AT.yieldSpot({ x: 7, z: -0.5 }, car, all, { x: 7, z: 60 })!;
+  assert.ok(ahead.z > 0 && Math.abs(Math.abs(ahead.z) - AT.YIELD_SIDE) < 1e-9, JSON.stringify(ahead));
+  // the preferred side not standable: the other side; neither: null (wait as before)
+  const other = AT.yieldSpot({ x: 2, z: -1.3 }, car, p => p.z > 0)!;
+  assert.ok(Math.abs(other.z - AT.YIELD_SIDE) < 1e-9);
+  assert.equal(AT.yieldSpot({ x: 2, z: -1.3 }, car, () => false), null);
+  // any heading: the spot is YIELD_SIDE from the axis, on the player's side
+  const h = 2.2, fx = Math.sin(h), fz = Math.cos(h);
+  const p2 = AT.yieldSpot({ x: 30 + fx * 3 + fz * 0.4, z: -8 + fz * 3 - fx * 0.4 }, { x: 30, z: -8, heading: h }, all)!;
+  const lat = (p2.x - 30) * fz - (p2.z + 8) * fx;
+  assert.ok(Math.abs(lat - AT.YIELD_SIDE) < 1e-9, `lateral ${lat}`);
+  assert.ok(AT.YIELD_SIDE - 1.4 > 1.5 && AT.YIELD_SIDE - 3.8 > 0.5, 'clear of the car\'s 1.4 u band and of a neighbouring track');
+});
+
+test('CP-1 reducer: a car waiting ≥ 1 s steps the carried player aside (BAYBAY says so), waits until no car is near, then walks on; the fails are not counted', () => {
+  const s0 = { ...AT.AUTO_IDLE, on: true };
+  let r = AT.autoStep(s0, base());
+  const walk = r.state.issued!;
+  // pressed against the car (the controller still holds our walk): the yield spot comes in
+  const spot = { x: 2, z: -4.5 };
+  r = AT.autoStep(r.state, base({ now: 2000, pathTarget: walk, yieldTo: spot, vehicleNear: true }));
+  assert.deepEqual(r.decision, { type: 'issue', p: spot, yield: true });
+  assert.deepEqual(r.state.yielding, { p: spot, since: 2000 });
+  const ys = r.state.issued!;
+  // still near (the car pulls away), or before YIELD_MIN_MS: wait, whatever the walk does
+  assert.equal(AT.autoStep(r.state, base({ now: 2500, pathTarget: ys, vehicleNear: true })).decision.type, 'none');
+  assert.equal(AT.autoStep(r.state, base({ now: 2600, pathTarget: null, player: spot, vehicleNear: false })).decision.type, 'none', 'min wait');
+  const waiting = AT.autoStep(r.state, base({ now: 9000, pathTarget: null, player: spot, vehicleNear: true }));
+  assert.equal(waiting.decision.type, 'none');
+  assert.equal(waiting.state.fails, 0, 'waiting at the spot is not a failed walk');
+  // clear: the leg's target again at once, the yield over
+  const on = AT.autoStep(r.state, base({ now: 2000 + AT.YIELD_MIN_MS, pathTarget: null, player: spot, vehicleNear: false }));
+  assert.deepEqual(on.decision, { type: 'issue', p: { x: 100, z: 0 } });
+  assert.equal(on.state.yielding, null);
+  // a car that stays (a long dwell): walked past after YIELD_MAX_MS
+  assert.equal(AT.autoStep(r.state, base({ now: 2000 + AT.YIELD_MAX_MS, pathTarget: null, player: spot, vehicleNear: true })).decision.type, 'issue');
+  // the stick during the yield is a takeover as ever
+  assert.deepEqual(AT.autoStep(r.state, base({ now: 2300, manualAt: 2200, pathTarget: ys, vehicleNear: true })).decision, { type: 'takeover' });
+  // blocked (a dialogue): no yield (lane T's bubble asks the player then)
+  assert.equal(AT.autoStep(s0, base({ blocked: true, yieldTo: spot })).decision.type, 'none');
+  // a new leg drops the yield
+  assert.equal(AT.autoStep(r.state, base({ now: 2100, legKey: 'L9', vehicleNear: true })).state.yielding, null);
+});
+
+test('CP-1 vehicleYield: the car waiting longest (≥ 1 s, within 24 u) gives the spot; any car within 7 u is "near"', () => {
+  const P = { x: 0, z: 0 };
+  const car = (x: number, z: number, held: number) => ({ x, z, heading: Math.PI / 2, held });
+  const stand = () => true;
+  assert.deepEqual(tripRun.vehicleYield(P, [], null, stand), { to: null, near: false });
+  assert.deepEqual(tripRun.vehicleYield(P, [car(-6, 0.5, 0.6)], null, stand), { to: null, near: true }, 'not yet: 0.6 s');
+  const y = tripRun.vehicleYield(P, [car(-6, 0.5, 3), car(-40, 0, 9)], null, stand);
+  assert.ok(y.to && Math.abs(Math.abs(y.to.z - 0.5) - AT.YIELD_SIDE) < 1e-9, 'the near one (the one 40 u away is not ours)');
+  assert.equal(y.near, true);
+  const two = tripRun.vehicleYield(P, [car(-6, 0.5, 1.2), car(6, -0.5, 5)], null, stand);
+  assert.ok(Math.abs(Math.abs(two.to!.z + 0.5) - AT.YIELD_SIDE) < 1e-9, 'the one waiting longest');
+  assert.equal(AT.YIELD_AFTER_S, 1);
+});
+
+test('CP-2 the phone map: a map tap swallows its click; the lifted OSM credit ignores clicks just after a map gesture', () => {
+  const el = (sel: string | null) => ({ closest: (q: string) => (sel && q.split(',').map(s => s.trim()).includes(sel) ? {} : null) });
+  assert.equal(MG.mapGestureTarget(el(null) as unknown as EventTarget), true, 'the canvas');
+  for (const c of ['button', 'a', '.mw-gocard', '.mw-chooser', '.mw-legend-pop']) assert.equal(MG.mapGestureTarget(el(c) as unknown as EventTarget), false, c);
+  assert.equal(MG.mapGestureTarget(null), false);
+  assert.equal(MG.creditGuarded(1000, 1000 - MG.CREDIT_GUARD_MS + 1), true);
+  assert.equal(MG.creditGuarded(1000, 1000 - MG.CREDIT_GUARD_MS), false);
+  assert.equal(MG.creditGuarded(1000, -Infinity), false, 'a deliberate tap on the credit still opens it');
+  // the wiring in the map (a touchend that prevents the click, the credit's own guard)
+  const src = readFileSync(new URL('../src/opus-bay/ui/CityMap.tsx', import.meta.url), 'utf8');
+  assert.match(src, /onTouchEnd=\{onTouchEnd\}/);
+  assert.match(src, /openstreetmap\.org\/copyright"[^>]*onClick=\{onCreditClick\}/);
+  assert.match(src, /e\.preventDefault\(\)/);
+});
+
+test('CP-7 trip ends: Fort Point on the seawall at the fort, the bison paddock at its fence, both inside the arrival radius, facing it, clear of the coins', async () => {
+  const fp = ATTRACTION_INDEX.get('fort-point')!, bp = ATTRACTION_INDEX.get('bison-paddock')!;
+  for (const a of [fp, bp]) {
+    const d = tripDestination(a);
+    assert.ok(Math.hypot(d.x - a.x, d.z - a.z) < 12, `${a.id}: the end is inside the 12 u arrival radius (the moment fires there)`);
+    assert.equal(typeof a.arrival!.heading, 'number');
+    // the heading looks at the landmark (within 45°)
+    const want = Math.atan2(a.x - d.x, a.z - d.z), diff = Math.atan2(Math.sin(want - a.arrival!.heading!), Math.cos(want - a.arrival!.heading!));
+    assert.ok(Math.abs(diff) < Math.PI / 4, `${a.id} faces it (${diff.toFixed(2)})`);
+  }
+  const { COIN_TRAILS, COIN_CACHES } = await import('../src/opus-bay/economy/coinSpots');
+  for (const a of [fp, bp]) {
+    const e = a.arrival!;
+    for (const t of COIN_TRAILS) for (let i = 0; i < t.p.length / 3; i++) assert.ok(Math.hypot(t.p[i * 3] - e.x, t.p[i * 3 + 2] - e.z) >= 4, `${a.id}: trail ${t.id} #${i + 1}`);
+    for (const c of COIN_CACHES) assert.ok(Math.hypot(c.x - e.x, c.z - e.z) >= 6.5, `${a.id}: cache ${c.id}`);
+  }
+});
+
+test('CP-13 the zh HUD: the hero waterfront zones in zh in the city (the district keeps its frozen names); a find without a zh name says 个地点', async () => {
+  const CZ = await import('../src/opus-bay/data/cityZones');
+  const han = /[㐀-鿿]/;
+  for (const z of DISTRICT.zones) {
+    const n = CZ.CITY_HERO_ZONE_NAMES[z.id];
+    assert.ok(n, `${z.id} has a city name`);
+    assert.ok(han.test(n.zh) && !/[A-Za-z]/.test(n.zh), `${z.id}: "${n.zh}" is zh only`);
+    assert.ok(n.zh.length <= 12, `${z.id} fits the pill`);
+    assert.equal(CZ.zoneName(z.id), n);
+  }
+  // the district's own texts are untouched (frozen: data/district.ts)
+  assert.equal(DISTRICT.zones.find(z => z.id === 'coit')!.name.zh, 'Coit Tower · 电报山');
+  assert.equal(DISTRICT.zones.find(z => z.id === 'exploratorium')!.name.zh, 'Exploratorium · Pier 15');
+  assert.equal(CZ.CITY_HERO_ZONE_NAMES.coit.zh, '科伊特塔 · 电报山');
+  // the find chip
+  assert.deepEqual(G.foundChipText({ n: 1, first: bi('Golden White House') }), { zh: '+1 个地点', en: '+1 · Golden White House' });
+  assert.deepEqual(G.foundChipText({ n: 1, first: bi('格林威治台阶', 'Greenwich Steps') }), { zh: '+1 · 格林威治台阶', en: '+1 · Greenwich Steps' });
+  assert.deepEqual(G.foundChipText({ n: 3, first: bi('Boiler rooms') }), { zh: '+3 个地点', en: '+3 places' });
+  assert.equal(G.hasCjk('The Embarcadero & Green St'), false);
+  // the pill reads the city names first (ui/GuideLayer CityAreaLabel)
+  const src = readFileSync(new URL('../src/opus-bay/ui/GuideLayer.tsx', import.meta.url), 'utf8');
+  assert.match(src, /CITY_HERO_ZONE_NAMES\[area\][^;]*\?\? zone\?\.name/);
+});
+
+test('lane F\'s request: lane A\'s result card and first-flight chip are HUD boxes (the waypoint and the bubble keep off them)', async () => {
+  const { HUD_BOX_SELECTOR } = await import('../src/opus-bay/game/hudLayout');
+  for (const c of ['.ob-play-result', '.ob-play-flight', '.ob-go-chip', '.ob-found-chip']) assert.ok(HUD_BOX_SELECTOR.split(', ').includes(c), c);
+});
