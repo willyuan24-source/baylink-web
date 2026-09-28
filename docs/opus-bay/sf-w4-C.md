@@ -589,3 +589,122 @@ On the tree rebased over `b41e95c` (lane T's wiring W4-T3 … W4-T13 on top): `n
 over `fc27bff` lane L's two site-tops tests failed until its `ebdc3a7`; over `ebdc3a7` 743 / 744 with the E2-5 "view
 field in the city" wall-clock test under load, green alone 24 / 24.) Lane C's four files: 61 / 61. No relayed owner
 message arrived. Higgsfield: 0 credits.
+
+## Integration part a
+
+Integration implementer of lane C, 2026-09-27 (16:30–19:45 PDT), worktree `C:/Users/willy/wt/i4-c` (branch `i4-c`), dev
+port 5405, scratch `C:/Users/willy/opus-qa/w4i/i4-c/`. Commits on `opus-bay`: `ae3d577` (W4-IC1), `95dfa46` (W4-IC1b),
+`2efc5b9` (W4-IC2), `344bbc2` (W4-IC3), `fbd13df` (W4-IC4) and this report.
+
+### 给主人的摘要
+
+1. **进度（回复"现在进度如何"）**：C 线接线的第一部分完成并已推上去——"行程"、"抵达时刻"、BAYBAY 的导游台词、三个新目标、132 张新介绍卡和"环游旧金山 · 一日游"现在都在真实游戏里跑起来了；剩下的细节（见 Not done）放在第二部分。
+2. 城市模式欢迎时选"刚来湾区，带我认识一下"就开始一日游：先选完整版（约 26 分钟）或快速版（约 18 分钟）；每一站都是一段"跟 BAYBAY 走"的行程——她带路到车站，上车时直接弹出"上车 · 坐到 金门大桥 · 游客中心（约 3 分钟）"，坐车时 BAYBAY 讲解，到站说一句，停一会儿再带你去下一站；中途可以跳过一站或结束，下次从"继续一日游 · 第 N 章"接着走，结束有回顾面板（路线画在 P 线的纸地图上）。
+3. 走到一个景点（比如州立大学）会触发"抵达时刻"：金色提示"抵达 · 旧金山州立大学"、BAYBAY 说一句介绍、盖章、这个地方以后可以飞过去。新增三个目标：坐观光巴士逛 8 站、坐地铁去海边或州立大学、走到 3 所大学。明信片从 20 张变成 24 张（V 线画的州大草坪、音乐广场、天涯海角、西门）。
+4. 124 个新景点加 8 个著名地点的介绍卡能在地图和抵达卡里打开，带授权照片和出处；10 个老地标卡补上了最新状态（比如双峰步道施工）。
+5. 游戏主包没有因为这些功能变大：把活动卡、普通地点卡、第一课结业小结和目标检测改成用到时才加载，接线后主包反而比接线前小（830.20 kB / 309.63 kB gzip，接线前 835.45 / 310.82）。检查：tsc 0、eslint 0 错误、全套 802 个测试全部通过；Higgsfield 0 分。
+
+### What was wired (files, API)
+
+| file | what | API for other lanes |
+|---|---|---|
+| `game/flow.ts` (main graph) | thin trip / city-tour entry points; objective priority freeLead > trip > tour > week > mapTarget > freeHint; a city free lead is a one-leg trip; `startTour(tourId)`; the first lesson's `currentStop()` is null while a city tour owns `game.tour`; the city call menu (一日游, or 继续一日游 · 第 N 章; 海边 7 站（湾区第一课）); 附近有什么 names the nearest loop stop / Metro station | `startTrip(option, { placeId, attraction?, name? }, source)` · `skipTripLeg()` · `replanTrip(option)` · `endTrip()` · `tripGuide(now)` · `tourPill()` (the objective pill's words for both tours) · `dismissArrival()` · `lastArrivalAt()` / `noteArrivalMoment()` · `setTripRunner` / `setCityTourApi` · `cityTourActive()` |
+| `game/tripRun.ts` (**new**, city chunk) | the trip runner on `flow.trip`: walk (the brain's lead), line (lead to the stop → lane T's `boardLine(stop, { to, line })` for the loop / Metro, lane C's own pre-filled dialogue for the cable cars / F-line / ferry; a ride that ends ≤ 40 u from its stop ends the leg, anywhere else the rest becomes one walk), bike / car (lead to it, `moveApi.driveTo` once mounted), fly (`startTravel`); events start / leg / end / cancel in order; an arrived trip clears after 4 s | `dispatchTrip(action)`, `rideNodeFor(leg)`, `lineRunning(leg)`, `tripStage()` (QA) |
+| `game/brain.ts` | a trip leads before the first lesson and the week; the soft hint waits during trips and 60 s after an arrival (lane G's step 11) | `leadTo(now, dest, r, onArrive)` |
+| `game/cityMoments.ts` (**new**, city chunk) | arrival moments (ArrivalWatcher over lane P's ATTRACTIONS, 4 Hz) → the `arrival` event, `flow.arrival` (cleared after the card's 6 s), the line through BAYBAY's pacer, the stamp sound, the place discovered, save v2 `arrivals`, campus marks; the pacer with early review 2's rules (`clipSecondsFrom(TOUR_VOICE_CLIPS, voiceLang)`, G2's silent gate, held by another bubble); transit narration via `transitSay`; the ride goals from lane T's events; the wave-4 goal waypoints; lane G's planner goal rules (`registerTripGoals('c-goals', …)`); `__opusBay.c` in DEV | `offerLine`, `offerPaced`, `sayTunnel`, `noteLoopRide(from, to)`, `arrivalSeen(id)`, `openGoalRules()`, `rideGoalTargets()` |
+| `game/cityContent.ts` | loads tripRun / cityMoments / cityCards in city mode; `registerGoalTargets` | `arrivalSeen(id)`, `sayTunnel(line, fromAt, toAt)`, `noteLoopRide(from, to)` (main-graph forwards, safe before the chunk lands) |
+| `game/cityTour.ts` (**new**, lazy on the first tour) | the Grand Tour engine: 完整版 / 快速版 on a fresh tour; every stop a `tour` trip (`tourStopOption`; the express version's merged rides, `playedStop`); chapter intro / stop lead / arrive (express `expressArrive`) / chapter outro through the pacer; dwell by moment (arrive 20 s, photo 25 s, panorama 45 s, a ride 3 s; ends early once the player walks 18 u away); the call-menu rows; save v2 `tours`; the recap | `initCityTour()`, `skipCityTourStop()`, `playedStop()`, `savedProgress(id)`, `cityTourRun()` (QA) |
+| `game/cityCards.ts` (**new**, city chunk) | the 132 cards in PoiCard (POI resolver, `CardLookup`), photos from `src/data/sf-landmark-photo-assets.json` (480 w, credit / licence / page), 官网 / 更多来源 / zone eyebrow; CARD_REFRESHES patch the 10 built landmark cards (the status first among the tips) | `cardLookup(set)`, `cardPoi(card)`, `refreshedPoi(poi, r)` |
+| `data/sf/cityPois.ts` | `placeCardTarget` order: landmark card → district POI card → wave-4 card → generic place card | `attractionCardId(a)` (the card an attraction opens), `setCardLookup` |
+| `game/interactables.ts` | POI resolvers (cards that are not in POIS) | `registerPoiResolver(fn)` |
+| `data/sf/goals.ts` · `data/sf/goalMarks.ts` (**new**, lazy) | goals 7 → 10: sightseeing (a `loop:<stop>` mark per stop reached on real rides; 8), metro (a ride ≥ 150 u that gets off at La Playa / Winston / Holloway), campuses (arrival moments at 3 of SF State, USF, UCSF ×2, CCSF); progress "3/8", "1/3" | `loopStopReached`, `campusArrived`, `metroRideCounts` |
+| `data/save.ts` · `data/wishlist.ts` | save v2 `tours` (≤ 8 ids, clamped) and `arrivals` (≤ 512 keys) decoded as untrusted input; goalsDone keeps 128 ids (G2 w3 b2, routed); the progress save keeps the first lesson's stops apart while a city tour holds `game.tour` | `decodeTours`, `decodeArrivals`, `districtTourProgress()`, `GOALS_DONE_MAX` |
+| `data/script.ts` · `data/sf/copy.ts` | the city welcome's choice 1 = `{ type: 'start-tour', tourId: 'sf-grand' }` with the sub "全城 5 章 · 约 26 分钟 · 随时下车" (routed); the city title greeting (G1 w3 a4, routed); the `streetcarBoard` hook (F w3 a, routed; `ferryBoard` / `ferryOff` existed); 24 postcards in BAYBAY's lines | `GRAND_TOUR` (tested equal to `SF_GRAND`) |
+| `data/sf/postcards.ts` | W4-C9: lane V's four postcards join (16 city + 8 = 24) | `CITY_POSTCARD_IDS` |
+| `ui/Moments.tsx` · `ui/CityTourRecap.tsx` (**new**) · `ui/DistrictRecap.tsx` (**new**) | the recap panel: the Grand Tour's (TourRecap with lane P's `RecapMap` as `mapSlot`; stamps = arrivals of the tour's attractions) or the first lesson's, both lazy | — |
+| `ui/PoiCard.tsx` · `ui/PlaceCard.tsx` (**new**) · `ui/EventCard.tsx` · `ui/EventCardBody.tsx` (renamed) | the generic place card and the event card load on first use (GameRoot) | `GuideRow`, `NearEvents` exported |
+| `game/cityGoals.ts` · `game/cityDetectors.ts` (**new**) | the goal detectors moved out of the main graph (cityLive imports them) | — |
+| `data/VOICE.md` | the wave-4 glossary (Stonestown, SF State, USF, UCSF, CCSF, Blue Heron Lake, 克莱门街 vs 企李街, Bay Bridge / Marina Green / Treasure Island, the island piers, Corona Heights, the lines and stations, 日落隧道 / 双峰隧道, the Grand Tour) and R11 | — |
+| `tests/opus-bay-sf-tripflow.test.ts` (**new**, 12) | trips (start / waypoint / lead / end / clear; a new trip cancels; endTrip; the week; the city free lead; line legs through lane T's boarding and lane C's ferry dialogue; a ride that ends early walks on; the soft hint), the goals, save v2 fuzz, the progress guard, the Grand Tour copy, the Grand Tour engine end to end (welcome → version → stops → dwell → next → call menu → end → recap → resume → Bay 101 after it; `tourPill`), arrival moments (flow.arrival, the paced line, campus marks, transit narration, 直接到站 marks, goal rules), place cards (resolver, row lookup, `attractionCardId`, refresh) | — |
+| `tests/opus-bay-sf-content.test.ts` | changed on purpose: 10 goals, the welcome's choice 1 = the Grand Tour, 24 postcards (16 city cards: the four's facts, cards, anchors), the detectors' module | — |
+
+### Evidence
+
+- **Checks** on the pushed tree `fbd13df` (rebased over `bdac04e`; the final rebase over `248eb60` brought one lane-V
+  world-light commit, tsc re-run): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings, none
+  in lane C's files) · full opus-bay suite **802 / 802** (790 / 790 and 792 / 792 on the earlier pushes; one run over
+  `fd57e45` had lane L's two geary-west tests red on origin itself, green after L's `94badf8`).
+- **GameRoot** (vite build, `vite.opus.config.ts`): origin `786c93e` 835.45 kB / 310.82 kB gzip → with lane C's wiring
+  **830.20 kB / 309.63 kB** (W4-IC1b). On the pushed tree (lanes G / P / T / V wired too) GameRoot is **790.95 kB /
+  298.51 kB**; lane C's own chunks there: tripRun 8.64 kB, cityMoments 11.20 kB, cityTour 9.77 kB, CityTourRecap 8.65 kB,
+  cityCards 2.70 kB, PlaceCard 3.29 kB, EventCardBody 4.57 kB, DistrictRecap 4.60 kB (raw).
+- **In-game** (dev server 5405, RTX; every screenshot read): desktop 1440 × 900 — the city welcome with "全城 5 章 · 约 26
+  分钟 · 随时下车" (`docs/opus-bay/qa/w4/C/ia-welcome-desk.jpg`); the 完整版 / 快速版 question; BAYBAY's chapter intro
+  bubble and the waypoint "渡轮大厦 · 约 9 秒" on the first stop; lane T's pre-filled boarding "上车 · 坐到 ★ 金门大桥 · 游客
+  中心（约 3 分钟）" at the loop pole (`ia-tour-bus-board-desk.jpg`); the bus ride with the RideBanner and the waypoint
+  "金门大桥 · 游客中心 · 约 4 分钟" (`ia-tour-bus-ride-desk.jpg`); an arrival at SF State (`?at=sf-state-university`):
+  `flow.arrival` toast "抵达 · 旧金山州立大学", peek + reveal, BAYBAY's line "到州立大学啦！1899 年建校…" 0.25 s later,
+  `campus:sf-state-university` marked, the next-goal row "坐地铁 · 19th & Holloway · 州立大学 · 约 14 秒". Phone 390 × 844
+  dpr 3 (quality mid) — the version question (`ia-tour-choose-phone.jpg`); an express run stepped through 9 stops then
+  结束 → the recap (9 / 16 stops, chapters 3/3 · 2/2 · 2/2 · 2/3 · 0/6, 快速版 · 约 18 分钟; `ia-recap-phone.jpg`); the SF
+  State card with its licensed photo, credit and BAYLINK guide (`ia-card-sfsu-phone.jpg`); the goals card with the ten
+  goals (`ia-goals-phone.jpg`); the city call menu (7 rows in two columns).
+- **Routed requests** (lead-merge §8.4): done — `goalsDone: strings(raw.goalsDone, 128)`; the welcome choice →
+  `start-tour` with `tourId: 'sf-grand'`; `flow.arrival` for the beats; `SfPlaceKindAll` needs no change (it is
+  `SfPlaceKind`); `greet` in copy.ts; the `streetcarBoard` hook (`ferryBoard` / `ferryOff` were there). Not done: the
+  optional ZH_GLOSSARY / PLANNER_DROP clean-up (Not done below).
+
+### Decisions
+
+- **The main graph stays thin**: flow.ts holds registries and one-line entry points; the trip runner, the moments, the
+  cards and the tour are their own chunks (city only, or the first tour). The district never loads them: district mode is
+  unchanged (hero regression and the district tests green).
+- **One trip at a time**: a new trip cancels the running one (events cancel → start); 带我去 (`navigateTo`), the week and a
+  district tour end it; a fast travel the player starts (not a fly leg) ends it.
+- **Pre-filled boarding**: lane T's `boardLine(stop, { to, line })` for the loop / Metro (its dialogue, its `ln:` ride);
+  lane C's small dialogue ("上车 · 坐到 …（约 N）" / "先不坐") for the cable cars, the F-line and the ferry. A wave-4 line
+  counts as running once lane T's `transit-<stop>` interactable exists; otherwise BAYBAY says "这条线今天没开，我们走过去
+  吧！" and the trip walks.
+- **A ride that ends early** (提前下车, another destination) turns the rest into one walk from where you are: honest, no
+  teleport; within 40 u of the alight stop counts as arrived.
+- **Grand Tour pacing**: every line goes through the pacer; a stop's dwell waits only for the line being spoken (lines
+  held by another bubble keep their order and ttl), so a G2 city line cannot stall the tour.
+- **The first lesson's progress** stays in progress v1; `game.tour.id` says whose stops `game.tour` holds, and the progress
+  save keeps the first lesson's last state while the Grand Tour runs (the Grand Tour's progress is save v2 `tours`).
+- **GameRoot offset**: the event card, the generic place card, the first lesson's recap and the goal detectors became lazy
+  (each opens once: a short Suspense on first use), so the wiring made GameRoot smaller, not larger.
+
+### Known gaps
+
+- Lane G's objective pill says "湾区第一课 N/7" while the Grand Tour dwells at a stop (between two trips); during each trip
+  lane G's trip pill is right. Request below (`tourPill()` is ready and tested).
+- The arrival card's 看介绍 opens `sf:<place>`: for the two cards that share a row (Japan Center on the Peace Pagoda row,
+  the Ferry Building marketplace) that is the row's card, not theirs. Request below (`attractionCardId(a)`).
+- (Closed while this report was written: lane T's `3b3235c` sends the subway tunnel line and the loop hop-off tip through
+  BAYBAY's pacer (`sayTunnel` / `offerLine`), drops its own Metro boarding bubble, and reports the loop stops a counted
+  直接到站 skips (`noteLoopRide`), which were this part's three requests to lane T.)
+- In one `?start=free&at=…` run the free-roam intro bubble left after ≈ 1 s instead of 4.2 s; nothing in lane C's code
+  clears bubbles (only flow.ts' own timers and `playDialogue`) and no dialogue opened. To trace in part b.
+
+### Not done (part b)
+
+- Tour polish: the optional side stops (Fort Point, the deck walk) as a choice at the Welcome Center; the photo moment
+  waiting for the shutter; the express version's 直接到站 hint on the long Metro legs; the stops' two-shot framing
+  (`stageMark` / `stopSubject` from `SfLandmarkInfo.photo`); the four new postcards on their tour stops; the express run
+  timed end to end (18 ± 3 min, scripted with `?qa`).
+- The journal's list of arrival stamps; the plan's remaining shots (a hop-off moment at the Palace, the Stonestown
+  arrival, the SF State campus moment with lane G's card on the phone).
+- Optional: drop the landmark part of `ZH_GLOSSARY` / `PLANNER_DROP` (D2 w3 a); R2-O1 (Marina Green 码头绿地 → 马里纳绿地,
+  with lane P); the time-sensitive cards re-checked in the final verify.
+
+### Requests
+
+- **Lane G** (`ui/Hud.tsx` Objective): when `tourPill()` (game/flow.ts) belongs to a city tour (`id !== 'first-lesson'`),
+  show its `name` ("一日游 · 海湾"), `step / total` (chapters, 5 dots) and `next`, not the hard-coded 湾区第一课 and
+  `tourStops().length`; the first lesson can read the same function. (`ui/GuideLayer.tsx` ArrivalCard): `onInfo` →
+  `openPanel('poi', attractionCardId(ATTRACTION_INDEX.get(card.attraction) ?? { id: card.attraction, placeId: card.place }))`
+  (data/sf/cityPois.ts), so Japan Center and the Ferry Building marketplace open their own cards.
+- **Lane T**: none open (the three of this part landed in `3b3235c`).
+- **Lane P**: `arrivalSeen(attraction)` (game/cityContent.ts) for the map's "arrived" tick; `attractionCardId(a)` for the ⓘ.
+
+Relayed owner message during this part: "现在进度如何" (answered in the summary's first line). Higgsfield: 0 credits.
