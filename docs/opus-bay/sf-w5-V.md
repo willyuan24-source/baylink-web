@@ -278,3 +278,270 @@ for byte unchanged: the far detail, the tile split and the residents' rule are c
 - `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: 1,102 / 1,102 before the last rebase; after it
   the affected tests 83 / 83 (see Evidence). Lane V's new tests: `opus-bay-w5-perf` (9), `opus-bay-sf-budget` P7 (extended).
 - Higgsfield: 0 credits in part a (no job run; the ledger `docs/opus-bay/ledger/w5-V.md` starts with part b's first batch).
+
+## Part b
+
+### 给主人的摘要
+
+1. **外城的夜晚亮了**：除了金融区和 SoMa（那里本来就有地图上的路灯），日落区、列治文区等所有住宅区的街道晚上都立起了路灯，灯下有光圈，住宅街路面也微微发亮；晚上地上的金币会一闪一闪。没有多一次绘制。
+2. **BAYBAY 会说第五波的新台词了**：141 句 × 中英文 = 282 条录音（还是 Pixie 的声音），她的气泡说到录过的句子就自动播放，电脑和手机都试过。试听单在 `docs/opus-bay/qa/w5/V/voice/listening.md`（每批一个连播文件）；英文 "Me first! Again?" 语速偏慢，先静音，等你听过再决定。
+3. **六张彩蛋明信片画好了**（中国海滩的渔船、电报山的鹦鹉、海浪风琴、Lands End 石头迷宫、大丽花园、金门大桥的雾笛），还要 D 线把它们放进彩蛋卡片，游戏里才看得到。
+4. **上线前查出一个真问题**：正式网站现在的安全设置（CSP）会拦住 AI 3D 模型的解码，正式网站上所有 AI 模型都会退回简易版（比如艺术宫）；加两处设置就好，改法和验证工具已交给总负责人（vercel.json 只有总负责人能改）。另外正式网站还没有 /opus-bay 这个地址的路由。
+5. **性能**：电脑版 19 个测点、3 段乘车、夜景和活动日全部 60 帧、没有卡顿，最多 117 次绘制 / 35 万三角形（上限 150 / 40 万）。手机（4 倍降速）7 个市中心测点 6 个过关；唐人街走路时有 1 帧超过 100 毫秒——V5 之前的版本也一样，不是这次加的，请总负责人在安静的机器上复查。
+6. Higgsfield 这部分共花 **22.90 分**（上限 130），余额 400.07 → 377.17；账本 `docs/opus-bay/ledger/w5-V.md`。
+
+### What was built
+
+| task | commit(s) | files |
+|---|---|---|
+| **W5-V5** nights: outer-district lamps, the residential glow, coin glints | `da331c9` | `src/opus-bay/world/sf/{look,build,lights}.ts` |
+| **W5-V7** voice: the inventory, three recording batches, the binder, the owner's listening sheet | `82bf29b`, `2d8c7de`, `21c6c4d` | `scripts/opus-sf/voice/w5/{lines.ts,post.py}`, `src/opus-bay/data/sf/voiceW5.ts` (generated), `src/opus-bay/game/voiceW5.ts` (new), `src/opus-bay/world/sf/cityWorld.ts` (the lazy start), `public/opus-bay/w5/voice/` (282 × `.m4a` + `.ogg`), `docs/opus-bay/qa/w5/V/voice/` |
+| **W5-V8** Higgsfield: the six secret postcards (H5-2) and the voice (H5-3), the ledger | `82bf29b` (ledger rows in every voice commit) | `scripts/opus-sf/assets/w5/{prompts.py,prompts.json,postcards.py}`, `public/opus-bay/w5/postcards/` (12 WebP, 752 KB), `src/opus-bay/data/sf/eggPostcards.ts` (new), `public/opus-bay/README.md`, `docs/opus-bay/ledger/w5-V.md` |
+| **W5-V9** the production-header check | `bb7b843` | `scripts/opus-sf/qa/csp-serve.mjs` (new), `scripts/opus-sf/qa/perf/w4-perf.mjs` (`--date`) |
+| **W5-V6** the gate after the lane batches; lane R's clock request | `41e3f13` + this report | `src/opus-bay/world/clock.ts` |
+| tests | in the commits above | `tests/opus-bay-w5-perf.test.ts`: +9 (V5 × 4, V7 × 3, V8 × 1, the clock × 1; 18 in all) |
+
+**Nights (W5-V5).** Wave 4 lit only the streets with mapped (OSM) lamps, which are almost all downtown; the Sunset, the
+Richmond and the other hoods were dark at night.
+
+- `look.ts`: `NIGHT_STREETS` and `litOuterZone(zone)` — every DataSF zone is lit except
+  `financial-district-south-beach` and `south-of-market` (their mapped lamps stay as they were). In a lit zone the
+  residential streets' ground glow is level **0.35** with the pattern stretched × 0.375 (one warm pool per side every
+  24 u); arterials keep wave 4's glow.
+- `build.ts outerLamps(ctx)` (chunk worker): lamp posts along the published streets of a lit zone, every **12 u** on
+  residential streets and **9 u** on the main ones, on alternate kerbs, off every carriageway (half-width + 0.29 u),
+  ≥ 10 u from a mapped lamp, ≥ 1.1 u from a tree, never on the hand-made district; deterministic. They are appended to
+  the chunk's props as ordinary lamps, so wave 4's capped lamp layer draws them (the nearest 48 within 120 u, ≈ 24 in
+  view, with their halos and pools): **no new draw call, material or program**.
+- `lights.ts`: the night light field keeps **16 glint slots** after its lights (the same `THREE.Points` draw); at night
+  `coinGlints()` fills them with the nearest coins lane E draws (`economy/coins.ts coinWorld`, imported lazily, so no
+  economy code enters the main graph), refreshed ≤ 5 Hz, a small gold star 0.45 u over the coin that twinkles; by day the
+  slots are cleared.
+
+**Voice (W5-V7).**
+
+- The inventory (`scripts/opus-sf/voice/w5/lines.ts`) reads the lanes' own sources — A `play/`, C's pelican / goals /
+  rumours / welcome, flow's two nudges and the frozen `data/sf/linesW5.ts`, N `goTo`, E `economy/`, D `eggs/` and the
+  registry, R's single-text lines — and keeps BAYBAY's spoken sentences only (no labels, templates, other speakers' lines,
+  notes or scrolls). A line's id is `w5-<lane>-<sha1 of both texts>`, or the lane's own id (C's `w5c-*`, R's `realsf-*`).
+- Recorded with `qwen_audio_tts`, preset **Pixie** (the wave-4 voice), zh and en; post (`post.py`): trim, two-pass loudness
+  −18 LUFS / −1.5 dBTP, AAC 64k `.m4a` + Opus 48k `.ogg`; every pick passes the measured gates (no clipping or cut-off,
+  pauses and pace normal; a one- or two-word call ≤ 1.5 s); the Windows recogniser's closed-grammar check is advisory.
+  A line no source says any more is retired (out of the table, files deleted, kept in the report).
+- The table `data/sf/voiceW5.ts`: **141 lines** (A 40, C 11, D 84, N 1, R 5) = **282 clips**, 281 through the gates,
+  272 heard right by the recogniser, 21 minutes, 18.2 MB on disk (a player fetches one format of a clip, only when she says
+  it). `W5_VOICE_CHECK` = `en-w5-a-2fe95a24` ("Me first! Again?", 1.4 words / s on both takes): text only until the owner
+  approves it.
+- The binder `game/voiceW5.ts`, started lazily by `world/sf/cityWorld.ts` (city chunk): every new **BAYBAY** bubble whose
+  zh + en text is a recorded line emits `voice-line <id>` once (audio.ts plays `<lang>-<id>`, the chirp while it loads).
+  No lane had to wire anything; a changed text simply stays text. Residents are never voiced. Lines a lane voices itself
+  (`own`: R's `realsf-*` from `realsf/index.ts`, C's 11 paced `w5c-*` lines) are left to that lane — no double play.
+- The owner's sheet `docs/opus-bay/qa/w5/V/voice/listening.md`: every clip with its text, length, gates, recogniser and an
+  empty "你的判断" column; `w5-voice-preview-b{1,2,3}-{zh,en}.m4a` play each batch's picks in order.
+
+**Secret postcards (W5-V8, H5-2).** One per egg with a card in lane D's registry: `china-beach-fishermen`,
+`telegraph-hill-parrots`, `wave-organ-high-tide`, `lands-end-labyrinth`, `dahlia-dell-100`, `ggb-foghorn-duet`. The
+shipped postcards' recipe verbatim (nano_banana_pro 4:3 2k, refs P5 + P13, the style contract, "no text"); two draws were
+rejected for a visible base edge and redrawn full-frame. 1200 × 900 and 600 × 450 WebP q82;
+`data/sf/eggPostcards.ts`: `eggPostcard(egg) → { title (zh / en), alt, large, small } | null`. Generic scenes only: no
+person, logo, insignia, lettering or copy of a real artwork (the Wave Organ is "carved stones and pipes", not the
+installation).
+
+**The production-header check (W5-V9).** `scripts/opus-sf/qa/csp-serve.mjs --dir <dist> --port <p> --vercel vercel.json
+[--spa /opus-bay] --log <json>` serves a built `dist` the way Vercel would from `vercel.json`'s `routes` (headers with
+`continue`, rewrites, `handle: filesystem`, the final 404), adds `report-uri` to the CSP and collects every report and every
+failed request (`/__csp-stats`). Played for 5–7 minutes in headless Chrome through the UI only (six to eight `?at=` spots, day
+and night, walking, the map, the journal, a click for audio):
+
+- **Today's CSP breaks every AI model in production.** three's `DRACOLoader` compiles its WASM decoder in a blob worker
+  (`script-src` has no `'wasm-unsafe-eval'`), and `GLTFLoader` reads a model's embedded WebP textures with `fetch(blob:)`
+  (`connect-src` has no `blob:`). Each AI model then falls back to its procedural stand-in — the Palace of Fine Arts
+  shows its procedural stand-in. Nothing else was blocked; the fonts, tiles, voice and images load.
+- The fix (a request: `vercel.json` is the lead's): `script-src 'self' 'wasm-unsafe-eval'` and
+  `connect-src 'self' blob: https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org`.
+  `'wasm-unsafe-eval'` allows WebAssembly compilation only (not `eval`); `blob:` in connect-src allows reading the page's
+  own blob URLs.
+- `vercel.json` has no route for `/opus-bay`: behind the filesystem it falls to the 404 page. The run served it with
+  `--spa /opus-bay` (like `/me` → `/index.html`).
+
+**The world clock (lane R's request 3).** `world/clock.ts bayClock / isMarketDay / isMarketOpen` default `now` to
+`game/bayNow.ts bayNow()` (dependency-free, already in the main graph): with `?date=` in DEV / QA builds the Ferry clock
+hands and the market stalls follow the dated time like the rest of wave 5; production and every explicit date read as
+before.
+
+### Evidence
+
+**The gate after the lane batches** — the pinned gate tree at `21c6c4d` (the part-b work of lanes A, C, D, F, L, N, R, T
+and V's voice; lane E's part b was not pushed yet; `bb7b843` changes no runtime code, `41e3f13` only the clock's default),
+dev server 5516, 2026-09-28 14:54–15:35 UTC, CPU 11–17 % when checked between runs; desktop 1440 × 900, quality high,
+RTX 3070 laptop (`--force_high_performance_gpu`), golden. Max over the standing, aimed, idle and walking measures.
+
+| spot / ride | calls · triangles | headroom (150 · 400k) | fps idle / walk (ride) | p95 ms | > 100 ms | part a (after the levers) |
+|---|---|---|---|---|---|---|
+| ferry-gate | 104 · 352k | 46 · 48k | 60.1 / 60.1 | 16.7 | 0 | 104 · 384k |
+| chinatown | 113 · 272k | 37 · 128k | 60.1 / 60.1 | 16.8 | 0 | 125 · 334k |
+| twin-peaks | 108 · 293k | 42 · 107k | 60.1 / 60.1 | 16.7 | 0 | 107 · 311k |
+| civic-center | 76 · 239k | 74 · 161k | 60.1 / 60.1 | 16.7 | 0 | 84 · 326k (day-0) |
+| union-square | 75 · 279k | 75 · 121k | 60.1 / 60.1 | 16.7 | 0 | 85 · 338k |
+| music-concourse | 85 · 221k | 65 · 179k | 60.1 / 60.1 | 16.7 | 0 | 88 · 249k (day-0) |
+| stonestown-sfsu | 67 · 215k | 83 · 185k | 60.1 / 60.1 | 16.7 | 0 | 71 · 202k (day-0) |
+| haight-usf | 91 · 294k | 59 · 106k | 60.1 / 60.1 | 16.7 | 0 | 93 · 286k (day-0) |
+| ocean-beach | 43 · 104k | 107 · 296k | 60.1 / 60.1 | 16.7 | 0 | 47 · 106k (day-0) |
+| ggb-south | 59 · 100k | 91 · 300k | 60.1 / 60.1 | 16.7 | 0 | 52 · 111k (day-0) |
+| mission | 85 · 317k | 65 · 83k | 60.1 / 60.1 | 16.7 | 0 | 80 · 325k (day-0) |
+| grace-nob-hill | 93 · 258k | 57 · 142k | 60.1 / 60.1 | 16.7 | 0 | 96 · 325k |
+| powell-market | 117 · 319k | 33 · 81k | 60.1 / 60.1 | 16.7 | 0 | 123 · 371k |
+| fidi | 82 · 261k | 68 · 139k | 60.1 / 60.1 | 16.7 | 0 | 88 · 291k |
+| ggb-deck | 43 · 80k | 107 · 320k | 60.1 / 60.1 | 16.7 | 0 | 59 · 207k (day-0) |
+| hellman-hollow | 63 · 195k | 87 · 205k | 60.1 / 60.1 | 16.8 | 0 | 67 · 222k (day-0) |
+| marina-green | 70 · 300k | 80 · 100k | 60.1 / 60.1 | 16.7 | 0 | 77 · 198k (day-0) |
+| castro | 73 · 296k | 77 · 104k | 60.1 / 60.1 | 16.7 | 0 | 67 · 304k (day-0) |
+| filbert-steps | 70 · 236k | 80 · 164k | 60.1 / 60.1 | 16.7 | 0 | 91 · 280k |
+| ride bus-palace | 69 · 222k | 81 · 178k | (60.1) | 16.7 | 0 | 103 · 421k (one frame) |
+| ride n-duboce | 77 · 247k | 73 · 153k | (60.1) | 16.7 | 0 | 84 · 324k |
+| ride m-west-portal | 66 · 221k | 84 · 179k | (60.1) | 16.7 | 0 | 84 · 309k |
+| **night** irving-night (`--time night`: V5's lamps, L's Irving corner) | 96 · 295k | 54 · 105k | 60.1 / 60.1 | 16.7 | 0 | — |
+| **event** hellman-hollow, `--date 2026-10-04T12:00` (R's bluegrass stage and crowds) | 69 · 222k | 81 · 178k | 60.1 / 60.1 | 16.7 | 0 | — |
+| **event** castro, `--date 2026-10-04T12:00` (the fair day) | 73 · 293k | 77 · 107k | 60.1 / 60.1 | 16.8 | 0 | — |
+| **event** marina-green, `--date 2026-10-09T12:40` (Fleet Week) | 76 · 145k | 74 · 255k | 60.1 / 60.1 | 16.7 | 0 | — |
+
+Programs **60 → 60** in every desktop run (first = last: everything compiled before the first measure; 58 at part a —
+the lanes' part-b materials; V5 itself measured 58 → 58 when it landed). 0 frames over 100 ms anywhere on the desktop.
+The event shots (`qa/w5/V/v6-gate-event-days.jpg`): the bluegrass stage, pennants and crowd at Hellman Hollow, the Castro
+banners; the Marina Green spot's view is the Marina streets (the jets are not in that frame). The downtown headroom grew
+since part a (Chinatown 66k → 128k, Grace / Nob Hill 75k → 142k, Powell & Market 29k → 81k: the lanes' part-b work
+plus a different arrival view; read with the 15k margin of part a).
+
+**The phone subset** (390 × 844, dpr 3, quality mid, 4× CPU, same tree, 15:28 UTC, the host quiet):
+
+| spot | calls · triangles | fps idle / walk | p95 ms | > 100 ms | gate |
+|---|---|---|---|---|---|
+| ferry-gate | 85 · 273k | 60 / **46.7** (re-run 47.4) | 33.4 | 0 | pass (≥ 45) |
+| chinatown | 92 · 231k | 59.8 / 54.2 (re-run 54.1) | 33.3 | **1** (re-run 1) | fail: one frame > 100 ms while walking |
+| twin-peaks | 78 · 202k | 60.1 / 60.1 | 16.7 | 0 | pass |
+| union-square | 62 · 225k | 60 / 60.1 | 16.7 | 0 | pass |
+| grace-nob-hill | 81 · 261k | 59.8 / 60 | 16.7 | 0 | pass |
+| powell-market | 77 · 255k | 59.9 / 59.1 | 16.7 | 0 | pass |
+| filbert-steps | 76 · 226k | 60.1 / 59.7 | 16.7 | 0 | pass |
+
+Programs 58 → 58. The Chinatown long frame is **not new**: the same run on the tree just before V5 (`a26d35f`, 15:34 UTC)
+shows it too (1 frame > 100 ms, walk 52.4 fps, 93 calls · 246k). Not profiled (Requests). The Ferry gate walks at
+46.7–47.4 fps: 2 fps above the floor.
+
+**Nights (V5)**: `qa/w5/V/v5-nights-before-after-desktop.jpg` (the Sunset, the Richmond, the Haight and Glen Park at
+night, before (`0db1687`) / after: a post with its halo and pool beside BAYBAY where the street was dark), `v5-nights-phone.jpg` (390 × 844),
+`v5-coin-glints.jpg` (the glints on a coin trail at night), and the production build at night in
+`v9-csp-fixed-production-run.jpg` (Sunset / Parkside, top right). Tests: the glow levels by zone; the lamps on four
+published outer chunks (−3_10, −4_8, −1_6, 3_5: ≥ 20 each, ≥ 150 together, inside their chunk, in a lit zone, off every
+carriageway, clear of mapped lamps and trees, deterministic) and none in the downtown chunks 1_0, 1_−1, 1_1, 1_2 or
+without zones; the lamp layer's cap (≤ 3.5k triangles); the 16 glint slots filled at night and cleared by day.
+
+**Voice (V7)** in the game (`qa/w5/V/v7-voice-in-game.json`, `v7-voice-bubbles-desktop-phone.jpg`; dev server on
+`bb7b843`, 15:45–15:52 UTC): desktop 1440 × 900 zh — a batch-1 line (一起跳！左一步，右一步～) and a batch-3 fortune
+(今日签：找张长椅坐五分钟，什么都不用做。) each played their clip once (`voice-clip:zh-w5-a-eced2a17`,
+`zh-w5-d-1c245e27`); a resident saying the same text and an unrecorded BAYBAY line played nothing. Phone 390 × 844 en:
+the same, `en-…` clips. Lane R's own emit (`realsf-daily-all`) played `zh-realsf-daily-all`; lane C's paced line said as a
+bubble (欢迎回来！) was left to lane C (nothing played by V). Tests: the inventory's rules; the table against the report
+and the files (bytes, sha256, durations, the muted clip); the binder (BAYBAY only, once per bubble, not `own`, not
+`W5_VOICE_CHECK`, off after teardown). The report `qa/w5/V/voice/w5-voice-report.json` keeps every take with its job id.
+
+**Postcards (V8)**: `qa/w5/V/v8-secret-postcards.jpg` (the six at 600 px, read at full size before use); the test reads
+each WebP's header (1200 × 900 / 600 × 450, ids = the registry's egg ids, ≤ 160 / 60 KB).
+
+**The header check (V9)**: `qa/w5/V/v9-csp-today-run.json` (today's `vercel.json`, 4.9 min, 6 spots, 7 page loads: 21
+reports — 7 × `connect-src blob:` and 14 × `script-src wasm-eval`, one blob read and two WASM compiles per page load —
+0 failed requests),
+`v9-csp-fixed-run.json` (the two additions, **6.5 min, 8 spots, 422 requests: 0 reports, 0 failed**, 15:34–15:41 UTC),
+`v9-csp-palace-today-vs-fixed.jpg` (the Palace, left today's headers: the smooth procedural rotunda; right the fix: the
+AI model's carved rotunda), `v9-csp-fixed-production-run.jpg` (four of the fixed run's spots). One `vite build` of the
+lane's tree at `21c6c4d` for both runs. (The message of
+`bb7b843` says "a 5.7-minute run"; the file it committed was the 1-minute Palace-only run. This report replaces it with
+the full run above.)
+
+**The clock (lane R's request)**: in the game (dev, `?date=`): 2026-10-03T10:30 → `bayClock()` Sat 10:30, market stalls
+shown, tarps hidden; 2026-10-05T15:00 → Mon 15:00, stalls hidden, tarps shown. Test: the same, explicit instants
+unchanged, no shift without a date.
+
+**Bundle**: GameRoot **307,689 B** gzip -9 at `21c6c4d` (part a `cf3dd82`: 301,053 B; +6.6 KB from the lanes' part b).
+Lane V's part b adds nothing to it: the lamps, glints, binder and voice table live in the city chunk and the lazy imports
+(the P7 test stays green); `world/clock.ts` now imports `game/bayNow.ts`, which the main graph already had.
+
+**Higgsfield** (ledger `docs/opus-bay/ledger/w5-V.md`, every batch with the balance before and the transactions after):
+
+| batch | what | credits |
+|---|---|---|
+| 1 | H5-3 voice, 95 lines × zh / en (190 takes) | 4.54 |
+| 2 | H5-2 the six secret postcards (8 draws, 2 rejected for a base edge) | 16.00 |
+| 3 | H5-3 10 retakes | 0.18 |
+| 4 | H5-3 the lines frozen since batch 1 (86 takes + 8 retakes) | 1.75 |
+| 5 | H5-3 the lines the first filter missed (20 takes) | 0.43 |
+| **total** | of the 130 cap | **22.90** (balance 400.07 → 377.17) |
+
+### Decisions
+
+1. **The outer lamps reuse wave 4's lamp layer** (positions from the chunk worker, drawn by the capped instanced layer
+   with its halos and pools) instead of a new night-only mesh: no draw call, no program, the cap keeps the triangles
+   flat. Downtown (FiDi / SoMa) keeps its mapped lamps only; the rest of the city is lit, including the zones with a few
+   mapped lamps (the 10 u clearance avoids doubles).
+2. **Glints live in the night light field** (16 slots at the end of its buffer, the same Points draw) rather than a sprite
+   per coin; the coins are read through a lazy import so the economy stays out of the main graph.
+3. **Voice by text match, not by wiring**: the lanes kept saying bubbles; the binder recognises a recorded text. A lane
+   that changes a line gets text only (never a wrong clip); nothing in another lane's file changed.
+4. **Lane C's 11 paced lines are recorded but not played yet.** Lane C's pacer reads `TOUR_VOICE_CLIPS`, and lane C's own
+   test pins `lineRecorded('w5c-pelican-ask') === false`; merging the table into `data/sf/voiceTour.ts` would have broken
+   that test. The clips and `W5_PACED_CLIPS` (with their seconds for the pacer) are ready (Requests).
+5. **The recogniser is advisory, the gates are not.** 10 clips the recogniser missed after retakes play (they pass the
+   gates and sound right on the sheet); the one clip that missed a gate twice (a slow "Me first! Again?") is muted for the
+   owner's ear.
+6. **The postcards follow the shipped recipe** (P5 + P13 refs, the style contract) so the six sit with the 24 in the
+   notebook; a draw with a base edge is rejected and redrawn with a full-frame line, per the stop rules.
+7. **H5-1 (shop icons) held**: lane E's shop item ids are not frozen, and drawing icons for ids that may change would waste
+   credits. **H5-4 / H5-5 / H5-6 not spent**: the signs are canvas-painted (part a), and no reference sheet or texture
+   was needed this part.
+8. **The CSP fix is a tested diff, not an edit**: `vercel.json` is frozen; `csp-serve.mjs` lets the lead check the change
+   before a deploy (the same run, one flag).
+9. **Event runs use R's `?date=`** (the runner's new `--date`), and one dated run per event day, so the normal gate stays
+   the everyday city.
+
+### Not done (part b)
+
+- **W5-V3, the city data out of GameRoot** (≈ 23–28 KB; GameRoot 307.7 KB against 265): lane N gave its OK in its
+  report, but lanes C's and L's files were still moving and no window was set; still a request to the lead.
+- **W5-V10** (the shoulds): not started.
+- **H5-1 shop icons** (held, above); **Japanese plaques** for lane L's Japantown corner (`ramen` ラーメン, `sweets` 和菓子,
+  `hon` 本): not done (the atlas has room: 22 of 32 cells).
+- **The postcards are not shown in the game yet**: `eggPostcard(egg)` is ready; the card / notebook are lanes D / E's
+  files (Requests).
+- **The Chinatown phone hitch** (one frame > 100 ms while walking at 4× CPU, pre-existing): not profiled.
+- **A crowd-wave gate run** (lane T's request, after lane A's emote wheel): not run.
+- The phone fps above are one quiet run each (two at the Ferry gate and Chinatown); the lead's quiet run stays the gate.
+
+### Requests
+
+1. **Lead — `vercel.json` (frozen)**: in the CSP, `script-src 'self' 'wasm-unsafe-eval'` and add `blob:` to `connect-src`
+   (the line in full under "The production-header check"); and a route for the game before the final 404, e.g.
+   `{ "src": "^/opus-bay/?$", "dest": "/index.html" }` next to `/me`'s. Check: `npm run build`, then `node
+   scripts/opus-sf/qa/csp-serve.mjs --dir dist --port 5517 --vercel vercel.json --log csp.json`, play the city, read
+   `http://localhost:5517/__csp-stats` (expect 0 violations, 0 failed).
+2. **Lead — W5-V3**: a window for the city-data move (plan in part a's Requests; N's OK is in its report).
+3. **Lead — the phone gate**: the quiet phone run at Chinatown (one frame > 100 ms while walking, also on `a26d35f`).
+4. **Lane C**: read `W5_PACED_CLIPS` (`data/sf/voiceW5.ts`, `{ '<lang>-w5c-…': seconds }`) in `game/cityMoments.ts`
+   next to `TOUR_VOICE_CLIPS` and flip `tests/opus-bay-w5-tours.test.ts`'s `lineRecorded('w5c-pelican-ask')` pin; the 11
+   `w5c-*` lines then speak through your pacer. Also `game/flow.ts marketOpenNow(now = new Date())` → `bayNow()` so
+   BAYBAY's taste lines agree with the stalls under `?date=` (DEV only).
+5. **Lane R**: the key `jets-day` carries two texts (`JETS_DAY_LINE` before the window, `JETS_NOW_LINE` in it), so
+   neither can have a clip under `realsf-jets-day`; give `JETS_NOW_LINE` its own key (e.g. `jets-now`) and lane V records
+   both with the next batch.
+6. **Lane D (and E for the notebook)**: show the secret postcard on the egg's card and in the 手帐 —
+   `eggPostcard(egg)?.large` (1200 × 900) / `.small` (600 × 450), `title` zh / en, `alt`.
+7. **Lane E**: freeze the shop item ids; lane V then draws the H5-1 icons (plan §5, within the cap).
+8. **Lane L**: confirm you still want the Japanese plaques; lane V adds them to the signs atlas (append only).
+9. **Owner**: the listening sheet `docs/opus-bay/qa/w5/V/voice/listening.md` — mark ✗ or 重录 where a clip sounds wrong;
+   say yes / no to the muted `en-w5-a-2fe95a24` ("Me first! Again?").
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors · `npx eslint .`: 0 errors (43 old warnings).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: 1,196 / 1,196 on `bb7b843`; **1,197 / 1,197** on
+  `41e3f13` (the clock test added), before this report's commit.
+- Higgsfield: 22.90 credits (ledger above), balance 377.17 (never under 250).

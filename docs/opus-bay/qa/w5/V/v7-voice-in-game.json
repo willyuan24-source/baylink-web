@@ -1,0 +1,133 @@
+{
+ "when": "2026-09-28T15:45:13.130Z",
+ "tree": "bb7b843 (dev server 5506)",
+ "script": "C:/Users/willy/opus-qa/w5/w5-v/voice-qa3.mjs",
+ "runs": {
+  "desktop 1440x900 zh-Hans": [
+   {
+    "step": "boot",
+    "value": true
+   },
+   {
+    "step": "close a dialog",
+    "value": "none"
+   },
+   {
+    "step": "dialog after",
+    "value": "none"
+   },
+   {
+    "step": "audio",
+    "value": "{\"state\":\"running\",\"w5\":{}}"
+   },
+   {
+    "step": "say batch-1 line",
+    "value": "said"
+   },
+   {
+    "step": "after batch-1",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:zh-w5-a-eced2a17\":1}}"
+   },
+   {
+    "step": "say batch-3 fortune",
+    "value": "said"
+   },
+   {
+    "step": "after batch-3",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:zh-w5-a-eced2a17\":1,\"voice-clip:zh-w5-d-1c245e27\":1}}"
+   },
+   {
+    "step": "say resident (same text)",
+    "value": "said"
+   },
+   {
+    "step": "say unrecorded",
+    "value": "said"
+   },
+   {
+    "step": "final",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:zh-w5-a-eced2a17\":1,\"voice-clip:zh-w5-d-1c245e27\":1}}"
+   }
+  ],
+  "phone 390x844 dpr3 en": [
+   {
+    "step": "boot",
+    "value": true
+   },
+   {
+    "step": "close a dialog",
+    "value": "none"
+   },
+   {
+    "step": "dialog after",
+    "value": "none"
+   },
+   {
+    "step": "audio",
+    "value": "{\"state\":\"running\",\"w5\":{}}"
+   },
+   {
+    "step": "say batch-1 line",
+    "value": "said"
+   },
+   {
+    "step": "after batch-1",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:en-w5-a-eced2a17\":1}}"
+   },
+   {
+    "step": "say batch-3 fortune",
+    "value": "said"
+   },
+   {
+    "step": "after batch-3",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:en-w5-a-eced2a17\":1,\"voice-clip:en-w5-d-1c245e27\":1}}"
+   },
+   {
+    "step": "say resident (same text)",
+    "value": "said"
+   },
+   {
+    "step": "say unrecorded",
+    "value": "said"
+   },
+   {
+    "step": "final",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:en-w5-a-eced2a17\":1,\"voice-clip:en-w5-d-1c245e27\":1}}"
+   }
+  ],
+  "desktop 1440x900 zh-Hans: own lines (lane R emits, lane C paces)": [
+   {
+    "step": "boot",
+    "value": true
+   },
+   {
+    "step": "close a dialog",
+    "value": "none"
+   },
+   {
+    "step": "dialog after",
+    "value": "none"
+   },
+   {
+    "step": "audio",
+    "value": "{\"state\":\"running\",\"w5\":{}}"
+   },
+   {
+    "step": "lane R emits realsf-daily-all",
+    "value": "emitted"
+   },
+   {
+    "step": "after R",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:zh-realsf-daily-all\":1}}"
+   },
+   {
+    "step": "lane C pacer line said as a bubble (own: not voiced by V)",
+    "value": "said"
+   },
+   {
+    "step": "final",
+    "value": "{\"state\":\"running\",\"w5\":{\"voice-clip:zh-realsf-daily-all\":1}}"
+   }
+  ]
+ }
+}
