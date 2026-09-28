@@ -584,5 +584,5 @@ Lane C's four test files: 57 → **61** tests (sf-triptext 10 → 14).
 
 ### Checks
 
-On the tree rebased over `1576825`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings,
-none in lane C's files) · full opus-bay suite **738 / 738** green. No relayed owner message arrived. Higgsfield: 0 credits.
+On the tree rebased over `e753cb5` (lane L's tops fix; the rebase over `fc27bff` had lane L's two known site-tops failures, fixed upstream by `e753cb5`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings,
+none in lane C's files) · full opus-bay suite **743 / 744**: the one failure is the E2-5 "view field in the city" wall-clock test under load (`opus-bay-sf-move2` passes alone, 24 / 24). Lane C's four files: 61 / 61. No relayed owner message arrived. Higgsfield: 0 credits.
