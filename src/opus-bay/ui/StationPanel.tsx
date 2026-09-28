@@ -33,9 +33,14 @@ export function StationPanel({ station, lines, pos, walk }: { station: MapStatio
   const infos = useMemo(() => tripLineInfos(lines), [lines]);
   // lane T's rides for the wave-4 lines at any of the station's stops, the planner's for the cable cars
   const rides = useMemo((): StationRide[] => {
+    // a line is offered from the first of the station's stops that serves it (ids come primary first, then nearest):
+    // Embarcadero holds California & Davis and California & Drumm, which would list the line twice (lane P's review 2)
     const w4: StationRide[] = [];
-    for (const id of station.ids) for (const r of lineStationRides(id)) {
-      if (!w4.some(x => x.line === r.line && x.to.stop === r.to && !!x.lap === (r.kind === 'lap'))) w4.push({ line: r.line, to: { stop: r.to, name: r.toName }, seconds: r.seconds, ...(r.kind === 'lap' ? { lap: true } : {}), boardAt: id });
+    const taken = new Set<string>();
+    for (const id of station.ids) {
+      const rides = lineStationRides(id);
+      for (const r of rides) if (!taken.has(r.line)) w4.push({ line: r.line, to: { stop: r.to, name: r.toName }, seconds: r.seconds, ...(r.kind === 'lap' ? { lap: true } : {}), boardAt: id });
+      for (const r of rides) taken.add(r.line);
     }
     const w4Lines = new Set(w4.map(r => r.line));
     const other = stationRides(station, infos).filter(r => !w4Lines.has(r.line) && infos.get(r.line)?.kind === 'cable-car');

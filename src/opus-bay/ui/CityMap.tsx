@@ -219,40 +219,6 @@ export function CityMapPanel() {
   const youAt = view ? toPx(view, pos.x, pos.z) : null;
   const tallTools = !!size && size.h >= 300;
   const toolRight = tallTools ? 48 : 90;
-  const scene = useMemo(() => {
-    if (!view) return null;
-    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }];
-    return buildScene({
-      view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
-      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
-    });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
-  const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
-  // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines
-  const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;
-  const walk = useMemo(() => { const r = walkId ? sfRoute(walkId) : undefined, p = walkId ? routePath(walkId) : undefined; return r && p ? { xz: p.points, stops: r.stops.map(s => ({ x: s.x, z: s.z })) } : null; }, [walkId]);
-  useEffect(() => {
-    const cv = canvasRef.current;
-    if (!cv || !view || !far) return;
-    const id = requestAnimationFrame(() => {
-      const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1, MAX_CANVAS / Math.max(view.w, view.h));
-      const W = Math.round(view.w * dpr), H = Math.round(view.h * dpr);
-      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
-      const ctx = cv.getContext('2d');
-      if (!ctx) return;
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawCityMap(ctx, { far, visited: zoneVisited, paper: !!MAP_PAPER }, view);
-      const fl = filterLines(filter);
-      drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
-      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
-    });
-    return () => cancelAnimationFrame(id);
-  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, scene]);
-
   // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ moved: number; pinch: number | null }>({ moved: 0, pinch: null });
@@ -382,6 +348,42 @@ export function CityMapPanel() {
     const cw = labelWidth(chip, 11) + 16;
     return { pts: pts.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' '), end, chip, cw };
   }, [view, left, t]);
+  // the scene (after the route: its time chip is an obstacle for the labels)
+  const scene = useMemo(() => {
+    if (!view) return null;
+    const obstacles = [...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 22, y: 22, r: 16 }, ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: routeDraw.cw / 2 }] : [])];
+    return buildScene({
+      view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
+      discovered: isDiscovered, selected: sel, target, tourNext, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
+    });
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
+  const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
+  // a walking route (data/sf/routes.ts, the 线路 tab's 步行路线): its walk and numbered stops over the dimmed lines
+  const walkId = highlight?.startsWith('route:') ? (highlight.slice(6) as SfRouteId) : null;
+  const walk = useMemo(() => { const r = walkId ? sfRoute(walkId) : undefined, p = walkId ? routePath(walkId) : undefined; return r && p ? { xz: p.points, stops: r.stops.map(s => ({ x: s.x, z: s.z })) } : null; }, [walkId]);
+  useEffect(() => {
+    const cv = canvasRef.current;
+    if (!cv || !view || !far) return;
+    const id = requestAnimationFrame(() => {
+      const dpr = Math.min(MAX_DPR, window.devicePixelRatio || 1, MAX_CANVAS / Math.max(view.w, view.h));
+      const W = Math.round(view.w * dpr), H = Math.round(view.h * dpr);
+      if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+      const ctx = cv.getContext('2d');
+      if (!ctx) return;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawCityMap(ctx, { far, visited: zoneVisited, paper: !!MAP_PAPER }, view);
+      const fl = filterLines(filter);
+      drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk, stations: scene?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: scene?.canvasDots ?? [] });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, scene]);
+
+
   // the map opened on a trip: frame you and the whole way once the route is known
   const framedTrip = useRef(false);
   useEffect(() => {

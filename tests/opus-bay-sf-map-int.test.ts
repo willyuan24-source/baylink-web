@@ -288,3 +288,16 @@ test('walking routes (lane D2\'s SF_ROUTES): the canvas pass draws the walk and 
   assert.equal(fills, r.stops.length);
   assert.equal(strokes, 2 + r.stops.length);
 });
+
+test('a stop named for the attraction it serves says nothing while that badge shows its name (the loop\'s 艺术宫 beside the Palace)', () => {
+  const palace = ATTRACTION_INDEX.get('palace-of-fine-arts')!;
+  const s = scene(352, 388, { cx: palace.x, cz: palace.z, scale: 1.4 });
+  const stop = s.stations.find(m => m.st.attractions[0] === 'palace-of-fine-arts');
+  assert.ok(stop, 'a station serving the Palace in view');
+  assert.ok(s.attractions.get('palace-of-fine-arts')?.label, 'the Palace badge is named');
+  const item = s.layout.kept.find(k => k.id === `station:${stop!.st.id}`);
+  assert.ok(!item?.label, 'its stop stays quiet');
+  // selected, the stop names itself
+  const sel = scene(352, 388, { cx: palace.x, cz: palace.z, scale: 1.4 }, { selected: { kind: 'station', id: stop!.st.id } });
+  assert.ok(sel.layout.kept.find(k => k.id === `station:${stop!.st.id}`)?.label);
+});

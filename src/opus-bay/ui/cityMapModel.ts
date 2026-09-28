@@ -142,7 +142,9 @@ export function buildScene(o: SceneInput): MapScene {
       if (!sym) continue;
       stations.push({ st, sym, x, y });
       const selected = sel?.kind === 'station' && sel.id === st.id;
-      const item = stationItem(st, sym, x, y, sym.label || selected ? o.t(st.name) : null, 10, { canvas: true });
+      // a stop named for the attraction it serves (the loop's 艺术宫) says nothing while that badge shows its own name
+      const quiet = !selected && !!st.attractions[0] && !!markers.get(st.attractions[0])?.label;
+      const item = stationItem(st, sym, x, y, (sym.label && !quiet) || selected ? o.t(st.name) : null, 10, { canvas: true });
       if (selected) { item.prio = layoutPriority({ selected: true }); if (!item.label) { item.label = o.t(st.name); item.fontPx = 10; } }
       all.push(item);
     }
