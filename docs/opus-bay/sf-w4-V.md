@@ -644,6 +644,8 @@ commits before this section.
 
 - `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
 - `npx eslint .`: 0 errors, 43 warnings (none in lane V's files).
-- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **747 / 747** green on the tree rebased onto
-  `fbbb239` (incl. hero regression and contracts); `w4-swaps` 5 / 5, `w4-postcards` 3 / 3, `w4-assets` 7 / 7.
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **750 / 750** green on the tree rebased onto
+  `64bfeb4` (lane V's W4-V-I4 / I5 and lane L's W4-L9 included; 747 / 747 on `fbbb239`), incl. hero regression and
+  contracts; `w4-swaps` 5 / 5, `w4-postcards` 3 / 3. W4-V-I4 registered the models, not the postcards: integration step
+  1 (with `W4_POSTCARD_SUBJECTS`) is still to do, and lane V's postcard test holds on either side of it.
 - No relayed owner message arrived during the review.
