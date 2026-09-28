@@ -337,7 +337,10 @@ void main() {
       m = max(m, texture2D(uLightTex, (q - uDistBox.xy) / uDistBox.zw).r);
     }
     float sn = nse(vec2(dot(vW.xz, side) * 2.2, dot(vW.xz, away) * 0.25 + t * 0.6));
-    col += vec3(1.0, 0.72, 0.4) * smoothstep(0.6, 0.92, sn) * m * 0.45 * uNight;
+    // right under the camera the streaks run straight down the screen as long gold "reeds" (wave 4, verify-visual
+    // F8: the Embarcadero seawall under the Bay Bridge): they fade in from 12 to 28 u away
+    float nearFade = smoothstep(12.0, 28.0, length(vW.xz - cameraPosition.xz));
+    col += vec3(1.0, 0.72, 0.4) * smoothstep(0.6, 0.92, sn) * m * 0.45 * uNight * nearFade;
   }
   gl_FragColor = vec4(col, 1.0);
   #include <tonemapping_fragment>
