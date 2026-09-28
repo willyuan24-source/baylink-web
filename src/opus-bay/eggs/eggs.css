@@ -23,6 +23,15 @@
 .ob-egg-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 13px; font-weight: 700; color: var(--ob-teal-d, #2b6f68); }
 .ob-egg-key { font: 700 11px/1 inherit; padding: 2px 5px; border-radius: 5px; border: 1px solid var(--ob-line-2, #d8cdb8); color: var(--ob-ink-3); background: #fff; }
 .ob-egg-body { padding: 8px 2px 0 2px; }
+/* lane V's secret postcard (W5-V8) at the top of an opened egg card */
+.ob-egg-postcard { margin: 2px 0 10px; }
+.ob-egg-postcard img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; border-radius: 10px; background: #efe4cc; box-shadow: 0 0 0 4px #fff, 0 2px 8px rgba(60, 40, 10, .18); transform: rotate(-.8deg); }
+.ob-egg-postcard figcaption { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--ob-gold-d); }
+/* the other finds lane D pays: a city sound (teal) and one of BAYBAY's pebbles (slate) */
+.ob-egg-card.is-sound .ob-egg-badge { background: radial-gradient(circle at 35% 30%, #8fd3c7, #3f9e91 55%, #2b6f68); }
+.ob-egg-card.is-sound .ob-egg-kicker { color: #2b6f68; }
+.ob-egg-card.is-pebble .ob-egg-badge { background: radial-gradient(circle at 35% 30%, #c9d3dc, #8193a3 55%, #5d6e7d); }
+.ob-egg-card.is-pebble .ob-egg-kicker { color: #5d6e7d; }
 .ob-egg-fact { font-size: 14px; line-height: 1.55; margin: 0 0 8px; color: var(--ob-ink); }
 .ob-egg-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; font-size: 12px; color: var(--ob-ink-3); }
 .ob-egg-sources > span { font-weight: 800; }
@@ -67,7 +76,8 @@
   .ob-egg-badge { width: 46px; height: 46px; border-radius: 13px; }
   .ob-egg-name { font-size: 15px; }
   .ob-egg-key { display: none; }
-  .ob-egg-card.is-open { max-height: 52vh; overflow-y: auto; }
+  .ob-egg-card.is-open { max-height: 58vh; overflow-y: auto; }
+  .ob-egg-postcard img { max-height: 30vh; object-fit: cover; }
 }
 @media (pointer: coarse) {
   .ob-egg-close { width: 36px; height: 36px; top: 2px; right: 2px; }

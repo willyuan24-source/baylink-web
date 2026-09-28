@@ -159,8 +159,10 @@ let glanceTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * A glance: the camera eases to `shot` for `seconds` and back, WITHOUT holding the lock (the pelican keeps flying, the
- * player keeps steering: glide steering does not follow the camera). Used from the air only (Heron's Head from above).
- * Refused while a cinematic or another shot owns the camera; the shot is cleared only if it is still ours.
+ * player keeps steering: glide steering does not follow the camera; on foot the walk basis stays the follow camera's
+ * yaw, which does not move while a shot is up). Used from the air (Heron's Head, the whale from the pelican) and for the
+ * whale from the GGB deck (CP-6: the walk across never stops). Refused while a cinematic or another shot owns the
+ * camera; the shot is cleared only if it is still ours.
  */
 export function glance(shot: { position: [number, number, number]; target: [number, number, number]; duration: number }, seconds: number): boolean {
   if (cinemaActive() || runtime.camera.shot || busy()) return false;

@@ -22,7 +22,7 @@ export const EGG_AREA_NAMES: Readonly<Record<EggArea, Bilingual>> = {
   'north-beach': { zh: '北滩 · 电报山', en: 'North Beach & Telegraph Hill' },
   wharf: { zh: '渔人码头 · 海湾', en: 'The Wharf & the Bay' },
   downtown: { zh: '唐人街 · 市中心', en: 'Chinatown & downtown' },
-  'marina-presidio': { zh: '码头区 · 要塞', en: 'The Marina & the Presidio' },
+  'marina-presidio': { zh: '马里纳区 · 要塞', en: 'The Marina & the Presidio' },
   'golden-gate-park': { zh: '金门公园 · 日落区', en: 'Golden Gate Park & the Sunset' },
   'west-coast': { zh: '西海岸', en: 'The west coast' },
   'mission-castro': { zh: '教会区 · 卡斯特罗 · 双峰', en: 'The Mission, the Castro & Twin Peaks' },
@@ -188,7 +188,7 @@ export const EGGS: readonly EggDef[] = [
     id: 'wave-organ-high-tide', n: 7, area: 'marina-presidio',
     name: { zh: '会唱歌的海浪风琴', en: 'The singing Wave Organ' },
     riddle: { zh: '防波堤的尽头，石头会唱歌。', en: 'At the jetty’s end, the stones sing.' },
-    rumour: { zh: '听说码头区防波堤的尽头，把耳朵贴近管口能听见海在唱歌。', en: 'They say that at the end of the Marina jetty, the sea sings into the pipes.' },
+    rumour: { zh: '听说马里纳区防波堤的尽头，把耳朵贴近管口能听见海在唱歌。', en: 'They say that at the end of the Marina jetty, the sea sings into the pipes.' },
     at: { x: -413, z: 289.8 }, kind: 'ground',
     how: { zh: '走到防波堤尽头，把耳朵凑近管口', en: 'Walk to the jetty’s end and put your ear to a pipe' },
     lines: [

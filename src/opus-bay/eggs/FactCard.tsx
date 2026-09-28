@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ExternalLink, Sparkles } from 'lucide-react';
+import { ChevronDown, Ear, ExternalLink, Gem, Sparkles } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { useT } from '../i18n';
 import type { OverlayProps } from '../ui/slots';
-import { EGG_COINS, eggById, type EggSource } from './registry';
+import { cardEntry, type CardEntry, type CardKind } from './cards';
 import './eggs.css';
 
 /**
@@ -13,16 +13,48 @@ import './eggs.css';
  * the arrival card). Compact first — 小发现 · +10 金币 and the name — then, on a tap (phones) or E (desktop), the fact and
  * its sources with the day they were checked (DESIGN §8). The compact card leaves by itself after CARD_MS unless the
  * pointer or the focus is on it; an opened card stays until × / Esc / E. Registered as the `egg-card` overlay (ui/slots);
- * props: `{ id, coins? }`.
+ * props: `{ id, coins?, kind? }` (part c: `kind` 'sound' — 城市之声 — and 'pebble' — BAYBAY's pebbles — use the same card;
+ * an egg with a secret postcard, lane V's W5-V8, shows it when the card is opened).
  */
 
 export const CARD_MS = 6000;
-export interface FactCardProps { id: string; coins?: number }
+export interface FactCardProps { id: string; coins?: number; kind?: CardKind }
+
+const BADGE = { egg: Sparkles, sound: Ear, pebble: Gem } as const;
+
+/** The opened card: the secret postcard (an egg that has one), the fact, its sources and the day they were checked. */
+export function CardBody({ entry }: { entry: CardEntry }) {
+  const { t } = useT();
+  const sources = entry.sources;
+  return (
+    <div className="ob-egg-body">
+      {entry.postcard && (
+        <figure className="ob-egg-postcard">
+          <img src={entry.postcard.small} alt={t(entry.postcard.alt)} width={600} height={450} loading="lazy" decoding="async" />
+          <figcaption>{t('彩蛋明信片', 'Secret postcard')} · {t(entry.postcard.title)}</figcaption>
+        </figure>
+      )}
+      <p className="ob-egg-fact">{t(entry.fact)}</p>
+      {sources.length > 0 && (
+        <p className="ob-egg-sources">
+          <span>{t('出处', 'Sources')}</span>
+          {sources.map(s => (
+            <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">
+              {host(s.url)}<ExternalLink size={11} aria-hidden />
+            </a>
+          ))}
+          <small>{t(`${sources[0].verifiedAt} 核对`, `checked ${sources[0].verifiedAt}`)}</small>
+        </p>
+      )}
+    </div>
+  );
+}
 
 const host = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; } };
 
-/** E on desktop opens / closes the card when nothing else is in focus (or the focus is this egg's own spot). */
-const keyForCard = () => { const f = game.get().focus; return !f || f.startsWith('egg:'); };
+/** E on desktop opens / closes the card when nothing else is in focus (or the focus is an egg's or a city sound's own spot). */
+const cardKeyFree = (f: string | null | undefined) => !f || f.startsWith('egg:') || f.startsWith('sound:');
+const keyForCard = () => cardKeyFree(game.get().focus);
 
 /** A paper closes itself when the player walks (or is carried) more than `r` u away from where it opened. */
 function useWalkAway(close: () => void, r = 8) {
@@ -50,10 +82,10 @@ function useAboveArrival(): boolean {
 export function FactCard({ props, close }: OverlayProps) {
   const { t } = useT();
   const p = (props ?? {}) as FactCardProps;
-  const egg = eggById(p.id);
+  const entry = cardEntry(p.kind ?? 'egg', p.id);
   const [open, setOpen] = useState(false);
   // the E keycap only when E opens the card (another prompt in focus keeps E for itself)
-  const eOpens = useGame(s => !s.focus || s.focus.startsWith('egg:'));
+  const eOpens = useGame(s => cardKeyFree(s.focus));
   const [held, setHeld] = useState(false);
   const raised = useAboveArrival();
   const left = useRef(CARD_MS);
@@ -78,39 +110,31 @@ export function FactCard({ props, close }: OverlayProps) {
     window.addEventListener('keydown', onKey, true);
     return () => window.removeEventListener('keydown', onKey, true);
   }, []);
-  if (!egg) return null;
-  const coins = p.coins ?? EGG_COINS;
-  const sources: readonly EggSource[] = egg.sources;
+  if (!entry) return null;
+  const coins = p.coins ?? entry.coins;
+  const Badge = BADGE[entry.kind];
   return (
     <section
-      className={`ob-egg-card ${open ? 'is-open' : ''} ${raised ? 'is-raised' : ''}`}
-      aria-label={t(egg.name)}
+      className={`ob-egg-card is-${entry.kind} ${open ? 'is-open' : ''} ${raised ? 'is-raised' : ''}`}
+      aria-label={t(entry.name)}
       onPointerEnter={() => setHeld(true)} onPointerLeave={() => setHeld(false)}
       onFocus={() => setHeld(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHeld(false); }}
       style={{ ['--ob-egg-ms' as string]: `${CARD_MS}ms` }}
     >
       <button type="button" className="ob-egg-head" onClick={() => setOpen(o => !o)} aria-expanded={open}>
-        <span className="ob-egg-badge" aria-hidden><Sparkles size={24} /></span>
+        <span className="ob-egg-badge" aria-hidden><Badge size={24} /></span>
         <span className="ob-egg-titles">
-          <span className="ob-egg-kicker">{t('小发现', 'A find')}{coins > 0 ? <> · <b>{t(`+${coins} 金币`, `+${coins} coins`)}</b></> : null}</span>
-          <span className="ob-egg-name">{t(egg.name)}</span>
-          {!open && <span className="ob-egg-more">{t('看看故事', 'The story')}{eOpens && <kbd className="ob-egg-key">E</kbd>}<ChevronDown size={14} aria-hidden /></span>}
+          <span className="ob-egg-kicker">{t(entry.kicker)}{coins > 0 ? <> · <b>{t(`+${coins} 金币`, `+${coins} coins`)}</b></> : null}</span>
+          <span className="ob-egg-name">{t(entry.name)}</span>
+          {!open && (
+            <span className="ob-egg-more">
+              {entry.postcard ? t('看看故事和明信片', 'The story & postcard') : t('看看故事', 'The story')}
+              {eOpens && <kbd className="ob-egg-key">E</kbd>}<ChevronDown size={14} aria-hidden />
+            </span>
+          )}
         </span>
       </button>
-      {open && (
-        <div className="ob-egg-body">
-          <p className="ob-egg-fact">{t(egg.fact)}</p>
-          <p className="ob-egg-sources">
-            <span>{t('出处', 'Sources')}</span>
-            {sources.map(s => (
-              <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer">
-                {host(s.url)}<ExternalLink size={11} aria-hidden />
-              </a>
-            ))}
-            <small>{t(`${sources[0].verifiedAt} 核对`, `checked ${sources[0].verifiedAt}`)}</small>
-          </p>
-        </div>
-      )}
+      {open && <CardBody entry={entry} />}
       <button type="button" className="ob-egg-close" onClick={() => close()} aria-label={t('关闭', 'Close')}>×</button>
       {!open && <i className={`ob-egg-timer ${held ? 'is-held' : ''}`} aria-hidden />}
     </section>

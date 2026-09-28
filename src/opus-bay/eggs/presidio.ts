@@ -27,6 +27,8 @@ export const WHALE_ODDS = 1 / 6;
 export const CROSS_R = 320;
 const WHALE_GAP = 60;
 const WHALE_S = 9;
+/** on the deck: how long the glance looks at the whale (s; the blow to the fluke — you keep walking all along) */
+export const WHALE_LOOK_FOOT = 4.6;
 
 /** Which side of the Gate (sign of the along-deck and the across-deck coordinates): a change = one crossing. */
 export function gateSides(x: number, z: number): { ns: number; ew: number } {
@@ -95,17 +97,18 @@ export function humpbackHost(water: (x: number, z: number) => boolean = isWater)
       fx('dust', spot.x, SEA_Y + 2.8, spot.z, { count: 18, scale: 2.6, color: '#ffffff' });
     }, 1200);
     setTimeout(() => fx('splash', spot.x + Math.sin(spot.swim) * 7, SEA_Y + 0.3, spot.z + Math.cos(spot.swim) * 7, { count: 12, scale: 1.6 }), 6200);
-    // look at it: on foot a short beat from just behind you (the feet come back after); on the pelican a glance (the
-    // controls stay yours)
+    // look at it: a glance, on the pelican AND on the deck — the controls stay yours (the checkpoint's CP-6: a beat on
+    // foot held the lock for 6 s mid-span, and MF2 asks ≥ 3 u/s over every 3 s window on the deck). The glance's
+    // camera stands a little back and above where you were; walking on, you leave the frame and the camera comes
+    // back to follow you after it.
     const air = g.active;
     const eye = air ? { x: g.x, y: g.y, z: g.z } : { x: p.x, y: p.y, z: p.z };
     const dx = spot.x - eye.x, dz = spot.z - eye.z, l = Math.hypot(dx, dz) || 1;
     // (behind and to one side, above the hat: the whale in the middle, you at the edge of the frame)
-    const back = air ? 7 : 2.5, side = air ? 0 : 2.6, ux = dx / l, uz = dz / l;
-    const shot = { position: [eye.x - ux * back - uz * side, eye.y + (air ? 3 : 5), eye.z - uz * back + ux * side] as [number, number, number], target: [spot.x, SEA_Y + 0.8, spot.z] as [number, number, number] };
-    const looked = air ? glance({ ...shot, duration: 0.8 }, 5.2) : beat([{ ...shot, duration: 0.9, hold: 5.2 }]);
-    // (after a beat the card waits for the letterbox to go)
-    setTimeout(() => { reveal(WHALE, { repeatLine: true, cardDelay: looked && !air ? 4.8 : 3 }); }, 1500);
+    const back = air ? 7 : 3.5, side = air ? 0 : 2.6, ux = dx / l, uz = dz / l;
+    const shot = { position: [eye.x - ux * back - uz * side, eye.y + (air ? 3 : 5.5), eye.z - uz * back + ux * side] as [number, number, number], target: [spot.x, SEA_Y + 0.8, spot.z] as [number, number, number] };
+    glance({ ...shot, duration: air ? 0.8 : 0.9 }, air ? 5.2 : WHALE_LOOK_FOOT);
+    setTimeout(() => { reveal(WHALE, { repeatLine: true, cardDelay: 3 }); }, 1500);
     return true;
   };
   return {

@@ -629,6 +629,17 @@ test('W5-D2 cards: the find card (compact: 小发现 · +10 金币, the name, "t
   assert.match(card, /看看故事/);
   assert.doesNotMatch(card, /goldengate\.org/, 'the sources wait until it is opened');
   assert.equal(renderToStaticMarkup(h(FactCard, { props: { id: 'nope' }, close })), '');
+  // (part c, lane V's request) an egg with a secret postcard says so, and its opened card shows it above the fact
+  const { CardBody } = await import('../src/opus-bay/eggs/FactCard');
+  const { cardEntry } = await import('../src/opus-bay/eggs/cards');
+  assert.match(renderToStaticMarkup(h(FactCard, { props: { id: 'china-beach-fishermen' }, close })), /看看故事和明信片/);
+  const opened = renderToStaticMarkup(h(CardBody, { entry: cardEntry('egg', 'china-beach-fishermen')! }));
+  assert.match(opened, /<img[^>]+src="\/opus-bay\/w5\/postcards\/china-beach-fishermen-600\.webp"/);
+  assert.match(opened, /彩蛋明信片 · 中国海滩的帆影/);
+  assert.ok(opened.indexOf('<img') < opened.indexOf('ob-egg-fact'), 'the postcard first');
+  const plain = renderToStaticMarkup(h(CardBody, { entry: cardEntry('egg', 'musee-laughing-lady')! }));
+  assert.doesNotMatch(plain, /<img/, 'no postcard: none drawn');
+  assert.match(plain, /wikipedia\.org/);
   const scroll = renderToStaticMarkup(h(NoteCard, { props: { style: 'scroll', title: downtown.NORTON_NOTE.title, lines: downtown.NORTON_NOTE.lines, sign: downtown.NORTON_NOTE.sign }, close }));
   assert.match(scroll, /is-scroll/);
   assert.match(scroll, /诺顿一世/);
@@ -861,6 +872,21 @@ test('W5-D4 the humpback: about one Gate crossing in six (April–November only)
     Math.random = () => 0;
     cross(false);
     assert.equal(H.flock.active, null, 'the next roll waits a minute');
+    stop();
+    // (the checkpoint's CP-6) on the deck the whale is a glance: the walk never stops — no lock, no cinematic
+    H.__resetHostsForTests();
+    runtime.camera.shot = null;
+    stop = H.startHosts([presidio.humpbackHost(() => true)]);
+    cross(false);
+    assert.equal(H.flock.active, 'whale', 'a deck crossing that rolled it');
+    assert.ok(H.glancing(), 'the camera glances at the whale');
+    assert.equal(lockHeld(), false, 'the feet stay yours on the deck');
+    assert.equal(cinemaActive(), false, 'no letterbox');
+    t.mock.timers.tick(1600);
+    assert.ok(w.finds.includes('golden-gate-humpback'), 'found from the deck');
+    assert.equal(lockHeld(), false);
+    t.mock.timers.tick(presidio.WHALE_LOOK_FOOT * 1000);
+    assert.ok(!H.glancing() && runtime.camera.shot === null, 'the camera follows again');
     // the whale needs clear water ahead: none found → nothing drawn
     assert.equal(presidio.whaleSpot({ x: 0, z: 0 }, 0, () => false), null);
     // never under the span (seen in the game: hidden by the deck): looking along the deck, it surfaces off to one side
