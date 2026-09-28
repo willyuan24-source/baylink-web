@@ -493,3 +493,118 @@ access or places (the grep test in `w5-shop`).
   (append-only, `economy/items.ts`, 31 items: 26 for sale + 4 earned + 1 hidden) for H5-1.
 - **Lane A**: toys for the ladder when they exist (lent free the first time, then 15–25 on a 玩具 shelf).
 - **Lead**: nothing frozen needs changing; `npx` resolved everywhere. The dev server on 5507 is stopped.
+
+## Review
+
+Adversarial review of lane E's wave-5 work (W5-E1 … E10, parts a–c), written 2026-09-28 (PDT) in the lane's worktree
+after rebasing on `origin/opus-bay`. Read: every W5-E commit, every file under `economy/`, `scripts/opus-sf/{coins-place,
+economy-run}.mts` where the claims rest on them, the six test files, plan §1, §2 (MF5), §3.4, §3.5, §4.1–4.3, §4.10, §6
+(D2–D4, D21), the lead note, the owner's feedback, and the other lanes' code that feeds the ledger (lane C's
+`game/rewards.ts`, lane A's first flight and view spots, lane D's registries, lane R's souvenirs and daily three).
+
+### 给主人的摘要
+
+1. 金币、小铺、手帐整体可靠：每个奖励只发一次、余额不会变负、重置进度会清零；我在电脑和手机（390×844）上实际捡了金币、试戴并买了围巾、用飞行券飞到恶魔岛码头、打开手帐，都正常；默认的街区模式完全没变。
+2. 修了 8 个问题：手机上开着小铺时点右上角，旅行本会被压在小铺下面、人还被定住（现在打开旅行本、地图或拍照会先关小铺）；手帐页头的日落有时比天文台和 BAYBAY 说的早 1 分钟；飞行券目的地少了恶魔岛（现在 16 个都在）；重置进度后 BAYBAY 的第一张飞行券要刷新才给；手机上小铺货架和手帐页签按钮太小；还有金币每帧的小垃圾、暂停时还能捡金币、罗盘箭头会绕一整圈。
+3. 重新上网核对了 11 条事实（国际橘、市花大丽花 1926 年、9 月 28 日日落 18:57、9 月 26 日满月、农夫市集时间等），只有万圣节那天的日落显示差 1 分钟，已修。
+
+### What I did in the real game
+
+Dev 5507, headless Chrome `--force_high_performance_gpu --lang=zh-CN`, `?start=free&world=city&time=golden&save=off`;
+PERF-LOCK respected (I waited for lane V's 20:34Z gate to end at 21:30Z); every image read.
+
+- **Desktop 1440 × 900**: at the Filbert Steps the trail is ONE InstancedMesh `ob-coins` (16 instances, 768 triangles:
+  +1 call, 0.8k tris, inside §3.4's budget); four coins walked → pill `🪙4`, `coinWorld.stats.picked` 4. The shop: the
+  Karl-grey scarf tried on BAYBAY and bought (400 → 340, worn), the helpers shelf, 用飞行券 → the picker, now with
+  恶魔岛渡轮码头 · 33 号码头 (15 rows at Filbert: Coit is within 60 u). **A ticket flight to the Alcatraz landing**: in the air
+  `move = travel` and the ticket used; landed at (−98, −21) under the Pier 33 canopy with no lock held, 用望远镜看恶魔岛
+  offered, and W walked 3 u at once (`review-ticket-alcatraz-landing-desktop.jpg`). The 手帐: 旧金山 9月28日 周一 · 日落 18:57 ·
+  今晚约是亏凸月 / 明天可能不一样; pages 印章 0/22 · 小发现 1/33 · 看风景 0/16 · 城市之声 0/12 · 足迹.
+- **Settings → 重置游戏进度 → 确定**, played: coins 123 → 0 and BAYBAY's 飞行券 held again at once (before the fix it waited
+  for a reload).
+- **Phone 390 × 844 dpr 3, quality mid**: the pill `目标 0/10 · 🪙 3`; the shop sheet (shelf chips now 44 px high, 买下 44 px,
+  tiles 86 × 113). **The defect**: tapping the pill with the shop open put the Journal *under* the shop's sheet, the feet
+  still held (`review-before-shop-under-journal-phone.jpg`); after the fix the same tap closes the shop, the Journal shows,
+  no lock is held (`review-after-pill-closes-shop-phone.jpg`). The ticket picker; the 手帐 with its five page tabs
+  66 × 44 px (`review-notebook-header-phone.jpg`).
+- **District mode** (`?start=free`, no `world=city`): no `__opusBay.e`, no coin badge, no 小铺, no economy CSS rule loaded; the
+  pill reads 明信片 0/8 · 目标 0/5 as before.
+- No fps numbers (lane V / the lead). Programs read 58–61 at load and rose with the lead's late warm-up passes whatever the
+  coins did (the lane's `e-coins` pass 44 → 44 stands).
+
+### Defects found and fixed (commits `b1749cb`, `70187aa`)
+
+| # | where | what was wrong | now | test |
+|---|---|---|---|---|
+| 1 | `economy/Shop.tsx` | a panel or photo mode opened over the 小铺 (phone: the pill → the Journal; the map; settings; J / M on desktop) stacked under or beside it, the feet still held by `holdLock('shop')` | the shop and the 飞行券 picker close when a panel or photo mode takes over (openShop already closed panels first: one sheet at a time) | `w5-e-review-dom` 7, 7b (jsdom); played on the phone |
+| 2 | `economy/today.ts` | the 手帐 header truncated the sunset (`bayHm`): a minute early on about half the days, e.g. 2026-10-31 18:11 while USNO and BAYBAY's own sunset line say 18:12 (lane R's review asked for it); 今晚约是… used the hour the page was opened | `sunHm` (rounded; equal to BAYBAY's line on every day for half a year); the moon at today's sunset | `w5-e-review` 1 |
+| 3 | `economy/shopRun.ts`, `Shop.tsx` | the ticket picker dropped Alcatraz (`!offWalk`) though `tripDestination` gives its Pier 33 landing: "the 16 must-sees" were 15 | all 16 (`ticketDestinations`); flown to in the game | `w5-e-review` 3 |
+| 4 | `economy/shopRun.ts` | after Settings → reset progress, BAYBAY's first 飞行券 waited for the next page load | the ticket rule also runs after a reset (and on the glide change the reset makes) | `w5-e-review` 4; played |
+| 5 | `economy/economy.css` | the shop's shelf chips (36 px) and the 手帐's page tabs (40 px) were under the game's 44 px touch rule | 44 px on `pointer: coarse` | measured in the phone run |
+| 6 | `economy/coins.ts` | the 30 Hz pickup step allocated every time (an array, a picker object, a Bay-date object, bucket-key strings); coins were picked up while the game was paused (settings open); photo mode was excluded only by accident of `move.mode` | nothing allocated when nothing is picked (numeric bucket keys, one picker object, the day looked at once a second, a keyed sort for the ≤ 5 Hz draw list); paused and photo mode pick nothing | `w5-e-review` 2 |
+| 7 | `economy/notebookRun.ts` | each ledger change queued its own full notebook check (a ring flown through = 8 checks in one frame); a check queued just before a teardown ran after it | one check per burst; none after the off | `w5-e-review` 5 |
+| 8 | `economy/CompassBadge.tsx`, `compass.ts` | the arrow's CSS transition spun a full turn whenever the target crossed behind you (atan2 jumps by 2π); the pill re-rendered 4 × a second with nothing changed | turns the short way (`nearestTurn`); no re-render when nothing changed | `w5-e-review` 6 |
+
+Also: `items.ts`' shelf comments still carried part b's prices (40 / 80 / 30 / 60 / 30); they now say the locked W5-E8 ones.
+
+### Checked and sound
+
+- **The ledger** (`ledger.ts`): every well-formed source is paid at most once — fixed sources in `play.g.coin` (200: all 158
+  arrivals, the goals and favours; nothing missing on today's data), registered kinds in their bitsets, trails in `play.t`
+  (a new Bay day only), dailies in `play.d` (never a past date), the rest in `play.e` (never when full); coins are capped
+  per prefix, whole, ≥ 0, ≤ 999,999; `spend` / `commitPlay` never go below 0 (`buy` re-checks inside the write). Lane C
+  emits on the live first-time event only; lane A's `ring:first-flight:<n>` sits in ring slot 0 and is flown once per save.
+  `?date=` is DEV / QA only (no farming trails or the daily three in production).
+- **Save**: `play` stays small (≈ 60 bytes of trail bits, 16 × 8 ring bits, 31 item bits) and round-trips; stamps persist in
+  `play.g.stamp`, so a trimmed `arrivals` never un-stamps; Settings → reset clears it and every subscriber hears.
+- **Budgets**: +1 call and ≤ 1.5k tris for the coins (768 at the Filbert gate spot); a worn hat +1 call, ≤ 342 tris on the
+  TOY_DYN program; warm-ups `e-coins` (from initCoins, before the layer mounts) and `e-hats`; each material instance used by
+  one object kind; nothing of lane E in GameRoot (the P7 walk in the suite).
+- **Teardown**: every timer, subscription, registration, hint source, flag source, pill badge, overlay and look is undone
+  (the looks go back to the defaults); the hat and coin geometries and materials are kept for the page on purpose.
+- **Nothing sells speed, access or places**: the 飞行券 is the plan's one flight before the pelican (D2); the conveniences
+  only point (the lane's grep test). No real money, loot boxes or streaks (records show today only).
+- **zh**: E's 12 BAYBAY lines ≤ 45 characters, the glossary words (金币, 小铺, 手帐, 飞行券 …), Karl as VOICE.md writes it.
+- **Prices**: the scripted hour gives 5.2 cosmetics at the average price (plan MF5: 3–5; D21: about one per 15 min) — at
+  the edge; the run leaves favours, activities, souvenirs and pages out, so a real hour gives a little more (see Open).
+
+### Facts re-checked on the web (2026-09-28)
+
+| fact in the game | source | result |
+|---|---|---|
+| the Golden Gate Bridge's colour is (Golden Gate Bridge) International Orange — the 国际橘 notes | https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/ | correct |
+| the dahlia became San Francisco's official flower in 1926 (Board of Supervisors) — the 大丽花粉 note | https://www.dahliadell.org/history | correct |
+| sunset in SF on 2026-09-28 is 18:57 (the 手帐 header) | https://aa.usno.navy.mil/api/rstt/oneday?date=2026-09-28&coords=37.7749,-122.4194&tz=-7 | correct |
+| sunset on 2026-10-31 is 18:12 | the same USNO API for 2026-10-31 | the header said **18:11** (truncated): fixed |
+| the moon on 2026-09-28 is waning gibbous (亏凸月); full moon 2026-09-26 09:49 PDT | USNO rstt/oneday (curphase, closestphase); https://www.almanac.com/content/full-moon-september | correct |
+| Ferry Plaza Farmers Market Tue & Thu 10–2, Sat 8–2 (the stall says 逛逛小铺 only outside these hours) | https://foodwise.org/markets/ferry-plaza-farmers-market/ | correct |
+| the Alcatraz ferry leaves from Pier 33, Alcatraz Landing (the island stamp, the ticket's 16th destination) | https://alcatrazcitycruises.com/plan-your-visit/directions | correct |
+| the Powell cable cars are painted maroon (缆车栗红) | https://www.streetcar.org/seeing_red_again_on_powell_str/ | correct |
+| San Francisco's fog is nicknamed Karl (和 Karl 一个颜色) | https://www.kqed.org/news/11682057/how-the-bay-areas-fog-came-to-be-named-karl | correct |
+| the Filbert Steps climb Telegraph Hill from Sansome St to Coit Tower (the first coin trail) | https://en.wikipedia.org/wiki/Filbert_Street_(San_Francisco) | correct |
+| the Wave Organ is on the jetty at the end of Yacht Road (the trail re-laid along Yacht Road) | https://www.exploratorium.edu/visit/wave-organ | correct |
+
+### Open (not fixed here)
+
+- **Lead / lane C**: a `reward` emitted before the economy chunk's ledger listener is live is not paid, and lane C pays only
+  on the live first-time event — e.g. an arrival moment in the first second of a resumed session if lane C's
+  `cityMoments` chunk lands before `economy/index` (both lazy, loaded in parallel by `initCityContent`). Rare; the fix is
+  ordering (the moments after `initW5Features().ready`) or the emitter re-checking `isPaid` later. Not changed: C's file
+  and C's rule ("a goal done in an old save is never paid on load").
+- **Lead (W5-Z)**: prices — if the live hour buys more than 5 cosmetics, raise the scarves and frames a notch (70 → 80,
+  60 → 70); the scripted run is a floor.
+- **Lead (audio/hooks is frozen)**: the ring's eight coins are picked in one step, so their eight chimes ring together (a
+  chord, not the climbing ladder the report describes); a stagger needs `playSound` with a delay. Not listened to (headless).
+- **Lane N + E** (lane L's review): if N wires Haight & Ashbury's site arrival at the open spot 0.35 u from the old one,
+  the `stop-haight` trail's first coin (within 4 u of it) moves with `coins-place.mts --replace stop-haight` (the rule keeps
+  every coin 4 u from trip ends); nothing to do until N moves it.
+- The toys shelf (needs lane A's toys), H5-1 painted tiles and E's voice clips: as the lane reported.
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (the 43 old warnings, none in `economy/`) ·
+`npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1326 / 1326**, fail 0, on the pushed head
+(rebased on `88056a7`, after lane A's W5-A9 and lane L's review; 1316 / 1316 on `cb9e653`; one run before it had the known wall-clock flake `sf-nav` "local A* window", which passed alone
+and in the next full run; 1314 / 1314 on `b1749cb`). New: `tests/opus-bay-w5-e-review.test.ts` (6) and
+`tests/opus-bay-w5-e-review-dom.test.ts` (2, jsdom). `npx` resolved normally. The dev server on 5507 is stopped and no
+Chrome of mine is running.
