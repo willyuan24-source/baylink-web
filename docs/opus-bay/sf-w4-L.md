@@ -487,9 +487,9 @@ dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/`). Commits `W4-IL1` …
 3. **D2 留下的 7 个二级地标周边都做了**：恩典大教堂门前的平台、宽台阶和户外迷宫（教堂原来门口被地面盖住一米，已修正）；荣勋宫门前广场，中庭原来被草盖住，现在是石板；吉拉德利广场的砖铺庭院、橄榄树和通往 Beach St 的台阶；叮当车转盘周围的砖广场；渔人码头路牌旁两个卖螃蟹的小摊；九曲花街上下两端断掉的马路（包括叮当车轨道）接上了；苏特罗浴场的水池里终于看得见水。
 4. **到达点挪到了该在的位置**：艺术宫湖边、Fort Point 平台、迪扬前庭、卡斯特罗对街，恩典大教堂从马路中间挪到人行道。**草莓山现在能走上去**：两座桥和环岛小路都能走，中国亭从湖边就能走到。
 5. 顺手修了一个老 bug：地标的"金字塔屋顶"只要长宽不等就歪成菱形（市政厅、荣勋宫、龙门等），现在是正的。
-6. 全部 803 个测试通过；电脑和手机截图都逐张看过。还没做的：海洋海滩北段的篝火圈小地点、另外几个地标"半埋在地下"的问题（清单在下面），请 V 组重测性能表。
+6. 全部测试通过（最后一次 808 个）；电脑和手机截图都逐张看过。海洋海滩北段的篝火圈由第二轮的 L 线同时做好了（16 个火圈，已自动接进游戏）。还没做的：另外几个地标"半埋在地下"的问题（清单在下面），请 V 组重测性能表。
 
-Status（回答主人"现在进度如何"）：接线 a 部分完成并已推送——登记、到达点、屋顶修正、7 个二级地标周边、4 个 AI 地标、草莓山步行都已在游戏里；篝火圈和几个地标的埋地问题留到 b 部分。
+Status（回答主人"现在进度如何"）：接线 a 部分完成并已推送——登记、到达点、屋顶修正、7 个二级地标周边、4 个 AI 地标、草莓山步行都已在游戏里；几个地标的埋地问题留到 b 部分。
 
 ### What was built
 
@@ -560,8 +560,8 @@ wave-4 swaps: model ↔ site, slot placement, ≤ 6k, remainders ≤ 1.2k). The 
 
 ### Not done
 
-- **Fire rings** (early review open 16): the small T3 record on the Ocean Beach sand between Stairwell 15 and Lincoln
-  Way — `w4list.ts` and the baked terrain are being edited by the early-part-2 lane right now; next part.
+- ~~Fire rings~~ (early review open 16): built by the early-part-2 lane (`ff34f53`, 16 rings) while this part ran; a
+  parallel version of mine (six rings) was dropped unpushed.
 - The burial fixes above; P3 / P4 sites still arriving from lanes L2 / L3 (registered automatically; they re-run
   `landmark-tops.ts` as the tops test asks).
 - The Cliff House setting (kept, D2's note).
@@ -580,4 +580,4 @@ wave-4 swaps: model ↔ site, slot placement, ≤ 6k, remainders ≤ 1.2k). The 
 ### Checks
 
 - `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · `npx tsx --tsconfig tsconfig.app.json --test
-  tests/opus-bay-*.test.ts` 803 / 803 on the pushed tree.
+  tests/opus-bay-*.test.ts` 803 / 803 on the pushed tree of `W4-IL9`; 808 / 808 on the tree with the fire rings.
