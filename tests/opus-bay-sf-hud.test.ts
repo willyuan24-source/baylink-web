@@ -204,4 +204,10 @@ test('W5-F9 · phones: the pill keeps two lines (the badges ride on the goals li
   const css = srcOf('opus-bay.css');
   assert.match(css, /\.ob-overlay \.ob-go-chip \{ left: calc\(12px \+ var\(--ob-sl\)\); right: calc\(84px \+ var\(--ob-sr\)\);[^}]*max-width: calc\(100% - 96px - var\(--ob-sl\) - var\(--ob-sr\)\)/);
   assert.match(css, /\.ob-overlay:has\(\.ob-found-chip\) \.ob-topstack \{ top: calc\(92px \+ var\(--ob-st\)\); \}/);
+  // lane A's chip (phones) and result card: the toasts start under them (A's request 3)
+  assert.match(css, /\.ob-overlay:has\(\.ob-play-flight\) \.ob-topstack \{ top: calc\(185px \+ var\(--ob-st\)\); \}/);
+  assert.match(css, /\.ob-overlay:has\(\.ob-play-result:not\(\.is-ride\)\) \.ob-topstack \{ top: calc\(281px \+ var\(--ob-st\)\); \}/);
+  const play = fs.readFileSync(path.join(OB, 'play/play.css'), 'utf8');
+  assert.match(play, /\.ob-play-result \{\s*position: absolute; left: 50%; top: calc\(104px \+ var\(--ob-st\)\)/, 'the card still starts at 104 px');
+  assert.match(play, /\.ob-play-flight \{ top: calc\(118px \+ var\(--ob-st\)\)/, 'the phone chip still starts at 118 px');
 });

@@ -1233,7 +1233,14 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
      (toasts, the ride banner) starts under it (a toast covered its right half at 390 × 844 and 375 × 667) */
   .ob-overlay:has(.ob-found-chip) .ob-topstack { top: calc(92px + var(--ob-st)); }
   .ob-topstack { transition: top .25s ease; }
+  /* lane A's activity / first-flight chip (under the pills from 118 px, ≈ 59 tall): the top stack starts under it */
+  .ob-overlay:has(.ob-play-flight) .ob-topstack { top: calc(185px + var(--ob-st)); }
 }
+/* W5-F9 · lane A's result card (the medal, from 104 px, ≈ 169 tall) shares the top centre with the toasts (lane A's
+   request 3: they overlapped when a place was found at the same moment): the top stack starts under it; under the ride
+   banner (.is-ride) the card already stands below the stack's banner, and the toasts wait in the stack hidden */
+.ob-overlay:has(.ob-play-result:not(.is-ride)) .ob-topstack { top: calc(281px + var(--ob-st)); }
+.ob-overlay:has(.ob-play-result.is-ride) .ob-topstack > .ob-toasts { visibility: hidden; }
 
 /* W5-F3 · the phone's 起飞 pulses once (a glide unlocked in play; lane C's 先试试起飞？): a warm ring swells out twice */
 .ob-glide-pulse { animation: ob-glide-pulse 1.2s ease-out 2; }
