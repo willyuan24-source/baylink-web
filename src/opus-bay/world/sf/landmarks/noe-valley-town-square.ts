@@ -93,6 +93,6 @@ export const noeValleyTownSquare: W4Site = {
     terrain: [-3, -3, 3, 3],
     terrainStep: 1,
     ringMin: 0.62,
-    notes: 'Market stalls are generic (no stall names). The crowd spots are the square and the 24th Street sidewalk in front; a mid-block lot, so the houses either side and behind close the walk-around ring to 64 %.',
+    notes: 'Market stalls are generic (no stall names). The crowd spots are the square and the 24th Street sidewalk in front; a mid-block lot, so the houses either side and behind close the walk-around ring to 65 %.',
   },
 };
