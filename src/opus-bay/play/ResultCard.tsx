@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { OverlayProps } from '../ui/slots';
+import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { TIER_WORDS, type ResultProps } from './kit';
 import './play.css';
@@ -22,6 +23,8 @@ function Medal({ tier }: { tier: ResultProps['tier'] }) {
 
 export default function ResultCard({ props, close }: { props: ResultProps } & Pick<OverlayProps, 'close'>) {
   const { t } = useT();
+  // on a ride the banner holds the top of the screen: the card sits under it
+  const riding = useFlow(s => !!s.ride);
   const hover = useRef(false);
   const closeRef = useRef(close);
   useEffect(() => { closeRef.current = close; });
@@ -33,7 +36,7 @@ export default function ResultCard({ props, close }: { props: ResultProps } & Pi
   if (!props) return null;
   const { tier, name, detail, best, fresh, coins, again } = props;
   return (
-    <div className={`ob-play-result tier-${tier}`} role="status" aria-live="polite" onPointerEnter={() => { hover.current = true; }} onPointerLeave={() => { hover.current = false; }}>
+    <div className={`ob-play-result tier-${tier}${riding ? ' is-ride' : ''}`} role="status" aria-live="polite" onPointerEnter={() => { hover.current = true; }} onPointerLeave={() => { hover.current = false; }}>
       <div className="ob-play-medal"><Medal tier={tier} /></div>
       <div className="ob-play-result-body">
         <small>{t(name)}</small>

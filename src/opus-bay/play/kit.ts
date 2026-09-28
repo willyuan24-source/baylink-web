@@ -161,6 +161,13 @@ export function bestOf(key: string): number | undefined {
   return typeof saved === 'number' && Number.isFinite(saved) ? saved : undefined;
 }
 
+/** Keep a number as it is (a counter: the steps climbed), this session and in `play.b` through lane E. */
+export function saveNumber(key: string, value: number): void {
+  if (!BEST_KEY.test(key) || !Number.isFinite(value)) return;
+  sessionBests.set(key, value);
+  void writeBest(key, value);
+}
+
 /** Remember a score; true when it beats the best (or is the first). */
 export function recordBest(key: string, value: number, better: 'lower' | 'higher' = 'higher'): boolean {
   if (!BEST_KEY.test(key) || !Number.isFinite(value)) return false;

@@ -27,6 +27,9 @@ import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpo
  *   sit.ts         坐下 anywhere (grass, steps, rims) and the view spots' slow look
  *   firstFlight.ts + rings.ts + FlightChip.tsx   the first flight: lane C's pelican moment calls
  *                  `import('../play/firstFlight').then(m => m.startFirstFlight())`
+ *   zones.ts       part b, loaded at init: the chip, the 滑下去 / 比赛？ prompts, the cable car's bell pad, the step
+ *                  counter; slides.ts (the Seward slides), stairs.ts (the stair races) and bell.ts + BellPad.tsx (the
+ *                  bell riff, the lean-out photo) load behind it
  *
  * Nothing here changes the district (never loaded there).
  */
@@ -179,7 +182,10 @@ export function init(): () => void {
   // BAYBAY's shoreline float (idle) — the pet chunk
   let offFloat: (() => void) | null = null;
   void import('./pet').then(m => { if (!disposed) offFloat = m.startFloatWatch(); });
-  offs.push(() => { disposed = true; offFloat?.(); sitModule?.resetSit(); });
+  // part b: the zones (the slides, the stair courses, the cable car's bell pad, the step counter) — their own chunk
+  let offZones: (() => void) | null = null;
+  void import('./zones').then(m => { if (!disposed) offZones = m.initZones(); });
+  offs.push(() => { disposed = true; offFloat?.(); offZones?.(); sitModule?.resetSit(); });
 
   // one coach line for the emotes, once per device, when the player has settled in and stands still
   const seen = () => { try { return localStorage.getItem(COACH_KEY) === '1'; } catch { return true; } };
@@ -202,7 +208,7 @@ export function init(): () => void {
   // DEV / QA: __opusBay.play
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    w.__opusBay = { ...(w.__opusBay ?? {}), play: { openWheel, toggleWheel, petNow, startFirstFlight, sit: () => import('./sit'), flight: () => import('./firstFlight'), kit: () => import('./kit'), emotes: () => import('./emotes'), viewSpots: VIEW_SPOTS, sitHereIt, viewIts } };
+    w.__opusBay = { ...(w.__opusBay ?? {}), play: { openWheel, toggleWheel, petNow, startFirstFlight, sit: () => import('./sit'), flight: () => import('./firstFlight'), kit: () => import('./kit'), emotes: () => import('./emotes'), zones: () => import('./zones'), slides: () => import('./slides'), stairs: () => import('./stairs'), bell: () => import('./bell'), viewSpots: VIEW_SPOTS, sitHereIt, viewIts } };
   }
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
 }
