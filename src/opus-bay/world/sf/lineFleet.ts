@@ -55,7 +55,21 @@ export const SHADOW_NEAR = 60;
  * Another layer's vehicles drawn in the fleet's meshes (integration: the cable cars and the city F-line's cars), so every
  * vehicle of the city's lines costs the same 2 calls + 1 shadow call: `count` vehicles of one look, near + far geometry.
  */
-export interface ExtraVehicleKind { key: string; near: THREE.BufferGeometry; far: THREE.BufferGeometry; count: number }
+export interface ExtraVehicleKind {
+  key: string; near: THREE.BufferGeometry; far: THREE.BufferGeometry; count: number;
+  /**
+   * (W5-T4, plan MF9) a middle look for SHADOW_NEAR … FAR_LOD (instead of the full geometry without a shadow): the cable
+   * car's 2,124 triangles → ≈ 580, the F-line car's 1,112 → ≈ 490; with it the kind casts a shadow only within
+   * `shadowNear` (default SHADOW_NEAR)
+   */
+  mid?: THREE.BufferGeometry;
+  shadowNear?: number;
+}
+/**
+ * (W5-T4) the cable cars and the F-line cars: full look with a shadow within this of the camera, the middle look beyond
+ * (at 45 u a car is ≈ 70 px tall on a 900 px screen at the 42° lens, the middle look's detail reads the same)
+ */
+export const EXTRA_SHADOW_NEAR = 45;
 const HEAR = 60;
 
 export interface FleetInput {
@@ -115,8 +129,11 @@ function batched(geos: THREE.BufferGeometry[], counts: number[], material: THREE
   return { mesh, ids };
 }
 
-/** One vehicle's three instances: the casting near mesh (≤ SHADOW_NEAR), the full look in the far mesh (≤ FAR_LOD), the far look. */
-interface VehicleSlot { near: number; mid: number; far: number; tris: number; farTris: number }
+/**
+ * One vehicle's three instances: the casting near mesh (≤ `shadowNear`), the full look — or the kind's middle look —
+ * in the far mesh (≤ FAR_LOD), the far look.
+ */
+interface VehicleSlot { near: number; mid: number; far: number; tris: number; farTris: number; midTris: number; shadowNear: number }
 
 const tmpM = new THREE.Matrix4();
 const tmpQ = new THREE.Quaternion();
@@ -170,9 +187,15 @@ export class LineFleet {
     const farGeos = [tourBusFarGeometry(), ...metroIds.map(id => lrvCarFarGeometry(lineColor(id))), ...extra.map(e => e.far)];
     const trainsOf = (id: string) => this.rail.trains.filter(t => t.track.id === id).length * 2;
     const counts = [this.bus.buses.length, ...metroIds.map(trainsOf), ...extra.map(e => e.count)];
-    // near: the full look, casting (≤ SHADOW_NEAR); far: the full look (≤ FAR_LOD) and the far look, no shadows
+    // (W5-T4) the kinds with a middle look: their middle instances use it instead of the full geometry
+    const G0 = 1 + metroIds.length;
+    const withMid = extra.map((e, k) => (e.mid ? k : -1)).filter(k => k >= 0);
+    const midGeos = withMid.map(k => extra[k].mid!);
+    const midIndex = new Map(withMid.map((k, j) => [G0 + k, j]));
+    const midCounts = counts.map((c, gi) => (midIndex.has(gi) ? 0 : c));
+    // near: the full look, casting (≤ SHADOW_NEAR); far: the full look or the middle one (≤ FAR_LOD) and the far look, no shadows
     const n = batched(nearGeos, counts, nearMat, 'w4-vehicles');
-    const f = batched([...nearGeos, ...farGeos], [...counts, ...counts], farMat, 'w4-vehicles-far');
+    const f = batched([...nearGeos, ...farGeos, ...midGeos], [...midCounts, ...counts, ...withMid.map(k => extra[k].count)], farMat, 'w4-vehicles-far');
     this.near = n.mesh; this.far = f.mesh;
     this.near.castShadow = true;
     this.near.receiveShadow = true;
@@ -183,10 +206,15 @@ export class LineFleet {
     const triOf = (g: THREE.BufferGeometry) => g.getIndex()!.count / 3;
     const G = nearGeos.length;
     const slot = (gi: number): VehicleSlot => {
-      const a = this.near.addInstance(n.ids[gi]), m = this.far.addInstance(f.ids[gi]), b = this.far.addInstance(f.ids[G + gi]);
+      const mj = midIndex.get(gi);
+      const a = this.near.addInstance(n.ids[gi]), m = this.far.addInstance(f.ids[mj === undefined ? gi : 2 * G + mj]), b = this.far.addInstance(f.ids[G + gi]);
       this.near.setColorAt(a, WHITE); this.far.setColorAt(m, WHITE); this.far.setColorAt(b, WHITE);
       this.near.setVisibleAt(a, false); this.far.setVisibleAt(m, false); this.far.setVisibleAt(b, false);
-      return { near: a, mid: m, far: b, tris: triOf(nearGeos[gi]), farTris: triOf(farGeos[gi]) };
+      const kind = gi >= G0 ? extra[gi - G0] : undefined;
+      return {
+        near: a, mid: m, far: b, tris: triOf(nearGeos[gi]), farTris: triOf(farGeos[gi]), midTris: triOf(mj === undefined ? nearGeos[gi] : midGeos[mj]),
+        shadowNear: kind?.shadowNear ?? (kind?.mid ? EXTRA_SHADOW_NEAR : SHADOW_NEAR),
+      };
     };
     for (let k = 0; k < this.bus.buses.length; k++) this.busSlots.push(slot(0));
     for (const t of this.rail.trains) { const gi = 1 + metroIds.indexOf(t.track.id); this.carSlots.push([slot(gi), slot(gi)]); }
@@ -228,7 +256,7 @@ export class LineFleet {
       for (const o of [-0.7, 0.7]) this.discs.push({ x: p.x + fx * o, z: p.z + fz * o, r: 1.12 });
     }
     for (const p of this.portals) for (const poly of portalBlockers(p)) this.discs.push(...rectDiscs(poly));
-    for (const g of [...nearGeos, ...farGeos, ...geoList]) g.dispose();
+    for (const g of [...nearGeos, ...farGeos, ...midGeos, ...geoList]) g.dispose();
 
     this.group.add(this.near, this.far, this.staticMesh);
     this.group.updateMatrixWorld(true);
@@ -267,8 +295,8 @@ export class LineFleet {
    * allocation: it runs for every vehicle every frame.
    */
   private show(slot: VehicleSlot, pose: CarPose, hidden: boolean, cam: { x: number; z: number }) {
-    const d = Math.hypot(pose.x - cam.x, pose.z - cam.z);
-    const nearOn = !hidden && d <= SHADOW_NEAR, midOn = !hidden && d > SHADOW_NEAR && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
+    const d = Math.hypot(pose.x - cam.x, pose.z - cam.z), sn = slot.shadowNear;
+    const nearOn = !hidden && d <= sn, midOn = !hidden && d > sn && d <= FAR_LOD, farOn = !hidden && d > FAR_LOD && d <= HIDE_BEYOND;
     this.near.setVisibleAt(slot.near, nearOn);
     this.far.setVisibleAt(slot.mid, midOn);
     this.far.setVisibleAt(slot.far, farOn);
@@ -458,7 +486,7 @@ export class LineFleet {
     const vis = (m: THREE.BatchedMesh, id: number) => m.getVisibleAt(id);
     for (const s of [...this.busSlots, ...this.carSlots.flat(), ...[...this.extraSlots.values()].flat()]) {
       if (vis(this.near, s.near)) { tris += s.tris; shadowTris += s.tris; nearV++; }
-      if (vis(this.far, s.mid)) { tris += s.tris; midV++; }
+      if (vis(this.far, s.mid)) { tris += s.midTris; midV++; }
       if (vis(this.far, s.far)) { tris += s.farTris; farV++; }
     }
     for (const p of this.propSlots) if (vis(this.staticMesh, p.id)) { tris += p.tris; props++; }

@@ -149,6 +149,63 @@ export function cableCarGeometry(): THREE.BufferGeometry {
 }
 
 /**
+ * (W5-T4, plan MF9) The middle distance (≈ 45–110 u from the camera, drawn without a shadow): the full car's look in
+ * ≈ 580 triangles instead of 2,124. The saloon as a maroon / gold / cream stack with one warm window band and two posts
+ * a side, the open ends' benches and brass poles (as thin boxes), the dashes with their lamps, the roof with its
+ * clerestory, maroon fascia and lamp bars, and the gripman in five pieces. No wheels, trucks as two dark blocks.
+ */
+export function cableCarMidGeometry(): THREE.BufferGeometry {
+  const b = new Batch();
+  const F = CAR_FLOOR;
+  const sl = SALOON.z1 - SALOON.z0, sc = (SALOON.z0 + SALOON.z1) / 2;
+  // running gear, underframe, floor with the running boards
+  for (const s of [-1, 1]) box(b, 0, 0.05, s * CABLE.bogie, 1.3, 0.3, 1.25, IRON);
+  box(b, 0, 0.28, 0, W - 0.1, 0.22, L - 0.2, MAROON_DARK);
+  box(b, 0, F - 0.08, 0, W + 0.5, 0.08, L - 0.3, WOOD);
+  // saloon: maroon lower, gold belt, cream upper, the window band (both sides in one box), two posts a side, letter board
+  box(b, 0, F, sc, W - 0.06, 0.7, sl, MAROON);
+  box(b, 0, F + 0.66, sc, W + 0.02, 0.05, sl + 0.02, GOLD);
+  box(b, 0, F + 0.71, sc, W - 0.1, ROOF_Y - F - 0.71, sl, CREAM);
+  box(b, 0, F + 0.8, sc, W - 0.08, 0.68, sl - 0.16, GLASS, WINDOW);
+  for (const s of [-1, 1]) for (const k of [1, 2]) box(b, s * (W / 2 - 0.03), F + 0.79, SALOON.z0 + 0.06 + k * ((sl - 0.12) / 3), 0.08, 0.72, 0.12, CREAM);
+  box(b, 0, F + 1.51, sc, W - 0.06, ROOF_Y - F - 1.51, sl, MAROON);
+  // skirts under the open sections, with their gold rail
+  for (const s of [-1, 1]) {
+    box(b, s * (W / 2 - 0.03), F, 0, 0.06, 0.42, L - 0.24, MAROON);
+    box(b, s * (W / 2 - 0.02), F + 0.38, 0, 0.08, 0.04, L - 0.24, GOLD);
+  }
+  // open sections: the outward benches (seats and the backrest down the middle), brass poles at the corners
+  for (const [z0, z1] of [[SALOON.z1 + 0.08, HL - 0.36], [-HL + 0.36, SALOON.z0 - 0.08]]) {
+    box(b, 0, F + CAR_SEAT_Y - 0.06, (z0 + z1) / 2, 1.9, 0.06, z1 - z0, WOOD);
+    box(b, 0, F + CAR_SEAT_Y, (z0 + z1) / 2, 1.0, 0.46, z1 - z0, WOOD_DARK);
+  }
+  for (const s of [-1, 1]) for (const z of [SALOON.z1 + 0.08, HL - 0.2, SALOON.z0 - 0.08, -HL + 0.2]) box(b, s * 0.95, F, z, 0.07, ROOF_Y - F, 0.07, BRASS);
+  // dashes at both ends: maroon panel, cream rail, the head / tail lamp
+  for (const e of [-1, 1]) {
+    const z = e * (HL - 0.06);
+    box(b, 0, F, z, W - 0.1, 0.78, 0.1, MAROON);
+    box(b, 0, F + 0.78, z, W - 0.06, 0.07, 0.14, CREAM);
+    box(b, 0, F + 0.28, z + e * 0.06, 0.26, 0.16, 0.06, e > 0 ? '#fff1c8' : '#ffc08a', LAMP);
+  }
+  // roof, clerestory, the maroon fascia along both sides, a lamp bar at each end
+  box(b, 0, ROOF_Y, 0, W + 0.14, 0.1, L + 0.2, ROOF);
+  box(b, 0, ROOF_Y + 0.1, 0, 1.05, 0.14, L - 1.6, CREAM_DARK);
+  for (const s of [-1, 1]) box(b, s * (W / 2 + 0.02), ROOF_Y - 0.14, 0, 0.05, 0.14, L, MAROON);
+  for (const e of [-1, 1]) box(b, 0, ROOF_Y + 0.1, e * (HL + 0.02), 1.68, 0.12, 0.08, '#fff0c4', LAMP);
+  // the gripman at the front grip: legs, vest, head, cap; the grip lever
+  const gz = 1.9;
+  box(b, 0, F, gz, 0.34, 0.66, 0.16, NAVY);
+  box(b, 0, F + 0.64, gz, 0.6, 0.6, 0.26, VEST);
+  b.add(SPHERE(6, 4), M(0, F + 1.43, gz, 0, 0.17, 0.18, 0.17), SKIN, NO);
+  box(b, 0, F + 1.52, gz + 0.03, 0.36, 0.08, 0.36, CAP);
+  box(b, 0, F - 0.2, 2.2, 0.06, 1.2, 0.06, IRON, NO, 0, -0.12);
+  const g = b.build();
+  g.computeBoundingSphere();
+  g.name = 'cable-car-mid';
+  return g;
+}
+
+/**
  * The far version (beyond ~110 u, drawn without shadows): the same silhouette and colours in 13 boxes (156
  * triangles instead of 2,124), lamps and warm windows included so a far car still reads at night.
  */

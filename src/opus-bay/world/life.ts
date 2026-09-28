@@ -26,11 +26,68 @@ const _q = new THREE.Quaternion();
 const _e = new THREE.Euler();
 const _p = new THREE.Vector3();
 const _s = new THREE.Vector3();
-const place = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, ry: number, s = 1, rx = 0, rz = 0, sy = s) => {
+/** The instance matrix for a pose (a shared scratch matrix: use it before the next call). */
+const pose = (x: number, y: number, z: number, ry: number, s = 1, rx = 0, rz = 0, sy = s) => {
   _e.set(rx, ry, rz, 'YXZ');
-  _m.compose(_p.set(x, y, z), _q.setFromEuler(_e), _s.set(s, sy, s));
-  mesh.setMatrixAt(i, _m);
+  return _m.compose(_p.set(x, y, z), _q.setFromEuler(_e), _s.set(s, sy, s));
 };
+const place = (mesh: THREE.InstancedMesh, i: number, x: number, y: number, z: number, ry: number, s = 1, rx = 0, rz = 0, sy = s) => {
+  mesh.setMatrixAt(i, pose(x, y, z, ry, s, rx, rz, sy));
+};
+
+/**
+ * (W5-T4, plan MF9 · city mode only) The district's ambient life is culled per instance by its distance from the camera.
+ * From downtown the promenade's walkers, the gulls and the sailboats are hundreds of units away (Chinatown: 177 u to the
+ * nearest walker, 265 u to the nearest sailboat; the wave-5 capacity scout measured them at ≈ 33k triangles a frame at
+ * Chinatown and Civic Center) yet every instance was drawn. Now each kind draws only its instances within reach (u, 3D
+ * from the camera), shrinking over the last LIFE_FADE u so nothing pops; a kind with none in reach is not drawn at all.
+ * The city crowd lives within 90 u of the player (world/sf/crowd.ts): the district's walkers now end about as far away.
+ * District mode: unchanged (no cull: every instance in its own slot, as before).
+ */
+export const LIFE_FAR = { people: 130, birds: 130, boats: 260, carousel: 220, perched: 110 } as const;
+const LIFE_FADE = { people: 15, birds: 20, boats: 25 } as const;
+/** 1 inside reach, easing to 0 over the last `fade` u, 0 beyond (never culls with reach = Infinity: district mode) */
+const reachK = (d: number, reach: number, fade: number) => (d <= reach - fade ? 1 : d >= reach ? 0 : smooth(reach, reach - fade, d));
+
+/**
+ * (W5-T4) Packs the instances in reach to the front of an InstancedMesh: slot k draws source instance `src[k]`. A slot's
+ * per-instance data (colour, phase, walk…) is copied only when the instance behind it changes, so a still scene uploads
+ * nothing but the matrices it always uploaded. With every instance pushed in order (district mode) slot k = instance k.
+ */
+class Packer {
+  n = 0;
+  readonly mesh: THREE.InstancedMesh;
+  private copy: ((slot: number, i: number) => void) | null;
+  private attrs: THREE.BufferAttribute[];
+  private src: Int32Array;
+  private changed = false;
+  constructor(mesh: THREE.InstancedMesh, copy: ((slot: number, i: number) => void) | null, attrs: THREE.BufferAttribute[] = []) {
+    this.mesh = mesh;
+    this.copy = copy;
+    this.attrs = attrs;
+    this.src = new Int32Array(mesh.instanceMatrix.count).fill(-1);
+  }
+  begin() { this.n = 0; }
+  /** the next slot draws source instance i with matrix m; returns the slot */
+  push(i: number, m: THREE.Matrix4): number {
+    const k = this.n++;
+    this.mesh.setMatrixAt(k, m);
+    if (this.src[k] !== i) { this.src[k] = i; this.copy?.(k, i); this.changed = true; }
+    return k;
+  }
+  /** this frame's count (drawn only when > 0); the per-instance data re-uploaded when a slot changed hands */
+  end(show = true) {
+    this.mesh.count = this.n;
+    this.mesh.instanceMatrix.needsUpdate = true;
+    this.mesh.visible = show && this.n > 0;
+    if (!this.changed) return;
+    this.changed = false;
+    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
+    for (const a of this.attrs) a.needsUpdate = true;
+  }
+  /** source instance drawn in slot k (tests) */
+  source(k: number) { return k < this.n ? this.src[k] : -1; }
+}
 const setObj = (o: THREE.Object3D, x: number, y: number, z: number, ry: number, rx = 0, rz = 0, s = 1) => {
   _e.set(rx, ry, rz, 'YXZ');
   o.matrix.compose(_p.set(x, y, z), _q.setFromEuler(_e), _s.set(s, s, s));
@@ -414,9 +471,17 @@ export class Life {
   private sealState = { t: 0, next: 12, x: 0, z: 0, active: false };
   private sealSpots: Vec2[] = [];
   private people: THREE.InstancedMesh;
-  private peopleWalk: THREE.InstancedBufferAttribute;
   private walkers: Walker[] = [];
   private dogs: THREE.InstancedMesh;
+  /** (W5-T4) the instances in reach packed to the front (LIFE_FAR); per-instance data by source instance */
+  private packPeople: Packer;
+  private packDogs: Packer;
+  private packGulls: Packer;
+  private packGlide: Packer;
+  private packSail: Packer | null = null;
+  private packPelicans: Packer | null = null;
+  /** (W5-T4) cull by distance (city mode; tests replace it) */
+  cullFar = (): boolean => game.get().worldMode === 'city';
   private playerSt = 0;
   private frame = 0;
   private dtA = 0;
@@ -520,23 +585,30 @@ export class Life {
     const gullGeo = gullGeometry();
     this.gullFlap = new THREE.InstancedBufferAttribute(new Float32Array(this.gulls.length), 1);
     gullGeo.setAttribute('aFlap', this.gullFlap);
-    gullGeo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(Float32Array.from(this.gulls.map(g => g.ph * 3)), 1));
+    const gullPhase = Float32Array.from(this.gulls.map(g => g.ph * 3));
+    const gullPhaseAttr = new THREE.InstancedBufferAttribute(gullPhase.slice(), 1);
+    gullGeo.setAttribute('aPhase', gullPhaseAttr);
     this.gullMesh = new THREE.InstancedMesh(gullGeo, this.flapMat, this.gulls.length);
     this.gullMesh.name = 'gulls';
     this.gullMesh.frustumCulled = false;
-    this.gulls.forEach((g, i) => this.gullMesh.setColorAt(i, g.pigeon ? new THREE.Color(0.55, 0.58, 0.66) : new THREE.Color(1, 1, 1)));
+    const gullColor = this.gulls.map(g => (g.pigeon ? new THREE.Color(0.55, 0.58, 0.66) : new THREE.Color(1, 1, 1)));
+    gullColor.forEach((c, i) => this.gullMesh.setColorAt(i, c));
+    this.packGulls = new Packer(this.gullMesh, (k, i) => { gullPhaseAttr.setX(k, gullPhase[i]); this.gullMesh.setColorAt(k, gullColor[i]); }, [gullPhaseAttr]);
     this.group.add(this.gullMesh);
 
     // gliding pelicans (procedural) ---------------------------------------------------
     const pGeo = glidingPelicanGeometry();
     this.pelicanFlap = new THREE.InstancedBufferAttribute(new Float32Array(4), 1);
     pGeo.setAttribute('aFlap', this.pelicanFlap);
-    pGeo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(Float32Array.from([0, 1.3, 2.1, 3.7]), 1));
+    const glidePhase = Float32Array.from([0, 1.3, 2.1, 3.7]);
+    const glidePhaseAttr = new THREE.InstancedBufferAttribute(glidePhase.slice(), 1);
+    pGeo.setAttribute('aPhase', glidePhaseAttr);
     this.pelicanGlide = new THREE.InstancedMesh(pGeo, this.flapMat, 4);
     this.pelicanGlide.name = 'pelicans-gliding';
     this.pelicanGlide.frustumCulled = false;
     // white instance colours: the same program variant as the gulls' (they share flapMat; C2's P2 request)
     for (let i = 0; i < 4; i++) this.pelicanGlide.setColorAt(i, new THREE.Color(1, 1, 1));
+    this.packGlide = new Packer(this.pelicanGlide, (k, i) => { glidePhaseAttr.setX(k, glidePhase[i]); }, [glidePhaseAttr]);
     this.group.add(this.pelicanGlide);
     this.pelicanRoute = new Route([{ x: 230, z: -66 }, { x: 120, z: -64 }, { x: 0, z: -70 }, { x: -120, z: -66 }, { x: -240, z: -62 }], false);
 
@@ -561,21 +633,26 @@ export class Life {
       if (p && canStand(p.x + ox, p.z + oz, 0.3)) this.walkers.push({ s: 0, d: 0, dir: 1, v: 0, ph: pr() * 6.28, stand: true, x: p.x + ox, z: p.z + oz, ry: pr() * 6.28, off: 0 });
     }
     const pgeo = personGeometry();
-    pgeo.setAttribute('aPhase', new THREE.InstancedBufferAttribute(Float32Array.from(this.walkers.map(w => w.ph)), 1));
-    this.peopleWalk = new THREE.InstancedBufferAttribute(Float32Array.from(this.walkers.map(w => (w.stand ? 0 : 1))), 1);
-    pgeo.setAttribute('aWalk', this.peopleWalk);
+    const walkPhase = Float32Array.from(this.walkers.map(w => w.ph)), walkWalk = Float32Array.from(this.walkers.map(w => (w.stand ? 0 : 1)));
+    const phaseAttr = new THREE.InstancedBufferAttribute(walkPhase.slice(), 1), walkAttr = new THREE.InstancedBufferAttribute(walkWalk.slice(), 1);
+    pgeo.setAttribute('aPhase', phaseAttr);
+    pgeo.setAttribute('aWalk', walkAttr);
     this.people = new THREE.InstancedMesh(pgeo, this.peopleMat, this.walkers.length);
     this.people.name = 'pedestrians';
     this.people.frustumCulled = false;
     const shirts = ['#d8744a', '#2f8f88', '#d9b779', '#6f8fc0', '#c95f5a', '#8fae5b', '#f2efe6', '#9c6fb0', '#5a6b7a'];
-    this.walkers.forEach((_w, i) => this.people.setColorAt(i, new THREE.Color(shirts[i % shirts.length]).lerp(new THREE.Color('#e8dcc4'), 0.1)));
+    const shirt = this.walkers.map((_w, i) => new THREE.Color(shirts[i % shirts.length]).lerp(new THREE.Color('#e8dcc4'), 0.1));
+    shirt.forEach((c, i) => this.people.setColorAt(i, c));
+    this.packPeople = new Packer(this.people, (k, i) => { phaseAttr.setX(k, walkPhase[i]); walkAttr.setX(k, walkWalk[i]); this.people.setColorAt(k, shirt[i]); }, [phaseAttr, walkAttr]);
     this.group.add(this.people);
     // two walkers take their dogs out
     this.dogs = new THREE.InstancedMesh(dogGeometry(), TOY_INST_TINT, DOG_OWNERS.length);
     this.dogs.name = 'dogs';
     this.dogs.frustumCulled = false;
     this.dogs.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    DOG_OWNERS.forEach((_o, k) => this.dogs.setColorAt(k, new THREE.Color(k ? '#8a6446' : '#e2cba4')));
+    const fur = DOG_OWNERS.map((_o, k) => new THREE.Color(k ? '#8a6446' : '#e2cba4'));
+    fur.forEach((c, k) => this.dogs.setColorAt(k, c));
+    this.packDogs = new Packer(this.dogs, (k, i) => { this.dogs.setColorAt(k, fur[i]); });
     this.group.add(this.dogs);
 
     // carousel -----------------------------------------------------------------------------
@@ -686,6 +763,7 @@ export class Life {
         this.pelicans.computeBoundingSphere();
         if (this.pelicans.boundingSphere) this.pelicans.boundingSphere.radius += 2;
         this.pelicans.visible = !this.heroFar;
+        this.packPelicans = new Packer(this.pelicans, null);
         this.group.add(this.pelicans);
       }
       if (sail) {
@@ -701,6 +779,7 @@ export class Life {
         this.sailboats.name = 'sailboats';
         this.sailboats.frustumCulled = false;
         this.sailboats.visible = !this.heroFar;
+        this.packSail = new Packer(this.sailboats, null);
         this.group.add(this.sailboats);
       }
     }).catch(error => { if (import.meta.env?.DEV) console.warn('[opus-bay world] model load failed', error); });
@@ -745,7 +824,8 @@ export class Life {
     this.heads.visible = nearDock;
     if (dockD < 220) this.updateFloats(t);
     this.floats.visible = dockD < 220;
-    if (this.pelicans) this.pelicans.visible = this.pelicanSpots.some(p => Math.hypot(cam.x - p.x, cam.z - p.z) < 110);
+    // (the perched pelicans are packed by distance in updatePelicans; W5-T4: the carousel beyond LIFE_FAR.carousel in city mode)
+    this.carousel.visible = !this.cullFar() || Math.hypot(cam.x - this.carouselPos.x, cam.z - this.carouselPos.z) < LIFE_FAR.carousel;
     this.updateFerries(dt, t, s.phase);
     // ambient life runs at 30 Hz in two interleaved halves (keeps the per-frame world update small)
     this.dtA += dt; this.dtB += dt;
@@ -874,17 +954,24 @@ export class Life {
     const px = runtime.player.x, pz = runtime.player.z;
     const running = runtime.player.running || runtime.player.speed > 5;
     const cam = U.uCam.value;
+    // (W5-T4) city mode: only the birds within LIFE_FAR.birds of the camera are drawn (packed to the front; the flap is
+    // written for the slot a bird is drawn in). District mode: every bird in its own slot, as before.
+    const reach = this.cullFar() ? LIFE_FAR.birds : Infinity;
+    const pack = this.packGulls;
+    pack.begin();
+    // birds that come within 6 u of the lens shrink away instead of filling the frame
+    const near = (x: number, y: number, z: number) => smooth(3, 6, Math.hypot(x - cam.x, y - cam.y, z - cam.z));
     this.gulls.forEach((g, i) => {
       let flap = 0.25;
       const size = g.pigeon ? 0.55 : 1;
-      // birds that come within 6 u of the lens shrink away instead of filling the frame
-      const near = (x: number, y: number, z: number) => smooth(3, 6, Math.hypot(x - cam.x, y - cam.y, z - cam.z));
+      // this frame's pose: position, scale, pitch / roll (the heading is g.heading)
+      let x = g.x, y = g.yy, z = g.z, s = size, rx = 0, rz = 0;
       if (g.mode === 'circle') {
         const a = g.ph + t * g.speed;
         g.x = g.cx + Math.cos(a) * g.r; g.z = g.cz + Math.sin(a) * g.r; g.yy = g.y + Math.sin(t * 0.6 + g.ph) * 0.8;
         g.heading = Math.atan2(-Math.sin(a) * Math.sign(g.speed), Math.cos(a) * Math.sign(g.speed));
         flap = 0.15 + 0.35 * Math.max(0, Math.sin(t * 0.8 + g.ph));
-        place(this.gullMesh, i, g.x, g.yy, g.z, g.heading, size * near(g.x, g.yy, g.z), 0, -0.35 * Math.sign(g.speed));
+        x = g.x; y = g.yy; z = g.z; s = size * near(g.x, g.yy, g.z); rz = -0.35 * Math.sign(g.speed);
       } else if (g.mode === 'perched' && g.perch) {
         const d = Math.hypot(g.perch.x - px, g.perch.z - pz);
         const scare = g.pigeon ? (running ? 3 : 1.2) : (running ? 4.5 : 1.8);
@@ -897,7 +984,7 @@ export class Life {
         flap = -1;
         // pigeons peck
         const peck = g.pigeon ? Math.pow(Math.max(0, Math.sin(t * 2.6 + g.ph * 3)), 6) * 0.6 : 0;
-        place(this.gullMesh, i, g.x, g.yy + 0.12 * size, g.z, g.heading, 0.9 * size * near(g.x, g.yy, g.z), peck, 0);
+        x = g.x; y = g.yy + 0.12 * size; z = g.z; s = 0.9 * size * near(g.x, g.yy, g.z); rx = peck;
       } else if (g.mode === 'flee' && g.perch) {
         g.timer += dt;
         const a = g.ph + g.timer * (g.pigeon ? 1.4 : 0.9);
@@ -908,7 +995,7 @@ export class Life {
         g.heading = Math.atan2(-Math.sin(a), Math.cos(a));
         flap = 1;
         if (g.timer > (g.pigeon ? 6 + (i % 4) : 10 + (i % 5))) { g.mode = 'return'; g.timer = 0; }
-        place(this.gullMesh, i, g.x, g.yy, g.z, g.heading, size * near(g.x, g.yy, g.z), -0.2, -0.3);
+        x = g.x; y = g.yy; z = g.z; s = size * near(g.x, g.yy, g.z); rx = -0.2; rz = -0.3;
       } else if (g.mode === 'return' && g.perch) {
         g.timer += dt;
         const d = Math.hypot(g.perch.x - px, g.perch.z - pz);
@@ -916,12 +1003,13 @@ export class Life {
         g.x += (g.perch.x - g.x) * k; g.z += (g.perch.z - g.z) * k; g.yy += (g.perch.y - g.yy) * k;
         flap = 0.7;
         if (Math.hypot(g.x - g.perch.x, g.z - g.perch.z) < 0.08 && Math.abs(g.yy - g.perch.y) < 0.08) g.mode = d < (g.pigeon ? 2.5 : 5) ? 'flee' : 'perched';
-        place(this.gullMesh, i, g.x, g.yy + 0.12 * size, g.z, g.heading, size * near(g.x, g.yy, g.z), 0, 0);
+        x = g.x; y = g.yy + 0.12 * size; z = g.z; s = size * near(g.x, g.yy, g.z);
       }
-      this.gullFlap.setX(i, flap);
+      const far = reachK(Math.hypot(x - cam.x, y - cam.y, z - cam.z), reach, LIFE_FADE.birds);
+      if (far > 0) this.gullFlap.setX(pack.push(i, pose(x, y, z, g.heading, s * far, rx, rz)), flap);
     });
     this.gullFlap.needsUpdate = true;
-    this.gullMesh.instanceMatrix.needsUpdate = true;
+    pack.end();
   }
 
   private updatePelicans(dt: number, t: number) {
@@ -930,19 +1018,35 @@ export class Life {
     this.pelicanS += dt * 7.5;
     const r = this.pelicanRoute;
     if (this.pelicanS > r.total + 60) this.pelicanS = -220;
+    const cam = U.uCam.value, cull = this.cullFar();
+    // (W5-T4) city mode: only the gliders over the water and within reach are drawn; district mode keeps the parked one
+    // off the route in its slot (as before)
+    const glide = this.packGlide, reach = cull ? LIFE_FAR.birds * 2 : Infinity;
+    glide.begin();
     for (let i = 0; i < 4; i++) {
       const s = this.pelicanS - i * 3.2;
-      if (s < 0 || s > r.total) { place(this.pelicanGlide, i, 0, -50, 0, 0, 0.001); continue; }
+      if (s < 0 || s > r.total) { if (!cull) glide.push(i, pose(0, -50, 0, 0, 0.001)); continue; }
       const p = r.at(s);
       const y = WATER + 2.2 + Math.sin(s * 0.08 + i) * 0.5;
-      place(this.pelicanGlide, i, p.x + (i % 2 ? 1.2 : -1.2) * Math.cos(p.heading), y, p.z - (i % 2 ? 1.2 : -1.2) * Math.sin(p.heading), p.heading, 1.25, 0.04, Math.sin(t * 0.7 + i) * 0.08);
-      this.pelicanFlap.setX(i, Math.max(0, Math.sin(t * 0.35 + i)) > 0.93 ? 0.6 : 0.04);
+      const x = p.x + (i % 2 ? 1.2 : -1.2) * Math.cos(p.heading), z = p.z - (i % 2 ? 1.2 : -1.2) * Math.sin(p.heading);
+      const k = reachK(Math.hypot(x - cam.x, y - cam.y, z - cam.z), reach, LIFE_FADE.birds);
+      if (k <= 0) continue;
+      const slot = glide.push(i, pose(x, y, z, p.heading, 1.25 * k, 0.04, Math.sin(t * 0.7 + i) * 0.08));
+      this.pelicanFlap.setX(slot, Math.max(0, Math.sin(t * 0.35 + i)) > 0.93 ? 0.6 : 0.04);
     }
     this.pelicanFlap.needsUpdate = true;
-    this.pelicanGlide.instanceMatrix.needsUpdate = true;
-    if (this.pelicans) {
-      this.pelicanSpots.forEach((p, i) => place(this.pelicans!, i, p.x, p.y, p.z, p.ry + Math.sin(t * 0.3 + p.ph) * 0.5, 1.05));
-      this.pelicans.instanceMatrix.needsUpdate = true;
+    glide.end();
+    const perched = this.packPelicans;
+    if (this.pelicans && perched) {
+      // GLB creatures are ~3k triangles each: skip them when they would be a few pixels (district mode: all four while any
+      // is within LIFE_FAR.perched; city mode: each one by its own distance, W5-T4)
+      const any = this.pelicanSpots.some(p => Math.hypot(cam.x - p.x, cam.z - p.z) < LIFE_FAR.perched);
+      perched.begin();
+      this.pelicanSpots.forEach((p, i) => {
+        if (cull ? Math.hypot(cam.x - p.x, cam.z - p.z) >= LIFE_FAR.perched : !any) return;
+        perched.push(i, pose(p.x, p.y, p.z, p.ry + Math.sin(t * 0.3 + p.ph) * 0.5, 1.05));
+      });
+      perched.end();
     }
   }
 
@@ -1004,19 +1108,26 @@ export class Life {
   }
 
   private updateSailboats(dt: number, t: number) {
-    if (!this.sailboats) return;
+    const pack = this.packSail;
+    if (!this.sailboats || !pack) return;
     const asset = ASSETS.models.sailboat;
+    // (W5-T4) city mode: only the boats within LIFE_FAR.boats of the camera (their mast light with them)
+    const cam = U.uCam.value, reach = this.cullFar() ? LIFE_FAR.boats : Infinity;
+    pack.begin();
     this.sailRoutes.forEach((r, i) => {
       r.s += r.v * dt;
       const p = r.route.at(r.s);
-      place(this.sailboats!, i, p.x, WATER + (asset?.yOffset ?? -0.75) * 1.2 + Math.sin(t * 1.3 + i) * 0.06, p.z, p.heading, 1.2, Math.sin(t * 0.9 + i) * 0.03, 0.14 + Math.sin(t * 0.6 + i) * 0.04);
+      const y = WATER + (asset?.yOffset ?? -0.75) * 1.2 + Math.sin(t * 1.3 + i) * 0.06;
+      const k = reachK(Math.hypot(p.x - cam.x, y - cam.y, p.z - cam.z), reach, LIFE_FADE.boats);
       const hi = this.ferries.length * FERRY_LIGHTS.length + i;
+      if (k <= 0) { if (this.halos && hi < this.halos.count) this.halos.set(hi, 0, 0, 0, false); return; }
+      pack.push(i, pose(p.x, y, p.z, p.heading, 1.2 * k, Math.sin(t * 0.9 + i) * 0.03, 0.14 + Math.sin(t * 0.6 + i) * 0.04));
       if (this.halos && hi < this.halos.count) {
         _lp.set(0, (asset?.size[1] ?? 4.96) + 0.1, 0).applyMatrix4(_m);
         this.halos.set(hi, _lp.x, _lp.y, _lp.z, true);
       }
     });
-    this.sailboats.instanceMatrix.needsUpdate = true;
+    pack.end();
   }
 
   private updateSeal(dt: number, t: number) {
@@ -1044,16 +1155,21 @@ export class Life {
     const px = runtime.player.x, pz = runtime.player.z;
     const gx = runtime.guide.x, gz = runtime.guide.z;
     if (t - this.stAt > 0.5) { this.stAt = t; this.playerSt = stationOf({ x: px, z: pz }).st; }
-    let dog = 0;
     // people right at the lens (a low two-shot camera among the ferry-gate commuters) shrink away instead of
     // filling the frame, like the gulls
     const cam = U.uCam.value;
     const lens = (x: number, y: number, z: number) => smooth(1.6, 3.6, Math.hypot(x - cam.x, y + 0.8 - cam.y, z - cam.z));
+    // (W5-T4) city mode: the walkers (and their dogs) beyond LIFE_FAR.people of the camera are not drawn; everyone keeps
+    // walking. District mode: every walker in its own slot, as before.
+    const reach = this.cullFar() ? LIFE_FAR.people : Infinity;
+    const far = (x: number, y: number, z: number) => reachK(Math.hypot(x - cam.x, y + 0.8 - cam.y, z - cam.z), reach, LIFE_FADE.people);
+    const people = this.packPeople, dogs = this.packDogs;
+    people.begin(); dogs.begin();
     this.walkers.forEach((w, i) => {
       const hs = 0.95 + hash2(i, 6.1) * 0.1;
       if (w.stand) {
-        const y = heightAt(w.x!, w.z!) + 0.04, k = lens(w.x!, y, w.z!);
-        place(this.people, i, w.x!, y, w.z!, w.ry! + Math.sin(t * 0.3 + w.ph) * 0.4, hs * k, 0, 0, hs * k * (1 + Math.sin(t * 2 + w.ph) * 0.01));
+        const y = heightAt(w.x!, w.z!) + 0.04, kf = far(w.x!, y, w.z!), k = lens(w.x!, y, w.z!) * kf;
+        if (kf > 0) people.push(i, pose(w.x!, y, w.z!, w.ry! + Math.sin(t * 0.3 + w.ph) * 0.4, hs * k, 0, 0, hs * k * (1 + Math.sin(t * 2 + w.ph) * 0.01)));
         return;
       }
       // three in five walkers keep the promenade busy around the player: far ones re-enter the scene
@@ -1080,21 +1196,29 @@ export class Life {
       x = f.x + f.nx * dClamp; z = f.z + f.nz * dClamp;
       const heading = Math.atan2(f.tx * w.dir, f.tz * w.dir);
       const bob = Math.abs(Math.sin(t * 7.5 + w.ph)) * 0.05;
-      const k0 = lens(x, 0, z);
-      place(this.people, i, x, 0.04 + bob, z, heading, hs * k0, 0, Math.sin(t * 7.5 + w.ph) * 0.03);
+      const kf = far(x, 0, z);
+      if (kf <= 0) return;
+      const k0 = lens(x, 0, z) * kf;
+      people.push(i, pose(x, 0.04 + bob, z, heading, hs * k0, 0, Math.sin(t * 7.5 + w.ph) * 0.03));
       const k = DOG_OWNERS.indexOf(i);
       if (k >= 0) {
         // the dog trots ahead and to the right of its walker
         const fx = Math.sin(heading), fz = Math.cos(heading);
         const trot = Math.abs(Math.sin(t * 11 + w.ph)) * 0.06;
-        place(this.dogs, k, x + fz * 0.58 + fx * 0.35, 0.04 + trot, z - fx * 0.58 + fz * 0.35, heading, k0, 0, Math.sin(t * 11 + w.ph) * 0.05);
-        dog++;
+        dogs.push(k, pose(x + fz * 0.58 + fx * 0.35, 0.04 + trot, z - fx * 0.58 + fz * 0.35, heading, k0, 0, Math.sin(t * 11 + w.ph) * 0.05));
       }
     });
-    this.dogs.count = dog;
-    this.dogs.instanceMatrix.needsUpdate = true;
-    this.people.instanceMatrix.needsUpdate = true;
+    // (the heroFar pause hides them; while near they show when any is in reach)
+    people.end(!this.heroFar);
+    dogs.end(!this.heroFar);
   }
+
+  /** (W5-T4) instances drawn this frame per kind (QA / tests) */
+  drawn(): { people: number; dogs: number; gulls: number; gliders: number; sailboats: number; pelicans: number; carousel: boolean } {
+    return { people: this.people.count, dogs: this.dogs.count, gulls: this.gullMesh.count, gliders: this.pelicanGlide.count, sailboats: this.sailboats?.count ?? 0, pelicans: this.pelicans?.count ?? 0, carousel: this.carousel.visible };
+  }
+  /** (W5-T4) the source walker drawn in slot k of the pedestrians (tests) */
+  peopleSlot(k: number): number { return this.packPeople.source(k); }
 
   dispose() {
     this.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); });

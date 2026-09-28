@@ -9,11 +9,11 @@ import { currentRide, isLineRide } from '../game/ride';
 import { Batch } from './builder';
 import { cityStreamerLazy } from './cityLoader';
 import { trackPoint } from './lineTrack';
-import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry } from './cablecar';
+import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry, cableCarMidGeometry } from './cablecar';
 import { FerryLayer } from './ferry';
 import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
 import { FLINE_LIVERIES, type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
-import { carFarGeometry, carGeometry } from './streetcar';
+import { carFarGeometry, carGeometry, carMidGeometry } from './streetcar';
 import { TOY, TOY_DYN, TOY_INST, U } from './materials';
 import { RailLayer, residentGround } from './rails';
 import { CityLife } from './sf/cityLife';
@@ -164,8 +164,9 @@ export class TransitLayer {
       // a shadow only within SHADOW_NEAR of the camera (C2 w3 part b request 3)
       const perLivery = this.fline ? Math.ceil(this.fline.sys.cars.length / FLINE_LIVERIES.length) : 0;
       const extra = [
-        { key: 'cable', near: cableCarGeometry(), far: cableCarFarGeometry(), count: this.sys.cars.length },
-        ...(this.fline ? FLINE_LIVERIES.map((c, li) => ({ key: `fline-${li}`, near: carGeometry(c, true), far: carFarGeometry(c), count: perLivery })) : []),
+        // (W5-T4) with their middle looks: the full car and its shadow only within EXTRA_SHADOW_NEAR of the camera
+        { key: 'cable', near: cableCarGeometry(), mid: cableCarMidGeometry(), far: cableCarFarGeometry(), count: this.sys.cars.length },
+        ...(this.fline ? FLINE_LIVERIES.map((c, li) => ({ key: `fline-${li}`, near: carGeometry(c, true), mid: carMidGeometry(c), far: carFarGeometry(c), count: perLivery })) : []),
       ];
       const lines = new LineFleet({ loop: w4.loop, metro: w4.metro, props: w4.props, extra }, {
         groundY: residentGround,
