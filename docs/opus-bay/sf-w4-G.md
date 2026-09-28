@@ -274,3 +274,131 @@ tsc 0, eslint 0 (`src/opus-bay tests/opus-bay-*`); the full opus-bay suite 555 /
 `a9b87cb` + the review commits and 591 / 591 on `78b9094` + the review commits (the pushed tree); lane G's tests 50 → 54, plus 4 in the new
 `tests/opus-bay-sf-guide-ui.test.ts` (58 / 58). No Higgsfield spend, no dev server. Scratch:
 `C:/Users/willy/opus-qa/w4/w4-g/review/` (geo, fuzz and cache scripts, suite logs).
+
+## Integration part a
+
+Written 2026-09-27 by lane G's integration implementer (worktree `C:/Users/willy/wt/i4-g`, branch `i4-g`, dev port 5404,
+scratch `C:/Users/willy/opus-qa/w4i/i4-g/`). Scope: the ten routed requests of lead note §8.4, this report's
+Integration plan, the other wave-4 reports' steps that name lane G's files (lane T step 6 and its review open 1, lane C
+part 2 steps 1 and 6, lane P's flags step, lane V's warm-up), then the plan §5.5 tasks the early phase could not do.
+
+### 给主人的摘要
+
+1. G 线做的"引导"已经真正接进游戏（只在城市模式；街区模式一点没变，街区根本不会下载这些代码）：景点小旗、屏幕边的目标箭头（点一下镜头就转过去）、右上角"下一站 · 约 N 分钟"的行程胶囊和行程卡片（跳过这一站 / 换个方式 / 结束）、"抵达"金色提示 + 6 秒小卡片 + 2.4 秒揭幕镜头、双峰等观景台的地名标签、手动走路时地上的三个金色小箭头、触屏上"自动跟上 BAYBAY"按钮和一次性提示。
+2. 修好了第三波留给 G 线的 10 个请求：手机横屏最上面的按钮被切掉、自动带路时往东多走 20 格又折回（渡轮大厦去唐人街）、坐地铁在隧道里还能"提前下车"、渡轮开着时还显示"下车"、BAYBAY 站在渡轮上的玩家身上、F 线车站图标不对等。
+3. 坐观光巴士时 BAYBAY 坐在你旁边；车快到景点时镜头会转过去看它；地铁出隧道时回头看隧道口；乘车横幅多了"下一站下车"（手机上是 下一站下车 · 直接到站 · ⋯）。
+4. 主包 GameRoot 没有变大（最后一步 790.68 → 790.51 KB）：新东西都在按需加载的小包里，还顺手把几个界面挪出了主包。检查：tsc 0、eslint 0 错误、全套 802 个测试全过；没有花 Higgsfield 积分。
+5. 进度（回复"现在进度如何"）：接线部分（part a）已完成，8 个提交都已推送；留给 part b 的是 BAYBAY 骑车 / 开车带路时的指路和台词、长距离"直接到站"的过场、地铁出隧道更完整的取景，以及逐个检查每个一级景点的揭幕镜头。
+
+### What was wired (commits on `opus-bay`)
+
+| commit | what |
+|---|---|
+| `4f5890a` W4-IG1 | the routed wave-3 requests: FocusMarker ring `forceSinglePass` (C2 a1 / b4); `HUD_BOX_SELECTOR` + `.ob-move-buttons > *` (E2 a1); 601–720 px short landscape (667 × 375): the round-button column on the bottom edge, the touch action one column in (E2 review 2: the column ran from y −17); the resident two-shot prefers BAYBAY's side (G2 request 5, as written); Settings reset clears BAYBAY's line memory (G2 review 8, dynamic import); BAYBAY's GLB through `world/models heroGltfLoader()` (D2 c2); `transitGlyph`: F-line stations `streetcar`, ferry terminals by `ferryTerminal` (Pier 41), lane T's `loop-` / `muni-` stops `bus` / `metro` (F a / b); the sf-nav wall clock < 600 ms (G1 a2); moveSystem refuses the hop-off while the ridden line says `canHopOff` false and says why (lane T review open 1, E2 review open); bus / metro glyphs; Settings › 显示地标旗 (city) |
+| `f553560` W4-IG2 | one time rule and one arrival toast: `tripTimeLabel` → lane C's `timeLabel`, `arrivalToastText` → `arrivalToast` (lane C part 2 step 1; output-identical) |
+| `7091428` W4-IG3 | the city guidance: `game/guideCity.ts` (lazy, city only) + `ui/GuideLayer.tsx` (lazy UI) — flags, the city waypoint, trip pill / card, arrival toast / card / reveal / panorama, chevrons, the touch lead chip + coach mark; the coach mark body, the ride banner and the move chip became their own chunks (`ui/lazyParts.ts`); 提前下车 and the move chip say why on a ferry under way (F review) and in a Metro tunnel; 走走甲板 on the ferry |
+| `7287a6a` W4-IG4 | the ride banner's 下一站下车 (lane T's `label.nextStop` / `requestNextStop()`); phones: 下一站下车 · 直接到站 · ⋯ (提前下车 folded) |
+| `42fe6f2` W4-IG5 | the trip card on lane C's `skipTripLeg` / `endTrip` / `dismissArrival`; the pill takes lane P's pier short name ("下一站 33 号码头"); ride-camera looks (W4-G9); BAYBAY beside the rider on the bus deck and aft of a rider at the ferry's bow rail (W4-G4 part, E2 review open); RouteWalker cuts to a later leg (G1 review observation, below); the reveal plans from the ground (not a stale `player.y`); the toast's 3.2 s from when it is on screen; flags wait for lane V's late warm-up |
+| `cd7c141` W4-IG6 | 667 × 375: the coach mark keeps left of the touch action |
+| `499f3b9` W4-IG7 | the Grand Tour's pill and dots from lane C's `tourPill()`; the guide layer fetched with `guideCity`; two-line arrival names; a ride-look test |
+| W4-IG8 (with this report) | far flags stand on the far city's elevation (they waited hidden beyond the streamed chunks: City Hall's gold target flag never showed from the Ferry); the Grand Tour pill and the city area pill live in the lazy layer; the edge arrow's 转过去 is wired by `guideCity` (the district's arrow is back to exactly its old DOM) |
+
+New files: `game/guideCity.ts`, `ui/GuideLayer.tsx`, `ui/RideBanner.tsx`, `ui/rideHop.ts`, `ui/lazyParts.ts`,
+`ui/CoachMarkBody.tsx`, `ui/coachSeen.ts`, `tests/opus-bay-sf-guide-city.test.ts`.
+
+How it runs: `game/Systems.tsx` imports `game/guideCity` dynamically behind `cityMode()` at module load (again on mount
+after a failed fetch) and prefetches `ui/GuideLayer`; `initGuideCity()` registers the scene system `g-guide` (FlagLayer,
+the chevron InstancedMesh, the panorama projection), watches `flow.arrival` (lane C) and the ridden line's `approach` /
+`portal-out`. The projector calls `guide.cityWaypoint(...)` in city mode instead of the district rule and feeds
+`noteObjective` (10 Hz) and `noteHudBoxes`. The Hud and the Overlay mount `TripPillSlot`, `CityTourPill`, `CityAreaLabel`,
+`GuideToasts`, `GuideOverlay` (card, panorama tags, trip card) and `GuideLeadChip` through `React.lazy` in city mode only.
+None of it is in GameRoot's static graph (tested); the district never fetches it.
+
+### Evidence
+
+- **Checks** (each push: tsc 0, whole-repo eslint 0 errors / 43 old warnings, the full suite): 715 / 715 (IG1), 722 / 722
+  and 726 / 726 on the pushed tree (IG2), 748 / 748 and 775 / 775 (IG3–IG5 before the last rebases), **801 / 801 on the
+  pushed tree `cd7c141`** (IG3–IG6), 802 / 802 for IG7 and for IG8. Two failures seen during the IG5 rebase
+  (`D2-10 tops.ts`, `W4-IL5 swaps`) were lane L's and red on origin without lane G's commits (checked in a scratch
+  worktree at `868b677`); lane L fixed them in `94badf8` before my push. **Honest notes:** the IG2 push went out right
+  after a rebase that brought lane P's `W4-P-I1/I2` before the suite was re-run (re-run on the pushed tree: 726 / 726);
+  the pushes after racing rebases (lane P, C, L commits touching none of lane G's files) were re-checked with tsc and
+  the test files those commits touched, and the full suite ran on the pushed tree right after (801 / 801).
+- **GameRoot** (`vite build`, gzip): the run began at 835.22 kB / 310.79 kB (`32eda15`); IG3 on `ebdc3a7`: 836.80 → 833.46
+  kB; IG7 + IG8 on `cd7c141`: 790.68 → **790.51 kB / 298.39 → 298.37 kB**. City-only chunks: `guideCity` 36.9 kB
+  (15.3 gzip) + its CSS 9.5 kB, `GuideLayer` 13.5 kB (5.6), `RideBanner` 1.8 kB, `MoveChip` 5.1 kB, `CoachMarkBody` 2.4 kB.
+- **Programs / calls**: flags 1 InstancedMesh (1 call, 32 tris a flag, ≤ 6 on desktop / 3 on phones and quality mid) and
+  1 program (`g-flags`: 47 → 48 in the city after lane V's boot warm-up; compiled by V's late warm-up ≈ 30 ms after the
+  lazy chunk, and the first flag waits for it); chevrons 1 call, 12 tris, the TOY_INST program (own material instance,
+  same cache key: no new program); the waypoint, the pill and the cards are DOM. The flags draw over the city (no depth
+  test, the pole fading in from the skyline): with the depth test the downtown towers hid every flag from the Ferry.
+- **In the game** (screens read; `docs/opus-bay/qa/w4/G/ia-*.jpg`):
+  - `ia-flags-ferry-390.jpg`: the Dragon Gate's terracotta Landmark flag over the Embarcadero towers on a phone;
+  - `ia-trip-lead-390.jpg`: a trip started through lane C's `startTrip` — pill "Next: The Palace ~2 min", the waypoint
+    "Palace of Fine Arts · ~2 min" (the leg's own time), 自动跟上 BAYBAY and its one-time coach mark;
+  - `ia-trip-hud-375.jpg`: 375 × 667 during a lead: pill, docked bubble, edge arrow + label, coach, lead chip, 跳, touch
+    action, phone bar — no box over another (the HUD boxes read in the page);
+  - `ia-trip-card-1440.jpg`: the trip card under the pill (legs, 换个方式, 结束);
+  - `ia-reveal-twin-peaks-1440.jpg`, `ia-arrival-card-twin-peaks-390.jpg`, `ia-panorama-twin-peaks-1440.jpg`: the Twin
+    Peaks arrival end to end — lane C's arrival beats → the gold toast, the 2.4 s reveal at lane L's photo pose, the peek
+    card (photo, 看介绍, 拍照), the panorama tags over their flags;
+  - `ia-chevrons-1440.jpg`: the gold chevrons on the pavement while walking by hand on a trip;
+  - `ia-hud-667x375.jpg`: landscape: the whole button column on screen, the coach mark clear of the touch action;
+  - `ia-district-unchanged-1440.jpg`: `?world=district`: no guide chunk fetched (the resource list has none), the old waypoint.
+  - 转过去: a click on the edge arrow turned the camera from yaw 1.20 to 2.99 (target 2.995) in 1.2 s and brought the pin on
+    screen (DOM and camera read in the page).
+- **The auto-walk excursion** (G1 w3 review): reproduced in node with the real graph (scratch `walker/walk.mts`): the graph
+  route Ferry gate → Dragon Gate crosses the Embarcadero at x ≈ 159 and comes back west to x ≈ 132, while the local path
+  of leg 0 crossed at x ≈ 132, walked east to that leg's end (153.4, 30.4) and back. `RouteWalker.refine` now cuts to one
+  of the next two leg ends the local grid reaches directly when the whole way gets ≥ 4 u shorter (graph routes only): the
+  walker crosses at x ≈ 132 and goes on south. Test in `sf-nav` (max x at z 24–45: 153.4 before, < 140 now; every walked
+  point standable).
+- **New tests**: `tests/opus-bay-sf-guide-city.test.ts` (9: the city waypoint in a DOM — label under the pin, dropped below
+  the bubble, an edge arrow in the phone safe area, hidden within 6 u; trip time from the player; the pier / short names;
+  arrival beats → toast / card / panorama; the chevron program; the lazy-import rule; the hop-off notes; the ride look
+  bias), `sf-hud` (+1 glyphs), `sf-hopoff` (+1 no hop-off in a tunnel), `sf-nav` (+1 the walker cut).
+
+### Decisions
+
+- **City only, lazy.** Everything new from plan §4.2 lives in two city-only chunks; the district keeps its waypoint rule,
+  its lead chip and its HUD exactly (it never fetches the chunks). The early phase's `layoutWaypoint` therefore changes
+  the city's waypoint only.
+- **GameRoot room** came from moving city-only or later-needed UI out of the static graph (coach mark body, ride banner,
+  move chip — prefetched 4 s into play — the city area pill, the Grand Tour pill, the arrow wiring).
+- **Flags over the city** (no depth test, the pole fading in) — see Evidence; far flags stand on the far city's height.
+- **The waypoint's time** during a trip is the current leg's (to the point the waypoint shows: the stop, the place); the
+  pill shows the whole trip. Outside trips the G1 rule stays (the map's route, the auto-walk pace).
+- **The reveal** uses cinema shots (`revealShots`, no camera change) and the arrival kind's hand-back; it skips a city
+  still streaming around the player and never plans from a stale `player.y`.
+- **Trip card actions** are lane C's (`skipTripLeg`, `endTrip`); 换个方式 opens lane P's map on the destination (its
+  TripOptions). A panorama tag opens the map on the tapped place.
+- **The lead chip** on touch from the start of any lead (BAYBAY's state `lead` / `wait`, polled at 4 Hz), hidden while
+  auto-walking; keyboard and pad keep the 20 s idle chip.
+
+### Known gaps
+
+- Panorama tags crowd at the horizon: at Twin Peaks 3 of the 8 picked tags find room at 1440 × 900 (the layout lifts a
+  tag at most two rows; nothing goes below its anchor).
+- The reveal is four eased poses, not the exact arc; at SF State lane L's photo pose looks past a near roof.
+- Flags draw over near buildings too (a pole can show on a facade in front of it); the lower pole fades.
+- The ferry sun-deck rule moves BAYBAY only when the rider stands at the bow rail; other deck spots keep the old rule.
+- `qaTrip` and `__opusBay.guide` are DEV-only QA hooks.
+
+### Not done (part b)
+
+- W4-G4: BAYBAY leading by bike / car (上车吧, pointing 20 u before turns > 45°, the lines at 1/3 and 2/3, the last ≤ 30 u
+  on foot; lane C's runner drives the legs, the lines and points are lane G's next step); her LRV spot beside the rider.
+- W4-G9: the 直接到站 veil for legs > 400 u; a fuller portal-emergence framing than the look-back.
+- E2 w3 review open: blocked zone arrivals swing (the chooser's fallback ignores the subject).
+- In-game fps for the flags and chevrons (lane V's gate); a sweep of every T1 reveal pose.
+
+### Requests
+
+- **Lane V**: `g-flags` (and the chevrons on the TOY_INST program) in the perf gate's program check; the flags in the
+  11-spot table (they now draw over the city); BAYBAY's GLB loads through `heroGltfLoader()` (IG1): Draco + WebP can ship.
+- **Lane C**: `startPanorama()` is exported by `game/guideCity` (E at an overlook); `flow.arrival` is read once per object
+  and the peek card's close calls `dismissArrival()`; a `[下一站]` on the card needs a tour "next" entry point.
+- **Lane L**: `sitePhoto` of the wave-4 sites drives the reveal (SF State's pose looks over a near roof).
+- **Lead**: none.
+
+Relayed owner message during this part: "现在进度如何" — answered in summary item 5.

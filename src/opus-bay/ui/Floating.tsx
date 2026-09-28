@@ -2,8 +2,7 @@ import { useCallback } from 'react';
 import { Footprints, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
-import { emit } from '../core/events';
-import { faceCameraToward, skipCinema } from '../game/cinema';
+import { skipCinema } from '../game/cinema';
 import { skipTravel, travelActive, useTravelView } from '../game/fastTravel';
 import { acceptRealTime, dismissFreeHint, objectiveTarget, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
@@ -39,17 +38,9 @@ export function Waypoint() {
   const ref = useCallback((el: HTMLDivElement | null) => registerAnchor('waypoint', el), []);
   const label = useCallback((el: HTMLSpanElement | null) => registerAnchor('waypointLabel', el), []);
   const soft = useFlow(s => !!s.freeHint);
-  // W4-G2 · a tap on the edge arrow turns the camera to the target over 0.6 s ("转过去"). The arrow only takes
-  // pointer events where lane G's city rules make it (ui/guide-ui.css): the district's arrow stays a picture.
-  const turn = () => {
-    const target = objectiveTarget();
-    if (!target) return;
-    emit({ type: 'ui', action: 'select' });
-    faceCameraToward(target.x, target.z, { seconds: 0.6, uncapped: true });
-  };
   return (
     <div ref={ref} className="ob-waypoint" data-show="0" aria-hidden={!soft}>
-      <span className="ob-waypoint-arrow" role="button" tabIndex={-1} aria-label={t('转过去', 'Turn to it')} title={t('转过去', 'Turn to it')} onClick={turn}><Navigation size={16} /></span>
+      <span className="ob-waypoint-arrow"><Navigation size={16} /></span>
       <span className="ob-waypoint-pin" />
       <span ref={label} className="ob-waypoint-label" />
       {soft && <button type="button" className="ob-waypoint-dismiss" onClick={dismissFreeHint} aria-label={t('不用提示了', 'Hide this hint')}>×</button>}

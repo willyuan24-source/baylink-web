@@ -6,9 +6,8 @@ import type { InteractionKind } from '../core/types';
 import { DISTRICT } from '../data/district';
 import { activePostcardCount, activePostcardTotal } from '../data/postcards';
 import { FREE_GOALS } from '../data/script';
-import { callBaybay, cityTourActive, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourPill, tourStops } from '../game/flow';
+import { callBaybay, cityTourActive, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
-import { useStreetName } from '../game/streets';
 import { flow, useFlow } from '../game/flowStore';
 import { BAYBAY_ID, interactableById } from '../game/interactables';
 import { useT } from '../i18n';
@@ -35,39 +34,25 @@ export function Hud() {
   );
 }
 
-const SF_NAME = { zh: '旧金山', en: 'San Francisco' };
+/** The city's area pill (neighbourhood + street, lane G1's G1-9): in the city-only guide chunk (ui/GuideLayer.tsx). */
+const CityAreaLabel = lazy(() => loadGuideLayer().then(m => ({ default: m.CityAreaLabel })));
 
 function AreaLabel() {
+  const city = useGame(s => s.worldMode === 'city');
+  return city ? <Suspense fallback={null}><CityAreaLabel /></Suspense> : <DistrictAreaLabel />;
+}
+
+function DistrictAreaLabel() {
   const { t, locale } = useT();
   const area = useGame(s => s.area);
-  const city = useGame(s => s.worldMode === 'city');
   const zone = DISTRICT.zones?.find(item => item.id === area);
-  // city mode: a DataSF neighbourhood (game/brain AREA_NAMES), else the whole city, never "The Embarcadero" out there
-  const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? (city ? SF_NAME : DISTRICT.name);
-  // city mode (lane G1, G1-9): the nearest named street under the neighbourhood (never in district mode)
-  const streetName = useStreetName();
-  // a street named like the place it serves ("Pier 39" at PIER 39) would only say it twice
-  const street = streetName && streetName.toLowerCase() !== name.en.toLowerCase() ? streetName : null;
+  const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? DISTRICT.name;
   const [fresh, setFresh] = useState(true);
   useEffect(() => {
     setFresh(true);
     const id = window.setTimeout(() => setFresh(false), 4000);
     return () => window.clearTimeout(id);
   }, [area]);
-  if (city) {
-    return (
-      <div className={`ob-area ob-area-city ${fresh ? 'is-fresh' : ''} ${street ? 'has-street' : ''}`} key={area ?? 'default'}>
-        <MapPin size={15} aria-hidden />
-        <span className="ob-area-lines">
-          <span className="ob-area-top">
-            <span className="ob-area-name">{t(name)}</span>
-            {locale !== 'en' && <span className="ob-area-en" translate="no">{name.en}</span>}
-          </span>
-          {street && <span className="ob-area-street" translate="no">{street}</span>}
-        </span>
-      </div>
-    );
-  }
   return (
     <div className={`ob-area ${fresh ? 'is-fresh' : ''}`} key={area ?? 'default'}>
       <MapPin size={15} aria-hidden />
@@ -79,6 +64,8 @@ function AreaLabel() {
 
 /** Wave 4 · lane G's trip pill (ui/GuideLayer.tsx, a city-only lazy chunk: the district never fetches it). */
 const TripPillSlot = lazy(() => loadGuideLayer().then(m => ({ default: m.TripPillSlot })));
+/** …and the Grand Tour's pill between its stops (lane C's tourPill; the same city-only chunk). */
+const CityTourPill = lazy(() => loadGuideLayer().then(m => ({ default: m.CityTourPill })));
 
 function Objective() {
   const { t } = useT();
@@ -100,21 +87,7 @@ function Objective() {
   if (cityTrip) return <Suspense fallback={null}><TripPillSlot /></Suspense>;
   // wave 4 (city): the Grand Tour between its stops — lane C's tourPill (the chapter, its step, the next stop);
   // on the way to a stop the trip pill above carries the same dots
-  if (tourActive && cityTourActive()) {
-    const tp = tourPill();
-    if (tp) {
-      return (
-        <button type="button" className="ob-objective" onClick={() => openPanel('journal')} aria-label={t('查看旅行本', 'Open journal')}>
-          <span className="ob-objective-icon"><Route size={16} aria-hidden /></span>
-          <span className="ob-objective-text">
-            <strong>{t(tp.name)} <em>{tp.step}/{tp.total}</em></strong>
-            {tp.next && <small>{t('下一站', 'Next')} · {t(tp.next)}</small>}
-          </span>
-          <span className="ob-progress-dots" aria-hidden>{Array.from({ length: tp.total }, (_, i) => <i key={i} className={i < tp.done ? 'done' : i === tp.step - 1 ? 'now' : ''} />)}</span>
-        </button>
-      );
-    }
-  }
+  if (tourActive && cityTourActive()) return <Suspense fallback={null}><CityTourPill /></Suspense>;
   if (tourActive) {
     const cur = currentStop();
     const total = tourStops().length;

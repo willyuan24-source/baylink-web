@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { createStore, game } from '../core/store';
-import { groundPending, heightAt } from '../core/terrain';
+import { cityTerrain, groundPending, heightAt } from '../core/terrain';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTIONS, ATTRACTION_INDEX, attractionColor, tripDestination, withSiteFlags } from '../data/sf/attractions';
 import type { Attraction } from '../data/sf/attractionTypes';
@@ -12,10 +12,10 @@ import { FlagLayer, flagScaleDistance } from '../world/sf/flags';
 import { lateWarmups } from '../world/warmup';
 import { rideLookAt } from '../actors/cameraModes';
 import { landmarkBaseY } from '../actors/glideTall';
-import { onEvent } from '../core/events';
+import { emit, onEvent } from '../core/events';
 import { activeLineFleet } from '../data/transit';
 import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from '../actors/reveal';
-import { playShots } from './cinema';
+import { faceCameraToward, playShots } from './cinema';
 import { isDiscovered } from './discovery';
 import { type FlagSource, type FlagTarget, type PanoramaTag, flagMax, layoutPanoramaTags, pickFlags, pickPanoramaTags, tagWidth, type TagInput, PANORAMA } from './flags';
 import { flow } from './flowStore';
@@ -105,6 +105,12 @@ async function flagSources(): Promise<readonly Attraction[]> {
 }
 
 const groundOrNull = (x: number, z: number): number | null => (groundPending(x, z) ? null : heightAt(x, z));
+/**
+ * A flag's foot: the streamed ground, else the far city's elevation there (the DEM the far layer draws; null only before
+ * it loads). Flags stand 150–3,000 u away, mostly beyond the streamed chunks: with the streamed ground alone every far
+ * flag waited hidden (seen: City Hall's gold target flag from the Ferry Building never showed).
+ */
+const flagGround = (x: number, z: number): number | null => (groundPending(x, z) ? cityTerrain()?.heightAt(x, z) ?? null : heightAt(x, z));
 
 /** The attraction a target stands for: the running trip's, else a place / landmark id's primary attraction. */
 function targetAttraction(o: ObjectiveLike | null): Attraction | undefined {
@@ -209,11 +215,34 @@ function tripTargetSeconds(target: Vec2, pos: Vec2): number | null {
 }
 
 /**
+ * W4-G2 · a tap on the edge arrow turns the camera to the target over 0.6 s ("转过去"). Wired here (city only) on the
+ * projector's waypoint element, so the district's arrow stays exactly the picture it was; it takes pointer events only
+ * under guide-ui.css's edge rule.
+ */
+const turnWired = new WeakSet<HTMLElement>();
+function wireTurn(wp: HTMLElement, label: string) {
+  const arrow = wp.querySelector<HTMLElement>('.ob-waypoint-arrow');
+  if (!arrow) return;
+  if (arrow.getAttribute('aria-label') !== label) { arrow.setAttribute('aria-label', label); arrow.title = label; }
+  if (turnWired.has(arrow)) return;
+  turnWired.add(arrow);
+  arrow.setAttribute('role', 'button');
+  arrow.tabIndex = -1;
+  arrow.addEventListener('click', () => {
+    const t = objective;
+    if (!t) return;
+    emit({ type: 'ui', action: 'select' });
+    faceCameraToward(t.x, t.z, { seconds: WAYPOINT.turnSeconds, uncapped: true });
+  });
+}
+
+/**
  * Lay out and write the waypoint (plan §4.2 "Waypoint (edge compass)"). Returns `recheck` when the label could not be
  * measured yet or its text is due (the projector runs once more even while nothing moves).
  */
 export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
   const { wp, lab, target, camera, w, h, now } = fr;
+  wireTurn(wp, fr.pick({ zh: '转过去', en: 'Turn to it' }));
   const p = runtime.player;
   const d = Math.hypot(target.x - p.x, target.z - p.z);
   if (d < 6) { writeData(wp, 'show', '0'); return { recheck: false }; }
@@ -327,7 +356,7 @@ function GuideScene() {
   const tick = useRef({ picksAt: 0, sources: null as readonly FlagSource[] | null, warm: false });
 
   useEffect(() => {
-    const flags = new FlagLayer({ ground: groundOrNull });
+    const flags = new FlagLayer({ ground: flagGround });
     scene.add(flags.mesh);
     layer.current = flags;
     revealCamera = camera;

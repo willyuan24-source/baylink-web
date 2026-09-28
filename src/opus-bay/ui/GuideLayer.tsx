@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Footprints, Hand } from 'lucide-react';
+import { Footprints, Hand, MapPin, Route } from 'lucide-react';
+import { DISTRICT } from '../data/district';
+import { AREA_NAMES } from '../game/brain';
+import { useStreetName } from '../game/streets';
 import PHOTO_ASSETS from '../../data/sf-landmark-photo-assets.json';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
@@ -71,6 +74,60 @@ export function TripPillSlot() {
   const tp = trip.source === 'tour' ? tourPill() : null;
   const dots = tp ? { done: tp.done, now: tp.step - 1, total: tp.total } : null;
   return <TripPill text={text} dots={dots} onOpen={() => guideUi.set(s => ({ tripCard: !s.tripCard }))} open={open} />;
+}
+
+const SF_NAME = { zh: '旧金山', en: 'San Francisco' };
+
+/**
+ * The city's area pill (ui/Hud AreaLabel in city mode; moved here unchanged with the wave-4 integration so GameRoot does
+ * not carry it): a DataSF neighbourhood (game/brain AREA_NAMES), else the whole city — never "The Embarcadero" out
+ * there — and under it the nearest named street (lane G1, G1-9) unless the street is named like the place (Pier 39).
+ */
+export function CityAreaLabel() {
+  const { t, locale } = useT();
+  const area = useGame(s => s.area);
+  const zone = DISTRICT.zones?.find(item => item.id === area);
+  const name = zone?.name ?? (area ? AREA_NAMES.get(area) : undefined) ?? SF_NAME;
+  const streetName = useStreetName();
+  const street = streetName && streetName.toLowerCase() !== name.en.toLowerCase() ? streetName : null;
+  const [fresh, setFresh] = useState(true);
+  useEffect(() => {
+    setFresh(true);
+    const id = window.setTimeout(() => setFresh(false), 4000);
+    return () => window.clearTimeout(id);
+  }, [area]);
+  return (
+    <div className={`ob-area ob-area-city ${fresh ? 'is-fresh' : ''} ${street ? 'has-street' : ''}`} key={area ?? 'default'}>
+      <MapPin size={15} aria-hidden />
+      <span className="ob-area-lines">
+        <span className="ob-area-top">
+          <span className="ob-area-name">{t(name)}</span>
+          {locale !== 'en' && <span className="ob-area-en" translate="no">{name.en}</span>}
+        </span>
+        {street && <span className="ob-area-street" translate="no">{street}</span>}
+      </span>
+    </div>
+  );
+}
+
+/** The Grand Tour between its stops (ui/Hud Objective, city only): lane C's tourPill — chapter, step / total, next, dots. */
+export function CityTourPill() {
+  const { t } = useT();
+  // the tour's progress lives in lane C's runner: read it with the store's changes and once a second
+  useGame(s => s.tour);
+  useSecondTick();
+  const tp = tourPill();
+  if (!tp) return null;
+  return (
+    <button type="button" className="ob-objective" onClick={() => openPanel('journal')} aria-label={t('查看旅行本', 'Open journal')}>
+      <span className="ob-objective-icon"><Route size={16} aria-hidden /></span>
+      <span className="ob-objective-text">
+        <strong>{t(tp.name)} <em>{tp.step}/{tp.total}</em></strong>
+        {tp.next && <small>{t('下一站', 'Next')} · {t(tp.next)}</small>}
+      </span>
+      <span className="ob-progress-dots" aria-hidden>{Array.from({ length: tp.total }, (_, i) => <i key={i} className={i < tp.done ? 'done' : i === tp.step - 1 ? 'now' : ''} />)}</span>
+    </button>
+  );
 }
 
 export function GuideToasts() {
