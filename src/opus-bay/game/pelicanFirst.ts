@@ -1,4 +1,5 @@
-import { glideUnlocked, pulseGlideButton, setGlideUnlocked } from '../actors/moveApi';
+import { glideUnlocked, pelicanGreet, pulseGlideButton, setGlideUnlocked } from '../actors/moveApi';
+import { greetSpot } from '../actors/vehicles/pelican';
 import { onEvent } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
@@ -78,11 +79,17 @@ export const MOMENT_MIN_MS = 2200;
  * within PAIR_NEAR of you (or at most PAIR_WAIT_MS after the unlock), and while it plays she stands PAIR_GAP beside you
  * on the side that leaves the camera's side of you open: the conversation camera stands TWO_BACK behind the pair at
  * ±TWO_SWING (actors/camera.ts twoShotPose: 8 u, 2.3 u up, 25–57° off the axis; it weighs buildings, not the hill),
- * so her mark is chosen where the ground between those spots and your chest stays under the line of sight.
+ * so her mark is chosen where the ground between those spots and your chest stays under the line of sight, and not
+ * below your feet (the camera stands over the lower of the two: at the plaza's rim a mark down the slope dropped it to
+ * the paving).
  */
 export const PAIR_NEAR = 4;
 export const PAIR_WAIT_MS = 9000;
 export const PAIR_GAP = 1.7;
+/** …and when she stands within this of that spot as the dialogue opens she is placed on it (u) */
+export const PAIR_SNAP = 5;
+/** the pelican glides in this long after the dialogue opens (its camera has turned to the two-shot by then) */
+export const GREET_AFTER_MS = 1500;
 /** the conversation camera's spots the mark keeps open (behind the pair, u; its height above the lower of the two, u) */
 const TWO_BACK = 8, TWO_UP = 2.3, TWO_SWING = [0.43, 0.66, 0.99] as const;
 
@@ -91,7 +98,7 @@ function sightClear(cx: number, cy: number, cz: number, x: number, y: number, z:
   const n = Math.max(4, Math.ceil(Math.hypot(x - cx, z - cz) / 0.8));
   for (let i = 1; i < n; i++) {
     const t = i / n;
-    if (ground(cx + (x - cx) * t, cz + (z - cz) * t) > cy + (y - cy) * t - 0.2) return false;
+    if (ground(cx + (x - cx) * t, cz + (z - cz) * t) > cy + (y - cy) * t - 0.5) return false;
   }
   return true;
 }
@@ -125,9 +132,12 @@ export function pelicanMark(player: Vec2, guide: Vec2, heading: number, stand: (
         if (!sightClear(cx, cy, cz, player.x, py + 1, player.z, ground)) blocked++;
       }
     }
-    const score = blocked + Math.abs(deg) / 1000;
+    // (the camera stands TWO_UP over the LOWER of the two: her mark below your feet drops it under your level — at the
+    // plaza's rim it skimmed the paving; a mark a little above is fine)
+    const drop = Math.max(0, py - ground(x, z)), rise = Math.max(0, ground(x, z) - py);
+    const score = blocked + drop * 3 + rise * 0.5 + Math.abs(deg) / 1000;
     if (!best || score < best.score) best = { x, z, score };
-    if (blocked === 0) break;
+    if (blocked === 0 && drop < 0.25 && rise < 0.25) break;
   }
   return best ? { x: best.x, z: best.z } : null;
 }
@@ -215,7 +225,19 @@ export function stepPelican(now: number, offer: Offer) {
   // BAYBAY beside you for the two-shot (flow.talkMark asks setTalkMarkSource's function while the dialogue is open)
   const pl = runtime.player;
   mark = pelicanMark({ x: pl.x, z: pl.z }, { x: runtime.guide.x, z: runtime.guide.z }, pl.heading, (x, z) => canStand(x, z, 0.45), heightAt);
+  // she is already there when the conversation camera picks its side (it keeps that side for the whole dialogue): a
+  // step of at most PAIR_SNAP u under the cut to the two-shot; farther away she walks to it
+  const g = runtime.guide;
+  if (mark && Math.hypot(g.x - mark.x, g.z - mark.z) <= PAIR_SNAP) {
+    g.x = mark.x; g.z = mark.z; g.y = heightAt(mark.x, mark.z); g.target = null;
+    // (face to face: the two-shot looks over your shoulder at her)
+    g.heading = Math.atan2(pl.x - mark.x, pl.z - mark.z);
+    pl.heading = Math.atan2(mark.x - pl.x, mark.z - pl.z);
+  }
   voiceFn?.(W5_PELICAN.ask.id);
+  // lane F's pelicanGreet (1c27890): the brown pelican lands behind you both as the two-shot sees you, once its camera
+  // has turned (it waits while the dialogue is open; 试试起飞 hands the bird to the glide)
+  setTimeout(() => { if (game.get().dialogue.nodeId === ASK_NODE && greetBehind()) pelicanGreet(undefined, undefined, { seconds: 2.6 }); }, GREET_AFTER_MS);
   playDialogue(ask, () => {
     if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); takeOff(); return; }
     bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200, BAYBAY_ID, 'call');
@@ -252,6 +274,27 @@ export function initPelicanFirst(offer: Offer | null = null, voice: ((id: string
 
 /** Tests: forget the moment and lane A's starter; `offer` stands in for BAYBAY's pacer. */
 export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; voiceFn = voice; mark = null; }
+
+/**
+ * Will lane F's pelican land BEHIND the pair as the camera sees them? (the same greetSpot moveSystem.pelicanGreet asks,
+ * with the camera's view now). Where only a spot beside the player fits — Coit's plaza rim, a stair — it stood between
+ * the two-shot's lens and BAYBAY and hid her: then the moment has no landing (the toast and her question stay).
+ */
+export function greetBehind(): boolean {
+  const p = runtime.player, g = runtime.guide, view = runtime.camera.yaw + Math.PI;
+  // the two-shot looks over your shoulder toward her: its view is about you → BAYBAY. pelicanGreet places the bird by
+  // runtime.camera.yaw — the FOLLOW camera's, which a framing does not move — so the two must agree (±60°)
+  const two = Math.atan2(g.x - p.x, g.z - p.z);
+  if (Math.abs(Math.atan2(Math.sin(view - two), Math.cos(view - two))) > GREET_AGREE) return false;
+  const spot = greetSpot(p.x, p.z, heightAt(p.x, p.z), view, g, { canStand, heightAt });
+  if (!spot) return false;
+  const fx = Math.sin(two), fz = Math.cos(two), mx = (p.x + g.x) / 2, mz = (p.z + g.z) / 2;
+  return (spot.x - mx) * fx + (spot.z - mz) * fz > GREET_BEHIND;
+}
+/** the follow camera's view and the two-shot's may differ by this much (rad) for the greet */
+export const GREET_AGREE = 1.05;
+/** how far beyond the pair (u, along the camera's view) the pelican must land */
+export const GREET_BEHIND = 1.2;
 
 /** Tests / QA: BAYBAY's mark for the moment's dialogue, if one is open. */
 export const pelicanMarkNow = (): Vec2 | null => mark;

@@ -120,6 +120,9 @@ test('CP-14 the pelican moment waits for BAYBAY beside you, and her mark keeps t
   assert.ok(Math.abs(Math.hypot(mark.x - player.x, mark.z - player.z) - pelican.PAIR_GAP) < 1e-6, 'PAIR_GAP beside the player');
   // the camera stands behind the player, opposite her: with her uphill of the player it is downhill (open)
   assert.ok(ground(mark.x, mark.z) > ground(player.x, player.z), `she stands uphill (${ground(mark.x, mark.z).toFixed(1)} > ${ground(player.x, player.z).toFixed(1)})`);
+  // on the plaza's rim with BAYBAY down the slope: her mark stays up on the plaza (the camera keeps your level)
+  const rim = pelican.pelicanMark({ x: 0, z: 9.5 }, { x: 0, z: 13 }, 0, stand, ground)!;
+  assert.equal(ground(rim.x, rim.z), 20, 'on the plaza with the player');
   // on level ground the mark stays on her side
   const flat = pelican.pelicanMark({ x: 0, z: 0 }, { x: 3, z: 0 }, 0, stand, () => 0)!;
   assert.ok(flat.x > 1.6 && Math.abs(flat.z) < 1e-6, 'level: toward where she stands');

@@ -161,6 +161,7 @@ export const CITY_DISTRICT_POI_NAMES: Readonly<Record<string, string>> = {
   pier14: '14 号码头',
   pier7: '7 号钓鱼码头',
   exploratorium: '探索馆',
+  'levis-plaza': '李维斯广场',
   'filbert-steps': '菲尔伯特台阶',
   'coit-tower': '科伊特塔观景点',
   'coit-murals': '科伊特塔壁画',
