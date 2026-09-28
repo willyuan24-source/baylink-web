@@ -304,7 +304,7 @@ Implementer of lane C, part c (the mid-wave checkpoint's CP-14, then W5-C7 → W
 `C:/Users/willy/wt/w5-c`, dev port 5503, scratch `C:/Users/willy/opus-qa/w5/w5-c/c/` (QA action scripts `qa-*.json`,
 shots, suite logs `suite-c*.log`, the edit scripts). Commits on `opus-bay`: `6f50f975` (CP-14), `d8324715` (W5-C7: the
 album, the second favours, the letters, the otter), `7d06b800` (CP-14: the pair on your level, lane F's pelican),
-`e828ab31` (lanes A / F / N's requests), `34d8e116` (lane R's request 1a), `95d58f94` (VOICE.md) and this report.
+`e828ab31` (lanes A / F / N's requests), `3bcb30ac` (lane R's request 1a), `1472801a` (VOICE.md), `1e6ddb35` (this report) and its hash fix.
 
 ### 给主人的摘要
 
@@ -312,7 +312,7 @@ album, the second favours, the letters, the otter), `7d06b800` (CP-14: the pair 
 2. **相册**：城市里每拍一张照片都存进这台设备的「相册」，不再每张都弹出下载；在「更多 › 相册」或拍照时点右下角缩略图就能看，手机上点「保存」会打开系统的分享面板（iPhone 可以「存储图像」到照片）。长竖屏照片底下的文字也不会再压到一起了。
 3. **六位邻居的第二个小忙**：给 Rosa 拍渡轮大厦钟楼、帮 Luz 拍三处壁画、给 Hank 拍荷兰风车、替 Marcus 拍嬉皮山、陪 Ray 在叮当车上摇一段铃、在克里西场海滩陪 Dana 坐下看大桥。做完会留下小变化：Balmy 巷围栏边多一块 Luz 画的小海獭，路过 Ray 他会摇你教的那段铃，Rosa 周六、Hank 春天、Marcus 周末说的话跟着真实的日子变。
 4. **来信**：做完第二个小忙过一会儿，那位邻居会寄来一封信（金色提示 + BAYBAY「有你的信！」），在旅行本「目标」里点「读信」（有小红点）。信和对话里的真实小知识都在官网上查过（2026-09-28）。
-5. 顺手做了别的线请我做的小事：地点卡片加上 R 线的「现实中怎么去」（最近的真实 Muni 站）；城市旅行本不再一上来就列旧版「湾区第一课」；西沃德街滑梯的提示按官网改对了。检查：tsc 0、eslint 0 错误、全部 1291 个测试通过；电脑和手机都实际玩过、截图看过；街区模式不变；Higgsfield 0 分。
+5. 顺手做了别的线请我做的小事：地点卡片加上 R 线的「现实中怎么去」（最近的真实 Muni 站）；城市旅行本不再一上来就列旧版「湾区第一课」；西沃德街滑梯的提示按官网改对了。检查：tsc 0、eslint 0 错误、全部 1295 个测试通过；电脑和手机都实际玩过、截图看过；街区模式不变；Higgsfield 0 分。
 
 ### What was built
 
@@ -332,7 +332,7 @@ album, the second favours, the letters, the otter), `7d06b800` (CP-14: the pair 
 ### Evidence
 
 - **Checks** on the final tree (after the last rebase over lanes D / T / R): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
-  `npx eslint .` 0 errors (43 old warnings outside lane C) · the full opus-bay suite **1291 / 1291** (`suite-c6.log`, after the rebase over lanes E and V; 1288 / 1288 before it).
+  `npx eslint .` 0 errors (43 old warnings outside lane C) · the full opus-bay suite **1295 / 1295** on the pushed tree `1e6ddb35` (`suite-c8.log`, after the rebases over lanes E, V, D and T; 1288, 1291 and 1293 on the trees before them).
   Earlier full runs this part: 1236 / 1236 (`suite-c1.log`), 1277 / 1277 (`c2`), 1284 / 1284 (`c3`, the head pushed as
   `e828ab31`). No wall-clock flake. `npx tsc` / `eslint` / `tsx` all worked (no node_modules workaround).
 - **CP-14 in the game** (dev 5503, desktop 1440 × 900 and phone 390 × 844 dpr 3, zh; every shot read):
