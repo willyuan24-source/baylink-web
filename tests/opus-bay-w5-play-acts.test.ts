@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts', 'heave.ts'];
+  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1239,4 +1239,106 @@ test('W5-A9 heave-ho: BAYBAY calls the beat, a push on it is a big shove (2) and
     for (const line of Object.values(H.HEAVE_LINES)) assert.ok([...line.zh].length <= 45);
     assert.ok([...z3.HEAVE_INVITE_LINE.zh].length <= 45);
   } finally { mock.timers.reset(); off(); H.__resetHeave(); H.__setHeaveHooks(null); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
+});
+
+test('W5-A9 crest hops: 12 append-only crests on the published city — the toy car (and the bike where marked) driven over each at full throttle hops within 6 u and carries on', async () => {
+  const CS = await import('../src/opus-bay/play/crestSpots');
+  const { NO_DRIVE, TERRAIN_WORLD } = await import('../src/opus-bay/actors/vehicles/collide');
+  const { createToyCar } = await import('../src/opus-bay/actors/vehicles/toyCar');
+  const { createBike } = await import('../src/opus-bay/actors/vehicles/bike');
+  // APPEND-ONLY: bit i of play.b['crests'] is spot i
+  assert.deepEqual([...CS.CREST_IDS], ['union', 'broadway', 'filbert', 'divisadero', 'buchanan', 'haight', 'castro', 'diamond', 'kansas', 'crescent', 'mangels', '45th-ave']);
+  for (const a of CS.CREST_SPOTS) for (const b of CS.CREST_SPOTS) if (a !== b) assert.ok(dist(a, b) > 60, `${a.id} vs ${b.id}`);
+  assert.equal(CS.crestAt(CS.CREST_SPOTS[5].x + 3, CS.CREST_SPOTS[5].z - 2), 5);
+  assert.equal(CS.crestAt(CS.CREST_SPOTS[5].x + 30, CS.CREST_SPOTS[5].z), -1);
+  const DT = 1 / 60;
+  const drive = (make: () => ReturnType<typeof createToyCar>, s: (typeof CS.CREST_SPOTS)[number]) => {
+    const sim = make(), dx = Math.sin(s.heading), dz = Math.cos(s.heading);
+    sim.place(s.x - dx * 60, s.z - dz * 60, s.heading, TERRAIN_WORLD);
+    let hop: number | null = null;
+    for (let t = 0; t < 20; t += DT) {
+      const along = (sim.x - s.x) * dx + (sim.z - s.z) * dz;
+      const tx = s.x + dx * (along + 6), tz = s.z + dz * (along + 6);
+      let e = Math.atan2(tx - sim.x, tz - sim.z) - sim.heading; e = Math.atan2(Math.sin(e), Math.cos(e));
+      const r = sim.step(DT, { ...NO_DRIVE, throttle: 1, steer: Math.max(-1, Math.min(1, -e * 2)), digital: false }, TERRAIN_WORLD);
+      if (r.hop?.crest && Math.abs(along) < 6 && hop === null) hop = along;
+      if (along > 25) return { hop, through: true };
+      if (t > 3 && sim.v < 0.5) return { hop, through: false, at: along };
+    }
+    return { hop, through: false };
+  };
+  try {
+    for (const s of CS.CREST_SPOTS) {
+      await cityAround([s], 90);
+      assert.equal(T.surfaceAt(s.x, s.z), 'road', `${s.id}: on the street`);
+      const car = drive(createToyCar, s);
+      assert.ok(car.hop !== null && car.through, `${s.id}: the car hops (${car.hop}) and carries on (${JSON.stringify(car)})`);
+      if (s.bike) { const bike = drive(createBike as never, s); assert.ok(bike.hop !== null && bike.through, `${s.id}: the bike hops too (${JSON.stringify(bike)})`); }
+      T.setCityTerrain(null);
+    }
+  } finally { T.setCityTerrain(null); }
+});
+
+test('W5-A9 crest hops: a crest hop at a spot counts it once (the card: ● the first, ◆ 6, ★ all 12), the set kept in play.b; the pennants near one; the snapshot overlay', async () => {
+  const CS = await import('../src/opus-bay/play/crestSpots');
+  const C = await import('../src/opus-bay/play/crests');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  playing();
+  stubBody();
+  kit.__resetKit();
+  const written: Record<string, number> = {};
+  kit.__setBestWriter((k, v) => { written[k] = v; });
+  C.__resetCrests();
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  game.set({ worldMode: 'city' });
+  const offZ = z3.initZones3();
+  try {
+    assert.ok(slots.overlays.get(z3.SNAP_OVERLAY), 'the snapshot overlay');
+    // lane F's crest hop, riding over the Haight crest: counted (through zones3's listener)
+    const s = CS.CREST_SPOTS[5];
+    runtime.player.x = s.x + 2; runtime.player.z = s.z - 1;
+    emit({ type: 'vehicle:hop', vehicle: 'car', crest: true });
+    for (let i = 0; i < 20 && C.crestHops() === 0; i++) await new Promise(r => setImmediate(r));
+    C.__flushCrestCard();
+    assert.equal(C.crestHops(), 1);
+    assert.equal(C.crestCount(), 1);
+    assert.equal(written[CS.CREST_KEY], 1 << 5);
+    let card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'crests');
+    assert.equal(card.tier, 1);
+    assert.equal(card.detail?.zh, '坡顶飞跃 1 / 12 · 海特街');
+    assert.deepEqual(flow.get().bubble?.text, C.CREST_LINES.first);
+    // a Space hop (not a crest) and a hop far from every crest count nothing
+    emit({ type: 'vehicle:hop', vehicle: 'car', crest: false });
+    runtime.player.x = s.x + 40;
+    emit({ type: 'vehicle:hop', vehicle: 'bike', crest: true });
+    for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
+    assert.equal(C.crestHops(), 1);
+    // the same crest again: no card, no count
+    C.crestHop(5);
+    assert.equal(kit.lastResultShown(), card);
+    assert.equal(C.crestCount(), 1);
+    // six crests: ◆; all twelve: ★ and BAYBAY's line
+    for (const i of [0, 1, 2, 3, 4]) { C.crestHop(i); C.__flushCrestCard(); }
+    card = kit.lastResultShown()!;
+    assert.equal(card.tier, 2);
+    for (const i of [6, 7, 8, 9, 10, 11]) { C.crestHop(i); C.__flushCrestCard(); }
+    card = kit.lastResultShown()!;
+    assert.equal(card.tier, 3);
+    assert.equal(card.detail?.zh, '坡顶飞跃 12 / 12 · 45 大道');
+    assert.deepEqual(flow.get().bubble?.text, C.CREST_LINES.all);
+    assert.deepEqual(events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && e.source), ['medal:crests:1', 'medal:crests:2', 'medal:crests:3']);
+    // the pennants: two per crest within PENNANT_R, gold once hopped
+    const THREE = await import('three');
+    const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial(), 24);
+    mesh.setColorAt(0, new THREE.Color());
+    runtime.player.x = s.x; runtime.player.z = s.z;
+    C.updatePennants(mesh, 0, 1 / 60);
+    assert.equal(mesh.count, 2);
+    runtime.player.x = 1e5;
+    C.updatePennants(mesh, 0, 1 / 60);
+    assert.equal(mesh.count, 0);
+    for (const line of [...Object.values(C.CREST_LINES), z3.CREST_HINT]) assert.ok([...line.zh].length <= 45);
+  } finally { offZ(); mock.timers.reset(); off(); C.__resetCrests(); kit.__setBestWriter(null); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
 });

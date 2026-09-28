@@ -1,14 +1,21 @@
+import { createElement, lazy, Suspense } from 'react';
+import { onEvent } from '../core/events';
+import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { transitData } from '../data/transit';
 import { bayNow } from '../game/bayNow';
 import { bubble } from '../game/flow';
+import { flow } from '../game/flowStore';
 import { registerInteractables, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { turntableNear } from '../game/transit';
 import { game } from '../core/store';
 import { fireRingSeason } from '../realsf/seasons';
+import { registerOverlay, type OverlayProps } from '../ui/slots';
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
-import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
+import { CREST_KEY, CREST_SPOTS, crestAt } from './crestSpots';
+import { bestOf } from './kit';
+import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
 
 /**
  * Wave 5 · lane A · part c (W5-A9, the should list): the zones of the should activities, one small chunk play/zones.ts
@@ -16,6 +23,7 @@ import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zo
  *
  *   marshmallow.ts   Ocean Beach's burning fire rings: 烤棉花糖 (几点能生火？ outside the NPS season and hours)
  *   heave.ts         the cable-car turntables: 嘿咻，推！ while a car turns near the player (lane T's turntableNear)
+ *   crests.ts        the 12 crest hops (crestSpots.ts): the pennants near one, a car / bike crest hop there counts it
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -88,9 +96,28 @@ export function placeHeave(tt: { id: string; x: number; z: number } | null): boo
   return on;
 }
 
+// --- the crest hops (W5-A9) ------------------------------------------------------------------------------------------
+
+export const SNAP_OVERLAY = 'play-snap';
+export const CREST_HINT: Bilingual = { zh: '前面坡顶插着小旗，开快点冲过去能飞起来！', en: 'Pennants on the crest ahead — go fast and we’ll fly!' };
+const CrestSnap = lazy(() => import('./CrestSnap'));
+const SnapSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(CrestSnap, { props, close }));
+/** A crest near the player for the pennants (u) and for BAYBAY's hint while riding (u). */
+export const CREST_NEAR = 160, CREST_HINT_R = 60;
+
+
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
   offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt]));
+  offs.push(registerOverlay({ id: SNAP_OVERLAY, Component: SnapSlot }));
+  // a crest hop (lane F's vehicle:hop) at one of the 12 crests
+  offs.push(onEvent(ev => {
+    if (ev.type !== 'vehicle:hop' || !ev.crest) return;
+    const i = crestAt(runtime.player.x, runtime.player.z);
+    if (i >= 0) void import('./crests').then(m => { m.crestHop(i); });
+  }));
+  let crestsOn = false, crestHintAt = -Infinity;
+  offs.push(() => { if (crestsOn) void import('./crests').then(m => { m.setCrestsNear(false); }); });
   let acc = 0;
   offs.push(registerFrameSystem('a-play-zones3', dt => {
     if ((acc += dt) < 0.25) return;
@@ -107,6 +134,14 @@ export function initZones3(): () => void {
     const tt = turntableNear();
     if ((transitData()?.turntables ?? []).some(t => nearPlayer(t.x, t.z, PREFETCH_R))) zonePrefetch('heave', () => import('./heave'));
     if (placeHeave(tt)) zoneInvite('heave', HEAVE_INVITE_LINE);
+    // the crests: the pennants while one is near (the crests chunk), BAYBAY's hint riding toward one not hopped yet
+    const near = CREST_SPOTS.some(s => nearPlayer(s.x, s.z, CREST_NEAR));
+    if (near !== crestsOn) { crestsOn = near; void import('./crests').then(m => { m.setCrestsNear(crestsOn); }); }
+    const riding = runtime.move.mode === 'bike' || runtime.move.mode === 'car', hopped = bestOf(CREST_KEY) ?? 0;
+    if (riding && runtime.time - crestHintAt > INVITE_GAP && !flow.get().bubble && CREST_SPOTS.some((s, i) => !((hopped >> i) & 1) && nearPlayer(s.x, s.z, CREST_HINT_R))) {
+      crestHintAt = runtime.time;
+      bubble(CREST_HINT, 3400);
+    }
   }));
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
 }

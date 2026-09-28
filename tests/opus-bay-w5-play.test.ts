@@ -200,5 +200,10 @@ test('W5-A1 result card: the overlay opens with the medal, the best line (新纪
     if (tier === 3) assert.ok(html.includes('新纪录！'));
     if (tier) assert.ok(html.includes('+5 金币'));
   }
+  // (part c) a snapshot on the card: the polaroid and 保存照片
+  const withPhoto = renderToStaticMarkup(h(ResultCard, { props: { activity: 'crests', name: { zh: '坡顶飞跃', en: 'Crest hops' }, tier: 1, photo: { url: 'blob:x', save: () => undefined } }, close: () => undefined }));
+  assert.match(withPhoto, /has-photo/);
+  assert.match(withPhoto, /<img class="ob-play-result-photo" src="blob:x"/);
+  assert.ok(withPhoto.includes('保存照片'));
   assert.equal(game.get().phase !== undefined, true);
 });

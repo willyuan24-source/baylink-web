@@ -144,3 +144,23 @@
 .ob-play-gauge-band { position: absolute; top: -3px; bottom: -3px; border: 2px solid var(--ob-gold-d); border-radius: 5px; box-sizing: border-box; }
 .ob-play-gauge-mark { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ob-ink); box-shadow: 0 0 0 1.5px #fff; transition: left .1s linear; }
 @media (max-width: 600px) { .ob-play-gauge { width: 76px; } }
+
+/* --- part c: the crest hop's snapshot (a small polaroid, upper left) ------------------------------------------------------ */
+.ob-play-snap {
+  position: absolute; left: 16px; top: calc(72px + var(--ob-st)); z-index: 41; width: 220px; margin: 0; padding: 8px 8px 4px;
+  background: #fffaf1; border-radius: 10px; box-shadow: var(--ob-shadow); transform: rotate(-2deg); pointer-events: auto;
+  animation: ob-play-snap-in .45s var(--ob-spring);
+}
+.ob-play-snap img { display: block; width: 100%; border-radius: 4px; background: var(--ob-cream-2); }
+.ob-play-snap figcaption { display: flex; align-items: center; gap: 2px; margin-top: 4px; font: 700 12.5px/1.2 var(--ob-font); color: var(--ob-ink); }
+.ob-play-snap figcaption span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: 'Noto Sans SC', var(--ob-font); }
+.ob-play-snap .ob-play-btn { min-height: 30px; padding: 0 8px; font-size: 12.5px; display: inline-flex; align-items: center; gap: 4px; }
+.ob-play-snap-x { display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: transparent; color: var(--ob-ink-2); cursor: pointer; }
+.ob-play-snap-x:focus-visible { outline: 3px solid var(--ob-gold); outline-offset: 2px; }
+@keyframes ob-play-snap-in { from { opacity: 0; transform: rotate(-8deg) scale(.7); } }
+@media (max-width: 600px) { .ob-play-snap { width: 156px; left: 12px; top: calc(312px + var(--ob-st)); } }
+.ob-overlay.is-reduced .ob-play-snap { animation: none; }
+/* the result card with a snapshot (the crest hop): the polaroid on the right */
+.ob-play-result.has-photo { grid-template-columns: auto 1fr auto; width: min(460px, calc(100% - 24px)); }
+.ob-play-result-photo { width: 112px; aspect-ratio: 4 / 3; object-fit: cover; border: 5px solid #fff; border-bottom-width: 12px; border-radius: 4px; box-shadow: var(--ob-shadow-s); transform: rotate(3deg); }
+@media (max-width: 600px) { .ob-play-result-photo { width: 92px; } }

@@ -10,7 +10,7 @@ import { instancedWarmup, registerWarmup } from '../world/warmup';
  * the kind's chunk loads (`registerToyWarmup`). aInfo.w ≤ −1: never dither-faded between the camera and the player.
  */
 
-export type ToyShape = 'cyl' | 'box' | 'ball' | 'disc';
+export type ToyShape = 'cyl' | 'box' | 'ball' | 'disc' | 'pennant';
 
 const materials = new Map<string, THREE.MeshStandardMaterial>();
 export function toyMaterial(kind: string): THREE.MeshStandardMaterial {
@@ -25,17 +25,41 @@ export function toyMaterial(kind: string): THREE.MeshStandardMaterial {
 }
 
 /**
+ * A pennant: a pole 2 u tall standing on the origin (a dimmer grey, so the instance tint reads mostly on the flag) and
+ * a two-sided triangle flag at its top pointing +x.
+ */
+function pennantGeometry(): THREE.BufferGeometry {
+  const pole = new THREE.CylinderGeometry(0.05, 0.065, 2, 5, 1).toNonIndexed();
+  pole.translate(0, 1, 0);
+  const flag = new THREE.BufferGeometry();
+  const a = [0.04, 1.97, 0], b = [0.04, 1.4, 0], c = [0.95, 1.7, 0];
+  flag.setAttribute('position', new THREE.BufferAttribute(new Float32Array([...a, ...b, ...c, ...a, ...c, ...b]), 3));
+  flag.computeVertexNormals();
+  const out = new THREE.BufferGeometry();
+  const pn = pole.getAttribute('position').count, fn = 6;
+  const pos = new Float32Array((pn + fn) * 3), nor = new Float32Array((pn + fn) * 3), col = new Float32Array((pn + fn) * 3);
+  pos.set(pole.getAttribute('position').array as Float32Array); pos.set(flag.getAttribute('position').array as Float32Array, pn * 3);
+  nor.set(pole.getAttribute('normal').array as Float32Array); nor.set(flag.getAttribute('normal').array as Float32Array, pn * 3);
+  col.fill(0.55, 0, pn * 3); col.fill(1, pn * 3);
+  out.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  out.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return out;
+}
+
+/**
  * A unit shape centred on the origin (height / size 1 along +y), white vertex colours (the instance colour paints it);
  * `nightGlow` 0 … 1 lights it at night only (props by a fire read in the dark).
  */
 export function toyGeometry(shape: ToyShape, nightGlow = 0): THREE.BufferGeometry {
-  const g = (shape === 'ball' ? new THREE.IcosahedronGeometry(0.5, 1)
+  const base = shape === 'pennant' ? pennantGeometry() : shape === 'ball' ? new THREE.IcosahedronGeometry(0.5, 1)
     : shape === 'box' ? new THREE.BoxGeometry(1, 1, 1)
-      : new THREE.CylinderGeometry(0.5, 0.5, 1, shape === 'disc' ? 12 : 7, 1)).toNonIndexed();
+      : new THREE.CylinderGeometry(0.5, 0.5, 1, shape === 'disc' ? 12 : 7, 1);
+  const g = base.index ? base.toNonIndexed() : base;
   const n = g.getAttribute('position').count;
   const info = new Float32Array(n * 4);
   for (let i = 0; i < n; i++) info[i * 4 + 3] = -1 - Math.max(0, Math.min(1, nightGlow));
-  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+  if (!g.getAttribute('color')) g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
   g.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
   return g;
 }

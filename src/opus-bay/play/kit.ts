@@ -69,6 +69,8 @@ export interface ActivityResult {
   bestText?: (best: number) => Bilingual;
   /** 再来一次 on the card */
   again?: () => void;
+  /** a snapshot on the card (the crest hop's polaroid) and its 保存 */
+  photo?: { url: string; save: () => void };
   /** false: no card (the caller shows its own moment) */
   card?: boolean;
 }
@@ -257,7 +259,7 @@ function finish(spec: ActivitySpec, result: ActivityResult) {
   emit({ type: 'play', activity: spec.id, what: 'end', ...(tier ? { tier } : {}) });
   if (result.card === false) return;
   playSound('play-medal', { gain: tier / 3 });
-  showResult({ activity: spec.id, name: spec.name, tier, detail: result.detail, best, fresh, coins: paid, again: result.again });
+  showResult({ activity: spec.id, name: spec.name, tier, detail: result.detail, best, fresh, coins: paid, again: result.again, photo: result.photo });
 }
 
 /** tests: forget the session state */
@@ -277,6 +279,7 @@ export interface ResultProps {
   /** coins the ledger paid for this run's medals */
   coins?: number;
   again?: () => void;
+  photo?: { url: string; save: () => void };
 }
 
 export const RESULT_OVERLAY = 'play-result';

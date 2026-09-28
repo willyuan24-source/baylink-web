@@ -8,7 +8,8 @@ import './play.css';
 /**
  * Wave 5 · lane A · the PlayKit result card (overlay 'play-result', its own chunk): a warm medal — shape AND word
  * (○ 再试试 · ● 好 · ◆ 很好 · ★ 太棒了: colour-blind safe) —, the activity, one detail line, the best (新纪录！ / 上次你 18
- * 秒！), the coins the ledger paid, 再来一次 and 好的. It closes itself after 8 s unless a pointer rests on it.
+ * 秒！), the coins the ledger paid, a snapshot when the activity took one (保存照片), 再来一次 and 好的. It closes itself
+ * after 8 s unless a pointer rests on it.
  */
 
 const AUTO_CLOSE_MS = 8000;
@@ -34,9 +35,9 @@ export default function ResultCard({ props, close }: { props: ResultProps } & Pi
     return () => window.clearInterval(id);
   }, [props]);
   if (!props) return null;
-  const { tier, name, detail, best, fresh, coins, again } = props;
+  const { tier, name, detail, best, fresh, coins, again, photo } = props;
   return (
-    <div className={`ob-play-result tier-${tier}${riding ? ' is-ride' : ''}`} role="status" aria-live="polite" onPointerEnter={() => { hover.current = true; }} onPointerLeave={() => { hover.current = false; }}>
+    <div className={`ob-play-result tier-${tier}${riding ? ' is-ride' : ''}${photo ? ' has-photo' : ''}`} role="status" aria-live="polite" onPointerEnter={() => { hover.current = true; }} onPointerLeave={() => { hover.current = false; }}>
       <div className="ob-play-medal"><Medal tier={tier} /></div>
       <div className="ob-play-result-body">
         <small>{t(name)}</small>
@@ -45,7 +46,9 @@ export default function ResultCard({ props, close }: { props: ResultProps } & Pi
         {fresh ? <span className="ob-play-best is-new">{t('新纪录！', 'A new best!')}</span> : best ? <span className="ob-play-best">{t(best)}</span> : null}
         {!!coins && coins > 0 && <span className="ob-play-coins">+{coins} {t('金币', coins === 1 ? 'coin' : 'coins')}</span>}
       </div>
+      {photo && <img className="ob-play-result-photo" src={photo.url} alt="" />}
       <div className="ob-play-result-actions">
+        {photo && <button type="button" className="ob-play-btn is-quiet" onClick={photo.save}>{t('保存照片', 'Save photo')}</button>}
         {again && <button type="button" className="ob-play-btn is-again" onClick={() => { close(); again(); }}>{t('再来一次', 'Again')}</button>}
         <button type="button" className="ob-play-btn" onClick={close}>{t('好的', 'OK')}</button>
       </div>
