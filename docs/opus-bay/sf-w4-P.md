@@ -424,5 +424,5 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 - **Lane G**: the review's O1 (bridge arrival), O2 (the island piers' names) and O3 (Corona summit) are done in lane
   P's files; pass `tripDestination(a)` to `planTrips`.
 
-Checks of the tree pushed with this section (rebased onto `79cf5bb`, W4-C2-5): tsc 0, eslint 0 errors (whole repo), full
-opus-bay suite **716 / 716**, sidecar `--check` OK.
+Checks of the tree pushed with this section (rebased onto `60b3a05`, F-review): tsc 0, eslint 0 errors (whole repo), full
+opus-bay suite **722 / 722**, sidecar `--check` OK.
