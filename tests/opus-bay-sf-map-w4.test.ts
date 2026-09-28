@@ -32,8 +32,12 @@ const inSvg = (el: ReturnType<typeof h>) => renderToStaticMarkup(h('svg', null, 
 type TransitLine = import('../src/opus-bay/world/sf/format').TransitLine;
 type TripOption = import('../src/opus-bay/game/tripTypes').TripOption;
 
-const w1 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit.json'), 'utf8')) as { lines: TransitLine[] };
-const w4 = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: TransitLine[] };
+// the wave-2 lines of transit.json (cable cars, the F-line) and lane T's wave-4 lines: from transit.json once lane T
+// publishes them there (its integration step 1), else from the early-phase transit-w4.json
+const isW4Line = (l: TransitLine) => l.kind === 'bus' || l.kind === 'light-rail';
+const transitFile = JSON.parse(fs.readFileSync(path.join(sf.base, 'transit.json'), 'utf8')) as { lines: TransitLine[] };
+const w1 = { ...transitFile, lines: transitFile.lines.filter(l => !isW4Line(l)) };
+const w4 = { lines: transitFile.lines.some(isW4Line) ? transitFile.lines.filter(isW4Line) : (JSON.parse(fs.readFileSync(path.join(sf.base, 'transit-w4.json'), 'utf8')) as { lines: TransitLine[] }).lines };
 const ALL_LINES = [...w1.lines, ...w4.lines];
 
 /** A Ctx2D recorder: counts strokes, remembers styles. */
