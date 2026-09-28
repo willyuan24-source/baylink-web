@@ -882,7 +882,8 @@ export class CrowdSim {
         const fits = (px: number, pz: number) => this.net.probe.stand(px, pz, STAND_R) && (onRoad || this.net.probe.surface(px, pz) !== 'road');
         // the side it is on first (exactly on the line: by its id), then the other one
         const first = q.d < 1e-3 ? (w.id % 2 ? 1 : -1) : q.side;
-        for (const side of [first, -first]) {
+        for (let k = 0; k < 2; k++) {
+          const side = k ? -first : first;
           const push = side === q.side || q.d < 1e-3 ? need - q.d : need + q.d;
           const nx = -uz * side * push, nz = ux * side * push;
           if (!fits(x + nx, z + nz)) continue;
