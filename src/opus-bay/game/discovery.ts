@@ -6,7 +6,7 @@ import { game, toast } from '../core/store';
 import { canStand } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { farZoneIndexAt } from '../data/cityZones';
-import { patchSave, readSave, reconcileRides, MAX_DISCOVERED, MAX_ZONES } from '../data/save';
+import { onSaveCleared, patchSave, readSave, reconcileRides, MAX_DISCOVERED, MAX_ZONES } from '../data/save';
 import { type CityPlace, type PlaceIndex, loadPlacesOnIdle, onPlaces, placeIndex } from '../data/sf/places';
 import { pick } from '../i18n';
 import { getLocale } from '../../i18n/locale';
@@ -149,6 +149,10 @@ export function resetDiscovery() {
   zones.clear();
   changed();
 }
+// at once when the save is cleared (integration review): the tick's syncDiscoveryWithSave below comes up to 250 ms
+// later, and a find in between (lane C's arrival moment marks its place: game/cityMoments.ts) wrote every old find
+// back into the fresh save
+onSaveCleared(resetDiscovery);
 
 /**
  * The sets follow save v2: every find and zone visit is written to it at once (markDiscovered / visitZone), so a save

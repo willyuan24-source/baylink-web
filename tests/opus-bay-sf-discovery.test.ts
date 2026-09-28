@@ -69,9 +69,11 @@ test('a progress reset (Settings → clearSave) forgets this visit\'s finds: 足
   assert.deepEqual(save.readSave()?.discovered, ['muni-castro', 'castro-theatre']);
   assert.equal(d.syncDiscoveryWithSave(), false, 'the save holds the finds: nothing to do');
   assert.equal(d.discoveredIds().length, 2);
-  // the Settings handler: clearProgress(); clearSave(); …
+  // the Settings handler: clearProgress(); clearSave(); … — the sets empty at once (integration review: save.onSaveCleared;
+  // the discovery tick came up to 250 ms later, and a find in between wrote every old one back), the tick has nothing left
   save.clearSave();
-  assert.equal(d.syncDiscoveryWithSave(), true);
+  assert.deepEqual(d.discoveredIds(), [], 'emptied by clearSave itself');
+  assert.equal(d.syncDiscoveryWithSave(), false);
   assert.deepEqual(d.discoveredIds(), []);
   assert.deepEqual(d.visitedZoneIds(), []);
   assert.equal(d.isDiscovered('muni-castro'), false);
@@ -82,6 +84,26 @@ test('a progress reset (Settings → clearSave) forgets this visit\'s finds: 足
   // resetDiscovery() is also callable directly (and idempotent)
   d.resetDiscovery();
   d.resetDiscovery();
+  assert.deepEqual(d.discoveredIds(), []);
+});
+
+test('review: a find right after the reset, before any discovery tick (an arrival moment of lane C marks its place), writes only itself; a save lost another way still resets on the tick', async () => {
+  const d = await import('../src/opus-bay/game/discovery');
+  const save = await import('../src/opus-bay/data/save');
+  const a = ix.get('muni-castro')!, b = ix.get('castro-theatre')!, c = ix.get('twin-peaks')!;
+  d.resetDiscovery();
+  d.markDiscovered(a);
+  d.markDiscovered(b);
+  d.visitZone('castro-upper-market');
+  save.clearSave();
+  // no syncDiscoveryWithSave here: the next find comes first
+  d.markDiscovered(c);
+  assert.deepEqual(save.readSave()?.discovered, ['twin-peaks']);
+  assert.deepEqual(save.readSave()?.zones, []);
+  assert.deepEqual(d.discoveredIds(), ['twin-peaks']);
+  // the tick's fallback: the save gone without clearSave (the cache dropped, nothing stored in node) resets the sets
+  save.resetSaveCache();
+  assert.equal(d.syncDiscoveryWithSave(), true);
   assert.deepEqual(d.discoveredIds(), []);
 });
 
