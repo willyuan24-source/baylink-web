@@ -22,6 +22,14 @@ export interface LabelSpec {
 type Rect = { u0: number; v0: number; u1: number; v1: number };
 
 const SIZE = 1024;
+/**
+ * Overflow guard (wave 5, lane V W5-V2; the capacity scout: the atlas was 76 % full and a label past the bottom drew
+ * nowhere while its quad sampled past the canvas edge, i.e. another label's pixels): the bottom LABEL_RESERVE px stay
+ * free, a label that does not fit maps to a blank strip of the atlas's base colour there (an empty plaque), is counted in
+ * `overflow` and warned about once in DEV. Allocations that fit are exactly as before (the district's labels unchanged).
+ */
+export const LABEL_RESERVE = 8;
+const BLANK: Rect = { u0: 2 / SIZE, v0: 2 / SIZE, u1: 6 / SIZE, v1: 6 / SIZE };
 const FONTS = {
   serif: "700 {px}px Georgia, 'Times New Roman', serif",
   sans: "800 {px}px 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif",
@@ -35,6 +43,8 @@ export class LabelAtlas {
   private y = 0;
   private rowH = 0;
   private rects = new Map<string, Rect>();
+  /** labels that did not fit (mapped to the blank strip; 0 in a healthy build) */
+  overflow = 0;
   readonly texture: THREE.CanvasTexture;
   readonly material: THREE.MeshStandardMaterial;
 
@@ -59,8 +69,16 @@ export class LabelAtlas {
     this.material.emissiveIntensity = 1;
   }
 
-  private alloc(w: number, h: number): Rect {
-    if (this.x + w > SIZE) { this.x = 0; this.y += this.rowH + 2; this.rowH = 0; }
+  /** How much of the atlas height is taken (the current row's bottom edge / the canvas height). */
+  get used(): number { return Math.min(1, (this.y + this.rowH) / SIZE); }
+
+  /** A cell for a w × h label, or null when it does not fit above the reserved strip (the guard). */
+  private alloc(w: number, h: number): Rect | null {
+    if (w > SIZE) return null;
+    const newRow = this.x + w > SIZE;
+    const y = newRow ? this.y + this.rowH + 2 : this.y;
+    if (y + h > SIZE - LABEL_RESERVE) return null;
+    if (newRow) { this.x = 0; this.y = y; this.rowH = 0; }
     const r = { u0: this.x / SIZE, v0: 1 - (this.y + h) / SIZE, u1: (this.x + w) / SIZE, v1: 1 - this.y / SIZE };
     const px = this.x, py = this.y;
     this.x += w + 2;
@@ -70,10 +88,19 @@ export class LabelAtlas {
     return r;
   }
 
+  /** The guard's answer for a label that does not fit: the blank strip (cached under its key, so it is counted once). */
+  private overflowed(key: string): Rect {
+    this.overflow++;
+    if (this.overflow === 1 && import.meta.env?.DEV) console.warn(`[opus-bay labels] the label atlas is full: "${key}" is drawn blank (used ${Math.round(this.used * 100)} %)`);
+    this.rects.set(key, BLANK);
+    return BLANK;
+  }
+
   label(key: string, spec: LabelSpec): Rect {
     const hit = this.rects.get(key);
     if (hit) return hit;
     const r = this.alloc(spec.w, spec.h);
+    if (!r) return this.overflowed(key);
     const g = this.ctx;
     g.fillStyle = spec.bg;
     g.fillRect(0, 0, spec.w, spec.h);
@@ -103,6 +130,7 @@ export class LabelAtlas {
     if (hit) return hit;
     const s = 192;
     const r = this.alloc(s, s);
+    if (!r) return this.overflowed('clock');
     const g = this.ctx;
     g.fillStyle = '#e9e0cf';
     g.fillRect(0, 0, s, s);

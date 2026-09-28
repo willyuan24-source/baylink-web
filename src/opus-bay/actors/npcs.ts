@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
-import type { WorldMode } from '../core/store';
+import { game, type WorldMode } from '../core/store';
 import { canStand, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { DISTRICT, at, frameAt, stationOf } from '../data/district';
@@ -62,6 +62,15 @@ export const CITY_NPC_DEFS: NpcDef[] = RESIDENTS.map(r => ({
  * `at` or its DISTRICT anchor exists. City mode keeps the waterfront's residents and adds the six city ones.
  */
 export const npcDefsFor = (mode: WorldMode): NpcDef[] => (mode === 'city' ? [...NPC_DEFS, ...CITY_NPC_DEFS] : NPC_DEFS);
+
+/**
+ * Wave 5 (lane V, W5-V2; plan MF9 "room first"): in city mode the six waterfront residents (NPC_DEFS) are hidden beyond
+ * DISTRICT_NPC_HIDE u from the player (no animation, no ground lookup, no obstacle, no blob, no draw, no shadow) and shown
+ * again inside DISTRICT_NPC_SHOW. They cost ≈ 33k triangles and 6 draw calls wherever the waterfront is in view (Twin
+ * Peaks looks straight at it). District mode never hides them.
+ */
+export const DISTRICT_NPC_HIDE = 250;
+export const DISTRICT_NPC_SHOW = 235;
 
 /** City residents: hidden beyond this distance from the player (u), shown again inside RESIDENT_SHOW. */
 export const RESIDENT_HIDE = 160;
@@ -125,9 +134,14 @@ export class Npc {
   private bodyState: 'none' | 'loading' | 'ready' | 'gone' = 'none';
   private bodyAsked = 0;
   private shown = false;
+  // the waterfront residents in city mode (W5-V2): hidden while the player is far away
+  private readonly farHide: boolean;
+  private farHidden = false;
 
-  constructor(def: NpcDef) {
+  /** `mode`: the world the ActorSystem builds (default: the store's; city mode hides the waterfront residents when far). */
+  constructor(def: NpcDef, mode: WorldMode = game.get().worldMode) {
     this.def = def;
+    this.farHide = !def.resident && mode === 'city';
     this.rig = def.resident ? standInRig() : buildNpc(def.look);
     this.anim = new Animator(this.rig, 'npc');
     if (def.resident) {
@@ -195,8 +209,15 @@ export class Npc {
     this.routeT = 0;
   }
 
-  /** False while a city resident is hidden (far away, or its body is not built yet). */
-  get visible(): boolean { return !this.def.resident || this.shown; }
+  /** False while a city resident is hidden (far away, or its body is not built yet) or a waterfront resident is hidden far away in city mode. */
+  get visible(): boolean { return (!this.def.resident || this.shown) && !this.farHidden; }
+
+  /** City mode, a waterfront resident: hidden beyond DISTRICT_NPC_HIDE from the player, back inside DISTRICT_NPC_SHOW. */
+  private farVisible(d: number): boolean {
+    const hide = this.farHidden ? d > DISTRICT_NPC_SHOW : d > DISTRICT_NPC_HIDE;
+    if (hide !== this.farHidden) { this.farHidden = hide; this.object.visible = !hide; }
+    return !hide;
+  }
 
   /** soft obstacle for the player controller */
   obstacle(out: Obstacle[]) {
@@ -247,8 +268,9 @@ export class Npc {
   update(dt: number, t: number) {
     const p = runtime.player;
     const dx = p.x - this.x, dz = p.z - this.z, d = Math.hypot(dx, dz);
-    // far city residents cost nothing (no animation, no ground lookup)
+    // far city residents cost nothing (no animation, no ground lookup); nor do the waterfront residents far away in city mode
     if (this.def.resident && !this.residentVisible(d)) { this.talking = false; return; }
+    if (this.farHide && !this.farVisible(d)) { this.talking = false; return; }
     const wasNear = this.near;
     this.near = d < GREET_RADIUS;
     let face = this.homeHeading;
