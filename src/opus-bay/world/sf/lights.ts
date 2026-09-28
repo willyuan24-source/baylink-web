@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../core/types';
+import { DISTRICT } from '../../data/district';
 import { freezeStatic } from '../builder';
+import { SALESFORCE_LEVELS } from '../landmarks';
 import { U } from '../materials';
 import { registerWarmup } from '../warmup';
 import type { WorldSystem } from '../world';
@@ -20,6 +22,7 @@ import { inPoly } from './raster';
  *   Golden Gate    the deck's railing lamps, the floodlit tower bases and the blinking red aviation lights on the tower
  *                  tops (the towers were floating red bars at night: now the deck strings them together)
  *   landmarks      CitySites.siteLights() (D2's SiteHooks.lights), refreshed while the city streams
+ *   Salesforce     the hero tower's crown (wave 4, W4-V8): a warm glow on its faces, readable across the city
  *
  * Round additive dots of 1.5–4.5 px (a fixed world size, clamped), faded out within ≈ 60–150 u of the camera (the real
  * lamps, halos and the GROUND street glow take over there), dimmed under Karl the Fog, hidden by day (0 calls). The
@@ -83,6 +86,37 @@ export function ggbLights(): LightSpec[] {
     out.push(at(sx, TOP * 0.62, zs * 2.55, 0.55, RED));
     out.push(at(sx, 3.5, zs * 4.3, 1, FLOOD));
   }
+  return out;
+}
+
+/** Jim Campbell's LED crown ("Day for Night", 11,000 LEDs): a generic warm glow, no pictures (plan §2.4 row 32, W4-V8). */
+const CROWN = [1.0, 0.9, 0.74] as const;
+
+/**
+ * Salesforce Tower's crown at night (pure; the hero tower of world/landmarks.ts, SALESFORCE_LEVELS): warm points on
+ * the crown's faces at three heights between the lattice bands and one at the top, so the city's tallest building
+ * reads at night from Twin Peaks or the glide like the Golden Gate's lamps (the hero's own crown is floodlit up close,
+ * where the light field fades out).
+ */
+export function salesforceCrownLights(): LightSpec[] {
+  const l = DISTRICT.landmarks.find(d => d.id === 'salesforce-tower');
+  if (!l) return [];
+  const c = Math.cos(l.rotationY), s = Math.sin(l.rotationY);
+  const halfAt = (y: number) => {
+    for (let i = 1; i < SALESFORCE_LEVELS.length; i++) {
+      const a = SALESFORCE_LEVELS[i - 1], b = SALESFORCE_LEVELS[i];
+      if (y <= b.y) return a.half + (b.half - a.half) * ((y - a.y) / (b.y - a.y));
+    }
+    return SALESFORCE_LEVELS[SALESFORCE_LEVELS.length - 1].half;
+  };
+  const out: LightSpec[] = [];
+  const at = (lx: number, y: number, lz: number, level: number) => out.push({ x: l.position.x + lx * c + lz * s, y, z: l.position.z - lx * s + lz * c, level, color: CROWN });
+  for (const y of [46.5, 49.5, 52]) {
+    const h = halfAt(y) + 0.1;
+    // two points on each face (the corners are rounded)
+    for (const t of [-0.45, 0.45]) { at(t * h * 2, y, h, 1); at(t * h * 2, y, -h, 1); at(h, y, t * h * 2, 1); at(-h, y, t * h * 2, 1); }
+  }
+  at(0, 57.8, 0, 0.8);
   return out;
 }
 
@@ -178,7 +212,7 @@ export class LightField implements WorldSystem {
   /** the far data arrived: build the street lamps (≈ 13k points, a few ms) */
   setFar(far: FarData) {
     const slab = this.opts.slab;
-    this.street = [...streetLamps(far.lines, slab ? (x, z) => inPoly(x, z, slab) : undefined), ...ggbLights()];
+    this.street = [...streetLamps(far.lines, slab ? (x, z) => inPoly(x, z, slab) : undefined), ...ggbLights(), ...salesforceCrownLights()];
     this.rebuild(this.sites);
   }
 

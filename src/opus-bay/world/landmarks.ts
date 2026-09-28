@@ -247,13 +247,16 @@ function roundedSquare(half: number, radius: number, seg = 3): { x: number; z: n
   return pts;
 }
 
+/** Salesforce Tower's profile (rounded-square rings, local y from the ground; the crown = the rings from 44 up). */
+export const SALESFORCE_LEVELS: readonly { y: number; half: number; r: number }[] = [
+  { y: 0, half: 4.1, r: 1.6 }, { y: 30, half: 3.7, r: 1.6 }, { y: 44, half: 3.1, r: 1.5 }, { y: 49, half: 2.6, r: 1.4 }, { y: 53.5, half: 1.9, r: 1.2 }, { y: 56.5, half: 0.9, r: 0.8 },
+];
+
 function salesforce(): Batch {
   const l = landmark('salesforce-tower')!;
   const b = new Batch();
   const f = new Frame(l.position.x, 0, l.position.z, l.rotationY);
-  const levels = [
-    { y: 0, half: 4.1, r: 1.6 }, { y: 30, half: 3.7, r: 1.6 }, { y: 44, half: 3.1, r: 1.5 }, { y: 49, half: 2.6, r: 1.4 }, { y: 53.5, half: 1.9, r: 1.2 }, { y: 56.5, half: 0.9, r: 0.8 },
-  ];
+  const levels = SALESFORCE_LEVELS;
   const rings = levels.map(lv => roundedSquare(lv.half, lv.r, 3).map(p => f.point(p.x, lv.y, p.z)));
   const center = f.point(0, 0, 0);
   for (let li = 0; li < levels.length - 1; li++) {

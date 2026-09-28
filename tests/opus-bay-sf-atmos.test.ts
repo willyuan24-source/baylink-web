@@ -268,9 +268,10 @@ test('Karl: the cloud bank is 40–80 clusters on one TOY_INST_TINT InstancedMes
   KARL.uKarl.value = 0;
 });
 
-const { streetLamps, ggbLights, LightField, LIGHT_FIELD } = await import('../src/opus-bay/world/sf/lights');
+const { streetLamps, ggbLights, salesforceCrownLights, LightField, LIGHT_FIELD } = await import('../src/opus-bay/world/sf/lights');
 const { asphaltInfo, STREET_LAMP } = await import('../src/opus-bay/world/sf/look');
 const { sfDisk } = await import('./opus-bay-sf-disk');
+const DISTRICT_LM = (await import('../src/opus-bay/data/district')).DISTRICT.landmarks;
 
 test('night light field: ≥ 10k street lamps from far.lines + the GGB, one Points draw, hidden by day', async () => {
   const far = await sfDisk().far();
@@ -285,7 +286,17 @@ test('night light field: ≥ 10k street lamps from far.lines + the GGB, one Poin
   const renderer = { getDrawingBufferSize: (v: THREE.Vector2) => v.set(960, 600) } as unknown as THREE.WebGLRenderer;
   const field = new LightField(renderer, { siteLights: () => [] });
   field.setFar(far);
-  assert.equal(field.count, lamps.length + ggb.length);
+  // W4-V8: the Salesforce crown (the hero tower: SALESFORCE_LEVELS of world/landmarks.ts, rotationY 0)
+  const crown = salesforceCrownLights();
+  const tower = DISTRICT_LM.find(l => l.id === 'salesforce-tower')!;
+  assert.equal(crown.length, 25);
+  for (const l of crown) {
+    assert.ok(l.y >= 46 && l.y <= 58, `crown height ${l.y}`);
+    const d = Math.max(Math.abs(l.x - tower.position.x), Math.abs(l.z - tower.position.z));
+    assert.ok(d <= 3.2, `on the crown (${d.toFixed(2)} u from the axis)`);
+    assert.ok(l.color[0] >= l.color[2] && l.level > 0 && l.level < 2, 'warm, steady');
+  }
+  assert.equal(field.count, lamps.length + ggb.length + crown.length);
   assert.equal(field.group.children.length, 1, 'one Points object');
   const cam = new THREE.PerspectiveCamera(50);
   field.update(0.1, 0, cam, 0);
