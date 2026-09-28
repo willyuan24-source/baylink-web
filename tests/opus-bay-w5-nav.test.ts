@@ -993,3 +993,253 @@ test('lane F\'s request: lane A\'s result card and first-flight chip are HUD box
   const { HUD_BOX_SELECTOR } = await import('../src/opus-bay/game/hudLayout');
   for (const c of ['.ob-play-result', '.ob-play-flight', '.ob-go-chip', '.ob-found-chip']) assert.ok(HUD_BOX_SELECTOR.split(', ').includes(c), c);
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N9 · 看风景飞过去: the scenic flight (game/scenicTrip.ts, game/scenicFlight.ts, the fast hop's driver seam)
+// ---------------------------------------------------------------------------------------------------------------
+
+const ST = await import('../src/opus-bay/game/scenicTrip');
+const SF = await import('../src/opus-bay/game/scenicFlight');
+const playerLock = await import('../src/opus-bay/game/playerLock');
+const { heightAt } = await import('../src/opus-bay/core/terrain');
+
+const flyOption = (d: number): Opt => {
+  const leg = { via: 'fly' as const, place: 'p', from: { x: 0, z: 0 }, to: { x: d, z: 0, name: bi('艺术宫', 'Palace') }, seconds: TP.flySeconds(d), length: d };
+  return { mode: 'fly', legs: [leg], seconds: leg.seconds, note: TP.FLY_NOTE };
+};
+
+test('W5-N9 the scenic option: mid distances only, after the fast fly row, once the pelican is unlocked, never 推荐; its time is honest', () => {
+  assert.equal(ST.scenicFits(149), false); assert.equal(ST.scenicFits(150), true); assert.equal(ST.scenicFits(900), true); assert.equal(ST.scenicFits(901), false);
+  assert.equal(ST.scenicFits(Number.NaN), false);
+  const s = ST.scenicOption(flyOption(500))!;
+  assert.equal(s.mode, 'fly');
+  assert.ok(ST.isScenicOption(s) && ST.isScenicLeg(s.legs[0]));
+  assert.ok(!s.recommended);
+  assert.ok(Math.abs(s.seconds - (FT.PICKUP_S + FT.RISE_S + 500 / ST.SCENIC_TRIP.speed + ST.SCENIC_TRIP.descentS)) < 1e-9);
+  assert.ok(s.seconds > flyOption(500).seconds * 3, 'slower than the fast hop (it is the scenic way)');
+  assert.deepEqual(s.note, ST.SCENIC_NOTE);
+  assert.equal(s.legs[0].label!.zh, '看风景飞到艺术宫');
+  assert.equal(ST.scenicOption(flyOption(100)), null, 'short: walk');
+  assert.equal(ST.scenicOption(flyOption(2000)), null, 'long: the fast hop');
+  assert.equal(ST.scenicOption({ ...flyOption(500), mode: 'walk' }), null);
+  assert.equal(ST.scenicOption(s), null, 'never a scenic twin of a scenic row');
+  // the leg's flag survives the trip's copies (tripRun withDestName spreads the last leg)
+  assert.ok(ST.isScenicLeg({ ...s.legs[0], to: { ...s.legs[0].to, name: bi('x') } }));
+  // withScenic: after the fast row, unlocked only; the planner's list itself is untouched
+  const walk: Opt = { mode: 'walk', legs: [], seconds: 120 };
+  const fly = { ...flyOption(500), recommended: true };
+  const list = [fly, walk];
+  const w = ST.withScenic(list, true);
+  assert.deepEqual(w.map(o => (ST.isScenicOption(o) ? 'scenic' : o.mode)), ['fly', 'scenic', 'walk']);
+  assert.equal(w.filter(o => o.recommended).length, 1);
+  assert.deepEqual(ST.withScenic(list, false), list, 'before the pelican: no scenic row');
+  assert.deepEqual(ST.withScenic([walk], true), [walk]);
+  assert.equal(list.length, 2);
+  assert.equal(ST.withScenic(w, true).length, 3, 'idempotent');
+});
+
+test('W5-N9 the rows: 看风景飞过去 by name, not counted in the four, right after 飞过去, its own key', async () => {
+  const R = await import('../src/opus-bay/ui/tripRows');
+  const s = ST.scenicOption(flyOption(400))!;
+  assert.deepEqual(R.optionTitle(s), ST.SCENIC_NAME);
+  assert.deepEqual(R.optionTitle(flyOption(400)), bi('飞过去', 'Fly'));
+  const opts: Opt[] = [
+    { ...flyOption(400), recommended: true }, s,
+    { mode: 'walk', legs: [], seconds: 200 }, { mode: 'run', legs: [], seconds: 150 }, { mode: 'bike', legs: [], seconds: 100 }, { mode: 'car', legs: [], seconds: 90 },
+  ];
+  const rows = R.orderOptions(opts, 4);
+  assert.deepEqual(rows.map(o => (ST.isScenicOption(o) ? 'scenic' : o.mode)), ['fly', 'scenic', 'car', 'bike', 'run'], 'the four + the scenic row after the fast one');
+  assert.notEqual(R.optionKey(s), R.optionKey(opts[0]));
+  // without the fast row shown, no scenic row
+  assert.deepEqual(R.orderOptions([s, { mode: 'walk', legs: [], seconds: 50 }], 4).map(o => o.mode), ['walk']);
+  assert.match(R.goButtonLabel(s).zh, /^看风景飞过去 · 约 /);
+});
+
+test('W5-N9 the autopilot: banks toward the target, holds its height over the roofs, boosts on the straight, slows on the approach', () => {
+  const g = { x: 0, y: 40, z: 0, heading: 0 };
+  // a target to the right of the heading (+x while flying +z: heading must grow): steer negative, as the glide's approach
+  const right = SF.scenicPilot(g, { x: 300, z: 300 }, 40);
+  assert.ok(right.steer < 0, `steer ${right.steer}`);
+  const left = SF.scenicPilot(g, { x: -300, z: 300 }, 40);
+  assert.ok(left.steer > 0);
+  assert.ok(SF.scenicPilot(g, { x: 0, z: 400 }, 60).pitch > 0, 'below the wanted height: climb');
+  assert.ok(SF.scenicPilot(g, { x: 0, z: 400 }, 20).pitch < 0, 'above it: sink');
+  assert.equal(SF.scenicPilot(g, { x: 0, z: 400 }, 40).boost, true);
+  assert.equal(SF.scenicPilot(g, { x: 0, z: 400 }, 40).slow, false);
+  assert.equal(SF.scenicPilot(g, { x: 0, z: 50 }, 40).slow, true);
+  assert.equal(SF.scenicPilot(g, { x: 400, z: 0 }, 40).boost, false, 'no boost through a turn');
+  // the height: over the roofs (soft floor + 14) and ≥ 30 over the ground; on the approach 6 / 16
+  assert.equal(SF.scenicHeight(10, 0, 500), 30);
+  assert.equal(SF.scenicHeight(70, 50, 500), 84);
+  assert.equal(SF.scenicHeight(10, 0, SF.SCENIC.landR), 16);
+  // the camera: the glide rig's framing behind the pelican (14 u, pitch 0.3), looking 10 u ahead
+  const c = SF.chaseShot(0, 40, 0, 0);
+  assert.ok(c.position[2] < -12 && Math.abs(c.position[0]) < 1e-9 && c.position[1] > 45);
+  assert.deepEqual(c.target, [0, 40.9, 10]);
+  assert.deepEqual(SF.scenicHint(false, 'touch').zh, '碰摇杆自己飞');
+  assert.deepEqual(SF.scenicHint(true, 'keyboard').zh, '松开就由 BAYBAY 接着飞');
+  assert.match(SF.scenicHint(false, 'keyboard').zh, /G 就地降落/);
+  for (const d of ['touch', 'keyboard', 'gamepad']) for (const m of [true, false]) assert.ok([...SF.scenicHint(m, d).zh].length <= 16);
+});
+
+/** A flat synthetic glide world: ground 0, a 60 u block of 40 u roofs at (0, 250), open everywhere, an optional soft box. */
+const flatWorld = (box?: { minX: number; minZ: number; maxX: number; maxZ: number }): import('../src/opus-bay/actors/glide').GlideWorld => ({
+  heightAt: () => 0,
+  inWorld: (x, z) => Math.abs(x) < 3000 && Math.abs(z) < 3000,
+  roofAt: (x, z, r) => (Math.abs(x) < 30 + r && Math.abs(z - 250) < 30 + r ? 40 : -Infinity),
+  landingSpot: (x, z) => ({ x, z }),
+  avoid: (x, z) => (box && x >= box.minX && x <= box.maxX && z >= box.minZ && z <= box.maxZ ? 'box' : null),
+});
+
+test('W5-N9 the flight: the autopilot flies there over a block of roofs and asks to land; it waits for the streaming, then lands anyway', () => {
+  const idle = () => ({ manual: false, landHere: false, glide: { pitch: 0, steer: 0, boost: false, slow: false } });
+  const f = new SF.ScenicFlight({ x: 60, z: 520 }, { world: flatWorld(), controls: idle, device: () => 'touch' });
+  f.begin(0, 48, 0, 0);
+  let t = 0, r: string = 'fly', minClear = Infinity;
+  while (r === 'fly' && t < 120) {
+    r = f.step(1 / 30, true); t += 1 / 30;
+    const roof = Math.abs(f.x) < 30 && Math.abs(f.z - 250) < 30 ? 40 : 0;
+    minClear = Math.min(minClear, f.y + 1.1 - roof);
+  }
+  assert.equal(r, 'land');
+  assert.ok(f.distLeft() < SF.SCENIC.landR);
+  const planned = 524 / ST.SCENIC_TRIP.speed;
+  assert.ok(t < planned * 1.3 && t > planned * 0.5, `flew ${t.toFixed(1)} s, planned ${planned.toFixed(1)} s`);
+  assert.ok(minClear > 4, `never lower than 4 u over the roofs / ground (${minClear.toFixed(1)})`);
+  assert.equal(f.progress > 0.9, true);
+  // not streamed yet: circles, then lands after holdMaxS
+  const g = new SF.ScenicFlight({ x: 0, z: 200 }, { world: flatWorld(), controls: idle, device: () => 'touch' });
+  g.begin(0, 30, 0, 0);
+  let tt = 0, rr: string = 'fly';
+  while (rr === 'fly' && tt < 120) { rr = g.step(1 / 30, false); tt += 1 / 30; }
+  assert.equal(rr, 'land');
+  assert.ok(tt > SF.SCENIC.holdMaxS, `held ${tt.toFixed(1)} s`);
+});
+
+test('W5-N9 the flight: the stick takes over (BAYBAY says so once), letting go hands it back after 2.5 s; G lands here; an unreachable destination goes the fast way', () => {
+  let manual = true, landHere = false;
+  const controls = () => ({ manual, landHere, glide: { pitch: 0, steer: 1, boost: false, slow: false } });
+  const f = new SF.ScenicFlight({ x: 0, z: 600 }, { world: flatWorld(), controls, device: () => 'touch' });
+  f.begin(0, 48, 0, 0);
+  const h0 = f.heading;
+  for (let i = 0; i < 60; i++) assert.equal(f.step(1 / 30, true), 'fly');
+  assert.equal(f.manual, true); assert.equal(f.tookOver, true);
+  assert.ok(Math.abs(Math.atan2(Math.sin(f.heading - h0), Math.cos(f.heading - h0))) > 0.3, 'the player banked it away');
+  assert.deepEqual(flow.get().captionSub, SF.scenicHint(true, 'touch'));
+  manual = false;
+  for (let i = 0; i < 60; i++) f.step(1 / 30, true);
+  assert.equal(f.manual, true, 'still yours 2 s after letting go');
+  for (let i = 0; i < 20; i++) f.step(1 / 30, true);
+  assert.equal(f.manual, false, 'BAYBAY flies again');
+  assert.deepEqual(flow.get().captionSub, SF.scenicHint(false, 'touch'));
+  landHere = true;
+  assert.equal(f.step(1 / 30, true), 'here');
+  f.end();
+  assert.equal(flow.get().captionSub, null);
+  // a destination inside a soft box (the Fleet Week air box): turned back each time → the fast way after the cap
+  const boxed = new SF.ScenicFlight({ x: 0, z: 400 }, { world: flatWorld({ minX: -200, minZ: 300, maxX: 200, maxZ: 600 }), controls: () => ({ manual: false, landHere: false, glide: { pitch: 0, steer: 0, boost: false, slow: false } }), device: () => 'touch' });
+  boxed.begin(0, 48, 0, 0);
+  let r = 'fly', t = 0;
+  while (r === 'fly' && t < 200) { r = boxed.step(1 / 15, true); t += 1 / 15; }
+  assert.equal(r, 'skip');
+  assert.ok(t < (400 / ST.SCENIC_TRIP.speed) * SF.SCENIC.maxFactor + 21);
+  flow.set({ captionSub: null });
+});
+
+test('W5-N9 the trip: pickup and rise, the driver flies (its pose, its camera, the city streaming ahead), the landing curve onto the arrival spot, the lock let go', () => {
+  const calls: string[] = [];
+  let pose = { x: 0, y: 0, z: 0, heading: 0 };
+  let answer: 'fly' | 'land' | 'here' | 'skip' = 'fly';
+  const drv = {
+    begin(x: number, y: number, z: number, h: number) { calls.push(`begin ${x.toFixed(0)},${y.toFixed(0)},${z.toFixed(0)}`); pose = { x, y, z, heading: h }; },
+    step(dt: number) { pose = { ...pose, z: pose.z + 20 * dt }; return answer; },
+    get x() { return pose.x; }, get y() { return pose.y; }, get z() { return pose.z; }, get heading() { return pose.heading; },
+    progress: 0.5,
+    focus: () => ({ x: pose.x, z: pose.z + 30 }),
+    shot: () => ({ position: [pose.x, pose.y + 5, pose.z - 12] as [number, number, number], target: [pose.x, pose.y, pose.z + 10] as [number, number, number] }),
+    chaseAt: (x: number, y: number, z: number) => ({ position: [x, y + 5, z - 12] as [number, number, number], target: [x, y, z + 10] as [number, number, number] }),
+    end() { calls.push('end'); },
+  };
+  const P = runtime.player;
+  const start = { x: P.x, z: P.z };
+  const dest = { x: start.x + 20, z: start.z + 300 };
+  game.set({ phase: 'playing' });
+  assert.ok(FT.startTravel({ id: 'scenic-test', name: bi('测试'), x: dest.x, z: dest.z }, drv));
+  assert.equal(flow.get().caption?.zh, '看风景 · 飞往测试');
+  const { lockHeld } = playerLock;
+  assert.equal(lockHeld(), true);
+  // pickup + rise: the fast hop's own path; the rise ends in the chase camera behind the pelican
+  let steps = 0;
+  while (FT.travelPose()!.phase !== 'pan' && steps++ < 200) FT.stepTravel(1 / 30);
+  assert.equal(calls[0], `begin ${start.x.toFixed(0)},${(heightAt(start.x, start.z) + FT.CRUISE_Y).toFixed(0)},${start.z.toFixed(0)}`);
+  // the sky part is the driver's (pose, camera): 10 s on the clock never ends it
+  for (let i = 0; i < 300; i++) FT.stepTravel(1 / 30);
+  const p = FT.travelPose()!;
+  assert.equal(p.phase, 'pan');
+  assert.ok(Math.abs(p.z - pose.z) < 1e-9 && p.t === 0.5);
+  assert.deepEqual(runtime.camera.shot!.target, [pose.x, pose.y, pose.z + 10]);
+  // it asks to land: the curve from the pelican to the arrival spot, the player placed there
+  answer = 'land';
+  FT.stepTravel(1 / 30);
+  const d0 = FT.travelPose()!;
+  assert.equal(d0.phase, 'descent');
+  assert.ok(Math.hypot(d0.x - pose.x, d0.z - pose.z) < 1, 'the descent starts at the pelican');
+  assert.ok(calls.includes('end'));
+  let n = 0;
+  while (FT.travelActive() && n++ < 300) FT.stepTravel(1 / 30);
+  assert.equal(FT.travelActive(), false);
+  assert.ok(Math.hypot(runtime.player.x - dest.x, runtime.player.z - dest.z) < 45, 'landed at the destination');
+  assert.equal(lockHeld(), false, 'the landing lets go of the lock');
+  assert.equal(flow.get().cinematic, null);
+  assert.ok(n > 50 && n < 110, `the scenic landing takes 2–3.2 s (${n} frames)`);
+});
+
+test('W5-N9 the trip: skip (跳过) mid-flight takes the fast way through the cloud; a flight that lands far from its leg walks the rest', () => {
+  let ended = 0;
+  const drv = {
+    begin() {}, step: () => 'fly' as const, x: 0, y: 40, z: 0, heading: 0, progress: 0,
+    focus: () => ({ x: 0, z: 0 }), shot: () => ({ position: [0, 50, -10] as [number, number, number], target: [0, 40, 10] as [number, number, number] }),
+    chaseAt: () => ({ position: [0, 50, -10] as [number, number, number], target: [0, 40, 10] as [number, number, number] }),
+    end() { ended++; },
+  };
+  const P = runtime.player;
+  assert.ok(FT.startTravel({ id: 'scenic-skip', name: bi('测试'), x: P.x + 10, z: P.z + 250 }, drv));
+  for (let i = 0; i < 80; i++) FT.stepTravel(1 / 30);
+  FT.skipTravel();
+  assert.equal(ended, 1);
+  assert.equal(FT.travelPose()!.phase, 'hold');
+  let n = 0;
+  while (FT.travelActive() && n++ < 600) FT.stepTravel(1 / 30);
+  assert.equal(FT.travelActive(), false);
+  assert.equal(tripRun.FLY_END_R, 60);
+});
+
+test('W5-N9 the trip runner: a scenic leg starts the scenic flight (its line, its caption); G lands where the pelican is and the rest is a walk', () => {
+  resetWorld();
+  const far = { x: S.x + 30, z: S.z + 250 };
+  const fly = flyOption(0);
+  const leg = { ...fly.legs[0], from: { ...S }, to: { ...far, name: bi('远处', 'Far') }, length: Math.hypot(30, 250) } as import('../src/opus-bay/game/tripTypes').TripFlyLeg;
+  const scenic = ST.scenicOption({ ...fly, legs: [leg] })!;
+  assert.ok(scenic);
+  flowMod.startTrip(scenic, { placeId: 'far-spot', name: bi('远处', 'Far') }, 'map');
+  assert.equal(FT.travelActive(), true);
+  assert.equal(flow.get().caption?.zh, '看风景 · 飞往远处');
+  let n = 0;
+  while (FT.travelPose()!.phase !== 'pan' && n++ < 200) FT.stepTravel(1 / 30);
+  for (let i = 0; i < 20; i++) FT.stepTravel(1 / 30);
+  frames(1);
+  assert.equal(tripRun.tripStage(), 'fly');
+  const g0 = input.glideCount;
+  input.glideCount = g0 + 1;
+  FT.stepTravel(1 / 30);
+  assert.equal(FT.travelPose()!.phase, 'descent', 'G: land here');
+  n = 0;
+  while (FT.travelActive() && n++ < 300) FT.stepTravel(1 / 30);
+  assert.equal(FT.travelActive(), false);
+  frames(2);
+  const t = flow.get().trip!;
+  assert.ok(t, 'the trip goes on');
+  assert.equal(t.legs[t.leg].via, 'walk', 'the rest is a walk from the landing');
+  assert.ok(Math.hypot(runtime.player.x - far.x, runtime.player.z - far.z) > tripRun.FLY_END_R);
+  flowMod.endTrip();
+});
