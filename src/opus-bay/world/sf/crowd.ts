@@ -4,6 +4,7 @@ import type { Quality } from '../../core/store';
 import { Batch, CYL, M, SPHERE } from '../builder';
 import { crowdPeopleMaterial, personGeometry } from '../life';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistance, lifeRng, predictApproach } from './streetNet';
+import type { CrowdPin } from './crowdSpots';
 import { obstaclePool } from './recordPool';
 
 /**
@@ -24,6 +25,11 @@ import { obstaclePool } from './recordPool';
  * - **Around the player only.** Walkers live within 90 u (CROWD.radius) of the focus; one that falls behind, or whose
  *   ground stops being known, is recycled to a spot out of view (≥ 34 u away) or far away in view, and fades in. A jump
  *   of the focus (fast travel, a teleport) refills the crowd around the new spot. Fewer walkers at night.
+ * - **Pinned standers** (W5-T1): other lanes' crowd spots (world/sf/crowdSpots.ts `addCrowdSpots`: an event's visitors, a
+ *   corner's queue) each keep one sightseer standing on them while they are near the player, facing the sight; they
+ *   count in the crowd (the walkers make room) and are never recycled while their spot is registered.
+ * - **Wave back** (W5-T1): the player's wave (crowdSpots `crowdWave`, the 'emote' event) makes the walkers within 6 u
+ *   stop, turn to the player and wave a hand (the people material's wave channel: aWalk < 0).
  * - **Drawn** as two InstancedMeshes (near figure = the promenade walker; far figure ≈ 80 triangles beyond 24 u from the camera), one
  *   material instance for that one object kind (life.ts `crowdPeopleMaterial`, warmed as 'f-crowd'); no shadows (like
  *   the promenade's). Budget: ≤ 18 near figures (324 triangles) + the rest far (92): ≤ 10.3k triangles and 2 calls.
@@ -127,6 +133,12 @@ export interface Walker {
   onRoad: boolean;
   /** fading out (more walkers than wanted, all in view): off once `grow` reaches 0 */
   leave: boolean;
+  /** (W5-T1) the crowd spot this sightseer stands on (crowdSpots pin id), null for everyone else */
+  pin: string | null;
+  /** (W5-T1) waving back: seconds of the wave left (≤ 0 none), the delay before it starts, whom they wave at */
+  waveT: number;
+  waveDelay: number;
+  wx: number; wz: number;
 }
 
 /**
@@ -150,12 +162,17 @@ export interface CrowdEnv {
   night?(): number;
   /** a walker hopped out of a vehicle's way */
   onHop?(w: Walker, q: RoadVehicle): void;
+  /** (W5-T1) the registered crowd spots (world/sf/crowdSpots.ts crowdPins): one sightseer stands on each near the focus */
+  pins?(): readonly CrowdPin[];
+  /** (W5-T1) wave requests since the last step (crowdSpots takeCrowdWaves): walkers within r of (x, z) wave back */
+  waves?(): readonly { x: number; z: number; r: number }[];
 }
 
 const newWalker = (id: number): Walker => ({
   id, on: false, mode: 'walk', e: -1, s: 0, side: 1, lane: CROWD.laneIn, laneT: CROWD.laneIn, v: 1, ph: 0, color: 0, scale: 1,
   x0: 0, z0: 0, x1: 0, z1: 0, ne: -1, ns: 0, nside: 1, standT: 0, face: 0, px: 0, pz: 0, pushHold: 0,
   hopT: -1, hx0: 0, hz0: 0, hx1: 0, hz1: 0, hopCool: 0, pause: 0, pace: 1, check: 0, x: 0, y: 0, z: 0, heading: 0, walking: 0, grow: 1, onRoad: false, leave: false,
+  pin: null, waveT: 0, waveDelay: 0, wx: 0, wz: 0,
 });
 
 const _p = { x: 0, z: 0 };
@@ -165,6 +182,12 @@ const _avoid: { x: number; z: number }[] = [];
 export const CLEAR_OF_PEOPLE = 2.5;
 /** (verify m6) a sightseer shuffles back to this far from the player / BAYBAY (u) */
 const STANDER_ROOM = 1.5;
+/** (W5-T1) a wave back lasts this long (s), after a delay of up to WAVE_STAGGER (people react one by one) */
+export const WAVE_TIME = 1.9;
+const WAVE_STAGGER = 0.45;
+/** (W5-T1) pinned standers are looked at this often (frames) and at most this many placed a look */
+const PIN_EVERY = 10;
+const PIN_BUDGET = 4;
 /** is (x, z) within CLEAR_OF_PEOPLE of the player, BAYBAY or a resident (this step's avoid list)? */
 function nearAvoid(x: number, z: number): boolean {
   for (const a of _avoid) if (Math.abs(a.x - x) < CLEAR_OF_PEOPLE && Math.abs(a.z - z) < CLEAR_OF_PEOPLE && Math.hypot(a.x - x, a.z - z) < CLEAR_OF_PEOPLE) return true;
@@ -189,7 +212,10 @@ export class CrowdSim {
   private frame = 0;
   private t = 0;
   /** stats for QA / tests */
-  readonly stats = { spawned: 0, recycled: 0, hops: 0, crossings: 0, blockedMoves: 0, refills: 0 };
+  readonly stats = { spawned: 0, recycled: 0, hops: 0, crossings: 0, blockedMoves: 0, refills: 0, pinned: 0, waves: 0 };
+  /** (W5-T1) pinned standers by pin id → walker */
+  private pinned = new Map<string, Walker>();
+  private pinsSeen: readonly CrowdPin[] | null = null;
 
   constructor(net: StreetNet, env: CrowdEnv, o: { max?: number; target?: number; seed?: number } = {}) {
     this.net = net;
@@ -202,7 +228,8 @@ export class CrowdSim {
 
   /** Forget everyone; the next step fills the crowd around the focus again (spots in view allowed). */
   reset() {
-    for (const w of this.walkers) w.on = false;
+    for (const w of this.walkers) { w.on = false; w.pin = null; w.waveT = 0; }
+    this.pinned.clear();
     this.filling = true;
     this.fillUntil = this.t + 8;
     this.stats.refills++;
@@ -220,14 +247,16 @@ export class CrowdSim {
     this.fx = f.x; this.fz = f.z;
     const night = this.env.night?.() ?? 0;
     const want = Math.round(this.target * (1 - (1 - CROWD.night) * night));
-    // recycle the ones left behind (or on ground that is no longer known)
+    // recycle the ones left behind (or on ground that is no longer known); (W5-T1) a pinned stander stays while its spot is
+    // registered and near, and counts first (the other walkers make room for it)
     let on = 0;
+    for (const w of this.walkers) if (w.on && w.pin) on++;
     // keep the crowd round the player as they walk on: now and then the farthest unseen walker comes back nearer
     let thin: Walker | null = null;
     if (this.frame % 15 === 0) {
       let bd: number = CROWD.thinBeyond;
       for (const w of this.walkers) {
-        if (!w.on || w.mode === 'stand') continue;
+        if (!w.on || w.mode === 'stand' || w.pin) continue;
         const d = Math.hypot(w.x - f.x, w.z - f.z);
         if (d > bd && !this.env.visible(w.x, w.z)) { bd = d; thin = w; }
       }
@@ -236,7 +265,7 @@ export class CrowdSim {
     // walker in view, not right by the player, fades out every third of a second (the crowd stayed at ~50 of 'low's 24)
     let dropSeen = this.frame % 20 === 0;
     for (const w of this.walkers) {
-      if (!w.on) continue;
+      if (!w.on || w.pin) continue;
       if (w === thin) { w.on = false; this.stats.recycled++; continue; }
       const d = Math.hypot(w.x - f.x, w.z - f.z);
       const far = d > this.radius + 12;
@@ -259,6 +288,8 @@ export class CrowdSim {
     // the player, BAYBAY and the residents: spawns keep clear of them (verify m6), movers step round them
     _avoid.length = 0;
     this.env.avoid(_avoid);
+    // (W5-T1) the registered crowd spots near the player: one sightseer on each
+    on = this.syncPins(f, want, on);
     // spawn: a burst while filling (spread over a few frames), else a few a frame
     let budget = this.filling ? 10 : 3;
     const mode: SpawnMode = this.filling ? 'fill' : this.sparse ? 'near' : 'recycle';
@@ -273,7 +304,7 @@ export class CrowdSim {
     if (this.sparse && on >= want && this.frame % 8 === 0) {
       let far: Walker | null = null, bd = NEAR_R * 1.5;
       for (const w of this.walkers) {
-        if (!w.on || w.mode === 'stand') continue;
+        if (!w.on || w.mode === 'stand' || w.pin) continue;
         const d = Math.hypot(w.x - f.x, w.z - f.z);
         if (d > bd && !this.env.visible(w.x, w.z)) { bd = d; far = w; }
       }
@@ -281,6 +312,8 @@ export class CrowdSim {
     }
 
     const vehicles = this.env.vehicles();
+    const waves = this.env.waves?.();
+    if (waves) for (const q of waves) this.wave(q.x, q.z, q.r);
     this.separate(dt);
     for (const w of this.walkers) {
       if (!w.on) continue;
@@ -289,6 +322,87 @@ export class CrowdSim {
       if ((w.id + this.frame) % 4 === 0) this.watchTraffic(w, vehicles);
       this.pose(w, dt);
     }
+  }
+
+  // --- pinned standers and the wave back (W5-T1) ---------------------------------------------------------------------
+
+  /**
+   * One sightseer on each registered crowd spot within the crowd's radius (a few placed a look, every PIN_EVERY frames or
+   * when the spots change): a free walker, else the farthest unseen walker makes room. Spots on the roadway, on ground
+   * nobody can stand on or within 2.5 u of the player / BAYBAY wait. A spot that went away (or fell far behind) lets its
+   * stander go: it finishes standing and is recycled out of view. Returns the walkers now on.
+   */
+  private syncPins(f: { x: number; z: number }, want: number, on: number): number {
+    void want;
+    const pins = this.env.pins?.();
+    if (!pins) return on;
+    const changed = pins !== this.pinsSeen;
+    if (!changed && this.frame % PIN_EVERY !== 0) return on;
+    this.pinsSeen = pins;
+    const ids = changed ? new Set(pins.map(p => p.id)) : null;
+    for (const [id, w] of this.pinned) {
+      const far = Math.hypot(w.x0 - f.x, w.z0 - f.z) > this.radius + 12;
+      if (!(ids && !ids.has(id)) && w.on && w.pin === id && !far) continue;
+      this.pinned.delete(id);
+      if (!w.on || w.pin !== id) continue;
+      w.pin = null;
+      w.standT = 0;
+      if (far) { w.on = false; on--; this.stats.recycled++; }
+    }
+    let budget = PIN_BUDGET;
+    for (const p of pins) {
+      const hit = this.pinned.get(p.id);
+      if (hit) { hit.standT = Math.max(hit.standT, 30); continue; }
+      if (budget <= 0) break;
+      if (Math.abs(p.x - f.x) > this.radius || Math.abs(p.z - f.z) > this.radius || Math.hypot(p.x - f.x, p.z - f.z) > this.radius) continue;
+      if (this.net.probe.surface(p.x, p.z) === 'road' || !this.net.probe.stand(p.x, p.z, STAND_R) || nearAvoid(p.x, p.z)) continue;
+      budget--;
+      let w = this.walkers.find(o => !o.on) ?? null;
+      if (!w) {
+        let bd = -1;
+        for (const o of this.walkers) {
+          if (!o.on || o.pin || this.env.visible(o.x, o.z)) continue;
+          const d = Math.hypot(o.x - f.x, o.z - f.z);
+          if (d > bd) { bd = d; w = o; }
+        }
+        if (!w) continue;
+        w.on = false; on--; this.stats.recycled++;
+      }
+      this.init(w, this.env.visible(p.x, p.z));
+      w.mode = 'stand'; w.e = -1;
+      w.x = p.x; w.z = p.z; w.x0 = p.x; w.z0 = p.z;
+      w.face = p.face + (this.rng() - 0.5) * 0.5;
+      w.heading = w.face;
+      w.standT = 30;
+      w.pin = p.id;
+      this.pinned.set(p.id, w);
+      on++;
+      this.stats.pinned++;
+    }
+    return on;
+  }
+
+  /** The player waved at (x, z): the walkers within r (not mid-crossing, not hopping) stop, turn and wave back. */
+  wave(x: number, z: number, r: number): number {
+    let k = 0;
+    for (const w of this.walkers) {
+      if (!w.on || w.grow < 0.5 || w.mode === 'cross' || w.hopT >= 0 || w.waveT > 0) continue;
+      const d = Math.hypot(w.x - x, w.z - z);
+      if (d > r || d < 0.3) continue;
+      w.waveT = WAVE_TIME;
+      w.waveDelay = 0.08 + this.rng() * WAVE_STAGGER;
+      w.wx = x; w.wz = z;
+      w.pause = Math.max(w.pause, w.waveDelay + WAVE_TIME);
+      k++;
+    }
+    this.stats.waves += k;
+    return k;
+  }
+
+  /** How far a walker's hand is up (0 … 1): the wave eases in and out. */
+  waveAmount(w: Walker): number {
+    if (w.waveT <= 0 || w.waveDelay > 0) return 0;
+    return Math.max(0, Math.min(1, (WAVE_TIME - w.waveT) / 0.25, w.waveT / 0.3));
   }
 
   // --- spawning ---------------------------------------------------------------------------------------------------
@@ -379,6 +493,8 @@ export class CrowdSim {
     w.grow = fade ? 0 : 1;
     w.onRoad = false;
     w.leave = false;
+    w.pin = null;
+    w.waveT = 0;
     w.lane += (r() - 0.5) * 0.16;
     this.stats.spawned++;
   }
@@ -403,6 +519,7 @@ export class CrowdSim {
   }
 
   private move(w: Walker, dt: number) {
+    if (w.waveT > 0) { if (w.waveDelay > 0) w.waveDelay -= dt; else w.waveT -= dt; }
     if (w.pause > 0) { w.pause -= dt; w.walking = Math.max(0, w.walking - dt * 4); return; }
     if (w.mode === 'stand') { w.standT -= dt; w.walking = 0; return; }
     w.walking += (Math.min(1, w.pace * 1.6) - w.walking) * Math.min(1, dt * 5);
@@ -671,6 +788,8 @@ export class CrowdSim {
       this.net.at(s, Math.min(w.s, s.len), w.side * this.offsetT(s, w), _p);
       bx = _p.x; bz = _p.z; hd = Math.atan2(s.dx, s.dz);
     }
+    // (W5-T1) waving back: turned to the one who waved
+    if (w.waveT > 0 && w.waveDelay <= 0) hd = Math.atan2(w.wx - bx - w.px, w.wz - bz - w.pz);
     w.x = bx + w.px; w.z = bz + w.pz;
     // a push (people passing, the player) never shoves a sidewalk walker onto the roadway: it gives way there
     if (w.mode === 'walk' && w.hopT < 0 && w.pushHold <= 0 && (w.px !== 0 || w.pz !== 0) && this.net.probe.surface(w.x, w.z) === 'road') {
@@ -823,7 +942,9 @@ export class CrowdLayer {
       fig.mesh.setMatrixAt(i, _m);
       fig.mesh.setColorAt(i, this.colors[w.color % this.colors.length]);
       fig.phase.setX(i, w.ph);
-      fig.walk.setX(i, w.walking);
+      // (W5-T1) a wave back: aWalk < 0 lifts the right hand (life.ts peopleMaterial); the legs stand still meanwhile
+      const wave = this.sim.waveAmount(w);
+      fig.walk.setX(i, wave > 0 ? -wave : w.walking);
     }
     commitFigure(this.near, n);
     commitFigure(this.far, nf);
@@ -833,9 +954,13 @@ export class CrowdLayer {
   hide() { this.near.mesh.visible = false; this.far.mesh.visible = false; }
 
   stats() {
-    let walking = 0, standing = 0, crossing = 0;
-    for (const w of this.sim.walkers) if (w.on) { if (w.mode === 'stand') standing++; else if (w.mode === 'cross') crossing++; else walking++; }
-    return { walking, standing, crossing, near: this.near.mesh.count, far: this.far.mesh.count, ...this.sim.stats };
+    let walking = 0, standing = 0, crossing = 0, pinnedNow = 0, waving = 0;
+    for (const w of this.sim.walkers) if (w.on) {
+      if (w.mode === 'stand') standing++; else if (w.mode === 'cross') crossing++; else walking++;
+      if (w.pin) pinnedNow++;
+      if (w.waveT > 0) waving++;
+    }
+    return { walking, standing, crossing, pinnedNow, waving, near: this.near.mesh.count, far: this.far.mesh.count, ...this.sim.stats };
   }
 
   dispose() {

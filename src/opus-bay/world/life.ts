@@ -233,7 +233,8 @@ export function personGeometry(): THREE.BufferGeometry {
   for (const s of [-1, 1]) {
     b.add(CYL(6), M(s * 0.09, 0.06, 0, 0, 0.075, 0.42, 0.075), pants, [0, s, 0, 0]);
     b.add(SPHERE(5, 3), M(s * 0.09, 0.05, 0.04, 0, 0.085, 0.055, 0.13), '#3c3a38', [0, s, 0, 0]);
-    b.add(SPHERE(5, 3), M(s * 0.255, 0.78, 0, 0, 0.075, 0.1, 0.075), '#ffffff', [9, 0, 0, 0]);
+    // (W5-T1) the right hand carries aInfo.z = 1: a crowd walker waving back lifts it (aWalk < 0, peopleMaterial)
+    b.add(SPHERE(5, 3), M(s * 0.255, 0.78, 0, 0, 0.075, 0.1, 0.075), '#ffffff', [9, 0, s > 0 ? 1 : 0, 0]);
   }
   b.add(CAPSULE, M(0, 0.74, 0, 0, 0.22, 0.19, 0.2), '#ffffff', [9, 0, 0, 0]);
   b.add(SPHERE(8, 6), M(0, 1.24, 0.01, 0, 0.2, 0.21, 0.2), skin);
@@ -334,7 +335,8 @@ vColor.rgb *= color;
 if (aInfo.x > 8.5) vColor.rgb *= instanceColor.rgb;
 #endif`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-if (abs(aInfo.y) > 0.5) transformed.z += sin(uTime * 7.5 + aPhase) * aInfo.y * aWalk * (0.55 - transformed.y) * 0.55;`);
+if (abs(aInfo.y) > 0.5) transformed.z += sin(uTime * 7.5 + aPhase) * aInfo.y * max(aWalk, 0.0) * (0.55 - transformed.y) * 0.55;
+if (aInfo.z > 0.5) { float wv = max(-aWalk, 0.0); transformed.y += wv * 0.62; transformed.x += wv * (0.05 + sin(uTime * 13.0 + aPhase) * 0.08); }`);
   };
   return m;
 }

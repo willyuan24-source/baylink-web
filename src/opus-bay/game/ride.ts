@@ -49,6 +49,12 @@ export interface RideState {
    * spot where the train dived into a portal): the subway overlay covers the view, nothing streams underground
    */
   hold?: { x: number; z: number } | null;
+  /**
+   * (W5-T1) the ride's quote from boarding (s: what the boarding row said, the dwell at the boarding stop included) and its
+   * length along the line (u): game/transit.ts `rideEta` for the lines whose system has no `rideLeft`
+   */
+  quote?: number;
+  dist?: number;
 }
 
 /** A city line ride (cable car, city F-line, ferry, the wave-4 bus / light rail), not the hero F-line ride. */

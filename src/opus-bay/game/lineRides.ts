@@ -233,6 +233,9 @@ export function rideLine(line: string, from: string, to: string) {
   const dir: 1 | -1 = l.loop ? 1 : b.at > a.at ? 1 : -1;
   const r = beginLineRide(line, from, to, dir, travelEpoch(), kind);
   if (!r) { say(...NOT_RUNNING); return; }
+  // (W5-T1) the quote the boarding row said, and the ride's length along the line (rideEta)
+  r.quote = lineRideSeconds(line, from, to);
+  r.dist = l.loop ? (a === b ? l.length : ((((b.at - a.at) % l.length) + l.length) % l.length)) : Math.abs(b.at - a.at);
   // the bus: the upper deck's front bench (the ride camera "deck"); the LRV: standing at the front by the pole
   game.set({ move: { mode: 'transit', line, spot: kind === 'bus' ? 'seat' : 'rail' }, panel: { kind: null } });
   refreshLock();

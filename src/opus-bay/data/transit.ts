@@ -504,6 +504,11 @@ export interface LineRideSystem {
   board(): void;
   cancel(): void;
   rideStatus(): RideStatus | null;
+  /**
+   * (W5-T1, optional) seconds until the rider's vehicle stops at the rider's destination, from its real position (the
+   * bus and the Metro answer it; game/transit.ts `rideEta` falls back to the quote × the distance left for the others)
+   */
+  rideLeft?(): number | null;
   readonly cars: readonly { pose: { x: number; y: number; z: number; heading: number; roll: number; pitch?: number } }[];
 }
 let FERRY: LineRideSystem | null = null;

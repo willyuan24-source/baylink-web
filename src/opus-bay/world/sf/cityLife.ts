@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { walkGraph } from '../../actors/nav';
 import { registerObstacleSource } from '../../actors/view';
 import { cityHooks, clearCityHooks, emitAt, pushPass } from '../../audio/cityHooks';
+import { onEvent } from '../../core/events';
 import { CHUNK } from '../../core/geo';
 import { runtime } from '../../core/runtime';
 import { game } from '../../core/store';
@@ -11,6 +12,7 @@ import { RESIDENTS } from '../../data/sf/residents';
 import { travelActive } from '../../game/fastTravel';
 import { U } from '../materials';
 import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
+import { WAVE_REACH, crowdPins, crowdWave, takeCrowdWaves } from './crowdSpots';
 import { sfLandmark } from './landmarks/index';
 import { landmarkPlazaSpots } from './landmarks/context';
 import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
@@ -29,7 +31,10 @@ import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
  * - pauses both (hidden, not stepped) in fast-travel mode, and refills around the landing spot afterwards; the crowd also
  *   hides while the camera is high over the streets (a glide), where people are specks;
  * - follows the quality level (walkers 64 / 44 / 24, cars 24 / 16 / 8) and the night (fewer of both);
- * - feeds the audio (audio/cityHooks.ts): the crowd around the listener, cars passing close by, the hop-aside squeak.
+ * - feeds the audio (audio/cityHooks.ts): the crowd around the listener, cars passing close by, the hop-aside squeak;
+ * - (W5-T1) hands the crowd the other lanes' crowd spots (world/sf/crowdSpots.ts: pinned sightseers) and the player's
+ *   waves (crowdSpots `crowdWave`, and the game event { type: 'emote', who: 'player', emote: 'wave' }): walkers within
+ *   6 u wave back.
  */
 
 const PLAYER_BIKE = { halfL: 0.85, halfW: 0.35 };
@@ -113,6 +118,8 @@ export class CityLife {
       },
       night: () => U.uNight.value,
       onHop: (w, q) => this.hopped(w.x, w.z, q),
+      pins: () => crowdPins(),
+      waves: () => takeCrowdWaves(),
     };
     const trafficEnv: TrafficEnv = {
       focus: () => focus(),
@@ -143,6 +150,8 @@ export class CityLife {
         out.push(setVehicle(mine.begin(out).next(), v.x, v.z, v.speed < 0 ? v.heading + Math.PI : v.heading, Math.abs(v.speed), d.halfL, d.halfW, 'player', 'player'));
       }),
       registerObstacleSource((out, x, z, r) => { crowd.sim.obstacles(out, x, z, r); traffic.sim.obstacles(out, x, z, r); }),
+      // (W5-T1) the player's wave (lane A's emote wheel plays it through the anim channel's 'emote' event)
+      onEvent(e => { if (e.type === 'emote' && e.who === 'player' && e.emote === 'wave') crowdWave(runtime.player.x, runtime.player.z, WAVE_REACH); }),
     );
     this.applyQuality();
   }
@@ -161,6 +170,7 @@ export class CityLife {
     // fast travel: nothing moves under the cloud; the crowd and the cars refill round the landing spot
     if (travelActive()) {
       if (!this.traveling) { this.traveling = true; crowd.hide(); traffic.hide(); crowd.sim.reset(); traffic.sim.reset(); clearCityHooks(); }
+      takeCrowdWaves();
       return;
     }
     this.traveling = false;
@@ -174,8 +184,8 @@ export class CityLife {
     // (10 u of hysteresis: a glide hovering at the line would pop the crowd in and out)
     const p = runtime.player, above = cam.y - heightAt(p.x, p.z);
     const high = this.high = above > CROWD_HIGH || (this.high && above > CROWD_HIGH - 10);
-    if (high) crowd.hide();
-    else crowd.update(dt, cam);
+    // (a wave nobody is there to see is dropped, not played later)
+    if (high) { crowd.hide(); takeCrowdWaves(); } else crowd.update(dt, cam);
     this.listen(high);
   }
 

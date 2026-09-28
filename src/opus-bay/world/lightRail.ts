@@ -356,6 +356,18 @@ export class LightRailSystem implements LineRideSystem {
   }
 
   rideStatus(): RailRideStatus | null { return this.status; }
+
+  /** (W5-T1) Seconds until the rider's train stops at the rider's destination from where it is now; 0 once arrived, null when nobody rides. */
+  rideLeft(): number | null {
+    const t = this.trains[this.riderTrain], st = this.status;
+    if (!t || !st) return null;
+    if (st.phase === 'arrived') return 0;
+    const stop = t.rider && t.dropoff ? t.track.stops.find(q => q.id === t.dropoff) : undefined;
+    if (!stop) return null;
+    const pos = stopPos(t.track, stop);
+    return this.eta(t, pos, (pos - t.s) * t.dir >= -0.3 ? t.dir : (-t.dir as 1 | -1));
+  }
+
   riderCarOf(line: string): Train | null {
     const t = this.trains[this.riderTrain];
     return t && t.track.id === line ? t : null;

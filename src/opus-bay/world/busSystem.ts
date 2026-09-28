@@ -193,14 +193,17 @@ export class BusSystem implements LineRideSystem {
     if (bus.station === stop.id && (bus.mode === 'dwell' || bus.mode === 'hold')) return 0;
     let t = bus.mode === 'dwell' || bus.mode === 'hold' ? Math.max(0, bus.timer) : 0;
     let d = arcAhead(tr, bus.s, stop.at);
+    // (W5-T1) a running bus a hair short of the stop it heads for is about to stop there (not a lap away), and it will
+    // dwell at such a stop on the way: the ETA jumped by a lap / by the dwell in the last frames before an arrival
+    const heading = (st: TrackStop) => bus.mode === 'run' && tr.stops[bus.next] === st;
     // a bus pulling away from this very stop is back only after a whole lap
-    if (d < 0.05) d = tr.length;
+    if (d < 0.05 && !heading(stop)) d = tr.length;
     t += d >= tr.length ? runSeconds(tr, bus.s, bus.s - 0.01) : runSeconds(tr, bus.s, stop.at);
     let between = 0;
     for (const st of tr.stops) {
       if (st === stop || st.id === bus.station) continue;
       const e = arcAhead(tr, bus.s, st.at);
-      if (e > 0.05 && e < d) between++;
+      if ((e > 0.05 || heading(st)) && e < d) between++;
     }
     return t + between * (BUS.dwell + BUS.stopPenalty) + (bus.v < 1 && bus.mode === 'run' ? 1.5 : 0);
   }
@@ -275,6 +278,30 @@ export class BusSystem implements LineRideSystem {
   }
 
   rideStatus(): BusRideStatus | null { return this.status; }
+
+  /**
+   * (W5-T1) Seconds until the rider's bus stops at the rider's destination, from where it is now (its arc, the dwell left,
+   * the stops between; a whole-lap ride counts the lap still to come), 0 once arrived, null when nobody rides.
+   */
+  rideLeft(): number | null {
+    const b = this.buses[this.riderBus], st = this.status;
+    if (!b || !st) return null;
+    if (st.phase === 'arrived') return 0;
+    if (!b.rider || !b.dropoff) return null;
+    const idx = this.stopIndex(b.dropoff);
+    if (idx < 0) return null;
+    const tr = this.track, stop = tr.stops[idx];
+    // a lap: while the bus still stands at (or has only just left) the stop it started from, the whole lap is ahead
+    if (b.lapFrom && b.odometer < tr.length - 30 && (b.station === stop.id || arcAhead(tr, b.s, stop.at) > tr.length - 30)) {
+      const wait = b.mode === 'dwell' || b.mode === 'hold' ? Math.max(0, b.timer) : 0;
+      const d = b.station === stop.id ? tr.length : arcAhead(tr, b.s, stop.at);
+      let between = 0;
+      for (const q of tr.stops) { const e = arcAhead(tr, b.s, q.at); if (q !== stop && e > 0.05 && e < d) between++; }
+      return wait + (d >= tr.length ? runSeconds(tr, b.s, b.s - 0.01) : runSeconds(tr, b.s, stop.at)) + between * (BUS.dwell + BUS.stopPenalty);
+    }
+    return this.eta(b, idx);
+  }
+
   riderCarOf(line: string): Bus | null {
     const b = this.buses[this.riderBus];
     return b && line === this.track.id ? b : null;
