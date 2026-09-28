@@ -9,6 +9,10 @@
 //        [--rides 1|0] [--mobile] [--dpr 3] [--quality high|mid] [--throttle 4] [--ms 10000] [--time golden] [--wait 20000]
 //   node scripts/opus-sf/qa/perf/w4-perf.mjs --table <out>/w4-perf.json
 //
+// Wave 5 (lane V, W5-V1): --file w5-spots.json takes the wave-5 table (the wave-4 spots + the new views; default
+// w4-spots.json). A spot with `time` (e.g. irving-night) runs only when the run's --time is its time, and a run whose
+// --time some spot carries measures only those spots (`--time night --rides 0`: Irving St at night alone).
+//
 // Desktop gate: CHROME_FLAGS=--force_high_performance_gpu, --quality high (1440 × 900). Phone gate: --mobile --dpr 3
 // --quality mid --throttle 4. Needs the dev server (the page imports game modules by their dev URLs).
 import { spawn } from 'node:child_process';
@@ -20,7 +24,7 @@ const args = Object.fromEntries(process.argv.slice(2).reduce((acc, cur, i, arr) 
   return acc;
 }, []));
 const here = f => new URL(f, import.meta.url);
-const SPOTS = JSON.parse(fs.readFileSync(here('./w4-spots.json'), 'utf8'));
+const SPOTS = JSON.parse(fs.readFileSync(here(`./${args.file || 'w4-spots.json'}`), 'utf8'));
 
 export function gateRow(r, gate = SPOTS.gate) {
   const fails = [];
@@ -102,6 +106,9 @@ const HELPERS = `window.__w4 = {
     return JSON.stringify({ calls: r.render.calls, triangles: r.render.triangles, programs: r.programs.length,
       city: { l0: s.l0, l1: s.l1, l2: s.l2, queued: s.queued, errors: s.errors, sites: s.sites },
       quality: ob.game ? ob.game.get().settings.quality : null,
+      // wave 5 (W5-V1): the per-group split of the view (world/sf/stats.ts breakdown: main pass + the sun's shadow pass),
+      // the ten biggest groups of each as [group, calls, triangles]: where the headroom goes
+      bd: (() => { try { const b = ob.city.breakdown && ob.city.breakdown(); if (!b) return null; const top = rec => Object.entries(rec).sort((p, q) => q[1].triangles - p[1].triangles).slice(0, 10).map(([k, v]) => [k, v.calls, v.triangles]); return { groups: top(b.groups), shadow: top(b.shadow), total: b.total, shadowTotal: b.shadowTotal }; } catch (e) { return String(e); } })(),
       // where the player really is when measured (a spot whose player was moved away, e.g. to the district, is void)
       player: ob.game ? { x: +ob.game.get().playerPos.x.toFixed(1), z: +ob.game.get().playerPos.z.toFixed(1) } : null });
   },
@@ -141,7 +148,10 @@ const phone = !!args.mobile;
 const q = new URLSearchParams({ start: 'free', world: 'city', time: args.time || 'golden', quality: args.quality || (phone ? 'mid' : 'high') });
 const url = `http://localhost:${port}/opus-bay?${q}`;
 const pick = args.spots ? String(args.spots).split(',') : null;
-const spots = SPOTS.spots.filter(s => !pick || pick.includes(s.id));
+const runTime = args.time || 'golden';
+// a timed spot runs only at its time; the untimed ones run unless the file has spots of the run's own time
+const timed = SPOTS.spots.some(s => s.time === runTime);
+const spots = SPOTS.spots.filter(s => (!pick || pick.includes(s.id)) && (s.time ? s.time === runTime : !timed));
 const rides = String(args.rides ?? '1') === '1' ? SPOTS.rides.filter(r => !pick || pick.includes(r.id)) : [];
 const ms = Number(args.ms || 10000), wait = Number(args.wait || 20000);
 const perfHelpers = fs.readFileSync(here('./perf-helpers.js'), 'utf8');

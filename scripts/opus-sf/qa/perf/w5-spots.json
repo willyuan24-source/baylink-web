@@ -1,0 +1,513 @@
+{
+ "version": 1,
+ "note": "Wave-5 perf gate spots (plan sf-w5-plan.md §4.9 'The gate', lane V W5-V1 / W5-V6). The thirteen wave-4 spots of w4-spots.json (same coordinates and facings, so the tables compare) + the wave-5 views: the GGB deck, Hellman Hollow (event kit), Marina Green (jets), Castro (fair day), the Filbert Steps (coin trail), Irving St at night (corner + lit nights; `time: night` = run it with --time night). Rides are the three of w4-spots.json (the bus deck at the Palace approach, N at Duboce, M at West Portal). Run: node scripts/opus-sf/qa/perf/w4-perf.mjs --file w5-spots.json … (the runner defaults to w4-spots.json).",
+ "gate": {
+  "desktop": {
+   "size": [
+    1440,
+    900
+   ],
+   "quality": "high",
+   "calls": 150,
+   "triangles": 400000,
+   "note": "shadows included; RTX (CHROME_FLAGS=--force_high_performance_gpu)"
+  },
+  "phone": {
+   "size": [
+    390,
+    844
+   ],
+   "dpr": 3,
+   "quality": "mid",
+   "cpuThrottle": 4,
+   "fps": 45,
+   "note": "≥ 45 fps walking at the Ferry gate, Chinatown, Twin Peaks, the Music Concourse and Ocean Beach, and riding the bus (plan §4.9); no frame > 100 ms at portal cuts, the first touch or when a kit builds"
+  },
+  "programs": "equal at 1x idle and 4x walk (no drift)"
+ },
+ "spots": [
+  {
+   "id": "ferry-gate",
+   "since": "w1",
+   "go": {
+    "anchor": "ferry-gate",
+    "fx": 60,
+    "fz": 120
+   },
+   "note": "hero district gate, Embarcadero"
+  },
+  {
+   "id": "chinatown",
+   "since": "w1",
+   "go": {
+    "x": 86.3,
+    "z": 178.1,
+    "fx": 81.9,
+    "fz": 174.7
+   },
+   "note": "Dragon Gate, Grant Ave; the downtown gate for lane L (Chinatown pagoda cluster needs >= 10k headroom)"
+  },
+  {
+   "id": "twin-peaks",
+   "since": "w1",
+   "go": {
+    "x": 128.9,
+    "z": 922.3,
+    "fx": 125,
+    "fz": 500
+   },
+   "note": "summit looking at downtown"
+  },
+  {
+   "id": "civic-center",
+   "since": "w4",
+   "go": {
+    "x": 108.5,
+    "z": 395,
+    "fx": 20,
+    "fz": 420,
+    "arrival": true
+   },
+   "sites": [
+    "union-square",
+    "yerba-buena-gardens",
+    "civic-center",
+    "cathedral-hill",
+    "japantown"
+   ],
+   "note": "Civic Center Plaza looking west past City Hall toward St Mary's and Japantown"
+  },
+  {
+   "id": "union-square",
+   "since": "w4",
+   "go": {
+    "x": 96.1,
+    "z": 221.3,
+    "fx": 176.6,
+    "fz": 183,
+    "arrival": true
+   },
+   "sites": [
+    "union-square",
+    "sfmoma",
+    "yerba-buena-gardens",
+    "cable-car-museum",
+    "chinatown-pagodas"
+   ],
+   "note": "plaza looking SE over SFMOMA / Yerba Buena (plan §2.6: base ≈ Chinatown)"
+  },
+  {
+   "id": "music-concourse",
+   "since": "w4",
+   "go": {
+    "x": -240,
+    "z": 930,
+    "fx": -150,
+    "fz": 900,
+    "arrival": true
+   },
+   "sites": [
+    "cal-academy",
+    "music-concourse",
+    "japanese-tea-garden",
+    "st-ignatius-church",
+    "usf-lone-mountain",
+    "blue-heron-lake",
+    "park-east",
+    "irving"
+   ],
+   "note": "between the de Young and Cal Academy looking east (Cal Academy AI, Tea Garden, UCSF, the Haight); plan R3: > 395k -> Cal Academy <= 4k"
+  },
+  {
+   "id": "stonestown-sfsu",
+   "since": "w4",
+   "go": {
+    "x": 195.2,
+    "z": 1471.5,
+    "fx": 170,
+    "fz": 1530,
+    "arrival": true
+   },
+   "sites": [
+    "stonestown",
+    "sfsu",
+    "ccsf-ocean",
+    "stern-grove",
+    "lake-merced"
+   ],
+   "note": "M 19th Ave & Winston between the mall and SF State"
+  },
+  {
+   "id": "haight-usf",
+   "since": "w4",
+   "go": {
+    "x": -40.7,
+    "z": 764,
+    "fx": -150.9,
+    "fz": 752.8,
+    "arrival": true
+   },
+   "sites": [
+    "haight-ashbury",
+    "st-ignatius-church",
+    "usf-lone-mountain",
+    "ucsf-parnassus",
+    "cal-academy",
+    "music-concourse",
+    "japanese-tea-garden",
+    "dolores-park",
+    "park-east",
+    "corona-heights"
+   ],
+   "note": "loop stop Haight & Ashbury looking west to St Ignatius (AI) and USF"
+  },
+  {
+   "id": "ocean-beach",
+   "since": "w1",
+   "go": {
+    "x": -478.1,
+    "z": 1416,
+    "fx": -530,
+    "fz": 1466
+   },
+   "note": "Judah & La Playa, the N terminus"
+  },
+  {
+   "id": "ggb-south",
+   "since": "w1",
+   "go": {
+    "x": -714.3,
+    "z": 602.4,
+    "fx": -866,
+    "fz": 508
+   },
+   "note": "GGB south anchorage"
+  },
+  {
+   "id": "mission",
+   "since": "w1",
+   "go": {
+    "x": 198.7,
+    "z": 641.9,
+    "fx": 194.1,
+    "fz": 647.4
+   },
+   "note": "Mission Dolores"
+  },
+  {
+   "id": "grace-nob-hill",
+   "since": "w4b",
+   "go": {
+    "x": 8.9,
+    "z": 218.0,
+    "fx": 110,
+    "fz": 104,
+    "arrival": true
+   },
+   "sites": [
+    "grace-cathedral",
+    "union-square",
+    "cable-car-museum"
+   ],
+   "note": "lane L's request (sf-w4-L.md part a): Grace's arrival at the foot of the Sky Steps looking over Nob Hill to the Financial District (its elevated QA pose read 448k)"
+  },
+  {
+   "id": "powell-market",
+   "since": "w4b",
+   "go": {
+    "x": 131.6,
+    "z": 254.2,
+    "fx": 170,
+    "fz": 110,
+    "arrival": true
+   },
+   "sites": [
+    "cable-car-turntable",
+    "union-square",
+    "sfmoma"
+   ],
+   "note": "lane L's request: the Powell & Market turntable looking up Market St to the towers (its street QA pose read 404k)"
+  },
+  {
+   "id": "ggb-deck",
+   "since": "w5",
+   "go": {
+    "x": -800,
+    "z": 560,
+    "fx": -700,
+    "fz": 620,
+    "arrival": true
+   },
+   "note": "the Golden Gate Bridge deck near the south quarter-span (ggb-deck-mid), walking toward the city (plan §4.9 'the GGB deck')"
+  },
+  {
+   "id": "hellman-hollow",
+   "since": "w5",
+   "go": {
+    "x": -378.2,
+    "z": 1118.8,
+    "fx": -229,
+    "fz": 1100,
+    "arrival": true
+   },
+   "note": "Golden Gate Park, Hellman Hollow (lat 37.7697, lng -122.4867: lane R's venue table / the rw scout), facing east along the meadows; wave 5: with lane R's event kit (Hardly Strictly, Oct 2-4)"
+  },
+  {
+   "id": "marina-green",
+   "since": "w5",
+   "go": {
+    "x": -364.1,
+    "z": 302.1,
+    "fx": -434.2,
+    "fz": 234.4,
+    "arrival": true
+   },
+   "note": "Marina Green (37.8057, -122.4382), facing the Bay where the Fleet Week show flies (37.812 N); wave 5: with lane R's jets"
+  },
+  {
+   "id": "castro",
+   "since": "w5",
+   "go": {
+    "x": 143.3,
+    "z": 739.1,
+    "fx": 162,
+    "fz": 755.4,
+    "arrival": true
+   },
+   "note": "Castro & Market (37.7625, -122.4351), facing down Castro St (18th St, 37.7609); wave 5: fair day (Oct 4) crowds from lane R / T"
+  },
+  {
+   "id": "filbert-steps",
+   "since": "w5",
+   "go": {
+    "anchor": "filbert-steps-mid",
+    "fx": -50.2,
+    "fz": 51.1
+   },
+   "note": "the Filbert Steps (hero district anchor filbert-steps-mid), facing up to Coit Tower; wave 5: with lane E's coin trail"
+  },
+  {
+   "id": "irving-night",
+   "since": "w5",
+   "time": "night",
+   "go": {
+    "x": -248.7,
+    "z": 1120.6,
+    "fx": -141.4,
+    "fz": 998.3,
+    "arrival": true
+   },
+   "note": "Irving St (the attraction's arrival, ≈ 22nd Ave) at night, facing east along Irving toward 9th Ave; wave 5: lane L's corner 1 and lane V's lit outer nights (run with --time night)"
+  }
+ ],
+ "rides": [
+  {
+   "id": "bus-palace",
+   "line": "sf-loop",
+   "board": "loop-wharf-hyde",
+   "alight": "loop-palace-of-fine-arts",
+   "speed": 12,
+   "camH": 9,
+   "lookAhead": 40,
+   "path": [
+    [
+     -246.6,
+     219.5
+    ],
+    [
+     -258.1,
+     235.9
+    ],
+    [
+     -269.5,
+     252.3
+    ],
+    [
+     -280.7,
+     268.8
+    ],
+    [
+     -291.8,
+     285.4
+    ],
+    [
+     -303.2,
+     301.8
+    ],
+    [
+     -314.8,
+     318.2
+    ],
+    [
+     -333.4,
+     324.3
+    ],
+    [
+     -353,
+     328.4
+    ],
+    [
+     -372.5,
+     332.6
+    ],
+    [
+     -392.1,
+     336.7
+    ],
+    [
+     -406.8,
+     346.6
+    ],
+    [
+     -418.2,
+     363
+    ],
+    [
+     -429.6,
+     379.4
+    ],
+    [
+     -428.9,
+     393.6
+    ],
+    [
+     -416.3,
+     402.3
+    ]
+   ],
+   "note": "the bus upper deck on the Palace approach (narration + 4 s look-at bias), the last 300 u before the stop"
+  },
+  {
+   "id": "n-duboce",
+   "line": "n-judah",
+   "board": "muni-duboce-church",
+   "alight": "muni-carl-cole",
+   "speed": 10,
+   "camH": 6,
+   "lookAhead": 30,
+   "path": [
+    [
+     118.6,
+     609
+    ],
+    [
+     105.5,
+     624.1
+    ],
+    [
+     92.2,
+     639
+    ],
+    [
+     79,
+     654.1
+    ],
+    [
+     69.3,
+     671.6
+    ],
+    [
+     59.7,
+     689.1
+    ],
+    [
+     50.1,
+     706.6
+    ],
+    [
+     40.4,
+     724.2
+    ],
+    [
+     30.8,
+     741.7
+    ],
+    [
+     21.1,
+     759.2
+    ],
+    [
+     11.5,
+     776.7
+    ],
+    [
+     1.8,
+     794.2
+    ],
+    [
+     -7.8,
+     811.8
+    ],
+    [
+     -17.4,
+     829.3
+    ]
+   ],
+   "note": "the N surfacing at Duboce, into the Sunset Tunnel east portal (overlay ≈ 7 s), out at Carl & Cole; the portal cut must stay < 100 ms"
+  },
+  {
+   "id": "m-west-portal",
+   "line": "m-ocean-view",
+   "board": "muni-west-portal",
+   "alight": "muni-19th-winston",
+   "speed": 10,
+   "camH": 6,
+   "lookAhead": 30,
+   "path": [
+    [
+     119.8,
+     1239.6
+    ],
+    [
+     121.5,
+     1259.5
+    ],
+    [
+     123.3,
+     1279.4
+    ],
+    [
+     125.1,
+     1299.3
+    ],
+    [
+     128.4,
+     1319
+    ],
+    [
+     131.9,
+     1338.7
+    ],
+    [
+     137.3,
+     1357.9
+    ],
+    [
+     142.9,
+     1377.1
+    ],
+    [
+     148.5,
+     1396.3
+    ],
+    [
+     154,
+     1415.5
+    ],
+    [
+     163.6,
+     1432.6
+    ],
+    [
+     176.2,
+     1448.1
+    ],
+    [
+     188.8,
+     1463.6
+    ]
+   ],
+   "note": "the M emerging at West Portal down West Portal Ave and 19th Ave to Stonestown"
+  }
+ ]
+}
