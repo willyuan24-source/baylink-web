@@ -188,6 +188,19 @@ export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
   // the tulip garden beside the Dutch Windmill (OSM way 120483945): its zh was the English name (G2 w3 review 10); the
   // residents already say "Queen Wilhelmina 郁金香花园", the windmill's attraction 荷兰风车与威廉明娜女王郁金香花园
   'osm-w120483945': bi('威廉明娜女王郁金香花园', 'Queen Wilhelmina Tulip Garden'),
+  // verify-content C2 (part b): OSM rows whose zh breaks the glossary (the HUD's zone names, VOICE.md) or is wrong, a
+  // postal address as a name, and lowercase OSM names announced by the discovery toast (verify-phone m3)
+  'osm-n3639535348': bi('唐人街', 'Chinatown'),
+  // the Stow Lake pavilion's plaque reads "Golden Gate Pavilion" (a gift from Taipei); OSM spells it "Pavillion"
+  'osm-w120479810': bi('金门亭', 'Chinese Pavilion'),
+  'osm-n599157316': bi('圣诞树观景点', 'Christmas Tree Point'),
+  'osm-n3111994564': bi('卡斯特罗', 'Castro District'),
+  'osm-n1281064684': bi('南市场', 'South of Market'),
+  'osm-n2297131599': bi('西南市场', 'West SoMa'),
+  'osm-n1680264818': bi('要塞高地', 'Presidio Heights'),
+  'osm-n11055875368': bi('鹰角 · 天涯海角', 'Eagles Point (Lands End)'),
+  'osm-n3789606760': bi('ARC 画廊与工作室', 'ARC Gallery & Studios'),
+  'osm-w1214385020': bi('莫斯科尼遛狗区', 'Moscone Dog Play Area'),
 };
 
 /** New anchors / arrivals (plan §4.1). `x` / `z` move the badge; `arrival` is where travel ends. */
@@ -206,8 +219,12 @@ export const PLACE_KIND_FIXES: Readonly<Record<string, SfPlaceKindAll>> = {
   'grace-cathedral': 'religious',
 };
 
-/** Rows kept in places.json but not shown / searched (the duplicate curated Sutro Baths dot). */
-export const PLACE_HIDDEN: ReadonlySet<string> = new Set(['sutro-baths']);
+/**
+ * Rows kept in places.json but not shown / searched / discovered: the duplicate curated Sutro Baths dot, and an OSM
+ * museum node named only "tiat" off Powell & O'Farrell (verify-phone m3: "发现新地点：tiat" on the first cable-car
+ * ride; no source says what it is).
+ */
+export const PLACE_HIDDEN: ReadonlySet<string> = new Set(['sutro-baths', 'osm-n13702829029']);
 
 /** A place row after the wave-4 changes: places.json fields, a wave-4 kind, an optional arrival spot. */
 export type W4PlaceRow = Omit<SfPlace, 'kind'> & {

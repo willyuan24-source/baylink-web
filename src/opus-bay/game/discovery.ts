@@ -52,12 +52,26 @@ export function useDiscoveryEpoch(): number { return useSyncExternalStore(subscr
 
 export const isDiscovered = (id: string) => everything || discovered.has(id);
 export const zoneVisited = (id: string) => everything || zones.has(id);
-export const discoveredCount = () => discovered.size;
-/** Every place found so far, oldest first (save v2 order, then this visit's finds): the Journal's 足迹 tab (G1-11). */
-export const discoveredIds = (): readonly string[] => [...discovered];
-/** The neighbourhoods visited so far (ids), in the order they were entered. */
-export const visitedZoneIds = (): readonly string[] => [...zones];
-export const visitedZoneCount = () => zones.size;
+/**
+ * Every place found so far, oldest first (save v2 order, then this visit's finds): the Journal's 足迹 tab (G1-11).
+ * Under `?discover=all` every row of the place index (once it is loaded) counts as found too, so 足迹 agrees with the
+ * map (G1 review open 2: it said 0 while the map showed everything found).
+ */
+export const discoveredIds = (): readonly string[] => {
+  if (!everything) return [...discovered];
+  const all = new Set(discovered);
+  for (const p of placeIndex()?.list ?? []) all.add(p.id);
+  return [...all];
+};
+export const discoveredCount = () => (everything ? discoveredIds().length : discovered.size);
+/** The neighbourhoods visited so far (ids), in the order they were entered (every one under `?discover=all`). */
+export const visitedZoneIds = (): readonly string[] => {
+  if (!everything) return [...zones];
+  const all = new Set(zones);
+  for (const z of cityStreamerLazy()?.far?.zones ?? []) all.add(z.id);
+  return [...all];
+};
+export const visitedZoneCount = () => (everything ? visitedZoneIds().length : zones.size);
 /** G2: a line when a place is found; returns the unsubscribe */
 export function onDiscover(fn: (p: CityPlace) => void): () => void { discoverHooks.add(fn); return () => { discoverHooks.delete(fn); }; }
 /** G2: a neighbourhood entered for the first time */
@@ -75,6 +89,8 @@ export class StampThrottle {
   private readonly gapMs: number;
   constructor(gapMs = STAMP_GAP_MS) { this.gapMs = gapMs; }
   push(p: CityPlace) { this.queue.push(p); }
+  /** drop the finds not told yet (a progress reset) */
+  clear() { this.queue = []; }
   /** the finds to announce now (empty while waiting) */
   take(now: number): CityPlace[] {
     if (!this.queue.length || now - this.last < this.gapMs) return [];
@@ -123,11 +139,36 @@ export function visitZone(id: string) {
   changed();
 }
 
+/**
+ * Forget every place found and every neighbourhood visited (Settings → 重置游戏进度; verify-code F5): the 足迹 tab,
+ * the map's fog and ticks start over, and the next find no longer writes the old sets back into save v2.
+ */
+export function resetDiscovery() {
+  stamps.clear();
+  if (!discovered.size && !zones.size) return;
+  discovered.clear();
+  zones.clear();
+  changed();
+}
+
+/**
+ * The sets follow save v2: every find and zone visit is written to it at once (markDiscovered / visitZone), so a save
+ * without them while the sets hold some means the save was cleared (Settings' reset calls data/save clearSave, which
+ * drops the cached save) — then this visit's finds go too. Checked on the discovery tick; true when it reset.
+ */
+export function syncDiscoveryWithSave(): boolean {
+  if (!discovered.size && !zones.size) return false;
+  const sv = readSave();
+  if ((discovered.size && !sv?.discovered?.length) || (zones.size && !sv?.zones?.length)) { resetDiscovery(); return true; }
+  return false;
+}
+
 let lastTick = 0;
 /** Focus-hook tick (10 Hz; 4 Hz inside). */
 export function updateDiscovery(p: Vec2, now: number) {
   if (now - lastTick < DISCOVER_HZ_MS) return;
   lastTick = now;
+  syncDiscoveryWithSave();
   const s = game.get();
   if (s.worldMode !== 'city' || s.phase !== 'playing' || travelActive()) return;
   const far = cityStreamerLazy()?.far;

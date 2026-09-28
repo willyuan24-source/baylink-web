@@ -57,3 +57,47 @@ test('the save keeps them: every place and station id fits the discovered cap; t
   st.push(a); st.push(b);
   assert.deepEqual(st.take(0).map(p => p.id), ['muni-castro', 'castro-theatre']);
 });
+
+// Integration part b (verify-code F5, G1 review open 2)
+test('a progress reset (Settings → clearSave) forgets this visit\'s finds: 足迹 empties and the next find writes only itself', async () => {
+  const d = await import('../src/opus-bay/game/discovery');
+  const save = await import('../src/opus-bay/data/save');
+  const a = ix.get('muni-castro')!, b = ix.get('castro-theatre')!, c = ix.get('twin-peaks')!;
+  d.markDiscovered(a);
+  d.markDiscovered(b);
+  d.visitZone('castro-upper-market');
+  assert.deepEqual(save.readSave()?.discovered, ['muni-castro', 'castro-theatre']);
+  assert.equal(d.syncDiscoveryWithSave(), false, 'the save holds the finds: nothing to do');
+  assert.equal(d.discoveredIds().length, 2);
+  // the Settings handler: clearProgress(); clearSave(); …
+  save.clearSave();
+  assert.equal(d.syncDiscoveryWithSave(), true);
+  assert.deepEqual(d.discoveredIds(), []);
+  assert.deepEqual(d.visitedZoneIds(), []);
+  assert.equal(d.isDiscovered('muni-castro'), false);
+  // the next find: only itself in save v2 (the old sets are not written back)
+  d.markDiscovered(c);
+  assert.deepEqual(save.readSave()?.discovered, ['twin-peaks']);
+  assert.deepEqual(save.readSave()?.zones, []);
+  // resetDiscovery() is also callable directly (and idempotent)
+  d.resetDiscovery();
+  d.resetDiscovery();
+  assert.deepEqual(d.discoveredIds(), []);
+});
+
+test('?discover=all: 足迹 counts every place of the index and every neighbourhood, as the map shows them (G1 review open 2)', async () => {
+  const d = await import('../src/opus-bay/game/discovery');
+  const { setPlaceIndex } = await import('../src/opus-bay/data/sf/places');
+  (globalThis as unknown as { location: { search: string } }).location = { search: '?world=city&discover=all' };
+  const off = d.initG1();
+  try {
+    setPlaceIndex(ix);
+    assert.equal(d.isDiscovered('castro-theatre'), true);
+    assert.equal(d.discoveredIds().length, ix.list.length);
+    assert.equal(d.discoveredCount(), ix.list.length);
+    assert.ok(new Set(d.discoveredIds()).has('muni-castro'));
+  } finally {
+    off();
+    setPlaceIndex(null);
+  }
+});
