@@ -89,6 +89,8 @@ export const viewIts: Interactable[] = VIEW_SPOTS.filter(s => !s.retired).map(s 
 }));
 
 let sitModule: typeof import('./sit') | null = null;
+/** Seated right now (坐下 / 坐下看风景): the zones offer nothing over a seat (zones3's 滑草). */
+export const seatedNow = (): boolean => !!sitModule?.seated();
 
 /**
  * Whether 坐下 may be offered at the player right now: lane F's body can sit (charApi), on foot and still for SIT_STILL,

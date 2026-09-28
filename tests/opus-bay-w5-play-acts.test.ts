@@ -1970,3 +1970,29 @@ test('W5-A-review reset progress (Settings): the session\'s bests and medals, th
     assert.equal(kit.bestOf('test-reset'), 3);
   } finally { mock.timers.reset(); offEv(); offZ(); off(); C.__resetCrests(); zones.__resetSteps(); sit.resetSit(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
 });
+
+test('W5-A-review 滑草 never over a seat: seated on a steep lawn (or at its view spot, whose prompt goes while you sit there), the E prompt is not the sled', async () => {
+  const index = await import('../src/opus-bay/play/index');
+  const sit = await import('../src/opus-bay/play/sit');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const DOLORES = { x: 253, z: 717 };
+  await cityAround([DOLORES], 40);
+  playing();
+  stubBody();
+  game.set({ worldMode: 'city' });
+  const off = index.init();
+  const off3 = z3.initZones3();
+  await flushAll();
+  try {
+    runtime.player.x = DOLORES.x; runtime.player.z = DOLORES.z; runtime.player.y = T.heightAt(DOLORES.x, DOLORES.z);
+    stepFrameSystems(0.3, 0);
+    assert.equal(z3.sledIt.x, DOLORES.x, '滑草 offered standing there');
+    assert.equal(sit.sitHere(), true);
+    assert.equal(index.seatedNow(), true);
+    stepFrameSystems(0.3, 0);
+    assert.equal(z3.sledIt.x, 1e7, 'not over the seat');
+    sit.standUp();
+    stepFrameSystems(0.3, 0);
+    assert.equal(z3.sledIt.x, DOLORES.x, 'back once standing');
+  } finally { off3(); off(); sit.resetSit(); T.setCityTerrain(null); charApiMod.setCharApi(null); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
+});

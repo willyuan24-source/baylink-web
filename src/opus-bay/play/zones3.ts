@@ -18,6 +18,7 @@ import { registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots
 import { fireRingsLit, oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { CREST_KEY, CREST_SPOTS, crestAt } from './crestSpots';
 import { CROOKED, crookedTop } from './crookedCourses';
+import { seatedNow } from './index';
 import { bestOf, currentActivity } from './kit';
 import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
 
@@ -240,8 +241,9 @@ export function initZones3(): () => void {
     // the grass slide: offered where you stand on a steep lawn (on foot, playing, nothing else running)
     {
       const p = runtime.player;
-      // never over another prompt (a view spot on a steep lawn keeps its 坐下看风景)
-      const on = runtime.move.mode === 'foot' && !p.moving && !currentActivity() && sledOffer(p.x, p.z)
+      // never over another prompt (a view spot on a steep lawn keeps its 坐下看风景), never over a seat (review 2026-09-28:
+      // seated at Dolores Park's view spot, whose prompt goes while you sit there, the E prompt turned into 滑草)
+      const on = runtime.move.mode === 'foot' && !p.moving && !currentActivity() && !seatedNow() && sledOffer(p.x, p.z)
         && !interactables().some(it => it !== sledIt && it.source !== 'baybay' && it.id !== 'play:sit' && Math.hypot(p.x - it.x, p.z - it.z) < it.radius + 0.5);
       sledIt.x = on ? p.x : 1e7; sledIt.z = on ? p.z : 1e7;
       if (on) zonePrefetch('sled', () => import('./sled'));
