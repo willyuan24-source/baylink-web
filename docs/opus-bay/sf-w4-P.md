@@ -803,3 +803,90 @@ The other findings name other lanes' files (G, C, T, L, V); they are in those ow
 - **Lane V** (optional): the zoomed-out paper edge (F2's last point): extend the painted sea past the board.
 
 Owner messages relayed during this part: "现在进度如何" (answered in the summary's first line).
+
+## Integration review
+
+Adversarial review of lane P's integration (parts a and b: `W4-P-I1` … `W4-P-I17`), 2026-09-27, worktree
+`C:/Users/willy/wt/i4-p`, dev server 5401, scratch `C:/Users/willy/opus-qa/w4i/i4-p/r/`. Commits `W4-P-int-review` on
+`opus-bay`: `6c2ad98`, `ba5d9b3`, `ebd0226`, `6780c97`, `f07fac1`. No Higgsfield spend.
+
+### 给主人的摘要
+
+**进度（主人问"现在进度如何"）：P 线（地图和地点）的接线复查做完并推送了——在手机和电脑上真玩了一遍，找到 9 个问题，全部修好并加了测试。**
+
+1. 行程中打开地图：你和 BAYBAY 不再被右边的按钮挡住，目的地名字不再被"约 2 分钟"小标签盖住，卡片和顶部条写同一个时间；行程卡片上的"换个方式"以前打开地图后什么都选不了（一日游的站连选中都没有），现在直接列出几种方式，点一下就换，一日游不会被打断。
+2. 车站卡片：点"坐观光巴士 → 渔人码头"以前只把你带到车站就忘了坐车，现在到站直接弹出"上车 · 坐到渔人码头"；"带我去车站"的步行时间不再消失；手机上在列表里点线路或地点，页面会自动滚回地图。
+3. 重置进度后足迹立刻清空（以前有空隙会把旧记录写回去）；开着地图走路时底图不再每秒重画 10 次。检查：tsc 0、eslint 0 错误、879 / 879 测试通过。
+
+### What I checked
+
+- **Read** every lane P commit of this run (`e94c362` … `c4e871b`) and the code around it: the place index from the
+  wave-4 rows, the city arrival rule (`fastTravel.arrivalSpot`), places.json, the map (`CityMap`, `cityMapModel`,
+  `CityMapList`, `StationPanel`, `PlaceActions`, `mapTrips`, `mapData`, `mapTransit`, `stationPlaces`, `mapPanel`), the
+  device detector (B1), the paper cross-fade (F2), the names (C2, m3, C6, C12), discovery's reset (F5), the station
+  nudge, the walking routes, 足迹 and the recap map (now wired by lane C).
+- **Played** the real game (city mode, `?save=off`, quality mid) with touch on a 390 × 844 and a 375 × 667 phone (dpr 3,
+  CDP touch, iPhone UA, zh) and with the mouse at 1440 × 900 (zh and en): open the map, tap a cluster and a badge,
+  跟 BAYBAY 去 / 其他方式, the trip strip / pin / ETA chip, 结束; the station card and its rides; search 大学; the 线路 tab
+  with N highlighted, a walking route; 足迹 → a must-see → the map; lane G's trip card 换个方式 on a map trip and on the
+  Grand Tour's first stop; the action button tap (B1: the ferry dialogue opened); the district map and Journal
+  (unchanged, three tabs).
+- **Measured** in the page: overlaps of you / BAYBAY with the tool column and of the trip chip with every label; the
+  sheet's scroll after a list pick; base-map redraws while the player moves (a `clearRect` counter on the map canvas);
+  `drawCityMap` / `drawTransitLines` (0.6–3.1 ms / 0.3–0.5 ms a call, desktop); `buildScene` in node (0.2–3.9 ms a view
+  on the real index, discovered or not).
+- **Also checked, no defect:** B1 in the game; the F2 fade (one coastline); district mode (the old `.ob-map`, three
+  Journal tabs); the Journal's four tabs at 375; 足迹 counts and the must-see grid opening the map; the search groups;
+  clusters zooming in on a tap; places.json and the sidecar (tests); the 44 px chips and tools; the recap map as lane C's
+  `mapSlot`; teardown (the station card's 1 Hz timer, the ResizeObserver, the wheel listener, the route planner).
+
+### Defects found and fixed (with tests)
+
+| # | where | what was wrong (seen in the game) | fix | commit | test / evidence |
+|---|---|---|---|---|---|
+| 1 | map framing | opened mid-trip, you and BAYBAY sat under the zoom buttons (desktop Palace and Lombard trips: `.cm-you` over the tool column; the phone the same): `firstOpenView` had no tool-column reserve, and `framedTrip` never runs for lane C's trips (no G1 route) | `firstOpenView(…, { right })` as every other framing; one `toolColumn(h)` rule | `6c2ad98` | `sf-map-int` "review: opened mid-trip …" (red on the old framing) |
+| 2 | map labels | the trip's ETA chip ("艺术宫 · 跑过去 约 2 分钟") covered the target's own name (艺术宫, 九曲花街（伦巴底街）): it was no layout obstacle; the route chip was one, as a disc of half its width (≈ 75 px of labels cleared) | obstacles may be boxes (`hw`, `hh`); both chips are 20 px tall boxes | `6c2ad98` | "review: the trip's ETA chip is a box …" (red with disc-only obstacles); in game no label under the chip |
+| 3 | selected card | during a trip the card said "游戏里约 3 分钟 · 现实约 6.3 公里" beside the strip's and the chip's "约 2 分钟" | `tripEta(trip)` ("跑过去 约 2 分钟") for the card and the chip, the strip's time | `6c2ad98` | "… the ETA text"; in game card = strip on the Palace, Lombard and Coit trips |
+| 4 | station card | a ride tapped away from its stop ("坐 观光巴士 → 渔人码头" at the Ferry) walked you to the stop and forgot the ride: lane G's planner drops a ride that saves nothing over walking (the loop's 4 min wait), keeps 4 rows, boards within 150 u only | `stationRideOption`: walk to the tapped stop, then that ride (lane T's ETA as the wait, T's ride time); lane C's runner leads and opens T's pre-filled boarding | `6c2ad98` | "review: a station ride …"; in game trip `walk → sf-loop`, at the stop "上车 · 坐到 ★ 渔人码头（约 65 秒）" (`qa/w4/P/review-station-ride-390.jpg`) |
+| 5 | station card | 带我去车站 lost its walk time once the walking route was found (`walk.state === 'ok' ? null`) | `stationWalkSeconds`: the route's time once known, the estimate meanwhile, none without a way | `6c2ad98` | same test; in game "带我去车站 · 步行约 9 秒" |
+| 6 | performance | with the map open the base map, lines and marks were redrawn at up to 10 Hz while you walked or rode (the canvas followed the scene, rebuilt for the you / BAYBAY obstacles) | the canvas follows `canvasMarksKey(scene)` (station marks and dots only) | `6c2ad98` | "review: the canvas key …"; in game 0 redraws over 30 position changes |
+| 7 | discovery (F5) | a find between Settings' reset and the next discovery tick (≤ 250 ms; lane C's arrival moment marks its place) wrote every old find back into the fresh save | `onSaveCleared(resetDiscovery)`; the tick's check stays as the fallback | `ba5d9b3` | `sf-discovery` "review: a find right after the reset …"; the reset test now expects the sets empty at once |
+| 8 | phone list | a pick in the list (N 线, a search hit, a card's 步行路线 chip) changed the map above the fold: nothing visible happened on the phone | the sheet scrolls back to the map when it had scrolled past it | `ebd0226` | in game the frame's top = the sheet's top after 线路 → N 线 and after a 景点 row |
+| 9 | trip card 换个方式 | lane G's 换个方式 opens the map on the trip's destination, but the card hid every way while the trip ran (a dead end); a Grand Tour trip names its stop's interactable (`transit-loop-ferry-building`), so the map selected nothing (lane C's open item) | on a running trip 其他方式 becomes 换个方式: the ways to the trip's own end, the running one pressed, a pick is `flow.replanTrip` (the trip keeps its source); a station a trip ends at leads with `ChangeWay`; openers `transit-<stop>`, `sf:<id>` and any stop id of a merged station resolve; the tour stop's attraction wears the pin | `6780c97`, `f07fac1` | "review: during a trip here …", "review: a Grand Tour stop's trip …", "review: 换个方式 on a station …"; in game Coit run → 步行, the tour's walk → 骑车 with `source: 'tour'` kept (phone and desktop) |
+
+### Evidence
+
+- **Checks** on the pushed tree `f07fac1`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+  warnings) · the full opus-bay suite **879 / 879** (9 review tests in `sf-map-int`, 1 in `sf-discovery`; the reset test
+  changed on purpose: the sets are empty right after `clearSave`).
+- **Shots** (read; `docs/opus-bay/qa/w4/P/`): `review-midtrip-desktop.jpg` (1440: you clear of the tools, 艺术宫's name
+  above its pin, the chip below, the card "跑过去 约 2 分钟"), `review-midtrip-390.jpg` (the Coit trip on the phone),
+  `review-station-ride-390.jpg` (lane T's pre-filled boarding after a station-card ride). In scratch `r/shots/`: the
+  before shots (`d1-midtrip.jpg`), the station card (`p5-station.jpg`), the list picks (`p7-*`), 换个方式 (`p8-*`, `p9-*`,
+  `d5-tour-change.jpg`).
+- **Bundle** (`vite build` to scratch on `f07fac1`): GameRoot 297.31 KB gzip (this review adds one import to it);
+  CityMap 36.38 KB gzip (34.60 in part b: the station ride, 换个方式, the canvas key). No 3D work changed.
+
+### Open (not fixed)
+
+- **F-line stations offer no ride and no 下一班** on the station card: the map's F stops are the published JSON stops,
+  lane F's runtime stations are `f-<slug>` merged by name (a mapping, or F rides in lane T's `stationRides`).
+- **English street-corner names in zh** for the F-line / Metro stops ("The Embarcadero & Sansome Street") on the map,
+  in search and in the discovery toast: the game keeps street names English; the long "Street" forms could take lane F's
+  short form.
+- The **Market St subway** of a highlighted N / M reads faint under the dimmed F-line track (visible when zoomed).
+- `buildScene` still runs at up to 10 Hz while you move with the map open (0.2–3.9 ms in node): the labels keep off you
+  and BAYBAY; only the canvas redraw was removed.
+- The list's walking estimate (straight × 1.25) and the card's route time differ once the route is known (约 12 秒 /
+  步行约 9 秒).
+- Not re-checked on a real iPhone (CDP touch and an iPhone UA), as in part b.
+
+### Requests
+
+- **Lane G** (optional): the panorama tags open the map with `a.placeId` (`ui/GuideLayer.tsx` l.172), so an attraction
+  that shares its row (Japan Center on the Peace Pagoda's) selects the row's primary one; `openMapOn({ kind:
+  'attraction', id })` (game/mapPanel.ts) opens the tag's own.
+- **Lane C**: your open item "换个方式 on a Grand Tour stop selects nothing" is closed by `f07fac1` (the map selects the
+  stop and lists the ways to it; a pick is `replanTrip`, the trip stays the tour's).
+
+Owner messages relayed during this review: "现在进度如何" (answered in the summary's first line).
