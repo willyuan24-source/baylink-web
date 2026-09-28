@@ -196,18 +196,25 @@ test('verify D12: a lead to the Golden Gate deck goes through the deck’s south
   const { sfLandmark, worldToLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
   const { GGB } = await import('../src/opus-bay/world/sf/landmarks/golden-gate-bridge');
   const deck = ELEVATED_WALKS.find(w => w.id === 'ggb-deck')!;
-  // the numbers are the bridge model's: the entry 4 u onto the deck from its south end, the far point mid-span
+  // the numbers are the bridge model's: the entry 4 u onto the deck from its south end; the span to END_N; the targets
+  // from local −100 to +100 (the south tower at −TOWER inside, Fort Point's apron under the deck outside)
   const bridge = sfLandmark('golden-gate-bridge')!;
-  const e = worldToLandmark(bridge, deck.entry), b = worldToLandmark(bridge, deck.b);
-  assert.ok(Math.abs(e.x - (GGB.END_S + 4)) < 0.2 && Math.abs(e.z) < 0.2, JSON.stringify(e));
-  assert.ok(Math.abs(b.x) < 0.2 && Math.abs(b.z) < 0.2, JSON.stringify(b));
+  const local = (p: { x: number; z: number }) => worldToLandmark(bridge, p);
+  const near = (p: { x: number; z: number }, x: number) => { const l = local(p); assert.ok(Math.abs(l.x - x) < 0.2 && Math.abs(l.z) < 0.2, `${JSON.stringify(l)} vs ${x}`); };
+  near(deck.entry, GGB.END_S + 4); near(deck.span.a, GGB.END_S + 4); near(deck.span.b, GGB.END_N); near(deck.targets.a, -100); near(deck.targets.b, 100);
   assert.equal(deck.y, GGB.DECK);
   const tower = { x: GGB_SOUTH_TOWER.x, z: GGB_SOUTH_TOWER.z };
+  assert.ok(local(tower).x > -100 && local(tower).x < 100);
   assert.deepEqual(leadStep(tower, { x: -563, y: 1, z: 550 }), deck.entry, 'from Crissy Field: to the deck’s end first');
   assert.deepEqual(leadStep(tower, { x: -757, y: 3, z: 596 }), deck.entry, 'under the deck by Fort Point: the entry, not straight up');
-  const onDeck = { x: deck.entry.x + (deck.b.x - deck.entry.x) * 0.3, y: 15.2, z: deck.entry.z + (deck.b.z - deck.entry.z) * 0.3 };
+  const onDeck = { x: deck.entry.x + (deck.span.b.x - deck.entry.x) * 0.2, y: 15.2, z: deck.entry.z + (deck.span.b.z - deck.entry.z) * 0.2 };
   assert.equal(leadStep(tower, onDeck), tower, 'on the deck: straight to the tower');
   assert.equal(leadStep(tower, { x: deck.entry.x + 1, y: 13, z: deck.entry.z }), tower, 'at the entry: on to the tower');
+  // Fort Point's apron lies right under the deck's south end (local −149): a ground target, led straight (QA part b)
+  const { LANDMARK_ARRIVALS } = await import('../src/opus-bay/data/sf/arrivals');
+  const fort = { x: LANDMARK_ARRIVALS['fort-point'].x, z: LANDMARK_ARRIVALS['fort-point'].z };
+  assert.ok(local(fort).x < -100 && Math.abs(local(fort).z) < 4, JSON.stringify(local(fort)));
+  assert.equal(leadStep(fort, { x: -680, y: 15, z: 654 }), fort, 'from the Welcome Center down to Fort Point');
   const ground = { x: -600, z: 500 };
   assert.equal(leadStep(ground, { x: -563, y: 1, z: 550 }), ground, 'a target on the ground is led straight');
 });

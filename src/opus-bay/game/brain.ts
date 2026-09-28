@@ -224,19 +224,34 @@ const HINT_QUIET_MS = 60000;
  * led through its entry first while the player is not up there yet. The Golden Gate deck: from its south end (local
  * x = END_S + 4 of world/sf/landmarks/golden-gate-bridge.ts) to mid-span, deck height 15.2; tested against GGB.
  */
-export const ELEVATED_WALKS: readonly { id: string; a: Vec2; b: Vec2; half: number; y: number; entry: Vec2 }[] = [
-  { id: 'ggb-deck', a: { x: -689.35, z: 649.76 }, b: { x: -865.81, z: 508.56 }, half: 4, y: 15.2, entry: { x: -689.35, z: 649.76 } },
+export interface ElevatedWalk {
+  id: string;
+  /** the whole walkway (the walker is "up" on it: within `half` of this segment and above y − 3) */
+  span: { a: Vec2; b: Vec2 };
+  /** where a target counts as on the walkway: the part with nothing walkable under it (not Fort Point under the deck's south end) */
+  targets: { a: Vec2; b: Vec2 };
+  half: number;
+  y: number;
+  entry: Vec2;
+}
+export const ELEVATED_WALKS: readonly ElevatedWalk[] = [
+  {
+    id: 'ggb-deck', half: 4, y: 15.2, entry: { x: -689.35, z: 649.76 },
+    // local x END_S + 4 … END_N; the targets from local −100 (south of the south tower, north of Fort Point at −149) to +100
+    span: { a: { x: -689.35, z: 649.76 }, b: { x: -1015.73, z: 388.59 } },
+    targets: { a: { x: -787.73, z: 571.04 }, b: { x: -943.89, z: 446.08 } },
+  },
 ];
-const onSegment = (p: Vec2, w: (typeof ELEVATED_WALKS)[number]) => {
-  const ax = w.b.x - w.a.x, az = w.b.z - w.a.z, len2 = ax * ax + az * az;
-  const t = Math.max(0, Math.min(1, ((p.x - w.a.x) * ax + (p.z - w.a.z) * az) / len2));
-  return Math.hypot(p.x - (w.a.x + ax * t), p.z - (w.a.z + az * t)) <= w.half;
+const onSegment = (p: Vec2, seg: { a: Vec2; b: Vec2 }, half: number) => {
+  const ax = seg.b.x - seg.a.x, az = seg.b.z - seg.a.z, len2 = ax * ax + az * az;
+  const t = Math.max(0, Math.min(1, ((p.x - seg.a.x) * ax + (p.z - seg.a.z) * az) / len2));
+  return Math.hypot(p.x - (seg.a.x + ax * t), p.z - (seg.a.z + az * t)) <= half;
 };
 /** Where to lead now for `dest` (pure): an elevated walkway's entry while the walker is below it, else `dest`. */
 export function leadStep(dest: Vec2, walker: Vec2 & { y: number }): Vec2 {
   for (const w of ELEVATED_WALKS) {
-    if (!onSegment(dest, w)) continue;
-    const up = walker.y > w.y - 3 && onSegment(walker, w);
+    if (!onSegment(dest, w.targets, w.half)) continue;
+    const up = walker.y > w.y - 3 && onSegment(walker, w.span, w.half);
     if (!up && Math.hypot(walker.x - w.entry.x, walker.z - w.entry.z) > 3) return w.entry;
   }
   return dest;

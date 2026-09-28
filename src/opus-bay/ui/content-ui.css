@@ -28,6 +28,7 @@
   .ob-journal .ob-tabs:has(> button:nth-child(4)) button small { font-size: 10.5px; }
 }
 
-/* C14 · a choice's label and second line break between words, never inside one (叮 / 当车, 认 / 识 at 375 px); a
-   phrase too long for the line still breaks where it must */
-.ob-choice-label > span, .ob-choice-label .ob-choice-sub { word-break: keep-all; overflow-wrap: break-word; }
+/* C14 · a choice's second line (words joined by " · ") breaks between its words, never inside one (叮 / 当车 at
+   375 px); `anywhere` keeps the grid's two columns equal. The first line keeps the default CJK breaking: its phrases
+   have no spaces, and keep-all would push a lone "？" to a line of its own. */
+.ob-choice-label .ob-choice-sub { word-break: keep-all; overflow-wrap: anywhere; }
