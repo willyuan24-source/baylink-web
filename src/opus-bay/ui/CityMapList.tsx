@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Check, Footprints, Search, TrainFront } from 'lucide-react';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTION_AREAS, type Attraction, type AttractionArea } from '../data/sf/attractionTypes';
-import { ATTRACTIONS, coveredPlaceIds } from '../data/sf/attractions';
+import { ATTRACTIONS, coveredPlaceIds, tripDestination } from '../data/sf/attractions';
 import type { CityPlace, PlaceIndex } from '../data/sf/places';
 import { SF_ROUTES, type SfRoute, type SfRouteId, routePath } from '../data/sf/routes';
 import { SEARCH_GROUP_NAMES, SEARCH_SUGGESTIONS, type SearchEntry, attractionEntries, groupHits, lineEntries, placeEntries, prepareSearch, rankSearch, stationEntries } from '../data/sf/placeSearch';
@@ -13,6 +13,7 @@ import { useT } from '../i18n';
 import type { MapSel } from './cityMapModel';
 import { attractionThumb, listWalkSeconds } from './mapListData';
 import { MapBadge } from './MapBadge';
+import { type QuickDest, RowGo, goQuick, useQuickWays } from './MapGoCard';
 import { badgeSize } from './mapBadges';
 import { LINE_STYLES, type MapLine, type MapStation, lineStrokes } from './mapLines';
 
@@ -26,6 +27,10 @@ import { LINE_STYLES, type MapLine, type MapStation, lineStrokes } from './mapLi
 export type MapTab = 'sights' | 'lines' | 'near' | 'found';
 
 const AREA_ORDER = Object.keys(ATTRACTION_AREAS) as AttractionArea[];
+/** W5-N4: the first this many search results (attractions, places, stations) carry a go button */
+const QUICK_ROWS = 8;
+/** …and the first this many ask for their routes once the typing settles (their times then match the trip) */
+const QUICK_ASK = 3;
 
 function Thumb({ a }: { a: Attraction }) {
   const src = attractionThumb(a);
@@ -157,6 +162,28 @@ export function CityMapList(p: CityMapListProps) {
     return out;
   }, [query, search, tab, ix, pos.x, pos.z, stations, lineIds, p.highlight, p.epoch, attrById, stationById, covered]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // W5-N4 · search results carry the go button (plan MF4): the 推荐 way of the first rows, from the route cache (the
+  // tap plans again with the routes: goTo); such a row's own time goes (the button says it)
+  const quick = useMemo((): QuickDest[] => {
+    if (!query.trim()) return [];
+    const out: QuickDest[] = [];
+    for (const r of rows) {
+      if (out.length >= QUICK_ROWS) break;
+      if (r.kind === 'attraction') { const d = tripDestination(r.a); out.push({ key: r.key, placeId: d.placeId, x: d.x, z: d.z, name: d.name, attraction: r.a.id }); }
+      else if (r.kind === 'place' && r.p.walkable) out.push({ key: r.key, placeId: r.p.id, x: r.p.arrival.x, z: r.p.arrival.z, name: r.p.name });
+      else if (r.kind === 'station') out.push({ key: r.key, placeId: r.st.id, x: r.st.x, z: r.st.z, name: r.st.name });
+    }
+    return out;
+  }, [rows, query]);
+  const ways = useQuickWays(quick, QUICK_ASK);
+  const quickBy = useMemo(() => new Map(quick.map(q => [q.key, q])), [quick]);
+  const [going, setGoing] = useState<string | null>(null);
+  const hasGo = (key: string) => quickBy.has(key) && !!ways.get(key);
+  const rowGo = (key: string) => {
+    const q = quickBy.get(key), o = ways.get(key);
+    if (!q || !o) return null;
+    return <RowGo option={o} busy={going === key} onGo={() => { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }} />;
+  };
   const sel = p.selected;
   const area = (x: number, z: number, zone: string | null) => t(landmarkAreaAt(x, z)?.name ?? zoneName(zone));
   // an attraction's neighbourhood (its place row's), else its list area
@@ -178,26 +205,28 @@ export function CityMapList(p: CityMapListProps) {
         {rows.map(r => {
           if (r.kind === 'head') return <li key={r.key} className="mw-list-head" role="presentation">{t(r.text)}</li>;
           if (r.kind === 'attraction') {
-            const a = r.a, found = isDiscovered(a.placeId ?? a.id);
+            const a = r.a, found = isDiscovered(a.placeId ?? a.id), go = hasGo(r.key);
             return (
-              <li key={r.key}>
+              <li key={r.key} className={go ? 'has-go' : undefined}>
                 <button type="button" className={`mw-row${sel?.kind === 'attraction' && sel.id === a.id ? ' is-on' : ''}`} onClick={() => p.onAttraction(a)}>
                   <Thumb a={a} />
-                  <span className="ob-place-text"><span>{t(a.name)}</span><small>{attractionArea(a)} · {t(timeLabel(listWalkSeconds(pos, a.arrival ?? a)))}</small></span>
+                  <span className="ob-place-text"><span>{t(a.name)}</span><small>{attractionArea(a)}{go ? '' : ` · ${t(timeLabel(listWalkSeconds(pos, a.arrival ?? a)))}`}</small></span>
                   {found && <Check size={16} className="mw-found" aria-label={t('去过', 'Visited')} />}
                 </button>
+                {go && rowGo(r.key)}
               </li>
             );
           }
           if (r.kind === 'station') {
-            const st = r.st;
+            const st = r.st, go = hasGo(r.key);
             return (
-              <li key={r.key}>
+              <li key={r.key} className={go ? 'has-go' : undefined}>
                 <button type="button" className={`mw-row is-station${sel?.kind === 'station' && sel.id === st.id ? ' is-on' : ''}`} onClick={() => p.onStation(st)}>
                   <span className="mw-row-disc" aria-hidden><TrainFront size={15} /></span>
-                  <span className="ob-place-text"><span>{t(st.name)}</span><small>{[...new Set(st.lines.map(l => t(LINE_STYLES[l]?.disc ?? { zh: l, en: l })))].join(' · ')} · {t(timeLabel(listWalkSeconds(pos, st)))}</small></span>
+                  <span className="ob-place-text"><span>{t(st.name)}</span><small>{[...new Set(st.lines.map(l => t(LINE_STYLES[l]?.disc ?? { zh: l, en: l })))].join(' · ')}{go ? '' : ` · ${t(timeLabel(listWalkSeconds(pos, st)))}`}</small></span>
                   {isDiscovered(st.id) && <Check size={16} className="mw-found" aria-label={t('去过', 'Visited')} />}
                 </button>
+                {go && rowGo(r.key)}
               </li>
             );
           }
@@ -238,13 +267,14 @@ export function CityMapList(p: CityMapListProps) {
               </li>
             );
           }
-          const pl = r.p;
+          const pl = r.p, go = hasGo(r.key);
           return (
-            <li key={r.key}>
+            <li key={r.key} className={go ? 'has-go' : undefined}>
               <button type="button" className={`mw-row${sel?.kind === 'place' && sel.id === pl.id ? ' is-on' : ''}`} onClick={() => p.onPlace(pl)}>
                 <span className={`ob-place-num ${isDiscovered(pl.id) ? 'is-found' : ''}`} aria-hidden>·</span>
                 <span className="ob-place-text"><span>{t(pl.name)}</span><small>{area(pl.x, pl.z, pl.zone)}</small></span>
               </button>
+              {go && rowGo(r.key)}
             </li>
           );
         })}

@@ -169,3 +169,46 @@
   .mw-place-actions .mw-go { flex: 1 0 100%; min-height: 48px; font-size: 15px; }
   .mw-place-actions .mw-more { flex: 1 1 auto; justify-content: center; }
 }
+
+/* --- W5-N4 · the phone map: the card pinned over the map, the "+n" chooser, the rows' go buttons --------------------
+   ui/mapGo.ts GO_CARD holds the numbers (8 px inset, 10 padding, a 38 px head — 20 on a short frame —, 8 gap, 48 px go
+   button, 44 px 其他方式): the test pins the go button inside a 352 × 388 frame, clear of the tool column. */
+.mw-gocard { position: absolute; left: 8px; right: 8px; bottom: 8px; z-index: 4; display: grid; gap: 8px; padding: 10px; border-radius: 16px; background: rgba(255, 250, 241, .97); border: 1px solid var(--ob-line); box-shadow: 0 6px 18px rgba(60, 40, 20, .2); cursor: default; touch-action: manipulation; }
+.mw-gocard-head { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 38px; padding-right: 34px; }
+.mw-gocard-head strong { font-size: 15px; font-weight: 800; line-height: 20px; color: var(--ob-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-gocard-head small { font-size: 12px; line-height: 16px; color: var(--ob-ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-gocard.is-short .mw-gocard-head { flex-direction: row; align-items: baseline; gap: 8px; min-height: 20px; }
+.mw-gocard.is-short .mw-gocard-head strong { flex: 0 1 auto; min-width: 0; }
+.mw-gocard-x { position: absolute; right: -6px; top: 50%; width: 32px; height: 32px; margin-top: -16px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ob-ink-3); cursor: pointer; }
+.mw-gocard-x::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; }
+.mw-gocard-x:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 1px; }
+.mw-gocard-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mw-gocard-row .mw-go { flex: 1 1 auto; min-width: 0; min-height: 48px; font-size: 15px; }
+.mw-gocard-wait { flex: 1 1 auto; min-height: 48px; display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ob-ink-3); }
+.mw-gocard-more { background: #fff; border: 1px solid var(--ob-line); }
+/* the tool column above the card (its max-height comes from mapGo.toolsMaxHeight); gone under the chooser */
+.ob-citymap-tools.is-hidden, .ob-citymap-credit.is-hidden { display: none; }
+/* the "+n" chooser: its places, each with a go button */
+.mw-chooser { top: auto; max-height: calc(100% - 16px); grid-template-rows: auto minmax(0, 1fr); }
+.mw-chooser .mw-gocard-head { flex-direction: row; align-items: center; gap: 8px; min-height: 32px; }
+.mw-chooser .mw-gocard-head strong { flex: 1 1 auto; min-width: 0; }
+.mw-chooser-zoom { position: relative; flex: none; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 10px; border-radius: 999px; border: 1.5px solid var(--ob-line-2); background: #fff; color: var(--ob-ink-2); font: 700 12.5px/1 var(--ob-font); cursor: pointer; }
+.mw-chooser-zoom::before { content: ''; position: absolute; inset: -6px -2px; }
+.mw-chooser-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.mw-chooser-list li { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.mw-chooser-name { flex: 1 1 auto; min-width: 0; min-height: 44px; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 1px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--ob-line); background: #fff; color: var(--ob-ink); font: inherit; text-align: left; cursor: pointer; }
+.mw-chooser-name span { max-width: 100%; font-size: 14px; font-weight: 800; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-chooser-name small { font-size: 11.5px; color: var(--ob-ink-3); }
+/* the small go button of a row (the chooser, the search results): the way's icon and its time */
+.mw-rowgo, .ob-place-list .mw-rowgo { flex: none; width: auto; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; padding: 0 12px; border-radius: 12px; border: 0; background: var(--ob-teal); color: #fff; font: 800 13px/1 var(--ob-font); white-space: nowrap; cursor: pointer; }
+.mw-rowgo.is-fly, .ob-place-list .mw-rowgo.is-fly { background: #3f5f9f; }
+.ob-place-list .mw-rowgo span { flex: none; }
+.ob-place-list .mw-rowgo svg { color: #fff; }
+.mw-rowgo:disabled { opacity: .7; }
+.mw-rowgo:focus-visible { outline: 2px solid var(--ob-gold); outline-offset: 2px; }
+.ob-place-list .mw-rowgo:hover { background: var(--ob-teal-d); border: 0; }
+.ob-place-list .mw-rowgo.is-fly:hover { background: #33507f; }
+/* a search result with its go button beside the row */
+.mw-list li.has-go { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
+.mw-list li.has-go > .mw-row { flex: 1 1 auto; min-width: 0; }
+.mw-lower:empty { display: none; }

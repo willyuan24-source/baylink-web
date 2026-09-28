@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent } from 'react';
 import { Bike, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
 import { fleetSnapshot } from '../actors/moveApi';
+import { walkGraph } from '../actors/nav';
 import { runtime } from '../core/runtime';
+import { nearestWalkable, standAt } from '../core/terrain';
 import { DEFAULT_TOUR_ID, toast, tourIdOf, useGame } from '../core/store';
 import type { Bilingual, Vec2 } from '../core/types';
 import { MAP_FRAME, MAP_PAPER } from '../data/mapPaper';
-import { zoneLabelAnchor, zoneName } from '../data/cityZones';
+import { cityAreaAt, farZoneIndexAt, landmarkAreaAt, zoneLabelAnchor, zoneName } from '../data/cityZones';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { ATTRACTIONS, ATTRACTION_INDEX, coveredPlaceIds, tripDestination } from '../data/sf/attractions';
 import type { CityPlace } from '../data/sf/places';
@@ -14,7 +16,7 @@ import { vehicleSpots } from '../data/vehicles';
 import { arrivalSeen } from '../game/cityContent';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel, endTrip as endFlowTrip, replanTrip } from '../game/flow';
-import type { PlaceTripDest } from '../game/placeTrips';
+import { type PlaceTripDest, startPlaceTrip } from '../game/placeTrips';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
 import { parseMapPanelId } from '../game/mapPanel';
@@ -23,12 +25,14 @@ import { tripRemainingSeconds } from '../game/tripPlan';
 import type { TripOption } from '../game/tripTypes';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
-import { type MapView, clampView, drawCityMap, labelWidth, maxScale, paperShare, thinPx, toPx, zoomAt } from './cityMapDraw';
+import { type MapView, clampView, drawCityMap, labelWidth, maxScale, paperShare, thinPx, toPx, toWorld, zoomAt } from './cityMapDraw';
 import { type MapSel, type MapTarget, NORTH_DEG, buildScene, canvasMarksKey, clusterPoints, drawMapExtras, firstOpenView, fitAbs, hitTest, sfLandView } from './cityMapModel';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { CityMapList, type MapTab } from './CityMapList';
 import { BaybayFace, Sheet } from './common';
-import { MapBadge, MapLabel } from './MapBadge';
+import { MapBadge, MapLabel, MapTargetPin } from './MapBadge';
+import { type ChooserRow, ClusterChooser, MapGoCard, useQuickWays } from './MapGoCard';
+import { type PressLookups, type PressSpot, PRESS, chooserHeight, goCardHeight, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
 import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
 import { MapFilters } from './MapFilters';
@@ -60,6 +64,20 @@ const HIT_PX = 22;
 const TALL_TOOLS_H = 300;
 /** px the right-hand tool column takes (labels keep off it, framings keep you, BAYBAY and the target clear of it) */
 const toolColumn = (frameH: number) => (frameH >= TALL_TOOLS_H ? 48 : 90);
+/** W5-N4: a map frame this narrow (px) is a phone's: the selection's card is pinned over the map, a "+n" opens the chooser */
+const COMPACT_W = 520;
+
+/** W5-N4 · what a long-press asks of the game (ui/mapGo.ts pressSpot): the terrain, the walking graph, places, land, areas. */
+function pressLookups(far: ReturnType<typeof useFar>, ix: ReturnType<typeof usePlaceIndex>, graph: Awaited<ReturnType<typeof walkGraph>> | null): PressLookups {
+  return {
+    stand: (x, z) => standAt(x, z),
+    nearestWalkable: (p, r) => nearestWalkable(p, r),
+    graphNear: graph ? (p, r) => { const i = graph.nearestNode(p.x, p.z, r); return i >= 0 ? graph.pos(i) : null; } : undefined,
+    placesNear: (x, z, r) => (ix?.near(x, z, r) ?? []).map(p => ({ id: p.id, name: p.name, x: p.x, z: p.z, arrival: p.arrival, walkable: p.walkable })),
+    onLand: (x, z) => !!far && farZoneIndexAt(far, x, z) >= 0,
+    area: (x, z) => cityAreaAt(x, z)?.name ?? null,
+  };
+}
 
 /** The selected destination's walking route (G1-8): pending while E2's time-sliced A* runs, then the route or 'none'. */
 interface RoutePlan { id: string; status: 'pending' | 'ok' | 'none'; route: PlannedRoute | null }
@@ -132,6 +150,18 @@ export function CityMapPanel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<MapView | null>(null);
+  // W5-N4 · the phone map (plan MF4): the selection's card pinned over the frame on narrow maps (phones), the "+n"
+  // badge's chooser there, and a long-pressed spot (去这里, every device); ≤ 2 taps from the open map to moving
+  const compact = !!size && size.w <= COMPACT_W;
+  const [press, setPress] = useState<{ at: Vec2; spot: PressSpot | null } | null>(null);
+  const [chooser, setChooser] = useState<{ id: string; members: string[] } | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const lowerRef = useRef<HTMLDivElement>(null);
+  // the long-press timer reads the view of its moment
+  const viewRef = useRef<MapView | null>(null);
+  useEffect(() => { viewRef.current = view; }, [view]);
+  // a new selection (a tap, the list, the search) replaces a pressed spot and the chooser
+  useEffect(() => { setMoreOpen(false); if (sel) { setPress(null); setChooser(null); } }, [sel?.kind, sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 带我去 in progress (flow.mapTarget = place:<id>) or a trip (lane C's flow.trip): the target pin, the trip's route
   const mapTarget = useFlow(s => s.mapTarget);
@@ -233,17 +263,34 @@ export function CityMapPanel() {
     const r = frameRef.current!.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
+  // W5-N4 · long-press → 去这里: held PRESS.ms without moving more than PRESS.slop px, one pointer
+  const pressTimer = useRef<{ id: number; fired: boolean } | null>(null);
+  const cancelPress = () => { if (pressTimer.current) { window.clearTimeout(pressTimer.current.id); pressTimer.current = pressTimer.current.fired ? pressTimer.current : null; } };
   const onDown = (e: RPointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('button, .mw-legend-pop')) return;
+    if ((e.target as HTMLElement).closest('button, a, .mw-legend-pop, .mw-gocard')) return;
+    if (e.button > 0) return;
     frameRef.current?.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, local(e));
     drag.current = { moved: 0, pinch: null };
+    cancelPress();
+    pressTimer.current = null;
+    if (pointers.current.size === 1) {
+      const at = local(e);
+      const t = { id: 0, fired: false };
+      t.id = window.setTimeout(() => {
+        if (pressTimer.current !== t || drag.current.moved > PRESS.slop || pointers.current.size !== 1) return;
+        t.fired = true;
+        pressAt(at.x, at.y);
+      }, PRESS.ms);
+      pressTimer.current = t;
+    }
   };
   const onMove = (e: RPointerEvent<HTMLDivElement>) => {
     const prev = pointers.current.get(e.pointerId);
     if (!prev || !view) return;
     const p = local(e);
     pointers.current.set(e.pointerId, p);
+    if (pointers.current.size > 1 || drag.current.moved > PRESS.slop) cancelPress();
     if (pointers.current.size === 2) {
       const [a, b] = [...pointers.current.values()];
       const d = Math.hypot(a.x - b.x, a.y - b.y);
@@ -259,16 +306,57 @@ export function CityMapPanel() {
   const onUp = (e: RPointerEvent<HTMLDivElement>) => {
     const had = pointers.current.delete(e.pointerId);
     if (pointers.current.size < 2) drag.current.pinch = null;
-    if (!had || drag.current.moved > 6 || !view || !scene) return;
-    // a tap: the nearest badge / place / station within reach; a "+n" badge zooms in to its members
+    const pressed = !!pressTimer.current?.fired;
+    cancelPress();
+    pressTimer.current = null;
+    if (!had || pressed || drag.current.moved > 6 || !view || !scene) return;
+    // a tap: the nearest badge / place / station within reach; a "+n" badge zooms in to its members (on a phone: the
+    // chooser lists them, each with its go button)
     const p = local(e);
     const hit = hitTest(scene, p.x, p.y, HIT_PX);
+    setPress(null);
     if (hit?.members?.length && scene.s < 1.2) {
-      const pts = clusterPoints(scene, ATTRACTION_BY_ID, hit.id, hit.members);
-      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 56, 0.5, 2.4, toolRight) : v));
+      if (compact) {
+        setSel(null);
+        setChooser({ id: hit.id, members: hit.members });
+        // the badge stays in sight above the chooser
+        const at = toWorld(view, p.x, p.y), rows = Math.min(8, 1 + hit.members.length);
+        setView(v => (v ? panForCard(v, at, chooserHeight(rows, v.h)) ?? v : v));
+        return;
+      }
+      zoomCluster(hit.id, hit.members);
       return;
     }
+    setChooser(null);
     setSel(hit ? { kind: hit.kind, id: hit.id } : null);
+    // the pinned card must not cover what was tapped
+    if (hit && compact) { const at = toWorld(view, p.x, p.y); setView(v => (v ? panForCard(v, at) ?? v : v)); }
+  };
+  const zoomCluster = (id: string, members: readonly string[]) => {
+    if (!scene) return;
+    const pts = clusterPoints(scene, ATTRACTION_BY_ID, id, members);
+    setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 56, 0.5, 2.4, toolRight) : v));
+  };
+  // a right-click is a long-press with the mouse
+  const onContextMenu = (e: RMouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button, a, .mw-legend-pop, .mw-gocard')) return;
+    e.preventDefault();
+    const p = local(e);
+    pressAt(p.x, p.y);
+  };
+  /** A long-press at frame pixel (px, py): the nearest walkable arrival spot there, its card over the map. */
+  const pressAt = (px: number, py: number) => {
+    const v = viewRef.current;
+    if (!v) return;
+    const at = toWorld(v, px, py);
+    setSel(null);
+    setChooser(null);
+    // the walking graph is in by now in the city (the street life loads it); a failed load answers without it
+    void walkGraph().then(g => g, () => null).then(g => {
+      const spot = pressSpot(at, pressLookups(far, ix, g));
+      setPress({ at, spot });
+      if (spot) setView(cur => (cur ? panForCard(cur, spot) ?? cur : cur));
+    });
   };
   const onWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
@@ -489,6 +577,44 @@ export function CityMapPanel() {
   const atMax = !!view && view.scale >= maxScale(MAP_FRAME, view.w, view.h) - 1e-6;
   const leading = !!useFlow(st => st.freeLead) || !!trip || !!tripId;
 
+  // --- W5-N4 · the pinned card (phones), the "+n" chooser, the long-pressed spot ----------------------------------------
+  const pressDest = useMemo((): PlaceTripDest | null => (press?.spot ? { placeId: pressPlaceId(press.spot), x: press.spot.x, z: press.spot.z, name: press.spot.name } : null), [press]);
+  const { options: pressWays, busy: pressBusy } = useTripOptions(pressDest);
+  const pressRec = pressWays.find(o => o.recommended) ?? pressWays[0] ?? null;
+  const selName: Bilingual | null = selAttraction?.name ?? selPlace?.name ?? selStation?.name ?? null;
+  // the selection's card over the map on a phone (a running trip to it keeps the card under the map: its 换个方式)
+  const cardSel = compact && !!selName && !onTrip && !press && !chooser;
+  const selZone = selPlace ? landmarkAreaAt(selPlace.x, selPlace.z)?.name ?? (selPlace.zone ? zoneName(selPlace.zone) : null) : null;
+  const selMeta = [selZone ? t(selZone) : null, selStation ? t('车站', 'Station') : null, selPlace && isDiscovered(selPlace.id) ? t('去过', 'visited') : null].filter(Boolean).join(' · ') || null;
+  const chooserRows = useMemo((): ChooserRow[] => {
+    if (!chooser) return [];
+    const out: ChooserRow[] = [];
+    // the layout's ids: an attraction's own, `place:<id>` for a place row (cityMapModel placeLayoutId)
+    for (const m of [chooser.id, ...chooser.members]) {
+      const a = ATTRACTION_BY_ID.get(m);
+      if (a) {
+        const d = tripDestination(a);
+        out.push({ key: `a:${a.id}`, placeId: d.placeId, x: d.x, z: d.z, name: a.name, attraction: a.id, sub: isDiscovered(a.placeId ?? a.id) ? t('去过', 'visited') : null });
+        continue;
+      }
+      const pl = m.startsWith('place:') ? ix?.get(m.slice(6)) : undefined;
+      if (pl) out.push({ key: `p:${pl.id}`, placeId: pl.id, x: pl.arrival.x, z: pl.arrival.z, name: pl.name, sub: isDiscovered(pl.id) ? t('去过', 'visited') : null });
+    }
+    return out.slice(0, 8);
+  }, [chooser, ix, t]);
+  const chooserWays = useQuickWays(chooserRows, chooserRows.length);
+  const pickRow = (r: ChooserRow) => {
+    setChooser(null);
+    setSel(r.attraction ? { kind: 'attraction', id: r.attraction } : { kind: 'place', id: r.placeId });
+    setView(v => (v ? panForCard(v, { x: r.x, z: r.z }) ?? v : v));
+  };
+  const pinned = cardSel || !!press;
+  const cardH = size ? goCardHeight(size.h) : 0;
+  const showMore = () => {
+    setMoreOpen(true);
+    window.setTimeout(() => lowerRef.current?.scrollIntoView({ block: 'nearest', behavior: reduced ? 'auto' : 'smooth' }), 40);
+  };
+
   return (
     <Sheet eyebrow={t('地图', 'Map')} title={t('旧金山', 'San Francisco')} onClose={closePanel} className="ob-map ob-citymap" wide snap={78}>
       {trip && (
@@ -511,8 +637,8 @@ export function CityMapPanel() {
           <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={() => endTrip(tripPlace.arrival)}><X size={14} aria-hidden /><span>{t('不去了', 'Stop')}</span></button>
         </div>
       )}
-      <div ref={frameRef} className="ob-citymap-frame" onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}
-        role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放', 'Map of San Francisco: drag to pan, wheel or pinch to zoom')}>
+      <div ref={frameRef} className={`ob-citymap-frame${pinned ? ' has-gocard' : ''}`} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onContextMenu={onContextMenu}
+        role="application" aria-label={t('旧金山地图：拖动平移，滚轮或双指缩放，长按任意位置去那里', 'Map of San Francisco: drag to pan, wheel or pinch to zoom, long-press anywhere to go there')}>
         {vis && showPaper && <svg className="ob-citymap-paper" viewBox={`${vis.x} ${vis.z} ${vis.w} ${vis.h}`} preserveAspectRatio="none" aria-hidden><MapPaperLayer width={s * dpr > 0.7 ? 4096 : 2048} /></svg>}
         <canvas ref={canvasRef} className="ob-citymap-canvas" style={size ? { width: size.w, height: size.h } : undefined} aria-hidden />
         {guideAt && guideAt[0] > -12 && guideAt[1] > -12 && guideAt[0] < (size?.w ?? 0) + 12 && guideAt[1] < (size?.h ?? 0) + 12 && (
@@ -559,6 +685,7 @@ export function CityMapPanel() {
                 <text y={4}>{routeDraw.chip}</text>
               </g>
             )}
+            {press?.spot && (() => { const [x, y] = toPx(view, press.spot.x, press.spot.z); return <MapTargetPin x={x} y={y} />; })()}
             {youAt && (() => {
               // heading (three.js yaw: forward = (sin h, cos h) in world x/z = screen x/y)
               const deg = (Math.atan2(Math.cos(heading), Math.sin(heading)) * 180) / Math.PI;
@@ -578,7 +705,7 @@ export function CityMapPanel() {
             </g>
           </svg>
         </button>
-        <div className={`ob-citymap-tools${tallTools ? '' : ' is-two'}`}>
+        <div className={`ob-citymap-tools${tallTools ? '' : ' is-two'}${chooser ? ' is-hidden' : ''}`} style={pinned && size ? { maxHeight: toolsMaxHeight(size.h, true) } : undefined}>
           <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1.6)} aria-label={t('放大', 'Zoom in')} disabled={atMax}><Plus size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={() => zoomBy(1 / 1.6)} aria-label={t('缩小', 'Zoom out')}><Minus size={17} aria-hidden /></button>
           <button type="button" className="ob-icon-btn" onClick={locate} aria-label={t('回到我这', 'Find me')}><LocateFixed size={17} aria-hidden /></button>
@@ -587,17 +714,31 @@ export function CityMapPanel() {
           <button type="button" className={`ob-icon-btn${legend ? ' is-on' : ''}`} onClick={() => setLegend(v => !v)} aria-label={t('图例', 'Legend')} aria-pressed={legend}><Info size={17} aria-hidden /></button>
         </div>
         {legend && <div className="mw-legend-pop"><MapLegend onClose={() => setLegend(false)} /></div>}
-        <p className="ob-citymap-credit">{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
+        <p className={`ob-citymap-credit${chooser ? ' is-hidden' : ''}`} style={pinned ? { bottom: cardH + 14 } : undefined}>{t('地图数据', 'Map data')} © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> {t('贡献者', 'contributors')} (ODbL) · DataSF</p>
+        {cardSel && selName && (
+          <MapGoCard title={selName} meta={selMeta} option={recWay} busy={!!planDest && !recWay} short={!!size && size.h < 340}
+            onGo={o => { if (planDest) startPlaceTrip(o, planDest); }} onMore={showMore} onClose={() => setSel(null)} />
+        )}
+        {press && (
+          <MapGoCard title={{ zh: '去这里', en: 'Go here' }} meta={press.spot ? t(press.spot.name) : null} option={press.spot ? pressRec : null} busy={!!press.spot && pressBusy && !pressRec}
+            short={!!size && size.h < 340} noWay={{ zh: '那里去不了，长按陆地试试', en: "Can't go there — press on land" }}
+            onGo={o => { if (pressDest) startPlaceTrip(o, pressDest); }} onClose={() => setPress(null)} />
+        )}
+        {chooser && chooserRows.length > 0 && (
+          <ClusterChooser rows={chooserRows} ways={chooserWays} onPick={pickRow} onZoom={() => { const c = chooser; setChooser(null); zoomCluster(c.id, c.members); }} onClose={() => setChooser(null)} />
+        )}
       </div>
 
       <MapFilters value={filter} onChange={setFilter} />
 
-      {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null}
-        onReplan={tripHere ? changeWay : null} changeTo={tripHere ? changeTo : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange} onRoute={id => { pickRoute(id); revealMap(); }} />}
-      {selStation && (
-        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null}
-          change={tripHere && trip && changeTo ? { to: changeTo, tripTime: tripEta(trip), tripMode: trip.option.mode, startOpen: openedToChange, onPick: changeWay } : null} />
-      )}
+      <div ref={lowerRef} className="mw-lower">
+        {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} hideGo={cardSel}
+          onReplan={tripHere ? changeWay : null} changeTo={tripHere ? changeTo : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange || moreOpen} onRoute={id => { pickRoute(id); revealMap(); }} />}
+        {selStation && (
+          <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null}
+            change={tripHere && trip && changeTo ? { to: changeTo, tripTime: tripEta(trip), tripMode: trip.option.mode, startOpen: openedToChange, onPick: changeWay } : null} />
+        )}
+      </div>
 
       <CityMapList
         ix={ix} lines={lines} stations={stations} pos={pos} query={query} setQuery={setQuery} tab={tab} setTab={setTab} selected={sel} highlight={highlight} epoch={epoch}

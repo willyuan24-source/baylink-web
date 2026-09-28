@@ -64,7 +64,7 @@ export function useTripOptions(dest: PlaceTripDest | null): { options: TripOptio
  * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button) and 其他方式 becomes
  * 换个方式: the ways from here, a pick changes the running trip's way (onReplan).
  */
-export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onReplan, changeTo = null, tripMode = null, startOpen = false, onRoute }: {
+export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onReplan, changeTo = null, tripMode = null, startOpen = false, onRoute, hideGo = false }: {
   place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean;
   /**
    * lane C's trip to this place is running: its way and time left ("跑过去 约 2 分钟", as the trip strip and the ETA
@@ -82,6 +82,8 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   tripMode?: TripOption['mode'] | null;
   startOpen?: boolean;
   onRoute?: (id: SfRouteId) => void;
+  /** W5-N4: the go button is on the card pinned over the phone map (ui/MapGoCard): this card keeps the other ways */
+  hideGo?: boolean;
 }) {
   const { t } = useT();
   useDiscoveryEpoch();
@@ -119,13 +121,13 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
         {attraction?.visitNote && <small className="mw-place-note">{t(attraction.visitNote)}</small>}
       </div>
       <div className="ob-place-actions mw-place-actions">
-        {!onTrip && rec && (
+        {!onTrip && rec && !hideGo && (
           // W5-N3: the way and its time on the button; one tap closes the map and BAYBAY carries you
           <button type="button" className="ob-btn ob-btn-primary mw-go" onClick={() => go(rec)} aria-label={t(optionAria(rec))}>
             <GoIcon o={rec} /><span>{t(goButtonLabel(rec))}</span>
           </button>
         )}
-        {(changing ? options.length > 0 : !onTrip && options.length > 1) && (
+        {(changing ? options.length > 0 : !onTrip && options.length > (hideGo ? 0 : 1)) && (
           <button type="button" className={`ob-btn ob-btn-ghost mw-more${more ? ' is-on' : ''}`} onClick={() => setMore(m => !m)} aria-expanded={more}>
             <span>{changing ? t('换个方式', 'Another way') : t('其他方式', 'Other ways')}</span><ChevronDown size={15} aria-hidden />
           </button>

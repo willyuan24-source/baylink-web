@@ -124,6 +124,16 @@ export function tripProviders(): TripProviders {
 }
 
 /**
+ * W5-N4 · the same providers answering from the route cache only (no search starts): the quick rows of the phone map
+ * (the cluster chooser, the search results) plan several places at once from what is known, straight × 1.25 for the
+ * rest — the words a card shows before its own routes land. The go itself plans with `tripProviders()` (goTo).
+ */
+export function peekTripProviders(): TripProviders {
+  const c = tripRouteCache();
+  return { ...tripProviders(), walk: (a, b) => c.walk(a, b, false), drive: (a, b, kind) => c.drive(a, b, kind, false) };
+}
+
+/**
  * W5-N2 · one ETA source: lane T's `rideEta()` (game/transit.ts, W5-T1: the ride left from where the vehicle really is).
  * Aboard, the pill, the waypoint and the trip card count its `rideLeft` (else the share of the planned ride left); while
  * waiting they already take the vehicle's live ETA (flow.ride.eta). Undefined: not riding / unknown.
