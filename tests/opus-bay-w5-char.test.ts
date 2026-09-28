@@ -388,3 +388,10 @@ test('W5-F8 far parked rides: city mode draws a parked bike / the toy car only w
   const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
   assert.match(src, /const mine = r === move\.ride \|\| r\.occupied \|\| !!r\.call;\s*r\.rig\.mesh\.visible = !cityMode \|\| mine \|\| this\.withinCamera\(r\.sim\.x, r\.sim\.z, FAR_RIDE\);/);
 });
+
+test('lane A\'s request 2: posing in photo mode, BAYBAY turns her whole body to the camera (actors/system.ts)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const path = await import('node:path');
+  const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/system.ts'), 'utf8');
+  assert.match(src, /else if \(s\.photoMode && this\.guideAnim\.playing\('pose'\)\) g\.heading = dampAngle\(g\.heading, Math\.atan2\(this\.camPos\.x - g\.x, this\.camPos\.z - g\.z\), 6, dt\);/);
+});

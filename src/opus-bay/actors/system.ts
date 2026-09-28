@@ -672,6 +672,8 @@ export class ActorSystem {
     const guideHeld = move.guideCarried || (carried && move.mode !== 'sit');
     this.mover.step(dt, t, { playing: s.phase === 'playing', riding: riding || guideHeld, visible: this.guideSeen });
     if (move.guide.active) { g.x = move.guide.x; g.y = move.guide.y; g.z = move.guide.z; }
+    // (W5 lane A's request 2) posing in photo mode, BAYBAY turns her whole body to the camera (a selfie, not side-on)
+    else if (s.photoMode && this.guideAnim.playing('pose')) g.heading = dampAngle(g.heading, Math.atan2(this.camPos.x - g.x, this.camPos.z - g.z), 6, dt);
     move.syncRideables();
 
     // --- player facing while talking / posing
