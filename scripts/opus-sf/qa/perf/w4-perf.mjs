@@ -57,7 +57,9 @@ function table(res) {
     const id = r.aim?.cam ? `${r.id} (aimed: the walking camera looked ${r.aim.off}° away)` : r.id;
     lines.push(`| ${id} | ${g.calls || '—'} | ${g.tris ? k(g.tris) : '—'} | ${r.m?.programs ?? r.ride?.programs ?? '—'} | ${fpsCol} | ${p95 ?? '—'} | ${g.over100} | ${g.fails.length ? 'fail: ' + g.fails.join(', ') : 'pass'} |`);
   }
-  lines.push('', `programs first → last: ${res.programs?.first} → ${res.programs?.last}${res.programs && res.programs.first !== res.programs.last ? ' (drift)' : ''}`);
+  const sess = res.programs?.sessions;
+  if (sess && sess.length > 1) lines.push('', `programs first → last, per session: ${sess.map(p => `${p.first} → ${p.last}${p.first !== p.last ? ' (drift)' : ''}`).join(' · ')}`);
+  else lines.push('', `programs first → last: ${res.programs?.first} → ${res.programs?.last}${res.programs && res.programs.first !== res.programs.last ? ' (drift)' : ''}`);
   return lines.join('\n');
 }
 
@@ -160,63 +162,102 @@ const rides = String(args.rides ?? '1') === '1' ? SPOTS.rides.filter(r => !pick 
 const ms = Number(args.ms || 10000), wait = Number(args.wait || 20000);
 const perfHelpers = fs.readFileSync(here('./perf-helpers.js'), 'utf8');
 
-const acts = [
-  { do: 'eval', label: 'helpers', expr: HELPERS },
-  { do: 'eval', label: 'perf-helpers', expr: perfHelpers },
-  { do: 'eval', label: 'info', expr: 'window.__perf.info()' },
-  { do: 'eval', label: 'boot', expr: 'window.__w4.ready(180000)' },
-  { do: 'wait', ms: 8000 },
-  { do: 'eval', label: 'hud', expr: "(() => { const c = document.querySelector('canvas'); let n = 0; for (const e of document.body.querySelectorAll('*')) if (c && !e.contains(c) && e !== c) { e.style.visibility = 'hidden'; n++; } return n; })()" },
-];
-if (args.throttle) acts.push({ do: 'throttle', rate: Number(args.throttle) });
-for (const s of spots) {
-  acts.push({ do: 'eval', label: `pos ${s.id}`, expr: `window.__w4.go(${JSON.stringify(s.go)})` });
-  acts.push({ do: 'wait', ms: wait });
-  acts.push({ do: 'eval', label: `measure ${s.id}`, expr: 'window.__w4.measure()' });
-  acts.push({ do: 'shot', name: path.join(out, `${s.id}.jpg`) });
-  acts.push({ do: 'eval', label: `aim ${s.id}`, expr: `window.__w4.aimSet(${JSON.stringify(s.go)})` });
-  acts.push({ do: 'wait', ms: 4000 });
-  acts.push({ do: 'eval', label: `measure-aim ${s.id}`, expr: 'window.__w4.measure()' });
-  acts.push({ do: 'shot', name: path.join(out, `${s.id}-aim.jpg`) });
-  acts.push({ do: 'eval', label: `unaim ${s.id}`, expr: 'window.__opusBay.world.clearCam() || "ok"' });
-  acts.push({ do: 'eval', label: `idle ${s.id}`, expr: `window.__perf.frames(${ms}, false)` });
-  acts.push({ do: 'eval', label: `walk ${s.id}`, expr: `window.__perf.frames(${ms}, true)` });
+/** One Chrome session's actions: boot, then the given spots and rides (the helpers are sent with every session). */
+function sessionActs(sp, rd) {
+  const acts = [
+    { do: 'eval', label: 'helpers', expr: HELPERS },
+    { do: 'eval', label: 'perf-helpers', expr: perfHelpers },
+    { do: 'eval', label: 'info', expr: 'window.__perf.info()' },
+    { do: 'eval', label: 'boot', expr: 'window.__w4.ready(180000)' },
+    { do: 'wait', ms: 8000 },
+    { do: 'eval', label: 'hud', expr: "(() => { const c = document.querySelector('canvas'); let n = 0; for (const e of document.body.querySelectorAll('*')) if (c && !e.contains(c) && e !== c) { e.style.visibility = 'hidden'; n++; } return n; })()" },
+  ];
+  if (args.throttle) acts.push({ do: 'throttle', rate: Number(args.throttle) });
+  for (const s of sp) {
+    acts.push({ do: 'eval', label: `pos ${s.id}`, expr: `window.__w4.go(${JSON.stringify(s.go)})` });
+    acts.push({ do: 'wait', ms: wait });
+    acts.push({ do: 'eval', label: `measure ${s.id}`, expr: 'window.__w4.measure()' });
+    acts.push({ do: 'shot', name: path.join(out, `${s.id}.jpg`) });
+    acts.push({ do: 'eval', label: `aim ${s.id}`, expr: `window.__w4.aimSet(${JSON.stringify(s.go)})` });
+    acts.push({ do: 'wait', ms: 4000 });
+    acts.push({ do: 'eval', label: `measure-aim ${s.id}`, expr: 'window.__w4.measure()' });
+    acts.push({ do: 'shot', name: path.join(out, `${s.id}-aim.jpg`) });
+    acts.push({ do: 'eval', label: `unaim ${s.id}`, expr: 'window.__opusBay.world.clearCam() || "ok"' });
+    acts.push({ do: 'eval', label: `idle ${s.id}`, expr: `window.__perf.frames(${ms}, false)` });
+    acts.push({ do: 'eval', label: `walk ${s.id}`, expr: `window.__perf.frames(${ms}, true)` });
+  }
+  for (const r of rd) {
+    acts.push({ do: 'eval', label: `ride ${r.id}`, expr: `window.__w4.ride(${JSON.stringify(r)})` });
+    acts.push({ do: 'shot', name: path.join(out, `ride-${r.id}.jpg`) });
+  }
+  if (args.throttle) acts.push({ do: 'throttle', rate: 1 });
+  acts.push({ do: 'eval', label: 'programs-last', expr: 'window.__opusBay.renderer.info.programs.length' });
+  return acts;
 }
-for (const r of rides) {
-  acts.push({ do: 'eval', label: `ride ${r.id}`, expr: `window.__w4.ride(${JSON.stringify(r)})` });
-  acts.push({ do: 'shot', name: path.join(out, `ride-${r.id}.jpg`) });
+
+// part c (W5-V11): a long table no longer fits one command line (Windows: 32k characters, ENAMETOOLONG with 20 spots +
+// 3 rides): the spots and rides are split over as few Chrome sessions as fit, one after the other; each session boots
+// the city again, and "programs first → last" is kept per session (the table shows every session's pair)
+const MAX_CMD = 26000;
+const items = [...spots.map(s => ({ s })), ...rides.map(r => ({ r }))];
+const sessions = [];
+for (const it of items) {
+  const cur = sessions[sessions.length - 1];
+  const tryIt = cur ? [...cur, it] : [it];
+  const len = JSON.stringify(sessionActs(tryIt.filter(x => x.s).map(x => x.s), tryIt.filter(x => x.r).map(x => x.r))).length;
+  if (cur && len > MAX_CMD) sessions.push([it]); else if (cur) cur.push(it); else sessions.push([it]);
 }
-if (args.throttle) acts.push({ do: 'throttle', rate: 1 });
-acts.push({ do: 'eval', label: 'programs-last', expr: 'window.__opusBay.renderer.info.programs.length' });
+if (!sessions.length) sessions.push([]);
 
 const shot = String(args.shot || 'node scripts/opus-shot.mjs').split(' ');
 const size = phone ? ['--mobile', ...(args.dpr ? ['--dpr', String(args.dpr)] : [])] : ['--w', String(args.w || 1440), '--h', String(args.h || 900)];
-const cmd = [...shot.slice(1), '--url', url, ...size, '--wait', String(args.bootwait || 30000), '--out', path.join(out, 'last.jpg'), '--actions', JSON.stringify(acts)];
-console.error(`[w4-perf] ${spots.length} spots + ${rides.length} rides → ${out}\n  ${url}`);
-const child = spawn(shot[0], cmd, { stdio: ['ignore', 'pipe', 'inherit'] });
-let buf = '';
-const events = [];
-child.stdout.on('data', d => {
-  buf += d;
-  let i;
-  while ((i = buf.indexOf('\n')) >= 0) {
-    const line = buf.slice(0, i); buf = buf.slice(i + 1);
-    try { const e = JSON.parse(line); events.push(e); if (e.eval || e.exception || e.error) console.error('  ', line.slice(0, 220)); } catch { /* not ours */ }
-  }
-});
-child.on('close', code => {
-  const val = label => { const e = events.find(x => x.eval === label); try { return e && JSON.parse(e.value); } catch { return e?.value ?? null; } };
+console.error(`[w4-perf] ${spots.length} spots + ${rides.length} rides in ${sessions.length} session(s) → ${out}
+  ${url}`);
+
+/** Run one Chrome session; resolves with its events and exit code. */
+function runSession(acts) {
+  const cmd = [...shot.slice(1), '--url', url, ...size, '--wait', String(args.bootwait || 30000), '--out', path.join(out, 'last.jpg'), '--actions', JSON.stringify(acts)];
+  return new Promise(resolve => {
+    const child = spawn(shot[0], cmd, { stdio: ['ignore', 'pipe', 'inherit'] });
+    let buf = '';
+    const events = [];
+    child.stdout.on('data', d => {
+      buf += d;
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i); buf = buf.slice(i + 1);
+        try { const e = JSON.parse(line); events.push(e); if (e.eval || e.exception || e.error) console.error('  ', line.slice(0, 220)); } catch { /* not ours */ }
+      }
+    });
+    child.on('close', code => resolve({ events, code }));
+  });
+}
+
+const all = [];
+const programs = [];
+let code = 0;
+for (const sess of sessions) {
+  const sp = sess.filter(x => x.s).map(x => x.s), rd = sess.filter(x => x.r).map(x => x.r);
+  const r = await runSession(sessionActs(sp, rd));
+  const val = label => { const e = r.events.find(x => x.eval === label); try { return e && JSON.parse(e.value); } catch { return e?.value ?? null; } };
   const rows = [
-    ...spots.map(s => ({ id: s.id, pos: val(`pos ${s.id}`), m: val(`measure ${s.id}`), aim: { ...(val(`aim ${s.id}`) || {}), m: val(`measure-aim ${s.id}`) }, idle: val(`idle ${s.id}`), walk: val(`walk ${s.id}`) })),
-    ...rides.map(r => ({ id: r.id, ride: val(`ride ${r.id}`) })),
+    ...sp.map(s => ({ id: s.id, pos: val(`pos ${s.id}`), m: val(`measure ${s.id}`), aim: { ...(val(`aim ${s.id}`) || {}), m: val(`measure-aim ${s.id}`) }, idle: val(`idle ${s.id}`), walk: val(`walk ${s.id}`) })),
+    ...rd.map(x => ({ id: x.id, ride: val(`ride ${x.id}`) })),
   ];
-  const firstProg = rows.find(r => r.m)?.m?.programs ?? null;
-  const res = { url, profile: phone ? 'phone' : 'desktop', date: new Date().toISOString(), exit: code, info: val('info'),
-    programs: { first: firstProg, last: val('programs-last') }, rows,
+  programs.push({ first: rows.find(x => x.m)?.m?.programs ?? null, last: val('programs-last') });
+  all.push({ rows, events: r.events, info: val('info') });
+  code = code || (r.code ?? 1);
+}
+{
+  const rows = all.flatMap(a => a.rows);
+  const events = all.flatMap(a => a.events);
+  const res = { url, profile: phone ? 'phone' : 'desktop', date: new Date().toISOString(), exit: code, info: all[0]?.info ?? null,
+    programs: { first: programs[0]?.first ?? null, last: programs[programs.length - 1]?.last ?? null, sessions: programs }, rows,
     console: events.filter(e => e.console || e.exception).map(e => e.console ? `${e.console}: ${e.text}` : `exception: ${e.exception}`).slice(0, 50) };
   fs.writeFileSync(path.join(out, 'w4-perf.json'), JSON.stringify(res, null, 1));
   const md = `# w4 perf\n\n${table(res)}\n`;
   fs.writeFileSync(path.join(out, 'w4-perf.md'), md);
   console.log(md);
-  process.exit(code ?? 1);
-});
+  process.exit(code);
+}
+
