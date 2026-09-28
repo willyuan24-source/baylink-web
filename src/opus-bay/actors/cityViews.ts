@@ -64,6 +64,15 @@ export function zoneFrame(rise: number, d: number, elevation: number, top = NaN)
 }
 
 /**
+ * (part b, verify-visual F6) Landmarks you arrive at under a structure: the usual 15–24 u framing put the camera inside
+ * it. Fort Point's apron lies under the Golden Gate Bridge's south approach arch; at 15 u the camera stood in the arch's
+ * pier and looked down through a dithered hole. A close, low camera stays under the deck with the fort's face in view.
+ */
+const LOW_FRAMES: Readonly<Record<string, { dist: number; pitch: number }>> = {
+  'fort-point': { dist: 9, pitch: 0.1 },
+};
+
+/**
  * The zone view for one landmark. Null when it has no arrival / photo pose, for an overlook (the view from there is the
  * subject: the openness field handles it) and for a tower you arrive at the foot of (Sutro: nothing frames 49 u from
  * 7 u away; the hero point keeps the camera from looking through its legs). Its framing (`frame`) is solved again from
@@ -89,7 +98,12 @@ export function landmarkZoneView(id: string, ground: (x: number, z: number) => n
   // (axis / lean: camera.ts shrinks the lean on a narrow portrait view, where a 0.35 rad lean
   // puts the subject past the frame's edge: E2-review, the Golden Gate Bridge and Mission Dolores at 375 × 667)
   const v: ZoneView = { anchor: `lm-${id}`, x: at.x, z: at.z, yaw: behind + lean, axis: behind, lean, r: CITY_ZONE_R, near: 0.7, subject: info.name.en };
-  v.frame = g => { const f = zoneFrame(riseOf(g), d, info.photo.elevation, topOf(g)); v.pitch = f.pitch; v.dist = f.dist; v.lookUp = f.lookUp; };
+  const low = LOW_FRAMES[id];
+  v.frame = g => {
+    const f = zoneFrame(riseOf(g), d, info.photo.elevation, topOf(g));
+    v.pitch = f.pitch; v.dist = f.dist; v.lookUp = f.lookUp;
+    if (low) { v.dist = Math.min(v.dist, low.dist); v.pitch = Math.min(v.pitch, low.pitch); }
+  };
   v.frame(ground);
   return v;
 }

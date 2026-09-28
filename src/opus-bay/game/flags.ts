@@ -227,12 +227,17 @@ export function tagWidth(text: string): number {
   return Math.ceil(w + 32);
 }
 
+/** rows a panorama tag may be lifted by over its anchor (0 = right above it) */
+export const TAG_LIFTS = 5;
+
 const hit = (a: TagBox, b: TagBox, pad = 4) => a.l < b.r + pad && a.r > b.l - pad && a.t < b.b + pad && a.b > b.t - pad;
 
 /**
  * Place the tags greedily (T1 first, then T2; nearer screen centre first inside a rank): each tag tries above its
- * anchor, then lifted by one and two rows (a leader line joins it to the anchor: `lead`), and is dropped when none of
- * those fits inside `area` without touching a placed tag or a fixed HUD box. Tags behind the camera or off screen drop.
+ * anchor, then nudged sideways (the anchor stays under the tag, 10 px in from its end), then lifted row by row up to
+ * TAG_LIFTS rows (a leader line joins a moved tag to its anchor: `lead`), and is dropped when none of those fits inside
+ * `area` without touching a placed tag or a fixed HUD box. Tags behind the camera or off screen drop.
+ * (part b: with two rows and no nudge, 3 of the 8 Twin Peaks tags found room at 1440 × 900 — they crowd at the horizon.)
  */
 export function layoutPanoramaTags(tags: readonly TagInput[], area: TagBox, fixed: readonly TagBox[] = [], max: number = PANORAMA.max): PlacedTag[] {
   const cx = (area.l + area.r) / 2, cy = (area.t + area.b) / 2;
@@ -242,14 +247,21 @@ export function layoutPanoramaTags(tags: readonly TagInput[], area: TagBox, fixe
   const placed: PlacedTag[] = [];
   for (const t of order) {
     if (placed.length >= max) break;
-    for (let lift = 0; lift < 3; lift++) {
+    const nudge = Math.max(0, t.w / 2 - 10);
+    let done = false;
+    for (let lift = 0; lift < TAG_LIFTS && !done; lift++) {
       const y = t.y - 10 - lift * (t.h + 8);
-      const l = Math.min(area.r - t.w, Math.max(area.l, t.x - t.w / 2));
-      const box: TagBox = { l, t: y - t.h, r: l + t.w, b: y };
-      if (box.t < area.t) break;
-      if (placed.some(p => hit(p.box, box)) || fixed.some(f => hit(f, box, 2))) continue;
-      placed.push({ id: t.id, x: l + t.w / 2, y, box, lead: lift > 0 });
-      break;
+      if (y - t.h < area.t) break;
+      for (const dx of [0, nudge, -nudge]) {
+        const l = Math.min(area.r - t.w, Math.max(area.l, t.x - t.w / 2 + dx));
+        // (the clamp to the area may push the anchor off the tag: then only the tag's own column counts)
+        if (t.x < l + 6 || t.x > l + t.w - 6) continue;
+        const box: TagBox = { l, t: y - t.h, r: l + t.w, b: y };
+        if (placed.some(p => hit(p.box, box)) || fixed.some(f => hit(f, box, 2))) continue;
+        placed.push({ id: t.id, x: l + t.w / 2, y, box, lead: lift > 0 });
+        done = true;
+        break;
+      }
     }
   }
   return placed;

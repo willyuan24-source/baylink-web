@@ -50,11 +50,15 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
  * toward the point — 85 % of the way, the rider stays in frame — easing in and out over 0.8 s. A drag cancels it.
  * Performance-clock seconds (the callers are event handlers, not the camera's frame clock).
  */
-const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9 };
+const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9, wide: false };
 const perfNow = () => performance.now() / 1000;
-export function rideLookAt(x: number, z: number, seconds = 4) {
+/**
+ * `wide` (part b, the portal): the camera also pulls back (+5 u), lifts a little and widens (+6°) while it looks, so the
+ * train coming out of the mouth shows whole with the portal behind it, not just the rider against the tunnel wall.
+ */
+export function rideLookAt(x: number, z: number, seconds = 4, wide = false) {
   const now = perfNow();
-  lookBias.x = x; lookBias.z = z; lookBias.t0 = now; lookBias.t1 = now + Math.max(0.5, seconds);
+  lookBias.x = x; lookBias.z = z; lookBias.t0 = now; lookBias.t1 = now + Math.max(0.5, seconds); lookBias.wide = wide;
 }
 /** The bias weight now (0–1, smooth in and out over 0.8 s). */
 export function rideLookWeight(now = perfNow()): number {
@@ -151,6 +155,7 @@ export class RideCamera {
           const look = Math.atan2(sub.x - lookBias.x, sub.z - lookBias.z);
           yaw += wrap(look - yaw) * 0.85 * w;
           pitch += 0.06 * w;
+          if (lookBias.wide) { dist += 5 * w; pitch += 0.08 * w; fov += 6 * w; }
         }
         break;
       }

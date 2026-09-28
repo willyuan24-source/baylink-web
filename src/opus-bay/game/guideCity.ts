@@ -634,7 +634,8 @@ async function qaTrip(attraction: string, mode?: string) {
 /**
  * W4-G9 · the ride camera's looks (actors/cameraModes rideLookAt): lane T's 'approach' of the ridden bus / train turns
  * the view toward the stop's attraction for 4 s (the flag foot: the landmark's tall part), and the rider's train coming
- * out of a portal ('portal-out', LineFleet.onPortal) looks back at the mouth for 2.5 s. Only for the ride you are on.
+ * out of a portal ('portal-out', LineFleet.onPortal) looks back at the mouth for 3.2 s, pulled back and wider (part b:
+ * the train comes out whole with the portal behind it). Only for the ride you are on.
  */
 function watchRideLooks(): () => void {
   const offEvents = onEvent(e => {
@@ -657,7 +658,7 @@ function watchRideLooks(): () => void {
     fleet = now;
     offPortal = now ? now.onPortal(ev => {
       const ride = flow.get().ride;
-      if (ev.what === 'portal-out' && ev.portal && ride && ride.line === ev.line) rideLookAt(ev.portal.x, ev.portal.z, 2.5);
+      if (ev.what === 'portal-out' && ev.portal && ride && ride.line === ev.line) rideLookAt(ev.portal.x, ev.portal.z, 3.2, true);
     }) : null;
   }, 1000);
   return () => { offEvents(); window.clearInterval(poll); offPortal?.(); };

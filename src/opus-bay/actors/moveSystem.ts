@@ -24,8 +24,8 @@ import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pic
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
-import { driveRoute, PARK_CLEAR, stopShortOf } from './vehicles/driveRoute';
-import { DriveTalk, driveCueLine } from './vehicles/driveTalk';
+import { drivableAt, driveRoute, findDrivePath, PARK_CLEAR, stopShortOf } from './vehicles/driveRoute';
+import { DRIVE_TALK, DriveTalk, driveCueLine } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
 import { BIKE_VISUAL } from './vehicles/models';
@@ -88,6 +88,8 @@ export interface RideAnim {
 type GuideSeat = 'none' | 'in' | 'seated' | 'out';
 
 const SLOTS: SlotWorld = { canStand, heightAt };
+/** a stuck autopilot tries this many ways round per drive, each to the route this far (u) past where it stands (D6) */
+const DETOURS = 2, DETOUR_AHEAD = 14;
 /** the autopilot waits this long (s) for someone in front to walk on before its back-up-and-retry (verify-desktop D6) */
 const WAY_WAIT = 6;
 /** obstacle kinds that move on by themselves (toy traffic): the autopilot waits for them like for people */
@@ -192,6 +194,8 @@ export class MoveSystem {
   auto: PursuitDriver | null = null;
   /** W4-G4 (part b): BAYBAY's pointing and lines on the autopilot's route while she rides along */
   private driveTalk: DriveTalk | null = null;
+  /** ways round a stuck spot taken on this drive (part b, D6) */
+  private detours = 0;
   private autoToken: { aborted: boolean } | null = null;
   /** where the autopilot is heading (the tapped point, then the route's end) — the target ring */
   driveTarget: Vec2 | null = null;
@@ -594,6 +598,7 @@ export class MoveSystem {
       const points = stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1]));
       this.auto = new PursuitDriver(r.sim.spec, points);
       this.driveTalk = new DriveTalk(points);
+      this.detours = 0;
       this.drivePath = points;
       this.driveTarget = points[points.length - 1];
       this.driveRoutes++;
@@ -639,6 +644,8 @@ export class MoveSystem {
       emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'arrive' });
       this.driveArrivals++;
       this.auto = null; this.driveTarget = null; this.drivePath = [];
+    } else if (auto.state === 'stuck' && this.detours < DETOURS && this.detour(ride, auto)) {
+      // (part b, verify-desktop D6) a way round: the rest of the drive goes on from here
     } else if (auto.state === 'stuck') {
       emit({ type: 'vehicle:auto', vehicle: ride.kind, state: 'stuck' });
       say('前面过不去了，换你来开吧', 'Can’t get through here — your turn to steer');
@@ -646,6 +653,36 @@ export class MoveSystem {
       this.auto = null; this.driveTarget = null; this.drivePath = [];
     }
     return inp;
+  }
+
+  /**
+   * (part b, verify-desktop D6) The autopilot backed up and still could not get on (a hairpin at a street corner, a
+   * tree on the sidewalk the walking graph runs past): a grid route on the drive mask from where the vehicle stands to
+   * the first drivable point of the route DETOUR_AHEAD u or more further on, then the rest of the route. False when
+   * there is none (the drive then gives up as before: "前面过不去了，换你来开吧").
+   */
+  private detour(ride: Ride, auto: PursuitDriver): boolean {
+    if (ride.kind !== 'bike' && ride.kind !== 'car') return false;
+    const s = ride.sim, kind = ride.kind;
+    let ahead = Math.min(auto.total, auto.s + DETOUR_AHEAD), to = auto.pointAt(ahead);
+    while (!drivableAt(to.x, to.z, kind) && ahead < auto.total) { ahead = Math.min(auto.total, ahead + 1); to = auto.pointAt(ahead); }
+    if (!drivableAt(to.x, to.z, kind)) return false;
+    const res = findDrivePath({ x: s.x, z: s.z }, to, kind, 3);
+    if (!res || res.snapped || !res.points.length) return false;
+    const pts: Vec2[] = [{ x: s.x, z: s.z }, ...res.points];
+    let acc = 0;
+    for (let i = 1; i < auto.path.length; i++) {
+      const a = auto.path[i - 1], b = auto.path[i];
+      acc += Math.hypot(b.x - a.x, b.z - a.z);
+      if (acc > ahead + 0.3) pts.push({ x: b.x, z: b.z });
+    }
+    if (pts.length < 2) return false;
+    this.detours++;
+    this.auto = new PursuitDriver(s.spec, pts);
+    this.driveTalk = new DriveTalk(pts, DRIVE_TALK, false);
+    this.drivePath = pts;
+    this.driveTarget = pts[pts.length - 1];
+    return true;
   }
 
   /** Save v2 (G1): the last-ridden bike and the toy car, when they are away from their spots (or ridden). */
@@ -1021,8 +1058,9 @@ export class MoveSystem {
       let lz = clamp(this.deck.z + 0.95, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
       // (E2 w3 review open) the ferry's sun deck: the rider at the bow rail is at the deck's front edge, so "0.95 u
       // ahead" clamped onto the rider (0.05 u apart: in the side-on ride shot BAYBAY covered the player). There she
-      // stands 1.1 u aft of the rider instead: beside them in the frame
-      if (!seated && plat.kind === 'ferry' && Math.abs(lz - this.deck.z) < 0.8) lz = clamp(this.deck.z - 1.1, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
+      // stands 1.1 u aft of the rider instead: beside them in the frame. (W4-G4, part b) The same on the Metro LRV: the
+      // rider's standing spot behind the cab is 0.15 u from the aisle's front end, where she stood on the rider too
+      if (!seated && Math.abs(lz - this.deck.z) < 0.8) lz = clamp(this.deck.z - 1.1, plat.deck.minZ + 0.3, plat.deck.maxZ - 0.3);
       const w = toWorld(plat, lx, plat.floor + (seated ? plat.seatY + 0.2 : 0), lz);
       out.set(w.x, w.y, w.z);
       return { scale: 1, sitting: seated, pole: !seated };

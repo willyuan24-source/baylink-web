@@ -182,3 +182,94 @@ test('W4-G4 (part b): BAYBAY in the basket points ≈ 20 u before a turn over 45
   for (let s = 0, t = 0; s <= 125; s += 0.7, t += 0.1) if (short.step(s, t)) said++;
   assert.equal(said, 0);
 });
+
+test('part b: panorama tags on a crowded horizon (Twin Peaks at 1440 × 900) nudge sideways and lift up to 5 rows — all 8 find room, no overlaps, each anchor under its tag', async () => {
+  const { layoutPanoramaTags, tagWidth, TAG_LIFTS } = await import('../src/opus-bay/game/flags');
+  assert.equal(TAG_LIFTS, 5);
+  const area = { l: 12, t: 80, r: 1428, b: 780 };
+  const names = ['金门大桥', '渡轮大厦', '科伊特塔', '市政厅', '萨特罗塔', '金门公园', '海湾大桥', '恶魔岛'];
+  // eight anchors along the skyline, 40–60 px apart (the 2,000 u view squeezes them together)
+  const inputs = names.map((n, i) => ({ id: `t${i}`, x: 520 + i * 52, y: 360 + (i % 3) * 6, w: tagWidth(n), h: 26, rank: (i < 5 ? 1 : 2) as 1 | 2 }));
+  const placed = layoutPanoramaTags(inputs, area, []);
+  assert.equal(placed.length, 8, `placed ${placed.length} of 8 (in game before part b: 3 of 8 at Twin Peaks)`);
+  for (let i = 0; i < placed.length; i++) {
+    const a = placed[i].box, anchor = inputs.find(t => t.id === placed[i].id)!;
+    assert.ok(a.l >= area.l && a.r <= area.r && a.t >= area.t && a.b <= area.b);
+    assert.ok(anchor.x >= a.l + 6 && anchor.x <= a.r - 6, 'the leader drops from under the tag');
+    assert.ok(a.b <= anchor.y, 'above its anchor');
+    for (let j = i + 1; j < placed.length; j++) {
+      const b = placed[j].box;
+      assert.ok(!(a.l < b.r && a.r > b.l && a.t < b.b && a.b > b.t), `${placed[i].id} overlaps ${placed[j].id}`);
+    }
+  }
+});
+
+test('W4-G9 (part b): coming out of a portal the ride camera looks back at the mouth pulled back and wider (the whole train), an attraction look does not', async () => {
+  const THREE = await import('three');
+  const { RideCamera, rideLookAt } = await import('../src/opus-bay/actors/cameraModes');
+  const run = (wide: boolean) => {
+    const cam = new RideCamera();
+    const sub = { mode: 'transit' as const, x: 0, y: 0, z: 0, heading: 0, speed: 8, gradeAhead: 0, side: 1 as const };
+    const pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 46 };
+    cam.update(sub, 1, 10, pose);
+    rideLookAt(0, -60, 3.2, wide); // the portal behind the train
+    const t0 = performance.now();
+    while (performance.now() - t0 < 1000) { /* the 0.8 s ease-in */ }
+    for (let i = 0; i < 90; i++) cam.update(sub, 1 / 30, 11 + i / 30, pose);
+    return { d: Math.hypot(pose.pos.x, pose.pos.z), fov: pose.fov, h: pose.pos.y };
+  };
+  const plain = run(false), wide = run(true);
+  assert.ok(wide.d > plain.d + 3, `pulled back (${plain.d.toFixed(1)} → ${wide.d.toFixed(1)} u)`);
+  assert.ok(wide.fov > plain.fov + 3, `wider (${plain.fov.toFixed(1)} → ${wide.fov.toFixed(1)}°)`);
+  assert.ok(wide.h > plain.h, 'a little higher');
+});
+
+test('verify-desktop D6: a stuck autopilot takes a grid route round the spot to the route further on (≤ 2 per drive) before handing back the steering', async () => {
+  (globalThis as { window?: unknown }).window ??= { setTimeout, clearTimeout };
+  const { PursuitDriver } = await import('../src/opus-bay/actors/vehicles/autopilot');
+  const { CAR_SPEC } = await import('../src/opus-bay/actors/vehicles/toyCar');
+  const { drivableAt, findDrivePath } = await import('../src/opus-bay/actors/vehicles/driveRoute');
+  game.set({ phase: 'playing' });
+  const events: GameEvent[] = [];
+  const off = onEvent(e => { if (e.type === 'vehicle:auto') events.push(e); });
+  const ms = new MoveSystem();
+  moveApi.bindMoveApi(ms);
+  try {
+    const c = new PlayerController();
+    const env = { cameraYaw: Math.PI, frozen: false, playing: true, controller: c, frustum: new THREE.Frustum() };
+    const car = ms.fleet.rides.find(r => r.kind === 'car')!;
+    resetPlayer({ x: car.sim.x + 1.6, z: car.sim.z }, 0);
+    c.sync();
+    ms.onInteract(`ride:${car.id}`, c);
+    let t = 0;
+    for (; t < 3; t += DT) ms.update(DT, t, env);
+    // a straight "route" through undrivable ground (as a walking-graph edge past a corner / a tree can be) whose end
+    // is reachable by a grid route: the first such line round the toy car's spot
+    const st = { x: car.sim.x, z: car.sim.z };
+    let end: { x: number; z: number } | null = null;
+    for (let k = 0; k < 32 && !end; k++) {
+      const a = (k / 32) * Math.PI * 2, e = { x: st.x + Math.sin(a) * 20, z: st.z + Math.cos(a) * 20 };
+      if (!drivableAt(e.x, e.z, 'car')) continue;
+      let bad = 0;
+      for (let d = 3; d < 18; d += 0.5) if (!drivableAt(st.x + Math.sin(a) * d, st.z + Math.cos(a) * d, 'car')) bad++;
+      const r = bad >= 4 ? findDrivePath(st, e, 'car', 3) : null;
+      if (r && !r.snapped) end = e;
+    }
+    assert.ok(end, 'a blocked straight line with a way round');
+    ms.auto = new PursuitDriver(CAR_SPEC, [st, end!]);
+    for (let k = 0; k < 60 * 40 && ms.auto; k++, t += DT) ms.update(DT, t, env);
+    const states = events.map(e => (e as { state: string }).state);
+    assert.deepEqual(states, ['arrive'], `went round and arrived (events: ${states.join(', ')})`);
+    assert.ok(Math.hypot(car.sim.x - end!.x, car.sim.z - end!.z) < 2, 'at the end');
+  } finally { off(); moveApi.bindMoveApi(null); ms.dispose(); game.set({ phase: 'title' }); }
+});
+
+test('W4-G4 (part b): no drive cue in the first seconds (the trip\'s "骑车出发！" line) nor for a corner right at the start', async () => {
+  const { DRIVE_TALK, DriveTalk } = await import('../src/opus-bay/actors/vehicles/driveTalk');
+  // a corner 5 u from the start and another at 40 u
+  const talk = new DriveTalk([{ x: 0, z: 0 }, { x: 0, z: -5 }, { x: -30, z: -5 }, { x: -30, z: -40 }, { x: 0, z: -40 }]);
+  const cues: number[] = [];
+  for (let s = 0, t = 0; s <= 90; s += 0.35, t += 0.05) if (talk.step(s, t)) cues.push(t);
+  assert.ok(cues.length >= 1, 'the later corners still get their cue');
+  assert.ok(cues[0] >= DRIVE_TALK.hold, `first cue after ${DRIVE_TALK.hold} s (${cues[0].toFixed(2)})`);
+});

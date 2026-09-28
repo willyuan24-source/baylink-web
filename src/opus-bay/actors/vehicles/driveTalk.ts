@@ -25,6 +25,9 @@ export const DRIVE_TALK = {
   thirdsMin: 150,
   /** seconds between two cues */
   quiet: 6,
+  /** nothing in the first seconds of a drive (the trip's own "骑车出发！" line), nor for a corner this close to the start (u) */
+  hold: 3,
+  startSkip: 8,
 } as const;
 
 export type DriveCue =
@@ -81,17 +84,21 @@ export class DriveTalk {
   private lastAt = -Infinity;
   private readonly c: typeof DRIVE_TALK;
 
-  constructor(path: readonly Vec2[], c: typeof DRIVE_TALK = DRIVE_TALK) {
+  private t0 = NaN;
+
+  /** `thirds` false: no 1/3 and 2/3 lines (a detour's rest of a drive that already had them) */
+  constructor(path: readonly Vec2[], c: typeof DRIVE_TALK = DRIVE_TALK, thirds = true) {
     this.c = c;
     const cum = arcLengths(path);
     this.total = cum[cum.length - 1] ?? 0;
-    this.corners = routeCorners(path, c).map(k => ({ s: k.s, side: k.turn > 0 ? 'left' : 'right', done: false }));
-    if (this.total >= c.thirdsMin) this.thirds.push({ s: this.total / 3, n: 1, done: false }, { s: (2 * this.total) / 3, n: 2, done: false });
+    this.corners = routeCorners(path, c).filter(k => k.s >= c.startSkip).map(k => ({ s: k.s, side: k.turn > 0 ? 'left' : 'right', done: false }));
+    if (thirds && this.total >= c.thirdsMin) this.thirds.push({ s: this.total / 3, n: 1, done: false }, { s: (2 * this.total) / 3, n: 2, done: false });
   }
 
   /** The cue due at progress `s` (u along the route) at time `now` (s), or null. Each cue fires once. */
   step(s: number, now: number): DriveCue | null {
-    const quiet = now - this.lastAt < this.c.quiet;
+    if (Number.isNaN(this.t0)) this.t0 = now;
+    const quiet = now - this.lastAt < this.c.quiet || now - this.t0 < this.c.hold;
     for (const k of this.corners) {
       if (k.done) continue;
       if (s > k.s) { k.done = true; continue; } // passed (a quiet spell or a start past it)
