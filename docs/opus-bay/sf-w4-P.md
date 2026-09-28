@@ -295,7 +295,7 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 4. 地图：同一个地方的不同线路车站合成一个换乘站（卡斯特罗 = 观光·M·F，鲍威尔 = N·M·叮当·F，共 10 个），"观光""叮当"两个字用加宽的圆角标签；小景点的点叠在一起时也显示"+n"；搜"golden bridge""gate bri"这种多个词也能搜到。
 5. 顺带发现：手机上 SVG 数量上限装不下市中心约 70 个车站，所以车站改成画在底图（canvas）上，站名和景点名字互相避开。全部检查通过；这些还没接进游戏，接线步骤在下面。
 
-### What was built (commits `a09d859`, `564c68a`, `9a62916`, `d17d928`, `fc175d0` and the one adding this section)
+### What was built (commits `a09d859`, `564c68a`, `9a62916`, `a428867`, `128aab1` and the report commits after them)
 
 | file | what changed | API |
 |---|---|---|
@@ -424,5 +424,5 @@ tracked file. No Higgsfield spend. No owner messages were relayed.
 - **Lane G**: the review's O1 (bridge arrival), O2 (the island piers' names) and O3 (Corona summit) are done in lane
   P's files; pass `tripDestination(a)` to `planTrips`.
 
-Checks: tsc 0, eslint 0 errors (whole repo), full opus-bay suite **722 / 722** on `60b3a05` + lane P2 and again on the pushed
-tree `786c93e` (on `b33032b`, lane L's Botanical gate site), sidecar `--check` OK.
+Checks: tsc 0, eslint 0 errors (whole repo), full opus-bay suite **722 / 722** on `60b3a05` + lane P2, **726 / 726** on `492c517`
+(lane P2 on `a7750d6`; what was pushed after it is report text only), sidecar `--check` OK.
