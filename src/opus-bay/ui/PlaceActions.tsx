@@ -23,7 +23,7 @@ import { useT } from '../i18n';
 import { TripOptions } from './TripOptions';
 import { LINE_ICONS, MODE_ICONS } from './mapIcons';
 import { placeTripDest } from './mapTrips';
-import { goButtonLabel, optionAria, optionLineGlyph, tripSecondsLabel } from './tripRows';
+import { type TripWay, goButtonLabel, optionAria, optionLineGlyph, optionWay, tripSecondsLabel } from './tripRows';
 
 /** W5-N3 · the go button's glyph: the way it takes (the pelican, BAYBAY's arrow on foot, a bike, the line's vehicle). */
 function GoIcon({ o }: { o: TripOption }) {
@@ -82,7 +82,8 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   onReplan?: ((o: TripOption) => void) | null;
   /** where the running trip ends (the ways to change it are planned there: a Grand Tour stop's bus stop) */
   changeTo?: PlaceTripDest | null;
-  tripMode?: TripOption['mode'] | null;
+  /** the running way (tripRows optionWay: 'fly-scenic' apart from the fast 飞过去) */
+  tripMode?: TripWay | null;
   startOpen?: boolean;
   onRoute?: (id: SfRouteId) => void;
   /** W5-N4: the go button is on the card pinned over the phone map (ui/MapGoCard): this card keeps the other ways */
@@ -93,7 +94,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   const pos = useGame(s => s.playerPos);
   useGame(s => s.move.mode); // re-plan when mounting / leaving a vehicle
   const [more, setMore] = useState(startOpen);
-  const [picked, setPicked] = useState<TripOption['mode'] | null>(null);
+  const [picked, setPicked] = useState<TripWay | null>(null);
   useEffect(() => { setMore(startOpen); setPicked(null); }, [place.id, attraction?.id, startOpen]);
   const dest = useMemo(() => placeTripDest(place, attraction), [place, attraction]);
   // on a trip here: the ways only to change it (换个方式), never a second trip
@@ -115,7 +116,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
       : walk.state === 'ok' ? walk.label
         : walk.state === 'pending' ? { zh: '找路中…', en: 'Finding the way…' }
           : { zh: '走不过去', en: 'No walking way there' });
-  const go = (o: TripOption) => { setPicked(o.mode); if (changing) onReplan!(o); else startPlaceTrip(o, dest); };
+  const go = (o: TripOption) => { setPicked(optionWay(o)); if (changing) onReplan!(o); else startPlaceTrip(o, dest); };
   return (
     <div className="ob-map-pop ob-place-pop mw-place" role="group" aria-label={t(name)}>
       <div className="mw-place-head">
@@ -155,7 +156,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
  * where the trip ends, planned once the list is open, the running one pressed; `onPick` changes the trip's way.
  */
 export function ChangeWay({ to, tripTime = null, tripMode = null, startOpen = false, onPick }: {
-  to: PlaceTripDest; tripTime?: Bilingual | null; tripMode?: TripOption['mode'] | null; startOpen?: boolean; onPick: (o: TripOption) => void;
+  to: PlaceTripDest; tripTime?: Bilingual | null; tripMode?: TripWay | null; startOpen?: boolean; onPick: (o: TripOption) => void;
 }) {
   const { t } = useT();
   const [open, setOpen] = useState(startOpen);

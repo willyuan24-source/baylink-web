@@ -2,7 +2,7 @@ import { Loader } from 'lucide-react';
 import type { TripOption } from '../game/tripTypes';
 import { useT } from '../i18n';
 import { LINE_ICONS, MODE_ICONS } from './mapIcons';
-import { optionAria, optionDetail, optionKey, optionLineGlyph, optionTitle, orderOptions, tripSecondsLabel } from './tripRows';
+import { type TripWay, optionAria, optionDetail, optionKey, optionLineGlyph, optionTitle, optionWay, orderOptions, tripSecondsLabel } from './tripRows';
 
 /**
  * Wave 4 · the ways to get to a place (lane P, W4-P11; plan §4.1 "Phone", §4.2 "带我去 → 跟 BAYBAY 去"): the rows under
@@ -16,8 +16,8 @@ export function TripOptions({ options, onPick, busy = false, max = 4, picked }: 
   /** the planner is still working (A* time-sliced): show a quiet spinner row */
   busy?: boolean;
   max?: number;
-  /** the mode being started (its row shows pressed) */
-  picked?: TripOption['mode'] | null;
+  /** the way being started or running (its row shows pressed): a mode, or 'fly-scenic' for 看风景飞过去 (tripRows optionWay) */
+  picked?: TripWay | null;
 }) {
   const { t } = useT();
   const rows = orderOptions(options, max);
@@ -29,7 +29,7 @@ export function TripOptions({ options, onPick, busy = false, max = 4, picked }: 
         const detail = optionDetail(o);
         return (
           <li key={optionKey(o)}>
-            <button type="button" className={`mw-trip-row${o.recommended ? ' is-rec' : ''}${picked === o.mode ? ' is-on' : ''}`} onClick={() => onPick(o)} aria-label={t(optionAria(o))}>
+            <button type="button" className={`mw-trip-row${o.recommended ? ' is-rec' : ''}${picked && picked === optionWay(o) ? ' is-on' : ''}`} onClick={() => onPick(o)} aria-label={t(optionAria(o))}>
               <span className={`mw-trip-ico m-${o.mode}`} aria-hidden><Icon size={20} strokeWidth={2.2} /></span>
               <span className="mw-trip-text">
                 <strong>{t(optionTitle(o))}</strong>

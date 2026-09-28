@@ -42,7 +42,7 @@ import { type StationCtx, drawTransitLines, tripRouteStrokes } from './mapLines'
 import { MapPaperLayer } from './MapPaperLayer';
 import { mapOpenFallback, mapTargetOf, tripEta } from './mapTrips';
 import { PlaceActions, type WalkInfo, useTripOptions } from './PlaceActions';
-import { optionTitle, tripSecondsLabel } from './tripRows';
+import { optionTitle, optionWay, tripSecondsLabel } from './tripRows';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
 import './map-w4.css';
@@ -272,7 +272,9 @@ export function CityMapPanel() {
   // W5-N4 · long-press → 去这里: held PRESS.ms without moving more than PRESS.slop px, one pointer
   const pressTimer = useRef<{ id: number; fired: boolean } | null>(null);
   const cancelPress = () => { if (pressTimer.current) { window.clearTimeout(pressTimer.current.id); pressTimer.current = pressTimer.current.fired ? pressTimer.current : null; } };
-  const onDown = (e: RPointerEvent<HTMLDivElement>) => {
+  // (W5-N review) a map closed mid-press (the sheet swiped down, M, Escape) must not fire its long-press afterwards
+  useEffect(() => () => { if (pressTimer.current) window.clearTimeout(pressTimer.current.id); }, []);
+  const onDown =(e: RPointerEvent<HTMLDivElement>) => {
     if (!mapGestureTarget(e.target)) return;
     if (e.button > 0) return;
     frameRef.current?.setPointerCapture(e.pointerId);
@@ -797,7 +799,7 @@ export function CityMapPanel() {
 
       <div ref={lowerRef} className="mw-lower">
         {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} hideGo={cardSel}
-          onReplan={tripHere ? changeWay : null} changeTo={tripHere ? changeTo : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange || moreOpen} onRoute={id => { pickRoute(id); revealMap(); }} />}
+          onReplan={tripHere ? changeWay : null} changeTo={tripHere ? changeTo : null} tripMode={tripHere && trip ? optionWay(trip.option) : null} startOpen={openedToChange || moreOpen} onRoute={id => { pickRoute(id); revealMap(); }} />}
         {selStation && (
           <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null}
             change={tripHere && trip && changeTo ? { to: changeTo, tripTime: tripEta(trip), tripMode: trip.option.mode, startOpen: openedToChange, onPick: changeWay } : null} />

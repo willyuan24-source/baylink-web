@@ -1154,3 +1154,57 @@ test('W5-N9 the trip runner: a scenic leg asks lane F\'s auto-glide; up in the a
   MA.bindMoveApi(null);
   assert.equal(tripRun.FLY_END_R, 60);
 });
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N review (the adversarial review of lane N, docs/opus-bay/sf-w5-N.md ## Review)
+// ---------------------------------------------------------------------------------------------------------------
+
+test('W5-N review: 换个方式 presses only the running way — the scenic flight apart from the fast 飞过去 (part c\'s known gap)', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const R = await import('../src/opus-bay/ui/tripRows');
+  const { TripOptions } = await import('../src/opus-bay/ui/TripOptions');
+  const fast = { ...flyOption(400), recommended: true }, scenic = ST.scenicOption(flyOption(400))!, walk: Opt = { mode: 'walk', legs: [], seconds: 200 };
+  assert.equal(R.optionWay(fast), 'fly');
+  assert.equal(R.optionWay(scenic), 'fly-scenic');
+  assert.equal(R.optionWay(walk), 'walk');
+  const pressed = (picked: import('../src/opus-bay/ui/tripRows').TripWay | null) => {
+    const html = renderToStaticMarkup(h(TripOptions, { options: [fast, scenic, walk], onPick: () => undefined, picked }));
+    return [...html.matchAll(/class="mw-trip-row[^"]*"[^>]*aria-label="([^"]*)"/g)].filter(m => /is-on/.test(m[0])).map(m => m[1]);
+  };
+  const onScenic = pressed('fly-scenic');
+  assert.equal(onScenic.length, 1, 'one row pressed while the scenic flight runs');
+  assert.match(onScenic[0], /看风景飞过去/);
+  const onFast = pressed('fly');
+  assert.equal(onFast.length, 1, 'one row pressed while the fast hop runs');
+  assert.doesNotMatch(onFast[0], /看风景/);
+  assert.equal(pressed(null).length, 0);
+  // the map hands the running trip's way (not its bare mode) to the card's 换个方式
+  const src = readFileSync(new URL('../src/opus-bay/ui/CityMap.tsx', import.meta.url), 'utf8');
+  assert.match(src, /tripMode=\{tripHere && trip \? optionWay\(trip\.option\) : null\}/);
+});
+
+test('W5-N review: the phone map\'s long-press survives an iPhone (no text selection, no callout) and never fires after the map closed', () => {
+  const css = readFileSync(new URL('../src/opus-bay/ui/city-ui.css', import.meta.url), 'utf8');
+  const frame = css.match(/\.ob-citymap-frame \{[^}]*\}/)?.[0] ?? '';
+  // the sheet above sets -webkit-user-select: text, and Safari reads only the prefixed property
+  assert.match(frame, /-webkit-user-select: none/);
+  assert.match(frame, /-webkit-touch-callout: none/);
+  assert.match(frame, /touch-action: none/);
+  const src = readFileSync(new URL('../src/opus-bay/ui/CityMap.tsx', import.meta.url), 'utf8');
+  assert.match(src, /useEffect\(\(\) => \(\) => \{ if \(pressTimer\.current\) window\.clearTimeout\(pressTimer\.current\.id\); \}, \[\]\)/, 'the press timer is cleared on unmount');
+});
+
+test('W5-N review: 让 BAYBAY 接着飞 shows only where lane F\'s auto-glide takes the wings back (60–900 u from the leg\'s end), else it did nothing', () => {
+  const s = ST.scenicOption(flyOption(400))!, leg = s.legs[0], to = leg.to;
+  const at = (d: number) => ({ x: to.x - d, z: to.z });
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: false, leg, pos: at(200) }), true);
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: false, leg, pos: at(AUTO_GLIDE.minDist - 1) }), false, 'too close: 降落 lands, BAYBAY walks the rest');
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: false, leg, pos: at(AUTO_GLIDE.maxDist + 1) }), false, 'too far for the auto-glide');
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: true, leg, pos: at(200) }), false, 'she is flying it already');
+  assert.equal(ST.scenicResumeOffered({ gliding: false, autoGliding: false, leg, pos: at(200) }), false, 'on foot');
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: false, leg: flyOption(400).legs[0], pos: at(200) }), false, 'the fast hop is no scenic leg');
+  assert.equal(ST.scenicResumeOffered({ gliding: true, autoGliding: false, leg: null, pos: at(200) }), false);
+  const src = readFileSync(new URL('../src/opus-bay/ui/GuideLayer.tsx', import.meta.url), 'utf8');
+  assert.match(src, /setOwnWings\(scenicResumeOffered\(/, 'the chip asks it');
+});

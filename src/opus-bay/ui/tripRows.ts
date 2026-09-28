@@ -88,6 +88,13 @@ export function orderOptions(options: readonly TripOption[], max = 4): TripOptio
 export const optionKey = (o: TripOption): string => `${o.mode}${isScenicOption(o) ? '-scenic' : ''}:${o.legs.map(l => (l.via === 'line' ? l.line : l.via)).join('+')}`;
 
 /**
+ * (W5-N review) The way a row stands for, for its pressed state: the mode, and the scenic flight apart from the fast
+ * 飞过去 (with the mode alone both fly rows showed pressed in 换个方式 while either flew: part c's known gap).
+ */
+export type TripWay = TripOption['mode'] | 'fly-scenic';
+export const optionWay = (o: Pick<TripOption, 'mode' | 'legs'>): TripWay => (isScenicOption(o) ? 'fly-scenic' : o.mode);
+
+/**
  * W5-N3 · the big go button's words (plan MF4 "🐦 飞过去 · 8 秒 / 🚶 BAYBAY 带路 · 3 分钟 / 🚲 骑车 · 2 分钟"): what
  * happens when you tap it and how long it takes — on foot BAYBAY leads (auto-travel carries you), a line option names
  * its ride. One tap starts moving (game/tripRun: auto-travel).

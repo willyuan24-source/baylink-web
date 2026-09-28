@@ -23,7 +23,7 @@ import { TripCard, TripPill } from './TripPill';
 import { GoChip } from './GoChip';
 import { autoOn, subscribeAuto } from '../game/autoTravel';
 import { autoGliding } from '../actors/moveApi';
-import { isScenicLeg } from '../game/scenicTrip';
+import { isScenicLeg, scenicResumeOffered } from '../game/scenicTrip';
 import { tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
 
@@ -232,7 +232,9 @@ export function GuideLeadChip() {
       setLeading(touch && (g === 'lead' || g === 'wait') && !p.pathTarget && s.move.mode === 'foot' && s.phase === 'playing');
       // keyboard / pad players who took over are offered 自动跟上 once they stop steering
       setHandIdle(!p.moving);
-      setOwnWings(s.move.mode === 'glide' && !autoGliding());
+      // (review) only where lane F's auto-glide takes the wings back (60–900 u from the leg's end): else the chip did nothing
+      const tr = flow.get().trip;
+      setOwnWings(scenicResumeOffered({ gliding: s.move.mode === 'glide', autoGliding: autoGliding(), leg: tr && tr.leg < tr.legs.length ? tr.legs[tr.leg] : null, pos: p }));
     }, 250);
     return () => window.clearInterval(id);
   }, [touch]);

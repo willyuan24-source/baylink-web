@@ -50,6 +50,17 @@ export const isScenicLeg = (l: TripLeg | null | undefined): l is ScenicFlyLeg =>
 /** A whole option flown the scenic way. */
 export const isScenicOption = (o: Pick<TripOption, 'mode' | 'legs'>): boolean => o.mode === 'fly' && isScenicLeg(o.legs[0]);
 
+/**
+ * (W5-N review) Is 让 BAYBAY 接着飞 on offer (pure; ui/GuideLayer's chip)? Only where lane F's auto-glide takes the
+ * wings back: a scenic leg, the player gliding on their own wings, its end at least AUTO_GLIDE.minDist (60 u) away —
+ * closer, the glide refuses and the chip did nothing when tapped (降落 / G lands; BAYBAY walks the rest).
+ */
+export function scenicResumeOffered(o: { gliding: boolean; autoGliding: boolean; leg: TripLeg | null | undefined; pos: { x: number; z: number } }): boolean {
+  if (!o.gliding || o.autoGliding || !isScenicLeg(o.leg)) return false;
+  const d = Math.hypot(o.leg.to.x - o.pos.x, o.leg.to.z - o.pos.z);
+  return d >= AUTO_GLIDE.minDist && d <= AUTO_GLIDE.maxDist;
+}
+
 /** The row's name (ui/tripRows optionTitle) and the go button's. */
 export const SCENIC_NAME: Bilingual = { zh: '看风景飞过去', en: 'Scenic flight' };
 /** The row's second line: what the flight is. */
