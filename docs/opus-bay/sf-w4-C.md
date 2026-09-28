@@ -489,3 +489,100 @@ full opus-bay suite **714 / 714** green, hero regression and contracts included 
 `ArrivalBeats`, which this part did not change). Re-run on the final rebase over `11b7413` (lane L): tsc 0, eslint 0
 errors, 713 / 714 with the known `sf-nav` "local A* window" wall-clock flake under load (333.7 ms), which passes alone
 (7 / 7). Lane C's four test files: 57 tests (the new `sf-triptext` 10). Scratch: `C:/Users/willy/opus-qa/w4/w4-c/p2/` (the geo scripts, suite logs).
+
+## Early review 2
+
+Adversarial review of lane C2 (part 2: the open card and line items, commits `678edd8` … `79cf5bb`), 2026-09-27,
+worktree `C:/Users/willy/wt/w4-c`, scratch `C:/Users/willy/opus-qa/w4/w4-c/review2/`. Three `W4-C-review:` commits
+(pacer, cards, this report), all on lane C's own wave-4 files; no other lane's file edited.
+
+### 给主人的摘要
+
+1. C2 这一轮新加的三张卡（海湾大桥、码头绿地、金银岛）、恶魔岛码头的说法、科罗娜高地山顶全景和 Holloway 新台词，我上网抽查了 24 条事实和 3 个坐标，全部属实。
+2. 找到并修好 8 个问题，最要紧的是：一日游里 BAYBAY 会把“上 N 线咯！”“上 M 线咯！”和“下一站 19th Ave & Winston”各说两遍（原来的“同一句不重复”只管 25 秒）；接线说明里有两处会出错（从游戏代码直接引用音频模块会把音频打进主包；明信片奖励弹出时台词会“只有声音没有字幕”，也会和别的城市台词叠音）。现在把整趟一日游连同沿途每一站的报站一起模拟：没有一句说两遍、没有叠音、导游台词一句不丢。
+3. 恶魔岛卡片上 BAYBAY 那句话改得更像人话（“上岛的船从 33 号码头开，不是 39 号。”），完整码头名放到望远镜提示里；马里纳的游艇港不再叫“码头港区”。检查：tsc 0、eslint 0 错误、全套测试通过；Higgsfield 0 分。
+
+### What I checked
+
+- Read `sf-w4-lead.md` (§2, §5, §8), lane C's plan rows, this report (early phase, early review, part 2), every file part 2
+  created or changed (`game/tripText.ts`, `game/linePacer.ts`, `tests/opus-bay-sf-triptext.test.ts`, the part-2 diffs
+  of `tourLines.ts`, `tours.ts`, `arrival.ts`, `trips.ts`, `TourRecap.tsx`, `placeCards.ts`, `placeCards2.ts` and the
+  three lane-C tests), and the files the integration plan names: `game/tripPlan.ts` + `ui/guideText.ts` (lane G, already
+  switched to `tripText` in `f553560`), `ui/tripRows.ts` + `tests/opus-bay-sf-map-w4.test.ts` (lane P), `game/flow.ts`
+  `bubble()`, `game/cityContent.ts` (statically imported by `flow.ts`), `game/baybayLines.ts` (G2's city lines and their
+  gates), `audio/voice.ts` (`VoicePlayer.lang`, `line()`, `SAME_CLIP_GAP`, `LINE_WAIT`), `audio/audio.ts` (`voice-line`),
+  `data/sf/voiceTour.ts`, `world/lightRail.ts` (dispatch: a waiting rider's train within 20 + 15 s), `data/sf/attractions.ts`
+  (`ARRIVAL_PLACES`, the Corona Heights arrival), `data/VOICE.md` (Marina = 马里纳区; 码头区 is the Embarcadero piers).
+- Early-phase rule: part 2 edited only files lane C created in wave 4 (the first commit of each is a `W4-C…` commit);
+  `TOUR_LINES` untouched (snapshot `a799f903365d56e8`), the `TOUR_LINES_2` snapshot `a8b4566e2f65aa73` holds.
+- Budget / weight: `tripText.ts` and `linePacer.ts` import types only (the latter now pinned by a source scan);
+  `tours.ts` / `arrival.ts` gain only these light imports. `decodeArrivalSeen` keeps all 158 attraction ids.
+- Ran the pacer against the real clip lengths: reading time vs clip for all 214 recorded tour clips, and a **fuller Grand
+  Tour simulation** (scratch `tour-sim.mts`, `tour-sim2.mts`, then a test): the tour's own lines **plus** the loop /
+  Metro narration of every station passed, waits of 5, 20 and 40 s for the vehicle, full and express, zh and en.
+- **Facts re-checked on the web today (24 facts, 3 coordinates, all correct):** Bay Bridge opened 12 Nov 1936, the Golden
+  Gate Bridge 27 May 1937 (→ "早半年") · 4.46 mi excluding approaches (→ "约 4.5 英里") · the west crossing = two
+  suspension spans joined at a centre anchorage · the new east span opened 2 Sep 2013 · the west section closed to
+  pedestrians and bikes · the east span path Oakland ↔ Yerba Buena Island since Oct 2016 (en.wikipedia Bay Bridge) · the
+  Bay Lights relit 20 Mar 2026 (illuminate.org, SF Chronicle, SFist) · Marina Green between Fort Mason and the Presidio,
+  tidal marsh → 1906 rubble → filled for the 1915 PPIE, air-mail terminus from 9 Sep 1920 (en.wikipedia) · Wave Organ May
+  1986, end of the spit from the Golden Gate Yacht Club, best at high tide (en.wikipedia) · the Marina harbours project:
+  design 2025–26, construction 2027, parking and shoreline in the last phase (sfrecpark.org 1160, March 2026 update) ·
+  Treasure Island 393 acres, built 1936–37 for the 1939 GGIE, NAVSTA 1941–1997, a causeway to Yerba Buena Island
+  (en.wikipedia) · the TI ferry: Ferry Building Gate B, ≈ 8 min, $5, from the island 7:30 am – 8 pm, from SF 7:50 am –
+  8:20 pm (tisf.com/ferry; the card's hedged "大约 7:30–20:00" is fine) · "Pier 33 Alcatraz Landing"
+  (alcatrazcitycruises.com) · Alcatraz prison 1934–1963, the occupation 20 Nov 1969 – 11 Jun 1971 (19 months) · PIER 39
+  opened 1978, sea lions from Sep 1989, a two-storey carousel (en.wikipedia) · Corona Heights summit 37.7646522,
+  −122.4391379, 520 ft, Franciscan chert, the panoramic view (en.wikipedia) · 企李街 = Clay St, 都板街 = Grant Ave (the
+  Chinatown street table; Clement St is not in it) · the M Ocean View outbound: Stonestown Galleria, then San Francisco
+  State University at 19th Ave & Holloway (en.wikipedia) · coordinates (Nominatim): Marina Green 37.80660, −122.43912
+  (card 37.8066, −122.43913) ✓, Treasure Island 37.82381, −122.37041 (card 37.82377, −122.37099, ≈ 50 m) ✓, the Corona
+  summit ✓.
+
+### Defects found and fixed (with tests)
+
+| # | defect | fix |
+|---|---|---|
+| D1 | "Once per stop" (O6) was a 25 s window. In the Grand Tour BAYBAY said `metro-board-n` twice (La Playa, then 9th & Irving 135 s later), `metro-board-m` twice (Church, then Holloway 157 s later) and `metro-stonestown-next` twice (outbound, then passing Winston on the way back, 105 s); and a stop whose lead is the board line (`n-ride-9th-irving`: lead `metro-board-n`) says it again on board when the train takes more than 25 s (lane T's dispatch allows ≈ 35 s) | `PacedLine.repeatGap` (a line's own window); `NARRATION_REPEAT` = 300 s for the transit narration (a loop lap, 13.5 min, still narrates every lap); new `transitSay(e)` in `data/sf/tours.ts` = `loopNarration ?? metroNarration` with the ttl of its moment and that window (the integration's offer in one tested place) |
+| D2 | A duplicate offered while the same key waits was refused and the waiting copy kept its own ttl: the stop's `arrive` (ttl 15) was lost with the transit copy's 8 s when a dialogue held the pacer | the waiting copy keeps the later deadline |
+| D3 | `step()` built a new array on every call (`queue.filter`), 5–10 times a second for the whole city session | expired lines dropped in place (test: the same array) |
+| D4 | Integration step 4 builds the pacer with `VoicePlayer.lang()` from `audio/voice.ts` inside `game/cityContent.ts`, which `flow.ts` imports statically: the voice player (and what it imports) would leave the lazy audio chunk (`GameRoot` loads `audio/audio` with `import()`) for the main graph, already over its 250 KB target | `clipSecondsFrom(clips, lang)` and `voiceLang(locale)` in `linePacer.ts` (= `VoicePlayer.lang()`: `getLocale()` `'en'` → en, else zh); the language is read per line (a switch mid-tour times the next line right) |
+| D5 | Integration step 4 holds the pacer only for dialogue / cinema. `flow.ts bubble()` drops every bubble during a postcard reward, so a line stepped out then plays its voice with no text ("nothing talks over a postcard reward" broken); and a voiced G2 city line (`game/baybayLines.ts`) could be talked over, since the pacer did not look at bubbles | held by G2's own `silent` gate (dialogue, cinematics, fast travel, photo mode, fishing, pause, postcard reward / fly, open panel) and by a bubble that is not its own; G2's lines already wait for any bubble. In the `linePacer.ts` header and "Integration changes" below |
+| D6 | The Alcatraz bark "那座岛就是恶魔岛！船从恶魔岛渡轮码头 · 33 号码头开，不是 39 号。" put the map label (with " · ") inside a spoken line and said 恶魔岛 twice | bark "那座岛就是恶魔岛！上岛的船从 33 号码头开，不是 39 号。"; the telescope tip carries the full name the trips end at ("…带你到恶魔岛渡轮码头 · 33 号码头，用望远镜看它。"); test: the bark says the number in a sentence, the tip the full name, no card names the pier any other way |
+| D7 | The Marina Green tip called the yacht harbours "码头港区": 码头 for the Marina goes against `VOICE.md` (Marina = 马里纳区; 码头区 is the piers), and the project rebuilds the harbours | "马里纳游艇港改造预计 2027 年开工…" (sfrecpark: East Harbor docks, West Harbor breakwater, parking and shoreline last); test |
+| D8 | The part-2 claim "the whole Grand Tour through the pacer: nothing overlaps, nothing dropped" simulated the tour's own lines only, not the loop / Metro narration that fills every ride | a test runs the tour with the approach / arrive / board narration of every station passed (waits 5 / 20 / 40 s, full + express, zh + en): no line said twice, no overlap, no chapter / stop line dropped. One transit line may drop by its ttl: in the express version with a 5 s wait at La Playa, the N's board line comes while the chapter change is still talking (by design: a late line is not said) |
+
+Lane C's four test files: 57 → **61** tests (sf-triptext 10 → 14).
+
+### Open (not fixed here)
+
+- **R2-O1 · lane P (name) + lane C (card) + VOICE.md:** Marina Green is **码头绿地** on the map and the card, but the
+  glossary keeps 码头 for the piers (Marina = 马里纳区; `ZH_GLOSSARY` rewrites 码头区 → 马里纳区). Suggest 马里纳绿地 for
+  the map name, the card, the arrival toast and the glossary in one commit; the frozen loop tip's description 海滨草地 is
+  fine.
+- **R2-O2 · lane V:** when `metro-sfsu-next-2` is recorded, the sf-triptext test "a line without a clip …" (it offers
+  `metro-sfsu-next-2` and expects `voiced: false`) switches to a plain bubble on purpose, with the w4-assets count of
+  part 2's Integration step 7. Until then English players get text only where the retired clip ("Next stop Holloway —
+  SF State!", a fine English line) exists.
+- **R2-O3 · lane V (preload):** `voice.line()` waits `LINE_WAIT` 0.7 s for a clip still loading, then chirps and never
+  plays it, while the pacer holds the full clip length: the next stop's tour clips must be warm before the stop (lane V's
+  step 3), else a chirp and a silent bubble.
+- **R2-O4 · note:** four recorded lines read longer than clip + gap (zh `loop-pier-39-tip` 0.40 s, zh
+  `loop-golden-gate-park-tip` 0.27 s, en `loop-civic-center-approach` 0.26 s, zh `loop-golden-gate-park-arrive` 0.03 s):
+  a following line replaces the bubble that much early. The tips are chip text (not paced); harmless.
+
+### Integration changes (review 2; supersede part 2's step 4 where they differ)
+
+1. **Pacer** (`game/cityContent.ts`, lazy with the tour): `new LinePacer(clipSecondsFrom(TOUR_VOICE_CLIPS, () =>
+   voiceLang(getLocale())))` with `getLocale` from `../../i18n/locale` and `TOUR_VOICE_CLIPS` from lane V's
+   `data/sf/voiceTour.ts` (dynamic import with the tour); never import `audio/voice.ts` into game code.
+2. **Held:** `pacer.step(now, silent || (!!f.bubble && f.bubble.text !== last?.text))`, `silent` = the expression G2's
+   `initBaybayLines` passes as `silent`; `last` = the line the pacer said last.
+3. **Transit offers:** `const say = transitSay(e); if (say) pacer.offer(say, now)` for every `transit` event (replaces
+   `loopNarration(e) ?? metroNarration(e)` + `sayLine(id, LINE_TTL[…])`); the subway overlay's `tunnelNarration` line
+   goes as `{ ...sayLine(line.id, LINE_TTL.portal)!, repeatGap: NARRATION_REPEAT }`.
+
+### Checks
+
+On the tree rebased over `1576825`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 warnings,
+none in lane C's files) · full opus-bay suite **738 / 738** green. No relayed owner message arrived. Higgsfield: 0 credits.
