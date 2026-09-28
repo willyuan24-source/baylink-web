@@ -597,3 +597,27 @@ test('review (lane V’s request 4): BAYBAY’s taste lines read the Bay clock t
     }
   } finally { __setBayNowForTests(null); }
 });
+
+test('review (plan MF6, §3.3 item 5; lane R’s requests): J / 旅行本 open on 今天 in the city; the week board opens at once in the city', async () => {
+  const { journalDefaultTab } = await import('../src/opus-bay/ui/journalDefault');
+  const today = { id: 'today', order: 5 }, notebook = { id: 'notebook', order: 15 };
+  assert.equal(journalDefaultTab(true, [notebook, today], false), 'today', 'the city: lane R’s 今天 (order 5) first');
+  assert.equal(journalDefaultTab(true, [notebook], false), 'cards', 'nothing before the built-ins: the postcards');
+  assert.equal(journalDefaultTab(true, [notebook], true), 'wish');
+  assert.equal(journalDefaultTab(false, [today], false), 'cards', 'the district is unchanged');
+  assert.equal(journalDefaultTab(true, [{ id: 'cards', order: 1 }], false), 'cards', 'a slot never replaces a built-in');
+  // 这周去哪 in the city: the flyers right after the three questions, not a walk to the district's board kilometres away
+  const { setCatalogForTests, sanitizeCatalog } = await import('../src/opus-bay/data/catalog');
+  setCatalogForTests(sanitizeCatalog({ events: [], places: [], guides: [] }));
+  try {
+    for (const world of ['city', 'district'] as const) {
+      reset(world);
+      game.set({ mode: 'week' });
+      Object.assign(runtime.player, { x: 128.9, z: 922.3 }); // Twin Peaks (far from the Ferry plaza's board)
+      await flowMod.showWeekResults();
+      assert.equal(flow.get().weekStage, world === 'city' ? 'board' : 'walking', world);
+      if (world === 'city') assert.equal(game.get().panel.kind, 'week');
+      flowMod.closePanel();
+    }
+  } finally { setCatalogForTests(null); reset(); }
+});

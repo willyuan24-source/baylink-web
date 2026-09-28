@@ -6,6 +6,7 @@ import { AREA_NAMES, landmarkAreaAt, learnZoneNames } from '../data/cityZones';
 import { mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
 import { PLACE_KIND_NAMES, SF_GUIDE_SLUG, isMonthTagged, placeCardName } from '../data/sf/cityPois';
 import type { CityPlace } from '../data/sf/places';
+import { bayNow } from '../game/bayNow';
 import { closePanel, navigateTo } from '../game/flow';
 import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
@@ -34,7 +35,7 @@ export default function PlaceCard({ place }: { place: CityPlace }) {
   const guideSlug = slug && isMonthTagged(slug) ? SF_GUIDE_SLUG : slug;
   const guideName = guideTitle(catalog, guideSlug);
   const planTitles = planner ? planStopTitles([{ kind: 'place', id: planner.id }], catalog) : [];
-  const near = eventsNear(catalog, ll, todayInBay(), 1.0, 7, new Date()).slice(0, 3);
+  const near = eventsNear(catalog, ll, todayInBay(), 1.0, 7, bayNow()).slice(0, 3);
   const source = safeHref(place.sourceUrl);
   const guideRow = <GuideRow slug={guideSlug} name={guideName} />;
   return (

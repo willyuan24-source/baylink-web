@@ -6,6 +6,7 @@ import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../da
 import { guideUrl, mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
 import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS } from '../data/pois';
 import { CITY_POI_ZONES, cardOfficialUrl } from '../data/sf/cityPois';
+import { bayNow } from '../game/bayNow';
 import { closePanel, openEvent, toggleWish, tourStops } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { postcardById } from '../game/interactables';
@@ -41,7 +42,7 @@ export default function PoiCardBody({ poi }: { poi: PoiDef }) {
   const official = safeHref(cardOfficialUrl(poi.id, place?.officialUrl, POI_OFFICIAL_URLS));
   const extra = (POI_EXTRA_SOURCES[poi.id] ?? []).map(url => safeHref(url)).filter((url): url is string => !!url);
   const photoPage = info?.photo ? safeHref(PHOTO_SOURCE_PAGES[info.photo.src]) : undefined;
-  const near = info ? eventsNear(catalog, { lat: info.lat, lng: info.lng }, todayInBay(), 1.0, 7, new Date()).slice(0, 3) : [];
+  const near = info ? eventsNear(catalog, { lat: info.lat, lng: info.lng }, todayInBay(), 1.0, 7, bayNow()).slice(0, 3) : [];
   const title = t(poi.name);
   // city landmark cards (`sf:<landmarkId>`, data/sf/cityPois.ts) name their neighbourhood in the eyebrow
   const zone = CITY_POI_ZONES[poi.id];

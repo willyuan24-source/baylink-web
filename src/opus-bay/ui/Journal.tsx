@@ -19,6 +19,7 @@ import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
+import { journalDefaultTab } from './journalDefault';
 import { JOURNAL_BUILTIN_ORDER, journalTabs, lastJournalRequest, openOverlay, subscribeJournalRequest, type JournalTabSlot } from './slots';
 import './content-ui.css';
 
@@ -60,7 +61,9 @@ export function Journal() {
   const asked = useGame(s => s.panel.id);
   const slots = useSyncExternalStore(journalTabs.subscribe, journalTabs.list, journalTabs.list);
   const known = (id: string | undefined): id is string => !!id && ((BUILTIN_TABS as string[]).includes(id) ? id !== 'steps' || !!FOOTPRINTS_TAB : slots.some(s => s.id === id));
-  const [tab, setTab] = useState<string>(() => (known(asked) ? asked : wishCount > 0 && cards === 0 ? 'wish' : 'cards'));
+  // (review: in the city, J and the 旅行本 button open on 今天 — ui/journalDefault.ts)
+  const city = useGame(s => s.worldMode === 'city');
+  const [tab, setTab] = useState<string>(() => (known(asked) ? asked : journalDefaultTab(city, slots, wishCount > 0 && cards === 0)));
   // openJournal(tab) while the Journal is open switches the tab (the panel id, and every request by its seq)
   const request = useSyncExternalStore(subscribeJournalRequest, lastJournalRequest, lastJournalRequest);
   useEffect(() => { if (known(asked)) setTab(asked); }, [asked]); // eslint-disable-line react-hooks/exhaustive-deps

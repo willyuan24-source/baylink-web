@@ -530,7 +530,7 @@ export const FREE_AGAIN: Bilingual = { zh: '好嘞，你带路，我跟着！想
 
 let timeOffered = false;
 /** After the welcome choice on a first visit: offer the real Bay time (e.g. tonight's view) — this visit only. */
-export function offerRealTime(now = new Date()) {
+export function offerRealTime(now = bayNow()) {
   const f = flow.get();
   if (timeOffered || !f.goldenFirstVisit) return;
   timeOffered = true;
@@ -842,12 +842,15 @@ export async function showWeekResults() {
     return;
   }
   const week = game.get().week;
-  const result = recommendEvents(catalog, { companions: week.companions, vibe: week.vibe, region: week.region }, todayInBay(), { now: new Date() });
+  // (review, lane R's request: the Bay clock, so `?date=` moves the week board like everything else — DEV / QA builds)
+  const result = recommendEvents(catalog, { companions: week.companions, vibe: week.vibe, region: week.region }, todayInBay(), { now: bayNow() });
   game.set({ week: { ...game.get().week, results: result.events.map(item => item.event.id), step: 3 } });
   flow.set({ weekResult: result });
   const board = boardPosition();
   const inWeekMode = game.get().mode === 'week';
-  if (!inWeekMode || !board || dist(playerPos(), board) < 9) {
+  // (review, plan §3.3 item 1 "shows the flyers right after the three questions", lane R's request: in the city the
+  // district's board may be kilometres away — the flyers open at once there)
+  if (!inWeekMode || !board || dist(playerPos(), board) < 9 || game.get().worldMode === 'city') {
     flow.set({ weekStage: 'board' });
     openPanel('week');
     weekResultBubble();
