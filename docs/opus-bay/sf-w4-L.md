@@ -473,3 +473,111 @@ Also: `geary-west` and `blue-heron-lake` (part 1's AI-slot sites) got `aiSlot.id
   `node node_modules/eslint/bin/eslint.js` instead (never an npm install).
 
 Status (2026-09-27): 第二轮 23 个新地点已推送；篝火圈和渔人码头西没做（原因见上）。
+
+## Integration part a
+
+Written 2026-09-27 by lane L's integration implementer (worktree `C:/Users/willy/wt/i4-l`, branch `i4-l` → `opus-bay`,
+dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/`). Commits `W4-IL1` … `W4-IL9` on `opus-bay`. Higgsfield:
+0 credits.
+
+### 给主人的摘要
+
+1. **新地点全部接进游戏了**：原来 24 个地标 + 第四波的新地点（写这份报告时共 80 个，L2 / L3 还在继续加，加了就自动出现）现在都在城市里画出来、能挡人能走、晚上有灯，人群会站到新广场上，滑翔会绕开高的部分，地图旗杆、到达点、拍照机位都能查到。
+2. **四个 AI 地标换上了**：圣依纳爵堂、加州科学院（我这边对比后都比程序化的好看得多），圣母大教堂和中国亭（按 V 组的结论）。
+3. **D2 留下的 7 个二级地标周边都做了**：恩典大教堂门前的平台、宽台阶和户外迷宫（教堂原来门口被地面盖住一米，已修正）；荣勋宫门前广场，中庭原来被草盖住，现在是石板；吉拉德利广场的砖铺庭院、橄榄树和通往 Beach St 的台阶；叮当车转盘周围的砖广场；渔人码头路牌旁两个卖螃蟹的小摊；九曲花街上下两端断掉的马路（包括叮当车轨道）接上了；苏特罗浴场的水池里终于看得见水。
+4. **到达点挪到了该在的位置**：艺术宫湖边、Fort Point 平台、迪扬前庭、卡斯特罗对街，恩典大教堂从马路中间挪到人行道。**草莓山现在能走上去**：两座桥和环岛小路都能走，中国亭从湖边就能走到。
+5. 顺手修了一个老 bug：地标的"金字塔屋顶"只要长宽不等就歪成菱形（市政厅、荣勋宫、龙门等），现在是正的。
+6. 全部 803 个测试通过；电脑和手机截图都逐张看过。还没做的：海洋海滩北段的篝火圈小地点、另外几个地标"半埋在地下"的问题（清单在下面），请 V 组重测性能表。
+
+Status（回答主人"现在进度如何"）：接线 a 部分完成并已推送——登记、到达点、屋顶修正、7 个二级地标周边、4 个 AI 地标、草莓山步行都已在游戏里；篝火圈和几个地标的埋地问题留到 b 部分。
+
+### What was built
+
+| commit | files | what |
+|---|---|---|
+| `W4-IL1` | `landmarks/index.ts`, `w4sites.ts`, `sites.ts`, `context.ts`, `tops.ts`, `SoloView.tsx`, `scripts/opus-sf/{assets/landmark-tops.ts,routes-qa.mjs,sites-preview.tsx,sites3-preview.tsx,sites-qa.mjs}` | **Registration.** `SF_SITES = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3]` (index.ts imports `w4list` / `w4list3` only: no cycle); `sfLandmark(id)` answers for every site. `SF_LANDMARKS` stays the 24 records with an info card (city cards, the written-out arrivals, the place-index landmark rows), so lanes C and P kept their counts. `CitySites` draws, excludes, walks and lights `SF_SITES`, each site on its `w4.lod0R` ring. `w4sites.ts` looks up over both lists (`W4_ALL_SITES`). `context.ts`: tall parts and plaza spots over every site (a wave-4 site's day-0 circle uses `w4.height.top`, overlooks skipped), `sfLandmarkAnchor` falls back to `w4.arrival`, new `siteFrame(id, baseOf)` and `sitePhoto(id)` (lane G's reveal), and it re-exports `siteFlagTop`, `flagHeight`, `LANDMARK_FLAGS`, `HERO_FLAGS`, `w4Site*`. `tops.ts` measures every site. SoloView lists every site and uses a site's `w4.photo`. |
+| `W4-IL2` | `data/sf/landmarks.ts`, C's `data/sf/arrivals.ts`, P's `data/sf/attractions.ts` (`LANDMARK_ARRIVALS`), `data/sf/routes.ts` + `routePaths.ts` | D2's request 1: the Palace on the lagoon's south shore walk, Fort Point on the apron, the de Young in its forecourt, the Castro across Castro St (the exact values of `sf-w3-D2.md` part c; both tables pasted from their tests; the R2 / R3 stops moved, `routes-build.ts` re-run). |
+| `W4-IL3` | `landmarks/kit.ts` | `pyramid` turns the 4-sided cone by 45° **before** the scale: a `w ≠ d` cap is the rectangle's hip, no longer a rhombus reaching max(w, d)/2 on both axes (City Hall, Conservatory, Dragon Gate, Grace, Legion, Mission Dolores, a hipped Painted Lady). Square caps and the measured tops unchanged. |
+| `W4-IL4` | `grace-cathedral.ts`, `legion-of-honor.ts`, `settingData.ts`, `settingsMeasure.ts` | **Grace**: base pinned at the doors' sill (21.52; the old 'terrain' base 20.44 left the doors ≈ 1 u under the city ground), exclusion + the front terrace, the level granite terrace with a parapet on the fall, the wide Sky Steps to the Taylor St sidewalk, the outdoor labyrinth (six grey terrazzo rings, 40 ft ≈ 1.7 u) on the California St corner, lamps, benches, planters; the arrival moves off Taylor St's asphalt to the foot of the steps; the terrace keeps California St's sidewalk clear. **Legion**: base at the court floor (25.1; the city's grass stood 0.7 u over the Court of Honor), the paved forecourt to Legion of Honor Drive (centre walk, lawn panels, clipped cypresses, hedges, lamps, benches, the Lincoln Highway's plain end post), the court and gateway walkable at the paving. Both settings are drawn in the AI remainders too. |
+| `W4-IL5` | `geary-west.ts`, `blue-heron-lake.ts`, `cal-academy.ts`, `st-ignatius.ts` | **AI swaps (W4-L4)**: Holy Virgin (lane V's row and review 2: at the Geary sidewalk before the porch, the plinth as remainder, a glide tall part for the domes) and the Chinese Pavilion (lane V's row: stone base and causeways, roof fade) from `data/sf/w4Swaps.ts`; Cal Academy and St Ignatius through lane L's SoloView gate — **both ship** (golden, ¾ view: the AI roof's porthole skylights and hills; the AI church's crosses, columned front, pediment, tile roofs and dome), with forecourt / lawn and a plinth as remainders. |
+| `W4-IL6` | `ghirardelli-square.ts`, `cable-car-turntable.ts`, `fishermans-wharf.ts`, `lombard-crooked-street.ts`, `sutro-baths.ts` | **Ghirardelli**: the courtyards paved in warm brick on the measured ground, olive trees in round planters, lamps, benches, the passage and steps to Beach St. **Turntable** ("F's aprons"): the brick plaza of Powell St's foot over the exclusion, Market St's corner and the F-line restored clear of the apron, benches, lamps, queue crowd spots. **Wharf**: two crab stands (striped awnings, no lettering, crabs, a steaming cauldron) on Jefferson St, a lamp. **Lombard**: Hyde St with the Powell–Hyde rails and Leavenworth St restored across the lane's ends; crowd spots at the two classic views. **Sutro Baths**: base 0.9 (the hollow's drawn ground covered every basin): the water shows. The Cliff House keeps its own terraces (D2's note). |
+| `W4-IL7` | `blue-heron-lake.ts` | **Strawberry Hill on foot (W4-L7)**: walk decks on both footbridges (2.6 u, flat steps) and along the island's shore loop ('terrain' decks, walkable at any grade): the raster had left each bridge one broken column and the steep DEM had cut the 1.2 u shore path into pieces. The pavilion's arrival moves onto its south causeway (the 1.1 u gaps between the columns are narrower than a walker's clearance). |
+| `W4-IL8` | `scripts/opus-sf/sites-qa.mjs` | QA views for any registered landmark (the live base, a landmark's info poses). |
+| `W4-IL9` | this report, `docs/opus-bay/qa/w4/L/i4-*.jpg` | — |
+
+Tests (lane L's): `sf-landmarks` +5 (registration, CitySites and the lod rings; no wave-4 exclusion overlaps any other
+site; the helpers answer for the sites; the pyramid's shape; the island paths), `sf-landmark-context` (tops for every
+site, tall parts over every site, the D2-10 base check on Mission Dolores and on Grace's numeric base, D2-09's
+draped-ground and plaza tests over the Legion, Grace, Ghirardelli, the turntable and Lombard), `sf-models` +1 (the four
+wave-4 swaps: model ↔ site, slot placement, ≤ 6k, remainders ≤ 1.2k). The early-phase registry tests now read
+"registered, not one of the 24 ids".
+
+### Evidence
+
+- **Checks** on the last pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint .` 0 errors (43 old
+  warnings); the full opus-bay suite **803 / 803** (one run between pushes had E2-5's "a cached cell is cheap"
+  wall-clock assert red under load; green alone, 24 / 24).
+- **In the game** (desktop 1440 × 900, golden, quality high, RTX; every image read): Stonestown at its arrival (69 calls,
+  210k); Grace's terrace, steps and labyrinth from the Taylor St side and at night; the Legion's forecourt and paved court
+  with The Thinker through the arch, and at night; Ghirardelli's courtyard; the turntable plaza; the crab stands; Lombard
+  from its foot; Sutro's basins with water; the four AI landmarks in their streets. Sheets in `docs/opus-bay/qa/w4/L/`:
+  `i4-t2-settings.jpg` (Grace · Legion · Ghirardelli / turntable · Sutro · Lombard), `i4-ai-swaps.jpg` (St Ignatius · Cal
+  Academy / pavilion · Holy Virgin), `i4-wharf-crab-stands.jpg`. SoloView gate shots (ai 0 / 1) in scratch `gate/`.
+- **Phone** (390 × 844, dpr 3, quality mid): Grace's arrival (72 calls, 280k), St Ignatius's arrival with the AI facade
+  (80 calls, 272k; `i4-phone-st-ignatius.jpg`).
+- **Budgets**: every site's lod 0 within its cap (the tests); the settings add 0.3–0.8k triangles per landmark (Grace
+  +0.76k); no new program (TOY, GROUND, TOY_DYN; the AI parts use D2's warmed `ob-model-hero`). Frames at the QA poses:
+  mostly 130–370k; **over 400k at two elevated QA poses downtown** (Grace "ring1" 448k / 113 calls looking over the
+  Financial District; the turntable "street" pose 404k / 122 calls, measured before its setting; the sites add ≈ 6.8k
+  and ≈ 1.6k there) — to be settled by lane V's perf gate at its spots (Requests).
+- **GameRoot**: the site modules and the baked terrains live in the landmark chunk (build after W4-IL1: GameRoot
+  835.08 kB / 310.71 kB gzip, no wave-4 site id in it; the later commits touched only the landmark chunk and data values).
+
+### Decisions
+
+- **Two lists, not one.** `SF_SITES` is what the city draws; `SF_LANDMARKS` stays the 24 with an info card. Growing
+  `SF_LANDMARKS` would have broken lanes C's and P's count tests while they were editing them, and the wave-4 sites
+  already have their cards (lane C's place cards) and place rows (lane P's). `sfLandmark()` answers for every site.
+- **Landmark-info fallback → context helpers.** Instead of feeding `w4` blocks into `data/sf/landmarks.ts` (which builds
+  the 24 city cards), `context.ts` answers anchors, frames and photos for any site.
+- **Bases at the floor, not the lowest ground**, where a setting needs it (Grace, the Legion, Sutro): the 'terrain' rule
+  (lowest ground in the exclusion) buries buildings on slopes. Walls reach 1.2 u under the base, so the low sides stay
+  closed.
+- **Settings drawn in the AI remainders too** (sites.ts builds `swap.build` instead of `build` when the AI ships).
+- **Walk decks, not raster tweaks**, for Strawberry Hill: authored decks are walkable at any grade; the raster rules stay
+  as they are for the rest of the city.
+
+### Known gaps
+
+- **Still buried** (the audit of the drawn ground over each landmark's footprint, above its base): Ghirardelli 2.65 u
+  (its south row stands on its own grade; the courtyards are right now), Painted Ladies 1.22, Castro 0.96, Conservatory
+  0.96, Dragon Gate 0.90, City Hall 0.67 at a corner, Grace 0.73 at the apse (accepted: the choir runs into Nob Hill).
+  Each needs a look, not a formula (part b).
+- St Ignatius's early-phase arrival is at Fulton St's kerb (the phone shot shows BAYBAY on it): move it onto the
+  church's forecourt strip in part b.
+- The pavilion's floor is looked into, not walked on (column gaps < walker clearance; lane V's row keeps the blockers).
+- The two over-400k QA poses above.
+
+### Not done
+
+- **Fire rings** (early review open 16): the small T3 record on the Ocean Beach sand between Stairwell 15 and Lincoln
+  Way — `w4list.ts` and the baked terrain are being edited by the early-part-2 lane right now; next part.
+- The burial fixes above; P3 / P4 sites still arriving from lanes L2 / L3 (registered automatically; they re-run
+  `landmark-tops.ts` as the tops test asks).
+- The Cliff House setting (kept, D2's note).
+
+### Requests
+
+- **Lanes L2 / L3 (early part 2)**: sites are live now: every new site needs its `tops.ts` row (`npx tsx --tsconfig
+  tsconfig.app.json scripts/opus-sf/assets/landmark-tops.ts`; the landmark-context test names it); your preview pages
+  append nothing any more (`SF_SITES` draws everything).
+- **Lane V**: re-run the perf gate (desktop high and the phone profile) after `W4-IL1` / `W4-IL5` / `W4-IL6`: 80 sites,
+  four more AI parts within 220 u; add a downtown spot near Grace / Powell & Market (the two over-400k QA poses).
+- **Lane G**: `siteFrame(id, landmarkBaseY)` and `sitePhoto(id)` in `world/sf/landmarks/context.ts` for the reveal.
+- **Lane P**: `siteFlagTop` (re-exported by `context.ts`) answers for every registered site; `withSiteFlags` can take it.
+- **Lanes C / P**: when I move an arrival, the two arrival tests print the lines to paste (done for five in this part).
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · `npx tsx --tsconfig tsconfig.app.json --test
+  tests/opus-bay-*.test.ts` 803 / 803 on the pushed tree.
