@@ -270,7 +270,7 @@ test('W5-A5 first flight run: rings pay once each in any order, a missed ring st
     assert.equal(s.phase, 'intro');
     assert.equal(s.course, 'coit');
     assert.ok(slots.openOverlays().some(o => o.id === flight.CHIP_OVERLAY), 'the chip is up');
-    assert.ok(calls.includes('box:first-flight:on'), 'the soft box keeps the pelican near the course');
+    assert.ok(!calls.some(c => c.startsWith('box:')), 'no soft box (lane F soft boxes are places the pelican is turned away from)');
     // take off (G): flying
     runtime.move.mode = 'glide';
     runtime.glide.active = true;
@@ -282,20 +282,17 @@ test('W5-A5 first flight run: rings pay once each in any order, a missed ring st
       runtime.glide.x = r.x + 3; runtime.glide.z = r.z; runtime.glide.y = r.y - 2;
       flight.step(1 / 30);
     }
-    s = flight.flightState()!;
     assert.equal(s.got, 7);
     assert.equal(s.rings[2].missed, true);
-    assert.equal(s.phase, 'finale');
     const paid = events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && `${e.source}:${e.coins}`);
-    assert.deepEqual(paid, [1, 2, 4, 5, 6, 7, 8].map(n => `ring:first-flight:${n}:3`));
-    // landing ends it: the card (7 of 8 → 很好), the medals up to tier 2, the best
-    emit({ type: 'glide:land', x: 0, z: 0 });
+    assert.deepEqual(paid.filter(p => String(p).startsWith('ring:')), [1, 2, 4, 5, 6, 7, 8].map(n => `ring:first-flight:${n}:3`));
+    // the last ring ends it at once: the card (7 of 8 → 很好), the medals up to tier 2, the best; a landing after changes nothing
     assert.equal(flight.flightState(), null);
+    emit({ type: 'glide:land', x: 0, z: 0 });
     const card = kit.lastResultShown()!;
     assert.equal(card.tier, 2);
     assert.deepEqual(card.detail, { zh: '穿过 7 / 8 个金圈', en: '7 of 8 rings' });
     assert.ok(!slots.openOverlays().some(o => o.id === flight.CHIP_OVERLAY), 'the chip went');
-    assert.ok(calls.includes('box:first-flight:off'));
     assert.deepEqual(events.filter(e => e.type === 'reward' && e.source.startsWith('medal:')).map(e => e.type === 'reward' && e.source), ['medal:first-flight:1', 'medal:first-flight:2']);
     assert.equal(kit.bestOf('first-flight'), 7);
     // 跳过: nothing paid, no card, the run cancelled

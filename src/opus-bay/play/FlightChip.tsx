@@ -1,15 +1,16 @@
-import { Bird, CircleDot } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
+import { Bird, CircleDot, Navigation2 } from 'lucide-react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
-import { flightState, skipFirstFlight, subscribeFlight, takeOffNow, FIRST_FLIGHT_NAME } from './firstFlight';
+import { flightState, ringBearing, skipFirstFlight, subscribeFlight, takeOffNow, FIRST_FLIGHT_NAME } from './firstFlight';
 import './play.css';
 
 /**
- * Wave 5 · lane A · the first flight's chip (overlay 'play-flight'): under the top pill, one line — 第一次飞行 · 金圈
- * 3 / 8 — with 跳过; before the take-off it teaches the button once (desktop: the G keycap; phones: its own 起飞, the
- * same press as the move column's 起飞 button).
+ * Wave 5 · lane A · the first flight's chip (overlay 'play-flight'): one line under the top of the screen — 第一次飞行 ·
+ * 金圈 3 / 8 — with 跳过; before the take-off it teaches the button once (desktop: the G keycap; phones: its own 起飞, the
+ * same press as the move column's 起飞 button); while flying a small arrow points to the next ring (as the camera sees
+ * it: up = ahead).
  */
 
 const snapshot = () => {
@@ -21,6 +22,20 @@ export default function FlightChip() {
   const { t } = useT();
   const device = useDevice();
   const key = useSyncExternalStore(subscribeFlight, snapshot, snapshot);
+  const arrow = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let id = 0;
+    const tick = () => {
+      const el = arrow.current, b = ringBearing();
+      if (el) {
+        el.style.opacity = b === null ? '0' : '1';
+        if (b !== null) el.style.transform = `rotate(${(-b * 180) / Math.PI}deg)`;
+      }
+      id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(id);
+  }, []);
   if (!key) return null;
   const [phase, got, total] = key.split(':');
   return (
@@ -34,6 +49,7 @@ export default function FlightChip() {
       ) : (
         <span className="ob-play-flight-count"><CircleDot size={15} aria-hidden /> {t('金圈', 'Rings')} {got} / {total}</span>
       )}
+      <span ref={arrow} className="ob-play-flight-arrow" aria-hidden><Navigation2 size={16} /></span>
       <button type="button" className="ob-play-btn is-quiet" onClick={skipFirstFlight}>{t('跳过', 'Skip')}</button>
     </div>
   );

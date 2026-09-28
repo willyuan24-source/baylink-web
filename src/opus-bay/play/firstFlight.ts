@@ -1,5 +1,4 @@
 import { createElement, lazy, Suspense } from 'react';
-import { charApi } from '../actors/charApi';
 import { glideUnlocked } from '../actors/moveApi';
 import { playSound } from '../audio/hooks';
 import { emit, onEvent } from '../core/events';
@@ -62,6 +61,8 @@ export const INTRO_WAIT = 60;
 export const INTRO_WANDER = 50;
 export const MAX_FLIGHT = 180;
 export const LOCAL_STEP = 65;
+
+export const wrapAngle = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 
 /** Ring n of the first flight pays once per save, whichever course it was flown on (Coit's or a local one). */
 export const ringSource = (i: number) => `ring:first-flight:${i + 1}`;
@@ -167,7 +168,12 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
   offs.push(registerFrameSystem('a-first-flight', step));
   offs.push(onEvent(e => {
     if (!state) return;
-    if (e.type === 'glide:start' && state.phase === 'intro') setPhase('flying');
+    if (e.type === 'glide:start' && state.phase === 'intro') {
+      setPhase('flying');
+      // took off facing away (the camera looked elsewhere): say where the rings are, once
+      const r = state.rings[state.next], g = runtime.glide;
+      if (r && Math.abs(wrapAngle(Math.atan2(r.x - g.x, r.z - g.z) - g.heading)) > 1.9) bubble({ zh: '金圈在后面，我们掉个头～', en: 'The rings are behind us. Let’s turn round!' }, 3200);
+    }
     if (e.type === 'glide:land' && state.phase !== 'intro') finish();
   }));
   offs.push(registerOverlay({ id: CHIP_OVERLAY, Component: FlightChipSlot }));
@@ -177,9 +183,6 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
     setFloorSource(m.glideFloor);
     offs.push(registerSceneSystem(RINGS_SCENE, m.RingsLayer));
   }, error => { if (import.meta.env?.DEV) console.error('[opus-bay play] rings', error); });
-  // keep the pelican near the course (lane F's soft box; nothing when charApi is not there yet)
-  const xs = state.rings.map(r => r.x), zs = state.rings.map(r => r.z);
-  charApi()?.glideSoftBox('first-flight', { minX: Math.min(...xs) - 140, minZ: Math.min(...zs) - 140, maxX: Math.max(...xs) + 140, maxZ: Math.max(...zs) + 140 }, { zh: '金圈在那边，我们飞回去～', en: 'The rings are back that way!' });
   const first = state.rings[0];
   if (state.phase === 'intro') {
     faceCameraToward(first.x, first.z, { uncapped: true, seconds: 0.9 });
@@ -187,6 +190,15 @@ export function startFirstFlight(opts: { course?: 'coit' | 'local'; rings?: bool
   } else bubble({ zh: '跟着金圈飞！', en: 'Follow the gold rings!' }, 2600);
   changed();
   return true;
+}
+
+/** The next ring's direction relative to where the camera looks (rad, + = to the left), or null. */
+export function ringBearing(): number | null {
+  const s = flightState();
+  const r = s?.rings[s.next];
+  if (!s || !r) return null;
+  const from = runtime.glide.active ? runtime.glide : runtime.player;
+  return wrapAngle(Math.atan2(r.x - from.x, r.z - from.z) - (runtime.camera.yaw + Math.PI));
 }
 
 /** 跳过: end without a card (no cost, nothing lost). */
@@ -212,7 +224,7 @@ function setPhase(phase: FlightPhase) {
 
 function catchRing(i: number) {
   const s = state;
-  if (!s) return;
+  if (!s || !run) return;
   const r = s.rings[i];
   r.got = true;
   s.got++;
@@ -222,10 +234,14 @@ function catchRing(i: number) {
   spawnFx('sparkle', r.x, r.y, r.z, { scale: 2.4, count: 18 });
   emit({ type: 'reward', source: ringSource(i), coins: RING_COINS });
   if (s.next >= s.rings.length) {
+    // the last ring: the card now (not after a landing somewhere past PIER 39), then fly on or land as you like
     setPhase('finale');
+    const all = s.got === s.rings.length;
+    finish();
     bubble(runtime.input.device === 'touch'
-      ? { zh: '全部穿过！点「降落」落地吧～', en: 'Every ring! Tap Land to come down.' }
-      : { zh: '全部穿过！按 G 降落吧～', en: 'Every ring! Press G to land.' }, 4000);
+      ? { zh: all ? '全部穿过！点「降落」落地吧～' : '到终点啦！点「降落」落地吧～', en: all ? 'Every ring! Tap Land to come down.' : 'That’s the course! Tap Land to come down.' }
+      : { zh: all ? '全部穿过！按 G 降落吧～' : '到终点啦！按 G 降落吧～', en: all ? 'Every ring! Press G to land.' : 'That’s the course! Press G to land.' }, 4000);
+    return;
   } else if (s.got === 1) bubble({ zh: '漂亮！下一个金圈在前面～', en: 'Nice! The next ring is up ahead.' }, 2600);
   changed();
 }
@@ -259,7 +275,7 @@ export function step(dt: number) {
   // flown well past the last ring still ahead, or out too long: the run ends
   const last = s.rings[s.rings.length - 1];
   const pastEnd = s.next < s.rings.length && s.next === s.rings.length - 1 && Math.hypot(g.x - last.x, g.z - last.z) > 160 && s.t > 20;
-  if (s.t > MAX_FLIGHT || pastEnd || (s.phase === 'finale' && s.t > 12)) finish();
+  if (s.t > MAX_FLIGHT || pastEnd) finish();
 }
 
 function finish() {
@@ -278,7 +294,6 @@ function finish() {
 function teardown() {
   for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* already gone */ } }
   closeOverlay(CHIP_OVERLAY);
-  charApi()?.glideSoftBox('first-flight', null);
   state = null;
   run = null;
   changed();
