@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { ATTRACTIONS } from '../src/opus-bay/data/sf/attractions';
 import { sfLandmarkInfo } from '../src/opus-bay/data/sf/landmarks';
 import { ROUTE_PATHS } from '../src/opus-bay/data/sf/routePaths';
+import { SITE_ARRIVALS } from '../src/opus-bay/data/sf/siteArrivals';
 import { ROUTE_GAP_MAX, SF_ROUTES, routeGaps, routePointAt, sfRoute } from '../src/opus-bay/data/sf/routes';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { sfLandmarkAnchor } from '../src/opus-bay/world/sf/landmarks/context';
@@ -61,8 +62,10 @@ test('D2-11: landmark stops stand at the landmark\'s arrival (sfLandmarkAnchor),
       const p = PLACES.get(s.placeId)!;
       assert.ok(Math.hypot(p.x - s.x, p.z - s.z) < 20, `${s.id} by ${s.placeId}`);
     } else {
-      const a = ATTRACTIONS.find(q => q.id === s.attraction)!, w = a.arrival ?? a;
-      assert.ok(Math.hypot(w.x - s.x, w.z - s.z) < 0.02, `${s.id} at attraction ${s.attraction}'s arrival`);
+      // its trip end: lane L's site arrival (data/sf/siteArrivals.ts, which lane N wires into the attraction) where the
+      // attraction has one, else the attraction's own arrival
+      const a = ATTRACTIONS.find(q => q.id === s.attraction)!, w = SITE_ARRIVALS[a.id] ?? a.arrival ?? a;
+      assert.ok(Math.hypot(w.x - s.x, w.z - s.z) < 0.02, `${s.id} at attraction ${s.attraction}'s trip end (${w.x}, ${w.z})`);
     }
   }
 });
