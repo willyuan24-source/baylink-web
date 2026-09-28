@@ -4,6 +4,7 @@ import { charApi } from '../actors/charApi';
 import { glideUnlocked, subscribeGlide } from '../actors/moveApi';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
+import { useGame } from '../core/store';
 import type { Bilingual } from '../core/types';
 import type { WearSlot } from '../data/playSave';
 import { holdFraming, releaseFraming } from '../game/cinema';
@@ -35,6 +36,16 @@ import './economy.css';
 
 const usePelican = () => useSyncExternalStore(subscribeGlide, pelicanOut, pelicanOut);
 const useLedger = () => useSyncExternalStore(subscribeLedger, ledgerVersion, ledgerVersion);
+
+/**
+ * W5-E-review: one sheet at a time. The shop opens with every panel closed (openShop); a panel opened while it is up
+ * (the pill → the Journal, the map, settings) or photo mode now closes it. Before, on a phone, the pill opened the Journal
+ * UNDER the shop's sheet (two stacked bottom sheets, the Journal's tabs covered) with the feet still held by the shop.
+ */
+function useYieldTo(close: () => void) {
+  const taken = useGame(s => !!s.panel.kind || s.photoMode);
+  useEffect(() => { if (taken) close(); }, [taken, close]);
+}
 
 /** BAYBAY within this of you (u): the camera frames the two of you; farther, it stays where it is */
 const FRAME_NEAR = 10;
@@ -137,6 +148,7 @@ export function ShopSheet({ props, close }: OverlayProps) {
   const [said, setSaid] = useState<Bilingual | null>(null);
   const balance = coinsTotal();
   const market = isMarketOpen();
+  useYieldTo(close);
 
   // the feet held, the camera on BAYBAY and you above the sheet (when she is close by), the try-ons dropped on close
   useEffect(() => {
@@ -290,6 +302,7 @@ export function TicketPicker({ close }: OverlayProps) {
   const [failed, setFailed] = useState(false);
   const rows = useMemo(() => list ?? [], [list]);
   useEffect(() => { if (pelican) close(); }, [pelican, close]);
+  useYieldTo(close);
   return (
     <Sheet className="ob-ticket" snap={60} eyebrow={<><Ticket size={14} aria-hidden />{t('飞行券', 'Flight ticket')}</>} title={t('用飞行券飞去哪里？', 'Where shall we fly?')} onClose={close}>
       <p className="ob-muted">{held ? t('飞一次用掉一张。还没去过的地方，落地就算第一次来。', 'One flight uses the ticket. A place you have not been to counts as found when you land.') : t('飞行券用完了，小铺里还有。', 'No ticket left — the shop has more.')}</p>

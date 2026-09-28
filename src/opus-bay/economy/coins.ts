@@ -96,8 +96,9 @@ const pickerAt = (x: number, y: number, z: number, mode: Picker['mode'], low: bo
 };
 export function currentPicker(): Picker | null {
   const s = game.get();
-  // W5-E-review: photo mode too, as the doc above and the report always said (the shutter is not a pickup)
-  if (s.phase !== 'playing' || s.worldMode !== 'city' || s.photoMode) return null;
+  // W5-E-review: photo mode too, as the doc above and the report always said (the shutter is not a pickup), and nothing
+  // while the game is paused (settings open: 已暂停 — a QA teleport picked four coins there)
+  if (s.phase !== 'playing' || s.worldMode !== 'city' || s.photoMode || s.paused) return null;
   const mode = runtime.move.mode;
   if (mode === 'glide') {
     const gl = runtime.glide;

@@ -96,11 +96,14 @@ test('W5-E-review 2: a coin step with nothing to pick allocates nothing; picking
     runtime.move.mode = 'foot';
     const p1 = C.currentPicker(), p2 = C.currentPicker();
     assert.ok(p1 && p1 === p2, 'the same object each step');
+    game.set({ paused: true });
+    assert.equal(C.currentPicker(), null, 'nothing while paused');
+    game.set({ paused: false });
     runtime.move.mode = 'bike';
     game.set({ photoMode: true });
     assert.equal(C.currentPicker(), null, 'photo mode picks nothing up');
   } finally {
-    game.set({ photoMode: false });
+    game.set({ photoMode: false, paused: false });
     runtime.move.mode = 'foot';
     offLedger();
     __setBayNowForTests(null);
