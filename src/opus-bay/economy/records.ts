@@ -1,0 +1,40 @@
+import type { Bilingual } from '../core/types';
+import type { PlaySaveV1 } from '../data/playSave';
+
+/**
+ * Wave 5 · lane E · W5-E9: 我的记录 on the 手帐's 足迹 page (lane A's request) — the stair steps lane A counts
+ * (`play.b.steps`, `steps-today` with its Bay day `steps-day` = days since 1970 of the Bay date) and the activity bests
+ * lane A keeps through lane E's `recordBest` (`slides` and `stairs-<course>`: seconds, lower is better; `bell`: points).
+ * Pure: the notebook passes the play save and today's Bay date. Nothing is compared with anyone else, and nothing is
+ * a streak: yesterday's count simply is not shown.
+ */
+
+export interface RecordRow { key: string; name: Bilingual; value: Bilingual }
+export interface Records { stepsToday: number; stepsTotal: number; bests: RecordRow[] }
+
+/** The activities lane A saves a best for, in the order they are shown (names as lane A's cards say them). */
+export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds' | 'points' }[] = [
+  { key: 'slides', name: { zh: '纸板滑梯', en: 'Cardboard slides' }, unit: 'seconds' },
+  { key: 'stairs-filbert', name: { zh: '台阶赛跑 · 菲尔伯特台阶', en: 'Stair race · Filbert Steps' }, unit: 'seconds' },
+  { key: 'stairs-tiled', name: { zh: '台阶赛跑 · 马赛克阶梯', en: 'Stair race · Tiled Steps' }, unit: 'seconds' },
+  { key: 'bell', name: { zh: '缆车摇铃', en: 'Cable-car bell' }, unit: 'points' },
+];
+
+/** Days since 1970 of a Bay date (lane A's `steps-day`). */
+export const bayDayNumber = (dateKey: string): number => Math.round(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+
+const num = (v: unknown): number | undefined => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+
+export function records(p: Readonly<PlaySaveV1>, dateKey: string): Records {
+  const b = p.b ?? {};
+  const total = Math.max(0, Math.floor(num(b.steps) ?? 0));
+  const today = num(b['steps-day']) === bayDayNumber(dateKey) ? Math.max(0, Math.floor(num(b['steps-today']) ?? 0)) : 0;
+  const bests: RecordRow[] = [];
+  for (const r of BEST_ROWS) {
+    const v = num(b[r.key]);
+    if (v === undefined || v <= 0) continue;
+    const s = r.unit === 'seconds' ? v.toFixed(1) : String(Math.round(v));
+    bests.push({ key: r.key, name: r.name, value: r.unit === 'seconds' ? { zh: `最快 ${s} 秒`, en: `best ${s} s` } : { zh: `最高 ${s} 分`, en: `best ${s}` } });
+  }
+  return { stepsToday: today, stepsTotal: Math.max(total, today), bests };
+}

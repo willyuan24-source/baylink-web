@@ -170,3 +170,50 @@ test('W5-E5 the notebook renders in node: the header, four pages, the stamps wit
   assert.doesNotMatch(html, /连续|签到/, 'never a streak');
   __setBayNowForTests(null);
 });
+
+test('W5-E9 the should pages: 我的记录 from lane A\'s play.b (today only for today), event souvenirs, the secret postcards', async () => {
+  const R = await import('../src/opus-bay/economy/records');
+  const day = R.bayDayNumber('2026-10-03');
+  const r = R.records({ v: 1, c: 0, g: {}, b: { steps: 1234, 'steps-today': 56, 'steps-day': day, slides: 8.24, bell: 24, 'stairs-filbert': 71.36 } }, '2026-10-03');
+  assert.equal(r.stepsToday, 56);
+  assert.equal(r.stepsTotal, 1234);
+  assert.deepEqual(r.bests.map(b => `${b.key} ${b.value.zh}`), ['slides 最快 8.2 秒', 'stairs-filbert 最快 71.4 秒', 'bell 最高 24 分']);
+  assert.equal(R.records({ v: 1, c: 0, g: {}, b: { steps: 10, 'steps-today': 5, 'steps-day': day - 1 } }, '2026-10-03').stepsToday, 0, 'yesterday\'s count is not shown (no streaks)');
+  assert.deepEqual(R.records({ v: 1, c: 0, g: {} }, '2026-10-03'), { stepsToday: 0, stepsTotal: 0, bests: [] });
+
+  // the notebook in node, on each page (the page choice is per viewer: a localStorage stand-in)
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { registerHooks } = await import('node:module');
+  const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+  const Notebook = (await import('../src/opus-bay/economy/Notebook')).default;
+  styles.deregister();
+  const { SOUVENIR_IDS } = await import('../src/opus-bay/realsf/eventVenues');
+  const { EGG_POSTCARDS } = await import('../src/opus-bay/data/sf/eggPostcards');
+  const store = new Map<string, string>();
+  const g = globalThis as unknown as { localStorage?: unknown };
+  const had = g.localStorage;
+  g.localStorage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); }, removeItem: (k: string) => { store.delete(k); } };
+  try {
+    fresh();
+    __setBayNowForTests('2026-10-09T12:40');
+    L.registerRewardIds('event', SOUVENIR_IDS);
+    assert.ok(L.pay('event:fleet-week-2026-jets', 15) > 0);
+    assert.ok(L.pay('egg:telegraph-hill-parrots', 10) > 0);
+    L.commitPlay(p => ({ ...p, b: { steps: 420, 'steps-today': 42, 'steps-day': R.bayDayNumber('2026-10-09'), bell: 18 } }));
+    const page = (id: string) => { store.set('opus-bay:e-notebook-page', JSON.stringify(id)); return renderToStaticMarkup(h(Notebook)); };
+    const stamps = page('stamps');
+    assert.match(stamps, /活动纪念章[^]*?舰队周飞机编队/, 'the jets\' souvenir');
+    assert.match(stamps, /<span>印章<\/span><small>\d+\/22<\/small>/, 'souvenirs never count toward the page (22 stamps)');
+    const finds = page('finds');
+    assert.match(finds, new RegExp(`彩蛋明信片<small class="ob-nb-h-count">1/${EGG_POSTCARDS.length}</small>`));
+    assert.match(finds, /<img src="\/opus-bay\/w5\/postcards\/telegraph-hill-parrots-600\.webp"/, 'the parrots\' postcard, found');
+    assert.equal((finds.match(/ob-nb-card is-blank/g) ?? []).length, EGG_POSTCARDS.length - 1, 'the others still hidden');
+    const steps = page('steps');
+    assert.match(steps, /我的记录[^]*?今天 42 级 · 一共 420 级[^]*?缆车摇铃[^]*?最高 18 分/);
+    assert.doesNotMatch(stamps + finds + steps, /连续|签到/, 'never a streak');
+  } finally {
+    g.localStorage = had;
+    __setBayNowForTests(null);
+  }
+});

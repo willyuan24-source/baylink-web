@@ -1,22 +1,27 @@
-import { useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import {
   Binoculars, Bird, BusFront, CableCar, Car, Castle, CircleHelp, CloudFog, Cookie, Crown, Droplets, Fish, Flag, Flower2, Footprints, GraduationCap, Landmark,
-  Laugh, Megaphone, Mountain, Navigation, Octagon, Orbit, Phone, Plane, Rainbow, Sailboat, Shell, ShoppingBag, Signpost, Sparkles, Stamp, Store, Sun, TrainFront, TramFront, Trees, Waves,
+  Laugh, Mail, Megaphone, Mountain, Navigation, Octagon, Orbit, PartyPopper, Phone, Plane, Rainbow, Sailboat, Shell, ShoppingBag, Signpost, Sparkles, Stamp, Store, Sun,
+  Ticket, TrainFront, TramFront, Trees, Trophy, Waves, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import { ATTRACTION_AREAS, type AttractionArea } from '../data/sf/attractionTypes';
+import { EGG_POSTCARDS, type EggPostcard } from '../data/sf/eggPostcards';
+import { bayParts } from '../game/bayNow';
 import { discoveredIds, visitedZoneIds } from '../game/discovery';
 import { goTo } from '../game/goTo';
 import { EGG_AREAS, EGG_AREA_NAMES, EGGS } from '../eggs/registry';
 import { useT } from '../i18n';
 import { VIEW_SPOTS } from '../play/viewSpots';
+import { EVENT_SAY, SOUVENIR_IDS } from '../realsf/eventVenues';
 import { FootprintsTab } from '../ui/Footprints';
 import { itemById, PAGE_ITEM, type PageId } from './items';
 import { isPaid, ledgerVersion, playState, subscribeLedger } from './ledger';
 import { notebookPages, notebookVersion, stampWorld, subscribeNotebook } from './notebookRun';
 import { openShop } from './shopRun';
 import { todayLine } from './today';
+import { records } from './records';
 import { PAGE_COINS, PAGE_NAMES, STAMPS, stamped, type StampDef, type StampGlyph, type StampWorld } from './stamps';
 import './economy.css';
 
@@ -26,6 +31,10 @@ import './economy.css';
  * 带我去 for the ones not sat at yet), 足迹 (lane N's page). Each page shows how full it is and what a full page gives
  * (30 金币 and a cosmetic). The header is today's real San Francisco (lane R's sun and moon) and 明天可能不一样 —
  * never a streak. A stamp new since the last look lands with a thud (per viewer, localStorage; none with reduced motion).
+ *
+ * W5-E9 (the should pages): 印章 also shows the event souvenirs (lane R's SOUVENIR_IDS, earned only at a real event in
+ * its real window; never part of the full page), 小发现 opens with lane V's six secret postcards (shown once their egg
+ * is found, tap for the big one), and 足迹 starts with 我的记录 (lane A's stair steps and activity bests).
  */
 
 type NbPage = PageId | 'steps';
@@ -109,6 +118,7 @@ function StampsPage({ seen, goSteps, w }: { seen: (k: string) => boolean; goStep
         <h3 className="ob-h3"><Stamp size={15} aria-hidden />{t('路上', 'On the way')}</h3>
         <ul className="ob-nb-grid">{STAMPS.map((s, i) => (s.group === 'journey' ? cell(s, i) : null))}</ul>
       </section>
+      <Souvenirs seen={seen} />
       <button type="button" className="ob-nb-more" onClick={goSteps}>
         <Footprints size={15} aria-hidden />
         <span>{t(`还去过 ${places} 个地方，走过 ${zones} 个街区`, `${places} places found, ${zones} neighbourhoods walked`)}</span>
@@ -118,10 +128,89 @@ function StampsPage({ seen, goSteps, w }: { seen: (k: string) => boolean; goStep
   );
 }
 
+/** Lane R's event souvenirs: the ones earned (a real event, in its real window); never counted toward the page. */
+function Souvenirs({ seen }: { seen: (k: string) => boolean }) {
+  const { t } = useT();
+  const got = SOUVENIR_IDS.filter(id => isPaid(`event:${id}`));
+  return (
+    <section className="ob-block">
+      <h3 className="ob-h3"><Ticket size={15} aria-hidden />{t('活动纪念章', 'Event stamps')}</h3>
+      {got.length ? (
+        <ul className="ob-nb-grid">
+          {got.map(id => (
+            <li key={id} className="is-on">
+              <Disc Glyph={PartyPopper} ink="#c44a31" on fresh={!seen(`event:${id}`)} tilt={tiltOf(id)} />
+              <span className="ob-nb-cap">{t(EVENT_SAY[id] ?? { zh: '城里的活动', en: 'A city event' })}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="ob-muted">{t('真实活动那几天去现场，就能盖一个纪念章。不算在这一页里。', 'Be at a real event while it is on to get its stamp. It never counts toward this page.')}</p>
+      )}
+    </section>
+  );
+}
+
+/** Lane V's six secret postcards (W5-V8): each comes with its egg; tap one for the big picture. */
+function SecretPostcards() {
+  const { t } = useT();
+  const [big, setBig] = useState<EggPostcard | null>(null);
+  const got = EGG_POSTCARDS.filter(pc => isPaid(`egg:${pc.egg}`)).length;
+  return (
+    <section className="ob-block">
+      <h3 className="ob-h3"><Mail size={15} aria-hidden />{t('彩蛋明信片', 'Secret postcards')}<small className="ob-nb-h-count">{got}/{EGG_POSTCARDS.length}</small></h3>
+      <ul className="ob-nb-cards">
+        {EGG_POSTCARDS.map(pc => {
+          const on = isPaid(`egg:${pc.egg}`);
+          return (
+            <li key={pc.egg} className={on ? 'is-on' : ''}>
+              {on ? (
+                <button type="button" className="ob-nb-card" onClick={() => setBig(pc)} aria-label={t(pc.title)}>
+                  <img src={pc.small} alt={t(pc.alt)} width={600} height={450} loading="lazy" decoding="async" />
+                </button>
+              ) : (
+                <span className="ob-nb-card is-blank" aria-hidden><Mail size={20} /></span>
+              )}
+              <span className="ob-nb-cap">{on ? t(pc.title) : t('还藏着', 'Still hidden')}</span>
+            </li>
+          );
+        })}
+      </ul>
+      {big && (
+        <div className="ob-nb-big" role="dialog" aria-modal="false" aria-label={t(big.title)}>
+          <img src={big.large} alt={t(big.alt)} width={1200} height={900} decoding="async" />
+          <div className="ob-nb-big-foot">
+            <strong>{t(big.title)}</strong>
+            <button type="button" className="ob-icon-btn" onClick={() => setBig(null)} aria-label={t('关闭', 'Close')}><X size={18} aria-hidden /></button>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+/** 我的记录: lane A's stair steps and activity bests (play.b), today's count only for today's Bay date. */
+function RecordsBlock() {
+  const { t } = useT();
+  const r = records(playState(), bayParts().dateKey);
+  const f = (n: number) => n.toLocaleString('en-US');
+  return (
+    <section className="ob-block ob-nb-records">
+      <h3 className="ob-h3"><Trophy size={15} aria-hidden />{t('我的记录', 'My records')}</h3>
+      <ul className="ob-nb-rec">
+        <li><span>{t('爬台阶', 'Stair steps')}</span><strong>{t(`今天 ${f(r.stepsToday)} 级 · 一共 ${f(r.stepsTotal)} 级`, `${f(r.stepsToday)} today · ${f(r.stepsTotal)} in all`)}</strong></li>
+        {r.bests.map(b => <li key={b.key}><span>{t(b.name)}</span><strong>{t(b.value)}</strong></li>)}
+      </ul>
+      {!r.bests.length && <p className="ob-muted">{t('玩过滑梯、摇铃或台阶赛跑，最好成绩会记在这里。', 'Ride the slides, ring the bell or race the stairs: your bests land here.')}</p>}
+    </section>
+  );
+}
+
 function FindsPage({ seen }: { seen: (k: string) => boolean }) {
   const { t } = useT();
   return (
     <>
+      <SecretPostcards />
       {EGG_AREAS.map(area => {
         const eggs = EGGS.filter(e => e.area === area);
         if (!eggs.length) return null;
@@ -193,7 +282,9 @@ export default function Notebook() {
   const lv = useSyncExternalStore(subscribeLedger, ledgerVersion, ledgerVersion);
   const nv = useSyncExternalStore(subscribeNotebook, notebookVersion, notebookVersion);
   const [page, setPageState] = useState<NbPage>(() => { const v = readJson<string>(PAGE_KEY, 'stamps'); return (['stamps', 'finds', 'views', 'steps'] as string[]).includes(v) ? (v as NbPage) : 'stamps'; });
-  const setPage = (p: NbPage) => { setPageState(p); writeJson(PAGE_KEY, p); };
+  const tabsRef = useRef<HTMLDivElement>(null);
+  // a new page starts at its top (the Journal keeps its scroll between pages otherwise)
+  const setPage = (p: NbPage) => { setPageState(p); writeJson(PAGE_KEY, p); requestAnimationFrame(() => tabsRef.current?.scrollIntoView({ block: 'nearest' })); };
   const pages = notebookPages();
   // what counts as "seen" now: every stamp, find and view the save holds (the thud plays once for the new ones)
   const p = playState();
@@ -203,6 +294,7 @@ export default function Notebook() {
     ...STAMPS.filter((_, i) => stamped(p, i, w)).map(s => `stamp:${s.id}`),
     ...EGGS.filter(e => isPaid(`egg:${e.id}`)).map(e => `egg:${e.id}`),
     ...VIEW_SPOTS.filter(v => isPaid(`view:${v.id}`)).map(v => `view:${v.id}`),
+    ...SOUVENIR_IDS.filter(id => isPaid(`event:${id}`)).map(id => `event:${id}`),
   ], [p, w]);
   const seen = useSeen(keys);
   const today = todayLine();
@@ -219,7 +311,7 @@ export default function Notebook() {
         <p className="ob-nb-today">{t(today)}</p>
         <p className="ob-nb-tomorrow">{t('明天可能不一样。', 'Tomorrow may be different.')}</p>
       </header>
-      <div className="ob-nb-pages" role="tablist" aria-label={t('手帐的页', 'Notebook pages')}>
+      <div ref={tabsRef} className="ob-nb-pages" role="tablist" aria-label={t('手帐的页', 'Notebook pages')}>
         {tabs.map(x => (
           <button key={x.id} type="button" role="tab" aria-selected={page === x.id} className={page === x.id ? 'is-on' : ''} onClick={() => setPage(x.id)}>
             <span>{x.label}</span>{x.count && <small>{x.count}</small>}
@@ -230,7 +322,7 @@ export default function Notebook() {
       {page === 'stamps' && <StampsPage seen={seen} goSteps={() => setPage('steps')} w={w} />}
       {page === 'finds' && <FindsPage seen={seen} />}
       {page === 'views' && <ViewsPage seen={seen} />}
-      {page === 'steps' && <FootprintsTab embedded />}
+      {page === 'steps' && <><RecordsBlock /><FootprintsTab embedded /></>}
     </div>
   );
 }

@@ -160,6 +160,33 @@
 .ob-nb-more small { font-weight: 800; color: var(--ob-teal-d); }
 .ob-nb .ob-footprints.is-embedded { margin-top: 4px; }
 
+/* W5-E9: the secret postcards (小发现), 我的记录 (足迹) */
+.ob-nb-h-count { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--ob-ink-3); font-variant-numeric: tabular-nums; }
+.ob-nb-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 8px; }
+.ob-nb-cards li { display: flex; flex-direction: column; gap: 4px; text-align: center; }
+.ob-nb-card {
+  display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border-radius: 6px; overflow: hidden; background: #fff;
+  border: 3px solid #fff; box-shadow: var(--ob-shadow-s); cursor: pointer;
+}
+.ob-nb-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ob-nb-card.is-blank {
+  display: grid; place-items: center; cursor: default; box-shadow: none; background: var(--ob-cream-2);
+  border: 2px dashed var(--ob-line-2); color: rgba(34, 50, 47, .25);
+}
+.ob-nb-cards .ob-nb-cap { font-size: 11.5px; }
+.ob-nb-cards li:not(.is-on) .ob-nb-cap { color: var(--ob-ink-3); font-weight: 600; }
+.ob-nb-big { margin-top: 10px; border-radius: 10px; overflow: hidden; background: #fff; border: 4px solid #fff; box-shadow: var(--ob-shadow-s); }
+.ob-nb-big img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.ob-nb-big-foot { display: flex; align-items: center; gap: 8px; padding: 6px 4px 2px 8px; }
+.ob-nb-big-foot strong { flex: 1; min-width: 0; font-size: 14px; color: var(--ob-ink); }
+.ob-nb-records { margin-top: 4px; margin-bottom: 14px; }
+.ob-nb-rec { list-style: none; margin: 0; padding: 4px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--ob-line); }
+.ob-nb-rec li { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; font-size: 13px; color: var(--ob-ink-2); }
+.ob-nb-rec li + li { border-top: 1px dashed var(--ob-line); }
+.ob-nb-rec li span { flex: 1; min-width: 0; }
+.ob-nb-rec li strong { font-size: 13px; color: var(--ob-ink); font-variant-numeric: tabular-nums; text-align: right; }
+.ob-nb-records .ob-muted { margin-top: 6px !important; font-size: 12.5px; }
+
 .ob-overlay.is-reduced .ob-nb-disc.is-new, .ob-overlay.is-reduced .ob-compass-arrow { animation: none; transition: none; }
 @media (prefers-reduced-motion: reduce) {
   .ob-nb-disc.is-new { animation: none; }
