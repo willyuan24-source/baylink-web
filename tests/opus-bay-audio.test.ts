@@ -458,7 +458,8 @@ test('F10 (review): the ferry engine plays aboard only once the boat carries you
     await amb.cityReady;
     const level = () => (amb.debugCity().city as { engine: number }).engine;
     // waiting at Pier 41 for the boat lying at Gate E (the ride's move mode is 'transit' from the start of the wait)
-    runtime.player.x = -238; runtime.player.z = 66.5;
+    const quay41 = T.FERRY_ROUTES.find(r => r.running)!.terminals.find(t => t.id === 'pier-41')!.quay;
+    runtime.player.x = quay41.x; runtime.player.z = quay41.z;
     sys.request({ line: 'ferry', station: 'pier-41', dir: 1, to: 'ferry-building' });
     game.set({ move: { mode: 'transit', line: 'ferry', spot: 'deck' } } as never);
     for (let i = 0; i < 10; i++) { ctx.currentTime += 0.1; amb.update(0.1); }

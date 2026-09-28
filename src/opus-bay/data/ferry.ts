@@ -5,9 +5,13 @@ import { DISTRICT, frameAt } from './district';
  * Ferry routes (lane F, checkpoint F8), pure: a data-driven route table and the loop each boat runs. v1: the arrival
  * ferry (life ferry 0) becomes rideable after the arrival cinematic and runs Ferry Building ⇄ Pier 41 round one closed
  * loop: out of Gate E the way the district's harbour loop leaves it, along the city front outside the pier heads,
- * round Pier 39's end (clear of the K-Dock floats) into the channel, alongside Pier 41's east face, out past the pier
- * and back along the Bay to come into Gate E from the north as the district's ferry does. Sausalito (C2's Marin board)
- * is in the table as data (`running: false`) for a later boat.
+ * round Pier 39's end (clear of the K-Dock floats) into the channel, alongside the Wharf's waterfront promenade (the
+ * Pier 41 landing), then west past the pier heads and back along the Bay to come into Gate E from the north as the
+ * district's ferry does. Sausalito (C2's Marin board) is in the table as data (`running: false`) for a later boat.
+ *
+ * (wave 4, lane T, verify D2) The boat used to berth at the Pier 45 shed deck, whose only way ashore is walled in by the
+ * sheds at the pier root in the published city: whoever landed there could not walk out. It now lies alongside the
+ * promenade, and you wait / land on the promenade itself (connected to the whole city: tests/opus-bay-sf-ferry.test.ts).
  *
  *   FERRY                 boat constants (9 u/s, the deck, dwell)
  *   FERRY_ROUTES          the table: terminals (quay = where you wait, berth = where the boat stops), loop waypoints
@@ -69,7 +73,9 @@ function gateE() {
 }
 
 const G = gateE();
-const PIER41_BERTH: Vec2 = { x: -250, z: 60.2 };
+/** alongside the Wharf promenade (its edge runs NNW here), the hull ≥ 3 u off the stones; the quay is on the promenade */
+const PIER41_BERTH: Vec2 = { x: -194.9, z: 46.4 };
+const PIER41_QUAY: Vec2 = { x: -186.5, z: 48.4 };
 
 export const FERRY_ROUTES: FerryRouteDef[] = [
   {
@@ -78,14 +84,14 @@ export const FERRY_ROUTES: FerryRouteDef[] = [
     running: true,
     terminals: [
       { id: 'ferry-building', name: { zh: '渡轮大厦 · E 号登船口', en: 'Ferry Building · Gate E' }, quay: DISTRICT.anchors['ferry-gate'] ?? { x: 157, z: -21 }, berth: G.dock },
-      { id: 'pier-41', name: { zh: '41 号码头', en: 'Pier 41' }, quay: { x: -238, z: 66.5 }, berth: PIER41_BERTH },
+      { id: 'pier-41', name: { zh: '41 号码头', en: 'Pier 41' }, quay: PIER41_QUAY, berth: PIER41_BERTH },
     ],
     loop: [
       G.dock, G.out(8, -6), G.out(24, 10),
       { x: 110, z: -76 }, { x: 0, z: -80 }, { x: -100, z: -72 }, { x: -165, z: -66 }, { x: -212, z: -48 }, { x: -232, z: -20 },
-      { x: -236, z: 12 }, { x: -233, z: 31 }, { x: -226, z: 41 }, { x: -225, z: 50 }, { x: -236, z: 58.8 },
+      { x: -236, z: 12 }, { x: -228, z: 27 }, { x: -207, z: 29 }, { x: -191, z: 36.5 },
       PIER41_BERTH,
-      { x: -268, z: 59.2 }, { x: -286, z: 50 }, { x: -294, z: 28 }, { x: -280, z: -6 }, { x: -246, z: -52 }, { x: -180, z: -84 },
+      { x: -201.6, z: 55.6 }, { x: -214, z: 57.4 }, { x: -234, z: 57.6 }, { x: -268, z: 59.2 }, { x: -286, z: 50 }, { x: -294, z: 28 }, { x: -280, z: -6 }, { x: -246, z: -52 }, { x: -180, z: -84 },
       { x: -60, z: -88 }, { x: 60, z: -86 }, G.out(22, 30), G.out(8, 18),
     ],
   },

@@ -81,6 +81,41 @@ test('the loop stays over water: ≥ 3 u from land everywhere but the berth appr
   } finally { setCityTerrain(null); }
 });
 
+test('verify D2: the Pier 41 quay stands on walkable ground joined to the city (the Pier 45 shed deck was a walled pocket); the berth lies beside it', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { canStand, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { SF_LANDMARKS } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const sf = sfDisk();
+  const lms = landmarkWalkInputs(SF_LANDMARKS);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  const q = D.ferryTerminal('pier-41')!.terminal;
+  await sf.attachAround(city, q.quay.x, q.quay.z, 170, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    assert.ok(canStand(q.quay.x, q.quay.z, 0.45), 'the Pier 41 quay is walkable');
+    assert.ok(Math.hypot(q.quay.x - q.berth.x, q.quay.z - q.berth.z) < 12, 'the boat lies beside the quay');
+    // flood the walkable ground from the quay (0.75 u steps within 150 u): the old landing's region was 605 cells
+    const step = 0.75, R = 150, seen = new Set<number>(), key = (i: number, j: number) => (i + 1000) * 4000 + (j + 1000);
+    const stack: [number, number][] = [[0, 0]];
+    seen.add(key(0, 0));
+    let n = 0, far = 0;
+    while (stack.length) {
+      const [i, j] = stack.pop()!;
+      n++;
+      far = Math.max(far, Math.hypot(i * step, j * step));
+      for (const [a, b] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) {
+        const k = key(a, b);
+        if (seen.has(k) || Math.abs(a * step) > R || Math.abs(b * step) > R) continue;
+        seen.add(k);
+        if (canStand(q.quay.x + a * step, q.quay.z + b * step, 0.45)) stack.push([a, b]);
+      }
+    }
+    assert.ok(n > 10000 && far > 140, `walkable region from the quay: ${n} cells, reaching ${far.toFixed(0)} u`);
+  } finally { setCityTerrain(null); }
+});
+
 test('ferry: starts at Gate E, runs 9 u/s, slows into both berths, turns round quickly for a waiting rider', () => {
   const sys = new FerrySystem(LINE);
   assert.equal(LINE.stops[sys.boat.at].terminal, 'ferry-building');
@@ -153,10 +188,11 @@ test('review: a waiting rider stays on the quay; leaving the ferry out on the Ba
     // (it used to send them to the terminal the boat lay at)
     transit.rideFerry('pier-41', 'ferry-building');
     assert.equal(ride.currentRide()?.mode, 'wait');
-    teleportPlayer({ x: -238, z: 66.5 });
+    const quay41 = D.ferryTerminal('pier-41')!.terminal.quay;
+    teleportPlayer(quay41);
     transit.hopOffRide();
     assert.equal(ride.currentRide(), null);
-    assert.ok(Math.hypot(p.x + 238, p.z - 66.5) < 1e-6, `not sent to a terminal (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
+    assert.ok(Math.hypot(p.x - quay41.x, p.z - quay41.z) < 1e-6, `not sent to a terminal (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
     // (2) Pier 41 → Gate E, the ride ended far out on the Bay (u 800–860: nothing walkable within 60 u there): E2's
     // alight keeps F's spot (actors/moveSystem 'transit-alight'), so it must be solid ground on the next quay
     transit.rideFerry('pier-41', 'ferry-building');
