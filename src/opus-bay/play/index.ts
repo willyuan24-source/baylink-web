@@ -12,7 +12,7 @@ import { flow } from '../game/flowStore';
 import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMoving, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, openOverlays, registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
-import { ensureResultOverlay, unregisterResultOverlay } from './kit';
+import { currentActivity, ensureResultOverlay, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
 import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
 
@@ -95,7 +95,7 @@ let sitModule: typeof import('./sit') | null = null;
  */
 export function sitOffer(still: number): boolean {
   const s = game.get(), p = runtime.player;
-  if (!charApi() || still < SIT_STILL || s.phase !== 'playing' || s.dialogue.nodeId || s.photoMode || s.riding !== null) return false;
+  if (!charApi() || still < SIT_STILL || s.phase !== 'playing' || s.dialogue.nodeId || s.photoMode || s.riding !== null || currentActivity()) return false;
   if (runtime.move.mode !== 'foot' || !p.grounded || p.locked || sitModule?.seated()) return false;
   // BAYBAY has something to say (跟我来, she is coming because you called): her prompt stays
   const f = flow.get();
@@ -208,7 +208,7 @@ export function init(): () => void {
   // DEV / QA: __opusBay.play
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    w.__opusBay = { ...(w.__opusBay ?? {}), play: { openWheel, toggleWheel, petNow, startFirstFlight, sit: () => import('./sit'), flight: () => import('./firstFlight'), kit: () => import('./kit'), emotes: () => import('./emotes'), zones: () => import('./zones'), slides: () => import('./slides'), stairs: () => import('./stairs'), bell: () => import('./bell'), viewSpots: VIEW_SPOTS, sitHereIt, viewIts } };
+    w.__opusBay = { ...(w.__opusBay ?? {}), play: { openWheel, toggleWheel, petNow, startFirstFlight, sit: () => import('./sit'), flight: () => import('./firstFlight'), kit: () => import('./kit'), emotes: () => import('./emotes'), zones: () => import('./zones'), slides: () => import('./slides'), stairs: () => import('./stairs'), bell: () => import('./bell'), marshmallow: () => import('./marshmallow'), viewSpots: VIEW_SPOTS, sitHereIt, viewIts } };
   }
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
 }

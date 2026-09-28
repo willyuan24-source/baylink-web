@@ -254,6 +254,26 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
     assert.ok(bytes <= 5 * 1024, `${f}: ${bytes} B`);
     if (process.env.OPUS_PLAY_SIZES) console.log(`${f} ${bytes} B`);
   }
+  // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
+  // out for the activities that import it), each activity behind the zones and that shared chunk
+  const partC = ['marshmallow.ts'];
+  const propsEntry = path.join(dir, 'toyMesh.ts');
+  const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
+  for (const f of propsShared) {
+    const bytes = await size(f, zonesShared);
+    assert.ok(bytes <= 5 * 1024, `${path.basename(f)}: ${bytes} B`);
+    if (process.env.OPUS_PLAY_SIZES) console.log(`${path.basename(f)} ${bytes} B`);
+  }
+  const zones3 = path.join(dir, 'zones3.ts');
+  const z3 = await size(zones3, zonesShared);
+  assert.ok(z3 <= 5 * 1024, `zones3.ts: ${z3} B`);
+  if (process.env.OPUS_PLAY_SIZES) console.log(`zones3.ts ${z3} B`);
+  const partCShared = new Set([...zonesShared, ...closure(zones3), ...propsShared]);
+  for (const f of partC) {
+    const bytes = await size(path.join(dir, f), partCShared);
+    assert.ok(bytes <= 5 * 1024, `${f}: ${bytes} B`);
+    if (process.env.OPUS_PLAY_SIZES) console.log(`${f} ${bytes} B`);
+  }
   // only dynamic imports reach play/ from outside the folder (w5Features' loader; lane C / E may import play modules lazily)
   const src = path.join(ROOT, 'src/opus-bay');
   const files: string[] = [];
@@ -957,4 +977,175 @@ test('W5-A6–A8 zones: the prompts (滑下去 / 几点开？ by the hours, 比�
     assert.equal(zones.stepsTotal(), 105);
   } finally { off(); mock.timers.reset(); __setBayNowForTests(null); zones.__resetSteps(); kit.__setBestWriter(null); kit.__resetKit(); flow.set({ bubble: null }); game.set({ worldMode: 'district' }); playing(); }
   assert.ok(!rideSlots.ridePads().some(p => p.id === 'bell'), 'teardown removes the pad');
+});
+
+// --- part c: W5-A9 the should list ----------------------------------------------------------------------------------------
+
+test('W5-A9 marshmallow: the toast (tiers, 金黄度, words, colours), the burning rings and their seats on the published city, the NPS season and hours', async () => {
+  const M = await import('../src/opus-bay/play/marshmallow');
+  const zones = await import('../src/opus-bay/play/zones3');
+  const { oceanBeachFireRings, forceFireRings, resetFireRings } = await import('../src/opus-bay/world/sf/landmarks/ocean-beach-fire-rings');
+  const T0 = M.TOAST;
+  // the toast: golden in the middle, never failed
+  assert.equal(M.toastTier(T0.centre, false), 3);
+  assert.equal(M.toastTier(T0.centre + T0.star - 0.001, false), 3);
+  assert.equal(M.toastTier(T0.centre + T0.star + 0.01, false), 2);
+  assert.equal(M.toastTier(0.52, false), 2);
+  assert.equal(M.toastTier(0.3, false), 1);
+  assert.equal(M.toastTier(0.9, false), 1);
+  assert.equal(M.toastTier(1, true), 1, 'a burnt one is still a marshmallow');
+  assert.equal(M.toastScore(T0.centre, false), 100);
+  assert.equal(M.toastScore(1, true), 0);
+  assert.ok(M.toastScore(0.6, false) > M.toastScore(0.4, false));
+  assert.deepEqual([0.1, 0.4, 0.6, 0.9].map(t => M.toastWord(t, false).zh), ['白白的', '微微黄', '金黄', '焦黄']);
+  assert.equal(M.toastWord(1, true).zh, '着火啦！');
+  // the colour darkens all the way (white to black)
+  const lum = (t: number) => { const c = M.toastColor(t); return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b; };
+  for (let t = 0.1; t <= 1; t += 0.1) assert.ok(lum(t) < lum(t - 0.1) + 1e-9, `darker at ${t.toFixed(1)}`);
+  // a marshmallow held in the flame: golden after about 3 s, on fire after 5 s
+  assert.ok(T0.lo / T0.rate > 2.4 && T0.lo / T0.rate < 3.2 && T0.burn / T0.rate >= 4.5);
+  for (const line of Object.values(M.FIRE_LINES)) assert.ok([...line.zh].length <= 45 && line.en.length > 0, line.zh);
+  for (const line of [zones.FIRE_INVITE_LINE, zones.FIRE_SEASON_LINE, zones.FIRE_HOURS_LINE]) assert.ok([...line.zh].length <= 45);
+  // the rings that burn: lane L's odd rings (8 of 16), in the site's world frame, 9.6 u apart along the beach
+  assert.equal(zones.FIRE_RINGS.length, 8);
+  assert.deepEqual(zones.FIRE_RINGS.map(r => r.k), [1, 3, 5, 7, 9, 11, 13, 15]);
+  for (let i = 1; i < zones.FIRE_RINGS.length; i++) assert.ok(Math.abs(dist(zones.FIRE_RINGS[i], zones.FIRE_RINGS[i - 1]) - 9.6) < 0.2);
+  const c0 = zones.FIRE_RINGS[0], site = oceanBeachFireRings;
+  assert.ok(Math.hypot(c0.ix, c0.iz) > 0.999 && Math.abs(c0.ix * c0.ax + c0.iz * c0.az) < 1e-9);
+  assert.ok(dist(c0, { x: site.x, z: site.z }) < 40);
+  // the NPS program on the Bay clock (realsf/seasons.ts): lit in season 06:00-21:30, cold from November
+  try {
+    forceFireRings(null);
+    const cases: [string, boolean][] = [['2026-10-03T20:00', true], ['2026-10-31T21:29', true], ['2026-10-31T21:30', false], ['2026-10-03T05:59', false], ['2026-11-05T19:00', false], ['2027-03-01T12:00', true]];
+    for (const [spec, lit] of cases) {
+      __setBayNowForTests(spec); resetFireRings();
+      assert.equal(zones.fireLit(), lit, spec);
+    }
+    __setBayNowForTests('2026-11-05T19:00');
+    assert.deepEqual(zones.fireClosedLine(), zones.FIRE_SEASON_LINE);
+    __setBayNowForTests('2026-10-03T22:00');
+    assert.deepEqual(zones.fireClosedLine(), zones.FIRE_HOURS_LINE);
+  } finally { __setBayNowForTests(null); resetFireRings(); }
+  // on the published city: both seats on the sand beside each burning ring, the prompts clear of every other prompt
+  await cityAround(zones.FIRE_RINGS, 60);
+  try {
+    const prompts: { id: string; x: number; z: number }[] = [
+      ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
+      ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
+      ...CITY_POSTCARDS.map(c => ({ id: `postcard ${c.id}`, ...c.position })),
+      ...views.VIEW_SPOTS.map(v => ({ id: `view ${v.id}`, x: v.x, z: v.z })),
+    ];
+    for (const r of zones.FIRE_RINGS) {
+      const seats = M.fireSeats(r);
+      for (const who of ['player', 'baybay'] as const) {
+        const p = seats[who];
+        assert.ok(T.canStand(p.x, p.z, 0.3), `ring ${r.k}: the ${who} seat is standable`);
+        assert.ok(dist(p, r) > 1.1 && dist(p, r) < 2, `ring ${r.k}: ${who} beside the ring`);
+        assert.ok(Math.abs(Math.atan2(r.x - p.x, r.z - p.z) - p.heading) < 1e-9, 'facing the fire');
+      }
+      assert.ok(dist(seats.player, seats.baybay) > 2.5, `ring ${r.k}: BAYBAY across the fire, out of her talk reach`);
+      assert.equal(T.surfaceAt(seats.player.x, seats.player.z), 'sand', `ring ${r.k}: on the sand`);
+      for (const p of prompts) assert.ok(dist(r, p) >= zones.FIRE_PROMPT_R + 1, `ring ${r.k}: ${dist(r, p).toFixed(1)} u from ${p.id}`);
+    }
+  } finally { T.setCityTerrain(null); }
+});
+
+test('W5-A9 marshmallow round: holds the feet, hold to toast and let go at golden, the burnt one swaps with BAYBAY, the card and the best; closed out of season; 不烤了 and moving cost nothing', async () => {
+  const M = await import('../src/opus-bay/play/marshmallow');
+  const zones = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  const puppet = await import('../src/opus-bay/play/puppet');
+  const { resetFireRings } = await import('../src/opus-bay/world/sf/landmarks/ocean-beach-fire-rings');
+  playing();
+  const calls = stubBody();
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  M.__resetMarshmallow();
+  const r = zones.FIRE_RINGS[3];
+  runtime.player.x = r.x + r.ix * 1.8; runtime.player.z = r.z + r.iz * 1.8; runtime.guide.x = r.x + 3; runtime.guide.z = r.z;
+  const { events, off } = record();
+  mock.timers.enable({ apis: ['setTimeout'] });
+  const until = (fn: () => boolean, max = 900) => { let n = 0; while (!fn() && n++ < max) stepFrameSystems(1 / 60, 0); return n; };
+  try {
+    // November: the season is over; BAYBAY says so, nothing starts
+    __setBayNowForTests('2026-11-05T19:00'); resetFireRings();
+    assert.equal(M.startMarshmallow(r.k), false);
+    assert.deepEqual(flow.get().bubble?.text, zones.FIRE_SEASON_LINE);
+    // a Saturday at dusk in season
+    __setBayNowForTests('2026-10-03T18:40'); resetFireRings();
+    assert.equal(M.startMarshmallow(r.k), true);
+    assert.equal(M.startMarshmallow(r.k), false, 'one round at a time');
+    assert.ok(lockReport().some(h => h.source === 'activity' && h.key === 'marshmallow'), 'the feet are held');
+    assert.ok(calls.some(c => c.startsWith('sit:')), 'the player sits on the sand (charApi.sitGround)');
+    assert.ok(calls.includes('baybay:sit'));
+    assert.equal(chip.chipState()?.id, 'marshmallow');
+    assert.equal(chip.chipState()?.meter?.lo, M.TOAST.lo);
+    assert.ok(runtime.camera.shot, 'the camera takes the fire');
+    assert.ok(zones.fireIts.every(it => it.radius === 0), 'no prompt over the fire');
+    assert.ok(puppet.puppetPose('baybay'), 'BAYBAY drawn at her seat across the fire');
+    assert.ok(dist(runtime.guide, runtime.player) > 2.4, 'out of her talk reach');
+    // hold until golden, let go in the middle
+    until(() => M.toastState()?.phase === 'toast');
+    M.setToastHold(true);
+    until(() => (M.toastState()?.player.tau ?? 0) >= M.TOAST.centre - 0.004);
+    assert.equal(chip.chipState()?.status?.zh, '金黄');
+    M.setToastHold(false);
+    stepFrameSystems(1 / 60, 0);
+    assert.equal(M.toastState()?.phase, 'eat');
+    until(() => M.toastState() === null);
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'marshmallow');
+    assert.equal(card.tier, 3);
+    assert.match(card.detail!.zh, /^金黄度 (9\d|100) 分$/);
+    assert.deepEqual(events.filter(e => e.type === 'reward').map(e => e.type === 'reward' && e.source), ['medal:marshmallow:1', 'medal:marshmallow:2', 'medal:marshmallow:3']);
+    assert.ok(kit.bestOf('marshmallow')! >= 90);
+    assert.equal(lockHeld(), false);
+    assert.ok(calls.includes('stand'));
+    assert.equal(puppet.puppetPose('baybay'), null);
+    assert.equal(runtime.camera.shot, null);
+    assert.equal(chip.chipState(), null);
+    assert.ok(zones.fireIts.every(it => it.radius === zones.FIRE_PROMPT_R));
+    // again right there; held too long it catches fire: extra crispy, BAYBAY swaps, still one medal, no best
+    events.length = 0;
+    card.again!();
+    assert.ok(M.toastState(), 'again at the same ring');
+    until(() => M.toastState()?.phase === 'toast');
+    M.setToastHold(true);
+    until(() => M.toastState()?.phase !== 'toast');
+    assert.equal(M.toastState()?.burnt, true);
+    assert.deepEqual(flow.get().bubble?.text, M.FIRE_LINES.flare);
+    M.setToastHold(false);
+    until(() => M.toastState()?.phase === 'eat');
+    assert.deepEqual(flow.get().bubble?.text, M.FIRE_LINES.swap);
+    until(() => M.toastState() === null);
+    assert.equal(kit.lastResultShown()!.tier, 1);
+    assert.match(kit.lastResultShown()!.detail!.zh, /焦焦脆脆/);
+    assert.ok(kit.bestOf('marshmallow')! >= 90, 'a burnt one never replaces the best');
+    assert.equal(events.filter(e => e.type === 'reward').length, 0, 'tier 1 was paid already');
+    // let go too early: not yet, the round goes on
+    assert.equal(M.startMarshmallow(r.k), true);
+    until(() => M.toastState()?.phase === 'toast');
+    M.setToastHold(true);
+    for (let i = 0; i < 30; i++) stepFrameSystems(1 / 60, 0);
+    M.setToastHold(false);
+    stepFrameSystems(1 / 60, 0);
+    assert.equal(M.toastState()?.phase, 'toast');
+    assert.deepEqual(flow.get().bubble?.text, M.FIRE_LINES.notYet);
+    // 不烤了: nothing paid, no card
+    events.length = 0;
+    const before = kit.lastResultShown();
+    chip.chipState()!.action!.run();
+    assert.equal(M.toastState(), null);
+    assert.deepEqual(events.filter(e => e.type === 'play').map(e => e.type === 'play' && e.what), ['cancel']);
+    assert.equal(kit.lastResultShown(), before);
+    assert.equal(lockHeld(), false);
+    // pushing the stick stands up at no cost
+    assert.equal(M.startMarshmallow(r.k), true);
+    for (let i = 0; i < 30; i++) stepFrameSystems(1 / 60, 0);
+    runtime.input.moveY = 1;
+    stepFrameSystems(1 / 60, 0);
+    runtime.input.moveY = 0;
+    assert.equal(M.toastState(), null);
+    assert.equal(lockHeld(), false);
+  } finally { mock.timers.reset(); off(); M.__resetMarshmallow(); __setBayNowForTests(null); resetFireRings(); charApiMod.setCharApi(null); kit.unregisterResultOverlay(); kit.__resetKit(); flow.set({ bubble: null }); runtime.input.moveY = 0; playing(); }
 });

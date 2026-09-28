@@ -22,7 +22,9 @@ export interface ChipState {
   /** a press-and-hold button (phones: 趴低) */
   hold?: { label: Bilingual; set: (down: boolean) => void };
   /** the glyph before the title */
-  icon?: 'slide' | 'stairs';
+  icon?: 'slide' | 'stairs' | 'fire' | 'play';
+  /** a small gauge (the marshmallow's toast): value 0…1 with a marked band [lo, hi] (shape + a word: colour-blind safe) */
+  meter?: { value: number; lo: number; hi: number };
 }
 
 export const CHIP_OVERLAY = 'play-chip';

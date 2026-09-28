@@ -25,6 +25,7 @@ import { courseFoot, courseTop, STAIR_COURSES, STEPS_PER_U } from './stairCourse
  *
  *   slides.ts   the Seward Street slides (W5-A6)       stairs.ts   the stair races (W5-A8)
  *   bell.ts + BellPad.tsx   the cable-car bell riff and the lean-out photo (W5-A7), loaded with the pad on a cable car
+ *   zones3.ts   part c (W5-A9), its own chunk loaded at init: the should activities' zones (marshmallow.ts: the fire rings…)
  */
 
 export const PREFETCH_R = 60;
@@ -166,6 +167,26 @@ const PadSlot = ({ ride }: PadProps) => createElement(Suspense, { fallback: null
 /** The bell pad rides on a cable car once it has left the stop (lane T's ride banner). */
 export const bellPadVisible = (r: { kind?: string; stage: string }) => r.kind === 'cable-car' && r.stage !== 'waiting';
 
+// --- the helpers every zone uses (zones3.ts too) ---------------------------------------------------------------------
+
+const invited = new Map<string, number>();
+const fetched = new Set<string>();
+/** The player within r of (x, z). */
+export const nearPlayer = (x: number, z: number, r: number) => Math.hypot(runtime.player.x - x, runtime.player.z - z) <= r;
+function quiet() {
+  const s = game.get(), f = flow.get();
+  return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity();
+}
+/** BAYBAY's invite at a zone: once per INVITE_GAP s per key, only when quiet and she is near. */
+export function zoneInvite(key: string, line: Bilingual) {
+  if (runtime.time - (invited.get(key) ?? -Infinity) < INVITE_GAP || !quiet()) return;
+  if (Math.hypot(runtime.guide.x - runtime.player.x, runtime.guide.z - runtime.player.z) > 14) return;
+  invited.set(key, runtime.time);
+  bubble(line, 3600, undefined, 'call');
+}
+/** Fetch an activity chunk once (again after a failed fetch). */
+export function zonePrefetch(key: string, load: () => Promise<unknown>) { if (!fetched.has(key)) { fetched.add(key); void load().catch(() => fetched.delete(key)); } }
+
 export function initZones(): () => void {
   const offs: (() => void)[] = [];
   // the activities' sounds (synthesized recipes: registered, nothing plays until an activity asks)
@@ -173,21 +194,10 @@ export function initZones(): () => void {
   offs.push(registerOverlay({ id: CHIP_OVERLAY, Component: ChipSlot }));
   offs.push(registerInteractables('a-play-zones', () => [slidesIt, ...stairsIts]));
   offs.push(registerRidePad({ id: 'bell', order: 10, visible: bellPadVisible, Component: PadSlot }));
-
-  const invited = new Map<string, number>();
-  const fetched = new Set<string>();
-  const near = (x: number, z: number, r: number) => Math.hypot(runtime.player.x - x, runtime.player.z - z) <= r;
-  const quiet = () => {
-    const s = game.get(), f = flow.get();
-    return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity();
-  };
-  const invite = (key: string, line: Bilingual) => {
-    if (runtime.time - (invited.get(key) ?? -Infinity) < INVITE_GAP || !quiet()) return;
-    if (Math.hypot(runtime.guide.x - runtime.player.x, runtime.guide.z - runtime.player.z) > 14) return;
-    invited.set(key, runtime.time);
-    bubble(line, 3600, undefined, 'call');
-  };
-  const prefetch = (key: string, load: () => Promise<unknown>) => { if (!fetched.has(key)) { fetched.add(key); void load().catch(() => fetched.delete(key)); } };
+  // part c: the should activities' zones (the fire rings, the turntables…), their own chunk
+  let off3: (() => void) | null = null, disposed = false;
+  void import('./zones3').then(m => { if (!disposed) off3 = m.initZones3(); });
+  offs.push(() => { disposed = true; off3?.(); });
 
   let acc = 0;
   offs.push(registerFrameSystem('a-play-zones', dt => {
@@ -199,13 +209,13 @@ export function initZones(): () => void {
     // the slides: the verb follows the hours; the invite on the deck
     const open = slidesOpen();
     slidesIt.verb = open ? SLIDE_VERB : HOURS_VERB;
-    if (near(SLIDES.deck.x, SLIDES.deck.z, PREFETCH_R)) prefetch('slides', () => import('./slides'));
-    if (near(SLIDES.deck.x, SLIDES.deck.z, 3.2)) invite('slides', open ? SLIDES_INVITE_LINE : SLIDES_CLOSED_LINE);
+    if (nearPlayer(SLIDES.deck.x, SLIDES.deck.z, PREFETCH_R)) zonePrefetch('slides', () => import('./slides'));
+    if (nearPlayer(SLIDES.deck.x, SLIDES.deck.z, 3.2)) zoneInvite('slides', open ? SLIDES_INVITE_LINE : SLIDES_CLOSED_LINE);
     // the stair courses: fetch the race near either end; invite at the foot
     for (const c of STAIR_COURSES) {
       const foot = courseFoot(c), top = courseTop(c);
-      if (near(foot.x, foot.z, PREFETCH_R) || near(top.x, top.z, PREFETCH_R)) prefetch('stairs', () => import('./stairs'));
-      if (near(foot.x, foot.z, INVITE_R)) invite(`stairs:${c.id}`, STAIRS_INVITE_LINE);
+      if (nearPlayer(foot.x, foot.z, PREFETCH_R) || nearPlayer(top.x, top.z, PREFETCH_R)) zonePrefetch('stairs', () => import('./stairs'));
+      if (nearPlayer(foot.x, foot.z, INVITE_R)) zoneInvite(`stairs:${c.id}`, STAIRS_INVITE_LINE);
     }
   }));
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
