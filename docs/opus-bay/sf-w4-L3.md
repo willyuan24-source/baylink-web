@@ -212,3 +212,111 @@ Every module's header carries its facts and sources and its local frame (origin,
 - **Lane C**: the cards above; the Crane Cove card can say the two cranes are Cranes 14 and 30.
 
 Status (2026-09-27): 早期阶段完成——24 个地点全部推送（9 个已接进游戏，15 个等接线）；#77、#92 按规定不做。
+
+## Early review 2
+
+Written 2026-09-27 by the adversarial reviewer of lane L3 (worktree `C:/Users/willy/wt/w4-l3`, on `39993fb`). Commit
+`W4-L3-review` (one code commit + this section); every change is in lane L3's own files. Higgsfield: 0 credits.
+
+### 给主人的摘要
+
+1. 复查了 L3 做的 24 个小景点：网上抽查了 28 条事实、9 个 OSM 编号，大多数都对。找到并修好三类问题：麦克拉伦公园的蓝色大水塔 "La Grande" 放错了塔（原来放在公园中间两座无名水罐上，真正的 La Grande 在公园西北角山顶，差了约 700 米），已经搬到正确位置并重新截图；有 7 个景点的"游客站位"落在马路车道上（富兰克林街、高夫街、18 街、24 街等），已改到人行道和广场上；日晷的 OSM 编号、中国海滩纪念碑的年份、几处高度数据也已更正。
+2. 新增 3 项测试（游客站位不能在车道上、高度按规则、La Grande 和日晷必须在真实位置），全套 opus-bay 测试 839/839 通过。
+3. 还没改的只有 P 线的数据：日晷、麦克拉伦等几个景点在地图上的点和到达点，写在下面的请求里，接线时一起改。
+
+### What was checked
+
+- **Rules of the early phase**: every `W4-L9` commit touches only files lane L3 created (checked with `git show --stat`
+  on all 20 commits); the two files the lead's `040440d` also touched are the lane's own.
+- **Facts on the web (28)**, all confirmed unless listed under the defects: McLaren (313.7 acres, 4th-largest, named 29
+  Nov 1926, Philosopher's Way 2.7 mi / 2013 / George Gonzalez's 14 stations, amphitheatre 1970 → Jerry Garcia 2005, La
+  Grande 1956 / 350,000 gal / 80 ft, SFPUC upgrade completed 2008); Buena Vista (38.3 acres, 575 ft, 1867 as Hill Park,
+  the WPA headstone gutters); Lafayette (12.5 acres, Washington / Sacramento / Gough / Laguna); Octagon House (1861,
+  McElroy and Shober, SE corner of Union and Gough, Colonial Dames 1952, 2nd / 4th Sundays 12–3, Feb–Nov); Seward
+  slides (1973, Kim Clark, Ruth Asawa's contest, Tue–Sun 10–5, adults with a child, cardboard); Bayview Opera House
+  (1888, 4705 3rd St, Geilfuss, youth centre 1989, $5.7 M, a stage with seating); the sundial (10 Oct 1913, 28-ft
+  gnomon, 34-ft dial, four columns, the 1895–1905 track); the Wave Organ (May 1986, Richards and Gonzales, 25 PVC pipes,
+  Laurel Hill stone, high tide, Oppenheimer); Crane Cove (2020, 7 acres, Nick and Nora, the Transbay Tube 1965–69);
+  Haas-Lilienthal (1886, Schmidt, witches' cap, 1906, SF Heritage 1973, National Treasure 2012); Glen Canyon (≈ 70
+  acres, "largest remaining creek … with public access", 350 ft in a mile, 19 Mar 1868 – 26 Nov 1869, CHL 1002, WPA
+  1937); Mount Sutro (911 ft, Mount Parnassus, 61 acres, 30–40 % fog drip, Rotary Meadow 2004); Mountain Lake (4
+  acres, 30 ft, Anza's two days in 1776, plaque Sept 1957, the 2014 clean-up); Sutro Heights (1881, open 1883, city
+  1938, razed 1939, 18 acres, the Trafalgar lions, Diana); Alta Plaza (12.9 acres, 1888, Jackson / Clay / Steiner /
+  Scott, the 1972 damage still visible); Ina Coolbrith (poet laureate 30 June 1915 at the PPIE); Balmy Alley (1972
+  children's murals, 1973 Rodriguez and Carrillo, PLACA 1984 under Patlán); Vermont St (20th–22nd, 1.56 against
+  Lombard's 1.2, McKinley Square, US-101); MaestraPeace (1994, the seven artists, Olivia Quevedo, both faces, restored
+  2012); the Women's Building (1910, Mission Turn Hall); Calle 24 (May 2014, Board of Supervisors and Mayor);
+  Patricia's Green (3 June 2005, Patricia Walkup, the changing sculpture).
+- **Coordinates / OSM ids (9)**: Lyon Steps viewpoint 7221410485, the Parapet 1709352211, Lafayette Heights 7707941355,
+  Mount Sutro 12056865382, Buena Vista Heights 358803216, the Octagon House, Haas, Women's Building and Opera House
+  footprints (their `height` tags too): right. La Grande and the sundial: wrong (defects 1, 2).
+- **Wiring**: read `landmarks/index.ts` (SF_SITES), `w4sites.ts`, `context.ts`, `landmark-tops.ts` and every test that
+  runs over SF_SITES / W4_ALL_SITES (sf-landmarks W4-IL1 ×3, sf-landmark-context D2-10 / D2-09, sf-sites-w4, sf-models,
+  w4-postcards, sf-attractions). The integration step of "## Early phase" (move the 15, re-run landmark-tops.ts in the
+  same commit) matches what those tests need. The one check they make that the tier-3 test did not mirror (W4-IL1: every
+  plaza site yields crowd spots) is now in it. A trial registration (moving the 15 and regenerating `tops.ts`) was not
+  run here because it rewrites a tracked file: run the full suite in the integration commit.
+- **Budgets and frames**: all 24 are ≤ 800 triangles with ground (McLaren now 352 + 32), lod 2 ≤ 10 %, ≤ 2 meshes (the
+  QA measures 2). There are no `animate` parts and the geometry is built once, so there is no per-frame work or
+  allocation. The modules have no zh text (names are lane C's); the report's summary reads fine on a phone.
+
+### Defects found → fixed (commit `W4-L3-review`, tests in `tests/opus-bay-sf-sites-w4t3.test.ts`, now 10 tests)
+
+1. **McLaren's "La Grande" stood on the wrong tank.** La Grande is OSM way 424957085 (water_tower, 23 m, wikidata
+   Q118533874 "La Grande Tank", Commons 37°43′23″ N 122°25′27″ W) on the hilltop at the park's north-western edge by
+   the Watertower View viewpoint. The record stood on way 290539043, one of two anonymous 13 m, 40 m-wide tanks ≈ 100 u
+   (700 m) east in the middle of the park, and drew it 35 m wide where the real tank is 10.8 m wide. Moved to
+   (674.79, 1065.88): a slender Tiffany-blue tank (r 1.3, 7 u, conical roof, base ring, ladder), a gravel apron over the
+   service drive's ring, two benches and a blank board. The terrain is re-baked, the arrival is by the viewpoint
+   (reachable), and the key shot `docs/opus-bay/qa/w4/L3/mclaren-park-high-golden.jpg` is replaced (read: the blue tank
+   on the hill above the Excelsior's houses, the apron and benches round it). Test: the site stands within 1.5 u of the
+   OSM footprint's centre and cites way 424957085; the registry test lets a big park's feature stand ≤ 130 u from the
+   park's map point when its notes say so (McLaren only).
+2. **The sundial cited the wrong OSM node.** `node/11903199250` is the Ingleside Terraces neighbourhood label (the
+   scouting JSON's lat / lng); the dial is node 6691138540 (amenity=clock). The geometry was right (0.2 u from the dial).
+   Test: it cites 6691138540, stands within 1.5 u of it, and no record cites the label.
+3. **Crowd spots in the traffic lanes.** Lane F's sightseers stand still at `landmarkPlazaSpots` (exact spots; the
+   traffic never waits for a standing walker). The plazas of 7 sites reached over the city's carriageway: Haas 7 / 7
+   spots on Franklin St, Octagon 6 / 6 on Gough and Union, the Women's Building 6 / 6 on 18th and Lapidge, Calle 24
+   9 / 10 on 24th St, Noe Valley 4 / 5 on 24th St, Ina Coolbrith 2 / 4 on Taylor St, Patricia's Green 2 / 6 on the cross
+   streets. The city's sidewalks there are 0.4–0.6 u strips with driveway cuts, so the fix is chosen points on them
+   (`siteKit3.standSpot`: a 0.3 u square whose one grid point is its centre) or plazas trimmed to the terraces.
+   Bayview's lot gave a single spot (now 2) and two Wave Organ spit spots were not standable (now on the spit's line).
+   Test: no candidate spot on a city carriageway outside the site's own exclusion (Balmy's alley is the site's), and
+   ≥ 2 standable spots per plaza site; the ≥ 30 u² rule accepts "the crowd spots are … points" sites with ≥ 3 spots.
+4. **Height records against their rule** (H = 3.2 + 0.155·h): Octagon said 12 m / 4.4 u (OSM: 8 m, two storeys →
+   4.44), the Women's Building 18 m / 5.6 u (OSM 17 m → 5.84, what the city drew), Bayview 12 m / 4.95 u (OSM 10 m →
+   4.75). The sundial's 3.4 u gnomon under the policy's 4.5 u is now a stated toy height. `height.u` is not read at
+   runtime (the glide reads `top`), so nothing registered changes. Test: `u` within 0.1 u of the rule unless the notes
+   say "toy height".
+5. **Header facts** that feed lane C's cards: China Beach's monument plate reads "Gift of Henry & Diana Chung Family
+   1981" (hmdb 52925, Wikipedia) while NPS dates it 1982; the header now names both (card: "early 1980s"). Calle 24's
+   "Balmy Alley opens off the same block" is now "one block west" (between Treat and Harrison).
+
+The registered nine keep their measured tops (only plazas, notes and height records changed): `tops.ts` is untouched
+and the D2-10 test passes. Checks on the code commit rebased on `3600806`: tsc 0; `npx eslint .` 0 errors (43 old
+warnings); tier-3 test 10 / 10; full opus-bay suite **839 / 839** (821 / 821 before the rebase, on `39993fb`).
+Preview shots (dev server 5307, stopped): McLaren street / high, Haas street / high (scratch
+`C:/Users/willy/opus-qa/w4/w4-l3/review/qa/`, each read).
+
+### Corrections to "## Early phase"
+
+- Its McLaren lines ("on one of the two OSM water towers … the other stays the city's", way 290539043) are superseded
+  by defect 1, its crowd-spot lines for the house museums ("the sidewalks (and the near lanes)") by defect 3, Bayview's
+  "12 m" by defect 4 and China Beach's "the 1982 monument" by defect 5.
+- Integration step 2 ("nothing else is needed") holds for drawing, walking and flags; the arrivals are lane P's (below).
+
+### Open (not fixed: other lanes' files)
+
+- **Lane P (`data/sf/attractions.ts`, `extraPlaces.ts`), at the integration**: trips to a tier-3 attraction end at lane
+  P's `arrival` or its x, z, not at the site's `w4.arrival`, and for these that is wrong. The sundial's point and
+  arrival (283.8, 1438 / 284.6, 1437.4) are the neighbourhood label, 10 u from the dial (the dial: 276.15, 1443.84).
+  Seward's point (154.7, 832.4, no arrival) lies inside the chutes' blocker and Vermont's (454.3, 506.2) inside a bend
+  shrub. McLaren's (773.6, 1075.6) is the park's middle, ≈ 100 u from La Grande, and Mountain Lake's is 26 u from the
+  overlook. Suggested: for the 24 tier-3 attractions take the site's world arrival (`sfLandmarkAnchor(siteId)`) as
+  `LANDMARK_ARRIVALS` does for the 24 landmarks, and move the sundial's badge to the dial.
+- **Lane P / G (design)**: the Wave Organ's trips end on the Marina Green shore, across the harbour mouth from it
+  (lane P's arrival, kept by the site). The tip is reachable on foot (tested); ending at the spit's root on Yacht Road
+  would bring players to it.
+- **Lane C (cards)**: China Beach "early 1980s" (defect 5); La Grande at the park's north-western edge by Watertower View.
+- Unchanged from "## Early phase": #77 and #92, the 15 waiting sites, the sundial's shadow, no SoloView or night sheets.
