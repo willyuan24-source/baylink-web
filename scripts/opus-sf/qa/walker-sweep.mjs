@@ -16,6 +16,11 @@
 //            speed never under 3 u/s over any 3 s, camera within 25° of the axis).
 //   routes   the three walking routes stop to stop with a tap-to-walk target (runtime.player.pathTarget): a leg stalls
 //            when the player makes < 1 u of progress in 5 s, or runs past 2.5 × its straight-line time.
+//   trips    (W5-F11, `--trips [t1|t12]`, `--budget <min>`) from the Ferry Building to every T1 (then T2, nearest first)
+//            attraction on foot: lane N's planner's walk option (game/tripPlan planTrips with the live providers, the
+//            routes waited for as goTo does), started as the map's 跟 BAYBAY 去 (flow.startTrip: BAYBAY carries the
+//            player, no input); passes when the trip arrives (within 12 u of its end) inside 1.3 × the quote (plan MF2);
+//            gives up at max(1.6 × quote, quote + 40 s) or 30 s without 1 u of progress (a shot for the sheet).
 // Output: <out>/live.json and <out>/sheet.html (every failure's shot with its numbers). Console: one line per failure.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -34,7 +39,9 @@ const TARGETS = arg('--targets', `${SWEEP}/targets.json`);
 const STATIC = arg('--static', `${SWEEP}/static.json`);
 const ONLY = arg('--only', 'fails');
 const LIMIT = Number(arg('--limit', '9999'));
-const PHASES = { targets: !flag('--no-targets'), deck: flag('--deck'), routes: flag('--routes') };
+const PHASES = { targets: !flag('--no-targets'), deck: flag('--deck'), routes: flag('--routes'), trips: flag('--trips') };
+const TRIPS = arg('--trips', 't12');
+const BUDGET_MIN = Number(arg('--budget', '240'));
 fs.mkdirSync(OUT, { recursive: true });
 if (fs.existsSync('C:/Users/willy/opus-qa/w5/PERF-LOCK')) { console.error('PERF-LOCK exists: a perf gate is running — try again later'); process.exit(3); }
 
@@ -104,7 +111,7 @@ const tidy = () => evaluate(`(()=>{const a=${Q}.actions; if(${Q}.game.get().dial
 
 // ---------------------------------------------------------------------------------------------------------------
 
-const results = { at: new Date().toISOString(), url: null, device: MOBILE ? 'phone 390x844' : 'desktop 1440x900', targets: [], deck: [], routes: [] };
+const results = { at: new Date().toISOString(), url: null, device: MOBILE ? 'phone 390x844' : 'desktop 1440x900', targets: [], deck: [], routes: [], trips: [] };
 const failures = [];
 try {
   await connect();
@@ -121,7 +128,9 @@ try {
     if (ONLY === 'fails') { const st = JSON.parse(fs.readFileSync(STATIC, 'utf8')); const bad = new Set(st.results.filter(r => r.verdict !== 'ok' && r.verdict !== 'CORRIDOR').map(r => r.id)); list = list.filter(t => bad.has(t.id)); }
     else if (ONLY !== 'all') { const kinds = ONLY.split(','); list = list.filter(t => kinds.includes(t.kind)); }
     list = list.slice(0, LIMIT);
-    for (const [i, t] of list.entries()) {
+    for (const [i, t0] of list.entries()) {
+      // (a loop / Metro stop: the spot the game sets a rider down, sweep-static's sx / sz)
+      const t = t0.sx !== undefined ? { ...t0, x: t0.sx, z: t0.sz } : t0;
       const ground = await teleport(t.x, t.z);
       const dirs = [];
       for (const code of ['KeyW', 'KeyD', 'KeyS', 'KeyA']) {
@@ -208,6 +217,8 @@ try {
           await sleep(500);
           const p = await pos();
           if (Math.hypot(p.x - to.x, p.z - to.z) < 3) { done = true; break; }
+          // (a moment on the way — the pelican's 先试试起飞？ at Coit — waits for a tap: the sweep answers it and walks on)
+          if (await evaluate(`!!${Q}.game.get().dialogue.nodeId || !!${Q}.game.get().panel.kind`)) { await tidy(); lastAt = Date.now(); }
           if (Math.hypot(p.x - last.x, p.z - last.z) >= 1) { last = p; lastAt = Date.now(); }
           else if (Date.now() - lastAt > 5000) { stalled = true; break; }
           const tgt = await evaluate(`${Q}.runtime.player.pathTarget`);
@@ -219,6 +230,52 @@ try {
         results.routes.push(r);
         if (!done) await teleport(to.x, to.z);
       }
+    }
+  }
+  // --- trips: Ferry Building → every T1 / T2 on foot, carried by BAYBAY -----------------------------------------------
+  if (PHASES.trips) {
+    const t0All = Date.now();
+    const start = await pos();
+    const list = await evaluate(`(async()=>{const A=await import('/src/opus-bay/data/sf/attractions.ts');const f={x:${start.x},z:${start.z}};return A.ATTRACTIONS.filter(a=>a.rank<=${TRIPS === 't1' ? 1 : 2}).map(a=>{const d=A.tripDestination(a);return {id:a.id,rank:a.rank,x:d.x,z:d.z,d:Math.hypot(d.x-f.x,d.z-f.z)}}).filter(a=>a.d>30).sort((a,b)=>a.rank-b.rank||a.d-b.d)})()`);
+    for (const a of list.slice(0, LIMIT)) {
+      if ((Date.now() - t0All) / 60000 > BUDGET_MIN) { results.trips.push({ id: a.id, rank: a.rank, skipped: 'budget' }); continue; }
+      await teleport(start.x, start.z);
+      await tidy();
+      await sleep(600);
+      const plan = await evaluate(`(async()=>{
+        const TP=await import('/src/opus-bay/game/tripPlan.ts'), PR=await import('/src/opus-bay/game/tripProviders.ts'), F=await import('/src/opus-bay/game/flow.ts'), RUN=await import('/src/opus-bay/game/tripRun.ts'), A=await import('/src/opus-bay/data/sf/attractions.ts');
+        const a=A.ATTRACTION_INDEX.resolve('${a.id}')||A.ATTRACTIONS.find(x=>x.id==='${a.id}'); const d=A.tripDestination(a);
+        const dest={placeId:d.placeId,x:d.x,z:d.z,name:d.name,attraction:a.id};
+        const p=${Q}.runtime.player; const plan=()=>TP.planTrips({x:p.x,z:p.z},dest,PR.tripProviders());
+        let o=plan(); if(o.some(TP.optionPending)){await Promise.race([PR.tripRouteCache().idle(),new Promise(r=>setTimeout(r,2500))]); o=plan();}
+        const w=o.find(x=>x.mode==='walk'); if(!w) return {none:o.map(x=>x.mode)};
+        RUN.initTripRun(); F.startTrip(w,dest,'map');
+        return {seconds:w.seconds,pending:o.some(TP.optionPending),x:dest.x,z:dest.z};
+      })()`);
+      if (!plan || plan.none) { results.trips.push({ id: a.id, rank: a.rank, noWalk: plan?.none ?? 'error' }); log({ trip: a.id, noWalk: plan?.none }); continue; }
+      const quote = plan.seconds, giveUp = Math.max(quote * 1.6, quote + 40);
+      const t0 = Date.now();
+      let last = await pos(), lastAt = t0, arrived = false, stalled = false, pulls0 = await evaluate(`${Q}.actors.feet ? ${Q}.actors.feet.count : 0`);
+      while ((Date.now() - t0) / 1000 < giveUp) {
+        await sleep(1000);
+        const p = await pos();
+        const left = Math.hypot(p.x - plan.x, p.z - plan.z);
+        const trip = await evaluate(`!!${Q}.flow.get().trip`);
+        if (left < 12 || (!trip && left < 25)) { arrived = true; break; }
+        // a dialogue / card on the way (an arrival, a pass-by, a moment) waits for a tap in the game: the sweep closes it
+        if (await evaluate(`!!${Q}.game.get().dialogue.nodeId || !!${Q}.game.get().panel.kind`)) await tidy();
+        if (!trip) await evaluate(`(async()=>{const RUN=await import('/src/opus-bay/game/tripRun.ts');return RUN.resumeAutoTravel()})()`).catch(() => null);
+        if (Math.hypot(p.x - last.x, p.z - last.z) >= 1) { last = p; lastAt = Date.now(); }
+        else if (Date.now() - lastAt > 30000) { stalled = true; break; }
+      }
+      const seconds = +((Date.now() - t0) / 1000).toFixed(1), p = await pos();
+      const pulls = (await evaluate(`${Q}.actors.feet ? ${Q}.actors.feet.count : 0`)) - pulls0;
+      const r = { id: a.id, rank: a.rank, straight: +a.d.toFixed(0), quote: +quote.toFixed(1), seconds, ratio: +(seconds / quote).toFixed(2), arrived, stalled, pulls, left: +Math.hypot(p.x - plan.x, p.z - plan.z).toFixed(1), at: { x: +p.x.toFixed(1), z: +p.z.toFixed(1) } };
+      r.pass = arrived && seconds <= quote * 1.3;
+      if (!r.pass) { r.shot = await shot(path.join(OUT, `trip_${a.id}.jpg`)); failures.push({ phase: 'trip', owner: stalled ? '?' : 'N', leg: `Ferry → ${a.id}`, ...r }); }
+      results.trips.push(r);
+      log({ trip: a.id, quote: r.quote, seconds, ratio: r.ratio, arrived, stalled, pulls });
+      await evaluate(`(async()=>{const F=await import('/src/opus-bay/game/flow.ts');F.endTrip();return 1})()`).catch(() => null);
     }
   }
 } catch (e) { log({ error: String(e) }); }

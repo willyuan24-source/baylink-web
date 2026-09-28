@@ -36,7 +36,7 @@ import { CITY_POSTCARDS } from '../../../src/opus-bay/data/sf/postcards';
 import { FERRY_ROUTES } from '../../../src/opus-bay/data/ferry';
 import { buildTransit, buildTransitW4, setFlineJson, setTransitData, setTransitW4, type TransitFileJson } from '../../../src/opus-bay/data/transit';
 import { findPath } from '../../../src/opus-bay/actors/nav';
-import { openHeading } from '../../../src/opus-bay/actors/faceOpen';
+import { openHeading, openSpot } from '../../../src/opus-bay/actors/faceOpen';
 import { PlayerController } from '../../../src/opus-bay/actors/controller';
 import { sfDisk } from '../../../tests/opus-bay-sf-disk';
 
@@ -77,7 +77,7 @@ const { stationBoardSpot, flineLandingSpot } = await import('../../../src/opus-b
 
 type Owner = 'N' | 'L' | 'T' | 'R' | 'E' | 'D' | 'A' | 'C' | 'F';
 type Kind = 'trip-end' | 'arrival' | 'station' | 'route' | 'deck' | 'venue' | 'coin' | 'cache' | 'egg' | 'view' | 'postcard';
-export interface SweepTarget { id: string; kind: Kind; owner: Owner; x: number; z: number; tier?: number; name?: string }
+export interface SweepTarget { id: string; kind: Kind; owner: Owner; x: number; z: number; tier?: number; name?: string; sx?: number; sz?: number }
 
 const targets: SweepTarget[] = [];
 const add = (t: SweepTarget) => { if (Number.isFinite(t.x) && Number.isFinite(t.z)) targets.push({ ...t, x: +t.x.toFixed(2), z: +t.z.toFixed(2) }); };
@@ -166,6 +166,8 @@ interface Result extends SweepTarget {
   stand: boolean; snap: number | null; reach: number | null;
   dirs: { heading: number; moved: number; open: boolean }[];
   moving: number; snags: number;
+  /** a loop / Metro stop: the set-down spot's distance from the pole (openSpot) */
+  setDown?: number;
 }
 
 const results: Result[] = [];
@@ -173,8 +175,15 @@ const t0 = Date.now();
 for (const [i, t] of judged.entries()) {
   await sf.attachAround(city, t.x, t.z, 48, lms);
   const stand = canStand(t.x, t.z, 0.4);
-  const at = stand ? { x: t.x, z: t.z } : nearestWalkable({ x: t.x, z: t.z }, 3);
+  let at = stand ? { x: t.x, z: t.z } : nearestWalkable({ x: t.x, z: t.z }, 3);
   const snap = at ? +Math.hypot(at.x - t.x, at.z - t.z).toFixed(2) : null;
+  // (W5-F11) a loop / Metro stop: the game sets a rider down where the ground is open round the pole or kiosk
+  // (actors/moveSystem, the ride's end: actors/faceOpen openSpot) — judge that spot; setDown = how far from the pole
+  let setDown: number | undefined;
+  if (at && t.id.startsWith('stop:')) {
+    const o = openSpot(at.x, at.z);
+    if (o) { setDown = +Math.hypot(o.x - t.x, o.z - t.z).toFixed(2); at = o; t.sx = +o.x.toFixed(2); t.sz = +o.z.toFixed(2); }
+  }
   let reach: number | null = null;
   const dirs: Result['dirs'] = [];
   if (at) {
@@ -190,7 +199,7 @@ for (const [i, t] of judged.entries()) {
   const moving = dirs.filter(d => d.moved >= MOVE_MIN).length;
   const snags = dirs.filter(d => d.open && d.moved < MOVE_MIN).length;
   const verdict: Result['verdict'] = !at ? 'OFF' : moving <= 1 ? 'BOXED' : snags ? 'SNAG' : reach === null || reach > 1.1 ? 'UNREACHABLE' : moving < 3 ? 'CORRIDOR' : 'ok';
-  results.push({ ...t, verdict, planStuck: !at || moving < 3, stand, snap, reach, dirs, moving, snags });
+  results.push({ ...t, verdict, planStuck: !at || moving < 3, stand, snap, reach, dirs, moving, snags, ...(setDown !== undefined ? { setDown } : {}) });
   if ((i + 1) % 50 === 0) console.error(`[sweep] ${i + 1} / ${judged.length} (${((Date.now() - t0) / 1000).toFixed(0)} s)`);
 }
 

@@ -20,7 +20,7 @@ import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
 import { AUTO_GLIDE, GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, autoGlideInput, glideSoftBoxLine, terrainGlideWorld, type AutoGlideEnd, type AutoGlideRequest, type GlideWorld, type TallStructure } from './glide';
 import { LiveTall } from './glideTall';
-import { faceOpen } from './faceOpen';
+import { faceOpen, openSpot } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
@@ -153,6 +153,15 @@ function deckRectAt(plat: Platform, x: number, z: number): DeckRect {
   return best;
 }
 const rectDist = (r: DeckRect, x: number, z: number) => Math.hypot(Math.max(r.minX - x, 0, x - r.maxX), Math.max(r.minZ - z, 0, z - r.maxZ));
+
+/** The body of a bus / train at its pose, as a blocker for faceOpen (its deck, widened to the sides, a little longer). */
+function vehicleBlock(plat: Platform): (x: number, z: number) => boolean {
+  const d = plat.deck;
+  return (x, z) => {
+    const l = toLocal(plat, x, z);
+    return Math.abs(l.x) < Math.max(Math.abs(d.minX), Math.abs(d.maxX)) + 1.4 && l.z > d.minZ - 1.2 && l.z < d.maxZ + 1.2;
+  };
+}
 
 /** BAYBAY's scale in each seat (the basket is small; she tucks in). */
 const GUIDE_SEAT_SCALE = { bike: 0.72, car: 0.85, glide: 0.85 } as const;
@@ -472,10 +481,21 @@ export class MoveSystem {
     if (s.move.mode === 'transit' && m.mode !== 'transit') this.beginTransit(s.move.line ?? 'streetcar');
     // (the hop-off's 0.4 s step down from the car runs on after the flow ended the ride: E2-10)
     else if (s.move.mode !== 'transit' && m.mode === 'transit' && m.phase !== 'alighting') {
+      const plat = platforms.get(m.line ?? '');
+      const kind = plat?.kind;
       m.endTransit(); platformRider.platform = null; this.releaseGuide(true);
-      // W5-F7 (checkpoint CP-12): a ride that ends at its stop (the flow placed the rider: game/transit leaveLineRide)
-      // faces the open pavement too, like a hop-off — the loop bus left the rider at Twin Peaks facing the drop
-      if (s.move.mode === 'foot' && s.worldMode === 'city') faceOpen(p.x, p.z);
+      if (s.move.mode === 'foot' && s.worldMode === 'city') {
+        // W5-F11 (sweep run 2): off the loop bus or a Metro train at a stop whose pole / kiosk stands on a boarding
+        // island or against a wall, the rider is set down on open ground near it (actors/faceOpen openSpot, ≤ 6 u)
+        if (kind === 'bus' || kind === 'light-rail') {
+          const o = openSpot(p.x, p.z);
+          if (o && Math.hypot(o.x - p.x, o.z - p.z) > 0.05) { p.x = o.x; p.z = o.z; p.y = heightAt(o.x, o.z); c.sync(); }
+        }
+        // W5-F7 (checkpoint CP-12): a ride that ends at its stop (the flow placed the rider: game/transit leaveLineRide)
+        // faces the open pavement too, like a hop-off — the loop bus left the rider at Twin Peaks facing the drop; the
+        // vehicle still at the stop counts as a wall (the ground does not know it: at Judah & 19th the rider faced the train)
+        faceOpen(p.x, p.z, plat?.live ? vehicleBlock(plat) : undefined);
+      }
     }
     if (!env.playing && m.mode !== 'foot' && m.mode !== 'transit') this.toFoot();
     // fast travel (game flow): the store says 'travel' → everything parked, the pelican picks the player (and BAYBAY) up

@@ -614,7 +614,26 @@ test('checkpoint CP-12: a line ride the flow ends at its stop (the loop bus at T
   const { readFileSync } = await import('node:fs');
   const path = await import('node:path');
   const src = readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/actors/moveSystem.ts'), 'utf8');
-  assert.match(src, /m\.endTransit\(\); platformRider\.platform = null; this\.releaseGuide\(true\);[\s\S]{0,400}if \(s\.move\.mode === 'foot' && s\.worldMode === 'city'\) faceOpen\(p\.x, p\.z\);/);
+  assert.match(src, /m\.endTransit\(\); platformRider\.platform = null; this\.releaseGuide\(true\);\s*if \(s\.move\.mode === 'foot' && s\.worldMode === 'city'\) \{[\s\S]{0,1100}faceOpen\(p\.x, p\.z, plat\?\.live \? vehicleBlock\(plat\) : undefined\);\s*\}/);
+  // (W5-F11) off the loop bus or a Metro train the rider is set down on open ground first
+  assert.match(src, /if \(kind === 'bus' \|\| kind === 'light-rail'\) \{\s*const o = openSpot\(p\.x, p\.z\);/);
+});
+
+test('W5-F11 openSpot: a pole on a boarding island (open only along it) sets the rider down on the open pavement beside it; an open spot stays; nowhere open within 6 u: null', async () => {
+  const F = await import('../src/opus-bay/actors/faceOpen');
+  // a 1.2 u island along +x in the middle of an unwalkable roadway, the pavement from z > SZ + 4
+  let T = await synthWorld({ land: (_x, z) => Math.abs(z - SZ) <= 0.6 || z >= SZ + 4 });
+  try {
+    assert.equal(F.openAround(SX, SZ), false, 'the island is a corridor');
+    const o = F.openSpot(SX, SZ)!;
+    assert.ok(o && o.z >= SZ + 4 && Math.hypot(o.x - SX, o.z - SZ) <= 6, 'onto the pavement');
+    assert.ok(F.openAround(o.x, o.z) && T.canStand(o.x, o.z, 0.45));
+    // an open spot is kept as it is
+    assert.deepEqual(F.openSpot(SX, SZ + 10), { x: SX, z: SZ + 10 });
+  } finally { T.setCityTerrain(null); }
+  // only the island within reach: nothing better — the rider stays
+  T = await synthWorld({ land: (_x, z) => Math.abs(z - SZ) <= 0.6 });
+  try { assert.equal(F.openSpot(SX, SZ), null); } finally { T.setCityTerrain(null); }
 });
 
 test('W5-F10 ride camera: the sightseeing bus and the Metro get a designed shot — behind and above the vehicle, the riders small in the lower third; the cable car keeps its side-on window shot', async () => {
