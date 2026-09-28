@@ -10,6 +10,8 @@ import {
  *
  *   1. the active target first (gold, up to the 3,000 u far plane; none within 60 u: the light column takes the last
  *      150 u and the landmark reads by itself there)
+ *   1b. (wave 5, W5-N1) the flags of the registered sources (`registerFlagSource`: R's event pennants …), at most half
+ *      the slots, each in view (or within 150 u of the target) and within its own `far`, higher priority then nearer first
  *   2. undiscovered T1 within 1,600 u and ±75° of the camera's view, nearest first (discovered T1 only with Settings ›
  *      显示地标旗)
  *   3. during a panorama: every T1 / T2 in view within 2,000 u (T1 first)
@@ -66,7 +68,8 @@ export interface FlagTarget {
   h?: number;
 }
 
-export type FlagRole = 'target' | 'tier1' | 'panorama';
+/** 'extra': a flag from a registered source (registerFlagSource: R's event pennants, …) */
+export type FlagRole = 'target' | 'tier1' | 'panorama' | 'extra';
 
 export interface FlagPick {
   /** stable key (the attraction id, or `target` for a non-attraction target) */
@@ -98,7 +101,73 @@ export interface PickFlagsInput {
   showDiscovered?: boolean;
   /** a viewpoint panorama is running: T1 / T2 in view within 2,000 u */
   panorama?: boolean;
+  /** flags from the registered sources (`extraFlags()`), placed right after the target (see pickFlags) */
+  extras?: readonly ExtraFlag[];
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// W5-N1 · flag sources (plan sf-w5-plan.md §4.3): other lanes plant their own pennants through the one flag layer
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * A flag a source wants standing (world city frame). Drawn by the same InstancedMesh as the attraction flags (no new
+ * draw call, no new program): the source picks the pennant colour and a glyph of FLAG_GLYPHS (V's 512² atlas adds
+ * coin / calendar / sparkle / music glyphs with W5-N8).
+ */
+export interface ExtraFlag {
+  /** stable within the source (the source's key is prefixed: `<source>:<key>`) */
+  key: string;
+  x: number;
+  z: number;
+  /** pennant colour (hex, e.g. R's coral '#e8705a') */
+  color: string;
+  /** default 'MapPin' */
+  glyph?: FlagGlyph;
+  /** pole top above the ground (u); default FLAG_RULES.defaultH, clamped to ATTRACTION_FLAG_H */
+  h?: number;
+  /** higher first (default 0); ties: nearer first */
+  priority?: number;
+  /** stands up to this far from the player (u; default FLAG_RULES.far, at most FLAG_RULES.targetFar) */
+  far?: number;
+}
+
+/** What a source may look at when asked (4 Hz): where the player is, the active target (waypoint), phone or not. */
+export interface FlagSourceContext { player: Vec2; target: FlagTarget | null; phone: boolean }
+export type FlagSourceFn = (ctx: FlagSourceContext) => readonly ExtraFlag[];
+
+const flagSourceFns = new Map<string, FlagSourceFn>();
+
+/**
+ * Register a flag source (R's event pennants, later D / E). `fn` is called at ≤ 4 Hz while the city plays: keep it
+ * cheap and return only what could stand (a handful). The same key again replaces it; returns the unregister.
+ */
+export function registerFlagSource(key: string, fn: FlagSourceFn): () => void {
+  flagSourceFns.set(key, fn);
+  return () => { if (flagSourceFns.get(key) === fn) flagSourceFns.delete(key); };
+}
+
+/** Every registered source's flags now, keys prefixed with the source key (a throwing source gives none). */
+export function extraFlags(ctx: FlagSourceContext): ExtraFlag[] {
+  const out: ExtraFlag[] = [];
+  for (const [src, fn] of flagSourceFns) {
+    let list: readonly ExtraFlag[] = [];
+    try { list = fn(ctx) ?? []; } catch (e) { if (import.meta.env?.DEV) console.warn('[opus-bay flags]', src, e); }
+    for (const f of list) if (f && Number.isFinite(f.x) && Number.isFinite(f.z)) out.push({ ...f, key: `${src}:${f.key}` });
+  }
+  return out;
+}
+
+/** Tests: the registered source keys. */
+export const flagSourceKeys = (): string[] => [...flagSourceFns.keys()];
+
+/**
+ * The most extra flags one pick may hold: half the slots, rounded up (2 of the phone's 3, 3 of the desktop's 6, 4 of a
+ * panorama's 8), so an event near the player or the waypoint takes a slot ahead of the panorama / T1 flags without ever
+ * crowding them all out (plan §3.3 R2).
+ */
+export const extraFlagCap = (max: number) => Math.ceil(Math.max(0, max) / 2);
+/** An extra flag within this of the target stands even outside the view cone (the waypoint's own event). */
+export const EXTRA_NEAR_TARGET = 150;
 
 /** How many flags: 3 on phones / quality mid or low, 6 on desktop, 8 during a desktop panorama. */
 export function flagMax(o: { phone: boolean; quality?: 'low' | 'mid' | 'high'; panorama?: boolean }): number {
@@ -149,6 +218,28 @@ export function pickFlags(input: PickFlagsInput): FlagPick[] {
     if (a) taken.add(a.id);
   }
   const room = () => out.length < max;
+  // 1b. the registered sources' flags (W5-N1): after the target, ahead of the panorama and the T1 flags, at most
+  // extraFlagCap(max); each within its own `far` and in view (or near the target)
+  if (input.extras?.length) {
+    const cap = extraFlagCap(max);
+    const list = input.extras
+      .map(f => {
+        const d = Math.hypot(f.x - player.x, f.z - player.z);
+        const far = Math.min(FLAG_RULES.targetFar, f.far ?? FLAG_RULES.far);
+        const nearTarget = !!target && Math.hypot(f.x - target.x, f.z - target.z) <= EXTRA_NEAR_TARGET;
+        const ok = !taken.has(f.key) && d >= FLAG_RULES.near && d <= far && (nearTarget || inViewCone(player, yaw, f));
+        return { f, d, ok };
+      })
+      .filter(e => e.ok)
+      .sort((p, q) => (q.f.priority ?? 0) - (p.f.priority ?? 0) || p.d - q.d);
+    let n = 0;
+    for (const { f, d } of list) {
+      if (!room() || n >= cap) break;
+      out.push({ key: f.key, attraction: null, role: 'extra', x: f.x, z: f.z, h: clampH(f.h ?? FLAG_RULES.defaultH), color: f.color, glyph: f.glyph ?? 'MapPin', d });
+      taken.add(f.key);
+      n++;
+    }
+  }
   const eligible = (a: FlagSource, far: number) => {
     if (taken.has(a.id)) return null;
     const f = footOf(a), d = Math.hypot(f.x - player.x, f.z - player.z);

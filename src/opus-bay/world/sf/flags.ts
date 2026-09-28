@@ -35,8 +35,11 @@ export const FLAG_COLORS = { pole: '#d9a441', finial: '#f2cf7a', cream: '#fffaf1
 /** the atlas: 256² canvas, 4 × 4 cells of 64 px, a glyph 48 px inside each */
 export const ATLAS = { size: 256, cells: 4, cell: 64, pad: 8, stroke: 2.4 } as const;
 
-/** role codes for the shader (aInst.w) */
-export const ROLE_CODE = { tier1: 0, target: 1, panorama: 2 } as const;
+/**
+ * role codes for the shader (aInst.w). A registered source's flag (W5-N1 'extra') fades as the target does: in from
+ * 60 u, out at the 3,000 u far plane (game/flags pickFlags limits it to its own `far` first). No shader change.
+ */
+export const ROLE_CODE = { tier1: 0, target: 1, panorama: 2, extra: 1 } as const;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Pure helpers (node tests)

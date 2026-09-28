@@ -18,7 +18,7 @@ import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from
 import { faceCameraToward, playShots } from './cinema';
 import { registerFocusHook } from './brain';
 import { isDiscovered } from './discovery';
-import { type FlagSource, type FlagTarget, type PanoramaTag, flagMax, layoutPanoramaTags, pickFlags, pickPanoramaTags, tagWidth, type TagInput, PANORAMA } from './flags';
+import { type FlagSource, type FlagTarget, type PanoramaTag, extraFlags, flagMax, layoutPanoramaTags, pickFlags, pickPanoramaTags, tagWidth, type TagInput, PANORAMA } from './flags';
 import { flow } from './flowStore';
 import { landmarkFlagsPref } from './guidePrefs';
 import type { Box } from './hudLayout';
@@ -443,9 +443,12 @@ function GuideScene() {
       const a = o ? targetAttraction(o) : undefined;
       const target: FlagTarget | null = o ? { x: o.x, z: o.z, ...(a ? { attraction: a.id } : {}) } : null;
       const hide = s.photoMode || s.phase !== 'playing';
+      const player = { x: runtime.player.x, z: runtime.player.z };
       const picks = hide ? [] : pickFlags({
-        player: runtime.player, yaw: runtime.camera.yaw, attractions: t.sources, discovered: src => isDiscovered(src.placeId ?? src.id),
+        player, yaw: runtime.camera.yaw, attractions: t.sources, discovered: src => isDiscovered(src.placeId ?? src.id),
         target, max: flagMax({ phone, quality: s.settings.quality, panorama }), showDiscovered: landmarkFlagsPref(), panorama,
+        // W5-N1: the registered sources' pennants (R's events …)
+        extras: extraFlags({ player, target, phone }),
       });
       L.setPicks(picks, secs);
       guideStats.picks = picks.map(p => `${p.role}:${p.key}`);

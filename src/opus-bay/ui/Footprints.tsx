@@ -51,6 +51,17 @@ function useCityLists(): { attractions: readonly Attr[]; w4: W4Names } {
   return v;
 }
 
+/**
+ * W5-N1 · the 足迹 page for embedding (plan sf-w5-plan.md §3.5, §4.3): lane E's 旅行手帐 shows it as its last page. Load
+ * it lazily from the embedding chunk, e.g.
+ *   const FootprintsTab = lazy(() => import('../ui/Footprints').then(m => ({ default: m.FootprintsTab })));
+ * `embedded` wraps the same content in `.ob-footprints.is-embedded` (the host keeps its own heading and scroll); a
+ * landmark or a find still opens the map on it (the Journal closes).
+ */
+export function FootprintsTab({ embedded = false }: { embedded?: boolean }) {
+  return embedded ? <div className="ob-footprints is-embedded"><Footprints /></div> : <Footprints />;
+}
+
 export function Footprints() {
   const { t } = useT();
   const epoch = useDiscoveryEpoch();
