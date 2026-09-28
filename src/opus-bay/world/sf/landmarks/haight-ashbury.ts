@@ -99,7 +99,9 @@ const HAIGHT_BOARDS: [number, number, number, string, () => number][] = [
   [(ROW[1].x0 + ROW[1].x1) / 2, ROW_Z.z1 + 0.15, 0, 'barber', () => g.at((ROW[1].x0 + ROW[1].x1) / 2, -2)],
 ];
 const BUSKER_H = { x: 1.85, z: -7.4 };
-const LISTENERS_H: Vec2[] = [{ x: -1.7, z: -8.0 }, { x: -1.7, z: -7.0 }, { x: 1.85, z: -6.3 }];
+/** (W5-L-review: the two across Haight St stand 0.2 u further west: at x −1.7 the city's kerbside geometry stood 0.05 u
+ *  from their middles, inside their bodies; tests/opus-bay-w5-corners-view.test.ts) */
+const LISTENERS_H: Vec2[] = [{ x: -1.9, z: -8.0 }, { x: -1.9, z: -7.15 }, { x: 1.85, z: -6.3 }];
 /** the blade between the two Haight St fronts (in the gap between their bay windows) */
 function haightBlade(b: BatchLike | null): CornerSign[] {
   const sink = b ?? { add() { return this; } } as unknown as BatchLike;

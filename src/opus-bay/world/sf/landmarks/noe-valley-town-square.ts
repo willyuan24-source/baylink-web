@@ -74,8 +74,13 @@ const NOE_FRONTS: { x: number; w: number; sign: string; awn: string; out: number
   { x: 4.25, w: 1.5, sign: 'cafe', awn: '#d8744a', out: 0.53 },
 ];
 const NOE_WALL = 1.38;
-const SHOPPERS_FRONT: Vec2[] = [{ x: -0.7, z: 1.1 }, { x: 0.6, z: 1.25 }];
-const SHOPPER_BACK: Vec2 = { x: 0.35, z: -1.0 };
+/**
+ * W5-L-review: the market's shoppers stand ≥ 2.5 u from the square's arrival (its mouth, local (0, 1.2)), where lane T's
+ * crowd places nobody while the player is within 2.5 u: in the mouth an arriving player never saw them. Two browse from
+ * the 24th Street sidewalk either side of the mouth, one on the lawn at the back stall.
+ */
+const SHOPPERS_FRONT: Vec2[] = [{ x: -2.6, z: 1.7 }, { x: 2.6, z: 1.85 }];
+const SHOPPER_BACK: Vec2 = { x: 0.45, z: -1.35 };
 /** 24th Street's centreline: the crowd's clear lane */
 const NOE_LANE = { ax: -6, az: 3.55, bx: 6, bz: 3.55 };
 

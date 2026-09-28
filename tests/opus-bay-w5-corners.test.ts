@@ -229,6 +229,31 @@ test('W5-L4 / L5: the crowd spots stand on the site\'s plaza, on ground a walker
   assert.deepEqual(bad, []);
 });
 
+test('W5-L-review: no corner crowd pin stands where travel puts the player — ≥ ARRIVAL_CLEAR from its site\'s arrival and from the trip end of every attraction the site models (the W4-IL15 rule of the sites\' sightseers)', async () => {
+  const { ARRIVAL_CLEAR, sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const { ATTRACTIONS, tripDestination } = await import('../src/opus-bay/data/sf/attractions');
+  const bad: string[] = [];
+  let pins = 0;
+  for (const c of CORNERS) {
+    const s = siteOf(c) as Site & { w4?: { attractions?: readonly string[] } };
+    const ends: { id: string; x: number; z: number }[] = [];
+    const a = sfLandmarkAnchor(s.id);
+    if (a) ends.push({ id: `${s.id}'s arrival`, x: a.x, z: a.z });
+    for (const t of ATTRACTIONS) if (t.landmarkId === s.id || s.w4?.attractions?.includes(t.id)) { const d = tripDestination(t); ends.push({ id: `${t.id}'s trip end`, x: d.x, z: d.z }); }
+    assert.ok(ends.length, `${c.id}: ${s.id} has an arrival`);
+    for (const cr of c.crowds ?? []) for (const sp of cr.spots) {
+      pins++;
+      const w = cornerToWorld(c, sp);
+      for (const e of ends) {
+        const d = Math.hypot(w.x - e.x, w.z - e.z);
+        if (d < ARRIVAL_CLEAR) bad.push(`${c.id} ${cr.key} (${cr.when ?? 'always'}) at local (${sp.x}, ${sp.z}): ${d.toFixed(2)} u from ${e.id}`);
+      }
+    }
+  }
+  assert.ok(pins >= 20, `${pins} pins checked`);
+  assert.deepEqual(bad, []);
+});
+
 test('W5-L4 / L5: landmarks/cornerGround.ts is the published walked ground (re-measured)', async () => {
   const rasters = new Map<string, ReturnType<typeof groundRaster> | null>();
   const walked = async (x: number, z: number) => {

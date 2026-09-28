@@ -93,8 +93,12 @@ const FRONTS: { x0: number; x1: number; side: -1 | 1; color: string; sign: strin
 const WALL = { [1]: -0.2, [-1]: 4.2 } as const;
 /** the guitarist on the south sidewalk under the taquería's awning, his case along the wall toward Harrison */
 const BUSKER = { x: -0.1, z: 3.9 };
-/** his listeners: two on his sidewalk, two across the street on the north one (walked spots, clear of the bays) */
-const LISTENERS: Vec2[] = [{ x: -1.7, z: 3.8 }, { x: 0.45, z: 3.8 }, { x: 0.05, z: 0.15 }, { x: 0.7, z: 0.15 }];
+/**
+ * his listeners on his sidewalk (walked spots, clear of the bays). W5-L-review: the two across the street stood 0.9 and
+ * 1.5 u from the corner's arrival (the trip end), where lane T's crowd places nobody while the player is within 2.5 u:
+ * an arriving player never saw them; the third stands west of the panadería instead
+ */
+const LISTENERS: Vec2[] = [{ x: -1.7, z: 3.8 }, { x: 0.45, z: 3.8 }, { x: -2.65, z: 3.8 }];
 
 export const CALLE_24_CORNER: CornerDef = {
   id: 'calle-24',

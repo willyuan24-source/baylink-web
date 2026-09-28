@@ -102,3 +102,29 @@ test('W5-L4 / L5: no city geometry stands in front of a corner\'s plaques (≥ 8
   assert.ok(flat >= 20 && blades >= 8, `${flat} flat plaques, ${blades} blade faces checked`);
   assert.deepEqual(bad, []);
 });
+
+test('W5-L-review: every corner crowd pin and figure stands clear of the city\'s walls and bay windows at body height (nobody stands inside a bay)', async () => {
+  const bad: string[] = [];
+  let n = 0;
+  const R = 0.2, DIRS = 8;
+  for (const c of CORNERS) {
+    const s = sfLandmark(c.site)!, base = typeof s.base === 'number' ? s.base : 0, ground = cornerGround(c, base);
+    const figures = [
+      ...(c.crowds ?? []).flatMap(cr => cr.spots.map(p => ({ what: `${cr.key} pin`, p }))),
+      ...(c.soft ?? []).filter(so => so.kind === 'person').map(so => ({ what: 'figure', p: { x: so.x, z: so.z } })),
+    ];
+    for (const { what, p } of figures) {
+      n++;
+      const w = cornerToWorld(c, p), t = await cellAt(w.x, w.z);
+      if (!t) continue;
+      for (const h of [0.45, 1.1]) {
+        const y = ground.at(p.x, p.z) + base + h;
+        // from the body's middle out to its skin in every direction: a hit is a wall or a bay inside the body
+        const hit = Array.from({ length: DIRS }, (_, k) => [Math.cos((k / DIRS) * Math.PI * 2), 0, Math.sin((k / DIRS) * Math.PI * 2)]).some(d => hits([w.x, y, w.z], d, t, R).length > 0);
+        if (hit) { bad.push(`${c.id} ${what} at local (${p.x}, ${p.z}): the city's geometry within ${R} u at ${h} u up`); break; }
+      }
+    }
+  }
+  assert.ok(n >= 25, `${n} figures checked`);
+  assert.deepEqual(bad, []);
+});

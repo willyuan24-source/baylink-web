@@ -66,11 +66,14 @@ const bayOf = (side: -1 | 1, x: number, w: number) => {
 };
 /**
  * shoppers beside two produce stands, each group facing its stand, on the walked strip of the sidewalk (the kerb half,
- * z ±1.3–1.5: the shopfronts' footprints reach past the facade line), clear of the trees and lamps
+ * z ±1.3–1.5: the shopfronts' footprints reach past the facade line), clear of the trees and lamps. W5-L-review: both
+ * groups on the north sidewalk — the south one stood 1.3 u from the attraction's trip end, where lane T's crowd places
+ * nobody while the player is within 2.5 u (so an arriving player never saw it); the second west shopper stands 0.1 u
+ * further out, clear of the bay window over her head (tests/opus-bay-w5-corners-view.test.ts)
  */
 const SHOPPERS: { at: Vec2[]; stand: Vec2 }[] = [
-  { at: [{ x: -2.45, z: 1.4 }, { x: -1.6, z: 1.4 }], stand: { x: -3.6, z: 1.5 } },
-  { at: [{ x: 0.0, z: -1.4 }], stand: { x: -1.8, z: -1.5 } },
+  { at: [{ x: -2.45, z: 1.4 }, { x: -1.6, z: 1.5 }], stand: { x: -3.6, z: 1.5 } },
+  { at: [{ x: 0.8, z: 1.4 }], stand: { x: 1.8, z: 1.5 } },
 ];
 /**
  * the crowd's clear lane: the zebra crossing at 5th Avenue (the shoppers stand on both sidewalks, so a lane along the
