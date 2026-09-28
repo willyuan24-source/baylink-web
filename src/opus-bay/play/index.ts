@@ -7,13 +7,14 @@ import type { Bilingual } from '../core/types';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
 import { bubble, runAction } from '../game/flow';
+import { registerRewardIds } from '../economy/ledger';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMoving, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, openOverlays, registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
 import { ensureResultOverlay, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
-import { VIEW_RADIUS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
+import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
 
 /**
  * Wave 5 · lane A — PlayKit and the activities. game/w5Features.ts loads this module lazily in city mode only and calls
@@ -119,6 +120,8 @@ export function init(): () => void {
   offs.push(registerAskItem({ id: 'play-emotes', order: -20, label: { zh: '做个动作', en: 'Do an emote' }, icon: Smile, onSelect: () => { openWheel(); } }));
   offs.push(registerAskItem({ id: 'play-pet', order: -10, label: { zh: '摸摸 BAYBAY', en: 'Pet BAYBAY' }, icon: Heart, onSelect: () => { void petNow(); } }));
   offs.push(registerInteractables('a-play', () => [sitHereIt, ...viewIts]));
+  // the ledger keeps view:<id> in play.g.view, bit i = VIEW_SPOT_IDS[i] (append-only)
+  offs.push(registerRewardIds('view', VIEW_SPOT_IDS));
 
   // lane F's taps: your own character opens the wheel, a double tap on BAYBAY pets her
   offs.push(onEvent(e => {
