@@ -1,5 +1,7 @@
 import type { Bilingual } from '../core/types';
 import type { StreetcarSystem } from '../world/flineSystem';
+import type { TransitLine, TransitLineKind, TransitTunnel } from '../world/sf/format';
+import type { LineFleet } from '../world/sf/lineFleet';
 import type { CableSystem, RideStatus, RiderRequest } from '../world/transitLine';
 
 /**
@@ -56,11 +58,16 @@ export const CROSSING_STOP = 4.4;
 /** Half width of the crossing box a car must own before it enters (u): the other car's body, not its stop. */
 export const CROSSING_HALF = 1.2;
 
-export interface TransitStopJson { id: string; name: Bilingual; at: number; x: number; z: number; osmId: number | null }
+export interface TransitStopJson { id: string; name: Bilingual; at: number; x: number; z: number; osmId: number | null; major?: boolean; attractions?: string[] }
 export interface TransitLineJson {
   id: string;
-  kind: 'cable-car' | 'streetcar';
+  /** wave 2: 'cable-car' / 'streetcar'; wave 4 (lane T): the sightseeing loop 'bus', the Muni Metro 'light-rail' */
+  kind: TransitLineKind;
   name: Bilingual;
+  short?: string;
+  loop?: boolean;
+  tunnels?: TransitTunnel[];
+  speeds?: [number, number, number][];
   osmRelation: number;
   sourceUrl: string;
   color: string;
@@ -72,7 +79,41 @@ export interface TransitLineJson {
   doubleEnded: boolean;
   heroSpans: [number, number][];
 }
-export interface TransitFileJson { version: string; source: string; lines: TransitLineJson[] }
+export interface TransitFileJson {
+  version: string;
+  source: string;
+  lines: TransitLineJson[];
+  /** wave 4: where each loop / Metro stop's pole or kiosk stands (the sidecar's placement on the built city), by stop id */
+  props?: Record<string, [number, number]>;
+}
+
+/**
+ * The wave-4 lines as published (lane T, plan §3): the sightseeing loop and the Muni Metro N / M, plus where each stop's
+ * pole / kiosk stands. The stops' own x, z are the track-side points (lane C's TOUR_GEO pins them); you board at the
+ * prop (`boardAt`).
+ */
+export interface TransitW4 {
+  loop: TransitLine;
+  metro: TransitLine[];
+  /** loop first, then N, M */
+  lines: TransitLine[];
+  props: Readonly<Record<string, readonly [number, number]>>;
+}
+
+/** The wave-4 part of a transit file (null when it has no loop or no Metro line: an older file). */
+export function buildTransitW4(file: TransitFileJson): TransitW4 | null {
+  const lines = file.lines.filter(l => l.kind === 'bus' || l.kind === 'light-rail') as unknown as TransitLine[];
+  const loop = lines.find(l => l.kind === 'bus' && l.loop);
+  const metro = lines.filter(l => l.kind === 'light-rail');
+  if (!loop || !metro.length) return null;
+  return { loop, metro, lines: [loop, ...metro], props: file.props ?? {} };
+}
+
+/** Where a rider boards / alights for stop `id` of a wave-4 line: its placed pole / kiosk, else the stop point. */
+export function boardAt(w4: Pick<TransitW4, 'props'>, stop: { id: string; x: number; z: number }): { x: number; z: number } {
+  const p = w4.props[stop.id];
+  return p ? { x: p[0], z: p[1] } : { x: stop.x, z: stop.z };
+}
 
 export interface TransitStation {
   /** `[a-z0-9-]{1,64}`, from the street names ("powell-market") */
@@ -375,6 +416,8 @@ export const stopPos = (stop: CableStop, dir: 1 | -1) => stop.at - dir * stop.ne
 let DATA: TransitData | null = null;
 /** the published F-line entry: city mode builds the Castro line from it (data/fline.ts, in the lazy transit layer) */
 let FLINE_JSON: TransitLineJson | null = null;
+/** the wave-4 lines (null until loadTransit resolves, or with a file that has none) */
+let W4: TransitW4 | null = null;
 let loading: Promise<TransitData | null> | null = null;
 const listeners = new Set<(d: TransitData) => void>();
 
@@ -383,6 +426,12 @@ export function transitData(): TransitData | null { return DATA; }
 
 /** The published 'f-line' route (null until loadTransit resolves). */
 export function flineJson(): TransitLineJson | null { return FLINE_JSON; }
+
+/** The published wave-4 lines (the loop, N, M) and their stop props; null until loadTransit resolves. */
+export function transitW4(): TransitW4 | null { return W4; }
+
+/** Tests / QA: install (or clear) the wave-4 lines directly (before setTransitData, whose listeners read them). */
+export function setTransitW4(w: TransitW4 | null) { W4 = w; }
 
 /** Tests / QA: install (or clear) the data directly. */
 export function setTransitData(d: TransitData | null) {
@@ -410,6 +459,7 @@ export function loadTransit(root = '/opus-bay/sf'): Promise<TransitData | null> 
       if (!res.ok) throw new Error(`transit.json: HTTP ${res.status}`);
       const file = (await res.json()) as TransitFileJson;
       FLINE_JSON = file.lines.find(l => l.id === 'f-line') ?? null;
+      W4 = buildTransitW4(file);
       const d = buildTransit(file);
       setTransitData(d);
       return d;
@@ -458,7 +508,28 @@ export function pendingFerry(): { takeOver(): void } | null { return FERRY_PENDI
 // the ferry route table (lane F, F8) lives in data/ferry.ts
 export { FERRY, FERRY_ROUTES, buildFerryLine, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
 
-/** The system running ride line `line` ('streetcar' = the city F-line, 'ferry', else a cable-car line). */
+/**
+ * The wave-4 fleet (world/sf/lineFleet.ts `LineFleet`: the sightseeing buses and the Muni Metro trains), installed by the
+ * city transit layer; null in district mode and before the lazy chunk runs. Game code reads it here, never from world/.
+ */
+let FLEET: LineFleet | null = null;
+export function setActiveLineFleet(f: LineFleet | null) { FLEET = f; }
+export function activeLineFleet(): LineFleet | null { return FLEET; }
+
+/** The wave-4 line ids and their kinds (the published ids, pinned by the frozen sf-data test). */
+export const W4_BUS_LINE = 'sf-loop';
+export const W4_RAIL_LINES: readonly string[] = ['n-judah', 'm-ocean-view'];
+/** 'bus' / 'light-rail' for a wave-4 line id, else null. */
+export const w4Kind = (line: string): 'bus' | 'light-rail' | null => (line === W4_BUS_LINE ? 'bus' : W4_RAIL_LINES.includes(line) ? 'light-rail' : null);
+
+/**
+ * The system running ride line `line`: 'streetcar' = the city F-line, 'ferry', the loop → the fleet's buses, N / M → the
+ * fleet's light rail, else a cable-car line.
+ */
 export function rideSystemFor(line: string): LineRideSystem | null {
-  return line === 'streetcar' ? STREETCAR : line === 'ferry' ? FERRY : ACTIVE;
+  if (line === 'streetcar') return STREETCAR;
+  if (line === 'ferry') return FERRY;
+  const k = w4Kind(line);
+  if (k) return k === 'bus' ? FLEET?.bus ?? null : FLEET?.rail ?? null;
+  return ACTIVE;
 }

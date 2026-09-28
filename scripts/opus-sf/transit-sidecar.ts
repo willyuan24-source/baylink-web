@@ -13,8 +13,10 @@
 // lines only), <out>/report.txt. Default <out> = C:/Users/willy/opus-qa/w4/w4-t/sidecar.
 //   --write-w4  also writes public/opus-bay/sf/v1/transit-w4.json (a NEW file the wave-4 modules and tests read during
 //               the early phase; nothing at runtime imports it yet)
-//   --publish   also overwrites public/opus-bay/sf/v1/transit.json (integration phase only: the manifest names the file
-//               without a hash, the chunks are untouched)
+//   --publish   also overwrites public/opus-bay/sf/v1/transit.json (the runtime's file since the integration, W4-T3 / T4:
+//               the manifest names it without a hash, the chunks are untouched). The published file carries `props` too.
+//               Re-runs are idempotent: the wave-2 lines are taken from the published file by id, its source is cut at
+//               "; wave 4:" before the wave-4 note is appended again.
 import fs from 'node:fs';
 import path from 'node:path';
 import { type TransitFile, type TransitLine, transitLineProblems } from '../../src/opus-bay/world/sf/format';
@@ -139,9 +141,9 @@ async function main() {
   const problems = checkW4Lines(w4);
   for (const r of [...metro.report, ...loop.report]) log(r);
   if (problems.length) { for (const p of problems) console.error(`PROBLEM ${p}`); throw new Error(`${problems.length} problems: nothing written`); }
-  const source = `${published.source}; wave 4: the sightseeing loop designed on the car-legal OSM street graph, Muni Metro N / M from OSM route relations 3435877 / 3433314 (underground heights interpolated between the portals)`;
-  const full: TransitFile = { version: published.version, source, lines: [...wave2, ...w4] };
-  // `props`: where each wave-4 stop's pole / kiosk stands (an additive field; the runtime reads it when present)
+  const source = `${published.source.split('; wave 4:')[0]}; wave 4: the sightseeing loop designed on the car-legal OSM street graph, Muni Metro N / M from OSM route relations 3435877 / 3433314 (underground heights interpolated between the portals)`;
+  // `props`: where each wave-4 stop's pole / kiosk stands (an additive field; data/transit.ts reads it)
+  const full = { version: published.version, source, lines: [...wave2, ...w4], props } as TransitFile & { props: Record<string, [number, number]> };
   const onlyW4 = { version: published.version, source, lines: w4, props } as TransitFile & { props: Record<string, [number, number]> };
   fs.mkdirSync(OUT, { recursive: true });
   const fullJson = JSON.stringify(full), w4Json = JSON.stringify(onlyW4);
