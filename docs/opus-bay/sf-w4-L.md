@@ -581,3 +581,115 @@ wave-4 swaps: model ↔ site, slot placement, ≤ 6k, remainders ≤ 1.2k). The 
 
 - `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · `npx tsx --tsconfig tsconfig.app.json --test
   tests/opus-bay-*.test.ts` 803 / 803 on the pushed tree of `W4-IL9`; 808 / 808 on the tree with the fire rings.
+
+## Early review 2
+
+Written 2026-09-27 by the lane-L2 adversarial reviewer (worktree `C:/Users/willy/wt/w4-l`), on the part-2 lane's 21
+commits `d6d8c24` … `a112d5d` (24 sites, the fire rings, the AI-slot and open-item changes). Commits: `W4-L-review:`
+× 5 and this report. Higgsfield: 0 credits.
+
+### 给主人的摘要
+
+1. 复查了 L2 新做的 25 个地点，在网上核对了 23 条事实：3 条不对，已改（芬斯顿堡不是金门国家休闲区唯一能放狗跑的地方；尔文街离 N 线只隔一条街，不是两条；嬉皮山 4/20 活动 2026 年也取消了）。
+2. 修好一类"站在马路中间"的问题：好几个地点给路人安排的站位在车道上（克莱门街、尔文街、日本城天桥下、叮当车博物馆门口的叮当车轨道上、歌剧院前的范内斯大道），BAYBAY 带你到的位置也有 5 个在马路上；现在都在人行道上，并有测试盯着。
+3. 另外修了：哈维·米尔克广场旁的一栋房子被误删、尔文街少了一间铺子、植物园门口一棵玉兰长在大楼里、卡斯特罗 18 街的彩虹斑马线偏了一截、天桥下半条马路没铺。第一轮的 7 个地点也有同类问题，清单交给接线组。
+
+### What I checked
+
+- **Every file the part created or changed**: the 25 site modules, `shopStreet.ts`, `civicKit.ts`, the `siteKit.ts` /
+  `w4sites.ts` / `w4list.ts` changes, the generated `siteTerrain.ts` / `tops.ts` rows, the test additions, the report
+  part and its QA shots; and the files its integration plan names or that read the records (`landmarks/context.ts`,
+  `data/sf/landmarks.ts`, `world/sf/sites.ts`, `world/sf/build.ts` buildingsOf / streets, `world/sf/crowd.ts`,
+  `world/sf/cityLife.ts`, `world/sf/flags.ts`).
+- **Early-phase rule:** `git show --stat` over the 21 commits: only lane L's own files (site modules, kits, lists, the
+  sites test, the report, the QA folder) plus the generated `tops.ts` rows the registration (W4-IL1) made necessary.
+  No other lane's file. Held.
+- **Per-frame allocations:** the five `animate.update`s (carousel, drummers' hands, rowboat, hang-glider, sheave) only
+  call `position.set` / `rotation.set` and the site's `g.at` (arithmetic on the baked grid). None.
+- **Budgets:** every site within its cap before and after the fixes (worst 772 / 800, the carousel; Webster 216 / 800
+  with its re-laid street).
+- **APIs:** `w4.height.top` is read by `context.ts` (siteHeight, the glide's day-0 circle); `aiSlot.id` / `.at` by the
+  IL5 swap test; `w4SiteByPlace` is re-exported by `context.ts` but has no consumer yet; `DRUM_CIRCLE` is LOCAL (lane T
+  needs `landmarkToWorld(hippieHill, DRUM_CIRCLE)` and the site's base). The part's integration step 1 (a
+  `data/sf/landmarks.ts` fallback) was superseded by the integration's context helpers (Integration part a).
+- **zh text:** the modules carry no player-facing text. The part-2 summary's names match the game's glossary (叮当车,
+  默塞德湖, 隧道顶公园, 克莱门街, 尔文街); its first point is one long list, fine for the owner, not a phone string.
+- **New probes** (scratch `C:/Users/willy/opus-qa/w4/w4-l/r2/`): every site's crowd spots (`landmarkPlazaSpots`, where
+  the crowd stands EXACTLY: `crowd.ts` spawnStander skips its roadway check for them, and the traffic only yields to
+  walkers it sees on the road) and arrival against the city's street carriageways (asphalt `max(1.6, w − 2·CURB_BAND)`
+  wide) and its buildings; the buildings each exclusion drops (`build.ts` buildingsOf: vertex-mean centroid inside);
+  the model's vertices inside buildings the city keeps; the standable spots (`canStand` r 0.3, the crowd's own check).
+- **Shots** (dev server 5303, every image read): before / after of Harvey Milk Plaza (ring, street, the Castro & 18th
+  crossings from above), the Botanical Garden gate, the Webster bridge (street, under the span, top-down on both
+  sides), the Cable Car Museum, Irving St. Key JPEGs: `docs/opus-bay/qa/w4/L/p2/review2-*.jpg`.
+
+**Facts re-checked on the web (2026-09-27)** — ✓ right, ✗ fixed, ~ reworded:
+
+| # | fact (module) | source | |
+|---|---|---|---|
+| 1 | Kezar opened 2 May 1925 for 59,942; rebuilt 1990 for 10,000 (kezar-stadium) | Wikipedia | ✓ |
+| 2 | Carousel: Herschell-Spillman 1914, 62 animals, in the park since 1940, reopened 1984 (koret-carousel) | sfrecpark.org; Richmond Sunset News | ✓ |
+| 3 | Children's Quarter opened 1888 as the Sharon Quarters (koret-carousel) | sfrecpark.org | ✓ |
+| 4 | Mount Davidson cross 103 ft, 1934, George Kelham; SF Landmark #219; sold 1997 to the Armenian-American council (mount-davidson) | noehill.com; mtdavidson.org | ✓ |
+| 5 | Mount Davidson 928 ft (mount-davidson) | Wikipedia (noehill says 938) | ✓ |
+| 6 | Rhoda Goldman Concert Meadow; the festival since 1938 (stern-grove) | SFGate; SF Chronicle | ✓ |
+| 7 | Lower Fort Mason 1910–15, Rankin, Kellogg & Crane, Mission Revival; Port of Embarkation from 1910 (fort-mason-center) | TCLF; Wikipedia | ✓ |
+| 8 | Tiled Steps: 163 steps, 2,000+ handmade tiles, Barr & Crutcher, 2005 (tiled-steps) | Wikipedia; 16thavenuetiledsteps.com | ✓ |
+| 9 | Grand View Park 666 ft (grand-view-park) | Wikipedia; hoodline | ✓ |
+| 10 | Botanical Garden 55 acres, 8,000+ taxa; magnolias January–March (botanical-garden-gate) | gggp.org | ✓ |
+| 11 | Harvey Milk flag 20 × 30 ft since 8 Nov 1997, a city landmark since Sept 2024; the pole's "25 m" is OSM's tag, the press says 70 ft (harvey-milk-plaza) | SF Chronicle; sfexaminer.com | ~ |
+| 12 | Rainbow crosswalks at Castro & 18th, September 2014 (harvey-milk-plaza) | hoodline; SF Public Works | ✓ |
+| 13 | Tunnel Tops 14 acres, opened 17 July 2022, the Outpost (presidio-tunnel-tops) | presidio.gov; Parks Conservancy | ✓ |
+| 14 | Bernal's 50 ft relay tower, Pacific Telephone 1962, 400 circuits, "Sutrito" (bernal-heights) | Bernalwood; Wikipedia | ✓ |
+| 15 | Cable Car barn 1907–08 replacing the 1887–89 powerhouse; electric since 1911 (cable-car-museum) | cablecarmuseum.org; Wikipedia | ✓ |
+| 16 | Opera House 3,006 seats (war-memorial) | sfwarmemorial.org (Wikipedia: 3,146) | ✓ |
+| 17 | Aquatic Park Bathhouse 1939, Streamline Moderne; Maritime Museum Wed–Sun 10–4; Hyde St Pier closed since 4 Nov 2024 (aquatic-park-bathhouse) | nps.gov; SF Chronicle | ✓ |
+| 18 | 16 fire rings between Stairwells 15 and 20, 6 am–9:30 pm, 1 March–31 October (ocean-beach-fire-rings) | nps.gov "Ocean Beach Fire Program" | ✓ |
+| 19 | Japan Center by Minoru Yamasaki, opened March 1968 (webster-bridge) | Wikipedia | ✓ |
+| 20 | Battery Davis 1936–39 (fort-funston) | militarymuseum.org; Wikipedia | ✓ |
+| 21 | Fort Funston "the only park of the GGNRA where dogs may run off-leash" → one of several (Crissy Field, Ocean Beach north of Stairwell 21) (fort-funston) | parksconservancy.org "Dog-friendly park sites" | ✗ |
+| 22 | Irving St "the N Judah two blocks south" → one block: Judah St is the next street (its 23rd Ave stop 34 u from the block) (irving-street) | the street order; lane T's stops | ✗ |
+| 23 | the Hippie Hill 4/20 event cancelled "in 2024 and 2025" → also 2026 (hippie-hill) | KQED; SFist 17 Apr 2026 | ✗ |
+
+### Defects found (15): fixed 12, open 3
+
+| # | defect | fix / state |
+|---|---|---|
+| 1 | **Crowd spots on carriageways**: Clement and Irving (a `'road'` plaza over the whole carriageway, added to reach the test's 30 u²: 3 spots each on the centreline), the Webster bridge (5 of 8), the Cable Car Museum (8 of 8, on Mason St's cable-car track and Washington St), the War Memorial (6 on Van Ness, a dual carriageway), the Tiled Steps (1 on the street's asphalt). The crowd stands exactly there and the traffic drives through it | **fixed** `ee610bd`, `c0bfd35`: sidewalk plazas only (a street site: five chosen 1 u sidewalk spots clear of its stands, trees and lamps); `plazaMin` (siteKit) states a sidewalk-only plaza |
+| 2 | **Arrivals on the asphalt**: Clement, Irving (carriageway), Harvey Milk (Market St), the Cable Car Museum (the Mason St track), Webster (the west carriageway) | **fixed** `ee610bd`: on the sidewalks; Harvey Milk's arrival now sees the flag broadside (it was edge-on behind the palms) |
+| 3 | **Unusable crowd spots**: Harvey Milk's four corner plazas at Castro & 18th stood 3.3–5.9 u out, inside the corner buildings (no standable spot at the famous corner); one of the Botanical gate's and one of the Tiled Steps' inside a building; Clement / Irving 1 / 4 and 0 / 2 standable | **fixed** `ee610bd`, `c0bfd35`: the corner sidewalks; standable now Harvey 5 / 8, Clement 3 / 5, Irving 4 / 5 |
+| 4 | **Harvey Milk's exclusion dropped the corner house** (its vertex-mean centroid was inside: a 12 u² hole on the most photographed corner; the header said the house stays) | **fixed** `ee610bd`: the exclusion stops short of it, the pole stands 0.45 u off its wall; base re-baked (9.88 → 10.06), tops re-run |
+| 5 | **Irving lost a shop**: `shopExclude` took 0.8 u behind the facades, where a narrow shop's centroid sits | **fixed** `ee610bd`: 0.5 u (the palms' fronds reach 0.7 u past the facade); bases re-baked (+0.02) |
+| 6 | **Webster St under the bridge**: a dual carriageway in the data; the site re-laid one ribbon and a paved strip over the other one's lane, leaving x −2.2…−1.1 bare under the span and its median off the city's (visible in the part's own shot) | **fixed** `ee610bd`, `8fbf66a`, `7ec06c2`: both carriageways and the median where the city draws it (x 1.0…1.6, checked from above on both sides) |
+| 7 | **Castro & 18th off by 1.26 u**: the crossings over 18th lay half on its sidewalk, one over Castro sat inside the junction | **fixed** `ee610bd`: the published centrelines' crossing (19.18, 11.88); crossings kerb to kerb (3.2 u) |
+| 8 | **Botanical gate**: a magnolia 1.65 u inside the County Fair Building, the main path's plaza through it, the arrival looking at its wall | **fixed** `ee610bd`: magnolia and kiosk moved east, the path between kiosk and building, the arrival looks in along the path |
+| 9 | **Tiled Steps**: the west garden strip and its planting boxes inside the house beside the stair; "sixteen steps" (14) | **fixed** `ee610bd` |
+| 10 | Three facts (table: 21–23) | **fixed** `a42264a` (Irving's in `ee610bd`); the facts test pins them |
+| 11 | **Missing tests** for all of the above (the old plaza rule passed with people on the road); the test header said "not registered yet" | **fixed**: no `'road'` plaza and a stated `plazaMin`; crowd spots and arrivals never on a carriageway or in a kept building; the model ≤ 0.8 u into a kept building below its roof; a dropped building leaves ≤ 1 u² (or ≤ 40 %) empty; ≥ 2 standable spots a site. Each new check fails on the part's code (run against the old modules) and passes now |
+| 12 | The part's summary says four sites state a lower ring; there are five (the bathhouse too) | noted |
+| 13 | **Part-1 records with the same faults** (not this part's files; the tests list them in `OPEN_P1` / `OPEN_HOLES`, to shrink as they are fixed): crowd spots on the carriageway — `sfmoma` (3 on the 3rd St centreline), `haight-ashbury` (7 on Haight St, by its note), `geary-west` (8 on Geary's asphalt); arrivals on the asphalt — `st-ignatius-church` (Fulton St, already on the integration's list), `sfmoma`, `haight-ashbury`, `lands-end`, `bison-paddock`, `geary-west`, `ccsf-drpac` (and 2 of its spots inside a building); `usf-lone-mountain` drops its east wing (15.8 u², 9 u² left empty) | **open** → the integration lane (part b) |
+| 14 | The glide's day-0 circle (`context.ts` siteHeight: `height.top` ≥ 10 and no `tall` parts) stands r 4 in the War Memorial's court, between the two buildings, up to base + 12.5 | **open** (minor): a `tall` part on the fly tower instead, then a `tops.ts` re-run |
+| 15 | The fire rings glow every night of the year (fires are March–October; the lights have no season) | **open** (cosmetic) |
+
+Not defects, noted: Clement's and Irving's street-tree crowns reach up to 0.8 u into the facades (as the city's own
+street trees do); the Botanical gate still frames the Fair Building's corner through its west half (where OSM puts
+both).
+
+### Integration notes (what changed for the other lanes)
+
+- **Lane C (cards):** Irving St — the N Judah is one block south (Judah St); Fort Funston — one of the park's off-leash
+  areas, not the only one; the Opera House's 3,006 seats are the official figure (Wikipedia says 3,146).
+- **Lane T:** `DRUM_CIRCLE` is in Hippie Hill's local frame (`landmarkToWorld(hippieHill, DRUM_CIRCLE)`, y = the base
+  plus the site ground there).
+- **Integration (lane L part b):** item 13's list; take each id out of the test's `OPEN_P1` / `OPEN_HOLES` when fixed.
+  After moving a site's exclusion: `sites-terrain.mts --site <id>` (the base may move: Harvey Milk's rose 0.18 u), then
+  `landmark-tops.ts`, then the sites test.
+
+### Checks
+
+- On `7ec06c2` (the five fixes rebased on `d118962`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors ·
+  the full opus-bay suite **851 / 851**. `opus-bay-sf-sites-w4` is now 12 tests (+ crowd spots and arrivals, + city
+  buildings; the settings and walk-data tests check the plaza rules and the standable spots; the facts test the three
+  new facts). The report commit changes docs only.
+
+Status (2026-09-27): 复查完成，5 个修复提交 + 本报告已推送；第一轮 7 个地点的同类问题和 USF 的空地已交给接线组。
