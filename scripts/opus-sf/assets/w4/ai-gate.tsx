@@ -19,11 +19,11 @@ import { Suspense, createElement, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { ASSETS } from '../../../../src/opus-bay/data/assets';
 import { W4_MODELS, type W4ModelId } from '../../../../src/opus-bay/data/sf/w4Models';
-import { w4Swap, w4SwapPart } from '../../../../src/opus-bay/data/sf/w4Swaps';
+import { w4Swap, w4SwapPart, w4SwapPlinth } from '../../../../src/opus-bay/data/sf/w4Swaps';
 import type { BatchLike } from '../../../../src/opus-bay/world/builder';
 import { BOX, M } from '../../../../src/opus-bay/world/builder';
 import { SF_LANDMARKS } from '../../../../src/opus-bay/world/sf/landmarks/index';
-import { NONE, lathe } from '../../../../src/opus-bay/world/sf/landmarks/kit';
+import { NONE, box, lathe } from '../../../../src/opus-bay/world/sf/landmarks/kit';
 import { siteGround } from '../../../../src/opus-bay/world/sf/landmarks/siteKit';
 import { W4_SITES } from '../../../../src/opus-bay/world/sf/landmarks/w4list';
 
@@ -52,7 +52,11 @@ const scaleOf = (key: string, def: readonly [number, number, number]): readonly 
   return v.length === 3 && v.every(n => Number.isFinite(n) && n > 0) ? [v[0], v[1], v[2]] : def;
 };
 /** the procedural remainder each site keeps under its AI part (lane L's code at the integration; W4SwapRow.remainder) */
-const REMAINDER: Record<string, (b: BatchLike) => void> = { 'geary-west': () => undefined, 'blue-heron-lake': blueHeronRemainder };
+/** Holy Virgin's remainder: the plinth under the body and porch where the lot falls away toward the back (review 2) */
+function gearyWestRemainder(b: BatchLike) {
+  for (const p of w4SwapPlinth(w4Swap('geary-west')!, siteGround('geary-west', 10.1).at)) box(b, p.x, p.y, p.z, p.w, p.h, p.d, p.color);
+}
+const REMAINDER: Record<string, (b: BatchLike) => void> = { 'geary-west': gearyWestRemainder, 'blue-heron-lake': blueHeronRemainder };
 const SCALE_KEY: Partial<Record<W4ModelId, string>> = { 'sf-holy-virgin': 'hvs', 'sf-chinese-pavilion': 'pvs' };
 
 const picked = W4_SITES.filter(s => only.includes(s.id));

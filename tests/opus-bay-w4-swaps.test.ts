@@ -4,7 +4,7 @@ import path from 'node:path';
 import test from 'node:test';
 import type { Vec2 } from '../src/opus-bay/core/types';
 import { W4_MODELS } from '../src/opus-bay/data/sf/w4Models';
-import { W4_SWAPS, w4Swap, w4SwapPart } from '../src/opus-bay/data/sf/w4Swaps';
+import { PLINTH_DEPTH, W4_SWAPS, w4Swap, w4SwapPart, w4SwapPlinth } from '../src/opus-bay/data/sf/w4Swaps';
 import { siteGround } from '../src/opus-bay/world/sf/landmarks/siteKit';
 import { w4Site } from '../src/opus-bay/world/sf/landmarks/w4sites';
 
@@ -48,8 +48,12 @@ test('w4 swaps: each row fills its site\'s AI slot with a model whose landmarkId
     assert.equal(site.w4.aiSlot?.model, stem(m.url), `${row.site} AI slot names ${stem(m.url)}`);
     // lane L's slot names the registry id and the placement it planned (d6d8c24): the row agrees within 0.05 u
     assert.equal(site.w4.aiSlot?.id, row.model, `${row.site} AI slot id`);
-    const at = site.w4.aiSlot!.at, placed = w4SwapPart(row, siteGround(site.id, site.base).at);
-    for (const [k, v] of [[0, placed.x], [1, placed.y], [2, placed.z]] as const) assert.ok(Math.abs(at[k] - v) <= 0.05, `${row.site} placement[${k}] ${v} vs lane L's ${at[k]}`);
+    // (y: a row that samples its ground elsewhere — Holy Virgin's porch on the sidewalk, review 2 — sets y from there;
+    // lane L's slot still says the centre's ground until its integration takes the row)
+    const g = siteGround(site.id, site.base), at = site.w4.aiSlot!.at, placed = w4SwapPart(row, g.at);
+    for (const [k, v] of [[0, placed.x], [2, placed.z]] as const) assert.ok(Math.abs(at[k] - v) <= 0.05, `${row.site} placement[${k}] ${v} vs lane L's ${at[k]}`);
+    if (row.ground) assert.equal(placed.y, g.at(row.ground.x, row.ground.z), `${row.site}: y = the ground at (${row.ground.x}, ${row.ground.z})`);
+    else assert.ok(Math.abs(at[1] - placed.y) <= 0.05, `${row.site} placement[1] ${placed.y} vs lane L's ${at[1]}`);
     assert.equal(w4Swap(row.site), row);
     const part = w4SwapPart(row, () => 0.37);
     assert.equal(part.model, row.model);
@@ -81,6 +85,7 @@ test('w4 swaps: the AI model and every blocker lie inside the site\'s exclusion 
       const pp = 'poly' in bl ? bl.poly : [{ x: bl.x + bl.r, z: bl.z }, { x: bl.x - bl.r, z: bl.z }, { x: bl.x, z: bl.z + bl.r }, { x: bl.x, z: bl.z - bl.r }];
       for (const p of pp) assert.ok(inside(p, ex), `${row.site}: blocker point (${p.x}, ${p.z}) inside the exclusion`);
     }
+    for (const [x0, x1, z0, z1] of row.plinth?.boxes ?? []) for (const p of corners(x0, x1, z0, z1)) assert.ok(inside(p, ex), `${row.site}: plinth corner (${p.x}, ${p.z}) inside the exclusion`);
   }
 });
 
@@ -101,6 +106,31 @@ test('w4 swaps: Holy Virgin fits lane L\'s lot at the landmark height; its block
   const ar = w4Site('geary-west')!.w4.arrival;
   assert.ok(!inBlocker(ar), 'arrival outside the blockers');
   assert.ok(ar.z - 1.6 >= 0.9, 'arrival ≥ 0.9 u in front of the porch');
+});
+
+test('w4 swaps: Holy Virgin porch meets the Geary sidewalk and a plinth fills the fall of the lot toward the back (review 2)', () => {
+  const row = w4Swap('geary-west')!, site = w4Site('geary-west')!, g = siteGround(site.id, site.base);
+  const y = w4SwapPart(row, g.at).y, b = glbBounds(W4_MODELS[row.model].url);
+  // the porch threshold (model z ≈ 1.6) is the sidewalk's height from the porch to the arrival spot: the door never
+  // sinks under the pavement (at the centre's ground, lane L's slot, it sank 0.68 u) nor stands on a step above it
+  for (let z = 1.55; z <= 2.61; z += 0.05) for (const x of [-0.6, 0, 0.6]) assert.ok(Math.abs(g.at(x, z) - y) <= 0.08, `sidewalk (${x}, ${z.toFixed(2)}) ${g.at(x, z).toFixed(3)} vs base ${y.toFixed(3)}`);
+  // 125 ft to the top cross, measured from the street: 9.1 u over the sidewalk
+  assert.ok(Math.abs(y + b.max[1] - g.at(0, 2) - 9.1) < 0.08, 'top cross 9.1 u over Geary Blvd');
+  // no daylight under the model: wherever its ground footprint lies lower than its base, a plinth box stands under the
+  // point from below the ground up into the walls (a 0.05 u grid over the body and the porch)
+  const pieces = w4SwapPlinth(row, g.at);
+  assert.ok(pieces.length >= 1 && pieces.every(p => p.h > 0 && p.w > 0 && p.d > 0 && p.color === row.plinth!.color));
+  const covered = (x: number, z: number, ground: number) => pieces.some(p => Math.abs(x - p.x) <= p.w / 2 + 1e-9 && Math.abs(z - p.z) <= p.d / 2 + 1e-9 && p.y <= ground - 0.2 && p.y + p.h >= y);
+  let lowest = Infinity;
+  const check = (x: number, z: number) => { const h = g.at(x, z); lowest = Math.min(lowest, h); if (h < y - 0.02) assert.ok(covered(x, z, h), `plinth under (${x.toFixed(2)}, ${z.toFixed(2)}): ground ${h.toFixed(3)} < base ${y.toFixed(3)}`); };
+  for (let x = -1.3; x <= 1.3; x += 0.05) for (let z = -1.54; z <= 1.2; z += 0.05) check(x, z);
+  for (let x = -0.55; x <= 0.55; x += 0.05) for (let z = 1.22; z <= 1.52; z += 0.05) check(x, z);
+  assert.ok(y - lowest > 1, `the lot falls ${(y - lowest).toFixed(2)} u toward the back (the reason for the plinth)`);
+  // the plinth stays inside the model's walls (inset, never proud of them) and reaches PLINTH_DEPTH below the lowest ground
+  for (const [x0, x1, z0, z1] of row.plinth!.boxes) {
+    assert.ok(x0 >= -1.34 && x1 <= 1.34 && z0 + row.part.z >= -1.56 - 0.02 && z1 + row.part.z <= 1.6, `plinth box ${[x0, x1, z0, z1]} inside the footprint`);
+  }
+  assert.ok(Math.min(...pieces.map(p => p.y)) <= lowest - PLINTH_DEPTH + 0.05, 'the plinth reaches PLINTH_DEPTH below the lowest ground');
 });
 
 test('w4 swaps: the Chinese Pavilion swap keeps lane L\'s walk data (built to the model) and fades as one', () => {
