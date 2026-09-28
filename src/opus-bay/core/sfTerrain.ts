@@ -529,7 +529,10 @@ export function rasterizeChunk(chunk: ChunkData, opts: RasterizeOptions = {}): C
     keep.push(b);
     stampPolygon(Ctr, bs.xz, s, e, surf, blk);
   }
-  if (lm) for (const b of lm.blockers) if (boxHit(b.bbox, wx0 - 1, wz0 - 1, wx1 + 1, wz1 + 1)) stampLmBlocker(Ctr, b, surf, blk);
+  if (lm) {
+    const over = overCorners(m, v => hv[v]);
+    for (const b of lm.blockers) if (boxHit(b.bbox, wx0 - 1, wz0 - 1, wx1 + 1, wz1 + 1)) stampLmBlocker(Ctr, b, surf, blk, over);
+  }
 
   // 6. stand: walkable cell and 8 neighbours, no blocker within the radius
   const out = { surf: new Uint8Array(n * n), kind: new Uint8Array(n * n), stand: new Uint8Array(n * n) };
@@ -557,11 +560,38 @@ function stampPolygon(L: Lattice, xz: ArrayLike<number>, s: number, e: number, s
   for (let p = s, q = e - 1; p < e; q = p++) visitSegment(L, xz[2 * q], xz[2 * q + 1], xz[2 * p], xz[2 * p + 1], SF_STAND_RADIUS, k => { blk[k] = 1; });
 }
 
-function stampLmBlocker(L: Lattice, b: LmBlocker, surf: Uint8Array, blk: Uint8Array) {
-  if (b.poly) { stampPolygon(L, b.poly, 0, b.poly.length / 2, surf, blk); return; }
+/**
+ * W4-IL11 (wave-4 verify D1): a landmark blocker whose (measured) top lies more than UNDER_DECK below the walk ground
+ * at a point cannot touch anything that stands there. Fort Point's walls (tops 0.6 / 9.0) under the Golden Gate
+ * Bridge's deck (15.2) walled the deck off ~50 u short of the south tower. Rasters leave such a blocker out of the
+ * cells whose four corners stand that high, and the provider's collision queries (hitsBlocker, forEachBlockerNear)
+ * skip it where the ground at the query point does. Blockers without a top, and the city's buildings, are unchanged.
+ */
+export const UNDER_DECK = 1;
+
+/**
+ * `over(k, top)`: true where lattice sample k's ground stands more than UNDER_DECK above `top` (W4-IL11) — the
+ * blocker leaves that sample alone (walkable, not blocked).
+ */
+function stampLmBlocker(L: Lattice, b: LmBlocker, surf: Uint8Array, blk: Uint8Array, over?: (k: number, top: number) => boolean) {
+  const top = b.obj.top;
+  const skip = over && top !== undefined ? (k: number) => over(k, top) : null;
+  if (b.poly) {
+    if (!skip) { stampPolygon(L, b.poly, 0, b.poly.length / 2, surf, blk); return; }
+    const xz = b.poly, e = xz.length / 2;
+    scanFill(L, xz, [0, e], k => { if (!skip(k)) { surf[k] = 0; blk[k] = 1; } });
+    for (let p = 0, q = e - 1; p < e; q = p++) visitSegment(L, xz[2 * q], xz[2 * q + 1], xz[2 * p], xz[2 * p + 1], SF_STAND_RADIUS, k => { if (!skip(k)) blk[k] = 1; });
+    return;
+  }
   const R = b.r + SF_STAND_RADIUS;
-  visitSegment(L, b.x, b.z, b.x, b.z, R, (k, d) => { blk[k] = 1; if (d < b.r) surf[k] = 0; });
+  visitSegment(L, b.x, b.z, b.x, b.z, R, (k, d) => { if (skip?.(k)) return; blk[k] = 1; if (d < b.r) surf[k] = 0; });
 }
+
+/** W4-IL11: `over` for a cell lattice `cols` wide whose corner heights are `h(v)` on the (cols + 1)-wide corner lattice. */
+const overCorners = (cols: number, h: (v: number) => number) => (k: number, top: number) => {
+  const v = k + Math.floor(k / cols), lim = top + UNDER_DECK;
+  return h(v) > lim && h(v + 1) > lim && h(v + cols + 1) > lim && h(v + cols + 2) > lim;
+};
 
 /**
  * Landmark surfaces, painted last-to-first so the first listed surface wins where they overlap (lane D's rule).
@@ -981,7 +1011,8 @@ class Provider implements CityTerrainProvider {
     const Cor: Lattice = { x0: ox, z0: oz, cell, cols: W, rows: W };
     const deck = new Uint8Array(n * n), blk = new Uint8Array(n * n);
     stampLandmarkSurfaces(lm, Ctr, Cor, ox, oz, ox + CHUNK, oz + CHUNK, r.surf, r.kind, (k, y) => { r.h[k] = quantH(y); }, k => (r.stand[k] & BLOCK_BIT) !== 0 && r.surf[k] === 0, deck);
-    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk);
+    const over = overCorners(n, v => r.h[v] / W_Q - W_B);
+    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk, over);
     for (let j = rec.j0; j <= rec.j1; j++) for (let i = rec.i0; i <= rec.i1; i++) if (blk[j * n + i]) r.stand[j * n + i] |= BLOCK_BIT;
     steepRegion(r, rec.i0, rec.j0, rec.i1, rec.j1, deck);
     this.restandWorld(ox + (rec.i0 - 1) * cell, oz + (rec.j0 - 1) * cell, ox + (rec.i1 + 2) * cell - 1e-6, oz + (rec.j1 + 2) * cell - 1e-6);
@@ -1065,8 +1096,8 @@ class Provider implements CityTerrainProvider {
       const cl = (v: number) => (v < 0 ? 0 : v > n - 1 ? n - 1 : v);
       steepRegion(r, cl(Math.floor((sf.bbox[0] - ox) / r.cell) - 1), cl(Math.floor((sf.bbox[1] - oz) / r.cell) - 1), cl(Math.floor((sf.bbox[2] - ox) / r.cell) + 1), cl(Math.floor((sf.bbox[3] - oz) / r.cell) + 1), deck);
     }
-    const blk = new Uint8Array(n * n);
-    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk);
+    const blk = new Uint8Array(n * n), over = overCorners(n, v => r.h[v] / W_Q - W_B);
+    for (const b of lm.blockers) if (boxHit(b.bbox, ox - 1, oz - 1, ox + CHUNK + 1, oz + CHUNK + 1)) stampLmBlocker(Ctr, b, r.surf, blk, over);
     for (let k = 0; k < n * n; k++) if (blk[k]) r.stand[k] |= BLOCK_BIT;
     this.restand(r, ox, oz, ox + CHUNK - 1e-6, oz + CHUNK - 1e-6);
     r.landmarks = true;
@@ -1186,6 +1217,8 @@ class Provider implements CityTerrainProvider {
     }
     if (this.lm) {
       const blockers = this.lm.blockers;
+      // W4-IL11: the walk ground at the query point, read once when a blocker with a top comes up (NaN = not read yet)
+      let gy = NaN;
       for (let hz = Math.floor(qz0 / BLOCK_CELL); hz <= Math.floor(qz1 / BLOCK_CELL); hz++) {
         for (let hx = Math.floor(qx0 / BLOCK_CELL); hx <= Math.floor(qx1 / BLOCK_CELL); hx++) {
           const a = this.lmHash.get((hx + 32768) * 65536 + (hz + 32768));
@@ -1195,6 +1228,11 @@ class Provider implements CityTerrainProvider {
             this.lmStamp[i] = tick;
             const bb = blockers[i].bbox;
             if (bb[0] > qx1 || bb[2] < qx0 || bb[1] > qz1 || bb[3] < qz0) continue;
+            const top = blockers[i].obj.top;
+            if (top !== undefined) {
+              if (gy !== gy) gy = this.heightAt(x, z) ?? -Infinity;
+              if (gy > top + UNDER_DECK) continue; // under a deck / the ground here (Fort Point under the bridge)
+            }
             if (onLandmark(i)) return true;
           }
         }

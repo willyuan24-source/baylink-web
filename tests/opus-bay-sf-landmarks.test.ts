@@ -406,3 +406,43 @@ test('W4-IL7 (W4-L7): Strawberry Hill is reached on foot over both footbridges (
     }
   } finally { setCityTerrain(null); }
 });
+
+test('W4-IL11 (verify D1): the Golden Gate Bridge deck over Fort Point walks through to the south tower; the fort still walls in at ground level', async () => {
+  const { createCityTerrain, UNDER_DECK } = await import('../src/opus-bay/core/sfTerrain');
+  const { setCityTerrain, canStand, heightAt, pushOutOfBlockers, standAt } = await import('../src/opus-bay/core/terrain');
+  const { findPath } = await import('../src/opus-bay/actors/nav');
+  const { CitySites } = await import('../src/opus-bay/world/sf/sites');
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const sf = sfDisk();
+  const lms = new CitySites().walkInputs(); // what the game streams (blocker tops included)
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  await sf.attachAround(city, -760, 590, 120, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  try {
+    // the verify repro: the deck from (-740, 607) toward BAYBAY's lead target by the south tower, over the fort's west part
+    const a = { x: -740, z: 607 }, b = { x: -794.7, z: 565.4 };
+    for (let t = 0; t <= 1.0001; t += 0.05) {
+      const x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t, y = heightAt(x, z);
+      assert.ok(y > 14, `on the deck at t ${t.toFixed(2)} (y ${y.toFixed(2)})`);
+      assert.ok(canStand(x, z, 0.4) && standAt(x, z) === 1, `the deck is standable at (${x.toFixed(1)}, ${z.toFixed(1)})`);
+      const q = pushOutOfBlockers(x, z, 0.4);
+      assert.ok(Math.hypot(q.x - x, q.z - z) < 1e-6, `no wall on the deck at (${x.toFixed(1)}, ${z.toFixed(1)})`);
+    }
+    const r = findPath(a, b);
+    assert.ok(r && !r.snapped, `a walk along the deck: ${r ? `snapped at ${JSON.stringify(r.points.at(-1))}` : 'no path'}`);
+    // Fort Point's own walls still stand where its ground is: the parade ground and the landward wall are not walkable
+    const fp = sfLandmark('fort-point')!;
+    let ground = 0, wall = 0;
+    for (let lz = -5; lz <= 4; lz++) {
+      for (let lx = -6; lx <= 5; lx++) {
+        const p = landmarkToWorld(fp, { x: lx, z: lz });
+        if (!blocked(fp, { x: lx, z: lz }) || heightAt(p.x, p.z) > 5) continue;
+        ground++;
+        if (!canStand(p.x, p.z, 0.4)) wall++;
+      }
+    }
+    assert.ok(ground >= 30 && wall === ground, `the fort blocks at ground level (${wall} of ${ground} samples inside its outline)`);
+    assert.equal(UNDER_DECK, 1);
+  } finally { setCityTerrain(null); }
+});
