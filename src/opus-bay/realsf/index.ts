@@ -4,7 +4,7 @@ import { glideUnlocked } from '../actors/moveApi';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import type { CatalogEvent } from '../core/types';
+import type { Bilingual, CatalogEvent } from '../core/types';
 import { eventById, getCatalog, setEventVenueHooks, type EventSpot } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
 import { cinemaActive } from '../game/cinema';
@@ -18,13 +18,17 @@ import { requestHopOff } from '../game/transit';
 import { lastWelcome, onWelcome } from '../game/welcome';
 import { openJournal, registerAskItem, registerJournalTab } from '../ui/slots';
 import { initDaily } from './daily';
+import { initDressing } from './dressing';
 import { worldEvent } from './events';
 import { venueLatLng, type EventVenue } from './eventVenues';
 import { createDayMemory, RealLineScheduler, type OfferedLine } from './lines';
+import { loadLive } from './live';
+import { moonPhase } from './moon';
 import { initJets } from './jets';
 import { initPresence } from './presence';
 import { FIRE_SEASON_LAST_DAY } from './seasons';
-import { sunTimes, sunsetLine } from './sun';
+import { sunBandAt, sunTimes, sunsetLine } from './sun';
+import { loadTides, tideLoudness } from './tides';
 import { todayLine } from './todayLine';
 
 /**
@@ -45,6 +49,10 @@ import { todayLine } from './todayLine';
  *   W5-R5  今日三件小事 (realsf/daily.ts): three small things seeded by the Bay date, paid by lane E's ledger
  *   W5-R6  Fleet Week over the Bay (realsf/jets.ts): the toy jets, their smoke and roar, the show-day line and the
  *          waypoint, the photo stamp, the pelican's soft boxes — Oct 9–11, 12:00–16:00 only
+ *   W5-R7  the shoulds: the verified calendar (realsf/calendar.ts) and its dressings (realsf/dressing.ts: Halloween's
+ *          pumpkins, the king tides' spray), the baked tides (realsf/tides.ts → lane D's Wave Organ louder near high
+ *          tide) and BAYLINK's offers (realsf/live.ts), both same-site files fetched at idle; 现实中怎么去 on event cards
+ *          (realsf/HowToGo.tsx); BAYBAY's 今晚差不多满月 on Twin Peaks and Ocean Beach
  *
  * The hooks other lanes read (plan §4.3) are their own small modules: realsf/sun.ts (sunBandAt, sunTimes, sunPosition),
  * realsf/seasons.ts (isFireRingLit, fireRingSeason, karlMonthFactor), realsf/moon.ts (moonPhase),
@@ -91,6 +99,20 @@ const SUNSET_LEAD = 150 * 60_000;
 /** Ocean Beach's fire rings (the season's last-day line is offered within this of them, u). */
 const FIRE_RINGS_AT = { x: -564.83, z: 1363.73 }, FIRE_LINE_NEAR = 220;
 
+/** Where BAYBAY says the full-moon line (Twin Peaks' overlook, Ocean Beach; u) and how full the moon must be. */
+export const MOON_SPOTS = [{ x: 125.7, z: 937.8 }, { x: -431, z: 1475 }] as const;
+export const MOON_NEAR = 250, MOON_FULL = 0.96;
+export const FULL_MOON_LINE: Bilingual = { zh: '今晚差不多满月，在这儿看月亮正好～', en: 'Nearly a full moon tonight — a lovely spot to watch it rise.' };
+/** The full-moon line is on offer: the moon ≥ 96 % lit, the sky golden or night, within MOON_NEAR of a moon spot. */
+export function fullMoonNear(now: Date, p: { x: number; z: number }): boolean {
+  const band = sunBandAt(now);
+  if (band !== 'golden' && band !== 'night') return false;
+  if (moonPhase(now).illumination < MOON_FULL) return false;
+  return MOON_SPOTS.some(s => Math.hypot(p.x - s.x, p.z - s.z) < MOON_NEAR);
+}
+/** The same-site files (tides.json, live.json) are fetched this long after init (ms): never in the first frames. */
+const IDLE_FETCH_MS = 4000;
+
 /** The 今天 tab's icon and the ask item's (the Journal draws slot icons bare: size them here). */
 const TodayIcon = () => createElement(Sun, { size: 16, 'aria-hidden': true });
 const AskIcon = () => createElement(CalendarHeart, { size: 18, 'aria-hidden': true });
@@ -118,9 +140,17 @@ export function init(): () => void {
   const lw = lastWelcome();
   let welcomeLate = !!lw && lw.kind === 'returning' && performance.now() - lw.at < WELCOME_LATE;
   const jets = initJets();
+  // W5-R7: the calendar's dressings; the baked files at idle; lane D's Wave Organ follows the real tide
+  const dressing = initDressing();
+  let organOff: (() => void) | null = null;
+  const idle = setTimeout(() => {
+    void loadTides();
+    void loadLive();
+    void import('../eggs/marina').then(m => { m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
+  }, IDLE_FETCH_MS);
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
-      presence: () => presence.stats(), jets: () => jets.stats(),
+      presence: () => presence.stats(), jets: () => jets.stats(), dressing: () => dressing.stats(), organWired: () => organOff !== null,
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
     };
@@ -134,12 +164,13 @@ export function init(): () => void {
     acc = 0;
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
-    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered()];
+    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered(), ...dressing.offered()];
     if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });
     const p = bayParts(now);
     if (p.month === 10 && p.day === 31 && Math.hypot(runtime.player.x - FIRE_RINGS_AT.x, runtime.player.z - FIRE_RINGS_AT.z) < FIRE_LINE_NEAR) offered.push({ key: 'fire-season-end', text: FIRE_SEASON_LAST_DAY });
+    if (fullMoonNear(now, runtime.player)) offered.push({ key: 'full-moon', text: FULL_MOON_LINE });
     if (!offered.length) return;
     const line = sched.step(performance.now() / 1000, day, {
       silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
@@ -155,6 +186,7 @@ export function init(): () => void {
   }, 5);
 
   return () => {
+    clearTimeout(idle); organOff?.(); dressing.off();
     offLines(); jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
