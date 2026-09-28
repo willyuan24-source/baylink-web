@@ -107,9 +107,12 @@ const HERO_HYST = 24;
 /**
  * W5-V2 (plan MF9): a hero tile (150 u of the hand-made district) shows its far detail (world/sf/farHero.ts: the same
  * buildings, the planting simplified, no street furniture) while the focus is farther than this from the tile's bounds
- * (u; back to the near chunk HERO_TILE_HYST closer). About the streamed city's own L0 → L1 distance at each quality.
+ * (u; back to the near chunk HERO_TILE_HYST closer). Near the hero the streamed city itself drops one quality step
+ * (radiiFor: L0 → L1 at 105–145 u on high, 85–125 u on mid), so a tile keeps its full detail at least as far out as the
+ * city around it; the camera trails the focus by ≈ 30 u, so the swap happens ≈ 165 u from the camera on high. 135 on
+ * high takes the Telegraph Hill tiles out of the Ferry gate's walking view (≈ −42k: the spot sat at 397–401k).
  */
-export const HERO_TILE_FAR: Record<Quality, number> = { high: 155, mid: 140, low: 125 };
+export const HERO_TILE_FAR: Record<Quality, number> = { high: 135, mid: 125, low: 115 };
 export const HERO_TILE_HYST = 20;
 /** re-run the tiles' test after the focus moved this far (u) */
 const HERO_TILE_STEP = 4;
