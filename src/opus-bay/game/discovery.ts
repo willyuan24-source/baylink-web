@@ -16,7 +16,8 @@ import { type Interactable, setExtraResolver } from './interactables';
 import { travelActive } from './fastTravel';
 import { tickStreet } from './streets';
 import { readQa } from './qa';
-import { rideLog } from './transit';
+import { openMapLine } from './mapPanel';
+import { rideLog, setLineMapOpener } from './transit';
 
 /**
  * Discovery (lane G1, plan §6.7 / G1-4), city mode only.
@@ -196,7 +197,9 @@ export function initG1(): () => void {
   setExtraResolver(id => (id.startsWith('place:') ? placeInteractable(id.slice(6)) : undefined));
   // a place already underfoot when the index arrives (resume, ?at=) is found on the next tick; repaint the map now
   const offPlaces = onPlaces(() => changed());
-  return () => { offHook(); offPlaces(); setExtraResolver(null); booted = false; };
+  // lane T's boarding dialogue 看线路图: the map's 线路 tab with that line highlighted (wave 4, lane P)
+  setLineMapOpener(openMapLine);
+  return () => { offHook(); offPlaces(); setExtraResolver(null); setLineMapOpener(null); booted = false; };
 }
 
 /** The interactable a place resolves to (radius 12 = the discovery radius). */
