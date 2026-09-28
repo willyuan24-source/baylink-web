@@ -437,7 +437,9 @@ edited.
    `sf-holy-virgin` is now 179,372 B), `SF_POSTCARD_ART_IDS = [ …the 12…, ...W4_POSTCARD_IDS ] as const` (import from
    `./sf/w4Postcards`) **and `SF_POSTCARD_SUBJECTS` gains `...W4_POSTCARD_SUBJECTS`** (it is a
    `Record<SfPostcardArtId, …>`: without the four captions tsc fails; added by Early review 2); `POSTCARD_ART` and
-   `listAssetUrls()` then carry the eight files. **This lands in the same commit as step 2** (`CARDS` in
+   `listAssetUrls()` then carry the eight files. *Done otherwise by `W4-V-I7`: `POSTCARD_ART_ALL_IDS` (8 + 12 + 4)
+   feeds `POSTCARD_ART`, `ASSETS.postcards` and `listAssetUrls()`, `SF_POSTCARD_ART_IDS` stays the 12 and lane C's
+   `CARDS` / `CITY_POSTCARDS` walk both lists.* **This lands in the same commit as step 2** (`CARDS` in
    data/sf/postcards.ts is a `Record<SfPostcardArtId, SfCard>`): lane C may make both edits in one commit (lane V agrees
    here; say so in lane C's report).
 2. **`data/sf/postcards.ts`** (lane C): `CARDS` gains the four rows: `...Object.fromEntries(W4_POSTCARD_IDS.map(id => {
@@ -611,9 +613,11 @@ commits before this section.
    their postcard. Now `sf-state-university` and `osm-n2094547200` (`lands-end` and `de-young-tower` were right). The
    test now requires `cityPoiId(near)` = the attraction's own card POI (its landmark card, or `cardPoiId` of its place
    card); it fails on the old ids.
-3. **Integration step 1 would break tsc** (`w4Postcards.ts`). `data/assets.ts SF_POSTCARD_SUBJECTS` is a
+3. **Integration step 1 as written would break tsc** (`w4Postcards.ts`). `data/assets.ts SF_POSTCARD_SUBJECTS` is a
    `Record<SfPostcardArtId, …>`: widening `SF_POSTCARD_ART_IDS` without four more captions fails to compile. New
-   `W4_POSTCARD_SUBJECTS` (tested bilingual); step 1 now spreads it.
+   `W4_POSTCARD_SUBJECTS` (tested bilingual). While this review ran, lane V's integration (`W4-V-I7`) registered the
+   art through a separate `POSTCARD_ART_ALL_IDS` and kept `SF_POSTCARD_ART_IDS` at the 12, which avoids the break; the
+   captions stay for the case lane C widens the list itself (the rebase merged I7's manifest checks into the test).
 4. **Lane V's own postcard test would fail at step 1**: it asserted the four ids are not in `SF_POSTCARD_ART_IDS`. It
    now accepts them as exactly the tail after the 12, so it holds before and after the integration commit. Its spot
    check now walks `SF_SITES` (the registry since W4-IL1, tier-3 sites included) instead of the P1–P3 list.
@@ -644,8 +648,8 @@ commits before this section.
 
 - `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
 - `npx eslint .`: 0 errors, 43 warnings (none in lane V's files).
-- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **750 / 750** green on the tree rebased onto
-  `64bfeb4` (lane V's W4-V-I4 / I5 and lane L's W4-L9 included; 747 / 747 on `fbbb239`), incl. hero regression and
-  contracts; `w4-swaps` 5 / 5, `w4-postcards` 3 / 3. W4-V-I4 registered the models, not the postcards: integration step
-  1 (with `W4_POSTCARD_SUBJECTS`) is still to do, and lane V's postcard test holds on either side of it.
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **768 / 768** green on the tree rebased onto
+  `5d6f043` (lane V's W4-V-I4…I7, lane C's W4-IC1 / IC2 and lane L's W4-IL4 / W4-L9 included; 747 / 747 on `fbbb239`,
+  750 / 750 on `64bfeb4`), incl. hero regression and contracts; `w4-swaps` 5 / 5, `w4-postcards` 3 / 3 (with I7's
+  manifest checks merged in the rebase).
 - No relayed owner message arrived during the review.
