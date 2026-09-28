@@ -1,0 +1,134 @@
+/**
+ * Wave 5 · lane R (W5-R7) · 今天免费 from BAYLINK's own offers (plan §3.3 "今天免费 badges", D13): reads the site's offer
+ * data (`src/data`, read-only, the same pattern as scripts/export-planner-catalog.ts) and writes the San Francisco
+ * offers that belong to a place in the game — museums, parks and transit only, never a shop or a brand promotion — to
+ * `public/opus-bay/sf/v1/live.json`. The game reads that same-site file (realsf/live.ts): no third-party call.
+ *
+ *   npx tsx scripts/opus-sf/export-live.ts
+ *
+ * Each row keeps the offer's own title, conditions, source and check date, and adds what the game needs: the place in
+ * the world (a place-index id and its point), a short "who" line, and — for a standing offer — the days and hours it
+ * applies, read from the organiser's page on the day in `ruleCheckedAt`. A dated offer applies on its own dates. Links go
+ * to BAYLINK's `/offers/:id`. The export fails if an offer disappeared from the site data or turned into a purchase deal.
+ */
+import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+import type { FreebieOffer } from '../../src/components/FreebieBoard';
+import { currentFreebies } from '../../src/data/october-offers';
+
+const OUT = resolve('public/opus-bay/sf/v1/live.json');
+const RULES_CHECKED = '2026-09-28';
+
+type Bi = { zh: string; en: string };
+type Hours = [number, number];
+interface Spec {
+  id: string;
+  kind: 'museum' | 'park' | 'transit';
+  /** free entry (else a discount: shown as 优惠, never 免费) */
+  free: boolean;
+  /** the place in the world: a place-index id (data/sf places.json / attractions) and its point */
+  place: { id?: string; x: number; z: number; name: Bi } | null;
+  /** a short who line (the offer's full conditions stay in `requirement`) */
+  who: Bi;
+  /** a standing offer: the weekdays (0 = Sunday) it applies, or the n-th weekday of the month */
+  weekdays?: number[];
+  nth?: [weekday: number, n: number][];
+  /** hours [open, close] in minutes after Bay midnight, per weekday (7 entries, null = closed) or one pair */
+  hours?: Hours | (Hours | null)[];
+  /** where the day rule / hours were read (the organiser's page) */
+  ruleUrl?: string;
+  /** the SF Today hand row (realsf/todayRows.ts) this offer belongs to: the tab links the offer there */
+  hand?: string;
+}
+
+const H = (h: number, m = 0) => h * 60 + m;
+const SPECS: Spec[] = [
+  {
+    id: 'asian-art-free-oct4', kind: 'museum', free: true, who: { zh: '所有人 · 普通展区', en: 'Everyone · general admission' },
+    place: { id: 'osm-w24588037', x: 109.18, z: 379.12, name: { zh: '亚洲艺术博物馆', en: 'the Asian Art Museum' } }, hours: [H(10), H(17)],
+    ruleUrl: 'https://about.asianart.org/ticketing/',
+  },
+  {
+    id: 'conservatory-free-oct6', kind: 'park', free: true, who: { zh: '所有人', en: 'Everyone' }, hand: 'free-conservatory',
+    place: { id: 'conservatory-of-flowers', x: -177.51, z: 858.11, name: { zh: '花卉温室', en: 'the Conservatory of Flowers' } }, hours: [H(10), H(16)],
+  },
+  {
+    id: 'botanical-free-oct13', kind: 'park', free: true, who: { zh: '所有人', en: 'Everyone' }, hand: 'free-botanical',
+    place: { id: 'sf-botanical-garden', x: -178.3, z: 970.9, name: { zh: '旧金山植物园', en: 'the SF Botanical Garden' } }, hours: [H(7, 30), H(17)],
+  },
+  {
+    id: 'japanese-tea-garden-free-hour', kind: 'park', free: true, who: { zh: '所有人', en: 'Everyone' }, hand: 'free-teaGarden',
+    place: { id: 'japanese-tea-garden', x: -242.9, z: 964.4, name: { zh: '日本茶园', en: 'the Japanese Tea Garden' } }, weekdays: [1, 3, 5], hours: [H(9), H(10)],
+    ruleUrl: 'https://gggp.org/visit/admissions-hours/',
+  },
+  {
+    id: 'sfmoma-family-oct25', kind: 'museum', free: true, who: { zh: '带 18 岁及以下孩子，最多两位成人', en: 'With a child 18 or under, up to two adults' },
+    place: { id: 'sfmoma', x: 177.3, z: 181.81, name: { zh: '旧金山现代艺术博物馆', en: 'SFMOMA' } }, hours: [H(10), H(17)],
+    ruleUrl: 'https://www.sfmoma.org/visit/',
+  },
+  {
+    id: 'cable-car-museum-free', kind: 'museum', free: true, who: { zh: '所有人', en: 'Everyone' },
+    place: { id: 'cable-car-museum', x: -12.9, z: 184.41, name: { zh: '缆车博物馆', en: 'the Cable Car Museum' } }, weekdays: [0, 2, 3, 4, 5, 6],
+    hours: [[H(10), H(17)], null, [H(10), H(16)], [H(10), H(16)], [H(10), H(16)], [H(10), H(17)], [H(10), H(17)]],
+    ruleUrl: 'https://www.cablecarmuseum.org/info.html',
+  },
+  {
+    id: 'randall-museum-free', kind: 'museum', free: true, who: { zh: '所有人', en: 'Everyone' },
+    place: { id: 'osm-w705309578', x: 95.91, z: 746.08, name: { zh: '兰德尔博物馆', en: 'the Randall Museum' } }, weekdays: [2, 3, 4, 5, 6], hours: [H(10), H(17)],
+    ruleUrl: 'https://randallmuseum.org/faqs/',
+  },
+  {
+    id: 'museo-italo-free-days', kind: 'museum', free: true, who: { zh: '所有人 · 普通入馆', en: 'Everyone · general admission' },
+    place: { id: 'osm-n4022645781', x: -320.2, z: 228.43, name: { zh: '意大利裔美国人博物馆', en: 'the Museo Italo Americano' } },
+    weekdays: [4], nth: [[0, 1]], hours: [[H(10), H(14)], null, null, null, [H(12), H(16)], null, null],
+    ruleUrl: 'https://sfmuseo.org/',
+  },
+  {
+    id: 'exploratorium-for-all-five', kind: 'museum', free: false, who: { zh: '持福利卡加证件，$5', en: 'With a benefits card and ID, $5' },
+    place: { id: 'exploratorium', x: 28.97, z: 4.31, name: { zh: '探索馆', en: 'the Exploratorium' } },
+  },
+  {
+    id: 'sfmoma-museums-for-all', kind: 'museum', free: true, who: { zh: 'SF 居民持福利卡', en: 'SF residents with a benefits card' },
+    place: { id: 'sfmoma', x: 177.3, z: 181.81, name: { zh: '旧金山现代艺术博物馆', en: 'SFMOMA' } },
+  },
+  {
+    id: 'muni-youth-free', kind: 'transit', free: true, who: { zh: '18 岁及以下', en: '18 and under' }, place: null,
+  },
+];
+
+// the site's English strings (zh → en maps in src/data/*-en.json)
+const EN: Record<string, string> = {};
+const dataDir = resolve('src/data');
+for (const f of await readdir(dataDir)) {
+  if (!f.endsWith('-en.json')) continue;
+  const j = JSON.parse(await readFile(resolve(dataDir, f), 'utf8')) as unknown;
+  if (j && typeof j === 'object' && !Array.isArray(j)) for (const [k, v] of Object.entries(j as Record<string, unknown>)) if (typeof v === 'string' && !(k in EN)) EN[k] = v;
+}
+const bi = (zh: string): Bi => ({ zh, en: EN[zh] ?? zh });
+
+const byId = new Map<string, FreebieOffer>(currentFreebies.map(o => [o.id, o]));
+const rows = SPECS.map(s => {
+  const o = byId.get(s.id);
+  if (!o) throw new Error(`offer ${s.id} is not in the site data any more`);
+  if (o.kind === 'purchase' && s.free) throw new Error(`offer ${s.id} is a purchase deal now`);
+  if (!/^https:\/\//.test(o.sourceUrl)) throw new Error(`offer ${s.id}: no https source`);
+  if (o.availability === 'dated' && !(o.startDate && o.endDate)) throw new Error(`offer ${s.id}: dated without dates`);
+  return {
+    id: s.id, kind: s.kind, free: s.free,
+    title: bi(o.title), who: s.who, requirement: bi(o.requirement),
+    ...(o.availability === 'dated' ? { from: o.startDate, to: o.endDate } : {}),
+    ...(s.weekdays ? { weekdays: s.weekdays } : {}),
+    ...(s.nth ? { nth: s.nth } : {}),
+    ...(s.hours ? { hours: s.hours } : {}),
+    place: s.place,
+    ...(s.hand ? { hand: s.hand } : {}),
+    href: `/offers/${encodeURIComponent(s.id)}`,
+    source: { label: o.sourceLabel, url: o.sourceUrl, verifiedAt: o.verifiedAt ?? '2026-09-15' },
+    ...(s.ruleUrl ? { rule: { url: s.ruleUrl, verifiedAt: RULES_CHECKED } } : {}),
+  };
+});
+
+const out = { version: 1, exported: new Date().toISOString().slice(0, 10), source: 'BAYLINK offers (src/data), San Francisco museums, parks and transit', offers: rows };
+await mkdir(dirname(OUT), { recursive: true });
+await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
+console.log(`Wrote ${rows.length} San Francisco offers to ${OUT}`);

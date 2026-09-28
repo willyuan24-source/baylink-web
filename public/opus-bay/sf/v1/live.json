@@ -1,0 +1,481 @@
+{
+ "version": 1,
+ "exported": "2026-09-28",
+ "source": "BAYLINK offers (src/data), San Francisco museums, parks and transit",
+ "offers": [
+  {
+   "id": "asian-art-free-oct4",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "10/4 亚洲艺术博物馆普通门票免费",
+    "en": "Free Asian Art Museum general admission on October 4"
+   },
+   "who": {
+    "zh": "所有人 · 普通展区",
+    "en": "Everyone · general admission"
+   },
+   "requirement": {
+    "zh": "每月首个周日普通门票免费，无需居民或会员资格；特展另付 $10，建议预订时段票。",
+    "en": "General admission is free on the first Sunday; no residency or membership requirement. Special exhibitions cost an additional $10. Timed booking is encouraged."
+   },
+   "from": "2026-10-04",
+   "to": "2026-10-04",
+   "hours": [
+    600,
+    1020
+   ],
+   "place": {
+    "id": "osm-w24588037",
+    "x": 109.18,
+    "z": 379.12,
+    "name": {
+     "zh": "亚洲艺术博物馆",
+     "en": "the Asian Art Museum"
+    }
+   },
+   "href": "/offers/asian-art-free-oct4",
+   "source": {
+    "label": "亚洲艺术博物馆免费日票务",
+    "url": "https://about.asianart.org/ticketing/",
+    "verifiedAt": "2026-09-15"
+   },
+   "rule": {
+    "url": "https://about.asianart.org/ticketing/",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "conservatory-free-oct6",
+   "kind": "park",
+   "free": true,
+   "title": {
+    "zh": "10/6 免费逛金门公园温室",
+    "en": "Free Golden Gate Park conservatory on October 6"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "每月首个周二所有人普通入场免费，不限 SF 居民；16:00 最后入场，特别活动另计。",
+    "en": "Free general admission for everyone on the first Tuesday, including nonresidents. Last entry is 4 PM; special events are separate."
+   },
+   "from": "2026-10-06",
+   "to": "2026-10-06",
+   "hours": [
+    600,
+    960
+   ],
+   "place": {
+    "id": "conservatory-of-flowers",
+    "x": -177.51,
+    "z": 858.11,
+    "name": {
+     "zh": "花卉温室",
+     "en": "the Conservatory of Flowers"
+    }
+   },
+   "hand": "free-conservatory",
+   "href": "/offers/conservatory-free-oct6",
+   "source": {
+    "label": "金门公园三园开放与免费时段",
+    "url": "https://gggp.org/visit/admissions-hours/",
+    "verifiedAt": "2026-09-15"
+   }
+  },
+  {
+   "id": "botanical-free-oct13",
+   "kind": "park",
+   "free": true,
+   "title": {
+    "zh": "10/13 植物园全天普通入场免费",
+    "en": "Free botanical garden general admission on October 13"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "每月第二个周二所有人普通入场免费，不限 SF 居民；付费特别活动与节目不包含。",
+    "en": "General admission is free for everyone on the second Tuesday, including nonresidents. Ticketed special events and programs are excluded."
+   },
+   "from": "2026-10-13",
+   "to": "2026-10-13",
+   "hours": [
+    450,
+    1020
+   ],
+   "place": {
+    "id": "sf-botanical-garden",
+    "x": -178.3,
+    "z": 970.9,
+    "name": {
+     "zh": "旧金山植物园",
+     "en": "the SF Botanical Garden"
+    }
+   },
+   "hand": "free-botanical",
+   "href": "/offers/botanical-free-oct13",
+   "source": {
+    "label": "植物园免费日与十月入园时间",
+    "url": "https://gggp.org/visit/admissions-hours/",
+    "verifiedAt": "2026-09-15"
+   }
+  },
+  {
+   "id": "japanese-tea-garden-free-hour",
+   "kind": "park",
+   "free": true,
+   "title": {
+    "zh": "周一三五，早一小时免费进茶园",
+    "en": "Free early entry to the Japanese Tea Garden"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "免费入园时段对所有人开放，无需消费或 SF 居民资格；茶点和特别项目另付。",
+    "en": "The free-entry hour is open to everyone without purchase or SF residency. Tea, snacks and special programs cost extra."
+   },
+   "weekdays": [
+    1,
+    3,
+    5
+   ],
+   "hours": [
+    540,
+    600
+   ],
+   "place": {
+    "id": "japanese-tea-garden",
+    "x": -242.9,
+    "z": 964.4,
+    "name": {
+     "zh": "日本茶园",
+     "en": "the Japanese Tea Garden"
+    }
+   },
+   "hand": "free-teaGarden",
+   "href": "/offers/japanese-tea-garden-free-hour",
+   "source": {
+    "label": "日本茶园官方免费入园时间",
+    "url": "https://gggp.org/tickets/",
+    "verifiedAt": "2026-09-15"
+   },
+   "rule": {
+    "url": "https://gggp.org/visit/admissions-hours/",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "sfmoma-family-oct25",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "10/25 带孩子逛 SFMOMA，最多两位成人免费",
+    "en": "Bring a child to SFMOMA on October 25: up to two adults free"
+   },
+   "who": {
+    "zh": "带 18 岁及以下孩子，最多两位成人",
+    "en": "With a child 18 or under, up to two adults"
+   },
+   "requirement": {
+    "zh": "一名 18 岁及以下儿童或青少年随行，最多两位成人享免费普通入馆；加价特展需另购票。",
+    "en": "Up to two adults receive free general admission when accompanying one child or teen age 18 or younger. Surcharged exhibitions require separate paid tickets."
+   },
+   "from": "2026-10-25",
+   "to": "2026-10-25",
+   "hours": [
+    600,
+    1020
+   ],
+   "place": {
+    "id": "sfmoma",
+    "x": 177.3,
+    "z": 181.81,
+    "name": {
+     "zh": "旧金山现代艺术博物馆",
+     "en": "SFMOMA"
+    }
+   },
+   "href": "/offers/sfmoma-family-oct25",
+   "source": {
+    "label": "SFMOMA 免费家庭日与成人名额",
+    "url": "https://www.sfmoma.org/free-days/",
+    "verifiedAt": "2026-09-15"
+   },
+   "rule": {
+    "url": "https://www.sfmoma.org/visit/",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "cable-car-museum-free",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "免费进 Cable Car Museum，看缆车动力系统",
+    "en": "See cable-car machinery at the free Cable Car Museum"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "博物馆入场免费，无需搭乘缆车或购物；实际乘坐 Cable Car 仍按 SFMTA 票价。",
+    "en": "Museum admission is free with no cable-car ride or purchase required. Riding a cable car is charged separately under SFMTA fares."
+   },
+   "weekdays": [
+    0,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "hours": [
+    [
+     600,
+     1020
+    ],
+    null,
+    [
+     600,
+     960
+    ],
+    [
+     600,
+     960
+    ],
+    [
+     600,
+     960
+    ],
+    [
+     600,
+     1020
+    ],
+    [
+     600,
+     1020
+    ]
+   ],
+   "place": {
+    "id": "cable-car-museum",
+    "x": -12.9,
+    "z": 184.41,
+    "name": {
+     "zh": "缆车博物馆",
+     "en": "the Cable Car Museum"
+    }
+   },
+   "href": "/offers/cable-car-museum-free",
+   "source": {
+    "label": "Cable Car Museum 免费入场与时间",
+    "url": "https://www.cablecarmuseum.org/info.html",
+    "verifiedAt": "2026-09-23"
+   },
+   "rule": {
+    "url": "https://www.cablecarmuseum.org/info.html",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "randall-museum-free",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "Randall Museum 常年免费，亲子科学半日游",
+    "en": "Free family science outings at Randall Museum"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "普通参观无需门票或消费；部分课程和手工活动另收费，具体项目查当日日历。",
+    "en": "General admission is free with no purchase required. Some classes and workshops cost extra; check the day’s calendar."
+   },
+   "weekdays": [
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "hours": [
+    600,
+    1020
+   ],
+   "place": {
+    "id": "osm-w705309578",
+    "x": 95.91,
+    "z": 746.08,
+    "name": {
+     "zh": "兰德尔博物馆",
+     "en": "the Randall Museum"
+    }
+   },
+   "href": "/offers/randall-museum-free",
+   "source": {
+    "label": "Randall 官方开放时间与免费入馆",
+    "url": "https://randallmuseum.org/faqs/",
+    "verifiedAt": "2026-09-23"
+   },
+   "rule": {
+    "url": "https://randallmuseum.org/faqs/",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "museo-italo-free-days",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "Fort Mason：周四与首个周日免费普通入馆",
+    "en": "Fort Mason: free general admission on Thursdays and first Sundays"
+   },
+   "who": {
+    "zh": "所有人 · 普通入馆",
+    "en": "Everyone · general admission"
+   },
+   "requirement": {
+    "zh": "官网列周四及每月首个周日普通入场免费；18 岁以下亦免费。课程、讲座与特别晚间节目可能另收费或需预约。",
+    "en": "The museum lists free general admission on Thursdays and the first Sunday of each month; visitors under 18 are also free. Classes, talks and special evening programs may require payment or registration."
+   },
+   "weekdays": [
+    4
+   ],
+   "nth": [
+    [
+     0,
+     1
+    ]
+   ],
+   "hours": [
+    [
+     600,
+     840
+    ],
+    null,
+    null,
+    null,
+    [
+     720,
+     960
+    ],
+    null,
+    null
+   ],
+   "place": {
+    "id": "osm-n4022645781",
+    "x": -320.2,
+    "z": 228.43,
+    "name": {
+     "zh": "意大利裔美国人博物馆",
+     "en": "the Museo Italo Americano"
+    }
+   },
+   "href": "/offers/museo-italo-free-days",
+   "source": {
+    "label": "Museo 官方入场规则",
+    "url": "https://sfmuseo.org/",
+    "verifiedAt": "2026-09-27"
+   },
+   "rule": {
+    "url": "https://sfmuseo.org/",
+    "verifiedAt": "2026-09-28"
+   }
+  },
+  {
+   "id": "exploratorium-for-all-five",
+   "kind": "museum",
+   "free": false,
+   "title": {
+    "zh": "Exploratorium 指定福利卡入馆 $5",
+    "en": "$5 Exploratorium admission with qualifying benefits"
+   },
+   "who": {
+    "zh": "持福利卡加证件，$5",
+    "en": "With a benefits card and ID, $5"
+   },
+   "requirement": {
+    "zh": "EBT／SNAP／CalFresh、Medi-Cal、WIC 或 Lifeline Pass 加本人照片证件，最多四张每张 $5；P-EBT 与 Sun Bucks 不适用。",
+    "en": "With EBT, SNAP, CalFresh, Medi-Cal, WIC or Lifeline Pass and matching photo ID, buy up to four $5 tickets. P-EBT and Sun Bucks are excluded."
+   },
+   "place": {
+    "id": "exploratorium",
+    "x": 28.97,
+    "z": 4.31,
+    "name": {
+     "zh": "探索馆",
+     "en": "the Exploratorium"
+    }
+   },
+   "href": "/offers/exploratorium-for-all-five",
+   "source": {
+    "label": "Exploratorium for All 当前价格与证件",
+    "url": "https://www.exploratorium.edu/visit/reduced-rates",
+    "verifiedAt": "2026-09-23"
+   }
+  },
+  {
+   "id": "sfmoma-museums-for-all",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "SF 居民持指定福利卡，SFMOMA 最多四位成人免费",
+    "en": "Up to four free adult tickets for eligible SF residents at SFMOMA"
+   },
+   "who": {
+    "zh": "SF 居民持福利卡",
+    "en": "SF residents with a benefits card"
+   },
+   "requirement": {
+    "zh": "须 San Francisco 居民，并出示有效 Medi-Cal、CalFresh、SNAP 或 EBT 卡和居住证明；每位符合资格者最多四张成人票。",
+    "en": "San Francisco residents must show a valid Medi-Cal, CalFresh, SNAP or EBT card and residency proof. Each eligible visitor can receive up to four adult tickets."
+   },
+   "place": {
+    "id": "sfmoma",
+    "x": 177.3,
+    "z": 181.81,
+    "name": {
+     "zh": "旧金山现代艺术博物馆",
+     "en": "SFMOMA"
+    }
+   },
+   "href": "/offers/sfmoma-museums-for-all",
+   "source": {
+    "label": "SFMOMA 居民福利卡免费条款",
+    "url": "https://www.sfmoma.org/deals-discounts/",
+    "verifiedAt": "2026-09-23"
+   }
+  },
+  {
+   "id": "muni-youth-free",
+   "kind": "transit",
+   "free": true,
+   "title": {
+    "zh": "18 岁及以下乘 Muni 常规公交和轻轨免费",
+    "en": "Muni buses and trains are free for everyone age 18 and under"
+   },
+   "who": {
+    "zh": "18 岁及以下",
+    "en": "18 and under"
+   },
+   "requirement": {
+    "zh": "18 岁及以下乘常规 Muni 无需申请或 Clipper 卡；16 岁及以上建议带学生证等年龄证明。Cable Car 不包含在通用福利内。",
+    "en": "Riders age 18 and under need no application or Clipper card for regular Muni service. Ages 16+ should carry age ID. Cable cars are excluded from this general benefit."
+   },
+   "place": null,
+   "href": "/offers/muni-youth-free",
+   "source": {
+    "label": "SFMTA 青少年免费乘车条件",
+    "url": "https://www.sfmta.com/fares/free-muni-all-youth-18-years-and-younger",
+    "verifiedAt": "2026-09-23"
+   }
+  }
+ ]
+}
