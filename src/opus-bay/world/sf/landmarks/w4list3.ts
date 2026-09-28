@@ -19,6 +19,7 @@ import { inaCoolbrithPark } from './ina-coolbrith-park';
 import { lafayettePark } from './lafayette-park';
 import { mclarenPark } from './mclaren-park';
 import { mountSutroOpenSpace } from './mount-sutro-open-space';
+import { mountainLakePark } from './mountain-lake-park';
 
 /**
  * The wave-4 tier-3 site records (lane L3, W4-L9: plan §2.4 "Priority 4", in the table's order), and nothing else.
@@ -59,6 +60,7 @@ export const W4_SITES_T3_NEXT: readonly W4Site[] = [
   lafayettePark,
   mclarenPark,
   mountSutroOpenSpace,
+  mountainLakePark,
 ];
 
 export const W4_SITES_T3_ALL: readonly W4Site[] = [...W4_SITES_T3, ...W4_SITES_T3_NEXT];
