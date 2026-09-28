@@ -14,6 +14,7 @@ import { vehicleSpots } from '../data/vehicles';
 import { arrivalSeen } from '../game/cityContent';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
 import { closePanel, endTrip as endFlowTrip, replanTrip } from '../game/flow';
+import type { PlaceTripDest } from '../game/placeTrips';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
 import { parseMapPanelId } from '../game/mapPanel';
@@ -34,7 +35,7 @@ import { MapFilters } from './MapFilters';
 import { MapLegend } from './MapLegend';
 import { type StationCtx, drawTransitLines, tripRouteStrokes } from './mapLines';
 import { MapPaperLayer } from './MapPaperLayer';
-import { tripEta } from './mapTrips';
+import { mapOpenFallback, mapTargetOf, tripEta } from './mapTrips';
 import { PlaceActions, type WalkInfo } from './PlaceActions';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
@@ -92,14 +93,6 @@ function routeLeft(route: PlannedRoute, pos: Vec2): { points: Vec2[]; time: Bili
   const ahead = routeAhead(route.points, pos);
   const seconds = autoWalkSeconds(ahead.length + ahead.off);
   return { points: ahead.points, time: secondsLabel(seconds), seconds, walked: [{ x: pos.x, z: pos.z }, ...ahead.points] };
-}
-
-/** The map's target: an attraction's badge becomes the pin, or a plain place (the island piers: the badge stays). */
-function mapTargetOf(placeId: string | null, attraction?: string | null): MapTarget | null {
-  if (!placeId && !attraction) return null;
-  const a = attraction ? ATTRACTION_INDEX.resolve(attraction) : placeId ? ATTRACTION_INDEX.primary(placeId) : undefined;
-  if (a && (!placeId || (a.placeId ?? a.id) === placeId)) return { attraction: a.id };
-  return placeId ? { place: placeId } : null;
 }
 
 /** One MapTarget object per (place, attraction) pair: a stable identity for the scene's memo. */
@@ -337,14 +330,27 @@ export function CityMapPanel() {
     const on = parseMapPanelId(openId);
     if (!on) return;
     if (on.kind === 'line') { if (!lines.some(l => l.id === on.id)) return; openedOn.current = openId; pickLine(on.id); return; }
-    if (on.kind === 'station') { if (!stationById.has(on.id)) return; openedOn.current = openId; pickStation(on.id); return; }
+    if (on.kind === 'station') {
+      // any of the station's stop ids (a merged station holds several)
+      const st = stationById.get(on.id) ?? stations.find(s => s.ids.includes(on.id));
+      if (st) { openedOn.current = openId; pickStation(st.id); }
+      return;
+    }
     if (on.kind === 'attraction') { const a = ATTRACTION_INDEX.resolve(on.id); if (a) { openedOn.current = openId; pickAttraction(a); } return; }
+    // an id that is no place row: a Grand Tour stop's trip (the trip card's 换个方式), `transit-<stop>`, `sf:<id>`
+    const alt = !ix?.get(on.id) ? mapOpenFallback(on.id, stations, trip) : null;
+    if (alt) {
+      openedOn.current = openId;
+      if (alt.kind === 'station') pickStation(alt.id);
+      else { const a = ATTRACTION_INDEX.get(alt.id); if (a) pickAttraction(a); }
+      return;
+    }
     if (!ix) return;
     const p = ix.get(on.id);
     if (!p) return;
     openedOn.current = openId;
     pickPlace(p);
-  }, [openId, ix, view, lines, stationById]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [openId, ix, view, lines, stationById, stations, trip?.placeId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the selection: its destination, its walking route (G1-8) -------------------------------------------------------
   const selAttraction = sel?.kind === 'attraction' ? ATTRACTION_INDEX.get(sel.id) ?? null : null;
@@ -361,9 +367,11 @@ export function CityMapPanel() {
     return null;
   }, [selAttraction, selPlace, selStation, ix]);
   // a trip of lane C's runner to the selection: its legs are on the canvas, no walking preview of G1-8's
-  const tripHere = !!trip && !!dest?.placeId && trip.placeId === dest.placeId;
+  // (a Grand Tour stop's trip names its stop's interactable: its attraction selected is the trip's destination too)
+  const tripHere = !!trip && ((!!dest?.placeId && trip.placeId === dest.placeId) || (!!trip.attraction && !!selAttraction && ATTRACTION_INDEX.resolve(trip.attraction)?.id === selAttraction.id)
+    || (!!selStation && selStation.ids.some(id => trip.placeId === id || trip.placeId === `transit-${id}`)));
   const plan = useRoutePlan(tripHere ? null : dest, pos);
-  const onTrip = !!dest?.placeId && (dest.placeId === tripId || (!!trip && trip.placeId === dest.placeId));
+  const onTrip = tripHere || (!!dest?.placeId && dest.placeId === tripId);
   const left = useMemo(() => (plan?.route ? routeLeft(plan.route, pos) : null), [plan, pos]);
   const routeDraw = useMemo(() => {
     if (!view || !left || left.points.length < 2) return null;
@@ -458,6 +466,11 @@ export function CityMapPanel() {
   // destination: the list starts open then)
   const changeWay = (o: TripOption) => { replanTrip(o); closePanel(); };
   const openedToChange = tripHere && !!trip && !!openId && parseMapPanelId(openId)?.id === trip.placeId;
+  // the ways are planned to where the running trip ends (a Grand Tour stop: its bus stop, not the attraction's arrival)
+  const tripEnd = trip ? trip.legs[trip.legs.length - 1]?.to : undefined;
+  const changeTo = useMemo((): PlaceTripDest | null => (trip && tripEnd ? {
+    placeId: trip.placeId, x: tripEnd.x, z: tripEnd.z, ...(tripName ? { name: tripName } : {}), ...(trip.attraction ? { attraction: trip.attraction } : {}),
+  } : null), [trip, tripEnd, tripName]);
   const walkInfo: WalkInfo | null = !plan ? null : plan.status === 'pending' ? { state: 'pending' } : plan.status === 'none' || !plan.route ? { state: 'none' } : { state: 'ok', label: routeTravelLabel(left?.walked ?? plan.route.points) };
 
   const heading = runtime.player.heading;
@@ -573,9 +586,10 @@ export function CityMapPanel() {
       <MapFilters value={filter} onChange={setFilter} />
 
       {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null}
-        onReplan={tripHere ? changeWay : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange} onRoute={id => { pickRoute(id); revealMap(); }} />}
+        onReplan={tripHere ? changeWay : null} changeTo={tripHere ? changeTo : null} tripMode={tripHere ? trip?.option.mode ?? null : null} startOpen={openedToChange} onRoute={id => { pickRoute(id); revealMap(); }} />}
       {selStation && (
-        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null} />
+        <StationPanel station={selStation} lines={lines} pos={pos} walk={walkInfo} routeSeconds={left?.seconds ?? null} placeId={dest?.placeId ?? null}
+          change={tripHere && trip && changeTo ? { to: changeTo, tripTime: tripEta(trip), tripMode: trip.option.mode, startOpen: openedToChange, onPick: changeWay } : null} />
       )}
 
       <CityMapList

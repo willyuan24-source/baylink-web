@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Bird } from 'lucide-react';
 import { runtime } from '../core/runtime';
-import type { Vec2 } from '../core/types';
+import type { Bilingual, Vec2 } from '../core/types';
 import { placeById } from '../data/sf/places';
 import { isDiscovered, useDiscoveryEpoch } from '../game/discovery';
 import { closePanel, navigateTo, say } from '../game/flow';
 import { interactableById } from '../game/interactables';
-import { flyTo, startPlaceTrip } from '../game/placeTrips';
+import { type PlaceTripDest, flyTo, startPlaceTrip } from '../game/placeTrips';
 import { boardLine, nextArrival, stationRides as lineStationRides } from '../game/transit';
 import { planTrips } from '../game/tripPlan';
 import { tripProviders } from '../game/tripProviders';
+import type { TripOption } from '../game/tripTypes';
 import { useT } from '../i18n';
-import type { WalkInfo } from './PlaceActions';
+import { ChangeWay, type WalkInfo } from './PlaceActions';
 import { type StationRide, StationActions } from './StationActions';
 import type { MapLine, MapStation } from './mapLines';
 import { stationRideOption, stationRides, stationWalkSeconds, tripLineInfos } from './mapTrips';
@@ -27,10 +28,12 @@ import { stationRideOption, stationRides, stationWalkSeconds, tripLineInfos } fr
 
 const HERE_R = 12;
 
-export function StationPanel({ station, lines, pos, walk, routeSeconds = null }: {
+export function StationPanel({ station, lines, pos, walk, routeSeconds = null, change = null }: {
   station: MapStation; lines: readonly MapLine[]; pos: Vec2; walk: WalkInfo | null; placeId: string | null;
   /** the walking route's time to the station once the map found it (G1-8), else null */
   routeSeconds?: number | null;
+  /** a running trip ends at this station (a Grand Tour stop): 换个方式 changes its way (PlaceActions ChangeWay) */
+  change?: { to: PlaceTripDest; tripTime: Bilingual | null; tripMode: TripOption['mode'] | null; startOpen: boolean; onPick: (o: TripOption) => void } | null;
 }) {
   const { t } = useT();
   useDiscoveryEpoch();
@@ -85,6 +88,7 @@ export function StationPanel({ station, lines, pos, walk, routeSeconds = null }:
   };
   return (
     <div className="mw-station-wrap">
+      {change && <ChangeWay to={change.to} tripTime={change.tripTime} tripMode={change.tripMode} startOpen={change.startOpen} onPick={change.onPick} />}
       <StationActions station={station} rides={rides} nextIn={nextIn} walkSeconds={walkSeconds} here={here} onRide={onRide} onGo={goStation} />
       {place && isDiscovered(station.id) && !here && (
         <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm mw-fly" onClick={() => flyTo(place)}><Bird size={15} aria-hidden /><span>{t('飞过去', 'Fly there')}</span></button>

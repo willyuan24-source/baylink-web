@@ -54,7 +54,7 @@ function useTripOptions(dest: PlaceTripDest | null): { options: TripOption[]; bu
  * While a trip to this place is on, 跟 BAYBAY 去 goes (the map's trip strip has the end button) and 其他方式 becomes
  * 换个方式: the ways from here, a pick changes the running trip's way (onReplan).
  */
-export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onReplan, tripMode = null, startOpen = false, onRoute }: {
+export function PlaceActions({ place, attraction = null, walk = null, onTrip = false, tripTime = null, onReplan, changeTo = null, tripMode = null, startOpen = false, onRoute }: {
   place: CityPlace; attraction?: Attraction | null; walk?: WalkInfo | null; onTrip?: boolean;
   /**
    * lane C's trip to this place is running: its way and time left ("跑过去 约 2 分钟", as the trip strip and the ETA
@@ -67,6 +67,8 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
    * (integration review: a dead end). `tripMode` = the running way (its row shows pressed); `startOpen`: the list open.
    */
   onReplan?: ((o: TripOption) => void) | null;
+  /** where the running trip ends (the ways to change it are planned there: a Grand Tour stop's bus stop) */
+  changeTo?: PlaceTripDest | null;
   tripMode?: TripOption['mode'] | null;
   startOpen?: boolean;
   onRoute?: (id: SfRouteId) => void;
@@ -81,7 +83,7 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
   const dest = useMemo(() => placeTripDest(place, attraction), [place, attraction]);
   // on a trip here: the ways only to change it (换个方式), never a second trip
   const changing = onTrip && !!onReplan;
-  const { options, busy } = useTripOptions(onTrip && !changing ? null : dest);
+  const { options, busy } = useTripOptions(onTrip && !changing ? null : changing && changeTo ? changeTo : dest);
   const rec = options.find(o => o.recommended) ?? options[0] ?? null;
   // 详情: the district POI card for merged hero places, lane C / G2's SF card (`sf:<landmarkId>` / `sf:<placeId>`) otherwise;
   // an attraction that shares another's row (Japan Center on the Peace Pagoda's) opens its own card (`sf:<attraction>`)
@@ -127,6 +129,30 @@ export function PlaceActions({ place, attraction = null, walk = null, onTrip = f
         </div>
       )}
       {more && (!onTrip || changing) && <TripOptions options={options} busy={busy} onPick={go} picked={picked ?? (changing ? tripMode : null)} />}
+    </div>
+  );
+}
+
+/**
+ * 换个方式 for a running trip whose destination is a station (a Grand Tour stop at a bus stop; integration review): the
+ * trip card's 换个方式 (lane G) opens the map on that stop, whose card only offered new rides. The ways from here to
+ * where the trip ends, planned once the list is open, the running one pressed; `onPick` changes the trip's way.
+ */
+export function ChangeWay({ to, tripTime = null, tripMode = null, startOpen = false, onPick }: {
+  to: PlaceTripDest; tripTime?: Bilingual | null; tripMode?: TripOption['mode'] | null; startOpen?: boolean; onPick: (o: TripOption) => void;
+}) {
+  const { t } = useT();
+  const [open, setOpen] = useState(startOpen);
+  const { options, busy } = useTripOptions(open ? to : null);
+  return (
+    <div className="mw-change" role="group" aria-label={t('换个方式', 'Another way')}>
+      <div className="mw-change-head">
+        {tripTime && <small>{t('当前：', 'Now: ')}{t(tripTime)}</small>}
+        <button type="button" className={`ob-btn ob-btn-ghost mw-more${open ? ' is-on' : ''}`} onClick={() => setOpen(o => !o)} aria-expanded={open}>
+          <span>{t('换个方式', 'Another way')}</span><ChevronDown size={15} aria-hidden />
+        </button>
+      </div>
+      {open && <TripOptions options={options} busy={busy} onPick={onPick} picked={tripMode} />}
     </div>
   );
 }

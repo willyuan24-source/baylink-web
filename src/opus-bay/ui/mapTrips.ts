@@ -1,6 +1,6 @@
 import type { Bilingual, Vec2 } from '../core/types';
 import type { Attraction } from '../data/sf/attractionTypes';
-import { tripDestination } from '../data/sf/attractions';
+import { ATTRACTION_INDEX, tripDestination } from '../data/sf/attractions';
 import type { CityPlace } from '../data/sf/places';
 import { transitData } from '../data/transit';
 import type { PlaceTripDest } from '../game/placeTrips';
@@ -12,6 +12,7 @@ import { cableTripLines, transitTripLine } from '../game/tripProviders';
 import { timeLabel } from '../game/tripText';
 import { TRIP_MODE_NAMES, type TripLeg, type TripLineLeg, type TripOption, type TripPoint, type TripState } from '../game/tripTypes';
 import type { TransitLine } from '../world/sf/format';
+import type { MapSel, MapTarget } from './cityMapModel';
 import type { MapLine, MapStation } from './mapLines';
 import type { StationRide } from './StationActions';
 
@@ -125,3 +126,33 @@ export function stationWalkSeconds(walk: { state: 'pending' | 'ok' | 'none' } | 
   return (d * STREET_FACTOR) / TRIP_SPEED.walk;
 }
 
+/** Ids other lanes use for a trip or a map opener that are not place rows: an interactable (a Grand Tour stop at a bus stop) or a card id. */
+const NOT_A_PLACE = /^(transit-|sf:)/;
+
+/**
+ * The map's target for a trip (placeId, attraction): the attraction's badge becomes the pin; a plain place row stays itself
+ * (the island piers: the badge stays). A Grand Tour stop's trip names its interactable (`transit-loop-ferry-building`,
+ * `sf:<landmark>`) with the stop's attraction: the attraction's badge (integration review: no pin, nothing selected). Pure.
+ */
+export function mapTargetOf(placeId: string | null, attraction?: string | null): MapTarget | null {
+  if (!placeId && !attraction) return null;
+  const a = attraction ? ATTRACTION_INDEX.resolve(attraction) : placeId ? ATTRACTION_INDEX.primary(placeId) : undefined;
+  if (a && (!placeId || (a.placeId ?? a.id) === placeId || NOT_A_PLACE.test(placeId))) return { attraction: a.id };
+  return placeId ? { place: placeId } : null;
+}
+
+/**
+ * What the map selects for an opener id that is no place row (integration review; lane C's open item: the trip card's
+ * 换个方式 on a Grand Tour stop opened the map on the list with nothing selected): the running trip's own id → its
+ * attraction; `transit-<stop>` → the station holding that stop; `sf:<id>` or an attraction / landmark id → its badge. Pure.
+ */
+export function mapOpenFallback(id: string, stations: readonly Pick<MapStation, 'id' | 'ids'>[], trip?: { placeId: string; attraction?: string } | null): MapSel | null {
+  if (trip && id === trip.placeId && trip.attraction) { const a = ATTRACTION_INDEX.resolve(trip.attraction); if (a) return { kind: 'attraction', id: a.id }; }
+  if (id.startsWith('transit-')) {
+    const stop = id.slice(8);
+    const st = stations.find(s => s.id === stop || s.ids.includes(stop));
+    if (st) return { kind: 'station', id: st.id };
+  }
+  const a = ATTRACTION_INDEX.resolve(id.startsWith('sf:') ? id.slice(3) : id);
+  return a ? { kind: 'attraction', id: a.id } : null;
+}

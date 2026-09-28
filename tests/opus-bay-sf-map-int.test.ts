@@ -495,3 +495,38 @@ test('review: during a trip here the place card changes its way (换个方式: t
   const idle = renderToStaticMarkup(h(PlaceActions, { place, attraction: coit }));
   assert.match(idle, /跟 BAYBAY 去/);
 });
+
+test('review: a Grand Tour stop\'s trip (its placeId an interactable id) gets its pin and its selection on the map; a station opener takes any of the station\'s stop ids', async () => {
+  const { mapTargetOf, mapOpenFallback } = await import('../src/opus-bay/ui/mapTrips');
+  // the tour's trip to the Ferry Building stop: the stop's interactable, the stop's attraction → the attraction's badge
+  const ferryA = ATTRACTION_INDEX.get('ferry-building-marketplace')!;
+  assert.deepEqual(mapTargetOf('transit-loop-ferry-building', ferryA.id), { attraction: ferryA.id });
+  assert.deepEqual(mapTargetOf('sf:city-hall', 'city-hall'), { attraction: 'city-hall' });
+  // the island piers stay plain places (the badge stays); a map trip to an attraction stays its badge
+  assert.deepEqual(mapTargetOf('alcatraz-landing', 'alcatraz'), { place: 'alcatraz-landing' });
+  assert.deepEqual(mapTargetOf('coit-tower', 'coit-tower'), { attraction: 'coit-tower' });
+  // the openers the map could not select: the trip card's 换个方式 on a tour stop, transit-<stop>, sf:<id>
+  const loopFerry = STATIONS.find(s => s.ids.includes('loop-ferry-building'));
+  assert.ok(loopFerry, 'the loop stops at the Ferry Building');
+  assert.deepEqual(mapOpenFallback('transit-loop-ferry-building', STATIONS), { kind: 'station', id: loopFerry!.id });
+  assert.deepEqual(mapOpenFallback('transit-loop-ferry-building', STATIONS, { placeId: 'transit-loop-ferry-building', attraction: ferryA.id }), { kind: 'attraction', id: ferryA.id });
+  assert.deepEqual(mapOpenFallback('sf:city-hall', STATIONS), { kind: 'attraction', id: 'city-hall' });
+  assert.equal(mapOpenFallback('osm-nothing-here', STATIONS), null);
+  // a merged station holds several stop ids: every one finds it
+  const merged = STATIONS.find(s => s.ids.length > 1)!;
+  assert.deepEqual(mapOpenFallback(`transit-${merged.ids[merged.ids.length - 1]}`, STATIONS), { kind: 'station', id: merged.id });
+});
+
+test('review: 换个方式 on a station a running trip ends at (a Grand Tour stop): the trip\'s way and time, the ways listed once open, the running one pressed', async () => {
+  const { createElement: h } = await import('react');
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { ChangeWay } = await import('../src/opus-bay/ui/PlaceActions');
+  const to = { placeId: 'transit-loop-ferry-building', x: 133, z: 10.1, name: { zh: '渡轮大厦', en: 'Ferry Building' } };
+  const open = renderToStaticMarkup(h(ChangeWay, { to, tripTime: { zh: '步行 约 12 秒', en: 'Walk ~12s' }, tripMode: 'walk', startOpen: true, onPick: () => undefined }));
+  assert.match(open, /当前：步行 约 12 秒/);
+  assert.match(open, /换个方式/);
+  assert.match(open, /class="mw-trip"/);
+  const closed = renderToStaticMarkup(h(ChangeWay, { to, onPick: () => undefined }));
+  assert.match(closed, /换个方式/);
+  assert.doesNotMatch(closed, /class="mw-trip"/, 'planned only once opened');
+});
