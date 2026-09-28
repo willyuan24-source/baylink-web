@@ -9,8 +9,9 @@
  * What counts as a line (BAYBAY's, spoken, fixed): a `{ zh: '…', en: '…' }` literal in a wave-5 source below that reads
  * as a sentence (Chinese text ending in ！？。～… or holding a comma, no `${…}` template, no "Name：" speaker prefix, zh ≤ 45),
  * minus the EXCLUDE list (paper notes, card texts, labels that happen to be sentences), plus the egg registry's own
- * fields (every egg's `lines` and `rumour`, the cookie fortunes). A line built from a name, a time or a key stays a
- * text bubble (it is never a literal).
+ * fields (every egg's `lines` and `rumour`, the cookie fortunes), plus lane C's frozen table (data/sf/linesW5.ts
+ * W5_C_LINES, read first: those lines keep lane C's ids and lane C plays them itself through its pacer — `own`). A line
+ * built from a name, a time or a key stays a text bubble (it is never a literal).
  *
  * The clip id is `w5-<lane>-<8 hex of sha1(zh + "\n" + en)>`, so a line keeps its clip wherever a lane moves it, and a
  * changed word in either language is a new line (its old clip simply stops matching). A line a lane voices itself with a
@@ -23,7 +24,7 @@ import path from 'node:path';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '../../../..');
 
-export interface W5Line { id: string; lane: string; zh: string; en: string; source: string; mood: string; voiceId?: string }
+export interface W5Line { id: string; lane: string; zh: string; en: string; source: string; mood: string; voiceId?: string; /** lane C's paced lines (data/sf/voiceTour.ts TOUR_VOICE_CLIPS carries them) */ paced?: 1 }
 
 /**
  * Sources per lane (relative to src/opus-bay): a folder = every .ts / .tsx in it (the four feature folders are wave 5's
@@ -37,6 +38,10 @@ const SOURCES: { lane: string; files: string[]; only?: string[] }[] = [
   { lane: 'e', files: ['economy/'] },
   { lane: 'd', files: ['eggs/'] },
   { lane: 'r', files: ['realsf/seasons.ts'], only: ['FIRE_SEASON_LAST_DAY'] },
+  { lane: 'r', files: ['realsf/daily.ts'], only: ['DAILY_ALL_LINE'] },
+  // JETS_DAY_LINE / JETS_NOW_LINE share the key `jets-day` (one voice-line id for two texts): not recorded until lane R
+  // gives the second its own key (Requests)
+  { lane: 'r', files: ['realsf/jets.ts'], only: ['JETS_NEAR_LINE', 'JETS_PHOTO_LINE'] },
 ];
 /** read by its fields, not scanned (its facts, names and riddles are sentences no one says) */
 const STRUCTURED = new Set(['eggs/registry.ts']);
@@ -44,6 +49,9 @@ const STRUCTURED = new Set(['eggs/registry.ts']);
 /** Lines a lane voices itself (`emit({ type: 'voice-line', id })`): the clip takes the lane's id. */
 const VOICE_IDS: Record<string, string> = {
   FIRE_SEASON_LAST_DAY: 'realsf-fire-season-end',
+  DAILY_ALL_LINE: 'realsf-daily-all',
+  JETS_NEAR_LINE: 'realsf-jets-up',
+  JETS_PHOTO_LINE: 'realsf-jets-photo',
 };
 
 /** Sentences that are not spoken by BAYBAY (paper, cards, UI, other speakers): zh text → why. */
@@ -52,6 +60,9 @@ export const EXCLUDE: Record<string, string> = {
   '（BAYBAY 小声说：64 年后，它真的修好啦。）': 'the scroll’s footnote (paper)',
   '我们在这山坡上盖了一座八个角的房子，希望你也喜欢它。': 'the 1861-style time-capsule letter (paper)',
   '愿你一路平安，风景常新。': 'the time-capsule letter (paper)',
+  '几点开？': 'the slides prompt’s verb outside the hours (lane A, a button label)',
+  '你领先！': 'the stair race chip’s status (lane A)',
+  '按住 空格 躺下，滑得更快': 'the slides chip’s hint (lane A)',
 };
 
 const LIT = /(?:export\s+const\s+([A-Z0-9_]+)\s*(?::\s*[A-Za-z<>[\]]+)?\s*=\s*)?\{\s*zh:\s*'((?:[^'\\]|\\.)*)'\s*,\s*en:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")\s*\}/g;
@@ -120,8 +131,16 @@ async function eggLines(): Promise<W5Line[]> {
   return out;
 }
 
+/** Lane C's frozen wave-5 lines (W5-C6): their own ids, voiced by lane C's pacer (cityMoments speakRecorded / offerLineOr). */
+async function laneCLines(): Promise<W5Line[]> {
+  const file = path.join(ROOT, 'src/opus-bay/data/sf/linesW5.ts');
+  if (!fs.existsSync(file)) return [];
+  const C = await import(new URL(`file:///${file.replace(/\\/g, '/')}`).href) as { W5_C_LINES: readonly { id: string; zh: string; en: string }[] };
+  return C.W5_C_LINES.map(l => ({ id: l.id, lane: 'c', zh: l.zh, en: l.en, source: `data/sf/linesW5.ts ${l.id}`, mood: moodOf(l.zh), voiceId: l.id, paced: 1 as const }));
+}
+
 export async function w5Lines(): Promise<W5Line[]> {
-  const all = [...scan(), ...await eggLines()];
+  const all = [...await laneCLines(), ...scan(), ...await eggLines()];
   const byText = new Map<string, W5Line>();
   for (const l of all) if (!byText.has(`${l.zh}\n${l.en}`)) byText.set(`${l.zh}\n${l.en}`, l);
   return [...byText.values()];
@@ -172,7 +191,8 @@ if (isMain) {
   if (out) {
     const fresh = lines.filter(l => !rec.has(l.id));
     const takes = takesFor(fresh);
-    fs.writeFileSync(out, JSON.stringify({ voice: PIXIE, batch: Number(arg('--batch') ?? 1), lines: fresh, takes }, null, 1) + '\n');
+    // live: every line said today — post.py retires the recorded lines no source says any more
+    fs.writeFileSync(out, JSON.stringify({ voice: PIXIE, batch: Number(arg('--batch') ?? 1), live: lines.map(l => l.id), lines: fresh, takes }, null, 1) + '\n');
     console.log(`${fresh.length} new lines, ${takes.length} takes → ${out}`);
   } else {
     for (const l of lines) console.log(`${rec.has(l.id) ? 'rec' : 'NEW'}  ${l.id.padEnd(22)} ${l.zh}  |  ${l.en}  (${l.source})`);

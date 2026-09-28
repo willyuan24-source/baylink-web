@@ -600,6 +600,11 @@ test('W5-V7: a BAYBAY bubble with a recorded text plays its clip (once per bubbl
   assert.equal(W.w5VoiceFor({ zh: ` ${line.zh}`, en: line.en }), line.id, 'trimmed like the rumour frames');
   assert.equal(W.w5VoiceFor({ zh: line.zh, en: 'something else' }), null, 'both texts must match');
   if (own) assert.equal(W.w5VoiceFor({ zh: own.zh, en: own.en }), null, 'a line its lane voices itself');
+  // lane C's frozen lines keep lane C's ids (its pacer plays them): never matched here; their approved clips are exported
+  const paced = V.W5_VOICE_LINES.filter(l => l.paced);
+  assert.ok(paced.length >= 11 && paced.every(l => l.own && l.id.startsWith('w5c-') && l.lane === 'c'));
+  for (const l of paced) assert.equal(W.w5VoiceFor({ zh: l.zh, en: l.en }), null, l.id);
+  assert.deepEqual(Object.keys(V.W5_PACED_CLIPS).sort(), paced.flatMap(l => [`zh-${l.id}`, `en-${l.id}`]).filter(id => !V.W5_VOICE_CHECK.includes(id)).sort());
   const heard: string[] = [];
   const offEv = onEvent(e => { if (e.type === 'voice-line') heard.push(e.id); });
   const off = W.initW5Voice();

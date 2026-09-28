@@ -22,9 +22,15 @@ import { BAYBAY_ID } from './interactables';
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
 let byText: Map<string, string> | null = null;
 
-/** The recorded line for a bubble's text (the lanes' own `voice-line` ids excluded), or null. */
+/**
+ * The recorded line for a bubble's text, or null. A text a lane voices itself (`own`: lane R's `realsf-*` lines, lane C's
+ * paced `w5c-*` lines) is never matched, even through an older recording of the same words: the lane plays it.
+ */
 export function w5VoiceFor(text: Bilingual): string | null {
-  if (!byText) byText = new Map(W5_VOICE_LINES.filter(l => !l.own).map(l => [textKey(l.zh, l.en), l.id]));
+  if (!byText) {
+    const owned = new Set(W5_VOICE_LINES.filter(l => l.own).map(l => textKey(l.zh, l.en)));
+    byText = new Map(W5_VOICE_LINES.filter(l => !l.own && !owned.has(textKey(l.zh, l.en))).map(l => [textKey(l.zh, l.en), l.id]));
+  }
   return byText.get(textKey(text.zh ?? '', text.en ?? '')) ?? null;
 }
 

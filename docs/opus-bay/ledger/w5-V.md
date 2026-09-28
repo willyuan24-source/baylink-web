@@ -73,5 +73,26 @@ retaken once at speech_rate 1.08 (take indices 190–199, `jobs_r2.txt`), same m
 Transactions 13:57:39.775–13:57:47.144 UTC: 10 "Qwen Audio 3.0 TTS Flash" spends (0.01–0.04), no refund, nothing else
 in the window. **Subtotal 0.18.**
 
-**Wave-5 lane V total: 20.72 credits** (4.54 + 16.00 + 0.18) of the 130 cap. Balance 400.07 → **379.35** (`balance` at
-14:02 UTC, equal to the tally).
+**Running total after batch 3: 20.72 credits** (4.54 + 16.00 + 0.18). Balance **379.35** (`balance` at 14:02 UTC, equal to
+the tally).
+
+## Batch 4 · H5-3 voice, the lines frozen since batch 1 (W5-V7), 2026-09-28 14:12–14:18 UTC
+
+After the rebase onto `7319d9e` the inventory found 43 new lines: lane C's frozen table (`data/sf/linesW5.ts` W5_C_LINES,
+11 lines with lane C's own `w5c-*` ids, paced by lane C), lane A's part b (the bell riff, the Seward slides, the stair
+races: 18), lane D's eggs 13–24 lines and two renamed rumours (11), lane R's single-text lines under R's ids
+(`realsf-daily-all`, `realsf-jets-up`, `realsf-jets-photo`). 86 takes, same recipe (work dir
+`C:/Users/willy/opus-qa/w5/w5-v/voice2/`). One 429 (take 37) resubmitted with the last group.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO3 | 86 clips (43 lines × zh / en) | qwen_audio_tts, Pixie, speech_rate 1.0 | the new lines, verbatim | 1.65 | w5-voice-report.json `takes[].job_id` (batch 2) | voice2/raw/0–85.wav | 86 completed |
+| W5V-VO4 | 8 retakes | same, speech_rate 1.08 | the takes that missed a gate (2) or the recogniser (6) | 0.10 | same (indices 86–93) | voice2/raw/86–93.wav | 7 picked; `en-w5-a-2fe95a24` ("Me first! Again?", 1.4 words / s both times) stays muted in W5_VOICE_CHECK until the owner approves it |
+
+Transactions 14:12:51.872–14:18:05.992 UTC: 86 "Qwen Audio 3.0 TTS Flash" spends (1.65); 14:23:24.607–14:23:29.854: 8
+spends (0.10); no refund, nothing else on the account in the windows. **Subtotal 1.75.** Seven batch-1 lines no source
+says any more (lane C's five now carry lane C's ids; two lane-D rumours renamed 地之角 → 天涯海角, 16 街 → 第 16 大道) were
+retired by post.py: out of the table, their 28 files deleted, kept in the report's `retired` block with their job ids.
+
+**Wave-5 lane V total: 22.47 credits** (4.54 + 16.00 + 0.18 + 1.75) of the 130 cap. Balance 400.07 → **377.60**
+(`balance` at 14:35 UTC, equal to the tally).
