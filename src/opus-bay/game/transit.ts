@@ -202,7 +202,8 @@ export function openRideNode(rest: string) {
 export function stepTransit(dt: number) {
   const r = currentRide();
   const ride = stepRide(dt, travelEpoch());
-  watchStall(dt);
+  // (W5-T2) how long the rider's vehicle has not moved (the city chunk)
+  W4G?.watchStall(dt);
   if (isLineRide(r)) stepCity(r, dt);
   pollTurntables(dt);
   if (!ride) return;
@@ -296,84 +297,19 @@ export function rideLabel(ride: FlowRide): RideLabel {
   };
 }
 
-// --- W5-T1: the ride's time left from the vehicle's real progress ------------------------------------------------------
+// --- W5-T1: the ride's time left (the work lives in the lazy city chunk, game/lineRides.ts) --------------------------------
 
-export interface RideEta {
-  line: string;
-  kind: TransitKind;
-  stage: 'waiting' | 'riding';
-  from: string;
-  to: string;
-  /** seconds until the rider stands at `to`: the wait left + the ride left */
-  seconds: number;
-  /** waiting: the vehicle's live ETA at the boarding stop (0 aboard) */
-  waitLeft: number;
-  /** the ride left, from where the vehicle really is (the whole quote while waiting) */
-  rideLeft: number;
-  /** 0 … 1 of the ride behind (0 while waiting) */
-  progress: number;
-  /** seconds the vehicle coming for / carrying the rider has not moved (a dwell counts; lane T's 直接到站 rule reads it) */
-  stalled: number;
-}
+export type { RideEta } from './lineRides';
 
-/** the vehicle has moved when it is this far from where it was last seen moving (u) */
-const STALL_MOVE = 0.5;
 /** (W5-T2, plan MF2) after this long (s) without the ridden vehicle moving, 直接到站 becomes the ride banner's big button */
 export const STALL_BIG = 10;
-const stall = { ride: null as RideState | null, x: NaN, z: NaN, t: 0 };
-
-/** The pose of the vehicle coming for / carrying the rider (the hero F-line: the district streetcar). */
-function rideVehicle(r: RideState): { x: number; z: number } | null {
-  if (!isLineRide(r)) return r.mode === 'virtual' ? null : runtime.streetcar;
-  const sys = rideSystemFor(r.line), st = sys?.rideStatus();
-  return st && sys ? sys.cars[st.car]?.pose ?? null : null;
-}
-
-/** Per frame: how long the rider's vehicle has made no progress (it has moved when STALL_MOVE from where it last did). */
-function watchStall(dt: number) {
-  const r = currentRide();
-  const pose = r ? rideVehicle(r) : null;
-  if (!r || !pose || stall.ride !== r) { stall.ride = r; stall.x = pose?.x ?? NaN; stall.z = pose?.z ?? NaN; stall.t = 0; return; }
-  if (!(Math.hypot(pose.x - stall.x, pose.z - stall.z) < STALL_MOVE)) { stall.x = pose.x; stall.z = pose.z; stall.t = 0; return; }
-  stall.t += dt;
-}
-
-const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
 
 /**
- * (W5-T1, plan §4.3 / MF4 "one ETA source") The current ride's time left, from where its vehicle really is: the bus and
- * the Metro count their run, dwells and stops to the rider's stop (`LineRideSystem.rideLeft`); the cable cars, the
- * F-line and the ferry take the boarding quote × the share of the line still ahead. While waiting: the vehicle's live
- * ETA + the whole quote. Null when not riding. Cheap (every frame is fine).
+ * (W5-T1, plan §4.3 / MF4 "one ETA source") The current ride's time left from where its vehicle really is, its progress
+ * and how long the vehicle has not moved (game/lineRides.ts rideEtaNow). Null when not riding, in district mode and
+ * before the city chunk is in.
  */
-export function rideEta(): RideEta | null {
-  const r = currentRide(), f = flow.get().ride;
-  if (!r || !f) return null;
-  const waiting = f.stage === 'waiting' || r.mode === 'wait';
-  const stalled = stall.ride === r ? stall.t : 0;
-  if (!isLineRide(r)) {
-    // the hero F-line (district): a virtual ride has its own clock; a followed car ≈ its duration
-    const waitLeft = waiting ? Math.max(0, f.eta ?? 0) : 0;
-    const rideLeft = waiting ? r.duration || rideSeconds(r.from, r.to) : r.mode === 'virtual' ? Math.max(0, r.duration - r.elapsed) : Math.max(0, rideSeconds(r.from, r.to) - r.elapsed);
-    const total = r.duration || rideSeconds(r.from, r.to) || 1;
-    return { line: r.line ?? 'streetcar', kind: 'streetcar', stage: waiting ? 'waiting' : 'riding', from: r.from, to: r.to, seconds: waitLeft + rideLeft, waitLeft, rideLeft, progress: waiting ? 0 : clamp01(1 - rideLeft / total), stalled };
-  }
-  const sys = rideSystemFor(r.line), st = sys?.rideStatus();
-  if (!sys || !st) return null;
-  const quote = Math.max(0, r.quote ?? 0);
-  const waitLeft = waiting ? Math.max(0, st.eta) : 0;
-  const exact = waiting ? null : sys.rideLeft?.() ?? null;
-  let rideLeft: number, progress: number;
-  if (waiting) { rideLeft = quote; progress = 0; }
-  else if (st.phase === 'arrived') { rideLeft = 0; progress = 1; }
-  else if (exact !== null) { rideLeft = Math.max(0, exact); progress = quote > 0 ? clamp01(1 - rideLeft / quote) : 0; }
-  else {
-    const k = r.dist && r.dist > 1 ? clamp01(st.odometer / r.dist) : 0;
-    rideLeft = quote * (1 - k);
-    progress = k;
-  }
-  return { line: r.line, kind: rideKind(r), stage: waiting ? 'waiting' : 'riding', from: r.from, to: r.to, seconds: waitLeft + rideLeft, waitLeft, rideLeft, progress, stalled };
-}
+export function rideEta(): import('./lineRides').RideEta | null { return W4G?.rideEtaNow() ?? null; }
 
 // --- city cable cars (lane F, wave 2) ---------------------------------------------------------------------
 
@@ -676,25 +612,13 @@ export function pushTurntable(id: string, strength = 1): boolean {
 
 /** (W5-T1) BAYBAY's heave-ho beat while a car turns near the player (s between beats, on audioNow()). */
 export const TURN_BEAT = 1.2;
-/** turntable id → audioNow() when its turn was first seen near the player (the beat's zero) */
-const turnSeen = new Map<string, number>();
 
 /**
  * (W5-T1, lane A's heave-ho) The turntable a car is turning on within 40 u of the player (the nearest), how far round
- * the car is (0 … 1), or null. Updated 4 Hz.
+ * the car is (0 … 1), or null. Updated 4 Hz (game/lineRides.ts, the city chunk).
  */
 export function turntableNear(): { id: string; name: Bilingual; x: number; z: number; progress: number } | null {
-  const sys = activeCableSystem(), data = transitData();
-  if (!sys || !data || !turningNear.length) return null;
-  const p = runtime.player;
-  let best: (typeof data.turntables)[number] | null = null, bd = Infinity;
-  for (const id of turningNear) {
-    const tt = data.turntables.find(t => t.id === id);
-    const d = tt ? Math.hypot(tt.x - p.x, tt.z - p.z) : Infinity;
-    if (tt && d < bd) { bd = d; best = tt; }
-  }
-  const car = best ? sys.turningAt(best.id) : null;
-  return best && car ? { id: best.id, name: best.name, x: best.x, z: best.z, progress: Math.min(1, car.turn / Math.PI) } : null;
+  return W4G?.turntableNear(turningNear) ?? null;
 }
 
 /**
@@ -704,11 +628,7 @@ export function turntableNear(): { id: string; name: Bilingual; x: number; z: nu
  */
 export function turntableBeat(id?: string, now = audioNow()): { id: string; period: number; next: number; n: number } | null {
   const at = id ?? turntableNear()?.id;
-  if (!at || !activeCableSystem()?.turningAt(at)) return null;
-  let t0 = turnSeen.get(at);
-  if (t0 === undefined) { t0 = now; turnSeen.set(at, t0); }
-  const n = Math.max(1, Math.ceil((now - t0) / TURN_BEAT + 1e-6));
-  return { id: at, period: TURN_BEAT, next: t0 + n * TURN_BEAT, n };
+  return at ? W4G?.turntableBeat(at, now, TURN_BEAT) ?? null : null;
 }
 
 /** 4 Hz: offer the push prompt at turntables turning near the player; cheer when a pushed car has turned. */
@@ -724,8 +644,7 @@ function pollTurntables(dt: number) {
   const p = runtime.player;
   const now = data.turntables.filter(tt => sys.turningAt(tt.id) && Math.hypot(tt.x - p.x, tt.z - p.z) < 40).map(tt => tt.id);
   // (W5-T1) the heave-ho beat starts when a turn is first seen near the player and ends with it
-  for (const id of [...turnSeen.keys()]) if (!now.includes(id)) turnSeen.delete(id);
-  for (const id of now) if (!turnSeen.has(id)) turnSeen.set(id, audioNow());
+  W4G?.noteTurning(now, audioNow());
   if (pushedAt && !sys.turningAt(pushedAt)) {
     pushedAt = null;
     bubble(hookText('turntableTurned') ?? { zh: '转过来啦！我们是全城最棒的推车手', en: 'Round she goes! Best pushers in the whole city' }, 3200);

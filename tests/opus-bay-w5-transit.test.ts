@@ -300,8 +300,9 @@ test('W5-T1 rideEta: a loop ride — waiting = the bus ETA + the quote; aboard i
   } finally { transit.cancelRide(); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title' }); }
 });
 
-test('W5-T1 rideEta on a cable car: the quote × the line still ahead; the turntable beat and a stronger push on it', () => {
+test('W5-T1 rideEta on a cable car: the quote × the line still ahead; the turntable beat and a stronger push on it', async () => {
   T.setTransitData(DATA);
+  await transit.loadLineRides();
   const sys = new CableSystem(DATA);
   setActiveCableSystem(sys);
   try {

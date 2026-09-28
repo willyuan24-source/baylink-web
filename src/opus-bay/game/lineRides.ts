@@ -6,7 +6,7 @@ import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
 import { DISTRICT } from '../data/district';
-import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, flineJson, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
+import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, flineJson, rideSystemFor, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
 import { canStand, groundPending, nearestWalkable } from '../core/terrain';
 import { type TransitLine, type TransitTunnel, tunnelAt } from '../world/sf/format';
 import { BUS, type BusRideStatus } from '../world/busSystem';
@@ -22,7 +22,8 @@ import type { Interactable } from './interactables';
 import { type LineChoice, type LineLite, lineChoices, lineRideLabel } from './lineChoices';
 import { LINE_TTL } from './linePacer';
 import { busStalls, busWatchNow, watchBuses } from './busWatch';
-import { type RideState, beginLineRide, currentRide, isLineRide, lineRideEta } from './ride';
+import { type RideState, beginLineRide, currentRide, isLineRide, lineRideEta, rideSeconds } from './ride';
+import type { TransitKind } from '../core/events';
 import { registerLineEstimator, registerTripLines, transitTripLine } from './tripProviders';
 
 /**
@@ -791,3 +792,114 @@ const FERRY_DWELL_RIDER = 4;
 
 /** (W5-T2, QA) the bus watch: every bus now and the stalls logged (window.__opusBay.transit.busWatch()). */
 export function busWatchReport() { return { now: busWatchNow(), stalls: busStalls() }; }
+
+// ---------------------------------------------------------------------------
+// W5-T1 / T2: the ride's time left, the stall watch, the turntable beat (city chunk; game/transit.ts keeps thin stubs)
+// ---------------------------------------------------------------------------
+
+export interface RideEta {
+  line: string;
+  kind: TransitKind;
+  stage: 'waiting' | 'riding';
+  from: string;
+  to: string;
+  /** seconds until the rider stands at `to`: the wait left + the ride left */
+  seconds: number;
+  /** waiting: the vehicle's live ETA at the boarding stop (0 aboard) */
+  waitLeft: number;
+  /** the ride left, from where the vehicle really is (the whole quote while waiting) */
+  rideLeft: number;
+  /** 0 … 1 of the ride behind (0 while waiting) */
+  progress: number;
+  /** seconds the vehicle coming for / carrying the rider has not moved (a dwell counts; the 直接到站 rule reads it) */
+  stalled: number;
+}
+
+/** the vehicle has moved when it is this far from where it was last seen moving (u) */
+const STALL_MOVE = 0.5;
+const stall = { ride: null as RideState | null, x: NaN, z: NaN, t: 0 };
+
+/** The pose of the vehicle coming for / carrying the rider (the hero F-line: the district streetcar). */
+function rideVehicle(r: RideState): { x: number; z: number } | null {
+  if (!isLineRide(r)) return r.mode === 'virtual' ? null : runtime.streetcar;
+  const sys = rideSystemFor(r.line), st = sys?.rideStatus();
+  return st && sys ? sys.cars[st.car]?.pose ?? null : null;
+}
+
+/** Per frame (game/transit.ts stepTransit): how long the rider's vehicle has not moved (STALL_MOVE from where it last did). */
+export function watchStall(dt: number) {
+  const r = currentRide();
+  const pose = r ? rideVehicle(r) : null;
+  if (!r || !pose || stall.ride !== r) { stall.ride = r; stall.x = pose?.x ?? NaN; stall.z = pose?.z ?? NaN; stall.t = 0; return; }
+  if (!(Math.hypot(pose.x - stall.x, pose.z - stall.z) < STALL_MOVE)) { stall.x = pose.x; stall.z = pose.z; stall.t = 0; return; }
+  stall.t += dt;
+}
+
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+
+/**
+ * The current ride's time left, from where its vehicle really is: the bus and the Metro count their run, dwells and
+ * stops to the rider's stop (`LineRideSystem.rideLeft`); the cable cars, the F-line and the ferry take the boarding quote ×
+ * the share of the line still ahead. While waiting: the vehicle's live ETA + the whole quote. Null when not riding.
+ */
+export function rideEtaNow(): RideEta | null {
+  const r = currentRide(), f = flow.get().ride;
+  if (!r || !f) return null;
+  const waiting = f.stage === 'waiting' || r.mode === 'wait';
+  const stalled = stall.ride === r ? stall.t : 0;
+  if (!isLineRide(r)) {
+    // the hero F-line: a virtual ride has its own clock; a followed car ≈ its duration
+    const waitLeft = waiting ? Math.max(0, f.eta ?? 0) : 0;
+    const rideLeft = waiting ? r.duration || rideSeconds(r.from, r.to) : r.mode === 'virtual' ? Math.max(0, r.duration - r.elapsed) : Math.max(0, rideSeconds(r.from, r.to) - r.elapsed);
+    const total = r.duration || rideSeconds(r.from, r.to) || 1;
+    return { line: r.line ?? 'streetcar', kind: 'streetcar', stage: waiting ? 'waiting' : 'riding', from: r.from, to: r.to, seconds: waitLeft + rideLeft, waitLeft, rideLeft, progress: waiting ? 0 : clamp01(1 - rideLeft / total), stalled };
+  }
+  const sys = rideSystemFor(r.line), st = sys?.rideStatus();
+  if (!sys || !st) return null;
+  const quote = Math.max(0, r.quote ?? 0);
+  const waitLeft = waiting ? Math.max(0, st.eta) : 0;
+  const exact = waiting ? null : sys.rideLeft?.() ?? null;
+  let rideLeft: number, progress: number;
+  if (waiting) { rideLeft = quote; progress = 0; }
+  else if (st.phase === 'arrived') { rideLeft = 0; progress = 1; }
+  else if (exact !== null) { rideLeft = Math.max(0, exact); progress = quote > 0 ? clamp01(1 - rideLeft / quote) : 0; }
+  else {
+    const k = r.dist && r.dist > 1 ? clamp01(st.odometer / r.dist) : 0;
+    rideLeft = quote * (1 - k);
+    progress = k;
+  }
+  return { line: r.line, kind: r.kind ?? 'cable-car', stage: waiting ? 'waiting' : 'riding', from: r.from, to: r.to, seconds: waitLeft + rideLeft, waitLeft, rideLeft, progress, stalled };
+}
+
+/** turntable id → audioNow() when its turn was first seen near the player (the heave-ho beat's zero) */
+const turnSeen = new Map<string, number>();
+
+/** 4 Hz (game/transit.ts pollTurntables): the turntables turning near the player now (a beat starts / ends with each). */
+export function noteTurning(ids: readonly string[], now: number) {
+  for (const id of [...turnSeen.keys()]) if (!ids.includes(id)) turnSeen.delete(id);
+  for (const id of ids) if (!turnSeen.has(id)) turnSeen.set(id, now);
+}
+
+/** The nearest of `ids` (turntables turning near the player) and how far round its car is (0 … 1), or null. */
+export function turntableNear(ids: readonly string[]): { id: string; name: Bilingual; x: number; z: number; progress: number } | null {
+  const sys = activeCableSystem(), data = transitData();
+  if (!sys || !data || !ids.length) return null;
+  const p = runtime.player;
+  let best: (typeof data.turntables)[number] | null = null, bd = Infinity;
+  for (const id of ids) {
+    const tt = data.turntables.find(t => t.id === id);
+    const d = tt ? Math.hypot(tt.x - p.x, tt.z - p.z) : Infinity;
+    if (tt && d < bd) { bd = d; best = tt; }
+  }
+  const car = best ? sys.turningAt(best.id) : null;
+  return best && car ? { id: best.id, name: best.name, x: best.x, z: best.z, progress: Math.min(1, car.turn / Math.PI) } : null;
+}
+
+/** The beat for the turn at turntable `at` on the audioNow() clock (`period` s apart), or null when nothing turns there. */
+export function turntableBeat(at: string, now: number, period: number): { id: string; period: number; next: number; n: number } | null {
+  if (!activeCableSystem()?.turningAt(at)) return null;
+  let t0 = turnSeen.get(at);
+  if (t0 === undefined) { t0 = now; turnSeen.set(at, t0); }
+  const n = Math.max(1, Math.ceil((now - t0) / period + 1e-6));
+  return { id: at, period, next: t0 + n * period, n };
+}
