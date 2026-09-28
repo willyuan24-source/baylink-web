@@ -113,6 +113,11 @@ const nearEdge = (p: { x: number; z: number }, poly: readonly { x: number; z: nu
 
 /** crowd spots on a landmark's plazas: grid spacing (u) and the most per landmark */
 export const PLAZA_SPACING = 2.5, PLAZA_MAX = 8;
+/**
+ * W4-IL15 (verify m6): no plaza spot within this of the landmark's arrival spot (u): a sightseer on the spot where
+ * travel puts the player stands in the arrival ring, in front of the camera
+ */
+export const ARRIVAL_CLEAR = 2.5;
 
 let spots: LandmarkPlazaSpot[] | null = null;
 
@@ -123,8 +128,11 @@ export function landmarkPlazaSpots(): LandmarkPlazaSpot[] {
   for (const l of SF_SITES) {
     const plaza = (l as SfLandmark & SiteHooks).plaza;
     if (!plaza?.length) continue;
-    // never inside the landmark's own blockers (a bench, a bed, the mill's foot), with 0.25 u to spare
-    const clear = (p: { x: number; z: number }) => !(l.walk?.blockers ?? []).some(b => ('poly' in b ? inside(p, b.poly) || nearEdge(p, b.poly, 0.25) : Math.hypot(p.x - b.x, p.z - b.z) < b.r + 0.25));
+    // never inside the landmark's own blockers (a bench, a bed, the mill's foot), with 0.25 u to spare, and never on
+    // the arrival spot (W4-IL15)
+    const arr = arrivalOf(l.id);
+    const clear = (p: { x: number; z: number }) => !(arr && Math.hypot(p.x - arr.x, p.z - arr.z) < ARRIVAL_CLEAR)
+      && !(l.walk?.blockers ?? []).some(b => ('poly' in b ? inside(p, b.poly) || nearEdge(p, b.poly, 0.25) : Math.hypot(p.x - b.x, p.z - b.z) < b.r + 0.25));
     const all = plazaSpots(plaza.map(q => q.poly), PLAZA_SPACING, 400).filter(clear);
     const n = Math.min(PLAZA_MAX, all.length);
     for (let k = 0; k < n; k++) spots.push({ id: l.id, ...landmarkToWorld(l, all[Math.floor(((k + 0.5) * all.length) / n)]) });

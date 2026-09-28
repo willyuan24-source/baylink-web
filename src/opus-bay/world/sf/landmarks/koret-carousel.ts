@@ -108,7 +108,8 @@ export const koretCarousel: W4Site = {
   w4: {
     placeId: 'koret-carousel',
     attractions: ['koret-carousel'],
-    arrival: { x: -1.0, z: 4.6, heading: -0.3 },
+    // (W4-IL15: at the head of the apron, 3.7 u from the house, so the crowd's apron spots stay 2.5 u clear of it)
+    arrival: { x: -1.6, z: 7.3, heading: -0.436 },
     photo: { target: [-2, 1.4, 5], distance: 17, elevation: 0.35, bearing: 0.6 },
     flag: { x: C.x, z: C.z, h: 30 },
     height: { realM: 8, u: 4.4, top: 5.0, rule: 'H = 3.2 + 0.155·h' },

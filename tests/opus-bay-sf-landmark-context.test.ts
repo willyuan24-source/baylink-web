@@ -372,7 +372,10 @@ test('D2-09: landmarkPlazaSpots — crowd spots on the settings, clear of every 
   const spots = landmarkPlazaSpots();
   for (const id of [...SET, 'castro-theatre']) {
     const mine = spots.filter(s => s.id === id), l = byId(id);
-    assert.ok(mine.length >= 2 && mine.length <= PLAZA_MAX, `${id}: ${mine.length} spots`);
+    // (W4-IL15: the windmill's plaza is the 1.1 u walk the arrival stands at the foot of, and its benches take the
+    // tulip strip: no sightseer spot is left clear of the arrival, which is the point)
+    const min = id === 'dutch-windmill' ? 0 : 2;
+    assert.ok(mine.length >= min && mine.length <= PLAZA_MAX, `${id}: ${mine.length} spots`);
     const walk = landmarkWalkWorld(l, 0);
     for (const s of mine) {
       assert.ok(Math.hypot(s.x - l.x, s.z - l.z) < (id === 'golden-gate-bridge' ? 250 : 26), `${id} spot near`);
@@ -383,4 +386,18 @@ test('D2-09: landmarkPlazaSpots — crowd spots on the settings, clear of every 
     }
   }
   assert.equal(landmarkPlazaSpots(), spots, 'computed once');
+});
+
+test('W4-IL15 (verify m6): no crowd plaza spot stands on a site\'s arrival spot (the ring travel puts the player in)', async () => {
+  const { landmarkPlazaSpots, sfLandmarkAnchor, ARRIVAL_CLEAR } = await import('../src/opus-bay/world/sf/landmarks/context');
+  const spots = landmarkPlazaSpots();
+  let checked = 0;
+  for (const s of spots) {
+    const a = sfLandmarkAnchor(s.id);
+    if (!a) continue;
+    checked++;
+    assert.ok(Math.hypot(s.x - a.x, s.z - a.z) >= ARRIVAL_CLEAR - 1e-6, `${s.id}: a plaza spot ${Math.hypot(s.x - a.x, s.z - a.z).toFixed(2)} u from the arrival`);
+  }
+  assert.ok(checked > 100, `${checked} spots checked`);
+  assert.ok(ARRIVAL_CLEAR >= 2.5);
 });
