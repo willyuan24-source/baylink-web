@@ -301,7 +301,21 @@ export interface MapStationsOptions {
   mergeR?: number;
   /** stops of ONE line with the same name within this many u are its two directions (the F-line's): one station */
   sameNameR?: number;
+  /** explicit joins after the distance rule (default STATION_JOINS when mergeR > 0, else none; [] = off) */
+  joins?: readonly (readonly [into: string, stop: string])[];
 }
+
+/**
+ * Transfers the distance rule cannot see (review 2), applied after it: the station holding `stop` folds into the
+ * station holding `into`, even when a line repeats. Embarcadero: the Metro station's entrance at Market & Drumm stands
+ * at the California cable car's terminus (California & Drumm) and the F-line's Market & Drumm stop, 20 u from the Metro
+ * stop; the 16 u rule gave the Metro station the next cable stop (California & Davis, 9.7 u) and left the terminus + F
+ * as a second pill touching it ([N M 叮当] over [叮当 F] at s 0.45–1.2). Now one pill, N M 叮当 F, with five stop ids
+ * (both California stops: StationActions keeps one ride per line and direction, the nearest stop's).
+ */
+export const STATION_JOINS: readonly (readonly [into: string, stop: string])[] = [
+  ['muni-embarcadero', 'california-drumm'],
+];
 
 /** Which stop names a merged station: the Metro's, then the loop's, the cable car's, the F-line's. */
 const KIND_RANK: Readonly<Record<TransitLineKind, number>> = { 'light-rail': 0, bus: 1, 'cable-car': 2, streetcar: 3 };
@@ -316,7 +330,8 @@ const sameStopName = (a: Bilingual, b: Bilingual) => a.en.trim().toLowerCase() =
  *    line's disc): Castro (loop · M · F), Powell (N M · 叮当 · F), the Ferry Building (loop · F), Hyde & Beach (loop ·
  *    叮当) … Primaries go Metro first, then the loop, the cable cars, the F-line (more lines first inside a kind); a
  *    primary takes its nearest candidates first and never a second stop of a line it already has. Stops a short walk
- *    apart (the loop's Civic Center, 54 u from the Metro's) stay separate stations.
+ *    apart (the loop's Civic Center, 54 u from the Metro's) stay separate stations;
+ * 4. the explicit `STATION_JOINS` (Embarcadero + the California terminus and the F's Market & Drumm).
  */
 export function mapStations(lines: readonly MapLine[], o: MapStationsOptions = {}): MapStation[] {
   const mergeR = o.mergeR ?? STATION_RULES.mergeR, sameNameR = o.sameNameR ?? STATION_RULES.sameNameR;
@@ -376,6 +391,13 @@ export function mapStations(lines: readonly MapLine[], o: MapStationsOptions = {
       }
     }
     list = list.filter(st => count.get(st) !== 0);
+  }
+  // 4. explicit joins (STATION_JOINS, with the transfers on): a missing stop id (a subset of the lines) skips the join
+  for (const [into, stop] of o.joins ?? (mergeR > 0 ? STATION_JOINS : [])) {
+    const a = list.find(st => st.ids.includes(into)), b = list.find(st => st.ids.includes(stop));
+    if (!a || !b || a === b) continue;
+    absorb(a, b);
+    list = list.filter(st => st !== b);
   }
   for (const st of list) st.lines.sort((a, b) => order(a) - order(b));
   return list;
@@ -468,6 +490,9 @@ export function stationMarkGeometry(sym: StationSymbol, x: number, y: number): S
 /** The canvas context drawStationMarks needs: the map's Ctx2D plus arcs and text. */
 export type StationCtx = Ctx2D & Pick<CanvasRenderingContext2D, 'arc' | 'fillText'> & { font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline };
 
+/** The map's type (opus-bay.css `--ob-font`): the canvas disc letters match the SVG labels and MapStationMark (review 2: they
+ *  were drawn in system-ui while every other map text uses Plus Jakarta Sans / Noto Sans SC). */
+export const MAP_FONT_FAMILY = "'Plus Jakarta Sans', 'Noto Sans SC', system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif";
 const PILL_OUTLINE = 'rgba(60, 40, 20, .25)';
 const STAIR_INK = '#4d5d58';
 
@@ -494,7 +519,7 @@ export function drawStationMarks(ctx: StationCtx, marks: readonly { sym: Station
   ctx.save();
   ctx.globalAlpha = o.alpha ?? 1;
   ctx.setLineDash([]);
-  ctx.font = `800 ${STATION_RULES.discFont}px system-ui, sans-serif`;
+  ctx.font = `800 ${STATION_RULES.discFont}px ${MAP_FONT_FAMILY}`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   for (const m of marks) {

@@ -58,6 +58,8 @@
 .mw-legend-note { margin: 8px 0 0; display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ob-ink-3); }
 .mw-fog-chip { width: 22px; height: 14px; border-radius: 4px; background: rgba(241, 232, 216, .85); border: 1.2px solid rgba(168, 146, 112, .55); }
 .mw-disc-t { font: 800 8px/1 var(--ob-font); fill: #fff; text-anchor: middle; }
+/* white text on a coloured disc: no cream halo (city-ui.css strokes every overlay text; review 2) */
+.ob-citymap-overlay text.mw-disc-t, .ob-citymap-overlay text.mw-tour-t { stroke: none; }
 
 /* --- badges (SVG overlay) ------------------------------------------------------------------------------------------- */
 /* the badge's pieces are flat siblings (one SVG element each: the node budget counts them) */

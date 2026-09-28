@@ -716,3 +716,98 @@ test('P2 stations: drawStationMarks draws the marks on the canvas with the geome
   const html = inSvg(h(MapStationMark, { sym: marks[0].sym, x: 100, y: 50 }));
   assert.deepEqual([...html.matchAll(/<text class="mw-disc-t" x="([-\d.]+)"/g)].map(m => +m[1]), g.discs.map(d => d.cx));
 });
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Review 2 of lane P2 (W4-P-review): the canvas stations past the node budget, the Embarcadero transfer
+// ---------------------------------------------------------------------------------------------------------------------
+
+test('review 2 layout: a canvas station (0 SVG nodes) is never over budget — past it, it stays an obstacle without its label', async () => {
+  const { stationItem, stationLayoutId } = await import('../src/opus-bay/ui/mapLayout');
+  const { toPx } = await import('../src/opus-bay/ui/cityMapDraw');
+  // 20 labelled T2 badges fill the 120 nodes; then a labelled canvas pill in the middle and a T3 badge whose left label
+  // would cover it (prio 40: labels of the T1 band only may cover a pill)
+  const items: import('../src/opus-bay/ui/mapLayout').LayoutItem[] = [];
+  for (let i = 0; i < 20; i++) items.push({ id: `b${i}`, x: 20 + (i % 5) * 60, y: 20 + Math.floor(i / 5) * 40, r: 10, prio: 20 + i / 100, label: `B${i}`, fontPx: 11 });
+  const pill = { id: 'station:x', x: 150, y: 250, r: 8, hw: 30, hh: 8, prio: 30.3, clusterable: false, host: false, yieldBelow: 20, nodes: 0, label: '某某站', fontPx: 10 };
+  const out = layoutMap([...items, pill], { w: 352, h: 388, maxNodes: 120 });
+  assert.ok(out.nodes <= 120);
+  assert.ok(!out.overBudget.includes('station:x'), 'not handed to the canvas a second time');
+  const st = out.kept.find(k => k.id === 'station:x')!;
+  assert.ok(st, 'still laid out (an obstacle)');
+  assert.equal(st.label, null, 'its label is what the budget drops');
+  // with room left, the same pill keeps its label (nothing else changes)
+  assert.ok(layoutMap([pill], { w: 352, h: 388, maxNodes: 120 }).kept[0].label);
+  // an SVG item over budget still goes to the canvas list
+  assert.ok(layoutMap([...items, { ...pill, nodes: 9 }], { w: 352, h: 388, maxNodes: 120 }).overBudget.includes('station:x'));
+  // real data: Nob Hill / downtown at s 1.2 on a phone (every station named): no station leaves the layout, and no
+  // label below the T1 band covers a pill (22 of 70 stations used to drop out here)
+  const v = { cx: 0, cz: 150, scale: 1.2, w: 352, h: 388 };
+  const { items: badges } = attractionMarkers(ATTRACTIONS, v, { discovered: () => false, name: b => b.zh });
+  const stItems = mapStations(await realMapLines()).flatMap(s => {
+    const sym = stationSymbol(s, v.scale);
+    if (!sym?.svg) return [];
+    const [x, y] = toPx(v, s.x, s.z);
+    if (x < -40 || y < -20 || x > v.w + 40 || y > v.h + 20) return [];
+    return [stationItem(s, sym, x, y, s.name.zh, 10, { canvas: true })];
+  });
+  assert.ok(stItems.length >= 40, `${stItems.length} stations in view`);
+  const lay = layoutMap([...badges, ...stItems], { w: v.w, h: v.h, maxNodes: 120, clusters: false });
+  assert.ok(lay.nodes <= 120);
+  assert.deepEqual(lay.overBudget.filter(id => id.startsWith('station:')), []);
+  assert.equal(lay.kept.filter(k => k.id.startsWith('station:')).length, stItems.length);
+  assert.ok(lay.kept.some(k => k.id.startsWith('station:') && k.label), 'the stations that fit keep their names');
+  const t1 = new Set(T1_IDS);
+  const boxes = stItems.map(i => [i.x - i.hw!, i.y - i.hh!, i.x + i.hw!, i.y + i.hh!]);
+  for (const k of lay.kept) {
+    if (!k.label || t1.has(k.id)) continue;
+    const own = k.id.startsWith('station:') ? stItems.findIndex(i => i.id === k.id) : -1;
+    boxes.forEach((b, j) => { if (j !== own) assert.ok(k.label!.x + k.label!.w <= b[0] || k.label!.x >= b[2] || k.label!.y + k.label!.h <= b[1] || k.label!.y >= b[3], `${k.id} "${k.text}" over ${stItems[j].id}`); });
+  }
+  assert.equal(stationLayoutId('x'), 'station:x');
+});
+
+test('review 2 stations: Embarcadero is one transfer pill (N M 叮当 F: the California terminus and the F\'s Market & Drumm at its entrance); no two transfer pills stand within 30 u', async () => {
+  const { STATION_JOINS } = await import('../src/opus-bay/ui/mapLines');
+  const lines = await realMapLines();
+  const st = mapStations(lines);
+  const of = (id: string) => st.find(s => s.ids.includes(id))!;
+  const emb = of('muni-embarcadero');
+  assert.equal(emb.id, 'muni-embarcadero');
+  assert.deepEqual(emb.lines, ['n-judah', 'm-ocean-view', 'california', 'f-line']);
+  for (const id of ['california-drumm', 'california-davis', 'f-line-16', 'f-line-17']) assert.equal(of(id), emb, id);
+  assert.ok(emb.names.some(n => n.en === 'California & Drumm') && emb.names.some(n => n.en === 'Market Street & Drumm Street'), 'search finds it by the terminus and the F stop');
+  // every stop id still in exactly one station; the joins are data (a missing id skips), off with the transfers
+  const all = st.flatMap(s => s.ids);
+  assert.equal(all.length, new Set(all).size);
+  assert.deepEqual([...STATION_JOINS], [['muni-embarcadero', 'california-drumm']]);
+  assert.ok(mapStations(lines, { joins: [] }).some(s => s.id === 'california-drumm'), 'without the join: the second pill of before');
+  assert.ok(mapStations(lines, { mergeR: 0, sameNameR: 0 }).some(s => s.id === 'california-drumm'), 'raw stops stay raw');
+  assert.ok(mapStations(lines, { joins: [['nope', 'california-drumm']] }).some(s => s.id === 'california-drumm'));
+  // the pill: four discs and the stair
+  const sym = stationSymbol(emb, 0.7)!;
+  assert.equal(sym.kind, 'pill');
+  assert.deepEqual(sym.discs.map(d => d.text.zh), ['N', 'M', '叮当', 'F']);
+  // no two transfer pills overlap anywhere (the Embarcadero pair was 19.9 u apart: 14 px at s 0.7)
+  const pills = st.filter(s => stationSymbol(s, 0.7)?.kind === 'pill');
+  for (let i = 0; i < pills.length; i++) for (let j = i + 1; j < pills.length; j++) {
+    assert.ok(Math.hypot(pills[i].x - pills[j].x, pills[i].z - pills[j].z) > 30, `${pills[i].id} and ${pills[j].id}`);
+  }
+});
+
+test('review 2 stations: the canvas disc letters use the map font (--ob-font), and white disc / tour texts carry no cream halo in the overlay', async () => {
+  const { MAP_FONT_FAMILY, drawStationMarks } = await import('../src/opus-bay/ui/mapLines');
+  const root = path.resolve(import.meta.dirname, '..');
+  const css = fs.readFileSync(path.join(root, 'src/opus-bay/opus-bay.css'), 'utf8');
+  assert.equal(/--ob-font:\s*([^;]+);/.exec(css)![1].trim(), MAP_FONT_FAMILY);
+  const fonts: string[] = [];
+  const ctx = {
+    fillStyle: '', strokeStyle: '', lineWidth: 1, lineJoin: 'round', lineCap: 'round', globalAlpha: 1, textAlign: 'start', textBaseline: 'alphabetic',
+    set font(f: string) { fonts.push(f); }, get font() { return fonts[fonts.length - 1] ?? ''; },
+    save() {}, restore() {}, beginPath() {}, closePath() {}, moveTo() {}, lineTo() {}, setLineDash() {}, fillRect() {}, arc() {}, fill() {}, stroke() {}, fillText() {},
+  };
+  const st = mapStations(await realMapLines()).find(s => s.id === 'muni-powell')!;
+  drawStationMarks(ctx as unknown as import('../src/opus-bay/ui/mapLines').StationCtx, [{ sym: stationSymbol(st, 0.7)!, x: 0, y: 0 }]);
+  assert.deepEqual(fonts, [`800 8px ${MAP_FONT_FAMILY}`]);
+  const w4css = fs.readFileSync(path.join(root, 'src/opus-bay/ui/map-w4.css'), 'utf8');
+  assert.match(w4css, /\.ob-citymap-overlay text\.mw-disc-t, \.ob-citymap-overlay text\.mw-tour-t \{ stroke: none; \}/);
+});

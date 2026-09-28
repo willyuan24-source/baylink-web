@@ -26,7 +26,8 @@ import { type MapStation, type StationSymbol, stationNodes } from './mapLines';
  * 4. node budget: SVG nodes ≤ `maxNodes` (150 desktop / 120 phone), counted as rendered (badgeNodes / stationNodes:
  *    a badge is 5 elements, not 3); each badge is admitted WITH its label's node reserved, in priority order, so the
  *    T1 labels never lose their node to a crowd of T2 / T3 badges; the lowest-priority badges past the budget are
- *    returned in `overBudget` for the canvas (plain dots, no tap target).
+ *    returned in `overBudget` for the canvas (plain dots, no tap target). A marker that costs no SVG node (a canvas
+ *    station, `nodes: 0`) is never over budget: past it, it stays an obstacle without its label.
  */
 
 export interface LayoutItem {
@@ -118,8 +119,16 @@ export function layoutMap(items: readonly LayoutItem[], o: LayoutOptions): Layou
   const overBudget: string[] = [];
   const within: typeof kept = [];
   for (const k of kept) {
-    const n = (k.nodes ?? (k.r > 0 ? 5 : 0)) + (k.members.length ? 2 : 0) + (k.label ? 1 : 0);
-    if (nodes + n > maxNodes) { overBudget.push(k.id); continue; }
+    const own = (k.nodes ?? (k.r > 0 ? 5 : 0)) + (k.members.length ? 2 : 0);
+    const n = own + (k.label ? 1 : 0);
+    if (nodes + n > maxNodes) {
+      // a marker that costs no SVG node (a canvas station: ui/mapLines drawStationMarks draws it anyway) stays an
+      // obstacle and only loses its label (review 2: dropping it let lower labels cover the pill and listed it in
+      // `overBudget`, whose ids the canvas draws a second time as plain dots)
+      if (own === 0 && (k.r > 0 || k.hw !== undefined)) within.push({ ...k, label: undefined });
+      else overBudget.push(k.id);
+      continue;
+    }
     nodes += n;
     within.push(k);
   }
