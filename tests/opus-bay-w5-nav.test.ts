@@ -815,3 +815,32 @@ test('W5-N7 an attraction passed on a trip\'s way goes quiet (the chip); the tri
   assert.equal(G.arrivalPassBy({ attraction: 'transamerica-pyramid', place: 'osm-tp' }, null, { x: 60, z: 90 }), false, 'free roam');
   assert.equal(G.arrivalPassBy({ attraction: 'transamerica-pyramid', place: 'osm-tp' }, { ...trip, leg: 1 }, { x: 60, z: 90 }), false, 'a finished trip');
 });
+
+test('W5-N8 the map\'s 这周: one pin per venue (soonest first), today\'s under 全部, the week under 这周, the when words', async () => {
+  const ME = await import('../src/opus-bay/ui/mapEvents');
+  const { parseBayDate } = await import('../src/opus-bay/game/bayNow');
+  const at = (s: string) => parseBayDate(s)!.getTime();
+  const venue = (id: string, x: number) => ({ id, name: bi(id), x, z: 0 });
+  const now = at('2026-10-03T10:30');
+  const windows = [
+    { event: { id: 'hsb', title: '蓝草音乐节' }, venue: venue('hellman-hollow', 1), open: at('2026-10-03T11:00'), close: at('2026-10-03T19:00') },
+    { event: { id: 'african', title: '非洲艺术节' }, venue: venue('ybg', 2), open: at('2026-10-03T10:00'), close: at('2026-10-03T17:00') },
+    { event: { id: 'castro', title: '卡斯特罗街集' }, venue: venue('castro', 3), open: at('2026-10-04T11:00'), close: at('2026-10-04T18:00') },
+    { event: { id: 'dumplings', title: '饺子节' }, venue: venue('ferry', 4), open: at('2026-10-06T11:00'), close: at('2026-10-06T15:00') },
+    { event: { id: 'hsb-2', title: '蓝草音乐节 · 第二天' }, venue: venue('hellman-hollow', 1), open: at('2026-10-04T11:00'), close: at('2026-10-04T19:00') },
+    { event: { id: 'over', title: '已结束' }, venue: venue('old', 5), open: at('2026-10-02T11:00'), close: at('2026-10-02T12:00') },
+  ];
+  const pins = ME.weekPins(windows, now);
+  assert.deepEqual(pins.map(p => p.key), ['ev:ybg', 'ev:hellman-hollow', 'ev:castro', 'ev:ferry'], 'one per venue, a closed window gone');
+  const hh = pins.find(p => p.venue.id === 'hellman-hollow')!;
+  assert.deepEqual(hh.events.map(e => e.id), ['hsb', 'hsb-2']);
+  assert.deepEqual([hh.today, hh.live], [true, false]);
+  assert.deepEqual(hh.events[0].when, { zh: '今天 11:00–19:00', en: 'Today 11:00–19:00' });
+  assert.equal(pins[0].live, true, 'YBG is on');
+  assert.equal(pins[0].events[0].when.zh, '进行中 · 到 17:00');
+  assert.equal(pins.find(p => p.venue.id === 'castro')!.events[0].when.zh, '明天 11:00–18:00');
+  assert.equal(pins.find(p => p.venue.id === 'ferry')!.events[0].when.zh, '10/6 周二 11:00–15:00');
+  assert.deepEqual(ME.pinsFor('all', pins).map(p => p.key), ['ev:ybg', 'ev:hellman-hollow'], '全部: today\'s');
+  assert.equal(ME.pinsFor('week', pins).length, 4);
+  assert.equal(ME.pinsFor('park', pins).length, 0, 'a category chip: none');
+});

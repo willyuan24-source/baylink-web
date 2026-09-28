@@ -177,7 +177,7 @@
 .mw-gocard-head { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; min-height: 38px; padding-right: 34px; }
 .mw-gocard-head strong { font-size: 15px; font-weight: 800; line-height: 20px; color: var(--ob-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mw-gocard-head small { font-size: 12px; line-height: 16px; color: var(--ob-ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mw-gocard.is-short .mw-gocard-head { flex-direction: row; align-items: baseline; gap: 8px; min-height: 20px; }
+.mw-gocard.is-short .mw-gocard-head { flex-direction: row; justify-content: flex-start; align-items: baseline; gap: 8px; min-height: 20px; }
 .mw-gocard.is-short .mw-gocard-head strong { flex: 0 1 auto; min-width: 0; }
 .mw-gocard-x { position: absolute; right: -6px; top: 50%; width: 32px; height: 32px; margin-top: -16px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ob-ink-3); cursor: pointer; }
 .mw-gocard-x::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; }
@@ -212,3 +212,11 @@
 .mw-list li.has-go { display: flex; align-items: stretch; gap: 6px; min-width: 0; }
 .mw-list li.has-go > .mw-row { flex: 1 1 auto; min-width: 0; }
 .mw-lower:empty { display: none; }
+/* W5-N8 · lane R's events on the map (这周; today's under 全部): coral calendar pins over the badges, live ones pulse */
+.mw-evpin-disc { fill: #e8705a; stroke: #fffaf1; stroke-width: 2px; }
+.mw-evpin-ico { color: #fffaf1; }
+.mw-evpin.is-on .mw-evpin-disc { stroke: var(--ob-gold); stroke-width: 3px; }
+.mw-evpin-pulse { fill: none; stroke: #e8705a; stroke-width: 2px; transform-origin: 0 0; animation: mw-pulse 1.8s var(--ob-ease) infinite; }
+.mw-evpin-n { fill: #fffaf1; stroke: #e8705a; stroke-width: 1.4px; }
+.ob-citymap-overlay text.mw-evpin-nt { font: 800 8.5px/1 var(--ob-font); fill: #b8432f; stroke: none; text-anchor: middle; }
+@media (prefers-reduced-motion: reduce) { .mw-evpin-pulse { animation: none; opacity: .6; } }

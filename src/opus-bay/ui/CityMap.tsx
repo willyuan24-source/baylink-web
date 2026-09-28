@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as RMouseEvent, type PointerEvent as RPointerEvent } from 'react';
-import { Bike, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
+import { Bike, CalendarDays, Car, Info, LocateFixed, Maximize2, Minus, Navigation, Plus, Route as RouteIcon, X } from 'lucide-react';
 import { fleetSnapshot } from '../actors/moveApi';
 import { walkGraph } from '../actors/nav';
 import { runtime } from '../core/runtime';
@@ -15,7 +15,7 @@ import { type SfRouteId, routePath, sfRoute } from '../data/sf/routes';
 import { vehicleSpots } from '../data/vehicles';
 import { arrivalSeen } from '../game/cityContent';
 import { isDiscovered, useDiscoveryEpoch, zoneVisited } from '../game/discovery';
-import { closePanel, endTrip as endFlowTrip, replanTrip } from '../game/flow';
+import { closePanel, endTrip as endFlowTrip, openEvent, replanTrip } from '../game/flow';
 import { type PlaceTripDest, startPlaceTrip } from '../game/placeTrips';
 import { useFlow } from '../game/flowStore';
 import { type PlannedRoute, cachedRoute, cancelPlan, endTrip, offRoute, planRoute, tripPlaceId } from '../game/mapRoute';
@@ -33,6 +33,7 @@ import { BaybayFace, Sheet } from './common';
 import { MapBadge, MapLabel, MapTargetPin } from './MapBadge';
 import { type ChooserRow, ClusterChooser, MapGoCard, useQuickWays } from './MapGoCard';
 import { type PressLookups, type PressSpot, PRESS, chooserHeight, goCardHeight, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
+import { pinsFor, useWeekPins } from './mapEvents';
 import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
 import { MapFilters } from './MapFilters';
@@ -142,8 +143,13 @@ export function CityMapPanel() {
   const [sel, setSel] = useState<MapSel | null>(null);
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState<MapTab>('sights');
-  const [filter, setFilterState] = useState<MapFilter>(() => loadMapFilter());
+  const [filterPicked, setFilterState] = useState<MapFilter>(() => loadMapFilter());
   const setFilter = useCallback((f: MapFilter) => { setFilterState(f); saveMapFilter(f); }, []);
+  // W5-N8 · lane R's events of the next seven days: the 这周 chip (every venue), 全部 shows today's; a remembered 这周 with
+  // no event this week is 全部
+  const weekPinsAll = useWeekPins();
+  const filter: MapFilter = filterPicked === 'week' && !weekPinsAll.length ? 'all' : filterPicked;
+  const [evSel, setEvSel] = useState<string | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
   const [legend, setLegend] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -161,7 +167,7 @@ export function CityMapPanel() {
   const viewRef = useRef<MapView | null>(null);
   useEffect(() => { viewRef.current = view; }, [view]);
   // a new selection (a tap, the list, the search) replaces a pressed spot and the chooser
-  useEffect(() => { setMoreOpen(false); if (sel) { setPress(null); setChooser(null); } }, [sel?.kind, sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setMoreOpen(false); if (sel) { setPress(null); setChooser(null); setEvSel(null); } }, [sel?.kind, sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 带我去 in progress (flow.mapTarget = place:<id>) or a trip (lane C's flow.trip): the target pin, the trip's route
   const mapTarget = useFlow(s => s.mapTarget);
@@ -313,8 +319,19 @@ export function CityMapPanel() {
     // a tap: the nearest badge / place / station within reach; a "+n" badge zooms in to its members (on a phone: the
     // chooser lists them, each with its go button)
     const p = local(e);
-    const hit = hitTest(scene, p.x, p.y, HIT_PX);
     setPress(null);
+    // (W5-N8) an event pin first: they stand over the badges
+    const pin = shownPins.reduce<{ key: string; d: number; at: Vec2 } | null>((best, q) => {
+      const d = Math.hypot(q.x - p.x, q.y - p.y);
+      return d <= 18 && (!best || d < best.d) ? { key: q.p.key, d, at: { x: q.p.venue.x, z: q.p.venue.z } } : best;
+    }, null);
+    if (pin) {
+      setSel(null); setChooser(null); setEvSel(pin.key);
+      setView(v => (v ? panForCard(v, pin.at) ?? v : v));
+      return;
+    }
+    setEvSel(null);
+    const hit = hitTest(scene, p.x, p.y, HIT_PX);
     if (hit?.members?.length && scene.s < 1.2) {
       if (compact) {
         setSel(null);
@@ -351,6 +368,7 @@ export function CityMapPanel() {
     const at = toWorld(v, px, py);
     setSel(null);
     setChooser(null);
+    setEvSel(null);
     // the walking graph is in by now in the city (the street life loads it); a failed load answers without it
     void walkGraph().then(g => g, () => null).then(g => {
       const spot = pressSpot(at, pressLookups(far, ix, g));
@@ -508,12 +526,14 @@ export function CityMapPanel() {
       ...rides.map(r => ({ x: r.x, y: r.y, r: 8 })), ...(youAt ? [{ x: youAt[0], y: youAt[1], r: 10 }] : []), ...(guideAt ? [{ x: guideAt[0], y: guideAt[1], r: 12 }] : []), { x: 26, y: 26, r: 18 },
       ...(routeDraw ? [{ x: routeDraw.end[0], y: routeDraw.end[1] + 22, r: 10, hw: routeDraw.cw / 2, hh: 10 }] : []),
       ...(tripChip ? [{ x: tripChip.x, y: tripChip.y + 22, r: 10, hw: tripChip.cw / 2, hh: 10 }] : []),
+      // (W5-N8) the event pins: the labels keep off them
+      ...pinsFor(filter, weekPinsAll).map(p => { const [x, y] = toPx(view, p.venue.x, p.venue.z); return { x, y, r: 13 }; }),
     ];
     return buildScene({
       view, attractions: ATTRACTIONS, places: ix?.list ?? null, covered, stations, termini, zones: visitedZones,
       discovered: isDiscovered, arrived: arrivalSeen, selected: sel, target, tourNext, stops: walk?.numbers ?? null, filter, highlight, stickers, locale: loc, t, maxNodes: coarse ? 120 : 150, obstacles, toolRight,
     });
-  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw, tripChip, arrivalNow, walk]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [view, ix, covered, stations, termini, visitedZones, sel, target, tourNext, filter, highlight, stickers, loc, t, coarse, rides, youAt?.[0], youAt?.[1], guideAt?.[0], guideAt?.[1], toolRight, epoch, routeDraw, tripChip, arrivalNow, walk, weekPinsAll]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- the canvas: base map, lines, the trip route, station marks (one rAF per change) ------------------------------------
   const routeStrokes = useMemo(() => (trip ? tripRouteStrokes(trip.legs, trip.leg) : null), [trip]);
@@ -608,7 +628,20 @@ export function CityMapPanel() {
     setSel(r.attraction ? { kind: 'attraction', id: r.attraction } : { kind: 'place', id: r.placeId });
     setView(v => (v ? panForCard(v, { x: r.x, z: r.z }) ?? v : v));
   };
-  const pinned = cardSel || !!press;
+  // --- W5-N8 · lane R's event pins (这周 / today's under 全部) and the selected pin's card --------------------------------
+  // (a handful: laid out every render, no memo)
+  const shownPins = !view ? [] : pinsFor(filter, weekPinsAll)
+    .map(p => { const [x, y] = toPx(view, p.venue.x, p.venue.z); return { p, x, y }; })
+    .filter(q => q.x > -14 && q.y > -14 && q.x < view.w + 14 && q.y < view.h + 14);
+  const evPin = evSel ? weekPinsAll.find(p => p.key === evSel) ?? null : null;
+  const evFirst = evPin?.events[0] ?? null;
+  const evDest = useMemo((): PlaceTripDest | null => (evPin && evFirst ? { placeId: evPin.venue.placeId ?? `event:${evFirst.id}`, x: evPin.venue.x, z: evPin.venue.z, name: evPin.venue.name } : null), [evPin?.key, evFirst?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { options: evWays, busy: evBusy } = useTripOptions(evDest);
+  const evRec = evWays.find(o => o.recommended) ?? evWays[0] ?? null;
+  const evMeta = evPin && evFirst
+    ? [t(evFirst.when), t(evPin.venue.name), evPin.events.length > 1 ? t({ zh: `另有 ${evPin.events.length - 1} 个活动`, en: `+${evPin.events.length - 1} more` }) : null].filter(Boolean).join(' · ')
+    : null;
+  const pinned = cardSel || !!press || !!evPin;
   const cardH = size ? goCardHeight(size.h) : 0;
   const showMore = () => {
     setMoreOpen(true);
@@ -685,6 +718,14 @@ export function CityMapPanel() {
                 <text y={4}>{routeDraw.chip}</text>
               </g>
             )}
+            {shownPins.map(({ p, x, y }) => (
+              <g key={p.key} className={`mw-evpin${p.live ? ' is-live' : ''}${evSel === p.key ? ' is-on' : ''}`} transform={`translate(${x.toFixed(1)},${y.toFixed(1)})`}>
+                {p.live && <circle className="mw-evpin-pulse" r={12} />}
+                <circle className="mw-evpin-disc" r={11} />
+                <CalendarDays x={-6.5} y={-6.5} width={13} height={13} strokeWidth={2.4} className="mw-evpin-ico" />
+                {p.events.length > 1 && <><circle className="mw-evpin-n" cx={9} cy={-9} r={6.5} /><text className="mw-evpin-nt" x={9} y={-6.3}>{p.events.length}</text></>}
+              </g>
+            ))}
             {press?.spot && (() => { const [x, y] = toPx(view, press.spot.x, press.spot.z); return <MapTargetPin x={x} y={y} />; })()}
             {youAt && (() => {
               // heading (three.js yaw: forward = (sin h, cos h) in world x/z = screen x/y)
@@ -724,12 +765,16 @@ export function CityMapPanel() {
             short={!!size && size.h < 340} noWay={{ zh: '那里去不了，长按陆地试试', en: "Can't go there — press on land" }}
             onGo={o => { if (pressDest) startPlaceTrip(o, pressDest); }} onClose={() => setPress(null)} />
         )}
+        {evPin && evFirst && !press && (
+          <MapGoCard title={{ zh: evFirst.title, en: evFirst.title }} meta={evMeta} option={evRec} busy={evBusy && !evRec} short={!!size && size.h < 340}
+            onGo={o => { if (evDest) startPlaceTrip(o, evDest); }} onMore={() => openEvent(evFirst.id)} more="info" onClose={() => setEvSel(null)} />
+        )}
         {chooser && chooserRows.length > 0 && (
           <ClusterChooser rows={chooserRows} ways={chooserWays} onPick={pickRow} onZoom={() => { const c = chooser; setChooser(null); zoomCluster(c.id, c.members); }} onClose={() => setChooser(null)} />
         )}
       </div>
 
-      <MapFilters value={filter} onChange={setFilter} />
+      <MapFilters value={filter} onChange={setFilter} week={weekPinsAll.length} />
 
       <div ref={lowerRef} className="mw-lower">
         {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} hideGo={cardSel}

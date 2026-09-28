@@ -12,7 +12,8 @@ import type { Attraction, AttractionCat } from '../data/sf/attractionTypes';
  *   - 交通 shows the lines and stations and the T1 only.
  */
 
-export const MAP_FILTER_IDS = ['all', 'must', 'museum', 'park', 'viewpoint', 'campus', 'shopping', 'transit'] as const;
+/** (wave 5, W5-N8 · 这周: lane R's events of the next seven days; its chip shows only while there are some) */
+export const MAP_FILTER_IDS = ['all', 'must', 'museum', 'park', 'viewpoint', 'campus', 'shopping', 'transit', 'week'] as const;
 export type MapFilter = (typeof MAP_FILTER_IDS)[number];
 
 export interface MapFilterDef { id: MapFilter; label: Bilingual; cat?: AttractionCat }
@@ -25,7 +26,10 @@ export const MAP_FILTERS: readonly MapFilterDef[] = [
   { id: 'campus', label: { zh: '校园', en: 'Campuses' }, cat: 'campus' },
   { id: 'shopping', label: { zh: '购物', en: 'Shopping' }, cat: 'shopping' },
   { id: 'transit', label: { zh: '交通', en: 'Transit' } },
+  { id: 'week', label: { zh: '这周', en: 'This week' } },
 ];
+/** The 这周 chip's coral (lane R's event pennant colour, realsf/presence.ts EVENT_CORAL). */
+export const WEEK_CORAL = '#e8705a';
 
 /** How an attraction shows under a filter. */
 export interface FilterLook { show: boolean; alpha: number; label: boolean }

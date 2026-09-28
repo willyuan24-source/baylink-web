@@ -265,7 +265,7 @@ test('badges: GLYPH_D is lucide-react\'s icon joined into one path (fails when t
 });
 
 test('filters: category chips dim the rest (T1 stay), 交通 keeps lines + stations + T1, the choice survives storage failures', () => {
-  assert.equal(MAP_FILTERS.length, 8);
+  assert.equal(MAP_FILTERS.length, 9, 'wave 5 (W5-N8): + 这周, its chip only while lane R has events this week');
   const t1Park = { cat: 'park' as const, rank: 1 as const }, t2Museum = { cat: 'museum' as const, rank: 2 as const }, t3Campus = { cat: 'campus' as const, rank: 3 as const };
   assert.deepEqual(filterAttraction('all', t2Museum), { show: true, alpha: 1, label: true });
   assert.deepEqual(filterAttraction('campus', t3Campus), { show: true, alpha: 1, label: true });
@@ -301,7 +301,7 @@ test('filters: category chips dim the rest (T1 stay), 交通 keeps lines + stati
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: store });
   try { saveMapFilter('shopping'); assert.equal(loadMapFilter(), 'shopping', 'the defaults use localStorage'); } finally { restore(); }
   // every category chip has attractions to show
-  for (const f of MAP_FILTERS) if (f.id !== 'all' && f.id !== 'must' && f.id !== 'transit') assert.ok(ATTRACTIONS.some(a => filterAttraction(f.id, a).alpha === 1 && a.rank > 1), f.id);
+  for (const f of MAP_FILTERS) if (f.id !== 'all' && f.id !== 'must' && f.id !== 'transit' && f.id !== 'week') assert.ok(ATTRACTIONS.some(a => filterAttraction(f.id, a).alpha === 1 && a.rank > 1), f.id);
 });
 
 const walkLeg = (seconds: number, estimate = false) => ({ via: 'walk' as const, from: { x: 0, z: 0 }, to: { x: 1, z: 1 }, seconds, length: seconds * 4.2, ...(estimate ? { estimate } : {}) });
@@ -483,6 +483,10 @@ test('components: the four render (static markup): chips, legend, trip rows with
   assert.equal((chips.match(/role="radio"/g) ?? []).length, 8);
   assert.equal((chips.match(/aria-checked="true"/g) ?? []).length, 1);
   assert.match(chips, /校园/);
+  assert.doesNotMatch(chips, /这周/, 'no events this week: no 这周 chip');
+  const week = renderToStaticMarkup(h(MapFilters, { value: 'week', onChange: () => undefined, week: 3 }));
+  assert.equal((week.match(/role="radio"/g) ?? []).length, 9);
+  assert.match(week, /全部.*这周 3.*必看/s, 'W5-N8: 这周 right after 全部, with its count');
   const legend = renderToStaticMarkup(h(MapLegend, { onClose: () => undefined }));
   for (const c of ATTRACTION_CATS) assert.ok(legend.includes(ATTRACTION_CAT_STYLE[c].name.zh), c);
   for (const w of ['必看', '还没去过', '观光巴士环线', 'N 线', '换乘站', '浅色区域']) assert.ok(legend.includes(w), w);

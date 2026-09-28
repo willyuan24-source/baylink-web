@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronDown, Loader, Navigation, X, ZoomIn } from 'lucide-react';
+import { ChevronDown, Info, Loader, Navigation, X, ZoomIn } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { goTo } from '../game/goTo';
@@ -91,12 +91,14 @@ export function RowGo({ option, onGo, busy = false }: { option: TripOption | nul
  * The card pinned over the map (phones; a long-pressed spot on every device). `option` = the planner's 推荐 (the same
  * one the full card's button takes: one ETA source); `busy` while the first plan is still coming; none: no way there.
  */
-export function MapGoCard({ title, meta, option, busy = false, onGo, onMore, onClose, short = false, noWay }: {
+export function MapGoCard({ title, meta, option, busy = false, onGo, onMore, onClose, short = false, noWay, more = 'ways' }: {
   title: Bilingual; meta?: string | null; option: TripOption | null; busy?: boolean; onGo: (o: TripOption) => void; onMore?: (() => void) | null; onClose: () => void;
   /** a short frame: title and meta on one line */
   short?: boolean;
   /** the words when nothing reaches it (default: 这里暂时去不了) */
   noWay?: Bilingual;
+  /** what the button beside the go opens: the full card's other ways (default) or an event's card ('info') */
+  more?: 'ways' | 'info';
 }) {
   const { t } = useT();
   const [going, setGoing] = useState(false);
@@ -119,9 +121,9 @@ export function MapGoCard({ title, meta, option, busy = false, onGo, onMore, onC
             {busy ? <><Loader size={15} aria-hidden className="mw-spin" />{t('BAYBAY 在看路线…', 'BAYBAY is checking the way…')}</> : t(noWay ?? { zh: '这里暂时去不了', en: 'No way there right now' })}
           </span>
         )}
-        {onMore && (
-          <button type="button" className="ob-icon-btn mw-44 mw-gocard-more" onClick={onMore} aria-label={t('其他方式和详情', 'Other ways and details')}><ChevronDown size={18} aria-hidden /></button>
-        )}
+        {onMore && (more === 'info'
+          ? <button type="button" className="ob-icon-btn mw-44 mw-gocard-more" onClick={onMore} aria-label={t('活动详情', 'Event details')}><Info size={18} aria-hidden /></button>
+          : <button type="button" className="ob-icon-btn mw-44 mw-gocard-more" onClick={onMore} aria-label={t('其他方式和详情', 'Other ways and details')}><ChevronDown size={18} aria-hidden /></button>)}
       </div>
     </div>
   );

@@ -63,13 +63,16 @@ export const chooserHeight = (rows: number, frameH: number) =>
 
 /**
  * The view moved (not zoomed) so `pt` sits in the free part of the frame above the card (`cardH`: the pinned card's by
- * default, or the chooser's): when its pixel is under the card (with 28 px for its badge and label) or hugs the top
+ * default, or the chooser's): when its pixel is under the card (CARD_CLEAR: its badge, its label, the credit) or hugs the top
  * edge, it goes to the middle of the part above the card. Null: already clear.
  */
+/** how far above the card a selection must sit (px): its badge, its label and the credit line lifted over the card */
+export const CARD_CLEAR = 46;
+
 export function panForCard(v: MapView, pt: Vec2, cardH: number = goCardHeight(v.h)): MapView | null {
   const y = (pt.z - v.cz) * v.scale + v.h / 2;
   const top = v.h - GO_CARD.margin - cardH;
-  if (y <= top - 28 && y >= 36) return null;
+  if (y <= top - CARD_CLEAR && y >= 36) return null;
   const want = Math.max(36, top / 2);
   return { ...v, cz: pt.z - (want - v.h / 2) / v.scale };
 }
