@@ -218,7 +218,7 @@ export function updateDisc(mesh: THREE.InstancedMesh, time: number) {
   const g = game0;
   if (!g) { mesh.count = 0; return; }
   const p = runtime.player, b = runtime.guide;
-  const at = new THREE.Vector3(), axis = UP.clone();
+  const at = DISC_AT, axis = DISC_AXIS.copy(UP);
   if (g.phase === 'ready') at.set(p.x + Math.sin(p.heading - 0.6) * 0.45, p.y + 0.75, p.z + Math.cos(p.heading - 0.6) * 0.45);
   else if (g.phase === 'fly') {
     discAt(g, g.t, at);
@@ -229,7 +229,7 @@ export function updateDisc(mesh: THREE.InstancedMesh, time: number) {
   mesh.setColorAt(0, DISC);
   commitToy(mesh, 1);
 }
-const DISC = new THREE.Color('#ff6b5b');
+const DISC = new THREE.Color('#ff6b5b'), DISC_AT = new THREE.Vector3(), DISC_AXIS = new THREE.Vector3();
 
 /** A tap / click on the ground: throw there (the ray from the camera down to the terrain). */
 export function groundUnder(ndcX: number, ndcY: number, camera: THREE.Camera): { x: number; z: number } | null {

@@ -106,8 +106,9 @@ function update(mesh: THREE.InstancedMesh) {
   const n = Math.min(s.rings.length, mesh.instanceMatrix.count);
   for (let i = 0; i < n; i++) {
     const r = s.rings[i];
-    const prev = i ? s.rings[i - 1] : { x: r.x - (s.rings[1].x - r.x), z: r.z - (s.rings[1].z - r.z) };
-    q.setFromAxisAngle(up, Math.atan2(r.x - prev.x, r.z - prev.z));
+    // facing along the course: from the ring before (the first one: toward the second), no object per frame
+    const a = i ? s.rings[i - 1] : r, b = i ? r : s.rings[1];
+    q.setFromAxisAngle(up, Math.atan2(b.x - a.x, b.z - a.z));
     const next = i === s.next && s.phase !== 'finale';
     const k = r.got ? 0 : next ? 1.12 + 0.1 * Math.sin(s.clock * 5) : 1;
     pos.set(r.x, r.y + Math.sin(s.clock * 1.6 + i) * 0.35, r.z);

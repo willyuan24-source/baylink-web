@@ -339,30 +339,32 @@ export function cancelMarshmallow() { toast?.run.cancel(); }
 
 // --- where things are -----------------------------------------------------------------------------------------------
 
-const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+// (every helper writes into the vector it is given: the layer runs them each frame without making objects)
+const FLAME_AT = new THREE.Vector3();
 
 /** The hand holding the stick: in front of a seated body, a little to its right. */
-function handOf(s: Toast, who: 'player' | 'baybay'): THREE.Vector3 {
+function handOf(s: Toast, who: 'player' | 'baybay', out = new THREE.Vector3()): THREE.Vector3 {
   const st = who === 'player' ? s.seat : s.bSeat;
   const fx = Math.sin(st.heading), fz = Math.cos(st.heading), rx = -fz, rz = fx;
   const up = who === 'player' ? 0.46 : 0.4, side = who === 'player' ? 0.12 : -0.1;
-  return V(st.x + fx * 0.3 + rx * side, st.y + up, st.z + fz * 0.3 + rz * side);
+  return out.set(st.x + fx * 0.3 + rx * side, st.y + up, st.z + fz * 0.3 + rz * side);
 }
 /** Where a marshmallow is toasted: over the ring's middle, in the top of the flame (a hair apart, one each). */
-function flameOf(s: Toast, who: 'player' | 'baybay'): THREE.Vector3 {
+function flameOf(s: Toast, who: 'player' | 'baybay', out = new THREE.Vector3()): THREE.Vector3 {
   const r = s.ring, side = who === 'player' ? -0.1 : 0.1;
-  return V(r.x + r.ax * side, heightAt(r.x, r.z) + 0.64, r.z + r.az * side);
+  return out.set(r.x + r.ax * side, heightAt(r.x, r.z) + 0.64, r.z + r.az * side);
 }
 /** The marshmallow's point on its stick now (between out of the fire and in it). */
-function tipOf(s: Toast, who: 'player' | 'baybay'): THREE.Vector3 {
-  const hand = handOf(s, who), fire = flameOf(s, who), dip = smooth(who === 'player' ? s.player.dip : s.baybay.dip);
-  const out = hand.clone().lerp(fire, 0.6).add(V(0, 0.12, 0));
+function tipOf(s: Toast, who: 'player' | 'baybay', out = new THREE.Vector3()): THREE.Vector3 {
+  const fire = flameOf(s, who, FLAME_AT), dip = smooth(who === 'player' ? s.player.dip : s.baybay.dip);
+  handOf(s, who, out).lerp(fire, 0.6);
+  out.y += 0.12;
   return out.lerp(fire, dip);
 }
 /** In front of a seated eater's face. */
-function mouthOf(s: Toast, who: 'player' | 'baybay'): THREE.Vector3 {
+function mouthOf(s: Toast, who: 'player' | 'baybay', out = new THREE.Vector3()): THREE.Vector3 {
   const st = who === 'player' ? s.seat : s.bSeat;
-  return V(st.x + Math.sin(st.heading) * 0.2, st.y + (who === 'player' ? 0.78 : 0.66), st.z + Math.cos(st.heading) * 0.2);
+  return out.set(st.x + Math.sin(st.heading) * 0.2, st.y + (who === 'player' ? 0.78 : 0.66), st.z + Math.cos(st.heading) * 0.2);
 }
 
 // --- the layer: two sticks, two marshmallows (play/toyMesh.ts: +1 draw call, 4 × 28 triangles) -------------------------
@@ -372,7 +374,7 @@ const WOOD = new THREE.Color('#8a5a34'), FLAME = new THREE.Color('#ff7a2a');
 registerToyWarmup('marshmallow');
 ensurePlaySounds3();
 
-const dir = new THREE.Vector3(), col = new THREE.Color();
+const dir = new THREE.Vector3(), col = new THREE.Color(), HAND = new THREE.Vector3(), TIP = new THREE.Vector3(), MOUTH = new THREE.Vector3(), A = new THREE.Vector3(), B = new THREE.Vector3();
 
 /** One frame of the layer: the sticks from the hands through the marshmallows, which go to their eaters at the end. */
 export function updateMarshMesh(mesh: THREE.InstancedMesh) {
@@ -382,14 +384,14 @@ export function updateMarshMesh(mesh: THREE.InstancedMesh) {
   const size = eating && s.t > EAT_MOVE_S + 0.12 ? 0 : 1;
   let n = 0;
   for (const who of ['player', 'baybay'] as const) {
-    const hand = handOf(s, who), tip = tipOf(s, who);
+    const hand = handOf(s, who, HAND), tip = tipOf(s, who, TIP);
     dir.subVectors(tip, hand).normalize();
     // the stick runs from behind the hand through the marshmallow
-    placeRod(mesh, n, hand.clone().addScaledVector(dir, -0.22), tip.clone().addScaledVector(dir, 0.1), 0.035);
+    placeRod(mesh, n, A.copy(hand).addScaledVector(dir, -0.22), B.copy(tip).addScaledVector(dir, 0.1), 0.035);
     mesh.setColorAt(n++, WOOD);
     // the marshmallow, skewered; at the end it goes to its eater (a burnt one swaps)
     const eater = s.burnt ? (who === 'player' ? 'baybay' : 'player') : who;
-    placeAlong(mesh, n, eating ? tip.clone().lerp(mouthOf(s, eater), k) : tip, dir, 0.2 * size, 0.24 * size, 0.2 * size);
+    placeAlong(mesh, n, eating ? tip.lerp(mouthOf(s, eater, MOUTH), k) : tip, dir, 0.2 * size, 0.24 * size, 0.2 * size);
     toastColor(s.burnt && who === 'player' ? 1 : who === 'player' ? s.player.tau : s.baybay.tau, col);
     // on fire: it flickers between the flame and the char until BAYBAY blows it out
     if (who === 'player' && s.phase === 'flare') col.lerp(FLAME, 0.45 + 0.4 * Math.sin(s.t * 31) * Math.sin(s.t * 13));
