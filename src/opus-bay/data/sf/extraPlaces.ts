@@ -227,6 +227,27 @@ export interface W4PlaceOptions {
   hidden?: ReadonlySet<string>;
   /** placeId → the arrival of the attraction that speaks for it (default: attractionArrivals()) */
   arrivals?: Readonly<Record<string, { x: number; z: number; heading?: number }>>;
+  /** placeId → the zh name of the attraction that speaks for it (default: attractionZhNames()) */
+  zhNames?: Readonly<Record<string, string>>;
+}
+
+/** Han characters: a zh name without any is the OSM English name copied over (the pipeline's fallback). */
+const HAN = /[\u3400-\u9fff]/;
+
+/**
+ * placeId → the zh name of its primary attraction (review 2): 51 OSM rows an attraction decorates carried their English
+ * name as zh ("San Francisco Botanical Garden", "Asian Art Museum of San Francisco" …), so the discovery toast, the
+ * 附近 / 去过的 lists and the fly list said "发现新地点：San Francisco Botanical Garden" while the badge and the card say
+ * 旧金山植物园. `applyW4Places` gives such a row its attraction's zh (map name = card name, plan §4.1); the English name
+ * stays the row's (the district POIs merge by it).
+ */
+export function attractionZhNames(ix: AttractionIndex = ATTRACTION_INDEX): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const a of ix.list) {
+    const id = a.placeId ?? a.id;
+    if (ix.primary(id) === a) out[id] = a.name.zh;
+  }
+  return out;
 }
 
 /**
@@ -254,13 +275,14 @@ export function extraRow(e: ExtraPlace, snap?: { y: number; zone: string | null;
 }
 
 /**
- * The published rows with the wave-4 changes (pure): hidden rows dropped, names / kinds / anchors fixed, the extra
+ * The published rows with the wave-4 changes (pure): hidden rows dropped, names / kinds / anchors fixed (a row whose zh
+ * is its English name takes its attraction's zh: `attractionZhNames`), the extra
  * rows appended (an extra whose id is already taken is skipped: the test pins that none is). Input rows are not mutated.
  */
 export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOptions = {}): W4PlaceRow[] {
   const extras = o.extras ?? RUNTIME_PLACES, snaps = o.snaps ?? EXTRA_PLACE_SNAPS, names = o.names ?? PLACE_NAME_FIXES;
   const reanchors = o.reanchors ?? PLACE_REANCHORS, kinds = o.kinds ?? PLACE_KIND_FIXES, hidden = o.hidden ?? PLACE_HIDDEN;
-  const arrivals = o.arrivals ?? attractionArrivals();
+  const arrivals = o.arrivals ?? attractionArrivals(), zhNames = o.zhNames ?? attractionZhNames();
   const out: W4PlaceRow[] = [];
   const ids = new Set<string>();
   for (const src of file.places) {
@@ -269,6 +291,7 @@ export function applyW4Places(file: { places: readonly SfPlace[] }, o: W4PlaceOp
     const row: W4PlaceRow = { ...src };
     const name = names[src.id];
     if (name) row.name = { ...name };
+    else if (zhNames[src.id] && !HAN.test(row.name.zh)) row.name = { zh: zhNames[src.id], en: row.name.en };
     const kind = kinds[src.id];
     if (kind) row.kind = kind;
     const arr = arrivals[src.id];

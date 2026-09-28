@@ -299,6 +299,11 @@ export interface ArrivalPlace {
   /** place-index id of the new row */
   id: string;
   name: Bilingual;
+  /**
+   * the short name for tight spots (lane G's phone trip pill: "下一站 33 号码头" instead of "下一站 恶魔岛渡轮…"; lane C's
+   * request, review 2): ≤ 5 CJK / 14 Latin like Attraction.short, and never the island's own short
+   */
+  short: Bilingual;
   /** anchor = arrival spot: the district POI's point (its telescope) */
   x: number;
   z: number;
@@ -312,29 +317,33 @@ export const ARRIVAL_PLACES: Readonly<Record<string, ArrivalPlace>> = {
   // Alcatraz City Cruises: every ferry leaves from "Pier 33 Alcatraz Landing" on the Embarcadero (near Bay St); the
   // point is the district POI pier33 (its telescope, 37.80783, −122.40428)
   alcatraz: {
-    id: 'alcatraz-landing', name: bi('恶魔岛渡轮码头 · 33 号码头', 'Pier 33 · Alcatraz Landing'), x: -97.68, z: -21.16, kind: 'transit',
+    id: 'alcatraz-landing', name: bi('恶魔岛渡轮码头 · 33 号码头', 'Pier 33 · Alcatraz Landing'), short: bi('33 号码头', 'Pier 33'), x: -97.68, z: -21.16, kind: 'transit',
     sourceUrl: 'https://alcatrazcitycruises.com/plan-your-visit/directions', hero: true,
   },
   // Pier 14: the 637-foot public pier / breakwater at the foot of Mission St; its end looks at the Bay Bridge and
   // Treasure Island (no walking link to the island in the game); the district POI pier14's point (its telescope)
   'treasure-island': {
-    id: 'pier-14', name: bi('14 号码头', 'Pier 14'), x: 183.1, z: -22.68, kind: 'waterfront',
+    id: 'pier-14', name: bi('14 号码头', 'Pier 14'), short: bi('14 号码头', 'Pier 14'), x: 183.1, z: -22.68, kind: 'waterfront',
     sourceUrl: 'https://www.romacollaborative.com/pier-14', hero: true,
   },
 };
 
-/** Where 跟 BAYBAY 去 goes for an attraction: lane G's `TripDestination` (game/tripPlan.ts), structurally. */
-export interface AttractionDestination { placeId: string; x: number; z: number; name: Bilingual; attraction: string }
+/**
+ * Where 跟 BAYBAY 去 goes for an attraction: lane G's `TripDestination` (game/tripPlan.ts), structurally, plus the
+ * `short` name for lane G's pill (`tripPillText(…, { destination: d.name, short: d.short })`): the pier's for an island
+ * (never the island's own, which would say "下一站 恶魔岛"), else the attraction's `short` when it has one.
+ */
+export interface AttractionDestination { placeId: string; x: number; z: number; name: Bilingual; attraction: string; short?: Bilingual }
 /**
  * The trip destination of an attraction (lane G's planTrips, lane C's startTrip): its own named arrival place when it
- * has one (Alcatraz → 恶魔岛渡轮码头 · 33 号码头: the rows read "步行到恶魔岛渡轮码头 · 33 号码头"), else the place it
- * decorates, at its `arrival` (else its anchor), under its own name.
+ * has one (Alcatraz → 恶魔岛渡轮码头 · 33 号码头: the rows read "步行到恶魔岛渡轮码头 · 33 号码头", the phone pill "下一站
+ * 33 号码头"), else the place it decorates, at its `arrival` (else its anchor), under its own name.
  */
-export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 'x' | 'z' | 'arrival'>): AttractionDestination {
+export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 'x' | 'z' | 'arrival' | 'short'>): AttractionDestination {
   const spot = ARRIVAL_PLACES[a.id];
-  if (spot) return { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: a.id };
+  if (spot) return { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: a.id, short: spot.short };
   const at = a.arrival ?? a;
-  return { placeId: a.placeId ?? a.id, x: at.x, z: at.z, name: a.name, attraction: a.id };
+  return { placeId: a.placeId ?? a.id, x: at.x, z: at.z, name: a.name, attraction: a.id, ...(a.short ? { short: a.short } : {}) };
 }
 
 /** Every attraction, T1 and T2 with their flag. Sorted by map priority (rank, then fame). */

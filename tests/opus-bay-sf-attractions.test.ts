@@ -559,7 +559,7 @@ test('P2: the islands\' trips end at named places of their own (恶魔岛渡轮�
     assert.ok(!placeIds.has(spot.id) && !ATTRACTION_INDEX.get(spot.id), `${spot.id} is a new id`);
     assert.deepEqual({ x: a.arrival!.x, z: a.arrival!.z }, { x: spot.x, z: spot.z }, `${id}: the attraction arrives at its named place`);
     const d = tripDestination(a);
-    assert.deepEqual(d, { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: id });
+    assert.deepEqual(d, { placeId: spot.id, x: spot.x, z: spot.z, name: spot.name, attraction: id, short: spot.short });
     const row = by.get(spot.id)!;
     assert.ok(row && row.extra && row.curated && row.hero, `${spot.id} row`);
     assert.deepEqual(row.name, spot.name);
@@ -579,7 +579,7 @@ test('P2: the islands\' trips end at named places of their own (恶魔岛渡轮�
   assert.ok(!/步行到恶魔岛(?!渡轮)/.test(JSON.stringify(walk)));
   // every other attraction: its own place at its arrival, under its own name
   const twin = ATTRACTION_INDEX.get('twin-peaks')!;
-  assert.deepEqual(tripDestination(twin), { placeId: 'twin-peaks', x: twin.arrival!.x, z: twin.arrival!.z, name: twin.name, attraction: 'twin-peaks' });
+  assert.deepEqual(tripDestination(twin), { placeId: 'twin-peaks', x: twin.arrival!.x, z: twin.arrival!.z, name: twin.name, attraction: 'twin-peaks', short: twin.short });
   const noArr = ATTRACTIONS.find(a => !a.arrival)!;
   assert.deepEqual([tripDestination(noArr).x, tripDestination(noArr).z], [noArr.x, noArr.z]);
 });
@@ -620,4 +620,61 @@ test('P2: search — a multi-word query scores as word start when its words star
   let per = Infinity;
   for (let b = 0; b < 5; b++) { const t0 = performance.now(); for (let k = 0; k < 10; k++) rankSearch(ix, k % 2 ? 'golden gate br' : 'market st'); per = Math.min(per, (performance.now() - t0) / 10); }
   assert.ok(per < 25, `${per.toFixed(1)} ms per keystroke`);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------
+// Review 2 of lane P2 (W4-P-review): the piers' short names (lane C's request), zh names of the decorated rows
+// ---------------------------------------------------------------------------------------------------------------------
+
+test('review 2: the island piers have short names for the phone pill (the request of lane C) — "下一站 33 号码头", never the island', async () => {
+  const { tripPillText } = await import('../src/opus-bay/ui/guideText');
+  const { freeLeadTrip } = await import('../src/opus-bay/game/trips');
+  const cjk = (t: string) => [...t].filter(c => /[㐀-鿿]/.test(c)).length;
+  for (const [id, spot] of Object.entries(ARRIVAL_PLACES)) {
+    const a = ATTRACTION_INDEX.get(id)!;
+    assert.ok(spot.short.zh && spot.short.en, id);
+    assert.ok(cjk(spot.short.zh) <= 5 && spot.short.en.length <= 14, `${id}: short ${spot.short.zh} / ${spot.short.en}`);
+    assert.ok(!spot.short.zh.includes(a.short!.zh), `${id}: the pier's short never names the island (${a.short!.zh})`);
+    const d = tripDestination(a);
+    assert.deepEqual(d.short, spot.short);
+    // lane G's pill on a phone, as the integration passes it (destination: d.name, short: d.short)
+    const trip = freeLeadTrip({ x: d.x + 200, z: d.z }, { x: d.x, z: d.z, place: d.placeId, name: d.name }, 0);
+    const title = tripPillText(trip, 240, { compact: true, destination: d.name, short: d.short }).title.zh;
+    assert.equal(title, `下一站 ${spot.short.zh}`);
+    assert.ok(!title.includes('…'), 'fits the phone pill whole');
+  }
+  assert.equal(ARRIVAL_PLACES.alcatraz.short.zh, '33 号码头');
+  // every other attraction passes its own short (or none)
+  for (const a of ATTRACTIONS) if (!ARRIVAL_PLACES[a.id]) assert.deepEqual(tripDestination(a).short, a.short, a.id);
+});
+
+test('review 2: a place row an attraction speaks for shows its zh name (the discovery toast, the lists), not the OSM English copied as zh', async () => {
+  const { attractionZhNames } = await import('../src/opus-bay/data/sf/extraPlaces');
+  const han = /[㐀-鿿]/;
+  const rows = applyW4Places(places);
+  const by = new Map(rows.map(r => [r.id, r]));
+  const src = new Map(places.places.map(p => [p.id, p]));
+  let fixed = 0;
+  for (const a of ATTRACTIONS) {
+    const id = a.placeId ?? a.id;
+    if (ATTRACTION_INDEX.primary(id) !== a) continue;
+    const row = by.get(id)!, was = src.get(id);
+    assert.ok(han.test(row.name.zh), `${a.id}: row ${id} zh "${row.name.zh}"`);
+    if (was && !han.test(was.name.zh) && !PLACE_NAME_FIXES[id]) {
+      fixed++;
+      assert.deepEqual(row.name, { zh: a.name.zh, en: was.name.en }, `${id}: the attraction's zh, the row's own English`);
+    }
+    // a row that already had a Chinese name keeps it (or its PLACE_NAME_FIXES entry)
+    if (was && han.test(was.name.zh) && !PLACE_NAME_FIXES[id]) assert.deepEqual(row.name, was.name, id);
+  }
+  assert.ok(fixed >= 45, `${fixed} rows named`);
+  // the Botanical Garden's gate row (lane P2): 旧金山植物园
+  assert.equal(by.get('osm-w120480164')!.name.zh, '旧金山植物园');
+  assert.equal(by.get('osm-w120480164')!.name.en, 'San Francisco Botanical Garden');
+  // rows no attraction speaks for keep their names; non-primary attractions do not rename a row
+  const zh = attractionZhNames();
+  for (const r of rows) if (!zh[r.id] && !PLACE_NAME_FIXES[r.id] && src.has(r.id)) assert.deepEqual(r.name, src.get(r.id)!.name, r.id);
+  assert.equal(zh['japantown-peace-pagoda'], ATTRACTION_INDEX.primary('japantown-peace-pagoda')!.name.zh);
+  // the input is not mutated
+  assert.ok(!han.test(places.places.find(p => p.id === 'osm-w120480164')!.name.zh));
 });
