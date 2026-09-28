@@ -38,9 +38,14 @@ const W5E2_TRAILS = ['filbert-steps', 'lyon-street-steps', 'tiled-steps', 'hidde
 const W5E2_CACHES = ['grand-view-top', 'corona-top', 'bernal-top', 'davidson-top', 'buena-vista-top', 'mclaren-top', 'strawberry-hill', 'sutro-heights-top', 'mount-sutro-top', 'pier-39-end', 'municipal-pier-end', 'lands-end-overlook', 'fort-mason-meadow', 'crane-cove-end', 'herons-head-tip', 'fort-point-wharf', 'candlestick-point', 'sutro-baths-ruins', 'seward-slides-top', 'china-beach', 'baker-beach-north', 'murphy-windmill', 'lake-merced-nook', 'stern-grove-nook', 'glen-canyon-nook', 'fort-funston-top', 'palace-lagoon', 'mountain-lake-nook', 'presidio-nook', 'india-basin', 'balmy-alley', 'clarion-alley', 'irving-street', 'clement-street', 'calle-24', 'third-street', 'noe-valley', 'japantown', 'palace-rotunda', 'painted-ladies-roof'];
 const W5E2_RINGS = ['first-flight', 'coit', 'transamerica', 'salesforce', 'ferry-clock', 'sutro-tower', 'painted-ladies', 'city-hall', 'ggb-south-tower', 'ggb-mid-span', 'palace-of-fine-arts', 'alcatraz', 'de-young-tower', 'lombard', 'twin-peaks', 'st-ignatius'];
 
+// appended in part c (CP-5: the retired Ina Coolbrith trail's replacement; lane L's corner caches)
+const PARTC_TRAILS = ['fort-mason-meadow'];
+const PARTC_CACHES = ['castro', 'haight'];
+
 test('W5-E2 registry: append-only (the W5-E2 order is a prefix), ids unique and well formed, the ledger bits fit', () => {
-  assert.deepEqual(COIN_TRAILS.slice(0, W5E2_TRAILS.length).map(t => t.id), W5E2_TRAILS);
-  assert.deepEqual(COIN_CACHES.slice(0, W5E2_CACHES.length).map(c => c.id), W5E2_CACHES);
+  assert.deepEqual(COIN_TRAILS.slice(0, W5E2_TRAILS.length + PARTC_TRAILS.length).map(t => t.id), [...W5E2_TRAILS, ...PARTC_TRAILS]);
+  assert.deepEqual(COIN_CACHES.slice(0, W5E2_CACHES.length + PARTC_CACHES.length).map(c => c.id), [...W5E2_CACHES, ...PARTC_CACHES]);
+  assert.ok(COIN_TRAILS.find(t => t.id === 'ina-coolbrith')?.retired, 'CP-5: Ina Coolbrith keeps its slot, retired');
   assert.deepEqual(COIN_RINGS.slice(0, W5E2_RINGS.length).map(r => r.id), W5E2_RINGS);
   for (const list of [COIN_TRAILS, COIN_CACHES, COIN_RINGS]) {
     assert.equal(new Set(list.map(e => e.id)).size, list.length, 'unique ids');
@@ -57,7 +62,7 @@ test('W5-E2 registry: append-only (the W5-E2 order is a prefix), ids unique and 
   assert.ok(COIN_RINGS[0].reserved, 'ring slot 0 is lane A\'s first flight');
 });
 
-test('W5-E2 counts: ≈ 60 trails of 5–8 coins, 40 caches, 15 rings of 8 (plan §3.4); downtown held only where flagged', () => {
+test('W5-E2 counts: ≈ 60 trails of 5–8 coins, 42 caches, 15 rings of 8 (plan §3.4); downtown held only where flagged', () => {
   const live = COIN_TRAILS.filter(t => !t.retired);
   assert.ok(live.length >= 55, `${live.length} trails`);
   for (const t of live) {
@@ -67,7 +72,7 @@ test('W5-E2 counts: ≈ 60 trails of 5–8 coins, 40 caches, 15 rings of 8 (plan
   }
   const coins = live.reduce((s, t) => s + t.p.length / 3, 0);
   assert.ok(coins >= 330 && coins <= 480, `${coins} trail coins`);
-  assert.equal(COIN_CACHES.filter(c => !c.retired).length, 40);
+  assert.equal(COIN_CACHES.filter(c => !c.retired).length, 42, '40 + lane L\'s two corner caches');
   assert.equal(COIN_RINGS.filter(r => !r.retired && !r.reserved).length, 15);
   const items = C.coinItems(false), all = C.coinItems(true);
   assert.ok(all.length > items.length, 'downtown coins exist and are held');

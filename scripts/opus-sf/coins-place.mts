@@ -70,6 +70,7 @@ const { PLACE_CARDS_2 } = await import('../../src/opus-bay/data/sf/placeCards2')
 const { CITY_POSTCARDS } = await import('../../src/opus-bay/data/sf/postcards');
 const { DISTRICT_POSTCARDS } = await import('../../src/opus-bay/data/postcards');
 const { DISTRICT } = await import('../../src/opus-bay/data/district');
+const { SITE_ARRIVALS } = await import('../../src/opus-bay/data/sf/siteArrivals');
 
 const ROOT = path.resolve(import.meta.dirname, '../..');
 
@@ -86,6 +87,8 @@ export const RULES = {
    * entirely within 7 u of theirs), so a trail keeps only clear of the prompt spot itself
    */
   trailPromptClear: 3.5,
+  /** every coin from a trip end / landing spot (the attractions' arrivals, lane L's site arrivals: lane N's request) */
+  arrivalClear: 4,
   /** a walking-graph node of the Ferry gate's network within this … */
   navReach: 12,
   /** … or a walk over standable ground of at most this many 1 u steps to one (piers, jetties) */
@@ -115,14 +118,16 @@ export const RULES = {
 
 export const DOWNTOWN_ZONES = ['financial-district-south-beach', 'chinatown'] as const;
 
-export interface Prompt { id: string; x: number; z: number }
+export interface Prompt { id: string; x: number; z: number; /** a trip end / landing: every coin keeps RULES.arrivalClear */ arrival?: true }
 
 /** Every card prompt the coins keep clear of (the postcard test's list + the postcards themselves). */
 export function cardPrompts(): Prompt[] {
   return [
     ...CITY_POIS.map(p => ({ id: `poi ${p.id}`, ...p.position })),
     ...[...PLACE_CARDS, ...PLACE_CARDS_2].filter(c => c.lat !== undefined && c.lng !== undefined).map(c => ({ id: `card ${c.id}`, ...project(c.lat!, c.lng!) })),
-    ...ATTRACTIONS.flatMap(a => [{ id: `attraction ${a.id}`, x: a.x, z: a.z }, ...(a.arrival ? [{ id: `arrival ${a.id}`, ...a.arrival }] : [])]),
+    ...ATTRACTIONS.flatMap(a => [{ id: `attraction ${a.id}`, x: a.x, z: a.z }, ...(a.arrival ? [{ id: `arrival ${a.id}`, x: a.arrival.x, z: a.arrival.z, arrival: true as const }] : [])]),
+    // lane L's site arrivals (lane N wires them as the attractions' trip ends and landings: its request to lane E)
+    ...Object.entries(SITE_ARRIVALS).map(([id, a]) => ({ id: `site arrival ${id}`, x: a.x, z: a.z, arrival: true as const })),
     ...[...CITY_POSTCARDS, ...DISTRICT_POSTCARDS].map(c => ({ id: `postcard ${c.id}`, ...c.position })),
   ];
 }
@@ -225,7 +230,7 @@ export function spotProblems(ctx: CityCtx, x: number, z: number, clear: number =
   if (terrain.isWater(x, z)) out.push('water');
   for (const p of ctx.prompts) {
     const d = Math.hypot(p.x - x, p.z - z);
-    if (d < clear) { out.push(`${d.toFixed(1)} u from ${p.id}`); break; }
+    if (d < (p.arrival ? Math.max(clear, RULES.arrivalClear) : clear)) { out.push(`${d.toFixed(1)} u from ${p.id}`); break; }
   }
   if (!out.length && !reachable(ctx, x, z)) out.push('not reachable on foot from the Ferry gate network');
   return out;
@@ -425,6 +430,9 @@ export const CACHE_DEFS: readonly CacheDef[] = [
   // over roofs and domes: reached with the pelican
   { id: 'palace-rotunda', kind: 'air', at: 'palace-of-fine-arts', why: 'over the Palace of Fine Arts rotunda' },
   { id: 'painted-ladies-roof', kind: 'air', at: [-2, 598], why: 'over the Painted Ladies\' roofs' },
+  // appended in part c: lane L's corners 5–8 (its request: one cache per corner street, at the spots it measured)
+  { id: 'haight', kind: 'spot', at: [-38.0, 754.9], r: 24, why: 'Haight Street\'s west sidewalk, across from the busker (lane L\'s corner)' },
+  { id: 'castro', kind: 'spot', at: [149.7, 748.0], r: 8, why: 'Castro Street\'s west sidewalk between two bays (lane L\'s corner)' },
 ];
 
 /** 15 rings over landmarks (+ slot 0 reserved for lane A's first flight: `ring:first-flight:1` … `:8`). */
