@@ -114,6 +114,10 @@ export const RULES = {
   walkPushS: 1.5,
   walkMove: 3,
   walkReachEnd: 1.1,
+  /** directions that must move: a trail coin may lie on a corridor (2: a pier, a stairway, a sidewalk); a cache is a
+   *  single spot, so it stands where the walker leaves it three ways (the live sweep's rule) */
+  walkDirsTrail: 2,
+  walkDirsCache: 3,
 } as const;
 
 export const DOWNTOWN_ZONES = ['financial-district-south-beach', 'chinatown'] as const;
@@ -255,19 +259,25 @@ function push(x: number, z: number, heading: number): number {
  * RULES.walkMove u), SNAG (open ground ahead but the controller does not move), UNREACHABLE (the path finder from the
  * walking graph's main network ends > RULES.walkReachEnd u short). A corridor (a pier, a stairway: 2 directions) is fine.
  */
-export async function walkProblems(ctx: CityCtx, x: number, z: number): Promise<string[]> {
+export async function walkProblems(ctx: CityCtx, x: number, z: number, minDirs: number = RULES.walkDirsTrail): Promise<string[]> {
   await ctx.ensure(x, z, 48);
   if (!terrain.canStand(x, z, 0.4)) return ['not standable for the walker'];
   const out: string[] = [];
   const first = openHeading(x, z, 0).heading;
-  let moving = 0, snags = 0;
-  for (let k = 0; k < 4; k++) {
-    const h = first + (k * Math.PI) / 2, dx = Math.sin(h), dz = Math.cos(h);
-    const moved = push(x, z, h);
-    if (moved >= RULES.walkMove) moving++;
-    else if ([1, 2, 3].every(d => terrain.canStand(x + dx * d, z + dz * d, 0.4))) snags++;
+  // a cache (3 ways wanted) is judged at two turns of the cross, 45° apart: the live sweep pushes along the camera's
+  // axes, whatever way the camera happens to face
+  let moving = 4, snags = 0;
+  for (const turn of minDirs >= 3 ? [0, Math.PI / 4] : [0]) {
+    let m = 0;
+    for (let k = 0; k < 4; k++) {
+      const h = first + turn + (k * Math.PI) / 2, dx = Math.sin(h), dz = Math.cos(h);
+      const moved = push(x, z, h);
+      if (moved >= RULES.walkMove) m++;
+      else if ([1, 2, 3].every(d => terrain.canStand(x + dx * d, z + dz * d, 0.4))) snags++;
+    }
+    moving = Math.min(moving, m);
   }
-  if (moving <= 1) out.push(`boxed (${moving} of 4 directions move ${RULES.walkMove} u)`);
+  if (moving < minDirs) out.push(`${moving <= 1 ? 'boxed' : 'a corridor'} (${moving} of 4 directions move ${RULES.walkMove} u, ${minDirs} wanted)`);
   if (snags) out.push(`${snags} snag${snags > 1 ? 's' : ''} (open ground ahead, no move)`);
   const n = ctx.ix.nearestNode(x, z, 60, i => ctx.ix.component(i) === ctx.home);
   const res = n >= 0 ? findPath({ x: ctx.ix.x(n), z: ctx.ix.z(n) }, { x, z }, 8) : null;
@@ -667,6 +677,7 @@ async function placeCache(ctx: CityCtx, def: CacheDef, coins: Placed[], caches: 
     }
   }
   cands.sort((a, b) => b.score - a.score);
+  const best: { p: Placed; open: number }[] = [];
   for (const c of cands.slice(0, 400)) {
     await ctx.ensure(c.x, c.z);
     // the node itself, else the nearest good point within 3 u of it; a spot the walker cannot leave → the next candidate
@@ -679,10 +690,20 @@ async function placeCache(ctx: CityCtx, def: CacheDef, coins: Placed[], caches: 
         break;
       }
     }
-    if (!p || (await walkProblems(ctx, p.x, p.z)).length) continue;
+    if (!p || (await walkProblems(ctx, p.x, p.z, RULES.walkDirsCache)).length) continue;
+    // a street corner (`spot`): of the first few good points the most open one (a plaza before a sidewalk by a wall)
+    if (def.kind === 'spot' && best.length < 24) { best.push({ p, open: openness(p.x, p.z) }); continue; }
     return { ...base, ...p, dt: isDowntown(ctx, p.x, p.z), problems: [] };
   }
+  if (best.length) { const p = best.sort((a, b) => b.open - a.open)[0].p; return { ...base, ...p, dt: isDowntown(ctx, p.x, p.z), problems: [] }; }
   return { ...base, x: at.x, y: 0, z: at.z, dt: false, problems: ['no good spot'] };
+}
+
+/** How far the controller gets from (x, z) in eight directions (u, summed): open ground scores high. */
+function openness(x: number, z: number): number {
+  let sum = 0;
+  for (let k = 0; k < 8; k++) sum += push(x, z, (k * Math.PI) / 4);
+  return sum;
 }
 
 async function placeRing(ctx: CityCtx, def: RingDef): Promise<RingOut> {
@@ -803,7 +824,7 @@ async function main() {
       const e = pub?.COIN_CACHES.find(c => c.id === def.id);
       if (!e || e.retired || force.has(def.id) || !!e.air !== (def.kind === 'air')) return null;
       await ctx.ensure(e.x, e.z);
-      if (e.air ? airProblems(ctx, [e]).length : spotProblems(ctx, e.x, e.z).length || coins.some(q => Math.hypot(q.x - e.x, q.z - e.z) < RULES.cacheGap) || caches.some(q => Math.hypot(q.x - e.x, q.z - e.z) < 30) || (await walkProblems(ctx, e.x, e.z)).length) return null;
+      if (e.air ? airProblems(ctx, [e]).length : spotProblems(ctx, e.x, e.z).length || coins.some(q => Math.hypot(q.x - e.x, q.z - e.z) < RULES.cacheGap) || caches.some(q => Math.hypot(q.x - e.x, q.z - e.z) < 30) || (await walkProblems(ctx, e.x, e.z, RULES.walkDirsCache)).length) return null;
       return { id: def.id, kind: def.kind, x: e.x, y: e.y, z: e.z, air: !!e.air, dt: isDowntown(ctx, e.x, e.z), problems: [] };
     };
     const keptRing = async (def: RingDef): Promise<RingOut | null> => {

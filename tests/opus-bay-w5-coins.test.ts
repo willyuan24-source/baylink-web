@@ -100,7 +100,7 @@ test('W5-E2 every spot stands in the published city: standable, dry, reachable, 
     for (const c of COIN_CACHES) {
       if (c.retired) continue;
       await ctx.ensure(c.x, c.z);
-      const pr = c.air ? P.airProblems(ctx, [c]) : [...P.spotProblems(ctx, c.x, c.z), ...await P.walkProblems(ctx, c.x, c.z)];
+      const pr = c.air ? P.airProblems(ctx, [c]) : [...P.spotProblems(ctx, c.x, c.z), ...await P.walkProblems(ctx, c.x, c.z, P.RULES.walkDirsCache)];
       if (pr.length) bad.push(`cache ${c.id}: ${pr.join(', ')}`);
       if (!c.air) for (const q of ground) if (Math.hypot(q.x - c.x, q.z - c.z) < P.RULES.cacheGap) bad.push(`cache ${c.id}: ${Math.hypot(q.x - c.x, q.z - c.z).toFixed(1)} u from trail coin ${q.id}`);
       if (!c.air) ground.push({ id: c.id, x: c.x, z: c.z });
