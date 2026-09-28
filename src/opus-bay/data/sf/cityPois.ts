@@ -134,17 +134,43 @@ export const PLACE_KIND_NAMES: Record<SfPlaceKind, Bilingual> = {
 export interface PlaceCardInput { id: string; name: Bilingual; kind: SfPlaceKind; landmark?: string; poi?: string }
 
 /**
- * What `openPanel('poi', id)` shows for a city id that is not a POI (PoiCard): a place standing for a landmark opens
- * that landmark's card, a hero place merged with a district POI opens the POI's card, any other place gets its own
- * place card. `id` is `sf:<placeId>`; `lookup` is G1's placeById.
+ * Wave 4 · lane C: the new attractions' place cards (lazy: game/cityCards.ts registers this lookup once they are in, so
+ * the card texts and their loader stay out of the main graph). Answers `sf:`-prefixed POI ids.
  */
-export function placeCardTarget<P extends PlaceCardInput>(id: string | undefined, lookup: (placeId: string) => P | undefined): { poi: string } | { place: P } | null {
+export interface CardLookup {
+  /** the card a place row opens (null: the row keeps another card, or has none) */
+  forPlace(place: { id: string; landmark?: string; poi?: string }): string | null;
+  /** the card of an attraction id */
+  forAttraction(attraction: string): string | null;
+}
+let cardLookup: CardLookup | null = null;
+export function setCardLookup(c: CardLookup | null) { cardLookup = c; }
+
+/**
+ * What `openPanel('poi', id)` shows for a city id that is not a POI (PoiCard): a place standing for a landmark opens
+ * that landmark's card, a hero place merged with a district POI opens the POI's card, a place a wave-4 card decorates
+ * opens that card (once loaded), any other place gets its own place card. `id` is `sf:<placeId>`; `lookup` is G1's
+ * placeById.
+ */
+export function placeCardTarget<P extends PlaceCardInput>(id: string | undefined, lookup: (placeId: string) => P | undefined, cards: CardLookup | null = cardLookup): { poi: string } | { place: P } | null {
   if (!id?.startsWith(CITY_POI_PREFIX)) return null;
   const place = lookup(id.slice(CITY_POI_PREFIX.length));
   if (!place) return null;
   if (place.landmark) return { poi: cityPoiId(place.landmark) };
   if (place.poi) return { poi: place.poi };
+  // wave 4 (lane C): a new attraction's card (lazy, game/cityCards.ts registers its POI resolver) before the generic card
+  const card = cards?.forPlace(place);
+  if (card) return { poi: card };
   return { place };
+}
+
+/**
+ * The card an attraction opens (lanes G and P: the arrival card's 看介绍, the map's ⓘ): its landmark card, else its
+ * wave-4 place card (`cardPoiId`, lazy), else its place row's card. `sf:`-prefixed POI id for openPanel('poi', …).
+ */
+export function attractionCardId(a: { id: string; placeId?: string; landmarkId?: string }, cards: CardLookup | null = cardLookup): string {
+  if (a.landmarkId) return cityPoiId(a.landmarkId);
+  return cards?.forAttraction(a.id) ?? `${CITY_POI_PREFIX}${a.placeId ?? a.id}`;
 }
 
 /** A place's name for the card title: the glossary on zh (OSM zh names are sometimes the English name). */

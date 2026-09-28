@@ -1,7 +1,7 @@
 import { getLocale } from '../../i18n/locale';
 import { emit, onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
-import { game, toast, type PanelKind, type Toast } from '../core/store';
+import { DEFAULT_TOUR_ID, game, toast, tourIdOf, type PanelKind, type Toast } from '../core/store';
 import type { Bilingual, DialogueAction, DialogueNode, PoiDef, TourStop, Vec2, WishItem } from '../core/types';
 import { canStand, heightAt, isWater, nearestWalkable } from '../core/terrain';
 import { spawnFx } from '../world/fx';
@@ -11,7 +11,9 @@ import { POIS } from '../data/pois';
 import { POSTCARDS, activePostcardCount, activePostcardTotal, allPostcardsFound } from '../data/postcards';
 import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/script';
 import { FIRST_TOUR } from '../data/tours';
-import { markProgress, wishlist } from '../data/wishlist';
+import { readSave } from '../data/save';
+import { GRAND_TOUR } from '../data/sf/copy';
+import { districtTourProgress, markProgress, wishlist } from '../data/wishlist';
 import { pick } from '../i18n';
 import { cinemaActive, faceCameraToward, holdFraming, playShots, releaseFraming, skipCinema, type Framing, type Shot } from './cinema';
 import { CHAR_SCALE } from '../actors/dims';
@@ -24,6 +26,7 @@ import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/resid
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { gameTimeLabel } from './travel';
+import type { TripOption, TripSource } from './tripTypes';
 
 /**
  * Game flow controller: modes, dialogue runner, tour/week/free logic, interactions and goals.
@@ -184,7 +187,7 @@ export function closeDialogue() {
 
 export function runAction(action: DialogueAction) {
   switch (action.type) {
-    case 'start-tour': closeQuiet(); startTour(); offerRealTime(); break;
+    case 'start-tour': closeQuiet(); startTour(action.tourId); offerRealTime(); break;
     case 'start-week': closeQuiet(); startWeek(); offerRealTime(); break;
     case 'free-roam': closeQuiet(); startFree(); facePlaza(); offerRealTime(); break;
     case 'skip-intro': closeQuiet(); startFree({ local: true }); facePlaza(); offerRealTime(); break;
@@ -227,7 +230,8 @@ export function closePanel() {
   flow.set({ eventId: null });
   emit({ type: 'ui', action: 'close' });
   if (panel.kind === 'poi' && flow.get().tourPhase === 'card') continueTour();
-  if (panel.kind === 'recap') markProgress({ finished: true });
+  // (the first lesson's "finished" flag: a city tour's recap is not the first lesson's)
+  if (panel.kind === 'recap' && tourIdOf(game.get().tour) === DEFAULT_TOUR_ID) markProgress({ finished: true });
 }
 
 export function togglePanel(kind: Exclude<PanelKind, null>) {
@@ -427,19 +431,51 @@ export function acceptRealTime() {
 // ---------------------------------------------------------------------------
 
 export const tourStops = (): TourStop[] => FIRST_TOUR.stops.filter(stop => !!poiById(stop.poiId));
+/** The first lesson's current stop (null while a city tour owns `game.tour`: its stops are game/cityTour.ts'). */
 export function currentStop(): { stop: TourStop; poi: PoiDef; index: number } | null {
   const { tour } = game.get();
+  if (tourIdOf(tour) !== DEFAULT_TOUR_ID) return null;
   const stops = tourStops();
   const stop = stops[tour.stop];
   const poi = stop ? poiById(stop.poiId) : undefined;
   return stop && poi ? { stop, poi, index: tour.stop } : null;
 }
 
-export function startTour() {
+/**
+ * Wave 4 · lane C: tours other than the first lesson (the Grand Tour `sf-grand`) run in game/cityTour.ts, a lazy
+ * module that registers itself here once loaded (city mode only); `game.tour.id` says which tour owns `game.tour`.
+ */
+export interface CityTourApi {
+  start(id: string): void;
+  /** 'tour-next' / the peek card's 下一站: on from the current sub-phase */
+  next(): void;
+  /** 跳过这一站 */
+  skip(): void;
+  /** 结束 (the recap when stops were done; `quiet`: no recap, no line — a restart) */
+  end(quiet?: boolean): void;
+  /** the call menu's tour rows while the tour runs */
+  callChoices(): NonNullable<DialogueNode['choices']>;
+}
+let cityTourApi: CityTourApi | null = null;
+export function setCityTourApi(api: CityTourApi | null) { cityTourApi = api; }
+export const cityTourActive = () => { const t = game.get().tour; return t.active && tourIdOf(t) !== DEFAULT_TOUR_ID; };
+function startCityTour(id: string) {
+  if (cityTourApi) { cityTourApi.start(id); return; }
+  void import('./cityTour').then(m => { m.initCityTour(); cityTourApi?.start(id); }, (e: unknown) => {
+    if (import.meta.env?.DEV) console.error('[opus-bay city tour]', e);
+    say('一日游还没准备好，稍后再试', 'The Grand Tour is not ready yet — try again in a moment');
+  });
+}
+
+export function startTour(tourId?: string) {
   introPendingSince = 0;
+  // the Grand Tour is a city tour (district mode keeps the first lesson whatever it is asked for)
+  if (tourId && tourId !== DEFAULT_TOUR_ID && game.get().worldMode === 'city') { startCityTour(tourId); return; }
+  endTrip();
   const stops = tourStops();
   if (!stops.length) { say('导览还在准备中，先自己逛逛吧！', 'The tour is still being prepared — explore on your own for now!'); startFree(); return; }
-  const saved = game.get().tour;
+  // after a city tour `game.tour` holds that tour's stops: the first lesson resumes from its own saved progress
+  const saved = tourIdOf(game.get().tour) === DEFAULT_TOUR_ID ? game.get().tour : { ...game.get().tour, ...districtTourProgress() };
   let completed = saved.completed.filter(id => stops.some(stop => stop.poiId === id));
   if (completed.length >= stops.length) completed = [];
   const firstOpen = stops.findIndex(stop => !completed.includes(stop.poiId));
@@ -587,6 +623,7 @@ export function continueTour() {
 export function tourNext() {
   const phase = flow.get().tourPhase;
   if (!game.get().tour.active) { startTour(); return; }
+  if (cityTourActive()) { cityTourApi?.next(); return; }
   if (phase === 'intro') { flow.set({ tourPhase: 'leading' }); leadBubble(); return; }
   if (phase === 'arrived') { const cur = currentStop(); flow.set({ tourPhase: 'await', awaitingPoi: cur?.poi.id ?? null }); return; }
   if (phase === 'card') { closePanel(); return; }
@@ -601,6 +638,7 @@ function finishTour() {
 }
 
 export function endTour() {
+  if (cityTourActive()) { cityTourApi?.end(); return; }
   const { tour } = game.get();
   game.set({ mode: 'free', tour: { ...tour, active: false } });
   flow.set({ tourPhase: 'finished', awaitingPoi: null });
@@ -614,6 +652,7 @@ export function endTour() {
 
 export function startWeek() {
   introPendingSince = 0;
+  endTrip();
   game.set(s => ({ mode: 'week', tour: { ...s.tour, active: false }, week: { companions: null, vibe: null, region: null, results: [], step: 0 } }));
   flow.set({ weekStage: 'asking', weekResult: null, tourPhase: 'idle', goalsCard: false, awaitingPoi: null });
   openPanel('week');
@@ -1008,7 +1047,9 @@ export function openCallMenu() {
   const s = game.get();
   const choices: DialogueNode['choices'] = [];
   const cur = currentStop();
-  if (s.tour.active && cur) {
+  const city = s.worldMode === 'city';
+  if (cityTourActive()) choices.push(...(cityTourApi?.callChoices() ?? []));
+  else if (s.tour.active && cur) {
     choices.push({ label: { zh: `继续：带我去${cur.poi.name.zh}`, en: `Keep going: take me to ${cur.poi.name.en}` }, action: { type: 'end' } });
     choices.push({ label: { zh: '跳过这一站', en: 'Skip this stop' }, action: { type: 'tour-next' } });
     choices.push({ label: { zh: '先不跟团了，结束导览', en: 'End the tour for now' }, action: { type: 'tour-end' } });
@@ -1018,8 +1059,11 @@ export function openCallMenu() {
     if (next) choices.push({ label: { zh: `带我去下一个目标：${next.name.zh} · ${gameTimeLabel(dist(playerPos(), next)).zh}`, en: `Take me to the next goal: ${next.name.en} · ${gameTimeLabel(dist(playerPos(), next)).en}` }, next: `flow.goto.${next.id}` });
     const nearby = nearbyNode();
     if (nearby) choices.push({ label: { zh: '附近有什么？', en: "What's around here?" }, next: nearby });
-    const done = s.tour.completed.length, total = tourStops().length;
-    choices.push({ label: done && done < total ? { zh: `继续湾区第一课（${done}/${total}）`, en: `Resume Bay 101 (${done}/${total})` } : { zh: '带我逛「湾区第一课」', en: 'Give me the Bay 101 tour' }, action: { type: 'start-tour' } });
+    // W4-C7 · city: the Grand Tour (or where it was left); the nearest bus stop / Metro station is in 附近有什么
+    if (city) choices.push({ label: grandTourCallLabel(), action: { type: 'start-tour', tourId: GRAND_TOUR.id } });
+    const done = tourIdOf(s.tour) === DEFAULT_TOUR_ID ? s.tour.completed.length : districtTourProgress().completed.length, total = tourStops().length;
+    const bay101: Bilingual = city ? { zh: '海边 7 站（湾区第一课）', en: '7 waterfront stops (Bay 101)' } : { zh: '带我逛「湾区第一课」', en: 'Give me the Bay 101 tour' };
+    choices.push({ label: done && done < total ? { zh: `继续湾区第一课（${done}/${total}）`, en: `Resume Bay 101 (${done}/${total})` } : bay101, action: { type: 'start-tour' } });
     choices.push({ label: { zh: '这周有什么好玩的？', en: "What's on this week?" }, action: { type: 'start-week' } });
   }
   choices.push({ label: { zh: '打开地图', en: 'Open the map' }, action: { type: 'open-map' } });
@@ -1267,6 +1311,9 @@ export function objectiveTarget(): (Vec2 & { id: string; name: Bilingual; soft?:
     const it = interactableById(f.freeLead);
     if (it) return { x: it.x, z: it.z, id: it.id, name: it.name };
   }
+  // wave 4: a running trip's current leg (plan §4.2: freeLead > trip > tour > week > mapTarget > freeHint)
+  const leg = f.trip ? tripRunner?.objective() : null;
+  if (leg) return leg;
   if (s.tour.active && (f.tourPhase === 'leading' || f.tourPhase === 'await' || f.tourPhase === 'arrived')) {
     const cur = currentStop();
     if (cur) return { x: cur.poi.position.x, z: cur.poi.position.z, id: cur.poi.id, name: cur.poi.name };
@@ -1329,6 +1376,8 @@ export function startFreeLead(id: string) {
   leadCallAt = performance.now();
   bubble({ zh: `跟我来！去${it.name.zh}`, en: `Follow me — to ${it.name.en}!` }, 3000, BAYBAY_ID, 'call');
   announce({ zh: `跟 BAYBAY 去${it.name.zh}`, en: `Follow BAYBAY to ${it.name.en}` });
+  // wave 4 · city: the free lead is a one-leg walking trip (the trip pill, the map route and the LeadChip follow it)
+  tripRunner?.freeLead(it);
 }
 
 /** Guide brain → both reached the free-roam destination. */
@@ -1336,9 +1385,79 @@ export function freeLeadArrived() {
   const id = flow.get().freeLead;
   const it = interactableById(id);
   flow.set({ freeLead: null });
+  if (flow.get().trip?.source === 'free-lead') tripRunner?.arrived();
   if (!it) return;
   emit({ type: 'arrive', poiId: it.id });
   bubble({ zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
+}
+
+// ---------------------------------------------------------------------------
+// Wave 4 · trips (lane C, W4-C1): `flow.trip` (game/trips.ts reducer). The runner — leading each leg, boarding,
+// driving, flying, the leg / end events — is game/tripRun.ts in the city chunk; these are the entry points every
+// lane calls (lane P's 跟 BAYBAY 去 / TripOptions / StationActions, lane G's trip card). District mode has no runner.
+// ---------------------------------------------------------------------------
+
+/** Where a trip goes: the place-index id (or interactable id), its attraction and name, the arrival point. */
+export interface TripDest { placeId: string; attraction?: string; name?: Bilingual; x?: number; z?: number }
+export interface TripRunner {
+  start(option: TripOption, dest: TripDest, source?: TripSource): void;
+  /** 跳过这一站: the current leg is done, lead on to the next */
+  skip(): void;
+  /** 换个方式: the same destination with another option */
+  replan(option: TripOption): void;
+  /** 结束 (and any mode that takes over: a district tour, the week, 带我去) */
+  end(): void;
+  /** the current leg ended (the brain's lead arrived; a free lead) */
+  arrived(): void;
+  /** a free lead as a one-leg walking trip */
+  freeLead(it: Pick<Interactable, 'id' | 'x' | 'z' | 'name'>): void;
+  /** the waypoint point for the current leg (objectiveTarget) */
+  objective(): (Vec2 & { id: string; name: Bilingual }) | null;
+  /** the guide brain on foot: true = the trip leads BAYBAY this tick */
+  guide(now: number): boolean;
+}
+let tripRunner: TripRunner | null = null;
+export function setTripRunner(r: TripRunner | null) { tripRunner = r; }
+export const tripRunnerReady = () => !!tripRunner;
+
+/** 跟 BAYBAY 去 / a TripOptions row / a station's 坐 N 线: start a trip (city mode; replaces a running one). */
+export function startTrip(option: TripOption, dest: TripDest, source: TripSource = 'map') {
+  if (tripRunner) { tripRunner.start(option, dest, source); return; }
+  if (game.get().worldMode !== 'city') return;
+  void import('./tripRun').then(m => { m.initTripRun(); tripRunner?.start(option, dest, source); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay trips]', e); });
+}
+/** The guide brain (on foot, free to lead): the running trip leads BAYBAY this tick (true), or nothing does. */
+export function tripGuide(now: number): boolean { return !!flow.get().trip && !!tripRunner?.guide(now); }
+/** 跳过这一站 on the trip card (a tour skips its stop). */
+export function skipTripLeg() { tripRunner?.skip(); }
+/** 换个方式: same destination, another option. */
+export function replanTrip(option: TripOption) { tripRunner?.replan(option); }
+/** 结束 on the trip card; also what a new mode does to a running trip. */
+export function endTrip() { if (flow.get().trip) tripRunner?.end(); }
+
+/** When the last arrival moment started (performance.now ms; 0 = none): the soft hint waits 60 s after it. */
+let arrivalMomentAt = 0;
+export const lastArrivalAt = () => arrivalMomentAt;
+/** Lane C's arrival watcher (game/cityArrivals.ts): an arrival moment is on screen (flow.arrival). */
+export function noteArrivalMoment(now = performance.now()) { arrivalMomentAt = now; }
+/** The arrival card's close / 下一站 (lane G): the moment is over. */
+export function dismissArrival() { if (flow.get().arrival) flow.set({ arrival: null }); }
+
+/** The nearest sightseeing-bus stop or Metro station interactable (lane T registers them in city mode), or undefined. */
+function nearestLineStation(p: Vec2, max = 400): Interactable | undefined {
+  let best: Interactable | undefined, bd = max;
+  for (const it of interactables()) {
+    if (it.source !== 'transit' || !/^transit-(loop|muni)-/.test(it.id)) continue;
+    const d = dist(p, it);
+    if (d < bd) { bd = d; best = it; }
+  }
+  return best;
+}
+
+/** The call menu's Grand Tour row: start it, or pick it up at the chapter it was left (save v2 `tours`). */
+function grandTourCallLabel(): Bilingual {
+  const p = readSave()?.tours?.[GRAND_TOUR.id];
+  return p && p.completed.length ? GRAND_TOUR.resume(p.chapter + 1) : GRAND_TOUR.call;
 }
 
 /** A city resident this close (u, about a minute's walk) whose favour you have not taken yet is named in "附近有什么？". */
@@ -1370,6 +1489,9 @@ function nearbyNode(): string | null {
     { label: { zh: `去${b.name.zh}`, en: `${b.name.en}` }, next: `flow.goto.${b.id}` },
   ];
   if (who && tw) choices.push({ label: { zh: `去找${who.name.zh}（${tw.zh}）`, en: `Find ${who.name.en} (${tw.en})` }, next: `flow.goto.${who.id}` });
+  // W4-C7 · city: the nearest sightseeing-bus stop or Metro station (lane T's `transit-loop-*` / `transit-muni-*`)
+  const station = game.get().worldMode === 'city' ? nearestLineStation(p) : undefined;
+  if (station) { const ts = gameTimeLabel(dist(p, station)); choices.push({ label: { zh: `去车站：${station.name.zh}（${ts.zh}）`, en: `To the stop: ${station.name.en} (${ts.en})` }, next: `flow.goto.${station.id}` }); }
   choices.push({ label: { zh: '先不用', en: 'Not now' }, action: { type: 'end' } });
   choices.forEach((choice, i) => { choice.hotkey = String(i + 1); });
   return defineNode({
@@ -1388,6 +1510,7 @@ export function dismissFreeHint() { flow.set({ freeHint: null, freeHintOffUntil:
 export function navigateTo(id: string) {
   const it = interactableById(id);
   if (!it) return;
+  endTrip();
   flow.set({ mapTarget: id });
   closePanel();
   walkTo(it, null);
@@ -1399,6 +1522,8 @@ export function navigateTo(id: string) {
 // ---------------------------------------------------------------------------
 
 export function restartOnboarding() {
+  endTrip();
+  if (cityTourActive()) cityTourApi?.end(true);
   closeQuiet();
   closePanel();
   endRide();

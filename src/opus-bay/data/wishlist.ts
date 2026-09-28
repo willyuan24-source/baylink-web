@@ -1,5 +1,5 @@
 import { emit } from '../core/events';
-import { game, type GameState } from '../core/store';
+import { DEFAULT_TOUR_ID, game, tourIdOf, type GameState } from '../core/store';
 import type { WishItem } from '../core/types';
 
 /**
@@ -87,6 +87,9 @@ export type Progress = {
   visited?: boolean;
 };
 
+/** goalsDone ids kept in the progress save (goals + favours + neighbourhood / loop-stop / campus marks). */
+export const GOALS_DONE_MAX = 128;
+
 const strings = (value: unknown, max = 64) => (Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string' && item.length < 120) : []).filter((item, i, all) => all.indexOf(item) === i).slice(0, max);
 
 export function readProgress(): Progress | null {
@@ -104,7 +107,8 @@ export function readProgress(): Progress | null {
   return {
     v: 1,
     postcards: strings(raw.postcards),
-    goalsDone: strings(raw.goalsDone),
+    // 41 `hood:` marks, the goals, the favours' marks and the wave-4 `loop:` / `campus:` marks pass 64 (G2 w3 b2)
+    goalsDone: strings(raw.goalsDone, GOALS_DONE_MAX),
     tour: { stop: Number.isInteger(tour.stop) && (tour.stop as number) >= 0 ? tour.stop as number : 0, completed: strings(tour.completed), finished: tour.finished === true },
     viewpointUnlocked: raw.viewpointUnlocked === true,
     settings,
@@ -137,12 +141,26 @@ function persistedSettings(settings: GameState['settings']): Partial<GameState['
   return out;
 }
 
+/**
+ * The first lesson's progress. `game.tour` holds whichever tour runs (wave 4: `tour.id`); while a city tour owns it
+ * (the Grand Tour keeps its own progress in save v2 `tours`), the first lesson's last state is kept here so the
+ * progress save never takes the city tour's stops for the district's.
+ */
+let districtTour: { stop: number; completed: string[] } = { stop: 0, completed: [] };
+const noteDistrictTour = (tour: GameState['tour']) => { if (tourIdOf(tour) === DEFAULT_TOUR_ID) districtTour = { stop: tour.stop, completed: tour.completed }; };
+/** The first lesson's stop / completed stops, whichever tour `game.tour` holds right now. */
+export function districtTourProgress(state: GameState = game.get()): { stop: number; completed: string[] } {
+  noteDistrictTour(state.tour);
+  return districtTour;
+}
+
 export function snapshotProgress(state: GameState, extra: { finished?: boolean; visited?: boolean } = {}): Progress {
+  const tour = districtTourProgress(state);
   return {
     v: 1,
     postcards: state.postcards,
     goalsDone: state.goalsDone,
-    tour: { stop: state.tour.stop, completed: state.tour.completed, finished: extra.finished },
+    tour: { stop: tour.stop, completed: tour.completed, finished: extra.finished },
     viewpointUnlocked: state.viewpointUnlocked,
     settings: persistedSettings(state.settings),
     visited: extra.visited,
@@ -187,6 +205,8 @@ export function initPersistence(opts: { lockedSettings?: (keyof GameState['setti
       settings,
     };
   });
+  districtTour = { stop: saved?.tour.stop ?? 0, completed: saved?.tour.completed ?? [] };
+  noteDistrictTour(game.get().tour);
   let last = game.get();
   let timer: ReturnType<typeof setTimeout> | null = null;
   const unsubscribe = game.subscribe(() => {

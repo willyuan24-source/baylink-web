@@ -195,7 +195,21 @@ export function interactableById(id: string | null | undefined): Interactable | 
   if (item) syncMoving(item);
   return item ?? extraResolver?.(id);
 }
-export const poiById = (id: string | null | undefined) => (id ? POIS.find(poi => poi.id === id) : undefined);
+type PoiResolver = (id: string) => PoiDef | undefined;
+const poiResolvers: PoiResolver[] = [];
+/**
+ * Wave 4 · lane C: POI cards that are not in POIS (the lazy place cards of the new attractions, `sf:<id>`: game/cityCards.ts),
+ * so `openPanel('poi', id)` / PoiCard resolve them. Returns the unregister.
+ */
+export function registerPoiResolver(fn: PoiResolver): () => void {
+  poiResolvers.push(fn);
+  return () => { const i = poiResolvers.indexOf(fn); if (i >= 0) poiResolvers.splice(i, 1); };
+}
+function resolvePoi(id: string): PoiDef | undefined {
+  for (const fn of poiResolvers) { const poi = fn(id); if (poi) return poi; }
+  return undefined;
+}
+export const poiById = (id: string | null | undefined) => (id ? POIS.find(poi => poi.id === id) ?? (poiResolvers.length ? resolvePoi(id) : undefined) : undefined);
 export const postcardById = (id: string | null | undefined) => (id ? POSTCARDS.find(card => card.id === id) : undefined);
 
 /** Resolve a subject id (landmark id/kind, backdrop kind, anchor, POI id) to a world position. */

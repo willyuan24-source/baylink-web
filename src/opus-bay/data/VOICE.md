@@ -131,3 +131,31 @@ does), never reads a sign aloud, and never talks just to fill silence.
 | Legion of Honor · Chase Center · Sutro Baths | 荣勋宫美术馆 · 大通中心 · 苏特罗浴场 | | |
 | streetcar (F-line) | 老电车 / F 线电车 | | |
 | Karl the Fog | Karl | | always the name, never "大雾" alone |
+
+### Wave 4 additions (lane C: the new places, the lines, the Grand Tour)
+
+English stays primary on the real signs (station names on the Metro strip, "Van Ness" in English); the gloss below is
+what BAYBAY says and what the cards print. SFMTA's own Chinese station list could not be found on sfmta.com (checked
+2026-09-27, zh-hant site): the local forms 卡斯楚 / 雲尼斯 differ from our 卡斯特罗站 / "Van Ness 站", which stay (plan R11).
+
+| en | zh (say this) | not | note |
+|---|---|---|---|
+| Stonestown Galleria | 石镇购物中心 · 石镇 | | alias 石头城 (search only) |
+| San Francisco State University | 旧金山州立大学 · 州立大学 · 州大 | | the student centre has no name in 2026: never name the building |
+| University of San Francisco | 旧金山大学 | 旧金山州立大学 | USF, Lone Mountain |
+| UCSF Parnassus · UCSF Mission Bay | 加州大学旧金山分校 · 帕纳萨斯 / 米慎湾校区 | | short UCSF |
+| City College of San Francisco | 旧金山城市学院 | | the Rivera mural is in storage until ≈ 2028 |
+| Blue Heron Lake | 蓝鹭湖（原斯托湖） | 斯托湖 alone | renamed 18 Jan 2024 |
+| de Young Museum | 迪扬博物馆 | | |
+| Clement St | 克莱门街 | 企李街 | 企李街 is Clay St (Chinatown) |
+| Grant Ave · Irving St | 都板街 · 尔文街 | | |
+| Bay Bridge · Marina Green · Treasure Island | 海湾大桥 · 码头绿地 · 金银岛 | | the frozen loop tip says 海滨草地 as a description |
+| Pier 33 Alcatraz Landing · Pier 14 | 恶魔岛渡轮码头 · 33 号码头 · 14 号码头 | | where the island trips end (lane P's ARRIVAL_PLACES) |
+| Corona Heights | 科罗娜高地 | | the panorama is at the summit |
+| the sightseeing bus / loop | 观光巴士 / 观光环线 | 旅游巴士 | coral 观光 roundel |
+| N Judah · M Ocean View | N 线 · M 线 | | Muni Metro = 地铁 in speech |
+| Embarcadero · Montgomery · Powell · Civic Center stations | 内河码头站 · 蒙哥马利站 · 鲍威尔站 · 市政中心站 | | Van Ness stays "Van Ness 站" |
+| Church · Castro · Forest Hill · West Portal stations | 教堂街站 · 卡斯特罗站 · 森林山站 · 西门站 | 卡斯楚站 | |
+| Holloway (the M stop at SF State) | Holloway | | no Chinese name |
+| Sunset Tunnel · Twin Peaks Tunnel | 日落隧道 · 双峰隧道 | | |
+| the Grand Tour | 环游旧金山 · 一日游 | | "继续一日游 · 第 3 章" when resumed |

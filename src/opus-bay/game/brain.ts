@@ -8,7 +8,8 @@ import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { STOP_PROMPTS } from '../data/script';
 import {
-  boardPosition, bubble, currentStop, freeLeadArrived, introPending, lastLeadCall, nextFreeGoal, maybeStartIntro, openCallMenu, performInteraction, stageMark, talkMark, tourArrived, weekArrived, welcomeMark,
+  boardPosition, bubble, currentStop, freeLeadArrived, introPending, lastArrivalAt, lastLeadCall, nextFreeGoal, maybeStartIntro, openCallMenu, performInteraction, stageMark, talkMark, tourArrived,
+  tripGuide, weekArrived, welcomeMark,
 } from './flow';
 import { bark } from './content';
 import { flow } from './flowStore';
@@ -197,6 +198,15 @@ function waitBark(now: number) {
   bubble(line, 2600, BAYBAY_ID, 'call');
 }
 
+/**
+ * Wave 4 · lane C: the trip runner (game/tripRun.ts) leads each walking leg with the tour's rules (wait barks, the
+ * nudge, the LeadChip after 20 s idle).
+ */
+export function leadTo(now: number, dest: Vec2, radius: number, onArrive: () => void) { lead(now, dest, radius, onArrive); }
+
+/** The soft hint stays away this long after an arrival moment (plan §4.2 waypoint; = game/arrival.ts HINT_QUIET_MS). */
+const HINT_QUIET_MS = 60000;
+
 function lead(now: number, dest: Vec2, radius: number, onArrive: () => void) {
   const g = runtime.guide, p = P(), gp = dist(G(), p);
   const guideToDest = dist(G(), dest), playerToDest = dist(p, dest);
@@ -235,7 +245,10 @@ function freeHint(now: number) {
   if (now - hintAt < 2000 && s.goalsDone === hintGoals) return;
   hintAt = now;
   hintGoals = s.goalsDone;
-  const allowed = now - freeSince > 8000 && performance.now() > f.freeHintOffUntil && !f.mapTarget && performance.now() > f.quietUntil;
+  // wave 4: never during a trip, and not for a minute after an arrival moment (plan §4.2)
+  const arrivedAt = lastArrivalAt();
+  const allowed = now - freeSince > 8000 && performance.now() > f.freeHintOffUntil && !f.mapTarget && performance.now() > f.quietUntil
+    && !f.trip && !(arrivedAt > 0 && performance.now() - arrivedAt < HINT_QUIET_MS);
   const next = allowed ? nextFreeGoal() : null;
   const cur = f.freeHint;
   if (!next) { if (cur) flow.set({ freeHint: null }); return; }
@@ -337,6 +350,8 @@ export function updateGuide(now: number) {
     maybeStartIntro(gp, atMark);
     return;
   }
+  // wave 4: a trip (跟 BAYBAY 去, a Grand Tour leg, a city free lead) leads before the first lesson and the week
+  if (tripGuide(now)) return;
   if (s.tour.active) {
     const cur = currentStop();
     if (cur) {

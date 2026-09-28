@@ -24,13 +24,14 @@ const script = await import('../src/opus-bay/data/script');
 const { CITY_POIS, CITY_PHOTOS, CITY_POI_ZONES, SF_GUIDE_SLUG, ZH_GLOSSARY, cityPoiId, isMonthTagged } = await import('../src/opus-bay/data/sf/cityPois');
 const { CITY_POSTCARDS, CITY_POSTCARD_NEAR } = await import('../src/opus-bay/data/sf/postcards');
 const { CITY_FREE_GOALS, CITY_GOAL, HOOD_PREFIX, NEIGHBOURHOOD_TARGET, goalProgress } = await import('../src/opus-bay/data/sf/goals');
-const { CITY_COPY } = await import('../src/opus-bay/data/sf/copy');
+const { CITY_COPY, GRAND_TOUR: CITY_GRAND } = await import('../src/opus-bay/data/sf/copy');
 const { SF_LANDMARK_INFO } = await import('../src/opus-bay/data/sf/landmarks');
 const { SF_POSTCARD_ART_IDS } = await import('../src/opus-bay/data/assets');
 const { SF_LANDMARKS, sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
 const { sfLandmarkAnchor } = await import('../src/opus-bay/world/sf/landmarks/context');
 const { contentFor, goalTargets } = await import('../src/opus-bay/game/cityContent');
-const cityGoals = await import('../src/opus-bay/game/cityGoals');
+// (wave 4: the detectors moved to game/cityDetectors.ts, lazy; the waypoints stay in game/cityGoals.ts)
+const cityGoals = { ...(await import('../src/opus-bay/game/cityGoals')), ...(await import('../src/opus-bay/game/cityDetectors')) };
 const { goalKeyOf } = await import('../src/opus-bay/game/flow');
 const { DISTRICT } = await import('../src/opus-bay/data/district');
 
@@ -89,7 +90,8 @@ test('G2-0: city mode = district waterfront + city content; no waterfront-only b
   assert.equal(c.pois.length, pois.DISTRICT_POIS.length + 24);
   assert.equal(c.postcards.length, 20);
   assert.equal(new Set(c.postcards.map(card => card.id)).size, 20);
-  assert.deepEqual(c.freeGoals.map(goal => goal.id), ['postcards', 'cable-car', 'twin-peaks', 'golden-gate', 'painted-ladies', 'neighbourhoods', 'viewpoint']);
+  // wave 4 (lane C, W4-C8, on purpose): the sightseeing bus, the Metro and the campuses join the seven (7 → 10)
+  assert.deepEqual(c.freeGoals.map(goal => goal.id), ['postcards', 'cable-car', 'twin-peaks', 'golden-gate', 'painted-ladies', 'neighbourhoods', 'viewpoint', 'sightseeing', 'metro', 'campuses']);
   assert.equal(c.startNode, 'intro.hello.city');
   for (const kind of ['idle', 'day', 'night', 'edge']) {
     for (const line of c.guideBarks[kind]) assert.ok(!/海狮|码头|sea lion|pier/i.test(line.zh + line.en), `city ${kind} bark stays off the waterfront: ${line.zh}`);
@@ -227,7 +229,7 @@ test('G2-5: goal ids — only the three shared keys map to a GoalKey', () => {
   assert.equal(goalKeyOf(CITY_GOAL.postcards), 'postcards');
   assert.equal(goalKeyOf(CITY_GOAL.cableCar), 'cable-car');
   assert.equal(goalKeyOf(CITY_GOAL.viewpoint), 'viewpoint');
-  for (const id of [CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies, CITY_GOAL.neighbourhoods]) assert.equal(goalKeyOf(id), null, `${id}: no other key completes it`);
+  for (const id of [CITY_GOAL.twinPeaks, CITY_GOAL.goldenGate, CITY_GOAL.paintedLadies, CITY_GOAL.neighbourhoods, CITY_GOAL.sightseeing, CITY_GOAL.metro, CITY_GOAL.campuses]) assert.equal(goalKeyOf(id), null, `${id}: no other key completes it`);
   CITY_FREE_GOALS.forEach(goal => { filled(goal.label, goal.id); filled(goal.hint, goal.id); });
   assert.ok(CITY_FREE_GOALS[0].label.zh.includes('20'));
 });
@@ -304,8 +306,10 @@ test('G2-5: goal waypoints resolve to landmark cards', () => {
 test('G2-8: city welcome mirrors the district choices; subs, goals line and edge line', () => {
   const d = script.NODES[script.DISTRICT_START_NODE], c = script.NODES[script.CITY_START_NODE];
   assert.equal(c.id, 'intro.hello.city');
-  assert.deepEqual(c.choices?.map(ch => ch.action), d.choices?.map(ch => ch.action), 'the same four choices');
-  assert.deepEqual(c.choices?.map(ch => ch.next), ['tour.intro', 'week.intro', 'free.intro.city', 'local.intro']);
+  // wave 4 (lane C, W4-C7, on purpose): choice 1 starts the Grand Tour (the district's first lesson stays in the call menu)
+  assert.deepEqual(c.choices?.map(ch => ch.action), [{ type: 'start-tour', tourId: 'sf-grand' }, ...(d.choices ?? []).slice(1).map(ch => ch.action)], 'the same four choices; the tour is the Grand Tour');
+  assert.deepEqual(c.choices?.map(ch => ch.next), [undefined, 'week.intro', 'free.intro.city', 'local.intro']);
+  assert.deepEqual(script.CHOICE_SUBS['intro.hello.city:1'], CITY_GRAND.subtitle, 'the welcome sub is the Grand Tour subtitle');
   for (const k of [1, 2, 3, 4]) filled(script.CHOICE_SUBS[`intro.hello.city:${k}`], `sub ${k}`);
   assert.equal(script.CHOICE_SUBS['intro.hello.city:3'].zh, '全城 20 张明信片 · 叮当车 · 双峰');
   assert.equal(script.NODES['free.intro.city'].next, 'free.goals.city');

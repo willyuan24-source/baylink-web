@@ -37,8 +37,43 @@ export interface SaveV2 {
   rides?: Record<string, number>;
   vehicles?: { bike?: { id: string; x: number; z: number; heading: number }; car?: { x: number; z: number; heading: number } };
   unlocked?: { glide?: boolean };
+  /**
+   * Wave 4 · lane C: city tour progress per tour id (`sf-grand`), ≤ 8 ids. Decoded here as untrusted input (shape and
+   * caps); data/sf/tours.ts decodeTourSaves clamps it to the tour's own chapters and stop ids when a tour reads it.
+   */
+  tours?: Record<string, SaveTourProgress>;
+  /** Wave 4 · lane C: arrival moments already had (`<attraction>` or `<attraction>@<spot>`, ≤ 512; game/arrival.ts) */
+  arrivals?: string[];
   /** ms since epoch of the last write */
   savedAt?: number;
+}
+
+export interface SaveTourProgress { chapter: number; stop: number; completed: string[]; express?: boolean }
+export const MAX_TOUR_SAVES = 8;
+export const MAX_ARRIVALS = 512;
+const TOUR_ID = /^[a-z0-9][a-z0-9-]{0,39}$/;
+const ARRIVAL_KEY = /^[a-z0-9][a-z0-9-]{0,63}(@[a-z0-9-]{1,24})?$/;
+
+/** Save v2 `tours`: well-formed ids only, chapter / stop integers in 0–32, ≤ 64 unique stop ids, express only when true. */
+export function decodeTours(v: unknown): Record<string, SaveTourProgress> | undefined {
+  if (!isObj(v)) return undefined;
+  const out: Record<string, SaveTourProgress> = {};
+  let n = 0;
+  for (const [id, raw] of Object.entries(v)) {
+    if (n >= MAX_TOUR_SAVES) break;
+    if (!TOUR_ID.test(id) || !isObj(raw)) continue;
+    const int = (x: unknown) => (fin(x) ? Math.max(0, Math.min(32, Math.floor(x))) : 0);
+    const done = Array.isArray(raw.completed) ? [...new Set(raw.completed.filter((s): s is string => typeof s === 'string' && TOUR_ID.test(s)))].slice(0, 64) : [];
+    out[id] = { chapter: int(raw.chapter), stop: int(raw.stop), completed: done, ...(raw.express === true ? { express: true } : {}) };
+    n++;
+  }
+  return out;
+}
+
+/** Save v2 `arrivals`: well-formed seen keys, unique, ≤ 512 (game/arrival.ts decodeArrivalSeen applies the same rule). */
+export function decodeArrivals(v: unknown): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return [...new Set(v.filter((k): k is string => typeof k === 'string' && ARRIVAL_KEY.test(k)))].slice(0, MAX_ARRIVALS);
 }
 
 // ---------------------------------------------------------------------------
@@ -121,6 +156,10 @@ export function decodeSave(raw: unknown): SaveV2 | null {
     if (veh.bike || veh.car) out.vehicles = veh;
   }
   if (isObj(v.unlocked) && typeof v.unlocked.glide === 'boolean') out.unlocked = { glide: v.unlocked.glide };
+  const tours = decodeTours(v.tours);
+  if (tours) out.tours = tours;
+  const arrivals = decodeArrivals(v.arrivals);
+  if (arrivals) out.arrivals = arrivals;
   if (fin(v.savedAt) && v.savedAt > 0) out.savedAt = v.savedAt;
   return out;
 }

@@ -56,9 +56,13 @@ export function residentInteractables(goalsDone: readonly string[]): Interactabl
 
 const isCity = () => game.get().worldMode === 'city';
 
+/** Wave 4 · lane C's lazy city modules once loaded (game/cityMoments.ts): read through the functions below. */
+let moments: typeof import('./cityMoments') | null = null;
+
 export function initCityContent(): () => void {
   if (!isCity()) return () => {};
   let offLive: (() => void) | null = null, offLines: (() => void) | null = null, offTasks: (() => void) | null = null, disposed = false;
+  let offTrips: (() => void) | null = null, offMoments: (() => void) | null = null, offCards: (() => void) | null = null;
   const fail = (what: string) => (e: unknown) => { if (import.meta.env?.DEV) console.error(`[opus-bay ${what}]`, e); };
   // the goal detectors and the SF landmark subjects (plan G2-5): their own chunk with the landmark library
   void import('./cityLive').then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt }); }, fail('city goals'));
@@ -67,7 +71,25 @@ export function initCityContent(): () => void {
   // the six residents (plan G2-6): talkable at once, their favours and words in their own chunk
   const offResidents = registerInteractables('g2-residents', () => residentInteractables(game.get().goalsDone));
   void import('./residentTasks').then(m => { if (!disposed) offTasks = m.initResidentTasks(); }, fail('residents'));
-  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); };
+  // wave 4 (lane C): trips (flow.trip), arrival moments + BAYBAY's paced lines + the ride goals, the place cards
+  void import('./tripRun').then(m => { if (!disposed) offTrips = m.initTripRun(); }, fail('trips'));
+  void import('./cityMoments').then(m => { if (!disposed) { moments = m; offMoments = m.initCityMoments(); } }, fail('moments'));
+  void import('./cityCards').then(m => { if (!disposed) offCards = m.initCityCards(); }, fail('cards'));
+  return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); moments = null; };
+}
+
+/** Lane P's map: has the player had the arrival moment of this attraction? (false before the city content loads) */
+export const arrivalSeen = (attraction: string): boolean => moments?.arrivalSeen(attraction) ?? false;
+/** Lane T's subway overlay: BAYBAY's tunnel line for the arc span it goes under ground on (nothing before load). */
+export function sayTunnel(line: string, fromAt: number, toAt: number) { moments?.sayTunnel(line, fromAt, toAt); }
+/** Lane T's countRide for a sightseeing-bus ride finished with 直接到站: every loop stop of it counts for the goal. */
+export function noteLoopRide(from: string, to: string) { moments?.noteLoopRide(from, to); }
+
+/** Wave 4: more goal targets from the lazy city modules (the loop stops, Metro stations and campuses of lane C's goals). */
+const extraTargets = new Map<string, () => GoalTarget[]>();
+export function registerGoalTargets(key: string, fn: () => GoalTarget[]): () => void {
+  extraTargets.set(key, fn);
+  return () => { if (extraTargets.get(key) === fn) extraTargets.delete(key); };
 }
 
 let targets: GoalTarget[] | null = null;
@@ -79,7 +101,8 @@ export function goalTargets(): GoalTarget[] {
     const t = r.task.target;
     return { id: t.id, goal: taskDoneId(r.key), x: t.x, z: t.z, name: { zh: `小忙 · ${t.name.zh}`, en: `Favour · ${t.name.en}` }, radius: t.r, first: true };
   });
-  return favours.length ? [...favours, ...targets] : targets;
+  const extra = [...extraTargets.values()].flatMap(fn => fn());
+  return favours.length || extra.length ? [...favours, ...targets, ...extra] : targets;
 }
 
 export interface ContentTables {

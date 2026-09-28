@@ -1,5 +1,6 @@
 import type { Bilingual, DialogueAction, DialogueChoice, DialogueNode, FreeGoal, Mood, Speaker, WeekQuestions } from '../core/types';
 import { byMode } from './contentMode';
+import { GRAND_TOUR } from './sf/copy';
 import { CITY_FREE_GOALS } from './sf/goals';
 
 /**
@@ -67,14 +68,17 @@ export const DISTRICT_START_NODE = one({
   ],
 });
 
-/** City mode's welcome (plan G2-8): the same four choices; "I'll explore" leads to the city goals. */
+/**
+ * City mode's welcome (plan G2-8): the same four choices; "I'll explore" leads to the city goals. Wave 4 (W4-C7): "show
+ * me around" is the Grand Tour 环游旧金山 · 一日游 (game/cityTour.ts; Bay 101 stays in the call menu as 海边 7 站).
+ */
 export const CITY_START_NODE = one({
   id: 'intro.hello.city',
   speaker: 'baybay',
   mood: 'wave',
   text: { zh: '嗨！欢迎来到旧金山～我是 BAYBAY。第一次来吗？', en: "Hi! Welcome to San Francisco — I'm BAYBAY. First time here?" },
   choices: [
-    choice('1', '刚来湾区，带我认识一下', "I'm new — show me around", { action: { type: 'start-tour' }, next: 'tour.intro' }),
+    choice('1', '刚来湾区，带我认识一下', "I'm new — show me around", { action: { type: 'start-tour', tourId: GRAND_TOUR.id } }),
     choice('2', '这周有什么好玩的？', "What's on this week?", { action: { type: 'start-week' }, next: 'week.intro' }),
     choice('3', '我自己逛逛', "I'll explore on my own", { action: { type: 'free-roam' }, next: 'free.intro.city' }),
     choice('4', '我是本地人，直接开始', "I'm a local — let's just go", { action: { type: 'skip-intro' }, next: 'local.intro' }),
@@ -482,6 +486,8 @@ seq('cablecar.turned', [['proud', '转过来啦！我们是全城最棒的推车
 one({ id: 'ferry.station', speaker: 'npc', npcName: crewName('deckhand'), mood: 'happy', text: { zh: '欢迎上船！这里是 {station}，想去哪个码头？', en: 'Welcome aboard! This is {station}. Which pier are we headed to?' } });
 seq('ferry.board', [['excited', '上船啦！找个靠栏杆的位置看海～', 'All aboard! Grab a spot by the rail and watch the water~']]);
 seq('ferry.off', [['happy', '靠岸啦！下船小心脚下～', "We've docked! Watch your step~"]]);
+// the city F-line (lane F, wave 3 a: the streetcarBoard hook; game/transit.ts keeps its inline line as the fallback)
+seq('streetcar.board.city', [['excited', '上车啦！F 线的老电车，一路开过整条 Market 街～', 'All aboard! A vintage F-line car, all the way up Market Street~']]);
 
 // ---------------------------------------------------------------------------
 // Collectibles, handoff, misc
@@ -562,6 +568,7 @@ export const CITY_TRANSIT_HOOKS = {
   ferryStation: 'ferry.station',
   ferryBoard: 'ferry.board',
   ferryOff: 'ferry.off',
+  streetcarBoard: 'streetcar.board.city',
 } as const;
 /** City mode: the city welcome, free-roam intro and goals, card counts, call menu, edge line and transit hooks. */
 export const CITY_SCRIPT_HOOKS: ScriptHooks & typeof CITY_TRANSIT_HOOKS = {
@@ -588,7 +595,8 @@ export const CHOICE_SUBS: Record<string, Bilingual> = {
   'intro.hello:2': { zh: '3 个小问题 · 这周真实活动', en: '3 quick questions · real events this week' },
   'intro.hello:3': { zh: '随便走 · 找 8 张明信片', en: 'Wander · find 8 postcards' },
   'intro.hello:4': { zh: '不打扰，直接逛', en: 'No chatter — just explore' },
-  'intro.hello.city:1': { zh: '海边 7 站 · 约 5 分钟 · 我带路', en: '7 waterfront stops · ~5 min · I lead' },
+  // wave 4: the Grand Tour (= data/sf/tours.ts SF_GRAND.subtitle, tested)
+  'intro.hello.city:1': GRAND_TOUR.subtitle,
   'intro.hello.city:2': { zh: '3 个小问题 · 这周真实活动', en: '3 quick questions · real events this week' },
   'intro.hello.city:3': { zh: '全城 20 张明信片 · 叮当车 · 双峰', en: '20 postcards citywide · cable cars · Twin Peaks' },
   'intro.hello.city:4': { zh: '不打扰，直接逛', en: 'No chatter — just explore' },

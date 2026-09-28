@@ -6,7 +6,7 @@ import { CITY_GOAL } from '../data/sf/goals';
 import { sfLandmarkInfo } from '../data/sf/landmarks';
 import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
 import { sfLandmark, worldToLandmark } from '../world/sf/landmarks/index';
-import { PAINTED_LADIES_PHOTO_R, createDeckCrossing, createSummitDetector, isNeighbourhoodId, neighbourhoodVisit, type GoalSample } from './cityGoals';
+import { PAINTED_LADIES_PHOTO_R, createDeckCrossing, createSummitDetector, isNeighbourhoodId, neighbourhoodVisit, type GoalSample } from './cityDetectors';
 import { travelActive, travelEpoch } from './fastTravel';
 import { registerSubjectResolver } from './interactables';
 import { registerFrameSystem } from './systemsRegistry';
