@@ -262,7 +262,7 @@ export function CityMapPanel() {
     const hit = hitTest(scene, p.x, p.y, HIT_PX);
     if (hit?.members?.length && scene.s < 1.2) {
       const pts = clusterPoints(scene, ATTRACTION_BY_ID, hit.id, hit.members);
-      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 56, 0.5, 2.4) : v));
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 56, 0.5, 2.4, toolRight) : v));
       return;
     }
     setSel(hit ? { kind: hit.kind, id: hit.id } : null);
@@ -299,7 +299,7 @@ export function CityMapPanel() {
     if (line && highlight !== id) {
       const pts: Vec2[] = [];
       for (let i = 0; i + 2 < line.path.length; i += 3 * 8) pts.push({ x: line.path[i], z: line.path[i + 2] });
-      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 28, 0.1, 1.2) : v));
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 28, 0.1, 1.2, toolRight) : v));
     }
   };
   const pickRoute = (id: SfRouteId) => {
@@ -310,7 +310,7 @@ export function CityMapPanel() {
     if (p && highlight !== key) {
       const pts: Vec2[] = [];
       for (let i = 0; i + 1 < p.points.length; i += 2) pts.push({ x: p.points[i], z: p.points[i + 1] });
-      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.2, 2) : v));
+      setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.2, 2, toolRight) : v));
     }
   };
   useEffect(() => {
@@ -406,12 +406,12 @@ export function CityMapPanel() {
     if (framedTrip.current || !onTrip || !plan?.route) return;
     framedTrip.current = true;
     const route = plan.route;
-    setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...route.points], 44, 0.25, 2) : v));
-  }, [onTrip, plan]);
+    setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...route.points], 44, 0.25, 2, toolRight) : v));
+  }, [onTrip, plan, toolRight]);
   const showRoute = () => {
     const route = plan?.route;
     const pts: Vec2[] = route ? routeAhead(route.points, runtime.player).points : trip ? trip.legs.flatMap(l => [l.from, l.to]) : [];
-    if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2) : v));
+    if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, [{ x: runtime.player.x, z: runtime.player.z }, ...pts], 44, 0.2, 2, toolRight) : v));
   };
   // the trip strip: where lane C's trip goes (its last leg's point name, else the place / attraction)
   const tripName: Bilingual | null = !trip ? null : trip.legs[trip.legs.length - 1]?.to.name ?? (trip.attraction ? ATTRACTION_INDEX.resolve(trip.attraction)?.name : undefined) ?? ix?.get(trip.placeId)?.name ?? null;

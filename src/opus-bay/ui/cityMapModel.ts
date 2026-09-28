@@ -264,14 +264,17 @@ export function clusterPoints(scene: MapScene, attractions: ReadonlyMap<string, 
 // Framing (absolute scale: s = CSS px per world unit)
 // ---------------------------------------------------------------------------------------------------------------------
 
-/** The view that shows `pts` with `pad` px to spare, its scale kept in [sMin, sMax] (then the usual limits). */
-export function fitAbs(v: MapView, frame: MapFrameBox, pts: readonly Vec2[], pad: number, sMin: number, sMax: number): MapView {
+/**
+ * The view that shows `pts` with `pad` px to spare, its scale kept in [sMin, sMax] (then the usual limits). `right`: px
+ * kept clear on the right besides (the map's tool column: a route's first stop sat under the zoom buttons).
+ */
+export function fitAbs(v: MapView, frame: MapFrameBox, pts: readonly Vec2[], pad: number, sMin: number, sMax: number, right = 0): MapView {
   if (!pts.length) return v;
   let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
   for (const p of pts) { x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); z0 = Math.min(z0, p.z); z1 = Math.max(z1, p.z); }
-  const sx = (v.w - 2 * pad) / Math.max(1, x1 - x0), sz = (v.h - 2 * pad) / Math.max(1, z1 - z0);
+  const sx = (v.w - 2 * pad - right) / Math.max(1, x1 - x0), sz = (v.h - 2 * pad) / Math.max(1, z1 - z0);
   const scale = Math.min(sMax, Math.max(sMin, Math.min(sx, sz)));
-  return clampView({ ...v, cx: (x0 + x1) / 2, cz: (z0 + z1) / 2, scale }, frame);
+  return clampView({ ...v, cx: (x0 + x1) / 2 + right / 2 / scale, cz: (z0 + z1) / 2, scale }, frame);
 }
 
 /** 全城: the SF land box, as large as it fits (phone ≈ 0.185, desktop ≈ 0.231). */

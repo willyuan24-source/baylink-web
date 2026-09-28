@@ -352,3 +352,13 @@ test('a walking route\'s stop an attraction badge stands for wears its number on
   const pal = scene(352, 388, v, { tourNext: { id: [...numbers.keys()][0], n: 3 } }).attractions.get([...numbers.keys()][0])!;
   assert.equal(badgePaint(pal.a, pal.size, pal.state).tourDisc?.fill, BADGE_INK.coral);
 });
+
+test('framing a line, a route or a trip keeps the tool column clear (a walk\'s first stop sat under the zoom buttons)', () => {
+  const pts = [{ x: -382, z: 300 }, { x: -760, z: 590 }, { x: -600, z: 420 }];
+  const v = fitAbs({ cx: 0, cz: 0, scale: 1, w: 352, h: 388 }, MAP_FRAME, pts, 36, 0.2, 2, 48);
+  const px = (p: { x: number; z: number }) => (p.x - v.cx) * v.scale + v.w / 2;
+  for (const p of pts) assert.ok(px(p) >= 36 - 1e-6 && px(p) <= 352 - 36 - 48 + 1e-6, `x ${px(p).toFixed(1)}`);
+  // without the reserve the old framing (the default) is unchanged
+  const old = fitAbs({ cx: 0, cz: 0, scale: 1, w: 352, h: 388 }, MAP_FRAME, pts, 36, 0.2, 2);
+  assert.ok(Math.abs(old.cx - (-382 - 760) / 2) < 1e-6);
+});
