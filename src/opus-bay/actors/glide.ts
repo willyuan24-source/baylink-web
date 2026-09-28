@@ -1,5 +1,5 @@
 import { cityTerrain, forEachBlockerNear, heightAt, inWorld, nearestWalkable, type Blocker } from '../core/terrain';
-import type { Vec2 } from '../core/types';
+import type { Bilingual, Vec2 } from '../core/types';
 import { arrivalSpot } from './nav';
 
 /**
@@ -55,11 +55,47 @@ export const GLIDE = {
 export interface GlideWorld {
   heightAt(x: number, z: number): number;
   inWorld(x: number, z: number): boolean;
+  /**
+   * wave 5 (W5-F2): the key of a soft box (charApi glideSoftBox) holding (x, z) at height y, else null: the pelican
+   * turns back from it like from the model's edge, and steers out when it is already inside
+   */
+  avoid?(x: number, z: number, y: number): string | null;
   /** highest roof (world y) of static structures within r of (x, z); −Infinity when there is none */
   roofAt(x: number, z: number, r: number): number;
   /** a standable landing spot within r of (x, z) — never water — or null */
   landingSpot(x: number, z: number, r: number): Vec2 | null;
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Soft boxes (wave 5, W5-F2): boxes the pelican is turned back from — lane R's Fleet Week air box, lane A's first-flight
+// course — keyed so several lanes can hold one each (actors/charApi glideSoftBox). The turn is the model edge's gentle
+// one (GLIDE.edgeTurn); BAYBAY says the box's line (actors/moveSystem, once per GLIDE_BOX_LINE_S).
+// ---------------------------------------------------------------------------------------------------------------
+
+export interface GlideSoftBox { minX: number; minZ: number; maxX: number; maxZ: number; minY?: number }
+const softBoxes = new Map<string, { box: GlideSoftBox; line?: Bilingual }>();
+/** BAYBAY says a box's line at most this often (s) */
+export const GLIDE_BOX_LINE_S = 8;
+
+/** Set (or with null remove) the key's soft box. A box with a non-finite or inverted extent is ignored. */
+export function setGlideSoftBox(key: string, box: GlideSoftBox | null, line?: Bilingual): void {
+  if (!box) { softBoxes.delete(key); return; }
+  const ok = [box.minX, box.minZ, box.maxX, box.maxZ].every(Number.isFinite) && box.maxX > box.minX && box.maxZ > box.minZ
+    && (box.minY === undefined || Number.isFinite(box.minY));
+  if (!ok) return;
+  softBoxes.set(key, line ? { box: { ...box }, line } : { box: { ...box } });
+}
+/** The key of the soft box holding (x, z) at height y (a box with minY holds only at or above it), else null. */
+export function glideSoftBoxAt(x: number, z: number, y: number): string | null {
+  for (const [key, { box: b }] of softBoxes) {
+    if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ && (b.minY === undefined || y >= b.minY)) return key;
+  }
+  return null;
+}
+/** The line a box asked BAYBAY to say (undefined: none). */
+export function glideSoftBoxLine(key: string): Bilingual | undefined { return softBoxes.get(key)?.line; }
+/** QA / tests: the boxes held now. */
+export function glideSoftBoxes(): { key: string; box: GlideSoftBox }[] { return [...softBoxes].map(([key, v]) => ({ key, box: { ...v.box } })); }
 
 /** A known tall structure (world y of its top) used as a glide repulsor when blockers carry no heights. */
 export interface TallStructure { x: number; z: number; r: number; top: number }
@@ -135,6 +171,7 @@ export function terrainGlideWorld(tall: TallSource = []): GlideWorld {
       return Math.max(qTop, lookup().roofAt(x, z, r));
     },
     landingSpot(x, z, r) { return cityTerrain() ? arrivalSpot({ x, z }, r) : nearestWalkable({ x, z }, r); },
+    avoid: glideSoftBoxAt,
   };
 }
 
@@ -157,6 +194,8 @@ export interface GlideReport {
   landed: boolean;
   /** the take-off swoop finished this step */
   airborne: boolean;
+  /** wave 5: the key of the soft box the pelican is turning back from (or steering out of) */
+  softBox?: string;
 }
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -252,6 +291,18 @@ export class GlideSim {
     }
   }
 
+  /** The heading out of the soft box `key` by its nearest side (the current heading when the box is gone). */
+  private boxExit(world: GlideWorld, key: string): number {
+    let best = this.heading, bestD = Infinity;
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2, sx = Math.sin(a), sz = Math.cos(a);
+      for (let d = 10; d <= 1600; d *= 1.5) {
+        if (world.avoid?.(this.x + sx * d, this.z + sz * d, this.y) !== key) { if (d < bestD) { bestD = d; best = a; } break; }
+      }
+    }
+    return best;
+  }
+
   /** Soft floor under / just ahead of (x, z): ground or roofs within 6 u, + 6. */
   floorAt(world: GlideWorld, x: number, z: number): { soft: number; hard: number } {
     const base = Math.max(world.heightAt(x, z), world.roofAt(x, z, GLIDE.floorR));
@@ -296,15 +347,28 @@ export class GlideSim {
       }
     }
 
-    // --- model edge: turn back toward the inside
-    if (!world.inWorld(this.x + fx * GLIDE.edgeLook, this.z + fz * GLIDE.edgeLook)) {
-      const test = (d: number) => world.inWorld(this.x + Math.sin(this.heading + d) * GLIDE.edgeLook, this.z + Math.cos(this.heading + d) * GLIDE.edgeLook);
+    // --- model edge (and wave 5's soft boxes): turn back toward the inside
+    const boxAt = (x: number, z: number) => world.avoid?.(x, z, this.y) ?? null;
+    const inside = boxAt(this.x, this.z);
+    const aheadX = this.x + fx * GLIDE.edgeLook, aheadZ = this.z + fz * GLIDE.edgeLook;
+    const boxAhead = inside ? null : boxAt(aheadX, aheadZ);
+    if (inside) {
+      // already in a box (took off inside it, or it appeared round the pelican): out by the nearest side
+      const out = this.boxExit(world, inside);
+      const err = wrap(out - this.heading);
+      if (Math.abs(err) > 0.05) { yawOverride = Math.sign(err) * GLIDE.edgeTurn; rollT = -Math.sign(err) * GLIDE.rollK * 0.8; }
+      report.softBox = inside;
+    } else if (!world.inWorld(aheadX, aheadZ) || boxAhead) {
+      const test = (d: number) => {
+        const x = this.x + Math.sin(this.heading + d) * GLIDE.edgeLook, z = this.z + Math.cos(this.heading + d) * GLIDE.edgeLook;
+        return world.inWorld(x, z) && !boxAt(x, z);
+      };
       let dir = 0;
       for (const d of [0.6, 1.2, 1.8, 2.4]) { if (test(d)) { dir = 1; break; } if (test(-d)) { dir = -1; break; } }
       if (dir === 0) dir = 1;
       yawOverride = dir * GLIDE.edgeTurn;
       rollT = -dir * GLIDE.rollK * 0.8;
-      report.edge = true;
+      if (boxAhead) report.softBox = boxAhead; else report.edge = true;
     }
 
     // --- attitude

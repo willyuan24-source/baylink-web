@@ -22,6 +22,7 @@ import { DRAG_THRESHOLD } from './pointer';
 import { MoveSystem } from './moveSystem';
 import { bindMoveApi } from './moveApi';
 import { FACADE_REACH, facadeAlongRay, frontSpot, type FacadeIntersection } from './tapTarget';
+import { CharImpl, type CharHost } from './charImpl';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -106,6 +107,36 @@ function groundAlongRay(o: THREE.Vector3, d: THREE.Vector3, far: number): number
   return -1;
 }
 
+/**
+ * Wave 5 (W5-F2) · the player's tap body: a vertical capsule round the drawn newcomer (view.x / y / z), radius and
+ * height in world units (CHAR_SCALE applied). A ray that meets it before the ground is a self-tap (lane A's emote wheel).
+ */
+export const SELF_TAP = { r: 0.55, h: 1.6 } as const;
+/** set by the actor system each frame: the player's body can be tapped (on foot, playing, nothing open) */
+const selfTap = { on: false };
+
+/** Ray parameter where the ray meets the capsule of radius r from (x, y0, z) up to y0 + h, or −1. */
+export function rayCapsuleT(o: { x: number; y: number; z: number }, d: { x: number; y: number; z: number }, x: number, y0: number, z: number, r: number, h: number): number {
+  // closest approach of the ray to the capsule's axis segment, sampled along the segment (the capsule is small)
+  let best = -1;
+  for (let k = 0; k <= 8; k++) {
+    const cy = y0 + r + ((h - 2 * r) * k) / 8;
+    // ray vs sphere (x, cy, z) radius r
+    const ox = o.x - x, oy = o.y - cy, oz = o.z - z;
+    const b = ox * d.x + oy * d.y + oz * d.z, c = ox * ox + oy * oy + oz * oz - r * r;
+    const disc = b * b - c;
+    if (disc < 0) continue;
+    const t = -b - Math.sqrt(disc);
+    if (t >= 0 && (best < 0 || t < best)) best = t;
+  }
+  return best;
+}
+
+function selfTapT(o: THREE.Vector3, d: THREE.Vector3): number {
+  if (!selfTap.on || !view.ready) return -1;
+  return rayCapsuleT(o, d, view.x, view.y, view.z, SELF_TAP.r * CHAR_SCALE, SELF_TAP.h * CHAR_SCALE);
+}
+
 /** The point the occlusion dither fades around (world/world.ts sets uPlayer from the same place). */
 const seenPlayer = () => ({ x: runtime.player.x, y: runtime.player.y + 0.8, z: runtime.player.z });
 
@@ -115,6 +146,12 @@ const seenPlayer = () => ({ x: runtime.player.x, y: runtime.player.y + 0.8, z: r
  */
 function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
   const o = raycaster.ray.origin, d = raycaster.ray.direction;
+  // wave 5 (W5-F2): a tap on the player's own body (checked before the ground) is a self-tap, not a walk
+  const self = selfTapT(o, d);
+  if (self >= raycaster.near && self <= raycaster.far) {
+    intersects.push({ distance: self, point: new THREE.Vector3(o.x + d.x * self, o.y + d.y * self, o.z + d.z * self), object: this, selfTap: 'player' } as THREE.Intersection);
+    return;
+  }
   const hitT = groundAlongRay(o, d, raycaster.far);
   const hl = Math.hypot(d.x, d.z);
   const wall = hl > 1e-4 ? facadeAlongRay(o, d, Math.min(hitT >= 0 ? hitT : Infinity, FACADE_REACH / hl, raycaster.far), seenPlayer()) : null;
@@ -334,6 +371,9 @@ export class ActorSystem {
   }
   /** vehicles, glide, benches, the streetcar platform */
   readonly move = new MoveSystem();
+  /** wave 5 (W5-F2): the charApi implementation over these bodies (Actors.tsx registers it) */
+  readonly char: CharImpl;
+  private lastSelfTap = -10;
   private seenPant = -10;
   // A9 · idle life
   private idleT = 0;
@@ -380,6 +420,30 @@ export class ActorSystem {
 
     this.unsub = onEvent(e => this.onGameEvent(e));
     this.mover.place();
+    this.char = new CharImpl(this.charHost());
+  }
+
+  private charHost(): CharHost {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const sys = this;
+    return {
+      get player() { return sys.player; },
+      get guide() { return sys.guide; },
+      get playerAnim() { return sys.playerAnim; },
+      get guideAnim() { return sys.guideAnim; },
+      guideIsGlb: () => sys.guideModel === 'glb',
+      playerFree: () => sys.move.mode === 'foot' && !sys.move.carried && game.get().riding === null,
+      guideFree: () => !sys.move.guideCarried && !sys.move.guide.active,
+      playerMoving: () => runtime.player.moving || input.manualMove || !!runtime.player.pathTarget || !sys.controller.grounded,
+      guideMoving: () => sys.mover.animSpeed > 0.6,
+      placePlayer: (x, z, heading) => {
+        const p = runtime.player;
+        p.x = x; p.z = z; p.heading = heading; p.pathTarget = null; p.pendingInteract = null;
+        sys.controller.sync();
+      },
+      rides: () => sys.move.fleet.rides,
+      pelican: () => sys.move.pelican.rig,
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -455,6 +519,13 @@ export class ActorSystem {
     const driving = this.move.mode === 'bike' || this.move.mode === 'car';
     if (s.phase !== 'playing' || s.photoMode || s.riding || (this.move.carried && !driving) || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
     e.stopPropagation();
+    // wave 5 (W5-F2): a tap on your own character (lane A: the emote wheel; a second tap within 0.38 s is a double)
+    if ((e as unknown as { selfTap?: string }).selfTap === 'player') {
+      const now = performance.now() / 1000, double = now - this.lastSelfTap < 0.38;
+      this.lastSelfTap = double ? -10 : now;
+      emit({ type: 'self-tap', who: 'player', double });
+      return;
+    }
     // M2 (city): a tap on a building wall means "go there": the nearest open ground in front of it
     const wall = (e as unknown as FacadeIntersection).facade;
     const front = wall ? frontSpot(wall.x, wall.z, wall.ux, wall.uz) : null;
@@ -519,6 +590,9 @@ export class ActorSystem {
 
     this.controller.step({ dt, now: t, cameraYaw: moveBasis.yaw, frozen, riding: carried, obstacles: this.obstacles });
     move.finishPlayer();
+    // wave 5 (W5-F2): emote loops end on a move; the ridden bike wears its paint; the body can be tapped when free
+    this.char.update(dt);
+    selfTap.on = s.phase === 'playing' && !carried && move.mode === 'foot' && !frozen && !s.photoMode;
     this.guideSeen = frustum.intersectsSphere(tmpSphere.set(tmpV.set(g.x, g.y + 0.75, g.z), 1.1));
     const guideHeld = move.guideCarried || (carried && move.mode !== 'sit');
     this.mover.step(dt, t, { playing: s.phase === 'playing', riding: riding || guideHeld, visible: this.guideSeen });
@@ -802,6 +876,7 @@ export class ActorSystem {
     this.lastGuideEmote = 'none';
     this.glbPending = null;
     this.guideModel = 'glb';
+    this.char.onGuideSwap();
     old.mesh.geometry.dispose();
     old.mesh.skeleton.dispose();
     return true;
@@ -815,6 +890,8 @@ export class ActorSystem {
     // (a city resident whose body is still loading never builds it now: G2's review request 7, sf-w3-G2.md)
     this.npcs.forEach(n => n.release());
     this.disposed = true;
+    this.char.dispose();
+    selfTap.on = false;
     this.unsub();
     bindMoveApi(null);
     const geos = [this.player.mesh.geometry, this.guide.mesh.geometry, ...this.npcs.map(n => n.rig.mesh.geometry), this.blobs.geometry, this.pick.geometry];

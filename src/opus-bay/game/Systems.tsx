@@ -12,7 +12,7 @@ import { updateFocus, updateGuide } from './brain';
 import { currentFraming, measureBottomCover, stepCinema } from './cinema';
 import { BAYBAY_HEAD_Y, PLAYER_HEAD_Y } from '../actors/dims';
 import * as flowActions from './flow';
-import { busy, callBaybay, objectiveTarget, performInteraction, requestInteract, teleportPlayer, walkTo } from './flow';
+import { busy, callBaybay, closeDialogue, objectiveTarget, performInteraction, requestInteract, teleportPlayer, walkTo } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
 import { consumeShutter } from './photo';
@@ -126,6 +126,28 @@ function activate(id: string) {
   } else walkTo(it, id);
 }
 
+/**
+ * Wave 5 (W5-F2) · a tap on BAYBAY. The first tap does what it always did (talk / walk up to her) and says so
+ * (`self-tap`, double: false); a second within DOUBLE_TAP_S is a double-tap (lane A: pet her) — the call menu the
+ * first tap opened folds away again, untouched.
+ */
+const DOUBLE_TAP_S = 0.38;
+const baybayTap = { t: -10, opened: null as string | null };
+function tapBaybay(now = performance.now() / 1000) {
+  if (now - baybayTap.t < DOUBLE_TAP_S) {
+    if (baybayTap.opened && game.get().dialogue.nodeId === baybayTap.opened) closeDialogue();
+    baybayTap.t = -10; baybayTap.opened = null;
+    emit({ type: 'self-tap', who: 'baybay', double: true });
+    return;
+  }
+  const before = game.get().dialogue.nodeId;
+  baybayTap.t = now;
+  activate(BAYBAY_ID);
+  const after = game.get().dialogue.nodeId;
+  baybayTap.opened = after && after !== before ? after : null;
+  emit({ type: 'self-tap', who: 'baybay', double: false });
+}
+
 let hovered: string | null = null;
 function setHover(id: string | null) {
   if (hovered === id) return;
@@ -218,7 +240,7 @@ function Proxies({ list }: { list: Interactable[] }) {
         scale={1.1}
         onPointerMove={e => { e.stopPropagation(); setHover(BAYBAY_ID); }}
         onPointerOut={() => setHover(null)}
-        onClick={e => { e.stopPropagation(); if (e.delta > 8) return; activate(BAYBAY_ID); }}
+        onClick={e => { e.stopPropagation(); if (e.delta > 8) return; tapBaybay(); }}
       />
     </>
   );

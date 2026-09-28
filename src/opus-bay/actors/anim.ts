@@ -10,13 +10,23 @@ import type { Rig } from './models';
 export type Emote =
   | 'wave' | 'point' | 'hop' | 'clap' | 'shrug' | 'think'
   | 'cheer' | 'reach' | 'taste' | 'pickup' | 'look' | 'pose' | 'bell' | 'work' | 'reel' | 'tap' | 'call'
-  | 'map' | 'groom' | 'stretch' | 'pant';
+  | 'map' | 'groom' | 'stretch' | 'pant'
+  // wave 5 (W5-F2, actors/charApi): whole-body moods lane A plays through charApi().emote
+  | 'dance' | 'lie' | 'sit' | 'float' | 'pet';
 
 export const EMOTE_SECONDS: Record<Emote, number> = {
   wave: 1.5, point: 1.6, hop: 0.95, clap: 1.3, shrug: 1.3, think: 2.0,
   cheer: 1.25, reach: 0.9, taste: 1.4, pickup: 1.1, look: 1.8, pose: 1e9, bell: 1.2, work: 2.4, reel: 1.8, tap: 1.6, call: 1.1,
   map: 5.5, groom: 2.4, stretch: 1.6, pant: 2,
+  // one play of each (a loop holds them: charApi emote { loop: true })
+  dance: 4, lie: 4, sit: 4, float: 6, pet: 1.8,
 };
+
+/** Emotes that pose the whole body (feet, root): moving cancels them (actors/charImpl.ts). */
+export const BODY_EMOTES: ReadonlySet<Emote> = new Set<Emote>(['dance', 'lie', 'sit', 'float']);
+
+/** the dance tempo (beats per second: 120 bpm) — lane A's result card / music can follow it */
+export const DANCE_BPS = 2;
 
 /** Riding poses (actors/moveSystem.ts): on the bike saddle, the toy car's driver seat, astride the pelican. */
 export type RidePose = 'bike' | 'car' | 'glide';
@@ -128,6 +138,8 @@ export class Animator {
   }
 
   get currentEmote() { return this.emoteW > 0.02 ? this.lastEmote : null; }
+  /** seconds into the emote playing now (−1 when none) */
+  get emoteTime() { return this.emote ? this.emoteAge : -1; }
 
   play(emote: Emote, duration = EMOTE_SECONDS[emote]) {
     this.emote = emote;
@@ -135,7 +147,7 @@ export class Animator {
     this.emoteAge = 0;
     this.emoteDur = duration;
   }
-  stop() { if (this.emote) { this.emoteDur = Math.min(this.emoteDur, this.emoteAge + 0.2); } }
+  stop() { if (this.emote) { this.emoteDur = Math.min(this.emoteDur, this.emoteAge + (BODY_EMOTES.has(this.emote) ? 0.45 : 0.2)); } }
   playing(emote?: Emote) { return this.emote !== null && (emote === undefined || this.emote === emote); }
 
   /** Landing / jump impulses for the squash spring. */
@@ -159,8 +171,10 @@ export class Animator {
       this.emoteAge += dt;
       if (this.emoteAge >= this.emoteDur) this.emote = null;
     }
-    const target = this.emote ? env(this.emoteAge, this.emoteDur) : 0;
-    this.emoteW = damp(this.emoteW, target, 18, dt);
+    // (whole-body moods lie down / get up slower than a gesture)
+    const slow = this.lastEmote !== null && BODY_EMOTES.has(this.lastEmote);
+    const target = this.emote ? env(this.emoteAge, this.emoteDur, slow ? 0.5 : 0.14, slow ? 0.45 : 0.2) : 0;
+    this.emoteW = damp(this.emoteW, target, slow ? 7 : 18, dt);
     const ew = this.emoteW;
     const ea = this.emoteAge;
     const em = this.lastEmote;
@@ -212,6 +226,8 @@ export class Animator {
       armLz: 0.08 + rw * 0.22 + aw * 1.0, armRz: -(0.08 + rw * 0.22 + aw * 1.0),
       mouth: 0.72,
       eyesY: 0,
+      // wave 5 (W5-F2): lying back (root pitch about the feet, rad), eyes half shut, tail wag, dance steps
+      rootPitch: 0, eyeOpen: 1, tailWag: 0, danceStep: 0,
     };
     if (this.kind === 'baybay') { pose.armLz += 0.15 * mw; pose.armRz -= 0.15 * mw; pose.armLx *= 0.7; pose.armRx *= 0.7; }
     if (this.tuning.restPaws && !m.riding) {
@@ -222,7 +238,7 @@ export class Animator {
     }
     if (m.crouch > 0) { pose.armLx += 0.6 * m.crouch; pose.armRx += 0.6 * m.crouch; }
     // sitting on the ground (idle ladder): settle down, lean back a touch, feet out front, hands on the knees
-    this.sitW = damp(this.sitW, m.sitting && this.kind !== 'npc' ? 1 : 0, 5, dt);
+    this.sitW = damp(this.sitW, (m.sitting || this.emote === 'sit') && this.kind !== 'npc' ? 1 : 0, 5, dt);
     const sw = this.sitW;
     if (sw > 0.001) {
       pose.rootY -= 0.3 * sw;
@@ -277,9 +293,10 @@ export class Animator {
 
     // --- write bones
     b.root.position.set(0, pose.rootY, 0);
+    b.root.rotation.set(pose.rootPitch, 0, 0);
     body.rotation.set(pose.lean, pose.twist, pose.roll);
     if (b.head) b.head.rotation.set(pose.headPitch, pose.headYaw, pose.headRoll);
-    if (b.eyes) { b.eyes.scale.set(1, blink, 1); b.eyes.position.set(r.eyes.x + this.lookYaw * -0.018 * (this.kind === 'newcomer' ? 1 : 0), r.eyes.y + pose.eyesY, r.eyes.z); }
+    if (b.eyes) { b.eyes.scale.set(1, Math.max(0.08, blink * pose.eyeOpen), 1); b.eyes.position.set(r.eyes.x + this.lookYaw * -0.018 * (this.kind === 'newcomer' ? 1 : 0), r.eyes.y + pose.eyesY, r.eyes.z); }
     if (b.mouth) b.mouth.scale.set(1, clamp(pose.mouth, 0.2, 1.6), 1);
     if (b.armL) b.armL.rotation.set(pose.armLx, 0, pose.armLz);
     if (b.armR) b.armR.rotation.set(pose.armRx, 0, pose.armRz);
@@ -288,13 +305,15 @@ export class Animator {
     const A = (this.kind === 'baybay' ? 0.12 : 0.16) + rw * 0.1;
     const L = ((this.kind === 'baybay' ? 0.08 : 0.1) + rw * 0.1) * (m.stairs ? 1.8 : 1);
     if (b.footL && b.footR) {
-      const liftL = Math.max(0, -s), liftR = Math.max(0, s);
+      // (the dance steps in place on the beat, one foot then the other)
+      const step = pose.danceStep > 0 ? Math.sin(ea * Math.PI * DANCE_BPS) : 0;
+      const liftL = Math.max(0, -s) * mw + Math.max(0, step) * pose.danceStep, liftR = Math.max(0, s) * mw + Math.max(0, -step) * pose.danceStep;
       const tuck = aw * 0.12;
       const sitF = this.sitW;
-      b.footL.position.set(r.footL.x, r.footL.y + (L * liftL * mw + tuck) + 0.22 * sitF, r.footL.z + A * c * mw + 0.24 * sitF);
-      b.footR.position.set(r.footR.x, r.footR.y + (L * liftR * mw + tuck) + 0.22 * sitF, r.footR.z - A * c * mw + 0.24 * sitF);
-      b.footL.rotation.set(-0.5 * liftL * mw + aw * 0.3 - 0.9 * sitF, 0, 0);
-      b.footR.rotation.set(-0.5 * liftR * mw + aw * 0.3 - 0.9 * sitF, 0, 0);
+      b.footL.position.set(r.footL.x, r.footL.y + (L * liftL + tuck) + 0.22 * sitF, r.footL.z + A * c * mw + 0.24 * sitF);
+      b.footR.position.set(r.footR.x, r.footR.y + (L * liftR + tuck) + 0.22 * sitF, r.footR.z - A * c * mw + 0.24 * sitF);
+      b.footL.rotation.set(-0.5 * liftL + aw * 0.3 - 0.9 * sitF, 0, 0);
+      b.footR.rotation.set(-0.5 * liftR + aw * 0.3 - 0.9 * sitF, 0, 0);
       if (m.ride && this.rideW > 0.001) {
         // feet on the pedals (turning with the crank) / tucked in the car's footwell / astride the pelican
         const k = this.rideW, pd = m.pedal;
@@ -335,7 +354,7 @@ export class Animator {
       b.pack.position.set(r.pack.x, r.pack.y + Math.abs(s) * 0.02 * mw, r.pack.z);
     }
     if (b.tail) {
-      const ty = this.tailYaw.step(s * 0.45 * mw + Math.sin(t * 1.3 + this.seed) * 0.16 * idle, dt);
+      const ty = this.tailYaw.step(s * 0.45 * mw + Math.sin(t * 1.3 + this.seed) * 0.16 * idle + pose.tailWag, dt);
       b.tail.rotation.set(-0.08 + Math.abs(s) * 0.1 * mw + aw * 0.35, ty, 0);
     }
     if (b.scarf) {
@@ -347,6 +366,7 @@ export class Animator {
   private applyEmote(em: Emote, age: number, w: number, t: number, p: {
     rootY: number; lean: number; roll: number; twist: number; headYaw: number; headRoll: number; headPitch: number;
     armLx: number; armRx: number; armLz: number; armRz: number; mouth: number; eyesY: number;
+    rootPitch: number; eyeOpen: number; tailWag: number; danceStep: number;
   }) {
     const mix = (cur: number, v: number) => cur + (v - cur) * w;
     switch (em) {
@@ -496,6 +516,74 @@ export class Animator {
         p.rootY += (-0.04 + breath * 0.012) * w;
         p.headPitch = mix(p.headPitch, -0.1 + breath * 0.04);
         p.mouth = mix(p.mouth, 1.35 + breath * 0.2);
+        break;
+      }
+      case 'dance': {
+        // 120 bpm: a bounce on every beat, a sway every two, the arms trading between "raise the roof" and a
+        // chest-high swing over a 4 s bar; the feet step in place (the feet block in update)
+        const beat = age * Math.PI * DANCE_BPS, bar = 0.5 - 0.5 * Math.cos(age * Math.PI * 0.5);
+        const pump = Math.abs(Math.sin(beat));
+        p.rootY += pump * 0.07 * w;
+        p.roll = mix(p.roll, Math.sin(beat * 0.5) * 0.17);
+        p.twist = mix(p.twist, Math.sin(beat * 0.5) * 0.22);
+        p.lean = mix(p.lean, 0.04);
+        p.headRoll = mix(p.headRoll, Math.sin(beat * 0.5) * -0.18);
+        p.headPitch = mix(p.headPitch, -pump * 0.08);
+        const up = 2.1 + pump * 0.35, swing = Math.sin(beat * 0.5);
+        p.armLz = mix(p.armLz, up * bar + (0.35 + swing * 0.45) * (1 - bar));
+        p.armRz = mix(p.armRz, -up * bar + (-0.35 + swing * 0.45) * (1 - bar));
+        p.armLx = mix(p.armLx, -0.95 * (1 - bar)); p.armRx = mix(p.armRx, -0.95 * (1 - bar));
+        p.mouth = mix(p.mouth, 1.3);
+        p.tailWag += Math.sin(beat) * 0.5 * w;
+        p.danceStep = w;
+        break;
+      }
+      case 'lie':
+      case 'float': {
+        // on the back (pitch about the feet), lifted so the back rests on the ground / the water. float: BAYBAY's
+        // otter float, paws together on the chest, a slow bob and roll (sea otters float belly up, the chest a table)
+        const float = em === 'float';
+        const pitch = this.kind === 'baybay' ? -1.45 : -1.35, lift = this.kind === 'baybay' ? 0.34 : this.kind === 'npc' ? 0.3 : 0.42;
+        p.rootPitch = mix(p.rootPitch, pitch);
+        p.rootY += (lift + (float ? Math.sin(t * 1.7) * 0.035 : 0)) * w;
+        p.lean = mix(p.lean, 0);
+        p.twist = mix(p.twist, 0);
+        p.roll = mix(p.roll, float ? Math.sin(t * 0.9) * 0.1 : Math.sin(t * 0.5) * 0.03);
+        p.headPitch = mix(p.headPitch, float ? -0.25 : -0.12);
+        p.headRoll = mix(p.headRoll, float ? Math.sin(t * 0.9 + 1) * 0.08 : 0.12);
+        if (float) { p.armLx = mix(p.armLx, -0.95); p.armRx = mix(p.armRx, -0.95); p.armLz = mix(p.armLz, -0.45); p.armRz = mix(p.armRz, 0.45); }
+        else { p.armLx = mix(p.armLx, -0.25); p.armRx = mix(p.armRx, -0.25); p.armLz = mix(p.armLz, 1.15); p.armRz = mix(p.armRz, -1.15); }
+        p.eyeOpen = mix(p.eyeOpen, float ? 0.6 : 0.45);
+        p.mouth = mix(p.mouth, 1.05);
+        p.tailWag += Math.sin(t * 1.1) * 0.25 * w;
+        break;
+      }
+      case 'sit':
+        // (the settle itself is the sit weight in update: root down, lean back, feet out)
+        p.headRoll = mix(p.headRoll, 0.06 + Math.sin(t * 0.6) * 0.04);
+        p.mouth = mix(p.mouth, 0.9);
+        break;
+      case 'pet': {
+        if (this.kind === 'baybay') {
+          // being petted: a happy squint, a wiggle, paws to the chest, the head leaning into the hand, the tail going
+          const wig = Math.sin(age * 16);
+          p.eyeOpen = mix(p.eyeOpen, 0.22);
+          p.roll = mix(p.roll, wig * 0.07);
+          p.rootY += Math.abs(Math.sin(age * 8)) * 0.045 * w;
+          p.armLx = mix(p.armLx, -0.85); p.armRx = mix(p.armRx, -0.85);
+          p.armLz = mix(p.armLz, -0.42); p.armRz = mix(p.armRz, 0.42);
+          p.headRoll = mix(p.headRoll, 0.22 + Math.sin(age * 6) * 0.07);
+          p.headPitch = mix(p.headPitch, -0.14);
+          p.mouth = mix(p.mouth, 1.35);
+          p.tailWag += Math.sin(age * 14) * 0.6 * w;
+        } else {
+          // the petting hand: reach forward and pat
+          p.armRx = mix(p.armRx, -1.45 + Math.max(0, Math.sin(age * 12)) * 0.28);
+          p.armRz = mix(p.armRz, -0.15);
+          p.lean = mix(p.lean, 0.12);
+          p.headPitch = mix(p.headPitch, 0.12);
+          p.mouth = mix(p.mouth, 1.2);
+        }
         break;
       }
       case 'tap':

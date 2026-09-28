@@ -33,12 +33,22 @@ export const rimUniforms: RimUniforms = { rimColor: { value: new THREE.Color('#f
  * Soft rim light + a little self-light (charGlow, raised at night) so the characters always read. Shared by the
  * procedural vertex-coloured material and the textured GLB characters (each with its own program cache key).
  */
-export function patchCharacterShader(m: THREE.MeshStandardMaterial, cacheKey: string, uniforms: RimUniforms = rimUniforms) {
+export function patchCharacterShader(m: THREE.MeshStandardMaterial, cacheKey: string, uniforms: RimUniforms = rimUniforms, scarf?: ScarfUniforms) {
   m.onBeforeCompile = shader => {
     shader.uniforms.rimColor = uniforms.rimColor;
     shader.uniforms.rimStrength = uniforms.rimStrength;
     shader.uniforms.charGlow = uniforms.charGlow;
-    shader.fragmentShader = shader.fragmentShader
+    let frag = shader.fragmentShader;
+    if (scarf) {
+      // wave 5 (W5-F2): the textured BAYBAY's scarf is the only teal in her texture — key it (green well over red, not
+      // under blue) and paint it the worn colour, keeping the texel's shading (its luminance over the scarf's own)
+      shader.uniforms.scarfTint = scarf.scarfTint;
+      shader.uniforms.scarfOn = scarf.scarfOn;
+      frag = frag
+        .replace('#include <common>', '#include <common>\nuniform vec3 scarfTint;\nuniform float scarfOn;')
+        .replace('#include <map_fragment>', '#include <map_fragment>\n{ vec3 obC = diffuseColor.rgb;\n  float obKey = smoothstep(0.06, 0.14, obC.g - obC.r) * smoothstep(-0.08, 0.0, obC.g - obC.b);\n  float obL = dot(obC, vec3(0.2126, 0.7152, 0.0722)) / 0.275;\n  diffuseColor.rgb = mix(obC, scarfTint * obL, obKey * scarfOn); }');
+    }
+    shader.fragmentShader = frag
       .replace('#include <common>', '#include <common>\nuniform vec3 rimColor;\nuniform float rimStrength;\nuniform float charGlow;')
       .replace(
         '#include <opaque_fragment>',
@@ -59,6 +69,10 @@ export function characterMaterial(): THREE.MeshStandardMaterial {
 /** Uniforms for the textured GLB BAYBAY: rim shared with everyone, her own night self-light (white fur reads grey otherwise). */
 export const baybayGlbUniforms: RimUniforms = { rimColor: rimUniforms.rimColor, rimStrength: rimUniforms.rimStrength, charGlow: { value: 0.03 } };
 
+/** wave 5 (W5-F2): the GLB BAYBAY's worn scarf colour (charApi tint 'baybay' 'scarf'); scarfOn 0 = her own teal */
+export interface ScarfUniforms { scarfTint: { value: THREE.Color }; scarfOn: { value: number } }
+export const baybayScarfUniforms: ScarfUniforms = { scarfTint: { value: new THREE.Color('#1f8f8a') }, scarfOn: { value: 0 } };
+
 /**
  * Build a Rig from the rigged BAYBAY GLB (same bone names as buildBaybay; identity rest rotations). The returned
  * `object` is what gets placed in the world (the skinned mesh and its bones are siblings under it).
@@ -75,7 +89,7 @@ export function rigFromGltf(scene: THREE.Object3D, height = 1.3): { rig: Rig; ob
   const src = (Array.isArray(found.material) ? found.material[0] : found.material) as THREE.MeshStandardMaterial;
   const mat = new THREE.MeshStandardMaterial({ map: src.map ?? null, roughness: 0.66, metalness: 0 });
   if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
-  patchCharacterShader(mat, 'opus-bay-character-glb', baybayGlbUniforms);
+  patchCharacterShader(mat, 'opus-bay-character-glb', baybayGlbUniforms, baybayScarfUniforms);
   src.dispose();
   found.material = mat;
   found.castShadow = true;
@@ -216,6 +230,9 @@ const C = {
   tie: '#c9563a',
 };
 
+/** wave 5 (W5-F2): the newcomer's wearable colours (charApi tint 'player' 'hat' | 'pack' repaints these vertices) */
+export const NEWCOMER_WEAR = { hat: C.hat, hatBand: C.hatBand, pack: C.pack, packDark: C.packDark, strap: C.strap } as const;
+
 /** Newcomer hat: crown r 0.315, brim 0.43 (narrower than the 0.45 body), tilted back −0.45 rad, a small pin on the band. */
 function hatParts(): Part[] {
   const tilt = -0.45, y = 1.2, z = -0.05;
@@ -305,6 +322,9 @@ const B = {
   scarfDark: '#18756f',
   pin: '#e8663d',
 };
+
+/** wave 5 (W5-F2): BAYBAY's scarf colours in the procedural rig (charApi tint 'baybay' 'scarf'; the GLB keys its texture) */
+export const BAYBAY_SCARF = { color: B.scarf, dark: B.scarfDark } as const;
 
 export function buildBaybay(): Rig {
   const bones: BoneDef[] = [

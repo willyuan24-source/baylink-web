@@ -18,8 +18,9 @@ import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
-import { GLIDE, NO_GLIDE_INPUT, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
+import { GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, glideSoftBoxLine, terrainGlideWorld, type GlideWorld, type TallStructure } from './glide';
 import { LiveTall } from './glideTall';
+import { faceOpen } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
@@ -850,7 +851,20 @@ export class MoveSystem {
     }
     const r = g.step(dt, inp, this.world());
     if (r.bump) emit({ type: 'bump', kind: 'glide', strength: 0.3 });
+    // wave 5 (W5-F2): turned back from a soft box (charApi glideSoftBox): BAYBAY says its line, not every frame
+    if (r.softBox) {
+      this.boxT += dt;
+      const line = glideSoftBoxLine(r.softBox);
+      if (line && (this.boxSaidKey !== r.softBox || this.boxT - this.boxSaidAt > GLIDE_BOX_LINE_S)) {
+        this.boxSaidKey = r.softBox; this.boxSaidAt = this.boxT;
+        bubble(line, 2800);
+      }
+    }
   }
+  /** the soft-box line's clock (s of turning back) and the last box whose line BAYBAY said */
+  private boxT = 0;
+  private boxSaidAt = -Infinity;
+  private boxSaidKey: string | null = null;
 
   /** The glide world (built once; its tall structures are looked up live, E2-7). */
   // ---------------------------------------------------------------------------
@@ -949,6 +963,8 @@ export class MoveSystem {
         const spot = this.landSpot ?? { x: p.x, z: p.z };
         p.x = spot.x; p.z = spot.z;
         c.sync();
+        // W5-F7: face the open ground (the first push of the stick walks somewhere, never into a wall or the Bay)
+        faceOpen(spot.x, spot.z);
         this.landing = 0.7;
         spawnFx('dust', spot.x, heightAt(spot.x, spot.z) + 0.1, spot.z, { scale: 1.2 });
         emit({ type: 'glide:land', x: spot.x, z: spot.z });

@@ -7,6 +7,7 @@ import { flow } from '../game/flowStore';
 import { game, useGame } from '../core/store';
 import { attachPointer } from './pointer';
 import { ActorSystem } from './system';
+import { setCharApi } from './charApi';
 
 /** renderer.compileAsync for the render path the world uses (the tilt-shift post target or the screen). */
 function precompileFor(gl: THREE.WebGLRenderer, object: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene, offscreen: boolean) {
@@ -49,6 +50,8 @@ export function Actors() {
     return () => { offKeys(); offPointer(); padActions.journal = null; padActions.settings = null; padActions.map = null; };
   }, [gl]);
   useEffect(() => () => system.dispose(), [system]);
+  // wave 5 (W5-F2): the charApi implementation lives while the actors do (lanes A, E, R, D call charApi())
+  useEffect(() => { setCharApi(system.char); return () => setCharApi(null); }, [system]);
   useEffect(() => {
     if (!import.meta.env.DEV) return;
     const w = window as unknown as { __opusBay?: Record<string, unknown> };

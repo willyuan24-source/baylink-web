@@ -35,6 +35,30 @@ export const BIKE_LIVERIES: readonly (readonly [string, string])[] = [
   [PALETTE.terracotta, PALETTE.terracottaDark],
   [PALETTE.gold, '#b9832f'],
 ];
+/** the paint id of each BIKE_LIVERIES entry (same order) */
+export const BIKE_LIVERY_IDS = ['teal', 'terracotta', 'gold'] as const;
+
+/**
+ * Wave 5 (W5-F2, actors/charApi `vehiclePaint`): the paints lane E sells — bike liveries, toy-car paints and the
+ * pelican's ribbon — by id: a main colour and its darker partner (the bike's rear triangle and rack, the car's seat
+ * wells). The first three are the parked bikes' own liveries; the rest follow the shop's colour names (plan §3.4).
+ * The toy car's own paint is `terracotta`. Append-only (lane E stores ids).
+ */
+export const PAINTS = {
+  teal: { name: { zh: '海湾青', en: 'Bay teal' }, color: PALETTE.teal, dark: PALETTE.tealDark },
+  terracotta: { name: { zh: '陶土橘', en: 'Terracotta' }, color: PALETTE.terracotta, dark: PALETTE.terracottaDark },
+  gold: { name: { zh: '暖金', en: 'Warm gold' }, color: PALETTE.gold, dark: '#b9832f' },
+  maroon: { name: { zh: '缆车栗红', en: 'Cable-car maroon' }, color: '#8e2f3c', dark: '#68212b' },
+  orange: { name: { zh: '国际橘', en: 'International Orange' }, color: '#c0362c', dark: '#8f2720' },
+  fog: { name: { zh: '雾灰', en: 'Karl fog grey' }, color: '#a9b2b7', dark: '#7f888e' },
+  cream: { name: { zh: '酸面包奶油', en: 'Sourdough cream' }, color: '#e9d6ae', dark: '#c4ad80' },
+  dahlia: { name: { zh: '大丽花粉', en: 'Dahlia pink' }, color: '#d8668f', dark: '#a8476a' },
+} as const;
+export type PaintId = keyof typeof PAINTS;
+export const PAINT_IDS = Object.keys(PAINTS) as PaintId[];
+export const isPaintId = (id: string | null | undefined): id is PaintId => !!id && Object.prototype.hasOwnProperty.call(PAINTS, id);
+/** the ribbon's own colour in the pelican rig (International Orange; recoloured by `vehiclePaint('pelican', id)`) */
+export const PELICAN_RIBBON = '#c0362c';
 
 const UP = new THREE.Vector3(0, 1, 0);
 /** A capsule (radius r) from a to b. */
@@ -268,6 +292,9 @@ export const PELICAN_SEATS = {
  * head (a small counter-nod), tail, wingL / wingR (shoulders: rotation.z flaps, + = up) → tipL / tipR (the hands) —
  * the names the flap / bank code drives. Replaces the tilted standing pelican.glb + a separate wing rig (2 draws).
  */
+/** the ribbon bone's scale while no ribbon is worn (collapsed into the neck: skinned to a point, nothing drawn) */
+export const RIBBON_HIDDEN = 1e-4;
+
 export function buildPelicanRig(): Rig {
   const P = PELICAN_PAL, SX = 0.62, SY = -0.28, SZ = 0.2, ARM = 1.6;
   const bones: BoneDef[] = [
@@ -279,6 +306,8 @@ export function buildPelicanRig(): Rig {
     { name: 'wingR', parent: 'body', pos: [-SX, SY, SZ] },
     { name: 'tipL', parent: 'wingL', pos: [SX + ARM, SY + 0.02, SZ - 0.12] },
     { name: 'tipR', parent: 'wingR', pos: [-SX - ARM, SY + 0.02, SZ - 0.12] },
+    // wave 5 (W5-F2): the ribbon round the neck, drawn at scale ≈ 0 until lane E's shop paints it (charApi vehiclePaint)
+    { name: 'ribbon', parent: 'body', pos: [0, -0.3, 1.14] },
   ];
   const e = (pos: Vec3, scale: Vec3, color: string, bone: string, rot: Vec3 = [0, 0, 0], w = 12, h = 7): Part => ({ geo: sphere(1, pos, scale, rot, w, h), color, bone });
   const wing = (s: number): Part[] => {
@@ -311,6 +340,14 @@ export function buildPelicanRig(): Rig {
     ...[-0.18, 0, 0.18].map((dx): Part => e([dx, -0.44, -1.78], [0.2, 0.05, 0.44], P.hand, 'tail', [0, dx * 0.8, 0], 8, 4)),
     ...[-1, 1].map((sx): Part => e([sx * 0.2, -0.86, -1.42], [0.13, 0.05, 0.32], P.feet, 'tail', [0.1, 0, 0], 8, 4)),
     ...wing(1), ...wing(-1),
+    // the ribbon: a band round the neck, a bow on the hindneck, two tails streaming back (≈ 350 triangles)
+    { geo: xf(new THREE.TorusGeometry(0.47, 0.05, 5, 18), [0, -0.3, 1.14], [Math.PI / 2 - 0.45, 0, 0]), color: PELICAN_RIBBON, bone: 'ribbon' },
+    e([0.13, 0.06, 1.0], [0.13, 0.07, 0.08], PELICAN_RIBBON, 'ribbon', [0, 0, 0.4], 8, 5),
+    e([-0.13, 0.06, 1.0], [0.13, 0.07, 0.08], PELICAN_RIBBON, 'ribbon', [0, 0, -0.4], 8, 5),
+    { geo: box(0.07, 0.02, 0.42, [0.07, 0.0, 0.76], [0.25, 0.2, 0]), color: PELICAN_RIBBON, bone: 'ribbon' },
+    { geo: box(0.07, 0.02, 0.36, [-0.07, 0.0, 0.78], [0.3, -0.2, 0]), color: PELICAN_RIBBON, bone: 'ribbon' },
   ];
-  return buildRig(bones, parts, { ao: false });
+  const rig = buildRig(bones, parts, { ao: false });
+  rig.bones.ribbon.scale.setScalar(RIBBON_HIDDEN);
+  return rig;
 }
