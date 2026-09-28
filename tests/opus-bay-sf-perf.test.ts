@@ -373,16 +373,67 @@ test('wave-3 review, C2-10: a quick flip (in, then out within TIER_FADE) keeps t
 });
 
 test('P5 (E2 request 3): the warm-up carries the shadow pass depth programs of plain casters, kept alive', async () => {
-  const { shadowDepthSet } = await import('../src/opus-bay/world/warmup');
+  const { shadowDepthSet, WARM_DEPTH_KINDS } = await import('../src/opus-bay/world/warmup');
   const a = shadowDepthSet();
   const mats = a.group.children.map(o => (o as THREE.Mesh).material as THREE.MeshDepthMaterial);
-  assert.deepEqual(mats.map(m => [m.type, m.side, m.depthPacking]), [['MeshDepthMaterial', THREE.BackSide, THREE.BasicDepthPacking], ['MeshDepthMaterial', THREE.DoubleSide, THREE.BasicDepthPacking]]);
+  // plain casters first (three's internal depth material: FrontSide materials cast BackSide, DoubleSide stays) …
+  assert.deepEqual(mats.slice(0, 2).map(m => [m.type, m.side, m.depthPacking]), [['MeshDepthMaterial', THREE.BackSide, THREE.BasicDepthPacking], ['MeshDepthMaterial', THREE.DoubleSide, THREE.BasicDepthPacking]]);
+  assert.ok(a.group.children.slice(0, 2).every(o => (o as THREE.Mesh).isMesh && !(o as THREE.InstancedMesh).isInstancedMesh && !(o as THREE.BatchedMesh).isBatchedMesh));
+  // … then (W4-V8) both sides of every other caster kind: instanced without / with instanceColor (kindSweep's depth
+  // materials; the instColor one linked at the Palace after the warm-up), batched without / with colours (the fleet)
+  assert.deepEqual([...WARM_DEPTH_KINDS], ['inst', 'instColor', 'batched', 'batchedColor']);
+  const kinds = a.group.children.slice(2).map(o => {
+    const i = o as THREE.InstancedMesh, b = o as THREE.BatchedMesh & { _colorsTexture: THREE.Texture | null };
+    const m = i.material as THREE.MeshDepthMaterial;
+    return `${i.isInstancedMesh ? (i.instanceColor ? 'instColor' : 'inst') : b.isBatchedMesh ? (b._colorsTexture ? 'batchedColor' : 'batched') : '?'}:${m.side}:${m.type}`;
+  });
+  assert.deepEqual(kinds, WARM_DEPTH_KINDS.flatMap(k => [`${k}:${THREE.BackSide}:MeshDepthMaterial`, `${k}:${THREE.DoubleSide}:MeshDepthMaterial`]));
+  const all = a.group.children.map(o => (o as THREE.Mesh).material as THREE.MeshDepthMaterial);
   let disposed = 0;
-  for (const m of mats) m.addEventListener('dispose', () => disposed++);
+  for (const m of all) m.addEventListener('dispose', () => disposed++);
   a.dispose();
   assert.equal(disposed, 0, 'three would drop the programs with their last material');
   const b = shadowDepthSet();
-  assert.deepEqual(b.group.children.map(o => (o as THREE.Mesh).material), mats, 'the same instances every warm-up');
+  assert.deepEqual(b.group.children.map(o => (o as THREE.Mesh).material), all, 'the same instances every warm-up');
   assert.ok(b.target.isWebGLRenderTarget, 'compiled into a render target, like the shadow map (no tone mapping)');
   b.dispose();
+});
+
+test('W4-V8: a warm-up set registered after the boot warm-up compiles by itself against the last render state', async () => {
+  const warm = await import('../src/opus-bay/world/warmup');
+  const compiled: { names: string[]; target: unknown }[] = [];
+  let target: unknown = null;
+  const renderer = {
+    info: { programs: [] as unknown[] },
+    shadowMap: { enabled: true },
+    getRenderTarget: () => target,
+    setRenderTarget: (t: unknown) => { target = t; },
+    compileAsync: (group: THREE.Object3D) => {
+      const names: string[] = [];
+      group.traverse(o => { if (o !== group && o.name) names.push(o.name); });
+      compiled.push({ names, target });
+      renderer.info.programs.push({});
+      return Promise.resolve();
+    },
+  } as unknown as THREE.WebGLRenderer;
+  const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
+  warm.resetWarmupState();
+  const named = (name: string, cast = false) => () => { const o = new THREE.Object3D(); o.name = name; o.castShadow = cast; return { objects: [o] }; };
+  const offEarly = warm.registerWarmup('t-early', named('early'));
+  await warm.warmPrograms(renderer, scene, camera, { offscreen: true });
+  assert.ok(compiled[0].names.includes('early'), 'the boot pass compiles the sets registered before it');
+  assert.ok((compiled[0].target as THREE.WebGLRenderTarget)?.isWebGLRenderTarget, 'offscreen path: into a render target');
+  compiled.length = 0;
+  // a lazy chunk registers two sets back to back: one late pass with only them, same render path, no base dummies
+  const offA = warm.registerWarmup('t-late-a', named('late-a'));
+  const offB = warm.registerWarmup('t-late-b', named('late-b', true));
+  assert.equal(compiled.length, 0, 'not inside the registering call');
+  await new Promise(r => setTimeout(r, 80));
+  assert.deepEqual(compiled[0].names, ['late-a', 'late-b']);
+  assert.ok((compiled[0].target as THREE.WebGLRenderTarget)?.isWebGLRenderTarget, 'the last warm-up\'s render path');
+  assert.equal(compiled.length, 2, 'late-b casts: the depth set follows');
+  assert.equal(target, null, 'the render target is restored');
+  assert.deepEqual(warm.lateWarmups.at(-1)?.keys, ['t-late-a', 't-late-b']);
+  for (const off of [offEarly, offA, offB]) off();
+  warm.resetWarmupState();
 });

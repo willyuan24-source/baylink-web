@@ -22,6 +22,7 @@ import type { CityStreamer } from './sf/stream';
 import type { CityWater } from './sf/water';
 import type { KarlFlag } from './fogShader';
 import { Streetcars } from './streetcar';
+import { registerWarmup } from './warmup';
 import { buildBuildingDistanceTexture, buildDistanceTexture, buildDistrictWater, buildLightMask, makeWaterMaterial } from './water';
 
 /**
@@ -233,6 +234,15 @@ export class World {
     if (backToy !== toy) addChunks(backToy.build(), TOY, 'backdrop', 0, BACKDROP_CHUNK);
     if (mergedWater) addChunks(mergedWater, this.water, 'water', 1, WATER_CHUNK);
     const labelMesh = staticMesh(labels.build(), this.atlas.material, 'labels', true);
+    // city mode hides the hero's labels until the player comes near (the Dragon Gate): their program linked on first
+    // sight after the warm-up (D2 w3 c3's route drift); warm it with this World's own atlas material (W4-V8)
+    registerWarmup('c2-labels', () => {
+      const geo = new THREE.PlaneGeometry(1, 1);
+      const mesh = new THREE.Mesh(geo, this.atlas.material);
+      mesh.receiveShadow = labelMesh.receiveShadow;
+      mesh.castShadow = labelMesh.castShadow;
+      return { objects: [mesh], dispose: () => geo.dispose() };
+    });
     const blobMesh = blobs.build();
     blobMesh.updateMatrix();
     this.root.add(this.env.group, labelMesh, blobMesh, ...chunks);
