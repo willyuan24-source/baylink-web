@@ -27,6 +27,10 @@ const { LANDMARK_AREAS, landmarkAreaAt, farZoneIndexAt, zoneLabelAnchor } = awai
 const { newlyDiscovered, StampThrottle, DISCOVER_R } = await import('../src/opus-bay/game/discovery');
 const { namedRoadsNear, chooseStreet } = await import('../src/opus-bay/game/streets');
 const { applyW4Places, PLACE_HIDDEN, RUNTIME_PLACES, PLACE_NAME_FIXES } = await import('../src/opus-bay/data/sf/extraPlaces');
+const { ATTRACTIONS, ARRIVAL_OVERRIDES } = await import('../src/opus-bay/data/sf/attractions');
+// landmarks whose attraction's arrival moved on purpose (ARRIVAL_OVERRIDES: the bridge's Welcome Center; wave 5, lane F's
+// sweep: Lombard, Sutro Baths, Fort Point off boxed ground)
+const MOVED_LANDMARKS = new Set(ATTRACTIONS.filter(a => ARRIVAL_OVERRIDES[a.id] && a.landmarkId).map(a => a.landmarkId!));
 
 const sf = sfDisk();
 const file = JSON.parse(fs.readFileSync(path.join(sf.base, 'places.json'), 'utf8')) as import('../src/opus-bay/world/sf/format').PlacesFile;
@@ -52,7 +56,8 @@ test('places: all 24 landmarks resolve to a place, arriving at the landmark anch
     // for the Golden Gate Bridge) wins, else the landmark anchor
     const a = sfLandmarkAnchor(l.id)!;
     assert.deepEqual(p.arrival, rowById.get(p.id)?.arrival ?? a, `${l.id} arrival`);
-    if (l.id !== 'golden-gate-bridge') assert.ok(Math.hypot(p.arrival.x - a.x, p.arrival.z - a.z) <= 0.05, `${l.id}: its attraction arrives at the anchor`);
+    if (!MOVED_LANDMARKS.has(l.id)) assert.ok(Math.hypot(p.arrival.x - a.x, p.arrival.z - a.z) <= 0.05, `${l.id}: its attraction arrives at the anchor`);
+    else assert.ok(Math.hypot(p.arrival.x - a.x, p.arrival.z - a.z) <= 160, `${l.id}: moved, still at the landmark`);
     assert.ok(Math.hypot(p.x - l.x, p.z - l.z) <= 40, `${l.id} matched ${p.id} too far away`);
     assert.equal(p.walkable, true);
   }

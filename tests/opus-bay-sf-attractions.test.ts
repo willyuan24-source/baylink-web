@@ -464,7 +464,9 @@ test('P2: moved arrivals are walkable and their place rows end travel there; the
     const a = ATTRACTION_INDEX.get(id)!;
     assert.ok(a, id);
     assert.deepEqual(a.arrival, { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) }, `${id}: the override is the arrival`);
-    assert.ok(gi.nearestNode(o.x, o.z, 3, i => gi.component(i) === main) >= 0, `${id}: moved arrival within 3 u of the main walking graph`);
+    // (wave 5: Lombard's graph runs down the crooked block's lane; the top's sidewalk, where its trip now ends, is ≤ 6 u off it)
+    const graphR = id === 'lombard-crooked' ? 6 : 3;
+    assert.ok(gi.nearestNode(o.x, o.z, graphR, i => gi.component(i) === main) >= 0, `${id}: moved arrival within ${graphR} u of the main walking graph`);
     const row = by.get(a.placeId!)!;
     assert.deepEqual({ x: row.arrival!.x, z: row.arrival!.z }, { x: o.x, z: o.z }, `${id}: its place row ends travel there`);
     assert.equal(row.arrival!.heading, o.heading, `${id}: and faces the same way`);

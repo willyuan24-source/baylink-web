@@ -287,6 +287,15 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   // lane L2 builds the gate plaza here; OSM node 7838369891 (entrance=main, 37.76705, −122.46679), the main gate on
   // MLK Dr reached from 9th Ave & Lincoln Way (gggp.org); the JSON point is the garden's centre, 58 u inside
   'sf-botanical-garden': { x: -178.3, z: 970.9, heading: 5.43, why: 'the main gate (MLK Dr at 9th Ave), not the middle of the garden' },
+  // W5-N (lane F's sweep run 1, plan MF2: no T1 / T2 trip end may be stuck): each moved to the nearest open, reachable
+  // ground off the carriageway, found with the sweep's own judge (four pushes of 1.5 s, three move ≥ 3 u; a nav path from
+  // the walking graph's main component ends on it), heading toward the landmark
+  'lombard-crooked': { x: -158.44, z: 153.14, heading: 0.056, why: 'the top of the crooked block at Hyde St: the old end stood in Lombard St\'s lane, boxed (1 of 4 ways open)' },
+  'sutro-baths': { x: -718.13, z: 1243.55, heading: -1.22, why: 'the ruins\' overlook path: the old end snagged (a wall 0.4 u ahead that the map does not draw)' },
+  'pier-39': { x: -160.66, z: 24.1, heading: 1.18, why: 'the pier\'s gate plaza: the anchor is in The Embarcadero\'s roadway (not standable)' },
+  'fort-point': { x: -746.99, z: 600.91, heading: -2.61, why: 'the apron before the fort\'s door: the old end was boxed against the seawall' },
+  'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
+  'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };
 
 /**
