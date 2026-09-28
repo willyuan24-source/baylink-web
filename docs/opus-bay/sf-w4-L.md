@@ -699,7 +699,7 @@ Status (2026-09-27): 复查完成，6 个修复提交 + 本报告已推送；第
 ## Integration part b
 
 Written 2026-09-27 by lane L's integration implementer (worktree `C:/Users/willy/wt/i4-l`, branch `i4-l` → `opus-bay`,
-dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/b/`). Commits `W4-IL11` … `W4-IL16` on `opus-bay`. Higgsfield:
+dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/b/`). Commits `W4-IL11` … `W4-IL18` on `opus-bay`. Higgsfield:
 0 credits.
 
 ### 给主人的摘要
@@ -708,9 +708,10 @@ dev port 5403, scratch `C:/Users/willy/opus-qa/w4i/i4-l/b/`). Commits `W4-IL11` 
 2. **到达点重新摆过**：叮当车转车台的介绍卡原来站在轨道上，车会一直停在人面前不进站，现在挪到轨道旁的砖广场；悬崖屋原来站在观光巴士的车道上，挪到人行道；卡斯特罗剧院改成顺着 Castro 街望过去（竖招牌和霓虹顶棚正对镜头）；大通中心、恩典大教堂、金门大桥的到达画面不再对着白墙、屋顶或一棵挡镜头的松树；圣依纳爵堂从马路牙子挪到教堂旁的草坪。新测试保证 24 个地标的到达点都不在叮当车、老电车、观光巴士"为人停车"的范围里。
 3. **卡片文字**：地名一律用游戏里的中文名（都板街、北滩、华盛顿广场、双峰、海洋海滩、苏特罗浴场、天涯海角……）；悬崖屋的介绍和"重开时间未定"的状态说法一致；唐人街步行路线提醒花园角整修到 2028 年；渔人码头招牌的出处换成新链接。
 4. **人群**：观光的小人不再站在玩家落地的位置挡镜头。
-5. 检查三遍：全部测试 855 个通过；电脑（白天、夜晚、60 米高空）和手机（390 与 375 两种屏幕）截图逐张看过，数字在下面。没做完的：Fort Point 的到达点要等 C 组放宽一条测试（请求已写好）；"地标半埋"复查后大多是测量误报，只有市政厅一个墙角有一点，没动模型。
+5. **第二轮复查交来的活也做了**：旧金山现代艺术馆、海特-阿什伯里、圣母大教堂、城市学院工地、天涯海角、野牛围场这 6 个地点，路人站位或到达点原来在车道上或楼里，现在都挪到人行道；旧金山大学主楼东翼原来被"删掉"留下一块空地，现在补上了。
+6. 检查三遍：全部测试 865 个通过；电脑（白天、夜晚、60 米高空）和手机（390 与 375 两种屏幕）截图逐张看过，数字在下面。没做完的：Fort Point 的到达点要等 C 组放宽一条测试（请求已写好）；"地标半埋"复查后大多是测量误报，只有市政厅一个墙角有一点，没动模型。
 
-Status（回答主人"现在进度如何"）：L 线 b 部分已完成并推送——阻断的"桥上隐形墙"已修好，到达点、卡片文字、人群站位都改好，全套测试通过，电脑和手机截图都看过。
+Status（回答主人"现在进度如何"）：L 线 b 部分已完成并推送——阻断的"桥上隐形墙"已修好，到达点、卡片文字、人群站位都改好，第二轮复查交来的 6 个地点 + 旧金山大学东翼也改好了，全套测试通过，电脑和手机截图都看过。
 
 ### Findings on lane L's files
 
@@ -742,6 +743,24 @@ Part a's list:
   units: minor, left (a base change would move the AI parts, blockers and tops for one corner).
 - The Chinese Pavilion floor (column gaps) stays lane V's row; lane V's lake-island fix (`W4-V-I1`) is in, and the
   pavilion's base is the real one's step, no workaround to lower.
+
+The early review 2's open item 13 (the part-1 records, handed to this part; `W4-IL17`), with its checks now on for
+every site (`OPEN_P1` / `OPEN_HOLES` empty):
+
+| site | was | now |
+|---|---|---|
+| `sfmoma` | 3 crowd spots on the 3rd St centreline; the arrival on 3rd St | the front stands on the kerb: the crowd on the side street's sidewalk and at Yerba Buena Gardens' edge across 3rd St (`plazaMin` 9, said in `notes`); the arrival on the corner sidewalk along the front |
+| `haight-ashbury` | 7 spots on the Haight St carriageway; the arrival on Ashbury's asphalt | two spots on Ashbury's west sidewalk facing the corner (the sidewalks round the crossing are 0.3 u past the asphalt elsewhere); the arrival on the south-west kerb return, looking across at the corner; the test lets a street corner's sidewalk plaza be under 5 u² |
+| `geary-west` | 8 spots on Geary's carriageways; the arrival on Geary's asphalt edge | the crowd on the walk beside the cathedral's west side; **the arrival stays** (lane V's swap test pins it ≥ 0.9 u before the porch, where Geary's asphalt starts): `OPEN_ARRIVALS`, Requests |
+| `ccsf-drpac` | 2 spots inside a campus building; the arrival 0.05 u into the street | the crowd on the open ground west of the hoarding (32 u²); the arrival on the verge |
+| `lands-end` | the arrival on El Camino del Mar | on the Lookout's forecourt east of the doors |
+| `bison-paddock` | the arrival on JFK Drive's asphalt edge | on the verge by the fence |
+| `usf-lone-mountain` | the exclusion dropped an OSM block (15.8 u²) and left 8.9 u² of it an empty lot | the east wing drawn (stucco block, tile roof) and walled, the exclusion round it; the terrain re-baked (base 23.70 → 23.61; the building's world heights unchanged, it stands on `g.at`), `tops.ts` re-run |
+
+In the game (`qa/w4/L/i4b-il17-sites.jpg`, golden, desktop): SFMOMA's oculus tower from the corner, the painted Victorians at
+Haight & Ashbury, the Lookout from its forecourt, the herd from the verge, Lone Mountain's wing from 60 u. Calls /
+triangles at the arrivals: sfmoma 92 / 331k, haight-ashbury 101 / 347k, geary-west 78 / 326k, lands-end 55 / 102k,
+bison-paddock 77 / 159k, ccsf-drpac 67 / 237k, usf-lone-mountain 68 / 270k.
 
 Findings in other lanes' files, checked against their pushes (no change here): D2 (lane T moved the Pier 41 landing
 ashore, `W4-T16`; lane G's walk gives up with a message, `W4-IG13`), D3's vehicle side (`W4-T17`, `W4-T18`), D5 / D6 / D10
@@ -798,8 +817,9 @@ D2-review's Dragon Gate (401–408k): lane V's perf table (Requests). Grace's ar
 ### Known gaps
 
 - Fort Point's arrival (above; lane C).
-- Wave-4 site arrivals within the sightseeing loop's reach (used by `?at=lm-…` and lane G's reveal frame, not by trips):
-  lands-end 0.35 u, harvey-milk-plaza 0.11, japanese-tea-garden 1.13, cal-academy 1.89, botanical-garden-gate 1.97.
+- Wave-4 site arrivals within the sightseeing loop's reach (used by `?at=lm-…` and lane G's reveal frame, not by trips;
+  off the carriageway geometry now): harvey-milk-plaza 0.62 u, japanese-tea-garden 1.13, lands-end 1.30 (its bus stop),
+  cal-academy 1.89, botanical-garden-gate 1.97. Lane T's `W4-T17` lets a vehicle pull in to its stop past a person.
 - St Ignatius at its arrival: the follow camera keeps its yaw and can look down Fulton St with the church ghosted by the
   occlusion dither (w4 sites have no zone view; lane G's reveal frames them on a trip).
 - City Hall's SE corner (≈ 0.6 u of bare ground on the base).
@@ -817,15 +837,19 @@ D2-review's Dragon Gate (401–408k): lane V's perf table (Requests). Grace's ar
   1.27 u from the California cable line, sing-chong-sing-fat-buildings 1.97; sf-railway-museum 1.86 u from the F-line —
   a person there stops the vehicle (1.3 / 1.5 u + the player); ≥ 2 u clears it.
 - **Lane V**: the perf table's downtown spots — Union Square's arrival 405–419k (above), SFMOMA's 396–400k.
+- **Lane V** (`tests/opus-bay-w4-swaps.test.ts`): the Holy Virgin arrival check `ar.z - 1.6 >= 0.9` keeps the arrival on
+  Geary Blvd's asphalt (the carriageway starts ≈ 0.7 u before the porch). Please allow the frontage west of the doors
+  (e.g. accept local (−1.5, 2.0): outside the blockers, 0.14 u off the asphalt, standable); then lane L moves it there
+  (tried in this part, `b/il17/geary-west-arrival-golden.jpg`: the domes ahead) and drops `OPEN_ARRIVALS`.
 
 ### Checks
 
 - On the pushed tree of `W4-IL15` (`aef9337`, after the rebase over lanes G / T / P / C): `npx tsc -p tsconfig.app.json
   --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test
-  tests/opus-bay-*.test.ts` **855 / 855**; on the tree of this report (over lanes T / C / V to `b5248ac`) **863 / 863**, tsc 0, eslint 0 errors. Three earlier full runs this part: 822 / 822, 840 / 840, 841 / 841 (one run had
+  tests/opus-bay-*.test.ts` **855 / 855**; over lanes T / C / V to `b5248ac` **863 / 863**; with `W4-IL17` (over the early review 2, `3e8c8ee`) **865 / 865**, tsc 0, eslint 0 errors. Three earlier full runs this part: 822 / 822, 840 / 840, 841 / 841 (one run had
   E2-5's wall-clock assert red under load, green on the re-run; another caught lane C's new Fort Point pin, which is why
   the arrival stayed).
 - GameRoot: 785.09 kB / 296.74 kB gzip on the tree of this report (`vite build` to the scratch; 786.34 kB before lane V's `f54e4a3`); `core/sfTerrain.ts` builds into
   the `cityMode` chunk and the route text into a lazy chunk, the other edits are numbers and text in modules GameRoot
-  already had. No new shader program.
+  already had; `W4-IL17` touched only the site modules (the landmark index chunk). No new shader program.
 - Programs: 47–48 by day and 50 at night on desktop, 45 on the phone, at every QA pose above.
