@@ -1,6 +1,6 @@
 import { platformStop } from '../actors/platform';
 import { PORTAL_HOOD_SHIFT, portalIdOf } from '../data/sf/stationNames';
-import type { LineRideSystem } from '../data/transit';
+import { type LineRideSystem, PERSON_CLEAR } from '../data/transit';
 import { type LineTrack, type TrackPoint, type TrackStop, buildLineTrack, limitAt, runSeconds, trackPoint, tunnelOf } from './lineTrack';
 import type { TransitLine, TransitPortal, TransitTunnel } from './sf/format';
 import type { CarPose, RideStatus } from './transitLine';
@@ -114,6 +114,8 @@ export interface Train {
   holdingPortal: boolean;
   still: number;
   gongAt: number;
+  /** seconds the train has stood short of someone on foot on its track (game/transit.ts asks them to step aside) */
+  held: number;
   /** wholly inside a tunnel (not drawn) */
   hidden: boolean;
   /** the two cars: [0] = the car at the higher arc (its cab faces +path), [1] the other */
@@ -209,7 +211,7 @@ export class LightRailSystem implements LineRideSystem {
         const t: Train = {
           index: this.trains.length, track, s: stopPos(track, stop), dir, v: 0, mode: 'dwell', timer: 1 + k * 2.3 + this.trains.length * 0.6, station: stop.id,
           rider: false, pickup: null, dropoff: null, requested: new Set(), odometer: 0, arrivals: 0, braking: false, brakeRate: 0, lateral: 0,
-          approached: stop.id, portalOk: NaN, portalHeld: 0, holdingPortal: false, still: 0, gongAt: -99, hidden: false, cars: [pose0(), pose0()],
+          approached: stop.id, portalOk: NaN, portalHeld: 0, holdingPortal: false, still: 0, gongAt: -99, held: 0, hidden: false, cars: [pose0(), pose0()],
         };
         this.trains.push(t);
         this.cars.push({ get pose() { return t.dir > 0 ? t.cars[0] : t.cars[1]; } });
@@ -516,8 +518,15 @@ export class LightRailSystem implements LineRideSystem {
     this.updateStatus(dt);
   }
 
-  /** Arc distance ahead (in the train's direction) to the nearest obstacle: the same-direction train ahead, an occupied terminus. */
-  private obstacle(t: Train): number {
+  /** set by obstacle(): the person on foot is what the train stops short of */
+  private viewerBinds = false;
+
+  /**
+   * Arc distance ahead (in the train's direction) to the nearest obstacle: the same-direction train ahead, an occupied
+   * terminus, a person on the track. `toStop`: the arc to where it will rest (verify D3: someone past its nose there is
+   * not in its way).
+   */
+  private obstacle(t: Train, toStop = Infinity): number {
     const tr = t.track;
     let d = Infinity;
     const end = t.dir > 0 ? tr.length - HALF - 0.2 : HALF + 0.2;
@@ -550,13 +559,16 @@ export class LightRailSystem implements LineRideSystem {
       }
     }
     const viewer = this.opts.viewer?.();
+    this.viewerBinds = false;
     if (viewer?.onFoot && !t.hidden) {
       const lead = t.dir > 0 ? t.cars[0] : t.cars[1];
       const dx = viewer.x - lead.x, dz = viewer.z - lead.z;
       const fx = Math.sin(lead.heading), fz = Math.cos(lead.heading);
       const along = dx * fx + dz * fz, side = Math.abs(dx * fz - dz * fx);
-      if (along > LRV.carLength / 2 && along < 18 && side < 1.4) {
-        d = Math.min(d, CAR_OFF + along - LRV.carLength / 2 - 3);
+      if (along > LRV.carLength / 2 && along < 18 && side < 1.4 && along - LRV.carLength / 2 - toStop < PERSON_CLEAR) {
+        const dv = CAR_OFF + along - LRV.carLength / 2 - 3;
+        if (dv <= d) this.viewerBinds = true;
+        d = Math.min(d, dv);
         if (along < 12 && t.v > 1 && this.time - t.gongAt > 3) { t.gongAt = this.time; this.events.push({ what: 'gong', train: t.index, line: tr.id }); }
       }
     }
@@ -579,7 +591,7 @@ export class LightRailSystem implements LineRideSystem {
       const next = this.nextStop(t);
       const target = next ? stopPos(tr, next) : t.dir > 0 ? tr.length - HALF - 0.2 : HALF + 0.2;
       const toStop = Math.max(0, (target - t.s) * t.dir);
-      const obst = this.obstacle(t);
+      const obst = this.obstacle(t, toStop);
       // the virtual subway (hidden) brakes and pulls away harder; near a mouth the train is visible and runs as normal
       const acc = t.hidden ? LRV.tunnelAccel : LRV.accel, dec = t.hidden ? LRV.tunnelAccel : LRV.decel;
       let limit = Math.min(limitAt(tr, t.s), LRV.tunnelCruise, Math.sqrt(2 * dec * toStop));
@@ -609,7 +621,16 @@ export class LightRailSystem implements LineRideSystem {
         this.arrive(t, end);
       }
     }
+    t.held = t.mode !== 'dwell' && this.viewerBinds && t.v < 0.3 ? t.held + dt : 0;
+    this.viewerBinds = false;
     t.still = Math.abs(t.s - s0) > 1e-4 ? 0 : t.still + dt;
+  }
+
+  /** Longest a train has stood short of the person on foot (s): game/transit.ts asks them to step aside. */
+  viewerHeld(): number {
+    let h = 0;
+    for (const t of this.trains) if (t.held > h) h = t.held;
+    return h;
   }
 
   /** The rider's train crossing a mouth: `portal-in` (the overlay starts), `portal-out` (the view cuts to the emerging LRV). */

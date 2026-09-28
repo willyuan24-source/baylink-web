@@ -1,5 +1,6 @@
 import { platformStop } from '../actors/platform';
 import { FL, type FLine, type FLineStop, aheadU, cyclePoint, legAt, sAtU, uAtS, wrapU } from '../data/fline';
+import { PERSON_CLEAR } from '../data/transit';
 import type { CarPose, RideStatus, RiderRequest } from './transitLine';
 
 /**
@@ -50,6 +51,8 @@ export interface FCar {
   /** seconds without moving (deadlock diagnostics) */
   still: number;
   bellAt: number;
+  /** seconds the car has stood short of someone on foot on its track (game/transit.ts asks them to step aside) */
+  held: number;
   pose: CarPose;
 }
 
@@ -112,7 +115,7 @@ export class StreetcarSystem {
       const car: FCar = {
         index: k, u: home ? home.u : want, v: 0, mode: home ? 'dwell' : 'run', timer: 1 + k * 1.7, at: home ? line.stops.indexOf(home) : -1,
         blocks: [], side: -1, sideDir: 1, rider: false, pickup: -1, dropoff: -1, odometer: 0, arrivals: 0, braking: false, brakeRate: 0,
-        still: 0, bellAt: -99, pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
+        still: 0, bellAt: -99, held: 0, pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
       };
       this.cars.push(car);
       this.updatePose(car);
@@ -516,6 +519,7 @@ export class StreetcarSystem {
     const need = this.nextNeed(car);
     if (car.mode === 'dwell') {
       car.v = 0;
+      car.held = 0;
       car.timer -= dt;
       if (car.timer <= 0) this.leave(car, need);
     } else {
@@ -535,15 +539,19 @@ export class StreetcarSystem {
       const road = this.opts.roadAhead?.(car);
       const roadGap = road !== undefined && road < Infinity ? road - FL.half - 1.5 : Infinity;
       if (roadGap < Infinity) limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, roadGap)));
-      // someone standing on the track ahead: slow, stop short, ring
+      // someone standing on the track ahead: slow, stop short, ring (verify D3: not someone past the spot the car's nose
+      // rests at when it stops at its next stop)
       const viewer = this.opts.viewer?.();
+      let held = false;
       if (viewer?.onFoot) {
         const ahead = this.onTrackAhead(car, viewer.x, viewer.z);
-        if (ahead !== null) {
+        if (ahead !== null && !(next && ahead - next.d >= PERSON_CLEAR)) {
           limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, ahead - 2.5)));
           if (ahead < 10 && car.v > 1 && this.time - car.bellAt > 3) { car.bellAt = this.time; this.events.push({ what: 'bell', car: car.index }); }
+          held = car.v < 0.3;
         }
       }
+      car.held = held ? car.held + dt : 0;
       if (stopReq) car.v = Math.max(0, car.v - car.brakeRate * dt);
       else car.v = car.v < limit ? Math.min(limit, car.v + FL.acc * dt) : Math.max(limit, car.v - FL.dec * 1.8 * dt);
       let step = car.v * dt;
@@ -557,6 +565,13 @@ export class StreetcarSystem {
     }
     const moved = aheadU(L, u0, car.u);
     car.still = moved > 1e-4 ? 0 : car.still + dt;
+  }
+
+  /** Longest a car has stood short of the person on foot (s): game/transit.ts asks them to step aside. */
+  viewerHeld(): number {
+    let t = 0;
+    for (const c of this.cars) if (c.held > t) t = c.held;
+    return t;
   }
 
   /** Arc distance ahead of the car's front to a person standing on its track (within 1.4 u sideways), or null. */

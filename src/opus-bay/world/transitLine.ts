@@ -1,5 +1,5 @@
 import { platformStop } from '../actors/platform';
-import { CABLE, CROSSING_HALF, type CableLine, type CableStop, type TrackPoint, type TransitData, type Turntable, activeLineFleet, pointAt, stopPos } from '../data/transit';
+import { CABLE, CROSSING_HALF, PERSON_CLEAR, type CableLine, type CableStop, type TrackPoint, type TransitData, type Turntable, activeLineFleet, pointAt, stopPos } from '../data/transit';
 
 /**
  * Cable-car motion (lane F, plan §6.5), pure: no three.js, no DOM, so node tests drive it exactly as the world does.
@@ -69,6 +69,8 @@ export interface CableCar {
   still: number;
   /** last time the gripman rang for someone on the track */
   bellAt: number;
+  /** seconds the car has stood short of someone on foot on its track (game/transit.ts asks them to step aside) */
+  held: number;
   pose: CarPose;
 }
 
@@ -155,7 +157,7 @@ export class CableSystem {
         const car: CableCar = {
           index: this.cars.length, line, s: stopPos(stop, dir), dir, v: 0, mode: 'dwell', timer: 1 + k * 2.2 + this.cars.length * 0.7,
           authority: NaN, authStation: null, turn: 0, boost: 0, turned: stop.terminus, station: stop.station, lateral: 0, rider: false, pickup: null,
-          dropoff: null, odometer: 0, arrivals: 0, braking: false, brakeRate: 0, still: 0, bellAt: -99, pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
+          dropoff: null, odometer: 0, arrivals: 0, braking: false, brakeRate: 0, still: 0, bellAt: -99, held: 0, pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
         };
         this.cars.push(car);
         this.updatePose(car);
@@ -533,6 +535,7 @@ export class CableSystem {
       }
     } else if (car.mode === 'dwell') {
       car.v = 0;
+      car.held = 0;
       car.timer -= dt;
       if (car.timer <= 0) this.leave(car);
     } else {
@@ -541,15 +544,20 @@ export class CableSystem {
       const target = next ? stopPos(next, car.dir) : car.dir > 0 ? line.length : 0;
       const dist = Math.max(0, (target - car.s) * car.dir);
       let limit = Math.min(CABLE.speed, Math.sqrt(2 * CABLE.brake * dist));
-      // someone standing on the track ahead: the gripman stops (and rings)
+      // someone standing on the track ahead: the gripman stops (and rings). (verify D3) Someone past the spot the car
+      // rests at (its nose then clears them by PERSON_CLEAR) is not in its way: it pulls in to its stop (the Powell & Market
+      // turntable's card spot stands 2.8 u past the nose of a car on the turntable; the car used to wait 0.4 u short, for good)
       const viewer = this.opts.viewer?.();
+      let held = false;
       if (viewer?.onFoot) {
         const ahead = this.onTrackAhead(car, viewer.x, viewer.z);
-        if (ahead !== null) {
+        if (ahead !== null && ahead - dist < PERSON_CLEAR) {
           limit = Math.min(limit, Math.sqrt(2 * CABLE.brake * 2 * Math.max(0, ahead - 3.2)));
           if (ahead < 9 && car.v > 1 && this.time - car.bellAt > 3) { car.bellAt = this.time; this.events.push({ what: 'bell', car: car.index, line: line.id }); }
+          held = car.v < 0.3;
         }
       }
+      car.held = held ? car.held + dt : 0;
       // wave 4 (lane T): a sightseeing bus inside a box shared with this line ahead: stop short of the box's part (the
       // bus in turn waits at the box while a car's body is in or close to it: world/sf/lineInterlocks.ts boxBlocked)
       const boxGap = this.boxAhead(car);
@@ -589,6 +597,13 @@ export class CableSystem {
       best = Math.min(best, toEdge - 0.5);
     }
     return best;
+  }
+
+  /** Longest a car has stood short of the person on foot (s): game/transit.ts asks them to step aside after a few seconds. */
+  viewerHeld(): number {
+    let t = 0;
+    for (const c of this.cars) if (c.held > t) t = c.held;
+    return t;
   }
 
   /** Arc distance ahead of the car's front to a person standing on its track (within 1.3 u sideways), or null. */

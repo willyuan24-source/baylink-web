@@ -1,5 +1,5 @@
 import { platformStop } from '../actors/platform';
-import type { LineRideSystem } from '../data/transit';
+import { type LineRideSystem, PERSON_CLEAR } from '../data/transit';
 import { type LineTrack, type TrackPoint, type TrackStop, arcAhead, buildLineTrack, limitAt, normArc, runSeconds, trackPoint } from './lineTrack';
 import type { TransitLine } from './sf/format';
 import type { CarPose, RideStatus } from './transitLine';
@@ -85,6 +85,8 @@ export interface Bus {
   waitBox: number;
   still: number;
   hornAt: number;
+  /** seconds the bus has stood short of someone on foot in its path (game/transit.ts asks them to step aside) */
+  held: number;
   pose: CarPose;
 }
 
@@ -167,7 +169,7 @@ export class BusSystem implements LineRideSystem {
       const st = track.stops[next];
       const bus: Bus = {
         index: k, s: st.at, v: 0, mode: 'dwell', timer: 1 + k * 1.7, station: st.id, next, rider: false, pickup: null, dropoff: null,
-        lapFrom: null, odometer: 0, arrivals: 0, braking: false, brakeRate: 0, lateral: 0, approached: st.id, waitBox: -1, still: 0, hornAt: -99,
+        lapFrom: null, odometer: 0, arrivals: 0, braking: false, brakeRate: 0, lateral: 0, approached: st.id, waitBox: -1, still: 0, hornAt: -99, held: 0,
         pose: { x: 0, y: 0, z: 0, heading: 0, pitch: 0, roll: 0 },
       };
       this.buses.push(bus);
@@ -374,8 +376,14 @@ export class BusSystem implements LineRideSystem {
     this.updateStatus(dt);
   }
 
-  /** Distance from the bus centre to the nearest obstacle ahead (the bus ahead's tail, a blocked box, a person), ∞ if none. */
-  private obstacle(b: Bus): number {
+  /** set by obstacle(): the person on foot is what the bus stops short of */
+  private viewerBinds = false;
+
+  /**
+   * Distance from the bus centre to the nearest obstacle ahead (the bus ahead's tail, a blocked box, a person), ∞ if none.
+   * `toStop`: the arc to the stop it will rest at (verify D3: someone past its nose there is not in its way).
+   */
+  private obstacle(b: Bus, toStop = Infinity): number {
     const tr = this.track;
     let d = Infinity;
     for (const o of this.buses) {
@@ -394,14 +402,23 @@ export class BusSystem implements LineRideSystem {
     const road = this.opts.roadAhead?.(b);
     if (road !== undefined && road < Infinity) d = Math.min(d, road - HALF - 2.2);
     const viewer = this.opts.viewer?.();
+    this.viewerBinds = false;
     if (viewer?.onFoot) {
       const ahead = this.onRoadAhead(b, viewer.x, viewer.z);
-      if (ahead !== null) {
+      if (ahead !== null && ahead - toStop < PERSON_CLEAR) {
+        if (ahead - 3 <= d) this.viewerBinds = true;
         d = Math.min(d, ahead - 3);
         if (ahead < 12 && b.v > 1 && this.time - b.hornAt > 4) { b.hornAt = this.time; this.events.push({ what: 'horn', bus: b.index, line: tr.id }); }
       }
     }
     return d;
+  }
+
+  /** Longest a bus has stood short of the person on foot (s): game/transit.ts asks them to step aside. */
+  viewerHeld(): number {
+    let t = 0;
+    for (const b of this.buses) if (b.held > t) t = b.held;
+    return t;
   }
 
   /** Arc distance ahead of the bus centre to a person standing in its path (within 1.5 u sideways), or null. */
@@ -427,7 +444,7 @@ export class BusSystem implements LineRideSystem {
     } else {
       const stop = tr.stops[b.next];
       const toStop = Math.max(0, arcAhead(tr, b.s, stop.at));
-      const obst = this.obstacle(b);
+      const obst = this.obstacle(b, toStop);
       let limit = Math.min(limitAt(tr, b.s), Math.sqrt(2 * BUS.decel * toStop));
       if (obst < Infinity) limit = Math.min(limit, Math.sqrt(2 * BUS.decel * Math.max(0, obst)));
       if (stopReq) {
@@ -449,6 +466,8 @@ export class BusSystem implements LineRideSystem {
       }
       if (toStop - step < 0.02 && !stopReq) this.arrive(b, stop);
     }
+    b.held = b.mode !== 'dwell' && this.viewerBinds && b.v < 0.3 ? b.held + dt : 0;
+    this.viewerBinds = false;
     b.still = Math.abs(b.s - s0) > 1e-4 ? 0 : b.still + dt;
   }
 

@@ -52,6 +52,12 @@ export const CABLE = {
 
 /** A ride counts (goal, save, `transit` ride event) only at another station after this many units on board. */
 export const RIDE_MIN_ODOMETER = 150;
+/**
+ * (verify D3) Someone on foot standing at least this far past the spot a vehicle's nose rests at when it stops at its next
+ * stop is not in its way: the cable car / F-line car / bus / Metro train runs in to its stop instead of halting a few
+ * units short of them (the Powell & Market turntable's card spot stands 2.8 u past the nose of a car on the turntable) (u)
+ */
+export const PERSON_CLEAR = 0.8;
 
 /** Distance of a car's centre from a crossing it stops in front of (half a car + half the crossing car + margin). */
 export const CROSSING_STOP = 4.4;
