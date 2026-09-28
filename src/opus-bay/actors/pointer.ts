@@ -14,6 +14,8 @@ import { game } from '../core/store';
 
 export const DRAG_THRESHOLD = 8;
 const STICK_RADIUS = 52;
+/** Peek cards over the thumb zone whose touches the stick shares (a drag steers, a tap stays the card's): CP-12. */
+export const THUMB_PASS = '.ob-arrival-card';
 
 type Role = 'pending' | 'stick' | 'look' | 'pinch';
 interface Touch { id: number; x0: number; y0: number; x: number; y: number; role: Role; left: boolean }
@@ -143,6 +145,30 @@ export function attachPointer(el: HTMLElement): () => void {
   const onContext = (e: Event) => e.preventDefault();
   const onCancelAll = () => { touches.clear(); mouse = null; pinchPrev = null; releaseStick(); };
 
+  // (checkpoint CP-12) a touch that lands on a peek card over the thumb zone (THUMB_PASS: lane N's arrival card, 6 s,
+  // bottom left on phones) is the canvas's too: a drag steers the stick (or turns the camera on the right half) and the
+  // click that would end it is swallowed; a tap stays the card's. The card's body lets touches through (opus-bay.css).
+  const passing = new Set<number>();
+  const passTarget = (e: PointerEvent) => e.pointerType !== 'mouse' && e.target instanceof Element && !!e.target.closest(THUMB_PASS);
+  let swallowUntil = 0;
+  const onPassDown = (e: PointerEvent) => {
+    swallowUntil = 0;     // a new touch: the click to swallow belonged to the gesture before
+    if (passTarget(e)) { passing.add(e.pointerId); onDown(e); }
+  };
+  const onPassMove = (e: PointerEvent) => { if (passing.has(e.pointerId)) onMove(e); };
+  const onPassUp = (e: PointerEvent) => {
+    if (!passing.has(e.pointerId)) return;
+    passing.delete(e.pointerId);
+    const role = touches.get(e.pointerId)?.role;
+    if (role && role !== 'pending') swallowUntil = performance.now() + 450;
+    onUp(e);
+  };
+  const onPassClick = (e: MouseEvent) => {
+    if (performance.now() > swallowUntil) return;
+    swallowUntil = 0;
+    e.preventDefault(); e.stopPropagation();
+  };
+
   el.addEventListener('pointerdown', onDown);
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerup', onUp);
@@ -151,7 +177,17 @@ export function attachPointer(el: HTMLElement): () => void {
   el.addEventListener('wheel', onWheel, { passive: false });
   el.addEventListener('contextmenu', onContext);
   window.addEventListener('blur', onCancelAll);
+  window.addEventListener('pointerdown', onPassDown, true);
+  window.addEventListener('pointermove', onPassMove, true);
+  window.addEventListener('pointerup', onPassUp, true);
+  window.addEventListener('pointercancel', onPassUp, true);
+  window.addEventListener('click', onPassClick, true);
   return () => {
+    window.removeEventListener('pointerdown', onPassDown, true);
+    window.removeEventListener('pointermove', onPassMove, true);
+    window.removeEventListener('pointerup', onPassUp, true);
+    window.removeEventListener('pointercancel', onPassUp, true);
+    window.removeEventListener('click', onPassClick, true);
     el.removeEventListener('pointerdown', onDown);
     el.removeEventListener('pointermove', onMove);
     el.removeEventListener('pointerup', onUp);

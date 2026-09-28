@@ -1242,6 +1242,16 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 .ob-overlay:has(.ob-play-result:not(.is-ride)) .ob-topstack { top: calc(281px + var(--ob-st)); }
 .ob-overlay:has(.ob-play-result.is-ride) .ob-topstack > .ob-toasts { visibility: hidden; }
 
+/* checkpoint CP-12 · touch: lane N's arrival card (6 s, over the left thumb zone at 390 × 844: css y ≈ 600–710) lets a
+   thumb through to the stick: its body passes touches to the canvas, and a drag that starts on one of its buttons
+   (看介绍 · 拍照 · 下一站 · ×) steers too (actors/pointer THUMB_PASS: a tap is still the button's); the card steps back while
+   the stick steers (actors/TouchControls sets .is-sticking). A stick started at (110, 600) did not move at the Palace. */
+@media (pointer: coarse) {
+  .ob-overlay .ob-arrival-card { pointer-events: none; }
+  .ob-overlay .ob-arrival-card button { pointer-events: auto; touch-action: none; }
+  .ob-overlay.is-sticking .ob-arrival-card { opacity: .3; transition: opacity .2s; }
+}
+
 /* W5-F3 · the phone's 起飞 pulses once (a glide unlocked in play; lane C's 先试试起飞？): a warm ring swells out twice */
 .ob-glide-pulse { animation: ob-glide-pulse 1.2s ease-out 2; }
 @keyframes ob-glide-pulse {

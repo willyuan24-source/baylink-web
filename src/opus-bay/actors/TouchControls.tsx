@@ -137,6 +137,8 @@ export function TouchControls() {
       const b = baseRef.current, k = knobRef.current;
       if (!b || !k) return;
       b.style.opacity = stickView.active ? '1' : '0';
+      // (checkpoint CP-12) while a thumb steers, the arrival card over the thumb zone steps back (opus-bay.css)
+      b.closest('.ob-overlay')?.classList.toggle('is-sticking', stickView.active);
       b.style.transform = `translate3d(${stickView.baseX.toFixed(1)}px, ${stickView.baseY.toFixed(1)}px, 0)`;
       k.style.transform = `translate3d(${stickView.knobX.toFixed(1)}px, ${stickView.knobY.toFixed(1)}px, 0)`;
     });

@@ -407,7 +407,12 @@ export class MoveSystem {
     // --- sync with the store: flow boards / ends streetcar rides and restarts the game
     if (s.move.mode === 'transit' && m.mode !== 'transit') this.beginTransit(s.move.line ?? 'streetcar');
     // (the hop-off's 0.4 s step down from the car runs on after the flow ended the ride: E2-10)
-    else if (s.move.mode !== 'transit' && m.mode === 'transit' && m.phase !== 'alighting') { m.endTransit(); platformRider.platform = null; this.releaseGuide(true); }
+    else if (s.move.mode !== 'transit' && m.mode === 'transit' && m.phase !== 'alighting') {
+      m.endTransit(); platformRider.platform = null; this.releaseGuide(true);
+      // W5-F7 (checkpoint CP-12): a ride that ends at its stop (the flow placed the rider: game/transit leaveLineRide)
+      // faces the open pavement too, like a hop-off — the loop bus left the rider at Twin Peaks facing the drop
+      if (s.move.mode === 'foot' && s.worldMode === 'city') faceOpen(p.x, p.z);
+    }
     if (!env.playing && m.mode !== 'foot' && m.mode !== 'transit') this.toFoot();
     // fast travel (game flow): the store says 'travel' → everything parked, the pelican picks the player (and BAYBAY) up
     // and flies G1's sky path (travelPose, E2-8 / G1 request 1); back on foot at the arrival spot after
@@ -519,6 +524,8 @@ export class MoveSystem {
       this.fleet.idle(r, dt, p, visible);
     }
     for (const r of this.fleet.rides) if (r.dirty || r === this.ride) { this.fleet.pose(r, dt); r.rig.mesh.updateMatrixWorld(); }
+    // (lane C's unlock moment) a greeting pelican waits on while the moment's dialogue is open
+    this.pelican.greetHold = !!s.dialogue.nodeId;
     this.pelican.update(dt, t);
 
     // --- state machine timers
