@@ -217,11 +217,11 @@ export interface ModelAsset {
 }
 
 /**
- * The district heroes (HC-4, lane D2, wave 3): packed by docs/opus-bay/kit-jobs/hero_glb_pack.py for the bare
- * GLTFLoader that actors/system.ts and world/life.ts use — normals int8, UVs uint16 (KHR_mesh_quantization), BAYBAY's
- * skin weights uint8 and animation rotations int16, WebP base colours (EXT_texture_webp); positions stay float (life.ts
- * bakes the node matrix into the geometry). 1,361,088 → 908,300 B. Draco needs a DRACOLoader in those two loaders first
- * (world/models.ts `heroGltfLoader()`; requested in docs/opus-bay/sf-w3-D2.md).
+ * The district heroes: packed by docs/opus-bay/kit-jobs/hero_glb_pack.py (HC-4, lane D2, wave 3: BAYBAY's skin weights
+ * uint8, animation rotations int16, WebP base colours) and, since actors/system.ts and world/life.ts load them through
+ * world/models.ts `heroGltfLoader()`, Draco geometry (wave 4, lane V: scripts/opus-sf/assets/hero-draco.mjs; edgebreaker,
+ * position 14 / normal 10 / UV 12 bits, joints and weights lossless uint8; decoded POSITION / NORMAL / TEXCOORD_0 are
+ * float, so life.ts can still bake the node matrix into the geometry). 1,361,088 → 908,300 → 415,216 B.
  */
 export const MODEL_IDS = ['sea-lion', 'sea-lion-bark', 'pelican', 'sailboat', 'baybay'] as const;
 export type ModelId = (typeof MODEL_IDS)[number];
@@ -230,18 +230,18 @@ const glb = (id: ModelId) => `${BASE}/models/${id}.glb`;
 
 export const MODELS: Record<ModelId, ModelAsset> = {
   /** Lying on its belly; warm caramel clay. */
-  'sea-lion': { url: glb('sea-lion'), scale: 1, yOffset: 0, triangles: 2909, bytes: 122_368, size: [1.18, 0.75, 1.6] },
+  'sea-lion': { url: glb('sea-lion'), scale: 1, yOffset: 0, triangles: 2909, bytes: 54_116, size: [1.18, 0.75, 1.6] },
   /** Head raised, barking; same animal as `sea-lion`, swaps 1:1. */
-  'sea-lion-bark': { url: glb('sea-lion-bark'), scale: 1, yOffset: 0, triangles: 2907, bytes: 130_108, size: [0.79, 1.05, 1.16] },
+  'sea-lion-bark': { url: glb('sea-lion-bark'), scale: 1, yOffset: 0, triangles: 2907, bytes: 58_416, size: [0.79, 1.05, 1.16] },
   /** Standing; for gliding, tilt this mesh. */
-  pelican: { url: glb('pelican'), scale: 1, yOffset: 0, triangles: 2909, bytes: 160_248, size: [0.49, 1.0, 0.76] },
+  pelican: { url: glb('pelican'), scale: 1, yOffset: 0, triangles: 2909, bytes: 75_584, size: [0.49, 1.0, 0.76] },
   /** Keel 0-0.5, hull 0.5-1.45, mast top 4.96. */
-  sailboat: { url: glb('sailboat'), scale: 1, yOffset: -0.75, triangles: 1939, bytes: 127_060, size: [1.05, 4.96, 4.0] },
+  sailboat: { url: glb('sailboat'), scale: 1, yOffset: -0.75, triangles: 1939, bytes: 65_628, size: [1.05, 4.96, 4.0] },
   /**
    * BAYBAY, rigged (Blender 5.2): one SkinnedMesh, bones root / body / head / armL / armR / scarf / tail / footL / footR
    * (the procedural rig's names, identity rest rotations), 512 px base colour. Loaded by actors/ after Start.
    */
-  baybay: { url: glb('baybay'), scale: 1, yOffset: 0, triangles: 8326, bytes: 368_516, size: [0.85, 1.3, 0.79] },
+  baybay: { url: glb('baybay'), scale: 1, yOffset: 0, triangles: 8326, bytes: 161_472, size: [0.85, 1.3, 0.79] },
 };
 
 // ---------------------------------------------------------------------------

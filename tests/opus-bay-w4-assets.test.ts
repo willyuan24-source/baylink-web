@@ -3,7 +3,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
-import { ASSETS, SF_MODELS, SF_MODEL_IDS, listAssetUrls, registerVoiceClips } from '../src/opus-bay/data/assets';
+import { ASSETS, MODELS, MODEL_IDS, SF_MODELS, SF_MODEL_IDS, listAssetUrls, registerVoiceClips } from '../src/opus-bay/data/assets';
 import { W4_MODELS, W4_MODEL_IDS, w4ModelUrls } from '../src/opus-bay/data/sf/w4Models';
 import { MAP_STICKERS_T1, MAP_STICKER_IDS, isMapStickerId, mapStickerRect, mapStickerSvg, mapStickerUrls } from '../src/opus-bay/data/sf/mapStickers';
 import { T1_IDS } from '../src/opus-bay/data/sf/attractions';
@@ -83,6 +83,32 @@ test('w4 models: four new ids, no clash with SF_MODEL_IDS, each file matches its
     assert.equal(a.scale, 1); assert.equal(a.yOffset, 0); assert.equal(a.kind, 'hero'); assert.equal(a.draco, true);
     assert.ok(a.landmarkId.length > 0, `${id} landmarkId`);
   }
+});
+
+test('district heroes (lead-merge 8.4, D2 w3): Draco + WebP for heroGltfLoader, rows = files, bounds = rows, BAYBAY keeps its skin and clips', () => {
+  assert.deepEqual([...MODEL_IDS], ['sea-lion', 'sea-lion-bark', 'pelican', 'sailboat', 'baybay']);
+  let total = 0;
+  for (const id of MODEL_IDS) {
+    const a = MODELS[id], g = glb(a.url);
+    total += g.bytes;
+    assert.equal(g.bytes, a.bytes, `${id} bytes`);
+    assert.deepEqual([...(g.json.extensionsRequired ?? [])].sort(), ['EXT_texture_webp', 'KHR_draco_mesh_compression'], `${id}: Draco + WebP, no KHR_mesh_quantization left`);
+    const prim = g.json.meshes[0].primitives[0];
+    const ext = prim.extensions?.KHR_draco_mesh_compression as { attributes: Record<string, number> } | undefined;
+    assert.ok(ext, `${id} Draco primitive`);
+    assert.deepEqual(Object.keys(ext.attributes).sort(), Object.keys(prim.attributes).sort(), `${id}: every attribute in the Draco stream`);
+    assert.equal(g.json.accessors[prim.indices].count / 3, a.triangles, `${id} triangles`);
+    // decoded types three's DRACOLoader asks for: float geometry (life.ts bakes the node matrix into it), uint8 skin
+    for (const k of ['POSITION', 'NORMAL', 'TEXCOORD_0']) assert.equal((g.json.accessors[prim.attributes[k]] as { componentType?: number }).componentType, 5126, `${id} ${k} float`);
+    const pos = g.json.accessors[prim.attributes.POSITION];
+    for (let k = 0; k < 3; k++) assert.ok(Math.abs(pos.max![k] - pos.min![k] - a.size[k]) <= a.size[k] * 0.02, `${id} size[${k}]`);
+  }
+  assert.ok(total <= 420_000, `heroes ${total} B (908,300 before)`);
+  const bb = glb(MODELS.baybay.url).json as unknown as { skins: { joints: number[] }[]; animations: { name: string }[]; meshes: { primitives: { attributes: Record<string, number> }[] }[]; accessors: { componentType: number; normalized?: boolean }[] };
+  assert.equal(bb.skins[0].joints.length, 9, 'root body head armL armR scarf tail footL footR');
+  assert.deepEqual(bb.animations.map(a => a.name).sort(), ['idle', 'jump', 'run', 'walk', 'wave']);
+  const w = bb.accessors[bb.meshes[0].primitives[0].attributes.WEIGHTS_0];
+  assert.ok(w.componentType === 5121 && w.normalized === true, 'weights uint8 normalized (lossless in the Draco stream)');
 });
 
 test('w4 models: Draco + WebP, one texture ≤ 1024 px, the plan §2.2 / §6 caps (≤ 6k triangles, ≤ 250 KB), masks are WebP', () => {
