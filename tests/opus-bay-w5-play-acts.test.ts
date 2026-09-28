@@ -256,7 +256,7 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   // part c: the should activities share their props, sounds and helpers (play/toyMesh.ts, sounds3.ts, partc.ts: one chunk Vite splits
   // out for the activities that import it), each activity behind the zones and that shared chunk
-  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts'];
+  const partC = ['marshmallow.ts', 'heave.ts', 'crests.ts', 'CrestSnap.tsx', 'sealions.ts', 'SeaLionBadges.tsx', 'frisbee.ts', 'ball.ts'];
   const propsEntry = path.join(dir, 'toyMesh.ts');
   const propsShared = new Set([...closure(propsEntry), ...closure(path.join(dir, 'sounds3.ts')), ...closure(path.join(dir, 'partc.ts'))]);
   for (const f of propsShared) {
@@ -1492,4 +1492,65 @@ test('W5-A9 frisbee: 玩飞盘 on grass / sand (问 BAYBAY), a throw sails 5–1
     // the ask item: only on grass, sand or earth
     assert.equal(typeof z3.frisbeeHere(), 'boolean');
   } finally { mock.timers.reset(); off(); FZ.__resetFrisbee(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); playing(); }
+});
+
+test('W5-A9 beach ball: 玩沙滩球 on the sand — BAYBAY serves, your feet walk under it, a bump only when it is low (the gold shadow), turns alternate, it lands → the card by the rally', async () => {
+  const B = await import('../src/opus-bay/play/ball');
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const chip = await import('../src/opus-bay/play/chip');
+  const THREE = await import('three');
+  // the landing a ballistic float predicts
+  const pos = new THREE.Vector3(0, T.heightAt(0, 0) + B.BALL.r + 1, 0), vel = new THREE.Vector3(1, B.BALL.lift, 0.5);
+  const land = B.landing(pos, vel), p2 = pos.clone(), v2 = vel.clone();
+  let t = 0;
+  while (B.ballHeight(p2) > 0 && t < 10) { v2.y -= B.BALL.g / 600; p2.addScaledVector(v2, 1 / 600); t += 1 / 600; }
+  assert.ok(Math.abs(t - land.t) < 0.02 && Math.hypot(p2.x - land.x, p2.z - land.z) < 0.05, `landing ${land.t.toFixed(2)} vs ${t.toFixed(2)}`);
+  for (const line of Object.values(B.BALL_LINES)) assert.ok([...line.zh].length <= 45);
+  playing();
+  stubBody();
+  kit.__resetKit();
+  kit.__setBestWriter(null);
+  B.__resetBall();
+  const P = DISTRICT.anchors['ferry-gate'];
+  runtime.player.x = P.x; runtime.player.z = P.z;
+  runtime.guide.x = P.x + 2.5; runtime.guide.z = P.z;
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    assert.equal(B.startBall(), true);
+    const r = B.ballState()!;
+    assert.equal(r.turn, 'player');
+    assert.ok(runtime.player.pathTarget, 'your feet walk under it');
+    assert.equal(chip.chipState()?.big, '0');
+    // too early: nothing
+    assert.equal(B.bump('player'), false);
+    let rallies = 0;
+    for (let k = 0; k < 6; k++) {
+      let n = 0;
+      if (B.ballState()!.turn === 'player') {
+        while (!B.bumpable(B.ballState()!.pos, B.ballState()!.vel) && n++ < 600) stepFrameSystems(1 / 60, 0);
+        assert.equal(B.bump('player'), true, `your bump ${k}`);
+      } else {
+        // BAYBAY under hers bumps it herself
+        while (B.ballState() && B.ballState()!.turn === 'baybay' && n++ < 600) {
+          const s = B.ballState()!;
+          runtime.guide.x = s.pos.x + 0.2; runtime.guide.z = s.pos.z;
+          stepFrameSystems(1 / 60, 0);
+        }
+      }
+      rallies++;
+    }
+    const bumps = B.ballState()!.bumps;
+    assert.ok(bumps >= 5, `bumps ${bumps}`);
+    // your turn, you do nothing: it lands, the rally is over, the card
+    let n = 0;
+    while (B.ballState() && n++ < 1200) { runtime.guide.x = P.x + 30; stepFrameSystems(1 / 60, 0); }
+    assert.equal(B.ballState(), null);
+    const card = kit.lastResultShown()!;
+    assert.equal(card.activity, 'beachball');
+    assert.equal(card.detail?.zh, `连续颠球 ${bumps} 下`);
+    assert.equal(card.tier, bumps >= 8 ? 2 : 1);
+    assert.equal(runtime.player.pathTarget, null);
+    assert.equal(typeof z3.ballHere(), 'boolean');
+    assert.ok(rallies > 0);
+  } finally { mock.timers.reset(); B.__resetBall(); kit.__resetKit(); charApiMod.setCharApi(null); flow.set({ bubble: null }); runtime.player.pathTarget = null; playing(); }
 });

@@ -1,4 +1,4 @@
-import { Disc } from 'lucide-react';
+import { Disc, Volleyball } from 'lucide-react';
 import { createElement, lazy, Suspense } from 'react';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
@@ -29,6 +29,7 @@ import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch 
  *   crests.ts        the 12 crest hops (crestSpots.ts): the pennants near one, a car / bike crest hop there counts it
  *   sealions.ts      PIER 39's K-Dock: 数海狮 at the rail
  *   frisbee.ts       问 BAYBAY → 玩飞盘 on a lawn or a beach
+ *   ball.ts          问 BAYBAY → 玩沙滩球 on the sand
  */
 
 // --- the Ocean Beach fire rings (W5-A9 marshmallow) ------------------------------------------------------------------
@@ -138,10 +139,17 @@ export function frisbeeHere(): boolean {
   return (s === 'grass' || s === 'sand' || s === 'dirt') && runtime.move.mode === 'foot';
 }
 
+// --- beach-ball keepy-uppy (W5-A9): 问 BAYBAY → 玩沙滩球 on the sand -------------------------------------------------
+
+export const BALL_ID = 'beachball';
+export const BALL_NAME: Bilingual = { zh: '颠沙滩球', en: 'Beach-ball rally' };
+export const ballHere = (): boolean => surfaceAt(runtime.player.x, runtime.player.z) === 'sand' && runtime.move.mode === 'foot';
+
 export function initZones3(): () => void {
   const offs: (() => void)[] = [];
   offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt]));
   offs.push(registerOverlay({ id: BADGE_OVERLAY, Component: BadgeSlot }));
+  offs.push(registerAskItem({ id: 'play-ball', order: -4, label: { zh: '玩沙滩球', en: 'Beach ball' }, icon: Volleyball, visible: ballHere, onSelect: () => { void import('./ball').then(m => { m.startBall(); }); } }));
   offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void import('./frisbee').then(m => { m.startFrisbee(); }); } }));
   offs.push(registerOverlay({ id: SNAP_OVERLAY, Component: SnapSlot }));
   // a crest hop (lane F's vehicle:hop) at one of the 12 crests

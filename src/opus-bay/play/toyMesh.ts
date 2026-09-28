@@ -10,7 +10,7 @@ import { instancedWarmup, registerWarmup } from '../world/warmup';
  * the kind's chunk loads (`registerToyWarmup`). aInfo.w ≤ −1: never dither-faded between the camera and the player.
  */
 
-export type ToyShape = 'cyl' | 'box' | 'ball' | 'disc' | 'pennant';
+export type ToyShape = 'cyl' | 'box' | 'ball' | 'disc' | 'pennant' | 'beachball';
 
 const materials = new Map<string, THREE.MeshStandardMaterial>();
 export function toyMaterial(kind: string): THREE.MeshStandardMaterial {
@@ -47,12 +47,27 @@ function pennantGeometry(): THREE.BufferGeometry {
   return out;
 }
 
+/** A beach ball: a unit icosphere in six coloured gores round its axis, white caps (per-face vertex colours). */
+function beachBall(): THREE.BufferGeometry {
+  const g = new THREE.IcosahedronGeometry(0.5, 1);
+  const pos = g.getAttribute('position'), n = pos.count, col = new Float32Array(n * 3);
+  const gores = ['#e8483c', '#ffffff', '#2f7fd0', '#f2c14e', '#ffffff', '#3fae6a'].map(c => new THREE.Color(c)), white = new THREE.Color('#ffffff');
+  for (let f = 0; f < n; f += 3) {
+    let x = 0, y = 0, z = 0;
+    for (let k = 0; k < 3; k++) { x += pos.getX(f + k); y += pos.getY(f + k); z += pos.getZ(f + k); }
+    const c = Math.abs(y / 3) > 0.42 ? white : gores[Math.floor(((Math.atan2(x, z) + Math.PI) / (Math.PI * 2)) * 6) % 6];
+    for (let k = 0; k < 3; k++) col.set([c.r, c.g, c.b], (f + k) * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  return g;
+}
+
 /**
  * A unit shape centred on the origin (height / size 1 along +y), white vertex colours (the instance colour paints it);
  * `nightGlow` 0 … 1 lights it at night only (props by a fire read in the dark).
  */
 export function toyGeometry(shape: ToyShape, nightGlow = 0): THREE.BufferGeometry {
-  const base = shape === 'pennant' ? pennantGeometry() : shape === 'ball' ? new THREE.IcosahedronGeometry(0.5, 1)
+  const base = shape === 'pennant' ? pennantGeometry() : shape === 'beachball' ? beachBall() : shape === 'ball' ? new THREE.IcosahedronGeometry(0.5, 1)
     : shape === 'box' ? new THREE.BoxGeometry(1, 1, 1)
       : new THREE.CylinderGeometry(0.5, 0.5, 1, shape === 'disc' ? 12 : 7, 1);
   const g = base.index ? base.toNonIndexed() : base;
