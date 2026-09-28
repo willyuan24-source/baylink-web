@@ -8,11 +8,11 @@ relayed owner message reached this part.
 
 ### 给主人的摘要
 
-1. **走得到、站得住**：把"景点到达点"全部过了一遍机器检查（能不能站、在不在车道上、从路网走不走得到、飞过去落在哪）。29 个景点原来的终点有问题（卡在围墙里、站在马路中间、离景点 100 米远……），现在都有了正确的到达点（等 N 组接上即生效）；圣母大教堂、女性大楼、24 街、诺伊谷广场等的到达点挪到了人行道上。
+1. **走得到、站得住**：把"景点到达点"全部过了一遍机器检查（能不能站、在不在车道上、从路网走不走得到、飞过去落在哪）。29 个景点原来的终点有问题（卡在围墙里、站在马路中间、离景点几百米远……），现在都有了正确的到达点（等 N 组接上即生效）；圣母大教堂、女性大楼、24 街、诺伊谷广场等的到达点挪到了人行道上。
 2. **又开放 13 个小景点**：麦克拉伦公园的蓝色大水塔、山湖公园的湖边观景台、阿尔塔广场、布埃纳维斯塔公园山顶等，现在城市里画得出来、走得上去。海浪风琴等 D 组挪一下彩蛋位置后再开；伊娜·库尔布里斯公园离市中心太近，等 V 组测完余量。
 3. **海滩篝火跟真实季节走**：3 月 1 日到 10 月 31 日、早 6 点到晚 9 点半才有火（每隔一个火圈有一团小火苗），11 月起全是冷灰——用 R 组的真实时间判断。
 4. **西沃德街滑梯准备好了**：顶上平台能走上去、能站到两条滑道的起点，原来一根"穿得过去"的栏杆去掉了，路灯也挡人了；A 组可以直接用滑道坐标做"滑下去"。
-5. 测试全部通过（最后一次 1040 个）；电脑和手机截图都逐张看过。
+5. 测试全部通过（最后一次 1049 个）；电脑和手机截图都逐张看过。
 
 ### What was built
 
@@ -44,7 +44,7 @@ verifiedAt }`. The site's blocker covers the chutes, so a ride moves the rider a
 
 **Checks** on the pushed trees: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
 the full suite `tests/opus-bay-*.test.ts` **987 / 987** (first push, `561e24d`), **1003 / 1003** (after lane C), **1028
-/ 1028** (after lanes E / F / V), **1040 / 1040** (after lane A, the tree of the last code push). No wall-clock flake
+/ 1028** (after lanes E / F / V), **1040 / 1040** (after lane A), **1049 / 1049** (after lane T, the pushed tree). No wall-clock flake
 this part. (tsc, eslint and tsx were run as `node node_modules/typescript/bin/tsc`, `node node_modules/eslint/bin/eslint.js`
 and `node node_modules/tsx/dist/cli.mjs`: the same binaries `npx` calls.)
 
