@@ -121,6 +121,7 @@ export class ScenicFlight implements ScenicDriver {
   /** TravelPose y: the seat − the perch (the fast hop's path convention) */
   get y() { return this.sim.y - GLIDE.perch; }
   get heading() { return this.sim.heading; }
+  get roll() { return this.sim.roll; }
   /** 0..1: how much of the way is flown */
   get progress() { return this.d0 > 1 ? clamp(1 - this.distLeft() / this.d0, 0, 1) : 1; }
   distLeft() { return Math.hypot(this.dest.x - this.sim.x, this.dest.z - this.sim.z); }

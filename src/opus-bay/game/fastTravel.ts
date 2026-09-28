@@ -37,6 +37,8 @@ export interface TravelPose {
   y: number;
   z: number;
   heading: number;
+  /** W5-N9: the bank of a scenic flight's pelican (rad, + = right), when it flies itself; absent on the fast hop */
+  roll?: number;
 }
 
 export type TravelPhase = TravelPose['phase'];
@@ -97,6 +99,8 @@ export interface ScenicDriver {
   readonly y: number;
   readonly z: number;
   readonly heading: number;
+  /** the pelican's bank (rad, + = right) */
+  readonly roll: number;
   /** 0..1 of the way */
   readonly progress: number;
   /** where the city streams (a little ahead of the pelican) */
@@ -198,6 +202,11 @@ export interface ScenicCurve { ax: number; ay: number; az: number; bx: number; b
 let trip: Trip | null = null;
 
 export function travelActive(): boolean { return trip !== null; }
+/**
+ * W5-N9: a scenic flight is flying itself right now (between the rise and the landing): the pelican's bank is in the
+ * pose, and a phone's 降落 (TouchControls, lane F) may land it where it is (input.glideCount, as G on a keyboard).
+ */
+export function travelIsScenic(): boolean { return !!trip?.scenic && trip.clock.phase === 'pan'; }
 export function travelEpoch(): number { return epoch; }
 /** ?at= teleports and resume also void rides in progress */
 export function bumpTravelEpoch() { epoch++; }
@@ -205,7 +214,7 @@ export function travelPose(): TravelPose | null {
   if (!trip) return null;
   const c = trip.clock, sc = trip.scenic;
   // W5-N9: a scenic flight is the driver's between the rise and the landing, then the landing curve
-  if (sc && c.phase === 'pan') return { phase: 'pan', t: sc.progress, x: sc.x, y: sc.y, z: sc.z, heading: sc.heading };
+  if (sc && c.phase === 'pan') return { phase: 'pan', t: sc.progress, x: sc.x, y: sc.y, z: sc.z, heading: sc.heading, roll: sc.roll };
   if (trip.curve && c.phase === 'descent') return curvePose(trip.curve, c.t);
   return tripPose(c, trip.from, trip.landed ?? trip.dest, heightAt);
 }

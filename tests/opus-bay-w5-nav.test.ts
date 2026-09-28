@@ -1154,7 +1154,7 @@ test('W5-N9 the trip: pickup and rise, the driver flies (its pose, its camera, t
     begin(x: number, y: number, z: number, h: number) { calls.push(`begin ${x.toFixed(0)},${y.toFixed(0)},${z.toFixed(0)}`); pose = { x, y, z, heading: h }; },
     step(dt: number) { pose = { ...pose, z: pose.z + 20 * dt }; return answer; },
     get x() { return pose.x; }, get y() { return pose.y; }, get z() { return pose.z; }, get heading() { return pose.heading; },
-    progress: 0.5,
+    roll: 0.2, progress: 0.5,
     focus: () => ({ x: pose.x, z: pose.z + 30 }),
     shot: () => ({ position: [pose.x, pose.y + 5, pose.z - 12] as [number, number, number], target: [pose.x, pose.y, pose.z + 10] as [number, number, number] }),
     chaseAt: (x: number, y: number, z: number) => ({ position: [x, y + 5, z - 12] as [number, number, number], target: [x, y, z + 10] as [number, number, number] }),
@@ -1177,12 +1177,15 @@ test('W5-N9 the trip: pickup and rise, the driver flies (its pose, its camera, t
   const p = FT.travelPose()!;
   assert.equal(p.phase, 'pan');
   assert.ok(Math.abs(p.z - pose.z) < 1e-9 && p.t === 0.5);
+  assert.equal(p.roll, 0.2, 'the bank rides in the pose (lane F may bank the pelican with it)');
+  assert.equal(FT.travelIsScenic(), true);
   assert.deepEqual(runtime.camera.shot!.target, [pose.x, pose.y, pose.z + 10]);
   // it asks to land: the curve from the pelican to the arrival spot, the player placed there
   answer = 'land';
   FT.stepTravel(1 / 30);
   const d0 = FT.travelPose()!;
   assert.equal(d0.phase, 'descent');
+  assert.equal(FT.travelIsScenic(), false, 'landing: no longer flying itself');
   assert.ok(Math.hypot(d0.x - pose.x, d0.z - pose.z) < 1, 'the descent starts at the pelican');
   assert.ok(calls.includes('end'));
   let n = 0;
@@ -1197,7 +1200,7 @@ test('W5-N9 the trip: pickup and rise, the driver flies (its pose, its camera, t
 test('W5-N9 the trip: skip (跳过) mid-flight takes the fast way through the cloud; a flight that lands far from its leg walks the rest', () => {
   let ended = 0;
   const drv = {
-    begin() {}, step: () => 'fly' as const, x: 0, y: 40, z: 0, heading: 0, progress: 0,
+    begin() {}, step: () => 'fly' as const, x: 0, y: 40, z: 0, heading: 0, roll: 0, progress: 0,
     focus: () => ({ x: 0, z: 0 }), shot: () => ({ position: [0, 50, -10] as [number, number, number], target: [0, 40, 10] as [number, number, number] }),
     chaseAt: () => ({ position: [0, 50, -10] as [number, number, number], target: [0, 40, 10] as [number, number, number] }),
     end() { ended++; },
