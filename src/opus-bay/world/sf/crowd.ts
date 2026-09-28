@@ -4,7 +4,7 @@ import type { Quality } from '../../core/store';
 import { Batch, CYL, M, SPHERE } from '../builder';
 import { crowdPeopleMaterial, personGeometry } from '../life';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistance, lifeRng, predictApproach } from './streetNet';
-import type { CrowdPin } from './crowdSpots';
+import { type CrowdPin, type WalkerLane, laneDistance } from './crowdSpots';
 import { obstaclePool } from './recordPool';
 
 /**
@@ -30,6 +30,9 @@ import { obstaclePool } from './recordPool';
  *   count in the crowd (the walkers make room) and are never recycled while their spot is registered.
  * - **Wave back** (W5-T1): the player's wave (crowdSpots `crowdWave`, the 'emote' event) makes the walkers within 6 u
  *   stop, turn to the player and wave a hand (the people material's wave channel: aWalk < 0).
+ * - **Clear lanes** (W5-T5, plan MF2): the host's lanes (crowdSpots `walkerLanes`: every crowd group's aisle, the GGB
+ *   deck's centre) stay clear — a walker going along one or a sightseer standing in one steps sideways out of it
+ *   (`laneStep`, eased), no sightseer spawns in one, and no crossing runs down one (none at all across a `noCross` lane).
  * - **Drawn** as two InstancedMeshes (near figure = the promenade walker; far figure ≈ 80 triangles beyond 24 u from the camera), one
  *   material instance for that one object kind (life.ts `crowdPeopleMaterial`, warmed as 'f-crowd'); no shadows (like
  *   the promenade's). Budget: ≤ 18 near figures (324 triangles) + the rest far (92): ≤ 10.3k triangles and 2 calls.
@@ -139,6 +142,8 @@ export interface Walker {
   waveT: number;
   waveDelay: number;
   wx: number; wz: number;
+  /** (W5-T5) the sideways step out of a clear lane (eased), added to the pose */
+  lx: number; lz: number;
 }
 
 /**
@@ -166,13 +171,18 @@ export interface CrowdEnv {
   pins?(): readonly CrowdPin[];
   /** (W5-T1) wave requests since the last step (crowdSpots takeCrowdWaves): walkers within r of (x, z) wave back */
   waves?(): readonly { x: number; z: number; r: number }[];
+  /**
+   * (W5-T5) the lanes to keep clear (crowdSpots walkerLanes: every group's aisle, the GGB deck's centre): a walker going
+   * along one or a sightseer standing in one steps out of it; one crossing it keeps going
+   */
+  lanes?(): readonly WalkerLane[];
 }
 
 const newWalker = (id: number): Walker => ({
   id, on: false, mode: 'walk', e: -1, s: 0, side: 1, lane: CROWD.laneIn, laneT: CROWD.laneIn, v: 1, ph: 0, color: 0, scale: 1,
   x0: 0, z0: 0, x1: 0, z1: 0, ne: -1, ns: 0, nside: 1, standT: 0, face: 0, px: 0, pz: 0, pushHold: 0,
   hopT: -1, hx0: 0, hz0: 0, hx1: 0, hz1: 0, hopCool: 0, pause: 0, pace: 1, check: 0, x: 0, y: 0, z: 0, heading: 0, walking: 0, grow: 1, onRoad: false, leave: false,
-  pin: null, waveT: 0, waveDelay: 0, wx: 0, wz: 0,
+  pin: null, waveT: 0, waveDelay: 0, wx: 0, wz: 0, lx: 0, lz: 0,
 });
 
 const _p = { x: 0, z: 0 };
@@ -468,6 +478,8 @@ export class CrowdSim {
       // (verify m6) never in the player's arrival ring / on BAYBAY / a resident: a fast-travel landing refilled the plaza
       // spots round the player, and a sightseer stood in the player's face
       if (nearAvoid(x, z)) continue;
+      // (W5-T5) never in a clear lane (an event's aisle, the GGB deck's centre)
+      if (this.inLane(x, z, 0.3)) continue;
       const seen = this.env.visible(x, z);
       if (!anywhere && seen && dd < CROWD.spawnInView) continue;
       this.init(w, seen);
@@ -478,6 +490,17 @@ export class CrowdSim {
       w.heading = w.face;
       w.standT = 20 + r() * 40;
       return true;
+    }
+    return false;
+  }
+
+  /** (W5-T5) (x, z) lies within a clear lane (+ margin), along its length */
+  inLane(x: number, z: number, margin = 0): boolean {
+    const lanes = this.env.lanes?.();
+    if (!lanes) return false;
+    for (const L of lanes) {
+      const q = laneDistance(L.lane, x, z);
+      if (q.d < L.half + margin && q.t > 0 && q.t < 1) return true;
     }
     return false;
   }
@@ -495,6 +518,7 @@ export class CrowdSim {
     w.leave = false;
     w.pin = null;
     w.waveT = 0;
+    w.lx = w.lz = 0;
     w.lane += (r() - 0.5) * 0.16;
     this.stats.spawned++;
   }
@@ -574,7 +598,7 @@ export class CrowdSim {
     const lane = this.freeLane(s, along, other);
     if (lane !== null) {
       this.net.at(s, along, other * this.offset(s, other, lane), _p);
-      if (this.clearLine(w.x - w.px, w.z - w.pz, _p.x, _p.z)) {
+      if (this.clearLine(w.x - w.px, w.z - w.pz, _p.x, _p.z) && !this.alongLane(w.x - w.px, w.z - w.pz, _p.x, _p.z)) {
         w.mode = 'cross';
         w.x0 = w.x - w.px; w.z0 = w.z - w.pz; w.x1 = _p.x; w.z1 = _p.z; w.s = 0; w.check = 0;
         w.ne = w.e; w.ns = along; w.nside = other; w.lane = lane;
@@ -596,6 +620,28 @@ export class CrowdSim {
     const L = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(L));
     for (let i = 1; i < n; i++) if (!this.net.probe.surface(ax + (bx - ax) * (i / n), az + (bz - az) * (i / n))) return false;
     return true;
+  }
+
+  /**
+   * (W5-T5) A crossing from a to b runs down a clear lane: it passes through one (1 u samples) heading within ~45° of the
+   * lane's line. Crossing a lane square on (an aisle between two halves of a crowd) is fine, except a `noCross` lane (the
+   * GGB deck's roadway: walkers keep to their sidewalk).
+   */
+  private alongLane(ax: number, az: number, bx: number, bz: number): boolean {
+    const lanes = this.env.lanes?.();
+    if (!lanes?.length) return false;
+    const L = Math.hypot(bx - ax, bz - az);
+    if (L < 1e-3) return false;
+    const ux = (bx - ax) / L, uz = (bz - az) / L, n = Math.max(1, Math.ceil(L));
+    for (const lane of lanes) {
+      const l = lane.lane, ll = Math.hypot(l.bx - l.ax, l.bz - l.az) || 1;
+      if (!lane.noCross && Math.abs(ux * (l.bx - l.ax) / ll + uz * (l.bz - l.az) / ll) < 0.7) continue;
+      for (let i = 0; i <= n; i++) {
+        const q = laneDistance(l, ax + (bx - ax) * (i / n), az + (bz - az) * (i / n));
+        if (q.d < lane.half && q.t > 0 && q.t < 1) return true;
+      }
+    }
+    return false;
   }
 
   /** At the end of a sidewalk: choose the next edge, keep the walker's side of the street, cross if it is not here. */
@@ -631,7 +677,7 @@ export class CrowdSim {
     if (s.twin >= 0) consider(s.twin, 0);
     for (const c of cands) {
       if (c.d < 0.9) { w.lane = c.lane; this.enter(w, c.f, c.a0, c.nside); return; }
-      if (!this.clearLine(bx, bz, c.x, c.z)) continue;
+      if (!this.clearLine(bx, bz, c.x, c.z) || this.alongLane(bx, bz, c.x, c.z)) continue;
       w.mode = 'cross';
       w.x0 = bx; w.z0 = bz; w.x1 = c.x; w.z1 = c.z; w.s = 0; w.check = 0;
       w.ne = c.f; w.ns = c.a0; w.nside = c.nside; w.lane = c.lane;
@@ -796,6 +842,9 @@ export class CrowdSim {
       w.px *= 0.6; w.pz *= 0.6;
       w.x = bx + w.px; w.z = bz + w.pz;
     }
+    // (W5-T5) out of the clear lanes: the GGB deck's centre, an event's aisle
+    this.laneStep(w, hd, dt);
+    w.x += w.lx; w.z += w.lz;
     let d = hd - w.heading;
     d = Math.atan2(Math.sin(d), Math.cos(d));
     w.heading += d * (1 - Math.exp(-dt * 9));
@@ -808,6 +857,44 @@ export class CrowdSim {
 
   /** The smoothed offset (laneT is the offset past the kerb, eased toward `lane`). */
   private offsetT(s: StreetEdge, w: Walker): number { return this.offset(s, w.side, w.laneT); }
+
+  /**
+   * (W5-T5) The clear-lane rule for the moving crowd: a walker going along a lane (within ~45° of its line) or a sightseer
+   * standing in one steps sideways until its body is out of it — to the side it is on, else the other side — onto ground
+   * a walker fits on (never from a sidewalk onto the roadway). A walker crossing a lane, or crossing a street, keeps going.
+   * The step eases in and out (w.lx / w.lz, added to the pose), so nobody jumps.
+   */
+  private laneStep(w: Walker, heading: number, dt: number) {
+    let tx = 0, tz = 0;
+    const lanes = this.env.lanes?.();
+    if (lanes?.length && w.mode !== 'cross' && w.hopT < 0) {
+      const x = w.x, z = w.z;
+      for (const L of lanes) {
+        const l = L.lane, need = L.half + CROWD.r + 0.05;
+        const ax = Math.min(l.ax, l.bx) - need, bx = Math.max(l.ax, l.bx) + need, az = Math.min(l.az, l.bz) - need, bz = Math.max(l.az, l.bz) + need;
+        if (x < ax || x > bx || z < az || z > bz) continue;
+        const q = laneDistance(l, x, z);
+        // (only along its length: past an end the lane is open ground again)
+        if (q.d >= need || q.t <= 0 || q.t >= 1) continue;
+        const dx = l.bx - l.ax, dz = l.bz - l.az, len = Math.hypot(dx, dz) || 1, ux = dx / len, uz = dz / len;
+        if (w.mode === 'walk' && Math.abs(Math.sin(heading) * ux + Math.cos(heading) * uz) < 0.7) continue;
+        const onRoad = this.net.probe.surface(x, z) === 'road';
+        const fits = (px: number, pz: number) => this.net.probe.stand(px, pz, STAND_R) && (onRoad || this.net.probe.surface(px, pz) !== 'road');
+        // the side it is on first (exactly on the line: by its id), then the other one
+        const first = q.d < 1e-3 ? (w.id % 2 ? 1 : -1) : q.side;
+        for (const side of [first, -first]) {
+          const push = side === q.side || q.d < 1e-3 ? need - q.d : need + q.d;
+          const nx = -uz * side * push, nz = ux * side * push;
+          if (!fits(x + nx, z + nz)) continue;
+          tx += nx; tz += nz;
+          break;
+        }
+      }
+    }
+    const k = 1 - Math.exp(-dt * 5);
+    w.lx += (tx - w.lx) * k; w.lz += (tz - w.lz) * k;
+    if (Math.abs(w.lx) < 1e-4 && Math.abs(w.lz) < 1e-4) w.lx = w.lz = 0;
+  }
 
   /**
    * Walkers within r of (x, z) as soft obstacles (actors/view.ts registerObstacleSource). The records are reused, one pool

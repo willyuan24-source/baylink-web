@@ -12,8 +12,9 @@ import { RESIDENTS } from '../../data/sf/residents';
 import { travelActive } from '../../game/fastTravel';
 import { U } from '../materials';
 import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
-import { WAVE_REACH, crowdPins, crowdWave, takeCrowdWaves } from './crowdSpots';
-import { sfLandmark } from './landmarks/index';
+import { WAVE_REACH, addClearLane, crowdPins, crowdWave, takeCrowdWaves, walkerLanes } from './crowdSpots';
+import { GGB } from './landmarks/golden-gate-bridge';
+import { landmarkToWorld, sfLandmark } from './landmarks/index';
 import { landmarkPlazaSpots } from './landmarks/context';
 import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
 import { setVehicle, vehiclePool } from './recordPool';
@@ -34,7 +35,10 @@ import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
  * - feeds the audio (audio/cityHooks.ts): the crowd around the listener, cars passing close by, the hop-aside squeak;
  * - (W5-T1) hands the crowd the other lanes' crowd spots (world/sf/crowdSpots.ts: pinned sightseers) and the player's
  *   waves (crowdSpots `crowdWave`, and the game event { type: 'emote', who: 'player', emote: 'wave' }): walkers within
- *   6 u wave back.
+ *   6 u wave back;
+ * - (W5-T5, plan MF2) keeps the 3 u clear lanes clear (crowdSpots `walkerLanes`): every crowd group's aisle and the
+ *   Golden Gate Bridge deck's centre line (registered here, DECK_LANES), so the player can hold forward from one end
+ *   of the deck to the other without weaving through people.
  */
 
 const PLAYER_BIKE = { halfL: 0.85, halfW: 0.35 };
@@ -45,6 +49,17 @@ const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint
 const HOP_HEARD = 22;
 /** the crowd hides while the camera is this far above the ground under the player (u): a glide over the streets */
 const CROWD_HIGH = 55;
+
+/**
+ * (W5-T5) walkable decks whose centre the crowd keeps clear (3 u wide, crowdSpots CLEAR_LANE): the Golden Gate Bridge from
+ * the south approach to the Marin end (the landmark's local deck line, END_S → END_N). World x / z.
+ */
+export function deckLanes(): { key: string; lane: { ax: number; az: number; bx: number; bz: number } }[] {
+  const ggb = sfLandmark('golden-gate-bridge');
+  if (!ggb) return [];
+  const a = landmarkToWorld(ggb, { x: GGB.END_S, z: 0 }), b = landmarkToWorld(ggb, { x: GGB.END_N, z: 0 });
+  return [{ key: 'deck:golden-gate-bridge', lane: { ax: a.x, az: a.z, bx: b.x, bz: b.z } }];
+}
 
 export interface CityLifeOptions {
   /** rough "could the player see this" (the transit layer's view cone) */
@@ -120,6 +135,7 @@ export class CityLife {
       onHop: (w, q) => this.hopped(w.x, w.z, q),
       pins: () => crowdPins(),
       waves: () => takeCrowdWaves(),
+      lanes: () => walkerLanes(),
     };
     const trafficEnv: TrafficEnv = {
       focus: () => focus(),
@@ -155,6 +171,8 @@ export class CityLife {
       registerObstacleSource((out, x, z, r) => { crowd.sim.obstacles(out, x, z, r); traffic.sim.obstacles(out, x, z, r); }),
       // (W5-T1) the player's wave (lane A's emote wheel plays it through the anim channel's 'emote' event)
       onEvent(e => { if (e.type === 'emote' && e.who === 'player' && e.emote === 'wave') crowdWave(runtime.player.x, runtime.player.z, WAVE_REACH); }),
+      // (W5-T5) the GGB deck's centre stays clear of the crowd
+      ...deckLanes().map(d => addClearLane(d.key, d.lane, undefined, { noCross: true })),
     );
     this.applyQuality();
   }

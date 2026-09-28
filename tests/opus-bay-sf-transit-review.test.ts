@@ -263,7 +263,7 @@ test('review R3: 在这站下车 gets off at the station it was tapped at, even 
   }
 });
 
-test('review R4: a shared Market St station offers each destination once, both lines and their far ends (phone: 6 rows)', () => {
+test('review R4 (+ W5-T5): a shared Market St station offers each destination once, both lines, the Metro goal ends (the M to Stonestown / SF State fits on a phone) and on a desktop the far ends', () => {
   const { fleet } = metroFleet();
   const device = runtime.input.device;
   try {
@@ -277,7 +277,9 @@ test('review R4: a shared Market St station offers each destination once, both l
         assert.equal(new Set(to).size, to.length, `${station} (${dev}): a destination once (${to.join(', ')})`);
         assert.ok(rows.some(r => r.line === 'n-judah') && rows.some(r => r.line === 'm-ocean-view'), `${station} (${dev}): both lines`);
         assert.ok(to.includes('muni-judah-la-playa'), `${station} (${dev}): the N to Ocean Beach (${to.join(', ')})`);
-        assert.ok(to.includes('muni-san-jose-geneva'), `${station} (${dev}): the M to Balboa Park (${to.join(', ')})`);
+        // (W5-T5) the Metro goal's M ends on every device: Stonestown (19th & Winston) and SF State (19th & Holloway)
+        assert.ok(to.includes('muni-19th-winston') && to.includes('muni-19th-holloway'), `${station} (${dev}): the M to Stonestown and SF State (${to.join(', ')})`);
+        if (dev === 'keyboard') assert.ok(to.includes('muni-san-jose-geneva'), `${station} (${dev}): the M to Balboa Park (${to.join(', ')})`);
       }
       // a one-line station keeps its own rows (the loop: the next 3 stops + the lap)
       const loop = LR.stationChoices('loop-castro').filter(c => c.kind === 'ride' || c.kind === 'lap');

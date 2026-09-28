@@ -5,6 +5,7 @@ import { game } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
 import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4StationName, w4StationShort } from '../data/sf/stationNames';
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
+import { METRO_ENDS } from '../data/sf/goalMarks';
 import { DISTRICT } from '../data/district';
 import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, flineJson, rideSystemFor, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
 import { canStand, groundPending, nearestWalkable } from '../core/terrain';
@@ -103,7 +104,7 @@ export function stationChoices(station: string, o: { to?: string; line?: string 
   let map: LineChoice | null = null, cancel: LineChoice | null = null;
   for (const l of ls) {
     const rides: LineChoice[] = [];
-    for (const c of lineChoices(lite(l), station, { rideSeconds: lineRideSeconds, max: ls.length > 1 ? 99 : max, to: o.to })) {
+    for (const c of lineChoices(lite(l), station, { rideSeconds: lineRideSeconds, max: ls.length > 1 ? 99 : max, to: o.to, prefer: METRO_ENDS[l.id] })) {
       if (c.kind === 'map') map ??= c;
       else if (c.kind === 'cancel') cancel ??= c;
       else rides.push(c);
@@ -115,11 +116,21 @@ export function stationChoices(station: string, o: { to?: string; line?: string 
   // (review) the five Market St stations serve the N and the M: take the lines' rows in turn and offer a destination
   // both reach once. A cap per line had left two identical rows each for the trunk stops (Civic Center, Montgomery,
   // Embarcadero) and no Ocean Beach / Balboa Park row on a phone at Powell (Ocean Beach: the Metro goal's sea).
+  // (W5-T5) rank by rank: every line's next stops, then the Metro goal's ends (the N to Ocean Beach, the M to Stonestown
+  // and SF State: on a phone at Powell / Civic Center the M's rows used to fall past the sixth), then the rest in turn
   const rides: LineChoice[] = [];
-  for (let k = 0; rides.length < max && perLine.some(rs => k < rs.length); k++) {
-    for (const rs of perLine) {
-      const c = rs[k];
-      if (c && rides.length < max && !rides.some(r => r.to === c.to)) rides.push(c);
+  // (each line in turn offers its next row not offered yet: a row both lines share does not use up a line's turn)
+  for (const rank of [0, 1, 2] as const) {
+    const tier = perLine.map(rs => rs.filter(c => (c.rank ?? 2) === rank));
+    const at = tier.map(() => 0);
+    for (let more = true; more && rides.length < max;) {
+      more = false;
+      tier.forEach((rs, li) => {
+        while (at[li] < rs.length && rides.some(r => r.to === rs[at[li]].to)) at[li]++;
+        if (at[li] >= rs.length || rides.length >= max) return;
+        rides.push(rs[at[li]++]);
+        more = true;
+      });
     }
   }
   return [...rides, ...(map ? [map] : []), cancel ?? { kind: 'cancel', label: { zh: '先不坐了', en: 'Not now' } }];

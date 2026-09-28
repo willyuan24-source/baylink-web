@@ -16,6 +16,11 @@
  * toward what it faces (the aisle to the stage), or across its long axis when it faces nothing in particular (a queue
  * split in two) — so the player can always walk through a crowd; `lane` sets it explicitly. Standers never stand in any
  * group's lane (a later group's lane moves an earlier group's standers too). Same key again: replaces the group.
+ *
+ * (W5-T5) The moving crowd keeps the lanes too (`walkerLanes()`, read by world/sf/crowd.ts every frame): a walker going
+ * along a lane, or a sightseer standing in one, steps out of it; one crossing it square on keeps going. `addClearLane`
+ * adds a lane with no standers of its own — the Golden Gate Bridge deck's centre (world/sf/cityLife.ts), `noCross`: the
+ * walkers keep to their sidewalk and never cross the deck's roadway.
  */
 
 export interface CrowdSpotInput {
@@ -50,8 +55,17 @@ export const WAVE_REACH = 6;
 
 interface Group { key: string; spots: CrowdSpotInput[]; opts: CrowdSpotOptions; lane: CrowdLane; look: { x: number; z: number }; raw: { x: number; z: number; face: number }[] }
 
+/**
+ * (W5-T5) a lane the crowd keeps clear: its centre line and half width (u); `noCross`: nobody crosses it either (a bridge
+ * deck's roadway: the walkers keep to their own sidewalk)
+ */
+export interface WalkerLane { key: string; lane: CrowdLane; half: number; noCross?: boolean }
+
 const groups = new Map<string, Group>();
+/** (W5-T5) lanes without standers of their own (the GGB deck's centre) */
+const clearLanes = new Map<string, WalkerLane>();
 let pins: CrowdPin[] = [];
+let lanes: WalkerLane[] = [];
 let version = 0;
 const listeners = new Set<() => void>();
 
@@ -107,9 +121,9 @@ function defaultLane(pts: readonly { x: number; z: number }[], face: { x: number
   return { ax: cx - ux * reach, az: cz - uz * reach, bx: cx + ux * reach, bz: cz + uz * reach };
 }
 
-/** Push positions out of a lane (to CLEAR_LANE / 2 + a little from its line, on the side they stand). */
-function clearOf(p: { x: number; z: number }, lane: CrowdLane, k: number) {
-  const half = CLEAR_LANE / 2 + 0.05;
+/** Push positions out of a lane (to its half width + a little from its line, on the side they stand). */
+function clearOf(p: { x: number; z: number }, lane: CrowdLane, k: number, width = CLEAR_LANE) {
+  const half = width / 2 + 0.05;
   const { d, side, t } = laneDistance(lane, p.x, p.z);
   if (d >= half) return;
   const dx = lane.bx - lane.ax, dz = lane.bz - lane.az, L = Math.hypot(dx, dz) || 1;
@@ -130,12 +144,14 @@ function rebuild() {
       // every group's lane (its own first): a stage's aisle stays open through a neighbouring group too
       clearOf(p, g.lane, i);
       for (const o of all) if (o !== g) clearOf(p, o.lane, i);
+      for (const l of clearLanes.values()) clearOf(p, l.lane, i, l.half * 2);
       // (facing the sight from where they end up standing; someone right on it keeps the group's way)
       const dx = g.look.x - p.x, dz = g.look.z - p.z;
       next.push({ id: `${g.key}#${i}`, key: g.key, x: p.x, z: p.z, face: Math.hypot(dx, dz) > 0.3 ? Math.atan2(dx, dz) : q.face });
     });
   }
   pins = next;
+  lanes = [...all.map(g => ({ key: g.key, lane: g.lane, half: CLEAR_LANE / 2 })), ...clearLanes.values()];
   version++;
   for (const fn of listeners) { try { fn(); } catch { /* a listener's error stays its own */ } }
 }
@@ -175,8 +191,28 @@ export function removeCrowdSpots(key: string) {
 export function crowdPins(): readonly CrowdPin[] { return pins; }
 /** Bumps on every add / remove (the crowd re-reads the pins). */
 export function crowdPinsVersion(): number { return version; }
-/** Every group's clear lane (tests, the crowd's walker lanes later). */
+/** Every group's clear lane (tests). */
 export function crowdLanes(): { key: string; lane: CrowdLane }[] { return [...groups.values()].map(g => ({ key: g.key, lane: g.lane })); }
+
+/**
+ * (W5-T5) Every lane the crowd keeps clear — each group's aisle and the clear lanes below — with its half width; the same
+ * array until something changes (the crowd reads it every frame). Walkers going along a lane, and sightseers standing in
+ * one, step out of it; a walker crossing it keeps going.
+ */
+export function walkerLanes(): readonly WalkerLane[] { return lanes; }
+
+/**
+ * (W5-T5) A lane of `width` (default CLEAR_LANE) along a → b that the crowd keeps clear, with no standers of its own: the
+ * Golden Gate Bridge deck's centre (world/sf/cityLife.ts), so the player can hold forward from one end to the other.
+ * Same key again: replaces it. Returns the remover.
+ */
+export function addClearLane(key: string, lane: CrowdLane, width: number = CLEAR_LANE, opts: { noCross?: boolean } = {}): () => void {
+  if (![lane.ax, lane.az, lane.bx, lane.bz, width].every(Number.isFinite) || width <= 0) return () => {};
+  const rec: WalkerLane = { key, lane: { ...lane }, half: Math.min(10, width) / 2, noCross: !!opts.noCross };
+  clearLanes.set(key, rec);
+  rebuild();
+  return () => { if (clearLanes.get(key) === rec) { clearLanes.delete(key); rebuild(); } };
+}
 /** Called on every change (cityLife: the crowd syncs its pinned standers). */
 export function onCrowdSpots(fn: () => void): () => void { listeners.add(fn); return () => { listeners.delete(fn); }; }
 
@@ -200,4 +236,4 @@ export function takeCrowdWaves(): { x: number; z: number; r: number }[] {
 }
 
 /** Tests: forget every group and wave request. */
-export function __resetCrowdSpotsForTests() { groups.clear(); waves.length = 0; rebuild(); }
+export function __resetCrowdSpotsForTests() { groups.clear(); clearLanes.clear(); waves.length = 0; rebuild(); }

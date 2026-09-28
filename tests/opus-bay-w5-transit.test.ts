@@ -701,3 +701,348 @@ test('W5-T3 a Grand Tour leg boards the loop bus at once (no driver question); a
     assert.equal(flow.get().ride?.stage, 'waiting');
   } finally { transit.cancelRide(); flow.set({ trip: savedTrip }); T.setActiveLineFleet(null); fleet.dispose(); game.set({ phase: 'title', worldMode: 'district', dialogue: { nodeId: null } } as never); }
 });
+
+// =====================================================================================================================
+// Part b · W5-T4 the levers, W5-T5 the crowds, W5-T6 the audio hooks' internals
+// =====================================================================================================================
+
+const THREE = await import('three');
+const { Life, LIFE_FAR } = await import('../src/opus-bay/world/life');
+const { DISTRICT } = await import('../src/opus-bay/data/district');
+const { cableCarGeometry, cableCarMidGeometry, cableCarFarGeometry } = await import('../src/opus-bay/world/cablecar');
+const { carGeometry, carMidGeometry, carFarGeometry } = await import('../src/opus-bay/world/streetcar');
+const { EXTRA_SHADOW_NEAR, FAR_LOD, SHADOW_NEAR } = await import('../src/opus-bay/world/sf/lineFleet');
+const { deckLanes } = await import('../src/opus-bay/world/sf/cityLife');
+const { RESIDENTS } = await import('../src/opus-bay/data/sf/residents');
+const LR = await transit.loadLineRides();
+
+/** Triangles the visible meshes of a group draw (instanced meshes × their live count). */
+function drawnTriangles(root: import('three').Object3D): number {
+  let tris = 0;
+  root.traverse(o => {
+    const m = o as import('three').Mesh;
+    if (!m.isMesh) return;
+    for (let p: import('three').Object3D | null = m; p; p = p.parent) if (!p.visible) return;
+    const g = m.geometry;
+    tris += ((g.index ? g.index.count : g.attributes.position.count) / 3) * ((m as import('three').InstancedMesh).isInstancedMesh ? (m as import('three').InstancedMesh).count : 1);
+  });
+  return tris;
+}
+
+test('W5-T4 district life, city mode: each kind draws only its instances within reach of the camera (Chinatown: no promenade walkers, gulls or carousel); district mode unchanged', () => {
+  const prevCam = U.uCam.value.clone();
+  game.set({ phase: 'free' } as never);
+  try {
+    const life = new Life([]);
+    life.heroFarSource = () => false;
+    const people = life.group.getObjectByName('pedestrians') as import('three').InstancedMesh;
+    const all = people.instanceMatrix.count;
+    // district mode (no cull): every walker in its own slot, every frame, as before
+    life.cullFar = () => false;
+    const ferryGate = DISTRICT.anchors['ferry-gate'];
+    U.uCam.value.set(86, 22, 196);
+    for (let i = 0; i < 6; i++) life.update(0.1, i * 0.1, 0);
+    assert.equal(people.count, all);
+    for (let k = 0; k < all; k++) assert.equal(life.peopleSlot(k), k, 'slot k = walker k');
+    const full = drawnTriangles(life.group);
+    // city mode at Chinatown (the capacity scout's view, ≈ 180 u from the promenade): none of them
+    life.cullFar = () => true;
+    for (let i = 6; i < 12; i++) life.update(0.1, i * 0.1, 0);
+    const d = life.drawn();
+    assert.equal(d.people, 0); assert.equal(d.dogs, 0); assert.equal(d.gulls, 0); assert.equal(d.carousel, false);
+    assert.equal(people.visible, false, 'no draw call for an empty kind');
+    const culled = drawnTriangles(life.group);
+    assert.ok(full - culled > 24_000, `Chinatown saves ${full - culled} triangles (${full} → ${culled}; the GLB sailboats and pelicans are not loaded in node)`);
+    // at the Ferry gate: the walkers within reach are drawn, each slot carrying its own walker's phase
+    U.uCam.value.set(ferryGate.x, 8, ferryGate.z + 14);
+    for (let i = 12; i < 20; i++) life.update(0.1, i * 0.1, 0);
+    const near = life.drawn();
+    assert.ok(near.people > 5 && near.people < all, `some walkers near the gate (${near.people} of ${all})`);
+    assert.ok(near.gulls > 0, 'birds by the gate');
+    const phase = people.geometry.getAttribute('aPhase') as import('three').InstancedBufferAttribute;
+    const m = new THREE.Matrix4(), p = new THREE.Vector3(), q = new THREE.Quaternion(), s = new THREE.Vector3();
+    const walkerPh = (life as unknown as { walkers: { ph: number }[] }).walkers.map(w => w.ph);
+    for (let k = 0; k < people.count; k++) {
+      const src = life.peopleSlot(k);
+      assert.ok(Math.abs(phase.getX(k) - walkerPh[src]) < 1e-6, `slot ${k} carries walker ${src}'s phase`);
+      people.getMatrixAt(k, m); m.decompose(p, q, s);
+      assert.ok(Math.hypot(p.x - U.uCam.value.x, p.y + 0.8 - U.uCam.value.y, p.z - U.uCam.value.z) <= LIFE_FAR.people + 1, 'within reach');
+    }
+    // back in district mode: all of them again, in their own slots
+    life.cullFar = () => false;
+    for (let i = 20; i < 24; i++) life.update(0.1, i * 0.1, 0);
+    assert.equal(people.count, all);
+    for (let k = 0; k < all; k++) assert.equal(life.peopleSlot(k), k);
+    assert.ok(Math.abs(phase.getX(3) - walkerPh[3]) < 1e-6, 'phases back in their own slots');
+    life.dispose();
+  } finally { U.uCam.value.copy(prevCam); game.set({ phase: 'title' } as never); }
+});
+
+test('W5-T4 cable cars and F-line cars: the middle look (45–110 u) and a shadow only within 45 u; kinds without one unchanged', () => {
+  const tri = (g: import('three').BufferGeometry) => g.getIndex()!.count / 3;
+  const cable = [cableCarGeometry(), cableCarMidGeometry(), cableCarFarGeometry()].map(tri);
+  const fline = [carGeometry('#2f7d5a', true), carMidGeometry('#2f7d5a'), carFarGeometry('#2f7d5a')].map(tri);
+  assert.ok(cable[1] <= 600 && cable[1] < cable[0] * 0.3 && cable[1] > cable[2], `cable car near / mid / far: ${cable.join(' / ')}`);
+  assert.ok(fline[1] <= 500 && fline[1] < fline[0] * 0.46 && fline[1] > fline[2], `F-line car near / mid / far: ${fline.join(' / ')}`);
+  const fleet = new LineFleet({
+    loop: W4.loop as TransitLine & { speeds?: [number, number, number][] }, metro: W4.metro, props: W4.props,
+    extra: [{ key: 'cable', near: cableCarGeometry(), mid: cableCarMidGeometry(), far: cableCarFarGeometry(), count: 1 }, { key: 'plain', near: cableCarGeometry(), far: cableCarFarGeometry(), count: 1 }],
+  }, { emitEvents: false });
+  try {
+    // every bus and train far out of sight: only the two test cars count
+    const cam = { x: 1e5, z: 1e5 };
+    fleet.update(0, cam, cam);
+    const car = (key: string, d: number) => { fleet.drawExtra(key, 0, { x: cam.x + d, y: 0, z: cam.z, heading: 0, pitch: 0, roll: 0 } as never, false, cam); };
+    const look = (d: number) => { car('plain', 1e4); car('cable', d); return fleet.stats(); };
+    let s = look(30);
+    assert.deepEqual([s.nearVehicles, s.midVehicles, s.farVehicles], [1, 0, 0]);
+    assert.equal(s.shadowTris, cable[0], '30 u: the full car with its shadow');
+    s = look(EXTRA_SHADOW_NEAR + 5);
+    assert.deepEqual([s.nearVehicles, s.midVehicles, s.shadowTris], [0, 1, 0]);
+    assert.equal(s.tris, cable[1], '50 u: the middle look, no shadow');
+    s = look(FAR_LOD - 1);
+    assert.equal(s.tris, cable[1]);
+    s = look(FAR_LOD + 20);
+    assert.equal(s.tris, cable[2], 'beyond FAR_LOD: the far look');
+    // a kind without a middle look keeps the old bands (full car + shadow ≤ SHADOW_NEAR, the full car without ≤ FAR_LOD)
+    car('cable', 1e4);
+    car('plain', SHADOW_NEAR - 5);
+    s = fleet.stats();
+    assert.deepEqual([s.nearVehicles, s.shadowTris], [1, cable[0]]);
+    car('plain', SHADOW_NEAR + 20);
+    s = fleet.stats();
+    assert.deepEqual([s.midVehicles, s.tris, s.shadowTris], [1, cable[0], 0]);
+  } finally { fleet.dispose(); }
+});
+
+/** The GGB deck frame for the tests: along the span from the south end, across (+ = left of south → north). */
+function deckFrame() {
+  const L = deckLanes()[0].lane, dx = L.bx - L.ax, dz = L.bz - L.az, len = Math.hypot(dx, dz), ux = dx / len, uz = dz / len;
+  return {
+    L, len,
+    local: (x: number, z: number) => ({ along: (x - L.ax) * ux + (z - L.az) * uz, across: (x - L.ax) * -uz + (z - L.az) * ux }),
+    at: (along: number, across = 0) => ({ x: L.ax + ux * along - uz * across, z: L.az + uz * along + ux * across }),
+  };
+}
+
+test('W5-T5 the Golden Gate Bridge deck: the crowd keeps a 3 u lane down the centre (walkers on the sidewalks, nobody crosses the roadway); a walk down the middle meets nobody', async () => {
+  const D = deckFrame();
+  const mid = D.at(D.len * 0.45);
+  await withCity(mid, 330, net => {
+    CS.__resetCrowdSpotsForTests();
+    const off = CS.addClearLane(deckLanes()[0].key, D.L, undefined, { noCross: true });
+    const focus = { ...mid };
+    const player = { x: 0, z: 0 };
+    const sim = new CrowdSim(net, { focus: () => focus, avoid: out => { out.push(player); }, visible: () => false, vehicles: () => [], lanes: () => CS.walkerLanes() }, { seed: 7 });
+    let onDeck = 0, inLane = 0, deep = 0, nearMe = 0;
+    // the player walks the deck's centre line end to end at 4 u/s (the crowd round them), then back
+    const T0 = D.len / 4;
+    for (let i = 0; i < 30 * 2 * T0; i++) {
+      const t = i / 30, s = t < T0 ? t * 4 : (2 * T0 - t) * 4;
+      Object.assign(player, D.at(Math.max(2, Math.min(D.len - 2, s))));
+      Object.assign(focus, player);
+      sim.step(DT);
+      if (i < 30 * 8 || i % 6) continue;
+      for (const w of sim.walkers) {
+        if (!w.on) continue;
+        const l = D.local(w.x, w.z);
+        if (Math.abs(l.across) > 3 || l.along < 3 || l.along > D.len - 3 || w.y < 10) continue;
+        onDeck++;
+        if (Math.abs(l.across) < 1.5 + 0.28) inLane++;
+        if (Math.abs(l.across) < 1.2) deep++;
+        if (Math.hypot(w.x - player.x, w.z - player.z) < 0.9) nearMe++;
+      }
+    }
+    assert.ok(onDeck > 2000, `walkers on the deck: ${onDeck} samples`);
+    assert.ok(inLane / onDeck < 0.03, `bodies in the 3 u lane: ${inLane} of ${onDeck} samples (${(100 * inLane / onDeck).toFixed(1)} %; ≈ 25 % before the lane)`);
+    assert.ok(deep / onDeck < 0.005, `deep in the lane: ${deep}`);
+    assert.equal(nearMe, 0, 'nobody within 0.9 u of the player walking the centre line');
+    off();
+    assert.equal(CS.walkerLanes().length, 0);
+    CS.__resetCrowdSpotsForTests();
+  });
+});
+
+test('W5-T5 an event crowd of 20: its aisle stays clear of standers and of walkers going along it (crossing it is fine); sightseers never spawn in it', async () => {
+  await withCity(SPOT, 260, net => {
+    CS.__resetCrowdSpotsForTests();
+    const spots = standable(SPOT.x + 8, SPOT.z + 10, 14, 12);
+    const face = { x: SPOT.x + 8, z: SPOT.z + 30 };
+    CS.addCrowdSpots('event:test-20', spots, { face, count: 20 });
+    const lane = CS.walkerLanes().find(l => l.key === 'event:test-20')!;
+    assert.equal(lane.half, CS.CLEAR_LANE / 2);
+    const focus = { ...SPOT };
+    const sim = new CrowdSim(net, {
+      focus: () => focus, avoid: () => {}, visible: () => false, vehicles: () => [], pins: () => CS.crowdPins(), lanes: () => CS.walkerLanes(),
+      // sightseers are offered the aisle's own middle too: they must never take it
+      standSpots: () => [{ x: (lane.lane.ax + lane.lane.bx) / 2, z: (lane.lane.az + lane.lane.bz) / 2, r: 4 }],
+    }, { seed: 21 });
+    let standIn = 0, alongIn = 0, samples = 0, pinned = 0;
+    const dx = lane.lane.bx - lane.lane.ax, dz = lane.lane.bz - lane.lane.az, L = Math.hypot(dx, dz);
+    for (let i = 0; i < 30 * 60; i++) {
+      sim.step(DT);
+      if (i < 30 * 6 || i % 10) continue;
+      for (const w of sim.walkers) {
+        if (!w.on) continue;
+        const q = CS.laneDistance(lane.lane, w.x, w.z);
+        if (q.t <= 0.02 || q.t >= 0.98) continue;
+        samples++;
+        if (w.pin) pinned++;
+        if (q.d >= lane.half) continue;
+        if (w.mode === 'stand') standIn++;
+        else if (w.mode === 'walk' && Math.abs(Math.sin(w.heading) * dx / L + Math.cos(w.heading) * dz / L) > 0.8 && w.lx === 0 && w.lz === 0) alongIn++;
+      }
+    }
+    assert.ok(pinned > 50, `the visitors stand round the stage (${pinned} samples)`);
+    assert.equal(standIn, 0, 'nobody stands in the aisle');
+    assert.ok(alongIn <= 2, `walkers going along the aisle inside it without stepping out: ${alongIn} of ${samples}`);
+    CS.__resetCrowdSpotsForTests();
+  });
+});
+
+test('W5-T5 the six residents: city walkers step round them — never into Ray at the Powell turntable (≥ 0.6 u centre to centre: two bodies side by side; 0.39 u in the wave-3 review)', async () => {
+  const ray = RESIDENTS.find(r => r.key === 'gripman')!;
+  await withCity(ray.at, 240, async net => {
+    CS.__resetCrowdSpotsForTests();
+    const prevCam = U.uCam.value.clone();
+    const night = U.uNight.value;
+    U.uNight.value = 0;
+    game.set({ phase: 'playing', worldMode: 'city', settings: { ...game.get().settings, quality: 'high' } } as never);
+    runtime.player.x = ray.at.x + 12; runtime.player.z = ray.at.z + 8;
+    runtime.guide.x = runtime.player.x + 1; runtime.guide.z = runtime.player.z;
+    U.uCam.value.set(ray.at.x + 10, heightAt(ray.at.x, ray.at.z) + 8, ray.at.z + 18);
+    const life = new CityLife({ visible: () => true });
+    life.start(net);
+    let closest = Infinity, samples = 0;
+    try {
+      for (let i = 0; i < 30 * 60; i++) {
+        life.update(DT);
+        if (i < 30 * 4) continue;
+        for (const w of life.crowd!.sim.walkers) {
+          if (!w.on) continue;
+          const d = Math.hypot(w.x - ray.at.x, w.z - ray.at.z);
+          if (d < 5) samples++;
+          closest = Math.min(closest, d);
+        }
+      }
+    } finally { life.dispose(); U.uCam.value.copy(prevCam); U.uNight.value = night; game.set({ phase: 'title', worldMode: 'district' } as never); }
+    assert.ok(samples > 100, `walkers come by Ray (${samples} samples within 5 u)`);
+    assert.ok(closest >= 0.6, `closest walker ${closest.toFixed(2)} u from Ray`);
+  });
+});
+
+test('W5-T5 Metro rows on a phone: every Metro station offers the M to Stonestown and SF State (and the N to Ocean Beach where it runs) within its 6 rows', () => {
+  T.setTransitW4(W4); T.setTransitData(DATA);
+  const fleet = makeFleet();
+  const device = runtime.input.device;
+  try {
+    runtime.input.device = 'touch';
+    for (const station of ['muni-embarcadero', 'muni-montgomery', 'muni-powell', 'muni-civic-center', 'muni-van-ness', 'muni-church', 'muni-castro', 'muni-west-portal']) {
+      const rows = LR.stationChoices(station).filter(c => c.kind === 'ride');
+      const to = rows.map(r => r.to);
+      assert.ok(rows.length <= 6, `${station}: ${rows.length} rows`);
+      assert.ok(to.includes('muni-19th-winston') && to.includes('muni-19th-holloway'), `${station}: the M to Stonestown and SF State (${to.join(', ')})`);
+      if (LR.stationLines(station).some(l => l.id === 'n-judah')) assert.ok(to.includes('muni-judah-la-playa'), `${station}: the N to Ocean Beach`);
+      assert.equal(rows[0].rank, 0, `${station}: a next stop first`);
+    }
+    // the station card (lane N's StationPanel) lists the same rides
+    const card = LR.stationRides('muni-powell').map(r => r.to);
+    assert.ok(card.includes('muni-19th-winston') && card.includes('muni-19th-holloway'));
+  } finally { runtime.input.device = device; T.setActiveLineFleet(null); fleet.dispose(); }
+});
+
+test('W5-T6 audio hooks internals: clean options, per-sound and shared rate limits, a throwing recipe switched off, setLoop before registerLoop, at most MAX_LOOPS built, duck capped', async () => {
+  const ah = await import('../src/opus-bay/audio/hooks');
+  const ducks: [string, number, number][] = [];
+  const ctx = { state: 'running', currentTime: 40 };
+  const bus = (name: string) => ({ duck: (a: number, until: number) => { ducks.push([name, a, until]); } });
+  const engine = { ctx, get now() { return ctx.currentTime; }, buses: { music: bus('music'), ambience: bus('ambience'), sfx: bus('sfx'), voice: bus('voice') } } as unknown as import('../src/opus-bay/audio/engine').AudioEngine;
+  ah.bindAudioHooks(engine, () => true);
+  const got: unknown[] = [];
+  const offs = [ah.registerSound('t6-chime', (_e, o) => { got.push(o); })];
+  try {
+    // options: only the given keys, finite and clamped
+    ah.playSound('t6-chime', { gain: 5, pan: -3, pitch: Number.NaN });
+    ah.playSound('t6-chime');
+    assert.deepEqual(got, [{ gain: 2, pan: -1 }, undefined]);
+    // a runaway caller: one id plays at most SOUND_BURST at once, then SOUND_RATE a second
+    got.length = 0;
+    const before = ah.audioHooksStats().throttled;
+    for (let i = 0; i < 60; i++) ah.playSound('t6-chime');
+    assert.ok(got.length <= ah.SOUND_BURST, `${got.length} plays in one instant`);
+    assert.ok(ah.audioHooksStats().throttled - before >= 60 - ah.SOUND_BURST);
+    await sleep(260);
+    got.length = 0;
+    for (let i = 0; i < 60; i++) ah.playSound('t6-chime');
+    assert.ok(got.length >= 3 && got.length <= ah.SOUND_BURST, `refilled at ${ah.SOUND_RATE} a second: ${got.length} after 0.26 s`);
+    // many ids together share ALL_BURST
+    await sleep(1100);
+    const many: number[] = [];
+    for (let k = 0; k < 40; k++) offs.push(ah.registerSound(`t6-many-${k}`, () => { many.push(k); }));
+    for (let k = 0; k < 40; k++) ah.playSound(`t6-many-${k}`);
+    assert.ok(many.length <= ah.ALL_BURST, `${many.length} different sounds in one instant`);
+    // a recipe that keeps throwing is switched off after RECIPE_STRIKES (until registered again)
+    await sleep(500);
+    let calls = 0;
+    const error = console.error;
+    console.error = () => {};
+    try {
+      offs.push(ah.registerSound('t6-bad', () => { calls++; throw new Error('bad recipe'); }));
+      for (let i = 0; i < 5; i++) { await sleep(80); ah.playSound('t6-bad'); }
+    } finally { console.error = error; }
+    assert.equal(calls, ah.RECIPE_STRIKES);
+    assert.ok(ah.audioHooksStats().off.includes('t6-bad'));
+    offs.push(ah.registerSound('t6-bad', () => { calls++; }));
+    ah.playSound('t6-bad');
+    assert.equal(calls, ah.RECIPE_STRIKES + 1, 'registered again: plays');
+    // setLoop before registerLoop is remembered
+    ah.setLoop('t6-early', 0.8, 0);
+    assert.ok(ah.audioHooksStats().pending.includes('t6-early'));
+    const built: string[] = [];
+    const loop = (id: string) => ah.registerLoop(id, () => { built.push(id); return { setGain: () => {}, stop: () => { built.push(`-${id}`); } }; });
+    const loopOffs = [loop('t6-early')];
+    ah.stepAudioHooks(0.1);
+    assert.deepEqual(built, ['t6-early'], 'built at the remembered target');
+    // at most MAX_LOOPS at once: the loudest first, the others wait for a place
+    for (let k = 0; k < 8; k++) { loopOffs.push(loop(`t6-loop-${k}`)); ah.setLoop(`t6-loop-${k}`, 0.1 + k * 0.1, 0); }
+    ah.stepAudioHooks(0.1);
+    const st = ah.audioHooksStats();
+    assert.equal(st.running.length, ah.MAX_LOOPS);
+    assert.ok(st.running.includes('t6-loop-7') && st.running.includes('t6-loop-6') && !st.running.includes('t6-loop-0'), `the loudest run: ${st.running.join(', ')}`);
+    assert.ok(st.waiting.includes('t6-loop-0'));
+    const waitingBefore = st.waiting.length;
+    ah.setLoop('t6-loop-7', 0, 0);
+    ah.stepAudioHooks(0.1);
+    ah.stepAudioHooks(0.1);
+    const after = ah.audioHooksStats();
+    assert.equal(after.running.length, ah.MAX_LOOPS, 'the freed place is taken');
+    assert.equal(after.waiting.length, waitingBefore - 1);
+    for (const off of loopOffs) off();
+    // duck: capped at MAX_DUCK_MS
+    ah.duck('ambience', 0.5, 10 * 60_000);
+    assert.deepEqual(ducks.at(-1), ['ambience', 0.5, 40 + ah.MAX_DUCK_MS / 1000]);
+  } finally { for (const off of offs) off(); ah.bindAudioHooks(null); }
+});
+
+test('W5-T6 a bus keeps several ducks: the lowest in force applies and each ends on its own (a short deep duck no longer outlasts itself)', async () => {
+  const { Bus } = await import('../src/opus-bay/audio/engine');
+  const gain = () => ({ gain: { value: 1, cancelScheduledValues: () => {}, setTargetAtTime: () => {} }, connect: (n: unknown) => n });
+  const ctx = { currentTime: 0, createGain: gain };
+  const node = { connect: (n: unknown) => n };
+  const b = new Bus(ctx as never, node as never, node as never, 0.26);
+  b.duck(0.45, 12);   // a slow look (12 s)
+  b.duck(0.2, 3);     // a jet roar (3 s)
+  assert.deepEqual(b.ducking, { amount: 0.2, count: 2 });
+  b.update(2);
+  assert.equal(b.ducking.amount, 0.2);
+  b.update(3.5);
+  assert.deepEqual(b.ducking, { amount: 0.45, count: 1 }, 'the roar ended: back to the slow look level, not held at 0.2');
+  b.duck(0.45, 14);
+  assert.equal(b.ducking.count, 1, 'the same amount extends its duck');
+  b.update(14.5);
+  assert.deepEqual(b.ducking, { amount: 1, count: 0 });
+  for (let i = 0; i < 20; i++) b.duck(0.5 + i * 0.01, 20 + i);
+  assert.ok(b.ducking.count <= 8, 'a bounded list');
+  b.update(19.9);
+  assert.ok(Math.abs(b.ducking.amount - (0.5 + 12 * 0.01)) < 1e-9, 'the ones ending first made room');
+});

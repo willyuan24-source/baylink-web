@@ -9,7 +9,9 @@ import { STOP_ATTRACTIONS, W4_LINES, type W4LineId, w4StationShort } from '../da
  * so every time shown is the time the ride really takes (plan §4).
  *
  * - loop stop: the next 3 stops (★ = the stop serves an attraction), 坐一圈（约 14 分钟，BAYBAY 讲解）, 看线路图, 先不坐;
- * - Metro station: the next stop each way, the ★ stops (majors with an attraction) and both termini, nearest first;
+ * - Metro station: the next stop each way, then the `prefer`red stops (W5-T5: the Metro goal's ends — Ocean Beach on the N,
+ *   Stonestown and SF State on the M — so they fit on a phone), then the ★ stops (majors with an attraction) and both
+ *   termini, nearest first;
  * - at most 6 ride choices on a phone (`max`), the "map" and "not now" rows always last;
  * - pre-filled (a trip / tour leg): one confirm row "上车 · 坐到 石镇（约 70 秒）" and 先不坐.
  */
@@ -27,6 +29,8 @@ export interface LineChoice {
   seconds?: number;
   /** the destination serves an attraction (★) */
   star?: boolean;
+  /** (W5-T5) why it is offered: 0 a next stop, 1 a preferred destination (the Metro goal's ends), 2 the others */
+  rank?: 0 | 1 | 2;
 }
 
 export interface LineChoiceOptions {
@@ -36,6 +40,8 @@ export interface LineChoiceOptions {
   max?: number;
   /** pre-filled boarding: the destination of the trip / tour leg */
   to?: string;
+  /** (W5-T5) Metro: stops offered right after the next stops (game/lineRides.ts: the Metro goal's ends) */
+  prefer?: readonly string[];
 }
 
 const star = (id: string) => (STOP_ATTRACTIONS[id]?.length ?? 0) > 0;
@@ -75,13 +81,13 @@ export function lineChoices(line: LineLite, from: string, o: LineChoiceOptions):
   }
   const max = o.max ?? 6;
   const rides: LineChoice[] = [];
-  const add = (to: LineStopLite, dir: 1 | -1) => {
+  const add = (to: LineStopLite, dir: 1 | -1, rank: 0 | 1 | 2 = 2) => {
     if (to.id === from || rides.some(r => r.to === to.id)) return;
     const seconds = o.rideSeconds(line.id, from, to.id);
-    rides.push({ kind: 'ride', line: line.id, to: to.id, dir, seconds, star: star(to.id), label: rideLabel(line, to, seconds) });
+    rides.push({ kind: 'ride', line: line.id, to: to.id, dir, seconds, star: star(to.id), label: rideLabel(line, to, seconds), rank });
   };
   if (line.loop) {
-    for (let k = 1; k <= 3 && k < stops.length; k++) add(stops[(here + k) % stops.length], 1);
+    for (let k = 1; k <= 3 && k < stops.length; k++) add(stops[(here + k) % stops.length], 1, 0);
     const lap = o.rideSeconds(line.id, from, from);
     const out = rides.slice(0, max);
     out.push({ kind: 'lap', line: line.id, to: from, dir: 1, seconds: lap, label: { zh: `坐一圈（约 ${minutes(lap)} 分钟，BAYBAY 讲解）`, en: `Ride the whole loop (~${minutes(lap)} min, BAYBAY guides)` } });
@@ -90,8 +96,11 @@ export function lineChoices(line: LineLite, from: string, o: LineChoiceOptions):
   }
   // Metro: the next stop each way, then the termini, then the ★ stops — those beyond the tunnel the rider stands in
   // first (its neighbours are one "next stop" away), nearest first
-  if (here + 1 < stops.length) add(stops[here + 1], 1);
-  if (here - 1 >= 0) add(stops[here - 1], -1);
+  if (here + 1 < stops.length) add(stops[here + 1], 1, 0);
+  if (here - 1 >= 0) add(stops[here - 1], -1, 0);
+  // (W5-T5) the preferred stops next, nearest first (on a phone the M's Stonestown / SF State used to fall past the 6th row)
+  const preferred = stops.filter(s => o.prefer?.includes(s.id)).sort((a, b) => Math.abs(a.at - stops[here].at) - Math.abs(b.at - stops[here].at));
+  for (const s of preferred) add(s, dirTo(s), 1);
   const tunnelOf = (at: number) => (line.tunnels ?? []).findIndex(t => at >= t.fromAt - 0.5 && at <= t.toAt + 0.5);
   const hereTunnel = tunnelOf(stops[here].at);
   const rank = (i: number, at: number) => (i === 0 || i === stops.length - 1 ? 0 : hereTunnel >= 0 && tunnelOf(at) === hereTunnel ? 2 : 1);
