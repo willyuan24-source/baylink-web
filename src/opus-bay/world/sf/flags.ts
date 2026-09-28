@@ -372,9 +372,10 @@ void main() {
       // atlasCellColRow: blocks of ${ATLAS.block}² cells, ${ATLAS.cells / ATLAS.block} blocks a row
       float cell = floor(vGlyph + 0.5);
       float blk = floor(cell / ${(ATLAS.block * ATLAS.block).toFixed(1)}), inb = mod(cell, ${(ATLAS.block * ATLAS.block).toFixed(1)});
-      float col = mod(inb, ${ATLAS.block.toFixed(1)}) + mod(blk, ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
-      float row = floor(inb / ${ATLAS.block.toFixed(1)}) + floor(blk / ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
-      vec2 cuv = vec2((col + g.x) / ${ATLAS.cells.toFixed(1)}, (${(ATLAS.cells - 1).toFixed(1)} - row + g.y) / ${ATLAS.cells.toFixed(1)});
+      // the atlas cell column / row (named acol / arow: col is the flag colour above)
+      float acol = mod(inb, ${ATLAS.block.toFixed(1)}) + mod(blk, ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
+      float arow = floor(inb / ${ATLAS.block.toFixed(1)}) + floor(blk / ${(ATLAS.cells / ATLAS.block).toFixed(1)}) * ${ATLAS.block.toFixed(1)};
+      vec2 cuv = vec2((acol + g.x) / ${ATLAS.cells.toFixed(1)}, (${(ATLAS.cells - 1).toFixed(1)} - arow + g.y) / ${ATLAS.cells.toFixed(1)});
       float ink = texture2D(uAtlas, cuv).a;
       col = mix(col, vTint * 0.78, ink * disc);
     }

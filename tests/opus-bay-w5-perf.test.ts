@@ -104,7 +104,9 @@ test('W5-V4: the flag atlas is 512² with room for 64 glyphs; the wave-4 cells k
   // the fragment shader mirrors atlasCellColRow: evaluate its formula for every cell (the GLSL expressions in JS)
   const frag = F.makeFlagMaterial().fragmentShader;
   const num = (re: RegExp) => { const m = re.exec(frag); assert.ok(m, `shader: ${re}`); return Number(m[1]); };
-  const per = num(/float blk = floor\(cell \/ ([\d.]+)\)/), blockW = num(/float col = mod\(inb, ([\d.]+)\)/), blocksRow = num(/mod\(blk, ([\d.]+)\)/), cells = num(/vec2 cuv = vec2\(\(col \+ g\.x\) \/ ([\d.]+)/);
+  const per = num(/float blk = floor\(cell \/ ([\d.]+)\)/), blockW = num(/float acol = mod\(inb, ([\d.]+)\)/), blocksRow = num(/mod\(blk, ([\d.]+)\)/), cells = num(/vec2 cuv = vec2\(\(acol \+ g\.x\) \/ ([\d.]+)/);
+  // a float named col / row inside the glyph block shadows the vec3 flag colour and breaks mix() (e276fe0: no flag drew)
+  assert.ok(!/float col\b/.test(frag) && !/float row\b/.test(frag), 'no float col / row in the flag shader');
   for (let cell = 0; cell < 64; cell++) {
     const blk = Math.floor(cell / per), inb = cell % per;
     const col = (inb % blockW) + (blk % blocksRow) * blockW, row = Math.floor(inb / blockW) + Math.floor(blk / blocksRow) * blockW;
