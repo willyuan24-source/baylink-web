@@ -64,23 +64,25 @@ test('W5-E6 items: append-only order pinned, ids well formed and unique, every w
   }
 });
 
-test('W5-E6 prices (plan §3.4) and nothing sells speed, access or places', () => {
+test('W5-E8 prices LOCKED by the scripted economy run (plan MF5 / D21) and nothing sells speed, access or places', () => {
+  // scripts/opus-sf/economy-run.mts (the typical profile: hour 1 = 430 coins ≈ 5 cosmetics at the average price 85.7,
+  // one about every 12 minutes; the whole wardrobe, 1,970, after 7–8 hours): the plan's ratios × ≈ 1.8
   const price = (slot: string) => [...new Set(I.ITEMS.filter(it => it.slot === slot && I.forSale(it)).map(it => it.price))];
-  assert.deepEqual(price('baybay-scarf'), [40]);
-  assert.deepEqual(price('baybay-hat'), [80]);
-  assert.deepEqual(price('player-hat'), [30]);
-  assert.deepEqual(price('player-pack'), [30]);
-  assert.deepEqual(price('bike'), [60]);
-  assert.deepEqual(price('car'), [60]);
-  assert.deepEqual(price('pelican'), [50]);
-  assert.deepEqual(price('frame'), [30]);
+  assert.deepEqual(price('baybay-scarf'), [70]);
+  assert.deepEqual(price('baybay-hat'), [150]);
+  assert.deepEqual(price('player-hat'), [50]);
+  assert.deepEqual(price('player-pack'), [50]);
+  assert.deepEqual(price('bike'), [110]);
+  assert.deepEqual(price('car'), [110]);
+  assert.deepEqual(price('pelican'), [90]);
+  assert.deepEqual(price('frame'), [60]);
   assert.equal(I.itemById('compass')!.price, 20);
   assert.equal(I.itemById('magnifier')!.price, 20);
   assert.equal(I.itemById('fly-ticket')!.price, 10);
   const sale = I.ITEMS.filter(I.forSale);
   assert.ok(sale.length >= 24 && sale.length <= 30, `≈ 27 items (${sale.length} for sale)`);
-  const all = sale.reduce((n, it) => n + it.price, 0);
-  assert.ok(all >= 1000 && all <= 1500, `≈ 1,400 coins in all (${all})`);
+  const wear = sale.filter(it => it.slot !== 'use').reduce((n, it) => n + it.price, 0);
+  assert.equal(wear, 1970, 'the wardrobe: 23 wearables');
   // earned items are never sold; each full notebook page gives one
   for (const [page, id] of Object.entries(I.PAGE_ITEM)) { const it = I.itemById(id)!; assert.equal(it.earn, page); assert.equal(it.price, 0); assert.equal(I.forSale(it), false); }
   // conveniences point the way; wearables are looks: the only `use` kinds
@@ -98,20 +100,20 @@ test('W5-E6 buy: the price comes off once, the item is owned and worn; short, ow
   const coins: { delta: number; source: string }[] = [], shop: { what: string; item?: string }[] = [];
   const off = onEvent(e => { if (e.type === 'coins') coins.push({ delta: e.delta, source: e.source }); if (e.type === 'shop') shop.push({ what: e.what, item: e.item }); });
   try {
-    assert.equal(W.buy('scarf-fog', { pelican: false }), 'short', '40 > 30');
+    assert.equal(W.buy('scarf-fog', { pelican: false }), 'short', '70 > 30');
     assert.equal(L.coinsTotal(), 30);
     assert.equal(W.owns('scarf-fog'), false);
     L.commitPlay(p => ({ ...p, c: 100 }));
     assert.equal(W.buy('scarf-fog', { pelican: false }), 'ok');
-    assert.equal(L.coinsTotal(), 60);
+    assert.equal(L.coinsTotal(), 30);
     assert.equal(W.owns('scarf-fog'), true);
     assert.equal(W.wornItem('baybay-scarf')?.id, 'scarf-fog', 'worn at once');
     assert.equal(W.buy('scarf-fog', { pelican: false }), 'owned');
-    assert.equal(L.coinsTotal(), 60, 'twice: nothing more taken');
+    assert.equal(L.coinsTotal(), 30, 'twice: nothing more taken');
     assert.equal(W.buy('nope', { pelican: false }), 'unknown');
     assert.equal(W.buy('frame-golden', { pelican: false }), 'not-for-sale');
     assert.equal(W.buy('fly-gift', { pelican: false }), 'not-for-sale');
-    assert.deepEqual(coins.filter(c => c.delta !== 70), [{ delta: -40, source: 'shop:scarf-fog' }]);
+    assert.deepEqual(coins.filter(c => c.delta < 0), [{ delta: -70, source: 'shop:scarf-fog' }]);
     assert.deepEqual(shop, [{ what: 'buy', item: 'scarf-fog' }, { what: 'wear', item: 'scarf-fog' }]);
   } finally { off(); }
 });
@@ -353,10 +355,10 @@ test('W5-E6 the sheet renders in node: shelves, tiles with prices, owned and wor
   W.buy('scarf-dahlia', { pelican: false });
   const html = renderToStaticMarkup(h(ShopSheet, { props: { from: 'more' }, close: () => undefined }));
   assert.match(html, /BAYBAY 小铺/);
-  assert.match(html, /🪙<\/span>55/, 'the balance');
+  assert.match(html, /🪙<\/span>25/, 'the balance');
   for (const s of ['BAYBAY', '我', '坐骑', '相框', '小帮手']) assert.match(html, new RegExp(`role="tab"[^>]*>${s}<`), `shelf ${s}`);
   assert.match(html, /大丽花粉[^]*?穿着/, 'the bought scarf is worn');
-  assert.match(html, /雾灰[^]*?🪙<\/span>40/, 'a price on a tile');
+  assert.match(html, /雾灰[^]*?🪙<\/span>70/, 'a price on a tile');
   assert.match(html, /aria-label="寻宝金围巾 · 集满手帐「小发现」页"/, 'the earned scarf is locked with how to get it');
   const helpers = renderToStaticMarkup(h(ShopSheet, { props: { shelf: 'helpers' }, close: () => undefined }));
   assert.match(helpers, /飞行券/);
