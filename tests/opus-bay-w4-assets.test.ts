@@ -205,10 +205,12 @@ test('w4 perf spots: the six old spots unchanged, the five new views of plan §2
   const ids = S.spots.map(s => s.id);
   assert.equal(new Set(ids).size, ids.length, 'unique spot ids');
   assert.deepEqual(ids, ['ferry-gate', 'chinatown', 'twin-peaks', 'ocean-beach', 'ggb-south', 'mission',
-    'union-square', 'civic-center', 'music-concourse', 'stonestown-sfsu', 'haight-usf']);
+    'union-square', 'civic-center', 'music-concourse', 'stonestown-sfsu', 'haight-usf',
+    // integration part b (lane L's request): the two downtown views whose elevated QA poses read over 400k
+    'grace-nob-hill', 'powell-market']);
   // the six older spots keep perf-gen.mjs's coordinates, so the tables stay comparable across waves
   const gen = fs.readFileSync(path.join(ROOT, 'scripts/opus-sf/qa/perf/perf-gen.mjs'), 'utf8');
-  for (const s of S.spots.filter(x => x.since !== 'w4' && !x.go.anchor)) {
+  for (const s of S.spots.filter(x => !x.since.startsWith('w4') && !x.go.anchor)) {
     const m = gen.match(new RegExp(`['"]?${s.id}['"]?:\\s*\\[([-\\d., ]+)\\]`));
     assert.ok(m, `${s.id} in perf-gen.mjs`);
     assert.deepEqual(m[1].split(',').map(Number), [s.go.x, s.go.z, s.go.fx, s.go.fz], `${s.id} coordinates`);
@@ -216,7 +218,7 @@ test('w4 perf spots: the six old spots unchanged, the five new views of plan §2
   for (const s of S.spots) {
     if (s.go.anchor) continue;
     assert.ok(s.go.x! > -900 && s.go.x! < 1000 && s.go.z! > -100 && s.go.z! < 1800, `${s.id} inside the SF land frame`);
-    if (s.since === 'w4') assert.ok((s.sites?.length ?? 0) >= 3, `${s.id} lists the new sites in range`);
+    if (s.since.startsWith('w4')) assert.ok((s.sites?.length ?? 0) >= 3, `${s.id} lists the new sites in range`);
   }
   assert.deepEqual(S.rides.map(r => r.line), ['sf-loop', 'n-judah', 'm-ocean-view']);
   for (const r of S.rides) {
@@ -235,7 +237,7 @@ test('w4 perf spots: the six old spots unchanged, the five new views of plan §2
   }
   // `sites`: a built wave-4 site (lane L's W4Site ids) is listed only when its lod-0 ring reaches the spot; the other
   // entries are plan §2.3 site names still to come
-  for (const s of S.spots.filter(x => x.since === 'w4')) {
+  for (const s of S.spots.filter(x => x.since.startsWith('w4'))) {
     for (const id of s.sites ?? []) {
       const l = W4_SITES.find(x => x.id === id);
       if (!l) continue;

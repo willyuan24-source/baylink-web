@@ -193,6 +193,40 @@
     "corona-heights"
    ],
    "note": "loop stop Haight & Ashbury looking west to St Ignatius (AI) and USF"
+  },
+  {
+   "id": "grace-nob-hill",
+   "since": "w4b",
+   "go": {
+    "x": 8.9,
+    "z": 218.0,
+    "fx": 110,
+    "fz": 104,
+    "arrival": true
+   },
+   "sites": [
+    "grace-cathedral",
+    "union-square",
+    "cable-car-museum"
+   ],
+   "note": "lane L's request (sf-w4-L.md part a): Grace's arrival at the foot of the Sky Steps looking over Nob Hill to the Financial District (its elevated QA pose read 448k)"
+  },
+  {
+   "id": "powell-market",
+   "since": "w4b",
+   "go": {
+    "x": 131.6,
+    "z": 254.2,
+    "fx": 170,
+    "fz": 110,
+    "arrival": true
+   },
+   "sites": [
+    "cable-car-turntable",
+    "union-square",
+    "sfmoma"
+   ],
+   "note": "lane L's request: the Powell & Market turntable looking up Market St to the towers (its street QA pose read 404k)"
   }
  ],
  "rides": [
