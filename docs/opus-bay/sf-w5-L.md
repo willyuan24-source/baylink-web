@@ -163,3 +163,165 @@ tree), the Seward foot (the city's conifer hides the chutes: why the arrival wen
   to `< 14`, then lane L moves Fort Point's arrival to local (−7, 1).
 
 Status（进度）：A 部分完成——L1（13 个小景点开放、29 个到达点修好并有全市扫描测试）、L2（篝火跟真实季节）、L3（滑梯平台）都已推送；海浪风琴等 D 组、伊娜公园等 V 组。
+
+## Part b
+
+Written 2026-09-28 by lane L's part-b implementer (worktree `C:/Users/willy/wt/w5-l`, dev port 5505, scratch
+`C:/Users/willy/opus-qa/w5/w5-l/`). Tasks W5-L4 (signature corners 1–4) and W5-L5 (corners 5–8), plan §3.6 / §4.8.
+Higgsfield: 0 credits. No relayed owner message reached this part.
+
+### 给主人的摘要
+
+1. **八个街角都有了"生活"**：尔文街（面包店早上排队）、克莱门特街（菜摊前挑菜）、24 街（整条街挂满彩色剪纸旗，下午塔可店檐下有人弹吉他）、第三街（歌剧院旁车站的铁椅上坐着等车的街坊）、海特街（唱片店、古着店招牌，下午有街头艺人）、日本城（邮政街小店挂门帘和红灯笼）、诺伊谷（每周六早 8 点到下午 1 点真的有农夫市集，平时是咖啡桌）、卡斯特罗（街灯挂彩虹旗）。
+2. **招牌都是双语手绘风**（面包 Bakery、点心 Dim Sum、Taquería…），只用通用的行业词，不写任何真实店名；晚上招牌和灯笼会亮。
+3. **跟真实时间走**：排队、弹琴、市集都按旧金山当地时间出现和消失；日本城的 Buchanan 步行街正在翻修，所以街角放在旁边的邮政街。
+4. **不拖慢游戏**：每个街角最多 2 次绘制、最多约 1.5k 个三角形，离镜头 140 格以外不画；全部测试通过（1192 个），电脑和手机截图逐张看过。
+5. 顺手修好一个我上一部分留下的隐患：海滩篝火的测试表以前在早 6 点到晚 9 点半之间会失败，现在不再跟钟走。
+
+### What was built
+
+| commit | what |
+|---|---|
+| `81d6178` W5-L1 | (carried from part a, unpushed until now) lane N's request: the R3 bison stop at the paddock's site arrival; the route test reads `data/sf/siteArrivals.ts`. |
+| `861a273` W5-L4 | **`landmarks/cornerKit.ts`** (new): a corner mounts through its site's `SiteHooks.mount` (world/sf/sites.ts): ONE mesh of the sites' own `TOY` material (brackets, awnings, lanterns, seats, the busker, stalls; no new program) + ONE mesh of lane V's signs atlas (`SignBatch` / `signsMaterial`, warmed as `v-signs`), both in a `THREE.LOD` drawn within `CORNER_CULL` = 140 u of the camera; lane T's `addCrowdSpots` groups and soft obstacles (actors/view `registerObstacleSource`) per Bay-time window (`game/bayNow`, re-read every 15 s: `?date=` moves them); the kit's pieces: `bladeSign` / `blade`, `awning`, `shopfront`, `lantern` / `lanternString`, `paperString`, `noren`, `ironSeats`, `guitarist`, `sitter`, `stall`, `cafeTable`, `lampPost`, `rainbowBanner`. **`landmarks/corners.ts`** lists the eight (the definitions live in their sites' modules). **`landmarks/cornerGround.ts`** + `scripts/opus-sf/corners-ground.mts`: the walked ground baked over each corner's box (world heights; the pagoda's base is only known at mount). `shopStreet.ts` gains `shopBoard` / `shopGapX` / `shopStandSpan`. Corners 1–4 in `irving-street.ts` (the north stand moved from bay 1 to bay 0 for the queue), `clement-street.ts`, `calle-24.ts`, `bayview-opera-house.ts`. **`tests/opus-bay-w5-corners.test.ts`**. |
+| `e889335` W5-L2 fix | the fire rings' `tops.ts` row and `height.top` are measured lit (their tallest state) through `forceFireRings(true)` in `scripts/opus-sf/assets/topsMeasure.ts` and the flags test: measured on the wall clock they failed between 06:00 and 21:30 PDT (lane T saw it too). |
+| `a119a59` W5-L5 | corners 5–8 in `haight-ashbury.ts`, `peace-pagoda.ts` (now `SfLandmark & SiteHooks` with a plaza and a mount), `noe-valley-town-square.ts` (its two stalls leave the site's lod 0: stalls on market Saturdays, café tables otherwise, on the same blocker footprints with own `top: 1.75`; tops row regenerated), `harvey-milk-plaza.ts` (+ the lamps' night lights). The bay-window placement for every corner (below) and **`tests/opus-bay-w5-corners-view.test.ts`**. |
+
+The corners (windows in Bay time; triangles for the corner's two meshes with all windows on; every corner is 2 meshes):
+
+| # | corner (site) | plaques | ambient | window | tris | lane E cache |
+|---|---|---|---|---|---|---|
+| 1 | Irving St (`irving-street`) | 8 boards + 4 double-sided blades: 面包 Bakery, 点心 Dim Sum, 茶 Tea, 面馆 Noodles, 蔬果 Produce, 杂货 Grocery, 咖啡 Coffee | the bakery queue, 4 people (2 after eleven) | 06:30–11:00 / 11:00–18:30 | 128 | `irving-street` |
+| 2 | Clement St (`clement-street`) | 10 boards + 4 blades: 书店 Books, 面包, 点心, 面馆, 蔬果, 杂货, 茶, 花店 Flowers, 五金 Hardware | shoppers at two produce stands | 09:00–19:00 | 132 | `clement-street` |
+| 3 | 24th St (`calle-24`) | Panadería, Taquería, Mercado, Café, Barber | papel picado across the street (3 strings), a standing guitarist with his open case, 4 listeners | 12:00–20:00 | 1,514 | `calle-24` |
+| 4 | 3rd St by Oakdale / Palou (`bayview-opera-house`) | Soul Food, Market, Deli, Records on four painted storefronts | 5 bolted iron seats facing the stop, 2 neighbours sitting, 3 standing | 06:00–21:30 | 1,068 | `third-street` |
+| 5 | Haight & Ashbury (`haight-ashbury`) | Vintage, Records (+ a blade), Café, Books, Barber on the site's painted fronts | a busker on the Haight St sidewalk, 3 listeners | 11:00–19:00 | 534 | none (Requests) |
+| 6 | Japantown, Post St (`peace-pagoda`) | 茶 Tea, Books, Café, Market, each with an awning, a noren and two paper lanterns | window shoppers | 10:00–20:00 | 1,192 | `japantown` |
+| 7 | Noe Valley Town Square | Market, Café on the neighbours; 蔬果 / 花店 / 面包 on the stalls | the Saturday market: 3 stalls, 3 shoppers; café tables otherwise; a neighbour on the bench by day | Sat 08:00–13:00 / 09:00–19:00 | 658 | `noe-valley` |
+| 8 | Castro St (`harvey-milk-plaza`) | Books, Café, Vintage, Records, Barber | rainbow banners on 4 new street lamps; two friends at the rainbow crossing by day; the fair day is lane R's, the crosswalk egg lane D's | 10:00–20:00 | 786 | none (Requests) |
+
+**The city's bay windows.** The city draws its Victorian / Edwardian fronts with ground-floor bay windows 0.50–0.57 u
+proud of the wall (`world/recipes/city.ts` `bay()`, from base + 0.6 to near the roof) and some shops with striped
+awnings: a plaque on the wall line vanishes behind them. Every dressed front was profiled on the published city's L0
+(`buildL0`, ray casts): the plaque, awning, noren and lanterns of a shop that has a bay hang on the bay's face (24th
+St's mercado and café, Clement's south boards and two north ones, all four Japantown shops, Noe's café, Castro's café
+and vintage shop), the Castro lamps stand in the gaps between bays, the 24th St busker and listeners moved clear of the
+bays, and a papel string that ran into a bay was dropped. `opus-bay-w5-corners-view.test.ts` keeps it true.
+
+### Evidence
+
+**Checks** (tsc, eslint and tsx run as `node node_modules/…`, the binaries `npx` calls): `tsc -p tsconfig.app.json
+--noEmit` 0 · `eslint .` 0 errors (43 old warnings) · the full suite `tests/opus-bay-*.test.ts`: **1111 / 1111** (corners
+1–4), 1133 / 1133 (+ the fire-ring fix), **1146 / 1146** after the rebase over T5 / T6, V5, F5 / F6 (one run had the
+wall-clock assert `sf-move2` "a cached cell is cheap" fail; alone 24 / 24), **1157 / 1157** on the pushed `e889335`,
+1158 / 1158 with corners 5–8, **1192 / 1192** after the last rebase (pushed `a119a59`).
+
+**Tests** — `tests/opus-bay-w5-corners.test.ts` (7): the eight in plan order, each on its site's frame and mounted by it;
+≤ 2 meshes and ≤ 2,500 triangles in every window combination, only the `TOY` and signs materials, no shadows cast,
+plaques of the atlas only (no text mesh); every corner's box farther than CORNER_CULL + 20 u from the downtown gate
+spots (Ferry gate, Chinatown, Union Square, Grace / Nob Hill, Powell & Market, FiDi); mounting at 08:30 / 12:30 / 16:00 /
+22:30 builds one LOD, registers exactly the windows' crowd groups, and unmounting removes the LOD and the groups; soft
+obstacles only in their windows; against the real walk data (every site's walk inputs, the rasters): every crowd pin
+(after T's clear lanes) on its site's plaza, standable (0.22 u), off the roadway and outside the site's blockers, lane
+E's caches standable and clear of blockers and soft obstacles; `cornerGround.ts` re-measured on the rasters.
+`tests/opus-bay-w5-corners-view.test.ts` (1): every flat plaque (≥ 80 % of 10 rays clear of the city's L0 within 0.6 u)
+and every blade face (no city geometry 0.2 u street-ward of the plaque's centre). `sf-landmark-context`, `sf-sites-w4`,
+`sf-sites-w4t3`, `sf-landmarks`, `w5-landmarks` stay green (the Irving / Clement stands, the Noe blockers, the tops row).
+
+**In the game** (dev server 5505, RTX, `?date=` for the Bay clock; every image read; key JPEGs in `docs/opus-bay/qa/w5/L/`):
+
+| shot | what it shows | calls / tris / programs |
+|---|---|---|
+| `l4-irving-queue-morning-desk.jpg` (Sat 09:30) | the four-person queue under the 面包 Bakery blade, 咖啡 Coffee and 蔬果 Produce plaques, the 点心 blade down the street | 94 / 311k / 59 |
+| `l4-irving-golden-phone.jpg` (390 × 844, dpr 3, mid) | the street toward 21st Ave: blades and boards, the afternoon queue | 55 / 199k / 56 |
+| `l4-clement-golden-desk.jpg` | 点心 Dim Sum and 花店 Flowers on the south bays, the 面馆 blade, shoppers by the stands | 96 / 329k / 59 |
+| `l4-calle24-golden-desk.jpg` | papel picado across 24th St, Mercado on its bay, Taquería over the mustard awning, the guitarist below | 61 / 221k / 59 |
+| `l4-calle24-night-phone.jpg` (21:45) | the Mercado plaque glowing, the strings dark, no busker | 57 / 176k / 56 |
+| `l4-third-street-golden-desk.jpg` | the painted Soul Food / Market fronts, the iron seats with two sitting and neighbours standing | 57 / 182k / 59 |
+| `l4-third-street-night-phone.jpg` | lit shop windows and plaques by the seats | 52 / 145k / 56 |
+| `l5-haight-golden-desk.jpg` | Vintage / Records on the purple corner's sign bands, the Records blade, the busker with his guitar and listeners | 76 / 275k / 59 |
+| `l5-japantown-tea-golden-desk.jpg` | 茶 Tea on its bay with the awning, noren and two red lanterns (lane E's cache on the kerb) | 70 / 246k / 59 |
+| `l5-japantown-night-phone.jpg` | the Tea and Books plaques and the lanterns glowing | 72 / 198k / 56 |
+| `l5-noe-market-saturday-desk.jpg` (Sat 09:30) | the stall row (花店 Flowers under the pink canopy), shoppers, the neighbour on the bench | 60 / 255k / 59 |
+| `l5-castro-golden-desk.jpg` | rainbow banners on the lamps down Castro St to the rainbow crossings, the theatre's blade | 70 / 335k / 59 |
+| `l5-castro-night-phone.jpg` | the lamps lit with their halos, the banners, the crossings | 58 / 228k / 56 |
+
+Also looked at (scratch `c1/`, `c2/`, `c3/`): every corner at golden hour and at night on the phone, the weekday Noe
+square (café tables), the 24th St busker close up, Japantown before the bay fix (the plaques were inside the bays: the
+reason for the profiling), Clement's north boards head-on. The corners add ≤ 2 calls near them; the counts above are
+whole scenes (≤ 99 calls, ≤ 335k triangles on desktop high). fps is lane V's gate.
+
+**Facts checked on the web (2026-09-28)**:
+- Noe Valley Farmers Market: Saturdays 8 am – 1 pm, year-round, in Noe Valley Town Square, 3861 24th St, run mostly by
+  volunteers (https://www.noevalleyfarmersmarket.com/).
+- Oakdale / Palou station (signed "Opera House"): a single island platform in the median of Third Street between Oakdale
+  and Palou, opened 13 January 2007, a transfer to the 15, 23, 24, 44 and 54 buses
+  (https://en.wikipedia.org/wiki/Oakdale/Palou_station); on the stop's east side a small plaza "outfitted with a series of
+  bolted iron seats facing the Muni stop" (https://missionlocal.org/2010/05/an-evening-at-third-and-oakdale-palou/, an
+  article from 2010).
+- Castro: rainbow flags "attached to light poles as banners", paid for by the Castro Street Fair and the merchants
+  (https://castrocbd.org/things-to-see/).
+- Japantown's Buchanan Mall / Osaka Way: the renovation "scheduled to begin in August 2026" for about a year, with
+  plywood walkways (https://xpressmagazine.org/28987/all/new-look-osaka-ways-makeover-in-japantown/, 14 May 2026; SF
+  Planning says "Winter 2026", SF Public Works "Summer 2026": the dates differ, so the corner avoids the mall rather than
+  drawing a construction site); the Peace Plaza's own renovation is still at work in September 2026 (https://peaceplaza.org/).
+- Clement Street: Green Apple Books at 506 Clement since 1967, dim sum and bakeries
+  (https://en.wikipedia.org/wiki/Green_Apple_Books_%26_Music, https://onetripwonder.com/clement-street-san-francisco/): the
+  corner's 书店 Books is generic, never the shop's name.
+- 24th Street: taquerías, panaderías and produce grocers along Calle 24 (https://www.calle24sf.org/aboutcalle24,
+  https://www.nbcbayarea.com/news/local/24th-street-or-calle-24-now-a-special-district/1987602/).
+- Haight Street: independent vintage and record shops (https://sanfranciscovintage.com/neighborhoods/haight-ashbury/,
+  https://onetripwonder.com/haight-street-san-francisco/).
+- Irving Street's Chinese bakeries and dim-sum take-outs (https://en.wikipedia.org/wiki/Sunset_District,_San_Francisco
+  and the site's wave-4 source).
+
+### Decisions
+
+- **A corner is its site's**: mounted by the site's lod 0 (no new streaming, no new registry entry), culled at 140 u by
+  a `THREE.LOD` the renderer updates itself; the sites' `TOY` program + the atlas program lane V warmed: no new
+  program. What comes and goes with the clock (the busker, the stalls, the queue) is drawn in the corner mesh and pushes
+  walkers away by soft obstacles; static furniture a walker could walk into (the 3rd St seats, the Castro lamps) is a
+  soft obstacle too, because a site blocker needs something drawn in the site's lod 0 for its measured top.
+- **Blade signs** read along the street from the follow camera, flat boards from across it; both kinds where the street
+  allows.
+- **The clear lane** of T's crowd spots: where standers stand on both sidewalks (Clement) the lane is the zebra
+  crossing; on one sidewalk, the other half of the carriageway (Irving) or the street's centreline.
+- **The Japantown corner is on Post Street**, not the Buchanan Mall: the mall's renovation (August 2026 – 2027) would
+  make a lantern-lit mall wrong on the same day. 茶 Tea is the only zh plaque there (the same character in Japanese);
+  Japanese plaques are a request to lane V.
+- **Noe Valley's stalls only on market Saturdays**: wave 4 drew two stalls every day; now the real market's hours
+  (Sat 8–13) set them, café tables the rest of the week on the same footprints.
+- **Crowd pins are in the sites' plazas**, so ordinary sightseers may use the same spots outside the window (the 3rd St
+  plaza stays lively in the evening, like the "10 to 15 people … in small groups" the 2010 article saw there).
+
+### Known gaps
+
+- A near-player kit house (lane D2's `kitSwap`) replaces some city buildings with GLB houses whose fronts differ from the
+  L0 recipe; the view test checks L0 only. In the shots the plaques read on the kit houses too (24th St, 3rd St).
+- The crowd figures carry nothing: the "shoppers with bags" are shoppers; the guitarists are lane L's own static toy
+  figures (with soft obstacles), the listeners lane T's crowd.
+- Wave-4 leftovers seen while profiling (not changed): the site's blank boards on Clement's south side and two north ones
+  stand behind the city's bays (the plaques now hang on the bay faces in front of them); calle-24's second banner pole
+  stands inside a north bay.
+- W5-L6 (Chinatown / North Beach corners) and W5-L7 are later parts; lane V's downtown headroom has now been published
+  (lane D placed Norton's scroll on it), so Ina Coolbrith and the downtown corners can be looked at next.
+
+### Not done (this part)
+
+- Haight and Castro have no lane E cache yet; no Japanese plaques yet (Requests).
+- The night set was shot on the phone profile; the desktop set is golden hour (and two Saturday mornings).
+
+### Requests
+
+- **Lane E** (`scripts/opus-sf/coins-place.mts`, append-only): two corner caches — `haight` at world (−38.0, 754.9)
+  (Haight St's west sidewalk, across from the busker; standable at 0.3 u) and `castro` at world (149.7, 748.0) (Castro
+  St's west sidewalk between two bays; standable at 0.3 u); y = the ground there. Lane L then sets `cache` on the two
+  corners (the corner test checks it standable).
+- **Lane V** (`world/sf/signsAtlas.ts`, append-only cells): Japanese plaques for Japantown, e.g. `ramen` ラーメン Ramen,
+  `sweets` 和菓子 Sweets, `hon` 本 Books; lane L then swaps `books-en` / `market` there. The gate spots `irving-night` and
+  `castro` now include a corner each (≤ 2 calls within 140 u, ≤ 1.5k triangles).
+- **Lane T**: an optional hand prop for a pinned stander (a shopping bag) would make Clement's shoppers read as shoppers.
+- Unchanged from part a: lane N's `SITE_ARRIVALS` wiring, lane D's Wave Organ egg spot, lanes F / N's `arrivalSpot`
+  rule, lane C's verify D12.
+
+Status（进度）：B 部分完成——八个街角（L4、L5）已推送（`861a273`、`a119a59`），篝火测试的时钟问题已修（`e889335`）；下一步 L6（唐人街 / 北滩，V 已公布余量）与 L7。
