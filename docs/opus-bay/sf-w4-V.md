@@ -473,6 +473,10 @@ edited.
 
 - The gate for `cal-academy` and `st-ignatius-church` (their remainders are lane L's code; step 5).
 - H-8 generated SFX (skipped; Decisions).
+- Lane C's part-2 request (`sf-w4-C.md`, its integration step 7): record `metro-sfsu-next-2` (zh + en, `TOUR_LINES_2`,
+  ≈ 0.05 credits) into `voiceTour.ts` and count `TOUR_LINES_2` in `tests/opus-bay-w4-assets.test.ts`: it arrived during
+  this part's final rebase; lane V does it at the integration (takes.ts gains the second set, tour_post.py processes only
+  the new clips so the 214 published picks do not change).
 - The Blue Heron island still draws and walks as lake water in the city (lane L's request to the lead): in the gate's
   city shots the pavilion stands in the lake on its stone base; nothing in the model depends on it.
 
