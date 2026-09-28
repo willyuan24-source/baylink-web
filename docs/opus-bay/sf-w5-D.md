@@ -389,3 +389,91 @@ Status: no relayed owner message reached this lane during part c.
 - **C**: your pacer's evening line spoke over egg 33's second line at Pier 14 (城里的灯一盏盏亮起来了): if you can, hold a paced
   line while `bubble` is showing a line of another lane's queue (lane D's `hosts.sayMore` queue ends at a known time).
 - **T**: (still open) skip `ambience.foghorn()` while the duet plays, and `setSeaLionDensity(k)` for the PIER 39 dock by month.
+
+## Review
+
+Adversarial review of lane D's wave-5 work (every `W5-D*` commit, `307c2098` … `cb9e653e`) on `origin/opus-bay` `cb9e653e`,
+worktree `C:/Users/willy/wt/w5-d`, dev server 5509, 2026-09-28. Commits: `W5-D-review: …`.
+
+### 给主人的摘要
+
+1. 我把 D 线的 33 个彩蛋、12 种城市之声和 48 块小石子的代码全部读了一遍，在电脑和手机上实际玩过，又上网重新核对了 36 条事实。
+2. 修了 4 个真问题：设置里"重置进度"以后，本次玩过的彩蛋、石子和声音再也拿不到金币（捡过的石子也不回来）；唐人街老电话接起来又挂断，当天就再也不响，这个彩蛋白丢一天；手机上"小发现"卡片和"听一听"圆圈会盖住"抵达"卡片的标题；"海狮是 1989 年地震后才来的"和维基百科冲突，改成两边都认可的"1989 年秋天起"。
+3. 顺手修了：游戏关掉时还没响完的计时器不会再补发奖励；小石子计数不再每秒解码几百次存档（手机更省电）。全部测试通过。
+
+### What was reviewed
+
+All of `src/opus-bay/eggs/**` (registry, hosts, gates, props, sounds, the 33 egg hosts in north / wharf / downtown / cookies /
+marina / presidio / west / park / mission / south / batch2, 城市之声 in citySounds + listen, the pebbles, the rumour and compass
+sources, the cards and their CSS, index), both lane-D test files, the report parts a–c and the plan's §3.1 / §4.12, against the
+ledger (`economy/ledger.ts`), the save (`data/save.ts`), the slots, flow's `busy()`, the compass badge and the Settings reset.
+
+### Defects found and fixed
+
+| # | defect (how it showed) | fix | test |
+|---|---|---|---|
+| 1 | **Settings → reset progress mid-session kept lane D's session state.** The reset clears the save without reloading the city, but `hosts.ts` `sessionFound`, `listen.ts` `sessionHeard` and `pebbles.ts` `sessionFound` survived: an egg, sound or pebble found before the reset stayed "found" with nothing paid and could not be found (or paid) again until a reload; picked pebbles stayed out of the world while `pebbleCount()` still counted them (tricks and 玩石子 on an empty pouch); the 1776 marks survived (the new save's first stop completed egg 23 at once); the Crissy windsock stayed. Seen in the game (desktop): after `clearSave()` the ledger read 0 for `egg:mt-davidson-top-of-sf` and `pebble:mp-1` while `__opusBay.d.found()` said true and `d.pebbles()` 1; a second reveal paid nothing. | `index.ts` registers `onSaveCleared` → `gates.forgetEggMemory()` (daily memory + marks), `listen.forgetHeard()`, `hosts.resetEggHosts()` (the session sets, a pending card or queue, then each host's new optional `reset()`: the pebbles lie where they lay and the pouch is empty, the windsock goes, the otter / Alcatraz once-a-session flags reset). Re-checked in the game: after the reset the egg reads unfound and pays again. | `W5-D-review reset …` |
+| 2 | **Egg 4, the phone: hanging up lost the find for the Bay day.** `answer()` marked the day used before anyone was put through; ×, Esc, walking 8 u away or the operator's 20 s left it marked, and the phone never rang again that day. Seen on the phone profile: after the × it stayed silent on the next visit. | `markToday('phone')` moved into `onPick` (the call went through). Re-checked on the phone: hang up → walk away → back → it rings again → 找街坊 → the find (🪙 3 → 13). | `W5-D-review the phone …` |
+| 3 | **Phone: the find card and the 听一听 ring covered lane N's arrival card.** The card's fixed raise (+92 px) left it 38 px over the ≈ 130 px arrival card (measured: card 536–618, arrival 580–710 of 844); the ring (never raised) sat on the arrival card's title at the Powell turntable, exactly where the cable-car bell is heard on arrival. | `FactCard.tsx` `useAboveArrival(ref)` measures the arrival card's real top and stands the card or the ring 10 px above it when they share its column (an inline `bottom`). Measured after (phone): card 488–570, ring 504–570, arrival top 580. | the card and ring render tests (SSR); measured in the game |
+| 4 | **Fact: PIER 39's sea lions "came after the 1989 earthquake".** Wikipedia's Pier 39 page (the egg's own second source) says the first hauled out in September 1989, before the quake; PIER 39's page says "shortly after" it. | Line: 1989 年秋天起，海狮陆续搬到这片浮台上来了。 Fact: 1989 年秋天起…（码头说是在洛马普列塔地震后不久）… The source notes say which page says what. | `W5-D-review facts …` |
+| 5 | **Teardown leaks.** 20 raw `setTimeout`s in the area modules (the lady's giggle and her 城市之声 collection, the phone's reveal, the whale's reveal and splashes, Crissy's landing, Heron's glow, batch 2's effects) and `note()`'s overlay subscription outlived `startHosts`' undo: a laugh pending at teardown collected its sound and paid after the eggs stopped; the teardown unregistering the note overlay "closed" Norton's scroll and ran its reveal. | `hosts.later(fn, ms)` (tracked, cleared when the hosts stop) replaces them; the note watchers are dropped at stop. | `W5-D-review teardown …` |
+| 6 | **Garbage at 10 Hz for nothing.** The pebble host's `isFound` called `pebbleCount()` → 48 `isPaid` (each decodes a base64 bitset) every host step, and 4 times a second more while the compass is held (with the egg list); `distTo` built a spot array per host per step. ≈ 67 µs a count on the desktop CPU. | `eggs/paid.ts` `paidSet()`: the ledger's paid ids of a kind, recomputed only when `ledgerVersion()` or the save's identity changes (a pay anywhere, a reset); eggs, sounds and pebbles read it. Spots are made once; hosts with an infinite range skip them. | `W5-D-review the paid memo …` (2000 counts < 60 ms; follows a direct `pay` and a reset) |
+
+Smaller wording fixes (sources re-read): Spreckels Lake's powered boats run 10:00–13:00 (the line said 上午); the 城市之声
+laughing-lady card now says the Musée has *a* Laffing Sal (Wikipedia: a copy bought at auction in 1972), not the Playland one;
+the labyrinth is rebuilt by its keeper and helpers (richmondsfblog.com 2015-08-18), not "volunteers"; the Ross Alley line
+("1962 年就在这条小巷里开张") gains a source that names the alley (The Takeout, 2026-01-05; Wikipedia gives the year only).
+
+Red first: the five new tests (`tests/opus-bay-w5-eggs-review.test.ts`) fail 5 / 5 on the lane's code and pass on the fix. The
+lane's own host test now accepts a host with an infinite range and no spot list.
+
+### Evidence
+
+- **Facts re-read on the web on 2026-09-28** (✔ = as the registry says): goldengate.org foghorns (both patterns, switched on by
+  hand, ≈ 2.5 h a day) ✔ · Wikipedia Wild Parrots (2023; Sue Bierman Park by the Ferry Building) ✔ · Wikipedia Golden Gate Fortune
+  Cookie Company + thetakeout.com (1962, Ross Alley) ✔ · Wikipedia dawn-to-dusk flight (23 June 1924, 9:46 pm, "reportedly a minute
+  before dusk") ✔ · nscda-ca.org Octagon House (March 1953, the cupola stairs, 14 July 1861) ✔ · Wikipedia Castro Theatre (1922; two
+  years, $41M; 6 Feb 2026; the organ before) ✔ · illuminate.org Bay Lights (20 Mar 2026, 48,000 LEDs, the western span's northern
+  cable plane, dusk to dawn) ✔ · Wikipedia Spreckels Lake ✔ (line tightened) · presidio.gov pet cemetery (early 1950s, 424 handmade
+  headstones, white picket fence, no new burials, under the viaduct) ✔ · Wikipedia Tiled Steps (163 steps, 90 ft / 27 m, Barr &
+  Crutcher, 27 Aug 2005) ✔ · archives.sfmta.com (April 1955, Union Square) ✔ · Wikipedia Telegraph Hill (Sept 1849 semaphore with
+  two arms; Sept 1853 telegraph) ✔ · SFGATE through search (the page would not load: a quarry tunnel, 1892, ≈ 152 ft) ✔ · Wikipedia
+  Mount Davidson (928 ft, 38 acres) ✔ · Wikipedia Laffing Sal ✔ (card tightened) · sfport.com Heron's Head (22 acres, the shape,
+  100+ species) ✔ · sfdahlias.org (700+, June–Oct, peak Aug–Sep) ✔ · KQED Karl (Aug 2010) ✔ · pier39.com + Wikipedia Pier 39 ✗ →
+  fixed (#4) · Wikipedia Hardly Strictly (2001, Hellman Hollow, first October weekend, free) ✔ · Wikipedia Rainbow Honor Walk (20
+  plaques, 2 Sept 2014; the crosswalks with the 2014 streetscape) ✔ · Wikipedia Fort Funston ✔ · Wikipedia Alta Plaza Park ✔ ·
+  outsidelands.org sundial (10 Oct 1913, 1,500 people, 28 ft, the canal) ✔ · nps.gov China Beach ✔ · baynature.org humpbacks (April
+  2016; April–November) ✔ · missiondolores.org (9 Oct 1776; the oldest intact building) ✔ · Wikipedia Alcatraz water tower (repainted
+  Nov 2011–Apr 2012) ✔ · sftravel.com cherry blossoms (11–12 and 18–19 April 2026; taiko) ✔ · Grace Cathedral (its site answers 403
+  to the fetcher; search results: the outdoor terrazzo labyrinth, a Chartres replica, open 24/7) ✔ · presidio.gov 2026 (17 Sept
+  1776; the Ramaytush Ohlone) ✔ · Wikipedia Twin Peaks (≈ 925 ft / 282 m) ✔ · Wikipedia Wave Organ (May 1986, 25 pipes, Laurel Hill
+  stones, high tide) ✔ · Wikipedia Golden Fire Hydrant ✔ · emperornortontrust.org (1872 proclamations, Goat Island, 64 years) ✔ ·
+  localwiki + richmondsfblog labyrinth ✔ (wording tightened).
+- **In the real game** (dev 5509, headless Chrome with the RTX flag, one at a time, zh, every image read; scratch
+  `C:/Users/willy/opus-qa/w5/w5-d/review/shots/`): the reset on desktop before / after the fix (`s1`, `s1b`); the phone's hang-up on
+  390 × 844 dpr 3 before / after (`s2`, `s2b`: it rings again, then the find, the card above the phone bar); the cable-car bell
+  listened to on the phone (`s3`: the ring, then 城市之声 · +5 金币); the card and the ring against the arrival card before / after
+  (`s3`, `s4b`, `s5p`, desktop `s5d`); CP-6 again after the timer change (desktop, W held along the deck while the whale surfaces:
+  1.05 u every 250 ms while W is down, the glance ≈ 4.5 s, the lock never held; `r-deck-whale-desktop-a/b`). Programs read 60
+  desktop / 58 phone, as the lane reported; nothing here adds a material or a draw call.
+- **Checks**: `tsc -p tsconfig.app.json --noEmit` 0 · `eslint .` 0 errors (43 old warnings outside `src/opus-bay`) · the full suite on
+  the review tree (the numbers are in the structured output; the wall-clock `E2-5 view field in the city` of `sf-move2` failed
+  once under load at 2.7 s and passes alone, as lane D saw in part c).
+
+### Checked and fine (no change)
+
+The ledger pays each egg, sound and pebble once (`find` + `reward` only on the first find; repeats are quiet); no path to a
+negative balance; the bitsets hold 33 / 12 / 48 bits, append-only (lane E reads `ALL_EGG_IDS`, and its page lists batch 2). Camera
+beats hold the lock only through `playShots` and release on every end; glances never lock; CP-6 holds. The flock's six
+InstancedMeshes share one material with identical flags (no program switching); the pool and the held stone have their own; all
+are warmed. District mode never loads the eggs. zh lines ≤ 45 and riddles ≤ 20, read for tone: natural and short.
+
+### Observations (not fixed: small, or another lane's)
+
+- The Castro prints mark the prop pool dirty on every drop and fade, and a dirty pool rebuilds at the host rate (10 Hz) rather than
+  2 Hz for the ≈ 8 s of a trail (≈ 500 triangles merged each time): transient; a 0.25 s floor on dirty rebuilds would halve it.
+- The flock's paths allocate a few small objects per bird per frame during a flight (≤ 24 s, ≤ 16 birds): transient.
+- New save, first minute (lanes C / F): the 随便逛，顺便完成这些 goals card opened over the ringing phone and over the operator's
+  paper, while the contextual 接电话 button stayed live under it.
+
+Status: no relayed owner message reached the review.
