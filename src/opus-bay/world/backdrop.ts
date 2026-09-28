@@ -58,7 +58,10 @@ function segmentExit(ax: number, az: number, dx: number, dz: number, poly: Polyg
   return best;
 }
 
-export interface BridgeInfo { towers: THREE.Vector3[]; start: THREE.Vector3; end: THREE.Vector3 }
+/** A vertical suspender strand of the west span (city mode, W5-V10): foot (x, z), deck to cable (y0 → y1), t along the crossing, the cable plane. */
+export interface BayStrand { x: number; z: number; y0: number; y1: number; t: number; side: number }
+/** `strands` / `right` (city mode): the suspender strands of both cable planes and the frame's side +1 direction (the light field's Bay Lights). */
+export interface BridgeInfo { towers: THREE.Vector3[]; start: THREE.Vector3; end: THREE.Vector3; strands?: BayStrand[]; right?: { x: number; z: number } }
 
 function bayBridge(b: Batch, halos: HaloSpec[], def: BackdropDef, city = false): BridgeInfo {
   const ybi = city ? CITY_BACKDROP['ybi-tunnel'] : DISTRICT.backdrop.find(x => x.kind === 'yerba-buena')?.position ?? { x: def.position.x, z: def.position.z - 270 };
@@ -149,7 +152,20 @@ function bayBridge(b: Batch, halos: HaloSpec[], def: BackdropDef, city = false):
   }
   // the road continues past the cut: deck ends flush with the slab edge (cut face darker)
   if (!city) b.add(BOX(), f.at(0, DECK - 1.3, L - 0.05, 0, HALF * 2, 1.75, 0.1), '#6f6a62');
-  return { towers, start: f.point(0, DECK, 0), end: f.point(0, DECK, L) };
+  const out: BridgeInfo = { towers, start: f.point(0, DECK, 0), end: f.point(0, DECK, L) };
+  if (city) {
+    // W5-V10: the suspender strands every 3 u (the light field strings its Bay Lights on the north plane's)
+    const o = f.point(0, 0, 0), ox = o.x, oz = o.z, r = f.point(1, 0, 0);
+    out.right = { x: r.x - ox, z: r.z - oz };
+    out.strands = [];
+    for (const side of [-1, 1]) for (let s = 3; s < cableEnd - 2; s += 3) {
+      const y1 = cableY(s) - 0.2;
+      if (Math.abs(s - sCA) < 4 || y1 < DECK + 2) continue;
+      const p = f.point(side * HALF, 0, s);
+      out.strands.push({ x: p.x, z: p.z, y0: DECK + 0.7, y1, t: s / full, side });
+    }
+  }
+  return out;
 }
 
 const xyz = (v: THREE.Vector3) => ({ x: v.x, y: v.y, z: v.z });

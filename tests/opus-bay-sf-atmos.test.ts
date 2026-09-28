@@ -319,7 +319,8 @@ test('night light field: ≥ 10k street lamps from far.lines + the GGB, one Poin
     assert.ok(l.y >= 46 && l.y <= 58, `crown height ${l.y}`);
     const d = Math.max(Math.abs(l.x - tower.position.x), Math.abs(l.z - tower.position.z));
     assert.ok(d <= 3.2, `on the crown (${d.toFixed(2)} u from the axis)`);
-    assert.ok(l.color[0] >= l.color[2] && l.level > 0 && l.level < 2, 'warm, steady');
+    // W5-V10: the crown drifts slowly (its own level band, 5 + its height); the base colour stays the warm glow
+    assert.ok(l.color[0] >= l.color[2] && l.level >= 5 && l.level < 6, 'warm, drifting');
   }
   assert.equal(field.count, lamps.length + ggb.length + crown.length);
   assert.equal(field.group.children.length, 1, 'one Points object');

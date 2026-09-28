@@ -77,6 +77,7 @@ uniform float uGolden;
 uniform float uTime;
 uniform float uKarl;
 uniform vec3 uKarlColor;
+uniform float uMoonPhase;
 varying vec3 vDir;
 float h1(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
 void main() {
@@ -94,12 +95,29 @@ void main() {
   float m = max(dot(d, uMoonDir), 0.0);
   // crisp disc (~1.5°) with a soft shoulder, plus a wide cool halo
   float disc = smoothstep(0.99955, 0.99972, m) + pow(m, 700.0) * 0.5;
-  col += (vec3(1.0, 0.97, 0.9) * min(disc * 2.2, 2.4) + vec3(0.7, 0.78, 0.95) * (pow(m, 18.0) * 0.25 + pow(m, 120.0) * 0.3)) * uNight;
+  float glow = pow(m, 18.0) * 0.25 + pow(m, 120.0) * 0.3, starCut = 0.93;
+  if (uMoonPhase >= 0.0) {
+    // W5-V10 (city): tonight's phase (lane R's realsf/moon.ts; < 0 = the district's full moon as ever). The lit part
+    // (waxing: the right side) behind an elliptic terminator, the dark part a faint ashen glow; the glow and the number
+    // of stars follow the lit fraction (a new moon shows more stars)
+    vec3 rt = normalize(cross(uMoonDir, vec3(0.0, 1.0, 0.0)));
+    vec2 q = vec2(dot(d, rt), dot(d, cross(rt, uMoonDir))) / 0.0268;
+    q /= max(1.0, length(q));
+    float k = cos(6.2832 * uMoonPhase) * sqrt(max(0.0, 1.0 - q.y * q.y));
+    float lit = smoothstep(k - 0.06, k + 0.06, uMoonPhase < 0.5 ? q.x : -q.x);
+    float illum = 0.5 - 0.5 * cos(6.2832 * uMoonPhase);
+    // the soft shoulder is round, centred on the lit part and as bright as it (no terminator cuts the sky); full: as ever
+    vec3 lc = normalize(uMoonDir + rt * ((uMoonPhase < 0.5 ? 0.0268 : -0.0268) * (1.0 - illum)));
+    disc = smoothstep(0.99955, 0.99972, m) * mix(0.03, 1.0, lit) + pow(max(dot(d, lc), 0.0), 700.0) * 0.5 * (0.15 + 0.85 * illum);
+    glow *= 0.2 + 0.8 * illum;
+    starCut = mix(0.9, 0.935, illum);
+  }
+  col += (vec3(1.0, 0.97, 0.9) * min(disc * 2.2, 2.4) + vec3(0.7, 0.78, 0.95) * glow) * uNight;
   // stars: a jittered point per sky cell (~1°), round, two sizes, twinkling, fading toward the horizon
   vec2 sg = vec2(atan(d.z, d.x), asin(clamp(y, -1.0, 1.0))) * 60.0;
   vec2 cid = floor(sg);
   float h = h1(vec3(cid, 3.0));
-  if (h > 0.93 && y > 0.0) {
+  if (h > starCut && y > 0.0) {
     vec2 c = vec2(h1(vec3(cid, 7.1)), h1(vec3(cid, 9.3))) * 0.6 + 0.2;
     float big = step(0.985, h);
     float r = mix(0.15, 0.24, big);
@@ -161,7 +179,7 @@ export class Environment {
         uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uBottom: { value: new THREE.Color() },
         uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunColor: { value: new THREE.Color() }, uSunDisc: { value: 1 }, uNight: U.uNight,
         uMoonDir: { value: MOON.clone() }, uGolden: { value: 0 }, uTime: U.uTime,
-        uKarl: KARL.uKarl, uKarlColor: KARL.uKarlColor,
+        uKarl: KARL.uKarl, uKarlColor: KARL.uKarlColor, uMoonPhase: { value: -1 },
       },
       vertexShader: SKY_VERT,
       fragmentShader: SKY_FRAG,
@@ -270,6 +288,9 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
     if (instant) { this.live = toLive(TIME_PRESETS[tod]); this.apply(); }
   }
   get timeOfDay() { return this.tod; }
+  /** W5-V10 (city): the sky moon's phase, 0 new … 0.5 full … 1 (realsf/moon.ts); < 0: the full moon (district) */
+  setMoonPhase(phase: number) { this.skyMat.uniforms.uMoonPhase.value = phase; }
+  get moonPhase(): number { return this.skyMat.uniforms.uMoonPhase.value as number; }
   get night() { return this.live.night; }
   get sunDir() { return this.live.sunDir; }
   get exposure() { return this.live.exposure; }

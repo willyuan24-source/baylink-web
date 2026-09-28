@@ -94,12 +94,35 @@ export const KARL_TIME: Record<TimeOfDay, KarlTarget> = {
 };
 
 
-/** What Karl does at `tod` with the `?karl` flag (pure). */
-export function karlTarget(tod: TimeOfDay, flag: KarlFlag): KarlTarget {
+/**
+ * Karl by month (W5-V10; lane R's `karlMonthFactor`, realsf/seasons.ts: SFBayWeather's climatology, checked 2026-09-28,
+ * always worded 通常 / usually). The time table above is Karl's foggiest month (July, factor 1); a clearer month thins
+ * the term and keeps the bank further out: with x = (m − 0.35) / 0.65 (October's 0.35 → 0, July → 1) the level is
+ * × (0.55 + 0.45 x), the western front 160 (1 − x) u further offshore, the gate lobe × (0.75 + 0.25 x) as strong and
+ * × (0.7 + 0.3 x) as long. So an October morning still pools over the outer Sunset and reaches the bridge, a July one
+ * climbs to the Sutro slopes and on toward Alcatraz.
+ */
+export const KARL_MONTH = { lo: 0.35, hi: 1, level: 0.55, front: 160, gate: 0.75, gateLen: 0.7 } as const;
+
+/** Karl's layout `t` in a month whose factor is `m` (pure; m ≥ 1: the table as it is). */
+export function karlMonth(t: KarlTarget, m: number): KarlTarget {
+  const M = KARL_MONTH;
+  const x = Math.min(1, Math.max(0, (m - M.lo) / (M.hi - M.lo)));
+  return {
+    ...t,
+    level: t.level * (M.level + (1 - M.level) * x),
+    front: t.front - M.front * (1 - x),
+    gate: t.gate * (M.gate + (1 - M.gate) * x),
+    gateLen: t.gateLen * (M.gateLen + (1 - M.gateLen) * x),
+  };
+}
+
+/** What Karl does at `tod` with the `?karl` flag (pure) in a month of factor `month` (the `?karl` flags ignore it). */
+export function karlTarget(tod: TimeOfDay, flag: KarlFlag, month = 1): KarlTarget {
   const t = KARL_TIME[tod];
   if (flag === 0) return { ...t, level: 0 };
   if (flag === 1) return tod === 'day' ? { ...KARL_TIME.golden, level: 0.6, color: t.color } : { ...t, level: Math.max(t.level, 0.6) };
-  return { ...t };
+  return karlMonth(t, month);
 }
 
 
@@ -156,6 +179,9 @@ const KEYS = ['level', 'front', 'gate', 'gateLen', 'top'] as const;
 export class KarlState {
   flag: KarlFlag = null;
   tod: TimeOfDay = 'golden';
+  /** Karl's month factor (W5-V10: karlMonthFactor, set by the city's real sky; 1 = the table as it is) */
+  month = 1;
+  private monthSet = false;
   epoch = 0;
   /** slide progress 0 … 1 (eased with smoothstep) */
   t = 1;
@@ -180,8 +206,17 @@ export class KarlState {
     this.retarget(true);
   }
 
+  /** the month's factor (W5-V10); the first one applies at once, a later one (a new month) slides like a new time */
+  setMonth(m: number) {
+    if (this.monthSet && Math.abs(m - this.month) < 1e-6) return;
+    const first = !this.monthSet;
+    this.monthSet = true;
+    this.month = m;
+    this.retarget(first);
+  }
+
   private retarget(instant: boolean) {
-    this.to = karlTarget(this.tod, this.flag);
+    this.to = karlTarget(this.tod, this.flag, this.month);
     this.from = { ...this.cur };
     this.fromColor.copy(this.color);
     this.toColor.set(this.to.color);

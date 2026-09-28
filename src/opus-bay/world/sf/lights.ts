@@ -1,6 +1,8 @@
 import * as THREE from 'three';
+import { LAT0, LNG0, projectRaw } from '../../core/geo';
 import type { Vec2 } from '../../core/types';
 import { DISTRICT } from '../../data/district';
+import type { BayStrand } from '../backdrop';
 import { freezeStatic } from '../builder';
 import { SALESFORCE_LEVELS } from '../landmarks';
 import { U } from '../materials';
@@ -22,7 +24,9 @@ import { inPoly } from './raster';
  *   Golden Gate    the deck's railing lamps, the floodlit tower bases and the blinking red aviation lights on the tower
  *                  tops (the towers were floating red bars at night: now the deck strings them together)
  *   landmarks      CitySites.siteLights() (D2's SiteHooks.lights), refreshed while the city streams
- *   Salesforce     the hero tower's crown (wave 4, W4-V8): a warm glow on its faces, readable across the city
+ *   Salesforce     the hero tower's crown (wave 4, W4-V8): a warm glow on its faces, readable across the city; wave 5
+ *                  (W5-V10): it drifts slowly through a soft palette (CROWN_DRIFT)
+ *   Bay Lights     W5-V10: LED dots up the Bay Bridge west span's northern suspender strands, a slow shimmer (BAY_LIGHTS)
  *
  * Round additive dots of 1.5–4.5 px (a fixed world size, clamped), faded out within ≈ 60–150 u of the camera (the real
  * lamps, halos and the GROUND street glow take over there), dimmed under Karl the Fog, hidden by day (0 calls). The
@@ -91,6 +95,49 @@ export function ggbLights(): LightSpec[] {
 
 /** Jim Campbell's LED crown ("Day for Night", 11,000 LEDs): a generic warm glow, no pictures (plan §2.4 row 32, W4-V8). */
 const CROWN = [1.0, 0.9, 0.74] as const;
+/**
+ * aLevel ≥ CROWN_DRIFT (W5-V10, fract = height on the crown 0 … 1): the crown's slow colour drift — the warm glow
+ * breathes through soft teal, rose and amber in a band that rises over ≈ 2 minutes. Our own abstract drift: the real
+ * piece shows low-resolution moving pictures of the day in the city (salesforcetower.com/artwork, checked 2026-09-28),
+ * never copied here (plan D24).
+ */
+export const CROWN_DRIFT = 5;
+/**
+ * aLevel ≥ BAY_LIGHTS (W5-V10, fract = position along the crossing 0 … 1): The Bay Lights — LEDs on the vertical
+ * cables of the Bay Bridge's west span, on its northern cable plane (the side the San Francisco waterfront sees), lit
+ * every night from dusk; relit on 20 March 2026 (illuminate.org, checked 2026-09-28). A slow generic shimmer of our
+ * own (two soft waves drifting across the strands), never the installation's sequences (plan §3.6, D24).
+ */
+export const BAY_LIGHTS = 4;
+/** an LED dot every this many u up a strand (the strands stand every 3 u: world/backdrop.ts BayStrand) */
+export const BAY_DOT = 1;
+/** cool LED white, a little over 1 (the small dots are additive: they read as the brightest lights on the Bay) */
+const LED_WHITE = [1.1, 1.15, 1.25] as const;
+export const BAY_LIGHTS_SOURCE = { sourceUrl: 'https://illuminate.org/projects/thebaylights/', verifiedAt: '2026-09-28' } as const;
+
+/** true north in the world frame (the map is turned 46°: core/geo.ts) */
+function northXZ(): { x: number; z: number } {
+  const a = projectRaw(LAT0, LNG0), b = projectRaw(LAT0 + 0.01, LNG0);
+  const L = Math.hypot(b.x - a.x, b.z - a.z);
+  return { x: (b.x - a.x) / L, z: (b.z - a.z) / L };
+}
+
+/**
+ * The Bay Lights (pure; W5-V10): a dot every BAY_DOT u up each suspender strand of the west span's northern cable plane
+ * (world/backdrop.ts `BridgeInfo.strands`, city mode), level BAY_LIGHTS + t. Empty without the bridge.
+ */
+export function bayLights(bridge: { strands?: readonly BayStrand[]; right?: { x: number; z: number } } | null | undefined): LightSpec[] {
+  if (!bridge?.strands?.length || !bridge.right) return [];
+  const n = northXZ();
+  const north = bridge.right.x * n.x + bridge.right.z * n.z > 0 ? 1 : -1;
+  const out: LightSpec[] = [];
+  for (const s of bridge.strands) {
+    if (s.side !== north) continue;
+    const level = BAY_LIGHTS + Math.min(0.999, Math.max(0, s.t));
+    for (let y = s.y0; y <= s.y1 + 1e-6; y += BAY_DOT) out.push({ x: s.x, y, z: s.z, level, color: LED_WHITE });
+  }
+  return out;
+}
 
 /**
  * Salesforce Tower's crown at night (pure; the hero tower of world/landmarks.ts, SALESFORCE_LEVELS): warm points on
@@ -110,14 +157,95 @@ export function salesforceCrownLights(): LightSpec[] {
     return SALESFORCE_LEVELS[SALESFORCE_LEVELS.length - 1].half;
   };
   const out: LightSpec[] = [];
-  const at = (lx: number, y: number, lz: number, level: number) => out.push({ x: l.position.x + lx * c + lz * s, y, z: l.position.z - lx * s + lz * c, level, color: CROWN });
+  // W5-V10: every crown point drifts (CROWN_DRIFT + its height on the crown, 46 → 58)
+  const at = (lx: number, y: number, lz: number) => out.push({ x: l.position.x + lx * c + lz * s, y, z: l.position.z - lx * s + lz * c, level: CROWN_DRIFT + Math.min(0.999, (y - 46) / 12), color: CROWN });
   for (const y of [46.5, 49.5, 52]) {
     const h = halfAt(y) + 0.1;
     // two points on each face (the corners are rounded)
-    for (const t of [-0.45, 0.45]) { at(t * h * 2, y, h, 1); at(t * h * 2, y, -h, 1); at(h, y, t * h * 2, 1); at(-h, y, t * h * 2, 1); }
+    for (const t of [-0.45, 0.45]) { at(t * h * 2, y, h); at(t * h * 2, y, -h); at(h, y, t * h * 2); at(-h, y, t * h * 2); }
   }
-  at(0, 57.8, 0, 0.8);
+  at(0, 57.8, 0);
   return out;
+}
+
+/** The crown's drift palette (W5-V10) at time `t` (s, U.uTime) and height `h` on the crown (0 … 1): the light field's GLSL. */
+export function crownDriftColor(t: number, h: number, out: [number, number, number] = [0, 0, 0]): [number, number, number] {
+  const ph = t * 0.008 - h * 0.6;
+  out[0] = 0.62 + 0.38 * Math.cos(6.2832 * ph);
+  out[1] = 0.62 + 0.38 * Math.cos(6.2832 * (ph + 0.34));
+  out[2] = 0.62 + 0.38 * Math.cos(6.2832 * (ph + 0.67));
+  return out;
+}
+/** how much of the palette the crown takes (the light field mixes its points by the same amount) */
+export const CROWN_MIX = 0.55;
+
+/**
+ * The hero Salesforce Tower's own crown (W5-V10, city mode): its glowing faces (world/landmarks.ts: the rings from y 44
+ * up and the apex, glow at night) take the drift too, so it shows up close as well as in the light field from afar.
+ * Vertex colours of that one mesh, rewritten at ≤ 5 Hz by night (mixed by the night level; by day the colours as
+ * built): no program, no draw call. District mode never makes one (the hero regression).
+ */
+export class CrownDrift implements WorldSystem {
+  readonly name = 'crown-drift';
+  private attr: THREE.BufferAttribute | null = null;
+  private idx: number[] = [];
+  private base: number[] = [];
+  private h: number[] = [];
+  private range: [number, number] = [0, 0];
+  private wait = 0;
+  private mixed = 0;
+  private c: [number, number, number] = [0, 0, 0];
+  private time: () => number;
+
+  constructor(mesh: THREE.Mesh | null | undefined, time: () => number = () => U.uTime.value) {
+    this.time = time;
+    const l = DISTRICT.landmarks.find(d => d.id === 'salesforce-tower');
+    const g = mesh?.geometry;
+    if (!l || !g) return;
+    const pos = g.getAttribute('position'), col = g.getAttribute('color') as THREE.BufferAttribute | undefined, inf = g.getAttribute('aInfo');
+    if (!pos || !col || !inf) return;
+    for (let i = 0; i < pos.count; i++) {
+      const w = inf.getW(i), y = pos.getY(i);
+      if (!(w > 0 && w <= 1) || y < 44 || Math.hypot(pos.getX(i) - l.position.x, pos.getZ(i) - l.position.z) > 4.5) continue;
+      this.idx.push(i);
+      this.base.push(col.getX(i), col.getY(i), col.getZ(i));
+      this.h.push(Math.min(1, Math.max(0, (y - 46) / 12)));
+    }
+    if (!this.idx.length) return;
+    this.attr = col;
+    this.range = [this.idx[0], this.idx[this.idx.length - 1]];
+  }
+
+  /** the crown vertices it drives (tests / QA) */
+  get vertices(): number { return this.idx.length; }
+
+  update(dt: number, _t: number, _camera: THREE.Camera, night: number) {
+    const a = this.attr;
+    if (!a) return;
+    this.wait -= dt;
+    if (this.wait > 0) return;
+    this.wait = 0.2;
+    const k = CROWN_MIX * Math.min(1, Math.max(0, (night - 0.15) / 0.5));
+    if (k === 0 && this.mixed === 0) return;
+    const t = this.time();
+    for (let j = 0; j < this.idx.length; j++) {
+      const c = crownDriftColor(t, this.h[j], this.c);
+      const b = j * 3;
+      a.setXYZ(this.idx[j], this.base[b] + (c[0] - this.base[b]) * k, this.base[b + 1] + (c[1] - this.base[b + 1]) * k, this.base[b + 2] + (c[2] - this.base[b + 2]) * k);
+    }
+    a.clearUpdateRanges();
+    a.addUpdateRange(this.range[0] * 3, (this.range[1] - this.range[0] + 1) * 3);
+    a.needsUpdate = true;
+    this.mixed = k;
+  }
+
+  dispose() {
+    const a = this.attr;
+    if (!a) return;
+    for (let j = 0; j < this.idx.length; j++) a.setXYZ(this.idx[j], this.base[j * 3], this.base[j * 3 + 1], this.base[j * 3 + 2]);
+    a.needsUpdate = true;
+    this.attr = null;
+  }
 }
 
 /**
@@ -147,19 +275,35 @@ void main() {
   vec4 wp = modelMatrix * vec4(position, 1.0);
   vec4 mv = viewMatrix * wp;
   float d = max(-mv.z, 1.0);
-  float lvl = aLevel, blink = 1.0, reach = smoothstep(60.0, 150.0, d), star = 0.0;
-  if (aLevel >= ${GLINT.toFixed(1)}) {
+  float lvl = aLevel, blink = 1.0, reach = smoothstep(60.0, 150.0, d), star = 0.0, size = 1.6;
+  vec3 col = aColor;
+  if (aLevel >= ${CROWN_DRIFT.toFixed(1)}) {
+    // W5-V10 the crown's slow colour drift: our own soft palette, one turn in ≈ 2 min, a band rising up the crown
+    lvl = 1.0;
+    float ph = uTime * 0.008 - fract(aLevel) * 0.6;
+    col = mix(aColor, 0.62 + 0.38 * cos(6.2832 * (ph + vec3(0.0, 0.34, 0.67))), 0.55);
+  } else if (aLevel >= ${BAY_LIGHTS.toFixed(1)}) {
+    // W5-V10 The Bay Lights: two soft waves drifting across the north strands (our own pattern) and a faint sparkle;
+    // small dots, seen from the waterfront out to the far fade
+    lvl = 1.0; size = 0.9;
+    float t = fract(aLevel) * 60.0;
+    float w = 0.55 * (0.5 + 0.5 * sin(t * 0.9 - uTime * 0.45 + wp.y * 0.16)) + 0.45 * (0.5 + 0.5 * sin(t * 0.37 + uTime * 0.23 - wp.y * 0.07));
+    blink = (0.3 + 0.7 * w * w) * (0.85 + 0.15 * sin(uTime * 2.7 + fract(t * 7.3 + wp.y * 3.1) * 40.0));
+    // far away the dots (1 u apart) are smaller than the 1.5 px floor and overlap: keep their light, not their count
+    blink *= clamp(size * uPx / d / 1.5, 0.35, 1.0);
+    reach = smoothstep(6.0, 24.0, d);
+  } else if (aLevel >= ${GLINT.toFixed(1)}) {
     lvl = 1.0; star = 1.0;
     blink = 0.3 + 0.7 * pow(0.5 + 0.5 * sin(uTime * 2.2 + fract(aLevel) * 6.2832), 3.0);
     reach = 1.0 - smoothstep(140.0, 180.0, d);
   } else if (aLevel >= ${BLINK.toFixed(1)}) { lvl = 1.0; blink = 0.12 + 0.88 * step(0.55, fract(uTime * 0.5 + fract(aLevel))); }
   float a = uNight * reach * blink * (0.4 + 0.6 * lvl);
   a *= (1.0 - 0.85 * obKarl(wp.xyz, d)) * (1.0 - smoothstep(uObFar.x, uObFar.y, d));
-  vCol = aColor * a;
+  vCol = col * a;
   vStar = star;
   gl_PointSize = star > 0.5
     ? clamp(1.3 * uPx / d, 0.01 * uPx, 0.034 * uPx) * (0.7 + 0.4 * blink)
-    : clamp(1.6 * uPx / d, 1.5, 4.5) * (0.75 + 0.35 * lvl);
+    : clamp(size * uPx / d, 1.5, size > 1.0 ? 4.5 : 3.0) * (0.75 + 0.35 * lvl);
   gl_Position = projectionMatrix * mv;
   if (a < 0.004) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);
 }`;
@@ -258,13 +402,14 @@ export class LightField implements WorldSystem {
   private disposed = false;
 
   private renderer: THREE.WebGLRenderer;
-  private opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[] };
+  private opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[]; bayBridge?: Parameters<typeof bayLights>[0] };
 
   /**
    * `glints` (tests / QA): where the coin glints go; by default the coins of economy/coins.ts, imported on the first
-   * night (the economy feature's own chunk: nothing is loaded by day, and nothing enters the main graph).
+   * night (the economy feature's own chunk: nothing is loaded by day, and nothing enters the main graph). `bayBridge`
+   * (W5-V10): the Bay Bridge's strands (world/backdrop.ts, city mode) for The Bay Lights.
    */
-  constructor(renderer: THREE.WebGLRenderer, opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[] } = {}) {
+  constructor(renderer: THREE.WebGLRenderer, opts: { slab?: readonly Vec2[]; siteLights?: () => LightSpec[]; glints?: () => readonly GlintSpot[]; bayBridge?: Parameters<typeof bayLights>[0] } = {}) {
     this.renderer = renderer;
     this.opts = opts;
     this.group.name = 'light-field';
@@ -302,7 +447,7 @@ export class LightField implements WorldSystem {
   /** the far data arrived: build the street lamps (≈ 13k points, a few ms) */
   setFar(far: FarData) {
     const slab = this.opts.slab;
-    this.street = [...streetLamps(far.lines, slab ? (x, z) => inPoly(x, z, slab) : undefined), ...ggbLights(), ...salesforceCrownLights()];
+    this.street = [...streetLamps(far.lines, slab ? (x, z) => inPoly(x, z, slab) : undefined), ...ggbLights(), ...salesforceCrownLights(), ...bayLights(this.opts.bayBridge)];
     this.rebuild(this.sites);
   }
 

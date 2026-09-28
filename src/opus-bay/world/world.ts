@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { runtime } from '../core/runtime';
 import { game, type Quality, type TimeOfDay, type WorldMode } from '../core/store';
 import { DISTRICT } from '../data/district';
-import { buildBackdrop } from './backdrop';
+import { type BridgeInfo, buildBackdrop } from './backdrop';
 import { bayClock, handAngles, isMarketOpen } from './clock';
 import { Batch, C, freezeStatic, splitGeometryCells } from './builder';
 import { buildCity } from './city';
@@ -83,6 +83,7 @@ export class World {
   city: CityStreamer | null = null;
   readonly cityWater: CityWater | null = null;
   private halosSpec: HaloSpec[] = [];
+  private bayBridge: BridgeInfo | null = null;
   private cityChunks: THREE.Mesh[] = [];
   /** city mode: the hero's own ground chunks and its labels / contact blobs (hidden with its buildings when far) */
   private heroGroundChunks: THREE.Mesh[] = [];
@@ -153,6 +154,7 @@ export class World {
     const back = buildBackdrop(ground, backToy, halos, mode);
     if (city) requireCity().westSeawall(backToy);
     this.halosSpec = halos;
+    this.bayBridge = back.bridge;
 
     // water: district + bay-side skirt + backdrop tiles, chunked like the rest of the static geometry
     // (city mode: one city water over the whole board instead, world/sf/water.ts)
@@ -382,7 +384,7 @@ export class World {
   enableCity(renderer: THREE.WebGLRenderer, quality: Quality, opts: { pool?: 'batched' | 'tile'; karl?: KarlFlag } = {}) {
     if (this.mode !== 'city' || this.city || !this.cityWater) return;
     const r = requireCity().startCityWorld({
-      root: this.root, env: this.env, water: this.cityWater, halos: this.halosSpec, cityChunks: this.cityChunks,
+      root: this.root, env: this.env, water: this.cityWater, halos: this.halosSpec, bayBridge: this.bayBridge, cityChunks: this.cityChunks,
       heroGround: this.heroGroundChunks, heroFarExtras: this.heroFarExtras, heroTiles: this.heroTiles, addSystem: sys => this.addSystem(sys),
     }, renderer, quality, opts);
     this.city = r.city;

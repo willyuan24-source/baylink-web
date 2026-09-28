@@ -636,3 +636,156 @@ test('W5-V (lane R\'s request): the Ferry clock and the market stalls read Bay t
   const direct = clock.bayClock(new Date());
   assert.equal(real.weekday, direct.weekday, 'no shift: the real time');
 });
+
+// ---------------------------------------------------------------------------
+// Part c · W5-V10: The Bay Lights, the crown's drift, tonight's moon, Karl by month
+// ---------------------------------------------------------------------------
+
+test('W5-V10: The Bay Lights — LED dots up the west span\'s northern suspender strands (city mode only), one level band in the light field, both suspension spans', async () => {
+  const B = await import('../src/opus-bay/world/backdrop');
+  const { Batch } = await import('../src/opus-bay/world/builder');
+  const Li = await import('../src/opus-bay/world/sf/lights');
+  const { projectRaw, LAT0, LNG0 } = await import('../src/opus-bay/core/geo');
+  const city = B.buildBackdrop(new Batch(), new Batch(), [], 'city').bridge!;
+  const district = B.buildBackdrop(new Batch(), new Batch(), [], 'district').bridge!;
+  assert.ok(city.strands && city.right, 'the city bridge hands its strands to the light field');
+  assert.equal(district.strands, undefined, 'district mode: nothing new');
+  assert.equal(Li.bayLights(district).length, 0);
+  const dots = Li.bayLights(city);
+  assert.ok(dots.length >= 800 && dots.length <= 3000, `${dots.length} dots`);
+  // one cable plane: the north one (the side the waterfront sees)
+  const a = projectRaw(LAT0, LNG0), b = projectRaw(LAT0 + 0.01, LNG0);
+  const north = { x: b.x - a.x, z: b.z - a.z };
+  const len = Math.hypot(city.end.x - city.start.x, city.end.z - city.start.z);
+  const dir = { x: (city.end.x - city.start.x) / len, z: (city.end.z - city.start.z) / len };
+  for (const p of dots) {
+    const ox = p.x - city.start.x, oz = p.z - city.start.z;
+    const along = ox * dir.x + oz * dir.z;
+    const off = { x: ox - dir.x * along, z: oz - dir.z * along };
+    assert.ok(off.x * north.x + off.z * north.z > 0, 'every dot on the north plane');
+    assert.ok(Math.hypot(off.x, off.z) > 3 && Math.hypot(off.x, off.z) < 4, 'on the cable plane (3.4 u off the axis)');
+    assert.ok(p.level >= Li.BAY_LIGHTS && p.level < Li.BAY_LIGHTS + 1 && p.y > 10 && p.y < 31);
+  }
+  // the whole crossing, both suspension spans
+  const ts = dots.map(p => p.level - Li.BAY_LIGHTS);
+  assert.ok(Math.min(...ts) < 0.05 && Math.max(...ts) > 0.95, 'from the San Francisco anchorage to Yerba Buena');
+  assert.match(Li.BAY_LIGHTS_SOURCE.sourceUrl, /^https:\/\//);
+  // in the one Points draw: the field counts them
+  const renderer = { getDrawingBufferSize: (v: THREE.Vector2) => v.set(960, 600) } as unknown as THREE.WebGLRenderer;
+  const field = new Li.LightField(renderer, { siteLights: () => [], glints: () => [], bayBridge: city });
+  field.setFar({ lines: { count: 0, cls: new Uint8Array(0), flags: new Uint8Array(0), width: new Float32Array(0), pStart: new Uint32Array([0]), xyz: new Float32Array(0) } } as never);
+  assert.equal(field.count, Li.ggbLights().length + Li.salesforceCrownLights().length + dots.length);
+  assert.equal(field.group.children.length, 1, 'one Points object');
+  field.dispose();
+});
+
+test('W5-V10: the Salesforce crown drifts (its own level band) and the shader tests the bands from the top: crown, Bay Lights, glints, blinking, steady', async () => {
+  const Li = await import('../src/opus-bay/world/sf/lights');
+  const crown = Li.salesforceCrownLights();
+  assert.equal(crown.length, 25);
+  for (const l of crown) assert.ok(l.level >= Li.CROWN_DRIFT && l.level < Li.CROWN_DRIFT + 1, `drift band ${l.level}`);
+  assert.ok(new Set(crown.map(l => l.level)).size >= 4, 'the band rises: levels by height');
+  const vs = Li.LIGHT_FIELD.vertexShader;
+  const at = (k: string) => vs.indexOf(k);
+  assert.ok(at('aLevel >= 5.0') > 0 && at('aLevel >= 5.0') < at('aLevel >= 4.0') && at('aLevel >= 4.0') < at('aLevel >= 3.0') && at('aLevel >= 3.0') < at('aLevel >= 2.0'));
+  assert.ok(vs.includes('vCol = col * a'), 'the drift colours the point');
+});
+
+test('W5-V10: the hero crown takes the drift at night (its glowing faces only, ≤ 5 Hz, one update range), keeps its colours by day and gets them back on dispose', async () => {
+  const Li = await import('../src/opus-bay/world/sf/lights');
+  const { buildLandmarks } = await import('../src/opus-bay/world/landmarks');
+  const { LabelAtlas, LabelBatch } = await import('../src/opus-bay/world/labels');
+  const atlas = new LabelAtlas();
+  const hero = buildLandmarks(new LabelBatch(atlas), atlas).heroes.find(h => h.id === 'salesforce-tower')!;
+  const mesh = new THREE.Mesh(hero.batch.build());
+  const col = mesh.geometry.getAttribute('color') as THREE.BufferAttribute;
+  const before = Float32Array.from(col.array as Float32Array);
+  let t = 30;
+  const drift = new Li.CrownDrift(mesh, () => t);
+  assert.ok(drift.vertices >= 100 && drift.vertices < col.count, `${drift.vertices} of ${col.count} vertices: the crown only`);
+  const P = mesh.geometry.getAttribute('position');
+  assert.ok(Array.from({ length: P.count }, (_, i) => P.getY(i)).some(y => y < 44), 'the shaft is in the mesh');
+  const cam = new THREE.PerspectiveCamera();
+  drift.update(0.1, 0, cam, 0);
+  assert.deepEqual(Array.from(col.array as Float32Array), Array.from(before), 'by day: as built');
+  drift.update(0.25, 0, cam, 1);
+  const lit = Float32Array.from(col.array as Float32Array);
+  let changed = 0, lo = Infinity, hi = -1;
+  for (let i = 0; i < col.count; i++) if (lit[i * 3] !== before[i * 3] || lit[i * 3 + 1] !== before[i * 3 + 1] || lit[i * 3 + 2] !== before[i * 3 + 2]) { changed++; lo = Math.min(lo, i); hi = Math.max(hi, i); }
+  assert.equal(changed, drift.vertices, 'at night every crown vertex, nothing else');
+  assert.ok(col.updateRanges.length === 1 && col.updateRanges[0].start <= lo * 3 && col.updateRanges[0].start + col.updateRanges[0].count >= hi * 3 + 3);
+  const want = Li.crownDriftColor(30, 0);
+  const k = Li.CROWN_MIX;
+  const i0 = lo; // the lowest crown ring (y 44 … 49): h 0 at y ≤ 46
+  const y0 = mesh.geometry.getAttribute('position').getY(i0);
+  if (y0 <= 46) assert.ok(Math.abs(lit[i0 * 3] - (before[i0 * 3] + (want[0] - before[i0 * 3]) * k)) < 1e-6);
+  t = 90;
+  drift.update(0.1, 0, cam, 1);
+  assert.deepEqual(Array.from(col.array as Float32Array), Array.from(lit), 'not before 0.2 s');
+  drift.update(0.15, 0, cam, 1);
+  assert.notDeepEqual(Array.from(col.array as Float32Array), Array.from(lit), 'a minute later: another colour');
+  drift.update(0.25, 0, cam, 0);
+  assert.deepEqual(Array.from(col.array as Float32Array), Array.from(before), 'back to day: as built');
+  drift.update(0.25, 0, cam, 1);
+  drift.dispose();
+  assert.deepEqual(Array.from(col.array as Float32Array), Array.from(before), 'dispose restores the colours');
+  assert.equal(new Li.CrownDrift(null).vertices, 0, 'no hero mesh: nothing');
+});
+
+test('W5-V10: Karl by month — the table is July; October thins it and keeps the bank offshore; the ?karl flags ignore the month; KarlState takes the month at once', async () => {
+  const F = await import('../src/opus-bay/world/sf/fog');
+  const { KARL_BY_MONTH } = await import('../src/opus-bay/realsf/seasons');
+  for (const tod of ['morning', 'day', 'golden', 'night'] as const) {
+    assert.deepEqual(F.karlTarget(tod, null), { ...F.KARL_TIME[tod] }, `${tod}: no month = the table`);
+    assert.deepEqual(F.karlTarget(tod, null, KARL_BY_MONTH[6]), { ...F.KARL_TIME[tod] }, `${tod}: July = the table`);
+    for (const flag of [0, 1] as const) assert.deepEqual(F.karlTarget(tod, flag, 0.35), F.karlTarget(tod, flag), `?karl=${flag} ignores the month`);
+  }
+  const oct = F.karlTarget('morning', null, KARL_BY_MONTH[9]);
+  assert.ok(Math.abs(oct.level - 0.55) < 1e-9 && Math.abs(oct.front - 520) < 1e-9 && Math.abs(oct.gateLen - 532) < 1e-6 && oct.top === F.KARL_TIME.morning.top, JSON.stringify(oct));
+  const sep = F.karlTarget('golden', null, KARL_BY_MONTH[8]);
+  assert.ok(sep.level > F.karlTarget('golden', null, KARL_BY_MONTH[9]).level && sep.level < F.KARL_TIME.golden.level, 'September: between October and July');
+  // the months in order of fog: every value monotone in the factor
+  const byM = [...KARL_BY_MONTH].sort((p, q) => p - q).map(m => F.karlTarget('morning', null, m));
+  for (let i = 1; i < byM.length; i++) assert.ok(byM[i].level >= byM[i - 1].level && byM[i].front >= byM[i - 1].front && byM[i].gateLen >= byM[i - 1].gateLen);
+  // an October morning still lies over Ocean Beach and the outer avenues (≈ 150 u inland)
+  const G = F.KARL_GEO;
+  assert.ok(F.karlCover(G.origin.x + G.east.x * 150, 0, G.origin.z + G.east.z * 150, oct) > 0.9);
+  const k = new F.KarlState();
+  k.setTime('morning', true);
+  k.setMonth(0.35);
+  assert.equal(k.t, 1, 'the first month applies at once');
+  assert.ok(Math.abs(k.cur.level - 0.55) < 1e-9);
+  const epoch = k.epoch;
+  k.setMonth(0.35);
+  assert.equal(k.epoch, epoch, 'the same month again: nothing');
+  k.setMonth(1);
+  assert.ok(k.t < 1, 'a new month slides like a new time');
+  F.KARL.uKarl.value = 0;
+});
+
+test('W5-V10: tonight\'s moon — the city\'s real sky sets the phase from lane R\'s moon (and Karl\'s month) at once, then once a minute; the sky keeps the district\'s full moon until then', async () => {
+  const { realSky, REAL_SKY_EVERY } = await import('../src/opus-bay/world/sf/cityWorld');
+  const { moonPhase } = await import('../src/opus-bay/realsf/moon');
+  const { karlMonthFactor } = await import('../src/opus-bay/realsf/seasons');
+  const { Environment } = await import('../src/opus-bay/world/environment');
+  const env = new Environment('district');
+  assert.equal(env.moonPhase, -1, 'district: no phase (the full moon as ever)');
+  // USNO: the full moon of 2026-10-26 04:12 UT (25 Oct, 21:12 PDT), the new moon of 2026-10-10 15:50 UT
+  const fullMoon = new Date('2026-10-26T04:12:00Z'), newMoon = new Date('2026-10-10T15:50:00Z');
+  let now = fullMoon;
+  const months: number[] = [];
+  const cam = new THREE.PerspectiveCamera();
+  const sys = realSky(env, { setMonth: (m: number) => { months.push(m); } }, () => now);
+  sys.update!(0.016, 0, cam, 1);
+  assert.ok(Math.abs(env.moonPhase - 0.5) < 0.01, `full moon: ${env.moonPhase}`);
+  assert.deepEqual(months, [karlMonthFactor(fullMoon)]);
+  now = newMoon;
+  sys.update!(REAL_SKY_EVERY - 1, 0, cam, 1);
+  assert.ok(Math.abs(env.moonPhase - 0.5) < 0.01, 'not before a minute');
+  sys.update!(1.1, 0, cam, 1);
+  assert.ok(Math.min(env.moonPhase, 1 - env.moonPhase) < 0.01, `new moon: ${env.moonPhase}`);
+  assert.equal(env.moonPhase, moonPhase(newMoon).phase);
+  const frag = (env as unknown as { skyMat: THREE.ShaderMaterial }).skyMat.fragmentShader;
+  assert.ok(frag.includes('uniform float uMoonPhase') && frag.includes('if (uMoonPhase >= 0.0)') && frag.includes('h > starCut'));
+  env.dispose();
+});

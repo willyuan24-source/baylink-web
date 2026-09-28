@@ -3,7 +3,10 @@ import type { Quality } from '../../core/store';
 import { pointInPolygon } from '../../core/terrain';
 import type { Polygon } from '../../core/types';
 import { DISTRICT, stationOf } from '../../data/district';
-import { ANGEL_ISLAND, CITY_BACKDROP } from '../backdrop';
+import { bayNow } from '../../game/bayNow';
+import { moonPhase } from '../../realsf/moon';
+import { karlMonthFactor } from '../../realsf/seasons';
+import { ANGEL_ISLAND, type BridgeInfo, CITY_BACKDROP } from '../backdrop';
 import { type Batch, CYL, M, resample, v3 } from '../builder';
 import type { Environment } from '../environment';
 import type { KarlFlag } from '../fogShader';
@@ -13,11 +16,12 @@ import type { HaloSpec } from '../props';
 import { buildLightMask } from '../water';
 import type { WorldSystem } from '../world';
 import { CloudBank } from './cloudBank';
+import type { KarlState } from './fog';
 import type { HeroTile } from './farHero';
 import { demSample } from './format';
 import { heroLandRaster, heroProxy } from './hero';
 import { heroGroundJob } from './heroGround';
-import { LightField, siteLightSpecs } from './lights';
+import { CrownDrift, LightField, siteLightSpecs } from './lights';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
 import { mountCityDebug } from './stats';
@@ -114,6 +118,29 @@ export function dropLotTriangles(meshes: THREE.Mesh[], lots: Polygon[]) {
   }
 }
 
+/** How often (s) the real sky re-reads the Bay clock: the moon's phase and Karl's month change slowly. */
+export const REAL_SKY_EVERY = 60;
+
+/**
+ * The real sky (W5-V10, city mode): the sky's moon shows tonight's phase (lane R's realsf/moon.ts, from the Bay clock:
+ * `?date=` moves it in DEV / QA builds) and Karl the Fog follows the month (lane R's karlMonthFactor: July the foggiest,
+ * September and October the clearest). Read at once, then every REAL_SKY_EVERY seconds; district mode never has it.
+ */
+export function realSky(env: Pick<Environment, 'setMoonPhase'>, karl: Pick<KarlState, 'setMonth'> | null, now: () => Date = bayNow): WorldSystem {
+  let wait = 0;
+  return {
+    name: 'real-sky',
+    update(dt: number) {
+      wait -= dt;
+      if (wait > 0) return;
+      wait = REAL_SKY_EVERY;
+      const d = now();
+      env.setMoonPhase(moonPhase(d).phase);
+      karl?.setMonth(karlMonthFactor(d));
+    },
+  };
+}
+
 /** What the World hands its city part (world.ts enableCity). */
 export interface CityWorldHost {
   root: THREE.Group;
@@ -121,6 +148,8 @@ export interface CityWorldHost {
   water: CityWater;
   /** the hero's halos (their night light on the water) */
   halos: HaloSpec[];
+  /** the Bay Bridge's west span (world/backdrop.ts, city mode: its suspender strands for The Bay Lights, W5-V10) */
+  bayBridge?: BridgeInfo | null;
   /** the hero's building chunks (hidden when far; hero lots the city replaces are cut out of them) */
   cityChunks: THREE.Mesh[];
   /** the hero's own ground chunks, and its labels / contact blobs */
@@ -144,8 +173,10 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const karl = env.karl!; // city mode always has Karl (Environment gets the city chunk's KarlState)
   if (opts.karl !== undefined) karl.setFlag(opts.karl);
   const clouds = new CloudBank(karl, null, () => env.fog.density);
-  const lightField = new LightField(renderer, { slab: DISTRICT.slab, siteLights: () => siteLightSpecs(sites.siteLights()) });
-  const detachAtmos = [host.addSystem(clouds), host.addSystem(lightField)];
+  const lightField = new LightField(renderer, { slab: DISTRICT.slab, siteLights: () => siteLightSpecs(sites.siteLights()), bayBridge: host.bayBridge });
+  // W5-V10: the real sky (tonight's moon, Karl's month) and the Salesforce crown's drift on the hero tower itself
+  const crown = new CrownDrift(root.getObjectByName('hero:salesforce-tower') as THREE.Mesh | undefined);
+  const detachAtmos = [host.addSystem(clouds), host.addSystem(lightField), host.addSystem(realSky(env, karl)), host.addSystem(crown)];
   const sb = new THREE.Box3();
   for (const m of host.heroGround) sb.union(m.geometry.boundingBox!);
   const heroGround = host.heroGround;
