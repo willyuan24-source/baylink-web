@@ -219,3 +219,173 @@ Status: no relayed owner message reached this lane during part b.
   smaller, moving `fact` / `sources` into the card chunk is the lever (an API change for E / C, only on request).
 - **E:** the compass list is live (`registerHintSource('egg')`: live spots of unfound eggs; the pelican's three after the glide).
 - **C:** the rumour source is live; your teller told the dahlia rumour in the game.
+
+## Part c
+
+### 给主人的摘要
+
+1. 检查点提的问题修好了：走金门大桥时碰到座头鲸，镜头只轻轻瞟过去看一眼，人一直在走，不会再停 6 秒（电脑和手机实测一路 4.2 u/秒）。V 线画的 6 张彩蛋明信片，现在点开小发现卡片就能看到。
+2. 新增"城市之声"：12 种真实的旧金山声音——金门大桥雾笛、缆车铃、渡轮离港的长笛、海狮、野鹦鹉、海浪风琴、大笑女士、苏特罗浴场的石洞、马赛克台阶、音乐节班卓琴、四月樱花节太鼓、Karl 的风。在对的地方、对的时间点"听一听"，站着听 3 秒就收下，每种 5 金币，卡片上有出处；E 线的手帐已经有了"城市之声"这一页。
+3. 新增"BAYBAY 的小石子"：全城 48 块（每区 6 块）。靠近时 BAYBAY 会开心地扭一扭、再指给你看，走过去就捡进她的口袋（3 金币）；攒到 10、25、40 块她会学会新把戏（肚皮敲石子、头顶石子、石子舞），48 块全齐有一块金色的；"问 BAYBAY"里多了"玩石子"。
+4. 第二批小发现加了 9 个：旧金山最高的山顶、电报山的信号杆、苏特罗浴场的隧道、湖上的模型帆船、芬斯顿堡的滑翔翼、傍晚卡斯特罗剧院的管风琴、要塞宠物墓园、大教堂门前的迷宫、夜里海湾大桥的灯（V 线刚做好的灯光）。每条事实今天都上网核对过。
+5. 暂时没做：海德街码头的老船（城里的码头走不上去）、退潮沉船（R 线已经用真实潮汐做了，不重复）、海滩古船（太罕见，要潮汐）。
+
+### What was built
+
+Pushed as `2bf31f72` (W5-D7, CP-6 + the postcards + 马里纳区), `7160f337` (W5-D6, 城市之声), `508d4f06` (W5-D6, the pebbles)
+and `ead7e089` (W5-D6, batch 2), then this report. All in lane D's folder, lazy behind `game/w5Features.ts` → `eggs/index.ts`; nothing
+enters the GameRoot graph.
+
+| file | what |
+|---|---|
+| `eggs/presidio.ts` (CP-6) | The humpback is a **glance** on the deck too (`hosts.glance`: `runtime.camera.shot` only, no lock, no letterbox; `WHALE_LOOK_FOOT` 4.6 s, the camera a little back and above where you were); the walk basis stays the follow yaw, so holding forward keeps walking along the deck. The card waits 3 s. |
+| `eggs/cards.ts` + `FactCard.tsx` | One find card for three kinds: `cardEntry(kind, id)` — egg (小发现 · +10), sound (城市之声 · +5, teal ear badge), pebble (BAYBAY 的小石子 · +3, slate gem badge). An egg with lane V's secret postcard (`data/sf/eggPostcards.ts`, W5-V8) says 看看故事和明信片 and shows the 600 px postcard above the fact when opened (lane V's request 6). `CardBody` is exported (tests). `ListenRing`: the `egg-listen` overlay (a ring that fills over 3 s, the ear, 竖起耳朵听……, the sound's name · 站着别动), one line on phones. |
+| `eggs/citySounds.ts` (W5-D6, pure data) | **城市之声**, 12 append-only ids (`SOUND_IDS[i]` = bit `i` of `play.g.sound`, reward `sound:<id>` = 5 金币): `ggb-foghorns`, `cable-car-bell`, `ferry-horn`, `sea-lions`, `parrots`, `wave-organ`, `laughing-lady`, `sea-cave`, `tiled-steps`, `festival-banjos`, `taiko`, `karl-wind`; each with area, name, riddle (≤ 20), how, the prompt spot and reach, `by: 'listen' \| 'moment'`, BAYBAY's line (≤ 45), the card fact and sources with `verifiedAt`. |
+| `eggs/listen.ts` (W5-D6) | The listening: a 听一听 prompt (source `find`, id `sound:<id>`, the bell icon for the cable car) only while the sound can be heard (`soundLive`: ferries 6–22, parrots 7–19, the banjos while lane R's Hellman Hollow window is open — `activeEventsAt`, the taiko on April weekends the 8th–21st 10–18, Karl's wind while `karlIn()`, the rest always); acting plays the sound (`SOUND_PLAYBACK`, also for lane E's page) and starts 3 s of standing still — moving 1.2 u, a dialogue or a ride cancels quietly (没听清……站着别动，再听一次？ once); heard to the end: `find { kind: 'sound' }`, the reward once, a chime and teal notes, BAYBAY's line **after hers** (`hosts.sayMore`) and the card **after any egg card** (`hosts.queueCard`: waits for an open card or a pending reveal). `heard(id)`: the four moment sounds — the foghorn duet heard on the deck (marina.ts), the Tiled Steps climbed (park.ts), the laughing lady's door and the Wave Organ's pipe (their egg prompts already listen: wharf.ts, marina.ts). |
+| `eggs/sounds.ts` | 11 more synthesized recipes: `cable-bell` (our own ding-ding rhythm), `ferry-horn` (one 5 s prolonged blast), `cave` (three booms in the rock), `banjo` (a forward roll over G · C · D, our own), `taiko` (don · doko-don), `wind`, `pebble` (two stones clicking), `sniff`, `tap`, `creak` (the semaphore's arm), `theatre-organ` (our own little welcome, never a song the theatre plays). |
+| `eggs/pebbleSpots.ts` (W5-D6, pure data) | **BAYBAY's pebbles**, 48 append-only ids (`nb-1 … so-6`, bit `i` of `play.g.pebble`, reward `pebble:<id>` = 3 金币), six in each MF8 area near a known place (`near`: 科伊特塔下, 联合广场, 斯托湖边, 芬斯顿堡的沙丘…), ≥ 10 u apart; `PEBBLE_TRICKS` (10 tap · 25 balance · 40 dance), `GOLDEN_AT` 48; the first pebble's card says only what the Monterey Bay Aquarium says (pockets of loose skin under each forearm; a rock to crack a shell) and that collecting pebbles is BAYBAY's own hobby. |
+| `eggs/pebbles.ts` (W5-D6) | The stones lie in the prop pool (`pebble`, ≈ 100 tris, 1.6× toy scale, only within 110 u, gone once picked); one host (10 Hz, on foot): within 25 u BAYBAY does her happy wiggle (charApi `pet`) with a sniff (a line the first two times a session), within 8 u she points and the stone glints every 2.5 s, walking over it (1.5 u) puts it in her pouch — `find { kind: 'pebble' }`, the reward, a clack, 收进口袋！这是第 n 块。 (a pebble line replaces the previous pebble line, never a queue). Tricks through charApi: 10 → on her back with the stone on her chest and taps; 25 → the stone balanced on her head (`pose`); 40 → a pebble dance; 48 → the golden pebble (and a card). **Never takes her hat off**: the stone goes on top of whatever is on the slot (lane E's hat) and comes off again (`attachedAt`, lane F's). 问 BAYBAY → 玩石子 (`registerAskItem`, visible from 10) shows the tricks in turn. Lane E's compass: `registerHintSource('pebble')`. |
+| `eggs/props.ts` | Recipes `pebble`, `semaphore` (a pole, two arms: down / "a steamer" / "a sailing ship"), `picket`, `flower` (all ≤ 200 tris); flock kinds `yacht` (a toy sailboat, ≈ 60 tris) and `glider` (a toy hang glider, ≈ 50 tris) on TOY_INST's program; `heldPebbleMesh(gold)` — the stone BAYBAY holds, one mesh per colour, its own material instance on TOY_DYN's program (never the pool's), in the warm-up set. |
+| `eggs/registry.ts` + `eggs/batch2.ts` (W5-D6) | **Batch 2**, nine eggs, bits 24–32, in their own list `EGGS_BATCH_2` after batch 1 (`ALL_EGGS` / `ALL_EGG_IDS` = the whole bitset order; `EGG_IDS` stays batch 1's 24 = lane E's 小发现 page — see Decisions): 25 **the top of SF** (Mount Davidson: 1.5 s standing on top → a look north over the city), 26 **the Telegraph Hill semaphore** (our toy pole on Coit Tower's plaza raises its arms for a steamer or a sailing ship, 7 s), 27 **the Sutro Baths tunnel** (on arrival the sea spouts through the rock, then a wave every 12–18 s), 28 **Spreckels Lake's model yachts** (by day outside the powered-boat hours: four toy sailboats round the lake, `yachtsOut()`), 29 **Fort Funston's hang gliders** (on foot at the deck or on the pelican within 80 u: three toy gliders ride the bluff), 30 **the Castro Theatre organ** (golden hour or night under the marquee: our own tune, sparkles on the sign), 31 **the Presidio pet cemetery** (2 s standing quietly: the music steps back, one soft chime, a flower by a little white fence; the spot is beside the OSM centroid, which lies under the Presidio Parkway's deck in the published city), 32 **Grace Cathedral's outdoor labyrinth** (2 s beside lane L's terrazzo rings: they glow ring by ring; after Lands End, the two-labyrinths line), 33 **the Bay Lights** (at night by Pier 14: a long look up at lane V's shimmer on the west span, W5-V10, "这些闪闪的光是我们学着做的"). Each moment has a short **no-lock** look (`lookAt`: a glance a step to the side, so the player is at the edge of the frame). Rumours and the compass read `ALL_EGGS`. |
+| `eggs/index.ts` | Registers `egg` = `ALL_EGG_IDS`, `sound` = `SOUND_IDS`, `pebble` = `PEBBLE_IDS` with lane E's ledger; the `egg-listen` overlay; the hosts: eggs 1–33, then 城市之声 (the listening + eight 听一听 hosts), then the pebbles; the compass sources `egg` and `pebble`. DEV / QA `__opusBay.d`: `soundFound`, `heard`, `pebbles`, `pick`, `trick` (plus `qa('sound:<id>')`). |
+| `eggs/hosts.ts` | `EggHost.spots` / `isFound` (hosts that are not a registry egg), `sayMore` (lines after the current queue), `queueCard`. |
+| `tests/opus-bay-w5-eggs-c.test.ts` (new) | Part c's tests (below). |
+
+### Evidence
+
+- **Checks.** `2bf31f72` (CP-6): tsc 0 · eslint 0 errors (43 old warnings outside `src/opus-bay`) · suite **1221 / 1221** on the
+  exact pushed tree. `7160f337` (城市之声): tsc 0 · suite **1241 / 1241** on the exact tree (eslint 0 errors on the tree before
+  the last rebase, which brought lanes A and C only). `508d4f06` (pebbles): eslint 0 · tsc 0 · suite **1266 / 1266** before the
+  last two rebases (lanes T and C); after them tsc 0 and the eggs, eggs-c, contracts, content, transit and notebook tests green.
+  `ead7e089` (batch 2): suite **1293 / 1293** and tsc 0 before one lint fix (an unused name in my own test) and lane V's two
+  commits; after them tsc 0, eslint 0 on my files, eggs / eggs-c / contracts / notebook / perf / content **118 / 118**. The
+  final numbers on the head with this report are in lane D's structured output. One full run (the pebbles and batch 2 in one
+  commit, before the split in Decisions 7) had lane E's notebook test fail on batch 2 and the wall-clock `E2-5 view field in
+  the city` at 2.7 s under load (green alone, 4.96 s). `npx` worked for tsc, eslint and tsx all part.
+- **Tests** (`tests/opus-bay-w5-eggs-c.test.ts`, 12 new; `opus-bay-w5-eggs.test.ts` 28, now over `ALL_EGGS`, plus the
+  humpback's deck glance): **城市之声** — the registry (12 append-only ids, the reward grammar, riddles ≤ 20, lines ≤ 45, sources
+  with `verifiedAt`, a playback of registered recipes each, "our own" laugh and banjo said on the cards, the ferry's 4–6 s),
+  the listen spots standable and on the walking network in the published city, the gates on Bay time (ferries, parrots, the
+  taiko weekends, the banjos without the catalog, Karl in / away), **listening on the real host code with lane E's real
+  ledger** (the prompt, walking off cancels, 3 s collect 5 金币 and the card, a second listen is quiet, the taiko only on its
+  weekend, no listening on a bike), the **moments** (the duet on the deck finds the egg and the sound — the sound's card waits
+  for the egg's —, the Tiled Steps climbed), the card and the ring render. **Pebbles** — the registry (48 ids in area order, six
+  an area, ≥ 10 u apart, the tricks and the golden count, the card's wording), every pebble standable / off the water / on the
+  walking network in the published city, **the host with a recording charApi and the real ledger** (the wiggle at 20 u, the
+  point at 6 u, the pick-up pays 3, the first card, the tenth → the chest stone and back, the 25th → the stone **on top of a worn
+  hat**, the hat never removed, 玩石子 hidden before 10), the props and flock budgets, the held stone's own material on TOY_DYN's
+  program. **Batch 2** — the ids (bits 24–32 in `EGGS_BATCH_2`, batch 1 unchanged), the wording rules, and **every trigger on
+  the real host code** (the summit; the semaphore's arms up and down; the tunnel on arrival; the yachts on Monday 15:00, not in
+  Tuesday's powered-boat hours nor at night; the gliders on foot and on the pelican; the organ not at midday, yes at golden
+  hour; the cemetery's flower; the Grace labyrinth; the Bay Lights not before dark, yes at night; no lock left held).
+- **In the real game** (dev server 5509, headless Chrome with the RTX flag, one Chrome at a time, zh; every image read): desktop
+  1440 × 900 quality high and phone 390 × 844 dpr 3 quality mid. **CP-6**: walking the deck north with W while the whale
+  surfaced: 0.82 u every 250 ms all through (4.2 u/s), the lock never held, the glance 4.25 s, then the follow camera behind again;
+  the phone the same (`c-cp6-whale-glance-deck-desktop`, `-phone`). **The postcard** on the China Beach card, desktop and phone
+  (`c-postcard-card-*`). **城市之声**: the cable-car bell at the Powell turntable (the prompt with the bell icon → the ring → the
+  card, 🪙 5 → 10: `c-sound-bell-desktop-ring`, `-card`), the Sutro tunnel on the phone (`c-sound-cave-phone-card`), the taiko
+  at Japantown on `?date=2027-04-10T11:00` (`c-sound-taiko-phone-ring`, the ring on one line after a width fix). **Pebbles**:
+  the pick-up card at Marina Green (`c-pebble-pick-card-desktop`, phone `c-phone-pebble`), the 25th pebble's balance
+  (`c-pebble-trick-balance-desktop`; the stone's world position read back through `attachedAt`), the 10th's float with the chest
+  stone. **Batch 2** (natural triggers except the summit and the semaphore): `c-b2a-desktop-davidson` (the look over the city),
+  `c-b2a-desktop-semaphore` ("a steamer"), `c-b2b-desktop-yachts` + phone `c-phone-yachts` (four sailboats on Spreckels Lake),
+  `c-b2c-desktop-gliders` (two gliders over the sea), `c-b2b-desktop-organ`, `c-b2c-desktop-pet-cemetery` (the fence under the
+  parkway's deck), `c-b2c-desktop-grace` (the rings glowing), `c-b2d-desktop-bay-lights` (lane V's strands from Pier 14).
+- **Budgets** (read in the browser; fps are lane V's): calls / triangles, desktop high: the turntable 63–70 / 208–230k, Pier 14
+  at night 64 / 147k, the summit 85 / 293k, Coit's plaza with the semaphore 72 / 244k, the Sutro tunnel 48–53 / 65–75k,
+  Spreckels Lake with the yachts 63–79 / 151–238k, Fort Funston with the gliders 60–62 / 81–87k, the Castro marquee 97 / 294k,
+  the pet cemetery 67–73 / 102–129k, Grace 83 / 284k, Marina Green with a pebble 96–98 / 250k, Coit with pebbles 61–66 /
+  214–230k; phone mid: the Sutro tunnel 36–39 / 60–63k, Japantown 66 / 189k, Marina Green 87 / 212k, Spreckels 54 / 115k,
+  Funston 53 / 77k. The flock adds one call only while the yachts (24 s) or the gliders (14 s) fly; the pool one call only within
+  110 u of a prop; the held stone is one small mesh on BAYBAY only during a trick (≤ 4.4 s). **Programs**: phone 58 in every run;
+  desktop **60** in most runs on today's head — also at China Beach before any part-c code with nothing of lane D drawn (the
+  list holds lane R's `ob-realsf-smoke` and `ob-beam`), so not lane D's; three runs read 70 / 76 / 78 at some point (twice from
+  the first state, before any egg moment) while runs repeated at the same spots read 60 — the kind of reading lane R and part b
+  noted. No new lane-D program name in the lists: the held stone and the two new flock kinds share TOY_DYN's / TOY_INST's
+  programs (tested).
+- **Chunks** (a production build to scratch after lane V's gate released PERF-LOCK, 21:30 UTC): nothing of lane D's is in
+  GameRoot (no egg or pebble id in it). The eggs now load as three lazy chunks, because lanes E and R import parts of the
+  folder from their own chunks: the eggs' init **58.4 KB raw / 23.4 KB gzip**; the registry + 城市之声 data, shared with lane E's
+  notebook, **57.8 / 23.3**; `marina` (lane R imports `setOrganTide` from it) **31.3 / 13.4**; the cards 7.9 / 3.3 + 7.3 / 2.25 CSS
+  (loaded on first show). ≈ 60 KB gzip in all against part b's 38.3 (the batch-2 facts, the sounds' and pebbles' data, three
+  host modules).
+- **Facts read on the web on 2026-09-28** (new in part c): goldengate.org foghorns (again, for the sound card);
+  archives.sfmta.com (the bell-ringing contest: the first as we know it, Union Square, April 1955; almost all held there);
+  law.cornell.edu 33 CFR 83.34 (a power-driven vessel leaving a dock sounds one prolonged blast) and 83.32 (4–6 s); Wikipedia San
+  Francisco Ferry Building (opened 1898; the chime loudspeakers removed in 2024 — why the Ferry chime is not one of the sounds);
+  pier39.com/sealions (noisy barking; unlawful to feed, handle or harass); Wikipedia The Wild Parrots of Telegraph Hill; Wikipedia
+  Wave Organ (25 pipes; best at high tide; 1986, the Exploratorium); Wikipedia Laffing Sal + Musée Mécanique; sfgate.com
+  2022-03-14 (the Sutro tunnel: a quarry tunnel, 1892, ≈ 152 ft) + Wikipedia Sutro Baths (1896; the 1966 fire; the ruins'
+  tunnel); Wikipedia 16th Avenue Tiled Steps (163 steps, 90 ft, sea to sky, 2005); Wikipedia Hardly Strictly Bluegrass (free,
+  Hellman Hollow, the first weekend of October, since 2001); sftravel.com (the Cherry Blossom Festival: two weekends each April,
+  2026 on 11–12 and 18–19; taiko central); Wikipedia Twin Peaks (≈ 925 ft; fog and strong winds on the west slopes);
+  montereybayaquarium.org sea otter (pockets under the forearms; a rock to crack prey); Wikipedia Mount Davidson (928 ft, the
+  highest natural point; a 38-acre park); Wikipedia Telegraph Hill (the 1849 semaphore and its arms; the 1853 telegraph gave the
+  name); Wikipedia Spreckels Lake (March 1904; the club 1892; the WPA clubhouse 1937–39; powered boats Tue / Thu / Sat
+  10:00–13:00, sailboats the rest of the time); Wikipedia Fort Funston (strong, steady winds, a popular hang-gliding site;
+  inactivated 1963, the NPS); Wikipedia Castro Theatre (1922; reopened 6 Feb 2026 after two years and $41M; the new organ arrived
+  just before); presidio.gov Presidio Pet Cemetery (early 1950s; 424 handmade headstones; white picket fence; near Crissy Field,
+  under the parkway's viaduct; no new burials); gracecathedral.org/our-labyrinths (two Chartres-style labyrinths; the outdoor one
+  open 24/7); illuminate.org 2026-02-19 (the Bay Lights relit 20 Mar 2026; 48,000 LEDs; the western span's northern cable plane;
+  dusk to dawn).
+
+### Decisions
+
+1. **CP-6: the whale from the deck is a glance** (as from the pelican). The glance's camera stands where you were; walking on
+   you leave its frame and the follow camera takes you back after 4.6 s — the walk never stops (MF2's ≥ 3 u/s).
+2. **"Hold 听 for 3 s" = tap 听一听, then stand still 3 s** (a ring shows it; walking away cancels). The contextual button has
+   no hold, and the plan allows no new permanent phone button. Four sounds are collected by the moment that plays them, so
+   the lady's door and the Wave Organ never show two prompts on one spot.
+3. **No Ferry Building chime.** Wikipedia says its chime loudspeakers were removed in 2024 and nothing newer says they came back;
+   the downtown sound is **a ferry leaving the dock**: one prolonged blast, which the navigation rules require (4–6 s: ours 5 s).
+4. **The taiko's weekends** are April Saturdays and Sundays between the 8th and the 21st, 10:00–18:00 — the verified 2026 dates
+   (11–12, 18–19) fall inside; later years are a heuristic (the festival is two April weekends every year), stated on the card
+   with 2026's dates. **The banjos** follow lane R's live festival window at Hellman Hollow (nothing without the catalog).
+5. **Pebbles are 1.6× toy stones** that glint within 8 u (smaller ones vanished from the follow camera); a pebble line replaces the
+   previous pebble line (two stones close together say one count). The golden pebble's card has no source (it is BAYBAY's own).
+6. **BAYBAY's tricks never take anything off her**: the stone goes on top of what is on the slot (lane E's hat) and is taken off
+   again; with an implementation that cannot say what is on a slot, no stone, the emote only.
+7. **Batch 2 is a list of its own** (`EGGS_BATCH_2`; `ALL_EGGS` / `ALL_EGG_IDS` = the whole bitset order; `EGG_IDS` stays
+   batch 1's 24). Appending to `EGGS` broke lane E's notebook test (it pins 24 eggs and 24 × 10 金币); the lead's rule says a
+   lane never edits another lane's test, and the push rule says fail 0 — so batch 1 stays lane E's 小发现 page until E reads
+   `ALL_EGGS` (Requests). Everything of lane D's (the ledger's ids, the hosts, the rumours, the compass) uses `ALL_EGGS`, so batch
+   2 pays, stamps its bit and is hinted today.
+8. **Each batch-2 moment gets a short no-lock look** (a glance a step to the side of the player), never a letterbox beat — the
+   feet stay yours, after CP-6. A glance is refused while a panel or a dialogue is up (the new player's goals card, the pelican
+   moment): the moment still happens, without the look.
+9. **The pet cemetery is found beside the OSM centroid** (6 u south), which lies under the Presidio Parkway's deck in the
+   published city: under it the follow camera lifted over the deck and hid you. The fence and the flower stand under the deck's
+   edge, as the real cemetery lies beneath the viaduct.
+10. **Not hosted in batch 2**: the Hyde St Pier ships (the pier is not walkable in the published city), the Lands End wrecks (lane
+    R's tide dressing shows them at a real low tide with R's own line; a lane-D stamp on top would repeat it) and the King Philip
+    (the rarest; needs a tide rule and a "sand moved" roll nobody can verify).
+
+### Not done
+
+- The Hyde St Pier ships, a Lands End wrecks stamp, the King Philip (Decisions 10).
+- Lane E's notebook: batch 2 on the 小发现 page and a pebble page / counter (Requests); E's 城市之声 page landed (`9b21f1aa`).
+- Voice clips for the part-c lines (lane V, H5-3).
+- The eggs' lazy code grew to ≈ 60 KB gzip in three chunks (see Evidence) — well past the plan's ≈ 12 KB; the lever is still
+  moving the facts and sources into the card chunk (an API change for E / C), only on request.
+- Still open from parts a / b: lane T's foghorn owner and the PIER 39 dock density.
+
+Status: no relayed owner message reached this lane during part c.
+
+### Requests
+
+- **E** (notebook): (1) read `ALL_EGGS` / `ALL_EGG_IDS` (`eggs/registry.ts`) for the 小发现 page so batch 2 (25–33) shows and
+  counts — then in `tests/opus-bay-w5-notebook.test.ts` "W5-E5 a full page pays…" take `ALL_EGG_IDS` in the pay loop and replace
+  the literal `24 * 10` and `[…, 24, 24, …]` by `ALL_EGG_IDS.length` (no other change); glyph ideas: summit `Mountain`, semaphore
+  `Signpost`, tunnel `Waves`, yachts `Sailboat`, gliders `Wind`, organ `Music`, pet cemetery `Flower2`, Grace `Orbit`, Bay Lights
+  `Sparkles`. (2) the pebbles: `PEBBLES` (with `near` names and areas) and `pebbleFound(id)` / `pebbleCount()` (`eggs/pebbles.ts`,
+  or `isPaid('pebble:<id>')`) for a page or a count on 小发现; the tricks are `PEBBLE_TRICKS`. (3) 城市之声: the replay list is
+  `SOUND_PLAYBACK` in `eggs/listen.ts` (egg-chunk code); the recipe ids it names (`egg:*`) are registered while the eggs run.
+- **V**: voice (H5-3) for the part-c lines: `CITY_SOUNDS[*].line`, `listen.MISS_LINE`, `pebbles.SNIFF_LINES` / `FIRST_LINE` /
+  `TRICK_LINES` / `GOLDEN_LINE` / `SHOW_LINE` (the count line is built: text only), `EGGS_BATCH_2[*].lines`,
+  `batch2.SEMA_SIGNALS` / `POWERED_LINE` / `PAIR_LINE`. Thanks for the Bay Lights strands — egg 33 looks at them. The desktop
+  program count on today's head (60, and the odd 70–78) is worth a look in your gate; nothing of lane D's is new there.
+- **R**: thank you for `setOrganTide` (the Wave Organ follows the real tide now). If a lane-D stamp for the wrecks is wanted
+  later, an event or a readable flag when your wrecks show (`wreckExposure > 0` near Lands End) is all it needs.
+- **C**: your pacer's evening line spoke over egg 33's second line at Pier 14 (城里的灯一盏盏亮起来了): if you can, hold a paced
+  line while `bubble` is showing a line of another lane's queue (lane D's `hosts.sayMore` queue ends at a known time).
+- **T**: (still open) skip `ambience.foghorn()` while the duet plays, and `setSeaLionDensity(k)` for the PIER 39 dock by month.
