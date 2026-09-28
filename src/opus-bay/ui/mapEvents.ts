@@ -64,6 +64,17 @@ export function pinsFor(filter: string, pins: readonly WeekPin[]): WeekPin[] {
   return [];
 }
 
+/**
+ * (W5-N review) What the map frames when the player picks 这周 (pure): every pin of the week and the player. The chip
+ * left the view where it was — opened near the player (a resume in the Marina, a trip's end), the week's venues sat
+ * outside the frame or under the tool column, so 这周 3 showed one pin or none. Empty: nothing to frame.
+ */
+export function weekFitPoints(pins: readonly Pick<WeekPin, 'venue'>[], player: { x: number; z: number } | null): { x: number; z: number }[] {
+  if (!pins.length) return [];
+  const pts = pins.map(p => ({ x: p.venue.x, z: p.venue.z }));
+  return player && Number.isFinite(player.x) && Number.isFinite(player.z) ? [{ x: player.x, z: player.z }, ...pts] : pts;
+}
+
 /** How often the pins are read again while the map is open (ms): an event opening or closing shows within a minute. */
 export const WEEK_PINS_MS = 60_000;
 

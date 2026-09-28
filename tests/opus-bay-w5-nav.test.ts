@@ -1229,3 +1229,28 @@ test('W5-N review: a long-pressed spot is named in zh — never "Filbert Steps�
   assert.equal(MG.hasZhName(bi('城市之光书店', 'City Lights')), true);
   assert.equal(MG.hasZhName(null), false);
 });
+
+test('W5-N review: picking 这周 frames the week\'s venues and the player, clear of the tool column (the pins sat outside the view or under the zoom buttons)', async () => {
+  const EV = await import('../src/opus-bay/ui/mapEvents');
+  const { fitAbs } = await import('../src/opus-bay/ui/cityMapModel');
+  const { MAP_FRAME } = await import('../src/opus-bay/data/mapPaper');
+  const { toPx } = await import('../src/opus-bay/ui/cityMapDraw');
+  const venue = (id: string, x: number, z: number) => ({ venue: { id, name: bi(id), x, z } });
+  const pins = [venue('hellman-hollow', -330, 890), venue('castro', 160, 760), venue('union-square', 95, 225)];
+  const player = { x: -409, z: 409 };
+  const pts = EV.weekFitPoints(pins, player);
+  assert.equal(pts.length, 4);
+  assert.deepEqual(pts[0], player);
+  assert.deepEqual(EV.weekFitPoints([], player), [], 'no pins: the view stays');
+  assert.equal(EV.weekFitPoints(pins, { x: Number.NaN, z: 0 }).length, 3);
+  // a phone frame (352 × 388) opened at the player at scale 1.2: two of the venues were outside it; framed, every pin is
+  // inside the frame and left of the 48 px tool column
+  const v0 = { cx: player.x, cz: player.z, scale: 1.2, w: 352, h: 388 };
+  const inView = (v: typeof v0) => pins.filter(p => { const [x, y] = toPx(v, p.venue.x, p.venue.z); return x >= 0 && y >= 0 && x <= v.w - 48 && y <= v.h; }).length;
+  assert.ok(inView(v0) < pins.length, 'before: pins outside the view');
+  const v1 = fitAbs(v0, MAP_FRAME, pts, 36, 0.1, 1.2, 48);
+  assert.equal(inView(v1), pins.length, 'after: every pin in view, clear of the tools');
+  const src = readFileSync(new URL('../src/opus-bay/ui/CityMap.tsx', import.meta.url), 'utf8');
+  assert.match(src, /<MapFilters value=\{filter\} onChange=\{pickFilter\}/);
+  assert.match(src, /weekFitPoints\(weekPinsAll/);
+});

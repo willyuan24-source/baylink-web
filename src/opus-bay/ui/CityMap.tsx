@@ -33,7 +33,7 @@ import { BaybayFace, Sheet } from './common';
 import { MapBadge, MapLabel, MapTargetPin } from './MapBadge';
 import { type ChooserRow, ClusterChooser, MapGoCard, useQuickWays } from './MapGoCard';
 import { type PressLookups, type PressSpot, PRESS, chooserHeight, creditGuarded, goCardHeight, mapGestureTarget, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
-import { pinsFor, useWeekPins } from './mapEvents';
+import { pinsFor, useWeekPins, weekFitPoints } from './mapEvents';
 import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
 import { MapFilters } from './MapFilters';
@@ -662,6 +662,14 @@ export function CityMapPanel() {
   const evMeta = evPin && evFirst
     ? [t(evFirst.when), t(evPin.venue.name), evPin.events.length > 1 ? t({ zh: `另有 ${evPin.events.length - 1} 个活动`, en: `+${evPin.events.length - 1} more` }) : null].filter(Boolean).join(' · ')
     : null;
+  // (W5-N review) picking 这周 frames the week's venues and you, clear of the tool column (the view stayed where it was:
+  // near the player the pins sat outside the frame or under the zoom buttons)
+  const pickFilter = (f: MapFilter) => {
+    setFilter(f);
+    if (f !== 'week' || f === filter) return;
+    const pts = weekFitPoints(weekPinsAll, { x: runtime.player.x, z: runtime.player.z });
+    if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.1, 1.2, toolRight) : v));
+  };
   const pinned = cardSel || !!press || !!evPin;
   const cardH = size ? goCardHeight(size.h) : 0;
   const showMore = () => {
@@ -795,7 +803,7 @@ export function CityMapPanel() {
         )}
       </div>
 
-      <MapFilters value={filter} onChange={setFilter} week={weekPinsAll.length} />
+      <MapFilters value={filter} onChange={pickFilter} week={weekPinsAll.length} />
 
       <div ref={lowerRef} className="mw-lower">
         {selPlace && <PlaceActions place={selPlace} attraction={selAttraction} walk={walkInfo} onTrip={onTrip} tripTime={tripHere && trip ? tripEta(trip) : null} hideGo={cardSel}
