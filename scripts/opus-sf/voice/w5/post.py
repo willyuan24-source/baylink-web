@@ -97,8 +97,11 @@ def main():
             cache[key] = {'m2': {'output_i': m2['output_i'], 'output_tp': m2['output_tp']}, 'final_s': final_s}
         r_, (lo, hi) = rate(t['text'], t['language'], max(final_s, 0.1))
         pause_ok = 1.2 if re.search('[；;:：—…]', t['text']) else 0.9
+        # a one- or two-word call (跑！ / Go!) has no speaking rate to speak of: it must just be short
+        units = len(re.findall(r'[一-鿿]', t['text'])) if t['language'] == 'zh' else len(re.findall(r"[A-Za-z']+", t['text']))
+        rate_ok = final_s <= 1.5 if units <= 2 else lo <= r_ <= hi
         gates = {'clip': m['clipped'] == 0, 'end': not m['cut_at_end'], 'pause': m['gap_s'] <= pause_ok,
-                 'pitch': 170 <= m['f0'] <= 460, 'rate': lo <= r_ <= hi}
+                 'pitch': 170 <= m['f0'] <= 460, 'rate': rate_ok}
         rows.append({**t, **{k: v for k, v in m.items() if k not in ('start', 'end')}, 'final_s': final_s, 'rate': round(r_, 2),
                      'lufs': float(m2['output_i']), 'tp': float(m2['output_tp']), 'gates': gates, 'pass': all(gates.values()), 'tag': tag})
         print(f"{tag:34s} {final_s:5.2f}s rate {r_:4.1f} gap {m['gap_s']:.2f} f0 {m['f0']} {'PASS' if rows[-1]['pass'] else 'fail ' + ','.join(k for k, v in gates.items() if not v)}", flush=True)

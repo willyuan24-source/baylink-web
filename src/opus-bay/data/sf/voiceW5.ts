@@ -144,6 +144,16 @@ export const W5_VOICE_LINES: readonly W5VoiceLine[] = [
   { id: "realsf-jets-photo", lane: "r", zh: "飞机编队拍到啦，舰队周纪念章收好！", en: "Got the jets! A Fleet Week stamp for your journal!", s: [3.51, 3.68], own: 1 },
   { id: "w5-d-37e162de", lane: "d", zh: "听说天涯海角的海边，有个用石头摆的迷宫，但不是每天都在。", en: "They say there’s a stone labyrinth at Lands End — but not every day.", s: [5.89, 4.59] },
   { id: "w5-d-1a650b9b", lane: "d", zh: "听说第 16 大道的马赛克台阶，一口气爬到顶，会听见不一样的声音。", en: "They say that if you climb the 16th Avenue mosaic steps in one go, you’ll hear something.", s: [5.62, 5.79] },
+  { id: "w5-a-2b8a8f71", lane: "a", zh: "跑！", en: "Go!", s: [0.62, 0.95] },
+  { id: "w5-a-79c18ed9", lane: "a", zh: "滑梯现在没开：周二到周日 10 点到 5 点再来！", en: "The slides are closed now: come back Tue–Sun, 10 to 5!", s: [5.19, 4.37] },
+  { id: "w5-r-94b0d44a", lane: "r", zh: "我们在旁边看就好～", en: "Let’s watch from over here!", s: [1.8, 1.59] },
+  { id: "w5-d-296f1b67", lane: "d", zh: "今日签：走一段金门大桥的人行道——走路过桥不收费。", en: "Today’s fortune: walk part of the Golden Gate Bridge — it’s free on foot.", s: [6.08, 5.51] },
+  { id: "w5-d-f3a62505", lane: "d", zh: "今日签：去 39 号码头看看海狮，看就好，别喂。", en: "Today’s fortune: visit the PIER 39 sea lions — watch, never feed.", s: [7.7, 5.96] },
+  { id: "w5-d-1c245e27", lane: "d", zh: "今日签：找张长椅坐五分钟，什么都不用做。", en: "Today’s fortune: find a bench and sit five minutes, doing nothing at all.", s: [4.92, 5.42] },
+  { id: "w5-d-68c097ff", lane: "d", zh: "今日签：和 BAYBAY 爬一段台阶，数数有多少级。", en: "Today’s fortune: climb some steps with BAYBAY and count them.", s: [4.84, 4.65] },
+  { id: "w5-d-8c2cce4a", lane: "d", zh: "今日签：上双峰看看，Karl 今天在不在家。", en: "Today’s fortune: go up Twin Peaks and see if Karl is home.", s: [4.7, 4.76] },
+  { id: "w5-d-625aff9e", lane: "d", zh: "今日签：涨潮时去海浪风琴，把耳朵凑近听听。", en: "Today’s fortune: visit the Wave Organ at high tide and listen close.", s: [5.88, 5.49] },
+  { id: "w5-d-1cb01d7a", lane: "d", zh: "今日签：坐一次缆车，听听叮叮当当的铃声。", en: "Today’s fortune: ride a cable car and listen for the bell.", s: [5.09, 4.69] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */

@@ -41,7 +41,7 @@ const SOURCES: { lane: string; files: string[]; only?: string[] }[] = [
   { lane: 'r', files: ['realsf/daily.ts'], only: ['DAILY_ALL_LINE'] },
   // JETS_DAY_LINE / JETS_NOW_LINE share the key `jets-day` (one voice-line id for two texts): not recorded until lane R
   // gives the second its own key (Requests)
-  { lane: 'r', files: ['realsf/jets.ts'], only: ['JETS_NEAR_LINE', 'JETS_PHOTO_LINE'] },
+  { lane: 'r', files: ['realsf/jets.ts'], only: ['JETS_NEAR_LINE', 'JETS_PHOTO_LINE', 'SOFT_BOX_LINE'] },
 ];
 /** read by its fields, not scanned (its facts, names and riddles are sentences no one says) */
 const STRUCTURED = new Set(['eggs/registry.ts']);
@@ -60,6 +60,8 @@ export const EXCLUDE: Record<string, string> = {
   '（BAYBAY 小声说：64 年后，它真的修好啦。）': 'the scroll’s footnote (paper)',
   '我们在这山坡上盖了一座八个角的房子，希望你也喜欢它。': 'the 1861-style time-capsule letter (paper)',
   '愿你一路平安，风景常新。': 'the time-capsule letter (paper)',
+  '朕命令：修一座大桥，从奥克兰经羊岛，一直通到旧金山！': 'Norton’s scroll (paper, lane D)',
+  '比赛？': 'the stairs prompt’s verb (lane A, a button label)',
   '几点开？': 'the slides prompt’s verb outside the hours (lane A, a button label)',
   '你领先！': 'the stair race chip’s status (lane A)',
   '按住 空格 躺下，滑得更快': 'the slides chip’s hint (lane A)',
@@ -71,9 +73,11 @@ const unesc = (s: string) => s.replace(/\\(.)/g, '$1');
 /** A spoken sentence of BAYBAY's (see the header). */
 export function isSentence(zh: string, en: string): boolean {
   if (!/[一-鿿]/.test(zh) || zh.includes('${') || en.includes('${')) return false;
-  if ([...zh].length > 45 || [...zh].length < 4) return false;
-  if (/^[^\s，。！？]{1,8}[：:]/.test(zh)) return false;
-  return /[！？。～…!?~]$/.test(zh) || /[，、]/.test(zh);
+  if ([...zh].length > 45 || [...zh].length < 2) return false;
+  // another speaker's line ("街坊：…", "BAYBAY：…" on a paper) — not a sentence that merely holds a colon
+  if (/^(BAYBAY|街坊|草药店|美玲|[A-Z][a-z]+)[：:]/.test(zh)) return false;
+  // a one-word call (跑！) counts; a label (再试试) does not
+  return /[！？。～…!?~]$/.test(zh) || ([...zh].length >= 4 && /[，、]/.test(zh));
 }
 
 export const lineId = (lane: string, zh: string, en: string) => `w5-${lane}-${createHash('sha1').update(`${zh}\n${en}`).digest('hex').slice(0, 8)}`;

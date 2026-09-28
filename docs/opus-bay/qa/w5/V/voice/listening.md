@@ -143,6 +143,16 @@ Each batch's picks play in this order in `w5-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 129 | 2 | R 现实 | `zh-realsf-jets-photo` | 飞机编队拍到啦，舰队周纪念章收好！ | 3.51 | pass | ✓ (0.98) | |
 | 130 | 2 | D 彩蛋 | `zh-w5-d-37e162de` | 听说天涯海角的海边，有个用石头摆的迷宫，但不是每天都在。 | 5.89 | pass | ✓ (0.99) | |
 | 131 | 2 | D 彩蛋 | `zh-w5-d-1a650b9b` | 听说第 16 大道的马赛克台阶，一口气爬到顶，会听见不一样的声音。 | 5.62 | pass | ✓ (0.98) | |
+| 132 | 3 | A 玩法 | `zh-w5-a-2b8a8f71` | 跑！ | 0.62 | pass | ✓ (0.99) | |
+| 133 | 3 | A 玩法 | `zh-w5-a-79c18ed9` | 滑梯现在没开：周二到周日 10 点到 5 点再来！ | 5.19 | pass | ✓ (0.99) | |
+| 134 | 3 | R 现实 | `zh-w5-r-94b0d44a` | 我们在旁边看就好～ | 1.80 | pass | ✓ (0.99) | |
+| 135 | 3 | D 彩蛋 | `zh-w5-d-296f1b67` | 今日签：走一段金门大桥的人行道——走路过桥不收费。 | 6.08 | pass | ✓ (0.99) | |
+| 136 | 3 | D 彩蛋 | `zh-w5-d-f3a62505` | 今日签：去 39 号码头看看海狮，看就好，别喂。 | 7.70 | pass | ✓ (0.99) | |
+| 137 | 3 | D 彩蛋 | `zh-w5-d-1c245e27` | 今日签：找张长椅坐五分钟，什么都不用做。 | 4.92 | pass | ✓ (0.99) | |
+| 138 | 3 | D 彩蛋 | `zh-w5-d-68c097ff` | 今日签：和 BAYBAY 爬一段台阶，数数有多少级。 | 4.84 | pass | ✓ (0.99) | |
+| 139 | 3 | D 彩蛋 | `zh-w5-d-8c2cce4a` | 今日签：上双峰看看，Karl 今天在不在家。 | 4.70 | pass | ✓ (0.98) | |
+| 140 | 3 | D 彩蛋 | `zh-w5-d-625aff9e` | 今日签：涨潮时去海浪风琴，把耳朵凑近听听。 | 5.88 | pass | ✓ (0.97) | |
+| 141 | 3 | D 彩蛋 | `zh-w5-d-1cb01d7a` | 今日签：坐一次缆车，听听叮叮当当的铃声。 | 5.09 | pass | ✓ (0.99) | |
 
 ## en
 
@@ -279,3 +289,13 @@ Each batch's picks play in this order in `w5-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 129 | 2 | R 现实 | `en-realsf-jets-photo` | Got the jets! A Fleet Week stamp for your journal! | 3.68 | pass | ✓ (0.90) | |
 | 130 | 2 | D 彩蛋 | `en-w5-d-37e162de` | They say there’s a stone labyrinth at Lands End — but not every day. | 4.59 | pass | ✓ (0.88) | |
 | 131 | 2 | D 彩蛋 | `en-w5-d-1a650b9b` | They say that if you climb the 16th Avenue mosaic steps in one go, you’ll hear something. | 5.79 | pass | ✓ (0.92) | |
+| 132 | 3 | A 玩法 | `en-w5-a-2b8a8f71` | Go! | 0.95 | pass | - (0.00) | |
+| 133 | 3 | A 玩法 | `en-w5-a-79c18ed9` | The slides are closed now: come back Tue–Sun, 10 to 5! | 4.37 | pass | ✓ (0.88) | |
+| 134 | 3 | R 现实 | `en-w5-r-94b0d44a` | Let’s watch from over here! | 1.59 | pass | ✓ (0.95) | |
+| 135 | 3 | D 彩蛋 | `en-w5-d-296f1b67` | Today’s fortune: walk part of the Golden Gate Bridge — it’s free on foot. | 5.51 | pass | ✓ (0.95) | |
+| 136 | 3 | D 彩蛋 | `en-w5-d-f3a62505` | Today’s fortune: visit the PIER 39 sea lions — watch, never feed. | 5.96 | pass | ✓ (0.94) | |
+| 137 | 3 | D 彩蛋 | `en-w5-d-1c245e27` | Today’s fortune: find a bench and sit five minutes, doing nothing at all. | 5.42 | pass | ✓ (0.95) | |
+| 138 | 3 | D 彩蛋 | `en-w5-d-68c097ff` | Today’s fortune: climb some steps with BAYBAY and count them. | 4.65 | pass | ✓ (0.94) | |
+| 139 | 3 | D 彩蛋 | `en-w5-d-8c2cce4a` | Today’s fortune: go up Twin Peaks and see if Karl is home. | 4.76 | pass | ✓ (0.95) | |
+| 140 | 3 | D 彩蛋 | `en-w5-d-625aff9e` | Today’s fortune: visit the Wave Organ at high tide and listen close. | 5.49 | pass | ✓ (0.95) | |
+| 141 | 3 | D 彩蛋 | `en-w5-d-1cb01d7a` | Today’s fortune: ride a cable car and listen for the bell. | 4.69 | pass | ✓ (0.94) | |

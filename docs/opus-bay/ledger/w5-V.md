@@ -94,5 +94,21 @@ spends (0.10); no refund, nothing else on the account in the windows. **Subtotal
 says any more (lane C's five now carry lane C's ids; two lane-D rumours renamed 地之角 → 天涯海角, 16 街 → 第 16 大道) were
 retired by post.py: out of the table, their 28 files deleted, kept in the report's `retired` block with their job ids.
 
-**Wave-5 lane V total: 22.47 credits** (4.54 + 16.00 + 0.18 + 1.75) of the 130 cap. Balance 400.07 → **377.60**
-(`balance` at 14:35 UTC, equal to the tally).
+**Running total after batch 4: 22.47 credits.** Balance **377.60** (`balance` at 14:35 UTC, equal to the tally).
+
+## Batch 5 · H5-3 voice, lines the first filter missed (W5-V7), 2026-09-28 14:32 UTC
+
+The inventory's speaker rule read any short "xx：" opening as another speaker, so the seven cookie fortunes (今日签：…) and
+lane A's 滑梯现在没开：… had been left out, and one-word calls (跑！) were under its length floor; lane R's SOFT_BOX_LINE
+(我们在旁边看就好～, said by lane F's glide soft box) was not in its source list. The rule now names the speakers, and the
+rate gate treats a one- or two-word call by its length (≤ 1.5 s). 10 lines, 20 takes (work dir `voice3/`).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO5 | 20 clips (10 lines × zh / en) | qwen_audio_tts, Pixie, speech_rate 1.0 | the lines above, verbatim | 0.43 | w5-voice-report.json `takes[].job_id` (batch 3) | voice3/raw/0–19.wav | 20 completed, 20 pass the gates (en "Go!" not recognised: advisory) |
+
+Transactions 14:32:30.647–14:32:51.600 UTC: 20 "Qwen Audio 3.0 TTS Flash" spends, no refund, nothing else in the window.
+**Subtotal 0.43.**
+
+**Wave-5 lane V total: 22.90 credits** (4.54 + 16.00 + 0.18 + 1.75 + 0.43) of the 130 cap. Balance 400.07 → **377.17**
+(`balance` at 14:45 UTC, equal to the tally). Voice in all (H5-3): 6.90 of the plan's 9 expected; H5-2 16 of 21.
