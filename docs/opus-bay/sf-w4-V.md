@@ -1099,9 +1099,10 @@ report commits), 2026-09-28. Worktree `C:/Users/willy/wt/i4-v`, dev port 5406, s
 
 | # | defect | fix | commit |
 |---|---|---|---|
-| 1 | Part b's "one object per compile call, each link awaited" did not hold at the next level: three's `compileAsync` polls the material's *current* program, and for a visible object the next frame sets that back to this level's linked one, so the call resolved while the next level's program was still linking. Phone profile (390 × 844, dpr 3, city, mid): 12 of 40 program-making calls resolved unlinked; 3 and 13 calls (two runs) started with links pending; link waits 380–520 ms | each batch waits for the programs it created (`isReady()`: non-blocking with `KHR_parallel_shader_compile`; `LINK_WAIT_MS` = 4 s cap, a lost context never completes) | `fbc9e2c` |
-| 2 | Nothing stopped a background pass: after a quality change (or the canvas unmounting) the old level's live and next passes ran on for seconds, and the module kept the old renderer and scene (and compiled late registrations against them). Desktop city, switch high → low 4.6 s after the warm-up: 116 programs, the old passes still running 16 s later | `stopWarmup(renderer)` (GameRoot's Warmup cleanup: unmount, quality / motion change); a pass checks it between objects; a registration after it waits for the next full warm-up: 90 programs, the old pass ends at the switch | `fbc9e2c` |
+| 1 | Part b's "one object per compile call, each link awaited" did not hold at the next level: three's `compileAsync` polls the material's *current* program, and for a visible object the next frame sets that back to this level's linked one, so the call resolved while the next level's program was still linking. Phone profile (390 × 844, dpr 3, city, mid): 12 of 40 program-making calls resolved unlinked; 3 and 13 calls (two runs) started with links pending; link waits 380–520 ms | each batch waits for the programs it created (`isReady()`: non-blocking with `KHR_parallel_shader_compile`; `LINK_WAIT_MS` = 4 s cap, a lost context never completes) | `aa11d21` |
+| 2 | Nothing stopped a background pass: after a quality change (or the canvas unmounting) the old level's live and next passes ran on for seconds, and the module kept the old renderer and scene (and compiled late registrations against them). Desktop city, switch high → low 4.6 s after the warm-up: 116 programs, the old passes still running 16 s later | `stopWarmup(renderer)` (GameRoot's Warmup cleanup: unmount, quality / motion change); a pass checks it between objects; a registration after it waits for the next full warm-up: 90 programs, the old pass ends at the switch | `aa11d21` |
 
+| 3 | `opus-bay-w4-swaps` pinned Holy Virgin's arrival ≥ 0.9 u in front of the porch, which is on Geary Blvd's asphalt (the carriageway starts ≈ 0.7 u before the porch), so lane L could not move it onto the frontage | the check keeps the walk's 0.4 u stand clearance on the Geary side of the facade and accepts the frontage beside the doors, never the doorway or the side / back | `5a5523b` |
 Tests (`opus-bay-sf-perf`, both fail on the old code): a fake renderer whose `compileAsync` resolves at once while its
 program links for 400 ms (no call while a link is pending, every gap ≥ the link); `stopWarmup` before and inside the
 passes, a registration after it, another renderer's stop.
@@ -1127,6 +1128,8 @@ passes, a registration after it, another renderer's stop.
 
 ### Open
 
+- **Union Square's arrival is 406–409k triangles at quality high** (over the 400k gate). Levers: the actors (51k + 18.6k shadow), the hero life (36k) and the hero district drawn within 126 u of its slab (100k buildings + 44.6k ground). For the final verify (W4-Z) / wave 5.
+- Lane L: move Holy Virgin's arrival to the frontage (local (−1.5, 2.0), heading ≈ 2.5) and drop geary-west from OPEN_ARRIVALS (sf-sites-w4) and OPEN (sf-landmarks); `5a5523b` makes the swap test accept it.
 - The phone fps gate on a quiet machine (the lead's W4-Z); the Ferry gate's ≈ 1k triangle margin at quality high.
 - Seen outside lane V's files (not changed here): on 390 × 844 the More menu's Photo item sits under the ARRIVED card
   (`rev/set1.jpg`: the card covers the menu's upper item) — for the HUD / arrival UI owner (lane G).
@@ -1134,8 +1137,10 @@ passes, a registration after it, another renderer's stop.
 
 ### Checks
 
-- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on `fbc9e2c`).
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on `aa11d21`; again on the pushed tree, see the last line).
 - `npx eslint .`: 0 errors (43 warnings, none in lane V's files).
 - `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **883 / 883** (the lane's 881 + the two new warm-up
   tests), hero regression and contracts green.
 - One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
+- The reviewer's last steps (commit the test, rebase, push) were blocked by a tool-permission outage; the lead restored three lane-L files the reviewer had changed only to try the arrival move, committed `5a5523b`, rebased and ran the checks on the pushed tree (below).
+- On the pushed tree: tsc 0, `npx eslint .` 0 errors, **897 / 897** opus-bay tests.
