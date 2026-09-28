@@ -1,0 +1,77 @@
+/* Wave 5 · lane D · the find card, the notes and the operator (eggs chunk only). Positions follow the arrival card's
+   rules (ui/guide-ui.css): phones 72 px above the phone bar, clear of the touch action and the right button column;
+   desktop bottom-left. */
+.ob-egg-card, .ob-egg-card *, .ob-egg-note, .ob-egg-note *, .ob-egg-operator, .ob-egg-operator * { box-sizing: border-box; }
+
+.ob-egg-card {
+  position: absolute; z-index: 13; left: calc(16px + var(--ob-sl, 0px)); bottom: calc(18px + var(--ob-sb, 0px));
+  width: max(290px, min(390px, calc(50vw - 200px))); padding: 10px 36px 12px 10px; border-radius: 20px;
+  background: rgba(255, 250, 241, .98); border: 1px solid #f1d49a; box-shadow: 0 0 0 2px rgba(224, 169, 74, .28), var(--ob-shadow);
+  pointer-events: auto; overflow: hidden; color: var(--ob-ink); animation: ob-egg-in .5s var(--ob-spring);
+}
+.ob-egg-card.is-raised { bottom: calc(128px + var(--ob-sb, 0px)); }
+.ob-egg-head { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; width: 100%; text-align: left; background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.ob-egg-badge {
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; color: #fff;
+  background: radial-gradient(circle at 35% 30%, #f6d27a, var(--ob-gold) 55%, var(--ob-gold-d)); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .12);
+  animation: ob-egg-badge 1.2s var(--ob-ease, ease) .2s both;
+}
+.ob-egg-titles { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+.ob-egg-kicker { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: var(--ob-gold-d); text-transform: uppercase; }
+.ob-egg-kicker b { font-weight: 800; color: var(--ob-ink-2); letter-spacing: 0; }
+.ob-egg-name { font-size: 16px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.ob-egg-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 13px; font-weight: 700; color: var(--ob-teal-d, #2b6f68); }
+.ob-egg-key { font: 700 11px/1 inherit; padding: 2px 5px; border-radius: 5px; border: 1px solid var(--ob-line-2, #d8cdb8); color: var(--ob-ink-3); background: #fff; }
+.ob-egg-body { padding: 8px 2px 0 2px; }
+.ob-egg-fact { font-size: 14px; line-height: 1.55; margin: 0 0 8px; color: var(--ob-ink); }
+.ob-egg-sources { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0; font-size: 12px; color: var(--ob-ink-3); }
+.ob-egg-sources > span { font-weight: 800; }
+.ob-egg-sources a { display: inline-flex; align-items: center; gap: 2px; color: var(--ob-teal-d, #2b6f68); text-decoration: underline; text-underline-offset: 2px; }
+.ob-egg-sources small { font-size: 11.5px; }
+.ob-egg-close { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; font-size: 17px; line-height: 1; color: var(--ob-ink-3); background: none; border: 0; cursor: pointer; }
+.ob-egg-close:hover { background: var(--ob-cream-3); }
+.ob-egg-timer { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--ob-gold); transform-origin: left center; animation: ob-egg-timer var(--ob-egg-ms, 6000ms) linear forwards; }
+.ob-egg-timer.is-held { animation-play-state: paused; }
+@keyframes ob-egg-timer { to { transform: scaleX(0); } }
+@keyframes ob-egg-in { from { opacity: 0; transform: translateY(18px) scale(.94); } }
+@keyframes ob-egg-badge { 0% { transform: scale(.4) rotate(-25deg); } 55% { transform: scale(1.15) rotate(8deg); } 100% { transform: none; } }
+
+/* the notes (proclamation, time capsule) and the operator: a centred paper over the world */
+.ob-egg-note, .ob-egg-operator {
+  position: absolute; z-index: 14; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(400px, calc(100vw - 32px));
+  padding: 22px 22px 18px; border-radius: 18px; background: #fbf4e2; border: 1px solid #e3d2ab; box-shadow: var(--ob-shadow);
+  pointer-events: auto; color: #3b3222; text-align: center; animation: ob-egg-note-in .45s var(--ob-spring);
+}
+.ob-egg-note.is-scroll { border-radius: 8px; background: linear-gradient(#f3e3bb, #fbf4e2 12%, #fbf4e2 88%, #f3e3bb); border-color: #d9bf85; }
+.ob-egg-crown { display: block; font-size: 26px; line-height: 1; color: #c9962e; margin-bottom: 4px; }
+.ob-egg-note-title { margin: 0 0 10px; font-size: 17px; font-weight: 800; letter-spacing: .02em; }
+.ob-egg-note-line { margin: 0 0 8px; font-size: 14.5px; line-height: 1.6; }
+.ob-egg-note-sign { margin: 10px 0 0; font-size: 13px; font-style: italic; color: #7a6a4a; }
+.ob-egg-note-sub { margin: 16px 0 0; padding-top: 12px; border-top: 1px dashed #d9c79d; font-size: 14.5px; font-weight: 800; }
+.ob-egg-note-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 10px 0 4px; padding: 0; list-style: none; }
+.ob-egg-note-stats li { display: flex; flex-direction: column; padding: 8px 6px; border-radius: 12px; background: rgba(255, 255, 255, .65); border: 1px solid #eadbb8; }
+.ob-egg-note-stats b { font-size: 20px; font-weight: 800; color: var(--ob-gold-d); }
+.ob-egg-note-stats span { font-size: 12.5px; color: #7a6a4a; }
+.ob-egg-note-ok { margin-top: 12px; }
+.ob-egg-operator { text-align: left; }
+.ob-egg-operator-who { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .08em; color: var(--ob-gold-d); }
+.ob-egg-operator-line { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
+.ob-egg-operator-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+@keyframes ob-egg-note-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.95); } }
+
+@media (min-width: 721px) and (max-width: 900px) { .ob-egg-card { bottom: calc(150px + var(--ob-sb, 0px)); } }
+@media (max-width: 720px) {
+  .ob-egg-card { left: calc(12px + var(--ob-sl, 0px)); right: calc(84px + var(--ob-sr, 0px)); width: auto; bottom: calc(max(6px, var(--ob-sb, 0px)) + 56px + 72px); padding: 9px 32px 11px 9px; }
+  .ob-egg-card.is-raised { bottom: calc(max(6px, var(--ob-sb, 0px)) + 56px + 72px + 92px); }
+  .ob-egg-head { grid-template-columns: 46px 1fr; gap: 10px; }
+  .ob-egg-badge { width: 46px; height: 46px; border-radius: 13px; }
+  .ob-egg-name { font-size: 15px; }
+  .ob-egg-key { display: none; }
+  .ob-egg-card.is-open { max-height: 52vh; overflow-y: auto; }
+}
+@media (pointer: coarse) {
+  .ob-egg-close { width: 36px; height: 36px; top: 2px; right: 2px; }
+  .ob-egg-key { display: none; }
+  .ob-egg-operator-choices .ob-btn { min-height: 44px; }
+}
+.is-reduced .ob-egg-card, .is-reduced .ob-egg-badge, .is-reduced .ob-egg-note, .is-reduced .ob-egg-operator { animation: none; }
