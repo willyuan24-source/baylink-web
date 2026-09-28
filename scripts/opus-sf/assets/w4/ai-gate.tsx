@@ -7,7 +7,8 @@
 //
 // - `sites`: wave-4 site ids (world/sf/landmarks/w4list.ts). With `solo`, the registry holds ONLY these sites (so
 //   SoloView's `solo=all` mode is the turntable of just them, `__opusSolo.select(i)` picks one); without it they are
-//   appended to the registry before the city boots (as lane L's scripts/opus-sf/sites-preview.tsx does).
+//   appended to the registry before the city boots (as lane L's scripts/opus-sf/sites-preview.tsx does) unless the
+//   registry already holds them (SF_SITES, since W4-IL1).
 // - Each listed site with a row in data/sf/w4Swaps.ts (W4_SWAPS: the exact rows for the integration) gets
 //   `swap = { parts: [w4SwapPart(row, g.at)], build: remainder, ship: ai }` and, with `ai=1`, the row's walk blockers
 //   and fade: `ai=1` draws the AI model the way the city will after the integration (the D2 swap path of
@@ -22,7 +23,7 @@ import { W4_MODELS, type W4ModelId } from '../../../../src/opus-bay/data/sf/w4Mo
 import { w4Swap, w4SwapPart, w4SwapPlinth } from '../../../../src/opus-bay/data/sf/w4Swaps';
 import type { BatchLike } from '../../../../src/opus-bay/world/builder';
 import { BOX, M } from '../../../../src/opus-bay/world/builder';
-import { SF_LANDMARKS } from '../../../../src/opus-bay/world/sf/landmarks/index';
+import { SF_LANDMARKS, SF_SITES } from '../../../../src/opus-bay/world/sf/landmarks/index';
 import { NONE, box, lathe } from '../../../../src/opus-bay/world/sf/landmarks/kit';
 import { siteGround } from '../../../../src/opus-bay/world/sf/landmarks/siteKit';
 import { W4_SITES } from '../../../../src/opus-bay/world/sf/landmarks/w4list';
@@ -72,7 +73,9 @@ for (const s of picked) {
   if (ai) { site.walk = { ...(site.walk ?? {}), blockers: row.blockers }; if (row.fade) site.fade = row.fade; }
 }
 if (solo) SF_LANDMARKS.splice(0, SF_LANDMARKS.length, ...picked);
-else SF_LANDMARKS.push(...picked);
+// the city draws SF_SITES (W4-IL1 registered every wave-4 site; the swap / walk / fade set above live on those same
+// records): append only a site the registry does not hold yet
+else SF_LANDMARKS.push(...picked.filter(s => !SF_SITES.includes(s)));
 (window as unknown as { __aiGate?: unknown }).__aiGate = { sites: picked.map(s => s.id), ai, override };
 
 // (createElement, not JSX: a PascalCase lazy component in a file without exports trips react-refresh's lint rule)

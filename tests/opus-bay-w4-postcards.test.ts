@@ -28,8 +28,8 @@ const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
 const { PLACE_CARDS } = await import('../src/opus-bay/data/sf/placeCards');
 const { PLACE_CARDS_2 } = await import('../src/opus-bay/data/sf/placeCards2');
 const { project } = await import('../src/opus-bay/core/geo');
-const { SF_LANDMARKS, sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
-const { W4_SITES, w4Site } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
+const { SF_SITES, sfLandmark } = await import('../src/opus-bay/world/sf/landmarks/index');
+const { w4Site } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
 const { DISTRICT } = await import('../src/opus-bay/data/district');
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -117,7 +117,8 @@ test('W4 postcards: every spot stands in the published city (wave-4 sites regist
   const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
   const { canStand, setCityTerrain } = await import('../src/opus-bay/core/terrain');
   const sf = sfDisk();
-  const lms = landmarkWalkInputs([...SF_LANDMARKS, ...W4_SITES]);
+  // the registry the city draws and walks (W4-IL1: the 24 landmarks + every wave-4 site, tier 3 included)
+  const lms = landmarkWalkInputs(SF_SITES);
   const city = createCityTerrain(sf.manifest, { landmarks: lms });
   city.setFar(await sf.far());
   const cards = w4PostcardDefs();
