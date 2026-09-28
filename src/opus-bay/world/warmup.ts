@@ -61,6 +61,69 @@ export const NEXT_WARM_MS = 4000;
  * unregister function.
  */
 export interface WarmupSet { objects: THREE.Object3D[]; dispose?: () => void }
+
+/**
+ * Wave 5 · the warm-up recipe for a new material (lane V, W5-V6: coins, rings, jets, event kits, egg props, pennants,
+ * signs). A program that links on first sight stalls that frame 50–500 ms on a phone; the budget is 0 new programs
+ * while walking (`?debug` "+N since" stays 0, the perf gate's programs first = last).
+ *
+ *   1. ONE material instance per object kind, made once in your own (lazy) module and never shared with another kind
+ *      of object (a Mesh, an InstancedMesh with / without instanceColor, a BatchedMesh, Points each key a different
+ *      program). Do not borrow TOY / TOY_INST / … for a new kind: make your own (materials.ts has the factories).
+ *   2. Build the warm-up object EXACTLY like the real one: the same material instance, the same object type, the same
+ *      castShadow / receiveShadow, instanceColor present or not (setColorAt), the same defines / onBeforeCompile key,
+ *      morph / skin / uv1 attributes if the real geometry has them. `instancedWarmup` / `meshWarmup` below do this
+ *      from the real material and flags (pass the real geometry when it carries morph targets or extra uv sets). A
+ *      caster's shadow pass is covered by the boot pass's depth set (plain, instanced with / without colour, batched);
+ *      a caster with its own customDepthMaterial or an alpha-tested map needs its own depth object (ask lane V).
+ *   3. Register from your feature's init() (a lazy chunk, after the boot warm-up): `registerWarmup(key, make)` compiles
+ *      the set ≈ 30 ms later against the last warm-up's render state, and again at every full warm-up (quality change)
+ *      and in the next-level pass. Keep the returned unregister and call it in your teardown. A module GameRoot imports
+ *      statically registers at load instead (the boot pass takes it).
+ *   4. Check it in DEV: `window.__opusWarmLate` lists the late passes (your key, before → after programs); walking to
+ *      the thing must not raise `renderer.info.programs.length` (`?debug=1`: "+0 since").
+ *
+ * Example (lane E's coins: one InstancedMesh, tinted per instance, casting no shadow):
+ *
+ *   // economy/coins.ts
+ *   const COIN_MAT = makeCoinMaterial();                       // module-level, used by the coin mesh only
+ *   export function init() {
+ *     const offWarm = registerWarmup('e-coins', () => instancedWarmup(COIN_MAT, { instanceColor: true, receiveShadow: true }));
+ *     …
+ *     return () => { offWarm(); … };
+ *   }
+ */
+export interface WarmupObjectOpts {
+  /** the real geometry (never disposed by the set); default: a small box built for the set */
+  geometry?: THREE.BufferGeometry;
+  castShadow?: boolean;
+  receiveShadow?: boolean;
+  /** InstancedMesh only: the real mesh calls setColorAt (USE_INSTANCING_COLOR) */
+  instanceColor?: boolean;
+}
+
+function warmObject(o: THREE.Mesh, own: THREE.BufferGeometry | null, opts: WarmupObjectOpts): WarmupSet {
+  o.name = 'ob-warmup-object';
+  o.castShadow = !!opts.castShadow;
+  o.receiveShadow = !!opts.receiveShadow;
+  o.frustumCulled = false;
+  return { objects: [o], dispose: () => { own?.dispose(); (o as unknown as THREE.InstancedMesh).dispose?.(); } };
+}
+
+/** A warm-up set of one InstancedMesh (capacity 1) built like the real one (recipe step 2). */
+export function instancedWarmup(material: THREE.Material, opts: WarmupObjectOpts = {}): WarmupSet {
+  const own = opts.geometry ? null : BOX().clone();
+  const mesh = new THREE.InstancedMesh(opts.geometry ?? own!, material, 1);
+  if (opts.instanceColor) mesh.setColorAt(0, C('#ffffff'));
+  return warmObject(mesh, own, opts);
+}
+
+/** A warm-up set of one plain Mesh built like the real one (recipe step 2). */
+export function meshWarmup(material: THREE.Material, opts: Omit<WarmupObjectOpts, 'instanceColor'> = {}): WarmupSet {
+  const own = opts.geometry ? null : BOX().clone();
+  return warmObject(new THREE.Mesh(opts.geometry ?? own!, material), own, opts);
+}
+
 const extraWarmups = new Map<string, () => WarmupSet>();
 export function registerWarmup(key: string, make: () => WarmupSet): () => void {
   extraWarmups.set(key, make);
