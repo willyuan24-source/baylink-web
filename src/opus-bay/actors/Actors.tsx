@@ -66,6 +66,7 @@ export function Actors() {
     <>
       <primitive object={system.root} />
       <primitive object={system.pick} onClick={system.onGroundClick} />
+      <primitive object={system.selfPick} onClick={system.onSelfClick} />
     </>
   );
 }

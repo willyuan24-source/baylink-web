@@ -132,9 +132,18 @@ export function rayCapsuleT(o: { x: number; y: number; z: number }, d: { x: numb
   return best;
 }
 
-function selfTapT(o: THREE.Vector3, d: THREE.Vector3): number {
-  if (!selfTap.on || !view.ready) return -1;
-  return rayCapsuleT(o, d, view.x, view.y, view.z, SELF_TAP.r * CHAR_SCALE, SELF_TAP.h * CHAR_SCALE);
+/**
+ * The self-tap body's raycast (its own invisible mesh, Actors.tsx). The hit is reported SELF_TAP_LEAD u nearer than it
+ * is, so the player's body wins over the invisible interactable spheres round the spot they stand on (a gold ring, the
+ * ferry gate): under the finger the player is what shows.
+ */
+const SELF_TAP_LEAD = 4;
+function selfTapRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
+  if (!selfTap.on || !view.ready) return;
+  const o = raycaster.ray.origin, d = raycaster.ray.direction;
+  const t = rayCapsuleT(o, d, view.x, view.y, view.z, SELF_TAP.r * CHAR_SCALE, SELF_TAP.h * CHAR_SCALE);
+  if (t < 0 || t > raycaster.far) return;
+  intersects.push({ distance: Math.max(raycaster.near, t - SELF_TAP_LEAD), point: new THREE.Vector3(o.x + d.x * t, o.y + d.y * t, o.z + d.z * t), object: this });
 }
 
 /** The point the occlusion dither fades around (world/world.ts sets uPlayer from the same place). */
@@ -146,12 +155,6 @@ const seenPlayer = () => ({ x: runtime.player.x, y: runtime.player.y + 0.8, z: r
  */
 function heightfieldRaycast(this: THREE.Mesh, raycaster: THREE.Raycaster, intersects: THREE.Intersection[]) {
   const o = raycaster.ray.origin, d = raycaster.ray.direction;
-  // wave 5 (W5-F2): a tap on the player's own body (checked before the ground) is a self-tap, not a walk
-  const self = selfTapT(o, d);
-  if (self >= raycaster.near && self <= raycaster.far) {
-    intersects.push({ distance: self, point: new THREE.Vector3(o.x + d.x * self, o.y + d.y * self, o.z + d.z * self), object: this, selfTap: 'player' } as THREE.Intersection);
-    return;
-  }
   const hitT = groundAlongRay(o, d, raycaster.far);
   const hl = Math.hypot(d.x, d.z);
   const wall = hl > 1e-4 ? facadeAlongRay(o, d, Math.min(hitT >= 0 ? hitT : Infinity, FACADE_REACH / hl, raycaster.far), seenPlayer()) : null;
@@ -308,6 +311,8 @@ class Breadcrumbs {
 export class ActorSystem {
   readonly root = new THREE.Group();
   readonly pick: THREE.Mesh;
+  /** wave 5 (W5-F2): the player's tap body (a capsule raycast, nothing drawn) */
+  readonly selfPick: THREE.Mesh;
   readonly controller = new PlayerController();
   readonly mover = new GuideMover();
   readonly player: Rig;
@@ -417,6 +422,10 @@ export class ActorSystem {
     this.pick.raycast = heightfieldRaycast;
     this.pick.frustumCulled = false;
     this.pick.name = 'opus-ground-pick';
+    this.selfPick = new THREE.Mesh(pickGeo, this.pick.material);
+    this.selfPick.raycast = selfTapRaycast;
+    this.selfPick.frustumCulled = false;
+    this.selfPick.name = 'opus-self-pick';
 
     this.unsub = onEvent(e => this.onGameEvent(e));
     this.mover.place();
@@ -451,7 +460,7 @@ export class ActorSystem {
   private onGameEvent(e: GameEvent) {
     const pa = this.playerAnim;
     // (QA: the last movement events, readable as __opusBay.actors.move.recent)
-    if (e.type.includes(':') || e.type === 'sit' || e.type === 'stand' || e.type === 'hill' || e.type === 'pant') {
+    if (e.type.includes(':') || e.type === 'sit' || e.type === 'stand' || e.type === 'hill' || e.type === 'pant' || e.type === 'self-tap') {
       this.move.recent.push({ t: +this.now.toFixed(2), ...e });
       if (this.move.recent.length > 24) this.move.recent.shift();
     }
@@ -511,6 +520,22 @@ export class ActorSystem {
     return best;
   }
 
+  /**
+   * Wave 5 (W5-F2) · R3F onClick on the player's tap body: a tap on your own character is a self-tap (lane A: the
+   * emote wheel; a second tap within 0.38 s is a double), never a walk. Only while the body is tappable (selfTap.on:
+   * playing, on foot, nothing open); otherwise the tap goes on to whatever is behind.
+   */
+  onSelfClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > DRAG_THRESHOLD || !selfTap.on) return;
+    if ((e.nativeEvent as MouseEvent).button !== undefined && (e.nativeEvent as MouseEvent).button !== 0) return;
+    const s = game.get(), f = flow.get();
+    if (s.phase !== 'playing' || s.photoMode || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
+    e.stopPropagation();
+    const now = performance.now() / 1000, double = now - this.lastSelfTap < 0.38;
+    this.lastSelfTap = double ? -10 : now;
+    emit({ type: 'self-tap', who: 'player', double });
+  };
+
   /** R3F onClick on the ground picker: tap / click to walk; on a bike or in the toy car, tap to drive (E2-4). */
   onGroundClick = (e: ThreeEvent<MouseEvent>) => {
     if (e.delta > DRAG_THRESHOLD) return;
@@ -519,13 +544,6 @@ export class ActorSystem {
     const driving = this.move.mode === 'bike' || this.move.mode === 'car';
     if (s.phase !== 'playing' || s.photoMode || s.riding || (this.move.carried && !driving) || s.dialogue.nodeId || f.cinematic || f.fishing || f.postcardReward || runtime.player.locked) return;
     e.stopPropagation();
-    // wave 5 (W5-F2): a tap on your own character (lane A: the emote wheel; a second tap within 0.38 s is a double)
-    if ((e as unknown as { selfTap?: string }).selfTap === 'player') {
-      const now = performance.now() / 1000, double = now - this.lastSelfTap < 0.38;
-      this.lastSelfTap = double ? -10 : now;
-      emit({ type: 'self-tap', who: 'player', double });
-      return;
-    }
     // M2 (city): a tap on a building wall means "go there": the nearest open ground in front of it
     const wall = (e as unknown as FacadeIntersection).facade;
     const front = wall ? frontSpot(wall.x, wall.z, wall.ux, wall.uz) : null;
@@ -552,9 +570,22 @@ export class ActorSystem {
 
   // ---------------------------------------------------------------------------
 
+  /** QA (`__opusBay.actors.qaScreen('baybay')`): where a hero's middle shows, in normalised device coordinates (−1..1) */
+  qaScreen(who: 'player' | 'baybay'): { x: number; y: number } | null {
+    const cam = this.lastCamera;
+    if (!cam) return null;
+    const o = who === 'player' ? this.player.mesh : this.guideObject;
+    const v = o.getWorldPosition(new THREE.Vector3());
+    v.y += 0.7 * CHAR_SCALE;
+    v.project(cam);
+    return { x: v.x, y: v.y };
+  }
+  private lastCamera: THREE.Camera | null = null;
+
   update(rawDt: number, t: number, camera: THREE.Camera) {
     const dt = Math.min(rawDt, 0.1);
     this.now = t;
+    this.lastCamera = camera;
     camera.getWorldPosition(this.camPos);
     const s = game.get(), f = flow.get();
     const p = runtime.player, g = runtime.guide;
