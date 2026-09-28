@@ -24,7 +24,6 @@ import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pic
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
 import { PursuitDriver } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
-import { drivableAt, driveRoute, findDrivePath, PARK_CLEAR, stopShortOf } from './vehicles/driveRoute';
 import type { DriveTalk } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican } from './vehicles/pelican';
@@ -118,14 +117,24 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
   return d === 'touch' ? { zh: '点「起飞」', en: 'tap Glide' } : d === 'gamepad' ? { zh: '按 L3 起飞', en: 'press L3 to take off' } : { zh: '按 G 起飞', en: 'press G to take off' };
 }
 
+/**
+ * Tap-to-drive's routing (vehicles/driveRoute: grid / graph drive routes, the park-short rule, the grid for a way round)
+ * is its own chunk, fetched when a bike / the toy car is mounted (part b: GameRoot keeps its size).
+ */
+let driveMod: typeof import('./vehicles/driveRoute') | null = null;
+let driveLoad: Promise<typeof import('./vehicles/driveRoute')> | null = null;
+function loadDrive(): Promise<typeof import('./vehicles/driveRoute')> {
+  return (driveLoad ??= import('./vehicles/driveRoute').then(m => (driveMod = m), e => { driveLoad = null; throw e; }));
+}
+
 /** Interactables a drive parks short of (not rides, seats, BAYBAY or a lead marker): ones you walk up to. */
 const PARK_SKIP: ReadonlySet<string> = new Set(['vehicle', 'seat', 'baybay', 'free-lead']);
 /** The things to walk up to within reach of a drive's end (verify-desktop D5): the autopilot stops short of them. */
-function parkSpotsNear(end: Vec2): Vec2[] {
+function parkSpotsNear(end: Vec2, clear: number): Vec2[] {
   const out: Vec2[] = [];
   for (const it of interactables()) {
     if (PARK_SKIP.has(it.source) || it.id.startsWith('ride:') || it.id.startsWith('seat:')) continue;
-    if (Math.hypot(it.x - end.x, it.z - end.z) < PARK_CLEAR) out.push({ x: it.x, z: it.z });
+    if (Math.hypot(it.x - end.x, it.z - end.z) < clear) out.push({ x: it.x, z: it.z });
   }
   return out;
 }
@@ -267,6 +276,8 @@ export class MoveSystem {
   }
 
   private tryEnter(r: Ride, controller: PlayerController) {
+    // tap-to-drive's routing, before the first tap
+    if (r.kind === 'bike' || r.kind === 'car') void loadDrive().catch(() => { /* offline: routes load on the tap */ });
     const p = runtime.player;
     const s = r.sim;
     const slot = nearestEnterSlot(SLOTS, p, { x: s.x, z: s.z, y: s.y, heading: s.heading }, r.width, r.length);
@@ -587,7 +598,8 @@ export class MoveSystem {
     const token = { aborted: false };
     this.autoToken = token;
     this.driveTarget = { x: p.x, z: p.z };
-    driveRoute({ x: r.sim.x, z: r.sim.z }, p, r.kind, { signal: token }).then(route => {
+    const from = { x: r.sim.x, z: r.sim.z }, kind = r.kind;
+    (driveMod ? Promise.resolve(driveMod) : loadDrive()).then(D => D.driveRoute(from, p, kind, { signal: token }).then(route => ({ D, route }))).then(({ D, route }) => {
       if (token.aborted || this.autoToken !== token) return;
       this.autoToken = null;
       if (!route || this.ride !== r || route.points.length < 2) {
@@ -597,7 +609,7 @@ export class MoveSystem {
         return;
       }
       // (part b, verify-desktop D5) park short of a card / resident / place at the end, never on top of it
-      const points = stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1]));
+      const points = D.stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1], D.PARK_CLEAR));
       this.auto = new PursuitDriver(r.sim.spec, points);
       this.driveTalk = null;
       this.talk(points, true);
@@ -638,7 +650,8 @@ export class MoveSystem {
     const inp = auto.step(s, dt, ahead || held);
     // W4-G4 (part b): BAYBAY in the basket / front seat points ≈ 20 u before a turn over 45° and says a line at a third
     // and at two thirds of a long drive (plan §4.2 "BAYBAY leads", bike / car)
-    const cue = this.guideSeat === 'seated' && auto.state === 'drive' ? this.driveTalk?.step(auto.s, t) : null;
+    // (never over a line she is saying: the trip's "骑车出发！", a place greeting — a corner passed meanwhile goes unsaid)
+    const cue = this.guideSeat === 'seated' && auto.state === 'drive' && !flow.get().bubble ? this.driveTalk?.step(auto.s, t) : null;
     if (cue && (ride.kind === 'bike' || ride.kind === 'car')) {
       if (cue.kind === 'turn') emit({ type: 'emote', who: 'baybay', emote: 'point' });
       bubble(driveTalkMod!.driveCueLine(cue, ride.kind), 2600);
@@ -665,7 +678,9 @@ export class MoveSystem {
    * there is none (the drive then gives up as before: "前面过不去了，换你来开吧").
    */
   private detour(ride: Ride, auto: PursuitDriver): boolean {
-    if (ride.kind !== 'bike' && ride.kind !== 'car') return false;
+    const D = driveMod;
+    if (!D || (ride.kind !== 'bike' && ride.kind !== 'car')) return false;
+    const { drivableAt, findDrivePath } = D;
     const s = ride.sim, kind = ride.kind;
     let ahead = Math.min(auto.total, auto.s + DETOUR_AHEAD), to = auto.pointAt(ahead);
     while (!drivableAt(to.x, to.z, kind) && ahead < auto.total) { ahead = Math.min(auto.total, ahead + 1); to = auto.pointAt(ahead); }

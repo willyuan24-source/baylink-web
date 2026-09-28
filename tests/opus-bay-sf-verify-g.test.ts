@@ -241,6 +241,7 @@ test('verify-desktop D6: a stuck autopilot takes a grid route round the spot to 
     resetPlayer({ x: car.sim.x + 1.6, z: car.sim.z }, 0);
     c.sync();
     ms.onInteract(`ride:${car.id}`, c);
+    await tick(); // (mounting fetches tap-to-drive's routing chunk: vehicles/driveRoute)
     let t = 0;
     for (; t < 3; t += DT) ms.update(DT, t, env);
     // a straight "route" through undrivable ground (as a walking-graph edge past a corner / a tree can be) whose end
