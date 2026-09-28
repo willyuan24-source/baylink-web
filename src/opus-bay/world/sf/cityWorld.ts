@@ -13,6 +13,7 @@ import type { HaloSpec } from '../props';
 import { buildLightMask } from '../water';
 import type { WorldSystem } from '../world';
 import { CloudBank } from './cloudBank';
+import type { HeroTile } from './farHero';
 import { demSample } from './format';
 import { heroLandRaster, heroProxy } from './hero';
 import { heroGroundJob } from './heroGround';
@@ -125,6 +126,8 @@ export interface CityWorldHost {
   /** the hero's own ground chunks, and its labels / contact blobs */
   heroGround: THREE.Mesh[];
   heroFarExtras: THREE.Object3D[];
+  /** the hero's 150 u tiles: near chunk + far detail chunk (W5-V2; world/sf/farHero.ts) */
+  heroTiles: HeroTile[];
   addSystem(sys: WorldSystem): () => void;
 }
 
@@ -150,7 +153,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const streamer = new CityStreamer({
     renderer, quality, slab: DISTRICT.slab, sites, pool: opts.pool,
     hero: {
-      meshes: [...host.cityChunks, ...host.heroFarExtras], proxy: heroProxy,
+      meshes: [...host.cityChunks, ...host.heroFarExtras], proxy: heroProxy, tiles: host.heroTiles,
       ground: { meshes: heroGround, job: () => heroGroundJob(heroGround, { box: { x0: sb.min.x, z0: sb.min.z, x1: sb.max.x, z1: sb.max.z } }) },
     },
     farInit: { heroLand: heroLandRaster(), islands: [{ x: ai.x, z: ai.z, rx: ANGEL_ISLAND.rx * 0.95, rz: ANGEL_ISLAND.rz * 0.95, rot: ANGEL_ISLAND.rot }] },
@@ -187,7 +190,9 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const detachMurals = murals ? host.addSystem(murals) : null;
   void streamer.start().then(() => {
     const m = streamer.manifest;
-    if (m?.heroDropLots.length) dropLotTriangles(host.cityChunks, m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
+    // the far detail chunks carry the same lots: cut them out there too
+    const far = host.heroTiles.map(t => t.far).filter((f): f is THREE.Mesh => !!f);
+    if (m?.heroDropLots.length) dropLotTriangles([...host.cityChunks, ...far], m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
   });
   const unmountDebug = mountCityDebug(streamer, renderer);
   return {

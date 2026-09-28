@@ -5,7 +5,7 @@ import { game, type Quality, type TimeOfDay, type WorldMode } from '../core/stor
 import { DISTRICT } from '../data/district';
 import { buildBackdrop } from './backdrop';
 import { bayClock, handAngles, isMarketOpen } from './clock';
-import { Batch, C, freezeStatic, splitGeometry } from './builder';
+import { Batch, C, freezeStatic, splitGeometryCells } from './builder';
 import { buildCity } from './city';
 import { Environment } from './environment';
 import { FxPool, attachFx } from './fx';
@@ -16,6 +16,7 @@ import { FERRY_LIGHTS, Life } from './life';
 import { GROUND, HALO, POOL, TOY, TOY_DYN, U, makeHeroMaterial } from './materials';
 import { BlobBatch, Floaters, type HaloSpec, type PoolSpec, buildProps } from './props';
 import { type CityModule, cityModule } from './cityLoader';
+import type { HeroTile } from './sf/farHero';
 import type { CityStreamer } from './sf/stream';
 import type { CityWater } from './sf/water';
 import type { KarlFlag } from './fogShader';
@@ -86,6 +87,8 @@ export class World {
   /** city mode: the hero's own ground chunks and its labels / contact blobs (hidden with its buildings when far) */
   private heroGroundChunks: THREE.Mesh[] = [];
   private heroFarExtras: THREE.Object3D[] = [];
+  /** city mode (W5-V2): the hero's 150 u tiles, each with its near chunk and its far detail chunk (world/sf/farHero.ts) */
+  private heroTiles: HeroTile[] = [];
   /** removes what came with the city (world/sf/cityWorld.ts): the ?debug breakdown, H2b's murals, Karl's cloud bank and
    * the night light field (lane C2-8 / C2-9) */
   private detachCity: (() => void) | null = null;
@@ -179,16 +182,32 @@ export class World {
     U.uBDistOn.value = 1;
 
     const chunks: THREE.Mesh[] = [];
+    // the toy chunks' grid cells (city mode pairs each with its far detail chunk, W5-V2)
+    const toyCells: { ix: number; iz: number; mesh: THREE.Mesh }[] = [];
     const addChunks = (geo: THREE.BufferGeometry, mat: THREE.Material, name: string, order = 0, cell = CHUNK) => {
-      splitGeometry(geo, cell).forEach((g, i) => {
-        const m = staticMesh(g, mat, `${name}#${i}`, mat !== this.water);
+      splitGeometryCells(geo, cell).forEach(({ ix, iz, geometry }, i) => {
+        const m = staticMesh(geometry, mat, `${name}#${i}`, mat !== this.water);
         m.renderOrder = order;
         chunks.push(m);
+        if (name === 'city') toyCells.push({ ix, iz, mesh: m });
       });
     };
     addChunks(ground.build(), GROUND, 'ground');
     addChunks(toy.build(), TOY, 'city');
     this.cityChunks = chunks.filter(m => m.name.startsWith('city#'));
+    // city mode: the hero's far detail, tile by tile (world/sf/farHero.ts: the same buildings, the planting simplified,
+    // no street furniture); hidden until the streamer swaps a tile beyond ≈ 150 u (W5-V2, plan MF9)
+    const farChunks: THREE.Mesh[] = [];
+    if (city) {
+      const cm = requireCity();
+      const far = cm.heroFarChunks(this.atlas).map(({ ix, iz, geometry }, i) => {
+        const m = staticMesh(geometry, TOY, `city-far#${i}`, true);
+        m.visible = false;
+        farChunks.push(m);
+        return { ix, iz, mesh: m };
+      });
+      this.heroTiles = cm.pairHeroTiles(toyCells, far);
+    }
     if (backToy !== toy) addChunks(backToy.build(), TOY, 'backdrop', 0, BACKDROP_CHUNK);
     if (mergedWater) addChunks(mergedWater, this.water, 'water', 1, WATER_CHUNK);
     const labelMesh = staticMesh(labels.build(), this.atlas.material, 'labels', true);
@@ -203,7 +222,7 @@ export class World {
     });
     const blobMesh = blobs.build();
     blobMesh.updateMatrix();
-    this.root.add(this.env.group, labelMesh, blobMesh, ...chunks);
+    this.root.add(this.env.group, labelMesh, blobMesh, ...chunks, ...farChunks);
     if (city) {
       this.heroGroundChunks = requireCity().heroGroundOf(chunks);
       this.heroFarExtras = [labelMesh, blobMesh];
@@ -364,7 +383,7 @@ export class World {
     if (this.mode !== 'city' || this.city || !this.cityWater) return;
     const r = requireCity().startCityWorld({
       root: this.root, env: this.env, water: this.cityWater, halos: this.halosSpec, cityChunks: this.cityChunks,
-      heroGround: this.heroGroundChunks, heroFarExtras: this.heroFarExtras, addSystem: sys => this.addSystem(sys),
+      heroGround: this.heroGroundChunks, heroFarExtras: this.heroFarExtras, heroTiles: this.heroTiles, addSystem: sys => this.addSystem(sys),
     }, renderer, quality, opts);
     this.city = r.city;
     this.detachCity = r.detach;

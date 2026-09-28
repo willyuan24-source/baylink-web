@@ -546,8 +546,16 @@ function roadClearance(x: number, z: number) {
 }
 const freeSpot = (x: number, z: number, r: number) => !canStand(x, z, 0.1) && blockersNear(x, z, r).length === 0 && roadClearance(x, z) > r;
 
-/** Extra planting that makes Telegraph Hill and the Filbert Steps lush (visual only, off the walkways). */
-function gardens(b: Batch) {
+/** One garden planting (world/sf/farHero.ts draws the same list simplified for the city's far detail, W5-V2). */
+export interface Planting { kind: 'tree' | 'bush'; x: number; z: number; s: number; seed: number; flowers: boolean }
+
+/**
+ * The extra planting that makes Telegraph Hill and the Filbert Steps lush (visual only, off the walkways), in drawing
+ * order: the seeded sequence below is the district's (the draws consume no random numbers, so listing first and drawing
+ * after writes the same bytes).
+ */
+export function gardenPlantings(): Planting[] {
+  const out: Planting[] = [];
   const r = rng(4242);
   const steps = DISTRICT.ramps.find(x => x.id === 'filbert-steps');
   if (steps) {
@@ -560,7 +568,8 @@ function gardens(b: Batch) {
           const off = steps.width / 2 + 0.7 + r() * 1.4;
           const x = a.x + ((c.x - a.x) * k) / L + nx * off * side, z = a.z + ((c.z - a.z) * k) / L + nz * off * side;
           if (!freeSpot(x, z, 0.5)) continue;
-          bush(b, x, z, 0.55 + r() * 0.4, r() * 10, r() > 0.3);
+          const s = 0.55 + r() * 0.4, seed = r() * 10;
+          out.push({ kind: 'bush', x, z, s, seed, flowers: r() > 0.3 });
         }
       }
     }
@@ -573,7 +582,15 @@ function gardens(b: Batch) {
     const h = heightAt(x, z);
     if (h < 2.5 || !freeSpot(x, z, 0.8)) continue;
     placed++;
-    if (r() < 0.35) tree(b, x, z, 0.7 + r() * 0.4, r() * 10);
-    else bush(b, x, z, 0.6 + r() * 0.5, r() * 10, r() > 0.6);
+    if (r() < 0.35) { const s = 0.7 + r() * 0.4, seed = r() * 10; out.push({ kind: 'tree', x, z, s, seed, flowers: false }); }
+    else { const s = 0.6 + r() * 0.5, seed = r() * 10; out.push({ kind: 'bush', x, z, s, seed, flowers: r() > 0.6 }); }
+  }
+  return out;
+}
+
+function gardens(b: Batch) {
+  for (const p of gardenPlantings()) {
+    if (p.kind === 'tree') tree(b, p.x, p.z, p.s, p.seed);
+    else bush(b, p.x, p.z, p.s, p.seed, p.flowers);
   }
 }

@@ -46,6 +46,8 @@ function groupOf(o: THREE.Object3D, worldRoot: THREE.Object3D | null): string {
     return `city.${(sub.name || 'sites').replace(/^city-/, '')}`;
   }
   const n = top.name;
+  // W5-V2: the hero tiles' far detail chunks (world/sf/farHero.ts)
+  if (/^city-far#\d+$/.test(n)) return 'hero.buildings.far';
   const m = /^(ground|city|backdrop|water)#\d+$/.exec(n);
   if (m) return m[1] === 'city' ? 'hero.buildings' : `hero.${m[1]}`;
   if (n.startsWith('hero:')) return 'hero.landmarks';
@@ -209,7 +211,7 @@ export function mountCityDebug(streamer: CityStreamer, renderer: THREE.WebGLRend
       `attach ${s.attachMs} ms (max ${s.attachMaxMs})  rasters ${s.resident}`,
       `pool ${p.kind} ${p.visible}/${p.items}  toy ${(p.toyVertices / 1000).toFixed(0)}k/${(p.toyCapacity / 1000).toFixed(0)}k  gnd ${(p.groundVertices / 1000).toFixed(0)}k`,
       `props ${Object.entries(s.props).map(([k, v]) => `${k} ${v}`).join(' ')}`,
-      `sites near ${s.sites.near} (${(s.sites.triangles / 1000).toFixed(1)}k)  tris l0 ${(s.l0Triangles / 1000).toFixed(0)}k · l1 ${(s.l1Triangles / 1000).toFixed(0)}k · l2 ${(s.l2Triangles / 1000).toFixed(0)}k${s.heroFar ? '  hero far' : ''}`,
+      `sites near ${s.sites.near} (${(s.sites.triangles / 1000).toFixed(1)}k)  tris l0 ${(s.l0Triangles / 1000).toFixed(0)}k · l1 ${(s.l1Triangles / 1000).toFixed(0)}k · l2 ${(s.l2Triangles / 1000).toFixed(0)}k${s.heroFar ? '  hero far' : s.heroTiles.far ? `  hero tiles far ${s.heroTiles.far}/${s.heroTiles.of}` : ''}`,
       `calls ${s.calls} · tris ${(s.triangles / 1000).toFixed(0)}k · programs ${s.programs}  focus ${s.focus.x},${s.focus.z}`,
     ].join('\n');
   };

@@ -13,6 +13,7 @@ import type { BoardsBuild, BoardsData } from './boards';
 import type { CityInit, L0Result, L1Result } from './build';
 import { ATTACH_BUDGET, type CellInfo, CellTable, type ChunkInfo, type Focus, type Job, RESELECT_MOVE, RESELECT_YAW, type Radii, cellKey, chunkKeyN, radiiFor } from './cell';
 import type { FarCell, FarInit, FarResult } from './far';
+import type { HeroTile } from './farHero';
 import { type FarData, SF_ROOT, type SfManifest, demSample, loadManifest } from './format';
 import type { PoolArrays } from './mesh';
 import { type CellPool, boundsSphere, createCellPool, hazeCullDepth } from './pools';
@@ -56,7 +57,7 @@ export interface StreamOptions {
    * ground chunks and the job that resamples them into a ground-pool stand-in (lane C2-5; run in 2 ms frame slices
    * once streaming starts; until it is done the hand-made ground stays on screen when far)
    */
-  hero?: { meshes: THREE.Object3D[]; proxy: () => PoolArrays | null; ground?: { meshes: THREE.Object3D[]; job: () => Generator<void, PoolArrays | null> } };
+  hero?: { meshes: THREE.Object3D[]; proxy: () => PoolArrays | null; ground?: { meshes: THREE.Object3D[]; job: () => Generator<void, PoolArrays | null> }; tiles?: readonly HeroTile[] };
   pool?: 'batched' | 'tile';
   root?: string;
 }
@@ -77,6 +78,8 @@ export interface CityStats {
   l2Triangles: number;
   /** the hero's hand-made buildings are replaced by their L1 boxes (player far away) */
   heroFar: boolean;
+  /** W5-V2: the hero's 150 u tiles showing their far detail now, of all tiles with a far chunk */
+  heroTiles: { far: number; of: number };
   /** camera height above the ground (u) that sized the radii and prop caps this frame (lane C2-5) */
   camH: number;
   farMs: number;
@@ -101,6 +104,17 @@ const HERO_NEAR = 300;
 export const PREFETCH_R = 120;
 export const PREFETCH_MAX = 3;
 const HERO_HYST = 24;
+/**
+ * W5-V2 (plan MF9): a hero tile (150 u of the hand-made district) shows its far detail (world/sf/farHero.ts: the same
+ * buildings, the planting simplified, no street furniture) while the focus is farther than this from the tile's bounds
+ * (u; back to the near chunk HERO_TILE_HYST closer). About the streamed city's own L0 → L1 distance at each quality.
+ */
+export const HERO_TILE_FAR: Record<Quality, number> = { high: 155, mid: 140, low: 125 };
+export const HERO_TILE_HYST = 20;
+/** re-run the tiles' test after the focus moved this far (u) */
+const HERO_TILE_STEP = 4;
+/** fading bookkeeping keys of the hero tiles (never a cell key: those are positive) */
+const heroTileKey = (i: number) => -1 - i;
 const HERO_ID = 8_999_999;
 /** the hero ground stand-in (≡ 3 mod 4 like HERO_ID: never an l1Id / l2Id) */
 const HERO_GROUND_ID = 9_000_003;
@@ -114,7 +128,9 @@ const INFLIGHT = 3;
 export const TIER_FADE = 0.3;
 const FADE_PAIRS = 6;
 type L0Rec = { toy: THREE.Mesh | null; ground: THREE.Mesh | null; tris: number; buildings: L0Buildings | null; hidden: L0Hidden };
-interface FadePart { t0: number; out: boolean; l0?: L0Rec; pair?: TierFadePair | null; pool?: number; end?: () => void }
+/** what a fade pair dresses: an L0 cell's toy + ground meshes, or a hero tile's chunk (W5-V2: toy only) */
+type FadeMeshes = Pick<L0Rec, 'toy' | 'ground'>;
+interface FadePart { t0: number; out: boolean; l0?: FadeMeshes; pair?: TierFadePair | null; pool?: number; end?: () => void }
 const l1Id = (key: number) => key * 4 + 1;
 const l2Id = (key: number) => key * 4 + 2;
 
@@ -196,6 +212,9 @@ export class CityStreamer {
   /** camera position at the last near / far pass (re-run after 16 u of camera travel) */
   private boardLodAt = new THREE.Vector3(Infinity, 0, 0);
   private l0DropListeners = new Set<(cellKey: number) => void>();
+  /** W5-V2: the hero's tiles and which of them show their far detail (hero near only) */
+  private heroTiles: { tile: HeroTile; far: boolean }[] = [];
+  private heroTilesAt = { x: Infinity, z: Infinity, q: '' };
   quality: Quality;
 
   /** The hero's hand-made buildings are replaced by their L1 boxes (focus beyond HERO_NEAR of the slab). Day-0 API. */
@@ -246,6 +265,7 @@ export class CityStreamer {
     this.slabBox = { x0, z0, x1, z1 };
     const proxy = opts.hero?.proxy();
     if (proxy) this.pool.add(HERO_ID, { toy: proxy, ground: null }, false, false);
+    this.heroTiles = (opts.hero?.tiles ?? []).filter(t => t.far && t.near).map(tile => ({ tile, far: false }));
     publish(this);
   }
 
@@ -464,7 +484,48 @@ export class CityStreamer {
     for (const m of hero.meshes) m.visible = !far;
     this.pool.setVisible(HERO_ID, far);
     this.swapHeroGround();
+    this.applyHeroTiles();
     for (const fn of this.heroFarListeners) fn(far);
+  }
+
+  /**
+   * W5-V2: the hero tiles as they stand, at once (no fade): hero far → every tile's near and far chunk hidden (the L1
+   * boxes stand in); hero near → each tile's near or far chunk by its state. Settles the tiles' running fades first.
+   */
+  private applyHeroTiles() {
+    this.heroTiles.forEach((h, i) => {
+      this.finishFades(heroTileKey(i), true);
+      if (h.tile.near) h.tile.near.visible = !this._heroFar && !h.far;
+      if (h.tile.far) h.tile.far.visible = !this._heroFar && h.far;
+    });
+    this.heroTilesAt.x = Infinity;
+  }
+
+  /**
+   * W5-V2: per hero tile, the near chunk within HERO_TILE_FAR of the focus, its far detail beyond (± HERO_TILE_HYST),
+   * switched with the C2-10 dither cross-fade (the incoming chunk dithers in over TIER_FADE, the outgoing one out under
+   * it). Re-run after HERO_TILE_STEP u of focus travel or a quality change; nothing while the whole hero is far.
+   */
+  private updateHeroTiles() {
+    if (!this.heroTiles.length || this._heroFar) return;
+    const f = this.focus, at = this.heroTilesAt;
+    if (Math.hypot(f.x - at.x, f.z - at.z) < HERO_TILE_STEP && at.q === this.quality) return;
+    at.x = f.x; at.z = f.z; at.q = this.quality;
+    const R = HERO_TILE_FAR[this.quality];
+    this.heroTiles.forEach((h, i) => {
+      const b = h.tile.box;
+      const d = Math.hypot(Math.max(b.x0 - f.x, 0, f.x - b.x1), Math.max(b.z0 - f.z, 0, f.z - b.z1));
+      const far = h.far ? d > R - HERO_TILE_HYST : d > R;
+      if (far === h.far) return;
+      h.far = far;
+      const key = heroTileKey(i);
+      this.finishFades(key, true);
+      const incoming = far ? h.tile.far! : h.tile.near!, outgoing = far ? h.tile.near! : h.tile.far!;
+      incoming.visible = true;
+      this.fadeL0(key, { toy: incoming, ground: null }, false);
+      this.fadeL0(key, { toy: outgoing, ground: null }, true, () => { if (h.far !== far || this._heroFar) return; outgoing.visible = false; });
+      if (!this.canFade) outgoing.visible = false;
+    });
   }
 
   /** The hero ground or its stand-in (only once the stand-in exists). */
@@ -601,7 +662,7 @@ export class CityStreamer {
 
   // --- tier cross-fade (C2-10) ---
 
-  private fadeL0(key: number, rec: L0Rec, out: boolean, end?: () => void) {
+  private fadeL0(key: number, rec: FadeMeshes, out: boolean, end?: () => void) {
     const pair = this.canFade ? this.pairs.pop() ?? (this.pairsMade < FADE_PAIRS ? (this.pairsMade++, makeTierFadePair()) : null) : null;
     if (!pair) { end?.(); return; }
     if (rec.toy) rec.toy.material = pair.toy;
@@ -719,6 +780,7 @@ export class CityStreamer {
     this.updateFocus(dt, camera);
     this.camH = this.cameraHeight(camera);
     this.updateHero();
+    this.updateHeroTiles();
     this.stepHeroGround();
     // re-select
     const radii = this.radii();
@@ -803,7 +865,7 @@ export class CityStreamer {
       status: this.status, ...n, queued: this.queued, inflight: this.inflight.size,
       workerMs: +this.workerMs.toFixed(1), attachMs: +this.attachMs.toFixed(2), attachMaxMs: +this.attachMax.toFixed(2),
       jobs: this.jobsDone, errors: this.errors, props: this.props.counts(), sites: this.opts.sites.counts(), pool: this.pool.stats(),
-      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, camH: Math.round(this.camH), farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
+      l0Triangles: this.l0Tris, l1Triangles: Math.round(this.l1Tris), l2Triangles: Math.round(this.l2Tris), heroFar: this._heroFar, heroTiles: { far: this.heroTiles.filter(h => h.far).length, of: this.heroTiles.length }, camH: Math.round(this.camH), farMs: Math.round(this.farMs), focus: { x: Math.round(this.focus.x), z: Math.round(this.focus.z) },
       boards: { status: this.boards.status, items: this.boards.result?.items.length ?? 0, triangles: this.boards.result?.triangles.total ?? 0, ms: Math.round(this.boards.result?.ms ?? 0), nearTiles: this.boardLod.filter(t => t.on).length, tiles: this.boardLod.length },
       hazeDepth: Number.isFinite(this.hazeDepth) ? this.hazeDepth : null,
     };
@@ -823,6 +885,8 @@ export class CityStreamer {
     setCityTerrain(null);
     if (this.table) for (const c of this.table.cells) this.dropL0(c, false);
     if (this._heroFar) for (const m of [...(this.opts.hero?.meshes ?? []), ...(this.opts.hero?.ground?.meshes ?? [])]) m.visible = true;
+    // the hero tiles back to their near chunks (the fades above put the plain materials back)
+    for (const h of this.heroTiles) { if (h.tile.near) h.tile.near.visible = true; if (h.tile.far) h.tile.far.visible = false; h.far = false; }
     this.pool.dispose();
     this.props.dispose();
     this.opts.sites.dispose();

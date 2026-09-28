@@ -6,6 +6,8 @@ export { CityStreamer, cityStreamer } from './stream';
 export { CitySites } from './sites';
 export { CityWater } from './water';
 export { heroLandRaster, heroProxy } from './hero';
+// the hero's far detail tiles (W5-V2)
+export { heroFarChunks, pairHeroTiles } from './farHero';
 export { heroGroundJob, heroGroundProxy } from './heroGround';
 export { attachMurals } from './murals';
 export { CloudBank } from './cloudBank';
