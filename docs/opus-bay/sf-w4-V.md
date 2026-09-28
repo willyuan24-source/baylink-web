@@ -1063,3 +1063,79 @@ this part.
   and next passes with the shadow state lifted per call), sf-look (the YBI patch), hero-regression (the Wharf poles),
   sf-atmos (the glide cap), w4-assets (the two downtown spots).
 - One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
+
+## Integration review
+
+Adversarial review of lane V's wave-4 integration (parts a and b: `9340000` … `cf41edf`, 25 code / QA commits and two
+report commits), 2026-09-28. Worktree `C:/Users/willy/wt/i4-v`, dev port 5406, scratch `C:/Users/willy/opus-qa/w4i/i4-v/rev/`.
+
+### 给主人的摘要
+
+0. **进度（回答"现在进度如何"）**：V 线接线复查完成：两部分的 25 个提交逐个读过，在桌面和 390 × 844 手机上实际玩过；找到 2 个真问题，都已修好、加了测试并推送；其余功能按报告所说工作。
+1. **修好的问题**：后台"提前编译着色器"其实没有等上一个编译完就开始下一个（手机上一次最多 13 个排队）；现在一个编完再编下一个。另外，画质切换或离开游戏后，旧画质的后台编译还会继续跑好几秒、白白多编 26 个以上的着色器；现在会马上停下。
+2. **没变的**：手机画质从"均衡"自动降到"省电"那一刻仍然是 0 个新编译；老区（district）画面和性能不变。手机性能最终数字仍等总负责人在安静机器上复测。
+
+### What was checked
+
+- **Every lane V commit** and the code around it: the warm-up (`world/warmup.ts`, the live and next-level passes, late
+  registrations, the depth kinds), `world/quality.ts` (F3), the city part of the World (`world/sf/cityWorld.ts`: detach order,
+  the moved seawall / Angel Island board / lot cuts / hero ground pick / Wharf poles against the old code), the lake islands
+  and ponds (`raster.ts fillRings`, `build.ts`, `far.ts`, the worker's `zones` message and the job order: no chunk job before
+  it), the streamer prefetch, the Karl glide cap (GLSL and JS mirror), the cloud melt and night tint, the water near fade
+  (shared by the city water, which builds on `makeWaterMaterial`), the window seed, the Salesforce crown, YBI's patch, the
+  `?debug` placement, `registerVoiceClips` and the postcard / model registration, the Draco heroes' loaders (every consumer
+  of the five GLBs goes through `heroGltfLoader`; nothing outside `/opus-bay` loads them).
+- **In the game** (RTX, `CHROME_FLAGS=--force_high_performance_gpu`, every image read): district mode on desktop (Ferry
+  Building, BAYBAY and the sailboat from the Draco GLBs, 74 calls / 228k, programs 48 → live 69 → next pass); city mode on
+  the phone (390 × 844 touch, dpr 2 / 3) with `?debug` (the panel wraps under G1's line, inside the screen); the Settings
+  quality pick by taps on the phone (start mid → High → Balanced: choice `mid`, saved `mid`, a reload starts at mid: F3
+  holds); the monitor's step mid → low after the passes (lane V's `warm-next.mjs`: 0 programs at the step, longest frame
+  105 ms); a quality switch high → low while the live pass runs (desktop city).
+- **Data, beyond the lane's tests**: the drawn ground mask against core/sfTerrain's walk raster on **all 194 non-hero
+  chunks** (the lane's test covers four): 0 mismatching uniform cells.
+- **Bundle** (`vite build`, gzip -9): GameRoot 290,463 B on origin's warm-up → 290,652 B with this review's fix (+189 B).
+
+### Defects found and fixed
+
+| # | defect | fix | commit |
+|---|---|---|---|
+| 1 | Part b's "one object per compile call, each link awaited" did not hold at the next level: three's `compileAsync` polls the material's *current* program, and for a visible object the next frame sets that back to this level's linked one, so the call resolved while the next level's program was still linking. Phone profile (390 × 844, dpr 3, city, mid): 12 of 40 program-making calls resolved unlinked; 3 and 13 calls (two runs) started with links pending; link waits 380–520 ms | each batch waits for the programs it created (`isReady()`: non-blocking with `KHR_parallel_shader_compile`; `LINK_WAIT_MS` = 4 s cap, a lost context never completes) | `fbc9e2c` |
+| 2 | Nothing stopped a background pass: after a quality change (or the canvas unmounting) the old level's live and next passes ran on for seconds, and the module kept the old renderer and scene (and compiled late registrations against them). Desktop city, switch high → low 4.6 s after the warm-up: 116 programs, the old passes still running 16 s later | `stopWarmup(renderer)` (GameRoot's Warmup cleanup: unmount, quality / motion change); a pass checks it between objects; a registration after it waits for the next full warm-up: 90 programs, the old pass ends at the switch | `fbc9e2c` |
+
+Tests (`opus-bay-sf-perf`, both fail on the old code): a fake renderer whose `compileAsync` resolves at once while its
+program links for 400 ms (no call while a link is pending, every gap ≥ the link); `stopWarmup` before and inside the
+passes, a registration after it, another renderer's stop.
+
+### Evidence
+
+- **Next-level pass, phone profile** (`rev/probe-next.mjs`: `compileAsync` wrapped, the programs still linking at each call
+  and at each resolve, frames over 50 ms):
+
+  | tree | calls started with links pending | calls resolved unlinked | next pass | longest frame during the passes |
+  |---|---|---|---|---|
+  | origin (two runs) | 3 · 13 | 12 · 12 | 4.8 · 5.8 s | 303 · 305 ms |
+  | fix (three runs) | **0 · 0 · 0** | 12 in the first run (now waited for) | 7.3 · 6.2 · 5.9 s | 256 · 160 · 179 ms |
+
+  The host was shared (other lanes' Chromes), so the frame numbers are indicative; single heavy links still cost one frame
+  of 160–260 ms (part b's known gap). The next pass takes ≈ 1–2.5 s longer; it ends ≈ 12–14 s after the boot warm-up, and a
+  monitor step that comes earlier now stops it and warms the new level at once. After the passes the step mid → low links
+  **0** programs (longest frame 105 ms), as in part b.
+- **Quality switch mid-pass** (`rev/probe-switch.mjs`, desktop city, high → low 4.6 s after the warm-up, state 16 s later):
+  origin 116 programs, the old live pass 7.3 s long and the old next (mid) pass still to come; fix 90 programs, the old pass
+  stops at the switch, then the low level's own live pass (79 → 90).
+- **Shots** (scratch, not committed): `rev/district-desk.jpg`, `rev/phone-debug.jpg`, `rev/set2.jpg` / `set3.jpg`.
+
+### Open
+
+- The phone fps gate on a quiet machine (the lead's W4-Z); the Ferry gate's ≈ 1k triangle margin at quality high.
+- Seen outside lane V's files (not changed here): on 390 × 844 the More menu's Photo item sits under the ARRIVED card
+  (`rev/set1.jpg`: the card covers the menu's upper item) — for the HUD / arrival UI owner (lane G).
+- GameRoot is 189 B gzip larger than origin with this fix (290,652 B); the ≤ 250 KB goal stays the lead's split decision.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors (on `fbc9e2c`).
+- `npx eslint .`: 0 errors (43 warnings, none in lane V's files).
+- `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`: **883 / 883** (the lane's 881 + the two new warm-up
+  tests), hero regression and contracts green.
+- One relayed owner message ("现在进度如何") came with the brief: answered in 给主人的摘要 item 0.
