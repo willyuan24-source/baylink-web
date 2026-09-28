@@ -178,12 +178,22 @@ export const OPEN_ARRIVAL_R = 30;
  * pocket or a slot between two house rows, E2 w3 part b request 1 / CS-10); then p itself when it is standable, then
  * the nearest walkable spot within 40 u. District mode: p or the nearest walkable spot, as before.
  */
-export function arrivalSpot(p: Vec2, open: (p: Vec2, r: number) => Vec2 | null = openArrivalSpot): Vec2 {
-  const o = cityTerrain() ? open(p, OPEN_ARRIVAL_R) : null;
-  if (o) return o;
-  if (canStand(p.x, p.z)) return { x: p.x, z: p.z };
+export function arrivalSpot(p: Vec2, open: (p: Vec2, r: number) => Vec2 | null = openArrivalSpot, env: ArrivalEnv = LIVE_ENV): Vec2 {
+  const o = env.city() ? open(p, OPEN_ARRIVAL_R) : null;
+  const here = env.stand(p.x, p.z);
+  // (W5-N5) never another level than the place: the open ground nav finds within 30 u may be a deck above it (Fort
+  // Point's door lies under the Golden Gate's approach, 15 u up: a flight there landed on the bridge) or a terrace
+  // below a cliff; a standable place then keeps its own spot
+  if (o && (!here || Math.abs(env.height(o.x, o.z) - env.height(p.x, p.z)) <= LEVEL_STEP)) return o;
+  if (here) return { x: p.x, z: p.z };
   return nearestWalkable(p, 40) ?? { x: p.x, z: p.z };
 }
+
+/** An arrival's open area may lie at most this far above or below the place's own ground (u). */
+export const LEVEL_STEP = 4;
+/** What arrivalSpot asks of the world (injectable for tests). */
+export interface ArrivalEnv { city: () => boolean; stand: (x: number, z: number) => boolean; height: (x: number, z: number) => number }
+const LIVE_ENV: ArrivalEnv = { city: () => !!cityTerrain(), stand: (x, z) => canStand(x, z), height: (x, z) => heightAt(x, z) };
 
 /**
  * W5-N5 · the landing heading: a first sight faces its landmark; else the most open ground (lane F's W5-F7

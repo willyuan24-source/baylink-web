@@ -844,3 +844,16 @@ test('W5-N8 the map\'s 这周: one pin per venue (soonest first), today\'s under
   assert.equal(ME.pinsFor('week', pins).length, 4);
   assert.equal(ME.pinsFor('park', pins).length, 0, 'a category chip: none');
 });
+
+test('W5-N5 a landing never lands on another level: an open area on a deck above the place (Fort Point under the Golden Gate) keeps the place', () => {
+  const env = (h: (x: number, z: number) => number, stand = true) => ({ city: () => true, stand: () => stand, height: h });
+  const deck = { x: 10, z: 0 };
+  const open = () => deck;
+  // the open area is the bridge deck 15 u up: the standable door itself
+  assert.deepEqual(FT.arrivalSpot({ x: 0, z: 0 }, open, env((x) => (x > 5 ? 15.2 : 0.6))), { x: 0, z: 0 });
+  // the same level: the open area (the wave-3 rule)
+  assert.deepEqual(FT.arrivalSpot({ x: 0, z: 0 }, open, env(() => 2)), deck);
+  // a place that is not standable takes the open area wherever it is
+  assert.deepEqual(FT.arrivalSpot({ x: 0, z: 0 }, open, env((x) => (x > 5 ? 15.2 : 0.6), false)), deck);
+  assert.equal(FT.LEVEL_STEP, 4);
+});
