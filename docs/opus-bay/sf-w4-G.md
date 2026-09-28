@@ -287,8 +287,9 @@ part 2 steps 1 and 6, lane P's flags step, lane V's warm-up), then the plan §5.
 1. G 线做的"引导"已经真正接进游戏（只在城市模式；街区模式一点没变，街区根本不会下载这些代码）：景点小旗、屏幕边的目标箭头（点一下镜头就转过去）、右上角"下一站 · 约 N 分钟"的行程胶囊和行程卡片（跳过这一站 / 换个方式 / 结束）、"抵达"金色提示 + 6 秒小卡片 + 2.4 秒揭幕镜头、双峰等观景台的地名标签、手动走路时地上的三个金色小箭头、触屏上"自动跟上 BAYBAY"按钮和一次性提示。
 2. 修好了第三波留给 G 线的 10 个请求：手机横屏最上面的按钮被切掉、自动带路时往东多走 20 格又折回（渡轮大厦去唐人街）、坐地铁在隧道里还能"提前下车"、渡轮开着时还显示"下车"、BAYBAY 站在渡轮上的玩家身上、F 线车站图标不对等。
 3. 坐观光巴士时 BAYBAY 坐在你旁边；车快到景点时镜头会转过去看它；地铁出隧道时回头看隧道口；乘车横幅多了"下一站下车"（手机上是 下一站下车 · 直接到站 · ⋯）。
-4. 主包 GameRoot 没有变大（最后一步 790.68 → 790.51 KB）：新东西都在按需加载的小包里，还顺手把几个界面挪出了主包。检查：tsc 0、eslint 0 错误、全套 802 个测试全过；没有花 Higgsfield 积分。
-5. 进度（回复"现在进度如何"）：接线部分（part a）已完成，8 个提交都已推送；留给 part b 的是 BAYBAY 骑车 / 开车带路时的指路和台词、长距离"直接到站"的过场、地铁出隧道更完整的取景，以及逐个检查每个一级景点的揭幕镜头。
+4. 主包 GameRoot 没有变大（最后一步 790.68 → 790.51 KB）：新东西都在按需加载的小包里，还顺手把几个界面挪出了主包。检查：tsc 0、eslint 0 错误、全套测试全过（推送后的最终版本 808 / 808）；没有花 Higgsfield 积分。
+5. 进度（回复"现在进度如何"）：接线部分（part a）已完成，8 个提交都已推送（最后一个 `5b7b960`）；留给 part b 的是 BAYBAY 骑车 / 开车带路时的指路和台词、长距离"直接到站"的过场、地铁出隧道更完整的取景，以及逐个检查每个一级景点的揭幕镜头。
+6. 一次失误，已修好：我删除一个临时对照用的工作目录时（`git worktree remove --force`），命令顺着它的 node_modules 链接，把桌面上 baylink-web 共用的 `node_modules/.bin`（tsx、tsc、eslint、vite 等命令的启动文件）删空了。发现后我只重建了这 108 个启动文件（36 个命令，和另一份完好的副本逐字节一致），没有重新安装任何依赖，其它文件没动；现在这些命令都能正常用。
 
 ### What was wired (commits on `opus-bay`)
 
@@ -300,8 +301,8 @@ part 2 steps 1 and 6, lane P's flags step, lane V's warm-up), then the plan §5.
 | `7287a6a` W4-IG4 | the ride banner's 下一站下车 (lane T's `label.nextStop` / `requestNextStop()`); phones: 下一站下车 · 直接到站 · ⋯ (提前下车 folded) |
 | `42fe6f2` W4-IG5 | the trip card on lane C's `skipTripLeg` / `endTrip` / `dismissArrival`; the pill takes lane P's pier short name ("下一站 33 号码头"); ride-camera looks (W4-G9); BAYBAY beside the rider on the bus deck and aft of a rider at the ferry's bow rail (W4-G4 part, E2 review open); RouteWalker cuts to a later leg (G1 review observation, below); the reveal plans from the ground (not a stale `player.y`); the toast's 3.2 s from when it is on screen; flags wait for lane V's late warm-up |
 | `cd7c141` W4-IG6 | 667 × 375: the coach mark keeps left of the touch action |
-| `499f3b9` W4-IG7 | the Grand Tour's pill and dots from lane C's `tourPill()`; the guide layer fetched with `guideCity`; two-line arrival names; a ride-look test |
-| W4-IG8 (with this report) | far flags stand on the far city's elevation (they waited hidden beyond the streamed chunks: City Hall's gold target flag never showed from the Ferry); the Grand Tour pill and the city area pill live in the lazy layer; the edge arrow's 转过去 is wired by `guideCity` (the district's arrow is back to exactly its old DOM) |
+| `38fbb0a` W4-IG7 | the Grand Tour's pill and dots from lane C's `tourPill()`; the guide layer fetched with `guideCity`; two-line arrival names; a ride-look test |
+| `5b7b960` W4-IG8 (with this report) | far flags stand on the far city's elevation (they waited hidden beyond the streamed chunks: City Hall's gold target flag never showed from the Ferry); the Grand Tour pill and the city area pill live in the lazy layer; the edge arrow's 转过去 is wired by `guideCity` (the district's arrow is back to exactly its old DOM) |
 
 New files: `game/guideCity.ts`, `ui/GuideLayer.tsx`, `ui/RideBanner.tsx`, `ui/rideHop.ts`, `ui/lazyParts.ts`,
 `ui/CoachMarkBody.tsx`, `ui/coachSeen.ts`, `tests/opus-bay-sf-guide-city.test.ts`.
@@ -318,12 +319,22 @@ None of it is in GameRoot's static graph (tested); the district never fetches it
 
 - **Checks** (each push: tsc 0, whole-repo eslint 0 errors / 43 old warnings, the full suite): 715 / 715 (IG1), 722 / 722
   and 726 / 726 on the pushed tree (IG2), 748 / 748 and 775 / 775 (IG3–IG5 before the last rebases), **801 / 801 on the
-  pushed tree `cd7c141`** (IG3–IG6), 802 / 802 for IG7 and for IG8. Two failures seen during the IG5 rebase
-  (`D2-10 tops.ts`, `W4-IL5 swaps`) were lane L's and red on origin without lane G's commits (checked in a scratch
+  pushed tree `cd7c141`** (IG3–IG6), 802 / 802 for IG7 and for IG8, **808 / 808 on the pushed tree `5b7b960`** (origin had grown).
+  Two failures seen during the IG5 rebase (`D2-10 tops.ts`, `W4-IL5 swaps`) were lane L's and red on origin without lane G's commits (checked in a scratch
   worktree at `868b677`); lane L fixed them in `94badf8` before my push. **Honest notes:** the IG2 push went out right
   after a rebase that brought lane P's `W4-P-I1/I2` before the suite was re-run (re-run on the pushed tree: 726 / 726);
   the pushes after racing rebases (lane P, C, L commits touching none of lane G's files) were re-checked with tsc and
   the test files those commits touched, and the full suite ran on the pushed tree right after (801 / 801).
+- **Incident (fixed; honest note).** Late in the part I removed the scratch base worktree of the IG5 rebase check,
+  `C:/Users/willy/wt/i4-g-base`, with `git worktree remove --force`. Its `node_modules` was a junction to the shared
+  checkout's `C:/Users/willy/OneDrive/Desktop/baylink-web/node_modules`, and the removal followed the junction and
+  emptied that checkout's `node_modules/.bin` (the npm command shims; package folders untouched — seen as "'tsx' is not
+  recognized"). Fix: removed only the junction link and the scratch folder, then regenerated the 108 shims (36 bins, sh /
+  `.cmd` / `.ps1`) from each top-level package's `bin` with scratch `restore-bin.cjs` — no install, no network —
+  checked **byte for byte against an intact checkout's `.bin`: 108 / 108 identical**; `npx tsx`, `tsc`, `eslint` and
+  `vite` work again and the suite ran from them (808 / 808). The other dot folders of that `node_modules` were
+  unchanged. Left behind: the stale metadata folder `.git/worktrees/i4-g-base` (delete refused: permission denied;
+  `git worktree prune` or the owner can clear it; it is not a listed worktree).
 - **GameRoot** (`vite build`, gzip): the run began at 835.22 kB / 310.79 kB (`32eda15`); IG3 on `ebdc3a7`: 836.80 → 833.46
   kB; IG7 + IG8 on `cd7c141`: 790.68 → **790.51 kB / 298.39 → 298.37 kB**. City-only chunks: `guideCity` 36.9 kB
   (15.3 gzip) + its CSS 9.5 kB, `GuideLayer` 13.5 kB (5.6), `RideBanner` 1.8 kB, `MoveChip` 5.1 kB, `CoachMarkBody` 2.4 kB.
@@ -399,6 +410,7 @@ None of it is in GameRoot's static graph (tested); the district never fetches it
 - **Lane C**: `startPanorama()` is exported by `game/guideCity` (E at an overlook); `flow.arrival` is read once per object
   and the peek card's close calls `dismissArrival()`; a `[下一站]` on the card needs a tour "next" entry point.
 - **Lane L**: `sitePhoto` of the wave-4 sites drives the reveal (SF State's pose looks over a near roof).
-- **Lead**: none.
+- **Lead**: warn every lane: never `git worktree remove --force` a worktree whose `node_modules` is a junction — remove
+  the junction link first (`cmd /c rmdir <wt>\node_modules`), then the worktree (see the incident in Evidence).
 
 Relayed owner message during this part: "现在进度如何" — answered in summary item 5.
