@@ -129,11 +129,17 @@ export function gable(b: BatchLike, x: number, y0: number, z: number, w: number,
   for (const su of [-1, 1]) b.tri(P(su * w / 2, y0, -d / 2), P(su * w / 2, y0, d / 2), P(su * w / 2, y0 + rise, 0), wall, info, new THREE.Vector3(c * su, 0, -s * su));
 }
 
-/** Four-sided pyramid / hip cap over a centred rectangle. */
+/**
+ * Four-sided pyramid / hip cap over a centred w × d rectangle (turned by ry). The 4-sided cone is turned by 45° BEFORE
+ * the scale (the cached geometry is the square with half side 1/√2), so a w ≠ d cap is the rectangle's pyramid; it
+ * used to be scaled first and turned after, which made any w ≠ d cap a skewed rhombus reaching max(w, d) / 2 on both
+ * axes (City Hall's pediment cap, the Conservatory's wings, the Dragon Gate's roofs, Grace, the Legion, Mission
+ * Dolores, a hipped Painted Lady). Lane L, wave-4 integration; siteKit.hipRoof is the same shape with its own ridge.
+ */
 export function pyramid(b: BatchLike, x: number, y0: number, z: number, w: number, d: number, h: number, color: ColorLike, ry = 0, info: Info = NONE) {
-  b.add(CYLPYR(), M(x, y0, z, ry + Math.PI / 4, w / Math.SQRT2, h, d / Math.SQRT2), color, info);
+  b.add(CYLPYR(), M(x, y0, z, ry, w / Math.SQRT2, h, d / Math.SQRT2), color, info);
 }
-const CYLPYR = () => pyr ??= new THREE.ConeGeometry(1, 1, 4, 1).translate(0, 0.5, 0);
+const CYLPYR = () => pyr ??= new THREE.ConeGeometry(1, 1, 4, 1).rotateY(Math.PI / 4).translate(0, 0.5, 0);
 let pyr: THREE.BufferGeometry | undefined;
 
 /** Rotate a local 2D offset by yaw (three.js convention: +z of the local frame → (sin ry, cos ry)). */

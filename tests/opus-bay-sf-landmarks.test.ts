@@ -359,3 +359,26 @@ test('W4-IL1: the landmark helpers answer for the wave-4 sites (anchor, frame, p
   assert.ok(ucsf && ucsf.top >= (sfLandmark('ucsf-parnassus')!.base as number) + 17, 'the UCSF crane stands in the glide');
   assert.ok(!tall.some(t => t.id === 'dolores-park'), 'an overlook site is flown over');
 });
+
+test('W4-IL3: kit.pyramid caps the w × d rectangle (turned before the scale), turned by ry, apex at the centre', async () => {
+  const { pyramid } = await import('../src/opus-bay/world/sf/landmarks/kit');
+  const { Batch } = await import('../src/opus-bay/world/builder');
+  const ext = (w: number, d: number, ry: number) => {
+    const b = new Batch();
+    pyramid(b, 0, 0, 0, w, d, 1, '#ffffff', ry);
+    const p = b.build().getAttribute('position');
+    let x = 0, z = 0, top = { x: 0, z: 0, y: -Infinity };
+    for (let i = 0; i < p.count; i++) {
+      x = Math.max(x, Math.abs(p.getX(i))); z = Math.max(z, Math.abs(p.getZ(i)));
+      if (p.getY(i) > top.y) top = { x: p.getX(i), z: p.getZ(i), y: p.getY(i) };
+    }
+    return { x, z, top };
+  };
+  const a = ext(3.8, 1.2, 0);
+  assert.ok(Math.abs(a.x - 1.9) < 1e-5 && Math.abs(a.z - 0.6) < 1e-5, `3.8 × 1.2 cap reaches ±${a.x.toFixed(3)} / ±${a.z.toFixed(3)} (a rhombus reached 1.9 on both)`);
+  assert.ok(Math.abs(a.top.y - 1) < 1e-6 && Math.hypot(a.top.x, a.top.z) < 1e-6, 'apex over the centre');
+  const t = ext(4, 1, Math.PI / 2);
+  assert.ok(Math.abs(t.x - 0.5) < 1e-5 && Math.abs(t.z - 2) < 1e-5, 'turned by ry after the scale');
+  const s = ext(2, 2, 0);
+  assert.ok(Math.abs(s.x - 1) < 1e-5 && Math.abs(s.z - 1) < 1e-5, 'a square cap is unchanged');
+});
