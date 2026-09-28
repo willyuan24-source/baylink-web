@@ -166,23 +166,30 @@ function buildSpray(material: THREE.Material): SprayMesh | null {
   const mesh = freezeStatic(new THREE.Mesh(geo, material));
   mesh.name = 'realsf-king-tide-spray';
   mesh.frustumCulled = true;
+  // (review) every frame while the spray stands: written straight into the buffer, no arrays or closures per frame
+  const attr = geo.getAttribute('position') as THREE.BufferAttribute;
+  const put = (o: number, x: number, y: number, z: number) => { pos[o] = x; pos[o + 1] = y; pos[o + 2] = z; };
   const step = (t: number) => {
     let o = 0;
-    edges.forEach((e, i) => {
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
       // each point bursts on its own beat: rises, hangs, falls back (0 … 1 … 0)
       const ph = ((t / SPRAY_PERIOD + i * 0.37) % 1 + 1) % 1;
       const h = SPRAY_H * Math.sin(Math.PI * Math.min(1, ph * 1.4)) * (0.8 + 0.2 * Math.sin(i * 2.1));
+      const bx = e.x + e.dx * 0.2, bz = e.z + e.dz * 0.2, by = y0[i] - 0.1;
+      const lean = 0.35 * h;
+      const tx = bx - e.dx * lean, ty = by + Math.max(0.01, h), tz = bz - e.dz * lean;
       for (let f = 0; f < FANS; f++) {
         const a = (f / FANS) * Math.PI + i;
         const ux = Math.cos(a) * SPRAY_W * 0.5, uz = Math.sin(a) * SPRAY_W * 0.5;
-        const bx = e.x + e.dx * 0.2, bz = e.z + e.dz * 0.2, by = y0[i] - 0.1;
-        const lean = 0.35 * h;
-        const top = [bx - e.dx * lean, by + Math.max(0.01, h), bz - e.dz * lean];
-        const verts = [[bx - ux, by, bz - uz], [bx + ux, by, bz + uz], [top[0] + ux * 1.4, top[1], top[2] + uz * 1.4], [top[0] - ux * 1.4, top[1], top[2] - uz * 1.4]];
-        for (const v of verts) { pos[o++] = v[0]; pos[o++] = v[1]; pos[o++] = v[2]; }
+        put(o, bx - ux, by, bz - uz);
+        put(o + 3, bx + ux, by, bz + uz);
+        put(o + 6, tx + ux * 1.4, ty, tz + uz * 1.4);
+        put(o + 9, tx - ux * 1.4, ty, tz - uz * 1.4);
+        o += 12;
       }
-    });
-    (geo.getAttribute('position') as THREE.BufferAttribute).needsUpdate = true;
+    }
+    attr.needsUpdate = true;
   };
   step(0);
   return { mesh, step };

@@ -153,13 +153,18 @@ export function pathTable(): PathTable {
 export interface Pose { p: THREE.Vector3; f: THREE.Vector3; u: THREE.Vector3; r: THREE.Vector3 }
 
 /** The frame at arc length s (wraps), with the formation offset (side along the right wing, lift along up: wingmen bank with the lead). */
+/** v = arr[i] + (arr[j] − arr[i]) · k over three-float rows (module level: poseAt runs ≈ 160 times a frame in the show,
+ *  and a closure per call was garbage every frame — review) */
+function lerpRow(arr: Float32Array, i: number, j: number, k: number, v: THREE.Vector3): THREE.Vector3 {
+  const a = i * 3, b = j * 3;
+  return v.set(arr[a] + (arr[b] - arr[a]) * k, arr[a + 1] + (arr[b + 1] - arr[a + 1]) * k, arr[a + 2] + (arr[b + 2] - arr[a + 2]) * k);
+}
+
 export function poseAt(t: PathTable, s: number, side = 0, lift = 0, out?: Pose): Pose {
   const o = out ?? { p: new THREE.Vector3(), f: new THREE.Vector3(), u: new THREE.Vector3(), r: new THREE.Vector3() };
   const x = ((s % t.length) + t.length) % t.length / t.length * t.n;
   const i = Math.floor(x) % t.n, j = (i + 1) % t.n, k = x - Math.floor(x);
-  const lerp = (arr: Float32Array, v: THREE.Vector3) => v.set(
-    arr[i * 3] + (arr[j * 3] - arr[i * 3]) * k, arr[i * 3 + 1] + (arr[j * 3 + 1] - arr[i * 3 + 1]) * k, arr[i * 3 + 2] + (arr[j * 3 + 2] - arr[i * 3 + 2]) * k);
-  lerp(t.pos, o.p); lerp(t.fwd, o.f).normalize(); lerp(t.up, o.u);
+  lerpRow(t.pos, i, j, k, o.p); lerpRow(t.fwd, i, j, k, o.f).normalize(); lerpRow(t.up, i, j, k, o.u);
   o.r.crossVectors(o.u, o.f).normalize();
   o.u.crossVectors(o.f, o.r).normalize();
   if (side || lift) o.p.addScaledVector(o.r, side).addScaledVector(o.u, lift);
@@ -178,8 +183,8 @@ export const leadArc = (ms: number = bayNow().getTime(), t: PathTable = pathTabl
 export function jetPoses(ms: number, count: number, t: PathTable = pathTable(), out: Pose[] = []): Pose[] {
   const s = leadArc(ms, t);
   for (let i = 0; i < count; i++) {
-    const [b, side, lift] = FORMATION[i];
-    out[i] = poseAt(t, s - b * BACK, side * SIDE, lift, out[i]);
+    const slot = FORMATION[i];
+    out[i] = poseAt(t, s - slot[0] * BACK, slot[1] * SIDE, slot[2], out[i]);
   }
   out.length = count;
   return out;
@@ -257,9 +262,9 @@ export function writeSmoke(g: THREE.BufferGeometry, ms: number, count: number, e
   const s0 = leadArc(ms, t);
   const pose = smokePose, w = smokeW, to = smokeTo;
   for (let r = 0; r < count; r++) {
-    const [b, side, lift] = FORMATION[r];
+    const slot = FORMATION[r];
     for (let j = 0; j < SMOKE_SAMPLES; j++) {
-      poseAt(t, s0 - b * BACK - SMOKE_TAIL * JET_SCALE - j * SMOKE_DS, side * SIDE, lift, pose);
+      poseAt(t, s0 - slot[0] * BACK - SMOKE_TAIL * JET_SCALE - j * SMOKE_DS, slot[1] * SIDE, slot[2], pose);
       to.subVectors(eye, pose.p);
       w.crossVectors(pose.f, to);
       if (w.lengthSq() < 1e-6) w.copy(pose.r); else w.normalize();
@@ -317,6 +322,8 @@ export const JETS_NOW_LINE: Bilingual = { zh: '飞行表演正在湾上，四点
 export const JETS_NEAR_LINE: Bilingual = { zh: '飞机编队来啦！打开拍照，把它们拍下来吧～', en: 'Here come the jets! Open the camera and get them in a shot!' };
 export const JETS_PHOTO_LINE: Bilingual = { zh: '飞机编队拍到啦，舰队周纪念章收好！', en: 'Got the jets! A Fleet Week stamp for your journal!' };
 
+/** The photo camera's pitch when 拍飞机编队 opens photo mode (rad; photo mode clamps to 0.04 … 1.45). */
+export const JETS_PHOTO_PITCH = 0.06;
 /** The photo subject at Marina Green's seawall (and the waypoint's target). */
 export const WATCH = { id: 'realsf:jets-watch', x: -377.5, z: 287.5, r: 14 } as const;
 /** jets this near (u) and in frame count for the photo; the line and the roar reach this far */
@@ -389,6 +396,8 @@ export function initJets(): Jets {
   let boxesOn = false;
   let nearLine = false;
   let photoLine = false;
+  /** the Bay day the waiting photo line belongs to (a new day drops it) */
+  let lineDay = '';
   let lead: THREE.Vector3 | null = null;
   let leadDist: number | null = null;
   let lastDist = Infinity;
@@ -451,9 +460,11 @@ export function initJets(): Jets {
     act: () => {
       if (!up) { openEvent(JETS_EVENT); return; }
       enterPhotoMode(WATCH.id);
-      // aim where the formation will be in a moment (it flies 30 u/s)
+      // aim where the formation will be in a moment (it flies 30 u/s), the camera nearly level (lane F's `pitch`, W5-F6:
+      // the loop flies 7–52 u up, 7°–15° above the seawall's horizon, so a level look puts it in the frame's upper
+      // half instead of clipped at the top edge — review)
       const ahead = poseAt(table, leadArc(bayNow().getTime() + 1800, table));
-      faceCameraToward(ahead.p.x, ahead.p.z, { seconds: 0.8 });
+      faceCameraToward(ahead.p.x, ahead.p.z, { seconds: 0.8, pitch: JETS_PHOTO_PITCH });
     },
   } satisfies Interactable] : []));
 
@@ -476,6 +487,8 @@ export function initJets(): Jets {
   const tick = () => {
     attach();
     const now = bayNow();
+    const today = bayParts(now).dateKey;
+    if (today !== lineDay) { lineDay = today; photoLine = false; }
     const win = jetWindowOn(now);
     const day = !!win && now.getTime() < win.close;
     if (day !== showDay) { showDay = day; invalidateInteractables(); }
@@ -499,9 +512,12 @@ export function initJets(): Jets {
       const g = roarGain(d);
       setLoop(ROAR_ID, g, 500);
       if (g > 0.25) duck('music', 0.45, 800);
-      if (d < 400) nearLine = true;
+      // (review) only while they really are near: a latched flag had BAYBAY say 飞机编队来啦！打开拍照… across the city
+      // after the player left (the line had waited out a panel or photo mode), or at the next show day's first minute
+      nearLine = d < 400;
     } else {
       leadDist = null;
+      nearLine = false;
       setLoop(ROAR_ID, 0, 900);
     }
   };

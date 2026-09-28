@@ -9,6 +9,9 @@
   color: #fff; background: var(--ob-teal, #3f8f8a); box-shadow: 0 3px 6px -2px rgba(20, 50, 45, .45);
   transform: rotate(var(--tilt, 0deg)); transition: transform .15s var(--ob-spring, ease), filter .15s;
 }
+/* (review) a finger-sized tap area on phones: the chip draws ≈ 21 px tall, its hit area reaches ≈ 40 px (it stays inside
+   the flyer's bottom-left corner, clear of the title the flyer's own tap opens) */
+.ob-flyer .ob-flyer-go::after { content: ''; position: absolute; inset: -9px -7px; border-radius: 999px; }
 .ob-flyer .ob-flyer-go:hover, .ob-flyer .ob-flyer-go:focus-visible { transform: rotate(0deg) translateY(-2px) scale(1.04); box-shadow: 0 6px 10px -4px rgba(20, 50, 45, .55); filter: brightness(1.06); }
 
 /* 带我去 in the event card: the when row, pushed right */

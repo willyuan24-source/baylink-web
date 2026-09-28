@@ -10,7 +10,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
 import { weekEvents, type EventWindow } from './events';
 import { isFireRingLit } from './seasons';
-import { sunBandAt, sunTimes } from './sun';
+import { roundMinute, sunBandAt, sunTimes } from './sun';
 import { atMinute, fireSeasonKey, freePlacesOn, hm, marketHours, PLACES } from './todayRows';
 
 /**
@@ -128,7 +128,7 @@ function task(n: 1 | 2 | 3, kind: DailyKind, s: DaySignals, rnd: () => number): 
     }
     case 'sunset': {
       const sun = sunTimes(new Date(atMinute(s.dateKey, 12 * 60)));
-      const p = (d: Date) => { const b = bayParts(d); return b.hour * 60 + b.minute; };
+      const p = (d: Date) => { const b = bayParts(roundMinute(d)); return b.hour * 60 + b.minute; };
       const span = hours(p(sun.golden), p(sun.dusk));
       return {
         n, kind, source,
@@ -168,9 +168,10 @@ function task(n: 1 | 2 | 3, kind: DailyKind, s: DaySignals, rnd: () => number): 
     case 'fire':
       return {
         n, kind, source,
-        title: { zh: '去海洋海滩看篝火', en: 'See the fire rings at Ocean Beach' },
+        // (review) "see the fires" promised flames the toy rings show only after dusk: the task is to visit the rings
+        title: { zh: '去海洋海滩的篝火圈看看', en: 'Visit the fire rings at Ocean Beach' },
         hint: { zh: '篝火季到 10 月底 · 每天 6:00–21:30', en: 'Fire season runs to October 31 · 6 am–9:30 pm' },
-        short: { zh: '看篝火', en: 'the beach fires' }, window: { open: atMinute(s.dateKey, 6 * 60), close: atMinute(s.dateKey, 21 * 60 + 30) },
+        short: { zh: '篝火圈', en: 'the fire rings' }, window: { open: atMinute(s.dateKey, 6 * 60), close: atMinute(s.dateKey, 21 * 60 + 30) },
         go: { point: PLACES.fireRings.at, name: PLACES.fireRings.name },
       };
     case 'new':
@@ -251,6 +252,9 @@ export function initDaily(opts: { introAfter?: number } = {}): DailyRuntime {
     const d = bayParts(bayNow()).dateKey, c = getCatalog();
     const failed = !c && game.get().catalogStatus === 'error';
     if (d === day && c === catalogSeen && failed === noCatalog && list) return;
+    // (review) a new Bay day forgets yesterday's lines: the intro named yesterday's three, and 'daily-all' would have
+    // said "all three done" again right after midnight (the scheduler's day memory had just rolled over)
+    if (d !== day) lines.length = 0;
     day = d; catalogSeen = c; noCatalog = failed;
     list = c || failed ? dailyThree(d, daySignals(d, c)) : null;
   };

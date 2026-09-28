@@ -41,9 +41,12 @@ export function createDayMemory(storage: Store | null = defaultStorage()): DayMe
     has: (d, key) => { roll(d); return said.has(key); },
     add: (d, key) => {
       roll(d);
-      if (!KEY_RE.test(key) || said.has(key)) return;
+      if (said.has(key)) return;
+      // (review) a key outside KEY_RE (an event id the catalog may one day spell with '_' or '.') is remembered for this
+      // page all the same — it used to be dropped, and the scheduler then said that line again every 20 s — and only
+      // the well-formed keys are saved
       said.add(key);
-      try { storage?.setItem(REALSF_MEMORY_KEY, JSON.stringify({ d: day, said: [...said].slice(-64) })); } catch { /* full or blocked */ }
+      try { storage?.setItem(REALSF_MEMORY_KEY, JSON.stringify({ d: day, said: [...said].filter(k => KEY_RE.test(k)).slice(-64) })); } catch { /* full or blocked */ }
     },
   };
 }

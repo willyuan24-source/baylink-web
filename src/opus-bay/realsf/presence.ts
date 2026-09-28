@@ -5,7 +5,7 @@ import { runtime } from '../core/runtime';
 import { canStand, heightAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { isPaid, registerRewardIds } from '../economy/ledger';
-import { bayNow } from '../game/bayNow';
+import { bayNow, bayParts } from '../game/bayNow';
 import { registerFlagSource, type ExtraFlag, type FlagGlyph } from '../game/flags';
 import { openEvent } from '../game/flow';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
@@ -98,6 +98,9 @@ export function initPresence(): Presence {
   let lines: OfferedLine[] = [];
   /** souvenir lines wait until said (the scheduler's day memory then skips them) */
   const souvenirs: OfferedLine[] = [];
+  /** (review) the Bay day the waiting souvenir lines belong to: a new day drops them (the scheduler's memory rolls over
+   *  at midnight, and "…纪念章收好啦！" would have been said again with no stamp) */
+  let souvenirDay = '';
   let near: string | null = null;
 
   // the kits' world system (added once the city world runs)
@@ -154,6 +157,8 @@ export function initPresence(): Presence {
   const tick = () => {
     attach();
     const now = bayNow();
+    const today = bayParts(now).dateKey;
+    if (today !== souvenirDay) { souvenirs.length = 0; souvenirDay = today; }
     const next = activeEventsAt(now);
     if (openKey(next) !== openKey(open)) {
       const was = new Set(open.map(w => w.event.id)), is = new Set(next.map(w => w.event.id));

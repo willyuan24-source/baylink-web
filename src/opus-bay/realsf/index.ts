@@ -143,16 +143,20 @@ export function init(): () => void {
   // W5-R7: the calendar's dressings; the baked files at idle; lane D's Wave Organ follows the real tide
   const dressing = initDressing();
   let organOff: (() => void) | null = null;
+  // (review) a teardown while the eggs chunk is still loading must not wire the organ afterwards
+  let live = true;
   const idle = setTimeout(() => {
     void loadTides();
     void loadLive();
-    void import('../eggs/marina').then(m => { m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
+    void import('../eggs/marina').then(m => { if (!live) return; m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
   }, IDLE_FETCH_MS);
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
       presence: () => presence.stats(), jets: () => jets.stats(), dressing: () => dressing.stats(), organWired: () => organOff !== null,
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
+      /** QA (review): the line keys on offer right now, by source */
+      offered: () => ({ presence: presence.offered().map(l => l.key), jets: jets.offered().map(l => l.key), daily: daily.offered().map(l => l.key), dressing: dressing.offered().map(l => l.key) }),
     };
   }
 
@@ -186,7 +190,8 @@ export function init(): () => void {
   }, 5);
 
   return () => {
-    clearTimeout(idle); organOff?.(); dressing.off();
+    live = false;
+    clearTimeout(idle); organOff?.(); organOff = null; dressing.off();
     offLines(); jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
