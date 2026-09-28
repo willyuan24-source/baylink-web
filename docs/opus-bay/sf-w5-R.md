@@ -198,3 +198,207 @@ Written 2026-09-28 (PDT). Tasks: W5-R1, W5-R2, W5-R3 (plan §4.13).
 7. **E**: the souvenirs are `event:<catalog id>` with the id list `SOUVENIR_IDS` (append-only, in `realsf/eventVenues.ts`);
    `EVENT_SAY[id]` has a short bilingual name for the notebook's 印章 page.
 8. **Site editors (via the lead)**: add `location { lat, lng }` to SF events and November SF events (plan D10).
+
+## Part b
+
+Written 2026-09-28 (PDT). Tasks: W5-R4 (the 今天 tab), W5-R5 (今日三件小事), W5-R6 (Fleet Week jets) (plan §4.13, §3.3 items
+5–6). Pushed `d2b7bce` (W5-R4 / W5-R5) and `5eee52e` (W5-R6) — the cut rule for the jets (in the owner's build by Wed
+Oct 7 20:00 PT) is met on the code side.
+
+### 给主人的摘要
+
+1. 旅行本最前面多了"今天"页：旧金山现在几点、日出日落、月相、这个月雾多不多；下一个目标；今日三件小事；今天旧金山有什么（活动、渡轮大厦农夫市集、今天哪里免费、海滩篝火、温室灯光秀，过了时间的自动隐藏）；还有这周的旧金山活动。每一行都有"带我去"和官网来源、查证日期。问 BAYBAY 菜单里也有"今天旧金山有什么？"。
+2. 今日三件小事：每天按真实的旧金山给三件小事（去今天的活动、在真实日落时到海边或山顶、开集时在市集尝一口、坐一站车、去今天免费的地方、看海滩篝火……），每件 +10 金币，三件都做完再 +20；没做也不会少什么，明天可能不一样。
+3. 舰队周飞行表演：10 月 9–11 日中午 12 点到下午 4 点（官网时间），6 架蓝金色玩具喷气机（手机上 4 架）贴着水面从码头绿地前编队飞过，拉着白烟、带轰鸣声；当天早上 BAYBAY 会提醒并标出去码头绿地的路；在码头绿地拍到飞机编队可得舰队周纪念章 +15 金币；骑鹈鹕飞近表演区会被温柔地带回来。
+4. 所有日期、时间都在 9/28 查过官网（金门公园花园、Foodwise 市集、舰队周官网）。右上角小药丸点一下直接打开"今天"，需要 F 线改一行（已写在需求里）。
+
+### What was built
+
+**W5-R4 · 今天 · SF Today** (`d2b7bce`)
+
+- `realsf/TodayTab.tsx` + `realsf/realsf.css` (a lazy chunk; `registerJournalTab({ id: 'today', order: 5, label 今天 / Today,
+  count 'n/3' })` from `realsf/index.ts`, city mode only; the first tab in the row, before 明信片):
+  - the Bay clock card: `HH:mm`, the date · 旧金山时间; 日出 / 日落 (realsf/sun.ts); 约<moon phase> (realsf/moon.ts); the sun
+    band; Karl's usual month (通常晴朗少雾 …, realsf/seasons.ts `karlMonthFactor`); the sources line (NOAA / USNO, moon, fog,
+    查证于 2026-09-28);
+  - **下一个目标**: the first open explorer goal of the city list (the pelican first) with 带我去 (the nearest goal target);
+  - **今日三件小事** (below): each task with its real window (`11:00 起`, `现在开放`, `今天已过`), done ticks, 带我去 (the sunset
+    task goes to the nearest sunset spot), the rule line (+10 each, +20 for all three, nothing lost);
+  - **今天在旧金山**: the world events still on today (catalog title, venue, hours, cost, 以官网为准, the event's own source
+    link and check date; the title opens the EventCard), then the hand rows of `realsf/todayRows.ts` whose hours are not
+    over (past rows are hidden, later ones say when);
+  - **这周**: the San Francisco catalog events of the next 7 days (never 21+ or professional), 带我去 when the venue is in the
+    world, else 看看 (the EventCard); a mapped event shows its window at the venue (Fleet Week → 10月9日 · 码头绿地 ·
+    12:00–16:00, not the catalog's first programme); the footer 活动来自 BAYLINK 编辑整理，出发前以官网为准 · 这周去哪.
+  - Every 带我去 is lane N's `goTo(…, { source: 'realsf:today' })` (events through the catalog hook → `goToVenue`).
+- `realsf/todayRows.ts`: `rowsOn(dateKey, sunsetMin)` → the market, free places, fire rings, light show rows
+  (`{ id, kind, place, what, hours, note (…以官网为准), placeId?, at, source { label, url, verifiedAt } }`); `freePlacesOn`,
+  `marketHours`, `isMarketDayKey`, `botanicalLastEntry`, `botanicalFreeAllDay`, `conservatoryFree`, `teaGardenLastEntry`,
+  `fireSeasonKey`, `rowState(hours, nowMin)` ('open' | 'later' | 'over'), `atMinute`, `hm`, `PLACES`.
+- **问 BAYBAY → 今天旧金山有什么？** (`registerAskItem`, order 40, after BAYBAY's own choices) opens the Journal on 今天 — one tap
+  on phones until the pill does it (Requests 1–2).
+- `realsf/todayLine.ts` `todayLine(now?, catalog?)`: one SF Today line ≤ 45 zh — today's event in the world
+  (今天金门公园有蓝草音乐节，旅行本「今天」里有～), else the sunset (今天旧金山日落 18:40，旅行本「今天」里有三件小事～), else the
+  daily three. Lane C's welcome back gets it (`onWelcome('returning')`); when this chunk loads after the welcome (≤ 60 s),
+  R's scheduler says it once. Lane E can use it for the notebook header (plan §3.5).
+
+**W5-R5 · 今日三件小事** (`d2b7bce`)
+
+- `realsf/daily.ts`: `daySignals(dateKey, catalog)` (date-level facts only: the day's world events, market hours, free
+  places, fire season) → `dailyThree(dateKey, signals)`: a seeded shuffle (mulberry32 over the Bay date) of the kinds the
+  day really offers — `event` (always first when there is one), `sunset`, `market`, `ride`, `free`, `fire`, `new` — three
+  different kinds, at most two tied to a time (event / sunset / market), stable all day. Each task: `source`
+  `daily:<date>:1..3`, title, hint (hours are the real ones), `window`, `go`.
+- `initDaily()` (city mode): pays through lane E's ledger by the real signals — `event` at the venue in its window
+  (presence's `realsf` event-enter or ≤ 25 u), `sunset` at a sunset spot (Ocean Beach, Twin Peaks, Baker Beach, Lands End,
+  Marina Green) while the **real** sun is in its golden band (Settings' fixed time and the first visit's golden sky never
+  count), `market` a 尝一口 at the Ferry Building market while it is open, `ride` one real stop on any line, `free` at the
+  place (any time in the game; the hint says the real free hours), `fire` at the rings while they may burn, `new` a first
+  arrival. +10 each (`reward` `daily:<date>:n`), +20 with the third (`daily:<date>:all`) → `play.d { d, m }`; a toast
+  今日小事 ✓ 看日落 · 2/3; BAYBAY's once-a-day line after 75 s of play (今日三件小事：…，旅行本里有～) and 今天的三件小事都做完啦！明天可能不一样哦～.
+  Skipping a day loses nothing (no streak). `activeDaily()` for the tab; DEV `__opusRealSF.daily()` / `.complete(kind)`.
+
+**W5-R6 · Fleet Week over the Bay** (`5eee52e`)
+
+- `realsf/jets.ts`: the window is the Marina Green row of the venue table (Oct 9–11, 12:00–16:00; the practice Thursday is
+  not shown): `jetWindows()`, `jetWindowOn(date)`, `jetsUp(date)`.
+- The loop: `AIR_BOX` (the show frame 600 m off Marina Green's seawall), `LOOP_POINTS` → `pathTable()` (a closed centripetal
+  Catmull-Rom sampled every 2 u, 1,121 u, 37 s a lap at 30 u/s): the low pass ≈ 45 u off the seawall at 7–12 u over the
+  water, a wingover off Aquatic Park, the far line and a banked turn home off Crissy Field. Each jet banks by its felt lift
+  (the path's acceleration + gravity, smoothed), wingmen bank with the lead; the lead's place is a function of the Bay
+  clock (`leadArc(ms)`), so everyone sees the same pass at the same minute.
+- The look: six toy jets (`FORMATION` delta; four in a diamond at quality mid / low = phones), navy fuselage, gold swept
+  wings and tailplanes, twin fins, a cream belly stripe, no insignia or lettering (`buildJetGeometry`, 224 triangles,
+  ×1.9 toy scale ≈ 12.5 u long); a white tapering smoke ribbon behind each (`writeSmoke`, 50 triangles a jet, facing the
+  camera). **2 draw calls, 1,644 triangles at high (1,096 on phones)**: one InstancedMesh on `makeJetMaterial()` (its own
+  instance, program key `ob-toy-inst` = TOY_INST's: no new program) + one Mesh on `makeSmokeMaterial()` (own transparent
+  basic material: the one new program), both warmed (`r-jets`, `r-jets-smoke`); fixed bounding spheres; built only in the
+  window within 1,500 u of the box, dropped after.
+- The roar: `registerLoop('realsf-jets')` — a brown rumble under a pink whoosh whose band rises as they come (original
+  synthesis), gain full ≤ 120 u, silent ≥ 600 u; `duck('music', 0.45, 800)` while it is loud.
+- BAYBAY: `今天中午到下午四点，湾上有飞行表演，去码头绿地看！` (before noon; `飞行表演正在湾上，四点结束，去码头绿地看！` during) once on a
+  show day when the player is > 300 u from Marina Green, then the waypoint (`flow.mapTarget` = the Marina Green spot,
+  named 飞行表演 · 码头绿地, only when the player is free: no trip, tour or target); near the show
+  `飞机编队来啦！打开拍照，把它们拍下来吧～`.
+- The photo subject `realsf:jets-watch` at Marina Green's seawall (E 看看飞行表演 before noon → the Fleet Week EventCard;
+  拍飞机编队 during → photo mode, the camera turned to where the formation will be in 1.8 s). Any shutter with a jet in the
+  frame within 520 u pays once: `reward` `event:fleet-week-2026-jets` (15 coins, stamp; the id appended to `SOUVENIR_IDS`,
+  `EVENT_SAY` 舰队周飞机编队), `find` souvenir, and BAYBAY `飞机编队拍到啦，舰队周纪念章收好！`. The Marina Green venue keeps its
+  own 看看活动 prompt, pennant, festival kit and crowd from part a.
+- The pelican: `softBoxes()` — 15 small axis-aligned boxes along the loop (every 80 u of arc, the formation + 12 u, from
+  the lowest jet − 12 u up) through lane F's `charApi().glideSoftBox('realsf-jets-<i>', box, 我们在旁边看就好～)` while the
+  jets fly; none covers the Marina Green lawn or the photo spot.
+- DEV `window.__opusRealSF.jets()` → `{ up, built, count, tris, lead, dist, boxes }`.
+
+### Evidence
+
+- **Checks** — on `3f74a67` (before the last rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors
+  (43 old warnings outside `src/opus-bay`) · the suite **1157 / 1160** on the real clock (06:30 PDT): lane L's two fire-ring
+  tests (the table measured cold, red 06:00–21:30 PDT on `origin/opus-bay` itself: I ran them in a scratch checkout of
+  `da331c9` — same 2 failures) and the known `sf-move2` "E2-5 view field" wall-clock assert (passes alone); **1160 / 1160**
+  with the Bay clock pinned to 05:30 (lane T's `--import` preload calling `__setBayNowForTests`). The last rebase brought
+  lane L's fix `e889335`, F8 and L4; I pushed right after that rebase and ran the checks on the pushed head `5eee52e`
+  immediately after: tsc 0 · eslint 0 errors · **1170 / 1170 on the real clock**.
+- **New tests** `tests/opus-bay-w5-today.test.ts` (5) and `tests/opus-bay-w5-jets.test.ts` (5): every hand row over 400 days
+  has an https source, a check date and 以官网为准; the garden rules by date (Oct 6 first Tuesday, Oct 13 second Tuesday,
+  the Tea Garden Mon / Wed / Fri, the Saturday market 8–14, the fire season edges, Thanksgiving / Christmas / New Year,
+  the Botanical Garden's last entry at 11 season edges, the light show sunset + 30 … + 60); the daily three over 150 days
+  (stable, three kinds, ≤ 2 timed, event first, only what the day offers, sources match the reward grammar, lines ≤ 45);
+  paid once through lane E's real ledger by the real triggers (another event does not count, not at noon, 50 coins,
+  `play.d` = { '2026-10-03', 0b10000111 }, never twice, the next day fresh); the SF Today line ≤ 45 over 60 days × 3 hours;
+  the tab rendered at 10:30 (sources, 带我去 ×6+, no 21+ / professional events, the 7:30–9 free hour hidden) and at 07:45
+  (shown); the jets window (Oct 8 practice, 11:59, 16:00, Oct 12, 2027 off), 6 / 4 jets, ≤ 2.5k triangles, ≤ 5 flat
+  colours, the TOY_INST key; on the published city every jet of a lap over open water, ≥ 5 u over it, ≥ 12 u over the
+  running ferry's loop, the loop ≥ 150 u from both bridge towers and Alcatraz, jets ≥ 12 u apart; the photo spot standable
+  and on ferry-gate's walking network, < 80 u from the low pass; the soft boxes hold every jet and never the lawn; lines.
+- **Real game** (dev server 5510, headless Chrome `--force_high_performance_gpu`, every image read; QA JPEGs in
+  `docs/opus-bay/qa/w5/R/`):
+  - `?date=2026-10-03T10:30` at Marina Green: the 今天 tab first in the row (`今天 0/3`), 10:30 · 10月3日 周六, 日出 7:07 ·
+    日落 18:49 · 约下弦月; the pelican goal with 带我去; the daily three 去看看非洲艺术节 (11:00 起) · 在海边或山顶看日落
+    (18:14 起) · 去海洋海滩看篝火 (现在开放); HSB (现在开放) and the African Arts Festival (11:00 起) with their sources; the
+    market 8:00–14:00 (foodwise.org), the fire rings (nps.gov), the light show 19:19–19:49 (gggp.org); 这周: Castro,
+    Litquake, Quinteto, Fleet Week at 码头绿地 10月9日 12:00–16:00 — phone 390 × 844 dpr 3 (`r4-today-2026-10-03-phone.jpg`,
+    `r4-today-rows-2026-10-03-phone.jpg`) and desktop (English, `r4-today-2026-10-03-desktop-en.jpg`).
+  - `?date=2026-10-09T12:40` desktop zh (`r4-today-2026-10-09-desktop.jpg`, `r4-today-rows-2026-10-09-desktop.jpg`): 今天 1/3
+    after walking onto Marina Green (the event task paid: the ledger read `c: 25`, `play.d { 2026-10-09, m 1 }`, the Fleet
+    Week souvenir bit), 约新月, Fleet Week 现在开放 with its cost line.
+  - 问 BAYBAY on desktop: 8 · 今天旧金山有什么？ in the menu (`r4-ask-menu-desktop.jpg`); choosing it on the phone opens the
+    Journal on 今天 (`r4-today-from-ask-phone.jpg`, `?date=2026-10-09T09:00`: 去看看舰队周飞行表演 12:00 起).
+  - `?date=2026-10-09T09:00` at the Ferry Building (phone): BAYBAY 今天中午到下午四点，湾上有飞行表演，去码头绿地看！ and the waypoint
+    飞行表演 · 码头绿地 (`r6-morning-line-waypoint-phone.jpg`; `mapTarget` = `realsf:jets-watch`).
+  - `?date=2026-10-09T12:40` at Marina Green: `jets()` = up, built, 6 jets, 1,644 triangles (desktop) / 4 and 1,096 (phone,
+    quality mid); the formation passing low in front of the lawn with its smoke (`r6-jets-pass-2026-10-09-desktop.jpg`,
+    `r6-jets-pass-2026-10-09-phone.jpg`); renderer 76 calls / 174k triangles in that view (desktop high, not a gate run).
+    The jets' material linked no program of its own (the programs list has none named `ob-realsf-jets`: it shares
+    TOY_INST's); the smoke's program is linked by its late warm-up (`ob-realsf-smoke`), and the program count stayed at 96
+    between two reads 20 s apart while the jets flew (built, drawn each frame). Not a gate check: lane V's gate decides.
+  - Photo: the E prompt reads 拍飞机编队; photo mode turned to the formation (`r6-jets-photo-mode-desktop.jpg`), one shutter →
+    `isPaid('event:fleet-week-2026-jets')` true, coins 25 → 40, `play.g.souvenir` 'EAAC' (bits 4 and 17), BAYBAY
+    飞机编队拍到啦，舰队周纪念章收好！.
+- **Facts checked on the web, 2026-09-28**:
+  - Gardens of Golden Gate Park, Hours & Admission (https://gggp.org/visit/admissions-hours/): Conservatory of Flowers open
+    six days, closed Wednesdays, 10–4:30 (last entry 4), free the first Tuesday of the month, light art "Photosynthesis"
+    from 30 minutes after sunset every night, free, about 30 minutes long (also https://gggp.org/event/conservatory-light-show/;
+    a secondary listing, sf.funcheap.com, says it loops until midnight: not used); Japanese Tea Garden opens 9, last entry
+    5:30 (March–October) / 4:30 (November–February), free Monday, Wednesday, Friday 9–10 for everyone; SF Botanical Garden
+    opens 7:30, free daily 7:30–9, the second Tuesday of every month and Thanksgiving, Christmas, New Year's Day; last entry
+    6 (2nd Sunday in March – September), 5 (February – 2nd Saturday in March; October – 1st Saturday in November), 4 (1st
+    Sunday in November – January).
+  - Foodwise, Ferry Plaza Farmers Market (https://foodwise.org/markets/ferry-plaza-farmers-market/): Saturday 8–2, Tuesday
+    10–2, Thursday 10–2, year round.
+  - San Francisco Fleet Week, Air Show (https://fleetweeksf.org/air-show/): October 9, 10, 11, 2026, 12:00–4:00 PM, flown
+    between the Golden Gate Bridge and Alcatraz; Marina Green is home to the festival centre (general admission free).
+    The page names the headline team; the game shows only generic toy jets (no insignia, no names).
+
+### Decisions
+
+1. **The jets fly low and big.** The game camera looks down at the player: at 35–60 u the formation stayed above the top
+   edge of the frame from Marina Green (checked in the game), so the near pass runs 7–12 u over the water ≈ 45 u off the
+   seawall, under the camera's eye line, and the toy jets are ×1.9 (≈ 12.5 u). The wingover and the far line give the
+   show its shape; the pass in front of the lawn is what you see.
+2. **Wingmen bank with the lead** (as a real formation does); the turns are raised (26–34 u) so the outer jets keep ≥ 5 u
+   over the water, and every stretch near the running ferry's loop is ≥ 12 u up (tested).
+3. **The photo stamp counts any shutter with a jet in frame** within 520 u (not only through the prompt): the jets pass
+   quickly; the prompt aims the camera where they will be. Lane F's `faceCameraToward` sets yaw only, so the jets sit near
+   the top of the photo frame until the player drags the view (Requests 3).
+4. **The daily three's sunset needs the real sun** (not Settings' fixed time or the first visit's golden sky); the free-
+   place task counts any time in the game (the hint says the real free hours) — nothing in the game is ever locked.
+5. **The 今天 tab is order 5** (the first tab); the Journal's default tab and the top-right pill are lanes C / F's files:
+   the ask item 今天旧金山有什么？ gives one-tap access now; the pill and the default tab are Requests 1–2.
+6. **The light show's hours are the organiser's** (from sunset + 30 min, about 30 min), not the secondary "until midnight".
+7. **A mapped event in 这周 shows its window at the venue** (Fleet Week's air show at Marina Green) rather than the catalog's
+   first programme date (Oct 6): 带我去 goes where the thing will be.
+8. **The market row reads 渡轮大厦 · 农夫市集** (the place's name is not repeated), and the pre-show waypoint 飞行表演 · 码头绿地
+   (not 飞机编队 before any jet is up).
+
+### Not done (part b) / known gaps
+
+- W5-R7 (the shoulds: `calendar.ts` with Halloween / king tides, baked tides, `live.json` badges, 现实中怎么去, 我的周末, the
+  guide links) — not started (plan: shoulds after the mid-wave checkpoint).
+- The roar and the event loops were not heard by a person (headless): registration, gains, ducking and teardown only.
+- The smoke is a flat camera-facing ribbon with one opacity (tapering in width, not fading): readable, but a softer puff
+  look would need a vertex-alpha variant (one more program) — left as is.
+- The pill → 今天 and the Journal opening on 今天 need lanes F / C (Requests 1–2). No fps numbers (lane V's gate).
+- The jets are only in the window; lane V's gate table has no spot for them yet (Requests 5).
+- A scratch worktree I used to prove the fire-ring failures were upstream (`C:/Users/willy/wt/w5-r-scratch`, its
+  node_modules junction removed first) left its metadata folder `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/w5-r-scratch`
+  (Windows said "Permission denied"; git no longer lists it). Harmless; `git worktree prune` removes it (I did not run
+  prune, which also touches other lanes' stale entries).
+
+### Requests
+
+1. **F · `ui/Hud.tsx`** (plan MF6, §3.3 item 5): in city mode the objective pill opens the Journal on 今天 when it is
+   registered — `onClick={() => (game.get().worldMode === 'city' && journalTabs.get('today') ? openJournal('today') : flow.set(s => ({ goalsCard: !s.goalsCard })))}`
+   (`journalTabs`, `openJournal` from `ui/slots.ts`; lane C asked for the same).
+2. **C · `ui/Journal.tsx`**: with no tab asked, open on the first registered tab when it sorts before the built-ins (今天 is
+   order 5) in city mode — `known(asked) ? asked : slots[0] && slots[0].order < JOURNAL_BUILTIN_ORDER.cards && city ? slots[0].id : …`
+   — so J and the 旅行本 button land on 今天 too.
+3. **F · `game/cinema.ts` / the photo camera**: an optional pitch in `faceCameraToward(x, z, { pitch })` so a subject above
+   the horizon (the jets) comes to the middle of the photo frame.
+4. **E**: the notebook header can read `todayLine()` (`realsf/todayLine.ts`); the jets' stamp is `event:fleet-week-2026-jets`
+   (`SOUVENIR_IDS` bit 17, `EVENT_SAY` 舰队周飞机编队); the daily three pay `daily:<date>:1..3` and `:all` as agreed.
+5. **V**: a gate spot for the show — Marina Green, `&date=2026-10-09T12:40&at=marina-green` (the jets' 2 calls and 1,644
+   triangles at high only in the window); the smoke's program is warmed as `r-jets-smoke`. Voice (H5-3), R's new fixed
+   lines: 今天中午到下午四点，湾上有飞行表演，去码头绿地看！ · 飞行表演正在湾上，四点结束，去码头绿地看！ · 飞机编队来啦！打开拍照，把它们拍下来吧～ ·
+   飞机编队拍到啦，舰队周纪念章收好！ · 我们在旁边看就好～ · 今天的三件小事都做完啦！明天可能不一样哦～ (dynamic lines with times stay text).
+6. **Lead**: the leftover worktree metadata above; the jets' live check on Fri Oct 9 at 12:30 PT (plan §4.14).
