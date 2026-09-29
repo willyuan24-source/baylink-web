@@ -17,9 +17,11 @@ Object.assign(globalThis, {
 const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, cleanup, act } = await import('@testing-library/react');
 const { Hud } = await import('../src/opus-bay/ui/Hud');
+const { MoveChip } = await import('../src/opus-bay/ui/MoveChip');
 styles.deregister();
 const { game } = await import('../src/opus-bay/core/store');
 const I = await import('../src/opus-bay/game/interactables');
+const { flow } = await import('../src/opus-bay/game/flowStore');
 afterEach(() => { cleanup(); });
 // the window's timers (the HUD's lazy parts) would keep the file alive: close it (as tests/opus-bay-w5-lang-review.test.ts)
 after(() => { dom.window.close(); setTimeout(() => process.exit(0), 200).unref(); });
@@ -52,5 +54,21 @@ test('W6-K1: the E prompt follows a label its source renames in place (the jets:
   } finally {
     off();
     act(() => { game.set({ focus: null } as never); I.setInteractables(I.buildInteractables()); });
+  }
+});
+
+test('W6-K1 (lane T\'s review): aboard the ferry the move chip says 船上 / On deck and 下船, a train still 车厢里 / 下车', () => {
+  act(() => { game.set({ phase: 'playing', worldMode: 'city', move: { mode: 'transit', spot: 'seat' }, dialogue: { nodeId: null }, focus: null } as never); });
+  try {
+    act(() => { flow.set({ ride: { stage: 'riding', from: 'a', to: 'b', kind: 'ferry' } }); });
+    const view = render(h(MoveChip));
+    const text = () => view.container.textContent ?? '';
+    assert.match(text(), /On deck|船上/);
+    assert.doesNotMatch(text(), /On board|车厢里/);
+    act(() => { flow.set({ ride: { stage: 'riding', from: 'a', to: 'b', kind: 'cable-car' } }); });
+    assert.match(text(), /On board|车厢里/);
+    view.unmount();
+  } finally {
+    act(() => { flow.set({ ride: null }); game.set({ move: { mode: 'foot' } } as never); });
   }
 });

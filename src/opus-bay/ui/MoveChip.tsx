@@ -102,11 +102,13 @@ export function MoveChip() {
     }
     if (ride.stage === 'braking') return chip(icon, t('停车中…', 'Stopping…'), null);
     const note = hopOffNote(ride, {});
-    return chip(icon, t('车厢里', 'On board'), <>
+    // (W6-K1, lane T's review) aboard the ferry the chip says 船上 (you are on its deck, not in a carriage) and 下船
+    const ferry = kind === 'ferry';
+    return chip(icon, ferry ? t('船上', 'On deck') : t('车厢里', 'On board'), <>
       <Hint k={pad ? 'A' : 'E'} label={t(spotActionLabel(spot, kind))} onPress={() => { input.interactCount++; }} />
       {!pad && <Hint k="WASD" label={kind === 'ferry' ? t('走走甲板', 'Walk the deck') : t('车厢里走走', 'Walk the aisle')} />}
       {/* wave 4 (lane F review, lane T review open 1): under way / in a tunnel the key says why it waits */}
-      {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : 'Space'} label={t('下车', 'Hop off')} onPress={requestHopOff} />}
+      {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : 'Space'} label={ferry ? t('下船', 'Go ashore') : t('下车', 'Hop off')} onPress={requestHopOff} />}
     </>);
   }
   // on foot: the glide is ready (never over a context prompt)
