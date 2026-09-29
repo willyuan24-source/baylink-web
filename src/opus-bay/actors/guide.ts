@@ -36,6 +36,8 @@ const HOP_FAR = 18, HOP_DELAY = 1.5, HOP_TIME = 0.4;
 const WALK_MIN = 0.4, WALK_GATE = 0.15;
 /** a long route is kept while the brain's target stays within this of its goal (lead targets shift with the player) */
 const LONG_KEEP = 8;
+/** (W6-K1) a talk mark farther than this from the player is stale (every live one is beside them) */
+export const TALK_FAR = 30;
 
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
@@ -187,6 +189,10 @@ export class GuideMover {
 
     // --- goal
     let target: Vec2 | null = g.target;
+    // (W6-K1, W5-Z §7.5) a talk mark far from the player is stale (a dialogue left open across a teleport / a hop-in: her
+    // welcome or stage mark hundreds of u back): she stays by the player instead of re-planning a long findPath to it
+    // every few seconds and hopping back in when it fails. Every live talk mark stands beside the player.
+    if (target && g.state === 'talk' && Math.hypot(target.x - p.x, target.z - p.z) > TALK_FAR) target = null;
     if (!target && g.state === 'follow' && opts.playing && !opts.riding) {
       // brain let go: loiter, but never drift too far from the player
       if (gp > FOLLOW_GAP + 3 || (this.followGoal && dist(this.followGoal, g) > 0.6)) {

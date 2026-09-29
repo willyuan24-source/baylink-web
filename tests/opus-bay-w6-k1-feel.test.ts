@@ -116,3 +116,34 @@ test('W6-K1: the stair race\'s progress reads reuse objects; the bell pad re-ren
   assert.match(pad, /if \(k !== look\) \{ look = k; setTick/);
   assert.doesNotMatch(pad, /const tick = \(\) => \{ setTick/, 'no re-render every frame');
 });
+
+test('W6-K1 (W5-Z §7.5): a talk mark far from the player (a dialogue left open across a teleport) is dropped — BAYBAY stays by the player instead of re-planning toward it', async () => {
+  const { GuideMover, TALK_FAR } = await import('../src/opus-bay/actors/guide');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const far = DISTRICT.anchors['ferry-clock'], here = DISTRICT.anchors['pier39-entrance'];
+  assert.ok(Math.hypot(far.x - here.x, far.z - here.z) > TALK_FAR * 3);
+  const p = runtime.player, g = runtime.guide;
+  p.x = here.x; p.z = here.z; p.y = T.heightAt(here.x, here.z); p.pathTarget = null; p.locked = false; p.moving = false;
+  const m = new GuideMover();
+  m.place();
+  const by = T.nearestWalkable({ x: here.x + 1.8, z: here.z }, 4)!;
+  g.x = by.x; g.z = by.z; g.y = T.heightAt(by.x, by.z);
+  const d0 = Math.hypot(g.x - p.x, g.z - p.z);
+  assert.ok(d0 < 6, `placed by the player (${d0.toFixed(1)} u)`);
+  g.state = 'talk'; g.run = false; g.target = { x: far.x, z: far.z };
+  let maxGap = 0;
+  for (let t = 0; t < 6; t += 1 / 60) {
+    m.step(1 / 60, t, { playing: true, riding: false, visible: true });
+    maxGap = Math.max(maxGap, Math.hypot(g.x - p.x, g.z - p.z));
+  }
+  assert.ok(maxGap < 6, `stays by the player (max gap ${maxGap.toFixed(1)} u)`);
+  assert.equal(m.hops, 0, 'no hop-in');
+  // a live talk mark (beside the player) is still walked to
+  const mark = { x: here.x + 3, z: here.z };
+  if (T.canStand(mark.x, mark.z, 0.45)) {
+    g.target = mark;
+    for (let t = 6; t < 10; t += 1 / 60) m.step(1 / 60, t, { playing: true, riding: false, visible: true });
+    assert.ok(Math.hypot(g.x - mark.x, g.z - mark.z) < 1, 'reached the near mark');
+  }
+  g.state = 'follow'; g.target = null;
+});
