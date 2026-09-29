@@ -189,7 +189,7 @@ ${lines.join('\n')}
 const ix = await sf.graphIndex();
 const main = ix.mainComponent();
 const placesJson = JSON.parse(fs.readFileSync(`${sf.base}/places.json`, 'utf8')) as { places: { id: string; x: number; z: number }[] };
-const hunt: { n: number; place: string; x: number; z: number; y: number }[] = [];
+const hunt: { n: number; place: string; x: number; z: number; y: number; f: number }[] = [];
 for (const h of HUNT_PLACES) {
   const pl = placesJson.places.find(q => q.id === h.place);
   if (!pl) throw new Error(`no place ${h.place}`);
@@ -211,7 +211,12 @@ for (const h of HUNT_PLACES) {
     if (best) break;
   }
   if (!best) throw new Error(`hunt ${h.n} ${h.place}: no reachable spot within 26 u`);
-  hunt.push({ n: h.n, place: h.place, x: best.x, z: best.z, y: +heightAt(best.x, best.z).toFixed(2) });
+  // the carved face looks at the walker's way in: the nearest main-graph node ≥ 2.5 u away (else the place's middle)
+  const bx = best.x, bz = best.z;
+  const way = ix.nearestNode(bx, bz, 30, i => ix.component(i) === main && Math.hypot(ix.pos(i).x - bx, ix.pos(i).z - bz) >= 2.5);
+  const to = way >= 0 ? ix.pos(way) : { x: pl.x, z: pl.z };
+  const f = Math.hypot(to.x - bx, to.z - bz) > 0.5 ? +Math.atan2(to.x - bx, to.z - bz).toFixed(2) : 0;
+  hunt.push({ n: h.n, place: h.place, x: bx, z: bz, y: +heightAt(bx, bz).toFixed(2), f });
   console.error(`hunt ${h.n} ${h.place}: moved ${best.d} u`);
 }
 fs.writeFileSync(`${root}/huntSpots.ts`, `/**
@@ -219,10 +224,11 @@ fs.writeFileSync(`${root}/huntSpots.ts`, `/**
  * edit by hand; re-run the script (the names and hints live in halloween/huntPlaces.ts). Where each hidden
  * jack-o'-lantern sits: by its place of places.json, moved to the nearest spot a walker reaches (standable with a
  * 0.4 u body, not water, not the roadway, a walking-graph node of the main component within 14 u), ≥ 12 u from every
- * pebble and ≥ 30 u from each other. n = its reward number (pumpkin:n), y = the ground.
+ * pebble and ≥ 30 u from each other. n = its reward number (pumpkin:n), y = the ground, f = the carved face's heading
+ * (toward the nearest walking-graph node ≥ 2.5 u away: the walker's way in).
  */
-export const HUNT_XZ: readonly { n: number; x: number; z: number; y: number }[] = [
-${hunt.map(h => `  { n: ${h.n}, x: ${h.x}, z: ${h.z}, y: ${h.y} }, // ${h.place}`).join('\n')}
+export const HUNT_XZ: readonly { n: number; x: number; z: number; y: number; f: number }[] = [
+${hunt.map(h => `  { n: ${h.n}, x: ${h.x}, z: ${h.z}, y: ${h.y}, f: ${h.f} }, // ${h.place}`).join('\n')}
 ];
 `);
 console.error(`hunt ${hunt.length} written`);

@@ -3,47 +3,48 @@
  * edit by hand; re-run the script (the names and hints live in halloween/huntPlaces.ts). Where each hidden
  * jack-o'-lantern sits: by its place of places.json, moved to the nearest spot a walker reaches (standable with a
  * 0.4 u body, not water, not the roadway, a walking-graph node of the main component within 14 u), ≥ 12 u from every
- * pebble and ≥ 30 u from each other. n = its reward number (pumpkin:n), y = the ground.
+ * pebble and ≥ 30 u from each other. n = its reward number (pumpkin:n), y = the ground, f = the carved face's heading
+ * (toward the nearest walking-graph node ≥ 2.5 u away: the walker's way in).
  */
-export const HUNT_XZ: readonly { n: number; x: number; z: number; y: number }[] = [
-  { n: 1, x: -13.5, z: 590.5, y: 17.13 }, // alamo-square-painted-ladies
-  { n: 2, x: -41.3, z: 765.5, y: 18.94 }, // haight-ashbury
-  { n: 3, x: 1.9, z: 883.3, y: 24.05 }, // osm-w27092661
-  { n: 4, x: 24.2, z: 731.7, y: 29.58 }, // osm-w7459901
-  { n: 5, x: 80.3, z: 751.3, y: 29.63 }, // corona-heights
-  { n: 6, x: 155.3, z: 742.1, y: 9.18 }, // castro-theatre
-  { n: 7, x: 76, z: 646, y: 10.76 }, // osm-w24562854
-  { n: 8, x: -71.3, z: 742.8, y: 16.64 }, // osm-w16751151
-  { n: 9, x: 235.1, z: 699.5, y: 6.28 }, // dolores-park
-  { n: 10, x: 198.9, z: 646.8, y: 4.85 }, // mission-dolores
-  { n: 11, x: 262.9, z: 606, y: 2.63 }, // osm-w8916752
-  { n: 12, x: 512.3, z: 700.7, y: 3.58 }, // osm-w23908184
-  { n: 13, x: 519.1, z: 781.7, y: 25.27 }, // bernal-heights
-  { n: 14, x: 128.9, z: 922.7, y: 47.2 }, // osm-n599157316
-  { n: 15, x: 257.4, z: 1160.9, y: 49.76 }, // mount-davidson
-  { n: 16, x: -184.2, z: 855.9, y: 17.18 }, // conservatory-of-flowers
-  { n: 17, x: -277.2, z: 1031.5, y: 25.34 }, // stow-lake
-  { n: 18, x: -588.1, z: 1311.1, y: 1.44 }, // dutch-windmill
-  { n: 19, x: -438.4, z: 1474.2, y: 0 }, // ocean-beach
-  { n: 20, x: -720.9, z: 1246.2, y: 0.84 }, // sutro-baths
-  { n: 21, x: -741.2, z: 1092.8, y: 5.76 }, // lands-end
-  { n: 22, x: -670.6, z: 1083.4, y: 24.06 }, // legion-of-honor
-  { n: 23, x: -747, z: 595.8, y: 0.64 }, // fort-point
-  { n: 24, x: -502.7, z: 629.6, y: 19.74 }, // osm-n6064744363
-  { n: 25, x: -418.7, z: 417.5, y: 0 }, // palace-of-fine-arts
-  { n: 26, x: -286.3, z: 508.8, y: 22.85 }, // osm-n7221410485
-  { n: 27, x: -312.6, z: 238.4, y: 0.76 }, // fort-mason
-  { n: 28, x: -198, z: 453.6, y: 19.82 }, // osm-w16751737
-  { n: 29, x: -108.8, z: 363.7, y: 23.56 }, // osm-w16751838
-  { n: 30, x: -60.7, z: 449.2, y: 10.04 }, // japantown-peace-pagoda
-  { n: 31, x: 93.9, z: 411.4, y: 3.71 }, // city-hall
-  { n: 32, x: -236.1, z: 165.2, y: 3.55 }, // ghirardelli-square
-  { n: 33, x: -157.6, z: 165, y: 14.33 }, // lombard-crooked
-  { n: 34, x: -146.4, z: 20, y: 0 }, // pier-39
-  { n: 35, x: -57.1, z: 52.7, y: 20 }, // coit-tower
-  { n: 36, x: -66.2, z: 111.7, y: 0 }, // north-beach-washington-sq
-  { n: 37, x: 4.2, z: 233.9, y: 21.25 }, // grace-cathedral
-  { n: 38, x: 89.6, z: 225.1, y: 5.21 }, // union-square
-  { n: 39, x: 170, z: 212.1, y: 1.94 }, // yerba-buena-gardens
-  { n: 40, x: 132.1, z: 19.3, y: 0 }, // ferry-building
+export const HUNT_XZ: readonly { n: number; x: number; z: number; y: number; f: number }[] = [
+  { n: 1, x: -13.5, z: 590.5, y: 17.13, f: -1.6 }, // alamo-square-painted-ladies
+  { n: 2, x: -41.3, z: 765.5, y: 18.94, f: 2.67 }, // haight-ashbury
+  { n: 3, x: 1.9, z: 883.3, y: 24.05, f: 3.09 }, // osm-w27092661
+  { n: 4, x: 24.2, z: 731.7, y: 29.58, f: -2.62 }, // osm-w7459901
+  { n: 5, x: 80.3, z: 751.3, y: 29.63, f: 0.3 }, // corona-heights
+  { n: 6, x: 155.3, z: 742.1, y: 9.18, f: -1.48 }, // castro-theatre
+  { n: 7, x: 76, z: 646, y: 10.76, f: 0.55 }, // osm-w24562854
+  { n: 8, x: -71.3, z: 742.8, y: 16.64, f: 0.68 }, // osm-w16751151
+  { n: 9, x: 235.1, z: 699.5, y: 6.28, f: -0.81 }, // dolores-park
+  { n: 10, x: 198.9, z: 646.8, y: 4.85, f: 1.69 }, // mission-dolores
+  { n: 11, x: 262.9, z: 606, y: 2.63, f: 1.66 }, // osm-w8916752
+  { n: 12, x: 512.3, z: 700.7, y: 3.58, f: 1.85 }, // osm-w23908184
+  { n: 13, x: 519.1, z: 781.7, y: 25.27, f: 2.7 }, // bernal-heights
+  { n: 14, x: 128.9, z: 922.7, y: 47.2, f: 1.98 }, // osm-n599157316
+  { n: 15, x: 257.4, z: 1160.9, y: 49.76, f: -1.34 }, // mount-davidson
+  { n: 16, x: -184.2, z: 855.9, y: 17.18, f: 1.97 }, // conservatory-of-flowers
+  { n: 17, x: -277.2, z: 1031.5, y: 25.34, f: 0.72 }, // stow-lake
+  { n: 18, x: -588.1, z: 1311.1, y: 1.44, f: -3.02 }, // dutch-windmill
+  { n: 19, x: -438.4, z: 1474.2, y: 0, f: 1.99 }, // ocean-beach
+  { n: 20, x: -720.9, z: 1246.2, y: 0.84, f: -2.58 }, // sutro-baths
+  { n: 21, x: -741.2, z: 1092.8, y: 5.76, f: -2.48 }, // lands-end
+  { n: 22, x: -670.6, z: 1083.4, y: 24.06, f: -2.5 }, // legion-of-honor
+  { n: 23, x: -747, z: 595.8, y: 0.64, f: 2.92 }, // fort-point
+  { n: 24, x: -502.7, z: 629.6, y: 19.74, f: 2.69 }, // osm-n6064744363
+  { n: 25, x: -418.7, z: 417.5, y: 0, f: -1.86 }, // palace-of-fine-arts
+  { n: 26, x: -286.3, z: 508.8, y: 22.85, f: 1.44 }, // osm-n7221410485
+  { n: 27, x: -312.6, z: 238.4, y: 0.76, f: -2.5 }, // fort-mason
+  { n: 28, x: -198, z: 453.6, y: 19.82, f: 0.96 }, // osm-w16751737
+  { n: 29, x: -108.8, z: 363.7, y: 23.56, f: 0.4 }, // osm-w16751838
+  { n: 30, x: -60.7, z: 449.2, y: 10.04, f: -0.01 }, // japantown-peace-pagoda
+  { n: 31, x: 93.9, z: 411.4, y: 3.71, f: -2.6 }, // city-hall
+  { n: 32, x: -236.1, z: 165.2, y: 3.55, f: -1.8 }, // ghirardelli-square
+  { n: 33, x: -157.6, z: 165, y: 14.33, f: -0.44 }, // lombard-crooked
+  { n: 34, x: -146.4, z: 20, y: 0, f: 2.28 }, // pier-39
+  { n: 35, x: -57.1, z: 52.7, y: 20, f: -0.66 }, // coit-tower
+  { n: 36, x: -66.2, z: 111.7, y: 0, f: -2.52 }, // north-beach-washington-sq
+  { n: 37, x: 4.2, z: 233.9, y: 21.25, f: -0.02 }, // grace-cathedral
+  { n: 38, x: 89.6, z: 225.1, y: 5.21, f: 0.17 }, // union-square
+  { n: 39, x: 170, z: 212.1, y: 1.94, f: -1.65 }, // yerba-buena-gardens
+  { n: 40, x: 132.1, z: 19.3, y: 0, f: -1.13 }, // ferry-building
 ];

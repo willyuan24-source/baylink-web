@@ -52,7 +52,7 @@ export const MILESTONES: readonly { at: number; id: 'hunt:10' | 'hunt:20' | 'hun
 const HUNT_GLOW: Info = [0, 0, 0, 1.45];
 const HUNT_ORANGE = '#f07f22';
 
-export interface HuntSpot { n: number; x: number; z: number; y: number; near: Bilingual }
+export interface HuntSpot { n: number; x: number; z: number; y: number; f: number; near: Bilingual }
 export const HUNT_SPOTS: readonly HuntSpot[] = HUNT_XZ.map(s => {
   const p = HUNT_PLACES.find(q => q.n === s.n);
   return { ...s, near: p?.near ?? { zh: '', en: '' } };
@@ -154,8 +154,8 @@ export function createHunt(): Hunt {
     if (!list.length) return;
     const b = new Batch();
     const hl: HaloSpot[] = [];
-    // they face a stable, different way each (no one stares at the same street)
-    for (const s of list) addPumpkin(b, [s.x, s.y, s.z], 0.46, s.n * 2.1, HUNT_ORANGE, true, HUNT_GLOW, hl, true);
+    // each grins toward the walker's way in (huntSpots.ts f)
+    for (const s of list) addPumpkin(b, [s.x, s.y, s.z], 0.46, s.f, HUNT_ORANGE, true, HUNT_GLOW, hl, true);
     mesh = new THREE.Mesh(b.build(), TOY_DYN);
     mesh.name = 'halloween-hunt-lanterns';
     mesh.matrixAutoUpdate = false;

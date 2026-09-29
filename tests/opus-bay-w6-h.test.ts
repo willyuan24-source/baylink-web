@@ -97,6 +97,9 @@ test('W6-H1 stoops: the decorations stay cheap — ≈ 100 triangles a stoop, ha
   assert.equal(WD.cellHalos(key).length, cell.halos.length);
   // the worst 100 u disc stays under the ceiling the runtime keeps anyway
   assert.ok(WD.DRESS_TRIS_MAX <= 24_000 && WD.DRESS_NEAR.high <= 100);
+  // a phone ('mid') and 'low' keep less: triangles and the far glow
+  assert.ok(WD.DRESS_TRIS_BY_QUALITY.low < WD.DRESS_TRIS_BY_QUALITY.mid && WD.DRESS_TRIS_BY_QUALITY.mid < WD.DRESS_TRIS_BY_QUALITY.high && WD.DRESS_TRIS_BY_QUALITY.mid <= 14_000);
+  assert.ok(WD.DRESS_HALOS_BY_QUALITY.high < 768 && WD.DRESS_HALOS_BY_QUALITY.mid <= 320);
   assert.ok(halos / n >= 1);
 });
 

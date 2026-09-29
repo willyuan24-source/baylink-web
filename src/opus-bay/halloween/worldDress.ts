@@ -31,6 +31,10 @@ export const HALO_NEAR: Readonly<Record<'low' | 'mid' | 'high', number>> = { low
 export const CELL_BUILDS_PER_STEP = 2;
 /** a hard ceiling for the merged stoop mesh (triangles): cells beyond it wait (the budget test measures the worst view) */
 export const DRESS_TRIS_MAX = 24_000;
+/** the ceiling by quality (a phone at 'mid' keeps the nearest ≈ 130 stoops; the budget views: sf-w6-H.md part c) */
+export const DRESS_TRIS_BY_QUALITY: Readonly<Record<'low' | 'mid' | 'high', number>> = { low: 7_000, mid: 13_000, high: DRESS_TRIS_MAX };
+/** the stoops' night glow by quality (halos; the nearest first — the hunt, muertos and haunt halos come before them) */
+export const DRESS_HALOS_BY_QUALITY: Readonly<Record<'low' | 'mid' | 'high', number>> = { low: 160, mid: 320, high: 640 };
 
 const ORANGE = ['#e8792b', '#d9651f', '#f0913a', '#e36f24'];
 const STEM = '#5e7a3a', CARVE = '#ffcf5a', WEB = '#ece8df', GHOST = '#f4f1ea', EYE = '#26222b', LANTERN = '#3a3236', LAMP = '#ffb347';
@@ -129,7 +133,7 @@ export function addPumpkin(b: Batch, p: V3, r: number, f: number, color: string,
   if (!carved) return;
   const L = localFrame(x, y + h, z, f);
   const q = L.at(0, 0, r * (smooth ? 0.99 : 0.97));
-  b.add(FACE(), M(q[0], q[1], q[2], f, r * 1.25, h * 1.2, 1), CARVE, glow);
+  b.add(FACE(), M(q[0], q[1], q[2], f, r * 1.2, h * 1.05, 1), CARVE, glow);
   if (halos) { const o = L.at(0, 0, r * 1.1); halos.push({ x: o[0], y: o[1], z: o[2], size: r * 3.2, color: HALO_FACE }); }
 }
 
@@ -449,10 +453,11 @@ export function createDress(): Dress {
     if (hkey !== haloKeys) {
       haloKeys = hkey;
       const list: HaloSpot[] = [];
+      const cap = DRESS_HALOS_BY_QUALITY[q] ?? DRESS_HALOS_BY_QUALITY.mid;
       for (const k of hk) {
         let h = haloCache.get(k);
         if (!h) { h = cellHalos(k); haloCache.set(k, h); }
-        for (const x of h) list.push(x);
+        for (const x of h) if (list.length < cap) list.push(x);
       }
       halos = list;
       if (haloCache.size > 160) for (const k of [...haloCache.keys()]) if (!hk.includes(k)) haloCache.delete(k);
@@ -472,7 +477,7 @@ export function createDress(): Dress {
         built++;
       }
       // nearest first: the triangle ceiling drops the far ones
-      if (tris + c.idx.length / 3 > DRESS_TRIS_MAX) continue;
+      if (tris + c.idx.length / 3 > (DRESS_TRIS_BY_QUALITY[q] ?? DRESS_TRIS_BY_QUALITY.mid)) continue;
       tris += c.idx.length / 3;
       ready.push(c);
     }
