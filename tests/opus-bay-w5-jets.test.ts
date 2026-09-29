@@ -68,7 +68,8 @@ test('W5-R6 budget: six jets at quality high, four on phones (mid / low); ≤ 2.
   const s = J.makeSmokeMaterial();
   assert.ok(s instanceof THREE.MeshBasicMaterial && s.transparent && !s.depthWrite);
   // the souvenir: an append-only id with a short name for the notebook
-  assert.equal(SOUVENIR_IDS[SOUVENIR_IDS.length - 1], J.JETS_SOUVENIR);
+  // bit 17 of play.g.souvenir (append-only: W6-S appended the autumn catalog's events after it)
+  assert.equal(SOUVENIR_IDS.indexOf(J.JETS_SOUVENIR), 17);
   assert.ok(EVENT_SAY[J.JETS_SOUVENIR]);
 });
 
