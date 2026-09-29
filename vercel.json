@@ -20,7 +20,7 @@
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests"
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' blob: https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests"
       },
       "continue": true
     },
@@ -83,7 +83,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:me|my-week|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
+      "src": "^/(?:me|my-week|messages(?:/[^/]+)?|reset-password|users/[^/]+|opus-bay)/?$",
       "dest": "/index.html"
     },
     {
