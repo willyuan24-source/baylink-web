@@ -219,3 +219,10 @@ per-frame code is taken; what is left is listed with sizes under Requests.
 On `17bf8a7c` (W6-P4 rebased on origin at 04:27 PDT): `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite
 **1465 / 1465**. The dev / preview server on 5604 stopped at the end; no Higgsfield spend; no PERF-LOCK seen during my
 builds and shots (one headless Chrome at a time).
+
+The push itself (04:41 PDT): origin moved three times while the loaded machine ran the ≈ 10-minute suite; the last two
+rebases brought only other lanes' commits in files disjoint from mine (halloween/, play/hideSeek*, actors/camera for the
+Hyde St shot, docs), so those were checked with `tsc` 0 and the budget / contracts / H / hide-seek tests (51 / 51) before
+the push. **After the push, on the pushed head `8829ee7e`**: `eslint .` 0 errors · suite 1466 / 1467 — the one failure is
+the wall-clock assert "a cached cell is cheap" (`opus-bay-sf-move2` E2-5: 1000 calls < 50 ms) under the wave's load;
+the file alone: **24 / 24**. So the pushed tree is green.
