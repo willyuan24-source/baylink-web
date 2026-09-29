@@ -21,7 +21,7 @@ import { RailLayer, residentGround } from './rails';
 import { CityLife } from './sf/cityLife';
 import type { TransitPortal } from './sf/format';
 import { LineFleet, busInterlocks } from './sf/lineFleet';
-import { boxBlocked, busAheadOfFCar, interlockLines } from './sf/lineInterlocks';
+import { boxBlocked, busAheadOfFCar, busWaitsForFCar, interlockLines } from './sf/lineInterlocks';
 import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { obstaclePool, setVehicle, vehiclePool } from './sf/recordPool';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
@@ -149,7 +149,10 @@ export class TransitLayer {
     this.ring.visible = false;
     this.ring.renderOrder = 2;
 
-    this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround, { roadAhead: car => this.busAhead(car) });
+    this.fline = createFLineLayer(flineJson(), visibleFromCamera, residentGround, {
+      roadAhead: car => this.busAhead(car),
+      hurryDwell: car => (this.lines && this.fline ? busWaitsForFCar(this.lines, this.fline, car) : false),
+    });
     this.rails = new RailLayer(data, this.fline ? flineRailTracks(this.fline.line) : []);
     // D2's Powell & Market landmark drops its static disc top under F's spinning disc (its lod 0 rebuilds)
     if (this.discs.some(d => d.tt.landmark)) setTurntableSpinner(true);
@@ -307,7 +310,7 @@ export class TransitLayer {
   private readonly vehiclePool = vehiclePool();
 
   /** An F-line car's view down its track: a bus ahead, or a shared box a bus is in (world/sf/lineInterlocks.ts). */
-  private busAhead(car: { u: number }): number {
+  private busAhead(car: { u: number; v: number; rider: boolean; pickup: number }): number {
     return this.lines && this.fline ? busAheadOfFCar(this.lines, this.fline, car) : Infinity;
   }
 

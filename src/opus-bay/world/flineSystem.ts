@@ -74,12 +74,19 @@ export interface FLineOptions {
    * waits at its interlock boxes while a car is in the F-line's part).
    */
   roadAhead?: (car: FCar) => number;
+  /**
+   * (W5-bus) a sightseeing bus waits at an interlock box whose part this car stands in (world/sf/lineInterlocks.ts
+   * busWaitsForFCar): the car's stop there is cut to HURRY_DWELL s (not the rider's car)
+   */
+  hurryDwell?: (car: FCar) => boolean;
 }
 
 /** The platform id and ride line of the F-line (the district's, kept in city mode). */
 export const FLINE_ID = 'streetcar';
 
 const BOARD_MIN = 1.6;
+/** (W5-bus) a stop inside a box part while a bus waits for it (s) */
+const HURRY_DWELL = 1;
 const TELEPORT_BACK = [30, 45, 22, 70, 100, 140];
 const REDISPATCH_ETA = 20;
 const DISPATCH_SECONDS = 5;
@@ -148,6 +155,29 @@ export class StreetcarSystem {
   }
 
   /** Distance ahead to a hold point; a hold point just behind the car (it rolled onto it) counts as here. */
+  /**
+   * (W5-bus) Where `car` will have to stop for its next single-track block (the hold point's cycle u) when it could not
+   * take that block now, else NaN. world/sf/lineInterlocks.ts: a car that would stand inside a box part a bus is coming
+   * to (Market St: an inbound car waiting at a passing place for the outbound one) leaves the part to the bus.
+   */
+  pendingHold(car: FCar): number {
+    const need = this.nextNeed(car);
+    if (!need || car.blocks.includes(need.k)) return NaN;
+    return this.canTake(car, need.k, need.dir) && this.firstInLine(car, need) ? NaN : need.hold;
+  }
+
+  /**
+   * (W5-bus) Does car `o` wait for car `by` — its next single-track block free but for `by` (held, its side of the
+   * passing place, or its body on it)? Then `by` must not stand still for anyone else (lineInterlocks: a streetcar never
+   * leaves a box to a bus while another waits for it: the bus would wait for that one in turn).
+   */
+  waitsOn(o: FCar, by: FCar): boolean {
+    if (o === by) return false;
+    const need = this.nextNeed(o);
+    if (!need || o.blocks.includes(need.k)) return false;
+    return !this.canTake(o, need.k, need.dir) && this.canTake(o, need.k, need.dir, by.index);
+  }
+
   private toHold(car: FCar, hold: number): number {
     const d = aheadU(this.line, car.u, hold);
     return d > this.line.length / 2 ? 0 : d;
@@ -520,6 +550,7 @@ export class StreetcarSystem {
     if (car.mode === 'dwell') {
       car.v = 0;
       car.held = 0;
+      if (car.timer > HURRY_DWELL && !car.rider && this.riderCar !== car.index && this.opts.hurryDwell?.(car)) car.timer = HURRY_DWELL;
       car.timer -= dt;
       if (car.timer <= 0) this.leave(car, need);
     } else {

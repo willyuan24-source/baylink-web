@@ -365,6 +365,33 @@ export class BusSystem implements LineRideSystem {
     return this.buses.some(b => b.mode !== 'dwell' && !this.overlapsBox(b, box) && arcAhead(this.track, b.s + HALF, box.a0) <= within);
   }
 
+  /**
+   * (W5-bus) Seconds until a bus's nose reaches interlock box `id` — 0 while one is in it, Infinity when none will within
+   * `horizon` s: its dwell left, the run at the speed profile (the soonest it can be there) and a stop's dwell and
+   * penalty for every stop on the way. The other lines leave a box to a bus that would find them in it
+   * (world/transitLine.ts free, world/sf/lineInterlocks.ts busAheadOfFCar): a bus stood 10–26 s at California & Drumm and
+   * on Market St while a cable car went down to its terminus and back, or a streetcar dwelt at its stop in the part.
+   */
+  boxDueIn(id: string, horizon = 90): number {
+    const box = this.boxes.find(b => b.id === id);
+    if (!box) return Infinity;
+    const tr = this.track;
+    let best = Infinity;
+    for (const b of this.buses) {
+      if (this.overlapsBox(b, box)) return 0;
+      const d = arcAhead(tr, b.s + HALF, box.a0);
+      if (d > horizon * 13) continue;
+      let t = b.mode === 'dwell' || b.mode === 'hold' ? Math.max(0, b.timer) : 0;
+      t += runSeconds(tr, b.s, normArc(tr, b.s + d));
+      for (const st of tr.stops) {
+        const e = arcAhead(tr, b.s, st.at);
+        if (e > 0.05 && e < d + HALF && st.id !== b.station) t += BUS.dwell + BUS.stopPenalty;
+      }
+      best = Math.min(best, t);
+    }
+    return best < horizon ? best : Infinity;
+  }
+
   private overlapsBox(b: Bus, box: InterlockBox): boolean {
     const tr = this.track;
     // the box, seen from the bus's rear: the bus [s − HALF, s + HALF] overlaps [a0, a1]

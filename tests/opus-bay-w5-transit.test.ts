@@ -1121,7 +1121,7 @@ test('W5-T6 a bus keeps several ducks: the lowest in force applies and each ends
 
 const PUB_TRANSIT = JSON.parse(fs.readFileSync(path.resolve(import.meta.dirname, '../public/opus-bay/sf/v1/transit.json'), 'utf8')) as import('../src/opus-bay/data/transit').TransitFileJson & { props: Record<string, [number, number]> };
 
-test('W5-T part c (CP-11) the loop and the cable cars for an hour: no bus stands > 15 s at a box (it was 23–46 s at California & Drumm and at the Hyde St turntable), no car stands > 40 s, nothing overlaps', async () => {
+test('W5-T part c (CP-11) the loop and the cable cars for an hour: no bus stands > 15 s at a box (it was 23–46 s at California & Drumm and at the Hyde St turntable; W5-bus: ≤ 8 s), no car stands > 40 s (W5-bus: 50 s — it waits at its stop for the bus coming through), nothing overlaps', async () => {
   const { busInterlocks } = await import('../src/opus-bay/world/sf/lineFleet');
   const { interlockLines, boxBlocked } = await import('../src/opus-bay/world/sf/lineInterlocks');
   const W4 = T.buildTransitW4(PUB_TRANSIT)!;
@@ -1151,8 +1151,11 @@ test('W5-T part c (CP-11) the loop and the cable cars for an hour: no bus stands
       const v = [...sys.violations(), ...bus.violations()];
       if (v.length) bad = v;
     }
-    assert.ok(worstHold <= 15, `longest bus hold at a box ${worstHold.toFixed(1)} s`);
-    assert.ok(worstCar <= 40, `longest cable car stand ${worstCar.toFixed(1)} s`);
+    // (W5-bus) a car leaves the shared stretch to a bus that would find it in there (world/transitLine.ts: its time to
+    // be out again, the terminus trip at Drumm and at Hyde & Beach included): the bus hardly waits any more, the car
+    // waits at its stop instead (up to YIELD_MAX of standing, and the bus's dwell at Wharf & Hyde inside the Hyde St box)
+    assert.ok(worstHold <= 8, `longest bus hold at a box ${worstHold.toFixed(1)} s`);
+    assert.ok(worstCar <= 50, `longest cable car stand ${worstCar.toFixed(1)} s`);
     assert.deepEqual(bad, []);
   } finally { T.setActiveLineFleet(null); fleet.dispose(); }
 });

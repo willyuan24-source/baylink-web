@@ -115,7 +115,7 @@ export class FLineLayer {
   private near: THREE.InstancedMesh[] = [];
   private far: THREE.InstancedMesh[] = [];
 
-  constructor(line: FLine, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead'> = {}) {
+  constructor(line: FLine, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead' | 'hurryDwell'> = {}) {
     this.line = line;
     this.group.name = 'city-fline';
     this.group.matrixAutoUpdate = false;
@@ -124,6 +124,7 @@ export class FLineLayer {
       visible,
       viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
       roadAhead: opts.roadAhead,
+      hurryDwell: opts.hurryDwell,
     });
     setActiveStreetcarSystem(this.sys);
     const perLivery = Math.ceil(this.sys.cars.length / LIVERIES.length);
@@ -253,7 +254,7 @@ export class FLineLayer {
 }
 
 /** Build the city F-line layer from the published route (null without it). */
-export function createFLineLayer(json: TransitLineJson | null, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead'> = {}): FLineLayer | null {
+export function createFLineLayer(json: TransitLineJson | null, visible: (x: number, z: number) => boolean, groundY: (x: number, z: number) => number | null, opts: Pick<FLineOptions, 'roadAhead' | 'hurryDwell'> = {}): FLineLayer | null {
   const line = buildFLine(json ?? undefined, DISTRICT.streetcar);
   return line ? new FLineLayer(line, visible, groundY, opts) : null;
 }

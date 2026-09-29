@@ -142,10 +142,19 @@ const RELAX_BACK = [130, 160, 190];
 export const BOX_DUE = 160;
 /** (W5-T part c) a car's stop inside a box's part while a bus waits there (s): the reversal at Drumm included */
 const HURRY_DWELL = 1;
-/** (W5-T part c) the longest a car leaves a box to a bus that is due (s); then it goes (the bus waits for it) */
-const YIELD_MAX = 20;
+/**
+ * (W5-T part c) the longest a car leaves a box to a bus that is due (s); then it goes (the bus waits for it). (W5-bus)
+ * 20 → 34: a bus is due for the whole time the car would be in the part (≈ 30 s at California & Drumm); a car's stand
+ * at its stop stays within 40 s (its dwell and the yield)
+ */
+const YIELD_MAX = 34;
+/** (W5-bus) a car leaves a box to a bus arriving sooner than the car would be out of the part again, plus this (s) */
+const BOX_MARGIN = 4;
 /** (W5-T part c) the turntable push kept up while the bus waits for the turn (rad/s: the turn in ≈ 4.5 s instead of 9) */
 const HURRY_BOOST = Math.PI / 9;
+
+/** (W5-bus) the fleet's BusSystem.boxDueIn (Infinity for a fleet without it: tests' stand-ins) */
+const busDueIn = (fleet: { bus: { boxDueIn?: (id: string) => number } }, id: string): number => (typeof fleet.bus.boxDueIn === 'function' ? fleet.bus.boxDueIn(id) : Infinity);
 
 const tmpA: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpB: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
@@ -288,11 +297,14 @@ export class CableSystem {
         // went down California St to Drumm, reversed and came back held the loop bus 23–46 s); a car in the part goes on
         // (the bus waits for it), and the car carrying or fetching the rider never yields
         if (ignore >= 0 || car.rider || this.riderCar === car.index || (car.s + HALF > o.b0 && car.s - HALF < o.b1)) continue;
-        if (fleet.bus.boxDue(box.id, BOX_DUE)) {
+        // (W5-bus) due: within BOX_DUE, or before the car could be out of the part again (a car that goes down California
+        // St to Drumm and comes back is in the part ≈ 45 s: the loop bus stood 14–26 s behind it)
+        if (fleet.bus.boxDue(box.id, BOX_DUE) || busDueIn(fleet, box.id) < this.partClearSeconds(car, o.b0, o.b1) + BOX_MARGIN) {
           // …for YIELD_MAX at most unless the bus is about to enter (a bus held up on its way never keeps a car for long)
           const since = this.yieldSince.get(car.index) ?? this.time;
           this.yieldSince.set(car.index, since);
-          if (this.time - since < YIELD_MAX || fleet.bus.boxDue(box.id, 40)) return false;
+          // (W5-bus) nor past YIELD_MAX of standing all told (a wait for its block first counts too)
+          if ((this.time - since < YIELD_MAX && car.still < YIELD_MAX) || fleet.bus.boxDue(box.id, 40)) return false;
         }
       }
     }
@@ -672,7 +684,29 @@ export class CableSystem {
   /** (W5-T7) Cars in the barn now (QA, the station card). */
   parkedCars(): number { return this.cars.filter(c => c.parked).length; }
 
-  /** (W5-T part c) Does a sightseeing bus wait (or stand within a few units) at a box whose part this car stands in? */
+  /**
+   * (W5-bus) Seconds `car` would spend before it is out of an interlock box's part [b0, b1] again, entering it from where
+   * it stands: the run at cable speed to the part's far edge (its body clear), down to the terminus and back out when the
+   * line ends inside the part (California & Drumm), a hurried stop (HURRY_DWELL: a bus is due) at every dwell stop on
+   * the way and the reversal.
+   */
+  private partClearSeconds(car: CableCar, b0: number, b1: number): number {
+    const line = car.line, end = car.dir > 0 ? line.length : 0;
+    const reverses = end >= b0 - HALF && end <= b1 + HALF;
+    const exit = car.dir > 0 ? b1 + HALF : b0 - HALF;
+    const back = car.dir > 0 ? b0 - HALF : b1 + HALF;
+    const lo = reverses ? Math.min(car.s, end, back) : Math.min(car.s, exit), hi = reverses ? Math.max(car.s, end, back) : Math.max(car.s, exit);
+    const dist = reverses ? Math.abs(end - car.s) + Math.abs(back - end) : Math.abs(exit - car.s);
+    let t = dist / CABLE.speed + 2;
+    for (const st of line.stops) if (st.dwell && st.at > lo && st.at < hi && Math.abs(st.at - car.s) > 0.5) t += HURRY_DWELL * (reverses && st.at !== end ? 2 : 1);
+    if (reverses) t += (line.turntableStart || line.turntableEnd ? CABLE.turnSeconds : 0) + TERMINUS_BOARD;
+    return t;
+  }
+
+  /**
+   * (W5-T part c) Does a sightseeing bus wait (or stand within a few units) at a box whose part this car stands in?
+   * (W5-bus) Or come before the car would be out of the part: its stops there are short, its turn pushed.
+   */
   private busWaitsIn(car: CableCar): boolean {
     const fleet = activeLineFleet();
     if (!fleet) return false;
@@ -680,6 +714,8 @@ export class CableSystem {
       const o = box.other;
       if (!o || o.line !== car.line.id || car.s + HALF <= o.b0 || car.s - HALF >= o.b1) continue;
       if (fleet.bus.boxDue(box.id, 24)) return true;
+      // (W5-bus) or one comes before the car would be out of the part: it hurries out ahead of it
+      if (busDueIn(fleet, box.id) < this.partClearSeconds(car, o.b0, o.b1) + BOX_MARGIN) return true;
     }
     return false;
   }
@@ -847,8 +883,10 @@ export class CableSystem {
       if (until !== Infinity && (a.s > until + HALF || b.s > until + HALF)) continue;
       const d = Math.abs(a.s - b.s);
       if (d >= CABLE.length - 0.1) continue;
-      // passing at a station: both within 14 u of that station's stop (not a terminus; the crossing station has two), opposite ways
-      const near = (c: CableCar) => c.line.stops.filter(st => !st.terminus && Math.abs(stopPos(st, c.dir) - c.s) < 14).map(st => st.station);
+      // passing at a station: both within 15 u of that station's stop (not a terminus; the crossing station has two),
+      // opposite ways. (W5-bus) 14 → 15: a car pulling out past the other still dwelling on the far side has its body
+      // clear of it only 8.8 + 5.6 = 14.4 u from its own stop (a W5-bus timing flagged one at 14.2 u)
+      const near = (c: CableCar) => c.line.stops.filter(st => !st.terminus && Math.abs(stopPos(st, c.dir) - c.s) < 15).map(st => st.station);
       const na = near(a), nb = near(b);
       if (a.dir !== b.dir && na.some(id => nb.includes(id))) continue;
       out.push(`${a.line.id}#${a.index} ${a.s.toFixed(1)}/${a.dir} vs ${b.line.id}#${b.index} ${b.s.toFixed(1)}/${b.dir}`);
