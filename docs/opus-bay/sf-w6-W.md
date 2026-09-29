@@ -8,6 +8,7 @@ Lane W of wave 6 (`docs/opus-bay/sf-w6-lead.md` §3 row W), worktree `C:/Users/w
 1. **北滩的"空地"补好了**：城市模式里华盛顿广场一带原来是两条街深的一整片空铺地（老数据把那几块街区交给了手工区，手工区却没盖房子）。现在把那几个街区真实的 OSM 房子（92 栋）按城市自己的样式补回来，能看见、也会挡路；城里的步行路网、路线站点都测过还能走。
 2. **北滩街角**：华盛顿广场有了草坪、边上一圈树和长椅、中间的富兰克林像和六棵钻天杨；对面圣彼得圣保罗教堂的白色双塔（191 英尺，按游戏的高度规则 12.2 格）、玫瑰窗、门上的金色马赛克带和台阶；哥伦布大道上有咖啡桌和意大利三色遮阳伞、有人坐着、招牌（Café / 面包 / Books）、三色灯杆，晚上桌子上方的一串串灯泡会亮。
 3. 整个街角只多 2 次绘制（约 7.3k 三角形，离镜头 190 格外不画）；手机 390×844 上看过。
+4. **和 BAYBAY 玩捉迷藏**：点「问 BAYBAY」→「捉迷藏」，她数三下就藏到 60 格内某个地标旁边（一定是走得到的地方），屏幕上方提示「暖了！/冷了…」和冷热程度，每 15 秒她会在藏身处挥挥手；找到她就拿奖牌金币（45 秒内最高），手机和电脑都实际玩过。
 
 ## Part a · W6-W1 the North Beach seam gap, W6-W2 the North Beach corner
 
@@ -123,3 +124,70 @@ Started 01:53 PDT (the brief said lanes start 02:40; the worktree was ready, so 
 
 - **Lead** (a later wave): widen `SEAM_REGION` (world/sf/cornersNB.ts) to the Financial District's south edge and re-run
   `scripts/opus-sf/seam-fill.mts` after a perf gate at the Ferry gate (46 buildings, same pools).
+
+## Part b · W6-W4 捉迷藏 hide & seek with BAYBAY
+
+Started 02:55 PDT (part a pushed at 03:03 as `daedbdc4`, `4fcc39ce`; its checks: tsc 0 · eslint 0 errors (43 old warnings) ·
+suite 1407 / 1407 on the rebased tree).
+
+### What was built
+
+- **`src/opus-bay/play/hideSeek.ts`** (new, its own lazy chunk, 1 frame system while a round runs):
+  - `pickHideSpot(p, { stand, reach, rand?, list? })`: a landmark whose trip end (data/sf/attractions: `arrival`, else
+    the anchor) is 18–60 u away, tried in a random order (≤ 6): a point 3.5 / 2.5 u behind it (away from you, five
+    turns), else the trip end itself, **standable and walked to by the nav grid** (`liveOpts`: `canStand(…,
+    STAND_RADIUS)` and `actors/nav findPath` ending within 1.1 u); where none is, a walkable spot 20–45 u away (8
+    directions × 3 radii, the same two checks: "就在附近"); else no game (she says so).
+  - `startHideSeek(opts?)`: through the PlayKit (`startActivity('hide-seek', better 'lower')`, no lock: you walk and run
+    freely): the chip counts 3 · 2 · 1 (她数到三), she is pinned where she hides from 0.8 s (partc `pinBaybay`: feet and
+    drawn body); then the chip says 找 BAYBAY！她藏在 <landmark>附近, the seconds, and `heatStep` / `heatWord`: 暖了！ /
+    冷了… for 2.5 s each time you are 2.5 u closer / farther than at the last word, else how warm it is (好烫！≤ 8 u ·
+    暖暖的 ≤ 20 · 有点凉 ≤ 40 · 冷冰冰), a tick on 暖了; every 15 s she waves where she hides (a squeak when you are within
+    20 u). Within `FOUND_R` = 2.6 u: 被你找到啦！N 秒！, the kit's card with **`medal:hide-seek:<tier>`** (the existing
+    `medal:` prefix: 5 / 10 / 15 coins once per tier; ≤ 45 s 太棒了 · ≤ 90 s 很好 · found 好), the best time kept, 再来一次.
+    放弃 on the chip or 180 s: she calls out and comes back, nothing paid. Leaving play (phase ≠ playing) cancels.
+- **`src/opus-bay/play/hideSeekEntry.ts`** (new): `registerHideSeek()` — BAYBAY's menu item 捉迷藏 / Hide & seek (问
+  BAYBAY → 捉迷藏: the Ask button, then one tap; phones and keyboards), visible while a round may start (free roam, on
+  foot, nothing modal, no other activity). **`play/index.ts`** (lane K1's file, surgical, named): one import + one
+  `offs.push(registerHideSeek())` beside the other ask items.
+- **Tests** `tests/opus-bay-w6-w-hideseek.test.ts` (5): the words; where she hides (range, behind the landmark, the
+  nearby fallback, none); **on the published city from Washington Square, Union Square, the Painted Ladies and Ocean
+  Beach (two seeds each): standable, 14–64 u away, the nav path reaches it**; a whole round through `stepFrameSystems`
+  (count, pinned, 暖了！ on the chip after 5 u, found → `medal:hide-seek:3`; 放弃 → cancel, no reward); the chunk ≤ 5 KB
+  gzip, loaded lazily from the entry, nowhere in GameRoot.
+
+### Evidence
+
+- Played in the game (dev server 5608, `?world=city`): phone 390 × 844 dpr 2 at Washington Square — the Ask button,
+  then 捉迷藏 (clicked through the DOM like a tap): the chip "Hide & seek · 1 · Cold · Give up · Find BAYBAY! She's
+  hiding near City Lights", BAYBAY 63 u away on Columbus (`qa/w6/W/w4-hide-seek-phone.jpg`). Desktop: walking toward her
+  "Warmer!" (`qa/w6/W/w4-hide-seek-warmer-desk.jpg`, she hid by Coit Tower); standing by her: "You found me! 4 seconds!"
+  and the card "Brilliant · Found BAYBAY in 4 s · +30 coins" (the three tiers the first time;
+  `qa/w6/W/w4-hide-seek-found-desk.jpg`). (The last step moved the player next to her by script: walking 60 u up
+  Telegraph Hill takes a headless run longer than its budget.)
+- Checks: see the push line below.
+
+### Decisions
+
+- **The way in is BAYBAY's menu** (问 BAYBAY → 捉迷藏), like 做个动作 / 摸摸: the emote wheel (lane K1's
+  `EmoteWheel.tsx`) keeps its four emotes; one Ask tap + one item tap on phones.
+- **Reward = the kit's medal** (`medal:hide-seek:1..3`, 5 / 10 / 15 coins, each once): no new prefix, nothing frozen
+  touched; later rounds pay nothing new (the best time still counts).
+- **Where she hides must be walked to**: the nav check runs once at the start (≤ 6 landmarks + ≤ 24 nearby points); a
+  place without any is refused with a line rather than a spot you cannot reach.
+- **She waves every 15 s** where she hides (sharp eyes may see her), no arrow or map pin: the words are the hint.
+
+### Known gaps
+
+- No voice for the new lines (lane X records voice; the bubbles are text) — Requests.
+- She stands where she hides (no crouch pose in lane F's emote list); the waves are her only movement there.
+- The spot is picked once; she does not move while you seek.
+
+### Not done (this part)
+
+- Nothing of W6-W4's scope.
+
+### Requests
+
+- **Lane X** (voice, optional): BAYBAY's hide & seek lines, zh + en — 捉迷藏！你数到三，我去藏好～ / Hide and seek! You count
+  to three, I'll hide! · 被你找到啦！ / You found me! · 我在这儿呢～下次再来找我！ / Here I am! Find me next time!

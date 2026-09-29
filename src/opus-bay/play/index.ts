@@ -13,6 +13,7 @@ import { flow } from '../game/flowStore';
 import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMoving, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, openOverlays, registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
+import { registerHideSeek } from './hideSeekEntry';
 import { currentActivity, ensureResultOverlay, forgetSession, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
 import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
@@ -125,6 +126,8 @@ export function init(): () => void {
   offs.push(registerOverlay({ id: WHEEL_OVERLAY, Component: WheelSlot }));
   offs.push(registerAskItem({ id: 'play-emotes', order: -20, label: { zh: '做个动作', en: 'Do an emote' }, icon: Smile, onSelect: () => { openWheel(); } }));
   offs.push(registerAskItem({ id: 'play-pet', order: -10, label: { zh: '摸摸 BAYBAY', en: 'Pet BAYBAY' }, icon: Heart, onSelect: () => { void petNow(); } }));
+  // W6-W4 (lane W): 问 BAYBAY → 捉迷藏 (play/hideSeek.ts)
+  offs.push(registerHideSeek());
   offs.push(registerInteractables('a-play', () => [sitHereIt, ...viewIts]));
   // the ledger keeps view:<id> in play.g.view, bit i = VIEW_SPOT_IDS[i] (append-only)
   offs.push(registerRewardIds('view', VIEW_SPOT_IDS));
