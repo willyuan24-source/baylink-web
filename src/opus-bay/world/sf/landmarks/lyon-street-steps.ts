@@ -51,10 +51,11 @@ function build(b: BatchLike, lod: 0 | 2) {
   // the Presidio's low stone wall on the +x side, the hedges on the house side
   for (const [z0, z1] of [[-0.4, 2.0], [2.0, 4.3], [4.3, 6.5], [6.5, 8.4], [8.4, 10.5]]) lowWall(b, { x: 1.55, z: z0 }, { x: 1.55, z: z1 }, g.at(1.55, z0), g.at(1.55, z1), 0.55, 0.32, WALL);
   hedgeRun(b, -1.29, -0.3, 8.1);
-  // the middle landing's planted bed, walks either side: a clipped block and two round topiaries
-  const bz = 9.3, by = g.at(0, bz);
-  box3(b, 0, by - 0.3, bz, 1.2, 0.75, 1.4, HEDGE, 0, [0, 0, 0.12, 0]);
-  for (const dz of [-0.35, 0.35]) b.add(ICO(0), M(0, by + 0.75, bz + dz, dz * 3, 0.42, 0.45, 0.42), FC.treeDark, [0, 0, 0.2, 0]);
+  // the middle landing's planted bed along the house side: the clipped hedge carries on past the landing with two round
+  // topiaries on it (W6-W3, lane W: the bed stood in the middle, 1.2 u wide, and left 0.76 u either side — too narrow for a
+  // walker, the steps below were cut off; the landing is open from the hedge to the wall now, as the flights are)
+  hedgeRun(b, -1.29, 8.6, 10.05);
+  for (const tz of [8.95, 9.7]) b.add(ICO(0), M(-1.29, g.at(-1.29, tz) + 0.85, tz, tz * 3, 0.3, 0.42, 0.3), FC.treeDark, [0, 0, 0.2, 0]);
   // the top landing: a bench facing the view, lamps at the top and the middle landing
   bench(b, 0.98, g.at(0.98, -1.05), -1.05, 0);
   lamp(b, -1.19, g.at(-1.19, -0.7), -0.7);
@@ -71,7 +72,7 @@ function ground(): SiteGroundPoly[] {
 const BLOCKERS = [
   { poly: [{ x: 1.38, z: -0.45 }, { x: 1.73, z: -0.45 }, { x: 1.73, z: 10.6 }, { x: 1.38, z: 10.6 }] },
   { poly: [{ x: -1.55, z: -0.35 }, { x: -1.03, z: -0.35 }, { x: -1.03, z: 8.15 }, { x: -1.55, z: 8.15 }] },
-  { poly: [{ x: -0.62, z: 8.58 }, { x: 0.62, z: 8.58 }, { x: 0.62, z: 10.02 }, { x: -0.62, z: 10.02 }] },
+  { poly: [{ x: -1.59, z: 8.58 }, { x: -0.99, z: 8.58 }, { x: -0.99, z: 10.05 }, { x: -1.59, z: 10.05 }] },
 ];
 
 /** exclusion: the corridor between the houses and the Presidio's forest, from the top landing (Broadway's ribbon
@@ -88,7 +89,10 @@ export const lyonStreetSteps: W4Site = {
   sink: 0,
   exclude: { poly: worldPoly(X0, Z0, YAW, EXCLUDE) },
   build,
-  walk: { blockers: BLOCKERS },
+  // W6-W3 (lane W): the city's lower flights below the middle landing (Vallejo, then down to Green St) are an OSM steps
+  // line narrower than a walker's disc on the steep ground either side: one stairs surface 3 u wide carries the walk (and
+  // the Lyon stair race) down to lz 20
+  walk: { blockers: BLOCKERS, surfaces: [{ poly: [{ x: -1.5, z: 10.4 }, { x: 1.5, z: 10.4 }, { x: 1.5, z: 20.0 }, { x: -1.5, z: 20.0 }], y: 'terrain', surface: 'stairs' }] },
   ground: ground(),
   lights: [{ x: -1.19, y: g.at(-1.19, -0.7) + 3.8, z: -0.7, size: 1, color: '#ffd9a0' }, { x: 1.18, y: g.at(1.18, 3.8) + 3.8, z: 3.8, size: 1, color: '#ffd9a0' }],
   plaza: [plazaOf([{ x: -1.0, z: -0.45 }, { x: 1.35, z: -0.45 }, { x: 1.35, z: 10.55 }, { x: -1.0, z: 10.55 }], 'pavement'), plazaOf([{ x: -4.07, z: -1.8 }, { x: 3.93, z: -1.8 }, { x: 3.93, z: -0.45 }, { x: -4.07, z: -0.45 }], 'pavement')],

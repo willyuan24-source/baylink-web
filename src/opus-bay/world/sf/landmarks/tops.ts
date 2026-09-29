@@ -84,7 +84,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'crane-cove-park': { blockers: [6.2, 6.2, 8.5, 8.5, 6, 6, 8.3, 8.3], tall: [8.5, 8.3] },
   'haas-lilienthal-house': { blockers: [6.2, 6.2, 7.1], tall: [7.1] },
   'ingleside-terraces-sundial': { blockers: [2.5, 1.7, 1.7, 1.7, 1.7], tall: [3.7] },
-  'lyon-street-steps': { blockers: [7.6, 8.7, 1.9], tall: [] },
+  'lyon-street-steps': { blockers: [7.6, 8.7, 2], tall: [] },
   'octagon-house': { blockers: [4.5, 3.7], tall: [4.9] },
   'seward-street-slides': { blockers: [3.4, 2.5, 3.2, 7.5], tall: [] },
   'vermont-street-crooked-block': { blockers: [8.2, 7.7, 6.9, 6.1, 5.1, 4.4, 9.7], tall: [] },

@@ -813,7 +813,7 @@ test('W5-A8 stair courses on the published city: standable, each leg a walk, the
   const stairs = await import('../src/opus-bay/play/stairs');
   const SC = await import('../src/opus-bay/play/stairCourses');
   const N = await import('../src/opus-bay/actors/nav');
-  assert.deepEqual(SC.STAIR_COURSES.map(c => c.id), ['filbert', 'tiled']);
+  assert.deepEqual(SC.STAIR_COURSES.map(c => c.id), ['filbert', 'tiled', 'lyon']); // W6-W3: lane W's Lyon Street Steps appended
   await cityAround(SC.STAIR_COURSES.flatMap(c => [SC.courseFoot(c), SC.courseTop(c)]), 80);
   try {
     for (const c of SC.STAIR_COURSES) {
@@ -832,7 +832,7 @@ test('W5-A8 stair courses on the published city: standable, each leg a walk, the
       assert.ok(rise > 8, `${c.id}: climbs ${rise.toFixed(1)} u`);
       // par to the finish circle; BAYBAY's time and the gold time after it
       const ideal = stairs.idealRun(line);
-      const [lo, hi] = c.id === 'filbert' ? [9, 12] : [3.5, 5.5];
+      const [lo, hi] = c.id === 'filbert' ? [9, 12] : c.id === 'lyon' ? [3.5, 6.5] : [3.5, 5.5];
       assert.ok(ideal.par > lo && ideal.par < hi, `${c.id}: par ${ideal.par.toFixed(2)} s`);
       const bt = stairs.baybayTime(ideal.par), gold = ideal.par * stairs.GOLD_PACE + stairs.GOLD_START;
       assert.ok(gold < bt - 0.2 && bt - ideal.par > 0.8, `${c.id}: gold ${gold.toFixed(2)} < BAYBAY ${bt.toFixed(2)}`);
@@ -852,8 +852,8 @@ test('W5-A8 stair courses on the published city: standable, each leg a walk, the
         if (dy > 0 && T.surfaceAt(b.x, b.z) === 'stairs') steps += dy * SC.STEPS_PER_U;
       }
       if (c.id === 'filbert') assert.ok(Math.abs(steps - c.steps) < 40, `filbert counts ${steps.toFixed(0)} steps`);
-      else assert.ok(steps > 100 && steps < 260, `tiled counts ${steps.toFixed(0)} steps`);
-      assert.ok([...c.fact.zh].length <= 45 && c.source.startsWith('https://') && c.verifiedAt === '2026-09-28');
+      else assert.ok(steps > 100 && steps < (c.id === 'lyon' ? 400 : 260), `${c.id} counts ${steps.toFixed(0)} steps`);
+      assert.ok([...c.fact.zh].length <= 45 && c.source.startsWith('https://') && c.verifiedAt === (c.id === 'lyon' ? '2026-09-29' : '2026-09-28'));
     }
   } finally { T.setCityTerrain(null); }
 });

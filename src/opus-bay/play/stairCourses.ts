@@ -13,9 +13,12 @@ import type { Bilingual } from '../core/types';
  *   tiled     马赛克阶梯 → 龟山顶: from Moraga St at 16th Ave up the 16th Avenue Tiled Steps, along 15th Ave and up the
  *             steps to the top of Grand View Park (the 看风景 spot) — 31 u, ≈ 4.8 s.
  *
- * The Lyon Street Steps (the plan's third course) are not a course yet: on the published city their second landing does
- * not join the third flight (not standable round (−301.5, 507); the nav grid goes round through the Presidio's trees),
- * so neither the player nor BAYBAY can run them (lane L request, docs/opus-bay/sf-w5-A.md part b).
+
+ *   lyon      里昂街台阶 (W6-W3, lane W): from the foot of the flights by Green St up the Lyon Street Steps between the
+ *             clipped hedges and the Presidio's wall to the top landing on Broadway, where the view drops straight onto
+ *             the Palace of Fine Arts' dome — 30 u, ≈ 4.6 s. The middle landing's bed used to close the steps (0.76 u
+ *             either side, not standable round (−301.5, 507)); it stands along the hedge now
+ *             (world/sf/landmarks/lyon-street-steps.ts), and every leg is walked.
  *
  * Facts (checked on the web 2026-09-28): "The Filbert Steps … climbs Telegraph Hill over a series of 400 steps, with
  * houses and public gardens on either side" (https://en.wikipedia.org/wiki/Filbert_Street_(San_Francisco)); the 16th
@@ -23,7 +26,7 @@ import type { Bilingual } from '../core/types';
  * Never "the steepest street": Filbert St's block ties for sixth (same Wikipedia page).
  */
 
-export type StairCourseId = 'filbert' | 'tiled';
+export type StairCourseId = 'filbert' | 'tiled' | 'lyon';
 
 export interface StairCourse {
   id: StairCourseId;
@@ -57,6 +60,18 @@ export const STAIR_COURSES: readonly StairCourse[] = [
     steps: 163,
     source: 'https://en.wikipedia.org/wiki/16th_Avenue_Tiled_Steps',
     verifiedAt: '2026-09-28',
+  },
+  {
+    // W6-W3 (lane W). Facts checked on the web 2026-09-29: 288 steps from Broadway down to Green St, manicured gardens,
+    // the view of the Palace of Fine Arts (https://inspiredimperfection.com/adventures/lyon-street-steps/); 332 steps
+    // Broadway to Vallejo on https://www.sftourismtips.com/lyon-street-steps.html — the count varies by source: about 300
+    id: 'lyon',
+    name: { zh: '里昂街台阶', en: 'Lyon Street Steps' },
+    line: [-312.49, 498.05, -310.09, 499.85, -307.52, 501.42, -305.12, 503.22, -303.24, 504.89, -301.83, 506.33, -300.23, 507.53, -298.45, 508.5, -296.33, 509.84, -294.34, 511.35, -292.24, 513.05],
+    fact: { zh: '里昂街台阶大约 300 级，一路修剪整齐的树篱，正对着艺术宫！', en: 'The Lyon Street Steps: about 300 of them, neat hedges, and the Palace of Fine Arts dead ahead!' },
+    steps: 300,
+    source: 'https://inspiredimperfection.com/adventures/lyon-street-steps/',
+    verifiedAt: '2026-09-29',
   },
 ];
 

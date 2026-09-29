@@ -17,6 +17,9 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   { key: 'slides', name: { zh: '纸板滑梯', en: 'Cardboard slides' }, unit: 'seconds' },
   { key: 'stairs-filbert', name: { zh: '台阶赛跑 · 菲尔伯特台阶', en: 'Stair race · Filbert Steps' }, unit: 'seconds' },
   { key: 'stairs-tiled', name: { zh: '台阶赛跑 · 马赛克阶梯', en: 'Stair race · Tiled Steps' }, unit: 'seconds' },
+  // W6-W3 / W6-W4 (lane W): the Lyon Street Steps race and hide & seek (the kit keeps their bests under the activity id)
+  { key: 'stairs-lyon', name: { zh: '台阶赛跑 · 里昂街台阶', en: 'Stair race · Lyon Street Steps' }, unit: 'seconds' },
+  { key: 'hide-seek', name: { zh: '捉迷藏 · 找到 BAYBAY', en: 'Hide & seek · found BAYBAY' }, unit: 'seconds' },
   { key: 'bell', name: { zh: '缆车摇铃', en: 'Cable-car bell' }, unit: 'points' },
 ];
 
