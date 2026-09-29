@@ -201,10 +201,12 @@ export function openRideNode(rest: string) {
 /** Per frame (game/Systems.tsx Ticker, right after stepCinema): advance the ride and keep the HUD in step. */
 export function stepTransit(dt: number) {
   const r = currentRide();
-  const ride = stepRide(dt, travelEpoch());
-  // (W5-T2) how long the rider's vehicle has not moved (the city chunk)
-  W4G?.watchStall(dt);
-  if (isLineRide(r)) stepCity(r, dt);
+  // W6-K2: Settings open (the game's pause) holds a city ride — no boarding, the ridden car stands (holdRideForPause)
+  const held = holdRideForPause(r);
+  const ride = held && r?.mode === 'wait' ? null : stepRide(dt, travelEpoch());
+  // (W5-T2) how long the rider's vehicle has not moved (the city chunk); a car held for the pause is not a stall
+  if (!held) W4G?.watchStall(dt);
+  if (isLineRide(r) && !held) stepCity(r, dt);
   pollTurntables(dt);
   if (!ride) return;
   if (isLineRide(r) && ride.lost) { cancelRide(); return; }
@@ -213,7 +215,47 @@ export function stepTransit(dt: number) {
   // the hop-off brake (E2 requests the stop, the car brakes): the HUD says so
   const stage = ride.stage === 'riding' && platformStop(r?.line ?? 'streetcar') ? 'braking' : ride.stage;
   if (current && (current.stage !== stage || current.eta !== ride.eta)) flow.set({ ride: { ...current, stage, eta: ride.eta } });
-  if (ride.done) finishRide();
+  // (W6-K2) the rider steps off at the stop once Settings is closed (the car stands there meanwhile)
+  if (ride.done && !held) finishRide();
+}
+
+// --- W6-K2 · Settings holds the ride ------------------------------------------------------------------------
+
+/**
+ * W6-K2 (the wave-5 hand-off: "with Settings open the tour bus still boards and drives on"). Settings is the game's
+ * pause (flow.openPanel sets `paused`); while it is open in the city a line ride (the loop bus, the N / M, a cable car,
+ * the city F-line, the ferry) holds:
+ *   - a waiting rider is not boarded: every line system keeps the car it sent at the stop while the rider it came for has
+ *     not stepped on (busSystem / lightRail / transitLine / flineSystem `leave` hold on phase 'here'; the ferry too);
+ *   - the ridden car brakes to a stand through its hop-off brake (actors/platform `requestPlatformStop`, which every city
+ *     line honours — the same hold as the QA `transit.hold(true)`), and the rider does not step off at a stop;
+ *   - the stall watch does not count the held time (no 车停住了 for a pause).
+ * Closing Settings lets the car go (only the brake asked for here is released; a rider's own hop-off brake stays theirs).
+ * The district's hero F-line ride is unchanged (not a line ride; district mode never changes). Known limit: a Metro train
+ * under ground ignores a brake (lane T's tunnel rule), so it runs on under the subway overlay to its next surface stretch.
+ */
+export const PAUSE_BRAKE_S = 1.5;
+let pauseHeld: { ride: RideState; line: string } | null = null;
+
+/** Settings is open in the city and a line ride is on: the ride holds (W6-K2). */
+export function ridePausedNow(r: RideState | null = currentRide()): boolean {
+  const s = game.get();
+  return s.paused && s.worldMode === 'city' && isLineRide(r);
+}
+
+/** Per frame (stepTransit): asks / releases the pause brake; true while the ride is held. */
+function holdRideForPause(r: RideState | null): boolean {
+  const on = ridePausedNow(r);
+  if (pauseHeld && (!on || pauseHeld.ride !== r)) {
+    // the pause is over (or that ride ended): let the car go — unless a new ride on that line owns a brake now
+    if (pauseHeld.ride === r || !isLineRide(r) || r.line !== pauseHeld.line) releasePlatformStop(pauseHeld.line);
+    pauseHeld = null;
+  }
+  if (on && isLineRide(r) && r.mode !== 'wait' && !pauseHeld && !platformStop(r.line)) {
+    requestPlatformStop(r.line, PAUSE_BRAKE_S);
+    pauseHeld = { ride: r, line: r.line };
+  }
+  return on;
 }
 
 /**

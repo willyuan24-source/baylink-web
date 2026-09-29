@@ -1,3 +1,4 @@
+import { game } from '../core/store';
 import { activeLineFleet } from '../data/transit';
 import type { Bus, BusWhy } from '../world/busSystem';
 
@@ -54,10 +55,12 @@ export function watchBuses(dt: number, fleet = activeLineFleet()) {
   if (!fleet) return;
   const sys = fleet.bus, stops = sys.track.stops;
   const riderCar = sys.rideStatus()?.car ?? -1;
+  // W6-K2: Settings open (the game's pause) stands the rider's bus on purpose (game/transit holdRideForPause): no stall
+  const paused = game.get().paused;
   for (const b of sys.buses) {
     let o = open.get(b.index);
     if (!o) { o = { stood: 0, stall: null }; open.set(b.index, o); }
-    const standing = b.v < 0.3 && !AT_STOP.has(b.why);
+    const standing = b.v < 0.3 && !AT_STOP.has(b.why) && !(paused && b.index === riderCar);
     o.stood = standing ? o.stood + dt : 0;
     if (standing && o.stood >= STALL_LOG_AFTER) {
       if (!o.stall) {
