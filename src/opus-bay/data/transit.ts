@@ -106,9 +106,20 @@ export interface TransitW4 {
   props: Readonly<Record<string, readonly [number, number]>>;
 }
 
+/**
+ * (W6-B) Stops the real line no longer serves: the pipeline (scripts/opus-sf/lib/metro.ts) makes no stop for them and
+ * buildTransitW4 drops one an older transit file still carries. San Jose Ave & Mt Vernon Ave (M Ocean View): a permanent
+ * stop removal from Saturday 28 September 2024 — riders use San Jose & Geneva inbound, San Jose & Niagara outbound
+ * (https://www.sfmta.com/project-updates/stop-removal-san-jose-ave-mt-vernon-ave-starting-saturday-september-28, checked
+ * 2026-09-29). Its OSM stop position still maps onto data/sf/stationNames.ts's station, so a re-bake does not fail on it.
+ */
+export const RETIRED_STOPS: ReadonlySet<string> = new Set(['muni-san-jose-mt-vernon']);
+
 /** The wave-4 part of a transit file (null when it has no loop or no Metro line: an older file). */
 export function buildTransitW4(file: TransitFileJson): TransitW4 | null {
-  const lines = file.lines.filter(l => l.kind === 'bus' || l.kind === 'light-rail') as unknown as TransitLine[];
+  // (W6-B) a stop the real line no longer serves (RETIRED_STOPS) is dropped from an older file
+  const lines = (file.lines.filter(l => l.kind === 'bus' || l.kind === 'light-rail') as unknown as TransitLine[])
+    .map(l => (l.stops.some(st => RETIRED_STOPS.has(st.id)) ? { ...l, stops: l.stops.filter(st => !RETIRED_STOPS.has(st.id)) } : l));
   const loop = lines.find(l => l.kind === 'bus' && l.loop);
   const metro = lines.filter(l => l.kind === 'light-rail');
   if (!loop || !metro.length) return null;

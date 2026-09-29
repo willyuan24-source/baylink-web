@@ -15,6 +15,7 @@
 //   sidewalk, north-west side), `at` stays the platform's arc position. A surface stop within a train half-length of a
 //   portal moves out of the mouth so a dwelling train stands in daylight.
 import type { TransitLine, TransitPortal, TransitStop, TransitTunnel } from '../../../src/opus-bay/world/sf/format';
+import { RETIRED_STOPS } from '../../../src/opus-bay/data/transit';
 import { METRO_STATIONS, PORTAL_NAMES, type PortalId, STOP_ATTRACTIONS, TUNNELS, W4_LINES, metroStationForOsm } from '../../../src/opus-bay/data/sf/stationNames';
 import { elements, type OsmElement } from './io';
 import { type P2, cumulative, densify, pointAtArc, projectOnto, round, simplifyIdx, smoothAlong, surfaceHeights } from './lineGeom';
@@ -237,7 +238,8 @@ function buildOne(t: Terrain, spec: MetroSpec, rel: OsmElement, ways: Map<number
   const stops: TransitStop[] = [];
   for (const def of METRO_STATIONS) {
     const rs = byId.get(def.id);
-    if (!rs) continue;
+    // (W6-B) a stop the real line no longer serves (data/transit.ts RETIRED_STOPS: the M at San Jose & Mt Vernon)
+    if (!rs || RETIRED_STOPS.has(def.id)) continue;
     let pick: { at: number; x: number; z: number; osmId: number };
     if (def.id === firstId) pick = rs.reduce((a, b) => (b.at < a.at ? b : a));
     else if (def.id === lastId) pick = rs.reduce((a, b) => (b.at > a.at ? b : a));

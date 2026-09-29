@@ -115,3 +115,22 @@ test('W6-B1 the transit stops short of the player sitting in their toy car acros
     T.setActiveLineFleet(null);
   }
 });
+
+test('W6-B3 the M no longer stops at San Jose & Mt Vernon (SFMTA: a permanent removal from 28 Sep 2024): gone from the published files and their props; an older file carrying it is filtered; riders use San Jose & Niagara / Geneva', () => {
+  for (const f of ['transit.json', 'transit-w4.json']) {
+    const file = JSON.parse(fs.readFileSync(path.join(PUB, f), 'utf8')) as import('../src/opus-bay/data/transit').TransitFileJson & { props?: Record<string, unknown> };
+    const m = file.lines.find(l => l.id === 'm-ocean-view')!;
+    const ids = m.stops.map(s => s.id);
+    assert.ok(!ids.includes('muni-san-jose-mt-vernon'), `${f}: the retired stop is still there`);
+    assert.ok(ids.includes('muni-san-jose-niagara') && ids.includes('muni-san-jose-geneva'), `${f}: the stops riders use instead`);
+    assert.ok(!('muni-san-jose-mt-vernon' in (file.props ?? {})), `${f}: its pole is still placed`);
+  }
+  assert.ok(T.RETIRED_STOPS.has('muni-san-jose-mt-vernon'));
+  // an older transit file (the stop still in it) loses it when built
+  const old = JSON.parse(JSON.stringify(FILE)) as typeof FILE;
+  const m = old.lines.find(l => l.id === 'm-ocean-view')!;
+  m.stops.splice(m.stops.findIndex(s => s.id === 'muni-san-jose-niagara'), 0, { ...m.stops.find(s => s.id === 'muni-san-jose-niagara')!, id: 'muni-san-jose-mt-vernon' });
+  const w4 = T.buildTransitW4(old)!;
+  assert.ok(!w4.metro.find(l => l.id === 'm-ocean-view')!.stops.some(s => s.id === 'muni-san-jose-mt-vernon'));
+  assert.equal(w4.metro.find(l => l.id === 'm-ocean-view')!.stops.length, m.stops.length - 1);
+});
