@@ -1,0 +1,25 @@
+/* Wave 6 · lane G (W6-G4) · the 万圣节 page of the Journal (halloween/HalloweenPage.tsx); the notebook's own classes
+   (economy/economy.css: ob-nb-*) do most of it. */
+.ob-hw { display: flex; flex-direction: column; gap: 8px; }
+.ob-hw-head { background: linear-gradient(135deg, #fff4e3, #f8e2c6); border-radius: 14px; padding: 10px 12px; }
+.ob-hw-h { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; font-size: 14px; font-weight: 800; color: var(--ob-ink-2); }
+.ob-hw-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ob-hw-card { display: block; padding: 9px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--ob-line); }
+.ob-hw-top { display: flex; align-items: center; gap: 8px; }
+.ob-hw-count { flex: none; margin-left: auto; font-size: 12px; font-weight: 800; color: var(--ob-ink-3); font-variant-numeric: tabular-nums; }
+.ob-hw-meter { display: block; height: 6px; margin-top: 7px; border-radius: 6px; background: var(--ob-cream-3); overflow: hidden; }
+.ob-hw-meter > span { display: block; height: 100%; background: #e8792b; border-radius: 6px; }
+.ob-hw-goal[data-done] { background: #fff8ee; border-color: #f2c48f; }
+.ob-hw-check { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #e8792b; color: #fff; flex: none; }
+.ob-hw-goal[data-done] .ob-hw-check { background: #e8792b; }
+.ob-hw-goal-text { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-hw-go { display: inline-flex; align-items: center; gap: 3px; flex: none; min-height: 32px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--ob-line); background: #fff; font: inherit; font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); cursor: pointer; }
+.ob-hw-go:disabled { opacity: 0.55; cursor: default; }
+.ob-hw-note { margin: 0; font-size: 12.5px; }
+.ob-hw-costumes { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 6px; }
+.ob-hw-costume { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 12px; background: #fff; border: 1px solid var(--ob-line); text-align: center; }
+.ob-hw-costume[data-on] { border-color: #e8792b; box-shadow: 0 0 0 2px #f8d3ab inset; }
+.ob-hw-state { font-size: 11.5px; }
+.ob-hw-shop { align-self: flex-start; margin-top: 4px; min-height: 36px; padding: 6px 14px; border-radius: 999px; border: 0; background: #e8792b; color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.ob-hw-src { margin-top: 10px; font-size: 11.5px; }
+.ob-hw-src a { color: inherit; }

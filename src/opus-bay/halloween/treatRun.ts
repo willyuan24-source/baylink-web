@@ -19,7 +19,8 @@ import { meshWarmup, registerWarmup } from '../world/warmup';
 import { getWorld, type WorldSystem } from '../world/world';
 import { hLine } from './lines';
 import { halloweenPhase, isTreatHour, type HalloweenPhase } from './season';
-import { allDoorsKnocked, candyCount, doorAnswers, doorsDressed, knockResult, type Knock } from './treat';
+import { GOAL_DOORS } from './progress';
+import { allDoorsKnocked, candyCount, doorAnswers, doorsDressed, doorsKnocked, knockResult, type Knock } from './treat';
 import { TREAT_DOORS, type TreatDoor } from './treatDoors';
 import { buildCandyGeometry, buildDoorsGeometry, buildSwingGeometry, doorMaterial, doorPoints, DOOR_PAINTS, trianglesOf, type DoorLook } from './treatMesh';
 import { KNOCK_OUT, TREAT_STREETS, type TreatStreetId } from './treatStreets';
@@ -170,11 +171,14 @@ export function initTreat(): TreatRun {
     for (const p of k.pays) emit({ type: 'reward', source: p.source, coins: p.coins });
     const bag = candyCount(paid);
     toast({ zh: `得到${k.candy.name.zh}${k.pieces > 1 ? ' ×2' : ''}！糖果袋 ${bag} 颗`, en: `${k.pieces > 1 ? 'Double treat' : 'Treat'}: ${k.candy.name.en}! Candy bag: ${bag}` }, 'gold', 3200);
-    const next = allDoorsKnocked(paid) && !said.has('all') ? 'w6g-all-doors' : bag >= 10 && !said.has('ten') ? 'w6g-not-too-much' : bag >= 5 && !said.has('five') ? 'w6g-bag-heavy' : null;
+    // the season's goal (five doors) first, then the bag's milestones, once a session each
+    const goal = doorsKnocked(paid) === GOAL_DOORS && !said.has('goal');
+    if (goal) said.add('five');
+    const next = goal ? 'w6g-goal-done' : allDoorsKnocked(paid) && !said.has('all') ? 'w6g-all-doors' : bag >= 10 && !said.has('ten') ? 'w6g-not-too-much' : bag >= 5 && !said.has('five') ? 'w6g-bag-heavy' : null;
     later(() => {
       sayLine('w6g-thanks');
       if (next) {
-        said.add(next === 'w6g-all-doors' ? 'all' : next === 'w6g-not-too-much' ? 'ten' : 'five');
+        said.add(next === 'w6g-goal-done' ? 'goal' : next === 'w6g-all-doors' ? 'all' : next === 'w6g-not-too-much' ? 'ten' : 'five');
         later(() => sayLine(next), lineMs(hLine('w6g-thanks')) / 1000 + 0.25);
       }
     }, T_THANKS - T_LAND);
