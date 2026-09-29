@@ -23,8 +23,8 @@ import { LiveTall } from './glideTall';
 import { faceOpen, openSpot } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
-import { PursuitDriver, passPath } from './vehicles/autopilot';
-import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
+import type { PursuitDriver } from './vehicles/autopilot';
+import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport, type VehicleSpec } from './vehicles/collide';
 import type { DriveTalk } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
 import { Pelican, greetFrom, greetSpot } from './vehicles/pelican';
@@ -135,13 +135,18 @@ function keyName(action: 'exit' | 'glide'): { zh: string; en: string } {
 
 /**
  * Tap-to-drive's routing (vehicles/driveRoute: grid / graph drive routes, the park-short rule, the grid for a way round)
- * is its own chunk, fetched when a bike / the toy car is mounted (part b: GameRoot keeps its size).
+ * is its own chunk, fetched when a bike / the toy car is mounted (part b: GameRoot keeps its size). W6-P2 (lane P, MF9):
+ * the autopilot itself (vehicles/autopilot: the pure-pursuit driver, the pass planner) comes with it — every
+ * PursuitDriver is made after a route, so `autoMod` is set whenever `driveMod` is.
  */
 let driveMod: typeof import('./vehicles/driveRoute') | null = null;
+let autoMod: typeof import('./vehicles/autopilot') | null = null;
 let driveLoad: Promise<typeof import('./vehicles/driveRoute')> | null = null;
 function loadDrive(): Promise<typeof import('./vehicles/driveRoute')> {
-  return (driveLoad ??= import('./vehicles/driveRoute').then(m => (driveMod = m), e => { driveLoad = null; throw e; }));
+  return (driveLoad ??= Promise.all([import('./vehicles/driveRoute'), import('./vehicles/autopilot')]).then(([m, a]) => { autoMod = a; return (driveMod = m); }, e => { driveLoad = null; throw e; }));
 }
+/** A pure-pursuit driver along `points` (only after loadDrive: see above). */
+const pursuit = (spec: VehicleSpec, points: Vec2[]): PursuitDriver => new autoMod!.PursuitDriver(spec, points);
 
 /** Interactables a drive parks short of (not rides, seats, BAYBAY or a lead marker): ones you walk up to. */
 const PARK_SKIP: ReadonlySet<string> = new Set(['vehicle', 'seat', 'baybay', 'free-lead']);
@@ -731,7 +736,7 @@ export class MoveSystem {
       }
       // (part b, verify-desktop D5) park short of a card / resident / place at the end, never on top of it
       const points = D.stopShortOf(route.points, parkSpotsNear(route.points[route.points.length - 1], D.PARK_CLEAR));
-      this.auto = new PursuitDriver(r.sim.spec, points);
+      this.auto = pursuit(r.sim.spec, points);
       this.driveTalk = null;
       this.talk(points, true);
       this.detours = 0;
@@ -818,7 +823,7 @@ export class MoveSystem {
     if (!armed) this.passes++;
     this.passAt = t;
     // (after its back-up a tighter swing will do: the vehicle may not have reversed the whole way)
-    const plan = passPath(auto, s, obs, ride.width / 2, ride.length / 2, (x, z) => D.drivableAt(x, z, kind), armed ? PASS_SWING_TIGHT : undefined);
+    const plan = autoMod!.passPath(auto, s, obs, ride.width / 2, ride.length / 2, (x, z) => D.drivableAt(x, z, kind), armed ? PASS_SWING_TIGHT : undefined);
     if (!plan) return false;
     // too close to swing out: back up that far, then plan again from there (once)
     if (plan.back > 0) {
@@ -830,7 +835,7 @@ export class MoveSystem {
       return true;
     }
     const pts: Vec2[] = [{ x: s.x, z: s.z }, ...plan.points];
-    this.auto = new PursuitDriver(s.spec, pts);
+    this.auto = pursuit(s.spec, pts);
     this.drivePath = pts;
     this.driveTarget = pts[pts.length - 1];
     this.driveTalk = null;
@@ -871,7 +876,7 @@ export class MoveSystem {
     }
     if (pts.length < 2) return false;
     this.detours++;
-    this.auto = new PursuitDriver(s.spec, pts);
+    this.auto = pursuit(s.spec, pts);
     this.driveTalk = null;
     this.talk(pts, false);
     this.drivePath = pts;
