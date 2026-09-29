@@ -56,6 +56,7 @@ Written 2026-09-29 02:20 PDT.
   **`handRowOf(event)`**: the Ferry Plaza farmers market is the 今天 tab's hand row `market` and the daily `market` task.
 - `realsf/daily.ts` `daySignals`: an event that is a hand row is not also an `event` task. `realsf/TodayTab.tsx`: it is not a
   second row in 今天在旧金山 (and not listed again in 这周 on its own day).
+- `tests/opus-bay-w5-jets.test.ts`: the jets' souvenir is asserted at index 17 (its bit in saves), not as the last id.
 - `tests/opus-bay-w5-events.test.ts` (lane R's wave-5 test of my modules): APAture now maps to Arc Gallery, so the "unmapped
   → no pin" examples use a new fixture event whose venue the organiser has not published (`sf-unplaced-dinner-2026`).
 - New `tests/opus-bay-w6-s-venues.test.ts` (4 tests): the label rules on the real autumn labels (and every wave-5 label
@@ -79,7 +80,10 @@ Written 2026-09-29 02:20 PDT.
   Oct 2 12:00 HSB · Oct 3 10:30 HSB + the market · Oct 4 13:00 Litquake, the Castro fair, HSB · Oct 9 12:30 Fleet Week ·
   Oct 10 12:30 Fleet Week + the market · Oct 11 12:40 Fleet Week, YBG Dance Day, the Italian Heritage Parade · Oct 31 12:30
   the Hoopla + the market · Oct 31 19:30 the Figaro opening · Nov 1 nothing (the catalog's SF events end Oct 31).
-- Checks: see the push line below.
+- Checks (the tree of the part-a push, before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors
+  (43 old warnings) · the suite 1380 + 4 new: all green after two fixes of my own tests (the wave-5 jets test pinned the
+  jets' souvenir as the *last* id — it keeps bit 17, now asserted by index; the live.json test raced my part-b edit and
+  passes alone). Re-run on the rebased head: see the push line in part b.
 
 ### Facts checked on the web (2026-09-29, OpenStreetMap API / Nominatim)
 
@@ -124,3 +128,32 @@ Written 2026-09-29 02:20 PDT.
 - **H** (Halloween world): Thrill-O-Ween (Oct 24, 12:00–17:00) at Thrive City now has a festival kit at
   `{ x: 496.2, z: 239.8 }` — pumpkins there would fit if you dress event venues; the Sunnydale Pumpkin Fest kit stands at
   `{ x: 857.9, z: 1109.8 }` (Oct 17, 12:00–15:00).
+
+## Part b · the refreshed offers, the 今天 tab, the owner's dates (W6-S2)
+
+Written 2026-09-29 ≈ 02:40 PDT.
+
+### What was built
+
+- **`live.json`** (GPT re-exported it on 2026-09-29: the same 11 San Francisco museum / park / transit offers as wave 5).
+  The autumn release added 86 offers to the site data; the ones in San Francisco that belong to a place in the game and are
+  free for a visit are **MoAD's two October days**, now in `scripts/opus-sf/export-live.ts` and re-exported through it (13
+  offers, 4.6 KB gzip; the 11 old rows byte-identical):
+  - `sf-moad-free-thursday-oct1-2026` — Thu Oct 1, 16:00–20:00, free (DJ 17–20), at the Museum of the African Diaspora
+    (`places.json` `osm-n415567060`);
+  - `sf-moad-thrive-second-saturday-oct2026` — Sat Oct 10, 11:00–17:00 (the Saturday hours), free.
+  They appear in the 今天 tab's 今天在旧金山 on their day with the organiser's link and **BAYLINK 优惠详情** →
+  `/offers/<id>`, and in `offersForPlace` for the MoAD place card (lane C's hook). `Spec.ruleCheckedAt` records that their
+  hours were read on 2026-09-29 (the wave-5 rows keep 2026-09-28).
+- Not taken (the export's wave-5 rule: museums, parks and transit only, never a purchase deal or a shop): the $10 opera
+  tickets (`sf-opera-dolby-figaro-offer-2026`, a purchase), the trivia-night drink deal (a bar), SFPL Discover & Go and the
+  radon-detector loan (library-card services, no single place).
+- `tests/opus-bay-w5-calendar.test.ts`: 13 offers; the MoAD hours on Oct 1 / Oct 10 and not on Oct 8; a rule may be checked
+  on 2026-09-28 or 29.
+
+### Facts checked on the web (2026-09-29)
+
+- MoAD visit page https://www.moadsf.org/visit: "temporarily closed … from August 17th through September 29th", reopens
+  Sep 30; Tue–Wed and Fri–Sun 11am–5pm, Thu 12pm–8pm, closed Monday; "Every Second Saturday" free (THRIVE @ MoAD).
+- MoAD First Thursday, Oct 1: https://www.moadsf.org/event/downtown-first-thursdays---october-1 — 4:00–8:00 PM, free
+  admission, DJ 5–8 pm.
