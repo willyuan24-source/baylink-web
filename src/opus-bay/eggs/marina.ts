@@ -1,4 +1,5 @@
 import { charApi } from '../actors/charApi';
+import { onDeck as onWalkDeck } from '../actors/deckSteer';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { heightAt, isWater } from '../core/terrain';
@@ -113,6 +114,8 @@ export function crissyHost(): EggHost {
 const OTTER = 'baybay-otter-roots';
 /** the water just south-west of the spot (checked in the published city) */
 const OTTER_WATER = { x: -752.8, z: 603.5 };
+/** (W6-K1) the fort's waterside stands a few u over the Bay; the deck above it ≥ 11 u (GGB.deck.minY): higher = the deck */
+export const OTTER_MAX_Y = 9;
 
 export function otterHost(): EggHost {
   let told = false;
@@ -130,6 +133,9 @@ export function otterHost(): EggHost {
     range: 40,
     update: ctx => {
       if (told || ctx.found || ctx.dist > 7 || ctx.busy || runtime.move.mode !== 'foot') return;
+      // (W6-K1, W5-Z §7.3) the spot is the water by the fort, far below the bridge: not from the deck 15 u over it (the
+      // walk deck's registry, whole width and deck height; this file's onDeck is the roadway's middle only)
+      if (onWalkDeck(ctx.px, ctx.pz, ctx.py) || onDeck(ctx.px, ctx.py, ctx.pz) || ctx.py > OTTER_MAX_Y) return;
       const g = runtime.guide;
       if (Math.hypot(g.x - ctx.px, g.z - ctx.pz) > 12 || !momentFree()) return;
       tell();
