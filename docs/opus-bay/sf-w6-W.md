@@ -69,7 +69,9 @@ Started 01:53 PDT (the brief said lanes start 02:40; the worktree was ready, so 
 - Before / after from above (same camera, desktop, day): `qa/w6/W/w1-nb-seam-top-before.jpg` (the empty band),
   `qa/w6/W/w1-nb-seam-top-after.jpg` (blocks filled, the square's lawn and trees, the church). Desktop golden hour from
   the square: `qa/w6/W/w1-nb-church-desk.jpg` (the twin towers, rose window, band, doors; the lawn, poplars, statue,
-  benches). Phone 390 × 844 dpr 3 quality mid, player at (−64, 109): `qa/w6/W/w2-nb-square-phone.jpg`.
+  benches). Phone 390 × 844 dpr 3 quality mid, player at (−64, 109): `qa/w6/W/w2-nb-square-phone.jpg`. Night on
+  Columbus Ave (added in part c): the café tables under their umbrellas, a sitter, a tricolour pole with its lantern lit
+  and the bulb strings glowing (`qa/w6/W/w2-nb-columbus-night-desk.jpg`).
 - Draw calls / triangles (renderer.info, budget-views, not fps): above the band 57 calls / 199k → 57 / 204k (fill only)
   → 68 / 230k with the corner in view (another camera); the low view toward Columbus 80 / 289k → 81 / 306k. The corner
   itself: 2 meshes, 7,254 triangles (the test measures it).
