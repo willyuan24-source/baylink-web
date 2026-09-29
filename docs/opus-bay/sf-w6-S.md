@@ -100,6 +100,10 @@ Written 2026-09-29 02:20 PDT.
 - Arc Gallery & Studios https://www.openstreetmap.org/node/3789606760 (1246 Folsom St; in `places.json`).
 - Event dates and hours are the catalog's (the site's editors verified them on 2026-09-28/29 with each event's official
   page); the world reads them at runtime. No organiser hours were added to the table this part.
+- Thrill-O-Ween re-checked (2026-09-29): Saturday, October 24, 12–5 pm at Thrive City, free with RSVP, costume contest and
+  an E.T. screening — https://www.eventbrite.com/e/thrill-o-ween-tickets-1997063314132 and
+  https://www.chasecenter.com/2026-thrive-city-fall-programming/ (the event's own chasecenter.com page renders only in a
+  browser; the catalog's label 10/24 · 12:00–17:00 matches).
 
 ### Decisions
 
@@ -120,7 +124,9 @@ Written 2026-09-29 02:20 PDT.
 ### Known gaps
 
 - The board faces were set from the building's centre to the entrance (a sandwich board has no front the player notices);
-  not every board was looked at in the game (the Thrive City kit was).
+  the Thrive City kit and the Opera House board were looked at in the game (part c's evidence), not the Chase Center,
+  Davies or Arc Gallery boards (the walking-network test covers their spots).
+- Board venues (wave 5's and mine) fly their pennant at the board's own point, so the pole stands in the board.
 - `labelHoursOn` reads the labels of today's catalog; a label written in a new style falls back to the old first-range rule
   and then to 08:00–21:00 (as before).
 
@@ -237,7 +243,13 @@ Written 2026-09-29 ≈ 03:05 PDT.
 - Checks on the head rebased onto `origin/opus-bay` (K2 part b, W1 / W2 the North Beach seam and corner landed): `npx tsc -p
   tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1417 / 1418**, the one failure the
   known wall-clock `sf-move2` "E2-5 view field" (3.8 s under load), which passes alone (24 / 24). After the next rebase (H1 /
-  H2 the Halloween city, G2 trick-or-treat, X5 faces): tsc 0 · eslint 0 errors · **1431 / 1431**.
+  H2 the Halloween city, G2 trick-or-treat, X5 faces): tsc 0 · eslint 0 errors · **1431 / 1431**; pushed `2e4ca917` (after
+  one more rebase over lane P's P2 / P3, with tsc 0 and my seven test files 65 / 65 before the push); the full run on that
+  pushed tree: tsc 0 · eslint 0 errors · **1432 / 1432**.
+- The Opera House board in the game (phone, zh, `?date=2026-10-04T14:30`, the Sunday matinee): `presence()` opens
+  `sf-opera-mary-queen-scots-2026` and `sf-symphony-fleming-strauss-2026` (both 14:00 that day by the label's per-date part),
+  each a 128-triangle board; the sandwich board with its balloons on the Van Ness Ave pavement at the Opera House's door, the
+  phone's action button 看看活动, and the two souvenirs paid on arrival (`qa/w6/S/s1-opera-board-2026-10-04-phone.jpg`).
 
 ### Decisions
 
