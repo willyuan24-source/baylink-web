@@ -11,7 +11,8 @@ Lane S owns `realsf/{eventVenues,eventKit,events,calendar,live,daily,todayRows,t
 2. 万圣节优先：大通中心 Thrive City 广场 10/24 的免费万圣节亲子庆典有了舞台、摊位和人群；Sunnydale 南瓜节（10/17）、Portola 万圣节手工（10/23）、芳草地花园儿童装扮游行（10/31）都在原地，时间和新目录一致。
 3. 新增场地：大通中心（勇士季前赛、演唱会，门口立小广告牌）、战争纪念歌剧院、戴维斯交响音乐厅、探索馆家庭科学日、Arc 画廊文学夜；每个点都在 9/29 查过 OpenStreetMap，并确认在游戏步行网络上。
 4. 修好了新目录带来的小问题：渡轮大厦农夫市集现在也是目录活动，周六按 8:00–14:00 显示（原来会错成 10:00），“今天”页不再重复出现两行市集、今日三件小事也不会同时出现“去市集”和“去看市集活动”。
-5. 主人的日期都还正常：10/2–4 蓝草音乐节和卡斯特罗街区节、10/9–11 舰队周、10/31 儿童游行；11/1 起目录里没有旧金山活动（网站目录只到 10/31）。
+5. 网站新开的店：旧金山有 4 家，3 家已开业的（Sergeant Ma、Kaiyō 手卷吧、Athanor）在真实地址旁立了金色“新店”小牌子，走近按 E 看卡片、一键打开 BAYLINK 新店页；另外 28 家不在旧金山或还没开业，没放。“今天”页的优惠多了非洲侨民博物馆 10/1 免费夜场和 10/10 免费日。
+6. 主人的日期都还正常：10/2–4 蓝草音乐节和卡斯特罗街区节、10/9–11 舰队周、10/31 儿童游行；11/1 起目录里没有旧金山活动（网站目录只到 10/31）。
 
 ## Part a · the autumn catalog's San Francisco events in the world (W6-S1)
 
@@ -160,5 +161,92 @@ Written 2026-09-29 ≈ 02:40 PDT.
 
 ### Evidence (parts a + b, the push)
 
-- On the head rebased onto `origin/opus-bay` (K1, G, … landed): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .`
-  0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1389 / 1389**.
+- On the head rebased onto `origin/opus-bay` (K1, G, K2, X, P landed): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1401 / 1401**. Pushed as `c9ae4fca` after one more rebase over lane B's five transit commits (files disjoint from mine;
+  the part-c run covers that tree too).
+- The 今天 tab in the game (phone 390 × 844 dpr 3, `?date=2026-10-01T15:30`, zh): the daily three's event task reads
+  去看看弗莱明唱施特劳斯 · 交响音乐厅 · 今天 14:00–18:00 · 现在开放 — the new Davies row with the label's per-date hours (the
+  label says 10/1 and 10/4 at 14:00, 10/3 at 19:30). That day has no free event, so a paid concert is the task; part c makes
+  a free event win whenever the day has one.
+
+## Part c · the new openings: a 新店 sign at the address (W6-S3)
+
+Written 2026-09-29 ≈ 03:05 PDT.
+
+### What was built
+
+- The autumn release's openings (`src/data/autumn-release-openings.json`: 31 published; `docs/releases/autumn-content-2026-09-29.json`
+  records 32 opening decisions): **4 in San Francisco, 3 open → 3 signs; 28 skipped** — 27 outside the city (South Bay,
+  Peninsula, East Bay, North Bay) and Handroll Hawker (2360 Polk St), which the site lists as *announced* (planned for
+  Sep 29, not confirmed open: a "new" sign for a shop that may not be open would mislead).
+
+  | opening (BAYLINK id) | the site's address | OSM point (checked 2026-09-29) | sign (world u) |
+  |---|---|---|---|
+  | Sergeant Ma (`sergeant-ma`), waterfront restaurant | 185 Berry Street | https://www.openstreetmap.org/way/46264110 "China Basin – Berry Street Building", 185 Berry St (37.7764556, −122.3921108); the twin 185 Berry St building is way 46264108 "Wharfside" | 358.7, 208.3 (3 u from the point), on the China Basin walk |
+  | Kaiyō Handroll Bar (`kaiyo-handroll-union`) | 1838 Union St | https://www.openstreetmap.org/node/693507981 "KAIYŌ", 1838 Union St (37.7979631, −122.4295323) | −205.8, 305.5 (3.6 u) |
+  | Athanor (`sf-athanor-new-restaurant-2026`) | 2600 Sutter Street | https://www.openstreetmap.org/way/27054290, 2600 Sutter St (37.784889, −122.443353) | −178.5, 569.5 (2.8 u; the point falls on the toy corner of Sutter & Broderick) |
+
+- `realsf/openings.ts` (data only): `OPENING_SIGNS` (the site's id, name, address and check date; what it is and the hours
+  note, shortened from the site's text; the OSM point, URL and check date; the sign's spot and facing), `openingUrl(id,
+  locale)` → `/openings/:id` (`?lang=` like every BAYLINK link), `signById`, `signFront`, `SIGN_NEAR` 260 u, `FLAG_FAR`
+  320 u, `PROMPT_R` 5 u.
+- `realsf/openingSigns.ts` `initOpenings()` (city mode): only the nearest sign within 260 u stands — one merged mesh
+  (`eventKit.ts buildOpeningSignGeometry`: two white posts, a gold board with coral bands and a white badge that glows at
+  night, a teal awning, three balloons; **180 triangles**, one geometry on the event kits' material, program key
+  `ob-toy-dyn`: no new program; warmed `r-opening-sign`); a gold pennant with the shopping-bag glyph (lane N's flag layer, no
+  draw call of mine) within 320 u; **E · 看看新店 · <name>** 1 u in front of the board opens the card. DEV
+  `__opusRealSF.openings()` → `{ built, tris }`.
+- `realsf/OpeningCard.tsx` + `realsf/openings.css` (the `realsf-opening` overlay): 新店 · 已开业, the name, what it is, the
+  address, the hours note (it names the shop's own site), **BAYLINK 新店页** (the site's `/openings/:id`, new tab) and
+  "BAYLINK 编辑 <date> 核对"; bottom-left like the find cards (phones: above the phone bar); ×, Esc or walking 10 u away closes
+  it. Nothing is sold and no coin is paid: a pointer to the site, like the event cards.
+- `realsf/index.ts` (**surgical, not in my table**: three lines): `initOpenings()` next to the dressings, `openings.off()` in
+  the teardown, the DEV hook.
+- `realsf/daily.ts`: the daily three's event task takes a **free** event of the day when there is one (the autumn catalog
+  brings paid arena and opera nights; e.g. Oct 24 → a free event, not the Exploratorium's paid programme); a day with only
+  paid nights keeps its event task (Oct 20: The Ring with the symphony).
+- Tests: new `tests/opus-bay-w6-s-openings.test.ts` (3) — a sign for every open SF opening of the release and only those
+  (the announced one has none), the site's address / name / check date, every sign ≤ 5 u from its OSM point; standable, off
+  the road, on the walking network reachable from ferry-gate on the published city; the geometry ≤ 400 triangles, ≤ 4 u
+  tall, the kit attributes; the card renders the name, the address, 新店 and `href="/openings/sergeant-ma"`, and nothing for
+  an unknown id. `tests/opus-bay-w6-s-venues.test.ts` + 1: the daily event task is a free event on Oct 3, 4, 11, 17, 24, 31.
+
+### Evidence
+
+- Real game, dev server 5607, headless Chrome `--force_high_performance_gpu`:
+  - desktop 1440 × 900, zh, `?date=2026-10-02T17:30&at=xz:357.3,209.6`: `openings()` = `{ built: 'sergeant-ma', tris: 180 }`;
+    the gold board with its awning and balloons on the China Basin walk, the prompt **E · 看看新店 · Sergeant Ma**; E opens the
+    card (新店 · 已开业 · Sergeant Ma · 水岸餐厅 · 185 Berry Street … · 官网：周一至周六 16:00–21:00，周日休息 · BAYLINK 新店页 ·
+    BAYLINK 编辑 2026-09-28 核对) (`qa/w6/S/s3-opening-sergeant-ma-card-desktop.jpg`). A first try from 2.8 u beside the
+    board gave the prompt to BAYBAY (she stands closer; the focus score is distance / radius): the prompt moved 1 u in front
+    of the board with a 5 u radius, and the board turned to face the street.
+  - phone 390 × 844 dpr 3, zh, Union St: `{ built: 'kaiyo-handroll-union', tris: 180 }`, the card above the phone bar, clear
+    of the 跳 button (`qa/w6/S/s3-opening-kaiyo-card-phone.jpg`). Both shots still show the card's old "· 出发前以官网为准" suffix, since
+    dropped because each hours note already names the shop's site.
+- Checks: see the push line below.
+
+### Decisions
+
+1. **Signs only for open shops with an OSM-confirmed address**; the announced one waits (the site will flip its status).
+2. **One sign built at a time** (the nearest within 260 u): the three are kilometres apart; at most +1 call / +180 triangles.
+3. **The card is a pointer to BAYLINK** (its page, its check date) — no prices, no coins; the hours line repeats the site's
+   note in a few words and names the shop's own site.
+4. **Board facing and prompt**: the board faces the street; the prompt is 1 u in front of it with a 5 u radius so it wins over
+   BAYBAY when the player walks up to it.
+
+### Not done / known gaps
+
+- Handroll Hawker (announced) has no sign; when the site marks it open, add a row (OSM: check 2360 Polk St).
+- The sign has no lettering (the toy style has none; the pennant's glyph, the prompt and the card say 新店).
+- Día de los Muertos: https://www.dayofthedeadsf.org/ still shows only "November 2nd, 2025" (checked 2026-09-29), and a web
+  search found no 2026 date for the Mission procession (the 2025 one assembled at 22nd & Bryant on Sun Nov 2 at 7 pm, e.g.
+  https://sf.funcheap.com/sf-dia-de-los-muertos-procession-mission/): `realsf/calendar.ts` keeps the row hidden. Lane H owns
+  the Muertos dressing and does its own check.
+
+### Requests
+
+- **Lead / reviewer**: `realsf/index.ts` got three surgical lines (above); lane R's wave-5 tests of my modules
+  (`tests/opus-bay-w5-jets.test.ts`, `-events.test.ts`, `-calendar.test.ts`) were updated as described in parts a / b.
+- **H**: Día de los Muertos 2026 has no published date yet (above); if you dress 1–2 Nov, grade it "usually", as the
+  calendar would.
