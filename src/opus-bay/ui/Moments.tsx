@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
 import { Aperture, Check, Download, HandHeart, Images, Mail, Sparkles, X } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, tourIdOf, useGame } from '../core/store';
@@ -12,11 +12,11 @@ import {
   FISH_CATCHES, closeFishing, closePostcardReward, exitPhotoMode, notePhotoTaken, reel, retryFishing,
 } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { postcardById } from '../game/interactables';
+import { interactableById, postcardById } from '../game/interactables';
 import { downloadUrl, requestShutter } from '../game/photo';
 import { SF_NAME, zoneName } from '../data/cityZones';
 import { cityDistrictZh } from '../data/sf/cityPois';
-import { closeOverlay, openOverlay, openOverlays } from './slots';
+import { closeOverlay, openOverlay, openOverlays, subscribeOverlays } from './slots';
 import { registerAnchor } from '../game/projector';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
@@ -189,6 +189,9 @@ export function PhotoMode() {
 // Free-roam goals card (once, dismissible)
 // ---------------------------------------------------------------------------
 
+/** W6-K2: any ui/slots overlay is open (an egg's paper or card, a letter, the album …). */
+const anyOverlayOpen = () => openOverlays().length > 0;
+
 /**
  * Overlay queue (F2): at most one text overlay besides the pill — BAYBAY's bubble first, then this card, then the
  * coach mark. The card waits while a bubble is up, then folds back into the pill after 6 s on screen or at the
@@ -202,7 +205,12 @@ export function GoalsCard() {
   const dialogue = useGame(s => s.dialogue.nodeId);
   const panel = useGame(s => s.panel.kind);
   const city = useGame(s => s.worldMode === 'city');
-  const visible = open && !dialogue && !panel && !bubbleUp;
+  // W6-K2 (lane D's review: on a new save the card opened over the ringing Chinatown phone and the operator's paper,
+  // 接电话 live under it): in the city the card also waits while an overlay (an egg's paper or card, a letter …) is up
+  // or a find asks for the player (an egg's prompt)
+  const overlayUp = useSyncExternalStore(subscribeOverlays, anyOverlayOpen, anyOverlayOpen);
+  const findPrompt = useGame(s => !!s.focus && interactableById(s.focus)?.source === 'find');
+  const visible = open && !dialogue && !panel && !bubbleUp && !(city && (overlayUp || findPrompt));
   useEffect(() => {
     if (!visible) return;
     const t0 = performance.now();

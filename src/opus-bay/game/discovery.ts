@@ -171,6 +171,15 @@ export function syncDiscoveryWithSave(): boolean {
   return false;
 }
 
+/**
+ * W6-K2 (lane C's review: a resume showed 发现 4 个新地点：… above 欢迎回来): the player stood here last time and
+ * BAYBAY's welcome back is the greeting, so the first finds round a resumed spot are kept quietly (marked, saved, never
+ * announced) — the first discovery tick with the place index within QUIET_RESUME_MS of the resume. game/resume.ts calls it.
+ */
+export const QUIET_RESUME_MS = 20_000;
+let quietResume = 0;
+export function quietNextDiscovery(now = performance.now()): void { quietResume = now + QUIET_RESUME_MS; }
+
 let lastTick = 0;
 /** Focus-hook tick (10 Hz; 4 Hz inside). */
 export function updateDiscovery(p: Vec2, now: number) {
@@ -186,6 +195,11 @@ export function updateDiscovery(p: Vec2, now: number) {
   }
   const ix = placeIndex();
   if (ix) for (const pl of newlyDiscovered(ix, p, isDiscovered)) markDiscovered(pl);
+  // W6-K2: the first batch round a resumed spot is kept without a word (quietNextDiscovery)
+  if (quietResume) {
+    if (now > quietResume) quietResume = 0;
+    else if (ix) { quietResume = 0; stamps.clear(); return; }
+  }
   const told = stamps.take(now);
   if (told.length) announce(told);
 }

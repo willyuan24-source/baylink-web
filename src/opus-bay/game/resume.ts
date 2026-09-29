@@ -5,6 +5,7 @@ import type { Vec2 } from '../core/types';
 import { readSave, resumeSpot, takeResumeRequest } from '../data/save';
 import { loadPlaces } from '../data/sf/places';
 import { cityStreamerLazy } from '../world/cityLoader';
+import { quietNextDiscovery } from './discovery';
 import { arrivalSpot, bumpTravelEpoch, placePlayer } from './fastTravel';
 import { canStand } from '../core/terrain';
 import { beginPlaying, noteInteractHandled, startGame } from './flow';
@@ -52,6 +53,8 @@ async function resumeAt(spot: { x: number; z: number; heading: number }) {
   const fleet = readSave()?.vehicles;
   if (fleet) restoreFleet(fleet);
   // (W5-N6) BAYBAY's welcome back is the greeting (flow's local start; lane C's onWelcome 'returning'): no toast on top
+  // (W6-K2: nor the discovery batch of the spot the player stood on last time)
+  quietNextDiscovery();
   beginPlaying('local');
 }
 

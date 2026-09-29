@@ -55,7 +55,9 @@ export function updateFocus() {
   // area label (city mode: data/cityZones cityAreaAt — hero zones first, then the DataSF neighbourhood)
   let area: string | null = null;
   let named: { id: string; name: { zh: string; en: string } } | null = null;
-  if (s.worldMode === 'city') { named = cityAreaAt(p.x, p.z); area = named?.id ?? null; }
+  // (W6-K2, lane N's review: with the walker's height the Golden Gate deck is 金门大桥 from the south anchorage on, and
+  // the water or Fort Point under it is not)
+  if (s.worldMode === 'city') { named = cityAreaAt(p.x, p.z, runtime.player.y); area = named?.id ?? null; }
   else for (const zone of DISTRICT.zones ?? []) if (zone.polygon?.length > 2 && pointInPolygon(p, zone.polygon)) { area = zone.id; break; }
   if (area !== lastArea) {
     lastArea = area;
