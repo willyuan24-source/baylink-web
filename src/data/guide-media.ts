@@ -23,7 +23,7 @@ import contentCoverageMedia from './content-coverage-media.json';
 import dailyLifeMedia from './daily-life-media.json';
 import schoolMedia from './schools-media.json';
 import schoolCampusMedia from './schools-campus-media.json';
-import { septemberOpenings } from './september-openings';
+import { currentOpenings as septemberOpenings } from './local-discoveries';
 
 export type GuideImage = {
   src: string;
@@ -44,6 +44,7 @@ const illustration = (name: string, alt: string, caption: string): GuideImage =>
 });
 
 export const GUIDE_IMAGES: Record<string, GuideImage> = {
+  'autumn-new-shops': { src: '/guides/editorial/autumn-new-shops.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日湾区街角的咖啡店、烘焙店与行人插画', caption: '新店探索情境插画，不代表所列门店的实景、位置或商品。', credit: 'BAYLINK · AI 原创插图' },
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
   weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
   everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。社区生活情境插图，不代表某场实际活动。'),

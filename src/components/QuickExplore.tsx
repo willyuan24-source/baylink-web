@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Wrench, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Store, Ticket, Wrench, X, type LucideIcon } from 'lucide-react';
 import { CATEGORIES } from '../lib/constants';
 import { guides } from '../data/guides';
 import { searchGuides } from '../lib/guide-search';
@@ -8,6 +8,7 @@ import { ModalShell } from './ui/Modal';
 import { translateText, useLocale } from '../i18n/locale';
 import { searchQuickDestinations } from '../lib/quick-search';
 import { getGuideMedia, GUIDE_IMAGES } from '../data/guide-media';
+import { openingStatusLabel } from '../lib/opening-status';
 
 type QuickResult = { id: string; title: string; detail: string; icon: LucideIcon; group: string; run: () => void; image?: string };
 
@@ -24,7 +25,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
   const destinations = useMemo(() => searchQuickDestinations(term, locale), [term, locale]);
   const matches = useMemo(() => term ? searchGuides(guides, { query: term, locale })
     .filter(({ guide }) => !destinations.attractions.some(place => place.slug === guide.slug)).slice(0, 4) : [], [term, locale, destinations]);
-  const found = matches.length + destinations.tools.length + destinations.events.length + destinations.attractions.length;
+  const found = matches.length + destinations.tools.length + destinations.events.length + destinations.attractions.length + destinations.offers.length + destinations.openings.length;
   const run = (action: () => void) => { onClose(); action(); };
   const results: QuickResult[] = [
     ...destinations.tools.map(tool => ({
@@ -34,7 +35,17 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
     ...destinations.events.map(event => ({
       id: `event-${event.id}`, title: event.title, detail: `${event.dateLabel} · ${event.city}`, icon: CalendarDays,
       group: '近期活动', image: GUIDE_IMAGES[event.imageKey]?.src,
-      run: () => onNavigate(`/this-month?q=${encodeURIComponent(event.title)}#monthly-events`),
+      run: () => onNavigate(`/events/${event.id}`),
+    })),
+    ...destinations.offers.map(offer => ({
+      id: `offer-${offer.id}`, title: `${offer.brand} · ${offer.title}`, detail: `${offer.dateLabel} · ${offer.requirement}`, icon: Ticket,
+      group: '优惠与福利', image: GUIDE_IMAGES[offer.imageKey]?.src,
+      run: () => onNavigate(`/offers/${offer.id}`),
+    })),
+    ...destinations.openings.map(shop => ({
+      id: `opening-${shop.id}`, title: shop.name, detail: `${openingStatusLabel(shop.status)} · ${shop.city} · ${shop.dateLabel}`, icon: Store,
+      group: '新店与预告', image: GUIDE_IMAGES[shop.imageKey]?.src,
+      run: () => onNavigate(`/openings/${shop.id}`),
     })),
     ...destinations.attractions.map(place => {
       const guide = guides.find(item => item.slug === place.slug);
@@ -64,7 +75,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
         <form onSubmit={(event) => { event.preventDefault(); if (!composing.current) run(results[selected].run); }} className="quick-search-form">
           <Search size={22} />
           <input ref={inputRef} maxLength={80} aria-label="快速搜索" role="combobox" aria-expanded="true" aria-controls="quick-explore-results"
-            aria-autocomplete="list" aria-activedescendant={`quick-result-${selected}`} autoFocus placeholder="搜索景点、活动、工具或生活问题…"
+            aria-autocomplete="list" aria-activedescendant={`quick-result-${selected}`} autoFocus placeholder="搜索活动、优惠、新店或生活问题…"
             value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }}
             onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
             onKeyDown={(event) => {

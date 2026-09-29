@@ -19,9 +19,10 @@ test('free admission results include Newark Days and Petaluma while retaining pa
   assert.ok(filterMonthlyEvents([newark, petaluma], { cost: 'free', date: 'weekend', region: 'east-bay' }, '2026-09-15').includes(newark));
   assert.ok(filterMonthlyEvents(MONTHLY_EVENTS, { cost: 'free', date: 'october', region: 'north-bay' }, '2026-09-15').includes(petaluma));
   assert.match(newark.costLabel, /游乐设施、餐饮及部分项目另付/);
-  assert.match(petaluma.costLabel, /基础入场和停车免费/);
-  assert.match(petaluma.costLabel, /大迷宫与部分项目另付/);
-  assert.match(petaluma.plan.join(' '), /买南瓜及餐饮另算/);
+  assert.match(petaluma.costLabel, /基础入场及停车免费/);
+  assert.match(petaluma.costLabel, /日间大迷宫6岁以上\$9、5岁及以下免费/);
+  assert.match(petaluma.costLabel, /周五周六夜迷宫\$13/);
+  assert.match(petaluma.plan.join(' '), /其他项目、南瓜和餐饮另付/);
 });
 
 test('free admission does not include conditional-age or resident exemptions and still respects expiry', () => {

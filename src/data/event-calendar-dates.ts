@@ -1,4 +1,5 @@
 import { communityDiscoveryEventDates, communityDiscoveryScheduleNotes } from './community-discovery-events';
+import autumnReview from './autumn-release-events.json';
 
 /**
  * Calendar-day exceptions, reviewed 2026-09-23 in America/Los_Angeles.
@@ -52,3 +53,10 @@ export const EVENT_SCHEDULE_NOTES: Record<string, string> = {
   "palo-alto-addams-family-opening-2026": "本条仅列 10 月 30、31 日 19:30 两场；其余演出在 11 月，须另查剧院日程。",
   "oakland-omca-friday-finale-2026": "本条仅列 10 月 30 日的季末周五夜，17:00–21:00。"
 };
+
+// September 29 source review supersedes earlier calendar exceptions and notes.
+for (const event of autumnReview) {
+  if (event.occurrenceDates !== undefined) EVENT_DATE_OVERRIDES[event.id] = event.occurrenceDates;
+  else delete EVENT_DATE_OVERRIDES[event.id];
+  EVENT_SCHEDULE_NOTES[event.id] = event.plan[0];
+}

@@ -1,0 +1,4358 @@
+{
+  "checkedAt": "2026-09-29",
+  "baseSha": "7889a7ed4ab9af495833aeda8c78344fc2ff418e",
+  "sourceRecords": 349,
+  "imagePolicy": "保留既有已发布图片；新条目使用 BAYLINK 自有插画。未发布权利未经确认的研究图片。",
+  "decisions": [
+    {
+      "researchId": "santa-clara-cider-valley-fair-opening-2026",
+      "canonicalId": "santa-clara-cider-valley-fair-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://au.shopcider.com/stores/bay-area-valley-fair",
+        "https://api.einpresswire.com/article/939768378/cider-expands-retail-footprint-with-second-permanent-store-opening-at-westfield-valley-fair-in-san-jose",
+        "https://www.westfield.com/en/united-states/valleyfair"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "palo-alto-auntea-jenny-announced-2026",
+      "canonicalId": "palo-alto-auntea-jenny-announced-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/",
+        "https://www.aunteajenny.us/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "palo-alto-peets-cold-brew-pass-sep-2026",
+      "canonicalId": "peets-cold-brew-pass-september",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.peets.com/pages/current-offers",
+        "https://www.peets.com/pages/store/town-country"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-jose-85c-coffee-dollar-cake-sep-2026",
+      "canonicalId": "85c-september-cake",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.85cbakerycafe.com/85app/",
+        "https://www.85cbakerycafe.com/",
+        "https://85cbakerycafe.orderexperience.net/85cbakerycafe/locations"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-jose-bitterbuck-soft-opening-2026",
+      "canonicalId": "san-jose-bitterbuck-soft-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.bitterbucksj.com/",
+        "https://www.thesanjoseblog.com/2026/09/bitterbuck-soft-opens-today-in-fountain.html"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "san-jose-hijau-grand-opening-2026",
+      "canonicalId": "hijau-san-jose-storefront",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://pusakasunda.org/show/hijau-coffee-grand-opening/",
+        "https://www.hijau.coffee/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "oakland-omca-first-sundays-sep-oct-2026",
+      "canonicalId": "omca-free-oct4",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://museumca.org/first-sundays/",
+        "https://museumca.org/visit/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "r2-santarosa-ross-street-sundays-2026",
+      "canonicalId": "r2-santarosa-ross-street-sundays-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.thesocomarket.com/events-2/ross-st-sundays-10-4",
+        "https://www.thesocomarket.com/events-2"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-sergeant-ma-opening-2026",
+      "canonicalId": "sergeant-ma",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sergeantma.com/",
+        "https://www.mccarthycook.com/china-basin-news/what-comes-after-live-work-play-south-coast-metro-has-some-observations/",
+        "https://www.sfgate.com/food/article/sergeant-ma-china-basin-22411402.php"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "walnut-creek-vici-new-store-2026",
+      "canonicalId": "walnut-creek-vici-new-store-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.vicicollection.com/pages/stores",
+        "https://patch.com/california/walnutcreek/amp/34737505/fashion-brand-opening-new-store-in-walnut-creek"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "fremont-street-eats-autumn-2026",
+      "canonicalId": "fremont-street-eats-autumn-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.fremontstreeteats.com/events",
+        "https://www.fremont.gov/residents/city-calendar/-curm-10/-cury-2026/-toggle-allupcoming/-sortn-EDate/-sortd-desc/-locale-hi",
+        "https://www.fremontpolice.gov/Home/Components/Calendar/Event/527/317?sortd=asc&sortn=EName&toggle=allupcoming"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vallejo-brewing-artwalk-2026",
+      "canonicalId": "vallejo-brewing-artwalk-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.vallejobrewing.net/events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-sf-kaiyo-handroll-opening-2026",
+      "canonicalId": "kaiyo-handroll-union",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.kaiyosf.com/archive",
+        "https://www.theinfatuation.com/san-francisco/reviews/kaiyo-handroll-bar"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "concord-taco-trail-challenge-2026",
+      "canonicalId": "concord-taco-trail-challenge-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.visitconcordca.com/events/taco-trail-challenge-2026/",
+        "https://www.visitconcordca.com/eat-drink/taco-trail/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "oakland-delage-reopening-2026",
+      "canonicalId": "oakland-delage-reopening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/",
+        "https://www.delagesushi.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "newark-days-2026",
+      "canonicalId": "newark-days-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://newarkdays.org/faqs",
+        "https://newarkdays.org/schedule"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "santa-clara-cider-hello-kitty-pop-up-2026",
+      "canonicalId": "santa-clara-cider-hello-kitty-pop-up-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanjose.org/events/hello-kitty-friends-cider"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "berkeley-world-of-hoagies-opening-2026",
+      "canonicalId": "berkeley-world-of-hoagies-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://www.worldofhoagies.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "berkeley-kash-cafe-pop-up-2026",
+      "canonicalId": "berkeley-kash-cafe-pop-up-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://www.bykashco.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "albany-o2-sushi-opening-2026",
+      "canonicalId": "albany-o2-sushi-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://www.instagram.com/o2.sushi/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "palo-alto-yutori-restaurant-opening-2026",
+      "canonicalId": "yutori-palo-alto-restaurant",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.yutori-pa.com/restaurant-bar/",
+        "https://www.sfchronicle.com/food/restaurants/article/yutori-restaurant-opening-palo-alto-22442762.php"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "newark-fear-overload-2026",
+      "canonicalId": "newark-fear-overload-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://fearoverload.com/",
+        "https://fearoverload.com/buy-tickets/"
+      ],
+      "evidenceStatus": "needs_followup",
+      "disposition": "held",
+      "reason": "未确认场次或优惠条件，暂不发布"
+    },
+    {
+      "researchId": "walnut-creek-oktoberfest-2026-archive",
+      "canonicalId": "walnut-creek-oktoberfest-2026-archive",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://walnutcreekdowntown.com/events/oktoberfest"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "petaluma-pumpkin-patch-2026",
+      "canonicalId": "petaluma-pumpkin-patch-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://petalumapumpkinpatch.com/",
+        "https://petalumapumpkinpatch.com/pricing-hours/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vallejo-brewing-oktoberfest-2026",
+      "canonicalId": "vallejo-brewing-oktoberfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.vallejobrewing.net/events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "redwood-oktoberfest-closing-weekend-2026",
+      "canonicalId": "redwood-oktoberfest-closing-weekend-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.redwoodcity.org/residents/redwood-city-events/oktoberfest"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sonoma-farm-trails-fall-tour-2026",
+      "canonicalId": "sonoma-farm-trails-fall-tour-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.farmtrails.org/experience/weekend-along-the-farm-trails/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vacaville-authors-square-20260926",
+      "canonicalId": "vacaville-authors-square-20260926",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://downtownvacaville.com/events-in-downtown-vacaville/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "pacific-coast-fog-fest-2026",
+      "canonicalId": "pacific-coast-fog-fest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://pacificcoastfogfest.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "palo-alto-great-glass-pumpkin-2026",
+      "canonicalId": "palo-alto-great-glass-pumpkin-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://greatglasspumpkinpatch.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "stanford-football-georgia-tech-2026",
+      "canonicalId": "stanford-football-georgia-tech-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://tickets.gostanford.com/p/football?lang=en",
+        "https://gostanford.com/2026-football-media-center",
+        "https://gostanford.com/news/2026/1/26/complete-2026-schedule-unveiled"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "portola-2026",
+      "canonicalId": "portola-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.portolamusicfestival.com/general-info/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "ferry-plaza-farmers-market-2026-autumn",
+      "canonicalId": "ferry-plaza-farmers-market-2026-autumn",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://foodwise.org/markets/ferry-plaza-farmers-market/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "presidio-chuseok-festival-2026",
+      "canonicalId": "presidio-chuseok-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://koreancentersf.org/chuseok-festival/chuseok-festival-2026/",
+        "https://presidio.gov/explore/events/chuseok-festival-2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-fall-bike-fest-2026",
+      "canonicalId": "cupertino-fall-bike-fest-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Your-City/Departments/Public-Works/Transportation-Mobility/Safe-Routes-to-School-SR2S/Bike-Fest"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mcm-oktoberfest-2026",
+      "canonicalId": "mcm-oktoberfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/events",
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/oktoberfest-at-marin-country-mart/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "novato-youth-folk-dance-2026",
+      "canonicalId": "novato-youth-folk-dance-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.minoans.com/youth-festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "petaluma-fall-antique-faire-2026",
+      "canonicalId": "petaluma-fall-antique-faire-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://petalumadowntown.com/antique-show"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-clara-africrafty-2026",
+      "canonicalId": "menlo-clara-africrafty-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/News-articles/City-news/2026_09-11-11th-Storytelling-Festival",
+        "https://www.menlopark.gov/Citywide-calendar/Events?lang_update=638199483682306852"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "los-altos-amblett-coffee-2026",
+      "canonicalId": "los-altos-amblett-coffee-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.talpalo.com/event-details-registration/amblett-coffee-experience-w-andrew-czajkowski"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "sj-yandel-2026",
+      "canonicalId": "sj-yandel-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/yandel"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "offline_archive",
+      "reason": "发布前已结束，保留研究档案"
+    },
+    {
+      "researchId": "san-leandro-pooh-party-2026",
+      "canonicalId": "san-leandro-pooh-party-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7879&calType=0&day=24&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pat-benatar-santa-rosa-20260929",
+      "canonicalId": "pat-benatar-santa-rosa-20260929",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://lutherburbankcenter.org/event/pat-benatar26/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-the-phil-collins-story-2026",
+      "canonicalId": "uptown-the-phil-collins-story-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/the-phil-collins-story/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "palo-alto-peets-coffee-day-2026",
+      "canonicalId": "peets-coffee-day-sep29",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.peets.com/pages/current-offers",
+        "https://www.peets.com/pages/store/town-country"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "ai-conference-sf-2026",
+      "canonicalId": "ai-conference-sf-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://aiconference.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-handroll-hawker-opening-2026",
+      "canonicalId": "handroll-hawker",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.handrollhawker.com/",
+        "https://sf.eater.com/restaurant-news/213695/handroll-hawker-san-francisco-restaurant-opening"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "sf-opera-mary-queen-scots-2026",
+      "canonicalId": "sf-opera-mary-queen-scots-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfopera.com/operas/mary-queen-of-scots/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-jose-airport-coffee-day-2026",
+      "canonicalId": "san-jose-airport-coffee-day-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.flysanjose.com/sjc-buzz/coffee"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "clayton-cbca-business-mixer-2026",
+      "canonicalId": "clayton-cbca-business-mixer-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://members.claytoncbca.org/cbca-events/Details/cbca-business-welcome-mixer-1916690?sourceTypeId=Website"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pyladies-snowflake-ai-data-2026",
+      "canonicalId": "pyladies-snowflake-ai-data-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/693643qu"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-opera-dolby-figaro-offer-2026",
+      "canonicalId": "sf-opera-dolby-figaro-offer-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfopera.com/buy-tickets/dolby-familys-opera-for-the-bay/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "danville-scarecrow-stroll-2026",
+      "canonicalId": "danville-scarecrow-stroll-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://danville.ca.gov/851/Scarecrow-Stroll",
+        "https://www.danville.ca.gov/1131/Fall-Into-Danville"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "emeryville-restaurant-week-2026",
+      "canonicalId": "emeryville-restaurant-week-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://baystreetemeryville.com/events/emeryville-restaurant-week/",
+        "https://www.emeryville.org/News?dlv_OC+CL+City+News+Listing=%28dd_OC+News+Categories%3DEvents+%26+Activities%29"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "mcm-photography-reception-20261001",
+      "canonicalId": "mcm-photography-reception-20261001",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/events/flora-amp-henri-photography-exhibition-opening-reception"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mill-valley-film-festival-2026",
+      "canonicalId": "mill-valley-film-festival-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.mvff.com/press-info/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-napa-costume-exchange-2026",
+      "canonicalId": "r2-napa-costume-exchange-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://naparecycling.com/halloween/",
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "guide_only",
+      "reason": "常设或按各场馆/票页选择的档期，不制造逐日可预订场次"
+    },
+    {
+      "researchId": "pixels-thirsty-thursday-20261001",
+      "canonicalId": "pixels-thirsty-thursday-20261001",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/thirsty-thursdays-at-pixels-arcade-taproom/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "santa-rosa-pumpkins-parks-2026",
+      "canonicalId": "santa-rosa-pumpkins-parks-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.srcity.org/Calendar.aspx?EID=2289&calType=0&day=23&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sonoma-jorgensen-gallery-2026",
+      "canonicalId": "sonoma-jorgensen-gallery-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.parks.ca.gov/?page_id=479",
+        "https://www.sonomaparks.org/events/art-in-the-mission-christian-jorgensen-art-gallery-display/",
+        "https://www.sonomaparks.org/wp-content/uploads/2026/08/Gallery-Flyer-100126-.jpg"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "passdoor-santa-rosa-opening-2026",
+      "canonicalId": "passdoor-santa-rosa-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://thepassdoor.squarespace.com/new-events-1/santarosagrandopening"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "millbrae-cafe-announced-2026",
+      "canonicalId": "millbrae-cafe-announced-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/",
+        "https://www.millbraescafe.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "palo-alto-bonbon-matcha-announced-2026",
+      "canonicalId": "palo-alto-bonbon-matcha-announced-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/",
+        "https://www.instagram.com/bonbon_matcha/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "redwood-rick-steves-2026",
+      "canonicalId": "redwood-rick-steves-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.kqed.org/event/6734/rick-steves-how-to-see-the-world-redwood-city"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-downtown-first-thursday-oct-2026",
+      "canonicalId": "sf-downtown-first-thursday-oct-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theeastcut.org/event/downtown-first-thursday-august-2-2-3-7/",
+        "https://dftsf.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-after-dark-01-oct2026",
+      "canonicalId": "sf-exploratorium-after-dark-01-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/after-dark-echoes",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "llmday-san-francisco-q4-2026",
+      "canonicalId": "llmday-san-francisco-q4-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://llmday.com/2026-san-francisco-q4/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-moad-free-thursday-oct1-2026",
+      "canonicalId": "sf-moad-free-thursday-oct1-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.moadsf.org/event/downtown-first-thursdays---october-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "runtime-modal-sf-2026",
+      "canonicalId": "runtime-modal-sf-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/runtime-by-modal",
+        "https://frontend.modal.com/runtime"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-symphony-fleming-strauss-2026",
+      "canonicalId": "sf-symphony-fleming-strauss-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfsymphony.org/getmedia/4732d38f-af5d-4aa2-8934-428420ff11fa/2026-27-Season-Calendar.pdf"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "los-altos-coffeebar-announced-2026",
+      "canonicalId": "los-altos-coffeebar-announced-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/",
+        "https://coffeebar.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "mountain-view-tong-sui-announced-2026",
+      "canonicalId": "mountain-view-tong-sui-announced-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/",
+        "https://itongsui.square.site/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "sj-sharks-panthers-2026",
+      "canonicalId": "sj-sharks-panthers-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-panthers-4",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-billy-strings-2026",
+      "canonicalId": "east-bay-billy-strings-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/billy-strings",
+        "https://www.theoaklandarena.com/events/detail/billy-strings-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "fremont-finding-nemo-outdoor-movie-2026",
+      "canonicalId": "fremont-finding-nemo-outdoor-movie-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.fremont.gov/government/departments/parks-recreation/events/movies-under-the-stars",
+        "https://content.govdelivery.com/accounts/CAFREMONT/bulletins/429d29d"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-civic-ai-design-sprint-2026",
+      "canonicalId": "oakland-civic-ai-design-sprint-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/cgx812ka"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-first-fridays-oct-2026",
+      "canonicalId": "oakland-first-fridays-health-harmony-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.oaklandfirstfridays.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-oacc-mending-circle-2026",
+      "canonicalId": "oakland-oacc-mending-circle-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://oacc.cc/event/oct2026-mending-circle/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pleasanton-pumpkins-after-dark-2026",
+      "canonicalId": "pleasanton-pumpkins-after-dark-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+        "https://www.showpass.com/pumpkins-after-dark-2026-5/?source_channel=discovery",
+        "https://pumpkinsafterdark.com/pleasanton/faq"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-fall-book-sale-2026",
+      "canonicalId": "san-leandro-fall-book-sale-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=8200&calType=0&day=24&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "mcm-lilo-stitch-20261002",
+      "canonicalId": "mcm-lilo-stitch-20261002",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/movie-night-at-marin-country-mart/",
+        "https://marincountrymart.com/events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "rio-vista-bass-derby-2026",
+      "canonicalId": "rio-vista-bass-derby-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.bassfestival.com/bass-festival",
+        "https://www.bassfestival.com/fishing-tournament-tickets"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "station-house-happy-hour-20261002",
+      "canonicalId": "station-house-happy-hour-20261002",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://stationhousecafe.com/",
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/happy-hour-at-station-house-cafe/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-mateo-curiodyssey-first-friday-2026",
+      "canonicalId": "san-mateo-curiodyssey-spooky-science-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://curiodyssey.org/event/first-friday-nights-23/2026-10-02/",
+        "https://curiodyssey.org/exhibits-events/first-friday-nights/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "south-sf-blooming-into-being-2026",
+      "canonicalId": "south-sf-blooming-into-being-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.ssfca.gov/Departments/Parks-Recreation/Events/October-2026-Art-Show",
+        "https://myemail.constantcontact.com/September-News-from-SSF-Parks-and-Recreation.html?aid=c9lft63Kh2E&soid=1104692606798"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-assembling-ai-summit-2026",
+      "canonicalId": "sf-assembling-ai-summit-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/848c857m"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hardly-strictly-bluegrass-2026",
+      "canonicalId": "hardly-strictly-bluegrass-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://hardlystrictlybluegrass.com/info-faq-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hayes-mansion-tea-2026",
+      "canonicalId": "hayes-mansion-tea-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sanjose.org/events/afternoon-tea-mary-hayes-celebrating-200-years-legacy"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-jose-first-friday-ballet-2026",
+      "canonicalId": "san-jose-first-friday-ballet-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sjmusart.org/event/first-friday-new-ballet-season-preview"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-jose-sofa-pocket-market-2026",
+      "canonicalId": "san-jose-sofa-pocket-market-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.westartgardens.com/event-details-registration/first-friday-pop-market-10-2"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santana-row-glass-pumpkin-2026",
+      "canonicalId": "santana-row-glass-pumpkin-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sanjose.org/events/glass-pumpkin-festival",
+        "https://www.leonoffartglass.com/glass-pumpkin-patch-events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santa-clara-volvo-ex60-lab-2026",
+      "canonicalId": "santa-clara-volvo-ex60-lab-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.westfield.com/en/united-states/valleyfair/events/test-drive-the-new-volvo-ex60/139149",
+        "https://www.westfield.com/en/united-states/valleyfair"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-clayton-oktoberfest-2026",
+      "canonicalId": "clayton-oktoberfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://claytonoktoberfest.com/info/",
+        "https://www.claytoncbca.org/oktoberfest/",
+        "https://claytonoktoberfest.com/carnival/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-afro-peruvian-dance-2026",
+      "canonicalId": "san-leandro-afro-peruvian-dance-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=8203&calType=0&day=24&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "fremont-namiwalks-2026",
+      "canonicalId": "fremont-namiwalks-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://content.govdelivery.com/accounts/CAFREMONT/bulletins/429d29d"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hayward-science-park-2026",
+      "canonicalId": "hayward-science-park-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.acscienceinthepark.org/eventinfo"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "newark-free-shredding-2026",
+      "canonicalId": "newark-free-shredding-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.newarkca.gov/departments/police/document-shredding-event"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "east-bay-oaktoberfest-2026",
+      "canonicalId": "oakland-oaktoberfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.oaktoberfest.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-get-the-led-out-2026",
+      "canonicalId": "uptown-get-the-led-out-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/get-the-led-out/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "many-moons-festival-20261003",
+      "canonicalId": "many-moons-festival-20261003",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://manymoonsfestival.com/",
+        "https://aapicnorthbay.org/manymoonsfestival",
+        "https://www.sonomacounty.com/events/many-moons-festival-2/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-napa-fire-safety-openhouse-2026",
+      "canonicalId": "r2-napa-fire-safety-openhouse-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cityofnapa.org/m/newsflash/Home/Detail/983"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "tiburon-wine-festival-2026",
+      "canonicalId": "tiburon-wine-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.tiburonchamber.org/tiburon-wine-festival/",
+        "https://www.eventbrite.com/e/tiburon-wine-festival-2026-tickets-1987701316144?aff=oddtdtcreator"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vacaville-learn-your-colors-run-2026",
+      "canonicalId": "vacaville-learn-your-colors-run-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://color-run.vacavillekiwanis.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vallejo-fest-20261003",
+      "canonicalId": "vallejo-fest-20261003",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.vallejowaterfrontweekend.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-kasturba-gandhi-2026",
+      "canonicalId": "menlo-kasturba-gandhi-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/News-articles/City-news/2026_09-11-11th-Storytelling-Festival",
+        "https://www.menlopark.gov/Government/Departments/Library-and-Community-Services/Events/Events-for-adults/20261003-Roopa-Mohan-Kasturba-Gandhi"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "redwood-city-portfest-2026",
+      "canonicalId": "redwood-city-portfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.redwoodcityport.com/portfest2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-disney-worlds-collide-2026",
+      "canonicalId": "sf-disney-worlds-collide-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/disney-worlds-collide-concert-tour-20261003/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-african-arts-festival-2026",
+      "canonicalId": "sf-african-arts-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ybgfestival.org/event/african-arts-festival-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-island-sounds-2026",
+      "canonicalId": "cupertino-island-sounds-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Parks-Recreation/Events/Na-Leo-Mokupuni-ma-Cupertino"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sunnyvale-diwali-2026",
+      "canonicalId": "sunnyvale-diwali-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sacas.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sharks-kings-2026",
+      "canonicalId": "sj-sharks-kings-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-12",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "alameda-point-antiques-oct-2026",
+      "canonicalId": "alameda-point-antiques-oct-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://alamedapointantiquesfaire.com/",
+        "https://alamedapointantiquesfaire.thundertix.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "fremont-ohlone-gathering-2026",
+      "canonicalId": "fremont-ohlone-gathering-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.ebparks.org/we-celebrate/Gathering-of-Ohlone-Peoples",
+        "https://www.ebparks.org/sites/default/files/RIN-Sept-Oct-2026.pdf",
+        "https://www.ebparks.org/recreation/picnics/coyote-hills"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-clasico-de-mexico-chivas-de-guadalajara-vs-club-america-2026",
+      "canonicalId": "east-bay-clasico-de-mexico-chivas-de-guadalajara-vs-club-america-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/clasico-de-mexico-chivas-de-guadalajara-vs-club-america"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-duff-goldman-presents-the-tao-of-duff-2026",
+      "canonicalId": "uptown-duff-goldman-presents-the-tao-of-duff-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/duff-goldman-presents-the-tao-of-duff/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-vallejo-wonder-sundays-2026",
+      "canonicalId": "r2-vallejo-wonder-sundays-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://mareislandartstudios.com/events/step-into-wonder-the-letting-go-art-experience/",
+        "https://thelettinggoartexperience.com/all-events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-marin-family-keepsake-20261004",
+      "canonicalId": "r2-marin-family-keepsake-20261004",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.marinhistory.org/events/keepsake/",
+        "https://www.marinhistory.org/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "millbrae-japanese-culture-festival-2026",
+      "canonicalId": "millbrae-japanese-culture-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.japaneseculturefest-millbrae.org/",
+        "https://www.japaneseculturefest-millbrae.org/festival-poster"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "litquake-out-loud-2026",
+      "canonicalId": "litquake-out-loud-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.litquake.org/events-1/litquake-out-loud-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-francisco-fleet-week-2026",
+      "canonicalId": "san-francisco-fleet-week-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://fleetweeksf.org/",
+        "https://fleetweeksf.org/events/",
+        "https://fleetweeksf.org/air-show/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-asian-art-free-sunday-oct4-2026",
+      "canonicalId": "asian-art-free-oct4",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://calendar.asianart.org/event/sundays-at-the-asian-art-museum-october-4/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-castro-street-fair-2026",
+      "canonicalId": "sf-castro-street-fair-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://castrostreetfair.org/fair/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santa-clara-49ers-broncos-2026",
+      "canonicalId": "santa-clara-49ers-broncos-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://levisstadium.com/event/broncos-vs-49ers-week-4-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "little-italy-san-jose-festival-2026",
+      "canonicalId": "little-italy-san-jose-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.littleitalysj.com/little-italy-san-jose-festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pacific-catch-aloha-corte-madera-20261005",
+      "canonicalId": "pacific-catch-aloha-corte-madera-20261005",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/aloha-hour-at-pacific-catch/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-farr-summit-2026",
+      "canonicalId": "sf-farr-summit-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/FARRsummit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "surrealdb-mastra-shared-memory-2026",
+      "canonicalId": "surrealdb-mastra-shared-memory-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/surrealdb-gs07"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "n8n-sf-tech-week-workshop-2026",
+      "canonicalId": "n8n-sf-tech-week-workshop-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/n8n-ntlt"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-library-game-night-2026",
+      "canonicalId": "san-leandro-library-game-night-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7568&calType=0&day=24&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-aespa-live-tour-synk-complaexity-in-oakland-2026",
+      "canonicalId": "east-bay-aespa-live-tour-synk-complaexity-in-oakland-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/aespa-live-tour-synk-complaexity-in-oakland"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-conservatory-free-tuesday-oct6-2026",
+      "canonicalId": "conservatory-free-oct6",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://gggp.org/visit/admissions-hours/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-warriors-lakers-preseason-2026",
+      "canonicalId": "sf-warriors-lakers-preseason-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr",
+        "https://www.ticketmaster.com/CHASE-CENTER-tickets-SAN-FRANCISCO/venue/230012"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-marin-coffee-curator-20261007",
+      "canonicalId": "r2-marin-coffee-curator-20261007",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.marinhistory.org/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-marin-transit-clean-air-free-2026",
+      "canonicalId": "marin-transit-clean-air-oct7-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://marintransit.gov/fare-free-promotions"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "napa-water-wise-workshops-oct2026",
+      "canonicalId": "napa-water-wise-workshops-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cityofnapa.org/588/Water-Wise-Landscaping-Workshops"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-ai-infra-scale-dinner-2026",
+      "canonicalId": "sf-ai-infra-scale-dinner-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/leverage-ph18"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-rod-wave-2026",
+      "canonicalId": "sf-rod-wave-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/rod-wave-20261007/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sombr-2026",
+      "canonicalId": "sj-sombr-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sombr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mountain-view-theatreworks-dracula-2026",
+      "canonicalId": "mountain-view-theatreworks-dracula-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://theatreworks.org/mainstage/dracula/",
+        "https://www.todaytix.com/sf-bay-area/shows/47769-dracula"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "guide_only",
+      "reason": "常设或按各场馆/票页选择的档期，不制造逐日可预订场次"
+    },
+    {
+      "researchId": "berkeley-cal-golden-bear-oct-sale-2026",
+      "canonicalId": "berkeley-cal-golden-bear-oct-sale-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://calperformances.org/community/ucb-students/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "uptown-creed-bratton-an-evening-of-music-tales-from-the-office-2026",
+      "canonicalId": "uptown-creed-bratton-an-evening-of-music-tales-from-the-office-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/creed-bratton-an-evening-of-music-tales-from-the-office/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-after-dark-08-oct2026",
+      "canonicalId": "sf-exploratorium-after-dark-08-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/after-dark-unplug-play-oct2026",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-quinteto-latino-lunchtime-2026",
+      "canonicalId": "sf-quinteto-latino-lunchtime-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ybgfestival.org/event/quinteto-latino-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "silicon-valley-african-film-festival-2026",
+      "canonicalId": "silicon-valley-african-film-festival-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://svaff.org/programs/annual-film-festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-brian-regan-2026",
+      "canonicalId": "uptown-brian-regan-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/brian-regan/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mcm-anteros-cecilia-trunkshow-2026",
+      "canonicalId": "mcm-anteros-cecilia-trunkshow-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/events/the-anteros-amp-cecilia-trunk-show"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "marinwood-halloween-harvest-2026",
+      "canonicalId": "marinwood-halloween-harvest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.marinwood.org/event/halloween-harvest-festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-sanrafael-artwalk-oct2026",
+      "canonicalId": "r2-sanrafael-artwalk-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/2nd-friday-art-walk-in-downtown-san-rafael/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "zepparella-sweetwater-20261009",
+      "canonicalId": "zepparella-sweetwater-20261009",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://sweetwatermusichall.org/event/zepparella/sweetwater-music-hall/mill-valley-california/",
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/zepparella-at-sweetwater-music-hall/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oss4ai-agent-day-menlo-park-2026",
+      "canonicalId": "oss4ai-agent-day-menlo-park-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://luma.com/7wn8tsf7"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "berkeley-indigenous-peoples-powwow-2026",
+      "canonicalId": "berkeley-indigenous-peoples-powwow-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ipdpowwow.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "dublin-harvest-fair-2026",
+      "canonicalId": "dublin-harvest-fair-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.dublin.ca.gov/1560/Harvest-Fair"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "fremont-ardenwood-harvest-2026",
+      "canonicalId": "fremont-ardenwood-harvest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.ebparks.org/sites/default/files/RIN-Sept-Oct-2026.pdf",
+        "https://www.ebparks.org/parks/ardenwood"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hayward-longwood-mobile-rec-2026",
+      "canonicalId": "hayward-longwood-mobile-rec-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://haywardrec.org/377/Mobile-Recreation"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "livermore-artwalk-2026",
+      "canonicalId": "livermore-artwalk-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://livermorearts.org/events/artwalk/",
+        "https://www.333arts.org/gem"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "livermore-great-elephant-migration-2026",
+      "canonicalId": "livermore-great-elephant-migration-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.333arts.org/gem"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-oakland-roots-sc-vs-san-antonio-fc-2026",
+      "canonicalId": "east-bay-oakland-roots-sc-vs-san-antonio-fc-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/oakland-roots-sc-vs-san-antonio-fc"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "richmond-block-printing-2026",
+      "canonicalId": "richmond-block-printing-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://richmondartcenter.org/events/making-history-block-printing-in-the-galleries-10-10-26-2/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-american-canyon-ghost-lanterns-2026",
+      "canonicalId": "r2-american-canyon-ghost-lanterns-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17233945"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "napa-beyond-bin-oct10-2026",
+      "canonicalId": "napa-beyond-bin-oct10-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://naparecycling.com/beyond-the-bin-napas-recycling-composting-facility-tour-day/",
+        "https://www.eventbrite.com/e/2026-beyond-the-bin-tour-day-at-napas-recycling-composting-facility-tickets-1997481680477"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-vallejo-wonder-deep-dive-2026",
+      "canonicalId": "r2-vallejo-wonder-deep-dive-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://mareislandartstudios.com/events/step-into-wonder-deep-dive-workshop/",
+        "https://thelettinggoartexperience.com/all-events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "napa-musictime-halloween-2026",
+      "canonicalId": "napa-musictime-halloween-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.festivalnapavalley.org/calendar/musictime-napa-jay-benson-jesse-micek/",
+        "https://festivalnapavalley.org/archive/playbill/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "novato-nostalgia-days-2026",
+      "canonicalId": "novato-nostalgia-days-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.downtownnovato.com/events",
+        "https://www.visitmarin.org/event-calendar/2026/october-2026/nostalgia-days-cruise-and-car-show-october-9-10-1/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sonoma-harvest-fair-gala-2026",
+      "canonicalId": "sonoma-harvest-fair-gala-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://harvestfair.org/",
+        "https://harvestfair.org/buy-tickets/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sonoma-womens-suffrage-2026",
+      "canonicalId": "sonoma-womens-suffrage-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.parks.ca.gov/?page_id=479",
+        "https://www.sonomaparks.org/events/celebrate-anniversary-of-california-womens-suffrage/",
+        "https://www.sonomaparks.org/wp-content/uploads/2026/09/115th-anniversary-CA-WS.png"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-vacaville-market-moonlight-2026",
+      "canonicalId": "r2-vacaville-market-moonlight-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://downtownvacaville.com/",
+        "https://downtownvacaville.com/events-in-downtown-vacaville/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "burlingame-fall-plant-exchange-2026",
+      "canonicalId": "burlingame-fall-plant-exchange-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.burlingame.org/calendar.aspx?CID=0&month=10&view=list&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "burlingame-mandarin-storytime-2026",
+      "canonicalId": "burlingame-mandarin-storytime-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://burlingame.org/356/Events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hmb-moonlight-movie-grow-2026",
+      "canonicalId": "hmb-moonlight-movie-grow-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://hmbpumpkinfest.com/featured-exhibits/moonlight-movie-night.html"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "palo-alto-rocks-2026",
+      "canonicalId": "palo-alto-rocks-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://paloaltomuseum.org/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "palo-alto-scare-faire-2026",
+      "canonicalId": "palo-alto-scare-faire-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://transitionpaloalto.org/2026/08/18/sunday-october-10-2026-1-3pm-scare-faire-and-costume-swap/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-carlos-art-wine-faire-2026",
+      "canonicalId": "san-carlos-art-wine-faire-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://pacificfinearts.com/festival/san-carlos-art-wine-faire/",
+        "https://www.cityofsancarlos.org/community/san_carlos_art_and_wine_faire/live_music.php"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-moad-thrive-second-saturday-oct2026",
+      "canonicalId": "sf-moad-thrive-second-saturday-oct2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.moadsf.org/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-warriors-kings-preseason-2026",
+      "canonicalId": "sf-warriors-kings-preseason-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr",
+        "https://www.ticketmaster.com/CHASE-CENTER-tickets-SAN-FRANCISCO/venue/230012"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-pooch-plunge-2026",
+      "canonicalId": "cupertino-pooch-plunge-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Parks-Recreation/Events/Pooch-Plunge",
+        "https://www.cupertino.gov/Parks-Recreation/Events/Pooch-Plunge/Pooch-Plunge-Event"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "los-gatos-magical-glass-pumpkin-2026",
+      "canonicalId": "los-gatos-magical-glass-pumpkin-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://magicalglasspumpkinpatch.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santa-clara-library-comic-con-2026",
+      "canonicalId": "santa-clara-library-comic-con-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://calendar.santaclaraca.gov/santaclaraca/260168981"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sharks-oilers-2026",
+      "canonicalId": "sj-sharks-oilers-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-13",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-gabriel-fluffy-iglesias-the-1976-tour-2026",
+      "canonicalId": "east-bay-gabriel-fluffy-iglesias-the-1976-tour-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/gabriel-fluffy-iglesias-the-1976-tour"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pleasant-hill-pumpkin-splash-2026",
+      "canonicalId": "pleasant-hill-pumpkin-splash-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.pleasanthillrec.com/157/Aquatics-Events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-killer-queen-a-tribute-to-queen-ft-patrick-myers-as-freddie-mercury-2026",
+      "canonicalId": "uptown-killer-queen-a-tribute-to-queen-ft-patrick-myers-as-freddie-mercury-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/killer-queen-a-tribute-to-queen-ft-patrick-myers-as-freddie-mercury/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-petaluma-yard-market-20261011",
+      "canonicalId": "r2-petaluma-yard-market-20261011",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.visitpetaluma.com/event/the-yard-market-fare/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-chayanne-2026",
+      "canonicalId": "sf-chayanne-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/news/chayanne-announcement-20261011/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-ybg-dance-day-2026",
+      "canonicalId": "sf-ybg-dance-day-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ybgfestival.org/event/ybg-dance-day-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-italian-heritage-parade-2026",
+      "canonicalId": "sf-italian-heritage-parade-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sfitalianheritage.org/parade/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hmb-pumpkin-weighoff-2026",
+      "canonicalId": "hmb-pumpkin-weighoff-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://hmbweighoff.com/",
+        "https://hmbpumpkinfest.com/experience/schedule.html",
+        "https://hmbweighoff.com/quick-facts.html"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-indigenous-peoples-day-2026",
+      "canonicalId": "sf-indigenous-peoples-day-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ybgfestival.org/event/sf-indigenous-peoples-day-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-botanical-free-tuesday-oct13-2026",
+      "canonicalId": "botanical-free-oct13",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://gggp.org/visit/admissions-hours/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sj-sharks-bruins-2026",
+      "canonicalId": "sj-sharks-bruins-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-14",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-disney-on-ice-presents-find-your-hero-2026",
+      "canonicalId": "east-bay-disney-on-ice-presents-find-your-hero-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/disney-on-ice-presents-find-your-hero"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-autumn-lights-festival-2026",
+      "canonicalId": "oakland-autumn-lights-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://gardensatlakemerritt.org/autumn-lights-festival-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-after-dark-15-oct2026",
+      "canonicalId": "sf-exploratorium-after-dark-15-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/after-dark-speak-easy",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-young-miko-2026",
+      "canonicalId": "sf-young-miko-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/news/young-miko-announcement-20261015/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-opera-manon-2026",
+      "canonicalId": "sf-opera-manon-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfopera.com/operas/manon/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-rush-2026",
+      "canonicalId": "sj-rush-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/rush-1",
+        "https://www.sapcenter.com/events/detail/rush-2"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "concord-trick-or-treat-trail-2026",
+      "canonicalId": "concord-trick-or-treat-trail-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://cityofconcord.org/1130/Trick-or-Treat-Trail"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "piedmont-wonka-outdoor-movie-2026",
+      "canonicalId": "piedmont-wonka-outdoor-movie-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://piedmont.ca.gov/cms/One.aspx?pageId=21392954&portalId=13659823"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-pumpkin-splash-2026",
+      "canonicalId": "san-leandro-pumpkin-splash-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7779&calType=0&day=28&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "walnut-creek-diablo-improv-2026",
+      "canonicalId": "walnut-creek-diablo-improv-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://diabloimprovfestival.org/",
+        "https://diabloimprovfestival.org/schedule",
+        "https://www.lesherartscenter.org/Home/Components/Calendar/Event/21341/4124"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "benicia-venice-gala-20261016",
+      "canonicalId": "benicia-venice-gala-20261016",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://artsbenicia.org/a-night-in-venice-be-a-sponsor/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-jackson-dean-2026",
+      "canonicalId": "uptown-jackson-dean-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/jackson-dean/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-open-together-ai-2026",
+      "canonicalId": "sf-open-together-ai-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/OpenTogether"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-warriors-blazers-preseason-2026",
+      "canonicalId": "sf-warriors-blazers-preseason-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr",
+        "https://www.ticketmaster.com/CHASE-CENTER-tickets-SAN-FRANCISCO/venue/230012"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sjma-waterways-symposium-2026",
+      "canonicalId": "san-jose-waterways-art-climate-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sjmusart.org/reimagining-our-waterways",
+        "https://sjmusart.org/calendar"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-berkeley-harvest-2026",
+      "canonicalId": "berkeley-harvest-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://berkeleyca.gov/community-recreation/events/harvest-festival-2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "el-cerrito-garage-sale-2026",
+      "canonicalId": "el-cerrito-garage-sale-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.elcerrito.gov/943/Citywide-Garage-Sale"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-sandlot-movie-2026",
+      "canonicalId": "san-leandro-sandlot-movie-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7777&calType=0&day=28&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hayward-ruus-cleanup-2026",
+      "canonicalId": "hayward-ruus-cleanup-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://hayward-ca.gov/discover/events/keep-hayward-clean-and-green-cleanup-oct-17-2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-family-not-spooky-2026",
+      "canonicalId": "san-leandro-family-not-spooky-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7857&calType=0&day=17&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-vintage-fashion-faire-2026",
+      "canonicalId": "oakland-vintage-fashion-faire-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.vintagefashionfaire.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-benicia-witching-wine-walk-2026",
+      "canonicalId": "r2-benicia-witching-wine-walk-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.zeffy.com/en-US/ticketing/witching-wine-walk--2026",
+        "https://www.beniciamainstreet.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-calistoga-ghost-stories-2026",
+      "canonicalId": "r2-calistoga-ghost-stories-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17353106"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mcm-food-sense-20261017",
+      "canonicalId": "mcm-food-sense-20261017",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/events/read-it-amp-eat-it-food-sense-with-dr-christopher-gardner"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-vallejo-wonder-after-dark-2026",
+      "canonicalId": "r2-vallejo-wonder-after-dark-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://mareislandartstudios.com/events/step-into-wonder-after-dark-party/",
+        "https://thelettinggoartexperience.com/all-events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-santarosa-soco-halloween-2026",
+      "canonicalId": "r2-santarosa-soco-halloween-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.thesocomarket.com/events-2/the-soco-market-bhn72-zkhxy-ps7pr-345ml-r8333-xtzck"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sonoma-dia-movie-night-2026",
+      "canonicalId": "sonoma-dia-movie-night-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.parks.ca.gov/?page_id=479",
+        "https://www.sonomaparks.org/events/dia-de-los-muertos/",
+        "https://www.sonomaparks.org/wp-content/uploads/2026/09/Dia-Muertos-Flyer-101726.png"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-marin-tennessee-history-hike-2026",
+      "canonicalId": "r2-marin-tennessee-history-hike-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.marinhistory.org/events/tennessee/",
+        "https://www.marinhistory.org/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "half-moon-bay-pumpkin-festival-2026-supplement",
+      "canonicalId": "half-moon-bay-pumpkin-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://hmbpumpkinfest.com/experience/schedule.html",
+        "https://www.hmbpumpkinfest.com/",
+        "https://hmbpumpkinfest.com/event-details/quick-facts"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-heritage-harvest-2026",
+      "canonicalId": "menlo-heritage-harvest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://guardsmen.org/attend/the-guardsmen-pumpkin-patch-menlo-park"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "stanford-football-elon-2026",
+      "canonicalId": "stanford-football-elon-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://tickets.gostanford.com/p/football?lang=en",
+        "https://gostanford.com/2026-football-media-center",
+        "https://gostanford.com/news/2026/1/26/complete-2026-schedule-unveiled"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-executorch-hackathon-2026",
+      "canonicalId": "sf-executorch-hackathon-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/executorch-hackathon"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-sunnydale-pumpkin-fest-2026",
+      "canonicalId": "sf-sunnydale-pumpkin-fest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://thehubinsf.org/event/sunnydale-pumpkin-fest-2/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-filbookfest-2026",
+      "canonicalId": "sf-filbookfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sfpl.org/events/2026/10/17/celebration-filipino-american-international-book-festival",
+        "https://sfpl.org/events/2026/10/18/celebration-filipino-american-international-book-festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-bay-area-science-festival-2026",
+      "canonicalId": "sf-bay-area-science-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://bayareasciencefestival.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "campbell-oktoberfest-2026",
+      "canonicalId": "campbell-oktoberfest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://campbelloktoberfest.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-diwali-festival-2026",
+      "canonicalId": "cupertino-diwali-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Parks-Recreation/Events/Festivals/Diwali-Festival",
+        "https://widgets.cupertino-chamber.org/feeds/events/event.aspx?cid=233&wid=501"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "los-altos-halloween-movie-night-2026",
+      "canonicalId": "los-altos-halloween-movie-night-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.losaltosca.gov/739/Halloween-Movie-Night"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sunnyvale-hands-on-arts-2026",
+      "canonicalId": "sunnyvale-hands-on-arts-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sunnyvale.ca.gov/recreation-and-community/special-events/hands-on-the-arts",
+        "https://www.sunnyvale.ca.gov/home/showpublisheddocument/6465/639111477331330000",
+        "https://www.sunnyvale.ca.gov/news-center-and-events-calendar/city-calendar/-curm-10/-cury-2026/-direct-true"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "berkeley-bird-festival-2026",
+      "canonicalId": "berkeley-bird-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.visitberkeley.com/events/berkeley-bird-festival/",
+        "https://berkeleybirdfestival.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "el-cerrito-harding-carnival-2026",
+      "canonicalId": "el-cerrito-harding-carnival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.hardingpta.org/carnival/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "lafayette-res-run-2026",
+      "canonicalId": "lafayette-res-run-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://lafayettechamber.org/resrun/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-petaluma-vintage-market-oct2026",
+      "canonicalId": "r2-petaluma-vintage-market-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.petalumavintage.com/",
+        "https://www.visitpetaluma.com/event/petaluma-vintage-market-may-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-hana-baba-folktales-2026",
+      "canonicalId": "menlo-hana-baba-folktales-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/News-articles/City-news/2026_09-11-11th-Storytelling-Festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-funeral-gangster-dinner-2026",
+      "canonicalId": "sj-funeral-gangster-dinner-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sanjose.org/events/murder-mystery-dinner-theatre-funeral-gangster"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-cline-composio-hackathon-2026",
+      "canonicalId": "sf-cline-composio-hackathon-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/m8euvq9n"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-doja-cat-2026",
+      "canonicalId": "sf-doja-cat-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/news/doja-cat-announcement-20261019/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-open-weight-debate-2026",
+      "canonicalId": "sf-open-weight-debate-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/592fcwx2"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santa-clara-49ers-commanders-2026",
+      "canonicalId": "santa-clara-49ers-commanders-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://levisstadium.com/event/commanders-vs-49ers-week-6-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-costume-swap-2026",
+      "canonicalId": "san-leandro-costume-swap-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=8196&calType=0&day=20&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-openclaw-friends-2026",
+      "canonicalId": "sf-openclaw-friends-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://luma.com/oah05xax"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-symphony-ring-film-2026",
+      "canonicalId": "sf-symphony-ring-film-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfsymphony.org/getmedia/4732d38f-af5d-4aa2-8934-428420ff11fa/2026-27-Season-Calendar.pdf"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-apature-literary-2026",
+      "canonicalId": "sf-apature-literary-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.kearnystreet.org/events-blog/2026/8/19/apature-2026-literary-arts-showcase"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-greyhound-trivia-happy-hour-2026",
+      "canonicalId": "sf-greyhound-trivia-happy-hour-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theeastcut.org/event/trivia-the-crossing-9-3-6-2-2-2-2-2-2-2-3-2-2-4-2-2-2-2-3-2-2-3/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "bay-area-musical-improv-festival-2026",
+      "canonicalId": "bay-area-musical-improv-festival-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://bayareamusicalimprov.com/festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-napa-spooky-stories-2026",
+      "canonicalId": "r2-napa-spooky-stories-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17353346"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-after-dark-22-oct2026",
+      "canonicalId": "sf-exploratorium-after-dark-22-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/after-dark-death-and-life",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-symphony-hisaishi-2026",
+      "canonicalId": "sf-symphony-hisaishi-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfsymphony.org/getmedia/4732d38f-af5d-4aa2-8934-428420ff11fa/2026-27-Season-Calendar.pdf"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-hidden-treasures-2026",
+      "canonicalId": "cupertino-hidden-treasures-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Parks-Recreation/Events/Hidden-Treasures/Hidden-Treasures-Event"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-disney-on-ice-2026",
+      "canonicalId": "sj-disney-on-ice-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/disney-on-ice-4"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-jose-short-film-festival-2026",
+      "canonicalId": "san-jose-short-film-festival-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sjsff.com/tickets/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "alameda-haunted-house-2026",
+      "canonicalId": "alameda-haunted-house-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.alamedaca.gov/Departments/Recreation-Parks/ARPD-Events"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "el-cerrito-senior-resource-fair-2026",
+      "canonicalId": "el-cerrito-senior-resource-fair-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.elcerrito.gov/1672/Senior-Resource-Fair"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "emeryville-art-exhibition-closing-2026",
+      "canonicalId": "emeryville-art-exhibition-closing-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.emeryarts.org/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "fremont-trick-or-treat-2026",
+      "canonicalId": "fremont-trick-or-treat-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.fremont.gov/government/departments/parks-recreation/events/trick-or-treat-event",
+        "https://content.govdelivery.com/accounts/CAFREMONT/bulletins/429d29d"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-kacey-musgraves-1-2026",
+      "canonicalId": "east-bay-kacey-musgraves-1-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/kacey-musgraves-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "pleasant-hill-haunted-trail-2026",
+      "canonicalId": "pleasant-hill-haunted-trail-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.pleasanthillrec.com/653/Haunted-Trail-1023"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "eleanor-alberga-brannan-20261023",
+      "canonicalId": "calistoga-eleanor-alberga-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.festivalnapavalley.org/calendar/",
+        "https://www.festivalnapavalley.org/calendar/eleanor-alberga-the-green-room-ensemble/",
+        "https://www.brannancenter.org/events/eleanor-alberga-the-green-room-ensemble"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "stanford-football-nc-state-2026",
+      "canonicalId": "stanford-football-nc-state-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://tickets.gostanford.com/p/football?lang=en",
+        "https://gostanford.com/2026-football-media-center",
+        "https://gostanford.com/news/2026/1/26/complete-2026-schedule-unveiled"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-warriors-grizzlies-2026",
+      "canonicalId": "sf-warriors-grizzlies-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr",
+        "https://www.ticketmaster.com/CHASE-CENTER-tickets-SAN-FRANCISCO/venue/230012"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-family-connections-halloween-2026",
+      "canonicalId": "sf-family-connections-halloween-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://fccenters.org/event/halloween-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "clayton-hay-day-trunk-or-treat-2026",
+      "canonicalId": "clayton-hay-day-trunk-or-treat-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://members.claytoncbca.org/cbca-events/Details/hay-day-trunk-or-treat-in-downtown-clayton-1910733?sourceTypeId=Website"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "concord-police-trunk-treat-2026",
+      "canonicalId": "concord-police-trunk-treat-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cityofconcord.org/Calendar.aspx?EID=2756&calType=0&day=7&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "hayward-trunk-treat-mobile-rec-2026",
+      "canonicalId": "hayward-trunk-treat-mobile-rec-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://haywardrec.org/377/Mobile-Recreation"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "berkeley-college-information-day-2026",
+      "canonicalId": "berkeley-college-information-day-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://admissions.berkeley.edu/visit/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-marin-boyd-house-oct-tour-2026",
+      "canonicalId": "r2-marin-boyd-house-oct-tour-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.marinhistory.org/events/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "petaluma-coco-matinee-2026",
+      "canonicalId": "petaluma-coco-matinee-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.pollyklaastheater.org/event/coco/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-petaluma-cider-circus-2026",
+      "canonicalId": "r2-petaluma-cider-circus-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.bigwest.biz/cider-circus-petaluma",
+        "https://www.visitpetaluma.com/event/cider-circus-2/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-petaluma-lumafest-20261024",
+      "canonicalId": "r2-petaluma-lumafest-20261024",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://lumafest.santarosa.edu/",
+        "https://www.visitpetaluma.com/event/lumafest-petalumas-educational-fair-and-el-dia-de-los-muertos-celebration/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "petaluma-witches-wizards-water-2026",
+      "canonicalId": "petaluma-witches-wizards-water-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "santa-rosa-halloween-howarth-2026",
+      "canonicalId": "santa-rosa-halloween-howarth-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.srcity.org/2164/Halloween-at-Howarth"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "windsor-trick-or-treat-trail-2026",
+      "canonicalId": "windsor-trick-or-treat-trail-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.townofwindsor.com/trickortreat"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "foster-city-halloween-festival-2026",
+      "canonicalId": "foster-city-halloween-festival-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.fostercity.org/1248/2026-Halloween-Festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-carlos-hiller-paint-plane-2026",
+      "canonicalId": "san-carlos-hiller-halloween-paint-plane-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.hiller.org/events/category/event/2026-10/",
+        "https://www.hiller.org/event/paint-a-plane/2026-10-24/",
+        "https://www.hiller.org/event/paint-a-plane/2026-10-25/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-park-halloween-hoopla-2026",
+      "canonicalId": "menlo-park-halloween-hoopla-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival?lang_update=639242174056085354"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-mateo-boos-brews-2026",
+      "canonicalId": "san-mateo-boos-brews-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://cityofsanmateo.org/m/calendar/event/detail/16467"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-family-science-oct24-2026",
+      "canonicalId": "sf-exploratorium-family-science-oct24-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/we-all-journey",
+        "https://www.exploratorium.edu/visit/calendar/awesome-orchestra",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-thrive-thrill-o-ween-2026",
+      "canonicalId": "sf-thrive-thrill-o-ween-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/thrill-o-ween-20261024/",
+        "https://www.chasecenter.com/news/2026-thrive-city-fall-programming/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-fishermans-wharf-chowder-fest-2026",
+      "canonicalId": "sf-fishermans-wharf-chowder-fest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.fishermanswharf.org/chowderfest/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "cupertino-monster-mash-2026",
+      "canonicalId": "cupertino-monster-mash-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.cupertino.gov/Parks-Recreation/Events/Monster-Mash/Monster-Mash-Event"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sjma-dia-muertos-community-day-2026",
+      "canonicalId": "san-jose-sjma-dia-muertos-community-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://sjmusart.org/programs-at-sjma/community-days/dia-de-los-muertos"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-symphonic-spooktacular-2026",
+      "canonicalId": "sj-symphonic-spooktacular-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.symphonysanjose.org/attend/2026-2027-season/concerts/symphonic-spooktacular/",
+        "https://www.sanjose.org/theaters/events/symphonic-spooktacular-symphony-san-jose"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-ramon-howl-o-ween-2026",
+      "canonicalId": "san-ramon-howl-o-ween-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.bishopranch.com/br-event/howl-o-ween/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-omca-dia-muertos-2026",
+      "canonicalId": "oakland-omca-dia-muertos-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "srsymphony-boo-dance-oct25-2026",
+      "canonicalId": "srsymphony-boo-dance-oct25-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.srsymphony.org/event/boo-lets-dance/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "burlingame-downtown-fall-fest-2026",
+      "canonicalId": "burlingame-downtown-fall-fest-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.burlingamedowntown.org/events/fall-fest-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-sfmoma-free-family-day-oct25-2026",
+      "canonicalId": "sfmoma-family-oct25",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sfmoma.org/free-days/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-thrive-football-sunday-2026",
+      "canonicalId": "sf-thrive-football-sunday-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://chasecenter.com/events/football-sundays-20261025/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr",
+        "https://www.chasecenter.com/news/2026-thrive-city-fall-programming/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-world-of-dumplings-2026",
+      "canonicalId": "sf-world-of-dumplings-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.eventbrite.com/e/world-of-dumplings-2026-tickets-1997773482264"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-baebadoobee-2026",
+      "canonicalId": "east-bay-baebadoobee-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/baebadoobee"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-napa-tarot-basics-2026",
+      "canonicalId": "r2-napa-tarot-basics-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17353821"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "uptown-be-like-blippi-tour-2026",
+      "canonicalId": "uptown-be-like-blippi-tour-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://uptowntheatrenapa.com/tm-event/be-like-blippi-tour/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-napa-horror-bookclub-2026",
+      "canonicalId": "r2-napa-horror-bookclub-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17390000"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-storytelling-meetup-oct-2026",
+      "canonicalId": "menlo-storytelling-meetup-oct-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/News-articles/City-news/2026_09-11-11th-Storytelling-Festival"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "south-sf-state-of-city-2026",
+      "canonicalId": "south-sf-state-of-city-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.ssfca.gov/Events/2026-State-of-the-City"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-apature-film-2026",
+      "canonicalId": "sf-apature-film-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.kearnystreet.org/events-blog/2026/8/19/apature-2026-film-showcase"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-phoebe-bridgers-2026",
+      "canonicalId": "sf-phoebe-bridgers-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.chasecenter.com/events/phoebe-bridgers-20261027/",
+        "https://www.chasecenter.com/events/?sjrnaid=447721518&sjrncid=18577082524&sjrnclid=ABAjH0iXOBDNu3qt88qYjM0EZdWr"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sharks-sabres-2026",
+      "canonicalId": "sj-sharks-sabres-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-15",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-gorillaz-2026",
+      "canonicalId": "east-bay-gorillaz-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/gorillaz"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-trick-storytime-2026",
+      "canonicalId": "san-leandro-trick-storytime-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=7820&calType=0&day=13&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "menlo-park-trunk-or-treat-2026",
+      "canonicalId": "menlo-park-trunk-or-treat-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.menlopark.gov/Citywide-calendar/Community-events/20261028-Trunk-or-Treat"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sunnyvale-spooky-storywalk-2026",
+      "canonicalId": "sunnyvale-spooky-storywalk-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.library.sunnyvale.ca.gov/Home/Components/Calendar/Event/12565/74?curm=10&cury=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "benicia-farmers-market-final-2026",
+      "canonicalId": "benicia-farmers-market-final-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.beniciamainstreet.org/event-details/benicia-certified-farmers-market-2"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-yountville-haunts-2026",
+      "canonicalId": "r2-yountville-haunts-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17354022"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-exploratorium-after-dark-29-oct2026",
+      "canonicalId": "sf-exploratorium-after-dark-29-oct2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/calendar/after-dark-creepatorium",
+        "https://www.exploratorium.edu/visit"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sharks-canucks-2026",
+      "canonicalId": "sj-sharks-canucks-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-16",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "lafayette-trick-treat-street-2026",
+      "canonicalId": "lafayette-trick-treat-street-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://lafayettechamber.org/trick-or-treat/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-omca-friday-finale-2026",
+      "canonicalId": "oakland-omca-friday-finale-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://museumca.org/event/friday-nights-at-omca-with-la-gente-sf/",
+        "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "east-bay-rahat-fateh-ali-khan-2-2026",
+      "canonicalId": "east-bay-rahat-fateh-ali-khan-2-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.theoaklandarena.com/events/detail/rahat-fateh-ali-khan-2"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-leandro-senior-halloween-bingo-2026",
+      "canonicalId": "san-leandro-senior-halloween-bingo-2026",
+      "kind": "meetup",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sanleandro.org/Calendar.aspx?EID=8216&calType=0&day=15&month=10&year=2026"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "napa-harvest-after-dark-2026",
+      "canonicalId": "napa-harvest-after-dark-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.theduckhorncollection.com/blogs/events/harvest-after-dark-a-halloween-masquerade-dinner"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "r2-american-canyon-halloween-party-2026",
+      "canonicalId": "r2-american-canyon-halloween-party-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+        "https://events.napalibrary.gov/event/17410706"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vacaville-boo-bash-20261030",
+      "canonicalId": "vacaville-boo-bash-20261030",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://downtownvacaville.com/events-in-downtown-vacaville/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "palo-alto-addams-family-opening-2026",
+      "canonicalId": "palo-alto-addams-family-opening-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://paplayers.org/show/the-addams-family/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "vacaville-candy-stroll-20261031",
+      "canonicalId": "vacaville-candy-stroll-20261031",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://downtownvacaville.com/events-in-downtown-vacaville/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "mcm-halloween-spectacular-20261031",
+      "canonicalId": "mcm-halloween-spectacular-20261031",
+      "kind": "event",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/events/0zog7elnls9d0aljsi62915xu1zww4"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-opera-figaro-opening-2026",
+      "canonicalId": "sf-opera-figaro-opening-2026",
+      "kind": "performance",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sfopera.com/operas/the-marriage-of-figaro/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sf-halloween-hoopla-2026",
+      "canonicalId": "sf-halloween-hoopla-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://ybgfestival.org/event/halloween-hoopla-2026/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "san-jose-avenida-altares-2026",
+      "canonicalId": "san-jose-avenida-altares-2026",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://mhplaza.org/allevents/avenida26"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "sj-sharks-senators-2026",
+      "canonicalId": "sj-sharks-senators-2026",
+      "kind": "sports",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.sapcenter.com/events/detail/sharks-vs-kings-17",
+        "https://www.sapcenter.com/events/all"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "event"
+    },
+    {
+      "researchId": "oakland-55-coffee-pop-up-2026",
+      "canonicalId": "oakland-55-coffee-pop-up-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/",
+        "https://www.instagram.com/p/DdHqD-WT72f/?hl=en"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "berkeley-cere-tea-opening-2026",
+      "canonicalId": "berkeley-cere-tea-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/",
+        "https://www.ceretea.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "oakland-chez-maeju-soft-opening-2026",
+      "canonicalId": "oakland-chez-maeju-soft-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://chezmaeju.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "alameda-juxi-soft-opening-2026",
+      "canonicalId": "alameda-juxi-soft-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/",
+        "https://www.juxialameda.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "union-city-kennedy-youth-free-dropin",
+      "canonicalId": "union-city-kennedy-youth-free-dropin",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.unioncityca.gov/288/Kennedy-Youth-Center"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "pittsburg-nekter-opening-2026",
+      "canonicalId": "pittsburg-nekter-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://www.nekterjuicebar.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "el-cerrito-rialto-monday-offer",
+      "canonicalId": "el-cerrito-rialto-monday-offer",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://rialtocinemas.com/about-us-cer/movie%E2%9D%A4%EF%B8%8Flover-cer/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "walnut-creek-saatva-new-store-2026",
+      "canonicalId": "walnut-creek-saatva-new-store-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.saatva.com/press-room/announcements/new-saatva-location-walnut-creek-california/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "berkeley-top-dog-downtown-opening-2026",
+      "canonicalId": "berkeley-top-dog-downtown-opening-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/",
+        "https://www.topdoghotdogs.com/"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "anya-gifting-larkspur",
+      "canonicalId": "anya-gifting-larkspur",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/anya-hindmarch-gifting-agency"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "r2-santarosa-capriciano-corkage-policy-2026",
+      "canonicalId": "r2-santarosa-capriciano-corkage-policy-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://capriciano.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "r2-kenwood-stella-weekly-offers-2026",
+      "canonicalId": "r2-kenwood-stella-weekly-offers-2026",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.stellakenwood.com/the-team-1"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "margaux-larkspur",
+      "canonicalId": "margaux-larkspur",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/margaux"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "salt-straw-larkspur-coming",
+      "canonicalId": "salt-straw-larkspur-coming",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/salt-stawcoming-soon"
+      ],
+      "evidenceStatus": "needs_followup",
+      "disposition": "held",
+      "reason": "未确认场次或优惠条件，暂不发布"
+    },
+    {
+      "researchId": "varley-larkspur",
+      "canonicalId": "varley-larkspur",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://marincountrymart.com/varley"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "san-mateo-curiodyssey-teacher-military-ongoing",
+      "canonicalId": "san-mateo-curiodyssey-teacher-military-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://curiodyssey.org/visit/hours-admission/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-mateo-curiodyssey-museums-for-all-ongoing",
+      "canonicalId": "curiodyssey-museums-for-all",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://curiodyssey.org/visit/museums-for-all/",
+        "https://curiodyssey.org/visit/hours-admission/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-mateo-jacks-happy-hour-ongoing",
+      "canonicalId": "san-mateo-jacks-happy-hour-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.ilovejacks.com/events/san-mateo-happy-hour",
+        "https://www.ilovejacks.com/san-mateo"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-athanor-new-restaurant-2026",
+      "canonicalId": "sf-athanor-new-restaurant-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.athanorsf.com/",
+        "https://sf.eater.com/restaurant-news/213635/athanor-restaurant-opening-september-chef-mike-lanham"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "sf-exploratorium-for-all-current",
+      "canonicalId": "exploratorium-for-all-five",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.exploratorium.edu/visit/reduced-rates/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-conservatory-photosynthesis-current",
+      "canonicalId": "sf-conservatory-photosynthesis-current",
+      "kind": "event",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://gggp.org/visit/admissions-hours/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "guide_only",
+      "reason": "常设或按各场馆/票页选择的档期，不制造逐日可预订场次"
+    },
+    {
+      "researchId": "sf-sfmoma-museums-for-all-current",
+      "canonicalId": "sfmoma-museums-for-all",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.sfmoma.org/deals-discounts/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "sf-japanese-tea-garden-free-mornings-current",
+      "canonicalId": "japanese-tea-garden-free-hour",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://gggp.org/visit/admissions-hours/",
+        "https://gggp.org/japanese-tea-garden/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "updated",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "cupertino-eureka-wednesday-burger-ongoing",
+      "canonicalId": "cupertino-eureka-wednesday-burger-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://eurekarestaurantgroup.com/locations/cupertino"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "mountain-view-pacific-catch-aloha-hour-ongoing",
+      "canonicalId": "mountain-view-pacific-catch-aloha-hour-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.pacificcatch.com/location/mountain-view/",
+        "https://www.pacificcatch.com/menu/",
+        "https://www.pacificcatch.com/wine-tuesday/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "santa-clara-rhone-valley-fair-new-store-2026",
+      "canonicalId": "santa-clara-rhone-valley-fair-new-store-2026",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.westfield.com/en/united-states/valleyfair/events/now-open-or-rhone/138806",
+        "https://www.westfield.com/en/united-states/valleyfair"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "sj-ignite-new-restaurant-reported-2026",
+      "canonicalId": "ignite-san-pedro-square",
+      "kind": "new_opening",
+      "checkedAt": "2026-09-28",
+      "sourceUrls": [
+        "https://www.eatatignite.com/",
+        "https://www.bizjournals.com/sanjose/news/2026/09/15/ignite-replaces-sushi-confidential-san-jose.html"
+      ],
+      "evidenceStatus": "reported",
+      "disposition": "updated",
+      "publicKind": "opening"
+    },
+    {
+      "researchId": "sunnyvale-st-johns-happy-hour-ongoing",
+      "canonicalId": "sunnyvale-st-johns-happy-hour-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://stjohnsgrill.com/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-jose-tech-military-admission-ongoing",
+      "canonicalId": "san-jose-tech-military-admission-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.thetech.org/visit/discounts-promotions/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    },
+    {
+      "researchId": "san-jose-tech-second-half-off-ongoing",
+      "canonicalId": "san-jose-tech-second-half-off-ongoing",
+      "kind": "offer",
+      "checkedAt": "2026-09-29",
+      "sourceUrls": [
+        "https://www.thetech.org/visit/access-matters/"
+      ],
+      "evidenceStatus": "verified",
+      "disposition": "added",
+      "publicKind": "offer"
+    }
+  ]
+}

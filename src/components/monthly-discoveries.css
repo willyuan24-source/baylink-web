@@ -27,6 +27,7 @@
 .bl-opening-topline { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#76806e; font-size:10px; }
 .bl-opening-status { border-radius:5px; padding:5px 8px; font-size:10px; font-weight:650; }
 .bl-opening-status--open { color:#20553e; background:#e5efdc; }
+.bl-opening-status--soft_open { color:#345e6d; background:#e4f0f2; }
 .bl-opening-status--announced { color:#865823; background:#f6ead6; }
 .bl-opening-card h3 { margin:15px 0 10px; color:#21483b; font-size:24px; font-weight:650; letter-spacing:-.03em; line-height:1.2; overflow-wrap:anywhere; }
 .bl-opening-copy>p { margin:12px 0; font-size:14px; line-height:1.85; color:#586657; }

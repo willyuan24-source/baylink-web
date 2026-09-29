@@ -2,6 +2,7 @@ export type MonthlyRegion = 'sf' | 'east-bay' | 'south-bay' | 'peninsula' | 'nor
 export type MonthlyEvent = {
   id: string;
   title: string;
+  kind?: 'event' | 'performance' | 'meetup' | 'sports';
   startDate: string;
   endDate: string;
   /** Explicit confirmed days for non-continuous programs; [] means none confirmed. */
@@ -11,7 +12,7 @@ export type MonthlyEvent = {
   city: string;
   venue: string;
   category: 'culture' | 'outdoors' | 'food' | 'family';
-  cost: 'free' | 'paid' | 'mixed';
+  cost: 'free' | 'paid' | 'mixed' | 'unknown';
   costLabel: string;
   summary: string;
   plan: string[];

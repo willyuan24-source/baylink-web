@@ -121,8 +121,8 @@ export const octoberOffers: FreebieOffer[] = [
   ...septemberFreebies.filter(offer => offer.availability === 'ongoing' || offer.startDate?.startsWith('2026-10')),
 ];
 
-export const currentFreebies: FreebieOffer[] = [...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers].map(offer => [offer.id, offer])).values()]
-  .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23');
+export const currentFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers].map(offer => [offer.id, offer])).values()]
+  .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23'));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),
@@ -131,3 +131,4 @@ export const octoberOfferSources: GuideSource[] = [...new Map([
   { title: 'Lowe’s：工作坊日期与会员规则', url: 'https://www.lowes.com/diy-projects-and-ideas/workshops', description: '10/17 消防飞机为 10:00–13:00，需儿童资料及预约，建议 4–11 岁、家长陪同。' },
   { title: 'BAMPFA：开放时段与票种', url: 'https://bampfa.org/visit/hours', description: '展厅免费日不等于所有电影免费；留意季节性开放时段。' },
 ].map(source => [source.url, source])).values()];
+import { mergeReviewedOffers } from './autumn-release';

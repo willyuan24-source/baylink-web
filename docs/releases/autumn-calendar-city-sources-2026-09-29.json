@@ -1,0 +1,150 @@
+{
+  "checkedAt": "2026-09-29",
+  "method": "Census internal reference points rounded to three decimals, for city aggregation only; not venue entrances or route coordinates.",
+  "records": [
+    {
+      "name": "Vallejo",
+      "geoid": "0681666",
+      "lat": "38.106909",
+      "lng": "-122.262339"
+    },
+    {
+      "name": "Larkspur",
+      "geoid": "0640438",
+      "lat": "37.940506",
+      "lng": "-122.528927"
+    },
+    {
+      "name": "San Leandro",
+      "geoid": "0668084",
+      "lat": "37.703395",
+      "lng": "-122.16299"
+    },
+    {
+      "name": "Danville",
+      "geoid": "0617988",
+      "lat": "37.812142",
+      "lng": "-121.969824"
+    },
+    {
+      "name": "Pleasanton",
+      "geoid": "0657792",
+      "lat": "37.667185",
+      "lng": "-121.88123"
+    },
+    {
+      "name": "Santa Clara",
+      "geoid": "0669084",
+      "lat": "37.364621",
+      "lng": "-121.967973"
+    },
+    {
+      "name": "South San Francisco",
+      "geoid": "0673262",
+      "lat": "37.655104",
+      "lng": "-122.376234"
+    },
+    {
+      "name": "Hayward",
+      "geoid": "0633000",
+      "lat": "37.626826",
+      "lng": "-122.104015"
+    },
+    {
+      "name": "Sebastopol",
+      "geoid": "0670770",
+      "lat": "38.400003",
+      "lng": "-122.827586"
+    },
+    {
+      "name": "Alameda",
+      "geoid": "0600562",
+      "lat": "37.74229",
+      "lng": "-122.2605"
+    },
+    {
+      "name": "Millbrae",
+      "geoid": "0647486",
+      "lat": "37.598991",
+      "lng": "-122.40202"
+    },
+    {
+      "name": "Mill Valley",
+      "geoid": "0647710",
+      "lat": "37.908122",
+      "lng": "-122.542325"
+    },
+    {
+      "name": "Dublin",
+      "geoid": "0620018",
+      "lat": "37.716153",
+      "lng": "-121.896217"
+    },
+    {
+      "name": "Livermore",
+      "geoid": "0641992",
+      "lat": "37.686977",
+      "lng": "-121.759781"
+    },
+    {
+      "name": "Los Gatos",
+      "geoid": "0644112",
+      "lat": "37.226848",
+      "lng": "-121.955506"
+    },
+    {
+      "name": "Richmond",
+      "geoid": "0660620",
+      "lat": "37.952278",
+      "lng": "-122.360609"
+    },
+    {
+      "name": "Pleasant Hill",
+      "geoid": "0657764",
+      "lat": "37.954162",
+      "lng": "-122.076295"
+    },
+    {
+      "name": "Concord",
+      "geoid": "0616000",
+      "lat": "37.972184",
+      "lng": "-122.001587"
+    },
+    {
+      "name": "El Cerrito",
+      "geoid": "0621796",
+      "lat": "37.919574",
+      "lng": "-122.302519"
+    },
+    {
+      "name": "Los Altos",
+      "geoid": "0643280",
+      "lat": "37.368434",
+      "lng": "-122.096571"
+    },
+    {
+      "name": "Stanford",
+      "geoid": "0673906",
+      "lat": "37.426933",
+      "lng": "-122.167741"
+    },
+    {
+      "name": "Lafayette",
+      "geoid": "0639122",
+      "lat": "37.88979",
+      "lng": "-122.119732"
+    },
+    {
+      "name": "San Ramon",
+      "geoid": "0668378",
+      "lat": "37.766626",
+      "lng": "-121.929151"
+    },
+    {
+      "name": "Yountville",
+      "geoid": "0686930",
+      "lat": "38.393512",
+      "lng": "-122.365536"
+    }
+  ]
+}

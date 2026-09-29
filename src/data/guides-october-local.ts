@@ -1,4 +1,5 @@
-import type { Guide } from './guides';
+import type { Guide, GuideBlock } from './guides';
+import seasonalPrograms from './autumn-release-guide-only.json';
 
 /** Official sources checked 2026-09-15; route durations are editorial suggestions. */
 export const octoberLocalGuides: Guide[] = [
@@ -581,3 +582,16 @@ export const octoberLocalGuides: Guide[] = [
     ]
   }
 ];
+
+const autumnPlannerGuide = octoberLocalGuides.find(guide => guide.slug === 'bay-area-october-weekend-planner-2026')!;
+autumnPlannerGuide.updatedAt = '2026-09-29';
+autumnPlannerGuide.sources.push(...seasonalPrograms.map(program => ({ title: program.title, url: program.officialUrl, description: program.dateLabel })));
+autumnPlannerGuide.blocks.push(
+  { type: 'heading', text: '按开放时间选择的季节项目' },
+  ...seasonalPrograms.flatMap((program): GuideBlock[] => [
+    { type: 'heading', text: program.title },
+    { type: 'paragraph', text: program.summary },
+    { type: 'list', items: [program.dateLabel, program.requirement] },
+    { type: 'link', title: '查看具体开放时间与场次', text: program.sourceLabel, url: program.officialUrl },
+  ]),
+);

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "r2-napa-costume-exchange-2026",
+    "title": "Napa 十月儿童万圣节服装交换",
+    "region": "north-bay",
+    "city": "Napa",
+    "summary": "通过旧服装交换减少一次性消费；可先到图书馆儿童区查看合适尺寸。",
+    "dateLabel": "10/1–10/31 · 各参与机构开放时间内；图书馆不是全天候开放",
+    "requirement": "官方称服装交换，月份项目未单列费用；消防开放日分场明确免费 数量、尺码依现场；不是保证领取",
+    "officialUrl": "https://naparecycling.com/halloween/",
+    "sourceLabel": "naparecycling.com",
+    "verifiedAt": "2026-09-29"
+  },
+  {
+    "id": "mountain-view-theatreworks-dracula-2026",
+    "title": "TheatreWorks 话剧《Dracula》",
+    "region": "south-bay",
+    "city": "Mountain View",
+    "summary": "Steven Dietz 改编的吸血鬼故事，以悬疑戏剧迎接万圣节。",
+    "dateLabel": "10/7–11/1 · 剧目档期 10/7–11/1；并非每日演出，各晚场及午场以售票日历为准。",
+    "requirement": "官方售票；折扣和座位价格随场次变化，本记录不锁定最低价。 选定具体场次购票；10/7–11/1 是剧目档期，不代表每天开放。",
+    "officialUrl": "https://theatreworks.org/mainstage/dracula/",
+    "sourceLabel": "theatreworks.org",
+    "verifiedAt": "2026-09-28"
+  },
+  {
+    "id": "sf-conservatory-photosynthesis-current",
+    "title": "Photosynthesis：温室外墙夜间灯光艺术",
+    "region": "sf",
+    "city": "San Francisco",
+    "summary": "晚间散步可顺路看温室外墙的灯光艺术。",
+    "dateLabel": "日落约30分钟后开始，约30分钟长；无固定钟点",
+    "requirement": "户外观赏免费；无需选择固定场次，临时安排以官方公告为准。",
+    "officialUrl": "https://gggp.org/visit/admissions-hours/",
+    "sourceLabel": "gggp.org",
+    "verifiedAt": "2026-09-29"
+  }
+]

@@ -1,8 +1,13 @@
 import { ATTRACTIONS, ATTRACTION_THEMES } from '../data/attractions';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
+import { currentFreebies } from '../data/october-offers';
+import { currentOpenings } from '../data/local-discoveries';
+import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
-import { getBayAreaToday } from './monthly';
+import { getBayAreaToday, getEventStatus } from './monthly';
+import { validCalendarDay } from './event-calendar';
+import { openingStatusLabel } from './opening-status';
 import { translateText, type Locale } from '../i18n/locale';
 
 const toolAliases: Record<string, string> = {
@@ -16,6 +21,13 @@ const toolAliases: Record<string, string> = {
   moving: 'moving checklist 搬家 清单 待办',
 };
 
+const isCurrentOffer = (offer: FreebieOffer, today: string): boolean => {
+  if (offer.availability !== 'dated') return true;
+  const start = offer.startDate || offer.endDate;
+  const end = offer.endDate || offer.startDate;
+  return !!start && !!end && validCalendarDay(start) && validCalendarDay(end) && start <= end && end >= today;
+};
+
 /** Local discovery keeps free-form queries private until the user chooses posts or AI. */
 export function searchQuickDestinations(query: string, locale: Locale, today = getBayAreaToday()) {
   const tokens = [...new Set(normalizeGuideQuery(query).split(/\s+/).filter(Boolean))];
@@ -25,8 +37,15 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
   };
   return {
     tools: LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])).slice(0, 3),
-    events: MONTHLY_EVENTS.filter(event => event.endDate >= today && matches([
+    events: MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended' && matches([
       event.title, event.city, event.venue, event.summary, event.costLabel, ...event.audience,
+    ])).slice(0, 3),
+    offers: currentFreebies.filter(offer => isCurrentOffer(offer, today) && matches([
+      offer.brand, offer.title, offer.dateLabel, offer.requirement, offer.description,
+    ])).slice(0, 3),
+    openings: currentOpenings.filter(shop => matches([
+      shop.name, shop.city, shop.address, shop.category, shop.summary, shop.editorTip,
+      shop.dateLabel, openingStatusLabel(shop.status),
     ])).slice(0, 3),
     attractions: ATTRACTIONS.filter(place => matches([
       place.title, place.city, place.note, place.mapQuery,

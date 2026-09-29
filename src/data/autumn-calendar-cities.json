@@ -1,0 +1,146 @@
+{
+  "Vallejo": {
+    "lat": 38.107,
+    "lng": -122.262,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Larkspur": {
+    "lat": 37.941,
+    "lng": -122.529,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "San Leandro": {
+    "lat": 37.703,
+    "lng": -122.163,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Danville": {
+    "lat": 37.812,
+    "lng": -121.97,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Pleasanton": {
+    "lat": 37.667,
+    "lng": -121.881,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Santa Clara": {
+    "lat": 37.365,
+    "lng": -121.968,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "South San Francisco": {
+    "lat": 37.655,
+    "lng": -122.376,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Hayward": {
+    "lat": 37.627,
+    "lng": -122.104,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Sebastopol": {
+    "lat": 38.4,
+    "lng": -122.828,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Alameda": {
+    "lat": 37.742,
+    "lng": -122.26,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Millbrae": {
+    "lat": 37.599,
+    "lng": -122.402,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Mill Valley": {
+    "lat": 37.908,
+    "lng": -122.542,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Dublin": {
+    "lat": 37.716,
+    "lng": -121.896,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Livermore": {
+    "lat": 37.687,
+    "lng": -121.76,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Los Gatos": {
+    "lat": 37.227,
+    "lng": -121.956,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Richmond": {
+    "lat": 37.952,
+    "lng": -122.361,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Pleasant Hill": {
+    "lat": 37.954,
+    "lng": -122.076,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Concord": {
+    "lat": 37.972,
+    "lng": -122.002,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "El Cerrito": {
+    "lat": 37.92,
+    "lng": -122.303,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Los Altos": {
+    "lat": 37.368,
+    "lng": -122.097,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Stanford": {
+    "lat": 37.427,
+    "lng": -122.168,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Lafayette": {
+    "lat": 37.89,
+    "lng": -122.12,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "San Ramon": {
+    "lat": 37.767,
+    "lng": -121.929,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Yountville": {
+    "lat": 38.394,
+    "lng": -122.366,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  }
+}
