@@ -44,7 +44,8 @@ export const DROP_FAR = 210;
 const LINE_NEAR = 22;
 const KNOCK_RADIUS = 1.3;
 /** the knock's beats (s) */
-const T_OPEN = 0.95, T_CANDY = 1.45, T_LAND = 2.15, T_THANKS = 2.5, T_CLOSE = 5.2, SWING_S = 0.45, OPEN_RAD = 1.85;
+/** (in step with lane X's treat sound, audio/halloween.ts: knocks 0–0.34 s, the creak at 0.62, the candies at 1.08–1.3, the chime at 1.5) */
+const T_OPEN = 0.6, T_CANDY = 0.8, T_LAND = 1.32, T_THANKS = 1.9, T_CLOSE = 4.6, SWING_S = 0.45, OPEN_RAD = 1.85;
 
 interface StreetMesh { mesh: THREE.Mesh; key: string }
 interface Answering { door: TreatDoor; t: number; knock: Knock; paid: boolean; swing: THREE.Mesh | null; candy: THREE.Mesh | null; from: THREE.Vector3 }
@@ -153,9 +154,11 @@ export function initTreat(): TreatRun {
     const pts = doorPoints(d, KNOCK_OUT);
     if (result.kind === 'closed') return result.kind;
     if (result.kind === 'again') { sayLine('w6g-again'); return result.kind; }
-    sound('g-knock', d);
     sayLine('w6g-knock');
-    if (result.kind === 'nobody') { later(() => sayLine('w6g-nobody'), 1.6); return result.kind; }
+    // nobody home: our own knock (the frozen `halloween` event means a door answered: lane X's treat sound is the whole
+    // vignette — knock, creak, candies, chime — played by audio/audio.ts for it)
+    if (result.kind === 'nobody') { sound('g-knock', d); later(() => sayLine('w6g-nobody'), 1.6); return result.kind; }
+    emit({ type: 'halloween', what: 'treat', id: `door:${d.n}` });
     answering = { door: d, t: 0, knock: result, paid: false, swing: null, candy: null, from: new THREE.Vector3(pts.front.x, pts.front.y, pts.front.z) };
     return result.kind;
   }
@@ -165,7 +168,6 @@ export function initTreat(): TreatRun {
     a.paid = true;
     const k = a.knock;
     for (const p of k.pays) emit({ type: 'reward', source: p.source, coins: p.coins });
-    emit({ type: 'halloween', what: 'treat', id: `door:${a.door.n}` });
     const bag = candyCount(paid);
     toast({ zh: `得到${k.candy.name.zh}${k.pieces > 1 ? ' ×2' : ''}！糖果袋 ${bag} 颗`, en: `${k.pieces > 1 ? 'Double treat' : 'Treat'}: ${k.candy.name.en}! Candy bag: ${bag}` }, 'gold', 3200);
     const next = allDoorsKnocked(paid) && !said.has('all') ? 'w6g-all-doors' : bag >= 10 && !said.has('ten') ? 'w6g-not-too-much' : bag >= 5 && !said.has('five') ? 'w6g-bag-heavy' : null;
@@ -186,7 +188,6 @@ export function initTreat(): TreatRun {
     const d = a.door;
     // the door swings open (its panel on the hinge) and back
     if (was < T_OPEN && a.t >= T_OPEN) {
-      sound('g-creak', d);
       const swing = new THREE.Mesh(buildSwingGeometry(DOOR_PAINTS[(d.n * 5) % DOOR_PAINTS.length]), mat);
       swing.name = 'halloween-door-swing';
       swing.position.copy(doorPoints(d).hinge);
@@ -218,7 +219,6 @@ export function initTreat(): TreatRun {
         group.remove(a.candy);
         a.candy.geometry.dispose();
         a.candy = null;
-        playSound('g-candy', { gain: 0.9 });
         spawnFx('sparkle', to.x, to.y, to.z, { count: 10, color: '#f2a93b' });
         finishTreat(a);
       }
