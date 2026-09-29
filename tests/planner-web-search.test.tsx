@@ -203,7 +203,7 @@ test('guest candidates survive a new search and reload, preserve date, and can b
   api.request = async () => candidateResponse();
   const view = render(<PlannerWebSearch {...props} />);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
-  assert.match(view.container.textContent!, /No price provided; cannot be treated as free/);
+  assert.match(view.container.textContent!, /Costs unconfirmed; cannot be treated as free/);
   fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
   assert.equal(loadGuestWebCandidates().length, 1);
   assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-03');

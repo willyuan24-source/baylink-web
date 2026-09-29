@@ -51,7 +51,7 @@ function WebCandidateCard({ candidate, locale, children }: { candidate: PlannerW
     <span className="planner-web-candidate-label">{text('站外候选 · 待确认', 'Web candidate · Unconfirmed', '站外候選 · 待確認')}</span>
     <h4>{candidate.name}</h4><p>{candidate.city || text('城市待确认', 'City unconfirmed', '城市待確認')}</p>
     {candidate.summary && <p>{candidate.summary}</p>}
-    <dl><div><dt>{text('时间', 'Times', '時間')}</dt><dd>{candidate.timeSummary || text('来源未提供可用时段', 'No usable hours provided', '來源未提供可用時段')}</dd></div><div><dt>{text('费用', 'Costs', '費用')}</dt><dd>{candidate.priceSummary || text('来源未提供费用，不能按免费计算', 'No price provided; cannot be treated as free', '來源未提供費用，不能按免費計算')}</dd></div></dl>
+    <dl><div><dt>{text('时间', 'Times', '時間')}</dt><dd>{candidate.timeSummary || text('时段待确认，请查看来源', 'Hours unconfirmed; check the source', '時段待確認，請查看來源')}</dd></div><div><dt>{text('费用', 'Costs', '費用')}</dt><dd>{candidate.priceSummary || text('费用待确认，不能按免费计算', 'Costs unconfirmed; cannot be treated as free', '費用待確認，不能按免費計算')}</dd></div></dl>
     <p className="planner-small-note">{text('尚未核对准确位置、所选日期时段与预约，暂不能自动排入行程。', 'Exact location, date-specific hours and booking conditions need checking before scheduling.', '尚未核對準確位置、所選日期時段與預約，暫不能自動排入行程。')}</p>
     <div className="planner-web-candidate-links">{candidate.sourceUrls.map(url => <a key={url} href={url} target="_blank" rel="noopener noreferrer">{new URL(url).hostname.replace(/^www\./, '')} ↗</a>)}</div>
     {children}
