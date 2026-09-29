@@ -8,7 +8,8 @@ Lane W of wave 6 (`docs/opus-bay/sf-w6-lead.md` §3 row W), worktree `C:/Users/w
 1. **北滩的"空地"补好了**：城市模式里华盛顿广场一带原来是两条街深的一整片空铺地（老数据把那几块街区交给了手工区，手工区却没盖房子）。现在把那几个街区真实的 OSM 房子（92 栋）按城市自己的样式补回来，能看见、也会挡路；城里的步行路网、路线站点都测过还能走。
 2. **北滩街角**：华盛顿广场有了草坪、边上一圈树和长椅、中间的富兰克林像和六棵钻天杨；对面圣彼得圣保罗教堂的白色双塔（191 英尺，按游戏的高度规则 12.2 格）、玫瑰窗、门上的金色马赛克带和台阶；哥伦布大道上有咖啡桌和意大利三色遮阳伞、有人坐着、招牌（Café / 面包 / Books）、三色灯杆，晚上桌子上方的一串串灯泡会亮。
 3. 整个街角只多 2 次绘制（约 7.3k 三角形，离镜头 190 格外不画）；手机 390×844 上看过。
-4. **和 BAYBAY 玩捉迷藏**：点「问 BAYBAY」→「捉迷藏」，她数三下就藏到 60 格内某个地标旁边（一定是走得到的地方），屏幕上方提示「暖了！/冷了…」和冷热程度，每 15 秒她会在藏身处挥挥手；找到她就拿奖牌金币（45 秒内最高），手机和电脑都实际玩过。
+4. **里昂街台阶赛跑**：从绿街那头的台阶脚下喊一声「比赛？」，和 BAYBAY 比谁先跑上百老汇街的顶，顶上正对艺术宫的圆顶。原来中间平台的花坛把路堵死了，现在花坛靠边、下面几段台阶也能走通，路网测过。
+5. **和 BAYBAY 玩捉迷藏**：点「问 BAYBAY」→「捉迷藏」，她数三下就藏到 60 格内某个地标旁边（一定是走得到的地方），屏幕上方提示「暖了！/冷了…」和冷热程度，每 15 秒她会在藏身处挥挥手；找到她就拿奖牌金币（45 秒内最高），手机和电脑都实际玩过。
 
 ## Part a · W6-W1 the North Beach seam gap, W6-W2 the North Beach corner
 
@@ -72,7 +73,8 @@ Started 01:53 PDT (the brief said lanes start 02:40; the worktree was ready, so 
 - Draw calls / triangles (renderer.info, budget-views, not fps): above the band 57 calls / 199k → 57 / 204k (fill only)
   → 68 / 230k with the corner in view (another camera); the low view toward Columbus 80 / 289k → 81 / 306k. The corner
   itself: 2 meshes, 7,254 triangles (the test measures it).
-- Checks: see the push line below.
+- Checks (pushed as `daedbdc4`, `4fcc39ce` after a rebase): tsc 0 · eslint 0 errors (43 old warnings) · suite
+  1407 / 1407.
 
 ### Decisions
 
@@ -165,7 +167,10 @@ suite 1407 / 1407 on the rebased tree).
   and the card "Brilliant · Found BAYBAY in 4 s · +30 coins" (the three tiers the first time;
   `qa/w6/W/w4-hide-seek-found-desk.jpg`). (The last step moved the player next to her by script: walking 60 u up
   Telegraph Hill takes a headless run longer than its budget.)
-- Checks: see the push line below.
+- Checks (pushed as `b5154a01`, after two rebases, from a check worktree `C:/Users/willy/wt/w6-w-check`): tsc 0 ·
+  eslint 0 errors (43 old warnings) · suite 1431 / 1432 — the one failure, "E2-5 view field in the city" (a wall-clock
+  case in tests/opus-bay-sf-move2), passes alone (24 / 24); after the second rebase (lanes S and P only, no shared
+  file) tsc 0 and the play / contracts / notebook / lane-W tests 87 / 87.
 
 ### Decisions
 
@@ -191,3 +196,77 @@ suite 1407 / 1407 on the rebased tree).
 
 - **Lane X** (voice, optional): BAYBAY's hide & seek lines, zh + en — 捉迷藏！你数到三，我去藏好～ / Hide and seek! You count
   to three, I'll hide! · 被你找到啦！ / You found me! · 我在这儿呢～下次再来找我！ / Here I am! Find me next time!
+
+## Part c · W6-W3 the Lyon Street Steps stair course (+ a hide & seek guard)
+
+Started 03:30 PDT (part b pushed 03:48 as `b5154a01`).
+
+### What was built
+
+- **Why there was no course** (`play/stairCourses.ts` header, wave 5): on the published city the middle landing did not
+  join the flights below it. Two causes, measured with the stand raster (0.5 u cells, the walker's 0.45 u disc):
+  1. the site's planted bed stood in the middle of the landing (1.2 u wide), leaving 0.76 u either side;
+  2. below the landing the city's own steps (the OSM steps line to Vallejo and Green St) are narrower than the flights
+     on steep ground either side: no cell there stood for a walker, so the nav went round through the Presidio's trees.
+- **`world/sf/landmarks/lyon-street-steps.ts`** (lane L's site, surgical, named): the bed is gone from the middle; the
+  clipped hedge carries on along the house side past the landing with two round topiaries on it (the third blocker is
+  that hedge end, x −1.59…−0.99); the walk gains one `stairs` surface 3 u wide from the middle landing down to local
+  z 20 (`walk.surfaces`, y 'terrain'). **`landmarks/tops.ts`**: the lyon row's third top 1.9 → 2 (the measured lod 0,
+  the generator's rule; only that row edited).
+- **`play/stairCourses.ts`**: course **`lyon`** 里昂街台阶 — 11 vertices from the foot of the flights by Green St (y 11.0)
+  up the Lyon Street Steps between the hedges and the Presidio's wall to the top landing on Broadway (y 22.9, the view
+  straight onto the Palace of Fine Arts' dome), 30 u; BAYBAY's line at the top: 里昂街台阶大约 300 级，一路修剪整齐的树篱，
+  正对着艺术宫！ The stair race (`play/stairs.ts`), the 比赛？ prompt at the foot and the step counter take it from the
+  data (nothing else changed).
+- **`economy/records.ts`** (lane K2's, surgical, append): the notebook's best rows `stairs-lyon` and `hide-seek`.
+- **`play/hideSeek.ts`**: 捉迷藏 is not offered while BAYBAY leads a trip or goal #1's walk (`flow.trip`, `freeLead`).
+- **Tests**: `tests/opus-bay-w5-play-acts.test.ts` "W5-A8 stair courses" (lane A's, now three courses: every 0.5 u
+  standable, every leg a nav walk ≤ 1.5 × + 2, foot and top open, climbs > 8 u, par 3.5–6.5 s, BAYBAY's time and the
+  gold time, the step count for Lyon 100–400) passes for `lyon`; new `tests/opus-bay-w6-w-lyon.test.ts` (the finish on
+  the top landing, the foot > 20 u down the axis, every vertex inside the corridor, the walk past the old bed stands,
+  the nav from the top to the foot takes the steps — < 1.4 × the straight line, it was ≥ 42 u round through the trees —,
+  the record rows).
+
+### Evidence
+
+- Played (desktop, golden hour): at the foot the prompt "Race? Race BAYBAY up the Lyon Street Steps"
+  (`C:/Users/willy/opus-qa/w6/w/c1-foot.jpg`), E → the chip "Lyon Street Steps · 1.5 · BAYBAY leads · Give up"
+  (`qa/w6/W/w3-lyon-race-start-desk.jpg`), BAYBAY runs the steps and calls from the top "I'm at the top! Come on up!"
+  over the Palace of Fine Arts' dome and the Bay (`qa/w6/W/w3-lyon-top-palace-desk.jpg`).
+- The corridor, stand raster before → after at the middle landing (local z 8.5–10, lx −2…2, `s` = stairs that stand,
+  `:` = a 0.3 u disc only, `#` = blocked): `##########::#####` → `######..s.::#####`; the lower flights (z 15–17.5)
+  `######:s::#######` → `######:sss:######`. Probe: foot → top legs 3.0 / 3.0 / 3.0 / 2.5 u walked for 3.0 / 3.0 / 3.0 /
+  2.5 straight (the leg z 18 → 15 walked 41.5 u before).
+- Checks: see the push line below.
+
+### Decisions
+
+- **The bed moves, the hedge stays**: the real steps' middle landing is hedged along the houses; a bed in the middle
+  that a walker cannot pass is not worth a course that cannot be run.
+- **A walk surface, not a new model** for the lower flights: the city's OSM steps line stays as drawn; the surface only
+  makes the steep ground either side of it walkable for a 3 u strip (landscaped, like the upper run).
+- **"About 300 steps"**: sources differ (288 Broadway → Green on inspiredimperfection.com; 332 Broadway → Vallejo on
+  sftourismtips.com, both read 2026-09-29), so BAYBAY says 大约 300 级 and `steps` is 300.
+
+### Facts (checked on the web 2026-09-29)
+
+- 288 steps from Broadway down to Green St, gardens and flower beds, the view of the Palace of Fine Arts, the Marina, the
+  islands — https://inspiredimperfection.com/adventures/lyon-street-steps/
+- 332 steps Broadway to Vallejo, the Palace of Fine Arts from the top — https://www.sftourismtips.com/lyon-street-steps.html
+- The steps connect Cow Hollow to Pacific Heights and the Presidio's Broadway gate — https://www.nps.gov/places/000/lyon-street-steps.htm
+
+### Known gaps
+
+- The course's foot is at the bottom of the modelled flights (≈ 25 u down the axis, by Green St's level), not a drawn
+  Green St corner; the city's own steps below the site are OSM's line (no hedges drawn there).
+- BAYBAY runs the course line; a player who leaves the corridor on the lower flights walks the steep landscaped strip.
+
+### Not done
+
+- (5) "one more small thing a new player can do anywhere within 2 minutes": not started (time; hide & seek already
+  works anywhere through its nearby fallback).
+
+### Requests
+
+- **Lead / lane X**: a voice line for the Lyon top (里昂街台阶大约 300 级，一路修剪整齐的树篱，正对着艺术宫！ / The Lyon
+  Street Steps: about 300 of them, neat hedges, and the Palace of Fine Arts dead ahead!) if the stair lines get voices.

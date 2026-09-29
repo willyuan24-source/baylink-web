@@ -7,6 +7,7 @@ import { canStand, heightAt, STAND_RADIUS } from '../core/terrain';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTIONS } from '../data/sf/attractions';
 import { bubble } from '../game/flow';
+import { flow } from '../game/flowStore';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { hideChip, patchChip, showChip } from './chip';
 import { currentActivity, startActivity, tierFor, type ActivityRun } from './kit';
@@ -131,9 +132,10 @@ export const liveOpts = (): HideOpts => ({
   reach: (from, to) => { const r = findPath(from, to, 1), e = r?.points[r.points.length - 1]; return !!e && Math.hypot(e.x - to.x, e.z - to.z) < 1.1; },
 });
 
-/** A hide & seek game may start now: free roam on foot, nothing else running. */
+/** A hide & seek game may start now: free roam on foot, nothing else running, BAYBAY not leading a trip. */
 export function hideSeekAllowed(): boolean {
-  return freeOnFoot() && !currentActivity() && game.get().mode === 'free';
+  const f = flow.get();
+  return freeOnFoot() && !currentActivity() && game.get().mode === 'free' && !f.trip && !f.freeLead;
 }
 
 let stopLive: (() => void) | null = null;
