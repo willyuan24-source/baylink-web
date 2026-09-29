@@ -476,6 +476,90 @@
     "url": "https://www.sfmta.com/fares/free-muni-all-youth-18-years-and-younger",
     "verifiedAt": "2026-09-23"
    }
+  },
+  {
+   "id": "sf-moad-free-thursday-oct1-2026",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "MoAD 10月首周四免费夜场",
+    "en": "MoAD's free evening on the first Thursday of October"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "免费入馆 官网有预约入口；容量和当晚安排以场馆为准。",
+    "en": "Free museum admission. The official site has a reservation link; capacity and that evening's arrangements are set by the venue."
+   },
+   "from": "2026-10-01",
+   "to": "2026-10-01",
+   "hours": [
+    960,
+    1200
+   ],
+   "place": {
+    "id": "osm-n415567060",
+    "x": 164.14,
+    "z": 183.56,
+    "name": {
+     "zh": "非洲侨民博物馆",
+     "en": "the Museum of the African Diaspora"
+    }
+   },
+   "href": "/offers/sf-moad-free-thursday-oct1-2026",
+   "source": {
+    "label": "moadsf.org",
+    "url": "https://www.moadsf.org/event/downtown-first-thursdays---october-1",
+    "verifiedAt": "2026-09-29"
+   },
+   "rule": {
+    "url": "https://www.moadsf.org/event/downtown-first-thursdays---october-1",
+    "verifiedAt": "2026-09-29"
+   }
+  },
+  {
+   "id": "sf-moad-thrive-second-saturday-oct2026",
+   "kind": "museum",
+   "free": true,
+   "title": {
+    "zh": "MoAD THRIVE：十月第二周六免费参观",
+    "en": "MoAD THRIVE: free admission on October's second Saturday"
+   },
+   "who": {
+    "zh": "所有人",
+    "en": "Everyone"
+   },
+   "requirement": {
+    "zh": "每月第二周六免费入馆 按官方页面选择日期或确认预约要求。",
+    "en": "Free museum admission on the second Saturday of each month. Select a date or confirm reservation requirements on the official page."
+   },
+   "from": "2026-10-10",
+   "to": "2026-10-10",
+   "hours": [
+    660,
+    1020
+   ],
+   "place": {
+    "id": "osm-n415567060",
+    "x": 164.14,
+    "z": 183.56,
+    "name": {
+     "zh": "非洲侨民博物馆",
+     "en": "the Museum of the African Diaspora"
+    }
+   },
+   "href": "/offers/sf-moad-thrive-second-saturday-oct2026",
+   "source": {
+    "label": "moadsf.org",
+    "url": "https://www.moadsf.org/visit",
+    "verifiedAt": "2026-09-29"
+   },
+   "rule": {
+    "url": "https://www.moadsf.org/visit",
+    "verifiedAt": "2026-09-29"
+   }
   }
  ]
 }

@@ -38,6 +38,8 @@ interface Spec {
   hours?: Hours | (Hours | null)[];
   /** where the day rule / hours were read (the organiser's page) */
   ruleUrl?: string;
+  /** the day that page was read (default RULES_CHECKED) */
+  ruleCheckedAt?: string;
   /** the SF Today hand row (realsf/todayRows.ts) this offer belongs to: the tab links the offer there */
   hand?: string;
 }
@@ -95,6 +97,18 @@ const SPECS: Spec[] = [
   {
     id: 'muni-youth-free', kind: 'transit', free: true, who: { zh: '18 岁及以下', en: '18 and under' }, place: null,
   },
+  // W6-S: GPT's autumn release (2026-09-29) — the Museum of the African Diaspora reopens on Sep 30 (moadsf.org/visit:
+  // Tue–Wed, Fri–Sun 11–5, Thu 12–8, closed Monday; "Every Second Saturday" free); its first-Thursday night is 4–8 pm
+  {
+    id: 'sf-moad-free-thursday-oct1-2026', kind: 'museum', free: true, who: { zh: '所有人', en: 'Everyone' },
+    place: { id: 'osm-n415567060', x: 164.14, z: 183.56, name: { zh: '非洲侨民博物馆', en: 'the Museum of the African Diaspora' } }, hours: [H(16), H(20)],
+    ruleUrl: 'https://www.moadsf.org/event/downtown-first-thursdays---october-1', ruleCheckedAt: '2026-09-29',
+  },
+  {
+    id: 'sf-moad-thrive-second-saturday-oct2026', kind: 'museum', free: true, who: { zh: '所有人', en: 'Everyone' },
+    place: { id: 'osm-n415567060', x: 164.14, z: 183.56, name: { zh: '非洲侨民博物馆', en: 'the Museum of the African Diaspora' } }, hours: [H(11), H(17)],
+    ruleUrl: 'https://www.moadsf.org/visit', ruleCheckedAt: '2026-09-29',
+  },
 ];
 
 // Use the same dictionaries and override order as the website and guide catalog.
@@ -119,7 +133,7 @@ const rows = SPECS.map(s => {
     ...(s.hand ? { hand: s.hand } : {}),
     href: `/offers/${encodeURIComponent(s.id)}`,
     source: { label: o.sourceLabel, url: o.sourceUrl, verifiedAt: o.verifiedAt ?? '2026-09-15' },
-    ...(s.ruleUrl ? { rule: { url: s.ruleUrl, verifiedAt: RULES_CHECKED } } : {}),
+    ...(s.ruleUrl ? { rule: { url: s.ruleUrl, verifiedAt: s.ruleCheckedAt ?? RULES_CHECKED } } : {}),
   };
 });
 

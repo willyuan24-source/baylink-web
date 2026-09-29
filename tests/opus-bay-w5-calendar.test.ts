@@ -204,7 +204,7 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
   const buf = fs.readFileSync(path.join(V1, 'live.json'));
   assert.ok(zlib.gzipSync(buf).length < 6 * 1024, 'small');
   const offers = live.parseLive(LIVE_RAW)!;
-  assert.equal(offers.length, 11);
+  assert.equal(offers.length, 13, 'the 11 of wave 5 + the two MoAD days of the autumn release (W6-S)');
   const { currentFreebies } = await import('../src/data/october-offers');
   for (const o of offers) {
     const site = currentFreebies.find(x => x.id === o.id);
@@ -219,7 +219,7 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
     assert.ok(['museum', 'park', 'transit'].includes(o.kind), o.id);
     if (o.free) assert.notEqual(site!.kind, 'purchase', `${o.id}: a free row is never a purchase deal`);
     assert.match(o.source.verifiedAt, /^2026-09-\d{2}$/);
-    if (o.rule) assert.equal(o.rule.verifiedAt, '2026-09-28');
+    if (o.rule) assert.match(o.rule.verifiedAt, /^2026-09-2[89]$/);
     if (o.place) assert.ok(Number.isFinite(o.place.x) && Number.isFinite(o.place.z));
   }
   const ids = (day: string) => live.offersOn(day, offers).map(t => t.offer.id).sort();
@@ -235,6 +235,10 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
   assert.deepEqual(live.offersOn('2026-10-04', offers).find(t => t.offer.id === 'cable-car-museum-free')!.hours, [600, 1020]);
   assert.deepEqual(live.offersOn('2026-10-06', offers).find(t => t.offer.id === 'cable-car-museum-free')!.hours, [600, 960]);
   assert.ok(ids('2026-10-25').includes('sfmoma-family-oct25'));
+  // (W6-S) MoAD, reopened Sep 30: the first-Thursday night Oct 1 16–20, THRIVE on the second Saturday Oct 10 11–17
+  assert.deepEqual(live.offersOn('2026-10-01', offers).find(t => t.offer.id === 'sf-moad-free-thursday-oct1-2026')?.hours, [960, 1200]);
+  assert.deepEqual(live.offersOn('2026-10-10', offers).find(t => t.offer.id === 'sf-moad-thrive-second-saturday-oct2026')?.hours, [660, 1020]);
+  assert.ok(!ids('2026-10-08').some(id => id.startsWith('sf-moad')), 'dated: only on their own days');
   assert.ok(!ids('2026-11-04').includes('asian-art-free-oct4'), 'a dated offer only on its date');
   assert.deepEqual(live.standingOffers(offers).map(o => o.id).sort(), ['exploratorium-for-all-five', 'muni-youth-free', 'sfmoma-museums-for-all']);
   assert.deepEqual(live.offersForPlace('sfmoma', '2026-10-25', offers).today.map(t => t.offer.id), ['sfmoma-family-oct25']);
