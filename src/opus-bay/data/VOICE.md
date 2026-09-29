@@ -212,3 +212,9 @@ Part c (W5-C7, 2026-09-28): the residents' second favours, their letters and the
 | Luz's otter board | 小海獭 | 小水獭 (BAYBAY is a sea otter) | an original painting of BAYBAY on a small board in Balmy Alley |
 | Balmy Alley · Clarion Alley | 巴尔米巷 · 克拉里恩巷 | Balmy 巷 · Clarion 巷 | the attractions' and cards' names; Luz, her favours' spots, toasts and letter say them too (review, 2026-09-28: the waypoint read 小忙 · Clarion 巷 under the map's 克拉里恩巷) |
 | the Queen Wilhelmina garden's closures | 每年 5 月和 10 月整月关闭、重新种花 | | sfrecpark.org (checked 2026-09-28); the windmill card's tip; Hank's words follow the month (bulbs go in in October) |
+
+### Wave 6 additions (lane K2, 2026-09-29)
+
+| en | zh (say this) | not | note |
+|---|---|---|---|
+| International Orange (the Golden Gate Bridge's colour) | 国际橙 (繁體 國際橙 through the site's conversion) | 国际橘 | one name everywhere a player reads it: the bridge's bark and card, the postcard, the ribbons' fact, the vehicle paint (lane F), the 小铺's 国际橙围巾 / 国际橙背包 / 国际橙单车 (ids `scarf-orange`, `my-pack-orange`, `bike-orange` unchanged: saves keep them); English "International Orange" (short "Int’l Orange"). The colour's name: goldengate.org "Color & Art Deco Styling" (checked 2026-09-29) |
