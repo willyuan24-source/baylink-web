@@ -69,3 +69,56 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
 ### Requests
 
 - None.
+
+## Part b (2026-09-29 02:30–03:00 PDT): the C / E / N items · the 90 s hold timeout · STATUS.md
+
+### What was built
+
+| # | item (sf-w5-summary NEXT #8, #5, #14) | files | API |
+|---|---|---|---|
+| 1 | **No 飞行券 during goal #1's lead** (lane C's review: 送你一张飞行券！ a second after 跟 BAYBAY 去找鹈鹕, then 有鹈鹕啦，飞行券用不上了，还你 10 金币。 40 s later at Coit). BAYBAY's first ticket now waits while the game is not playing yet, a dialogue (the welcome) or the goals step is open, or she leads to the pelican (`freeLead` = `pelican:coit`), and `TICKET_QUIET_MS` (4 s) after; polled 1 Hz until given. A player who follows the lead meets the pelican first: no gift, no refund line. A resumed player with nothing on gets it at once, as before (and after Settings → reset). | `economy/shopRun.ts` | `ticketGiftWaits()`, `ticketGiftReady(now)`, `TICKET_QUIET_MS`, `ticketGate` |
+| 2 | **Rewards emitted before the ledger is live are not lost** (lane E's review). Every `reward` emitted in the city while no ledger listens waits in `game/rewards.ts` (main graph, listening from the first frame; ≤ 64, the newest), and `initLedger` pays them the moment it starts (the ledger pays each source once: a replay never pays twice); the ledger's off (a world switch) queues again; a new save (Settings → reset) drops what waited; the district never queues. | `game/rewards.ts`, `economy/ledger.ts` | `ledgerListening(live)`, `pendingRewards()`, `dropPendingRewards()`, `PENDING_MAX` |
+| 3 | **`cityAreaAt` with the walker's height** (lane N's review): the area pill passes `runtime.player.y`, so the first quarter of the Golden Gate deck (from the south anchorage) says 金门大桥, and the water / Fort Point under it does not. | `game/brain.ts` | — |
+| 4 | **The new-save goals card waits** (lane D's review: 随便逛，顺便完成这些 opened over the ringing Chinatown phone and the operator's paper, 接电话 live under it): in the city the card also waits while a ui/slots overlay is up (an egg's paper or card, a letter, the album) or a find's prompt asks for the player (an egg's 接电话). The district as before. | `ui/Moments.tsx` | — |
+| 5 | **A quiet first discovery batch on resume** (lane C's review: 发现 4 个新地点 above 欢迎回来): 继续旅程 calls `quietNextDiscovery()`; the first discovery tick with the place index (within 20 s) marks the finds round the resumed spot (saved, on the map and in 足迹) without the chip / toast; later finds are told as before. | `game/discovery.ts`, `game/resume.ts` | `quietNextDiscovery(now?)`, `QUIET_RESUME_MS` |
+| 6 | **The Grand Tour quotes are the measured runs**: 约 36 分钟 (full, measured 36.1) and 约 29 分钟 (express, measured 28.5), not the model's 34 / 25 (the model leaves out the chapter intros / outros, BAYBAY's waits and a real run's snags). The stops keep the model's minutes; `modelMinutes` / `modelExpressMinutes` keep its sums (tested as before). The welcome subtitle, the call row, the full / express choice, the resume label and the recap follow. | `data/sf/tours.ts` (`MEASURED_TOUR_MINUTES`, `CityTourDef.modelMinutes?`), `data/sf/copy.ts`, `tests/opus-bay-sf-tours.test.ts` (updated) | `MEASURED_TOUR_MINUTES` |
+| 7 | **Leaked `activity` / `shop` / `panel` holds: a 90 s timeout** (the lead's decision, §6). Such a hold explained the lock by itself, so a leak held the feet for good. Past `HOLD_TIMEOUT_S` = 90 it no longer explains the lock: the watchdog frees the player a second later and logs it (the `stuck` event's source names the hold and its age, e.g. `activity:leaky (held 91 s)`; DEV warns; `watchdogStats.timeouts`). The frozen playerLock API is unchanged. | `game/lockWatchdog.ts` | `HOLD_TIMEOUT_S`, `lockExplanation(now?)`, `stepLockWatchdog(dt, now?)` |
+| 8 | **`src/opus-bay/STATUS.md` rewritten** for the live city default (short: what a player gets, how to run and check, the W5-Z numbers, the code map, where to read on). | `src/opus-bay/STATUS.md` | — |
+
+### Evidence
+
+- Tests: `tests/opus-bay-w6-k2-flow.test.ts` (6: the ticket gate step by step; a new player who follows the lead meets the
+  pelican with no gift and no refund; a reward before the ledger paid once when it starts, queued again after its off,
+  dropped by a reset, never in the district; the deck at y 16 → `golden-gate-bridge`, at y 1.5 → not; a resume's first
+  batch quiet, a later find told; a leaked activity hold still explains at 60 s, freed a second after 90 s with its age in
+  the log). **Red first:** all six fail on the old files (checked by reverting the six source files and re-running).
+  `tests/opus-bay-w6-k2-ui-dom.test.ts` +1 (jsdom: the goals card hidden while an egg's 接电话 prompt is focused and while
+  `egg-note` is open, shown after; the district unchanged). Updated: `tests/opus-bay-sf-tours.test.ts` (the quotes 36 / 29
+  and the model 31–37 / 22–28), `tests/opus-bay-w5-e-review.test.ts` 4 (sets a playing game with nothing on first).
+- **Played on the phone** (390 × 844 dpr 3, touch, `?world=city&save=off&quality=mid`, a new player; script
+  `C:/Users/willy/opus-qa/w6/k2/qa-b.mjs`, log `b/phone.log`): 开始 → the welcome → 我自己逛逛 → the goals step → 跟 BAYBAY
+  去找鹈鹕 · 约 40 秒 → carried to Coit; the pelican moment was open 40–50 s after the tap. An in-page recorder of every bubble,
+  toast and dialogue from 开始 on (90 s): **飞行券 never mentioned**. Then on the Golden Gate deck a tenth of the way from
+  the south anchorage (y 15.2): the pill reads **金门大桥** (`qa/w6/K2/b-phone-deck-area-pill.jpg`; the English line under it
+  is the street name, which stays English by the VOICE.md rule).
+- Checks: see the push below (tsc 0 · eslint 0 errors · the suite fail 0).
+
+### Decisions
+
+- The ticket's grace is 4 s after the last busy moment (the goals step's close → the lead's start is not a gap); a player
+  whose game is quiet from the start (a resume) gets it at once.
+- The reward queue keeps the newest 64 (the ledger's caps are per prefix anyway) and only in the city.
+- The hold timeout frees the feet but does not close the UI that holds them (an activity, the shop, a panel): walking
+  away is the player's choice; the log names it.
+- The tour's quotes are the measured runs, typed once in `MEASURED_TOUR_MINUTES` with their source; the per-stop model
+  stays (it paces the chapters and is tested against the timing model).
+
+### Known gaps
+
+- Not played live: the resume's quiet batch (needs a saved spot and a reload; the rule is tested in node with a place
+  index) and the goals card at the ringing phone (jsdom only).
+- The express quote (29) is the measured run that rode its two long Metro legs; with 直接到站 there it is ≈ 24 min.
+
+### Requests
+
+- None.
