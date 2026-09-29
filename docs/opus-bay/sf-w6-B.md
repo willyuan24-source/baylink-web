@@ -169,3 +169,50 @@ checks on the rebased head: tsc 0 · eslint 0 errors (43 old warnings) · the su
   about 40 s in when the new-save goals card opened mid-ride (`C:/Users/willy/opus-qa/w6/b/live/phone-n-end.jpg`, log
   `phone-n.out`): please check that the card (or its pause hold) never ends or cancels a transit ride.
 
+
+Part b pushed 03:58 PDT: `W6-B5` zh names · `W6-B6` the waiver · `W6-B7` the Hyde St box · `W6-B8` this section (head
+`c843c4e6`). The pushed head, checked after the push (the branch moved every few minutes under nine lanes): tsc 0 · eslint
+0 errors (43 old warnings) · the suite **1449 / 1449**.
+
+## Part c — played checks and wrap-up (04:00–04:45 PDT)
+
+### What was built
+
+- `world/flineSystem.ts`: `toHold`'s doc comment back above `toHold` (`ec4f3a10` had put `pendingHold`'s between them).
+  Nothing else new: part c is evidence.
+
+### Evidence
+
+- **W6-B1 in the game** (desktop 1440 × 900, zh, dev 5603; `C:/Users/willy/opus-qa/w6/b/shots/b1acts.mjs`): the player sits
+  in their toy car (`car-ferry-plaza`, boarded through the game's own `ride:` interaction) across the California St
+  rails 75 u ahead of a cable car coming down to Drumm. The car ran, dwelt at its stops, came on at 8.5 u/s and **stopped
+  2.9 u short of the toy car**, standing there 5.1 s and counting (`held`), where it used to run through. The same run
+  before the player got in (the toy car empty on the rails): the cable car drove through it — see Known gaps.
+- **The F-line rides after W6-B2** (the reviewer's harness, `fline` scenario: 6 rides Castro ⇄ Ferry Building, 1092 s):
+  all 6 arrive, waits 1–23 s, rides 122–126 s — byte-identical to the tree before the wave (`adv/fline-{base,after}.log`;
+  the base run in a temporary worktree of `294746bc`, removed junction first).
+- **Phone** (390 × 844 dpr 3): the N from Duboce Park to Ocean Beach (167 s, arrived) and the zh map (part b).
+
+### Known gaps
+
+- **The player's toy car or bike left empty on the rails** (the player got out there): a cable car, streetcar or train
+  drives through it. The transit stops only for the player (on foot or in the vehicle); an empty ride as an obstacle
+  would hold a line for good once the player walks away. The fix is a tow (the parked ride moved to the kerb when a
+  transit vehicle comes within a few units): the fleet is lane K1's — see Requests.
+- **A non-rider loop bus waits up to 26 s at the Castro hairpin box** (`box:f-line@5476:1041`, (140, 745)) while the
+  rider's streetcar turns at 17th & Castro (the rider's car never yields): the same number before this wave; the proof's
+  25 s bus bound does not meet it (its rider is on the loop or the Metro, so every streetcar may yield). Harmless for the
+  player (the rider is on that streetcar, the bus is only watched); left.
+- The temporary worktree's admin folder `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/w6-b-base` could not
+  be deleted (permission denied, like the older ones there): harmless, for the lead's `git worktree prune`.
+
+### Requests
+
+- **K1** (the fleet, `actors/vehicles/**`): tow the player's parked (unoccupied) toy car or bike off the rails / out of a
+  transit lane when a cable car, streetcar, bus or train comes within ≈ 10 u of it (to the kerb beside it, with the
+  toy-car hop the traffic uses) — today the transit drives through it.
+- **K1** (BAYBAY's movement): BAYBAY on foot is not a transit `viewer`; a tram can pass through her when she stands on
+  the rails and the player does not. Either she steps off the rails when a transit vehicle comes (preferred), or the
+  lead widens the `viewer` contract to a list (four systems read it: `busSystem`, `flineSystem`, `lightRail`,
+  `transitLine`).
+- **K2**: the phone ride ended with the new-save goals card (part b's Requests).

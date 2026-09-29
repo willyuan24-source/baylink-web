@@ -167,7 +167,6 @@ export class StreetcarSystem {
     });
   }
 
-  /** Distance ahead to a hold point; a hold point just behind the car (it rolled onto it) counts as here. */
   /**
    * (W5-bus) Where `car` will have to stop for its next single-track block (the hold point's cycle u) when it could not
    * take that block now, else NaN. world/sf/lineInterlocks.ts: a car that would stand inside a box part a bus is coming
@@ -192,6 +191,7 @@ export class StreetcarSystem {
     return !this.canTake(o, need.k, need.dir) && this.canTake(o, need.k, need.dir, by.index);
   }
 
+  /** Distance ahead to a hold point; a hold point just behind the car (it rolled onto it) counts as here. */
   private toHold(car: FCar, hold: number): number {
     const d = aheadU(this.line, car.u, hold);
     return d > this.line.length / 2 ? 0 : d;
