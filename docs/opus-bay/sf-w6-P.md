@@ -4,9 +4,10 @@ Worktree `C:/Users/willy/wt/w6-p` (branch `w6-p`), port 5604, scratch `C:/Users/
 
 ## 给主人的摘要
 
-1. 游戏首屏要下载的主包（GameRoot）原来 300.4 KB（压缩后），目标 265 KB。
-2. 第一步（P1）：把"开始玩以后才出现"的界面（对话框、HUD、目标卡、明信片弹窗、拍照模式、手机摇杆、气泡等）拆成单独一个小包，游戏一加载就在后台同时下载；按"开始"时如果它还没到会等它（实际测下来 GameRoot 到了 0.1–0.2 秒后它就到了，远早于世界画出第一帧）。主包降到 **285.4 KB**（−15 KB）。
-3. 街区模式和城市模式实玩过（电脑 + 手机 390×844，生产构建）：开场对话、导览、HUD、目标卡、摇杆都和以前一样。
+1. 游戏首屏要下载的主包（GameRoot）原来 300.4 KB（压缩后），目标 265 KB。这一波做到约 **277.5 KB**（同一棵树上少了约 24 KB；其他线同时加了约 1.5 KB），**还没到 265**。
+2. 挪走的都是"开始玩以后才用到"或"只有城市才用到"的东西：对话框 / HUD / 目标卡 / 拍照模式 / 手机摇杆等界面（一个小包，游戏一加载就在后台同时下载，按"开始"时会等它到齐）；自动驾驶（第一次骑车 / 开车时才下）；城市六位邻居和地标到达点（跟城市数据包一起下，街区模式根本不下）；拍照合成和高画质后期特效。
+3. 街区模式和城市模式都实玩过（电脑 + 手机 390×844，生产构建）：开场对话、导览、HUD、目标卡、摇杆、拍照都和以前一样；1458 个测试全绿。
+4. 剩下的 12 KB 在"每一帧都在跑"的核心代码里（主角脚下 / 镜头 / 车辆 / 地标卡正文），要改别的线正在改的文件，风险大，写进了"请求"，建议下一波由负责人安排。
 
 ## Measuring
 
@@ -145,3 +146,76 @@ its tree, the autumn merge and day 0 added ≈ 1.8 KB). Biggest parts (gzip of p
   `?start=local` → P → Space: the photo mode, the shutter, the polaroid thumbnail (`photo` fetched with the play layer)
   — `docs/opus-bay/qa/w6/P/p4-district-photo-mode-desktop-prod.jpg`.
 - Checks: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1429 / 1429**.
+
+## Summary of the lane (after part c)
+
+| chunk (gzip, as vite reports) | before `294746bc` | after (W6-P1…P4) |
+|---|---|---|
+| **GameRoot** | **300.40 KB** | **277.51 KB** (P1 −15.05, P2 + P3 −6.06, P4 ≈ −3.3; the other lanes' pushes meanwhile ≈ +1.5) |
+| playParts (new; both modes, fetched with GameRoot, Start waits for it) | — | 15.38 |
+| residents (new; city data chunk + the play layer) | — | 3.83 |
+| autopilot (new; with the first drive) | — | 3.13 |
+| photo + photoFrames (new; with the play layer) | — | 1.88 + 0.43 |
+| post (new; the high tier's world waits for it) | — | 1.80 |
+| cityDataChunk (city only) | 4.33 | 4.54 |
+
+The target **≤ 265 KB is not reached** (−12.5 KB still to go). Every lever that is safe without touching another lane's
+per-frame code is taken; what is left is listed with sizes under Requests.
+
+### Decisions
+
+1. **Honest bytes only.** No `manualChunks`, no change to `vite.config.ts` or to `vite.opus.config.ts`'s build (the
+   production build uses `vite.config.ts`; a split that district mode still downloads before its first frame would lower
+   the number without lowering the first load). Everything moved is either not needed before play starts (fetched in
+   parallel, the Start waits), needed only on a later action (the first drive, the first shutter), or city-only (the city
+   data chunk, which district mode never fetches).
+2. **No file moved or renamed**; only import sites changed (Overlay, Systems, photo, flow, cityContent, npcs, cityGoals,
+   cityPois, moveSystem, WorldScene) plus three new small files (`ui/playLayer.tsx`, `ui/playParts.tsx`,
+   `game/shutterHook.ts`) and appended re-exports in `data/sf/cityDataChunk.ts`.
+3. **No byte budget in the tests** (the plan asked for the P7 walk to pin the new budget): a byte count needs a build,
+   which the suite does not run, and a source-size proxy would fail the eight other lanes' pushes mid-wave. The walk now
+   pins each moved module out of GameRoot's static graph (tests "W6-P1", "W6-P2 / P3", "W6-P4"), so none can slide
+   back unnoticed; the lead's verify reads the chunk table.
+4. **District mode**: nothing it draws or does changed; its JS requests now also include `playParts`, `residents` (via
+   the play layer's Moments), `photo` and `post` — bytes that were inside GameRoot before, now in parallel chunks.
+
+### Known gaps
+
+- `?start=` / `?solo=` deep links (QA only) show the HUD a moment after the first frame if the play layer is slower than
+  the world.
+- A phone at the mid tier fetches the 1.8 KB post chunk it may never run (it used to be inside GameRoot for everyone).
+- The tap-to-drive autopilot was verified by the suite's drive tests (the W5-bus 20-minute proof, move2, verify-g), not
+  by a live tap-to-drive in the browser this wave.
+
+### Not done
+
+- **GameRoot ≤ 265 KB** (277.51 now): the remaining levers are in other lanes' per-frame code (Requests 1–4).
+
+### Requests
+
+1. **Lead / lane K1 (next wave) — F's city-only actor modules, ≈ 6.1 KB of parts**: `actors/feet` 1.2, `stuckHelper`
+   1.2, `glideTall` 1.0, `deckSteer` 0.9, `viewField` 0.9, `faceOpen` 0.8. They are read every frame by `controller`,
+   `camera`, `moveSystem`, `system`, `CameraRig`, and some return district defaults (`heroView`, `FEET` in the
+   controller), so each needs a registration from the city chunk (`world/cityLoader.ts` loads it before WorldScene
+   renders, like `actors/cityViews.ts` already registers the deck) with the district's values as the fallback — K1 was
+   editing exactly these files this wave, so I left them.
+2. **Lead / lane C's successor — the POI card bodies, ≈ 8–10 KB**: `data/pois.ts`'s `realInfo` texts (summary, hours,
+   cost, tips) are read only by the (lazy) card body, but `cityDistrictPoi` glosses them at import time in city mode and
+   `flow` / `travel` read `lat` / `lng`: split the texts into a card-body module keyed by POI id, keep `lat` / `lng` /
+   `sourceUrl` in `pois.ts`, and gloss on open.
+3. **Lead / lane K1 — the district vehicles on first need, ≈ 9 KB** (`vehicles/models` 3.5, `collide` 2.9, `pelican`
+   2.1, `fleet` 1.7, `bike` 0.4, `toyCar` 0.4): the parked bikes and the toy car are visible in the district's first
+   frame, so this only pays if they are built once the chunk is in (a changed first frame: the owner's call).
+4. **Lane K2 — `game/hudLayout` (1.5) into the play layer**: `Systems.tsx` places the bubble / waypoint through it; with
+   the parts not mounted there is nothing to place, so `Systems` can read it from `ui/playLayer.tsx playParts()`.
+5. **Small ones** (≈ 0.7 KB each): drei's `PerformanceMonitor` (mounted 9 s into play) as a lazy part in its own
+   `Suspense`; `game/discovery` + `data/sf/places` (4.1) once `sampleLastSafe` (both modes) is split from the city's
+   discovery hook.
+6. **Lead — the final verify**: read the chunk table on the final tree (`GameRoot`, `playParts`, `post`), and play the
+   district's first minute once at the high tier (the post pass on the first frame) and once on the phone.
+
+### Final checks
+
+On `17bf8a7c` (W6-P4 rebased on origin at 04:27 PDT): `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite
+**1465 / 1465**. The dev / preview server on 5604 stopped at the end; no Higgsfield spend; no PERF-LOCK seen during my
+builds and shots (one headless Chrome at a time).
