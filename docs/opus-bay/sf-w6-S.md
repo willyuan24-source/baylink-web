@@ -224,7 +224,16 @@ Written 2026-09-29 ≈ 03:05 PDT.
   - phone 390 × 844 dpr 3, zh, Union St: `{ built: 'kaiyo-handroll-union', tris: 180 }`, the card above the phone bar, clear
     of the 跳 button (`qa/w6/S/s3-opening-kaiyo-card-phone.jpg`). Both shots still show the card's old "· 出发前以官网为准" suffix, since
     dropped because each hours note already names the shop's site.
-- Checks: see the push line below.
+- The card loads lazily (`React.lazy` in the overlay slot): the first full run with a static import failed two tests that
+  start the realsf feature in node (`contracts` w5Features, `w5-calendar` moon) on `openings.css`; with the lazy card the
+  Athanor card opens on E in the game (`qa/w6/S/s3-opening-athanor-card-desktop.jpg`, desktop, zh).
+- The owner's dates in the game (dev server, `?date=`): **Oct 9 12:40** at Marina Green (phone): `jets()` = up, built, 4 jets,
+  1,096 triangles, 15 soft boxes; `presence()` = Fleet Week open with its festival kit and crowd. **Nov 1 10:00** (phone, zh,
+  DST over): the 今天 tab reads 11月1日 周日 · 日出 6:35 · 日落 17:11, the sunset task 16:34–17:38, and 这周 says honestly
+  这周旧金山暂时没有新活动 (the catalog's SF events end Oct 31) (`qa/w6/S/s2-today-2026-11-01-dst-phone.jpg`).
+- Checks on the head rebased onto `origin/opus-bay` (K2 part b, W1 / W2 the North Beach seam and corner landed): `npx tsc -p
+  tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1417 / 1418**, the one failure the
+  known wall-clock `sf-move2` "E2-5 view field" (3.8 s under load), which passes alone (24 / 24).
 
 ### Decisions
 
