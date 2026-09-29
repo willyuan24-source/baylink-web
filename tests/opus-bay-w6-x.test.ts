@@ -155,3 +155,33 @@ test('W6-X5 · the promenade walkers wear the city figure in city mode only (reg
   game.set({ worldMode: before } as never);
   life.dispose();
 });
+
+test('W6-X4 · BAYBAY speaks lanes G and H\'s Halloween lines: every line recorded (zh + en files on disk), matched by exact text', async () => {
+  const { W6_VOICE_LINES, W6_VOICE_CHECK, W6_VOICE_CLIPS } = await import('../src/opus-bay/data/sf/voiceW6');
+  const { HALLOWEEN_LINES } = await import('../src/opus-bay/halloween/lines');
+  const { ALL_WORLD_LINES } = await import('../src/opus-bay/halloween/worldLines');
+  const { w5VoiceFor } = await import('../src/opus-bay/game/voiceW5');
+  const byId = new Map(W6_VOICE_LINES.map(l => [l.id, l]));
+  for (const l of [...HALLOWEEN_LINES, ...ALL_WORLD_LINES]) {
+    const rec = byId.get(l.id);
+    assert.ok(rec, `${l.id} recorded`);
+    // a line whose text changed after the recording stays text (the binder matches exact texts): flag it here
+    assert.equal(rec!.zh, l.zh, `${l.id} zh unchanged since the recording`);
+    assert.equal(rec!.en, l.en, `${l.id} en unchanged since the recording`);
+    assert.equal(w5VoiceFor({ zh: l.zh, en: l.en }), l.id);
+  }
+  for (const [clip, c] of Object.entries(W6_VOICE_CLIPS)) {
+    for (const f of [c.m4a, c.ogg]) {
+      const disk = path.join(ROOT, 'public', f!);
+      assert.ok(fs.existsSync(disk) && fs.statSync(disk).size > 2000, `${clip}: ${f}`);
+    }
+    assert.ok(c.duration > 0.5 && c.duration < 8, `${clip} ${c.duration} s`);
+  }
+  assert.ok(W6_VOICE_CHECK.every(c => c in W6_VOICE_CLIPS));
+  assert.equal(w5VoiceFor({ zh: '不给糖就捣蛋！', en: 'Trick or treat?' }), null, 'a changed text is not matched');
+});
+
+test('W6-X3 · a Halloween moment a lane sounds itself (lane H\'s registered find chime) is left to that lane', () => {
+  const src = fs.readFileSync(path.join(ROOT, 'src/opus-bay/audio/audio.ts'), 'utf8');
+  assert.match(src, /ev\.what === 'pumpkin' && soundRegistered\('halloween:pumpkin'\)\) return;/);
+});

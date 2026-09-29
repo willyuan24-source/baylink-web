@@ -9,7 +9,8 @@ floor 1375).
 1. 万圣节明信片画好了 4 张（找齐南瓜灯、不给糖就捣蛋、10/31 大夜晚、教会区亡灵节），和以前的明信片同一种手工黏土小模型画风；已交给做万圣节的两条线（H、G）去放进游戏。
 2. 万圣节音效做好了：敲门三下 → 门吱呀打开 → 糖果哗啦倒进桶里 → 叮！；找到南瓜灯时一声可爱的“呜～”加一串铃声；换上万圣节服装“噗”的一声魔法亮晶晶；10/31 晚上远处钟楼敲一下。全部是程序合成，不占下载，只有万圣节活动开始后才加载。
 3. 城市里的路人变可爱了：以前是没有脸、肤色发色都一样的小人，现在有眼睛（带高光）、腮红、短袖子和小手，每个人的肤色和发色都不一样，和 BAYBAY、主角同一种圆滚滚的玩具风格（只改城市模式，街区模式不变）。
-4. 到目前为止 Higgsfield 只花了 10 分（上限 1000），每一笔都记在账本里。
+4. BAYBAY 会说万圣节的新台词了：讨糖（G 线）22 句 + 城市装扮/找南瓜灯/亡灵节（H 线）18 句，中英文共 80 条录音，还是 Pixie 的声音，气泡出现就自动播放。试听单在 `docs/opus-bay/qa/w6/X/voice/listening.md`（连播文件 `w6-voice-preview-b1-zh.m4a` / `-en.m4a`）。
+5. 到目前为止 Higgsfield 只花了 11.7 分（上限 1000），每一笔都记在账本里。
 
 ## Part a1 · Halloween postcards and sounds (2026-09-29 01:53–02:25 PDT)
 
@@ -116,3 +117,41 @@ call, material or program** (the same `ob-people` program, the same instanced at
   walker (the crowd is one instanced mesh of up to 64); the procedural figure matches the residents exactly.
 - Tones from the walker's phase in the shader (no new attribute): the phase is a per-walker constant, so a walker keeps
   its skin and hair across LOD switches (the far figure uses the same hash).
+
+## Part b · BAYBAY's Halloween voice (2026-09-29 03:22–04:05 PDT)
+
+### What was built (W6-X4)
+
+| file | change |
+|---|---|
+| `scripts/opus-sf/voice/w6/lines.ts` (new) | the inventory of lanes G (`halloween/lines.ts` `HALLOWEEN_LINES`, 22) and H (`halloween/worldLines.ts` `ALL_WORLD_LINES`, 18) and the take list (the lanes' own ids; mood notes) |
+| `scripts/opus-sf/voice/w6/post.py` (new) | W5-V7's measured chain, unchanged (trim, two-pass loudnorm −18 LUFS / −1.5 dBTP, AAC 64k + Opus 48k, the gates, the advisory recogniser), writing wave 6's table and QA files |
+| `src/opus-bay/data/sf/voiceW6.ts` (generated) | `W6_VOICE_LINES` (40 rows: id, lane, zh, en, seconds), `W6_VOICE_CHECK` (empty), `W6_VOICE_CLIPS`, registered on import |
+| `src/opus-bay/game/voiceW5.ts` | the binder matches BAYBAY's bubbles against the wave-6 table too (zh + en exactly; a wave-5 recording of the same words wins) |
+| `public/opus-bay/w6/voice/` | 160 files (80 clips × .m4a + .ogg, 5.1 MB on disk; a player fetches one format of a clip, only when she says it) |
+| `docs/opus-bay/qa/w6/X/voice/` | `listening.md` (the owner's sheet), `w6-voice-preview-b1-{zh,en}.m4a`, `-b2-zh.m4a` (the retake), `w6-voice-report.json` |
+| `src/opus-bay/audio/{audio,hooks}.ts` | `soundRegistered(id)`; the `halloween` pumpkin event plays lane X's sting only when lane H has not registered its own find chime (`halloween:pumpkin`, which it has: no double sound) |
+| `tests/opus-bay-w6-x.test.ts` | +2 tests: every G / H line recorded with an unchanged text and matched by the binder, the files on disk; the pumpkin hand-over |
+
+Nothing for lanes G and H to wire: they say these lines as BAYBAY bubbles with these texts, and the binder emits
+`voice-line <id>` once per new bubble (the clip, or the chirp while it loads).
+
+### Evidence
+
+- 80 / 80 clips through the gates (no clipping or cut-off; pauses ≤ 0.9 / 1.2 s; F0 200–274 Hz, Pixie's range; speaking
+  rate zh 2.6–4.7 characters / s, en 1.6–2.9 words / s), 73 heard right by the Windows closed-grammar recogniser (advisory:
+  the misses are short calls like "Trick or treat!" and street names, `listening.md`). One retake (zh 我像不像一个小女巫？ at
+  speech_rate 1.2; the first take dragged at 2.1 characters / s).
+- Clip lengths 1.8–6.9 s (the Día de los Muertos lines are the longest and the gentlest).
+- Higgsfield batch 2: 82 takes, **1.70 credits** (ledger); running total **11.70**, balance **2363.30**.
+- Checks before the push: below.
+
+### Decisions
+
+- The lanes' own ids are the clip ids (`zh-w6g-knock`, `en-w6-h-hunt-all` …), so a report reads like the lanes' tables.
+- A line whose text a lane changes after this batch stays a text bubble until the next batch (the test names it).
+
+### Known gaps
+
+- Not heard by a human: the owner's ear on `listening.md` (mark ✗ or 重录). In-game playback of these clips is covered by the
+  binder test (the same path W5-V7 proved in game); a live knock with sound was not recorded in a shot.

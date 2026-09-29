@@ -96,6 +96,11 @@ export function registerSound(id: string, recipe: SoundRecipe): () => void {
   return () => { if (sounds.get(id) === state) sounds.delete(id); };
 }
 
+/** (W6-X3) Whether a feature registered this sound (audio.ts leaves a moment a lane voices itself to that lane). */
+export function soundRegistered(id: string): boolean {
+  return sounds.has(id);
+}
+
 export function playSound(id: string, opts?: SoundOpts): void {
   const state = sounds.get(id);
   if (!state || !engine || !isLive() || state.strikes >= RECIPE_STRIKES) return;

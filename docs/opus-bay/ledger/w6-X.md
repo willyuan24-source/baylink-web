@@ -37,3 +37,26 @@ files: `C:/Users/willy/opus-qa/w6/x/raw/`. Published (free, `scripts/opus-sf/ass
 `src/opus-bay/data/sf/halloweenPostcards.ts`.
 
 **Wave-6 lane X running total after batch 1: 10.00 credits.** Balance **2365**.
+
+## Batch 2 · BAYBAY's Halloween voice (W6-X4), 2026-09-29 10:26–10:53 UTC
+
+Balance before: 2365. Lines: `scripts/opus-sf/voice/w6/lines.ts` over lane G's `halloween/lines.ts` (22 lines, `w6g-*`,
+commit W6-G1) and lane H's `halloween/worldLines.ts` (18 lines, `w6-h-*`, commit W6-H1): **40 lines × zh / en = 80
+clips**. Model `qwen_audio_tts` (Qwen Audio 3.0 TTS Flash), preset "Pixie" `0178ef57-ada4-43d9-992b-8d9221045bb4` (wave 5's
+BAYBAY voice), wav 48 kHz, speech_rate 1.0, `language` zh / en, instruction = W5-V7's "Cute otter mascot talking to a friend:
+warm, cheerful, natural, clear, easy chatty pace." + a mood note (Halloween fun / cosy-spooky / a local fact / gentle and
+respectful for the Día de los Muertos lines). One take per clip; the post (W5-V7's chain) asked for one retake. Every take
+with its job id, text, measurements and the pick: `docs/opus-bay/qa/w6/X/voice/w6-voice-report.json`; raw wavs
+`C:/Users/willy/opus-qa/w6/x/voice/raw/<take index>.wav` (job ids in `jobs1.txt`, `jobs2.txt` beside them).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W6X-VO1 | 80 clips (40 lines × zh / en), one take each | qwen_audio_tts, Pixie, speech_rate 1.0, wav 48 kHz | lanes G / H's fixed bubble lines, verbatim | 1.68 (below) | w6-voice-report.json `takes[].job_id` (80 ids) | voice/raw/0–79.wav | 80 completed, 79 through the gates; 4 submissions answered 429 (rate limit, nothing charged) and were resubmitted (takes 24, 30, 32, 35) |
+| W6X-VO2 | zh-w6g-costume-witch retakes (take 32 read 2.1 characters / s, the rate gate) | same, speech_rate 1.1 / 1.2 | 我像不像一个小女巫？ | 0.02 | 075adb38-6651-4eac-942a-e03f7609c081 (80), 625b129d-7312-44fc-8d9a-ef429b3daca3 (81) | voice/raw/80.wav, 81.wav | take 81 (rate 1.2) **USED** (2.6 characters / s, passes); 80 rejected (rate) |
+
+Transactions 10:26:26.511–10:52:42.574 UTC: exactly 82 "Qwen Audio 3.0 TTS Flash" spends of 0.01–0.05 (by length), no
+refund, no other spend on the account in the window. **Subtotal 1.70 credits** (balance 2365 → **2363.30**, `balance` at
+10:58 UTC, equal to the tally). CDN: every result is `d8j0ntlcm91z4.cloudfront.net/user_…/hf_20260929_<hhmmss>_<job id>.wav`,
+the timestamps from `jobs_wait`; 82 / 82 downloaded.
+
+**Wave-6 lane X running total after batch 2: 11.70 credits.** Balance **2363.30**.

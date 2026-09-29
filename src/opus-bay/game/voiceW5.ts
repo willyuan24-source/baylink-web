@@ -1,5 +1,6 @@
 /**
- * Wave 5 · lane V · W5-V7: BAYBAY says her recorded wave-5 lines.
+ * Wave 5 · lane V · W5-V7: BAYBAY says her recorded wave-5 lines (wave 6, lane X · W6-X4: and the Halloween lines of lanes
+ * G and H, data/sf/voiceW6.ts, matched the same way).
  *
  * The lanes say their lines as speech bubbles (game/flow.ts `bubble`, eggs `say`, lane C's pacer…) and none of them has
  * to know about the voice: every new BAYBAY bubble whose text (zh + en, exactly) was recorded
@@ -16,6 +17,7 @@ import { getLocale } from '../../i18n/locale';
 import type { Bilingual } from '../core/types';
 import { emit } from '../core/events';
 import { W5_VOICE_CHECK, W5_VOICE_LINES } from '../data/sf/voiceW5';
+import { W6_VOICE_CHECK, W6_VOICE_LINES } from '../data/sf/voiceW6';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
 
@@ -30,6 +32,8 @@ export function w5VoiceFor(text: Bilingual): string | null {
   if (!byText) {
     const owned = new Set(W5_VOICE_LINES.filter(l => l.own).map(l => textKey(l.zh, l.en)));
     byText = new Map(W5_VOICE_LINES.filter(l => !l.own && !owned.has(textKey(l.zh, l.en))).map(l => [textKey(l.zh, l.en), l.id]));
+    // wave 6 (lane X, W6-X4): lanes G and H's Halloween lines (data/sf/voiceW6.ts) — a wave-5 recording of the same words wins
+    for (const l of W6_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
   }
   return byText.get(textKey(text.zh ?? '', text.en ?? '')) ?? null;
 }
@@ -43,7 +47,8 @@ export function initW5Voice(): () => void {
     last = b.key;
     if (b.who !== BAYBAY_ID) return;
     const id = w5VoiceFor(b.text);
-    if (!id || W5_VOICE_CHECK.includes(`${getLocale() === 'en' ? 'en' : 'zh'}-${id}`)) return;
+    const clip = `${getLocale() === 'en' ? 'en' : 'zh'}-${id}`;
+    if (!id || W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip)) return;
     emit({ type: 'voice-line', id });
   });
 }

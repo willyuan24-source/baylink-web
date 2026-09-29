@@ -21,7 +21,7 @@ import { SF_VOICE_LINES } from '../data/voiceLinesSf';
 import { Ambience, describeWorld, shoreJob } from './ambience';
 import { lineVoices, soundAt } from './cityHooks';
 import { AudioEngine, BUS_LEVELS, engineBuffersJob, makeReverb } from './engine';
-import { audioHooksStats, bindAudioHooks, stepAudioHooks } from './hooks';
+import { audioHooksStats, bindAudioHooks, soundRegistered, stepAudioHooks } from './hooks';
 import { clamp, createRateLimiter, panFor, transitSound } from './logic';
 import { Music } from './music';
 import * as rides from './rides';
@@ -53,6 +53,8 @@ const DEV = import.meta.env?.DEV;
 /** wave 6 (lane X, W6-X3): audio/halloween.ts, loaded at the first `halloween` event (out of the main graph) */
 let halloweenChunk: Promise<typeof import('./halloween')> | null = null;
 function halloweenSfx(e: AudioEngine, ev: Extract<GameEvent, { type: 'halloween' }>) {
+  // a moment a lane sounds itself (lane H's own find chime, registered as 'halloween:pumpkin') is left to that lane
+  if (ev.what === 'pumpkin' && soundRegistered('halloween:pumpkin')) return;
   (halloweenChunk ??= import('./halloween')).then(m => { const s = m.halloweenSound(ev); if (s) m.playHalloween(e, s); })
     .catch(error => { halloweenChunk = null; if (DEV) console.warn('[opus-bay audio] halloween sounds', error); });
 }
