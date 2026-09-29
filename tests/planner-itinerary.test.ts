@@ -2,9 +2,27 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PLANNER_PLACES } from '../src/data/planner-catalog';
 import { cleanStops, parseSharedPlan, sharePlanUrl, type PlanDetails, type PlannerPlace, type Stop } from '../src/lib/planner';
-import { buildItinerary, defaultPlanDetails, itineraryIcs, nearbyPlaces, normalizePlanDetails, planBudget, placeMatchesFilters } from '../src/lib/planner-itinerary';
+import { buildItinerary, defaultPlanDetails, itineraryIcs, nearbyPlaces, normalizePlanDetails, planBudget, planDetailsError, placeMatchesFilters, timeEvidence } from '../src/lib/planner-itinerary';
 
 const stops: Stop[] = PLANNER_PLACES.slice(0, 6).map(place => ({ kind: 'place', id: place.id }));
+test('an empty editor does not show a date conflict before the user has chosen any stops', () => {
+  assert.deepEqual(buildItinerary([], defaultPlanDetails(), '').issues, []);
+  assert.ok(buildItinerary(stops.slice(0, 1), defaultPlanDetails(), '').issues.some(issue => issue.includes('日期')));
+});
+
+test('Town Fare 15:30 arrival misses 15:15 last order, while a timely calendar export preserves official caveats', () => {
+  const stop: Stop = { kind: 'place', id: 'restaurant-town-fare-omca' };
+  const now = new Date('2026-09-29T20:00:00Z');
+  const details: PlanDetails = { ...defaultPlanDetails(), startTime: '15:30', stopSettings: [{ ...stop, durationMinutes: 30, travelMinutes: 0 }] };
+  const late = buildItinerary([stop], details, '2026-10-03', '2026-09-29');
+  assert.ok(late.rows[0].conflicts.some(item => item.code === 'last-order-missed'));
+  assert.throws(() => itineraryIcs('Lunch', '2026-10-03', [stop], details, now), /冲突/);
+  const calendar = itineraryIcs('Lunch', '2026-10-03', [stop], { ...details, startTime: '15:00' }, now).replace(/\r\n /g, '');
+  assert.match(calendar, /最后点单 15:15/);
+  assert.match(calendar, /堂食最晚 15:15 点单/);
+  assert.match(calendar, /不接受预约/);
+  assert.match(calendar, /museumca.org\/visit/);
+});
 test('six public stops survive save normalization and share while private settings never enter URLs', () => {
   const input = [...stops, stops[0], { kind: 'place', id: 'private-event' }];
   assert.deepEqual(cleanStops(input), stops);
@@ -82,4 +100,85 @@ test('old and malformed browser settings are bounded; foreign settings are dropp
   const result = normalizePlanDetails({ partySize: -5, extraCostUsd: Infinity, travelMode: 'teleport', stopSettings: [{ kind: 'place', id: 'private', durationMinutes: 10, travelMinutes: 0 }, { ...stops[0], durationMinutes: -10, travelMinutes: 900 }] }, stops);
   assert.equal(result.partySize, 1); assert.equal(result.extraCostUsd, 0); assert.equal(result.travelMode, 'any');
   assert.deepEqual(result.stopSettings, [{ ...stops[0], durationMinutes: 90, travelMinutes: 30 }]);
+});
+
+test('meal/rest buffers and cost breakdown survive normalization without altering old plan shapes', () => {
+  const old = { ...defaultPlanDetails(), extraCostUsd: 75, stopSettings: [{ ...stops[0], durationMinutes: 60, travelMinutes: 0 }] };
+  assert.deepEqual(normalizePlanDetails(old, stops), old);
+  assert.deepEqual(planBudget([], old).breakdown, { foodUsd: 0, transportUsd: 0, otherUsd: 75 });
+  const details = normalizePlanDetails({ ...old, costBreakdown: { foodUsd: 30.25, transportUsd: 14.5, otherUsd: 5 }, stopSettings: [{ ...old.stopSettings[0], breakBeforeMinutes: 45, breakLabel: 'meal' }] }, stops);
+  assert.equal(details.extraCostUsd, 49.75);
+  assert.equal(details.stopSettings[0].breakBeforeMinutes, 45);
+  assert.equal(details.stopSettings[0].breakLabel, 'meal');
+  assert.equal(planBudget([], details).subtotal, 49.75);
+  const malformed = normalizePlanDetails({ ...old, stopSettings: [{ ...old.stopSettings[0], breakBeforeMinutes: 181, breakLabel: 'private' }] }, stops);
+  assert.equal(malformed.stopSettings[0].breakBeforeMinutes, 0);
+  assert.equal(malformed.stopSettings[0].breakLabel, undefined);
+  assert.throws(() => itineraryIcs('Invalid break', '2026-10-03', stops.slice(0, 1), { ...old, stopSettings: [{ ...old.stopSettings[0], breakBeforeMinutes: 181 }] }));
+});
+
+test('save normalization rounds each cost component to cents before deriving a backend-compatible total', () => {
+  const raw = { ...defaultPlanDetails(), extraCostUsd: 4, costBreakdown: { foodUsd: 1.005, transportUsd: 2.675, otherUsd: 0.335 } };
+  assert.ok(planDetailsError(raw), 'an inconsistent sum must not pass frontend validation');
+  const details = normalizePlanDetails(raw, []);
+  assert.deepEqual(details.costBreakdown, { foodUsd: 1.01, transportUsd: 2.68, otherUsd: 0.34 });
+  assert.equal(details.extraCostUsd, 4.03);
+  assert.equal(planDetailsError(details), null);
+  const sum = Object.values(details.costBreakdown!).reduce((total, value) => total + value, 0);
+  assert.ok(Math.abs(sum - details.extraCostUsd) <= 0.0000001, 'must satisfy the backend sum tolerance');
+  assert.deepEqual(normalizePlanDetails(details, []), details, 'a saved and reopened plan keeps the same amounts');
+  assert.equal(planBudget([], details).subtotal, 4.03);
+  const legacy = { ...defaultPlanDetails(), extraCostUsd: 1.005 };
+  assert.deepEqual(normalizePlanDetails(legacy, []), legacy, 'legacy plans without breakdown remain unchanged');
+});
+
+test('source evidence, reservation reminders and breaks reach the timeline and calendar; only conflicts prevent export', () => {
+  const place = PLANNER_PLACES[0];
+  const original = place.planning;
+  const selected = [stops[0]];
+  const now = new Date('2026-09-29T20:00:00Z');
+  const details: PlanDetails = { ...defaultPlanDetails(), stopSettings: [{ ...selected[0], durationMinutes: 60, travelMinutes: 15, breakBeforeMinutes: 30, breakLabel: 'meal' }] };
+  try {
+    place.planning = { ...original, programTimeUnconfirmed: true, reservation: 'required', schedule: { sourceUrl: 'https://example.com/verified-hours', verifiedAt: '2026-09-29', dates: { '2026-10-03': [{ open: '11:00', close: '15:00', lastEntry: '14:00' }] } } };
+    const plan = buildItinerary(selected, details, '2026-10-03', '2026-09-29');
+    assert.deepEqual([plan.rows[0].breakStart, plan.rows[0].breakMinutes, plan.rows[0].arrival, plan.rows[0].start, plan.rows[0].wait], [600, 30, 645, 660, 15]);
+    assert.equal(plan.rows[0].evidence.sourceUrl, 'https://example.com/verified-hours');
+    assert.equal(timeEvidence(selected[0], '2026-10-03', '2026-09-29').status, 'confirmed');
+    assert.equal(plan.issues.length, 0);
+    assert.ok(plan.rows[0].notices.some(notice => notice.code === 'reservation-required'));
+    const calendar = itineraryIcs('With lunch', '2026-10-03', selected, details, now).replace(/\r\n /g, '');
+    assert.equal(calendar.split('BEGIN:VEVENT').length, 3);
+    assert.match(calendar, /预留餐饮时间/);
+    assert.match(calendar, /官方营业时间/);
+    assert.match(calendar, /尚未确认你的预约与余票/);
+    assert.match(calendar, /verified-hours/);
+    assert.match(calendar, /主节目场次未确认；这里只核对场地开放时段/);
+    place.planning.schedule.dates!['2026-10-03'] = [];
+    assert.throws(() => itineraryIcs('Closed', '2026-10-03', selected, details, now), /冲突/);
+    place.planning.schedule.verifiedAt = '2026-08-01';
+    const stale = buildItinerary(selected, details, '2026-10-03', '2026-09-29');
+    assert.equal(stale.issues.length, 0);
+    assert.ok(stale.notices.some(notice => notice.includes('未核对')));
+    assert.doesNotThrow(() => itineraryIcs('Stale reminder', '2026-10-03', selected, details, now));
+    place.planning.schedule = undefined;
+    assert.doesNotThrow(() => itineraryIcs('Unknown hours', '2026-10-03', selected, details, now));
+  } finally { place.planning = original; }
+});
+
+test('a missed official start stays official while later travel never runs backwards', () => {
+  const first = PLANNER_PLACES[0];
+  const second = PLANNER_PLACES[1];
+  const original = first.planning;
+  const originalSecond = second.planning;
+  try {
+    first.planning = { ...original, schedule: { sourceUrl: 'https://example.com/sessions', verifiedAt: '2026-09-29', sessions: [{ date: '2026-10-03', start: '11:00', end: '12:00' }] } };
+    second.planning = { ...originalSecond, schedule: undefined };
+    const details: PlanDetails = { ...defaultPlanDetails(), startTime: '12:00', stopSettings: [{ ...stops[0], durationMinutes: 60, travelMinutes: 15 }, { ...stops[1], durationMinutes: 30, travelMinutes: 10 }] };
+    const result = buildItinerary(stops.slice(0, 2), details, '2026-10-03', '2026-09-29');
+    assert.equal(result.rows[0].start, 660);
+    assert.equal(result.rows[0].arrival, 735);
+    assert.equal(result.rows[0].lateByMinutes, 75);
+    assert.equal(result.rows[1].arrival, 805, 'later travel includes the intended stay from the actual late arrival');
+    assert.ok(result.issues.some(issue => issue.includes('不能把场次顺延')));
+  } finally { first.planning = original; second.planning = originalSecond; }
 });

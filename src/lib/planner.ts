@@ -1,17 +1,20 @@
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
-import { ATTRACTIONS } from '../data/attractions';
+import { PLANNER_PLACES } from '../data/planner-catalog';
 import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
 
 export type GeoPoint = { lat: number; lng: number; label: string; sourceUrl: string; precision: 'venue' | 'area' };
-export type PlanningFacts = { setting?: 'indoor' | 'outdoor' | 'mixed'; admissionUsd?: number | null; minAge?: number | null; maxAge?: number | null; reservation?: 'required' | 'optional' | 'unknown' };
+export type TimeWindow = { open: string; close: string; lastEntry?: string; lastOrder?: string };
+/** Weekdays use 0=Sunday. A missing day is unknown; an empty array means closed. */
+export type PlanningSchedule = { sourceUrl: string; verifiedAt: string; validFrom?: string; validThrough?: string; weekly?: Partial<Record<number, TimeWindow[]>>; dates?: Record<string, TimeWindow[]>; sessions?: Array<{ date: string; start: string; end?: string }>; note?: string };
+export type PlanningFacts = { setting?: 'indoor' | 'outdoor' | 'mixed'; admissionUsd?: number | null; minAge?: number | null; maxAge?: number | null; reservation?: 'required' | 'optional' | 'unknown'; schedule?: PlanningSchedule; programTimeUnconfirmed?: boolean };
 export type PlannerEvent = MonthlyEvent & { location?: GeoPoint; planning?: PlanningFacts };
-export type PlannerPlace = { id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts };
+export type PlannerPlace = { id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts; path?: string; category?: 'attraction' | 'restaurant' | 'cafe' | 'shop'; address?: string; imageKey?: string; openingStatus?: 'open' | 'soft_open' | 'announced'; openedOn?: string; offerIds?: string[] };
 export type Stop = { kind: 'event' | 'place'; id: string };
 export type Favorite = { kind: 'event' | 'place' | 'guide'; id: string };
-export type StopSetting = Stop & { durationMinutes: number; travelMinutes: number; fixedStartTime?: string };
-export type PlanDetails = { startTime: string; finishBy: string; partySize: number; totalBudgetUsd: number | null; extraCostUsd: number; travelMode: 'any' | 'drive' | 'transit' | 'walk'; stopSettings: StopSetting[]; constraints?: PlanFilters };
+export type StopSetting = Stop & { durationMinutes: number; travelMinutes: number; fixedStartTime?: string; breakBeforeMinutes?: number; breakLabel?: 'meal' | 'rest' };
+export type PlanDetails = { startTime: string; finishBy: string; partySize: number; totalBudgetUsd: number | null; extraCostUsd: number; travelMode: 'any' | 'drive' | 'transit' | 'walk'; stopSettings: StopSetting[]; constraints?: PlanFilters; costBreakdown?: { foodUsd: number; transportUsd: number; otherUsd: number } };
 export type SavedPlan = { id: string; title: string; date: string; stops: Stop[]; details?: PlanDetails; version: number; createdAt: string; updatedAt: string };
 export type Preferences = { regions: string[]; interests: string[]; travelMode: string };
 export type Library = { plans: SavedPlan[]; favorites: Favorite[]; preferences: Preferences };
@@ -24,10 +27,10 @@ export const EMPTY_LIBRARY: Library = { plans: [], favorites: [], preferences: {
 export const todayInBay = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 export const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
 export const eventFor = (id: string) => MONTHLY_EVENTS.find(item => item.id === id);
-export const placeFor = (id: string) => ATTRACTIONS.find(item => item.id === id);
+export const placeFor = (id: string) => PLANNER_PLACES.find(item => item.id === id);
 export const validStop = (stop: Stop) => stop?.kind === 'event' ? !!eventFor(stop.id) : stop?.kind === 'place' && !!placeFor(stop.id);
 export const stopTitle = (stop: Stop) => (stop.kind === 'event' ? eventFor(stop.id) : placeFor(stop.id))?.title || stop.id;
-export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : `/guides/${encodeURIComponent(placeFor(stop.id)?.slug || '')}`;
+export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : placeFor(stop.id)?.path || `/guides/${encodeURIComponent(placeFor(stop.id)?.guideSlug || '')}`;
 export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
 export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
 export const MAX_PLAN_STOPS = 6;

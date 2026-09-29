@@ -12,6 +12,7 @@ import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { SaveToWeek } from './SaveToWeek';
 import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
+import { placeFor } from '../lib/planner';
 
 export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item: LocalDiscovery; today?: string }) {
   if (item.kind === 'event') return <EventParticipationProvider events={[item.event]}><DiscoveryArticle item={item} today={today} /></EventParticipationProvider>;
@@ -20,6 +21,7 @@ export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item
 function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string }) {
   const share = discoveryShare(item);
   const planDate = item.kind === 'event' ? nextConfirmedEventDate(item.event, today) : null;
+  const openingPlace = item.kind === 'opening' ? placeFor(`opening-${item.shop.id}`) : undefined;
   const ended = item.kind === 'event' ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
   const unconfirmed = item.kind === 'event' && item.event.occurrenceDates?.length === 0;
   const officialUrl = item.kind === 'event' ? item.event.officialUrl : item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl;
@@ -39,6 +41,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <EditorialShareActions item={share} />
       {item.kind === 'event' && <SaveToWeek favorite={{ kind: 'event', id: item.event.id }} />}
       {item.kind === 'event' && planDate && <Link className="discovery-primary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}
+      {openingPlace && <><SaveToWeek favorite={{ kind: 'place', id: openingPlace.id }} /><Link className="discovery-primary" to={`/plan?stops=place:${openingPlace.id}`}>用这家店开始出游计划<ArrowRight size={16} /></Link></>}
     </header>
     {image && <div className={`discovery-detail-media${image.kind === 'poster' || image.fullFrame ? ' discovery-detail-media--full' : ''}`}><GuideFigure image={image} variant="cover" /></div>}
     <div className="discovery-detail-body">

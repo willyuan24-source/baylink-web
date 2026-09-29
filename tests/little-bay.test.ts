@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ATTRACTION_REGIONS } from '../src/data/attractions';
+import { GUIDE_IMAGES } from '../src/data/guide-media';
+import { guides } from '../src/data/guides';
+import { currentOpenings } from '../src/data/local-discoveries';
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../src/data/planner-catalog';
 import { cleanLittleBayPlanStops, getLittleBayStops, getNextSaturday, pickLittleBayOuting, resolveLittleBayStop } from '../src/features/little-bay/catalog';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
@@ -11,7 +14,7 @@ test('Little Bay cards preserve region, real dates and valid planner references 
     for (const { id: region } of ATTRACTION_REGIONS) {
       const stops = getLittleBayStops({ date, region });
       const events = PLANNER_EVENTS.filter(event => (region === 'all' || event.region === region) && eventOccursOn(event, date));
-      const places = PLANNER_PLACES.filter(place => region === 'all' || place.region === region);
+      const places = PLANNER_PLACES.filter(place => (region === 'all' || place.region === region) && place.openingStatus !== 'announced' && (!place.openedOn || place.openedOn <= date));
       assert.equal(stops.length, Math.min(6, events.length + places.length), `${date}: ${region}`);
       assert.equal(new Set(stops.map(stop => stop.key)).size, stops.length);
       if (events.length && places.length) {
@@ -25,13 +28,59 @@ test('Little Bay cards preserve region, real dates and valid planner references 
         assert.equal(item.free, original.cost === 'free');
         assert.equal(item.title, original.title);
         assert.equal(item.region, original.region);
-        assert.ok(item.href.startsWith(item.kind === 'event' ? '/events/' : '/guides/'));
+        if (item.kind === 'event') assert.equal(item.href, `/events/${encodeURIComponent(item.stop.id)}`);
+        else {
+          const place = PLANNER_PLACES.find(row => row.id === item.stop.id)!;
+          assert.equal(item.href, place.path || `/guides/${encodeURIComponent(place.guideSlug)}`);
+          if (place.guideSlug) assert.ok(guides.some(guide => guide.slug === place.guideSlug));
+          else if (item.href.startsWith('/openings/')) assert.ok(currentOpenings.some(opening => item.href === `/openings/${encodeURIComponent(opening.id)}`));
+          else { assert.equal(item.href, place.officialUrl); assert.equal(new URL(item.href).protocol, 'https:'); }
+        }
         // Preserve precise catalog coordinates; never fabricate a venue from a city pin.
         assert.deepEqual(item.location, original.location);
         if (item.image) assert.equal(item.imageMeta?.src, item.image);
       }
     }
   }
+});
+
+test('new stores and external dining places preserve canonical links, image credits and unknown costs', () => {
+  const openings = PLANNER_PLACES.filter(place => place.id.startsWith('opening-'));
+  assert.ok(openings.length > 0);
+  let imageCount = 0;
+  for (const place of openings) {
+    const card = resolveLittleBayStop({ kind: 'place', id: place.id })!;
+    const original = currentOpenings.find(opening => `opening-${opening.id}` === place.id)!;
+    assert.ok(original);
+    assert.equal(card.href, `/openings/${encodeURIComponent(original.id)}`);
+    assert.equal(card.sourceUrl, original.officialUrl);
+    assert.equal(card.free, false);
+    assert.match(card.price, /费用待确认/);
+    if (place.imageKey && GUIDE_IMAGES[place.imageKey]) {
+      imageCount++;
+      assert.deepEqual(card.imageMeta, GUIDE_IMAGES[place.imageKey]);
+      assert.equal(card.image, GUIDE_IMAGES[place.imageKey].src);
+    }
+  }
+  assert.ok(imageCount > 0);
+  const restaurant = PLANNER_PLACES.find(place => place.id === 'restaurant-gotts-ferry-building')!;
+  const card = resolveLittleBayStop({ kind: 'place', id: restaurant.id })!;
+  assert.equal(card.href, restaurant.officialUrl);
+  assert.equal(card.price, '餐饮费用待确认');
+  assert.equal(card.free, false);
+});
+
+test('a confirmed opening date limits dated discovery and plans but does not prevent resolving a saved place', () => {
+  const store = PLANNER_PLACES.find(place => place.id.startsWith('opening-') && place.openedOn)!;
+  assert.ok(store?.openedOn);
+  const stop = { kind: 'place' as const, id: store.id };
+  const before = addCalendarDays(store.openedOn, -1);
+  const card = resolveLittleBayStop(stop)!;
+  assert.ok(card);
+  assert.deepEqual(cleanLittleBayPlanStops([stop], before), []);
+  assert.deepEqual(pickLittleBayOuting(card, before), []);
+  assert.equal(getLittleBayStops({ date: before, region: store.region }).some(item => item.stop.id === store.id), false);
+  assert.deepEqual(cleanLittleBayPlanStops([stop], store.openedOn), [stop]);
 });
 
 test('saved selections remain resolvable independently of visible region and cost filters', () => {

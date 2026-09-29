@@ -119,6 +119,33 @@ test('invalid stop minutes block calendar export and remain editable so the user
   }
 });
 
+test('changing the party and transport keeps saved constraints and later recommendations in sync', async () => {
+  seed();
+  let view = await openPlanner();
+  fireEvent.change(input(view, '同行总人数'), { target: { value: '6' } });
+  fireEvent.change(editor(view).getByLabelText('这份计划的交通方式'), { target: { value: 'walk' } });
+  fireEvent.change(input(view, '整趟总预算 $'), { target: { value: '240' } });
+  assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'walk');
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
+  assert.equal(stored.details?.partySize, 6);
+  assert.equal(stored.details?.travelMode, 'walk');
+  assert.deepEqual(stored.details?.constraints, { ...constraints, partySize: 6, travelMode: 'walk' });
+  assert.equal(stored.details?.constraints?.budget, 100, 'trip spending must not replace the admission filter');
+  view.unmount(); view = await openPlanner();
+  assert.equal(input(view, '同行总人数').value, '6');
+  assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'walk');
+  assert.equal((editor(view).getByLabelText('这份计划的交通方式') as HTMLSelectElement).value, 'walk');
+  let requested: PlanFilters | undefined;
+  api.request = async (endpoint, options) => {
+    assert.equal(endpoint, '/planner/recommend');
+    requested = JSON.parse(String(options?.body)).filters;
+    return response(requested!);
+  };
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '帮我挑选方案' })); });
+  assert.deepEqual(requested, { ...constraints, partySize: 6, travelMode: 'walk' });
+});
+
 test('removing a stop also removes its invalid timing so the remaining plan can be saved', async () => {
   const plan = savedPlan(); delete plan.details!.constraints; seed(plan);
   const view = await openPlanner();
