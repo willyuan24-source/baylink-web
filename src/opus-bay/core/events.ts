@@ -123,21 +123,28 @@ export type GameEvent =
   /** lane R: the player entered / left a live event's venue zone; an event's real window opened / closed (Bay time) */
   | { type: 'realsf'; what: 'event-enter' | 'event-leave' | 'window-open' | 'window-close'; id: string }
   /** lane F's pointer: the player tapped their own character or BAYBAY (`double` = a double tap) → lane A's emote wheel / pet */
-  | { type: 'self-tap'; who: 'player' | 'baybay'; double: boolean };
+  | { type: 'self-tap'; who: 'player' | 'baybay'; double: boolean }
+  // --- Wave 6 day 0 (frozen, docs/opus-bay/sf-w6-lead.md §4) ---
+  /**
+   * Halloween (the `halloween/` feature): `pumpkin` = a hidden jack-o'-lantern found (id = its spot id), `treat` = a door
+   * answered a trick-or-treat knock (id = the door id), `costume` = a costume put on / taken off (id = the shop item id,
+   * '' = none), `phase` = the season's phase changed (id = HalloweenPhase: off / season / night / muertos).
+   */
+  | { type: 'halloween'; what: 'pumpkin' | 'treat' | 'costume' | 'phase'; id: string };
 
 /** Wave 5 (frozen): what a `find` event can be. The notebook's pages and the ledger's bitsets are keyed by these. */
 export const FIND_KINDS = ['egg', 'view', 'sound', 'pebble', 'cache', 'souvenir', 'nature'] as const;
 export type FindKind = (typeof FIND_KINDS)[number];
 
 /** Wave 5 (frozen): the prefixes a `reward` source may start with (the ledger's pay-once key space). */
-export const REWARD_PREFIXES = ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican'] as const;
+export const REWARD_PREFIXES = ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican', 'halloween'] as const;
 export type RewardPrefix = (typeof REWARD_PREFIXES)[number];
 /**
  * Wave 5 (frozen): the reward source grammar, `<prefix>:<id>` with a lower-case id of 1–80 characters from `a-z 0-9 : @ -`.
  * Examples: `arrive:coit-tower`, `postcard:sf-painted-ladies`, `trail:filbert-steps:3`, `medal:slides:2`,
  * `event:hardly-strictly-bluegrass-2026`, `daily:2026-10-03:1`, `pelican:unlock`. Anything else is not paid.
  */
-export const REWARD_SOURCE = /^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican):[a-z0-9:@-]{1,80}$/;
+export const REWARD_SOURCE = /^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican|halloween):[a-z0-9:@-]{1,80}$/;
 /** The prefix of a well-formed reward source, or null (ledger, tests). */
 export function rewardPrefix(source: string): RewardPrefix | null {
   return REWARD_SOURCE.test(source) ? (source.slice(0, source.indexOf(':')) as RewardPrefix) : null;

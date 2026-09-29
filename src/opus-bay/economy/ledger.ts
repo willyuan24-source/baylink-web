@@ -37,11 +37,14 @@ export const REWARD_CAPS: Readonly<Record<RewardPrefix, number>> = {
   // ring: the air-ring coins ask 1 each; lane A's first-flight rings (ring:first-flight:<n>) ask 3 per big ring
   arrive: 10, postcard: 10, favour: 25, goal: 20, egg: 10, view: 5, sound: 5, pebble: 3, cache: 12, trail: 1, ring: 3,
   event: 15, daily: 20, page: 30, medal: 15, pelican: 20,
+  // wave 6 day 0: a found jack-o'-lantern, a door's treat, the hunt's end (ids: halloween/rewards.ts)
+  halloween: 25,
 };
 
 /** Prefixes whose paid bits live in their own kind, indexed by the owning lane's registered (append-only) id list. */
 export const PREFIX_KIND: Readonly<Partial<Record<RewardPrefix, PlayBitKind>>> = {
   egg: 'egg', view: 'view', sound: 'sound', pebble: 'pebble', cache: 'cache', ring: 'ring', page: 'page', event: 'souvenir',
+  halloween: 'halloween',
 };
 
 const fixedIndex = new Map(FIXED_SOURCES.map((s, i) => [s, i]));

@@ -17,8 +17,8 @@
 export interface W5Feature { init(): () => void }
 export type W5Loader = () => Promise<W5Feature>;
 
-/** The frozen order: the economy first. */
-export const W5_FEATURES = ['economy', 'play', 'eggs', 'realsf'] as const;
+/** The frozen order: the economy first. Wave 6 day 0 appended 'halloween' (halloween/index.ts: lanes H and G). */
+export const W5_FEATURES = ['economy', 'play', 'eggs', 'realsf', 'halloween'] as const;
 export type W5FeatureId = (typeof W5_FEATURES)[number];
 
 export const W5_LOADERS: Readonly<Record<W5FeatureId, W5Loader>> = {
@@ -26,6 +26,7 @@ export const W5_LOADERS: Readonly<Record<W5FeatureId, W5Loader>> = {
   play: () => import('../play/index'),
   eggs: () => import('../eggs/index'),
   realsf: () => import('../realsf/index'),
+  halloween: () => import('../halloween/index'),
 };
 
 /**

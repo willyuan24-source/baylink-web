@@ -361,8 +361,9 @@ test('landmark helpers (D2, world/sf/landmarks/context.ts): glide tall structure
 test('wave 5: the new GameEvent members travel the bus; FIND_KINDS and the reward source grammar are exact', async () => {
   const events = await import('../src/opus-bay/core/events');
   assert.deepEqual([...events.FIND_KINDS], ['egg', 'view', 'sound', 'pebble', 'cache', 'souvenir', 'nature']);
-  assert.deepEqual([...events.REWARD_PREFIXES], ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican']);
-  assert.equal(events.REWARD_SOURCE.source, '^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican):[a-z0-9:@-]{1,80}$', 'the plan §4.2 grammar, character for character');
+  // wave 6 day 0 appended 'halloween' (sf-w6-lead.md §4)
+  assert.deepEqual([...events.REWARD_PREFIXES], ['arrive', 'postcard', 'favour', 'goal', 'egg', 'view', 'sound', 'pebble', 'cache', 'trail', 'ring', 'event', 'daily', 'page', 'medal', 'pelican', 'halloween']);
+  assert.equal(events.REWARD_SOURCE.source, '^(arrive|postcard|favour|goal|egg|view|sound|pebble|cache|trail|ring|event|daily|page|medal|pelican|halloween):[a-z0-9:@-]{1,80}$', 'the plan §4.2 grammar (+ wave 6 halloween), character for character');
   assert.equal(events.REWARD_SOURCE.flags, '');
   assert.equal(events.REWARD_SOURCE.source.slice(2, events.REWARD_SOURCE.source.indexOf(')')), events.REWARD_PREFIXES.join('|'), 'the prefix list is the grammar\'s');
   for (const ok of ['arrive:coit-tower', 'postcard:sf-painted-ladies', 'egg:telegraph-hill-parrots', 'trail:filbert-steps:3', 'daily:2026-10-03:1', 'medal:slides:2', 'arrive:coit-tower@summit', `cache:${'a'.repeat(80)}`, 'pelican:unlock']) {
@@ -450,7 +451,7 @@ test('wave 5: game/bayNow.ts — Bay wall-clock parts, the ?date= parser, DST, n
 });
 test('wave 5: data/playSave.ts — the frozen format, bitsets, decodePlay clamps untrusted input (fuzz)', async () => {
   const ps = await import('../src/opus-bay/data/playSave');
-  assert.deepEqual([...ps.PLAY_BIT_KINDS], ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page']);
+  assert.deepEqual([...ps.PLAY_BIT_KINDS], ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page', 'halloween'], 'wave 6 day 0 appended halloween');
   assert.deepEqual([...ps.WEAR_SLOTS], ['baybay-scarf', 'baybay-hat', 'player-hat', 'player-pack', 'bike', 'car', 'pelican', 'frame']);
   assert.deepEqual([ps.MAX_COINS, ps.MAX_BITSET_CHARS, ps.MAX_PLAY_BITS, ps.MAX_BESTS, ps.MAX_ONE_OFFS, ps.MAX_ONE_OFF_CHARS], [999999, 256, 1536, 32, 128, 40]);
   // bitsets: LSB first, standard base64 alphabet, no padding, trailing zero bytes trimmed
@@ -793,9 +794,9 @@ test('wave 5: audio/hooks.ts — sounds and loops reach the bound engine only wh
   assert.equal(ah.audioHooksStats().loops, 0);
 });
 
-test('wave 5: game/w5Features.ts — the frozen four, the economy initialised first, failures contained, teardown in reverse', async () => {
+test('wave 5: game/w5Features.ts — the frozen four (+ wave 6 halloween), the economy initialised first, failures contained, teardown in reverse', async () => {
   const w5 = await import('../src/opus-bay/game/w5Features');
-  assert.deepEqual([...w5.W5_FEATURES], ['economy', 'play', 'eggs', 'realsf']);
+  assert.deepEqual([...w5.W5_FEATURES], ['economy', 'play', 'eggs', 'realsf', 'halloween']);
   assert.deepEqual(Object.keys(w5.W5_LOADERS), [...w5.W5_FEATURES]);
   const log: string[] = [];
   const later = <T,>(ms: number, v: T) => new Promise<T>(r => setTimeout(() => r(v), ms));
@@ -805,18 +806,19 @@ test('wave 5: game/w5Features.ts — the frozen four, the economy initialised fi
     play: () => later(1, feature('play')),
     eggs: () => Promise.reject(new Error('chunk failed')),
     realsf: () => later(5, { init: () => { throw new Error('init failed'); } }),
+    halloween: () => later(2, feature('halloween')),
   });
   await ready;
-  assert.deepEqual(log, ['init:economy', 'init:play'], 'the economy first although it loaded last; a failed load or init stops nothing else');
+  assert.deepEqual(log, ['init:economy', 'init:play', 'init:halloween'], 'the economy first although it loaded last; a failed load or init stops nothing else');
   off();
-  assert.deepEqual(log.slice(2), ['off:play', 'off:economy']);
+  assert.deepEqual(log.slice(3), ['off:halloween', 'off:play', 'off:economy']);
   off();
-  assert.equal(log.length, 4, 'teardown once');
+  assert.equal(log.length, 6, 'teardown once');
   // torn down before the chunks arrive: nothing starts
-  const r2 = w5.initW5Features({ economy: () => later(5, feature('e2')), play: () => later(5, feature('p2')), eggs: () => later(5, feature('g2')), realsf: () => later(5, feature('r2')) });
+  const r2 = w5.initW5Features({ economy: () => later(5, feature('e2')), play: () => later(5, feature('p2')), eggs: () => later(5, feature('g2')), realsf: () => later(5, feature('r2')), halloween: () => later(5, feature('h2')) });
   r2.off();
   await r2.ready;
-  assert.equal(log.length, 4);
+  assert.equal(log.length, 6);
   // the real day-0 stubs: init() returns its undo, harmless
   for (const id of w5.W5_FEATURES) {
     const m = await w5.W5_LOADERS[id]();
@@ -848,9 +850,9 @@ test('wave 5: the four feature folders stay out of the GameRoot graph (dynamic i
     }
   }
   assert.ok(seen.has('game/cityContent.ts') && seen.has('game/w5Features.ts') && seen.has('ui/slots.ts'), 'the day-0 glue is in the main graph');
-  assert.deepEqual([...seen].filter(m => /^(economy|play|eggs|realsf)\//.test(m)), [], 'the feature folders are lazy chunks');
+  assert.deepEqual([...seen].filter(m => /^(economy|play|eggs|realsf|halloween)\//.test(m)), [], 'the feature folders are lazy chunks');
   const glue = fs.readFileSync(path.join(root, 'game/w5Features.ts'), 'utf8');
-  for (const dir of ['economy', 'play', 'eggs', 'realsf']) {
+  for (const dir of ['economy', 'play', 'eggs', 'realsf', 'halloween']) {
     assert.ok(fs.existsSync(path.join(root, dir, 'index.ts')), `${dir}/index.ts exists`);
     assert.match(glue, new RegExp(`import\\('\\.\\./${dir}/index'\\)`), dir);
   }

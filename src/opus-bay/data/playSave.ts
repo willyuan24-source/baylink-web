@@ -15,7 +15,8 @@
  * DEPENDENCY-FREE (no game modules): data/save.ts imports it and the title chunk imports save.ts.
  */
 
-export const PLAY_BIT_KINDS = ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page'] as const;
+/** Wave 6 day 0 appended 'halloween' (the `halloween:` reward bits; ids in halloween/rewards.ts, append-only). */
+export const PLAY_BIT_KINDS = ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page', 'halloween'] as const;
 export type PlayBitKind = (typeof PLAY_BIT_KINDS)[number];
 export const WEAR_SLOTS = ['baybay-scarf', 'baybay-hat', 'player-hat', 'player-pack', 'bike', 'car', 'pelican', 'frame'] as const;
 export type WearSlot = (typeof WEAR_SLOTS)[number];
