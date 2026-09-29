@@ -99,11 +99,21 @@ export function createStore<T extends object>(initial: T, normalize?: (state: T,
   };
 }
 
-/** Default world until the city passes its gates (RESUME.md); ?world=city|district overrides. */
-export const DEFAULT_WORLD_MODE: WorldMode = 'district';
-export function readWorldMode(search: string = typeof location !== 'undefined' ? location.search : ''): WorldMode {
-  const w = new URLSearchParams(search).get('world');
-  return w === 'city' || w === 'district' ? w : DEFAULT_WORLD_MODE;
+/**
+ * The page's default world: the city since W5-Z (it passed its gates, docs/opus-bay/sf-w5-final-verify.md);
+ * ?world=city|district overrides (?world=district opens the Embarcadero district exactly as before).
+ */
+export const DEFAULT_WORLD_MODE: WorldMode = 'city';
+/**
+ * Outside a page (node: tests and QA scripts, no `location`) the world stays the district unless asked: the node
+ * contract data/contentMode.ts documents (the plain content exports resolve to the district's v1 tables there).
+ */
+export const NODE_WORLD_MODE: WorldMode = 'district';
+export function readWorldMode(search?: string): WorldMode {
+  const page = typeof location !== 'undefined';
+  const w = new URLSearchParams(search ?? (page ? location.search : '')).get('world');
+  if (w === 'city' || w === 'district') return w;
+  return search !== undefined || page ? DEFAULT_WORLD_MODE : NODE_WORLD_MODE;
 }
 
 const FOOT: MoveState = { mode: 'foot' };

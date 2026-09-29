@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { setPageMetadata } from '../lib/seo';
-import { useGame, type GameState } from './core/store';
+import { game, useGame, type GameState } from './core/store';
 import { initPersistence } from './data/wishlist';
 import { readQa } from './game/qa';
 import { TitleScreen } from './ui/TitleScreen';
@@ -36,7 +36,12 @@ export default function OpusBayPage() {
 
   useLayoutEffect(() => initPersistenceOnce(), []);
   useEffect(() => {
-    setPageMetadata({
+    // W5-Z: the city is the default world; ?world=district keeps the district's words
+    setPageMetadata(game.get().worldMode === 'city' ? {
+      title: '湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK',
+      description: '跟 BAYBAY 逛整座旧金山：金门大桥、叮当车、双峰，真实景点和这周活动，一个可以边玩边查的迷你旧金山。',
+      path: '/opus-bay',
+    } : {
       title: '湾区小旅 · 跟 BAYBAY 逛 Embarcadero｜BAYLINK',
       description: '刚来湾区？让 BAYBAY 带你从渡轮大厦走到 PIER 39：真实景点、这周活动和出游计划，一个可以边玩边查的迷你湾区。',
       path: '/opus-bay',

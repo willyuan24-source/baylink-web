@@ -856,3 +856,28 @@ test('wave 5: the four feature folders stay out of the GameRoot graph (dynamic i
   }
   assert.match(fs.readFileSync(path.join(root, 'game/cityContent.ts'), 'utf8'), /const w5 = initW5Features\(\);/, 'started once from initCityContent (it returns early in district mode)');
 });
+
+// --- W5-Z (the lead's final verify, docs/opus-bay/sf-w5-final-verify.md): the default world ---
+
+test('W5-Z: a page without ?world opens the city; ?world=district the district as before; node keeps the district', async () => {
+  const { DEFAULT_WORLD_MODE, NODE_WORLD_MODE, readWorldMode } = await import('../src/opus-bay/core/store');
+  assert.equal(DEFAULT_WORLD_MODE, 'city');
+  assert.equal(readWorldMode(''), 'city');
+  assert.equal(readWorldMode('?start=free&quality=mid'), 'city');
+  assert.equal(readWorldMode('?world=district'), 'district');
+  assert.equal(readWorldMode('?world=district&start=free'), 'district');
+  assert.equal(readWorldMode('?world=city'), 'city');
+  assert.equal(readWorldMode('?world=moon'), 'city', 'an unknown world is the default');
+  // node (tests, QA scripts: no location) stays in the district unless asked (data/contentMode.ts' contract)
+  assert.equal(typeof location, 'undefined');
+  assert.equal(NODE_WORLD_MODE, 'district');
+  assert.equal(readWorldMode(), 'district');
+  assert.equal(initialGameState().worldMode, 'district');
+  const g = globalThis as unknown as { location?: { search: string } };
+  try {
+    g.location = { search: '' };
+    assert.equal(readWorldMode(), 'city', 'a page with no ?world');
+    g.location = { search: '?world=district' };
+    assert.equal(readWorldMode(), 'district');
+  } finally { delete g.location; }
+});
