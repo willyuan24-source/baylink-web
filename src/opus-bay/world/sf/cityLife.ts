@@ -10,15 +10,16 @@ import { canStand, cityChunkEpoch, heightAt, surfaceAt } from '../../core/terrai
 import { placesNear } from '../../data/sf/places';
 import { RESIDENTS } from '../../data/sf/residents';
 import { travelActive } from '../../game/fastTravel';
+import { activeLineFleet } from '../../data/transit';
 import { U } from '../materials';
 import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
 import { WAVE_REACH, addClearLane, crowdPins, crowdWave, takeCrowdWaves, walkerLanes } from './crowdSpots';
 import { GGB } from './landmarks/golden-gate-bridge';
 import { landmarkToWorld, sfLandmark } from './landmarks/index';
 import { landmarkPlazaSpots } from './landmarks/context';
-import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, onTransitStreet, registerRoadVehicles } from './streetNet';
+import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, nearTransitLine, onTransitStreet, registerRoadVehicles } from './streetNet';
 import { setVehicle, vehiclePool } from './recordPool';
-import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
+import { type KeepClear, TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
 
 /**
  * City life host (lane F, wave 3 part b): the crowd (F11) and the toy traffic (F12) around the player, created by the
@@ -39,9 +40,13 @@ import { TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
  * - (W5-T5, plan MF2) keeps the 3 u clear lanes clear (crowdSpots `walkerLanes`): every crowd group's aisle and the
  *   Golden Gate Bridge deck's centre line (registered here, DECK_LANES), so the player can hold forward from one end
  *   of the deck to the other without weaving through people.
+ * - (W5-bus) hands the traffic what it keeps clear of: the loop's stop zones (world/sf/lineFleet.ts stopZones) and the
+ *   crossing boxes (streetNet nearTransitLine); the player and BAYBAY count as people on the roadway only on foot —
+ *   not riding the bike / toy car (BAYBAY in its basket or seat), a bus, a cable car, the pelican.
  */
 
 const PLAYER_BIKE = { halfL: 0.85, halfW: 0.35 };
+const NO_ZONES: readonly KeepClear[] = [];
 const PLAYER_CAR = { halfL: 1.05, halfW: 0.6 };
 /** sights people stand about at (places.json kinds) and how far around them (u) */
 const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint: 6, attraction: 7, museum: 6, historic: 5 };
@@ -148,11 +153,20 @@ export class CityLife {
         // (W5-T2) riding a bus / tram / cable car, the player (and BAYBAY beside them) is on board, not on the roadway:
         // the toy car ahead of the bus waited at its stop line for the rider on the deck (Lincoln Blvd, 38 s)
         const aboard = runtime.move.mode === 'transit' || game.get().move.mode === 'transit';
-        if (!runtime.vehicle.occupied && !aboard && surfaceAt(p.x, p.z) === 'road') put(p.x, p.z, 0.45);
-        if (!(aboard && Math.hypot(g.x - p.x, g.z - p.z) < 6) && surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
+        // (W5-bus) gliding or flying over a street is not standing on it
+        const flying = runtime.move.mode === 'glide' || runtime.move.mode === 'travel';
+        if (!runtime.vehicle.occupied && !aboard && !flying && surfaceAt(p.x, p.z) === 'road') put(p.x, p.z, 0.45);
+        // (W5-bus) nor BAYBAY riding in the player's bike basket / toy car seat (or on the pelican): the toy car at its
+        // stop line waited for her in the car right behind it, and that car waited for the toy car (Union Square, 35 s
+        // → "前面过不去了"). She is a pedestrian only on foot by the player (walking, sitting on a bench) or left behind.
+        const carried = runtime.vehicle.occupied ? Math.hypot(g.x - runtime.vehicle.x, g.z - runtime.vehicle.z) < 3 : flying;
+        if (!carried && !(aboard && Math.hypot(g.x - p.x, g.z - p.z) < 6) && surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
         if (this.crowd) for (const w of this.crowd.sim.walkers) if (w.on && (w.onRoad || w.hopT >= 0)) put(w.x, w.z, CROWD.r);
       },
       transitStreet: (x, z, dx, dz) => onTransitStreet(x, z, dx, dz),
+      // (W5-bus) crossing boxes (a junction on a transit street) and the loop's stop zones (world/sf/lineFleet.ts)
+      transitNear: (x, z, r) => nearTransitLine(x, z, r),
+      keepClear: () => activeLineFleet()?.stopZones() ?? NO_ZONES,
       night: () => U.uNight.value,
     };
     this.crowd = new CrowdLayer(net, crowdEnv, CROWD.count.high);

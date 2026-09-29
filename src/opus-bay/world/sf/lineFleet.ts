@@ -4,7 +4,7 @@ import { emitAt } from '../../audio/cityHooks';
 import { emit } from '../../core/events';
 import { W4_LINES, stationAttractions } from '../../data/sf/stationNames';
 import { BUS, type Bus, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../busSystem';
-import { type BodyDims, type LineTrack, bodySpans, proximitySpans } from '../lineTrack';
+import { type BodyDims, type LineTrack, bodySpans, proximitySpans, trackPoint } from '../lineTrack';
 import { LRV, LightRailSystem, type RailEvent, TRAIN_LENGTH, type Train, railTrack } from '../lightRail';
 import { patchToyShader } from '../materials';
 import type { CarPose } from '../transitLine';
@@ -14,6 +14,7 @@ import { LRV_PLATFORM, lrvCarFarGeometry, lrvCarGeometry } from './lrv';
 import { type PortalPlacement, portalBlockers, portalGeometry, portalPlacements } from './portals';
 import { type StationProp, busPoleGeometry, kioskGeometry, railStopGeometry, stationGeometryKey, stationProps } from './stations';
 import type { RoadVehicle } from './streetNet';
+import type { KeepClear } from './traffic';
 import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
 import { TOUR_BUS_PLATFORM, tourBusFarGeometry, tourBusGeometry } from './tourBus';
 
@@ -285,6 +286,23 @@ export class LineFleet {
       if (along - v.halfL < best) { best = along - v.halfL; if (who) who.kind = v.kind; }
     }
     return best;
+  }
+
+  private zones: KeepClear[] | null = null;
+
+  /**
+   * (W5-bus) The loop's stop zones for the toy traffic (world/sf/traffic.ts keepClear): where a bus stands at each stop —
+   * its body from 1 u behind its tail to 1 u past its nose along the track, its half width + 0.15 u. A toy car never
+   * stops inside one (it held the bus short of its stop). Built once.
+   */
+  stopZones(): readonly KeepClear[] {
+    if (this.zones) return this.zones;
+    const tr = this.bus.track, half = BUS.length / 2 + 1;
+    this.zones = tr.stops.map(st => {
+      const a = trackPoint(tr, st.at - half), b = trackPoint(tr, st.at + half);
+      return { ax: a.x, az: a.z, bx: b.x, bz: b.z, hw: BUS.width / 2 + 0.15 };
+    });
+    return this.zones;
   }
 
   /** Portal events of the rider's train (`portal-in`: start the subway overlay, `portal-out`: cut to the LRV emerging). */

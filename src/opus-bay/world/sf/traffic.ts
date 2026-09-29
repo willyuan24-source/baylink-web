@@ -26,6 +26,16 @@ import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
  *   its own lane (that one waits for the car), never turns into a lane a transit vehicle's body stands in, drives at the
  *   bus's pace with one close behind it (TRAFFIC.hurry), and a car that still holds a transit vehicle up behind it for
  *   TRAFFIC.giveWay s — or finds itself inside one's body — shrinks away (a toy pop, recycled) — even in view.
+ * - **Right of way** (W5-bus, the owner's "the tour bus / my car just stands behind a toy car"): the transit vehicles and
+ *   the player's own bike or car (road vehicles of any kind but 'traffic') always go first. A car never waits for one of
+ *   them that is waiting for it (queued behind it, or the player's vehicle stopped with the car in its path — head-on
+ *   too); a car that holds one up for TRAFFIC.giveWay (2) s clears the lane: it hops to its kerb and shrinks away, and
+ *   is recycled out of view. BAYBAY riding in the player's vehicle is not a pedestrian (cityLife). A car keeps clear of
+ *   the loop's stop zones (`TrafficEnv.keepClear`: where a bus stands at its stop): it never stops inside one — it holds
+ *   short when it could not drive through, and one caught standing in a zone with a bus coming gives way at once; a
+ *   junction on a transit street is entered only when no transit vehicle reaches it while the car could still be in it
+ *   (CROSS_LOOK), and a car that stands in the path of transit coming at it (trains, cable cars and the F-line never
+ *   stop for toy cars) gives way at once.
  * - **Around the player only.** Cars live within 220 u of the focus (TRAFFIC.radius); a car left behind, lost with its
  *   ground, or stuck for 14 s out of view (40 s in view) is recycled to a spot out of view or far away, and fades in.
  * - **Drawn** as two InstancedMeshes on TOY_INST_TINT (the paint is the instance colour): the near car (≈ 300 triangles,
@@ -59,10 +69,18 @@ export const TRAFFIC = {
   stuck: 14,
   /** night keeps this share */
   night: 0.7,
-  /** (W5-T2) a stopped car holding a transit vehicle up right behind it for this long (s) shrinks away */
-  giveWay: 5,
-  /** (W5-T2) with a transit vehicle close behind (≤ 12 u), a car drives at up to this speed (the bus's pace, u/s) */
+  /**
+   * (W5-T2; W5-bus: 5 → 2 s, and the player's vehicle too) a stopped car holding a transit vehicle or the player's bike /
+   * car up for this long (s) clears the lane (hops to the kerb, shrinks away)
+   */
+  giveWay: 2,
+  /**
+   * (W5-T2) with a transit vehicle — (W5-bus) or the player's vehicle — behind it within its following distance (the bus
+   * looks 30 u ahead: lineFleet roadAhead), a car drives at up to this speed (the bus's pace, u/s)
+   */
   hurry: 11.5,
+  /** (W5-bus) the hurry reach behind a car (u, centre to centre, beyond the follower's half length) */
+  hurryReach: 30,
 } as const;
 
 const TAU = Math.PI * 2;
@@ -73,6 +91,29 @@ const SHARP = 0.45;
 const JUMP = 90;
 /** a transit vehicle in the junction box now or at these times ahead (s) keeps a car at its stop line */
 const LOOK_AHEAD = [0, 0.7, 1.4, 2] as const;
+/**
+ * (W5-bus) …and at a junction on a transit street (a crossing box: a car standing in it would be run through), up to the
+ * time a car takes to cross (a 10 u box at the 3.4 u/s turn speed)
+ */
+const CROSS_LOOK = [0, 0.7, 1.4, 2, 2.8, 3.6] as const;
+/** (W5-bus) a junction whose node lies this near a transit line's centre line (u) is a crossing box */
+const CROSS_NEAR = 4;
+/** (W5-bus) the player's vehicle is held by a car in its path this far ahead of its nose (u; moveSystem giveWay: ≈ 0.5) */
+const PLAYER_REACH = 3;
+/** (W5-bus) transit coming at a car standing in its path within this (u) makes the car give way at once */
+const ONCOMING_REACH = 22;
+/** (W5-bus) a bus coming within this (u) at a car standing in one of its stop zones makes the car give way at once */
+const ZONE_REACH = 40;
+/** (W5-bus) the hop to the kerb while giving way: sideways (u) and up (u); the shrink takes 1 / LEAVE_RATE s */
+const HOP_SIDE = 0.9;
+const HOP_UP = 0.35;
+const LEAVE_RATE = 2;
+
+/**
+ * (W5-bus) A keep-clear zone on the roadway: a stretch where a transit vehicle stands (the loop bus at a stop), as the
+ * segment a → b of its centre line and the half width hw. Toy cars never stop inside one.
+ */
+export interface KeepClear { ax: number; az: number; bx: number; bz: number; hw: number }
 /** junction nodes closer than this (u) along an edge are one junction box */
 const BOX_JOIN = 6;
 
@@ -106,6 +147,9 @@ export interface Car {
   leaving: boolean;
   /** (W5-T2) a transit vehicle is close behind it in its lane (last frame): it drives at the bus's pace */
   hurry: boolean;
+  /** (W5-bus) why it gives way ('' = it does not): 'held' / 'inside' / 'oncoming' / 'zone'; and the hop's progress 0 … 1 */
+  gave: string;
+  hop: number;
 }
 
 export interface TrafficEnv {
@@ -117,6 +161,10 @@ export interface TrafficEnv {
   people(out: { x: number; z: number; r: number }[]): void;
   /** does the street under this edge carry a transit line (cars keep off it) */
   transitStreet?(x: number, z: number, dx: number, dz: number): boolean;
+  /** (W5-bus) is a transit line's centre line within r of (x, z) (any direction): a junction there is a crossing box */
+  transitNear?(x: number, z: number, r: number): boolean;
+  /** (W5-bus) where transit vehicles stand on the roadway (the loop's stop zones): cars never stop inside */
+  keepClear?(): readonly KeepClear[];
   night?(): number;
 }
 
@@ -126,7 +174,7 @@ export interface CarPass { x: number; z: number; heading: number; v: number; d: 
 const newCar = (id: number): Car => ({
   id, on: false, mode: 'lane', e: -1, s: 0, v: 0, vmax: 7, color: 0, next: -1, node: -1,
   p0x: 0, p0z: 0, cx: 0, cz: 0, p1x: 0, p1z: 0, tl: 0, tt: 0, x: 0, y: 0, z: 0, heading: 0, pitch: 0, still: 0, grow: 1, lastD: Infinity, closing: false,
-  holdUp: 0, leaving: false, hurry: false,
+  holdUp: 0, leaving: false, hurry: false, gave: '', hop: 0,
 });
 
 const _p = { x: 0, z: 0 };
@@ -140,10 +188,19 @@ export class TrafficSim {
   radius: number = TRAFFIC.radius;
   /** cars that passed the listener since the host last drained them */
   readonly passes: CarPass[] = [];
-  readonly stats = { spawned: 0, recycled: 0, stuck: 0, turns: 0, waits: 0, overlaps: 0, gaveWay: 0 };
+  /**
+   * gaveWay: cars that cleared the lane (W5-bus: by why — held a priority vehicle up, inside a transit body, standing in
+   * the path of transit coming at it, caught in a stop zone); keptClear: frames a car held short of a stop zone
+   */
+  readonly stats = { spawned: 0, recycled: 0, stuck: 0, turns: 0, waits: 0, overlaps: 0, gaveWay: 0, gaveHeld: 0, gaveInside: 0, gaveOncoming: 0, gaveZone: 0, keptClear: 0 };
   private rng: () => number;
   private held = new Map<number, number>();
   private boxes = new Map<number, number>();
+  /** (W5-bus) junction box key → it is a crossing box (a transit line runs through it) */
+  private crossing = new Map<number, boolean>();
+  /** (W5-bus) edge → the stretches [z0, z1, …] (car centre, along the edge) inside a keep-clear zone; the zone list they were made from */
+  private zoneCache = new Map<number, Float32Array | null>();
+  private zoneList: readonly KeepClear[] | null = null;
   private fx = NaN;
   private fz = NaN;
   private filling = true;
@@ -277,6 +334,8 @@ export class TrafficSim {
       const seen = this.env.visible(_p.x, _p.z);
       if (!anywhere && seen && dd < TRAFFIC.spawnInView) continue;
       if (this.cars.some(o => o.on && Math.hypot(o.x - _p.x, o.z - _p.z) < 7)) continue;
+      // (W5-bus) never in a stop zone
+      if (this.inZone(e, along)) continue;
       c.on = true; c.mode = 'lane'; c.e = e; c.s = along; c.next = -1; c.node = -1;
       c.vmax = TRAFFIC.speed[0] + r() * (TRAFFIC.speed[1] - TRAFFIC.speed[0]);
       c.v = c.vmax * 0.6;
@@ -284,7 +343,7 @@ export class TrafficSim {
       c.x = _p.x; c.z = _p.z; c.heading = Math.atan2(s.dx, s.dz);
       c.y = net.probe.height(c.x, c.z); c.pitch = 0;
       c.still = 0; c.grow = seen && !anywhere ? 0 : 1; c.lastD = Infinity; c.closing = false;
-      c.holdUp = 0; c.leaving = false; c.hurry = false;
+      c.holdUp = 0; c.leaving = false; c.hurry = false; c.gave = ''; c.hop = 0;
       this.stats.spawned++;
       return true;
     }
@@ -338,22 +397,28 @@ export class TrafficSim {
       if (h !== undefined && h !== c.id) return false;
       const nx = net.ix.x(node), nz = net.ix.z(node), R = net.setback(node) + 1.6;
       for (const p of _people) if (Math.hypot(p.x - nx, p.z - nz) < R + p.r) return false;
+      // (W5-bus) a junction on a transit street: no transit vehicle may reach it while the car could still be crossing
+      const look = this.crossingBox(node, R) ? CROSS_LOOK : LOOK_AHEAD;
       for (const q of vehicles) {
-        // (W5-T2) one queued behind this car in its lane waits for it: waiting for it in turn locked both for good
-        if (queuedBehind(c, q)) continue;
+        // (W5-T2) one queued behind this car in its lane waits for it: waiting for it in turn locked both for good;
+        // (W5-bus) nor the player's vehicle standing with this car in its path
+        if (waitsFor(c, q)) continue;
         const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
-        // in the box now, or within 2 s
-        for (let i = 0; i < LOOK_AHEAD.length; i++) {
-          const t = LOOK_AHEAD[i], qx = q.x + fx * q.v * t, qz = q.z + fz * q.v * t;
+        // in the box now, or within 2 s (a crossing box: within the crossing time)
+        for (let i = 0; i < look.length; i++) {
+          const t = look[i], qx = q.x + fx * q.v * t, qz = q.z + fz * q.v * t;
           if (Math.hypot(qx - nx, qz - nz) < R + q.halfL) return false;
         }
       }
     }
-    // room on the exit lane
+    // room on the exit lane — (W5-bus) through a stop zone right past the junction: room beyond it (a car never waits
+    // inside one)
     const [a0] = this.span(next);
+    const zn = this.zonesOn(next);
+    const through = zn && zn[0] < a0 + TRAFFIC.length + 2 ? zn[1] + TRAFFIC.gap : a0 + TRAFFIC.gap;
     for (const o of this.cars) {
-      if (!o.on || o === c) continue;
-      if (o.e === next.e && o.mode === 'lane' && o.s < a0 + TRAFFIC.gap) return false;
+      if (!o.on || o === c || o.leaving) continue;
+      if (o.e === next.e && o.mode === 'lane' && (o.s < a0 + TRAFFIC.gap || (o.s < through && o.v < 1.5))) return false;
       if (o.mode === 'turn' && o.next === next.e) return false;
     }
     // (W5-T2) nor a transit vehicle's body over the exit lane's first few units (a car turned into a bus standing at its
@@ -370,13 +435,14 @@ export class TrafficSim {
     if (!s) return;
     const fx = Math.sin(c.heading), fz = Math.cos(c.heading);
     // --- what is ahead in the corridor
-    let gapCar = Infinity, gapObs = Infinity;
+    // (W5-bus) gapSlow: the nearest car ahead that stands or crawls (where this car would come to rest behind it)
+    let gapCar = Infinity, gapObs = Infinity, gapSlow = Infinity;
     for (const o of this.cars) {
-      if (!o.on || o === c) continue;
+      if (!o.on || o === c || o.leaving) continue;
       const rx = o.x - c.x, rz = o.z - c.z;
       if (rx * rx + rz * rz > 196) continue;
       const along = rx * fx + rz * fz, lat = Math.abs(rx * fz - rz * fx);
-      if (along > 0.3 && lat < TRAFFIC.width + 0.1) gapCar = Math.min(gapCar, along);
+      if (along > 0.3 && lat < TRAFFIC.width + 0.1) { gapCar = Math.min(gapCar, along); if (o.v < 1.5) gapSlow = Math.min(gapSlow, along); }
       else if (along > -HALF_L && along < TRAFFIC.length && lat < TRAFFIC.width * 0.9) this.stats.overlaps++;
     }
     for (const q of vehicles) {
@@ -399,24 +465,47 @@ export class TrafficSim {
     // (W5-T2) a bus close behind: keep its pace (a toy car at 5 u/s held the loop bus to half its speed down Marina Blvd)
     const vmax = c.hurry ? Math.max(c.vmax, TRAFFIC.hurry) : c.vmax;
     let target = Math.min(vmax, Math.sqrt(2 * B * Math.max(0, gapCar - TRAFFIC.gap)), Math.sqrt(2 * B * Math.max(0, gapObs - TRAFFIC.clear)));
+    // (W5-bus) a car clearing the lane brakes where it is (it hops to the kerb and shrinks: pose)
+    if (c.leaving) target = 0;
 
     if (c.mode === 'lane') {
       const [, end] = this.span(s);
       const toEnd = end - c.s;
       if (c.next < 0 && toEnd < 18) c.next = this.chooseNext(s);
       const g = c.next >= 0 ? this.usable(c.next) : null;
+      let open: boolean | null = null;
       if (!g) {
         // nowhere to go (the next street became unusable): stop at the line; recycled when stuck
         if (c.next >= 0 && toEnd < 18) c.next = this.chooseNext(s);
         target = Math.min(target, Math.sqrt(2 * B * Math.max(0, toEnd - 0.05)));
       } else if (toEnd < 12) {
-        const open = this.canEnter(c, s.v, g, vehicles);
+        open = this.canEnter(c, s.v, g, vehicles);
         if (!open) { target = Math.min(target, Math.sqrt(2 * B * Math.max(0, toEnd - 0.05))); if (toEnd < 1) this.stats.waits++; }
         else if (g.dx * s.dx + g.dz * s.dz < Math.cos(SHARP)) target = Math.min(target, Math.sqrt(TRAFFIC.turnSpeed ** 2 + 2 * B * Math.max(0, toEnd)));
-        if (open && toEnd <= 0.05 + c.v * dt) { this.startTurn(c, s, g); return this.accel(c, target, dt); }
+        if (open && toEnd <= 0.05 + c.v * dt && !c.leaving) { this.startTurn(c, s, g); return this.accel(c, target, dt); }
+      }
+      // (W5-bus) a stop zone ahead (where the bus stands at its stop): drive into it only when the car will not have to
+      // stop inside it — behind a standing car or obstacle, or at a stop line in it while the junction is not open
+      const zone = this.zoneAhead(s, c.s);
+      let holdAt = Infinity;
+      if (zone >= 0) {
+        const zs = this.zonesOn(s)!, z0 = zs[zone], z1 = zs[zone + 1];
+        if (c.s <= z0 - 0.05 + 1e-3) {
+          // (a standing car beyond a long zone is farther than the corridor's 14 u: the cars on this lane, by their arc)
+          let slow = gapSlow;
+          for (const o of this.cars) if (o.on && !o.leaving && o !== c && o.mode === 'lane' && o.e === c.e && o.s > c.s && o.v < 1.5) slow = Math.min(slow, o.s - c.s);
+          let rest = Math.min(slow - TRAFFIC.gap, gapObs - TRAFFIC.clear);
+          if (z1 > end - 1.5 && !(g && (open ?? this.canEnter(c, s.v, g, vehicles)))) rest = Math.min(rest, toEnd);
+          if (c.s + rest < z1 + 0.3) {
+            target = Math.min(target, Math.sqrt(2 * B * Math.max(0, z0 - 0.05 - c.s)));
+            holdAt = z0 - 0.05;
+            this.stats.keptClear++;
+          }
+        }
       }
       this.accel(c, target, dt);
       c.s = Math.min(end, c.s + c.v * dt);
+      if (c.s > holdAt) { c.s = Math.max(holdAt, c.s - c.v * dt); c.v = 0; }
       return;
     }
     // turning through the junction
@@ -440,24 +529,114 @@ export class TrafficSim {
   }
 
   /**
-   * (W5-T2) A stopped car with a stopped transit vehicle (a bus, a train, a cable car: not another toy car, not the
-   * player's) queued right behind it counts how long it holds that one up; after TRAFFIC.giveWay s it shrinks away.
+   * (W5-T2, W5-bus) Right of way: every road vehicle but the toy traffic (the transit, the player's bike / car) goes
+   * first. A car
+   * - with one queued behind it (the bus looks 30 u ahead) drives at the bus's pace (TRAFFIC.hurry);
+   * - standing, holding one up (queued behind it and stopped; the player's vehicle stopped with the car in its path,
+   *   head-on too) counts how long; after TRAFFIC.giveWay s it clears the lane ('held');
+   * - inside a transit body clears it at once ('inside');
+   * - standing in the path of transit coming at it that never stops for a toy car (trains, cable cars, the F-line; a
+   *   bus that is not following it) clears it at once ('oncoming');
+   * - standing in a stop zone with a bus coming at it clears it at once ('zone').
    */
   private watchHoldUp(c: Car, dt: number, vehicles: readonly RoadVehicle[]) {
     if (c.leaving) return;
-    let held = false, hurry = false, inside = false;
+    let held = false, hurry = false, why = '';
+    const still = c.v < 0.15;
+    const zoned = still && c.mode === 'lane' && this.inZone(c.e, c.s);
     for (const q of vehicles) {
-      if (q.kind === 'traffic' || q.kind === 'player') continue;
-      if (Math.abs(q.x - c.x) > 20 || Math.abs(q.z - c.z) > 20) continue;
+      if (q.kind === 'traffic') continue;
+      const dx = q.x - c.x, dz = q.z - c.z;
+      if (Math.abs(dx) > 50 || Math.abs(dz) > 50) continue;
       // inside its body (turned into it, or it came over the car): no car ever stays there
-      if (bodyDistance(q, c.x, c.z) < q.halfW + HALF_W * 0.5) { inside = true; break; }
-      if (!queuedBehind(c, q)) continue;
-      if (Math.hypot(q.x - c.x, q.z - c.z) < 12 + q.halfL) hurry = true;
-      if (c.v < 0.15 && Math.abs(q.v) < 0.5) held = true;
+      if (q.kind !== 'player' && bodyDistance(q, c.x, c.z) < q.halfW + HALF_W * 0.5) { why = 'inside'; break; }
+      const behind = queuedBehind(c, q);
+      if (behind && Math.hypot(dx, dz) < TRAFFIC.hurryReach + q.halfL) hurry = true;
+      if (!still) continue;
+      if (q.kind !== 'player' && q.v > 0.5 && !(q.kind === 'bus' && behind) && inPathOf(q, c, ONCOMING_REACH)) { why = 'oncoming'; break; }
+      if (zoned && q.kind === 'bus' && q.v > 0.5 && inPathOf(q, c, ZONE_REACH)) { why = 'zone'; break; }
+      if (Math.abs(q.v) < 0.5 && (behind || (q.kind === 'player' && inPathOf(q, c, PLAYER_REACH)))) held = true;
     }
     c.hurry = hurry;
     c.holdUp = held ? c.holdUp + dt : 0;
-    if (inside || c.holdUp > TRAFFIC.giveWay) { c.leaving = true; this.stats.gaveWay++; }
+    if (!why && c.holdUp > TRAFFIC.giveWay) why = 'held';
+    if (why) this.clearLane(c, why);
+  }
+
+  /** (W5-bus) The car gives way: it lets go of its junction, is nobody's obstacle, hops to its kerb and shrinks (pose). */
+  private clearLane(c: Car, why: string) {
+    c.leaving = true;
+    c.gave = why;
+    c.hop = 0;
+    if (c.node >= 0 && this.held.get(c.node) === c.id) this.held.delete(c.node);
+    this.stats.gaveWay++;
+    if (why === 'held') this.stats.gaveHeld++;
+    else if (why === 'inside') this.stats.gaveInside++;
+    else if (why === 'oncoming') this.stats.gaveOncoming++;
+    else if (why === 'zone') this.stats.gaveZone++;
+  }
+
+  // --- (W5-bus) keep-clear zones and crossing boxes ----------------------------------------------------------------------
+
+  /**
+   * The stretches of edge `s` (car centres, along the edge: pairs z0, z1) where a car's body would lie in a keep-clear
+   * zone (TrafficEnv.keepClear), or null. Measured once per edge (0.5 u steps) while the zone list stays the same.
+   */
+  zonesOn(s: StreetEdge): Float32Array | null {
+    const list = this.env.keepClear?.();
+    if (!list || !list.length) return null;
+    if (list !== this.zoneList) { this.zoneList = list; this.zoneCache.clear(); }
+    const hit = this.zoneCache.get(s.e);
+    if (hit !== undefined) return hit;
+    const out: number[] = [];
+    const mx = (s.ax + s.bx) / 2, mz = (s.az + s.bz) / 2, reach = s.len / 2 + 12;
+    const near = list.filter(k => Math.hypot((k.ax + k.bx) / 2 - mx, (k.az + k.bz) / 2 - mz) < reach + Math.hypot(k.bx - k.ax, k.bz - k.az) / 2);
+    if (near.length) {
+      let start = -1;
+      for (let a = 0; a <= s.len + 0.25; a += 0.5) {
+        const at = Math.min(a, s.len);
+        this.lanePoint(s, at, _p);
+        const inside = near.some(k => keepClearDistance(k, _p.x, _p.z, HALF_L) < k.hw + HALF_W);
+        if (inside && start < 0) start = at;
+        else if (!inside && start >= 0) { out.push(start, at - 0.5); start = -1; }
+      }
+      if (start >= 0) out.push(start, s.len);
+    }
+    const z = out.length ? Float32Array.from(out) : null;
+    if (this.zoneCache.size > 20_000) this.zoneCache.clear();
+    this.zoneCache.set(s.e, z);
+    return z;
+  }
+
+  /** Is a car centred `along` u down edge `e` inside a keep-clear zone? */
+  inZone(e: number, along: number): boolean {
+    const s = this.net.edge(e);
+    const zs = s ? this.zonesOn(s) : null;
+    if (!zs) return false;
+    for (let i = 0; i < zs.length; i += 2) if (along >= zs[i] && along <= zs[i + 1]) return true;
+    return false;
+  }
+
+  /** Index into zonesOn(s) of the first zone stretch not yet behind a car at `along` (−1 none). */
+  private zoneAhead(s: StreetEdge, along: number): number {
+    const zs = this.zonesOn(s);
+    if (!zs) return -1;
+    for (let i = 0; i < zs.length; i += 2) if (zs[i + 1] > along) return i;
+    return -1;
+  }
+
+  /** Is the junction box of `node` (reach R) on a transit street (a line's centre line runs through it)? */
+  private crossingBox(node: number, R: number): boolean {
+    const near = this.env.transitNear;
+    if (!near) return false;
+    const key = this.boxOf(node);
+    let hit = this.crossing.get(key);
+    if (hit === undefined) {
+      hit = near(this.net.ix.x(node), this.net.ix.z(node), Math.max(CROSS_NEAR, R));
+      if (this.crossing.size > 20_000) this.crossing.clear();
+      this.crossing.set(key, hit);
+    }
+    return hit;
   }
 
   private startTurn(c: Car, s: StreetEdge, g: StreetEdge) {
@@ -500,6 +679,14 @@ export class TrafficSim {
       this.lanePoint(s, c.s, _p);
       x = _p.x; z = _p.z; hd = Math.atan2(s.dx, s.dz);
     }
+    // (W5-bus) giving way: a little hop to the kerb (the right of travel) while it shrinks
+    let up = 0;
+    if (c.leaving) {
+      c.hop = Math.min(1, c.hop + dt * LEAVE_RATE);
+      const k = c.hop * c.hop * (3 - 2 * c.hop);
+      x -= Math.cos(hd) * HOP_SIDE * k; z += Math.sin(hd) * HOP_SIDE * k;
+      up = Math.sin(Math.PI * c.hop) * HOP_UP;
+    }
     c.x = x; c.z = z;
     let d = hd - c.heading;
     d = Math.atan2(Math.sin(d), Math.cos(d));
@@ -507,9 +694,9 @@ export class TrafficSim {
     const fx = Math.sin(c.heading) * 0.85, fz = Math.cos(c.heading) * 0.85;
     const pr = this.net.probe;
     const hf = pr.height(x + fx, z + fz), hb = pr.height(x - fx, z - fz);
-    c.y = (hf + hb) / 2;
+    c.y = (hf + hb) / 2 + up;
     c.pitch += (Math.atan2(hf - hb, 1.7) - c.pitch) * (1 - Math.exp(-dt * 10));
-    if (c.leaving) c.grow = Math.max(0, c.grow - dt * 2.4);
+    if (c.leaving) c.grow = Math.min(c.grow, 1 - c.hop);
     else if (c.grow < 1) c.grow = Math.min(1, c.grow + dt * 1.2);
     // pass-by: the closest approach to the listener, within 10 u, at speed
     const dd = Math.hypot(x - f.x, z - f.z);
@@ -523,7 +710,8 @@ export class TrafficSim {
   obstacles(out: Obstacle[], x: number, z: number, r: number) {
     const pool = this.obstaclePool.begin(out);
     for (const c of this.cars) {
-      if (!c.on || c.grow < 0.5) continue;
+      // (W5-bus) a car giving way is nobody's obstacle any more (the player's car behind it drives on at once)
+      if (!c.on || c.grow < 0.5 || c.leaving) continue;
       if (Math.abs(c.x - x) > r + 2 || Math.abs(c.z - z) > r + 2) continue;
       const fx = Math.sin(c.heading) * 0.5, fz = Math.cos(c.heading) * 0.5;
       for (const k of FRONT_BACK) {
@@ -552,6 +740,34 @@ export function bodyDistance(q: Pick<RoadVehicle, 'x' | 'z' | 'heading' | 'halfL
   const fx = Math.sin(q.heading), fz = Math.cos(q.heading), h = Math.max(0, q.halfL - q.halfW);
   const t = Math.max(-h, Math.min(h, (x - q.x) * fx + (z - q.z) * fz));
   return Math.hypot(x - q.x - fx * t, z - q.z - fz * t);
+}
+
+/**
+ * (W5-bus) Is car `c` in road vehicle `q`'s path ahead: its centre within `reach` u past q's nose (and its own half
+ * length), within both half widths (+ 0.2 u) of q's centre line — any heading (queued, head-on, across)?
+ */
+export function inPathOf(q: Pick<RoadVehicle, 'x' | 'z' | 'heading' | 'halfL' | 'halfW'>, c: Pick<Car, 'x' | 'z'>, reach: number): boolean {
+  const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
+  const rx = c.x - q.x, rz = c.z - q.z;
+  const along = rx * fx + rz * fz;
+  return along > 0 && along < q.halfL + HALF_L + reach && Math.abs(rx * fz - rz * fx) < q.halfW + HALF_W + 0.2;
+}
+
+/**
+ * (W5-bus) Does road vehicle `q` wait for car `c` — so the car must never wait for it (a junction): queued behind it in
+ * its lane (queuedBehind), or the player's vehicle standing with the car in its path (the player's car stops short of a
+ * toy car ahead; BAYBAY in its seat is no pedestrian: cityLife)?
+ */
+export function waitsFor(c: Pick<Car, 'x' | 'z' | 'heading'>, q: Pick<RoadVehicle, 'x' | 'z' | 'heading' | 'halfL' | 'halfW' | 'v' | 'kind'>): boolean {
+  return queuedBehind(c, q) || (q.kind === 'player' && Math.abs(q.v) < 0.5 && inPathOf(q, c, PLAYER_REACH));
+}
+
+/** (W5-bus) Distance from (x, z) to a keep-clear zone's centre segment, the segment lengthened by `ext` at both ends. */
+export function keepClearDistance(k: KeepClear, x: number, z: number, ext = 0): number {
+  const dx = k.bx - k.ax, dz = k.bz - k.az, L = Math.hypot(dx, dz) || 1e-6;
+  const ux = dx / L, uz = dz / L;
+  const t = Math.max(-ext, Math.min(L + ext, (x - k.ax) * ux + (z - k.az) * uz));
+  return Math.hypot(x - k.ax - ux * t, z - k.az - uz * t);
 }
 
 /**

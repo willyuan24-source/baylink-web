@@ -316,6 +316,23 @@ export function onTransitStreet(x: number, z: number, dx: number, dz: number, wi
   return false;
 }
 
+/**
+ * (W5-bus) Does a transit line's centre line pass within `within` u of (x, z), any direction? (a junction there is a
+ * crossing box for the toy traffic)
+ */
+export function nearTransitLine(x: number, z: number, within: number): boolean {
+  if (!tsPaths.length) return false;
+  const h = (tsHash ??= tsBuild());
+  const b0 = Math.floor((x - within) / TS_BUCKET), b1 = Math.floor((x + within) / TS_BUCKET);
+  const c0 = Math.floor((z - within) / TS_BUCKET), c1 = Math.floor((z + within) / TS_BUCKET);
+  for (let bx = b0; bx <= b1; bx++) for (let bz = c0; bz <= c1; bz++) {
+    const list = h.get(tsKey(bx, bz));
+    if (!list) continue;
+    for (let i = 0; i < list.length; i += 4) if (Math.hypot(list[i] - x, list[i + 1] - z) <= within) return true;
+  }
+  return false;
+}
+
 /** Deterministic PRNG (mulberry32) for the simulations (tests seed it). */
 export function lifeRng(seed: number): () => number {
   let a = seed >>> 0;
