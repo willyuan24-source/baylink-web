@@ -7,3 +7,23 @@
 .planner-place-actions{flex-wrap:wrap}
 
 #outing-plan { scroll-margin-top: 110px; }
+
+.planner-workspace{grid-template-columns:minmax(0,1fr) 350px}
+.planner-interaction-scope{border:0;margin:0;padding:0;min-width:0}
+.planner-editor{position:static}
+.planner-examples{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px;align-items:center;font-size:11px}
+.planner-examples>span{color:#74816e}.planner-examples button{border:1px solid #dce4d7;border-radius:18px;padding:7px 10px;text-align:left;background:#f8faf6}
+.planner-schedule{margin-top:20px;border-top:1px solid #d8dfd0;padding-top:20px}
+.planner-schedule h3{display:flex;gap:8px;align-items:center;margin:12px 0;font-size:15px}
+.planner-small-note{font-size:11px;color:#697763;line-height:1.8;margin:10px 0}
+.planner-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.planner-detail-grid label{min-width:0}.planner-schedule label{margin-top:12px;font-size:11px}
+.planner-timeline{margin:18px 0;display:grid;gap:10px}.planner-timeline>li{background:#fff;border:1px solid #dfe5d7;border-left:3px solid #708d5f;border-radius:8px;padding:12px}
+.planner-timeline>li.has-conflict{border-color:#ba7854}.planner-time-range{display:flex;gap:8px;align-items:center;justify-content:space-between;color:#526f42;font-size:13px;font-weight:700;margin-bottom:7px}.planner-time-range small{font-size:10px;font-weight:400}.planner-timeline strong{font-size:12px;line-height:1.7}
+.planner-timeline summary{cursor:pointer;font-size:11px;color:#718464;margin-top:10px}.planner-timeline a{display:block;margin-top:12px;font-size:11px;text-decoration:underline}
+.planner-conflicts,.planner-budget-warning{font-size:11px;color:#8e4d31;line-height:1.8;padding:12px;background:#fff0e5;border-radius:8px;margin:12px 0}.planner-conflicts{list-style:disc;padding-left:25px}
+.planner-budget{margin-top:16px;font-size:11px}.planner-budget>div{display:flex;justify-content:space-between;gap:8px;padding:8px 0}.planner-budget>div:last-child{border-top:1px solid #d8dfd0;font-weight:750}.planner-budget dd{white-space:nowrap}
+.planner-calendar-export{display:flex;justify-content:center;align-items:center;gap:8px;width:100%;font-size:12px;border:1px solid #cbd7c2;border-radius:8px;padding:10px;margin-top:15px}
+.planner-undo{font-size:11px;text-decoration:underline;margin:10px 0}.planner-unverified-price{font-size:11px;background:#fff0df;color:#825b31;padding:5px 9px;border-radius:5px}
+@media(max-width:1050px){.planner-workspace{grid-template-columns:minmax(0,1fr) 310px}}
+@media(max-width:760px){.planner-editor{max-width:100%}.planner-examples{gap:6px}.planner-examples button{font-size:11px}.planner-time-range{font-size:14px}}

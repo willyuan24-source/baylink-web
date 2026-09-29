@@ -6,13 +6,14 @@ import React from 'react';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { searchQuickDestinations } = await import('../src/lib/quick-search');
 const { QuickExplore } = await import('../src/components/QuickExplore');
 const { setLocale } = await import('../src/i18n/locale');
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { currentFreebies } = await import('../src/data/october-offers');
 const { currentOpenings } = await import('../src/data/local-discoveries');
+const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
 test('quick discovery finds tools, upcoming events and attractions with multilingual queries', async () => {
@@ -106,4 +107,80 @@ test('offer and opening results expose conditions and status and navigate to the
     currentOpenings.splice(openingCount);
     MONTHLY_EVENTS.splice(eventCount);
   }
+});
+
+test('whole-sentence searches use actual dates, cities and free admission instead of incidental prose', async () => {
+  await setLocale('en', false);
+  for (const query of ['这个周末旧金山免费活动', 'Show me free events in San Francisco this weekend']) {
+    const results = searchQuickDestinations(query, 'en', '2026-09-29');
+    assert.ok(results.events.length > 0);
+    for (const event of results.events) {
+      assert.equal(event.city, 'San Francisco');
+      assert.equal(event.cost, 'free');
+      assert.ok(event.startDate <= '2026-10-04' && event.endDate >= '2026-10-03');
+    }
+    assert.equal(results.openings.length, 0);
+  }
+  assert.ok(searchQuickDestinations('South Bay', 'en', '2026-09-29').offers.every(offer => offer.region === 'south-bay'));
+  assert.ok(searchQuickDestinations('San Francisco free', 'en', '2026-09-29').openings.length === 0);
+  assert.ok(searchQuickDestinations('周末 旧金山 免费', 'en', '2026-09-29').events.every(event => event.city === 'San Francisco'));
+  assert.ok(searchQuickDestinations('South San Francisco events', 'en', '2026-09-29').events.every(event => event.city === 'South San Francisco'));
+});
+
+test('indoor, family ages and budgets use known facts; unknown prices and chamber-music wording do not pass', () => {
+  const indoor = searchQuickDestinations('室内', 'zh-Hans', '2026-09-29').events;
+  assert.ok(indoor.length > 0);
+  assert.ok(indoor.every(event => PLANNER_EVENTS.find(item => item.id === event.id)?.planning?.setting === 'indoor'));
+  assert.ok(!indoor.some(event => event.id === 'sf-quinteto-latino-lunchtime-2026'));
+  assert.ok(searchQuickDestinations('雨天室内带2岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
+  assert.ok(!searchQuickDestinations('雨天室内带8岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
+  const count = MONTHLY_EVENTS.length;
+  try {
+    MONTHLY_EVENTS.push({ ...MONTHLY_EVENTS[0], id: 'unknown-search-budget', title: 'BudgetEvidenceFixture', cost: 'unknown', costLabel: '免费停车，门票未确认', startDate: '2026-10-01', endDate: '2026-10-01', occurrenceDates: undefined });
+    assert.equal(searchQuickDestinations('BudgetEvidenceFixture', 'zh-Hans', '2026-09-29').events.length, 1);
+    assert.equal(searchQuickDestinations('BudgetEvidenceFixture 免费', 'zh-Hans', '2026-09-29').events.length, 0);
+    assert.equal(searchQuickDestinations('BudgetEvidenceFixture under $20', 'zh-Hans', '2026-09-29').events.length, 0);
+    assert.equal(searchQuickDestinations('BudgetEvidenceFixture 两人总共80美元', 'zh-Hans', '2026-09-29').events.length, 1, 'a total budget must not become an individual admission cap');
+    assert.equal(searchQuickDestinations('BudgetEvidenceFixture 免费停车', 'zh-Hans', '2026-09-29').events.length, 1, 'free parking must not turn unknown admission into a free filter');
+  } finally { MONTHLY_EVENTS.splice(count); }
+  assert.equal(searchQuickDestinations('帮我找旧金山咖啡20美元以内', 'zh-Hans', '2026-09-29').events.length, 0);
+  assert.equal(searchQuickDestinations('不要室内活动', 'zh-Hans', '2026-09-29').events.length, 0, 'unsupported negation should ask for clarification, not recommend the excluded type');
+  assert.equal(searchQuickDestinations('10/3或10/4活动', 'zh-Hans', '2026-09-29').events.length, 0, 'alternative dates require clarification');
+});
+
+test('requested dates honor discrete occurrences and distinguish ongoing offers and shop hours from confirmed availability', () => {
+  const count = MONTHLY_EVENTS.length;
+  try {
+    MONTHLY_EVENTS.push({ ...MONTHLY_EVENTS[0], id: 'date-search-fixture', title: 'DateEvidenceFixture', startDate: '2026-10-01', endDate: '2026-10-31', occurrenceDates: ['2026-10-02', '2026-10-09'] });
+    assert.equal(searchQuickDestinations('DateEvidenceFixture 10/3–10/4', 'zh-Hans', '2026-09-29').events.length, 0);
+    assert.equal(searchQuickDestinations('DateEvidenceFixture 10/2', 'zh-Hans', '2026-09-29').events.length, 1);
+    assert.equal(searchQuickDestinations('2026-02-30 events', 'zh-Hans', '2026-09-29').events.length, 0);
+  } finally { MONTHLY_EVENTS.splice(count); }
+  const weekend = searchQuickDestinations('周末', 'zh-Hans', '2026-09-29');
+  assert.equal(weekend.openings.length, 0, 'shop prose mentioning weekend is not verified hours');
+  assert.ok(weekend.offers.every(offer => offer.availability === 'dated'));
+  assert.ok(weekend.unverified.offers.every(offer => offer.availability !== 'dated'));
+  assert.ok(weekend.unverified.openings.every(shop => shop.status !== 'announced'));
+  const closed = searchQuickDestinations('Broken Dreams 周末', 'zh-Hans', '2026-09-29');
+  assert.equal(closed.openings.length + closed.unverified.openings.length, 0, 'published weekend closure must not become a reference suggestion either');
+  assert.equal(searchQuickDestinations('旧金山咖啡店', 'zh-Hans', '2026-09-29').events.length, 0, 'cafe intent must not be filled with unrelated events');
+});
+
+test('new search UI explains understood conditions and missing evidence, with the original query handed to BayBay', async () => {
+  const asked: (string | undefined)[] = [];
+  const view = render(<QuickExplore onClose={() => {}} onSearch={() => {}} onNavigate={() => {}} onAsk={query => asked.push(query)} />);
+  const query = '帮我找旧金山咖啡20美元以内，步行15分钟内';
+  fireEvent.change(view.getByRole('combobox'), { target: { value: query } });
+  assert.match(view.baseElement.textContent || '', /已识别.*San Francisco.*\$20/);
+  assert.match(view.baseElement.textContent || '', /未知价格不按免费处理/);
+  assert.match(view.baseElement.textContent || '', /尚未计算距离或通行时间/);
+  fireEvent.click(view.getByRole('option', { name: /交给 BayBay 继续安排/ }));
+  assert.deepEqual(asked, [query]);
+  await act(async () => { await setLocale('en', false); });
+  assert.match(view.baseElement.textContent || '', /Understood:/);
+  assert.match(view.baseElement.textContent || '', /Unknown prices are not treated as free/);
+  fireEvent.change(view.getByRole('combobox'), { target: { value: 'events total $80' } });
+  assert.match(view.baseElement.textContent || '', /total budget is not applied as a price filter/);
+  fireEvent.change(view.getByRole('combobox'), { target: { value: 'no indoor events' } });
+  assert.match(view.baseElement.textContent || '', /excluded preferences are not treated as positive filters/);
 });

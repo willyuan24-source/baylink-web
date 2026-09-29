@@ -10,11 +10,13 @@ export type PlannerEvent = MonthlyEvent & { location?: GeoPoint; planning?: Plan
 export type PlannerPlace = { id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts };
 export type Stop = { kind: 'event' | 'place'; id: string };
 export type Favorite = { kind: 'event' | 'place' | 'guide'; id: string };
-export type SavedPlan = { id: string; title: string; date: string; stops: Stop[]; version: number; createdAt: string; updatedAt: string };
+export type StopSetting = Stop & { durationMinutes: number; travelMinutes: number; fixedStartTime?: string };
+export type PlanDetails = { startTime: string; finishBy: string; partySize: number; totalBudgetUsd: number | null; extraCostUsd: number; travelMode: 'any' | 'drive' | 'transit' | 'walk'; stopSettings: StopSetting[]; constraints?: PlanFilters };
+export type SavedPlan = { id: string; title: string; date: string; stops: Stop[]; details?: PlanDetails; version: number; createdAt: string; updatedAt: string };
 export type Preferences = { regions: string[]; interests: string[]; travelMode: string };
 export type Library = { plans: SavedPlan[]; favorites: Favorite[]; preferences: Preferences };
-export type PlanFilters = { date?: string; region?: string; city?: string; budget?: number | null; childAge?: number | null; setting?: string; travelMode?: string };
-export type Suggestion = { id: string; date: string; eventId: string; placeIds: string[]; reason: string; reasons: string[]; unknowns: string[] };
+export type PlanFilters = { date?: string; region?: string; city?: string; budget?: number | null; childAge?: number | null; childAges?: number[]; partySize?: number; budgetScope?: 'person' | 'total'; freeOnly?: boolean; topic?: string; setting?: string; travelMode?: string };
+export type Suggestion = { id: string; date: string; eventId: string; placeIds: string[]; reason: string; reasons: string[]; unknowns: string[]; budgetStatus?: 'known' | 'unknown' };
 export type Recommendations = { ok: boolean; responseMode: 'ai' | 'rules'; filters: PlanFilters; suggestions: Suggestion[]; notices: string[]; checkedAt: string };
 export const PLAN_METADATA: PageMetadata = { title: 'BayBay 智能出游计划｜BAYLINK', description: '说出日期、地区和预算，从真实湾区活动选择方案，在地图上搭配景点，保存与分享出游计划。', path: '/plan' };
 export const WEEK_METADATA: PageMetadata = { title: '我的这周｜BAYLINK', description: '在一个地方整理自己的湾区活动、收藏和出游计划。', path: '/my-week', noindex: true };
@@ -28,7 +30,8 @@ export const stopTitle = (stop: Stop) => (stop.kind === 'event' ? eventFor(stop.
 export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : `/guides/${encodeURIComponent(placeFor(stop.id)?.slug || '')}`;
 export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
 export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
-export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => other.kind === stop.kind && other.id === stop.id) === i).slice(0, 3) : [];
+export const MAX_PLAN_STOPS = 6;
+export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => other.kind === stop.kind && other.id === stop.id) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
 /** Shared URLs contain public catalog references only, never account IDs or private notes. */
 export function sharePlanUrl(plan: Pick<SavedPlan, 'date' | 'stops'>, origin = 'https://www.baylink.us') {
   const url = new URL('/plan', origin);
