@@ -37,7 +37,8 @@ import { CHAPTER_LINES, loopNarration, metroNarration, sayLine, type GrandChapte
  * Wave 4 modelled 9.45 u/s buses (the plan's 14-min lap) and 10 s Metro waits: the game's bus rides at ≈ 6.85 u/s with
  * traffic, and a line runs two trains (one wait at La Playa was 187 s).
  * Declared `minutes` / `expressMinutes` are that model rounded to 0.1 (tested within 0.15). The full tour models at
- * ≈ 34 min and the express at ≈ 25 min, chapter intros and outros not counted.
+ * ≈ 34 min and the express at ≈ 25 min, chapter intros and outros not counted; the QUOTES are the measured 36 / 29 min
+ * (W6-K2: MEASURED_TOUR_MINUTES).
  *
  * Goals: `goal` = the stop where a goal really completes (the sightseeing goal counts loop stops over all the real
  * rides and reaches SIGHTSEEING_STOPS on the Twin Peaks ride, in both versions); `advances` = a counting goal the stop
@@ -99,12 +100,15 @@ export interface CityTourChapter {
 export interface CityTourDef {
   id: string;
   name: Bilingual;
-  /** welcome-choice subtitle ("全城 5 章 · 约 34 分钟 · 随时下车") */
+  /** welcome-choice subtitle ("全城 5 章 · 约 36 分钟 · 随时下车") */
   subtitle: Bilingual;
   chapters: CityTourChapter[];
-  /** total minutes of the non-optional stops (= Σ chapter minutes) and of the express version */
+  /** the quoted minutes of the whole tour and of the express version (W6-K2: the measured runs) */
   minutes: number;
   expressMinutes: number;
+  /** the timing model's total of the non-optional stops (= Σ chapter minutes) and of the express version */
+  modelMinutes?: number;
+  modelExpressMinutes?: number;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -474,17 +478,28 @@ const CHAPTERS: CityTourChapter[] = [
 ];
 
 const sum = (xs: number[]) => Math.round(xs.reduce((a, b) => a + b, 0) * 10) / 10;
-const GRAND_MINUTES = sum(CHAPTERS.flatMap(c => c.stops.filter(s => !s.optional).map(s => s.minutes)));
-// the one time rule (game/tripText.ts): "约 34 分钟" / "about 34 min", from the timing model, never typed by hand
-const GRAND_TIME = minutesLabel(GRAND_MINUTES);
+const MODEL_MINUTES = sum(CHAPTERS.flatMap(c => c.stops.filter(s => !s.optional).map(s => s.minutes)));
+const MODEL_EXPRESS_MINUTES = sum(CHAPTERS.flatMap(c => c.stops.map(s => s.expressMinutes)));
+/**
+ * W6-K2 (the wave-5 hand-off, sf-w5-summary NEXT #8): the tour's QUOTES are the measured runs (W5-C5, desktop
+ * 2026-09-28, the tour carried end to end, docs/opus-bay/sf-w5-C.md part b): the full tour 36.1 min, the express 28.5 min
+ * riding its two long Metro legs — not the timing model's ≈ 34 / 25, which leaves out the chapter intros and outros,
+ * BAYBAY's waits for the player and the snags a real run meets. The stops keep the model's minutes (they pace the
+ * chapters); `modelMinutes` / `modelExpressMinutes` keep its sums.
+ */
+export const MEASURED_TOUR_MINUTES = { full: 36.1, express: 28.5 } as const;
+// the one time rule (game/tripText.ts): "约 36 分钟" / "about 36 min", never typed by hand
+const GRAND_TIME = minutesLabel(MEASURED_TOUR_MINUTES.full);
 
 export const SF_GRAND: CityTourDef = {
   id: GRAND_TOUR_ID,
   name: bi('环游旧金山 · 一日游', 'San Francisco Grand Tour'),
   subtitle: bi(`全城 5 章 · ${GRAND_TIME.zh} · 随时下车`, `The whole city in 5 chapters · ${GRAND_TIME.en} · hop off anytime`),
   chapters: CHAPTERS,
-  minutes: GRAND_MINUTES,
-  expressMinutes: sum(CHAPTERS.flatMap(c => c.stops.map(s => s.expressMinutes))),
+  minutes: MEASURED_TOUR_MINUTES.full,
+  expressMinutes: MEASURED_TOUR_MINUTES.express,
+  modelMinutes: MODEL_MINUTES,
+  modelExpressMinutes: MODEL_EXPRESS_MINUTES,
 };
 
 export const CITY_TOURS: readonly CityTourDef[] = [SF_GRAND];
