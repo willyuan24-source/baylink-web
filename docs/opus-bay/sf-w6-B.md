@@ -305,6 +305,9 @@ scratch `C:/Users/willy/opus-qa/w6/b-rev/`.
 
 On `58430559` (before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
 warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1466 / 1466**, fail 0.
+On the head rebased on `origin/opus-bay` at `b3e83493` (05:05): tsc 0 · eslint 0 errors (43 old warnings) · the suite
+**1469 / 1470** under load (eslint alongside) — the one failure the wall-clock `P1: the sliced jobs … 4x slower phone`
+(`tests/opus-bay-audio.test.ts`), green alone 18 / 18.
 
 ### Blocking the go-live to main
 
