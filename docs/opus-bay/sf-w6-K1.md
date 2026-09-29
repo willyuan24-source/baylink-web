@@ -7,12 +7,14 @@ Worktree `C:/Users/willy/wt/w6-k1` (branch `w6-k1`), dev port 5601, scratch `C:/
 
 1. 手机摇杆修好了：以前手指按住时如果页面尺寸变了一下（比如 iPhone 的工具栏出现/消失），摇杆底座会跟着跑，人物会突然掉头往回走；现在摇杆只看手指本身的位置，页面怎么变都不会反向（390×844 和 375×667 都实测过）。
 2. 街区模式（?world=district）恢复成和第五波之前完全一样：跳上台阶不再"手扒边缘爬上去"，攀爬只在整座旧金山模式里有。
+3. 第五波审查留下的小毛病都修了：对话开着时瞬移后 BAYBAY 不会再跑回老地方；E 键提示会跟着改名（飞行表演开始后显示"拍飞机编队"）；换世界时天色立刻切换；坐渡轮时提示写"船上 / 下船"；在金门大桥桥面上不会再误触发"海獭亲戚"彩蛋（下到炮台水边才触发，已实测）；彩虹脚印、桥面行走、自动飞行、爬楼梯比赛、缆车摇铃不再每帧制造垃圾对象。
+4. 缆车转盘"嘿咻推"不会再抢走车站的"坐叮当车"按钮；飞行金圈的代码在解锁鹈鹕时就提前加载，第一次飞行不再卡一下。
 
 ## Part a (2026-09-29, 01:53–02:10 PDT): the floating stick, the mantle in the district
 
 ### What was built
 
-- **W6-K1a `a4d41742`… (the stick, NEXT P0 #2, W5-Z §7.2)** `actors/pointer.ts`: the floating stick's base is kept in
+- **W6-K1a `be8a9f15` (the stick, NEXT P0 #2, W5-Z §7.2)** `actors/pointer.ts`: the floating stick's base is kept in
   **client coordinates** (`export const stickBase = { x, y }`), like the thumb; the reading is thumb − base, so the canvas
   rect never enters it. Before, the base was stored relative to the rect and the reading was `thumb − rect − base`: a
   rect that moved for one move event (W5-Z: a CDP screenshot; on an iPhone a toolbar resize could) looked like a 60 px
@@ -20,7 +22,7 @@ Worktree `C:/Users/willy/wt/w6-k1` (branch `w6-k1`), dev port 5601, scratch `C:/
   only to paint `stickView.baseX / baseY` (what `TouchControls` draws, unchanged API), and a `resize` of the window or
   the visual viewport (`visualViewport` `resize` / `scroll`) repaints the base while a thumb is down; all listeners are
   removed on detach.
-- **W6-K1b (the mantle, the lead's decision §6)** `actors/controller.ts`: W5-F10's mantle (a hop against a 0.45–1.6 u
+- **W6-K1b `2061d31f` (the mantle, the lead's decision §6)** `actors/controller.ts`: W5-F10's mantle (a hop against a 0.45–1.6 u
   ledge climbs it hands first) and the "higher than 1.6 u is a wall even in a jump" rule both run only with city terrain
   (`cityTerrain()`); in the district the hop lands on the ledge as before wave 5.
 - Tests: `tests/opus-bay-w6-k1-stick.test.ts` (2: a rect that jumps 60 px mid-touch keeps the reading up, then reverse
@@ -33,7 +35,7 @@ Worktree `C:/Users/willy/wt/w6-k1` (branch `w6-k1`), dev port 5601, scratch `C:/
 
 ### Evidence
 
-- Checks on `fd357793`: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
+- Checks on `2061d31f` (rebased; pushed with the report as `c30942b9`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
   `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1384 / 1384**, fail 0 (W5-F10's city mantle
   test unchanged and green; the hero regression green).
 - Live, dev server 5601, headless Chrome (one at a time, PERF-LOCK absent), `?world=city&start=free&quality=mid`, touch,
@@ -69,3 +71,60 @@ Worktree `C:/Users/willy/wt/w6-k1` (branch `w6-k1`), dev port 5601, scratch `C:/
 ### Requests
 
 - None.
+
+## Part b (2026-09-29, 02:15–03:15 PDT): the reviews' small items (F, D, A) and a far talk target
+
+### What was built
+
+| commit | item (source) | what changed | files |
+|---|---|---|---|
+| `65ee092d` | F · deck and auto-glide garbage; A · stair-race and bell-pad garbage | `deckAt(x, z, y?, out?)`, `deckWish(…, out?)`, `deckDip(…, out?)` write into the caller's object; new `onDeck(x, z, y?)` (no object); `laneClear` probes inline (no `deckPoint` per probe); the controller keeps `deckOut` / `wishOut` / `dipOut` / `dipOut2`, the camera `deckOut`. `GlideSim.floorAt(world, x, z, out?)` (+ `GlideFloor`); the flight's three probes use two reused floors; `autoGlideInput(g, to, world, out?)`; the move system's `flyGlide` fills one `glideIn` for the stick, the auto-glide and the approach (never writing into `NO_GLIDE_INPUT`). `lineProgress(l, x, z, out?)` with no object per segment; the race's finish test is a module function (no closure per frame). Bell pad: the cursor / meter are style writes from the rAF loop; React re-renders only when `riffLook(now)` changes (phase, round, dots lit / missed, jazz count, flash) — before, every frame of the 20 s riff. (The glide's `step` report object stays: one per frame, callers keep it.) | `actors/{deckSteer,feet,controller,camera,glide,moveSystem}.ts`, `play/{stairs,bell}.ts`, `play/BellPad.tsx` |
+| `92796327` | W5-Z §7.5 · BAYBAY's far talk target (F / C) | `GuideMover.step`: a `talk` target more than `TALK_FAR` = 30 u from the player is dropped (every live talk mark stands beside the player: a resident ≤ 7 u, the stage / welcome / pelican marks); with a dialogue left open across a teleport she stays by the player instead of walking off, re-planning a long `findPath` and hopping back in | `actors/guide.ts` |
+| `2038f2c9` | F · the stale E prompt (lane R's review) | `ContextAction` subscribes to `interactablesEpoch` and re-reads its interactable in an effect (after Systems' layout effect has swapped the rebuilt list in): the jets' 看看飞行表演 → 拍飞机编队 now shows. **A surgical fix in lane K2's `ui/Hud.tsx`** (7 lines) | `ui/Hud.tsx` |
+| `57c56a75` | F · `useTimeOfDay` on a world switch (lane R's review) | the world is an effect dependency and passed to `bayTimeOfDay`: a switch re-applies the band at once. **Surgical, lane K2's `ui/Overlay.tsx`** (4 lines) | `ui/Overlay.tsx` |
+| `e76e4ebe` | F · the ferry's 车厢里 chip (lane T's review) | aboard the ferry the move chip reads **船上 / On deck** and its hop-off key **下船 / Go ashore**; trains and cable cars keep 车厢里 / 下车. **Surgical, lane K2's `ui/MoveChip.tsx`** (4 lines) | `ui/MoveChip.tsx` |
+| `854f3b8e` | D · the sea-otter egg on the GGB deck (W5-Z §7.3) | `otterHost` returns while the player is on the walk deck (`deckSteer.onDeck`: the deck's whole width at deck height — marina's own `onDeck` covers only a ±4 u band of the roadway, which is why the sidewalks fired), on marina's deck band, or above `OTTER_MAX_Y` = 9 u (the fort's waterside is 0.44 u in the published city, the deck 15.22 u: read live) | `eggs/marina.ts` |
+| `ac483389` | D · the Castro prints' rebuild floor | `PropPool.step`: a dirty pool rebuilds at most every `PROP_REBUILD_FLOOR` = 0.25 s (a trail's drops and fades were ≈ 500 merged triangles rebuilt at 10 Hz) | `eggs/props.ts` |
+| `5134bbf6` | A · heave-ho vs the boarding prompt; prefetch `play/rings` | `placeHeave` parks 嘿咻，推！ while a boarding prompt (a transit stop's, not T's 帮忙推) is in reach (`boardingInReach()`): at Powell & Market the tap in the queue boards, the heave-ho is offered round it — one prompt per tap. `play/index.ts` fetches `./rings` (its layer and the material's warm-up) once `glideUnlocked()` (at once for a save that has it, else on the `subscribeGlide` change of lane C's moment), not on the first flight's first frame | `play/{zones3,index}.ts` |
+
+Tests (all in my files): `tests/opus-bay-w6-k1-feel.test.ts` (+6: the deck queries' out objects and the same answers, the
+glide floor / auto-glide, the stair race / bell pad, the far talk mark, the world-switch band, the heave-ho / rings),
+`tests/opus-bay-w6-k1-dom.test.ts` (2, jsdom + React: the E prompt re-read, the ferry chip),
+`tests/opus-bay-w6-k1-eggs.test.ts` (2: the otter from the deck vs at the water, the prop pool floor). **Red on the old
+code**: the far talk mark (she walked 48 u toward it), the E prompt (still 看看飞行表演), the otter (found from the
+deck), the prop pool (21 rebuilds in 2 s → ≤ 9).
+
+### Evidence
+
+- Checks on `5134bbf6`: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1395 / 1395**, fail 0.
+- Lane A's size budget (`W5-A1 chunks`): `BellPad.tsx` 5081 B ≤ 5 KB gzip after trimming the cursor writes (a first
+  version was 5129 B and failed it), the play core 5716 B ≤ 6 KB.
+- Live (dev 5601, 390 × 844, dpr 3): at Fort Point's water (`?at=xz:-747.3,595.5`) the player stands at y 0.47, the
+  ground there 0.44, the deck cell 3 u away 15.22; **the egg still fires at the water** (小发现 · BAYBAY's distant cousins,
+  `docs/opus-bay/qa/w6/K1/b-otter-at-the-fort-phone.jpg`, read). A live walk onto the deck at s ≈ 114–124 was not run
+  (`?at` onto the deck put the player 21 u off the spot); the node test covers the deck.
+
+### Decisions
+
+- The E-prompt, sky-band and chip fixes sit in lane K2's `ui/` files: each is a few lines, named in its commit, so the
+  items assigned to K1 could land without waiting for K2.
+- `TALK_FAR` = 30 u (every live talk mark is within ≈ 7–10 u of the player; 30 leaves room and is well under the 60 u
+  hop-in).
+- The heave-ho yields to any boarding prompt in reach (not only the cable car's): no stop's tap should push a turntable.
+- `OTTER_MAX_Y` = 9 u: a guard under the deck's `minY` 11 even if the deck registry were empty.
+
+### Known gaps
+
+- The glide's per-frame `GlideReport` object stays (callers keep it past the call).
+- The bell pad was not played live (a cable-car ride with the riff); its logic is covered by the source checks and the
+  unchanged hit / miss rendering path.
+
+### Not done (this part)
+
+- The Hyde St ride camera (part c).
+
+### Requests
+
+- **K2**: three small edits in your files, please keep them when you touch these lines: `ui/Hud.tsx` ContextAction (the
+  `interactablesEpoch` subscription + re-read effect), `ui/Overlay.tsx` `useTimeOfDay` (the `world` dependency),
+  `ui/MoveChip.tsx` (船上 / 下船 on the ferry).
