@@ -9,7 +9,7 @@ import { FREE_GOALS } from '../data/script';
 import { callBaybay, cityTourActive, currentStop, enterPhotoMode, openBoard, openPanel, requestInteract, tourStops } from '../game/flow';
 import { AREA_NAMES } from '../game/brain';
 import { flow, useFlow } from '../game/flowStore';
-import { BAYBAY_ID, interactableById } from '../game/interactables';
+import { BAYBAY_ID, interactableById, interactablesEpoch, subscribeInteractables } from '../game/interactables';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useMedia } from './hooks';
@@ -265,6 +265,11 @@ function ContextAction() {
   const panelId = useGame(s => s.panel.id);
   // (DR-3) lane E2's move chip sits where the prompt does (keyboard / pad, riding a bike, the car, a cable car): lift it
   const chip = useGame(s => s.move.mode !== 'foot');
+  // (W6-K1, lane R's review: a label renamed in place — the jets' 看看飞行表演 → 拍飞机编队 — stayed stale) re-read the
+  // focus once its source rebuilds: the epoch's effect runs after Systems' layout effect has swapped the list in
+  const epoch = useSyncExternalStore(subscribeInteractables, interactablesEpoch, interactablesEpoch);
+  const [, reread] = useState(0);
+  useEffect(() => { reread(n => n + 1); }, [epoch]);
   const it = interactableById(focus);
   if (!it || dialogue || fishing) return null;
   // F7: never prompt for the sheet that is already open
