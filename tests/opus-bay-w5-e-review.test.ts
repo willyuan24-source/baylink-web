@@ -135,7 +135,7 @@ test('W5-E-review 4: after Settings → reset progress BAYBAY gives the first �
   fresh();
   setGlideUnlocked(false);
   // (W6-K2: the gift waits while goal #1 is led — the welcome, the goals step, the lead; a playing game with none of them: at once)
-  game.set({ phase: 'playing', dialogue: { nodeId: null } });
+  game.set({ phase: 'playing', mode: 'free', dialogue: { nodeId: null } }); // (W6-K2-review: the welcome over — a real reset waits for its welcome: tests/opus-bay-w6-k2-review.test.ts)
   const off = run.initShop(() => null);
   try {
     assert.ok(W.holds('fly-ticket') && W.owns('fly-gift'), 'a new player: the gift');

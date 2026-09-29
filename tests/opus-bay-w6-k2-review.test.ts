@@ -129,3 +129,21 @@ test('W6-K2-review: no 飞行券 while a city tour runs (the welcome\'s 刚来�
   assert.equal(run.ticketGiftReady(61_000 + run.TICKET_QUIET_MS), true);
   game.set({ phase: 'title' });
 });
+
+test('W6-K2-review: after Settings → reset progress the 飞行券 waits for the new welcome (flow restartOnboarding: mode onboarding, its dialogue a moment later)', async () => {
+  const { registerHooks } = await import('node:module');
+  const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+  const run = await import('../src/opus-bay/economy/shopRun');
+  styles.deregister();
+  flow.set(initialFlowState());
+  // the reset: the gate says "at once" (shopRun's onSaveCleared) and the welcome is pending, not open yet
+  game.set({ ...initialGameState(), phase: 'playing', worldMode: 'city', mode: 'onboarding' });
+  run.ticketGate.quietSince = -Infinity;
+  assert.equal(run.ticketGiftWaits(), true, 'onboarding: the welcome is coming');
+  assert.equal(run.ticketGiftReady(2_000), false, 'no gift in the gap before the welcome opens');
+  // 我是本地人，直接开始 (free roam, no lead): the gift comes TICKET_QUIET_MS later
+  game.set({ mode: 'free' });
+  assert.equal(run.ticketGiftReady(3_000), false);
+  assert.equal(run.ticketGiftReady(3_000 + run.TICKET_QUIET_MS), true);
+  game.set({ phase: 'title' });
+});

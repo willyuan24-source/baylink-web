@@ -85,10 +85,13 @@ function stallInteractable(): Interactable | null {
  * tour's first stop (game/cityTour arrived → unlockPelican('tour')), so a gift there was refunded seconds later (played
  * on the phone, a new player: 送你一张飞行券！ at 31 s, 送你一位鹈鹕朋友！ at 34 s, 还你 10 金币。 at 44 s). A tour ended
  * before its first stop lets the gift come TICKET_QUIET_MS later; one that reached a stop has the pelican out (no gift).
+ * And while the game is still `onboarding` (the welcome is pending or open): Settings → reset progress sets the gate to
+ * "at once" and restarts the welcome (flow restartOnboarding), whose dialogue opens a moment later — the ticket was given
+ * in that gap, its line lost under the welcome, and the refund came after the pelican for a ticket never announced.
  */
 export function ticketGiftWaits(): boolean {
   const s = game.get(), f = flow.get();
-  return s.phase !== 'playing' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
+  return s.phase !== 'playing' || s.mode === 'onboarding' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
 }
 /** the gift comes this long (ms) after goal #1's lead is over (the goals step's close → the lead start is not a gap) */
 export const TICKET_QUIET_MS = 4000;

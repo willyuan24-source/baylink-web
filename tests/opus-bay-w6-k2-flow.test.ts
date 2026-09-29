@@ -26,7 +26,7 @@ function fresh() {
 }
 
 test('W6-K2: no 飞行券 while goal #1 is led (the welcome, the goals step, BAYBAY\'s lead to the pelican); it comes TICKET_QUIET_MS after', () => {
-  game.set({ phase: 'playing', dialogue: { nodeId: null } });
+  game.set({ phase: 'playing', mode: 'free', dialogue: { nodeId: null } }); // (W6-K2-review: the welcome over — onboarding waits too)
   flow.set({ freeLead: null });
   run.ticketGate.quietSince = -Infinity;
   assert.equal(run.ticketGiftReady(1000), true, 'a resumed player with nothing on: at once');
