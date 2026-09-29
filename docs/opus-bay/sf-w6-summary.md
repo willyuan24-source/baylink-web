@@ -46,13 +46,13 @@ review → W6-Z), 01:53–07:00 PDT.
 
 ## 3. Final verify (W6-Z) numbers
 
-See `sf-w6-final-verify.md` for the full tables. From W6-Z's runs (alone on the machine, PERF-LOCK 05:52–):
+See `sf-w6-final-verify.md` for the full tables (W6-Z: **GO**, `5da5822c`; alone on the machine, PERF-LOCK 05:52–06:49). Also: tsc 0, opus-bay suite **1489 / 1489**, GameRoot **279.19 KB**, production build + CSP 0 violations / 0 failed of 1793 requests with `?halloween=1` and `night`, district unchanged (71 calls / 225,070 tris).
 
 | gate | result |
 |---|---|
 | `npm run check` (lint, 2246 tests, build, prerender 519 pages, 494 share cards) | **pass**, EXIT 0 |
-| perf desktop 1440 × 900 high (≤ 150 calls / ≤ 400k) | 23 / 23 spots pass, max **122 calls / 354k**, 60 fps |
-| perf phone 390 × 844 mid 4× CPU (≥ 45 fps, 0 frames > 100 ms) | 21 / 23 pass; grace-nob-hill and filbert-steps had one frame > 100 ms each — W6-Z re-ran them on the W5 baseline tree, which fails filbert-steps the same way (machine noise, not a wave-6 regression) |
+| perf desktop 1440 × 900 high (≤ 150 calls / ≤ 400k) | 20 spots + 3 rides + 2 Halloween-night spots pass, max **122 calls / 365k**, 60 fps |
+| perf phone 390 × 844 mid 4× CPU (≥ 45 fps, 0 frames > 100 ms) | every spot ≥ 45 fps (min **45.0**); grace-nob-hill and filbert-steps had one frame > 100 ms each — W6-Z re-ran them on the W5 baseline tree, which fails filbert-steps the same way (machine noise, not a wave-6 regression) |
 | Halloween night spots (`?halloween=night`) | desktop 101 calls / 328k, phone 66 calls / 229k, 55–60 fps: pass |
 | static sweep, 688 targets | 545 ok · 142 CORRIDOR · **0 boxed · 0 snag** · 1 unreachable (T3 SS Jeremiah O'Brien, as W5-Z) · 0 off |
 

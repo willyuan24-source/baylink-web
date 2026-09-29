@@ -1,6 +1,6 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
-## WAVE 6 DONE · LIVE ON baylink.us — 2026-09-29 ≈ 07:10 PDT
+## WAVE 6 DONE · LIVE ON baylink.us — 2026-09-29 06:50 PDT (`main` fast-forwarded to `5da5822c`, W6-Z GO)
 
 - Wave 6 ran 01:40–07:30 PDT on 2026-09-29 (the owner left at 07:45). Read, in order: this section →
   `docs/opus-bay/sf-w6-summary.md` (给主人的摘要, the nine lanes, numbers, **§5 NEXT**) → `docs/opus-bay/sf-w6-final-verify.md`
