@@ -32,7 +32,8 @@ import { RouteFollower, isLongRoute } from './routeFollow';
  * FEET.corridorSlideMin before it stops); running or jumping into a low blocker with a measured top vaults it in a
  * 0.35 s hop (guarded: feet.vaultPlan); on a bridge deck forward input follows the deck and steers round the tower legs.
  * W5-F10 mantle: a hop that meets a ledge above the body (0.45–1.6 u over the take-off feet) climbs it hands first
- * (startMantle / stepMantle); in the city a ledge higher than that is a wall even in a jump.
+ * (startMantle / stepMantle); in the city a ledge higher than that is a wall even in a jump. The mantle is city-only
+ * (W6-K1): the district keeps its pre-wave-5 hop.
  */
 
 /** = terrain STAND_RADIUS, so A* paths on the nav grid stay valid for the body (A8) */
@@ -604,12 +605,13 @@ export class PlayerController {
         if (dip) { blocked = true; hitX = dip.nx; hitZ = dip.nz; break; }
         // W5-F10 mantle: in the air, the ground ahead stands above the body — a ledge. Within FEET.mantleMin–mantleMax
         // of the take-off feet: climb it hands first (before, the body popped up onto it); in the city a higher one is
-        // a wall even in a jump (a roof is never ground: it is a blocker)
-        if (!this.grounded && !ctx.frozen) {
+        // a wall even in a jump (a roof is never ground: it is a blocker). (W6-K1, the lead's decision) City mode only:
+        // in the district a hop against a ledge lands on it as before wave 5 (district mode never changes)
+        if (!this.grounded && !ctx.frozen && cityTerrain()) {
           const gq = heightAt(r.x, r.z);
           if (gq > p.y + FEET.mantleGap) {
             const rise = gq - this.airFromY;
-            if (rise > FEET.mantleMax && cityTerrain()) {
+            if (rise > FEET.mantleMax) {
               const L = Math.hypot(this.vx, this.vz) || 1;
               blocked = true; hitX = this.vx / L; hitZ = this.vz / L;
               break;
