@@ -19,6 +19,7 @@ import type { PoolArrays } from './mesh';
 import { type CellPool, boundsSphere, createCellPool, hazeCullDepth } from './pools';
 import { CityProps } from './props';
 import { type L0BuildingView, type L0Buildings, type L0Hidden, l0Building, l0Near, setRangeHidden } from './l0index';
+import { cityDropLots } from './hero';
 import { lookZones } from './look';
 import { CitySites } from './sites';
 import type { WorkerIn } from './worker';
@@ -284,7 +285,7 @@ export class CityStreamer {
       this.table = new CellTable(manifest.chunks.map(c => ({ cx: c.cx, cz: c.cz, hero: c.hero })));
       const sites = this.opts.sites;
       this.terrain = createCityTerrain(manifest, { landmarks: sites.walkInputs() });
-      setCityTerrain(this.terrain, { heroDropLots: new Set(manifest.heroDropLots) });
+      setCityTerrain(this.terrain, { heroDropLots: new Set(cityDropLots(manifest.heroDropLots)) });
       // collision decks of 'terrain' landmarks sit exactly under the drawn model
       sites.onBase = (id, y) => { this.terrain?.setLandmarkBase(id, y); };
       const abs = new URL(base, location.href).href;

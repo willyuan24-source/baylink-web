@@ -18,6 +18,7 @@ const { CitySites } = await import('../src/opus-bay/world/sf/sites');
 const { DISTRICT } = await import('../src/opus-bay/data/district');
 const { STYLES, ROOFS } = await import('../src/opus-bay/world/sf/format');
 const { CITY_PAL } = await import('../src/opus-bay/world/palette');
+const { SEAM_FILL } = await import('../src/opus-bay/world/sf/cornersSeamData');
 const { sfDisk } = await import('./opus-bay-sf-disk');
 
 const sf = sfDisk();
@@ -54,7 +55,8 @@ const ALLOWED_PITCHED = new Set([
 const KEEP = new Set<Style>(['industrial', 'pier', 'civic']);
 
 test('roofs: ≥ 80 % flat and ≤ 10 % gable city-wide; pitched house roofs only in the allowed neighbourhoods', () => {
-  assert.equal(rows.length, sf.manifest.counts.buildings);
+  // + W6-W1's North Beach seam fill (the stream worker, and tests/opus-bay-sf-disk.ts, append it to its chunks)
+  assert.equal(rows.length, sf.manifest.counts.buildings + SEAM_FILL.length);
   const n = { flat: 0, gable: 0, hip: 0 } as Record<string, number>;
   const bad: string[] = [];
   for (const r of rows) {

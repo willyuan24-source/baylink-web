@@ -6,6 +6,8 @@ import {
   type ChunkData, type FarData, type SfCurrent, type SfManifest, type WalkGraph,
   decodeChunkFile, decodeFarFile, decodeGraphFile,
 } from '../src/opus-bay/world/sf/format';
+import { addSeamFill } from '../src/opus-bay/world/sf/build';
+import { SEAM_FILL } from '../src/opus-bay/world/sf/cornersSeamData';
 
 /**
  * Node helper (tests / QA tools, lane B): load the published San Francisco from public/opus-bay/sf/<current> on disk,
@@ -50,7 +52,11 @@ export function sfDisk(root = path.resolve(import.meta.dirname, '../public/opus-
     root, base, version: current.version, manifest,
     async chunk(cx, cz) {
       const k = `${cx}_${cz}`;
-      return keys.has(k) ? decodeChunkFile(file(`c/${k}.obc`)) : null;
+      if (!keys.has(k)) return null;
+      // W6-W1: the stream worker appends the North Beach seam fill to the decoded chunk (world/sf/worker.ts)
+      const c = await decodeChunkFile(file(`c/${k}.obc`));
+      addSeamFill(c, SEAM_FILL);
+      return c;
     },
     async rasters(cx, cz, landmarks) {
       const k = `${root}:${cx}_${cz}:${listId(landmarks)}`;

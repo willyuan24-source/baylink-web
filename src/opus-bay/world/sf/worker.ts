@@ -1,7 +1,8 @@
 /// <reference lib="webworker" />
 import { type ChunkRasters, type LandmarkWalkInput, rasterizeChunk, transferables as rasterTransferables } from '../../core/sfTerrain';
 import { TypedBatch } from '../typedBatch';
-import { type ChunkContext, type CityInit, buildL0, buildL1, chunkContext, dropSeamBuildings } from './build';
+import { type ChunkContext, type CityInit, addSeamFill, buildL0, buildL1, chunkContext, dropSeamBuildings } from './build';
+import { SEAM_FILL } from './cornersSeamData';
 import { Lru } from './cell';
 import { l0Transferables } from './l0index';
 import { buildFar, type FarInit, type FarWater } from './far';
@@ -57,6 +58,8 @@ async function chunkData(cx: number, cz: number): Promise<ChunkData> {
       // seam buildings standing in the hero's water go before anything reads the chunk: no drawing, no collision
       const chunk = decodeChunk(await gunzip(raw));
       if (INIT) dropSeamBuildings(chunk, INIT);
+      // W6-W1: the North Beach seam blocks the district leaves empty get their OSM buildings back (drawn and walked)
+      addSeamFill(chunk, SEAM_FILL);
       return chunk;
     })();
     decoded.set(k, p);

@@ -149,7 +149,8 @@ function world() {
     city.setFar(far);
     sites.onBase = (id, y) => { city.setLandmarkBase(id, y); };
     sites.attach(null as never, (x, z) => demSample(far.dem, x, z));
-    T.setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+    // the game's drop set (world/sf/stream.ts: the manifest's lots and W6-W1's North Beach lot under the church)
+    T.setCityTerrain(city, { heroDropLots: new Set((await import('../src/opus-bay/world/sf/hero')).cityDropLots(sf.manifest.heroDropLots)) });
     const ix = await sf.graphIndex();
     return { T, nav, attach: (x: number, z: number, r: number) => sf.attachAround(city, x, z, r, lms), ix, main: ix.mainComponent() };
   })());
@@ -275,6 +276,10 @@ const ROUTE_CORRIDORS: Record<string, string> = {
   'r2-south-tower': 'the bridge deck, between its railings',
   'r3-de-young': 'the de Young\'s forecourt between the tower\'s wall and the concourse\'s planting (the landmark\'s arrival)',
   'r3-windmill': 'the windmill\'s path between its tulip beds (the landmark\'s arrival)',
+  // W6-W1: the North Beach seam fill put the city's buildings back in the band these crossed as open pavement
+  'r1-washington-sq:via1': 'Grant Ave by Columbus Ave, a street between buildings since the North Beach seam fill (W6-W1)',
+  'r1-washington-sq:via3': 'a North Beach street between buildings since the seam fill (W6-W1)',
+  'r1-peter-paul': 'the church steps on Filbert St: the nave behind, the square ahead across the street (W6-W1 / W6-W2)',
 };
 
 test('W5-L1 (CP-8): every walking-route stop and via point passes the walk sweep\'s judge — standable, reached from the walking graph, three of four ways open (the checkpoint\'s r2 Fort Point and r3 Tea Garden stalls)', async () => {

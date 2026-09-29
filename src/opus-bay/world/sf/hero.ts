@@ -5,6 +5,7 @@ import { hash2, shade } from '../builder';
 import { PAL } from '../palette';
 import { type CityPalette, type CityStyle, toyBuildingL1 } from '../recipes/city';
 import { FACADES, RESID, ROOF_VIC, SHOP_ROOF, SHOP_WALL } from '../recipes/palettes';
+import { nbDropLots } from './cornersNB';
 import { CityBatch, type PoolArrays } from './mesh';
 
 /**
@@ -49,10 +50,20 @@ export function heroLandRaster(step = 2): { x0: number; z0: number; step: number
   return { x0: g.minX, z0: g.minZ, step, cols, rows, data };
 }
 
+/**
+ * The district lots city mode hides: the offline build's manifest.heroDropLots (the city's seam buildings stand there)
+ * plus W6-W1's North Beach lots (world/sf/cornersNB.ts nbDropLots: the plain box on Saints Peter and Paul's site).
+ */
+export function cityDropLots(manifestDrop: readonly number[]): number[] {
+  return [...new Set([...manifestDrop, ...nbDropLots(DISTRICT.blocks)])];
+}
+
 /** L1 boxes of every district lot and pier shed (world space, pool arrays), or null when there is none. */
 export function heroProxy(): PoolArrays | null {
   const b = new CityBatch(8192);
+  const hide = new Set(nbDropLots(DISTRICT.blocks));
   DISTRICT.blocks.forEach((lot, i) => {
+    if (hide.has(i)) return;
     const c = lot.footprint.reduce((s, p) => ({ x: s.x + p.x / lot.footprint.length, z: s.z + p.z / lot.footprint.length }), { x: 0, z: 0 });
     toyBuildingL1(b, {
       poly: lot.footprint, baseY: lot.baseY ?? heightAt(c.x, c.z), H: lot.height, style: STYLE[lot.style],
