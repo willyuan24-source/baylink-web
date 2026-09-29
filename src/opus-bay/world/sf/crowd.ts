@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import type { Obstacle } from '../../actors/controller';
 import type { Quality } from '../../core/store';
 import { Batch, CYL, M, SPHERE } from '../builder';
-import { crowdPeopleMaterial, personGeometry } from '../life';
+import { cityPeopleFigure, crowdPeopleMaterial } from '../life';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, centreLineDistance, lifeRng, predictApproach } from './streetNet';
 import { type CrowdPin, type LaneHit, type WalkerLane, laneDistanceInto } from './crowdSpots';
 import { obstaclePool } from './recordPool';
@@ -938,10 +938,48 @@ export function personFarGeometry(): THREE.BufferGeometry {
   const b = new Batch();
   for (const s of [-1, 1]) b.add(CYL(4), M(s * 0.09, 0.02, 0, Math.PI / 4, 0.08, 0.46, 0.08), '#4b5563', [0, s, 0, 0]);
   b.add(CYL(6, 0.8), M(0, 0.44, 0, 0, 0.22, 0.6, 0.2), '#ffffff', [9, 0, 0, 0]);
-  b.addFlat(SPHERE(6, 4), M(0, 1.24, 0.01, 0, 0.2, 0.21, 0.2), (_x, _y, _z, _lx, ly, lz) => (ly > 0.35 || (ly > -0.1 && lz < -0.4) ? HAIR : SKIN));
+  // (W6-X5) aInfo.x 10: the walker's own skin and hair tones (life.ts peopleMaterial), like the near figure's
+  b.addFlat(SPHERE(6, 4), M(0, 1.24, 0.01, 0, 0.2, 0.21, 0.2), (_x, _y, _z, _lx, ly, lz) => (ly > 0.35 || (ly > -0.1 && lz < -0.4) ? HAIR : SKIN), [10, 0, 0, 0]);
   return b.build();
 }
 const HAIR = new THREE.Color('#5a3d2b'), SKIN = new THREE.Color('#e9c3a0');
+
+let CITY_CAPSULE: THREE.BufferGeometry | null = null, CITY_NUB: THREE.BufferGeometry | null = null;
+/**
+ * Wave 6 · lane X · W6-X5: the city crowd's near figure (within CROWD.nearLod, at most CROWD.nearMax a frame), in the
+ * shape language of the residents and the heroes (actors/models.ts buildNpc): stubby legs and bean shoes, a soft capsule
+ * body with nub sleeves and mitten hands, a round head with a face (two eyes with a glint, rosy cheeks) and a hair cap.
+ * The walkers used to be the district promenade's faceless figure (life.ts personGeometry, unchanged for the district).
+ * Channels as that figure's: aInfo.x 9 = the shirt (the per-walker tint), aInfo.y ±1 = the legs (swing), aInfo.z 1 = the
+ * hand that waves back (x > 0); new, aInfo.x 10 = skin / hair, recoloured per walker from its phase (life.ts
+ * peopleMaterial: dark vertex colours are hair, light ones skin), so the crowd is not one skin and one hair colour.
+ */
+export function cityPersonGeometry(): THREE.BufferGeometry {
+  CITY_CAPSULE ??= new THREE.CapsuleGeometry(1, 1, 2, 8);
+  CITY_NUB ??= new THREE.CapsuleGeometry(1, 1, 1, 6);
+  const b = new Batch();
+  const pants = '#4b5563', shoes = '#3c3a38', eye = '#1e1b1a', cheek = '#eea08e';
+  for (const s of [-1, 1]) {
+    // stubby legs (a capsule up into the body) and bean shoes, swinging (aInfo.y ±1)
+    b.add(CITY_CAPSULE, M(s * 0.095, 0.25, 0, 0, 0.085, 0.12, 0.085), pants, [0, s, 0, 0]);
+    b.add(SPHERE(6, 4), M(s * 0.095, 0.055, 0.04, 0, 0.09, 0.055, 0.13), shoes, [0, s, 0, 0]);
+    // nub sleeves in the shirt's tint, tilted out, and mitten hands in the walker's skin (the x > 0 one waves back)
+    b.add(CITY_NUB, M(s * 0.255, 0.74, 0, 0, 0.062, 0.06, 0.062, 0, s * 0.32), '#ffffff', [9, 0, 0, 0]);
+    b.add(SPHERE(5, 3), M(s * 0.29, 0.6, 0.02, 0, 0.066, 0.066, 0.066), SKIN, [10, 0, s > 0 ? 1 : 0, 0]);
+    // the face: eyes (a dark bean with a white glint) and cheeks, on the head's front (+z)
+    b.add(SPHERE(5, 3), M(s * 0.07, 1.215, 0.188, 0, 0.026, 0.034, 0.02), eye);
+    b.add(SPHERE(3, 2), M(s * 0.075, 1.232, 0.205, 0, 0.009, 0.009, 0.006), '#ffffff');
+    b.add(SPHERE(4, 3), M(s * 0.118, 1.155, 0.158, 0, 0.036, 0.022, 0.018), cheek);
+  }
+  b.add(CITY_CAPSULE, M(0, 0.69, 0, 0, 0.21, 0.17, 0.19), '#ffffff', [9, 0, 0, 0]);
+  b.add(SPHERE(9, 7), M(0, 1.2, 0.01, 0, 0.21, 0.2, 0.2), SKIN, [10, 0, 0, 0]);
+  // the hair cap: over the crown and the back, the forehead and the face left clear
+  b.add(SPHERE(8, 4), M(0, 1.285, -0.035, 0, 0.222, 0.155, 0.212, -0.25), HAIR, [10, 0, 0, 0]);
+  return b.build();
+}
+
+// (W6-X5) the district promenade's walkers wear it too in city mode (life.ts pickPeopleFigure)
+cityPeopleFigure.make = cityPersonGeometry;
 
 const _m = new THREE.Matrix4();
 const _qt = new THREE.Quaternion();
@@ -995,7 +1033,7 @@ export class CrowdLayer {
     this.sim = new CrowdSim(net, env, { max, seed: 0xc0ffee });
     this.dist = new Float32Array(max);
     this.sorted = new Float32Array(max);
-    this.near = figure(personGeometry(), max, 'crowd-near');
+    this.near = figure(cityPersonGeometry(), max, 'crowd-near');
     this.far = figure(personFarGeometry(), max, 'crowd-far');
     this.group.add(this.near.mesh, this.far.mesh);
   }

@@ -395,6 +395,22 @@ if (aInfo.z > 0.0) {
   return m;
 }
 
+/**
+ * Wave 6 · lane X · W6-X5: aInfo.x 10 = skin or hair (the city crowd's figures, world/sf/crowd.ts; the promenade's figure
+ * has no such part, so the district is unchanged): each walker's own tones, picked from its phase (a per-walker constant)
+ * — a dark vertex colour is hair, a light one skin. Linear colours, like the vertex colours.
+ */
+const tone = (hexes: string[]) => hexes.map(h => { const c = new THREE.Color(h); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; });
+const SKIN_TONES = tone(['#f3d2b3', '#e9c3a0', '#dcae88', '#c99673', '#a8714f', '#8a5a3c', '#6e4630']);
+const HAIR_TONES = tone(['#2a1e17', '#4a3222', '#5a3d2b', '#1f1a17', '#8a5a36', '#c9a15e', '#9a948c', '#3b2a20']);
+const pick = (list: string[], h: string) => list.map((c, i) => `${i ? 'else ' : ''}${i < list.length - 1 ? `if (${h} < ${((i + 1) / list.length).toFixed(4)}) ` : ''}t = ${c};`).join(' ');
+const PEOPLE_TONES = `if (aInfo.x > 9.5 && aInfo.x < 10.5) {
+  vec3 t;
+  float hs = fract(sin(aPhase * 91.37 + 3.1) * 43758.5453), hh = fract(sin(aPhase * 57.13 + 8.7) * 24634.6345);
+  if (dot(vColor.rgb, vec3(0.3, 0.59, 0.11)) < 0.3) { ${pick(HAIR_TONES, 'hh')} } else { ${pick(SKIN_TONES, 'hs')} }
+  vColor.rgb = t;
+}`;
+
 function peopleMaterial(): THREE.MeshStandardMaterial {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9 });
   m.name = 'ob-people';
@@ -408,14 +424,22 @@ vColor = vec4(1.0);
 vColor.rgb *= color;
 #endif
 #ifdef USE_INSTANCING_COLOR
-if (aInfo.x > 8.5) vColor.rgb *= instanceColor.rgb;
-#endif`)
+if (aInfo.x > 8.5 && aInfo.x < 9.5) vColor.rgb *= instanceColor.rgb;
+#endif
+${PEOPLE_TONES}`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 if (abs(aInfo.y) > 0.5) transformed.z += sin(uTime * 7.5 + aPhase) * aInfo.y * max(aWalk, 0.0) * (0.55 - transformed.y) * 0.55;
 if (aInfo.z > 0.5) { float wv = max(-aWalk, 0.0); transformed.y += wv * 0.62; transformed.x += wv * (0.05 + sin(uTime * 13.0 + aPhase) * 0.08); }`);
   };
   return m;
 }
+
+/**
+ * (W6-X5) The city crowd's near figure, registered by world/sf/crowd.ts when the city chunk loads (so nothing of it is in
+ * the main graph): in city mode the promenade's walkers take it too (faces, skin and hair tones); the district keeps
+ * personGeometry.
+ */
+export const cityPeopleFigure: { make: (() => THREE.BufferGeometry) | null } = { make: null };
 
 let CROWD_MAT: THREE.MeshStandardMaterial | null = null;
 /**
@@ -490,6 +514,8 @@ export class Life {
   private sealState = { t: 0, next: 12, x: 0, z: 0, active: false };
   private sealSpots: Vec2[] = [];
   private people: THREE.InstancedMesh;
+  /** (W6-X5) the district figure and, once the city chunk registered it, the city figure (the same instanced attributes) */
+  private peopleFigures: { district: THREE.BufferGeometry; city: THREE.BufferGeometry | null } | null = null;
   private walkers: Walker[] = [];
   private dogs: THREE.InstancedMesh;
   /** (W5-T4) the instances in reach packed to the front (LIFE_FAR); per-instance data by source instance */
@@ -828,9 +854,21 @@ export class Life {
   /** True while the hero life is paused (F13; QA and tests). */
   get paused() { return this.heroFar; }
 
+  /** (W6-X5) the walkers wear the city crowd's figure in city mode (once world/sf/crowd.ts has registered it), else the district's */
+  private pickPeopleFigure(city: boolean) {
+    const figs = (this.peopleFigures ??= { district: this.people.geometry, city: null });
+    if (city && !figs.city && cityPeopleFigure.make) {
+      figs.city = cityPeopleFigure.make();
+      for (const name of ['aPhase', 'aWalk']) figs.city.setAttribute(name, figs.district.getAttribute(name));
+    }
+    const want = city && figs.city ? figs.city : figs.district;
+    if (this.people.geometry !== want) this.people.geometry = want;
+  }
+
   update(dt: number, t: number, night: number) {
     const s = game.get();
     if (s.phase !== 'title') this.ensureModels();
+    this.pickPeopleFigure(s.worldMode === 'city');
     this.setHeroFar(this.heroFarSource());
     if (this.heroFar) {
       this.updateFerries(dt, t, s.phase);
@@ -1286,6 +1324,7 @@ export class Life {
 
   dispose() {
     this.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); });
+    this.peopleFigures?.district.dispose(); this.peopleFigures?.city?.dispose();
     this.flapMat.dispose(); this.peopleMat.dispose(); this.mistMat.dispose(); this.beamMat?.dispose();
   }
 }

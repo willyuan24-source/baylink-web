@@ -8,7 +8,8 @@ floor 1375).
 
 1. 万圣节明信片画好了 4 张（找齐南瓜灯、不给糖就捣蛋、10/31 大夜晚、教会区亡灵节），和以前的明信片同一种手工黏土小模型画风；已交给做万圣节的两条线（H、G）去放进游戏。
 2. 万圣节音效做好了：敲门三下 → 门吱呀打开 → 糖果哗啦倒进桶里 → 叮！；找到南瓜灯时一声可爱的“呜～”加一串铃声；换上万圣节服装“噗”的一声魔法亮晶晶；10/31 晚上远处钟楼敲一下。全部是程序合成，不占下载，只有万圣节活动开始后才加载。
-3. 到目前为止 Higgsfield 只花了 10 分（上限 1000），每一笔都记在账本里。
+3. 城市里的路人变可爱了：以前是没有脸、肤色发色都一样的小人，现在有眼睛（带高光）、腮红、短袖子和小手，每个人的肤色和发色都不一样，和 BAYBAY、主角同一种圆滚滚的玩具风格（只改城市模式，街区模式不变）。
+4. 到目前为止 Higgsfield 只花了 10 分（上限 1000），每一笔都记在账本里。
 
 ## Part a1 · Halloween postcards and sounds (2026-09-29 01:53–02:25 PDT)
 
@@ -67,3 +68,51 @@ All synthesized with the engine's primitives (no files), like every sound in `au
   `halloweenPostcard(id)?.large / .small` with its `title` / `alt` at your moments; emit the frozen `halloween` events for
   the sounds (nothing to import). Say BAYBAY's Halloween lines as BAYBAY bubbles with the texts of your line tables and
   they will speak once lane X's voice batch lands.
+
+## Part a2 · the owner's "直接优化": the city's people (2026-09-29 02:40–03:05 PDT)
+
+### What I shot and what was weakest
+
+Desktop 1440 × 900 (quality high) and phone 390 × 844 dpr 3 (quality mid) at the title, the Ferry Building start, the
+Painted Ladies, the Golden Gate (Presidio arrival), the Dragon Gate and Coit Tower (golden hour), BAYBAY and the player
+up close (`C:/Users/willy/opus-qa/w6/x/shots/`). Ranked, the weakest things a player sees most:
+
+1. **The people.** The city crowd and the promenade walkers (in almost every shot, often within a few metres of the
+   camera) were the district promenade's faceless figure: a capsule, a ball head with a hair cap, stick legs, floating
+   shirt-coloured hands, and one skin and one hair colour for everybody — next to the polished BAYBAY, the player and
+   the residents (faces, cheeks, nub arms) they looked unfinished. → **fixed in this part (W6-X5)**.
+2. The downtown / Chinatown blocks: grey-blue boxes with large flat windows right beside the Dragon Gate.
+3. The day sky: a flat pale beige at street level (the golden-hour and night skies look good).
+4. The gulls on the water read as grey blobs from the Ferry plaza.
+
+### What was built (W6-X5)
+
+| file | change |
+|---|---|
+| `src/opus-bay/world/sf/crowd.ts` (surgical, named) | new `cityPersonGeometry()` — the crowd's near figure; the far figure's head joins the tone channel; `cityPeopleFigure.make` registered at import |
+| `src/opus-bay/world/life.ts` (surgical, named) | `peopleMaterial`: the shirt tint only for `aInfo.x` 9, new channel 10 = skin / hair picked per walker from its phase (7 skin tones, 8 hair colours; a dark vertex colour is hair, a light one skin); `cityPeopleFigure` + `Life.pickPeopleFigure`: the promenade's walkers wear the city figure in city mode, the district figure otherwise |
+| `tests/opus-bay-w6-x.test.ts` | +2 tests |
+
+The new figure (the residents' shape language, `actors/models.ts buildNpc`): stubby capsule legs up into the body and
+bean shoes (swinging as before), a soft capsule body in the walker's shirt tint, nub sleeves tilted out, mitten hands in
+the walker's skin (the x > 0 hand still waves back, W5-T1), a round head with two dark bean eyes with a white glint and
+rosy cheeks, a hair cap over the crown and the back. **664 triangles** (the old one 324; the crowd draws at most
+`CROWD.nearMax` = 18 near figures a frame: ≤ 12k, + ≈ 6k over wave 5 worst case; the far figure stays 92). **No new draw
+call, material or program** (the same `ob-people` program, the same instanced attributes).
+
+### Evidence
+
+- `docs/opus-bay/qa/w6/X/x5-crowd-alamo-before-after.jpg` and `x5-crowd-ferry-before-after.jpg` (desktop, same spots):
+  faces, cheeks, sleeves and hands; skin tones from light to dark brown and hair from black to blond / grey in one crowd.
+  Phone 390 × 844 at the Painted Ladies (`shots/ph-painted-after.jpg`, read): the near walkers show their faces; the one
+  inside the lens shrink (≤ 3.6 u) shows a faceted head (it shrinks away as before).
+- The district: `personGeometry()` (324 triangles, no channel 10) is what the district's walkers wear; the test checks it
+  carries no tone channel and that `pickPeopleFigure(false)` restores it.
+- Checks: tsc 0 · eslint 0 errors · suite (below, before the push).
+
+### Decisions
+
+- Faces and tones in code, not a generated GLB: a Higgsfield character would be a new draw call and a skinned model per
+  walker (the crowd is one instanced mesh of up to 64); the procedural figure matches the residents exactly.
+- Tones from the walker's phase in the shader (no new attribute): the phase is a per-walker constant, so a walker keeps
+  its skin and hair across LOD switches (the far figure uses the same hash).

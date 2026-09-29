@@ -102,3 +102,56 @@ test('W6-X3 · the big night tolls once a session; audio.ts loads the sounds laz
   assert.match(src, /import\('\.\/halloween'\)/);
   assert.match(src, /case 'halloween': halloweenSfx\(e, ev\)/);
 });
+
+test('W6-X5 · the city crowd near figure: a face, sleeves and hands; per-walker skin / hair; small; the district figure unchanged', async () => {
+  const { cityPersonGeometry, personFarGeometry } = await import('../src/opus-bay/world/sf/crowd');
+  const { personGeometry, crowdPeopleMaterial } = await import('../src/opus-bay/world/life');
+  const tris = (g: { index: { count: number } | null; getAttribute(n: string): { count: number } }) => (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+  const near = cityPersonGeometry(), far = personFarGeometry(), district = personGeometry();
+  console.log(`near ${tris(near as never)} · far ${tris(far as never)} · district ${tris(district as never)} triangles`);
+  assert.ok(tris(near as never) <= 700, `near figure ${tris(near as never)} ≤ 700 (at most CROWD.nearMax = 18 a frame: ≤ 12.6k)`);
+  assert.ok(tris(far as never) <= 100);
+  const info = near.getAttribute('aInfo'), pos = near.getAttribute('position'), col = near.getAttribute('color');
+  let wave = 0, waveMinX = Infinity, tone = 0, dark = 0, face = 0, legs = 0;
+  for (let i = 0; i < info.count; i++) {
+    if (info.getZ(i) > 0.5) { wave++; waveMinX = Math.min(waveMinX, pos.getX(i)); }
+    if (Math.abs(info.getX(i) - 10) < 0.5) tone++;
+    if (Math.abs(info.getY(i)) > 0.5) legs++;
+    // the eyes: very dark, unflagged vertices on the head's front
+    if (info.getX(i) < 0.5 && pos.getY(i) > 1.1 && pos.getZ(i) > 0.15 && col.getX(i) + col.getY(i) + col.getZ(i) < 0.1) dark++;
+    if (pos.getY(i) > 1.1 && pos.getZ(i) > 0.15 && info.getX(i) < 0.5) face++;
+  }
+  assert.ok(wave > 0 && waveMinX > 0.1, 'one hand (x > 0) waves back, as before');
+  assert.ok(tone > 0 && legs > 0 && dark > 0 && face > dark, 'skin / hair channel, swinging legs, eyes and cheeks');
+  // the district's promenade figure has no tone channel (its looks unchanged)
+  const dInfo = district.getAttribute('aInfo');
+  for (let i = 0; i < dInfo.count; i++) assert.ok(dInfo.getX(i) < 9.5, 'the promenade figure is untouched');
+  // the shader: the shirt tint only for 9, the tones for 10 (from the walker's phase)
+  const shader = { uniforms: {} as Record<string, unknown>, vertexShader: '#include <common>\n#include <color_vertex>\n#include <begin_vertex>', fragmentShader: '' };
+  crowdPeopleMaterial().onBeforeCompile(shader as never, undefined as never);
+  assert.match(shader.vertexShader, /aInfo\.x > 8\.5 && aInfo\.x < 9\.5\) vColor\.rgb \*= instanceColor\.rgb/);
+  assert.match(shader.vertexShader, /aInfo\.x > 9\.5 && aInfo\.x < 10\.5/);
+  assert.match(shader.vertexShader, /fract\(sin\(aPhase/);
+});
+
+test('W6-X5 · the promenade walkers wear the city figure in city mode only (registered by the city chunk)', async () => {
+  const { game } = await import('../src/opus-bay/core/store');
+  const { Life, cityPeopleFigure } = await import('../src/opus-bay/world/life');
+  await import('../src/opus-bay/world/sf/crowd');
+  assert.ok(cityPeopleFigure.make, 'crowd.ts registers the city figure');
+  const before = game.get().worldMode;
+  const life = new Life([]);
+  const people = life.group.getObjectByName('pedestrians') as import('three').InstancedMesh;
+  const district = people.geometry;
+  const hasTone = (g: import('three').BufferGeometry) => { const a = g.getAttribute('aInfo'); for (let i = 0; i < a.count; i++) if (a.getX(i) > 9.5) return true; return false; };
+  assert.equal(hasTone(district), false);
+  game.set({ worldMode: 'city' } as never);
+  (life as unknown as { pickPeopleFigure(city: boolean): void }).pickPeopleFigure(true);
+  assert.notEqual(people.geometry, district);
+  assert.ok(hasTone(people.geometry));
+  assert.equal(people.geometry.getAttribute('aPhase'), district.getAttribute('aPhase'), 'the same per-walker attributes');
+  (life as unknown as { pickPeopleFigure(city: boolean): void }).pickPeopleFigure(false);
+  assert.equal(people.geometry, district, 'back in the district: its own figure');
+  game.set({ worldMode: before } as never);
+  life.dispose();
+});
