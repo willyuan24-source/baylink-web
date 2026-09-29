@@ -237,6 +237,8 @@ save is quiet — red on the old file), `tests/opus-bay-w6-k2-flow.test.ts` 1 (s
 
 ### Checks
 
-On the rebased head (`1391df70` over `599c94d8`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
-warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1473 / 1474** under load, the one
-failure the wall-clock P1 slice timing (`tests/opus-bay-audio.test.ts`), green alone 18 / 18. Higgsfield: 0.
+Pushed to `origin/opus-bay` 05:38 PDT: `929b12da` (R1, R3, R4), `c23070e7` (R2, onboarding), `37f79abf` (R2, the reset's
+gate), `cb4bbd27` (this report). On that tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1480 / 1480** (an earlier run under load
+had the wall-clock P1 slice timing red once, green alone 18 / 18). The dev server on 5622 is stopped; no Chrome of mine
+runs. Higgsfield: 0.
