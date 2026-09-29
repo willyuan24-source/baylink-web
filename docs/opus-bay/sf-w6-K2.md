@@ -158,3 +158,9 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
 ### Requests
 
 - None.
+
+### Final checks (2026-09-29 04:05 PDT)
+
+On the pushed head `5fc04310` (my part c over lanes S, W, H and G's latest): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+`npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+**1447 / 1447**, fail 0. The dev server on 5602 is stopped; no Chrome of mine is running. Higgsfield: 0.
