@@ -4,7 +4,7 @@ import { eventOccursOn } from './event-calendar';
 import { parsePlanEditCommand } from './planner-edit-command';
 import { plannerNoticeText } from './planner-copy';
 import { clockMinutes, resolveStopTiming, resolveTimeEvidence } from './planner-hours';
-import { clockLabel, placeMatchesFilters, planDetailsError, settingForStop, stopKey } from './planner-itinerary';
+import { clockLabel, knownAdmissionUsd, placeMatchesFilters, planBudget, planDetailsError, settingForStop, stopKey } from './planner-itinerary';
 import { distanceKm, todayInBay, validDay, type PlanDetails, type PlannerEvent, type PlannerPlace, type Stop } from './planner';
 import type { OutingCatalog } from './planner-outings';
 
@@ -13,7 +13,7 @@ export type PlanEditInput = { current: EditablePlan; message: string; lockedStop
 export type PlanEditResult = { status: 'proposal'; nextPlan: EditablePlan; changes: string[]; warnings: string[]; issues: string[]; canApply: boolean }
   | { status: 'unsupported'; reason: string };
 const normalized = (value: string) => simplifySearch(value).normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-const priceOf = (fact: PlannerEvent | PlannerPlace) => typeof fact.planning?.admissionUsd === 'number' && Number.isFinite(fact.planning.admissionUsd) && fact.planning.admissionUsd >= 0 ? fact.planning.admissionUsd : null;
+const priceOf = knownAdmissionUsd;
 const precisePoint = (fact: PlannerEvent | PlannerPlace) => fact.location?.precision === 'venue' && Number.isFinite(fact.location.lat) && Number.isFinite(fact.location.lng) && Math.abs(fact.location.lat) <= 90 && Math.abs(fact.location.lng) <= 180;
 const unavailable = (fact: PlannerEvent | PlannerPlace, date: string) => {
   const place = fact as PlannerPlace & { status?: string; cancelled?: boolean; suspended?: boolean };
@@ -42,7 +42,7 @@ export function proposePlanEdit({ current, message, lockedStops = [], asOf = tod
     const error = planDetailsError(plan.details);
     if (error) return { issues: [text(error, 'The edited start/end times or allowances are invalid for a same-day plan.')], warnings, timings };
     if (plan.date < asOf) issues.push(text('修改后的日期已经过去。', 'The edited date is in the past.'));
-    let cursor = clockMinutes(plan.details.startTime), knownAdmission = 0, unknownPrices = 0;
+    let cursor = clockMinutes(plan.details.startTime);
     const ages = plan.details.constraints?.childAges?.length ? plan.details.constraints.childAges : plan.details.constraints?.childAge != null ? [plan.details.constraints.childAge] : [];
     plan.stops.forEach((stop, index) => {
       const fact = factFor(stop)!;
@@ -60,21 +60,16 @@ export function proposePlanEdit({ current, message, lockedStops = [], asOf = tod
       if (fact.planning?.reservation === 'required') warnings.push(text(`${fact.title}：需预约或购票，尚未确认余位。`, `${fact.title}: a reservation or ticket is required; availability is unconfirmed.`));
       if (fact.planning?.programTimeUnconfirmed) warnings.push(text(`${fact.title}：主节目场次尚未确认，场馆开放不代表演出时间。`, `${fact.title}: program times are unconfirmed; venue hours are not show times.`));
       const amount = priceOf(fact);
-      if (amount == null) { unknownPrices++; warnings.push(text(`${fact.title}：费用未知，不按免费或零元计算。`, `${fact.title}: cost is unknown and is not treated as free or zero.`)); }
-      else knownAdmission += amount;
+      if (amount == null) warnings.push(text(`${fact.title}：费用未知，不按免费或零元计算。`, `${fact.title}: cost is unknown and is not treated as free or zero.`));
       if (plan.details.constraints?.freeOnly && amount !== 0) issues.push(text(`${fact.title}：没有符合仅免费条件的已知零元入场费。`, `${fact.title}: no known zero admission price meets the free-only condition.`));
       cursor = Math.max(arrival, timing.start) + setting.durationMinutes;
     });
     if (cursor > clockMinutes(plan.details.finishBy)) issues.push(text(`计划超过结束时间 ${cursor - clockMinutes(plan.details.finishBy)} 分钟。`, `The plan exceeds the finish time by ${cursor - clockMinutes(plan.details.finishBy)} minutes.`));
     if (cursor >= 1440) issues.push(text('计划跨到第二天，目前仅支持当天行程。', 'The plan crosses midnight; only same-day outings are supported.'));
-    const subtotal = knownAdmission * plan.details.partySize + plan.details.extraCostUsd;
-    if (plan.details.totalBudgetUsd != null && subtotal > plan.details.totalBudgetUsd + 0.0000001) issues.push(text(`已知费用与预留合计 $${subtotal.toFixed(2)}，超过整趟预算。`, `Known costs and allowances total $${subtotal.toFixed(2)}, exceeding the trip budget.`));
-    const filters = plan.details.constraints;
-    if (filters?.budget != null) {
-      const admissionCost = filters.budgetScope === 'total' ? knownAdmission * plan.details.partySize : knownAdmission;
-      if (admissionCost > filters.budget + 0.0000001) issues.push(text('已知门票合计超过原有门票预算条件。', 'Known admission prices exceed the original admission budget condition.'));
-    }
-    if (unknownPrices) warnings.push(text('还有费用未知，不能确认整趟符合预算；餐饮、交通与手续费仍需核实。', 'Some costs remain unknown, so the whole outing cannot be confirmed within budget. Recheck meals, transport and fees.'));
+    const budget = planBudget(plan.stops, plan.details, factFor);
+    if (budget.overBy > 0) issues.push(text(`已知费用与预留合计 $${budget.subtotal.toFixed(2)}，超过整趟预算。`, `Known costs and allowances total $${budget.subtotal.toFixed(2)}, exceeding the trip budget.`));
+    if (budget.admissionOverBy > 0) issues.push(text('已知门票合计超过原有门票预算条件。', 'Known admission prices exceed the original admission budget condition.'));
+    if (budget.unknown.length) warnings.push(text('还有费用未知，不能确认整趟符合预算；餐饮、交通与手续费仍需核实。', 'Some costs remain unknown, so the whole outing cannot be confirmed within budget. Recheck meals, transport and fees.'));
     warnings.push(text('交通仍是原有预留，未查询实际路线；修改不会自动预订或购买。', 'Travel times remain your existing allowances, not checked routes. This edit does not book or purchase anything.'));
     return { issues: [...new Set(issues)], warnings: [...new Set(warnings)], timings };
   };

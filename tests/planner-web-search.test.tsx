@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
-import { parsePlannerWebResult, plannerWebAnswerParts, safePlannerWebUrl } from '../src/lib/planner-web-search';
+import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, safePlannerWebUrl } from '../src/lib/planner-web-search';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/plan' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage,
@@ -17,6 +17,7 @@ const props: Props = { query: '  Oakland live music  ', date: '2026-10-03', regi
 const response = (answer = 'Check event details before going. [1]') => ({ ok: true, responseMode: 'web', checkedAt: '2026-09-29T19:00:00.000Z', answer, cached: false,
   sources: [{ title: 'Venue calendar', url: 'https://museumca.org/events/', snippet: 'Check admission and event conditions.' }] });
 const deferred = () => { let resolve!: (value: unknown) => void; const promise = new Promise<unknown>(done => { resolve = done; }); return { promise, resolve }; };
+const candidateResponse = () => ({ ...response(), candidates: [{ id: 'web-omca', name: 'Oakland Museum of California', city: 'Oakland', summary: 'Museum visit', timeSummary: null, priceSummary: null, sourceUrls: ['https://museumca.org/events/'] }] });
 
 beforeEach(context => {
   localStorage.clear();
@@ -183,4 +184,85 @@ test('success is counted anonymously and a response without safe sources is not 
   assert.match(view.getByRole('alert').textContent!, /No result with usable sources/);
   assert.equal(view.container.querySelector('.planner-web-results'), null);
   assert.equal(metrics.mock.callCount(), 1);
+});
+
+test('candidate cards require a real cited source and preserve unknown price and hours', () => {
+  const result = parsePlannerWebResult({ ...candidateResponse(), candidates: [
+    ...candidateResponse().candidates,
+    { ...candidateResponse().candidates[0], id: 'fabricated', sourceUrls: ['https://example.com/invented'] },
+    { ...candidateResponse().candidates[0], id: 'unsafe', sourceUrls: ['javascript:alert(1)'] },
+  ] });
+  assert.ok(result);
+  assert.equal(result.candidates.length, 1);
+  assert.equal(result.candidates[0].timeSummary, null);
+  assert.equal(result.candidates[0].priceSummary, null);
+  assert.deepEqual(parsePlannerWebResult(response())?.candidates, []);
+});
+
+test('guest candidates survive a new search and reload, preserve date, and can be removed without changing a plan', async () => {
+  api.request = async () => candidateResponse();
+  const view = render(<PlannerWebSearch {...props} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  assert.match(view.container.textContent!, /No price provided; cannot be treated as free/);
+  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  assert.equal(loadGuestWebCandidates().length, 1);
+  assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-03');
+  view.rerender(<PlannerWebSearch {...props} query="Berkeley cafes" />);
+  assert.ok(view.getByRole('region', { name: 'My web candidates' }));
+  assert.equal(view.container.querySelector('.planner-web-results'), null);
+  view.unmount();
+  const reloaded = render(<PlannerWebSearch {...props} />);
+  assert.ok(reloaded.getByText('Oakland Museum of California'));
+  fireEvent.click(reloaded.getByRole('button', { name: 'Remove candidate' }));
+  assert.deepEqual(loadGuestWebCandidates(), []);
+});
+
+test('account candidates stay in memory and switching owners clears results and candidates', async () => {
+  api.request = async () => candidateResponse();
+  const view = render(<PlannerWebSearch {...props} ownerId="account-a" />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  assert.match(view.container.textContent!, /not synced to your account/);
+  assert.equal(localStorage.getItem(GUEST_WEB_CANDIDATES_KEY), null);
+  view.rerender(<PlannerWebSearch {...props} ownerId="account-b" />);
+  assert.equal(view.queryByRole('region', { name: 'My web candidates' }), null);
+  assert.equal(view.container.querySelector('.planner-web-results'), null);
+  view.rerender(<PlannerWebSearch {...props} />);
+  assert.equal(view.queryByText('Oakland Museum of California'), null);
+});
+
+test('a newer result for the same place requires an explicit update and replaces the saved date and details', async () => {
+  api.request = async () => candidateResponse();
+  const view = render(<PlannerWebSearch {...props} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  view.rerender(<PlannerWebSearch {...props} date="2026-10-10" />);
+  api.request = async () => ({ ...candidateResponse(), candidates: [{ ...candidateResponse().candidates[0], priceSummary: 'Check special event admission' }] });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  assert.equal(view.queryByRole('button', { name: 'Candidate kept' }), null);
+  assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-03');
+  fireEvent.click(view.getByRole('button', { name: 'Update kept candidate' }));
+  assert.equal(loadGuestWebCandidates().length, 1);
+  assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-10');
+  assert.equal(loadGuestWebCandidates()[0].priceSummary, 'Check special event admission');
+  assert.ok(view.getByRole('button', { name: 'Candidate kept' }));
+});
+
+test('a failed guest storage write never reports that a candidate was kept', async context => {
+  api.request = async () => candidateResponse();
+  context.mock.method(dom.window.Storage.prototype, 'setItem', () => { throw new Error('Storage full'); });
+  const view = render(<PlannerWebSearch {...props} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  assert.match(view.getByRole('alert').textContent!, /could not save/);
+  assert.equal(view.queryByRole('button', { name: 'Candidate kept' }), null);
+  assert.equal(view.queryByRole('region', { name: 'My web candidates' }), null);
+});
+
+test('stored candidate data is bounded and rejects unsafe URLs or malformed records', () => {
+  localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([{ id: 'bad', name: 'Bad', sourceUrls: ['http://127.0.0.1/'] }, { ...candidateResponse().candidates[0], checkedAt: '2026-02-30', requestedDate: '<script>' }]));
+  const saved = loadGuestWebCandidates();
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].checkedAt, null);
+  assert.equal(saved[0].requestedDate, null);
 });

@@ -4,6 +4,7 @@ import type { GeoPoint, PlanningSchedule, TimeWindow } from '../lib/planner';
 export const PLANNER_TIME_CHECKED_AT = '2026-09-29';
 const ordinaryHours = '普通营业时间；节假日、包场及临时调整请出发前查看官方页面。';
 const window = (open: string, close: string, lastEntry?: string, lastOrder?: string): TimeWindow[] => [{ open, close, ...(lastEntry ? { lastEntry } : {}), ...(lastOrder ? { lastOrder } : {}) }];
+// validThrough is BAYLINK's editorial review cutoff, not a promise by the venue.
 const weekly = (sourceUrl: string, days: PlanningSchedule['weekly'], note = ordinaryHours): PlanningSchedule => ({
   sourceUrl, verifiedAt: PLANNER_TIME_CHECKED_AT, validFrom: PLANNER_TIME_CHECKED_AT, validThrough: '2026-10-31', weekly: days, note,
 });
@@ -38,6 +39,18 @@ export const VERIFIED_PLACE_SCHEDULES: Record<string, PlanningSchedule> = {
   // Only the listed days are structured: the captured official page did not list Friday.
   'restaurant-eureka-cupertino': weekly('https://eurekarestaurantgroup.com/locations/cupertino', { 0: window('11:00', '23:00'), 1: window('11:00', '23:00'), 2: window('11:00', '23:00'), 3: window('11:00', '23:00'), 4: window('11:00', '23:00'), 6: window('11:00', '24:00') }, '周五营业时间尚待确认；周六营业至午夜，优惠适用时段须另看具体条件。'),
   'restaurant-pacific-catch-mountain-view': weekly('https://www.pacificcatch.com/location/mountain-view/', { 0: window('11:00', '21:00'), 1: window('11:00', '21:00'), 2: window('11:00', '21:00'), 3: window('11:00', '21:00'), 4: window('11:00', '21:00'), 5: window('11:00', '22:00'), 6: window('11:00', '22:00') }),
+  'shop-book-passage-ferry-building': weekly('https://www.ferrybuildingmarketplace.com/shops/book-passage/', { 0: window('11:00', '17:00'), 1: window('10:00', '17:00'), 2: window('10:00', '17:00'), 3: window('10:00', '17:00'), 4: window('10:00', '17:00'), 5: window('10:00', '17:00'), 6: window('09:00', '17:00') }, 'Ferry Building #37A 的普通书店营业时间，不是作家活动场次。购物另付；商场提醒营业时间可能调整。位置标记所在 Ferry Building，入内按 #37A 找店。'),
+  'venue-oakland-main-library': weekly('https://oaklandlibrary.org/locations/XXA/', { 0: window('10:00', '17:30'), 1: window('10:00', '20:00'), 2: window('10:00', '20:00'), 3: window('10:00', '20:00'), 4: window('10:00', '20:00'), 5: window('12:00', '17:30'), 6: window('10:00', '17:30') }, '主馆公共阅览开放时间，普通入馆免费；历史中心、活动与会议室可能另有开放及预约安排，复印、打印、停车另计。'),
+  'venue-sj-king-library': weekly('https://www.sjpl.org/locations/king/', { 0: window('13:00', '18:00'), 1: window('08:00', '20:00'), 2: window('08:00', '20:00'), 3: window('08:00', '20:00'), 4: window('08:00', '20:00'), 5: window('08:00', '18:00'), 6: window('08:00', '18:00') }, '公共图书馆普通开放时间，入馆免费；儿童区周一至周六 10:00 才开放，周日 13:00 开放。特藏、AI Center、活动与服务柜台另有时间，不能据此假定随时可参加；停车等另计。'),
+  'restaurant-farmshop-marin': weekly('https://marincountrymart.com/farmshop', { 0: window('10:30', '21:00'), 1: window('11:30', '21:00'), 2: window('11:30', '21:00'), 3: window('11:30', '21:00'), 4: window('11:30', '21:00'), 5: window('11:30', '21:30'), 6: window('10:30', '21:30') }, 'Marin 门店普通营业窗口；菜单、供餐阶段及餐桌余位请查看订位页，未作任何订位。餐费按点单另付，不能把营业窗口当作已确认座位。'),
+  'cafe-rustic-bakery-larkspur': weekly('https://marincountrymart.com/rustic-bakery', everyDay('07:00', '17:00'), '只对应 2017 Larkspur Landing Circle 的 Marin Country Mart 门店；普通营业时间，点餐、排队与座位待确认，餐饮另付。'),
+  'shop-copperfields-larkspur': weekly('https://marincountrymart.com/copperfields-books', { 0: window('10:00', '17:00'), 1: window('10:00', '18:00'), 2: window('10:00', '18:00'), 3: window('10:00', '18:00'), 4: window('10:00', '18:00'), 5: window('10:00', '18:00'), 6: window('10:00', '18:00') }, 'Larkspur 门店普通营业时间，不代表当天有作家活动；购书和活动费用按商家条款确认。'),
+  'venue-san-mateo-history-museum': weekly('https://historysmc.org/plan-your-visit/', { 0: window('10:00', '16:00', '15:45'), 1: [], 2: window('10:00', '16:00', '15:45'), 3: window('10:00', '16:00', '15:45'), 4: window('10:00', '16:00', '15:45'), 5: window('10:00', '16:00', '15:45'), 6: window('10:00', '16:00', '15:45') }, '只对应 Redwood City 的 History Museum 展馆：成人普通票 $6，长者及学生 $4，5 岁及以下免费，会员及其他优惠另按资格。人数和票种待确认，未套用统一票价；团体参观需另查预约。档案室仅预约开放，不能按展馆时间访问。'),
+  'cafe-coupa-marston': weekly('https://www.coupacafe.com/Locations/redwood-city-marston', everyDay('07:00', '17:00'), '只对应 695 Main Street 的 Marston 门店；普通营业时间，菜单、座位与排队待确认，餐饮按点单另付。'),
+  'venue-redwood-city-library': {
+    ...weekly('https://www.redwoodcity.org/departments/library/locations-and-hours', { 0: window('12:00', '17:00'), 1: window('10:00', '20:00'), 2: window('10:00', '20:00'), 3: window('10:00', '20:00'), 4: window('10:00', '20:00'), 5: window('10:00', '17:00'), 6: window('10:00', '17:00') }, 'Downtown Library 普通公共阅览开放时间，入馆免费；Local History Room 仅预约开放，活动、会议室及打印另查规则，停车另计。9/29 上午员工培训，10/19 全日员工培训闭馆。'),
+    dates: { '2026-09-29': window('12:00', '20:00'), '2026-10-19': [] },
+  },
 };
 
 const afterDarkDates = [
@@ -63,4 +76,16 @@ export const VERIFIED_VENUE_LOCATIONS: Record<string, GeoPoint> = {
   'gotts-ferry': { lat: 37.796048, lng: -122.394166, label: 'Gott’s Roadside · Ferry Building #6', sourceUrl: 'https://www.gotts.com/location/sfferrybuilding/', precision: 'venue' },
   ignite: { lat: 37.3365, lng: -121.8947, label: 'IGNITE · 26 N San Pedro Street', sourceUrl: 'https://www.eatatignite.com/', precision: 'venue' },
   delage: { lat: 37.8017048, lng: -122.275086, label: 'Delage · 536 Ninth Street', sourceUrl: 'https://www.delagesushi.com/', precision: 'venue' },
+  'ferry-building': { lat: 37.7954425, lng: -122.3936136, label: 'Ferry Building · One Ferry Building', sourceUrl: 'https://www.ferrybuildingmarketplace.com/visit/', precision: 'venue' },
+  'oakland-main-library': { lat: 37.80094379066671, lng: -122.26367525522537, label: 'Oakland Main Library · 125 14th Street', sourceUrl: 'https://oaklandlibrary.org/locations/XXA/', precision: 'venue' },
+  'sj-king-library': { lat: 37.3356906, lng: -121.8852558, label: 'Dr. Martin Luther King, Jr. Library · 150 E San Fernando Street', sourceUrl: 'https://www.sjpl.org/locations/king/', precision: 'venue' },
+  'farmshop-marin': { lat: 37.9473194, lng: -122.5088889, label: 'Farmshop Marin · 2233 Larkspur Landing Circle', sourceUrl: 'https://marincountrymart.com/farmshop', precision: 'venue' },
+  'rustic-bakery-larkspur': { lat: 37.9470678, lng: -122.5095934, label: 'Rustic Bakery · 2017 Larkspur Landing Circle', sourceUrl: 'https://marincountrymart.com/rustic-bakery', precision: 'venue' },
+  'copperfields-larkspur': { lat: 37.946846, lng: -122.5090725, label: 'Copperfield’s Books · 2419 Larkspur Landing Circle', sourceUrl: 'https://marincountrymart.com/copperfields-books', precision: 'venue' },
+  'anya-larkspur': { lat: 37.947038, lng: -122.509429, label: 'Anya Hindmarch · Marin Country Mart', sourceUrl: 'https://marincountrymart.com/anya-hindmarch-gifting-agency', precision: 'venue' },
+  'varley-larkspur': { lat: 37.9468868, lng: -122.5088522, label: 'Varley · 2409 Larkspur Landing Circle', sourceUrl: 'https://marincountrymart.com/varley', precision: 'venue' },
+  'san-mateo-history-museum': { lat: 37.486708, lng: -122.2296696, label: 'San Mateo County History Museum · 2200 Broadway', sourceUrl: 'https://historysmc.org/maps-directions/', precision: 'venue' },
+  'coupa-marston': { lat: 37.4878393, lng: -122.2261795, label: 'Coupa Cafe Marston · 695 Main Street', sourceUrl: 'https://www.coupacafe.com/Locations/redwood-city-marston', precision: 'venue' },
+  // Named library pin, matched to the address published by Redwood City; not a query viewport center.
+  'redwood-city-library': { lat: 37.4840501, lng: -122.2273354, label: 'Redwood City Public Library · 1044 Middlefield Road', sourceUrl: 'https://www.google.com/maps?cid=2747244861800554380', precision: 'venue' },
 };

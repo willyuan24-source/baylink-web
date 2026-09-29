@@ -1,5 +1,8 @@
 export type PlannerWebSource = { number: number; title: string; url: string; snippet?: string };
-export type PlannerWebResult = { answer: string; sources: PlannerWebSource[]; checkedAt: string | null; cached: boolean };
+export type PlannerWebCandidate = { id: string; name: string; city: string | null; summary: string | null; timeSummary: string | null; priceSummary: string | null; sourceUrls: string[] };
+export type PlannerWebResult = { answer: string; sources: PlannerWebSource[]; checkedAt: string | null; cached: boolean; candidates: PlannerWebCandidate[] };
+export type SavedWebCandidate = PlannerWebCandidate & { checkedAt: string | null; requestedDate: string | null };
+export const GUEST_WEB_CANDIDATES_KEY = 'baylink.planner.web-candidates.guest.v1';
 
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 
@@ -28,6 +31,33 @@ function validCheckedAt(value: unknown): string | null {
   return value;
 }
 
+const shortText = (value: unknown, max: number) => typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : null;
+
+/** A candidate must point to citations from this response, never a model-invented URL. */
+function parseCandidate(value: unknown, sourceUrls?: Set<string>): PlannerWebCandidate | null {
+  if (!record(value)) return null;
+  const id = shortText(value.id, 100), name = shortText(value.name, 160);
+  if (!id || !name || !Array.isArray(value.sourceUrls)) return null;
+  const urls = [...new Set(value.sourceUrls.flatMap(raw => {
+    const url = safePlannerWebUrl(raw);
+    return url && (!sourceUrls || sourceUrls.has(url)) ? [url] : [];
+  }))].slice(0, 5);
+  if (!urls.length) return null;
+  return { id, name, city: shortText(value.city, 100), summary: shortText(value.summary, 700), timeSummary: shortText(value.timeSummary, 500), priceSummary: shortText(value.priceSummary, 500), sourceUrls: urls };
+}
+
+/** Guest saves stay on this browser. Signed-in results are never written here. */
+export function loadGuestWebCandidates(): SavedWebCandidate[] {
+  try {
+    const raw: unknown = JSON.parse(localStorage.getItem(GUEST_WEB_CANDIDATES_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw.slice(0, 20).flatMap(item => {
+      const candidate = parseCandidate(item);
+      return candidate && record(item) ? [{ ...candidate, checkedAt: validCheckedAt(item.checkedAt), requestedDate: validCheckedAt(item.requestedDate)?.slice(0, 10) || null }] : [];
+    }).filter((item, index, all) => all.findIndex(other => other.id === item.id) === index);
+  } catch { return []; }
+}
+
 /** Keep source numbers tied to the original array, even after rejecting a URL. */
 export function parsePlannerWebResult(value: unknown): PlannerWebResult | null {
   if (!record(value) || value.ok !== true || value.responseMode !== 'web' || typeof value.answer !== 'string' || !value.answer.trim() || value.answer.length > 30000 || !Array.isArray(value.sources)) return null;
@@ -39,7 +69,9 @@ export function parsePlannerWebResult(value: unknown): PlannerWebResult | null {
     return [{ number: index + 1, title, url, ...(typeof item.snippet === 'string' && item.snippet.trim() ? { snippet: item.snippet.trim().slice(0, 1500) } : {}) }];
   });
   if (!sources.length) return null;
-  return { answer: value.answer, sources, checkedAt: validCheckedAt(value.checkedAt), cached: value.cached === true };
+  const urls = new Set(sources.map(source => source.url));
+  const candidates = Array.isArray(value.candidates) ? value.candidates.slice(0, 5).flatMap(item => { const candidate = parseCandidate(item, urls); return candidate ? [candidate] : []; }).filter((item, index, all) => all.findIndex(other => other.id === item.id) === index) : [];
+  return { answer: value.answer, sources, checkedAt: validCheckedAt(value.checkedAt), cached: value.cached === true, candidates };
 }
 
 export type PlannerWebAnswerPart = { text: string; citation?: number; source?: PlannerWebSource };

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Clock3, Coffee, WandSparkles } from 'lucide-react';
 import { useLocale } from '../i18n/locale';
-import { buildOutingOptions, buildPlaceOutingOptions, type CompleteOuting } from '../lib/planner-outings';
+import { buildOutingOptions, buildPlaceOutingOptions, getPlaceOutingUnavailableReason, type CompleteOuting } from '../lib/planner-outings';
 import { buildItinerary, clockLabel, planBudget } from '../lib/planner-itinerary';
 import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner';
 import { plannerNoticeText } from '../lib/planner-copy';
@@ -12,7 +12,12 @@ export function PlannerOutingOptions({ suggestion, filters, message, onChoose }:
 }
 
 export function PlannerPlaceOutingOptions({ placeId, date, filters, message, onChoose }: { placeId: string; date: string; filters: PlanFilters; message?: string; onChoose: (outing: CompleteOuting) => void }) {
+  const locale = useLocale();
   const options = useMemo(() => buildPlaceOutingOptions({ placeId, date, filters, message }), [placeId, date, filters, message]);
+  if (!options.length) {
+    const reason = getPlaceOutingUnavailableReason(placeId, date, filters, undefined, undefined, message);
+    return <p className="planner-small-note">{locale === 'en' ? reason.en : reason.zh}</p>;
+  }
   return <OutingOptions options={options} onChoose={onChoose} />;
 }
 
@@ -33,6 +38,7 @@ function OutingOptions({ options, onChoose }: { options: CompleteOuting[]; onCho
       <span>{clockLabel(row.start)}</span><strong>{plannerNoticeText(stopTitle(row.stop), locale === 'en')}</strong><small>{index === 0 ? text('第一站', 'First stop') : text(`交通预留 ${row.settings.travelMinutes} 分钟`, `${row.settings.travelMinutes} min travel buffer`)}</small>
     </li>)}</ol>
     <p className="planner-outing-cost">{text('已知门票起价小计', 'Known starting admission subtotal')} ${budget.admissionFloor.toFixed(2)}{budget.unknown.length > 0 ? text(` · ${budget.unknown.length} 站费用待确认`, ` · ${budget.unknown.length} unpriced stops`) : ''}</p>
+    {option.budgetStatus === 'unknown' && <p className="planner-unverified-price">{text('预算待确认：可以先采用草稿，再核对未知费用；尚不能确认符合预算。', 'Budget unconfirmed: keep this draft and check missing costs before relying on the budget.')}</p>}
     <p className="planner-small-note">{text('餐饮、交通另行预留；站间时间为可修改的安排，未查询实际路线。', 'Allow separately for meals and transport. Travel buffers are editable estimates, not checked routes.')}</p>
     {option.notices.length > 0 && <details className="planner-outing-notices"><summary>{text('方案依据与待确认事项', 'Sources and things to confirm')} ({option.notices.length})</summary><ul>{option.notices.map((notice, index) => <li key={index}>{plannerNoticeText(notice, locale === 'en')}</li>)}</ul></details>}
     <button type="button" className="planner-primary" onClick={() => onChoose(option)}>{text('采用这个完整方案', 'Use this complete outing')}</button>

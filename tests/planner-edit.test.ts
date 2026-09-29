@@ -102,6 +102,28 @@ test('restaurant replacement keeps every other stop and estimate, using a real s
   assert.equal(next.nextPlan.details.extraCostUsd, 55); assert.deepEqual(current, before);
 });
 
+test('budgeted edits accept a truly unpriced restaurant with warnings while enforcing separate ticket and trip caps', () => {
+  const current = plan(), source = catalog();
+  current.details.constraints = { ...current.details.constraints, budget: 40, budgetScope: 'total' };
+  source.places.find(place => place.id === 'Lunch B')!.planning!.admissionUsd = null;
+  const next = proposal(edit('replace stop 2 with a restaurant', current, source));
+  assert.equal(next.canApply, true);
+  assert.equal(next.nextPlan.stops[1].id, 'Lunch B');
+  assert.equal(next.nextPlan.details.extraCostUsd, 55);
+  assert.equal(next.nextPlan.details.totalBudgetUsd, null);
+  assert.match(next.warnings.join(' '), /whole outing cannot be confirmed within budget/);
+  const overAdmission = structuredClone(current);
+  overAdmission.details.constraints!.budget = 30;
+  const ticketResult = proposal(edit('1 hour later', overAdmission, source));
+  assert.equal(ticketResult.canApply, false);
+  assert.match(ticketResult.issues.join(' '), /original admission budget/);
+  const overTrip = structuredClone(current);
+  overTrip.details.totalBudgetUsd = 90;
+  const tripResult = proposal(edit('1 hour later', overTrip, source));
+  assert.equal(tripResult.canApply, false);
+  assert.match(tripResult.issues.join(' '), /\$95\.00.*trip budget/);
+});
+
 test('replacements reject other cities, approximate coordinates, closed or unverified hours, late orders and age conflicts', () => {
   for (const patch of [
     { city: 'South San Francisco' }, { location: { ...point, precision: 'area' as const } }, { openingStatus: 'announced' as const },

@@ -1,5 +1,5 @@
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
-import { distanceKm, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type Stop, type StopSetting } from './planner';
+import { distanceKm, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type PlanningFacts, type Stop, type StopSetting } from './planner';
 import { eventOccursOn } from './event-calendar';
 import { getBayAreaToday } from './monthly';
 import { resolveStopTiming, resolveTimeEvidence, timeEvidenceLabel, timeNotice, type TimeEvidence, type TimeNotice } from './planner-hours';
@@ -61,6 +61,11 @@ export const settingForStop = (details: PlanDetails, stop: Stop, index: number):
 export const factsForStop = (stop: Stop) => stop.kind === 'event' ? PLANNER_EVENTS.find(item => item.id === stop.id) : PLANNER_PLACES.find(item => item.id === stop.id);
 export const timeEvidence = (stop: Stop, date: string, asOf?: string) => resolveTimeEvidence(factsForStop(stop)?.planning?.schedule, date, asOf);
 export const planCostBreakdown = (details: PlanDetails) => details.costBreakdown || { foodUsd: 0, transportUsd: 0, otherUsd: details.extraCostUsd };
+/** Only an explicit finite admission amount can establish a known price or free entry. */
+export const knownAdmissionUsd = (fact: { planning?: PlanningFacts } | undefined): number | null => {
+  const price = fact?.planning?.admissionUsd;
+  return typeof price === 'number' && Number.isFinite(price) && price >= 0 ? price : null;
+};
 
 export type ItineraryRow = {
   stop: Stop; settings: StopSetting; arrival: number; start: number; end: number; wait: number; late: boolean; lateByMinutes: number;
@@ -98,29 +103,38 @@ export function buildItinerary(stops: Stop[], details: PlanDetails, date: string
 }
 
 /** Published admission is a starting price, never a quote or an all-in total. */
-export function planBudget(stops: Stop[], details: PlanDetails) {
-  let admissionFloor = 0;
+export function planBudget(stops: Stop[], details: PlanDetails, lookup: (stop: Stop) => { planning?: PlanningFacts } | undefined = factsForStop) {
+  let admissionPerPerson = 0;
   const unknown: Stop[] = [];
   for (const stop of stops) {
-    const price = factsForStop(stop)?.planning?.admissionUsd;
-    if (typeof price === 'number' && Number.isFinite(price) && price >= 0) admissionFloor += price * details.partySize;
+    const price = knownAdmissionUsd(lookup(stop));
+    if (price !== null) admissionPerPerson += price;
     else unknown.push(stop);
   }
+  admissionPerPerson = roundPlanMoney(admissionPerPerson);
+  const admissionFloor = roundPlanMoney(admissionPerPerson * details.partySize);
   const breakdown = planCostBreakdown(details);
-  const extraCostUsd = Math.round((breakdown.foodUsd + breakdown.transportUsd + breakdown.otherUsd) * 100) / 100;
-  const subtotal = Math.round((admissionFloor + extraCostUsd) * 100) / 100;
-  return { admissionFloor, subtotal, unknown, breakdown, extraCostUsd, overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, Math.round((subtotal - details.totalBudgetUsd) * 100) / 100) };
+  const extraCostUsd = roundPlanMoney(breakdown.foodUsd + breakdown.transportUsd + breakdown.otherUsd);
+  const subtotal = roundPlanMoney(admissionFloor + extraCostUsd);
+  // Search constraints cap admission only. The editor's trip budget separately
+  // includes food, transport and other allowances, without pricing unknown stops.
+  const filters = details.constraints;
+  const admissionCost = filters?.budgetScope === 'total' ? admissionFloor : admissionPerPerson;
+  const admissionOverBy = filters?.budget == null ? 0 : Math.max(0, roundPlanMoney(admissionCost - filters.budget));
+  return { admissionFloor, admissionPerPerson, admissionOverBy, subtotal, unknown, breakdown, extraCostUsd, overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, roundPlanMoney(subtotal - details.totalBudgetUsd)) };
 }
 
 export function placeMatchesFilters(place: PlannerPlace, filters: PlanFilters): boolean {
   if (filters.region && filters.region !== 'all' && place.region !== filters.region) return false;
   if (filters.city && place.city.toLowerCase() !== filters.city.toLowerCase()) return false;
   if (filters.setting && filters.setting !== 'any' && place.planning?.setting !== filters.setting) return false;
-  const price = place.planning?.admissionUsd;
+  const price = knownAdmissionUsd(place);
   if (filters.freeOnly && price !== 0) return false;
   if (filters.budget != null) {
-    const cap = filters.budgetScope === 'total' ? (filters.partySize ? filters.budget / filters.partySize : null) : filters.budget;
-    if (cap != null && (typeof price !== 'number' || price > cap)) return false;
+    const minimumPartySize = filters.partySize || Math.max(1, filters.childAges?.length || 0);
+    const cap = filters.budgetScope === 'total' ? filters.budget / minimumPartySize : filters.budget;
+    // Missing prices remain explicitly unpriced candidates, not proof of a fit.
+    if (price !== null && price > cap) return false;
   }
   const ages = filters.childAges || (filters.childAge != null ? [filters.childAge] : []);
   if (ages.some(age => (place.planning?.minAge != null && age < place.planning.minAge) || (place.planning?.maxAge != null && age > place.planning.maxAge))) return false;

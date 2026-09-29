@@ -75,3 +75,20 @@ test('published new shops remain valid plan stops through public links and guest
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.deepEqual(stored.stops, [{ kind: 'place', id: shop.id }]);
 });
+
+test('a priced-filter place outing stays available with an explicit budget gap and separate food and trip budgets', async () => {
+  api.request = async () => ({ ok: true, responseMode: 'rules', checkedAt: '2026-09-29', filters: { date: '2026-10-03', city: 'San Francisco', partySize: 2, budget: 100, budgetScope: 'total' }, notices: [], suggestions: [], placeSuggestions: [{ id: 'gotts-oct3', placeId: 'restaurant-gotts-ferry-building', date: '2026-10-03', reason: 'Restaurant', reasons: [], unknowns: [], budgetStatus: 'unknown' }] });
+  const view = await open('?date=2026-10-03');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '帮我挑选方案' })); });
+  const preview = within(view.getByRole('region', { name: '搭配完整出行' }));
+  assert.ok(preview.getByText(/预算待确认/));
+  fireEvent.click(preview.getByRole('button', { name: '采用这个完整方案' }));
+  const editor = within(view.getByRole('complementary'));
+  assert.equal((editor.getByLabelText('整趟总预算 $') as HTMLInputElement).value, '');
+  fireEvent.change(editor.getByLabelText('餐饮预留（整组）$'), { target: { value: '150' } });
+  assert.ok(editor.getByText(/同行门票预算/));
+  assert.equal(editor.queryByText(/已知门票超过门票预算/), null);
+  assert.equal(editor.queryByText(/已计入金额已超预算/), null);
+  fireEvent.change(editor.getByLabelText('整趟总预算 $'), { target: { value: '100' } });
+  assert.ok(editor.getByText(/已计入金额已超预算/));
+});

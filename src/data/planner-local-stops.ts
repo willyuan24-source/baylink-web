@@ -1,6 +1,7 @@
 import { currentOpenings } from './local-discoveries';
 import placeLocationData from './place-locations.json';
 import { VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCATIONS } from './planner-verified-hours';
+import { PLANNER_NEIGHBORHOOD_STOPS } from './planner-neighborhood-stops';
 import type { GeoPoint, PlannerPlace } from '../lib/planner';
 
 const cafes = new Set([
@@ -16,6 +17,8 @@ const shops = new Set([
 const openingLocations: Record<string, GeoPoint> = {
   'ignite-san-pedro-square': VERIFIED_VENUE_LOCATIONS.ignite,
   'oakland-delage-reopening-2026': VERIFIED_VENUE_LOCATIONS.delage,
+  'anya-gifting-larkspur': VERIFIED_VENUE_LOCATIONS['anya-larkspur'],
+  'varley-larkspur': VERIFIED_VENUE_LOCATIONS['varley-larkspur'],
 };
 
 /** Opening status stays explicit; announcement dates never turn a store into an open place. */
@@ -88,4 +91,4 @@ const venueStops: PlannerPlace[] = [
   },
 ].map(place => ({ ...place, path: place.officialUrl, planning: { setting: 'indoor', admissionUsd: null, schedule: VERIFIED_PLACE_SCHEDULES[place.id] } } as PlannerPlace));
 
-export const PLANNER_LOCAL_STOPS: PlannerPlace[] = [...openingStops, ...diningStops, ...venueStops];
+export const PLANNER_LOCAL_STOPS: PlannerPlace[] = [...openingStops, ...diningStops, ...venueStops, ...PLANNER_NEIGHBORHOOD_STOPS];

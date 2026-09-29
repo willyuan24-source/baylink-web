@@ -1,19 +1,21 @@
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
 import { eventOccursOn } from './event-calendar';
-import { buildItinerary, clockLabel, placeMatchesFilters, timeEvidence } from './planner-itinerary';
+import { buildItinerary, clockLabel, knownAdmissionUsd, placeMatchesFilters, timeEvidence } from './planner-itinerary';
 import { resolveTimeEvidence } from './planner-hours';
 import { distanceKm, todayInBay, validDay, type PlanDetails, type PlanFilters, type PlannerEvent, type PlannerPlace, type Stop, type StopSetting, type Suggestion } from './planner';
 
-export type CompleteOuting = { id: string; title: string; summary: string; date: string; stops: Stop[]; details: PlanDetails; notices: string[]; style: 'half-day' | 'full-day' };
+/** budgetStatus describes admission evidence only, never an all-in budget guarantee. */
+export type CompleteOuting = { id: string; title: string; summary: string; date: string; stops: Stop[]; details: PlanDetails; notices: string[]; style: 'half-day' | 'full-day'; budgetStatus: 'known' | 'unknown' };
 export type OutingInput = { suggestion: Suggestion; filters: PlanFilters; message?: string; asOf?: string };
 export type PlaceOutingInput = { placeId: string; date: string; filters: PlanFilters; message?: string; asOf?: string };
 /** Optional catalog injection keeps scheduling tests independent of live editorial changes. */
 export type OutingCatalog = { events: PlannerEvent[]; places: PlannerPlace[] };
+export type PlaceOutingUnavailableReason = { code: string; zh: string; en: string };
 type Entry = { stop: Stop; fact: PlannerEvent | PlannerPlace; duration: number };
 type AnchorTime = { start?: number; duration: number; notice?: string };
 type Scheduled = { entries: Entry[]; details: PlanDetails; duration: number; wait: number; km: number; notices: string[] };
 const minute = (clock: string) => Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3));
-const admission = (row: PlannerEvent | PlannerPlace) => typeof row.planning?.admissionUsd === 'number' && Number.isFinite(row.planning.admissionUsd) && row.planning.admissionUsd >= 0 ? row.planning.admissionUsd : row.planning?.admissionUsd === undefined && row.cost === 'free' ? 0 : null;
+const admission = knownAdmissionUsd;
 const cityKey = (value: string) => value.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
 const isMeal = (entry: Entry) => entry.stop.kind === 'place' && (entry.fact as PlannerPlace).category === 'restaurant';
 const sameAttraction = (place: PlannerPlace, other: PlannerEvent | PlannerPlace) => (place.category || 'attraction') === 'attraction' && ('startDate' in other || !(other as PlannerPlace).category || (other as PlannerPlace).category === 'attraction') && validPoint(place) && validPoint(other) && distanceKm(place.location!, other.location!) <= 0.03;
@@ -25,6 +27,10 @@ const excludedStatus = (row: PlannerEvent | PlannerPlace) => {
   return value.openingStatus === 'announced' || value.cancelled || value.suspended || ['closed', 'cancelled', 'canceled', 'suspended'].includes(value.status || '');
 };
 const placeDuration = (place: PlannerPlace, style: CompleteOuting['style']) => place.category === 'restaurant' ? 60 : place.category === 'cafe' || place.category === 'shop' ? (style === 'half-day' ? 30 : 45) : (style === 'half-day' ? 60 : 90);
+const hasUnrepresentedPreferences = (message: string) => {
+  const remaining = message.replace(/(?:不(?:想|要)?|没|沒|不用)\s*(?:开车|開車)|\b(?:no driving|without (?:a |my |our )?car|don['’]t drive|do not drive|not driving|not more than|no more than)\b|不超过|不超過|不多于|不多於/gi, ' ');
+  return /不要|不想|不去|不带|不帶|不用|排除|避开|避開|避免|\b(?:avoid|no|without|not|exclude|don['’]t|do not)\b/i.test(remaining);
+};
 
 /** Build a draft from one published event, not a fabricated tour or a routed map result. */
 export function buildOutingOptions(input: OutingInput, injected?: OutingCatalog): CompleteOuting[] {
@@ -39,17 +45,45 @@ export function buildPlaceOutingOptions({ placeId, date, ...input }: PlaceOuting
   return buildAnchoredOutings({ ...input, suggestion: { id: `place-${placeId}-${date}`, eventId: '', date, placeIds: [], reason: '', reasons: [], unknowns: [] } }, place, injected);
 }
 
+/** Explain an empty result after buildPlaceOutingOptions; do not re-run the combinatorial builder. */
+export function getPlaceOutingUnavailableReason(placeId: string, date: string, filters: PlanFilters, asOf = todayInBay(), injected?: OutingCatalog, message = ''): PlaceOutingUnavailableReason {
+  const reason = (code: string, zh: string, en: string) => ({ code, zh, en });
+  if (hasUnrepresentedPreferences(message)) return reason('unsupported-preferences', '部分排除条件无法可靠应用到新增站点，暂不自动搭配；可先加入这个地点。', 'Some exclusions cannot be reliably applied to added stops. Start with this place and choose the rest manually.');
+  const place = (injected?.places || PLANNER_PLACES).find(item => item.id === placeId);
+  if (!place) return reason('place-unavailable', '这个地点目前不在可规划资料中。', 'This place is not currently in the planning catalog.');
+  if (!validDay(date) || !validDay(asOf)) return reason('invalid-date', '先选择有效日期，才能核对营业时间。', 'Choose a valid date so opening hours can be checked.');
+  if (date < asOf) return reason('past-date', '所选日期已过去，请选择今天或未来日期。', 'This date is in the past. Choose today or a future date.');
+  if (filters.date && date !== filters.date) return reason('date-mismatch', '这个方案日期与当前筛选日期不同，请统一日期。', 'The outing date differs from the selected search date. Use the same date for both.');
+  if (excludedStatus(place) || place.openedOn && place.openedOn > date) return reason('opening-unavailable', '所选日期尚未确认正式开放，或地点目前暂停营业；请查看官方安排。', 'Opening on this date is unconfirmed, or the place is currently unavailable. Check the official details.');
+  if (!validPoint(place)) return reason('location-unverified', '这个地点尚无已核实的精确场馆坐标，暂不能可靠搭配附近站点。', 'This place lacks verified venue coordinates, so nearby stops cannot be reliably combined yet.');
+  if (filters.city && cityKey(filters.city) !== cityKey(place.city) || filters.region && filters.region !== 'all' && filters.region !== place.region) return reason('area-mismatch', '这个地点不在当前选择的城市或区域内。', 'This place is outside the selected city or area.');
+  if (filters.setting && filters.setting !== 'any' && place.planning?.setting !== filters.setting) return reason('setting-mismatch', '这个地点没有符合当前室内外条件的已核实资料。', 'The place has no verified setting that meets the indoor/outdoor condition.');
+  const ages = agesFor(filters);
+  if (ages.some(age => place.planning?.minAge != null && age < place.planning.minAge || place.planning?.maxAge != null && age > place.planning.maxAge)) return reason('age-restriction', '这个地点的已公布年龄限制不符合同行孩子年龄。', 'The place’s published age limits do not fit the supplied children’s ages.');
+  if (place.category === 'restaurant' && filters.freeOnly) return reason('meal-cost-unconfirmed', '没有已确认的零消费用餐依据，不能把餐厅搭配成免费方案。', 'No zero-cost meal is verified, so the restaurant cannot be presented as a free outing.');
+  const price = admission(place);
+  if (filters.freeOnly && price !== 0) return reason('free-admission-unconfirmed', '这个地点没有已确认的免费入场依据，不符合“仅免费”。', 'Free admission is not confirmed for this place, so it does not meet “free only.”');
+  const partySize = filters.partySize || Math.max(1, ages.length);
+  if (filters.budget != null && price !== null && price * (filters.budgetScope === 'total' ? partySize : 1) > filters.budget) return reason('admission-over-budget', '仅这个地点的已知门票金额就超过当前门票预算。', 'This place’s known admission amount alone exceeds the admission budget.');
+  if (place.planning?.programTimeUnconfirmed) return reason('program-time-unconfirmed', '主节目场次尚未确认，场地开放时段不能代替节目时间。', 'Program times are unconfirmed; venue hours cannot substitute for the program schedule.');
+  const evidence = resolveTimeEvidence(place.planning?.schedule, date, asOf);
+  if (evidence.status === 'closed') return reason('hours-closed', '官方营业规则显示这个地点当天不开放，请换日期。', 'The published hours mark this place as closed that day. Choose another date.');
+  if (evidence.status === 'out-of-range') return reason('hours-out-of-range', '当前营业规则不适用于所选日期，需重新确认后再自动组合。', 'The recorded hours do not cover the selected date. Recheck them before building an automatic combination.');
+  if (evidence.status === 'stale') return reason('hours-stale', '这个地点的营业时间资料已过核查期限，需更新后再自动组合。', 'This place’s hours are due for rechecking before an automatic combination can be made.');
+  if (evidence.status !== 'confirmed') return reason('hours-unconfirmed', '还没有这个地点在所选日期的可用官方营业时段，可先加入计划后自行确认。', 'Usable official hours are not recorded for this place on the selected date. Add it manually and confirm the hours.');
+  return reason('no-compatible-combination', '这个地点的时段已收录，但附近暂时没有能同时满足当前时间、距离及筛选条件的组合；可先加入这一站。', 'This place has recorded hours, but no nearby combination currently meets the timing, distance and filter conditions together. Start with this stop.');
+}
+
 function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayInBay() }: OutingInput, anchorPlace?: PlannerPlace, injected?: OutingCatalog): CompleteOuting[] {
   // Negative preferences not represented by PlanFilters cannot safely be
   // re-applied to newly added stops. Keep the already filtered event instead.
-  const remainingPreferences = message.replace(/(?:不(?:想|要)?|没|沒|不用)\s*(?:开车|開車)|\b(?:no driving|without (?:a |my |our )?car|don['’]t drive|do not drive|not driving|not more than|no more than)\b|不超过|不超過|不多于|不多於/gi, ' ');
-  if (/不要|不想|不去|不带|不帶|不用|排除|避开|避開|避免|\b(?:avoid|no|without|not|exclude|don['’]t|do not)\b/i.test(remainingPreferences)) return [];
+  if (hasUnrepresentedPreferences(message)) return [];
   const source = injected || { events: PLANNER_EVENTS, places: PLANNER_PLACES };
   const event = anchorPlace || source.events.find(row => row.id === suggestion.eventId);
   const date = suggestion.date;
   if (!event || !validDay(date) || !validDay(asOf) || date < asOf || (filters.date && date !== filters.date) || (!anchorPlace && !eventOccursOn(event as PlannerEvent, date)) || excludedStatus(event) || !validPoint(event)) return [];
   if (anchorPlace?.openedOn && anchorPlace.openedOn > date) return [];
-  if (anchorPlace?.category === 'restaurant' && (filters.freeOnly || filters.budget === 0)) return [];
+  if (anchorPlace?.category === 'restaurant' && filters.freeOnly) return [];
   if (event.planning?.programTimeUnconfirmed) return [];
   if (filters.city && cityKey(filters.city) !== cityKey(event.city)) return [];
   if (filters.region && filters.region !== 'all' && event.region !== filters.region) return [];
@@ -58,7 +92,7 @@ function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayI
   if (ages.some(age => (event.planning?.minAge != null && age < event.planning.minAge) || (event.planning?.maxAge != null && age > event.planning.maxAge))) return [];
   if (filters.freeOnly && admission(event) !== 0) return [];
   const partySize = filters.partySize || Math.max(1, ages.length);
-  const personCap = filters.budget == null ? null : filters.budgetScope === 'total' ? (filters.partySize ? filters.budget / filters.partySize : null) : filters.budget;
+  const personCap = filters.budget == null ? null : filters.budgetScope === 'total' ? filters.budget / partySize : filters.budget;
   if (personCap != null && admission(event) != null && admission(event)! > personCap) return [];
   const evidenceFor = (entry: Entry) => injected ? resolveTimeEvidence(entry.fact.planning?.schedule, date, asOf) : timeEvidence(entry.stop, date, asOf);
   const anchor: Entry = { stop: { kind: anchorPlace ? 'place' : 'event', id: event.id }, fact: event, duration: anchorPlace ? placeDuration(anchorPlace, 'half-day') : 90 };
@@ -76,7 +110,7 @@ function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayI
   if (!filters.partySize) baseNotices.push(`未提供同行总人数，草稿暂按 ${partySize} 人显示，请选择方案后确认人数与儿童票规则。`);
   if (filters.budget != null && filters.budgetScope !== 'total') baseNotices.push(`每人 $${filters.budget} 仅作为入场金额上限；未据此设置整趟总预算，餐饮与交通需要另填。`);
   if (ages.length) baseNotices.push('已检查每位儿童的已公布年龄限制；各地点的亲子适宜性、成人陪同和儿童票规则仍需确认。');
-  if (filters.budgetScope === 'total' && filters.budget != null && !filters.partySize) baseNotices.push('总预算缺少已确认人数，不能核实整组门票总额；暂不添加需要付费入场的地点。');
+  if (filters.budgetScope === 'total' && filters.budget != null && !filters.partySize) baseNotices.push('同行人数尚未确认，已知门票暂按草稿人数计算；不能确认整组门票符合预算。');
   if (admission(event) === null || suggestion.budgetStatus === 'unknown') baseNotices.push(anchorPlace
     ? '主地点费用仍待核实；这是一份待确认的备选，不能视为整趟符合预算。'
     : '主活动门票或预算仍待核实；这是一份待确认的备选，不能视为整趟符合预算。');
@@ -107,9 +141,7 @@ function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayI
     && (!place.openedOn || place.openedOn <= date)
     && !/alcatraz|angel[- ]island|必须.{0,3}(?:渡轮|渡輪)|requires? (?:a )?ferry/i.test(`${place.id} ${place.summary}`)
     && placeMatchesFilters(place, { ...filters, city: undefined })
-    && !(filters.budget != null && admission(place) === null)
-    && !(filters.budgetScope === 'total' && filters.budget != null && !filters.partySize && admission(place) !== 0)
-    && !((filters.freeOnly || filters.budget === 0) && place.category === 'restaurant')
+    && !(filters.freeOnly && place.category === 'restaurant')
     && evidenceFor({ stop: { kind: 'place', id: place.id }, fact: place, duration: 60 }).status === 'confirmed');
   // Keep a few genuine choices per category, rather than letting the nearest
   // three shops crowd all restaurants and attractions out of the route.
@@ -181,7 +213,7 @@ function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayI
           : '没有找到符合条件的餐厅；已预留 45 分钟休息，用餐地点、时间与费用仍待选择。');
       const details: PlanDetails = {
         startTime: clockLabel(start), finishBy: clockLabel(cursor), partySize,
-        totalBudgetUsd: filters.budget != null && filters.budgetScope === 'total' ? filters.budget : null,
+        totalBudgetUsd: null,
         extraCostUsd: 0, costBreakdown: { foodUsd: 0, transportUsd: 0, otherUsd: 0 },
         travelMode: ['drive', 'transit', 'walk'].includes(filters.travelMode || '') ? filters.travelMode as PlanDetails['travelMode'] : 'any',
         constraints: { ...filters, ...(filters.childAges ? { childAges: [...filters.childAges] } : {}) }, stopSettings: settings,
@@ -229,7 +261,9 @@ function buildAnchoredOutings({ suggestion, filters, message = '', asOf = todayI
     const stops = best.entries.map(entry => ({ ...entry.stop }));
     if (result.some(option => option.stops.map(stop => `${stop.kind}:${stop.id}`).sort().join('|') === stops.map(stop => `${stop.kind}:${stop.id}`).sort().join('|'))) continue;
     const label = style === 'half-day' ? '半日' : '一日';
-    result.push({ id: `${suggestion.id}-${style}`, title: `${event.city} ${label}出游`, summary: `以「${event.title}」为${anchorPlace ? '主地点' : '主活动'}，搭配 ${stops.length - 1} 个同城地点；${best.details.startTime}–${best.details.finishBy} 为可调整的草稿时段。`, date, stops, details: best.details, notices: best.notices, style });
+    const budgetStatus = best.entries.some(entry => admission(entry.fact) === null) || suggestion.budgetStatus === 'unknown' || filters.budgetScope === 'total' && filters.budget != null && !filters.partySize ? 'unknown' : 'known';
+    const notices = budgetStatus === 'unknown' ? [...best.notices, '这份方案有入场费用或同行人数待确认，只列出已知门票金额；不能确认符合门票预算或整趟预算。'] : best.notices;
+    result.push({ id: `${suggestion.id}-${style}`, title: `${event.city} ${label}出游`, summary: `以「${event.title}」为${anchorPlace ? '主地点' : '主活动'}，搭配 ${stops.length - 1} 个同城地点；${best.details.startTime}–${best.details.finishBy} 为可调整的草稿时段。`, date, stops, details: best.details, notices, style, budgetStatus });
   }
   return result;
 }

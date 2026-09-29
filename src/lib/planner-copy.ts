@@ -2,6 +2,8 @@ import { translateText } from '../i18n/locale';
 
 // Translate the complete editorial statement: qualifiers and unknowns are part of the evidence.
 const notices: Record<string, string> = {
+  '同行人数尚未确认，已知门票暂按草稿人数计算；不能确认整组门票符合预算。': 'The group size is unconfirmed. Known admission uses the draft group size; the group admission budget is still unconfirmed.',
+  '这份方案有入场费用或同行人数待确认，只列出已知门票金额；不能确认符合门票预算或整趟预算。': 'Admission costs or group size remain unconfirmed. Only known admission costs are counted; neither the admission budget nor the full trip budget is confirmed.',
   '主地点费用仍待核实；这是一份待确认的备选，不能视为整趟符合预算。': 'Costs at the main stop are still unconfirmed. This is a tentative alternative, not confirmation that the whole outing fits your budget.',
   '主地点仍在试营业，营业安排与供应可能调整，请出发前向商家确认。': 'The main stop is still in its soft opening. Hours and availability may change; check with the business before visiting.',
   '主地点按已收录营业窗口安排；这只是可编辑的访问时间，不代表已预约或保证营业。': 'The main stop uses its recorded opening window. This is an editable visit time, not a reservation or a guarantee that it will be open.',
@@ -38,6 +40,15 @@ const notices: Record<string, string> = {
   '美术馆咖啡餐厅营业时间，入店无需美术馆门票；特别活动营业可能调整。周一未列时间。': 'Hours for the museum’s café and restaurant; no museum ticket is needed to enter. Hours may change for special events. Monday hours are not listed.',
   '堂食最晚 15:15 点单；无需博物馆门票。周日 brunch 先到先得、不接受预约；临时及特殊活动安排另查官网。': 'Last dine-in orders are at 15:15; no museum ticket is required. Sunday brunch is first come, first served and does not take reservations. Check the official site for temporary changes and special-event arrangements.',
   '周五营业时间尚待确认；周六营业至午夜，优惠适用时段须另看具体条件。': 'Friday hours are unconfirmed. Saturday hours run until midnight; check each offer’s terms for eligible times.',
+  'Ferry Building #37A 的普通书店营业时间，不是作家活动场次。购物另付；商场提醒营业时间可能调整。位置标记所在 Ferry Building，入内按 #37A 找店。': 'Regular bookstore hours at Ferry Building #37A, not author-event times. Purchases cost extra; the marketplace warns that hours may change. The pin marks the Ferry Building; find shop #37A inside.',
+  '主馆公共阅览开放时间，普通入馆免费；历史中心、活动与会议室可能另有开放及预约安排，复印、打印、停车另计。': 'Main Library public reading hours; ordinary entry is free. The history center, events and meeting rooms may have separate hours or reservation rules. Copying, printing and parking cost extra.',
+  '公共图书馆普通开放时间，入馆免费；儿童区周一至周六 10:00 才开放，周日 13:00 开放。特藏、AI Center、活动与服务柜台另有时间，不能据此假定随时可参加；停车等另计。': 'Regular public library hours; entry is free. The children’s room opens at 10:00 Monday through Saturday and 13:00 Sunday. Special collections, the AI Center, events and service desks have separate schedules; these hours do not imply drop-in access to every service. Parking and other expenses are separate.',
+  'Marin 门店普通营业窗口；菜单、供餐阶段及餐桌余位请查看订位页，未作任何订位。餐费按点单另付，不能把营业窗口当作已确认座位。': 'Regular opening window for the Marin restaurant. Check its reservation page for menus, meal service and table availability; no reservation has been made. Food is charged according to the order, and opening hours do not confirm a table.',
+  '只对应 2017 Larkspur Landing Circle 的 Marin Country Mart 门店；普通营业时间，点餐、排队与座位待确认，餐饮另付。': 'These regular hours apply only to the Marin Country Mart location at 2017 Larkspur Landing Circle. Ordering, queues and seating are unconfirmed; food and drinks cost extra.',
+  'Larkspur 门店普通营业时间，不代表当天有作家活动；购书和活动费用按商家条款确认。': 'Regular hours for the Larkspur bookstore, not confirmation of an author event that day. Check the store’s terms for book purchases and event costs.',
+  '只对应 Redwood City 的 History Museum 展馆：成人普通票 $6，长者及学生 $4，5 岁及以下免费，会员及其他优惠另按资格。人数和票种待确认，未套用统一票价；团体参观需另查预约。档案室仅预约开放，不能按展馆时间访问。': 'These hours apply only to the History Museum galleries in Redwood City. Standard adult admission is $6, seniors and students $4, and children 5 and under enter free; membership and other discounts depend on eligibility. Party size and ticket categories are unconfirmed, so no single ticket price has been applied. Check group reservation requirements separately. The archives are appointment-only and do not follow the gallery hours.',
+  '只对应 695 Main Street 的 Marston 门店；普通营业时间，菜单、座位与排队待确认，餐饮按点单另付。': 'These regular hours apply only to the Marston location at 695 Main Street. Menus, seating and queues are unconfirmed; food and drinks are charged according to the order.',
+  'Downtown Library 普通公共阅览开放时间，入馆免费；Local History Room 仅预约开放，活动、会议室及打印另查规则，停车另计。9/29 上午员工培训，10/19 全日员工培训闭馆。': 'Regular public reading hours for Downtown Library; entry is free. The Local History Room is appointment-only. Check separate rules for events, meeting rooms and printing; parking costs extra. Staff training closes the library on the morning of 9/29 and all day on 10/19.',
   '18 岁以上活动开放窗口；具体节目另有时间。Tactile Dome 需另行预约与购票。': 'Event opening window for ages 18+; individual programs have their own times. The Tactile Dome requires a separate reservation and ticket.',
   '市集每周二、四、六举行，风雨照常；此时间不代表 Ferry Building 内所有商家营业时间。购物与餐饮另付费。': 'The market runs every Tuesday, Thursday and Saturday, rain or shine. These are not the hours of every business inside the Ferry Building. Shopping and meals cost extra.',
   '18:00–21:00 为免费美术馆之夜；芭蕾演出所在教室 19:25 开门，座位先到先得。演出开始及结束钟点未单独公布；提前登记可加快入馆。': '18:00–21:00 is the free museum evening. The classroom hosting the ballet opens at 19:25, with seating first come, first served. The performance’s start and end times have not been separately published; advance registration can speed up museum entry.',
@@ -48,6 +59,12 @@ const notices: Record<string, string> = {
   'Exploratorium · 日间科学探索馆': 'Exploratorium · Daytime science museum',
   'San José Museum of Art · 美术馆': 'San José Museum of Art · Galleries',
   'Oakland Museum of California · OMCA 展馆': 'Oakland Museum of California · OMCA galleries',
+  'Book Passage · Ferry Building 书店': 'Book Passage · Ferry Building bookstore',
+  'Oakland Main Library · 奥克兰主图书馆': 'Oakland Main Library',
+  'Dr. Martin Luther King, Jr. Library · 圣何塞公共图书馆': 'Dr. Martin Luther King, Jr. Library · San José',
+  'Copperfield’s Books · Larkspur 书店': 'Copperfield’s Books · Larkspur',
+  'San Mateo County History Museum · 半岛历史博物馆': 'San Mateo County History Museum',
+  'Redwood City Downtown Library · 市中心图书馆': 'Redwood City Downtown Library',
 };
 
 const hasChinese = (value: string) => /[\u3400-\u9fff]/.test(value);

@@ -54,10 +54,37 @@ test('unknown admissions never become free or a complete estimated total', () =>
   assert.deepEqual(budget.unknown, [pair[1]]);
   assert.equal(budget.overBy, 30);
   assert.equal(placeMatchesFilters(unknown, { freeOnly: true }), false);
-  assert.equal(placeMatchesFilters(unknown, { budget: 10 }), false);
+  assert.equal(placeMatchesFilters(unknown, { budget: 10 }), true, 'an unpriced alternative is not a confirmed budget fit');
   const paid: PlannerPlace = { ...known, planning: { admissionUsd: 15, minAge: 8 } };
   assert.equal(placeMatchesFilters(paid, { budget: 40, budgetScope: 'total', partySize: 4 }), false);
   assert.equal(placeMatchesFilters(paid, { childAges: [12, 5] }), false);
+});
+test('admission caps and trip allowances are separate, with unknown prices preserved in both summaries', () => {
+  const selected: Stop[] = [{ kind: 'place', id: 'ticketed' }, { kind: 'place', id: 'restaurant' }];
+  const lookup = (stop: Stop) => ({ planning: { admissionUsd: stop.id === 'ticketed' ? 20 : null } });
+  const details: PlanDetails = { ...defaultPlanDetails(), partySize: 2, extraCostUsd: 55, costBreakdown: { foodUsd: 40, transportUsd: 10, otherUsd: 5 }, constraints: { budget: 40, budgetScope: 'total', partySize: 2 } };
+  const budget = planBudget(selected, details, lookup);
+  assert.equal(budget.admissionPerPerson, 20);
+  assert.equal(budget.admissionFloor, 40);
+  assert.equal(budget.admissionOverBy, 0, 'meal and transport allowances do not consume the ticket cap');
+  assert.equal(budget.subtotal, 95);
+  assert.equal(budget.overBy, 0, 'there is no all-in cap until the user sets one');
+  assert.deepEqual(budget.unknown, [selected[1]]);
+  assert.equal(planBudget(selected, { ...details, totalBudgetUsd: 90 }, lookup).overBy, 5);
+  assert.equal(planBudget(selected, { ...details, constraints: { budget: 30, budgetScope: 'total' } }, lookup).admissionOverBy, 10);
+  assert.equal(planBudget(selected, { ...details, constraints: { budget: 15, budgetScope: 'person' } }, lookup).admissionOverBy, 5);
+  const cents = planBudget(selected, details, () => ({ planning: { admissionUsd: 0.1 } }));
+  assert.equal(cents.admissionFloor, 0.4);
+  assert.equal(cents.subtotal, 55.4);
+});
+
+test('invalid or absent admission evidence stays unknown and cannot establish free entry', () => {
+  for (const admissionUsd of [null, undefined, -1, NaN, Infinity]) {
+    const place = { ...PLANNER_PLACES[0], cost: 'free', planning: { admissionUsd } };
+    assert.equal(placeMatchesFilters(place, { budget: 100 }), true);
+    assert.equal(placeMatchesFilters(place, { freeOnly: true }), false);
+    assert.equal(planBudget(stops.slice(0, 1), defaultPlanDetails(), () => place).unknown.length, 1);
+  }
 });
 test('nearby requires venue coordinates and same city rather than suggesting a ferry crossing', () => {
   const point = { lat: 37.8, lng: -122.4, label: 'Test venue', sourceUrl: 'https://example.com', precision: 'venue' as const };

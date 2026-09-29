@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
-import { buildOutingOptions, buildPlaceOutingOptions, type OutingCatalog } from '../src/lib/planner-outings';
-import type { PlannerEvent, PlannerPlace, PlanningSchedule, Suggestion } from '../src/lib/planner';
+import { buildOutingOptions, buildPlaceOutingOptions, getPlaceOutingUnavailableReason, type OutingCatalog } from '../src/lib/planner-outings';
+import type { PlanFilters, PlannerEvent, PlannerPlace, PlanningSchedule, Suggestion } from '../src/lib/planner';
 import { resolveTimeEvidence } from '../src/lib/planner-hours';
-import { buildItinerary } from '../src/lib/planner-itinerary';
+import { buildItinerary, planBudget } from '../src/lib/planner-itinerary';
 
 const date = '2026-10-03';
 const asOf = '2026-09-29';
@@ -37,11 +37,51 @@ test('place anchors cannot be fabricated from missing hours, approximate locatio
   }
 });
 
+test('empty place combinations identify the specific anchor limitation instead of blaming all catalog data', () => {
+  const cases: { patch: Partial<PlannerPlace>; filters?: PlanFilters; expected: string }[] = [
+    { patch: { location: undefined }, expected: 'location-unverified' },
+    { patch: { planning: { admissionUsd: null } }, expected: 'hours-unconfirmed' },
+    { patch: { planning: { admissionUsd: null, schedule: schedule({ dates: { [date]: [] } }) } }, expected: 'hours-closed' },
+    { patch: { planning: { admissionUsd: null, schedule: schedule({ validThrough: '2026-10-01' }) } }, expected: 'hours-out-of-range' },
+    { patch: { planning: { admissionUsd: null, schedule: schedule({ verifiedAt: '2026-07-01' }) } }, expected: 'hours-stale' },
+    { patch: { planning: { admissionUsd: 120, schedule: schedule() } }, expected: 'admission-over-budget' },
+    { patch: { planning: { admissionUsd: 60, schedule: schedule() } }, filters: { budget: 100, budgetScope: 'total', partySize: 2 }, expected: 'admission-over-budget' },
+    { patch: { planning: { admissionUsd: null, minAge: 18, schedule: schedule() } }, filters: { childAge: 12 }, expected: 'age-restriction' },
+    { patch: {}, filters: { city: 'South San Francisco' }, expected: 'area-mismatch' },
+    { patch: { openingStatus: 'announced' }, expected: 'opening-unavailable' },
+    { patch: { planning: { admissionUsd: null, schedule: schedule() } }, filters: { freeOnly: true }, expected: 'free-admission-unconfirmed' },
+  ];
+  for (const { patch, filters = { budget: 100 }, expected } of cases) {
+    const data = sources([], [place('main', 'attraction', { location: point, ...patch }), place('coffee', 'cafe')]);
+    assert.deepEqual(buildPlaceOutingOptions({ placeId: 'main', date, filters, asOf }, data), [], expected);
+    const reason = getPlaceOutingUnavailableReason('main', date, filters, asOf, data);
+    assert.equal(reason.code, expected);
+    assert.ok(reason.zh && reason.en);
+    assert.doesNotMatch(reason.en, /[\u3400-\u9fff]/);
+  }
+  const onlyAnchor = sources([], [place('main', 'cafe', { location: point, planning: { admissionUsd: null, schedule: schedule() } })]);
+  assert.equal(getPlaceOutingUnavailableReason('main', date, { budget: 100 }, asOf, onlyAnchor).code, 'no-compatible-combination', 'unknown prices are not a reason to reject the anchor');
+  assert.equal(getPlaceOutingUnavailableReason('main', date, {}, asOf, onlyAnchor, '不要博物馆').code, 'unsupported-preferences');
+});
+
 test('place anchors honor free-only, age and exact city constraints without treating restaurant spending as free', () => {
   const data = sources([], [place('restaurant', 'restaurant', { location: point }), place('coffee', 'cafe')]);
-  for (const filters of [{ freeOnly: true }, { budget: 0 }, { city: 'South San Francisco' }]) assert.deepEqual(buildPlaceOutingOptions({ placeId: 'restaurant', date, filters, asOf }, data), []);
+  for (const filters of [{ freeOnly: true }, { city: 'South San Francisco' }]) assert.deepEqual(buildPlaceOutingOptions({ placeId: 'restaurant', date, filters, asOf }, data), []);
   data.places[0].planning!.minAge = 18;
   assert.deepEqual(buildPlaceOutingOptions({ placeId: 'restaurant', date, filters: { childAges: [8, 16] }, asOf }, data), []);
+});
+
+test('a zero admission cap still permits unpriced restaurant alternatives without claiming the meal is free', () => {
+  const restaurant = place('meal', 'restaurant', { location: point, planning: { admissionUsd: null, schedule: schedule() } });
+  const data = sources([anchor()], [restaurant, place('coffee', 'cafe')]);
+  const options = buildPlaceOutingOptions({ placeId: 'meal', date, filters: { budget: 0 }, asOf }, data);
+  assert.ok(options.length);
+  assert.ok(options.every(option => option.budgetStatus === 'unknown'));
+  assert.match(options[0].notices.join(' '), /餐饮.*另填|实际餐费未核实/);
+  assert.ok(buildOutingOptions({ suggestion, filters: { budget: 0 }, asOf }, data).some(option => option.stops.some(stop => stop.id === 'meal')), 'the same admission semantics apply to secondary restaurants');
+  restaurant.planning!.admissionUsd = 5;
+  assert.deepEqual(buildPlaceOutingOptions({ placeId: 'meal', date, filters: { budget: 0 }, asOf }, data), []);
+  assert.equal(getPlaceOutingUnavailableReason('meal', date, { budget: 0 }, asOf, data).code, 'admission-over-budget');
 });
 
 test('real Ferry Building restaurant can anchor a timed plan without requiring a scheduled event', () => {
@@ -126,14 +166,67 @@ test('sum of known admissions stays under per-person and group caps, and unknown
     assert.deepEqual(buildOutingOptions({ suggestion, filters, asOf }, sources([paid], [ten])), []);
     const options = buildOutingOptions({ suggestion, filters, asOf }, sources([paid], [place('free')]));
     assert.ok(options.length > 0);
-    assert.equal(options[0].details.totalBudgetUsd, filters.budgetScope === 'total' ? 100 : null);
+    assert.equal(options[0].details.totalBudgetUsd, null, 'an admission cap must not become an all-in trip cap');
+    assert.equal(options[0].details.constraints?.budget, filters.budget);
+    assert.equal(options[0].budgetStatus, 'known');
   }
   const unknown = anchor({ cost: 'unknown', planning: { admissionUsd: null, schedule: schedule() } });
   const options = buildOutingOptions({ suggestion: { ...suggestion, budgetStatus: 'unknown' }, filters: { budget: 25 }, asOf }, sources([unknown], [place('free')]));
   assert.ok(options.length > 0);
   assert.match(options[0].notices.join(' '), /备选.*不能视为整趟符合预算/);
   const unpriced = place('unpriced', 'attraction', { cost: 'unknown', planning: { admissionUsd: null, schedule: schedule() } });
-  assert.deepEqual(buildOutingOptions({ suggestion, filters: { budget: 25 }, asOf }, sources([anchor()], [unpriced])), []);
+  const pending = buildOutingOptions({ suggestion, filters: { budget: 25 }, asOf }, sources([anchor()], [unpriced]));
+  assert.ok(pending.length);
+  assert.ok(pending.every(option => option.budgetStatus === 'unknown' && option.stops.some(stop => stop.id === 'unpriced')));
+  assert.match(pending[0].notices.join(' '), /不能确认符合门票预算或整趟预算/);
+});
+
+test('an entirely unpriced place catalog still yields clearly pending budget candidates', () => {
+  const data = sources([], [
+    place('anchor-cafe', 'cafe', { location: point, planning: { admissionUsd: null, schedule: schedule() } }),
+    place('unpriced-museum', 'attraction', { planning: { admissionUsd: null, schedule: schedule() } }),
+    place('unpriced-lunch', 'restaurant', { planning: { admissionUsd: null, schedule: schedule() } }),
+  ]);
+  for (const budgetScope of ['person', 'total'] as const) {
+    const options = buildPlaceOutingOptions({ placeId: 'anchor-cafe', date, filters: { budget: 100, budgetScope, partySize: 2 }, asOf }, data);
+    assert.ok(options.length);
+    for (const option of options) {
+      assert.equal(option.budgetStatus, 'unknown');
+      const budget = planBudget(option.stops, option.details, stop => data.places.find(row => row.id === stop.id));
+      assert.equal(budget.unknown.length, option.stops.length);
+      assert.equal(budget.admissionFloor, 0, 'only the known subtotal is zero; every stop remains unpriced');
+      assert.equal(budget.admissionOverBy, 0);
+      assert.equal(option.details.totalBudgetUsd, null);
+      assert.match(option.notices.join(' '), /不能确认符合门票预算或整趟预算/);
+    }
+  }
+  assert.deepEqual(buildPlaceOutingOptions({ placeId: 'anchor-cafe', date, filters: { budget: 100, freeOnly: true }, asOf }, data), []);
+  data.places[1].planning!.minAge = 18;
+  data.places[2].planning!.schedule!.dates![date] = [];
+  assert.deepEqual(buildPlaceOutingOptions({ placeId: 'anchor-cafe', date, filters: { budget: 100, childAges: [8] }, asOf }, data), [], 'unknown prices do not bypass ages or closures');
+});
+
+test('real Ferry restaurant with a $100 admission budget retains useful unpriced combinations', () => {
+  const options = buildPlaceOutingOptions({ placeId: 'restaurant-gotts-ferry-building', date, filters: { city: 'San Francisco', budget: 100, budgetScope: 'total', partySize: 2 }, asOf });
+  assert.ok(options.length);
+  for (const option of options) {
+    assert.equal(option.budgetStatus, 'unknown');
+    assert.ok(option.stops.length >= 2);
+    assert.deepEqual(buildItinerary(option.stops, option.details, date, asOf).issues, []);
+    assert.equal(planBudget(option.stops, option.details).admissionOverBy, 0);
+    assert.ok(planBudget(option.stops, option.details).unknown.length > 0);
+  }
+});
+
+test('a missing group size stays tentative and cannot hide a known minimum admission overrun', () => {
+  const paid = anchor({ cost: 'paid', planning: { admissionUsd: 20, schedule: schedule() } });
+  const filters = { budget: 30, budgetScope: 'total' as const };
+  const options = buildOutingOptions({ suggestion, filters, asOf }, sources([paid], [place('free')]));
+  assert.ok(options.length);
+  assert.equal(options[0].budgetStatus, 'unknown');
+  assert.match(options[0].notices.join(' '), /同行人数尚未确认/);
+  assert.deepEqual(buildOutingOptions({ suggestion, filters: { ...filters, budget: 10 }, asOf }, sources([paid], [place('free')])), []);
+  assert.deepEqual(buildOutingOptions({ suggestion, filters: { ...filters, childAges: [5, 12] }, asOf }, sources([paid], [place('free')])), [], 'two stated children establish at least two paid admissions');
 });
 
 test('free-only and every supplied child age constrain every added stop', () => {
