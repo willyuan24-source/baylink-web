@@ -33,3 +33,9 @@
   .ob-opening-badge { width: 44px; height: 44px; border-radius: 13px; }
   .ob-opening-name { font-size: 15px; }
 }
+/* W6-S-review · touch targets >= 44 px on a coarse pointer (the game's rule, opus-bay.css): the x was 32 px, the link 36 px */
+@media (pointer: coarse) {
+  .ob-opening-card { padding-right: 46px; }
+  .ob-opening-close { top: 2px; right: 2px; width: 44px; height: 44px; }
+  .ob-opening-go { min-height: 44px; }
+}

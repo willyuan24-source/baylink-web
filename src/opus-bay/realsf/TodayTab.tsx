@@ -16,7 +16,7 @@ import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
-import { activeEventsAt, handRowOf, weekEvents, type EventWindow } from './events';
+import { activeEventsAt, handRowOf, weekEvents, windowEndKnown, type EventWindow } from './events';
 import { MOON_LABELS, MOON_SOURCE, moonPhase } from './moon';
 import { KARL_SOURCE, karlMonthFactor } from './seasons';
 import { bayHm, roundMinute, sunBandAt, sunHm, sunTimes } from './sun';
@@ -116,9 +116,14 @@ const DAILY_ICON: Record<DailyKind, ReactNode> = {
   free: <Flower2 size={15} />, fire: <Flame size={15} />, new: <Camera size={15} />,
 };
 
-/** A world event's hours today, 'H:mm–H:mm' (a window closing at midnight ends at 24:00). */
+/** A world event's hours today, 'H:mm–H:mm' (a window closing at midnight ends at 24:00); (review) 'H:mm 起' / 'from H:mm'
+ *  when the organiser gives only a start (the world's 4 h / 21:00 close is not the event's end: the opera runs to 23:00). */
 const hmOf = (ms: number) => bayHm(new Date(ms)).replace(/^0(?=\d:)/, '');
-const span = (w: EventWindow) => `${hmOf(w.open)}–${hmOf(w.close) === '0:00' ? '24:00' : hmOf(w.close)}`;
+const span = (w: EventWindow): Bilingual => {
+  if (!windowEndKnown(w)) return { zh: `${hmOf(w.open)} 起`, en: `from ${hmOf(w.open)}` };
+  const s = `${hmOf(w.open)}–${hmOf(w.close) === '0:00' ? '24:00' : hmOf(w.close)}`;
+  return { zh: s, en: s };
+};
 const eventSource = (e: CatalogEvent) => ({ label: e.sourceLabel ?? 'BAYLINK', url: e.officialUrl && /^https:\/\//.test(e.officialUrl) ? e.officialUrl : undefined, verifiedAt: e.verifiedAt });
 
 const CAL_ICON = (r: CalendarRow) => (r.dress === 'pumpkins' ? <Ghost size={15} /> : r.dress === 'king-tide' ? <Waves size={15} /> : <CalendarDays size={15} />);
@@ -282,7 +287,7 @@ export default function TodayTab() {
             return (
               <Row key={w.event.id} icon={<Music size={15} />} tone={on ? 'now' : 'later'}
                 title={<button type="button" className="ob-today-link" onClick={() => openEvent(w.event.id)}>{t(w.event.title, name ? cap(name.en) : w.event.title)}</button>}
-                meta={`${t(place)} · ${span(w)}${cost ? ` · ${cost}` : ''} · ${t('以官网为准', 'check before you go')}`}
+                meta={`${t(place)} · ${t(span(w))}${cost ? ` · ${cost}` : ''} · ${t('以官网为准', 'check before you go')}`}
                 side={<>
                   <State state={on ? 'now' : 'later'} from={minuteOf(new Date(w.open))} />
                   <GoButton label={w.venue.name} onClick={() => goToEvent(w.event)} />
@@ -373,7 +378,7 @@ export default function TodayTab() {
             {week.map(({ u, win }) => {
               const spot = eventSpot(u.event);
               const en = EVENT_SAY[u.event.id]?.en;
-              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${span(win)}` : u.event.venue ?? '';
+              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${t(span(win))}` : u.event.venue ?? '';
               return (
                 <Row key={u.event.id} icon={<CalendarDays size={15} />}
                   title={<button type="button" className="ob-today-link" onClick={() => openEvent(u.event.id)}>{t(u.event.title, en ? cap(en) : u.event.title)}</button>}

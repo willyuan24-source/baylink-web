@@ -8,7 +8,7 @@ import { bayNow, bayParts } from '../game/bayNow';
 import { say } from '../game/flow';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
-import { handRowOf, weekEvents, type EventWindow } from './events';
+import { handRowOf, weekEvents, windowEndKnown, type EventWindow } from './events';
 import { isFireRingLit } from './seasons';
 import { roundMinute, sunBandAt, sunTimes } from './sun';
 import { atMinute, fireSeasonKey, freePlacesOn, hm, marketHours, PLACES } from './todayRows';
@@ -121,11 +121,13 @@ function task(n: 1 | 2 | 3, kind: DailyKind, s: DaySignals, rnd: () => number): 
       const name = EVENT_SAY[w.event.id] ?? { zh: '活动', en: 'the event' };
       const place = VENUE_SAY[w.venue.id] ?? w.venue.name;
       const open = bayParts(new Date(w.open)), close = bayParts(new Date(w.close));
+      // (W6-S-review) a start-only label says "19:30 起", not the world's 21:00 close as the event's end
+      const known = windowEndKnown(w), from = hm(open.hour * 60 + open.minute);
       const span = hours(open.hour * 60 + open.minute, close.hour * 60 + close.minute || 24 * 60);
       return {
         n, kind, source, eventId: w.event.id,
         title: { zh: `去看看${name.zh}`, en: `Drop in on ${name.en}` },
-        hint: { zh: `${place.zh} · 今天 ${span}`, en: `${place.en} · today ${span}` },
+        hint: { zh: `${place.zh} · 今天 ${known ? span : `${from} 起`}`, en: `${place.en} · today ${known ? span : `from ${from}`}` },
         short: name, window: { open: w.open, close: w.close },
         go: { ...(w.venue.placeId ? { placeId: w.venue.placeId } : {}), point: { x: w.venue.x, z: w.venue.z }, name: w.venue.name },
       };

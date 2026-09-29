@@ -12,6 +12,8 @@ import { venueForEvent, type EventVenue } from './eventVenues';
  *   eventHours(e, v, day)    its hours on a Bay date: the venue table's verified hours, else the catalog label's part
  *                            for that day (labelHoursOn: "HH:mm–HH:mm", or a start + 4 h ≤ 21:00 opened by its doors),
  *                            else 08:00–21:00; null = not that day
+ *   windowEndKnown(w)        (review) its close is the organiser's (the venue table, a label range or end), not the
+ *                            world's start + 4 h / 21:00 rule: the 今天 tab, 这周 and BAYBAY then say "19:30 起", not a range
  *   activeEventsAt(date)     the world events on now (their day and hours), nearest end first
  *   weekEvents(date, days)   the world events with a day in the next `days` days (today included), soonest first
  *
@@ -82,44 +84,65 @@ function labelParts(label: string, year: number): LabelPart[] {
 }
 
 /** Hours in one piece of a label: every "HH:mm–HH:mm" joined (earliest start, latest end), else a start ("HH:mm 开始",
- *  or the first plain time) opened early by its doors ("HH:mm 开门") and closed 4 h later (≤ 21:00). */
-function partHours(text: string): [number, number] | null {
+ *  the first plain time, or — with only a doors time — the doors) opened early by its doors ("HH:mm 开门") and closed at
+ *  its end ("至 HH:mm", "HH:mm 结束"; review) or 4 h later (≤ 21:00). */
+function partSpan(text: string): LabelSpan | null {
   let a = Infinity, b = -Infinity;
   for (const m of text.matchAll(RANGE)) {
     const s = Number(m[1]) * 60 + Number(m[2]), e = Number(m[3]) * 60 + Number(m[4]);
     if (s < e && e <= 24 * 60) { a = Math.min(a, s); b = Math.max(b, e); }
   }
-  if (a < b) return [a, b];
-  let start: number | null = null, doors: number | null = null, plain: number | null = null;
+  if (a < b) return { hours: [a, b], endKnown: true };
+  let start: number | null = null, doors: number | null = null, plain: number | null = null, end: number | null = null;
   for (const m of text.matchAll(TIME)) {
     const t = Number(m[1]) * 60 + Number(m[2]);
     if (t >= 24 * 60) continue;
+    const before = text.slice(0, m.index ?? 0).trimEnd();
     const after = text.slice((m.index ?? 0) + m[0].length).trimStart();
-    if (/^(开门|入场)/.test(after)) doors ??= t;
+    // (review) "每日演出至19:00" is an end, not a start: HSB's label read 19:00–21:00 before
+    if (/(至|到|until)$/i.test(before) || /^(结束|截止)/.test(after)) end ??= t;
+    else if (/^(开门|入场)/.test(after)) doors ??= t;
     else if (/^(开始|起|start)/i.test(after)) start ??= t;
-    else if (!/^(签到|结束|截止)/.test(after)) plain ??= t;
+    else if (!/^签到/.test(after)) plain ??= t;
   }
-  const s = start ?? plain;
+  const s = start ?? plain ?? doors;
   if (s === null || s >= LATEST) return null;
-  return [doors !== null && doors < s ? doors : s, Math.min(LATEST, s + 240)];
+  const close = end !== null && end > s ? end : null;
+  return { hours: [doors !== null && doors < s ? doors : s, close ?? Math.min(LATEST, s + 240)], endKnown: close !== null };
 }
+
+/** Hours read from a label, and whether their end is the organiser's (a range or an end time) or the world's rule. */
+interface LabelSpan { hours: [number, number]; endKnown: boolean }
 
 /**
  * (W6-S) The hours a catalog date label gives for one Bay date: the part naming that date (10/4 14:00) or its weekday
- * (周六08:00–14:00) wins, then a part for the other dates (其余所列日期 19:30), then the parts naming no day at all. The
- * autumn catalog's labels read "10/23 · 19:00；17:30 开门", "9/29、10/2 19:30；10/4 14:00" or "周二、四10:00–14:00；周六…".
+ * (周六08:00–14:00) wins, with the parts for every day (每日…); then a part for the other dates (其余所列日期 19:30), then
+ * the parts naming no day at all. The autumn catalog's labels read "10/23 · 19:00；17:30 开门", "9/29、10/2 19:30；10/4
+ * 14:00", "周二、四10:00–14:00；周六…" or "周五11:00开门；周六、日09:00开门；每日演出至19:00".
  */
 export function labelHoursOn(label: string | undefined, dateKey: string): [number, number] | null {
+  return labelSpanOn(label, dateKey)?.hours ?? null;
+}
+
+function labelSpanOn(label: string | undefined, dateKey: string): LabelSpan | null {
   if (!label) return null;
   const year = Number(dateKey.slice(0, 4));
   const weekday = new Date(Date.UTC(year, Number(dateKey.slice(5, 7)) - 1, Number(dateKey.slice(8, 10)))).getUTCDay();
   const parts = labelParts(label, year);
   const named = (p: LabelPart) => p.days.size > 0 || p.weekdays.size > 0;
-  const pick = (list: LabelPart[]) => list.length ? partHours(list.map(p => p.text).join('；')) : null;
-  return pick(parts.filter(p => p.days.has(dateKey) || p.weekdays.has(weekday)))
+  const pick = (list: LabelPart[]) => list.length ? partSpan(list.map(p => p.text).join('；')) : null;
+  // (review) a part for every day ("每日演出至19:00") belongs with the day's own part ("周五11:00开门")
+  const own = parts.filter(p => p.days.has(dateKey) || p.weekdays.has(weekday));
+  const everyDay = parts.filter(p => !named(p) && !p.rest && /每日|每天|daily/i.test(p.text));
+  return pick(own.length ? [...own, ...everyDay] : own)
     ?? pick(parts.filter(p => p.rest))
     ?? pick(parts.filter(p => !named(p)))
-    ?? labelHours(label);
+    ?? oldSpan(label);
+}
+
+function oldSpan(label: string): LabelSpan | null {
+  const hours = labelHours(label);
+  return hours ? { hours, endKnown: /(\d{1,2})[:：](\d{2})\s*[–—~-]\s*(\d{1,2})[:：](\d{2})/.test(label) } : null;
 }
 
 /** An event's hours on the Bay date `dateKey` (minutes after midnight), or null when it is not on that day. */
@@ -141,6 +164,17 @@ export function handRowOf(event: Pick<CatalogEvent, 'id' | 'region' | 'venue'>):
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const at = (dateKey: string, min: number) => parseBayDate(`${dateKey}T${pad(Math.floor(min / 60))}:${pad(min % 60)}`)?.getTime() ?? Number.NaN;
+
+/**
+ * (review) Whether a window's close is the organiser's: the venue table's verified hours, or a label range / end time
+ * for that day. A start-only label ("19:30", "20:00 开始；19:00 开门") closes by the world's rule (4 h, ≤ 21:00), so the
+ * 今天 tab, 这周 and BAYBAY say "19:30 起" instead of a range the organiser never gave (the opera does not end at 21:00).
+ */
+export function windowEndKnown(w: Pick<EventWindow, 'event' | 'venue' | 'dateKey'>): boolean {
+  const table = w.venue.hours?.[w.event.id];
+  if (table) return !!table[w.dateKey];
+  return labelSpanOn(w.event.dateLabel, w.dateKey)?.endKnown ?? false;
+}
 
 /** The event's window on a Bay date (null when it is not on). */
 export function eventWindow(event: CatalogEvent, venue: EventVenue, dateKey: string): EventWindow | null {

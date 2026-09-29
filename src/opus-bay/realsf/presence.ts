@@ -18,7 +18,7 @@ import { addCrowdSpots } from '../world/sf/crowdSpots';
 import { buildKitGeometry, kitCrowd, kitPrompt, makeKitMaterial } from './eventKit';
 import { hearGain, LOOP_IDS, registerEventLoops } from './eventSounds';
 import { EVENT_SAY, SOUVENIR_IDS, VENUE_SAY, type EventVenue, type KitKind } from './eventVenues';
-import { activeEventsAt, type EventWindow } from './events';
+import { activeEventsAt, windowEndKnown, type EventWindow } from './events';
 import { bayHm } from './sun';
 import type { OfferedLine } from './lines';
 
@@ -58,12 +58,15 @@ export function eventLine(w: EventWindow): Bilingual {
   const place = VENUE_SAY[w.venue.id] ?? w.venue.name;
   const name = EVENT_SAY[w.event.id] ?? { zh: '活动', en: 'an event' };
   const free = w.event.cost === 'free';
-  const hours = `${bayHm(new Date(w.open)).replace(/^0/, '')}–${bayHm(new Date(w.close)).replace(/^0/, '')}`;
+  const from = bayHm(new Date(w.open)).replace(/^0/, '');
+  // (W6-S-review) a start-only label: "19:30起", never the world's 21:00 close as the event's end
+  const known = windowEndKnown(w);
+  const hours = known ? `${from}–${bayHm(new Date(w.close)).replace(/^0/, '')}` : `${from}起`;
   let zh = `今天${place.zh}有${free ? '免费的' : ''}${name.zh}，${hours}，出发前查官网确认哦。`;
   if ([...zh].length > 45) zh = `今天${place.zh}有${name.zh}，${hours}，出发前查官网哦。`;
   return {
     zh,
-    en: `${place.en} has ${name.en} today${free ? ' (free)' : ''}, ${hours} — check the official site before you go.`,
+    en: `${place.en} has ${name.en} today${free ? ' (free)' : ''}, ${known ? hours : `from ${from}`} — check the official site before you go.`,
   };
 }
 
