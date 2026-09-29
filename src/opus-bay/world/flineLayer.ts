@@ -12,6 +12,7 @@ import { type FCar, FLINE_ID, type FLineOptions, StreetcarSystem } from './fline
 import type { RailTrack } from './rails';
 import { BOX, Batch, CYL, M } from './builder';
 import { CAR_LEN, CAR_Y, carFarGeometry, carGeometry } from './streetcar';
+import { roadViewer } from './sf/roadViewer';
 
 /**
  * (W5-T4, plan MF9; in the lazy city chunk rather than world/streetcar.ts, which the main graph carries) The car at a
@@ -122,7 +123,8 @@ export class FLineLayer {
     this.sys = new StreetcarSystem(line, {
       groundY,
       visible,
-      viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+      // (W6-B) the player on foot or in their bike / toy car (world/sf/roadViewer.ts): no transit drives through either
+      viewer: roadViewer,
       roadAhead: opts.roadAhead,
       hurryDwell: opts.hurryDwell,
     });

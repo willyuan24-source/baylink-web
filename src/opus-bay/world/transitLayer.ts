@@ -24,6 +24,7 @@ import { LineFleet, busInterlocks } from './sf/lineFleet';
 import { boxBlocked, busAheadOfFCar, busWaitsForFCar, interlockLines } from './sf/lineInterlocks';
 import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { obstaclePool, setVehicle, vehiclePool } from './sf/recordPool';
+import { roadViewer } from './sf/roadViewer';
 import { CableSystem, activeCableSystem, setActiveCableSystem } from './transitLine';
 import { OWN_DISC_TOP, RING_SEGMENTS, apronInto, discGeometry, progressRingGeometry } from './turntable';
 
@@ -110,7 +111,8 @@ export class TransitLayer {
     this.sys = new CableSystem(data, {
       groundY: residentGround,
       visible: visibleFromCamera,
-      viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+      // (W6-B) the player on foot or in their bike / toy car (world/sf/roadViewer.ts): no transit drives through either
+      viewer: roadViewer,
       // (W5-T7) after the real line's hours (SFMTA, data/sf/serviceHours.ts) the idle cars go back to the barn; one stays out
       realService: line => serviceRow(line, bayParts())?.running ?? true,
     });
@@ -178,7 +180,8 @@ export class TransitLayer {
       const lines = new LineFleet({ loop: w4.loop, metro: w4.metro, props: w4.props, extra }, {
         groundY: residentGround,
         visible: visibleFromCamera,
-        viewer: () => ({ x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' }),
+        // (W6-B) the player on foot or in their bike / toy car (world/sf/roadViewer.ts): no transit drives through either
+        viewer: roadViewer,
         portalReady: p => this.portalReady(p),
         boxes: bt => busInterlocks(bt, interlockLines(this.data, this.fline), (line, b0, b1) => boxBlocked(this.sys, this.fline, line, b0, b1)),
         roadUsers: out => collectRoadVehicles(out),
