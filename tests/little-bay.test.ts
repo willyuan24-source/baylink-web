@@ -7,7 +7,7 @@ import { currentOpenings } from '../src/data/local-discoveries';
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../src/data/planner-catalog';
 import { cleanLittleBayPlanStops, getLittleBayStops, getNextSaturday, pickLittleBayOuting, resolveLittleBayStop } from '../src/features/little-bay/catalog';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
-import { todayInBay, validStop } from '../src/lib/planner';
+import { distanceKm, todayInBay, validStop } from '../src/lib/planner';
 
 test('Little Bay cards preserve region, real dates and valid planner references across the edition', () => {
   for (let date = '2026-09-23'; date <= '2026-10-31'; date = addCalendarDays(date, 1)) {
@@ -164,11 +164,31 @@ test('an event anchor keeps only that event, honors its date and adds free same-
   assert.deepEqual(pickLittleBayOuting(portola, '2026-09-26', true), []);
 });
 
-test('automatic outings keep a lone local anchor rather than adding places from another city', () => {
+test('automatic outings retain the anchor and add only nearby free choices from the same city', () => {
   const filoli = resolveLittleBayStop({ kind: 'place', id: 'filoli' })!;
   assert.deepEqual(pickLittleBayOuting(filoli, '2026-10-03'), [filoli.stop]);
   assert.deepEqual(pickLittleBayOuting(filoli, '2026-10-03', true), []);
   assert.deepEqual(pickLittleBayOuting(filoli, ''), []);
   const lake = resolveLittleBayStop({ kind: 'place', id: 'lake-merritt' })!;
-  assert.deepEqual(pickLittleBayOuting(lake, '2026-10-03'), [lake.stop, { kind: 'place', id: 'redwood' }]);
+  // New verified Oakland places may fill the third slot; catalog growth must
+  // preserve locality, free admission and ordering rather than a frozen ID list.
+  assert.deepEqual(pickLittleBayOuting(lake, '2026-10-03', true), [], 'the mixed-cost anchor itself cannot pass free-only');
+  {
+    const outing = pickLittleBayOuting(lake, '2026-10-03');
+    assert.deepEqual(outing[0], lake.stop);
+    assert.equal(outing.length, 3);
+    assert.equal(new Set(outing.map(stop => `${stop.kind}:${stop.id}`)).size, outing.length);
+    const additional = outing.slice(1).map(stop => {
+      assert.equal(stop.kind, 'place');
+      assert.ok(validStop(stop));
+      const place = PLANNER_PLACES.find(item => item.id === stop.id)!;
+      assert.equal(place.city, lake.city);
+      assert.equal(place.region, lake.region);
+      assert.equal(place.cost, 'free');
+      assert.equal(place.planning?.admissionUsd, 0);
+      return place;
+    });
+    const distances = additional.map(place => place.location && lake.location ? distanceKm(lake.location, place.location) : Infinity);
+    assert.ok(distances[0] <= distances[1], 'closer same-city ideas come first without claiming route times');
+  }
 });
