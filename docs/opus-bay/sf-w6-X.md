@@ -206,3 +206,17 @@ Nothing for lanes G and H to wire: they say these lines as BAYBAY bubbles with t
 4. **Lane P**: `data/assets.ts` gained the title's season check and the Halloween key-art row (≈ 0.4 KB gzip) — FYI for the budget.
 5. **Reviewer**: the crowd's per-walker tones use the walker's phase (`life.ts PEOPLE_TONES`); a walker keeps its tones across
    the near / far switch. Worth a look on the phone at night (the tones are vertex colours, lit like the shirts).
+
+## Final (2026-09-29 04:56 PDT)
+
+- Commits on `origin/opus-bay`: `9d65f2a7` W6-X2 (postcards) · `bb0c5e6b` W6-X3 (Halloween sounds, report a1) · `5208bb79`
+  W6-X5 (the city's people) · `fe329ae8` W6-X4 (the Halloween voice, report b) · `3bc2bb29` W6-X6 (the Halloween title,
+  report c) · and this report commit.
+- Checks on the pushed head `3bc2bb29`: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · opus-bay suite **1468 / 1468**.
+  (Earlier, under load, one run failed D2-09 in `sf-landmarks` / `sf-landmark-context` once; it passed alone and in every
+  later full run.)
+- Higgsfield: **15.70 credits** of the 1000 cap (batch 1 postcards 10.00 · batch 2 voice 1.70 · batch 3 key art 4.00);
+  `balance` **2359.30** at 11:29 UTC, reconciled with `transactions` job by job (ledger `docs/opus-bay/ledger/w6-X.md`).
+- Dev server 5609 stopped; no Chrome of this lane left running. Scratch (raw draws, takes, renders):
+  `C:/Users/willy/opus-qa/w6/x/`.
+- 进度（给主人）：第六波视觉/声音线完成——万圣节明信片 4 张、万圣节音效、BAYBAY 万圣节台词 80 条录音、城市路人有了脸和不同肤色发色、万圣节标题画面；共花 15.7 分。
