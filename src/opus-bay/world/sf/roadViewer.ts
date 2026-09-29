@@ -1,5 +1,8 @@
 import { runtime } from '../../core/runtime';
 
+/** (W6-B review) roadViewer's one record: every transit vehicle asks it every frame (the cars, the buses, the trains) */
+const VIEWER = { x: 0, z: 0, onFoot: false };
+
 /**
  * (W6-B, the skipped W5-bus review) Who a transit vehicle stops short of on its track or road — the `viewer` of the
  * cable cars (world/transitLine.ts), the F-line (world/flineSystem.ts), the loop buses (world/busSystem.ts) and the
@@ -8,9 +11,12 @@ import { runtime } from '../../core/runtime';
  * or bike standing across (or facing) its path — the toy traffic gives the player's vehicle right of way
  * (world/sf/traffic.ts), the transit simply never saw it. `onFoot` keeps its name in the four systems' options: it
  * means "someone on the roadway to stop for" (not riding a transit vehicle, not gliding).
+ * (W6-B review) One record, rewritten on every call — the four systems read it at once and keep none; it was a new
+ * object per call, dozens a frame.
  */
 export function roadViewer(): { x: number; z: number; onFoot: boolean } {
-  const v = runtime.vehicle;
-  if (v.occupied && v.kind) return { x: v.x, z: v.z, onFoot: true };
-  return { x: runtime.player.x, z: runtime.player.z, onFoot: runtime.move.mode === 'foot' };
+  const v = runtime.vehicle, out = VIEWER;
+  if (v.occupied && v.kind) { out.x = v.x; out.z = v.z; out.onFoot = true; }
+  else { out.x = runtime.player.x; out.z = runtime.player.z; out.onFoot = runtime.move.mode === 'foot'; }
+  return out;
 }

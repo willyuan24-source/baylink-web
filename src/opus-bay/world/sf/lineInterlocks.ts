@@ -49,13 +49,6 @@ const aheadOn = (line: Pick<FLine, 'length'>, a: number, u: number) => ((((u - a
 export const BOX_APPROACH = 14;
 
 /**
- * Is a vehicle of `line` in (or about to enter) its part [b0, b1] of an interlock box? A car's body, widened ahead by
- * BOX_APPROACH while it moves (it could not stop short: the braking distance from full cable / streetcar speed). Cars
- * further out stop at the part's edge by themselves while a bus is in the box (CableSystem boxAhead, flineSystem
- * roadAhead), so a cable car's block authority over a long block no longer holds the bus back for the whole block (it
- * did: ≈ 60 s at California & Drumm).
- */
-/**
  * (W6-B, the shared Hyde St box: NEXT #10) Does the cable car carrying the rider wait for (or come to) the part [b0, b1]
  * of `line` — outside it, heading into it, within RIDER_WANTS u? A bus dwelling at a stop inside that box then cuts its
  * stop short (world/busSystem.ts InterlockBox.wanted): the loop's Wharf & Hyde stop lies inside the Powell–Hyde line's
@@ -74,6 +67,13 @@ export function riderWantsBox(cable: Pick<CableSystem, 'cars'>, line: string, b0
   return false;
 }
 
+/**
+ * Is a vehicle of `line` in (or about to enter) its part [b0, b1] of an interlock box? A car's body, widened ahead by
+ * BOX_APPROACH while it moves (it could not stop short: the braking distance from full cable / streetcar speed). Cars
+ * further out stop at the part's edge by themselves while a bus is in the box (CableSystem boxAhead, flineSystem
+ * roadAhead), so a cable car's block authority over a long block no longer holds the bus back for the whole block (it
+ * did: ≈ 60 s at California & Drumm).
+ */
 export function boxBlocked(cable: Pick<CableSystem, 'cars'>, fline: FLineHost | null, line: string, b0: number, b1: number): boolean {
   if (line === 'f-line') {
     if (!fline) return false;

@@ -649,13 +649,24 @@ export function pollCity(dt: number): boolean {
   ];
   let best: [number, Bilingual] | null = null;
   for (const h of held) if (h[0] >= STEP_ASIDE_AFTER && (!best || h[0] > best[0])) best = h;
-  if (best && cityClock - stepAsideAt >= STEP_ASIDE_EVERY && game.get().move.mode === 'foot') {
+  // (W6-B review) since W6-B1 the transit also stands short of the player sitting in their bike / toy car
+  // (world/sf/roadViewer.ts): BAYBAY asks them to pull over, as she asks the player on foot to step aside
+  const mode = game.get().move.mode;
+  if (best && cityClock - stepAsideAt >= STEP_ASIDE_EVERY && (mode === 'foot' || mode === 'bike' || mode === 'car')) {
     stepAsideAt = cityClock;
-    bubble(best[1], 3600);
+    bubble(mode === 'foot' ? best[1] : pullOver(best[1], mode), 3600);
   }
   const data = transitData(), p = runtime.player;
   return !!data?.stations.some(st => !kerbSpots.has(st.id) && (kerbMiss.get(st.id) ?? -Infinity) <= cityClock - KERB_RETRY
     && Math.abs(st.x - p.x) < 80 && Math.abs(st.z - p.z) < 80 && !groundPending(st.x, st.z, 6));
+}
+
+/** (W6-B review) The step-aside line for the player in their bike / toy car: "…把车挪到路边吧" / "…pull over to the side". */
+export function pullOver(line: Bilingual, mode: 'bike' | 'car'): Bilingual {
+  return {
+    zh: line.zh.replace('往路边站一站吧', mode === 'bike' ? '把单车骑到路边吧' : '把车挪到路边吧'),
+    en: line.en.replace('step to the side', 'pull over to the side'),
+  };
 }
 
 /**
