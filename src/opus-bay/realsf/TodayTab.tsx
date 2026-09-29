@@ -16,7 +16,7 @@ import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
-import { activeEventsAt, weekEvents, type EventWindow } from './events';
+import { activeEventsAt, handRowOf, weekEvents, type EventWindow } from './events';
 import { MOON_LABELS, MOON_SOURCE, moonPhase } from './moon';
 import { KARL_SOURCE, karlMonthFactor } from './seasons';
 import { bayHm, roundMinute, sunBandAt, sunHm, sunTimes } from './sun';
@@ -170,7 +170,9 @@ export default function TodayTab() {
 
   // 今天在旧金山: world events still on today, then the hand rows not over yet
   const live = new Set(activeEventsAt(now, catalog).map(w => w.event.id));
-  const todays = weekEvents(now, 1, catalog).filter(w => w.dateKey === day);
+  const todaysAll = weekEvents(now, 1, catalog).filter(w => w.dateKey === day);
+  // (W6-S) the Ferry Plaza market is the hand row below, not a second row
+  const todays = todaysAll.filter(w => !handRowOf(w.event));
   const hand = rowsOn(day, minuteOf(roundMinute(sun.sunset))).filter(r => rowState(r.hours, nowMin) !== 'over');
   const calToday = calendarOn(day);
   // the tides: the Lands End wrecks at a daylight low (≤ 1 ft) still ahead, else the Wave Organ before a high
@@ -186,7 +188,7 @@ export default function TodayTab() {
 
   // 这周: San Francisco events of the next 7 days (not the ones above), for everyone; an event whose venue is in the
   // world shows its window there (Fleet Week: the air show at Marina Green, not the week's first programme)
-  const shown = new Set(todays.map(w => w.event.id));
+  const shown = new Set(todaysAll.map(w => w.event.id));
   const worldWins = new Map(weekEvents(now, 7, catalog).map(w => [w.event.id, w]));
   const week = upcomingEvents(catalog, day, 7, now)
     .filter(u => u.event.region === 'sf' && !isAdultOnly(u.event) && !isProfessional(u.event) && !shown.has(u.event.id))

@@ -6,7 +6,8 @@ import { eventById, getCatalog } from '../data/catalog';
  * Wave 5 · lane R (W5-R2) · where BAYLINK's San Francisco events happen in the toy city (plan §3.3 item 1).
  *
  * The table only POSITIONS catalog events (DESIGN §8: events come only from /planner-catalog.json, dates from the
- * catalog at runtime). An event's own `location` is used for "附近这周" when it has one; an event whose venue is not in
+ * catalog at runtime). W6-S added the autumn catalog's San Francisco venues (Thrive City, Chase Center, the Opera House,
+ * Davies Symphony Hall, the Exploratorium, Arc Gallery; the Ferry Plaza market at the Ferry Building). An event's own `location` is used for "附近这周" when it has one; an event whose venue is not in
  * this table gets no pin, never a guess. Every point is a real place (OpenStreetMap, looked up 2026-09-28) projected into
  * the city frame (core/geo.ts projectCity), and stands on the published city's walking network
  * (tests/opus-bay-w5-events.test.ts).
@@ -141,7 +142,8 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     x: 131.5, z: 15.1,
     placeId: 'ferry-building',
     match: /Ferry Building/i,
-    events: ['sf-world-of-dumplings-2026'],
+    // W6-S: the autumn catalog lists the Ferry Plaza market as an event (its Tue / Thu / Sat hours from the label)
+    events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn'],
     kit: 'board',
     kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
@@ -204,6 +206,90 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     sourceUrl: 'https://www.openstreetmap.org/way/254299130',
     verifiedAt: '2026-09-28',
   },
+  // ---- W6-S: GPT's autumn catalog (2026-09-29, 267 events). Points from OpenStreetMap (the API's way / node, read on
+  // 2026-09-29), the board or kit on the published city's pavement next to it (a probe over the walking network) ----
+  {
+    id: 'thrive-city',
+    name: { zh: '大通中心 · Thrive City 广场', en: 'Thrive City, Chase Center' },
+    // the plaza around Chase Center (1 Warriors Way): its north-east corner by Terry A. Francois Blvd, where OSM names a
+    // shop "at Thrive City" (node 11149187371, 37.7684244, -122.3864865); the stage on the open ground there, the crowd
+    // towards the Bay (the arena itself: way 579646390)
+    x: 493.4, z: 242.6,
+    match: /Thrive City/i,
+    events: ['sf-thrive-thrill-o-ween-2026', 'sf-thrive-football-sunday-2026'],
+    kit: 'festival',
+    kitAt: { x: 496.2, z: 239.8, yaw: deg(135) },
+    sourceUrl: 'https://www.openstreetmap.org/node/11149187371',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'chase-center',
+    name: { zh: '大通中心', en: 'Chase Center' },
+    // the arena (way 579646390); the board on the plaza by its box office (node 7101767044, 37.7682516, -122.3881064)
+    x: 479.3, z: 264.0,
+    placeId: 'chase-center',
+    match: /Chase Center/i,
+    events: [
+      'sf-disney-worlds-collide-2026', 'sf-warriors-lakers-preseason-2026', 'sf-rod-wave-2026', 'sf-warriors-kings-preseason-2026',
+      'sf-chayanne-2026', 'sf-young-miko-2026', 'sf-warriors-blazers-preseason-2026', 'sf-doja-cat-2026', 'sf-warriors-grizzlies-2026',
+      'sf-phoebe-bridgers-2026',
+    ],
+    kit: 'board',
+    kitAt: { x: 479.3, z: 264.0, yaw: deg(294) },
+    sourceUrl: 'https://www.openstreetmap.org/way/579646390',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'war-memorial-opera-house',
+    name: { zh: '战争纪念歌剧院', en: 'War Memorial Opera House' },
+    // 301 Van Ness Ave (way 32865161); the board on the pavement at its main entrance (node 10091282494, 37.7786463, -122.4203527)
+    x: 89.7, z: 433.9,
+    match: /War Memorial Opera House|301 Van Ness/i,
+    events: ['sf-opera-mary-queen-scots-2026', 'sf-opera-manon-2026', 'sf-opera-figaro-opening-2026'],
+    kit: 'board',
+    kitAt: { x: 89.7, z: 433.9, yaw: deg(144) },
+    sourceUrl: 'https://www.openstreetmap.org/way/32865161',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'davies-symphony-hall',
+    name: { zh: '戴维斯交响音乐厅', en: 'Davies Symphony Hall' },
+    // 201 Van Ness Ave (way 32865746); the board by its entrance (node 7191732934, 37.7779807, -122.4211034)
+    x: 91.7, z: 446.7,
+    match: /Davies Symphony Hall|201 Van Ness/i,
+    events: ['sf-symphony-fleming-strauss-2026', 'sf-symphony-ring-film-2026', 'sf-symphony-hisaishi-2026'],
+    kit: 'board',
+    kitAt: { x: 91.7, z: 446.7, yaw: deg(271) },
+    sourceUrl: 'https://www.openstreetmap.org/way/32865746',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'exploratorium',
+    name: { zh: '探索馆（15 号码头）', en: 'Exploratorium, Pier 15' },
+    x: 29.0, z: 4.3,
+    placeId: 'exploratorium',
+    // the museum's own events; its 18+ After Dark nights never show in the world (realsf/events.ts worldEvent)
+    match: /Exploratorium/i,
+    events: ['sf-exploratorium-family-science-oct24-2026'],
+    kit: 'board',
+    kitAt: { x: 29.0, z: 4.3, yaw: deg(90) },
+    // the Embarcadero by the Ferry gate: pennant + crowd only, like the Ferry Building
+    downtown: true,
+    sourceUrl: 'https://www.openstreetmap.org/node/621529017',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'arc-gallery',
+    name: { zh: 'Arc 画廊', en: 'Arc Gallery & Studios' },
+    // 1246 Folsom St (node 3789606760); the board on the pavement in front
+    x: 210.2, z: 395.1,
+    match: /Arc Gallery|1246 Folsom/i,
+    events: ['sf-apature-literary-2026'],
+    kit: 'board',
+    kitAt: { x: 210.2, z: 395.1, yaw: deg(270) },
+    sourceUrl: 'https://www.openstreetmap.org/node/3789606760',
+    verifiedAt: '2026-09-29',
+  },
 ];
 
 /**
@@ -218,6 +304,12 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-halloween-hoopla-2026',
   // W5-R6: the Fleet Week jets' photo (realsf/jets.ts), not a catalog id
   'fleet-week-2026-jets',
+  // W6-S: the autumn catalog (2026-09-29)
+  'sf-thrive-thrill-o-ween-2026', 'sf-thrive-football-sunday-2026', 'sf-disney-worlds-collide-2026', 'sf-warriors-lakers-preseason-2026',
+  'sf-rod-wave-2026', 'sf-warriors-kings-preseason-2026', 'sf-chayanne-2026', 'sf-young-miko-2026', 'sf-warriors-blazers-preseason-2026',
+  'sf-doja-cat-2026', 'sf-warriors-grizzlies-2026', 'sf-phoebe-bridgers-2026', 'sf-opera-mary-queen-scots-2026', 'sf-opera-manon-2026',
+  'sf-opera-figaro-opening-2026', 'sf-symphony-fleming-strauss-2026', 'sf-symphony-ring-film-2026', 'sf-symphony-hisaishi-2026',
+  'sf-exploratorium-family-science-oct24-2026', 'sf-apature-literary-2026', 'ferry-plaza-farmers-market-2026-autumn',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -234,6 +326,12 @@ export const VENUE_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   roxie: { zh: 'Roxie 影院', en: 'the Roxie' },
   'sunnydale-hub': { zh: 'Sunnydale', en: 'Sunnydale' },
   'portola-family-connections': { zh: 'Portola', en: 'Portola' },
+  'thrive-city': { zh: '大通中心广场', en: 'Thrive City' },
+  'chase-center': { zh: '大通中心', en: 'Chase Center' },
+  'war-memorial-opera-house': { zh: '歌剧院', en: 'the Opera House' },
+  'davies-symphony-hall': { zh: '交响音乐厅', en: 'Davies Symphony Hall' },
+  exploratorium: { zh: '探索馆', en: 'the Exploratorium' },
+  'arc-gallery': { zh: 'Arc 画廊', en: 'Arc Gallery' },
 };
 
 /** Short event names for BAYBAY's lines (catalog titles are long); an event missing here is named by its venue. */
@@ -256,6 +354,28 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-sunnydale-pumpkin-fest-2026': { zh: '南瓜节', en: 'the Pumpkin Fest' },
   'sf-family-connections-halloween-2026': { zh: '万圣节手工和游戏', en: 'Halloween crafts and games' },
   'fleet-week-2026-jets': { zh: '舰队周飞机编队', en: 'the Fleet Week jets' },
+  // W6-S
+  'sf-thrive-thrill-o-ween-2026': { zh: '万圣节亲子庆典', en: 'Thrill-O-Ween' },
+  'sf-thrive-football-sunday-2026': { zh: '橄榄球观赛', en: 'a football watch party' },
+  'sf-disney-worlds-collide-2026': { zh: '迪士尼演唱会', en: 'the Disney concert' },
+  'sf-warriors-lakers-preseason-2026': { zh: '勇士对湖人季前赛', en: 'Warriors vs Lakers' },
+  'sf-rod-wave-2026': { zh: 'Rod Wave 演唱会', en: 'Rod Wave' },
+  'sf-warriors-kings-preseason-2026': { zh: '勇士对国王季前赛', en: 'Warriors vs Kings' },
+  'sf-chayanne-2026': { zh: 'Chayanne 演唱会', en: 'Chayanne' },
+  'sf-young-miko-2026': { zh: 'Young Miko 演唱会', en: 'Young Miko' },
+  'sf-warriors-blazers-preseason-2026': { zh: '勇士对开拓者季前赛', en: 'Warriors vs Trail Blazers' },
+  'sf-doja-cat-2026': { zh: 'Doja Cat 演唱会', en: 'Doja Cat' },
+  'sf-warriors-grizzlies-2026': { zh: '勇士对灰熊', en: 'Warriors vs Grizzlies' },
+  'sf-phoebe-bridgers-2026': { zh: 'Phoebe Bridgers', en: 'Phoebe Bridgers' },
+  'sf-opera-mary-queen-scots-2026': { zh: '歌剧《苏格兰女王玛丽》', en: 'the opera Mary, Queen of Scots' },
+  'sf-opera-manon-2026': { zh: '歌剧《曼侬》', en: 'the opera Manon' },
+  'sf-opera-figaro-opening-2026': { zh: '《费加罗的婚礼》首演', en: 'The Marriage of Figaro' },
+  'sf-symphony-fleming-strauss-2026': { zh: '弗莱明唱施特劳斯', en: 'Renée Fleming singing Strauss' },
+  'sf-symphony-ring-film-2026': { zh: '《午夜凶铃》电影配乐会', en: 'The Ring with a live orchestra' },
+  'sf-symphony-hisaishi-2026': { zh: '久石让音乐会', en: 'Joe Hisaishi’s concert' },
+  'sf-exploratorium-family-science-oct24-2026': { zh: '家庭科学日', en: 'a family science day' },
+  'sf-apature-literary-2026': { zh: 'APAture 文学夜', en: 'APAture’s literary night' },
+  'ferry-plaza-farmers-market-2026-autumn': { zh: '农夫市集', en: 'the farmers market' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

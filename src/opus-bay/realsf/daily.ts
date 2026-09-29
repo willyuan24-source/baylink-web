@@ -8,7 +8,7 @@ import { bayNow, bayParts } from '../game/bayNow';
 import { say } from '../game/flow';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
-import { weekEvents, type EventWindow } from './events';
+import { handRowOf, weekEvents, type EventWindow } from './events';
 import { isFireRingLit } from './seasons';
 import { roundMinute, sunBandAt, sunTimes } from './sun';
 import { atMinute, fireSeasonKey, freePlacesOn, hm, marketHours, PLACES } from './todayRows';
@@ -81,7 +81,8 @@ export interface DailyTask {
 /** The date-level signals of a Bay date. */
 export function daySignals(dateKey: string, catalog: Catalog | null = getCatalog()): DaySignals {
   const start = atMinute(dateKey, 0);
-  const events = Number.isFinite(start) ? weekEvents(new Date(start), 1, catalog).filter(w => w.dateKey === dateKey) : [];
+  // (W6-S) an event the day already has as a hand task (the Ferry Plaza market → `market`) is not a second task
+  const events = Number.isFinite(start) ? weekEvents(new Date(start), 1, catalog).filter(w => w.dateKey === dateKey && !handRowOf(w.event)) : [];
   events.sort((a, b) => a.event.id.localeCompare(b.event.id));
   return { dateKey, events, market: marketHours(dateKey), free: freePlacesOn(dateKey), fire: fireSeasonKey(dateKey) };
 }

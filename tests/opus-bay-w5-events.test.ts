@@ -44,6 +44,8 @@ const FIXTURE: Catalog = {
     ev('sf-castro-street-fair-2026', '2026-10-04', '2026-10-04', '10 月 4 日 · 11:00–18:00', 'Castro & Market Streets'),
     ev('sf-italian-heritage-parade-2026', '2026-10-11', '2026-10-11', '10 月 11 日 · 12:30 开始', 'Jefferson & Powell Streets → Columbus Avenue → Washington Square'),
     ev('sf-apature-literary-2026', '2026-10-21', '2026-10-21', '10 月 21 日 · 18:00–21:00', 'Arc Gallery & Studios · 1246 Folsom Street', { cost: 'paid' }),
+    // (W6-S) an SF event whose organiser has not published the venue: never a pin
+    ev('sf-unplaced-dinner-2026', '2026-10-21', '2026-10-21', '10 月 21 日 · 18:00–21:00', '具体场所尚未公开', { category: 'food', cost: 'paid' }),
     ev('sf-halloween-hoopla-2026', '2026-10-31', '2026-10-31', '10 月 31 日 · 12:00–15:00', "Children's Garden, Yerba Buena Gardens · 799 Howard Street", { category: 'family' }),
     ev('oakland-thing-2026', '2026-10-03', '2026-10-03', '10 月 3 日 · 10:00–14:00', 'Lake Merritt', { region: 'east-bay', city: 'Oakland' }),
   ],
@@ -80,7 +82,8 @@ test('W5-R2 venues: mapping — listed ids, venue text for SF events, no pin for
     assert.equal(eventVenue('hardly-strictly-bluegrass-2026')?.id, 'hellman-hollow');
     assert.equal(eventVenue('sf-african-arts-festival-2026')?.id, 'yerba-buena-gardens');
     assert.equal(eventVenue('sf-castro-street-fair-2026')?.id, 'castro-market');
-    assert.equal(eventVenue('sf-apature-literary-2026'), null, 'Arc Gallery is not in the table: no pin, never a guess');
+    assert.equal(eventVenue('sf-unplaced-dinner-2026'), null, 'a venue not published: no pin, never a guess');
+    assert.equal(eventVenue('sf-apature-literary-2026')?.id, 'arc-gallery', 'W6-S: Arc Gallery & Studios (OSM node 3789606760)');
     // a new SF event at a known venue maps by its venue text; the same text in another region does not
     assert.equal(venueForEvent({ id: 'new-ybg-thing', region: 'sf', venue: 'Esplanade · Yerba Buena Gardens' })?.id, 'yerba-buena-gardens');
     assert.equal(venueForEvent({ id: 'x', region: 'east-bay', venue: 'Yerba Buena Gardens' }), null);
@@ -107,7 +110,7 @@ test('W5-R3 windows: hours from the organiser table, the label, or 08:00–21:00
   assert.deepEqual(on('2026-10-05T13:00'), [], 'Fleet Week runs Oct 4–12 in the catalog, but only its air-show days show in the world');
   assert.deepEqual(on('2026-10-09T12:40'), ['san-francisco-fleet-week-2026']);
   assert.deepEqual(on('2026-10-11T12:40').sort(), ['san-francisco-fleet-week-2026', 'sf-italian-heritage-parade-2026']);
-  assert.deepEqual(on('2026-10-21T19:00'), [], 'unmapped: never in the world');
+  assert.deepEqual(on('2026-10-21T19:00'), ['sf-apature-literary-2026'], 'W6-S: at Arc Gallery; the unplaced dinner never in the world');
   const hsb = FIXTURE.events.find(e => e.id === 'hardly-strictly-bluegrass-2026')!;
   assert.equal(eventHours(hsb, EVENT_VENUES.find(v => v.id === 'hellman-hollow')!, '2026-10-05'), null);
 });
