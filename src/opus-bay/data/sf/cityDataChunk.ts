@@ -12,3 +12,8 @@
 export { SF_LANDMARK_INFO } from './landmarks';
 export { SF_POSTCARD_CARDS } from './postcardCards';
 export { CITY_PHOTOS } from './cityPhotos';
+// W6-P3 (lane P, MF9 / D16): the six city residents (their table and the helpers GameRoot's modules call) and the
+// landmark arrivals. Both import types only; game/flow.ts, game/cityContent.ts, actors/npcs.ts, game/cityGoals.ts and
+// data/sf/cityPois.ts read them from `CITY_DATA` (the lazy chunks keep their static imports).
+export { RESIDENTS, asideMark, nextPhotoSpot, residentByKey, task2DoneId, task2State, taskDoneId, taskState } from './residents';
+export { LANDMARK_ARRIVALS } from './arrivals';

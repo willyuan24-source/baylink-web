@@ -8,13 +8,23 @@ import { CITY_DISTRICT_POIS, DISTRICT_POIS } from '../data/pois';
 import { DISTRICT_POSTCARDS } from '../data/postcards';
 import { CITY_FREE_GOALS } from '../data/sf/goals';
 import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/script';
-import { RESIDENTS, nextPhotoSpot, task2DoneId, task2State, taskDoneId, taskState } from '../data/sf/residents';
+import { CITY_DATA } from '../data/sf/cityData';
 import { runtime } from '../core/runtime';
 import { cityGoalTargets } from './cityGoals';
 import { bubble, markGoalsDone } from './flow';
 import { flow } from './flowStore';
 import { registerInteractables, type Interactable } from './interactables';
 import { initW5Features } from './w5Features';
+
+// W6-P3 (lane P, MF9): the six residents come with the city data chunk (data/sf/cityDataChunk.ts); every reader below
+// runs in city mode only (initCityContent and goalTargets return early in the district)
+type CityData = NonNullable<typeof CITY_DATA>;
+const RESIDENTS: CityData['RESIDENTS'] = CITY_DATA?.RESIDENTS ?? [];
+const taskState: CityData['taskState'] = (...a) => CITY_DATA!.taskState(...a);
+const task2State: CityData['task2State'] = (...a) => CITY_DATA!.task2State(...a);
+const taskDoneId: CityData['taskDoneId'] = (...a) => CITY_DATA!.taskDoneId(...a);
+const task2DoneId: CityData['task2DoneId'] = (...a) => CITY_DATA!.task2DoneId(...a);
+const nextPhotoSpot: CityData['nextPhotoSpot'] = (...a) => CITY_DATA!.nextPhotoSpot(...a);
 
 /**
  * City content entry (lane G2 owns this file from wave 2).

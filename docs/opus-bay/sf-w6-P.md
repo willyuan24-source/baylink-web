@@ -75,3 +75,46 @@ its tree, the autumn merge and day 0 added ≈ 1.8 KB). Biggest parts (gzip of p
 ### Known gaps
 
 - `?start=` / `?solo=` deep links show the HUD a moment after the first frame if the chunk is slower than the world (QA only).
+
+## Part b · W6-P2 the autopilot with the first drive · W6-P3 the residents and the arrivals with the city data chunk
+
+### What was built
+
+- **W6-P2** `src/opus-bay/actors/moveSystem.ts` (lane K1's; the import site and the three constructions only):
+  `vehicles/autopilot` (the pure-pursuit driver and the W5-bus pass planner, 2.9 KB of parts) is fetched together with
+  `vehicles/driveRoute` — the chunk tap-to-drive already loads when a bike / the toy car is mounted — in one
+  `Promise.all`; `pursuit(spec, points)` builds every `PursuitDriver`, and each one is made only after a route came back
+  (so after that load), the pass planner likewise (`pass()` / `detour()` already return early without `driveMod`).
+  No new wait anywhere: the drive's route was always behind that load.
+- **W6-P3** the six city residents (`data/sf/residents.ts`: the table and the helpers GameRoot's modules call) and the
+  landmark arrivals (`data/sf/arrivals.ts`) join lane V's city data chunk (`data/sf/cityDataChunk.ts`, the W5-V3 top-level
+  await: city mode and node load it before any content module evaluates; district mode never fetches it). Import sites:
+  `game/flow.ts` (`residentByKey` is `undefined` for every district NPC as before; the aside mark and the neighbour nudge
+  are city-only), `game/cityContent.ts` (its readers run in city mode only), `actors/npcs.ts` (`CITY_NPC_DEFS` from
+  `CITY_DATA`; district mode never spawns them), `game/cityGoals.ts`, `data/sf/cityPois.ts`. Both modules import types
+  only, so the data chunk still shares nothing with GameRoot (the W5-V3 test is green); the lazy chunks (Journal, Letter,
+  residentTasks, cityLife, Moments in the play layer) keep their static imports — Rollup gives `residents` its own small
+  chunk (3.83 KB) shared by them.
+- `tests/opus-bay-sf-budget.test.ts` "W6-P2 / P3": the three modules are out of GameRoot's static graph; the autopilot
+  loads with the drive routes and is never constructed directly; `CITY_DATA` carries the same module instances; the city
+  still spawns the six residents; every city POI still stands on its arrival.
+
+### Evidence
+
+| chunk (gzip) | before `294746bc` | W6-P1 `67ba6a9f` | + W6-P2 / P3 |
+|---|---|---|---|
+| **GameRoot** | 300.40 | 285.35 | **279.29** (−21.11 in all) |
+| playParts | — | 15.20 | 15.28 |
+| autopilot (new, with the first drive) | — | — | 3.13 |
+| residents (new, city data + play layer) | — | — | 3.83 |
+| cityDataChunk | 4.33 | 4.33 | 4.54 |
+
+- The built `residents` / `arrivals` chunks import nothing from GameRoot (read in the build output), so the top-level
+  await cannot wait on itself.
+- Production build (`vite preview`, 5604): city desktop `?at=cable-car-turntable&start=local` — the turntable, ARRIVED
+  card, HUD, BAYBAY's line, the gripman at his post, the call menu (8 entries incl. 带我去下一个目标); district phone
+  390 × 844 — Start → 我自己逛逛 → HUD, Hop button, bottom bar; the district's JS requests: no `cityMode`,
+  `cityDataChunk` or `landmarks` (the `residents` chunk comes with the play layer, as those bytes came with GameRoot).
+- Tap-to-drive / the autopilot: `tests/opus-bay-w5-deadlock.test.ts` (20 simulated minutes, the autopilot behind and
+  facing a stopped car), `opus-bay-sf-move2`, `opus-bay-sf-verify-g`, the contracts — 70 / 70, all through `loadDrive`.
+- Checks: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1393 / 1393**.

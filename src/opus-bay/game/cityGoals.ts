@@ -1,6 +1,6 @@
 import { CITY_GOAL } from '../data/sf/goals';
 import { DISTRICT } from '../data/district';
-import { LANDMARK_ARRIVALS } from '../data/sf/arrivals';
+import { CITY_DATA } from '../data/sf/cityData';
 import { cityPoiId } from '../data/sf/cityPois';
 import type { GoalTarget } from './cityContent';
 import { registerPrefixResolver, type Interactable } from './interactables';
@@ -37,7 +37,7 @@ export function cityGoalTargets(): GoalTarget[] {
   const coit = pelicanTarget();
   if (coit) out.push({ id: PELICAN_TARGET, goal: CITY_GOAL.pelican, x: coit.x, z: coit.z, name: { zh: '找鹈鹕朋友 · 科伊特塔', en: 'Meet the pelican · Coit Tower' }, radius: RADIUS });
   const add = (goal: string, landmark: string, name: GoalTarget['name']) => {
-    const at = LANDMARK_ARRIVALS[landmark];
+    const at = CITY_DATA?.LANDMARK_ARRIVALS[landmark]; // (W6-P3: the arrivals come with the city data chunk)
     if (at) out.push({ id: cityPoiId(landmark), goal, x: at.x, z: at.z, name, radius: 4 });
   };
   add(CITY_GOAL.cableCar, 'cable-car-turntable', { zh: '叮当车 · Powell & Market 转车台', en: 'Cable car · Powell & Market turntable' });

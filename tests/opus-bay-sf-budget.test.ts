@@ -244,6 +244,29 @@ test('W6-P1: the play layer (HUD, dialogue box, moments, cards, touch stick) is 
   assert.match(gameRoot, /startRequested=\{startRequested && drawn && partsIn\}/);
 });
 
+test('W6-P2 / P3: the autopilot comes with the first drive, the six residents and the landmark arrivals with the city data chunk', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  for (const m of ['actors/vehicles/autopilot.ts', 'data/sf/residents.ts', 'data/sf/arrivals.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+  // the autopilot loads with the drive routes (one promise), and every PursuitDriver is made after it
+  const move = fs.readFileSync(path.join(root, 'actors/moveSystem.ts'), 'utf8');
+  assert.match(move, /Promise\.all\(\[import\('\.\/vehicles\/driveRoute'\), import\('\.\/vehicles\/autopilot'\)\]\)/);
+  assert.doesNotMatch(move, /new PursuitDriver\(/, 'a PursuitDriver only through pursuit() (after loadDrive)');
+  // the data chunk carries them (node always loads it: the tables are whole here)
+  const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  const residents = await import('../src/opus-bay/data/sf/residents');
+  const { LANDMARK_ARRIVALS } = await import('../src/opus-bay/data/sf/arrivals');
+  assert.ok(CITY_DATA);
+  assert.equal(CITY_DATA.RESIDENTS, residents.RESIDENTS, 'one module instance');
+  assert.equal(CITY_DATA.RESIDENTS.length, 6);
+  assert.equal(CITY_DATA.LANDMARK_ARRIVALS, LANDMARK_ARRIVALS);
+  const { CITY_NPC_DEFS } = await import('../src/opus-bay/actors/npcs');
+  assert.deepEqual(CITY_NPC_DEFS.map(d => d.resident), residents.RESIDENTS.map(r => r.key), 'the city spawns the six as before');
+  const { CITY_POIS } = await import('../src/opus-bay/data/sf/cityPois');
+  for (const p of CITY_POIS) { const a = LANDMARK_ARRIVALS[p.id.slice(3)]; if (a) assert.deepEqual([p.position.x, p.position.z], [a.x, a.z], p.id); }
+});
+
 test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {
   const { CITY_DEBUG_NARROW, cityDebugPlacement } = await import('../src/opus-bay/world/sf/stats');
   assert.equal(CITY_DEBUG_NARROW, '(max-width: 720px)');

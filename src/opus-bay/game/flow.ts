@@ -23,7 +23,7 @@ import { deriveLock, setLockRefresher } from './playerLock';
 import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
 import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, speakRecorded, unlockPelican } from './cityContent';
-import { RESIDENTS, asideMark, residentByKey, taskState } from '../data/sf/residents';
+import { CITY_DATA } from '../data/sf/cityData';
 import { boardFrom, initTransit, openRideNode } from './transit';
 import { bayTimeOfDay } from './qa';
 import { bayNow } from './bayNow';
@@ -33,6 +33,14 @@ import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
 import { rewardGoal, rewardPostcard } from './rewards';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
+
+// W6-P3 (lane P, MF9): the six city residents come with the city data chunk (data/sf/cityDataChunk.ts; none in district
+// mode, where no resident exists: residentByKey is undefined for every district NPC as before)
+type CityData = NonNullable<typeof CITY_DATA>;
+const RESIDENTS: CityData['RESIDENTS'] = CITY_DATA?.RESIDENTS ?? [];
+const residentByKey = (key: string) => CITY_DATA?.residentByKey(key);
+const asideMark: CityData['asideMark'] = (...a) => CITY_DATA!.asideMark(...a);
+const taskState: CityData['taskState'] = (...a) => CITY_DATA!.taskState(...a);
 
 /**
  * Game flow controller: modes, dialogue runner, tour/week/free logic, interactions and goals.

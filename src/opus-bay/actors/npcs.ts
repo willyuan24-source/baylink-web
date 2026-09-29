@@ -4,7 +4,8 @@ import { game, type WorldMode } from '../core/store';
 import { canStand, heightAt, nearestWalkable } from '../core/terrain';
 import type { Vec2 } from '../core/types';
 import { DISTRICT, at, frameAt, stationOf } from '../data/district';
-import { RESIDENTS, type ResidentIdle, type ResidentKey } from '../data/sf/residents';
+import { CITY_DATA } from '../data/sf/cityData';
+import type { ResidentIdle, ResidentKey } from '../data/sf/residents';
 import { Animator, type Emote } from './anim';
 import { dampAngle, wrapAngle, type Obstacle } from './controller';
 import { NPC_BONES, box, buildNpc, buildRig, type NpcLook, type Rig, type Vec3 } from './models';
@@ -53,7 +54,8 @@ export const NPC_DEFS: NpcDef[] = [
 ];
 
 /** The six city residents (data/sf/residents.ts): ids `npc-<key>` = their interactables (game/cityContent.ts). */
-export const CITY_NPC_DEFS: NpcDef[] = RESIDENTS.map(r => ({
+// (W6-P3, lane P: the table comes with the city data chunk, data/sf/cityDataChunk.ts; empty in district mode, which never spawns them)
+export const CITY_NPC_DEFS: NpcDef[] = (CITY_DATA?.RESIDENTS ?? []).map(r => ({
   id: r.id, look: 'parent', behavior: r.idle, anchor: r.id, at: { x: r.at.x, z: r.at.z, heading: r.at.heading }, resident: r.key,
 }));
 

@@ -1,6 +1,5 @@
 import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
 import type { SfPlaceKind } from '../../world/sf/format';
-import { LANDMARK_ARRIVALS } from './arrivals';
 import { CITY_DATA } from './cityData';
 import type { SfLandmarkInfo } from './landmarks';
 
@@ -111,7 +110,7 @@ type Photo = NonNullable<RealInfo['photo']>;
 export const CITY_PHOTOS: Record<string, Photo & { page: string }> = CITY_DATA?.CITY_PHOTOS ?? {};
 
 function cityPoi(info: SfLandmarkInfo): PoiDef {
-  const at = LANDMARK_ARRIVALS[info.id] ?? { x: 0, z: 0 };
+  const at = CITY_DATA?.LANDMARK_ARRIVALS[info.id] ?? { x: 0, z: 0 }; // (W6-P3: with the city data chunk)
   const photo = CITY_PHOTOS[info.id];
   const guideSlug = info.guideSlug && isMonthTagged(info.guideSlug) ? SF_GUIDE_SLUG : info.guideSlug;
   const real = info.realInfo;
