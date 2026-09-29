@@ -14,6 +14,7 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   sourceUrl: string;
 }> = {
   ...autumnCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
+  ...refreshCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   'American Canyon': { lat: 38.179, lng: -122.260, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Rohnert Park': { lat: 38.348, lng: -122.701, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -57,3 +58,4 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Windsor': { lat: 38.542, lng: -122.809, precision: 'city', sourceUrl: CENSUS_PLACES },
 };
 import autumnCities from './autumn-calendar-cities.json';
+import refreshCities from './september-refresh-city-locations.json';

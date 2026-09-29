@@ -116,6 +116,7 @@ const GuideDetailSession = ({
     );
   const related = discoverRelatedGuides(guide, 3, today);
   const media = getGuideMedia(guide);
+  const prefaceLength = Math.max(0, guide.blocks.findIndex(block => block.type === 'freebies'));
   const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
   const inlineAfter = new Map<number, GuideImage[]>();
   for (const item of media.inline) {
@@ -138,6 +139,12 @@ const GuideDetailSession = ({
       onNavigate(`/category/${block.categorySlug}`);
     else if (block.primaryAction === "guides") onNavigate("/guides");
   };
+  const renderBlock = (block: GuideBlock, index: number) => (
+    <Fragment key={`${slug}-${index}`}>
+      <BlockRenderer block={block} id={`guide-section-${index}`} onCta={handleCta} />
+      {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
+    </Fragment>
+  );
   const contents = (
     <ol>
       {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <li key={`freebies-${index}`}><a href={`#freebie-board-${index}`}><span>🎁</span>{block.title}</a></li>)}
@@ -218,6 +225,7 @@ const GuideDetailSession = ({
             )}
           </div>
         </header>
+        {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
         {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoard offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">
@@ -244,12 +252,7 @@ const GuideDetailSession = ({
               </details>
             )}
             <div className="bl-guide-prose">
-              {guide.blocks.map((block, index) => (
-                <Fragment key={`${slug}-${index}`}>
-                  <BlockRenderer block={block} id={`guide-section-${index}`} onCta={handleCta} />
-                  {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
-                </Fragment>
-              ))}
+              {guide.blocks.map((block, index) => index < prefaceLength ? null : renderBlock(block, index))}
             </div>
             <section
               className="bl-guide-sources"
@@ -416,7 +419,8 @@ const BlockRenderer = ({
     case "route":
       return <GuideRouteRenderer block={block} id={id} />;
     case "link": {
-      const internal = block.url.startsWith('https://www.baylink.us/') ? block.url.slice('https://www.baylink.us'.length) : null;
+      const internalPath = block.url.startsWith('https://www.baylink.us/') ? block.url.slice('https://www.baylink.us'.length) : block.url;
+      const internal = /^\/(?![/\\])/.test(internalPath) && !internalPath.includes('\\') ? internalPath : null;
       return <div className="bl-guide-source-link">{internal ? <Link to={internal}>{block.title}<ArrowRight size={16} aria-hidden="true" /></Link> : /^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p>{block.text}</p></div>;
     }
     case "tip":

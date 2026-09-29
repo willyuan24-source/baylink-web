@@ -1,0 +1,48 @@
+{
+  "tool": "built-in image_gen",
+  "checkedAt": "2026-09-29",
+  "assets": [
+    {
+      "key": "refresh-community-swap",
+      "src": "/guides/september-refresh/refresh-community-swap.webp",
+      "prompt": "Use case: illustration-story. Create a polished editorial illustration for BAYLINK, a friendly San Francisco Bay Area local events website. Wide landscape 3:2 composition with an inviting community library swap table in autumn. A parent and child selecting a picture book, a complete jigsaw puzzle box on the table, a rack of cheerful children's Halloween capes and animal costumes, diverse adult neighbors sharing gently used things. Warm natural light, cream and muted teal palette with restrained autumn orange, hand-painted gouache texture and crisp readable forms. Modern sophisticated lifestyle magazine artwork. Main action in middle safe crop region, spacious composition, accurate natural hands, no dramatic ghosts, no frightening masks. Clearly an illustration, no brand logos, no readable text, no price labels, no watermarks. This is a thematic illustration, not a depiction of an actual named venue.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-makers",
+      "src": "/guides/september-refresh/refresh-makers.webp",
+      "prompt": "Use case: illustration-story. Create a polished editorial illustration for BAYLINK local activities. Wide landscape 3:2. A welcoming public makerspace with two adult neighbors learning together at a tidy workbench, fixing a small desk lamp using a screwdriver while another person stitches a fabric patch. An enclosed desktop 3D printer and headphones resting near a microphone in the background, all tools used safely. Warm cream, muted teal, gentle coral, natural sunny light, hand-painted gouache texture, sophisticated editorial magazine style, clean readable silhouettes and physically plausible objects. Main action centered with generous breathing room. Clearly illustrated, no brand names, no words, no numbers, no logos, no watermarks; not a factual portrayal of any actual facility.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-pets",
+      "src": "/guides/september-refresh/refresh-pets.webp",
+      "prompt": "Use case: illustration-story. Create a polished editorial illustration for BAYLINK community events. Wide landscape 3:2 showing a friendly autumn neighborhood pet gathering in a sunny Bay Area park. Two dogs in comfortable simple Halloween costumes, one small orange bandana and one loose superhero cape, with their smiling adult owners holding loose leashes. A few pumpkins and low-key community stalls in the distance, natural lawn, warm trees, varied adult neighbors. Soft hand-painted gouache, cream and muted teal with restrained rust orange accents, sophisticated lifestyle magazine artwork. Main subjects centered, no crowded collage, accurate dog anatomy, no distress, no brand logos or readable text or watermarks. Clearly an illustration and not an actual event photograph.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-sailing",
+      "src": "/guides/september-refresh/refresh-sailing.webp",
+      "prompt": "Use case: illustration-story. Create a polished editorial illustration for BAYLINK, a San Francisco Bay Area local outings website. Wide landscape 3:2, a small sailboat on calm blue-green bay water near a marina. An adult skipper and two visitors including a school-age child seated securely, all wearing properly fastened bright personal flotation vests, enjoying a gentle introductory sail. A single clean white sail and warm hazy East Bay hills, distant low marina docks. Soft painted gouache with delicate paper texture, cream/teal palette and restrained warm red accents, sophisticated friendly editorial style, physically plausible vessel proportions and rigging. Safe centered composition with space around the boat, no readable text, numbers, logos or watermark. This is illustrative and not documentary, not a navigation chart.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-smoothie-rewards",
+      "src": "/guides/september-refresh/refresh-smoothie-rewards.webp",
+      "prompt": "Use case: illustration-story. Create a sophisticated hand-painted gouache editorial illustration for a Bay Area local savings website, wide 3:2 landscape. Two tall takeaway smoothies on a sunny cafe counter, one mango orange, one berry pink, each topped with a plain compostable lid and straw. Beside them sit a sliced mango, a few strawberries, and a smartphone displaying simple blank colored loyalty-card shapes with no words or numerals. Warm cream and muted teal background, gentle coral accents, natural appetizing colors, balanced still-life composition with the cups centered and clear negative space. No company logos, no readable text, no price claims, no watermarks. Clearly illustrated, not a photograph or a claim about a named brand's exact product.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-bats",
+      "src": "/guides/september-refresh/refresh-bats.webp",
+      "prompt": "Use case: illustration-story. Create a wide 3:2 warm editorial gouache illustration for a Bay Area community activities website. A small library science demonstration: an adult wildlife educator stands beside a secure spacious transparent enclosure with a small native bat resting on a branch, while a parent and two school-age children observe from a respectful distance without touching. A simple large bat-wing silhouette diagram with no text on a display board; softly blurred bookshelves and sunny windows. Realistic bat anatomy, no frightening features, no handling by visitors. Cream, muted teal and autumn warm accents, sophisticated painted texture, calm curiosity, clean centered composition. No words, logos, watermarks. Clearly a thematic illustration, not an actual event photograph.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    },
+    {
+      "key": "refresh-music",
+      "src": "/guides/september-refresh/refresh-music.webp",
+      "prompt": "Use case: illustration-story. Create a wide 3:2 hand-painted gouache editorial illustration for a San Francisco Bay Area community events website. A welcoming small community music recital in a bright hall: a guitarist and violinist performing together, with a small family audience including an adult using a wheelchair and a young child seated with a parent. Natural relaxed posture, accurate instruments and hand positions, warm sunlight, simple wooden stage and no microphones obscuring faces. Cream, muted teal, restrained coral and golden accents, sophisticated lifestyle magazine style, central safe crop composition, gentle paper texture. No readable text, numbers, logos or watermark. This is a thematic illustration, not a depiction of specific named performers or venue.",
+      "note": "Original thematic illustration, never presented as an event photograph."
+    }
+  ]
+}

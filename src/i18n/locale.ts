@@ -55,6 +55,9 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/calendar-en.json'), import('../data/planner-en.json'), import('../data/ai-local-en.json'), import('../features/source-monitor/source-monitor-en.json'),
     import('../data/baybay-actions-en.json'), import('../features/messages/chat-ai-en.json'), import('../data/event-import-en.json'),
     import('../data/autumn-release-en-1.json'), import('../data/autumn-release-en-2.json'), import('../data/autumn-release-en-3.json'), import('../data/autumn-release-ui-en.json'),
+    import('../data/september-refresh-regional-events-en.json'), import('../data/september-refresh-sf-east-events-en.json'),
+    import('../data/september-refresh-offers-en.json'), import('../data/september-refresh-media-en.json'),
+    import('../data/september-refresh-planning-en.json'), import('../data/september-refresh-guide-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }

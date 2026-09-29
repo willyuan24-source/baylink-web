@@ -1,0 +1,312 @@
+[
+  {
+    "id": "berkeley-crowden-community-music-day-oct4-2026",
+    "title": "Crowden 免费社区音乐日：试奏乐器与亲子音乐会",
+    "kind": "event",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-04"
+    ],
+    "dateLabel": "10/4（日）10:00–14:00",
+    "region": "east-bay",
+    "city": "Berkeley",
+    "venue": "Crowden School · 1475 Rose Street, Berkeley, CA 94702",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费入场；部分限额弦乐示范课需提前预约。",
+    "summary": "摸一摸、试一试管弦乐器，参加短音乐会和乐器手作，在校园里听本地音乐人演出。",
+    "plan": [
+      "官网提供免费报名；弦乐示范适合 3 岁以上，每组 4 人、每节 15 分钟，名额有限须提前预约；旁观示范无须该节门票。 小提琴示范为 10:00–12:00，大提琴示范为 10:00–14:00；以官网预约的具体时段为准。",
+      "Very First Concerts 在 10:15、11:00、11:45 开演，每场约 20 分钟，面向婴儿至 7 岁儿童及家长；这不是整个音乐日的年龄上限。",
+      "演出与示范分散在校园内；先查看当天节目表，给场地间移动留时间。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "音乐爱好者"
+    ],
+    "officialUrl": "https://www.crowden.org/community-music-day/",
+    "sourceLabel": "Crowden School",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "refresh-music"
+  },
+  {
+    "id": "berkeley-cal-sailing-open-house-oct4-2026",
+    "title": "Cal Sailing 免费帆船开放日",
+    "kind": "event",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-04"
+    ],
+    "dateLabel": "10/4（日）一般为 13:00–15:00；13:00–14:30 现场登记",
+    "region": "east-bay",
+    "city": "Berkeley",
+    "venue": "Cal Sailing Club · 124 University Avenue, Berkeley Marina",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "免费体验约半小时；现场先到先得，不保证船位。",
+    "summary": "跟随志愿船员体验海湾帆船，认识水上安全与湾区生态。活动可能受风雨和潮汐影响。",
+    "plan": [
+      "建议 13:00 到俱乐部门前排队，登记时段为 13:00–14:30；船位先到先得，潮汐可能使活动早于 15:00 结束。",
+      "儿童须至少 5 岁并由成人陪同；所有参加者须签免责文件，未满 18 岁由家长或监护人签署。 必须穿救生衣，现场可借用；穿可能打湿的鞋和防风外套，建议带备用衣物。",
+      "大雨或强风可能取消活动，潮汐也可能缩短开放时段；出发前查看主办方公告，不把 15:00 当作保证的末班船。"
+    ],
+    "audience": [
+      "5 岁以上及成人",
+      "户外体验"
+    ],
+    "officialUrl": "https://www.cal-sailing.org/activities/csc-open-house",
+    "sourceLabel": "Cal Sailing Club",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "refresh-sailing"
+  },
+  {
+    "id": "berkeley-borp-adaptive-sports-expo-oct17-2026",
+    "title": "BORP 无障碍体育体验日与社区庆祝",
+    "kind": "sports",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10/17（六）主场 10:00–15:00；社区庆祝 15:30–17:30",
+    "region": "east-bay",
+    "city": "Berkeley",
+    "venue": "James Kenney Community Center · 1720 8th Street, Berkeley；另有两个分场地",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "入场与体育体验免费；午餐餐车另购，现场有免费零食和补水。",
+    "summary": "在教练协助下尝试轮椅球类、适应性骑行、皮划艇和攀岩。不同残障人士、家人朋友与初次参加者都受欢迎。",
+    "plan": [
+      "主场 James Kenney Community Center（1720 8th Street）10:00–15:00；各项体育活动有独立时段，不能保证任何时间都能体验全部项目。 骑行与皮划艇在 BORP Adaptive Cycling Center（80 Bolivar Drive）10:00–13:00；攀岩在 Berkeley Ironworks（800 Potter Street）12:00–15:00，需另预留转场时间。",
+      "提前报名强烈建议；交通和攀岩必须登记。无障碍免费接驳连接 North Berkeley BART 与三个场地，名额有限须预留；攀岩另需签免责文件。 其他体验可到场填简表；欢迎无残障社区成员参与或观看。官网未公布统一最低年龄，应按所选运动向主办方确认。",
+      "主场 15:30–17:30 有免费社区庆祝、食物、音乐和游戏；这是另一个时段，不代表白天午餐免费。"
+    ],
+    "audience": [
+      "无障碍运动",
+      "家庭与朋友"
+    ],
+    "officialUrl": "https://www.borp.org/expo/",
+    "sourceLabel": "BORP Adaptive Sports and Recreation",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "weekend"
+  },
+  {
+    "id": "sf-bay-beats-bandshell-oct24-2026",
+    "title": "Bay Beats 金门公园免费音乐会",
+    "kind": "performance",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ],
+    "dateLabel": "10/24（六）14:00–18:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Golden Gate Bandshell · 75 Hagiwara Tea Garden Dr, San Francisco, CA 94118",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费音乐会；页面未列强制报名要求，座位不保证。",
+    "summary": "在金门公园露天音乐台听 Bay Beats 本地音乐人现场演出，适合与朋友安排一个音乐下午。",
+    "plan": [
+      "已公布艺人包括 Frankie Maston、Skip The Needle、Spencer Noble 和 William Johnston’s Extravagant Superband。",
+      "地点是 Golden Gate Bandshell，不是 Main Library；按音乐台地址规划抵达。",
+      "主办方仍在补充节目详情；各艺人的开演时刻及现场安排以最新公告为准。"
+    ],
+    "audience": [
+      "音乐爱好者",
+      "朋友结伴"
+    ],
+    "officialUrl": "https://illuminate.org/event/bay-beats-at-the-bandshell-october-24/",
+    "sourceLabel": "Illuminate",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "autumn-neighbors"
+  },
+  {
+    "id": "sf-financial-planning-day-oct24-2026",
+    "title": "Financial Planning Day：免费财务讲座与一对一咨询",
+    "kind": "event",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ],
+    "dateLabel": "10/24（六）10:00–17:00；部分讲座同步 Zoom",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "SF Main Library · 100 Larkin Street, San Francisco, CA 94102",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "主办方报名票价为 $0；免费 CFP 咨询需预留名额，现场候补不保证接待。",
+    "summary": "参加投资、税务、房产传承与预算主题讲座，也可预约 CFP 专业人士的一对一咨询。",
+    "plan": [
+      "线下讲座在 Koret Auditorium，无须预约、座位先到先得；参加 Zoom 直播须按具体讲座报名。 官网活动页的 Register 按钮通往免费预约页面；先选讲座或咨询，再确认参加方式。",
+      "一对一咨询在 Main Library 的 Latino/Hispanic Meeting Room；预约于 10/22（周四）午夜截止，现场到访可候补但不保证有咨询时段。",
+      "投资讲座 10:15–11:45；房产税与代际转移 11:55–12:35；税务更新 12:45–14:15；经济公平资源 14:25–15:05；预算讲座 15:15–16:45。"
+    ],
+    "audience": [
+      "成人",
+      "实用生活"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/24/workshops-financial-planning-day",
+    "sourceLabel": "San Francisco Public Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "sf-marina-library-open-house-oct17-2026",
+    "title": "Marina 图书馆开放日：音乐、手工与赠书",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10/17（六）11:00–15:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Marina Branch Library · 1890 Chestnut Street, San Francisco, CA 94123",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "费用待核：官方活动页未列明入场费；赠书数量未公布。",
+    "summary": "在分馆和院落听音乐、做书签与徽章，还可参加服装交换、宾果及社区资源活动。",
+    "plan": [
+      "面向家庭与所有年龄；按官网参加规则，可直接到场，无须预约。",
+      "安排包括 Megan Schoenbohm 现场音乐、自行车果昔体验、消防车来访、儿童与宠物服装交换、泡泡及赠书。",
+      "各活动的具体时刻和赠书库存未公布；请以分馆当天安排为准，不保证每人都能领到书。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "社区居民"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/17/celebration-open-house",
+    "sourceLabel": "San Francisco Public Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "autumn-neighbors"
+  },
+  {
+    "id": "sf-halloween-broadside-printing-oct17-2026",
+    "title": "万圣节活版印刷：体验 1909 年手压印刷机",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10/17（六）14:00–16:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "SF Main Library · Book Arts & Special Collections · 100 Larkin Street, San Francisco, CA 94102",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "费用待核：官方活动页未列明入场费；纪念印张限前 100 位。",
+    "summary": "在印刷工作者协助下体验图书馆的 Albion 手压印刷机，制作万圣节纪念印张。",
+    "plan": [
+      "American Printing History Association 的 NorCal 分会提供印刷协助；按现场工作人员指导操作设备。",
+      "活动适合成人，官网正文也欢迎其他年龄参加；儿童操作设备请听从工作人员指导。",
+      "无需预约；可带走的印张只限前 100 位，不保证所有到场者都能领取。"
+    ],
+    "audience": [
+      "印刷与手作",
+      "文化体验"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/17/activity-halloween-broadside-printing-event",
+    "sourceLabel": "San Francisco Public Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "october-library-culture"
+  },
+  {
+    "id": "sf-main-halloween-costume-swap-oct15-2026",
+    "title": "SF Main Library 儿童万圣节服装交换",
+    "kind": "event",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-15",
+    "occurrenceDates": [
+      "2026-10-15"
+    ],
+    "dateLabel": "10/15（四）16:00–17:30",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "SF Main Library · Children's Creative Center, 2nd Floor · 100 Larkin Street, San Francisco, CA 94102",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "费用待核：官方活动页未列明收费，也未要求必须先捐一件才能领取。",
+    "summary": "为孩子寻找新的万圣节造型，或带来洁净、轻度使用的服装交换；道具与配件也欢迎。",
+    "plan": [
+      "面向儿童及照顾者，活动在 Main Library 二楼儿童创意中心；不是 Marina 分馆或 San Leandro 的交换会。",
+      "按官网参加规则，无须预约；可带洁净、轻度使用的服装、配件或道具。",
+      "官网没有公布一换一、尺码或每人领取数量规则；服装选择以现场为准。"
+    ],
+    "audience": [
+      "儿童与照顾者",
+      "旧物交换"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/15/activity-halloween-costume-swap",
+    "sourceLabel": "San Francisco Public Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "refresh-community-swap"
+  },
+  {
+    "id": "san-lorenzo-banned-books-storytime-oct7-2026",
+    "title": "San Lorenzo 阅读自由故事会与赠书",
+    "kind": "event",
+    "startDate": "2026-10-07",
+    "endDate": "2026-10-07",
+    "occurrenceDates": [
+      "2026-10-07"
+    ],
+    "dateLabel": "10/7（三）11:00–11:30；活动室提前 10 分钟开放",
+    "region": "east-bay",
+    "city": "San Lorenzo",
+    "venue": "San Lorenzo Library · Greenhouse Community Room · 395 Paseo Grande, San Lorenzo, CA 94580",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "费用待核：故事会未列票价；现场赠书免费，送完为止。",
+    "summary": "以受到挑战或禁令的绘本和歌曲认识阅读自由，故事会后可领取一本主题书籍，数量有限。",
+    "plan": [
+      "主要面向幼儿与学龄前儿童，其他年龄也欢迎；家长或照顾者须在场陪伴并参与。",
+      "活动限额，入场票在前台领取；满场时可能无法进入，不保证随到随进。",
+      "Greenhouse Community Room 于 10:50 开放；免费赠书送完为止，参加故事会的费用请向分馆确认。"
+    ],
+    "audience": [
+      "幼儿与学龄前儿童",
+      "家长与照顾者"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6a8e1732392e9c02993c8c9a",
+    "sourceLabel": "Alameda County Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "october-library-culture"
+  },
+  {
+    "id": "san-lorenzo-metal-milagros-oct10-2026",
+    "title": "San Lorenzo 墨西哥 Milagros 金属浮雕手工",
+    "kind": "event",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "occurrenceDates": [
+      "2026-10-10"
+    ],
+    "dateLabel": "10/10（六）15:00–16:00；14:30 开始发入场票",
+    "region": "east-bay",
+    "city": "San Lorenzo",
+    "venue": "San Lorenzo Library · Greenhouse Community Room · 395 Paseo Grande, San Lorenzo, CA 94580",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "费用待核：官方未列明收费；材料提供，数量有限。",
+    "summary": "认识墨西哥与拉丁美洲民间艺术中的 milagros 小饰物，尝试金属压纹、图样和配色。",
+    "plan": [
+      "适合 8 岁以上儿童及家人；请按年龄要求参加。",
+      "材料提供但数量有限；开场前 30 分钟，即 14:30 开始发票，请为领票留时间。",
+      "活动在 San Lorenzo Library 的 Greenhouse Community Room，现场名额以分馆安排为准。"
+    ],
+    "audience": [
+      "8 岁以上儿童及家人",
+      "手作与文化"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6a8e175a392e9c02993c8cd5",
+    "sourceLabel": "Alameda County Library",
+    "verifiedAt": "2026-09-29",
+    "imageKey": "october-library-culture"
+  }
+]

@@ -5,6 +5,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { guides, type Guide } from '../src/data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../src/data/guide-media';
+import { discoveryShare, getLocalDiscovery } from '../src/data/local-discoveries';
 import { getBayAreaToday } from '../src/lib/monthly';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost', pretendToBeVisual: true });
@@ -119,14 +120,15 @@ test('guide home and monthly edition both expose the new guide as an SSR-readabl
   }
 });
 
-test('the actual October deals guide renders its dedicated art and each inline merchant source', () => {
-  assert.ok(previousGuide, 'the published September guide must be registered');
+test('the actual October deals guide preserves its art, real local discovery entries and safe official sources', () => {
+  assert.ok(previousGuide, 'the published October guide must be registered');
   assert.equal(previousGuide.editionMonth, '2026-10');
   const media = getGuideMedia(previousGuide);
   assert.equal(media.cover.src, GUIDE_IMAGES['culture-visit'].src);
   assert.equal(media.inline[0].image.src, GUIDE_IMAGES['october-library-culture'].src);
   const sourceBlocks = previousGuide.blocks.filter(block => block.type === 'link');
   assert.ok(sourceBlocks.length >= 1, 'readers should find merchant sources beside the offer descriptions');
+  assert.equal(sourceBlocks.filter(block => block.url.startsWith('/')).length, 4, 'the four new discovery entries must remain present');
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-10-01" {...actions} /></StaticRouter>);
   const server = new JSDOM(html).window.document;
   assert.equal(server.querySelector('h1')?.textContent, previousGuide.title);
@@ -135,11 +137,20 @@ test('the actual October deals guide renders its dedicated art and each inline m
   const sourceCards = [...server.querySelectorAll('.bl-guide-source-link')];
   assert.equal(sourceCards.length, sourceBlocks.length);
   for (const [index, block] of sourceBlocks.entries()) {
-    assert.match(block.url, /^https:\/\//);
     const sourceLink = sourceCards[index].querySelector('a');
     assert.equal(sourceLink?.getAttribute('href'), block.url);
-    assert.equal(sourceLink?.getAttribute('target'), '_blank');
-    assert.equal(sourceLink?.getAttribute('rel'), 'noopener noreferrer');
+    if (block.url.startsWith('/')) {
+      const route = /^\/(events|offers)\/([a-z0-9-]+)$/.exec(block.url);
+      assert.ok(route, 'local entries must use an actual discovery detail route');
+      const discovery = getLocalDiscovery(route[1] === 'events' ? 'event' : 'offer', route[2]);
+      assert.ok(discovery, `${block.url} must resolve to published local content`);
+      assert.equal(discoveryShare(discovery).path, block.url);
+      assert.equal(sourceLink?.getAttribute('target'), null, 'local entries must stay in the current browsing context');
+    } else {
+      assert.match(block.url, /^https:\/\//);
+      assert.equal(sourceLink?.getAttribute('target'), '_blank');
+      assert.equal(sourceLink?.getAttribute('rel'), 'noopener noreferrer');
+    }
     assert.ok(sourceCards[index].textContent?.includes(block.title));
     assert.ok(sourceCards[index].textContent?.includes(block.text));
   }

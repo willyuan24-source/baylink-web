@@ -5,10 +5,11 @@ import test from 'node:test';
 import type { CatalogEvent } from '../src/opus-bay/core/types';
 
 /**
- * Wave 6 · lane S (W6-S1): GPT's autumn catalog (public/planner-catalog.json, 267 events, merged at W6-0c) in the world.
+ * Wave 6 · lane S (W6-S1): GPT's autumn catalog (public/planner-catalog.json, originally 267 events at W6-0c;
+ * 293 after the Sep 29 website refresh) in the world.
  * Every San Francisco event of 29 Sep – 30 Nov is either at a venue of realsf/eventVenues.ts (an OpenStreetMap point on
  * the walking network: tests/opus-bay-w5-events.test.ts walks every row) or kept out for a stated reason (18+ /
- * professional, or no single verified point). The autumn labels' hours per date (realsf/events.ts labelHoursOn), and the
+ * professional, no single verified point, or an explicitly pending world import). The autumn labels' hours per date (realsf/events.ts labelHoursOn), and the
  * Ferry Plaza market (now a catalog event) is one row / one task in the 今天 tab, not two.
  */
 
@@ -38,6 +39,9 @@ const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.start
 const NOT_PLACED: Readonly<Record<string, string>> = {
   // a street party along 2nd St between Market and Howard, 17:00–22:00, billed to adults; no single point to pin
   'sf-downtown-first-thursday-oct-2026': 'street segment, adults',
+  // These two Sep 29 website additions still need a world venue import and walking-network point acceptance.
+  'sf-bay-beats-bandshell-oct24-2026': 'website/calendar/planner only; Golden Gate Bandshell event import and navigation-point acceptance pending',
+  'sf-marina-library-open-house-oct17-2026': 'website/calendar/planner only; Marina Branch open-house import and navigation-point acceptance pending',
 };
 
 test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekdays, 其余, doors, several ranges joined; the old labels unchanged', () => {
@@ -70,15 +74,35 @@ test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekd
   }
 });
 
-test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (18 → 38 shown)', () => {
+test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (38 + 3 existing-venue matches shown)', () => {
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 57, 'the autumn catalog');
+    assert.equal(sf.length, 62, 'the autumn catalog including the five Sep 29 website additions');
     const shown = sf.filter(e => worldEvent(e));
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
-    assert.equal(shown.length, 38, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 41, shown.map(e => e.id).join(' '));
+    // The existing Main Library matcher admits three additions. The other two retain specific pending-import reasons.
+    // None may disappear behind an accidental audience/title classification.
+    for (const [id, venue] of [
+      ['sf-bay-beats-bandshell-oct24-2026', null],
+      ['sf-financial-planning-day-oct24-2026', 'main-library'],
+      ['sf-marina-library-open-house-oct17-2026', null],
+      ['sf-halloween-broadside-printing-oct17-2026', 'main-library'],
+      ['sf-main-halloween-costume-swap-oct15-2026', 'main-library'],
+    ] as const) {
+      const event = byId(id);
+      assert.equal(isAdultOnly(event), false, `${id} has no adult-only admission rule`);
+      assert.equal(isProfessional(event), false, `${id} is not a professional/tech-industry event`);
+      if (venue) {
+        assert.equal(worldEvent(event)?.id, venue, `${id} matches the existing Main Library venue`);
+        assert.equal(NOT_PLACED[id], undefined, `${id} is visible through the existing venue matcher`);
+      } else {
+        assert.ok(NOT_PLACED[id], `${id} retains its explicit pending-import reason`);
+        assert.equal(worldEvent(event), null, `${id} awaits world venue and navigation acceptance`);
+      }
+    }
     // Halloween first: all four family Halloween events stand at their venues
     for (const [id, venue] of [['sf-halloween-hoopla-2026', 'yerba-buena-gardens'], ['sf-sunnydale-pumpkin-fest-2026', 'sunnydale-hub'], ['sf-family-connections-halloween-2026', 'portola-family-connections'], ['sf-thrive-thrill-o-ween-2026', 'thrive-city']] as const) {
       assert.equal(worldEvent(byId(id))?.id, venue, id);
