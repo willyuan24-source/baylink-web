@@ -180,13 +180,14 @@ test('verify M2: 直接到站 on a cable car to a stop that has not streamed in 
       assert.equal(veils.length, before + 1, 'one veil');
       transit.finishRide();
       assert.equal(veils.length, before + 1, 'a second tap starts no second veil');
-      assert.ok(!game.get().toasts.some(t => /Hyde & Beach|到站/.test(t.text)), 'nothing announced yet');
+      assert.ok(!game.get().toasts.some(t => /Hyde & Beach|海德街 · 海滩街|到站/.test(t.text)), 'nothing announced yet');
       await new Promise(r => setTimeout(r, 500));
       assert.equal(ride.currentRide(), null, 'the ride ended under the veil');
       // at the stop: its prompt beside the track once that ground is known (never on the rails), else the station point
       const p = runtime.player, at = LR.stationBoardSpot(dest);
       assert.ok(Math.hypot(p.x - at.x, p.z - at.z) < 1.5 && Math.hypot(p.x - dest.x, p.z - dest.z) < 8, `at Hyde & Beach (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
-      assert.ok(game.get().toasts.some(t => /Hyde & Beach/.test(t.text)), 'arrival announced');
+      // (W6-B) the cable-car stations have Chinese names in zh (data/transit.ts stationZh)
+      assert.ok(game.get().toasts.some(t => /Hyde & Beach|海德街 · 海滩街/.test(t.text)), 'arrival announced');
       assert.equal(game.get().move.mode, 'foot');
     } finally {
       ride.endRide(); sys.cancel();

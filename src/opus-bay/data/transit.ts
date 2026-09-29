@@ -259,6 +259,34 @@ export function shortStationName(name: string): string {
   return name.replace(STREET_WORDS, '').replace(/\s+/g, ' ').replace(/\s*&\s*/g, ' & ').trim();
 }
 
+/**
+ * (W6-B, NEXT #10 "zh cable-car stop names") The Chinese names of the streets the cable cars stop at, as the game
+ * already writes them where it has one (鲍威尔街, 加州街, 海德街, 市场街, 联合街, 伦巴底街, 百老汇街, 菲尔伯特街,
+ * 蒙哥马利街, 邮政街, 湾街, 格林街, 哥伦布大道 — and Chinatown's own 都板街 for Grant Ave, 企李街 for Clay St), else
+ * the common transliteration. Keyed by the short English name (shortStationName's parts).
+ */
+const CABLE_STREET_ZH: Readonly<Record<string, string>> = {
+  Battery: '炮台街', Bay: '湾街', Beach: '海滩街', Broadway: '百老汇街', Bush: '布什街', California: '加州街',
+  Chestnut: '栗树街', Clay: '企李街', Columbus: '哥伦布大道', Davis: '戴维斯街', Drumm: '德拉姆街', Filbert: '菲尔伯特街',
+  Francisco: '弗朗西斯科街', Front: '前街', Geary: '吉里街', Grant: '都板街', Green: '格林街', Greenwich: '格林威治街',
+  Hyde: '海德街', Jackson: '杰克逊街', Jones: '琼斯街', Kearny: '卡尼街', Larkin: '拉金街', Leavenworth: '莱文沃斯街',
+  Lombard: '伦巴底街', Market: '市场街', Mason: '梅森街', Montgomery: '蒙哥马利街', 'North Point': '北角街',
+  "O'Farrell": '奥法雷尔街', Pacific: '太平洋大道', Pine: '派恩街', Polk: '波尔克街', Post: '邮政街', Powell: '鲍威尔街',
+  Sacramento: '萨克拉门托街', Sansome: '桑瑟姆街', Stockton: '士德顿街', Sutter: '萨特街', Taylor: '泰勒街',
+  Union: '联合街', Vallejo: '瓦列霍街', 'Van Ness': '范尼斯大道',
+};
+
+/**
+ * (W6-B) A cable-car station's Chinese name from its English street names: "California Street & Van Ness Avenue" →
+ * "加州街 · 范尼斯大道" (the map, the station card, the ride banner read it in zh). A street without a Chinese name
+ * keeps the short English form ("California & Van Ness") — never half and half.
+ */
+export function stationZh(name: string): string {
+  const short = shortStationName(name);
+  const parts = short.split(' & ').map(p => CABLE_STREET_ZH[p.trim()]);
+  return parts.every(Boolean) ? parts.join(' · ') : short;
+}
+
 /** "Powell & Market" → "powell-market" (`[a-z0-9-]`, ≤ 64). */
 export function stationSlug(name: string): string {
   const s = shortStationName(name).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -369,7 +397,8 @@ export function buildTransit(file: TransitFileJson): TransitData {
         while (used.has(id)) id = `${stationSlug(st.name.en)}-${k++}`;
         used.add(id);
         const short = shortStationName(st.name.en);
-        station = { id, name: { zh: short, en: short }, x: st.x, z: st.z, lines: [] };
+        // (W6-B) the zh name in Chinese (it was the English short name: "California & Van Ness" on the zh map)
+        station = { id, name: { zh: stationZh(st.name.en), en: short }, x: st.x, z: st.z, lines: [] };
         stations.push(station);
       }
       if (!station.lines.some(l => l.line === line.id)) station.lines.push({ line: line.id, at: stop.at, dwell: stop.dwell });

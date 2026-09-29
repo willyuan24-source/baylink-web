@@ -134,3 +134,15 @@ test('W6-B3 the M no longer stops at San Jose & Mt Vernon (SFMTA: a permanent re
   assert.ok(!w4.metro.find(l => l.id === 'm-ocean-view')!.stops.some(s => s.id === 'muni-san-jose-mt-vernon'));
   assert.equal(w4.metro.find(l => l.id === 'm-ocean-view')!.stops.length, m.stops.length - 1);
 });
+
+test('W6-B5 every cable-car station has a Chinese name in zh (the zh map said "California & Van Ness"); the English stays the short street pair', () => {
+  const cvn = DATA.stations.find(s => s.name.en === 'California & Van Ness')!;
+  assert.equal(cvn.name.zh, '加州街 · 范尼斯大道');
+  assert.equal(DATA.stations.find(s => s.name.en === 'Powell & Market')!.name.zh, '鲍威尔街 · 市场街');
+  assert.equal(DATA.stations.find(s => s.name.en === 'Hyde & Beach')!.name.zh, '海德街 · 海滩街');
+  const latin = DATA.stations.filter(s => /[A-Za-z]/.test(s.name.zh)).map(s => s.name.en);
+  assert.deepEqual(latin, [], 'no English left in a zh station name');
+  for (const s of DATA.stations) assert.ok(!/[一-龥]/.test(s.name.en), `${s.id}: the English name stays English`);
+  // an unknown street keeps the whole short English name, never half and half
+  assert.equal(T.stationZh('Powell Street & Nowhere Street'), 'Powell & Nowhere');
+});
