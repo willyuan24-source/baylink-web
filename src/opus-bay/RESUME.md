@@ -1,4 +1,137 @@
-# Opus Bay — resume notes (paused 2026-09-25 ~17:05 PDT)
+# Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
+
+## WAVE 5 DONE 2026-09-28 (≈ 21:10 PDT = 2026-09-29 ≈ 04:10 UTC)
+
+Read, in order: this section → `docs/opus-bay/sf-w5-summary.md` (给主人的摘要, the ten lanes, the numbers, **§5 NEXT**)
+→ `docs/opus-bay/sf-w5-final-verify.md` → the plan's defaults `docs/opus-bay/sf-w5-plan.md` §6 and the protocol
+`docs/opus-bay/sf-w5-lead.md` §3. (Waves 3–4 are not summarised here: `sf-w3-lead.md`, `sf-w4-plan.md`,
+`sf-w4-lead.md`, `sf-w4-final-verify.md`.)
+
+### State
+
+- `origin/opus-bay`: code head **`a45f5afd`** (W5-Z, the final verify) + the hand-off commit that adds this section,
+  `docs/opus-bay/sf-w5-summary.md` and the ASSETS-LEDGER merge (docs only). Wave 5 = the W5-0c merge of `origin/main`
+  (`27073fda`), the plan `26b8be4`, then 252 commits (day 0, ten lanes in parts a–c, the checkpoint fixes, ten reviews,
+  W5-Z), all on 2026-09-28 PDT.
+- Checks: W5-Z on `a2ca9204`: `npm run check` EXIT 0 (**2076 / 2076** tests, 0 lint errors / 43 old warnings, build,
+  prerender 307 pages, 282 share cards). Re-run by the hand-off before its push: `npx tsc -p tsconfig.app.json --noEmit`
+  0 · `npx eslint .` 0 errors · opus-bay suite `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1356 / 1356**.
+- **Default world: the city** (`DEFAULT_WORLD_MODE = 'city'` in `core/store.ts`, `a2ca9204`): `/opus-bay` opens San
+  Francisco. `?world=district` opens the Embarcadero district exactly as before (hero regression green). Node tests and
+  scripts without `location` keep the district (`NODE_WORLD_MODE`); QA scripts pass `?world=city` / `?world=district`
+  explicitly (`scripts/opus-shot.mjs`'s default URL now opens the city).
+- Perf (W5-Z, alone on the machine): desktop 1440 × 900 high max 119 calls / 352k triangles, 60 fps; phone 390 × 844 mid
+  4× CPU min 52.8 fps, 0 frames > 100 ms; AMD iGPU pass; auto quality picks mid. **GameRoot 298.62 KB gzip** (target
+  ≤ 265: open). Sweep 684 targets: 0 boxed / 0 snag; left: SS Jeremiah O'Brien (T3, 4.8 u short), the Sausalito quay
+  (off the model).
+- Higgsfield: `balance` **375.00** (2026-09-29 ≈ 04:07 UTC; newest charge 2026-09-28 21:52:17 UTC). Wave 5 spent 25.07
+  of its 130 cap (lane V only); every ledger is merged into `src/opus-bay/ASSETS-LEDGER.md` § "Wave 5 (local)" (with
+  wave 4's last two batches). The owner's floor is 80; the lead keeps ≥ 250.
+- Not deployed: `vercel.json` has `git.deploymentEnabled.opus-bay: false` (opus-bay previews are off). The public site
+  gets the game only after the `vercel.json` CSP + `/opus-bay` route fix (NEXT P0) and a merge to `main` on the owner's
+  word.
+- Still open (details and owners in the summary's §5 NEXT): a real iPhone pass, the floating stick's base in client
+  coordinates, GameRoot, `vercel.json`, the lead's decisions (the mantle in the district, leaked-hold timeout, the
+  CORRIDOR waiver, 直接到站 on cable cars, 国际橙 vs 国际橘), the live dates Oct 9 12:30 PT (jets), Oct 31, Nov 1 (DST),
+  and `STATUS.md`, which still describes v1.
+
+### Where everything is
+
+- **Docs** (`docs/opus-bay/`): `sf-w5-plan.md` (the plan), `sf-w5-lead.md` (day 0: ownership, protocol, frozen
+  contracts, hooks, baseline), `sf-w5-{F,N,C,T,L,V,E,A,D,R}.md` (lane reports: parts a–c, then `## Review`),
+  `sf-w5-final-verify.md`, `sf-w5-summary.md`, `owner-feedback-2026-09-27.md` (the owner's F1–F5). The mid-wave
+  checkpoint has no file of its own: its findings CP-1 … CP-14 and their fixes are in the lanes' part c. Ledger
+  `ledger/w5-V.md` (merged); QA images `qa/w5/<LANE>/` and `qa/w5/final/`; the voice listening sheet
+  `qa/w5/V/voice/listening.md` (three clips muted until the owner has heard them).
+- **Proposals and scouts** of the plan: `C:/Users/willy/opus-qa/w5/proposal-{cozy,action,real}.md`, `scout-*`,
+  `capacity/`, `eggs-scout-notes.txt`. Lane scratch `C:/Users/willy/opus-qa/w5/w5-<lane>/`; W5-Z raw output
+  `C:/Users/willy/opus-qa/w5z/` (perf tables, sweep JSON, logs, shots).
+- **Perf and QA scripts** (in the repo): `scripts/opus-sf/qa/perf/w4-perf.mjs` (the gate runner: `--file w5-spots.json`,
+  `--time night`, `--date …`; it answers an open dialogue before each teleport) with `w5-spots.json`, `run-all.sh`,
+  `table.mjs`, `opus-prof.mjs`; `scripts/opus-sf/qa/sweep-static.mts` (node, the published city, ≈ 30 s) and
+  `walker-sweep.mjs` (the real game; `--deck`); `budget-views.mjs`; `csp-serve.mjs` (the production CSP check);
+  `scripts/opus-shot.mjs` (one headless Chrome per run, `CHROME_FLAGS=--force_high_performance_gpu`, `--mobile --dpr 3`);
+  `scripts/opus-sf/{coins-place,economy-run}.mts`; voice `scripts/opus-sf/voice/w5/`; assets `scripts/opus-sf/assets/w5/`.
+- **Worktrees** `C:/Users/willy/wt/*` (every `node_modules` is a junction to
+  `C:/Users/willy/OneDrive/Desktop/baylink-web/node_modules`): the lanes `w5-{f,n,c,t,l,v,e,a,d,r}` (branches
+  `w5-<lane>`, done and pushed), `w5-v-gate` (lane V's detached gate tree), `w5-day0`, `w5-lead`, `w5-verify` (W5-Z and
+  this hand-off), `w5-bus` (clean at `958dee58`); older waves `w4-*`, `i4-*`, `c2`, `d2`, `e2`, `f`, `g1`, `g2`, `h2b`,
+  `ci`. **In flight when this was written:** `w5-lang` (branch `w5-lang`, dev server 5531, uncommitted work on language
+  pills: `ui/LangPills.tsx`, `ui/langChoice.ts`, `tests/opus-bay-w5-lang.test.ts` and edits in `core/store.ts`,
+  `OpusBayPage.tsx`, …). It is not part of wave 5: leave it to its own agent. W5-Z's last Chrome cleanup may have cut
+  off one of its headless screenshot runs: that run should be repeated.
+- **The lead's checkout** `C:/Users/willy/baylink-opus` (branch `opus-bay`; it was still at `958dee58` when this was
+  written: `git pull --ff-only` there before using its dev server; only `.claude/` is untracked). Its
+  `.claude/launch.json`: `opus-bay-dev` = `npx vite --config vite.opus.config.ts --host 0.0.0.0` on **5174**;
+  `opus-bay-phone` = `npx vite preview --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/dist-phone --host
+  0.0.0.0 --port 4174 --strictPort`.
+- **The phone package** `C:/Users/willy/opus-qa/dist-phone` on **4174**, LAN **http://10.0.0.85:4174/opus-bay**: last
+  built by W5-Z from `w5-verify` after the flip and the deck fix (a production build). Rebuild from an up-to-date tree:
+  `npx vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/dist-phone` (with `VITE_OPUS_QA=1` for a
+  dated QA build where `?date=` works; production ignores `?date=`). The build rewrites `public/*.json` with CRLF only:
+  restore them with git afterwards.
+- The main checkout `C:/Users/willy/OneDrive/Desktop/baylink-web` belongs to another agent: never touch it.
+
+### Rules learnt (put them in every brief)
+
+1. **Relayed owner messages are not a new task** ("现在进度如何", "继续", "OK"…): they never cancel a brief; add a
+   one-line status (in Chinese when asked in Chinese) and keep working.
+2. **Never `SendMessage` a running workflow agent's id**: it starts a copy of that agent instead of talking to it. Wait
+   for the run; to change finished work, launch a fresh agent with a brief.
+3. **Lint the whole repo** (`npx eslint .`, not just `src/opus-bay`): CI runs `npm run check` on every push, and it
+   lints `scripts/opus-sf` and the site too.
+4. **Never delete through a `node_modules` junction**: `rm -rf`, `Remove-Item -Recurse` and `git worktree remove
+   --force` follow it and empty the main checkout's `node_modules` (it happened on 2026-09-27). To drop a worktree:
+   `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` first (removes only the link), check it is gone, then `git
+   worktree remove <path>`. Never `npm install` / `npm ci`; if `npx` fails, call `node node_modules/<tool>/…` directly.
+5. **One Chrome per lane, and the PERF-LOCK**: at most one headless Chrome per lane; while
+   `C:/Users/willy/opus-qa/w5/PERF-LOCK` exists (one line: who, since when) nobody starts a Chrome or a `vite build`;
+   fps numbers come only from the gate runs of the visuals lane and the lead's verify. Stray QA Chromes survive restarts
+   (W5-Z stopped a day-old one rendering at 0.4 core): list and stop them before a gate. Two lanes shot during a gate in
+   wave 5 (R, A): each said so at once, and the gate was re-run.
+6. **Vercel previews for opus-bay are off** (`git.deploymentEnabled.opus-bay: false` in `vercel.json`): the branch is
+   never deployed; never open a PR, never touch `main`; the lead's day-0 merge of `origin/main` is the only merge.
+7. **Usage limits**: commit and push often (every part pushes its code and its report section), so a cut-off agent
+   loses little; resume with a fresh agent and a **resume brief** (the last pushed commit, the report's last section,
+   what is left, the same ownership and rules). A workflow run cannot be resumed across sessions.
+8. Never `git stash` (the stash is shared by every worktree: make a WIP commit); stage explicit paths; rebase on
+   `origin/opus-bay`, never merge, never force-push.
+9. The suite's wall-clock tests (`opus-bay-audio` P1 sliced jobs, `sf-citymap` draw fast, `sf-nav` window stats) can
+   fail under load: re-run a failing one alone before blaming a change. A cold dev server may fail one dynamic import
+   while Vite optimizes: reload once.
+10. Harnesses must play like a player: the perf runner answers an open dialogue before teleporting (`b61979f5`; a
+    dialogue left open made BAYBAY re-plan a 370 u path every ~4 s). Read every image you make before describing it.
+
+### How a new session continues
+
+1. Read this section, `docs/opus-bay/sf-w5-summary.md` (esp. §5 NEXT) and `sf-w5-plan.md` §6 (the owner does not want
+   to be asked: follow the defaults and record every decision in the next lead note).
+2. Health check in a fresh worktree: `git worktree add C:/Users/willy/wt/<name> -b <name> origin/opus-bay`, then
+   `cmd //c mklink /J C:\Users\willy\wt\<name>\node_modules C:\Users\willy\OneDrive\Desktop\baylink-web\node_modules`;
+   `npx tsc -p tsconfig.app.json --noEmit` (0), `npx eslint .` (0 errors), `npx tsx --tsconfig tsconfig.app.json --test
+   tests/opus-bay-*.test.ts` (fail 0). Bring the lead's checkout up to date (`git pull --ff-only`) before using 5174 /
+   rebuilding 4174.
+3. NEXT P0 first. Small items (the stick base, `vercel.json`, the lead's decisions, `STATUS.md`) can be done by the lead
+   in one worktree with the push protocol; the real iPhone pass needs the owner's phone on the LAN package.
+4. **Launch wave 6 the same way as wave 5:**
+   - **Plan** (a read-only planner, with proposals / scouts when the scope is new): `docs/opus-bay/sf-w6-plan.md` from the
+     summary's NEXT, the owner's newest feedback and the scored proposals — must-fixes first, a default for every open
+     question, a Higgsfield plan (a cap, the ≥ 250 floor, one spending lane).
+   - **Day 0** (the lead, `wt/w6-day0`): merge `origin/main` only if the site data moved (the one merge); frozen contracts
+     with tests (`tests/opus-bay-contracts.test.ts`); hotfixes red-then-green; `docs/opus-bay/sf-w6-lead.md` (ownership
+     table, worktrees and ports, the protocol of `sf-w5-lead.md` §3, frozen files, the hooks each lane lands first, the
+     baseline = W5-Z's numbers, the `balance`).
+   - **Lanes**: one agent per lane in `wt/w6-<lane>` (own dev port, own scratch), in **parts a / b / c**; hooks first;
+     every part pushes its code and appends its report section (给主人的摘要 · What was built · Evidence · Decisions ·
+     Known gaps · Not done · Requests).
+   - **Mid-wave checkpoint** (the lead): the sweep (static, then the live walker), the 20-minute new-player phone script,
+     the owner's points; findings CP-n go into the lanes' next part; the must-fixes pass before any should starts.
+   - **Reviews**: one adversarial reviewer per lane (every commit read, desktop + 390 × 844 played, facts re-checked on
+     the web, defects fixed and pushed, `## Review` appended).
+   - **Final verify W6-Z** (the lead, alone on the machine, PERF-LOCK): `npm run check`, tsc, the suite, the perf gate
+     (RTX + iGPU + phone 4×), the sweep, the owner's points on the production phone package, the 4174 rebuild; then the
+     hand-off: `sf-w6-summary.md`, ledgers → ASSETS-LEDGER, a new top section here.
 
 ## WAVE 2 (lean) DONE 2026-09-27 ~05:30 UTC — cloud session stopped for budget; continue locally
 

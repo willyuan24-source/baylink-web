@@ -663,3 +663,249 @@ job id and the lead's next merge copies those rows here. Sum check: 498.28 − 4
 **Wave 3 total: 42.70 credits** (H2b 42.70 of 150; D2 0 of 80; C2 0 of 20; E2 0 of 50; F 0 of 25). **Wave 4 so far:
 55.45 credits** of the 120 cap (V 40.45 logged + 15.00 pending attribution); balance **400.13**, well above the ≥ 50 kept
 for the final polish. Whole-SF round so far: 250.20 (to the end of wave 2) + 42.70 + 55.45 = **348.35 credits**.
+
+## Wave 5 (local)
+
+Merged by the lead's hand-off writer (worktree `C:/Users/willy/wt/w5-verify`, 2026-09-28 PDT = 2026-09-29 ≈ 04:10 UTC)
+from `docs/opus-bay/ledger/w5-V.md` as it stands on `origin/opus-bay` at `a45f5afd`. Every lane row is copied verbatim
+under its lane (the lane file stays as it is; its `##` headings are `####` here); the balance trail and the
+reconciliation with the Higgsfield `transactions` tool follow at the end. Wave 5 ran with a cap of 130 credits for lane V
+only and a floor of 250 on the balance (`sf-w5-plan.md` §5, `sf-w5-lead.md` §8). Only lane V logged a file: lanes F, N,
+C, T, L, E, A, D and R spent nothing (their reports say Higgsfield 0), nor did the lead's day 0, the ten reviews or W5-Z.
+
+First, wave 4's last two lane-V batches. They came after the wave-4 merge above (its trail row "after the lane ledgers
+(not yet in a lane ledger)", 15.00, and a 0.06 voice fix on 2026-09-28 01:26 UTC); lane V's own file attributes them by
+job id, and they are copied here as that merge said they would be.
+
+### Wave 4 · lane V, the rows after the wave-4 merge (from docs/opus-bay/ledger/w4-V.md)
+
+#### Part 2 · Batch 4 · Holy Virgin retake, 4 postcards (W4-V4b, W4-C9 / H-7), 2026-09-27 22:16–22:20 UTC
+
+Balance before: 415.13 (the last spend on the account was this lane's voice batch at 19:29:39 UTC). Holy Virgin: lane L's
+lot on Geary Blvd is 2.6–2.9 × 3.0–3.3 u (OSM way 286435447) and the part-1 concept is squat (6.1 × 9.1 × 6.7 u): squeezed
+into the lot its onion domes turned into spikes (the gate, `docs/opus-bay/qa/w4/V/v-gate-holy-virgin.jpg`), so a narrow,
+tall concept pair (`holy-virgin-tall` in prompts.py; the cathedral stands on "a narrow urban lot", Orthodox Arts Journal).
+Postcards: the recipe of the 12 shipped SF postcards (ASSETS-LEDGER T1-1…13: nano_banana_pro 4:3 2k, refs P5
+`df659275-cf2a-4352-8166-1934f9945e0f` + P13 `d756b0c4-46f1-4761-9e58-0d5d78bc2433`, subject + "Full-bleed illustration
+… NOT a card, NOT on a mat …" + the look line + the style contract; prompts.py `POSTCARDS`).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-C5a | Holy Virgin tall concept a | nano_banana_pro 1:1 2k, refs K6 + L2-C1 | narrow city lot: tall narrow white body, kokoshniks, red trim, narrow porch, five round gold onion domes; "about three times as tall as it is wide" | 2 | 15da86c6-6765-43fb-b0aa-2d06a0997141 | ai/raw/holy-virgin-tall-a.png | not meshed (still nearly as wide as part 1's) |
+| W4V-C5b | Holy Virgin tall concept b | nano_banana_pro 1:1 2k, ref K6 | same | 2 | 1ebf72db-3660-4184-938d-dfca6bb3ad53 | ai/raw/holy-virgin-tall-b.png | **USED** (tallest, round domes, no text, no base) |
+| W4V-3D8 | Holy Virgin mesh from C5b | sam_3_3d textured, "the toy cathedral" | — | 1 | 58f802b8-aa4d-41b6-8c5b-5a4010825b0c | ai/raw/holy-virgin-tall-b-sam.glb | **USED** (native 4.94 × 9.1 × 5.52 u, IoU 0.906) |
+| W4V-P1 | postcard sf-state-quad | nano_banana_pro 4:3 2k, refs P5 + P13 | the SF State Quad: lawn, students, low concrete buildings, the angled student centre roof, the lake beyond | 2 | 2a9083c4-6649-48e5-ae40-e7083b2e2a77 | postcards/sf-state-quad-a.png | **USED** (read at full size: no signs, no lettering) |
+| W4V-P2 | postcard sf-music-concourse | same | the sunken concourse, pollarded plane trees, fountains, the bandshell, the de Young tower, the Academy's living roof | 2 | 9ca0df6e-1f88-4b90-bb56-21fd0b320121 | postcards/sf-music-concourse-a.png | **USED** (the bandshell's cartouche is blank) |
+| W4V-P3 | postcard sf-lands-end | same | the cliff trail through wind-bent cypress, hikers, a rocky cove, the Golden Gate Bridge in soft mist | 2 | 0f211b8e-ce67-45de-831a-b3b9febfa624 | postcards/sf-lands-end-a.png | **USED** |
+| W4V-P4a | postcard sf-west-portal, draw a | same | a silver-and-red LRV leaving a round-arched tunnel portal onto a shopping street with awnings | 2 | 9d2945b5-fe8b-41ff-9ce7-1411bb762b56 | postcards/sf-west-portal-a.png | rejected (a floating diorama slab on the cream background, the fault of T1-8) |
+| W4V-P4b | postcard sf-west-portal, draw b | same + "seen from within the street … fills the whole frame … no floating slab, no base edge, no cream void" | same | 2 | a68d158e-a118-4532-b8d8-3738765ebf00 | postcards/sf-west-portal-b.png | **USED** after a local fix: a logo-like red mark on each car side and a lit display text on the front were painted out (diffusion fill, 1,773 px; `postcards/sf-west-portal-b-clean.png`) |
+
+Transactions 22:16:37 UTC (Nano Banana Pro −2 × 6), 22:18:37 (3D Objects −1), 22:20:16 (Nano Banana Pro −2); no refunds,
+no other spend in the window. **Subtotal 15.00.** **Wave-4 lane V total: 55.45 credits** (35.00 + 5.45 part 1, 15.00 part
+2) of the 120 cap. Balance 415.13 → **400.13** (`balance`, 2026-09-27 ≈ 22:40 UTC). H-8 (generated SFX): not spent (see
+the report).
+
+Published from batch 4 (local post-processing, free): the Holy Virgin GLB (the row above; `specs.json`
+`holy-virgin-tall-fit`: the part-1 cleanup + texel re-bake, `--box 2.8,9.1,3.2`), and the postcards (`postcards.py`:
+centre-crop to 4:3, 1200 + 600 WebP q82, as the shipped 12):
+
+| file | tris | bytes | size w x h x d (u) | IoU | non-manifold / islands | palette ΔE12 (before -> after) | status |
+|---|---|---|---|---|---|---|---|
+| postcards/sf-state-quad-1200.webp | - | 71,116 | 1200 x 900 | - | - | - | published; registered at the integration (W4-V-I7: POSTCARD_ART, ASSETS.postcards) |
+| postcards/sf-state-quad-600.webp | - | 28,124 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-music-concourse-1200.webp | - | 88,882 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-music-concourse-600.webp | - | 32,444 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-lands-end-1200.webp | - | 64,372 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-lands-end-600.webp | - | 27,074 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-west-portal-1200.webp | - | 54,460 | 1200 x 900 | - | - | - | published; registered (W4-V-I7) |
+| postcards/sf-west-portal-600.webp | - | 23,064 | 600 x 450 | - | - | - | published; registered (W4-V-I7) |
+
+#### Batch 5 · integration (part a): lane C's line added after the freeze (W4-V-I8), 2026-09-28 01:26 UTC
+
+Balance before: 400.13 (`balance`; newest transaction: this lane's Nano Banana Pro −2 at 2026-09-27 22:20:16 UTC). Lane C's
+request (`sf-w4-C.md` part 2, integration step 7): `metro-sfsu-next-2` in `TOUR_LINES_2` ("下一站 Holloway，就是州立大学。" /
+"Next stop Holloway — that's SF State.", mood happy), replacing the retired `metro-sfsu-next`. Same recipe as batch 3
+(qwen_audio_tts, preset Pixie `0178ef57-ada4-43d9-992b-8d9221045bb4`, wav 48 kHz, the guide instruction + "Happy and warm,
+relaxed."), both speech rates at once. Take list `scripts/opus-sf/voice/w4/takes.ts --set 2`; processed by
+`tour_post.py --merge` (only these takes; the 214 committed picks unchanged byte for byte). Preflight `get_cost` 0.01.
+Raw wavs: `C:/Users/willy/opus-qa/w4i/i4-v/voice2/raw/<index>.wav`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W4V-VO4a | zh-metro-sfsu-next-2, take 0 | qwen_audio_tts, Pixie, zh, speech_rate 1.0 | 下一站 Holloway，就是州立大学。 | 0.01 | 3638d5a6-3937-4d55-b0de-1d07083f8119 | voice2/raw/0.wav | **USED** (3.55 s, every gate, recogniser right 0.93) |
+| W4V-VO4b | zh-metro-sfsu-next-2, take 1 | same, speech_rate 1.08 | same | 0.01 | cc03cdf4-7ab0-42f4-8598-97ef515e3c1e | voice2/raw/1.wav | alternate (3.30 s, passes) |
+| W4V-VO4c | en-metro-sfsu-next-2, take 2 | same, en, speech_rate 1.0 | Next stop Holloway — that's SF State. | 0.02 | 2826fc19-4a30-483e-95c3-9896b56cc096 | voice2/raw/2.wav | **USED** (3.70 s, every gate, recogniser right 0.90) |
+| W4V-VO4d | en-metro-sfsu-next-2, take 3 | same, speech_rate 1.08 | same | 0.02 | 3bf2058e-b50c-4c9b-867d-c36f22550833 | voice2/raw/3.wav | alternate (3.87 s, passes) |
+
+Transactions 2026-09-28 01:26:32, 01:26:43, 01:26:46, 01:26:49 UTC: Qwen Audio 3.0 TTS Flash −0.01, −0.01, −0.02, −0.02; no
+refunds, no other spend in the window. **Subtotal 0.06.** **Wave-4 lane V total: 55.51 credits** of the 120 cap. Balance
+400.13 → **400.07** (`balance`, 2026-09-28 ≈ 01:28 UTC).
+
+Published: `public/opus-bay/voice/sf/tour/{zh,en}-metro-sfsu-next-2.{m4a,ogg}` (the report `tour-voice-report.json` holds
+bytes and sha256), in `src/opus-bay/data/sf/voiceTour.ts`; previews `docs/opus-bay/qa/w4/V/voice/tour-voice-preview-added-{zh,en}.m4a`.
+
+### Wave 5 · lane V (from docs/opus-bay/ledger/w5-V.md)
+
+Cap **130** credits for wave 5, lane V only (plan §5, lead note §8); **the balance never goes under 250**. Stop rules
+(plan §5): reject any draw with text, logos, a base or clipped edges before paying for the next step; two failed models
+in a row → no more models; spend past 100 → only H5-1, H5-3 and H5-8 continue. No image of a real person, real insignia,
+a real mural or artwork, or a brand. Columns as `src/opus-bay/ASSETS-LEDGER.md`. The account is shared: charges are
+attributed by job id and time from `transactions`, never by the balance difference alone.
+
+#### Preflight (part b), 2026-09-28 13:10 UTC
+
+- `balance` **400.07** (ultra), equal to the lead's day-0 reading (2026-09-28 08:37 UTC).
+- `transactions` (newest 15 read): nothing since **2026-09-28 01:26:49 UTC** (wave 4's last voice fix) — the wave-5 mark.
+- Cost preflight (`get_cost`, free): Qwen Audio 3.0 TTS Flash, a 28-character zh line = **0.02**.
+
+#### Batch 1 · H5-3 voice, the lanes' wave-5 BAYBAY lines (W5-V7), 2026-09-28 13:15–13:31 UTC
+
+Lines: `scripts/opus-sf/voice/w5/lines.ts` over the lanes' sources at `da331c9` (lane A play/, lane C pelican / goals /
+flow's two nudges, lane N goToRun, lane D eggs/ + the registry's lines, rumours and fortunes, lane R's fire-season line):
+**95 lines × zh / en = 190 clips**. Model `qwen_audio_tts` (Qwen Audio 3.0 TTS Flash), preset "Pixie"
+`0178ef57-ada4-43d9-992b-8d9221045bb4` (every BAYBAY clip), wav 48 kHz, speech_rate 1.0, `language` zh / en, instruction
+= "Cute otter mascot talking to a friend: warm, cheerful, natural, clear, easy chatty pace." + a mood note from the
+line's punctuation (≤ 128 characters). One take per clip; post.py lists the retakes. Every take with its job id, text,
+measurements and the pick: `docs/opus-bay/qa/w5/V/voice/w5-voice-report.json`. Raw wavs:
+`C:/Users/willy/opus-qa/w5/w5-v/voice/raw/<take index>.wav` (job ids in `jobs.txt` beside them).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO1 | 190 clips (95 lines × zh / en), one take each | qwen_audio_tts, Pixie, speech_rate 1.0, wav 48 kHz | the lanes' fixed bubble lines, verbatim | 4.54 (below) | w5-voice-report.json `takes[].job_id` (190 ids) | voice/raw/0–189.wav | 190 completed; 2 submissions answered 429 (rate limit, nothing charged) and were resubmitted in the last batch (takes 6 and 158) |
+
+Transactions 13:15:10.778–13:31:33.149 UTC: exactly 190 "Qwen Audio 3.0 TTS Flash" spends of 0.01–0.04 (by length),
+no refund, no other spend on the account in the window. **Subtotal 4.54 credits** (balance 400.07 → **395.53**,
+`balance` at 13:40 UTC, equal to the tally). CDN check: every result is
+`d8j0ntlcm91z4.cloudfront.net/user_…/hf_20260928_<hhmmss>_<job id>.wav`; 190 / 190 downloaded (the timestamps from
+`jobs_wait`, the rest probed within ±8 s of their batch; 8 needed their exact timestamp from `jobs_wait`).
+
+**Wave-5 lane V running total after batch 1: 4.54 credits.** Balance **395.53**.
+
+#### Batch 2 · H5-2 six 彩蛋明信片 (secret postcards, W5-V8), 2026-09-28 13:44–13:48 UTC
+
+Balance before: 395.53. The recipe of every shipped postcard (ASSETS-LEDGER T1-1…13, wave-4 W4V-P1…P4): nano_banana_pro
+4:3 2k, refs P5 `df659275-cf2a-4352-8166-1934f9945e0f` + P13 `d756b0c4-46f1-4761-9e58-0d5d78bc2433`, subject + "Full-bleed
+illustration … NOT a card …" + the look line + the style contract (`scripts/opus-sf/assets/w5/prompts.py` →
+`prompts.json`, verbatim). Cost preflight: 2 credits a draw. Served as `nano_banana_2`, billed "Nano Banana Pro". Every
+draw read at full size (no text, no letters, no numbers, no logos, no faces; the pennants and stones blank).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-P1a | china-beach-fishermen, draw a | nano_banana_pro 4:3 2k, refs P5 + P13 | China Beach cove at golden hour, two old Chinese fishing junks, the GGB far off | 2 | 0b5be7de-eabe-4def-baed-3d41f4bf608e | postcards/china-beach-fishermen-a.png | rejected (a floating diorama slab with its side edges on the cream void — wave 4's sf-west-portal fault) |
+| W5V-P2 | telegraph-hill-parrots | same | the Filbert Steps' gardens, a flock of red-headed green parrots, Coit Tower on top | 2 | 67c26ab7-14d4-4891-9890-e9c4a1224ef6 | postcards/telegraph-hill-parrots-a.png | **USED** |
+| W5V-P3 | wave-organ-high-tide | same | the jetty tip's carved stones, benches and short pipes, high-tide splashes, the GGB beyond | 2 | 88affc80-7d52-4052-98b0-5fbda22b6c8c | postcards/wave-organ-high-tide-a.png | **USED** (generic stones and pipes, no copy of the installation) |
+| W5V-P4a | lands-end-labyrinth, draw a | same | a ring labyrinth of pale stones on a headland, cypresses, the GGB across the strait | 2 | 80816964-ef15-4a44-9e62-e45cecac4162 | postcards/lands-end-labyrinth-a.png | rejected (the headland on a board whose edge shows) |
+| W5V-P5 | dahlia-dell-100 | same | a dahlia bed in full bloom, blank paper pennants, the white Conservatory of Flowers | 2 | 7e4d896a-53c3-490d-a5d9-34e04f69c336 | postcards/dahlia-dell-100-a.png | **USED** (pennants blank at full size) |
+| W5V-P6 | ggb-foghorn-duet | same | the two towers and cables above a bank of summer fog, the Marin headlands | 2 | 27dd11b6-2ae3-41ea-a7d5-22c5e2aaa4a6 | postcards/ggb-foghorn-duet-a.png | **USED** |
+| W5V-P1b | china-beach-fishermen, draw b | same + "seen from the sand of the cove itself so that the scene fills the whole frame … No floating slab, no base edge, no cream void" | same | 2 | c77ec4c6-80bf-411d-98ab-c8bab14c1ee5 | postcards/china-beach-fishermen-b.png | **USED** |
+| W5V-P4b | lands-end-labyrinth, draw b | same + "seen from the cliff path beside it …" + the full-frame line | same | 2 | 96d73e71-c98f-4f1c-ae9c-0ce94554f567 | postcards/lands-end-labyrinth-b.png | **USED** |
+
+Transactions 13:44:16.728–13:44:25.470 UTC (Nano Banana Pro −2 × 6) and 13:48:03.700 / 13:48:04.605 (−2 × 2); no refund,
+no other spend in the window. **Subtotal 16.00** (8 draws; the plan's 1.75 × retake factor allowed 21). Local raw files:
+`C:/Users/willy/opus-qa/w5/w5-v/postcards/`. Published (free, `scripts/opus-sf/assets/w5/postcards.py`: centre-crop 4:3,
+1200 + 600 WebP q82): `public/opus-bay/w5/postcards/<egg id>-{1200,600}.webp` (12 files, 752 KB), listed in
+`src/opus-bay/data/sf/eggPostcards.ts`.
+
+#### Batch 3 · H5-3 voice retakes (W5-V7), 2026-09-28 13:57 UTC
+
+The 10 clips whose take missed a gate (1: zh 看，云在慢慢走～, spoken too slowly) or the recogniser (9) after the grammar
+fix (post.py `speakable`: a `"` inside the recogniser's command line had broke its whole zh grammar on the first pass),
+retaken once at speech_rate 1.08 (take indices 190–199, `jobs_r2.txt`), same model, preset and instruction.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO2 | 10 retakes | qwen_audio_tts, Pixie, speech_rate 1.08 | the same texts | 0.18 | w5-voice-report.json `takes[].job_id` (indices 190–199) | voice/raw/190–199.wav | the picks: see the report |
+
+Transactions 13:57:39.775–13:57:47.144 UTC: 10 "Qwen Audio 3.0 TTS Flash" spends (0.01–0.04), no refund, nothing else
+in the window. **Subtotal 0.18.**
+
+**Running total after batch 3: 20.72 credits** (4.54 + 16.00 + 0.18). Balance **379.35** (`balance` at 14:02 UTC, equal to
+the tally).
+
+#### Batch 4 · H5-3 voice, the lines frozen since batch 1 (W5-V7), 2026-09-28 14:12–14:18 UTC
+
+After the rebase onto `7319d9e` the inventory found 43 new lines: lane C's frozen table (`data/sf/linesW5.ts` W5_C_LINES,
+11 lines with lane C's own `w5c-*` ids, paced by lane C), lane A's part b (the bell riff, the Seward slides, the stair
+races: 18), lane D's eggs 13–24 lines and two renamed rumours (11), lane R's single-text lines under R's ids
+(`realsf-daily-all`, `realsf-jets-up`, `realsf-jets-photo`). 86 takes, same recipe (work dir
+`C:/Users/willy/opus-qa/w5/w5-v/voice2/`). One 429 (take 37) resubmitted with the last group.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO3 | 86 clips (43 lines × zh / en) | qwen_audio_tts, Pixie, speech_rate 1.0 | the new lines, verbatim | 1.65 | w5-voice-report.json `takes[].job_id` (batch 2) | voice2/raw/0–85.wav | 86 completed |
+| W5V-VO4 | 8 retakes | same, speech_rate 1.08 | the takes that missed a gate (2) or the recogniser (6) | 0.10 | same (indices 86–93) | voice2/raw/86–93.wav | 7 picked; `en-w5-a-2fe95a24` ("Me first! Again?", 1.4 words / s both times) stays muted in W5_VOICE_CHECK until the owner approves it |
+
+Transactions 14:12:51.872–14:18:05.992 UTC: 86 "Qwen Audio 3.0 TTS Flash" spends (1.65); 14:23:24.607–14:23:29.854: 8
+spends (0.10); no refund, nothing else on the account in the windows. **Subtotal 1.75.** Seven batch-1 lines no source
+says any more (lane C's five now carry lane C's ids; two lane-D rumours renamed 地之角 → 天涯海角, 16 街 → 第 16 大道) were
+retired by post.py: out of the table, their 28 files deleted, kept in the report's `retired` block with their job ids.
+
+**Running total after batch 4: 22.47 credits.** Balance **377.60** (`balance` at 14:35 UTC, equal to the tally).
+
+#### Batch 5 · H5-3 voice, lines the first filter missed (W5-V7), 2026-09-28 14:32 UTC
+
+The inventory's speaker rule read any short "xx：" opening as another speaker, so the seven cookie fortunes (今日签：…) and
+lane A's 滑梯现在没开：… had been left out, and one-word calls (跑！) were under its length floor; lane R's SOFT_BOX_LINE
+(我们在旁边看就好～, said by lane F's glide soft box) was not in its source list. The rule now names the speakers, and the
+rate gate treats a one- or two-word call by its length (≤ 1.5 s). 10 lines, 20 takes (work dir `voice3/`).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO5 | 20 clips (10 lines × zh / en) | qwen_audio_tts, Pixie, speech_rate 1.0 | the lines above, verbatim | 0.43 | w5-voice-report.json `takes[].job_id` (batch 3) | voice3/raw/0–19.wav | 20 completed, 20 pass the gates (en "Go!" not recognised: advisory) |
+
+Transactions 14:32:30.647–14:32:51.600 UTC: 20 "Qwen Audio 3.0 TTS Flash" spends, no refund, nothing else in the window.
+**Subtotal 0.43.**
+
+**Wave-5 lane V total: 22.90 credits** (4.54 + 16.00 + 0.18 + 1.75 + 0.43) of the 130 cap. Balance 400.07 → **377.17**
+(`balance` at 14:45 UTC, equal to the tally). Voice in all (H5-3): 6.90 of the plan's 9 expected; H5-2 16 of 21.
+
+#### Batch 6 · H5-3 voice, the lanes' part-c lines (W5-V7, part c), 2026-09-28 20:51–21:52 UTC
+
+Balance before: **377.17** (`balance` at 20:50 UTC). Lines: `scripts/opus-sf/voice/w5/lines.ts` on `2506d3c4` + lane D's
+batch 2 (`508d4f06`, eggs 25–33): **53 lines × zh / en = 106 clips** (report batch 4) — lane A's marshmallow and fire-ring
+lines (13), lane D's pebbles, city sounds, batch-2 eggs and the renamed Wave Organ rumour (26), lane E's 12 `E_LINES`
+under lane E's own ids `e-<key>` (lane E plays them with its `voice-line` event) and one shop line. The inventory now
+skips paper under `riddle` / `how` / `name` / `hint` … keys (lane D's city-sound riddles and hints) and three lane-A button
+labels. Same recipe as batch 1 (Pixie, wav 48 kHz, speech_rate 1.0, the bubble instruction + mood); work dir `voice4/`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W5V-VO6 | 106 clips (53 lines × zh / en), one take each | qwen_audio_tts, Pixie, speech_rate 1.0 | the lanes' fixed bubble lines, verbatim | 1.92 | w5-voice-report.json `takes[].job_id` (batch 4) | voice4/raw/0–105.wav | 106 completed after 5 re-runs (jobs 3, 48, 63, 64, 68 failed and were refunded; 3 submissions hit a 429 and created no job) |
+| W5V-VO7 | 18 retakes | same, speech_rate 1.08 (14) then 1.15 (4) | the clips that missed a gate (8) or the recogniser (6) | 0.25 | same (indices 106–123) | voice4/raw/106–123.wav | 6 of 8 gate misses fixed; `zh-e-bought` (好看！买下啦。) and `en-w5-a-dbc137fe` (Golden! Crisp outside, gooey inside!) stay muted until the owner's ear |
+
+Transactions 20:51:06.917–21:01:14.092 UTC: 111 "Qwen Audio 3.0 TTS Flash" spends and 5 refunds (the 5 failed jobs),
+nothing else on the account in the window: **net 1.92**. 21:43:49.537–21:44:05.463 UTC: 14 spends (0.20); 21:52:17.445–
+21:52:17.932 UTC: 4 spends (0.05). **Subtotal 2.17.** CDN check: every pick is
+`d8j0ntlcm91z4.cloudfront.net/user_…/hf_20260928_<hhmmss>_<job id>.wav` (the timestamps from `jobs_wait`), 124 / 124
+downloaded. Balance **375.00** (`balance` at 21:53 UTC, equal to the tally).
+
+**Wave-5 lane V total: 25.07 credits** (22.90 + 2.17) of the 130 cap. Balance 400.07 → **375.00**. Voice in all (H5-3):
+9.07 of the plan's 9 expected (15 worst); H5-2 16 of 21. Nothing else spent in part c (H5-1 shop tiles not made:
+Decisions in the report).
+
+### Balance trail and reconciliation (wave-5 merge, 2026-09-29 ≈ 04:10 UTC)
+
+| step | charges (`transactions`, UTC) | credits | balance after |
+|---|---|---|---|
+| wave-4 merge (above) | — (its trail already holds wave 4's 15.00 of 2026-09-27 22:16–22:20, now attributed: W4V-C5a, C5b, 3D8, P1, P2, P3, P4a, P4b) | — | 400.13 (`balance` 2026-09-27 ≈ 22:25) |
+| wave 4 · V batch 5 (W4V-VO4a–d, the Holloway line) | Qwen Audio 3.0 TTS Flash −0.01, −0.01, −0.02, −0.02 (2026-09-28 01:26:32–01:26:49) | 0.06 | 400.07 (`balance` 08:37, the lead's day 0) |
+| wave 5 · V batch 1 voice (W5V-VO1) | 190 Qwen Audio 3.0 TTS Flash spends (13:15:10.778–13:31:33.149), no refund | 4.54 | 395.53 (`balance` 13:40) |
+| wave 5 · V batch 2 secret postcards (W5V-P1a … P4b) | Nano Banana Pro −2 × 6 (13:44:16.728–13:44:25.470), −2 × 2 (13:48:03.700, 13:48:04.605) | 16.00 | 379.53 |
+| wave 5 · V batch 3 voice retakes (W5V-VO2) | 10 TTS spends (13:57:39.775–13:57:47.144) | 0.18 | 379.35 (`balance` 14:02) |
+| wave 5 · V batch 4 voice (W5V-VO3, VO4) | 86 TTS spends (14:12:51.872–14:18:05.992, 1.65), 8 (14:23:24.607–14:23:29.854, 0.10) | 1.75 | 377.60 |
+| wave 5 · V batch 5 voice (W5V-VO5) | 20 TTS spends (14:32:30.647–14:32:51.600) | 0.43 | 377.17 (`balance` 14:45) |
+| wave 5 · V batch 6 voice, part c (W5V-VO6, VO7) | 111 TTS spends + 5 refunds (20:51:06.917–21:01:14.092, net 1.92), 14 (21:43:49.537–21:44:05.463, 0.20), 4 (21:52:17.445–21:52:17.932, 0.05) | 2.17 | 375.00 (`balance` 21:53) |
+| after lane V's last batch (the reviews, W5-Z, this merge) | none | 0 | **375.00** (`balance` 2026-09-29 ≈ 04:07 UTC, plan `ultra`) |
+
+Reconciliation: `transactions` read newest first at this merge. The newest charge on the account is
+2026-09-28 21:52:17.931834 UTC (lane V's last retake), so nothing was spent after lane V's last batch; the page that spans
+batch 5 and batch 6 holds nothing between 14:32:51.600 and 20:51:06.917 UTC; lane V's preflight found nothing between
+wave 4's 01:26:49 and 13:10 UTC. One timing note: lane V's batch-4 paragraph dates its `balance` reading of 377.60 "at
+14:35 UTC", but batch 5's first spend is at 14:32:30.647, so that reading was taken before 14:32:30 (the numbers agree:
+377.60 − 0.43 = 377.17, the reading at 14:45). Sum check: 400.07 − 375.00 = **25.07** = 4.54 + 16.00 + 0.18 + 1.75 +
+0.43 + 2.17.
+
+**Wave 4 final: 55.51 credits**, all lane V (the 15.00 pending at the wave-4 merge are its part-2 batch 4, the 0.06 its
+batch 5). **Wave 5 total: 25.07 credits** of the 130 cap (H5-2 secret postcards 16.00, H5-3 voice 9.07; H5-1 shop tiles,
+H5-4 reference sheets, H5-5 textures, H5-6 models, H5-7 SFX and the H5-8 reserve 0). Balance **375.00**. Whole-SF round:
+250.20 (to the end of wave 2) + 42.70 (wave 3) + 55.51 (wave 4) + 25.07 (wave 5) = **373.48 credits**.
