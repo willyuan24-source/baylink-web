@@ -5,6 +5,7 @@ import { initCostumes } from './costume';
 import { goalsDoneText } from './progress';
 import { inHalloween } from './season';
 import { CandyBadge } from './treatBadge';
+import { injectCandyCss } from './treatNear';
 import { initTreat } from './treatRun';
 
 const PumpkinIcon = () => createElement('span', { 'aria-hidden': true, style: { fontSize: 15, lineHeight: 1 } }, '🎃');
@@ -25,7 +26,7 @@ const PumpkinIcon = () => createElement('span', { 'aria-hidden': true, style: { 
  */
 export function initHalloweenPlay(): () => void {
   const treat = initTreat();
-  const offs: (() => void)[] = [treat.off, registerPillBadge({ id: 'g-candy', order: 11, Component: CandyBadge }), initCostumes()];
+  const offs: (() => void)[] = [treat.off, registerPillBadge({ id: 'g-candy', order: 11, Component: CandyBadge }), injectCandyCss(), initCostumes()];
   // the 万圣节 page: a Journal tab while the season lasts (after 手帐 7, before 明信片 10)
   let offTab: (() => void) | null = null;
   const tab = () => {

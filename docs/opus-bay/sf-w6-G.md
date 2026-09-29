@@ -195,3 +195,77 @@
   bottom right, the porch with its glowing transom and pumpkin, the door opening on the warm doorway, 「Double treat:
   toffee! Candy bag: 3」, 10 coins — `docs/opus-bay/qa/w6/G/G2-phone-knock-big-night.jpg`.
 - The full suite on the pushed W6-G4 tree (03:55) and on this part (04:14): 1446 / 1446; tsc 0; eslint 0 errors.
+
+## Review (W6-G-review, adversarial, 04:31–05:40 PDT)
+
+### 给主人的摘要
+
+1. 万圣节玩法整体扎实：讨糖、服装、手帐「万圣节」页在电脑和手机上都实际玩过，街道资料在网上重新核对属实，电脑版和区县模式（district）完全没被影响。
+2. 找到并修好 3 个问题：
+   - 手机上右上角的小胶囊被糖果袋撑成三行，第三行开头还挂着一个孤零零的「·」（看起来像坏了）。现在手机上离讨糖街远时不显示糖果袋（胶囊恢复两行）；走到讨糖街附近才出现，而且单独一行、没有多余的点。糖果数量在手帐「万圣节」页和每次拿到糖的提示里一直都看得到。
+   - 10/31 大夜晚去敲 10 月已经敲过的门，BAYBAY 会再说一遍「敲开了五户人家的门」；每次重新打开游戏，第一次拿糖她也会重复「糖果袋越来越沉啦」。现在每句里程碑台词只在真正达到那一刻说一次。
+   - 手帐「万圣节」页：11/1–2（亡灵节，门已经不装饰了）还显示「带我去」；10/31 大夜晚，10 月里敲完的街显示 10/10、没有「带我去」，其实每家当晚还有双倍糖果。现在大夜晚按当晚的糖计数，亡灵节不再给「带我去」。
+3. 没有阻碍上线的问题。注意：真正的万圣节季（10/1）在上线两天后自动开始，所有玩家都会看到这些内容。
+
+### What was checked
+
+- Every lane commit read in full: `1d0b0d0c` (lines), `1c19ca3d` + `96cd3f8a` (trick-or-treat, X's treat sound), `ee095d56`
+  (costumes; the surgical edits to `economy/items.ts`, `hats.ts`, `wear.ts`, `Shop.tsx`), `0f08a042` (goals + page),
+  `31d1f31a` (polish).
+- Facts re-checked on the web (2026-09-29, 04:40 PDT):
+  https://www.rebeccarealtor.com/blog/best-neighborhoods-for-trick-or-treating-in-san-francisco-2025/ — Belvedere 17th →
+  Parnassus 4–10 pm, Chenery Elk → Diamond 4–9:30 pm, Fair Oaks 21st → 26th ~5–8:30 pm, Jordan Ave Geary → California
+  4–10 pm, Hearst Ave Edna → Congo 4–8 pm, Sea Cliff "no formal 2025 street closure";
+  https://mommypoppins.com/san-francisco-bay-area-kids/best-places-to-trick-or-treat-on-halloween-in-san-francisco —
+  Belvedere as one of the best-known Halloween spots, Sea Cliff "several hundred trick-or-treaters each year". The lines
+  hedge the closures (往年 / usually) and say nothing about Sea Cliff closing: correct.
+- Played (dev 5626, headless Chrome): desktop 1440 × 900 `?world=city&halloween=night` — Chenery door 12: 敲门 / Knock
+  prompt, Trick or treat! → the door open on the lit doorway → 「Double treat: caramel apple! Candy bag: 3」, coins 0 → 10;
+  `stats()` two streets built, 4,464 triangles. 390 × 844 (dpr 3) in en, zh-Hans and zh-Hant: the shop's Me shelf (cat
+  ears tile), BAYBAY's shelf, the 万圣节 page (繁體 conversion correct: 萬聖節目標 · 敲開 5 戶人家的門 · 糖果袋 · 36 顆), twelve
+  big-night knocks (120 coins, 36 candies). Desktop try-on: witch hat + ghost sheet, pumpkin head + cat ears.
+  `?world=district&halloween=night`: no `__opusBay.g`, no candy badge, no style tag, the district's goals card as before.
+- Code: per-frame work (the frame system allocates only during a 1.3 s candy flight; street checks every 0.5 s, no
+  allocation beyond a closure); teardown (`off()` drops the street meshes, the swing and candy, timers, the season gate,
+  the Journal tab, the pill badge, the style tag; a world switch re-inits cleanly); save compatibility (items appended at
+  indices 31–34 ≤ `MAX_WEAR_INDEX` 255, `halloween` bits in the frozen `PLAY_BIT_KINDS`, no format change); the ledger pays
+  each `door:n` / `night:n` / `costume:first` once (cap 25 each); the prompt is offered on foot only
+  (`syncMoving`); dt spikes (a whole answer in one frame still opens, pays and closes).
+
+### Defects fixed (commit "W6-G-review: …", test `tests/opus-bay-w6-g-review.test.ts`, red before, green after)
+
+1. **Phone pill: a third line starting with a dangling "·"** (`treatBadge.tsx`, new `treatNear.ts`, `treatRun.ts`,
+   `play.ts`). On ≤ 600 px the pill's badges ride on its goals line (ui/Hud.tsx `badgesBelow`, W5-F9 "the pill keeps two
+   lines"); the pill is 48vw (187 px) and its goals line 132 px, so 目标 0/10 + 🪙 + 🍬 overflowed (measured: en already at
+   0 / 0, zh at 🪙 120 · 🍬 36) and the badges wrapped as one block onto a third line beginning with "·".
+   Before: `docs/opus-bay/qa/w6/G/rev-phone-pill-before.jpg` (zh-Hant, 3 lines, "· 🪙 120 · 🍬 36"). After: away from the
+   streets the phone pill is the old two lines (42 px, no candy badge); within `BUILD_NEAR` of a trick-or-treat street
+   the badges take a line of their own with no leading separator (58 px) —
+   `docs/opus-bay/qa/w6/G/rev-phone-pill-after-near.jpg`. The rules are injected by play.ts (a `<style data-ob="g-candy">`,
+   removed at teardown; no CSS import so node tests still load `halloween/index`). Desktop unchanged.
+2. **BAYBAY's milestone lines repeated** (`treat.ts` `treatMilestone`, `treatRun.ts`). "Once a session" + `doorsKnocked
+   === 5` made 敲开了五户人家的门 play again on the big night at a door knocked in October (the count stays 5), and the
+   bag's 5 / 10 lines and "every door" come back at the first treat of every session. Now the line is the milestone this
+   treat crossed (before → after), so each is said once per save. (Also: fired timers leave the `timers` list.)
+3. **万圣节 page on 1–2 Nov and on 31 Oct** (`HalloweenPage.tsx`, `treat.ts` `streetGoOffered`, `pageSourceOf`): 带我去
+   was offered to undressed streets during Día de los Muertos; on the big night a street knocked in the season showed
+   10/10 with no 带我去 although every door there had tonight's treat left. Now a street counts tonight's treats on the
+   31st and 带我去 shows only while its doors are dressed and some are left.
+
+Checks before the push (05:20): tsc 0 · `npx eslint .` 0 errors (the 43 old warnings, none new) · the opus-bay suite 1467 / 1467.
+
+### Open items (not blocking)
+
+- The pelican's Halloween look and a goals-card row: not built (the lane's recorded decisions; K1 request stands).
+- Costumes are appended at the end of their shelves, so on a phone they sit behind the shelf's sideways scroll (BAYBAY:
+  after four scarves and three hats). Suggest (K2, `economy/Shop.tsx` / `shelfItems`): seasonal items first while in
+  season.
+- On the big night a never-knocked door pays `door:n` + `night:n` (bag + 3) while the toast says ×2: cosmetic.
+- `w6g-season-over` is in the line table but never said (no door is dressed on 1–2 Nov): harmless for lane X.
+- The porch has no collider (you can walk into it where a kit house stands back); the kit-swap skip request stands.
+- Near a trick-or-treat street the phone pill is three lines (58 px): the lead / W6-Z may want it in the HUD-area check.
+- DEV-only `look()` framing is often blocked by a fence or tree (QA only).
+
+### Blocking for the go-live
+
+- None from lane G.

@@ -21,7 +21,8 @@ import { getWorld, type WorldSystem } from '../world/world';
 import { hLine } from './lines';
 import { halloweenPhase, isTreatHour, type HalloweenPhase } from './season';
 import { GOAL_DOORS } from './progress';
-import { allDoorsKnocked, candyCount, doorAnswers, doorsDressed, doorsKnocked, knockResult, type Knock } from './treat';
+import { allDoorsKnocked, candyCount, doorAnswers, doorsDressed, doorsKnocked, knockResult, treatMilestone, type BagState, type Knock } from './treat';
+import { setTreatNear } from './treatNear';
 import { TREAT_DOORS, type TreatDoor } from './treatDoors';
 import { buildCandyGeometry, buildDoorsGeometry, buildSwingGeometry, doorMaterial, doorPoints, DOOR_PAINTS, trianglesOf, type DoorLook } from './treatMesh';
 import { KNOCK_OUT, TREAT_STREETS, type TreatStreetId } from './treatStreets';
@@ -93,7 +94,11 @@ export function initTreat(): TreatRun {
   let answering: Answering | null = null;
   const said = new Set<string>();
   let timers: ReturnType<typeof setTimeout>[] = [];
-  const later = (fn: () => void, s: number) => { timers.push(setTimeout(fn, s * 1000)); };
+  const later = (fn: () => void, s: number) => {
+    // (W6-G-review: a fired timer leaves the list, so a long session of knocks does not grow it)
+    const t = setTimeout(() => { timers = timers.filter(x => x !== t); fn(); }, s * 1000);
+    timers.push(t);
+  };
 
   const lookOf = (d: TreatDoor): DoorLook => ({
     answers: doorAnswers(d.n, phase, dateKey, treatHour) || (!!answering && answering.door.n === d.n),
@@ -147,6 +152,7 @@ export function initTreat(): TreatRun {
   const sound = (id: string, at: { x: number; z: number }) => { const p = placed(at); if (p.gain > 0.01) playSound(id, p); };
 
   const paid = (source: string) => isPaid(source);
+  const bagState = (): BagState => ({ doors: doorsKnocked(paid), bag: candyCount(paid), all: allDoorsKnocked(paid) });
 
   function knock(n: number): Knock['kind'] | 'busy' {
     const d = doorByN.get(n);
@@ -171,19 +177,17 @@ export function initTreat(): TreatRun {
     if (a.paid || a.knock.kind !== 'treat') return;
     a.paid = true;
     const k = a.knock;
+    const before = bagState();
     for (const p of k.pays) emit({ type: 'reward', source: p.source, coins: p.coins });
-    const bag = candyCount(paid);
+    const after = bagState();
+    const bag = after.bag;
     toast({ zh: `得到${k.candy.name.zh}${k.pieces > 1 ? ' ×2' : ''}！糖果袋 ${bag} 颗`, en: `${k.pieces > 1 ? 'Double treat' : 'Treat'}: ${k.candy.name.en}! Candy bag: ${bag}` }, 'gold', 3200);
-    // the season's goal (five doors) first, then the bag's milestones, once a session each
-    const goal = doorsKnocked(paid) === GOAL_DOORS && !said.has('goal');
-    if (goal) said.add('five');
-    const next = goal ? 'w6g-goal-done' : allDoorsKnocked(paid) && !said.has('all') ? 'w6g-all-doors' : bag >= 10 && !said.has('ten') ? 'w6g-not-too-much' : bag >= 5 && !said.has('five') ? 'w6g-bag-heavy' : null;
+    // the season's goal (five doors) first, then every door, then the bag's milestones — only the one this treat crossed
+    // (W6-G-review: "once a session" repeated the goal on a big-night knock at a door knocked in the season)
+    const next = treatMilestone(before, after, GOAL_DOORS);
     later(() => {
       sayLine('w6g-thanks');
-      if (next) {
-        said.add(next === 'w6g-goal-done' ? 'goal' : next === 'w6g-all-doors' ? 'all' : next === 'w6g-not-too-much' ? 'ten' : 'five');
-        later(() => sayLine(next), lineMs(hLine('w6g-thanks')) / 1000 + 0.25);
-      }
+      if (next) later(() => sayLine(next), lineMs(hLine('w6g-thanks')) / 1000 + 0.25);
     }, T_THANKS - T_LAND);
   };
 
@@ -261,6 +265,8 @@ export function initTreat(): TreatRun {
       if (built.has(id) || dist < BUILD_NEAR) { if (build(id)) setChanged = true; }
     }
     if (setChanged || changed) invalidateInteractables();
+    // the phone pill shows the candy bag only near a trick-or-treat street (treatBadge.tsx, W6-G-review)
+    setTreatNear(built.size > 0);
     // BAYBAY's street line (and the treat-hour / big-night line) the first time near a street this session
     if (!dressed || busy() || cinemaActive() || runtime.move.mode !== 'foot') return;
     for (const id of built.keys()) {
@@ -302,6 +308,7 @@ export function initTreat(): TreatRun {
       timers = [];
       if (answering) { answering.swing?.geometry.dispose(); answering.candy?.geometry.dispose(); answering = null; }
       for (const id of [...built.keys()]) drop(id);
+      setTreatNear(false);
       group.clear();
       offSystem?.();
       offSystem = null;

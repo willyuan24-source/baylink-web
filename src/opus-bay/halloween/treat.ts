@@ -85,3 +85,26 @@ export const candyCount = (paid: (source: string) => boolean, doors: readonly Tr
 
 /** Every door of the season has given its first treat. */
 export const allDoorsKnocked = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): boolean => doorsKnocked(paid, doors) >= live(doors).length;
+
+/** What the bag and the doors stood at (before / after a treat). */
+export interface BagState { doors: number; bag: number; all: boolean }
+export type TreatMilestone = 'w6g-goal-done' | 'w6g-all-doors' | 'w6g-not-too-much' | 'w6g-bag-heavy';
+
+/**
+ * W6-G-review: BAYBAY's line after a treat — the milestone THIS treat crossed (the goal's fifth door first, then every
+ * door, the bag's tenth candy, its fifth), else null. Counting crossings (not "once a session") keeps a big-night knock on
+ * a door knocked in the season, or the first treat of a resumed save, from repeating a milestone already reached.
+ */
+export function treatMilestone(before: BagState, after: BagState, goalDoors: number): TreatMilestone | null {
+  if (before.doors < goalDoors && after.doors >= goalDoors) return 'w6g-goal-done';
+  if (!before.all && after.all) return 'w6g-all-doors';
+  if (before.bag < 10 && after.bag >= 10) return 'w6g-not-too-much';
+  if (before.bag < 5 && after.bag >= 5) return 'w6g-bag-heavy';
+  return null;
+}
+
+/** W6-G-review: the 万圣节 page offers 带我去 to a street only while its doors are dressed and some are left to knock. */
+export const streetGoOffered = (phase: HalloweenPhase, knocked: number, total: number): boolean => doorsDressed(phase) && knocked < total;
+
+/** W6-G-review: the reward a street's progress counts on the page — tonight's treats on the big night, else the first ones. */
+export const pageSourceOf = (phase: HalloweenPhase, n: number): string => (phase === 'night' ? nightSource(n) : doorSource(n));

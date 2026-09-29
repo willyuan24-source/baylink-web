@@ -12,7 +12,7 @@ import { CostumeArt } from './costumeArt';
 import { pumpkinsFound, pumpkinTotal } from './hunt';
 import { halloweenGoals } from './progress';
 import { halloweenPhase, type HalloweenPhase } from './season';
-import { candyCount, doorSource, doorsKnocked } from './treat';
+import { candyCount, doorsKnocked, pageSourceOf, streetGoOffered } from './treat';
 import { TREAT_DOORS } from './treatDoors';
 import { KNOCK_OUT, TREAT_SOURCES, TREAT_STREETS } from './treatStreets';
 import './halloween.css';
@@ -75,15 +75,16 @@ export default function HalloweenPage() {
       <ul className="ob-hw-list">
         {TREAT_STREETS.map(st => {
           const mine = doors.filter(d => d.street === st.id);
-          const have = mine.filter(d => isPaid(doorSource(d.n))).length;
-          const next = mine.find(d => !isPaid(doorSource(d.n))) ?? mine[0];
+          // (W6-G-review: on the big night a street counts tonight's treats; 带我去 only while its doors are dressed)
+          const have = mine.filter(d => isPaid(pageSourceOf(phase, d.n))).length;
+          const next = mine.find(d => !isPaid(pageSourceOf(phase, d.n))) ?? mine[0];
           const at = next ? { x: next.x + Math.sin(next.f) * KNOCK_OUT, z: next.z + Math.cos(next.f) * KNOCK_OUT } : null;
           return (
             <li key={st.id} className="ob-hw-card ob-hw-street">
               <div className="ob-hw-top">
                 <span className="ob-hw-goal-text"><b>{t(st.name)}</b> <span className="ob-muted">· {t(st.area)}</span></span>
                 <span className="ob-hw-count">{have}/{mine.length}</span>
-                {at && have < mine.length && (
+                {at && streetGoOffered(phase, have, mine.length) && (
                   <button type="button" className="ob-hw-go" disabled={going !== null} onClick={() => go(st.id, at.x, at.z, st.name)}>
                     <MapPin size={13} aria-hidden /> {going === st.id ? t('出发…', 'Going…') : t('带我去', 'Take me')}
                   </button>
