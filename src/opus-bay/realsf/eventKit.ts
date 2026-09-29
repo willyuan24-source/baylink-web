@@ -223,6 +223,27 @@ export function buildKitGeometry(kind: KitKind, at: { x: number; z: number; yaw:
   return k.b.build();
 }
 
+/**
+ * (W6-S3) A new opening's sign (realsf/openingSigns.ts): a toy "grand opening" stand on the pavement — two white posts, a
+ * gold board with two coral bands and a white badge that glows at night, a teal awning strip over it, and three balloons
+ * on the left post. Its front is local +z turned by yaw; ≤ 400 triangles in one geometry on the event kits' material.
+ */
+export function buildOpeningSignGeometry(at: { x: number; z: number; yaw: number }, ground: (x: number, z: number) => number): THREE.BufferGeometry {
+  const k = new KitWriter({ x: at.x, z: at.z, cos: Math.cos(at.yaw), sin: Math.sin(at.yaw), ground }, at.yaw);
+  const base: [number, number] = [0, 0];
+  for (const side of [-1, 1]) k.cyl(side * 0.75, 0, 0, 0.06, 2.3, WHITE, 6, base);
+  k.box(0, 0, 1.05, 1.7, 1.05, 0.08, MUSTARD, 0, undefined, base);
+  k.box(0, 0.05, 1.12, 1.56, 0.18, 0.06, CORAL, 0, undefined, base);
+  k.box(0, 0.05, 1.8, 1.56, 0.18, 0.06, CORAL, 0, undefined, base);
+  k.box(0, 0.07, 1.38, 0.5, 0.34, 0.05, WHITE, 0, BULB, base);
+  k.box(0, 0.12, 2.12, 1.9, 0.14, 0.34, TEAL, 0, undefined, base);
+  k.cyl(-0.75, 0, 2.3, 0.015, 0.55, WHITE, 3, base);
+  k.ball(-0.92, 0.05, 2.95, 0.24, CORAL, base);
+  k.ball(-0.6, 0.02, 3.05, 0.22, MUSTARD, base);
+  k.ball(-0.78, -0.1, 3.3, 0.2, SKY, base);
+  return k.b.build();
+}
+
 /** Where the E prompt (看看活动) sits: in front of the kit, reachable from its crowd. */
 export function kitPrompt(kind: KitKind, at: { x: number; z: number; yaw: number }): { x: number; z: number; r: number } {
   const cos = Math.cos(at.yaw), sin = Math.sin(at.yaw);

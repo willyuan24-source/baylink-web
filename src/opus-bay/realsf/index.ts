@@ -26,6 +26,7 @@ import { loadLive } from './live';
 import { moonPhase } from './moon';
 import { initJets } from './jets';
 import { initPresence } from './presence';
+import { initOpenings } from './openingSigns';
 import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
@@ -142,6 +143,8 @@ export function init(): () => void {
   const jets = initJets();
   // W5-R7: the calendar's dressings; the baked files at idle; lane D's Wave Organ follows the real tide
   const dressing = initDressing();
+  // W6-S3: the autumn release's new San Francisco openings (a 新店 sign at the address, its card → the BAYLINK page)
+  const openings = initOpenings();
   let organOff: (() => void) | null = null;
   // (review) a teardown while the eggs chunk is still loading must not wire the organ afterwards
   let live = true;
@@ -153,6 +156,7 @@ export function init(): () => void {
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
       presence: () => presence.stats(), jets: () => jets.stats(), dressing: () => dressing.stats(), organWired: () => organOff !== null,
+      openings: () => openings.stats(),
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
       /** QA (review): the line keys on offer right now, by source */
@@ -191,7 +195,7 @@ export function init(): () => void {
 
   return () => {
     live = false;
-    clearTimeout(idle); organOff?.(); organOff = null; dressing.off();
+    clearTimeout(idle); organOff?.(); organOff = null; dressing.off(); openings.off();
     offLines(); jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };

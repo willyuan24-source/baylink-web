@@ -114,7 +114,10 @@ function task(n: 1 | 2 | 3, kind: DailyKind, s: DaySignals, rnd: () => number): 
   const source = `daily:${s.dateKey}:${n}`;
   switch (kind) {
     case 'event': {
-      const w = s.events[Math.floor(rnd() * s.events.length)];
+      // (W6-S) the autumn catalog brings paid arena / opera nights: a free event of the day wins the task when there is one
+      const free = s.events.filter(e => e.event.cost === 'free');
+      const pool = free.length ? free : s.events;
+      const w = pool[Math.floor(rnd() * pool.length)];
       const name = EVENT_SAY[w.event.id] ?? { zh: '活动', en: 'the event' };
       const place = VENUE_SAY[w.venue.id] ?? w.venue.name;
       const open = bayParts(new Date(w.open)), close = bayParts(new Date(w.close));

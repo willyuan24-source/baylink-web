@@ -26,7 +26,7 @@ const { parseBayDate } = await import('../src/opus-bay/game/bayNow');
 const { isAdultOnly, isProfessional, sanitizeCatalog, setCatalogForTests } = await import('../src/opus-bay/data/catalog');
 const { EVENT_VENUES, EVENT_SAY, SOUVENIR_IDS } = await import('../src/opus-bay/realsf/eventVenues');
 const { activeEventsAt, eventHours, handRowOf, labelHours, labelHoursOn, worldEvent } = await import('../src/opus-bay/realsf/events');
-const { daySignals } = await import('../src/opus-bay/realsf/daily');
+const { daySignals, dailyThree } = await import('../src/opus-bay/realsf/daily');
 
 const CATALOG = sanitizeCatalog(JSON.parse(fs.readFileSync(path.resolve('public/planner-catalog.json'), 'utf8')));
 const bay = (spec: string) => { const d = parseBayDate(spec); assert.ok(d, spec); return d!; };
@@ -129,4 +129,20 @@ test('W6-S1 the Ferry Plaza market is the 今天 tab’s market row and the dail
   } finally { setCatalogForTests(null); }
   const tab = fs.readFileSync(path.resolve('src/opus-bay/realsf/TodayTab.tsx'), 'utf8');
   assert.match(tab, /todaysAll\.filter\(w => !handRowOf\(w\.event\)\)/);
+});
+
+test('W6-S3 the daily three: a free event of the day wins the event task over a paid arena or opera night', () => {
+  setCatalogForTests(CATALOG);
+  try {
+    for (const day of ['2026-10-03', '2026-10-04', '2026-10-11', '2026-10-17', '2026-10-24', '2026-10-31']) {
+      const s = daySignals(day, CATALOG);
+      assert.ok(s.events.some(w => w.event.cost === 'free'), `${day} has a free event`);
+      const t = dailyThree(day, s).find(x => x.kind === 'event');
+      assert.ok(t, `${day}: an event task`);
+      assert.equal(byId(t!.eventId!).cost, 'free', `${day}: ${t!.eventId}`);
+    }
+    // a day with only paid nights still gets its event task (Oct 20: The Ring with the symphony)
+    const t = dailyThree('2026-10-20', daySignals('2026-10-20', CATALOG)).find(x => x.kind === 'event');
+    assert.equal(t?.eventId, 'sf-symphony-ring-film-2026');
+  } finally { setCatalogForTests(null); }
 });
