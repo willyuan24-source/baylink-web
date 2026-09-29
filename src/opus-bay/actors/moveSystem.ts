@@ -18,7 +18,7 @@ import type { RidePose } from './anim';
 import type { Obstacle, PlayerController } from './controller';
 import { rideCamInfo } from './cameraModes';
 import { CHAR_SCALE } from './dims';
-import { AUTO_GLIDE, GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, autoGlideInput, glideSoftBoxLine, terrainGlideWorld, type AutoGlideEnd, type AutoGlideRequest, type GlideWorld, type TallStructure } from './glide';
+import { AUTO_GLIDE, GLIDE, GLIDE_BOX_LINE_S, NO_GLIDE_INPUT, autoGlideInput, glideSoftBoxLine, terrainGlideWorld, type AutoGlideEnd, type AutoGlideRequest, type GlideInput, type GlideWorld, type TallStructure } from './glide';
 import { LiveTall } from './glideTall';
 import { faceOpen, openSpot } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
@@ -1017,12 +1017,16 @@ export class MoveSystem {
 
   private flyGlide(dt: number, frozen: boolean) {
     const g = this.pelican.sim;
-    let inp = frozen || this.machine.phase !== 'steady' ? NO_GLIDE_INPUT : {
-      pitch: runtime.input.moveY,
-      steer: runtime.input.moveX,
-      boost: runtime.input.run || input.throttle > 0.5,
-      slow: input.jumpHeld || input.brake > 0.5,
-    };
+    // (W6-K1) one input object for the whole flight (the stick, the auto-glide and the approach write into it)
+    const gi = this.glideIn;
+    let inp: GlideInput = NO_GLIDE_INPUT;
+    if (!frozen && this.machine.phase === 'steady') {
+      gi.pitch = runtime.input.moveY;
+      gi.steer = runtime.input.moveX;
+      gi.boost = runtime.input.run || input.throttle > 0.5;
+      gi.slow = input.jumpHeld || input.brake > 0.5;
+      inp = gi;
+    }
     // W5-F10 the scenic auto-glide: toward the destination at a sightseeing height, boosting on the long straight,
     // easing down near the end and landing ~18 u out (the landing curve's own lead); a push of the stick takes over
     const A = this.autoGlide;
@@ -1031,7 +1035,7 @@ export class MoveSystem {
         this.endAutoGlide('taken');
         bubble({ zh: '好，你来飞！', en: 'Your wings now!' }, 2200);
       } else {
-        inp = autoGlideInput(g, A, this.world());
+        inp = autoGlideInput(g, A, this.world(), gi);
         if (this.autoSay > 0 && (this.autoSay -= dt) <= 0) bubble({ zh: '坐稳啦～想自己飞，动一下就接管', en: 'Sit tight! Move to take the wings' }, 3600);
         if (Math.hypot(A.x - g.x, A.z - g.z) < AUTO_GLIDE.landAt && !this.approach) {
           A.landing = true;
@@ -1043,7 +1047,11 @@ export class MoveSystem {
       // steer for the landing ground (the player can still override), gently down; land once within reach
       const a = this.approach;
       const err = wrap(Math.atan2(a.x - g.x, a.z - g.z) - g.heading);
-      if (Math.abs(inp.steer) < 0.2) inp = { ...inp, steer: clamp(-err * 1.6, -1, 1), pitch: Math.min(inp.pitch, -0.3) };
+      if (Math.abs(inp.steer) < 0.2) {
+        const steer = clamp(-err * 1.6, -1, 1), pitch = Math.min(inp.pitch, -0.3);
+        if (inp !== gi) { gi.boost = inp.boost; gi.slow = inp.slow; }   // (never write into NO_GLIDE_INPUT)
+        gi.steer = steer; gi.pitch = pitch; inp = gi;
+      }
       if (Math.hypot(a.x - g.x, a.z - g.z) < 34) this.tryLand(true);
     }
     const r = g.step(dt, inp, this.world());
@@ -1058,6 +1066,8 @@ export class MoveSystem {
       }
     }
   }
+  /** (W6-K1) the glide's input, reused every frame */
+  private readonly glideIn: GlideInput = { pitch: 0, steer: 0, boost: false, slow: false };
   /** the soft-box line's clock (s of turning back) and the last box whose line BAYBAY said */
   private boxT = 0;
   private boxSaidAt = -Infinity;

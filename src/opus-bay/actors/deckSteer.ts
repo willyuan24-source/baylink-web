@@ -60,6 +60,11 @@ export function registerDeck(key: string, deck: Deck | null): void {
 /** The registered decks (tests, QA). */
 export function decks(): Deck[] { return [...DECKS.values()]; }
 
+/** (W6-K1) scratch for the helpers here that read a deckAt only within the call */
+const AT: DeckAt = { deck: null as unknown as Deck, s: 0, l: 0 };
+/** Whether (x, z) at walk height y (default: the ground there) is on a deck (no object made). */
+export function onDeck(x: number, z: number, y?: number): boolean { return !!deckAt(x, z, y, AT); }
+
 /** a walk height within this of the deck's is on it (the ground far below, Fort Point under the arch, is not) */
 const DECK_Y = 3;
 
@@ -67,7 +72,7 @@ const DECK_Y = 3;
  * The deck under (x, z) at walk height y (default: the ground there), with the station along its axis and the lateral
  * offset (+ = to the axis's right).
  */
-export function deckAt(x: number, z: number, y?: number): DeckAt | null {
+export function deckAt(x: number, z: number, y?: number, out?: DeckAt): DeckAt | null {
   if (DECKS.size === 0) return null;
   for (const deck of DECKS.values()) {
     const ax = Math.sin(deck.heading), az = Math.cos(deck.heading);
@@ -78,6 +83,8 @@ export function deckAt(x: number, z: number, y?: number): DeckAt | null {
     const l = dx * az - dz * ax;
     if (Math.abs(l) > deck.half + DECK_STEER.margin) continue;
     if (Math.abs((y ?? heightAt(x, z)) - deck.y) > DECK_Y) continue;
+    // (W6-K1) no object per frame on the deck: the controller, the camera and the helpers here pass their own `out`
+    if (out) { out.deck = deck; out.s = s; out.l = l; return out; }
     return { deck, s, l };
   }
   return null;
@@ -94,8 +101,8 @@ export const DECK_DIP = 0.2;
  * player into one and the ground round it was too steep to step out (stuck 0.4–1.8 u under the deck, no pull target).
  * Nothing between the rails is legitimately lower than the deck (the sidewalks stand 0.02 above the roadway).
  */
-export function deckDip(x0: number, z0: number, y0: number, x1: number, z1: number): { nx: number; nz: number } | null {
-  const at = deckAt(x0, z0, y0);
+export function deckDip(x0: number, z0: number, y0: number, x1: number, z1: number, out?: { nx: number; nz: number }): { nx: number; nz: number } | null {
+  const at = deckAt(x0, z0, y0, AT);
   if (!at) return null;
   const { deck } = at;
   if (heightAt(x1, z1) >= deck.y - DECK_DIP) return null;
@@ -105,6 +112,7 @@ export function deckDip(x0: number, z0: number, y0: number, x1: number, z1: numb
   // past the ends (the bluff and the Marin side) or beyond the rails the ground is not the deck's business
   if (s < 2 || s > deck.length - 2 || Math.abs(l) > deck.half) return null;
   const sg = l >= 0 ? 1 : -1;
+  if (out) { out.nx = az * sg; out.nz = -ax * sg; return out; }
   return { nx: az * sg, nz: -ax * sg };
 }
 
@@ -116,15 +124,17 @@ export function deckPoint(deck: Deck, s: number, l: number): { x: number; z: num
 
 /** The camera may look through hero point `id` while the player stands at (x, z). */
 export function heroRelaxed(id: string, x: number, z: number): boolean {
-  const at = deckAt(x, z);
+  const at = deckAt(x, z, undefined, AT);
   return !!at?.deck.relax?.includes(id);
 }
 
 /** The body fits at (s, l) and a few steps on along `dir` (±1) on the deck (W5-Z: and no dip of the edge is there). */
 function laneClear(deck: Deck, s: number, l: number, dir: number, r: number): boolean {
+  const ax = Math.sin(deck.heading), az = Math.cos(deck.heading);
   for (let d = 0.9; d <= DECK_STEER.ahead + 1e-6; d += 0.8) {
-    const p = deckPoint(deck, s + dir * d, l);
-    if (!canStand(p.x, p.z, r) || heightAt(p.x, p.z) < deck.y - DECK_DIP) return false;
+    // = deckPoint(deck, s + dir * d, l), inline (W6-K1: no object per probe)
+    const ss = s + dir * d, x = deck.x + ax * ss + az * l, z = deck.z + az * ss - ax * l;
+    if (!canStand(x, z, r) || heightAt(x, z) < deck.y - DECK_DIP) return false;
   }
   return true;
 }
@@ -133,12 +143,12 @@ function laneClear(deck: Deck, s: number, l: number, dir: number, r: number): bo
  * Steer a unit wish (wx, wz) on a deck: along the axis when it points within DECK_STEER.cone of it, round a blocker in
  * the lane ahead. Returns a unit direction (the input one when the deck does not apply). `r` = the body's radius.
  */
-export function deckWish(at: DeckAt, wx: number, wz: number, r = 0.45): { x: number; z: number; steered: boolean } {
+export function deckWish(at: DeckAt, wx: number, wz: number, r = 0.45, out?: DeckWish): DeckWish {
   const { deck, s, l } = at;
   const ax = Math.sin(deck.heading), az = Math.cos(deck.heading);
   // right = (az, −ax)
   const along = wx * ax + wz * az, across = wx * az - wz * ax;
-  if (Math.abs(along) < Math.cos(DECK_STEER.cone)) return { x: wx, z: wz, steered: false };
+  if (Math.abs(along) < Math.cos(DECK_STEER.cone)) return wishOut(out, wx, wz, false);
   const dir = along >= 0 ? 1 : -1;
   let lat = across * DECK_STEER.across;
   // a blocker in the lane ahead (a tower leg across the sidewalk): the nearest clear lane
@@ -160,7 +170,14 @@ export function deckWish(at: DeckAt, wx: number, wz: number, r = 0.45): { x: num
   if ((l >= limit && lat > 0) || (l <= -limit && lat < 0)) lat = 0;
   if (Math.abs(l) > limit) lat = -Math.sign(l) * Math.min(DECK_STEER.maxSteer, Math.max(Math.abs(lat), (Math.abs(l) - limit) * DECK_STEER.gain));
   const x = dir * ax + lat * az, z = dir * az - lat * ax, L = Math.hypot(x, z) || 1;
-  return { x: x / L, z: z / L, steered: true };
+  return wishOut(out, x / L, z / L, true);
+}
+
+export interface DeckWish { x: number; z: number; steered: boolean }
+function wishOut(out: DeckWish | undefined, x: number, z: number, steered: boolean): DeckWish {
+  if (!out) return { x, z, steered };
+  out.x = x; out.z = z; out.steered = steered;
+  return out;
 }
 
 /** The yaw that puts a follow camera behind a player walking along the deck in direction `dir` (±1). */

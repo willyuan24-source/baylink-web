@@ -4,7 +4,7 @@ import { runtime } from '../core/runtime';
 import { canStand, cityTerrain, groundPending, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
 import type { SurfaceKind, Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
-import { deckAt, deckDip, deckWish } from './deckSteer';
+import { deckAt, deckDip, deckWish, type DeckAt, type DeckWish } from './deckSteer';
 import { FEET, corridorAt, vaultPlan, type VaultPlan } from './feet';
 import { findPath, pathLength } from './nav';
 import { RouteFollower, isLongRoute } from './routeFollow';
@@ -360,6 +360,11 @@ export class PlayerController {
   private airFromY = 0;
   /** W5-F6: the wish was steered along a bridge deck this frame (QA / tests) */
   deckSteered = false;
+  /** (W6-K1) the deck queries' outputs, reused every frame (no object per frame on the deck) */
+  private readonly deckOut: DeckAt = { deck: null as unknown as DeckAt['deck'], s: 0, l: 0 };
+  private readonly wishOut: DeckWish = { x: 0, z: 0, steered: false };
+  private readonly dipOut = { nx: 0, nz: 0 };
+  private readonly dipOut2 = { nx: 0, nz: 0 };
 
   /** Put the controller in sync with runtime.player (after teleports). */
   sync() {
@@ -471,8 +476,8 @@ export class PlayerController {
       wantSpeed = (runtime.input.run ? RUN_SPEED : WALK_SPEED) * (mag < 0.35 ? 0.35 + mag : Math.min(1, mag * 1.08));
       // W5-F6: on a bridge deck forward input follows the deck and steers round the tower legs
       if (this.grounded) {
-        const dk = deckAt(p.x, p.z, p.y);
-        if (dk) { const s = deckWish(dk, wx, wz, PLAYER_RADIUS); if (s.steered) { wx = s.x; wz = s.z; this.deckSteered = true; } }
+        const dk = deckAt(p.x, p.z, p.y, this.deckOut);
+        if (dk) { const s = deckWish(dk, wx, wz, PLAYER_RADIUS, this.wishOut); if (s.steered) { wx = s.x; wz = s.z; this.deckSteered = true; } }
       }
     } else if (!ctx.frozen && p.pathTarget) {
       const dir = this.followPath(dt);
@@ -596,11 +601,11 @@ export class PlayerController {
         let r = moveDisc(p.x, p.z, sx, sz, PLAYER_RADIUS, ground, !this.grounded);
         // W5-Z: on a bridge deck the ragged edge by the rails is a wall, not a dip to step down into (deckSteer.deckDip):
         // the step slides off it toward the axis, and where even that would drop it is blocked like a wall
-        let dip = deckDip(p.x, p.z, p.y, r.x, r.z);
+        let dip = deckDip(p.x, p.z, p.y, r.x, r.z, this.dipOut);
         if (dip) {
           const len = Math.hypot(sx, sz);
           const r2 = moveDisc(p.x, p.z, sx - dip.nx * len * 0.6, sz - dip.nz * len * 0.6, PLAYER_RADIUS, ground, !this.grounded);
-          if (!deckDip(p.x, p.z, p.y, r2.x, r2.z)) { r = r2; dip = null; }
+          if (!deckDip(p.x, p.z, p.y, r2.x, r2.z, this.dipOut2)) { r = r2; dip = null; }
         }
         if (dip) { blocked = true; hitX = dip.nx; hitZ = dip.nz; break; }
         // W5-F10 mantle: in the air, the ground ahead stands above the body — a ledge. Within FEET.mantleMin–mantleMax

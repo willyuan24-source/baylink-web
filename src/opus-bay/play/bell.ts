@@ -94,6 +94,27 @@ export const callTimes = (round: number) => (RIFF_CALLS[round] ?? []).map(b => b
 export const answerTimes = (round: number) => (RIFF_CALLS[round] ?? []).map(b => (b + RIFF_BAR) * RIFF_BEAT);
 const ROUND_S = RIFF_BAR * 2 * RIFF_BEAT;
 
+/**
+ * (W6-K1, lane A's review: the pad re-rendered every frame of the 20 s riff) What the pad draws that changes with the
+ * clock alone, as one number — the phase and round, the call dots lit, the answer dots missed, the jazz count, the
+ * bell's flash: the pad re-renders only when it changes; its cursor and meter move by direct style writes. -1: no riff.
+ */
+export function riffLook(now: number): number {
+  const r = riff;
+  if (!r) return -1;
+  const tt = now - r.t0, beats = RIFF_CALLS[r.round] ?? [];
+  let lit = 0, missed = 0;
+  if (r.phase !== 'free') {
+    for (let i = 0; i < beats.length; i++) {
+      if (tt >= beats[i] * RIFF_BEAT) lit++;
+      if (!r.hitNow.has(i) && tt > (beats[i] + RIFF_BAR) * RIFF_BEAT + 0.2) missed++;
+    }
+  }
+  const phase = r.phase === 'call' ? 0 : r.phase === 'answer' ? 1 : 2;
+  const flash = r.last && now - r.last.at < 0.18 ? 1 : 0;
+  return ((((r.round * 3 + phase) * 64 + lit) * 64 + missed) * 64 + Math.min(63, r.jazzSlots.size)) * 2 + flash;
+}
+
 /** 铃声对答: start the riff (on a cable car under way). */
 export function startRiff(clock: () => number = audioNow): boolean {
   if (riff || !onCableCar()) return false;

@@ -1,6 +1,6 @@
 import { canStand, forEachBlockerNear, heightAt, inWorld, isWater, pointInPolygon, standAt, type Blocker } from '../core/terrain';
 import type { Polygon } from '../core/types';
-import { deckAt } from './deckSteer';
+import { onDeck } from './deckSteer';
 
 /**
  * Wave 5 · W5-F5 forgiving feet (plan sf-w5-plan.md §2 MF2 table; walk speed, jump and stair rules unchanged). Pure
@@ -75,7 +75,7 @@ export function registerNoVault(key: string, polys: Polygon[] | null): void {
 
 /** (x, z) lies in a noVault area, or on a bridge deck (actors/deckSteer: a deck's rails are never vaulted). */
 export function noVaultAt(x: number, z: number): boolean {
-  if (deckAt(x, z)) return true;
+  if (onDeck(x, z)) return true;
   if (NO_VAULT.size === 0) return false;
   const p = { x, z };
   for (const polys of NO_VAULT.values()) for (const poly of polys) if (pointInPolygon(p, poly)) return true;
@@ -92,7 +92,7 @@ export function noVaultAt(x: number, z: number): boolean {
  * Open ground (a sidewalk opening onto the street, a plaza) is not a corridor. O(12) raster reads.
  */
 export function corridorAt(x: number, z: number, nx: number, nz: number): boolean {
-  if (deckAt(x, z)) return true;
+  if (onDeck(x, z)) return true;
   const L = Math.hypot(nx, nz);
   if (L < 1e-6) return false;
   const ox = -nx / L, oz = -nz / L;

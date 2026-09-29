@@ -6,7 +6,7 @@ import { useFlow, type FlowRide } from '../game/flowStore';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
-import { answerTimes, callTimes, cancelRiff, leanState, mountBellPad, onRunningBoard, riffState, setLean, startRiff, subscribeBell, tapBell } from './bell';
+import { answerTimes, callTimes, cancelRiff, leanState, mountBellPad, onRunningBoard, riffLook, riffState, setLean, startRiff, subscribeBell, tapBell } from './bell';
 import { GROOVE_SECONDS, RIFF_BAR, RIFF_BEAT } from './sounds2';
 import './play.css';
 
@@ -21,6 +21,8 @@ import './play.css';
 let seq = 0;
 const bump = () => { seq++; };
 const snap = () => seq;
+/** the two bars of a round (s) */
+const SPAN = RIFF_BAR * 2 * RIFF_BEAT;
 const subscribe = (fn: () => void) => subscribeBell(() => { bump(); fn(); });
 
 export default function BellPad({ ride }: { ride: FlowRide }) {
@@ -41,12 +43,28 @@ export default function BellPad({ ride }: { ride: FlowRide }) {
   useEffect(() => { captionRef.current = caption; });
 
   useEffect(() => mountBellPad(), []);
-  // the beat cursor while the riff runs
+  // the beat cursor while the riff runs. (W6-K1) The cursor and the freestyle meter move by direct style writes every
+  // frame; React re-renders only when something else the clock changes does (a dot lit or missed, the bell's flash:
+  // bell.riffLook) — before, the whole pad re-rendered every frame of the 20 s riff
   const running = !!r;
+  const cursorRef = useRef<HTMLElement>(null);
+  const meterRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!running) return;
-    let id = 0;
-    const tick = () => { setTick(n => (n + 1) % 1e6); id = requestAnimationFrame(tick); };
+    let id = 0, look = NaN, left = NaN, width = NaN;
+    const tick = () => {
+      const rr = riffState(), now = audioNow();
+      if (rr) {
+        const tt = now - rr.t0;
+        const l = Math.round(Math.max(0, Math.min(1, tt / SPAN)) * 1000) / 10;
+        if (l !== left && cursorRef.current) { left = l; cursorRef.current.style.left = `${l}%`; }
+        const w = Math.round(Math.min(1, tt / GROOVE_SECONDS) * 1000) / 10;
+        if (w !== width && meterRef.current) { width = w; meterRef.current.style.width = `${w}%`; }
+        const k = riffLook(now);
+        if (k !== look) { look = k; setTick(n => (n + 1) % 1e6); }
+      }
+      id = requestAnimationFrame(tick);
+    };
     id = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(id);
   }, [running]);
@@ -110,13 +128,12 @@ export default function BellPad({ ride }: { ride: FlowRide }) {
   }
   const now = audioNow(), tt = now - r.t0;
   const free = r.phase === 'free';
-  const span = RIFF_BAR * 2 * RIFF_BEAT;
-  const at = (s: number) => `${Math.max(0, Math.min(100, (s / span) * 100))}%`;
+  const at = (s: number) => `${Math.max(0, Math.min(100, (s / SPAN) * 100))}%`;
   return (
     <span className={`ob-play-pad is-riff is-${r.phase}`}>
       {free ? (
         <span className="ob-play-riff-free" aria-live="polite">
-          <span className="ob-play-riff-meter"><i style={{ width: `${Math.min(100, (tt / GROOVE_SECONDS) * 100)}%` }} /></span>
+          <span className="ob-play-riff-meter"><i ref={meterRef} style={{ width: `${Math.min(100, (tt / GROOVE_SECONDS) * 100)}%` }} /></span>
           <b>{t('即兴', 'Jazz')} {r.jazzSlots.size}</b>
         </span>
       ) : (
@@ -125,7 +142,7 @@ export default function BellPad({ ride }: { ride: FlowRide }) {
           <span className="ob-play-riff-bar is-answer" />
           {callTimes(r.round).map((s, i) => <i key={`c${i}`} className={`ob-play-riff-dot is-call${tt >= s ? ' is-on' : ''}`} style={{ left: at(s) }} />)}
           {answerTimes(r.round).map((s, i) => <i key={`a${i}`} className={`ob-play-riff-dot is-answer${r.hitNow.has(i) ? ' is-hit' : tt > s + 0.2 ? ' is-miss' : ''}`} style={{ left: at(s) }} />)}
-          <em className="ob-play-riff-cursor" style={{ left: at(tt) }} />
+          <em ref={cursorRef} className="ob-play-riff-cursor" style={{ left: at(tt) }} />
           <small>{r.phase === 'call' ? t('听', 'Listen') : t('到你了', 'You')} · {r.round + 1}/3</small>
         </span>
       )}

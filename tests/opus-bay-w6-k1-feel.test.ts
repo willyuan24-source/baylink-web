@@ -40,3 +40,79 @@ test('W6-K1: no mantle in the district (the lead\'s decision) — the hop onto t
     game.set(saved);
   }
 });
+
+test('W6-K1: the deck queries write into the caller\'s object (no object per frame on the GGB deck), with the same answers', async () => {
+  const deck = await import('../src/opus-bay/actors/deckSteer');
+  const d = { id: 'k1-test', x: 9000, z: 9000, heading: 0.4, length: 200, half: 6, y: 0 };
+  deck.registerDeck('k1-test', d);
+  try {
+    const q = deck.deckPoint(d, 50, 2);
+    const fresh = deck.deckAt(q.x, q.z, 0)!;
+    const out = { deck: null as unknown as typeof d, s: -1, l: -1 };
+    const got = deck.deckAt(q.x, q.z, 0, out);
+    assert.equal(got, out, 'the same object back');
+    assert.ok(fresh !== out && fresh.deck === out.deck && Math.abs(fresh.s - out.s) < 1e-9 && Math.abs(fresh.l - out.l) < 1e-9);
+    assert.equal(deck.onDeck(q.x, q.z, 0), true);
+    assert.equal(deck.onDeck(q.x + 500, q.z, 0), false);
+    const w = { x: 0, z: 0, steered: false };
+    const wx = Math.sin(0.5), wz = Math.cos(0.5);
+    const a = deck.deckWish(fresh, wx, wz), b = deck.deckWish(fresh, wx, wz, 0.45, w);
+    assert.equal(b, w);
+    assert.deepEqual({ ...a }, { ...w });
+    const across = deck.deckWish(fresh, Math.cos(0.4), -Math.sin(0.4), 0.45, w);   // straight across: left alone
+    assert.equal(across, w);
+    assert.equal(w.steered, false);
+  } finally { deck.registerDeck('k1-test', null); }
+  // the controller, the camera and the feet pass their own objects (source): no bare per-frame deck queries left
+  const { readFileSync } = await import('node:fs');
+  const src = (f: string) => readFileSync(new URL(`../src/opus-bay/actors/${f}`, import.meta.url), 'utf8');
+  assert.match(src('controller.ts'), /deckAt\(p\.x, p\.z, p\.y, this\.deckOut\)/);
+  assert.match(src('controller.ts'), /deckWish\(dk, wx, wz, PLAYER_RADIUS, this\.wishOut\)/);
+  assert.equal((src('controller.ts').match(/deckDip\([^)]*this\.dipOut2?\)/g) ?? []).length, 2);
+  assert.match(src('camera.ts'), /deckAt\(view\.x, view\.z, view\.ground, this\.deckOut\)/);
+  assert.doesNotMatch(src('feet.ts'), /deckAt\(/);
+  assert.doesNotMatch(src('deckSteer.ts'), /const p = deckPoint\(/, 'laneClear probes inline');
+});
+
+test('W6-K1: the glide\'s floor probes and the auto-glide\'s stick reuse objects (the same answers)', async () => {
+  const { GLIDE, GlideSim, autoGlideInput } = await import('../src/opus-bay/actors/glide');
+  const world = { heightAt: (x: number) => x * 0.01, inWorld: () => true, roofAt: () => -Infinity, landingSpot: () => null };
+  const g = new GlideSim();
+  g.x = 10; g.z = 0; g.y = 20; g.heading = 0.3; g.speed = GLIDE.cruise;
+  const f = { soft: 0, hard: 0 };
+  assert.equal(g.floorAt(world, 40, 5, f), f);
+  assert.deepEqual({ ...g.floorAt(world, 40, 5) }, { ...f });
+  const o = { pitch: 9, steer: 9, boost: true, slow: true };
+  for (const to of [{ x: 0, z: 500 }, { x: 300, z: 300 }, { x: 0, z: 40 }]) {
+    const a = autoGlideInput(g, to, world), b = autoGlideInput(g, to, world, o);
+    assert.equal(b, o);
+    assert.deepEqual({ ...a }, { ...o });
+  }
+  const { readFileSync } = await import('node:fs');
+  const ms = readFileSync(new URL('../src/opus-bay/actors/moveSystem.ts', import.meta.url), 'utf8');
+  assert.match(ms, /autoGlideInput\(g, A, this\.world\(\), gi\)/);
+  assert.doesNotMatch(ms, /inp = \{ \.\.\.inp/, 'the approach writes into the flight\'s input object');
+  const gl = readFileSync(new URL('../src/opus-bay/actors/glide.ts', import.meta.url), 'utf8');
+  assert.equal((gl.match(/this\.floorAt\(world, [^;]*this\.floor(Here|Ahead)\)/g) ?? []).length, 3, 'the flight\'s three probes');
+});
+
+test('W6-K1: the stair race\'s progress reads reuse objects; the bell pad re-renders only when its look changes', async () => {
+  const { lineProgress } = await import('../src/opus-bay/play/stairs');
+  const line = { pts: [{ x: 0, z: 0 }, { x: 10, z: 0 }, { x: 10, z: 10 }], cum: [0, 10, 20], len: 20 };
+  const out = { s: -1, off: -1 };
+  for (const [x, z] of [[3, 1], [11, 4], [-2, 0], [10, 30]]) {
+    const a = lineProgress(line, x, z), b = lineProgress(line, x, z, out);
+    assert.equal(b, out);
+    assert.ok(Math.abs(a.s - b.s) < 1e-9 && Math.abs(a.off - b.off) < 1e-9);
+  }
+  assert.deepEqual({ ...lineProgress(line, 3, 1) }, { s: 3, off: 1 });
+  const { readFileSync } = await import('node:fs');
+  const st = readFileSync(new URL('../src/opus-bay/play/stairs.ts', import.meta.url), 'utf8');
+  assert.match(st, /lineProgress\(r\.line, p\.x, p\.z, PROG_P\)/);
+  assert.match(st, /lineProgress\(r\.line, g\.x, g\.z, PROG_G\)/);
+  const bell = await import('../src/opus-bay/play/bell');
+  assert.equal(bell.riffLook(0), -1, 'no riff');
+  const pad = readFileSync(new URL('../src/opus-bay/play/BellPad.tsx', import.meta.url), 'utf8');
+  assert.match(pad, /if \(k !== look\) \{ look = k; setTick/);
+  assert.doesNotMatch(pad, /const tick = \(\) => \{ setTick/, 'no re-render every frame');
+});

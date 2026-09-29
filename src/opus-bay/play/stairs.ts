@@ -66,16 +66,23 @@ export function linePoint(l: CourseLine, s: number): { x: number; z: number } {
 }
 
 /** Arc length of the nearest point of the line to (x, z), and the distance to it. */
-export function lineProgress(l: CourseLine, x: number, z: number): { s: number; off: number } {
-  let best = { s: 0, off: Infinity };
+export function lineProgress(l: CourseLine, x: number, z: number, out?: { s: number; off: number }): { s: number; off: number } {
+  // (W6-K1) no object per segment; the race passes its own `out` every frame
+  let bestS = 0, bestOff = Infinity;
   for (let i = 1; i < l.pts.length; i++) {
     const a = l.pts[i - 1], b = l.pts[i], dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz || 1;
     const k = Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2));
     const off = Math.hypot(x - (a.x + dx * k), z - (a.z + dz * k));
-    if (off < best.off) best = { s: l.cum[i - 1] + (l.cum[i] - l.cum[i - 1]) * k, off };
+    if (off < bestOff) { bestS = l.cum[i - 1] + (l.cum[i] - l.cum[i - 1]) * k; bestOff = off; }
   }
-  return best;
+  if (!out) return { s: bestS, off: bestOff };
+  out.s = bestS; out.off = bestOff;
+  return out;
 }
+/** the race's per-frame progress reads (the player's, BAYBAY's), reused */
+const PROG_P = { s: 0, off: Infinity }, PROG_G = { s: 0, off: Infinity };
+/** at the top: within `reach` of it on the map and within 2.2 u of its height */
+const atTopOf = (top: { x: number; y: number; z: number }, x: number, y: number, z: number, reach: number) => Math.hypot(x - top.x, z - top.z) <= reach && Math.abs(y - top.y) < 2.2;
 
 /**
  * Seconds to run the line at the player's run speed with the ground's own factors (stairs 0.8 up, slopes slower), in
@@ -223,17 +230,16 @@ function step(dt: number) {
     r.clock += dt;
     // the race runs for you (a real Shift / a full stick does the same)
     input.keys.add(RUN_KEY);
-    const pp = lineProgress(r.line, p.x, p.z);
+    const pp = lineProgress(r.line, p.x, p.z, PROG_P);
     r.player.s = Math.max(r.player.s, pp.s);
-    const g = runtime.guide, gp = lineProgress(r.line, g.x, g.z);
+    const g = runtime.guide, gp = lineProgress(r.line, g.x, g.z, PROG_G);
     r.baybay.s = Math.max(r.baybay.s, gp.s);
-    const atTop = (x: number, y: number, z: number, reach = FINISH_R) => Math.hypot(x - r.top.x, z - r.top.z) <= reach && Math.abs(y - r.top.y) < 2.2;
     // BAYBAY is up on her schedule's time (her walker runs a step behind the schedule's point: she is at the circle then)
-    if (r.baybay.finish === null && r.clock >= baybayTime(r.ideal.par) && atTop(g.x, g.y, g.z, FINISH_R + 3)) {
+    if (r.baybay.finish === null && r.clock >= baybayTime(r.ideal.par) && atTopOf(r.top, g.x, g.y, g.z, FINISH_R + 3)) {
       r.baybay.finish = r.clock;
       if (r.player.finish === null) { charApi()?.emote('baybay', 'cheer'); bubble(STAIRS_LINES.waiting, 2400); }
     }
-    if (r.player.finish === null && atTop(p.x, p.y, p.z)) { r.player.finish = r.clock; finish(r); return; }
+    if (r.player.finish === null && atTopOf(r.top, p.x, p.y, p.z, FINISH_R)) { r.player.finish = r.clock; finish(r); return; }
     if (pp.off > STRAY_R || r.clock > RACE_MAX_S) { r.run.cancel(); return; }
     if (r.clock - r.chipAt >= 0.1) {
       r.chipAt = r.clock;

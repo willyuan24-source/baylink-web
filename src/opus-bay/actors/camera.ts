@@ -625,7 +625,7 @@ export class CameraController {
     // Which way: behind the heading when the player comes onto the deck (walking on, or once the deck's chunk is in
     // after a landing / teleport); then that alignment holds (walking back toward the camera never flips it) until the
     // player turns the camera themselves: it then keeps the alignment nearest their view.
-    const deck = !photo && !cam.shot && !rideMode && !talking ? deckAt(view.x, view.z, view.ground) : null;
+    const deck = !photo && !cam.shot && !rideMode && !talking ? deckAt(view.x, view.z, view.ground, this.deckOut) : null;
     if (deck) {
       const ax = Math.sin(deck.deck.heading), az = Math.cos(deck.deck.heading);
       // (a jump of more than 1.2 u in a frame is a teleport or a landing: behind the heading again)
@@ -953,6 +953,8 @@ export class CameraController {
   private deckManual = false;
   private deckX = NaN;
   private deckZ = NaN;
+  /** (W6-K1) the per-frame deck query's output, reused */
+  private readonly deckOut: DeckAt = { deck: null as unknown as DeckAt['deck'], s: 0, l: 0 };
   /** W5-F7: the open-ground yaw an arrival asked for (faceCameraToward open) and until when it outranks the arrival yaw */
   private openYaw = 0;
   private openUntil = 0;

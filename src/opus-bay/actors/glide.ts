@@ -184,6 +184,8 @@ export interface GlideInput {
   slow: boolean;
 }
 export const NO_GLIDE_INPUT: GlideInput = { pitch: 0, steer: 0, boost: false, slow: false };
+/** the flight's floor under a point (GlideSim.floorAt) */
+export interface GlideFloor { soft: number; hard: number }
 
 export interface GlideReport {
   /** brushed a roof / structure (soft bump) */
@@ -304,10 +306,16 @@ export class GlideSim {
   }
 
   /** Soft floor under / just ahead of (x, z): ground or roofs within 6 u, + 6. */
-  floorAt(world: GlideWorld, x: number, z: number): { soft: number; hard: number } {
+  floorAt(world: GlideWorld, x: number, z: number, out?: GlideFloor): GlideFloor {
     const base = Math.max(world.heightAt(x, z), world.roofAt(x, z, GLIDE.floorR));
-    return { soft: base + GLIDE.floorClear, hard: Math.max(world.heightAt(x, z), world.roofAt(x, z, 1)) + GLIDE.hardClear };
+    const soft = base + GLIDE.floorClear, hard = Math.max(world.heightAt(x, z), world.roofAt(x, z, 1)) + GLIDE.hardClear;
+    // (W6-K1) the flight passes its own `out` (no object per frame; a caller without one gets a fresh one)
+    if (!out) return { soft, hard };
+    out.soft = soft; out.hard = hard;
+    return out;
   }
+  private readonly floorHere: GlideFloor = { soft: 0, hard: 0 };
+  private readonly floorAhead: GlideFloor = { soft: 0, hard: 0 };
 
   private fly(h: number, input: GlideInput, world: GlideWorld, report: GlideReport) {
     const fx = Math.sin(this.heading), fz = Math.cos(this.heading);
@@ -321,8 +329,8 @@ export class GlideSim {
     let yawOverride: number | null = null;
 
     // --- floor (here and 1 s ahead, so hills are anticipated), ceiling
-    const here = this.floorAt(world, this.x, this.z);
-    const ahead = this.floorAt(world, this.x + fx * this.speed, this.z + fz * this.speed);
+    const here = this.floorAt(world, this.x, this.z, this.floorHere);
+    const ahead = this.floorAt(world, this.x + fx * this.speed, this.z + fz * this.speed, this.floorAhead);
     const soft = Math.max(here.soft, ahead.soft);
     this.softFloor = soft; this.hardFloor = here.hard;
     let spring = 0;
@@ -385,7 +393,7 @@ export class GlideSim {
     this.z += f2z * horiz * h;
     this.y += this.vy * h;
     // never through a roof or the ground; a residual overlap is a soft bump
-    const hard = this.floorAt(world, this.x, this.z).hard;
+    const hard = this.floorAt(world, this.x, this.z, this.floorHere).hard;
     if (this.y < hard) {
       if (hard - this.y > 0.35) report.bump = true;
       this.y = hard;
@@ -410,18 +418,21 @@ export type AutoGlideEnd = 'landed' | 'taken' | 'cancelled';
 export interface AutoGlideRequest { x: number; z: number; onEnd?: (how: AutoGlideEnd) => void }
 
 /** The pelican's own stick toward `to` (pure): steer onto the bearing, hold the sightseeing height, ease down near the end. */
-export function autoGlideInput(g: Pick<GlideSim, 'x' | 'y' | 'z' | 'heading' | 'speed' | 'floorAt'>, to: { x: number; z: number }, world: GlideWorld): GlideInput {
+export function autoGlideInput(g: Pick<GlideSim, 'x' | 'y' | 'z' | 'heading' | 'speed' | 'floorAt'>, to: { x: number; z: number }, world: GlideWorld, out?: GlideInput): GlideInput {
   const dx = to.x - g.x, dz = to.z - g.z, dist = Math.hypot(dx, dz);
   const err = wrap(Math.atan2(dx, dz) - g.heading);
   const fx = Math.sin(g.heading), fz = Math.cos(g.heading);
-  const floor = Math.max(g.floorAt(world, g.x, g.z).soft, g.floorAt(world, g.x + fx * g.speed * 2, g.z + fz * g.speed * 2).soft);
+  const floor = Math.max(g.floorAt(world, g.x, g.z, AUTO_FLOOR).soft, g.floorAt(world, g.x + fx * g.speed * 2, g.z + fz * g.speed * 2, AUTO_FLOOR).soft);
   const cruise = floor + AUTO_GLIDE.above;
   const land = world.heightAt(to.x, to.z) + GLIDE.floorClear;
   const yT = dist < AUTO_GLIDE.easeFrom ? Math.max(floor, land + (cruise - land) * (dist / AUTO_GLIDE.easeFrom)) : cruise;
-  return {
-    steer: clamp(-err * 1.6, -1, 1),
-    pitch: clamp((yT - g.y) * 0.1, -0.7, 0.8),
-    boost: dist > AUTO_GLIDE.boostFrom && Math.abs(err) < 0.4,
-    slow: dist < AUTO_GLIDE.easeFrom * 0.5,
-  };
+  // (W6-K1) the move system passes its own `out` every frame of an auto-glide (no object per frame)
+  const o = out ?? { steer: 0, pitch: 0, boost: false, slow: false };
+  o.steer = clamp(-err * 1.6, -1, 1);
+  o.pitch = clamp((yT - g.y) * 0.1, -0.7, 0.8);
+  o.boost = dist > AUTO_GLIDE.boostFrom && Math.abs(err) < 0.4;
+  o.slow = dist < AUTO_GLIDE.easeFrom * 0.5;
+  return o;
 }
+/** autoGlideInput's floor probe (read at once, twice per call) */
+const AUTO_FLOOR: GlideFloor = { soft: 0, hard: 0 };
