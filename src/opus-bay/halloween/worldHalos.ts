@@ -70,6 +70,7 @@ export function createHaloPool(cap = HALO_CAP): HaloPool {
       mesh.visible = on && mesh.count > 0;
     },
     count: () => { if (dirty) upload(); return mesh.count; },
-    dispose: () => { geo.dispose(); owners.clear(); },
+    // the InstancedMesh's own dispose too: the renderer frees instanceMatrix / instanceColor (W6-H review: they leaked)
+    dispose: () => { geo.dispose(); mesh.dispose(); owners.clear(); },
   };
 }

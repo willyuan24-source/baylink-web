@@ -311,13 +311,21 @@ function assemble(cells: readonly CellGeo[]): THREE.BufferGeometry | null {
 
 // --- the bats -------------------------------------------------------------------------------------------------------
 
-/** Where bats circle at dusk (the ground y baked from the published city: the hunt's spots there). */
+/**
+ * Where bats circle at dusk. `y` = the crown of the published ground under the colony's whole circle (heightAt, sf/v1;
+ * W6-H review: the first values sat 5–13 u below the hills, and the bats flew inside Buena Vista and Twin Peaks —
+ * tests/opus-bay-w6-h-review.test.ts keeps the band clear of the ground).
+ */
 export const BAT_COLONIES: readonly { id: string; x: number; z: number; y: number; r: number }[] = [
-  { id: 'alamo-square', x: -16, z: 592, y: 12.2, r: 11 },
-  { id: 'buena-vista', x: 25, z: 728, y: 21.5, r: 9 },
-  { id: 'twin-peaks', x: 128, z: 935, y: 36.5, r: 15 },
+  { id: 'alamo-square', x: -16, z: 592, y: 18.5, r: 11 },
+  { id: 'buena-vista', x: 25, z: 728, y: 33.7, r: 9 },
+  { id: 'twin-peaks', x: 128, z: 935, y: 49.8, r: 15 },
 ];
 export const BATS_PER_COLONY = 10;
+/** the bats' flight above the colony's y: its middle, the spread between bats, the bob of each (u) */
+const BAT_ALT = 8, BAT_SPREAD = 3, BAT_BOB = 1.1, BAT_WING = 0.4;
+/** The band the bats fly in, relative to the colony's y: [lo, hi] (the review's test checks it clears the hill). */
+export const batBand = (): { lo: number; hi: number } => ({ lo: BAT_ALT - BAT_SPREAD - BAT_BOB - BAT_WING, hi: BAT_ALT + BAT_SPREAD + BAT_BOB + BAT_WING });
 export const BATS_NEAR = 260;
 /** bats show from dusk (the toy night ≥ this) */
 export const BATS_NIGHT = 0.3;
@@ -369,7 +377,7 @@ export function createBats(): Bats {
         const a = t * w + ph;
         const x = at.x + Math.sin(a) * r + Math.sin(t * 0.7 + k) * 1.2;
         const z = at.z + Math.cos(a) * r;
-        const y = at.y + 8 + 3 * Math.sin(ph) + Math.sin(t * 1.3 + k * 1.7) * 1.1;
+        const y = at.y + BAT_ALT + BAT_SPREAD * Math.sin(ph) + Math.sin(t * 1.3 + k * 1.7) * BAT_BOB;
         // heading: the tangent of the circle (dir of motion)
         const hx = Math.cos(a) * Math.sign(w), hz = -Math.sin(a) * Math.sign(w);
         const sx = hz, sz = -hx;
@@ -380,7 +388,8 @@ export function createBats(): Bats {
         put(o + 2, x - hx * s * 0.7, y, z - hz * s * 0.7);
         put(o + 3, x - sx * s * 0.28, y + 0.02, z - sz * s * 0.28);
         const cy = Math.cos(flap), sy = Math.sin(flap);
-        for (const side of [1, -1]) {
+        // both wings (a counted loop: no array a bat a frame)
+        for (let side = 1; side >= -1; side -= 2) {
           const b = o + (side > 0 ? 4 : 8);
           const bx = x + sx * s * 0.25 * side, bz = z + sz * s * 0.25 * side;
           put(b, bx + hx * s * 0.35, y, bz + hz * s * 0.35);

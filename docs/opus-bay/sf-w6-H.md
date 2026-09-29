@@ -221,3 +221,65 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 tsconfig.app.json --test tests/opus-bay-*.test.ts` **1461 / 1461** (earlier pushes: the wall-clock tests "E2-5 view field
 in the city" and "A* is time-sliced" failed once under load and passed alone). District mode untouched: the Halloween
 feature is city-only (`game/w5Features.ts`), and `realsf/seasons.ts`' evening fog reads only in the city's real sky.
+
+## Review (W6-H-review, 04:39 – 05:40 PDT, worktree `C:/Users/willy/wt/w6-h-rev`, dev port 5625)
+
+### 给主人的摘要
+
+1. H 线的万圣节城市整体可以上线：门口南瓜灯、寻宝 40 个南瓜灯、亡灵节、苏特罗浴场小幽灵都在；关掉万圣节（平时日期）和街区模式（?world=district）完全不受影响。
+2. 找到并修好 2 个真问题：**蝙蝠钻进了山里**——布埃纳维斯塔公园和双峰的蝙蝠群高度填错了（比真实山顶低 5–13 米），蝙蝠整群在山体里面飞，玩家根本看不到；阿拉莫广场的也有一半埋在草地下。现在三处蝙蝠都在山顶上方 3.5–12.5 米绕圈。**离开城市模式时发光点的显存没释放**（每切换一次漏一点），已修。另外去掉了蝙蝠每帧新建数组的小浪费。
+3. 亡灵节事实重新上网核对（2026-09-29）：2025 年游行 11 月 2 日晚 7 点从 22 街和布莱恩特街出发，祭坛节在波特雷罗德尔索尔公园——与游戏一致。
+4. 没有阻止上线的问题。遗留小事：一句台词（“南瓜色的黄昏”）目前没有地方触发（它依赖雾的橙色黄昏，尚未做）；一户门口的南瓜和 G 线的讨糖门挨得很近。
+
+### What was checked
+
+- Every commit of the lane (`git log --grep W6-H`: acd55095, 11b73ff2, c972e1b3, 98d6713d, c2bfbe01, 3cb5121d, 021ae67f) read
+  in full: world.ts, worldDress.ts, worldHalos.ts, worldHaunt.ts, hunt.ts, huntPlaces.ts, muertos.ts, worldLines.ts,
+  realsf/dressing.ts, realsf/seasons.ts, both test files.
+- The lane's tests alone: 11 / 11. Per-frame work: the frame system steps the bats (120 vertices written in place), the
+  haunt's one matrix and the pool's visibility each frame; the hunt (8 Hz), muertos (≈ 7 Hz), the stoops (1 Hz), the
+  lines (2 Hz) are throttled; the halo pool re-uploads only when an owner's list changes.
+- Teardown / world switch: every mesh's geometry disposed, sounds / save / QA hooks undone — except the halo pool's
+  InstancedMesh (fixed below). District mode (`?world=district&halloween=night`): no Halloween feature loaded
+  (`__opusBay.halloween` absent), the Ferry Building scene as before (scratch `C:/Users/willy/opus-qa/w6/h-rev/d-district.jpg`, read).
+- Save compatibility: the hunt / muertos finds live only in lane E's `halloween` bitset (day-0 contract, append-only ids);
+  the line memory is its own key `opus-bay:halloween:v1`; `?save=off` keeps the finds in the session. The ledger's
+  `REWARD_CAPS.halloween` 25 is a per-reward coin cap (hunt:all asks 25): nothing is clipped.
+- Perf (headless, `?debug=1`): desktop 1440 × 900 'high' Alamo Square on Halloween night 98 calls / 315k tris (Halloween
+  24.0k tris, 651 halos, bats on); Buena Vista golden 83 / 285k; phone 390 × 844 dpr 3 'mid' Alamo Square night 74 calls
+  / 225k tris (Halloween 12.7k tris, 331 halos) — inside ≤ 150 calls / 400k. Shots (read) in `C:/Users/willy/opus-qa/w6/h-rev/`.
+- Text: 18 lines zh + en fixed in one table (lane X); the toasts are zh / en pairs (繁體 by the site's conversion, as
+  every lane); no UI of lane H's own, so no touch targets to check.
+- Real-world facts, re-checked 2026-09-29: the 2025 procession — Sunday 2 November, 7 p.m. (staging ≈ 6 p.m.) on Bryant
+  between 19th and 22nd, route "South on Bryant / West onto 24th / North onto Mission / East onto 22nd / Ending at
+  Bryant & 22nd" (https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025); the 33rd
+  Festival of Altars, 2 November 2025, 8 a.m. – 9 p.m. at Potrero del Sol Park, 2827 Cesar Chavez St
+  (https://www.calle24sf.org/event-details/33rd-annual-2025-festival-of-altars,
+  https://www.sfstation.com/dia-de-los-muertos-festival-of-altars-e167101). The game and BAYBAY's line agree.
+
+### Defects fixed (tests/opus-bay-w6-h-review.test.ts, red then green)
+
+1. **The bats flew inside the hills.** `BAT_COLONIES` carried ground heights 5–13 u below the published terrain
+   (Alamo Square y 12.2 vs a crown of 18.5 under its circle; Buena Vista 21.5 vs 33.7; Twin Peaks 36.5 vs 49.8). The bats
+   circle at y + 3.5 … 12.5, so at Buena Vista their whole band and at Twin Peaks most of it ran through the hillside
+   (never seen), at Alamo Square the lower half under the lawn. Before: the test failed "alamo-square: the lowest bat
+   (y 15.7) clears the ground's crown 18.5 by ≥ 2 u". After: y = the crown under each circle (18.5 / 33.7 / 49.8): every
+   bat 3.5–12.5 u above the highest ground it flies over; the flight band is exported (`batBand()`) and the test samples
+   the published ground under each whole circle. (`halloween/worldDress.ts`)
+2. **The halo pool leaked its instanced GPU buffers** on every teardown (city → district, a reload of the feature):
+   `dispose()` freed the plane geometry but never called `InstancedMesh.dispose()`, so the renderer kept
+   `instanceMatrix` (768 × 64 B) and `instanceColor`. Before: the test saw no `dispose` event. After: dispatched.
+   (`halloween/worldHalos.ts`)
+3. Per-frame garbage: the bats' wing loop built a `[1, -1]` array per bat per frame (10 a frame); now a counted loop.
+
+### Open items (not blocking)
+
+- `worldLines.ts` `dusk` ("南瓜色的黄昏…") is in the recording table but nothing offers it: it belongs to the orange dusk
+  tint in `world/sf/fog.ts` (lane H's request, not built). Lane X may skip `w6-h-dusk` until the tint lands.
+- One stoop within 3 u of one of lane G's treat doors (both decorations stand); the bats are dark on the full-night
+  sky (now at least above ground everywhere); trick-or-treaters static; no procession walkers — as the lane listed.
+- The fog's thicker Halloween evening (`karlMonthFactor ≥ 0.6`) is a mood choice, documented as not climatology.
+
+### Blocking the go-live to main
+
+None from lane H.
