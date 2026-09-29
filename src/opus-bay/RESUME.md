@@ -1,5 +1,30 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
+## WAVE 6 DONE · LIVE ON baylink.us — 2026-09-29 ≈ 07:10 PDT
+
+- Wave 6 ran 01:40–07:30 PDT on 2026-09-29 (the owner left at 07:45). Read, in order: this section →
+  `docs/opus-bay/sf-w6-summary.md` (给主人的摘要, the nine lanes, numbers, **§5 NEXT**) → `docs/opus-bay/sf-w6-final-verify.md`
+  (W6-Z) → the plan / lead note `docs/opus-bay/sf-w6-lead.md` (ownership, frozen contracts §4, decisions §6).
+- **Halloween is in**: a fifth lazy city feature `src/opus-bay/halloween/` (`season.ts` frozen: 1–30 Oct season, 31 Oct the
+  big night, 1–2 Nov Día de los Muertos on the Bay clock; **`?halloween=1|night|muertos|off` previews it in any build**,
+  production too). World (lane H): dressed stoops, bats, the Sutro haunt, the 40-lantern hunt, Día de los Muertos in the
+  Mission. Games (lane G): trick-or-treat on 6 real streets (54 doors), candy bag, 4 costumes, the 万圣节 Journal page.
+  Assets (lane X): postcards, SFX, 80 voice clips, the Halloween title key art. Reward ids `halloween:*` are append-only
+  (`halloween/rewards.ts`).
+- Also: GPT's autumn catalog in the world (SF events 18 → 38, new-shop signs), the North Beach seam + corner, hide & seek,
+  the Lyon St Steps race, cuter city walkers, the W5-bus review done (transit no longer drives through the player's car),
+  the stick base fix, Settings holds the ride, 国际橙, GameRoot 300 → 279 KB.
+- `main` was merged into `opus-bay` twice (W6-0c `b35995a6`, W6-0e `89b16f37`: GPT's site commits) and `main` was then
+  fast-forwarded to `opus-bay` (go-live). GPT keeps pushing to `main`: next wave, merge `origin/main` once at day 0 again.
+- Higgsfield: balance **2359.30** after wave 6 (15.70 spent of the owner's 1000 cap; ledger merged into ASSETS-LEDGER).
+- Worktrees `C:/Users/willy/wt/w6-{day0,k1,k2,b,p,h,g,s,w,x,verify}` (branches `w6-*`, all pushed; node_modules are
+  junctions — remove with `cmd //c rmdir <wt>\node_modules` first). Scratch `C:/Users/willy/opus-qa/w6/`. Review worktrees
+  are removed; their `.git/worktrees/w6-*-rev` admin folders could not be deleted (OneDrive permission): `git worktree
+  prune` later.
+- **To continue:** say "继续 Opus Bay"; read the three docs above; launch wave 7 the same way (the lead note's §5
+  protocol; ports 56xx; one reviewer per lane; W6-Z style verify; fast-forward `main` on GO). Rules learnt below still
+  hold; new: a workflow's lanes finished in ≈ 3 h and the reviews in ≈ 45 min — a 6-hour night fits a whole wave.
+
 ## LIVE ON baylink.us — 2026-09-29 (after wave 5)
 
 - `opus-bay` was fast-forwarded into `main` and deployed by Vercel: **https://www.baylink.us/opus-bay** opens the whole
