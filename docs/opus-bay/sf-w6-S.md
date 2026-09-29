@@ -349,7 +349,9 @@ link **145 × 44** (were 32 × 32 and 145 × 36) (`qa/w6/S/review-opening-card-4
   **1440 / 1440**. Rebased onto `origin/opus-bay` `8829ee7e` (W6-P5): tsc 0 · eslint 0 errors (43 warnings) · the suite
   **1470 / 1470**. Rebased again onto `3bc2bb29` (W6-X6; then over `b3e83493`, docs only), the pushed code: tsc 0 · eslint 0 errors (43 warnings) · the
   suite **1470 / 1471** under load, the one failure the known wall-clock `sf-move2` "E2-5 view field" (4.6 s), which passes
-  alone (24 / 24). The fix is `5358e744` on `origin/opus-bay`.
+  alone (24 / 24). Pushed 05:19 PDT: the fix is **`6cc49f7c`**, this report `1578b2f4` (the last rebase went over lane B's
+  review `722fe8eb` … `599c94d8`, disjoint files); the full checks on that pushed tree: tsc 0 · eslint 0 errors (43 warnings) ·
+  the suite **1473 / 1473**.
 
 ### Open items (not blocking)
 
