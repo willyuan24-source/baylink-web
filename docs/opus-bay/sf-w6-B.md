@@ -11,6 +11,7 @@ scratch `C:/Users/willy/opus-qa/w6/b/`. Owns `world/busSystem.ts`, `world/flineS
 2. 找到并修好一个真问题：公交、电车、叮当车、轻轨只会给**走路的**你让路——你骑单车或开小车停在它们路上时，它们会直接穿过你的车。现在都会停下来等。
 3. 上一位审查员留下的未提交修改逐段判断后全部保留并补了测试：市场街那段公交和 F 线电车共用的单轨路段，公交最长要等 47 秒，现在 ≤ 7 秒；每帧的小垃圾也清掉了。
 4. M 线已取消的 San Jose & Mt Vernon 站（SFMTA 2024-09-28 永久取消）从游戏里拿掉了。
+5. 叮当车各站在中文里有了中文名（地图上原来写 "California & Van Ness"，现在是 "加州街 · 范尼斯大道"）；你坐叮当车下海德街时，停在渔人码头站的观光巴士会马上关门开走，不再让你干等 8 秒；索萨利托渡轮码头（还没开通的航线）正式豁免，不再算巡检缺陷。
 
 ## Part a — the review, the defects, the M stop (02:00–02:30 PDT)
 
@@ -103,4 +104,68 @@ Judged and left as they are (not defects, or not worth the risk now):
 ### Not done (part a)
 
 - The T items zh cable-car stop names, the shared Hyde St box, `ferry:sausalito` → part b.
+
+Part a pushed 02:47 PDT: `f836663a` W6-B1 · `87f716be` W6-B2 · `d67b2ca3` + `c19249f3` W6-B3 · `f8c3615d` W6-B4 (report);
+checks on the rebased head: tsc 0 · eslint 0 errors (43 old warnings) · the suite **1399 / 1399**.
+
+## Part b — the T items: zh cable-car names, the Hyde St box, `ferry:sausalito` (02:50–03:25 PDT)
+
+### What was built
+
+- **zh cable-car station names** (`data/transit.ts`): `CABLE_STREET_ZH` (the 43 streets the cable cars stop at) and
+  `stationZh()`; `buildTransit` names each cable-car station's zh "加州街 · 范尼斯大道" (it was the English short name).
+  The game's own zh street names are reused where it had one (鲍威尔街, 加州街, 海德街, 市场街, 联合街, 伦巴底街,
+  百老汇街, 菲尔伯特街, 蒙哥马利街, 邮政街, 湾街, 格林街, 哥伦布大道; Chinatown's 都板街 for Grant Ave and 企李街 for
+  Clay St), else the common transliteration; a street without one keeps the whole short English name (never half and
+  half). The turntables keep their names (Powell & Market 转车台 …: other lanes' attraction rows and tests use them).
+  `tests/opus-bay-sf-transit-verify.test.ts` verify M2 now reads the arrival toast in either language (surgical, named).
+- **The shared Hyde St box** (`world/busSystem.ts` `InterlockBox.wanted` + `BOX_HURRY_DWELL` 1.5 s,
+  `world/sf/lineInterlocks.ts` `riderWantsBox`, `world/sf/lineFleet.ts` `busInterlocks(…, wantedBy)`, one line in
+  `world/transitLayer.ts`): the loop's Wharf & Hyde stop lies inside the Powell–Hyde line's box (bus arc 449.9 in the
+  box 437–480; the bus runs 1.5–1.8 u from the cable-car track there, bodies overlapping). A bus dwelling there cuts its
+  stop to 1.5 s while the cable car **carrying the rider** comes down Hyde St to the box (≤ 70 u, heading in) — never the
+  rider's own bus, never while boarding or hopping off.
+- **`ferry:sausalito` waived by name** (`scripts/opus-sf/qa/sweep-static.mts`, surgical): the static sweep takes only the
+  quays of a running ferry route. The Sausalito route is data for a later boat (`data/ferry.ts` `running: false`), its
+  quay (−1262, 116) lies on C2's Marin board off the walkable model, and nothing sends a player there (the ferry
+  interactables and `ferryTerminal()` already skip non-running routes).
+
+### Evidence
+
+- `tests/opus-bay-w6-b.test.ts`: **W6-B5** zh names (red before: every zh name was English; now none has a Latin letter,
+  the English names unchanged); **W6-B6** the waiver (no Sausalito terminal offered, the sweep's `r.running`); **W6-B7**
+  the Hyde St box (red with the cut disabled; no rider / a car past the box → the full 8 s stop).
+- Measured before the Hyde St change (`C:/Users/willy/opus-qa/w6/b/hyde/wait.mts`, the loop and the cable cars, 2 h in
+  node): since W5-bus a non-rider cable car leaves the box to the bus — it waits at its stop instead (≤ 46 s, once an
+  hour, at Hyde & Chestnut, "LONG t 2169 powell-hyde#0 s 402/471 … occ true"); no car stood in the run for the bus. The
+  rider's car never yields but still had to wait out the bus's whole stop in the box: the case W6-B7 removes.
+- Played, phone 390 × 844 dpr 3, zh (`?lang=zh-Hans`): the map's California line terminus reads **加州街 · 范尼斯大道**
+  (`docs/opus-bay/qa/w6/B/phone-map-zh-cable-station.jpg`). The N ride on the phone with the goals card dismissed:
+  167 s, arrived, trains ≤ 0.2 s outside a dwell, a forced car across the rails gave way in 0.3 s
+  (`docs/opus-bay/qa/w6/B/phone-n-ride-irving.jpg`: riding down Irving St, BAYBAY aboard, the rails clear ahead).
+
+### Decisions
+
+- zh intersection names use " · " between the two streets (as the game's other zh place pairs); Stockton St is
+  士德顿街 (Chinatown's form, beside 都板街 / 企李街), Van Ness Ave 范尼斯大道, Geary St 吉里街 (the game's 吉里大道 is the
+  boulevard), Jackson St 杰克逊街 (the Nob Hill stops, not Chinatown's 积臣街).
+- The Hyde St box is eased from the bus side (a short stop for the rider's cable car), not by moving the loop's Wharf &
+  Hyde stop off Hyde St: a stop move changes published data, the pole placement and the sweep targets, and the
+  pipeline designs the loop's stops.
+- `ferry:sausalito`: a waiver, not a quay on the model (the Marin board is a picture; a walkable Sausalito is a new area).
+
+### Known gaps
+
+- On the phone the harness's first N ride ended 40 s in, with the new-save goals card open over it (the end shot); a
+  second run with the card dismissed rode the whole 167 s; a third, card open from the start, waited with the world
+  paused (the ETA frozen at 11 s for 4 minutes — the card pauses the world, as designed). Not reproduced on desktop (the
+  card opened mid-ride and the ride went on). See Requests (K2).
+- A non-rider cable car can still wait up to ≈ 46 s at Hyde & Chestnut for the loop bus (once an hour in node): the
+  W5-bus courtesy rule, harmless unless the player watches that car; the rider's car and the one fetching them never yield.
+
+### Requests
+
+- **K2** (the goals card, `game/**`): on the phone (390 × 844, `save=off`, a new save) the N ride from Duboce Park ended
+  about 40 s in when the new-save goals card opened mid-ride (`C:/Users/willy/opus-qa/w6/b/live/phone-n-end.jpg`, log
+  `phone-n.out`): please check that the card (or its pause hold) never ends or cancels a transit ride.
 
