@@ -11,14 +11,16 @@ import { GAME_LANGS, chooseGameLocale } from './langChoice';
  * shows busy (English and Traditional fetch their text the first time). Each name is written in its own script and is
  * never converted (translate="no"); the group's label is the same two words in every edition.
  * `variant`: 'title' = a cream capsule with the 文A glyph (the title card); 'seg' = Settings' segmented row (ob-seg).
+ * `onSwitch`: told just before a switch starts (the title keeps the pills under the pointer: ui/TitleScreen).
  * Title-chunk safe (React, lucide, the site locale, core/events and the game's i18n helper only).
  */
-export function LangPills({ variant = 'title' }: { variant?: 'title' | 'seg' }) {
+export function LangPills({ variant = 'title', onSwitch }: { variant?: 'title' | 'seg'; onSwitch?: () => void }) {
   const { t, locale } = useT();
   const [busy, setBusy] = useState<Locale | null>(null);
   const [failed, setFailed] = useState(false);
   const choose = (next: Locale) => {
     if (next === locale && !busy) return;
+    onSwitch?.();
     setBusy(next);
     setFailed(false);
     emit({ type: 'ui', action: 'select' });

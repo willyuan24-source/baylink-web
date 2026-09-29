@@ -580,10 +580,12 @@ export function CityMapPanel() {
       drawTransitLines(ctx, lines, view, { highlight: walk ? null : highlight, dimAll: fl.lines === 'dim' || !!walk });
       // the stops whose badge is on the map wear their number there
       const walkDraw = walk ? { xz: walk.xz, stops: walk.stops.filter(st => !st.attraction || !marks?.onBadge.has(st.attraction)) } : null;
-      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk: walkDraw, stations: marks?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: marks?.dots ?? [] });
+      // (lang-review) the discs' 观光 / 叮当 in the reader's script: the canvas never passes the site's 繁體 layer, and `t`
+      // (new on every language switch) redraws it — the marks' key only knows zh from en
+      drawMapExtras(ctx as unknown as StationCtx, view, { route: routeStrokes, walk: walkDraw, stations: marks?.stations ?? [], stationAlpha: highlight ? 0.85 : 1, dots: marks?.dots ?? [], words: text => t(text) });
     });
     return () => cancelAnimationFrame(id);
-  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, marks]);
+  }, [view, far, lines, epoch, highlight, filter, routeStrokes, walk, marks, t]);
 
   // the map opened on a trip: frame you and the whole way once the route is known
   const framedTrip = useRef(false);

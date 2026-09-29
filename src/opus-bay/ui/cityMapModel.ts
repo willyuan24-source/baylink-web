@@ -333,6 +333,8 @@ export function firstOpenView(v: MapView, frame: MapFrameBox, o: { player: Vec2;
  */
 export function drawMapExtras(ctx: StationCtx, v: MapView, o: {
   route?: { strokes: readonly RouteStroke[]; dots: readonly Vec2[] } | null; stations?: readonly StationMark[]; stationAlpha?: number; dots?: MapScene['canvasDots'];
+  /** the station discs' words in the reader's script (mapLines.drawStationMarks `words`: 繁體 on the canvas) */
+  words?: (text: string) => string;
   /** a walking route of data/sf/routes.ts (the 线路 tab's 步行路线): its walk (flat x, z) and its numbered stops */
   walk?: { xz: readonly number[]; stops: readonly (Vec2 & { n?: number })[] } | null;
 }): number {
@@ -406,7 +408,7 @@ export function drawMapExtras(ctx: StationCtx, v: MapView, o: {
     }
     ctx.restore();
   }
-  if (o.stations?.length) ops += drawStationMarks(ctx, o.stations, { alpha: o.stationAlpha ?? 1 });
+  if (o.stations?.length) ops += drawStationMarks(ctx, o.stations, { alpha: o.stationAlpha ?? 1, ...(o.words ? { words: o.words } : {}) });
   if (o.dots?.length) {
     ctx.save();
     for (const d of o.dots) {

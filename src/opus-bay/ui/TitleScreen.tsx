@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type MutableRefObject, type RefObject } from 'react';
 import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
@@ -38,6 +38,11 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   // primary 继续旅程 resumes there (Enter too); the secondary starts over at the Ferry Building (progress kept)
   const resume = city ? resumeSpot('city') : null;
   const primary = useMemo(() => (resume ? () => { requestResume(); onStart(); } : onStart), [resume, onStart]);
+  // lang-review: the pills stay under the pointer through a language switch (usePillsInPlace)
+  const cardRef = useRef<HTMLDivElement>(null);
+  const clickedAtRef = useRef<number | null>(null);
+  usePillsInPlace(cardRef, clickedAtRef, locale);
+  const beforeSwitch = useCallback(() => { clickedAtRef.current = pillsY(cardRef.current); }, []);
 
   useEffect(() => { startRef.current?.focus({ preventScroll: true }); }, []);
   // Enter / Space start from anywhere on the title (not while on another control)
@@ -73,7 +78,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
           <span className="ob-title-table-shadow" />
         </div>
       )}
-      <div className="ob-title-card">
+      <div className="ob-title-card" ref={cardRef}>
         <span className="ob-title-mark">Opus Bay · BAYLINK</span>
         <h1 className="ob-title-h1">{t('湾区小旅', 'Little Bay Trip')}</h1>
         <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
@@ -82,7 +87,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
           <p>{returning || resume ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : cityGreet ? t(cityGreet) : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
         </div>
         {/* the language before Start (简体 · 繁體 · English): a tap switches the title at once, saved for the site */}
-        <LangPills />
+        <LangPills onSwitch={beforeSwitch} />
         <div className="ob-title-actions">
           <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || undefined}>
             <span>{returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
@@ -104,6 +109,37 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
       </div>
     </div>
   );
+}
+
+/**
+ * lang-review · a language switch re-flows the title card: English runs longer (a two-line title, one more line of the
+ * subtitle and of the greeting) and a desktop centres the card, so the pills just clicked jumped ≈ 60 px from under the
+ * pointer (1440 × 900: from y 469 to 528 — a second click on the same spot hit the greeting). The pills stay where they
+ * were clicked: the card is moved (it is position: relative; `top`) by the difference, as far as the title has room; a
+ * resize lets it settle where the layout puts it. Phones dock the card at the bottom: the difference is 0 there.
+ * Layout positions (offsetTop), not the screen's: the card's entrance animation is a transform. `clickedAtRef`: the pills' y
+ * when a pill was clicked (TitleScreen's `beforeSwitch`, LangPills `onSwitch`); a switch from elsewhere moves nothing.
+ */
+function usePillsInPlace(cardRef: RefObject<HTMLDivElement | null>, clickedAtRef: MutableRefObject<number | null>, locale: string) {
+  useLayoutEffect(() => {
+    const card = cardRef.current, before = clickedAtRef.current, now = pillsY(card);
+    clickedAtRef.current = null;
+    if (!card || before === null || now === null || now === before) return;
+    const room = card.offsetParent instanceof HTMLElement ? card.offsetParent.clientHeight : Infinity;
+    const shift = Math.max(-card.offsetTop, Math.min(room - card.offsetTop - card.offsetHeight, before - now));
+    card.style.top = `${(parseFloat(card.style.top) || 0) + shift}px`;
+  }, [cardRef, clickedAtRef, locale]);
+  useEffect(() => {
+    const settle = () => { if (cardRef.current) cardRef.current.style.top = ''; };
+    window.addEventListener('resize', settle);
+    return () => window.removeEventListener('resize', settle);
+  }, [cardRef]);
+}
+
+/** The language pills' top in the title's layout (px from the title's top edge), null before they are laid out. */
+function pillsY(card: HTMLElement | null): number | null {
+  const pills = card?.querySelector<HTMLElement>('.ob-lang');
+  return card && pills ? card.offsetTop + pills.offsetTop : null;
 }
 
 function useVisited() {

@@ -513,8 +513,11 @@ function capsulePath(ctx: StationCtx, x: number, y: number, w: number, h: number
  * ≈ 115 nodes: in SVG nearly every station fell over budget. Draw after the lines, before the SVG overlay; taps find
  * the nearest station in JS (no SVG element needed); layoutMap still keeps every label off the pills (`stationItem`
  * with `canvas: true`: an obstacle that costs no node). Returns the number of fill / stroke / text operations.
+ * `words`: the disc text in the reader's script (lang-review: canvas text never passes the site's conversion layer, so
+ * ui/CityMap hands in its `t` — a 繁體 reader gets 觀光 · 叮噹, not the Simplified 观光 · 叮当 the SVG mark would never show).
  */
-export function drawStationMarks(ctx: StationCtx, marks: readonly { sym: StationSymbol; x: number; y: number }[], o: { alpha?: number } = {}): number {
+export function drawStationMarks(ctx: StationCtx, marks: readonly { sym: StationSymbol; x: number; y: number }[], o: { alpha?: number; words?: (text: string) => string } = {}): number {
+  const words = o.words ?? ((text: string) => text);
   let ops = 0;
   ctx.save();
   ctx.globalAlpha = o.alpha ?? 1;
@@ -550,7 +553,7 @@ export function drawStationMarks(ctx: StationCtx, marks: readonly { sym: Station
         ctx.fillStyle = d.color;
         ctx.fill();
         ctx.fillStyle = '#fff';
-        ctx.fillText(d.text, d.cx, m.y + 3);
+        ctx.fillText(words(d.text), d.cx, m.y + 3);
         ops += 2;
       }
     }
