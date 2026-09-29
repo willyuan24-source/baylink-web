@@ -164,3 +164,79 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
 On the pushed head `5fc04310` (my part c over lanes S, W, H and G's latest): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
 `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
 **1447 / 1447**, fail 0. The dev server on 5602 is stopped; no Chrome of mine is running. Higgsfield: 0.
+
+## Review (adversarial review of lane K2, 2026-09-29 04:11–05:45 PDT)
+
+Worktree `C:/Users/willy/wt/w6-k2-rev` (branch `w6-k2-rev`), dev port 5622, scratch `C:/Users/willy/opus-qa/w6/k2-rev/`.
+
+### 给主人的摘要
+
+1. K2 的 14 个提交我都逐条读过，并在手机（390 × 844）和电脑（1440 × 900）上实际玩过：设置 = 暂停（车停住、不自动上车）、「更多」菜单让开「抵达」卡片、小铺「国际橙」（简体 / 繁體 國際橙 / English）、一日游「约 36 分钟」、90 秒自动放开、街区模式（`?world=district`）都正常，没有报错。
+2. 找到并修好了 4 个问题（都已推送，测试全绿）：
+   - **新玩家选「刚来湾区」一日游**：31 秒「送你一张飞行券」、34 秒「送你一位鹈鹕朋友」、44 秒又「飞行券用不上了，还你 10 金币」——跟 K2 修的是同一个尴尬，只是换了条路。现在一日游进行中不送飞行券（第一站就会遇到鹈鹕）。
+   - **设置里「重置游戏进度」之后**：新的欢迎还没出来，飞行券就已经塞进口袋；跟 BAYBAY 找到鹈鹕后又「还你 10 金币」。现在要等新的欢迎和带路都结束才送。
+   - **一日游某一站停留时打开设置**：停留时间照样走完，关掉设置时已经在去下一站的路上。现在设置打开时停留计时也暂停。
+   - **相册 / 小铺开着超过 90 秒**：脚会被当成「忘记放开」自动放开（电脑上在相册里按 ← / → 会一边翻页一边走路）。现在屏幕上还开着面板时不算忘记。
+3. 没有阻挡上线的问题。
+
+### What was checked
+
+- **Every K2 commit read** (`92e5d693` … `49017853`, 14 commits): `game/transit.ts` (the pause hold, the cable-car
+  直接到站), `game/busWatch.ts`, `ui/moreMenu.ts` / `Hud.tsx` / `ArrivalCard.tsx` / `guide-ui.css`, `economy/items.ts`,
+  `data/VOICE.md`, `economy/shopRun.ts`, `game/rewards.ts` + `economy/ledger.ts`, `game/brain.ts`, `game/discovery.ts` +
+  `resume.ts`, `ui/Moments.tsx`, `data/sf/tours.ts` + `copy.ts`, `game/lockWatchdog.ts`, `STATUS.md`, the four new test files.
+- **The pause hold, traced through every line system**: bus / light rail / transitLine / F-line hold a car at `phase 'here'`
+  while its rider has not stepped on and honour `platformStop` for a riding rider; the ferry holds on both; a Metro train
+  under ground ignores it (lane T's rule, K2's known gap). The pause brake is only released by the pause; a rider's own
+  E2 hop-off brake is never touched; `ride.done` is deferred, not lost (the system keeps `phase 'arrived'` while braked).
+- **Played on the phone** (390 × 844 dpr 3, touch, quality mid; scripts `qa-rev.mjs`, `qa-tour.mjs`, `qa-reset.mjs` in the
+  scratch dir, every image read):
+  - the More menu opened *before* an arrival: at a first arrival the reveal hides the HUD (and with it the open menu), so
+    the card never meets an open menu there; the lane's own order (card first, then the menu) was played by K2.
+  - the 小铺 shelves 我 / 坐骑: 国际橙背包 / 国际橙单车 (short 国际橙); desktop 繁體: 國際橙 (scarf row), `lang=zh-Hant`.
+  - the Grand Tour from the welcome's 刚来湾区 → 完整版 (the choice reads 约 36 分钟), 90 s recorded (below, defect R1);
+    Settings opened at the first stop for 50 s (defect R3); Settings → 重置游戏进度 → the new welcome → 跟 BAYBAY 去找鹈鹕
+    to the pelican moment (defect R2).
+- **District**: `?world=district&start=free&lang=en` loads clean (desktop, 73 draw calls / 242k triangles, no console
+  error); every K2 change is gated on `worldMode === 'city'` or lives in city-only chunks.
+- **Per-frame work**: no allocation added per frame (`holdRideForPause`, the bus watch's `paused`, `lockExplanation`'s
+  timeout test short-circuits before any array, the tour's dwell hold, GoalsCard's `interactableById` is a Map lookup).
+- **Save compatibility**: item ids unchanged (`scarf-orange`, `my-pack-orange`, `bike-orange`), no save field added.
+- **Facts**: the Golden Gate Bridge's colour is "International Orange" —
+  https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/ (checked 2026-09-29); the
+  36.1 / 28.5 min tour runs are W5-C5's measured runs (`docs/opus-bay/sf-w5-C.md` part b, line 198).
+- **STATUS.md**: accurate (the live claim matches `RESUME.md` and `origin/main` 7889a7ed's go-live).
+
+### Defects fixed (each with a test red on the old files)
+
+| # | defect | before | after | files |
+|---|---|---|---|---|
+| R1 | 飞行券 gift + refund on the welcome's first choice (the Grand Tour): K2 gated only BAYBAY's pelican lead, but the tour's first stop meets the pelican too | new player, 刚来湾区 → 完整版: 31 s 送你一张飞行券！, 34 s 送你一位鹈鹕朋友！, 44 s 有鹈鹕啦，飞行券用不上了，还你 10 金币。 | the same 90 s: no ticket line at all (coins 40, no refund) (`qa/w6/K2/rev-phone-tour-first-stop-no-ticket.jpg`) | `economy/shopRun.ts` (`ticketGiftWaits`: `s.tour.active`) |
+| R2 | after Settings → 重置游戏进度 the gift was given inside the reset click: the gate went to "at once" and the glide-off notification ran the check while the player was still in free roam, before the new welcome | the wallet held the gift 150 ms after the reset; after the new lead 有鹈鹕啦…还你 10 金币。 | no gift before or during the new welcome and lead; no ticket line after the reset | `economy/shopRun.ts` (reset → `quietSince = NaN`; `ticketGiftWaits`: `mode === 'onboarding'`) |
+| R3 | a Grand Tour stop's dwell kept running under Settings (the pause) | (node test on the old file) 60 s of Settings at a stop: the tour had already moved on to the next stop's trip | the dwell clock waits while `paused`; the stop is still there when Settings closes, the tour goes on 1 s later (`qa/w6/K2/rev-phone-settings-holds-tour-dwell.jpg`) | `game/cityTour.ts` |
+| R4 | the 90 s hold timeout also freed a panel / shop hold whose sheet was simply open (album, a letter, the goals step, the 小铺 are ui/slots overlays holding the feet from mount to unmount) | (node test on the old file) 2 min with the album open: the hold no longer explained the lock and the feet were freed — the album's ← / → are also move keys (core/input), so they would turn the page and walk the player; a `stuck` event and a DEV warning for a panel that was simply open | a `panel` / `shop` hold never times out while an overlay is on screen; a leaked one (no sheet) is still freed and logged; `activity` holds unchanged (the lead's decision) | `game/lockWatchdog.ts` |
+
+Tests: `tests/opus-bay-w6-k2-review.test.ts` (4: the tour dwell under Settings; the sheet-up hold; the tour ticket; the
+reset's onboarding gap), `tests/opus-bay-w5-e-review.test.ts` 4 (the reset: not inside the click, the gift once the new
+save is quiet — red on the old file), `tests/opus-bay-w6-k2-flow.test.ts` 1 (starts from a post-welcome free roam).
+
+### Open items (not blocking)
+
+- Settings freezes only the rider's own ride and now the tour's dwell, not the world (traffic keeps moving) — K2's
+  recorded decision. A Metro train under ground runs on to its next surface stretch (lane T's rule).
+- `activity` holds still time out at 90 s (the lead's decision): a marshmallow sit longer than that frees the feet; the
+  stick ends the activity anyway.
+- Seen, not K2's: on the phone the bottom bar sits over the Settings sheet's lowest row (显示地标旗) in the opening
+  frame (`rev-phone-settings-holds-tour-dwell.jpg`) — worth a look whether the sheet scrolls clear of the bar.
+- Seen, not K2's: riding the loop bus along Jefferson Street the area pill reads 北滩 and BAYBAY says 你好，北滩！ (the
+  DataSF neighbourhood); the first stop's reveal banner keeps its long English subtitle under 抵达 · 渡轮大厦市集.
+
+### Blocking the go-live to main
+
+- None.
+
+### Checks
+
+On the rebased head (`1391df70` over `599c94d8`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1473 / 1474** under load, the one
+failure the wall-clock P1 slice timing (`tests/opus-bay-audio.test.ts`), green alone 18 / 18. Higgsfield: 0.
