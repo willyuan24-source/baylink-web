@@ -192,3 +192,43 @@ test('W6-K1 (lane A\'s review): the heave-ho never takes the tap from a boarding
   assert.match(idx, /offs\.push\(subscribeGlide\(prefetchRings\)\)/, 'when the glide unlocks');
   assert.match(idx, /if \(ringsAsked \|\| disposed \|\| !glideUnlocked\(\)\) return;/, 'only once the pelican is unlocked');
 });
+
+test('W6-K1 (lane T\'s review): on a narrow street the side-on cable-car shot swings round behind the car instead of sitting in the houses; an open street keeps the side-on shot', async () => {
+  const THREE = await import('three');
+  const { RideCamera } = await import('../src/opus-bay/actors/cameraModes');
+  const SX = 7000, SZ = 7000, SR = 80;
+  type Blk = import('../src/opus-bay/core/terrain').Blocker;
+  const rect = (x0: number, z0: number, x1: number, z1: number, top: number): Blk => ({ kind: 'polygon', polygon: [{ x: x0, z: z0 }, { x: x1, z: z0 }, { x: x1, z: z1 }, { x: x0, z: z1 }], top });
+  const world = (blockers: Blk[]) => {
+    const inside = (x: number, z: number) => Math.abs(x - SX) < SR && Math.abs(z - SZ) < SR;
+    const overlap = (b: Blk, x: number, z: number, r: number) => (b.kind === 'circle' ? Math.hypot(x - b.x, z - b.z) < r + b.r : T.distanceToPolygon(x, z, b.polygon) < r);
+    const hits = (x: number, z: number, r: number) => blockers.some(b => overlap(b, x, z, r));
+    T.setCityTerrain({
+      heightAt: (x, z) => (inside(x, z) ? 0 : null), surfaceCode: (x, z) => (inside(x, z) ? 1 : 0),
+      kindAt: (x, z) => (inside(x, z) ? T.KIND.land : T.KIND.outside), standAt: () => 1,
+      forEachBlockerNear: (x, z, r, fn) => { for (const b of blockers) if (overlap(b, x, z, r + 0.5)) fn(b); },
+      hitsBlocker: hits, blockedAt: (x, z) => hits(x, z, 0.45),
+    });
+  };
+  // the car runs up the street's middle along +z (heading 0); the rider on its running board, 1.3 u to the side
+  const sub = { mode: 'transit' as const, x: SX + 1.3, y: 1.4, z: SZ, heading: 0, speed: 4, gradeAhead: 0, side: 1 as const, seated: false, occlude: true, kind: 'cable-car' as const };
+  const run = () => {
+    const rc = new RideCamera(), pose = { pos: new THREE.Vector3(), target: new THREE.Vector3(), fov: 46 };
+    for (let i = 0; i < 180; i++) rc.update({ ...sub, z: sub.z + i * 0.066 }, 1 / 60, i / 60, pose);
+    return { rc, pose };
+  };
+  const inWall = (x: number) => x > SX + 3.6 || x < SX - 3.6;
+  try {
+    // Hyde St: houses wall to wall 3.6 u either side of the car's axis, 12 u tall
+    world([rect(SX + 3.6, SZ - 70, SX + 30, SZ + 70, 12), rect(SX - 30, SZ - 70, SX - 3.6, SZ + 70, 12)]);
+    const narrow = run();
+    assert.ok(narrow.rc.swing > 0.7, `swung round toward behind the car (${narrow.rc.swing.toFixed(2)})`);
+    assert.ok(!inWall(narrow.pose.pos.x), `the camera is in the street, not in a house (x ${(narrow.pose.pos.x - SX).toFixed(2)} from the axis)`);
+    assert.ok(narrow.pose.pos.z < sub.z + 180 * 0.066 - 3, 'behind the car, along the street');
+    // an open street: the side-on shot stays
+    world([]);
+    const open = run();
+    assert.ok(open.rc.swing < 0.05, `side-on (${open.rc.swing.toFixed(2)})`);
+    assert.ok(open.pose.pos.x - SX > 5, 'from the side');
+  } finally { T.setCityTerrain(null); }
+});

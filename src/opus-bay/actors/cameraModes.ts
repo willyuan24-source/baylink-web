@@ -86,6 +86,11 @@ export const RIDE_TOUR: Partial<Record<NonNullable<RideSubject['kind']>, { dist:
 const MIN_PULL = 4;
 const HOLD = { bike: 1.0, car: 2.0, glide: 1.5, transit: 2.5, sit: 3 } as const;
 const PRESETS = [1, 0.72, 1.4];
+/** (W6-K1) the side-on transit shot's swing toward behind the car: the steps tried, the pitch it gains, and the share of
+ * its distance a wall may stand at before the side is given up */
+const SWING_STEPS = [0, 0.3, 0.55, 0.8, 1] as const;
+const SWING_PITCH = 0.12;
+export const SWING_CLEAR = 0.7;
 
 export class RideCamera {
   /** manual yaw / pitch offsets from the mode's default (drag / right stick) */
@@ -104,6 +109,15 @@ export class RideCamera {
   /** performance-clock time of the last drag (a drag cancels the look-at bias) */
   private dragPerf = -1e9;
   private fov = 44;
+  /**
+   * (W6-K1, lane T's review: on Hyde St the side-on cable-car shot sat inside the houses) how far the side-on transit
+   * shot has swung round toward behind the car (0 = side-on, 1 = straight behind, along the street) and the swing a
+   * narrow street asks for (re-checked at 5 Hz)
+   */
+  swing = 0;
+  private swingWant = 0;
+  private swingAt = -1;
+  private readonly probe = new THREE.Vector3();
 
   /** Manual orbit (px from the pointer, or stick deltas already scaled to rad). */
   orbit(dYaw: number, dPitch: number, now: number) {
@@ -119,7 +133,7 @@ export class RideCamera {
 
   update(sub: RideSubject, dt: number, now: number, out: RidePose, baseFovDelta = 0) {
     const fresh = this.mode !== sub.mode;
-    if (fresh) { this.mode = sub.mode; this.yawOff = 0; this.pitchOff = 0; this.pull = 99; }
+    if (fresh) { this.mode = sub.mode; this.yawOff = 0; this.pitchOff = 0; this.pull = 99; this.swing = this.swingWant = 0; this.swingAt = -1; }
     // re-centre behind the heading after the hold
     if (now - this.lastDragAt > HOLD[sub.mode]) {
       const k = 1 - Math.exp(-3 * dt);
@@ -172,6 +186,21 @@ export class RideCamera {
           // with the rider and the next wall)
           dist = tour.dist; pitch = tour.pitch; fov = tour.fov; lookUp = tour.lookUp; ahead = tour.ahead; rate = 5;
           yaw = sub.heading + Math.PI - tour.quarter * side + this.yawOff + Math.sin(now * 0.12) * 0.04;
+        } else if (sub.occlude) {
+          // (W6-K1) a narrow street (Hyde St between its houses): where a wall stands within SWING_CLEAR of the side-on
+          // distance, the shot swings round toward behind the car — along the street, where it is open — and a little
+          // higher, over the car's roof; it eases back to the side once the street opens (a drag holds it where it is)
+          if (now >= this.swingAt && now - this.lastDragAt > HOLD.transit) {
+            this.swingAt = now + 0.2;
+            const behind = wrap(sub.heading + Math.PI - yaw), d = dist * zoom;
+            this.swingWant = 1;
+            for (const k of SWING_STEPS) {
+              if (this.clearAt(sub, yaw + behind * k, clamp(pitch + SWING_PITCH * k + this.pitchOff, -0.1, 1.2), d, lookUp)) { this.swingWant = k; break; }
+            }
+          }
+          this.swing += (this.swingWant - this.swing) * (1 - Math.exp(-(this.swingWant > this.swing ? 5 : 1.2) * dt));
+          yaw += wrap(sub.heading + Math.PI - yaw) * this.swing;
+          pitch += SWING_PITCH * this.swing;
         }
         // W4-G9: toward the stop's attraction / the portal (behind the rider on the line to it), unless dragged since
         const w = this.dragPerf >= lookBias.t0 ? 0 : rideLookWeight();
@@ -210,6 +239,14 @@ export class RideCamera {
     this.fov += (fov + baseFovDelta - this.fov) * (fresh ? 1 : 1 - Math.exp(-3 * dt));
     out.pos.copy(this.pos);
     out.fov = this.fov;
+  }
+
+  /** (W6-K1) the shot from `yaw` / `pitch` at `dist` has no wall nearer than SWING_CLEAR of its distance */
+  private clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number): boolean {
+    const cp = Math.cos(pitch);
+    const p = this.probe.set(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist, sub.z + Math.cos(yaw) * cp * dist);
+    const hit = this.occluded(sub, p, dist);
+    return hit === null || hit >= dist * SWING_CLEAR;
   }
 
   /** Distance from the target to the first building sample on the way to the camera, or null. */
