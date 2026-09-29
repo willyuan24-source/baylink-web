@@ -21,7 +21,7 @@ import { RailLayer, residentGround } from './rails';
 import { CityLife } from './sf/cityLife';
 import type { TransitPortal } from './sf/format';
 import { LineFleet, busInterlocks } from './sf/lineFleet';
-import { boxBlocked, busAheadOfFCar, busWaitsForFCar, interlockLines } from './sf/lineInterlocks';
+import { boxBlocked, busAheadOfFCar, busWaitsForFCar, interlockLines, riderWantsBox } from './sf/lineInterlocks';
 import { type RoadVehicle, collectRoadVehicles, registerRoadVehicles, registerTransitStreet } from './sf/streetNet';
 import { obstaclePool, setVehicle, vehiclePool } from './sf/recordPool';
 import { roadViewer } from './sf/roadViewer';
@@ -183,7 +183,8 @@ export class TransitLayer {
         // (W6-B) the player on foot or in their bike / toy car (world/sf/roadViewer.ts): no transit drives through either
         viewer: roadViewer,
         portalReady: p => this.portalReady(p),
-        boxes: bt => busInterlocks(bt, interlockLines(this.data, this.fline), (line, b0, b1) => boxBlocked(this.sys, this.fline, line, b0, b1)),
+        // (W6-B) a bus dwelling in a box the rider's cable car waits for cuts its stop short (lineInterlocks riderWantsBox)
+        boxes: bt => busInterlocks(bt, interlockLines(this.data, this.fline), (line, b0, b1) => boxBlocked(this.sys, this.fline, line, b0, b1), undefined, (line, b0, b1) => riderWantsBox(this.sys, line, b0, b1)),
         roadUsers: out => collectRoadVehicles(out),
       });
       this.lines = lines;

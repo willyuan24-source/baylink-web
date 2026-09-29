@@ -556,7 +556,7 @@ registerWarmup('w4-lines', () => {
  * `blockedBy(line, b0, b1)` answers whether that line has a vehicle in its part [b0, b1] (integration: the cable-car
  * spans of CableSystem, the hero streetcar's position).
  */
-export function busInterlocks(bus: LineTrack, others: (Pick<TransitLine, 'id' | 'path' | 'tunnels'> & { body?: BodyDims })[], blockedBy: (line: string, b0: number, b1: number) => boolean, dist = BUS.width / 2 + 1.4): InterlockBox[] {
+export function busInterlocks(bus: LineTrack, others: (Pick<TransitLine, 'id' | 'path' | 'tunnels'> & { body?: BodyDims })[], blockedBy: (line: string, b0: number, b1: number) => boolean, dist = BUS.width / 2 + 1.4, wantedBy?: (line: string, b0: number, b1: number) => boolean): InterlockBox[] {
   const out: InterlockBox[] = [];
   for (const o of others) {
     const n = Math.floor(o.path.length / 3), xyz = new Float32Array(o.path), cum = new Float32Array(n);
@@ -570,7 +570,8 @@ export function busInterlocks(bus: LineTrack, others: (Pick<TransitLine, 'id' | 
       if ((o.tunnels ?? []).some(t => s.b0 >= t.fromAt && s.b1 <= t.toAt)) continue;
       const pad = o.body ? 1 : BUS.length / 2;
       const b0 = s.b0 - 3, b1 = s.b1 + 3;
-      out.push({ id: `${o.id}@${Math.round(s.a0)}:${Math.round(s.b0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, b0, b1), other: { line: o.id, b0, b1 } });
+      // (W6-B) wanted: the other line's rider waits for the box (a bus dwelling in it cuts its stop short)
+      out.push({ id: `${o.id}@${Math.round(s.a0)}:${Math.round(s.b0)}`, a0: s.a0 - pad, a1: s.a1 + pad, blocked: () => blockedBy(o.id, b0, b1), other: { line: o.id, b0, b1 }, ...(wantedBy ? { wanted: () => wantedBy(o.id, b0, b1) } : {}) });
     }
   }
   return out;

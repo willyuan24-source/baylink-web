@@ -155,3 +155,43 @@ test('W6-B6 ferry:sausalito — the Sausalito route is data for a later boat (ru
   const sweep = fs.readFileSync(path.resolve(import.meta.dirname, '../scripts/opus-sf/qa/sweep-static.mts'), 'utf8');
   assert.match(sweep, /for \(const r of FERRY_ROUTES\) if \(r\.running\) for \(const t of r\.terminals\)/, 'the static sweep takes the running routes\' quays only');
 });
+
+test('W6-B7 the shared Hyde St box: a loop bus dwelling at Wharf & Hyde (inside the Powell–Hyde line\'s box) cuts its stop short while the cable car carrying the rider comes down Hyde St to the box; otherwise (or on the rider\'s own bus) the full stop', async () => {
+  const { LineFleet, busInterlocks } = await import('../src/opus-bay/world/sf/lineFleet');
+  const { interlockLines, boxBlocked, riderWantsBox } = await import('../src/opus-bay/world/sf/lineInterlocks');
+  const { CableSystem } = await import('../src/opus-bay/world/transitLine');
+  const { BOX_HURRY_DWELL } = await import('../src/opus-bay/world/busSystem');
+  T.setTransitW4(W4);
+  T.setTransitData(DATA);
+  const sys = new CableSystem(DATA, {});
+  const fleet = new LineFleet({ loop: W4.loop, metro: W4.metro, props: W4.props }, {
+    boxes: bt => busInterlocks(bt, interlockLines(DATA, null), (line, b0, b1) => boxBlocked(sys, null, line, b0, b1), undefined, (line, b0, b1) => riderWantsBox(sys, line, b0, b1)),
+    emitEvents: false,
+  });
+  try {
+    const bus = fleet.bus, tr = bus.track;
+    const box = bus.boxes.find(b => b.other?.line === 'powell-hyde' && b.a0 < 600)!;
+    const stop = tr.stops.find(s => s.id === 'loop-wharf-hyde')!;
+    assert.ok(LT.arcAhead(tr, box.a0, stop.at) < LT.arcAhead(tr, box.a0, box.a1), 'the Wharf & Hyde stop lies inside the Hyde St box');
+    const b = bus.buses[0];
+    const dwellHere = () => Object.assign(b, { s: stop.at, v: 0, mode: 'dwell', timer: 8, station: stop.id, why: 'dwell', whyOf: stop.id, rider: false });
+    // the rider's cable car down Hyde St, 20 u short of the box's part (toward Hyde & Beach)
+    const car = sys.cars.find(c => c.line.id === 'powell-hyde' && !c.parked)!;
+    const o = box.other!;
+    Object.assign(car, { s: o.b0 - 20 - 3.1, dir: 1, v: 0, rider: true });
+    assert.ok(riderWantsBox(sys, 'powell-hyde', o.b0, o.b1));
+    dwellHere();
+    bus.step(1 / 20);
+    assert.ok(b.timer <= BOX_HURRY_DWELL, `the bus's stop in the box is cut short (${b.timer.toFixed(2)} s left)`);
+    // nobody riding that car: the bus keeps its full stop
+    Object.assign(car, { rider: false });
+    dwellHere();
+    bus.step(1 / 20);
+    assert.ok(b.timer > 7, `no rider waiting: the full stop (${b.timer.toFixed(2)} s left)`);
+    // the rider's car already past the box (going away): no hurry either
+    Object.assign(car, { rider: true, s: o.b1 + 10, dir: 1 });
+    dwellHere();
+    bus.step(1 / 20);
+    assert.ok(b.timer > 7, 'a car past the box does not want it');
+  } finally { fleet.dispose(); }
+});

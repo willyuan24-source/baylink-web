@@ -127,6 +127,12 @@ export interface InterlockBox {
    * vehicle in (integration: CableSystem.free() refuses a span overlapping [b0, b1] while `occupies(id)`).
    */
   other?: { line: string; b0: number; b1: number };
+  /**
+   * (W6-B, the shared Hyde St box) The other line's vehicle carrying the rider waits for the box or comes to it: a bus
+   * dwelling at a stop inside the box (the loop's Wharf & Hyde stop lies in the Powell–Hyde line's box) cuts its stop to
+   * BOX_HURRY_DWELL s — unless it carries or fetches the rider itself (world/sf/lineInterlocks.ts riderWantsBox).
+   */
+  wanted?: () => boolean;
 }
 
 export interface BusOptions {
@@ -153,6 +159,8 @@ export interface BusRideStatus extends RideStatus {
 }
 
 const HALF = BUS.length / 2;
+/** (W6-B) a stop inside an interlock box the other line's rider waits for (s): the doors open and close */
+export const BOX_HURRY_DWELL = 1.5;
 const tmpA: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpB: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
 const tmpC: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
@@ -406,6 +414,13 @@ export class BusSystem implements LineRideSystem {
     return best < horizon ? best : Infinity;
   }
 
+  /** (W6-B) Is the bus inside an interlock box the other line's rider wants (InterlockBox.wanted)? */
+  private boxWanted(b: Bus): boolean {
+    const bx = this.boxes;
+    for (let i = 0; i < bx.length; i++) if (bx[i].wanted && this.overlapsBox(b, bx[i]) && bx[i].wanted!()) return true;
+    return false;
+  }
+
   private overlapsBox(b: Bus, box: InterlockBox): boolean {
     const tr = this.track;
     // the box, seen from the bus's rear: the bus [s − HALF, s + HALF] overlaps [a0, a1]
@@ -571,6 +586,8 @@ export class BusSystem implements LineRideSystem {
     b.lateral += Math.max(-0.8 * dt, Math.min(0.8 * dt, kerb - b.lateral));
     if (b.mode === 'dwell') {
       b.v = 0;
+      // (W6-B) the rider on the other line waits for the box this bus dwells in: a short stop (not the rider's bus)
+      if (b.timer > BOX_HURRY_DWELL && b.why === 'dwell' && !b.rider && this.riderBus !== b.index && this.boxWanted(b)) b.timer = BOX_HURRY_DWELL;
       b.timer -= dt;
       if (b.why !== 'board' && b.why !== 'stop-ahead' && b.why !== 'hop-off') { b.why = 'dwell'; b.whyOf = b.station ?? ''; }
       if (b.timer <= 0) this.leave(b);

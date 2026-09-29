@@ -55,6 +55,25 @@ export const BOX_APPROACH = 14;
  * roadAhead), so a cable car's block authority over a long block no longer holds the bus back for the whole block (it
  * did: ≈ 60 s at California & Drumm).
  */
+/**
+ * (W6-B, the shared Hyde St box: NEXT #10) Does the cable car carrying the rider wait for (or come to) the part [b0, b1]
+ * of `line` — outside it, heading into it, within RIDER_WANTS u? A bus dwelling at a stop inside that box then cuts its
+ * stop short (world/busSystem.ts InterlockBox.wanted): the loop's Wharf & Hyde stop lies inside the Powell–Hyde line's
+ * box, and a rider's car down Hyde St waited out the bus's whole 8 s stop at Hyde & Chestnut (lane T's review: 16 s).
+ * The F-line's boxes: a streetcar never waits there for a dwelling bus (none of the loop's stops lies in them).
+ */
+const RIDER_WANTS = 70;
+export function riderWantsBox(cable: Pick<CableSystem, 'cars'>, line: string, b0: number, b1: number): boolean {
+  for (const c of cable.cars) {
+    if (!c.rider || c.line.id !== line || c.parked) continue;
+    const half = CABLE.length / 2 + 0.3;
+    if (c.s + half > b0 && c.s - half < b1) return false;
+    const to = c.dir > 0 ? b0 - (c.s + half) : c.s - half - b1;
+    if (to >= 0 && to < RIDER_WANTS) return true;
+  }
+  return false;
+}
+
 export function boxBlocked(cable: Pick<CableSystem, 'cars'>, fline: FLineHost | null, line: string, b0: number, b1: number): boolean {
   if (line === 'f-line') {
     if (!fline) return false;
