@@ -1,6 +1,7 @@
 import { Heart, Smile } from 'lucide-react';
 import { createElement, lazy, Suspense } from 'react';
 import { charApi } from '../actors/charApi';
+import { glideUnlocked, subscribeGlide } from '../actors/moveApi';
 import { emit, onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
@@ -172,6 +173,18 @@ export function init(): () => void {
 
   // 坐下: park the prompt at the player while it is on offer (4 Hz); hide a view spot's prompt while seated at it
   let still = 0, acc = 0, disposed = false;
+
+  // (W6-K1, lane A's review) the rings chunk (the rings layer, its material's warm-up) loads once the pelican is
+  // unlocked — during lane C's moment, before the first flight — not on the flight's first frame (a save that has the
+  // pelican already: at once)
+  let ringsAsked = false;
+  const prefetchRings = () => {
+    if (ringsAsked || disposed || !glideUnlocked()) return;
+    ringsAsked = true;
+    void import('./rings').catch(() => { ringsAsked = false; });
+  };
+  prefetchRings();
+  offs.push(subscribeGlide(prefetchRings));
   void import('./sit').then(m => { if (!disposed) sitModule = m; });
   offs.push(registerFrameSystem('a-play-offer', dt => {
     const p = runtime.player;

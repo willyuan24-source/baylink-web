@@ -99,9 +99,18 @@ export const heaveIt: Interactable = {
   x: FAR, z: FAR, radius: HEAVE_PROMPT_R,
   act: () => { const id = heaveIt.refId; if (id) void import('./heave').then(m => { m.heavePush(id); }); },
 };
+/** A boarding prompt (a transit stop's, not lane T's 帮忙推) the player stands in reach of. */
+export function boardingInReach(): boolean {
+  for (const it of interactables()) {
+    if (it.source === 'transit' && !it.id.startsWith('transit-push-') && nearPlayer(it.x, it.z, it.radius)) return true;
+  }
+  return false;
+}
 /** The prompt follows the turn near the player (4 Hz); true while one is on offer. */
 export function placeHeave(tt: { id: string; x: number; z: number } | null): boolean {
-  const on = !!tt && nearPlayer(tt.x, tt.z, HEAVE_PROMPT_R - 0.5);
+  // (W6-K1, lane A's review) never over a boarding prompt: in reach of a stop's 坐叮当车 (the queue at Powell & Market
+  // stands beside the turntable) the tap boards; the heave-ho is offered round it, not on top of it
+  const on = !!tt && nearPlayer(tt.x, tt.z, HEAVE_PROMPT_R - 0.5) && !boardingInReach();
   heaveIt.x = on ? tt!.x : FAR; heaveIt.z = on ? tt!.z : FAR; heaveIt.refId = on ? tt!.id : undefined;
   return on;
 }

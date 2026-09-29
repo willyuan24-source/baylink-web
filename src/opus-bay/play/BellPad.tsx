@@ -51,15 +51,13 @@ export default function BellPad({ ride }: { ride: FlowRide }) {
   const meterRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!running) return;
-    let id = 0, look = NaN, left = NaN, width = NaN;
+    let id = 0, look = NaN;
     const tick = () => {
-      const rr = riffState(), now = audioNow();
+      const rr = riffState(), now = audioNow(), c = cursorRef.current, m = meterRef.current;
       if (rr) {
         const tt = now - rr.t0;
-        const l = Math.round(Math.max(0, Math.min(1, tt / SPAN)) * 1000) / 10;
-        if (l !== left && cursorRef.current) { left = l; cursorRef.current.style.left = `${l}%`; }
-        const w = Math.round(Math.min(1, tt / GROOVE_SECONDS) * 1000) / 10;
-        if (w !== width && meterRef.current) { width = w; meterRef.current.style.width = `${w}%`; }
+        if (c) c.style.left = `${Math.min(100, (tt / SPAN) * 100)}%`;
+        if (m) m.style.width = `${Math.min(100, (tt / GROOVE_SECONDS) * 100)}%`;
         const k = riffLook(now);
         if (k !== look) { look = k; setTick(n => (n + 1) % 1e6); }
       }

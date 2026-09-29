@@ -164,3 +164,31 @@ test('W6-K1 (lane R\'s review): the sky\'s band is re-applied on a world switch 
   }
   assert.ok(differs > 0, 'the two worlds band some half-hours differently');
 });
+
+test('W6-K1 (lane A\'s review): the heave-ho never takes the tap from a boarding prompt in reach; the rings chunk is fetched at the pelican\'s unlock', async () => {
+  const z3 = await import('../src/opus-bay/play/zones3');
+  const I = await import('../src/opus-bay/game/interactables');
+  const saved = I.interactables();
+  const tt = { id: 'tt-k1', x: 5000, z: 5000 };
+  // the queue at Powell & Market stands beside the turntable (a stop's 坐叮当车, radius 4.2), and lane T's 帮忙推 (12 u)
+  I.setInteractables([
+    { id: 'transit-k1-stop', source: 'transit', action: 'streetcar', verb: { zh: '坐叮当车', en: 'Ride the cable car' }, name: { zh: '站', en: 'Stop' }, x: 5006, z: 5000, radius: 4.2 },
+    { id: 'transit-push-tt-k1', source: 'transit', action: 'streetcar', verb: { zh: '帮忙推', en: 'Help push' }, name: { zh: '转盘', en: 'Turntable' }, x: 5000, z: 5000, radius: 12 },
+  ] as ReturnType<typeof I.interactables>);
+  const p = runtime.player;
+  try {
+    p.x = 5007; p.z = 5000;                    // at the stop (1 u), 7 u from the turntable
+    assert.equal(z3.boardingInReach(), true);
+    assert.equal(z3.placeHeave(tt), false, 'the stop keeps the tap: 坐叮当车');
+    assert.ok(z3.heaveIt.x > 1e6);
+    p.x = 4992; p.z = 5003;                    // across the turntable, out of the stop's reach (lane T's 帮忙推 is no boarding prompt)
+    assert.equal(z3.boardingInReach(), false);
+    assert.equal(z3.placeHeave(tt), true, 'offered round it');
+    assert.equal(z3.heaveIt.refId, 'tt-k1');
+  } finally { I.setInteractables(saved as ReturnType<typeof I.interactables>); z3.placeHeave(null); }
+  const { readFileSync } = await import('node:fs');
+  const idx = readFileSync(new URL('../src/opus-bay/play/index.ts', import.meta.url), 'utf8');
+  assert.match(idx, /import\('\.\/rings'\)/, 'play/index fetches the rings chunk');
+  assert.match(idx, /offs\.push\(subscribeGlide\(prefetchRings\)\)/, 'when the glide unlocks');
+  assert.match(idx, /if \(ringsAsked \|\| disposed \|\| !glideUnlocked\(\)\) return;/, 'only once the pelican is unlocked');
+});
