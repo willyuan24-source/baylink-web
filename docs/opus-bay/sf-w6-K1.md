@@ -9,6 +9,7 @@ Worktree `C:/Users/willy/wt/w6-k1` (branch `w6-k1`), dev port 5601, scratch `C:/
 2. 街区模式（?world=district）恢复成和第五波之前完全一样：跳上台阶不再"手扒边缘爬上去"，攀爬只在整座旧金山模式里有。
 3. 第五波审查留下的小毛病都修了：对话开着时瞬移后 BAYBAY 不会再跑回老地方；E 键提示会跟着改名（飞行表演开始后显示"拍飞机编队"）；换世界时天色立刻切换；坐渡轮时提示写"船上 / 下船"；在金门大桥桥面上不会再误触发"海獭亲戚"彩蛋（下到炮台水边才触发，已实测）；彩虹脚印、桥面行走、自动飞行、爬楼梯比赛、缆车摇铃不再每帧制造垃圾对象。
 4. 缆车转盘"嘿咻推"不会再抢走车站的"坐叮当车"按钮；飞行金圈的代码在解锁鹈鹕时就提前加载，第一次飞行不再卡一下。
+5. 坐海德街缆车时镜头不会再钻进两边的房子里：街道窄的时候镜头自动绕到车后方、稍高一点，看得见站在踏板上的你（电脑和手机都实测过）；街边的树还会半透明地挡一点，留作下次再优化。
 
 ## Part a (2026-09-29, 01:53–02:10 PDT): the floating stick, the mantle in the district
 
@@ -128,3 +129,57 @@ deck), the prop pool (21 rebuilds in 2 s → ≤ 9).
 - **K2**: three small edits in your files, please keep them when you touch these lines: `ui/Hud.tsx` ContextAction (the
   `interactablesEpoch` subscription + re-read effect), `ui/Overlay.tsx` `useTimeOfDay` (the `world` dependency),
   `ui/MoveChip.tsx` (船上 / 下船 on the ferry).
+- Push note: part b went out as `3b15557b` after four rebases onto a busy `origin/opus-bay` (the full suite ran green on
+  three of the rebased heads: 1431, 1437, 1438 tests; the last two rebases brought only other lanes' realsf / Halloween /
+  K2 files and were checked with `tsc` + the wave-6 tests before the push, then the full suite on the pushed tree:
+  **1457 / 1457**).
+
+## Part c (2026-09-29, 03:55–04:35 PDT): the Hyde St ride camera
+
+### What was built
+
+- **W6-K1m `c3ad471a` + W6-K1n `5833c54c`** `actors/cameraModes.ts` `RideCamera`: the side-on transit shot of the city
+  lines (`sub.occlude`, the cable cars; the bus / LRV keep their designed RIDE_TOUR shot) checks at 5 Hz whether a wall
+  stands nearer than `SWING_CLEAR` = 70 % of its distance; if so it tries swinging round toward straight behind the car
+  (`SWING_STEPS` 0 / 0.3 / 0.55 / 0.8 / 1 of the way) and takes the first clear one; `swing` eases there at rate 5 (back
+  to the side at 1.2 once the street opens) and the shot rises `SWING_PITCH` = 0.35 rad × swing over the car's roof and
+  the street trees. A drag holds the swing where it is (the hold after a manual orbit); a new ride starts side-on. The
+  pull-in (≥ 4 u) still applies after the swing. Before, the side-on shot on Hyde St pulled in only to 4 u, which is
+  inside the houses there (lane T's review shot `C:/Users/willy/opus-qa/w5/w5-t/review/shots/r-cable-hyde-desktop.jpg`:
+  wall fragments dithered across the frame).
+- Test `tests/opus-bay-w6-k1-feel.test.ts` "narrow street": a synthetic street with houses 3.6 u either side of the car's
+  axis → swing > 0.7 and the camera in the street behind the car, not in a house; an open street → swing < 0.05 and the
+  side-on shot (red on the old code).
+
+### Evidence
+
+- Live, dev 5601, the Powell–Hyde from Hyde & Beach to Powell & Market (lane T's QA helpers `__opusBay.transit`),
+  `C:/Users/willy/opus-qa/w6/k1/hyde.mjs`, desktop 1440 × 900 and phone 390 × 844 dpr 3: the swing reads **0.00 at the
+  Hyde & Beach stop** (open: side-on as before), **0.8 → 1.0 up Hyde St**, 0.3–0.4 at the wider crossings, 1.0 again
+  above Lombard — the same on both runs. Shots (read): `docs/opus-bay/qa/w6/K1/c-hyde-ride-behind-desktop.jpg` (first
+  tune, SWING_PITCH 0.12: behind the car looking up Hyde St, the houses out of the frame's middle, the trees dithered in
+  front) and `c-hyde-ride-behind-phone.jpg` (final, 0.35: the rider on the running board reads from above-behind, the
+  street trees thinned by the dither round them).
+- Checks: see the push note below.
+
+### Decisions
+
+- A swing toward behind the car rather than a closer pull (the 4 u minimum was already inside the houses; closer than
+  that the rider fills the frame) — the street itself is the open direction on every city line.
+- Trees are not blockers for the ray (only buildings, landmark colliders and blockers wider than 1 u); raising the swung
+  shot was the cheap way over them.
+
+### Known gaps
+
+- The street trees still stand between the swung camera and the rider in places (dithered); a later pass could add the
+  street trees' trunks to the ray test or prefer the swing step whose line misses a canopy.
+- Not re-checked for the F-line (its window shot is not `occlude`) or the bus / LRV (their designed shot is unchanged).
+
+### Not done
+
+- Nothing else from my row. From the brief's list everything is done: the stick (P0 #2), the mantle, all six F items,
+  both D items, the three A items.
+
+### Requests
+
+- None.
