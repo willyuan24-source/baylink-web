@@ -275,3 +275,91 @@ Written 2026-09-29 ≈ 03:05 PDT.
   (`tests/opus-bay-w5-jets.test.ts`, `-events.test.ts`, `-calendar.test.ts`) were updated as described in parts a / b.
 - **H**: Día de los Muertos 2026 has no published date yet (above); if you dress 1–2 Nov, grade it "usually", as the
   calendar would.
+
+## Review
+
+Adversarial review of lane S (W6-S1 … W6-S3, 11 commits `4e70f4c1` … `07f837bf`), written 2026-09-29 04:40–05:30 PDT in
+`C:/Users/willy/wt/w6-s-rev` (branch `w6-s-rev` from `origin/opus-bay` = `07f837bf`), dev server 5627, scratch
+`C:/Users/willy/opus-qa/w6/s-rev/`.
+
+### 给主人的摘要（审查）
+
+1. S 线的活动、优惠、新店都核对过：38 个进游戏的旧金山活动逐个算过时间；6 个新场地、3 家新店的地点都重新从 OpenStreetMap 读了一遍（离真实点 1–6 格以内）；Athanor、Sergeant Ma 的地址和开业、非洲侨民博物馆两天免费的时间都在网上重新查过，全部属实。
+2. 修了 3 个问题：
+   - **晚场演出的“结束时间”是编的**：歌剧、演唱会、球赛目录里只写了开始时间，游戏按规矩最多显示到 21:00，于是“今天”页、这周、BAYBAY 的话和今日三件小事会说“《曼侬》19:30–21:00”“Young Miko 20:00–21:00”（歌剧其实要到 23 点左右）。现在只知道开始时间的都说“19:30 起”，有明确结束时间的照旧显示时间段。
+   - **蓝草音乐节的时间读法**：目录写“周五11:00开门…每日演出至19:00”，旧读法会读成 19:00–21:00（开演前就结束）。游戏里因为场地表有核实过的时间没出错，但读法本身错了，现在读成 11:00–19:00 / 9:00–19:00。
+   - **新店卡片在手机上按钮太小**：关闭 × 只有 32 像素、“BAYLINK 新店页”36 像素，按游戏的规矩手机上至少 44 像素，已改。
+3. 没有阻碍上线的问题。街区模式没变；万圣节、舰队周、夏令时这些主人的日期还正常。
+
+### What was checked
+
+- **Every commit read** (code, tests, report): `4e70f4c1` (venues, `labelHoursOn`, `handRowOf`), `de3ab51a` (jets bit 17),
+  `9c26a247` (live.json via `export-live.ts`), `8a7af619` / `e3f7c994` (openings, lazy card, `index.ts` three lines), the
+  report commits.
+- **The world's own functions over the real catalog** (a node script over `worldEvent` / `eventHours`): 57 SF events of
+  29 Sep – 30 Nov, **38 shown** (before the lane: 18), 13 professional, 5 After Dark (18+), First Thursday not placed —
+  the lane's numbers hold. Every shown event's hours per day read right except the ones fixed below; the whole 267-event
+  catalog scanned for odd windows (none shown in the world).
+- **Facts on the web, 2026-09-29**: the OSM API for every cited node / way (Thrive City bar node 11149187371, Chase
+  Center box office 7101767044 and way 579646390, Opera House `entrance=main` 10091282494 and way 32865161, Davies entrance
+  7191732934 and way 32865746, Arc Gallery 3789606760, KAIYŌ 693507981 at 1838 Union St, China Basin Berry Street Building
+  way 46264110 at 185 Berry St, MoAD node 415567060 at 685 Mission St); Nominatim for 2600 Sutter St (its interpolation on
+  Sutter St way 27054290 = the lane's point) and the Exploratorium (node 621529017); every row / sign projects within
+  1.0–6.0 u of its OSM point. Athanor at 2600 Sutter St, open Tue–Sat (https://www.athanorsf.com/, The Infatuation);
+  Sergeant Ma at 185 Berry St, opened Sep 9 (https://sfist.com/2026/08/27/sergeant-ma-a-new-china-basin-restaurant-with-chinese-and-vietnamese-flavors-opens-in-two-weeks/);
+  MoAD reopens Sep 30, Thu 12–8, "Every Second Saturday" free (https://www.moadsf.org/visit) and the Oct 1 Downtown First
+  Thursday 4–8 pm free (https://www.moadsf.org/event/downtown-first-thursdays---october-1). All as the lane wrote.
+- **Played** (dev server 5627, headless Chrome `--force_high_performance_gpu`): desktop 1440 × 900 en at Chase Center on
+  Oct 6 19:30 (the Lakers board, 128 triangles, the souvenir line); phone 390 × 844 繁體 at Athanor on Oct 2 (sign built,
+  180 triangles; the card reads 新店 · 已開業 … 官網：晚餐週二至週六，週日、週一休息 — the × measured 32 × 32 px, the link
+  145 × 36 px); phone zh 今天 tab on Oct 3 08:30 (the daily event task is the free African Arts festival, one market row,
+  HSB 9:00–19:00, Fleming 19:30–21:00 — the invented close fixed below); district mode (`?world=district`, Oct 24): no
+  realsf, no card, the Ferry Building district as before.
+- **Code**: the openings' tick runs at 2 Hz with no allocation, the interactables list is cached by the registry (rebuilt on
+  its epoch), the flag source runs at ≤ 4 Hz; `off()` removes the frame system, flags, interactables, overlay, mesh, warm-up
+  and material; realsf is city-only (`game/w5Features.ts`). Save: `SOUVENIR_IDS` appended after the jets' bit 17 (1,536
+  bits per kind), no new save fields.
+
+### Defects fixed (red → green: `tests/opus-bay-w6-s-review.test.ts`, 3 tests, all 3 red on `07f837bf`)
+
+1. **An evening show's invented end said as its end** (`realsf/events.ts` `windowEndKnown`, `realsf/TodayTab.tsx`,
+   `realsf/daily.ts`, and — surgical, lane R's file — `realsf/presence.ts` `eventLine`). Before: a start-only label closes
+   the world window at start + 4 h ≤ 21:00, and every text said that as the event's hours — the 今天 tab "Young Miko · 大通中心 ·
+   20:00–21:00", BAYBAY "今天歌剧院有歌剧《曼侬》，19:30–21:00，出发前查官网确认哦。", the daily task "大通中心 · 今天 19:00–21:00"
+   (the opera runs to ≈ 23:00). After: `windowEndKnown(w)` is true only for the venue table's hours or a label range / end
+   for that day; otherwise the texts say **"19:30 起" / "from 19:30"** (the Grizzlies: "17:30 起", their doors). Ranges stay
+   ranges (the Hoopla 12:00–15:00, HSB 9:00–19:00, the market 8:00–14:00). The world's window itself is unchanged.
+2. **`labelHoursOn` misread doors-only and "至" labels.** Before: HSB's "周五11:00开门；周六、日09:00开门；每日演出至19:00" read
+   **19:00–21:00** every day (the doors part gave nothing; "至19:00" was taken for a start) — hidden in the world only by the
+   venue table's verified hours. After: a doors-only part opens at its doors, "至 HH:mm" / "HH:mm 结束" is an end, and a 每日
+   part joins the day's own part: 11:00–19:00 Friday, 9:00–19:00 Saturday / Sunday. Every other shown event's hours are
+   unchanged (the scan above, before and after).
+3. **The 新店 card's touch targets** (`realsf/openings.css`): × 32 px and the link 36 px on a phone → 44 px on a coarse
+   pointer (the game's rule in `opus-bay.css`), the card's right padding widened for the bigger ×.
+
+After, in the game (dev server 5627, phone 390 × 844): **Oct 15 18:00**, zh, the 今天 tab — the daily task "去看看歌剧《曼侬》 ·
+歌剧院 · 今天 19:30 起", the rows "旧金山歌剧院《曼侬》 · 歌剧院 · 19:30 起" and "Young Miko · 大通中心 · 20:00 起", 这周 "Doja Cat …
+19:30 起", "《午夜凶铃》… 19:30 起", while APAture keeps its range 18:00–21:00 and the market 8:00–14:00
+(`qa/w6/S/review-today-2026-10-15-start-only-phone.jpg`); **Oct 2 11:00**, 繁體, at Athanor: the card's × **44 × 44**, the
+link **145 × 44** (were 32 × 32 and 145 × 36) (`qa/w6/S/review-opening-card-44px-hant-phone.jpg`).
+
+### Checks
+
+- On `07f837bf` + the fix: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite
+  **1440 / 1440**. Rebased onto `origin/opus-bay` `8829ee7e` (W6-P5): tsc 0 · eslint 0 errors (43 warnings) · the suite
+  **1470 / 1470**. Rebased again onto `3bc2bb29` (W6-X6; then over `b3e83493`, docs only), the pushed code: tsc 0 · eslint 0 errors (43 warnings) · the
+  suite **1470 / 1471** under load, the one failure the known wall-clock `sf-move2` "E2-5 view field" (4.6 s), which passes
+  alone (24 / 24). The fix is `5358e744` on `origin/opus-bay`.
+
+### Open items (not blocking)
+
+- The world still closes a start-only evening show at 21:00 (the wave-5 rule: no crowd at night); only the texts changed.
+- Board venues fly their pennant through the board (the lane's note); the Chase Center / Davies / Arc boards: Chase Center
+  seen in the game, the other two covered by the walking-network test only.
+- The first load on the dev server can show the player on open water for ~40 s while the far chunks stream (the souvenir
+  line is said before the ground is there); a dev-server effect seen by the lane too, not checked on a build.
+- Handroll Hawker (announced) and Día de los Muertos 2026 (no published date) wait, as the lane recorded.
+
+### Blocking the go-live
+
+Nothing.
