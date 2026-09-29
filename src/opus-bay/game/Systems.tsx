@@ -15,7 +15,7 @@ import * as flowActions from './flow';
 import { busy, callBaybay, closeDialogue, objectiveTarget, performInteraction, requestInteract, teleportPlayer, walkTo } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
-import { consumeShutter } from './photo';
+import { consumeShutter } from './shutterHook';
 import { domAnchors, overlayInsets } from './projector';
 import { type Box, hudBoxes, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, releaseHudLayout, scanHudBoxes } from './hudLayout';
 import { routeLeftTo } from './mapRoute';

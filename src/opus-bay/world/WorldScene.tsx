@@ -8,7 +8,7 @@ import { flow } from '../game/flowStore';
 import { readQa } from '../game/qa';
 import { suspendForCity } from './cityLoader';
 import { U, kindSweep } from './materials';
-import { PostFX, type PostParams } from './post';
+import type { PostFX, PostParams } from './post';
 import { MONITOR, declineQuality, monitorBounds } from './quality';
 import { type World, getWorld } from './world';
 import { parseKarlFlag } from './fogShader';
@@ -24,6 +24,18 @@ export { FERRY_ARRIVAL_SECONDS } from './life';
 type QaCam = { position: THREE.Vector3; target: THREE.Vector3 } | null;
 let qaCam: QaCam = null;
 let post: PostFX | null = null;
+/**
+ * W6-P4 (lane P, MF9): the high tier's post pass (world/post.ts) is its own small chunk, fetched as soon as this module
+ * runs (both modes); a world that mounts at the high tier waits for it (WorldScene below), so its first frame has the
+ * pass as before. A failed fetch never blocks the world: it renders without the pass, as the mid tier does.
+ */
+let postMod: typeof import('./post') | null = null;
+let postLoad: Promise<void> | null = null;
+let postSettled = false;
+function loadPost(): Promise<void> {
+  return (postLoad ??= import('./post').then(m => { postMod = m; postSettled = true; }, () => { postSettled = true; /* offline: no post pass */ }));
+}
+if (typeof window !== 'undefined') void loadPost();
 let timeApplied = false;
 const post$ = { focus: 0.3, warm: 0.25, vignette: 0.35, night: 0 } satisfies PostParams;
 /** seconds to the next material / shadow-depth sweep by object kind (materials.ts kindSweep; objects come and go with the city) */
@@ -73,6 +85,8 @@ export function WorldScene() {
   const camera = useThree(s => s.camera);
   // city mode: the world's constructor needs the lazy city chunk (world/cityLoader.ts); suspend until it is in
   if (game.get().worldMode === 'city') suspendForCity();
+  // (W6-P4) at the high tier the first frame waits for the post pass's chunk (fetched with GameRoot; settles either way)
+  { const st = game.get().settings; if (!postSettled && st.quality === 'high' && !st.reducedMotion) throw loadPost(); }
   const world = useMemo(() => getWorld(), []);
   const quality = useGame(s => s.settings.quality);
   const timeOfDay = useGame(s => s.timeOfDay);
@@ -129,9 +143,9 @@ export function WorldScene() {
     if ((sweepIn -= dt) <= 0) { sweepIn = 1; kindSweep(scene); }
     const fade = !flow.get().cinematic && !qaCam;
     world.update(dt, state.clock.elapsedTime, state.camera, fade);
-    const usePost = s.settings.quality === 'high' && !s.settings.reducedMotion;
+    const usePost = s.settings.quality === 'high' && !s.settings.reducedMotion && !!postMod;
     if (usePost) {
-      post ??= new PostFX();
+      post ??= new postMod!.PostFX();
       const f = focusY(state.camera, !!s.dialogue.nodeId);
       post$.focus += (f - post$.focus) * Math.min(1, dt * 10);
       post$.warm = world.env.warm;

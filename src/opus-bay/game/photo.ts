@@ -3,6 +3,7 @@ import { runtime } from '../core/runtime';
 import { game, toast } from '../core/store';
 import { flow } from './flowStore';
 import { decorateFrame, photoTags } from './photoFrames';
+import { setShutterConsumer } from './shutterHook';
 
 /**
  * Photo mode capture. The WebGL canvas does not preserve its drawing buffer, so the shutter only raises a
@@ -31,6 +32,8 @@ export function consumeShutter(canvas: HTMLCanvasElement) {
     try { compose(canvas, job.caption, job.stamp); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay photo]', error); }
   });
 }
+// W6-P4 (lane P): the Canvas ticker reaches it through game/shutterHook.ts (this module is not in GameRoot's chunk)
+setShutterConsumer(consumeShutter);
 
 function compose(source: HTMLCanvasElement, caption: string, stamp: string) {
   const maxW = 1800;

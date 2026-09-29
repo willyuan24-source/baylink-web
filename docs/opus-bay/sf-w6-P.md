@@ -118,3 +118,30 @@ its tree, the autumn merge and day 0 added ≈ 1.8 KB). Biggest parts (gzip of p
 - Tap-to-drive / the autopilot: `tests/opus-bay-w5-deadlock.test.ts` (20 simulated minutes, the autopilot behind and
   facing a stopped car), `opus-bay-sf-move2`, `opus-bay-sf-verify-g`, the contracts — 70 / 70, all through `loadDrive`.
 - Checks: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1393 / 1393**.
+
+## Part c · W6-P4 the photo capture and the high tier's post pass
+
+### What was built
+
+- `src/opus-bay/game/shutterHook.ts` (new, main graph, 0.2 KB): `consumeShutter(canvas)` for the Canvas ticker, which
+  calls the consumer `game/photo.ts` registers when it loads (`setShutterConsumer`). A shutter can only be requested
+  through photo.ts (the play layer's photo mode, lane A's bell, lane E's frames), so the consumer is always there first.
+  `game/Systems.tsx` (K2's; its import line only) imports `consumeShutter` from the hook; `game/photo.ts` (K2's; one
+  import, one line) registers itself. photo.ts and its frame decorators (`photoFrames.ts`) leave GameRoot (1.9 KB of parts)
+  and come with the play layer.
+- `src/opus-bay/world/WorldScene.tsx`: the high tier's post pass (`world/post.ts`: the MSAA target, bloom, tilt-shift,
+  1.7 KB of parts) is fetched as soon as WorldScene's module runs (both modes); a world that mounts at the high tier
+  suspends until that fetch has settled (the chunk comes with GameRoot's own preloads, so the first frame has the pass as
+  before); the frame loop renders through the pass only once the module is in, and a failed fetch never blocks the world
+  (it renders like the mid tier). Phones start at mid: they fetch 1.8 KB they may never run, off GameRoot's path.
+- `tests/opus-bay-sf-budget.test.ts` "W6-P4": the three modules out of the main graph, a requested shutter consumed
+  through the hook, the suspend and the failure path in WorldScene.
+
+### Evidence
+
+- GameRoot **277.51 KB** gzip on the rebased tree (origin `aaf71722` + P4; the lanes' pushes since part b added ≈ 1.5 KB to
+  GameRoot meanwhile); new chunks `photo` 1.88, `photoFrames` 0.43, `post` 1.80 KB.
+- Production build, district desktop (high tier): the Bay 101 start with the tilt-shift pass on from the first frame;
+  `?start=local` → P → Space: the photo mode, the shutter, the polaroid thumbnail (`photo` fetched with the play layer)
+  — `docs/opus-bay/qa/w6/P/p4-district-photo-mode-desktop-prod.jpg`.
+- Checks: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1429 / 1429**.

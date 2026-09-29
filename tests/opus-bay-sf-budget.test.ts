@@ -244,6 +244,33 @@ test('W6-P1: the play layer (HUD, dialogue box, moments, cards, touch stick) is 
   assert.match(gameRoot, /startRequested=\{startRequested && drawn && partsIn\}/);
 });
 
+test('W6-P4: the photo capture and the high tier\'s post pass leave GameRoot; the ticker reaches the capture through the shutter hook', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  for (const m of ['game/photo.ts', 'game/photoFrames.ts', 'world/post.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+  assert.ok(graph.has('game/shutterHook.ts'));
+  // photo.ts registers its consumer when it loads; a shutter reaches the capture through the hook the ticker calls
+  const hook = await import('../src/opus-bay/game/shutterHook');
+  const photo = await import('../src/opus-bay/game/photo');
+  let composed = 0;
+  const g = globalThis as unknown as { queueMicrotask: (fn: () => void) => void };
+  const q = g.queueMicrotask;
+  g.queueMicrotask = () => { composed++; };
+  try {
+    hook.consumeShutter({} as HTMLCanvasElement);
+    assert.equal(composed, 0, 'no shutter, nothing to do');
+    photo.requestShutter('cap', 'stamp');
+    hook.consumeShutter({} as HTMLCanvasElement);
+    assert.equal(composed, 1, 'the requested shutter is consumed through the hook');
+  } finally { g.queueMicrotask = q; }
+  // the world waits for the post chunk only at the high tier, and renders without it if the fetch failed
+  const scene = fs.readFileSync(path.join(root, 'world/WorldScene.tsx'), 'utf8');
+  assert.match(scene, /import type \{ PostFX, PostParams \} from '\.\/post'/);
+  assert.match(scene, /if \(!postSettled && st\.quality === 'high' && !st\.reducedMotion\) throw loadPost\(\)/);
+  assert.match(scene, /\(\) => \{ postSettled = true; \/\* offline: no post pass \*\/ \}/);
+});
+
 test('W6-P2 / P3: the autopilot comes with the first drive, the six residents and the landmark arrivals with the city data chunk', async () => {
   const root = path.resolve('src/opus-bay');
   const graph = mainGraph(root);
