@@ -36,15 +36,20 @@ export const HALLOWEEN_DUR: Record<HalloweenSound, number> = { 'treat': 2.2, 'pu
 
 let tolled = false;
 
-/** Play a Halloween sound (the big night's toll once a session: the phase can be announced again on a world switch). */
+/** Tests / QA: the session's toll not yet played. */
+export function resetNightToll() { tolled = false; }
+
+/**
+ * Play a Halloween sound (the big night's toll once a session: the phase can be announced again on a world switch; W6-X
+ * review: a toll the voice budget dropped is not counted, so the next announcement still tolls).
+ */
 export function playHalloween(e: AudioEngine, sound: HalloweenSound) {
-  if (sound === 'night-toll') { if (tolled) return; tolled = true; }
   switch (sound) {
     case 'treat': treat(e); break;
     case 'pumpkin': pumpkin(e); break;
     case 'costume-on': costume(e, true); break;
     case 'costume-off': costume(e, false); break;
-    case 'night-toll': nightToll(e); break;
+    case 'night-toll': if (!tolled) tolled = nightToll(e); break;
   }
 }
 
@@ -119,12 +124,13 @@ function costume(e: AudioEngine, on: boolean) {
 }
 
 /** the big night: one far, low clock-tower toll and a breath of night wind */
-function nightToll(e: AudioEngine) {
+function nightToll(e: AudioEngine): boolean {
   const v = e.voice({ bus: 'sfx', dur: HALLOWEEN_DUR['night-toll'], gain: 0.16, priority: 3, reverb: 0.7, name: 'halloween:night' });
-  if (!v) return;
+  if (!v) return false;
   const base = 147; // D3
   for (const [ratio, g, d] of [[0.5, 0.4, 3.6], [1, 0.55, 3], [1.19, 0.28, 2.2], [1.5, 0.2, 1.8], [2, 0.16, 1.4], [2.52, 0.09, 1]] as const) {
     e.tone(v, { type: 'sine', freq: base * ratio, decay: d, peak: g, attack: 0.003 });
   }
   e.noiseBurst(v, { color: 'pink', attack: 0.8, decay: 2.4, peak: 0.12, offset: 0.4, filter: { type: 'bandpass', freq: 380, Q: 0.8, freqTo: 900, glide: 1.8 } });
+  return true;
 }

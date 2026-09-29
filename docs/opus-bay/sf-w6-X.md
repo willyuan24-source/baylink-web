@@ -220,3 +220,63 @@ Nothing for lanes G and H to wire: they say these lines as BAYBAY bubbles with t
 - Dev server 5609 stopped; no Chrome of this lane left running. Scratch (raw draws, takes, renders):
   `C:/Users/willy/opus-qa/w6/x/`.
 - 进度（给主人）：第六波视觉/声音线完成——万圣节明信片 4 张、万圣节音效、BAYBAY 万圣节台词 80 条录音、城市路人有了脸和不同肤色发色、万圣节标题画面；共花 15.7 分。
+
+## Review (W6-X-review, 2026-09-29 04:56–05:40 PDT)
+
+**给主人的摘要：** 第六波视觉/声音线我逐个提交看过，也在游戏里实际试过（电脑 1440×900 和手机 390×844）。
+万圣节明信片 4 张、万圣节标题画面都好看，画风和以前一致；敲门讨糖时 BAYBAY 的录音和敲门、开门、糖果的音效都会正常播放；
+城市路人的脸和肤色发色没有问题，街区模式没变。找到并修好 1 个问题：**10/31 万圣节大夜晚那声远处钟楼的钟声，原来实际上永远不会响**
+（万圣节模块在声音还没开始时就宣布了“今晚是大夜晚”，这一下被错过，以后也不会再宣布）。现在进入游戏后的第一刻会响一次。
+没有阻止上线的问题。Higgsfield 余额核对：2359.3（和账本一致，本次审查没有花分）。
+
+**What was checked**
+
+- Every commit of the lane (`9d65f2a7`, `bb0c5e6b`, `5208bb79`, `fe329ae8`, `3bc2bb29`, `b3e83493`), code read line by line.
+- Live, dev server on 5629, `node scripts/opus-shot.mjs`:
+  - the title with `?world=city&halloween=1` on desktop: the Halloween key art loads (`w6/art/key-wide-halloween-1920.webp`),
+    alt text in the manifest; `review/rev-title-halloween-desk.jpg`. The world mode is fixed for the page
+    (`?world=`), so computing `ASSETS.keyArt` once at load is right; no preload of the old art to waste.
+  - the phone (390×844, dpr 3, quality mid) at night at the Ferry Building with `?halloween=1`: 46 calls, 173k triangles;
+    walkers on the pier read as figures with hair / face at night (dim, like the shirts) — `review/rev-phone-night-ferry.jpg`.
+    Desktop at a Belvedere door: 61 calls, 236k triangles (≤ 150 / 400k).
+  - a trick-or-treat door end to end (`__opusBay.g.look(3)` + `knock(3)`): the page fetched `w6/voice/en-w6g-knock.m4a`,
+    the lazy `audio/halloween.ts` chunk, then `w6/voice/en-w6g-thanks.m4a`; `__opusAudio.stats().counts` shows
+    `halloween:treat: 1`. This closes the lane's open item "no in-game recording of a knock".
+- The crowd faces (`world/sf/crowd.ts`, `world/life.ts`): no per-frame allocation (`pickPeopleFigure` allocates only when
+  the city figure is first made); the shared `aPhase` / `aWalk` instanced attributes are the Packer's, so packing still
+  works; both figures disposed on `dispose()`; the shader's `aInfo.x < 9.5` narrowing touches no other geometry of the
+  people material (the district figure and the warmup box have no 10 channel). District figure unchanged (test).
+- Costume events: lane G emits them only for costume items (a normal hat swap is silent); the pumpkin chime defers to
+  lane H's registered `halloween:pumpkin` (one chime, not two).
+- Voice: 80 m4a + 80 ogg on disk; sampled clips measured with ffmpeg (mean −17…−19 dB, peaks ≤ −2.5 dB, durations equal
+  to the table; the retaken zh 小女巫 clip has no long silence). zh-Hant plays the zh clip (the binder keys on the zh text).
+- Real-world fact baked into a recording (lane H's 亡灵节 line "11 月 2 日晚上 … 22 街和布莱恩特街口出发"): matches
+  SFMTA's 2025 notice, https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025
+  (procession on 2 November from 22nd & Bryant; checked 2026-09-29).
+- Higgsfield `balance` 2359.3 at 05:33 PDT — matches the ledger (2375 − 15.70). The reviewer spent nothing.
+
+**Defect fixed (red → green, `tests/opus-bay-w6-x.test.ts` "W6-X review" ×2)**
+
+1. **The big night's toll never played.** `halloween/world.ts` announces the phase once, when the feature starts; that is
+   before the audio is live, so `audio.ts` dropped the event, and the phase does not change again that night. Live before:
+   `?halloween=night`, after a gesture and a walk, `counts` had no `halloween:night`. Fix (`audio/audio.ts`): a small
+   `nightTollGate()` sees every event before the live gate and the first live moment after a `night` announcement plays
+   the toll (once; a later phase disarms it); phase events no longer load the chunk on their own. Live after:
+   `halloween:night: 1`, then `halloween:treat: 1` at a door.
+2. **A toll the voice budget dropped counted as played** (`audio/halloween.ts` set `tolled` before asking for a voice).
+   Now only a toll that got its voice counts (`nightToll` returns whether it played; `resetNightToll()` for tests).
+
+**Checks of the pushed tree** (rebased on `b609a2ce`): `tsc` 0 · `eslint .` 0 errors · opus-bay suite **1489 / 1489**.
+
+**Open items (not blocking)**
+
+- The owner has not yet listened to the 80 clips and the SFX (`qa/w6/X/voice/listening.md`, `qa/w6/X/sfx-*.m4a`).
+- The four Halloween postcards are delivered but not shown anywhere yet (no import of `data/sf/halloweenPostcards.ts`
+  outside itself): lanes H / G still have to use them, or they stay unused files (harmless).
+- A waving city walker lifts only its mitten hand (the nub sleeve stays at the shoulder), as the old figure lifted a
+  floating arm blob; fine at crowd distance.
+- On the phone title the tall crop hides most of BAYBAY behind the card (only the witch hat shows) — the same crop as the
+  shipped key art, so not a regression.
+- Weakest items 2–4 of the lane's shoot and V's voice batch 5: not started (the lane's own note).
+
+**Blocking the go-live to main:** none.

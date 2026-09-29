@@ -100,7 +100,7 @@ test('W6-X3 · the big night tolls once a session; audio.ts loads the sounds laz
   const src = fs.readFileSync(path.join(ROOT, 'src/opus-bay/audio/audio.ts'), 'utf8');
   assert.ok(!/^import .*'\.\/halloween'/m.test(src), 'no static import of ./halloween');
   assert.match(src, /import\('\.\/halloween'\)/);
-  assert.match(src, /case 'halloween': halloweenSfx\(e, ev\)/);
+  assert.match(src, /case 'halloween': if \(ev\.what !== 'phase'\) halloweenSfx\(e, ev\)/);
 });
 
 test('W6-X5 · the city crowd near figure: a face, sleeves and hands; per-walker skin / hair; small; the district figure unchanged', async () => {
@@ -208,4 +208,38 @@ test('W6-X6 · the title shows the Halloween key art in city mode in the season 
     assert.ok(fs.existsSync(disk) && fs.statSync(disk).size < 120_000, f);
   }
   assert.ok(/[一-鿿]/.test(KEY_ART_HALLOWEEN.alt) && /jack-o/.test(KEY_ART_HALLOWEEN.altEn));
+});
+
+test('W6-X review · the big night tolls although its phase is announced before the sound is live (once, at the first live moment)', async () => {
+  const { nightTollGate } = await import('../src/opus-bay/audio/audio');
+  const gate = nightTollGate();
+  // halloween/world.ts announces the phase once, at the feature's start — before the audio is live (live QA: no toll)
+  gate.see({ type: 'halloween', what: 'phase', id: 'night' });
+  assert.equal(gate.take(), true, 'the first live moment after the announcement tolls');
+  assert.equal(gate.take(), false, 'once');
+  gate.see({ type: 'halloween', what: 'phase', id: 'night' });
+  gate.see({ type: 'halloween', what: 'phase', id: 'muertos' });
+  assert.equal(gate.take(), false, 'a later phase disarms it');
+  gate.see({ type: 'footstep', surface: 'stone', run: false } as never);
+  gate.see({ type: 'halloween', what: 'treat', id: 'door:2' });
+  assert.equal(gate.take(), false, 'other events never arm it');
+  // audio.ts: every event is seen before the live gate; the toll is taken after it; phase events go only through the gate
+  const src = fs.readFileSync(path.join(ROOT, 'src/opus-bay/audio/audio.ts'), 'utf8');
+  const handle = src.slice(src.indexOf('const handle = (ev: GameEvent)'));
+  const seen = handle.indexOf('night.see(ev)'), gated = handle.indexOf('if (!rig || !live()) return;'), taken = handle.indexOf('night.take()');
+  assert.ok(seen >= 0 && gated > seen && taken > gated, 'see → live gate → take');
+  assert.match(src, /case 'halloween': if \(ev\.what !== 'phase'\) halloweenSfx\(e, ev\); break;/);
+});
+
+test('W6-X review · a toll the voice budget dropped is not spent: the next try tolls', async () => {
+  const { playHalloween, resetNightToll } = await import('../src/opus-bay/audio/halloween');
+  resetNightToll(); // (the recipe test above tolled already in this process)
+  const full = { ...fakeEngine().e, voice: () => null };
+  playHalloween(full as never, 'night-toll');
+  const a = fakeEngine();
+  playHalloween(a.e as never, 'night-toll');
+  assert.equal(a.voices.length, 1, 'the dropped toll was not counted');
+  const b = fakeEngine();
+  playHalloween(b.e as never, 'night-toll');
+  assert.equal(b.voices.length, 0, 'still once a session');
 });

@@ -59,6 +59,21 @@ function halloweenSfx(e: AudioEngine, ev: Extract<GameEvent, { type: 'halloween'
     .catch(error => { halloweenChunk = null; if (DEV) console.warn('[opus-bay audio] halloween sounds', error); });
 }
 
+const NIGHT_PHASE: Extract<GameEvent, { type: 'halloween' }> = { type: 'halloween', what: 'phase', id: 'night' };
+
+/**
+ * (W6-X review) The big night's toll waits for the sound to be live: halloween/world.ts announces the phase once, when the
+ * feature starts, and that is before the audio is live (live QA with ?halloween=night: no toll). Every event is `see`n
+ * before the live gate; the first live moment after a `night` announcement `take`s the toll (once; a later phase disarms it).
+ */
+export function nightTollGate() {
+  let armed = false;
+  return {
+    see(ev: GameEvent) { if (ev.type === 'halloween' && ev.what === 'phase') armed = ev.id === 'night'; },
+    take(): boolean { const t = armed; armed = false; return t; },
+  };
+}
+
 export function startAudio(): () => void {
   if (typeof window === 'undefined') return () => {};
   let ctx: AudioContext | null = null;
@@ -262,11 +277,14 @@ export function startAudio(): () => void {
     resume();
   };
 
+  const night = nightTollGate();
   const handle = (ev: GameEvent) => {
+    night.see(ev);
     if (ev.type === 'start') { activate(); return; }
     if (!rig || !live()) return;
     const { engine: e, ambience, voice } = rig;
     const now = e.now;
+    if (night.take()) halloweenSfx(e, NIGHT_PHASE);
     switch (ev.type) {
       case 'footstep': if (footstepOk(now)) sfx.footstep(e, ev.surface, ev.run); break;
       case 'jump': sfx.jump(e); break;
@@ -339,7 +357,7 @@ export function startAudio(): () => void {
       case 'sit': rides.sitCreak(e); break;
       case 'pant': rides.pant(e); break;
       // wave 6 (lane X, W6-X3): the Halloween sounds live in their own small chunk, fetched at the season's first event
-      case 'halloween': halloweenSfx(e, ev); break;
+      case 'halloween': if (ev.what !== 'phase') halloweenSfx(e, ev); break;
       // recorded city lines (lane H2b data, lane G2 triggers): the clip, else the line's chirp
       case 'voice-line': voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi'); break;
     }
