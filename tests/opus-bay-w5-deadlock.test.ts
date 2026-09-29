@@ -654,9 +654,11 @@ test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the pub
     // nothing on the road holds a bus or a train more than 5 s: no toy car, no queue, no stop zone, no crossing
     for (const [kd, w] of worst) if (!kd.endsWith('at an interlock')) assert.ok(w.secs <= 5, `${kd} stood ${w.secs.toFixed(1)} s (${w.why}) at ${w.at}`);
     // at an interlock a bus or train waits for the other line's vehicle to come out of the shared stretch, never for
-    // good (Market St: the loop runs 148 u on the F-line's single-track stem, two streetcars meeting at a passing place
-    // in there hold a bus ≈ 45 s — the leftover lineInterlocks.ts names)
-    for (const [kd, w] of worst) if (kd.endsWith('at an interlock')) assert.ok(w.secs <= 60, `${kd} stood ${w.secs.toFixed(1)} s (${w.why}) at ${w.at}`);
+    // good. (W6-B) A bus ≤ 25 s: Market St — the loop runs 148 u on the F-line's single-track stem — held the rider's bus
+    // 47 s while two streetcars met at a passing place in there (a car leaving the part to the bus had taken the block
+    // beyond it); now the car waits at the passing place before the part without that block (world/flineSystem.ts,
+    // world/sf/lineInterlocks.ts holdBefore). A train (the Sunset Tunnel's single track, a terminus) ≤ 60 s.
+    for (const [kd, w] of worst) if (kd.endsWith('at an interlock')) assert.ok(w.secs <= (kd.startsWith('bus') ? 25 : 60), `${kd} stood ${w.secs.toFixed(1)} s (${w.why}) at ${w.at}`);
     // the bus watch saw no stall (≥ 6 s off a stop) of the rider's bus but at a box
     assert.deepEqual(busWatch.busStalls().filter(s => s.rider && s.why !== 'box'), []);
   } finally {

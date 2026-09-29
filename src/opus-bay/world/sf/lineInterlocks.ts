@@ -1,5 +1,6 @@
-import { FL, type FLine, cyclePoint } from '../../data/fline';
+import { FL, type FLine, cyclePoint, legAt, sAtU, uAtS } from '../../data/fline';
 import { CABLE, type TransitData } from '../../data/transit';
+import type { InterlockBox } from '../busSystem';
 import type { FCar, StreetcarSystem } from '../flineSystem';
 import type { BodyDims } from '../lineTrack';
 import type { CableSystem } from '../transitLine';
@@ -103,8 +104,42 @@ function fRunSeconds(L: FLine, u0: number, d: number): number {
 }
 
 /** (W5-bus) per streetcar: the box it leaves to a bus now and since when (the bus system's clock) */
-const CHAIN = new Set<object>();
+const CHAIN: boolean[] = [];
 const fYield = new WeakMap<object, { box: string; since: number }>();
+/** (deadlock-review) how far ahead of a car's front (u) a box part is looked at: its passing place before the part too */
+const F_LOOK = 110;
+
+/**
+ * (deadlock-review) Per box part (its `other` record): the cycle u of the passing place a streetcar leaving the part to a
+ * bus waits at — the hold point (world/flineSystem.ts nextNeed) of the single-track block the part's first edge lies in
+ * — or NaN (the edge off the single track, or no passing place before it). Standing at the edge itself the car held
+ * that block; a car in the part coming the other way (or leaving it) needed the block, so the waiting car went in after
+ * all (`neededByAPart`) and the bus waited out its run through the whole part: 38–41 s on Market St (node, the loop
+ * ridden for hours; the leftover the W5-bus proof bounded at 60 s).
+ */
+const holdOf = new WeakMap<object, number>();
+function holdBefore(L: FLine, part: { b0: number }): number {
+  const hit = holdOf.get(part);
+  if (hit !== undefined) return hit;
+  let hu = NaN;
+  const leg = legAt(L, part.b0), s = sAtU(L, part.b0), b = L.bounds, m = b.length - 1;
+  if ((leg === 1 || leg === 3) && s > 0 && s < L.sJoin) {
+    // leg 1 runs toward Castro (s falling): the first passing place above the edge; leg 3 the last one below it
+    let hs = NaN;
+    if (leg === 1) { for (let j = 1; j < m; j++) if (b[j] > s + 0.5) { hs = b[j]; break; } }
+    else for (let j = m - 1; j >= 1; j--) if (b[j] < s - 0.5) { hs = b[j]; break; }
+    if (!Number.isNaN(hs)) hu = uAtS(L, leg, hs);
+  }
+  holdOf.set(part, hu);
+  return hu;
+}
+
+/** (deadlock-review) Does a bus wait at this box? (a plain loop: it runs for every streetcar every frame) */
+function busWaitsAt(fleet: Pick<LineFleet, 'bus'>, box: InterlockBox): boolean {
+  const bus = fleet.bus;
+  for (let i = 0; i < bus.buses.length; i++) { const b = bus.buses[i]; if (b.why === 'box' && bus.boxes[b.waitBox] === box) return true; }
+  return false;
+}
 
 /**
  * An F-line car's view down its track (flineSystem `roadAhead`, u from the car's centre): the edge of an interlock box
@@ -118,7 +153,8 @@ export function busAheadOfFCar(fleet: Pick<LineFleet, 'bus'>, fline: FLineHost, 
   // deadlocked at the Castro hairpin: the car stopped for a bus that was waiting at the box for that very car.)
   let best = Infinity;
   const L = fline.line, v = car.v ?? 0;
-  const stopping = (v * v) / (2 * FL.dec) + 1.5;
+  // (deadlock-review) the room a moving car needs to stop (a car standing where it would wait stays)
+  const stopping = v > 0.3 ? (v * v) / (2 * FL.dec) + 1 : 0;
   const now = fleet.bus.time;
   const y = fYield.get(car);
   let yielding: string | null = null;
@@ -131,12 +167,17 @@ export function busAheadOfFCar(fleet: Pick<LineFleet, 'bus'>, fline: FLineHost, 
     const o = box.other;
     if (!o || o.line !== 'f-line') continue;
     const toEdge = aheadOn(L, car.u + FL.half, o.b0);
-    if (toEdge > 60 || aheadOn(L, o.b0, car.u + FL.half) < o.b1 - o.b0) continue;
+    if (toEdge > F_LOOK || aheadOn(L, o.b0, car.u + FL.half) < o.b1 - o.b0) continue;
     if (fleet.bus.occupies(box.id)) { best = Math.min(best, toEdge + FL.half + 1); continue; }
-    if (car.rider || (car.pickup ?? -1) >= 0 || (!y && toEdge < stopping)) continue;
+    // (deadlock-review) where it waits (centre, u from here): at the passing place before the part's single-track block
+    // (it never takes that block while it waits: flineSystem takes none past where the road stops a car), else with
+    // its front 0.5 u short of the edge
+    const hu = holdBefore(L, o), hd = Number.isNaN(hu) ? NaN : aheadOn(L, car.u, hu);
+    const stopD = !Number.isNaN(hd) && hd <= toEdge + FL.half ? hd : toEdge - 0.5;
+    if (car.rider || (car.pickup ?? -1) >= 0 || (!y && stopD < stopping)) continue;
     // a bus waiting at the box (or about to reach it): the stretch is the bus's — nobody new goes in but a car one
     // inside waits for (it could never leave, and the bus waits for it); the ones inside drain out
-    const reserved = fleet.bus.buses.some(b => b.why === 'box' && fleet.bus.boxes[b.waitBox] === box) || fleet.bus.boxDue(box.id, 30);
+    const reserved = busWaitsAt(fleet, box) || fleet.bus.boxDue(box.id, 30);
     if (needed) continue;
     if (!reserved) {
       // the car's time in the part: its run through it (its body clear) and a stop's wait in it
@@ -151,7 +192,7 @@ export function busAheadOfFCar(fleet: Pick<LineFleet, 'bus'>, fline: FLineHost, 
     }
     yielding = box.id;
     if (!y || y.box !== box.id) fYield.set(car, { box: box.id, since: now });
-    best = Math.min(best, toEdge + FL.half + 1);
+    best = Math.min(best, stopD + FL.half + 1.5);
   }
   if (!yielding && y) fYield.delete(car);
   return best;
@@ -165,24 +206,33 @@ export function busAheadOfFCar(fleet: Pick<LineFleet, 'bus'>, fline: FLineHost, 
 function neededByAPart(fleet: Pick<LineFleet, 'bus'>, fline: FLineHost, car: object): boolean {
   const sys = fline.sys, waitsOn = sys.waitsOn;
   if (!waitsOn) return false;
-  const L = fline.line;
-  // (one set for every call: it runs for each streetcar every frame)
+  const L = fline.line, cars = sys.cars, boxes = fleet.bus.boxes;
+  // (deadlock-review) one flag per car, plain loops: it runs for each streetcar every frame (the Set, its iterator and
+  // a closure per car were garbage every frame)
   const chain = CHAIN;
-  chain.clear();
-  for (const o of sys.cars) {
-    if (fleet.bus.boxes.some(b => b.other?.line === 'f-line' && aheadOn(L, b.other.b0 - BOX_APPROACH, o.u) < b.other.b1 - b.other.b0 + BOX_APPROACH + FL.half)) chain.add(o);
+  let n = 0, self = false;
+  for (let i = 0; i < cars.length; i++) {
+    const o = cars[i];
+    let near = false;
+    for (let j = 0; j < boxes.length && !near; j++) {
+      const p = boxes[j].other;
+      if (p && p.line === 'f-line' && aheadOn(L, p.b0 - BOX_APPROACH, o.u) < p.b1 - p.b0 + BOX_APPROACH + FL.half) near = true;
+    }
+    chain[i] = near;
+    if (near) { n++; if (o === car) self = true; }
   }
-  if (chain.has(car) && chain.size === 1) return false;
+  if (self && n === 1) return false;
   // what the cars in the parts wait for, and what those wait for …
   for (let grew = true; grew;) {
     grew = false;
-    for (const c of sys.cars) {
-      if (chain.has(c) && c !== car) continue;
+    for (let i = 0; i < cars.length; i++) {
+      const c = cars[i];
+      if (chain[i] && c !== car) continue;
       let waited = false;
-      for (const o of chain) if (o !== c && waitsOn.call(sys, o as FCar, c as FCar)) { waited = true; break; }
+      for (let j = 0; j < cars.length && !waited; j++) if (chain[j] && j !== i && waitsOn.call(sys, cars[j], c)) waited = true;
       if (!waited) continue;
       if (c === car) return true;
-      chain.add(c);
+      chain[i] = true;
       grew = true;
     }
   }

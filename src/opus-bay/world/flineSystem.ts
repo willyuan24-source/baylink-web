@@ -87,6 +87,19 @@ export const FLINE_ID = 'streetcar';
 const BOARD_MIN = 1.6;
 /** (W5-bus) a stop inside a box part while a bus waits for it (s) */
 const HURRY_DWELL = 1;
+
+/** The next single-track block a car needs: the block, its direction and where the car stops without it (cycle u). */
+interface Need { k: number; dir: 1 | -1; hold: number }
+/** (deadlock-review) a Need written into `out` (scratch records for the per-frame questions: pendingHold, waitsOn, firstInLine) */
+function needOf(out: Need | undefined, k: number, dir: 1 | -1, hold: number): Need {
+  if (!out) return { k, dir, hold };
+  out.k = k; out.dir = dir; out.hold = hold;
+  return out;
+}
+const NEED_P: Need = { k: 0, dir: 1, hold: 0 };
+const NEED_W: Need = { k: 0, dir: 1, hold: 0 };
+const NEED_F: Need = { k: 0, dir: 1, hold: 0 };
+const BODY_C: [number, number] = [0, 0];
 const TELEPORT_BACK = [30, 45, 22, 70, 100, 140];
 const REDISPATCH_ETA = 20;
 const DISPATCH_SECONDS = 5;
@@ -161,7 +174,8 @@ export class StreetcarSystem {
    * to (Market St: an inbound car waiting at a passing place for the outbound one) leaves the part to the bus.
    */
   pendingHold(car: FCar): number {
-    const need = this.nextNeed(car);
+    // (deadlock-review) scratch records: lineInterlocks asks this for every streetcar every frame
+    const need = this.nextNeed(car, NEED_P);
     if (!need || car.blocks.includes(need.k)) return NaN;
     return this.canTake(car, need.k, need.dir) && this.firstInLine(car, need) ? NaN : need.hold;
   }
@@ -173,7 +187,7 @@ export class StreetcarSystem {
    */
   waitsOn(o: FCar, by: FCar): boolean {
     if (o === by) return false;
-    const need = this.nextNeed(o);
+    const need = this.nextNeed(o, NEED_W);
     if (!need || o.blocks.includes(need.k)) return false;
     return !this.canTake(o, need.k, need.dir) && this.canTake(o, need.k, need.dir, by.index);
   }
@@ -195,18 +209,28 @@ export class StreetcarSystem {
 
   /** The exclusive part of block k on C (outside the passing places at its ends; the switch ramp is inside it). */
   private blockSpan(k: number): [number, number] {
-    const b = this.line.bounds, m = b.length - 1;
-    return [k === 0 ? -1 : b[k] + FL.passHalf, k === m - 1 ? b[m] : b[k + 1] - FL.passHalf];
+    return [this.blockLo(k), this.blockHi(k)];
   }
+  /** (deadlock-review) blockSpan's ends one at a time (no array: the block checks run for every car every frame) */
+  private blockLo(k: number): number { return k === 0 ? -1 : this.line.bounds[k] + FL.passHalf; }
+  private blockHi(k: number): number { const b = this.line.bounds, m = b.length - 1; return k === m - 1 ? b[m] : b[k + 1] - FL.passHalf; }
 
-  /** Physical interval of a car's body on C, or null off the stem. */
-  private bodyS(car: FCar): [number, number] | null {
-    const a = sAtU(this.line, car.u - FL.half), c = sAtU(this.line, car.u), b = sAtU(this.line, car.u + FL.half);
-    const vals = [a, c, b].filter(v => !Number.isNaN(v));
-    if (!vals.length) return null;
+  /** Physical interval of a car's body on C, or null off the stem. (deadlock-review) Written into `out`. */
+  private bodyS(car: FCar, out: [number, number] = [0, 0]): [number, number] | null {
+    const L = this.line;
+    let lo = Infinity, hi = -Infinity, n = 0;
+    for (let k = -1; k <= 1; k++) {
+      const s = sAtU(L, car.u + k * FL.half);
+      if (Number.isNaN(s)) continue;
+      n++;
+      if (s < lo) lo = s;
+      if (s > hi) hi = s;
+    }
+    if (!n) return null;
     // a body straddling J2 (half on the loop) still covers s = 0 … its stem end
-    if (vals.length < 3 && this.nearJ2(car.u)) vals.push(0);
-    return [Math.min(...vals), Math.max(...vals)];
+    if (n < 3 && this.nearJ2(car.u)) { lo = Math.min(lo, 0); hi = Math.max(hi, 0); }
+    out[0] = lo; out[1] = hi;
+    return out;
   }
 
   private nearJ2(u: number): boolean {
@@ -218,14 +242,14 @@ export class StreetcarSystem {
    * The next block `car` must hold before going on, with the car-centre u where it has to stop without it, or null.
    * Leg 1 enters at the switch (block m−1) and works down; the loop exit and leg 3 work up from block 0.
    */
-  private nextNeed(car: FCar): { k: number; dir: 1 | -1; hold: number } | null {
+  private nextNeed(car: FCar, out?: Need): Need | null {
     const L = this.line, m = this.nBlocks, leg = legAt(L, car.u);
     if (leg === 1) {
       // the first block below the front (s falling) not yet held; it is taken at the passing place above it
       const front = sAtU(L, car.u - FL.half);
       for (let k = m - 1; k >= 0; k--) {
-        if (this.blockSpan(k)[1] >= (Number.isNaN(front) ? -Infinity : front) - 1e-3 || car.blocks.includes(k)) continue;
-        return { k, dir: -1, hold: k === m - 1 ? uAtS(L, 1, L.sJoin + FL.half + 0.6) : uAtS(L, 1, L.bounds[k + 1]) };
+        if (this.blockHi(k) >= (Number.isNaN(front) ? -Infinity : front) - 1e-3 || car.blocks.includes(k)) continue;
+        return needOf(out, k, -1, k === m - 1 ? uAtS(L, 1, L.sJoin + FL.half + 0.6) : uAtS(L, 1, L.bounds[k + 1]));
       }
       return null;
     }
@@ -233,14 +257,14 @@ export class StreetcarSystem {
       if (car.blocks.includes(0)) return null;
       const into = aheadU(L, L.legU[1], car.u);
       if (into < (L.legU[2] - L.legU[1]) / 2) return null; // still entering the loop
-      return { k: 0, dir: 1, hold: L.uLoopHold };
+      return needOf(out, 0, 1, L.uLoopHold);
     }
     if (leg === 3) {
       // the first block above the front (s rising) not yet held; block 0 was taken at the loop exit
       const front = sAtU(L, car.u + FL.half);
       for (let k = 1; k < m; k++) {
-        if (this.blockSpan(k)[0] <= (Number.isNaN(front) ? Infinity : front) + 1e-3 || car.blocks.includes(k)) continue;
-        return { k, dir: 1, hold: uAtS(L, 3, L.bounds[k]) };
+        if (this.blockLo(k) <= (Number.isNaN(front) ? Infinity : front) + 1e-3 || car.blocks.includes(k)) continue;
+        return needOf(out, k, 1, uAtS(L, 3, L.bounds[k]));
       }
       return null;
     }
@@ -252,13 +276,13 @@ export class StreetcarSystem {
     const b = this.line.bounds, m = this.nBlocks;
     const far = dir > 0 ? k + 1 : k;
     const sideNeeded = far >= 1 && far <= m - 1;
-    const [lo, hi] = this.blockSpan(k);
+    const lo = this.blockLo(k), hi = this.blockHi(k);
     for (const o of this.cars) {
       if (o === car || o.index === ignore) continue;
       if (o.blocks.includes(k)) return false;
       if (sideNeeded && o.side === far && o.sideDir === dir) return false;
       // anyone physically on the block's exclusive part (a placement, a car without authority)
-      const body = this.bodyS(o);
+      const body = this.bodyS(o, BODY_C);
       if (body && body[1] > lo + 0.1 && body[0] < hi - 0.1 && this.dirAt(o.u) !== 0) return false;
     }
     void b;
@@ -278,7 +302,7 @@ export class StreetcarSystem {
       if (o === car || o.blocks.includes(need.k)) continue;
       const d = aheadU(L, car.u, o.u);
       if (d <= 0 || d > reach) continue;
-      const on = this.nextNeed(o);
+      const on = this.nextNeed(o, NEED_F);
       if (on && on.k === need.k) return false;
     }
     return true;
@@ -554,8 +578,13 @@ export class StreetcarSystem {
       car.timer -= dt;
       if (car.timer <= 0) this.leave(car, need);
     } else {
-      // try for the next block early enough to keep going
-      if (need && this.toHold(car, need.hold) < (car.v * car.v) / (2 * FL.dec) + 14 && this.firstInLine(car, need) && this.canTake(car, need.k, need.dir)) this.take(car, need.k, need.dir);
+      // a sightseeing bus on the track ahead (wave 4): stop short of it — (deadlock-review) asked before the next block
+      const road = this.opts.roadAhead?.(car);
+      const roadGap = road !== undefined && road < Infinity ? road - FL.half - 1.5 : Infinity;
+      // try for the next block early enough to keep going — (deadlock-review) not one past where the road stops the car:
+      // a car leaving a box part to a bus waits at the passing place before the part without the block beyond it (the
+      // cars in the part need it to come out; world/sf/lineInterlocks.ts busAheadOfFCar)
+      if (need && this.toHold(car, need.hold) < (car.v * car.v) / (2 * FL.dec) + 14 && roadGap > this.toHold(car, need.hold) + 0.05 && this.firstInLine(car, need) && this.canTake(car, need.k, need.dir)) this.take(car, need.k, need.dir);
       const need2 = this.nextNeed(car);
       let limit = this.curveLimit(car);
       const next = this.nextStop(car);
@@ -566,9 +595,6 @@ export class StreetcarSystem {
       let gap = Infinity;
       for (const o of this.cars) if (o !== car) gap = Math.min(gap, aheadU(L, car.u, o.u) - FL.length - FL.gap);
       limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, gap)));
-      // a sightseeing bus on the track ahead (wave 4): stop short of it
-      const road = this.opts.roadAhead?.(car);
-      const roadGap = road !== undefined && road < Infinity ? road - FL.half - 1.5 : Infinity;
       if (roadGap < Infinity) limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, roadGap)));
       // someone standing on the track ahead: slow, stop short, ring (verify D3: not someone past the spot the car's nose
       // rests at when it stops at its next stop)
@@ -638,8 +664,12 @@ export class StreetcarSystem {
     if (this.status && this.riderCar === car.index && this.status.phase === 'here') { car.timer = 0.3; return; }
     if (car.rider && platformStop(FLINE_ID)) { car.timer = 0.3; return; }
     if (need && this.toHold(car, need.hold) < 16) {
-      if (!this.firstInLine(car, need) || !this.canTake(car, need.k, need.dir)) { car.timer = 0.25; return; }
-      this.take(car, need.k, need.dir);
+      // (deadlock-review) a car leaving a box part to a bus pulls up to its passing place without the block beyond it
+      const road = this.opts.roadAhead?.(car);
+      if (road === undefined || road === Infinity || road - FL.half - 1.5 > this.toHold(car, need.hold) + 0.05) {
+        if (!this.firstInLine(car, need) || !this.canTake(car, need.k, need.dir)) { car.timer = 0.25; return; }
+        this.take(car, need.k, need.dir);
+      }
     }
     car.mode = 'run';
     car.at = -1;

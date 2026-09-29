@@ -347,9 +347,18 @@ export class BusSystem implements LineRideSystem {
 
   /** Is a bus inside interlock box `id` (its body overlapping the box span)? */
   occupies(id: string): boolean {
-    const box = this.boxes.find(b => b.id === id);
+    const box = this.boxById(id);
     if (!box) return false;
-    return this.buses.some(b => this.overlapsBox(b, box));
+    // (deadlock-review) plain loops: the streetcars and cable cars ask every box every frame (no closures)
+    for (let i = 0; i < this.buses.length; i++) if (this.overlapsBox(this.buses[i], box)) return true;
+    return false;
+  }
+
+  /** (deadlock-review) The interlock box with this id (a plain loop, no closure). */
+  private boxById(id: string): InterlockBox | undefined {
+    const bx = this.boxes;
+    for (let i = 0; i < bx.length; i++) if (bx[i].id === id) return bx[i];
+    return undefined;
   }
 
   /**
@@ -359,10 +368,14 @@ export class BusSystem implements LineRideSystem {
    * a car starting down there made the bus stand 23–46 s (a car's trip down, its reversal or turn, and back).
    */
   boxDue(id: string, within: number): boolean {
-    const box = this.boxes.find(b => b.id === id);
+    const box = this.boxById(id);
     if (!box) return false;
     // (a bus standing at a stop on its way is due once it pulls out)
-    return this.buses.some(b => b.mode !== 'dwell' && !this.overlapsBox(b, box) && arcAhead(this.track, b.s + HALF, box.a0) <= within);
+    for (let i = 0; i < this.buses.length; i++) {
+      const b = this.buses[i];
+      if (b.mode !== 'dwell' && !this.overlapsBox(b, box) && arcAhead(this.track, b.s + HALF, box.a0) <= within) return true;
+    }
+    return false;
   }
 
   /**
@@ -373,18 +386,19 @@ export class BusSystem implements LineRideSystem {
    * on Market St while a cable car went down to its terminus and back, or a streetcar dwelt at its stop in the part.
    */
   boxDueIn(id: string, horizon = 90): number {
-    const box = this.boxes.find(b => b.id === id);
+    const box = this.boxById(id);
     if (!box) return Infinity;
     const tr = this.track;
     let best = Infinity;
-    for (const b of this.buses) {
+    for (let i = 0; i < this.buses.length; i++) {
+      const b = this.buses[i];
       if (this.overlapsBox(b, box)) return 0;
       const d = arcAhead(tr, b.s + HALF, box.a0);
       if (d > horizon * 13) continue;
       let t = b.mode === 'dwell' || b.mode === 'hold' ? Math.max(0, b.timer) : 0;
       t += runSeconds(tr, b.s, normArc(tr, b.s + d));
-      for (const st of tr.stops) {
-        const e = arcAhead(tr, b.s, st.at);
+      for (let k = 0; k < tr.stops.length; k++) {
+        const st = tr.stops[k], e = arcAhead(tr, b.s, st.at);
         if (e > 0.05 && e < d + HALF && st.id !== b.station) t += BUS.dwell + BUS.stopPenalty;
       }
       best = Math.min(best, t);

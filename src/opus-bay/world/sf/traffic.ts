@@ -179,6 +179,9 @@ const newCar = (id: number): Car => ({
 
 const _p = { x: 0, z: 0 };
 const _people: { x: number; z: number; r: number }[] = [];
+/** (deadlock-review) TrafficSim.measureZones' scratch lists */
+const ZONES_NEAR: KeepClear[] = [];
+const ZONES_OUT: number[] = [];
 
 export class TrafficSim {
   readonly net: StreetNet;
@@ -588,23 +591,38 @@ export class TrafficSim {
     if (list !== this.zoneList) { this.zoneList = list; this.zoneCache.clear(); }
     const hit = this.zoneCache.get(s.e);
     if (hit !== undefined) return hit;
-    const out: number[] = [];
+    const z = this.measureZones(s, list);
+    if (this.zoneCache.size > 20_000) this.zoneCache.clear();
+    this.zoneCache.set(s.e, z);
+    return z;
+  }
+
+  /**
+   * zonesOn's measurement (a cache miss). (deadlock-review) Apart, without closures: the closures' captured locals made
+   * every zonesOn call — the cache hits of every car every frame — allocate a context (≈ 80 B a call, 5–8 kB a frame).
+   */
+  private measureZones(s: StreetEdge, list: readonly KeepClear[]): Float32Array | null {
+    const near = ZONES_NEAR, out = ZONES_OUT;
+    near.length = 0; out.length = 0;
     const mx = (s.ax + s.bx) / 2, mz = (s.az + s.bz) / 2, reach = s.len / 2 + 12;
-    const near = list.filter(k => Math.hypot((k.ax + k.bx) / 2 - mx, (k.az + k.bz) / 2 - mz) < reach + Math.hypot(k.bx - k.ax, k.bz - k.az) / 2);
+    for (let i = 0; i < list.length; i++) {
+      const k = list[i];
+      if (Math.hypot((k.ax + k.bx) / 2 - mx, (k.az + k.bz) / 2 - mz) < reach + Math.hypot(k.bx - k.ax, k.bz - k.az) / 2) near.push(k);
+    }
     if (near.length) {
       let start = -1;
       for (let a = 0; a <= s.len + 0.25; a += 0.5) {
         const at = Math.min(a, s.len);
         this.lanePoint(s, at, _p);
-        const inside = near.some(k => keepClearDistance(k, _p.x, _p.z, HALF_L) < k.hw + HALF_W);
+        let inside = false;
+        for (let i = 0; i < near.length && !inside; i++) if (keepClearDistance(near[i], _p.x, _p.z, HALF_L) < near[i].hw + HALF_W) inside = true;
         if (inside && start < 0) start = at;
         else if (!inside && start >= 0) { out.push(start, at - 0.5); start = -1; }
       }
       if (start >= 0) out.push(start, s.len);
     }
     const z = out.length ? Float32Array.from(out) : null;
-    if (this.zoneCache.size > 20_000) this.zoneCache.clear();
-    this.zoneCache.set(s.e, z);
+    near.length = 0;
     return z;
   }
 
