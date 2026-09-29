@@ -9,7 +9,7 @@ Lane W of wave 6 (`docs/opus-bay/sf-w6-lead.md` §3 row W), worktree `C:/Users/w
 2. **北滩街角**：华盛顿广场有了草坪、边上一圈树和长椅、中间的富兰克林像和六棵钻天杨；对面圣彼得圣保罗教堂的白色双塔（191 英尺，按游戏的高度规则 12.2 格）、玫瑰窗、门上的金色马赛克带和台阶；哥伦布大道上有咖啡桌和意大利三色遮阳伞、有人坐着、招牌（Café / 面包 / Books）、三色灯杆，晚上桌子上方的一串串灯泡会亮。
 3. 整个街角只多 2 次绘制（约 7.3k 三角形，离镜头 190 格外不画）；手机 390×844 上看过。
 4. **里昂街台阶赛跑**：从绿街那头的台阶脚下喊一声「比赛？」，和 BAYBAY 比谁先跑上百老汇街的顶，顶上正对艺术宫的圆顶。原来中间平台的花坛把路堵死了，现在花坛靠边、下面几段台阶也能走通，路网测过。
-5. **和 BAYBAY 玩捉迷藏**：点「问 BAYBAY」→「捉迷藏」，她数三下就藏到 60 格内某个地标旁边（一定是走得到的地方），屏幕上方提示「暖了！/冷了…」和冷热程度，每 15 秒她会在藏身处挥挥手；找到她就拿奖牌金币（45 秒内最高），手机和电脑都实际玩过。
+5. **和 BAYBAY 玩捉迷藏**：点「问 BAYBAY」→「捉迷藏」，她数三下就藏到 60 格内某个地标旁边（一定是走得到的地方），屏幕上方提示「暖了！/冷了…」和冷热程度，每 15 秒她会在藏身处挥挥手；找到她就拿奖牌金币（45 秒内最高），手机和电脑都实际玩过；新玩家安静站一会儿后，BAYBAY 会（每台设备一次）提醒可以玩捉迷藏。
 
 ## Part a · W6-W1 the North Beach seam gap, W6-W2 the North Beach corner
 
@@ -283,7 +283,7 @@ eslint 0 errors (43 old warnings) · suite **1459 / 1459**; the rebase before th
 - **`play/hideSeek.ts` `startHideCoach(store?)`**: once per device (`opus-bay:play:hide-coach:v1`), after the emote
   coach has spoken (`opus-bay:play:emote-coach:v1`, play/index.ts) and after 40 s of quiet free roam where a round may
   start (standing still, no bubble, no panel), BAYBAY says 想玩捉迷藏吗？点「问我」，再点「捉迷藏」！ (phones) / 按 Q 问我，
-  再选「捉迷藏」！ (keyboards) — so a new player can be playing it within about two minutes of arriving, wherever they are.
+  再选「捉迷藏」！ (keyboards): the game is one Ask tap away wherever the player stands; the line makes it known.
 - **`play/hideSeekEntry.ts`**: starts the coach when the hide & seek chunk has loaded; the unregister stops it.
 - Test: `tests/opus-bay-w6-w-hideseek.test.ts` + "W6-W5 the coach line" (not before the emote coach, not before 40 s,
   said once, never on a second visit); the chunk stays ≤ 5 KB.
@@ -295,4 +295,21 @@ eslint 0 errors (43 old warnings) · suite **1459 / 1459**; the rebase before th
 
 ### Evidence
 
+- Played: a headless desktop run standing still at Washington Square for 110 s after the load — neither lane A's emote
+  coach nor this line had spoken yet (both keys still unset: the first minutes' chatter, the onboarding hints and the
+  pelican hint keep the quiet counters from filling), so the line comes later than two minutes in practice
+  (`qa/w6/W/w5-coach-quiet-desk.jpg`: the square, BAYBAY, Rosa the baker). The rule itself is the test's.
 - Checks: see the final line of this report.
+
+### Known gaps
+
+- The line waits for lane A's emote coach, which waits for a quiet stretch; a player who keeps moving hears neither.
+  If the lead wants it sooner: drop the EMOTE_COACH_KEY condition in `startHideCoach` (one line).
+
+## Final checks (04:29 PDT)
+
+The pushed tree with W6-W5 (rebased on `fe329ae8`, in the check worktree): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+`npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+**1462 / 1462**. Lane W's own tests: `tests/opus-bay-w6-w-seam.test.ts` (4), `tests/opus-bay-w6-w-hideseek.test.ts` (6),
+`tests/opus-bay-w6-w-lyon.test.ts` (2). District mode: untouched (the fill and the corner live in the city worker /
+city chunk; `lot-211` stays in the district; the hero regression is in the green suite).
