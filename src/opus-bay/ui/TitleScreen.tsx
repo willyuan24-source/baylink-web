@@ -10,6 +10,7 @@ import { CITY_COPY } from '../data/sf/copy';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState } from './hooks';
+import { LangPills } from './LangPills';
 
 const typing = (el: HTMLElement | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 const onControl = (el: HTMLElement | null) => !!el && (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute?.('role') === 'button' || el.getAttribute?.('role') === 'tab');
@@ -80,6 +81,8 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
           <BaybayFace mood="wave" size={52} />
           <p>{returning || resume ? t('欢迎回来！接着逛吗？', 'Welcome back! Shall we keep exploring?') : cityGreet ? t(cityGreet) : t('嗨～第一次来湾区吗？我带你逛！', 'Hi! First time in the Bay? I’ll show you around!')}</p>
         </div>
+        {/* the language before Start (简体 · 繁體 · English): a tap switches the title at once, saved for the site */}
+        <LangPills />
         <div className="ob-title-actions">
           <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || undefined}>
             <span>{returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>

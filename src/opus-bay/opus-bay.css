@@ -190,6 +190,18 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
 .ob-title-link { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; font-weight: 700; color: var(--ob-teal-d); text-decoration: none; border-bottom: 1px dashed rgba(31, 111, 105, .4); }
 .ob-title-link:hover { color: var(--ob-teal); }
 .ob-title-hint { font-size: 13px; color: var(--ob-ink-3); }
+/* the language before Start (ui/LangPills, variant 'title'): 文A + 简体 · 繁體 · English in a cream capsule */
+.ob-lang.is-title .ob-lang-pills {
+  display: inline-flex; align-items: center; gap: 2px; width: fit-content; padding: 3px; border-radius: 999px;
+  background: rgba(255, 250, 241, .92); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s);
+}
+.ob-lang-icon { display: grid; place-items: center; width: 36px; color: var(--ob-teal); }
+.ob-lang.is-title .ob-lang-pills button {
+  min-height: 44px; min-width: 64px; padding: 0 16px; border-radius: 999px; font-weight: 800; font-size: 15px; color: var(--ob-ink-2);
+  transition: background-color .2s, color .2s, box-shadow .2s;
+}
+.ob-lang.is-title .ob-lang-pills button:hover { color: var(--ob-ink); }
+.ob-lang.is-title .ob-lang-pills button.is-on { background: var(--ob-teal); color: #fff; box-shadow: 0 3px 8px -3px rgba(31, 111, 105, .6); }
 
 /* no key art (fallback) on narrow screens */
 @media (max-width: 820px) {
@@ -206,6 +218,8 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   .ob-title-h1::after { margin-top: 10px; height: 6px; width: 64px; }
   .ob-title-sub { font-size: 15px; }
   .ob-title-actions .ob-btn-primary { flex: 1; }
+  .ob-lang.is-title .ob-lang-pills { width: 100%; }
+  .ob-lang.is-title .ob-lang-pills button { flex: 1; padding: 0 10px; }
 }
 
 /* key art on portrait / squarish narrow screens: full-bleed art (tall crop), card docked at the bottom */
@@ -730,6 +744,14 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-seg.is-wrap { flex-wrap: wrap; }
 .ob-seg button { flex: 1 1 auto; display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-height: 40px; padding: 0 10px; border-radius: 11px; font-weight: 700; font-size: 13.5px; color: var(--ob-ink-2); white-space: nowrap; }
 .ob-seg button.is-on { background: #fff; color: var(--ob-teal-d); box-shadow: var(--ob-shadow-s); }
+/* the language pills (ui/LangPills): Settings' segmented row here, the title's capsule under "Title screen"; ≥ 44 px */
+.ob-lang { display: flex; flex-direction: column; gap: 6px; }
+.ob-lang-pills button { min-height: 44px; }
+.ob-lang-pills button.is-busy { animation: ob-lang-busy .7s ease-in-out infinite alternate; }
+@keyframes ob-lang-busy { from { opacity: 1; } to { opacity: .5; } }
+.ob-lang-error { font-size: 13px; font-weight: 600; color: #a8472f; }
+.ob-setting.ob-setting-lang { margin: 0 0 18px; }
+.ob-lang.is-seg .ob-seg button { font-size: 14.5px; }
 .ob-range { display: block; }
 .ob-range output { margin-left: auto; font-weight: 800; color: var(--ob-teal-d); }
 .ob-range input { width: 100%; accent-color: var(--ob-teal); height: 28px; }

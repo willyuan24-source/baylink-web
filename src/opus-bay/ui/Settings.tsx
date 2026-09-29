@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { setGlideUnlocked } from '../actors/moveApi';
 import { clearSave } from '../data/save';
-import { Accessibility, Flag, Gauge, Keyboard, LogOut, Moon, Music, Pause, RotateCcw, Sun, Sunrise, Sunset, Volume2, ZoomIn } from 'lucide-react';
+import { Accessibility, Flag, Gauge, Keyboard, Languages, LogOut, Moon, Music, Pause, RotateCcw, Sun, Sunrise, Sunset, Volume2, ZoomIn } from 'lucide-react';
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game, useGame, type GameState, type Quality } from '../core/store';
@@ -11,6 +11,7 @@ import { closePanel, restartOnboarding } from '../game/flow';
 import { setLandmarkFlagsPref, useLandmarkFlagsPref } from '../game/guidePrefs';
 import { useT } from '../i18n';
 import { Keycap, Sheet } from './common';
+import { LangPills } from './LangPills';
 
 type Settings = GameState['settings'];
 const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -50,6 +51,13 @@ export function SettingsPanel() {
 
   return (
     <Sheet eyebrow={<><Pause size={14} aria-hidden />{t('已暂停', 'Paused')}</>} title={t('设置', 'Settings')} onClose={closePanel} className="ob-settings">
+      {/* 语言 / Language: the same three as the title's, switching live (the legend says both words in every edition;
+          translate="no": the site's English layer would turn its 语言 into a second "Language") */}
+      <fieldset className="ob-setting ob-setting-lang">
+        <legend><Languages size={16} aria-hidden /><span translate="no">{t('语言 · Language', 'Language · 语言')}</span></legend>
+        <LangPills variant="seg" />
+      </fieldset>
+
       <div className="ob-setting-group">
         <Toggle icon={<Volume2 size={18} aria-hidden />} label={t('音效', 'Sound effects')} on={settings.sound} onChange={v => setSetting('sound', v)} />
         <Toggle icon={<Music size={18} aria-hidden />} label={t('音乐', 'Music')} on={settings.music} onChange={v => setSetting('music', v)} />
