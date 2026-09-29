@@ -185,3 +185,27 @@ test('W6-X3 · a Halloween moment a lane sounds itself (lane H\'s registered fin
   const src = fs.readFileSync(path.join(ROOT, 'src/opus-bay/audio/audio.ts'), 'utf8');
   assert.match(src, /ev\.what === 'pumpkin' && soundRegistered\('halloween:pumpkin'\)\) return;/);
 });
+
+test('W6-X6 · the title shows the Halloween key art in city mode in the season and on the big night only', async () => {
+  const { KEY_ART, KEY_ART_HALLOWEEN, keyArtFor, titleInHalloween, ASSETS } = await import('../src/opus-bay/data/assets');
+  const { halloweenPhase } = await import('../src/opus-bay/halloween/season');
+  assert.equal(keyArtFor('city', true), KEY_ART_HALLOWEEN);
+  assert.equal(keyArtFor('city', false), KEY_ART);
+  assert.equal(keyArtFor('district', true), KEY_ART, 'the district never changes');
+  // the title's rule agrees with halloween/season.ts on every day of Sep–Nov 2026 and on every preview value
+  for (let t = Date.UTC(2026, 8, 1, 19); t < Date.UTC(2026, 11, 1); t += 864e5) {
+    const d = new Date(t), phase = halloweenPhase(d, null);
+    assert.equal(titleInHalloween(d, null), phase === 'season' || phase === 'night', d.toISOString());
+  }
+  for (const v of ['1', 'season', 'night', 'muertos', 'off', '0', 'nope']) {
+    const phase = halloweenPhase(new Date(Date.UTC(2026, 8, 29, 19)), `?halloween=${v}`);
+    assert.equal(titleInHalloween(new Date(Date.UTC(2026, 8, 29, 19)), `?halloween=${v}`), phase === 'season' || phase === 'night', v);
+  }
+  // node: the district (NODE_WORLD_MODE), so the manifest keeps the shipped art
+  assert.equal(ASSETS.keyArt, KEY_ART);
+  for (const f of [KEY_ART_HALLOWEEN.wide, KEY_ART_HALLOWEEN.tall, ...KEY_ART_HALLOWEEN.wideSrcSet.split(', ').map(s => s.split(' ')[0]), ...KEY_ART_HALLOWEEN.tallSrcSet.split(', ').map(s => s.split(' ')[0])]) {
+    const disk = path.join(ROOT, 'public', f);
+    assert.ok(fs.existsSync(disk) && fs.statSync(disk).size < 120_000, f);
+  }
+  assert.ok(/[一-鿿]/.test(KEY_ART_HALLOWEEN.alt) && /jack-o/.test(KEY_ART_HALLOWEEN.altEn));
+});

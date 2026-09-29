@@ -10,7 +10,8 @@ floor 1375).
 2. 万圣节音效做好了：敲门三下 → 门吱呀打开 → 糖果哗啦倒进桶里 → 叮！；找到南瓜灯时一声可爱的“呜～”加一串铃声；换上万圣节服装“噗”的一声魔法亮晶晶；10/31 晚上远处钟楼敲一下。全部是程序合成，不占下载，只有万圣节活动开始后才加载。
 3. 城市里的路人变可爱了：以前是没有脸、肤色发色都一样的小人，现在有眼睛（带高光）、腮红、短袖子和小手，每个人的肤色和发色都不一样，和 BAYBAY、主角同一种圆滚滚的玩具风格（只改城市模式，街区模式不变）。
 4. BAYBAY 会说万圣节的新台词了：讨糖（G 线）22 句 + 城市装扮/找南瓜灯/亡灵节（H 线）18 句，中英文共 80 条录音，还是 Pixie 的声音，气泡出现就自动播放。试听单在 `docs/opus-bay/qa/w6/X/voice/listening.md`（连播文件 `w6-voice-preview-b1-zh.m4a` / `-en.m4a`）。
-5. 到目前为止 Higgsfield 只花了 11.7 分（上限 1000），每一笔都记在账本里。
+5. 万圣节期间（10/1–10/31，或正式网站加 `?halloween=1` 预览）标题画面换成万圣节版：同一个渡轮大厦小模型，多了南瓜灯、小蝙蝠、橙色串灯，BAYBAY 戴着小巫师帽（电脑和手机都看过）；街区模式和其他日子不变。
+6. Higgsfield 一共只花了 15.7 分（上限 1000，余额 2359.3），每一笔都记在账本 `docs/opus-bay/ledger/w6-X.md` 里。
 
 ## Part a1 · Halloween postcards and sounds (2026-09-29 01:53–02:25 PDT)
 
@@ -155,3 +156,53 @@ Nothing for lanes G and H to wire: they say these lines as BAYBAY bubbles with t
 
 - Not heard by a human: the owner's ear on `listening.md` (mark ✗ or 重录). In-game playback of these clips is covered by the
   binder test (the same path W5-V7 proved in game); a live knock with sound was not recorded in a shot.
+
+## Part c · the Halloween title (2026-09-29 04:16–04:40 PDT)
+
+### What was built (W6-X6)
+
+| file | change |
+|---|---|
+| `public/opus-bay/w6/art/key-{wide,tall}-halloween-*.webp` (4, 268 KB) | the shipped key art edited into its Halloween version (Higgsfield batch 3, 2 draws, both used) |
+| `scripts/opus-sf/assets/w6/{keyart.py,keyart.md}` | the export (exact 16:9 / 9:16 centre crop, WebP q80) and the verbatim prompt |
+| `src/opus-bay/data/assets.ts` (surgical, named) | `KEY_ART_HALLOWEEN`, `titleInHalloween(date?, search?)` (halloween/season.ts's rule restated: the main graph must not import the feature folder; a test proves they agree on every day of Sep–Nov and every preview value), `keyArtFor(world, halloween)`; `ASSETS.keyArt = keyArtFor(readWorldMode(), titleInHalloween())`; `keyArtAlt` reads the chosen art's alt |
+| `tests/opus-bay-w6-x.test.ts` | +1 test (city in season / on the big night only; the district and Día de los Muertos keep the shipped art; files and sizes) |
+
+### Evidence
+
+- `docs/opus-bay/qa/w6/X/x6-keyart-title-before-after.jpg` (desktop 1440 × 900: the shipped title vs `?halloween=1`),
+  `x6-keyart-title-phone.jpg` (390 × 844 dpr 3: the tall art under the title panel, bats and the witch hat above it),
+  `x6-keyart-wide-before-after.jpg` (the art alone: the same composition). `?world=district&halloween=1` shows the shipped
+  art (read). Without `?halloween=` today (29 Sep) the shipped art shows. A first cold load after the edit rendered white
+  once while Vite re-optimised; the reload was right (the known cold-dev-server case).
+- Higgsfield batch 3: **4.00 credits**; wave total **15.70**, balance **2359.30**.
+
+### Decisions
+
+- The Halloween title only in the season and on the big night (not 1–2 Nov: jack-o'-lanterns are not Día de los Muertos) and
+  only in city mode (the district never changes).
+- `data/assets.ts` restates the season rule (a dozen lines, `game/bayNow.ts` and `core/store.ts` are already in the main
+  graph) instead of importing `halloween/season.ts`: the contract test keeps the feature folders out of GameRoot's graph (it
+  failed on the first try, and was right). The one main-graph addition of this lane (≈ 0.4 KB gzip); the Halloween sounds,
+  the crowd figure and the voice all load lazily.
+
+## Not done (the lane)
+
+- The downtown / Chinatown box blocks, the day sky and the gulls (weakest items 2–4 of part a2): not started — no time for a
+  change that must beat what is there in a side-by-side and pass the perf budget.
+- GLBs (jack-o'-lantern, ghost, witch hat): not made — lanes H and G ship procedural ones on the shared toy program at ≈ 100
+  triangles a stoop; a GLB would be a new draw call per kind and would not beat them at that size.
+- V's voice batch 5 (NEXT #12): not started (time).
+- A live in-game recording of a knock with its voice and sound (the binder path is unit-tested; W5-V7 proved it in game).
+
+## Requests (the lane)
+
+1. **Lead (hand-off)**: merge `docs/opus-bay/ledger/w6-X.md` (3 batches, 15.70 credits) into `src/opus-bay/ASSETS-LEDGER.md`;
+   reconcile: every charge of the wave is listed by job id in the ledger (5 + 2 Nano Banana Pro draws, 82 TTS takes).
+2. **Owner**: `docs/opus-bay/qa/w6/X/voice/listening.md` (80 Halloween clips; `w6-voice-preview-b1-{zh,en}.m4a`) and the SFX
+   (`qa/w6/X/sfx-*.m4a`): mark ✗ / 重录 where something sounds wrong.
+3. **Lanes H / G**: show the four postcards at your moments (`data/sf/halloweenPostcards.ts`, `delivered.md`); keep your
+   line texts as recorded (the test in `tests/opus-bay-w6-x.test.ts` names any line changed after the batch).
+4. **Lane P**: `data/assets.ts` gained the title's season check and the Halloween key-art row (≈ 0.4 KB gzip) — FYI for the budget.
+5. **Reviewer**: the crowd's per-walker tones use the walker's phase (`life.ts PEOPLE_TONES`); a walker keeps its tones across
+   the near / far switch. Worth a look on the phone at night (the tones are vertex colours, lit like the shirts).

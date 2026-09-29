@@ -8,6 +8,8 @@
  * POSTCARD_ART, VOICE_CLIPS, MODELS) carry every size / container for callers that want srcset or both codecs.
  */
 import type { VoiceId } from '../audio/logic';
+import { readWorldMode, type WorldMode } from '../core/store';
+import { bayNow, bayParts } from '../game/bayNow';
 import type { CityStyle } from '../world/recipes/city';
 import { mapPaperUrls } from './mapPaper';
 import { muralUrls } from './murals';
@@ -53,7 +55,39 @@ export const KEY_ART: KeyArt = {
   tallSrcSet: srcSet([[art('key-tall-720'), 720], [art('key-tall-1080'), 1080]]),
 };
 
-export const keyArtAlt = (locale: string): string => (locale === 'en' ? KEY_ART.altEn : KEY_ART.alt);
+/**
+ * (W6-X6, lane X) The Halloween key art: the same diorama at dusk with jack-o'-lanterns, string lights, bats and BAYBAY in a
+ * witch hat (an edit of the shipped key art, nano_banana_pro; ledger docs/opus-bay/ledger/w6-X.md batch 3). The title shows
+ * it in city mode during the season and on the big night (halloween/season.ts: 1–31 October, or `?halloween=1|night`);
+ * Día de los Muertos, the rest of the year and district mode keep KEY_ART.
+ */
+const w6art = (name: string) => `${BASE}/w6/art/${name}.webp`;
+export const KEY_ART_HALLOWEEN: KeyArt = {
+  wide: w6art('key-wide-halloween-1920'),
+  tall: w6art('key-tall-halloween-1080'),
+  alt: '万圣节的微缩湾区：渡轮大厦钟楼下的广场摆满了笑眯眯的南瓜灯，棕榈树间挂着橙色小灯，小蝙蝠在头顶飞；戴着小巫师帽的海獭 BAYBAY 向新来的旅人挥手。',
+  altEn: "The miniature Bay Area at Halloween: smiling jack-o'-lanterns on the plaza below the Ferry Building clock tower, orange string lights in the palms, little bats overhead, and BAYBAY the sea otter in a tiny witch hat waving to a newcomer.",
+  wideSrcSet: srcSet([[w6art('key-wide-halloween-1280'), 1280], [w6art('key-wide-halloween-1920'), 1920]]),
+  tallSrcSet: srcSet([[w6art('key-tall-halloween-720'), 720], [w6art('key-tall-halloween-1080'), 1080]]),
+};
+
+/**
+ * Whether the title is in its Halloween dress: 1–31 October on the Bay clock (halloween/season.ts 'season' / 'night'), or a
+ * `?halloween=1|season|night` preview (`muertos`, `off`, `0` → no). The same rule as halloween/season.ts halloweenPhase,
+ * restated here because the main graph must not import the halloween/ feature folder (tests/opus-bay-w6-x.test.ts checks
+ * the two agree).
+ */
+export function titleInHalloween(date: Date = bayNow(), search: string | null = typeof location === 'undefined' ? null : location.search): boolean {
+  const v = search == null ? null : new URLSearchParams(search).get('halloween')?.trim().toLowerCase();
+  if (v === '1' || v === 'season' || v === 'night') return true;
+  if (v === 'muertos' || v === 'off' || v === '0') return false;
+  return bayParts(date).month === 10;
+}
+
+/** The title's key art for a world and whether it is in its Halloween dress (W6-X6). */
+export const keyArtFor = (world: WorldMode, halloween: boolean): KeyArt => (world === 'city' && halloween ? KEY_ART_HALLOWEEN : KEY_ART);
+
+export const keyArtAlt = (locale: string): string => { const k = ASSETS.keyArt ?? KEY_ART; return locale === 'en' ? k.altEn : k.alt; };
 
 // ---------------------------------------------------------------------------
 // Portraits: 512x512 WebP on a flat #f3ecdf background with a soft contact shadow.
@@ -481,7 +515,7 @@ const hiDpi = isHiDpi();
 const voiceFormat = preferredVoiceFormat();
 
 export const ASSETS: AssetManifest = {
-  keyArt: KEY_ART,
+  keyArt: keyArtFor(readWorldMode(), titleInHalloween()),
   portraits: {
     ...PORTRAITS,
     ...Object.fromEntries(Object.entries(PORTRAIT_ALIASES).map(([alias, id]) => [alias, PORTRAITS[id]])),

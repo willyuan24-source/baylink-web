@@ -60,3 +60,22 @@ refund, no other spend on the account in the window. **Subtotal 1.70 credits** (
 the timestamps from `jobs_wait`; 82 / 82 downloaded.
 
 **Wave-6 lane X running total after batch 2: 11.70 credits.** Balance **2363.30**.
+
+## Batch 3 · the Halloween key art for the title (W6-X6), 2026-09-29 11:17 UTC
+
+Balance before: 2363.30. An edit of the shipped key art (ASSETS-LEDGER K7 `33cf7b82-f9b5-4656-a8e8-96a2e663ebcb` wide, K4
+`e8a213b0-c81d-44a0-b476-165c60373ce8` tall, passed as the image reference): "keep everything else exactly the same … add
+only jack-o'-lanterns, a tiny witch hat on the otter, orange string lights in the palms, a few friendly bats, a warm dusk
+glow on the diorama; no text" (the full prompt: `scripts/opus-sf/assets/w6/keyart.md`). nano_banana_pro 16:9 / 9:16 2k.
+Read at full size: the composition and the empty title area match the shipped art (side by side: `qa/w6/X/x6-keyart-*`).
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W6X-K1 | key art wide, Halloween | nano_banana_pro 16:9 2k, ref K7 | the shipped wide key art + jack-o'-lanterns, witch hat, lights, bats, dusk glow | 2 | 9489bb25-d793-49f1-836c-3284afcd17f1 | raw/key-wide-halloween-a.png | **USED** → `w6/art/key-wide-halloween-{1920,1280}.webp` |
+| W6X-K2 | key art tall, Halloween | nano_banana_pro 9:16 2k, ref K4 | same, on the tall art | 2 | 50d48075-715d-4200-9ff4-073a455dcf55 | raw/key-tall-halloween-a.png | **USED** → `w6/art/key-tall-halloween-{1080,720}.webp` (the diorama sits ≈ 4 % lower than the shipped tall art; the text panel still covers only cream and the plaza's edge) |
+
+Transactions 11:17:54.394 / 54.828 UTC (Nano Banana Pro −2 × 2); no other spend in the window. **Subtotal 4.00** (balance
+2363.30 → **2359.30**, `balance` at 11:29 UTC). Published (free, `scripts/opus-sf/assets/w6/keyart.py`: exact 16:9 / 9:16
+centre crop, WebP q80): 4 files, 268 KB.
+
+**Wave-6 lane X running total after batch 3: 15.70 credits.** Balance **2359.30** (cap 1000, floor 1375: far inside).
