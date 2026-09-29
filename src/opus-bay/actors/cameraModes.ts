@@ -91,6 +91,14 @@ const PRESETS = [1, 0.72, 1.4];
 const SWING_STEPS = [0, 0.3, 0.55, 0.8, 1] as const;
 const SWING_PITCH = 0.35;
 export const SWING_CLEAR = 0.7;
+/**
+ * (W6-K1 review) a SEATED rider sits on the outward bench under the roof's overhang: the swung shot stays level with the
+ * bench (no SWING_PITCH: from above, the roof hid the sitter — on Hyde St at swing 1 only the car's roof was in the frame)
+ * and stops at the rear quarter (straight behind at bench level the car's own back hides the bench); a wall SEAT_CLEAR u
+ * off is fine there (the pull-in brings the shot in front of it; the bench shot is a close one anyway)
+ */
+export const SEAT_SWING_MAX = 0.8;
+export const SEAT_CLEAR = 5;
 
 export class RideCamera {
   /** manual yaw / pitch offsets from the mode's default (drag / right stick) */
@@ -193,14 +201,17 @@ export class RideCamera {
           if (now >= this.swingAt && now - this.lastDragAt > HOLD.transit) {
             this.swingAt = now + 0.2;
             const behind = wrap(sub.heading + Math.PI - yaw), d = dist * zoom;
-            this.swingWant = 1;
+            const seat = !!sub.seated, lift = seat ? 0 : SWING_PITCH, top = seat ? SEAT_SWING_MAX : 1;
+            const need = seat ? Math.min(d * SWING_CLEAR, SEAT_CLEAR) : d * SWING_CLEAR;
+            this.swingWant = top;
             for (const k of SWING_STEPS) {
-              if (this.clearAt(sub, yaw + behind * k, clamp(pitch + SWING_PITCH * k + this.pitchOff, -0.1, 1.2), d, lookUp)) { this.swingWant = k; break; }
+              if (k > top) break;
+              if (this.clearAt(sub, yaw + behind * k, clamp(pitch + lift * k + this.pitchOff, -0.1, 1.2), d, lookUp, need)) { this.swingWant = k; break; }
             }
           }
           this.swing += (this.swingWant - this.swing) * (1 - Math.exp(-(this.swingWant > this.swing ? 5 : 1.2) * dt));
           yaw += wrap(sub.heading + Math.PI - yaw) * this.swing;
-          pitch += SWING_PITCH * this.swing;
+          if (!sub.seated) pitch += SWING_PITCH * this.swing;
         }
         // W4-G9: toward the stop's attraction / the portal (behind the rider on the line to it), unless dragged since
         const w = this.dragPerf >= lookBias.t0 ? 0 : rideLookWeight();
@@ -242,11 +253,11 @@ export class RideCamera {
   }
 
   /** (W6-K1) the shot from `yaw` / `pitch` at `dist` has no wall nearer than SWING_CLEAR of its distance */
-  private clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number): boolean {
+  private clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, need: number): boolean {
     const cp = Math.cos(pitch);
     const p = this.probe.set(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist, sub.z + Math.cos(yaw) * cp * dist);
     const hit = this.occluded(sub, p, dist);
-    return hit === null || hit >= dist * SWING_CLEAR;
+    return hit === null || hit >= need;
   }
 
   /** Distance from the target to the first building sample on the way to the camera, or null. */
