@@ -1,5 +1,14 @@
 import * as THREE from 'three';
+import { getLocale, subscribeLocale, translateText } from '../../i18n/locale';
 import { U } from './materials';
+
+const HAN = /\p{Script=Han}/u;
+/**
+ * The words a painted sign shows in the reader's edition (the language switch, ui/LangPills): a 繁體 reader gets the
+ * Traditional characters (the site's conversion layer, loaded before the switch takes effect); 简体 and English keep
+ * the sign's own words (a bilingual sign stays bilingual). Only Chinese text: pass nothing else (Japanese kanji!).
+ */
+export const paintedWords = (text: string): string => (getLocale() === 'zh-Hant' && HAN.test(text) ? translateText(text, 'zh-Hant') : text);
 
 /**
  * One canvas texture atlas for every painted sign (pier numbers, plaques, clock faces, stop signs,
@@ -43,6 +52,9 @@ export class LabelAtlas {
   private y = 0;
   private rowH = 0;
   private rects = new Map<string, Rect>();
+  /** the labels with Chinese words (the district's 这周去哪 board): re-painted in their cells on a language switch */
+  private zh = new Map<string, { rect: Rect; spec: LabelSpec; painted: string }>();
+  private offLocale: (() => void) | null = null;
   /** labels that did not fit (mapped to the blank strip; 0 in a healthy build) */
   overflow = 0;
   readonly texture: THREE.CanvasTexture;
@@ -101,6 +113,20 @@ export class LabelAtlas {
     if (hit) return hit;
     const r = this.alloc(spec.w, spec.h);
     if (!r) return this.overflowed(key);
+    const words = paintedWords(spec.text);
+    this.paint(spec, words);
+    this.rects.set(key, r);
+    if (HAN.test(spec.text)) {
+      this.zh.set(key, { rect: r, spec, painted: words });
+      // (the World is built once per page: the atlas follows the language for the page's lifetime)
+      this.offLocale ??= subscribeLocale(() => { this.repaintChinese(); });
+    }
+    this.texture.needsUpdate = true;
+    return r;
+  }
+
+  /** Paint a label into the cell the context is translated to (alloc's save / translate; restored here). */
+  private paint(spec: LabelSpec, words: string) {
     const g = this.ctx;
     g.fillStyle = spec.bg;
     g.fillRect(0, 0, spec.w, spec.h);
@@ -115,13 +141,29 @@ export class LabelAtlas {
     g.textAlign = 'center';
     g.textBaseline = 'middle';
     const maxW = spec.w * 0.9;
-    const m = g.measureText(spec.text).width;
-    if (m > maxW) { g.save(); g.translate(spec.w / 2, spec.h / 2 + px * 0.04); g.scale(maxW / m, 1); g.fillText(spec.text, 0, 0); g.restore(); }
-    else g.fillText(spec.text, spec.w / 2, spec.h / 2 + px * 0.04);
+    const m = g.measureText(words).width;
+    if (m > maxW) { g.save(); g.translate(spec.w / 2, spec.h / 2 + px * 0.04); g.scale(maxW / m, 1); g.fillText(words, 0, 0); g.restore(); }
+    else g.fillText(words, spec.w / 2, spec.h / 2 + px * 0.04);
     g.restore();
-    this.rects.set(key, r);
-    this.texture.needsUpdate = true;
-    return r;
+  }
+
+  /**
+   * A language switch: the labels with Chinese words re-painted in the reader's script (简体 ↔ 繁體), each into its own
+   * cell — no re-layout, one texture upload. Returns how many changed (0 for English ↔ 简体: the signs keep their words).
+   */
+  repaintChinese(): number {
+    let n = 0;
+    for (const z of this.zh.values()) {
+      const words = paintedWords(z.spec.text);
+      if (words === z.painted) continue;
+      this.ctx.save();
+      this.ctx.translate(Math.round(z.rect.u0 * SIZE), Math.round((1 - z.rect.v1) * SIZE));
+      this.paint(z.spec, words);
+      z.painted = words;
+      n++;
+    }
+    if (n) this.texture.needsUpdate = true;
+    return n;
   }
 
   /** Clock face (no hands — the hands are live geometry). */

@@ -1,8 +1,6 @@
 import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
-import { getLocale } from '../../i18n/locale';
 import { game, toast } from '../core/store';
-import { pick } from '../i18n';
 import { flow } from './flowStore';
 import { decorateFrame, photoTags } from './photoFrames';
 
@@ -105,7 +103,7 @@ function keepInAlbum(card: HTMLCanvasElement, caption: string, stamp: string) {
     flow.set({ lastPhoto: { url, name: id, album: true } });
     const first = !albumToldOnce;
     albumToldOnce = true;
-    toast(pick(first ? { zh: '已存进相册 · 点缩略图就能看', en: 'Saved to your album · tap the thumbnail to see it' } : { zh: '已存进相册', en: 'Saved to your album' }, getLocale()), 'info', first ? 3200 : 1800);
+    toast(first ? { zh: '已存进相册 · 点缩略图就能看', en: 'Saved to your album · tap the thumbnail to see it' } : { zh: '已存进相册', en: 'Saved to your album' }, 'info', first ? 3200 : 1800);
   });
 }
 

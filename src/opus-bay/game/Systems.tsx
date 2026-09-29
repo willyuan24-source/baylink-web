@@ -6,7 +6,7 @@ import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { canStand, heightAt } from '../core/terrain';
 import { DISTRICT } from '../data/district';
-import { getLocale } from '../../i18n/locale';
+import { getLocale, subscribeLocale } from '../../i18n/locale';
 import { pick } from '../i18n';
 import { updateFocus, updateGuide } from './brain';
 import { currentFraming, measureBottomCover, stepCinema } from './cinema';
@@ -532,6 +532,9 @@ function Ticker() {
   useEffect(() => { warmProbe.renderer = gl; return () => { if (warmProbe.renderer === gl) warmProbe.renderer = null; }; }, [gl]);
   // G1-review: a new Ticker projects on its first frame; an old one lets go of the overlay it watched
   useEffect(() => { sigLast.fill(NaN); return () => { releaseHudLayout(); sigLast.fill(NaN); }; }, []);
+  // a language switch (Settings, ui/LangPills): the bubble's words and the waypoint label change width — the next frame
+  // measures them again and lays both out anew, even with nothing moving (P8 would otherwise skip the projection)
+  useEffect(() => subscribeLocale(() => { bubbleBoxKey = -1; labelMeasured = false; waypointTextAt = 0; sigLast.fill(NaN); }), []);
 
   useFrame((state, rawDt) => {
     const dt = Math.min(rawDt, 0.1);

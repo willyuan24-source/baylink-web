@@ -15,6 +15,7 @@ import { LRV, type RailRideStatus, stopPos } from '../world/lightRail';
 import { noteLoopRide, sayTunnel } from './cityContent';
 import { hookFill, npcLine } from './content';
 import { getLocale } from '../../i18n/locale';
+import { pick } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { travelEpoch } from './fastTravel';
 import { announce, bubble, defineNode, playDialogue, refreshLock, say } from './flow';
@@ -438,8 +439,8 @@ export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null,
     background: 'radial-gradient(ellipse at 50% 55%, #243037 0 35%, #11171b 100%)', display: 'grid', placeItems: 'center',
     color: '#f5efe2', font: '800 17px/1.4 inherit', letterSpacing: '.02em',
   } as Partial<CSSStyleDeclaration>);
-  const en = getLocale() === 'en';
-  if (name) veil.textContent = en ? `Next stop: ${name.en} …` : `直接到站：${name.zh} …`;
+  // (plain DOM: pick() gives 繁體 its own characters — the site's React layer never sees this node)
+  if (name) veil.textContent = pick({ zh: `直接到站：${name.zh} …`, en: `Next stop: ${name.en} …` }, getLocale());
   host.appendChild(veil);
   requestAnimationFrame(() => { veil.style.opacity = '1'; });
   const streamer = cityStreamerLazy();

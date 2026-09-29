@@ -115,10 +115,11 @@ export function CinematicLayer() {
 }
 
 export function Toasts() {
+  const { t } = useT();
   const toasts = useGame(s => s.toasts);
   return (
     <div className="ob-toasts" role="status" aria-live="polite">
-      {toasts.map(item => <div key={item.id} className={`ob-toast tone-${item.tone ?? 'info'}`}>{item.text}</div>)}
+      {toasts.map(item => <div key={item.id} className={`ob-toast tone-${item.tone ?? 'info'}`}>{item.bi ? t(item.bi) : item.text}</div>)}
     </div>
   );
 }
@@ -131,7 +132,7 @@ export function LiveRegion() {
   const it = interactableById(focus);
   return (
     <>
-      <div className="ob-sr" aria-live="polite">{announce}</div>
+      <div className="ob-sr" aria-live="polite">{typeof announce === 'string' ? announce : t(announce)}</div>
       <div className="ob-sr" aria-live="polite">{it ? `${t(it.name)} · ${t('按 E', 'press E to')} ${t(it.verb)}` : ''}</div>
     </>
   );

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { subscribeLocale } from '../../i18n/locale';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
@@ -281,6 +282,9 @@ const wpProj = new THREE.Vector3();
 const eyeTmp = { x: 0, y: 0, z: 0 };
 const tgtTmp = { x: 0, y: 0, z: 0 };
 const wpState = { textAt: 0, full: '', name: '', short: '', shown: '', fullW: 120, shortW: WAYPOINT.shortW as number, measured: false, occluded: false, occAt: 0, occKey: '' };
+// a language switch (ui/LangPills): the label's words are due at once and measured again on the next projection (a
+// waypoint hidden at that moment — a dialogue, a target in reach — gets its new words before it shows again)
+subscribeLocale(() => { wpState.textAt = 0; wpState.full = ''; wpState.measured = false; });
 const lastWrites = new WeakMap<HTMLElement, string>();
 const writeTransform = (el: HTMLElement, v: string) => { if (lastWrites.get(el) !== v) { lastWrites.set(el, v); el.style.transform = v; } };
 const writeProp = (el: HTMLElement, name: string, v: string) => { if (el.style.getPropertyValue(name) !== v) el.style.setProperty(name, v); };

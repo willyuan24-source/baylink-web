@@ -12,6 +12,7 @@
  * - settings.sound is the master switch; settings.music toggles the music bus (both live).
  * All sounds are synthesized; optional voice barks are feature-detected (see voice.ts).
  */
+import { subscribeLocale } from '../../i18n/locale';
 import { onEvent, type GameEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game, type GameState } from '../core/store';
@@ -353,6 +354,20 @@ export function startAudio(): () => void {
     }
   });
 
+  // a language switch (Settings · 语言): BAYBAY's next line is in the new language (VoicePlayer.lang() is read per line);
+  // warm the new language's barks — and in the city its recorded lines — as at boot, so that line does not wait for
+  // its clip or fall back to a chirp. 简体 ↔ 繁體 share the Chinese recordings: nothing to load.
+  let voiceLang = VoicePlayer.lang();
+  const offLocale = subscribeLocale(() => {
+    const lang = VoicePlayer.lang();
+    if (lang === voiceLang) return;
+    voiceLang = lang;
+    const voice = rig?.voice;
+    // (before the rig goes live its own warm-up, 3.5 s after the start, takes the language of that moment)
+    if (!voice || disposed || !activated) return;
+    void voice.preload().then(() => { if (!disposed && game.get().worldMode === 'city') void voice.preloadLines(); });
+  });
+
   const onGesture = () => {
     if (disposed) return;
     if (!activated && game.get().phase === 'title') return;
@@ -393,6 +408,7 @@ export function startAudio(): () => void {
     disposed = true;
     offEvent();
     offStore();
+    offLocale();
     window.removeEventListener('pointerdown', onGesture, gestureOpts);
     window.removeEventListener('keydown', onGesture, gestureOpts);
     window.removeEventListener('touchend', onGesture, gestureOpts);

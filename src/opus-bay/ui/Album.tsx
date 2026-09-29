@@ -128,9 +128,9 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
   // the card itself, loaded when the photo opens (so 保存 / 分享 run inside the tap: iOS shares only from a gesture)
   useEffect(() => {
     let live = true;
-    void photoFile(photo.id).then(f => { if (!live) return; if (f) setFile(f); else { toast(t(ALBUM_TEXT.gone), 'info', 2200); onGone(); } });
+    void photoFile(photo.id).then(f => { if (!live) return; if (f) setFile(f); else { toast(ALBUM_TEXT.gone, 'info', 2200); onGone(); } });
     return () => { live = false; };
-  }, [photo.id, onGone, t]);
+  }, [photo.id, onGone]);
 
   const share = async (asSave: boolean) => {
     if (!file) return;
@@ -139,10 +139,10 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
       return;
     }
     download(file);
-    if (asSave) { toast(t(ALBUM_TEXT.saved), 'info', 2000); return; }
+    if (asSave) { toast(ALBUM_TEXT.saved, 'info', 2000); return; }
     let copied: boolean;
     try { await navigator.clipboard?.writeText(`${t(ALBUM_TEXT.shareText)} ${gameLink()}`); copied = !!navigator.clipboard; } catch { copied = false; }
-    toast(t(copied ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved), 'info', 2600);
+    toast(copied ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved, 'info', 2600);
   };
   const remove = async () => { setAsking(false); await deletePhoto(photo.id); onGone(); };
 

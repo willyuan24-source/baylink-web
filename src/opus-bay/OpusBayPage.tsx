@@ -3,6 +3,7 @@ import { setPageMetadata } from '../lib/seo';
 import { game, useGame, type GameState } from './core/store';
 import { initPersistence } from './data/wishlist';
 import { readQa } from './game/qa';
+import { useT } from './i18n';
 import { TitleScreen } from './ui/TitleScreen';
 import './opus-bay.css';
 
@@ -36,16 +37,6 @@ export default function OpusBayPage() {
 
   useLayoutEffect(() => initPersistenceOnce(), []);
   useEffect(() => {
-    // W5-Z: the city is the default world; ?world=district keeps the district's words
-    setPageMetadata(game.get().worldMode === 'city' ? {
-      title: '湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK',
-      description: '跟 BAYBAY 逛整座旧金山：金门大桥、叮当车、双峰，真实景点和这周活动，一个可以边玩边查的迷你旧金山。',
-      path: '/opus-bay',
-    } : {
-      title: '湾区小旅 · 跟 BAYBAY 逛 Embarcadero｜BAYLINK',
-      description: '刚来湾区？让 BAYBAY 带你从渡轮大厦走到 PIER 39：真实景点、这周活动和出游计划，一个可以边玩边查的迷你湾区。',
-      path: '/opus-bay',
-    });
     const html = document.documentElement;
     html.classList.add('ob-lock');
     return () => html.classList.remove('ob-lock');
@@ -66,6 +57,7 @@ export default function OpusBayPage() {
   const showTitle = !direct && phase === 'title';
   return (
     <main className="ob-page">
+      <PageMeta />
       {load && (
         <Suspense fallback={direct ? <div className="ob-boot"><span className="ob-boot-dot" /></div> : null}>
           <GameRoot startRequested={wantStart} />
@@ -78,4 +70,29 @@ export default function OpusBayPage() {
       )}
     </main>
   );
+}
+
+/**
+ * The tab title in the chosen language (the site's dictionary does not know the game's words), again on a switch. Its
+ * own component: the page itself does not re-render on a language switch (that would re-render the whole game tree).
+ */
+function PageMeta() {
+  const { t } = useT();
+  useEffect(() => {
+    // W5-Z: the city is the default world; ?world=district keeps the district's words
+    setPageMetadata(game.get().worldMode === 'city' ? {
+      title: t('湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK', 'Little Bay Trip · Explore San Francisco with BAYBAY | BAYLINK'),
+      description: t('跟 BAYBAY 逛整座旧金山：金门大桥、叮当车、双峰，真实景点和这周活动，一个可以边玩边查的迷你旧金山。',
+        'Roam all of San Francisco with BAYBAY — the Golden Gate, cable cars, Twin Peaks: real places and this week’s events in a mini San Francisco you can play.'),
+      path: '/opus-bay',
+      preserveText: true,
+    } : {
+      title: t('湾区小旅 · 跟 BAYBAY 逛 Embarcadero｜BAYLINK', 'Little Bay Trip · Explore the Embarcadero with BAYBAY | BAYLINK'),
+      description: t('刚来湾区？让 BAYBAY 带你从渡轮大厦走到 PIER 39：真实景点、这周活动和出游计划，一个可以边玩边查的迷你湾区。',
+        'New to the Bay? Let BAYBAY walk you from the Ferry Building to Pier 39 — real places, this week’s events and day plans in a mini Bay Area you can play.'),
+      path: '/opus-bay',
+      preserveText: true,
+    });
+  }, [t]);
+  return null;
 }

@@ -8,8 +8,6 @@ import type { Vec2 } from '../core/types';
 import { farZoneIndexAt } from '../data/cityZones';
 import { onSaveCleared, patchSave, readSave, reconcileRides, MAX_DISCOVERED, MAX_ZONES } from '../data/save';
 import { type CityPlace, type PlaceIndex, loadPlacesOnIdle, onPlaces, placeIndex } from '../data/sf/places';
-import { pick } from '../i18n';
-import { getLocale } from '../../i18n/locale';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { registerFocusHook } from './brain';
 import { type Interactable, setExtraResolver } from './interactables';
@@ -112,12 +110,10 @@ export function setDiscoveryAnnouncer(fn: ((found: CityPlace[]) => void) | null)
 
 function announce(found: CityPlace[]) {
   if (announcer) { announcer(found); return; }
-  const loc = getLocale();
   const first = found[0];
-  const text = found.length === 1
-    ? pick({ zh: `发现新地点：${first.name.zh}`, en: `New place found: ${first.name.en}` }, loc)
-    : pick({ zh: `发现 ${found.length} 个新地点：${first.name.zh} 等`, en: `${found.length} new places: ${first.name.en} and more` }, loc);
-  toast(text, 'gold', 3200);
+  toast(found.length === 1
+    ? { zh: `发现新地点：${first.name.zh}`, en: `New place found: ${first.name.en}` }
+    : { zh: `发现 ${found.length} 个新地点：${first.name.zh} 等`, en: `${found.length} new places: ${first.name.en} and more` }, 'gold', 3200);
   emit({ type: 'stamp' });
 }
 

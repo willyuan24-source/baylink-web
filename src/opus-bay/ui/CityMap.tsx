@@ -764,7 +764,7 @@ export function CityMapPanel() {
           </svg>
         )}
         {!far && <p className="ob-citymap-wait">{t('地图铺开中…', 'Unfolding the map…')}</p>}
-        <button type="button" className="mw-compass" onClick={() => toast(t('地图按游戏方向摆放，北在左上', 'The map follows the game view: north is up-left'), 'info', 2800)}
+        <button type="button" className="mw-compass" onClick={() => toast({ zh: '地图按游戏方向摆放，北在左上', en: 'The map follows the game view: north is up-left' }, 'info', 2800)}
           aria-label={t('指北针：北在左上', 'Compass: north is up-left')}>
           <svg width={28} height={28} viewBox="-14 -14 28 28" aria-hidden>
             <circle r={13} className="mw-compass-disc" />

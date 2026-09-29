@@ -1,4 +1,3 @@
-import { getLocale } from '../../i18n/locale';
 import { emit, onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, game, toast, tourIdOf, type PanelKind, type Toast } from '../core/store';
@@ -16,7 +15,6 @@ import { GRAND_TOUR } from '../data/sf/copy';
 import { CITY_GOAL, GOALS_STEP_ID, GOALS_STEP_SEEN } from '../data/sf/goals';
 import { zoneName, SF_NAME } from '../data/cityZones';
 import { districtTourProgress, markProgress, progressExtras, wishlist } from '../data/wishlist';
-import { pick } from '../i18n';
 import { cinemaActive, faceCameraToward, holdFraming, playShots, releaseFraming, skipCinema, type Framing, type Shot } from './cinema';
 import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
@@ -58,10 +56,10 @@ import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './
  *   game/photoFrames.ts          registerFrameDecorator(id, draw): paint on the photo card (lane E's frames)
  */
 
-const L = (text: Bilingual | string) => pick(text, getLocale());
-export const say = (zh: string, en: string, tone: Toast['tone'] = 'info', ms?: number) => toast(L({ zh, en }), tone, ms);
+export const say = (zh: string, en: string, tone: Toast['tone'] = 'info', ms?: number) => toast({ zh, en }, tone, ms);
 
-export function announce(text: Bilingual | string) { flow.set({ announce: L(text) }); }
+/** The screen-reader line (ui/Floating LiveRegion resolves it in the current language: it follows a language switch). */
+export function announce(text: Bilingual | string) { flow.set({ announce: text }); }
 
 // ---------------------------------------------------------------------------
 // Speech bubbles

@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { getLocale, subscribeLocale } from '../../../i18n/locale';
+import { paintedWords } from '../labels';
 import { U } from '../materials';
 import { registerWarmup, meshWarmup } from '../warmup';
 
@@ -181,14 +183,22 @@ export function drawSign(g: SignCtx, spec: SignSpec, box: { x: number; y: number
   g.restore();
 }
 
-/** Paint every plaque into its cell (on a transparent canvas: the gaps between plaques are never sampled). */
-export function drawSignsAtlas(g: SignCtx) {
+/**
+ * Paint every plaque into its cell (on a transparent canvas: the gaps between plaques are never sampled). `words`: the
+ * Chinese lines in the reader's script (world/labels paintedWords: 繁體 readers get 麵包 · 點心 · 書店); Japanese, Spanish
+ * and English lines are never touched.
+ */
+export function drawSignsAtlas(g: SignCtx, words: (text: string) => string = text => text) {
   g.clearRect(0, 0, SIGN_ATLAS.size, SIGN_ATLAS.size);
-  SIGNS.forEach((spec, i) => drawSign(g, spec, signCellBox(i)));
+  const z = (l: SignLine): SignLine => (l.script === 'zh' ? { ...l, text: words(l.text) } : l);
+  SIGNS.forEach((spec, i) => {
+    const [a, b] = spec.lines;
+    drawSign(g, { ...spec, lines: b ? [z(a), z(b)] : [z(a)] }, signCellBox(i));
+  });
 }
 
 let tex: THREE.Texture | null = null;
-/** The atlas texture (painted once, on first use): a CanvasTexture in the browser, a 1 × 1 cream texel without a DOM. */
+/** The atlas texture (painted on first use, again on a 简体 ↔ 繁體 switch): a CanvasTexture in the browser, a 1 × 1 cream texel without a DOM. */
 export function signsTexture(): THREE.Texture {
   if (tex) return tex;
   if (typeof document !== 'undefined') {
@@ -196,11 +206,20 @@ export function signsTexture(): THREE.Texture {
     canvas.width = canvas.height = SIGN_ATLAS.size;
     const ctx = canvas.getContext('2d') as unknown as SignCtx | null;
     if (ctx && typeof ctx.fillText === 'function') {
-      drawSignsAtlas(ctx);
+      drawSignsAtlas(ctx, paintedWords);
       const t = new THREE.CanvasTexture(canvas as HTMLCanvasElement);
       t.name = 'ob-signs';
       t.colorSpace = THREE.SRGBColorSpace;
       t.anisotropy = 4;
+      // a language switch (简体 ↔ 繁體): the plaques re-painted in the new script, one texture upload (≈ 25 plaques, a
+      // few ms); English keeps the bilingual plaques as they are. The texture lives for the page: so does this.
+      let hant = getLocale() === 'zh-Hant';
+      subscribeLocale(() => {
+        if ((getLocale() === 'zh-Hant') === hant) return;
+        hant = !hant;
+        drawSignsAtlas(ctx, paintedWords);
+        t.needsUpdate = true;
+      });
       return (tex = t);
     }
   }

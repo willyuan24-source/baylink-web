@@ -58,8 +58,8 @@ export interface FlowState {
   /** the last card taken: its object URL; in the city (W5-C7) `album` with its album id as `name` */
   lastPhoto: { url: string; name: string; album?: boolean } | null;
   photoFlash: number;
-  /** aria-live announcement */
-  announce: string;
+  /** aria-live announcement ({ zh, en } is resolved in the current language when shown) */
+  announce: string | Bilingual;
   debug: boolean;
   /** POI whose micro-interaction the tour is waiting for */
   awaitingPoi: string | null;

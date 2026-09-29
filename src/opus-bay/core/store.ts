@@ -1,5 +1,7 @@
 import { useSyncExternalStore } from 'react';
-import type { Vec2, WishItem } from './types';
+import { getLocale } from '../../i18n/locale';
+import { pick } from '../i18n';
+import type { Bilingual, Vec2, WishItem } from './types';
 
 /**
  * Low-frequency game state (≤ 10 Hz updates). Per-frame values live in core/runtime.ts.
@@ -23,7 +25,11 @@ export type MoveMode = 'foot' | 'sit' | 'bike' | 'car' | 'transit' | 'glide' | '
 export type MoveSpot = 'rail' | 'seat' | 'deck';
 export interface MoveState { mode: MoveMode; line?: string; spot?: MoveSpot }
 
-export interface Toast { id: number; text: string; tone?: 'info' | 'success' | 'gold' }
+/**
+ * `text` = the words in the language of the moment they were said (what tests and logs read); `bi` = both languages when
+ * the caller gave them, so a toast still on screen follows a language switch (ui/Floating Toasts shows `bi` first).
+ */
+export interface Toast { id: number; text: string; tone?: 'info' | 'success' | 'gold'; bi?: Bilingual }
 
 export interface GameState {
   phase: Phase;
@@ -179,8 +185,10 @@ export function useGame<S>(selector: (state: GameState) => S): S {
 }
 
 let toastId = 0;
-export function toast(text: string, tone: Toast['tone'] = 'info', ms = 2600) {
+/** A toast (≤ 3 at once). Give it { zh, en } where you can: a plain string stays in the language it was written in. */
+export function toast(text: string | Bilingual, tone: Toast['tone'] = 'info', ms = 2600) {
   const id = ++toastId;
-  game.set(s => ({ toasts: [...s.toasts, { id, text, tone }].slice(-3) }));
+  const item: Toast = typeof text === 'string' ? { id, text, tone } : { id, text: pick(text, getLocale()), tone, bi: text };
+  game.set(s => ({ toasts: [...s.toasts, item].slice(-3) }));
   window.setTimeout(() => game.set(s => ({ toasts: s.toasts.filter(t => t.id !== id) })), ms);
 }
