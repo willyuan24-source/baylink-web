@@ -1,0 +1,60 @@
+{
+ "refs": {
+  "P5": "df659275-cf2a-4352-8166-1934f9945e0f",
+  "P13": "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+ },
+ "halloween_postcards": {
+  "halloween-pumpkin-hunt": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "A cosy Halloween pumpkin patch on a grassy park hill in San Francisco as a handmade miniature diorama at twilight: dozens of small carved jack-o'-lanterns with friendly smiling carved faces glowing warm orange from inside, gathered in a happy heap and lined along a curving path, a few plain uncarved pumpkins and straw bales, fallen autumn leaves, a string of little round paper lanterns between two trees, and beyond the hill the soft lights of pastel Victorian houses and the city under a deep blue evening sky with a few small friendly bats. No signs, no lettering, no numbers anywhere; no human faces (only the pumpkins' carved ones). The scene fills the whole frame edge to edge: no floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm glowing lantern light in a soft blue dusk, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "halloween-trick-or-treat": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The front steps of a pastel San Francisco Victorian house on Halloween evening as a handmade miniature diorama: a carved wooden front door with a warm orange porch light, a big bowl of wrapped candies on the top step, three smiling jack-o'-lanterns on the stairs, a tiny black witch hat and a small plain white ghost-sheet costume hanging on the railing, cotton cobwebs in the corner of the bay window, a small trick-or-treat candy bucket in the shape of a pumpkin on the sidewalk, autumn leaves, the neighbouring painted houses glowing softly. No signs, no lettering, no numbers anywhere; no human faces (only the pumpkins' carved ones). The scene fills the whole frame edge to edge: no floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm glowing lantern light in a soft blue dusk, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "halloween-big-night": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The Painted Ladies, a row of pastel Victorian houses facing a green park hill in San Francisco, on Halloween night as a handmade miniature diorama: every stoop crowded with glowing carved jack-o'-lanterns, warm orange porch lights, strings of little orange lights along the railings, a big round pale moon low over the downtown skyline, small friendly bats in the deep blue sky, a few tiny clay trick-or-treaters in simple costumes seen from behind walking up the path with pumpkin buckets. No signs, no lettering, no numbers anywhere; no human faces (only the pumpkins' carved ones). The scene fills the whole frame edge to edge: no floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm glowing lantern light in a soft blue dusk, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  },
+  "muertos-mission": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "A street in the Mission District of San Francisco on the evening of Día de los Muertos as a handmade miniature diorama: a small colourful community altar of wooden steps covered with bright orange and yellow marigold flowers, lit candles, round sweet bread, bowls of fruit and small white sugar-skull shapes decorated with coloured icing flowers, arches of marigolds, rows of cut-paper papel picado banners in pink, orange, purple, green and blue with plain cut flower and diamond patterns strung across the street, a colourful stucco building behind, marigold petals scattered on the sidewalk, warm candle glow in a soft blue dusk. No signs, no lettering, no numbers anywhere; no human faces (only the pumpkins' carved ones). The scene fills the whole frame edge to edge: no floating slab, no base edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm glowing lantern light in a soft blue dusk, gentle soft shadows, clean warm cream background (#f3ecdf) where background is visible, palette of cream, sand, sage green, terracotta, teal water, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  }
+ },
+ "retakes": {
+  "halloween-big-night-b": {
+   "model": "nano_banana_pro",
+   "aspect_ratio": "4:3",
+   "resolution": "2k",
+   "refs": [
+    "df659275-cf2a-4352-8166-1934f9945e0f",
+    "d756b0c4-46f1-4761-9e58-0d5d78bc2433"
+   ],
+   "prompt": "The Painted Ladies, a row of pastel Victorian houses facing a green park hill in San Francisco, on Halloween night as a handmade miniature diorama, seen from the grass of the park hill itself so that the scene fills the whole frame edge to edge: every stoop crowded with glowing carved jack-o'-lanterns, warm orange porch lights, strings of little orange lights along the railings, a big round pale moon low over the downtown skyline behind the houses, small friendly bats in the deep blue night sky that fills the whole top of the frame, a few tiny clay trick-or-treaters in simple costumes seen from behind walking along the path with pumpkin buckets. No signs, no lettering, no numbers anywhere; no human faces (only the pumpkins' carved ones). No floating slab, no base edge, no backdrop edge, no cream void around the scene. Full-bleed illustration, the whole subject in frame, NOT a card, NOT on a mat, no border, no stamp, no writing. Match the look of the reference images (handmade miniature clay diorama photographed with a tilt-shift lens) but do not copy their subjects. Soft handcrafted miniature diorama, tilt-shift toy photography feel, matte clay and painted wood materials, warm glowing lantern light in a soft blue dusk, gentle soft shadows, palette of cream, sand, sage green, terracotta, teal, silver-grey; cozy, charming, calm; no text, no letters, no logos, no watermarks."
+  }
+ }
+}
