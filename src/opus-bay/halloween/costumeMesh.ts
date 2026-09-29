@@ -42,7 +42,8 @@ export function costumeHatGeometry(kind: CostumeHat): THREE.BufferGeometry {
     b.add(BOX(), M(0, 0.04, 0.15, 0, 0.07, 0.05, 0.02, tilt), BUCKLE, NONE);
   } else {
     // a squat ribbed pumpkin on the crown, its carved face to the front (lit at night)
-    const R = 0.2, SY = 0.72, y = 0.12;
+    // (QA on the GLB BAYBAY: centred at 0.12 it floated a hand above her crown — the slot sits at the ear tips)
+    const R = 0.2, SY = 0.72, y = 0.0;
     const rib = (_x: number, _y: number, _z: number, lx: number, _ly: number, lz: number) => (Math.floor(((Math.atan2(lz, lx) / (Math.PI * 2)) + 1) * 12) % 2 ? PUMPKIN_A : PUMPKIN_B);
     b.add(sph(R, 16, 9), M(0, y, 0, 0, 1, SY, 1), rib, NONE);
     b.add(CYL(6), M(0, y + R * SY - 0.01, 0, 0.3, 0.025, 0.08, 0.025, -0.25), STEM, NONE);

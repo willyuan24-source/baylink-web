@@ -45,15 +45,16 @@
   one merged mesh per street (≈ 2.5k triangles, 1 draw call); the swinging panel and the flying candy are two small
   meshes on the same material, only while a door is answering. Glow: lantern / transom / pumpkin face always lit in the
   treat hours and on the big night (aInfo.w 1.9), else at night only (0.9); dark when nobody answers.
-- `halloween/treatSounds.ts` — `g-knock` (three wooden knocks), `g-creak` (the door), `g-candy` (a rustle and a twinkle),
-  synthesized through audio/hooks (lane X may hand recorded ones: requests-G.md).
+- `halloween/treatSounds.ts` — `g-knock` (three wooden knocks, synthesized through audio/hooks) for a door nobody
+  answers; a door that answers plays lane X's whole treat vignette (audio/halloween.ts: knock, creak, candies, chime) for
+  the `halloween` treat event, emitted at the knock (W6-G2b keeps the door and the candy in step with it).
 - `halloween/treatRun.ts` — the system: a street's mesh is built within 170 u of it (dropped past 210 u) while the doors
   are dressed; the prompts (`registerInteractables('g-treat')`, source `find`, verb 敲门 / Knock, name 「Belvedere St 的人家」,
-  radius 1.3 at the knock spot); a knock: the knock sound + BAYBAY 不给糖就捣蛋！ → 0.95 s the door creaks open (the lit
-  doorway) → the candy flies in an arc into your bag → the rewards (`{type:'reward', source: halloweenSource('door:n')}`
-  and `night:n`), `{type:'halloween', what:'treat', id:'door:n'}`, a gold toast 「得到巧克力！糖果袋 3 颗」, a sparkle →
-  BAYBAY 谢谢您！万圣节快乐！ (and 糖果袋越来越沉啦！ at 5, the not-too-much line at 10, all doors) → the door closes at
-  5.2 s. Nobody home: the knock, then 没人在家……; a door already knocked: 这家我们来过啦. BAYBAY says a street's line
+  radius 1.3 at the knock spot); a knock: `{type:'halloween', what:'treat', id:'door:n'}` (X's sound) + BAYBAY
+  不给糖就捣蛋！ → 0.6 s the door swings open (the lit doorway) → the candy flies in an arc into your bag (1.3 s) → the
+  rewards (`{type:'reward', source: halloweenSource('door:n')}` and `night:n`), a gold toast 「得到巧克力！糖果袋 3 颗」, a
+  sparkle → BAYBAY 谢谢您！万圣节快乐！ (then the goal line at the 5th door, 糖果袋越来越沉啦！ at 5 candies, the
+  not-too-much line at 10, all doors) → the door closes at 4.6 s. Nobody home: the knock, then 没人在家……; a door already knocked: 这家我们来过啦. BAYBAY says a street's line
   the first time you come within 22 u of its doors in a session (the treat-hour or big-night line first when it applies).
 - `halloween/treatBadge.tsx` — 🍬 n in the top-right pill after the coins (`registerPillBadge('g-candy', order 11)`), shown
   while the doors are dressed (and after, in the season, while the bag is not empty).
@@ -142,8 +143,8 @@
 
 ### Known gaps
 
-- I did not get a clean close-up of BAYBAY wearing the witch hat / pumpkin in the headless shots (the shop's two-shot
-  put the player in front of her); her hats go through the same attach path as the W5 hats and are covered by the tests.
+- The shop's own two-shot can put the player in front of BAYBAY on a narrow street; the close-up below was framed with
+  the QA camera.
 
 ## Part c · the Halloween goals and the 万圣节 page (W6-G4)
 
@@ -182,3 +183,15 @@
 - Lane K1 (actors): a `charApi.attach('pelican', …)` slot (or a `PAINTS` id `pumpkin` for the ribbon) so lane G can sell
   bat wings / a pumpkin bow for the pelican next wave.
 - Lane X: the 22 lines of `halloween/lines.ts` (incl. the costume lines and 敲开了五户人家的门…) — requests-G.md.
+
+## Part d · polish after playing it (W6-G5)
+
+- The pumpkin head sat a hand above BAYBAY's crown on her GLB body (the head slot is at her ear tips): lowered by 0.12;
+  close-up of both costume hats on BAYBAY: `docs/opus-bay/qa/w6/G/G3-baybay-witch-hat-pumpkin-head.jpg` (golden hour,
+  Alamo Square).
+- A knock turns you to face the door (the prompt's 'info' action already plays the reaching gesture); BAYBAY cheers
+  (`charApi.emote('baybay', 'cheer')`) when the candy lands.
+- Phone (390 × 844, quality mid, `?halloween=night&time=night`, Sea Cliff door 41): the one-tap 敲门 / Knock button at the
+  bottom right, the porch with its glowing transom and pumpkin, the door opening on the warm doorway, 「Double treat:
+  toffee! Candy bag: 3」, 10 coins — `docs/opus-bay/qa/w6/G/G2-phone-knock-big-night.jpg`.
+- The full suite on the pushed W6-G4 tree (03:55) and on this part (04:14): 1446 / 1446; tsc 0; eslint 0 errors.

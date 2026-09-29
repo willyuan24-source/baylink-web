@@ -5,6 +5,7 @@ import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { toast } from '../core/store';
 import type { Bilingual } from '../core/types';
+import { charApi } from '../actors/charApi';
 import { PLAYER_HEIGHT } from '../actors/dims';
 import { isPaid } from '../economy/ledger';
 import { bayParts } from '../game/bayNow';
@@ -155,6 +156,8 @@ export function initTreat(): TreatRun {
     const pts = doorPoints(d, KNOCK_OUT);
     if (result.kind === 'closed') return result.kind;
     if (result.kind === 'again') { sayLine('w6g-again'); return result.kind; }
+    // face the door (the 'info' prompt already plays the reaching "knock" gesture)
+    if (Math.hypot(runtime.player.x - pts.knock.x, runtime.player.z - pts.knock.z) < KNOCK_RADIUS + 0.5) runtime.player.heading = d.f + Math.PI;
     sayLine('w6g-knock');
     // nobody home: our own knock (the frozen `halloween` event means a door answered: lane X's treat sound is the whole
     // vignette — knock, creak, candies, chime — played by audio/audio.ts for it)
@@ -224,6 +227,8 @@ export function initTreat(): TreatRun {
         a.candy.geometry.dispose();
         a.candy = null;
         spawnFx('sparkle', to.x, to.y, to.z, { count: 10, color: '#f2a93b' });
+        // BAYBAY is thrilled with the sweets
+        try { charApi()?.emote('baybay', 'cheer'); } catch { /* the actors are going */ }
         finishTreat(a);
       }
     }
