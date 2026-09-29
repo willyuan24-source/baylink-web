@@ -274,12 +274,17 @@ function idleGeometry(): THREE.BufferGeometry {
 
 const sameSpec = (a: PropSpec, b: PropSpec) => a.kind === b.kind && a.x === b.x && a.z === b.z && a.heading === b.heading && a.y === b.y && a.color === b.color && a.size === b.size;
 
+/** (W6-K1) the least time between two rebuilds of a changed prop pool (s) */
+export const PROP_REBUILD_FLOOR = 0.25;
+
 export class PropPool {
   readonly mesh: THREE.Mesh;
   private readonly props = new Map<string, PropEntry>();
   private shown = '';
   private dirty = true;
   private next = 0;
+  /** (W6-K1) when the merged geometry was last rebuilt (host clock s) */
+  private builtAt = -Infinity;
   private readonly idle = idleGeometry();
 
   constructor() {
@@ -313,6 +318,9 @@ export class PropPool {
   /** ≈ 2 Hz: rebuild when the set within range of (x, z) changed. */
   step(now: number, x = runtime.player.x, z = runtime.player.z): void {
     if (now < this.next && !this.dirty) return;
+    // (W6-K1, lane D's review) a dirty pool rebuilds at most every PROP_REBUILD_FLOOR s: the Castro prints drop and fade
+    // one by one for ≈ 8 s of a trail, and each change rebuilt ≈ 500 merged triangles at the host rate (10 Hz)
+    if (this.dirty && now - this.builtAt < PROP_REBUILD_FLOOR) return;
     this.next = now + 0.5;
     const near = [...this.props.values()].filter(p => (p.spec.x - x) ** 2 + (p.spec.z - z) ** 2 < PROP_RANGE * PROP_RANGE).sort((a, b) => (a.key < b.key ? -1 : 1));
     // a prop placed before its ground streamed in stood on the coarse far terrain: follow the ground as it arrives
@@ -325,6 +333,7 @@ export class PropPool {
     if (sig === this.shown && !this.dirty) return;
     this.dirty = false;
     this.shown = sig;
+    this.builtAt = now;
     if (this.mesh.geometry !== this.idle) this.mesh.geometry.dispose();
     if (!near.length) { this.mesh.geometry = this.idle; this.mesh.visible = false; return; }
     const b = new TypedBatch(near.length * 160);
