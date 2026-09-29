@@ -28,6 +28,12 @@ verify `sf-w5-final-verify.md`, the credit ledger `ledger/w5-V.md` and the Higgs
 
 ---
 
+## 上线（2026-09-29）
+
+- 已合并到 `main` 并由 Vercel 部署：**https://www.baylink.us/opus-bay** 打开就是整个旧金山；`?world=district` 仍是原来的 Embarcadero 小街区。
+- 上线前补上的：开始界面和设置里可以切换 **简体 · 繁體 · English**（立刻生效、全站记住）；**车辆卡死修复**（前车挡路 2 秒会让开，自动驾驶会绕过停着的车，叮当车 / 电车 / 巴士不会互相等；20 分钟模拟全程无卡死；审查按主人要求跳过，下一波补做）；正式网站的 `/opus-bay` 路由和让 3D 模型解码的安全设置（实测 0 拦截）。
+- 新窗口继续：说"继续 Opus Bay"，先读 `src/opus-bay/RESUME.md` 顶部，再看本文件 §5 NEXT。
+
 ## 1. Wave 5 at a glance
 
 - **One day, every step.** W5-0c merge of `origin/main` `27073fda` → the plan `26b8be4` → day 0 (W5-0b hotfix

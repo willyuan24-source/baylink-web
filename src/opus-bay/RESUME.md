@@ -1,5 +1,32 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
+## LIVE ON baylink.us — 2026-09-29 (after wave 5)
+
+- `opus-bay` was fast-forwarded into `main` and deployed by Vercel: **https://www.baylink.us/opus-bay** opens the whole
+  city (default world `'city'`; `?world=district` keeps the Embarcadero district). The deployed head is `main` =
+  `origin/opus-bay` at the go-live commit (see `git log -1 origin/main`).
+- Added after the W5-Z verify, before going live:
+  - **Language switch** (`54aff531`, `cbfa32dc`, `255535f6`): 简体 · 繁體 · English pills above Start on the title and a
+    语言 / Language row first in Settings; a switch is live (HUD, bubbles, cards, map, journal, shop, painted world
+    labels, BAYBAY's next voice line) and persists site-wide (`setLocale(…, true)` + `?lang`). Reviewed.
+  - **Vehicle deadlock fix** (`5a726a5a`, `1ad63d6a`, `ec4f3a10`, `ce073ce9`, `52091013`): toy traffic yields to transit and
+    to the player's ride (a car that holds one up 2 s clears the lane), the tap-to-drive car / bike pass a standing car
+    on two-lane streets, interlocks between cable cars / streetcars / buses cannot wait on each other, and
+    `tests/opus-bay-w5-deadlock.test.ts` runs 20+ simulated minutes of the loop, the N and the M with dense traffic
+    (road waits ≤ 5 s, interlocks ≤ 60 s). **Its adversarial review was skipped at the owner's request**; the reviewer's
+    unfinished edits stay uncommitted in `C:/Users/willy/wt/w5-bus` (not on origin): wave 6 should re-run that review.
+  - **Go-live prep** (`6e03237f`, `vercel.json`, owner-approved go-live): the `/opus-bay` route (it answered 404 in
+    production) and a CSP that lets three's Draco decoder run (`script-src 'wasm-unsafe-eval'`, `connect-src blob:`);
+    checked with `scripts/opus-sf/qa/csp-serve.mjs` on a production build: 0 CSP violations, 0 failed requests.
+- Vercel previews for `opus-bay` stay off (`git.deploymentEnabled.opus-bay: false`); production deploys from `main`.
+  The owner cleaned the old previews on 2026-09-28; storage is fine.
+- **To continue in a new window:** say "继续 Opus Bay" (or name the work, e.g. "做第六波"): read this file top-down,
+  then `docs/opus-bay/sf-w5-summary.md` §5 NEXT (wave-6 list) and `docs/opus-bay/owner-feedback-2026-09-27.md`; launch the
+  next wave the same way (plan → day 0 → lanes with parts → checkpoint → reviews → final verify → owner playtest → merge
+  `opus-bay` into `main` to go live). New items for wave 6 on top of §5: re-run the deadlock review; with Settings open the
+  tour bus still boards and drives on; on phones the ARRIVED card can cover an open More menu; 国际橘 vs 国际橙 in the shop;
+  GameRoot 298.6 KB vs the 265 KB target; a real iPhone pass by the owner.
+
 ## WAVE 5 DONE 2026-09-28 (≈ 21:10 PDT = 2026-09-29 ≈ 04:10 UTC)
 
 Read, in order: this section → `docs/opus-bay/sf-w5-summary.md` (给主人的摘要, the ten lanes, the numbers, **§5 NEXT**)
