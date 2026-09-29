@@ -271,6 +271,28 @@ test('W6-P4: the photo capture and the high tier\'s post pass leave GameRoot; th
   assert.match(scene, /\(\) => \{ postSettled = true; \/\* offline: no post pass \*\/ \}/);
 });
 
+test('W6-P-review: a failed play-layer fetch reloads the page once (Chrome keeps a failed import() failed for the page\'s life, so a retry never lands), never in a loop', async () => {
+  // measured on the production build (review of W6-P1): playParts 404 at load → Start pressed → file back → the
+  // 2-second retry kept failing for the page's life (the same URL fetched 200 by then); Start spun for ever
+  const { loadPlayParts, PLAY_PARTS_RELOAD_KEY } = await import('../src/opus-bay/ui/playLayer');
+  const store = new Map<string, string>();
+  let reloads = 0;
+  const g = globalThis as unknown as Record<string, unknown>;
+  Object.defineProperty(g, 'sessionStorage', { configurable: true, value: { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); }, removeItem: (k: string) => { store.delete(k); } } });
+  Object.defineProperty(g, 'location', { configurable: true, value: { reload: () => { reloads++; } } });
+  try {
+    const lost = () => Promise.reject(new TypeError('Failed to fetch dynamically imported module'));
+    await assert.rejects(loadPlayParts(lost));
+    assert.equal(reloads, 1, 'the first failure reloads the page (the title comes back; nothing is lost before Start)');
+    assert.equal(store.get(PLAY_PARTS_RELOAD_KEY), '1');
+    await assert.rejects(loadPlayParts(lost));
+    assert.equal(reloads, 1, 'after that reload a failure does not reload again (offline: no loop)');
+  } finally {
+    delete g.sessionStorage;
+    delete g.location;
+  }
+});
+
 test('W6-P2 / P3: the autopilot comes with the first drive, the six residents and the landmark arrivals with the city data chunk', async () => {
   const root = path.resolve('src/opus-bay');
   const graph = mainGraph(root);
