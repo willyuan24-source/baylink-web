@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useSyncExternalStore, type CSSProperties } from 'react';
-import { TouchControls } from '../actors/TouchControls';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import { loadCatalog } from '../data/catalog';
@@ -17,15 +16,33 @@ import { flow, useFlow } from '../game/flowStore';
 import { setRightInset } from '../game/projector';
 import { bayTimeOfDay, readQa } from '../game/qa';
 import { useIsMobile } from './hooks';
-import { Dialogue } from './Dialogue';
-import { EventCard } from './EventCard';
-import { CinematicLayer, DebugOverlay, LeadChip, LiveRegion, SpeechBubble, TimeOffer, Toasts, Waypoint } from './Floating';
-import { CoachMark, TapHint } from './CoachMark';
-import { Hud, RideBanner } from './Hud';
-import { FishGame, GoalsCard, PhotoMode, PostcardReward, Recap } from './Moments';
-import { PoiCard } from './PoiCard';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
+import { lazyPart } from './playLayer';
 import { closeOverlay, closeTopOverlay, openOverlays, overlays, subscribeOverlays } from './slots';
+
+// W6-P1 (lane P, MF9): the parts that render in play (and the toasts / live regions) are one chunk (ui/playParts.tsx), fetched as soon as GameRoot
+// runs; GameRoot holds a pressed Start until it is in, so each stand-in below is the part itself from the first frame.
+const Dialogue = lazyPart('Dialogue');
+const EventCard = lazyPart('EventCard');
+const CoachMark = lazyPart('CoachMark');
+const TapHint = lazyPart('TapHint');
+const Hud = lazyPart('Hud');
+const RideBanner = lazyPart('RideBanner');
+const FishGame = lazyPart('FishGame');
+const GoalsCard = lazyPart('GoalsCard');
+const PhotoMode = lazyPart('PhotoMode');
+const PostcardReward = lazyPart('PostcardReward');
+const Recap = lazyPart('Recap');
+const PoiCard = lazyPart('PoiCard');
+const TouchControls = lazyPart('TouchControls');
+const CinematicLayer = lazyPart('CinematicLayer');
+const DebugOverlay = lazyPart('DebugOverlay');
+const LeadChip = lazyPart('LeadChip');
+const LiveRegion = lazyPart('LiveRegion');
+const SpeechBubble = lazyPart('SpeechBubble');
+const TimeOffer = lazyPart('TimeOffer');
+const Toasts = lazyPart('Toasts');
+const Waypoint = lazyPart('Waypoint');
 
 // Side panels are their own chunks (opened by a key / HUD button, prefetched once play starts).
 const loadMap = () => import('./MapPanel');

@@ -211,6 +211,39 @@ test('W5-V3: the city data chunk — the landmark cards leave GameRoot, the chun
   assert.ok(Object.keys(CITY_PHOTOS).length >= 10);
 });
 
+test('W6-P1: the play layer (HUD, dialogue box, moments, cards, touch stick) is one chunk outside GameRoot; the Overlay renders it through lazyPart, GameRoot holds Start until it is in', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(graph.has('ui/Overlay.tsx') && graph.has('ui/playLayer.tsx'), 'the Overlay (its boot, keys and layout) and the loader stay');
+  const moved = ['ui/playParts.tsx', 'ui/Hud.tsx', 'ui/Moments.tsx', 'ui/Dialogue.tsx', 'ui/PoiCard.tsx', 'ui/EventCard.tsx', 'ui/CoachMark.tsx', 'ui/Floating.tsx', 'actors/TouchControls.tsx'];
+  assert.deepEqual(moved.filter(m => graph.has(m)).map(why), [], 'play-layer modules in the main graph (render them through ui/playLayer.tsx lazyPart)');
+  // every stand-in the Overlay asks for is a component the chunk exports
+  const overlay = fs.readFileSync(path.join(root, 'ui/Overlay.tsx'), 'utf8');
+  const keys = [...overlay.matchAll(/lazyPart\('(\w+)'\)/g)].map(m => m[1]);
+  assert.ok(keys.length >= 21, `${keys.length} stand-ins`);
+  // (read, not imported: the parts import CSS, which node cannot load)
+  const exported = new Set<string>();
+  const src = fs.readFileSync(path.join(root, 'ui/playParts.tsx'), 'utf8');
+  for (const m of src.matchAll(/^export \{([^}]+)\} from '([^']+)';$/gm)) {
+    const from = path.join(root, 'ui', `${m[2]}.tsx`);
+    const target = fs.readFileSync(from, 'utf8');
+    for (const name of m[1].split(',').map(s => s.trim())) {
+      assert.match(target, new RegExp(`^export function ${name}\\(`, 'm'), `${m[2]} exports the component ${name}`);
+      exported.add(name);
+    }
+  }
+  for (const k of keys) assert.ok(exported.has(k), `playParts.${k}`);
+  // the loader: nothing before the chunk is in (node never fetches it here)
+  const { lazyPart, playParts } = await import('../src/opus-bay/ui/playLayer');
+  assert.equal(typeof lazyPart('Hud'), 'function');
+  assert.equal(playParts(), null);
+  // GameRoot starts the fetch at once and passes Start on only with the parts in (and the world drawn)
+  const gameRoot = fs.readFileSync(path.join(root, 'game/GameRoot.tsx'), 'utf8');
+  assert.match(gameRoot, /if \(typeof window !== 'undefined'\) loadPlayParts\(\)/);
+  assert.match(gameRoot, /startRequested=\{startRequested && drawn && partsIn\}/);
+});
+
 test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 px under G1\'s debug line; desktop keeps bottom right', async () => {
   const { CITY_DEBUG_NARROW, cityDebugPlacement } = await import('../src/opus-bay/world/sf/stats');
   assert.equal(CITY_DEBUG_NARROW, '(max-width: 720px)');

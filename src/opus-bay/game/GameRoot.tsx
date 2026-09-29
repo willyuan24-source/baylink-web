@@ -9,6 +9,7 @@ import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
 import { Systems } from './Systems';
 import { Overlay } from '../ui/Overlay';
+import { loadPlayParts, usePlayParts } from '../ui/playLayer';
 
 const DPR: Record<string, number> = { high: 1.5, mid: 1.25, low: 1 };
 /** Camera far plane: the district fits in 1600 u; the whole city (Twin Peaks → Ferry Building + boards) needs 3000. */
@@ -23,6 +24,10 @@ function readSolo(): string | null {
 // Audio (~60 kB min) is its own chunk, fetched as soon as the game chunk runs: it is normally in by the time
 // Start is pressed (the title shows meanwhile); if not, it boots on the next gesture (audio/audio.ts).
 const audio = typeof window !== 'undefined' ? import('../audio/audio') : null;
+
+// W6-P1 (MF9): the play layer's DOM parts (ui/playParts.tsx: the HUD, the dialogue box, the moments, the cards, the
+// touch stick) are their own chunk, fetched now in both world modes; a pressed Start waits for it (Game below).
+if (typeof window !== 'undefined') loadPlayParts().catch(() => { /* Game retries */ });
 
 // City mode only: the streamed city is its own chunk (world/cityLoader.ts, HC-2), fetched in parallel with the
 // renderer setup; WorldScene waits for it. District mode never loads it.
@@ -50,6 +55,13 @@ function Game({ startRequested }: { startRequested: boolean }) {
   const worldMode = useGame(s => s.worldMode);
   // a Start pressed on the page's title waits for the world's first frame (no empty canvas behind the cinematic)
   const [drawn, setDrawn] = useState(false);
+  // …and for the play layer's parts (W6-P1): in long before the first frame in practice; a failed fetch retries
+  const partsIn = usePlayParts() !== null;
+  useEffect(() => {
+    if (partsIn) return;
+    const id = window.setInterval(() => { loadPlayParts().catch(() => { /* next tick */ }); }, 2000);
+    return () => window.clearInterval(id);
+  }, [partsIn]);
   useEffect(() => {
     let stop: (() => void) | null = null, gone = false;
     void audio?.then(m => { if (!gone) stop = m.startAudio(); });
@@ -78,7 +90,7 @@ function Game({ startRequested }: { startRequested: boolean }) {
           <Systems />
         </Suspense>
       </Canvas>
-      <Overlay startRequested={startRequested && drawn} />
+      <Overlay startRequested={startRequested && drawn && partsIn} />
     </div>
   );
 }
