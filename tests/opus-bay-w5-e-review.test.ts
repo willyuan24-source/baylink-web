@@ -143,17 +143,25 @@ test('W5-E-review 4: after Settings → reset progress BAYBAY gives the first �
     setGlideUnlocked(true);
     assert.equal(W.holds('fly-ticket'), false);
     assert.equal(L.coinsTotal(), 10);
-    // Settings → reset progress (ui/Settings.tsx: clearSave, then the glide off)
+    // Settings → reset progress (ui/Settings.tsx: clearSave, then the glide off, then the new welcome). W6-K2-review: not
+    // inside that click (the glide's check ran with the player still in free roam and gave it before the new welcome);
+    // once the new save has been quiet TICKET_QUIET_MS (its welcome and lead over) it comes, without a reload (1 Hz check)
+    const quietLongAgo = () => { run.ticketGate.quietSince = performance.now() - run.TICKET_QUIET_MS - 1; };
     save.clearSave();
     setGlideUnlocked(false);
     await Promise.resolve();
-    assert.ok(W.holds('fly-ticket') && W.owns('fly-gift'), 'the new save gets her gift at once');
+    assert.equal(W.owns('fly-gift'), false, 'not inside the reset click');
     assert.equal(L.coinsTotal(), 0);
+    quietLongAgo();
+    await new Promise(r => setTimeout(r, 1100));
+    assert.ok(W.holds('fly-ticket') && W.owns('fly-gift'), 'the new save gets her gift once it is quiet');
     // a reset while the pelican was never out (the glide does not change): the gift still comes
     W.consume('fly-ticket');
     save.clearSave();
     await Promise.resolve();
     await Promise.resolve();
+    quietLongAgo();
+    await new Promise(r => setTimeout(r, 1100));
     assert.ok(W.holds('fly-ticket'), 'the reset alone brings it');
   } finally { off(); setGlideUnlocked(false); }
   // after the off nothing is given any more

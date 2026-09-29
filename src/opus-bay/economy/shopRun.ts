@@ -197,7 +197,12 @@ export function initShop(CompassBadge: () => ReturnType<typeof createElement> | 
   const ticketTimer = setInterval(ticketCheck, 1000);
   offs.push(() => clearInterval(ticketTimer));
   offs.push(subscribeGlide(ticketCheck));
-  offs.push(onSaveCleared(() => { ticketGate.quietSince = -Infinity; queueMicrotask(ticketCheck); }));
+  // W6-K2-review: a reset is not "quiet since the start": Settings' reset clears the save, then turns the glide off
+  // (subscribeGlide runs the check at once, the player still in free roam), then restarts the welcome — with the gate at
+  // "at once" the ticket was given inside that click (played on the phone: held 150 ms after the reset, before the new
+  // welcome's first line; 有鹈鹕啦…还你 10 金币。 after its lead). The new save's gift comes TICKET_QUIET_MS after its
+  // welcome and lead are over, like a new player's
+  offs.push(onSaveCleared(() => { ticketGate.quietSince = NaN; queueMicrotask(ticketCheck); }));
   offs.push(() => { gone = true; });
   offs.push(registerAskItem({
     id: 'e-ticket', order: 20, label: { zh: '用飞行券飞一次', en: 'Use my flight ticket' }, icon: TicketIcon,
