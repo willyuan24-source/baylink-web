@@ -306,7 +306,8 @@ test('review R6: every wave-4 pole / kiosk and both ferry quays stand on ground 
   install();
   const props: { id: string; x: number; z: number }[] = [];
   for (const l of W4.lines) for (const s of l.stops) if (!props.some(p => p.id === s.id)) props.push({ id: s.id, ...T.boardAt(W4, s) });
-  assert.equal(props.length, 66);
+  // (W6-B3) 65: the M no longer stops at San Jose & Mt Vernon (data/transit.ts RETIRED_STOPS)
+  assert.equal(props.length, 65);
   for (const t of T.FERRY_ROUTES.find(r => r.running)!.terminals) props.push({ id: `ferry:${t.id}`, x: t.quay.x, z: t.quay.z });
   await withCityAround(props, 32, () => {
     const walled = props.filter(p => walkReach(p.x, p.z) < JOINED).map(p => `${p.id} (${p.x}, ${p.z}): ${walkReach(p.x, p.z).toFixed(1)} u`);
