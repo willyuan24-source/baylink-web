@@ -30,6 +30,7 @@ import { emit, onEvent, rewardPrefix, type RewardPrefix } from '../core/events';
 import { bitGet, bitSet, emptyPlay, MAX_BESTS, MAX_COINS, MAX_ONE_OFF_CHARS, MAX_ONE_OFFS, ONE_OFF_RE, PLAY_DATE_RE, type PlayBitKind, type PlaySaveV1 } from '../data/playSave';
 import { onSaveCleared, patchSave, readSave } from '../data/save';
 import { bayParts } from '../game/bayNow';
+import { dropPendingRewards, ledgerListening } from '../game/rewards';
 import { FIXED_SOURCES } from './sources';
 
 /** The most one source of each prefix pays (plan §3.4: T1 arrival 10 · postcard 10 · egg 10 · favour 25 · …). */
@@ -209,9 +210,11 @@ export function commitPlay(fn: (p: Readonly<PlaySaveV1>) => PlaySaveV1 | null, c
 /** Start listening: `reward` events are paid; a reset (Settings) tells the subscribers. Returns the off. */
 export function initLedger(): () => void {
   const offEvent = onEvent(e => { if (e.type === 'reward') pay(e.source, e.coins); });
+  // W6-K2: the rewards emitted before this listener existed (game/rewards.ts keeps them) are paid now
+  for (const e of ledgerListening(true)) pay(e.source, e.coins);
   const offCleared = onSaveCleared(notify);
-  return () => { offEvent(); offCleared(); };
+  return () => { offEvent(); offCleared(); ledgerListening(false); };
 }
 
 /** tests: forget the registered id lists */
-export function __resetLedgerForTests(): void { registries.clear(); listeners.clear(); version = 0; }
+export function __resetLedgerForTests(): void { registries.clear(); listeners.clear(); version = 0; dropPendingRewards(); }
