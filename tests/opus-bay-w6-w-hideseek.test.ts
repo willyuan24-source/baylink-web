@@ -185,3 +185,75 @@ test('W6-W5 the coach line: once per device, after the emote coach and 40 s of q
     again();
   } finally { flow.set({ bubble: null }); game.set({ phase: prev.phase, mode: prev.mode }); }
 });
+
+// ---------------------------------------------------------------------------
+// W6-W-review (adversarial review of lane W)
+// ---------------------------------------------------------------------------
+
+test('W6-W-review a round ends when BAYBAY is asked to lead (the next goal, a trip, the tour): she is never pinned in hiding while you are led', async () => {
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  kit.__setBestWriter(null);
+  const events: { type: string; source?: string; activity?: string; what?: string }[] = [];
+  const off = onEvent(e => { events.push(e as never); });
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  flow.set({ trip: null, freeLead: null });
+  const p = runtime.player;
+  p.x = 0; p.z = 0;
+  const opts = { stand: () => true, reach: () => true, rand: seeded(5), list: [{ id: 'mid', name: { zh: '中间', en: 'the middle' }, x: 0, z: 40 }] };
+  try {
+    // 问 BAYBAY → 带我去下一个目标 during the seek (live QA: the player was walked toward Coit Tower by nobody, BAYBAY
+    // stayed frozen where she hid and the chip kept saying 冷了…)
+    assert.ok(hs.startHideSeek(opts));
+    for (let i = 0; i < 40; i++) stepFrameSystems(0.1, i * 0.1);
+    assert.equal(kit.currentActivity()?.spec.id, hs.HIDE_ID);
+    flow.set({ freeLead: 'pelican:coit' });
+    stepFrameSystems(0.1, 4.1);
+    assert.equal(kit.currentActivity(), null, 'the round is over');
+    assert.equal(chip.chipState(), null, 'the chip is gone');
+    assert.ok(events.some(e => e.type === 'play' && e.activity === hs.HIDE_ID && e.what === 'cancel'));
+    assert.ok(!events.some(e => e.type === 'reward'), 'nothing paid');
+    // a whole-city tour (the mode leaves free roam) ends it the same way
+    flow.set({ freeLead: null });
+    events.length = 0;
+    assert.ok(hs.startHideSeek(opts));
+    for (let i = 0; i < 40; i++) stepFrameSystems(0.1, 10 + i * 0.1);
+    game.set({ mode: 'tour' });
+    stepFrameSystems(0.1, 14.1);
+    assert.equal(kit.currentActivity(), null);
+    assert.ok(events.some(e => e.type === 'play' && e.what === 'cancel'));
+  } finally { hs.stopHideSeek(); off(); flow.set({ trip: null, freeLead: null }); game.set({ phase: prev.phase, mode: prev.mode }); }
+});
+
+test('W6-W-review the seek repaints the chip only when a word or the second changes (not every frame for up to 3 minutes)', () => {
+  kit.__setBestWriter(null);
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  const p = runtime.player;
+  p.x = 0; p.z = 0;
+  const opts = { stand: () => true, reach: () => true, rand: seeded(5), list: [{ id: 'mid', name: { zh: '中间', en: 'the middle' }, x: 0, z: 40 }] };
+  try {
+    assert.ok(hs.startHideSeek(opts));
+    for (let i = 0; i < 40; i++) stepFrameSystems(0.1, i * 0.1);
+    // 60 frames of one second, standing still: the clock ticks once, the words stay
+    const s0 = chip.chipSeq();
+    for (let i = 0; i < 60; i++) stepFrameSystems(1 / 60, 5 + i / 60);
+    const n = chip.chipSeq() - s0;
+    assert.ok(n <= 2, `${n} chip repaints in one still second`);
+  } finally { hs.stopHideSeek(); game.set({ phase: prev.phase, mode: prev.mode }); }
+});
+
+test('W6-W-review the coach line does not read storage every frame once the emote coach has spoken', () => {
+  const mem = new Map<string, string>([['opus-bay:play:emote-coach:v1', '1']]);
+  let reads = 0;
+  const store = { get: (k: string) => { reads++; return mem.get(k) ?? null; }, set: (k: string, v: string) => { mem.set(k, v); } };
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  runtime.player.moving = true; // walking: no quiet, the line waits
+  try {
+    const off = hs.startHideCoach(store);
+    for (let i = 0; i < 120; i++) stepFrameSystems(1 / 60, i / 60);
+    off();
+    assert.ok(reads <= 3, `${reads} storage reads in 120 frames`);
+  } finally { runtime.player.moving = false; game.set({ phase: prev.phase, mode: prev.mode }); }
+});

@@ -114,12 +114,15 @@ export function heatStep(ref: number, d: number): { ref: number; say: 'warmer' |
   if (d >= ref + HINT_STEP) return { ref: d, say: 'colder' };
   return { ref, say: null };
 }
-/** How warm it is at `d` u from her. */
+const HEAT: readonly Bilingual[] = [
+  { zh: '好烫！就在附近！', en: 'Hot! Really close!' },
+  { zh: '暖暖的', en: 'Warm' },
+  { zh: '有点凉', en: 'Cool' },
+  { zh: '冷冰冰', en: 'Cold' },
+];
+/** How warm it is at `d` u from her (one shared object per word: the chip is repainted only when the word changes). */
 export function heatWord(d: number): Bilingual {
-  if (d <= 8) return { zh: '好烫！就在附近！', en: 'Hot! Really close!' };
-  if (d <= 20) return { zh: '暖暖的', en: 'Warm' };
-  if (d <= 40) return { zh: '有点凉', en: 'Cool' };
-  return { zh: '冷冰冰', en: 'Cold' };
+  return d <= 8 ? HEAT[0] : d <= 20 ? HEAT[1] : d <= 40 ? HEAT[2] : HEAT[3];
 }
 export const SAY: Record<'warmer' | 'colder', Bilingual> = {
   warmer: { zh: '暖了！', en: 'Warmer!' },
@@ -148,6 +151,8 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
   if (!spot) { bubble({ zh: '这里没地方藏～换个地方再玩吧！', en: 'Nowhere to hide here. Let’s try somewhere else!' }, 2800); return false; }
   let phase: 'count' | 'seek' | 'done' = 'count';
   let t = 0, ref = Math.hypot(spot.x - p.x, spot.z - p.z), lastHop = 0, said: Bilingual | null = null, saidAt = -9;
+  // what the chip shows now (review: repaint only when the second or the word changes, not every frame)
+  let shownSec = -1, shownStatus: Bilingual | null = null;
   const where: Bilingual = spot.near
     ? { zh: `她藏在${spot.near.name.zh}附近`, en: `She’s hiding near ${spot.near.name.en}` }
     : { zh: '她就藏在附近', en: 'She’s hiding nearby' };
@@ -175,17 +180,23 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
 
   offFrame = registerFrameSystem('w-hide-seek', dt => {
     if (!run.active) return;
-    if (game.get().phase !== 'playing') { run.cancel(); return; }
+    const s = game.get(), f = flow.get();
+    if (s.phase !== 'playing') { run.cancel(); return; }
+    // review: BAYBAY asked to lead (问 BAYBAY → the next goal, a trip, the tour) ends the round — she cannot lead you
+    // while she is pinned in hiding (live: the player was walked off by nobody while the chip kept saying 冷了…)
+    if (s.mode !== 'free' || f.trip || f.freeLead) { run.cancel(); return; }
     t += dt;
     const pl = runtime.player, d = Math.hypot(spot.x - pl.x, spot.z - pl.z);
     if (phase === 'count') {
-      patchChip(HIDE_ID, { big: String(Math.max(1, Math.ceil(COUNT_S - t))) });
+      const n = Math.max(1, Math.ceil(COUNT_S - t));
+      if (n !== shownSec) { shownSec = n; patchChip(HIDE_ID, { big: String(n) }); }
       if (t >= 0.8) pinBaybay({ x: spot.x, y: heightAt(spot.x, spot.z), z: spot.z, heading: Math.atan2(pl.x - spot.x, pl.z - spot.z) + Math.PI });
       if (t < COUNT_S) return;
       phase = 'seek';
       t = 0;
       playSound('play-whoosh');
-      patchChip(HIDE_ID, { line: { zh: `找 BAYBAY！${where.zh}`, en: `Find BAYBAY! ${where.en}` }, big: '0', status: heatWord(d) });
+      shownSec = 0; shownStatus = heatWord(d);
+      patchChip(HIDE_ID, { line: { zh: `找 BAYBAY！${where.zh}`, en: `Find BAYBAY! ${where.en}` }, big: '0', status: shownStatus });
       return;
     }
     if (phase !== 'seek') return;
@@ -210,11 +221,11 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
     ref = h.ref;
     if (h.say) { said = SAY[h.say]; saidAt = t; if (h.say === 'warmer') playSound('play-tick'); }
     if (said && t - saidAt > 2.5) said = null;
-    const heat = heatWord(d);
-    patchChip(HIDE_ID, {
-      big: String(Math.floor(t)),
-      status: said ?? heat,
-    });
+    const sec = Math.floor(t), status = said ?? heatWord(d);
+    if (sec !== shownSec || status !== shownStatus) {
+      shownSec = sec; shownStatus = status;
+      patchChip(HIDE_ID, { big: String(sec), status });
+    }
     // every HOP_EVERY s she hops where she hides (a hint for sharp eyes), and squeaks when you are near
     if (t - lastHop >= HOP_EVERY) {
       lastHop = t;
@@ -250,16 +261,19 @@ const LOCAL: CoachStore = {
  */
 export function startHideCoach(store: CoachStore = LOCAL): () => void {
   if (store.get(HIDE_COACH_KEY) === '1') return () => {};
-  let quiet = 0;
+  let quiet = 0, emoteSaid = false;
   const off = registerFrameSystem('w-hide-coach', dt => {
     const s = game.get(), f = flow.get(), p = runtime.player;
-    const ok = store.get(EMOTE_COACH_KEY) === '1' && hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
+    // review: storage is read only while the answer can still change, and only when the rest is quiet (not every frame)
+    const calm = hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
+    if (calm && !emoteSaid) emoteSaid = store.get(EMOTE_COACH_KEY) === '1';
+    const ok = calm && emoteSaid;
     quiet = ok ? quiet + dt : Math.max(0, quiet - dt);
     if (quiet < HIDE_COACH_AFTER) return;
     off();
     store.set(HIDE_COACH_KEY, '1');
     bubble(runtime.input.device === 'touch'
-      ? { zh: '想玩捉迷藏吗？点「问我」，再点「捉迷藏」！', en: 'Fancy hide and seek? Tap Ask, then Hide & seek!' }
+      ? { zh: '想玩捉迷藏吗？点「问 BAYBAY」，再点「捉迷藏」！', en: 'Fancy hide and seek? Tap Ask, then Hide & seek!' }
       : { zh: '想玩捉迷藏吗？按 Q 问我，再选「捉迷藏」！', en: 'Fancy hide and seek? Press Q to ask me, then Hide & seek!' }, 5200);
   });
   return off;
