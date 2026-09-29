@@ -191,6 +191,9 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 - 390 × 844, dpr 3, 'mid', golden, Church St in Noe Valley (before the ceiling): the stoops' pumpkins and a witch kid
   with her treat pail on the sidewalk beside BAYBAY — `qa/w6/H/h5-phone-390x844-noe-valley.jpg` (read). DEV stats there:
   227 stoops in 15 cells, 23.4k triangles, 11 trick-or-treaters, 669 halos.
+- **After the ceiling** (the same spot, 390 × 844, dpr 3, 'mid', night): 119 stoops in 8 cells, **13.0k triangles**, 9
+  trick-or-treaters, **323 halos**; the pumpkins' faces glow on the stoops and the witch kid stands on the sidewalk
+  (read; scratch `C:/Users/willy/opus-qa/w6/h/mob-noe2.jpg`).
 - Budget views at 960 × 600 (dpr 3, 'mid', night, before the ceiling): Castro 85 calls / 263k tris, Alamo Square
   94 / 273k, Noe Valley 58 / 261k (halloween-world 3–4 calls, 25–26k).
 - The Alamo Square lantern at golden hour facing the path — `qa/w6/H/h5-hunt-lantern-faces-the-path.jpg` (read).
@@ -211,3 +214,10 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 - **Lane G**: the 万圣节 notebook page can show the hunt with `pumpkinsFound()` / `pumpkinTotal()` / `huntList()` /
   `onHuntChange()` (halloween/hunt.ts) and Día de los Muertos with `muertosCount()` (halloween/muertos.ts).
 - **Lane X**: `halloween/worldLines.ts` (18 lines) to record — `C:/Users/willy/opus-qa/w6/x/requests-H.md`.
+
+## Final checks (04:22 PDT, on origin/opus-bay + lane H's part c)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig
+tsconfig.app.json --test tests/opus-bay-*.test.ts` **1461 / 1461** (earlier pushes: the wall-clock tests "E2-5 view field
+in the city" and "A* is time-sliced" failed once under load and passed alone). District mode untouched: the Halloween
+feature is city-only (`game/w5Features.ts`), and `realsf/seasons.ts`' evening fog reads only in the city's real sky.
