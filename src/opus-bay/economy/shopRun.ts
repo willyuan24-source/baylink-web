@@ -9,7 +9,8 @@ import { DISTRICT } from '../data/district';
 import { POSTCARDS } from '../data/postcards';
 import { onSaveCleared, readSave } from '../data/save';
 import { startTravel, travelActive } from '../game/fastTravel';
-import { closePanel } from '../game/flow';
+import { PELICAN_TARGET } from '../game/cityGoals';
+import { closePanel, goalsStepOpen } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { FLAG_RULES, registerFlagSource } from '../game/flags';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
@@ -20,7 +21,7 @@ import { isMarketOpen } from '../world/clock';
 import { COMPASS_KINDS, hintTarget, type HintTarget } from './hints';
 import { subscribeLedger } from './ledger';
 import { dropLines, sayWhenFree } from './lines';
-import { giveFirstTicket, holds, ticketRule, consume } from './wallet';
+import { giveFirstTicket, holds, owns, ticketRule, consume } from './wallet';
 
 /**
  * Wave 5 · lane E · W5-E6: the 小铺 in the game — where it opens, the stall, the 飞行券 rule and the two conveniences.
@@ -75,6 +76,26 @@ function stallInteractable(): Interactable | null {
 }
 
 // --- the 飞行券 -----------------------------------------------------------------------------------------------------
+
+/**
+ * W6-K2 (lane C's wave-5 review: 送你一张飞行券！ a second after 跟 BAYBAY 去找鹈鹕, then 有鹈鹕啦，飞行券用不上了，还你 10 金币。
+ * 40 s later at Coit — two lines about a ticket the player never used): goal #1's lead is on — the game is not playing
+ * yet, a dialogue (the welcome) or the goals step is open, or BAYBAY leads to the pelican (`freeLead` = pelican:coit).
+ */
+export function ticketGiftWaits(): boolean {
+  const s = game.get(), f = flow.get();
+  return s.phase !== 'playing' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET;
+}
+/** the gift comes this long (ms) after goal #1's lead is over (the goals step's close → the lead start is not a gap) */
+export const TICKET_QUIET_MS = 4000;
+/** quiet since (performance.now() ms); -Infinity: nothing has been busy since the start (a resumed player: at once) */
+export const ticketGate = { quietSince: -Infinity };
+/** The first 飞行券 may be given now (`now` = performance.now()): TICKET_QUIET_MS without ticketGiftWaits(). */
+export function ticketGiftReady(now: number): boolean {
+  if (ticketGiftWaits()) { ticketGate.quietSince = NaN; return false; }
+  if (Number.isNaN(ticketGate.quietSince)) ticketGate.quietSince = now;
+  return now - ticketGate.quietSince >= TICKET_QUIET_MS;
+}
 
 /** Fly once with a held ticket to `dest` (the ticket picker). False: none held, the pelican is out, or no flight began. */
 export function flyWithTicket(dest: { id: string; name: Bilingual; x: number; z: number; look?: { x: number; z: number } }): boolean {
@@ -153,16 +174,23 @@ export function initShop(CompassBadge: () => ReturnType<typeof createElement> | 
   // the 飞行券: BAYBAY's first one (once per save, before the pelican), the refund after the unlock. W5-E-review: also
   // after Settings → reset progress (a new save starts; before, the gift waited for the next page load): the reset
   // clears the save, then the glide — so the check runs once that click is over
+  // W6-K2 (lane C's review request): the gift waits while goal #1 is being led — the welcome, the goals step, BAYBAY's
+  // lead to the pelican — and TICKET_QUIET_MS after (ticketGiftReady, polled 1 Hz until given): a player who follows
+  // 跟 BAYBAY 去找鹈鹕 meets the pelican first and never hears about a ticket (no gift, no refund line 40 s later)
   let gone = false;
   const ticketCheck = () => {
     if (gone) return;
     const out = pelicanOut();
-    if (giveFirstTicket(out)) sayWhenFree('ticketGift', 300, 5200);
     if (ticketRule(out) > 0) sayWhenFree('ticketRefund');
+    if (out || owns('fly-gift') || !ticketGiftReady(performance.now())) return;
+    if (giveFirstTicket(out)) sayWhenFree('ticketGift', 300, 5200);
   };
+  ticketGate.quietSince = -Infinity;
   ticketCheck();
+  const ticketTimer = setInterval(ticketCheck, 1000);
+  offs.push(() => clearInterval(ticketTimer));
   offs.push(subscribeGlide(ticketCheck));
-  offs.push(onSaveCleared(() => { queueMicrotask(ticketCheck); }));
+  offs.push(onSaveCleared(() => { ticketGate.quietSince = -Infinity; queueMicrotask(ticketCheck); }));
   offs.push(() => { gone = true; });
   offs.push(registerAskItem({
     id: 'e-ticket', order: 20, label: { zh: '用飞行券飞一次', en: 'Use my flight ticket' }, icon: TicketIcon,
