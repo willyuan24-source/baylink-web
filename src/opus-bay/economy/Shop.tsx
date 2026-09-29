@@ -21,6 +21,7 @@ import { sayWhenFree } from './lines';
 import { buy, canBuy, holds, owns, takeOff, wear, wornItem } from './wallet';
 import { compassStarted, flyWithTicket, magnifierStarted, pelicanOut, ticketDestinations, type ShopProps, type TicketDest } from './shopRun';
 import { clearPreview, setPreview } from './wear';
+import { CostumeArt } from '../halloween/costumeArt';
 import './economy.css';
 
 /**
@@ -120,6 +121,8 @@ function GlyphArt({ color, children }: { color: string; children: ReactNode }) {
 }
 
 function ItemArt({ it }: { it: ItemDef }) {
+  // W6-G3 (lane G): the Halloween costumes' pictures
+  if (it.costume) return <CostumeArt kind={it.costume} />;
   if (it.slot === 'baybay-scarf') return <ScarfArt color={hex(it.color!)} />;
   if (it.hat) return <HatArt kind={it.hat} />;
   if (it.slot === 'player-hat') return <BucketHatArt color={hex(it.color!)} />;

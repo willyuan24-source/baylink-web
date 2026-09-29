@@ -3,6 +3,7 @@ import { WEAR_SLOTS, type WearSlot } from '../data/playSave';
 import { registerFrameDecorator } from '../game/photoFrames';
 import { registerWarmup } from '../world/warmup';
 import { drawFrame } from './frames';
+import { playerCostumeMesh } from '../halloween/costumeMesh';
 import { hatMesh, hatWarmup } from './hats';
 import { itemById, type ItemDef } from './items';
 import { subscribeLedger } from './ledger';
@@ -36,7 +37,11 @@ function send(api: CharApi, slot: WearSlot, it: ItemDef | null) {
   switch (slot) {
     case 'baybay-scarf': api.tint('baybay', 'scarf', it?.color ?? null); break;
     case 'baybay-hat': api.attach('baybay', 'head', it?.hat ? hatMesh(it.hat) : null); break;
-    case 'player-hat': api.tint('player', 'hat', it?.color ?? null); break;
+    case 'player-hat':
+      // W6-G3 (lane G): a costume (cat ears, the ghost sheet) is attached to the head — the bucket hat hides under it
+      api.attach('player', 'head', it?.costume === 'cat-ears' ? playerCostumeMesh('cat-ears') : it?.costume === 'ghost-sheet' ? playerCostumeMesh('ghost') : null);
+      api.tint('player', 'hat', it?.costume ? null : it?.color ?? null);
+      break;
     case 'player-pack': api.tint('player', 'pack', it?.color ?? null); break;
     case 'bike': case 'car': case 'pelican': api.vehiclePaint(slot, it?.paint ?? null); break;
     case 'frame': break; // painted at the shutter (the decorator reads lookOf('frame'))

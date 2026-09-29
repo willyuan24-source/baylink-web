@@ -20,11 +20,13 @@ import type { WearSlot } from '../data/playSave';
  */
 
 export type Shelf = 'baybay' | 'me' | 'rides' | 'photos' | 'helpers';
-export type HatKind = 'beanie' | 'sun' | 'sailor';
+export type HatKind = 'beanie' | 'sun' | 'sailor' | 'witch' | 'pumpkin';
 export type FrameKind = 'fog' | 'golden' | 'night' | 'postmark' | 'sounds';
 export type UseKind = 'compass' | 'magnifier' | 'fly-ticket' | 'fly-gift';
 /** the notebook pages (economy/stamps.ts PAGE_IDS) */
 export type PageId = 'stamps' | 'finds' | 'views' | 'sounds';
+/** W6-G3 (lane G): the Halloween costumes (their geometry and tile pictures live in halloween/costume*) */
+export type CostumeKind = 'witch-hat' | 'pumpkin-head' | 'cat-ears' | 'ghost-sheet';
 
 export interface ItemDef {
   /** append-only id `[a-z0-9-]` (the `shop` event's item, the `coins` source `shop:<id>`) */
@@ -55,6 +57,10 @@ export interface ItemDef {
   /** hidden from the shop (a marker the ledger keeps) */
   hidden?: true;
   retired?: true;
+  /** W6-G3 (lane G): a costume (BAYBAY's hats keep `hat` too; the player's are attached to the head, not tinted) */
+  costume?: CostumeKind;
+  /** W6-G3 (lane G): sold only in its season (setSeasonGate); an owned one stays on its shelf and wearable */
+  season?: 'halloween';
 }
 
 const bi = (zh: string, en: string): Bilingual => ({ zh, en });
@@ -105,6 +111,11 @@ export const ITEMS: readonly ItemDef[] = [
   { id: 'fly-gift', shelf: 'helpers', slot: 'use', name: bi('BAYBAY 送的飞行券', 'BAYBAY’s gift ticket'), short: bi('送的飞行券', 'Gift ticket'), price: 0, use: 'fly-gift', hidden: true },
   // W5-E9: the 城市之声 page (lane D's twelve city sounds) gives it
   { id: 'frame-sounds', shelf: 'photos', slot: 'frame', name: bi('城市之声相框', 'City-sounds frame'), short: bi('城市之声', 'City sounds'), price: 0, frame: 'sounds', earn: 'sounds' },
+  // W6-G3 (lane G): the Halloween costumes, sold 1 Oct – 2 Nov only (halloween/costume.ts opens the gate)
+  { id: 'hat-witch', shelf: 'baybay', slot: 'baybay-hat', name: bi('女巫帽', 'Witch hat'), short: bi('女巫帽', 'Witch hat'), price: 120, hat: 'witch', costume: 'witch-hat', season: 'halloween', note: bi('万圣节限定', 'Halloween only') },
+  { id: 'hat-pumpkin', shelf: 'baybay', slot: 'baybay-hat', name: bi('南瓜头', 'Pumpkin head'), short: bi('南瓜头', 'Pumpkin'), price: 120, hat: 'pumpkin', costume: 'pumpkin-head', season: 'halloween', note: bi('万圣节限定 · 晚上会发光', 'Halloween only · glows at night') },
+  { id: 'my-cat-ears', shelf: 'me', slot: 'player-hat', name: bi('猫耳朵', 'Cat ears'), short: bi('猫耳朵', 'Cat ears'), price: 80, color: 0x2a2530, costume: 'cat-ears', season: 'halloween', note: bi('万圣节限定', 'Halloween only') },
+  { id: 'my-ghost', shelf: 'me', slot: 'player-hat', name: bi('小幽灵披风', 'Ghost sheet'), short: bi('小幽灵', 'Ghost'), price: 100, color: 0xf6f3ee, costume: 'ghost-sheet', season: 'halloween', note: bi('万圣节限定', 'Halloween only') },
 ];
 
 export const ITEM_IDS: readonly string[] = ITEMS.map(i => i.id);
@@ -149,10 +160,23 @@ export const EARN_NAMES: Readonly<Record<PageId, Bilingual>> = {
 /** The item a full page gives. */
 export const PAGE_ITEM: Readonly<Record<PageId, string>> = { stamps: 'frame-postmark', finds: 'scarf-treasure', views: 'frame-golden', sounds: 'frame-sounds' };
 
-/** Items the shop sells (wearables and conveniences with a price; not earned, hidden or retired). */
-export const forSale = (it: ItemDef): boolean => it.price > 0 && !it.earn && !it.hidden && !it.retired;
+/**
+ * W6-G3 (lane G): the seasonal items' gate (halloween/costume.ts sets it while the city runs): `onSale` — the shop sells
+ * it now; `shown` — its tile shows (in season, or owned). Without a gate a seasonal item is neither sold nor shown.
+ */
+export interface SeasonGate { onSale(it: ItemDef): boolean; shown(it: ItemDef): boolean }
+let seasonGate: SeasonGate | null = null;
+export function setSeasonGate(g: SeasonGate): () => void {
+  seasonGate = g;
+  return () => { if (seasonGate === g) seasonGate = null; };
+}
+const seasonOnSale = (it: ItemDef): boolean => !it.season || !!seasonGate?.onSale(it);
+const seasonShown = (it: ItemDef): boolean => !it.season || !!seasonGate?.shown(it);
+
+/** Items the shop sells (wearables and conveniences with a price; not earned, hidden or retired; a seasonal one in season). */
+export const forSale = (it: ItemDef): boolean => it.price > 0 && !it.earn && !it.hidden && !it.retired && seasonOnSale(it);
 
 /** Items on a shelf now (the ticket only before the pelican; hidden and retired never). */
 export function shelfItems(shelf: Shelf, pelican: boolean): ItemDef[] {
-  return ITEMS.filter(it => it.shelf === shelf && !it.hidden && !it.retired && !(it.use === 'fly-ticket' && pelican));
+  return ITEMS.filter(it => it.shelf === shelf && !it.hidden && !it.retired && !(it.use === 'fly-ticket' && pelican) && seasonShown(it));
 }

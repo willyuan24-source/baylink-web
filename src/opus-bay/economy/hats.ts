@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Batch, M } from '../world/builder';
 import { patchToyShader } from '../world/materials';
 import { meshWarmup, type WarmupSet } from '../world/warmup';
+import { costumeHatGeometry } from '../halloween/costumeMesh';
 import type { HatKind } from './items';
 
 /**
@@ -36,6 +37,8 @@ const KNIT_A = new THREE.Color('#b8453f'), KNIT_B = new THREE.Color('#a33c37');
 
 /** The hat's geometry in the head slot's frame (position / normal / colour / aInfo, like every TOY geometry). */
 export function hatGeometry(kind: HatKind): THREE.BufferGeometry {
+  // W6-G3 (lane G): the Halloween costume hats (witch hat, pumpkin head) are built by halloween/costumeMesh.ts
+  if (kind === 'witch' || kind === 'pumpkin') return costumeHatGeometry(kind);
   const b = new Batch();
   if (kind === 'beanie') {
     // a knit cap hugging the crown (ribbed: the columns alternate two reds), a folded cream cuff, a pom-pom on top
