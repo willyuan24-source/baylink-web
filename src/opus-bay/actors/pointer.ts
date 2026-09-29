@@ -14,8 +14,12 @@ import { game } from '../core/store';
 
 export const DRAG_THRESHOLD = 8;
 const STICK_RADIUS = 52;
-/** Peek cards over the thumb zone whose touches the stick shares (a drag steers, a tap stays the card's): CP-12. */
-export const THUMB_PASS = '.ob-arrival-card';
+/**
+ * Peek cards over the thumb zone whose touches the stick shares (a drag steers, a tap stays the card's): CP-12, and
+ * (W5-Z) lane D's compact find card (小发现 · +10 金币, 6 s, the same bottom-left slot on phones): a thumb that came down
+ * on it walked nowhere and kept it open (its timer waits while the pointer is on it). Once opened it reads normally.
+ */
+export const THUMB_PASS = '.ob-arrival-card, .ob-egg-card:not(.is-open)';
 
 type Role = 'pending' | 'stick' | 'look' | 'pinch';
 interface Touch { id: number; x0: number; y0: number; x: number; y: number; role: Role; left: boolean }

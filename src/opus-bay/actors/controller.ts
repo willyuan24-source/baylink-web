@@ -4,7 +4,7 @@ import { runtime } from '../core/runtime';
 import { canStand, cityTerrain, groundPending, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
 import type { SurfaceKind, Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
-import { deckAt, deckWish } from './deckSteer';
+import { deckAt, deckDip, deckWish } from './deckSteer';
 import { FEET, corridorAt, vaultPlan, type VaultPlan } from './feet';
 import { findPath, pathLength } from './nav';
 import { RouteFollower, isLongRoute } from './routeFollow';
@@ -591,7 +591,17 @@ export class PlayerController {
     if (dist > 1e-5) {
       let ground = this.grounded ? ground0 : Math.max(ground0, p.y);
       for (let i = 0; i < n; i++) {
-        const r = moveDisc(p.x, p.z, (this.vx * dt) / n, (this.vz * dt) / n, PLAYER_RADIUS, ground, !this.grounded);
+        const sx = (this.vx * dt) / n, sz = (this.vz * dt) / n;
+        let r = moveDisc(p.x, p.z, sx, sz, PLAYER_RADIUS, ground, !this.grounded);
+        // W5-Z: on a bridge deck the ragged edge by the rails is a wall, not a dip to step down into (deckSteer.deckDip):
+        // the step slides off it toward the axis, and where even that would drop it is blocked like a wall
+        let dip = deckDip(p.x, p.z, p.y, r.x, r.z);
+        if (dip) {
+          const len = Math.hypot(sx, sz);
+          const r2 = moveDisc(p.x, p.z, sx - dip.nx * len * 0.6, sz - dip.nz * len * 0.6, PLAYER_RADIUS, ground, !this.grounded);
+          if (!deckDip(p.x, p.z, p.y, r2.x, r2.z)) { r = r2; dip = null; }
+        }
+        if (dip) { blocked = true; hitX = dip.nx; hitZ = dip.nz; break; }
         // W5-F10 mantle: in the air, the ground ahead stands above the body — a ledge. Within FEET.mantleMin–mantleMax
         // of the take-off feet: climb it hands first (before, the body popped up onto it); in the city a higher one is
         // a wall even in a jump (a roof is never ground: it is a blocker)

@@ -83,6 +83,31 @@ export function deckAt(x: number, z: number, y?: number): DeckAt | null {
   return null;
 }
 
+/** (W5-Z) how far under a deck's walk height a spot between its rails may be before it is a dip in the edge */
+export const DECK_DIP = 0.2;
+
+/**
+ * (W5-Z) A step from (x0, z0) at height y0 on a deck to (x1, z1) that would go down into a dip of its edge: the unit
+ * normal toward the rail it lies against (a wall to slide along), else null. The walk raster is 0.5 u cells across a
+ * deck that runs at an angle: at the rails `heightAt` blends the deck's cells with what is under them (the water), so
+ * the sidewalks' outer half is dotted with narrow low spots — on the phone a thumb held 30–45° off the axis walked the
+ * player into one and the ground round it was too steep to step out (stuck 0.4–1.8 u under the deck, no pull target).
+ * Nothing between the rails is legitimately lower than the deck (the sidewalks stand 0.02 above the roadway).
+ */
+export function deckDip(x0: number, z0: number, y0: number, x1: number, z1: number): { nx: number; nz: number } | null {
+  const at = deckAt(x0, z0, y0);
+  if (!at) return null;
+  const { deck } = at;
+  if (heightAt(x1, z1) >= deck.y - DECK_DIP) return null;
+  const ax = Math.sin(deck.heading), az = Math.cos(deck.heading);
+  const dx = x1 - deck.x, dz = z1 - deck.z;
+  const s = dx * ax + dz * az, l = dx * az - dz * ax;
+  // past the ends (the bluff and the Marin side) or beyond the rails the ground is not the deck's business
+  if (s < 2 || s > deck.length - 2 || Math.abs(l) > deck.half) return null;
+  const sg = l >= 0 ? 1 : -1;
+  return { nx: az * sg, nz: -ax * sg };
+}
+
 /** World point at station s, lateral l on a deck. */
 export function deckPoint(deck: Deck, s: number, l: number): { x: number; z: number } {
   const ax = Math.sin(deck.heading), az = Math.cos(deck.heading);
@@ -95,11 +120,11 @@ export function heroRelaxed(id: string, x: number, z: number): boolean {
   return !!at?.deck.relax?.includes(id);
 }
 
-/** The body fits at (s, l) and a few steps on along `dir` (±1) on the deck. */
+/** The body fits at (s, l) and a few steps on along `dir` (±1) on the deck (W5-Z: and no dip of the edge is there). */
 function laneClear(deck: Deck, s: number, l: number, dir: number, r: number): boolean {
   for (let d = 0.9; d <= DECK_STEER.ahead + 1e-6; d += 0.8) {
     const p = deckPoint(deck, s + dir * d, l);
-    if (!canStand(p.x, p.z, r)) return false;
+    if (!canStand(p.x, p.z, r) || heightAt(p.x, p.z) < deck.y - DECK_DIP) return false;
   }
   return true;
 }
@@ -130,8 +155,10 @@ export function deckWish(at: DeckAt, wx: number, wz: number, r = 0.45): { x: num
     }
     if (best !== null) lat = Math.max(-DECK_STEER.maxSteer, Math.min(DECK_STEER.maxSteer, (best - l) * DECK_STEER.gain));
   }
-  // keep off the rails: no drift outward past the clearance
+  // keep off the rails: no drift outward past the clearance (W5-Z: and a body already past it is eased back in — the
+  // edge by the rails is where the deck's walk raster is ragged)
   if ((l >= limit && lat > 0) || (l <= -limit && lat < 0)) lat = 0;
+  if (Math.abs(l) > limit) lat = -Math.sign(l) * Math.min(DECK_STEER.maxSteer, Math.max(Math.abs(lat), (Math.abs(l) - limit) * DECK_STEER.gain));
   const x = dir * ax + lat * az, z = dir * az - lat * ax, L = Math.hypot(x, z) || 1;
   return { x: x / L, z: z / L, steered: true };
 }

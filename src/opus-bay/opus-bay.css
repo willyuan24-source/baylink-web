@@ -1250,6 +1250,10 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
   .ob-overlay .ob-arrival-card { pointer-events: none; }
   .ob-overlay .ob-arrival-card button { pointer-events: auto; touch-action: none; }
   .ob-overlay.is-sticking .ob-arrival-card { opacity: .3; transition: opacity .2s; }
+  /* W5-Z: lane D's compact find card (same slot, 6 s) shares the thumb the same way; opened, it is a card again */
+  .ob-overlay .ob-egg-card:not(.is-open) { pointer-events: none; }
+  .ob-overlay .ob-egg-card:not(.is-open) button { pointer-events: auto; touch-action: none; }
+  .ob-overlay.is-sticking .ob-egg-card:not(.is-open) { opacity: .3; transition: opacity .2s; }
 }
 
 /* W5-F3 · the phone's 起飞 pulses once (a glide unlocked in play; lane C's 先试试起飞？): a warm ring swells out twice */
