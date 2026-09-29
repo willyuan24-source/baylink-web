@@ -8,6 +8,9 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
 1. 打开「设置」现在真的是暂停：等车时车会停在站台等你，不会自己把你拉上车开走；坐车时车会停下来等你关掉设置再走（观光巴士、地铁、叮当车、F 线、渡轮都一样）。
 2. 手机上「更多」菜单打开时，「抵达」卡片会先让开、倒计时也暂停；关掉菜单卡片再回来，不会再挡住「拍照 / 小铺」。
 3. 小铺里的"国际橘"全部改成"国际橙"（围巾、背包、单车；繁體自动变成「國際橙」，英文是 International Orange），存档里的物品不受影响。
+4. 开局跟 BAYBAY 去找鹈鹕时，不会再先送一张飞行券、40 秒后又"退你 10 金币"；刚进游戏那一秒拿到的金币不会再丢；"继续旅程"回来时只有"欢迎回来"，不再同时弹"发现 N 个新地点"；新存档的目标卡不会再盖住唐人街响铃的老电话。
+5. 一日游的时间改成实测的"约 36 分钟 / 快速版约 29 分钟"；金门大桥桥面南段也显示"金门大桥"；等叮当车时也能点"直接到站"；某个小游戏或小铺如果忘了"放开"你，最多 90 秒后自动放开并记下来。
+6. `STATUS.md` 重写成现在的样子（整座城市默认、怎么运行、数字、代码地图）。三部分都已推送，测试全绿。
 
 ## Part a (2026-09-29 01:53–02:25 PDT): Settings holds the ride · the More menu wins over the ARRIVED card · 国际橙
 
@@ -101,7 +104,7 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
   toast and dialogue from 开始 on (90 s): **飞行券 never mentioned**. Then on the Golden Gate deck a tenth of the way from
   the south anchorage (y 15.2): the pill reads **金门大桥** (`qa/w6/K2/b-phone-deck-area-pill.jpg`; the English line under it
   is the street name, which stays English by the VOICE.md rule).
-- Checks: see the push below (tsc 0 · eslint 0 errors · the suite fail 0).
+- Checks on the pushed tree (`4303a9d0`, after rebasing over lanes S, B, X, P, W): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1414 / 1414**, fail 0.
 
 ### Decisions
 
@@ -118,6 +121,39 @@ Worktree `C:/Users/willy/wt/w6-k2` (branch `w6-k2`), dev port 5602, scratch `C:/
 - Not played live: the resume's quiet batch (needs a saved spot and a reload; the rule is tested in node with a place
   index) and the goals card at the ringing phone (jsdom only).
 - The express quote (29) is the measured run that rode its two long Metro legs; with 直接到站 there it is ≈ 24 min.
+
+### Requests
+
+- None.
+
+## Part c (2026-09-29 03:05–03:30 PDT): 直接到站 on a waiting cable car · the part-b items played live
+
+### What was built
+
+| # | item | files | API |
+|---|---|---|---|
+| 1 | **直接到站 while waiting for a cable car** (the lead's decision, sf-w6-lead.md §6; lane T's open question: a car can be 60–85 s away at a turntable). The cable-car banner offers 直接到站 in the waiting stage like the ferry's: the rider lands at the destination's kerb spot (lane T's finishRide, under the veil when the stop is not streamed in) and it never counts as a ride. Buses and the Metro unchanged (their banner offers 直接到站 once aboard). | `game/transit.ts` (`rideLabel`: `skipWhileWaiting` for cable cars) | — |
+
+### Evidence
+
+- Test: `tests/opus-bay-w6-k2-pause.test.ts` +1 (a waiting Powell–Hyde ride offers 直接到站; `finishRide` ends it, the rider
+  within 20 u of Hyde & Beach, `rideLog` unchanged). Updated: `tests/opus-bay-sf-guide-review.test.ts` (W4-G-int-review pinned
+  "no 直接到站 for a waiting cable car"; it now pins it offered, and the loop bus without it).
+- **Played on the phone** (390 × 844 dpr 3, touch, quality mid, a normal save in a fresh profile; scripts
+  `C:/Users/willy/opus-qa/w6/k2/qa-c.mjs`, `qa-c2.mjs`, logs `c/phone.log`, `c2/phone.log`):
+  - Powell & Geary, 鲍威尔-海德线 to Hyde & Beach: the banner reads 等叮当车进站…约 4 秒 · 不坐了 · 直接到站
+    (`qa/w6/K2/c-phone-cable-skip-while-waiting.jpg`); tapping 直接到站 put the rider on foot 3.7 u from Hyde & Beach, the
+    ride over.
+  - **The resume's quiet batch, live:** stood at Hyde & Beach (the sampler saved the spot), removed the 5 finds from the
+    saved game, reloaded, tapped 继续旅程: in the next 20 s the page showed only 欢迎回来！上次我们走到俄罗斯山了。 — no
+    “+N 个地点” chip, no 发现 toast — while the save's finds went 0 → 5 (marked quietly).
+- Seen, not mine: the cable-car banner's destination reads "Hyde & Beach" in the zh HUD (lane B's NEXT #10, zh cable-car
+  stop names).
+
+### Not done
+
+- Everything in lane K2's row is done (parts a–c). Not attempted: freezing the whole world (traffic, other vehicles)
+  while Settings is open — only the rider's own ride holds.
 
 ### Requests
 
