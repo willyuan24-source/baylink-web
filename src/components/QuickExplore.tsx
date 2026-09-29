@@ -18,15 +18,48 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
 }) {
   const [query, setQuery] = useState('');
   const locale = useLocale();
+  const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [active, setActive] = useState(0);
   const composing = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const term = query.trim();
   const destinations = useMemo(() => searchQuickDestinations(term, locale), [term, locale]);
-  const matches = useMemo(() => term ? searchGuides(guides, { query: term, locale })
-    .filter(({ guide }) => !destinations.attractions.some(place => place.slug === guide.slug)).slice(0, 4) : [], [term, locale, destinations]);
-  const found = matches.length + destinations.tools.length + destinations.events.length + destinations.attractions.length + destinations.offers.length + destinations.openings.length;
+  const info = destinations.queryInfo;
+  const guideQuery = info.structured ? [...info.cities, ...info.tokens].join(' ') || term : term;
+  const matches = useMemo(() => {
+    if (!term || destinations.queryInfo.invalidDate) return [];
+    const originalMatches = searchGuides(guides, { query: term, locale });
+    const related = originalMatches.length ? originalMatches : searchGuides(guides, { query: guideQuery, locale });
+    return related.filter(({ guide }) => ![...destinations.attractions, ...destinations.unverified.attractions].some(place => place.slug === guide.slug)).slice(0, 4);
+  }, [term, locale, destinations, guideQuery]);
+  const found = (info.structured ? 0 : matches.length) + destinations.tools.length + destinations.events.length + destinations.attractions.length + destinations.offers.length + destinations.openings.length;
   const run = (action: () => void) => { onClose(); action(); };
+  const referenceLabel = copy('适用日期 / 营业时间待核实', 'Date / opening hours unconfirmed');
+  const regionNames = { 'sf': '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', 'north-bay': '北湾', 'peninsula': '半岛' };
+  const conditions = [
+    ...(info.intent !== 'mixed' ? [copy({ events: '活动', offers: '优惠', openings: '新店', attractions: '景点', places: '店铺与去处', guides: '攻略' }[info.intent], { events: 'Events', offers: 'Offers', openings: 'Openings', attractions: 'Attractions', places: 'Shops and places', guides: 'Guides' }[info.intent])] : []),
+    ...info.cities, ...info.regions.map(region => translateText(regionNames[region], locale)),
+    ...(info.dateRange ? [info.dateRange.start === info.dateRange.end ? info.dateRange.start : `${info.dateRange.start} – ${info.dateRange.end}`] : []),
+    ...(info.freeOnly ? [copy('免费入场 / 免费福利', 'Free admission / free benefits')] : []),
+    ...(info.maxAdmissionUsd !== undefined ? [`$${info.maxAdmissionUsd} ${copy(info.admissionBudget ? '入场费上限' : '预算', info.admissionBudget ? 'admission cap' : 'budget')}`] : []),
+    ...(info.totalBudgetUsd !== undefined ? [`$${info.totalBudgetUsd} ${copy('总预算 · 待确认人数与范围', 'total budget · group size and scope unconfirmed')}`] : []),
+    ...(info.family ? [copy('亲子', 'Family')] : []),
+    ...info.childAges.map(age => copy(`${age} 岁`, `Age ${age}`)),
+    ...(info.setting ? [copy(info.setting === 'indoor' ? '室内' : '户外', info.setting === 'indoor' ? 'Indoors' : 'Outdoors')] : []),
+    ...(info.evening ? [copy('晚间', 'Evening')] : []),
+  ];
+  const notices = [
+    ...(info.invalidDate ? [copy('日期无效或范围倒置，请检查日期。', 'Check the date: it is invalid or the range is reversed.')] : []),
+    ...(info.unsupported.includes('negative-preference') ? [copy('检测到排除偏好，目前不能可靠执行这类否定筛选。请改写成想要的条件，或交给 BayBay；不会反向当成正向推荐。', 'An exclusion was detected, but this search cannot reliably apply it. State what you want or ask BayBay; excluded preferences are not treated as positive filters.')] : []),
+    ...(info.unsupported.includes('multiple-dates') ? [copy('检测到多个不同日期，尚未选择其中一天。请写一个日期或明确连续范围（如 10/3–10/5），或交给 BayBay。', 'Several different dates were detected; none has been silently selected. Enter one date or an explicit continuous range, such as 10/3–10/5, or ask BayBay.')] : []),
+    ...(info.unsupported.includes('total-budget') ? [copy('总预算尚未用于金额筛选，也没有换算成每人票价。请交给 BayBay 确认人数，以及是否包含餐饮和交通。', 'The total budget is not applied as a price filter or converted to a per-person ticket price. Ask BayBay to confirm group size and whether food and transport are included.')] : []),
+    ...(info.unsupported.includes('free-extras') ? [copy('免费停车或餐饮不等于免费入场；这些附加条件目前尚未核实。', 'Free parking or food does not mean free admission; these extra conditions have not been verified.')] : []),
+    ...(info.freeOnly || info.maxAdmissionUsd !== undefined ? [copy('只筛已知入场费或免费福利；餐饮、交通、附加项目与资格限制另看详情。未知价格不按免费处理。', 'Checks known admission prices or free benefits only. Food, transport, extras and eligibility are separate. Unknown prices are not treated as free.')] : []),
+    ...(info.setting ? [copy('只列已有明确场地信息的活动；资料尚不完整，雨天偏好不代表天气预报。', 'Only events with a confirmed indoor/outdoor setting are listed. Coverage is incomplete; this is not a weather forecast.')] : []),
+    ...(info.family ? [copy('按亲子标签及已知年龄限制筛选；具体年龄、陪同与预约要求请看详情。', 'Uses family labels and known age restrictions. Check details for ages, adult supervision and reservations.')] : []),
+    ...(info.evening ? [copy('晚间按已刊时段筛选；完整营业与结束时间仍需确认。', 'Evening matches use published times; full hours and end times still need checking.')] : []),
+    ...(info.distanceRequested ? [copy('尚未计算距离或通行时间；“附近”不能保证在指定路程内。', 'Distances and travel times have not been calculated; nearby results are not a verified travel radius.')] : []),
+  ];
   const results: QuickResult[] = [
     ...destinations.tools.map(tool => ({
       id: `tool-${tool.id}`, title: tool.title, detail: tool.short, icon: Wrench, group: '即用工具',
@@ -53,12 +86,24 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
         group: '景点与出游', image: guide ? getGuideMedia(guide).cover.src : undefined,
         run: () => onNavigate(`/guides/${place.slug}`) };
     }),
+    ...destinations.unverified.offers.map(offer => ({
+      id: `reference-offer-${offer.id}`, title: `${offer.brand} · ${offer.title}`, detail: `${referenceLabel} · ${offer.dateLabel} · ${offer.requirement}`, icon: Ticket,
+      group: copy('参考福利 · 适用日期待确认', 'Reference benefits · dates unconfirmed'), run: () => onNavigate(`/offers/${offer.id}`),
+    })),
+    ...destinations.unverified.openings.map(shop => ({
+      id: `reference-opening-${shop.id}`, title: shop.name, detail: `${referenceLabel} · ${openingStatusLabel(shop.status)} · ${shop.city} · ${shop.dateLabel}`, icon: Store,
+      group: copy('参考新店 · 营业时间待确认', 'Reference openings · hours unconfirmed'), run: () => onNavigate(`/openings/${shop.id}`),
+    })),
+    ...destinations.unverified.attractions.map(place => ({
+      id: `reference-place-${place.id}`, title: place.title, detail: `${referenceLabel} · ${place.city}`, icon: MapPin,
+      group: copy('参考去处 · 开放时间待确认', 'Reference places · hours unconfirmed'), run: () => onNavigate(`/guides/${place.slug}`),
+    })),
     ...matches.map(({ guide, snippet }) => ({
-      id: guide.slug, title: guide.title, detail: snippet && snippet !== guide.title ? snippet : guide.summary, icon: BookOpen,
+      id: guide.slug, title: guide.title, detail: `${info.structured ? copy('攻略参考，不代表符合全部条件。', 'Guide reference; not confirmation of every condition. ') : ''}${snippet && snippet !== guide.title ? snippet : guide.summary}`, icon: BookOpen,
       group: '站内指南', image: getGuideMedia(guide).cover.src, run: () => onNavigate(`/guides/${guide.slug}`),
     })),
     ...(term ? [{ id: 'posts', title: `搜索邻里信息「${term}」`, detail: '继续查找房源、服务和邻里帖子', icon: Search, group: '继续探索', run: () => onSearch(term) }] : []),
-    { id: 'baybay', title: term ? `问 BayBay「${term}」` : '问问 BayBay', detail: '一起安排周末、比较优惠、整理生活需求', icon: Sparkles, group: '继续探索', run: () => onAsk(term || undefined) },
+    { id: 'baybay', title: term ? copy('交给 BayBay 继续安排', 'Continue planning with BayBay') : '问问 BayBay', detail: term || '一起安排周末、比较优惠、整理生活需求', icon: Sparkles, group: '继续探索', run: () => onAsk(term || undefined) },
     ...(!term ? [
       { id: 'calendar', title: '活动日历', detail: '按月、按周查看活动与当天地图。', icon: CalendarDays, group: '快速前往', run: () => onNavigate('/calendar') },
       { id: 'month', title: '这个周末有什么？', detail: '按日期、地区与费用挑选湾区活动', icon: CalendarDays, group: '快速前往', run: () => onNavigate('/this-month?when=weekend#monthly-events') },
@@ -74,7 +119,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
       <div className="quick-explore" onClick={(event) => event.stopPropagation()}>
         <form onSubmit={(event) => { event.preventDefault(); if (!composing.current) run(results[selected].run); }} className="quick-search-form">
           <Search size={22} />
-          <input ref={inputRef} maxLength={80} aria-label="快速搜索" role="combobox" aria-expanded="true" aria-controls="quick-explore-results"
+          <input ref={inputRef} maxLength={200} aria-label="快速搜索" role="combobox" aria-expanded="true" aria-controls="quick-explore-results"
             aria-autocomplete="list" aria-activedescendant={`quick-result-${selected}`} autoFocus placeholder="搜索活动、优惠、新店或生活问题…"
             value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }}
             onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
@@ -93,8 +138,14 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
           <button type="button" aria-label="关闭搜索" onClick={onClose}><X size={20} /></button>
         </form>
         <div className="quick-explore-body">
-          {!term && <div className="quick-suggestions" aria-label="试试这些搜索"><span>试试搜索</span>{['小费', '免费', '钢琴', '金门大桥'].map(value => <button type="button" key={value} onClick={() => { setQuery(translateText(value, locale)); setActive(0); inputRef.current?.focus(); }}>{value}</button>)}</div>}
-          {term && <p className="quick-empty" role="status">{found ? '已找到相关内容，可直接打开；也可以继续搜索邻里信息。' : '暂未找到匹配内容，试试「免费」「亲子」「小费」或「租房」。'}</p>}
+          {!term && <div className="quick-suggestions" aria-label="试试这些搜索"><span>试试搜索</span>{[
+            ['小费', 'Tips'], ['这个周末旧金山免费活动', 'Free events in San Francisco this weekend'], ['南湾新店', 'New shops in the South Bay'], ['雨天室内亲子活动', 'Indoor family events for a rainy day'],
+          ].map(([zh, en]) => <button type="button" key={zh} onClick={() => { setQuery(copy(zh, en)); setActive(0); inputRef.current?.focus(); }}>{copy(zh, en)}</button>)}</div>}
+          {term && <div aria-live="polite">
+            {!!conditions.length && <p className="quick-empty"><strong>{copy('已识别：', 'Understood: ')}</strong>{conditions.join(' · ')}</p>}
+            {notices.map(notice => <p className="quick-empty" key={notice}>{notice}</p>)}
+            <p className="quick-empty" role="status">{found ? copy('以下是站内匹配与相关攻略；参考条目的条件仍需核实。', 'Local matches and related guides follow. Conditions on reference items still need checking.') : copy('没有已核实的匹配结果。可调整条件，或让 BayBay 继续安排；不相关活动不会补入结果。', 'No verified matches. Adjust the conditions or continue with BayBay; unrelated events are not used as substitutes.')}</p>
+          </div>}
           <div id="quick-explore-results" role="listbox" aria-label="搜索结果">
             {results.map((result, index) => <div key={result.id} role="presentation">
               {(index === 0 || results[index - 1].group !== result.group) && <p className="site-nav-label" role="presentation">{result.group}{result.group === '站内指南' ? ` · ${matches.length} 篇` : ''}</p>}

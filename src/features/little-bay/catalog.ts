@@ -135,5 +135,5 @@ export function cleanLittleBayPlanStops(input: unknown, date: string): Stop[] {
     if (stop.kind === 'place') return true;
     const event = PLANNER_EVENTS.find(item => item.id === stop.id);
     return !!event && eventOccursOn(event, date);
-  }));
+  })).slice(0, 3);
 }

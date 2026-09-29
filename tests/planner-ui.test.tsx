@@ -100,7 +100,7 @@ test('starting a text-parsed suggestion keeps its requested day inside a multi-d
   fireEvent.click(view.getByRole('button', { name: '用这个方案开始' }));
   assert.equal((view.getByLabelText('出游日期') as HTMLInputElement).value, requestedDate);
   assert.equal((editor(view).getByLabelText('日期') as HTMLInputElement).value, requestedDate);
-  assert.equal(editor(view).getAllByRole('listitem').length, 2);
+  assert.equal(within(editor(view).getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length, 2);
   await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
   const stored = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!);
   assert.equal(stored.plans[0].date, requestedDate, 'saving must preserve the suggested day, not the conference opening day');
@@ -140,18 +140,18 @@ test('changing region or date clears previous suggestions and removes their even
   assert.equal(recommendations, 2);
 });
 
-test('a shared query restores at most three public stops and a guest can save and reopen them in My Week', async () => {
+test('a shared query preserves more than three public stops and a guest can save and reopen them in My Week', async () => {
   const query = new URLSearchParams({
     date: requestedDate,
     stops: `event:${event.id},place:golden-gate,place:pier39,place:chinatown,event:${event.id}`,
   });
   const view = await openPlanner('?' + query.toString());
-  const stopLinks = () => editor(view).getAllByRole('listitem').map(item => within(item).getByRole('link').getAttribute('href'));
-  assert.deepEqual(stopLinks(), [`/events/${event.id}`, '/guides/sf-golden-gate-bridge-fort-point-guide', '/guides/sf-fishermans-wharf-pier39-guide']);
+  const stopLinks = () => within(editor(view).getByRole('list', { name: '所选地点' })).getAllByRole('listitem').map(item => within(item).getByRole('link').getAttribute('href'));
+  assert.deepEqual(stopLinks(), [`/events/${event.id}`, '/guides/sf-golden-gate-bridge-fort-point-guide', '/guides/sf-fishermans-wharf-pier39-guide', '/guides/sf-chinatown-north-beach-walk-guide']);
   assert.equal((editor(view).getByLabelText('日期') as HTMLInputElement).value, requestedDate);
   const publicLink = new URL(editor(view).getByRole('link', { name: '打开公开分享链接 ↗' }).getAttribute('href')!);
-  assert.equal(publicLink.searchParams.get('stops')!.split(',').length, 3);
-  assert.ok(!publicLink.searchParams.get('stops')!.includes('chinatown'));
+  assert.equal(publicLink.searchParams.get('stops')!.split(',').length, 4);
+  assert.ok(publicLink.searchParams.get('stops')!.includes('chinatown'));
   fireEvent.change(editor(view).getByLabelText('计划名称'), { target: { value: '我的 AI 与海滨一天' } });
   await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
   assert.match(editor(view).getByRole('status').textContent || '', /已保存到这个浏览器/);
@@ -162,11 +162,11 @@ test('a shared query restores at most three public stops and a guest can save an
   assert.equal(stored.plans[0].title, '我的 AI 与海滨一天');
   assert.equal(stored.plans[0].date, requestedDate);
   assert.deepEqual(stored.plans[0].stops, [
-    { kind: 'event', id: event.id }, { kind: 'place', id: 'golden-gate' }, { kind: 'place', id: 'pier39' },
+    { kind: 'event', id: event.id }, { kind: 'place', id: 'golden-gate' }, { kind: 'place', id: 'pier39' }, { kind: 'place', id: 'chinatown' },
   ]);
   await act(async () => { fireEvent.click(view.getByRole('link', { name: '我的这周' })); });
   const card = view.getByRole('heading', { name: '我的 AI 与海滨一天' }).closest('article')!;
-  assert.equal(within(card).getAllByRole('listitem').length, 3);
+  assert.equal(within(card).getAllByRole('listitem').length, 4);
   assert.equal(card.querySelector('time')?.getAttribute('datetime'), requestedDate);
   assert.ok(within(card).getByRole('link', { name: '继续编辑' }));
 });

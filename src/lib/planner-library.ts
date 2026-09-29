@@ -4,6 +4,7 @@ import { getStoredUser } from './session';
 import { cleanStops, EMPTY_LIBRARY, errorText, eventFor, placeFor, validDay, type Favorite, type Library, type Preferences, type SavedPlan } from './planner';
 import { guides } from '../data/guides';
 import { recordProductEvent } from './product-events';
+import { normalizePlanDetails } from './planner-itinerary';
 
 export const GUEST_PLANNER_KEY = 'baylink.planner.guest.v1';
 export const loadGuestLibrary = (): Library => {
@@ -15,11 +16,11 @@ export const loadGuestLibrary = (): Library => {
     const interests = Array.isArray(prefs?.interests) ? [...new Set<string>(prefs.interests.filter((i: unknown) => typeof i === 'string' && i.length <= 40))].slice(0, 12) : [];
     const travelMode = ['any', 'drive', 'transit', 'walk'].includes(prefs?.travelMode) ? prefs.travelMode : 'any';
     const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => other.kind === f.kind && other.id === f.id) === i).slice(0, 150);
-    const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops) }));
+    const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops), ...(p.details ? { details: normalizePlanDetails(p.details, cleanStops(p.stops)) } : {}) }));
     return { preferences: { regions, interests, travelMode }, favorites, plans };
   } catch { return structuredClone(EMPTY_LIBRARY); }
 };
-export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops'>, b: Pick<SavedPlan, 'title' | 'date' | 'stops'>) => a.title === b.title && a.date === b.date && JSON.stringify(a.stops) === JSON.stringify(b.stops);
+export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>, b: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>) => a.title === b.title && a.date === b.date && JSON.stringify(a.stops) === JSON.stringify(b.stops) && JSON.stringify(a.details) === JSON.stringify(b.details);
 
 /** No signed-in data is written to browser storage. Account changes invalidate pending work. */
 export function usePlannerLibrary(userId?: string) {
@@ -64,7 +65,8 @@ export function usePlannerLibrary(userId?: string) {
     catch (e) { if (isCurrent(userId, sequence)) setError(errorText(e)); return undefined; }
     finally { if (mutation.current === operation) mutation.current = null; if (isCurrent(userId, sequence)) setBusy(false); }
   };
-  const savePlan = (input: Pick<SavedPlan, 'title' | 'date' | 'stops'>, existing?: SavedPlan) => run(async sequence => {
+  const savePlan = (input: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>, existing?: SavedPlan) => run(async sequence => {
+    if (!userId && !existing && dataRef.current.plans.length >= 30) throw new Error('最多保存 30 份计划，请先移除不再需要的计划。');
     const body = { ...input, stops: cleanStops(input.stops), ...(existing ? { version: existing.version } : {}) };
     let plan: SavedPlan;
     if (userId) ({ plan } = await api.request(`/planner/plans${existing ? '/' + encodeURIComponent(existing.id) : ''}`, { method: existing ? 'PUT' : 'POST', body: JSON.stringify(body) }));
@@ -106,7 +108,7 @@ export function usePlannerLibrary(userId?: string) {
     for (const plan of guest.plans) {
       if (!isCurrent(userId, sequence)) return;
       if (!current.plans.some(p => samePlan(p, plan))) {
-        const result = await api.request('/planner/plans', { method: 'POST', body: JSON.stringify({ title: plan.title, date: plan.date, stops: plan.stops }) });
+        const result = await api.request('/planner/plans', { method: 'POST', body: JSON.stringify({ title: plan.title, date: plan.date, stops: plan.stops, ...(plan.details ? { details: plan.details } : {}) }) });
         current.plans.push(result.plan);
       }
     }

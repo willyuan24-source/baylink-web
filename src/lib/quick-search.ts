@@ -7,8 +7,11 @@ import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
 import { getBayAreaToday, getEventStatus } from './monthly';
 import { validCalendarDay } from './event-calendar';
-import { openingStatusLabel } from './opening-status';
 import { translateText, type Locale } from '../i18n/locale';
+import { PLANNER_EVENTS } from '../data/planner-catalog';
+import { discoveryText, normalizeDiscoveryTopic, parseDiscoveryQuery } from './discovery-query';
+
+const eventFacts = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning]));
 
 const toolAliases: Record<string, string> = {
   communication: '英文 English message translate 翻译 房东 landlord repair',
@@ -30,26 +33,81 @@ const isCurrentOffer = (offer: FreebieOffer, today: string): boolean => {
 
 /** Local discovery keeps free-form queries private until the user chooses posts or AI. */
 export function searchQuickDestinations(query: string, locale: Locale, today = getBayAreaToday()) {
-  const tokens = [...new Set(normalizeGuideQuery(query).split(/\s+/).filter(Boolean))];
+  const queryInfo = parseDiscoveryQuery(query, today, [...MONTHLY_EVENTS.map(event => event.city), ...currentOpenings.map(shop => shop.city), ...ATTRACTIONS.map(place => place.city)]);
+  const { tokens, intent, dateRange } = queryInfo;
+  const active = !!query.trim() && !queryInfo.invalidDate && !queryInfo.unsupported.some(value => value === 'negative-preference' || value === 'multiple-dates');
+  const normalize = (value: string) => normalizeGuideQuery(normalizeDiscoveryTopic(value));
   const matches = (values: string[]) => {
-    const text = normalizeGuideQuery(values.flatMap(value => [value, translateText(value, locale)]).join(' '));
-    return tokens.length > 0 && tokens.every(token => text.includes(token));
+    const text = normalize(values.flatMap(value => [value, translateText(value, locale)]).join(' '));
+    return active && (tokens.length > 0 || queryInfo.structured) && tokens.every(token => text.includes(normalize(token)));
   };
+  const locationMatches = (region?: string, city?: string) =>
+    (!queryInfo.regions.length || !!region && queryInfo.regions.includes(region as typeof queryInfo.regions[number])) &&
+    (!queryInfo.cities.length || !!city && queryInfo.cities.some(value => city.split(/\s*(?:\/|、|;|；)\s*/).some(part => discoveryText(value) === discoveryText(part))));
+  const budgetMatches = (cost: string, admission?: number | null) =>
+    (!queryInfo.freeOnly || cost === 'free') && (queryInfo.maxAdmissionUsd === undefined ||
+      cost === 'free' || admission !== undefined && admission !== null && admission <= queryInfo.maxAdmissionUsd);
+  // Only explicit published evening language / start times count; no inferred venue hours.
+  const eveningMatches = (dateLabel: string) => {
+    const label = discoveryText(dateLabel);
+    const firstTime = label.match(/(?:^|[^\d:])(\d{1,2}):[0-5]\d/);
+    return !queryInfo.evening || /晚间|晚上|夜间|\b(?:evening|night)\b/.test(label) || !!firstTime && Number(firstTime[1]) >= 18 && Number(firstTime[1]) <= 23;
+  };
+  const eventMatches = (event: typeof MONTHLY_EVENTS[number]) => {
+    const facts = eventFacts.get(event.id);
+    const rangeStart = dateRange && (dateRange.start > today ? dateRange.start : today);
+    return getEventStatus(event, today) !== 'ended' && locationMatches(event.region, event.city) &&
+      (!dateRange || rangeStart! <= dateRange.end && event.startDate <= dateRange.end && event.endDate >= rangeStart! &&
+        (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= rangeStart! && day <= dateRange.end && day >= event.startDate && day <= event.endDate))) &&
+      (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(event.cost, facts?.admissionUsd) &&
+      (!queryInfo.setting || facts?.setting === queryInfo.setting) && eveningMatches(event.dateLabel) &&
+      (!queryInfo.family || (facts?.minAge ?? 0) < 18 && (event.category === 'family' || /亲子|儿童|孩子|家庭|小朋友|\bfamil(?:y|ies)\b|\bkids\b/.test(event.audience.join(' ')))) &&
+      queryInfo.childAges.every(age => (facts?.minAge == null || age >= facts.minAge) && (facts?.maxAge == null || age <= facts.maxAge)) &&
+      matches([event.title, event.venue, event.summary, ...event.audience]);
+  };
+  const offerMatches = (offer: FreebieOffer) => {
+    // Offers do not have a canonical city field. Never use eligibility/address prose as geography.
+    const city = queryInfo.cities.length ? parseDiscoveryQuery(`${offer.brand} ${offer.title}`, today, queryInfo.cities).cities : [];
+    const cityMatch = !queryInfo.cities.length || queryInfo.cities.some(value => city.some(candidate => discoveryText(candidate) === discoveryText(value)));
+    const explicitFree = offer.kind !== 'purchase' && /免费|\bfree\b/.test(discoveryText(`${offer.title} ${offer.requirement}`));
+    return isCurrentOffer(offer, today) && cityMatch && (!queryInfo.regions.length || !!offer.region && queryInfo.regions.includes(offer.region)) &&
+      (!queryInfo.freeOnly && queryInfo.maxAdmissionUsd === undefined || explicitFree) &&
+      !queryInfo.setting && !queryInfo.family && eveningMatches(offer.dateLabel) &&
+      (!dateRange || offer.availability !== 'dated' || (offer.startDate || offer.endDate || '') <= dateRange.end && (offer.endDate || offer.startDate || '') >= (dateRange.start > today ? dateRange.start : today)) &&
+      matches([offer.brand, offer.title, offer.requirement, offer.description]);
+  };
+  const requestedWeekendOnly = !!dateRange && new Date(`${dateRange.end}T12:00:00Z`).getTime() - new Date(`${dateRange.start}T12:00:00Z`).getTime() <= 86400000 &&
+    [dateRange.start, dateRange.end].every(day => [0, 6].includes(new Date(`${day}T12:00:00Z`).getUTCDay()));
+  const openingMatches = (shop: typeof currentOpenings[number]) => locationMatches(shop.region, shop.city) &&
+    (!queryInfo.openingStatus || shop.status === queryInfo.openingStatus) &&
+    !queryInfo.freeOnly && queryInfo.maxAdmissionUsd === undefined && !queryInfo.setting && !queryInfo.family &&
+    (!dateRange || !shop.openedOn || shop.openedOn <= dateRange.end) &&
+    (!requestedWeekendOnly || !/周末(?:暂)?休|周末不营业|仅周一至周五/.test(`${shop.dateLabel} ${shop.editorTip}`)) &&
+    (!dateRange || shop.status !== 'announced') && matches([shop.name, shop.category, shop.summary]);
+  const attractionMatches = (place: typeof ATTRACTIONS[number]) => locationMatches(place.region, place.city) &&
+    budgetMatches(place.cost) && !queryInfo.setting && !queryInfo.family && matches([
+      place.title, place.note, place.mapQuery, ...place.themes.map(theme => ATTRACTION_THEMES.find(item => item.id === theme)!.label),
+    ]);
+  const offers = intent === 'mixed' || intent === 'offers' ? currentFreebies.filter(offerMatches) : [];
+  const openings = intent === 'mixed' || intent === 'openings' || intent === 'places' ? currentOpenings.filter(openingMatches) : [];
+  const attractions = intent === 'mixed' || intent === 'attractions' || intent === 'places' ? ATTRACTIONS.filter(attractionMatches) : [];
+  const events = intent === 'mixed' || intent === 'events' ? MONTHLY_EVENTS.filter(eventMatches) : [];
+  if (queryInfo.structured) events.sort((a, b) => {
+    const nextDay = (event: typeof MONTHLY_EVENTS[number]) => event.occurrenceDates?.filter(day => day >= today && (!dateRange || day >= dateRange.start && day <= dateRange.end)).sort()[0] || (event.startDate > today ? event.startDate : today);
+    return nextDay(a).localeCompare(nextDay(b));
+  });
   return {
-    tools: LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])).slice(0, 3),
-    events: MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended' && matches([
-      event.title, event.city, event.venue, event.summary, event.costLabel, ...event.audience,
-    ])).slice(0, 3),
-    offers: currentFreebies.filter(offer => isCurrentOffer(offer, today) && matches([
-      offer.brand, offer.title, offer.dateLabel, offer.requirement, offer.description,
-    ])).slice(0, 3),
-    openings: currentOpenings.filter(shop => matches([
-      shop.name, shop.city, shop.address, shop.category, shop.summary, shop.editorTip,
-      shop.dateLabel, openingStatusLabel(shop.status),
-    ])).slice(0, 3),
-    attractions: ATTRACTIONS.filter(place => matches([
-      place.title, place.city, place.note, place.mapQuery,
-      ...place.themes.map(theme => ATTRACTION_THEMES.find(item => item.id === theme)!.label),
-    ])).slice(0, 3),
+    queryInfo,
+    tools: !queryInfo.structured ? LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])).slice(0, 3) : [],
+    events: events.slice(0, 3),
+    offers: offers.filter(offer => !dateRange || offer.availability === 'dated').slice(0, 3),
+    openings: !dateRange && !queryInfo.evening ? openings.slice(0, 3) : [],
+    attractions: !dateRange && !queryInfo.evening ? attractions.slice(0, 3) : [],
+    // A permanent place or ongoing policy is not evidence of availability on a requested day.
+    unverified: {
+      offers: dateRange ? offers.filter(offer => offer.availability !== 'dated').slice(0, 3) : [],
+      openings: dateRange || queryInfo.evening ? openings.slice(0, 3) : [],
+      attractions: dateRange || queryInfo.evening ? attractions.slice(0, 3) : [],
+    },
   };
 }
