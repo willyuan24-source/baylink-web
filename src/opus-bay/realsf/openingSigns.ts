@@ -1,16 +1,16 @@
+import { createElement, lazy, Suspense } from 'react';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { canStand, heightAt } from '../core/terrain';
 import { registerFlagSource, type ExtraFlag } from '../game/flags';
 import { registerInteractables, type Interactable } from '../game/interactables';
 import { registerFrameSystem } from '../game/systemsRegistry';
-import { openOverlay, registerOverlay } from '../ui/slots';
+import { openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
 import { freezeStatic } from '../world/builder';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { meshWarmup, registerWarmup } from '../world/warmup';
 import { getWorld, type WorldSystem } from '../world/world';
 import { buildOpeningSignGeometry, makeKitMaterial } from './eventKit';
-import OpeningCard from './OpeningCard';
 import { FLAG_FAR, OPENING_GOLD, OPENING_SIGNS, OVERLAY_ID, PROMPT_R, SIGN_NEAR, signFront, type OpeningSign } from './openings';
 
 /**
@@ -18,6 +18,10 @@ import { FLAG_FAR, OPENING_GOLD, OPENING_SIGNS, OVERLAY_ID, PROMPT_R, SIGN_NEAR,
  * SIGN_NEAR stands (one merged mesh, ≤ 400 triangles, the event kits' material program `ob-toy-dyn`: no new program);
  * its gold pennant (lane N's flag layer) flies within FLAG_FAR; E at the sign (看看新店) opens the 新店 card.
  */
+
+/** the card (and its CSS) loads on the first E at a sign, not with the realsf chunk */
+const LazyCard = lazy(() => import('./OpeningCard'));
+const OpeningCardSlot = (p: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(LazyCard, p));
 
 export interface Openings {
   stats(): { built: string | null; tris: number };
@@ -28,7 +32,7 @@ export function initOpenings(): Openings {
   const material = makeKitMaterial();
   material.name = 'ob-realsf-opening';
   const offWarm = registerWarmup('r-opening-sign', () => meshWarmup(material, { receiveShadow: true }));
-  const offOverlay = registerOverlay({ id: OVERLAY_ID, Component: OpeningCard });
+  const offOverlay = registerOverlay({ id: OVERLAY_ID, Component: OpeningCardSlot });
   const group = new THREE.Group();
   group.name = 'realsf-openings';
   let offSystem: (() => void) | null = null;
