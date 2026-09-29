@@ -81,10 +81,14 @@ function stallInteractable(): Interactable | null {
  * W6-K2 (lane C's wave-5 review: 送你一张飞行券！ a second after 跟 BAYBAY 去找鹈鹕, then 有鹈鹕啦，飞行券用不上了，还你 10 金币。
  * 40 s later at Coit — two lines about a ticket the player never used): goal #1's lead is on — the game is not playing
  * yet, a dialogue (the welcome) or the goals step is open, or BAYBAY leads to the pelican (`freeLead` = pelican:coit).
+ * W6-K2-review: or a city tour runs — the welcome's first choice (刚来湾区 → the Grand Tour) meets the pelican at the
+ * tour's first stop (game/cityTour arrived → unlockPelican('tour')), so a gift there was refunded seconds later (played
+ * on the phone, a new player: 送你一张飞行券！ at 31 s, 送你一位鹈鹕朋友！ at 34 s, 还你 10 金币。 at 44 s). A tour ended
+ * before its first stop lets the gift come TICKET_QUIET_MS later; one that reached a stop has the pelican out (no gift).
  */
 export function ticketGiftWaits(): boolean {
   const s = game.get(), f = flow.get();
-  return s.phase !== 'playing' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET;
+  return s.phase !== 'playing' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
 }
 /** the gift comes this long (ms) after goal #1's lead is over (the goals step's close → the lead start is not a gap) */
 export const TICKET_QUIET_MS = 4000;

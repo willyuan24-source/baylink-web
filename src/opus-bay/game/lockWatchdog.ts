@@ -6,6 +6,7 @@ import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { flow } from './flowStore';
 import { deriveLock, dropHolds, lockReport, type LockSource } from './playerLock';
+import { openOverlays } from '../ui/slots';
 
 /**
  * Wave 5 · W5-0b (plan sf-w5-plan.md §2 MF1 step 1): the lock watchdog, a safety net under game/playerLock. Every frame
@@ -31,7 +32,16 @@ export const WATCHDOG_S = 1;
  */
 export const HOLD_TIMEOUT_S = 90;
 const nowMs = () => (typeof performance !== 'undefined' ? performance.now() : Date.now());
-const timedOut = (h: { source: LockSource; since: number }, now: number) => SELF_EXPLAINED.has(h.source) && now - h.since >= HOLD_TIMEOUT_S * 1000;
+/**
+ * W6-K2-review: a `panel` / `shop` hold is owned by a ui/slots sheet (the album, a letter, the goals step, the 小铺: each
+ * takes it on mount and gives it back on unmount), so while a sheet is on screen it is not a leak — the player is reading
+ * it and can close it. Before, 90 s in the album or the 小铺 freed the feet under the sheet (the album's ← / → turned the
+ * page AND walked the player; a `stuck` event and a DEV warning for a panel that was simply open). An `activity` hold has
+ * no sheet to show for it (PlayKit is a lazy chunk): it times out as the lead decided.
+ */
+const sheetUp = (source: LockSource) => (source === 'panel' || source === 'shop') && openOverlays().length > 0;
+const timedOut = (h: { source: LockSource; since: number }, now: number) =>
+  SELF_EXPLAINED.has(h.source) && now - h.since >= HOLD_TIMEOUT_S * 1000 && !sheetUp(h.source);
 
 /** Holds whose state no store flag shows: the hold itself explains the lock (lanes A, E and the panels, wave 5). */
 const SELF_EXPLAINED: ReadonlySet<LockSource> = new Set<LockSource>(['panel', 'activity', 'shop']);

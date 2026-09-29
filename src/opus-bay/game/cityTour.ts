@@ -415,7 +415,13 @@ export function initCityTour(): void {
   // the call menu's 跳过这一站
   defineNode({ id: 'flow.tour.skip', speaker: 'baybay', mood: 'point', text: { zh: '好，这站先跳过，去下一站！', en: 'OK, we skip this one — on to the next!' }, action: { type: 'end' } });
   let acc = 0;
-  registerFrameSystem('c-city-tour', (dt, now) => { if ((acc += dt) >= 0.5) { acc = 0; tick(now / 1000); } });
+  registerFrameSystem('c-city-tour', (dt, now) => {
+    // W6-K2-review: Settings (the game's pause) holds a stop's dwell as it holds the ride — its clock waits while the
+    // sheet is open, so the panorama / photo moment is still there when it closes (before, 45 s in Settings at the
+    // Golden Gate came back to the next stop's trip already started)
+    if (run?.phase === 'dwell' && game.get().paused) { run.dwellAt += dt; if (run.shotAt) run.shotAt += dt; }
+    if ((acc += dt) >= 0.5) { acc = 0; tick(now / 1000); }
+  });
   // W5-C5: a takeover on a stop's leg (auto-travel off while the stop's trip still runs) lasts for the tour; 自动跟上 on
   // the chip turns carrying back on (a trip's own end switches it off with the trip already arrived: no change)
   subscribeAuto(() => {
