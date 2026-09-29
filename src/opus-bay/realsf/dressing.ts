@@ -4,6 +4,7 @@ import { canStand, heightAt, isWater } from '../core/terrain';
 import type { Bilingual } from '../core/types';
 import { bayNow, bayParts } from '../game/bayNow';
 import { registerFrameSystem } from '../game/systemsRegistry';
+import { halloweenPhase } from '../halloween/season';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { BOX, CYL, ICO, M, Batch, freezeStatic, type Info } from '../world/builder';
 import { meshWarmup, registerWarmup } from '../world/warmup';
@@ -297,7 +298,9 @@ export function initDressing(): Dressing {
     const p = { x: runtime.player.x, z: runtime.player.z };
     const d = (q: { x: number; z: number }) => Math.hypot(p.x - q.x, p.z - q.z);
     // Halloween
-    const wantP = !!offSystem && rows.some(r => r.dress === 'pumpkins') && d(PUMPKINS_AT) < PUMPKINS_NEAR;
+    // (W6-H1) the Painted Ladies' and Waller St's pumpkins stand the whole Halloween season (halloween/season.ts: 1 October –
+    // 2 November, ?halloween= previews), not only on the calendar's 31 October row
+    const wantP = !!offSystem && (rows.some(r => r.dress === 'pumpkins') || halloweenPhase(now) !== 'off') && d(PUMPKINS_AT) < PUMPKINS_NEAR;
     if (!wantP) dropPumpkins();
     else if (!pumpkins && HALLOWEEN_SPOTS.every(s => s.y !== undefined || canStand(s.x, s.z, 0.1))) {
       pumpkins = freezeStatic(new THREE.Mesh(buildPumpkinGeometry(HALLOWEEN_SPOTS, heightAt), pumpkinMat));
