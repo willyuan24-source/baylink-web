@@ -171,3 +171,43 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 - The bats are dark on a dark sky at full night (they read best at dusk, against the sky).
 - The halo pool hits its cap (768) in the densest neighbourhoods at night: the far stoop glows are dropped first (the
   hunt / muertos / haunt halos have priority).
+
+## Part c · W6-H5 the phone's share, the lanterns face the path (03:55 – 04:15 PDT)
+
+### What was built
+
+- `worldDress.ts`: the stoops' triangle ceiling and night glow **by quality** — `DRESS_TRIS_BY_QUALITY` low 7k / mid
+  13k / high 24k (nearest cells first) and `DRESS_HALOS_BY_QUALITY` low 160 / mid 320 / high 640 (nearest first; the
+  hunt / muertos / haunt halos keep their priority in the 768 pool). Measured before: on a 390 × 844 phone at 'mid' the
+  dressed Noe Valley / Castro / Alamo Square streets carried 23–26k triangles and 669–768 halos of Halloween — the
+  same as desktop; now about half.
+- The hunt's jack-o'-lanterns **grin toward the walker's way in**: `huntSpots.ts` gains `f` = the heading to the
+  nearest main walking-graph node ≥ 2.5 u away (the placement script; the 40 positions unchanged); the carved face a
+  touch smaller so the grin stays on the body.
+- Tests: the quality ceilings ordered and ≤ 14k at 'mid', the halo caps below the pool.
+
+### Evidence
+
+- 390 × 844, dpr 3, 'mid', golden, Church St in Noe Valley (before the ceiling): the stoops' pumpkins and a witch kid
+  with her treat pail on the sidewalk beside BAYBAY — `qa/w6/H/h5-phone-390x844-noe-valley.jpg` (read). DEV stats there:
+  227 stoops in 15 cells, 23.4k triangles, 11 trick-or-treaters, 669 halos.
+- Budget views at 960 × 600 (dpr 3, 'mid', night, before the ceiling): Castro 85 calls / 263k tris, Alamo Square
+  94 / 273k, Noe Valley 58 / 261k (halloween-world 3–4 calls, 25–26k).
+- The Alamo Square lantern at golden hour facing the path — `qa/w6/H/h5-hunt-lantern-faces-the-path.jpg` (read).
+
+### Known gaps / not done
+
+- **The orange touch at dusk**: Karl's colour is written every frame by `world/sf/fog.ts` (not lane H's); lane H
+  shipped the foggier Halloween evening and the warm pumpkin / porch glow instead — see Requests.
+- No procession walkers on 2 November; no compass hint for the hunt (lane E's hint kinds are fixed).
+- Lane G's 54 treat doors (Belvedere, Fair Oaks, …): one stoop of lane H lies within 3 u of a treat door (17 within 6 u)
+  — both decorations stand there; not merged.
+
+### Requests
+
+- **Lead / lane X (fog owner)**: the orange touch at dusk in the season — in `world/sf/fog.ts` `KarlState.step`, mix
+  `uKarlColor` toward `#f2a65a` by ≈ 0.18 while `halloweenPhase() !== 'off'` and the time is 'golden' (a uniform, no
+  cost). Lane H did not touch fog.ts (not owned).
+- **Lane G**: the 万圣节 notebook page can show the hunt with `pumpkinsFound()` / `pumpkinTotal()` / `huntList()` /
+  `onHuntChange()` (halloween/hunt.ts) and Día de los Muertos with `muertosCount()` (halloween/muertos.ts).
+- **Lane X**: `halloween/worldLines.ts` (18 lines) to record — `C:/Users/willy/opus-qa/w6/x/requests-H.md`.
