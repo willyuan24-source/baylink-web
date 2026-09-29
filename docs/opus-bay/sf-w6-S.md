@@ -231,9 +231,13 @@ Written 2026-09-29 ≈ 03:05 PDT.
   1,096 triangles, 15 soft boxes; `presence()` = Fleet Week open with its festival kit and crowd. **Nov 1 10:00** (phone, zh,
   DST over): the 今天 tab reads 11月1日 周日 · 日出 6:35 · 日落 17:11, the sunset task 16:34–17:38, and 这周 says honestly
   这周旧金山暂时没有新活动 (the catalog's SF events end Oct 31) (`qa/w6/S/s2-today-2026-11-01-dst-phone.jpg`).
+- **这周去哪** in the game (phone, zh, `?date=2026-10-19T10:00`, 和朋友 · 免费就好 · 旧金山): the flyers read Thrive City 周日橄榄球观赛
+  (10/25), Ferry Plaza 农夫市集 (10/20), Thrive City 免费万圣节亲子庆典 (10/24), 世界饺子节 (10/25), Portola 社区万圣节手工与游戏
+  (10/23) — every one with 带我去 (`qa/w6/S/s2-week-board-2026-10-19-phone.jpg`).
 - Checks on the head rebased onto `origin/opus-bay` (K2 part b, W1 / W2 the North Beach seam and corner landed): `npx tsc -p
   tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1417 / 1418**, the one failure the
-  known wall-clock `sf-move2` "E2-5 view field" (3.8 s under load), which passes alone (24 / 24).
+  known wall-clock `sf-move2` "E2-5 view field" (3.8 s under load), which passes alone (24 / 24). After the next rebase (H1 /
+  H2 the Halloween city, G2 trick-or-treat, X5 faces): tsc 0 · eslint 0 errors · **1431 / 1431**.
 
 ### Decisions
 
