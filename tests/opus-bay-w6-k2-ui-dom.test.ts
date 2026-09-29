@@ -53,3 +53,28 @@ test('W6-K2: an open More menu wins over the ARRIVED card — it steps back, its
   await act(async () => { await sleep(1300); });
   assert.equal(closed, 1, 'then it closes with the time it had left');
 });
+
+test('W6-K2: the new-save goals card waits while an egg\'s paper is up or an egg asks for the player (接电话), then shows', async () => {
+  const styles2 = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+  const { GoalsCard } = await import('../src/opus-bay/ui/Moments');
+  styles2.deregister();
+  const { game } = await import('../src/opus-bay/core/store');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { registerOverlay, openOverlay, closeOverlay } = await import('../src/opus-bay/ui/slots');
+  const { registerPrefixResolver } = await import('../src/opus-bay/game/interactables');
+  const offNote = registerOverlay({ id: 'egg-note', Component: () => null });
+  const offRes = registerPrefixResolver('k2egg:', id => ({ id, source: 'find', action: 'info', verb: { zh: '接电话', en: 'Answer the phone' }, name: { zh: '电话', en: 'Phone' }, x: 0, z: 0, radius: 3 }));
+  try {
+    act(() => { game.set({ phase: 'playing', worldMode: 'city', dialogue: { nodeId: null }, panel: { kind: null }, focus: 'k2egg:phone' }); flow.set({ goalsCard: true, bubble: null }); });
+    const view = render(h(GoalsCard));
+    assert.equal(view.container.querySelector('.ob-goals-card'), null, 'the phone rings (its prompt is up): the card waits');
+    act(() => { game.set({ focus: null }); openOverlay('egg-note'); });
+    assert.equal(view.container.querySelector('.ob-goals-card'), null, 'the operator\'s paper is up: the card waits');
+    act(() => { closeOverlay('egg-note'); });
+    assert.ok(view.container.querySelector('.ob-goals-card'), 'then it shows');
+    // the district as before: an overlay does not hold it there
+    act(() => { game.set({ worldMode: 'district' }); openOverlay('egg-note'); });
+    assert.ok(view.container.querySelector('.ob-goals-card'), 'district unchanged');
+    act(() => { closeOverlay('egg-note'); });
+  } finally { offNote(); offRes(); act(() => { flow.set({ goalsCard: false }); game.set({ worldMode: 'district', focus: null, phase: 'title' }); }); }
+});
