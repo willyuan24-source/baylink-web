@@ -157,3 +157,8 @@ Written 2026-09-29 ≈ 02:40 PDT.
   Sep 30; Tue–Wed and Fri–Sun 11am–5pm, Thu 12pm–8pm, closed Monday; "Every Second Saturday" free (THRIVE @ MoAD).
 - MoAD First Thursday, Oct 1: https://www.moadsf.org/event/downtown-first-thursdays---october-1 — 4:00–8:00 PM, free
   admission, DJ 5–8 pm.
+
+### Evidence (parts a + b, the push)
+
+- On the head rebased onto `origin/opus-bay` (K1, G, … landed): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .`
+  0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1389 / 1389**.
