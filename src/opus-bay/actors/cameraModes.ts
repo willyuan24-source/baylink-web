@@ -89,7 +89,7 @@ const PRESETS = [1, 0.72, 1.4];
 /** (W6-K1) the side-on transit shot's swing toward behind the car: the steps tried, the pitch it gains, and the share of
  * its distance a wall may stand at before the side is given up */
 const SWING_STEPS = [0, 0.3, 0.55, 0.8, 1] as const;
-const SWING_PITCH = 0.12;
+const SWING_PITCH = 0.35;
 export const SWING_CLEAR = 0.7;
 
 export class RideCamera {
