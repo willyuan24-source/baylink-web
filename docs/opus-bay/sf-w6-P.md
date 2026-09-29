@@ -226,3 +226,78 @@ Hyde St shot, docs), so those were checked with `tsc` 0 and the budget / contrac
 the push. **After the push, on the pushed head `8829ee7e`**: `eslint .` 0 errors · suite 1466 / 1467 — the one failure is
 the wall-clock assert "a cached cell is cheap" (`opus-bay-sf-move2` E2-5: 1000 calls < 50 ms) under the wave's load;
 the file alone: **24 / 24**. So the pushed tree is green.
+
+## Review
+
+Adversarial review of lane P (W6-P1 … P6), 2026-09-29 04:50–06:00 PDT, worktree `C:/Users/willy/wt/w6-p-rev`, port
+5624, scratch `C:/Users/willy/opus-qa/w6/p-rev/`. One headless Chrome at a time; no PERF-LOCK seen; no Higgsfield spend.
+
+### 给主人的摘要
+
+1. 这条线的四处改动我都逐行看过、在生产构建里实玩过（街区电脑高画质、城市手机 390×844，都是从标题页按"开始"进去）：开场对话、画面、后期特效和以前一样，街区不下载城市数据包。
+2. **找到并修好一个真问题**：拆出去的界面小包（playParts）如果那一次请求刚好丢了（手机信号一抖、或者刚好赶上发布新版），"开始"按钮会一直转圈、永远进不去——原来的"每 2 秒重试"在 Chrome 里根本不会成功（浏览器把失败的模块记住了，同一个地址再请求也算失败，我实测文件恢复后仍然失败）。现在：第一次失败时页面自动刷新一次（还在标题页，什么都不丢），同一会话只刷新一次，断网时不会无限刷新。已实测：文件缺失 → 刷新一次 → 停在标题页，不再循环。
+3. 首屏主包现在 279.08 KB（压缩后；其他线这段时间又加了一点），**离 265 KB 还差约 14 KB**，这条线的"没达标"如实写在报告里，剩下的要动别的线的每帧代码，属于下一波。
+4. 不阻塞上线。
+
+### What was checked
+
+- **Every commit read** (67ba6a9f, 9dc20eab, aaf71722, 872914a2, 8829ee7e, 7a5dcc0c): the lazyPart stand-ins (hooks order, keys,
+  no refs passed to a part, Suspense-free by design), the Start gate (`startRequested && drawn && partsIn`), the only
+  non-gated path (`?start=` / `?solo=` QA deep links: the HUD shows once the chunk lands; QA only), the P2 `autoMod!`
+  sites (every `pursuit()` / `passPath` runs after `loadDrive()` resolved both modules together), the P3 wrappers
+  (`CITY_DATA!.taskState` & co. are reached only in city mode: `residentInteractables` is registered only by
+  `initCityContent`, which returns early in the district; `RESIDENTS` is `[]` there so the filters never call through),
+  the P4 shutter hook and the high tier's `throw loadPost()` (the promise always resolves, so the world never errors).
+- **Deadlock check on the built chunks** (the W5-V3 top-level-await rule): `cityDataChunk` imports only `arrivals`,
+  `landmarks`, `residents`, and none of those imports anything; `post` imports only the R3F vendor chunk; `autopilot`
+  and `playParts` import GameRoot but are never awaited by GameRoot's top level. No cycle.
+- **Production build** (`vite build --config vite.opus.config.ts --outDir C:/Users/willy/opus-qa/w6/p-rev/dist`,
+  `public/*.json` untouched): GameRoot **278.97 KB** gzip on `7a5dcc0c`, **279.08 KB** with this review's fix
+  (playParts 15.37 · residents 3.79 · cityDataChunk 4.49 · autopilot 3.09 · post 1.76). The lane's 277.51 is its tree at
+  04:27; the other lanes' pushes since account for the rest.
+- **Played from the title's Start** (not `?start=`): district 1440×900 `?quality=high` (the cinematic with the tilt-shift
+  post pass on its first frame, then BAYBAY's welcome); city 390×844 `--mobile --dpr 3` (welcome, 5-chapter tour card).
+  Chunks requested before Start in the district: GameRoot, post, playParts, residents, photo — no cityDataChunk,
+  landmarks or arrivals; the city adds cityDataChunk, landmarks, residents, arrivals, the landmark photo assets.
+- **Failure path**: the playParts file removed from `dist/` → Start pressed → the button's spinner for ever
+  (`ob-phase-title`, `aria-busy`), and still after the file came back (the defect below).
+- Per-frame cost: one extra call (`shutterHook.consumeShutter`) and one `!!postMod` test per frame; no allocation.
+  Teardown: the play layer's listeners unsubscribe through `useSyncExternalStore`; nothing new holds the world.
+- Text / touch targets / saves: the lane added no player-facing text, no control and no saved field.
+
+### Defect fixed
+
+**A lost play-layer request left Start spinning for ever** (W6-P1). The parts moved out of GameRoot are a second
+request; if it fails once, `loadPlayParts()` re-armed and GameRoot retried every 2 s — but Chrome keeps a failed
+`import()` failed for the page's life (the module map remembers the failure). Measured on the production build: the
+chunk 404 at load, restored, `fetch(url)` → 200 `text/javascript`, `import(url)` → still "Failed to fetch dynamically
+imported module" (a cache-busted URL loads). Before W6-P1 this could not happen (the parts were inside GameRoot).
+
+- Before: file missing at load → Start → spinner; file back → spinner for the rest of the page's life.
+- After (`ui/playLayer.tsx`): the first failure reloads the page once per session (at the title, where nothing is lost:
+  GameRoot holds Start until the chunk is in); a sessionStorage flag stops a second reload and is cleared once the chunk
+  is in; no storage → no reload. Measured: file missing for 45 s → exactly one reload (`navigation.type` = reload, the
+  flag set, `performance.now()` rising 5.8 → 27.9 s in the same document), the title stays, no loop; with the file in,
+  Start → `ob-phase-playing` and BAYBAY's welcome as before.
+- Test `W6-P-review` in `tests/opus-bay-sf-budget.test.ts`: red on the lane's code (0 reloads), green after (1 reload,
+  none on the second failure). `loadPlayParts(load?)` takes the importer so the test fails the fetch without loading the
+  UI graph.
+
+### Open items (not blocking)
+
+- **The ≤ 265 KB target is not met** (279.08 KB now, ≈ 14 KB to go); the lane's Requests 1–5 stand, sized.
+- The report's owner line "城市六位邻居…街区模式根本不下" is only true of the city data chunk: the district fetches the
+  3.79 KB `residents` chunk through the play layer (`ui/Moments.tsx`, `Journal`, `Letter` import it statically), as the
+  lane's own Decision 4 says. Bytes in parallel, not on the first frame; a later split of Moments' resident import would
+  save them in the district.
+- The same "a failed import stays failed" rule applies to the tap-to-drive chunk (`loadDrive`: driveRoute + autopilot)
+  and to the pre-existing lazy panels / city chunks: after one lost request, tap-to-drive does nothing for that page
+  (walking and manual riding still work). Pre-existing pattern (driveRoute since wave 5); worth one shared
+  "import with retry" helper next wave.
+- The high tier's `throw loadPost()` runs on every WorldScene render until the post chunk settles: if the quality is
+  switched to high on an already-mounted world within that first moment, the world would suspend (blank) until the
+  1.8 KB chunk lands. Not seen (the chunk is requested with GameRoot and settles long before the world mounts).
+
+### Blocking the go-live to main
+
+Nothing.
