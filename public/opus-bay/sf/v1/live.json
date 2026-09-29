@@ -1,6 +1,6 @@
 {
  "version": 1,
- "exported": "2026-09-28",
+ "exported": "2026-09-29",
  "source": "BAYLINK offers (src/data), San Francisco museums, parks and transit",
  "offers": [
   {
@@ -9,15 +9,15 @@
    "free": true,
    "title": {
     "zh": "10/4 亚洲艺术博物馆普通门票免费",
-    "en": "Free Asian Art Museum general admission on October 4"
+    "en": "10/4: Free General Admission at the Asian Art Museum"
    },
    "who": {
     "zh": "所有人 · 普通展区",
     "en": "Everyone · general admission"
    },
    "requirement": {
-    "zh": "每月首个周日普通门票免费，无需居民或会员资格；特展另付 $10，建议预订时段票。",
-    "en": "General admission is free on the first Sunday; no residency or membership requirement. Special exhibitions cost an additional $10. Timed booking is encouraged."
+    "zh": "每月首个周日普通门票免费，无需居民或会员资格；特展另付 $10，建议预订时段票。小型工作坊可能另需预约。",
+    "en": "General admission is free on the first Sunday of each month, with no residency or membership requirement. Special exhibitions cost an additional $10; timed tickets are recommended. Small workshops may require separate reservations."
    },
    "from": "2026-10-04",
    "to": "2026-10-04",
@@ -36,9 +36,9 @@
    },
    "href": "/offers/asian-art-free-oct4",
    "source": {
-    "label": "亚洲艺术博物馆免费日票务",
-    "url": "https://about.asianart.org/ticketing/",
-    "verifiedAt": "2026-09-15"
+    "label": "亚洲艺术博物馆 10/4 活动与票务规则",
+    "url": "https://calendar.asianart.org/event/sundays-at-the-asian-art-museum-october-4/",
+    "verifiedAt": "2026-09-29"
    },
    "rule": {
     "url": "https://about.asianart.org/ticketing/",
@@ -51,15 +51,15 @@
    "free": true,
    "title": {
     "zh": "10/6 免费逛金门公园温室",
-    "en": "Free Golden Gate Park conservatory on October 6"
+    "en": "10/6: Free Conservatory Visit in Golden Gate Park"
    },
    "who": {
     "zh": "所有人",
     "en": "Everyone"
    },
    "requirement": {
-    "zh": "每月首个周二所有人普通入场免费，不限 SF 居民；16:00 最后入场，特别活动另计。",
-    "en": "Free general admission for everyone on the first Tuesday, including nonresidents. Last entry is 4 PM; special events are separate."
+    "zh": "每月首个周二所有人普通入场免费，不限 SF 居民；16:00 最后入场，特别活动另计。出发前核对官方入场安排。",
+    "en": "General admission is free for everyone on the first Tuesday of each month, not only SF residents. Last entry is at 16:00; special events are separate. Check official entry arrangements before visiting."
    },
    "from": "2026-10-06",
    "to": "2026-10-06",
@@ -79,9 +79,9 @@
    "hand": "free-conservatory",
    "href": "/offers/conservatory-free-oct6",
    "source": {
-    "label": "金门公园三园开放与免费时段",
+    "label": "金门公园温室开放与免费日规则",
     "url": "https://gggp.org/visit/admissions-hours/",
-    "verifiedAt": "2026-09-15"
+    "verifiedAt": "2026-09-29"
    }
   },
   {
@@ -90,15 +90,15 @@
    "free": true,
    "title": {
     "zh": "10/13 植物园全天普通入场免费",
-    "en": "Free botanical garden general admission on October 13"
+    "en": "10/13: Free General Admission All Day at the Botanical Garden"
    },
    "who": {
     "zh": "所有人",
     "en": "Everyone"
    },
    "requirement": {
-    "zh": "每月第二个周二所有人普通入场免费，不限 SF 居民；付费特别活动与节目不包含。",
-    "en": "General admission is free for everyone on the second Tuesday, including nonresidents. Ticketed special events and programs are excluded."
+    "zh": "每月第二个周二所有人普通入场免费，不限 SF 居民；付费特别活动与节目不包含。出发前核对官方入場安排。",
+    "en": "General admission is free for everyone on the second Tuesday of each month, not only SF residents. Paid special events and programs are excluded. Check official entry arrangements before visiting."
    },
    "from": "2026-10-13",
    "to": "2026-10-13",
@@ -120,7 +120,7 @@
    "source": {
     "label": "植物园免费日与十月入园时间",
     "url": "https://gggp.org/visit/admissions-hours/",
-    "verifiedAt": "2026-09-15"
+    "verifiedAt": "2026-09-29"
    }
   },
   {
@@ -129,15 +129,15 @@
    "free": true,
    "title": {
     "zh": "周一三五，早一小时免费进茶园",
-    "en": "Free early entry to the Japanese Tea Garden"
+    "en": "Free Tea Garden Entry During the First Hour on Mondays, Wednesdays, and Fridays"
    },
    "who": {
     "zh": "所有人",
     "en": "Everyone"
    },
    "requirement": {
-    "zh": "免费入园时段对所有人开放，无需消费或 SF 居民资格；茶点和特别项目另付。",
-    "en": "The free-entry hour is open to everyone without purchase or SF residency. Tea, snacks and special programs cost extra."
+    "zh": "每周一、三、五 09:00–10:00 免费入园，对所有人开放，无需消费或 SF 居民资格；茶点和特别项目另付。出发前核对票务及临时开放调整。",
+    "en": "Free entry Monday, Wednesday, and Friday, 09:00–10:00, for everyone, with no purchase or SF residency requirement. Tea, refreshments, and special programs cost extra. Check ticket arrangements and temporary opening changes before visiting."
    },
    "weekdays": [
     1,
@@ -161,8 +161,8 @@
    "href": "/offers/japanese-tea-garden-free-hour",
    "source": {
     "label": "日本茶园官方免费入园时间",
-    "url": "https://gggp.org/tickets/",
-    "verifiedAt": "2026-09-15"
+    "url": "https://gggp.org/visit/admissions-hours/",
+    "verifiedAt": "2026-09-29"
    },
    "rule": {
     "url": "https://gggp.org/visit/admissions-hours/",
@@ -175,15 +175,15 @@
    "free": true,
    "title": {
     "zh": "10/25 带孩子逛 SFMOMA，最多两位成人免费",
-    "en": "Bring a child to SFMOMA on October 25: up to two adults free"
+    "en": "10/25: Visit SFMOMA with a Child; Up to Two Adults Enter Free"
    },
    "who": {
     "zh": "带 18 岁及以下孩子，最多两位成人",
     "en": "With a child 18 or under, up to two adults"
    },
    "requirement": {
-    "zh": "一名 18 岁及以下儿童或青少年随行，最多两位成人享免费普通入馆；加价特展需另购票。",
-    "en": "Up to two adults receive free general admission when accompanying one child or teen age 18 or younger. Surcharged exhibitions require separate paid tickets."
+    "zh": "一名 18 岁及以下儿童或青少年随行，最多两位成人享免费普通入馆；加价特展需另购票。无儿童同行的成人不适用。",
+    "en": "Up to two adults receive free general admission when accompanying one child or teen age 18 or younger. Surcharged exhibitions require separate paid tickets. Adults attending without a child do not qualify."
    },
    "from": "2026-10-25",
    "to": "2026-10-25",
@@ -204,7 +204,7 @@
    "source": {
     "label": "SFMOMA 免费家庭日与成人名额",
     "url": "https://www.sfmoma.org/free-days/",
-    "verifiedAt": "2026-09-15"
+    "verifiedAt": "2026-09-29"
    },
    "rule": {
     "url": "https://www.sfmoma.org/visit/",
@@ -395,15 +395,15 @@
    "free": false,
    "title": {
     "zh": "Exploratorium 指定福利卡入馆 $5",
-    "en": "$5 Exploratorium admission with qualifying benefits"
+    "en": "Exploratorium: $5 Admission with an Eligible Benefit Card"
    },
    "who": {
     "zh": "持福利卡加证件，$5",
     "en": "With a benefits card and ID, $5"
    },
    "requirement": {
-    "zh": "EBT／SNAP／CalFresh、Medi-Cal、WIC 或 Lifeline Pass 加本人照片证件，最多四张每张 $5；P-EBT 与 Sun Bucks 不适用。",
-    "en": "With EBT, SNAP, CalFresh, Medi-Cal, WIC or Lifeline Pass and matching photo ID, buy up to four $5 tickets. P-EBT and Sun Bucks are excluded."
+    "zh": "EBT／SNAP／CalFresh、Medi-Cal、WIC 或 Lifeline Pass 加本人同名照片证件，最多四张每张 $5；P-EBT 与 EBT Sun Bucks 不适用。仅现场购买。",
+    "en": "Bring an EBT/SNAP/CalFresh, Medi-Cal, or WIC card, or a Lifeline Pass, plus matching photo ID, to buy up to four tickets at $5 each. P-EBT and EBT Sun Bucks are excluded. On-site purchase only."
    },
    "place": {
     "id": "exploratorium",
@@ -417,8 +417,8 @@
    "href": "/offers/exploratorium-for-all-five",
    "source": {
     "label": "Exploratorium for All 当前价格与证件",
-    "url": "https://www.exploratorium.edu/visit/reduced-rates",
-    "verifiedAt": "2026-09-23"
+    "url": "https://www.exploratorium.edu/visit/reduced-rates/",
+    "verifiedAt": "2026-09-29"
    }
   },
   {
@@ -427,15 +427,15 @@
    "free": true,
    "title": {
     "zh": "SF 居民持指定福利卡，SFMOMA 最多四位成人免费",
-    "en": "Up to four free adult tickets for eligible SF residents at SFMOMA"
+    "en": "SF Residents with Eligible Benefit Cards: Up to Four Adults Free at SFMOMA"
    },
    "who": {
     "zh": "SF 居民持福利卡",
     "en": "SF residents with a benefits card"
    },
    "requirement": {
-    "zh": "须 San Francisco 居民，并出示有效 Medi-Cal、CalFresh、SNAP 或 EBT 卡和居住证明；每位符合资格者最多四张成人票。",
-    "en": "San Francisco residents must show a valid Medi-Cal, CalFresh, SNAP or EBT card and residency proof. Each eligible visitor can receive up to four adult tickets."
+    "zh": "须 San Francisco 居民，并出示有效 Medi-Cal、CalFresh、SNAP 或 EBT 卡和居住证明；每位符合资格者最多四张成人票，包含普通入馆和特别展览。",
+    "en": "San Francisco residency is required. Present a valid Medi-Cal, CalFresh, SNAP, or EBT card and proof of residency. Each eligible guest can receive up to four adult tickets, including general admission and special exhibitions."
    },
    "place": {
     "id": "sfmoma",
@@ -450,7 +450,7 @@
    "source": {
     "label": "SFMOMA 居民福利卡免费条款",
     "url": "https://www.sfmoma.org/deals-discounts/",
-    "verifiedAt": "2026-09-23"
+    "verifiedAt": "2026-09-29"
    }
   },
   {

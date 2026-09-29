@@ -210,6 +210,10 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
     const site = currentFreebies.find(x => x.id === o.id);
     assert.ok(site, `${o.id} is a BAYLINK offer`);
     assert.equal(o.title.zh, site!.title);
+    assert.equal(o.requirement.zh, site!.requirement);
+    assert.ok(o.title.en.trim() && o.requirement.en.trim(), `${o.id}: English title and conditions are present`);
+    assert.doesNotMatch(o.title.en, /\p{Script=Han}/u, `${o.id}: the English title must not fall back to Chinese`);
+    assert.doesNotMatch(o.requirement.en, /\p{Script=Han}/u, `${o.id}: the English conditions must not fall back to Chinese`);
     assert.equal(o.source.url, site!.sourceUrl);
     assert.equal(o.href, `/offers/${o.id}`);
     assert.ok(['museum', 'park', 'transit'].includes(o.kind), o.id);

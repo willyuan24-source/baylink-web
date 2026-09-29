@@ -9,6 +9,7 @@ import { GuideImageLightbox } from './GuideVisuals';
 import { translateText, useLocale } from '../i18n/locale';
 import { EditorialShareActions } from './EditorialShareActions';
 import { openingShare } from '../lib/editorial-share';
+import { openingStatusLabel } from '../lib/opening-status';
 
 export const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const regionLabels = { sf: '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', peninsula: '半岛', 'north-bay': '北湾' };
@@ -16,8 +17,8 @@ const openingMap = (shop: SeptemberOpening) => `https://www.google.com/maps/sear
 
 function OpeningCard({ shop }: { shop: SeptemberOpening }) {
   const [zoomed, setZoomed] = useState(false);
-  const image = GUIDE_IMAGES[shop.imageKey];
-  const label = shop.status === 'open' ? '已开业' : shop.openingType === 'opening-celebration' ? '开业庆典' : '开业预告';
+  const image = Object.hasOwn(GUIDE_IMAGES, shop.imageKey) ? GUIDE_IMAGES[shop.imageKey] : undefined;
+  const label = shop.status === 'announced' && shop.openingType === 'opening-celebration' ? '开业庆典' : openingStatusLabel(shop.status);
   return <article className="bl-opening-card" aria-labelledby={`opening-${shop.id}`}>
     {image && <figure className={`bl-opening-photo${image.kind === 'poster' || image.fullFrame ? ' bl-opening-photo--contain' : ''}`}>
       <button type="button" onClick={() => setZoomed(true)} aria-label={`${translateText('查看大图')}：${shop.name}`}>
@@ -42,11 +43,13 @@ function OpeningCard({ shop }: { shop: SeptemberOpening }) {
 
 export function MonthlyOpenings({ today }: { today: string }) {
   useLocale();
-  const [status, setStatus] = useState<'all' | 'open' | 'announced'>('all');
+  const [status, setStatus] = useState<'all' | SeptemberOpening['status']>('all');
   const [region, setRegion] = useState('all');
   const [expanded, setExpanded] = useState(false);
   const archived = today.slice(0, 7) > '2026-10';
   const openCount = currentOpenings.filter(shop => shop.status === 'open').length;
+  const softOpenCount = currentOpenings.filter(shop => shop.status === 'soft_open').length;
+  const announcedCount = currentOpenings.filter(shop => shop.status === 'announced').length;
   const filtered = currentOpenings.filter(shop => (status === 'all' || shop.status === status) && (region === 'all' || shop.region === region));
   const visible = expanded ? filtered : filtered.slice(0, 6);
   return <section id="monthly-openings" className="bl-monthly-openings" aria-labelledby="monthly-openings-heading">
@@ -54,7 +57,7 @@ export function MonthlyOpenings({ today }: { today: string }) {
     <div className="bl-openings-note"><Store size={20} aria-hidden="true" /><p>{archived ? '这是本期开业消息快照，当前营业情况请查商家公告。' : '已开业、开业庆典与预告分别标示。庆典日期不等于首日营业；推荐基于公开资料整理，尚未实地探店。'}</p></div>
     <div className="bl-openings-controls">
       <div className="bl-openings-filters" role="group" aria-label="按开业状态筛选">{([
-        ['all', '全部新店', currentOpenings.length], ['open', '已开业', openCount], ['announced', '预告与庆典', currentOpenings.length - openCount],
+        ['all', '全部新店', currentOpenings.length], ['open', '已开业', openCount], ['soft_open', '试营业', softOpenCount], ['announced', '预告与庆典', announcedCount],
       ] as const).map(([value, label, count]) => <button key={value} type="button" aria-pressed={status === value} onClick={() => { setStatus(value); setExpanded(false); }}>{label}<span>{count}</span></button>)}</div>
       <label className="bl-openings-region"><MapPin size={16} aria-hidden="true" /><span className="sr-only">新店所在地区</span><select aria-label="新店所在地区" value={region} onChange={event => { setRegion(event.target.value); setExpanded(false); }}><option value="all">所有新店地区</option>{Object.entries(regionLabels).filter(([key]) => currentOpenings.some(shop => shop.region === key)).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
     </div>

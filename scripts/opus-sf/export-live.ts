@@ -11,10 +11,11 @@
  * applies, read from the organiser's page on the day in `ruleCheckedAt`. A dated offer applies on its own dates. Links go
  * to BAYLINK's `/offers/:id`. The export fails if an offer disappeared from the site data or turned into a purchase deal.
  */
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import type { FreebieOffer } from '../../src/components/FreebieBoard';
 import { currentFreebies } from '../../src/data/october-offers';
+import { loadLocale, translateText } from '../../src/i18n/locale';
 
 const OUT = resolve('public/opus-bay/sf/v1/live.json');
 const RULES_CHECKED = '2026-09-28';
@@ -96,15 +97,9 @@ const SPECS: Spec[] = [
   },
 ];
 
-// the site's English strings (zh → en maps in src/data/*-en.json)
-const EN: Record<string, string> = {};
-const dataDir = resolve('src/data');
-for (const f of await readdir(dataDir)) {
-  if (!f.endsWith('-en.json')) continue;
-  const j = JSON.parse(await readFile(resolve(dataDir, f), 'utf8')) as unknown;
-  if (j && typeof j === 'object' && !Array.isArray(j)) for (const [k, v] of Object.entries(j as Record<string, unknown>)) if (typeof v === 'string' && !(k in EN)) EN[k] = v;
-}
-const bi = (zh: string): Bi => ({ zh, en: EN[zh] ?? zh });
+// Use the same dictionaries and override order as the website and guide catalog.
+await loadLocale('en');
+const bi = (zh: string): Bi => ({ zh, en: translateText(zh, 'en') });
 
 const byId = new Map<string, FreebieOffer>(currentFreebies.map(o => [o.id, o]));
 const rows = SPECS.map(s => {

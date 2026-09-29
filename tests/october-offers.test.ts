@@ -11,8 +11,7 @@ import { monthlyDealsGuides } from '../src/data/guides-deals';
 import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
-import { autumnRefreshOffers } from '../src/data/autumn-refresh-offers';
-import { communityDiscoveryOffers } from '../src/data/community-discovery-offers';
+import { reviewedAutumnOffers } from '../src/data/autumn-release';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
@@ -25,11 +24,15 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 )).window.document;
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
-test('the unified guide preserves valid September anchors and includes both October benefit batches', () => {
-  assert.equal(currentFreebies.length, 32 + autumnRefreshOffers.length + communityDiscoveryOffers.length + 6);
+test('the unified guide preserves valid anchors and merges reviewed autumn benefits by canonical ID', () => {
+  assert.equal(currentFreebies.length, 86);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
+  for (const reviewed of reviewedAutumnOffers) {
+    assert.equal(currentFreebies.filter(item => item.id === reviewed.id).length, 1, `Reviewed offer must appear once: ${reviewed.id}`);
+    assert.deepEqual(offer(reviewed.id), reviewed, `Published conditions must use the reviewed canonical record: ${reviewed.id}`);
+  }
   const board = octoberDealsGuides[0].blocks.find(block => block.type === 'freebies');
   assert.ok(board?.type === 'freebies');
   for (const id of ['peets-orange-friday-sep25', 'target-beauty-sep26', 'michaels-ghosts-sep26', 'bampfa-free-oct1']) {
@@ -82,12 +85,15 @@ test('October workshop dates stay absolute and SMCL eligibility includes residen
 });
 
 test('calendar-rule free days are identified and material ticket restrictions remain visible', () => {
-  for (const id of ['sjma-free-oct2', 'omca-free-oct4', 'asian-art-free-oct4', 'conservatory-free-oct6', 'botanical-free-oct13']) {
+  for (const id of ['sjma-free-oct2', 'omca-free-oct4', 'conservatory-free-oct6', 'botanical-free-oct13']) {
     const item = offer(id);
     assert.match(`${item.requirement} ${item.description}`, /规则/, `Do not present a rule-derived date as a separately announced event: ${id}`);
   }
   assert.match(offer('asian-art-free-oct4').requirement, /特展另付 \$10/);
   assert.match(offer('omca-free-oct4').requirement, /包含特别展览/);
+  assert.equal(offer('omca-free-oct4').startDate, '2026-10-04');
+  assert.equal(offer('omca-free-oct4').endDate, '2026-10-04');
+  assert.match(offer('asian-art-free-oct4').description, /官网也已单独公布 10\/4/);
   assert.match(offer('chm-museums-on-us-oct3-4').requirement, /仅持卡人.*同伴不包含/);
   assert.match(offer('santa-clara-library-parks-pass').description, /不含 Uvas Canyon、Sunnyvale Baylands、露营/);
   for (const id of ['ikea-emeryville-as-is-wednesdays', 'poppy-claro-doggie-dinners-fall']) {
@@ -161,7 +167,8 @@ test('additional dated family benefits remain visible on their day and expire th
 
 test('benefit cards show registered media with its context while retaining the conditions and genuine source', () => {
   const document = renderBoard('2026-09-15');
-  for (const item of [...newOctoberOffers, ...additionalOctoberOffers]) {
+  for (const original of [...newOctoberOffers, ...additionalOctoberOffers]) {
+    const item = offer(original.id);
     const image = GUIDE_IMAGES[item.imageKey];
     assert.ok(image, `${item.id} references registered media`);
     assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0, `${item.id} image file exists`);
@@ -213,8 +220,9 @@ test('empty or unavailable offer image keys safely omit media without losing con
 });
 
 test('new offers have official source links, clear conditions and a dated guide with prose entry points', () => {
-  const officialHosts = new Set(['bampfa.org', 'sjmusart.org', 'computerhistory.org', 'museumca.org', 'about.asianart.org', 'gggp.org', 'www.lowes.com', 'www.yogurtland.com', 'svma.org', 'sfpl.org', 'smcl.org', 'aclibrary.org', 'parks.santaclaracounty.gov', 'museumsc.org', 'www.sfmoma.org', 'museum.stanford.edu', 'www.berkeleypubliclibrary.org', 'www.ikea.com', 'www.poppyandclaro.com']);
-  for (const item of [...newOctoberOffers, ...additionalOctoberOffers]) {
+  const officialHosts = new Set(['bampfa.org', 'sjmusart.org', 'computerhistory.org', 'museumca.org', 'about.asianart.org', 'calendar.asianart.org', 'gggp.org', 'www.lowes.com', 'www.yogurtland.com', 'svma.org', 'sfpl.org', 'smcl.org', 'aclibrary.org', 'parks.santaclaracounty.gov', 'museumsc.org', 'www.sfmoma.org', 'museum.stanford.edu', 'www.berkeleypubliclibrary.org', 'www.ikea.com', 'www.poppyandclaro.com']);
+  for (const original of [...newOctoberOffers, ...additionalOctoberOffers]) {
+    const item = offer(original.id);
     const url = new URL(item.sourceUrl);
     assert.equal(url.protocol, 'https:');
     assert.ok(officialHosts.has(url.hostname), `Non-official source for ${item.id}`);
@@ -222,7 +230,7 @@ test('new offers have official source links, clear conditions and a dated guide 
     assert.ok(item.sourceLabel.length > 4);
     assert.ok(octoberOfferSources.some(source => source.url === item.sourceUrl));
   }
-  assert.ok(additionalOctoberOffers.every(item => item.verifiedAt === '2026-09-15'));
+  assert.ok(additionalOctoberOffers.every(item => /^2026-09-\d{2}$/.test(offer(item.id).verifiedAt || '')));
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');

@@ -55,8 +55,8 @@ test('week navigation crosses the month boundary, preserves filters and restores
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '下一周' })); });
   assert.match(view.getByTestId('query').textContent!, /date=2026-11-07/);
   assert.match(view.getByTestId('query').textContent!, /region=east-bay/);
-  assert.equal(visibleTitles(view).length, 0);
-  assert.ok(view.getByRole('heading', { name: '这一天，暂未收录活动。' }));
+  assert.deepEqual(visibleTitles(view), eventsOnCalendarDay(PLANNER_EVENTS, '2026-11-07').filter(event => event.region === 'east-bay').map(event => event.title));
+  assert.ok(visibleTitles(view).includes(PLANNER_EVENTS.find(event => event.id === 'livermore-great-elephant-migration-2026')!.title), 'the verified outdoor exhibition continues into November');
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Test back' })); });
   assert.match(view.getByTestId('query').textContent!, /date=2026-10-31/);
   assert.deepEqual(visibleTitles(view), eventsOnCalendarDay(PLANNER_EVENTS, '2026-10-31').filter(event => event.region === 'east-bay').map(event => event.title));

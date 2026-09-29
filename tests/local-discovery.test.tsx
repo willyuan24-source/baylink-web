@@ -18,7 +18,7 @@ const previousGlobals = new Map(Object.keys(globals).map(key => [key, Object.get
 for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter, Routes, Route, Link } = await import('react-router-dom');
-const { localDiscoveries, getLocalDiscovery, discoveryShare } = await import('../src/data/local-discoveries');
+const { localDiscoveries, currentOpenings, getLocalDiscovery, discoveryShare } = await import('../src/data/local-discoveries');
 const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
@@ -46,6 +46,15 @@ const nextDay = (value: string) => {
 };
 const detail = (item: LocalDiscovery, today = '2026-09-15') =>
   <MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>;
+
+test('soft opening details and share metadata preserve trial operation without claiming a grand opening', () => {
+  const item: LocalDiscovery = { kind: 'opening', shop: { ...openShop.shop, status: 'soft_open', openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' } };
+  assert.equal(discoveryShare(item).label, '新店 · 试营业');
+  const view = render(detail(item, '2026-10-15'));
+  assert.ok(view.getByText('试营业 · 营业时段与菜单可能调整，出发前请查商家公告。'));
+  assert.equal(view.queryByText('已开业 · 当天营业与订位请查商家入口。'), null);
+  assert.equal(view.queryByText('开业预告 · 尚未确认正式营业，请先查商家公告。'), null);
+});
 const canonical = (doc: Document) => doc.querySelector('link[rel="canonical"]')?.getAttribute('href');
 const meta = (doc: Document, name: string) => doc.querySelector('meta[property="' + name + '"],meta[name="' + name + '"]')?.getAttribute('content');
 const assertExternal = (link: HTMLElement, href: string) => {
@@ -74,7 +83,7 @@ test('all published discoveries have unique IDs and category-specific routes tha
   assert.deepEqual(localDiscoveries.reduce<Record<string, number>>((counts, item) => {
     counts[item.kind] = (counts[item.kind] || 0) + 1;
     return counts;
-  }, {}), { event: MONTHLY_EVENTS.length, offer: currentFreebies.length, opening: 20 });
+  }, {}), { event: MONTHLY_EVENTS.length, offer: currentFreebies.length, opening: currentOpenings.length });
   const ids = new Set<string>(), paths = new Set<string>();
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
@@ -99,26 +108,31 @@ test('hosting rules resolve every detail and optional trailing slash without acc
   const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as { routes: { src?: string; dest?: string }[] };
   for (const [kind, folder] of Object.entries(folders)) {
     const rules = config.routes.filter(route => route.dest === '/' + folder + '/$1.html');
-    assert.equal(rules.length, 1, 'one static hosting rule for ' + folder);
-    const pattern = new RegExp(rules[0].src!);
+    assert.ok(rules.length >= 1, 'static hosting groups exist for ' + folder);
+    const patterns = rules.map(rule => {
+      assert.ok(rule.src!.length <= 4096, 'each route satisfies the Vercel schema limit');
+      return new RegExp(rule.src!);
+    });
     for (const item of localDiscoveries.filter(item => item.kind === kind)) {
       const share = discoveryShare(item);
       for (const path of [share.path, share.path + '/']) {
-        const match = pattern.exec(path);
-        assert.ok(match, path + ' reaches a static page');
+        const matches = patterns.map((pattern, index) => ({ match: pattern.exec(path), index })).filter(result => result.match);
+        assert.equal(matches.length, 1, path + ' reaches exactly one static page');
+        const { match, index } = matches[0];
+        assert.ok(match);
         assert.equal(match[1], share.id);
-        assert.equal(path.replace(pattern, rules[0].dest!), share.path + '.html');
+        assert.equal(path.replace(patterns[index], rules[index].dest!), share.path + '.html');
       }
-      assert.equal(pattern.test(share.path + '/nested'), false);
-      assert.equal(pattern.test(share.path + '.html'), false, 'the application route is extensionless');
+      assert.equal(patterns.some(pattern => pattern.test(share.path + '/nested')), false);
+      assert.equal(patterns.some(pattern => pattern.test(share.path + '.html')), false, 'the application route is extensionless');
     }
     for (const path of ['/' + folder + '/unknown-discovery', '/' + folder + '/../this-month', '/' + folder + '/', '/other/' + discoveryShare(eventItem).id]) {
-      assert.equal(pattern.test(path), false, path + ' must not match a discovery rewrite');
+      assert.equal(patterns.some(pattern => pattern.test(path)), false, path + ' must not match a discovery rewrite');
     }
   }
 });
 
-test('all 99 recipient paths are known app routes and select the guide navigation without accepting invalid roots', () => {
+test('all recipient paths are known app routes and select the guide navigation without accepting invalid roots', () => {
   for (const item of localDiscoveries) {
     const path = discoveryShare(item).path;
     for (const candidate of [path, path + '/']) {
@@ -217,7 +231,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
     if (item.kind === 'event') {
       assert.deepEqual([...content.querySelectorAll('.discovery-plan li p')].map(node => node.textContent), item.event.plan, 'all three planning steps are indexable outside the paginated list');
       assert.ok(content.textContent!.includes(item.event.costLabel));
-      assert.ok(content.textContent!.includes(item.event.venue));
+      assert.ok(typeof item.event.venue === 'string' && item.event.venue.trim(), share.id + ' has a venue or explicit location guidance');
+      assert.ok(content.textContent!.includes(item.event.venue), share.id + ' preserves location guidance');
       assert.equal(content.querySelector('.event-interest span')?.textContent, '—');
     } else if (item.kind === 'offer') {
       assert.ok(content.textContent!.includes(item.offer.requirement), 'redemption conditions are visible before following the offer');

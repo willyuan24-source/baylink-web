@@ -55,6 +55,7 @@ const nextMonth = (today: string) => {
   return first.toISOString().slice(0, 7);
 };
 function offerStatus(offer: FreebieOffer, today: string) {
+  if (offer.availability === 'check-local' && offer.startDate && !offer.endDate) return { key: offer.startDate > today ? 'upcoming' : 'local', label: offer.startDate > today ? '即将开售' : '限量供应 · 查询余票' };
   if (offer.availability === 'check-local') return { key: 'local', label: '查本店场次' };
   if (offer.availability === 'ongoing') return { key: 'ongoing', label: '长期福利' };
   const range = dateRange(offer);

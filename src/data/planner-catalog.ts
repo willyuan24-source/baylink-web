@@ -18,6 +18,18 @@ const eventPlanning: Record<string, PlanningFacts> = {
   'palo-alto-addams-family-opening-2026': { setting: 'mixed', minAge: 3 },
   ...aiEventSettings,
   'surrealdb-mastra-shared-memory-2026': { setting: 'indoor', minAge: 18, reservation: 'required' },
+  // Entry restrictions confirmed by the event sources, not inferred from drinking ages.
+  'sf-exploratorium-after-dark-01-oct2026': { minAge: 18 },
+  'sf-exploratorium-after-dark-08-oct2026': { minAge: 18 },
+  'sf-exploratorium-after-dark-15-oct2026': { minAge: 18 },
+  'sf-exploratorium-after-dark-22-oct2026': { minAge: 18 },
+  'sf-exploratorium-after-dark-29-oct2026': { minAge: 18 },
+  'r2-vallejo-wonder-deep-dive-2026': { minAge: 18 },
+  'r2-vallejo-wonder-after-dark-2026': { minAge: 18 },
+  'tiburon-wine-festival-2026': { minAge: 21 },
+  'napa-harvest-after-dark-2026': { minAge: 21 },
+  'vacaville-boo-bash-20261030': { minAge: 21 },
+  'fremont-trick-or-treat-2026': { minAge: 2, maxAge: 10, reservation: 'required' },
 };
 const eventLocations: Record<string, GeoPoint> = {
   ...aiEventLocations,
@@ -27,7 +39,7 @@ const eventLocations: Record<string, GeoPoint> = {
 };
 
 // Coordinates are added only from individually checked public venue sources.
-export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id] } }));
+export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = ATTRACTIONS.map(place => ({
   id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,
   guideSlug: place.slug, cost: place.cost,

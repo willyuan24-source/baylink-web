@@ -1,17 +1,18 @@
 import type { Guide, GuideBlock } from './guides';
-import { septemberOpenings } from './september-openings';
+import { currentOpenings as septemberOpenings } from './local-discoveries';
+import { openingStatusLabel } from '../lib/opening-status';
 
 export const septemberOpeningGuides: Guide[] = [{
   slug: 'bay-area-new-openings-2026-09',
-  title: '九月湾区新店手册：水岸晚餐、街角烘焙与下一站期待',
+  title: '湾区秋季新店手册：餐厅、咖啡与街角新面孔',
   subtitle: '已营业门店与待确认预告，出门前一次看清',
   summary: 'Sergeant Ma 的水岸晚餐、Marina 已营业的咖啡烘焙门店，以及 Mission、Russian Hill、渔人码头和 San Jose 的开业消息。已移除结束的庆典优惠，附地址、商家入口与消息日期。',
   category: 'city', categoryLabel: '新店观察', emoji: '☕',
   audience: ['想找新地方吃饭的人', '咖啡与烘焙爱好者', '周末街区散步的人'],
   tags: ['九月新店', '2026 年 9 月', '餐厅', '咖啡', '烘焙', '旧金山', 'San Jose'],
   priority: 'P1', featuredOnHome: false, recommendedForCategories: ['other'],
-  readMinutes: 6, updatedAt: '2026-09-15', editionMonth: '2026-09',
-  sourceNote: '2026 年 9 月 15 日清理已结束的庆典优惠，并用商家官网复核 ERIA Marina 门店；其余项目保留逐店标注的原核查日期。本文未实地探店，编辑建议不代表食评。尚未获开业确认的计划继续标为预告，不因日期到了就自动改成已开。',
+  readMinutes: 20, updatedAt: '2026-09-29', editionMonth: '2026-09',
+  sourceNote: '2026 年 9 月 29 日补充全湾区新店与预告，各店保留自己的核对日期。试营业、正式营业与开业预告分别标示；庆典日期不一定是首次营业日。资料来自公开来源，尚未实地探店，出发前请确认当天营业和订位。',
   sources: [...new Map(septemberOpenings.flatMap(shop => [
     { title: `${shop.name} · ${shop.sourceLabel}`, url: shop.sourceUrl, description: shop.dateLabel },
     { title: `${shop.name} · 商家入口`, url: shop.officialUrl, description: '出发前确认菜单、预约与当天营业安排。' },
@@ -21,7 +22,9 @@ export const septemberOpeningGuides: Guide[] = [{
     { type: 'tip', title: '先读日期，再决定要不要出发', text: '已开业代表来源确认已开始营业；开业庆典是一场活动，未必是开门第一天。预告可能延期，不会因为日历到了就自动成为“已开”。看到想去的店，先点商家入口确认。' },
     ...septemberOpenings.flatMap((shop): GuideBlock[] => [
       { type: 'heading', text: shop.name },
-      { type: 'paragraph', text: `${shop.dateLabel}。${shop.summary}` },
+      { type: 'paragraph', text: openingStatusLabel(shop.status) },
+      { type: 'paragraph', text: shop.dateLabel },
+      { type: 'paragraph', text: shop.summary },
       { type: 'list', items: [shop.address, shop.editorTip] },
       { type: 'link', title: `${shop.name} · 商家入口`, text: '查看商家的菜单、营业公告与预约入口。', url: shop.officialUrl },
       { type: 'link', title: shop.sourceLabel, text: `开业消息核对：${shop.verifiedAt}`, url: shop.sourceUrl },

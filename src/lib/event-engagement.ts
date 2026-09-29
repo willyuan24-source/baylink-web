@@ -9,11 +9,18 @@ export function parseEventEngagement(value: unknown): EventEngagement {
   return item;
 }
 export const getEventEngagement = async (ids: string[], signal?: AbortSignal): Promise<EventEngagement[]> => {
-  const response = await api.request(`/events/engagement?ids=${encodeURIComponent(ids.join(','))}`, { signal });
-  if (!Array.isArray(response.events)) throw new Error('Invalid event participation response');
-  const entries = response.events.map(parseEventEngagement);
-  if (entries.length !== ids.length || new Set(entries.map((entry: EventEngagement) => entry.eventId)).size !== ids.length || entries.some((entry: EventEngagement) => !ids.includes(entry.eventId))) throw new Error('Incomplete event participation response');
-  return entries;
+  if (new Set(ids).size !== ids.length) throw new Error('Duplicate event participation IDs');
+  // Stay below the API's 200-ID cap and keep encoded URLs manageable as the catalog grows.
+  const batches: string[][] = [];
+  for (let index = 0; index < ids.length; index += 100) batches.push(ids.slice(index, index + 100));
+  const results = await Promise.all(batches.map(async batch => {
+    const response = await api.request(`/events/engagement?ids=${encodeURIComponent(batch.join(','))}`, { signal });
+    if (!Array.isArray(response.events)) throw new Error('Invalid event participation response');
+    const entries = response.events.map(parseEventEngagement);
+    if (entries.length !== batch.length || new Set(entries.map((entry: EventEngagement) => entry.eventId)).size !== batch.length || entries.some((entry: EventEngagement) => !batch.includes(entry.eventId))) throw new Error('Incomplete event participation response');
+    return entries;
+  }));
+  return results.flat();
 };
 export const setEventInterest = async (id: string, interest: EventInterest) => {
   const entry = parseEventEngagement(await api.request(`/events/${encodeURIComponent(id)}/interest`, { method: 'PUT', body: JSON.stringify(interest) }));

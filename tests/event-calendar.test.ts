@@ -13,7 +13,7 @@ import {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const fixture = (changes: Partial<PlannerEvent> = {}): PlannerEvent => ({
   ...PLANNER_EVENTS[0], id: 'calendar-test', city: 'Oakland', venue: 'Test venue',
-  startDate: '2026-10-01', endDate: '2026-10-12', location: undefined, ...changes,
+  startDate: '2026-10-01', endDate: '2026-10-12', occurrenceDates: undefined, location: undefined, ...changes,
 });
 
 function assertConsecutive(days: string[]) {

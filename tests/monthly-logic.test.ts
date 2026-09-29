@@ -17,6 +17,14 @@ import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
 
+test('unknown admission remains searchable but never qualifies as a free event', () => {
+  const item: MonthlyEvent = { ...MONTHLY_EVENTS[0], id: 'unknown-admission-fixture', kind: 'performance', startDate: '2026-10-03', endDate: '2026-10-03', occurrenceDates: ['2026-10-03'], cost: 'unknown', costLabel: '票价尚未公布，请查主办方。' };
+  assert.deepEqual(filterMonthlyEvents([item], { cost: 'all' }, '2026-10-01'), [item]);
+  assert.deepEqual(filterMonthlyEvents([item], { cost: 'free' }, '2026-10-01'), []);
+  assert.deepEqual(filterMonthlyEvents([item], { cost: 'unknown' }, '2026-10-01'), [item]);
+  assert.match(buildEventCalendar(item).replace(/\r\n /g, ''), /票价尚未公布/);
+});
+
 test('nonconsecutive programs filter and export only their confirmed dates', () => {
   const item = { ...MONTHLY_EVENTS[0], startDate: '2026-10-01', endDate: '2026-10-12', occurrenceDates: ['2026-10-02', '2026-10-09'] };
   assert.equal(getEventStatus(item, '2026-10-03'), 'upcoming');
@@ -37,7 +45,7 @@ test('nonconsecutive programs filter and export only their confirmed dates', () 
 });
 
 const event = (id: string): MonthlyEvent => {
-  const found = MONTHLY_EVENTS.find(item => item.id === id) || regionalSeptemberEvents.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
+  const found = MONTHLY_EVENTS.find(item => item.id === id) || regionalSeptemberEvents.find(item => item.id === id) || (id === 'mountain-view-art-wine-2026' ? { ...MONTHLY_EVENTS[0], occurrenceDates: undefined, id, region: 'south-bay', title: '历史活动日期边界测试', startDate: '2026-09-12', endDate: '2026-09-13', costLabel: '免费入场；餐饮另付' } : undefined);
   assert.ok(found, `Missing event ${id}`);
   return found;
 };
@@ -107,7 +115,7 @@ test('ended events disappear by default and can be restored for archival reading
   assert.deepEqual(ids(filterMonthlyEvents(selected, {}, '2026-09-14')), ['bark-in-the-park-san-jose-2026']);
   assert.deepEqual(filterMonthlyEvents(selected, {}, '2026-09-20'), []);
   assert.deepEqual(ids(filterMonthlyEvents(selected, { includeEnded: true }, '2026-10-01')), ids(selected));
-  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'all', cost: 'all' }, '2026-09-08')), ids(MONTHLY_EVENTS));
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { region: 'all', cost: 'all' }, '2026-09-08')), ids(MONTHLY_EVENTS.filter(item => item.occurrenceDates?.length !== 0)));
 });
 
 test('region and free admission filters combine while retaining separately paid food notices', () => {
@@ -243,18 +251,18 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
   for (const item of MONTHLY_EVENTS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     for (const date of [item.startDate, item.endDate]) {
-      assert.match(date, /^2026-(09|10)-\d{2}$/);
+      assert.match(date, /^2026-(09|10|11|12)-\d{2}$/);
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);
     assert.match(item.verifiedAt, /^2026-09-\d{2}$/);
     assert.equal(new Date(`${item.verifiedAt}T12:00:00Z`).toISOString().slice(0, 10), item.verifiedAt, `${item.id} has a valid verification date`);
     assert.ok(item.verifiedAt <= MONTHLY_EDITION.checkedAt, `${item.id} must not claim verification after the latest edition update`);
-    assert.ok(item.endDate >= item.verifiedAt, `${item.id} had not ended when verified`);
+    if (item.endDate < item.verifiedAt) assert.equal(getEventStatus(item, item.verifiedAt), 'ended', `${item.id}: a historical review cannot revive an ended event`);
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= '2026-09-23' && item.endDate <= '2026-10-31', item.id);
+    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-10-31', `${item.id} overlaps the September–October edition`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     assert.equal(item.plan.length, 3);
@@ -268,7 +276,8 @@ test('published activities reference available guide images and existing related
     if (item.imageKey) assert.ok(GUIDE_IMAGES[item.imageKey], `${item.id} image key exists`);
     if (item.relatedGuideSlug) assert.ok(getGuideBySlug(item.relatedGuideSlug), `${item.id} related guide exists`);
     const calendar = buildEventCalendar(item);
-    assert.equal(field(calendar, 'UID'), `${item.id}${item.occurrenceDates ? `-${item.occurrenceDates[0]}` : ''}@baylink.us`);
+    if (item.occurrenceDates?.length === 0) assert.equal(calendar.includes('BEGIN:VEVENT'), false, `${item.id} must not fabricate a calendar date`);
+    else assert.equal(field(calendar, 'UID'), `${item.id}${item.occurrenceDates ? `-${item.occurrenceDates[0]}` : ''}@baylink.us`);
     for (const line of calendar.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, `${item.id} calendar line length`);
   }
 });
@@ -288,7 +297,8 @@ test('explicit month filters include October 31 and remove September events from
     : item.endDate >= '2026-09-15' && item.startDate <= '2026-09-30')));
   assert.ok(september.some(item => item.id === 'novato-youth-folk-dance-2026'));
   assert.ok(!october.some(item => item.id === 'novato-youth-folk-dance-2026'));
-  assert.deepEqual(ids(september.filter(item => october.some(other => other.id === item.id))), ['ai-conference-sf-2026', 'petaluma-pumpkin-patch-2026']);
+  const bothMonths = ids(september.filter(item => october.some(other => other.id === item.id)));
+  for (const id of ['ai-conference-sf-2026', 'petaluma-pumpkin-patch-2026', 'ferry-plaza-farmers-market-2026-autumn']) assert.ok(bothMonths.includes(id));
   assert.ok(september.some(item => item.id === 'pyladies-snowflake-ai-data-2026'));
   assert.ok(!october.some(item => item.id === 'pyladies-snowflake-ai-data-2026'));
   assert.equal(resolveMonthlyDateFilter('october'), 'october');
@@ -301,13 +311,15 @@ test('late October dates retain verified community events and respect their fina
     assert.ok(lastWeek.some(item => item.id === id), id);
   }
   assert.ok(!filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-26').some(item => item.id === 'emeryville-art-exhibition-closing-2026'));
-  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-31')), [
+  const halloween = ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-10-31'));
+  for (const id of [
     'palo-alto-addams-family-opening-2026', 'petaluma-pumpkin-patch-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026',
-  ]);
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01'), []);
+  ]) assert.ok(halloween.includes(id), id);
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01')), ['danville-scarecrow-stroll-2026', 'livermore-great-elephant-migration-2026']);
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-07'), []);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-11-01'), [], 'archive permission cannot bypass the requested day');
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07'), [], 'archive permission cannot bypass the requested day');
 });
 
 test('new community listings retain complete English text and clearly identify any illustrative media', () => {

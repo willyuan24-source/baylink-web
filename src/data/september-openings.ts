@@ -6,8 +6,8 @@ export type SeptemberOpening = {
   city: string;
   region: MonthlyRegion;
   category: string;
-  status: 'open' | 'announced';
-  openingType: 'new-restaurant' | 'relocation' | 'reopening' | 'extended-pop-up' | 'opening-celebration';
+  status: 'open' | 'soft_open' | 'announced';
+  openingType: 'new-restaurant' | 'new-store' | 'relocation' | 'reopening' | 'extended-pop-up' | 'opening-celebration';
   /** Actual first public service only; a grand-opening party is not this date. */
   openedOn?: string;
   dateLabel: string;

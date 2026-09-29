@@ -222,19 +222,25 @@ test('six new slugs occur once in data and explicit hosting routes, and all publ
   assert.equal(new Set(guides.map(guide => guide.slug)).size, guides.length);
   const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as { routes: { src?: string; dest?: string }[] };
   const guideRoutes = config.routes.filter(route => route.dest === '/guides/$1.html');
-  assert.equal(guideRoutes.length, 1);
-  const source = guideRoutes[0].src!;
-  assert.ok(source.startsWith('^/guides/(') && source.endsWith(')/?$'));
-  const routeSlugs = source.slice('^/guides/('.length, source.lastIndexOf(')')).split('|');
+  assert.ok(guideRoutes.length >= 1);
+  const sources = guideRoutes.map(route => route.src!);
+  const routeSlugs = sources.flatMap(source => {
+    assert.ok(source.length <= 4096);
+    assert.ok(source.startsWith('^/guides/(') && source.endsWith(')/?$'));
+    return source.slice('^/guides/('.length, source.lastIndexOf(')')).split('|');
+  });
   assert.equal(new Set(routeSlugs).size, routeSlugs.length);
   assert.deepEqual([...routeSlugs].sort(), guides.map(guide => guide.slug).sort());
   for (const { slug } of moods) {
     assert.equal(guides.filter(guide => guide.slug === slug).length, 1);
     assert.equal(routeSlugs.filter(item => item === slug).length, 1);
-    assert.equal(new RegExp(source).exec(`/guides/${slug}`)?.[1], slug);
-    assert.equal(new RegExp(source).exec(`/guides/${slug}/`)?.[1], slug);
+    for (const path of [`/guides/${slug}`, `/guides/${slug}/`]) {
+      const matches = sources.map(source => new RegExp(source).exec(path)).filter(match => match !== null);
+      assert.equal(matches.length, 1);
+      assert.equal(matches[0][1], slug);
+    }
   }
-  assert.equal(new RegExp(source).test('/guides/a-guide-that-was-never-published'), false);
+  assert.equal(sources.some(source => new RegExp(source).test('/guides/a-guide-that-was-never-published')), false);
 });
 
 test('guide social metadata uses a branded share card while article photos and original posters remain preserved', () => {
