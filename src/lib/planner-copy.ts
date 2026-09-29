@@ -2,6 +2,9 @@ import { translateText } from '../i18n/locale';
 
 // Translate the complete editorial statement: qualifiers and unknowns are part of the evidence.
 const notices: Record<string, string> = {
+  '主地点费用仍待核实；这是一份待确认的备选，不能视为整趟符合预算。': 'Costs at the main stop are still unconfirmed. This is a tentative alternative, not confirmation that the whole outing fits your budget.',
+  '主地点仍在试营业，营业安排与供应可能调整，请出发前向商家确认。': 'The main stop is still in its soft opening. Hours and availability may change; check with the business before visiting.',
+  '主地点按已收录营业窗口安排；这只是可编辑的访问时间，不代表已预约或保证营业。': 'The main stop uses its recorded opening window. This is an editable visit time, not a reservation or a guarantee that it will be open.',
   '这是可编辑的出游草稿。相邻站点只按同城和直线距离筛选，交通时间均为预留缓冲，不是已核实的路线或实际耗时。': 'This is an editable outing draft. Nearby stops are selected only by city and straight-line distance. Travel times are allowances, not verified routes or actual journey times.',
   '餐饮、交通与其他费用尚未填写，草稿中的 0 只是待填数值，不表示这些消费免费。': 'Meals, transport and other costs have not been entered. A 0 in the draft is a placeholder, not a claim that these expenses are free.',
   '已检查每位儿童的已公布年龄限制；各地点的亲子适宜性、成人陪同和儿童票规则仍需确认。': 'Published age limits have been checked for each child. Family suitability, adult supervision and child ticket rules still need checking at each stop.',

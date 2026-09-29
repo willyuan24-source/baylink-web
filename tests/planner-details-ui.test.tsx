@@ -95,13 +95,13 @@ test('replacing one stop keeps other stops and estimates, undo restores it and l
   assert.equal(input(view, '同行总人数').value, '4');
   assert.equal(input(view, '整趟总预算 $').value, '180');
   assert.equal(timingInputs(view, '停留（分钟）')[0].value, '45');
-  fireEvent.click(editor(view).getByRole('button', { name: '撤销上次地点调整' }));
+  fireEvent.click(editor(view).getByRole('button', { name: '撤销上次调整' }));
   assert.deepEqual(selectedLinks(view), original);
   assert.deepEqual(timingInputs(view, '停留（分钟）').map(field => field.value), ['45', '30']);
   fireEvent.click(editor(view).getAllByRole('button', { name: '移除此站' })[1]);
-  assert.ok(editor(view).getByRole('button', { name: '撤销上次地点调整' }));
+  assert.ok(editor(view).getByRole('button', { name: '撤销上次调整' }));
   fireEvent.change(input(view, '整趟总预算 $'), { target: { value: '210' } });
-  assert.equal(editor(view).queryByRole('button', { name: '撤销上次地点调整' }), null);
+  assert.equal(editor(view).queryByRole('button', { name: '撤销上次调整' }), null);
   assert.equal(input(view, '整趟总预算 $').value, '210');
 });
 

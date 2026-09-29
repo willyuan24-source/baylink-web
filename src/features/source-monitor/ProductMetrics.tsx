@@ -10,6 +10,9 @@ const METRICS = [
   ['official_source_click', '点击官方来源'],
   ['favorite_saved', '加入收藏'],
   ['planner_map_opened', '打开互动地图'],
+  ['planner_outing_adopted', '采用完整出游方案'],
+  ['planner_edit_applied', '采用一句话修改'],
+  ['planner_web_search', '完成站外搜索'],
 ] as const;
 type MetricKey = typeof METRICS[number][0];
 type MetricsSummary = { days: number; from: string; through: string; counts: Record<MetricKey, number> };

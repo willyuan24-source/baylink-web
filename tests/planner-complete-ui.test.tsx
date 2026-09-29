@@ -42,7 +42,7 @@ test('a complete outing can be selected, edited, saved and reopened with its mea
   let editor = within(view.getByRole('complementary'));
   assert.ok(within(editor.getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length >= 2);
   assert.equal((editor.getByLabelText('日期') as HTMLInputElement).value, '2026-10-03');
-  fireEvent.click(editor.getByRole('button', { name: '撤销上次地点调整' }));
+  fireEvent.click(editor.getByRole('button', { name: '撤销上次调整' }));
   assert.equal(within(editor.getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length, 1);
   assert.equal((editor.getByLabelText('同行总人数') as HTMLInputElement).value, '1');
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '帮我挑选方案' })); });

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
-import { buildOutingOptions, type OutingCatalog } from '../src/lib/planner-outings';
+import { buildOutingOptions, buildPlaceOutingOptions, type OutingCatalog } from '../src/lib/planner-outings';
 import type { PlannerEvent, PlannerPlace, PlanningSchedule, Suggestion } from '../src/lib/planner';
 import { resolveTimeEvidence } from '../src/lib/planner-hours';
 import { buildItinerary } from '../src/lib/planner-itinerary';
@@ -14,6 +14,44 @@ const anchor = (patch: Partial<PlannerEvent> = {}): PlannerEvent => ({ ...PLANNE
 const place = (id: string, category: PlannerPlace['category'] = 'attraction', patch: Partial<PlannerPlace> = {}): PlannerPlace => ({ id, title: id, city: 'San Francisco', region: 'sf', summary: 'Published place', guideSlug: id, officialUrl: 'https://example.com/place', cost: 'free', category, location: { ...point, lat: point.lat + 0.002 }, planning: { admissionUsd: 0, schedule: schedule() }, ...patch });
 const suggestion: Suggestion = { id: 'fixture-suggestion', eventId: 'fixture-anchor', date, placeIds: [], reason: 'Published event', reasons: [], unknowns: [] };
 const sources = (events = [anchor()], places = [place('museum'), place('lunch', 'restaurant'), place('coffee', 'cafe'), place('shop', 'shop')]): OutingCatalog => ({ events, places });
+
+test('place-led outings keep their real place identity and require distinct useful stops', () => {
+  for (const category of ['restaurant', 'cafe', 'shop', 'attraction'] as const) {
+    const first = place('anchor-place', category, { location: point, openingStatus: 'soft_open', planning: { admissionUsd: null, schedule: schedule() } });
+    const data = sources([], [first, place('museum'), place('coffee', 'cafe'), place('shop', 'shop')]);
+    const before = structuredClone(data);
+    const options = buildPlaceOutingOptions({ placeId: first.id, date, filters: {}, asOf }, data);
+    assert.ok(options.length, category);
+    assert.ok(options.every(option => option.stops.length >= 2 && option.stops.every(stop => stop.kind === 'place') && option.stops.filter(stop => stop.id === first.id).length === 1));
+    assert.match(options[0].notices.join(' '), /主地点费用仍待核实/);
+    assert.match(options[0].notices.join(' '), /试营业/);
+    assert.deepEqual(data, before);
+    assert.deepEqual(buildPlaceOutingOptions({ placeId: first.id, date, filters: {}, asOf }, sources([], [first])), []);
+  }
+});
+
+test('place anchors cannot be fabricated from missing hours, approximate locations or announced opening dates', () => {
+  for (const patch of [{ location: undefined }, { location: { ...point, precision: 'area' as const } }, { planning: { admissionUsd: 0 } }, { planning: { admissionUsd: 0, schedule: schedule({ verifiedAt: '2026-07-01' }) } }, { openingStatus: 'announced' as const }, { openedOn: '2026-10-10' }, { planning: { admissionUsd: 0, schedule: schedule({ dates: { [date]: [] } }) } }]) {
+    const data = sources([], [place('anchor-place', 'attraction', { location: point, ...patch }), place('cafe', 'cafe')]);
+    assert.deepEqual(buildPlaceOutingOptions({ placeId: 'anchor-place', date, filters: {}, asOf }, data), [], JSON.stringify(patch));
+  }
+});
+
+test('place anchors honor free-only, age and exact city constraints without treating restaurant spending as free', () => {
+  const data = sources([], [place('restaurant', 'restaurant', { location: point }), place('coffee', 'cafe')]);
+  for (const filters of [{ freeOnly: true }, { budget: 0 }, { city: 'South San Francisco' }]) assert.deepEqual(buildPlaceOutingOptions({ placeId: 'restaurant', date, filters, asOf }, data), []);
+  data.places[0].planning!.minAge = 18;
+  assert.deepEqual(buildPlaceOutingOptions({ placeId: 'restaurant', date, filters: { childAges: [8, 16] }, asOf }, data), []);
+});
+
+test('real Ferry Building restaurant can anchor a timed plan without requiring a scheduled event', () => {
+  const options = buildPlaceOutingOptions({ placeId: 'restaurant-gotts-ferry-building', date, filters: { city: 'San Francisco', partySize: 2 }, asOf });
+  assert.ok(options.length);
+  for (const option of options) {
+    assert.ok(option.stops.every(stop => stop.kind === 'place'));
+    assert.deepEqual(buildItinerary(option.stops, option.details, date, asOf).issues, []);
+  }
+});
 
 test('complete options contain actual distinct stops, a meal stop and editable cost placeholders', () => {
   const data = sources();

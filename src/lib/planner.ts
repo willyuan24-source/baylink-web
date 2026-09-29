@@ -20,8 +20,9 @@ export type Preferences = { regions: string[]; interests: string[]; travelMode: 
 export type Library = { plans: SavedPlan[]; favorites: Favorite[]; preferences: Preferences };
 export type PlanFilters = { date?: string; region?: string; city?: string; budget?: number | null; childAge?: number | null; childAges?: number[]; partySize?: number; budgetScope?: 'person' | 'total'; freeOnly?: boolean; topic?: string; setting?: string; travelMode?: string };
 export type Suggestion = { id: string; date: string; eventId: string; placeIds: string[]; reason: string; reasons: string[]; unknowns: string[]; budgetStatus?: 'known' | 'unknown' };
-export type Recommendations = { ok: boolean; responseMode: 'ai' | 'rules'; filters: PlanFilters; suggestions: Suggestion[]; notices: string[]; checkedAt: string };
-export const PLAN_METADATA: PageMetadata = { title: 'BayBay 智能出游计划｜BAYLINK', description: '说出日期、地区和预算，从真实湾区活动选择方案，在地图上搭配景点，保存与分享出游计划。', path: '/plan' };
+export type PlaceSuggestion = { id: string; date: string; placeId: string; reason: string; reasons: string[]; unknowns: string[]; budgetStatus: 'known' | 'unknown' };
+export type Recommendations = { ok: boolean; responseMode: 'ai' | 'rules'; filters: PlanFilters; suggestions: Suggestion[]; placeSuggestions?: PlaceSuggestion[]; notices: string[]; checkedAt: string };
+export const PLAN_METADATA: PageMetadata = { title: 'BayBay 智能出游计划｜BAYLINK', description: '搜索湾区活动、餐厅、新店与景点，查看站外来源，安排时间和预算，一句话调整、保存与分享出游计划。', path: '/plan' };
 export const WEEK_METADATA: PageMetadata = { title: '我的这周｜BAYLINK', description: '在一个地方整理自己的湾区活动、收藏和出游计划。', path: '/my-week', noindex: true };
 export const EMPTY_LIBRARY: Library = { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } };
 export const todayInBay = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);

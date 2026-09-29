@@ -1,7 +1,7 @@
 import { API_BASE_URL } from './api';
 import { getLocale } from '../i18n/locale';
 
-export type ProductEvent = 'planner_recommendation' | 'plan_saved' | 'plan_shared' | 'official_source_click' | 'favorite_saved' | 'planner_map_opened';
+export type ProductEvent = 'planner_recommendation' | 'plan_saved' | 'plan_shared' | 'official_source_click' | 'favorite_saved' | 'planner_map_opened' | 'planner_outing_adopted' | 'planner_edit_applied' | 'planner_web_search';
 
 /** Aggregate action counts only. Never send auth, referrers, URLs or user content. */
 export function recordProductEvent(event: ProductEvent): void {
