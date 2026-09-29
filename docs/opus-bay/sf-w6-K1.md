@@ -188,3 +188,80 @@ deck), the prop pool (21 rebuilds in 2 s → ≤ 9).
 ### Requests
 
 - None.
+
+## Review (2026-09-29, 04:47–05:50 PDT, adversarial reviewer of lane K1)
+
+Worktree `C:/Users/willy/wt/w6-k1-rev` (branch `w6-k1-rev` from `2d18d83e`), dev port 5621, scratch
+`C:/Users/willy/opus-qa/w6/k1-rev/`, one headless Chrome at a time (PERF-LOCK absent at every start).
+
+### 给主人的摘要
+
+1. K1 的 17 个提交我都逐行看过，并在电脑（1440×900）和手机（390×844）上实际玩了缆车那一段。摇杆、街区模式、BAYBAY、E 键提示、天色、渡轮提示、海獭彩蛋、彩虹脚印、嘿咻推、金圈预加载——都没发现问题。
+2. 找到并修好 1 个真问题：**坐在缆车长椅上**经过海德街窄路时，K1 新加的"镜头绕到车后、抬高"会把镜头抬到车顶上方，结果画面里只剩车顶，看不到坐着的你和 BAYBAY。现在坐着时镜头保持和长椅一样高、只绕到车的斜后方，能看到你们俩；站在踏板上时保持 K1 的做法不变。
+3. 还剩一个老问题：海德街两边的行道树有时会正好挡在镜头前面（手机上更明显），这需要把树也加进"镜头避障"里，留给下一轮。
+4. 没有阻碍上线的问题。
+
+### What was checked
+
+- **Every K1 commit read** (`be8a9f15` … `2d18d83e`, 17 commits; the code ones line by line against their parents):
+  - `be8a9f15` stick: the reading is `thumb − stickBase` in client px, the rect only paints `stickView`; `resize` /
+    `visualViewport` `resize` + `scroll` listeners added and removed on detach; release paths unchanged. OK (the node
+    test reproduces W5-Z's flip on the old code; the lane's live 390 × 844 / 375 × 667 runs stand — not repeated).
+  - `2061d31f` mantle: the gate wraps the whole W5-F10 block; compared with `755f55ab`'s parent the district's airborne
+    step is now exactly the pre-wave-5 code (the "too high is a wall" rule was already city-only). Live
+    `?world=district&start=free` desktop: loads at the Ferry Building, walk + hop, no console error, 0 exceptions.
+  - `40be91a2` garbage: checked for aliasing — `deckSteer`'s module scratch `AT` is only read inside the call that fills
+    it (`onDeck`, `deckDip`, `heroRelaxed`); the controller and the camera own their `DeckAt` / `DeckWish` / dip outs,
+    and the camera keeps only numbers across frames (`deckDir`, `deckX/Z`); `GlideSim.step` / `fly` never keep the input
+    object, and `flyGlide` never writes into `NO_GLIDE_INPUT` (the approach copies boost / slow first);
+    `lineProgress`'s two module outs are read in the same frame; `riffLook` packs phase / round / lit / missed / jazz /
+    flash, the pad's cursor and meter are style writes. OK.
+  - `a4c27b5f` `TALK_FAR` 30 u: `brain.ts` sets `talk` only in a dialogue (`talkMark`) and at a tour stop with the player
+    < 6 u from BAYBAY (`stageMark`), so no live talk mark is dropped. OK.
+  - `8de6e33f` E prompt (the epoch's passive effect re-reads after Systems' layout effect), `e141bdc0` the sky band
+    (`bayTimeOfDay(now, world)` — the district gets the same fixed-hour band as before), `6520fd52` 船上 / 下船 (the
+    characters are the same in 繁體; en "On deck" / "Go ashore"). OK.
+  - `14fe5b6e` otter: the two `onDeck`s take different argument orders (`deckSteer` `(x, z, y)`, marina `(x, y, z)`) and
+    both are called right. `9295cb55` prop pool: the floor keys on the eggs' host clock, which only grows in the game
+    (it is reset only by `__resetHostsForTests`), so a dirty pool cannot stall. `5c7556c1` heave-ho / rings prefetch:
+    `boardingInReach` at 4 Hz skips lane T's `transit-push-*`; the prefetch unsubscribes with `offs`, retries on a failed
+    fetch. OK.
+  - `f3d720f7` / `65fcdf40` the Hyde St swing: only `occlude` subjects (city cable cars; `move.line` in the district is
+    the F-line streetcar, never `occlude`), so the district is untouched. **Standing: OK. Seated: a defect (below).**
+- **Played**: the Powell–Hyde from Hyde & Beach, seated (`KeyE` 坐下 on board), desktop 1440 × 900 (`quality=high`) and
+  phone 390 × 844 dpr 3 (`quality=mid`), with an A/B at the same spots (the swing live vs forced to 0 = the pre-K1
+  side-on shot) — `C:/Users/willy/opus-qa/w6/k1-rev/{seat,seatfix,ab}.mjs`, every image read.
+- Real-world facts: K1's commits add none (labels and camera / feel code only); nothing to re-check on the web.
+- Perf: no new meshes or materials in K1's code; the swing's ray test runs at 5 Hz (≤ 5 probes).
+
+### Defect fixed
+
+| # | defect | before | after | commit |
+|---|---|---|---|---|
+| R1 | **Seated on a narrow street the swung ride shot hid the sitter under the car's roof.** K1's swing adds `SWING_PITCH` 0.35 rad and goes up to straight behind for every `occlude` rider; the seated shot is deliberately level with the outward bench under the roof's overhang (E2-6 / DR-5), so from above-behind only the roof showed | Hyde St, desktop, seated, swing 1.00: only the car's roof and a tree (`docs/opus-bay/qa/w6/K1/review-seated-hyde-before-desktop.jpg`); node: camera elevation 0.38 rad | seated: no pitch gain, the swing stops at the rear quarter (`SEAT_SWING_MAX` 0.8) and accepts a wall ≥ `SEAT_CLEAR` 5 u off (the pull-in brings the shot in front of it); standing unchanged. Hyde St seated: player + BAYBAY on the bench from the rear quarter (`review-seated-hyde-after-desktop.jpg`, swing 0.72; `review-seated-hyde-after-phone.jpg`, swing 0.80); node: elevation < 0.15, swing ≤ 0.8, camera in the street | `W6-K1-review` (`actors/cameraModes.ts`, `tests/opus-bay-w6-k1-review.test.ts`, red before: "elevation 0.38 rad") |
+
+A/B on the same rides (seated, 4 spots up Hyde St, the swing live vs forced to 0): desktop — the pre-K1 side-on
+shot was good at 1 spot, inside a house at 1 (the frame one brown wall), behind a canopy at 2; the fix shows the sitters at
+2 of 4 and a canopy at 2. Phone — the pre-K1 shot sat inside a house at 3 of 4 spots; the fix shows the sitters at 1 of 4
+and a street-tree canopy at 3 (dithered only in part). K1's lifted swing (desktop) showed the car's roof at the narrow
+spots. The fix never shows the roof alone or a house wall; the trees are the open item below.
+
+### Open items (not blocking)
+
+- **Street trees** on Hyde St still stand between the ride camera and the rider at some spots, seated (bench height:
+  on the phone a canopy stood in front at three of four spots, filling the frame at one) and standing (lane K1's own known gap). The trees are not
+  in the camera's ray test and there is no tree query to ask; a later pass needs one from the world layer (or a
+  canopy dither on the ride camera).
+- The swing was played only on the Powell–Hyde; the Powell–Mason and California lines take the same code path.
+- As in K1's report: no real iPhone for the stick; the bell riff not played live.
+
+### Blocking the go-live to main
+
+- Nothing from lane K1.
+
+### Checks
+
+- On `f9c2a210` (the fix, before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+  warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1468 / 1468**, fail 0 (baseline on
+  `2d18d83e` before any change: 1467 / 1467).
+- Dev server 5621 stopped at the end; no Chrome of mine left running; the worktree removed (junction first).
