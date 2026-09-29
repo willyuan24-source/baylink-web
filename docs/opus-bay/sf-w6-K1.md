@@ -264,4 +264,6 @@ spots. The fix never shows the roof alone or a house wall; the trees are the ope
 - On `f9c2a210` (the fix, before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
   warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1468 / 1468**, fail 0 (baseline on
   `2d18d83e` before any change: 1467 / 1467).
+- Pushed as `854ce54f` (the fix) + `113a7ef6` (this report) on `c9d4f799`; on the pushed tree: `tsc` 0 · `eslint .` 0 errors
+  (43 old warnings) · suite **1476 / 1476**, fail 0.
 - Dev server 5621 stopped at the end; no Chrome of mine left running; the worktree removed (junction first).
