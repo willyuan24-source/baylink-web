@@ -265,10 +265,34 @@ Started 03:30 PDT (part b pushed 03:48 as `b5154a01`).
 
 ### Not done
 
-- (5) "one more small thing a new player can do anywhere within 2 minutes": not started (time; hide & seek already
-  works anywhere through its nearby fallback).
+- (5) a separate new activity: not started (time). Instead (W6-W5, below) a new player is told that 捉迷藏 — which
+  works anywhere through its nearby fallback — is there.
 
 ### Requests
 
 - **Lead / lane X**: a voice line for the Lyon top (里昂街台阶大约 300 级，一路修剪整齐的树篱，正对着艺术宫！ / The Lyon
   Street Steps: about 300 of them, neat hedges, and the Palace of Fine Arts dead ahead!) if the stair lines get voices.
+
+## Part c+ · W6-W5 BAYBAY tells a new player about 捉迷藏
+
+Started 04:12 PDT (part c pushed 04:11 as `ff6e5ff9`, `92c284ab`, `3a055751`; its checks on the pushed tree: tsc 0 ·
+eslint 0 errors (43 old warnings) · suite **1459 / 1459**; the rebase before the push brought one docs-only commit).
+
+### What was built
+
+- **`play/hideSeek.ts` `startHideCoach(store?)`**: once per device (`opus-bay:play:hide-coach:v1`), after the emote
+  coach has spoken (`opus-bay:play:emote-coach:v1`, play/index.ts) and after 40 s of quiet free roam where a round may
+  start (standing still, no bubble, no panel), BAYBAY says 想玩捉迷藏吗？点「问我」，再点「捉迷藏」！ (phones) / 按 Q 问我，
+  再选「捉迷藏」！ (keyboards) — so a new player can be playing it within about two minutes of arriving, wherever they are.
+- **`play/hideSeekEntry.ts`**: starts the coach when the hide & seek chunk has loaded; the unregister stops it.
+- Test: `tests/opus-bay-w6-w-hideseek.test.ts` + "W6-W5 the coach line" (not before the emote coach, not before 40 s,
+  said once, never on a second visit); the chunk stays ≤ 5 KB.
+
+### Decisions
+
+- A line, not another activity: at 04:12 with 38 minutes to the stop, a coach line that makes the new game findable is
+  the safe "one more thing"; a separate activity would not have been played and reviewed in time.
+
+### Evidence
+
+- Checks: see the final line of this report.

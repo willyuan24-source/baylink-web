@@ -227,3 +227,40 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
 
 /** QA / teardown: end a running round at no cost. */
 export function stopHideSeek() { stopLive?.(); }
+
+// ---------------------------------------------------------------------------
+// W6-W5: the one coach line that tells a new player 捉迷藏 is there (once per device)
+// ---------------------------------------------------------------------------
+
+export const HIDE_COACH_KEY = 'opus-bay:play:hide-coach:v1';
+/** the emote coach's key (play/index.ts): this line waits until that one has been said */
+const EMOTE_COACH_KEY = 'opus-bay:play:emote-coach:v1';
+/** seconds of quiet free roam (standing still, nothing said, nothing open) before the line */
+export const HIDE_COACH_AFTER = 40;
+
+export interface CoachStore { get(k: string): string | null; set(k: string, v: string): void }
+const LOCAL: CoachStore = {
+  get: k => { try { return localStorage.getItem(k); } catch { return '1'; } },
+  set: (k, v) => { try { localStorage.setItem(k, v); } catch { /* storage blocked: once per visit */ } },
+};
+
+/**
+ * Once per device, after the emote coach and HIDE_COACH_AFTER s of quiet free roam where a round may start, BAYBAY
+ * says the game is there and how to start it (phones: 点「问我」→ 捉迷藏; keyboards: Q → 捉迷藏). Returns the off.
+ */
+export function startHideCoach(store: CoachStore = LOCAL): () => void {
+  if (store.get(HIDE_COACH_KEY) === '1') return () => {};
+  let quiet = 0;
+  const off = registerFrameSystem('w-hide-coach', dt => {
+    const s = game.get(), f = flow.get(), p = runtime.player;
+    const ok = store.get(EMOTE_COACH_KEY) === '1' && hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
+    quiet = ok ? quiet + dt : Math.max(0, quiet - dt);
+    if (quiet < HIDE_COACH_AFTER) return;
+    off();
+    store.set(HIDE_COACH_KEY, '1');
+    bubble(runtime.input.device === 'touch'
+      ? { zh: '想玩捉迷藏吗？点「问我」，再点「捉迷藏」！', en: 'Fancy hide and seek? Tap Ask, then Hide & seek!' }
+      : { zh: '想玩捉迷藏吗？按 Q 问我，再选「捉迷藏」！', en: 'Fancy hide and seek? Press Q to ask me, then Hide & seek!' }, 5200);
+  });
+  return off;
+}

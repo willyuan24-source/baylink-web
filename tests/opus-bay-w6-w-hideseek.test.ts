@@ -154,3 +154,34 @@ test('W6-W4 the chunk: play/hideSeek.ts ≤ 5 KB gzip on its own, loaded only fr
   assert.doesNotMatch(entrySrc, /from '\.\/hideSeek'/);
   assert.doesNotMatch(fs.readFileSync(path.join(ROOT, 'src/opus-bay/game/GameRoot.tsx'), 'utf8'), /hideSeek/);
 });
+
+test('W6-W5 the coach line: once per device, after the emote coach and 40 s of quiet free roam, BAYBAY says 捉迷藏 is there', async () => {
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const mem = new Map<string, string>();
+  const store = { get: (k: string) => mem.get(k) ?? null, set: (k: string, v: string) => { mem.set(k, v); } };
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  runtime.player.moving = false;
+  flow.set({ bubble: null });
+  try {
+    // the emote coach has not spoken yet: nothing, however long it is quiet
+    let off = hs.startHideCoach(store);
+    for (let i = 0; i < 60; i++) stepFrameSystems(1, i);
+    assert.equal(mem.get(hs.HIDE_COACH_KEY), undefined);
+    off();
+    mem.set('opus-bay:play:emote-coach:v1', '1');
+    off = hs.startHideCoach(store);
+    for (let i = 0; i < hs.HIDE_COACH_AFTER - 2; i++) stepFrameSystems(1, 100 + i);
+    assert.equal(mem.get(hs.HIDE_COACH_KEY), undefined, 'not before 40 s');
+    for (let i = 0; i < 4; i++) stepFrameSystems(1, 200 + i);
+    assert.equal(mem.get(hs.HIDE_COACH_KEY), '1', 'said once');
+    assert.ok(flow.get().bubble?.text.zh.includes('捉迷藏'), JSON.stringify(flow.get().bubble));
+    off();
+    // a second visit: never again
+    const again = hs.startHideCoach(store);
+    flow.set({ bubble: null });
+    for (let i = 0; i < 60; i++) stepFrameSystems(1, 300 + i);
+    assert.equal(flow.get().bubble, null);
+    again();
+  } finally { flow.set({ bubble: null }); game.set({ phase: prev.phase, mode: prev.mode }); }
+});
