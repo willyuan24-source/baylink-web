@@ -8,7 +8,7 @@ scratch `C:/Users/willy/opus-qa/w6/b/`. Owns `world/busSystem.ts`, `world/flineS
 ## 给主人的摘要
 
 1. 补做了 W5 "车辆卡死修复" 那 5 个没审查就上线的提交的对抗审查：逐行读完、在桌面和手机 390×844 实际坐车跑了一遍。
-2. 找到并修好一个真问题：公交、电车、叮当车、轻轨只会给**走路的**你让路——你骑单车或开小车停在它们路上时，它们会直接穿过你的车。现在都会停下来等。
+2. 找到并修好一个真问题：公交、电车、叮当车、轻轨只会给**走路的**你让路——你骑单车或开小车停在它们路上时，它们会直接穿过你的车。现在都会停下来等（游戏里实测：叮当车在你的小车前约 3 个单位停住）。
 3. 上一位审查员留下的未提交修改逐段判断后全部保留并补了测试：市场街那段公交和 F 线电车共用的单轨路段，公交最长要等 47 秒，现在 ≤ 7 秒；每帧的小垃圾也清掉了。
 4. M 线已取消的 San Jose & Mt Vernon 站（SFMTA 2024-09-28 永久取消）从游戏里拿掉了。
 5. 叮当车各站在中文里有了中文名（地图上原来写 "California & Van Ness"，现在是 "加州街 · 范尼斯大道"）；你坐叮当车下海德街时，停在渔人码头站的观光巴士会马上关门开走，不再让你干等 8 秒；索萨利托渡轮码头（还没开通的航线）正式豁免，不再算巡检缺陷。
@@ -170,9 +170,10 @@ checks on the rebased head: tsc 0 · eslint 0 errors (43 old warnings) · the su
   `phone-n.out`): please check that the card (or its pause hold) never ends or cancels a transit ride.
 
 
-Part b pushed 03:58 PDT: `W6-B5` zh names · `W6-B6` the waiver · `W6-B7` the Hyde St box · `W6-B8` this section (head
-`c843c4e6`). The pushed head, checked after the push (the branch moved every few minutes under nine lanes): tsc 0 · eslint
-0 errors (43 old warnings) · the suite **1449 / 1449**.
+Part b: `W6-B5` zh names · `W6-B6` the waiver · `W6-B7` the Hyde St box · `W6-B8` this section. Checked at 03:58 on the
+head rebased on the then `origin/opus-bay` (tsc 0 · eslint 0 errors, 43 old warnings · the suite **1449 / 1449**); that
+push was in fact rejected (another lane had pushed a second earlier — my loop mistook the rejection line for a push), so
+part b went up with part c at 04:18 (`e37b48e9` … `33d6f903`).
 
 ## Part c — played checks and wrap-up (04:00–04:45 PDT)
 
@@ -216,3 +217,11 @@ Part b pushed 03:58 PDT: `W6-B5` zh names · `W6-B6` the waiver · `W6-B7` the H
   lead widens the `viewer` contract to a list (four systems read it: `busSystem`, `flineSystem`, `lightRail`,
   `transitLine`).
 - **K2**: the phone ride ended with the new-save goals card (part b's Requests).
+
+### Checks (final)
+
+On the pushed head `33d6f903` (parts b and c, rebased on `origin/opus-bay` at 04:16): `npx tsc -p tsconfig.app.json
+--noEmit` 0 · `npx eslint .` 0 errors (the 43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test
+tests/opus-bay-*.test.ts` **1464 / 1464**, fail 0. Dev server 5603 stopped; no Chrome of this lane left running; no
+PERF-LOCK met; no Higgsfield credits used. District mode untouched (no district file changed; the hero regression green).
+No relayed owner message arrived during the lane.
