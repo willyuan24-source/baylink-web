@@ -80,6 +80,11 @@ const HELPERS = `window.__w4 = {
   async go(v) {
     const m = await this.mods(); const ob = window.__opusBay; const t0 = performance.now();
     ob.world.clearCam();
+    // W5-Z: a dialogue the previous spot opened is answered first, as a player would (the HUD is hidden here): the
+    // pelican moment at the Twin Peaks spot (a viewpoint unlocks it) otherwise stays open through the next teleports and
+    // BAYBAY keeps walking back to it, re-planning a 370 u path every ~4 s (120-170 ms frames at 4x CPU on the phone
+    // profile, sf-w5-final-verify.md); no player can leave a dialogue open and travel
+    if (ob.game.get().dialogue.nodeId && ob.actions && ob.actions.closeDialogue) ob.actions.closeDialogue();
     let x = v.x, z = v.z;
     if (v.anchor) { const a = m.district.DISTRICT.anchors[v.anchor]; x = a.x; z = a.z; }
     const ready = await Promise.race([ob.city.focus(x, z, 150).then(() => true), this.sleep(120000).then(() => false)]);
