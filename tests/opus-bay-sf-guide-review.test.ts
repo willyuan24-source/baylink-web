@@ -101,7 +101,7 @@ test('W4-G-int-review: trip time while waiting at the stop counts the live wait 
   } finally { flow.set({ ride: saved }); }
 });
 
-test('W4-G-int-review: the ride banner offers 直接到站 while waiting for the ferry (lane T\'s skipWhileWaiting, verify-phone m5), not for a cable car', async () => {
+test('W4-G-int-review: the ride banner offers 直接到站 while waiting for the ferry (lane T\'s skipWhileWaiting, verify-phone m5) and (W6-K2, the lead\'s decision) for a cable car, not for the loop bus', async () => {
   const { default: RideBanner } = await import('../src/opus-bay/ui/RideBanner');
   const saved = flow.get().ride;
   try {
@@ -113,7 +113,11 @@ test('W4-G-int-review: the ride banner offers 直接到站 while waiting for the
     flow.set({ ride: { stage: 'waiting', from: 'powell-market', to: 'powell-california', line: 'powell-hyde', kind: 'cable-car', eta: 20 } });
     const cable = renderToStaticMarkup(h(RideBanner));
     assert.match(cable, /不坐了/);
-    assert.doesNotMatch(cable, /直接到站/, 'lines without skipWhileWaiting keep 不坐了 alone');
+    assert.match(cable, /直接到站/, 'W6-K2: a cable car can be 60–85 s away at a turntable');
+    flow.set({ ride: { stage: 'waiting', from: 'loop-ferry-building', to: 'loop-wharf-hyde', line: 'sf-loop', kind: 'bus', eta: 20 } });
+    const bus = renderToStaticMarkup(h(RideBanner));
+    assert.match(bus, /不坐了/);
+    assert.doesNotMatch(bus, /直接到站/, 'lines without skipWhileWaiting keep 不坐了 alone');
   } finally { flow.set({ ride: saved }); }
 });
 

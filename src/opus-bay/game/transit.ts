@@ -309,6 +309,9 @@ export function rideLabel(ride: FlowRide): RideLabel {
         : { zh: `等叮当车进站…${eta.zh}`, en: `Waiting for the cable car…${eta.en}` },
       lineTo: { zh: `${lineName(line).zh} · 开往`, en: `${lineName(line).en} · to` },
       dest: dest ? dest.name : null,
+      // W6-K2 (the lead's decision, sf-w6-lead.md §6; lane T's open question: a cable car can be 60–85 s away at a
+      // turntable): 直接到站 while waiting, like the ferry — the rider lands at the destination's kerb spot, never a ride
+      skipWhileWaiting: true,
     };
   }
   if (ride.kind === 'ferry' && ride.line) {

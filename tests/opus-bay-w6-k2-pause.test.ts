@@ -126,3 +126,32 @@ test('W6-K2: a rider\'s own hop-off brake is never released by the pause', () =>
     flow.set({ ride: null });
   }
 });
+
+test('W6-K2: 直接到站 while waiting for a cable car (the lead\'s decision) — the rider lands at the destination, never a counted ride', async () => {
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  T.setTransitData(DATA);
+  const sys = new CableSystem(DATA);
+  setActiveCableSystem(sys);
+  platform.definePlatform(LINE, CABLE_PLATFORM);
+  try {
+    game.set({ phase: 'playing', worldMode: 'city', paused: false });
+    const before = transit.rideLog()[LINE] ?? 0;
+    transit.rideCable(LINE, 'powell-geary', 'hyde-beach');
+    assert.equal(flow.get().ride?.stage, 'waiting');
+    assert.equal(transit.rideLabel(flow.get().ride!).skipWhileWaiting, true, 'offered while waiting');
+    transit.finishRide();
+    assert.equal(ride.currentRide(), null, 'the ride is over');
+    assert.equal(flow.get().ride, null);
+    const st = T.transitStation('hyde-beach')!;
+    assert.ok(Math.hypot(runtime.player.x - st.x, runtime.player.z - st.z) < 20, `at Hyde & Beach (${runtime.player.x.toFixed(1)}, ${runtime.player.z.toFixed(1)})`);
+    assert.equal(transit.rideLog()[LINE] ?? 0, before, 'not counted as a ride');
+  } finally {
+    setActiveCableSystem(null);
+    T.setTransitData(null);
+    ride.endRide();
+    platform.releasePlatformStop(LINE);
+    platform.platforms.delete(LINE);
+    game.set({ riding: null, phase: 'title', paused: false, panel: { kind: null }, worldMode: 'district' });
+    flow.set({ ride: null });
+  }
+});
