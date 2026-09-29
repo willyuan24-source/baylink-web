@@ -17,3 +17,5 @@ New entries use BAYLINK-owned illustrations with explicit labels. Previously pub
 Validation includes the complete frontend regression suite, backend catalog tests, TypeScript, ESLint, dependency audit, public-page prerendering, independent decoding of all 494 share-card QR codes, and browser checks of English and Chinese event details, search, soft-opening labels and the calendar. Catalog source checks and translation coverage are retained in the release manifest; this release is a checked snapshot, not a claim of exhaustive or live Bay Area coverage.
 
 The backend release synchronizes the four exported catalogs to `baylink-backend` at commit `d694073730ea886f06b9fc0ef90e49bbba1ef30a`.
+
+Hosting correction: the larger event allowlist exceeded Vercel's 4096-character `routes[].src` schema limit. The route exporter now splits exact allowlists into groups capped at 3500 characters, preserving existing URLs, unknown-page handling and unrelated routing/security rules. Regression checks cover complete coverage, unique matching and repeated generation.

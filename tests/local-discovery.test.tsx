@@ -108,21 +108,26 @@ test('hosting rules resolve every detail and optional trailing slash without acc
   const config = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as { routes: { src?: string; dest?: string }[] };
   for (const [kind, folder] of Object.entries(folders)) {
     const rules = config.routes.filter(route => route.dest === '/' + folder + '/$1.html');
-    assert.equal(rules.length, 1, 'one static hosting rule for ' + folder);
-    const pattern = new RegExp(rules[0].src!);
+    assert.ok(rules.length >= 1, 'static hosting groups exist for ' + folder);
+    const patterns = rules.map(rule => {
+      assert.ok(rule.src!.length <= 4096, 'each route satisfies the Vercel schema limit');
+      return new RegExp(rule.src!);
+    });
     for (const item of localDiscoveries.filter(item => item.kind === kind)) {
       const share = discoveryShare(item);
       for (const path of [share.path, share.path + '/']) {
-        const match = pattern.exec(path);
-        assert.ok(match, path + ' reaches a static page');
+        const matches = patterns.map((pattern, index) => ({ match: pattern.exec(path), index })).filter(result => result.match);
+        assert.equal(matches.length, 1, path + ' reaches exactly one static page');
+        const { match, index } = matches[0];
+        assert.ok(match);
         assert.equal(match[1], share.id);
-        assert.equal(path.replace(pattern, rules[0].dest!), share.path + '.html');
+        assert.equal(path.replace(patterns[index], rules[index].dest!), share.path + '.html');
       }
-      assert.equal(pattern.test(share.path + '/nested'), false);
-      assert.equal(pattern.test(share.path + '.html'), false, 'the application route is extensionless');
+      assert.equal(patterns.some(pattern => pattern.test(share.path + '/nested')), false);
+      assert.equal(patterns.some(pattern => pattern.test(share.path + '.html')), false, 'the application route is extensionless');
     }
     for (const path of ['/' + folder + '/unknown-discovery', '/' + folder + '/../this-month', '/' + folder + '/', '/other/' + discoveryShare(eventItem).id]) {
-      assert.equal(pattern.test(path), false, path + ' must not match a discovery rewrite');
+      assert.equal(patterns.some(pattern => pattern.test(path)), false, path + ' must not match a discovery rewrite');
     }
   }
 });
