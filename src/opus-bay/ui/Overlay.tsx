@@ -201,13 +201,16 @@ function usePrefetchPanels() {
 function useTimeOfDay() {
   const setting = useGame(s => s.settings.timeOfDay);
   const firstGolden = useFlow(s => s.goldenFirstVisit);
+  // (W6-K1, lane R's review) the band depends on the world (the city's real sun, the district's fixed hours): a world
+  // switch re-applies it at once instead of keeping the old world's band for up to a minute
+  const world = useGame(s => s.worldMode);
   useEffect(() => {
-    const apply = () => game.set({ timeOfDay: setting === 'auto' ? (firstGolden ? 'golden' : bayTimeOfDay()) : setting });
+    const apply = () => game.set({ timeOfDay: setting === 'auto' ? (firstGolden ? 'golden' : bayTimeOfDay(undefined, world)) : setting });
     apply();
     if (setting !== 'auto' || firstGolden) return;
     const id = window.setInterval(apply, 60_000);
     return () => window.clearInterval(id);
-  }, [setting, firstGolden]);
+  }, [setting, firstGolden, world]);
 }
 
 const typing = (target: EventTarget | null) => {

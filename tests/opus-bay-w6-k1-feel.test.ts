@@ -147,3 +147,20 @@ test('W6-K1 (W5-Z §7.5): a talk mark far from the player (a dialogue left open 
   }
   g.state = 'follow'; g.target = null;
 });
+
+test('W6-K1 (lane R\'s review): the sky\'s band is re-applied on a world switch (useTimeOfDay depends on the world)', async () => {
+  const { readFileSync } = await import('node:fs');
+  const ov = readFileSync(new URL('../src/opus-bay/ui/Overlay.tsx', import.meta.url), 'utf8');
+  const body = /function useTimeOfDay\(\) \{[\s\S]*?\n\}/.exec(ov)?.[0] ?? '';
+  assert.match(body, /const world = useGame\(s => s\.worldMode\)/);
+  assert.match(body, /bayTimeOfDay\(undefined, world\)/);
+  assert.match(body, /\[setting, firstGolden, world\]/);
+  // and the band really differs by world at some hour (so the old world's band was wrong until the next minute)
+  const { bayTimeOfDay } = await import('../src/opus-bay/game/qa');
+  let differs = 0;
+  for (let h = 0; h < 24; h++) for (const m of [0, 30]) {
+    const d = new Date(Date.UTC(2026, 9, 1, h, m));
+    if (bayTimeOfDay(d, 'city') !== bayTimeOfDay(d, 'district')) differs++;
+  }
+  assert.ok(differs > 0, 'the two worlds band some half-hours differently');
+});
