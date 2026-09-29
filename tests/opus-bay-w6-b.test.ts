@@ -146,3 +146,12 @@ test('W6-B5 every cable-car station has a Chinese name in zh (the zh map said "C
   // an unknown street keeps the whole short English name, never half and half
   assert.equal(T.stationZh('Powell Street & Nowhere Street'), 'Powell & Nowhere');
 });
+
+test('W6-B6 ferry:sausalito — the Sausalito route is data for a later boat (running: false): no quay of it is offered, found or swept (the W5 sweep\'s OFF target is waived by name)', () => {
+  const route = T.FERRY_ROUTES.find(r => r.id === 'ferry-sausalito')!;
+  assert.equal(route.running, false);
+  assert.equal(T.ferryTerminal('sausalito'), null, 'no ride goes there');
+  assert.ok(T.ferryTerminal('ferry-building') && T.ferryTerminal('pier-41'));
+  const sweep = fs.readFileSync(path.resolve(import.meta.dirname, '../scripts/opus-sf/qa/sweep-static.mts'), 'utf8');
+  assert.match(sweep, /for \(const r of FERRY_ROUTES\) if \(r\.running\) for \(const t of r\.terminals\)/, 'the static sweep takes the running routes\' quays only');
+});

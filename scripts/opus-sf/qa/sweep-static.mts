@@ -100,7 +100,10 @@ for (const l of TRANSIT.lines) {
   }
 }
 for (const st of transitData.stations) { const spot = stationBoardSpot(st); add({ id: `cable:${st.id}`, kind: 'station', owner: 'T', x: spot.x, z: spot.z, name: st.name.en }); }
-for (const r of FERRY_ROUTES) for (const t of r.terminals) if (!targets.some(q => q.id === `ferry:${t.id}`)) add({ id: `ferry:${t.id}`, kind: 'station', owner: 'T', x: t.quay.x, z: t.quay.z, name: t.name.en });
+// (W6-B, the waiver of the W5 sweep's `ferry:sausalito`) only the quays of a running route: the Sausalito route is data
+// for a later boat (data/ferry.ts `running: false`), its quay lies on C2's Marin board, off the walkable model, and
+// nothing in the game can send a player there (no ride, no trip, no 带我去 row)
+for (const r of FERRY_ROUTES) if (r.running) for (const t of r.terminals) if (!targets.some(q => q.id === `ferry:${t.id}`)) add({ id: `ferry:${t.id}`, kind: 'station', owner: 'T', x: t.quay.x, z: t.quay.z, name: t.name.en });
 // the three walking routes: stops and via points
 for (const r of SF_ROUTES) for (const s of r.stops) {
   add({ id: `route:${s.id}`, kind: 'route', owner: 'L', x: s.x, z: s.z, name: s.name.en });
