@@ -15,6 +15,7 @@ import { BaybayFace, Keycap } from './common';
 import { useDevice, useMedia } from './hooks';
 import { InteractIcon } from './icons';
 import { transitGlyph } from './transitGlyph';
+import { holdMoreMenu } from './moreMenu';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 import { MORE_BUILTIN_ORDER, moreItems, pillBadges, runMoreItem, type MoreItemSlot } from './slots';
 import { openObjectiveJournal } from './objectivePill';
@@ -225,6 +226,8 @@ function DeskMore() {
   const items = useMoreItems();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // W6-K2: the menu wins — the arrival card steps back (its timer waits) while it is open (ui/moreMenu)
+  useEffect(() => (open ? holdMoreMenu() : undefined), [open]);
   useEffect(() => {
     if (!open) return;
     const close = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
@@ -304,6 +307,8 @@ function PhoneBar() {
   const [more, setMore] = useState(false);
   const extra = useMoreItems();
   const ref = useRef<HTMLElement>(null);
+  // W6-K2: on a phone the ARRIVED card (72 px above this bar) covered the menu's upper rows: the menu wins (ui/moreMenu)
+  useEffect(() => (more ? holdMoreMenu() : undefined), [more]);
   useEffect(() => {
     if (!more) return;
     const close = (e: PointerEvent) => { if (!ref.current?.contains(e.target as Node)) setMore(false); };

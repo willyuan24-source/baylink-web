@@ -111,6 +111,10 @@
 /* a dialogue or a sheet takes the screen: the card steps back (it comes back if its time is not up) */
 .ob-overlay.is-talking .ob-arrival-card, .ob-overlay.is-modal .ob-arrival-card { opacity: 0; pointer-events: none; transform: translateY(12px); transition: opacity .2s, transform .3s var(--ob-ease); }
 @media (max-width: 720px) { .ob-overlay.has-sheet .ob-arrival-card { display: none; } }
+/* W6-K2 · a More menu is open (ui/moreMenu): the menu wins — the card steps back, untouchable, its timer waiting (on a
+   390 × 844 phone it sat over the menu's upper rows); it comes back with its time left when the menu closes */
+.ob-arrival-card.is-waiting { opacity: 0; visibility: hidden; pointer-events: none; transform: translateY(12px); transition: opacity .15s, transform .25s var(--ob-ease), visibility 0s .15s; }
+.ob-overlay .ob-arrival-card.is-waiting button { pointer-events: none; }
 
 /* ---------- panorama tags (projected, z 7 like the waypoint) ---------- */
 .ob-pano { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
