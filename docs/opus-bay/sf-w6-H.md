@@ -8,8 +8,10 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 
 1. 十月（10/1–11/2）旧金山住宅区换上万圣节装扮：阿拉莫广场、海特、卡斯特罗、诺伊谷、太平洋高地、教会区、海斯谷约 2000 户维多利亚老房门口摆南瓜和南瓜灯、门廊小灯、蜘蛛网、挂着的小幽灵，人行道上偶尔有扮成小幽灵/小女巫/小南瓜的孩子；黄昏后阿拉莫广场、布埃纳维斯塔公园、双峰上空有小蝙蝠绕圈。只在玩家附近生成，手机也不卡。
 2. **南瓜灯寻宝**：全城 40 个好玩的地方（九曲花街、苏特罗浴场遗址、波因特堡、双峰……）各藏一个发光的南瓜灯，走近就找到：叮的一声、金色提示「南瓜灯 n / 40」、金币，找到 10 / 20 / 40 个还有额外奖励。晚上南瓜灯会发光，更好找。
-3. BAYBAY 的万圣节台词都是固定的中英文（一张表），方便 X 线录音。
-4. 预览：网址加 `?halloween=1`（十月）/ `night`（万圣夜）/ `muertos`（亡灵节）今天就能看到。
+3. **亡灵节（11/1–2）**：教会区 24 街挂满彩色剪纸旗、人行道摆万寿菊，波特雷罗德尔索尔公园有 6 座祭坛（按 2025 年真实“祭坛节”地点），24 街社区祭坛，22 街和布莱恩特街口有游行集合的万寿菊拱门；走到祭坛前看一看，BAYBAY 会轻声介绍，还有小小的金币奖励。
+4. 苏特罗浴场遗址上空夜里飘着三个发光的小幽灵；十月的晚上海雾会低低地漫进来一点，更有万圣节气氛（手机上不增加负担）。
+5. BAYBAY 的万圣节台词都是固定的中英文（一张表），方便 X 线录音。
+6. 预览：网址加 `?halloween=1`（十月）/ `night`（万圣夜）/ `muertos`（亡灵节）今天就能看到。
 
 ## Part a · W6-H1 the city dressed + W6-H2 the pumpkin hunt (02:00 – 02:55 PDT)
 
@@ -95,3 +97,77 @@ dev port 5605, scratch `C:/Users/willy/opus-qa/w6/h/`, QA images `docs/opus-bay/
 - Lane X: record `halloween/worldLines.ts` (18 lines) — written in `C:/Users/willy/opus-qa/w6/x/requests-H.md`.
 - Lane G: the notebook's 万圣节 page can read `pumpkinsFound()` / `pumpkinTotal()` / `huntList()` / `onHuntChange()`
   from `halloween/hunt.ts`; H emits `{ type: 'halloween', what: 'phase' }` (G does not need to).
+
+## Part b · W6-H3 Día de los Muertos + W6-H4 the haunted glow and a foggier Halloween evening (03:00 – 03:45 PDT)
+
+### What was built
+
+- **Día de los Muertos, 1–2 November** (`halloweenPhase` 'muertos'; preview `?halloween=muertos`):
+  `src/opus-bay/halloween/muertos.ts` + `muertosSpots.ts` (**generated** by `scripts/opus-sf/muertos-place.mts` on the
+  published city, which carries the sources): 14 strings of **papel picado** (paper flags with a scalloped edge, seven
+  colours, a sag in the middle) across **24th Street from Bryant to Mission** and **Bryant from 22nd to 24th** — the
+  procession's first legs; **marigold pots** along 24th St's sidewalks; **six ofrendas at Potrero del Sol Park** (the
+  2025 Festival of Altars), **a community altar at Acción Latina's door on 24th St**, and **a marigold arch where the
+  procession gathers at 22nd & Bryant**. An ofrenda = three cloth tiers (cream, purple, pink), six candles whose flames
+  glow (and halo at night), three framed photos, a sugar skull, a marigold arch and two pots. One merged TOY_DYN mesh
+  (≤ 12k triangles, built within 260 u of the route only on those two days); the candles go to the halo pool.
+  Visiting each (within 2.6 u, on foot / bike / car) is a quiet find: a sparkle, a toast "亡灵节 n / 8 · <place>", the
+  reward `halloween:muertos:<n>` (3 金币, once), `muertos:12` (10) when all eight were seen (`muertos:9…11` unused);
+  BAYBAY's lines are soft (worldLines.ts `muertosAltar`, `muertosMarigold`, `muertosProcession`, `muertosAll`), and the
+  once-a-day hello / procession line near the route. The stoops keep their pumpkins, the hunt goes on; no costumes, no
+  bats those days. QA: `__opusBay.halloween.visitMuertos(n)`.
+- **The haunted glow** (`src/opus-bay/halloween/worldHaunt.ts`): over the **Sutro Baths ruins** three friendly sheet
+  ghosts float and bob (a faint glow always, a pale green halo each at night); 'season' / 'night' only, within 300 u;
+  one small mesh (TOY_DYN) moved by one matrix a frame.
+- **A foggier Halloween evening** (`src/opus-bay/realsf/seasons.ts`, owned): `karlMonthFactor(date)` returns at least
+  `HALLOWEEN_NIGHT_KARL` 0.6 (October's climatology is 0.35) on a Halloween 'season' / 'night' evening, 18:00–06:00 Bay
+  time — Karl rolls in lower and thicker over the west side (the city's real sky reads it once a minute and slides it
+  over 45 s). A game mood, documented as not climatology; by day October stays the clearest month. Uniform-level only:
+  no cost on the phone.
+- `src/opus-bay/halloween/world.ts`: `phaseWants()` gains `muertos`; the muertos and haunt systems, their halos
+  (priority below the hunt), the muertos lines on offer.
+- Tests: `tests/opus-bay-w6-h-muertos.test.ts` (4): the sources on the placement script, numbering and reward ids, the
+  six Festival altars and the one gathering arch; **on the published city** every altar / the arch standable with a
+  0.8 u body off the roadway, every marigold pot off the roadway, every picado string a street's width; the geometry
+  ≤ 12k triangles with a halo per candle; the finds on lane E's real ledger (once each, `muertos:12` once).
+  `tests/opus-bay-w6-h.test.ts`: the phases include `muertos`.
+
+### Real-world facts (checked on the web 2026-09-29)
+
+- The procession: 2 November, 7 p.m., assembling at 22nd & Bryant; route "South on Bryant, West onto 24th, North onto
+  Mission, East onto 22nd, Ending at Bryant & 22nd" (the 2025 edition) —
+  https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 (also sf.funcheap.com:
+  gather at 6 p.m., procession about 7–9 p.m.).
+- The Festival of Altars (the Marigold Project): 2 November 2025, 8 a.m. – 9 p.m., at **Potrero del Sol Park**, 2827
+  Cesar Chavez St (not Garfield Square that year) — https://missionlocal.org/2025/10/celebrate-day-of-the-dead-sf/ and
+  https://eltecolote.org/content/en/dia-de-los-muertos-sf-events-2/ (El Tecolote, 2025-10-28, which also lists the
+  community altar at Acción Latina, 2958 24th St).
+- 2026's dates / sites were not published on 2026-09-29: the game follows the 2025 route and sites; BAYBAY's line says
+  "every 2 November, in the evening" (the procession is held on 2 November each year).
+
+### Evidence
+
+- `?halloween=muertos&time=golden`: 24th St under the papel picado 78 calls / 331k tris (halloween-world 3 calls / 32k:
+  stoops, muertos, the pool); Potrero del Sol altars 70 / 235k (halloween-world 2 / 25k). `?halloween=1&time=night`:
+  Sutro Baths 52 / 63k; Twin Peaks → the west 70 / 171k.
+- Shots (read): `qa/w6/H/h3-muertos-24th-papel-picado.jpg` (strings of papel picado down 24th St, marigold pots, a
+  jack-o'-lantern on a stoop), `h3-muertos-altars-potrero-del-sol.jpg` (four ofrendas with their marigold arches and
+  candles on the park's lawn), `h4-haunt-sutro-night.jpg` (two ghosts glowing over the ruins by the sea),
+  `h4-karl-halloween-evening.jpg` (Karl's bank low along the coast behind Sutro Tower at night).
+- Alamo Square at night (DEV stats): stoops 230 in 17 cells, 23.8k triangles (at the ceiling), 11 trick-or-treaters,
+  bats at `alamo-square`, the hunt's 10 lanterns 1k, halos 768 (the cap).
+
+### Decisions
+
+- Día de los Muertos follows the **latest verified** sites (2025): the altars at Potrero del Sol Park, not Garfield
+  Square (the task text named Garfield Square; the 2025 sources put the Festival of Altars at Potrero del Sol).
+- The finds are few (8) and quiet; the reward is small (3 金币): the altars are for remembering, BAYBAY says so.
+- The haunted glow is at the Sutro Baths ruins (a ruin by the sea, the hunt's lantern 20 is there) — friendly ghosts.
+- Halloween evenings are foggier by design, only 18:00–06:00 in October (or a preview).
+
+### Known gaps
+
+- No procession walkers (the route is dressed; the crowd lane's walkers are not re-routed).
+- The bats are dark on a dark sky at full night (they read best at dusk, against the sky).
+- The halo pool hits its cap (768) in the densest neighbourhoods at night: the far stoop glows are dropped first (the
+  hunt / muertos / haunt halos have priority).
