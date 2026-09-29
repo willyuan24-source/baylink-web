@@ -337,6 +337,9 @@ started 04:37 PDT on `a9b950b6`. Every lane-W commit read: `daedbdc4`, `4fcc39ce
 - **Played, phone 390 × 844 dpr 3** (touch device): the Ask menu (捉迷藏 is item 2, 165 × 44 CSS px, one tap), the
   count and the seek chip (Cold · Give up · "She's hiding near Ina Coolbrith"), found → the card "Brilliant · Found
   BAYBAY in 2 s · +30 coins" and "You found me! 2 seconds!"; Columbus Ave at night: 73 calls / 264k tris, 61 fps.
+- **Lyon Street Steps, live** (desktop, day, at the course's foot): the prompt "Race? Race BAYBAY up the Lyon Street
+  Steps" shows; every course vertex stands for the walker's disc; the live nav from the foot to the top walks 25.9 u
+  for 25.2 u straight (`C:/Users/willy/opus-qa/w6/w-rev/g1-lyon-foot.jpg`).
 - **Cost on the tap**: `pickHideSpot` with the live nav took 50 ms on desktop (one hitch when the menu closes; the phone
   will be a few times that) — acceptable for a one-off tap, noted.
 - **Facts re-checked on the web 2026-09-29**: twin spires 191 ft, completed 1924, 666 Filbert St facing Washington
@@ -387,3 +390,8 @@ started 04:37 PDT on `a9b950b6`. Every lane-W commit read: `daedbdc4`, `4fcc39ce
 
 `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig
 tsconfig.app.json --test tests/opus-bay-*.test.ts` **1468 / 1468** (1465 + the three review tests).
+
+After the rebase on `599c94d8` (lanes B-review, K1, X; no shared file): tsc 0 · eslint 0 errors (43 old warnings) ·
+suite 1471 / 1473 under load (a headless Chrome was running) — the two failures, "E2-5 view field in the city"
+(`tests/opus-bay-sf-move2`) and "city mode: local A* window leaves the hero through the Ferry crosswalk"
+(`tests/opus-bay-sf-nav`), are wall-clock cases and pass alone (32 / 32).
