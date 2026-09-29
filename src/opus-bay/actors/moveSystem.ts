@@ -23,7 +23,7 @@ import { LiveTall } from './glideTall';
 import { faceOpen, openSpot } from './faceOpen';
 import { CALL_MIN_DIST, ENTER_RADIUS, MoveMachine, TIMING, nearestEnterSlot, pickExitSlot, pickTransitExit, type DoorSlot, type MoveOutcome, type SlotWorld } from './modes';
 import { DeckWalker, agePlatforms, platforms, releasePlatformStop, requestPlatformStop, rider as platformRider, spotFor, toLocal, toWorld, type DeckRect, type Platform } from './platform';
-import { PursuitDriver } from './vehicles/autopilot';
+import { PursuitDriver, passPath } from './vehicles/autopilot';
 import { NO_DRIVE, TERRAIN_WORLD, findFit, poseCheck, type DriveInput, type StepReport } from './vehicles/collide';
 import type { DriveTalk } from './vehicles/driveTalk';
 import { Fleet, type Ride } from './vehicles/fleet';
@@ -94,6 +94,21 @@ let driveTalkMod: typeof import('./vehicles/driveTalk') | null = null;
 const DETOURS = 2, DETOUR_AHEAD = 14;
 /** the autopilot waits this long (s) for someone in front to walk on before its back-up-and-retry (verify-desktop D6) */
 const WAY_WAIT = 6;
+/**
+ * (W5-bus) …and this long for a vehicle standing in front (a toy car clears the lane within 2 s: world/sf/traffic.ts; a
+ * bus dwells 8 s at its stop), trying a pass round it (autopilot passPath) after PASS_AFTER s, at most PASSES per drive
+ */
+const WAY_WAIT_VEHICLE = 14;
+const PASS_AFTER = 0.8;
+const PASSES = 4;
+/** (W5-bus) a failed pass is tried again at most this often (s) */
+const PASS_EVERY = 1;
+/** (W5-bus) the most a vehicle backs up (u) to get room to swing out round something standing just ahead */
+const PASS_BACK_MAX = 4.5;
+/** (W5-bus) the shortest swing out accepted after that back-up (u) */
+const PASS_SWING_TIGHT = 2.2;
+/** (W5-bus) the discs looked at for a pass: within this of the vehicle (u) */
+const PASS_REACH = 18;
 /** obstacle kinds that move on by themselves (toy traffic): the autopilot waits for them like for people */
 const MOVING_KINDS: ReadonlySet<string> = new Set(['car', 'traffic', 'vehicle', 'bus', 'streetcar']);
 /** obstacle kinds that are people: a vehicle stopping short of one gets a "whoa" (giveWay) */
@@ -699,6 +714,8 @@ export class MoveSystem {
     const m = this.machine, r = this.ride;
     if (!r || !(m.mode === 'bike' || m.mode === 'car') || m.phase !== 'steady' || !Number.isFinite(p.x) || !Number.isFinite(p.z)) return false;
     this.cancelDrive(true);
+    this.passes = 0;
+    this.passArmed = false;
     const token = { aborted: false };
     this.autoToken = token;
     this.driveTarget = { x: p.x, z: p.z };
@@ -750,7 +767,15 @@ export class MoveSystem {
     // (part b, verify-desktop D6) someone walking across in front (giveWay held the vehicle this frame or the last):
     // wait for them, up to WAY_WAIT s — the bike's 骑车去 from Dolores Park gave up 3 times among the park's walkers
     // (held → "no progress" → back up → held again → "your turn to steer"). Someone who stays put: the usual back-up.
-    const held = t - this.wayHeldAt < 0.3 && t - this.wayHeldSince < WAY_WAIT;
+    // (W5-bus) A vehicle standing in front (a toy car at its stop line, a bus at its stop): wait for it up to
+    // WAY_WAIT_VEHICLE s — the toy car clears the lane within 2 s (world/sf/traffic.ts) — and pass it where the street
+    // has room (the back-up-and-detour drove back into the same car and gave up: "前面过不去了" behind a toy car).
+    const byVehicle = MOVING_KINDS.has(this.wayKind);
+    const heldNow = t - this.wayHeldAt < 0.3;
+    const held = heldNow && t - this.wayHeldSince < (byVehicle ? WAY_WAIT_VEHICLE : WAY_WAIT);
+    // a pass: planned while held (after PASS_AFTER s), or right after the back-up it asked for
+    const passNow = auto.state === 'drive' && ((this.passArmed && Math.abs(s.v) < 0.5) || (heldNow && byVehicle && t - this.wayHeldSince > PASS_AFTER && this.passes < PASSES && t - this.passAt > PASS_EVERY));
+    if (passNow && this.pass(ride, auto, t)) return NO_DRIVE;
     const inp = auto.step(s, dt, ahead || held);
     // W4-G4 (part b): BAYBAY in the basket / front seat points ≈ 20 u before a turn over 45° and says a line at a third
     // and at two thirds of a long drive (plan §4.2 "BAYBAY leads", bike / car)
@@ -774,6 +799,52 @@ export class MoveSystem {
     }
     return inp;
   }
+
+  /**
+   * (W5-bus) Something parked on the route just ahead (a toy car, a bus at its stop, a cable car): the rest of the drive
+   * shifted round it when the street has room (autopilot passPath: drivable, clear of every obstacle disc), backing up
+   * a little first when the vehicle stands too close to swing out. False when there is no way past (then it waits).
+   */
+  private pass(ride: Ride, auto: PursuitDriver, t: number): boolean {
+    const D = driveMod;
+    if (!D || (ride.kind !== 'bike' && ride.kind !== 'car')) return false;
+    const s = ride.sim, kind = ride.kind;
+    const obs = this.wayObstacles;
+    obs.length = 0;
+    collectObstacles(obs, s.x, s.z, PASS_REACH);
+    for (const r of residents) obs.push({ x: r.x, z: r.z, r: 0.4, kind: 'npc' });
+    const armed = this.passArmed;
+    this.passArmed = false;
+    if (!armed) this.passes++;
+    this.passAt = t;
+    // (after its back-up a tighter swing will do: the vehicle may not have reversed the whole way)
+    const plan = passPath(auto, s, obs, ride.width / 2, ride.length / 2, (x, z) => D.drivableAt(x, z, kind), armed ? PASS_SWING_TIGHT : undefined);
+    if (!plan) return false;
+    // too close to swing out: back up that far, then plan again from there (once)
+    if (plan.back > 0) {
+      if (armed) return false;
+      auto.backUp(Math.min(PASS_BACK_MAX, plan.back));
+      this.passArmed = true;
+      this.wayHeldSince = Infinity;
+      this.wayHeldAt = t - 1;
+      return true;
+    }
+    const pts: Vec2[] = [{ x: s.x, z: s.z }, ...plan.points];
+    this.auto = new PursuitDriver(s.spec, pts);
+    this.drivePath = pts;
+    this.driveTarget = pts[pts.length - 1];
+    this.driveTalk = null;
+    this.talk(pts, false);
+    this.wayHeldSince = Infinity;
+    this.wayHeldAt = t - 1;
+    this.drivePasses++;
+    return true;
+  }
+  /** passes tried this drive (reset by driveTo), a pass planned again once its back-up is done, and passes made (QA) */
+  private passes = 0;
+  private passArmed = false;
+  private passAt = -9;
+  drivePasses = 0;
 
   /**
    * (part b, verify-desktop D6) The autopilot backed up and still could not get on (a hairpin at a street corner, a
@@ -898,7 +969,7 @@ export class MoveSystem {
       for (const o of obs) if (inPath(o.x - s.x, o.z - s.z, o.r)) { hit = o.kind; break; }
     }
     if (!hit) { if (t - this.wayHeldAt > 0.6) this.wayHeldSince = Infinity; return; }
-    if (PERSON_KINDS.has(hit) || MOVING_KINDS.has(hit)) { if (this.wayHeldSince === Infinity) this.wayHeldSince = t; this.wayHeldAt = t; }
+    if (PERSON_KINDS.has(hit) || MOVING_KINDS.has(hit)) { if (this.wayHeldSince === Infinity) this.wayHeldSince = t; this.wayHeldAt = t; this.wayKind = hit; }
     const speed = Math.abs(s.v), strength = Math.min(1, speed / s.spec.vmax);
     s.v = 0; s.px = 0; s.pz = 0;
     s.x = x0; s.y = y0; s.z = z0;
@@ -913,6 +984,8 @@ export class MoveSystem {
   /** the last frame a person / traffic held the vehicle (giveWay) and since when it has been held (Infinity = not held) */
   private wayHeldAt = -9;
   private wayHeldSince = Infinity;
+  /** (W5-bus) the kind that held the vehicle last (a person waits WAY_WAIT, a vehicle WAY_WAIT_VEHICLE and may be passed) */
+  private wayKind = '';
   private readonly wayObstacles: Obstacle[] = [];
 
   private onDriveReport(ride: Ride, r: StepReport, t: number) {

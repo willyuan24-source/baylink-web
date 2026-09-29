@@ -17,6 +17,9 @@ import { NO_DRIVE, type DriveInput, type VehicleSpec } from './collide';
  * - **Stuck**: less than 0.3 u of progress in 1.5 s while it wants to move (not while the ground ahead is still
  *   streaming in) → back up for 1 s, the wheel turned to swing the nose toward the path, and try again once; stuck a
  *   second time → give up (`state 'stuck'`; the movement system hands control back with a line).
+ * - **Passing** (W5-bus): `passPath` plans the rest of the route shifted sideways round something standing on it (a
+ *   stopped toy car, a bus at its stop) when the street has room; the movement system follows it with a fresh driver
+ *   (`backUp` first when it stands too close to swing out).
  */
 
 export interface PursuitTuning {
@@ -99,6 +102,21 @@ export class PursuitDriver {
   }
 
   get done(): boolean { return this.state === 'arrived' || this.state === 'stuck'; }
+
+  /**
+   * (W5-bus) Reverse straight for `distance` u (at most `seconds`: by default the time it takes at the vehicle's reverse
+   * speed, and a second) before driving on: room to swing out round something standing just ahead (passPath).
+   */
+  backUp(distance: number, seconds = 1.2 + distance / Math.max(0.5, this.spec.reverse)) {
+    if (this.done) return;
+    this.state = 'backup';
+    this.backT = seconds;
+    this.backSteer = 0;
+    this.backDist = distance;
+    this.backFrom = null;
+  }
+  private backDist = 0;
+  private backFrom: Vec2 | null = null;
   get end(): Vec2 { return this.path[this.path.length - 1]; }
 
   /** Point at arc length s along the path (clamped). */
@@ -201,7 +219,10 @@ export class PursuitDriver {
 
     if (this.state === 'backup') {
       this.backT -= dt;
-      if (this.backT <= 0) { this.state = 'drive'; this.best = this.s; this.stuckT = 0; }
+      // (W5-bus) a measured back-up (backUp): until the vehicle has reversed that far
+      if (this.backDist > 0 && !this.backFrom) this.backFrom = { x: pose.x, z: pose.z };
+      const far = this.backDist > 0 && !!this.backFrom && Math.hypot(pose.x - this.backFrom.x, pose.z - this.backFrom.z) >= this.backDist;
+      if (this.backT <= 0 || far) { this.state = 'drive'; this.best = this.s; this.stuckT = 0; this.backDist = 0; this.backFrom = null; }
       else return { throttle: 0, brake: 1, steer: this.backSteer, digital: false, sprint: false, hop: false };
     }
 
@@ -235,4 +256,119 @@ export class PursuitDriver {
     else if (err < -0.3 && v > 0.5) brake = clamp(-err * 0.6, 0.15, 1);
     return { throttle, brake, steer, digital: false, sprint: false, hop: false };
   }
+}
+
+// ---------------------------------------------------------------------------
+// (W5-bus) Passing something that stands on the route
+// ---------------------------------------------------------------------------
+
+/** An obstacle disc (actors/view obstacles: a toy car's two discs, a bus's three, a cable car's …). */
+export interface PassDisc { x: number; z: number; r: number }
+
+/** a pass keeps this much room (u) between the vehicle's side and a disc it goes by */
+export const PASS_MARGIN = 0.3;
+/**
+ * the swing out takes 1.5 u + 2.2 u per u of shift (at least PASS_SWING, at most 7 u) and reaches its full shift 1 u
+ * before the first disc; it merges back over PASS_RAMP once the vehicle's own length is past the last disc
+ */
+export const PASS_SWING = 3;
+const PASS_RAMP = 4;
+/** discs this far along the route ahead (u) are looked at */
+const PASS_LOOK = 16;
+const smooth = (t: number) => { const k = clamp(t, 0, 1); return k * k * (3 - 2 * k); };
+
+export interface PassPlan {
+  /** the rest of the drive: the shifted stretch, then the route's own vertices (empty when `back` > 0) */
+  points: Vec2[];
+  /** −1 passing on the left, +1 on the right */
+  side: -1 | 1;
+  /** the vehicle stands too close to swing out: back up this far (u) and plan again */
+  back: number;
+}
+
+/**
+ * (W5-bus) A way past what stands on the route just ahead of a vehicle at `pose` following `driver` (the discs in its
+ * lane: one parked vehicle, its neighbours ≤ 2.5 u apart counted as one): the rest of the route shifted sideways round
+ * them — to the left when that is no farther than the right — reaching the full shift 1 u before the first disc (over
+ * PASS_SWING u at least) and merging back PASS_RAMP u after the vehicle's own length is past the last. Every point of
+ * the shifted stretch must be `drivable` (the hull) and clear of every disc by the vehicle's half width + PASS_MARGIN / 2.
+ * Too close to swing out: `back` says how far to reverse first. Null when nothing stands in the way, the goal lies at or
+ * just past it, or neither side is clear.
+ */
+export function passPath(driver: PursuitDriver, pose: Vec2, discs: readonly PassDisc[], halfW: number, halfL: number, drivable: (x: number, z: number) => boolean, minSwing = PASS_SWING): PassPlan | null {
+  const s0 = driver.s, end = driver.total;
+  const p = { x: 0, z: 0 }, q = { x: 0, z: 0 };
+  /** the route's frame at s: point, right normal (−tz, tx) */
+  const frame = (s: number) => {
+    driver.pointAt(Math.max(0, s - 0.5), p);
+    const ax = p.x, az = p.z;
+    driver.pointAt(Math.min(end, s + 0.5), q);
+    const L = Math.hypot(q.x - ax, q.z - az) || 1;
+    const tx = (q.x - ax) / L, tz = (q.z - az) / L;
+    driver.pointAt(s, p);
+    return { x: p.x, z: p.z, rx: -tz, rz: tx };
+  };
+  // the vehicle's own arc (it may have backed up behind the driver's progress, which never goes back)
+  let sv = s0, bestV = Infinity;
+  for (let s = Math.max(0, s0 - 6); s <= Math.min(end, s0 + 1); s += 0.25) {
+    driver.pointAt(s, p);
+    const d = Math.hypot(pose.x - p.x, pose.z - p.z);
+    if (d < bestV) { bestV = d; sv = s; }
+  }
+  // where each disc lies along the route (nearest sample, 0.5 u) and to its side (+ right of travel)
+  const placed: { s: number; lat: number; r: number }[] = [];
+  for (const d of discs) {
+    let best = Infinity, bs = 0, bl = 0;
+    for (let s = Math.max(0, sv - 1); s <= Math.min(end, sv + PASS_LOOK); s += 0.5) {
+      const f = frame(s), dx = d.x - f.x, dz = d.z - f.z, dd = dx * dx + dz * dz;
+      if (dd < best) { best = dd; bs = s; bl = dx * f.rx + dz * f.rz; }
+    }
+    if (best < 36) placed.push({ s: bs, lat: bl, r: d.r });
+  }
+  const inWay = placed.filter(o => o.s > sv && Math.abs(o.lat) < halfW + o.r + PASS_MARGIN).sort((a, b) => a.s - b.s);
+  if (!inWay.length) return null;
+  // the parked thing: the first disc in the way and every disc chained to it (≤ 2.5 u gaps, within 3 u of the lane)
+  let sMin = inWay[0].s - inWay[0].r, sMax = inWay[0].s + inWay[0].r;
+  let left = inWay[0].lat - inWay[0].r, right = inWay[0].lat + inWay[0].r;
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const o of placed) {
+      if (o.s - o.r > sMax + 2.5 || o.s + o.r < sMin - 2.5 || Math.abs(o.lat) > halfW + o.r + 3) continue;
+      if (o.s - o.r >= sMin && o.s + o.r <= sMax && o.lat - o.r >= left && o.lat + o.r <= right) continue;
+      sMin = Math.min(sMin, o.s - o.r); sMax = Math.max(sMax, o.s + o.r);
+      left = Math.min(left, o.lat - o.r); right = Math.max(right, o.lat + o.r);
+      grew = true;
+    }
+  }
+  const back = sMax + halfL + 0.5, out = back + PASS_RAMP;
+  if (out + 1 > end) return null;
+  const offL = left - halfW - PASS_MARGIN, offR = right + halfW + PASS_MARGIN;
+  const sides: [number, -1 | 1][] = Math.abs(offL) <= Math.abs(offR) + 0.5 ? [[offL, -1], [offR, 1]] : [[offR, 1], [offL, -1]];
+  // the swing: from the vehicle's nose, the full shift 1 u before the first disc
+  const from = sv + halfL, full = sMin - 1;
+  const clearOf = (x: number, z: number) => discs.every(d => Math.hypot(d.x - x, d.z - z) >= d.r + halfW + PASS_MARGIN / 2);
+  for (const [off, side] of sides) {
+    const wanted = Math.min(7, Math.max(PASS_SWING, 1.5 + 2.2 * Math.abs(off)));
+    // (a tighter minSwing: take the room there is, down to it)
+    const swing = minSwing < PASS_SWING ? Math.max(minSwing, Math.min(wanted, full - from)) : wanted;
+    const need = swing - (full - from);
+    const pts: Vec2[] = [];
+    let ok = true;
+    for (let s = from - halfL + 0.75; s <= out + 1e-6 && ok; s += 0.75) {
+      const k = s < full ? smooth((s - (full - swing)) / swing) : s <= back ? 1 : 1 - smooth((s - back) / (out - back));
+      const f = frame(s), x = f.x + f.rx * off * k, z = f.z + f.rz * off * k;
+      if (k > 0.05 && (!drivable(x, z) || !clearOf(x, z))) ok = false;
+      pts.push({ x, z });
+    }
+    if (!ok) continue;
+    if (need > 0) return { points: [], side, back: need + 0.3 };
+    // the rest of the route: its own vertices (its corners kept exactly)
+    const P = driver.path;
+    for (let i = 1, acc = 0; i < P.length; i++) {
+      acc += Math.hypot(P[i].x - P[i - 1].x, P[i].z - P[i - 1].z);
+      if (acc > out + 0.3) pts.push({ x: P[i].x, z: P[i].z });
+    }
+    return { points: pts, side, back: 0 };
+  }
+  return null;
 }
