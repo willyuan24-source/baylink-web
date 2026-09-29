@@ -225,3 +225,87 @@ On the pushed head `33d6f903` (parts b and c, rebased on `origin/opus-bay` at 04
 tests/opus-bay-*.test.ts` **1464 / 1464**, fail 0. Dev server 5603 stopped; no Chrome of this lane left running; no
 PERF-LOCK met; no Higgsfield credits used. District mode untouched (no district file changed; the hero regression green).
 No relayed owner message arrived during the lane.
+
+## Review (W6-B-review, adversarial, 04:30–05:40 PDT)
+
+Reviewer's worktree `C:/Users/willy/wt/w6-b-rev` (branch `w6-b-rev`, from `origin/opus-bay` at `8ac629d3`), dev port 5623,
+scratch `C:/Users/willy/opus-qa/w6/b-rev/`.
+
+### 给主人的摘要
+
+1. 逐行审了 B 线全部 11 个提交（W6-B1 … W6-B10），在电脑 1440×900 和手机 390×844 上实际玩了；B 线的改动基本扎实，没有会卡死或崩溃的问题，可以上线。
+2. 修好一个真问题：B 线让电车、叮当车、公交、轻轨会停下来等你坐着的小车/单车——但 BAYBAY 只会提醒“走路的你”让路，所以你开车停在轨道上时，叮当车就一声不响地一直等下去。现在她会说“叮当车在等我们让路呢，把车挪到路边吧”（骑单车时是“把单车骑到路边吧”）。游戏里实测：叮当车在小车前 2.9 个单位停住，4 秒后气泡出现。
+3. 顺手清掉每帧的小垃圾（每辆车每帧都新建一个对象），并把一段被挤错位置的代码注释放回原处。
+4. 重新上网核对了 M 线 San Jose & Mt Vernon 站永久取消（SFMTA，2024-09-28 起），属实。叮当车中文站名在手机上显示正常（“鲍威尔-海德线叮当车 · 开往 杰克逊街 · 莱文沃斯街”一行放得下）。
+5. 没有阻碍上线的问题。
+
+### What was checked
+
+- **Every lane commit read** (`git show`): `f836663a` W6-B1, `87f716be` W6-B2, `d67b2ca3` + `c19249f3` W6-B3, `f8c3615d`
+  W6-B4, `e37b48e9` W6-B5, `2c5c0bdb` W6-B6, `5a04e280` W6-B7, `9494636c` W6-B8, `33d6f903` W6-B9, `8ac629d3` W6-B10.
+- **W6-B1** (`roadViewer`): every use of `viewer` in `busSystem`, `flineSystem`, `transitLine`, `lightRail` (the
+  stop-short checks and the dispatch's "near the player" checks — the vehicle's pose equals the player's there);
+  `runtime.vehicle.occupied` mirrors `MoveSystem.ride` every frame (`publish()`), false while riding transit or gliding;
+  a train wholly in a tunnel is `hidden` and skips the check, so the player driving along Market St above the subway
+  stops no train. The stop distances measure to the vehicle's centre (bus 3 u, streetcar 2.5 u, cable car 3.2 u): a toy
+  car across the track keeps ≈ 2 u of clearance, along it ≈ 1 u. **Found:** the step-aside ask (`game/lineRides.ts
+  pollCity`) ran only when `move.mode === 'foot'` — the lane's Decisions said BAYBAY's line answers a long wait "as on
+  foot"; it did not (fixed, R1).
+- **W6-B2** (the previous reviewer's hunks): `neededByAPart`'s flag array is equivalent to the Set (same membership
+  test, `j !== i` for `o !== c`, entries past `cars.length` never read); `holdBefore`'s WeakMap is keyed by the box's
+  `other` record (rebuilt with the city); `measureZones`' scratch lists are cleared / copied (`Float32Array.from`);
+  `flineSystem` asks `roadAhead` (only the bus interlock, `transitLayer.busAhead`) before taking a block, in the run and
+  at `leave()` — a car stopped by the road short of its hold point waits there without the block; no path where it
+  holds a block and waits for a bus that waits for it. No module state keeps a city object after a world switch.
+- **W6-B3**: re-checked on the web (2026-09-29): https://www.sfmta.com/project-updates/stop-removal-san-jose-ave-mt-vernon-ave-starting-saturday-september-28
+  ("permanent stop removal", M Ocean View, both directions; riders use San Jose & Geneva inbound, San Jose & Niagara
+  outbound) and the year from https://www.sfmta.com/travel-updates/muni-service-changes-effective-saturday-september-28-2024.
+  The stop is gone from both published files and their props; no other published file, voice line, tour chapter or
+  goal names it (`METRO_STATIONS` is read only by the pipeline). The M's stop list keeps no parallel arrays.
+- **W6-B5** zh names: all 56 cable-car stations print a Chinese name (node, `buildTransit` on the published file; none
+  falls back to English); ids and English names unchanged (saves key stations by id). zh-Hant goes through the site's
+  OpenCC converter. Played on the phone 390 × 844 dpr 3 (zh): a Powell–Hyde ride Powell & Sacramento → Jackson &
+  Leavenworth — the banner "鲍威尔-海德线叮当车 · 开往 杰克逊街 · 莱文沃斯街" fits one line
+  (`docs/opus-bay/qa/w6/B/review-phone-zh-cable-banner.jpg`).
+- **W6-B6** (the `ferry:sausalito` waiver): only the sweep's target list changes; a terminal shared with a running route
+  stays a target.
+- **W6-B7** (the Hyde St box): the cut needs `why === 'dwell'` (never boarding / hop-off), not the rider's bus, not the
+  bus fetching the rider; `riderWantsBox` only for the rider's car outside the part heading in within 70 u.
+- **District mode** (`?world=district`, desktop): loads, no exception; no district file changed.
+- **Per-frame allocations**: `roadViewer` made one object per call (≈ one per cable car, streetcar, bus and train per
+  frame) — fixed (R2). The remaining `nextNeed(car)` records in the streetcar's run step are pre-wave, left.
+
+### Defects found and fixed
+
+| # | Defect | Before | After | Test |
+|---|---|---|---|---|
+| R1 | Since W6-B1 the transit stands short of the player sitting in their toy car / bike, but BAYBAY asked only a player **on foot** to step aside: in the car the vehicle waited in silence for good (the gripman's bell only) | node: a cable car standing short of the occupied toy car for 25 s, no bubble ("asked after -1 s") | the ask in the vehicle's words: "叮当车在等我们让路呢，把车挪到路边吧" / "…Let’s pull over to the side" (bike: "把单车骑到路边吧"). Played, desktop 1440 × 900 zh: a California St car stood 2.89 u short of the toy car, the bubble at 4.1 s held (`docs/opus-bay/qa/w6/B/review-desk-toycar-pull-over.jpg`) | `tests/opus-bay-w6-b-review.test.ts` R1, red → green |
+| R2 | `roadViewer()` made a new record per call, asked by every transit vehicle every frame | a new object each call | one module record rewritten per call (the four systems read it at once, keep none) | R2, red → green |
+| R3 | W6-B7 put `riderWantsBox` between `boxBlocked` and its doc comment (the same slip W6-B9 fixed for `toHold`) | `boxBlocked` undocumented | comment back above it | — (comment only) |
+
+### Not fixed (reasons) and notes
+
+- The parked, empty toy car / bike on the rails is still driven through; BAYBAY standing on the rails too — the lane's
+  requests to K1 stand (a tow, BAYBAY stepping off). Not a go-live blocker: the player chooses to leave it there.
+- zh text elsewhere still says "Powell & Market 转车台" (goals, dialogue, residents; other lanes' files) while the
+  station reads "鲍威尔街 · 市场街" in zh — understandable (the turntable is a landmark name), a polish item for the
+  content owner.
+- The phone ride ended by the new-save goals card (lane K2's item) was not reproduced in my phone ride (save=off,
+  `start=free`, the card not shown).
+- The waiting shot on the phone had the camera inside a street tree at Powell & Sacramento (`phone-zh-1`,
+  scratch only): the camera is lane K1's; noted, not a lane-B defect.
+
+### Evidence
+
+- Scratch `C:/Users/willy/opus-qa/w6/b-rev/`: `r-red.log` (R1, R2 red on the lane's head), `r-green.log`, `suite.log`,
+  `tsc.log`, `eslint.log`, `shots/` (phone-zh-1…3, desk-b1-7 / -13, district), `b1acts.mjs`, `ride-acts.mjs`,
+  `stations.mts` (the 56 zh names).
+
+### Checks
+
+On `58430559` (before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1466 / 1466**, fail 0.
+
+### Blocking the go-live to main
+
+Nothing from lane B.
