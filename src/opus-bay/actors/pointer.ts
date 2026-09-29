@@ -26,6 +26,13 @@ interface Touch { id: number; x0: number; y0: number; x: number; y: number; role
 
 /** What TouchControls draws (CSS px relative to the canvas). */
 export const stickView = { active: false, baseX: 0, baseY: 0, knobX: 0, knobY: 0 };
+/**
+ * (W6-K1, NEXT P0 #2 / W5-Z §7.2) The stick's base lives in CLIENT coordinates, like the thumb: the reading is the thumb
+ * minus the base, so a canvas rect that moves mid-touch (an iOS toolbar resize; a CDP screenshot shifted it for a frame)
+ * can no longer drag the base along and flip the reading (moveY +1 → −0.99: the player turned back). The rect is read
+ * only to paint `stickView` (the base relative to the canvas), and a resize of the (visual) viewport repaints it.
+ */
+export const stickBase = { x: 0, y: 0 };
 let renderStick: (() => void) | null = null;
 /** TouchControls registers a function that paints `stickView` (DOM transforms, no React state). */
 export function setStickRenderer(fn: (() => void) | null) { renderStick = fn; fn?.(); }
@@ -38,6 +45,14 @@ export function attachPointer(el: HTMLElement): () => void {
   const rect = () => el.getBoundingClientRect();
   const photo = () => game.get().photoMode;
   const noteCamera = () => { input.lastCameraInputAt = performance.now(); };
+
+  /** the drawn base relative to the canvas as it is now (the reading never depends on it) */
+  const paintStick = () => {
+    const r = rect();
+    stickView.baseX = stickBase.x - r.left; stickView.baseY = stickBase.y - r.top;
+    paint();
+  };
+  const onViewport = () => { if (stickView.active) paintStick(); };
 
   const releaseStick = () => {
     input.stick.active = false; input.stick.x = 0; input.stick.y = 0;
@@ -89,23 +104,23 @@ export function attachPointer(el: HTMLElement): () => void {
     if (t.role === 'pending' && Math.hypot(t.x - t.x0, t.y - t.y0) > DRAG_THRESHOLD + 2) {
       const stickTaken = [...touches.values()].some(item => item.role === 'stick');
       t.role = t.left && !stickTaken && !photo() ? 'stick' : 'look';
-      if (t.role === 'stick') { stickView.active = true; stickView.baseX = t.x0 - rect().left; stickView.baseY = t.y0 - rect().top; }
+      if (t.role === 'stick') { stickView.active = true; stickBase.x = t.x0; stickBase.y = t.y0; }
     }
     if (t.role === 'stick') {
-      const r = rect();
-      let vx = t.x - r.left - stickView.baseX, vy = t.y - r.top - stickView.baseY;
+      // thumb and base both in client coordinates: the canvas rect never enters the reading
+      let vx = t.x - stickBase.x, vy = t.y - stickBase.y;
       const L = Math.hypot(vx, vy);
       if (L > STICK_RADIUS) {
         // floating stick: drag the base along so reversing direction is instant
-        stickView.baseX += (vx / L) * (L - STICK_RADIUS);
-        stickView.baseY += (vy / L) * (L - STICK_RADIUS);
+        stickBase.x += (vx / L) * (L - STICK_RADIUS);
+        stickBase.y += (vy / L) * (L - STICK_RADIUS);
         vx = (vx / L) * STICK_RADIUS; vy = (vy / L) * STICK_RADIUS;
       }
       stickView.knobX = vx; stickView.knobY = vy;
       input.stick.active = true;
       input.stick.x = vx / STICK_RADIUS;
       input.stick.y = -vy / STICK_RADIUS;
-      paint();
+      paintStick();
     } else if (t.role === 'look') {
       input.dragX += dx * 1.15; input.dragY += dy * 1.15; noteCamera();
     } else if (t.role === 'pinch') {
@@ -181,6 +196,10 @@ export function attachPointer(el: HTMLElement): () => void {
   el.addEventListener('wheel', onWheel, { passive: false });
   el.addEventListener('contextmenu', onContext);
   window.addEventListener('blur', onCancelAll);
+  window.addEventListener('resize', onViewport);
+  const vv = window.visualViewport;
+  vv?.addEventListener('resize', onViewport);
+  vv?.addEventListener('scroll', onViewport);
   window.addEventListener('pointerdown', onPassDown, true);
   window.addEventListener('pointermove', onPassMove, true);
   window.addEventListener('pointerup', onPassUp, true);
@@ -200,6 +219,9 @@ export function attachPointer(el: HTMLElement): () => void {
     el.removeEventListener('wheel', onWheel);
     el.removeEventListener('contextmenu', onContext);
     window.removeEventListener('blur', onCancelAll);
+    window.removeEventListener('resize', onViewport);
+    vv?.removeEventListener('resize', onViewport);
+    vv?.removeEventListener('scroll', onViewport);
     onCancelAll();
   };
 }
