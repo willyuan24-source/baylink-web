@@ -1,5 +1,6 @@
 import type { Bilingual } from '../core/types';
 import { bayNow, bayParts } from '../game/bayNow';
+import { halloweenPhase } from '../halloween/season';
 
 /**
  * Wave 5 · lane R (W5-R1) · sourced seasons and hours the world follows (plan §3.3 item 4, §4.3 hooks).
@@ -56,7 +57,18 @@ export const FIRE_SEASON_LAST_DAY: Bilingual = { zh: '海滩篝火季到 10 月�
 export const KARL_BY_MONTH = [0.4, 0.4, 0.45, 0.45, 0.6, 0.85, 1, 0.9, 0.45, 0.35, 0.35, 0.4] as const;
 export const KARL_SOURCE: SourcedRule = { sourceUrl: 'https://www.sfbayweather.com/learn/when-does-sf-fog-peak', verifiedAt: '2026-09-28' };
 
-/** Karl's usual strength for the Bay month of `date` (0 … 1). */
+/**
+ * (W6-H4) On a Halloween-season evening (halloween/season.ts 'season' / 'night': 1–31 October, or a `?halloween=`
+ * preview) from 18:00 to 06:00 Bay time, Karl comes in a little thicker and lower over the west side — the game's
+ * spooky-but-cosy mood, NOT climatology (October stays the clearest month by day). A uniform-level change: no cost.
+ */
+export const HALLOWEEN_NIGHT_KARL = 0.6;
+
+/** Karl's usual strength for the Bay month of `date` (0 … 1); a Halloween-season evening at least HALLOWEEN_NIGHT_KARL. */
 export function karlMonthFactor(date: Date = bayNow()): number {
-  return KARL_BY_MONTH[bayParts(date).month - 1] ?? 0.5;
+  const p = bayParts(date);
+  const base = KARL_BY_MONTH[p.month - 1] ?? 0.5;
+  const phase = halloweenPhase(date);
+  if (phase !== 'season' && phase !== 'night') return base;
+  return p.hour >= 18 || p.hour < 6 ? Math.max(base, HALLOWEEN_NIGHT_KARL) : base;
 }

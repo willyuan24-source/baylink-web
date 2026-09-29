@@ -101,10 +101,10 @@ test('W6-H1 stoops: the decorations stay cheap — ≈ 100 triangles a stoop, ha
 });
 
 test('W6-H phases: the season and the big night dress everything; Día de los Muertos keeps the pumpkins and the hunt; off builds nothing', () => {
-  assert.deepEqual(phaseWants('season'), { stoops: true, figures: true, bats: true, hunt: true });
-  assert.deepEqual(phaseWants('night'), { stoops: true, figures: true, bats: true, hunt: true });
-  assert.deepEqual(phaseWants('muertos'), { stoops: true, figures: false, bats: false, hunt: true });
-  assert.deepEqual(phaseWants('off'), { stoops: false, figures: false, bats: false, hunt: false });
+  assert.deepEqual(phaseWants('season'), { stoops: true, figures: true, bats: true, hunt: true, muertos: false });
+  assert.deepEqual(phaseWants('night'), { stoops: true, figures: true, bats: true, hunt: true, muertos: false });
+  assert.deepEqual(phaseWants('muertos'), { stoops: true, figures: false, bats: false, hunt: true, muertos: true });
+  assert.deepEqual(phaseWants('off'), { stoops: false, figures: false, bats: false, hunt: false, muertos: false });
 });
 
 test('W6-H2 hunt places: 40 lanterns, numbered 1…40 once each, named in both languages, every reward id exists', () => {

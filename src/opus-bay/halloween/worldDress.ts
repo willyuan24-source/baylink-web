@@ -317,7 +317,7 @@ export const BATS_PER_COLONY = 10;
 export const BATS_NEAR = 260;
 /** bats show from dusk (the toy night ≥ this) */
 export const BATS_NIGHT = 0.3;
-const BAT = '#2b2533';
+const BAT = '#3a3046';
 
 export interface Bats { mesh: THREE.Mesh; place(c: (typeof BAT_COLONIES)[number] | null): void; step(t: number): void; colony(): string | null }
 
