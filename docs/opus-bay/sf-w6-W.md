@@ -313,3 +313,77 @@ The pushed tree with W6-W5 (rebased on `fe329ae8`, in the check worktree): `npx 
 **1462 / 1462**. Lane W's own tests: `tests/opus-bay-w6-w-seam.test.ts` (4), `tests/opus-bay-w6-w-hideseek.test.ts` (6),
 `tests/opus-bay-w6-w-lyon.test.ts` (2). District mode: untouched (the fill and the corner live in the city worker /
 city chunk; `lot-211` stays in the district; the hero regression is in the green suite).
+
+## Review
+
+Adversarial review of lane W (worktree `C:/Users/willy/wt/w6-w-rev`, dev port 5628, scratch `C:/Users/willy/opus-qa/w6/w-rev/`),
+started 04:37 PDT on `a9b950b6`. Every lane-W commit read: `daedbdc4`, `4fcc39ce`, `b5154a01`, `ff6e5ff9`, `92c284ab`,
+`3a055751`, `64723f0b`, `a9b950b6`.
+
+### 给主人的摘要
+
+1. 北滩补房子、华盛顿广场/圣彼得圣保罗教堂/哥伦布大道街角、里昂街台阶赛跑、和 BAYBAY 捉迷藏——都实际玩过（电脑 1440×900、手机 390×844），真实资料重新上网核对过，都对。
+2. **找到并修好 1 个真问题**：捉迷藏进行中，如果你点「问 BAYBAY → 带我去下一个目标」（或环城游、出行），游戏会让你跟着一个"看不见的 BAYBAY"自动走，而她本人还冻在藏身处，屏幕上还一直显示「冷了…」。现在这种情况下捉迷藏会立刻结束（不给奖励也不扣什么），BAYBAY 回来正常带路。
+3. 顺手修了两处小性能问题：捉迷藏计时条原来每一帧都刷新（最长 3 分钟），现在只在秒数或提示词变化时刷新；提醒台词原来每帧读一次本地存储，现在不会了。台词「点「问我」」改成和按钮一致的「点「问 BAYBAY」」。
+4. 城区模式（district）照旧，没有变化；没有发现阻碍上线的问题。
+
+### What was checked
+
+- **Checks on the unmodified lane tip** (`a9b950b6`): tsc 0 · suite 1465 / 1465.
+- **Played, desktop 1440 × 900** (`?world=city`): Washington Square at golden hour (lawn, 13 trees, benches, Franklin
+  and the six poplars, the church front with rose window, gold band and doors — reads well); a whole hide & seek round
+  started through the real Ask menu; a lead started mid-round (the defect below); district mode (`?world=district`,
+  Ferry Building start: postcards 0/8, goals 0/5, 69 calls / 234k tris — unchanged).
+- **Played, phone 390 × 844 dpr 3** (touch device): the Ask menu (捉迷藏 is item 2, 165 × 44 CSS px, one tap), the
+  count and the seek chip (Cold · Give up · "She's hiding near Ina Coolbrith"), found → the card "Brilliant · Found
+  BAYBAY in 2 s · +30 coins" and "You found me! 2 seconds!"; Columbus Ave at night: 73 calls / 264k tris, 61 fps.
+- **Cost on the tap**: `pickHideSpot` with the live nav took 50 ms on desktop (one hitch when the menu closes; the phone
+  will be a few times that) — acceptable for a one-off tap, noted.
+- **Facts re-checked on the web 2026-09-29**: twin spires 191 ft, completed 1924, 666 Filbert St facing Washington
+  Square (https://www.gpsmycity.com/attractions/saints-peter-and-paul-church-6824.html, search results citing the parish
+  history https://www.salesiansspp.org/our-history); "A statue of Benjamin Franklin with six Lombardy poplars surrounding
+  it sits in the center of the lawn" (https://www.tclf.org/landscapes/washington-square-ca); the park 2.8 acres, the
+  temperance fountain base of 1879 (https://en.wikipedia.org/wiki/Washington_Square_(San_Francisco)); Lyon Street Steps:
+  top at Broadway, bottom at Green St, counts 244–332 by source, the Palace of Fine Arts straight below
+  (https://www.sftourismtips.com/lyon-street-steps.html, https://inspiredimperfection.com/adventures/lyon-street-steps/)
+  — "大约 300 级" stands.
+- **Code**: the seam fill (worker-side, idempotent, city chunks only; `cityDropLots` / `heroProxy` / `dropLotTriangles`
+  are city-mode callers only), the corner (shared TOY + signs materials, geometries disposed, the obstacle source
+  unregistered, built once within 260 u), records rows appended (no reorder: saves safe), the medal through the kit's
+  existing `medal:` prefix, the play teardown (`play/index.ts` cancels a running activity), zh-Hant (the site's OpenCC
+  converter covers every new line; nothing hard-coded).
+
+### Defects fixed (red → green: `tests/opus-bay-w6-w-hideseek.test.ts`, three "W6-W-review" tests)
+
+1. **A lead during a round (real, user-visible).** Before: 问 BAYBAY → 带我去下一个目标 while seeking started a
+   `free-lead` trip — the player was auto-walked toward Coit Tower ("BAYBAY is leading · press WASD to steer") while
+   BAYBAY stayed pinned at her hiding spot 60 u away and the chip kept saying Colder… (`C:/Users/willy/opus-qa/w6/w-rev/
+   c2-lead-during-seek.jpg`). After: the round's frame system cancels it the moment BAYBAY is asked to lead (`flow.trip`,
+   `flow.freeLead`, or the mode leaving free roam, e.g. the whole-city tour) — no reward, the chip goes, she comes back
+   and leads exactly as without a round (`c2-lead-during-seek-after.jpg`; baseline lead without a round checked the
+   same way).
+2. **The chip repainted every frame for up to 3 minutes** (a new object and a React render of the chip per frame):
+   now only when the shown second or the word changes (≤ 2 repaints in a still second; the heat words are shared
+   constants).
+3. **The coach line read localStorage every frame** until it fired (it can wait the whole session): now only while
+   the player is calm and the emote coach's key can still change. Its zh phone line now names the button as it is
+   labelled: 点「问 BAYBAY」 (the 问我 badge disappears after the first use).
+
+### Open items (not blocking)
+
+- The chip's 放弃 / Give up button is 74 × 36 CSS px on the phone (lane A's shared `PlayChip`, used by every activity):
+  below the 44 px touch height — for the chip's owner.
+- The place pill says 唐人街 / Chinatown · Columbus Avenue at Washington Square (−64, 109); the square is North Beach.
+  The label comes from `data/cityZones.ts` `cityAreaAt` (inside the slab the hero zones answer before the DataSF
+  neighbourhoods), not lane W's code — for the lead / the zones owner.
+- As the lane reported: the Financial District's south edge keeps its empty hero-owned blocks; Columbus Ave is not
+  painted as asphalt inside the slab; no voice for the new lines; no separate 2-minute activity (5).
+
+### Blocking the go-live to main
+
+- Nothing from lane W.
+
+### Checks (05:16 PDT, this tree with the fixes)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig
+tsconfig.app.json --test tests/opus-bay-*.test.ts` **1468 / 1468** (1465 + the three review tests).
