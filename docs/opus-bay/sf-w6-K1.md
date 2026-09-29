@@ -160,7 +160,12 @@ deck), the prop pool (21 rebuilds in 2 s → ≤ 9).
   tune, SWING_PITCH 0.12: behind the car looking up Hyde St, the houses out of the frame's middle, the trees dithered in
   front) and `c-hyde-ride-behind-phone.jpg` (final, 0.35: the rider on the running board reads from above-behind, the
   street trees thinned by the dither round them).
-- Checks: see the push note below.
+- Checks: `c3ad471a` (before the pitch tweak's rebase): `tsc` 0 · `eslint .` 0 errors · suite **1458 / 1458**. Part c
+  went out as `ec10f795` (rebased twice onto other lanes' report / Halloween / play commits; `tsc` 0 and the wave-6 +
+  play + feet + move tests 170 / 170 before the push). On the pushed tree: `eslint .` 0 errors (43 old warnings), suite
+  **1465 / 1466** — the one failure is the wall-clock assert "a cached cell is cheap" (`sf-move2` E2-5: 1000 cached
+  lookups < 50 ms) under the nine lanes' load; re-run alone: pass (the protocol's rule for wall-clock tests).
+- Dev server 5601 stopped; no Chrome of mine left running; PERF-LOCK was absent at every Chrome start.
 
 ### Decisions
 
