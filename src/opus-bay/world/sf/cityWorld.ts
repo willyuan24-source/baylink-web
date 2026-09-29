@@ -19,9 +19,10 @@ import { CloudBank } from './cloudBank';
 import type { KarlState } from './fog';
 import type { HeroTile } from './farHero';
 import { demSample } from './format';
-import { heroLandRaster, heroProxy } from './hero';
+import { cityDropLots, heroLandRaster, heroProxy } from './hero';
 import { heroGroundJob } from './heroGround';
 import { CrownDrift, LightField, siteLightSpecs } from './lights';
+import { attachNorthBeach } from './cornersNorthBeach';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
 import { mountCityDebug } from './stats';
@@ -219,11 +220,14 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   // lane H2b's Mission murals (world/sf/murals.ts; null until they exist)
   const murals = attachMurals(streamer);
   const detachMurals = murals ? host.addSystem(murals) : null;
+  // W6-W2: the North Beach corner on the seam W6-W1 filled (Washington Square, Saints Peter and Paul, Columbus Ave)
+  const detachNorthBeach = host.addSystem(attachNorthBeach());
   void streamer.start().then(() => {
     const m = streamer.manifest;
     // the far detail chunks carry the same lots: cut them out there too
     const far = host.heroTiles.map(t => t.far).filter((f): f is THREE.Mesh => !!f);
-    if (m?.heroDropLots.length) dropLotTriangles([...host.cityChunks, ...far], m.heroDropLots.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
+    const drop = cityDropLots(m?.heroDropLots ?? []);
+    if (drop.length) dropLotTriangles([...host.cityChunks, ...far], drop.map(i => DISTRICT.blocks[i]?.footprint).filter((p): p is Polygon => !!p));
   });
   const unmountDebug = mountCityDebug(streamer, renderer);
   // W5-V7: BAYBAY's recorded wave-5 lines play with her bubbles (game/voiceW5.ts, its own small chunk)
@@ -236,6 +240,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
       offVoice?.();
       unmountDebug();
       detachMurals?.();
+      detachNorthBeach();
       for (const d of detachAtmos) d();
     },
   };

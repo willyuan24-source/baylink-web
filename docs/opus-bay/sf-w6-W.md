@@ -1,0 +1,125 @@
+# Wave 6 · lane W · more San Francisco and more play
+
+Lane W of wave 6 (`docs/opus-bay/sf-w6-lead.md` §3 row W), worktree `C:/Users/willy/wt/w6-w`, dev port 5608, scratch
+`C:/Users/willy/opus-qa/w6/w/`. Higgsfield: 0 credits (not this lane's).
+
+## 给主人的摘要
+
+1. **北滩的"空地"补好了**：城市模式里华盛顿广场一带原来是两条街深的一整片空铺地（老数据把那几块街区交给了手工区，手工区却没盖房子）。现在把那几个街区真实的 OSM 房子（92 栋）按城市自己的样式补回来，能看见、也会挡路；城里的步行路网、路线站点都测过还能走。
+2. **北滩街角**：华盛顿广场有了草坪、边上一圈树和长椅、中间的富兰克林像和六棵钻天杨；对面圣彼得圣保罗教堂的白色双塔（191 英尺，按游戏的高度规则 12.2 格）、玫瑰窗、门上的金色马赛克带和台阶；哥伦布大道上有咖啡桌和意大利三色遮阳伞、有人坐着、招牌（Café / 面包 / Books）、三色灯杆，晚上桌子上方的一串串灯泡会亮。
+3. 整个街角只多 2 次绘制（约 7.3k 三角形，离镜头 190 格外不画）；手机 390×844 上看过。
+
+## Part a · W6-W1 the North Beach seam gap, W6-W2 the North Beach corner
+
+Started 01:53 PDT (the brief said lanes start 02:40; the worktree was ready, so I started).
+
+### What was built
+
+- **The cause** (NEXT #15, `sf-w5-L.md` Known gaps): the offline build (`scripts/opus-sf/lib/buildings.ts` `heroSeam`)
+  drops every OSM building of a city block that lies ≥ 60 % inside the hero slab, because the district is supposed to
+  draw those blocks. The district's lot generator (`data/district.ts` §12) leaves the slab's south band empty — its grid
+  lots there fail `inSlab(p, 1.2)` / the building-line clip — so city mode showed bare fallback pavement two blocks deep
+  (Washington Square, Columbus Ave, upper Grant, the Saints Peter and Paul block). The district itself must not change.
+- **`scripts/opus-sf/seam-fill.mts`** (new): re-runs the build's building steps on the same raw snapshots
+  (`C:/Users/willy/opus-qa/sf-data/raw`, osm_base 2026-09-26: land, terrain, roads + blocks, load / merge / carve, the
+  seam rule) and keeps the buildings of the **hero-owned blocks where no district lot stands**, in the North Beach region
+  (x ≤ 60, z ≥ 60), finished exactly as the build finishes them (style, roof, palette, toy height); base = the hero ground
+  (seam rule 2). Left out: anything within 0.05 u of a district street ribbon (the city carves footprints 1.8 u off a
+  residential centreline, the district ribbon is 1.6 u half-wide), a kept district lot, a hero exclusion, Washington
+  Square, or crossed by / within 0.5 u of an edge of the published walking graph (two service alleys). Result: 129
+  candidates in 27 empty blocks → **92 buildings** (graph 8, street 13, lot 15, exclusion 1 left out); the church's nave
+  (OSM way 29902626) is set back 1.6 u behind its front so the steps (the attraction's arrival and route r1's stop, which
+  lie on the OSM front line) stay open.
+- **`src/opus-bay/world/sf/cornersSeamData.ts`** (generated, 92 rows, 13.8 KB source) and **`world/sf/build.ts`
+  `addSeamFill(chunk, rows)`**: appends the rows to the chunk holding their centroid right after `dropSeamBuildings` in
+  the stream worker (**`world/sf/worker.ts`**, one call — surgical, named here): the city's own L0 / L1 recipes draw them
+  in its pools (no draw call of their own) and `rasterizeChunk` gives them collision like every city building. Idempotent
+  (skips osm ids already there).
+- **`src/opus-bay/world/sf/cornersNB.ts`** (new, plain data): `NB_SQUARE` (OSM way 18583270), `NB_CHURCH_OSM_RING`,
+  `NB_FRONT`, `NB_CHURCH_SETBACK`, `NB_CHURCH_ARRIVAL`, `SEAM_REGION`, `nbDropLots(blocks)`: the district's plain
+  residential box `lot-211` stood on the church's site; city mode now hides it like `manifest.heroDropLots`:
+  **`world/sf/hero.ts` `cityDropLots()`** (manifest ∪ North Beach lots; `heroProxy` leaves it out),
+  **`world/sf/stream.ts`** passes it to `setCityTerrain` (one line), **`world/sf/cityWorld.ts`** cuts its triangles (one
+  line). District mode keeps `lot-211`.
+- **`src/opus-bay/world/sf/cornersNorthBeach.ts`** (new): `attachNorthBeach()` — a WorldSystem added in `cityWorld.ts`
+  like the murals (city mode only): ONE TOY mesh + ONE signs-atlas mesh in a `THREE.LOD` drawn within `NB_CULL` = 190 u,
+  built the first time the camera comes within 260 u; soft obstacles for the statue, poplars, trunks, tables and poles.
+  - the square: the lawn (1 u quads on the hero ground, 1.1 u in from the edge: the path ring), 13 trees and 4 benches
+    round the edge, Franklin's statue on its pedestal in the middle with six Lombardy poplars;
+  - the church: two white towers at the front's ends (shaft, cornice, belfry with arches, octagonal drum, spire, gold
+    cross; tips at `NB_SPIRE_TOP` = 12.2 u = `buildingH(58 m)`), the white front with its gable, the rose window, the gold
+    mosaic band, three arched doors, two steps; the nave is the fill's building;
+  - Columbus Ave: `nbCafes()` finds a fill building's front 1.9–3.6 u off the centreline every 7 u (5 clusters): café
+    tables with green / white / red umbrellas, a sitter at each, a string of 6 bulbs (glow at night) along the front, a
+    plaque (Café, Café, Bakery, Café, Books — trade words only); `nbPoles()`: 8 light poles banded green / white / red.
+- **Tests** `tests/opus-bay-w6-w-seam.test.ts` (4): the data (inside the slab's band, clear of every lot city mode keeps
+  and of the square, the church set back, `lot-211` the only drop); `addSeamFill` (right chunk, published buildings
+  untouched, idempotent); the band walks in city mode (the nave is solid; **no walking-graph edge through the band runs
+  into a fill building**, 0.5 u samples; the church steps and every route stop in the band standable; the towers leave
+  the steps open); the corner (2 meshes, ≤ 8,000 triangles, spire tips 12.2 u, cafés / poles on open sidewalk off the
+  centreline, the square's things inside it).
+- Test helpers kept truthful to the game: `tests/opus-bay-sf-disk.ts` appends the fill like the worker;
+  `tests/opus-bay-sf-look.test.ts` counts it (`manifest.counts.buildings + SEAM_FILL.length`);
+  `tests/opus-bay-w5-landmarks.test.ts` uses the game's drop set and names three new route corridors (below).
+
+### Evidence
+
+- Before / after from above (same camera, desktop, day): `qa/w6/W/w1-nb-seam-top-before.jpg` (the empty band),
+  `qa/w6/W/w1-nb-seam-top-after.jpg` (blocks filled, the square's lawn and trees, the church). Desktop golden hour from
+  the square: `qa/w6/W/w1-nb-church-desk.jpg` (the twin towers, rose window, band, doors; the lawn, poplars, statue,
+  benches). Phone 390 × 844 dpr 3 quality mid, player at (−64, 109): `qa/w6/W/w2-nb-square-phone.jpg`.
+- Draw calls / triangles (renderer.info, budget-views, not fps): above the band 57 calls / 199k → 57 / 204k (fill only)
+  → 68 / 230k with the corner in view (another camera); the low view toward Columbus 80 / 289k → 81 / 306k. The corner
+  itself: 2 meshes, 7,254 triangles (the test measures it).
+- Checks: see the push line below.
+
+### Decisions
+
+- **Fill, don't rebuild.** Re-publishing the chunks would touch the whole city's data; the worker-side fill changes
+  nothing outside the band and reuses the build's own finishing code (the script imports `scripts/opus-sf/lib`).
+- **Region = North Beach and upper Chinatown only (x ≤ 60).** The same bug leaves ~30 empty hero-owned blocks in the
+  Financial District's south edge (x 60–240, z 15–110: 46 more buildings); filling them sits in the Ferry-gate perf view
+  and was not asked for — Known gaps / Requests.
+- **Three route points become corridors** (`ROUTE_CORRIDORS` in `tests/opus-bay-w5-landmarks.test.ts`): r1's via 1
+  (Grant by Columbus) and via 3 were "3 of 4 ways" only because the band beside them was open pavement; r1-peter-paul is
+  the church steps (the nave behind). The judge accepts 2 ways there, with the reason written down.
+- **The church's nave is the city's building** (civic style, its own palette: a pale body with a slate gable), the
+  towers / front are the corner's; the steps stay open (set back 1.6 u).
+- **Corner budget 8,000 triangles** (the wave-5 corners keep 2.5k): this one carries the church's towers and the lawn;
+  still 2 draw calls, culled at 190 u.
+
+### Facts (checked on the web 2026-09-29)
+
+- Saints Peter and Paul: twin spires 191 ft, 666 Filbert St facing Washington Square, completed 1924 —
+  https://www.gpsmycity.com/attractions/saints-peter-and-paul-church-6824.html ; a Dante line in mosaic on the front —
+  https://www.oreilly.com/library/view/photographing-san-francisco/9780470586846/ch23.html ; the parish history
+  https://www.salesiansspp.org/our-history .
+- Washington Square: 1849 plan, 2.8 acres; the 1958 Halprin / Baylis lawn with curving edge paths, trees and benches;
+  Franklin's statue (Cogswell's temperance fountain, there since 1904) with six Lombardy poplars —
+  https://www.tclf.org/landscapes/washington-square-ca , https://en.wikipedia.org/wiki/Washington_Square_(San_Francisco)
+- North Beach light poles painted in the Italian flag's colours ("Little Italy of the West", 1990s) —
+  https://www.kqed.org/news/12074121/ciao-bella-do-italians-still-live-in-san-franciscos-north-beach
+- Columbus Ave: sidewalk café tables, string lights in the evening —
+  https://lucky-tuk-tuk.com/attractions/little-italy-and-north-beach/ ,
+  https://www.thebolditalic.com/my-favorite-places-to-eat-outside-in-san-franciscos-north-beach-and-nearby/
+- Geometry: OSM (the raw snapshot 2026-09-26): way 18583270 (the square), way 29902626 (the church, height 23 m on the
+  nave), Columbus Ave ways 148874364, 148874363, 254756518, 48211487, 87376669, 30030101, 416878315, 254971056.
+
+### Known gaps
+
+- The Financial District's south band has the same empty hero-owned blocks (46 buildings would come back with
+  `SEAM_REGION` widened); not done (perf view, not in the brief).
+- Columbus Ave itself is not painted as asphalt inside the slab (the district has no Columbus; the band's ground is
+  the district's pavement); its buildings and café fronts now line it.
+- The nave's palette is the build's civic pick (pale walls, slate gable), not pure white.
+- Places whose point is a building now stand inside one (`osm-w32946083` Fugazi Bank Building, the Boudin Bakery card's
+  point): trips there end at the nearest walkable spot, like any building place in the city.
+
+### Not done (this part)
+
+- Nothing of W6-W1 / W6-W2's scope.
+
+### Requests
+
+- **Lead** (a later wave): widen `SEAM_REGION` (world/sf/cornersNB.ts) to the Financial District's south edge and re-run
+  `scripts/opus-sf/seam-fill.mts` after a perf gate at the Ferry gate (46 buildings, same pools).
