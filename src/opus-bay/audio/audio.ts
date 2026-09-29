@@ -50,6 +50,13 @@ interface Rig {
 // optional chaining: node tests run startAudio against a fake window (no import.meta.env there)
 const DEV = import.meta.env?.DEV;
 
+/** wave 6 (lane X, W6-X3): audio/halloween.ts, loaded at the first `halloween` event (out of the main graph) */
+let halloweenChunk: Promise<typeof import('./halloween')> | null = null;
+function halloweenSfx(e: AudioEngine, ev: Extract<GameEvent, { type: 'halloween' }>) {
+  (halloweenChunk ??= import('./halloween')).then(m => { const s = m.halloweenSound(ev); if (s) m.playHalloween(e, s); })
+    .catch(error => { halloweenChunk = null; if (DEV) console.warn('[opus-bay audio] halloween sounds', error); });
+}
+
 export function startAudio(): () => void {
   if (typeof window === 'undefined') return () => {};
   let ctx: AudioContext | null = null;
@@ -329,6 +336,8 @@ export function startAudio(): () => void {
       case 'glide:unlock': sfx.goal(e); break;
       case 'sit': rides.sitCreak(e); break;
       case 'pant': rides.pant(e); break;
+      // wave 6 (lane X, W6-X3): the Halloween sounds live in their own small chunk, fetched at the season's first event
+      case 'halloween': halloweenSfx(e, ev); break;
       // recorded city lines (lane H2b data, lane G2 triggers): the clip, else the line's chirp
       case 'voice-line': voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi'); break;
     }
