@@ -1,0 +1,14 @@
+{
+ "version": 1,
+ "note": "Wave-6 Halloween perf spots (W6-Z final verify): Alamo Square at night (lane H's stoops, trick-or-treaters, bats, the hunt's lanterns) and Belvedere St, a trick-or-treat street (lane G's doors, lane H's stoops). Run with --time night --halloween night --rides 0 (the gate of w5-spots.json).",
+ "gate": {
+  "desktop": { "size": [1440, 900], "quality": "high", "calls": 150, "triangles": 400000 },
+  "phone": { "size": [390, 844], "dpr": 3, "quality": "mid", "cpuThrottle": 4, "fps": 45 },
+  "programs": "equal at 1x idle and 4x walk (no drift)"
+ },
+ "spots": [
+  { "id": "halloween-alamo-night", "since": "w6", "time": "night", "go": { "x": -13.5, "z": 590.5, "fx": 30, "fz": 590 }, "note": "Alamo Square lawn looking east at the Painted Ladies, Halloween night" },
+  { "id": "halloween-belvedere-night", "since": "w6", "time": "night", "go": { "x": 35, "z": 856, "fx": 5, "fz": 840 }, "note": "Belvedere St (Cole Valley), a trick-or-treat street: lane G's doors, lane H's stoops" }
+ ],
+ "rides": []
+}

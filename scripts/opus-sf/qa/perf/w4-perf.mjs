@@ -160,6 +160,8 @@ const port = args.port || 5306;
 const phone = !!args.mobile;
 const q = new URLSearchParams({ start: 'free', world: 'city', time: args.time || 'golden', quality: args.quality || (phone ? 'mid' : 'high') });
 if (args.date) q.set('date', String(args.date));
+// W6-Z: --halloween 1|season|night|muertos previews the season (halloween/season.ts halloweenPreview, any build)
+if (args.halloween) q.set('halloween', String(args.halloween));
 const url = `http://localhost:${port}/opus-bay?${q}`;
 const pick = args.spots ? String(args.spots).split(',') : null;
 const runTime = args.time || 'golden';
