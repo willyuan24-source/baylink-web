@@ -209,3 +209,71 @@ alone (149.9 ms); after the last rebases (W7-W11's seam fill, W7-R2, W7-G2) tsc 
   `tests/opus-bay-w7-b.test.ts` 8 / 8 (the full suite was not re-run: the 00:45 cut-off).
 - Dev server 5703 stopped; no Chrome of this lane left running; no PERF-LOCK met; no Higgsfield credits used; district
   mode untouched (no district file changed). No relayed owner message arrived during the lane.
+
+## Review (W7-B-review, 00:42–01:40 PDT, 2026-09-30)
+
+### 给主人的摘要
+
+1. 这条线的九个提交我都逐个读过、跑过、试玩过。**没有找到需要改代码的真问题**，所以这次复查没有改代码，只写了这一节。**不阻挡上线。**
+2. 最要紧的"车辆卡死"测试（每条线推送前都要跑）：我在半夜叮当车已收车的时段跑了三次——整个文件跑（00:45）、只跑这一个测试（01:04，同时机器在跑整套测试和类型检查，很忙）、整套测试里跑——三次结果一字不差：47 次拦路车，骑乘的公交在路口最长等 7.0 秒。它确实不再受测试顺序、真实时间、机器忙不忙的影响。
+3. 地下 Muni 暂停：电脑上，列车停在鲍威尔站地下站台时按 Esc 打开设置，列车在站台上一动不动等了 20 秒；关掉设置后正常开走，到 Carl & Cole 下车（全程 106 秒）。手机（390×844）上地下那段照常开、正常到站（79 秒）。但手机在地下时屏幕上没有设置按钮（以前就这样，已请 Q 线加按钮），所以手机玩家在地下用不到这个暂停。
+4. 叮当车三个转车台的中文名对照维基百科核实过（海德街、海滩街），繁體也显示正常（鮑威爾街 · 市場街轉車臺）。
+
+### What was checked
+
+- **Every lane commit read** (`8f485b12` `798eeb4f` `5db1ea1c` `03b629c6` `0b983ead` `6f7596c2` `6a6a533b` `408e11b1`
+  `fd2ff25b`) on origin `3213201b`.
+- **W7-B1 / B9, the deadlock proof — deterministic, verified at night:** whole file alone at 00:45 PDT (9 / 9); the proof
+  alone (`--test-name-pattern "20\+ simulated minutes"`) at 01:04 under load (the full opus-bay suite and `tsc` running at
+  the same time); and inside the full suite. All three print the same report byte for byte: forced blockers **47** (lane
+  15, zone 10, crossing 22), loop lap 981 s (quote 921), N 158 s, M 127 s, the rider's bus 7.0 s at
+  `box:california@6294:0`. The hour no longer matters (both runs after the cable cars' service hours, where W7-B9 found
+  the 29.2 s). Looked for other nondeterminism: `transitLayer.portalReady` reads `performance.now()` only with a city
+  streamer (none in node); the streamer's time-sliced queues are not used by `sfDisk().attachAround`; `freshRuntime()`
+  restores every key the drive test touches (`runtime.player.heading` exists at start, so `Object.assign` resets it);
+  the Bay clock pin is released in `finally` and the proof is the file's last test. The bar was not lowered (≥ 30 kept,
+  each kind now ≥ 5).
+- **W7-B2, the Metro pause brake:** `lightRail.stepTrain` / `leave` read `game.paused`, which only Settings sets
+  (`game/flow.ts:259`: `paused: kind === 'settings'`), so no other panel (journal, map, album, goals step) can stand a
+  train in the tunnel; K's `holdRideForPause` releases only its own brake. **Played (desktop 1440 × 900, dev 5723):** a
+  variant of the lane's harness that opens Settings while the rider's N **dwells at the underground Powell platform**
+  (the `leave()` path the lane's own run did not cover): 40 samples over 20 s all `189.2 / 0 / dwell`, then it left and
+  arrived at Carl & Cole (ride 106 s). **Phone 390 × 844 dpr 3, zh:** the underground ride is unchanged (runs, stands
+  at its stations on the way, arrives in 79 s); no Settings control is reachable there (the overlay covers the HUD —
+  the lane's request to Q stands). Shots: `C:/Users/willy/opus-qa/w7/b-rev/pause/` (read).
+- **W7-B3, the sheet over the subway:** `.ob-sheet` lives in `.ob-overlay` with `.ob-subway`, so the `:has()` rule
+  matches (desktop shot: Settings over the tunnel, "PAUSED"); without `:has()` (iOS < 15.4) it degrades to the old
+  behaviour.
+- **W7-B4, scratch Need records:** no aliasing — `need` (NEED_S) is read by `leave` / `firstInLine` / `canTake` /
+  `toHold`, which use NEED_F / none, and never stored; `need2` has its own record; the file's numbers identical.
+- **W7-B5, the courtesy bounds:** both tests are pure simulations with no clock (`CableSystem(DATA, {})` has no
+  `realService`); 48.1 s under the ≤ 50 s bound measured the same at night as by day.
+- **W7-B6, zh:** all scout-listed lines fixed (attractions 200, dialogue 85 / 89, extraPlaces 180, goals 56, landmarks
+  621, residents 107 / 113 / 114 / 121 / 133, cityGoals 43 and the freeHint); street names match W6-B5's
+  `CABLE_STREET_ZH`; no recorded BAYBAY voice clip uses the changed zh text (voiceTour / W5 / W6 / W7 grepped); OpenCC
+  cn→tw: 鮑威爾街 · 市場街轉車臺 / 海德街 · 海灘街轉車臺 / 泰勒街 · 灣街轉車臺 / 麵包還熱著呢！Ray 在鮑威爾街 · 市場街轉車臺旁。
+  Fact check: zh Wikipedia 舊金山纜車 uses 海德街 and 海灘街 for Hyde St / Beach St
+  (https://zh.wikipedia.org/zh-hant/舊金山纜車, checked 2026-09-30).
+- **District mode:** no district file changed by the lane (lightRail / lineFleet / flineSystem / transit-ui.css are city
+  paths; the district hero F-line is not a line ride). **Perf:** no draw calls, meshes or textures added (logic, one CSS
+  rule, text), so W6-Z's numbers stand; the one per-frame allocation in scope was removed (B4).
+
+### Defects
+
+None found that needed a code change. Non-blocking findings for the next wave:
+
+1. **Phone: no Settings under ground** (pre-existing, the lane's request to Q): the B2 brake is desktop-only (Esc).
+2. **Other full-screen layers still sit under the subway overlay** (pre-existing, not a B regression): the album
+   (`.ob-album-wrap` z 36), a letter (z 35) and the goals step (z 34) are below `.ob-subway` (z 40), so a goals step that
+   pops during an underground ride is unseen until the surface. None of them sets `paused`, so nothing strands a rider.
+   Request Q: the same `:has(.ob-subway.is-on)` lift for those three.
+3. **The night-time Market St convoy** (≈ 29 s for the rider's loop bus) stays as the lane reported; the proof's 25 s
+   bound now speaks for the daytime run only, and W7-B5's ≤ 35 s test bounds the convoy. A night run of the proof belongs
+   with its fix.
+4. Dev only: on the first desktop load of the review's dev server (under the suite's load) the console once said
+   `model load failed … Failed to fetch dynamically imported module …/world/models.ts` (vite's first transform timing
+   out); the phone load after it did not. Not a lane-B file; production builds are unaffected.
+
+### Blocking for go-live
+
+Nothing.
