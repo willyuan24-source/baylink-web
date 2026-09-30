@@ -241,6 +241,33 @@ function gullGeometry(): THREE.BufferGeometry {
   return b.build();
 }
 
+/**
+ * Wave 7 · lane X (W7-X): the city's gull (city mode only; the district keeps gullGeometry). A western gull as a toy:
+ * white head, body and tail, a yellow bill, pale grey wings with a bent elbow — the arm raised a little and swept forward
+ * to the wrist, the hand swept back and down — and black wing tips. Same instanced mesh, material and flap as before
+ * (every wing part flaps, aInfo.z 1), ≈ 230 triangles (the old gull ≈ 200). The pigeons share the mesh (tinted).
+ */
+export function cityGullGeometry(): THREE.BufferGeometry {
+  const b = new Batch();
+  const WHITE = '#ffffff', WING = '#cdd4d8', TIP = '#1d2023';
+  b.add(SPHERE(8, 6), M(0, 0, 0, 0, 0.12, 0.11, 0.3), WHITE);
+  b.add(SPHERE(6, 5), M(0, 0.07, 0.27, 0, 0.085, 0.085, 0.095), WHITE);
+  b.add(CONE(5), M(0, 0.055, 0.37, 0, 0.026, 0.11, 0.026, Math.PI / 2), '#f2c230');
+  b.add(CBOX(), M(0, 0.01, -0.34, 0, 0.15, 0.025, 0.14), WHITE);
+  const wing = [0, 0, 1, 0] as const;
+  for (const s of [-1, 1]) {
+    // the arm: body → wrist, raised 0.2 rad and swept 0.3 rad forward (the wrist ends ≈ (0.40, 0.09, 0.09))
+    b.add(CBOX(), M(s * 0.22, 0.05, 0.03, -s * 0.3, 0.38, 0.024, 0.22, 0, s * 0.2), WING, [...wing]);
+    // the hand: from the wrist swept 0.45 rad back and 0.12 rad down — its grey inner half, then the black tip
+    const dx = Math.cos(0.45) * Math.cos(0.12), dy = -Math.sin(0.12), dz = -Math.sin(0.45);
+    const at = (t: number) => [s * (0.4 + dx * t), 0.088 + dy * t, 0.086 + dz * t] as const;
+    const g = at(0.09), k = at(0.27);
+    b.add(CBOX(), M(g[0], g[1], g[2], s * 0.45, 0.19, 0.02, 0.16, 0, -s * 0.12), WING, [...wing]);
+    b.add(CBOX(), M(k[0], k[1], k[2], s * 0.45, 0.19, 0.018, 0.12, 0, -s * 0.12), TIP, [...wing]);
+  }
+  return b.build();
+}
+
 function glidingPelicanGeometry(): THREE.BufferGeometry {
   const b = new Batch();
   b.add(SPHERE(8, 6), M(0, 0, 0, 0, 0.22, 0.2, 0.55), '#8f8a84');
@@ -516,6 +543,8 @@ export class Life {
   private people: THREE.InstancedMesh;
   /** (W6-X5) the district figure and, once the city chunk registered it, the city figure (the same instanced attributes) */
   private peopleFigures: { district: THREE.BufferGeometry; city: THREE.BufferGeometry | null } | null = null;
+  /** (W7-X) the gull mesh's two figures: the district's, and the city's (made at the first city frame) */
+  private gullFigures: { district: THREE.BufferGeometry; city: THREE.BufferGeometry | null } | null = null;
   private walkers: Walker[] = [];
   private dogs: THREE.InstancedMesh;
   /** (W5-T4) the instances in reach packed to the front (LIFE_FAR); per-instance data by source instance */
@@ -865,10 +894,22 @@ export class Life {
     if (this.people.geometry !== want) this.people.geometry = want;
   }
 
+  /** (W7-X) the gulls (and the plaza's pigeons) fly the city gull in city mode, the district's gull otherwise */
+  private pickGullFigure(city: boolean) {
+    const figs = (this.gullFigures ??= { district: this.gullMesh.geometry, city: null });
+    if (city && !figs.city) {
+      figs.city = cityGullGeometry();
+      for (const name of ['aFlap', 'aPhase']) figs.city.setAttribute(name, figs.district.getAttribute(name));
+    }
+    const want = city && figs.city ? figs.city : figs.district;
+    if (this.gullMesh.geometry !== want) this.gullMesh.geometry = want;
+  }
+
   update(dt: number, t: number, night: number) {
     const s = game.get();
     if (s.phase !== 'title') this.ensureModels();
     this.pickPeopleFigure(s.worldMode === 'city');
+    this.pickGullFigure(s.worldMode === 'city');
     this.setHeroFar(this.heroFarSource());
     if (this.heroFar) {
       this.updateFerries(dt, t, s.phase);
@@ -1325,6 +1366,7 @@ export class Life {
   dispose() {
     this.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) m.geometry.dispose(); });
     this.peopleFigures?.district.dispose(); this.peopleFigures?.city?.dispose();
+    this.gullFigures?.district.dispose(); this.gullFigures?.city?.dispose();
     this.flapMat.dispose(); this.peopleMat.dispose(); this.mistMat.dispose(); this.beamMat?.dispose();
   }
 }

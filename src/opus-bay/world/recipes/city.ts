@@ -50,8 +50,8 @@ export const CITY_FLAG = {
 /** format.ts BUILDING_FLAG bits the recipes read */
 const SF_FLAG = { onPier: 16, tall: 64 } as const;
 
-/** Explicit colours (sRGB hex), e.g. a manifest palette entry. */
-export interface CityPalette { wall: string; roof?: string; trim?: string; accent?: string }
+/** Explicit colours (sRGB hex), e.g. a manifest palette entry; `facade` (W7-X, world/sf/look.ts facadeFor) paints a street face */
+export interface CityPalette { wall: string; roof?: string; trim?: string; accent?: string; facade?: 'prewar' | 'chinatown' }
 
 export interface CityBuildingSpec {
   /** footprint, world x/z, 3–12 vertices, simple polygon (CCW preferred; either winding renders) */
@@ -88,6 +88,8 @@ export interface CityLook {
   winSeed: number;
   /** 0..1 draws for details, after the colour draws (same sequence for L0 and L1) */
   rand: () => number;
+  /** (W7-X) the street façade painted through `win` (WIN.prewar / WIN.chinatown), null when none */
+  facade: 'prewar' | 'chinatown' | null;
 }
 
 const BRICK_RIM = '#dcc9ad', CIVIC_RIM = '#e2d7c3';
@@ -133,10 +135,14 @@ export function cityLook(spec: CityBuildingSpec): CityLook {
   }
   if (explicit?.roof) roof = explicit.roof;
   if (explicit?.accent) accent = explicit.accent;
+  // W7-X: a street façade (look.ts facadeFor) replaces the style's window grid — never on a glass curtain wall
+  const facade = explicit?.facade && !glass ? explicit.facade : null;
+  if (facade === 'prewar') win = WIN.prewar;
+  else if (facade === 'chinatown') { win = WIN.chinatown; if (!explicit?.accent) accent = pick(CHINATOWN_ACCENT, r1 * 3); }
   const coping = TALL(spec.style) ? trim : hex(shade(wall, 1.05));
   const s = spec.style;
   const rim = s === 'victorian' || s === 'edwardian' || s === 'sunset' || s === 'chinatown' ? trim : s === 'brick' ? BRICK_RIM : s === 'deco' || s === 'civic' ? CIVIC_RIM : coping;
-  return { wall, wallHex, roof, coping, rim, trim, accent, win, winSeed: -(0.05 + 0.9 * R()), rand: R };
+  return { wall, wallHex, roof, coping, rim, trim, accent, win, winSeed: -(0.05 + 0.9 * R()), rand: R, facade };
 }
 
 // ---------------------------------------------------------------------------
@@ -363,7 +369,11 @@ export function toyBuildingL0(b: BatchLike, spec: CityBuildingSpec) {
       break;
     }
     default: { // office, tower: setback tier, a crown on some, roof boxes; towers add a penthouse (+ a mast when tall)
-      if (!tiered) { flatTop(b, poly, top, look.coping, look.roof, clutter, big); break; }
+      // W7-X: a pre-war front gets a projecting cornice at the top of its walls; a Chinatown front a coloured parapet
+      // (a cornice only where it reads: walls of 6 u and more; 2 triangles an edge)
+      if (look.facade === 'prewar' && h >= 6) b.walls(inset(poly, -0.13), setback - 0.42, setback, look.trim);
+      else if (look.facade === 'chinatown') b.walls(inset(poly, -0.05), top - 0.3, top + 0.2, look.accent);
+      if (!tiered) { flatTop(b, poly, look.facade === 'chinatown' ? top + 0.2 : top, look.coping, look.roof, clutter, big); break; }
       flatRoof(b, poly, setback, look.coping, look.roof, 0.1);
       const up = inset(poly, 1.1);
       b.walls(up, setback, top, look.wall, upper);

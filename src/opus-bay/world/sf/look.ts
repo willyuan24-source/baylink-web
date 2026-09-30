@@ -74,6 +74,56 @@ export interface Look {
   trim: string;
   /** flat top (membrane) or pitched roof colour */
   roofColor: string;
+  /** (W7-X) a street façade the recipe paints through the TOY window style (FACADE_ZONES), else absent */
+  facade?: Facade;
+}
+
+/**
+ * Wave 7 · lane X (W7-X): the downtown blocks that read as grey-blue boxes (the wave-6 shoot's weakest item 2). Lane A's
+ * office / tower styles carry the office window grid everywhere; in two zones the recipe paints a truer street face
+ * through the TOY shader instead (no geometry but a cornice / parapet ring, no new draw call):
+ *
+ *   prewar      the Financial District's pre-war offices (most of its stock under ≈ 110 m): cream, limestone and white
+ *               glazed terra-cotta walls, continuous piers and recessed window columns over darker spandrels, a cornice
+ *   chinatown   Chinatown's walk-ups and small offices: cream / stone / pale pastel walls, windows with painted iron
+ *               balcony railings (red, green, a little gold), a black fire escape down some fronts, a coloured parapet
+ *
+ * Victorians, civic halls, piers, sheds and SoMa brick keep their looks; a building lane A marked as glass stays glass
+ * (city.ts). Worker-safe, deterministic per osmId.
+ */
+export type Facade = 'prewar' | 'chinatown';
+/**
+ * Where the façades apply (DataSF neighbourhoods): Chinatown's own zone, and the old downtown core around it — the
+ * Financial District (with Union Square and the Dragon Gate's blocks), the north edge of SoMa along Market, the
+ * Tenderloin, Nob Hill, North Beach and Russian Hill, where lane A's small "offices" are mostly pre-war walk-ups,
+ * hotels and loft buildings. Per zone: the tallest wall (u, H = 3.2 + 0.155·h m) and the share painted pre-war below
+ * `lowH` / up to `maxH`.
+ */
+export const FACADE_ZONES = { chinatown: 'chinatown' } as const;
+export const PREWAR_ZONES: Readonly<Record<string, { lowH: number; low: number; maxH: number; high: number }>> = {
+  'financial-district-south-beach': { lowH: 12, low: 0.9, maxH: 20, high: 0.6 },
+  'south-of-market': { lowH: 10, low: 0.6, maxH: 14, high: 0.35 },
+  tenderloin: { lowH: 12, low: 0.9, maxH: 16, high: 0.6 },
+  'nob-hill': { lowH: 12, low: 0.85, maxH: 16, high: 0.6 },
+  'north-beach': { lowH: 12, low: 0.85, maxH: 14, high: 0.5 },
+  'russian-hill': { lowH: 10, low: 0.6, maxH: 14, high: 0.4 },
+};
+/** Chinatown: tallest walk-up / small office painted with balconies (u; ≈ 65 m) */
+export const CHINATOWN_MAX_H = 13.3;
+/** Pre-war downtown walls: cream and white glazed terra-cotta, limestone, sandstone, buff (sRGB; all HSL L ≥ 0.78 like the house walls, tests/opus-bay-sf-look). */
+export const PREWAR_WALLS = ['#eee6d6', '#f2ede2', '#e6d9c1', '#e1ceb0', '#e8dcc6', '#e3d0b0', '#ece2cc'];
+/** Chinatown's offices and walk-ups: cream and stone with a few pale pastels (the painted railings bring the colour). */
+export const CHINATOWN_FACADE_WALLS = ['#efe6d4', '#ece0c8', '#f1e9da', '#e7d9bd', '#dfe6cf', '#f3e5b5', '#f2d9d6', '#e3ecdf'];
+const FACADE_STYLES: ReadonlySet<LookStyle> = new Set(['office', 'tower', 'deco', 'residential', 'edwardian', 'chinatown', 'brick']);
+const PREWAR_STYLES: ReadonlySet<LookStyle> = new Set(['office', 'tower', 'deco']);
+
+/** The street façade a building gets (see Facade), or null. */
+export function facadeFor(b: LookInput): Facade | null {
+  if (!b.zone || !FACADE_STYLES.has(b.style)) return null;
+  if (b.zone === FACADE_ZONES.chinatown) return b.H <= CHINATOWN_MAX_H ? 'chinatown' : null;
+  const z = PREWAR_ZONES[b.zone];
+  if (!z || !PREWAR_STYLES.has(b.style) || b.H > z.maxH) return null;
+  return lookRand(b.seed, 9) < (b.H <= z.lowH ? z.low : z.high) ? 'prewar' : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -252,8 +302,13 @@ export function trimFor(b: LookInput): string {
 }
 
 export function sfLook(b: LookInput): Look {
-  const roof = roofFor(b), wall = wallFor(b);
-  return { roof, wall, trim: trimFor(b), roofColor: roof === 'flat' ? flatTopColor(b, wall) : pitchedRoofColor(b) };
+  const facade = facadeFor(b);
+  const roof = roofFor(b);
+  const wall = facade === 'prewar' ? pick(PREWAR_WALLS, lookRand(b.seed, 3)) : facade === 'chinatown' ? pick(CHINATOWN_FACADE_WALLS, lookRand(b.seed, 3)) : wallFor(b);
+  const trim = facade === 'prewar' ? mixHex(wall, '#fbf7ee', 0.55) : trimFor(b);
+  const look: Look = { roof, wall, trim, roofColor: roof === 'flat' ? flatTopColor(b, wall) : pitchedRoofColor(b) };
+  if (facade) look.facade = facade;
+  return look;
 }
 
 // ---------------------------------------------------------------------------

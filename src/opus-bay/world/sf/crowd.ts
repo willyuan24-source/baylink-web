@@ -60,10 +60,16 @@ export const CROWD = {
   hopHorizon: 1.2,
   hopTime: 0.42,
   hopHeight: 0.32,
-  /** near figures within this of the camera (u), far figures beyond */
+  /** near figures within this of the camera (u), far figures beyond (quality high; W7-X: `nearBy` per quality) */
   nearLod: 24,
   /** at most this many near figures (the closest; a crowded plaza stays within budget) */
   nearMax: 18,
+  /**
+   * (W7-X, the phone's walk) the near figure (664 triangles since W6-X5, the far one 92) per quality: `mid` (the phone)
+   * switches to the far figure at 16 u and draws at most 8 near ones (≤ 5.3k triangles instead of 12k: Filbert's life
+   * group grew 28.5k → 42.1k with the new figure); `low` 12 u / 4
+   */
+  nearBy: { high: { lod: 24, max: 18 }, mid: { lod: 16, max: 8 }, low: { lod: 12, max: 4 } } as Record<Quality, { lod: number; max: number }>,
   /** share of the crowd standing about at sights */
   standShare: 0.2,
   /** obstacle radius of a walker (u) */
@@ -1038,6 +1044,11 @@ export class CrowdLayer {
     this.group.add(this.near.mesh, this.far.mesh);
   }
 
+  /** (W7-X) the near figure's reach and cap (CROWD.nearBy) for the render quality */
+  private nearLod: number = CROWD.nearBy.high.lod;
+  private nearMax: number = CROWD.nearBy.high.max;
+  setQuality(q: Quality) { const n = CROWD.nearBy[q] ?? CROWD.nearBy.high; this.nearLod = n.lod; this.nearMax = n.max; }
+
   /** Step the crowd and draw it (camera position for the LOD split and the lens shrink). */
   update(dt: number, cam: { x: number; y: number; z: number }) {
     this.sim.step(dt);
@@ -1047,17 +1058,17 @@ export class CrowdLayer {
   draw(cam: { x: number; y: number; z: number }) {
     let n = 0, nf = 0;
     const t = this.sim.time;
-    // the near figure for the CROWD.nearMax walkers closest to the camera within CROWD.nearLod (a triangle cap)
+    // the near figure for the nearMax walkers closest to the camera within nearLod (a triangle cap; per quality, W7-X)
     const ws = this.sim.walkers, dist = this.dist;
     let within = 0;
     for (let i = 0; i < ws.length; i++) {
       const w = ws[i];
       dist[i] = w.on ? Math.hypot(w.x - cam.x, w.y + 0.8 - cam.y, w.z - cam.z) : Infinity;
-      if (dist[i] <= CROWD.nearLod) within++;
+      if (dist[i] <= this.nearLod) within++;
     }
-    let nearCut: number = CROWD.nearLod;
+    let nearCut: number = this.nearLod;
     // (a typed array sorts numerically in place: no garbage each frame)
-    if (within > CROWD.nearMax) { const sorted = this.sorted; sorted.set(dist); sorted.sort(); nearCut = sorted[CROWD.nearMax - 1]; }
+    if (within > this.nearMax) { const sorted = this.sorted; sorted.set(dist); sorted.sort(); nearCut = sorted[this.nearMax - 1]; }
     for (let j = 0; j < ws.length; j++) {
       const w = ws[j];
       if (!w.on) continue;

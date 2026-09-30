@@ -302,7 +302,8 @@ export const GROUND_BATCH = makeGround('ob-ground-batch');
 // ---------------------------------------------------------------------------
 
 /**
- * aInfo for TOY: x = window style (1–6 windows, 7 lit opening, 8 pier shed), y = base height (window floors,
+ * aInfo for TOY: x = window style (1–6 windows, 7 lit opening, 8 pier shed, 9 pre-war downtown / 10 Chinatown façades:
+ * the streamed city only, W7-X), y = base height (window floors,
  * contact AO, lit-opening gradient), z = sway weight (> 0) or −building seed (< 0, window occupancy),
  * w = glow ((0,1] at night, (1,2] always); w ≤ −1 marks "never dither-fade" with glow −w − 1.
  */
@@ -346,6 +347,81 @@ float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
     float h8 = obHash(floor(vec2(u8 / 1.4, 3.0)) + floor(vWPos.xz * 0.02));
     diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.20, 0.27, 0.30), win8);
     totalEmissiveRadiance += vec3(1.0, 0.68, 0.38) * win8 * step(0.62, h8) * uNight * (0.6 + 0.5 * fract(h8 * 7.0));
+  }
+  // W7-X: the streamed city's pre-war downtown (9) and Chinatown (10) façades (world/recipes/city.ts, city mode only; the
+  // district never sets these styles). 9: bays of a continuous light pier and a recessed column of paired windows over
+  // darker spandrels. 10: walk-up windows with painted iron balcony railings (red / green per building), and on some
+  // buildings a black fire escape — platforms, rails and a zig-zag ladder — down one column of the street face
+  float obFac = floor(vInfo.x + 0.5);
+  if ((obFac == 9.0 || obFac == 10.0) && abs(vWN.y) < 0.4) {
+    vec2 tngF = normalize(vec2(-vWN.z, vWN.x) + 1e-5);
+    float uF = dot(vWPos.xz, tngF);
+    float vF = vWPos.y - vInfo.y;
+    float seedF = floor((vInfo.z < 0.0 ? -vInfo.z : obHash(floor(vWPos.xz * 0.08))) * 4096.0 + 0.5) / 4096.0;
+    bool pre = obFac == 9.0;
+    vec2 cellF = pre ? vec2(1.45, 1.05) : vec2(1.3, 1.2);
+    vec2 gF = vec2(uF, vF - (pre ? 0.25 : 0.1)) / cellF;
+    vec2 fF = fract(gF);
+    vec2 idF = floor(gF);
+    vec2 fwF = fwidth(gF);
+    vec2 wF = fwF * 0.8 + 1e-4;
+    float unresF = smoothstep(0.35, 1.2, max(fwF.x, fwF.y));
+    float upper = step(pre ? 1.3 : 1.25, vF);
+    #define OB_BAND(a, b, t, w) (smoothstep((a) - (w), (a) + (w), (t)) * (1.0 - smoothstep((b) - (w), (b) + (w), (t))))
+    vec3 base = diffuseColor.rgb;
+    vec3 glassF = pre ? vec3(0.09, 0.105, 0.12) : vec3(0.11, 0.14, 0.17);
+    float winF = 0.0, coverF = 0.0;
+    if (pre) {
+      // pier 0 … 0.2 lighter, its shadow edge, the recess darker with a spandrel panel under each window pair; two
+      // narrow lights 0.3 … 0.84 split by a stone mullion
+      float pier = OB_BAND(-0.01, 0.2, fF.x, wF.x);
+      float edge = OB_BAND(0.2, 0.25, fF.x, wF.x);
+      vec3 facade = mix(base * 0.88, base * 1.08, pier);
+      facade = mix(facade, base * 0.68, edge);
+      facade = mix(facade, base * 0.78, OB_BAND(0.08, 0.24, fF.y, wF.y) * OB_BAND(0.32, 0.93, fF.x, wF.x)); // the spandrel
+      facade = mix(facade, base * 1.06, OB_BAND(0.26, 0.3, fF.y, wF.y) * (1.0 - pier)); // the sill line
+      winF = (OB_BAND(0.32, 0.6, fF.x, wF.x) + OB_BAND(0.66, 0.94, fF.x, wF.x)) * OB_BAND(0.32, 0.86, fF.y, wF.y);
+      coverF = 0.56 * 0.54;
+      diffuseColor.rgb = mix(diffuseColor.rgb, mix(facade, base * 0.95, unresF), upper);
+    } else {
+      winF = OB_BAND(0.22, 0.78, fF.x, wF.x) * OB_BAND(0.34, 0.88, fF.y, wF.y);
+      coverF = 0.56 * 0.54;
+    }
+    float maskF = mix(winF, coverF, unresF) * upper;
+    float hF = obHash(idF + seedF * 97.0);
+    vec3 dayF = glassF * (0.8 + 0.5 * hF) + vec3(0.05, 0.06, 0.07) * (1.0 - fF.y);
+    dayF = mix(dayF, glassF * 1.1, unresF);
+    diffuseColor.rgb = mix(diffuseColor.rgb, dayF, maskF * (1.0 - uNight * 0.6));
+    if (!pre) {
+      // the balcony (60 % of the upper windows): a slab, a top rail, balusters in the building's railing colour
+      float rc = fract(seedF * 5.31);
+      vec3 rail = rc < 0.45 ? vec3(0.50, 0.07, 0.05) : rc < 0.9 ? vec3(0.03, 0.22, 0.11) : vec3(0.68, 0.37, 0.05);
+      float hasB = step(obHash(idF * 1.3 + seedF * 11.0), 0.6) * step(1.8, vF);
+      float band = OB_BAND(0.1, 0.9, fF.x, wF.x) * OB_BAND(0.05, 0.33, fF.y, wF.y);
+      float bars = mix(step(0.45, fract(uF * 7.0)), 0.55, smoothstep(0.2, 0.6, fwF.x * 9.1));
+      float railM = band * max(max(OB_BAND(0.05, 0.1, fF.y, wF.y), OB_BAND(0.28, 0.33, fF.y, wF.y)), bars);
+      // one column in three of every other building carries the fire escape instead (seeded)
+      float fe = step(fract(seedF * 3.7), 0.5) * step(abs(mod(idF.x + floor(seedF * 13.0), 3.0)), 0.5) * step(1.8, vF);
+      float dir = mod(idF.y, 2.0) < 0.5 ? 1.0 : -1.0;
+      float lx = dir > 0.0 ? fF.x : 1.0 - fF.x;
+      float ladder = OB_BAND(-0.035, 0.035, fF.y - (0.12 + lx * 0.95), wF.y + 0.01) * OB_BAND(0.12, 0.88, fF.x, wF.x);
+      float feM = max(max(OB_BAND(0.03, 0.1, fF.y, wF.y), OB_BAND(0.3, 0.33, fF.y, wF.y) * OB_BAND(0.0, 1.0, fF.x, wF.x)), max(ladder, step(0.93, fract(uF * 2.3)) * OB_BAND(0.03, 0.33, fF.y, wF.y)));
+      vec3 iron = vec3(0.035, 0.04, 0.04);
+      float feA = fe * mix(feM, 0.35, unresF);
+      float railA = (1.0 - fe) * hasB * mix(railM, 0.45 * 0.28, unresF);
+      diffuseColor.rgb = mix(diffuseColor.rgb, rail, railA);
+      diffuseColor.rgb = mix(diffuseColor.rgb, iron, feA);
+      maskF *= 1.0 - max(railA, feA);
+    }
+    #undef OB_BAND
+    // night: the same occupancy and colour temperatures as the other window styles
+    float occF = mix(0.4, 0.75, fract(seedF * 7.13));
+    float floorOnF = step(0.2, obHash(vec2(idF.y * 1.37, seedF * 53.0)));
+    float litF = step(occF, hF) * floorOnF * maskF;
+    float hcF = obHash(idF * 1.7 + seedF * 13.0);
+    vec3 tempF = hcF < 0.7 ? vec3(1.0, 0.62, 0.3) : hcF < 0.9 ? vec3(1.0, 0.85, 0.65) : vec3(0.55, 0.7, 1.0);
+    vec3 litMeanF = vec3(0.955, 0.674, 0.44) * (coverF * upper * (1.0 - occF) * 0.8 * 0.85);
+    totalEmissiveRadiance += mix(tempF * litF * (0.5 + 0.7 * obHash(idF * 2.3 + seedF)), litMeanF, unresF) * uNight;
   }
   // procedural windows on vertical faces
   if (vInfo.x > 0.5 && vInfo.x < 6.5 && abs(vWN.y) < 0.4) {

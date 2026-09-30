@@ -193,7 +193,7 @@ export class CityLife {
 
   private applyQuality() {
     const q = game.get().settings.quality;
-    if (this.crowd) this.crowd.sim.target = CROWD.count[q];
+    if (this.crowd) { this.crowd.sim.target = CROWD.count[q]; this.crowd.setQuality(q); } // W7-X: the near figure per quality
     if (this.traffic) this.traffic.sim.target = TRAFFIC.count[q];
   }
 

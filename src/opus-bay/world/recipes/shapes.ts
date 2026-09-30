@@ -9,7 +9,7 @@ import { BOX, type BatchLike, Frame, type Info, inset, longestEdge, shade, v3 } 
  */
 
 /** TOY window styles (aInfo.x, see materials.ts TOY_FRAG). */
-export const WIN = { none: 0, res: 1, office: 2, shop: 3, brick: 4, victorian: 5, glass: 6, shed: 8 } as const;
+export const WIN = { none: 0, res: 1, office: 2, shop: 3, brick: 4, victorian: 5, glass: 6, shed: 8, prewar: 9, chinatown: 10 } as const;
 /** aInfo for a wall with procedural windows: style, base height (window floors start there), building seed (< 0). */
 export const winInfo = (style: number, base: number, seed = 0): Info => [style, base, seed, 0];
 

@@ -476,6 +476,7 @@ function specOf(ctx: ChunkContext, ref: BuildingRef, withFront: boolean): CityBu
     zone: zoneAt(ctx.init.zones, ref.cx, ref.cz), flags: b.flags[i],
   });
   const palette: CityPalette = { wall: look.wall, trim: look.trim, roof: look.roofColor };
+  if (look.facade) palette.facade = look.facade; // W7-X: the downtown / Chinatown street faces (look.ts facadeFor)
   return {
     poly: ref.poly,
     baseY: b.baseY[i],

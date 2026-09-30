@@ -15,6 +15,11 @@ export interface CityAtmos { KarlState: new () => KarlState; cityFogK: typeof ci
  */
 
 export const TABLE_Y = -10.5;
+/**
+ * W7-X: how much of the city's own day sky shows per time of day (a bluer zenith and toy cloud puffs, city mode only).
+ * Golden hour and night keep the palette's skies; the morning is Karl's, so a little less.
+ */
+export const CITY_DAY_SKY: Readonly<Record<TimeOfDay, number>> = { morning: 0.6, day: 1, golden: 0, night: 0 };
 /** Normalised moon direction (sky disc, water glitter). */
 export const MOON = new THREE.Vector3(...MOON_DIR).normalize();
 /**
@@ -78,12 +83,50 @@ uniform float uTime;
 uniform float uKarl;
 uniform vec3 uKarlColor;
 uniform float uMoonPhase;
+uniform float uCityDay;
 varying vec3 vDir;
 float h1(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+// W7-X (city, by day): toy cloud puffs hung on the dome — a row of cells around the horizon, about one in three holds a
+// flat-bottomed cumulus of four round puffs (white top, soft blue-grey belly), drifting slowly east. x = coverage, y = shade
+vec2 obPuffs(vec3 d) {
+  float el = asin(clamp(d.y, -1.0, 1.0));
+  float v = (el - 0.07) / 0.2;
+  if (v < 0.0 || v > 2.0) return vec2(0.0);
+  float row = floor(v);
+  float u = (atan(d.z, d.x) / 6.2832 + 0.5) * 17.0 + uTime * 0.0016 + row * 0.5;
+  float cov = 0.0, sh = 1.0;
+  for (int i = -1; i <= 1; i++) {
+    float cx = floor(u) + float(i);
+    vec3 key = vec3(mod(cx, 17.0), row, 0.0);
+    float h = h1(key + vec3(0.0, 0.0, 17.0));
+    if (h > (row < 0.5 ? 0.42 : 0.26)) continue;
+    float s = 0.2 + 0.1 * h1(key + vec3(0.0, 0.0, 8.1)) - row * 0.03;
+    vec2 o = vec2(cx + 0.25 + 0.5 * h1(key + vec3(0.0, 0.0, 3.3)), row + 0.35 + 0.2 * h1(key + vec3(0.0, 0.0, 5.7)));
+    // local frame in cloud heights (an azimuth cell is ≈ 21°, a row ≈ 11.5°: the aspect keeps the puffs round)
+    vec2 q = vec2((u - o.x) * 1.83 * cos(el), v - o.y) / s;
+    float w = h1(key + vec3(0.0, 0.0, 9.9));
+    float dd = min(min(length(q - vec2(-0.95, -0.05)) - 0.52, length(q - vec2(-0.3, 0.28 + 0.1 * w)) - 0.74),
+                   min(length(q - vec2(0.5, 0.12)) - 0.62, length(q - vec2(1.12, -0.08)) - 0.42 - 0.1 * w));
+    dd = max(dd, -(q.y + 0.34));
+    float aa = fwidth(dd) + 0.02;
+    float c = 1.0 - smoothstep(-aa, aa, dd);
+    if (c > cov) { cov = c; sh = smoothstep(-0.34, 0.75, q.y); }
+  }
+  return vec2(cov * smoothstep(0.0, 0.25, v) * 0.96, sh);
+}
 void main() {
   vec3 d = normalize(vDir);
   float y = d.y;
   vec3 col = y > 0.0 ? mix(uHorizon, uTop, pow(smoothstep(0.0, 0.62, y), 0.75)) : mix(uHorizon, uBottom, smoothstep(0.0, -0.18, y));
+  if (uCityDay > 0.0 && y > 0.0) {
+    // W7-X: the city's day sky — the horizon keeps the haze (= the fog, so far blocks settle into it), a pale blue from a
+    // few degrees up and a clear toy blue overhead (the district's palette.ts sky is untouched: uCityDay is 0 there)
+    vec3 cs = mix(uHorizon, vec3(0.60, 0.75, 0.86), smoothstep(0.0, 0.13, y));
+    cs = mix(cs, vec3(0.17, 0.42, 0.74), pow(smoothstep(0.07, 0.8, y), 0.85));
+    vec2 pc = obPuffs(d);
+    cs = mix(cs, mix(vec3(0.70, 0.76, 0.84), vec3(0.98, 0.975, 0.96), pc.y), pc.x);
+    col = mix(col, cs, uCityDay);
+  }
   // golden hour: pink anti-solar "Belt of Venus" just above the horizon opposite the sun
   vec2 sxz = normalize(uSunDir.xz + 1e-5);
   float anti = pow(max(dot(normalize(d.xz + 1e-5), -sxz), 0.0), 2.0);
@@ -160,6 +203,9 @@ export class Environment {
   /** ground height under the camera (city mode fog), set by the world */
   groundAt: ((x: number, z: number) => number) | null = null;
   private fogK = 1;
+  /** W7-X: the city's day-sky weight (CITY_DAY_SKY per time of day, blended like the presets; 0 in district mode) */
+  private cityDay = 0;
+  private cityDayTarget = 0;
   /** Karl the Fog (city mode only, null in district: uKarl stays 0): the world sets its `?karl` flag, the cloud bank reads it */
   readonly karl: KarlState | null;
   private cityFogK: typeof cityFogK | null;
@@ -179,7 +225,7 @@ export class Environment {
         uTop: { value: new THREE.Color() }, uHorizon: { value: new THREE.Color() }, uBottom: { value: new THREE.Color() },
         uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunColor: { value: new THREE.Color() }, uSunDisc: { value: 1 }, uNight: U.uNight,
         uMoonDir: { value: MOON.clone() }, uGolden: { value: 0 }, uTime: U.uTime,
-        uKarl: KARL.uKarl, uKarlColor: KARL.uKarlColor, uMoonPhase: { value: -1 },
+        uKarl: KARL.uKarl, uKarlColor: KARL.uKarlColor, uMoonPhase: { value: -1 }, uCityDay: { value: 0 },
       },
       vertexShader: SKY_VERT,
       fragmentShader: SKY_FRAG,
@@ -284,8 +330,9 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
     this.tod = tod;
     this.karl?.setTime(tod, instant);
     this.target = toLive(TIME_PRESETS[tod]);
+    this.cityDayTarget = this.mode === 'city' ? CITY_DAY_SKY[tod] : 0;
     this.blend = instant ? 1 : 0;
-    if (instant) { this.live = toLive(TIME_PRESETS[tod]); this.apply(); }
+    if (instant) { this.live = toLive(TIME_PRESETS[tod]); this.cityDay = this.cityDayTarget; this.apply(); }
   }
   get timeOfDay() { return this.tod; }
   /** W5-V10 (city): the sky moon's phase, 0 new … 0.5 full … 1 (realsf/moon.ts); < 0: the full moon (district) */
@@ -315,7 +362,9 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
   update(dt: number, camera: THREE.Camera, focus: THREE.Vector3) {
     if (this.blend < 1) {
       this.blend = Math.min(1, this.blend + dt / 2.2);
-      lerpLive(this.live, this.target, Math.min(1, dt * 2.2 + (this.blend >= 1 ? 1 : 0)));
+      const k = Math.min(1, dt * 2.2 + (this.blend >= 1 ? 1 : 0));
+      lerpLive(this.live, this.target, k);
+      this.cityDay += (this.cityDayTarget - this.cityDay) * k;
       this.apply();
     }
     if (this.cityFogK) {
@@ -358,6 +407,7 @@ diffuseColor.rgb *= mix(0.9, 1.0, smoothstep(${T.dark0.toFixed(1)}, ${T.dark1.to
     su.uSunColor.value.copy(L.sunColor);
     su.uSunDisc.value = L.sunDisc;
     su.uGolden.value = L.golden;
+    su.uCityDay.value = this.cityDay;
     this.sun.color.copy(L.sunColor);
     this.sun.intensity = L.sunIntensity;
     this.hemi.color.copy(L.hemiSky);
