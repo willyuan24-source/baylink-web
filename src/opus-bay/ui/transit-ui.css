@@ -5,6 +5,9 @@
   --ob-line-color: #2f6fb0;
 }
 .ob-subway.is-on { opacity: 1; pointer-events: auto; }
+/* (W7-B2, lane B, surgical) a sheet opened on an underground ride (Esc → Settings, which now also stands the train)
+   shows above the tunnel instead of opening unseen under it */
+.ob-overlay:has(.ob-subway.is-on) .ob-sheet { z-index: 41; }
 
 /* tunnel lamps: warm streaks sliding past on both walls while moving; still at a station */
 .ob-subway-tunnel { position: absolute; inset: 0; perspective: 600px; }

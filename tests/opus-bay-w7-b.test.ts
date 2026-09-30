@@ -159,3 +159,11 @@ test('W7-B2: the city fleet wires the game\'s pause into its Metro (world/sf/lin
     assert.ok(train.v > 5, 'released: goes on');
   } finally { game.set({ paused: false }); platform.releasePlatformStop('n-judah'); fleet.dispose?.(); }
 });
+
+test('W7-B2: a sheet opened on an underground ride (Esc → Settings, which stands the train) shows above the subway overlay (ui/transit-ui.css)', () => {
+  const css = fs.readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay/ui/transit-ui.css'), 'utf8');
+  const z = (re: RegExp) => Number(re.exec(css)?.[1] ?? NaN);
+  const subway = z(/\.ob-subway \{[^}]*z-index: *(\d+)/);
+  const sheet = z(/\.ob-overlay:has\(\.ob-subway\.is-on\) \.ob-sheet \{[^}]*z-index: *(\d+)/);
+  assert.ok(subway > 0 && sheet > subway, `sheet ${sheet} over the subway ${subway}`);
+});
