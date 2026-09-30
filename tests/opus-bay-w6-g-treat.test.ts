@@ -54,14 +54,15 @@ test('W6-G2 rules: the season rolls daily (more in the treat hours), the big nig
   const other = TREAT_DOORS.filter(d => treat.doorAnswers(d.n, 'season', '2026-10-13', false) !== treat.doorAnswers(d.n, 'season', day, false)).length;
   assert.ok(other > 0, 'another day, other doors');
   // a door that answers gives one candy and pays door:n
-  const open = TREAT_DOORS.find(d => treat.doorAnswers(d.n, 'season', day, false))!;
+  // (W7-G7: live doors only — a gone door is never knocked)
+  const open = TREAT_DOORS.find(d => !d.gone && treat.doorAnswers(d.n, 'season', day, false))!;
   const k = treat.knockResult(open.n, 'season', day, false, none);
   assert.equal(k.kind, 'treat');
   if (k.kind === 'treat') {
     assert.equal(k.pieces, 1);
     assert.deepEqual(k.pays, [{ source: `halloween:door:${open.n}`, coins: treat.DOOR_COINS }]);
   }
-  const shut = TREAT_DOORS.find(d => !treat.doorAnswers(d.n, 'season', day, false))!;
+  const shut = TREAT_DOORS.find(d => !d.gone && !treat.doorAnswers(d.n, 'season', day, false))!;
   assert.equal(treat.knockResult(shut.n, 'season', day, false, none).kind, 'nobody');
   // after the treat: again (not paid twice)
   const paidOpen = (s: string) => s === `halloween:door:${open.n}`;
@@ -87,7 +88,7 @@ test('W6-G2 rules: the season rolls daily (more in the treat hours), the big nig
 });
 
 test('W6-G2 geometry: a door ≤ DOOR_TRIS_MAX triangles (a street of ten in one mesh), glows in the treat hours, dark when nobody answers; swing and candy small', () => {
-  const d = TREAT_DOORS[0];
+  const d = TREAT_DOORS.find(x => !x.gone)!;
   const one = mesh.buildDoorsGeometry([d], () => ({ answers: true, bright: true, open: false }));
   assert.ok(mesh.trianglesOf(one) <= mesh.DOOR_TRIS_MAX, `${mesh.trianglesOf(one)} triangles a door`);
   const street = mesh.buildDoorsGeometry(TREAT_DOORS.filter(x => x.street === d.street), () => ({ answers: true, bright: false, open: false }));

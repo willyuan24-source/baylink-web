@@ -7,7 +7,7 @@ import { toast } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { charApi } from '../actors/charApi';
 import { PLAYER_HEIGHT } from '../actors/dims';
-import { isPaid } from '../economy/ledger';
+import { coinsTotal, isPaid } from '../economy/ledger';
 import { bayParts } from '../game/bayNow';
 import { cinemaActive } from '../game/cinema';
 import { bubble, busy, teleportPlayer } from '../game/flow';
@@ -21,7 +21,7 @@ import { getWorld, type WorldSystem } from '../world/world';
 import { hLine } from './lines';
 import { halloweenPhase, isTreatHour, type HalloweenPhase } from './season';
 import { GOAL_DOORS } from './progress';
-import { allDoorsKnocked, candyCount, doorAnswers, doorsDressed, doorsKnocked, knockResult, treatMilestone, type BagState, type Knock } from './treat';
+import { allDoorsKnocked, candyCount, doorAnswers, doorOnLot, doorsDressed, doorsKnocked, knockResult, treatMilestone, treatToast, type BagState, type Knock, type LotBox } from './treat';
 import { setTreatNear } from './treatNear';
 import { TREAT_DOORS, type TreatDoor } from './treatDoors';
 import { buildCandyGeometry, buildDoorsGeometry, buildSwingGeometry, doorMaterial, doorPoints, DOOR_PAINTS, trianglesOf, type DoorLook } from './treatMesh';
@@ -178,10 +178,12 @@ export function initTreat(): TreatRun {
     a.paid = true;
     const k = a.knock;
     const before = bagState();
+    const c0 = coinsTotal();
     for (const p of k.pays) emit({ type: 'reward', source: p.source, coins: p.coins });
     const after = bagState();
     const bag = after.bag;
-    toast({ zh: `得到${k.candy.name.zh}${k.pieces > 1 ? ' ×2' : ''}！糖果袋 ${bag} 颗`, en: `${k.pieces > 1 ? 'Double treat' : 'Treat'}: ${k.candy.name.en}! Candy bag: ${bag}` }, 'gold', 3200);
+    // W7-G5: what this treat paid (the big night at a new door: door + night, three candies)
+    toast(treatToast(k.candy, k.pieces > 1, after.bag - before.bag, coinsTotal() - c0, bag), 'gold', 3200);
     // the season's goal (five doors) first, then every door, then the bag's milestones — only the one this treat crossed
     // (W6-G-review: "once a session" repeated the goal on a big-night knock at a door knocked in the season)
     const next = treatMilestone(before, after, GOAL_DOORS);
@@ -245,6 +247,19 @@ export function initTreat(): TreatRun {
     }
   };
 
+  // W7-G6: while the doors are dressed the kit swap leaves their houses alone (world/sf/kitSwap.ts, its own lazy chunk)
+  let skipOff: (() => void) | null = null, skipWant = false;
+  const lotSkip = (b: LotBox): boolean => {
+    for (const [id, c] of centreOf) if (Math.hypot(b.cx - c.x, b.cz - c.z) < c.r + 30 && doorOnLot(b, byStreet.get(id))) return true;
+    return false;
+  };
+  const syncKitSkip = (on: boolean) => {
+    if (on === skipWant) return;
+    skipWant = on;
+    if (!on) { skipOff?.(); skipOff = null; return; }
+    void import('../world/sf/kitSwap').then(k => { if (skipWant && !skipOff) skipOff = k.setKitSwapSkip(lotSkip); }).catch(() => { skipWant = false; });
+  };
+
   let acc = 1;
   const offFrame = registerFrameSystem('w6-halloween-treat', dt => {
     stepAnswering(dt);
@@ -257,6 +272,7 @@ export function initTreat(): TreatRun {
     const changed = ph !== phase || p.dateKey !== dateKey || th !== treatHour;
     phase = ph; dateKey = p.dateKey; treatHour = th;
     const dressed = !!offSystem && doorsDressed(phase);
+    syncKitSkip(dressed);
     const px = runtime.player.x, pz = runtime.player.z;
     let setChanged = false;
     for (const [id, c] of centreOf) {
@@ -309,6 +325,7 @@ export function initTreat(): TreatRun {
       if (answering) { answering.swing?.geometry.dispose(); answering.candy?.geometry.dispose(); answering = null; }
       for (const id of [...built.keys()]) drop(id);
       setTreatNear(false);
+      syncKitSkip(false);
       group.clear();
       offSystem?.();
       offSystem = null;

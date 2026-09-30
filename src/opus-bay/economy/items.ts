@@ -179,7 +179,13 @@ const seasonShown = (it: ItemDef): boolean => !it.season || !!seasonGate?.shown(
 /** Items the shop sells (wearables and conveniences with a price; not earned, hidden or retired; a seasonal one in season). */
 export const forSale = (it: ItemDef): boolean => it.price > 0 && !it.earn && !it.hidden && !it.retired && seasonOnSale(it);
 
-/** Items on a shelf now (the ticket only before the pelican; hidden and retired never). */
+/**
+ * Items on a shelf now (the ticket only before the pelican; hidden and retired never). W7-G3 (lane G): while a seasonal
+ * item is on sale it leads its shelf (the shop groups tiles by slot in this order, so its slot's group comes first too):
+ * on a phone the costumes sat behind the shelf's sideways scroll. Out of season an owned one keeps its usual place.
+ */
 export function shelfItems(shelf: Shelf, pelican: boolean): ItemDef[] {
-  return ITEMS.filter(it => it.shelf === shelf && !it.hidden && !it.retired && !(it.use === 'fly-ticket' && pelican) && seasonShown(it));
+  const list = ITEMS.filter(it => it.shelf === shelf && !it.hidden && !it.retired && !(it.use === 'fly-ticket' && pelican) && seasonShown(it));
+  const lead = (it: ItemDef) => !!it.season && seasonOnSale(it);
+  return [...list.filter(lead), ...list.filter(it => !lead(it))];
 }

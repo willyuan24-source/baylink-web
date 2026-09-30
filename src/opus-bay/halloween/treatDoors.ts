@@ -21,7 +21,9 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 5, street: 'belvedere', x: 21.45, z: 851.19, y: 23.59, f: 2.531 },
   { n: 6, street: 'belvedere', x: 16.91, z: 848.04, y: 23.31, f: 2.559 },
   { n: 7, street: 'belvedere', x: 10.64, z: 843.73, y: 22.46, f: 2.471 },
-  { n: 8, street: 'belvedere', x: 8.83, z: 827.46, y: 23.49, f: -0.785 },
+  // (W7-G7: door 8 was a Clayton Street face at the Parnassus end — 3.3 u from Clayton's centreline, 6.7 from
+  // Belvedere's; the W6 run only asked for a face parallel to Belvedere within 7 u — gone)
+  { n: 8, street: 'belvedere', x: 8.83, z: 827.46, y: 23.49, f: -0.785, gone: true },
   { n: 9, street: 'belvedere', x: 1.18, z: 838.3, y: 22.33, f: 2.53 },
   // Chenery Street (Elk Street → Diamond Street)
   { n: 10, street: 'chenery', x: 419.46, z: 1051.29, y: 16.54, f: 0.678 },

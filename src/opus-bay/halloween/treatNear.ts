@@ -18,12 +18,17 @@ export function onTreatNear(fn: () => void): () => void {
   return () => { nearFns.delete(fn); };
 }
 
-/** The phone rules (the breakpoint of ui/Hud.tsx `badgesBelow`). */
+/**
+ * The phone rules (the breakpoint of ui/Hud.tsx `badgesBelow`). W7-G4: near a trick-or-treat street the pill keeps its
+ * two lines (it was three, 58 px): its second line becomes the purse — 🪙 n · 🍬 n — in place of 目标 n/10 (the goals
+ * text is sized to nothing there, so a screen reader still reads it; the Journal shows the goals), no leading "·".
+ */
 export const CANDY_PHONE_CSS = `
 @media (max-width: 600px) {
   .ob-pill-badge:has(> .ob-candy[data-far]) { display: none; }
-  .ob-objective-text small .ob-pill-badges:has(.ob-candy:not([data-far])) { display: flex; margin-left: 0; }
-  .ob-objective-text small .ob-pill-badges:has(.ob-candy:not([data-far])) > .ob-pill-badge:first-child::before { content: none; }
+  .ob-objective-text small:has(.ob-candy:not([data-far])) { font-size: 0; gap: 0; }
+  .ob-objective-text small:has(.ob-candy:not([data-far])) .ob-pill-badges { font-size: 12px; margin-left: 0; }
+  .ob-objective-text small:has(.ob-candy:not([data-far])) .ob-pill-badge:first-child::before { content: none; }
 }
 `;
 

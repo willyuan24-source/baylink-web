@@ -40,8 +40,9 @@ test('W6-G-review 2: on a phone the candy badge shows only near a trick-or-treat
   assert.match(css, /@media \(max-width: 600px\)/);
   // far from the streets: hidden (the pill keeps its two lines)
   assert.match(css, /\.ob-pill-badge:has\(> \.ob-candy\[data-far\]\) \{ display: none; \}/);
-  // near: the badges take a line of their own and the first one loses its separator
-  assert.match(css, /\.ob-pill-badges:has\(\.ob-candy:not\(\[data-far\]\)\) \{[^}]*display: flex;/);
+  // near: (W7-G4) the goals line becomes the purse — the goals text sized to nothing, the badges kept, no leading "·"
+  // (the pill keeps two lines; it was three with the badges on a line of their own)
+  assert.match(css, /small:has\(\.ob-candy:not\(\[data-far\]\)\) \{ font-size: 0;/);
   assert.match(css, /:first-child::before \{ content: none; \}/);
   // the near state follows the streets built round the player
   assert.equal(badge.treatNear(), false);

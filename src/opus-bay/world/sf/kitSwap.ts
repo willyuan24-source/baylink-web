@@ -155,6 +155,18 @@ interface Holder { id: SfKitId; mesh: THREE.InstancedMesh; geo: THREE.BufferGeom
 
 const _o = new THREE.Object3D();
 
+/**
+ * W7-G6 (lane G, surgical): lots the swap leaves alone. halloween/treatRun.ts sets it while the trick-or-treat doors are
+ * dressed (the season and the big night): a house holding a treat door's porch stays the toy house the porch was built
+ * for, so no SAM kit house shows its own painted door beside the porch. Returns the undo.
+ */
+export type KitSwapSkip = (b: Pick<L0BuildingView, 'cx' | 'cz' | 'hx' | 'hz' | 'yaw'>) => boolean;
+let kitSkip: KitSwapSkip | null = null;
+export function setKitSwapSkip(fn: KitSwapSkip | null): () => void {
+  kitSkip = fn;
+  return () => { if (kitSkip === fn) kitSkip = null; };
+}
+
 export class KitSwap {
   readonly group = new THREE.Group();
   private readonly src: L0Source;
@@ -219,6 +231,8 @@ export class KitSwap {
       this.src.forEachL0Building(fx, fz, KIT_SWAP.rOut, (cell, k, b) => {
         const key = `${cell}:${k}`, d = Math.hypot(b.cx - fx, b.cz - fz), cur = this.entries.get(key);
         if (!cur && d > KIT_SWAP.rIn) return;
+        // (W7-G6: a skipped lot is never chosen: a kit house standing there leaves after the dwell)
+        if (kitSkip && kitSkip(b)) return;
         const fit = this.fitOf(key, b);
         if (fit) cands.push({ key, cell, k, fit, score: cur && cur.phase !== 'out' ? d - (KIT_SWAP.rOut - KIT_SWAP.rIn) : d });
       });

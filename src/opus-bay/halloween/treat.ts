@@ -103,6 +103,38 @@ export function treatMilestone(before: BagState, after: BagState, goalDoors: num
   return null;
 }
 
+/**
+ * W7-G5 · the treat's gold toast: what THIS treat paid — the candies it put in the bag (1 in the season; 2 on the big
+ * night, 3 at a door never knocked before: `door:<n>` + `night:<n>`) and the coins the ledger gave (0: not shown).
+ */
+export function treatToast(candy: Candy, big: boolean, added: number, coins: number, bag: number): { zh: string; en: string } {
+  const n = Math.max(1, added);
+  const times = n > 1 ? ` ×${n}` : '';
+  return {
+    zh: `${big ? '双倍糖果' : '得到'}${big ? '：' : ''}${candy.name.zh}${times}！${coins > 0 ? `+${coins} 金币 · ` : ''}糖果袋 ${bag} 颗`,
+    en: `${big ? 'Double treat' : 'Treat'}: ${candy.name.en}${times}! ${coins > 0 ? `+${coins} coins · ` : ''}Candy bag: ${bag}`,
+  };
+}
+
+/** An L0 building's box: its centre, half sizes and yaw (three.js: local +z → (sin yaw, cos yaw)). */
+export interface LotBox { cx: number; cz: number; hx: number; hz: number; yaw: number }
+
+/**
+ * W7-G6 · whether a building's box holds a treat door (within `margin` of it): the kit swap leaves that lot alone in
+ * the season (world/sf/kitSwap.ts setKitSwapSkip), so G's porch keeps the toy house it was built against.
+ */
+export function doorOnLot(b: LotBox, doors: readonly TreatDoor[] = TREAT_DOORS, margin = 0.6): boolean {
+  const s = Math.sin(b.yaw), c = Math.cos(b.yaw), reach = Math.hypot(b.hx, b.hz) + margin;
+  for (const d of doors) {
+    if (d.gone) continue;
+    const dx = d.x - b.cx, dz = d.z - b.cz;
+    if (dx * dx + dz * dz > reach * reach) continue;
+    const lx = dx * c - dz * s, lz = dx * s + dz * c;
+    if (Math.abs(lx) <= b.hx + margin && Math.abs(lz) <= b.hz + margin) return true;
+  }
+  return false;
+}
+
 /** W6-G-review: the 万圣节 page offers 带我去 to a street only while its doors are dressed and some are left to knock. */
 export const streetGoOffered = (phase: HalloweenPhase, knocked: number, total: number): boolean => doorsDressed(phase) && knocked < total;
 

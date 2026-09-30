@@ -106,3 +106,44 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
 ### Known gaps
 
 - `back` / `head` / `neck` on the pelican exist in the slot table but nothing uses them yet (a pumpkin bow later).
+
+## Part c · the Halloween games' polish (W7-G3 … G7, 21:45–23:00 PDT)
+
+### What was built
+
+| item | files | what |
+|---|---|---|
+| (3) seasonal first (W7-G3) | `economy/items.ts` `shelfItems` | while a seasonal item is on sale it leads its shelf (the shop groups tiles by slot in this order, so its slot's group comes first): BAYBAY 女巫帽, 南瓜头 then 毛线帽…; 我 猫耳朵, 小幽灵 first; 坐骑 蝙蝠翅膀 then 鹈鹕丝带 and the paints. Out of season an owned one keeps its append-order place. The `ITEMS` order (the save's indices) is unchanged |
+| (4) the phone pill (W7-G4) | `halloween/treatNear.ts` `CANDY_PHONE_CSS` (injected by play.ts) | near a trick-or-treat street the pill keeps **two lines**: its second line becomes the purse 🪙 n · 🍬 n in place of 目标 n/10 (the goals text is sized to nothing, still read by a screen reader; the Journal and the goals card show the goals), no dangling "·". Far from the streets as before (no bag) |
+| (5) the treat toast (W7-G5) | `halloween/treat.ts` `treatToast`, `treatRun.ts` | the toast counts what THIS treat paid: 得到巧克力！+5 金币 · 糖果袋 4 颗 in the season; on the big night 双倍糖果：巧克力 ×2！… and at a door never knocked before ×3 and +10 金币 (`door:<n>` + `night:<n>`); the coins are the ledger's own delta (0: not shown) |
+| (6) the kit-swap skip (W7-G6) | `world/sf/kitSwap.ts` (surgical: `setKitSwapSkip`, one line in `reselect`), `halloween/treat.ts` `doorOnLot`, `treatRun.ts` | while the doors are dressed a lot whose box holds a treat door (within 0.6 u) is never chosen for a SAM kit house (one already there leaves after the dwell): the porch keeps the toy house it was built against. Set through a dynamic import (kitSwap is its own chunk), cleared when the season ends or the feature stops |
+| (7) Belvedere (W7-G7) | `halloween/treatDoors.ts` | measured on the published city (scratch `opus-qa/w7/g/belv.mts`: the 17th St crossing (43.2, 859.9), Parnassus (0.8, 830.0), a 51.9 u block): **no door was past Parnassus**; door 8 stood on a **Clayton Street** face at the Parnassus end (3.3 u from Clayton's centreline, 6.7 from Belvedere's — the W6 run only asked for a face parallel to Belvedere within 7 u) → `gone: true` (append-only). Doors 1–3 stand 4–10 u past the 17th St end, on Belvedere itself (5.5–6.7 u from it): kept. 53 doors to knock (Belvedere 8) |
+| (8) goals card row | — | not done (below) |
+| (9) templated lines | — | checked: every BAYBAY bubble of lane G is a fixed line of `halloween/lines.ts` (`sayLine(id)` → `hLine`), the postcard's and the wings' lines included; the numbers live in toasts / the page, never in a bubble. Nothing to split |
+| tests | `tests/opus-bay-w7-g-polish.test.ts` (new, 5; red before the fix: the full-suite run at 22:07 had these five red and everything else green), `tests/opus-bay-w6-g-review.test.ts` (the W6 near rule → the purse rule), `tests/opus-bay-w6-g-treat.test.ts` (picks live doors) | |
+
+### Evidence
+
+- Phone 390 × 844 dpr 3, quality mid, `?halloween=night&lang=zh-Hans`, a fresh save: at Belvedere the pill reads
+  明信片 0/24 / 🪙 0 · 🍬 0 — **42.5 px, two lines** (it was 58 px, three lines, in W6); a knock on a door never knocked
+  before: the toast 双倍糖果：巧克力 ×3！+10 金币 · 糖果袋 3 颗, the pill 🪙 10 · 🍬 3, still 42.5 px
+  (`qa/w7/G/c-phone-toast.jpg`). The shop on the phone in season: 坐骑 opens on 蝙蝠翅膀 100 before 鹈鹕丝带 90
+  (`c-phone-shop-rides.jpg`); BAYBAY's shelf reads 女巫帽, 南瓜头, 毛线帽, 遮阳帽, 水手帽, then the scarves.
+- Checks (22:57): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1538 / 1538**.
+- The kit skip: unit-tested on the real `KitSwap` class (a door's lot never swaps while the skip is set, swaps after,
+  a swapped one leaves when it is set again). In the live dev runs the swap had 0 houses on at the spots tried (the
+  Ferry plaza, Chenery door 12) whether or not the skip was set, so an in-game A/B shot was not possible tonight.
+
+### Decisions
+
+- The pill: the purse instead of the goals count near a street (the goals count is one tap away and on the goals card);
+  a narrower badge or a third line both failed the two-line rule in W6's measurements.
+- Belvedere: only the door that is not on Belvedere goes; the doors just past 17th St are Belvedere houses (the closure
+  block is where the street closes, not where people knock). No replacement door: the only other in-block face the
+  script's checks accept (with relaxed parallel / distance limits) is also a Clayton face (4.4 u from Clayton).
+
+### Known gaps
+
+- Door-to-street checks for the other five streets were not re-run (a face nearer another parallel street could exist
+  there too, as on Belvedere).
+- The kit skip was not seen in a live A/B (above).
