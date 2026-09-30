@@ -49,7 +49,8 @@ desktop, Halloween night, muertos, the two iPhone sizes ×2, the games, district
    390 × 664 unchanged (488–596). Shots `goals-375x553-before.jpg` / `goals-375x553-after.jpg`. CSS only (no node test can
    measure it; verified live at both sizes).
 2. **万圣节 page touch targets** (lane G's `halloween/halloween.css`, wave-6 code; surgical): 带我去 32 px and 去小铺试穿
-   36 px tall on phones → `@media (pointer: coarse)` min-height 44 px. Shot `halloween-page-before.jpg`.
+   36 px tall on phones → `@media (pointer: coarse)` min-height 44 px. Verified live at 390 × 844: all six 带我去 87 × 44,
+   去小铺试穿 172 × 44. Shots `halloween-page-before.jpg` / `halloween-page-after.jpg`.
 
 Checks on the pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) ·
 `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1660 / 1660**.
@@ -57,8 +58,14 @@ Checks on the pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx esl
 ## Open items (not blocking)
 
 - **BAYBAY talks while a mini-game panel is up**: with the claw panel open, the crab-wheel 螃蟹方向盘 line (another
-  system's landmark bark) fired; its bubble sits under the panel, so the voice plays with no visible text. A shared
-  "a play panel is open → hold ambient barks" gate (flow / baybayLines) is the fix; next wave.
+  system's landmark bark) fired; its bubble sits under the panel, so the voice plays with no visible text. Why: the two
+  ambient-line gates — `game/cityMoments.ts` `stepPacer` (`silent`) and `game/baybayLines.ts` (`sched.step` `silent`) —
+  know the dialogue, panels, the city postcard reward and the goals step, but not the lazy overlays that came later
+  (`ui/slots.ts` `openOverlays()`: `play-claw`, `play-crab`, `play-dough`, `play-fortune`, `w2-skyline`, `h-postcard`,
+  `egg-card`). The fix is one clause in both gates, `openOverlays().some(o => HOLD_LINES.has(o.id))` with the ids as
+  strings (importing the games' modules would pull their lazy chunks into GameRoot); not `openOverlays().length > 0`,
+  because the play chip / first-flight chip are overlays too and would silence the glide lines. Not done tonight: it
+  changes two shared gates at the deadline and wants a node test through the pacer; next wave (lead / lane K).
 - **The neighbourhood greeting during the 万圣节明信片 card**: 你好，海特-阿什伯里！ bubbled under the card's scrim. Same gate.
 - **Map tool buttons 36 × 36** (zoom, find me, whole city, legend, compass) and the waypoint 隐藏 × 24 × 24 on desktop:
   wave-4 code, under 44 px on a phone. Not changed tonight (the map layout is dense; lane Q's area next wave).
@@ -72,3 +79,9 @@ Checks on the pushed tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx esl
 ## Blocking the go-live
 
 None.
+
+## Housekeeping
+
+Dev server 5719 stopped; no Chrome of mine left (each run closes its own). The second push (this report's verification
+lines and `halloween-page-after.jpg`) re-ran the checks on the same code: see the commit message. The worktree's
+`node_modules` junction is removed with `cmd /c rmdir` first, then `git worktree remove` (no `--force`).
