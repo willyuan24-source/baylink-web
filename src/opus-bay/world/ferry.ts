@@ -7,6 +7,7 @@ import { DISTRICT } from '../data/district';
 import { FERRY, FERRY_ROUTES, GATE_E_HEADING, type FerryLine, buildFerryLine, ferryPoint } from '../data/ferry';
 import { activeFerrySystem, pendingFerry, setActiveFerrySystem, setPendingFerry } from '../data/transit';
 import type { CarPose, RideStatus, RiderRequest } from './transitLine';
+import { spawnFx } from './fx';
 
 /**
  * The rideable ferry (lane F, checkpoint F8), city mode. After the arrival cinematic the arrival ferry (world/life.ts
@@ -200,11 +201,15 @@ export const FERRY_PLATFORM = {
 };
 
 const HEAR = 90;
+/** the wake's foam: the water datum (district water at −0.6) and how near the player must be (u) */
+const WAKE_Y = -0.58, WAKE_NEAR = 160;
 
 /** City mode: the ferry system, its platform and events (life.ts draws the boat from the system's pose). */
 export class FerryLayer {
   readonly sys: FerrySystem;
   private handedOver = false;
+  /** wave 7 (lane V, W7-V2): seconds to the next foam puff of the wake */
+  private wakeIn = 0;
 
   constructor() {
     const def = FERRY_ROUTES.find(r => r.running)!;
@@ -232,6 +237,14 @@ export class FerryLayer {
     const b = sys.boat, p = runtime.player;
     setPlatformPose(FERRY_ID, b.pose, dt);
     const d = Math.hypot(b.pose.x - p.x, b.pose.z - p.z), mine = b.rider;
+    // wave 7 (lane V, W7-V2): foam in the wake and a little spray at the bow while the boat makes way (the shared fx
+    // pool: no draw of its own; only while the player is near enough to see it)
+    if (b.v > 1.2 && d < WAKE_NEAR && (this.wakeIn -= dt) <= 0) {
+      this.wakeIn = 0.14;
+      const fx = Math.sin(b.pose.heading), fz = Math.cos(b.pose.heading), half = FERRY.length / 2;
+      spawnFx('wake', b.pose.x - fx * half, WAKE_Y, b.pose.z - fz * half, { scale: Math.min(1.2, 0.5 + b.v * 0.08) });
+      if (Math.random() < 0.3) spawnFx('splash', b.pose.x + fx * (half - 0.6), WAKE_Y, b.pose.z + fz * (half - 0.6), { scale: 0.45, count: 3 });
+    }
     for (const e of sys.events) {
       const base = { type: 'transit' as const, line: FERRY_ID, kind: 'ferry' as const };
       // the horn on leaving (the ferry's own: audio F10), from out on the water when you are not aboard
