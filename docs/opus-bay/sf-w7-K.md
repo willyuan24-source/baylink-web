@@ -8,7 +8,10 @@ except `GameRoot.tsx`, `voiceW5.ts`, `w5Features.ts`, `album.ts`, `photo.ts`; `d
 ## 给主人的摘要
 
 1. 镜头和行道树：跟随镜头如果会站进一棵行道树的树冠里（B 线审查员在鲍威尔街·萨克拉门托街等车时看到的），现在会自动抬高到树冠上方；坐叮当车时，镜头会避开挡在镜头和你之间的树冠（站着坐都算）。但海德街很窄，路边的树冠几乎贴着车的踏板，坐在长椅上时镜头离你只有 4 格，树叶还是会占掉大半个画面——这需要让"贴着你的树冠"变半透明，已经写进请求里，留给下一波。
-2. （后续部分完成后补充）
+2. 停在叮当车/电车/公交/地铁轨道上的空玩具车或单车，车来之前会"蹦"一下跳到路边（和路上小汽车让路的动作一样），不再被穿过去；BAYBAY 自己站在轨道上时，车来了她会先跳到一边。
+3. 杰斐逊街（渔人码头）左上角地名现在写「渔人码头」，不再是「北滩」，BAYBAY 也不会在那里说"你好，北滩！"；华盛顿广场写「北滩」，不再误写「唐人街」（原因是地图格子太粗，全城边界上 28 处同类错误一起修好）。
+4. 上一波手机上"新存档的目标卡片让地铁坐到一半就结束"的问题，我按同样路线在手机上完整重演了两次（坐车时卡片弹出、关掉），车都一直开到终点；没能复现，已写测试锁住"卡片和它的暂停永远不会结束行程"。
+5. 手机上活动小条里的「放弃」按钮加大到 50×44（手指好按）；手机切到后台/锁屏或者转屏时，摇杆会自动松开，回来后人物不会自己往前走；飞行时每帧不再新建一个小对象。
 
 ## Part a (2026-09-29, 20:24–21:55 PDT): the street trees in the cameras' ray tests
 
@@ -96,3 +99,135 @@ except `GameRoot.tsx`, `voiceW5.ts`, `w5Features.ts`, `album.ts`, `photo.ts`; `d
   define on `TOY_INST_TINT` (the street trees' material) whose fade tube keeps its 2.2 u radius all the way to the
   player and ignores the `L − 1.2` / `+0.35` cut-offs, or a per-instance fade the camera sets for the ≤ 3 canopies
   `CityProps.treesNear(player, 2)` returns while riding. The query is there; the shader is not lane K's.
+
+## Part b (2026-09-29, 21:55–23:25 PDT): the parked ride and BAYBAY on the rails, the goals card, the area pill, 放弃
+
+### What was built
+
+- **The tow (item 2)**, new `actors/vehicles/transitClear.ts` (city only: statically imported by `cityBikes.ts`, the
+  city's lazy ride module; nothing in GameRoot): `clearTransitPaths(fleet, dt)` at 5 Hz takes streetNet's road-vehicle
+  list (`collectRoadVehicles`: the cable cars, the F-line, the loop buses, the Metro within 250 u of the player) and, for
+  every parked ride that is `displaced` (driven off its spot), not `occupied`, not called and not already towing, asks
+  `pathSide(q, x, z, r, reach)`: beside the vehicle's centre line within its half width + the ride's radius, from its
+  tail to `TOW_REACH` 10 u + `LEAD_S` 1 s of its speed ahead of its nose. A hit tows it: `towSpot()` finds a pose beside
+  the lane, parallel to the vehicle, the ride's half width + `TOW_GAP` 0.7 u past the vehicle's side, on the side the
+  ride stood on first (up to +2.5 u out, either way round; `collide.poseCheck` must pass and the spot must be off every
+  transit path; else `findFit` within 8 u). `actors/vehicles/fleet.ts`: `Fleet.tow(ride, x, z, heading)` and
+  `Ride.tow` / `Ride.hopY`, stepped by `idle()` over 1 / `TOW_RATE` = 0.5 s with a smoothstep and a `TOW_HOP` 0.35 u hop
+  (the toy traffic's give-way hop: `world/sf/traffic.ts` HOP_UP 0.35, LEAVE_RATE 2), a squash on landing; a player who
+  gets in ends it where it is; `home()` clears it. `CityBikePool.update` runs it every frame and republishes the
+  rideables after a tow.
+- **BAYBAY steps off the rails (item 2)**, `actors/guide.ts`: `setTransitAside(fn)`; `GuideMover.step` asks it at 5 Hz
+  while playing and not riding, and dashes to the answer (`dash(to, ≥ 0.25 s)`, running legs; `asides` counts it).
+  `transitClear.guideAside(x, z)`: the same path test with `ASIDE_REACH` 12 u + 1 s of speed, the spot beside the
+  vehicle on her side (`canStand`), else the other side, else the nearest walkable spot. Registered by `cityBikes.ts` at
+  load (city mode), cleared on its dispose. The district never registers it.
+- **The goals card and the ride (item 3)**: no code change (not reproduced, see Evidence); the invariant is pinned by
+  `tests/opus-bay-w7-k3-goals.test.ts`.
+- **The area pill (item 4)**, `data/cityZones.ts`: `WHARF_AREA` 渔人码头 / Fisherman's Wharf, a polygon on the street
+  grid from Aquatic Park's east shore and the Hyde Street Pier east to Pier 35 / The Embarcadero & Bay St, south to Bay /
+  North Point St. The extent is from https://en.wikipedia.org/wiki/Fisherman%27s_Wharf,_San_Francisco (checked
+  2026-09-29: "from Pier 35 and the intersection of The Embarcadero and Bay Street westward to Hyde Street and Aquatic
+  Park", north of Russian Hill / North Beach); the corner points are approximate lat / lng on the OSM street grid (a
+  label's edge, not a surveyor's). `cityAreaAt` checks it after the hero's own places (39 号码头, 33 号码头 … keep their
+  names) and before the hero's catch-all 内河码头 (it covered Jefferson St east of Taylor) and the DataSF zone;
+  `zoneName('fishermans-wharf')`. The area id has no recorded greeting (`farZone` is null), so BAYBAY says nothing there
+  instead of 你好，北滩！. **Washington Square**: the cause was not a hero-zone override. The provider answers from
+  `far.zoneGrid` (16 u cells; `core/sfTerrain.ts` zoneAt, frozen) and the square's cell is Chinatown's although the point
+  lies in North Beach's polygon. `exactZone()` checks the answer's polygon and takes the neighbouring cell's zone whose
+  polygon holds the point (a landmark area still answers first inside its radius, by design: the Dragon Gate's 唐人街).
+  The other hero-zone overrides were checked: they are exact district polygons, not the grid.
+- **放弃 ≥ 44 px (item 5)**, `play/play.css` (surgical, lane A's file): `@media (pointer: coarse) { .ob-play-chip
+  .ob-play-btn { min-height: 44px; min-width: 44px } }`, after the chip's 36 px and the quiet button's 34 px rules.
+- Tests: `tests/opus-bay-w7-k2-transit.test.ts` (3: the published Powell–Hyde in node, a control run where the cable
+  car's body goes over the parked toy car (gap −1.50 u), then with the tow: towed 2.7 s before the car arrives, moved
+  2.20 u, the car's side passes 0.69 u from it, the landed pose fits and is parallel; occupied / at its spot / far / the
+  traffic's or the player's own vehicle: no tow; BAYBAY steps aside from a car coming at her, not from one going away,
+  the traffic, or while riding), `tests/opus-bay-w7-k3-goals.test.ts` (1), `tests/opus-bay-w7-k4-zones.test.ts` (2,
+  **red on the old file**: "Jefferson & Hyde", and "28 of 1014 points named for the neighbouring cell's zone"),
+  `tests/opus-bay-w7-k5-chip.test.ts` (1: the rule and its place in the cascade).
+
+### Evidence
+
+- Played, phone 390 × 844 dpr 3, zh (`C:/Users/willy/opus-qa/w7/k/partb.mjs`, images read):
+  - the pill at Jefferson & Taylor and Jefferson & Hyde: **渔人码头 · Jefferson Street** (area `fishermans-wharf`; the
+    arrival card 抵达 渔人码头); at Washington Square: **北滩 · Columbus Avenue**, BAYBAY greets 你好，北滩！这里是旧金山的
+    「小意大利」 (`docs/opus-bay/qa/w7/K/b-wharf-washington-square-giveup-phone.jpg`, left and middle);
+  - the tow (lane B's b1 setup: the empty toy car across the California St rails 75 u ahead of a running car, the player
+    14 u off): the car stood at a stop 15 u short, set off, the tow started with the car's nose ≈ 10 u away, the toy car
+    hopped 2.2 u aside and the car passed with 0.6 u between its side and the toy car
+    (`b-toy-car-towed-california-phone.jpg`). After this run the reach grew by 1 s of the vehicle's speed (`LEAD_S`):
+    in node the tow now starts 1 s earlier (9.3 s vs 10.3 s);
+  - the activity chip (爬楼梯比赛 · 6.4 · 你领先！ · 放弃, shown through `play/chip.ts showChip`): 放弃 measures
+    **50 × 44** CSS px, `(pointer: coarse)` true (74 × 36 in lane W's review) (the same image, right).
+- **Item 3, the goals card and the N ride: not reproduced.** Played on the phone twice (`nride.mjs`): a new save
+  (`save=off`), Start, the N from Duboce Park boarded while the welcome was open, the welcome's 我自己逛逛 chosen
+  mid-ride: the goals step opened over the ride (the `panel` hold on the feet). Run 1, the step left open: the train ran
+  through the Sunset Tunnel to **Judah & La Playa · Ocean Beach** (到达; the Metro goal ticked) with the step still up.
+  Run 2, 我自己逛 tapped a few seconds after it opened: the ride went on (riding at 39 s and after). Node (the
+  Powell–Hyde): the step opened by `startFree()` mid-ride, the `panel` lock held 40 s, closed with
+  `afterGoalsStep('self')`, then the old goals card 10 s: the ride reached `hyde-beach`. Lane B's run
+  (`C:/Users/willy/opus-qa/w6/b/live.mjs`) boarded through QA hooks with the harness clicking every "wander" button each
+  second; its end state (the step open, the ride gone at 40 s) came back in none of these.
+- Checks: part c (one run for both parts).
+
+### Decisions
+
+- Towed, not a blocker: an empty ride as an obstacle would hold a line for good (lane B's reasoning). Only a
+  `displaced` ride is towed (driven off its spot): a ride at its own spot is never on the rails.
+- The tow reach grows with the vehicle's speed (10 u + 1 s): at 9 u/s the fixed 10 u left 0.6 u of room.
+- BAYBAY dashes aside (the pull's dash, running legs) rather than walking: a car at 9 u/s gives ≈ 2 s.
+- The Wharf is a label area: no DataSF zone, no greeting line, no neighbourhood visit (visits stay DataSF's).
+- The Wharf beats the hero's catch-all 内河码头 but not its named places (39 号码头, 33 号码头).
+
+### Known gaps
+
+- Beyond 250 u from the player the transit is not in the road-vehicle list: a ride left there is towed only once the
+  player is back within 250 u (an "inside" hit tows at once then); nobody sees it meanwhile.
+- BAYBAY stepping aside is node-tested only (not staged live: she rarely stands on the rails while the player is off
+  them); the dash is the pull's (played in wave 5).
+- A towed ride stays where it lands (`displaced`): bikes still roll home unseen after 80 u as before.
+
+### Not done (this part)
+
+- Nothing else of items 2–5.
+
+### Requests
+
+- None.
+
+## Part c (2026-09-29, 23:05–23:30 PDT): the stick on hide and rotation, the glide's report
+
+### What was built
+
+- **`actors/pointer.ts` (item 6)**: every touch is let go (`onCancelAll`: the stick released; the touches, the pinch and
+  the card pass-throughs forgotten) on `visibilitychange` → hidden (an app switch, the lock button, a call) and on
+  `pagehide` (bfcache, the tab closing): the thumb's pointerup never comes then, and a stick held at the switch walked the
+  player on after the return. A **width** change of the (visual) viewport while a finger is down is a rotation: the same
+  release (the touch points are in the old frame). A height-only change (an iOS toolbar) keeps W6-K1's repaint and
+  reading. Listeners removed on detach.
+- **`actors/glide.ts` (item 7)**: `GlideSim` keeps one `GlideReport`, rewritten by every `step()` (every field reset,
+  `softBox` too). Callers audited: `moveSystem.flyGlide` reads `bump` / `softBox` at once; the tests read `landed` /
+  `edge` / `softBox` at once; nothing keeps it. A report is valid until the next step.
+- Tests: `tests/opus-bay-w7-k6-stick.test.ts` (2: the W6-K1 harness with a document; **red on the old file**: "released
+  when the page is hidden", "released on the rotation"), `tests/opus-bay-w7-k7-glide.test.ts` (1; **red on the old
+  file**: "the same report object every step").
+
+### Evidence
+
+- Played, phone 390 × 844 dpr 3 (`stick.mjs`, CDP touch): the thumb pushed up → stick 1.00; `visibilitychange` hidden
+  (the page's own listener, the state set to hidden) → stick 0, released, still 0 1.2 s after coming back with the old
+  finger still down; pushed again, the viewport turned to 844 × 390 mid-touch → released (0), still 0 1.4 s later; the
+  toolbar case (390 × 844 → 390 × 774 mid-touch) → still 1.00 (W6-K1 kept).
+
+### Decisions
+
+- A rotation drops the whole gesture, not only the stick: a look drag or a pinch in the old frame would jump too.
+
+### Known gaps
+
+- No real iPhone (as in W6-K1): hide, pagehide and rotation are CDP- and node-tested.
+
+### Not done
+
+- Of my row only the canopy over the rider is left (part a, Requests).
