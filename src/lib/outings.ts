@@ -8,18 +8,19 @@ export type OutingDraft = {
   transport: 'own' | 'transit' | 'walk'; language: 'any' | 'zh' | 'en';
 };
 export type OutingCreate = OutingDraft & { adultConsent: boolean; publicPlaceConsent: boolean };
-export type OutingMember = { userId: string; nickname: string; role: 'host' | 'member'; status: OutingMemberStatus; confirmedVersion: number; note?: string };
+export type OutingMember = { userId: string; nickname: string; role: 'host' | 'member'; status: OutingMemberStatus; confirmedVersion: number; note?: string; waitlisted?: boolean; requestedAt?: number };
 export type Outing = OutingDraft & {
   id: string; eventTitle?: string; officialUrl?: string; startAt: number; endAt: number; timezone: 'America/Los_Angeles';
   status: 'open' | 'cancelled' | 'completed'; revision: number; planVersion: number;
-  host: { id: string; nickname: string; verified: boolean }; confirmedCount: number; requestCount?: number;
-  me: null | Pick<OutingMember, 'userId' | 'role' | 'status' | 'confirmedVersion'>;
+  host: { id: string; nickname: string; verified: boolean }; confirmedCount: number; requestCount?: number; waitlistCount?: number; waitlistReviewNeeded?: boolean;
+  me: null | Pick<OutingMember, 'userId' | 'role' | 'status' | 'confirmedVersion' | 'waitlisted'>;
   members?: OutingMember[]; createdAt: number; updatedAt: number;
 };
 export type OutingMessage = { id: string; outingId: string; senderId: string; senderName: string; text: string; createdAt: number };
 export type OutingResult = { outing: Outing; notificationWarning?: string };
 export type OutingAiDraft = { answer: string; questions: string[]; draft: Partial<OutingDraft>; missing: string[]; source: 'ai' };
-export type OutingFilters = { eventId?: string; date?: string; city?: string; cursor?: string };
+export type OutingFilters = { eventId?: string; q?: string; date?: string; dateFrom?: string; dateTo?: string; city?: string; language?: 'zh' | 'en'; seats?: 'open'; sort?: 'soonest'; cursor?: string };
+export type OutingDraftAnswer = { question: string; answer: string };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const str = (v: unknown, max = 2000): v is string => typeof v === 'string' && v.length <= max;
 const integer = (v: unknown, min = 0) => Number.isSafeInteger(v) && Number(v) >= min;
@@ -36,7 +37,9 @@ const memberStatuses = new Set(['requested', 'confirmed', 'declined', 'left', 'r
 const invalid = (): never => { throw new Error('Invalid outing response'); };
 function member(v: unknown, named: boolean): boolean {
   return record(v) && str(v.userId, 140) && !!v.userId && ['host', 'member'].includes(String(v.role)) && memberStatuses.has(String(v.status))
-    && integer(v.confirmedVersion) && (!named || str(v.nickname, 200)) && (v.note === undefined || str(v.note));
+    && integer(v.confirmedVersion) && (!named || str(v.nickname, 200)) && (v.note === undefined || str(v.note))
+    && (v.waitlisted === undefined || (typeof v.waitlisted === 'boolean' && (!v.waitlisted || v.status === 'requested')))
+    && (v.requestedAt === undefined || (finite(v.requestedAt) && Number(v.requestedAt) >= 0 && Number(v.requestedAt) <= 8.64e15));
 }
 export function parseOuting(v: unknown): Outing {
   if (!record(v) || !str(v.id, 140) || !v.id || !str(v.title, 160) || !v.title
@@ -50,6 +53,7 @@ export function parseOuting(v: unknown): Outing {
     || !integer(v.revision) || !integer(v.planVersion, 1) || !integer(v.confirmedCount) || Number(v.confirmedCount) > Number(v.capacity)
     || !record(v.host) || !str(v.host.id, 140) || !v.host.id || !str(v.host.nickname, 200) || typeof v.host.verified !== 'boolean'
     || !(v.me === null || member(v.me, false)) || (v.requestCount !== undefined && !integer(v.requestCount))
+    || (v.waitlistCount !== undefined && !integer(v.waitlistCount)) || (v.waitlistReviewNeeded !== undefined && typeof v.waitlistReviewNeeded !== 'boolean')
     || (v.members !== undefined && (!Array.isArray(v.members) || !v.members.every(item => member(item, true)) || new Set(v.members.map(item => item.userId)).size !== v.members.length))
     || (v.eventTitle !== undefined && !str(v.eventTitle, 300))
     || (v.officialUrl !== undefined && (!str(v.officialUrl, 2000) || (v.officialUrl && !safeOutingUrl(v.officialUrl))))) return invalid();
@@ -78,6 +82,7 @@ export const outingRequestKey = () => globalThis.crypto?.randomUUID?.() || `outi
 export const outingUrl = (id: string) => `/together?outing=${encodeURIComponent(id)}`;
 export const outings = {
   list: async (filters: OutingFilters = {}, signal?: AbortSignal) => {
+    if (filters.date && (filters.dateFrom || filters.dateTo)) throw { status:400, error:'Choose an exact date or a date range, not both.' };
     const query = new URLSearchParams(); for (const [key, value] of Object.entries(filters)) if (value) query.set(key, value);
     const value: unknown = await api.request(`${base}?${query}`, { signal });
     if (!record(value) || !(value.nextCursor === null || (str(value.nextCursor, 1000) && !!value.nextCursor.trim() && value.nextCursor !== filters.cursor))) return invalid();
@@ -87,7 +92,7 @@ export const outings = {
   get: async (id: string, signal?: AbortSignal) => result(await api.request(path(id), { signal }), id),
   create: async (draft: OutingCreate, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(base, body({ ...draft, idempotencyKey }, signal))),
   update: async (outing: Outing, draft: OutingDraft & { publicPlaceConsent?: boolean }, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(path(outing.id), { ...body({ ...draft, revision: outing.revision, idempotencyKey }, signal), method: 'PATCH' }), outing.id),
-  action: async (outing: Outing, action: OutingAction, options: { userId?: string; note?: string; adultConsent?: boolean }, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(`${path(outing.id)}/actions`, body({ ...options, action, revision: outing.revision, idempotencyKey }, signal)), outing.id),
+  action: async (outing: Outing, action: OutingAction, options: { userId?: string; note?: string; adultConsent?: boolean; waitlist?: boolean }, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(`${path(outing.id)}/actions`, body({ ...options, action, revision: outing.revision, idempotencyKey }, signal)), outing.id),
   messages: async (id: string, signal?: AbortSignal) => {
     const value: unknown = await api.request(`${path(id)}/messages`, { signal }); if (!record(value) || !Array.isArray(value.messages)) return invalid();
     const messages = value.messages.map(parseOutingMessage); if (messages.some(item => item.outingId !== id) || new Set(messages.map(item => item.id)).size !== messages.length) return invalid(); return { messages };
@@ -100,7 +105,8 @@ export const outings = {
     const value: unknown = await api.request(`${path(id)}/reports`, body({ reason, details, ...(messageId ? { messageId } : {}) }, signal));
     if (!record(value) || !str(value.reportId, 140) || !value.reportId) return invalid(); return { reportId: value.reportId };
   },
-  draft: async (input: { intent: string; eventId?: string | null; locale: string }, signal?: AbortSignal): Promise<OutingAiDraft> => {
+  draft: async (input: { intent: string; eventId?: string | null; locale: string; answers?: OutingDraftAnswer[] }, signal?: AbortSignal): Promise<OutingAiDraft> => {
+    if (input.answers !== undefined && (!Array.isArray(input.answers) || input.answers.length > 6 || input.answers.some(item => !record(item) || !str(item.question, 300) || !item.question.trim() || !str(item.answer, 500) || !item.answer.trim()))) throw { status:400, error:'Invalid draft answers.' };
     const value: unknown = await api.request('/ai/outing-draft', body(input, signal));
     if (!record(value) || value.source !== 'ai' || !str(value.answer, 1200) || !Array.isArray(value.questions) || value.questions.length > 2 || !value.questions.every(q => str(q, 300))
       || !Array.isArray(value.missing) || !value.missing.every(q => str(q, 100)) || !record(value.draft)) return invalid();

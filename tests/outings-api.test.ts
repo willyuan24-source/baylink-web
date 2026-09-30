@@ -85,6 +85,41 @@ test('failed or inconsistent lists never masquerade as empty results and paginat
   assert.deepEqual(await outings.list(), { outings: [], nextCursor: null });
 });
 
+test('discovery filters keep search text, date ranges, language and seat preference separate in the request', async t => {
+  const requests: URL[] = [];
+  t.mock.method(api, 'request', async (path: string) => { requests.push(new URL(path, 'https://example.test')); return { outings: [], nextCursor: null }; });
+  await outings.list({ q: '博物馆 & coffee', city: '舊金山', dateFrom: '2026-10-03', dateTo: '2026-10-04', language: 'zh', seats: 'open', sort: 'soonest' });
+  assert.deepEqual(Object.fromEntries(requests[0].searchParams), { q: '博物馆 & coffee', city: '舊金山', dateFrom: '2026-10-03', dateTo: '2026-10-04', language: 'zh', seats: 'open', sort: 'soonest' });
+  assert.equal(requests[0].searchParams.has('date'), false);
+  await outings.list({ q: '散步', city: 'SF', date: '2026-10-17', language: 'en', sort: 'soonest' });
+  assert.equal(requests[1].searchParams.get('date'), '2026-10-17');
+  assert.equal(requests[1].searchParams.has('dateFrom'), false); assert.equal(requests[1].searchParams.has('dateTo'), false);
+});
+
+test('waitlist metadata remains an application and malformed counts, consent flags or request times fail closed', () => {
+  const waiting = { userId: 'member', role: 'member' as const, status: 'requested' as const, confirmedVersion: 2, waitlisted: true };
+  const value = parseOuting(fixture({ capacity: 2, confirmedCount: 2, me: waiting, waitlistCount: 1, waitlistReviewNeeded: false, members: [{ ...waiting, nickname: 'Waiting neighbour', requestedAt: fixture().createdAt }] }));
+  assert.equal(value.me?.status, 'requested'); assert.equal(value.me?.waitlisted, true); assert.equal(value.confirmedCount, 2);
+  for (const patch of [
+    { me: { ...waiting, waitlisted: 'yes' } }, { me: { ...waiting, status: 'confirmed' } }, { waitlistCount: -1 }, { waitlistCount: 1.5 }, { waitlistReviewNeeded: 'yes' },
+    { members: [{ ...waiting, nickname: 'Former applicant', status: 'left' }] },
+    { members: [{ ...waiting, nickname: 'Waiting neighbour', requestedAt: 'yesterday' }] },
+  ]) assert.throws(() => parseOuting({ ...fixture(), ...patch }), /Invalid outing response/, JSON.stringify(patch));
+});
+
+test('joining a full outing sends explicit waitlist consent and never promotes the returned applicant', async t => {
+  const signal = new AbortController().signal, full = fixture({ capacity: 2, confirmedCount: 2 });
+  const requests: Record<string, unknown>[] = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit) => {
+    assert.equal(path, `/outings/${full.id}/actions`); assert.equal(options.signal, signal);
+    requests.push(JSON.parse(String(options.body)));
+    return { outing: { ...full, me: { userId: 'member', role: 'member', status: 'requested', confirmedVersion: 2, waitlisted: true } } };
+  });
+  const result = await outings.action(full, 'request', { adultConsent: true, waitlist: true, note: '有空位时再考虑。' }, 'waitlist-retry-key', signal);
+  assert.deepEqual(requests[0], { adultConsent: true, waitlist: true, note: '有空位时再考虑。', action: 'request', revision: 4, idempotencyKey: 'waitlist-retry-key' });
+  assert.equal(result.outing.confirmedCount, 2); assert.equal(result.outing.me?.status, 'requested'); assert.equal(result.outing.me?.waitlisted, true);
+});
+
 test('detail and mutation acknowledgements must refer to the requested outing', async t => {
   const other = fixture({ id: 'different-outing' });
   t.mock.method(api, 'request', async () => ({ outing: other }));
@@ -146,6 +181,18 @@ test('AI suggestions are draft-only, bounded and cannot inject consent, membersh
     await assert.rejects(outings.draft(input), /Invalid outing response/);
   }
   assert.ok(paths.every(path => path === '/ai/outing-draft'), 'asking AI never creates or joins an outing');
+});
+
+test('AI follow-up answers retain their questions and original intent without posting an outing', async t => {
+  const signal = new AbortController().signal;
+  const input = { intent: '10月17日散步，公共交通。', eventId: null, locale: 'zh-Hans', answers: [{ question: '在哪个公共入口集合？', answer: 'Ferry Building 正门' }, { question: '一共几个人？', answer: '4 人，包含我' }] };
+  const calls: string[] = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit) => {
+    calls.push(path); assert.equal(options.signal, signal); assert.deepEqual(JSON.parse(String(options.body)), input);
+    return { source: 'ai', answer: '请核对这份更新后的草稿。', questions: ['几点结束？'], missing: ['endTime'], draft: { venue: 'Ferry Building 正门', capacity: 4 } };
+  });
+  const result = await outings.draft(input, signal);
+  assert.equal(result.draft.capacity, 4); assert.deepEqual(result.questions, ['几点结束？']); assert.deepEqual(calls, ['/ai/outing-draft']);
 });
 
 test('protected outing calls use current credentials and an old unauthorized request cannot expire a new session', async () => {
