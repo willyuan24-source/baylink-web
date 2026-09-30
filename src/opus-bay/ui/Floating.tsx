@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Footprints, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -140,5 +140,23 @@ export function LiveRegion() {
 
 export function DebugOverlay() {
   const ref = useCallback((el: HTMLPreElement | null) => registerAnchor('debug', el), []);
-  return <pre ref={ref} className="ob-debug" aria-hidden translate="no">…</pre>;
+  // W7-Q9 · two phone lines under it (viewport, safe area, dpr, quality, pool, audio, clips, album, context losses):
+  // ui/iosDebug.ts, its own chunk, refreshed once a second — the real-iPhone pass reads them off a screenshot
+  const ios = useRef<HTMLPreElement>(null);
+  useEffect(() => {
+    let id = 0, live = true;
+    void import('./iosDebug').then(m => {
+      if (!live) return;
+      const tick = () => { if (ios.current) { try { ios.current.textContent = m.iosDebugLine(); } catch { /* a probe failed: next second */ } } };
+      tick();
+      id = window.setInterval(tick, 1000);
+    }, () => { /* offline: the main line only */ });
+    return () => { live = false; window.clearInterval(id); };
+  }, []);
+  return (
+    <div className="ob-debug" aria-hidden translate="no">
+      <pre ref={ref}>…</pre>
+      <pre ref={ios} className="ob-debug-ios" />
+    </div>
+  );
 }

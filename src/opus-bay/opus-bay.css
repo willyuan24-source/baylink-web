@@ -39,8 +39,15 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   --ob-spring: cubic-bezier(.34, 1.56, .64, 1);
   position: fixed; inset: 0; background: var(--ob-table); color: var(--ob-ink);
   font-family: var(--ob-font); -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  /* W7-Q6: iOS may inflate text after a rotation to landscape (the HUD was measured without it) */
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
 }
-.ob-root { position: absolute; inset: 0; height: 100dvh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+/* W7-Q6: -webkit-touch-callout none — a held thumb on BAYBAY's face (an <img>) opened the iOS image preview / menu */
+.ob-root { position: absolute; inset: 0; height: 100dvh; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+/* W7-Q6: the scrollers pan along their axis only (no pinch / double-tap zoom starting inside them) */
+.ob-root :where(.ob-sheet-body, .ob-album-grid, .ob-goals-card, .ob-choices.is-grid, .ob-gstep-wrap, .ob-trip-legs, .mw-chooser-list, .mw-legend, .ob-egg-card.is-open, .ob-recap-wrap) { touch-action: pan-y; }
+.ob-root :where(.ob-shop-shelves, .ob-shop-groups, .ob-tabs.is-many, .mw-chips) { touch-action: pan-x; }
+.ob-title-layer { -webkit-touch-callout: none; }
 .ob-canvas { position: absolute !important; inset: 0; }
 .ob-boot { position: absolute; inset: 0; display: grid; place-items: center; }
 .ob-boot-dot { width: 12px; height: 12px; border-radius: 50%; background: #2f8f88; animation: ob-pulse 1s ease-in-out infinite; }
@@ -190,6 +197,8 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
 .ob-title-link { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; font-weight: 700; color: var(--ob-teal-d); text-decoration: none; border-bottom: 1px dashed rgba(31, 111, 105, .4); }
 .ob-title-link:hover { color: var(--ob-teal); }
 .ob-title-hint { font-size: 13px; color: var(--ob-ink-3); }
+/* W7-Q8: the silent-mode line after the title's sound button turned sound on (touch iOS) */
+.ob-title-silent { font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); margin: 0; }
 /* the language before Start (ui/LangPills, variant 'title'): 文A + 简体 · 繁體 · English in a cream capsule */
 .ob-lang.is-title .ob-lang-pills {
   display: inline-flex; align-items: center; gap: 2px; width: fit-content; padding: 3px; border-radius: 999px;
@@ -890,6 +899,10 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-debug { position: absolute; left: 8px; bottom: 8px; z-index: 70; margin: 0; padding: 6px 9px; border-radius: 8px; background: rgba(20, 28, 26, .82); color: #d7f5ee; font: 600 12px/1.45 ui-monospace, Menlo, Consolas, monospace; white-space: pre; pointer-events: none; }
 /* ?debug on a phone: the two lines wrap inside the screen, over the top stack instead of under the bottom bar */
 @media (max-width: 720px) { .ob-debug { left: 6px; right: 6px; bottom: auto; top: calc(116px + var(--ob-st)); white-space: pre-wrap; font-size: 10px; line-height: 1.35; opacity: .92; } }
+/* W7-Q9: the ?debug=1 box holds the main line (game/Systems.tsx writes it) and the phone lines (ui/iosDebug.ts) */
+.ob-debug pre { margin: 0; font: inherit; white-space: inherit; color: inherit; }
+.ob-debug .ob-debug-ios { margin-top: 3px; color: #ffe3a3; }
+.ob-debug .ob-debug-ios:empty { display: none; }
 
 /* ==========================================================================
    Motion

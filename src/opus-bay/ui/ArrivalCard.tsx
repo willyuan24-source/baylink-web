@@ -39,7 +39,7 @@ export function ArrivalToast({ arrival, text }: { arrival: Pick<ArrivalView, 'na
   return (
     <div className={`ob-toast ob-arrival-toast ${arrival.quiet ? 'is-quiet' : ''}`} role="status">
       <strong>{t(text ?? arrivalToastText(arrival.name, arrival.quiet))}</strong>
-      {locale !== 'en' && <small translate="no">{arrival.name.en}</small>}
+      {locale !== 'en' && <small translate="no" title={arrival.name.en}>{arrival.name.en}</small>}
     </div>
   );
 }

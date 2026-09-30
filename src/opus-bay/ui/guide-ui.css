@@ -60,7 +60,8 @@
 }
 .ob-toast.ob-arrival-toast { display: flex; flex-direction: column; align-items: center; gap: 1px; border-radius: 22px; }
 .ob-arrival-toast strong { font-weight: 800; line-height: 1.3; }
-.ob-arrival-toast small { font-size: 12.5px; font-weight: 700; line-height: 1.25; opacity: .8; }
+/* (W7-Q7) the English name on one line: "Ferry Building Marketplace & Ferry Plaza Farmers Market" took two under 抵达 · 渡轮大厦市集 */
+.ob-arrival-toast small { font-size: 12.5px; font-weight: 700; line-height: 1.25; opacity: .8; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ob-toast.ob-arrival-toast.is-quiet { color: var(--ob-ink); background: rgba(255, 250, 241, .97); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s); animation: ob-toast-in .4s var(--ob-ease); }
 @keyframes ob-arrival-in { from { opacity: 0; transform: translateY(-10px) scale(.8); } 60% { transform: scale(1.04); } }
 

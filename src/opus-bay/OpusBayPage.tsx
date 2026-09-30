@@ -5,6 +5,7 @@ import { game, useGame, type GameState } from './core/store';
 import { initPersistence } from './data/wishlist';
 import { readQa } from './game/qa';
 import { useT } from './i18n';
+import { installIosTouchGuards } from './ui/iosTouch';
 import { TitleScreen } from './ui/TitleScreen';
 import './opus-bay.css';
 
@@ -40,7 +41,9 @@ export default function OpusBayPage() {
   useEffect(() => {
     const html = document.documentElement;
     html.classList.add('ob-lock');
-    return () => html.classList.remove('ob-lock');
+    // (W7-Q6) no pinch-zoom of the whole game from inside a scroller; no page left shifted after the keyboard closes
+    const offTouch = installIosTouchGuards();
+    return () => { html.classList.remove('ob-lock'); offTouch(); };
   }, []);
   // after the title's first paint, when the main thread is idle (≤ 1.2 s)
   useEffect(() => {

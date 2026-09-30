@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type MutableRefObject, type RefObject } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject, type RefObject } from 'react';
 import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { primeAudio } from '../audio/unlock';
 import { emit } from '../core/events';
@@ -12,6 +12,7 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState } from './hooks';
 import { LangPills } from './LangPills';
+import { SILENT_HINT, isIOS } from './shareFile';
 
 const typing = (el: HTMLElement | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 const onControl = (el: HTMLElement | null) => !!el && (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute?.('role') === 'button' || el.getAttribute?.('role') === 'tab');
@@ -58,9 +59,11 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
     return () => window.removeEventListener('keydown', onKey);
   }, [primary]);
 
+  // (W7-Q8) touch iOS: after sound is turned on here, one line about the silent mode (it mutes Web Audio)
+  const [silentHint, setSilentHint] = useState(false);
   const toggleSound = () => {
     // (W7-Q1) turning sound on is a tap: let WebKit see the context start inside it (audio/unlock.ts)
-    if (!game.get().settings.sound) primeAudio();
+    if (!game.get().settings.sound) { primeAudio(); if (device === 'touch' && isIOS(typeof navigator !== 'undefined' ? navigator : null)) setSilentHint(true); } else setSilentHint(false);
     game.set(s => ({ settings: { ...s.settings, sound: !s.settings.sound, music: !s.settings.sound ? s.settings.music : false } }));
     emit({ type: 'ui', action: 'select' });
   };
@@ -105,6 +108,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
             {sound ? <Volume2 size={22} aria-hidden /> : <VolumeX size={22} aria-hidden />}
           </button>
         </div>
+        {silentHint && sound && <p className="ob-title-silent" role="status">{t(SILENT_HINT)}</p>}
         <a className="ob-title-link" href={guidesUrl(locale)}>
           <BookOpen size={16} aria-hidden />{t('不玩了，直接看攻略', 'Skip the game — read the guides')}<ArrowRight size={15} aria-hidden />
         </a>

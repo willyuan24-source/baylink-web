@@ -12,6 +12,8 @@ import { setLandmarkFlagsPref, useLandmarkFlagsPref } from '../game/guidePrefs';
 import { useT } from '../i18n';
 import { Keycap, Sheet } from './common';
 import { LangPills } from './LangPills';
+import { useDevice } from './hooks';
+import { SILENT_HINT, isIOS } from './shareFile';
 
 type Settings = GameState['settings'];
 const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -36,6 +38,9 @@ export function SettingsPanel() {
   // W4-G7 · 显示地标旗: visited attractions keep their flag (a per-device display preference, game/guidePrefs.ts)
   const flags = useLandmarkFlagsPref();
   const [confirmReset, setConfirmReset] = useState(false);
+  // (W7-Q8) the iPhone's silent mode mutes Web Audio: a one-line hint under 音效 on touch iOS (the lead's option a)
+  const device = useDevice();
+  const silentHint = device === 'touch' && isIOS(typeof navigator !== 'undefined' ? navigator : null) ? t(SILENT_HINT) : undefined;
   const times: { value: Settings['timeOfDay']; label: string; icon: ReactNode }[] = [
     { value: 'auto', label: t('跟随湾区时间', 'Bay clock'), icon: <Gauge size={15} aria-hidden /> },
     { value: 'morning', label: t('清晨', 'Morning'), icon: <Sunrise size={15} aria-hidden /> },
@@ -59,7 +64,7 @@ export function SettingsPanel() {
       </fieldset>
 
       <div className="ob-setting-group">
-        <Toggle icon={<Volume2 size={18} aria-hidden />} label={t('音效', 'Sound effects')} on={settings.sound} onChange={v => setSetting('sound', v)} />
+        <Toggle icon={<Volume2 size={18} aria-hidden />} label={t('音效', 'Sound effects')} hint={silentHint} on={settings.sound} onChange={v => setSetting('sound', v)} />
         <Toggle icon={<Music size={18} aria-hidden />} label={t('音乐', 'Music')} on={settings.music} onChange={v => setSetting('music', v)} />
         <Toggle icon={<Accessibility size={18} aria-hidden />} label={t('减少动态效果', 'Reduce motion')} hint={t('关闭镜头晃动、景深和长动画', 'No camera shake, depth of field or long animations')} on={settings.reducedMotion} onChange={v => setSetting('reducedMotion', v)} />
         {city && <Toggle icon={<Flag size={18} aria-hidden />} label={t('显示地标旗', 'Landmark flags')} hint={t('去过的大景点也插着小旗', 'Keep the flags over big sights you have visited')} on={flags} onChange={v => { setLandmarkFlagsPref(v); emit({ type: 'ui', action: 'select' }); }} />}
