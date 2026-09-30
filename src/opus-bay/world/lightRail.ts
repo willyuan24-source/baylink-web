@@ -27,6 +27,11 @@ import type { CarPose, RideStatus } from './transitLine';
  * - A rider's hop-off request (actors/platform.ts `platformStop(line)`) brakes the train on the surface; while any part
  *   of the train is in a tunnel or under a portal hood it is ignored (`status.canHopOff` false: the HUD greys 提前下车
  *   out, "隧道里不能下车", and the Space / B hop-off must not start either).
+ * - (W7-B2) The game's pause (Settings open: game/transit.ts `holdRideForPause` asks the same brake, `opts.paused`) holds
+ *   the rider's train under ground too: it brakes to a stand in the subway (hidden, the overlay shows it standing) or
+ *   keeps dwelling at the underground station it stands at, until the pause ends — as it stands anywhere on the surface.
+ *   In a single-track stretch round a mouth the opposite train waits at its edge meanwhile (as for a dwell there: West
+ *   Portal, Duboce & Church and Carl & Cole stand in one).
  * - `cars[train index].pose` is the lead car, so the system is a data/transit.ts `LineRideSystem` (game/ride.ts reads
  *   `cars[status.car].pose` while riding).
  */
@@ -132,6 +137,8 @@ export interface RailOptions {
   perLine?: number;
   /** the surface around a portal is streamed in and ready to show (the host: stream whenReady(exit, 150)) */
   portalReady?: (p: TransitPortal) => boolean;
+  /** the game is paused (Settings open): a stop request then holds the rider's train under ground too (W7-B2) */
+  paused?: () => boolean;
 }
 
 export interface RailRequest { line: string; station: string; dir: 1 | -1; to: string }
@@ -402,6 +409,13 @@ export class LightRailSystem implements LineRideSystem {
     return true;
   }
 
+  /**
+   * (W7-B2) Does a stop request hold the rider's train where no hop-off brake may start (a tunnel, a hood)? While the
+   * game is paused: then it is the pause brake (the rider cannot ask for a hop-off there — actors/moveSystem.ts checks
+   * `canHopOff` first — nor during the pause).
+   */
+  private pauseHolds(): boolean { return !!this.opts.paused?.(); }
+
   /** The single-track stretches round the mouths of a track (arc spans of train centres). */
   gauntletsOf(tr: LineTrack): readonly Gauntlet[] { return this.gauntlets.get(tr) ?? []; }
 
@@ -591,8 +605,9 @@ export class LightRailSystem implements LineRideSystem {
     const tr = t.track;
     const s0 = t.s;
     // no hop-off brake while any part of the train is in a tunnel or under a hood (the rider would step out underground);
-    // a brake begun outside goes on
-    const stopReq = t.rider && (t.braking || this.canHopOffAt(tr, t.s)) ? platformStop(tr.id) : null;
+    // a brake begun outside goes on; the pause brake holds it there too (W7-B2: pauseHolds)
+    const req = t.rider ? platformStop(tr.id) : null;
+    const stopReq = req && (t.braking || this.canHopOffAt(tr, t.s) || this.pauseHolds()) ? req : null;
     if (stopReq && !t.braking) t.brakeRate = Math.max(LRV.decel, t.v / Math.max(0.05, stopReq.within - stopReq.since));
     t.braking = !!stopReq;
     if (t.mode === 'dwell') {
@@ -690,7 +705,7 @@ export class LightRailSystem implements LineRideSystem {
 
   private leave(t: Train) {
     if (this.status && this.riderTrain === t.index && this.status.phase === 'here') { t.timer = 0.3; return; }
-    if (t.rider && !t.hidden && platformStop(t.track.id)) { t.timer = 0.3; return; }
+    if (t.rider && (!t.hidden || this.pauseHolds()) && platformStop(t.track.id)) { t.timer = 0.3; return; }
     // same-direction train right ahead: wait
     if (this.trains.some(o => o !== t && o.track === t.track && o.dir === t.dir && (o.s - t.s) * t.dir > 0.01 && (o.s - t.s) * t.dir < TRAIN_LENGTH + LRV.gap)) { t.timer = 0.5; return; }
     t.mode = 'run';

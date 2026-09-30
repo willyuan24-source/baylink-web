@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { definePlatform, platforms, setPlatformPose } from '../../actors/platform';
 import { emitAt } from '../../audio/cityHooks';
 import { emit } from '../../core/events';
+import { game } from '../../core/store';
 import { W4_LINES, stationAttractions } from '../../data/sf/stationNames';
 import { BUS, type Bus, type BusEvent, BusSystem, type InterlockBox, busTrack } from '../busSystem';
 import { type BodyDims, type LineTrack, bodySpans, proximitySpans, trackPoint } from '../lineTrack';
@@ -174,7 +175,8 @@ export class LineFleet {
       groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, boxes: typeof opts.boxes === 'function' ? opts.boxes(bt) : opts.boxes,
       roadAhead: opts.roadUsers ? (b, who) => this.roadAhead(b, who) : undefined,
     });
-    this.rail = new LightRailSystem(input.metro.map(railTrack), { groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, portalReady: opts.portalReady });
+    // (W7-B2) the game's pause holds the rider's train under ground too (Settings: game/transit.ts holdRideForPause)
+    this.rail = new LightRailSystem(input.metro.map(railTrack), { groundY: opts.groundY, visible: opts.visible, viewer: opts.viewer, portalReady: opts.portalReady, paused: () => game.get().paused });
     definePlatform(input.loop.id, TOUR_BUS_PLATFORM);
     for (const l of input.metro) definePlatform(l.id, LRV_PLATFORM);
 
