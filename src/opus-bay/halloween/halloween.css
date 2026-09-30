@@ -33,3 +33,7 @@
 .ob-hw-kicker { background: #f2a65a; color: #2b1a0c; box-shadow: 0 8px 20px -8px rgba(160, 80, 20, .9); }
 .ob-hw-kept { margin-top: auto; font-size: 12px; font-weight: 700; color: #b8621f; }
 .ob-hw-stamp { border-color: #f2c48f; }
+/* W7-I (integration playtest): the 万圣节 page's 带我去 (32 px) and 去小铺试穿 (36 px) were under the 44 px touch floor */
+@media (pointer: coarse) {
+  .ob-hw-go, .ob-hw-shop { min-height: 44px; }
+}

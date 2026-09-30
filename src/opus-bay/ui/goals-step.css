@@ -47,3 +47,14 @@
 @media (max-width: 360px) {
   .ob-gstep-list { grid-template-columns: 1fr; }
 }
+/* W7-I (integration playtest): on a short phone (375 × 553, an iPhone SE-sized Safari with its bars) both buttons sat
+   below the fold — a new player saw the list and no way on. The card now fits the screen: the goals list scrolls inside
+   it, the head, goal #1 and the buttons stay in view. */
+@media (max-height: 700px) {
+  .ob-gstep { max-height: calc(100vh - 32px - var(--ob-st) - var(--ob-sb)); max-height: calc(100svh - 32px - var(--ob-st) - var(--ob-sb)); }
+  .ob-gstep > * { flex: none; }
+  .ob-gstep > .ob-gstep-list { flex: 0 1 auto; min-height: 64px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+}
+@media (max-height: 600px) {
+  .ob-gstep-note { display: none; }
+}
