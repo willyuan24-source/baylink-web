@@ -201,8 +201,9 @@ export const FERRY_PLATFORM = {
 };
 
 const HEAR = 90;
-/** the wake's foam: a hand above the water (DISTRICT.waterLevel −0.6: flush with it the foam fought the water and hid) and how near the player must be (u) */
-const WAKE_Y = DISTRICT.waterLevel + 0.12, WAKE_NEAR = 160;
+/** the wake's foam: a hand above the boat's own waterline (its pose y; the bay's surface there is ≈ 0, not the district's
+ * −0.6 datum, under which the foam hid) and how near the player must be (u) */
+const WAKE_LIFT = 0.06, WAKE_NEAR = 160;
 
 /** City mode: the ferry system, its platform and events (life.ts draws the boat from the system's pose). */
 export class FerryLayer {
@@ -242,8 +243,9 @@ export class FerryLayer {
     if (b.v > 1.2 && d < WAKE_NEAR && (this.wakeIn -= dt) <= 0) {
       this.wakeIn = 0.14;
       const fx = Math.sin(b.pose.heading), fz = Math.cos(b.pose.heading), half = FERRY.length / 2;
-      spawnFx('wake', b.pose.x - fx * half, WAKE_Y, b.pose.z - fz * half, { scale: Math.min(1.2, 0.5 + b.v * 0.08) });
-      if (Math.random() < 0.3) spawnFx('splash', b.pose.x + fx * (half - 0.6), WAKE_Y, b.pose.z + fz * (half - 0.6), { scale: 0.45, count: 3 });
+      const wy = b.pose.y + WAKE_LIFT;
+      spawnFx('wake', b.pose.x - fx * half, wy, b.pose.z - fz * half, { scale: Math.min(1.2, 0.5 + b.v * 0.08) });
+      if (Math.random() < 0.3) spawnFx('splash', b.pose.x + fx * (half - 0.6), wy, b.pose.z + fz * (half - 0.6), { scale: 0.45, count: 3 });
     }
     for (const e of sys.events) {
       const base = { type: 'transit' as const, line: FERRY_ID, kind: 'ferry' as const };
