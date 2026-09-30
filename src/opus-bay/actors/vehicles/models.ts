@@ -185,7 +185,7 @@ export function buildBikeRig(livery = 0): VehicleRig {
   ];
   const k = BIKE_VISUAL;
   const sc = scaled(bones, parts, k);
-  const rig = buildRig(sc.bones, sc.parts);
+  const rig = buildRig(sc.bones, sc.parts, { hard: true });
   return {
     ...rig,
     wheelRadius: R * k,
@@ -252,7 +252,7 @@ export function buildToyCarRig(): VehicleRig {
   ];
   const k = CAR_VISUAL;
   const sc = scaled(bones, parts, k);
-  const rig = buildRig(sc.bones, sc.parts);
+  const rig = buildRig(sc.bones, sc.parts, { hard: true });
   return {
     ...rig,
     wheelRadius: R * k,

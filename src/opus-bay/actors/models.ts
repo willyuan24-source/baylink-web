@@ -29,16 +29,92 @@ let MATERIAL: THREE.MeshStandardMaterial | null = null;
 export interface RimUniforms { rimColor: { value: THREE.Color }; rimStrength: { value: number }; charGlow: { value: number } }
 export const rimUniforms: RimUniforms = { rimColor: { value: new THREE.Color('#fff1d6') }, rimStrength: { value: 0.22 }, charGlow: { value: 0.03 } };
 
+// ---------------------------------------------------------------------------
+// Wave 7 (lane V, W7-V3): felt. The toys read as soft sewn plush up close: a tileable felt photo (Higgsfield, ledger
+// w7-V.md V11 → public/opus-bay/w7v/felt.webp, 256², 24 KB) mapped tri-planar in the character's bind-pose object space
+// (so it rides every part with its bone and never swims), two scales (fibres + the felted unevenness) lighten / darken
+// the colour a little, raise the fibres near the camera (a screen-space bump that fades out by 12 u, no shimmer far
+// away) and let the rim light catch them. Same program, same draw: only uniforms and one texture.
+// ---------------------------------------------------------------------------
+
+export interface FeltUniforms { feltMap: { value: THREE.Texture }; feltAmt: { value: number }; feltBump: { value: number } }
+/** the felt photo, shared by every character material (a neutral grey texel until the file is in) */
+const feltMap: { value: THREE.Texture } = { value: neutralTexture() };
+export const FELT_URL = '/opus-bay/w7v/felt.webp';
+/** the procedural toys (the player, the residents, the procedural BAYBAY, the pelican) */
+export const feltUniforms: FeltUniforms = { feltMap, feltAmt: { value: 0.2 }, feltBump: { value: 0.9 } };
+/** the textured GLB BAYBAY: her painted fur already has strokes, so a lighter touch */
+export const baybayFelt: FeltUniforms = { feltMap, feltAmt: { value: 0.1 }, feltBump: { value: 0.55 } };
+/** hard toys on the same program (the toy car, the bikes): painted wood / plastic, no felt */
+export const noFelt: FeltUniforms = { feltMap, feltAmt: { value: 0 }, feltBump: { value: 0 } };
+let feltLoading = false;
+
+function neutralTexture(): THREE.Texture {
+  const t = new THREE.DataTexture(new Uint8Array([128, 128, 128, 255]), 1, 1);
+  t.needsUpdate = true;
+  return t;
+}
+
+/** Load the felt photo once (browsers only; the grey texel stays on a failure, which is the old smooth look). */
+function loadFelt() {
+  if (feltLoading || typeof window === 'undefined' || typeof Image === 'undefined') return;
+  feltLoading = true;
+  try {
+    new THREE.TextureLoader().load(FELT_URL, tex => {
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      tex.colorSpace = THREE.NoColorSpace;
+      tex.anisotropy = 4;
+      feltMap.value = tex;
+    }, undefined, () => { /* keep the neutral texel */ });
+  } catch { /* keep the neutral texel */ }
+}
+
+const FELT_VERT_DECL = 'varying vec3 vObP;\nvarying vec3 vObN;';
+const FELT_FRAG_DECL = [
+  'uniform sampler2D feltMap;', 'uniform float feltAmt;', 'uniform float feltBump;', 'varying vec3 vObP;', 'varying vec3 vObN;',
+  'float obFeltAt(vec3 p, vec3 w) { return texture2D(feltMap, p.zy).r * w.x + texture2D(feltMap, p.xz).r * w.y + texture2D(feltMap, p.xy).r * w.z; }',
+].join('\n');
+/** after color_fragment: the felt value (−0.5…0.5) and its tint */
+const FELT_COLOR = [
+  'vec3 obW = pow(abs(normalize(vObN)), vec3(4.0)); obW /= (obW.x + obW.y + obW.z);',
+  'float obFeltV = (obFeltAt(vObP * 3.4, obW) - 0.5) * 0.75 + (obFeltAt(vObP * 0.95 + 0.37, obW) - 0.5) * 0.55;',
+  'diffuseColor.rgb *= 1.0 + obFeltV * feltAmt;',
+].join('\n');
+/** after normal_fragment_maps: the fibres raised near the camera (three's perturbNormalArb with the felt as height) */
+const FELT_BUMP = [
+  '{ float obNear = (1.0 - smoothstep(3.0, 12.0, length(vViewPosition))) * feltBump;',
+  '  if (obNear > 0.001) {',
+  '    vec2 obDH = vec2(dFdx(obFeltV), dFdy(obFeltV)) * obNear * 0.006;',
+  '    vec3 obSX = dFdx(-vViewPosition), obSY = dFdy(-vViewPosition);',
+  '    vec3 obR1 = cross(obSY, normal), obR2 = cross(normal, obSX);',
+  '    float obDet = dot(obSX, obR1) * faceDirection;',
+  '    vec3 obGrad = sign(obDet) * (obDH.x * obR1 + obDH.y * obR2);',
+  '    normal = normalize(abs(obDet) * normal - obGrad);',
+  '  } }',
+].join('\n');
+
 /**
  * Soft rim light + a little self-light (charGlow, raised at night) so the characters always read. Shared by the
  * procedural vertex-coloured material and the textured GLB characters (each with its own program cache key).
+ * Wave 7: + felt (`felt`: the amounts; every material patched here samples the same felt photo).
  */
-export function patchCharacterShader(m: THREE.MeshStandardMaterial, cacheKey: string, uniforms: RimUniforms = rimUniforms, scarf?: ScarfUniforms) {
+export function patchCharacterShader(m: THREE.MeshStandardMaterial, cacheKey: string, uniforms: RimUniforms = rimUniforms, scarf?: ScarfUniforms, felt: FeltUniforms = feltUniforms) {
+  loadFelt();
   m.onBeforeCompile = shader => {
     shader.uniforms.rimColor = uniforms.rimColor;
     shader.uniforms.rimStrength = uniforms.rimStrength;
     shader.uniforms.charGlow = uniforms.charGlow;
-    let frag = shader.fragmentShader;
+    shader.uniforms.feltMap = felt.feltMap;
+    shader.uniforms.feltAmt = felt.feltAmt;
+    shader.uniforms.feltBump = felt.feltBump;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', `#include <common>\n${FELT_VERT_DECL}`)
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nvObN = objectNormal;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvObP = position;');
+    let frag = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\n${FELT_FRAG_DECL}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>\n${FELT_COLOR}`)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>\n${FELT_BUMP}`);
     if (scarf) {
       // wave 5 (W5-F2): the textured BAYBAY's scarf is the only teal in her texture — key it (green well over red, not
       // under blue) and paint it the worn colour, keeping the texel's shading (its luminance over the scarf's own)
@@ -52,7 +128,7 @@ export function patchCharacterShader(m: THREE.MeshStandardMaterial, cacheKey: st
       .replace('#include <common>', '#include <common>\nuniform vec3 rimColor;\nuniform float rimStrength;\nuniform float charGlow;')
       .replace(
         '#include <opaque_fragment>',
-        'float obRim = pow(1.0 - saturate(dot(normalize(normal), normalize(vViewPosition))), 2.6);\noutgoingLight += rimColor * obRim * rimStrength + diffuseColor.rgb * charGlow;\n#include <opaque_fragment>',
+        'float obRim = pow(1.0 - saturate(dot(normalize(normal), normalize(vViewPosition))), 2.6);\noutgoingLight += rimColor * obRim * rimStrength * (1.0 + obFeltV * feltAmt * 2.5) + diffuseColor.rgb * charGlow;\n#include <opaque_fragment>',
       );
   };
   m.customProgramCacheKey = () => cacheKey;
@@ -64,6 +140,18 @@ export function characterMaterial(): THREE.MeshStandardMaterial {
   if (MATERIAL) return MATERIAL;
   MATERIAL = patchCharacterShader(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.66, metalness: 0 }), 'opus-bay-character-rim-glow');
   return MATERIAL;
+}
+
+let HARD: THREE.MeshStandardMaterial | null = null;
+/**
+ * Wave 7 (W7-V3): the hard toys' material (the toy car, the bikes): the same program as the characters (same cache key
+ * and source, so no new program and no warm-up) with the felt off.
+ */
+export function hardToyMaterial(): THREE.MeshStandardMaterial {
+  if (HARD) return HARD;
+  HARD = patchCharacterShader(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.66, metalness: 0 }), 'opus-bay-character-rim-glow', rimUniforms, undefined, noFelt);
+  HARD.name = 'ob-hard-toy';
+  return HARD;
 }
 
 /** Uniforms for the textured GLB BAYBAY: rim shared with everyone, her own night self-light (white fur reads grey otherwise). */
@@ -89,7 +177,7 @@ export function rigFromGltf(scene: THREE.Object3D, height = 1.3): { rig: Rig; ob
   const src = (Array.isArray(found.material) ? found.material[0] : found.material) as THREE.MeshStandardMaterial;
   const mat = new THREE.MeshStandardMaterial({ map: src.map ?? null, roughness: 0.66, metalness: 0 });
   if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
-  patchCharacterShader(mat, 'opus-bay-character-glb', baybayGlbUniforms, baybayScarfUniforms);
+  patchCharacterShader(mat, 'opus-bay-character-glb', baybayGlbUniforms, baybayScarfUniforms, baybayFelt);
   src.dispose();
   found.material = mat;
   found.castShadow = true;
@@ -271,7 +359,8 @@ export function roundBox(w: number, h: number, d: number, pos: Vec3, rot: Vec3 =
 
 const AO_HEIGHT = 0.55;
 
-export function buildRig(boneDefs: BoneDef[], parts: Part[], opts: { ao?: boolean } = {}): Rig {
+/** `opts.hard`: a hard toy (painted wood / plastic): the felt-free material of the same program (W7-V3) */
+export function buildRig(boneDefs: BoneDef[], parts: Part[], opts: { ao?: boolean; hard?: boolean } = {}): Rig {
   const index = new Map(boneDefs.map((b, i) => [b.name, i]));
   const color = new THREE.Color();
   const geos: THREE.BufferGeometry[] = [];
@@ -322,7 +411,7 @@ export function buildRig(boneDefs: BoneDef[], parts: Part[], opts: { ao?: boolea
     list.push(bone);
   }
   for (const def of boneDefs) if (def.parent) bones[def.parent].add(bones[def.name]);
-  const mesh = new THREE.SkinnedMesh(merged, characterMaterial());
+  const mesh = new THREE.SkinnedMesh(merged, opts.hard ? hardToyMaterial() : characterMaterial());
   const roots = boneDefs.filter(b => !b.parent).map(b => bones[b.name]);
   roots.forEach(root => mesh.add(root));
   mesh.updateMatrixWorld(true);
