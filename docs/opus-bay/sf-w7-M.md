@@ -179,6 +179,7 @@ bread-making: the three games of this lane are new.
 | `play/sfgames.ts` | `play:sourdough` 捏酸面包 on the pavement on the bakery's east side (−193.4, 66.4, r 1.6; the attractions row `boudin-bakery` is at −196.2, 65.4 — the game names no bakery), the overlay `play-dough`, the prefetch, the invite; **a game already played this visit is not offered again by BAYBAY** (her invite fired right after the sourdough card in the first phone run) |
 | `play/sfgamesProps.ts` | the bakery table against the wall: four legs, a floured top, three loaves (a boule, a crab, a turtle), a cream sign board with a red stripe (13 boxes, the same one mesh) |
 | all three panels | a mouse press never focuses a game button, so Space stays the game's key (a focused button used to swallow it) |
+| `play/ClawPanel.tsx` | the collection row under the cabinet: the eight souvenirs, the ones won in colour, the rest faint (a reason to come back) |
 
 ### Evidence
 

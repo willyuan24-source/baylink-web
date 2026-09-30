@@ -28,6 +28,25 @@ export default function ClawPanel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clockRef = useRef<HTMLElement>(null);
   const dragging = useRef(false);
+  const stripRef = useRef<HTMLCanvasElement>(null);
+  const setMask = clawSet();
+  // the collection: the eight souvenirs in a row, the ones won in colour, the rest as faint shapes
+  useEffect(() => {
+    const cv = stripRef.current;
+    if (!cv) return;
+    const dpr = Math.min(3, window.devicePixelRatio || 1), w = cv.clientWidth || 200, h = cv.clientHeight || 26;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const c = cv.getContext('2d');
+    if (!c) return;
+    const cell = 100 / PRIZE_KINDS.length;
+    c.setTransform(dpr * w / 100, 0, 0, dpr * h / 14, 0, 0);
+    c.clearRect(0, 0, 100, 14);
+    PRIZE_KINDS.forEach((_, i) => {
+      c.globalAlpha = setMask & (1 << i) ? 1 : 0.2;
+      drawPrize(c, i, cell * (i + 0.5), 13, 0.85);
+    });
+    c.globalAlpha = 1;
+  }, [setMask]);
 
   useEffect(() => {
     let id = 0;
@@ -74,7 +93,7 @@ export default function ClawPanel() {
     onPointerDown: (e: ReactPointerEvent<HTMLButtonElement>) => { e.preventDefault(); try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ok */ } setClawDir(d); },
     onPointerUp: () => setClawDir(0), onPointerCancel: () => setClawDir(0), onLostPointerCapture: () => setClawDir(0),
   });
-  const kinds = setCount(clawSet());
+  const mask = clawSet(), kinds = setCount(mask);
   const hint = device === 'touch'
     ? t('在玻璃里拖动爪子，松手就抓', 'Drag the claw in the glass, let go to grab')
     : t('← → 移动 · 空格 抓 · 也可以用鼠标拖', '← → to move · Space to grab · or drag with the mouse');
@@ -95,7 +114,10 @@ export default function ClawPanel() {
         <button type="button" onMouseDown={keepFocus} className="ob-sfg-btn is-go" disabled={!aiming} onClick={dropClaw}>{t('抓！', 'Grab!')}{device !== 'touch' && <Keycap>{t('空格', 'Space')}</Keycap>}</button>
         <button type="button" onMouseDown={keepFocus} className="ob-sfg-btn is-dir" disabled={!aiming} aria-label={t('向右', 'Right')} {...hold(1)}><ChevronRight size={28} />{device !== 'touch' && <Keycap>→</Keycap>}</button>
       </div>
-      <p className="ob-sfg-foot">{t(`收集 ${kinds} / ${PRIZE_KINDS.length} 种纪念品`, `${kinds} / ${PRIZE_KINDS.length} souvenirs collected`)}{game.won.length ? t(` · 这次 ${game.won.length} 个`, ` · ${game.won.length} this time`) : ''}</p>
+      <div className="ob-sfg-set">
+        <canvas ref={stripRef} className="ob-sfg-strip" role="img" aria-label={t(`收集 ${kinds} / ${PRIZE_KINDS.length} 种纪念品`, `${kinds} / ${PRIZE_KINDS.length} souvenirs collected`)} />
+        <span>{kinds} / {PRIZE_KINDS.length}{game.won.length ? t(` · 这次 ${game.won.length} 个`, ` · ${game.won.length} this time`) : ''}</span>
+      </div>
     </div>
   );
 }
