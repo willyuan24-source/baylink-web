@@ -67,7 +67,11 @@
 /* W7-S: the Chase Center ticket's Muni line */
 .ob-howto-offer { display: flex; align-items: flex-start; gap: 6px; margin: 0 0 8px; padding: 7px 10px; border-radius: 10px; background: var(--ob-cream-3); font-size: 13px; color: var(--ob-ink-2); line-height: 1.4; }
 .ob-howto-offer svg { flex: none; margin-top: 2px; color: var(--ob-teal-d); }
-.ob-howto-offer a { color: var(--ob-teal-d); font-weight: 700; white-space: nowrap; }
+.ob-howto-offer a { display: inline-flex; align-items: center; gap: 2px; color: var(--ob-teal-d); font-weight: 700; white-space: nowrap; }
+/* W7-S-review: the link's icon stays beside its words (a block svg under the site's base styles dropped to its own line),
+   and on touch the link is 44 px tall without growing the line (negative margins) */
+.ob-howto-offer a svg { display: inline-block; margin-top: 0; }
+@media (pointer: coarse) { .ob-howto-offer a { min-height: 44px; margin: -13px 0; } }
 .ob-howto-rows li { display: flex; flex-direction: column; gap: 1px; padding: 7px 10px; border-radius: 10px; background: var(--ob-cream-3); }
 .ob-howto-rows strong { font-size: 13.5px; font-weight: 800; color: var(--ob-ink); }
 .ob-howto-rows span { font-size: 13px; color: var(--ob-ink-2); }

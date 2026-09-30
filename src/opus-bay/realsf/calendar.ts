@@ -135,7 +135,9 @@ export const CALENDAR: readonly CalendarRow[] = [
     grade: 'official', source: src29('nist.gov', 'https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst'),
     sunsetNote: true,
     line: { zh: '今天凌晨两点，钟拨回了一小时，天会黑得早一点哦。', en: 'The clocks went back an hour at 2 this morning — it gets dark earlier now.' },
-    lineAt: {},
+    // (W7-S-review) past tense: never before the change — from 02:00 on the Bay clock (02:00 PST, an hour after it; the
+    // repeated 01:00–01:59 reads 1:xx both times). From 00:00 a player still up after Halloween night heard it too early
+    lineAt: { from: 2 * 60 },
   },
   {
     id: 'king-tides-2026-11', title: { zh: '特大潮', en: 'King tides' }, from: '2026-11-24', to: '2026-11-26',
