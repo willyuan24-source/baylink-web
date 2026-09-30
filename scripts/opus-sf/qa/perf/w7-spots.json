@@ -1,0 +1,16 @@
+{
+ "version": 1,
+ "note": "Wave-7 perf spots (W7-Z final verify), on top of w5-spots.json and w6-halloween-spots.json. Alcatraz (lane W2's T1 model) seen from Coit Tower's plaza and from PIER 39's west edge; the Italian Heritage Parade kit at Jefferson & Powell with Fleet Week's jets (run with --date 2026-10-11T13:00, lane S's request); the Dia de los Muertos procession on Bryant approaching 24th St (lane H; run with --time night --halloween muertos --date 2026-11-02T19:10: the head is at (469, 612) at 19:10, muertosWalkers headAt(600)). Same gate as w5-spots.json.",
+ "gate": {
+  "desktop": { "size": [1440, 900], "quality": "high", "calls": 150, "triangles": 400000 },
+  "phone": { "size": [390, 844], "dpr": 3, "quality": "mid", "cpuThrottle": 4, "fps": 45 },
+  "programs": "equal at 1x idle and 4x walk (no drift)"
+ },
+ "spots": [
+  { "id": "coit-alcatraz", "since": "w7", "go": { "x": -50.2, "z": 51.1, "fx": -468.2, "fz": -58.5, "arrival": true }, "note": "Coit Tower's plaza (Pioneer Park) looking at Alcatraz (lane W2's cellhouse model, 415 u off)" },
+  { "id": "pier39-alcatraz", "since": "w7", "go": { "x": -160.66, "z": 24.1, "fx": -468.2, "fz": -58.5, "arrival": true }, "note": "PIER 39's gate plaza looking out to Alcatraz over the sea-lion floats" },
+  { "id": "jefferson-parade", "since": "w7", "go": { "x": -190, "z": 58, "fx": -260, "fz": 120, "arrival": true }, "note": "Jefferson & Powell (the Italian Heritage Parade kit, lane S) looking along the Wharf toward Aquatic Park; run on 2026-10-11T13:00 (parade + Fleet Week jets)" },
+  { "id": "muertos-procession", "since": "w7", "time": "night", "go": { "x": 481, "z": 622, "fx": 455, "fz": 600 }, "note": "Bryant St at 24th, looking back up Bryant at the Dia de los Muertos procession (lane H) at 19:10 on 2 Nov" }
+ ],
+ "rides": []
+}
