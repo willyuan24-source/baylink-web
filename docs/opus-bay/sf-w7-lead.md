@@ -144,3 +144,10 @@ cover them too**: play M's games, perf-gate the spots where V swapped a model or
 Worktrees `C:/Users/willy/wt/w7-{v,m,r}` (branches `w7-v`, `w7-m`, `w7-r`), scratch `C:/Users/willy/opus-qa/w7/{v,m,r}/`,
 reports `docs/opus-bay/sf-w7-{V,M,R}.md`. The machine is loaded (13 lanes): run the tests you touch while iterating and
 the full suite only before a push; one Chrome at a time; stop your dev server when you do not need it.
+
+### 7.1 23:15 PDT — Higgsfield reserve for the promo videos
+
+The owner, 2026-09-29 ≈ 23:10 PDT: after this wave goes live, two BAYLINK promo videos (the website; the 3D world with the
+real world), **up to 1800 Higgsfield credits** for them. So the game lanes' "no cap" now has a floor: **lanes X and V
+together stop spending when `balance` would fall below 1900** (it was 2215.51 at 23:15 PDT). Check `balance` before every
+batch; a batch that would cross 1900 is not started (write it under Not done / Requests instead).
