@@ -1,5 +1,5 @@
 import type { Vec2 } from '../../../core/types';
-import { type BatchLike, CBOX, ICO, M } from '../../builder';
+import { type BatchLike, CBOX, CYL, ICO, M } from '../../builder';
 import type { SiteHooks } from '../sites';
 import { GLOW, NONE, arch, band, box, cyl, lathe, ngon, rot, worldPoly } from './kit';
 import type { LandmarkGround, LandmarkSwap, SfLandmark, WalkBlocker } from './index';
@@ -50,13 +50,20 @@ function colonnade(b: BatchLike, pts: Vec2[], lod: 0 | 2) {
     // plinth + entablature
     box(b, mx, -0.6, mz, 1.5, 0.9, L + 0.5, STONE_SHADE, NONE, ry);
     box(b, mx, COL_H + 0.3, mz, 1.5, ENT, L + 0.5, STONE_LIGHT, GLOW(0.06), ry);
-    // double row of columns
-    const k = Math.max(2, Math.round(L / 0.95));
+    // double row of columns. Wave 7 (lane V, W7-V5; lane R's scorecard #8: the peristyle "reads as a solid wall"): the
+    // real colonnade is a row of tall Corinthian columns, so each is a thicker tapered 6-sided shaft under a square capital
+    // (T1's 6k lod-0 budget), a little wider apart — from the lagoon they read as columns with the hall's shadow between them
+    const k = Math.max(2, Math.round(L / 1.12));
     const ux = dx / L, uz = dz / L, px = uz, pz = -ux;
     for (let j = 0; j <= k; j++) {
       if (last && j === k) continue;
       const t = j / k, x = a.x + dx * t, z = a.z + dz * t;
-      for (const s of [-0.45, 0.45]) cyl(b, x + px * s, 0.3, z + pz * s, 0.14, COL_H, STONE_LIGHT, NONE, 5);
+      for (const s of [-0.45, 0.45]) {
+        const cx = x + px * s, cz = z + pz * s;
+        // (an open shaft: the capital covers its top, the plinth its foot)
+        b.add(CYL(6, 0.85, true), M(cx, 0.3, cz, ry, 0.2, COL_H - 0.22, 0.2), STONE_LIGHT, NONE);
+        box(b, cx, COL_H + 0.08, cz, 0.5, 0.22, 0.5, STONE, NONE, ry);
+      }
       // flower-box planters on top of every second column pair
       if (j % 2 === 0) box(b, x, COL_H + 0.85, z, 1.0, 0.7, 0.7, STONE, NONE, ry);
     }
