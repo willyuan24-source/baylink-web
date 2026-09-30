@@ -213,3 +213,90 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
 - **Lane Q** (FYI): two surgical additions in your files — `ui/slots.ts` `registerGoalsRow` / `goalsRows` and
   `ui/Journal.tsx` `GoalsRows` after the city's explorer goals; the phone pill near a treat street is two lines through
   G's injected CSS (`halloween/treatNear.ts`).
+
+## Review (W7-G-review, 00:23–01:40 PDT, 2026-09-30)
+
+Adversarial review of every lane-G commit (`559006e5`, `dfe3815d`, `5ee0ad70`, `9ac6512f`, `25501fdf`, `fe80aa0e`,
+`e02df77d`, `1251f8ec`, `9a5a57bf`) in worktree `C:/Users/willy/wt/w7-g-rev` (dev 5726, its own vite cache — the shared
+`node_modules/.vite` was being rewritten by another lane's server and served a mixed React to Chrome), scratch
+`C:/Users/willy/opus-qa/w7/g-rev/`, review shots `docs/opus-bay/qa/w7/G/rev-*.jpg`.
+
+### 给主人的摘要
+
+1. G 线的四张万圣节明信片、鹈鹕蝙蝠翅膀、货架排序、讨糖提示、目标页的万圣节一栏都实际玩过（电脑 1440 × 900、手机 390 × 844），工作正常；11/10 打开手帐，已得到的明信片还在，万圣节页签和目标栏都按时消失。
+2. 修了两个真问题：**(a)** 明信片等了 14 秒后会直接盖在别的弹层上——比如正在玩的抓娃娃机、捞螃蟹、滑梯倒计时或小铺——现在它会一直等到那些关掉再出来；**(b)** 线上网站**现在**（9/30，万圣节季还没开始）右上角胶囊显示「明信片 0/24 · 🪙 0 ·」，末尾多一个孤零零的「·」（糖果袋在季外不显示，但它的分隔点还留着）；已修好，每个屏幕宽度都不再出现。
+3. 没有阻碍上线的问题。遗留的小事：明信片打开时 BAYBAY 新冒出的气泡会显示在卡片的暗幕上面（K 线的 flow.ts，已在请求里）。
+
+### What was checked
+
+- **Every commit read in full** (source and tests): the four gates (`playPostcards.ts`: first `door:n`, `hunt:all`,
+  first `night:n`, `muertos:12` — H's `hunt.ts` / `muertos.ts` do pay `hunt:all` and `muertos:12`), the run
+  (`playPostcardRun.ts`: a 0.25 s interval only while a card waits, no per-frame work; off() unregisters the overlay and
+  closes it with no dangling line), the card / grid (lazy chunk; the Notebook imports the grid from its own lazy chunk,
+  never the main graph), the charApi widening (`CharWho` 'pelican', `wingL` / `wingR`; `slotDef` ignores a slot a body
+  lacks; `syncPelican` allocates nothing unless the rig changed; the pelican rig is built once and its dispose touches
+  only its own geometry and skeleton, so the cached wing meshes and the hats' material are never disposed by it),
+  `wear.ts` (the wings come off only when they were on; reset on a new implementation / teardown), the cached wing
+  meshes (built once, 108 tris each, no leak on try-on), `shelfItems` (ITEMS order — the save's indices — unchanged),
+  `treatToast`, `doorOnLot` (the rotation matches three.js' yaw), `setKitSwapSkip` (cleared on the feature's stop and
+  when the season ends), the goals row (`Registry` snapshot stable for `useSyncExternalStore`; `ob-btn-sm` is 44 px on
+  touch).
+- **Played** (dev, fresh saves): desktop 1440 × 900 `?halloween=night` — Belvedere door 5 knocked, the toast
+  `双倍糖果：棒棒糖 ×3！+10 金币 · 糖果袋 3 颗`, both cards queued; the shop opened 2.5 s after the knock and held
+  20 s: **no card over it** (after the fix), the card opened 3 s after the shop closed (`rev-card-waits-behind-shop.jpg`,
+  `rev-card-after-shop.jpg`); the seasonal hats lead the BAYBAY shelf. Phone 390 × 844 dpr 3: the pill near Belvedere
+  **42.5 px, two lines** (`明信片 0/24` / `🪙 10 · 🍬 3`), the card after BAYBAY's lines, 收进手帐, the 万圣节 page row
+  (cards 172 × 129 px); then the same save reloaded at `?date=2026-11-10T12:00` (no `?halloween`): no 万圣节 tab, no
+  Halloween block in 目标, the notebook's 小发现 page still shows 万圣节明信片 2/4 with both pictures
+  (`rev-phone-notebook-nov10.jpg`). District (`?world=district`): no pill badges, no Halloween CSS, no `__opusBay.g` —
+  unchanged. The pelican's flight with the wings: the lane's phone strip (three flap angles) was checked, not re-flown.
+- **Real-world fact** (the Belvedere door removal, item 7): Belvedere Street is closed for Halloween between 17th Street
+  and Parnassus Avenue, 4–10 p.m. — https://missionlocal.org/2025/10/sf-halloween-streets-closed/ and
+  http://www.colevalleysf.com/halloween-on-belvedere.html (checked 2026-09-30). The lane's measurement (door 8 on a
+  Clayton face; doors 1–3 on Belvedere just past the 17th St end) is consistent with it; BAYBAY's Belvedere line
+  (往年还会封街) matches.
+- **Save compatibility**: `pelican-bat-wings` is appended (index 35); no new save bit, no new ledger prefix; the cards
+  are the ledger's own records (a Settings reset takes them; the waiting queue is dropped).
+- **Perf**: the wings are 2 small meshes on the existing TOY_DYN program while worn (216 tris); the card and the rows are
+  DOM; the kit-skip predicate runs in the kit swap's 0.25 s reselect only in the season (it iterates a 6-entry Map per
+  building — a few thousand tiny iterator objects a second at most: noted, not changed).
+- **Voice**: every lane-G bubble is a fixed line (`w7g-postcard-keep`, `w7g-costume-bat-wings`; the numbers are in the
+  toasts and the kicker only).
+
+### Defects fixed (red → green)
+
+1. **The Halloween postcard opened over another lane's overlay after 14 s** (`halloween/playPostcardRun.ts`
+   `cardMayOpen`: `waited >= CARD_MAX_WAIT` returned true before the `otherOverlay` check, and the lane's own test pinned
+   it). The overlays are the claw machine / fortune teller / crab net / sourdough panels (`play-*`), the slides' and the
+   stair race's chip, the shop sheet, the album, the egg cards: a player who knocks their first door (or finds the 40th
+   lantern) and opens the shop or starts a game within the wait got a modal card with its dim over the running game.
+   Now the 14 s only outlasts BAYBAY's chatter; another overlay always holds the card back (it waits in the queue and
+   opens once that overlay closes). Tests: `tests/opus-bay-w7-g-postcards.test.ts` — the pure rule (`otherOverlay` at
+   14 s and at 600 s → false) and in play (a `play-claw` overlay open 30 s: no card; closed: the card opens). Red before
+   (`actual: true, expected: false`), green after. Live: before the fix the shop case opens the card at 14 s; after,
+   `cardOverShop: false` at 20 s and the card 3 s after the shop closed.
+2. **The pill's dangling "·" outside the season — on the live site today** (`halloween/treatNear.ts`, W6 code in lane
+   G's feature): the Halloween feature starts in every city session, so its `g-candy` pill badge is registered all year;
+   out of the season `CandyBadge` renders nothing, but ui/Hud.tsx's `.ob-pill-badge` wrapper keeps its `::before '·'`.
+   https://www.baylink.us/opus-bay on 2026-09-30 01:0x PDT read `明信片 0/24 · 🪙 0 ·` on desktop
+   (`rev-pill-before-live.jpg`; `.ob-pill-badge` #2: innerHTML '' with `::before "·"`), and the phone's second line
+   `目标 0/10 · 🪙 10 ·` (also on 1–2 Nov with an empty bag). Fix: `.ob-pill-badge:empty { display: none; }` for every
+   width in G's injected stylesheet (a slot with nothing in it never shows its separator; no other badge changes).
+   Test: `tests/opus-bay-w7-g-polish.test.ts` "W7-G-review the candy badge out of the season" (CandyBadge on 30 Sep
+   renders an empty slot; the :empty rule precedes the phone block) — red before, green after. Dev after:
+   `明信片 0/24 · 🪙 0` (`rev-pill-after.jpg`; the empty slot `display: none`).
+
+### Open items (not blocking)
+
+- A BAYBAY bubble that starts while the Halloween card is open still shows above its dim (`game/flow.ts bubble()` pauses
+  only for the city reward and the goals step; lane K's file — the lane's Request stands). Seen again in review
+  (a neighbourhood line over the card on desktop).
+- The toast reads 双倍糖果：… ×3 at a new door on the big night (the "double" is the night's, the third candy the door's);
+  clear enough, left as the lane wrote it.
+- The lane's own Not done stands (the other five streets' door-to-street check, a live A/B of the kit skip, the
+  pelican's unused head / neck / back slots, the fallback goals card).
+- The deadlock test `W5-bus 20+ simulated minutes` (lane B / lead) — see the checks below.
+
+### Blocking the go-live
+
+None.

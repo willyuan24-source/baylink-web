@@ -22,7 +22,8 @@ export const H_POSTCARD_OVERLAY = 'h-postcard';
 export const CARD_MIN_WAIT = 1.4;
 /** BAYBAY's bubble must have been gone this long (s) — the treat's thanks and its milestone line come 0.25 s apart */
 export const CARD_QUIET = 0.8;
-/** after this (s) the card opens even if BAYBAY keeps talking (never over a dialogue, a cinematic or another reward) */
+/** after this (s) the card opens even if BAYBAY keeps talking (never over a dialogue, a cinematic, another reward or
+ * another lane's overlay: W7-G-review — at 14 s it opened over a running claw machine / crab net / slide chip / shop) */
 export const CARD_MAX_WAIT = 14;
 const TICK = 0.25;
 
@@ -44,9 +45,9 @@ export interface CardGate {
 
 /** Pure: whether a waiting card may open now. */
 export function cardMayOpen(g: CardGate): boolean {
-  if (g.busy || g.waited < CARD_MIN_WAIT) return false;
+  if (g.busy || g.otherOverlay || g.waited < CARD_MIN_WAIT) return false;
   if (g.waited >= CARD_MAX_WAIT) return true;
-  return g.quiet >= CARD_QUIET && !g.otherOverlay;
+  return g.quiet >= CARD_QUIET;
 }
 
 export interface PostcardRun {

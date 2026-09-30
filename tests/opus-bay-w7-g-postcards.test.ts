@@ -66,7 +66,11 @@ test('W7-G1 the hand-over waits for BAYBAY: never before 1.4 s, after 0.8 s of q
   assert.equal(run.cardMayOpen({ ...base, quiet: 0.5 }), false, 'the thanks and its milestone line are 0.25 s apart');
   assert.equal(run.cardMayOpen({ ...base, otherOverlay: true }), false);
   assert.equal(run.cardMayOpen({ ...base, busy: true, waited: 60 }), false, 'never over a dialogue or a city postcard');
-  assert.equal(run.cardMayOpen({ ...base, quiet: 0, otherOverlay: true, waited: run.CARD_MAX_WAIT }), true);
+  assert.equal(run.cardMayOpen({ ...base, quiet: 0, waited: run.CARD_MAX_WAIT }), true, 'at 14 s over her chatter');
+  // W7-G-review: the 14 s only outlasts BAYBAY's chatter — never another lane's overlay (the claw machine, the crab net,
+  // the sourdough, a slide's chip, the shop sheet, the album): the card's dim would cover a game while it runs
+  assert.equal(run.cardMayOpen({ ...base, quiet: 0, otherOverlay: true, waited: run.CARD_MAX_WAIT }), false);
+  assert.equal(run.cardMayOpen({ ...base, otherOverlay: true, waited: 600 }), false);
 });
 
 test('W7-G1 in play: a treat pays door:n → the card opens after the bubble, kept → BAYBAY says where it went; earned before → no pop-up', () => {
@@ -97,6 +101,13 @@ test('W7-G1 in play: a treat pays door:n → the card opens after the bubble, ke
     mock.timers.tick(30_000);
     assert.equal(opened().length, 0, 'not over the journal');
     game.set({ panel: { ...game.get().panel, kind: null } as never });
+    // W7-G-review: nor over another lane's overlay (a mini-game's panel), however long it waits
+    const offGame = slots.registerOverlay({ id: 'play-claw', Component: () => null });
+    slots.openOverlay('play-claw');
+    mock.timers.tick(30_000);
+    assert.equal(opened().length, 0, 'not over a running mini-game');
+    slots.closeOverlay('play-claw');
+    offGame();
     mock.timers.tick(1000);
     assert.deepEqual(opened().map(o => (o.props as { id: string }).id), ['halloween-big-night']);
     // kept: the overlay closes, BAYBAY's fixed line (lane X voices it)

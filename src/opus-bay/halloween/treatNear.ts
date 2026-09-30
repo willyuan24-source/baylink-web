@@ -22,8 +22,11 @@ export function onTreatNear(fn: () => void): () => void {
  * The phone rules (the breakpoint of ui/Hud.tsx `badgesBelow`). W7-G4: near a trick-or-treat street the pill keeps its
  * two lines (it was three, 58 px): its second line becomes the purse — 🪙 n · 🍬 n — in place of 目标 n/10 (the goals
  * text is sized to nothing there, so a screen reader still reads it; the Journal shows the goals), no leading "·".
+ * W7-G-review (every width): out of the season the bag renders nothing, but its pill slot (ui/Hud.tsx .ob-pill-badge)
+ * kept its '·' separator — the live pill read "明信片 0/24 · 🪙 0 ·" — so an empty slot is not shown.
  */
 export const CANDY_PHONE_CSS = `
+.ob-pill-badge:empty { display: none; }
 @media (max-width: 600px) {
   .ob-pill-badge:has(> .ob-candy[data-far]) { display: none; }
   .ob-objective-text small:has(.ob-candy:not([data-far])) { font-size: 0; gap: 0; }

@@ -47,6 +47,22 @@ test('W7-G3 in season the Halloween items lead their shelves (their slot group f
   } finally { off2(); }
 });
 
+test('W7-G-review the candy badge out of the season: its pill slot stays empty and the slot shows no dangling "·" at any width', async () => {
+  // (live on 30 Sep 2026, before the season: the pill read "明信片 0/24 · 🪙 0 ·" — the candy slot's wrapper, ui/Hud.tsx
+  // .ob-pill-badge, kept its '·' separator with nothing in it; the feature starts in every city session)
+  const { renderToStaticMarkup } = await import('react-dom/server');
+  const { createElement } = await import('react');
+  const { CandyBadge } = await import('../src/opus-bay/halloween/treatBadge');
+  const bay = await import('../src/opus-bay/game/bayNow');
+  bay.__setBayNowForTests('2026-09-30T12:00');
+  try {
+    assert.equal(renderToStaticMarkup(createElement('span', { className: 'ob-pill-badge' }, createElement(CandyBadge))), '<span class="ob-pill-badge"></span>');
+  } finally { bay.__setBayNowForTests(null); }
+  const css = near.CANDY_PHONE_CSS.replace(/\s+/g, ' ');
+  const rule = css.search(/\.ob-pill-badge:empty \{ display: none; \}/);
+  assert.ok(rule >= 0 && rule < css.indexOf('@media'), 'an :empty rule for every width, before the phone block');
+});
+
 test('W7-G4 the phone pill near a treat street: the goals line becomes the purse (two lines, no dangling "·"); far away the bag hides', () => {
   const css = near.CANDY_PHONE_CSS.replace(/\s+/g, ' ');
   assert.match(css, /@media \(max-width: 600px\)/);
