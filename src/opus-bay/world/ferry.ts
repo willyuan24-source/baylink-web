@@ -201,8 +201,8 @@ export const FERRY_PLATFORM = {
 };
 
 const HEAR = 90;
-/** the wake's foam: the water datum (district water at −0.6) and how near the player must be (u) */
-const WAKE_Y = -0.58, WAKE_NEAR = 160;
+/** the wake's foam: a hand above the water (DISTRICT.waterLevel −0.6: flush with it the foam fought the water and hid) and how near the player must be (u) */
+const WAKE_Y = DISTRICT.waterLevel + 0.12, WAKE_NEAR = 160;
 
 /** City mode: the ferry system, its platform and events (life.ts draws the boat from the system's pose). */
 export class FerryLayer {
