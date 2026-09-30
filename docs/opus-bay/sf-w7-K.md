@@ -234,3 +234,17 @@ except `GameRoot.tsx`, `voiceW5.ts`, `w5Features.ts`, `album.ts`, `photo.ts`; `d
 ### Not done
 
 - Of my row only the canopy over the rider is left (part a, Requests).
+
+### Final checks (2026-09-30 00:05–00:25 PDT, on the tree rebased onto `da1dbc40`)
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings; the first run crashed on a scratch
+  folder of mine removed mid-run, re-run clean) · suite **1626 tests, 1624 pass**: `sf-move2` "a cached cell is cheap"
+  (wall clock) — re-run alone 24 / 24; **`W5-bus 20+ simulated minutes` "bus at an interlock stood 29.2 s
+  (box:f-line@5661:750) at (149, 601)" is red on origin itself**: with origin's whole `src/opus-bay` checked out over mine
+  (23:55) it fails the same way, deterministically — lane H found the same (sf-w7-H.md Requests). Not lane K's files.
+- Dev server 5701 stopped; no Chrome of mine left; PERF-LOCK was absent at every Chrome start.
+
+### Requests (final)
+
+- **Lane B / the lead:** the deadlock proof above (red on origin; the Castro-side interlock box, 29.2 s).
+- **Lead / lane X:** the canopy over the rider (part a Requests).
