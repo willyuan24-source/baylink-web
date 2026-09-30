@@ -167,7 +167,9 @@ where Nominatim's hit was a shop a block west (the intersection itself, 37.76993
 ### Evidence and the checks of the pushed tree
 
 - `opus-bay-sf-cards` + `opus-bay-w7-r`: 19 / 19.
-- The full suite on the rebased tree (parts c + d): see the push note below. **`W5-bus 20+ simulated minutes` fails
+- The full suite on the rebased tree (parts c + d, tree `f5e410f2` on `90dc7798`): tsc 0, `eslint .` 0 errors (43 old
+  warnings), **1578 / 1579**; after rebasing onto lane G's `25501fdf` (their own checks) tsc 0 and the card / landmark /
+  w7-r tests 52 / 52 again. **`W5-bus 20+ simulated minutes` fails
   on origin itself**: re-run alone on my tree (29.2 s at the f-line box near (149, 601)) and on a clean checkout of
   `origin/opus-bay` `c3dd95cc` without my commits (a temporary worktree, removed after): the same 29.2 s at the same box.
   Not caused by lane R (card texts, Lombard's flowers, tops rows); lane B owns that test (W7-B1 made it deterministic).
