@@ -167,3 +167,21 @@ test('W7-B2: a sheet opened on an underground ride (Esc → Settings, which stan
   const sheet = z(/\.ob-overlay:has\(\.ob-subway\.is-on\) \.ob-sheet \{[^}]*z-index: *(\d+)/);
   assert.ok(subway > 0 && sheet > subway, `sheet ${sheet} over the subway ${subway}`);
 });
+
+test('W7-B4: the streetcars\' run step asks nextNeed with scratch records — no new Need object every frame (it was two a car a frame)', async () => {
+  const { StreetcarSystem } = await import('../src/opus-bay/world/flineSystem');
+  const { buildFLine } = await import('../src/opus-bay/data/fline');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const FILE = JSON.parse(fs.readFileSync(path.join(PUB, 'transit.json'), 'utf8')) as { lines: { id: string }[] };
+  const line = buildFLine((FILE.lines.find(l => l.id === 'f-line') ?? undefined) as never, DISTRICT.streetcar)!;
+  const sys = new StreetcarSystem(line, {});
+  const proto = StreetcarSystem.prototype as unknown as { nextNeed: (car: unknown, out?: unknown) => unknown };
+  const real = proto.nextNeed;
+  let fresh = 0, calls = 0;
+  proto.nextNeed = function (this: unknown, car: unknown, out?: unknown) { calls++; if (!out) fresh++; return real.call(this, car, out); };
+  try {
+    for (let t = 0; t < 120; t += DT) sys.step(DT);
+  } finally { proto.nextNeed = real; }
+  assert.ok(calls > 1000, `asked ${calls} times in 2 simulated minutes`);
+  assert.equal(fresh, 0, `${fresh} of ${calls} asks made a new Need`);
+});

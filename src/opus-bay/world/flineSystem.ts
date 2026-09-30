@@ -99,6 +99,9 @@ function needOf(out: Need | undefined, k: number, dir: 1 | -1, hold: number): Ne
 const NEED_P: Need = { k: 0, dir: 1, hold: 0 };
 const NEED_W: Need = { k: 0, dir: 1, hold: 0 };
 const NEED_F: Need = { k: 0, dir: 1, hold: 0 };
+/** (W7-B4) the run step's own two (stepCar: `need` before a take, `need2` after it): no longer a new Need every frame */
+const NEED_S: Need = { k: 0, dir: 1, hold: 0 };
+const NEED_S2: Need = { k: 0, dir: 1, hold: 0 };
 const BODY_C: [number, number] = [0, 0];
 const TELEPORT_BACK = [30, 45, 22, 70, 100, 140];
 const REDISPATCH_ETA = 20;
@@ -570,7 +573,7 @@ export class StreetcarSystem {
     if (stopReq && !car.braking) car.brakeRate = Math.max(FL.dec, car.v / Math.max(0.05, stopReq.within - stopReq.since));
     car.braking = !!stopReq;
     this.release(car);
-    const need = this.nextNeed(car);
+    const need = this.nextNeed(car, NEED_S);
     if (car.mode === 'dwell') {
       car.v = 0;
       car.held = 0;
@@ -585,7 +588,7 @@ export class StreetcarSystem {
       // a car leaving a box part to a bus waits at the passing place before the part without the block beyond it (the
       // cars in the part need it to come out; world/sf/lineInterlocks.ts busAheadOfFCar)
       if (need && this.toHold(car, need.hold) < (car.v * car.v) / (2 * FL.dec) + 14 && roadGap > this.toHold(car, need.hold) + 0.05 && this.firstInLine(car, need) && this.canTake(car, need.k, need.dir)) this.take(car, need.k, need.dir);
-      const need2 = this.nextNeed(car);
+      const need2 = this.nextNeed(car, NEED_S2);
       let limit = this.curveLimit(car);
       const next = this.nextStop(car);
       if (next) limit = Math.min(limit, Math.sqrt(2 * FL.dec * Math.max(0, next.d)));
