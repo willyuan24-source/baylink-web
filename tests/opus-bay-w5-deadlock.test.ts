@@ -461,7 +461,9 @@ test('W5-bus interlocks: a cable car or streetcar leaves a shared stretch to a b
       report.push(`phase ${phase}: bus box waits over 5 s ${over5}, longest ${worst.toFixed(1)} s; longest cable car stand ${worstCable.toFixed(1)} s, streetcar ${worstF.toFixed(1)} s`);
       assert.ok(over5 <= 3 && worst <= 15, report[report.length - 1]);
       // the other lines wait for the bus (at a stop, or short of the stretch), never for good
-      assert.ok(worstCable <= 60 && worstF <= 45, report[report.length - 1]);
+      // (W7-B5) bounded where it stands: a cable car's courtesy stand ≤ 50 s (measured 48.1 s at Hyde & Chestnut — the car's
+      // stop, 24 s leaving the box to the loop bus, then the bus's 8 s stop inside it — and 43.3 s near Drumm; it was ≤ 60)
+      assert.ok(worstCable <= 50 && worstF <= 45, report[report.length - 1]);
       T.setActiveLineFleet(null);
       fleet.dispose();
     }

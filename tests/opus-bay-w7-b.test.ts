@@ -185,3 +185,53 @@ test('W7-B4: the streetcars\' run step asks nextNeed with scratch records — no
   assert.ok(calls > 1000, `asked ${calls} times in 2 simulated minutes`);
   assert.equal(fresh, 0, `${fresh} of ${calls} asks made a new Need`);
 });
+
+test('W7-B5: with the rider riding the F-line back and forth (their streetcar never yields), no loop bus waits at a shared box more than 35 s — Castro\'s hairpin and Market St\'s single-track stem (measured 28.6 s: two streetcars through the stem in a row)', async () => {
+  const { busInterlocks } = await import('../src/opus-bay/world/sf/lineFleet');
+  const LI = await import('../src/opus-bay/world/sf/lineInterlocks');
+  const { CableSystem } = await import('../src/opus-bay/world/transitLine');
+  const { StreetcarSystem } = await import('../src/opus-bay/world/flineSystem');
+  const { buildFLine } = await import('../src/opus-bay/data/fline');
+  const { DISTRICT } = await import('../src/opus-bay/data/district');
+  const FILE = JSON.parse(fs.readFileSync(path.join(PUB, 'transit.json'), 'utf8')) as import('../src/opus-bay/data/transit').TransitFileJson;
+  const W4 = T.buildTransitW4(FILE)!, DATA = T.buildTransit(FILE);
+  T.setTransitW4(W4); T.setTransitData(DATA);
+  const line = buildFLine((FILE.lines.find(l => l.id === 'f-line') ?? undefined) as never, DISTRICT.streetcar)!;
+  const cable = new CableSystem(DATA, {});
+  let fleet: InstanceType<typeof LineFleet> | null = null;
+  type FCar = Parameters<typeof LI.busAheadOfFCar>[2];
+  const fsys = new StreetcarSystem(line, {
+    roadAhead: (car: FCar) => (fleet ? LI.busAheadOfFCar(fleet, host, car) : Infinity),
+    hurryDwell: (car: FCar) => (fleet ? LI.busWaitsForFCar(fleet, host, car) : false),
+  });
+  const host = { line, sys: fsys };
+  fleet = new LineFleet({ loop: W4.loop as TransitLine & { speeds?: [number, number, number][] }, metro: W4.metro, props: W4.props }, {
+    boxes: bt => busInterlocks(bt, LI.interlockLines(DATA, host), (l, b0, b1) => LI.boxBlocked(cable, host, l, b0, b1), undefined, (l, b0, b1) => LI.riderWantsBox(cable, l, b0, b1)),
+    emitEvents: false,
+  });
+  T.setActiveLineFleet(fleet);
+  try {
+    const bus = fleet.bus;
+    for (let t = 0; t < 111; t += DT) bus.step(DT);
+    const legs = [['ferry', 'f-17th-castro'], ['f-17th-castro', 'ferry']];
+    let leg = 0, rides = 0, worst = 0, worstAt = '';
+    const go = () => fsys.request({ line: 'f-line', station: legs[leg % 2][0], dir: 1, to: legs[leg % 2][1] });
+    go();
+    const held = new Map<number, number>();
+    for (let t = 0; t < 1200; t += DT) {
+      cable.step(DT); fsys.step(DT); bus.step(DT);
+      const st = fsys.rideStatus();
+      if (st?.phase === 'here') fsys.board();
+      if (!st || st.phase === 'arrived') { rides++; fsys.cancel(); leg++; go(); }
+      for (const b of bus.buses) {
+        const h = b.why === 'box' && b.v < 0.3 ? (held.get(b.index) ?? 0) + DT : 0;
+        held.set(b.index, h);
+        if (h > worst) { worst = h; worstAt = `${b.whyOf} at ${t.toFixed(0)} s`; }
+      }
+    }
+    assert.ok(rides >= 6, `the rider rode the F-line ${rides} times`);
+    console.log(`F-line rider: ${rides} rides, the longest bus wait at a box ${worst.toFixed(1)} s (${worstAt})`);
+    assert.ok(worst <= 35, `a bus waited ${worst.toFixed(1)} s at ${worstAt}`);
+    assert.deepEqual([...bus.violations(), ...cable.violations()], []);
+  } finally { T.setActiveLineFleet(null); fleet.dispose(); T.setTransitData(null); }
+});
