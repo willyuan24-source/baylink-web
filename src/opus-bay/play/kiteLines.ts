@@ -17,7 +17,6 @@ export const KITE_LINES = {
   crash: { zh: '哎呀，掉下来了！再放一次～', en: 'Oops, it came down! Up it goes again!' },
   top: { zh: '线全放完啦，飞得好高！', en: 'All the line out — look how high!' },
   done: { zh: '码头绿地的海风最适合放风筝了！', en: 'The sea breeze on Marina Green is made for kites!' },
-  notHere: { zh: '去码头绿地或者克里西场的大草坪上放风筝吧！', en: 'Let’s fly kites on the big lawn at Marina Green or Crissy Field!' },
   // the chip (not spoken)
   hintTouch: { zh: '起风时按住「放线」，松手爬高', en: 'Hold “Let out” in a gust, let go to climb' },
   hintKeys: { zh: '起风时按住空格放线，松手爬高', en: 'Hold Space in a gust, let go to climb' },
