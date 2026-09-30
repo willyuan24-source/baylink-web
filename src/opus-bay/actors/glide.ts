@@ -262,8 +262,16 @@ export class GlideSim {
   /** 0..1 through the take-off / landing curve (1 in free flight) */
   get progress(): number { return this.curve ? clamp(this.curve.t / this.curve.dur, 0, 1) : 1; }
 
+  /**
+   * (W7-K7, W6-K1's open item) One report per sim, rewritten by every step (it was a new object every frame). Every
+   * caller reads it at once and keeps nothing (audited: moveSystem.flyGlide — bump, softBox; the tests' landed / edge /
+   * softBox reads): a report is valid until the next step().
+   */
+  private readonly report: GlideReport = { bump: false, edge: false, landed: false, airborne: false, softBox: undefined };
+
   step(dtRaw: number, input: GlideInput, world: GlideWorld): GlideReport {
-    const report: GlideReport = { bump: false, edge: false, landed: false, airborne: false };
+    const report = this.report;
+    report.bump = false; report.edge = false; report.landed = false; report.airborne = false; report.softBox = undefined;
     const dt = Math.min(Math.max(dtRaw, 0), 0.1);
     if (dt <= 0) return report;
     if (this.curve) { this.followCurve(dt, report); return report; }
