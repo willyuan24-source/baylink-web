@@ -6,9 +6,11 @@ chunks; what the bigger `/planner-catalog.json` costs a phone's first load; dist
 
 ## 给主人的摘要
 
-1. 游戏首屏主包（GameRoot，压缩后）从 **279.21 KB 降到 267.14 KB**（第一部分，同一棵树上量的）。挪走的都是"开始玩以后才用得到"或"只有城市才用得到"的东西：地标卡片的正文（打开卡片时才下载）、BAYBAY 对话泡泡的排版、自动画质监测、"发现地点"和地点索引、金门大桥桥面行走和城市取景。
-2. 行为不变：街区模式和城市模式（电脑 + 手机 390×844）都实玩过——卡片正文、BAYBAY 的泡泡位置、开场都和以前一样；1493 个测试全绿。
-3. 接下来：再挪 2–4 KB 到 265 以下并留余量（其他线这一波也会加东西），给所有"按需下载的小包"加"下载失败自动重试"（手机信号一抖，骑车导航等功能不会整局失效），再量一下新的活动目录（125 KB）是否拖慢手机首屏。
+1. **目标达成**：游戏首屏主包（GameRoot，压缩后）从 **279.21 KB 降到 254.45 KB**（在同一棵树上量）。挪走的都是"按开始以后才用得到"或"只有城市才用得到"的东西：BAYBAY 的全部对话台词、地标卡片正文、对话泡泡排版、自动画质监测、"发现地点"、金门大桥桥面行走和城市取景。之后其他线（新特效、外墙、天空、毛毡质感）又往主包里加了约 6 KB，最新的树上是 **260.82 KB**，仍低于 265。
+2. 行为不变：街区和城市（电脑 + 手机 390×844，生产构建，从标题页按"开始"进入）都实玩过：开场对话、选项、目标卡片、卡片正文都和以前一样。
+3. **手机信号一抖不再"整局失效"**：以前某个按需下载的小包（骑车/开车自动导航、城市数据等）只要丢一次，Chrome 就一直记着失败、整局都用不了；现在会自动重试（1 秒、3 秒、8 秒），已在 Chrome 实测这个办法有效。
+4. 新的活动目录（125 KB）以前在手机加载城市时就开始下载（首屏前 10–15 秒，占带宽并解析约 0.1 秒）；现在改成画面出来之后再下，不再和首屏抢。
+5. 没做：负责人说的"街区车辆"（改变首帧，需要你决定）；"脚下辅助/拉一把"等四个模块试过又撤回（会让夜间自动检查误报），原因写在报告里。
 
 ## Measuring
 
@@ -196,4 +198,88 @@ Started 21:55 PDT, on origin `d64dc400` (part a pushed). GameRoot **267.14 → 2
   the module map): the caller's fallback applies, as before.
 - Firefox / Safari were not run (no such browsers on this machine); their messages are unit-tested from their formats.
 - A `?start=` deep link on a very slow network now waits for the play layer (≈ 30 KB) before play begins (QA only).
+- Checks when pushed: the rebase brought 13 other-lane commits (tsc 0 and my six test files 75 / 75 on the pushed head
+  `0f03c125`); the full suite before that, on origin `90dc7798` + part b: 1583 / 1584 — the one failure
+  is `W5-bus 20+ simulated minutes` ("bus at an interlock stood 29.2 s (box:f-line@5661:750)"): **red on origin itself**
+  (checked in a clean worktree of origin `4bc614be` without my commits: the same 29.2 s; lane H reported it too). Not
+  lane P's.
+
+## Part c · W7-P5 the planner catalog off the phone's first-frame path
+
+Started ≈ 23:20 PDT (measured while the suite ran: numbers are indicative, the machine was loaded by 13 lanes).
+
+### What was measured
+
+`C:/Users/willy/opus-qa/w7/p/loadperf.mjs`: one headless Chrome (CDP), 390 × 844 dpr 3 touch, **slow 4G** (Lighthouse's
+mobile profile: 150 ms RTT, 1.6 Mbps down, 750 kbps up), **CPU 4×**, cache off; city mode from the title (no Start);
+the world's first frame read from GameRoot's new `performance.mark('opus-bay:first-frame')`; the catalog request from
+resource timing / CDP; long tasks from a PerformanceObserver. Production build, vite preview on 5704.
+
+| run | first frame | `/planner-catalog.json` (126.5 KB on the wire) | long task right after it |
+|---|---|---|---|
+| before, A1 | 39.2 s | 24.9 → 26.4 s (**before** the first frame) | — |
+| before, A2 | 34.2 s | 23.1 → 24.1 s (**before** the first frame) | 128 ms at 24.08 s (the parse + sanitize) |
+| before, catalog blocked, B1 | 40.7 s | blocked | (the world's own 1.8 s / 9.8 s tasks come here in every run) |
+| **after W7-P5**, C3 | 34.0 s | starts at **52.6 s** (after the first frame) | — |
+
+So on a phone the old 1.5 s timer from the Overlay's boot put the whole catalog download (≈ 0.65 s of a slow-4G link)
+and its ≈ 0.13 s parse (4× CPU) into the window where the city chunk, the data chunk and the first city cells stream —
+10–15 s before the first frame. The first-frame times themselves are within this loaded machine's noise (A 34–39 s, B
+41 s): no first-frame gain is claimed; the change removes the contention by construction.
+
+### What was built
+
+- `game/firstFrame.ts` (new, main graph, 0.2 KB): `markFirstFrame()` (GameRoot's `FirstFrame` calls it on the world's
+  first frame; it also sets the performance mark) and `afterFirstFrame(fn)` (at once once drawn; returns an unsubscribe).
+- `ui/Overlay.tsx` (Q's file; the boot's one call site): the catalog prefetch starts 1.5 s **after the world's first
+  frame** instead of 1.5 s after the Overlay mounted. Start (`beginPlaying`) and every panel that needs it still call
+  `loadCatalog()` themselves, as before, so nothing waits longer for it once play begins.
+- Tests: `tests/opus-bay-w7-p.test.ts` (afterFirstFrame: nothing before, once, can be called off, at once after);
+  `tests/opus-bay-sf-budget.test.ts` "W7-P5" (the Overlay waits for the first frame, no blind timer — red on the old
+  boot; GameRoot marks it).
+
+### Evidence
+
+- Chunks on the latest tree (origin `89940c6d` + part c, built 00:00 PDT): **GameRoot 260.82 KB** gzip — the other
+  lanes' pushes since part b's build added ≈ 6 KB to GameRoot's own modules (gzip of parts: `world/fx.ts` +1.98,
+  `world/materials.ts` +1.43, `world/environment.ts` +0.96, `actors/models.ts` +0.84, `actors/cameraModes.ts` +0.39,
+  `world/life.ts` +0.30), part c +0.2.
+- Checks on the lane tree: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite **1605 / 1606** (the one failure:
+  `W5-bus 20+ simulated minutes`, red on origin itself, above).
+
+### Decisions
+
+1. The catalog stays a prefetch (the week board, event and POI cards read it); only its start moves. No change to the
+   catalog file (the site's, GPT's) or to `loadCatalog`.
+
+## Not done
+
+- **Request 3** (the district vehicles on first need): the owner's call (`sf-w7-lead.md` §6).
+- **Request 1's second half** (the forgiving feet, BAYBAY's pull, the open-ground turn, the glide's tall structures): built
+  and reverted (part b, Decision 3).
+- `importRetry` is not applied to the ≈ 170 other lazy `import()` sites (feature chunks, panels, city sub-chunks).
+- No real-phone measurement (CDP emulation only); no Firefox / Safari run.
+
+## Requests
+
+1. **Lead / W7-Z**: read the chunk table on the final tree (`GameRoot`, `playParts`, `script`, `poiTexts`); play the
+   district's first minute once from the title (Start, the welcome, a tour stop's card) and a city phone start. GameRoot
+   was 260.82 KB at 00:00 PDT with ≈ 4 KB left under 265.
+2. **Lanes V / X (or the lead)**: GameRoot grew ≈ 6 KB tonight in `world/fx.ts`, `world/materials.ts`,
+   `world/environment.ts`, `actors/models.ts`. City-only parts of those (the city day sky, the façade window styles,
+   the painted-particle presets only the city fires) can sit behind the city chunk (`world/cityLoader.ts` /
+   `world/sf/cityMode.ts`) or a registration like `actors/citySlots.ts`; the P7 walk (`tests/opus-bay-sf-budget.test.ts`)
+   shows the static graph.
+3. **Lane B / the lead**: `W5-bus 20+ simulated minutes` is red on origin (a bus 29.2 s at `box:f-line@5661:750`, the
+   Castro hairpin); lane B's hardening landed before it went red.
+4. **Lane R (or whoever edits the district cards' facts)**: the summary / hours / cost / tips of the 15 district POI cards
+   now live in `data/poiTexts.ts` (keyed by POI id); sources and dates stay in `data/pois.ts`.
+5. **Lead (housekeeping)**: `.git/worktrees/w7-p-chk` (a check worktree I removed) could not be deleted (the OneDrive
+   lock, as in wave 6); remove it with OneDrive paused, then `git worktree prune`. Its `node_modules` junction was
+   removed first (`rmdir`), the main checkout's `node_modules` is intact.
+
+## Final checks
+
+See the last lines of part c. Dev / preview server on 5704 stopped at the end; one headless Chrome at a time; no
+PERF-LOCK seen at any build or Chrome run; no Higgsfield spend.
 
