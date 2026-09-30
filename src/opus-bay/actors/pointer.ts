@@ -52,7 +52,19 @@ export function attachPointer(el: HTMLElement): () => void {
     stickView.baseX = stickBase.x - r.left; stickView.baseY = stickBase.y - r.top;
     paint();
   };
-  const onViewport = () => { if (stickView.active) paintStick(); };
+  /**
+   * (W7-K6) a WIDTH change of the viewport while a finger is down is a rotation (or a split-screen resize): every touch
+   * point it had is in the old frame, and the thumb may never send its pointerup — let go of everything (the stick
+   * stops, a look drag or a pinch ends). A height-only change (an iOS toolbar) keeps W6-K1's repaint.
+   */
+  const viewWidth = () => { const w = window.visualViewport?.width ?? window.innerWidth; return typeof w === 'number' && Number.isFinite(w) ? w : NaN; };
+  let lastWidth = viewWidth();
+  const onViewport = () => {
+    const w = viewWidth(), turned = Math.abs(w - lastWidth) > 1;
+    lastWidth = w;
+    if (turned && (touches.size > 0 || stickView.active)) { onCancelAll(); return; }
+    if (stickView.active) paintStick();
+  };
 
   const releaseStick = () => {
     input.stick.active = false; input.stick.x = 0; input.stick.y = 0;
@@ -162,7 +174,11 @@ export function attachPointer(el: HTMLElement): () => void {
     noteCamera();
   };
   const onContext = (e: Event) => e.preventDefault();
-  const onCancelAll = () => { touches.clear(); mouse = null; pinchPrev = null; releaseStick(); };
+  const onCancelAll = () => { touches.clear(); passing.clear(); mouse = null; pinchPrev = null; releaseStick(); };
+  // (W7-K6) the page is hidden (an app switch, the lock button, a phone call) or unloaded into the back-forward cache: a
+  // touch that was down never gets its pointerup — a stick held at the switch walked the player on when they came back
+  const onVisibility = () => { if (document.visibilityState === 'hidden') onCancelAll(); };
+  const doc = typeof document !== 'undefined' ? document : null;
 
   // (checkpoint CP-12) a touch that lands on a peek card over the thumb zone (THUMB_PASS: lane N's arrival card, 6 s,
   // bottom left on phones) is the canvas's too: a drag steers the stick (or turns the camera on the right half) and the
@@ -196,6 +212,8 @@ export function attachPointer(el: HTMLElement): () => void {
   el.addEventListener('wheel', onWheel, { passive: false });
   el.addEventListener('contextmenu', onContext);
   window.addEventListener('blur', onCancelAll);
+  window.addEventListener('pagehide', onCancelAll);
+  doc?.addEventListener('visibilitychange', onVisibility);
   window.addEventListener('resize', onViewport);
   const vv = window.visualViewport;
   vv?.addEventListener('resize', onViewport);
@@ -219,6 +237,8 @@ export function attachPointer(el: HTMLElement): () => void {
     el.removeEventListener('wheel', onWheel);
     el.removeEventListener('contextmenu', onContext);
     window.removeEventListener('blur', onCancelAll);
+    window.removeEventListener('pagehide', onCancelAll);
+    doc?.removeEventListener('visibilitychange', onVisibility);
     window.removeEventListener('resize', onViewport);
     vv?.removeEventListener('resize', onViewport);
     vv?.removeEventListener('scroll', onViewport);
