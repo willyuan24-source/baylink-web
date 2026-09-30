@@ -15,6 +15,7 @@ import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMovi
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, openOverlays, registerAskItem, registerOverlay, type OverlayProps } from '../ui/slots';
 import { registerHideSeek } from './hideSeekEntry';
+import { registerKites } from './kiteEntry';
 import { currentActivity, ensureResultOverlay, forgetSession, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
 import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
@@ -129,6 +130,8 @@ export function init(): () => void {
   offs.push(registerAskItem({ id: 'play-pet', order: -10, label: { zh: '摸摸 BAYBAY', en: 'Pet BAYBAY' }, icon: Heart, onSelect: () => { void petNow(); } }));
   // W6-W4 (lane W): 问 BAYBAY → 捉迷藏 (play/hideSeek.ts)
   offs.push(registerHideSeek());
+  // W7-W2: 问 BAYBAY → 放风筝 on Marina Green / Crissy Field (play/kite.ts) and Marina Green's kites by day (play/kites.ts)
+  offs.push(registerKites());
   offs.push(registerInteractables('a-play', () => [sitHereIt, ...viewIts]));
   // the ledger keeps view:<id> in play.g.view, bit i = VIEW_SPOT_IDS[i] (append-only)
   offs.push(registerRewardIds('view', VIEW_SPOT_IDS));

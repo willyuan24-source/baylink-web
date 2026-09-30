@@ -21,6 +21,8 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   { key: 'stairs-lyon', name: { zh: '台阶赛跑 · 里昂街台阶', en: 'Stair race · Lyon Street Steps' }, unit: 'seconds' },
   { key: 'hide-seek', name: { zh: '捉迷藏 · 找到 BAYBAY', en: 'Hide & seek · found BAYBAY' }, unit: 'seconds' },
   { key: 'bell', name: { zh: '缆车摇铃', en: 'Cable-car bell' }, unit: 'points' },
+  // W7-W2 (lane W2): 放风筝 (points: a point a second aloft, ten more for the top of the line)
+  { key: 'kite', name: { zh: '放风筝', en: 'Kite flying' }, unit: 'points' },
 ];
 
 /** Days since 1970 of a Bay date (lane A's `steps-day`). */
