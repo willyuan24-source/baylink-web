@@ -9,6 +9,11 @@ test('unknown routes and inherited object properties cannot become indexable cat
 });
 
 test('known category aggregates and supported deep links are recognized exactly', () => {
+  for (const path of ['/me/bookings', '/me/bookings/']) {
+    assert.equal(isKnownAppPath(path), true);
+    assert.equal(tabFromPathname(path), 'profile');
+  }
+  assert.equal(isKnownAppPath('/me/bookings/unknown'), false);
   for (const path of ['/', '/about', '/about/', '/play', '/play/', '/category/service', '/category/moving/', '/posts/post-id', '/messages/thread-id', '/guides/local-service-safety-guide']) assert.equal(isKnownAppPath(path), true, path);
   assert.equal(getCategoryFromSlug('service'), '本地服务');
   assert.equal(tabFromPathname('/play'), 'explore');

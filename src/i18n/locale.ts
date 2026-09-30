@@ -33,6 +33,7 @@ const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
 export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await (englishLoad ||= Promise.all([
     import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
+    import('../data/service-booking-entry-en.json'),
     import('../data/october-offers-en.json'), import('../data/october-local-en.json'),
     import('../data/october-events-extra-en.json'), import('../data/october-offers-extra-en.json'), import('../data/october-openings-extra-en.json'), import('../data/discovery-community-en.json'),
     import('../data/autumn-refresh-offers-en.json'), import('../data/autumn-refresh-ui-en.json'),

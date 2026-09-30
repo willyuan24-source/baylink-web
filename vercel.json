@@ -39,7 +39,7 @@
       "continue": true
     },
     {
-      "src": "^/(?:me|my-week|messages(?:/.*)?|reset-password|users/.*)/?$",
+      "src": "^/(?:me(?:/bookings)?|my-week|messages(?:/.*)?|reset-password|users/.*)/?$",
       "headers": {
         "X-Robots-Tag": "noindex, follow",
         "Cache-Control": "no-store"
@@ -95,7 +95,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:me|my-week|messages(?:/[^/]+)?|reset-password|users/[^/]+|opus-bay)/?$",
+      "src": "^/(?:me(?:/bookings)?|my-week|messages(?:/[^/]+)?|reset-password|users/[^/]+|opus-bay)/?$",
       "dest": "/index.html"
     },
     {

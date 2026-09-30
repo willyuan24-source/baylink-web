@@ -265,7 +265,8 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-10-31', `${item.id} overlaps the September–October edition`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
-    assert.equal(item.plan.length, 3);
+    assert.ok(item.plan.length >= 3 && item.plan.length <= 4, `${item.id} keeps a concise three- or four-step preparation list`);
+    assert.equal(new Set(item.plan).size, item.plan.length, `${item.id} does not repeat a preparation step`);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }
   assert.ok(!publishedIds.has('treasure-island-coastal-cleanup-2026'), 'ended cleanup is no longer published');

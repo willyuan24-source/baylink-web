@@ -24,6 +24,7 @@ import { useLocale } from '../../i18n/locale';
 import { setPageMetadata } from '../../lib/seo';
 import { usePostTranslation } from './usePostTranslation';
 import { PostTranslationNotice } from './PostTranslationNotice';
+import { ServiceBookingPanel } from '../bookings/ServiceBookingPanel';
 
 const extractQuickTagsFromDescription = (description: string): string[] => {
   const matches = String(description || '').match(/#([^\s#]+)/g) || [];
@@ -273,6 +274,9 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
                   <button type="button" onClick={() => onShare(post)} className="post-action"><Share2 size={15} /><span>分享给朋友</span></button>
                 </div>
               </section>
+              {post.type === 'provider' && ['清洁', '维修', '接送', '搬家', '翻译', '其他'].includes(post.category) && (
+                <ServiceBookingPanel post={post} currentUser={currentUser} onLoginNeeded={onLoginNeeded} showToast={showToast} onRequestTime={() => { if (!currentUser) return (onContactLoginNeeded || onLoginNeeded)(); onOpenChat(authorId, authorName, post.title); }} />
+              )}
             </div>
 
             <aside className="post-detail__aside" aria-label="发布者和联系方式">

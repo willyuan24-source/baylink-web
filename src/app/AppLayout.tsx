@@ -292,6 +292,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       document.title = '推荐｜BAYLINK';
     } else if (path.startsWith('/messages')) {
       document.title = '消息｜BAYLINK';
+    } else if (/^\/me\/bookings\/?$/.test(path)) {
+      document.title = '服务预约｜BAYLINK';
     } else if (path === '/me') {
       document.title = '我的｜BAYLINK';
     } else if (path === '/privacy') {
@@ -311,7 +313,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       title: document.title,
       description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : path === '/' ? '从当月活动、免费福利到周末路线和实用工具，在 BAYLINK 发现湾区生活灵感，收藏攻略、询问 BayBay，再与邻里分享。' : 'BAYLINK 湾区华人本地生活社区：查找房源、服务与二手资源，发布邻里需求，阅读湾区生活指南。',
       path,
-      noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/reset-password'),
+      noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/me/') || path.startsWith('/reset-password'),
     });
   }, [location.pathname, categorySlug, postIdParam, userIdParam, guideSlugParam]);
 
@@ -936,6 +938,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); setCreateInitialIntent(''); }}
             onCreated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
+            onManageAvailability={openPostById}
             showToast={showToast}
           />
           </Suspense>

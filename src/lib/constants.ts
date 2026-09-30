@@ -5,7 +5,7 @@ import type { DefaultCover, PostType } from './types';
 export const MAX_POST_IMAGES = 5;
 
 export const REGIONS = ["旧金山", "中半岛", "东湾", "南湾", "北湾"];
-export const SERVICE_CATEGORIES = ['清洁', '搬家', '维修', '翻译'];
+export const SERVICE_CATEGORIES = ['清洁', '搬家', '维修', '翻译', '接送'];
 export const matchesCategory = (actual: string, filter: string) =>
   filter === '全部' || (filter === '本地服务' ? SERVICE_CATEGORIES.includes(actual) : actual === filter);
 

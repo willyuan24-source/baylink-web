@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { afterEach, test } from 'node:test';
+import { after, afterEach, test } from 'node:test';
+import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import type { PostData, UserData } from '../src/lib/types';
@@ -15,6 +16,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.HTMLElement.prototype.getClientRects = function () {
   return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
 };
+const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { api } = await import('../src/lib/api');
@@ -57,6 +59,7 @@ afterEach(async () => {
   await setLocale('zh-Hans', false);
   localStorage.clear();
 });
+after(() => { styles.deregister(); dom.window.close(); });
 
 test('English cards translate visible post text while editing and sharing keep the author’s original post', async () => {
   const post = makePost('translation-card');
