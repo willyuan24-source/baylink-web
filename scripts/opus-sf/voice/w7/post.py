@@ -261,11 +261,14 @@ def main():
           'export interface W7VoiceLine { id: string; lane: string; zh: string; en: string; /** seconds: zh, en */ s: readonly [number, number]; /** the lane plays it (a voice-line event with this id): never matched by text */ own?: 1 }', '',
           'export const W7_VOICE_LINES: readonly W7VoiceLine[] = [']
     for lid, ln in report['lines'].items():
+        # a line is in the table only once both languages are recorded (a take the service failed waits for the next batch)
+        if f'zh-{lid}' not in report['clips'] or f'en-{lid}' not in report['clips']: continue
         dz = report['clips'].get(f'zh-{lid}', {}).get('pick', {}).get('duration', 0)
         de = report['clips'].get(f'en-{lid}', {}).get('pick', {}).get('duration', 0)
         own = ', own: 1' if ln.get('own') else ''
         ts.append(f"  {{ id: {json.dumps(lid)}, lane: {json.dumps(ln['lane'])}, zh: {json.dumps(ln['zh'], ensure_ascii=False)}, en: {json.dumps(ln['en'], ensure_ascii=False)}, s: [{dz}, {de}]{own} }},")
-    check = [c for c, e in report['clips'].items() if not e['pick']['passed']]
+    both = {lid for lid in report['lines'] if f'zh-{lid}' in report['clips'] and f'en-{lid}' in report['clips']}
+    check = [c for c, e in report['clips'].items() if not e['pick']['passed'] and e['line'] in both]
     kept = [(c, e) for c, e in report['retakes'].items() if e['kept']]
     ts += ['];', '',
            '/** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */',
