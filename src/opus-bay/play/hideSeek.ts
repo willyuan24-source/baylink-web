@@ -50,6 +50,8 @@ export const GIVE_UP_S = 180;
 /** medal thresholds (seconds, lower is better): 好 / 很好 / 太棒了 */
 export const HIDE_TIERS: readonly [number, number, number] = [GIVE_UP_S, 90, 45];
 const COUNT_S = 3;
+/** W7-W2: the chip shows the found time this long (s) before the card */
+export const FOUND_HOLD = 1.2;
 const HOP_EVERY = 15;
 
 export interface HideSpot {
@@ -81,6 +83,15 @@ export interface HideOpts {
  * a few u behind its trip end (away from you), or the trip end itself; else a walkable spot 20–45 u away; else null.
  */
 export function pickHideSpot(p: Vec2, o: HideOpts): HideSpot | null {
+  const it = hideSpotSearch(p, o);
+  for (;;) { const r = it.next(); if (r.done) return r.value; }
+}
+
+/**
+ * The same search as steps (W7-W2: the ≈ 50 ms hitch at the tap, W6-W-review): it yields after every nav query, so a
+ * round runs it over the first frames of the count (≤ SEARCH_MS a frame) instead of all in the tap's frame.
+ */
+export function* hideSpotSearch(p: Vec2, o: HideOpts): Generator<void, HideSpot | null> {
   const rand = o.rand ?? Math.random;
   const list = (o.list ?? hideCandidates()).filter(c => { const d = Math.hypot(c.x - p.x, c.z - p.z); return d >= HIDE_MIN && d <= HIDE_MAX; });
   // a shuffled copy, at most 6 tried (each try may run the nav)
@@ -96,17 +107,32 @@ export function pickHideSpot(p: Vec2, o: HideOpts): HideSpot | null {
     for (const t of tries) {
       const d = Math.hypot(t.x - p.x, t.z - p.z);
       if (d < HIDE_MIN - 3 || d > HIDE_MAX + 4 || !o.stand(t.x, t.z)) continue;
-      if (o.reach(p, t)) return { x: t.x, z: t.z, near: { id: c.id, name: c.name } };
+      const ok = o.reach(p, t);
+      yield;
+      if (ok) return { x: t.x, z: t.z, near: { id: c.id, name: c.name } };
       break; // the landmark is not walked to from here: the next one
     }
   }
   const a0 = rand() * Math.PI * 2;
   for (const r of [32, NEAR_MIN + 4, NEAR_MAX - 3]) for (let k = 0; k < 8; k++) {
     const a = a0 + (k * Math.PI) / 4, t = { x: p.x + Math.sin(a) * r, z: p.z + Math.cos(a) * r };
-    if (o.stand(t.x, t.z) && o.reach(p, t)) return { x: t.x, z: t.z, near: null };
+    if (!o.stand(t.x, t.z)) continue;
+    const ok = o.reach(p, t);
+    yield;
+    if (ok) return { x: t.x, z: t.z, near: null };
   }
   return null;
 }
+
+/** the time the spot search may take in one frame (ms; a nav query is a few ms on a desktop) */
+export const SEARCH_MS = 6;
+/** W7-W2 · BAYBAY's fixed lines (voiced by their text, sf-w7-lead §4): the seconds go on the chip, not in a bubble */
+export const HIDE_LINES = {
+  start: { zh: '捉迷藏！你数到三，我去藏好～', en: 'Hide and seek! You count to three, I’ll hide!' },
+  found: { zh: '被你找到啦！', en: 'You found me!' },
+  giveUp: { zh: '我在这儿呢～下次再来找我！', en: 'Here I am! Find me next time!' },
+  nowhere: { zh: '这里没地方藏～换个地方再玩吧！', en: 'Nowhere to hide here. Let’s try somewhere else!' },
+} satisfies Record<string, Bilingual>;
 
 /** The warmer / colder word: when `d` is HINT_STEP closer or farther than `ref` (the distance at the last word). */
 export function heatStep(ref: number, d: number): { ref: number; say: 'warmer' | 'colder' | null } {
@@ -147,15 +173,26 @@ let stopLive: (() => void) | null = null;
 export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
   if (!hideSeekAllowed()) { bubble({ zh: '等一下再玩捉迷藏吧～', en: 'Let’s play hide and seek in a bit!' }, 2400); return false; }
   const p = runtime.player;
-  const spot = pickHideSpot({ x: p.x, z: p.z }, opts);
-  if (!spot) { bubble({ zh: '这里没地方藏～换个地方再玩吧！', en: 'Nowhere to hide here. Let’s try somewhere else!' }, 2800); return false; }
-  let phase: 'count' | 'seek' | 'done' = 'count';
-  let t = 0, ref = Math.hypot(spot.x - p.x, spot.z - p.z), lastHop = 0, said: Bilingual | null = null, saidAt = -9;
+  // W7-W2: the spot is searched over the count's first frames (≤ SEARCH_MS a frame), not all in the tap's frame (the
+  // live nav took ≈ 50 ms on a desktop, a few times that on a phone: W6-W-review)
+  const search = hideSpotSearch({ x: p.x, z: p.z }, opts);
+  let spot: HideSpot | null = null;
+  const advance = (budget: number): 'found' | 'none' | 'more' => {
+    const t0 = performance.now();
+    for (;;) {
+      const r = search.next();
+      if (r.done) { spot = r.value; return spot ? 'found' : 'none'; }
+      if (performance.now() - t0 >= budget) return 'more';
+    }
+  };
+  if (advance(SEARCH_MS) === 'none') { bubble(HIDE_LINES.nowhere, 2800); return false; }
+  let phase: 'count' | 'seek' | 'found' | 'done' = 'count';
+  let t = 0, ref = 0, lastHop = 0, said: Bilingual | null = null, saidAt = -9, foundSecs = 0, foundAt = 0;
   // what the chip shows now (review: repaint only when the second or the word changes, not every frame)
   let shownSec = -1, shownStatus: Bilingual | null = null;
-  const where: Bilingual = spot.near
-    ? { zh: `她藏在${spot.near.name.zh}附近`, en: `She’s hiding near ${spot.near.name.en}` }
-    : { zh: '她就藏在附近', en: 'She’s hiding nearby' };
+  const whereOf = (s: HideSpot): Bilingual => (s.near
+    ? { zh: `她藏在${s.near.name.zh}附近`, en: `She’s hiding near ${s.near.name.en}` }
+    : { zh: '她就藏在附近', en: 'She’s hiding nearby' });
   const unpin = () => { setPuppet('baybay', null); runtime.guide.target = null; };
   let offFrame: () => void = () => {};
   const run: ActivityRun | null = startActivity({ id: HIDE_ID, name: HIDE_NAME, better: 'lower' }, {
@@ -166,7 +203,7 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
   const giveUp = () => {
     if (!run.active) return;
     run.cancel();
-    bubble({ zh: '我在这儿呢～下次再来找我！', en: 'Here I am! Find me next time!' }, 3000);
+    bubble(HIDE_LINES.giveUp, 3000);
   };
   showChip({
     id: HIDE_ID, icon: 'play', title: HIDE_NAME, big: String(COUNT_S),
@@ -174,7 +211,7 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
     action: { label: { zh: '放弃', en: 'Give up' }, run: giveUp },
   });
   ensurePlaySounds2();
-  bubble({ zh: '捉迷藏！你数到三，我去藏好～', en: 'Hide and seek! You count to three, I’ll hide!' }, 2600);
+  bubble(HIDE_LINES.start, 2600);
   charApi()?.emote('baybay', 'cheer', { seconds: 1.2 });
   playSound('play-go');
 
@@ -186,34 +223,51 @@ export function startHideSeek(opts: HideOpts = liveOpts()): boolean {
     // while she is pinned in hiding (live: the player was walked off by nobody while the chip kept saying 冷了…)
     if (s.mode !== 'free' || f.trip || f.freeLead) { run.cancel(); return; }
     t += dt;
-    const pl = runtime.player, d = Math.hypot(spot.x - pl.x, spot.z - pl.z);
+    const pl = runtime.player;
+    if (!spot) {
+      const r = advance(SEARCH_MS);
+      if (r === 'none') { run.cancel(); bubble(HIDE_LINES.nowhere, 2800); return; }
+      if (r === 'more') { if (t > COUNT_S) t = COUNT_S; return; }
+    }
+    const sp: HideSpot = spot!, d = Math.hypot(sp.x - pl.x, sp.z - pl.z);
     if (phase === 'count') {
       const n = Math.max(1, Math.ceil(COUNT_S - t));
       if (n !== shownSec) { shownSec = n; patchChip(HIDE_ID, { big: String(n) }); }
-      if (t >= 0.8) pinBaybay({ x: spot.x, y: heightAt(spot.x, spot.z), z: spot.z, heading: Math.atan2(pl.x - spot.x, pl.z - spot.z) + Math.PI });
+      if (t >= 0.8) pinBaybay({ x: sp.x, y: heightAt(sp.x, sp.z), z: sp.z, heading: Math.atan2(pl.x - sp.x, pl.z - sp.z) + Math.PI });
       if (t < COUNT_S) return;
       phase = 'seek';
       t = 0;
+      ref = d;
       playSound('play-whoosh');
       shownSec = 0; shownStatus = heatWord(d);
+      const where = whereOf(sp);
       patchChip(HIDE_ID, { line: { zh: `找 BAYBAY！${where.zh}`, en: `Find BAYBAY! ${where.en}` }, big: '0', status: shownStatus });
       return;
     }
-    if (phase !== 'seek') return;
-    pinBaybay({ x: spot.x, y: heightAt(spot.x, spot.z), z: spot.z, heading: runtime.guide.heading });
-    if (d <= FOUND_R) {
+    if (phase === 'found') {
+      // W7-W2: the chip holds the seconds for FOUND_HOLD s while she says the fixed line, then the card
+      if ((foundAt += dt) < FOUND_HOLD) return;
       phase = 'done';
-      const secs = Math.round(t);
-      const tier = tierFor(secs, HIDE_TIERS, 'lower');
-      unpin();
-      charApi()?.emote('baybay', 'cheer', { seconds: 1.6 });
-      bubble({ zh: `被你找到啦！${secs} 秒！`, en: `You found me! ${secs} seconds!` }, 3200);
+      const secs = foundSecs, tier = tierFor(secs, HIDE_TIERS, 'lower');
       run.end({
         tier: tier === 0 ? 1 : tier, score: secs,
         detail: { zh: `${secs} 秒找到 BAYBAY`, en: `Found BAYBAY in ${secs} s` },
         bestText: best => ({ zh: `最快 ${best} 秒`, en: `Best ${best} s` }),
         again: () => { startHideSeek(opts); },
       });
+      return;
+    }
+    if (phase !== 'seek') return;
+    pinBaybay({ x: sp.x, y: heightAt(sp.x, sp.z), z: sp.z, heading: runtime.guide.heading });
+    if (d <= FOUND_R) {
+      phase = 'found';
+      foundSecs = Math.round(t);
+      foundAt = 0;
+      unpin();
+      charApi()?.emote('baybay', 'cheer', { seconds: 1.6 });
+      // W7-W2: a fixed line (voiceable, sf-w7-lead §4); the seconds are on the chip and the card
+      patchChip(HIDE_ID, { big: String(foundSecs), status: { zh: `${foundSecs} 秒找到！`, en: `Found in ${foundSecs} s!` }, action: undefined });
+      bubble(HIDE_LINES.found, 3200);
       return;
     }
     if (t >= GIVE_UP_S) { giveUp(); return; }
@@ -244,8 +298,6 @@ export function stopHideSeek() { stopLive?.(); }
 // ---------------------------------------------------------------------------
 
 export const HIDE_COACH_KEY = 'opus-bay:play:hide-coach:v1';
-/** the emote coach's key (play/index.ts): this line waits until that one has been said */
-const EMOTE_COACH_KEY = 'opus-bay:play:emote-coach:v1';
 /** seconds of quiet free roam (standing still, nothing said, nothing open) before the line */
 export const HIDE_COACH_AFTER = 40;
 
@@ -256,18 +308,17 @@ const LOCAL: CoachStore = {
 };
 
 /**
- * Once per device, after the emote coach and HIDE_COACH_AFTER s of quiet free roam where a round may start, BAYBAY
- * says the game is there and how to start it (phones: 点「问我」→ 捉迷藏; keyboards: Q → 捉迷藏). Returns the off.
+ * Once per device, after HIDE_COACH_AFTER s of quiet free roam where a round may start, BAYBAY says the game is there
+ * and how to start it (phones: 点「问 BAYBAY」→ 捉迷藏; keyboards: Q → 捉迷藏). Returns the off.
+ * W7-W2: it no longer waits for lane A's emote coach (play/index.ts): a player who kept moving heard neither line
+ * (sf-w6-W.md Known gaps); storage is read once, at the start.
  */
 export function startHideCoach(store: CoachStore = LOCAL): () => void {
   if (store.get(HIDE_COACH_KEY) === '1') return () => {};
-  let quiet = 0, emoteSaid = false;
+  let quiet = 0;
   const off = registerFrameSystem('w-hide-coach', dt => {
     const s = game.get(), f = flow.get(), p = runtime.player;
-    // review: storage is read only while the answer can still change, and only when the rest is quiet (not every frame)
-    const calm = hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
-    if (calm && !emoteSaid) emoteSaid = store.get(EMOTE_COACH_KEY) === '1';
-    const ok = calm && emoteSaid;
+    const ok = hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
     quiet = ok ? quiet + dt : Math.max(0, quiet - dt);
     if (quiet < HIDE_COACH_AFTER) return;
     off();

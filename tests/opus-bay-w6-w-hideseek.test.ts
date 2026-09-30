@@ -100,7 +100,7 @@ test('W6-W4 on the published city: from four places she hides on standable groun
   } finally { T.setCityTerrain(null); }
 });
 
-test('W6-W4 a round: 3 · 2 · 1, she is pinned where she hides, warmer on the chip as you close in, found → medal:hide-seek; 放弃 is free', () => {
+test('W6-W4 a round: 3 · 2 · 1, she is pinned where she hides, warmer on the chip as you close in, found → medal:hide-seek; 放弃 is free', async () => {
   kit.__setBestWriter(null);
   const events: { type: string; source?: string; activity?: string; what?: string }[] = [];
   const off = onEvent(e => { events.push(e as never); });
@@ -123,7 +123,12 @@ test('W6-W4 a round: 3 · 2 · 1, she is pinned where she hides, warmer on the c
     assert.equal(chip.chipState()?.status?.zh.startsWith('暖了！'), true, chip.chipState()?.status?.zh);
     p.x = g.x; p.z = g.z - 1;
     stepFrameSystems(0.1, 5.1);
-    assert.equal(chip.chipState(), null, 'the chip goes when she is found');
+    // W7-W2: she says a fixed line (voiceable); the chip holds the seconds for FOUND_HOLD s, then the card
+    const { flow } = await import('../src/opus-bay/game/flowStore');
+    assert.deepEqual(flow.get().bubble?.text, hs.HIDE_LINES.found);
+    assert.match(chip.chipState()?.status?.zh ?? '', /^\d+ 秒找到！$/);
+    for (let i = 0; i < 13; i++) stepFrameSystems(0.1, 5.2 + i * 0.1);
+    assert.equal(chip.chipState(), null, 'the chip goes after the found time');
     assert.ok(events.some(e => e.type === 'play' && e.activity === hs.HIDE_ID && e.what === 'end'));
     assert.ok(events.some(e => e.type === 'reward' && e.source === 'medal:hide-seek:3'), 'found in 5 s: the top medal');
     // 放弃: no medal, the pin goes
@@ -155,7 +160,7 @@ test('W6-W4 the chunk: play/hideSeek.ts ≤ 5 KB gzip on its own, loaded only fr
   assert.doesNotMatch(fs.readFileSync(path.join(ROOT, 'src/opus-bay/game/GameRoot.tsx'), 'utf8'), /hideSeek/);
 });
 
-test('W6-W5 the coach line: once per device, after the emote coach and 40 s of quiet free roam, BAYBAY says 捉迷藏 is there', async () => {
+test('W6-W5 the coach line: once per device, after 40 s of quiet free roam (W7-W2: not waiting for lane A\'s emote coach), BAYBAY says 捉迷藏 is there', async () => {
   const { flow } = await import('../src/opus-bay/game/flowStore');
   const mem = new Map<string, string>();
   const store = { get: (k: string) => mem.get(k) ?? null, set: (k: string, v: string) => { mem.set(k, v); } };
@@ -164,13 +169,9 @@ test('W6-W5 the coach line: once per device, after the emote coach and 40 s of q
   runtime.player.moving = false;
   flow.set({ bubble: null });
   try {
-    // the emote coach has not spoken yet: nothing, however long it is quiet
-    let off = hs.startHideCoach(store);
-    for (let i = 0; i < 60; i++) stepFrameSystems(1, i);
-    assert.equal(mem.get(hs.HIDE_COACH_KEY), undefined);
-    off();
-    mem.set('opus-bay:play:emote-coach:v1', '1');
-    off = hs.startHideCoach(store);
+    // W7-W2: the emote coach's key stays unset — the line comes anyway after 40 s of quiet
+    assert.equal(mem.get('opus-bay:play:emote-coach:v1'), undefined);
+    const off = hs.startHideCoach(store);
     for (let i = 0; i < hs.HIDE_COACH_AFTER - 2; i++) stepFrameSystems(1, 100 + i);
     assert.equal(mem.get(hs.HIDE_COACH_KEY), undefined, 'not before 40 s');
     for (let i = 0; i < 4; i++) stepFrameSystems(1, 200 + i);
