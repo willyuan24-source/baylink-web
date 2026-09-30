@@ -350,3 +350,12 @@ worktree at `90dc7798`; lane H's W7-H7 saw it): a request to lane B / the lead. 
 ### Blocking the go-live to main
 
 None.
+
+### Review checks (01:38 PDT)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings; the changed files again after the
+last fix: 0) · lane M's tests + the review's DOM test **16 / 16** on the tree rebased onto `99b27aff` · the opus-bay
+suite (started on the pre-rebase tree, still running at the push deadline): **1120 pass, 1 fail** so far — the one failure
+the pre-existing `W5-bus 20+ simulated minutes` interlock wait (29.2 s at `box:f-line@5661:750`, as lane M reported),
+which **passes alone on the rebased tree** (35.5 s). Higgsfield: 0 credits. The dev server on 5732 stopped, no Chrome
+left, the worktree removed after the push.
