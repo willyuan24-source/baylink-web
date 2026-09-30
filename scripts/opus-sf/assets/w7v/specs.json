@@ -1,0 +1,50 @@
+{
+ "de-young-tower": {
+  "file": "w7v-de-young-tower.glb",
+  "raw": "dy-a-sam.glb",
+  "concept": "dy-a.png",
+  "mask": false,
+  "note": "the Hamon Observation Tower of the de Young (world/sf/landmarks/de-young-tower.ts): fitted to the procedural tower (base aligned with the museum, the top turned ~30 degrees): 4.3 x 11.15 x 2.6 u (v1 at the mesh's own depth, 3.45 u, read as a fat block from the Music Concourse: v2 squeezes the depth so it stays a slab), base at local y 0.05 (the ground under the footprint 0.13-0.57), top at 11.2 like the procedural cap",
+  "max_tris": 4000,
+  "tex": 1024,
+  "args": {
+   "box": "4.3,11.15,2.6",
+   "rebake": 1
+  },
+  "grade": {
+   "sat_max": 0.55,
+   "white_lift": 0,
+   "lift": 0.02,
+   "remap": [
+    {
+     "hue": [
+      160,
+      230
+     ],
+     "to": "#b7d3da",
+     "min_s": 0.04,
+     "min_v": 0.45,
+     "contrast": 0.55
+    },
+    {
+     "hue": [
+      0,
+      60
+     ],
+     "to": "#7a5236",
+     "min_s": 0.12,
+     "contrast": 0.8
+    },
+    {
+     "hue": [
+      60,
+      160
+     ],
+     "to": "#6f7a5e",
+     "min_s": 0.1,
+     "contrast": 0.8
+    }
+   ]
+  }
+ }
+}

@@ -3,7 +3,7 @@ import type { Vec2 } from '../../../core/types';
 import { type BatchLike, CYL, ICO, M } from '../../builder';
 import type { SiteHooks } from '../sites';
 import { GLOW, NONE, box, cbox, loftRings, prismXZ } from './kit';
-import type { SfLandmark } from './index';
+import type { LandmarkSwap, SfLandmark } from './index';
 import { settingGround, streetStrips } from './setting';
 import { GC, PAT, bench, gfill, lamp, tree } from './siteKit';
 
@@ -43,6 +43,14 @@ function build(b: BatchLike, lod: 0 | 2) {
     loftRings(b, [ringAt(0, -1.2, 0.2), ringAt(1, TOWER_TOP, 0.3)], (_l, side) => (side % 2 ? COPPER_DARK : COPPER), NONE, COPPER_ROOF);
     return;
   }
+  museum(b);
+  tower(b);
+  finsAndCanopy(b);
+  setting(b);
+}
+
+/** the museum body: the copper prism under its deep roof, the light courts, the glazed entry court, the pool */
+function museum(b: BatchLike) {
   prismXZ(b, MUSEUM, -1.2, MUSEUM_H, MUSEUM_WALL, null);
   const roof = MUSEUM.map(([x, z]) => ({ x: x + (x > 3 ? 0.35 : -0.35), z: z + (z > 9 ? 0.35 : -0.35) }));
   b.polygon(roof, MUSEUM_H + 0.25, COPPER_ROOF, NONE);
@@ -54,6 +62,10 @@ function build(b: BatchLike, lod: 0 | 2) {
     box(b, 5.6, -1.2, 3.0, 3.0, MUSEUM_H + 1.0, 0.14, GLASS, [6, 0, 0, 0]);
     box(b, -3.1, -0.2, 9.5, 0.8, 0.25, 8.0, '#79b6b3', [0, 0, 0, 1.08]);
   }
+}
+
+/** the procedural Hamon tower (lod 0): the twisting copper loft, the glass observation floor, the cap, ribs and ledges */
+function tower(b: BatchLike) {
   // twisting tower: copper faces, a glass observation floor on top
   const levels = 6;
   const rings: THREE.Vector3[][] = [];
@@ -80,14 +92,46 @@ function build(b: BatchLike, lod: 0 | 2) {
       loftRings(b, [ringAt(i / levels, ty, 0.27), ringAt(i / levels, ty + 0.12, 0.27)], () => COPPER_DARK, NONE);
     }
   }
+}
+
+function finsAndCanopy(b: BatchLike) {
   // museum facade: vertical copper fins along the long sides, the entry canopy
   for (let z = 1.2; z < 19.5; z += 1.3) {
     box(b, -2.72 + (z / 20) * -0.05, -0.2, z, 0.12, MUSEUM_H + 0.2, 0.18, COPPER_DARK);
     box(b, 8.5 - (z > 6 ? (z - 6) * 0.036 : 0), -0.2, z, 0.12, MUSEUM_H + 0.2, 0.18, COPPER_DARK);
   }
   box(b, 4.8, 2.2, -0.9, 3.4, 0.14, 1.6, COPPER_ROOF);
+}
+
+// ---------------------------------------------------------------------------
+// Wave 7 (lane V, W7-V4): the AI tower. Lane R's realism scorecard (sf-w7-R-realism.md #22) found the twist subtle at
+// this size and the copper too light and plain: the real Hamon Observation Tower (Herzog & de Meuron, 2005; 144 ft)
+// is clad in dark, dimpled and perforated copper and turns from the museum's axis at its foot to the street grid at
+// its top. A SAM 3 mesh of a painted toy concept (ledger w7-V.md, W7-V4) cleaned by the wave-4 pipeline
+// (scripts/opus-sf/assets/w7v: 3,920 triangles, 1024² WebP, Draco) replaces the procedural tower; the museum, its fins
+// and canopy and the forecourt stay procedural (the remainder). Fitted to the procedural tower's box: 4.3 × 11.15 ×
+// 2.6 u (a slab, as the OSM rings), its flat base at local y 0.05 (the ground under the footprint is 0.13–0.57), the top
+// at 11.2 like the cap.
+// ---------------------------------------------------------------------------
+
+/** the AI tower's place in the site's frame (its base centred on the procedural base ring, nudged onto the museum) */
+const AI_TOWER = { x: 0.03, y: 0.05, z: 0.2 } as const;
+/** its ground footprint on the decoded mesh (x −2.15…2.05, z −0.77…0.87 below y 1.5), shifted by AI_TOWER */
+const AI_FOOT: Vec2[] = [{ x: -2.12, z: -0.57 }, { x: 2.08, z: -0.57 }, { x: 2.08, z: 1.07 }, { x: -2.12, z: 1.07 }];
+
+function aiRemainder(b: BatchLike) {
+  museum(b);
+  finsAndCanopy(b);
   setting(b);
 }
+
+const SWAP: LandmarkSwap = {
+  parts: [{ model: 'sf-de-young-tower', x: AI_TOWER.x, y: AI_TOWER.y, z: AI_TOWER.z, scale: [1, 1, 1], castShadow: true, glow: 0.05 }],
+  build: aiRemainder,
+  ship: true,
+  note: 'AI (W7-V4): dark dimpled, perforated copper and the twist vs a plain lofted slab; museum, fins and forecourt procedural',
+};
+const TOWER_FOOT = (): Vec2[] => (SWAP.ship ? AI_FOOT : ringAt(0, 0, 0.2).map(p => ({ x: p.x, z: p.z })));
 
 // ---------------------------------------------------------------------------
 // setting (D2-09)
@@ -138,7 +182,7 @@ export const deYoungTower: SfLandmark & SiteHooks = {
   build,
   walk: {
     blockers: [
-      { poly: MUSEUM.map(([x, z]) => ({ x, z })) }, { poly: ringAt(0, 0, 0.2).map(p => ({ x: p.x, z: p.z })) },
+      { poly: MUSEUM.map(([x, z]) => ({ x, z })) }, { poly: TOWER_FOOT() },
       ...BENCHES.map(([x, z]) => ({ x, z, r: 0.45 })), ...TREES.map(p => ({ x: p.x, z: p.z, r: 0.3 })),
       { x: 1.4, z: -3.2, r: 0.6 }, { x: 6.2, z: -2.4, r: 0.5 }, { x: 4.3, z: -4.0, r: 0.95 },
     ],
@@ -149,6 +193,7 @@ export const deYoungTower: SfLandmark & SiteHooks = {
   ],
   lights: LAMPS.map(p => ({ x: p.x, y: G.at(p.x, p.z) + 3.8, z: p.z, size: 1, color: '#ffd9a0' })),
   plaza: [{ poly: FORECOURT, surface: 'plaza' }],
+  swap: SWAP,
   // D2-10: the twisted Hamon tower (the museum wings are its blockers' top)
   tall: [{ x: 0, z: -0.1, r: 3.6 }],
 };

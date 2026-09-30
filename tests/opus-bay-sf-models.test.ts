@@ -234,9 +234,9 @@ const inExclude = (l: SfLandmark, p: Vec2) => {
 
 test('AI swaps: the D2-06/07 decision gates, walk data authored to the AI meshes (measured on the decoded GLBs)', () => {
   assert.deepEqual(SF_LANDMARKS.filter(l => l.swap?.ship).map(l => l.id).sort(), [
-    'castro-theatre', 'city-hall', 'conservatory-of-flowers', 'dragon-gate', 'dutch-windmill', 'grace-cathedral', 'legion-of-honor',
-    'mission-dolores', 'palace-of-fine-arts',
-  ]);
+    'castro-theatre', 'city-hall', 'conservatory-of-flowers', 'de-young-tower', 'dragon-gate', 'dutch-windmill', 'grace-cathedral',
+    'legion-of-honor', 'mission-dolores', 'palace-of-fine-arts',
+  ]); // (wave 7, W7-V4: the de Young's AI tower, lane V's gate in sf-w7-V.md part b)
   assert.equal(lm('painted-ladies').swap?.ship, false, 'D2-07: the procedural row reads better at 64 px and golden hour');
   // Dragon Gate: walk-through >= 2.2 u clear between the inner pillars; the 4 pillars (inner |x| 1.14-2.05, outer
   // 3.21-4.01, depth ±0.48) and the lion plinths (z 0.56-1.16) are solid; the pillar footprint is inside the exclusion

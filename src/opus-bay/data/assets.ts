@@ -15,6 +15,7 @@ import { mapPaperUrls } from './mapPaper';
 import { muralUrls } from './murals';
 import type { PostcardId } from './postcards';
 import { W4_MODELS, type W4ModelId } from './sf/w4Models';
+import { W7V_MODELS, type W7VModelId } from './sf/w7vModels';
 import { W4_POSTCARD_IDS, type W4PostcardId } from './sf/w4Postcards';
 import { SF_VOICE_CLIPS } from './voiceLinesSf';
 
@@ -317,7 +318,7 @@ export const SF_MODEL_IDS = [
   'sf-legion-of-honor', 'sf-ghirardelli-clock-tower', 'sf-fort-point', 'sf-mission-dolores', 'sf-castro-theatre',
   'sf-windmill-body', 'sf-grace-cathedral', 'sf-city-hall',
 ] as const;
-export type SfModelId = (typeof SF_MODEL_IDS)[number] | W4ModelId;
+export type SfModelId = (typeof SF_MODEL_IDS)[number] | W4ModelId | W7VModelId;
 
 const sfFile = (name: string) => `${BASE}/models/sf/${name}`;
 
@@ -405,6 +406,8 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
   },
   // ---- wave 4 (lane V, W4-V4 / W4-V4b): the four AI landmarks of lane L's sites (landmarkId = the site holding the slot)
   ...W4_MODELS,
+  // ---- wave 7 (lane V, W7-V4): AI parts of lane R's scorecard picks (data/sf/w7vModels.ts)
+  ...W7V_MODELS,
 };
 
 // ---------------------------------------------------------------------------

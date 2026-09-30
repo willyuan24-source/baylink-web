@@ -159,3 +159,40 @@ test('W7-V3 · the rigs: the player and BAYBAY keep every bone name; the toy car
   assert.equal(v.buildBikeRig().mesh.material, m.hardToyMaterial());
   assert.equal(v.buildPelicanRig().mesh.material, m.characterMaterial(), 'the pelican is a plush toy');
 });
+
+test('W7-V4 · the AI de Young tower: registered, the file matches its row, Draco + one WebP ≤ 1024², ≤ 4k triangles, shipped by the site', async () => {
+  const { ASSETS, SF_MODELS, SF_MODEL_IDS, listAssetUrls } = await import('../src/opus-bay/data/assets');
+  const { W7V_MODELS, W7V_MODEL_IDS } = await import('../src/opus-bay/data/sf/w7vModels');
+  const { deYoungTower } = await import('../src/opus-bay/world/sf/landmarks/de-young-tower');
+  const { usesAi } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const urls = new Set(listAssetUrls());
+  for (const id of W7V_MODEL_IDS) {
+    const a = W7V_MODELS[id];
+    assert.ok(!(SF_MODEL_IDS as readonly string[]).includes(id), `${id} is new`);
+    assert.equal(SF_MODELS[id], a); assert.equal(ASSETS.models[id], a); assert.ok(urls.has(a.url), `${id} listed`);
+    const buf = fs.readFileSync(path.join(ROOT, 'public', a.url));
+    assert.equal(buf.readUInt32LE(0), 0x46546c67, 'a GLB');
+    assert.equal(buf.length, a.bytes, `${id} bytes`);
+    const jl = buf.readUInt32LE(12);
+    const json = JSON.parse(buf.subarray(20, 20 + jl).toString('utf8')) as { extensionsRequired?: string[]; accessors: { count: number; min?: number[]; max?: number[] }[]; meshes: { primitives: { attributes: Record<string, number>; indices: number; extensions?: Record<string, unknown> }[] }[]; images?: { mimeType?: string; bufferView: number }[]; bufferViews: { byteOffset?: number; byteLength: number }[] };
+    assert.deepEqual([...(json.extensionsRequired ?? [])].sort(), ['EXT_texture_webp', 'KHR_draco_mesh_compression']);
+    assert.equal(json.meshes.length, 1); assert.equal(json.meshes[0].primitives.length, 1, 'one draw');
+    const prim = json.meshes[0].primitives[0];
+    assert.equal(json.accessors[prim.indices].count / 3, a.triangles);
+    assert.ok(a.triangles <= 4000, '≤ 4k triangles (a T1 part)');
+    const pos = json.accessors[prim.attributes.POSITION];
+    for (let k = 0; k < 3; k++) assert.ok(Math.abs(pos.max![k] - pos.min![k] - a.size[k]) <= a.size[k] * 0.02, `size[${k}]`);
+    assert.ok(Math.abs(pos.min![1]) < 1e-3, 'rests on y = 0');
+    assert.equal(json.images?.length, 1);
+    const bin = 20 + jl + 8, bv = json.bufferViews[json.images![0].bufferView];
+    const s = webpSize(buf.subarray(bin + (bv.byteOffset ?? 0), bin + (bv.byteOffset ?? 0) + bv.byteLength));
+    assert.ok(s.w <= 1024 && s.h <= 1024, 'texture ≤ 1024²');
+    assert.ok(a.bytes < 150_000, 'small');
+    assert.equal(a.landmarkId, 'de-young-tower');
+  }
+  // the site ships it: the swap part names the model, the remainder keeps the museum, the walk data follows the AI tower
+  assert.ok(deYoungTower.swap && usesAi(deYoungTower));
+  assert.deepEqual(deYoungTower.swap!.parts.map(p => p.model), ['sf-de-young-tower']);
+  const tri = (fn: (b: { add: () => void }) => void) => { let n = 0; const b = new Proxy({}, { get: () => () => { n++; } }); fn(b as never); return n; };
+  assert.ok(tri(b => deYoungTower.swap!.build(b as never)) < tri(b => deYoungTower.build(b as never, 0)), 'the remainder draws less than the full procedural site (no tower)');
+});
