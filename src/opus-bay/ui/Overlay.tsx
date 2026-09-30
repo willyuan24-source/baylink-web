@@ -17,6 +17,7 @@ import { bayTimeOfDay, readQa } from '../game/qa';
 import { useIsMobile } from './hooks';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 import { lazyPart, loadPlayParts } from './playLayer';
+import { afterFirstFrame } from '../game/firstFrame';
 import { importRetry } from '../game/importRetry';
 import { closeOverlay, closeTopOverlay, openOverlays, overlays, subscribeOverlays } from './slots';
 
@@ -182,11 +183,14 @@ function useBoot() {
     if (qa.debug) flow.set({ debug: true });
     teleportPlayer(DISTRICT.anchors?.['ferry-gate'] ?? DISTRICT.spawn, DISTRICT.spawn.heading);
     // (W7-P3: a ?start= deep link — QA — begins once the play layer is in, as the title's Start does: the dialogue
-    // script, the HUD and the feet come with it)
+    // script and the HUD come with it)
     if (qa.start) { const start = qa.start; void loadPlayParts().then(() => beginPlaying(start), () => beginPlaying(start)); }
-    // Prefetch the live catalog shortly after first paint (small JSON, needed by cards and the week board).
-    const id = window.setTimeout(() => { void loadCatalog(); }, 1500);
-    return () => window.clearTimeout(id);
+    // Prefetch the live catalog (needed by cards and the week board) shortly after the world's first frame. W7-P5: it is
+    // ≈ 125 KB gzip / 0.6 MB of JSON — on a phone the 1.5 s timer from here fired while the city was still loading and
+    // took that bandwidth and ≈ 0.13 s of parse before the first frame (sf-w7-P.md part c); Start loads it anyway.
+    let id = 0;
+    const off = afterFirstFrame(() => { id = window.setTimeout(() => { void loadCatalog(); }, 1500); });
+    return () => { off(); window.clearTimeout(id); };
   }, []);
 }
 

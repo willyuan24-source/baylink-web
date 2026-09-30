@@ -386,3 +386,11 @@ test('W7-P3: the dialogue script rides with the play layer; GameRoot\'s modules 
   assert.ok(!scriptGraph.has('data/scriptSlot.ts'));
   assert.match(src('ui/Overlay.tsx'), /if \(qa\.start\) \{ const start = qa\.start; void loadPlayParts\(\)\.then\(\(\) => beginPlaying\(start\), \(\) => beginPlaying\(start\)\); \}/);
 });
+
+test('W7-P5: the live catalog prefetch (≈ 125 KB gzip) waits for the world\'s first frame; GameRoot marks it', () => {
+  const root = path.resolve('src/opus-bay');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('ui/Overlay.tsx'), /const off = afterFirstFrame\(\(\) => \{ id = window\.setTimeout\(\(\) => \{ void loadCatalog\(\); \}, 1500\); \}\);/);
+  assert.doesNotMatch(src('ui/Overlay.tsx'), /^\s*const id = window\.setTimeout\(\(\) => \{ void loadCatalog\(\); \}, 1500\);/m, 'no blind timer from the boot');
+  assert.match(src('game/GameRoot.tsx'), /done\.current = true; markFirstFrame\(\); onDrawn\(true\);/);
+});

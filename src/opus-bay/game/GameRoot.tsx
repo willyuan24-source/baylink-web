@@ -10,6 +10,7 @@ import { CameraRig } from '../actors/CameraRig';
 import { Systems } from './Systems';
 import { Overlay } from '../ui/Overlay';
 import { loadPlayParts, usePlayParts } from '../ui/playLayer';
+import { markFirstFrame } from './firstFrame';
 
 const DPR: Record<string, number> = { high: 1.5, mid: 1.25, low: 1 };
 /** Camera far plane: the district fits in 1600 u; the whole city (Twin Peaks → Ferry Building + boards) needs 3000. */
@@ -99,8 +100,8 @@ function Game({ startRequested }: { startRequested: boolean }) {
 /** Reports once the world has rendered a frame. */
 function FirstFrame({ onDrawn }: { onDrawn: (v: boolean) => void }) {
   const done = useRef(false);
-  // (W7-P5) the first frame's time for load measurements (performance.getEntriesByName('opus-bay:first-frame'))
-  useFrame(() => { if (!done.current) { done.current = true; performance.mark?.('opus-bay:first-frame'); onDrawn(true); } });
+  // (W7-P5) game/firstFrame.ts: the catalog prefetch waits for it; the time is marked for load measurements
+  useFrame(() => { if (!done.current) { done.current = true; markFirstFrame(); onDrawn(true); } });
   return null;
 }
 

@@ -109,3 +109,19 @@ test('W7-P3: data/scriptSlot — node loads the script at once; the bindings are
   } finally { slot.registerScript(script); }
   assert.equal(content.hook(hookName), before);
 });
+
+test('W7-P5: afterFirstFrame — work waits for the world\'s first frame (the catalog prefetch), runs once, can be called off; after it, at once', async () => {
+  const ff = await import('../src/opus-bay/game/firstFrame');
+  assert.equal(ff.firstFrameDrawn(), false);
+  const ran: string[] = [];
+  ff.afterFirstFrame(() => ran.push('a'));
+  const off = ff.afterFirstFrame(() => ran.push('b'));
+  off();
+  assert.deepEqual(ran, [], 'nothing before the first frame');
+  ff.markFirstFrame();
+  ff.markFirstFrame();
+  assert.deepEqual(ran, ['a'], 'once, and not the one called off');
+  assert.equal(ff.firstFrameDrawn(), true);
+  ff.afterFirstFrame(() => ran.push('c'));
+  assert.deepEqual(ran, ['a', 'c'], 'after the first frame: at once');
+});
