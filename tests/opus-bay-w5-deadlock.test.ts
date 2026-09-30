@@ -75,6 +75,19 @@ const LMS = landmarkWalkInputs(SF_LANDMARKS);
 /** Union Square: a grid of two-lane streets */
 const SPOT = { x: 78, z: 222 };
 
+/**
+ * (W7-B1) The runtime as it is before any test runs. A test that moves the player must not change what a later one
+ * simulates: the tap-to-drive test left the player on a Union Square street heading (and a height, a claimed bike), and
+ * the proof puts its camera behind the player's heading — the camera decides where the toy traffic spawns and which
+ * transit vehicles count as seen, so the whole 20 minutes ran differently after it (day 0 of wave 7: 29 forced blockers
+ * with the whole file, 31 with the proof alone; not load: the proof reads no clock). Tests that drive the runtime start
+ * from (and leave) this.
+ */
+const RUNTIME0 = structuredClone({ player: runtime.player, guide: runtime.guide, vehicle: runtime.vehicle, move: runtime.move, camera: runtime.camera, input: runtime.input, glide: runtime.glide });
+function freshRuntime() {
+  for (const [k, v] of Object.entries(RUNTIME0)) Object.assign(runtime[k as keyof typeof RUNTIME0], structuredClone(v));
+}
+
 async function cityAround(at: { x: number; z: number }, r: number) {
   const city = createCityTerrain(sf.manifest, { landmarks: LMS });
   city.setFar(await sf.far());
@@ -389,7 +402,7 @@ test('W5-bus the player\'s tap-to-drive toy car and bike behind (or facing) a st
     }
   } finally {
     setWalkGraph(null); setCityTerrain(null); game.set({ phase: 'title', worldMode: 'district', move: { mode: 'foot' } } as never);
-    runtime.move.mode = 'foot'; Object.assign(runtime.vehicle, { occupied: false, kind: null, speed: 0 });
+    freshRuntime();
   }
   console.log(results.join('\n'));
 });
@@ -489,8 +502,8 @@ test('W5-bus a streetcar about to run through Market St\'s shared stretch stops 
 
 test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the published city with dense toy traffic and forced blockers (in the lane ahead, in the next stop zone, on a crossing) — nothing on the road holds a bus or a train more than 5 s outside its dwell; an interlock never for good', async () => {
   const { TransitLayer } = await import('../src/opus-bay/world/transitLayer');
-  // (on foot, no vehicle of the player's: the traffic lives round the rider)
-  Object.assign(runtime.vehicle, { occupied: false, kind: null, speed: 0 });
+  // (on foot, no vehicle of the player's: the traffic lives round the rider; the runtime as before any test, W7-B1)
+  freshRuntime();
   game.set({ move: { mode: 'foot' } });
   T.setTransitW4(W4);
   T.setFlineJson(FLINE_JSON);
@@ -633,7 +646,13 @@ test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the pub
         if ((poll += DT) >= 0.25) { poll = 0; busWatch.watchBuses(0.25, lines); }
         if (i % 10 === 0) await stream();
         if (boarded < 0 && ride.currentRide()?.mode === 'follow') boarded = simT;
-        if (boarded >= 0 && simT - boarded > next && (force(kinds[k % kinds.length]) || simT - boarded > next + 8)) { k++; next = simT - boarded + 22; }
+        // a blocker every 22 s of riding: the slot's own kind first, else the next kind that fits here (W7-B1: a train
+        // has no stop zone, a bus near its stop no room for one — the slot used to pass unforced); none for 8 s: it passes
+        if (boarded >= 0 && simT - boarded > next) {
+          let j = 0;
+          while (j < kinds.length && !force(kinds[(k + j) % kinds.length])) j++;
+          if (j < kinds.length) { k += j + 1; next = simT - boarded + 22; } else if (simT - boarded > next + 8) { k++; next = simT - boarded + 22; }
+        }
       }
       assert.equal(ride.currentRide(), null, `${line} ${from} → ${to} arrived`);
       const took = simT - boarded;
@@ -647,7 +666,8 @@ test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the pub
     report.push(`toy traffic: ${JSON.stringify(layer.life.traffic!.stats())}`);
     console.log(report.join('\n'));
     assert.ok(riding >= 20 * 60, `20+ simulated minutes of riding (${(riding / 60).toFixed(1)})`);
-    assert.ok(forced >= 30 && kinds.every(kd => done.some(p => p.kind === kd)), `forced blockers of every kind (${forced})`);
+    // (W7-B1: 47 since a slot falls back to another kind — lane 15, zone 10, crossing 22 — where it was 31, one over)
+    assert.ok(forced >= 30 && kinds.every(kd => done.filter(p => p.kind === kd).length >= 5), `forced blockers, ≥ 5 of every kind (${forced})`);
     // the rules at work: cars cleared the lane for the bus held behind them and for transit coming at them
     const st = layer.life.traffic!.stats();
     assert.ok(st.gaveHeld >= 5 && st.gaveOncoming >= 3, JSON.stringify(st));
