@@ -50,8 +50,11 @@ import { SignBatch, signsMaterial } from './signsAtlas';
 export const NB_CULL = 190;
 /** built the first time the camera comes this close */
 export const NB_BUILD = 260;
-/** the corner's budget (the 9 corners of wave 5 keep 2 calls / 2.5k; this one carries the church's towers and the lawn) */
-export const NB_BUDGET = { calls: 2, triangles: 8000 } as const;
+/**
+ * the corner's budget (the 9 corners of wave 5 keep 2 calls / 2.5k; this one carries the church's towers and the lawn;
+ * W7-W1: 9k, the fill's buildings on the Sentinel's block give Columbus Ave one more café front)
+ */
+export const NB_BUDGET = { calls: 2, triangles: 9000 } as const;
 
 /**
  * Columbus Ave's centreline through the slab (OSM ways 148874364, 148874363, 254756518, 48211487, 87376669,

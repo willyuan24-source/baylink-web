@@ -23,13 +23,14 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { heightAt } from '../../src/opus-bay/core/terrain';
 import { DISTRICT } from '../../src/opus-bay/data/district';
-import { NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_REGIONS, nbDropLots, seamRegionAt } from '../../src/opus-bay/world/sf/cornersNB';
+import { NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_EXTRA_OSM, SEAM_REGIONS, SENTINEL_OSM, SENTINEL_RING, nbDropLots, seamRegionAt } from '../../src/opus-bay/world/sf/cornersNB';
 import { loadAreas } from './lib/areas';
 import { carve, finishBuildings, heroExclusions, heroSeam, landmarkOsmIds, loadBuildings, mergeLots, HERO_OWN } from './lib/buildings';
 import { buildLand, loadBoundaryRings, loadCoast } from './lib/land';
 import { buildBlocks, blockAt, loadWays, segIndex } from './lib/roads';
 import { loadDem } from './lib/io';
 import { buildTerrain } from './lib/terrain';
+import { pickPalette } from './lib/styles';
 import { loadZones } from './lib/zones';
 import { unproject } from '../../src/opus-bay/core/geo';
 import { decodeGraphFile } from '../../src/opus-bay/world/sf/format';
@@ -139,6 +140,15 @@ function setBack(r: number[]): number[] {
   return out;
 }
 for (const b of carved) if (b.osmId === NB_CHURCH_OSM) { b.ring = setBack(b.ring); log(`church ${b.osmId}: nave set back ${NB_CHURCH_SETBACK} u (${b.ring.length / 2} vertices, members ${b.members})`); }
+const TRACE = process.argv.includes('--trace') ? Number(process.argv[process.argv.indexOf('--trace') + 1]) : 0;
+if (TRACE) {
+  const f = (l: { osmId: number; members?: unknown }[]) => l.find(b => b.osmId === TRACE || (Array.isArray(b.members) && b.members.includes(TRACE)));
+  const c = carved.find(b => b.osmId === TRACE);
+  const r0 = f(rawB) as unknown as { cx: number; cz: number } | undefined;
+  if (r0) for (const b of merged) { const rr = ringPts(b.ring); if (inPoly(r0.cx, r0.cz, rr)) log(`  merged ${b.osmId} members ${b.members} H ${b.heightM} block ${b.block} slabFrac ${blocks.slabFrac[b.block]} carved-has ${carved.some(c => c.osmId === b.osmId)} kept ${[...kept].some(c => c.osmId === b.osmId)} lotBlock ${lotBlocks.has(b.block)}`); }
+  for (const b of carved) { const rr = ringPts(b.ring); if (r0 && inPoly(r0.cx, r0.cz, rr)) log(`  carved ${b.osmId} members ${b.members}`); }
+  log(`trace ${TRACE}: raw ${!!f(rawB)} merged ${!!f(merged)} carved ${!!c} kept ${c ? kept.has(c) : '-'} block ${c?.block} slabFrac ${c ? blocks.slabFrac[c.block] : '-'} lotBlock ${c ? lotBlocks.has(c.block) : '-'} merged-into ${JSON.stringify(merged.filter(b => Array.isArray(b.members) && (b.members as number[]).includes(TRACE)).map(b => b.osmId))}`);
+}
 const cand = carved.filter(b => !kept.has(b) && blocks.slabFrac[b.block] >= HERO_OWN && !lotBlocks.has(b.block) && !b.onPier && inPoly(b.cx, b.cz, DISTRICT.slab) && !!seamRegionAt(b.cx, b.cz));
 const why = new Map<string, number>();
 const pass = cand.filter(b => {
@@ -147,10 +157,37 @@ const pass = cand.filter(b => {
   if (w && process.argv.includes('--why')) log(`  out ${b.osmId} (${b.cx.toFixed(1)}, ${b.cz.toFixed(1)}): ${w}`);
   return !w;
 });
+// W7-W1: buildings the build merged with a neighbour and then carved away whole (the Sentinel Building's thin
+// flatiron): their own raw footprint, when it is clear (world/sf/cornersEastCut.ts dresses them)
+const areaOf = (r: readonly number[]) => { let a = 0; for (let i = 0, n = r.length / 2; i < n; i++) { const j = (i + 1) % n; a += r[2 * i] * r[2 * j + 1] - r[2 * j] * r[2 * i + 1]; } return a / 2; };
+for (const id of SEAM_EXTRA_OSM) {
+  if (pass.some(b => b.osmId === id)) continue;
+  const raw = rawB.find(b => b.osmId === id);
+  if (!raw) { log(`extra ${id}: not in the raw snapshot`); continue; }
+  let b = raw;
+  if (id === SENTINEL_OSM) {
+    // the toy's footprint in the district's own corner (cornersNB.ts SENTINEL_RING), wound like OSM's ring
+    let ring = SENTINEL_RING.flatMap(p => [p.x, p.z]);
+    if (Math.sign(areaOf(ring)) !== Math.sign(areaOf(raw.ring))) ring = SENTINEL_RING.slice().reverse().flatMap(p => [p.x, p.z]);
+    const c = SENTINEL_RING.reduce((s, p) => ({ x: s.x + p.x / SENTINEL_RING.length, z: s.z + p.z / SENTINEL_RING.length }), { x: 0, z: 0 });
+    b = { ...raw, ring, cx: c.x, cz: c.z, area: Math.abs(areaOf(ring)) };
+    // the fill's own buildings give way to it
+    const sr = [...SENTINEL_RING];
+    for (let k = pass.length - 1; k >= 0; k--) {
+      const r = ringPts(pass[k].ring);
+      if (r.some(p => inPoly(p.x, p.z, sr) || ringDist(p.x, p.z, sr) < 0.3) || sr.some(p => inPoly(p.x, p.z, r))) { log(`  ${pass[k].osmId} gives way to the Sentinel`); pass.splice(k, 1); }
+    }
+  }
+  const w = clear(ringPts(b.ring));
+  log(`extra ${id}: ${w ?? 'kept'}`);
+  if (!w) pass.push(b);
+}
 const fin = finishBuildings(pass, zones, terrain, new Set(), log);
 log(`seam fill: ${cand.length} candidates in ${new Set(cand.map(b => b.block)).size} empty hero-owned blocks, ${pass.length} clear (${[...why].map(([k, n]) => `${k} ${n}`).join(', ')}), ${fin.length} finished`);
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
+// the Sentinel: a plain 'brick' prism under world/sf/cornersEastCut.ts's copper shell (no office crown or mast poking out)
+for (const b of fin) if (b.osmId === SENTINEL_OSM) { b.style = 5; b.roof = 0; b.palette = pickPalette('brick', b.osmId, false); }
 const rows = fin.map(b => {
   const ring = ringPts(b.ring);
   let base = Infinity;

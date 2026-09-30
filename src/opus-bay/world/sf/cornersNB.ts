@@ -51,14 +51,21 @@ function inRing(x: number, z: number, p: readonly Vec2[]) {
  * drop set, world/sf/cityWorld.ts cuts their triangles, world/sf/hero.ts leaves them out of the far proxy. District mode
  * keeps them (the hero regression).
  */
-export function nbDropLots(blocks: readonly { footprint: readonly Vec2[] }[]): number[] {
+export function nbDropLots(blocks: readonly { id?: string; footprint: readonly Vec2[] }[]): number[] {
   const out: number[] = [];
   blocks.forEach((lot, i) => {
     const n = lot.footprint.length, c = lot.footprint.reduce((s, p) => ({ x: s.x + p.x / n, z: s.z + p.z / n }), { x: 0, z: 0 });
-    if (inRing(c.x, c.z, NB_CHURCH_OSM_RING)) out.push(i);
+    if (inRing(c.x, c.z, NB_CHURCH_OSM_RING) || (lot.id !== undefined && SEAM_DROP_LOT_IDS.includes(lot.id))) out.push(i);
   });
   return out;
 }
+
+/**
+ * W7-W1: district lots city mode also hides (like lot-211), so the seam fill gives their block its real buildings:
+ * lot-117, one plain 13 u office box over the whole block of Kearny, Columbus, Jackson and Washington St — the
+ * Sentinel Building's flatiron at its south corner (SEAM_EXTRA_OSM; world/sf/cornersEastCut.ts dresses it).
+ */
+export const SEAM_DROP_LOT_IDS: readonly string[] = ['lot-117'];
 
 /** the seam fill's North Beach region (W6-W1): North Beach and upper Chinatown, west of Kearny St */
 export const SEAM_REGION = { xMax: 60, zMin: 60 } as const;
@@ -81,3 +88,25 @@ export function seamRegionAt(x: number, z: number): SeamRect | null {
   for (const r of SEAM_REGIONS) if (x >= r.xMin && x <= r.xMax && z >= r.zMin && z <= r.zMax) return r;
   return null;
 }
+
+/**
+ * OSM buildings the offline build merged with a neighbour and then carved away whole, put back by the seam fill on
+ * their own raw footprint (W7-W1): way 288485994, the Sentinel Building (Columbus Tower) — its thin flatiron at
+ * Columbus Ave & Kearny St; world/sf/cornersEastCut.ts draws its copper-green shell and dome over it.
+ */
+export const SEAM_EXTRA_OSM: readonly number[] = [288485994];
+
+/**
+ * The toy Sentinel's footprint (W7-W1). OSM's flatiron (way 288485994) overlaps the district's own street ribbon by
+ * 0.8 u (its centre is 1.3 u off the district's `street-kearny-1` centreline: the hand-made grid is not OSM's), so the
+ * toy stands in the district's own corner: the tip where `street-kearny-1` (Columbus Ave's line) and
+ * `street-jackson-0` meet, 1.75 u in from both centreline (the ribbons are 1.6 u half-wide), 4.6 u back along each
+ * street, the tip rounded. The district's corner is square, so the toy's wedge is a right angle (the real one is acute).
+ */
+export const SENTINEL_RING: readonly Vec2[] = [
+  { x: 23.44, z: 108.21 }, { x: 20.13, z: 105.88 }, { x: 26.26, z: 105.13 }, { x: 24.21, z: 108.08 }, { x: 23.84, z: 108.25 },
+];
+/** the rounded tip's middle (the dome stands over it) */
+export const SENTINEL_TIP: Vec2 = { x: 23.83, z: 108.02 };
+/** OSM way of the Sentinel Building (the fill row's id) */
+export const SENTINEL_OSM = 288485994;

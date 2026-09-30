@@ -59,7 +59,8 @@ test('W6-W1 the seam fill: North Beach blocks the district leaves empty, inside 
     const d = (p.x - NB_FRONT.a.x) * NB_FRONT.n.x + (p.z - NB_FRONT.a.z) * NB_FRONT.n.z;
     assert.ok(d <= -NB_CHURCH_SETBACK + 0.02, `nave vertex ${d.toFixed(2)} behind the front`);
   }
-  assert.deepEqual(nbDropLots(DISTRICT.blocks).map(i => DISTRICT.blocks[i].id), ['lot-211']);
+  // W7-W1: lot-117 too (the plain box over the Sentinel's block: cornersNB.ts SEAM_DROP_LOT_IDS)
+  assert.deepEqual(nbDropLots(DISTRICT.blocks).map(i => DISTRICT.blocks[i].id), ['lot-117', 'lot-211']);
 });
 
 test('W6-W1 addSeamFill: appended once to the chunk holding the centroid, the published buildings untouched', async () => {

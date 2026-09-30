@@ -298,6 +298,10 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   'lombard-crooked': { x: -158.44, z: 153.14, heading: 0.056, why: 'the pavement at the crooked block\'s foot (Leavenworth St), the zigzag up ahead: the old end stood in Lombard St\'s lane, boxed (1 of 4 ways open)' },
   'sutro-baths': { x: -718.13, z: 1243.55, heading: -1.22, why: 'the ruins\' overlook path: the old end snagged (a wall 0.4 u ahead that the map does not draw)' },
   'pier-39': { x: -160.66, z: 24.1, heading: 1.18, why: 'the pier\'s gate plaza: the anchor is in The Embarcadero\'s roadway (not standable)' },
+  // W7-W1 (lane W1's row): the East Cut corner (world/sf/cornersEastCut.ts) built the Sentinel's toy in the
+  // district's own Kearny / Jackson corner (cornersNB.ts SENTINEL_RING): the old end was 0.6 u off its wall, in the
+  // carriageway; the new one faces its rounded tip and dome.
+  'sentinel-building': { x: 24.2, z: 109.4, heading: -2.88, why: 'the corner in front of the rounded tip and the dome (the toy stands in the corner the district draws)' },
   'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
   'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };
