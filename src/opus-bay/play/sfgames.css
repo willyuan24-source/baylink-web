@@ -1,0 +1,86 @@
+/* Wave 7 · lane M · the San Francisco mini-games' panels (claw machine, fortune teller, crabbing, sourdough). Tokens from
+   opus-bay.css; every tap target ≥ 44 px (the main controls 56 px); phones get the panel under the top pills. */
+
+.ob-sfg-panel {
+  position: absolute; left: 50%; top: calc(72px + var(--ob-st)); z-index: 43; transform: translateX(-50%);
+  width: min(400px, calc(100vw - 24px)); box-sizing: border-box; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px 12px; border-radius: var(--ob-r-l); background: rgba(255, 250, 241, .97); border: 1px solid var(--ob-line);
+  box-shadow: var(--ob-shadow); pointer-events: auto; animation: ob-sfg-pop .4s var(--ob-spring); color: var(--ob-ink);
+  font-family: 'Noto Sans SC', var(--ob-font); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
+@keyframes ob-sfg-pop { from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(.96); } }
+.ob-sfg-head { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.ob-sfg-head strong { flex: 1; font-size: 16px; font-weight: 900; line-height: 1.2; }
+.ob-sfg-x {
+  display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 50%; border: 1px solid var(--ob-line);
+  background: #fff; color: var(--ob-ink-2); cursor: pointer;
+}
+.ob-sfg-x:focus-visible, .ob-sfg-btn:focus-visible { outline: 3px solid var(--ob-gold); outline-offset: 2px; }
+.ob-sfg-coins { display: inline-flex; gap: 4px; }
+.ob-sfg-coins i { width: 15px; height: 15px; border-radius: 50%; background: transparent; border: 1.5px dashed var(--ob-line-2); box-sizing: border-box; }
+.ob-sfg-coins i.is-on { background: radial-gradient(circle at 35% 35%, #fbfaf6, #c7c3b8 60%, #9d988c); border: 1.5px solid #7d786d; }
+.ob-sfg-clock { height: 5px; border-radius: 3px; background: var(--ob-cream-2); overflow: hidden; }
+.ob-sfg-clock i { display: block; height: 100%; width: 100%; background: var(--ob-gold); border-radius: 3px; }
+.ob-sfg-canvas { display: block; width: 100%; aspect-ratio: 100 / 80; border-radius: 12px; touch-action: none; cursor: pointer; border: 2px solid #3b2a20; box-sizing: border-box; background: #1f4e5a; }
+.ob-sfg-canvas.is-crab { aspect-ratio: 100 / 90; background: #2c6a78; }
+.ob-sfg-canvas.is-dough { aspect-ratio: 100 / 70; background: #f3e3c4; }
+.ob-sfg-hint { margin: 0; min-height: 20px; text-align: center; font-size: 13.5px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-sfg-foot { margin: 0; text-align: center; font-size: 12.5px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-sfg-controls { display: flex; gap: 10px; justify-content: center; }
+.ob-sfg-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 64px; min-height: 56px; padding: 0 16px;
+  border-radius: 18px; border: 1px solid var(--ob-line-2); background: #fff; color: var(--ob-ink); cursor: pointer;
+  font: 900 17px/1 'Noto Sans SC', var(--ob-font); touch-action: none; transition: transform .12s var(--ob-ease), background .12s;
+}
+.ob-sfg-btn:active:not(:disabled) { transform: scale(.94); }
+.ob-sfg-btn:disabled { opacity: .45; cursor: default; }
+.ob-sfg-btn.is-go { flex: 1; max-width: 170px; background: var(--ob-terra); border-color: var(--ob-terra); color: #fff; }
+.ob-sfg-btn.is-go:active:not(:disabled) { background: #b84a32; }
+.ob-sfg-btn.is-teal { background: var(--ob-teal); border-color: var(--ob-teal); color: #fff; }
+.ob-sfg-btn.is-wide { flex: none; max-width: none; width: 100%; min-height: 48px; }
+.ob-sfg-btn.is-pick { flex: 1; flex-direction: column; gap: 2px; min-height: 64px; font-size: 15px; }
+.ob-sfg-btn.is-pick small { font-size: 11.5px; font-weight: 700; color: inherit; opacity: .8; }
+.ob-sfg-btn .ob-key { height: 18px; min-width: 18px; padding: 0 4px; font-size: 10px; }
+
+/* the fortune teller */
+.ob-sfg-booth { width: 190px; height: 152px; margin: 0 auto; }
+.ob-sfg-booth .ob-sfg-bulb { animation: ob-sfg-blink .75s steps(2) infinite; }
+.ob-sfg-booth .ob-sfg-ball { animation: ob-sfg-glow 1.1s ease-in-out infinite alternate; }
+.ob-sfg-booth .ob-sfg-hand { transform-origin: 72px 54px; animation: ob-sfg-hand 1.2s ease-in-out infinite; }
+.ob-sfg-booth.is-out .ob-sfg-hand { animation: none; }
+@keyframes ob-sfg-blink { 50% { fill: #8a6b3a; } }
+@keyframes ob-sfg-glow { to { fill: #f4fbff; } }
+@keyframes ob-sfg-hand { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-14px) translateY(2px); } }
+.ob-sfg-card {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 12px; background: #fffdf7;
+  border: 1px dashed var(--ob-line-2); animation: ob-sfg-card .45s var(--ob-spring);
+}
+@keyframes ob-sfg-card { from { opacity: 0; transform: translateY(-18px) scale(.9); } }
+.ob-sfg-card small { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-2); }
+.ob-sfg-card strong { font-size: 18px; line-height: 1.35; font-weight: 900; color: var(--ob-terra); }
+.ob-sfg-card p { margin: 0; font-size: 14px; line-height: 1.5; font-weight: 600; color: var(--ob-ink); }
+.ob-sfg-card .ob-sfg-src { color: var(--ob-ink-3); font-weight: 600; }
+
+/* the measuring gauge (crabbing) and the meters (sourdough) */
+.ob-sfg-meter { position: relative; height: 22px; border-radius: 11px; background: linear-gradient(90deg, #f3e4c4, #d69848 60%, #5c3a22); border: 1px solid var(--ob-line-2); overflow: hidden; }
+.ob-sfg-meter .is-band { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(255, 243, 214, .55), rgba(255, 243, 214, .55) 4px, transparent 4px, transparent 8px); border-left: 3px solid #fff; border-right: 3px solid #fff; box-sizing: border-box; }
+.ob-sfg-meter .is-mark { position: absolute; top: 0; bottom: 0; width: 5px; margin-left: -2.5px; border-radius: 2px; background: var(--ob-ink); box-shadow: 0 0 0 1.5px #fff; }
+
+@media (max-width: 600px) {
+  .ob-sfg-panel { top: calc(112px + var(--ob-st)); padding: 8px 10px 10px; gap: 6px; }
+  .ob-sfg-head strong { font-size: 15px; }
+  .ob-sfg-booth { width: 160px; height: 128px; }
+}
+@media (max-height: 700px) and (max-width: 600px) { .ob-sfg-panel { top: calc(64px + var(--ob-st)); } }
+@media (prefers-reduced-motion: reduce) {
+  .ob-sfg-panel, .ob-sfg-card, .ob-sfg-booth .ob-sfg-hand, .ob-sfg-booth .ob-sfg-ball, .ob-sfg-booth .ob-sfg-bulb { animation: none; }
+}
+
+/* crabbing: the nets left, the points, the held haul */
+.ob-sfg-nets { display: inline-flex; gap: 4px; }
+.ob-sfg-nets i { width: 16px; height: 9px; border-radius: 50%; border: 2px solid var(--ob-line-2); box-sizing: border-box; }
+.ob-sfg-nets i.is-on { border-color: var(--ob-gold); background: var(--ob-gold-l); }
+.ob-sfg-nets i.is-done { border-color: var(--ob-teal); background: var(--ob-teal); }
+.ob-sfg-score { min-width: 36px; padding: 2px 8px; border-radius: 999px; background: var(--ob-gold-l); color: var(--ob-gold-d); font: 900 15px/1.3 var(--ob-font); text-align: center; font-variant-numeric: tabular-nums; }
+.ob-sfg-btn.is-hold { touch-action: none; }
+.ob-sfg-btn.is-hold.is-held { background: #b84a32; transform: scale(.96); }

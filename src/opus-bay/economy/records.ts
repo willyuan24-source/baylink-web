@@ -25,6 +25,11 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   { key: 'kite', name: { zh: '放风筝', en: 'Kite flying' }, unit: 'points' },
   // W7-W2: 那是什么？ the skyline quiz (points: landmarks named of three)
   { key: 'skyline', name: { zh: '那是什么？认地标', en: 'What’s that? Landmarks named' }, unit: 'points' },
+  // W7-M (lane M): the San Francisco mini-games (the kit keeps their bests under the activity id: the claw's souvenirs
+  // in one go, the crabbing's and the sourdough's points)
+  { key: 'claw', name: { zh: '机械博物馆抓娃娃', en: 'Musée claw machine' }, unit: 'points' },
+  { key: 'crab', name: { zh: '7 号码头捞螃蟹', en: 'Crabbing off Pier 7' }, unit: 'points' },
+  { key: 'sourdough', name: { zh: '捏酸面包', en: 'Shaping sourdough' }, unit: 'points' },
 ];
 
 /** Days since 1970 of a Bay date (lane A's `steps-day`). */

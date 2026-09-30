@@ -219,6 +219,10 @@ export function initZones3(): () => void {
   offs.push(registerAskItem({ id: 'play-ball', order: -4, label: { zh: '玩沙滩球', en: 'Beach ball' }, icon: Volleyball, visible: ballHere, onSelect: () => { void import('./ball').then(m => { m.startBall(); }); } }));
   offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void import('./frisbee').then(m => { m.startFrisbee(); }); } }));
   offs.push(registerOverlay({ id: SNAP_OVERLAY, Component: SnapSlot }));
+  // W7-M (lane M): the San Francisco mini-games' zones (play/sfgames.ts, its own chunk: the Musée's claw machine…)
+  let offSf: (() => void) | null = null, sfGone = false;
+  void import('./sfgames').then(m => { if (!sfGone) offSf = m.initSfGames(); }).catch(() => { /* the games stay away */ });
+  offs.push(() => { sfGone = true; offSf?.(); });
   // a crest hop (lane F's vehicle:hop) at one of the 12 crests
   offs.push(onEvent(ev => {
     if (ev.type !== 'vehicle:hop' || !ev.crest) return;
