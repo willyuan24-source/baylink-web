@@ -174,7 +174,9 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
   (敲开 5 户人家的门 · 0/5, 找到 10 个南瓜灯 · 0/10, 穿上一套万圣节服装) and the page button, then 邻居的小忙
   (`qa/w7/G/d-phone-goals-tab-halloween.jpg`).
 - Checks (23:47, the tree on origin `fe80aa0e` + part d): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite
-  1583 tests, 1582 pass — the one red is the deadlock test that is red on origin (Requests).
+  1583 tests, 1582 pass — the one red is the deadlock test that is red on origin (Requests). Rebased onto `81787b14`
+  (lanes M, R, H: `economy/records.ts` rows, play / realsf / halloween-world files): tsc 0 and the related tests (w7-g,
+  w6-g, w7-m, w5-shop, the contracts) 88 / 88.
 
 ## Not done
 
