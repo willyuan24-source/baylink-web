@@ -404,3 +404,85 @@ push brought lanes H, V, X only (no shared file): tsc 0 on the pushed tree).
 
 Commits on `origin/opus-bay`: part a `3727a49c`, `f90e3bf3`; part b `f8512c0f`, `049762fc`; part c `3568e2b5`,
 `c3dd95cc`; part d `ff6e8187`, `0746cafa` (+ this report line).
+
+## Review
+
+Adversarial review of lane W2 (worktree `C:/Users/willy/wt/w7-w2-rev` on `origin/opus-bay` `3213201b`, dev port 5729,
+scratch `C:/Users/willy/opus-qa/w7/w2-rev/`). Started 00:43 PDT (`date`); after 01:15 only the riskiest parts.
+
+### 给主人的摘要
+
+1. W2 的四部分（恶魔岛模型、码头绿地风筝和「放风筝」、「那是什么？」认地标、捉迷藏修复、联合广场 T2）逐个提交读过，
+   **没有发现会让上线出丑或卡住上线的问题**。
+2. 修了 1 个真问题：「那是什么？」在只看得见 1 个（或 2 个）地标的地方，会把**同一道题连问三遍**（答案和小知识第一遍就说了），
+   白送一枚金牌。现在每个看得见的地标只问一次（最多三题），顶部条显示「1 / 1」这样的真实题数；只认对 1 个就只拿铜牌。先写测试（旧代码红：
+   三题都是科伊特塔），修完变绿。
+3. 事实都在网上核对过（2026-09-30）：恶魔岛灯塔 95 英尺、1909 年建、1854 年的第一座是美国西海岸第一座灯塔（nps.gov）；联合广场四角
+   都有爱心雕塑，2026 年新的一颗 SŌL 在 Powell / Geary 角（sfghf.org）；「那是什么？」九条小知识（金门大桥 746 英尺 / 1937、苏特罗塔
+   977 英尺 / 1973、市政厅圆顶比国会大厦高 42 英尺、泛美金字塔 1972、Salesforce 1,070 英尺、渡轮大厦 1898 / 245 英尺、海湾大桥
+   1936 比金门早半年）都对。
+4. 手机（390 × 844）实测：「放线」按钮现在是 82 × 44（K5 的触屏规则已经覆盖到它，W2 给 K 的请求已解决）；「那是什么？」三个名字按钮
+   359 × 48；开局检查九条视线只用 6.4 毫秒，不卡。
+5. 留给后面的小事（不挡上线）：看不到地标时「最近的观景点：×××」这句是拼出来的，配音线配不了；其余见下。
+
+### What was checked
+
+- Every lane commit read (`3727a49c` … `f0361985`): `alcatraz.ts` / `alcatrazGround.ts` / the backdrop lighthouse,
+  `hideSeek.ts` (the frame-spread spot search, the fixed found line, the coach), `kite.ts` / `kiteKind.ts` / `kites.ts` /
+  `kiteZone.ts` / `kiteEntry.ts` / `kiteLines.ts`, `skyline.ts` / `skylineLines.ts`, `union-square.ts`, the records rows
+  (both appended after `bell`), the `play/index.ts` line.
+- Lifecycles: both activities stop through the kit (`onStop` → cleanup: frame system, keys, chip, overlay, camera shot);
+  `play/index.ts` teardown cancels the running activity on a world switch; the kite layer unmounts 50 ms after the
+  round, the ambient layer mounts only within 240 u of the lawn by day and drops beyond 280 u / at night; the kite
+  kind's material is cached per kind (no material per mount), the meshes are disposed with their layers. No per-frame
+  allocation in the kite kind / ambient kites (module scratch vectors); the round's camera shot is a fresh small object
+  a frame, as the other part-c activities do.
+- Played on a 390 × 844 phone (dpr 3, `?start=free&world=city&time=day`): 放风筝 started (chip: "Kite flying 22% ·
+  Lull: let it climb", 放线 82 × 44, 不玩了 55.5 × 44), 那是什么？ started (the camera shot, three 359 × 48 names, the chip
+  "1 / 3"; the start's nine rays 6.4 ms). Shots in the scratch folder.
+- Facts re-checked on the web 2026-09-30: https://www.nps.gov/places/000/alcatraz-lighthouse.htm (95 ft, 1909; the 1854
+  light the first on the US West Coast), https://sfghf.org/news/new-union-square-heart-brightens-up-downtown/ and
+  https://en.wikipedia.org/wiki/Hearts_in_San_Francisco (hearts on the four corners; SŌL at Powell & Geary), the nine
+  skyline facts against their cited sources (all correct as written, zh and en agree: 227 m, 298 m, 13 m, 75 m, 326 m).
+- Checks: `npx tsc -p tsconfig.app.json --noEmit` 0; W2's tests + hide & seek + the play core + the landmarks 77 / 77
+  before the fix.
+
+### Defects fixed
+
+- **那是什么？ repeated a landmark** (`play/skyline.ts`): the order was `pool[i % pool.length]` for three rounds, so with
+  one landmark in sight it asked the same question three times (the answer and its fact already said) and paid ★
+  `medal:skyline:3`; with two in sight the first came back as round three. Now the rounds are the landmarks in sight,
+  each once, at most three (`pool.slice(0, ROUNDS)`), the chip reads `1 / n`, the card's detail `r / n`; ★ still needs
+  three different landmarks. Test `W7-W2-review skyline` in `tests/opus-bay-w7-w2-skyline.test.ts`: red on the old code
+  (`order` = `[coit-tower, coit-tower, coit-tower]`), green after (one question, tier ●, no ★).
+
+### Open items (not blocking)
+
+- The no-view line's follow-up `最近的观景点：${name}` / `Nearest lookout: ${name}` (skyline.ts) is a templated BAYBAY
+  bubble — lane X cannot voice it (her first line, `noView`, is fixed and voiced). Put the name on a toast / map pin, or
+  give each view spot a fixed line.
+- Desktop play and the calls / tris re-read at Marina Green, Union Square and PIER 39 / Coit were not redone here: the
+  shared `node_modules/.vite` dep cache (the junction) had been re-optimised by another dev server and this review's
+  desktop page crashed in drei's `PerformanceMonitor` (React `useState` of null: two dep builds, `v=0c719c2d` /
+  `v=483546e7`) — an environment artifact, not W2's code (the phone page before it rendered). The lane's own numbers
+  stand: Alcatraz +1 call / 4,528 tris (lod 2 144), Union Square 1,998 / 2,500 tris and 0 new calls, the kites +1 call
+  (80 tris) near the lawn by day, +1 (40 tris) in a round. The final verify's perf pass should include Marina Green by day.
+- 放风筝's keyboard hold: after clicking the chip's 放线 with a mouse the button keeps focus and `holdKeys` ignores Space
+  on a focused BUTTON (lane A's helper) — press E, or click the world first. Minor.
+- 放风筝 sets `quietUntil` 75 s at the start and does not release it on an early 不玩了 (the ball / frisbee pattern):
+  BAYBAY's idle chatter waits up to 75 s after a short round. Minor.
+- The chip title "What’s that?" shows a wide gap after the curly apostrophe on the phone (the chip font's ’) — every
+  title with ’ looks the same; cosmetic, not W2's.
+- Carried from the lane: the busker play-along and Chase Center T2 not started; Union Square's café corner not verified;
+  Crissy Field has no ambient kites.
+
+### Blocking for the go-live to main
+
+**None** from lane W2. The review's fix is `f6ca11d5` (skyline.ts + its test).
+
+### Checks of the review's tree (before the push, 01:37 PDT)
+
+`npx tsc -p tsconfig.app.json --noEmit` **0** · `npx eslint .` **0 errors** (43 old warnings) · `npx tsx --tsconfig
+tsconfig.app.json --test tests/opus-bay-*.test.ts` **1489 / 1489, fail 0** (on `10584dc9` before the rebase onto `bcd3fbdd`, parent `3213201b`; the W5-bus
+deadlock proof passes since W7-B9 pinned its clock). The dev server (5729) is stopped; the worktree is removed after the
+push.
