@@ -8,13 +8,15 @@ import type { Bilingual } from '../core/types';
  *
  * Facts: the bats eat insects (every bat of the Bay Area does); marigolds "guide the souls home" is worded as what the
  * tradition says (传说 / they say); the procession is every 2 November in the evening from 22nd & Bryant (SFMTA,
- * checked 2026-09-29, the 2025 route; halloween/muertos.ts carries the sources).
+ * checked 2026-09-29, the 2025 route; halloween/muertos.ts carries the sources). Wave 7: the 2026 times are not
+ * published yet (checked 2026-09-29), so every line with a time or a date says 通常 / usually and 以官网为准 / check
+ * the official site.
  */
 export interface WorldLine { id: string; zh: string; en: string }
 
 const l = (id: string, zh: string, en: string): WorldLine => ({ id, zh, en });
 
-export const HALLOWEEN_WORLD_LINES = {
+const W6_LINES = {
   // the city dressed (halloween/worldDress.ts)
   seasonHello: l('w6-h-season-hello', '十月啦！家家门口都摆上了南瓜灯～', 'It’s October! There are pumpkins on every doorstep.'),
   nightGlow: l('w6-h-night-glow', '天黑了，门口的南瓜灯都亮起来啦，好温暖。', 'It’s dark now — all the jack-o’-lanterns are glowing. So cosy.'),
@@ -38,10 +40,32 @@ export const HALLOWEEN_WORLD_LINES = {
   muertosAll: l('w6-h-muertos-all', '每个祭坛都看过啦。谢谢你陪我一起记住大家。', 'We’ve seen every altar. Thank you for remembering with me.'),
 } as const satisfies Record<string, WorldLine>;
 
+/** Wave 7 (lane H): new lines, ids `w7-h-*` — lane X records them into data/sf/voiceW7.ts (W7_WORLD_LINES below). */
+const W7_LINES = {
+  // finding the hidden lanterns (halloween/huntGuide.ts): which way the nearest unfound one is, seen from the camera
+  huntAhead: l('w7-h-hunt-ahead', '我看到南瓜灯的光了，就在前面！', 'I can see a pumpkin glow — straight ahead!'),
+  huntLeft: l('w7-h-hunt-left', '南瓜灯的光在左边！我们去看看～', 'A pumpkin glow off to the left! Let’s go and see.'),
+  huntRight: l('w7-h-hunt-right', '南瓜灯的光在右边！我们去看看～', 'A pumpkin glow off to the right! Let’s go and see.'),
+  huntBehind: l('w7-h-hunt-behind', '咦，南瓜灯的光在我们后面！', 'Oh — the pumpkin glow is behind us!'),
+  huntWisp: l('w7-h-hunt-wisp', '看到那团橙色的小鬼火了吗？南瓜灯就藏在它下面！', 'See that little orange wisp? A lantern is hiding right under it!'),
+  // Día de los Muertos, truer (halloween/muertos.ts muertosSchedule: 1 Nov the flags, 2 Nov the altars and the procession)
+  muertosEve: l('w7-h-muertos-eve', '剪纸旗和万寿菊都挂好啦。明天公园里通常会摆满祭坛，以官网为准。', 'The papel picado and marigolds are up. Tomorrow the park usually fills with altars — check the official site.'),
+  processionGather: l('w7-h-procession-gather', '大家戴着万寿菊花冠、捧着蜡烛在这里集合，通常七点出发，以官网为准。', 'Marigold crowns and candles — everyone gathers here. It usually sets off at seven; check the official site.'),
+  processionWalk: l('w7-h-procession-walk', '游行的队伍过来了。我们在路边安静地看，好吗？', 'Here comes the procession. Let’s watch quietly from the side, okay?'),
+  // pumpkins at the season's pumpkin events (halloween/worldVenues.ts; the event pages carry the times)
+  venuePumpkins: l('w7-h-venue-pumpkins', '今天这里有南瓜活动，摆了好多南瓜！时间以官网为准。', 'A pumpkin party here today — pumpkins everywhere! Check the official site for times.'),
+} as const satisfies Record<string, WorldLine>;
+
+export const HALLOWEEN_WORLD_LINES = { ...W6_LINES, ...W7_LINES } as const satisfies Record<string, WorldLine>;
+
 export type WorldLineKey = keyof typeof HALLOWEEN_WORLD_LINES;
 
 /** The bubble text of a line. */
 export const lineText = (k: WorldLineKey): Bilingual => ({ zh: HALLOWEEN_WORLD_LINES[k].zh, en: HALLOWEEN_WORLD_LINES[k].en });
 
-/** Every line (lane X's recording list). */
-export const ALL_WORLD_LINES: readonly WorldLine[] = Object.values(HALLOWEEN_WORLD_LINES);
+/** The wave-6 lines (recorded by lane X in wave 6: data/sf/voiceW6.ts). */
+export const ALL_WORLD_LINES: readonly WorldLine[] = Object.values(W6_LINES);
+/** The wave-7 lines (lane X's wave-7 recording list: data/sf/voiceW7.ts). */
+export const W7_WORLD_LINES: readonly WorldLine[] = Object.values(W7_LINES);
+/** Every line lane H shows. */
+export const EVERY_WORLD_LINE: readonly WorldLine[] = [...ALL_WORLD_LINES, ...W7_WORLD_LINES];

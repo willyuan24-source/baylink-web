@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { game } from '../core/store';
-import { BOX, CBOX, CONE, ICO, M, Batch, type Info } from '../world/builder';
-import { TOY_DYN, U } from '../world/materials';
+import { BOX, CBOX, CONE, ICO, M, Batch, type Info, type InfoFn } from '../world/builder';
+import { TOY, TOY_DYN, U } from '../world/materials';
 import type { HaloSpot } from './worldHalos';
 import { DRESS_ZONES, STOOP_STRIDE, STOOPS } from './worldSpots';
 
@@ -13,8 +13,10 @@ import { DRESS_ZONES, STOOP_STRIDE, STOOPS } from './worldSpots';
  * trick-or-treater in costume on the sidewalk (a ghost sheet, a witch, a pumpkin) — only in the season and on the big
  * night. Bats circle at dusk over Alamo Square, Buena Vista Park and Twin Peaks.
  *
- *   ONE merged mesh for everything on the stoops (the shared TOY_DYN material: no new program, the carved faces and
- *   lanterns glow at night through the toy shader's glow), built only near the player: 48 u cells, each built once
+ *   ONE merged mesh for everything on the stoops (the shared static TOY material, the city L0 cells' own program: no
+ *   new program, the carved faces and lanterns glow at night through the toy shader's glow; W7-H2: its wind sway —
+ *   aInfo.z — rocks the trick-or-treaters from their feet and swings the hanging ghosts from their hooks, in the vertex
+ *   shader: no new call, no per-frame work), built only near the player: 48 u cells, each built once
  *   (≤ CELL_BUILDS_PER_STEP a step) and cached as typed arrays, the mesh re-assembled from the cached cells (a copy,
  *   no Batch work) when the wanted set changes — no hitch while driving. The halos of the faces and lanterns go to
  *   the Halloween halo pool (worldHalos.ts). Bats: one small dynamic mesh (≤ 10 bats, 120 triangles) at the nearest
@@ -43,6 +45,15 @@ const WITCH = '#5b3a7a', HAT = '#2b2430', SKIN = '#f0c7a0', SHOE = '#3b2e2a';
 const GLOW: Info = [0, 0, 0, 0.95];
 const NONE: Info = [0, 0, 0, 0];
 const HALO_FACE = new THREE.Color(1.0, 0.62, 0.22);
+/**
+ * (W7-H2) The toy shader's wind sway (world/materials.ts: xz += (0.16 sin + 0.025 sin) · aInfo.z², uWind 1) as a little
+ * life: a trick-or-treater rocks from the feet (0) to the head (FIGURE_SWAY → ≈ 0.09 u), a hanging ghost swings from its
+ * hook (0) to its hem (GHOST_SWAY → ≈ 0.12 u). z = k·√t makes the offset grow linearly with t (a stiff lean, no bend).
+ */
+export const FIGURE_SWAY = 0.75;
+export const GHOST_SWAY = 0.87;
+/** aInfo for a part that sways: t = 0 at `y0`, 1 at `y0 + h` (h < 0: below a hook), glow `w` */
+export const swayInfo = (y0: number, h: number, k: number, w = 0): InfoFn => (_x, y) => [0, 0, k * Math.sqrt(Math.min(1, Math.max(0, (y - y0) / h))), w];
 const HALO_LAMP = new THREE.Color(1.0, 0.7, 0.35);
 
 /** `fig`: the side a trick-or-treater may stand (0 none, 1 left, 2 right of the pumpkins: sidewalk there, the script checked) */
@@ -145,14 +156,16 @@ function addWeb(b: Batch, p: V3, f: number, dir: number, size: number): void {
 /** A little sheet ghost hanging from the porch (`p` = its middle). */
 function addHangingGhost(b: Batch, p: V3, f: number): void {
   const [x, y, z] = p;
-  b.add(BOX(), M(x, y + 0.14, z, f, 0.012, 0.5, 0.012), EYE, NONE);
+  // it swings from the hook (the bracket's end, y + 0.64) down to its hem (y − 0.3): the string bends with it
+  const swing = swayInfo(y + 0.64, -0.94, GHOST_SWAY);
+  b.add(BOX(), M(x, y + 0.14, z, f, 0.012, 0.5, 0.012), EYE, swing);
   // the little bracket it hangs from, out of the wall
   const w = localFrame(x, y + 0.64, z, f).at(0, 0, -0.14);
   b.add(CBOX(), M(w[0], w[1], w[2], f, 0.04, 0.04, 0.36), LANTERN, NONE);
-  b.add(ICO(0), M(x, y + 0.08, z, f, 0.13, 0.13, 0.13), GHOST, NONE);
-  b.add(CONE(8), M(x, y - 0.3, z, f, 0.17, 0.36, 0.17), GHOST, NONE);
+  b.add(ICO(0), M(x, y + 0.08, z, f, 0.13, 0.13, 0.13), GHOST, swing);
+  b.add(CONE(8), M(x, y - 0.3, z, f, 0.17, 0.36, 0.17), GHOST, swing);
   const q = localFrame(x, y, z, f).at(0, 0.1, 0.125);
-  b.add(EYES(), M(q[0], q[1], q[2], f, 0.14, 0.1, 1), EYE, NONE);
+  b.add(EYES(), M(q[0], q[1], q[2], f, 0.14, 0.1, 1), EYE, swing);
 }
 
 /** A porch lantern on the wall (`p` = its middle), lit at night. */
@@ -167,36 +180,38 @@ function addLantern(b: Batch, p: V3, f: number, halos: HaloSpot[]): void {
 export function addFigure(b: Batch, p: V3, f: number, costume: number): void {
   const [x, y, z] = p;
   const L = localFrame(x, y, z, f);
-  const eyes = (up: number, fwd: number, c = EYE) => { for (const s of [-0.06, 0.06]) { const q = L.at(s, up, fwd); b.add(CBOX(), M(q[0], q[1], q[2], f, 0.04, 0.06, 0.02), c, NONE); } };
+  // W7-H2: the whole child rocks gently from the feet (the toy shader's sway), the grin keeps its glow
+  const rock = swayInfo(y, 1.1, FIGURE_SWAY), rockGlow = swayInfo(y, 1.1, FIGURE_SWAY, GLOW[3]);
+  const eyes = (up: number, fwd: number, c = EYE) => { for (const s of [-0.06, 0.06]) { const q = L.at(s, up, fwd); b.add(CBOX(), M(q[0], q[1], q[2], f, 0.04, 0.06, 0.02), c, rock); } };
   if (costume === 0) {
     // the sheet: a round head and a wide skirt down to the ground, two dark eyes, two little shoes peeking out
-    b.add(CYL_SKIRT(), M(x, y, z, f, 0.3, 0.72, 0.3), GHOST, NONE);
-    b.add(ICO(1), M(x, y + 0.8, z, f, 0.2, 0.22, 0.2), GHOST, NONE);
+    b.add(CYL_SKIRT(), M(x, y, z, f, 0.3, 0.72, 0.3), GHOST, rock);
+    b.add(ICO(1), M(x, y + 0.8, z, f, 0.2, 0.22, 0.2), GHOST, rock);
     eyes(0.84, 0.18);
-    for (const s of [-0.1, 0.1]) { const q = L.at(s, 0, 0.2); b.add(CBOX(), M(q[0], q[1] + 0.03, q[2], f, 0.08, 0.06, 0.12), SHOE, NONE); }
+    for (const s of [-0.1, 0.1]) { const q = L.at(s, 0, 0.2); b.add(CBOX(), M(q[0], q[1] + 0.03, q[2], f, 0.08, 0.06, 0.12), SHOE, rock); }
   } else if (costume === 1) {
     // the witch: a purple robe, a face, the tall black hat with its brim, a broom
-    b.add(CONE(8), M(x, y, z, f, 0.26, 0.74, 0.26), WITCH, NONE);
-    b.add(ICO(1), M(x, y + 0.8, z, f, 0.16, 0.17, 0.16), SKIN, NONE);
+    b.add(CONE(8), M(x, y, z, f, 0.26, 0.74, 0.26), WITCH, rock);
+    b.add(ICO(1), M(x, y + 0.8, z, f, 0.16, 0.17, 0.16), SKIN, rock);
     eyes(0.83, 0.15);
-    b.add(CYL_SKIRT(), M(x, y + 0.9, z, f, 0.28, 0.03, 0.28), HAT, NONE);
-    b.add(CONE(8), M(x, y + 0.92, z, f, 0.15, 0.4, 0.15, -0.15), HAT, NONE);
+    b.add(CYL_SKIRT(), M(x, y + 0.9, z, f, 0.28, 0.03, 0.28), HAT, rock);
+    b.add(CONE(8), M(x, y + 0.92, z, f, 0.15, 0.4, 0.15, -0.15), HAT, rock);
     const q = L.at(0.24, 0.02, 0.05);
-    b.add(BOX(), M(q[0], q[1], q[2], f, 0.03, 0.8, 0.03, 0, -0.2), '#8a6a45', NONE);
-    b.add(CONE(6), M(q[0] + 0.02, q[1], q[2], f, 0.08, 0.2, 0.08), '#c9a15a', NONE);
+    b.add(BOX(), M(q[0], q[1], q[2], f, 0.03, 0.8, 0.03, 0, -0.2), '#8a6a45', rock);
+    b.add(CONE(6), M(q[0] + 0.02, q[1], q[2], f, 0.08, 0.2, 0.08), '#c9a15a', rock);
   } else {
     // the pumpkin kid: a round orange body with a carved grin, a green cap, a face, two legs
-    for (const s of [-0.08, 0.08]) { const q = L.at(s, 0, 0); b.add(BOX(), M(q[0], q[1], q[2], f, 0.08, 0.3, 0.08), '#3f5f2e', NONE); }
-    b.add(ICO(1), M(x, y + 0.5, z, f, 0.3, 0.26, 0.3), ORANGE[0], NONE);
+    for (const s of [-0.08, 0.08]) { const q = L.at(s, 0, 0); b.add(BOX(), M(q[0], q[1], q[2], f, 0.08, 0.3, 0.08), '#3f5f2e', rock); }
+    b.add(ICO(1), M(x, y + 0.5, z, f, 0.3, 0.26, 0.3), ORANGE[0], rock);
     const g = L.at(0, 0.46, 0.28);
-    b.add(CBOX(), M(g[0], g[1], g[2], f, 0.24, 0.05, 0.04), CARVE, GLOW);
-    b.add(ICO(1), M(x, y + 0.9, z, f, 0.15, 0.16, 0.15), SKIN, NONE);
+    b.add(CBOX(), M(g[0], g[1], g[2], f, 0.24, 0.05, 0.04), CARVE, rockGlow);
+    b.add(ICO(1), M(x, y + 0.9, z, f, 0.15, 0.16, 0.15), SKIN, rock);
     eyes(0.92, 0.14);
-    b.add(CYL_SKIRT(), M(x, y + 1.02, z, f, 0.12, 0.08, 0.12), STEM, NONE);
+    b.add(CYL_SKIRT(), M(x, y + 1.02, z, f, 0.12, 0.08, 0.12), STEM, rock);
   }
   // the treat bucket: a little orange pail
   const k = L.at(-0.24, 0.3, 0.08);
-  b.add(CYL_SKIRT(), M(k[0], k[1] - 0.12, k[2], f, 0.07, 0.12, 0.07), '#f08a24', NONE);
+  b.add(CYL_SKIRT(), M(k[0], k[1] - 0.12, k[2], f, 0.07, 0.12, 0.07), '#f08a24', rock);
 }
 const CYL_SKIRT = () => CONE_TRUNC();
 let truncGeo: THREE.BufferGeometry | null = null;
@@ -269,6 +284,23 @@ interface CellGeo { key: number; pos: Float32Array; nor: Float32Array; col: Floa
 
 /** a Batch that keeps nothing (the halos of a cell without its geometry) */
 const NO_BATCH = { add() { return NO_BATCH; } } as unknown as Batch;
+
+/**
+ * (W7-H4) The stoops' night glow, nearest first: every halo of the given cells sorted by its distance to (px, pz), the
+ * first `cap` kept — so when a dense street at night has more lanterns than the cap, the ones beside the player glow
+ * and the far ones go (W6 kept whole cells in cell order: a far corner of a near cell could win over the next door).
+ */
+export function nearestHalos(cells: readonly (readonly HaloSpot[])[], px: number, pz: number, cap: number): HaloSpot[] {
+  const all: HaloSpot[] = [];
+  for (const c of cells) for (const h of c) all.push(h);
+  const d = new Map<HaloSpot, number>();
+  for (const h of all) d.set(h, (h.x - px) ** 2 + (h.z - pz) ** 2);
+  all.sort((a, b) => d.get(a)! - d.get(b)!);
+  if (all.length > cap) all.length = Math.max(0, cap);
+  return all;
+}
+/** the stoops' halos are re-sorted when the player has moved this far (u) since the last sort */
+export const HALO_RESORT = 8;
 /** The halos of a cell's stoops (no geometry built). */
 export function cellHalos(key: number): HaloSpot[] {
   const halos: HaloSpot[] = [];
@@ -330,6 +362,14 @@ export const BATS_NEAR = 260;
 /** bats show from dusk (the toy night ≥ this) */
 export const BATS_NIGHT = 0.3;
 const BAT = '#3a3046';
+/**
+ * (W7-H3) Bats readable at full night: the wing tips catch the moon — a pale lavender rim that glows a little at night
+ * (the toy shader's night glow, aInfo.w), the body stays dark, so a bat reads as a dark shape with lit wing edges
+ * against the dark-blue sky (by dusk the sky is still light and the dark body carries it). A little bigger than W6.
+ */
+const BAT_RIM = '#b3a6dc';
+export const BAT_GLOW = { body: 0.12, shoulder: 0.2, tip: 0.55 } as const;
+const BAT_SIZE = 0.3;
 
 export interface Bats { mesh: THREE.Mesh; place(c: (typeof BAT_COLONIES)[number] | null): void; step(t: number): void; colony(): string | null }
 
@@ -337,8 +377,14 @@ export function createBats(): Bats {
   const n = BATS_PER_COLONY, vpb = 12;
   const pos = new Float32Array(n * vpb * 3);
   const nor = new Float32Array(n * vpb * 3), col = new Float32Array(n * vpb * 3), inf = new Float32Array(n * vpb * 4);
-  const c = new THREE.Color(BAT);
-  for (let v = 0; v < n * vpb; v++) { nor[v * 3 + 1] = 1; col[v * 3] = c.r; col[v * 3 + 1] = c.g; col[v * 3 + 2] = c.b; }
+  const c = new THREE.Color(BAT), rim = new THREE.Color(BAT_RIM);
+  for (let v = 0; v < n * vpb; v++) {
+    // 0–3 body, 4 / 5 and 8 / 9 the shoulders, 6 / 7 and 10 / 11 the wing tips (the rim)
+    const j = v % vpb, tip = j === 6 || j === 7 || j === 10 || j === 11, body = j < 4;
+    const cc = tip ? rim : c;
+    nor[v * 3 + 1] = 1; col[v * 3] = cc.r; col[v * 3 + 1] = cc.g; col[v * 3 + 2] = cc.b;
+    inf[v * 4 + 3] = tip ? BAT_GLOW.tip : body ? BAT_GLOW.body : BAT_GLOW.shoulder;
+  }
   const idx: number[] = [];
   for (let k = 0; k < n; k++) {
     const o = k * vpb;
@@ -381,7 +427,7 @@ export function createBats(): Bats {
         // heading: the tangent of the circle (dir of motion)
         const hx = Math.cos(a) * Math.sign(w), hz = -Math.sin(a) * Math.sign(w);
         const sx = hz, sz = -hx;
-        const flap = Math.sin(t * 14 + k * 1.9) * 0.75, s = 0.26;
+        const flap = Math.sin(t * 14 + k * 1.9) * 0.75, s = BAT_SIZE;
         const o = k * vpb;
         put(o, x + hx * s * 0.8, y, z + hz * s * 0.8);
         put(o + 1, x + sx * s * 0.28, y + 0.02, z + sz * s * 0.28);
@@ -452,23 +498,24 @@ export function createDress(): Dress {
   };
   const haloCache = new Map<number, HaloSpot[]>();
   let haloKeys = '';
+  let haloAt = { x: Infinity, z: Infinity };
 
   const refresh = (px: number, pz: number) => {
-    if (!state.stoops) { drop(); halos = []; haloKeys = ''; return; }
+    if (!state.stoops) { drop(); halos = []; haloKeys = ''; haloAt = { x: Infinity, z: Infinity }; return; }
     const q = game.get().settings.quality;
     // the night glow of the wider neighbourhood (positions only)
     const hk = cellsWithin(px, pz, HALO_NEAR[q] ?? HALO_NEAR.mid);
-    const hkey = hk.join(',');
-    if (hkey !== haloKeys) {
+    const hkey = `${q}:${hk.join(',')}`;
+    if (hkey !== haloKeys || Math.hypot(px - haloAt.x, pz - haloAt.z) > HALO_RESORT) {
       haloKeys = hkey;
-      const list: HaloSpot[] = [];
-      const cap = DRESS_HALOS_BY_QUALITY[q] ?? DRESS_HALOS_BY_QUALITY.mid;
+      haloAt = { x: px, z: pz };
+      const cells: HaloSpot[][] = [];
       for (const k of hk) {
         let h = haloCache.get(k);
         if (!h) { h = cellHalos(k); haloCache.set(k, h); }
-        for (const x of h) if (list.length < cap) list.push(x);
+        cells.push(h);
       }
-      halos = list;
+      halos = nearestHalos(cells, px, pz, DRESS_HALOS_BY_QUALITY[q] ?? DRESS_HALOS_BY_QUALITY.mid);
       if (haloCache.size > 160) for (const k of [...haloCache.keys()]) if (!hk.includes(k)) haloCache.delete(k);
     }
     // the geometry near the player
@@ -500,7 +547,9 @@ export function createDress(): Dress {
     const geo = assemble(ready);
     drop();
     if (!geo) return;
-    mesh = new THREE.Mesh(geo, TOY_DYN);
+    // TOY (not TOY_DYN): the static toy program with the wind sway (the figures' and ghosts' aInfo.z), the city L0
+    // cells' kind (a plain Mesh, receiveShadow, no castShadow): already linked, nothing new to warm
+    mesh = new THREE.Mesh(geo, TOY);
     mesh.name = 'halloween-stoops';
     mesh.matrixAutoUpdate = false;
     mesh.matrixWorldAutoUpdate = false;

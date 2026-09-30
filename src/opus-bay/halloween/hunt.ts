@@ -9,9 +9,9 @@ import { onSaveCleared } from '../data/save';
 import { paidSet } from '../eggs/paid';
 import { bubble } from '../game/flow';
 import { BAYBAY_ID } from '../game/interactables';
-import { Batch, type Info } from '../world/builder';
+import { Batch, ICO, M, type Info } from '../world/builder';
 import { spawnFx } from '../world/fx';
-import { TOY_DYN } from '../world/materials';
+import { TOY } from '../world/materials';
 import { HUNT_PLACES } from './huntPlaces';
 import { HUNT_XZ } from './huntSpots';
 import { halloweenSource } from './rewards';
@@ -51,6 +51,16 @@ export const MILESTONES: readonly { at: number; id: 'hunt:10' | 'hunt:20' | 'hun
 /** the hunt's lanterns glow a little by day too ((1, 2] = always, in the toy shader) */
 const HUNT_GLOW: Info = [0, 0, 0, 1.45];
 const HUNT_ORANGE = '#f07f22';
+/**
+ * (W7-H8) The wisp over every unfound lantern: a little glowing orange orb WISP_UP above it (always lit: aInfo.w in
+ * (1, 2]) that drifts on the toy shader's wind sway (aInfo.z) — in the lanterns' own mesh on the static TOY program, so
+ * no new call and no per-frame work; a halo at night. Found lanterns lose it with the rebuild.
+ */
+export const WISP_UP = 2.3;
+const WISP = '#ffb347';
+const WISP_INFO: Info = [0, 0, 1, 1.9];
+const WISP_TAIL: Info = [0, 0, 0.85, 1.6];
+const WISP_HALO = new THREE.Color(1.0, 0.68, 0.3);
 
 export interface HuntSpot { n: number; x: number; z: number; y: number; f: number; near: Bilingual }
 export const HUNT_SPOTS: readonly HuntSpot[] = HUNT_XZ.map(s => {
@@ -156,13 +166,21 @@ export function createHunt(): Hunt {
     const hl: HaloSpot[] = [];
     // each grins toward the walker's way in (huntSpots.ts f)
     for (const s of list) addPumpkin(b, [s.x, s.y, s.z], 0.46, s.f, HUNT_ORANGE, true, HUNT_GLOW, hl, true);
-    mesh = new THREE.Mesh(b.build(), TOY_DYN);
+    const wisps: HaloSpot[] = [];
+    for (const s of list) {
+      b.add(ICO(1), M(s.x, s.y + WISP_UP, s.z, 0, 0.2, 0.2, 0.2), WISP, WISP_INFO);
+      b.add(ICO(0), M(s.x, s.y + WISP_UP - 0.3, s.z, 0.5, 0.09, 0.12, 0.09), WISP, WISP_TAIL);
+      wisps.push({ x: s.x, y: s.y + WISP_UP, z: s.z, size: 1.3, color: WISP_HALO });
+    }
+    // the static TOY program (the wisps' sway); a plain Mesh with receiveShadow like the city cells: nothing new to link
+    mesh = new THREE.Mesh(b.build(), TOY);
     mesh.name = 'halloween-hunt-lanterns';
     mesh.matrixAutoUpdate = false;
     mesh.matrixWorldAutoUpdate = false;
+    mesh.receiveShadow = true;
     group.add(mesh);
     drawn = list;
-    halos = hl.map(h => ({ ...h, size: h.size * 1.6 }));
+    halos = [...hl.map(h => ({ ...h, size: h.size * 1.6 })), ...wisps];
   };
 
   return {

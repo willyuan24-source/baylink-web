@@ -14,6 +14,7 @@ import { cityStreamerLazy } from '../world/cityLoader';
 import { U } from '../world/materials';
 import { getWorld } from '../world/world';
 import { createHunt, huntList, pickPumpkin, pumpkinsFound, pumpkinTotal } from './hunt';
+import { createHuntGuide, HUNT_RADAR, WISP_LINE_NEAR } from './huntGuide';
 import { createMuertos, visitMuertos } from './muertos';
 import { halloweenPhase, type HalloweenPhase } from './season';
 import { BAT_COLONIES, createDress, nearestStoop } from './worldDress';
@@ -43,6 +44,14 @@ import { lineText, type WorldLineKey } from './worldLines';
 export const HALLOWEEN_MEMORY_KEY = 'opus-bay:halloween:v1';
 /** a stoop within this (u) counts as "the dressed street" for BAYBAY's lines */
 const STREET_NEAR = 22;
+/**
+ * (W7-H1) The Halloween dusk: while the season runs (any phase but 'off') Karl's golden-hour colour leans this much toward
+ * pumpkin orange (world/sf/fog.ts KarlState.setGoldenTint — fog.ts never reads the calendar: this feature pushes it).
+ */
+export const DUSK_TINT = { color: '#f2a65a', amount: 0.35 } as const;
+
+/** The golden-hour tint the phase wants (null: none). */
+export const duskTintFor = (phase: HalloweenPhase): typeof DUSK_TINT | null => (phase === 'off' ? null : DUSK_TINT);
 
 function memoryStorage(): Pick<Storage, 'getItem' | 'setItem'> | null {
   try {
@@ -78,6 +87,18 @@ export function initHalloweenWorld(): () => void {
   emit({ type: 'halloween', what: 'phase', id: phase });
   let wants = phaseWants(phase);
   dress.want(wants);
+  // the pumpkin dusk: the first push into a world's Karl is instant (at load), a later phase change slides with Karl
+  const karl = () => { try { return getWorld().env.karl; } catch { return null; } };
+  let tinted: object | null = null;
+  const pushTint = () => {
+    const k = karl();
+    if (!k) return;
+    const t = duskTintFor(phase);
+    k.setGoldenTint(t?.color ?? null, t?.amount ?? 0, tinted !== k);
+    tinted = k;
+  };
+  pushTint();
+  const guide = createHuntGuide();
 
   const sched = new RealLineScheduler(createDayMemory(memoryStorage()));
   const offered: OfferedLine[] = [];
@@ -105,32 +126,41 @@ export function initHalloweenWorld(): () => void {
       dress.want(wants);
       emit({ type: 'halloween', what: 'phase', id: phase });
     }
+    pushTint();
     pool.set('dress', dress.halos());
     pool.set('hunt', wants.hunt ? hunt.halos() : [], 2);
     pool.set('muertos', wants.muertos ? muertos.halos() : [], 1);
     pool.set('haunt', wants.bats ? haunt.halos() : [], 1);
     if (!offSystem || phase === 'off') return;
 
+    const s = game.get(), f = flow.get();
+    const gates = {
+      silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
+        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+      bubble: !!f.bubble,
+      quiet: performance.now() < f.quietUntil,
+    };
+    // W7-H8: which way the nearest unfound lantern is (once a lantern a session, a gap between them): not once a day
+    const near = wants.hunt ? hunt.nearUnfound(p.x, p.z, HUNT_RADAR) : null;
+    const sniff = guide.step(performance.now() / 1000, p.x, p.z, runtime.camera.yaw, near, !gates.silent && !gates.bubble && !gates.quiet);
+    if (sniff) { bubble(lineText(sniff), 4200, BAYBAY_ID, 'bark'); return; }
+
     // BAYBAY's lines: at most one on offer wins, once a Bay day each
     offered.length = 0;
     const night = U.uNight.value;
     const street = !!nearestStoop(p.x, p.z, STREET_NEAR);
-    const m = wants.muertos ? muertos.near(p.x, p.z) : null;
-    if (m) offer(m === 'muertosProcession' ? 'muertos-procession' : 'muertos-hello', m);
+    if (wants.muertos) for (const m of muertos.near(p.x, p.z, now)) offer(m.key, m.line);
+    if (near && Math.hypot(near.x - p.x, near.z - p.z) < WISP_LINE_NEAR) offer('hunt-wisp', 'huntWisp');
     if (wants.hunt && hunt.nearUnfound(p.x, p.z, 30)) offer('hunt-hint', night > 0.5 ? 'huntNight' : 'huntSniff');
     if (wants.bats && dress.stats().bats && BAT_COLONIES.some(c => Math.hypot(c.x - p.x, c.z - p.z) < 70)) offer('bats', 'bats');
     if (wants.figures && dress.nearFigure(p.x, p.z, 10)) offer('ghosts', 'ghosts');
     if (street && phase === 'night' && night > 0.5) offer('big-night', 'bigNight');
     if (street && night > 0.6) offer('night-glow', 'nightGlow');
     if (street && night < 0.3 && phase === 'season') offer('season-hello', 'seasonHello');
+    // W7-H1: the pumpkin-coloured dusk (the season's golden hour, outdoors in the city)
+    if ((phase === 'season' || phase === 'night') && karl()?.tod === 'golden' && night < 0.3) offer('dusk', 'dusk');
     if (!offered.length) return;
-    const s = game.get(), f = flow.get();
-    const line = sched.step(performance.now() / 1000, bayParts(now).dateKey, {
-      silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
-        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
-      bubble: !!f.bubble,
-      quiet: performance.now() < f.quietUntil,
-    }, offered);
+    const line = sched.step(performance.now() / 1000, bayParts(now).dateKey, gates, offered);
     if (line) bubble(line.text, 4600, BAYBAY_ID, 'bark');
   }, 5);
 
@@ -153,6 +183,7 @@ export function initHalloweenWorld(): () => void {
     offQa();
     offSystem?.();
     offSystem = null;
+    karl()?.setGoldenTint(null, 0, true);
     dress.dispose();
     hunt.dispose();
     muertos.dispose();

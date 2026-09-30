@@ -5,6 +5,7 @@ import { toast } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { onSaveCleared } from '../data/save';
 import { paidSet } from '../eggs/paid';
+import { bayNow, bayParts } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { BAYBAY_ID } from '../game/interactables';
 import { BOX, CBOX, CYL, ICO, M, Batch, type Info } from '../world/builder';
@@ -12,6 +13,7 @@ import { spawnFx } from '../world/fx';
 import { TOY_DYN } from '../world/materials';
 import { MARIGOLDS, MUERTOS_SPOTS, PICADO, ROUTE_CORNERS } from './muertosSpots';
 import { halloweenSource } from './rewards';
+import { halloweenPreview } from './season';
 import type { HaloSpot } from './worldHalos';
 import { lineText, type WorldLineKey } from './worldLines';
 
@@ -27,6 +29,50 @@ import { lineText, type WorldLineKey } from './worldLines';
  * `halloween:muertos:<n>` (MUERTOS_COINS, once), and `muertos:12` when every one was seen (muertos:9…11 unused). One
  * merged mesh (TOY_DYN) within MUERTOS_NEAR of the route; the candles' halos go to the Halloween halo pool.
  */
+
+/**
+ * (W7-H6) The two days, truer (the 2025 pattern; the organisers had not posted 2026 on 2026-09-29 — re-checked:
+ * https://www.dayofthedeadsf.org/festival-of-altars still shows "November 2, 2025 @ Potrero Del Sol Park | Installation
+ * begins @ 8am … Entertainment 5 – 9pm"; https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025
+ * the 2025 procession at 7 p.m. from Bryant & 22nd; the procession follows the date, 2 November, whatever the weekday):
+ *
+ *   1 November   the papel picado, the marigolds and the community altar at Acción Latina (it stands through the days)
+ *   2 November   from 08:00 to 21:00 the Festival of Altars at Potrero del Sol Park and the marigold arch at 22nd & Bryant;
+ *                18:00 people gather at 22nd & Bryant, 19:00 – 21:00 the procession walks Bryant → 24th → Mission → 22nd
+ *
+ * The phase (halloween/season.ts, frozen) stays 'muertos' on both days: this reads the Bay clock itself. A `?halloween=
+ * muertos` preview on another date shows 2 November with the altars at any hour. BAYBAY's lines hedge (通常 · 以官网为准).
+ */
+export const MUERTOS_TIMES = { altarsFrom: 8 * 60, altarsTo: 21 * 60, gatherFrom: 18 * 60, walkFrom: 19 * 60, walkTo: 21 * 60 } as const;
+export type ProcessionPhase = 'none' | 'gather' | 'walk';
+export interface MuertosDay {
+  /** 1 or 2 (November), 0 = neither */
+  day: 0 | 1 | 2;
+  /** the park's altars and the gathering arch stand */
+  altars: boolean;
+  procession: ProcessionPhase;
+  /** seconds since 19:00 while the procession walks (else 0) */
+  walkS: number;
+}
+
+/** What Día de los Muertos shows at `date` (Bay clock; pure). */
+export function muertosSchedule(date: Date = bayNow(), search?: string | null): MuertosDay {
+  const p = bayParts(date);
+  let day: 0 | 1 | 2 = p.month === 11 && p.day === 1 ? 1 : p.month === 11 && p.day === 2 ? 2 : 0;
+  // a preview on another date: 2 November with the altars at any hour (the procession still follows the clock)
+  const preview = !day && halloweenPreview(search) === 'muertos';
+  if (preview) day = 2;
+  const m = p.hour * 60 + p.minute, T = MUERTOS_TIMES;
+  const altars = preview || (day === 2 && m >= T.altarsFrom && m < T.altarsTo);
+  let procession: ProcessionPhase = 'none';
+  if (day === 2 && m >= T.gatherFrom && m < T.walkFrom) procession = 'gather';
+  if (day === 2 && m >= T.walkFrom && m < T.walkTo) procession = 'walk';
+  const walkS = procession === 'walk' ? (m - T.walkFrom) * 60 + (((date.getTime() % 60_000) + 60_000) % 60_000) / 1000 : 0;
+  return { day, altars, procession, walkS };
+}
+
+/** A find stands at this hour: Acción Latina's altar both days, the park and the arch on 2 November 08:00–21:00. */
+export const spotShown = (s: { where: string }, d: MuertosDay): boolean => (s.where === 'accion-latina' ? d.day > 0 : d.altars);
 
 export const MUERTOS_PICK = 2.6;
 export const MUERTOS_NEAR = 260;
@@ -146,12 +192,12 @@ function addArch(b: Batch, s: (typeof MUERTOS_SPOTS)[number], halos: HaloSpot[])
   }
 }
 
-/** Everything of the day into one geometry (and its candle halos). */
-export function buildMuertos(halos: HaloSpot[]): THREE.BufferGeometry {
+/** Everything of the day into one geometry (and its candle halos); `altars` false: the park's and the arch left out. */
+export function buildMuertos(halos: HaloSpot[], altars = true): THREE.BufferGeometry {
   const b = new Batch();
   PICADO.forEach((s, k) => addPicado(b, s, k));
   MARIGOLDS.forEach((m, k) => addMarigolds(b, [m[0], m[2], m[1]], k));
-  for (const s of MUERTOS_SPOTS) (s.kind === 'arch' ? addArch : addAltar)(b, s, halos);
+  for (const s of MUERTOS_SPOTS) if (s.where === 'accion-latina' || altars) (s.kind === 'arch' ? addArch : addAltar)(b, s, halos);
   return b.build();
 }
 
@@ -200,18 +246,22 @@ export interface Muertos {
   group: THREE.Group;
   step(dt: number, px: number, py: number, pz: number, on: boolean): void;
   halos(): readonly HaloSpot[];
-  /** BAYBAY's offered line near the Mission today (the hello, or the procession near its start) */
-  near(px: number, pz: number): WorldLineKey | null;
-  stats(): { built: boolean; tris: number; seen: number };
+  /** BAYBAY's lines on offer near the Mission now, in order (the scheduler says each once a Bay day) */
+  near(px: number, pz: number, now?: Date): { key: string; line: WorldLineKey }[];
+  stats(): { built: boolean; tris: number; seen: number; altars: boolean; procession: ProcessionPhase };
   dispose(): void;
 }
+/** the gathering line within this of 22nd & Bryant (u) */
+export const GATHER_NEAR = 40;
 
 export function createMuertos(): Muertos {
   const group = new THREE.Group();
   group.name = 'halloween-muertos';
   let mesh: THREE.Mesh | null = null;
+  let builtAltars = false;
   let halos: HaloSpot[] = [];
   let acc = 0;
+  let today: MuertosDay = { day: 0, altars: false, procession: 'none', walkS: 0 };
   const offCleared = onSaveCleared(() => { sessionSeen.clear(); paid.forget(); });
   const drop = () => { if (!mesh) return; group.remove(mesh); mesh.geometry.dispose(); mesh = null; halos = []; };
   return {
@@ -219,11 +269,15 @@ export function createMuertos(): Muertos {
     step: (dt, px, py, pz, on) => {
       if ((acc += dt) < 0.15) return;
       acc = 0;
+      today = muertosSchedule();
       const want = on && Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_NEAR;
       if (!want) { drop(); return; }
+      // the park's altars come at 08:00 and go at 21:00 on 2 November: rebuild when that changes
+      if (mesh && builtAltars !== today.altars) drop();
       if (!mesh) {
         const hl: HaloSpot[] = [];
-        mesh = new THREE.Mesh(buildMuertos(hl), TOY_DYN);
+        builtAltars = today.altars;
+        mesh = new THREE.Mesh(buildMuertos(hl, builtAltars), TOY_DYN);
         mesh.name = 'halloween-muertos';
         mesh.matrixAutoUpdate = false;
         mesh.matrixWorldAutoUpdate = false;
@@ -232,16 +286,23 @@ export function createMuertos(): Muertos {
         halos = hl;
       }
       if (!canVisit()) return;
-      for (const s of MUERTOS_SPOTS) if (Math.hypot(s.x - px, s.z - pz) <= MUERTOS_PICK && Math.abs(s.y - py) < 3) { visit(s); break; }
+      for (const s of MUERTOS_SPOTS) if (spotShown(s, today) && Math.hypot(s.x - px, s.z - pz) <= MUERTOS_PICK && Math.abs(s.y - py) < 3) { visit(s); break; }
     },
     halos: () => halos,
-    near: (px, pz) => {
+    near: (px, pz, now) => {
+      const d = now ? muertosSchedule(now) : today;
+      const out: { key: string; line: WorldLineKey }[] = [];
       const c = ROUTE_CORNERS.bryant22;
-      if (Math.hypot(px - c.x, pz - c.z) < PROCESSION_NEAR) return 'muertosProcession';
-      if (Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_HELLO_NEAR) return 'muertosHello';
-      return null;
+      const atStart = Math.hypot(px - c.x, pz - c.z);
+      if (d.procession === 'gather' && atStart < GATHER_NEAR) out.push({ key: 'procession-gather', line: 'processionGather' });
+      if (d.altars && atStart < PROCESSION_NEAR) out.push({ key: 'muertos-procession', line: 'muertosProcession' });
+      if (Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_HELLO_NEAR) {
+        out.push({ key: 'muertos-hello', line: 'muertosHello' });
+        if (d.day === 1) out.push({ key: 'muertos-eve', line: 'muertosEve' });
+      }
+      return out;
     },
-    stats: () => ({ built: !!mesh, tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, seen: muertosCount() }),
+    stats: () => ({ built: !!mesh, tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, seen: muertosCount(), altars: builtAltars, procession: today.procession }),
     dispose: () => { drop(); offCleared(); },
   };
 }

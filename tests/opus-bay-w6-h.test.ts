@@ -36,7 +36,7 @@ const { PEBBLES } = await import('../src/opus-bay/eggs/pebbleSpots');
 test('W6-H lines: one table of fixed zh + en lines (lane X records them by text), short, unique ids', () => {
   const ids = new Set<string>();
   for (const l of WL.ALL_WORLD_LINES) {
-    assert.match(l.id, /^w6-h-[a-z0-9-]+$/, l.id);
+    assert.match(l.id, /^w[67]-h-[a-z0-9-]+$/, l.id);
     assert.ok(!ids.has(l.id), `${l.id} unique`);
     ids.add(l.id);
     assert.ok(hasZh(l.zh) && !hasZh(l.en) && l.en.trim().length > 0, `${l.id}: bilingual`);

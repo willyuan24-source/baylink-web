@@ -192,9 +192,31 @@ export class KarlState {
   private to: KarlTarget = karlTarget('golden', null);
   private fromColor = new THREE.Color();
   private toColor = new THREE.Color();
+  private tint = new THREE.Color();
+  private tintK = 0;
+  private tintKey = '';
 
   /** the layout the cloud bank heads for */
   get target(): KarlTarget { return this.to; }
+
+  /**
+   * (W7-H1) A seasonal warm touch at golden hour that a city feature PUSHES (fog.ts reads no calendar): the Halloween
+   * world (halloween/world.ts, while halloweenPhase() is not 'off') sets `#f2a65a` × 0.18 — Karl's golden bank turns a
+   * little pumpkin-coloured. Only the colour at golden hour; it slides with Karl's own slide (a uniform: no cost).
+   * `null` clears it. `instant`: no slide (the feature's first push at load).
+   */
+  setGoldenTint(color: string | null, amount = 0, instant = false) {
+    const k = color ? Math.min(1, Math.max(0, amount)) : 0;
+    const key = color ? `${color}:${k}` : '';
+    if (key === this.tintKey) return;
+    this.tintKey = key;
+    this.tintK = k;
+    if (color) this.tint.set(color);
+    this.retarget(instant);
+  }
+
+  /** the golden-hour tint in effect: its amount (0 = none) */
+  get goldenTint(): number { return this.tintK; }
 
   setTime(tod: TimeOfDay, instant: boolean) {
     this.tod = tod;
@@ -220,6 +242,7 @@ export class KarlState {
     this.from = { ...this.cur };
     this.fromColor.copy(this.color);
     this.toColor.set(this.to.color);
+    if (this.tintK > 0 && this.tod === 'golden') this.toColor.lerp(this.tint, this.tintK);
     this.t = instant ? 1 : 0;
     this.epoch++;
     this.step(0);
