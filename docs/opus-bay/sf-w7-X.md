@@ -164,3 +164,58 @@ Preview files `w7-voice-preview-b2-{zh,en}.m4a`.
   generated voice data, its table and this lane's test: `tsc` 0 and the lane's tests (w7-x, w7-x-voice, w6-x) green
   before the push (no time for another 25-minute full suite).
 - Dev server 5710 stopped; no Chrome of this lane running. Scratch: `C:/Users/willy/opus-qa/w7/x/`.
+
+## Review (W7-X-review, 2026-09-30 00:49 – 01:40 PDT)
+
+### 给主人的摘要
+
+复查了 X 线全部 5 个提交（楼立面、城市白天天空、海鸥、手机人群、两批配音）。**没有发现需要修的真问题，也没有挡住上线的问题。**
+整套测试在 X 线最终提交上 1639 / 1639 全过（X 线自己报的那个公交死锁测试这次也过了）；类型检查、eslint 都是 0 错误。
+配音：88 句的文字逐句在游戏代码里都能原样找到（没有配了音却永远不会播的句子），编号也没有和第五、六波撞车；重录替换第六波的
+3 条确实会生效。画面：白天天空和云朵、龙门一带的奶油色老楼、唐人街的红绿阳台，在电脑和手机截图里都正常；夜晚、黄昏和街区模式不受影响。
+有两件小事留给下一步：天空云朵边缘在极少数位置理论上可能出现一像素细线（截图里没看到）；手机上白天天空的帧率还没单独测，请 W7-Z 测。
+
+### What was checked
+
+- Every commit: `27c1ef4b` (W7-X1 code), `a00f365e` (report a), `e820f5d4` (voice batch 1 + binder), `1903d52f` (post.py
+  guard), `67e20f0a` (voice batch 2). Diffs read in full for environment.ts, life.ts, materials.ts, recipes/city.ts,
+  shapes.ts, sf/build.ts, sf/cityLife.ts, sf/crowd.ts, sf/look.ts, game/voiceW5.ts, data/sf/voiceW7.ts and both tests.
+- Suite on the lane's final tree (`67e20f0a`, the review's base): **1639 / 1639 pass, fail 0** (the W5-bus deadlock test
+  the lane reported red passes here); `tsc` 0; `eslint .` 0 errors.
+- Shots (dev 5730, desktop 1440 × 900 high, `?world=city&time=day`): Coit Tower toward downtown (the lane's `coitcam`,
+  puffs clean at 4× zoom, no seams or banding), Coit toward due north (−x, the sky shader's atan seam: blue zenith, no
+  line; no puff in that cell at the time), the lane's before / after sets at the Dragon Gate (desktop + phone 390 × 844),
+  Chinatown, Ocean Beach, Ferry plaza and night / golden reread. Scratch: `C:/Users/willy/opus-qa/w7/x-rev/shots/`.
+- District unchanged: styles 9 / 10 are only set through `look.ts facadeFor` → `build.ts specOf` (the streamed city);
+  the sky weight is 0 unless `Environment.mode === 'city'` (readonly per world); the gull swap keys on
+  `worldMode === 'city'`; the district's TOY branches are untouched (the lane's test pins them).
+- Per frame / teardown: `pickGullFigure` allocates once (the city geometry at the first city frame, sharing the
+  instanced `aFlap` / `aPhase` like W6-X5's people), both figures disposed in `Life.dispose`; the crowd's near cut
+  reuses the typed arrays (no garbage); `setQuality` runs right after the crowd is built (`cityLife.ts` l.194) and on
+  every quality change (1 s poll).
+- Voice: the binder imports `voiceW7` before `voiceW6`, and `voiceW5.ts` is the **only** importer of `data/sf/voiceW6`
+  (grep), so the 3 retakes win the registration in the app, not just in the test. No W7 id collides with a W5 / W6 id
+  (script check). Every one of the 88 lines' zh **and** en text occurs verbatim in `src/opus-bay` (script check: no dead
+  clip). The 4 `own` lines (`realsf-calendar-*`, `realsf-jets-blue`) match the keys lane S / realsf emits
+  (`realsf/index.ts` l.194, `jets.ts` l.549, `calendar.ts` l.220). The 8 muted clips are skipped both in registration and
+  in the binder. DST 2026 ends Sun 1 Nov 2026 (first Sunday of November: 15 U.S.C. §260a, https://www.law.cornell.edu/uscode/text/15/260a; the weekday computed 2026-09-30).
+
+### Defects fixed
+
+- None. No defect reproduced that needed a code change.
+
+### Open items (not blocking)
+
+1. **Sky puffs' anti-aliasing (low, unobserved):** `obPuffs` uses `fwidth(dd)` where `dd` is built from
+   `u = atan(d.z, d.x)…` with a jump at due north (−x) and per-cell / per-row indexing; across such a jump `fwidth` is
+   large, so a 1-px, ~half-white line could show next to a puff that sits on the seam or a row boundary. Not seen in any
+   shot (the tilt-shift blur softens the band). A cheap hardening for a later wave: `float aa = min(fwidth(dd), 0.3) + 0.02;`.
+2. **Phone fps of the day sky not measured:** the lane reported calls / triangles only; the new sky branch runs a
+   3-cell loop over the 4°–27° band. W7-Z's phone run should include a day spot facing open sky (Ocean Beach, Coit).
+3. Report arithmetic: the table holds **88** lines / 176 clips (the report's "89 lines" counts one too many); the muted
+   count is 8 (7 from batch 1 + batch 2's en 差一点), as the listening sheet says.
+4. The lane's own not-done list stands (surfers + Seal Rocks, the hero district's office faces, lane M's lines).
+
+### Blocking the go-live to main
+
+- Nothing from lane X.
