@@ -10,7 +10,9 @@
  *   Haight-Ashbury, Castro / Upper Market, Noe Valley, Pacific Heights, the Mission (the DataSF analysis neighbourhoods
  *   of far.zones). The street face = the footprint edge whose middle is nearest a street centreline (≤ 9 u), a pumpkin
  *   0.45 u out from it on standable ground that is not the roadway, ≥ 2.6 u from the next one, and never on the Painted
- *   Ladies / Waller St spots lane R placed (realsf/dressing.ts HALLOWEEN_SPOTS).
+ *   Ladies / Waller St spots lane R placed (realsf/dressing.ts HALLOWEEN_SPOTS). W7-H5: never within DOOR_CLEAR of one of
+ *   lane G's trick-or-treat doors or its knock spot (halloween/treatDoors.ts, KNOCK_OUT out from the wall): G's porch
+ *   dresses that door (W6 had one stoop within 3 u of a door; the 5 within 3.5 u of a door or knock spot are gone).
  * - HUNT (src/opus-bay/halloween/huntSpots.ts, generated): the 40 hidden jack-o'-lanterns, each by a named place of
  *   places.json (lane G1's index), moved to the nearest spot within 26 u that a walker reaches (standable with a 0.4 u
  *   body, not water, not the roadway, a walking-graph node of the graph's main component within 14 u), ≥ 12 u from every
@@ -19,6 +21,8 @@
  * tests/opus-bay-w6-h.test.ts re-checks every spot on the published city.
  */
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sfDisk } from '../../tests/opus-bay-sf-disk';
 
 const g = globalThis as unknown as Record<string, unknown>;
@@ -37,6 +41,9 @@ const { STYLES } = await import('../../src/opus-bay/world/sf/format');
 const { HALLOWEEN_SPOTS } = await import('../../src/opus-bay/realsf/dressing');
 const { PEBBLES } = await import('../../src/opus-bay/eggs/pebbleSpots');
 const { HUNT_PLACES } = await import('../../src/opus-bay/halloween/huntPlaces');
+const { TREAT_DOORS } = await import('../../src/opus-bay/halloween/treatDoors');
+const { KNOCK_OUT } = await import('../../src/opus-bay/halloween/treatStreets');
+const { DOOR_CLEAR } = await import('../../src/opus-bay/halloween/worldDress');
 
 type P = { x: number; z: number };
 const sf = sfDisk();
@@ -44,7 +51,8 @@ const far = await sf.far();
 const lms = landmarkWalkInputs(SF_SITES);
 const city = createCityTerrain(sf.manifest, { landmarks: lms });
 city.setFar(far);
-const root = 'C:/Users/willy/wt/w6-h/src/opus-bay/halloween';
+// W7: the repo this script lives in (not a hard-coded worktree)
+const root = path.join(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..'), 'src/opus-bay/halloween');
 
 // --- the zones -------------------------------------------------------------------------------------------------
 export const DRESS_ZONES = ['western-addition', 'hayes-valley', 'haight-ashbury', 'castro-upper-market', 'noe-valley', 'pacific-heights', 'mission'] as const;
@@ -82,6 +90,10 @@ const VIC = STYLES.indexOf('victorian'), EDW = STYLES.indexOf('edwardian'), RES 
 const STREET_CLS = new Set([2, 3, 4, 5]); // primary, secondary, tertiary, residential
 const stoops: { x: number; z: number; y: number; f: number; zone: number }[] = [];
 const nearR = (p: P) => HALLOWEEN_SPOTS.some(s => Math.hypot(s.x - p.x, s.z - p.z) < 14);
+// W7-H5: lane G's doors and their knock spots (G's porch dresses them)
+const doorPts: P[] = TREAT_DOORS.filter(d => !d.gone).flatMap(d => [{ x: d.x, z: d.z }, { x: d.x + Math.sin(d.f) * KNOCK_OUT, z: d.z + Math.cos(d.f) * KNOCK_OUT }]);
+const nearDoor = (p: P) => doorPts.some(d => Math.hypot(d.x - p.x, d.z - p.z) < DOOR_CLEAR);
+let byDoor = 0;
 const grid = new Map<string, P[]>();
 const gkey = (x: number, z: number) => `${Math.floor(x / 8)}_${Math.floor(z / 8)}`;
 const tooClose = (p: P, d: number) => {
@@ -136,6 +148,7 @@ for (const c of sf.manifest.chunks) {
     const t = hash(b.osmId[i]) % 2 ? 0.3 : 0.7;
     const p = { x: +(best.a.x + ex * t + n.x * 0.45).toFixed(1), z: +(best.a.z + ez * t + n.z * 0.45).toFixed(1) };
     if (nearR(p) || tooClose(p, 2.6)) continue;
+    if (nearDoor(p)) { byDoor++; continue; }
     if (!canStand(p.x, p.z, 0.25) || surfaceAt(p.x, p.z) === 'road' || isWater(p.x, p.z)) continue;
     const y = heightAt(p.x, p.z);
     if (!Number.isFinite(y)) continue;
@@ -146,7 +159,7 @@ for (const c of sf.manifest.chunks) {
 }
 stoops.sort((a, b) => a.z - b.z || a.x - b.x);
 const perZone = DRESS_ZONES.map((z, k) => `${z} ${stoops.filter(s => s.zone === k).length}`).join(' · ');
-console.error(`stoops ${stoops.length}: ${perZone}`);
+console.error(`stoops ${stoops.length}: ${perZone} (${byDoor} left out beside a treat door)`);
 
 // the trick-or-treaters (halloween/worldDress.ts stoopHash: one stoop in ~17): beside the pumpkins, on whichever side
 // is sidewalk (standable, not the roadway); none where neither is

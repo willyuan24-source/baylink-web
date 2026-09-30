@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { game } from '../core/store';
 import { BOX, CBOX, CONE, ICO, M, Batch, type Info, type InfoFn } from '../world/builder';
 import { TOY, TOY_DYN, U } from '../world/materials';
+import { TREAT_DOORS } from './treatDoors';
+import { KNOCK_OUT } from './treatStreets';
 import type { HaloSpot } from './worldHalos';
 import { DRESS_ZONES, STOOP_STRIDE, STOOPS } from './worldSpots';
 
@@ -248,13 +250,38 @@ export function addStoop(b: Batch, s: Stoop, halos: HaloSpot[], figures: boolean
 
 // --- the cells ------------------------------------------------------------------------------------------------------
 
+/**
+ * (W7-H5) No stoop dressing within DOOR_CLEAR (u) of one of lane G's trick-or-treat doors or its knock spot: G's porch
+ * dresses that door. The placement script leaves them out (scripts/opus-sf/halloween-place.mts); this guard also keeps
+ * clear of a door G appends later (treatDoors.ts is append-only).
+ */
+export const DOOR_CLEAR = 3.5;
+let byDoor: Set<number> | null = null;
+/** The stoops within DOOR_CLEAR of a treat door or its knock spot (none after the W7 placement, unless G adds doors). */
+export function stoopsByDoors(): ReadonlySet<number> {
+  if (byDoor) return byDoor;
+  byDoor = new Set();
+  for (const d of TREAT_DOORS) {
+    if (d.gone) continue;
+    for (const p of [{ x: d.x, z: d.z }, { x: d.x + Math.sin(d.f) * KNOCK_OUT, z: d.z + Math.cos(d.f) * KNOCK_OUT }]) {
+      for (let i = 0, n = stoopCount(); i < n; i++) {
+        const o = i * STOOP_STRIDE;
+        if (Math.hypot(STOOPS[o] / 10 - p.x, STOOPS[o + 1] / 10 - p.z) < DOOR_CLEAR) byDoor.add(i);
+      }
+    }
+  }
+  return byDoor;
+}
+
 const cellKey = (cx: number, cz: number) => (cx + 1024) * 4096 + (cz + 1024);
 let index: Map<number, number[]> | null = null;
-/** The stoops of each 48 u cell (built once). */
+/** The stoops of each 48 u cell (built once; the ones beside a treat door left out). */
 export function stoopIndex(): Map<number, number[]> {
   if (index) return index;
   index = new Map();
+  const skip = stoopsByDoors();
   for (let i = 0, n = stoopCount(); i < n; i++) {
+    if (skip.has(i)) continue;
     const o = i * STOOP_STRIDE;
     const k = cellKey(Math.floor(STOOPS[o] / 10 / CELL), Math.floor(STOOPS[o + 1] / 10 / CELL));
     let list = index.get(k);

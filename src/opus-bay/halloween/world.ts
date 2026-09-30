@@ -20,6 +20,7 @@ import { halloweenPhase, type HalloweenPhase } from './season';
 import { BAT_COLONIES, createDress, nearestStoop } from './worldDress';
 import { createHaloPool } from './worldHalos';
 import { createHaunt } from './worldHaunt';
+import { createVenuePatches, VENUE_LINE_NEAR } from './worldVenues';
 import { lineText, type WorldLineKey } from './worldLines';
 
 /**
@@ -74,9 +75,10 @@ export function initHalloweenWorld(): () => void {
   const hunt = createHunt();
   const muertos = createMuertos();
   const haunt = createHaunt();
+  const venues = createVenuePatches();
   const group = new THREE.Group();
   group.name = 'halloween-world';
-  group.add(dress.group, hunt.group, muertos.group, haunt.group, pool.mesh);
+  group.add(dress.group, hunt.group, muertos.group, haunt.group, venues.group, pool.mesh);
   let offSystem: (() => void) | null = null;
   const attach = () => {
     if (offSystem || !cityStreamerLazy()) return;
@@ -131,6 +133,9 @@ export function initHalloweenWorld(): () => void {
     pool.set('hunt', wants.hunt ? hunt.halos() : [], 2);
     pool.set('muertos', wants.muertos ? muertos.halos() : [], 1);
     pool.set('haunt', wants.bats ? haunt.halos() : [], 1);
+    // W7-H7: the pumpkin patches at the season's pumpkin events (the catalog's windows, lane S's kits)
+    venues.step(p.x, p.z, !!offSystem && (phase === 'season' || phase === 'night'), now);
+    pool.set('venues', venues.halos(), 1);
     if (!offSystem || phase === 'off') return;
 
     const s = game.get(), f = flow.get();
@@ -150,6 +155,7 @@ export function initHalloweenWorld(): () => void {
     const night = U.uNight.value;
     const street = !!nearestStoop(p.x, p.z, STREET_NEAR);
     if (wants.muertos) for (const m of muertos.near(p.x, p.z, now)) offer(m.key, m.line);
+    if (venues.near(p.x, p.z, VENUE_LINE_NEAR)) offer('venue-pumpkins', 'venuePumpkins');
     if (near && Math.hypot(near.x - p.x, near.z - p.z) < WISP_LINE_NEAR) offer('hunt-wisp', 'huntWisp');
     if (wants.hunt && hunt.nearUnfound(p.x, p.z, 30)) offer('hunt-hint', night > 0.5 ? 'huntNight' : 'huntSniff');
     if (wants.bats && dress.stats().bats && BAT_COLONIES.some(c => Math.hypot(c.x - p.x, c.z - p.z) < 70)) offer('bats', 'bats');
@@ -171,7 +177,7 @@ export function initHalloweenWorld(): () => void {
       ...(w.__opusBay ?? {}),
       halloween: {
         phase: () => phase,
-        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), halos: pool.count(), attached: !!offSystem }),
+        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), venues: venues.stats(), halos: pool.count(), attached: !!offSystem }),
         pickPumpkin, huntList, pumpkinsFound, pumpkinTotal, visitMuertos,
       },
     };
@@ -188,6 +194,7 @@ export function initHalloweenWorld(): () => void {
     hunt.dispose();
     muertos.dispose();
     haunt.dispose();
+    venues.dispose();
     pool.dispose();
   };
 }
