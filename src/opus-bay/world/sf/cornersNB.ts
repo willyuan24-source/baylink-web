@@ -108,5 +108,7 @@ export const SENTINEL_RING: readonly Vec2[] = [
 ];
 /** the rounded tip's middle (the dome stands over it) */
 export const SENTINEL_TIP: Vec2 = { x: 23.83, z: 108.02 };
+/** the toy Sentinel's height: OSM height 29 m → buildingH 3.2 + 0.155 · 29 (the fill row stands 0.8 u under it) */
+export const SENTINEL_H = 7.7;
 /** OSM way of the Sentinel Building (the fill row's id) */
 export const SENTINEL_OSM = 288485994;

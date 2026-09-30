@@ -10,6 +10,8 @@ port 5708, scratch `C:/Users/willy/opus-qa/w7/w1/`. Higgsfield: 0 credits (not t
 3. **东区新街景**：Transit Center 楼顶的 Salesforce 屋顶公园（离地 70 英尺的草坪、小路和树，走到楼下时自动让开，不挡镜头）；
    Rincon 公园草坪上的「丘比特之箭」大弓箭（金色弓、白弦、红羽毛的箭插进草地）；泛美金字塔脚下的红杉林和青蛙喷泉；
    哥伦布大道口铜绿色的哨兵大厦（白瓷砖横纹、圆角上的铜穹顶）。只多 2 次绘制，手机上看过。
+4. **渔人码头 45 号码头边停着二战潜艇「潘帕尼托号」**（灰色艇身、指挥塔、潜望镜、甲板炮，没有文字）。自由轮「奥布莱恩号」没做：
+   它在 OSM 里的位置正好压在手工区的海滨步道上，放上去会挡路；原因和下一步写在报告里。
 
 ## Part a · W7-W1 the FiDi south-edge seam
 
@@ -103,7 +105,7 @@ landmarks tests re-run, 56 / 56).
 - **`src/opus-bay/world/sf/cornersEastCut.ts`** (new): `attachEastCut()` — a city-only WorldSystem on the North Beach
   pattern, registered in **`world/sf/cityWorld.ts`** (2 lines + detach). **Two TOY meshes** (no new program) in one
   `THREE.LOD` centred at `EC_CENTER` (118, 72), drawn within `EC_CULL` 215 u, built the first time the camera comes within
-  290 u; no shadows cast; soft obstacles for the redwood trunks, the fountain and the sculpture's feet.
+  290 u; no shadows cast; soft obstacles for the redwood trunks, the fountain and the sculpture's feet. 3,167 triangles in all (the test's budget 7,000).
   - **Salesforce Park** on the Transit Center's OSM footprint (way 542375290, simplified `TC_RING`, x 170–178, z 84–145):
     the glass base (lit at night), the undulating white skin (billowing panels, most bulge at mid-height), the rim, the
     roof lawn at **70 ft = toy 6.46 u** (`TC_ROOF`, the game's height rule), a winding path, the roof trees (round ones
@@ -126,8 +128,10 @@ landmarks tests re-run, 56 / 56).
     mode keeps it. The fill then gives the block its real OSM buildings (8).
   - `SEAM_EXTRA_OSM` / `SENTINEL_RING` / `SENTINEL_TIP`: the toy Sentinel stands in the district's own corner where
     `street-kearny-1` (Columbus Ave's line) and `street-jackson-0` meet, 1.75 u in from both centrelines, 4.6 u back
-    along each, the tip rounded; the script writes it as a fill row with OSM's tags (29 m → toy 7.7 u), as a plain
-    `brick` prism (no office crown poking through the shell); the block's fill buildings give way to it. `--trace <osm>`
+    along each, the tip rounded; the script writes it as a fill row with OSM's tags, as a plain `industrial` prism
+    0.8 u under the shell's top (`SENTINEL_H` 7.7 u = 29 m; no façade remap, no office crown or roof clutter poking
+    through the shell — part c: `brick` failed the look test's "SoMa brick stays brick" after lane X's façade remap);
+    the block's fill buildings give way to it. `--trace <osm>`
     tells where a building left the build (raw / merged / carved / kept).
   - Now **139 rows** (99 North Beach incl. the Sentinel's block, 39 FiDi, the Sentinel).
 - **`data/sf/attractions.ts`** (my rows only): `ARRIVAL_OVERRIDES['sentinel-building']` (24.2, 109.4) facing the tip and
@@ -138,7 +142,7 @@ landmarks tests re-run, 56 / 56).
 - **Tests**: new `tests/opus-bay-w7-w1-eastcut.test.ts` (4): 2 meshes, ≤ 7,000 triangles, one material, the deck on its
   footprint at 70 ft, every piece ≥ 60 u inside the cull; the deck's hide rule (player under it, at its edge, camera
   under it; shown from the Ferry Building and from high above); the Sentinel's row (7.7 u, brick, `SENTINEL_RING`, clear
-  of every district roadway / path ribbon), lot-117 hidden in city mode and kept in the district; in city mode every
+  of every district roadway / path ribbon; part c: the row is `industrial`, 0.8 u under `SENTINEL_H`), lot-117 hidden in city mode and kept in the district; in city mode every
   soft obstacle > r + 0.3 u from the walking graph and clear of the district's roadways / tracks / lots, the sculpture's
   feet on the Rincon lawn ≥ 1.5 u from its benches and trees, the Sentinel solid, its new trip end standable, the grove
   enterable, the ground park under the deck standable. `tests/opus-bay-w6-w-seam.test.ts`: the drop lots are now
@@ -219,3 +223,68 @@ landmarks tests re-run, 56 / 56).
 
 - **Lane X** (optional): the Transit Center's white skin could carry a perforation pattern in the TOY shader's window
   styles if a style id is spare.
+
+## Part c · W7-W13 USS Pampanito at Pier 45 (+ the Sentinel prism fix)
+
+Started 23:40 PDT (part b committed as `f2843de8`; its full suite on the rebased tree: 1582 / 1586 — the look test's
+"SoMa brick stays brick" (mine: fixed in this part, below) and three wall-clock / load cases that pass alone
+(`E2-5 view field`, `W5-bus 20+ simulated minutes`, `W5-D-review the paid memo … 100.4 ms`)).
+
+### What was built
+
+- **`src/opus-bay/world/sf/wharfShips.ts`** (new): `attachWharfShips()` — a city-only WorldSystem (registered in
+  `world/sf/cityWorld.ts`, 2 lines + detach), ONE TOY mesh in a `THREE.LOD` (cull 180 u, built within 250 u), no
+  collision (it lies in the water): **USS Pampanito** on OSM's hull (way 165601339, `building=ship`, ref SS-383;
+  13.1 u = the Balao class's 311 ft 9 in): the long grey hull low in the water (axis 0.1 u over the water at −0.6),
+  the tapered bow and stern, the casing deck, the sail (conning tower) with its bridge, two periscope masts, the deck
+  gun forward of it; no lettering. 1 draw call where it is in view, 204 triangles.
+- **The Sentinel's prism** (`scripts/opus-sf/seam-fill.mts`, `cornersNB.ts SENTINEL_H`, `cornersEastCut.ts`): after the
+  rebase onto lane X's façade work (`W7-X1`: `brick` joined the façade styles) the look test's "SoMa brick stays brick"
+  failed on the Sentinel's `brick` row (red on the suite, green after): the row is now `industrial` (exempt, no façade
+  remap), its height 0.8 u under the shell's `SENTINEL_H` 7.7 u so its roof clutter stays inside the shell.
+- **Tests**: new `tests/opus-bay-w7-w1-ships.test.ts` (1): one mesh ≤ 1,500 triangles, inside OSM's ring, 12.5–14 u long,
+  the keel under the water and the masts ≤ 3 u over it, the pier45 perf spot within the cull.
+  `tests/opus-bay-w7-w1-eastcut.test.ts`: the Sentinel row check follows (industrial, 0.8 u under `SENTINEL_H`).
+
+### Evidence
+
+- Shot (desktop, golden hour, read): the submarine alongside Pier 45's shed, in the water, the sail and periscopes
+  `qa/w7/W1/w3-pampanito-desk.jpg` (taken just before a small colour lift: the hull reads a little lighter now).
+- Static sweep after parts b + c (`sweep-static.mts`, the tree with lanes S / H / X …): 694 targets · ok 548 · CORRIDOR 145
+  (the 3 new ones are lane S's new venues: `venue:fort-mason-festival-pavilion`, `venue:irving-11th`,
+  `venue:potrero-20th`; none of this lane's targets changed verdict) · **BOXED 0 · SNAG 0** · UNREACHABLE 1 (the O'Brien).
+- pier45 (budget-views, the perf spot's own spot facing the berth): 91 calls / 191.4k (the facing differs from the
+  table's (−140, 75): +1 mesh where the sub is in view); a camera over the water at the sub: 74 / 185.9k.
+- Checks: see the final line.
+
+### Decisions
+
+- **No SS Jeremiah O'Brien, no arrival row for it.** OSM's hull (way 1280748838: x −122…−136, z −1…−14) lies on the
+  district's promenade band by Pier 35 (the district's seawall is further out), so a hull there would block the
+  promenade. The trip end (−130.1, −8.3) stands on that band, which the published walking graph never comes within 3 u
+  of (the nearest edges run along z ≈ 6.5, over ground the stand raster calls blocked); an `ARRIVAL_OVERRIDES` row must be
+  ≤ 3 u from the graph (`tests/opus-bay-sf-attractions` P2), and the one spot tried (−124.5, 4.5) is OFF (not standable).
+  The sweep's only UNREACHABLE stays — Requests.
+- The Pampanito needs no collision: the berth is water beside the pier.
+
+### Facts (checked on the web 2026-09-29)
+
+- USS Pampanito: WWII Balao-class fleet submarine (1943), a museum and memorial at Pier 45, run by the San Francisco
+  Maritime National Park Association — https://www.nps.gov/places/uss-pampanito.htm ,
+  https://en.wikipedia.org/wiki/USS_Pampanito , https://maritime.org/visit-us/
+- SS Jeremiah O'Brien: "Located on the North end of Pier 35, near the intersection of Kearny St, North Point St and The
+  Embarcadero", daily 10:00–16:00 — https://ssjeremiahobrien.org/visit-us/
+
+### Known gaps / Not done
+
+- (3) Chinatown's pagoda cluster (Sing Chong / Sing Fat, Old St. Mary's, the Telephone Exchange): not started (time).
+- (4) the SS Jeremiah O'Brien and its trip end (Decisions).
+- (5) North Beach leftovers (Columbus Ave asphalt inside the slab, the café clusters off the path / the 4 CORRIDOR
+  targets): not started (time).
+
+### Requests
+
+- **Lead / lane B or N (a later wave)**: the Pier 35 promenade band (x −140…−110, z −14…0 in city mode) has no walking-
+  graph edge within 3 u, so neither the O'Brien's trip end nor a moved arrival can be walked to: either a graph edge
+  along the district's promenade there (the graph is published data) or a waiver of the P2 3 u rule for this row; then
+  `ARRIVAL_OVERRIDES['ss-jeremiah-obrien']` at ≈ (−128, −6) facing the berth, and the ship on the Pier 35 north face.

@@ -24,6 +24,7 @@ import { heroGroundJob } from './heroGround';
 import { CrownDrift, LightField, siteLightSpecs } from './lights';
 import { attachEastCut } from './cornersEastCut';
 import { attachNorthBeach } from './cornersNorthBeach';
+import { attachWharfShips } from './wharfShips';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
 import { mountCityDebug } from './stats';
@@ -225,6 +226,8 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const detachNorthBeach = host.addSystem(attachNorthBeach());
   // W7-W1: the East Cut / Embarcadero corner (Salesforce Park's deck, Cupid's Span, Redwood Park, the Sentinel)
   const detachEastCut = host.addSystem(attachEastCut());
+  // W7-W1: USS Pampanito alongside Pier 45 (world/sf/wharfShips.ts)
+  const detachShips = host.addSystem(attachWharfShips());
   void streamer.start().then(() => {
     const m = streamer.manifest;
     // the far detail chunks carry the same lots: cut them out there too
@@ -245,6 +248,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
       detachMurals?.();
       detachNorthBeach();
       detachEastCut();
+      detachShips();
       for (const d of detachAtmos) d();
     },
   };

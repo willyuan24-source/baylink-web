@@ -10,8 +10,7 @@ import { TOY } from '../materials';
 import { TypedBatch } from '../typedBatch';
 import type { WorldSystem } from '../world';
 import { GLOW, NONE, cyl } from './landmarks/kit';
-import { SENTINEL_OSM, SENTINEL_RING, SENTINEL_TIP } from './cornersNB';
-import { SEAM_FILL } from './cornersSeamData';
+import { SENTINEL_H, SENTINEL_RING, SENTINEL_TIP } from './cornersNB';
 
 /**
  * Wave 7 · lane W1 · the East Cut / Embarcadero corner (W7-W12; sf-w7-lead §3 row W1 (2)), city mode only, on the
@@ -220,8 +219,7 @@ function redwoodPark(b: BatchLike) {
 
 /** the Sentinel's shell over the seam fill's prism: copper-green walls, white tile bands, the cornice, the dome */
 function sentinel(b: BatchLike) {
-  const row = SEAM_FILL.find(r => r[0] === SENTINEL_OSM);
-  const H = row ? row[5] : 7.7;
+  const H = SENTINEL_H;
   let y0 = Infinity;
   for (const p of SENTINEL_RING) y0 = Math.min(y0, heightAt(p.x, p.z));
   const c = SENTINEL_RING.reduce((s, p) => ({ x: s.x + p.x / SENTINEL_RING.length, z: s.z + p.z / SENTINEL_RING.length }), { x: 0, z: 0 });

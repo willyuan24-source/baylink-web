@@ -4,7 +4,7 @@ import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTe
 import { STAND_RADIUS, canStand, setCityTerrain } from '../src/opus-bay/core/terrain';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { ATTRACTION_INDEX } from '../src/opus-bay/data/sf/attractions';
-import { SENTINEL_OSM, SENTINEL_RING, nbDropLots } from '../src/opus-bay/world/sf/cornersNB';
+import { SENTINEL_H, SENTINEL_OSM, SENTINEL_RING, nbDropLots } from '../src/opus-bay/world/sf/cornersNB';
 import {
   CUPID, EC_BUDGET, EC_CENTER, EC_CULL, FROG_FOUNTAIN, REDWOOD_C, TC_RING, TC_ROOF, buildEastCut, deckHidden, deckTrees, ecObstacles, onDeck, redwoods,
 } from '../src/opus-bay/world/sf/cornersEastCut';
@@ -60,8 +60,8 @@ test('W7-W12 the deck hides while the player or the camera is on or under it, an
 test('W7-W12 the Sentinel: its seam fill row on the district\'s corner, clear of the ribbons; lot-117 hidden in city mode only', () => {
   const row = SEAM_FILL.find(r => r[0] === SENTINEL_OSM);
   assert.ok(row, 'the Sentinel\'s fill row');
-  assert.ok(Math.abs(row[5] - 7.7) < 0.05, `toy height ${row[5]} (29 m)`);
-  assert.equal(row[1], 5, 'a plain brick prism under the shell');
+  assert.ok(Math.abs(row[5] - (SENTINEL_H - 0.8)) < 0.05 && Math.abs(SENTINEL_H - 7.7) < 0.01, `toy height ${row[5]} under the shell's ${SENTINEL_H} (29 m)`);
+  assert.equal(row[1], 9, 'a plain industrial prism under the shell (no façade remap, no crown)');
   for (let k = 0; k < row[7].length; k += 2) assert.ok(SENTINEL_RING.some(p => Math.hypot(p.x - row[7][k], p.z - row[7][k + 1]) < 0.02), 'the row is SENTINEL_RING');
   for (const r of DISTRICT.roads.filter(r => r.kind === 'roadway' || r.kind === 'path')) {
     for (const p of SENTINEL_RING) for (let i = 1; i < r.points.length; i++) assert.ok(segD(p.x, p.z, r.points[i - 1], r.points[i]) >= r.width / 2, `the Sentinel on ${r.id}`);

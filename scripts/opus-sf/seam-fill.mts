@@ -23,7 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { heightAt } from '../../src/opus-bay/core/terrain';
 import { DISTRICT } from '../../src/opus-bay/data/district';
-import { NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_EXTRA_OSM, SEAM_REGIONS, SENTINEL_OSM, SENTINEL_RING, nbDropLots, seamRegionAt } from '../../src/opus-bay/world/sf/cornersNB';
+import { NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_EXTRA_OSM, SEAM_REGIONS, SENTINEL_H, SENTINEL_OSM, SENTINEL_RING, nbDropLots, seamRegionAt } from '../../src/opus-bay/world/sf/cornersNB';
 import { loadAreas } from './lib/areas';
 import { carve, finishBuildings, heroExclusions, heroSeam, landmarkOsmIds, loadBuildings, mergeLots, HERO_OWN } from './lib/buildings';
 import { buildLand, loadBoundaryRings, loadCoast } from './lib/land';
@@ -186,8 +186,9 @@ const fin = finishBuildings(pass, zones, terrain, new Set(), log);
 log(`seam fill: ${cand.length} candidates in ${new Set(cand.map(b => b.block)).size} empty hero-owned blocks, ${pass.length} clear (${[...why].map(([k, n]) => `${k} ${n}`).join(', ')}), ${fin.length} finished`);
 
 const r2 = (v: number) => Math.round(v * 100) / 100;
-// the Sentinel: a plain 'brick' prism under world/sf/cornersEastCut.ts's copper shell (no office crown or mast poking out)
-for (const b of fin) if (b.osmId === SENTINEL_OSM) { b.style = 5; b.roof = 0; b.palette = pickPalette('brick', b.osmId, false); }
+// the Sentinel: a plain 'industrial' prism (no façade remap, no office crown or mast) 0.8 u under the top of
+// world/sf/cornersEastCut.ts's copper shell (SENTINEL_H: 29 m → 7.7 u), so its roof clutter stays inside the shell
+for (const b of fin) if (b.osmId === SENTINEL_OSM) { b.style = 9; b.roof = 0; b.palette = pickPalette('industrial', b.osmId, false); b.H = SENTINEL_H - 0.8; }
 const rows = fin.map(b => {
   const ring = ringPts(b.ring);
   let base = Infinity;
