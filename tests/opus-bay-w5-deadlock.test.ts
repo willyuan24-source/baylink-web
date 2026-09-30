@@ -56,6 +56,7 @@ const { U } = await import('../src/opus-bay/world/materials');
 const transit = await import('../src/opus-bay/game/transit');
 const ride = await import('../src/opus-bay/game/ride');
 const busWatch = await import('../src/opus-bay/game/busWatch');
+const bayNow = await import('../src/opus-bay/game/bayNow');
 const { PursuitDriver, passPath } = await import('../src/opus-bay/actors/vehicles/autopilot');
 const { CAR_LENGTH, CAR_SPEC, CAR_WIDTH } = await import('../src/opus-bay/actors/vehicles/toyCar');
 const { sfDisk } = await import('./opus-bay-sf-disk');
@@ -506,6 +507,10 @@ test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the pub
   const { TransitLayer } = await import('../src/opus-bay/world/transitLayer');
   // (on foot, no vehicle of the player's: the traffic lives round the rider; the runtime as before any test, W7-B1)
   freshRuntime();
+  // (W7-B9) and a Bay clock that does not move with the real one: the transit layer runs the cable cars by their real
+  // service hours (bayParts: after hours the idle cars go to the barn), which changed the whole 20 minutes by the time of
+  // day — after ≈ 23:00 the rider's bus met a streetcar convoy on Market St (29.2 s > 25 s) where by day it did not
+  bayNow.__setBayNowForTests('2026-09-29T14:00');
   game.set({ move: { mode: 'foot' } });
   T.setTransitW4(W4);
   T.setFlineJson(FLINE_JSON);
@@ -684,7 +689,7 @@ test('W5-bus 20+ simulated minutes: a whole loop lap, the N and the M on the pub
     // the bus watch saw no stall (≥ 6 s off a stop) of the rider's bus but at a box
     assert.deepEqual(busWatch.busStalls().filter(s => s.rider && s.why !== 'box'), []);
   } finally {
-    transit.cancelRide(); layer.dispose(); T.setActiveLineFleet(null); setCityTerrain(null);
+    transit.cancelRide(); layer.dispose(); T.setActiveLineFleet(null); setCityTerrain(null); bayNow.__setBayNowForTests(null);
     game.set({ phase: 'title', worldMode: 'district' } as never); runtime.move.mode = 'foot'; busWatch.resetBusWatch();
   }
 });

@@ -7,7 +7,7 @@ scratch `C:/Users/willy/opus-qa/w7/b/`. Owns `world/busSystem.ts`, `world/flineS
 
 ## 给主人的摘要
 
-1. 那个时好时坏的"车辆卡死"测试（每条线每次推送前都要跑）找到了真正原因：不是机器忙，而是前一个测试把玩家的朝向留了下来，镜头朝向一变，小汽车刷出来的位置就全变了（整个文件跑是 29 次，单独跑是 31 次，门槛 30）。现在每次测试前都把状态复位，结果在任何顺序下都完全一样；同时让测试多制造"拦路车"（31 → 47 次），门槛没降，反而更严。
+1. 那个时好时坏的"车辆卡死"测试（每条线每次推送前都要跑）找到了真正原因：不是机器忙，而是前一个测试把玩家的朝向留了下来，镜头朝向一变，小汽车刷出来的位置就全变了（整个文件跑是 29 次，单独跑是 31 次，门槛 30）。现在每次测试前都把状态复位，结果在任何顺序下都完全一样；同时让测试多制造"拦路车"（31 → 47 次），门槛没降，反而更严。深夜还发现第二个原因：测试跟着真实时钟走（晚上 11 点后叮当车收车进库），现在测试把时钟固定在白天，任何时候跑结果都一样。
 2. 坐 Muni 地铁在地下时打开设置（暂停），列车以前会继续开到地面才停；现在会在隧道里立刻停住，关掉设置再继续开。电脑上实测：列车停在鲍威尔站和市政中心站之间整整 20 秒，关掉后照常开到 Carl & Cole。
 3. 顺手修了一个真问题：在地下时按 Esc 打开的设置面板以前被隧道画面盖住、根本看不见；现在显示在隧道画面上面。
 4. 叮当车三个转车台的中文名改成全中文（"鲍威尔街 · 市场街转车台"、"海德街 · 海滩街转车台"、"泰勒街 · 湾街转车台"），目标、居民对话、地点卡里提到它的地方也都改好了；地铁站名按第四波定下的规则保留英文（如 "Van Ness 站"）。
@@ -183,3 +183,29 @@ alone (149.9 ms); after the last rebases (W7-W11's seam fill, W7-R2, W7-G2) tsc 
 
 - **Next wave / the reviewer** (transit): the Market St convoy (Known gaps) — with it fixed, W7-B5's attempt
   (`C:/Users/willy/opus-qa/w7/b/b5-attempt/b5.diff`) can go in: Hyde & Chestnut 48 → 41.5 s.
+
+## Part b, last — the proof also read the clock (00:05–00:40 PDT)
+
+- **W7-B9** (`tests/opus-bay-w5-deadlock.test.ts`): the full suite at 00:22 went red on the proof — "bus at an interlock
+  stood 29.2 s (box:f-line@5661:750)", 49 forced blockers — with no transit change of mine in the tree (the proof alone
+  red too; the streetcar code from before W7-B4 red too). Cause: **the proof reads the Bay clock after all.** The transit
+  layer runs the cable cars by their real service hours (`world/transitLayer.ts` `realService: serviceRow(line,
+  bayParts())`: after hours the idle cars go to the barn), so after ≈ 23:00 PDT the whole 20 minutes ran differently and
+  the rider's bus met the Market St streetcar convoy. Part a's "not load: no clock is read" was wrong about this path
+  (the probe there ran at 20:40, by day). Fix: the proof pins the Bay clock (`__setBayNowForTests('2026-09-29T14:00')`,
+  released in `finally`): the whole file 9 / 9 at 00:27 PDT — 47 forced blockers (lane 15, zone 10, crossing 22), the
+  rider's bus at an interlock 7.0 s — the daytime run, whatever the hour. Every lane's suite was red on this test from
+  ≈ 23:00 until this lands.
+- **Correction to part b's Decisions:** the dropped shorter courtesy (W7-B5's attempt) was measured red at ≈ 23:20, i.e.
+  after the service-hours switch: its 29.2 s was the clock, not the stop cut. It is still not pushed (no time left to
+  re-measure it with the pinned clock before the 00:30 stop); `C:/Users/willy/opus-qa/w7/b/b5-attempt/b5.diff` is ready
+  for the next wave: apply, run the deadlock file (pinned clock) and the 2 × 1 h probe.
+- **Known gap, real in the game at night:** after the cable cars' service hours the rider's loop bus can meet two
+  streetcars through Market St's single-track stem and wait ≈ 29 s at `f-line@5661:750` (the proof's 25 s bound is for
+  the daytime run now). Request (next wave, transit): the rider's bus reserves the stem earlier, so a second car never
+  takes a block into it; then add a night-time run of the proof (`__setBayNowForTests('2026-09-29T23:30')`).
+- Checks for this push: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the full
+  suite at 00:22 **1617 / 1618** (the one failure the proof, fixed here) · after the fix the deadlock file 9 / 9 and
+  `tests/opus-bay-w7-b.test.ts` 8 / 8 (the full suite was not re-run: the 00:45 cut-off).
+- Dev server 5703 stopped; no Chrome of this lane left running; no PERF-LOCK met; no Higgsfield credits used; district
+  mode untouched (no district file changed). No relayed owner message arrived during the lane.
