@@ -36,3 +36,19 @@ only on black. No text, no letters, no logos, no watermark, no border, no drop s
 | V12 | 03:50 | 3a81a0aa | tileable minky plush | 2 | hf_20260930_035046_3a81a0aa-9739-4a90-a84b-563828ec44f7.png | raw/t1-plush.png | see part b |
 
 Batch 1 subtotal: 24 credits.
+
+## Batch 2 · the de Young's Hamon tower (W7-V4; lane R's scorecard #22)
+
+Balance before: 2223.50 (03:55 UTC, after batch 1). Concept prompts: the wave-4 landmark recipe
+(`scripts/opus-sf/assets/w4/prompts.py`: PRE_A + subject + ADDON + colours; refs K6 `3617006b` and the rotunda concept
+`fba12f36` for a, K6 only + the style contract for b). SAM 3 3D prompt: "the twisted copper tower" / "the brown tower".
+
+| # | UTC | job | tool / model | credits | output file | local | verdict |
+|---|---|---|---|---|---|---|---|
+| V13 | 04:44 | e684912e | nano_banana_pro 1:1 2k, refs K6 + rotunda | 2 | hf_20260930_044455_e684912e-e9a4-4df7-b084-7e228d6c734e.png | raw/dy-a.png | kept: the concept (twist, perforated + dimpled copper, glass top) |
+| V14 | 04:44 | 63b4fc5d | nano_banana_pro 1:1 2k, ref K6 | 2 | hf_20260930_044455_63b4fc5d-6f96-4dfc-8ce7-f67b5e3ebaae.png | raw/dy-b.png | rejected: a square shaft, not the slab |
+| V15 | 04:46 | 3b46e279 | sam_3_3d on V13 | 1 (failed: no object) | — | — | failed (refund expected; see the reconciliation) |
+| V16 | 04:47 | f066422b | sam_3_3d on V14 | 1 | hf_20260930_044713_f066422b-4d0c-4265-8b74-565692cd3287.glb | ai/raw/dy-b-sam.glb | rejected with V14 |
+| V17 | 04:48 | d81df52a | sam_3_3d on V13 ("the brown tower") | 1 | hf_20260930_044801_d81df52a-f10c-4868-a6c5-c3cf9089f900.glb | ai/raw/dy-a-sam.glb | kept → `w7v-de-young-tower.glb` (3,920 tris, 100,532 B) |
+
+Balance after: 2217.13 (05:02 UTC; lane X's voice jobs run in parallel, so the drop is not all this batch).
