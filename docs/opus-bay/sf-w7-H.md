@@ -225,3 +225,40 @@ part-b test file not in that push); after the rebases tsc 0 and the lane's and t
 Checks before the part-b push (22:28 PDT, the tree on origin 4c8ff682 + part b): `npx tsc -p tsconfig.app.json --noEmit`
 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
 **1526 / 1526**.
+Then rebased onto K / G / R / W1 / P (1544 / 1544 on that tree, tsc 0, eslint 0 errors) and once more onto V / X / S / B:
+tsc 0 and their test files with lane H's 80 / 80. Pushed `ccebe232` (22:54 PDT).
+
+## Part c · small costs and checks (22:55 – 23:25 PDT)
+
+### What was built
+
+- `halloween/worldVenues.ts`: `PUMPKIN_KITS` (lane S's venue rows that list a pumpkin event: Sunnydale, Thrive City) —
+  the catalog is scanned (`activeEventsAt`, ≈ 300 events, twice a second) only when the player is within `VENUE_NEAR` of
+  one of them; anywhere else the step is two distance checks (it scanned everywhere in part b).
+- `halloween/worldDress.ts` `stoopsByDoors()`: a cheap x reject before the distance (≈ 220k pairs once, at the first
+  stoop index).
+- Tests: the kits (two), no catalog scan far from them, one near.
+
+### Evidence
+
+- District mode unchanged: `?world=district&halloween=night&time=night` (dev 5705) — the Ferry Building district at
+  night, 0 / 8 postcards, no `__opusBay.halloween` (the feature is city-only; `world/sf/fog.ts`' KarlState is null in the
+  district) — scratch `C:/Users/willy/opus-qa/w7/h/district.jpg` (read). The hero regression is in the suite.
+
+### Not done (lane H's row)
+
+- Nothing of the row is left undone; see each part's Known gaps (the sway is horizontal, the walkers are rigid figures
+  and walk through a player in their lane, the dusk tint shows where Karl's bank is).
+
+### Requests
+
+- **Lane B / the lead — `W5-bus 20+ simulated minutes` is red on origin itself**: on `90dc7798` (origin/opus-bay at
+  23:18, a clean temporary worktree, lane H's cityLife line or not) it fails every run, deterministically: "bus at an
+  interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)" (> the test's bound). It passed in lane H's full run on
+  the tree before the rebase onto B / X / V / S (22:30, 1544 / 1544). Not lane H's files; not touched here.
+- The lead: a leftover `.git/worktrees/w7-h-origin` admin entry in the main checkout (the temporary worktree above is
+  gone and its `node_modules` junction was removed first; `git worktree prune` said "Permission denied" on the folder,
+  as for an older `wt-origin`): prune it when the checkout is idle.
+
+Checks before the part-c push (23:25 PDT): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+warnings) · the suite **1566 / 1567** — the one is the deadlock test above (red on origin without lane H's change).
