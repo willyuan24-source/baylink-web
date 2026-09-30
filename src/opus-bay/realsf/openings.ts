@@ -77,8 +77,9 @@ export const OPENING_SIGNS: readonly OpeningSign[] = [
     what: { zh: '炸鸡柳快餐 · 旧金山首店', en: 'Chicken-finger counter · its first in SF' },
     address: '211 Jefferson Street, San Francisco, CA 94133',
     hours: { zh: '门店页：每天 10:00 起，营业到深夜', en: 'Store page: daily from 10:00 until late' },
-    // OSM way 91185861 (the address 211 Jefferson Street); the sign on the Jefferson St pavement beside it, facing the street
-    x: -199.6, z: 79.4, yaw: deg(296.6), osm: { lat: 37.8080974, lng: -122.4160763 },
+    // OSM way 91185861 (the address 211 Jefferson Street); the sign on the Jefferson St pavement 3.2 u west of it, facing
+    // the street — 6.8 u from the Crab Wheel sign (37.8079, -122.4159), whose card would otherwise take the E prompt
+    x: -204.6, z: 79.4, yaw: deg(71.8), osm: { lat: 37.8080974, lng: -122.4160763 },
     osmUrl: 'https://www.openstreetmap.org/way/91185861', verifiedAt: '2026-09-29', siteVerifiedAt: '2026-09-27',
   },
   {

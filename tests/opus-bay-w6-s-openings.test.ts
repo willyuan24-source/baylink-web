@@ -52,6 +52,8 @@ test('W6-S3 openings: a sign for every open San Francisco opening the site publi
     // the sign stands next to the address's OSM point (never a guessed point): ≤ 5 u ≈ 35 m
     assert.ok(dist(projectCity(s.osm.lat, s.osm.lng), s) <= 5, `${s.id}: ${dist(projectCity(s.osm.lat, s.osm.lng), s).toFixed(1)} u from its OSM point`);
     assert.ok([...s.what.zh].length <= 20 && [...s.hours.zh].length <= 30, s.id);
+    // (W7-S) the E prompt in front of the sign is not another card's: ≥ 6 u from the Crab Wheel sign at Jefferson & Taylor
+    assert.ok(dist(s, projectCity(37.8079, -122.4159)) >= 6, `${s.id}: clear of the Crab Wheel`);
   }
   assert.ok(SIGN_NEAR >= 150 && SIGN_NEAR <= 400);
   assert.equal(openingUrl('sergeant-ma', 'zh-Hans'), '/openings/sergeant-ma');

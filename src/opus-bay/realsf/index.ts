@@ -161,7 +161,7 @@ export function init(): () => void {
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
       /** QA (review): the line keys on offer right now, by source */
-      offered: () => ({ presence: presence.offered().map(l => l.key), jets: jets.offered().map(l => l.key), daily: daily.offered().map(l => l.key), dressing: dressing.offered().map(l => l.key) }),
+      offered: () => ({ presence: presence.offered().map(l => l.key), jets: jets.offered().map(l => l.key), daily: daily.offered().map(l => l.key), dressing: dressing.offered().map(l => l.key), calendar: calendarLines(bayNow(), runtime.player).map(l => l.key) }),
     };
   }
 
