@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ExternalLink, Ticket, TramFront } from 'lucide-react';
-import type { Bilingual, Vec2 } from '../core/types';
+import type { Vec2 } from '../core/types';
 import { offerUrl } from '../data/links';
 import { loadTransit } from '../data/transit';
 import { bayNow, bayParts } from '../game/bayNow';
 import { useT } from '../i18n';
+import { CHASE_MUNI, CHASE_MUNI_NOTE, chaseMuniAt } from './chaseMuni';
 import { CHECK_511, loadedRealStops, nearestRealStops, serviceLabel, URL_511, type RealStop } from './transitReal';
 import './realsf.css';
 
@@ -18,13 +19,6 @@ import './realsf.css';
  * Muni buses and light rail (BAYLINK's offer page `chase-center-ticket-muni-included`, SFMTA's rule).
  */
 
-/** Chase Center's venue point (realsf/eventVenues.ts `chase-center`) and the radius a card's point may be from it (u) */
-export const CHASE_MUNI = { at: { x: 479.3, z: 264.0 }, r: 15, offerId: 'chase-center-ticket-muni-included' } as const;
-export const CHASE_MUNI_NOTE: Bilingual = {
-  zh: '持大通中心活动票，当天可坐 Muni 公交和轻轨（不含缆车）',
-  en: 'A Chase Center event ticket includes that day’s Muni buses and light rail (not cable cars)',
-};
-export const chaseMuniAt = (p: Vec2) => Math.hypot(p.x - CHASE_MUNI.at.x, p.z - CHASE_MUNI.at.z) <= CHASE_MUNI.r;
 
 export default function HowToGo({ point }: { point: Vec2 }) {
   const { t, locale } = useT();

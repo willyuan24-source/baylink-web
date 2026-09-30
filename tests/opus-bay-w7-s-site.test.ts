@@ -43,7 +43,7 @@ test('W7-S3 live.json: the seniors’ free Muni is a standing transit offer with
 test('W7-S3 the Chase Center cards: the ticket-includes-Muni line with the BAYLINK offer link; not at Thrive City or elsewhere', async () => {
   const { registerHooks } = await import('node:module');
   const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
-  const H = await import('../src/opus-bay/realsf/HowToGo');
+  const H = { ...(await import('../src/opus-bay/realsf/chaseMuni')), default: (await import('../src/opus-bay/realsf/HowToGo')).default };
   styles.deregister();
   const chase = EVENT_VENUES.find(v => v.id === 'chase-center')!;
   const thrive = EVENT_VENUES.find(v => v.id === 'thrive-city')!;
