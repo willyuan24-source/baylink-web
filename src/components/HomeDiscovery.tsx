@@ -113,10 +113,19 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
       <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides?category=education">学校与学区 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link></div>
     </header>
 
+    <section className="home-baybay-intro" aria-labelledby="home-baybay-title">
+      <img src={BRAND.baybayAvatar} alt="" width={56} height={56} />
+      <div className="home-baybay-intro-copy">
+        <div><h2 id="home-baybay-title">嗨，我是 BayBay</h2><span>BAYLINK 的 AI 湾区生活助手</span></div>
+        <p>找活动和福利、排出游计划、读懂生活攻略。</p>
+      </div>
+      <button type="button" onClick={() => onAskBayBay()}>和 BayBay 聊聊<ArrowUpRight size={16} aria-hidden="true" /></button>
+    </section>
+
     <nav className="home-start-paths" aria-label={locale==='en'?'Start your Bay Area day':'开始安排湾区生活'}>
       <Link to="/play"><span><TramFront size={22}/></span><div><strong>{locale==='en'?'Explore the 3D Bay':'逛一圈 3D 湾区'}</strong><small>{locale==='en'?'Meet a city. Find a place worth visiting.':'认识一座城，找到想去的地方。'}</small></div><ArrowUpRight size={17}/></Link>
       <Link to="/calendar"><span><CalendarDays size={22}/></span><div><strong>{locale==='en'?'Find an event':'挑一场本地活动'}</strong><small>{locale==='en'?'Dates, places and people to go with.':'看日期、地点，也能找一起去的人。'}</small></div><ArrowUpRight size={17}/></Link>
-      <Link to="/plan"><span><Sparkles size={22}/></span><div><strong>{locale==='en'?'Plan with BAYBAY':'让 BAYBAY 排一天'}</strong><small>{locale==='en'?'Turn your ideas into a sourced itinerary.':'把想法变成有来源的出游安排。'}</small></div><ArrowUpRight size={17}/></Link>
+      <Link to="/plan"><span><Sparkles size={22}/></span><div><strong>{locale==='en'?'Plan with BayBay':'让 BayBay 排一天'}</strong><small>{locale==='en'?'Turn your ideas into a sourced itinerary.':'把想法变成有来源的出游安排。'}</small></div><ArrowUpRight size={17}/></Link>
     </nav>
     <div className="home-start-continue"><Link to="/my-week"><Ticket size={14}/>{locale==='en'?'Continue my saved plans':'继续我的收藏与计划'}<ArrowRight size={13}/></Link><button type="button" onClick={onBrowseCommunity}>{locale==='en'?'Find local posts':'找本地信息'}<ArrowDownRight size={13}/></button><Link to="/ai-in-the-bay">{locale==='en'?'Local AI events':'湾区 AI 活动'}<ArrowUpRight size={13}/></Link></div>
 
@@ -148,7 +157,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
     </div>
 
     <form className="home-discovery-ai" onSubmit={event => { event.preventDefault(); onAskBayBay(question.trim() || selection.question); }}>
-      <div className="home-discovery-ai-intro"><img src={BRAND.baybayAvatar} alt="" width={46} height={46} loading="lazy" /><div><strong>想法有了，怎么安排？</strong><span>让 BayBay 结合指南，帮你理一理。</span></div></div>
+      <div className="home-discovery-ai-intro"><img src={BRAND.baybayAvatar} alt="" width={46} height={46} loading="lazy" /><div><strong>想法有了，怎么安排？</strong><span>AI 助手 BayBay 结合站内指南，帮你理一理。</span></div></div>
       <label><span className="sr-only">告诉 BayBay 你的生活问题</span><input value={question} onChange={event => setQuestion(event.target.value)} placeholder={selection.placeholder} maxLength={500} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /></label><button type="submit"><Sparkles size={15} aria-hidden="true" />帮我安排<ArrowRight size={15} aria-hidden="true" /></button>
     </form>
     <DiscoveryCredits images={images} />
