@@ -54,7 +54,7 @@ test('W7-R procedural colours: City Hall dome not sage, Grace Cathedral not warm
 });
 
 test('W7-R the recoloured AI textures: the GLBs are the published ones (bytes pinned in data/assets.ts) and still WebP', () => {
-  const pinned: Record<string, number> = { 'sf-city-hall': 146_860, 'sf-grace-cathedral': 111_804, 'sf-windmill-body': 83_956 };
+  const pinned: Record<string, number> = { 'sf-city-hall': 145_168, 'sf-grace-cathedral': 111_804, 'sf-windmill-body': 83_956 };
   for (const [id, bytes] of Object.entries(pinned)) {
     const a = SF_MODELS[id as keyof typeof SF_MODELS];
     assert.equal(a.bytes, bytes, `${id} registry bytes`);
@@ -97,4 +97,38 @@ test('W7-R the famous cards carry what a visitor asks first (hours / price / sta
   assert.equal(CARD_REFRESHES['peace-pagoda'].status?.kind, 'works');
   // the built landmarks' new hours
   for (const id of ['painted-ladies', 'palace-of-fine-arts', 'cable-car-turntable', 'twin-peaks', 'de-young-tower']) assert.ok(CARD_REFRESHES[id]?.hours, `${id} hours`);
+});
+
+test('W7-R-review City Hall: the dome is a mid lead-grey (as the real one in sun), not near-black, both lods', () => {
+  // the real dome (Commons "San Francisco City Hall September 2013 panorama 2.jpg"): mid grey with gold-leaf ribs.
+  // W7-R2's #6a7176 (HSL l 0.44) rendered near-black at the photo pose: the procedural dome keeps the old sage's
+  // lightness in grey (the AI texture was regenerated the same way: recolour-glb.py city-hall, from the original GLB)
+  const l = sfLandmark('city-hall')!;
+  for (const lod of [0, 2] as const) {
+    const cs = colours(buildLandmark(l, lod, 0));
+    // dome candidates: cool greys (low saturation, blue >= red) that are not the white / cream stone
+    const hsl = { h: 0, s: 0, l: 0 };
+    const domes = cs.filter(([r, g, b]) => {
+      const c = new THREE.Color(r, g, b);
+      c.getHSL(hsl, THREE.SRGBColorSpace);
+      return hsl.s < 0.12 && b >= r && hsl.l > 0.15 && hsl.l < 0.8;
+    });
+    assert.ok(domes.length > 0, `lod ${lod}: a grey dome`);
+    for (const [r, g, b] of domes) {
+      new THREE.Color(r, g, b).getHSL(hsl, THREE.SRGBColorSpace);
+      assert.ok(hsl.l >= 0.5, `lod ${lod}: the dome grey is mid, not near-black (l ${hsl.l.toFixed(2)})`);
+    }
+  }
+});
+
+test('W7-R-review Peace Plaza: the works note claims no completion date the sources do not give', async () => {
+  // peaceplaza.org (update 2 Sep 2026) and Rec & Park's construction updates (checked 2026-09-30): the works go on
+  // "intermittently throughout September and October"; no completion date is published
+  const { PLACE_CARDS, CARD_REFRESHES } = await import('../src/opus-bay/data/sf/placeCards');
+  const texts = [PLACE_CARDS.find(c => c.id === 'japan-center')!.status!.text, CARD_REFRESHES['peace-pagoda'].status!.text];
+  for (const t of texts) {
+    assert.doesNotMatch(t.zh, /完工|竣工/, t.zh);
+    assert.doesNotMatch(t.en, /finish|complete/i, t.en);
+    assert.match(t.zh, /商场照常营业/);
+  }
 });

@@ -189,3 +189,94 @@ where Nominatim's hit was a shop a block west (the intersection itself, 37.76993
 - **For the reviewer**: `tests/opus-bay-w7-r.test.ts` (5 tests) pins the fixes; the recolour is reproducible with
   `python scripts/opus-sf/assets/w7r/recolour-glb.py <original.glb> <out.glb> city-hall|grace|windmill` on the GLBs of
   `git show 80ef896b:public/opus-bay/models/sf/<name>.glb` (the originals).
+
+## Review (W7-R-review, 2026-09-29 23:46 → 09-30 01:10 PDT)
+
+Adversarial review of lane R's six commits (`80ef896b`, `d3aa6975`, `76dcb3a8`, `e9fa9fed`, `ea4e2ef8`, `81787b14`),
+worktree `C:/Users/willy/wt/w7-r-rev` on `81787b14`, dev port 5733, scratch `C:/Users/willy/opus-qa/w7/r-rev/`.
+
+### 给主人的摘要
+
+1. R 线的活整体是好的：评分表有用（V 线已经照着做了迪扬塔楼和艺术宫柱廊），渔人码头木舵、恩典大教堂、荷兰风车、九曲花街绣球花都比原来像，和维基共享资源的照片比对过；卡片上的票价、开放时间我重新上官网查了一遍，全部对得上（恶魔岛 $47.95 / $29.15 / $45.15、叮当车 7:00–23:00、海湾大桥 $8.50、渡轮大厦 6:00–22:00、PIER 39、红木公园、迪扬、艺术宫 5:00–24:00）。
+2. 修了两处毛病：**市政厅圆顶**改色时漏掉了一圈浅绿，近看是「深灰上长绿纹」，而且灰得发黑（真的是亮一点的铅灰色加金边）——我从原始模型重新调色，现在是干净的中灰配金肋，远景的简化模型也调亮了；**日本城和平广场**卡片写「预计 2026 年秋冬完工」，但官网和公园局都没给完工日期，只说 9–10 月继续施工——改成照实说。
+3. 另外把三个改过颜色的模型的新文件大小记进了素材账本（R 留给主管的请求，0 积分）。
+4. 不影响上线：区域模式没动；性能（绘制调用 / 三角形）在这些地点都低于第 6 波的上限；唯一不过的测试是公交死锁那项，在没有 R 改动的 origin 上也一样红，归 B 线。
+
+### What was checked
+
+- **Every commit read** (the code, the tests, the docs, the QA shots). The GLB rewrite (`recolour-glb.py`): two
+  bufferViews (Draco, WebP) re-laid 4-aligned, the Draco view byte-identical, `buffers[0].byteLength` and the GLB header
+  consistent; the three textures are 1024² RGB WebP (the originals were RGB too: no alpha lost), the materials opaque,
+  `KHR_draco_mesh_compression` + `EXT_texture_webp` kept. City-only: every file R touched is `world/sf/…`,
+  `data/sf/…`, three `SF_MODELS` byte counts, `tops.ts` rows, tests, docs — nothing the district builds; the district
+  start (`?world=district`) renders as before.
+- **Facts re-checked on the official pages** (the night of 2026-09-29 → 30): NPS fees
+  https://www.nps.gov/alca/planyourvisit/fees.htm (day tour $47.95 / $29.15 / $45.15, updated 21 Jan 2026) ✓ · SFMTA
+  https://www.sfmta.com/routes/powell-hyde-cable-car ("7 a.m. - 11 p.m. daily") ✓ · MTC
+  https://mtc.ca.gov/news/new-bridge-toll-rates-now-effect ($8.50 from 1 Jan 2026) ✓ · Ferry Building
+  https://www.ferrybuildingmarketplace.com/visit/ (daily 6am–10pm; market Tue / Thu 10–2, Sat 8–2) ✓ · PIER 39
+  https://www.pier39.com/ (shops 10–8, restaurants 11–9) ✓ · Redwood Park https://downtownsf.org/go/transamerica-redwood-park
+  (Mon–Fri 7:00–5:30) ✓ · Palace of Fine Arts https://sfrecpark.org/Facilities/Facility/Details/Palace-of-Fine-Arts-423
+  ("5 a.m. to Midnight") ✓ · de Young (famsf.org via the search index: Tue–Sun 9:30–5:15, the tower to 4:30) ✓ ·
+  Musée Mécanique (daily 10–8, search index) ✓ · City Lights (sources say 10–10 or to midnight: the card's "about …,
+  check the official site" holds) ✓ · Peace Plaza https://peaceplaza.org/ (2 Sep 2026 update) and
+  https://sfrecpark.org/m/newsflash/Home/Detail/3008 (30 Jul 2026): works "throughout September and October", **no
+  completion date** ✗ → fixed below.
+- **Looks, side by side with the Commons photos** (downloaded to scratch only): City Hall
+  (`San_Francisco_City_Hall_September_2013_panorama_2.jpg`: mid lead-grey dome, gold ribs), Grace
+  (`2009-0723-CA-005-GraceCathedral_(pc).jpg`: grey concrete, slate roofs, dark flèche), the Dutch Windmill
+  (`GGParkNorthWindmill2.jpg`: grey-brown shingle, brown gallery), the Wharf sign (`Fishermans_Wharf_Sign,_SF,_CA,_jjron_25.03.2012.jpg`:
+  rope-bound pilings above the wheel), Lombard (`Lombard_Street_2020.jpg`). The Wharf, Grace, the windmill and Lombard
+  are real improvements. City Hall was not yet (below).
+- **Desktop 1440 × 900** (photo pose and player's eye, `?world=city&time=day&quality=high`) and **phone 390 × 844**
+  (dpr 3, quality mid): `qa/w7/R/review-phone-city-hall-wharf.jpg`.
+- **Perf at the touched spots** (calls · triangles, desktop): Wharf 69 · 112k; Lombard 66–70 · 219–245k; City Hall
+  67–79 · 211–240k; Grace 69–73 · 245–289k; the windmill 88–94 · 247–286k; phone Wharf 64 · 140k, City Hall 57 · 169k —
+  all under W6-Z's desktop maximum (122 calls / 365k, `sf-w6-final-verify.md`). R added no mesh, material or draw (the
+  pilings, rope and hydrangeas go into the site's existing batch; the recolours are texture bytes), and nothing per
+  frame, so there is nothing new to leak on teardown or a world switch; no save field changed; no UI (touch targets
+  unchanged). iPhone memory: the three textures stay 1024² (4 MB each decoded, as before).
+- Positions: R's OSM table (46 places) spot-read; the eight "off by design" ones are reasonable (a marker on a bridge
+  tower, a photo spot across from the Painted Ladies).
+
+### Defects found and fixed (commit W7-R-review)
+
+1. **City Hall's dome: green streaks on a near-black dome.** The recolour rule took hue 140–205 only; the sage runs
+   from ~85, so the panel edges stayed green (10k texels at hue 80–140), and `v × 0.80` made the dome read near-black in
+   the game (the real one is mid grey in sun). The procedural dome (`#6a7176`, what the far view and a slow load show)
+   read near-black too. Fixed: `recolour-glb.py city-hall` takes hue 85–210 (s > 0.06) to a cool grey at the old
+   lightness (`v × 0.98`, s ≤ 0.06), **regenerated from the original GLB** (not from R's output: one WebP generation
+   only) → 145,168 B (pinned in `data/assets.ts` and the test); the procedural dome `#9aa0a4`. Before / after:
+   `qa/w7/R/review-city-hall-dome-before-after.jpg` (player's eye, AI model; 67 calls · 211.5k tris, unchanged) and
+   `qa/w7/R/review-city-hall-far-before-after.jpg` (photo pose, procedural `?ai=0`; 77 · 234.7k, unchanged). Test
+   `W7-R-review City Hall: the dome is a mid lead-grey …` red on R's tree (HSL l 0.44), green after.
+2. **The Peace Plaza cards claimed a completion date no source gives** ("预计 2026 年秋冬完工" / "due to finish in
+   late 2026", on the Japan Center card and the Peace Pagoda refresh). Now: "和平广场仍在翻修，部分围挡，工程 9–10 月继续；
+   商场照常营业。" / "Peace Plaza is still being renovated, partly fenced, with work through October 2026; the malls stay
+   open." (`until: '2026-12'` kept, so the note drops itself after the year). Test `W7-R-review Peace Plaza …` red, then
+   green.
+3. **The asset ledger** still listed the three GLBs at their old sizes (R left it as a request to the lead): the rows
+   W3-LM6 / LM7 / LM8 of `src/opus-bay/ASSETS-LEDGER.md` now carry the W7-R recolour and the new sizes (83,956 /
+   111,804 / 145,168 B, 0 credits). The scorecard's size line says the same.
+
+### Checks of the review tree
+
+- R's pushed tree `81787b14`: tsc 0 · `eslint .` 0 errors (43 old warnings) · suite **1596 / 1597**.
+- The review tree: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the
+  opus-bay suite **1598 / 1599** (+2 review tests); after the last colour step (`#858b8f` → `#9aa0a4`) the w7-r,
+  sf-cards and w4-assets files again 30 / 30. The one failure is `W5-bus 20+ simulated minutes`, re-run alone: the same
+  deterministic 29.2 s at the f-line box near (149, 601), red on origin for lanes M, S, Q, G and R alike — lane B's
+  test, not R's.
+
+### Open items (not blocking)
+
+- `W5-bus 20+ simulated minutes` red on origin (lane B).
+- Lombard's lod 0 is 2,478 of its 2,500-triangle budget: the next flower there has to replace one.
+- The procedural far dome is still a little darker on screen than the AI model's (vertex colour vs texture lighting).
+- The Wharf wheel's rim is dark wood all through; the real sign has a cream outer band round a thin dark ring —
+  a finer read, left.
+- City Lights' hours differ between sources (10–10 vs to midnight); the hedged card stands.
+
+### Blocking the go-live to main
+
+None.

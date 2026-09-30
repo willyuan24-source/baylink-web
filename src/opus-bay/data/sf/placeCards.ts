@@ -823,7 +823,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     summary: bi('日本城的购物中心，由东馆、西馆等几栋楼组成，围着和平广场和五重和平塔；里面有 60 多家店，拉面、寿司、漫画和日本杂货都有。', 'Japantown\'s malls, East and West and their neighbours around Peace Plaza and the five-tier Peace Pagoda, with more than 60 businesses: ramen, sushi, manga and Japanese goods.'),
     tips: [bi('出门就是和平塔，是大阪人民送的礼物。', 'The Peace Pagoda outside was a gift from the people of Osaka.')],
     officialUrl: 'https://www.sfjapantown.org/japan-center-malls/',
-    status: { kind: 'works', text: bi('和平广场正在翻修，围挡施工中，商场照常营业；预计 2026 年秋冬完工。', 'Peace Plaza is being renovated behind fences; the malls stay open. It is due to finish in late 2026.'), until: '2026-12' },
+    status: { kind: 'works', text: bi('和平广场仍在翻修，部分围挡，工程 9–10 月继续；商场照常营业。', 'Peace Plaza is still being renovated, partly fenced, with work through October 2026; the malls stay open.'), until: '2026-12' },
     verifiedAt: '2026-09-29',
     sourceUrl: 'https://www.sfjapantown.org/japan-center-malls/',
     sources: ['https://peaceplaza.org/', 'https://en.wikipedia.org/wiki/Japan_Center_(San_Francisco)'],
@@ -1019,7 +1019,7 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: '2026-09-29',
   },
   'peace-pagoda': {
-    status: { kind: 'works', text: bi('和平广场正在翻修，围挡施工中，商场照常营业；预计 2026 年秋冬完工。', 'Peace Plaza is being renovated behind fences; the malls stay open. It is due to finish in late 2026.'), until: '2026-12' },
+    status: { kind: 'works', text: bi('和平广场仍在翻修，部分围挡，工程 9–10 月继续；商场照常营业。', 'Peace Plaza is still being renovated, partly fenced, with work through October 2026; the malls stay open.'), until: '2026-12' },
     sources: ['https://peaceplaza.org/', 'https://sfrecpark.org/m/newsflash/Home/Detail/3008'],
     verifiedAt: '2026-09-29',
   },

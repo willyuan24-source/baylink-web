@@ -394,9 +394,9 @@ by D2 in part a: **0**.
 | W3-LM3 | Fort Point, cleaned | from LM3-3D; 5,879 tris | — | 0 | 33906fb6-5410-42d3-8529-5e8bd181f6a1 | fort-point-sam.glb | published `models/sf/fort-point.glb` (162,588 B); **prototype, not shipped** (palette 30 %; hot orange box, ragged gun ports) |
 | W3-LM4 | Mission Dolores, cleaned | from LM4-3D; 5,880 tris; basilica re-graded toward cream (`regrade_glb.py`, hue 30–70°, sat × 0.55) | — | 0 | 1b2b296e-5b33-43bc-967c-dadfe94a14ab | mission-dolores-sam.glb | published `models/sf/mission-dolores.glb` (98,936 B); **shipped** |
 | W3-LM5 | Castro Theatre, cleaned | from LM5-3D; 5,880 tris | — | 0 | f924e7e0-e8f0-4626-a787-9b1619d5e1dc | castro-theatre-sam.glb | published `models/sf/castro-theatre.glb` (87,048 B); **shipped** |
-| W3-LM6 | Dutch windmill body, cleaned | from LM6-3D; 5,880 tris; sails stay procedural | — | 0 | 2c4615b0-8d00-42cc-aa3e-b3bbe010e3c2 | dutch-windmill-sam.glb | published `models/sf/windmill-body.glb` (91,692 B); **shipped** |
-| W3-LM7 | Grace Cathedral, cleaned | from LM7-3D; 5,880 tris | — | 0 | e70a3dfe-cd66-4a9b-be55-49fec8396d55 | grace-cathedral-sam.glb | published `models/sf/grace-cathedral.glb` (118,076 B); **shipped** |
-| W3-LM8 | City Hall, cleaned | from LM8-3D; 6,860 tris | — | 0 | 06674d67-43e6-466c-bb1e-c9155b44c064 | city-hall-sam.glb | published `models/sf/city-hall.glb` (151,068 B); **shipped** |
+| W3-LM6 | Dutch windmill body, cleaned | from LM6-3D; 5,880 tris; sails stay procedural | — | 0 | 2c4615b0-8d00-42cc-aa3e-b3bbe010e3c2 | dutch-windmill-sam.glb | published `models/sf/windmill-body.glb` (91,692 B); **shipped**; W7-R texture recolour (grey-brown shingle, `scripts/opus-sf/assets/w7r/recolour-glb.py`, 0 credits) → 83,956 B |
+| W3-LM7 | Grace Cathedral, cleaned | from LM7-3D; 5,880 tris | — | 0 | e70a3dfe-cd66-4a9b-be55-49fec8396d55 | grace-cathedral-sam.glb | published `models/sf/grace-cathedral.glb` (118,076 B); **shipped**; W7-R texture recolour (cool grey, slate roofs, 0 credits) → 111,804 B |
+| W3-LM8 | City Hall, cleaned | from LM8-3D; 6,860 tris | — | 0 | 06674d67-43e6-466c-bb1e-c9155b44c064 | city-hall-sam.glb | published `models/sf/city-hall.glb` (151,068 B); **shipped**; W7-R texture recolour (lead-grey dome, 0 credits; W7-R-review regenerated from the original: no green streaks, mid grey) → 145,168 B |
 
 Subtotal part a: **0 credits**. Balance after: 455.58 (unchanged by D2).
 

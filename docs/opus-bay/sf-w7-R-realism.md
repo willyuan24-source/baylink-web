@@ -91,7 +91,7 @@ are walkers and cars moving between the two runs: every fix is inside the site's
 | 6 | Lombard St | the hairpin beds' flower cubes → **round hydrangea clumps** (ICO) in blue / pink / purple, the planters' flowers in the same colours and bigger; lod 0 2,478 of 2,500 triangles; tops row regenerated | 4 / 4 / 4 | 66 · 235.2k → 67 · 236.4k | `qa/w7/R/c-lombard-before-after.jpg` |
 
 The texture recolour is `scripts/opus-sf/assets/w7r/recolour-glb.py` (HSV rules per model on the baked WebP, the Draco
-mesh untouched, the GLB rewritten; sizes 151,068 → 146,860 B, 118,076 → 111,804 B, 91,692 → 83,956 B, pinned in
+mesh untouched, the GLB rewritten; sizes 151,068 → 146,860 B (W7-R-review: regenerated from the original, no green streaks, mid grey: 145,168 B), 118,076 → 111,804 B, 91,692 → 83,956 B, pinned in
 `data/assets.ts` and `tests/opus-bay-w7-r.test.ts`). No Higgsfield credits were spent.
 
 ## References (Wikimedia Commons, thumbnails fetched 2026-09-29 to scratch only)

@@ -1,7 +1,8 @@
 # W7-R: recolour the baked WebP texture of a Draco + WebP GLB (bufferView of images[0]) by hue rules, rewrite the GLB.
 #   python recolour-glb.py <in.glb> <out.glb> <rule-set> [--preview out.png]
 # Rule sets (HSV on 0..1, hue in degrees), each pixel takes the first matching rule:
-#   city-hall : sage / teal dome and window panels -> slate grey (the real dome is lead-grey with gold-leaf ribs)
+#   city-hall : sage / teal dome and window panels -> mid lead-grey (the real dome is lead-grey with gold-leaf ribs)
+# Always run on the ORIGINAL GLB (git show d3aa6975^:public/opus-bay/models/sf/<name>.glb), never on a recoloured one.
 #   grace     : teal roofs -> dark slate; cream stone -> cool light grey concrete
 #   windmill  : cream-white tower body -> weathered grey-brown shingle (the brown cap / gallery / wood stay)
 import io, json, struct, sys
@@ -35,7 +36,10 @@ def recolour(img, rule):
     h2, s2, v2 = h.copy(), s.copy(), v.copy()
     teal = (h >= 140) & (h <= 205) & (s > 0.12)
     if rule == 'city-hall':
-        h2[teal] = 205; s2[teal] = s[teal] * 0.22; v2[teal] = v[teal] * 0.80
+        # W7-R-review: the sage runs from hue ~85 (the panel edges, left as green streaks on the grey by 140..205) to 205,
+        # and v * 0.80 read near-black in the game; the real dome is a mid lead-grey in sun: keep the old sage's lightness
+        green = (h >= 85) & (h <= 210) & (s > 0.06)
+        h2[green] = 205; s2[green] = np.minimum(s[green] * 0.25, 0.06); v2[green] = v[green] * 0.98
     elif rule == 'grace':
         h2[teal] = 210; s2[teal] = s[teal] * 0.15; v2[teal] = v[teal] * 0.70
         cream = ~teal & (h >= 20) & (h <= 75) & (s < 0.30) & (v > 0.55)

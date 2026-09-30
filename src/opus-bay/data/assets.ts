@@ -402,7 +402,7 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
   /** City Hall: the Beaux-Arts block with porticos and corner pavilions, colonnaded drum, sage dome with gold trim. */
   'sf-city-hall': {
     url: sfFile('city-hall.glb'), draco: true, kind: 'hero', landmarkId: 'city-hall',
-    scale: 1, yOffset: 0, triangles: 6860, bytes: 146_860, size: [17.7, 14.24, 11.29],
+    scale: 1, yOffset: 0, triangles: 6860, bytes: 145_168, size: [17.7, 14.24, 11.29],
   },
   // ---- wave 4 (lane V, W4-V4 / W4-V4b): the four AI landmarks of lane L's sites (landmarkId = the site holding the slot)
   ...W4_MODELS,
