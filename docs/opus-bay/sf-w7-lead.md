@@ -151,3 +151,16 @@ The owner, 2026-09-29 ≈ 23:10 PDT: after this wave goes live, two BAYLINK prom
 real world), **up to 1800 Higgsfield credits** for them. So the game lanes' "no cap" now has a floor: **lanes X and V
 together stop spending when `balance` would fall below 1900** (it was 2215.51 at 23:15 PDT). Check `balance` before every
 batch; a batch that would cross 1900 is not started (write it under Not done / Requests instead).
+
+### 7.2 23:20 PDT — linked to the site's newest information before the go-live
+
+The owner, 2026-09-29 ≈ 23:20 PDT: "推送前，记得看看里面是否都跟网站最新资讯联动". Before `main` is fast-forwarded:
+1. **W7-Z** checks the sync on the final tree and writes a "网站联动" section in `sf-w7-final-verify.md`: every San Francisco
+   event of the catalog window is in the world or kept out for a stated reason (the S venue test); every shown event has a
+   souvenir id and a name; the 新店 signs follow the site's current openings (open / soft_open, SF); `live.json` matches the
+   site's offers (re-exported through `export-live.ts` when the site's records changed); the calendar rows carry sources;
+   every link the game opens (`/events/:id`, `/offers/:id`, `/openings/:id`, guides) resolves in `vercel.json`'s routes and
+   in the prerendered pages; the 今天 tab and 这周去哪 read today's data.
+2. **The lead**, right before the go-live, merges `origin/main` again if GPT pushed (new site content), re-runs the same
+   sync checks on the merged tree (a small sync agent fixes any new gap: a venue row, a souvenir id, a sign, a re-export),
+   then `npm run check`, then the fast-forward.
