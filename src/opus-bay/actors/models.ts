@@ -81,11 +81,14 @@ const FELT_COLOR = [
   'diffuseColor.rgb *= 1.0 + obFeltV * feltAmt;',
 ].join('\n');
 /** after normal_fragment_maps: the fibres raised near the camera (three's perturbNormalArb with the felt as height) */
+// (W7-V-review: the screen derivatives are taken before the branch — dFdx / dFdy are undefined inside control flow that
+// differs per pixel (GLSL ES 3.00 §8.9), and `obNear` does at the 3–12 u fade; some mobile GPUs return garbage there)
 const FELT_BUMP = [
   '{ float obNear = (1.0 - smoothstep(3.0, 12.0, length(vViewPosition))) * feltBump;',
+  '  vec2 obDF = vec2(dFdx(obFeltV), dFdy(obFeltV));',
+  '  vec3 obSX = dFdx(-vViewPosition), obSY = dFdy(-vViewPosition);',
   '  if (obNear > 0.001) {',
-  '    vec2 obDH = vec2(dFdx(obFeltV), dFdy(obFeltV)) * obNear * 0.006;',
-  '    vec3 obSX = dFdx(-vViewPosition), obSY = dFdy(-vViewPosition);',
+  '    vec2 obDH = obDF * obNear * 0.006;',
   '    vec3 obR1 = cross(obSY, normal), obR2 = cross(normal, obSX);',
   '    float obDet = dot(obSX, obR1) * faceDirection;',
   '    vec3 obGrad = sign(obDet) * (obDH.x * obR1 + obDH.y * obR2);',

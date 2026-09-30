@@ -196,3 +196,17 @@ test('W7-V4 · the AI de Young tower: registered, the file matches its row, Drac
   const tri = (fn: (b: { add: () => void }) => void) => { let n = 0; const b = new Proxy({}, { get: () => () => { n++; } }); fn(b as never); return n; };
   assert.ok(tri(b => deYoungTower.swap!.build(b as never)) < tri(b => deYoungTower.build(b as never, 0)), 'the remainder draws less than the full procedural site (no tower)');
 });
+
+test('W7-V-review · the felt bump takes its screen-space derivatives in uniform control flow (GLSL ES 3.00 §8.9: dFdx / dFdy are undefined inside a branch that differs per pixel)', async () => {
+  const THREE = await import('three');
+  const m = await import('../src/opus-bay/actors/models');
+  const shader = { uniforms: {} as Record<string, unknown>, vertexShader: THREE.ShaderLib.standard.vertexShader, fragmentShader: THREE.ShaderLib.standard.fragmentShader };
+  m.characterMaterial().onBeforeCompile(shader as unknown as THREE.WebGLProgramParametersWithUniforms, null as unknown as THREE.WebGLRenderer);
+  const frag = shader.fragmentShader;
+  const start = frag.indexOf('float obNear'), branch = frag.indexOf('if (obNear', start);
+  assert.ok(start > 0 && branch > start, 'the felt bump is in the shader');
+  const end = frag.indexOf('#include', branch);
+  const inBranch = frag.slice(branch, end < 0 ? undefined : end);
+  assert.ok(!/dFd[xy]\s*\(/.test(inBranch), `no derivative inside the per-pixel branch:\n${inBranch}`);
+  assert.ok(/dFdx\(obFeltV\)/.test(frag.slice(start, branch)), 'the height derivatives are taken before the branch');
+});

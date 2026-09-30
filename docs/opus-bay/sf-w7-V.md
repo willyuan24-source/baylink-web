@@ -203,3 +203,80 @@ shaft under a capital, a little further apart. The flower boxes stay where they 
 
 - Lane B / the lead: `W5-bus 20+ simulated minutes` is red on `origin/opus-bay` since ≈ 23:00 (a bus waits 29.2 s at the
   F-line box at (149, 601)); not caused by lane V (it fails with lane V's part b removed).
+
+## Review
+
+Adversarial review of lane V (W7-V-review), 2026-09-30 00:25–01:30 PDT, worktree `C:/Users/willy/wt/w7-v-rev` from
+`origin/opus-bay` `1903d52f`, dev port 5731, scratch `C:/Users/willy/opus-qa/w7/v-rev/`.
+
+### 给主人的摘要
+
+1. V 线这一波是**真的变好看了**，我逐个近看、夜里看、手机看过：人物的毛毡质感自然不刺眼，特效（星光、金币、彩带、水花、烟尘）是手绘风、
+   手机上边缘也柔和了；金门大桥的薄雾很淡、没有穿帮成硬块；de Young 美术馆的新塔比原来那根浅色方柱子更像真的（深色铜板、扭转、
+   玻璃观景层），夜里也正常；艺术宫的柱廊更通透。
+2. 找到并修好 1 个问题：毛毡"绒毛凹凸"的着色器在一个按像素分支里取屏幕导数，这在规范里是未定义行为，某些手机显卡上可能出现黑点/闪点
+   （桌面上看不出来）。现在导数在分支外先算好，画面完全一样（有前后对比图），并加了测试。
+3. 账本补全：两张毛毡素材图（V11 用上了、V12 没用上）原来写着"见 part b"，现已写明；Higgsfield 花费我自己再对了一遍交易记录：
+   **V 线共 30.00 分，无误**。
+4. 性能都在预算内（电脑最多约 100 次绘制 / 35 万三角形，手机约 81 / 27 万），地区模式（district）的建筑没有被改动。
+5. **不阻挡上线**。唯一红的测试（W5 公交 20 分钟）不是 V 线造成的，归 B 线。
+
+### What was checked
+
+- **Every commit** of the lane (`git log --grep "W7-V"`: 7436af14, 252fd275, 52d166b5, b4389ef1, 9aa298aa, b9cb8774,
+  7c0a76a1, d527a08e, 56c7361c, b548e463, 071b2666) read line by line.
+- **Played / shot** with `node scripts/opus-shot.mjs` (lane V's shoot helper pointed at 5731), every image read:
+  desktop 1440 × 900 high golden hour and night, phone 390 × 844 mid (dpr 3): the player's felt close up (felt on / off),
+  the fx at night (sparkle, coin pop, confetti), phone fx (sparkle, coin, dust, splash — soft edges, no white blobs), the
+  Golden Gate from the deck (follow cam, 12–16 wisps alive), from under the span, at both towers and at both ends (the
+  wisps started past the towers hug the Marin hill as a soft cloud; no hard cut against the deck, the legs or the water
+  was found), at night; the de Young at golden hour (phone) and at **night** (not shot by the lane: the AI tower reads,
+  a little brighter than the dark museum because of its part glow 0.05, like the other AI landmarks); the Palace's
+  columns (lane V's own before / after). QA: `qa/w7/V/v-rev-night-dy-ggb-wisp.jpg`, `qa/w7/V/v-rev-deck-felt.jpg`.
+- **Calls / triangles** (`renderer.info`, the view at the shot) — Ferry Building start close-up desktop high 95–100 /
+  348–353k, phone mid 77–81 / 270–273k; de Young desktop night 77–82 / 207–242k, phone 61–63 / 127–163k; Golden Gate deck
+  desktop 37–44 / 84–147k, phone 29 / 70k. W6-Z's desktop maximum was 122 / 365k: every spot is inside 150 / 400k.
+- **Assets**: `fx-atlas.webp` 512² 40 KB, `felt.webp` 256² 24 KB, `w7v-de-young-tower.glb` 101 KB (Draco + one 1024²
+  WebP, 3,920 triangles, checked by the lane's test against the file) — small; iPhone texture memory +≈ 5.6 MB at most
+  (1024² tower + mips), the others < 1.5 MB.
+- **Shaders / programs**: `hardToyMaterial` shares the character program (same key, same source; three runs each
+  material's own `onBeforeCompile`, so the toy car and bikes carry their own felt-off uniforms) — confirmed; the GLB
+  BAYBAY's positions are in world units (0.85 × 1.3 × 0.79), so the tri-planar felt tiles at the intended scale; program
+  counts unchanged between felt on / off (50–60 desktop, 51–58 phone).
+- **Events and allocations**: the new hooks (`footstep` — only the player's controller emits it, `coins`, `play`,
+  `arrival`, `glide:land`) spawn into the preallocated pool; no per-frame allocation added (the `for … of [aPos, aFx,
+  aCol]` array is older than wave 7); wisps stop spawning at quality low / in the district / away from the bridge (test).
+- **Higgsfield**: the `transactions` tool re-read to 2026-09-29 11:17 UTC — lane V's rows are exactly the 14 Nano Banana
+  Pro and four 3D Objects rows: **30.00 credits** (ledger section "Review check").
+- **Facts**: the lane's two sources (https://en.wikipedia.org/wiki/De_Young_Museum,
+  https://en.wikipedia.org/wiki/Palace_of_Fine_Arts, checked by the lane 2026-09-29) were not re-fetched by the review
+  (time); what shipped matches what they are cited for (a dark, perforated / dimpled copper tower that twists, a glass
+  top; a colonnade of separate columns).
+- **District / text / touch / saves**: no district mesh, save field, UI string (zh / en / 繁體) or touch target changed
+  by the lane; the hero regression and the whole opus-bay suite ran (below).
+
+### Defects fixed
+
+| # | defect | before | after |
+|---|---|---|---|
+| R1 | **The felt bump took `dFdx` / `dFdy` inside `if (obNear > 0.001)`** (`actors/models.ts`, `FELT_BUMP`): `obNear` varies per pixel (the 3–12 u fade), and GLSL ES 3.00 §8.9 leaves derivatives in non-uniform control flow undefined — on some mobile GPUs that is garbage (black / sparkling pixels along the fade ring on every character). | the derivatives of the felt height and of the view position computed in the branch | taken before the branch (`obDF`, `obSX`, `obSY`), the branch only applies them; same look (shot before / after, desktop high and phone mid), same program count; test `W7-V-review · the felt bump takes its screen-space derivatives in uniform control flow` (red on the lane's tree, green after) |
+| R2 | Ledger: V11 / V12 verdicts were "see part b" and never filled in | "see part b" | V11 kept (felt.webp), V12 not shipped (felt.py reads only V11) |
+
+### Open items (not blocking)
+
+- A painted atlas that loads after its pool was disposed (a world switch within the first second) is set on the dead
+  material and never disposed — a CPU-side image only (it was never uploaded); harmless, noted.
+- The coin pop also fires for rewards that already have their own sparkle (eggs, crests, the hunt): two bursts on one
+  moment, by design of the lane (paid coins always pop); a taste call for the owner / lane E.
+- The ferry's wake stays faint on bright water (the lane's own note); the de Young tower's twist direction is the
+  concept's, not checked against the real one (lane's note).
+- Lane V's Not-done list stands (vehicles unchanged, night glows, St Ignatius, the Haight kit).
+
+### Checks (the review's tree)
+
+- See the commit: `tsc` 0 · `eslint .` 0 errors · the opus-bay suite (numbers in the commit message).
+
+### Blocking the go-live
+
+- **Nothing from lane V.** `W5-bus 20+ simulated minutes` is red on `origin/opus-bay` itself (lane B's; reproduced
+  here on the lane's tree before any review change).

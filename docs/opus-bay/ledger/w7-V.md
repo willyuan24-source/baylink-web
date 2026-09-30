@@ -32,8 +32,8 @@ only on black. No text, no letters, no logos, no watermark, no border, no drop s
 | V8 | 03:50 | cfafa074 | confetti curl | 2 | hf_20260930_035045_cfafa074-eb53-4a2f-b579-9cab03045ea0.png | raw/s7-confetti.png | kept: atlas cell confetti |
 | V9 | 03:50 | fcdecca9 | light glow / flare | 2 | hf_20260930_035045_fcdecca9-c6b2-483e-9889-976f88e7857b.png | raw/s8-flare.png | kept: atlas cell flare |
 | V10 | 03:50 | 3eb56fe8 | leaf | 2 | hf_20260930_035045_3eb56fe8-d62b-437f-9299-5e69315740ae.png | raw/s9-leaf.png | kept: atlas cell leaf |
-| V11 | 03:50 | b9a5fe99 | tileable felt (plush toy) | 2 | hf_20260930_035045_b9a5fe99-001a-47cf-a3e2-f173398de41e.png | raw/t0-felt.png | see part b |
-| V12 | 03:50 | 3a81a0aa | tileable minky plush | 2 | hf_20260930_035046_3a81a0aa-9739-4a90-a84b-563828ec44f7.png | raw/t1-plush.png | see part b |
+| V11 | 03:50 | b9a5fe99 | tileable felt (plush toy) | 2 | hf_20260930_035045_b9a5fe99-001a-47cf-a3e2-f173398de41e.png | raw/t0-felt.png | kept: `public/opus-bay/w7v/felt.webp` (W7-V3, `felt.py`: high-passed, seamless, 256²) — *verdict filled in by the W7-V-review* |
+| V12 | 03:50 | 3a81a0aa | tileable minky plush | 2 | hf_20260930_035046_3a81a0aa-9739-4a90-a84b-563828ec44f7.png | raw/t1-plush.png | not shipped: W7-V3 uses V11 alone (`felt.py` reads only `t0-felt.png`); no side-by-side of V12 was recorded — *verdict filled in by the W7-V-review* |
 
 Batch 1 subtotal: 24 credits.
 
@@ -61,3 +61,10 @@ Lane V's charges are the only "Nano Banana Pro" and "3D Objects" rows since 03:4
 Flash"): 12 × Nano Banana Pro −2 at 03:50:45–46 (batch 1 = 24), 2 × Nano Banana Pro −2 at 04:44:56 (V13, V14 = 4), 3D
 Objects −1 04:47:06 / +1 refund 04:47:08 (V15) / −1 04:47:13 (V16) / −1 04:48:01 (V17) (= 2). **Lane V total: 30.00
 credits** (batch 1 24 + batch 2 6), every row above accounted for; no other lane-V job.
+
+## Review check (W7-V-review, `transactions` read 2026-09-30 07:35 UTC)
+
+Re-read by the reviewer, three pages back to 2026-09-29 11:17 UTC: since 03:40 UTC the only non-TTS rows are the 14 ×
+Nano Banana Pro −2 (03:50:45–46 × 12, 04:44:56 × 2) and the four 3D Objects rows (−1 04:47:06, +1 refund 04:47:08, −1
+04:47:13, −1 04:48:01); everything after 04:48 is lane X's Qwen Audio 3.0 TTS Flash. **Lane V = 30.00 credits, as
+recorded.** The two V11 / V12 rows had "see part b" as their verdict; filled in above.
