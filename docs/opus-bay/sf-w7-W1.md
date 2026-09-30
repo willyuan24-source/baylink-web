@@ -288,3 +288,16 @@ Started 23:40 PDT (part b committed as `f2843de8`; its full suite on the rebased
   graph edge within 3 u, so neither the O'Brien's trip end nor a moved arrival can be walked to: either a graph edge
   along the district's promenade there (the graph is published data) or a waiver of the P2 3 u rule for this row; then
   `ARRIVAL_OVERRIDES['ss-jeremiah-obrien']` at ≈ (−128, −6) facing the berth, and the ship on the Pier 35 north face.
+
+## Final checks (00:44 PDT)
+
+- Pushed: `7e93789a` (W7-W11, part a), `dc9f1099` (W7-W12, part b), `30028e90` (W7-W13, part c) on `origin/opus-bay`.
+- The combined tree (parts a–c, rebased on `4bc614be`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors
+  (43 old warnings) · suite **1585 / 1587**: `E2-5 view field in the city` (wall-clock) passes alone; `W5-bus 20+
+  simulated minutes` fails identically (bus at an interlock 29.2 s, box:f-line@5661:750, (149, 601)) on a clean
+  `origin/opus-bay` at `1903d52f` without this lane's commits (a check worktree) — lane B's test (their W7-B9 pins the
+  Bay clock since). Static sweep 694 targets: 0 BOXED · 0 SNAG · 1 UNREACHABLE (the O'Brien, as before).
+- After the last two rebases (lanes K, X, V, M, S, Q, G, P, R, B, W2): tsc 0 · eslint 0 errors · this lane's tests + the
+  look / attractions / transit-review / hero regression / landmarks / budget tests 87 / 87, then 52 / 52.
+- District mode: untouched (every change is in the city worker's fill or city-only world systems; lot-117 and lot-211
+  are hidden in city mode only; the hero regression is green).
