@@ -219,7 +219,7 @@ Adversarial review of lane V (W7-V-review), 2026-09-30 00:25–01:30 PDT, worktr
 3. 账本补全：两张毛毡素材图（V11 用上了、V12 没用上）原来写着"见 part b"，现已写明；Higgsfield 花费我自己再对了一遍交易记录：
    **V 线共 30.00 分，无误**。
 4. 性能都在预算内（电脑最多约 100 次绘制 / 35 万三角形，手机约 81 / 27 万），地区模式（district）的建筑没有被改动。
-5. **不阻挡上线**。唯一红的测试（W5 公交 20 分钟）不是 V 线造成的，归 B 线。
+5. **不阻挡上线**。检查全绿：tsc 0、eslint 0 错误、opus-bay 测试 1645/1645（之前红的 W5 公交测试已由 B 线修好）。
 
 ### What was checked
 
@@ -274,9 +274,11 @@ Adversarial review of lane V (W7-V-review), 2026-09-30 00:25–01:30 PDT, worktr
 
 ### Checks (the review's tree)
 
-- See the commit: `tsc` 0 · `eslint .` 0 errors · the opus-bay suite (numbers in the commit message).
+- On the lane's tree (base `1903d52f`) with the fix: `tsc` 0 · `eslint .` 0 errors · opus-bay 1619 / 1620 (the W5-bus
+  proof, red alone too: the base itself). **Rebased on `origin/opus-bay` `e10457b5`** (lane B's W7-B9 pins the proof's
+  Bay clock): `tsc` 0 · `eslint .` 0 errors (43 old warnings) · the opus-bay suite **1645 / 1645**.
 
 ### Blocking the go-live
 
-- **Nothing from lane V.** `W5-bus 20+ simulated minutes` is red on `origin/opus-bay` itself (lane B's; reproduced
-  here on the lane's tree before any review change).
+- **Nothing from lane V.** (`W5-bus 20+ simulated minutes` was red on the base `1903d52f` itself — lane B's; green
+  after the rebase onto W7-B9.)
