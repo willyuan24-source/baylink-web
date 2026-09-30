@@ -212,6 +212,7 @@ export const MODERATION_ACTION_LABELS: Record<string, string> = {
   account_limited: '账号已限制',
   account_suspended: '账号已暂停',
   account_restored: '账号已恢复',
+  outing_cancelled: '小队已关闭',
 };
 
 export const MODERATION_TARGET_TYPE_LABELS: Record<string, string> = {
@@ -219,6 +220,8 @@ export const MODERATION_TARGET_TYPE_LABELS: Record<string, string> = {
   post: '帖子',
   report: '举报',
   official_verification: '官方认证',
+  outing: '小队',
+  outing_message: '小队消息',
 };
 
 export const REPORT_REASON_LABELS: Record<string, string> = {

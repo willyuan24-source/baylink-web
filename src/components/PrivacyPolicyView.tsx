@@ -19,6 +19,11 @@ export const PrivacyPolicyView = () => (
       ]} />
     </LegalSection>
 
+    <LegalSection title="Small-group visibility / 小队信息可见范围">
+      <LegalP>发布后，小队标题、介绍、日期时段、城市、公共集合点、费用说明、人数和队长公开昵称可被其他人看到。请勿填写家庭住址、电话或证件信息。申请备注提供给队长；确认成员可以查看成员名单和队内讨论。退出或被移除后，不能继续访问讨论。举报会将相关内容提供给管理员处理；退出小队不会撤回别人已经看到的信息，也不会自动删除举报记录。</LegalP>
+      <LegalP>Published outing details and the host’s public nickname are visible to other users and visitors. Request notes are shown to the host, while confirmed members can access the group roster and discussion. Leaving or removal ends discussion access. We store membership status, consent timestamps, changes, messages and report evidence to operate groups and handle abuse. Reports are available to administrators. Using the optional AI draft tool sends the idea you submit and any linked public event context to the AI provider; private profiles or group conversations are not included by this tool. Outing notifications use the site, not SMS.</LegalP>
+    </LegalSection>
+
     <LegalSection title="1. Information We Collect">
       <LegalP>We may collect the following information:</LegalP>
       <LegalUl items={[

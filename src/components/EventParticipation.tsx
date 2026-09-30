@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Check, Heart, MessageCircle, RefreshCw, Users, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useApp, type AppContextValue } from '../app/context';
 import type { MonthlyEvent } from '../data/monthly-types';
 import { getEventBuddies, getEventEngagement, setEventInterest, type EventBuddy, type EventEngagement, type EventInterest } from '../lib/event-engagement';
@@ -68,7 +69,7 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       if (!alive.current) return false;
       revisions.current[id] = (revisions.current[id] || 0) + 1;
       setEntries(previous => ({ ...previous, [id]: entry })); setFailed(false);
-      app.showToast(value.lookingForBuddy ? '已加入一起去，可随时退出。' : value.interested ? '已记下想去，在「我的想去」中找回。' : '已取消想去与搭子状态。', 'success');
+      app.showToast(value.lookingForBuddy ? '已公开找搭子意向，尚未加入具体小队。' : value.interested ? '已记下想去，在「我的想去」中找回。' : '已取消想去与搭子状态。', 'success');
       return true;
     } catch {
       if (alive.current) { app.showToast('这次未能确认保存结果，请刷新后查看。', 'error'); void refresh(); }
@@ -103,7 +104,7 @@ export function EventParticipationActions({ event, today = getBayAreaToday() }: 
 function EventBuddies({ event, ended, onClose }: { event: MonthlyEvent; ended: boolean; onClose: () => void }) {
   const participation = useEventParticipation()!;
   const { app } = participation;
-  useLocale();
+  const locale = useLocale();
   const [buddies, setBuddies] = useState<EventBuddy[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,7 +145,8 @@ function EventBuddies({ event, ended, onClose }: { event: MonthlyEvent; ended: b
     <div className="discovery-modal buddy-sheet" onClick={action => action.stopPropagation()}>
       <button type="button" className="discovery-modal-close" onClick={onClose} aria-label="关闭一起去"><X size={20} /></button>
       <span className="discovery-eyebrow">BAYLINK · GO TOGETHER</span><h2>有个搭子，出门更容易。</h2><h3>{event.title}</h3><p>{event.dateLabel} · {event.city}</p>
-      <div className="discovery-inline-note"><strong>由你决定是否公开加入</strong><p>“想去”只计入人数；加入“一起去”才会在这里显示你的昵称、头像与城市，其他用户可以通过站内私信联系你。随时退出即可从列表移除。</p></div>
+      {!ended && <div className="discovery-inline-note"><strong>{locale === 'en' ? 'Make a concrete plan together' : locale === 'zh-Hant' ? '選好日期，約一支小隊' : '选好日期，约一支小队'}</strong><p>{locale === 'en' ? '2–8 adults, including the host. Choose a date, request a place and wait for confirmation.' : locale === 'zh-Hant' ? '2–8 位成年人，包含隊長。選具體場次、申請加入，確認後在小隊內溝通。' : '2–8 位成年人，包含队长。选具体场次、申请加入，确认后在小队内沟通。'}</p><Link className="discovery-primary" onClick={onClose} to={`/together?event=${encodeURIComponent(event.id)}`}><Users size={17} />{locale === 'en' ? 'Find or start a small group' : locale === 'zh-Hant' ? '查看或發起小隊' : '查看或发起小队'}</Link></div>}
+      <div className="discovery-inline-note"><strong>{locale === 'en' ? 'Only sharing an interest?' : locale === 'zh-Hant' ? '還沒定日期？可以先公開找搭子意向' : '还没定日期？可以先公开找搭子意向'}</strong><p>“想去”只计入人数；加入“一起去”才会在这里显示你的昵称、头像与城市，其他用户可以通过站内私信联系你。随时退出即可从列表移除。</p><p>{locale === 'en' ? 'This public list is an interest signal; it does not reserve a place in a group.' : locale === 'zh-Hant' ? '此名單只表示意向，不代表已加入小隊或保留名額。' : '此名单只表示意向，不代表已加入小队或保留名额。'}</p></div>
       {!ended ? <button type="button" className="discovery-primary" disabled={busy || (!!app?.user && !me)} onClick={join}><Users size={17} />{me?.lookingForBuddy ? '退出一起去' : app?.user ? '公开加入一起去' : '登录后加入一起去'}</button> : me?.lookingForBuddy ? <button type="button" disabled={busy} onClick={() => { void updateMembership({ interested: false, lookingForBuddy: false }); }}>退出已结束活动</button> : <p>活动已结束，不再接受新的出行意向。</p>}
       <div className="buddy-list-heading"><h3>正在找搭子的人</h3><button type="button" disabled={loading} onClick={() => { void load(); }}><RefreshCw size={14} />刷新</button></div>
       {failed ? <p role="alert">搭子列表暂时无法加载，请点刷新重试。</p> : !loading && buddies.length === 0 ? <p className="buddy-empty">还没有人公开加入。你可以先记下想去，或把活动分享给朋友。</p> : null}

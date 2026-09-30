@@ -36,6 +36,11 @@ export const TermsView = () => (
       </LegalP>
     </LegalSection>
 
+    <LegalSection title="Small-group outings / 一起出门">
+      <LegalP>小队面向自行声明年满 18 岁的用户；发起与申请加入须完成当前手机号验证或平台资料审核。验证不等于身份、年龄或背景调查。每队 2–8 人，包含队长，首次见面请选择公共场所。小队申请只有被队长接受后才占用确认名额，不等于主办方报名、购票或服务预约。BAYLINK 本功能不收款，也不提供接送或人身安全保证。</LegalP>
+      <LegalP>Members must self-declare that they are at least 18. Hosting and joining require current phone verification or BAYLINK profile review; neither verifies age or background. Groups have 2–8 people including the host and meet in public places. A request is pending until the host accepts it. Confirmation is a group coordination status, not an event ticket, organizer registration or service reservation. Members can leave, hosts can cancel, and material changes require members to reconfirm. AI prepares editable drafts only; users review and publish their own arrangements.</LegalP>
+    </LegalSection>
+
     <LegalSection title="1. Use of BAYLINK">
       <LegalP>
         Users may use BAYLINK to browse, publish, and interact with local community information. Users are responsible for the accuracy, legality, and safety of the content they post.

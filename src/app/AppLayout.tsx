@@ -276,7 +276,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
     if (postIdParam) return;
     const path = location.pathname;
-    if (/^\/(plan|play|calendar|my-week|ai-in-the-bay)\/?$/.test(path)) return; // These pages own their metadata.
+    if (/^\/(plan|play|calendar|my-week|ai-in-the-bay|together)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
     if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
@@ -879,7 +879,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         <BayBayFloatingLauncher
           baybayPanelOpen={baybayPanelOpen}
           hidden={!!(
-            /^\/play\/?$/.test(location.pathname) ||
+            /^\/(play|together)\/?$/.test(location.pathname) ||
             showCreate ||
             postIdParam ||
             threadIdParam ||

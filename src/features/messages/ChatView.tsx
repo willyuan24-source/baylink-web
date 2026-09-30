@@ -270,6 +270,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
                 <div className="mb-2 flex items-center justify-between gap-4 text-xs text-stone-500"><strong>{systemLabel}</strong><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time></div>
                 <p className="whitespace-pre-wrap break-words leading-relaxed" translate="no">{messageText(message)}</p>
                 {message.id.startsWith('booking_') && <Link to="/me/bookings" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View booking' : tr('查看预约')}</Link>}
+                {message.id.startsWith('outing_') && <Link to="/together?view=mine" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View my groups' : locale === 'zh-Hant' ? '查看我的小隊' : '查看我的小队'}</Link>}
               </article> : <article className={`modern-chat-message ${mine ? 'is-mine' : ''}`} data-message-id={message.id} aria-label={new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}>
                 {!mine && <div className="modern-chat-avatar">{showAvatar && <Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={8} />}</div>}
                 <div className="modern-chat-message-content">
