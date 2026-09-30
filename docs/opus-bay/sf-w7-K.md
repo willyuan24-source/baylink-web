@@ -219,6 +219,9 @@ except `GameRoot.tsx`, `voiceW5.ts`, `w5Features.ts`, `album.ts`, `photo.ts`; `d
   (the page's own listener, the state set to hidden) → stick 0, released, still 0 1.2 s after coming back with the old
   finger still down; pushed again, the viewport turned to 844 × 390 mid-touch → released (0), still 0 1.4 s later; the
   toolbar case (390 × 844 → 390 × 774 mid-touch) → still 1.00 (W6-K1 kept).
+- Checks for parts b and c (the tree of W7-K3 … W7-K8 before the rebase): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1547 / 1547**, fail 0 (the hero regression and district tests included).
 
 ### Decisions
 
