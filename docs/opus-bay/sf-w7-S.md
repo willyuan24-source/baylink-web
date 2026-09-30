@@ -281,3 +281,65 @@ Written 2026-09-29 ≈ 23:10 PDT.
   usually; the Chinatown festival (Oct 31 11–15, Waverly Place `{ x: 36.0, z: 149.0 }`) has a pumpkin patch — pumpkins
   there would fit if you dress it.
 - **Lane K**: the area chip at Raising Cane's reads 北滩 · Jefferson Street (your `cityAreaAt` item 4, the Wharf area).
+
+## Part d · the owner's live dates end to end (W7-S4)
+
+Written 2026-09-29 ≈ 23:25 PDT. The world's own functions over the real catalog on this tree (`activeEventsAt`,
+`calendarOn`, `jetsUp`, `blueLineOn`, `halloweenPhase`, `sunTimes`; scratch `C:/Users/willy/opus-qa/w7/s/dates.mts`), then
+the moments marked ▶ played in the game on the dev server with `?date=`.
+
+| Bay time | world events open (event @ venue row) | calendar rows | jets | Halloween phase | sunset |
+|---|---|---|---|---|---|
+| Fri Oct 2 12:00 | Hardly Strictly @ hellman-hollow | — | — | season | 18:51 |
+| Sat Oct 3 10:30 | the market + **Foodwise Latine Makers** @ ferry-building, Hardly Strictly | — | — | season | 18:49 |
+| Sun Oct 4 13:00 | Litquake @ YBG, **Castro Street Fair** @ castro-market, Hardly Strictly | — | — | season | 18:48 |
+| Fri Oct 9 11:30 | — | **Parade of Ships** | not yet (+ the Blue Angels line) | season | 18:40 |
+| Fri Oct 9 12:40 | Fleet Week @ marina-green | Parade of Ships | up (+ blue line) | season | 18:40 |
+| Sat Oct 10 12:30 | the market, Fleet Week | — | up (+ blue line) | season | 18:39 |
+| ▶ Sun Oct 11 12:40 | Fleet Week, **Inner Sunset Flea** @ irving-11th, YBG Dance Day, Italian Heritage Parade @ jefferson-powell | — | up (+ blue line) | season | 18:38 |
+| Sat Oct 24 12:30 | the market, Exploratorium family day, Chowder Fest, Thrill-O-Ween @ thrive-city | — | — | season | 18:20 |
+| ▶ Sat Oct 24 15:00 | Exploratorium, Chowder Fest, Thrill-O-Ween, **Bay Beats** @ golden-gate-bandshell | — | — | season | 18:20 |
+| ▶ Sat Oct 31 12:30 | the market, the Halloween Hoopla @ YBG | Halloween, **Chinatown Halloween Festival** | — | night | 18:12 |
+| Sat Oct 31 19:30 | Figaro opening @ the Opera House | Halloween, Chinatown festival | — | night | 18:12 |
+| ▶ Sun Nov 1 10:00 | — | **DST ends** | — | muertos | **17:11** |
+| Mon Nov 2 12:00 / 19:30 | — | **Día de los Muertos** (19:00, 22nd & Bryant) | — | muertos | 17:10 |
+
+Played (dev server 5707, headless Chrome `--force_high_performance_gpu`):
+
+- **Oct 11 12:40**, phone 390 × 844 dpr 3, zh, `?at=marina-green`: `presence()` open = Fleet Week, the Inner Sunset Flea, YBG
+  Dance Day, the Italian Heritage Parade; kits built = the parade (250 tris) and Fleet Week (468) — the two nearest, the
+  flea's arch (364 tris, seen built at Irving in part a) is 700 u away; `jets()` = up, built, 4 jets, 1,096 triangles, 15
+  soft boxes; BAYBAY's offered lines: the Fleet Week souvenir and event lines, `jets-up`
+  (`qa/w7/S/s4-fleet-week-2026-10-11-marina-phone.jpg`: Marina Green by the water, lane W2's new Alcatraz on the horizon).
+- **Oct 17 12:00**, desktop, zh, on 20th St east of Arkansas facing west (the DEV `placePlayer`): `presence()` open = the
+  market, **Potrero Hill Festival**, **the Marina library open house**, the Pumpkin Fest, the Science Festival, FilBookFest,
+  **the Fall Show**; kits = the Science Festival (368) and the festival's arch (364); the arch spans 20th St with its coral
+  banner and balloons, the area chip 波特雷罗山 · 20th Street, and BAYBAY says "今天Potrero Hill有街区节，10:00起，出发前查官网确认哦。"
+  — the start-only rule, no invented end (`qa/w7/S/s4-potrero-hill-arch-2026-10-17-desktop.jpg`).
+- **Oct 18 12:00**, desktop, zh, on Mission St south of the arch facing north: `presence()` open = **Sunday Streets**, the
+  Fall Show (Sunday 11–17), FilBookFest; kit = the arch (364 tris) over Mission St with its pennants and balloons, the area
+  chip 精益区 · Mission Street (`qa/w7/S/s4-sunday-streets-arch-2026-10-18-desktop.jpg`). The toy traffic still drives
+  under it (the real street is closed to cars that day: a known gap, like the Castro).
+- **Oct 24 15:00** (part a): Bay Beats with its concourse crowd, no toy stage.
+- **Oct 31 12:00** at Waverly Place (part b): the Chinatown line on offer.
+- **Nov 1 10:00** (part b): the 今天 tab's DST row with today's sunset 17:11, 这周 Día de los Muertos 明天 with 以官网为准.
+- Oct 2–4 are unchanged from wave 6 (the same catalog rows and venue rows; the table above from the world's functions),
+  plus the Foodwise market on Oct 3 at the Ferry Building.
+
+### Known gaps
+
+- Toy cars still drive through the closed streets of the three street fairs (the arch lets them pass under, as at the
+  Castro); the Nov 2 procession is lane H's, not shot here.
+- The table's times are the Bay clock's; on 1 Nov the repeated 01:00–01:59 hour reads its first (PDT) copy (bayNow's rule).
+
+### Requests
+
+- **Lane H**: the Inner Sunset Flea (Oct 11 10–16, "Tricks, Treats & Treasures") has its arch at `{ x: -158.0, z: 1017.9 }`
+  on Irving at 11th Ave — pumpkins there would fit, like Thrive City and Sunnydale.
+- **W7-Z**: Oct 11 13:00 at Jefferson & Powell / Aquatic Park is the heaviest overlap (the parade kit, the Fleet Week kit
+  and crowd, six jets on high; the day-0 scout's suggestion) — worth a dated perf spot.
+
+## Not done
+
+- Toy ships for the Parade of Ships (Oct 9 11:00–12:00): a calendar row only (part b, decision 5).
+- A venue row for the Chinatown Halloween Festival: it waits for the site's catalog (Request above).
