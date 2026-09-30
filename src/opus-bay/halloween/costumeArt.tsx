@@ -26,6 +26,21 @@ export function CostumeArt({ kind }: { kind: CostumeKind }) {
       </svg>
     );
   }
+  if (kind === 'bat-wings') {
+    // W7-G2: the pelican's bat wings (two scalloped wings, finger ribs, the orange piping)
+    return (
+      <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
+        {[1, -1].map(s => (
+          <g key={s} transform={s < 0 ? 'translate(48 0) scale(-1 1)' : undefined}>
+            <path d="M23 20 L41 14 L45 22 L42 30 C40 27 37 27 36 31 C34 27 30 27 29 32 C27 28 25 28 23 30 Z" fill="#3b2d4a" />
+            <path d="M41 14 L42 30 M41 14 L36 31 M41 14 L29 32" stroke="#231a2c" strokeWidth="1.2" fill="none" />
+            <path d="M23 20 L41 14" stroke="#e8792b" strokeWidth="2.2" strokeLinecap="round" />
+          </g>
+        ))}
+        <ellipse cx="24" cy="25" rx="4" ry="6" fill="#f6ecd9" />
+      </svg>
+    );
+  }
   if (kind === 'cat-ears') {
     return (
       <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>

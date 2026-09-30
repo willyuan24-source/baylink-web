@@ -26,7 +26,7 @@ export type UseKind = 'compass' | 'magnifier' | 'fly-ticket' | 'fly-gift';
 /** the notebook pages (economy/stamps.ts PAGE_IDS) */
 export type PageId = 'stamps' | 'finds' | 'views' | 'sounds';
 /** W6-G3 (lane G): the Halloween costumes (their geometry and tile pictures live in halloween/costume*) */
-export type CostumeKind = 'witch-hat' | 'pumpkin-head' | 'cat-ears' | 'ghost-sheet';
+export type CostumeKind = 'witch-hat' | 'pumpkin-head' | 'cat-ears' | 'ghost-sheet' | 'bat-wings';
 
 export interface ItemDef {
   /** append-only id `[a-z0-9-]` (the `shop` event's item, the `coins` source `shop:<id>`) */
@@ -116,6 +116,9 @@ export const ITEMS: readonly ItemDef[] = [
   { id: 'hat-pumpkin', shelf: 'baybay', slot: 'baybay-hat', name: bi('南瓜头', 'Pumpkin head'), short: bi('南瓜头', 'Pumpkin'), price: 120, hat: 'pumpkin', costume: 'pumpkin-head', season: 'halloween', note: bi('万圣节限定 · 晚上会发光', 'Halloween only · glows at night') },
   { id: 'my-cat-ears', shelf: 'me', slot: 'player-hat', name: bi('猫耳朵', 'Cat ears'), short: bi('猫耳朵', 'Cat ears'), price: 80, color: 0x2a2530, costume: 'cat-ears', season: 'halloween', note: bi('万圣节限定', 'Halloween only') },
   { id: 'my-ghost', shelf: 'me', slot: 'player-hat', name: bi('小幽灵披风', 'Ghost sheet'), short: bi('小幽灵', 'Ghost'), price: 100, color: 0xf6f3ee, costume: 'ghost-sheet', season: 'halloween', note: bi('万圣节限定', 'Halloween only') },
+  // W7-G2 (lane G, append-only): the pelican's Halloween costume — bat wings on its wing bones (charApi 'pelican' wingL /
+  // wingR, halloween/costumeMesh.ts); worn in the pelican's slot instead of the ribbon
+  { id: 'pelican-bat-wings', shelf: 'rides', slot: 'pelican', name: bi('鹈鹕蝙蝠翅膀', 'Pelican bat wings'), short: bi('蝙蝠翅膀', 'Bat wings'), price: 100, costume: 'bat-wings', season: 'halloween', note: bi('万圣节限定 · 飞起来会扑扇', 'Halloween only · they flap in flight') },
 ];
 
 export const ITEM_IDS: readonly string[] = ITEMS.map(i => i.id);

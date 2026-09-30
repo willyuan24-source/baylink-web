@@ -63,3 +63,44 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
 
 - A bubble that starts while the card is open (a neighbourhood greeting after a teleport, seen in QA) shows above the
   dim: `game/flow.ts bubble()` pauses only for the city postcard reward and the goals step (lane K's file).
+
+## Part b · the pelican's bat wings (W7-G2, 20:48–21:30 PDT)
+
+### What was built
+
+| file | what |
+|---|---|
+| `actors/charApi.ts` (the approved widening, §4, surgical) | `CharWho` += `'pelican'`; `AttachSlot` += `'wingL' \| 'wingR'`. Existing callers unchanged (tsc: the only errors the widening raised were inside `charImpl.ts`) |
+| `actors/charImpl.ts` (surgical, lane K's file) | a `pelican` slot table (`head` on the yellow crown, `neck` at the ribbon, `back` on the mantle, `wingL` / `wingR` = the wing bones' own frames); `slotDef()` (a slot a body lacks does nothing: `attach('player', 'wingL', …)` is ignored); `anchor()` resolves `host.pelican()` and returns null without a rig; `syncPelican()` once a frame (in `update`, no allocation unless the rig changed) puts waiting pelican attachments on when the rig appears, moves them to a new rig, takes them off when it goes; `dispose()` clears them; `emote` / `tint` on the pelican do nothing |
+| `economy/items.ts` (APPEND-ONLY) | `CostumeKind` += `'bat-wings'`; `pelican-bat-wings` appended (index 35): 鹈鹕蝙蝠翅膀 / Pelican bat wings, shelf `rides`, slot `pelican`, 100 coins, `season: 'halloween'`, note 万圣节限定 · 飞起来会扑扇 |
+| `economy/wear.ts` (surgical) | the `pelican` slot: bat wings → `attach('pelican', 'wingL' / 'wingR', mesh)` + `vehiclePaint('pelican', null)` (the ribbon off); a ribbon / nothing → the wings off (only when they were on, so a ribbon change sends exactly what it always sent) + the paint |
+| `halloween/costumeMesh.ts` | `batWingGeometry(side)`, `pelicanBatWingMesh('L' \| 'R')`: a thin membrane just above the feathered arm (dark purple on top, mauve underneath) with a scalloped trailing edge between three finger ribs fanning back from the wrist, a cream thumb claw, an orange piping on the leading edge that glows at night (`aInfo.w` 0.9); **108 triangles a wing, 216 the pair** (≤ 420), the hats' material (`ob-toy-dyn`: no new program), no shadow |
+| `halloween/costumeArt.tsx` | the shop tile (two scalloped wings, the piping) |
+| `halloween/costume.ts` | watches the `pelican` slot too: the `halloween` costume event (X's poof), `costume:first`, BAYBAY's `w7g-costume-bat-wings` 鹈鹕也扮成小蝙蝠啦，扑扇扑扇！ |
+| `halloween/HalloweenPage.tsx`, `halloween.css` | the costume list shows the wings (5 tiles, auto-fill grid) |
+| `tests/opus-bay-w7-g-pelican.test.ts` (new, 4) | charApi on the real pelican rig with a stub host (waits for the rig, on the wing bones, the tip rises > 0.8 u with a 0.6 rad flap, moves to a new rig, off without one, dispose, wing slots only on the pelican, the player's head slot unchanged); the item; wear; the geometry budget |
+| `tests/opus-bay-w5-shop.test.ts` (surgical) | the W5-E6 rule "every pelican-slot item is a PAINTS paint" exempts the bat-wings costume |
+
+### Evidence
+
+- Played (dev 5706, `?world=city&start=free&halloween=1&debug=1`): 110 coins → bought the wings (→ 10, + 10 for
+  `costume:first` = 20) → BAYBAY: "Our pelican's a little bat now — flap, flap!" (`qa/w7/G/b-bought-line.jpg`) → G:
+  the glide over the Bay with the bat wings on both wings, orange piping, claws, finger ribs, the hands' feathers past the
+  wrist (`b-desktop-bat-wings-glide.jpg`, 1440 × 900). Phone 390 × 844 dpr 3, quality mid, climbing (W held): three
+  frames 180 ms apart, the wings (and the membranes with them) at three flap angles (`b-phone-bat-wings-flap-strip.jpg`).
+  Draw calls during the glide 50 (the wings add 2 small meshes while worn).
+- Checks (21:40): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1498 / 1498** (the deadlock test passed this run). The first run had two red W5 shop tests from this part, fixed before the push: W5-E6 wants every pelican-slot item to be a paint (the bat wings are exempted as a costume, surgical) and W5-E7 pins the calls a ribbon sends (wear.ts now takes the wings off only when they were on).
+
+### Decisions
+
+- Two rigid meshes on the wing bones, not a SkinnedMesh bound to the rig: a skinned mesh on the hats' material would be a
+  new shader program; rigid pieces on the arm flap exactly with it. The membrane stops at the wrist (x ≈ 2.0): the hand
+  flexes on its own bone (`tipL` / `tipR`, not in the approved slots), so a membrane over it would part from the feathers
+  — the feathered hand past the bat wing reads as a costume strapped on.
+- The wings replace the ribbon in the one `pelican` wear slot (no save change).
+- 100 coins (the brief's ≈ 100; the costumes are 80–120).
+- A try-on in the shop attaches them to the pelican's rig like the ribbon's paint (seen when the pelican is near).
+
+### Known gaps
+
+- `back` / `head` / `neck` on the pelican exist in the slot table but nothing uses them yet (a pumpkin bow later).

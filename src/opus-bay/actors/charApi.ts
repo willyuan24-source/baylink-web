@@ -17,8 +17,13 @@ import type { Bilingual } from '../core/types';
 /** Emotes the implementation plays (the existing anim.ts channel has wave, cheer, clap, pose; F adds the rest). */
 export const EMOTES = ['wave', 'cheer', 'clap', 'point', 'pose', 'dance', 'lie', 'sit', 'float', 'pet'] as const;
 export type Emote = (typeof EMOTES)[number];
-export type CharWho = 'player' | 'baybay';
-export type AttachSlot = 'head' | 'neck' | 'back';
+/**
+ * Wave 7 (the lead's approved widening, sf-w7-lead.md §4; lane G implements it): `'pelican'` — the ride pelican (attach
+ * only: an emote or a tint on it does nothing); `wingL` / `wingR` ride its wing bones and flap with them (valid only for
+ * the pelican; `head` / `neck` / `back` for the pelican too). A pelican attachment waits for the rig and moves with it.
+ */
+export type CharWho = 'player' | 'baybay' | 'pelican';
+export type AttachSlot = 'head' | 'neck' | 'back' | 'wingL' | 'wingR';
 export type TintPart = 'scarf' | 'hat' | 'pack';
 export type PaintKind = 'bike' | 'car' | 'pelican';
 export interface SoftBox { minX: number; minZ: number; maxX: number; maxZ: number; minY?: number }

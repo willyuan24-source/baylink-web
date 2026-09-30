@@ -24,7 +24,9 @@ import { BIKE_LIVERIES, PAINTS, PALETTE, PELICAN_RIBBON, RIBBON_HIDDEN, isPaintI
  *   until stand() or any move.
  * - attach: an object on a body slot (head / neck / back), in the slot's frame: origin on the slot point, +y up, +z the
  *   way the body faces, character units (the body's own scale applies). A player head item hides the bucket hat.
- *   Attachments move with BAYBAY when her GLB replaces the procedural body.
+ *   Attachments move with BAYBAY when her GLB replaces the procedural body. W7-G2 (wave 7, lane G, the approved
+ *   widening): the pelican too — head / neck / back and its two wing bones (wingL / wingR: the object flaps with the
+ *   wing); its attachments wait for the rig (host.pelican()) and move to a new one; a slot a body lacks does nothing.
  * - tint: the player's hat and backpack, BAYBAY's scarf (vertex colours on the clay rigs, recolor.ts; the textured GLB
  *   keys the scarf's teal in her shader: models.ts baybayScarfUniforms). Other parts: nothing to tint (no-op).
  * - vehiclePaint: PAINTS ids (vehicles/models.ts). bike: the bike the player rides (its own livery back when they get
@@ -63,12 +65,21 @@ export interface CharHost {
   pelican(): Rig | null;
 }
 
-const SLOTS: Record<'newcomer' | 'baybay' | 'baybay-glb', Record<AttachSlot, { bone: string; at: readonly [number, number, number] }>> = {
+type SlotDef = { bone: string; at: readonly [number, number, number] };
+const SLOTS: Record<'newcomer' | 'baybay' | 'baybay-glb' | 'pelican', Partial<Record<AttachSlot, SlotDef>>> = {
   // the bean's crown (a hat sits here), the base of the face, the backpack's back
   newcomer: { head: { bone: 'body', at: [0, 1.03, -0.02] }, neck: { bone: 'body', at: [0, 0.3, 0.02] }, back: { bone: 'pack', at: [0, -0.2, -0.27] } },
   // the crown between the ears, the scarf ring, the middle of the back
   baybay: { head: { bone: 'head', at: [0, 0.47, 0.01] }, neck: { bone: 'body', at: [0, 0.62, 0.015] }, back: { bone: 'body', at: [0, 0.32, -0.3] } },
   'baybay-glb': { head: { bone: 'head', at: [0, 0.46, 0] }, neck: { bone: 'body', at: [0, 0.44, 0] }, back: { bone: 'body', at: [0, 0.2, -0.3] } },
+  // W7-G2 (the approved widening, sf-w7-lead.md §4): the ride pelican (actors/vehicles/models.ts buildPelicanRig) — the
+  // head's yellow crown, the ribbon's ring round the neck, the mantle behind the riders, and each wing's shoulder: a wing
+  // slot's frame is the wing bone's own (+x outward on wingL, −x on wingR, the arm reaching ≈ 1.9 u, the hand on tipL /
+  // tipR past 1.6 u), so an attachment flaps with the wing (rotation.z)
+  pelican: {
+    head: { bone: 'head', at: [0, 0.4, 0.14] }, neck: { bone: 'body', at: [0, 0.2, 1.14] }, back: { bone: 'body', at: [0, 0.46, -0.7] },
+    wingL: { bone: 'wingL', at: [0, 0, 0] }, wingR: { bone: 'wingR', at: [0, 0, 0] },
+  },
 };
 
 type LoopState = { name: Emote; left: number; body: boolean } | null;
@@ -76,7 +87,9 @@ const WHO: readonly CharWho[] = ['player', 'baybay'];
 
 export class CharImpl implements CharApi {
   private readonly host: CharHost;
-  private loops: Record<CharWho, LoopState> = { player: null, baybay: null };
+  private loops: Record<CharWho, LoopState> = { player: null, baybay: null, pelican: null };
+  /** W7-G2: the pelican rig its attachments ride now (they wait for it, and move to a new one) */
+  private pelicanRig: Rig | null = null;
   private sitting = false;
   private attached = new Map<string, THREE.Object3D>();
   /** the slot anchors made so far, each on the body it was made for */
@@ -95,6 +108,7 @@ export class CharImpl implements CharApi {
   // -------------------------------------------------------------------------------------------------------------
 
   emote(who: CharWho, name: CharEmote, opts?: { loop?: boolean; seconds?: number }): void {
+    if (who === 'pelican') return;
     const anim = who === 'player' ? this.host.playerAnim : this.host.guideAnim;
     const em = name as Emote;
     if (!(em in EMOTE_SECONDS)) return;
@@ -146,6 +160,7 @@ export class CharImpl implements CharApi {
       }
     }
     this.syncPaints();
+    this.syncPelican();
   }
 
   // -------------------------------------------------------------------------------------------------------------
@@ -158,7 +173,10 @@ export class CharImpl implements CharApi {
     if (old === obj) return;
     if (old) { old.parent?.remove(old); this.attached.delete(key); }
     if (obj) {
-      this.anchor(who, slot).add(obj);
+      const def = this.slotDef(who, slot);
+      if (!def) return;
+      // (W7-G2: the pelican's attachment waits for its rig: syncPelican puts it on once the rig is there)
+      this.anchor(who, slot)?.add(obj);
       this.attached.set(key, obj);
     }
     if (who === 'player' && slot === 'head') this.host.player.bones.hat?.scale.setScalar(obj ? 1e-4 : 1);
@@ -170,6 +188,7 @@ export class CharImpl implements CharApi {
   tint(who: CharWho, part: TintPart, color: number | null): void {
     if (color !== null && !Number.isFinite(color)) return;
     const key = `${who}:${part}`;
+    if (who === 'pelican') return;
     if (who === 'player' && part === 'scarf') return;
     if (who === 'baybay' && part !== 'scarf') return;
     this.tints[key] = color;
@@ -203,7 +222,7 @@ export class CharImpl implements CharApi {
     for (const [k, obj] of [...this.attached]) {
       if (!k.startsWith('baybay:')) continue;
       obj.parent?.remove(obj);
-      this.anchor('baybay', k.slice('baybay:'.length) as AttachSlot).add(obj);
+      this.anchor('baybay', k.slice('baybay:'.length) as AttachSlot)?.add(obj);
     }
     const scarf = this.tints['baybay:scarf'];
     if (scarf !== undefined) this.applyTint('baybay', 'scarf', scarf);
@@ -212,13 +231,30 @@ export class CharImpl implements CharApi {
     if (l && l.left > 0) this.host.guideAnim.play(l.name, l.left);
   }
 
-  private anchor(who: CharWho, slot: AttachSlot): THREE.Object3D {
+  private slotDef(who: CharWho, slot: AttachSlot): SlotDef | null {
+    return SLOTS[who === 'player' ? 'newcomer' : who === 'pelican' ? 'pelican' : this.host.guideIsGlb() ? 'baybay-glb' : 'baybay'][slot] ?? null;
+  }
+
+  /** W7-G2: the pelican's attachments follow its rig (put on once it exists, moved to a new rig, kept off without one). */
+  private syncPelican() {
+    const rig = this.host.pelican();
+    if (rig === this.pelicanRig) return;
+    this.pelicanRig = rig;
+    for (const [k, obj] of this.attached) {
+      if (!k.startsWith('pelican:')) continue;
+      obj.parent?.remove(obj);
+      this.anchor('pelican', k.slice('pelican:'.length) as AttachSlot)?.add(obj);
+    }
+  }
+
+  private anchor(who: CharWho, slot: AttachSlot): THREE.Object3D | null {
     const key = `${who}:${slot}`;
-    const rig = who === 'player' ? this.host.player : this.host.guide;
+    const rig = who === 'player' ? this.host.player : who === 'pelican' ? this.host.pelican() : this.host.guide;
+    const def = this.slotDef(who, slot);
+    if (!rig || !def) return null;
     const had = this.anchors.get(key);
     if (had && had.rig === rig) return had.a;
     had?.a.parent?.remove(had.a);
-    const def = SLOTS[who === 'player' ? 'newcomer' : this.host.guideIsGlb() ? 'baybay-glb' : 'baybay'][slot];
     const bone = rig.bones[def.bone] ?? rig.bones.body ?? rig.bones.root;
     const a = new THREE.Object3D();
     a.name = `ob-slot-${who}-${slot}`;
@@ -280,6 +316,7 @@ export class CharImpl implements CharApi {
     for (const k of [...this.attached.keys()]) { const [who, slot] = k.split(':') as [CharWho, AttachSlot]; this.attach(who, slot, null); }
     for (const { a } of this.anchors.values()) a.parent?.remove(a);
     this.anchors.clear();
+    this.pelicanRig = null;
   }
 }
 

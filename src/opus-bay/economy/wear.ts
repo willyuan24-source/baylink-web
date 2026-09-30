@@ -3,7 +3,7 @@ import { WEAR_SLOTS, type WearSlot } from '../data/playSave';
 import { registerFrameDecorator } from '../game/photoFrames';
 import { registerWarmup } from '../world/warmup';
 import { drawFrame } from './frames';
-import { playerCostumeMesh } from '../halloween/costumeMesh';
+import { pelicanBatWingMesh, playerCostumeMesh } from '../halloween/costumeMesh';
 import { hatMesh, hatWarmup } from './hats';
 import { itemById, type ItemDef } from './items';
 import { subscribeLedger } from './ledger';
@@ -16,6 +16,7 @@ import { wornItem } from './wallet';
  *   baybay-scarf  charApi.tint('baybay', 'scarf', colour)        player-hat   tint('player', 'hat', colour)
  *   baybay-hat    charApi.attach('baybay', 'head', hat mesh)      player-pack  tint('player', 'pack', colour)
  *   bike · car · pelican   charApi.vehiclePaint(kind, PAINTS id)  frame        the photo decorator 'e-frame'
+ *   pelican bat wings (W7-G2)  charApi.attach('pelican', 'wingL' | 'wingR', bat wing mesh), the ribbon off
  *
  * The worn state lives in the play save (`play.w`, the ledger writes it); a try-on in the 小铺 is a PREVIEW on top of
  * it (setPreview), dropped when the sheet closes. Only slots whose look changed are sent again (a tint repaints vertex
@@ -27,6 +28,8 @@ type Look = string | null;
 const preview = new Map<WearSlot, ItemDef | null>();
 let sent: Partial<Record<WearSlot, Look>> = {};
 let sentTo: CharApi | null = null;
+/** W7-G2: the pelican's bat wings are on (sent to `sentTo`) */
+let batWingsOn = false;
 
 /** What a slot shows now: the try-on, else the worn item, else the default (null). */
 export function lookOf(slot: WearSlot): ItemDef | null {
@@ -43,7 +46,19 @@ function send(api: CharApi, slot: WearSlot, it: ItemDef | null) {
       api.tint('player', 'hat', it?.costume ? null : it?.color ?? null);
       break;
     case 'player-pack': api.tint('player', 'pack', it?.color ?? null); break;
-    case 'bike': case 'car': case 'pelican': api.vehiclePaint(slot, it?.paint ?? null); break;
+    case 'pelican': {
+      // W7-G2 (lane G): the bat wings ride the pelican's wing bones (and flap with them); the ribbon comes off meanwhile
+      // (the wings are taken off only when they were on: a ribbon change alone sends what it always sent)
+      const bat = it?.costume === 'bat-wings';
+      if (bat || batWingsOn) {
+        api.attach('pelican', 'wingL', bat ? pelicanBatWingMesh('L') : null);
+        api.attach('pelican', 'wingR', bat ? pelicanBatWingMesh('R') : null);
+        batWingsOn = bat;
+      }
+      api.vehiclePaint('pelican', bat ? null : it?.paint ?? null);
+      break;
+    }
+    case 'bike': case 'car': api.vehiclePaint(slot, it?.paint ?? null); break;
     case 'frame': break; // painted at the shutter (the decorator reads lookOf('frame'))
   }
 }
@@ -52,7 +67,7 @@ function send(api: CharApi, slot: WearSlot, it: ItemDef | null) {
 export function syncLooks(api: CharApi | null = charApi()): number {
   if (!api) return 0;
   // a new implementation starts at the default looks: send only what differs
-  if (api !== sentTo) { sent = Object.fromEntries(WEAR_SLOTS.map(s => [s, null])); sentTo = api; }
+  if (api !== sentTo) { sent = Object.fromEntries(WEAR_SLOTS.map(s => [s, null])); sentTo = api; batWingsOn = false; }
   let n = 0;
   for (const slot of WEAR_SLOTS) {
     const it = lookOf(slot);
@@ -98,8 +113,9 @@ export function initWear(): () => void {
     if (api && api === sentTo) for (const slot of WEAR_SLOTS) if (sent[slot]) { try { send(api, slot, null); } catch { /* the actors are going too */ } }
     sent = {};
     sentTo = null;
+    batWingsOn = false;
   };
 }
 
 /** tests */
-export function __resetWearForTests(): void { preview.clear(); sent = {}; sentTo = null; }
+export function __resetWearForTests(): void { preview.clear(); sent = {}; sentTo = null; batWingsOn = false; }

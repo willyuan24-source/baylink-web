@@ -58,7 +58,8 @@ test('W5-E6 items: append-only order pinned, ids well formed and unique, every w
     if (it.note) assert.ok(it.note.zh.length <= 24, `${it.id}: note ≤ 24`);
     if (it.source) { assert.match(it.source.url, /^https:\/\//); assert.match(it.source.verifiedAt, /^\d{4}-\d{2}-\d{2}$/); }
     if (it.slot === 'baybay-scarf' || it.slot === 'player-hat' || it.slot === 'player-pack') assert.ok(Number.isInteger(it.color) && it.color! >= 0 && it.color! <= 0xffffff, `${it.id}: colour`);
-    if (it.slot === 'bike' || it.slot === 'car' || it.slot === 'pelican') { assert.ok(it.paint && it.paint in PAINTS, `${it.id}: a PAINTS id`); assert.equal(it.swatch, PAINTS[it.paint as keyof typeof PAINTS].color); }
+    // (W7-G2, lane G: the pelican's Halloween bat wings are a costume on its wing bones, not a paint)
+    if ((it.slot === 'bike' || it.slot === 'car' || it.slot === 'pelican') && !(it.slot === 'pelican' && it.costume === 'bat-wings')) { assert.ok(it.paint && it.paint in PAINTS, `${it.id}: a PAINTS id`); assert.equal(it.swatch, PAINTS[it.paint as keyof typeof PAINTS].color); }
     if (it.slot === 'baybay-hat') assert.ok(it.hat, `${it.id}: hat kind`);
     if (it.slot === 'frame') assert.ok(it.frame, `${it.id}: frame kind`);
     if (it.slot === 'use') assert.ok(it.use, `${it.id}: use kind`);
