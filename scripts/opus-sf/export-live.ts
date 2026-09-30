@@ -97,6 +97,12 @@ const SPECS: Spec[] = [
   {
     id: 'muni-youth-free', kind: 'transit', free: true, who: { zh: '18 岁及以下', en: '18 and under' }, place: null,
   },
+  // W7-S: GPT's Sep 29 refresh — free Muni (cable cars included) for SF residents 65+ under the income limit, after an
+  // application; the site's source is SFMTA's Vietnamese page, the rule is read from the English one
+  {
+    id: 'sfmta-free-muni-seniors', kind: 'transit', free: true, who: { zh: '65 岁以上 SF 居民，收入符合，须先申请', en: 'SF residents 65+, income limit, apply first' }, place: null,
+    ruleUrl: 'https://www.sfmta.com/fares/free-muni-seniors-ages-65', ruleCheckedAt: '2026-09-29',
+  },
   // W6-S: GPT's autumn release (2026-09-29) — the Museum of the African Diaspora reopens on Sep 30 (moadsf.org/visit:
   // Tue–Wed, Fri–Sun 11–5, Thu 12–8, closed Monday; "Every Second Saturday" free); its first-Thursday night is 4–8 pm
   {

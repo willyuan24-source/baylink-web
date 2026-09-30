@@ -4,9 +4,11 @@ import path from 'node:path';
 import test from 'node:test';
 
 /**
- * Wave 6 · lane S (W6-S3): the autumn release's new openings in the toy city (realsf/openings.ts, openingSigns.ts,
+ * Wave 6 · lane S (W6-S3): the site's new openings in the toy city (realsf/openings.ts, openingSigns.ts,
  * OpeningCard.tsx). A sign only for a San Francisco opening that is open and whose street address OpenStreetMap
  * confirms; the sign stands next to that point on the published city's walking network; its card links the BAYLINK page.
+ * W7-S: the site's own list and rule (currentOpenings, open / soft_open, region sf — src/data/planner-local-stops.ts),
+ * not only the autumn release file.
  */
 
 const g = globalThis as unknown as Record<string, unknown>;
@@ -24,19 +26,24 @@ const { projectCity } = await import('../src/opus-bay/core/geo');
 
 interface SiteOpening { id: string; region: string; city: string; status: string; address: string; verifiedAt: string; name: string }
 const RELEASE = JSON.parse(fs.readFileSync(path.resolve('src/data/autumn-release-openings.json'), 'utf8')) as SiteOpening[];
+// (W7-S) the site's list: what /openings and the planner's local stops publish
+const { currentOpenings } = await import('../src/data/local-discoveries');
+const SITE = currentOpenings as unknown as SiteOpening[];
 const dist = (a: { x: number; z: number }, b: { x: number; z: number }) => Math.hypot(a.x - b.x, a.z - b.z);
 
-test('W6-S3 openings: a sign for every open San Francisco opening of the autumn release with an OSM-checked address; the rest skipped', () => {
-  const sf = RELEASE.filter(o => o.region === 'sf');
+test('W6-S3 openings: a sign for every open San Francisco opening the site publishes (W7-S: currentOpenings, the planner’s rule) with an OSM-checked address; the rest skipped', () => {
   assert.equal(RELEASE.length, 31, 'the release file');
-  assert.equal(sf.length, 4);
+  // every open SF opening of the release is on the site's list too
+  for (const o of RELEASE.filter(x => x.region === 'sf' && x.status === 'open')) assert.ok(SITE.some(x => x.id === o.id), o.id);
+  const sf = SITE.filter(o => o.region === 'sf');
   const open = sf.filter(o => o.status === 'open' || o.status === 'soft_open');
+  assert.ok(open.length >= 6, `${open.length} open SF openings`);
   assert.deepEqual(OPENING_SIGNS.map(s => s.id).sort(), open.map(o => o.id).sort(), 'every open SF opening, and only those');
-  assert.ok(sf.some(o => o.status === 'announced' && !signById(o.id)), 'an announced opening gets no sign');
+  assert.ok(sf.filter(o => o.status === 'announced').length >= 3 && sf.filter(o => o.status === 'announced').every(o => !signById(o.id)), 'an announced opening gets no sign (Handroll Hawker, Florecita, Woods)');
   const ids = new Set<string>();
   for (const s of OPENING_SIGNS) {
     assert.ok(!ids.has(s.id)); ids.add(s.id);
-    const site = RELEASE.find(o => o.id === s.id)!;
+    const site = SITE.find(o => o.id === s.id)!;
     assert.equal(s.address, site.address, `${s.id}: the site's address`);
     assert.equal(s.name, site.name);
     assert.equal(s.siteVerifiedAt, site.verifiedAt);
