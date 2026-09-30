@@ -4,7 +4,8 @@ import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay } from '../ui/slots';
-import { startActivity, tierFor, type ActivityRun } from './kit';
+import { runtime } from '../core/runtime';
+import { CANCEL_GRACE, MOVE_CANCEL, startActivity, tierFor, type ActivityRun } from './kit';
 import { freeOnFoot, holdKeys, type HeldKeys } from './partc';
 import { DOUGH_ID, DOUGH_LINES, DOUGH_NAME } from './sfgamesLines';
 import { ensureSfSounds } from './sfgamesSounds';
@@ -137,7 +138,9 @@ let rounds = 0;
 /** 捏酸面包 at the bakery. Returns whether a game started. */
 export function startDough(): boolean {
   if (cur || !freeOnFoot()) return false;
-  const run = startActivity({ id: DOUGH_ID, name: DOUGH_NAME, better: 'higher' }, { lock: true, cancelOnMove: true, onStop: how => { if (how === 'cancel') cleanup(); } });
+  // the stick gives up (the kit's cancelOnMove, kept here): not once the loaf is out — its card comes FINISH_MS later, and a
+  // thumb back on the stick in that beat lost the medals and the card (W7-M-review)
+  const run = startActivity({ id: DOUGH_ID, name: DOUGH_NAME, better: 'higher' }, { lock: true, onStop: how => { if (how === 'cancel') cleanup(); } });
   if (!run) return false;
   ensureSfSounds();
   const game = new DoughGame();
@@ -147,8 +150,11 @@ export function startDough(): boolean {
     else if (game.phase === 'shape') doughPick(SHAPES[Number(code.slice(5)) - 1] ?? 'boule');
   });
   const r: Run = { run, game, keys, off: () => {}, quiet: performance.now() + 90000 };
+  let grace = CANCEL_GRACE;
   r.off = registerFrameSystem('m-play-dough', dt => {
     if (cur !== r) return;
+    if (grace > 0) grace -= dt;
+    else if (game.phase !== 'done' && Math.hypot(runtime.input.moveX, runtime.input.moveY) > MOVE_CANCEL) { cancelDough(); return; }
     const before = game.phase, beat = game.beat;
     for (const e of game.step(Math.min(dt, 0.1))) onDoughEvent(r, e);
     if (before !== game.phase || beat !== game.beat) changed();
@@ -206,8 +212,10 @@ function finish(r: Run) {
     });
     if (g.score >= DOUGH_TIERS[1]) charApi()?.emote('baybay', 'clap');
     sayWhenQuiet(rounds % 2 ? DOUGH_LINES.factGold : DOUGH_LINES.factBug, 2600);
-  }, 1400);
+  }, FINISH_MS);
 }
+/** The loaf out of the oven stays on the panel this long before the card (ms). */
+export const FINISH_MS = 1400;
 
 function cleanup(r: Run | null = cur) {
   if (!r || cur !== r) return;

@@ -109,8 +109,10 @@ export class CrabGame {
     if (this.measuring >= this.caught.length) ev.push(...this.nextNet());
     return ev;
   }
-  get onNet() { return this.crabs.filter(c => c.state === 'on-net').length; }
-  get eating() { return this.crabs.filter(c => c.state === 'eating').length; }
+  // counted without a new array: the run's frame system reads both every frame (W7-M-review)
+  get onNet() { return this.count('on-net'); }
+  get eating() { return this.count('eating'); }
+  private count(st: CrabState) { let n = 0; for (const c of this.crabs) if (c.state === st) n++; return n; }
   private nextNet(): CrabEvent[] {
     const ev: CrabEvent[] = ['net-done'];
     this.caught = []; this.measuring = 0; this.crabs = [];

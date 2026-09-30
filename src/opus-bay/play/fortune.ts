@@ -83,4 +83,13 @@ export function tellFortune(): Fortune | null {
 }
 /** The card closed (好的, ✕, Esc, the overlay going away): the activity ends, no medal, no card. */
 export function fortuneDone() { run?.end({ tier: 0, card: false }); }
+
+/**
+ * The panel's mount and unmount (FortunePanel.tsx). An unmount ends the activity a tick later unless the panel mounts
+ * again at once: React StrictMode (the dev build) mounts, unmounts and remounts a new component, and ending it right
+ * away closed the card before it showed (W7-M-review: 算一卦 did nothing in the dev game once its chunk was fetched).
+ */
+let endTimer: ReturnType<typeof setTimeout> | null = null;
+export function fortunePanelUp() { if (endTimer !== null) { clearTimeout(endTimer); endTimer = null; } }
+export function fortunePanelGone() { fortunePanelUp(); endTimer = setTimeout(() => { endTimer = null; fortuneDone(); }, 0); }
 export const closeFortune = () => closeOverlay(FORTUNE_OVERLAY);

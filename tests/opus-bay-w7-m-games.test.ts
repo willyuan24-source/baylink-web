@@ -400,3 +400,46 @@ test('W7-M the chunks: small, loaded lazily from the zones, nowhere in GameRoot'
   assert.doesNotMatch(root, /sfgames|claw|fortune|crab|dough|sourdough/i);
   console.log('lane M chunk sizes (B, gzip):', JSON.stringify(sizes));
 });
+
+test('W7-M-review sourdough: the loaf out of the oven, a push of the stick in the beat before its card still pays the medals and shows the card (while it bakes the stick still gives up)', async () => {
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  kit.__setBestWriter(null);
+  kit.__resetKit();
+  const events: { type: string; source?: string }[] = [];
+  const off = onEvent(e => { events.push(e as never); });
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  const input = runtime.input;
+  try {
+    assert.ok(dough.startDough());
+    for (let i = 0; i < 20000; i++) {
+      const g = dough.doughGame();
+      if (!g || g.phase === 'done') break;
+      if (g.phase === 'knead' && g.beat < dough.BEATS && Math.abs(g.t - g.beatAt(g.beat)) < 0.006) dough.doughTap();
+      else if (g.phase === 'shape') dough.doughPick('crab');
+      else if (g.phase === 'score') { const gd = dough.GUIDES[g.cuts.length]; if (gd !== undefined && Math.abs(g.blade - gd) < 0.006) dough.doughTap(); }
+      else if (g.phase === 'bake' && g.crust >= 0.635) dough.doughTap();
+      stepFrameSystems(0.004, 3000 + i * 0.004);
+    }
+    assert.equal(dough.doughGame()?.phase, 'done');
+    // 出炉！ — the game looks over, so the thumb goes back to the stick before the card (it comes 1.4 s later)
+    input.moveX = 1;
+    for (let i = 0; i < 20; i++) stepFrameSystems(0.05, 3100 + i * 0.05);
+    await new Promise(r => setTimeout(r, 1700));
+    assert.equal(dough.doughGame(), null);
+    for (const t of [1, 2, 3]) assert.ok(events.some(e => e.type === 'reward' && e.source === `medal:sourdough:${t}`), `medal ${t} paid after the stick`);
+    assert.equal(kit.lastResultShown()?.activity, 'sourdough', 'the card shows');
+    // mid-game the stick still gives up at no cost (the kit's rule, after its grace)
+    input.moveX = 0;
+    kit.__resetKit();
+    events.length = 0;
+    assert.ok(dough.startDough());
+    for (let i = 0; i < 20; i++) stepFrameSystems(0.05, 3200 + i * 0.05);
+    assert.ok(dough.doughGame());
+    input.moveX = 1;
+    for (let i = 0; i < 4; i++) stepFrameSystems(0.05, 3300 + i * 0.05);
+    assert.equal(dough.doughGame(), null, 'given up');
+    assert.equal(kit.currentActivity(), null);
+    assert.ok(!events.some(e => e.type === 'reward'));
+  } finally { input.moveX = 0; dough.__resetDough(); kit.__resetKit(); off(); game.set({ phase: prev.phase, mode: prev.mode }); }
+});

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { playSound } from '../audio/hooks';
 import { useT } from '../i18n';
 import type { OverlayProps } from '../ui/slots';
-import { FORTUNE_WORK_MS, fortuneDone, type Fortune } from './fortune';
+import { FORTUNE_WORK_MS, fortunePanelGone, fortunePanelUp, type Fortune } from './fortune';
 import { FORTUNE_NAME } from './sfgamesLines';
 import './sfgames.css';
 
@@ -29,8 +29,9 @@ export default function FortunePanel({ props, close }: OverlayProps) {
     window.addEventListener('keydown', key, true);
     return () => window.removeEventListener('keydown', key, true);
   }, [close, out]);
-  // however the card goes (好的, ✕, Esc, walking away), the fortune's activity ends with it
-  useEffect(() => () => { fortuneDone(); }, []);
+  // however the card goes (好的, ✕, Esc, walking away), the fortune's activity ends with it (a tick later: a StrictMode
+  // remount in dev keeps it)
+  useEffect(() => { fortunePanelUp(); return () => { fortunePanelGone(); }; }, []);
   const f = p?.fortune;
   if (!f) return null;
   let host = '';

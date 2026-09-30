@@ -264,3 +264,89 @@ tsconfig.app.json --test tests/opus-bay-*.test.ts` **1616: 1615 pass, 1 fail** �
 interlock wait (29.2 s at `box:f-line@5661:750`, bar 25 s), red on pristine `origin/opus-bay` too (checked in a detached
 worktree at `90dc7798`; lane H's W7-H7 saw it): a request to lane B / the lead. Lane M's own tests 14 / 14. Higgsfield:
 0 credits (none spent by this lane). The dev server on 5712 is stopped; no Chrome left running.
+
+## Review (W7-M-review, the adversarial review · 2026-09-30 00:23 → 01:40 PDT)
+
+### 给主人的摘要
+
+1. 三个小游戏和算命机我都重新玩了一遍（手机 390 × 844 单指、电脑 1440 × 900 键盘）：抓娃娃、7 号码头捞螃蟹、捏酸面包都能玩完、拿奖牌、出结果卡；地区模式（district）没有变化。
+2. **修了两个真问题**：
+   - **算命婆婆在开发版里点了没反应**：卡片刚出现就被关掉（React 开发模式会把面板"装上—拆下—再装上"一次，原来一拆下就结束了）。正式网站原本不受影响，但开发版测试（W7-I / W7-Z 会在博物馆门口试玩）会以为它坏了。现在开发版和正式版都正常。
+   - **捏酸面包出炉后的 1.4 秒里碰一下摇杆，整局就作废**（没奖牌、没金币、没记录）。现在面包出炉以后碰摇杆也会照常出结果卡、发奖牌；游戏进行中推摇杆仍然是"放弃"。
+   - 顺手：捞螃蟹每一帧少建几个临时数组（小的性能优化）。
+3. 现实资料我又上网核对了一遍（2026-09-30）：机械博物馆 300 多台机器、免费入场、最老一台 1884 年、2002 年搬到 45 号码头；Playland 1972 年关门；旧金山湾的珍宝蟹一律不能带走，石蟹每天 35 只、至少 4 英寸；7 号码头 840 英尺、公共码头钓鱼不用执照；金门大桥雾笛（南塔一声、桥中间两声）——**全部正确**。
+4. **没有阻止上线的问题。**
+
+### What was checked
+
+- **Every lane M commit read**: `44f9514e` (M1: the games, zones, props, lines, records, tests), `3f69b496` (M2 report + shots),
+  `d963a982` (M3 collection row), `0978a465` (M4 the panel at the right ≥ 1000 px), `68b2fcda` (M5 the invite test),
+  `6412035a` (M6 checks). No other lane touched lane M's files after it (origin `071b2666`).
+- **Played in the game** (dev 5732, `?world=city`, one headless Chrome; every image read; scratch
+  `C:/Users/willy/opus-qa/w7/m-rev/`):
+  - desktop 1440 × 900 — the 抓娃娃 prompt at the Musée with BAYBAY's invite, the cabinet and the booth props on the Pier 45
+    wall; the claw panel at the right, → moves the claw, Space drops, a grab off-centre slipped (哎呀，滑掉了！); the
+    sourdough game played through (knead 40 · score 27 · bake 30 = 97, ★ **+30 coins**), W held right after 出炉！ → the card
+    still came (`qa/w7/M/rev-dough-card-after-stick-desk.jpg`).
+  - phone 390 × 844 dpr 3 touch — crabbing on Pier 7 (drop, the crabs at the bait, hold 拉！, the gauge: a 3.4″ rock crab,
+    `qa/w7/M/rev-crab-gauge-phone.jpg`); the claw by a drag in the glass (the claw went there and dropped); the fortune
+    card after the fix (`qa/w7/M/rev-fortune-strict-fixed-phone.jpg`), 好的 closes it and the activity ends.
+  - touch targets measured: ✕ 44 × 44, claw ◀ ▶ 64 × 56, 抓！ 170 × 56, crab 放回去 / 留下 167 × 64, fortune 好的 314 × 48.
+  - **district** `?world=district`: loads (the Ferry Building, 73 calls), `__opusBay.sfgames` absent — `play/` is started
+    by `game/w5Features.ts` in city mode only; nothing of lane M loads there.
+- **Calls / triangles** at the spots (dev, the pose the teleport gave): the claw prompt 104 / 327k (desktop), the bakery
+  88 / 213k (desktop), Pier 7 58 / 212k (phone) — under W6-Z's desktop maximum 122 / 365k; the props are one instanced
+  mesh (+1 call within 90 u, lane M measured on / off).
+- **Assets / iPhone memory**: nothing generated (0 Higgsfield credits), no texture files; the panels are 2D canvases drawn
+  in code, their backing store ≤ 1032 × 825 px (the claw at dpr 3, ≈ 3.4 MB) and only while a panel is open.
+- **Teardown / leaks**: keys, frame systems, rAF loops and overlays go on end and on cancel; the props layer disposes its
+  own geometry (the toy material is shared, not disposed); a world switch cancels the running activity
+  (`play/index.ts`). Per-frame work: the crab getters allocated (fixed below); the canvases' per-frame gradients and
+  the claw pile's `forEach` are negligible.
+- **Save**: new `play.b` keys `claw`, `claw-set`, `crab`, `sourdough`, `fortune-n` (bests and counters through lane E's
+  ledger; append-only `PRIZE_KINDS` bits). **Text**: zh / en everywhere; 繁體 is derived by OpenCC (`translateText`);
+  the canvases draw only digits and ✓.
+- **Facts re-checked on the web 2026-09-30**: https://en.wikipedia.org/wiki/Mus%C3%A9e_M%C3%A9canique ("over 300
+  mechanical machines", "The oldest is a Praxinoscope, built in 1884", free admission, the move in 2002, Playland
+  1928–1972); https://wildlife.ca.gov/Fishing/Ocean/Regulations/Fishing-Map/sf-bay (Dungeness "may not be taken from, or
+  possessed if taken from, San Francisco and San Pablo bays at any time"; rock crab 35 a day, 4 inches);
+  https://www.pierfishing.com/pier-7-san-francisco/ (840 feet, public pier, no licence, a Dungeness is illegal in the
+  bay); https://www.goldengate.org/bridge/history-research/bridge-features/foghorns-beacons/ (south tower: a single
+  tone and blast; mid-span: two blasts). All as the game says.
+
+### Defects fixed (red, then green)
+
+1. **The fortune teller showed nothing in the dev build** (`play/fortune.ts`, `play/FortunePanel.tsx`). The panel's
+   unmount ended the fortune's activity; React StrictMode (dev, `src/main.tsx`) mounts, unmounts and remounts a new
+   component, so the run ended 28 ms after it started (`fortune:start@22561`, `fortune:end@22589`) and the card closed
+   before it showed — every time the chunk was already fetched (the zones prefetch it at the door). Production was
+   not affected, but the dev QA of W7-I / W7-Z would have reported 算一卦 dead. Now the unmount ends it a tick later and
+   a remount calls that off (`fortunePanelGone` / `fortunePanelUp`). Test `tests/opus-bay-w7-m-review-dom.test.ts`
+   (jsdom, the panel under `React.StrictMode`): red "the fortune still runs after the StrictMode remount", green; a
+   real unmount still ends it. In the game: before — no panel, activity null after 300 ms; after — the card up
+   (`rev-fortune-strict-fixed-phone.jpg`), 好的 → activity null, panel gone.
+2. **Sourdough: a push of the stick after 出炉！ lost the whole game** (`play/dough.ts`). The card comes 1.4 s after the
+   loaf is out (`FINISH_MS`), but the kit's `cancelOnMove` kept watching: a thumb back on the stick in that beat
+   cancelled the run — no medal, no coins, no best, no card. The game now does the kit's stick check itself (same
+   `MOVE_CANCEL` and `CANCEL_GRACE`) and skips it once the loaf is out. Test `W7-M-review sourdough: …` in
+   `tests/opus-bay-w7-m-games.test.ts`: red "medal 1 paid after the stick", green; mid-game the stick still gives up
+   with nothing paid. In the game: W held right after 出炉！ → ★ card, +30 coins (`rev-dough-card-after-stick-desk.jpg`).
+3. **Crabbing: per-frame arrays** (`play/crab.ts`): `onNet` / `eating` were `filter(…).length`, read 3–4 times a frame by
+   the run's frame system; now a counting loop (behaviour unchanged, lane M's crab tests green).
+
+### Open items (not blocking)
+
+- **`play.b` is near its 32-key cap** (`data/playSave.ts MAX_BESTS`): with lane M about 28 keys can now be written
+  (steps ×3, slides, stairs ×3, hide-seek, bell, kite, skyline, claw, claw-set, crab, sourdough, fortune-n, beachball,
+  frisbee, heave, heave-tt, sealions, sled, marshmallow, first-flight, ggb-rings, crooked ×2, crests). A later wave that
+  adds ~5 more would have the ledger refuse the 33rd key (only a DEV warning): a best or the claw's collection silently
+  not saved. Lane E / the lead: raise the cap or fold counters before wave 8 adds games.
+- BAYBAY's own 和 BAYBAY 聊聊 prompt stays on during any activity (she walks up beside the player); a tap on it during a
+  game opens her dialogue over the panel. The same for every PlayKit activity since wave 5 — not lane M's; lane A / G.
+- The 手帐's row for the claw reads 最高 5 分 (souvenirs counted as points): `economy/records.ts` has only seconds /
+  points (lane M's recorded decision).
+- The `W5-bus 20+ simulated minutes` interlock wait (pre-existing on origin; lane B).
+
+### Blocking the go-live to main
+
+None.
