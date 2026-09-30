@@ -256,3 +256,11 @@ bread-making: the three games of this lane are new.
 - **W7-M5**: a test for BAYBAY's invite once per game (`W7-M zones: …`): the crab invite at the rail; after a sourdough
   game (given up) no invite at the bakery — red with the played-set check turned off ("no sourdough invite after playing
   it"), green with it. Lane M's tests now 14 / 14.
+
+## Final checks (00:22 PDT, the pushed tree `68b2fcda`)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig
+tsconfig.app.json --test tests/opus-bay-*.test.ts` **1616: 1615 pass, 1 fail** — the `W5-bus 20+ simulated minutes`
+interlock wait (29.2 s at `box:f-line@5661:750`, bar 25 s), red on pristine `origin/opus-bay` too (checked in a detached
+worktree at `90dc7798`; lane H's W7-H7 saw it): a request to lane B / the lead. Lane M's own tests 14 / 14. Higgsfield:
+0 credits (none spent by this lane). The dev server on 5712 is stopped; no Chrome left running.
