@@ -47,8 +47,17 @@ Balance before: 2223.50 (03:55 UTC, after batch 1). Concept prompts: the wave-4 
 |---|---|---|---|---|---|---|---|
 | V13 | 04:44 | e684912e | nano_banana_pro 1:1 2k, refs K6 + rotunda | 2 | hf_20260930_044455_e684912e-e9a4-4df7-b084-7e228d6c734e.png | raw/dy-a.png | kept: the concept (twist, perforated + dimpled copper, glass top) |
 | V14 | 04:44 | 63b4fc5d | nano_banana_pro 1:1 2k, ref K6 | 2 | hf_20260930_044455_63b4fc5d-6f96-4dfc-8ce7-f67b5e3ebaae.png | raw/dy-b.png | rejected: a square shaft, not the slab |
-| V15 | 04:46 | 3b46e279 | sam_3_3d on V13 | 1 (failed: no object) | — | — | failed (refund expected; see the reconciliation) |
+| V15 | 04:47 | 3b46e279 | sam_3_3d on V13 | 0 (failed: no object; −1 at 04:47:06, refunded +1 at 04:47:08) | — | — | failed |
 | V16 | 04:47 | f066422b | sam_3_3d on V14 | 1 | hf_20260930_044713_f066422b-4d0c-4265-8b74-565692cd3287.glb | ai/raw/dy-b-sam.glb | rejected with V14 |
-| V17 | 04:48 | d81df52a | sam_3_3d on V13 ("the brown tower") | 1 | hf_20260930_044801_d81df52a-f10c-4868-a6c5-c3cf9089f900.glb | ai/raw/dy-a-sam.glb | kept → `w7v-de-young-tower.glb` (3,920 tris, 100,532 B) |
+| V17 | 04:48 | d81df52a | sam_3_3d on V13 ("the brown tower") | 1 | hf_20260930_044801_d81df52a-f10c-4868-a6c5-c3cf9089f900.glb | ai/raw/dy-a-sam.glb | kept → `public/opus-bay/models/sf/w7v-de-young-tower.glb` (cleanup v2: box 4.3 × 11.15 × 2.6, 3,920 tris, 101,296 B; v1 at the mesh's own 3.45 depth read as a fat block and was not shipped) |
 
 Balance after: 2217.13 (05:02 UTC; lane X's voice jobs run in parallel, so the drop is not all this batch).
+
+Balance at 06:25 UTC (23:25 PDT): 2215.51 (lane X's voice jobs included).
+
+## Reconciliation (`transactions`, read 2026-09-30 06:30 UTC)
+
+Lane V's charges are the only "Nano Banana Pro" and "3D Objects" rows since 03:40 UTC (lane X's are "Qwen Audio 3.0 TTS
+Flash"): 12 × Nano Banana Pro −2 at 03:50:45–46 (batch 1 = 24), 2 × Nano Banana Pro −2 at 04:44:56 (V13, V14 = 4), 3D
+Objects −1 04:47:06 / +1 refund 04:47:08 (V15) / −1 04:47:13 (V16) / −1 04:48:01 (V17) (= 2). **Lane V total: 30.00
+credits** (batch 1 24 + batch 2 6), every row above accounted for; no other lane-V job.
