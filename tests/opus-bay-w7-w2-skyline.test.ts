@@ -106,3 +106,34 @@ test('W7-W2 skyline: a round of three — the card, a fact after each answer, th
   const keys = BEST_ROWS.map(r => r.key);
   assert.ok(keys.includes(SKYLINE_ID) && keys.indexOf(SKYLINE_ID) > keys.indexOf('bell'), 'the records row is appended');
 });
+
+test('W7-W2-review skyline: with one landmark in sight the quiz asks it once (not the same question three times for a free ★)', async () => {
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  kit.__setBestWriter(null);
+  const events: { type: string; source?: string; activity?: string; what?: string; tier?: number }[] = [];
+  const off = onEvent(e => { events.push(e as never); });
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false });
+  runtime.move.mode = 'foot';
+  const p = runtime.player;
+  p.x = 60; p.z = 200;
+  const coit = SKYLINE_SPOTS.find(q => q.id === 'coit-tower')!;
+  // only the ray to Coit Tower is open: everything off its line is a wall
+  const occ = (x: number, z: number) => {
+    const dx = coit.x - p.x, dz = coit.z - p.z, L = dx * dx + dz * dz, t = Math.max(0, Math.min(1, ((x - p.x) * dx + (z - p.z) * dz) / L));
+    return Math.hypot(x - p.x - dx * t, z - p.z - dz * t) < 0.6 ? 0 : 999;
+  };
+  try {
+    assert.deepEqual(S.spotsInSight({ x: p.x, y: 1.6, z: p.z }, occ).map(s => s.id), ['coit-tower']);
+    assert.ok(S.startSkyline({ occ, rand: seeded(5) }));
+    const live = S.skylineLive()!;
+    assert.deepEqual(live.order.map(s => s.id), ['coit-tower'], 'one landmark in sight: one question');
+    assert.equal(chip.chipState()?.big, '1 / 1');
+    assert.ok(S.answerSkyline('coit-tower'));
+    for (let i = 0; i < 50; i++) stepFrameSystems(0.1, i * 0.1);
+    assert.equal(kit.currentActivity(), null, 'the quiz ends after its one question');
+    // (the medals were paid once this session by the round above: the run's tier is on its end event)
+    assert.deepEqual(events.filter(e => e.type === 'play' && e.activity === SKYLINE_ID && e.what === 'end').map(e => e.tier), [1], 'one right of one: ●, not ★');
+    assert.ok(!events.some(e => e.type === 'reward' && e.source === 'medal:skyline:3'), 'no ★ for one landmark');
+  } finally { S.__resetSkyline(); off(); flow.set({ bubble: null }); game.set({ phase: prev.phase, mode: prev.mode }); }
+});

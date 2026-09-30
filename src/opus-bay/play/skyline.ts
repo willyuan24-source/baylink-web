@@ -21,7 +21,8 @@ import { VIEW_SPOTS } from './viewSpots';
  * Wave 7 · lane W2 · 那是什么？ the skyline quiz (sf-w7-lead §3 W2 (3)): anywhere with a view, 问 BAYBAY → 那是什么？
  * (play/kiteEntry.ts). BAYBAY points, the camera turns to a landmark that is really in line of sight from where you
  * stand (the ground's height field and every roof / tall part the glide knows, sampled along the ray), and you pick its
- * name from three; each answer adds the landmark's one-line fact. Three rounds (≈ 40 s): ● one right · ◆ two · ★ three →
+ * name from three; each answer adds the landmark's one-line fact. Three rounds (≈ 40 s; fewer when fewer landmarks are in
+ * sight, each asked once): ● one right · ◆ two · ★ three →
  * `medal:skyline:n` through the kit (points = right answers; the notebook keeps the best). With nothing in view she says
  * so and names the nearest 看风景 spot. Its own lazy chunk; the camera shot is released at the end.
  */
@@ -102,12 +103,13 @@ export function startSkyline(opts: { occ?: Occluder; rand?: () => number } = {})
   }
   const run = startActivity({ id: SKYLINE_ID, name: SKYLINE_NAME, better: 'higher' }, { cancelOnMove: true, onStop: () => cleanup() });
   if (!run) return false;
-  // the rounds: the landmarks in sight in a shuffled order (repeats only when fewer than three are in sight)
+  // the rounds: the landmarks in sight in a shuffled order, each asked once (W7-W2-review: with fewer than three in
+  // sight the old order repeated them, so one landmark in view was the same question three times and a free ★)
   const pool = seen.map(s => ({ s, k: rand() })).sort((a, b) => a.k - b.k).map(e => e.s);
-  const order = Array.from({ length: ROUNDS }, (_, i) => pool[i % pool.length]);
+  const order = pool.slice(0, ROUNDS);
   game0 = { run, order, round: -1, right: 0, t: 0, wait: 0, answered: null, choices: [], rand };
   offCard = registerOverlay({ id: CARD, Component: SkylineCard });
-  showChip({ id: SKYLINE_ID, icon: 'play', title: SKYLINE_NAME, big: `1 / ${ROUNDS}`, line: { zh: '看 BAYBAY 指的方向', en: 'Look where BAYBAY points' }, action: { label: { zh: '不玩了', en: 'Stop' }, run: () => { game0?.run.cancel(); } } });
+  showChip({ id: SKYLINE_ID, icon: 'play', title: SKYLINE_NAME, big: `1 / ${order.length}`, line: { zh: '看 BAYBAY 指的方向', en: 'Look where BAYBAY points' }, action: { label: { zh: '不玩了', en: 'Stop' }, run: () => { game0?.run.cancel(); } } });
   bubble(SKYLINE_LINES.start, 2600);
   playSound('play-go');
   nextRound(game0);
@@ -130,7 +132,7 @@ function nextRound(g: Live) {
   charApi()?.emote('baybay', 'point', { seconds: 2.4 });
   const eyeY = heightAt(p.x, p.z) + EYE, dx = Math.sin(h), dz = Math.cos(h);
   runtime.camera.shot = { position: [p.x - dx * 3.8 - dz * 0.9, eyeY + 1.1, p.z - dz * 3.8 + dx * 0.9], target: [s.x, s.y, s.z], duration: 1.1 };
-  patchChip(SKYLINE_ID, { big: `${g.round + 1} / ${ROUNDS}` });
+  patchChip(SKYLINE_ID, { big: `${g.round + 1} / ${g.order.length}` });
   openOverlay(CARD, cardProps(g));
 }
 
@@ -157,7 +159,7 @@ function step(dt: number) {
   if (!g.answered) return;
   g.wait += dt;
   if (g.wait < AFTER_ANSWER) return;
-  if (g.round + 1 < ROUNDS) { nextRound(g); return; }
+  if (g.round + 1 < g.order.length) { nextRound(g); return; }
   finish(g);
 }
 
@@ -165,7 +167,7 @@ function finish(g: Live) {
   const r = g.right;
   g.run.end({
     tier: tierFor(r, [1, 2, 3]), score: r,
-    detail: { zh: `认对 ${r} / ${ROUNDS} 个地标`, en: `${r} / ${ROUNDS} landmarks named` },
+    detail: { zh: `认对 ${r} / ${g.order.length} 个地标`, en: `${r} / ${g.order.length} landmarks named` },
     bestText: v => ({ zh: `最多认对 ${v} 个`, en: `Best ${v} named` }),
     again: () => { startSkyline(); },
   });
