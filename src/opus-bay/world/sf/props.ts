@@ -116,6 +116,104 @@ function lampPost(b: Batch) {
   b.add(SPHERE(5, 4), f.at(0, 4.34, 0, 0, 0.06, 0.06, 0.06), '#c9b48c', keep);
 }
 
+/**
+ * (W7-K1) A street tree's canopy as the cameras' ray tests see it: a vertical cylinder (world u) round the trunk, from
+ * y0 to y1. Per unit scale, from the shapes above: the round tree's three blobs (1.3 … 3.45, reach 1.45 off the trunk),
+ * the cypress cone, the pine's three cones, the palm's fronds (the trunk itself is thin).
+ */
+export interface Canopy { x: number; z: number; r: number; y0: number; y1: number }
+export const CANOPY_SHAPE = {
+  round: { r: 1.45, y0: 1.3, y1: 3.45 },
+  cypress: { r: 0.8, y0: 0.6, y1: 4.6 },
+  pine: { r: 1.15, y0: 0.9, y1: 4.2 },
+  palm: { r: 1.75, y0: 3.8, y1: 5.1 },
+} as const;
+/** the widest canopy at the largest scale (round variant 1: 1.25 × 1.15) */
+const CANOPY_MAX_R = 1.45 * 1.25 * 1.15 + 0.05;
+/** the tree index's cell (u) */
+const TREE_CELL = 16;
+/** The per-instance scale select() gives a tree (the same hash), so a canopy matches what is drawn. */
+function treeScale(kind: number, variant: number, id: number): number {
+  const hue = ((id * 2654435761) >>> 0) / 4294967296;
+  return kind === K.tree ? (variant === 1 ? 1.25 : variant === 2 ? 0.75 : 1) * (0.9 + hue * 0.25) : 0.85 + hue * 0.3;
+}
+/** A chunk's trees in a CSR grid (built on the first query after the chunk arrives). */
+interface TreeIndex { minX: number; minZ: number; maxX: number; maxZ: number; cols: number; rows: number; start: Int32Array; idx: Int32Array }
+function buildTreeIndex(p: PropArrays): TreeIndex | null {
+  let minX = Infinity, minZ = Infinity, maxX = -Infinity, maxZ = -Infinity, n = 0;
+  for (let i = 0; i < p.count; i++) {
+    if (p.kind[i] === K.lamp) continue;
+    const x = p.xyzr[i * 4], z = p.xyzr[i * 4 + 2];
+    if (x < minX) minX = x; if (x > maxX) maxX = x; if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    n++;
+  }
+  if (!n) return null;
+  const cols = Math.floor((maxX - minX) / TREE_CELL) + 1, rows = Math.floor((maxZ - minZ) / TREE_CELL) + 1;
+  const cell = (i: number) => Math.floor((p.xyzr[i * 4 + 2] - minZ) / TREE_CELL) * cols + Math.floor((p.xyzr[i * 4] - minX) / TREE_CELL);
+  const start = new Int32Array(cols * rows + 1), idx = new Int32Array(n);
+  for (let i = 0; i < p.count; i++) if (p.kind[i] !== K.lamp) start[cell(i) + 1]++;
+  for (let c = 0; c < cols * rows; c++) start[c + 1] += start[c];
+  const fill = start.slice(0, cols * rows);
+  for (let i = 0; i < p.count; i++) if (p.kind[i] !== K.lamp) idx[fill[cell(i)]++] = i;
+  return { minX, minZ, maxX, maxZ, cols, rows, start, idx };
+}
+
+// (the segment tests' running state: module scratch, no closure per call)
+const SEG = { ax: 0, ay: 0, az: 0, dx: 0, dy: 0, dz: 0, len: 1, skip: 0, cone: 0, from: 0, clear: 0, best: -1, need: 0 };
+/** The fractions [lo, hi] of the segment SEG inside canopy c (XZ disc ∩ the y band when `band`), or lo > hi if none. */
+const SPAN = { lo: 0, hi: 0 };
+function segSpan(c: Canopy, band: boolean): void {
+  SPAN.lo = 1; SPAN.hi = 0;
+  const ox = SEG.ax - c.x, oz = SEG.az - c.z;
+  const a = SEG.dx * SEG.dx + SEG.dz * SEG.dz, b = 2 * (ox * SEG.dx + oz * SEG.dz), cc = ox * ox + oz * oz - c.r * c.r;
+  let lo = 0, hi = 1;
+  if (a < 1e-9) { if (cc > 0) return; } else {
+    const disc = b * b - 4 * a * cc;
+    if (disc <= 0) return;
+    const q = Math.sqrt(disc);
+    lo = Math.max(lo, (-b - q) / (2 * a)); hi = Math.min(hi, (-b + q) / (2 * a));
+  }
+  if (band) {
+    if (Math.abs(SEG.dy) < 1e-9) { if (SEG.ay < c.y0 || SEG.ay > c.y1) return; } else {
+      const t0 = (c.y0 - SEG.ay) / SEG.dy, t1 = (c.y1 - SEG.ay) / SEG.dy;
+      lo = Math.max(lo, Math.min(t0, t1)); hi = Math.min(hi, Math.max(t0, t1));
+    }
+  }
+  SPAN.lo = lo; SPAN.hi = hi;
+}
+const segHit = (c: Canopy) => {
+  segSpan(c, true);
+  let enter = SPAN.lo <= SPAN.hi ? SPAN.lo : 2;
+  if (SEG.cone > 0 && SEG.len > 1e-6) {
+    // the view cone from b (the camera) round the line to a: a canopy within atan(cone) of the line, between the two,
+    // fills part of the frame round the subject (the closer to the camera, the more). Tested at the line's closest
+    // approach to the trunk (XZ, fraction t, e off the line; the band grown by half the cone's reach there). The answer
+    // is how far out a camera may stand with the canopy still outside its cone: t·len + (e − r)/cone (or the disc's
+    // entry when the line runs through it)
+    const L2 = SEG.dx * SEG.dx + SEG.dz * SEG.dz, Lxz = Math.sqrt(L2);
+    const t = L2 > 1e-9 ? Math.min(1, Math.max(0, ((c.x - SEG.ax) * SEG.dx + (c.z - SEG.az) * SEG.dz) / L2)) : 0;
+    const e = Math.hypot(SEG.ax + SEG.dx * t - c.x, SEG.az + SEG.dz * t - c.z);
+    const grow = SEG.cone * (1 - t) * SEG.len, y = SEG.ay + SEG.dy * t;
+    if (y > c.y0 - grow * 0.5 && y < c.y1 + grow * 0.5) {
+      const reach = e >= c.r ? t + (e - c.r) / (SEG.cone * SEG.len) : Lxz > 1e-6 ? Math.max(0, t - Math.sqrt(c.r * c.r - e * e) / Lxz) : 0;
+      if (reach < 1) enter = Math.min(enter, reach);
+    }
+  }
+  if (enter > 1 || enter * SEG.len < SEG.skip) return;
+  if (SEG.best < 0 || enter < SEG.best) SEG.best = enter;
+};
+const segLift = (c: Canopy) => {
+  segSpan(c, false);
+  const lo = Math.max(SPAN.lo, SEG.from), hi = SPAN.hi;
+  if (lo > hi || lo <= 0) return;
+  // under the canopy all the way across it (a low camera looks beneath the tree): nothing to clear
+  if (SEG.ay + SEG.dy * lo < c.y0 && SEG.ay + SEG.dy * hi < c.y0) return;
+  // raising b by L lifts the segment at f by L·f: clear the top at both ends of the crossing
+  const top = c.y1 + SEG.clear;
+  const need = Math.max((top - SEG.ay) / lo, (top - SEG.ay) / hi) - SEG.dy;
+  if (need > SEG.need) SEG.need = need;
+};
+
 interface Layer { mesh: THREE.InstancedMesh; ids: number[]; born: Float32Array; scale: Float32Array; cap: number }
 
 /** One prop candidate: index into its chunk's arrays. */
@@ -193,7 +291,72 @@ export class CityProps {
   /** Props of a resident chunk (key) arrive / leave. */
   setSource(key: number, p: PropArrays | null) {
     if (p) this.sources.set(key, p); else this.sources.delete(key);
+    this.treeIdx.delete(key);
     this.dirty = true;
+  }
+
+  // --- (W7-K1) street trees for the cameras' ray tests (lane K1's Hyde St open item, lane B's Powell & Sacramento shot)
+  private treeIdx = new Map<number, TreeIndex | null>();
+  private readonly canopy: Canopy = { x: 0, z: 0, r: 0, y0: 0, y1: 0 };
+
+  /**
+   * Every street tree of the resident chunks whose canopy disc meets the disc (x, z, r), as a Canopy (one reused
+   * object: read it inside `fn`, keep nothing). Full trees and the far lollipops alike (both stand there); none in the
+   * hero slab (the hero draws its own trees) or the district.
+   */
+  treesNear(x: number, z: number, r: number, fn: (c: Canopy) => void): void {
+    const R = r + CANOPY_MAX_R, c = this.canopy;
+    for (const [key, p] of this.sources) {
+      let ix = this.treeIdx.get(key);
+      if (ix === undefined) { ix = buildTreeIndex(p); this.treeIdx.set(key, ix); }
+      if (!ix || x + R < ix.minX || x - R > ix.maxX || z + R < ix.minZ || z - R > ix.maxZ) continue;
+      const c0 = Math.max(0, Math.floor((x - R - ix.minX) / TREE_CELL)), c1 = Math.min(ix.cols - 1, Math.floor((x + R - ix.minX) / TREE_CELL));
+      const r0 = Math.max(0, Math.floor((z - R - ix.minZ) / TREE_CELL)), r1 = Math.min(ix.rows - 1, Math.floor((z + R - ix.minZ) / TREE_CELL));
+      for (let row = r0; row <= r1; row++) {
+        for (let col = c0; col <= c1; col++) {
+          const cell = row * ix.cols + col;
+          for (let k = ix.start[cell]; k < ix.start[cell + 1]; k++) {
+            const i = ix.idx[k], kind = p.kind[i], variant = p.variant[i];
+            const shape = kind === K.palm ? CANOPY_SHAPE.palm : kind === K.pine ? (variant === 0 ? CANOPY_SHAPE.cypress : CANOPY_SHAPE.pine) : CANOPY_SHAPE.round;
+            const s = treeScale(kind, variant, key * 8192 + i), gy = p.xyzr[i * 4 + 1] - 0.02;
+            c.x = p.xyzr[i * 4]; c.z = p.xyzr[i * 4 + 2]; c.r = shape.r * s;
+            if ((c.x - x) ** 2 + (c.z - z) ** 2 > (r + c.r) ** 2) continue;
+            c.y0 = gy + shape.y0 * s; c.y1 = gy + shape.y1 * s;
+            fn(c);
+          }
+        }
+      }
+    }
+  }
+
+  /** Query the canopies along the segment SEG (a disc round its middle that holds it). */
+  private alongSeg(fn: (c: Canopy) => void, grow = 0) {
+    const hx = SEG.dx / 2, hz = SEG.dz / 2;
+    this.treesNear(SEG.ax + hx, SEG.az + hz, Math.hypot(hx, hz) + grow, fn);
+  }
+
+  /**
+   * (W7-K1) The fraction along a → b (0–1) where the segment first enters a street tree's canopy, or −1. A canopy the
+   * segment enters within `skip` u of a is left out (the subject stands under it: the camera's dither is the answer).
+   * `cone` > 0 also counts a canopy near the line inside the view cone from b toward a (reach cone · the distance from
+   * b): a camera at b with a canopy right beside its lens sees mostly leaves even when the line itself is clear.
+   */
+  segmentCanopy(ax: number, ay: number, az: number, bx: number, by: number, bz: number, skip = 0, cone = 0): number {
+    SEG.ax = ax; SEG.ay = ay; SEG.az = az; SEG.dx = bx - ax; SEG.dy = by - ay; SEG.dz = bz - az;
+    SEG.len = Math.hypot(SEG.dx, SEG.dy, SEG.dz); SEG.skip = skip; SEG.cone = cone; SEG.best = -1;
+    this.alongSeg(segHit, cone * SEG.len);
+    return SEG.best;
+  }
+
+  /**
+   * (W7-K1) How far to raise b (u) so the segment a → b passes `clear` u over the top of every canopy it crosses beyond
+   * the fraction `from` (0 when it already does; a segment that stays under a canopy all the way across needs nothing).
+   */
+  canopyLift(ax: number, ay: number, az: number, bx: number, by: number, bz: number, from: number, clear: number): number {
+    SEG.ax = ax; SEG.ay = ay; SEG.az = az; SEG.dx = bx - ax; SEG.dy = by - ay; SEG.dz = bz - az;
+    SEG.from = from; SEG.clear = clear; SEG.need = 0;
+    this.alongSeg(segLift);
+    return SEG.need;
   }
 
   get sourceCount() { return this.sources.size; }
@@ -243,6 +406,7 @@ export class CityProps {
         const hue = ((p.id * 2654435761) >>> 0) / 4294967296;
         const s = name === 'round' ? (p.variant === 1 ? 1.25 : p.variant === 2 ? 0.75 : 1) * (0.9 + hue * 0.25) : 0.85 + hue * 0.3;
         L.scale[i] = s;
+        // (the canopies of treesNear follow the same scale: treeScale)
         if (name !== 'lamp') L.mesh.setColorAt(i, this.col.setRGB(0.92 + hue * 0.16, 0.95 + ((hue * 7) % 1) * 0.1, 0.9 + ((hue * 13) % 1) * 0.12));
         else L.mesh.setColorAt(i, this.col.setRGB(1, 1, 1));
       });

@@ -1,5 +1,20 @@
 import * as THREE from 'three';
 import { forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/terrain';
+import { cityStreamerLazy } from '../world/cityLoader';
+
+/**
+ * (W7-K1) The street trees the cameras' ray tests ask about: the running city's props (world/sf/props.ts CityProps
+ * `segmentCanopy` / `canopyLift`, in the city chunk), none in the district. Tests swap the source.
+ */
+export interface CanopySource {
+  segmentCanopy(ax: number, ay: number, az: number, bx: number, by: number, bz: number, skip?: number, cone?: number): number;
+  canopyLift(ax: number, ay: number, az: number, bx: number, by: number, bz: number, from: number, clear: number): number;
+}
+const cityCanopies = (): CanopySource | null => cityStreamerLazy()?.props ?? null;
+let canopyFn: () => CanopySource | null = cityCanopies;
+export function canopySource(): CanopySource | null { return canopyFn(); }
+/** Tests: a fake canopy source (null restores the city's). */
+export function setCanopySourceForTests(fn: (() => CanopySource | null) | null) { canopyFn = fn ?? cityCanopies; }
 
 /**
  * Camera rigs per movement mode (plan §6.8). actors/camera.ts keeps the on-foot rig (zoom-coupled pitch, zone views,
@@ -25,7 +40,8 @@ export const rideCamInfo = { side: 1 as 1 | -1 };
 
 export interface RideSubject {
   mode: RideCamMode;
-  /** the point to frame (rider's chest), its heading and speed (u/s) */
+  /** the point to frame (rider's chest), its heading and speed (u/s; W7-K1: a city line's is the car's own along its
+   *  heading, for the swing's and the pull-in's look-ahead) */
   x: number;
   y: number;
   z: number;
@@ -99,6 +115,25 @@ export const SWING_CLEAR = 0.7;
  */
 export const SEAT_SWING_MAX = 0.8;
 export const SEAT_CLEAR = 5;
+/**
+ * (W7-K1) Street trees are in the ride camera's ray test on the city lines (their canopies, world/sf/props.ts): the
+ * swing looks for a step whose line misses the canopies too, and the pull-in stops in front of one. A canopy the ray
+ * enters within CANOPY_SKIP u of the rider is left to the dither (the car passes right under it). A tree-lined street
+ * blocks the side-on line only now and then, so a swing is held until the side has been clear for SWING_HOLD s (it
+ * used to ease back at every gap between two trees or two houses).
+ */
+export const CANOPY_SKIP = 1.5;
+/**
+ * (W7-K1) …and a canopy within atan(CANOPY_CONE) ≈ 12° of that line (seen from the camera) counts too: played on Hyde
+ * St, the seated rear-quarter shot stood right beside a kerb tree — the line to the rider clear, half the phone's frame
+ * leaves (a phone in portrait sees ≈ 11° either side of its axis)
+ */
+export const CANOPY_CONE = 0.22;
+export const SWING_HOLD = 2.5;
+/** (W7-K1) the swing's look-ahead: a step is clear only if it is also clear where the car will be after these seconds */
+const SWING_AHEAD = [0.5, 1, 1.5] as const;
+/** (W7-K1) how far ahead (s) the pull-in looks for a canopy crossing the line */
+const CANOPY_LEAD = 0.35;
 
 export class RideCamera {
   /** manual yaw / pitch offsets from the mode's default (drag / right stick) */
@@ -125,7 +160,11 @@ export class RideCamera {
   swing = 0;
   private swingWant = 0;
   private swingAt = -1;
+  /** (W7-K1) the swing does not ease back toward the side before this (perf-clock s of the ride's `now`) */
+  private swingHoldUntil = -1;
   private readonly probe = new THREE.Vector3();
+  /** (W7-K1) the subject a moment ahead on its line (the swing's look-ahead probes) */
+  private readonly aheadSub: RideSubject = { mode: 'transit', x: 0, y: 0, z: 0, heading: 0, speed: 0, gradeAhead: 0 };
 
   /** Manual orbit (px from the pointer, or stick deltas already scaled to rad). */
   orbit(dYaw: number, dPitch: number, now: number) {
@@ -141,7 +180,7 @@ export class RideCamera {
 
   update(sub: RideSubject, dt: number, now: number, out: RidePose, baseFovDelta = 0) {
     const fresh = this.mode !== sub.mode;
-    if (fresh) { this.mode = sub.mode; this.yawOff = 0; this.pitchOff = 0; this.pull = 99; this.swing = this.swingWant = 0; this.swingAt = -1; }
+    if (fresh) { this.mode = sub.mode; this.yawOff = 0; this.pitchOff = 0; this.pull = 99; this.swing = this.swingWant = 0; this.swingAt = -1; this.swingHoldUntil = -1; }
     // re-centre behind the heading after the hold
     if (now - this.lastDragAt > HOLD[sub.mode]) {
       const k = 1 - Math.exp(-3 * dt);
@@ -203,11 +242,15 @@ export class RideCamera {
             const behind = wrap(sub.heading + Math.PI - yaw), d = dist * zoom;
             const seat = !!sub.seated, lift = seat ? 0 : SWING_PITCH, top = seat ? SEAT_SWING_MAX : 1;
             const need = seat ? Math.min(d * SWING_CLEAR, SEAT_CLEAR) : d * SWING_CLEAR;
+            const prev = this.swingWant;
             this.swingWant = top;
             for (const k of SWING_STEPS) {
               if (k > top) break;
               if (this.clearAt(sub, yaw + behind * k, clamp(pitch + lift * k + this.pitchOff, -0.1, 1.2), d, lookUp, need)) { this.swingWant = k; break; }
             }
+            // (W7-K1) the side is blocked: hold the swing; it eases back only after SWING_HOLD s of a clear side
+            if (this.swingWant > 0) this.swingHoldUntil = now + SWING_HOLD;
+            if (this.swingWant < prev && now < this.swingHoldUntil) this.swingWant = prev;
           }
           this.swing += (this.swingWant - this.swing) * (1 - Math.exp(-(this.swingWant > this.swing ? 5 : 1.2) * dt));
           yaw += wrap(sub.heading + Math.PI - yaw) * this.swing;
@@ -235,7 +278,12 @@ export class RideCamera {
     const cp = Math.cos(pitch);
     const want = this.want.set(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist + (sub.mode === 'glide' ? 1.5 : 0), sub.z + Math.cos(yaw) * cp * dist);
     // occlusion: pull in in front of a building (≥ 4 u; the glide to the hit − 1.2)
-    const hit = this.occluded(sub, want, dist);
+    let hit = this.occluded(sub, want, dist);
+    // (W7-K1) a canopy the shot cannot come in front of (nearer the rider than MIN_PULL): no pull-in for it — closer,
+    // the leaves would only fill more of the frame (played on Hyde St: the kerb trees overhang the seated rider's side
+    // and the shot sat 4 u off in the leaves); from the full distance they are a smaller part of it and the dither
+    // thins them
+    if (hit !== null && hit !== this.wallHit && hit - 0.6 < MIN_PULL) hit = this.wallHit;
     const pullTo = hit === null ? dist : Math.max(sub.mode === 'glide' ? 3 : MIN_PULL, hit - (sub.mode === 'glide' ? 1.2 : 0.6));
     this.pull += (pullTo - this.pull) * (pullTo < this.pull ? 1 - Math.exp(-14 * dt) : 1 - Math.exp(-1.5 * dt));
     const d = Math.min(dist, this.pull);
@@ -252,18 +300,51 @@ export class RideCamera {
     out.fov = this.fov;
   }
 
-  /** (W6-K1) the shot from `yaw` / `pitch` at `dist` has no wall nearer than SWING_CLEAR of its distance */
+  /**
+   * (W6-K1) the shot from `yaw` / `pitch` at `dist` has no wall nearer than SWING_CLEAR of its distance — (W7-K1) now
+   * and where the car will be SWING_AHEAD s from now (a kerb tree 8 u on passed through a step that was clear at the
+   * check: every other second the line ran through a canopy)
+   */
   private clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, need: number): boolean {
+    if (!this.clearFrom(sub, yaw, pitch, dist, lookUp, need)) return false;
+    const v = sub.speed;
+    if (Math.abs(v) < 0.5) return true;
+    const a = this.aheadSub;
+    Object.assign(a, sub);
+    for (const t of SWING_AHEAD) {
+      a.x = sub.x + Math.sin(sub.heading) * v * t; a.z = sub.z + Math.cos(sub.heading) * v * t;
+      if (!this.clearFrom(a, yaw, pitch, dist, lookUp, need)) return false;
+    }
+    return true;
+  }
+
+  private clearFrom(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, need: number): boolean {
     const cp = Math.cos(pitch);
     const p = this.probe.set(sub.x + Math.sin(yaw) * cp * dist, sub.y + lookUp + Math.sin(pitch) * dist, sub.z + Math.cos(yaw) * cp * dist);
     const hit = this.occluded(sub, p, dist);
     return hit === null || hit >= need;
   }
 
-  /** Distance from the target to the first building sample on the way to the camera, or null. */
+  /** Distance from the target to the first building sample (or, riding a city line, street-tree canopy) on the way to the camera, or null. */
   private occluded(sub: RideSubject, want: THREE.Vector3, dist: number): number | null {
     if (sub.mode === 'transit' && !sub.occlude) return null; // the car's own body is handled by the window framing + dither
     const tx = sub.x, tz = sub.z, ty = sub.y + 1;
+    // (W7-K1) the street trees' canopies on the city lines (not the car / bike / glide: their shots run along the road
+    // or over it; a pull-in for every kerb tree on a turn would breathe)
+    let tree: number | null = null;
+    const trees = sub.mode === 'transit' ? canopySource() : null;
+    if (trees) {
+      let t = trees.segmentCanopy(tx, ty, tz, want.x, want.y, want.z, CANOPY_SKIP, CANOPY_CONE);
+      // (and the same line CANOPY_LEAD s on: the pull-in comes in before a kerb tree crosses it, not a moment after)
+      const lead = sub.speed * CANOPY_LEAD;
+      if (Math.abs(lead) > 0.2) {
+        const ax = Math.sin(sub.heading) * lead, az = Math.cos(sub.heading) * lead;
+        const t2 = trees.segmentCanopy(tx + ax, ty, tz + az, want.x + ax, want.y, want.z + az, CANOPY_SKIP, CANOPY_CONE);
+        if (t2 >= 0 && (t < 0 || t2 < t)) t = t2;
+      }
+      if (t >= 0) tree = dist * t;
+    }
+    this.wallHit = null;
     const n = Math.ceil(dist / 0.6);
     for (let i = 2; i <= n; i++) {
       const k = i / n;
@@ -273,10 +354,12 @@ export class RideCamera {
       // an assumed 18 u over the ground here (the hero's blockers carry no roof heights)
       rayY = y; rayGround = heightAt(x, z); hitB = false;
       forEachBlockerNear(x, z, 0.35, blocksRay);
-      if (hitB) return dist * k;
+      if (hitB) { this.wallHit = dist * k; break; }
     }
-    return null;
+    return tree !== null && (this.wallHit === null || tree < this.wallHit) ? tree : this.wallHit;
   }
+  /** (W7-K1) the building part of the last occluded() answer (the pull-in never comes in for a canopy it cannot pass) */
+  private wallHit: number | null = null;
 }
 
 // (the ray sample the blocker test reads: module state instead of a closure per sample)

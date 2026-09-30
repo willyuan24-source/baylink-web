@@ -5,7 +5,7 @@ import { game } from '../core/store';
 import { blockersNear, canStand, cityEpoch, cityTerrain, forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { cinemaKind, currentFraming, measureBottomCover, takeFaceRequest, type Framing } from '../game/cinema';
-import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
+import { RideCamera, canopySource, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
 import { deckAt, deckCameraYaw, heroRelaxed, heroView, preferredCameraYaw, preferredViewDir, type DeckAt } from './citySlots';
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
@@ -65,6 +65,8 @@ const OPEN_HOLD_S = 3;
 const DECK_FAR = 0.44, DECK_TURN = 3, DECK_FOLLOW = 2.2;
 /** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
 const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
+/** (W7-K1) city: the follow camera clears the street trees' canopies by this much (u), under the same cap */
+const CANOPY_CLEAR = 0.6;
 // (roofLiftStep's blocker test writes here: module state, no closure per sample)
 let roofTopMax = -Infinity;
 const roofMax = (b: Blocker) => { if (b.top !== undefined && b.top > roofTopMax) roofTopMax = b.top; };
@@ -1323,7 +1325,7 @@ export class CameraController {
    * city buildings and landmarks) — the diorama view down onto a narrow Sunset or Mission street instead of a camera
    * among the roofs. Only buildings ≥ 35 % of the way out count (next to the player the dither and the occlusion turn
    * handle it), at most ROOF_LIFT_MAX of the distance; rises fast, settles slowly. District mode and the hero slab's
-   * blockers carry no tops: nothing changes there.
+   * blockers carry no tops: nothing changes there. W7-K1: the street trees' canopies count like roofs (CANOPY_CLEAR).
    */
   private roofLiftStep(target: THREE.Vector3, pos: THREE.Vector3, dt: number) {
     let need = 0;
@@ -1342,6 +1344,10 @@ export class CameraController {
       roofTopMax = -Infinity;
       forEachBlockerNear(pos.x, pos.z, 1.8, roofMax);
       if (roofTopMax > -Infinity) need = Math.max(need, roofTopMax + ROOF_CLEAR - pos.y);
+      // (W7-K1, lane B's review: on a phone the camera stood inside a street tree at Powell & Sacramento) over the
+      // street trees' canopies too — the far part of the line and the camera itself (world/sf/props.ts canopies)
+      const trees = canopySource();
+      if (trees) need = Math.max(need, trees.canopyLift(target.x, target.y, target.z, pos.x, pos.y, pos.z, 0.35, CANOPY_CLEAR));
       need = Math.min(need, L * ROOF_LIFT_MAX);
     }
     const k = this.roofCut ? 1 : need > this.roofLift ? 1 - Math.exp(-8 * dt) : 1 - Math.exp(-1.5 * dt);
@@ -1446,7 +1452,9 @@ function rideSubject(mode: RideCamMode, now: number): import('./cameraModes').Ri
       }
       transitSide.t = now;
       rideCamInfo.side = transitSide.side;
-      return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed: 0, gradeAhead: 0, side: transitSide.side, seated, occlude: true, kind: plat.kind };
+      // (W7-K1: the car's speed along its heading — the swing and the pull-in look ahead for the street trees)
+      const speed = plat.live ? plat.vx * Math.sin(plat.heading) + plat.vz * Math.cos(plat.heading) : 0;
+      return { mode, x: view.x, y: view.y + (seated ? 0.9 : 1.35), z: view.z, heading: plat.heading, speed, gradeAhead: 0, side: transitSide.side, seated, occlude: true, kind: plat.kind };
     }
     // camera on the water side of the car, as the old side-on ride shot (the promenade normal points to the Bay)
     const f = frameAt(stationOf({ x: p.x, z: p.z }).st);
