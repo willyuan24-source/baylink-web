@@ -32,6 +32,7 @@ import { BIKE_VISUAL } from './vehicles/models';
 import type { CityBikePool } from './vehicles/cityBikes';
 import { notifyGlide, type FleetSnapshot } from './moveApi';
 import { collectObstacles, residents, rideables } from './view';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Movement system (plan §6): turns input into the movement state machine (actors/modes.ts) and runs whatever the
@@ -143,7 +144,8 @@ let driveMod: typeof import('./vehicles/driveRoute') | null = null;
 let autoMod: typeof import('./vehicles/autopilot') | null = null;
 let driveLoad: Promise<typeof import('./vehicles/driveRoute')> | null = null;
 function loadDrive(): Promise<typeof import('./vehicles/driveRoute')> {
-  return (driveLoad ??= Promise.all([import('./vehicles/driveRoute'), import('./vehicles/autopilot')]).then(([m, a]) => { autoMod = a; return (driveMod = m); }, e => { driveLoad = null; throw e; }));
+  // (W7-P3: a lost request is fetched again — Chrome keeps a failed import() failed for the page's life)
+  return (driveLoad ??= Promise.all([importRetry(() => import('./vehicles/driveRoute')), importRetry(() => import('./vehicles/autopilot'))]).then(([m, a]) => { autoMod = a; return (driveMod = m); }, e => { driveLoad = null; throw e; }));
 }
 /** A pure-pursuit driver along `points` (only after loadDrive: see above). */
 const pursuit = (spec: VehicleSpec, points: Vec2[]): PursuitDriver => new autoMod!.PursuitDriver(spec, points);

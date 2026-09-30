@@ -7,7 +7,7 @@ import { CITY_POSTCARDS } from '../data/sf/postcards';
 import { CITY_DISTRICT_POIS, DISTRICT_POIS } from '../data/pois';
 import { DISTRICT_POSTCARDS } from '../data/postcards';
 import { CITY_FREE_GOALS } from '../data/sf/goals';
-import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/script';
+import { CITY_GUIDE_BARKS, CITY_SCRIPT_HOOKS, CITY_START_NODE, DISTRICT_FREE_GOALS, DISTRICT_GUIDE_BARKS, DISTRICT_SCRIPT_HOOKS, DISTRICT_START_NODE } from '../data/scriptSlot';
 import { CITY_DATA } from '../data/sf/cityData';
 import { runtime } from '../core/runtime';
 import { cityGoalTargets } from './cityGoals';

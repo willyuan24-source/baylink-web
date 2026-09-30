@@ -99,7 +99,8 @@ function Game({ startRequested }: { startRequested: boolean }) {
 /** Reports once the world has rendered a frame. */
 function FirstFrame({ onDrawn }: { onDrawn: (v: boolean) => void }) {
   const done = useRef(false);
-  useFrame(() => { if (!done.current) { done.current = true; onDrawn(true); } });
+  // (W7-P5) the first frame's time for load measurements (performance.getEntriesByName('opus-bay:first-frame'))
+  useFrame(() => { if (!done.current) { done.current = true; performance.mark?.('opus-bay:first-frame'); onDrawn(true); } });
   return null;
 }
 

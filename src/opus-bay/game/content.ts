@@ -1,6 +1,6 @@
 import type { Bilingual, DialogueNode } from '../core/types';
 import * as POI_DATA from '../data/pois';
-import * as SCRIPT from '../data/script';
+import * as SCRIPT from '../data/scriptSlot';
 
 /**
  * Optional content hooks. data/script.ts may export SCRIPT_HOOKS (entry nodes per situation), GUIDE_BARKS

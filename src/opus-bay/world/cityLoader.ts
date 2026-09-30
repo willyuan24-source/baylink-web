@@ -1,4 +1,5 @@
 import type * as CityMode from './sf/cityMode';
+import { importRetry } from '../game/importRetry';
 
 /**
  * The city chunk (lane C2, HC-1 / HC-2): everything only city mode runs (the streamer, its pools and workers, sites,
@@ -17,7 +18,7 @@ let failed: Error | null = null;
 
 /** Fetch the city chunk once (a failed fetch can be retried by calling again). */
 export function loadCity(): Promise<CityModule> {
-  loading ??= import('./sf/cityMode').then(
+  loading ??= importRetry(() => import('./sf/cityMode')).then(
     m => { mod = m; failed = null; return m; },
     (e: unknown) => { loading = null; failed = e instanceof Error ? e : new Error(String(e)); throw failed; },
   );

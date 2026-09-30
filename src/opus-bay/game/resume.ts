@@ -8,6 +8,7 @@ import { arrivalSpot, bumpTravelEpoch, placePlayer } from './fastTravel';
 import { canStand } from '../core/terrain';
 import { beginPlaying, noteInteractHandled, startGame } from './flow';
 import type { AtSpec } from './qa';
+import { importRetry } from './importRetry';
 
 /**
  * 继续上次的位置 and city spots from the URL (lane G1, G1-10 / G1-12).
@@ -53,7 +54,7 @@ async function resumeAt(spot: { x: number; z: number; heading: number }) {
   // (W5-N6) BAYBAY's welcome back is the greeting (flow's local start; lane C's onWelcome 'returning'): no toast on top
   // (W6-K2: nor the discovery batch of the spot the player stood on last time)
   // (W7-P1: discovery is its own chunk, in since the Overlay's boot)
-  await import('./discovery').then(m => { m.quietNextDiscovery(); }, () => { /* offline: no discovery */ });
+  await importRetry(() => import('./discovery')).then(m => { m.quietNextDiscovery(); }, () => { /* offline: no discovery */ });
   beginPlaying('local');
 }
 
@@ -75,7 +76,7 @@ export async function resolveCityAt(spec: AtSpec): Promise<{ x: number; z: numbe
   const { sfLandmarkAnchor } = await import('../world/sf/landmarks/context');
   const lm = sfLandmarkAnchor(lmId);
   if (lm) return lm;
-  const ix = await (await import('../data/sf/places')).loadPlaces(); // (W7-P1: the place index is a lazy chunk)
+  const ix = await (await importRetry(() => import('../data/sf/places'))).loadPlaces(); // (W7-P1: the place index is a lazy chunk)
   const p = ix?.get(spec.id) ?? ix?.landmark(lmId);
   return p ? { ...p.arrival } : null;
 }

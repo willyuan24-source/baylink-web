@@ -8,7 +8,7 @@ import { getCatalog, isExpired, loadCatalog, recommendEvents, todayInBay, weekda
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { POSTCARDS, activePostcardCount, activePostcardTotal, allPostcardsFound } from '../data/postcards';
-import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/script';
+import { FREE_GOALS, NODES, START_NODE, STOP_PROMPTS } from '../data/scriptSlot';
 import { FIRST_TOUR } from '../data/tours';
 import { readSave } from '../data/save';
 import { GRAND_TOUR } from '../data/sf/copy';

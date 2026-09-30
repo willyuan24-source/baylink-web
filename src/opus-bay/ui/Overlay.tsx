@@ -16,7 +16,8 @@ import { setRightInset } from '../game/projector';
 import { bayTimeOfDay, readQa } from '../game/qa';
 import { useIsMobile } from './hooks';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
-import { lazyPart } from './playLayer';
+import { lazyPart, loadPlayParts } from './playLayer';
+import { importRetry } from '../game/importRetry';
 import { closeOverlay, closeTopOverlay, openOverlays, overlays, subscribeOverlays } from './slots';
 
 // W6-P1 (lane P, MF9): the parts that render in play (and the toasts / live regions) are one chunk (ui/playParts.tsx), fetched as soon as GameRoot
@@ -173,14 +174,16 @@ function useBoot() {
     initFlowListeners();
     // lane G1: discovery, the HUD street name and the save v2 sampler (city mode only; district untouched). W7-P1: its
     // own chunk with the place index, fetched here in both modes as before (it is in long before Start)
-    void import('../game/discovery').then(m => { m.initG1(); }, () => { /* offline: no discovery this visit */ });
+    void importRetry(() => import('../game/discovery')).then(m => { m.initG1(); }, () => { /* offline: no discovery this visit */ });
     // F11: a first visit opens at golden hour (the key art's light); from the second visit the Bay clock applies
     if (!qa.time && !progressExtras().visited && game.get().settings.timeOfDay === 'auto') flow.set({ goldenFirstVisit: true });
     game.set(s => ({ settings: { ...s.settings, ...(qa.quality ? { quality: qa.quality } : {}), ...(qa.time ? { timeOfDay: qa.time } : {}) } }));
     runtime.camera.distance = game.get().settings.cameraDistance;
     if (qa.debug) flow.set({ debug: true });
     teleportPlayer(DISTRICT.anchors?.['ferry-gate'] ?? DISTRICT.spawn, DISTRICT.spawn.heading);
-    if (qa.start) beginPlaying(qa.start);
+    // (W7-P3: a ?start= deep link — QA — begins once the play layer is in, as the title's Start does: the dialogue
+    // script, the HUD and the feet come with it)
+    if (qa.start) { const start = qa.start; void loadPlayParts().then(() => beginPlaying(start), () => beginPlaying(start)); }
     // Prefetch the live catalog shortly after first paint (small JSON, needed by cards and the week board).
     const id = window.setTimeout(() => { void loadCatalog(); }, 1500);
     return () => window.clearTimeout(id);

@@ -1,4 +1,5 @@
 import { useSyncExternalStore, type ComponentType } from 'react';
+import { importRetry } from '../game/importRetry';
 
 /**
  * W6-P1 · the loader of the play layer's chunk (`ui/playParts.tsx`; lane P, plan MF9 / D16).
@@ -37,7 +38,10 @@ function reloadOnce(): void {
   } catch { /* storage blocked: no reload */ }
 }
 
-export function loadPlayParts(load: () => Promise<PlayParts> = () => import('./playParts')): Promise<PlayParts> {
+/** (W7-P3) the play layer's own retries are quick: at the title a reload is the next step and loses nothing */
+export const PLAY_PARTS_RETRY_MS = [500, 2000] as const;
+
+export function loadPlayParts(load: () => Promise<PlayParts> = () => importRetry(() => import('./playParts'), { waits: PLAY_PARTS_RETRY_MS })): Promise<PlayParts> {
   loading ??= load().then(
     m => {
       parts = m;

@@ -300,7 +300,8 @@ test('W6-P2 / P3: the autopilot comes with the first drive, the six residents an
   for (const m of ['actors/vehicles/autopilot.ts', 'data/sf/residents.ts', 'data/sf/arrivals.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
   // the autopilot loads with the drive routes (one promise), and every PursuitDriver is made after it
   const move = fs.readFileSync(path.join(root, 'actors/moveSystem.ts'), 'utf8');
-  assert.match(move, /Promise\.all\(\[import\('\.\/vehicles\/driveRoute'\), import\('\.\/vehicles\/autopilot'\)\]\)/);
+  // (W7-P3: each through importRetry — a lost request is fetched again)
+  assert.match(move, /Promise\.all\(\[importRetry\(\(\) => import\('\.\/vehicles\/driveRoute'\)\), importRetry\(\(\) => import\('\.\/vehicles\/autopilot'\)\)\]\)/);
   assert.doesNotMatch(move, /new PursuitDriver\(/, 'a PursuitDriver only through pursuit() (after loadDrive)');
   // the data chunk carries them (node always loads it: the tables are whole here)
   const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
@@ -348,5 +349,40 @@ test('W7-P1 / P2: the play layer carries hudLayout; drei\'s PerformanceMonitor, 
   // the card body fills the district cards' texts before it renders; node fills them when data/pois.ts loads
   assert.match(src('ui/PoiCardBody.tsx'), /^fillPoiTexts\(DISTRICT_POI_TEXTS\);\r?$/m);
   // discovery: the Overlay's boot fetches it (both modes, as before); resume and the QA map export import it lazily
-  assert.match(src('ui/Overlay.tsx'), /void import\('\.\.\/game\/discovery'\)\.then\(m => \{ m\.initG1\(\); \}/);
+  assert.match(src('ui/Overlay.tsx'), /void importRetry\(\(\) => import\('\.\.\/game\/discovery'\)\)\.then\(m => \{ m\.initG1\(\); \}/);
+});
+
+test('W7-P3: the lazy chunks where a retry is safe load through game/importRetry.ts (a failed import() stays failed for the page\'s life in Chrome)', () => {
+  const root = path.resolve('src/opus-bay');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  const sites: [string, RegExp][] = [
+    ['actors/moveSystem.ts', /importRetry\(\(\) => import\('\.\/vehicles\/driveRoute'\)\)/],
+    ['actors/camera.ts', /importRetry\(\(\) => import\('\.\/cityViews'\)\)/],
+    ['world/cityLoader.ts', /importRetry\(\(\) => import\('\.\/sf\/cityMode'\)\)/],
+    ['data/sf/cityData.ts', /await importRetry\(\(\) => import\('\.\/cityDataChunk'\)\)/],
+    ['world/WorldScene.tsx', /importRetry\(\(\) => import\('\.\/post'\)\)/],
+    ['world/WorldScene.tsx', /importRetry\(\(\) => import\('\.\/perfMonitor'\)\)/],
+    ['ui/Overlay.tsx', /importRetry\(\(\) => import\('\.\.\/game\/discovery'\)\)/],
+    ['game/resume.ts', /importRetry\(\(\) => import\('\.\.\/data\/sf\/places'\)\)/],
+    ['ui/lazyParts.ts', /loadGuideLayer = \(\) => importRetry\(\(\) => import\('\.\/GuideLayer'\)\)/],
+    ['ui/playLayer.tsx', /importRetry\(\(\) => import\('\.\/playParts'\), \{ waits: PLAY_PARTS_RETRY_MS \}\)/],
+  ];
+  for (const [m, re] of sites) assert.match(src(m), re, m);
+  // the helper imports nothing (cityData.ts awaits it at the top level of GameRoot's chunk)
+  assert.doesNotMatch(src('game/importRetry.ts'), /^\s*import\s/m);
+});
+
+test('W7-P3: the dialogue script rides with the play layer; GameRoot\'s modules read it through data/scriptSlot.ts; a ?start= deep link begins once the play layer is in', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  for (const m of ['data/script.ts', 'data/scriptLoad.ts']) assert.ok(!graph.has(m), `${m} in the main graph: ${graph.has(m) ? why(m) : ''}`);
+  assert.ok(graph.has('data/scriptSlot.ts'));
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('ui/playParts.tsx'), /^import '\.\.\/data\/scriptLoad';\r?$/m);
+  for (const m of ['game/flow.ts', 'game/brain.ts', 'game/content.ts', 'game/cityContent.ts']) assert.match(src(m), /from '\.\.\/data\/scriptSlot';/, m);
+  // the script imports nothing that imports the slot (node awaits it at the slot's top level: no wait on itself)
+  const scriptGraph = mainGraph(root, 'data/script.ts');
+  assert.ok(!scriptGraph.has('data/scriptSlot.ts'));
+  assert.match(src('ui/Overlay.tsx'), /if \(qa\.start\) \{ const start = qa\.start; void loadPlayParts\(\)\.then\(\(\) => beginPlaying\(start\), \(\) => beginPlaying\(start\)\); \}/);
 });

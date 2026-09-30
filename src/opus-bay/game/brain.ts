@@ -6,7 +6,7 @@ import type { Vec2 } from '../core/types';
 import { AREA_NAMES, cityAreaAt } from '../data/cityZones';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
-import { STOP_PROMPTS } from '../data/script';
+import { STOP_PROMPTS } from '../data/scriptSlot';
 import {
   boardPosition, bubble, currentStop, freeLeadArrived, introPending, lastArrivalAt, lastLeadCall, nextFreeGoal, maybeStartIntro, openCallMenu, performInteraction, stageMark, talkMark, tourArrived,
   tripGuide, weekArrived, welcomeMark,

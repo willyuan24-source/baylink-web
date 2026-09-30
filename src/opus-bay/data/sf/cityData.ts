@@ -1,4 +1,5 @@
 import { CONTENT_MODE } from '../contentMode';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * W5-V3 · the city's text tables out of GameRoot's chunk (lane V; plan MF9 "move the city-only data out of the GameRoot
@@ -23,4 +24,5 @@ export function cityDataWanted(mode: string = CONTENT_MODE, bundled: boolean = (
   return mode === 'city' || !bundled;
 }
 
-export const CITY_DATA: CityDataChunk | null = cityDataWanted() ? await import('./cityDataChunk') : null;
+// (W7-P3: a lost request is fetched again before the game gives up — importRetry, dependency-free)
+export const CITY_DATA: CityDataChunk | null = cityDataWanted() ? await importRetry(() => import('./cityDataChunk')) : null;

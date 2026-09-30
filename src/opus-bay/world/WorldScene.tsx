@@ -11,6 +11,7 @@ import type { PostFX, PostParams } from './post';
 import { MONITOR, declineQuality, monitorBounds } from './quality';
 import { type World, getWorld } from './world';
 import { parseKarlFlag } from './fogShader';
+import { importRetry } from '../game/importRetry';
 
 export { FERRY_ARRIVAL_SECONDS } from './life';
 
@@ -32,7 +33,7 @@ let postMod: typeof import('./post') | null = null;
 let postLoad: Promise<void> | null = null;
 let postSettled = false;
 function loadPost(): Promise<void> {
-  return (postLoad ??= import('./post').then(m => { postMod = m; postSettled = true; }, () => { postSettled = true; /* offline: no post pass */ }));
+  return (postLoad ??= importRetry(() => import('./post')).then(m => { postMod = m; postSettled = true; }, () => { postSettled = true; /* offline: no post pass */ }));
 }
 if (typeof window !== 'undefined') void loadPost();
 /**
@@ -43,7 +44,7 @@ if (typeof window !== 'undefined') void loadPost();
 type Monitor = typeof import('./perfMonitor').PerformanceMonitor;
 const noMonitor = (() => null) as unknown as Monitor;
 let monitorLoad: Promise<{ default: Monitor }> | null = null;
-const loadMonitor = () => (monitorLoad ??= import('./perfMonitor').then(m => ({ default: m.PerformanceMonitor }), () => ({ default: noMonitor })));
+const loadMonitor = () => (monitorLoad ??= importRetry(() => import('./perfMonitor')).then(m => ({ default: m.PerformanceMonitor }), () => ({ default: noMonitor })));
 const PerformanceMonitor = lazy(loadMonitor);
 let timeApplied = false;
 const post$ = { focus: 0.3, warm: 0.25, vignette: 0.35, night: 0 } satisfies PostParams;

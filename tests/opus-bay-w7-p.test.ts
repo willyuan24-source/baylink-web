@@ -87,3 +87,25 @@ test('W7-P2: the district cards\' texts — one per card, filled in place in nod
   pois.fillPoiTexts({ 'ferry-building': { summary: { zh: 'x', en: 'x' }, tips: [] } });
   assert.equal(JSON.stringify(pois.POIS), snapshot);
 });
+
+test('W7-P3: data/scriptSlot — node loads the script at once; the bindings are the script\'s own tables, live for flow / content', async () => {
+  const slot = await import('../src/opus-bay/data/scriptSlot');
+  const script = await import('../src/opus-bay/data/script');
+  assert.equal(slot.scriptLoaded(), true);
+  const names = ['NODES', 'START_NODE', 'DISTRICT_START_NODE', 'CITY_START_NODE', 'FREE_GOALS', 'DISTRICT_FREE_GOALS', 'STOP_PROMPTS', 'SCRIPT_HOOKS', 'DISTRICT_SCRIPT_HOOKS', 'CITY_SCRIPT_HOOKS', 'GUIDE_BARKS', 'DISTRICT_GUIDE_BARKS', 'CITY_GUIDE_BARKS', 'NPC_LINES'] as const;
+  for (const n of names) assert.equal(slot[n], script[n], n);
+  assert.ok(Object.keys(slot.NODES).length > 100 && slot.START_NODE && slot.FREE_GOALS.length >= 5);
+  // content.ts reads the slot's namespace at call time: a rebinding is seen at once (the play layer's registration)
+  const content = await import('../src/opus-bay/game/content');
+  const { nodeById } = await import('../src/opus-bay/game/flow');
+  const hookName = Object.keys(script.SCRIPT_HOOKS).find(k => typeof (script.SCRIPT_HOOKS as Record<string, unknown>)[k] === 'string')!;
+  const before = content.hook(hookName);
+  assert.ok(before && nodeById(slot.START_NODE));
+  const empty = { ...script, NODES: {}, SCRIPT_HOOKS: {} } as unknown as typeof script;
+  slot.registerScript(empty);
+  try {
+    assert.equal(content.hook(hookName), undefined, 'no script: no hook (the caller\'s own fallback)');
+    assert.equal(nodeById(slot.START_NODE), undefined);
+  } finally { slot.registerScript(script); }
+  assert.equal(content.hook(hookName), before);
+});

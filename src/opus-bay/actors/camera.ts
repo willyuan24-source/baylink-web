@@ -11,6 +11,7 @@ import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
 import { collectObstacles, moveBasis, residents, view } from './view';
 import type { Obstacle } from './controller';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Third-person follow camera (polish round 1): yaw / pitch / distance with smoothed springs, drag / pinch / wheel /
@@ -102,7 +103,7 @@ let cityViews: CityViews | null = null;
 let cityViewsLoad: Promise<CityViews> | null = null;
 /** Load the city camera data (camera.ts starts it on its own in city mode; tests await it). */
 export function loadCityViews(): Promise<CityViews> {
-  cityViewsLoad ??= import('./cityViews').then(m => { cityViews = m; return m; }, e => { cityViewsLoad = null; throw e; });
+  cityViewsLoad ??= importRetry(() => import('./cityViews')).then(m => { cityViews = m; return m; }, e => { cityViewsLoad = null; throw e; });
   return cityViewsLoad;
 }
 /** The city camera data in city mode once loaded (null in district mode / while loading). */
