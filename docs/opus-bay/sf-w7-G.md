@@ -178,6 +178,16 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
   (lanes M, R, H: `economy/records.ts` rows, play / realsf / halloween-world files): tsc 0 and the related tests (w7-g,
   w6-g, w7-m, w5-shop, the contracts) 88 / 88.
 
+## The pushed tree (00:15 PDT, `1251f8ec` = origin with lanes Q7–Q9, P3–P4, M4 in)
+
+- The part-d push rebased onto `9690c56d` (lanes Q, P, M: none of this lane's files) and went out after tsc 0 only; the
+  full check on that exact tree followed: tsc 0 · `npx eslint .` 0 errors (43 old warnings) · 1614 tests, 1611 pass —
+  the deadlock test red on origin (Requests) and two wall-clock tests under the night's load (`W5-D-review the paid
+  memo`, `W5-T6 audio hooks internals` "refilled at 16 a second"), both green alone (40 / 40).
+- Played once more on that tree (phone, `?halloween=night`, a fresh save): the knock pays `door:5` + `night:5`, both
+  cards wait (`__opusBay.g.cards()`), and they wait behind the new-save goals step (先看看这几个小目标～) as they should
+  (never over the goals step, a dialogue or a panel); they open once it is closed (the in-play test and part a's runs).
+
 ## Not done
 
 - The door-to-street check (a face nearer another parallel street, as Belvedere's door 8 was) for the other five streets.
