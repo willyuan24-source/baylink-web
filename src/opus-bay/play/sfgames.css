@@ -66,6 +66,11 @@
 .ob-sfg-meter .is-band { position: absolute; top: 0; bottom: 0; background: repeating-linear-gradient(45deg, rgba(255, 243, 214, .55), rgba(255, 243, 214, .55) 4px, transparent 4px, transparent 8px); border-left: 3px solid #fff; border-right: 3px solid #fff; box-sizing: border-box; }
 .ob-sfg-meter .is-mark { position: absolute; top: 0; bottom: 0; width: 5px; margin-left: -2.5px; border-radius: 2px; background: var(--ob-ink); box-shadow: 0 0 0 1.5px #fff; }
 
+/* a wide screen: the panel stands to the right, so the player and BAYBAY (her bubbles, her claps) stay in view */
+@media (min-width: 1000px) {
+  .ob-sfg-panel { left: auto; right: 28px; top: calc(96px + var(--ob-st)); transform: none; animation-name: ob-sfg-pop-side; }
+}
+@keyframes ob-sfg-pop-side { from { opacity: 0; transform: translateY(12px) scale(.96); } }
 @media (max-width: 600px) {
   .ob-sfg-panel { top: calc(112px + var(--ob-st)); padding: 8px 10px 10px; gap: 6px; }
   .ob-sfg-head strong { font-size: 15px; }

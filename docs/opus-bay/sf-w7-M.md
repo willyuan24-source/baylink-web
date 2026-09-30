@@ -234,3 +234,22 @@ bread-making: the three games of this lane are new.
   (抓娃娃机 / 捏酸面包); the Pier 7 POI's tip already says people crab there.
 - **W7-I / W7-Z**: the three places — the Musée (−202.8, 71.8 and −199.4, 70.8), the bakery (−193.4, 66.4), Pier 7
   (73.6, −24.3); the props add 1 call within 90 u of them.
+
+## Part d · W7-M4 the panel beside the player on wide screens; the checks (23:40 → 00:15 PDT)
+
+- **Pushed** at 23:40: `83bfa1d3`… rebased as W7-M1 / M2 / M3 up to `d963a982` on `origin/opus-bay` (BAYBAY's 34 lines
+  were on origin 10 minutes after the 23:30 mark: the full suite ran first).
+- **W7-M4** (`play/sfgames.css`): on a screen ≥ 1000 px wide the games' panel stands at the right (under the pill), not
+  in the middle, so the player and BAYBAY stay in view — her rule lines and claps over her head were hidden behind the
+  centred panel. Phones keep the panel under the top pills. Shot: `qa/w7/M/d1-crab-panel-side-desk.jpg` (the gauge at
+  the right, BAYBAY's 量一量：够大的留下，太小的放回去！ over her head on the pier).
+- **A rebase conflict** in `economy/records.ts` (lane W2 appended `kite` and `skyline` at the same place): both kept, W2's
+  rows first, then lane M's (append-only).
+- **Checks** before the push (rebased tree): `tsc` 0 · `eslint .` 0 errors (43 old warnings) · the full suite **1580:
+  1577 pass, 3 fail** — `sf-citymap` "whole-city redraw … fast" and `sf-move2` "E2-5 view field" (wall-clock) pass alone
+  (8 / 8, 24 / 24); **`W5-bus 20+ simulated minutes` fails alone and on pristine `origin/opus-bay` too** (`90dc7798`, a
+  detached check worktree, removed after: "bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)", bar
+  25 s) — not lane M's (no transit file touched; the test imports none of `play/`); lane H's report (`W7-H7`) found the
+  same. After the last two rebases (lanes H, R, lead notes only): `tsc` 0, `eslint .` 0 errors, the play / notebook /
+  wave-6 W / wave-7 tests 171 / 171; the full suite on the pushed tree `d963a982`: **1597, 1596 pass**, the one failure
+  the same `W5-bus` interlock wait (pre-existing, above).
