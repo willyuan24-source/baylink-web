@@ -89,7 +89,8 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
   wrist (`b-desktop-bat-wings-glide.jpg`, 1440 × 900). Phone 390 × 844 dpr 3, quality mid, climbing (W held): three
   frames 180 ms apart, the wings (and the membranes with them) at three flap angles (`b-phone-bat-wings-flap-strip.jpg`).
   Draw calls during the glide 50 (the wings add 2 small meshes while worn).
-- Checks (21:40): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1498 / 1498** (the deadlock test passed this run). The first run had two red W5 shop tests from this part, fixed before the push: W5-E6 wants every pelican-slot item to be a paint (the bat wings are exempted as a costume, surgical) and W5-E7 pins the calls a ribbon sends (wear.ts now takes the wings off only when they were on).
+- Checks (21:40, before the rebase): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1498 / 1498** (the deadlock test passed this run). The first run had two red W5 shop tests from this part, fixed before the push: W5-E6 wants every pelican-slot item to be a paint (the bat wings are exempted as a costume, surgical) and W5-E7 pins the calls a ribbon sends (wear.ts now takes the wings off only when they were on).
+- After the rebase onto `f90e3bf3` (lanes Q, W2, R): tsc 0 · eslint 0 errors · suite 1513 tests, 1512 pass; the one red was the wall-clock `W5-D-review the paid memo` (2000 counts in 162 ms under load), green alone (5 / 5).
 
 ### Decisions
 
