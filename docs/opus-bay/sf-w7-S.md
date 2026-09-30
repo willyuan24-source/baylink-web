@@ -338,6 +338,25 @@ Played (dev server 5707, headless Chrome `--force_high_performance_gpu`):
   on Irving at 11th Ave — pumpkins there would fit, like Thrive City and Sunnydale.
 - **W7-Z**: Oct 11 13:00 at Jefferson & Powell / Aquatic Park is the heaviest overlap (the parade kit, the Fleet Week kit
   and crowd, six jets on high; the day-0 scout's suggestion) — worth a dated perf spot.
+- **Lane B / the lead**: see the checks below (the deadlock test red on origin).
+
+### 网站联动 (the owner's 23:20 message, lead note §7.2)
+
+- New in `tests/opus-bay-w7-s-site.test.ts` (`7868ba31`): every page the game links resolves in `vercel.json`'s
+  prerendered routes — `/events/:id` of all 47 shown SF events, `/openings/:id` of all six 新店 signs, `/offers/:id` of every
+  `live.json` offer and the Chase Center Muni offer (an unknown id does not): green. With the venue guard (part a), the
+  openings rule (part c) and `live.json` re-exported from the site's records, W7-Z's §7.2 section can cite these tests.
+
+### Checks (part d)
+
+- On the tree after part c's push (`90dc7798`, over lanes G, H, W2, V, X): `npx tsc` 0 · `npx eslint .` 0 errors (43 old
+  warnings) · the suite **1576 / 1577**: the one failure is `W5-bus 20+ simulated minutes` — "bus at an interlock stood
+  29.2 s (box:f-line@5661:750) at (149, 601)", red alone too (twice). Not lane S's: the test imports no realsf module, it
+  was green in my run on `68037235` (1548 / 1548), and lane H's report `4bc614be` saw it red on origin without its change.
+- The part d push (`7868ba31`, `da1dbc40`): rebased four times over other lanes' pushes; my 12 test files 46 / 46 on each
+  rebase, `npx tsc` 0 after the last one; the full run on the pushed tree `da1dbc40` (00:16 PDT): `npx eslint .` 0 errors
+  (43 old warnings) · the suite **1614 / 1615**, the one failure the same `W5-bus 20+ simulated minutes` (red on origin,
+  above). The dev server on 5707 is stopped.
 
 ## Not done
 
