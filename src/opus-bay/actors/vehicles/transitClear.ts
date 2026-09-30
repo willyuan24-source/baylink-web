@@ -111,21 +111,31 @@ export function clearTransitPaths(fleet: Fleet, dt: number, vehiclesOverride?: r
  */
 export function guideAside(x: number, z: number, vehiclesOverride?: readonly RoadVehicle[]): Vec2 | null {
   const list = vehiclesOverride ?? collectRoadVehicles(vehicles);
+  // (W7-K-review) a vehicle standing still (waiting for the player in front of it, at a stop, at an interlock) is not
+  // coming at her: she stepped off and back on beside a car that waited for the player
+  const coming = (q: RoadVehicle) => isTransit(q) && q.v >= ASIDE_MIN_V;
+  const inAnyPath = (px: number, pz: number) => list.some(o => coming(o) && pathSide(o, px, pz, GUIDE_RADIUS, ASIDE_REACH + o.v * LEAD_S) !== 0);
   for (const q of list) {
-    if (!isTransit(q)) continue;
-    const side = pathSide(q, x, z, GUIDE_RADIUS, ASIDE_REACH + Math.max(0, q.v) * LEAD_S);
+    if (!coming(q)) continue;
+    const side = pathSide(q, x, z, GUIDE_RADIUS, ASIDE_REACH + q.v * LEAD_S);
     if (!side) continue;
     const fx = Math.sin(q.heading), fz = Math.cos(q.heading);
     const rx = x - q.x, rz = z - q.z, along = rx * fx + rz * fz;
+    const off = q.halfW + GUIDE_RADIUS + TOW_GAP;
+    let fallback: Vec2 | null = null;
     for (const s of [side, -side]) {
-      const off = q.halfW + GUIDE_RADIUS + TOW_GAP;
       const p = { x: q.x + fx * along + fz * off * s, z: q.z + fz * along - fx * off * s };
-      if (canStand(p.x, p.z, GUIDE_RADIUS)) return p;
+      if (!canStand(p.x, p.z, GUIDE_RADIUS)) continue;
+      // (W7-K-review) not onto the other track in front of a car coming the other way
+      if (!inAnyPath(p.x, p.z)) return p;
+      fallback ??= p;
     }
-    return nearestWalkable({ x: x + fz * side * (q.halfW + 1.5), z: z - fx * side * (q.halfW + 1.5) }, 6);
+    return fallback ?? nearestWalkable({ x: x + fz * side * (q.halfW + 1.5), z: z - fx * side * (q.halfW + 1.5) }, 6);
   }
   return null;
 }
+/** (W7-K-review) BAYBAY steps aside only for a vehicle moving at least this fast (u/s) */
+export const ASIDE_MIN_V = 0.3;
 
 /** Tests: restart the check clock. */
 export function resetTransitClear() { checkIn = 0; }

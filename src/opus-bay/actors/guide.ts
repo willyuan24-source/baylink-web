@@ -92,6 +92,12 @@ export class GuideMover {
   /** (W7-K2) the next transit check (s, the step clock) and how often she stepped aside (QA / tests) */
   private asideAt = -1;
   asides = 0;
+  /**
+   * (W7-K-review) where she stood when she stepped aside: she waits beside the rails until no transit vehicle has that
+   * spot in its path any more (her follow / framing spot lay on the rails: she walked back in and dashed off again,
+   * 15 times in 12 s beside a car waiting for the player), or the player walks on
+   */
+  private asideFrom: Vec2 | null = null;
   /** city mode: the long route of the current target (E2-2) */
   readonly route = new RouteFollower();
   /** following `route` (pending: still on the clamped local path) */
@@ -196,17 +202,24 @@ export class GuideMover {
     }
 
     // --- (W7-K2) a cable car / streetcar / bus / train coming at her on its rails or lane: step off it
-    if (transitAside && opts.playing && !opts.riding && now >= this.asideAt) {
+    if (!transitAside || !opts.playing || opts.riding) this.asideFrom = null;
+    else if (now >= this.asideAt) {
       this.asideAt = now + ASIDE_EVERY;
       const to = transitAside(g.x, g.z);
       if (to) {
         this.asides++;
+        if (!this.asideFrom) this.asideFrom = { x: g.x, z: g.z };
         this.dash(to, Math.max(ASIDE_MIN_S, Math.hypot(to.x - g.x, to.z - g.z) / GUIDE_RUN), opts.visible !== false);
         return;
       }
+      // (W7-K-review) the vehicle has passed the spot she left (or stopped): back to following
+      if (this.asideFrom && !transitAside(this.asideFrom.x, this.asideFrom.z)) this.asideFrom = null;
     }
 
     const gp = Math.hypot(g.x - p.x, g.z - p.z);
+    // (W7-K-review) waiting beside the rails for the vehicle to pass — unless the player walks on
+    if (this.asideFrom && gp > FOLLOW_GAP + 3) this.asideFrom = null;
+    const asideWait = this.asideFrom !== null;
     // --- left behind and out of sight → hop back in
     const hidden = opts.visible === false;
     if (opts.playing && !opts.riding && gp > HOP_FAR && hidden && g.state !== 'wait') this.hiddenFarT += dt; else this.hiddenFarT = 0;
@@ -242,7 +255,7 @@ export class GuideMover {
 
     // standing still / chatting: settle beside the player as seen from the camera (both stay in frame)
     if (!p.moving) this.stillT += dt; else this.stillT = 0;
-    const settle = opts.playing && !opts.riding && gp < 7 && !g.target
+    const settle = opts.playing && !opts.riding && gp < 7 && !g.target && !asideWait
       && ((g.state === 'follow' && this.stillT > 0.9) || (g.state === 'talk' && this.stillT > 0.3));
     if (settle) {
       const spot = this.framingSpot();
@@ -251,7 +264,9 @@ export class GuideMover {
 
     let wx = 0, wz = 0, want = 0;
     let arrived = true;
-    if (target) {
+    // (W7-K-review) waiting for the vehicle to pass: she stands (a target she has not reached stays unreached)
+    if (target && asideWait) arrived = false;
+    else if (target) {
       if (target !== this.plannedFor || (this.path.length === 0 && now - this.planAt > 0.5)) this.plan(target, now);
       if (this.long) this.followLong(target);
       while (this.pathIndex < this.path.length - 1 && dist(this.path[this.pathIndex], g) < 0.6) this.pathIndex++;

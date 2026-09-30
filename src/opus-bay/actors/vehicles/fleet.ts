@@ -206,6 +206,9 @@ export class Fleet {
 
   /** Write the mesh pose (and wheels / fork / pedals / squash). */
   pose(ride: Ride, dt: number) {
+    // (W7-K-review) the player got in during a tow's hop: idle() never runs for a carried ride, so the tow ends here —
+    // else the car was driven floating at the hop's height and, parked again, snapped back onto the old tow path
+    if (ride.tow && ride.occupied) { ride.tow = null; ride.hopY = 0; }
     const s = ride.sim, rig = ride.rig, mesh = rig.mesh, b = rig.bones;
     const v = s.v;
     ride.spin += (v * dt) / rig.wheelRadius;

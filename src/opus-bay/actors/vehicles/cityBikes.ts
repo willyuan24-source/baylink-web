@@ -19,9 +19,6 @@ import { clearTransitPaths, guideAside } from './transitClear';
  * Both are offered through one interactables source ('e2-city-rides'), rebuilt when the pool moves a bike.
  */
 
-// (W7-K2) city mode: BAYBAY steps off the rails for the transit (actors/guide.ts; this module loads in city mode only)
-setTransitAside(guideAside);
-
 export const POOL_SIZE = 4;
 export const PARK_R = 120;
 export const RECYCLE_R = 160;
@@ -52,6 +49,10 @@ export class CityBikePool {
   /** Offer the benches and the pooled bikes as interactables (the same shapes game/interactables.ts builds). */
   register() {
     this.unregister ??= registerInteractables('e2-city-rides', () => this.interactables());
+    // (W7-K2) city mode: BAYBAY steps off the rails for the transit (actors/guide.ts). W7-K-review: set here, not at the
+    // module's import — dispose() clears it, and a second pool (the game left and entered again in one page) found the
+    // module cached: BAYBAY never stepped aside again
+    setTransitAside(guideAside);
   }
 
   interactables(): Interactable[] {
