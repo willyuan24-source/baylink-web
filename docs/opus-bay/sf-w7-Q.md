@@ -202,8 +202,11 @@ suite (below).
 
 - Chrome emulation is not Safari: `svh`, the bars, `env(safe-area-inset-*)` (0 in Chrome) and the long-press menus only show
   on the device — the checklist covers them; the ?debug line reports `vv` and `safe` from the phone.
-- The Halloween journal tab was not found by the scan with `?halloween=1` in the time I had (lane G / H own those
-  overlays and shot them themselves); the Halloween postcard overlay was not scanned.
+- The Halloween page (the 万圣节 journal tab, opened with the QA hook `__opusBay.g.page()` under `?halloween=1`) was
+  scanned at 375 × 553 afterwards: nothing covered or off, at the top and at the end (scratch `h375x553-halloween-page.jpg`:
+  the pumpkin count, 万圣节服装 incl. G's 蝙蝠翅膀, 去小铺试穿, the sources line). The Halloween postcard overlay
+  (`__opusBay.g.card('halloween-big-night')`) did not open while BAYBAY's bubble was up — lane G's rule (never over a
+  bubble, a panel or a dialogue) — so it was not scanned.
 - At 844 × 340 with `?start=free` on a fresh save, the free-roam goals card (left) covers the lead chip under it.
 
 ### Not done
@@ -219,5 +222,18 @@ suite (below).
   Embarcadero; every push after it runs the suite red on this one test.
 - **To W7-Z / the lead**: the perf runner has `--pool tile` now; worth one phone-profile row at ferry-gate (the largest
   tile − batched difference, +10 calls) in the final verify.
+- **Housekeeping (the lead)**: a scratch worktree I used to run the deadlock test on clean origin was removed
+  (`git worktree list` no longer shows it; its `node_modules` junction was removed first with `rmdir`, the main
+  `node_modules` is intact), but its admin folder `.git/worktrees/wt-origin1` under the OneDrive repo could not be deleted
+  (Permission denied, the OneDrive lock W6-Z saw) — remove by hand with OneDrive paused.
 - **To lane K** (the free-roam goals card, `game/goalsStep.ts` / `flow.ts startFree`): at 844 × 340 the card covers the lead
   chip; if the card can show on a real start, place the chip below it (or hide the chip while the card is up).
+
+## Final state (2026-09-30 00:05 PDT)
+
+- Parts a–c pushed; the part-c tree went out as `9690c56d` (W7-Q9) after four rejected pushes (the branch moved every few
+  minutes). The checks of that pushed tree, run right after: tsc 0 · eslint 0 errors (43 old warnings) · suite **1613
+  tests, 1611 pass** — `P1: preparation runs in slices …` (`opus-bay-audio`, a wall-clock assert) passed alone (18 / 18),
+  and `W5-bus 20+ simulated minutes` is the failure `origin/opus-bay` has on its own (see part c, Requests to lane B).
+- This lane's commits: W7-Q1 … W7-Q10 (the last is this section).
+
