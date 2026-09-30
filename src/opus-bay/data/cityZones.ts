@@ -1,5 +1,6 @@
-import { zoneAt } from '../core/terrain';
-import type { Bilingual } from '../core/types';
+import { project } from '../core/geo';
+import { pointInPolygon, zoneAt } from '../core/terrain';
+import type { Bilingual, Polygon } from '../core/types';
 import type { FarData } from '../world/sf/format';
 
 /**
@@ -83,6 +84,29 @@ export const CITY_HERO_ZONE_NAMES: Readonly<Record<string, Bilingual>> = {
 };
 
 /**
+ * W7-K4 · Fisherman's Wharf (the loop bus on Jefferson St said 北滩 and BAYBAY greeted 你好，北滩！): DataSF has no such
+ * neighbourhood — the strip is North Beach and Russian Hill there. Its extent (Wikipedia, "Fisherman's Wharf, San
+ * Francisco", checked 2026-09-29: "from Pier 35 and the intersection of The Embarcadero and Bay Street westward to Hyde
+ * Street and Aquatic Park", north of Russian Hill / North Beach; the benefit district's southern line Bay St from Powell)
+ * as a polygon on the street grid (lat / lng of the corners from the OSM street grid; the edge is a label's, not a
+ * surveyor's). Checked after the hero's own places, so 39 号码头 / 33 号码头 keep their names; the hero's catch-all 内河码头
+ * (which covers Jefferson St east of Taylor) gives way to it.
+ */
+export const WHARF_AREA: { id: string; name: Bilingual; polygon: Polygon } = {
+  id: 'fishermans-wharf',
+  name: bi('渔人码头', "Fisherman's Wharf"),
+  polygon: ([
+    [37.8095, -122.4226], // Aquatic Park's east shore, the Hyde Street Pier root
+    [37.8122, -122.4205], // off the Hyde Street Pier
+    [37.8122, -122.4080], // off Pier 39
+    [37.8095, -122.4045], // Pier 35
+    [37.8061, -122.4065], // The Embarcadero & Bay St
+    [37.8052, -122.4155], // Bay & Taylor
+    [37.8059, -122.4211], // Hyde & North Point
+  ] as const).map(([lat, lng]) => { const p = project(lat, lng); return { x: p.x, z: p.z }; }),
+};
+
+/**
  * City mode only: the area at a world point (id for store.area + its name), or null. `y` (the walker's height, when the
  * caller knows it): on a span's deck anywhere along it, not under it.
  */
@@ -92,8 +116,33 @@ export function cityAreaAt(x: number, z: number, y?: number): { id: string; name
   for (const a of LANDMARK_AREAS) if ((x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r) return { id: a.id, name: a.name };
   const zone = zoneAt(x, z);
   const hero = zone ? CITY_HERO_ZONE_NAMES[zone.id] : undefined;
-  return hero && zone ? { id: zone.id, name: hero } : zone;
+  // (the hero's own places first — 39 号码头, 33 号码头 …; its catch-all 内河码头 reaches along Jefferson St: the Wharf wins)
+  if (hero && zone && zone.id !== HERO_CATCH_ALL) return { id: zone.id, name: hero };
+  if (pointInPolygon({ x, z }, WHARF_AREA.polygon)) return { id: WHARF_AREA.id, name: WHARF_AREA.name };
+  if (hero && zone) return { id: zone.id, name: hero };
+  return zone ? exactZone(zone, x, z) : null;
 }
+/** the hero waterfront's catch-all zone (data/district.ts, the last zone: the whole hero core) */
+const HERO_CATCH_ALL = 'embarcadero';
+
+/**
+ * W7-K4 (lane W: the pill said 唐人街 at Washington Square): the city provider answers from far.zoneGrid, 16 u cells,
+ * so a cell on a border names the neighbour — Washington Square's cell is Chinatown's though the square lies inside
+ * North Beach's polygon. When the point is outside the answer's own polygon, the zone of a neighbouring cell whose
+ * polygon holds it wins (none does: the grid's answer stands).
+ */
+function exactZone<Z extends { id: string; polygon: Polygon }>(zone: Z, x: number, z: number): Z {
+  const p = { x, z };
+  if (!zone.polygon.length || pointInPolygon(p, zone.polygon)) return zone;
+  for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+    if (!dx && !dz) continue;
+    const o = zoneAt(x + dx * ZONE_CELL, z + dz * ZONE_CELL) as Z | null;
+    if (o && o.id !== zone.id && !CITY_HERO_ZONE_NAMES[o.id] && pointInPolygon(p, o.polygon)) return o;
+  }
+  return zone;
+}
+/** far.zoneGrid's cell (u; world/sf/format FarData.zoneGrid.step as published) */
+const ZONE_CELL = 16;
 
 /** Put the 41 neighbourhood names from far.obc into AREA_NAMES (the map and place list name zones not walked yet). */
 export function learnZoneNames(zones: readonly { id: string; zh: string; en: string }[]) {
@@ -102,7 +151,7 @@ export function learnZoneNames(zones: readonly { id: string; zh: string; en: str
 
 /** Name of an area id: landmark areas and seen neighbourhoods, else 旧金山. */
 export function zoneName(id: string | null | undefined): Bilingual {
-  const hit = id ? CITY_HERO_ZONE_NAMES[id] ?? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name ?? SPAN_AREAS.get(id)?.name : undefined;
+  const hit = id ? CITY_HERO_ZONE_NAMES[id] ?? AREA_NAMES.get(id) ?? LANDMARK_AREAS.find(a => a.id === id)?.name ?? SPAN_AREAS.get(id)?.name ?? (id === WHARF_AREA.id ? WHARF_AREA.name : undefined) : undefined;
   return hit ?? SF_NAME;
 }
 export const SF_NAME: Bilingual = bi('旧金山', 'San Francisco');
