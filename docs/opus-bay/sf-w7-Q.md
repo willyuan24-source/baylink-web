@@ -8,6 +8,8 @@ Worktree `C:/Users/willy/wt/w7-q` (branch `w7-q`), dev port 5702, scratch `C:/Us
 1. iPhone 上点「开始」后第一段声音（雾笛、音乐、BAYBAY）不响的问题修好了：现在点「开始 / 继续旅程」的那一下就把声音"解锁"，不用再点第二下。Chrome 证明不了苹果的规则，所以要你在真 iPhone 上听一下（见 `iphone-checklist.md` 第 1 步）。
 2. 语音缓存加了上限（最多约 32 MB / 64 段），长时间玩不会再越吃越多内存导致 iPhone 刷新页面。
 3. 如果手机把游戏画面的显存收回（黑屏/卡住），现在会先存档，再弹出一张小卡「画面需要重新加载 · 重新载入」，点一下就回来。
+4. 相册：「保存」只发图片本身（iPhone 的「存储图像」不会再消失）；在微信里点「保存」不再假装"已保存"，而是把大图摆出来，提示「长按图片保存到相册」；手机切到后台很久再回来，相册照片也能打开了。
+5. iPhone 细节：双指捏合不会再把整个游戏放大；长按 BAYBAY 头像不再弹出系统图片菜单；横屏字不会被放大；地图搜索收起键盘后画面归位；到站提示的英文名只占一行；设置和标题页会提示「没声音？看看 iPhone 是不是开了静音模式」；`?debug=1` 多了两行 iPhone 专用信息，截图给我就能看懂。
 
 ## Part a (2026-09-29 20:25–20:45 PDT): the audio unlock inside the Start tap · the voice clip cache cap · a lost GL context
 
@@ -68,6 +70,66 @@ Worktree `C:/Users/willy/wt/w7-q` (branch `w7-q`), dev port 5702, scratch `C:/Us
 ### Not done (part a)
 
 - Everything from item (4) on: parts b / c.
+
+### Requests
+
+- None.
+
+## Part b (2026-09-29 20:55–22:05 PDT): the album on phones · touch guards · the arrival subtitle · the silent-mode hint · the ?debug phone lines
+
+Part a's push re-ran the checks after its rebase (it brought W7-G1): tsc 0, eslint 0 errors, **1506 / 1506** (the W5-bus
+test passed in that run).
+
+### What was built
+
+| # | what | files | API |
+|---|---|---|---|
+| 4 | **The album on phones.** (a) **保存 shares the file only** (`{ files }`, no title / text: with a text item iOS treats the share as mixed content and can drop 存储图像, the album's point on an iPhone); 分享 adds the words only where `canShare` accepts them, else the file alone. (b) **In-app browsers** (WeChat `MicroMessenger`, Facebook, Instagram, LINE, Weibo, QQ, DingTalk, Alipay) and an iOS without file sharing: no dead `<a download>` and no false 照片已保存 — the photo is shown large as a **`data:` image** (a long press saves it in a WKWebView; a `blob:` one not reliably) with **长按图片保存到相册** (分享: 长按图片，保存或发给朋友) and a 好了 button; that image re-enables `-webkit-touch-callout`. (c) **IndexedDB reopens**: every operation runs through `run()`; a failure (iOS drops the connection after a while in the background: `InvalidStateError` / "Connection to Indexed Database server lost") closes the handle, reopens once and runs again; `onclose` / `onversionchange` drop the handle. Before, `photoFile` returned null (这张照片找不到了) and `addPhoto` switched the whole page to memory. (d) **A 3 s open timeout** (`ALBUM_OPEN_TIMEOUT_MS`): an open that never answers (iOS) no longer leaves the album empty for the page; it works in memory (the sheet's note says so); a late success is closed. (e) **`navigator.storage.persist()` once** per page after the first photo went into IndexedDB (Safari's 7-day storage cap; Safari 17+ grants it at its discretion); the answer is on the ?debug line. The district shutter (`photo.ts downloadUrl`) is unchanged (district mode never changes). | `game/album.ts` (`openDb`, `idbBackend` `run`, `askPersist`, `resetAlbumForTests({ idb, openTimeoutMs })`); `ui/Album.tsx` (`share`, the long-press view); new `ui/shareFile.ts`; `ui/album.css` | `ALBUM_OPEN_TIMEOUT_MS`, `albumPersistedNow()`; `saveRoute(nav, file, asSave, touch)`, `sharePayload(nav, file, text, asSave)`, `inAppBrowser(ua)`, `isIOS(nav)`, `fileToDataUrl(blob)` |
+| 6 | **Touch guards.** `gesturestart` / `gesturechange` → `preventDefault` (passive: false) on the document while the game is up (iOS ignores `user-scalable=no`: a pinch inside 旅行本 / the shop / the map list zoomed the whole fixed game); `touch-action: pan-y` on the vertical scrollers (sheet body, album grid, goals card, the choices grid, the goals step, trip legs, the map chooser / legend, an open egg card, the recap) and `pan-x` on the chip rows (shop shelves / groups, the journal's tabs, the map chips); `-webkit-touch-callout: none` on `.ob-root` and the title (a held thumb on BAYBAY's face opened the iOS image menu); `-webkit-text-size-adjust: 100%` on `.ob-page` (iOS inflates text after a rotation); **a page left scrolled by the keyboard** (the map search) goes back to 0, 0 after `focusout` and when the visual viewport grows back while nothing is being typed in (never while an input has the focus). | new `ui/iosTouch.ts`; `OpusBayPage.tsx` (the ob-lock effect); `opus-bay.css` | `installIosTouchGuards(win?, doc?)`, `pageShifted(win, doc)` |
+| 7 | **The arrival toast's English name on one line** (ellipsis; the full name in `title`): "Ferry Building Marketplace & Ferry Plaza Farmers Market" took two lines under 抵达 · 渡轮大厦市集 (K2 review, `qa/w6/K2/rev-phone-tour-first-stop-no-ticket.jpg`). | `ui/guide-ui.css`, `ui/ArrivalCard.tsx` (`ArrivalToast`) | — |
+| 8 | **The silent-mode hint** on touch iOS (the lead's option a; `audioSession` not touched): under 音效 in Settings, and on the title after its sound button turned sound on — **没声音？看看 iPhone 是不是开了静音模式** / No sound? Check that your iPhone is not in silent mode ("silent mode" covers the ring / silent switch and the Action button of newer iPhones). | `ui/Settings.tsx`, `ui/TitleScreen.tsx`, `ui/shareFile.ts` (`SILENT_HINT`), `opus-bay.css` (`.ob-title-silent`) | `SILENT_HINT` |
+| 9 | **The production ?debug=1 phone lines**, under the main line in the same box (`.ob-debug` is now a box of two `<pre>`s; `world/sf/stats.ts` still places the city stats under it). Line 1: the short UA (`iOS 18.6 Safari 18.6`, `iOS 17.5 WeChat 8.0.49`, `CriOS`, `in-app` …) · `innerWidth×innerHeight` · `vv` visualViewport height @ offsetTop · `safe` top/right/bottom/left (env() measured on a probe) · `dpr` screen → renderer · the quality (its reason, and decision → now when it stepped). Line 2: the cell pool (`batched` needs `WEBGL_multi_draw`, else `tile`; `?pool=` shown as forced) · `psc` KHR_parallel_shader_compile · `cbf` EXT_color_buffer_float / half_float · the audio state, `a`ctivated, `u`nlocked in a tap, `p`rimes · decoded clips, MB, evicted · album idb / memory and persisted · GL context losses / restores. Its own chunk, loaded only with ?debug=1, refreshed once a second. | new `ui/iosDebug.ts`; `ui/Floating.tsx` (`DebugOverlay`); `opus-bay.css` | `iosDebugLine()`, `shortUa(ua)` |
+
+### Evidence
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · suite **1515 tests, 1514 pass**;
+  the one failure, `A* reaches the hill, Pier 39 and the Pier 7 end …` (`opus-bay-actors`), passed alone (20 / 20): load
+  (13 lanes on the machine); nothing in this part touches the nav.
+- New tests (all green): `tests/opus-bay-w7-q-album.test.ts` (4: the route table — iPhone Safari share, WeChat / iOS
+  without sharing long-press, desktop 保存 download / 分享 share, the in-app UA list; the payloads — 保存 = `{ files }`;
+  **a fake IndexedDB** whose transaction throws "Connection … lost" once: the photo opens after one reopen, the next photo
+  still goes to IndexedDB, `persist()` asked once; an open that never answers → memory after the timeout, photos kept for
+  the page) · `tests/opus-bay-w7-q-touch.test.ts` (3: pinch cancelled, the disposer; a shifted page back to 0, 0 after
+  focusout, not while typing, a visual-viewport offset counts; the CSS rules present) · `tests/opus-bay-w7-q-debug.test.ts`
+  (2: `shortUa` for iPhone Safari, WeChat, CriOS, a Facebook in-app, Android Chrome, Edge, macOS Safari; the hint's length).
+- Played (dev 5702, 390 × 844 dpr 3 touch, city):
+  - **WeChat** (UA `… MicroMessenger/8.0.49 …`, Web Share removed as in a WKWebView): a photo in the album (IndexedDB),
+    更多 → 相册 → the photo → 保存 → the long-press view: **长按图片保存到相册** over the photo as `data:image/jpeg;base64,…`,
+    **no toast** (`qa/w7/Q/b-phone-wechat-album-longpress.jpg`).
+  - **?debug=1**: `Windows Chrome 154 · 390×844 · vv 844@0 · safe 0/0/0/0 · dpr 3 → 1.25 · mid (device)` /
+    `pool batched (multi_draw y) · psc y · cbf y/y · audio suspended a0 u0 p0 · clips 0 0.0MB ev0 · album -/p? · lost 0/0`
+    under the main line, the city stats box below it (`qa/w7/Q/b-phone-debug-ios-lines.jpg`).
+
+### Decisions
+
+- The long-press path is chosen by the browser's abilities first (file sharing wins wherever it exists, WeChat included
+  if it ever gains it), then by the UA (in-app) or iOS. Desktop 保存 still downloads; desktop 分享 still copies the link.
+- Touch-action is set per scroller in `opus-bay.css` with one `:where()` list (no edits in other lanes' CSS files).
+- The keyboard fix is global (any input's focusout), not only the map search: the same shift can follow any input.
+- The silent hint shows on touch iOS only; on the title only after the player turned sound on there (no permanent line on
+  a small title card).
+- `persist()` is asked by the album only: the save (`data/save.ts`) is frozen; one ask covers the whole origin anyway.
+
+### Known gaps
+
+- The long press itself (WeChat's 保存图片 menu on a `data:` image) and 存储图像 in the iOS share sheet are device checks
+  (the checklist, part c). Chrome cannot show the iOS image menu.
+- `navigator.storage.persist()` may be refused silently by Safari (it decides by engagement); a Home Screen web app is the
+  sure way to keep photos — not offered in the UI.
+
+### Not done (part b)
+
+- District mode's shutter (`photo.ts downloadUrl`) in WeChat still downloads nothing (district mode must not change).
 
 ### Requests
 
