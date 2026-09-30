@@ -10,6 +10,9 @@ scratch `C:/Users/willy/opus-qa/w7/b/`. Owns `world/busSystem.ts`, `world/flineS
 1. 那个时好时坏的"车辆卡死"测试（每条线每次推送前都要跑）找到了真正原因：不是机器忙，而是前一个测试把玩家的朝向留了下来，镜头朝向一变，小汽车刷出来的位置就全变了（整个文件跑是 29 次，单独跑是 31 次，门槛 30）。现在每次测试前都把状态复位，结果在任何顺序下都完全一样；同时让测试多制造"拦路车"（31 → 47 次），门槛没降，反而更严。
 2. 坐 Muni 地铁在地下时打开设置（暂停），列车以前会继续开到地面才停；现在会在隧道里立刻停住，关掉设置再继续开。电脑上实测：列车停在鲍威尔站和市政中心站之间整整 20 秒，关掉后照常开到 Carl & Cole。
 3. 顺手修了一个真问题：在地下时按 Esc 打开的设置面板以前被隧道画面盖住、根本看不见；现在显示在隧道画面上面。
+4. 叮当车三个转车台的中文名改成全中文（"鲍威尔街 · 市场街转车台"、"海德街 · 海滩街转车台"、"泰勒街 · 湾街转车台"），目标、居民对话、地点卡里提到它的地方也都改好了；地铁站名按第四波定下的规则保留英文（如 "Van Ness 站"）。
+5. 叮当车/公交互相礼让时的最长等待（叮当车约 48 秒、公交约 29 秒）加了测试上限，以后不会变更糟；我试过把叮当车的等待缩短到 41 秒，但它会让你坐的观光巴士在市场街单轨段多等 29 秒，所以没有上线，原因和改法写给下一波。
+6. 恶魔岛渡轮（第三部分）今晚来不及做。
 
 ## Part a — the flaky deadlock proof, the Metro pause (20:25–21:50 PDT)
 
@@ -140,7 +143,7 @@ alone (149.9 ms); after the last rebases (W7-W11's seam fill, W7-R2, W7-G2) tsc 
 - Live, phone 390 × 844 dpr 3, zh (dev 5703): `__opusBay.transit.data().turntables` →
   `["鲍威尔街 · 市场街转车台","海德街 · 海滩街转车台","泰勒街 · 湾街转车台"]`; a Powell–Hyde ride from Hyde & Beach:
   the banner "鲍威尔-海德线叮当车 · 开往 鲍威尔街 · 市场街" (the station, W6-B5), no Latin in the banner.
-- Tests: w7-b 7 / 7 (B2 ×4, B2 css, B4, B5, B6 — 9 with the css and bound tests), the deadlock file 9 / 9, and the 11
+- Tests: `tests/opus-bay-w7-b.test.ts` 8 / 8 (B2 × 4, the B2 css rule, B4, B5, B6), the deadlock file 9 / 9, and the 11
   test files that name these texts (landmark context, places, transit review / verify, verify-c, corners, w5 transit,
   w6-b, w6-b-review) 122 / 122.
 - The dropped attempt (see Decisions): `C:/Users/willy/opus-qa/w7/b/b5-attempt/` (the diff and the files), logs
