@@ -12,7 +12,7 @@ const evidence = (id: string, date: string) => resolveTimeEvidence(schedules[id]
 
 test('every refresh event has dated source-backed planning facts, without inventing recurring dates', () => {
   const ids = events.map(event => event.id).sort();
-  assert.equal(ids.length, 26);
+  assert.equal(ids.length, 28);
   assert.deepEqual(Object.keys(facts).sort(), ids);
   assert.deepEqual(Object.keys(schedules).sort(), ids);
   for (const event of events) {
@@ -69,6 +69,40 @@ test('Art for All requires one real session and does not admit a plan across its
   const afternoon = resolveStopTiming(ev, 750, 120, '13:00');
   assert.deepEqual([afternoon.start, afternoon.end], [780, 900]);
   assert.equal(afternoon.conflicts.length, 0);
+});
+
+test('Water Lantern plans cover the evening lantern experience on the chosen day, not just the early gates', () => {
+  const id = 'foster-city-water-lantern-festival-2026';
+  assert.equal(facts[id].admissionUsd, null, 'Free festival entry must not price the paid lantern experience at zero');
+  assert.equal(facts[id].minAge, undefined, 'The under-8 ticket policy is not a minimum attendance age');
+  for (const date of ['2026-10-03', '2026-10-04']) {
+    const ev = evidence(id, date);
+    assert.equal(ev.kind, 'sessions');
+    assert.deepEqual(ev.windows, [{ open: '17:00', close: '21:00' }]);
+    assert.deepEqual(ev.sessions, [{ date, start: '19:30', end: '21:00' }]);
+    const planned = resolveStopTiming(ev, 17 * 60, 90);
+    assert.deepEqual([planned.start, planned.end], [19 * 60 + 30, 21 * 60], 'The default 90-minute visit must include the 20:00 lantern launch');
+    assert.equal(planned.conflicts.length, 0);
+    assert.ok(resolveStopTiming(ev, 19 * 60 + 31, 90).conflicts.some(issue => issue.code === 'session-missed'));
+    assert.match(ev.note!, /17:00.*19:30.*20:00–21:00/);
+    assert.match(ev.note!, /免费入场.*须购票.*票价.*待确认/);
+  }
+  assert.equal(evidence(id, '2026-10-05').status, 'out-of-range');
+});
+
+test('Foodwise special market permits flexible visits without treating optional demos as mandatory sessions', () => {
+  const id = 'sf-foodwise-latine-makers-oct3-2026';
+  assert.equal(facts[id].admissionUsd, 0);
+  assert.notEqual(facts[id].reservation, 'required');
+  const ev = evidence(id, '2026-10-03');
+  assert.equal(ev.kind, 'hours');
+  assert.deepEqual(ev.windows, [{ open: '09:00', close: '14:00' }]);
+  assert.deepEqual(ev.sessions, []);
+  const laterVisit = resolveStopTiming(ev, 12 * 60 + 30, 90);
+  assert.deepEqual([laterVisit.start, laterVisit.end], [750, 840]);
+  assert.equal(laterVisit.conflicts.length, 0, 'Browsing after the noon demonstration starts must still be allowed');
+  assert.match(ev.note!, /餐饮与商品另购.*11:00.*12:00.*结束时刻未公布/);
+  assert.equal(evidence(id, '2026-10-04').status, 'out-of-range', 'The regular farmers market must not extend this one-day theme');
 });
 
 test('fixed concerts, storytime and crafts cannot silently shift after their published start', () => {

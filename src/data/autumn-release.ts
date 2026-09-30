@@ -4,11 +4,13 @@ import openingData from './autumn-release-openings.json';
 import refreshRegionalEvents from './september-refresh-regional-events.json';
 import refreshSfEastEvents from './september-refresh-sf-east-events.json';
 import refreshOffers from './september-refresh-offers.json';
+import auditRegionalEvents from './coverage-audit-regional-events.json';
+import auditSfNorthEvents from './coverage-audit-sf-north-events.json';
 import type { MonthlyEvent } from './monthly-types';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { SeptemberOpening } from './september-openings';
 
-export const reviewedAutumnEvents = [...eventData, ...refreshRegionalEvents, ...refreshSfEastEvents] as MonthlyEvent[];
+export const reviewedAutumnEvents = [...eventData, ...refreshRegionalEvents, ...refreshSfEastEvents, ...auditRegionalEvents, ...auditSfNorthEvents] as MonthlyEvent[];
 export const reviewedAutumnOffers = [...offerData, ...refreshOffers] as FreebieOffer[];
 export const reviewedAutumnOpenings = openingData as SeptemberOpening[];
 

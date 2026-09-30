@@ -11,10 +11,11 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { filterMonthlyEvents } from '../src/lib/monthly';
 import { eventsOnCalendarDay, groupCalendarMapEvents } from '../src/lib/event-calendar';
 import { loadLocale, translateText } from '../src/i18n/locale';
+import { searchQuickDestinations } from '../src/lib/quick-search';
 
 const refreshEvents = [...regional, ...sfEast];
 test('September refresh is discoverable once per canonical event or benefit, with complete local media and city mapping', () => {
-  assert.equal(refreshEvents.length, 26);
+  assert.equal(refreshEvents.length, 28);
   assert.equal(offers.length, 9);
   for (const row of refreshEvents) {
     assert.equal(MONTHLY_EVENTS.filter(event => event.id === row.id).length, 1, row.id);
@@ -52,6 +53,36 @@ test('multi-day promotions appear only on confirmed days and expire after the la
   assert.equal(eventsOnCalendarDay([sale], '2026-10-03').length, 0);
   assert.equal(eventsOnCalendarDay([sale], '2026-10-05').length, 1);
   assert.deepEqual(filterMonthlyEvents([sonoma, sale], {}, '2026-10-06'), []);
+});
+
+test('Water Lantern is searchable as a Foster City evening event without claiming a free lantern experience', async () => {
+  const id = 'foster-city-water-lantern-festival-2026';
+  const event = MONTHLY_EVENTS.find(row => row.id === id)!;
+  assert.ok(event);
+  assert.equal(event.city, 'Foster City');
+  assert.equal(event.region, 'peninsula');
+  assert.equal(event.cost, 'mixed');
+  assert.equal(PLANNER_EVENTS.find(row => row.id === id)?.planning?.admissionUsd, null);
+  assert.equal(filterMonthlyEvents([event], { cost: 'free' }, '2026-09-29').length, 0);
+  for (const date of ['2026-10-03', '2026-10-04']) assert.equal(eventsOnCalendarDay([event], date).length, 1);
+  assert.equal(eventsOnCalendarDay([event], '2026-10-05').length, 0);
+  assert.ok(searchQuickDestinations('Foster City 水灯 夜间', 'zh-Hans', '2026-09-29').events.some(row => row.id === id));
+  assert.ok(!searchQuickDestinations('Foster City 水灯 免费', 'zh-Hans', '2026-09-29').events.some(row => row.id === id));
+  await loadLocale('en');
+  assert.ok(searchQuickDestinations('Foster City water lantern evening', 'en', '2026-09-29').events.some(row => row.id === id));
+});
+
+test('Foodwise Latine Makers is a one-day free-entry event with separately purchased food and an illustration', () => {
+  const id = 'sf-foodwise-latine-makers-oct3-2026';
+  const event = MONTHLY_EVENTS.find(row => row.id === id)!;
+  assert.ok(event);
+  assert.equal(filterMonthlyEvents([event], { cost: 'free' }, '2026-09-29').length, 1);
+  assert.equal(PLANNER_EVENTS.find(row => row.id === id)?.planning?.admissionUsd, 0);
+  assert.match(event.costLabel, /餐饮及商品另购/);
+  assert.equal(eventsOnCalendarDay([event], '2026-10-03').length, 1);
+  assert.equal(eventsOnCalendarDay([event], '2026-10-04').length, 0);
+  assert.ok(searchQuickDestinations('Latine Makers', 'en', '2026-09-29').events.some(row => row.id === id));
+  assert.equal(GUIDE_IMAGES[event.imageKey].kind, 'illustration');
 });
 
 test('new conditions and illustration disclosures stay readable in English', async () => {

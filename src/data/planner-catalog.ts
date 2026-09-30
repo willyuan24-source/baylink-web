@@ -7,11 +7,15 @@ import { aiEventLocations, aiEventSettings } from './ai-local-events';
 import { PLANNER_LOCAL_STOPS } from './planner-local-stops';
 import { VERIFIED_EVENT_SCHEDULES, VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCATIONS } from './planner-verified-hours';
 import { SEPTEMBER_REFRESH_PLANNING, SEPTEMBER_REFRESH_SCHEDULES } from './september-refresh-planning';
+import { COVERAGE_AUDIT_REGIONAL_PLANNING, COVERAGE_AUDIT_REGIONAL_SCHEDULES } from './coverage-audit-regional-planning';
+import { COVERAGE_AUDIT_SF_NORTH_PLANNING, COVERAGE_AUDIT_SF_NORTH_SCHEDULES } from './coverage-audit-sf-north-planning';
 
 const placeLocations = placeLocationData as Record<string, GeoPoint>;
 
 const eventPlanning: Record<string, PlanningFacts> = {
   ...SEPTEMBER_REFRESH_PLANNING,
+  ...COVERAGE_AUDIT_REGIONAL_PLANNING,
+  ...COVERAGE_AUDIT_SF_NORTH_PLANNING,
   'portola-2026': { setting: 'mixed', minAge: 21, reservation: 'required' },
   'burlingame-mandarin-storytime-2026': { setting: 'indoor', minAge: 0, maxAge: 6 },
   'emeryville-art-exhibition-closing-2026': { setting: 'indoor' },
@@ -50,7 +54,7 @@ const eventLocations: Record<string, GeoPoint> = {
 };
 
 // Coordinates are added only from individually checked public venue sources.
-const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES };
+const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES };
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(event.cost === 'unknown' ? { admissionUsd: null } : {}), ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,

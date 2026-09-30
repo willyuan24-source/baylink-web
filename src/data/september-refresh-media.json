@@ -1,5 +1,17 @@
 [
   {
+    "key": "water-lantern-festival-promo",
+    "src": "/guides/september-refresh/water-lantern-festival-promo.avif",
+    "alt": "画有图案的水灯漂浮在暮色中的水面上",
+    "caption": "主办方水灯节主题宣传资料照片，不代表 Foster City 2026 年本场活动实拍。",
+    "credit": "Water Lantern Festival · 官方宣传照片",
+    "creditUrl": "https://www.waterlanternfestival.com/events/san-francisco",
+    "kind": "photo",
+    "width": 2010,
+    "height": 2712,
+    "srcSet": "/guides/september-refresh/water-lantern-festival-promo.avif 2010w"
+  },
+  {
     "key": "refresh-community-swap",
     "src": "/guides/september-refresh/refresh-community-swap.webp",
     "alt": "邻居与亲子在图书、拼图和儿童服装交换桌旁挑选物品",

@@ -1,5 +1,37 @@
 [
   {
+    "id": "foster-city-water-lantern-festival-2026",
+    "kind": "event",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-03",
+      "2026-10-04"
+    ],
+    "region": "peninsula",
+    "city": "Foster City",
+    "venue": "Leo J. Ryan Park · 650 Shell Blvd",
+    "category": "family",
+    "cost": "mixed",
+    "imageKey": "water-lantern-festival-promo",
+    "officialUrl": "https://www.waterlanternfestival.com/events/san-francisco",
+    "sourceLabel": "Water Lantern Festival / City of Foster City",
+    "verifiedAt": "2026-09-29",
+    "title": "San Francisco 水灯节：Foster City 湖畔两晚",
+    "dateLabel": "10 月 3、4 日 · 夜间水灯活动 17:00–21:00",
+    "costLabel": "入场免费 · 制作与放灯体验须购票，餐饮另付；所选日期票价待确认",
+    "summary": "名称为 San Francisco Water Lantern Festival，实际在半岛 Foster City 的 Leo J. Ryan Park 举行。可以沿湖听音乐、逛餐车；想制作并放水灯，需要另购对应日期的体验票。",
+    "plan": [
+      "两天均为 17:00–21:00；19:30 制作水灯，20:00–21:00 放灯。购票时分别选择 10/3 或 10/4，不把单日票当作两日通票。",
+      "市府公告列明入场免费，水灯体验与放灯须购票：https://www.fostercity.org/Calendar.aspx?EID=1142 。主办方 FAQ 另写 8 岁以下免费且不需票、8 岁及以上需票；免费儿童入场不代表每人获赠一盏水灯，具体资格及套装内容须在所选日期售票页确认。",
+      "页面同时列有多种票档与套装，不把早鸟展示价当作当前可买价格；结账前核对日期、票价、附加费和所含用品。餐饮另购；雷电、强风等严重天气可能导致延期或改期，出发前查看主办方通知。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "艺术手作"
+    ]
+  },
+  {
     "id": "redwood-city-fixit-clinic-oct-2026",
     "kind": "event",
     "startDate": "2026-10-03",

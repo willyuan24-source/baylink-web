@@ -20,6 +20,8 @@ const sessions = (id: string, times: NonNullable<PlanningSchedule['sessions']>, 
 
 /** Admission prices are separate from meals, merchandise, parking, and eligibility-only offers. */
 export const SEPTEMBER_REFRESH_PLANNING: Record<string, PlanningFacts> = {
+  'sf-foodwise-latine-makers-oct3-2026': { setting: 'outdoor', admissionUsd: 0, reservation: 'unknown' },
+  'foster-city-water-lantern-festival-2026': { setting: 'outdoor', admissionUsd: null, reservation: 'unknown' },
   'berkeley-crowden-community-music-day-oct4-2026': { setting: 'mixed', admissionUsd: 0, reservation: 'optional' },
   'berkeley-cal-sailing-open-house-oct4-2026': { setting: 'outdoor', admissionUsd: 0, minAge: 5, reservation: 'unknown' },
   'berkeley-borp-adaptive-sports-expo-oct17-2026': { setting: 'mixed', admissionUsd: 0, reservation: 'optional' },
@@ -49,6 +51,14 @@ export const SEPTEMBER_REFRESH_PLANNING: Record<string, PlanningFacts> = {
 };
 
 export const SEPTEMBER_REFRESH_SCHEDULES: Record<string, PlanningSchedule> = {
+  'sf-foodwise-latine-makers-oct3-2026': dated('sf-foodwise-latine-makers-oct3-2026', [["2026-10-03","09:00","14:00"]], "09:00–14:00 为免费开放市集窗口，餐饮与商品另购。11:00 为 Amalia Avedano（Tonantzin）演示，12:00 为 Raquel Goldman（Norte54）演示，均在渡轮大厦正前方 Foodwise Classroom，结束时刻未公布；不是必须参加的整场固定场次。市集还覆盖大厦南侧 Embarcadero Ferry Terminal Plaza，跨区域需留步行时间。官网未列强制预约要求。"),
+  'foster-city-water-lantern-festival-2026': {
+    ...dated('foster-city-water-lantern-festival-2026', [["2026-10-03","17:00","21:00"],["2026-10-04","17:00","21:00"]], "两天均自 17:00 开放入场；规划按 19:30–21:00 的核心体验安排，19:30 制作水灯，20:00–21:00 放灯。购票须选定其中一天，不默认通用两日。市府列明免费入场，制作与放灯体验须购票，不能视作免费完整体验；所选日期的票价和附加费待确认，餐饮另购。主办方 FAQ 另写 8 岁以下免票、8 岁及以上需票，免费儿童入场不保证每人获赠水灯，具体资格与套装内容须查看售票页。严重天气可能延期或改期，出发前核对通知。"),
+    sessions: [
+      { date: '2026-10-03', start: '19:30', end: '21:00' },
+      { date: '2026-10-04', start: '19:30', end: '21:00' },
+    ],
+  },
   'berkeley-crowden-community-music-day-oct4-2026': dated('berkeley-crowden-community-music-day-oct4-2026', [["2026-10-04","10:00","14:00"]], "这是整个校园音乐日的开放窗口。短音乐会另在 10:15、11:00、11:45 开演，每场约 20 分钟，适合婴儿至 7 岁及家长；3 岁以上弦乐示范需另选 15 分钟时段预约，不代表整场活动限制年龄。"),
   'berkeley-cal-sailing-open-house-oct4-2026': dated('berkeley-cal-sailing-open-house-oct4-2026', [["2026-10-04","13:00","15:00","14:30"]], "官网通常开放时段为 13:00–15:00；现场登记仅 13:00–14:30，先到先得，建议 13:00 抵达。单次航行约 30 分钟，排队时长未知。5 岁以上儿童须成人陪同，需签免责文件并穿救生衣；强风、大雨或潮汐可能取消或提前结束，不保证船位与结束时间。"),
   'berkeley-borp-adaptive-sports-expo-oct17-2026': dated('berkeley-borp-adaptive-sports-expo-oct17-2026', [["2026-10-17","10:00","15:00"]], "这里只核对 1720 8th Street 主场 10:00–15:00。80 Bolivar Drive 骑行／皮划艇为 10:00–13:00，800 Potter Street 攀岩为 12:00–15:00，须另安排转场。交通及攀岩必须登记；其他项目建议报名，可现场填表。主场 15:30–17:30 免费社区庆祝另计时段；白天餐车午餐另购。"),
