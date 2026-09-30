@@ -105,3 +105,95 @@ gzip), the static graph: `C:/Users/willy/opus-qa/w7/p/graph.cjs` (the P7 walk of
   waypoint appear once it lands (as the HUD already did since W6-P1).
 - The perf monitor now starts 9 s into play only if its 0.79 KB chunk arrived by then (a phone on a very slow network
   starts it later; offline: never).
+
+## Part b · W7-P3 import-with-retry, the dialogue script with the play layer
+
+Started 21:55 PDT, on origin `d64dc400` (part a pushed). GameRoot **267.14 → 254.45 KB** gzip.
+
+### What was built
+
+- **`game/importRetry.ts`** (new, dependency-free, 0.5 KB). `importRetry(() => import('./x'))`: on a *loading* failure
+  (the Chrome / Firefox / Safari / Vite-preload messages; an error the module's own code throws is never retried) it
+  waits 1 s, 3 s, 8 s and asks again — the URL the browser names in its message with `?retry=n` (a new module-map
+  entry: Chrome keeps the old one failed for the page's life), or, with no URL in the message (Safari), the same import.
+  Then the caller's own fallback applies, as before. Applied (import sites only) to: **tap-to-drive**
+  (`actors/moveSystem.ts` `loadDrive`: driveRoute + autopilot, W6-P-review's finding), the city camera data
+  (`actors/camera.ts`), **the city chunk** (`world/cityLoader.ts`), **the city data chunk** (`data/sf/cityData.ts`'s
+  top-level await), the post pass and the perf monitor (`world/WorldScene.tsx`), discovery / places (`ui/Overlay.tsx`,
+  `game/resume.ts`), the HUD's own chunks (`ui/lazyParts.ts`: ride banner, move chip, guide layer) and **the play layer**
+  (`ui/playLayer.tsx`: two quick retries, 0.5 s and 2 s, then, as before, one reload at the title).
+- **The dialogue script with the play layer.** `data/script.ts` (every dialogue node, the goals' texts, the barks and
+  hooks: 13.6 KB gzip) is read only once play has begun, so it comes with the play layer's chunk (`ui/playParts.tsx` →
+  `data/scriptLoad.ts` → `registerScript`), and GameRoot already holds Start until that chunk is in (W6-P1's gate): the
+  first line of play has every node exactly as before. `data/scriptSlot.ts` (new, main graph) exports the same names as
+  live `let` bindings (`NODES`, `START_NODE`, `FREE_GOALS`, `STOP_PROMPTS`, `SCRIPT_HOOKS`, `GUIDE_BARKS`, `NPC_LINES`
+  and the `DISTRICT_*` / `CITY_*` tables); `game/flow.ts`, `brain.ts`, `content.ts` (its namespace import) and
+  `cityContent.ts` import them instead — import lines only; every read is inside a function that runs after Start
+  (checked: no module-scope use; before the chunk a lookup finds no node / hook / bark, and every caller already has
+  its fallback). Node (tests, scripts) loads the script at the slot's top level: the script's own graph (9 modules)
+  never reaches the slot, so the wait cannot come back to itself. The lazy UI (Dialogue, Moments, Hud, the week panel,
+  voice) keeps importing `data/script.ts`: the same module instance.
+- **A `?start=` deep link** (QA) now begins once the play layer is in (`ui/Overlay.tsx`), as the title's Start does —
+  this also closes W6-P1's known gap (the HUD a moment late on deep links).
+- `game/GameRoot.tsx`: `performance.mark('opus-bay:first-frame')` at the world's first frame (part c's measurements).
+
+### Evidence
+
+| chunk (gzip, as vite reports) | before `315704c1` | part a | **part b** |
+|---|---|---|---|
+| **GameRoot** | **279.21 KB** | 267.14 | **254.45** (−24.76) |
+| playParts (+ hudLayout) | 15.42 | 16.99 | 17.11 |
+| script (new: the dialogue, with the play layer) | — | — | 13.64 |
+| poiTexts · PoiCardBody | — · 3.33 | 7.29 · 3.38 | 7.29 · 3.37 |
+| discovery · places | — | 2.43 · 2.88 | 2.49 · 2.96 |
+| deckSteer · perfMonitor | — | 1.16 · 0.79 | 1.16 · 0.79 |
+| cityMode (+ viewField) | 55.54 | 56.36 | 56.52 |
+
+- What a phone downloads before it can press Start is the same set of bytes as before plus the stand-ins (≈ 1.2 KB):
+  they left GameRoot (the one chunk on the path to the first frame) for chunks fetched in parallel with it.
+- **Production build played from the title** (vite preview on 5704, the Start button pressed — not a deep link):
+  district desktop — BAYBAY's welcome with its four choices
+  (`docs/opus-bay/qa/w7/P/p3-district-prod-title-start-welcome.jpg`); chunks before Start: GameRoot, playParts, script,
+  discovery, places, post, photo … and **no** cityMode, cityDataChunk, cityViews or deckSteer. City phone 390 × 844
+  dpr 3 — the city welcome (5 chapters), 我自己逛逛 → the goals step with the pelican goal and the ten goals
+  (`docs/opus-bay/qa/w7/P/p3-city-phone-prod-title-start-goals.jpg`). No console error (the old THREE.Clock warning).
+  (The district run was on the tree that still had the dropped actor move, Decision 3; the city run was repeated on
+  the final build — first frame at 8.5 s on this loaded machine, the same welcome and goals step.)
+- **The retry's premise, in Chrome on the production build** (the perfMonitor chunk moved away, then back):
+  1. `import(chunk)` → "Failed to fetch dynamically imported module: http://localhost:5704/assets/perfMonitor-B8Lc0Fao.js";
+  2. file back, `fetch` → 200 text/javascript; 3. the same `import` again → **still failed**; 4. `import(chunk +
+  '?retry=1')` → loaded (`PerformanceMonitor`) — the URL importRetry reads from that message and asks for.
+- Tests: `tests/opus-bay-sf-budget.test.ts` "W7-P3" ×2 (every retried import site; the helper imports nothing; the
+  script out of GameRoot's graph, its graph never reaching the slot, the four importers on the slot, the deep-link
+  wait) and the W6-P2 walk updated for `loadDrive`; `tests/opus-bay-w7-p-retry.test.ts` (Chrome / Firefox / Safari
+  messages; a lost chunk fetched again as `?retry=1` after 1 s; lost for good → the last error after 1 + 3 + 8 s;
+  Safari: the same import again; an error the module threw: never retried, evaluated once; the play layer's quick
+  retries); `tests/opus-bay-w7-p.test.ts` (the slot's bindings are the script's own tables; a rebinding is seen at
+  once by flow's `nodeById` and content's `hook`).
+- Checks on the lane tree (origin `d64dc400` + part b): `tsc` 0 · `eslint .` 0 errors (43 old warnings) · suite
+  **1530 / 1530**.
+
+### Decisions
+
+1. **Retry, not reload, in play.** A reload loses the player's state, so in play a lost chunk is asked for again under
+   a new URL, three times over 12 s; at the title the play layer keeps its one reload after two quick retries.
+2. **Retried sites** are those whose failure used to stick for the page's life and where a second load is harmless (the
+   module never ran). The ≈ 170 other `import()` sites (feature chunks, panels, city sub-chunks) keep their own error
+   paths; `importRetry` is there for their owners.
+3. **Request 1's second half (the forgiving feet, BAYBAY's pull, the open-ground turn, the glide's tall structures) is
+   not moved.** Built and measured (−2 KB; GameRoot 265.14 at that point), then reverted: those four run in both world
+   modes, and node harnesses drive the real controller without the play layer — `scripts/opus-sf/qa/sweep-static.mts`
+   (W7-Z's static sweep), `coins-place.mts`, `economy-run.mts`, `transit-sidecar.ts` — and two suite tests (W5-E2 coin
+   spots, W5-T poles) silently lost the corridor slide and reported snags / boxed spots. A node-side eager load would
+   deadlock (stuckHelper imports the controller that would await it). The dialogue script gives six times the bytes
+   with none of that.
+4. **The script moved although 265 was in reach without it**: at ≈ 265 the next push of any lane would have put
+   GameRoot over the target again; the dialogue is the largest block read only after Start.
+
+### Known gaps
+
+- A retried chunk whose *shared dependency* chunk was the one lost still fails (the dependency's URL stays failed in
+  the module map): the caller's fallback applies, as before.
+- Firefox / Safari were not run (no such browsers on this machine); their messages are unit-tested from their formats.
+- A `?start=` deep link on a very slow network now waits for the play layer (≈ 30 KB) before play begins (QA only).
+
