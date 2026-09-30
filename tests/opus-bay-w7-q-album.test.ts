@@ -148,3 +148,26 @@ test('W7-Q4 an IndexedDB open that never answers: after the timeout the album wo
     assert.equal(album.ALBUM_OPEN_TIMEOUT_MS, 3000);
   });
 });
+
+// W7-Q-review · Firefox (Gecko, desktop and Android) answers navigator.storage.persist() with a permission popup
+// ("In Firefox, when a site chooses to use persistent storage, the user is notified with a UI popup" — MDN, Storage
+// quotas and eviction criteria, checked 2026-09-30): the first photo raised a browser dialog. Safari and Chromium decide
+// silently, so the ask stays there; Firefox on iOS (FxiOS) is WebKit and silent.
+test('W7-Q-review persist() is not asked on Gecko (a permission popup at the first photo); still once on WebKit / Chromium', async () => {
+  const FIREFOX = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:143.0) Gecko/20100101 Firefox/143.0';
+  const FIREFOX_ANDROID = 'Mozilla/5.0 (Android 14; Mobile; rv:143.0) Gecko/143.0 Firefox/143.0';
+  const FXIOS = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) FxiOS/143.0 Mobile/15E148 Safari/605.1.15';
+  const CHROME = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
+  for (const [ua, want] of [[FIREFOX, 0], [FIREFOX_ANDROID, 0], [FXIOS, 1], [CHROME, 1], [IPHONE, 1]] as const) {
+    const fake = fakeIdb();
+    let persists = 0;
+    await withIdb(fake, async () => {
+      const album = await import('../src/opus-bay/game/album');
+      album.resetAlbumForTests({ idb: true });
+      assert.ok(await album.addPhoto(blob(), blob(), meta(Date.UTC(2026, 9, 1, 19))));
+      await album.addPhoto(blob(), blob(), meta(Date.UTC(2026, 9, 1, 20)));
+      assert.equal(album.albumKind(), 'idb');
+      assert.equal(persists, want, `persist() asks for ${ua.slice(-40)}`);
+    }, { userAgent: ua, storage: { persist: async () => { persists++; return true; } } });
+  }
+});

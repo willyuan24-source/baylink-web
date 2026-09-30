@@ -156,6 +156,9 @@ function askPersist() {
   if (persistAsked) return;
   persistAsked = true;
   try {
+    // (W7-Q-review) Gecko (Firefox desktop / Android) answers with a permission popup at the first photo — not asked
+    // there; FxiOS is WebKit ("like Gecko" has no "Gecko/<n>") and decides silently like Safari and Chromium
+    if (typeof navigator !== 'undefined' && /\bGecko\/\d/.test(navigator.userAgent ?? '')) return;
     const st = typeof navigator !== 'undefined' ? (navigator as Navigator & { storage?: StorageManager }).storage : undefined;
     void st?.persist?.().then(ok => { albumPersisted = ok; }, () => { /* not allowed */ });
   } catch { /* no StorageManager */ }

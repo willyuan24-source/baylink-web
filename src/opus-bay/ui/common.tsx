@@ -4,6 +4,7 @@ import type { Mood } from '../core/types';
 import { game, useGame } from '../core/store';
 import { useT } from '../i18n';
 import { portraitSrc, useIsMobile } from './hooks';
+import { sheetDragStart } from './sheetDrag';
 
 // ---------------------------------------------------------------------------
 // BAYBAY portrait (asset if present, otherwise a drawn SVG face that follows the brand avatar)
@@ -85,7 +86,10 @@ export function Sheet({ title, eyebrow, onClose, children, footer, wide = false,
 
   const onPointerDown = (e: ReactPointerEvent) => {
     if (!mobile) return;
-    drag.current = { y: e.clientY, h: height, moved: false };
+    // (W7-Q-review) from the height it shows: at rest the CSS floor (320 px) may hold it above its snap (ui/sheetDrag.ts)
+    const h = sheetDragStart(height, panelRef.current?.getBoundingClientRect().height, window.innerHeight);
+    if (h !== height) setHeight(h);
+    drag.current = { y: e.clientY, h, moved: false };
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
     setDragging(true);
   };
