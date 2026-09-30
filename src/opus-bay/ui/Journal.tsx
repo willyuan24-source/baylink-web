@@ -20,7 +20,7 @@ import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
 import { journalDefaultTab } from './journalDefault';
-import { JOURNAL_BUILTIN_ORDER, journalTabs, lastJournalRequest, openOverlay, subscribeJournalRequest, type JournalTabSlot } from './slots';
+import { JOURNAL_BUILTIN_ORDER, goalsRows, journalTabs, lastJournalRequest, openOverlay, subscribeJournalRequest, type JournalTabSlot } from './slots';
 import './content-ui.css';
 
 type BuiltinTab = keyof typeof JOURNAL_BUILTIN_ORDER;
@@ -210,7 +210,13 @@ function Goals() {
   // (lane N's request, plan MF6: the district's 湾区第一课 list shows in the city only once that lesson was started —
   // the call menu still offers it — so a new city player sees the city's goals, not the waterfront's seven stops)
   const lessonStarted = completed.length > 0 || lessonActive;
-  return city ? <>{explorer}<Favours done={done} />{lessonStarted && bay101}</> : <>{bay101}{explorer}</>;
+  return city ? <>{explorer}<GoalsRows /><Favours done={done} />{lessonStarted && bay101}</> : <>{bay101}{explorer}</>;
+}
+
+/** W7-G8 (lane G, surgical): the blocks other features add after the city's explorer goals (ui/slots registerGoalsRow). */
+function GoalsRows() {
+  const rows = useSyncExternalStore(goalsRows.subscribe, goalsRows.list, goalsRows.list);
+  return <>{rows.map(r => <r.Component key={r.id} />)}</>;
 }
 
 /**

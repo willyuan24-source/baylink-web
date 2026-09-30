@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 import { isPaid } from '../economy/ledger';
-import { openJournal, registerJournalTab, registerPillBadge } from '../ui/slots';
+import { openJournal, registerGoalsRow, registerJournalTab, registerPillBadge } from '../ui/slots';
+import { HalloweenGoalsRow } from './playGoalsRow';
 import { initCostumes } from './costume';
 import { initHalloweenPostcards } from './playPostcardRun';
 import { goalsDoneText } from './progress';
@@ -35,14 +36,18 @@ export function initHalloweenPlay(): () => void {
   const offs: (() => void)[] = [treat.off, cards.off, registerPillBadge({ id: 'g-candy', order: 11, Component: CandyBadge }), injectCandyCss(), initCostumes()];
   // the 万圣节 page: a Journal tab while the season lasts (after 手帐 7, before 明信片 10)
   let offTab: (() => void) | null = null;
+  // W7-G8: and a Halloween block in the journal's 目标 tab (the city's goals) while the season lasts
+  let offRow: (() => void) | null = null;
   const tab = () => {
     const want = inHalloween();
     if (want && !offTab) offTab = registerJournalTab({ id: 'halloween', order: 8, label: { zh: '万圣节', en: 'Halloween' }, icon: PumpkinIcon, count: () => goalsDoneText(isPaid), load: () => import('./HalloweenPage') });
     else if (!want && offTab) { offTab(); offTab = null; }
+    if (want && !offRow) offRow = registerGoalsRow({ id: 'g-halloween', order: 10, Component: HalloweenGoalsRow });
+    else if (!want && offRow) { offRow(); offRow = null; }
   };
   tab();
   const tabTimer = setInterval(tab, 30_000);
-  offs.push(() => { clearInterval(tabTimer); offTab?.(); offTab = null; });
+  offs.push(() => { clearInterval(tabTimer); offTab?.(); offTab = null; offRow?.(); offRow = null; });
   if (typeof window !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_OPUS_QA === '1')) {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
     w.__opusBay = { ...(w.__opusBay ?? {}), g: { knock: treat.knock, look: treat.look, stats: treat.stats, page: () => openJournal('halloween'), card: cards.show, cards: cards.pending } };

@@ -147,3 +147,23 @@ test('W7-G7 Belvedere: door 8 (a Clayton Street face at the Parnassus end) is go
   assert.equal(Math.max(...TREAT_DOORS.map(d => d.n)), 54, 'no new number');
   assert.equal(new Set(TREAT_DOORS.map(d => d.n)).size, TREAT_DOORS.length);
 });
+
+test('W7-G8 the journal\'s 目标 tab gets a Halloween block while the season lasts (registered by halloween/play.ts, gone after it)', async () => {
+  const slots = await import('../src/opus-bay/ui/slots');
+  const { __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
+  const { initHalloweenPlay } = await import('../src/opus-bay/halloween/play');
+  const { HalloweenGoalsRow } = await import('../src/opus-bay/halloween/playGoalsRow');
+  const ids = () => slots.goalsRows.list().map(r => r.id);
+  // 12 October 2026, noon in San Francisco: in the season
+  __setBayNowForTests(new Date('2026-10-12T19:00:00Z'));
+  let undo = initHalloweenPlay();
+  try {
+    assert.deepEqual(ids(), ['g-halloween']);
+    assert.equal(slots.goalsRows.get('g-halloween')?.Component, HalloweenGoalsRow);
+  } finally { undo(); }
+  assert.deepEqual(ids(), [], 'undone with the feature');
+  // 20 November: no season, no block
+  __setBayNowForTests(new Date('2026-11-20T19:00:00Z'));
+  undo = initHalloweenPlay();
+  try { assert.deepEqual(ids(), []); } finally { undo(); __setBayNowForTests(null); }
+});

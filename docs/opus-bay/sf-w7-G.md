@@ -5,9 +5,11 @@ Worktree `C:/Users/willy/wt/w7-g` (branch `w7-g`), dev port 5706, scratch `C:/Us
 
 ## 给主人的摘要
 
-1. 四张万圣节明信片现在真的会发到玩家手上：第一次讨到糖、10/31 大夜晚第一次讨糖、找齐 40 个南瓜灯、亡灵节看遍教会区 8 处——等 BAYBAY 说完话，就弹出和城市明信片一样的翻面卡片（正面是画，背面是说明），点「收进手帐」后 BAYBAY 会说「万圣节明信片收进手帐啦」。
-2. 手帐「发现」页和「万圣节」页都有「万圣节明信片」一栏（没拿到的写着怎么拿）；万圣节过后（11/2 之后）手帐里的这一栏还在。
-3. BAYBAY 的两句新台词（明信片、鹈鹕蝙蝠翅膀）已在 23:30 前推送，X 线可以录音。
+1. 四张万圣节明信片现在真的会发到玩家手上：第一次讨到糖、10/31 大夜晚第一次讨糖、找齐 40 个南瓜灯、亡灵节看遍教会区 8 处——等 BAYBAY 说完话就弹出翻面卡片，点「收进手帐」后 BAYBAY 会说「万圣节明信片收进手帐啦」；手帐「发现」页和「万圣节」页都有这一栏，11/2 以后手帐里的还在。
+2. 鹈鹕的蝙蝠翅膀上架了（小铺「坐骑」，100 金币，万圣节限定）：紫色蝙蝠膜、骨节、小爪子、橙色滚边晚上会亮，飞的时候跟着翅膀一起扑扇（电脑和手机都实际飞过）。
+3. 万圣节期间，万圣节商品排在货架最前面；手机右上角胶囊在讨糖街附近不再变成三行（现在两行：金币 · 糖果）；大夜晚第一次敲的门会提示「双倍糖果 ×3！+10 金币」。
+4. 旅行本「目标」页在万圣节期间多了一块「万圣节目标 0/3」，一键去万圣节页；Belvedere 街有一户其实是隔壁 Clayton 街的房子，已撤掉。
+5. BAYBAY 的两句新台词（明信片、鹈鹕蝙蝠翅膀）在 20:50 就推送了，X 线可以录音。没有阻碍上线的问题。
 
 ## Part a · the four Halloween postcards at their moments (W7-G1, 20:25–20:45 PDT)
 
@@ -118,7 +120,7 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
 | (5) the treat toast (W7-G5) | `halloween/treat.ts` `treatToast`, `treatRun.ts` | the toast counts what THIS treat paid: 得到巧克力！+5 金币 · 糖果袋 4 颗 in the season; on the big night 双倍糖果：巧克力 ×2！… and at a door never knocked before ×3 and +10 金币 (`door:<n>` + `night:<n>`); the coins are the ledger's own delta (0: not shown) |
 | (6) the kit-swap skip (W7-G6) | `world/sf/kitSwap.ts` (surgical: `setKitSwapSkip`, one line in `reselect`), `halloween/treat.ts` `doorOnLot`, `treatRun.ts` | while the doors are dressed a lot whose box holds a treat door (within 0.6 u) is never chosen for a SAM kit house (one already there leaves after the dwell): the porch keeps the toy house it was built against. Set through a dynamic import (kitSwap is its own chunk), cleared when the season ends or the feature stops |
 | (7) Belvedere (W7-G7) | `halloween/treatDoors.ts` | measured on the published city (scratch `opus-qa/w7/g/belv.mts`: the 17th St crossing (43.2, 859.9), Parnassus (0.8, 830.0), a 51.9 u block): **no door was past Parnassus**; door 8 stood on a **Clayton Street** face at the Parnassus end (3.3 u from Clayton's centreline, 6.7 from Belvedere's — the W6 run only asked for a face parallel to Belvedere within 7 u) → `gone: true` (append-only). Doors 1–3 stand 4–10 u past the 17th St end, on Belvedere itself (5.5–6.7 u from it): kept. 53 doors to knock (Belvedere 8) |
-| (8) goals card row | — | not done (below) |
+| (8) goals row | — | part d (W7-G8, below) |
 | (9) templated lines | — | checked: every BAYBAY bubble of lane G is a fixed line of `halloween/lines.ts` (`sayLine(id)` → `hLine`), the postcard's and the wings' lines included; the numbers live in toasts / the page, never in a bubble. Nothing to split |
 | tests | `tests/opus-bay-w7-g-polish.test.ts` (new, 5; red before the fix: the full-suite run at 22:07 had these five red and everything else green), `tests/opus-bay-w6-g-review.test.ts` (the W6 near rule → the purse rule), `tests/opus-bay-w6-g-treat.test.ts` (picks live doors) | |
 
@@ -150,3 +152,52 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
 - Door-to-street checks for the other five streets were not re-run (a face nearer another parallel street could exist
   there too, as on Belvedere).
 - The kit skip was not seen in a live A/B (above).
+
+## Part d · a Halloween block in the city's goals (W7-G8, 23:20–23:40 PDT)
+
+### What was built
+
+- The city's goals are the journal's 目标 tab (the pill opens it; the old goals card is only the district's and a
+  fallback in the city: `game/flow.ts startFree` shows the goals step once instead), so the Halloween row goes there:
+  `ui/slots.ts` (surgical, lane Q's file) `registerGoalsRow({ id, order, Component })` / `goalsRows`; `ui/Journal.tsx`
+  (surgical) renders them after the explorer goals in the city (`GoalsRows`); `halloween/playGoalsRow.tsx`
+  `HalloweenGoalsRow`: 🎃 万圣节目标 n/3, the three goals with their counts (the tab's own ob-goals list) and a
+  万圣节页：讨糖街、南瓜灯、明信片 › button (`openJournal('halloween')`); `halloween/play.ts` registers it while
+  `inHalloween()` (re-checked every 30 s with the 万圣节 tab) and undoes it with the feature. The district's tab is
+  unchanged (the rows render in city mode only, and the Halloween feature never loads in the district).
+- Test: `tests/opus-bay-w7-g-polish.test.ts` W7-G8 (in the season on 12 Oct the block is registered, undone with the
+  feature; on 20 Nov none).
+
+### Evidence
+
+- Phone 390 × 844 dpr 3, `?halloween=1&lang=zh-Hans`: the pill → 目标: 坐地铁… / 大学巡礼 0/3, then 🎃 万圣节目标 · 0/3
+  (敲开 5 户人家的门 · 0/5, 找到 10 个南瓜灯 · 0/10, 穿上一套万圣节服装) and the page button, then 邻居的小忙
+  (`qa/w7/G/d-phone-goals-tab-halloween.jpg`).
+- Checks (23:47, the tree on origin `fe80aa0e` + part d): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite
+  1583 tests, 1582 pass — the one red is the deadlock test that is red on origin (Requests).
+
+## Not done
+
+- The door-to-street check (a face nearer another parallel street, as Belvedere's door 8 was) for the other five streets.
+- A live A/B of the kit-swap skip (the swap had no house on at the spots tried; the hook is unit-tested on the real class).
+- The pelican's `head` / `neck` / `back` slots have no costume yet (a pumpkin bow would go on `neck`).
+- The city's fallback goals card (`ui/Moments.tsx`, shown only when the goals step's chunk is missing) has no Halloween
+  row: the city's goals are the journal's 目标 tab, which has it.
+
+## Requests
+
+- **Lane X**: record `W7_HALLOWEEN_LINES` in `src/opus-bay/halloween/lines.ts` (2 lines, pushed 20:50 in `559006e5`):
+  `w7g-postcard-keep` 万圣节明信片收进手帐啦，随时都能翻出来看！ / The Halloween postcard’s in our notebook — we can
+  look at it any time! · `w7g-costume-bat-wings` 鹈鹕也扮成小蝙蝠啦，扑扇扑扇！ / Our pelican’s a little bat now — flap,
+  flap!. Both are said as BAYBAY bubbles with exactly these texts (`sayLine(id)`); the wave-6 table is unchanged.
+- **Lane B / the lead**: `tests/opus-bay-w5-deadlock.test.ts` "W5-bus 20+ simulated minutes" is red on origin after
+  ≈ 23:00 in every run, alone too: "bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)" (not the
+  blocker count B1 fixed); it stays red with this lane's files put back to origin's.
+- **Lane K** (optional, `game/flow.ts`): `bubble()` pauses for the city postcard reward and the goals step only; a
+  bubble that starts while the Halloween postcard (`h-postcard` overlay, a modal like the reward) is open shows above its
+  dim — pausing bubbles while it is open would match the city card.
+- **Lane V** (FYI): the bat wings ride the pelican rig's `wingL` / `wingR` bones (charImpl `SLOTS.pelican`): keep those
+  bones' names and positions if the pelican's look changes.
+- **Lane Q** (FYI): two surgical additions in your files — `ui/slots.ts` `registerGoalsRow` / `goalsRows` and
+  `ui/Journal.tsx` `GoalsRows` after the city's explorer goals; the phone pill near a treat street is two lines through
+  G's injected CSS (`halloween/treatNear.ts`).

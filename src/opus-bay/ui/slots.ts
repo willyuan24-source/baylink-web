@@ -32,6 +32,8 @@ export interface MoreItemSlot { id: string; order: number; label: Bilingual; ico
 export interface PillBadgeSlot { id: string; order: number; Component: ComponentType }
 export interface OverlayProps { props?: unknown; close: () => void }
 export interface OverlaySlot { id: string; Component: ComponentType<OverlayProps> }
+/** W7-G8 (lane G, surgical): a block in the journal's 目标 tab in the city, after the explorer goals (the Halloween goals in the season). */
+export interface GoalsRowSlot { id: string; order: number; Component: ComponentType }
 export interface AskItemSlot { id: string; order: number; label: Bilingual; icon: ComponentType; onSelect: () => void; visible?: () => boolean }
 
 /** Built-in Journal tab ids and orders (ui/Journal.tsx). */
@@ -65,11 +67,13 @@ export const moreItems = new Registry<MoreItemSlot>();
 export const pillBadges = new Registry<PillBadgeSlot>();
 export const overlays = new Registry<OverlaySlot>();
 export const askItems = new Registry<AskItemSlot>();
+export const goalsRows = new Registry<GoalsRowSlot>();
 
 export function registerJournalTab(t: JournalTabSlot): () => void { return journalTabs.add(t); }
 export function registerMoreItem(m: MoreItemSlot): () => void { return moreItems.add(m); }
 export function registerPillBadge(p: PillBadgeSlot): () => void { return pillBadges.add(p); }
 export function registerAskItem(a: AskItemSlot): () => void { return askItems.add(a); }
+export function registerGoalsRow(r: GoalsRowSlot): () => void { return goalsRows.add(r); }
 export function registerOverlay(o: OverlaySlot): () => void {
   const off = overlays.add(o);
   return () => { off(); if (!overlays.get(o.id)) closeOverlay(o.id); };
