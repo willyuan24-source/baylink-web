@@ -99,3 +99,84 @@ scratch `C:/Users/willy/opus-qa/w7/b/`. Owns `world/busSystem.ts`, `world/flineS
   or put a small 设置 button on the overlay's ride card; the css rule above only lifts sheets once they are open.
 - **K** (`game/transit.ts`): drop the "Known limit: a Metro train under ground ignores a brake" sentence from
   `holdRideForPause`'s comment (W7-B2 honours the pause brake under ground).
+
+Part a pushed 22:30 PDT: `8f485b12` W7-B1 · `798eeb4f` W7-B2 · `5db1ea1c` W7-B3 (+ report). Checks on the rebased head:
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1527 / 1528** under load
+— the one failure the wall-clock `W5-D-review the paid memo … 2000 counts in 357.4 ms` (`opus-bay-w5-eggs-review`), green
+alone (149.9 ms); after the last rebases (W7-W11's seam fill, W7-R2, W7-G2) tsc 0 and the touched files' tests 48 / 48 and
+24 / 24. **Note:** the seam fill (W7-W11) changed the published world, and the proof's count moved 47 → **46** with it
+(lane 13, zone 11, crossing 22) — exactly why the margin over 30 matters: the count follows the world, never the clock.
+
+## Part b — per-frame garbage, the courtesy waits, zh wording (22:30–00:05 PDT)
+
+### What was built
+
+- **W7-B4** `world/flineSystem.ts`: the streetcars' run step asks `nextNeed(car, NEED_S)` / `nextNeed(car, NEED_S2)` (two
+  new module scratch records; the step's own, apart from `pendingHold`'s / `firstInLine`'s): it made two new `Need`
+  objects per car per frame (`:573` / `:588`, pre-wave). Test W7-B4 spies on `nextNeed`: red on the old code ("16181 of
+  16181 asks made a new Need"), green after; the deadlock file's numbers are byte-identical before / after (interlocks
+  2 × 1 h: bus box waits longest 6.9 s, cable car 48.1 / 42.4 s, streetcar 31.2 / 32.1 s; the proof 46 forced blockers,
+  the same longest stands).
+- **W7-B5** the long courtesy waits, **bounded by tests where they stand** (no behaviour change pushed):
+  - `tests/opus-bay-w5-deadlock.test.ts` interlocks: a cable car's longest stand ≤ **50 s** (was ≤ 60). Where the long
+    ones are (a probe of the same 2 × 1 h run, `C:/Users/willy/opus-qa/w7/b/hyde/interlock.mts`): **48.1 s** Powell–Hyde at
+    Hyde & Chestnut (its 4 s stop, ≈ 24 s leaving the Hyde St box to the loop bus 21 s away, then the bus inside the box
+    ≈ 14 s — it dwells 8 s at its Wharf & Hyde stop there) and **43.3 s** California at s 101 near Drumm (the bus due 27 s
+    away, then ≈ 10 s driving the 70 u of shared California St).
+  - `tests/opus-bay-w7-b.test.ts` W7-B5: the rider rides the F-line Ferry Building ⇄ 17th & Castro for 20 simulated
+    minutes (9 rides; their streetcar never yields): no loop bus waits at a shared box > **35 s**; measured **28.6 s** at
+    `f-line@5661:750` (149, 601) — Market St's single-track stem, two streetcars through it in a row (the second one needed
+    by the first: it may not leave the part to the bus, the W5-bus deadlock rule), not the Castro hairpin (10.5 s here).
+- **W7-B6** zh wording (text only, ids and English unchanged): `data/transit.ts` `TURNTABLE_NAMES` zh →
+  **鲍威尔街 · 市场街转车台**, **海德街 · 海滩街转车台**, **泰勒街 · 湾街转车台**, and `turntableZh()` for any other
+  turntable (the W6-B5 street names; a station without them keeps "X & Y 转车台"); every zh text the scout listed that
+  named the Powell & Market turntable: `data/sf/attractions.ts:200`, `extraPlaces.ts:180`, `landmarks.ts:621`
+  (鲍威尔街 · 市场街叮当车转车台), `dialogue.ts:85 / :89`, `goals.ts:56`, `residents.ts:71 (comment) / 107 / 113 / 114 /
+  121 / 133`, `game/cityGoals.ts:43`, and `tests/opus-bay-sf-verify-c.test.ts`'s hint. Test W7-B6 (the three names, the
+  fallback, a scan of the zh side of those files) red on the old `data/transit.ts`, green after.
+
+### Evidence
+
+- Live, phone 390 × 844 dpr 3, zh (dev 5703): `__opusBay.transit.data().turntables` →
+  `["鲍威尔街 · 市场街转车台","海德街 · 海滩街转车台","泰勒街 · 湾街转车台"]`; a Powell–Hyde ride from Hyde & Beach:
+  the banner "鲍威尔-海德线叮当车 · 开往 鲍威尔街 · 市场街" (the station, W6-B5), no Latin in the banner.
+- Tests: w7-b 7 / 7 (B2 ×4, B2 css, B4, B5, B6 — 9 with the css and bound tests), the deadlock file 9 / 9, and the 11
+  test files that name these texts (landmark context, places, transit review / verify, verify-c, corners, w5 transit,
+  w6-b, w6-b-review) 122 / 122.
+- The dropped attempt (see Decisions): `C:/Users/willy/opus-qa/w7/b/b5-attempt/` (the diff and the files), logs
+  `hyde/cap-*.log`, `hyde/cap45-*.log`, `b5.log` (the proof failing with it: "bus at an interlock stood 29.2 s
+  (box:f-line@5661:750)").
+
+### Decisions
+
+- **The shorter courtesy was built, measured and not pushed.** `CableSystem.yieldingTo` + `lineInterlocks.boxWantedByCable`
+  (the bus cuts its stop inside a box a cable car stands for, as W6-B7 does for the rider's car) took Hyde & Chestnut
+  48.1 → 41.5 s with no bus cost; a courtesy cap (`BusSystem.boxClearIn`, `COURTESY_MAX`) at 40 s moved the wait onto the
+  buses (12–15 s at Drumm: a car's trip down and back takes ≈ 40 s, not the 25 s `partClearSeconds` reckons), at 45 s it
+  changed nothing. But the stop cut shifts the loop's timing, and in the 20-minute proof the **rider's bus** then met
+  the Market St convoy above: 29.2 s at `f-line@5661:750` against the proof's 25 s bound (7.0 s before, by timing). A
+  change that makes the proof red is not pushed, and the bound is not lowered; the convoy is the real problem (Known gaps).
+- The Muni Metro's station names keep the wave-4 glossary rule (`src/opus-bay/data/VOICE.md`: "English stays primary on
+  the real signs … Van Ness stays 'Van Ness 站'", plan R11): "Van Ness 站" and "N 线 · 开往 Carl & Cole" stay. I had changed
+  them (范尼斯站, 科尔谷) and reverted before committing.
+- Turntables read "鲍威尔街 · 市场街转车台" (no space before 转车台 after a Chinese name; the W6-B5 " · " between streets).
+
+### Known gaps
+
+- **Market St's single-track stem can hold a loop bus ~29 s** when two streetcars run through it in a row (the second
+  one is "needed" by the first, so it may not leave the part to the bus — the W5-bus deadlock rule): measured 28.6 s for a
+  non-rider bus (W7-B5 bounds it at 35 s), and 29.2 s for the **rider's** bus in the proof once the loop's timing shifts.
+  The proof passes today by timing (7.0 s). A fix belongs in `world/sf/lineInterlocks.ts busAheadOfFCar` /
+  `flineSystem` (e.g. reserve the stem earlier for the rider's bus, so the second car never takes a block into it).
+- The Hyde & Chestnut courtesy wait stays ≤ 48 s (non-rider cars only; the rider's car and the one fetching the rider
+  never yield).
+
+### Not done
+
+- Part c — the toy Alcatraz ferry Pier 33 ⇄ the island dock: no time left before the 00:30 stop (W2's Alcatraz with its
+  dock and ferry float landed on origin tonight, `3727a49c`, so the next wave can board it).
+
+### Requests
+
+- **Next wave / the reviewer** (transit): the Market St convoy (Known gaps) — with it fixed, W7-B5's attempt
+  (`C:/Users/willy/opus-qa/w7/b/b5-attempt/b5.diff`) can go in: Hyde & Chestnut 48 → 41.5 s.
