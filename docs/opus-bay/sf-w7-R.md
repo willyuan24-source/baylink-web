@@ -267,10 +267,12 @@ worktree `C:/Users/willy/wt/w7-r-rev` on `81787b14`, dev port 5733, scratch `C:/
   sf-cards and w4-assets files again 30 / 30. The one failure is `W5-bus 20+ simulated minutes`, re-run alone: the same
   deterministic 29.2 s at the f-line box near (149, 601), red on origin for lanes M, S, Q, G and R alike — lane B's
   test, not R's.
+- **The pushed tree** (the review commit rebased onto `67e20f0a`): tsc 0 · `eslint .` 0 errors (43 old warnings) ·
+  the opus-bay suite **1641 / 1641** (the W5-bus test passes on the rebased tree: origin's later commits fixed it).
 
 ### Open items (not blocking)
 
-- `W5-bus 20+ simulated minutes` red on origin (lane B).
+- `W5-bus 20+ simulated minutes` was red on origin during the review; green on the rebased tree (lane B).
 - Lombard's lod 0 is 2,478 of its 2,500-triangle budget: the next flower there has to replace one.
 - The procedural far dome is still a little darker on screen than the AI model's (vertex colour vs texture lighting).
 - The Wharf wheel's rim is dark wood all through; the real sign has a cream outer band round a thin dark ring —
