@@ -248,3 +248,80 @@ except `GameRoot.tsx`, `voiceW5.ts`, `w5Features.ts`, `album.ts`, `photo.ts`; `d
 
 - **Lane B / the lead:** the deadlock proof above (red on origin; the Castro-side interlock box, 29.2 s).
 - **Lead / lane X:** the canopy over the rider (part a Requests).
+
+## Review (W7-K-review, 2026-09-30 00:26–01:40 PDT, worktree `wt/w7-k-rev`)
+
+### 给主人的摘要
+
+- K 线七项都看过了，代码和说法大体属实。发现并修好 **5 个真问题**，都集中在"BAYBAY 给叮当车让路 / 空车被拖到路边"这一块：
+  1. **车停着等你时，BAYBAY 会来回抽搐**：你站在轨道上，叮当车停下等你，BAYBAY 闪到路边后又走回你身边（她要站的位置正好在轨道上），然后又闪开……12 秒里闪了 15 次。现在停着的车不算"开过来"，她不再乱跳。
+  2. **慢车开过来时她反复进出轨道，车身还压过她**：一辆慢慢开的车经过时，她闪开 19 次，其中 17 帧被车身压着。现在她闪开一次后就在路边等车过去，再回来。
+  3. **她可能闪到另一条轨道上，正好挡住对面开来的车**：现在优先选没有来车的那一边。
+  4. **空车被拖到半空时你刚好上车**：车会一直"飘"在 0.35 格高处被你开走，下车后还会被拽回原来的拖车路线上。现在一上车拖车就结束。
+  5. **离开游戏再进来（同一个页面）后，BAYBAY 再也不会让路**：让路的开关只在模块第一次加载时打开，退出时被关掉就再也打不开了。现在每次进城都会重新打开。
+- 这些修复都先写了测试：在 origin 的代码上 5 个全红，修好后全绿。
+- 没有阻挡上线的问题。
+
+### What was checked
+
+- Every lane-K commit read line by line: `87dedcd2` (canopies in the ray tests), `4bc4fc8a` (tow + BAYBAY aside),
+  `a946b554` (the Wharf area, `exactZone`), `1bb9bbd0` (放弃 44 px), `b581a4e8` (stick release), `ee819d0c` (GlideReport),
+  `dd686f58` (goals-step test) and the report commits.
+- **Camera (K1):** `canopySource()` reads `cityStreamerLazy()?.props`; the streamer publishes null on dispose
+  (`world/sf/stream.ts:897`), so the district has no canopies (district camera unchanged). `treeScale` uses the same hash
+  and id (`key * 8192 + i`) as the drawn instances (`props.ts:383/406`), so the canopies match what is drawn. The swing
+  hold and the pull-in rule are bounded (hold 2.5 s, no pull-in toward a canopy nearer than MIN_PULL).
+- **Tow / aside (K2):** staged in node against the lane's own harness (the district plaza, pretend cable cars): a car
+  stopped for the player, a slow car passing, two tracks, the player getting in mid-hop, and a second ride pool —
+  all five broke (below). `idle()` is skipped for a carried ride (`moveSystem.ts:640`) — the root of the mid-hop defect.
+  `Fleet.home` / `reassign` clear the tow (the pool's recycling is safe).
+- **Area pill (K4):** the Wikipedia extent re-checked (https://en.wikipedia.org/wiki/Fisherman%27s_Wharf,_San_Francisco,
+  2026-09-30: "from Pier 35 and the intersection of The Embarcadero and Bay Street westward to Hyde Street and Aquatic
+  Park"); the polygon matches it. `cityAreaAt` is called every frame by `game/brain.ts`: `exactZone` adds one
+  point-in-polygon, and the neighbour scan only on a border cell. `zoneName('fishermans-wharf')` resolves (welcome-back
+  line, Moments), `baybayLines.farZone` returns null for it (no greeting line: quiet, not wrong). Lane K's phone shot
+  (`qa/w7/K/b-wharf-washington-square-giveup-phone.jpg`) read: 渔人码头 on Jefferson St, 北滩 at Washington Square,
+  放弃 finger-sized.
+- **Stick (K6):** `visibilitychange` / `pagehide` listeners are removed on teardown; the width test ignores a height-only
+  (toolbar / keyboard) change; the canvas is `touch-action: none`, so a page pinch-zoom cannot fake a rotation there.
+- **Glide (K7):** the only caller (`moveSystem.flyGlide`) reads `bump` / `softBox` at once; nothing keeps the report.
+- **Goals card (K3):** the lane's test pins the invariant; not re-staged live.
+- Checks of the pushed tree (below).
+
+### Defects found and fixed (commit `W7-K-review: BAYBAY's step off the rails and the tow, hardened`)
+
+Test `tests/opus-bay-w7-k-review.test.ts` — **5 / 5 red** with origin's `guide.ts` / `transitClear.ts` / `cityBikes.ts` /
+`fleet.ts`, **5 / 5 green** with the fix:
+
+| # | Defect (before) | Fix | After |
+|---|---|---|---|
+| 1 | A cable car stopped 3 u short of the player (the transit's stop for the player): with the camera across the rails BAYBAY stepped aside **15 times in 12 s** — her framing spot lay on the rails, she walked back in, dashed off again | `guideAside` ignores a vehicle slower than `ASIDE_MIN_V` 0.3 u/s (a waiting car is not coming at her) | 0 – 1 steps in every camera yaw |
+| 2 | A slow car (1.5 u/s) passing: **19 steps aside, 17 frames with the car's body over her** | `guide.ts`: after a step aside she waits (no follow / framing target) until no vehicle has the spot she left in its path, or the player walks > FOLLOW_GAP + 3 away | ≤ 2 steps, 0 frames under the car, 8 staged cases |
+| 3 | Two tracks: she stepped from the up track onto the down track in front of a car coming the other way (landed 2.32 u across) | the aside prefers a side off every moving vehicle's path (else the old answer) | off both tracks |
+| 4 | The player gets in during the tow's 0.5 s hop: `idle()` never runs for a carried ride, so `ride.tow` stayed — the car drove **floating at the hop height** and, parked again, **snapped back** onto the old tow path | `Fleet.pose` ends the tow when the ride is occupied | tow ended, drawn on its wheels, parked where left |
+| 5 | `setTransitAside(guideAside)` ran at the module's import; `CityBikePool.dispose()` cleared it — a second pool in the same page (the game left and entered again, the chunk cached) **never had it again** | set in `CityBikePool.register()`, cleared in `dispose()` | the second pool's BAYBAY steps aside |
+
+### Open items (not blocking)
+
+- **Not played live by the reviewer** (time): the five fixes are node-staged only, like the lane's own BAYBAY aside.
+  Worth one look on a phone at a Powell St stop with a car waiting for the player.
+- `CityProps.treesNear` iterates `for (const [key, p] of this.sources)` — an iterator and an entry array per resident
+  chunk per query, a few queries a frame while riding a city line (and one on foot for the follow camera's lift). The
+  same pattern is in the older `select()`; a `forEach` with a bound method would make it allocation-free. Small; left.
+- Ghirardelli Square / Beach St west of Hyde stay outside 渔人码头 (Wikipedia's first definition ends at Hyde St; the
+  benefit district's includes the Beach St strip to Van Ness). A judgement call, recorded.
+- Lane K's own open items stand: the canopy over the seated rider (a shader request), a stop-wait with BAYBAY held, a
+  parked ride > 250 u off.
+
+### Blocking the go-live
+
+- None from lane K.
+
+### Checks of the pushed tree
+
+- On the review fix rebased onto `67e20f0a` (01:05–01:20 PDT): `npx tsc -p tsconfig.app.json --noEmit` **0** ·
+  `npx eslint .` **0 errors** (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1644 / 1644 pass**. (Before the rebase the W5-bus 20-minute proof was red, 29.2 s at `box:f-line@5661:750`, on origin
+  too, and alone — lane B's `fd2ff25b` pinned the Bay clock for it, so after 23:00 PDT it no longer meets the Market St
+  convoy; green on the rebased tree.)
+- No dev server and no Chrome of the reviewer's were run (PERF-LOCK absent throughout).
