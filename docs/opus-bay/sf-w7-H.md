@@ -262,3 +262,85 @@ tsc 0 and their test files with lane H's 80 / 80. Pushed `ccebe232` (22:54 PDT).
 
 Checks before the part-c push (23:25 PDT): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
 warnings) · the suite **1566 / 1567** — the one is the deadlock test above (red on origin without lane H's change).
+
+## Review (W7-H-review, 23:40 – 01:40 PDT, worktree `C:/Users/willy/wt/w7-h-rev`, dev port 5725)
+
+### 给主人的摘要
+
+1. H 线的万圣节世界可以上线：南瓜色黄昏、会摇晃的讨糖小孩和门廊小幽灵、夜里带月光边的蝙蝠、南瓜灯上方的小鬼火和 BAYBAY 指方向、亡灵节按真实时间、南瓜活动当天的南瓜堆，都逐条读过代码、在游戏里看过；街区模式（?world=district）完全不受影响。
+2. 修好 1 个真问题：**亡灵节游行的集合地点**。旧金山交通局（SFMTA）2025 年游行公告写的是「傍晚 6 点起在 Bryant 街 19 街到 22 街之间集合，7 点出发」——在 22 街口的**北边**；H 线把小人们排在了 22 街口**南边**（游行路线第一段上）。现在 18:00–19:00 他们站在 22 街口北边的 Bryant 街上，19:00 从原地出发、向南穿过 22 街口再走原路线（不会瞬移）。顺手去掉了游行时每帧新建小数组的浪费。
+3. 事实 9/30 重新上网核对：2026 年亡灵节官方仍未公布（dayofthedeadsf.org 只有 2025 年的祭坛节，calle24sf.org 首页没有），台词都写「通常……以官网为准」，与游戏一致。
+4. 性能在预算内：手机阿拉莫广场万圣夜 77 次绘制 / 22.8 万三角形，讨糖街 Belvedere 电脑 101 / 33.1 万（W6 总验收同处 101 / 32.8 万）、手机 63 / 22.7 万；亡灵节游行集合时（22 街 & Bryant，40 个小人）电脑 104 / 34.3 万。
+5. 没有阻止上线的问题。遗留：W5-bus 公交死锁测试在干净的 origin 上也失败（不是 H 线的改动，H 线和 R 线都已报告给 lead / B 线）。
+
+### What was checked
+
+- Every commit of the lane (`git log --grep "W7-H[0-9:]"`: 45c9d6f3, 4c8ff682, fa188ec0, a023a10e, ccebe232, 0b8a660d, 4bc614be) read in full:
+  `world/sf/fog.ts` (setGoldenTint: surgical, imports nothing of the feature), `halloween/world.ts`, `worldDress.ts`,
+  `hunt.ts`, `huntGuide.ts`, `muertos.ts`, `muertosWalkers.ts`, `muertosSpots.ts`, `worldVenues.ts`, `worldLines.ts`,
+  `world/sf/roadPeople.ts`, the one line in `world/sf/cityLife.ts`, both placement scripts, the lane's tests.
+- Correctness probes: the sniff side against the camera convention (`actors/camera.ts`: the camera at the player +
+  (sin yaw, cos yaw) · d, so right = (cos yaw, −sin yaw): the lane's formula is right); the TOY switch (receiveShadow is a
+  uniform in three's renderer, not a program key: no new program; TOY's `aInfo.x` 0 keeps the window pattern off, z > 0
+  is the sway); `headAt` over two hours (monotonic, laps, corner pauses); the schedule's Bay-clock minutes and seconds;
+  the catalog rows of the two pumpkin events (`public/planner-catalog.json`, verified by the site 2026-09-29).
+- Teardown / world switch: stoops, hunt (wisps in its mesh), muertos (walkers: InstancedMesh.dispose, the road-people
+  provider removed), venues, the pool and the Karl tint cleared — every owner disposes; the guide holds nothing.
+- Per-frame work: the walkers (40 matrices a frame, only 2 Nov 18:00–21:00 within 260 u) — `headAt` built up to ~20
+  two-element arrays and two result objects a frame (fixed below); the halo re-sort runs ≤ 1 Hz (the stoops' refresh).
+- Save compatibility: no new save key (the guide's "told" set is per session; the finds unchanged).
+- Text: the 9 `w7-h-*` lines zh + en fixed (no templates), the dated ones hedge (通常 · 以官网为准 / "check the official
+  site"); 繁體 by the site's conversion as every lane; no new UI, so no touch targets.
+- District: `?world=district&halloween=night&time=night` — the Ferry Building district at night, 0 / 8 postcards, no
+  `__opusBay.halloween` (scratch `C:/Users/willy/opus-qa/w7/h-rev/district.jpg`, read).
+- Perf (dev 5725; headless Chrome, `CHROME_FLAGS=--force_high_performance_gpu`):
+  - desktop 1440 × 900 'high', W6-Z's runner (`w4-perf.mjs --file w6-halloween-spots.json --time night --halloween
+    night --rides 0`): Belvedere St **101 calls / 331k**, 60.1 / 60.1 fps (W6-Z: 101 / 328k); the Alamo Square row was
+    measured while the first session was still warming (programs 24 → 60, the walking camera turned away: 79 / 223k, one
+    frame > 100 ms at the warm-up) — the lane's own 99 / 326k there stands.
+  - phone 390 × 844 dpr 3 'mid' (the lane's views): Alamo Square night **77 / 228k** (Halloween 12.9k stoop tris, 342
+    halos), Belvedere **63 / 227k** (W6-Z: 63 / 222k and 66 / 229k).
+  - 2 November 18:40 at 22nd & Bryant (the gathering, 40 walkers, desktop 'high'): **104 / 343k** (halloween-world 6
+    calls / 48k). All inside ≤ 150 / 400k.
+- Real-world facts, re-checked 2026-09-30: https://www.dayofthedeadsf.org/festival-of-altars still shows only "November
+  2, 2025 @ Potrero Del Sol Park" (installation 8 a.m., entertainment 5–9 p.m.); https://www.calle24sf.org has no
+  Día de los Muertos 2026 date; SFMTA's 2025 notice
+  (https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025): "begin staging at
+  approximately 6 p.m. on Bryant, between 19th and 22nd streets", begins 7 p.m., south on Bryant / west on 24th / north
+  on Mission / east on 22nd, closures 6:45–10 p.m. — the staging side is the defect below.
+
+### Defects fixed (tests/opus-bay-w7-h-review.test.ts, red then green)
+
+1. **The procession gathered on the wrong side of 22nd St.** SFMTA stages it on Bryant between 19th and 22nd (north of
+   the crossing); `gatherHead()` put the head 24.75 u down the route's first leg, so 18:00–19:00 the 40 walkers stood on
+   Bryant between 22nd and 23rd. Before: "a walker stands 24.4 u along the first leg (south of 22nd & Bryant is > 0)".
+   After: the head waits `GATHER_BACK` 6 u before the route's start and the rows stand up Bryant north of 22nd
+   (`placeAt(s < 0)`: the first heading extended backwards, ground sampled once from the city's terrain); at 19:00 they
+   set off from where they stood (no jump), walk south through 22nd & Bryant without a stop there and then the lane's
+   route, pauses and laps unchanged (the lane's tests still pass; its "gathering south of 22nd" line now reads the
+   gathering radius). In the game: `qa/w7/H/rev-procession-gathers-north-of-22nd.jpg` (read; 2 Nov 18:40, looking north
+   up Bryant under the papel picado: robes and candles in the curb lane beyond the crossing). (`halloween/muertosWalkers.ts`)
+2. Per-frame garbage while the procession walks: `headAt` allocated a `[base, base + L]` array per corner per step
+   (up to ~20 a frame) and a result object, and the step another; now a counted loop and one reused `out` object.
+
+### Open items (not blocking)
+
+- **W5-bus 20+ simulated minutes** (`tests/opus-bay-w5-deadlock.test.ts`) is red in the full suite and alone on this tree
+  ("bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)" — on Market St, far from anything of lane H's;
+  nothing registers road people outside 2 November): lane H's and lane R's reports found it red on origin itself —
+  for lane B / the lead.
+- `E2-5 view field in the city` (the wall-clock "a cached cell is cheap" < 50 ms) failed once in a full run and once
+  alone while other lanes' Chromes ran on the machine; not lane H's file.
+- Dev servers share `node_modules/.vite` through the junction: another lane's server re-optimised the deps under mine
+  (headless runs died with "Invalid hook call" / "Failed to fetch dynamically imported module"). I ran vite with a
+  scratch config (`cacheDir` in `C:/Users/willy/opus-qa/w7/h-rev/vite-cache`) — a note for the lead's protocol.
+- `w7-h-muertos-eve` zh "剪纸旗和万寿菊都挂好啦" — the marigolds stand in pots (not hung); left as pushed for lane X's
+  recording (a text change would unmatch the voice).
+- `world/sf/fog.ts` setGoldenTint's comment still says × 0.18 (the feature pushes 0.35, measured by the lane): comment only.
+- The walker geometry is a module cache and stays after the procession (≈ 10 KB of GPU buffers; reused next time).
+- The lane's known gaps stand: the sway is horizontal, the walkers are rigid and walk through a player in their lane,
+  the dusk tint shows where Karl's bank is.
+
+### Blocking the go-live to main
+
+None from lane H.

@@ -49,10 +49,10 @@ test('W7-H6 the procession route: a closed loop 22nd & Bryant → 24th → Missi
 test('W7-H6 the head leaves the gathering at 19:00 at a slow walk and pauses at every corner', () => {
   const count = 26;
   const h0 = MW.headAt(0, count);
-  assert.equal(h0.s, MW.gatherHead(count));
+  assert.equal(h0.s, MW.gatherHead());
   assert.equal(h0.paused, false);
   const corners = MW.processionCorners();
-  const toFirst = (corners[1] - MW.gatherHead(count)) / MW.WALK.speed;
+  const toFirst = (corners[1] - MW.gatherHead()) / MW.WALK.speed;
   assert.equal(MW.headAt(toFirst - 1, count).paused, false);
   const p = MW.headAt(toFirst + MW.WALK.pause / 2, count);
   assert.ok(p.paused && Math.abs(p.s - corners[1]) < 1e-3, 'standing at 24th & Bryant');
@@ -95,10 +95,9 @@ test('W7-H6 the walkers: two instanced meshes on the warmed toy programs, marigo
       assert.ok(d < MW.WALK.spread + 1.2, `a walker ${d.toFixed(2)} u off the route`);
     });
   };
-  onRoute();
-  // gathering on Bryant just south of 22nd
+  // gathering by 22nd & Bryant (W7-H-review: on Bryant north of 22nd, before the route's start — tests/opus-bay-w7-h-review.test.ts)
   const C = MS.ROUTE_CORNERS.bryant22;
-  w.each((x, z) => assert.ok(Math.hypot(x - C.x, z - C.z) < MW.gatherHead(n) + 3));
+  w.each((x, z) => assert.ok(Math.hypot(x - C.x, z - C.z) < MU.GATHER_NEAR));
   w.step('walk', 600, 600);
   assert.equal(w.halos().length, 0, 'walking: the flames glow, no halos trailing');
   onRoute();

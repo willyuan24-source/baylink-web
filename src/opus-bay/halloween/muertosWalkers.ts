@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { game } from '../core/store';
+import { heightAt } from '../core/terrain';
 import { CBOX, CYL, ICO, M, Batch, type Info } from '../world/builder';
 import { TOY_INST, TOY_INST_TINT } from '../world/materials';
 import { PROCESSION } from './muertosSpots';
@@ -9,7 +10,8 @@ import type { HaloSpot } from './worldHalos';
  * Wave 7 · lane H (W7-H6) · the Día de los Muertos procession, 2 November (halloween/muertos.ts muertosSchedule): toy
  * walkers in long robes with calavera-white faces, marigold crowns and a lit candle each —
  *
- *   18:00 – 19:00  they gather at 22nd & Bryant (standing about on Bryant just south of 22nd, candles lit)
+ *   18:00 – 19:00  they gather at 22nd & Bryant (standing about on Bryant just NORTH of 22nd, candles lit: SFMTA's
+ *                  2025 notice stages the procession "on Bryant, between 19th and 22nd streets" — W7-H-review)
  *   19:00 – 21:00  they walk the route in two files in the curb lane — south on Bryant, west on 24th, north on Mission, east
  *                  on 22nd back to Bryant (muertosSpots.ts PROCESSION, SFMTA's 2025 route) — at a slow walk, and at every
  *                  corner the head stops for a moment (the real procession pauses at the main corners for the Aztec
@@ -81,19 +83,61 @@ export function processionCorners(): readonly number[] {
   return (cornerCache = turn.sort((a, b) => b.a - a.a).slice(0, 4).map(t => t.s).sort((a, b) => a - b));
 }
 
-/** rows behind the head when `count` walk in two files */
-const rowsOf = (count: number) => Math.ceil(count / 2);
-/** The head's arc length while gathering: the rows stand on Bryant from 22nd southward (the tail at the corner). */
-export const gatherHead = (count: number): number => (rowsOf(count) - 1) * WALK.row + 1;
+/**
+ * (W7-H-review) The head's arc length while gathering: GATHER_BACK u BEFORE the route's start — the rows stand on Bryant
+ * north of 22nd (SFMTA, the 2025 procession: "staging at approximately 6 p.m. on Bryant, between 19th and 22nd streets";
+ * https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025, checked 2026-09-30), the
+ * tail further up Bryant; at 19:00 the column walks south through 22nd & Bryant onto the route. Lane H first stood them
+ * on the route's first leg, south of 22nd.
+ */
+export const GATHER_BACK = 6;
+export const gatherHead = (): number => -GATHER_BACK;
+
+/** the lead-in's ground is sampled every 1 u up to this far before the route's start */
+const LEAD_MAX = 48;
+/**
+ * A point at arc length `at`, where `at` < 0 is the lead-in: on Bryant north of 22nd & Bryant, the route's first heading
+ * (south) extended backwards, facing south; its ground y from `leadY` (sampled once by createWalkers: y[i] at −i u), else
+ * the route's y at the start. `at` ≥ 0 is routeAt.
+ */
+export function placeAt(at: number, out = { x: 0, y: 0, z: 0, hx: 0, hz: 1 }, leadY: Float32Array | null = null): typeof out {
+  if (at >= 0) return routeAt(at, out);
+  routeAt(0, out);
+  out.x += out.hx * at;
+  out.z += out.hz * at;
+  if (leadY) {
+    const f = Math.min(LEAD_MAX, -at), i = Math.min(LEAD_MAX - 1, Math.floor(f)), t = f - i;
+    out.y = leadY[i] + (leadY[i + 1] - leadY[i]) * t;
+  }
+  return out;
+}
+
+/** The lead-in's ground (the published city's terrain in the game), every 1 u; a sample far off the start's y keeps it. */
+function leadGround(ground: (x: number, z: number) => number): Float32Array {
+  const p = routeAt(0), y = new Float32Array(LEAD_MAX + 1);
+  for (let i = 0; i <= LEAD_MAX; i++) {
+    const h = ground(p.x - p.hx * i, p.z - p.hz * i);
+    y[i] = Number.isFinite(h) && Math.abs(h - p.y) < 3 ? h : p.y;
+  }
+  return y;
+}
 
 /**
- * The head's arc length `walkS` seconds after 19:00 (it leaves the gathering at WALK.speed and stops WALK.pause s each
- * time it reaches a corner), and whether it stands in a pause. Pure.
+ * The head's arc length `walkS` seconds after 19:00 (it leaves the gathering at WALK.speed — first the lead-in down Bryant to
+ * 22nd, no stop there: the procession sets off — and stops WALK.pause s each time it reaches a corner), and whether it
+ * stands in a pause. Pure; `out` is filled and returned (one object a frame: no allocation).
  */
-export function headAt(walkS: number, count: number): { s: number; paused: boolean } {
+export function headAt(walkS: number, _count: number, out = { s: 0, paused: false }): { s: number; paused: boolean } {
   const L = processionRoute().length, corners = processionCorners(), v = WALK.speed, P = WALK.pause;
+  let s = gatherHead(), t = Math.max(0, walkS);
+  out.paused = false;
+  if (s < 0) {
+    const lead = -s / v;
+    if (t <= lead) { out.s = s + t * v; return out; }
+    t -= lead;
+    s = 0;
+  }
   const lap = L / v + corners.length * P;
-  let s = gatherHead(count), t = Math.max(0, walkS);
   const laps = Math.floor(t / lap);
   s += laps * L;
   t -= laps * lap;
@@ -101,15 +145,19 @@ export function headAt(walkS: number, count: number): { s: number; paused: boole
     // the next corner ahead of s (a corner exactly at s is behind: its pause is over)
     const base = Math.floor(s / L) * L;
     let next = Infinity;
-    for (const c of corners) for (const b of [base, base + L]) if (b + c > s + 1e-6 && b + c < next) next = b + c;
+    for (let c = 0; c < corners.length; c++) {
+      const a = base + corners[c], b = a + L;
+      if (a > s + 1e-6) { if (a < next) next = a; } else if (b > s + 1e-6 && b < next) next = b;
+    }
     const dt = (next - s) / v;
-    if (t <= dt) return { s: s + t * v, paused: false };
+    if (t <= dt) { out.s = s + t * v; return out; }
     t -= dt;
     s = next;
-    if (t <= P) return { s, paused: true };
+    if (t <= P) { out.s = s; out.paused = true; return out; }
     t -= P;
   }
-  return { s, paused: false };
+  out.s = s;
+  return out;
 }
 
 // --- the figures ------------------------------------------------------------------------------------------------------
@@ -155,7 +203,7 @@ export interface Walkers {
   dispose(): void;
 }
 
-export function createWalkers(): Walkers {
+export function createWalkers(ground: (x: number, z: number) => number = heightAt): Walkers {
   const q = game.get().settings.quality;
   const count = WALKERS_BY_QUALITY[q] ?? WALKERS_BY_QUALITY.mid;
   const g = walkerGeometry();
@@ -183,17 +231,21 @@ export function createWalkers(): Walkers {
   const m4 = new THREE.Matrix4(), qt = new THREE.Quaternion(), qr = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3(1, 1, 1);
   const up = new THREE.Vector3(0, 1, 0), fwd = new THREE.Vector3(0, 0, 1), f = new THREE.Vector3();
   const at = { x: 0, y: 0, z: 0, hx: 0, hz: 1 };
+  const head = { s: 0, paused: false };
+  // the lead-in's ground on Bryant north of 22nd (W7-H-review: they gather there), sampled once
+  const leadY = leadGround(ground);
   let halos: HaloSpot[] = [];
   let gathered = false;
   return {
     group,
     step: (phase, walkS, clock) => {
-      const head = phase === 'walk' ? headAt(walkS, count) : { s: gatherHead(count), paused: true };
+      if (phase === 'walk') headAt(walkS, count, head);
+      else { head.s = gatherHead(); head.paused = true; }
       const gather = phase === 'gather';
       for (let i = 0; i < count; i++) {
         const row = i >> 1, side = i & 1 ? 1 : -1, h1 = hash(i), h2 = hash(i + 101), h3 = hash(i + 202);
         const s = head.s - row * WALK.row + (h1 - 0.5) * (gather ? 0.7 : 0.3);
-        routeAt(s, at);
+        placeAt(s, at, leadY);
         // left of the walking direction is (−hz, hx)… the files either side of the line
         const lat = side * WALK.spread + (h2 - 0.5) * (gather ? 0.5 : 0.14);
         const x = at.x - at.hz * lat, z = at.z + at.hx * lat;
