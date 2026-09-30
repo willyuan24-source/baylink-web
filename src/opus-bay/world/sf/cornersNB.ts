@@ -60,5 +60,24 @@ export function nbDropLots(blocks: readonly { footprint: readonly Vec2[] }[]): n
   return out;
 }
 
-/** the seam fill's region (scripts/opus-sf/seam-fill.mts): North Beach and upper Chinatown, west of Kearny St */
+/** the seam fill's North Beach region (W6-W1): North Beach and upper Chinatown, west of Kearny St */
 export const SEAM_REGION = { xMax: 60, zMin: 60 } as const;
+
+/** one rectangle of the seam fill's region (world x, z; bounds inclusive) */
+export type SeamRect = { readonly id: string; readonly xMin: number; readonly xMax: number; readonly zMin: number; readonly zMax: number };
+
+/**
+ * The seam fill's regions (scripts/opus-sf/seam-fill.mts keeps a hero-owned block's building when its centroid lies in
+ * one of them): North Beach (W6-W1) and the Financial District's south edge in the start view (W7-W1: Kearny St to the
+ * Embarcadero, Pacific Ave down to Market / Mission St; the Ferry gate and the fidi spot look straight over it).
+ */
+export const SEAM_REGIONS: readonly SeamRect[] = [
+  { id: 'north-beach', xMin: -Infinity, xMax: SEAM_REGION.xMax, zMin: SEAM_REGION.zMin, zMax: Infinity },
+  { id: 'fidi-south', xMin: 60, xMax: 240, zMin: 15, zMax: 110 },
+];
+
+/** the region a point lies in (null when none) */
+export function seamRegionAt(x: number, z: number): SeamRect | null {
+  for (const r of SEAM_REGIONS) if (x >= r.xMin && x <= r.xMax && z >= r.zMin && z <= r.zMax) return r;
+  return null;
+}

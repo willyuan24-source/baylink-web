@@ -7,7 +7,7 @@ import { STAND_RADIUS, canStand, setCityTerrain } from '../src/opus-bay/core/ter
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { SF_ROUTES as ROUTES } from '../src/opus-bay/data/sf/routes';
 import { addSeamFill } from '../src/opus-bay/world/sf/build';
-import { NB_CHURCH_ARRIVAL, NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_REGION, nbDropLots } from '../src/opus-bay/world/sf/cornersNB';
+import { NB_CHURCH_ARRIVAL, NB_CHURCH_OSM, NB_CHURCH_SETBACK, NB_FRONT, NB_SQUARE, SEAM_REGION, nbDropLots, seamRegionAt } from '../src/opus-bay/world/sf/cornersNB';
 import { NB_BUDGET, NB_COLUMBUS, NB_SPIRE_TOP, NB_TOWERS, buildNorthBeach, inFill, nbCafes, nbObstacles, nbPoles, nbSquareProps } from '../src/opus-bay/world/sf/cornersNorthBeach';
 import { SEAM_FILL } from '../src/opus-bay/world/sf/cornersSeamData';
 import { decodeChunkFile } from '../src/opus-bay/world/sf/format';
@@ -43,7 +43,8 @@ test('W6-W1 the seam fill: North Beach blocks the district leaves empty, inside 
   const kept = DISTRICT.blocks.filter((_, i) => !hidden.has(i));
   for (const [k, r] of RINGS.entries()) {
     const c = centroid(r), id = SEAM_FILL[k][0];
-    assert.ok(inPoly(c.x, c.z, DISTRICT.slab) && c.x <= SEAM_REGION.xMax && c.z >= SEAM_REGION.zMin, `${id} in the slab's North Beach band`);
+    // W7-W1: the Financial District's south edge joined the regions (tests/opus-bay-w7-w1-seam.test.ts)
+    assert.ok(inPoly(c.x, c.z, DISTRICT.slab) && seamRegionAt(c.x, c.z), `${id} in the slab's seam regions`);
     assert.ok(SEAM_FILL[k][5] >= 3.6 && SEAM_FILL[k][5] < 40, `${id} toy height ${SEAM_FILL[k][5]}`);
     for (const lot of kept) {
       for (const p of r) assert.ok(!inPoly(p.x, p.z, lot.footprint), `${id} reaches into ${lot.id}`);
