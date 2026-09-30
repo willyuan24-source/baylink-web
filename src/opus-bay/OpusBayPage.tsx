@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { setPageMetadata } from '../lib/seo';
+import { primeAudio } from './audio/unlock';
 import { game, useGame, type GameState } from './core/store';
 import { initPersistence } from './data/wishlist';
 import { readQa } from './game/qa';
@@ -53,7 +54,9 @@ export default function OpusBayPage() {
     return () => { cancelAnimationFrame(raf); if (idle) w.cancelIdleCallback?.(idle); window.clearTimeout(timer); };
   }, [load]);
 
-  const start = useCallback(() => { setLoad(true); setWantStart(true); }, []);
+  // (W7-Q1) inside the tap (Start, 继续旅程, 从头开始, Enter): on WebKit the audio must start in the gesture itself — the
+  // game's 'start' comes seconds later, after the first frame (audio/unlock.ts)
+  const start = useCallback(() => { primeAudio({ starting: true }); setLoad(true); setWantStart(true); }, []);
   const showTitle = !direct && phase === 'title';
   return (
     <main className="ob-page">

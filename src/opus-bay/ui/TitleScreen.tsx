@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type MutableRefObject, type RefObject } from 'react';
 import { ArrowRight, BookOpen, MapPin, Volume2, VolumeX } from 'lucide-react';
+import { primeAudio } from '../audio/unlock';
 import { emit } from '../core/events';
 import { game, useGame } from '../core/store';
 import type { Bilingual } from '../core/types';
@@ -58,6 +59,8 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   }, [primary]);
 
   const toggleSound = () => {
+    // (W7-Q1) turning sound on is a tap: let WebKit see the context start inside it (audio/unlock.ts)
+    if (!game.get().settings.sound) primeAudio();
     game.set(s => ({ settings: { ...s.settings, sound: !s.settings.sound, music: !s.settings.sound ? s.settings.music : false } }));
     emit({ type: 'ui', action: 'select' });
   };

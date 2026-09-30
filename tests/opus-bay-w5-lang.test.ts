@@ -224,7 +224,10 @@ test('lang: the title chunk stays free of three and the game — the switch adds
   const page = graph('opus-bay/OpusBayPage.tsx');
   assert.ok(page.modules.includes('opus-bay/ui/LangPills.tsx') && page.modules.includes('opus-bay/ui/langChoice.ts'), 'the walk reaches the pills');
   assert.deepEqual(page.bare.filter(b => b === 'three' || b.startsWith('three/') || b.startsWith('@react-three/')), [], 'no three in the title chunk');
-  assert.deepEqual(page.modules.filter(m => /^opus-bay\/(world|actors|audio|economy|play|eggs|realsf)\//.test(m)), [], 'no world / actors / audio / feature module in the title chunk');
+  // (W7-Q1) one exception: audio/unlock.ts, the iPhone unlock the Start tap calls inside the gesture — it imports nothing
+  assert.deepEqual(page.modules.filter(m => /^opus-bay\/(world|actors|audio|economy|play|eggs|realsf)\//.test(m) && m !== 'opus-bay/audio/unlock.ts'), [], 'no world / actors / audio / feature module in the title chunk');
+  assert.deepEqual(graph('opus-bay/audio/unlock.ts').modules, ['opus-bay/audio/unlock.ts'], 'the unlock module stays dependency-free');
+  assert.deepEqual(graph('opus-bay/audio/unlock.ts').bare, []);
   const pills = graph('opus-bay/ui/LangPills.tsx');
   assert.deepEqual(pills.modules.sort(), ['i18n/browser-locale.ts', 'i18n/en-patterns.json', 'i18n/locale.ts', 'opus-bay/core/events.ts', 'opus-bay/i18n.ts', 'opus-bay/ui/LangPills.tsx', 'opus-bay/ui/langChoice.ts'].sort());
 });

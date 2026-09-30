@@ -28,6 +28,7 @@ import * as rides from './rides';
 import * as sfx from './sfx';
 import { runSliced, type Job, type Sliced } from './slices';
 import { VoicePlayer } from './voice';
+import { adoptAudioContext, audioProbe, primeAudio, releaseAudioContext, shareAudioContext, silentSample } from './unlock';
 import type { LineLoops } from './lines';
 import { platforms } from '../actors/platform';
 import { w4Kind } from '../data/transit';
@@ -116,7 +117,8 @@ export function startAudio(): () => void {
     const ids = lineVoices.ids?.(line, station, currentRide()?.dir);
     if (!rig || !ids?.length) return;
     const lang = VoicePlayer.lang();
-    for (const id of ids) void rig.voice.load(`${lang}-${id}`);
+    // (W7-Q2) pinned in the capped clip cache until the next stop's list replaces them
+    rig.voice.loadStop(ids.map(id => `${lang}-${id}`));
   };
   /** the continuous line layers from the ride: the bus / surface LRV speed (its platform), the subway rumble */
   const lineLoops = (r: Rig) => {
@@ -184,30 +186,33 @@ export function startAudio(): () => void {
     }
   };
 
-  /** Open a context, suspended until activation. The first one opens the audio device: 110–370 ms on Windows. */
+  /**
+   * Open a context, suspended until activation. The first one opens the audio device: 110–370 ms on Windows.
+   * (W7-Q1) On WebKit a tap on the title may already have made the page's context (audio/unlock.ts primeAudio, inside
+   * the Start tap): that one is adopted — started inside the gesture, it is the one WebKit lets play. The one made here
+   * is shared back, so the Start tap primes it.
+   */
   const createContext = (): AudioContext | null => {
-    const w = window as unknown as { AudioContext?: AudioCtor; webkitAudioContext?: AudioCtor };
-    const Ctor = w.AudioContext ?? w.webkitAudioContext;
-    if (!Ctor) return null;
+    const adopted = adoptAudioContext();
     let c: AudioContext;
-    const t0 = performance.now();
-    try { c = new Ctor({ latencyHint: 'interactive' }); } catch { return null; }
-    ctxMs = performance.now() - t0;
-    // an autoplay-allowed page starts it running: keep it quiet (and the audio thread idle) until activation
-    if (!activated && c.state === 'running') c.suspend().catch(() => {});
+    if (adopted) { c = adopted; ctxMs = 0; } else {
+      const w = window as unknown as { AudioContext?: AudioCtor; webkitAudioContext?: AudioCtor };
+      const Ctor = w.AudioContext ?? w.webkitAudioContext;
+      if (!Ctor) return null;
+      const t0 = performance.now();
+      try { c = new Ctor({ latencyHint: 'interactive' }); } catch { return null; }
+      ctxMs = performance.now() - t0;
+      shareAudioContext(c);
+    }
+    // an autoplay-allowed page starts it running: keep it quiet (and the audio thread idle) until activation — but not
+    // one the Start tap left running for the arrival (W7-Q1)
+    if (!activated && c.state === 'running' && !audioProbe.startPrimed) c.suspend().catch(() => {});
     c.addEventListener?.('statechange', () => { if (rig) rig.engine.log(`ctx:${c.state}`); });
     return c;
   };
 
-  /** iOS unlock: one silent sample played inside the gesture that activates audio. */
-  const unlock = (c: AudioContext) => {
-    try {
-      const silent = c.createBufferSource();
-      silent.buffer = c.createBuffer(1, 1, 22050);
-      silent.connect(c.destination);
-      silent.start(0);
-    } catch { /* ignore */ }
-  };
+  /** iOS unlock: one silent sample played inside the gesture that activates audio (audio/unlock.ts). */
+  const unlock = silentSample;
 
   /** The rig comes alive (the old boot tail): master fade-in, music after 2.2 s, voice clips after 3.5 s, the tick. */
   const goLive = () => {
@@ -265,7 +270,7 @@ export function startAudio(): () => void {
   const activate = () => {
     if (disposed) return;
     const first = !activated;
-    if (first) { activated = true; activatedAt = performance.now(); }
+    if (first) { activated = true; activatedAt = performance.now(); audioProbe.activated = true; }
     // a gesture before the first idle slice opened the context: open it here (the old path, rare)
     if (!ctx) ctx = createContext();
     if (!ctx) return;
@@ -399,7 +404,9 @@ export function startAudio(): () => void {
 
   const onGesture = () => {
     if (disposed) return;
-    if (!activated && game.get().phase === 'title') return;
+    // (W7-Q1) a tap on the title does not activate sound yet, but on WebKit it starts the context inside the gesture
+    // (then quiet again), so the later 'start' may resume it; the Start tap itself primes it in OpusBayPage.start
+    if (!activated && game.get().phase === 'title') { primeAudio(); return; }
     activate();
   };
   const onVisibility = () => {
@@ -414,6 +421,8 @@ export function startAudio(): () => void {
   document.addEventListener('visibilitychange', onVisibility);
 
   if (DEV) {
+    // (W7-Q1) the tap unlock: primes made, whether this module adopted the tap's context and still shares it
+    const unlockStats = () => ({ primes: audioProbe.primes, startPrimed: audioProbe.startPrimed, unlocked: audioProbe.unlocked, adopted: audioProbe.adopted, shared: !!ctx && audioProbe.ctx === ctx });
     (window as unknown as { __opusAudio?: unknown }).__opusAudio = {
       /** snapshot for scripted QA (node scripts/opus-shot.mjs … eval) */
       stats: () => rig ? {
@@ -427,7 +436,8 @@ export function startAudio(): () => void {
         // (W5-T6) the wave-5 lanes' sounds and loops (audio/hooks.ts), and the buses' ducks
         hooks: audioHooksStats(),
         ducks: { music: rig.engine.buses.music.ducking, ambience: rig.engine.buses.ambience.ducking },
-      } : { state: ctx ? 'preparing' : 'not-started', activated, prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
+        unlock: unlockStats(),
+      } : { state: ctx ? 'preparing' : 'not-started', activated, unlock: unlockStats(), prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
       boot: activate,
     };
   }
@@ -452,6 +462,7 @@ export function startAudio(): () => void {
       rig = null;
       try { r.loops.dispose(); r.lines?.dispose(); r.voice.dispose(); r.music.dispose(); r.ambience.dispose(); r.engine.dispose(); } catch { /* ignore */ }
     }
+    releaseAudioContext(ctx);
     ctx?.close().catch(() => {});
     ctx = null;
     if (DEV) delete (window as unknown as { __opusAudio?: unknown }).__opusAudio;

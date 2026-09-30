@@ -12,6 +12,7 @@ import { getLocale } from '../../i18n/locale';
 import type { AudioEngine, Voice } from './engine';
 import { CLIP_MOODS, blipPlan, hashString, mulberry32, voiceClipForMood, type VoiceLang, type Voicing } from './logic';
 import { otterChirp, type ChirpKind } from './sfx';
+import { audioProbe } from './unlock';
 
 const CLIP_GAP = 6;
 const SAME_CLIP_GAP = 25;
@@ -27,12 +28,32 @@ export const MUTED_CLIPS: ReadonlySet<string> = new Set(['zh-yay', 'zh-think', '
 /** How long voice.line waits for a clip still loading before it falls back to the chirp (s). */
 export const LINE_WAIT = 0.7;
 
+/**
+ * W7-Q2 · the decoded-clip cache is capped (an LRU). A decoded clip is native PCM: 48 kHz mono float32 = 192 KB a
+ * second, ≈ 0.75 MB for an average 4 s line; 771 clips ship, and a long iPhone session used to keep every one it had
+ * touched (100–300 MB, counted against the tab's memory, invisible to the Chrome perf gate). Past either cap the least
+ * recently used clip goes (fetched again from the HTTP cache and decoded if it is wanted later). Never evicted: the
+ * barks (both languages), the current stop's tour clips (`loadStop`), and the null markers (absent / muted ids: free).
+ */
+export const CLIP_CACHE_BYTES = 32 * 1024 * 1024;
+export const CLIP_CACHE_MAX = 64;
+const BARK_KINDS = ['hi', 'yay', 'wow', 'this-way', 'arrived', 'think'] as const;
+const BARK_IDS: ReadonlySet<string> = new Set(BARK_KINDS.flatMap(k => [`zh-${k}`, `en-${k}`]));
+/** The native size of a decoded clip (bytes). */
+export const clipBytes = (b: Pick<AudioBuffer, 'length' | 'numberOfChannels'>) => b.length * b.numberOfChannels * 4;
+
 type ProbeState = 'unknown' | 'present' | 'absent';
 
 export class VoicePlayer {
   private readonly e: AudioEngine;
+  /** decoded clips, least recently used first (Map order: a use moves an id to the end); null = absent / muted */
   private readonly clips = new Map<string, AudioBuffer | null>();
   private readonly loading = new Map<string, Promise<AudioBuffer | null>>();
+  /** the current stop's tour clips (never evicted until the next stop's list replaces them) */
+  private stopPins: ReadonlySet<string> = new Set();
+  private held = 0;
+  private bytes = 0;
+  private evicted = 0;
   private probe: ProbeState = 'unknown';
   private lastClip = -Infinity;
   private readonly lastById: Record<string, number> = {};
@@ -79,13 +100,53 @@ export class VoicePlayer {
     return null;
   }
 
+  /** A cached clip, marked as just used (null: absent / muted; undefined: not loaded or evicted). */
+  private use(id: string): AudioBuffer | null | undefined {
+    if (!this.clips.has(id)) return undefined;
+    const b = this.clips.get(id) ?? null;
+    if (b) { this.clips.delete(id); this.clips.set(id, b); }
+    return b;
+  }
+
+  private keep(id: string, buffer: AudioBuffer | null) {
+    const old = this.clips.get(id);
+    if (old) { this.held--; this.bytes -= clipBytes(old); }
+    this.clips.delete(id);
+    this.clips.set(id, buffer);
+    if (buffer) { this.held++; this.bytes += clipBytes(buffer); }
+    this.trim();
+  }
+
+  /** Evict least recently used clips (never a bark, a stop pin or a null marker) until both caps hold. */
+  private trim() {
+    if (this.held > CLIP_CACHE_MAX || this.bytes > CLIP_CACHE_BYTES) {
+      for (const [id, b] of this.clips) {
+        if (this.held <= CLIP_CACHE_MAX && this.bytes <= CLIP_CACHE_BYTES) break;
+        if (!b || BARK_IDS.has(id) || this.stopPins.has(id)) continue;
+        this.clips.delete(id);
+        this.held--; this.bytes -= clipBytes(b); this.evicted++;
+      }
+    }
+    audioProbe.clips = this.held; audioProbe.clipBytes = this.bytes; audioProbe.evicted = this.evicted;
+  }
+
+  /** The cache's size (QA, tests, the ?debug=1 iOS line through audio/unlock.ts audioProbe). */
+  cacheStats() { return { clips: this.held, bytes: this.bytes, evicted: this.evicted, markers: this.clips.size - this.held }; }
+
+  /** The tour clips of this stop and the next (audio.ts preloadStopVoices): loaded and pinned; the previous stop's unpinned. */
+  loadStop(ids: readonly string[]) {
+    this.stopPins = new Set(ids);
+    for (const id of ids) void this.load(id);
+  }
+
   load(id: string): Promise<AudioBuffer | null> {
-    if (MUTED_CLIPS.has(id)) { this.clips.set(id, null); return Promise.resolve(null); }
-    if (this.clips.has(id)) return Promise.resolve(this.clips.get(id) ?? null);
+    if (MUTED_CLIPS.has(id)) { if (!this.clips.has(id)) this.keep(id, null); return Promise.resolve(null); }
+    const cached = this.use(id);
+    if (cached !== undefined) return Promise.resolve(cached);
     let p = this.loading.get(id);
     if (!p) {
       p = this.fetchClip(id).then(buffer => {
-        this.clips.set(id, buffer);
+        if (!this.disposed) this.keep(id, buffer);
         this.loading.delete(id);
         if (buffer) this.e.log('voice-clip:ready', id);
         return buffer;
@@ -98,7 +159,7 @@ export class VoicePlayer {
   /** Warm up the barks for the current language (sequential, low priority). */
   async preload() {
     const lang = VoicePlayer.lang();
-    const ids = ['hi', 'yay', 'wow', 'this-way', 'arrived', 'think'].map(s => `${lang}-${s}`)
+    const ids = BARK_KINDS.map(s => `${lang}-${s}`)
       .filter(id => (lang === 'zh' || !/wow|think/.test(id)) && !MUTED_CLIPS.has(id));
     for (const id of ids) {
       if (this.disposed) return;
@@ -110,8 +171,8 @@ export class VoicePlayer {
   /** Play a recorded bark if it is loaded and not rate-limited; returns its duration or 0. */
   private playClip(id: string, delay = 0): number {
     if (MUTED_CLIPS.has(id)) return 0;
-    const buffer = this.clips.get(id);
-    if (!buffer) { if (!this.clips.has(id)) void this.load(id); return 0; }
+    const buffer = this.use(id);
+    if (!buffer) { if (buffer === undefined) void this.load(id); return 0; }
     const now = this.e.now;
     if (now - this.lastClip < CLIP_GAP || now - (this.lastById[id] ?? -Infinity) < SAME_CLIP_GAP) return 0;
     const v = this.e.voice({ bus: 'voice', at: now + delay, dur: buffer.duration, gain: 0.95, priority: 3, reverb: 0.06, name: `voice-clip:${id}` });
@@ -146,7 +207,8 @@ export class VoicePlayer {
       this.lastClip = now;
       this.lastById[clipId] = now;
     };
-    if (this.clips.has(clipId)) { play(this.clips.get(clipId) ?? null); return; }
+    const cached = this.use(clipId);
+    if (cached !== undefined) { play(cached); return; }
     let settled = false;
     const timer = setTimeout(() => { if (!settled) { settled = true; chirp(); } }, LINE_WAIT * 1000);
     void this.load(clipId).then(buffer => { if (settled) return; settled = true; clearTimeout(timer); play(buffer); });
@@ -270,5 +332,8 @@ export class VoicePlayer {
   dispose() {
     this.disposed = true;
     this.cancel();
+    this.clips.clear();
+    this.held = 0; this.bytes = 0;
+    audioProbe.clips = 0; audioProbe.clipBytes = 0;
   }
 }
