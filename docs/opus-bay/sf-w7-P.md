@@ -280,6 +280,8 @@ and its ≈ 0.13 s parse (4× CPU) into the window where the city chunk, the dat
 
 ## Final checks
 
-See the last lines of part c. Dev / preview server on 5704 stopped at the end; one headless Chrome at a time; no
+On the pushed head `90929b94` (00:27 PDT, rebased over 32 other-lane commits): `tsc` 0 · `eslint .` 0 errors (43 old
+warnings) · suite **1630 / 1631** — the one failure is `W5-bus 20+ simulated minutes`, red on origin itself (part b).
+Dev / preview server on 5704 stopped at the end; one headless Chrome at a time; no
 PERF-LOCK seen at any build or Chrome run; no Higgsfield spend.
 
