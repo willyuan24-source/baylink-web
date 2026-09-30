@@ -59,3 +59,9 @@
 @media (max-width: 360px) {
   .ob-album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* W7-Q4 · the long-press photo (in-app browsers such as WeChat, iOS without file sharing): the system image menu on */
+.ob-album-press { align-items: center; }
+.ob-album-press-hint { font-size: 15px; font-weight: 800; color: var(--ob-teal-d); text-align: center; }
+.ob-album-press .ob-album-photo img { -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; pointer-events: auto; }
+.ob-album-press .ob-album-actions { width: 100%; }

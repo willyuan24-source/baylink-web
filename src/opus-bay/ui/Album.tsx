@@ -8,6 +8,7 @@ import {
 import { holdLock } from '../game/playerLock';
 import { useT } from '../i18n';
 import { useDevice, useWindowKey } from './hooks';
+import { fileToDataUrl, saveRoute, sharePayload } from './shareFile';
 import type { OverlayProps } from './slots';
 import './album.css';
 
@@ -36,6 +37,10 @@ const ALBUM_TEXT = {
   linkCopied: { zh: '照片已保存，游戏链接也复制好了', en: 'Photo saved, and the game link is copied' },
   shareText: { zh: '我在 BAYLINK 的湾区小旅拍的照片', en: 'A photo from my Little Bay Trip on BAYLINK' },
   gone: { zh: '这张照片找不到了', en: 'That photo is gone' },
+  // W7-Q4: in-app browsers (WeChat …) and iOS without file sharing: the photo large, a long press saves it
+  pressSave: { zh: '长按图片保存到相册', en: 'Press and hold the photo to save it to Photos' },
+  pressShare: { zh: '长按图片，保存或发给朋友', en: 'Press and hold the photo to save or send it' },
+  pressDone: { zh: '好了', en: 'Done' },
 } satisfies Record<string, Bilingual | ((n: number) => Bilingual)>;
 
 const dateLabel = (at: number, locale: string) => {
@@ -48,12 +53,6 @@ function download(file: File) {
   a.href = url; a.download = file.name; a.rel = 'noopener';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
-
-/** Can this browser share this file through the system sheet? */
-function canShareFile(file: File): boolean {
-  const nav = typeof navigator !== 'undefined' ? navigator : null;
-  try { return !!nav?.share && !!nav.canShare && nav.canShare({ files: [file] }); } catch { return false; }
 }
 
 /** The game's address (shared with a downloaded photo). */
@@ -123,6 +122,8 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
   const { t } = useT();
   const [file, setFile] = useState<File | null>(null);
   const [asking, setAsking] = useState(false);
+  // W7-Q4: the long-press photo (a data: URL) and whether it came from 保存 or 分享
+  const [press, setPress] = useState<{ url: string; asSave: boolean } | null>(null);
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
   // the card itself, loaded when the photo opens (so 保存 / 分享 run inside the tap: iOS shares only from a gesture)
@@ -134,8 +135,16 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
 
   const share = async (asSave: boolean) => {
     if (!file) return;
-    if (canShareFile(file) && (touch || !asSave)) {
-      try { await navigator.share({ files: [file], title: 'Opus Bay', text: t(ALBUM_TEXT.shareText) }); } catch { /* cancelled */ }
+    const nav = typeof navigator !== 'undefined' ? navigator : null;
+    const route = saveRoute(nav, file, asSave, touch);
+    // (inside the tap: iOS shares only from a gesture — nothing is awaited before navigator.share)
+    if (route === 'share') {
+      try { await navigator.share(sharePayload(nav, file, t(ALBUM_TEXT.shareText), asSave)); } catch { /* cancelled */ }
+      return;
+    }
+    // WeChat & co. ignore a download: no 已保存 toast there — the photo itself, to long-press
+    if (route === 'longpress') {
+      try { setPress({ url: await fileToDataUrl(file), asSave }); } catch { toast(ALBUM_TEXT.gone, 'info', 2200); }
       return;
     }
     download(file);
@@ -145,6 +154,20 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
     toast(copied ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved, 'info', 2600);
   };
   const remove = async () => { setAsking(false); await deletePhoto(photo.id); onGone(); };
+
+  if (press) {
+    return (
+      <div className="ob-album-view ob-album-press">
+        <p className="ob-album-press-hint">{t(press.asSave ? ALBUM_TEXT.pressSave : ALBUM_TEXT.pressShare)}</p>
+        <div className="ob-album-photo" style={{ aspectRatio: `${photo.w} / ${photo.h}` }}>
+          <img src={press.url} alt={photo.caption} />
+        </div>
+        <div className="ob-album-actions">
+          <button type="button" className="ob-btn ob-btn-soft" onClick={() => setPress(null)}><span>{t(ALBUM_TEXT.pressDone)}</span></button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ob-album-view">

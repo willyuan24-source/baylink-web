@@ -72,27 +72,67 @@ function memoryBackend(): Backend {
 const req = <T>(r: IDBRequest<T>) => new Promise<T>((resolve, reject) => { r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error); });
 const done = (tx: IDBTransaction) => new Promise<void>((resolve, reject) => { tx.oncomplete = () => resolve(); tx.onerror = () => reject(tx.error); tx.onabort = () => reject(tx.error); });
 
-async function idbBackend(): Promise<Backend | null> {
-  const idb = typeof indexedDB !== 'undefined' ? indexedDB : null;
-  if (!idb) return null;
-  const db = await new Promise<IDBDatabase | null>(resolve => {
+/**
+ * W7-Q4 · how long the album waits for IndexedDB to open. iOS sometimes never answers an open (neither success nor
+ * error): the album used to stay empty for the page. After this the page's album lives in memory (the sheet says so).
+ */
+export const ALBUM_OPEN_TIMEOUT_MS = 3000;
+let openTimeoutMs = ALBUM_OPEN_TIMEOUT_MS;
+
+function openDb(idb: IDBFactory): Promise<IDBDatabase | null> {
+  return new Promise<IDBDatabase | null>(resolve => {
+    let settled = false;
+    const finish = (d: IDBDatabase | null) => { if (settled) { d?.close(); return; } settled = true; clearTimeout(timer); resolve(d); };
+    const timer = setTimeout(() => finish(null), openTimeoutMs);
     let r: IDBOpenDBRequest;
-    try { r = idb.open(DB_NAME, 1); } catch { resolve(null); return; }
+    try { r = idb.open(DB_NAME, 1); } catch { finish(null); return; }
     r.onupgradeneeded = () => {
       const d = r.result;
       if (!d.objectStoreNames.contains('meta')) d.createObjectStore('meta', { keyPath: 'id' });
       if (!d.objectStoreNames.contains('full')) d.createObjectStore('full', { keyPath: 'id' });
     };
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => resolve(null);
-    r.onblocked = () => resolve(null);
+    r.onsuccess = () => finish(r.result);
+    r.onerror = () => finish(null);
+    r.onblocked = () => finish(null);
   });
-  if (!db) return null;
+}
+
+/**
+ * The IndexedDB store. W7-Q4: the connection is not kept forever — after a while in the background iOS drops it
+ * (`InvalidStateError` / "Connection to Indexed Database server lost" from `transaction()`), which used to turn a saved
+ * photo into 这张照片找不到了 and switch the page to memory. Now an operation that fails reopens the database once and
+ * runs again; `onclose` / `onversionchange` drop the handle so the next operation reopens it. Only a failed reopen
+ * (or a failed retry) reaches the caller.
+ */
+async function idbBackend(): Promise<Backend | null> {
+  const idb = typeof indexedDB !== 'undefined' ? indexedDB : null;
+  if (!idb) return null;
+  let db: IDBDatabase | null = null;
+  const adopt = (d: IDBDatabase | null) => {
+    db = d;
+    if (d) {
+      d.onclose = () => { if (db === d) db = null; };
+      d.onversionchange = () => { try { d.close(); } catch { /* closed */ } if (db === d) db = null; };
+    }
+    return d;
+  };
+  if (!adopt(await openDb(idb))) return null;
+  const run = async <T>(op: (d: IDBDatabase) => Promise<T>): Promise<T> => {
+    const d = db ?? adopt(await openDb(idb));
+    if (!d) throw new Error('album: IndexedDB would not reopen');
+    try { return await op(d); } catch (error) {
+      try { d.close(); } catch { /* already gone */ }
+      if (db === d) db = null;
+      const again = adopt(await openDb(idb));
+      if (!again) throw error;
+      return op(again);
+    }
+  };
   return {
-    metas: async () => req(db.transaction('meta').objectStore('meta').getAll() as IDBRequest<StoredMeta[]>),
-    full: async id => req(db.transaction('full').objectStore('full').get(id) as IDBRequest<StoredFull | undefined>),
-    put: async (m, f) => { const tx = db.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').put(m); tx.objectStore('full').put(f); await done(tx); },
-    remove: async id => { const tx = db.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').delete(id); tx.objectStore('full').delete(id); await done(tx); },
+    metas: () => run(d => req(d.transaction('meta').objectStore('meta').getAll() as IDBRequest<StoredMeta[]>)),
+    full: id => run(d => req(d.transaction('full').objectStore('full').get(id) as IDBRequest<StoredFull | undefined>)),
+    put: (m, f) => run(async d => { const tx = d.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').put(m); tx.objectStore('full').put(f); await done(tx); }),
+    remove: id => run(async d => { const tx = d.transaction(['meta', 'full'], 'readwrite'); tx.objectStore('meta').delete(id); tx.objectStore('full').delete(id); await done(tx); }),
   };
 }
 
@@ -102,6 +142,23 @@ let kind: 'idb' | 'memory' | null = null;
 function store(): Promise<Backend> {
   backend ??= idbBackend().catch(() => null).then(b => { kind = b ? 'idb' : 'memory'; return b ?? memoryBackend(); });
   return backend;
+}
+/**
+ * W7-Q4 · ask once per page for persistent storage after the first photo went into IndexedDB: Safari (ITP) deletes a
+ * site's storage after 7 days of Safari use without a visit; a persisted origin is exempt where the browser grants it
+ * (Safari 17+, Chrome by engagement). Never throws; the answer only goes to the ?debug line.
+ */
+let persistAsked = false;
+let albumPersisted: boolean | null = null;
+/** null until the browser answered (or when it cannot be asked) */
+export const albumPersistedNow = () => albumPersisted;
+function askPersist() {
+  if (persistAsked) return;
+  persistAsked = true;
+  try {
+    const st = typeof navigator !== 'undefined' ? (navigator as Navigator & { storage?: StorageManager }).storage : undefined;
+    void st?.persist?.().then(ok => { albumPersisted = ok; }, () => { /* not allowed */ });
+  } catch { /* no StorageManager */ }
 }
 export const albumKind = () => kind;
 
@@ -147,7 +204,7 @@ export async function addPhoto(full: Blob, thumb: Blob, meta: Omit<AlbumMeta, 'i
   try {
     const [fullData, thumbData] = await Promise.all([full.arrayBuffer(), thumb.arrayBuffer()]);
     const m: StoredMeta = { ...meta, id, thumb: thumbData, thumbType: thumb.type || 'image/jpeg' };
-    try { await (await store()).put(m, { id, data: fullData, type: full.type || 'image/jpeg' }); } catch {
+    try { await (await store()).put(m, { id, data: fullData, type: full.type || 'image/jpeg' }); if (kind === 'idb') askPersist(); } catch {
       // quota or a closed database: this page keeps it in memory from now on
       backend = Promise.resolve(memoryBackend()); kind = 'memory';
       await (await backend).put(m, { id, data: fullData, type: full.type || 'image/jpeg' });
@@ -192,10 +249,13 @@ export async function deletePhoto(id: string): Promise<void> {
 /** Open the album (on a photo when `id` is given). */
 export function openAlbum(id?: string) { openOverlay(ALBUM_ID, id ? { photo: id } : undefined); }
 
-/** Tests: a fresh memory album. */
-export function resetAlbumForTests() {
+/** Tests: a fresh memory album (or, with `idb`, one that opens the global `indexedDB` on first use). */
+export function resetAlbumForTests(opts: { idb?: boolean; openTimeoutMs?: number } = {}) {
   for (const p of photos ?? []) revoke(p.thumbUrl);
-  photos = null; backend = Promise.resolve(memoryBackend()); kind = 'memory'; version = 0; listeners.clear();
+  photos = null; version = 0; listeners.clear();
+  if (opts.idb) { backend = null; kind = null; } else { backend = Promise.resolve(memoryBackend()); kind = 'memory'; }
+  openTimeoutMs = opts.openTimeoutMs ?? ALBUM_OPEN_TIMEOUT_MS;
+  persistAsked = false; albumPersisted = null;
 }
 
 const Album = lazy(() => import('../ui/Album'));
