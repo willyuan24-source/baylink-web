@@ -18,6 +18,7 @@ import { requestHopOff } from '../game/transit';
 import { lastWelcome, onWelcome } from '../game/welcome';
 import { openJournal, registerAskItem, registerJournalTab } from '../ui/slots';
 import { initDaily } from './daily';
+import { calendarLines } from './calendar';
 import { initDressing } from './dressing';
 import { worldEvent } from './events';
 import { venueLatLng, type EventVenue } from './eventVenues';
@@ -172,7 +173,7 @@ export function init(): () => void {
     acc = 0;
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
-    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered(), ...dressing.offered()];
+    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
     if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });

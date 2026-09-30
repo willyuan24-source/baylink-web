@@ -1,4 +1,5 @@
 import type { Bilingual, Vec2 } from '../core/types';
+import { bayParts } from '../game/bayNow';
 import { addDays } from '../data/catalog';
 import type { SourceRef } from './todayRows';
 
@@ -13,7 +14,11 @@ import type { SourceRef } from './todayRows';
  *   calendarAhead(dateKey, n)    the visible rows starting in the next n days (the 今天 tab's 这周)
  *   dressingOn(dateKey)          the dressings the world puts up that day (realsf/dressing.ts)
  *
- * Every row carries its source and the day it was checked (all on the web on 2026-09-28).
+ * Every row carries its source and the day it was checked (on the web on 2026-09-28; W7-S's rows on 2026-09-29).
+ *
+ * W7-S: rows without a dressing may carry a BAYBAY line too (`line` + `lineAt`: near a point and / or between two Bay
+ * times, or anywhere that day) — calendarLines(now, player) offers them to realsf/index.ts's scheduler (the dressing
+ * rows' lines stay with realsf/dressing.ts); `sunsetNote` adds today's sunset (realsf/sun.ts, at runtime) to the 今天 row.
  */
 
 export type CalendarGrade = 'official' | 'secondary' | 'usually';
@@ -45,10 +50,23 @@ export interface CalendarRow {
   hidden?: string;
   /** data for later waves: never shown in this build, kept with its source */
   later?: boolean;
+  /** (W7-S) where and when a line of a row without a dressing is said: within `r` of `near`, from / to Bay minutes */
+  lineAt?: { near?: Vec2; r?: number; from?: number; to?: number };
+  /** (W7-S) the 今天 row adds today's sunset (the DST day: 天黑得更早) */
+  sunsetNote?: boolean;
 }
 
 const CHECKED = '2026-09-28';
 const src = (label: string, url: string): SourceRef => ({ label, url, verifiedAt: CHECKED });
+/** (W7-S) the rows checked on the web on 2026-09-29 */
+const src29 = (label: string, url: string): SourceRef => ({ label, url, verifiedAt: '2026-09-29' });
+
+/** (W7-S) 22nd & Bryant, where the Día de los Muertos procession gathers (lane H's ROUTE_CORNERS.bryant22, OSM) */
+export const BRYANT_22: Vec2 = { x: 434.95, z: 581.84 };
+/** (W7-S) Waverly Place, Chinatown: the pavement by its south end (OSM way 1559829857, 37.7937342, -122.4067462) */
+export const WAVERLY_PLACE: Vec2 = { x: 36.0, z: 149.0 };
+/** (W7-S) the Embarcadero pavement at Pier 33 Alcatraz Landing (OSM node 9871169469, 37.8065495, -122.4051482) */
+export const PIER_33: Vec2 = { x: -96.8, z: 0.2 };
 
 /** Waller St between Scott and Steiner (Lower Haight / Duboce Triangle) — the pumpkins' street (realsf/dressing.ts) */
 export const WALLER_ST: Vec2 = { x: 62.4, z: 637.6 };
@@ -71,12 +89,53 @@ export const CALENDAR: readonly CalendarRow[] = [
     // Halloween-decorated houses" (Local News Matters, 2025-10-27); 31 October is a fixed date
     source: src('localnewsmatters.org', 'https://localnewsmatters.org/2025/10/27/skeletons-fangs-lost-souls-heres-where-to-find-sfs-best-halloween-decorated-homes/'),
   },
+  // (W7-S) the 2025 pattern (the organisers have not posted 2026): the procession on 2 November whatever the weekday,
+  // gathering ≈ 18:00 and starting 19:00 at Bryant & 22nd (Bryant → 24th → Mission → 22nd); the Festival of Altars at
+  // Potrero del Sol Park (no longer Garfield Square). Grade 'usually', 以官网为准 (lane H builds the procession)
   {
-    id: 'dia-de-los-muertos-2026', title: { zh: '亡灵节', en: 'Día de los Muertos' }, from: '2026-11-02', to: '2026-11-02',
-    where: { zh: '加菲尔德广场', en: 'Garfield Square' }, placeId: 'osm-w24253472', xz: { x: 475.48, z: 668.77 },
-    note: { zh: '每年 11 月 2 日前后的纪念 · 以官网为准', en: 'A remembrance around 2 November · check before you go' },
-    grade: 'usually', source: src('dayofthedeadsf.org', 'https://www.dayofthedeadsf.org/'),
-    hidden: 'the 2026 date is not posted (the page still shows November 2nd, 2025): shown once an organiser date is checked',
+    id: 'dia-de-los-muertos-2026', title: { zh: '亡灵节', en: 'Día de los Muertos' }, from: '2026-11-02', to: '2026-11-02', at: 19 * 60,
+    where: { zh: '22 街 & Bryant · Potrero del Sol', en: '22nd & Bryant · Potrero del Sol' }, xz: BRYANT_22,
+    note: { zh: '通常晚 7 点从 22 街 & Bryant 出发游行 · 以官网为准', en: 'Usually a procession from 22nd & Bryant at 7 pm · check before you go' },
+    grade: 'usually',
+    // "The procession will begin at 7 p.m. … from Bryant & 22nd" (2025); dayofthedeadsf.org/festival-of-altars shows only
+    // "November 2, 2025 @ Potrero Del Sol Park" (both read 2026-09-29)
+    source: src29('sfmta.com', 'https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025'),
+  },
+  // ---- W7-S: real dates of October – November 2026 (checked on the web on 2026-09-29) ----
+  {
+    id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船游行', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
+    where: { zh: '码头绿地看台', en: 'the Marina Green reviewing stand' }, placeId: 'marina-green',
+    note: { zh: '11:00–12:00 舰船从金门大桥下开进湾里', en: '11:00–12:00 · ships sail in under the Golden Gate Bridge' },
+    grade: 'official', source: src29('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'),
+  },
+  {
+    id: 'alcatraz-sunrise-2026-10', title: { zh: '原住民日 · 恶魔岛日出聚会', en: 'Indigenous Peoples’ Day · Sunrise Gathering' }, from: '2026-10-12', to: '2026-10-12', at: 4 * 60 + 15,
+    where: { zh: '恶魔岛（33 号码头乘船）', en: 'Alcatraz (boats from Pier 33)' }, xz: PIER_33,
+    note: { zh: '清晨 4:15 起从 33 号码头开船 · 安静的纪念', en: 'Boats from Pier 33 from 4:15 am · a quiet remembrance' },
+    // organised by the International Indian Treaty Council; its own page still shows 2019 only: secondary
+    grade: 'secondary', source: src29('sf.funcheap.com', 'https://sf.funcheap.com/event-series/sunrise-gathering-alcatraz-indigenous-peoples-day/'),
+    line: { zh: '今天是原住民日。恶魔岛上通常有一场日出聚会，大家安静地纪念。', en: 'It’s Indigenous Peoples’ Day. There is usually a sunrise gathering on Alcatraz — a quiet remembrance.' },
+    lineAt: { near: PIER_33, r: 260, to: 12 * 60 },
+  },
+  {
+    id: 'chinatown-halloween-festival-2026', title: { zh: '唐人街万圣节庆典', en: 'Chinatown Halloween Festival' }, from: '2026-10-31', to: '2026-10-31', at: 11 * 60,
+    where: { zh: '唐人街 Waverly Place', en: 'Waverly Place, Chinatown' }, xz: WAVERLY_PLACE,
+    note: { zh: '11:00–15:00 · 手工、游戏、南瓜和变装比赛', en: '11:00–15:00 · crafts, games, pumpkins, a costume contest' },
+    // "Saturday, October 31, 2026, from 11am-3pm on Waverly Place" (the organiser, Chinatown YMCA / CYC); not in the
+    // BAYLINK catalog yet (a request to the site's editors in sf-w7-S.md)
+    grade: 'official', source: src29('cycsf.org', 'https://www.cycsf.org/chinatown-halloween-festival/'),
+    line: { zh: '唐人街的万圣节庆典在 Waverly 巷，有手工、游戏和南瓜，去看看吧！', en: 'Chinatown’s Halloween Festival is on Waverly Place — crafts, games and pumpkins. Let’s go see!' },
+    lineAt: { near: WAVERLY_PLACE, r: 220, from: 11 * 60, to: 15 * 60 },
+  },
+  {
+    id: 'dst-end-2026', title: { zh: '夏令时结束', en: 'Daylight saving time ends' }, from: '2026-11-01', to: '2026-11-01', at: 2 * 60,
+    where: { zh: '整个旧金山', en: 'all of San Francisco' },
+    note: { zh: '凌晨 2:00 钟拨回 1:00 · 天黑得更早', en: 'At 2:00 am the clocks go back to 1:00 · darker earlier' },
+    // "at 2:00 a.m. … on the first Sunday of November" (US law, NIST); 2026: Sunday 1 November
+    grade: 'official', source: src29('nist.gov', 'https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst'),
+    sunsetNote: true,
+    line: { zh: '今天凌晨两点，钟拨回了一小时，天会黑得早一点哦。', en: 'The clocks went back an hour at 2 this morning — it gets dark earlier now.' },
+    lineAt: {},
   },
   {
     id: 'king-tides-2026-11', title: { zh: '特大潮', en: 'King tides' }, from: '2026-11-24', to: '2026-11-26',
@@ -142,6 +201,23 @@ export function calendarAhead(dateKey: string, days: number, rows: readonly Cale
 /** The dressings the world puts up on a Bay date. */
 export function dressingOn(dateKey: string, rows: readonly CalendarRow[] = CALENDAR): CalendarRow[] {
   return calendarOn(dateKey, rows).filter(r => !!r.dress);
+}
+
+/**
+ * (W7-S) BAYBAY's lines of today's rows without a dressing (a dressing row's line is realsf/dressing.ts's): near the
+ * row's point within `lineAt.r` (default 220 u) — or anywhere when it names none — and between `lineAt.from` / `to`.
+ */
+export function calendarLines(now: Date, p: Vec2, rows: readonly CalendarRow[] = CALENDAR): { key: string; text: Bilingual }[] {
+  const b = bayParts(now), min = b.hour * 60 + b.minute;
+  return calendarOn(b.dateKey, rows)
+    .filter(r => r.line && r.lineAt && !r.dress)
+    .filter(r => {
+      const a = r.lineAt!;
+      if (a.from !== undefined && min < a.from) return false;
+      if (a.to !== undefined && min >= a.to) return false;
+      return !a.near || Math.hypot(p.x - a.near.x, p.z - a.near.z) < (a.r ?? 220);
+    })
+    .map(r => ({ key: `calendar-${r.id}`, text: r.line! }));
 }
 
 /** 以官网为准 / 通常 by grade (the tab's suffix). */

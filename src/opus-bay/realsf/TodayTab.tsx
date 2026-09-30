@@ -297,7 +297,7 @@ export default function TodayTab() {
             );
           })}
           {calToday.map(r => (
-            <Row key={r.id} icon={CAL_ICON(r)} tone="now" title={`${t(r.title)} · ${t(r.where)}`} meta={`${t(r.note)} · ${t(GRADE_SAY[r.grade])}`}
+            <Row key={r.id} icon={CAL_ICON(r)} tone="now" title={`${t(r.title)} · ${t(r.where)}`} meta={`${t(r.note)}${r.sunsetNote ? ` · ${t('今天日落', 'sunset')} ${sunHm(sun.sunset)}` : ''} · ${t(GRADE_SAY[r.grade])}`}
               side={(r.placeId || r.xz) && <GoButton label={r.where} onClick={() => go(r.placeId ? { placeId: r.placeId, name: r.where } : { point: r.xz!, name: r.where })} />}>
               <Source src={r.source} />
             </Row>

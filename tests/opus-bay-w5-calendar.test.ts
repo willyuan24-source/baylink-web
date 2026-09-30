@@ -124,7 +124,7 @@ test('W5-R7 king tides: the calendar\'s three official spans; the spray only wit
   } finally { setCityTerrain(null); }
 });
 
-test('W5-R7 the calendar: sources checked on a date, Día de los Muertos hidden, later rows kept as data only, Halloween on Oct 31, notes and lines short', () => {
+test('W5-R7 the calendar: sources checked on a date, Día de los Muertos on Nov 2 (W7-S: shown, usually), later rows kept as data only, Halloween on Oct 31, notes and lines short', () => {
   const ids = new Set<string>();
   for (const r of cal.CALENDAR) {
     assert.ok(!ids.has(r.id), r.id); ids.add(r.id);
@@ -135,14 +135,15 @@ test('W5-R7 the calendar: sources checked on a date, Día de los Muertos hidden,
     if (r.line) assert.ok(zhLen(r.line.zh) <= 45, `${r.id}: ${r.line.zh}`);
     if (r.grade !== 'official') assert.match(r.note.zh + (cal.GRADE_SAY[r.grade].zh), /以官网为准|通常/, `${r.id}: a date not from an organiser says so`);
   }
+  // (W7-S) the 2025 pattern, grade 'usually' with 以官网为准 (the organisers have not posted 2026; lane H's procession)
   const dia = cal.CALENDAR.find(r => r.id === 'dia-de-los-muertos-2026')!;
-  assert.ok(dia.hidden, 'the 2026 date is not posted');
-  assert.deepEqual(cal.calendarOn('2026-11-02').map(r => r.id), [], 'hidden: nothing on Nov 2');
+  assert.ok(!dia.hidden && dia.grade === 'usually');
+  assert.deepEqual(cal.calendarOn('2026-11-02').map(r => r.id), ['dia-de-los-muertos-2026'], 'Nov 2');
   for (const r of cal.CALENDAR.filter(x => x.later)) assert.deepEqual(cal.calendarOn(r.from).map(x => x.id), [], `${r.id}: data only`);
-  assert.deepEqual(cal.calendarOn('2026-10-31').map(r => r.id), ['halloween-2026']);
+  assert.deepEqual(cal.calendarOn('2026-10-31').map(r => r.id).sort(), ['chinatown-halloween-festival-2026', 'halloween-2026'], 'W7-S: the Chinatown festival too');
   assert.deepEqual(cal.calendarOn('2026-10-30').map(r => r.id), []);
-  assert.deepEqual(cal.calendarOn('2026-11-01').map(r => r.id), [], 'the day after: nothing');
-  assert.deepEqual(cal.calendarAhead('2026-10-25', 7).map(r => r.id), ['halloween-2026'], 'in 这周 a week ahead');
+  assert.deepEqual(cal.calendarOn('2026-11-01').map(r => r.id), ['dst-end-2026'], 'the day after: the clocks go back (W7-S)');
+  assert.deepEqual(cal.calendarAhead('2026-10-25', 7).map(r => r.id).sort(), ['chinatown-halloween-festival-2026', 'dst-end-2026', 'halloween-2026'], 'in 这周 a week ahead');
   assert.deepEqual(cal.calendarAhead('2026-11-20', 7).map(r => r.id), ['king-tides-2026-11']);
   assert.deepEqual(cal.dressingOn('2026-10-31').map(r => r.dress), ['pumpkins']);
   // the calendar never makes an event card: no row claims a catalog id it does not have
@@ -204,7 +205,7 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
   const buf = fs.readFileSync(path.join(V1, 'live.json'));
   assert.ok(zlib.gzipSync(buf).length < 6 * 1024, 'small');
   const offers = live.parseLive(LIVE_RAW)!;
-  assert.equal(offers.length, 13, 'the 11 of wave 5 + the two MoAD days of the autumn release (W6-S)');
+  assert.equal(offers.length, 14, 'the 11 of wave 5 + the two MoAD days of the autumn release (W6-S) + the seniors’ free Muni (W7-S)');
   const { currentFreebies } = await import('../src/data/october-offers');
   for (const o of offers) {
     const site = currentFreebies.find(x => x.id === o.id);
@@ -240,7 +241,7 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
   assert.deepEqual(live.offersOn('2026-10-10', offers).find(t => t.offer.id === 'sf-moad-thrive-second-saturday-oct2026')?.hours, [660, 1020]);
   assert.ok(!ids('2026-10-08').some(id => id.startsWith('sf-moad')), 'dated: only on their own days');
   assert.ok(!ids('2026-11-04').includes('asian-art-free-oct4'), 'a dated offer only on its date');
-  assert.deepEqual(live.standingOffers(offers).map(o => o.id).sort(), ['exploratorium-for-all-five', 'muni-youth-free', 'sfmoma-museums-for-all']);
+  assert.deepEqual(live.standingOffers(offers).map(o => o.id).sort(), ['exploratorium-for-all-five', 'muni-youth-free', 'sfmoma-museums-for-all', 'sfmta-free-muni-seniors']);
   assert.deepEqual(live.offersForPlace('sfmoma', '2026-10-25', offers).today.map(t => t.offer.id), ['sfmoma-family-oct25']);
   assert.deepEqual(live.offersForPlace('sfmoma', '2026-10-25', offers).standing.map(o => o.id), ['sfmoma-museums-for-all']);
   // the hand rows it belongs to exist

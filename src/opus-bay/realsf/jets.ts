@@ -320,6 +320,16 @@ export function softBoxes(t: PathTable = pathTable()): { minX: number; minZ: num
 
 export const JETS_DAY_LINE: Bilingual = { zh: '今天中午到下午四点，湾上有飞行表演，去码头绿地看！', en: 'Noon to 4 pm today there’s an air show over the Bay — let’s watch from Marina Green!' };
 export const JETS_NOW_LINE: Bilingual = { zh: '飞行表演正在湾上，四点结束，去码头绿地看！', en: 'The air show is on over the Bay until 4 — let’s watch from Marina Green!' };
+/** (W7-S) the Blue Angels usually fly around 3 pm (navyweek.org, secondary): said on a show day before 15:00 */
+export const JETS_BLUE_LINE: Bilingual = { zh: '蓝天使飞行队通常下午三点左右上场，以官网为准哦。', en: 'The Blue Angels usually fly around 3 pm — check the official schedule.' };
+export const BLUE_ANGELS_AT = 15 * 60;
+/** (W7-S) the Blue Angels line is on offer: a show day, from 6 h before the show opens until 15:00 */
+export function blueLineOn(date: Date = bayNow()): boolean {
+  const win = jetWindowOn(date);
+  if (!win) return false;
+  const t = date.getTime(), p = bayParts(date);
+  return t >= win.open - 6 * 3600_000 && p.hour * 60 + p.minute < BLUE_ANGELS_AT;
+}
 export const JETS_NEAR_LINE: Bilingual = { zh: '飞机编队来啦！打开拍照，把它们拍下来吧～', en: 'Here come the jets! Open the camera and get them in a shot!' };
 export const JETS_PHOTO_LINE: Bilingual = { zh: '飞机编队拍到啦，舰队周纪念章收好！', en: 'Got the jets! A Fleet Week stamp for your journal!' };
 
@@ -536,6 +546,7 @@ export function initJets(): Jets {
       const win = jetWindowOn(now);
       if (win && now.getTime() < win.close && now.getTime() >= win.open - 6 * 3600_000 && dist2({ x: runtime.player.x, z: runtime.player.z }, WATCH) > 300) {
         out.push({ key: 'jets-day', text: now.getTime() < win.open ? JETS_DAY_LINE : JETS_NOW_LINE });
+        if (blueLineOn(now)) out.push({ key: 'jets-blue', text: JETS_BLUE_LINE });
       }
       if (photoLine) out.push({ key: 'jets-photo', text: JETS_PHOTO_LINE });
       if (nearLine && up) out.push({ key: 'jets-up', text: JETS_NEAR_LINE });

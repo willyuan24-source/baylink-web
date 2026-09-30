@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Bilingual } from '../core/types';
+import { addDays } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
 
 /**
@@ -35,7 +36,9 @@ export function whenLabel(open: number, close: number, now: number): Bilingual {
   const span = `${hm(o)}–${hm(c)}`;
   if (open <= now && now < close) return { zh: `进行中 · 到 ${hm(c)}`, en: `On now · until ${hm(c)}` };
   if (o.dateKey === n.dateKey) return { zh: `今天 ${span}`, en: `Today ${span}` };
-  const tomorrow = bayParts(new Date(now + 24 * 3600_000)).dateKey;
+  // (W7-S) the next Bay date, not now + 24 h: on 1 Nov 2026 00:00–00:59 PDT that landed on 1 Nov 23:xx PST (明天 ==
+  // today), and on 13 Mar 2027 23:xx PST on 15 Mar
+  const tomorrow = addDays(n.dateKey, 1);
   if (o.dateKey === tomorrow) return { zh: `明天 ${span}`, en: `Tomorrow ${span}` };
   return { zh: `${o.month}/${o.day} ${WEEKDAY_ZH[o.weekday]} ${span}`, en: `${WEEKDAY_EN[o.weekday]} ${o.month}/${o.day} ${span}` };
 }
