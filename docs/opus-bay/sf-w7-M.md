@@ -253,3 +253,6 @@ bread-making: the three games of this lane are new.
   same. After the last two rebases (lanes H, R, lead notes only): `tsc` 0, `eslint .` 0 errors, the play / notebook /
   wave-6 W / wave-7 tests 171 / 171; the full suite on the pushed tree `d963a982`: **1597, 1596 pass**, the one failure
   the same `W5-bus` interlock wait (pre-existing, above).
+- **W7-M5**: a test for BAYBAY's invite once per game (`W7-M zones: …`): the crab invite at the rail; after a sourdough
+  game (given up) no invite at the bakery — red with the played-set check turned off ("no sourdough invite after playing
+  it"), green with it. Lane M's tests now 14 / 14.

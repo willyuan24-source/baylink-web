@@ -310,6 +310,32 @@ test('W7-M sourdough: a whole game through the frame systems pays medal:sourdoug
   } finally { dough.__resetDough(); kit.__resetKit(); off(); game.set({ phase: prev.phase, mode: prev.mode }); }
 });
 
+test('W7-M zones: BAYBAY invites at a game once; never again for a game already played this visit (her invite followed the sourdough card)', async () => {
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  kit.__resetKit();
+  const prev = game.get();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false, worldMode: 'city' } as never);
+  const off = zones.initSfGames();
+  const p = runtime.player, g = runtime.guide;
+  const at = (s: { x: number; z: number }, t: number) => {
+    p.x = s.x; p.z = s.z + 1; g.x = s.x + 2; g.z = s.z + 1;
+    flow.set({ bubble: null, cinematic: null } as never);
+    for (let i = 0; i < 6; i++) stepFrameSystems(0.25, t + i * 0.25);
+  };
+  try {
+    // a game not played yet: her invite at the rail
+    at(zones.CRAB_SPOT, 1000);
+    assert.equal(flow.get().bubble?.text.zh, lines.CRAB_LINES.invite.zh, 'the crab invite');
+    // the sourdough played (and given up) first: no invite at the bakery afterwards
+    const run = kit.startActivity({ id: lines.DOUGH_ID, name: lines.DOUGH_NAME });
+    stepFrameSystems(0.25, 2000);
+    run?.cancel();
+    at(zones.DOUGH_SPOT, 2001);
+    assert.notEqual(flow.get().bubble?.text.zh, lines.DOUGH_LINES.invite.zh, 'no sourdough invite after playing it');
+  } finally { off(); kit.__resetKit(); flow.set({ bubble: null } as never); game.set({ phase: prev.phase, mode: prev.mode, worldMode: prev.worldMode } as never); }
+});
+
 test('W7-M records: the games’ bests are appended rows (claw, crab, sourdough), after the older ones', () => {
   const keys = BEST_ROWS.map(r => r.key);
   for (const k of ['claw', 'crab', 'sourdough']) assert.ok(keys.includes(k), k);
