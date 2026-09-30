@@ -300,3 +300,15 @@ Adversarial review of every lane-G commit (`559006e5`, `dfe3815d`, `5ee0ad70`, `
 ### Blocking the go-live
 
 None.
+
+### Checks
+
+- The review tree before the rebase (origin `071b2666` + the review commit): `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint .` 0 errors (43 old warnings) · the opus-bay suite **1618 tests, 1617 pass** — the one red is
+  `W5-bus 20+ simulated minutes` (the night-time interlock wait, red on that origin too), which lane B fixed on origin
+  in the meantime (`fd2ff25b` W7-B9: the proof pins the Bay clock).
+- Rebased onto origin `99b27aff` (the lanes' reviews since, none touching this lane's files): tsc 0 · eslint of the
+  changed files 0 · the related tests with the deadlock proof (w7-g-postcards, w7-g-polish, w6-g-review, w5-deadlock)
+  **24 / 24** (the W5-bus proof green with B9's pinned clock). Pushed at ≈ 01:37 PDT after one more fetch / rebase.
+- Lane X recorded both of G's wave-7 lines with exactly these texts (origin `data/sf/voiceW7.ts`: `w7g-postcard-keep`,
+  `w7g-costume-bat-wings`).
