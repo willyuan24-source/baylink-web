@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../../core/types';
-import { type BatchLike, resample } from '../../builder';
+import { type BatchLike, ICO, M, resample } from '../../builder';
 import { GLOW, NONE, SF, box, rect, worldPoly } from './kit';
 import type { SiteHooks } from '../sites';
 import type { SfLandmark, WalkBlocker, WalkSurface } from './index';
@@ -33,6 +33,13 @@ const OSM_PATH: [number, number][] = [[-0.36, -11.42], [-0.48, -10.31], [-0.43, 
 const SWING = 2.4;
 const PATH: Vec2[] = resample(OSM_PATH.map(([x, z]) => ({ x: x * SWING, z })), 0.55);
 const ROAD_W = 1.35, LIFT = 0.2;
+/**
+ * Wave 7 (lane R, sf-w7-R-realism.md #6): the hydrangeas that make the postcard — round clumps of blue, pink and purple
+ * heads in the hairpin beds and the terraced planters (they were small flat cubes of the generic flower colours).
+ * Reference: Wikimedia Commons "Lombard Street 2020.jpg" (checked 2026-09-29).
+ */
+const HYDRANGEA = ['#8fa6dc', '#e59bb9', '#a88bd3', '#c3cff0', '#d9799f', '#7f92d0'];
+
 /** hairpin apexes (local x extremes along the path) → the flower beds sit inside each hairpin */
 const TURNS: Vec2[] = OSM_PATH.filter((p, i, a) => i > 0 && i < a.length - 1 && Math.abs(p[0]) > 0.7 && Math.abs(p[0]) >= Math.abs(a[i - 1][0]) && Math.abs(p[0]) >= Math.abs(a[i + 1][0])).map(([x, z]) => ({ x: x * SWING, z }));
 const STAIR_X = 4.0, STAIR_W = 0.9, STEP = 0.8;
@@ -71,8 +78,8 @@ function build(b: BatchLike, lod: 0 | 2) {
     b.walls(tri, y - 0.8, y + 0.55, '#7d6a58', NONE);
     b.polygon(tri, y + 0.55, SF.hedge, NONE);
     for (let k = 0; k < 4; k++) {
-      const p = tri[k % 3], q = { x: cx + (p.x - cx) * 0.45, z: cz + (p.z - cz) * 0.45 };
-      box(b, q.x, y + 0.55, q.z, 0.3, 0.2, 0.3, SF.flowers[(i + k) % SF.flowers.length], NONE, k);
+      const p = tri[k % 3], f = k < 3 ? 0.5 : 0.1, q = { x: cx + (p.x - cx) * f, z: cz + (p.z - cz) * f };
+      b.add(ICO(0), M(q.x, y + 0.72, q.z, k * 1.3, 0.38, 0.28, 0.38), HYDRANGEA[(i * 2 + k) % HYDRANGEA.length], NONE);
     }
   });
   // terraced planter boxes along both edges (each box tops out 0.35 over its uphill end)
@@ -80,7 +87,7 @@ function build(b: BatchLike, lod: 0 | 2) {
     for (let z = Z_TOP, k = 0; z < Z_BOT - 0.1; z += 2.2, k++) {
       const z1 = Math.min(z + 2.2, Z_BOT), yHi = lombardGround(z), yLo = lombardGround(z1);
       box(b, sx * (STAIR_X - 0.95), yLo - 0.3, (z + z1) / 2, 0.8, yHi - yLo + 0.65, z1 - z - 0.05, SF.hedge, NONE);
-      for (const f of [0.25, 0.7]) box(b, sx * (STAIR_X - 0.95) + (f - 0.5) * 0.3, yHi + 0.33, z + (z1 - z) * f, 0.3, 0.16, 0.3, SF.flowers[(k + (sx > 0 ? 2 : 0) + Math.round(f * 3)) % SF.flowers.length], NONE, k);
+      for (const f of [0.25, 0.7]) box(b, sx * (STAIR_X - 0.95) + (f - 0.5) * 0.3, yHi + 0.33, z + (z1 - z) * f, 0.36, 0.24, 0.36, HYDRANGEA[(k + (sx > 0 ? 3 : 0) + Math.round(f * 3)) % HYDRANGEA.length], NONE, k + f);
     }
   }
   // stair sidewalks down both sides (treads every 0.8 u following the grade) + a lamp at the top and bottom

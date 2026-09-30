@@ -68,3 +68,33 @@ test('W7-R the recoloured AI textures: the GLBs are the published ones (bytes pi
     assert.equal(buf.subarray(bin + 8, bin + 12).toString('latin1'), 'WEBP', `${id}: the image chunk is a WebP`);
   }
 });
+
+test('W7-R Lombard: round hydrangea clumps (blue / pink / purple) in the hairpin beds, within the T2 budget', () => {
+  const l = sfLandmark('lombard-crooked-street')!;
+  const g = buildLandmark(l, 0, 0);
+  const cs = colours(g);
+  for (const hex of ['#8fa6dc', '#e59bb9', '#a88bd3']) assert.ok(cs.some(c => near(c, hex)), `hydrangea ${hex}`);
+  const tris = (g.getIndex()?.count ?? g.getAttribute('position').count) / 3;
+  assert.ok(tris <= 2500, `lod 0 ${tris} ≤ 2500`);
+});
+
+test('W7-R the famous cards carry what a visitor asks first (hours / price / status), hedged, re-checked 2026-09-29', async () => {
+  const { PLACE_CARDS, CARD_REFRESHES } = await import('../src/opus-bay/data/sf/placeCards');
+  const { CURATED_CARDS } = await import('../src/opus-bay/data/sf/placeCards2');
+  const card = (id: string) => [...PLACE_CARDS, ...CURATED_CARDS].find(c => c.id === id)!;
+  // Alcatraz: the NPS day-tour fares (nps.gov/alca/planyourvisit/fees.htm)
+  assert.match(card('alcatraz').cost!.zh, /\$47\.95/);
+  assert.match(card('alcatraz').cost!.en, /\$47\.95.*\$29\.15.*\$45\.15/);
+  // hours where there were none
+  for (const id of ['pier-39', 'golden-gate-park', 'union-square', 'dolores-park', 'marina-green', 'transamerica-pyramid', 'presidio']) {
+    const c = card(id);
+    assert.ok(c.hours, `${id} has hours`);
+    assert.match(c.hours!.zh, /约|官网|确认|现场/, `${id} hedged`);
+    assert.equal(c.verifiedAt, '2026-09-29', `${id} re-checked`);
+  }
+  // Japantown: the Peace Plaza renovation (peaceplaza.org, Sept 2026 update) on both cards of the plaza
+  assert.equal(card('japan-center').status?.kind, 'works');
+  assert.equal(CARD_REFRESHES['peace-pagoda'].status?.kind, 'works');
+  // the built landmarks' new hours
+  for (const id of ['painted-ladies', 'palace-of-fine-arts', 'cable-car-turntable', 'twin-peaks', 'de-young-tower']) assert.ok(CARD_REFRESHES[id]?.hours, `${id} hours`);
+});

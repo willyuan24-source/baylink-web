@@ -575,7 +575,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
 // The famous curated places without a card (plan W4-C5): lane P's Attraction ids = their place ids
 // ---------------------------------------------------------------------------------------------------------------
 
-const full = (c: Omit<PlaceCard, 'depth' | 'verifiedAt'>): PlaceCard => ({ depth: 'full', verifiedAt: V, ...c });
+const full = (c: Omit<PlaceCard, 'depth' | 'verifiedAt'> & { verifiedAt?: string }): PlaceCard => ({ depth: 'full', verifiedAt: V, ...c });
 
 export const CURATED_CARDS: PlaceCard[] = [
   full({
@@ -588,13 +588,14 @@ export const CURATED_CARDS: PlaceCard[] = [
     bark: bi('那座岛就是恶魔岛！上岛的船从 33 号码头开，不是 39 号。', 'That island is Alcatraz! Boats leave from Pier 33 (Alcatraz Landing), not PIER 39.'),
     summary: bi('湾里的小岛，1934–1963 年是联邦监狱；1969 年起，“所有部落的印第安人”在岛上占领了 19 个月，争取原住民权利。现在是国家公园的一部分。', 'An island in the bay that was a federal prison from 1934 to 1963; from 1969 the Indians of All Tribes occupied it for 19 months for Native American rights. It is part of the national park today.'),
     hours: bi('按船票上的班次；国家公园管理局建议提前订票。', 'Follow the sailing on your ticket; the National Park Service advises booking ahead.'),
-    cost: bi('不收入岛门票，但要买往返渡轮票（以官网为准）。', 'No entrance fee, but you need a round-trip ferry ticket (see the official site).'),
+    cost: bi('免门票，要买往返船票：日间团成人约 $47.95、5–11 岁 $29.15、62 岁以上 $45.15。', 'No entrance fee, but a round-trip ferry: the day tour is about $47.95 for adults, $29.15 for ages 5–11, $45.15 for 62+ (NPS).'),
     tips: [
       bi('只绕岛不靠岸的观光船，不算登岛票。', 'A cruise that only circles the island is not a landing ticket.'),
       bi('岛上码头到监狱要爬一段坡，穿好走的鞋。', 'It\'s an uphill walk from the island dock to the prison: wear good shoes.'),
       bi('游戏里上不了岛：BAYBAY 带你到恶魔岛渡轮码头 · 33 号码头，用望远镜看它。', 'You can\'t land in the game: BAYBAY takes you to Pier 33 (Alcatraz Landing) to look through the telescope.'),
     ],
     officialUrl: 'https://www.nps.gov/alca/index.htm',
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://www.nps.gov/alca/index.htm', sources: ['https://www.nps.gov/alca/planyourvisit/fees.htm', 'https://en.wikipedia.org/wiki/Alcatraz_Federal_Penitentiary', 'https://www.alcatrazcitycruises.com/plan-your-visit/directions/'],
     lat: 37.8267, lng: -122.423, photoKey: 'alcatraz', guideSlug: 'sf-alcatraz-booking-day-guide', plannerPlaceId: 'alcatraz',
   }),
@@ -608,7 +609,10 @@ export const CURATED_CARDS: PlaceCard[] = [
       bi('观光巴士在音乐广场停，N 线在公园南边走。', 'The sightseeing bus stops at the Music Concourse; the N runs along the south side.'),
     ],
     officialUrl: 'https://sfrecpark.org/770/Golden-Gate-Park',
-    sourceUrl: 'https://sfrecpark.org/770/Golden-Gate-Park', sources: ['https://en.wikipedia.org/wiki/Golden_Gate_Park'],
+    hours: bi('公园每天约 5:00–24:00 开放；馆和花园各有时间，以官网为准。', 'The park is open daily about 5am–midnight; museums and gardens keep their own hours (check each one).'),
+    cost: bi('进园免费；科学馆、迪扬、日本茶园等另收费。', 'Free to enter; the Academy, the de Young, the Tea Garden and others charge.'),
+    verifiedAt: '2026-09-29',
+    sourceUrl: 'https://sfrecpark.org/770/Golden-Gate-Park', sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://en.wikipedia.org/wiki/Golden_Gate_Park'],
     lat: 37.7694, lng: -122.4862, photoKey: 'park', guideSlug: 'golden-gate-park-free-car-free-day-guide', plannerPlaceId: 'golden-gate-park',
   }),
   full({
@@ -621,6 +625,9 @@ export const CURATED_CARDS: PlaceCard[] = [
       bi('军官俱乐部的遗产展厅免费，讲要塞公园的历史。', 'The Officers\' Club heritage gallery is free and tells the Presidio\'s story.'),
     ],
     officialUrl: 'https://presidio.gov/',
+    hours: bi('全年每天开放（以官网为准）。', 'Open daily, year-round (check the official site).'),
+    cost: bi('进园免费；个别博物馆收费。', 'Free to enter; a few museums charge.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Presidio_of_San_Francisco', sources: ['https://presidio.gov/explore/attractions/presidio-tunnel-tops/'],
     lat: 37.7989, lng: -122.4662, photoKey: 'presidio', guideSlug: PRESIDIO_GUIDE, plannerPlaceId: 'presidio',
   }),
@@ -630,6 +637,7 @@ export const CURATED_CARDS: PlaceCard[] = [
     bark: bi('克里西场以前是陆军机场，现在是看金门大桥的海滨草地。', 'Crissy Field was an Army airfield — now it\'s a bayfront lawn facing the bridge.'),
     summary: bi('1921–1974 年是陆军机场，2001 年修复成海滨公园：长长的海边步道、沙滩和恢复的潮汐湿地，一路看着金门大桥。', 'An Army airfield from 1921 to 1974, restored in 2001 as a bayfront park: a long shoreline promenade, a beach and a restored tidal marsh, all facing the Golden Gate Bridge.'),
     tips: [bi('沿海边步道往西走，就能走到 Fort Point 炮台和大桥下面。', 'Follow the shore path west to Fort Point, right under the bridge.')],
+    cost: bi('免费。', 'Free.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/Crissy_Field', sources: ['https://www.parksconservancy.org/parks/crissy-field'],
     lat: 37.8039, lng: -122.4644, guideSlug: PRESIDIO_GUIDE, plannerPlaceId: 'presidio',
   }),
@@ -643,7 +651,9 @@ export const CURATED_CARDS: PlaceCard[] = [
       bi('海狮不保证在家，看缘分。', 'The sea lions keep their own hours — no promises.'),
       bi('去恶魔岛的船在恶魔岛渡轮码头 · 33 号码头，不在这儿。', 'Boats to Alcatraz leave from Pier 33 (Alcatraz Landing), not here.'),
     ],
-    sourceUrl: 'https://en.wikipedia.org/wiki/Pier_39', sources: ['https://www.aquariumofthebay.org/'],
+    hours: bi('商店约 10:00–20:00，餐厅约 11:00–21:00，各家不同。', 'Shops about 10am–8pm, restaurants about 11am–9pm; each business varies.'),
+    verifiedAt: '2026-09-29',
+    sourceUrl: 'https://en.wikipedia.org/wiki/Pier_39', sources: ['https://www.pier39.com/', 'https://www.aquariumofthebay.org/'],
     lat: 37.8087, lng: -122.4098, photoKey: 'pier', guideSlug: WHARF_GUIDE, plannerPlaceId: 'pier39',
   }),
   // --- part 2 (lane C's early review O3): the tier-2 places of lane P with no card anywhere; lat / lng = lane P's
@@ -657,8 +667,10 @@ export const CURATED_CARDS: PlaceCard[] = [
       bi('2026 年 3 月起，桥上的灯光艺术重新亮了，天黑后在内河码头看。', 'Since March 2026 the Bay Lights shine again: watch from the Embarcadero after dark.'),
       bi('西段只走汽车，不能步行骑车；东段有步行骑行道，从奥克兰那头上。', 'The west span is cars only; the east span has a walking and bike path, from the Oakland side.'),
     ],
+    cost: bi('开车往西进城收过桥费，2026 年小汽车 $8.50，以官网为准。', 'Driving west into the city is tolled: $8.50 for a car in 2026; check before you go.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/San_Francisco%E2%80%93Oakland_Bay_Bridge',
-    sources: ['https://en.wikipedia.org/wiki/The_Bay_Lights', 'https://www.sfchronicle.com/sf/article/bay-bridge-lights-return-22084492.php', 'https://mtc.ca.gov/news/san-francisco-oakland-bay-bridge-bike-path-opens-yerba-buena-island'],
+    sources: ['https://mtc.ca.gov/news/new-bridge-toll-rates-now-effect', 'https://en.wikipedia.org/wiki/The_Bay_Lights', 'https://www.sfchronicle.com/sf/article/bay-bridge-lights-return-22084492.php', 'https://mtc.ca.gov/news/san-francisco-oakland-bay-bridge-bike-path-opens-yerba-buena-island'],
     lat: 37.78585, lng: -122.38897,
   }),
   full({
@@ -670,8 +682,11 @@ export const CURATED_CARDS: PlaceCard[] = [
       bi('往西走到游艇会后面的防波堤尽头，就是海浪风琴，涨潮时最好听。', 'Walk west to the tip of the jetty behind the yacht club for the Wave Organ: best at high tide.'),
       bi('马里纳游艇港改造预计 2027 年开工，到时停车场和岸边步道可能部分围起。', 'The marina rebuild is due to start in 2027; parking and parts of the shore path may be fenced then.'),
     ],
+    hours: bi('草地每天约 5:00–24:00 开放，以官网为准。', 'The lawn is open daily about 5am–midnight; check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Marina_Green',
-    sources: ['https://hoodline.com/2016/05/great-explorations-marina-green/', 'https://en.wikipedia.org/wiki/Wave_Organ', 'https://sfrecpark.org/1160/Marina-Improvement-and-Remediation-Proje'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://hoodline.com/2016/05/great-explorations-marina-green/', 'https://en.wikipedia.org/wiki/Wave_Organ', 'https://sfrecpark.org/1160/Marina-Improvement-and-Remediation-Proje'],
     lat: 37.8066, lng: -122.43913, guideSlug: MARINA_GUIDE,
   }),
   full({

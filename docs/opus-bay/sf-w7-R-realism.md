@@ -27,7 +27,7 @@ would help more than code; the "owner" column says who may touch the site this w
 | 3 | Fisherman's Wharf sign (90) · **fixed, now 4/4/5** | **R** · site T2 proc | 2 | 4 | 3 | the real wheel is **dark-brown wood with a cream band and cream face**, not blue, and it hangs on a bundle of **tall wooden pilings wrapped in rope** that rise above the wheel (a grey steel post here) → **R fixes (part a/b)** | no |
 | 4 | Ferry Building (88) | district (frozen) | 5 | 4 | 5 | cream stone, the clock tower with four faces, the long arcade, the Bay Bridge behind: correct | no |
 | 5 | Chinatown Dragon Gate (86) | **W1** | 4 | 4 | 4 | green-tiled roofs and the three portals are right; the dragons and fish on the ridges are small; the street behind is grey-blue boxes (lane X's facades) | no |
-| 6 | Lombard St crooked block (85) | site T2 proc | 4 | 4 | 3 | red brick switchbacks between hedges ✔; the **hydrangeas** that make the postcard are tiny cubes — rounder, bigger blue / pink / purple clumps at the bends would sell it | no |
+| 6 | Lombard St crooked block (85) · **fixed, now 4/4/4** | **R** · site T2 proc | 4 | 4 | 3 | red brick switchbacks between hedges ✔; the **hydrangeas** that make the postcard are tiny cubes — rounder, bigger blue / pink / purple clumps at the bends would sell it | no |
 | 7 | Painted Ladies (84) | site T2 proc | 4 | 4 | 4 | pastel bodies, white trim, front gables, the stepped roofline and the downtown skyline behind from Alamo Square ✔. Real bodies are paler today (near-white with pastel accents) | no |
 | 8 | Palace of Fine Arts (83) | site T1 · AI swap | 4 | 4 | 4 | ochre rotunda and dome on the lagoon ✔; the curved **peristyle reads as a solid wall** (the real one is open columns with the lagoon in front) | **yes** (V: a peristyle wing GLB, or regenerate) |
 | 9 | Golden Gate Park (82) | park + sites | – | – | – | scored through its sites (Cal Academy, de Young, Tea Garden, Conservatory, windmills) | – |
@@ -88,6 +88,7 @@ are walkers and cars moving between the two runs: every fix is inside the site's
 | 14 | City Hall | the AI mesh's texture: the sage dome and window panels → **lead-grey** (the gold ribs, lantern and trim stay gold); the procedural far model's dome the same grey | 5 / 4 / 5 | 75 · 238.4k → 78 · 239.1k | `qa/w7/R/b-city-hall-before-after.jpg` |
 | 39 | Dutch Windmill | the AI mesh's texture: the cream tower → **weathered grey-brown shingle**, the orange wood darker; the procedural body the same | 4 / 4 / 4 | 94 · 261.4k → 94 · 261.4k | `qa/w7/R/b-dutch-windmill-before-after.jpg` |
 | 42 | Grace Cathedral | the AI mesh's texture: warm beige → **cool light-grey concrete**, the green roofs and flèche → **dark slate**; the procedural model the same | 4 / 4 / 4 | 72 · 304.8k → 73 · 301.1k | `qa/w7/R/b-grace-cathedral-before-after.jpg` |
+| 6 | Lombard St | the hairpin beds' flower cubes → **round hydrangea clumps** (ICO) in blue / pink / purple, the planters' flowers in the same colours and bigger; lod 0 2,478 of 2,500 triangles; tops row regenerated | 4 / 4 / 4 | 66 · 235.2k → 67 · 236.4k | `qa/w7/R/c-lombard-before-after.jpg` |
 
 The texture recolour is `scripts/opus-sf/assets/w7r/recolour-glb.py` (HSV rules per model on the baked WebP, the Draco
 mesh untouched, the GLB rewritten; sizes 151,068 → 146,860 B, 118,076 → 111,804 B, 91,692 → 83,956 B, pinned in

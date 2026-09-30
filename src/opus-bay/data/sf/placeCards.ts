@@ -21,7 +21,7 @@ const CHINATOWN_GUIDE = 'sf-chinatown-north-beach-walk-guide';
 const WHARF_GUIDE = 'sf-fishermans-wharf-pier39-guide';
 const PRESIDIO_GUIDE = 'presidio-picnic-day-guide';
 
-type CardInput = Omit<PlaceCard, 'depth' | 'verifiedAt'>;
+type CardInput = Omit<PlaceCard, 'depth' | 'verifiedAt'> & { verifiedAt?: string };
 const full = (c: CardInput): PlaceCard => ({ depth: 'full', verifiedAt: V, ...c });
 
 export const PLACE_CARDS: PlaceCard[] = [
@@ -237,8 +237,11 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('冬天会搭起溜冰场和大圣诞树，日期每年不同。', 'An ice rink and a giant tree go up each winter; dates change every year.'),
       bi('广场西边的鲍威尔街上就有叮当车经过。', 'The Powell St cable cars run right along the square\'s west side.'),
     ],
+    hours: bi('广场每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'The square is open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Union_Square,_San_Francisco',
-    sources: ['https://en.wikipedia.org/wiki/Dewey_Monument'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://en.wikipedia.org/wiki/Dewey_Monument'],
     lat: 37.78794, lng: -122.40752, photoKey: 'union-square', guideSlug: SF_GUIDE,
   }),
   full({
@@ -279,6 +282,7 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('沿海特街往西走到底，就是金门公园的入口。', 'Walk Haight Street west to its end and you are at Golden Gate Park.'),
       bi('很多老房子是私人住宅，拍照时别打扰住户。', 'Many old houses are private homes: photograph without bothering anyone.'),
     ],
+    cost: bi('逛街免费，店铺各有营业时间。', 'Free to wander; the shops keep their own hours.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/Haight-Ashbury',
     sources: ['https://www.openstreetmap.org/node/140982670'],
     lat: 37.76999, lng: -122.44694, guideSlug: SF_GUIDE,
@@ -293,8 +297,11 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('J 线轻轨沿着公园西边经过。', 'The J Church streetcar runs along the park\'s west side.'),
       bi('公园里有墨西哥独立英雄伊达尔戈的雕像和一口墨西哥“自由钟”复制品。', 'The park holds a statue of Miguel Hidalgo and a replica of the Mexican Liberty Bell.'),
     ],
+    hours: bi('公园每天约 5:00–24:00 开放，以官网为准。', 'The park is open daily about 5am–midnight; check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Mission_Dolores_Park',
-    sources: ['https://www.openstreetmap.org/way/23871270'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.openstreetmap.org/way/23871270'],
     lat: 37.75976, lng: -122.42713, guideSlug: SF_GUIDE,
   }),
   full({
@@ -309,6 +316,7 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('游客中心下面就是苏特罗浴场遗址。', 'The Sutro Baths ruins are just below the visitor centre.'),
     ],
     officialUrl: 'https://www.nps.gov/goga/planyourvisit/landsend.htm',
+    cost: bi('步道免费。', 'The trail is free.'),
     sourceUrl: 'https://www.nps.gov/goga/planyourvisit/landsend.htm',
     sources: ['https://www.parksconservancy.org/location/lands-end-lookout-visitor-center'],
     lat: 37.77976, lng: -122.5116, photoKey: 'lands-end', guideSlug: SF_GUIDE,
@@ -324,8 +332,11 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('篝火只能在指定火圈里生，每年 3–10 月开放，晚上 9:30 前熄灭。', 'Fires only in the provided rings, March to October, out by 9:30pm.'),
     ],
     officialUrl: 'https://www.nps.gov/places/000/ocean-beach.htm',
+    hours: bi('海滩全天可去；篝火季 3/1–10/31，约 6:00–21:30，以官网为准。', 'Open all day; bonfire season 1 Mar–31 Oct, about 6am–9:30pm; check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://www.nps.gov/places/000/ocean-beach.htm',
-    sources: ['https://www.parksconservancy.org/park-e-ventures-article/hidden-dangers-ocean-beach', 'https://sf-fire.org/safety-resources-and-information/coastal-safety-tips'],
+    sources: ['https://www.parksconservancy.org/parks/ocean-beach-sf-bonfire-fire-pit-san-francisco-marin-parks', 'https://www.parksconservancy.org/park-e-ventures-article/hidden-dangers-ocean-beach', 'https://sf-fire.org/safety-resources-and-information/coastal-safety-tips'],
     lat: 37.75616, lng: -122.51049, photoKey: 'ocean-beach', guideSlug: SF_GUIDE,
   }),
   full({
@@ -350,11 +361,13 @@ export const PLACE_CARDS: PlaceCard[] = [
     zone: bi('内河码头', 'The Embarcadero'),
     bark: bi('渡轮大厦里是一整条美食走廊，周二、四、六门外还有农夫市集！', 'Inside the Ferry Building: a hall of local food. Outside, a farmers market Tue, Thu and Sat!'),
     summary: bi('1898 年落成的渡轮大厦，长长的中庭里是本地食品小店；门外的 Ferry Plaza 农夫市集 1993 年开办，由非营利组织 Foodwise 主办。', 'The 1898 Ferry Building\'s long nave is lined with local food merchants; outside, the Ferry Plaza Farmers Market, begun in 1993, is run by the nonprofit Foodwise.'),
-    hours: bi('农夫市集：周二、周四 10:00–14:00，周六 8:00–14:00；出发前查官网确认。', 'Farmers market: Tue and Thu 10am–2pm, Sat 8am–2pm; check the official site before you go.'),
+    hours: bi('大楼每天 6:00–22:00，各店自定；农夫市集周二、四 10:00–14:00，周六 8:00–14:00；以官网为准。', 'The building is open daily 6am–10pm (each shop keeps its own hours); the farmers market runs Tue and Thu 10am–2pm, Sat 8am–2pm; check before you go.'),
     tips: [bi('周六的市集最大，摊位有 100 多个。', 'Saturday is the big one, with over 100 stands.')],
     officialUrl: 'https://www.ferrybuildingmarketplace.com/farmers-market/',
+    cost: bi('免费进入，吃喝另付。', 'Free to walk in; food and drink extra.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://www.ferrybuildingmarketplace.com/farmers-market/',
-    sources: ['https://www.ferrybuildingmarketplace.com/', 'https://cuesa.org/markets/ferry-plaza-farmers-market-tuesday'],
+    sources: ['https://www.ferrybuildingmarketplace.com/visit/', 'https://www.ferrybuildingmarketplace.com/', 'https://cuesa.org/markets/ferry-plaza-farmers-market-tuesday'],
     lat: 37.79555, lng: -122.39347, photoKey: 'ferry', guideSlug: SF_GUIDE,
   }),
   full({
@@ -367,6 +380,7 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('楼顶的灯光每晚播放影像，湾区很远的地方都看得见。', 'The crown plays moving images every night, seen from far around the Bay.'),
       bi('顶层不对公众常规开放，旁边的屋顶公园随时可以去。', 'The top floor isn\'t regularly open, but the rooftop park next door always is.'),
     ],
+    cost: bi('塔楼不对游客开放；旁边的屋顶公园免费。', 'The tower is not open to visitors; the rooftop park next door is free.'),
     sourceUrl: 'https://en.wikipedia.org/wiki/Salesforce_Tower',
     sources: ['https://www.tjpa.org/salesforce-park/'],
     lat: 37.78977, lng: -122.39693, photoKey: 'salesforce', guideSlug: SF_GUIDE,
@@ -381,8 +395,10 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('脚下半英亩的红木公园对公众开放，种着从圣克鲁兹山移来的红杉。', 'The half-acre Redwood Park at its foot is open to the public, planted with redwoods from the Santa Cruz Mountains.'),
       bi('外墙贴着碎石英，阳光下会发白光。', 'The walls are faced with crushed quartz that glows white in the sun.'),
     ],
+    hours: bi('脚下的红木公园工作日约 7:00–17:30 开放，免费；以官网为准。', 'Redwood Park at its foot is open weekdays about 7am–5:30pm, free; check before you go.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Transamerica_Pyramid',
-    sources: ['https://www.archdaily.com/1021110/foster-plus-partners-completes-long-awaited-renovation-of-transamerica-pyramid-in-san-fransisco-united-states'],
+    sources: ['https://downtownsf.org/go/transamerica-redwood-park', 'https://www.archdaily.com/1021110/foster-plus-partners-completes-long-awaited-renovation-of-transamerica-pyramid-in-san-fransisco-united-states'],
     lat: 37.79519, lng: -122.40279, photoKey: 'transamerica', guideSlug: CHINATOWN_GUIDE, plannerPlaceId: 'chinatown',
   }),
 
@@ -423,8 +439,11 @@ export const PLACE_CARDS: PlaceCard[] = [
     summary: bi('海拔 928 英尺（283 米），旧金山的天然最高点，山上是桉树林。山顶 103 英尺高的混凝土十字架建于 1934 年，1997 年起由北加州亚美尼亚裔团体拥有，是亚美尼亚种族灭绝的纪念地。', 'At 928 ft (283 m), the highest natural point in the city, wooded with eucalyptus. The 103-ft concrete cross of 1934 has belonged since 1997 to Northern California\'s Armenian American organisations as a genocide memorial.'),
     tips: [bi('十字架周围是私人土地和纪念地，请安静、尊重。', 'The ground around the cross is private and a memorial: be quiet and respectful.')],
     quiet: true,
+    hours: bi('公园每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'Open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Mount_Davidson_(California)',
-    sources: ['https://www.openstreetmap.org/node/358806322'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.openstreetmap.org/node/358806322'],
     lat: 37.73826, lng: -122.4533,
   }),
   full({
@@ -624,8 +643,11 @@ export const PLACE_CARDS: PlaceCard[] = [
     bark: bi('伯纳尔山顶视野 360 度，全城天际线都在眼前！', 'Bernal Hill: 360 degrees, the whole skyline in front of you!'),
     summary: bi('光秃秃的山顶公园，360 度看全城天际线，山顶有一座微波塔；绕山一圈约 1 英里，狗狗可以不拴绳跑。', 'A bare hilltop park with a 360° skyline view and a microwave tower on top; a one-mile loop circles it and dogs can run off-leash.'),
     tips: [bi('山名来自 1839 年获得这片土地的 José Cornelio Bernal。', 'It is named for José Cornelio Bernal, granted this land in 1839.')],
+    hours: bi('公园每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'Open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Bernal_Heights,_San_Francisco',
-    sources: ['https://www.openstreetmap.org/node/358806089'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.openstreetmap.org/node/358806089'],
     lat: 37.74299, lng: -122.4158,
   }),
   full({
@@ -638,8 +660,11 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('北岸的船屋可以租划艇和脚踏船。', 'The boathouse on the north shore rents row boats and pedal boats.'),
       bi('2024 年 1 月，市公园委员会把斯托湖改名为蓝鹭湖。', 'In January 2024 the Rec & Park Commission renamed Stow Lake Blue Heron Lake.'),
     ],
+    hours: bi('公园每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'Open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://sfrecpark.org/facilities/facility/details/Stow-Lake-410',
-    sources: ['https://sfrecpark.org/CivicAlerts.aspx?AID=1696', 'https://sfrecpark.org/901/Golden-Gate-Park---Chinese-Pavilion'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://sfrecpark.org/CivicAlerts.aspx?AID=1696', 'https://sfrecpark.org/901/Golden-Gate-Park---Chinese-Pavilion'],
     lat: 37.76854, lng: -122.47553, guideSlug: GGP_GUIDE, plannerPlaceId: 'golden-gate-park',
   }),
   full({
@@ -665,6 +690,7 @@ export const PLACE_CARDS: PlaceCard[] = [
     status: { kind: 'works', text: bi('广场改造预计 2027 年春动工、2028 年完工，届时部分区域会围起来。', 'A plaza rebuild is expected to start in spring 2027 and finish in 2028; parts will be fenced.'), until: '2028' },
     tips: [bi('GLBT 历史协会博物馆就在 18 街，一个路口外。', 'The GLBT Historical Society Museum is a block away on 18th St.')],
     officialUrl: 'https://sfpublicworks.org/index.php/HarveyMilkPlaza',
+    cost: bi('免费。', 'Free.'),
     sourceUrl: 'https://sfpublicworks.org/index.php/HarveyMilkPlaza',
     sources: ['https://sf.streetsblog.org/2014/03/13/castro-street-redesign-breaks-ground-rainbow-crosswalks-unveiled/', 'https://en.wikipedia.org/wiki/Rainbow_Honor_Walk', 'https://www.glbthistory.org/museum-about-visitor-info'],
     lat: 37.76228, lng: -122.43569, photoKey: 'castro', guideSlug: SF_GUIDE,
@@ -679,8 +705,11 @@ export const PLACE_CARDS: PlaceCard[] = [
       bi('州立大学的划船项目和赛艇俱乐部都在湖上训练。', 'SF State\'s paddling programme and rowing clubs train on the lake.'),
       bi('湖里的鱼有汞含量提示，钓鱼前先看告示。', 'There is a mercury advisory for fish: read the notices before fishing.'),
     ],
+    hours: bi('公园每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'Open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Lake_Merced',
-    sources: ['https://www.openstreetmap.org/relation/16308125'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.openstreetmap.org/relation/16308125'],
     lat: 37.72, lng: -122.495,
   }),
   full({
@@ -692,6 +721,8 @@ export const PLACE_CARDS: PlaceCard[] = [
     cost: bi('免费，不用门票也不用预约。', 'Free — no tickets or reservations.'),
     tips: [bi('户外全年每天开放；游客中心和儿童乐园有各自的开放时间。', 'The outdoors is open every day; the visitor centre and playground keep their own hours.')],
     officialUrl: 'https://presidio.gov/explore/attractions/presidio-tunnel-tops/',
+    hours: bi('全年每天开放；游客中心和游乐场各有时间，以官网为准。', 'Open daily, year-round; the visitor center and the playground keep their own hours (check the official site).'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://presidio.gov/explore/attractions/presidio-tunnel-tops/',
     sources: ['https://www.parksconservancy.org/news/presidio-tunnel-tops-opening-day-2022'],
     lat: 37.8029, lng: -122.45591, photoKey: 'presidio', guideSlug: PRESIDIO_GUIDE, plannerPlaceId: 'presidio',
@@ -703,8 +734,11 @@ export const PLACE_CARDS: PlaceCard[] = [
     bark: bi('斯特恩林的大树底下，每年夏天都有免费音乐会！', 'Under Stern Grove\'s tall trees, free concerts every summer!'),
     summary: bi('1931 年捐给市里的桉树和红杉峡谷。从 1932 年起每年夏天办免费的斯特恩林音乐节；西头的松湖是城里仅有的三个天然湖之一。', 'A eucalyptus-and-redwood ravine given to the city in 1931. Its free summer festival has run since 1932, and Pine Lake at the west end is one of the city\'s three natural lakes.'),
     tips: [bi('音乐节的免费票要抽签，节目每年不同，以官网为准。', 'Festival tickets are free by lottery and the line-up changes yearly: see the official site.')],
+    hours: bi('公园每天约 5:00–24:00 开放（市立公园时间），以官网为准。', 'Open daily about 5am–midnight (city park hours); check before you go.'),
+    cost: bi('免费。', 'Free.'),
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://en.wikipedia.org/wiki/Sigmund_Stern_Recreation_Grove',
-    sources: ['https://www.prnewswire.com/news-releases/longest-running-free-music-festival-in-america-returns-for-its-89th-season-with-al-green-public-enemy-patti-labelle-major-lazer-japanese-breakfast--more-302735986.html', 'https://www.openstreetmap.org/way/103637554'],
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.prnewswire.com/news-releases/longest-running-free-music-festival-in-america-returns-for-its-89th-season-with-al-green-public-enemy-patti-labelle-major-lazer-japanese-breakfast--more-302735986.html', 'https://www.openstreetmap.org/way/103637554'],
     lat: 37.73607, lng: -122.47858,
   }),
   full({
@@ -784,8 +818,10 @@ export const PLACE_CARDS: PlaceCard[] = [
     summary: bi('日本城的购物中心，由东馆、西馆等几栋楼组成，围着和平广场和五重和平塔；里面有 60 多家店，拉面、寿司、漫画和日本杂货都有。', 'Japantown\'s malls, East and West and their neighbours around Peace Plaza and the five-tier Peace Pagoda, with more than 60 businesses: ramen, sushi, manga and Japanese goods.'),
     tips: [bi('出门就是和平塔，是大阪人民送的礼物。', 'The Peace Pagoda outside was a gift from the people of Osaka.')],
     officialUrl: 'https://www.sfjapantown.org/japan-center-malls/',
+    status: { kind: 'works', text: bi('和平广场正在翻修，围挡施工中，商场照常营业；预计 2026 年秋冬完工。', 'Peace Plaza is being renovated behind fences; the malls stay open. It is due to finish in late 2026.'), until: '2026-12' },
+    verifiedAt: '2026-09-29',
     sourceUrl: 'https://www.sfjapantown.org/japan-center-malls/',
-    sources: ['https://en.wikipedia.org/wiki/Japan_Center_(San_Francisco)'],
+    sources: ['https://peaceplaza.org/', 'https://en.wikipedia.org/wiki/Japan_Center_(San_Francisco)'],
     lat: 37.78515, lng: -122.43048, guideSlug: SF_GUIDE,
   }),
   full({
@@ -898,11 +934,13 @@ export const PLACE_CARDS: PlaceCard[] = [
  */
 export const CARD_REFRESHES: Record<string, CardRefresh> = {
   'twin-peaks': {
+    hours: bi('随市立公园每天约 5:00–24:00 开放，以官网为准。', 'Open with the city parks, daily about 5am–midnight; check before you go.'),
+    cost: bi('免费。', 'Free.'),
     status: { kind: 'works', text: bi('步行大道工程 2026 年 5 月动工，部分步道封闭；观景台照常开放。', 'The Promenade works began in May 2026 and close some trails; the overlook stays open.'), until: '2027' },
     // one car-free tip (verify C3): the built card's "东侧一段" and the north end are both true, said once together
     replaceTips: [{ match: '只让行人和自行车', text: bi('双峰大道有两段不走汽车：东侧一段（2020 年起）和北边 Burnett 大道那头（2021 年起），适合走路骑车。', 'Two stretches of Twin Peaks Blvd are car-free: the east side (since 2020) and the north end by Burnett Ave (since 2021) — lovely on foot or by bike.') }],
-    sources: ['https://www.sfrecpark.org/634/Twin-Peaks-Trails-Improvement-Promenade-', 'https://sfrecpark.org/m/newsflash/Home/Detail/2876'],
-    verifiedAt: V,
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781', 'https://www.sfrecpark.org/634/Twin-Peaks-Trails-Improvement-Promenade-', 'https://sfrecpark.org/m/newsflash/Home/Detail/2876'],
+    verifiedAt: '2026-09-29',
   },
   'castro-theatre': {
     sources: ['https://localnewsmatters.org/2026/02/05/sf-castro-theatre-reopening-friday-after-rehabilitation/'],
@@ -921,9 +959,10 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: V,
   },
   'de-young-tower': {
+    hours: bi('周二至周日 9:30–17:15，周一闭馆；观景塔约到 16:30，以官网为准。', 'Tue–Sun 9:30am–5:15pm, closed Mondays; the tower until about 4:30pm; check the official site.'),
     addTips: [bi('汉蒙观景塔免费上；博物馆周一闭馆。', 'The Hamon Tower is free to go up; the museum is closed on Mondays.')],
-    sources: ['https://www.famsf.org/', 'https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c'],
-    verifiedAt: V,
+    sources: ['https://www.famsf.org/visit/de-young-tickets-hours', 'https://www.famsf.org/', 'https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c'],
+    verifiedAt: '2026-09-29',
   },
   'dutch-windmill': {
     addTips: [
@@ -953,5 +992,25 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     sources: ['https://sfist.com/2025/11/07/the-cliff-house-will-still-be-called-cliff-house-when-it-reopens-but-probably-wont-reopen-until-late-2026/', 'http://www.giantcamera.com/'],
     verifiedAt: V,
   },
+  // wave 7 (lane R): hours and a status the built landmarks' cards lacked, from official pages checked 2026-09-29
+  'painted-ladies': {
+    hours: bi('对面的阿拉莫广场公园每天约 5:00–24:00 开放，以官网为准。', 'Alamo Square park across the street is open daily about 5am–midnight; check before you go.'),
+    sources: ['https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781'],
+    verifiedAt: '2026-09-29',
+  },
+  'palace-of-fine-arts': {
+    hours: bi('园区每天约 5:00–24:00 开放，以官网为准。', 'The grounds are open daily about 5am–midnight; check before you go.'),
+    sources: ['https://sfrecpark.org/Facilities/Facility/Details/Palace-of-Fine-Arts-423'],
+    verifiedAt: '2026-09-29',
+  },
+  'cable-car-turntable': {
+    hours: bi('叮当车每天约 7:00–23:00 运行，以官网为准。', 'The cars run daily about 7am–11pm; check SFMTA before you go.'),
+    sources: ['https://www.sfmta.com/routes/powell-hyde-cable-car'],
+    verifiedAt: '2026-09-29',
+  },
+  'peace-pagoda': {
+    status: { kind: 'works', text: bi('和平广场正在翻修，围挡施工中，商场照常营业；预计 2026 年秋冬完工。', 'Peace Plaza is being renovated behind fences; the malls stay open. It is due to finish in late 2026.'), until: '2026-12' },
+    sources: ['https://peaceplaza.org/', 'https://sfrecpark.org/m/newsflash/Home/Detail/3008'],
+    verifiedAt: '2026-09-29',
+  },
 };
-

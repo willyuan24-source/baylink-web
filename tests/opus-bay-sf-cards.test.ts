@@ -52,7 +52,7 @@ test('every card passes placeCardProblems (texts, limits, sources, https, dates,
   for (const c of CARDS) {
     assert.ok(zhWidth(c.bark.zh) <= 45, `${c.id} bark ≤ 45 (${c.bark.zh})`);
     assert.ok(zhWidth(c.summary.zh) <= CARD_LIMITS.summary, `${c.id} summary`);
-    assert.equal(c.verifiedAt, CARD_VERIFIED_AT);
+    assert.ok([CARD_VERIFIED_AT, '2026-09-29'].includes(c.verifiedAt), `${c.id} verifiedAt ${c.verifiedAt} (wave 7 lane R re-checked some on 2026-09-29)`);
     assert.ok(c.sourceUrl.startsWith('https://'), `${c.id} sourceUrl`);
     if (c.depth === 'full') assert.ok(c.sources.length >= 1, `${c.id} has a secondary source`);
   }
@@ -165,12 +165,16 @@ test('cautious hours, stated closures, quiet places, and the plan\'s never-say l
 });
 
 test('the 10 built landmarks that become stops get refreshes (status / hours / tips) with sources', () => {
-  assert.deepEqual(Object.keys(CARD_REFRESHES).sort(), STOPS.map(a => a.id).sort());
+  // wave 7 (lane R, W7-R3): every stop has its refresh, and a few more built landmarks got one (hours / a status the
+  // card lacked: the Painted Ladies, the Palace, the turntable, the Peace Pagoda), re-checked on 2026-09-29
+  const keys = new Set(Object.keys(CARD_REFRESHES));
+  for (const a of STOPS) assert.ok(keys.has(a.id), `stop ${a.id} has a refresh`);
   const landmarkIds = new Set(SF_LANDMARK_INFO.map(l => l.id));
   for (const [id, r] of Object.entries(CARD_REFRESHES)) {
     assert.ok(landmarkIds.has(id), `${id} is an SF_LANDMARK_INFO id`);
     assert.ok(r.sources.length >= 1 && r.sources.every(s => /^https?:\/\//.test(s)), `${id} sources`);
-    assert.equal(r.verifiedAt, CARD_VERIFIED_AT);
+    assert.ok([CARD_VERIFIED_AT, '2026-09-29'].includes(r.verifiedAt), `${id} verifiedAt ${r.verifiedAt}`);
+    if (r.hours) assert.match(r.hours.zh, /约|官网|确认|现场/, `${id} hours are hedged`);
     for (const b of [r.status?.text, r.hours, r.cost, ...(r.addTips ?? [])].filter(Boolean)) {
       assert.ok(zhWidth(b!.zh) <= CARD_LIMITS.hours && b!.en.length <= 180, `${id}: ${b!.zh}`);
     }
