@@ -10,7 +10,9 @@ QA images `docs/opus-bay/qa/w7/H/`.
 2. 门口讨糖的小朋友（小幽灵 / 小女巫 / 小南瓜）会轻轻摇晃，门廊下挂着的小幽灵会随风荡来荡去；夜里的蝙蝠翅膀边缘带淡淡的月光色，天黑后也看得见了。
 3. 找南瓜灯更容易：每个还没找到的南瓜灯上方飘着一团橙色的「小鬼火」，BAYBAY 走近时会说「南瓜灯的光在左边 / 右边 / 前面 / 后面」。
 4. 夜里门口灯光多的时候，优先点亮离你最近的那些。
-5. 新台词 9 句（中英各一，固定文字，可配音），已交给 X 线录音。
+5. 亡灵节更真实：11/1 只有剪纸旗、万寿菊和 24 街 Acción Latina 的社区祭坛；11/2 早上 8 点起公园里摆满祭坛；傍晚 6 点大家戴着万寿菊花冠、捧着蜡烛在 22 街和布莱恩特街口集合，晚上 7–9 点小人们排成两列沿布莱恩特街 → 24 街 → 教会街 → 22 街慢慢走，每到街角停一下（真实游行在街角有阿兹特克舞蹈），路上的玩具车会停下来等他们。2026 年官方还没公布，台词都说「通常……以官网为准」。
+6. 10/17 Sunnydale 南瓜节、10/24 Thrive City 万圣节活动当天，活动摊位两边摆上干草垛和南瓜（时间跟网站活动数据走）；门口的南瓜不再和 G 线讨糖的门挤在一起。
+7. 新台词 9 句（中英各一，固定文字，可配音），21:50 已推送给 X 线录音。
 
 ## Part a · W7-H1 the pumpkin dusk · W7-H2 figures that move · W7-H3 bats at night · W7-H4 the glow nearest first · W7-H8 the lantern guide (20:25 – 21:15 PDT)
 
@@ -104,3 +106,122 @@ QA images `docs/opus-bay/qa/w7/H/`.
 
 - **Lane X**: record `W7_WORLD_LINES` in `src/opus-bay/halloween/worldLines.ts` (9 lines, ids `w7-h-*`) into
   `data/sf/voiceW7.ts`. `w6-h-dusk` (already recorded) now plays: take it off any "never plays" list.
+
+Push: `4c8ff682` (part a) on origin/opus-bay, 21:48 PDT, after rebasing onto W2 / R / S: tsc 0 · eslint 0 errors · the
+suite 1517 / 1519 on the tree before the last rebases (the two: the wall-clock "A* is time-sliced", green alone, and a
+part-b test file not in that push); after the rebases tsc 0 and the lane's and the incoming lanes' test files 81 / 81.
+
+## Part b · W7-H6 the procession · W7-H7 pumpkins at the pumpkin events · W7-H5 no stoop by a treat door (21:50 – 22:40 PDT)
+
+### What was built
+
+- **The Día de los Muertos procession (W7-H6).**
+  - `scripts/opus-sf/muertos-place.mts` (owned): also computes 22nd & Mission and writes `PROCESSION` — the closed route
+    in the curb lane on the loop's inside (each street's centreline moved w / 2 − 0.8 u toward the middle of the loop,
+    the corners where those lines meet), x / z / ground y every ≈ 2 u — `PROCESSION_LENGTH` 318.8 u,
+    `PROCESSION_CORNERS`, `ROUTE_CORNERS.mission22` (361.6, 670.32). Every other output of the script is identical (the
+    altars, picado, marigolds; `muertos:n` unchanged). The script's hard-coded wave-6 worktree path is gone (it writes
+    into the repo it lives in; the same fix in `halloween-place.mts`).
+  - `src/opus-bay/halloween/muertosWalkers.ts` (new): `processionRoute()`, `routeAt(s)`, `processionCorners()` (the four
+    sharpest turns: within 4 u of the street crossings), `headAt(walkS, count)` — the head leaves the gathering at 19:00
+    at `WALK.speed` 0.7 u/s and stands `WALK.pause` 18 s at each corner (the real procession pauses at the main corners
+    for the Aztec dancers), lap after lap until 21:00; `createWalkers()` — `WALKERS_BY_QUALITY` low 14 / mid 26 / high 40
+    toy walkers in two files: a long robe (TOY_INST_TINT, the instance colour: black, cream, purple, magenta, marigold,
+    teal, deep red, indigo), a calavera-white face with painted eye sockets, a crown of five marigolds, a hand holding a
+    lit candle (the flame always glows) on TOY_INST — **two instanced meshes, 2 calls, ≈ 330 triangles a walker**,
+    receiveShadow like the city's instanced props (warmed programs), one bounding sphere over the route. 18:00–19:00
+    they stand about on Bryant just south of 22nd (candles with halos); 19:00–21:00 they walk (a step bob and a small
+    sway; at the corner pauses a gentle bob), no halos while walking (the flames glow).
+  - `halloween/muertos.ts`: the walkers come with the schedule (`muertosSchedule().procession`), are stepped every frame
+    (walkS runs on between the schedule's reads) and go at 21:00; their gathering halos join the altar candles in the
+    pool; BAYBAY offers `processionWalk` ("游行的队伍过来了。我们在路边安静地看，好吗？") within 22 u of a walker and
+    `processionGather` near 22nd & Bryant 18:00–19:00. Nothing to collect, no sound of their own.
+  - **The toy traffic stops for them**: `src/opus-bay/world/sf/roadPeople.ts` (new, 20 lines) — `addRoadPeople(provider)`
+    / `eachRoadPerson(put)`; `world/sf/cityLife.ts` (surgical, one line in `TrafficEnv.people`, named here: not lane H's
+    file) adds them after the player, BAYBAY and the crossing walkers. With no provider the traffic is exactly as before.
+- **Pumpkins at the season's pumpkin events (W7-H7).** `src/opus-bay/halloween/worldVenues.ts` (new): the catalog events
+  `sf-sunnydale-pumpkin-fest-2026` (10/17 · 12:00–15:00, The Hub, 1530 Sunnydale Ave) and `sf-thrive-thrill-o-ween-2026`
+  (10/24 · 12:00–17:00, Thrive City) get a pumpkin patch either side of lane S's kit — hay bales with pumpkins, pumpkins
+  on the ground, four carved ones that glow at night — **exactly while the event's window is on** (`realsf/events.ts`
+  `activeEventsAt`: the dates and hours are the catalog's, DESIGN §8), past the kit's own footprint (`KIT_FOOTPRINT` +
+  0.8 u), each spot kept only on standable ground off the roadway; one mesh on TOY (1 call there, then); BAYBAY's
+  `venuePumpkins` line within 30 u. `halloween/world.ts` wires it ('season' / 'night' only) and its halos.
+- **No stoop by a treat door (W7-H5).** `scripts/opus-sf/halloween-place.mts` leaves out a stoop within `DOOR_CLEAR` 3.5 u
+  of one of lane G's treat doors or its knock spot (`TREAT_DOORS`, `KNOCK_OUT`); `worldSpots.ts` regenerated: **2 062 →
+  2 057 stoops** (5 left out; 108 trick-or-treaters as before; `huntSpots.ts` identical). `worldDress.ts`
+  `stoopsByDoors()` also skips any stoop near a door G appends later (treatDoors.ts is append-only) — empty today.
+- Tests: `tests/opus-bay-w7-h-muertos.test.ts` (7): the route (closed, corners at the crossings, south on Bryant first);
+  `headAt` (starts at the gathering, pauses at 24th & Bryant, never goes back, one lap later one route further, 5–30
+  laps in two hours); the walkers (two meshes on TOY_INST / TOY_INST_TINT, < 420 triangles each, the flame glows, on
+  the route, halos only while gathering); the road-people registry and cityLife's hook; muertos on 2 November on the Bay
+  clock (none at 17:30, gathering 18:20 with its line, walking 19:05 with BAYBAY's line and every walker in the
+  traffic's people, gone at 21:00); the pumpkin patches (S's venue rows exist, past the fair's footprint, 14 spots, 4
+  halos, only in the window / near / in season / for a pumpkin event); no stoop within 3.5 u of a door.
+
+### Evidence
+
+- Lane H's test files: 30 / 30 (w7-h, w7-h-muertos, w6-h, w6-h-muertos, w6-h-review). Full checks: see the push line.
+- In the game (dev 5705, 1440 × 900 'high'): `?date=2026-11-02T18:30&time=night` — `qa/w7/H/h6-procession-gathers-bryant.jpg`
+  (read): the walkers lined up on Bryant with candles lit; BAYBAY said the gathering line on her own.
+  `?date=2026-11-02T19:02&time=night` — `qa/w7/H/h6-procession-24th-st-night.jpg` (read): two files of walkers coming up
+  24th St under the papel picado, marigold crowns, white calavera faces, candle flames; 40 walkers, 79 calls / 289k
+  triangles there (halloween-world 6 calls / 47k: the stoops 23k, the Mission's dressing 8.9k, the walkers ≈ 13k, the
+  pool). `?date=2026-10-24T13:00` — `qa/w7/H/h7-thrive-city-pumpkins.jpg` (read): hay bales and pumpkins either side of
+  the Thrill-O-Ween kit (13 of 14 spots placed); `?date=2026-10-17T13:00` Sunnydale: 10 of 14 placed (on the grass by
+  the tents; the kit's other side is a house). `?date=2026-11-01T12:00` (read, scratch `m1/`): Potrero del Sol's lawn
+  empty, the papel picado over 24th St, the Mission's dressing 3.5k triangles (no altars, no arch); BAYBAY's hello there.
+  The phone (390 × 844, dpr 3, 'mid') at the procession on 24th St: 26 walkers, 61 calls / 177k triangles
+  (halloween-world 6 / 31.7k).
+- **Calls / triangles (the perf budget)**, `?halloween=night&time=night`, walking views:
+
+  | spot | desktop 1440 × 900 'high' | Halloween share | phone 390 × 844 dpr 3 'mid' | Halloween share |
+  |---|---|---|---|---|
+  | Alamo Square (W6 review, before) | 98 / 315k | 24.0k tris | 74 / 225k | 12.7k tris |
+  | Alamo Square (now) | 99 / 326k | 4 calls / 27.5k | 77 / 237k | 4 calls / 15.9k |
+  | Belvedere St, a treat street (now) | 99 / 334k | 3 calls / 26.2k | 62 / 231k | 3 calls / 15.4k |
+
+  The Halloween share grew ≈ 3k triangles (the wisps, ≈ 100 a lantern, the hunt's lanterns in reach); no new call at
+  either spot (the wisps and the sway ride existing meshes). The procession adds 2 calls and ≈ 13k (high) / 8.6k (mid)
+  triangles, only on 2 November 18:00–21:00 in the Mission. All inside ≤ 150 calls / 400k.
+
+### Real-world facts (checked on the web 2026-09-29)
+
+- 2026 not posted: https://www.dayofthedeadsf.org/festival-of-altars shows only "November 2, 2025 @ Potrero Del Sol
+  Park" (installation from 8 a.m., entertainment 5–9 p.m.); https://www.calle24sf.org (home page) shows no Día de los
+  Muertos 2026 date.
+- The procession (2025): 2 November, 7 p.m., from 22nd & Bryant, south on Bryant, west on 24th, north on Mission, east
+  on 22nd back to Bryant — https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025; led
+  by Aztec dancers who pause for a ritual dance at each main corner —
+  https://www.nbcbayarea.com/news/local/san-francisco/dia-de-los-muertos-procession-san-francisco/3697854/ and
+  https://sf.funcheap.com/sf-dia-de-los-muertos-procession-mission/ (gather ≈ 6 p.m.).
+- The two pumpkin events: the BAYLINK catalog (`public/planner-catalog.json`, verified by the site 2026-09-28 / 29); the
+  game reads their dates and hours from it at runtime.
+
+### Decisions
+
+- The walkers circle the route from 19:00 to 21:00 (a toy procession of 14–40 cannot be a two-hour column): one group,
+  slow, pausing at every corner; they stand about from 18:00. Respectful: no reward, no sound, no costume play; BAYBAY
+  asks to watch quietly.
+- They walk the curb lane on the loop's inside (the streets are 3.6–4.4 u wide in the toy city), and the toy traffic
+  stops short of them (a surgical line in cityLife, a registry of our own): cars behind them wait or are recycled by the
+  traffic's own stuck rule. Candle halos only while they stand (a moving halo would lag its flame).
+- Pumpkins at the events follow the catalog's window exactly (no set-up / tear-down hours invented).
+- The runtime door guard stays although the placement already keeps clear: G may append doors.
+
+### Known gaps
+
+- The walkers are rigid toy figures (a bob and a sway, no swinging legs); robe colours read dark at night (the faces,
+  crowns and candles carry them).
+- Where the route's corners cut the kerb, 17 of 160 samples lie just off the roadway.
+- A player standing in the procession's lane is walked through (the walkers do not steer).
+
+### Requests
+
+- **Lane X**: `W7_WORLD_LINES` (9, pushed 21:50) — `processionGather`, `processionWalk`, `venuePumpkins`, `muertosEve`
+  are live with this part.
+- **Lane B** (traffic, FYI): `world/sf/cityLife.ts` `TrafficEnv.people` now also calls `eachRoadPerson(put)`
+  (`world/sf/roadPeople.ts`); nothing registers outside 2 November 18:00–21:00 in the Mission.
+
+Checks before the part-b push (22:28 PDT, the tree on origin 4c8ff682 + part b): `npx tsc -p tsconfig.app.json --noEmit`
+0 · `npx eslint .` 0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+**1526 / 1526**.
