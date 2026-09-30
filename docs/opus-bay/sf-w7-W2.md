@@ -10,6 +10,7 @@ scratch `C:/Users/willy/opus-qa/w7/w2/`. Higgsfield: 0 credits (not this lane's)
 3. **码头绿地终于有风筝了**：白天草坪上空飘着 4 只彩色风筝（带尾巴和线，下午风大时飞得更高更欢，晚上收起来）。还能和 BAYBAY 一起**放风筝**：在码头绿地或克里西场的草坪上「问 BAYBAY → 放风筝」，起风时按住「放线」，风小了松手让它往上爬，按太久风筝会往下栽；BAYBAY 在旁边放她自己的蓝风筝。飞起来、飞满 20 秒、把线全放完分别拿铜/银/金奖章。手机上用按钮玩，电脑用空格键。
 4. **新小游戏「那是什么？」**：任何看得见远处的地方「问 BAYBAY → 那是什么？」，她指向一个真正看得见的地标（金门大桥、苏特罗塔、市政厅、科伊特塔、泛美金字塔、Salesforce 大楼、渡轮大厦、海湾大桥、恶魔岛），镜头转过去，三选一，每答一题她讲一句真实的小知识（都查过官方资料），三题拿奖章；看不到地标时她会推荐最近的观景点。
 5. **捉迷藏修好 3 处**：点「捉迷藏」那一下不再卡顿（寻找藏身处分到后面几帧做）；「被你找到啦！」变成固定台词可以配音，秒数显示在顶部条上；提示玩捉迷藏的那句话不再等另一条提示先说完。所有新台词（中英）已整理好交给配音线。
+6. **联合广场升级**：四个角上各有一颗彩绘爱心雕塑（真实的 Hearts in San Francisco 就在广场四角）、红伞咖啡座和小售货亭、花坛、通往 Geary 街的台阶和路灯；仍然只用一个模型、不增加绘制次数（约 2k 三角形）。没来得及做：街头艺人合奏、大通中心升级。
 
 ## Part a · W7-W2a Alcatraz, a T1 model
 
@@ -347,7 +348,10 @@ push brought lanes H, V, X only (no shared file): tsc 0 on the pushed tree).
   triangles there 102 / 265k (budget-views, not fps; the W6-Z union-square walking spot was 84 / 242k — a different
   camera, so not a before / after pair; the site's mesh count is unchanged).
 - Tests: `tests/opus-bay-sf-sites-w4.test.ts`, `-sf-landmark-context`, `-sf-landmarks`, `-w6-w-hideseek` (Union
-  Square's start and hiding spots) 54 / 54.
+  Square's start and hiding spots) 54 / 54. The full suite then caught lane H's hunt lantern 38 (89.6, 225.1: local
+  −6.8, −3.2) inside the Powell / Post heart's blocker (W6-H2 red): that heart moved 1 u in (the Powell planters with
+  it); `tests/opus-bay-w6-h.test.ts` + the site tests 41 / 41 after the fix. Every other point of the game's data
+  tables within 9 u of the square (ride spots, the arrival, life) is clear of the new blockers.
 
 ### Decisions
 

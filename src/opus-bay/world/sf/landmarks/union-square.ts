@@ -59,9 +59,10 @@ function dewey(b: BatchLike, lod: 0 | 2) {
 // four Hearts in San Francisco at the corners
 // ---------------------------------------------------------------------------
 
-/** the four corner hearts (Hearts in San Francisco: four stand in Union Square, the newest at Powell & Geary) */
+/** the four corner hearts (Hearts in San Francisco: four stand in Union Square, the newest at Powell & Geary); the Powell / Post one
+ * stands 1 u in from the corner, clear of lane H's hunt lantern 38 (−6.8, −3.2 local) */
 const HEARTS: readonly { x: number; z: number; ry: number; a: string; b: string }[] = [
-  { x: -5.9, z: -3.2, ry: 0.5, a: '#d8433a', b: '#f2c14e' },
+  { x: -5.9, z: -2.2, ry: 0.5, a: '#d8433a', b: '#f2c14e' },
   { x: 5.85, z: -3.2, ry: -0.5, a: '#e58aa0', b: '#6b8fd6' },
   { x: -5.9, z: 3.1, ry: 2.6, a: '#f08a3c', b: '#f7f4ec' },
   { x: 5.85, z: 3.1, ry: -2.6, a: '#3fae6a', b: '#e8483c' },
@@ -70,7 +71,7 @@ const HEARTS: readonly { x: number; z: number; ry: number; a: string; b: string 
 const CAFE: readonly Vec2[] = [{ x: 2.9, z: -3.3 }, { x: 4.3, z: -2.3 }, { x: 4.3, z: -3.9 }, { x: 2.9, z: -1.8 }];
 const KIOSK = { x: 5.95, z: -0.9, w: 0.9, d: 1.5 };
 /** raised planters along Powell and Stockton */
-const PLANTERS: readonly [number, number, number, number][] = [[-6.05, -0.9, 0.7, 1.8], [-6.05, 1.1, 0.7, 1.6], [6.0, 1.3, 0.7, 1.6]];
+const PLANTERS: readonly [number, number, number, number][] = [[-6.05, -0.3, 0.7, 1.3], [-6.05, 1.35, 0.7, 1.3], [6.0, 1.3, 0.7, 1.6]];
 /** the steps down to Geary (two granite treads across the Geary edge) */
 const STEPS = { x0: -1.2, x1: 3.9, z: [4.35, 4.75] } as const;
 const LAMPS: readonly Vec2[] = [{ x: -3.6, z: -4.4 }, { x: 3.4, z: -4.6 }, { x: -3.8, z: 4.4 }];
