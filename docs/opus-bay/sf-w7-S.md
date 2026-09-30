@@ -362,3 +362,96 @@ Played (dev server 5707, headless Chrome `--force_high_performance_gpu`):
 
 - Toy ships for the Parade of Ships (Oct 9 11:00–12:00): a calendar row only (part b, decision 5).
 - A venue row for the Chinatown Halloween Festival: it waits for the site's catalog (Request above).
+
+## Review (W7-S-review)
+
+Written 2026-09-30 ≈ 01:10 PDT by lane S's adversarial reviewer (worktree `C:/Users/willy/wt/w7-s-rev`, dev port 5727,
+scratch `C:/Users/willy/opus-qa/w7/s-rev/`).
+
+### 给主人的摘要
+
+1. S 线的活儿基本扎实：6 个新活动点、纪念章（长 id 以前存不上的 bug 确实修好了，我实际进游戏在 Marina 图书馆开放日拿到了 15 金币）、新店牌子、老人免费 Muni、日历行，我逐条看过代码、在游戏里走过，也在网上重新核对了事实（唐人街万圣节庆典、舰船游行、大通中心持票坐 Muni、65+ 免费 Muni 规则都对得上；亡灵节 2026 官网仍未公布，所以“通常 · 以官网为准”的写法是对的）。
+2. 我找到并修好了 2 个真问题：(a) 11/1 夏令时那句 BAYBAY 台词是过去时（“今天凌晨两点，钟拨回了一小时”），但原来从 11/1 零点就会说——万圣节夜里玩过午夜的人，在 00:30 就会听到，这时钟还没拨；现在改为凌晨 2 点以后才说（台词原文不变，X 线的配音照用）。(b) 大通中心活动卡上那行“持票当天可坐 Muni · BAYLINK 优惠详情”，手机和电脑上外链小图标都掉到了单独一行，看起来像排版坏了；现在图标跟在文字后面，手机上这个链接的点按区域也有 44 像素高。
+3. 没有阻挡上线的问题。
+
+### What was checked
+
+- Every lane commit (`git log --grep "W7-S[0-9:]"`): `3915153a`, `f9f7b7e5`, `1242bc5b`, `26dabdec`, `68037235`, `5f15ae4f`,
+  `90dc7798`, `7868ba31`, `da1dbc40`, `f1d939e4` — code read in full (`eventVenues.ts`, `events.ts`, `presence.ts`,
+  `calendar.ts`, `index.ts`, `jets.ts`, `ui/mapEvents.ts`, `openings.ts`, `HowToGo.tsx`, `chaseMuni.ts`, `realsf.css`,
+  `export-live.ts`, `live.json`) and the lane's five test files (41 / 41 alone).
+- **Save compatibility**: `SOUVENIR_IDS` is append-only against the live tree `83e88511` (the nine new ids after
+  `ferry-plaza-farmers-market-2026-autumn`, the jets' id unmoved); `play.g.souvenir` holds 1,536 bits (48 used).
+- **Facts re-read on the web (2026-09-30)**: https://www.cycsf.org/chinatown-halloween-festival/ ("Saturday, October 31,
+  2026, from 11am-3pm on Waverly Place"; crafts, games, pumpkin patch, costume contest);
+  https://fleetweeksf.org/events/parade-of-ships/ ("Friday 10/9 11:00 am - 12:00 pm", reviewing stand at the Marina Green);
+  https://www.sfmta.com/fares/your-chase-center-event-ticket-your-muni-fare (bus and light rail, not cable cars, all day
+  until the 2:00 am end of the service day); https://www.sfmta.com/fares/free-muni-seniors-ages-65 (SF residents 65+, family
+  income ≤ 100 % AMI, apply first, cable cars included with Clipper); https://www.dayofthedeadsf.org/ (still only
+  "November 2nd, 2025": the row's grade *usually* + 以官网为准 stands). DST 1 Nov 2026 (first Sunday) and Indigenous
+  Peoples' Day 12 Oct 2026 (second Monday) checked by the calendar. The N-Judah leaves Irving at 9th Ave, so the flea's arch
+  at the 11th Ave end is clear of it (as the lane wrote). Raising Cane's "旧金山首店" is the site's own summary (SFist 9/21).
+- **Play (dev server 5727, headless Chrome `--force_high_performance_gpu`, `?world=city&start=free`)**:
+  - desktop 1440 × 900, en, `?date=2026-10-17T12:00&at=xz:-282,318`: focus = the Marina library open house ("See the event ·
+    a library open house"), the souvenir paid (coins 15 on a fresh save); an interactables probe of every open event
+    prompt and every 新店 sign that day: no overlap within the two radii + 2 u except Raising Cane's (6.0 u from the Crab
+    Wheel r 4, 8.0 u from lane M's claw r 1.8 — both out of reach from the sign's r 5) and the Ferry Plaza / Civic Center
+    rows (unchanged from wave 6).
+  - phone 390 × 844 dpr 3, 繁體, `?date=2026-10-24T15:00&at=xz:-225.3,952`: focus = Bay Beats (看看活動) at the bandshell,
+    the area chip 金門公園, the stamp paid.
+  - phone, zh, `?date=2026-10-06T19:15&at=xz:479,266`: the Warriors v Lakers card at Chase Center — the Muni line, before /
+    after below.
+  - phone, zh, `?date=2026-11-01T00:30&at=xz:36,149` (Waverly Place): `__opusRealSF.offered().calendar` =
+    `['calendar-dst-end-2026']` at 00:30 — defect 1 below.
+  - desktop, `?world=district&date=2026-11-01T00:30`: the district starts and plays as before (Ferry Building, postcards
+    0/8, goals 0/5); lane S's only shared-code change there is `whenLabel`'s 明天.
+- **Per frame / teardown**: `calendarLines` runs in the realsf line scheduler every 0.5 s (a few small arrays, like the
+  other `offered()` calls), stateless — nothing to dispose; the bandshell's `ownStage` builds no kit; the three arches are
+  the Castro's 364-triangle kit under the same `KITS_MAX` / `KIT_NEAR` rule (no new draw call beyond an existing kit slot).
+  Perf was not re-measured here (no perf runner run: the part adds no always-on geometry); W7-Z's dated spots cover it.
+- **Voice**: lane X's `67e20f0a` recorded the four fixed lines as `realsf-<key>` clips; the review changes no line text.
+
+### Defects fixed (`25de1aa6`, tests `tests/opus-bay-w7-s-review.test.ts`, red on the lane's code, green after)
+
+1. **The DST line before the clocks went back.** `dst-end-2026`'s line is past tense ("今天凌晨两点，钟拨回了一小时…") but its
+   `lineAt: {}` offered it from 00:00 on 1 Nov (the scheduler says each key once per Bay day, at the first chance) — a
+   player still in the game after Halloween night heard it at 00:30. Before: `calendarLines(2026-11-01T00:30)` =
+   `['calendar-dst-end-2026']` (also seen in play). After: `lineAt: { from: 2 * 60 }` — from 02:00 on the Bay clock (02:00
+   PST, an hour after the change; the repeated 01:00–01:59 reads 1:xx both times, so never early); 02:00 / 09:00 / 23:30 say
+   it, 00:05 / 00:30 / 01:30 and 2 Nov do not. The text is unchanged (lane X's clip still matches).
+2. **The Chase Center Muni link's icon on its own line.** `.ob-howto-offer a` was an inline `<a>` whose lucide icon is a
+   block `svg` under the site's base styles, so the icon dropped under "BAYLINK 优惠详情" on every Chase Center card (the lane
+   saw it on desktop and called it cosmetic; on the phone it read as a broken line). Now the link is `inline-flex` like the
+   card's source links, the icon `inline-block`, and on a coarse pointer the link is 44 px tall (negative margins keep the
+   line height). Before: `qa/w7/S/review-chase-muni-link-before-phone.jpg` (the icon alone under the text, the link 30 px
+   tall); after: `qa/w7/S/review-chase-muni-link-after-phone.jpg` (the icon after the words; the link 122 × 44 px).
+
+### Open items (not blocking)
+
+- As the lane reported: no toy ships for the Parade of Ships; the Chinatown Halloween Festival waits for the catalog; Potrero
+  Hill's world window ends at 14:00 (start + 4 h) until the organiser's end is confirmed; toy cars still pass under the
+  three street-fair arches (like the Castro).
+- The Blue Angels line sits inside the jets' "go to Marina Green" branch, so it is offered only to a player more than ~300 u
+  from Marina Green; a player already there hears the jets' own lines instead. Kept (the watch spot already shows the show).
+- `tests/opus-bay-w6-s-openings.test.ts` now mirrors `currentOpenings`: when GPT marks another SF opening open on `main`,
+  the next merge into `opus-bay` goes red until a sign (OSM-checked) is added — by design, for the lead to expect.
+- On a Chase Center card with no real Muni stop near (the game runs no T Third), the Muni line stands alone without the
+  现实中怎么去 heading — reads fine; left.
+- Process note: the lane's final message says its first Nominatim query (2026-09-29 morning) carried the owner's e-mail in
+  the User-Agent header once (to openstreetmap.org only). Nothing in the repository carries it (`git grep` of `scripts`,
+  `src`, `tests`: only the site's public contact address); recorded here for the lead.
+
+### Blocking the go-live to main
+
+- None from lane S.
+
+### Checks (the review's push)
+
+- On the lane's pushed tree (`071b2666`, before the fixes): `npx eslint .` 0 errors (43 old warnings); the suite 1615 / 1617 —
+  `W5-bus 20+ simulated minutes` (fixed since by lane B's `fd2ff25b`: the proof pins the Bay clock) and `E2-5 view field …
+  a cached cell is cheap` (a wall-clock assertion, run while this review's headless Chrome was busy; green below).
+- On the review tree (`25de1aa6`, rebased onto `67e20f0a`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .`
+  0 errors (43 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1641 / 1641**;
+  rebased over lane K's review (`e10457b5`): tsc 0 · `npx eslint .` 0 errors · the suite **1646 / 1646**; rebased over lane
+  R's review (`99b27aff`, City Hall's GLB / text, disjoint files) at 01:36: tsc 0, eslint of the changed files 0, lanes S's
+  and R's test files 40 / 40. The dev server on 5727 is stopped.
