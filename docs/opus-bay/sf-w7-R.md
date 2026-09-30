@@ -173,3 +173,19 @@ where Nominatim's hit was a shop a block west (the intersection itself, 37.76993
   on origin itself**: re-run alone on my tree (29.2 s at the f-line box near (149, 601)) and on a clean checkout of
   `origin/opus-bay` `c3dd95cc` without my commits (a temporary worktree, removed after): the same 29.2 s at the same box.
   Not caused by lane R (card texts, Lombard's flowers, tops rows); lane B owns that test (W7-B1 made it deterministic).
+
+## Wrap-up (23:45 PDT)
+
+- **Phone check** (390 × 844, dpr 3, quality mid): the Wharf wheel and City Hall's grey dome render as on desktop
+  (`qa/w7/R/d-phone-wharf-cityhall.jpg`; calls · triangles at the views: Wharf 63 · 139.4k, City Hall 58 · 169.3k).
+  The third frame of that image is the harness's street pose inside a building at Lombard (not a game view).
+- **Commits on `origin/opus-bay`**: W7-R1 `80ef896b` (scorecard), W7-R2 `d3aa6975` (the four realism fixes), W7-R3
+  `76dcb3a8` (cards, Lombard, positions), W7-R4 `e9fa9fed` + `ea4e2ef8` (more cards, the checks), and this wrap-up.
+- **Higgsfield**: 0 credits (the fixes were code and texture recolours).
+- **Not done**: the ~60 short cards' hours / prices; St Ignatius's grey cupolas and the Palace peristyle (left to lane V's
+  generated models, scorecard #8 / #45; V is already on the de Young tower, #22); the Castro Theatre's blade sign is
+  orange-red where the real one is red on white (without its letters a white sign would read less as the Castro; left);
+  Salesforce Tower's colour (a district landmark).
+- **For the reviewer**: `tests/opus-bay-w7-r.test.ts` (5 tests) pins the fixes; the recolour is reproducible with
+  `python scripts/opus-sf/assets/w7r/recolour-glb.py <original.glb> <out.glb> city-hall|grace|windmill` on the GLBs of
+  `git show 80ef896b:public/opus-bay/models/sf/<name>.glb` (the originals).
