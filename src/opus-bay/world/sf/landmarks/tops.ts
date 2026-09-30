@@ -42,7 +42,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'music-concourse': { blockers: [6.3, 6.3, 6.3, 3.3, 3.9, 3.8, 3.8, 3.8, 3.8, 3.8, 3.8, 3.8, 3.7, 3.3, 3.3, 3.3, 3.3, 3.4, 4.1, 4, 3.9, 3.9, 3.9, 3.9, 4], tall: [] },
   'japanese-tea-garden': { blockers: [8.2, 4.3, 4.1, 2.5, 4.9, 4.2, 2.4, 3.4, 3.1, 3, 3, 3, 4.1, 4.4, 4.4, 2.5, 2.6, 3, 2.3, 2.5, 2.5, 2.5], tall: [] },
   'botanical-garden-gate': { blockers: [3.1, 3.1, 3.1, 3.6], tall: [] },
-  'union-square': { blockers: [9.1, 6.2, 5.8, 5.6, 5.4], tall: [] },
+  'union-square': { blockers: [9.1, 6.2, 5.8, 5.6, 5.4, 6.2, 5.8, 5.5, 5.4, 3.3, 3.3, 5.6, 3.3, 2.7, 2.1, 1.9, 1.7], tall: [] },
   'sfmoma': { blockers: [9.5], tall: [] },
   'yerba-buena-gardens': { blockers: [4.4, 3.8, 3.8, 4.2, 3.9], tall: [] },
   'haight-ashbury': { blockers: [7.4, 6.5, 6.9, 5.9], tall: [] },

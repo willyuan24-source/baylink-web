@@ -323,6 +323,53 @@ Hide & seek (`play/hideSeek.ts` `HIDE_LINES` and the coach; wave 6's lines never
 
 (The one templated bubble left is the lookout's name after `sky.noView`: 最近的观景点：<name> — text only, not voiced.)
 
+## Part d · W7-W2d Union Square to T2
+
+Started 23:40 PDT (parts b and c pushed 22:57 as `f8512c0f`, `049762fc`, `3568e2b5`, `c3dd95cc`; checks on the rebased
+tree before the push: tsc 0 · eslint 0 errors (43 old warnings) · suite **1558 / 1558**; the second rebase before the
+push brought lanes H, V, X only (no shared file): tsc 0 on the pushed tree).
+
+### What was built
+
+- **`world/sf/landmarks/union-square.ts`** (T2 now, ≤ 2.5k triangles, still ONE TOY mesh, 0 new calls; `w4.budget`
+  600 → 2500, lod0R 200 kept): the **four Hearts in San Francisco** at the square's corners (painted toy hearts on low
+  granite plinths: two lobes and a point in two colours each, no lettering); the **café** in the Stockton / Post
+  quarter (four tables under **red umbrellas**, chairs, a small kiosk with a green roof and shop windows); raised
+  **planters** with hedges along Powell and Stockton; two granite **steps down to Geary St**; three more lamps (lit at
+  night: the site's `lights`). Walk blockers for the hearts, the tables, the kiosk and the planters (the palms, the
+  column and the benches as before); `tops.ts`: the union-square row re-measured (only that row changed).
+- The measured cost (the w4 budget test): lod 0 **1,924** + ground 74 = 1,998 / 2,500; lod 2 44 (2.3 %).
+
+### Evidence
+
+- Desktop, golden hour, from Geary St low (`qa/w7/W2/d1-union-square-desk.jpg`): the Dewey column's base and a bench in
+  front, the café's red umbrellas and tables, a pink-and-blue heart by the kiosk, a planter, the lamps. Draw calls /
+  triangles there 102 / 265k (budget-views, not fps; the W6-Z union-square walking spot was 84 / 242k — a different
+  camera, so not a before / after pair; the site's mesh count is unchanged).
+- Tests: `tests/opus-bay-sf-sites-w4.test.ts`, `-sf-landmark-context`, `-sf-landmarks`, `-w6-w-hideseek` (Union
+  Square's start and hiding spots) 54 / 54.
+
+### Decisions
+
+- **The café's corner is approximate**: the 2002 design has a café with open-air seating (source below), but which
+  corner it stands on was not verified tonight; it sits in the Stockton / Post quarter, clear of the arrival spot, the
+  benches and the palms.
+- No stage (its place and size not verified); the terraces are two granite steps along Geary.
+
+### Facts (checked on the web 2026-09-29)
+
+- The 2002 redesign (April Philips Design Works with MD Fotheringham): a large central plaza, terraces and steps down to
+  Geary St, four corner plazas with the signature palms, a café with open-air seating, a stage —
+  https://www.unionsquarepark.us/HistoryPage.html , https://apdw.com/portfolio/urban/union-square/
+- Four Hearts in San Francisco sculptures in Union Square, the newest (SŌL, by Dev Heyrana) at Powell & Geary —
+  https://sfghf.org/news/new-union-square-heart-brightens-up-downtown/
+
+### Not done
+
+- (6) the busker play-along (Haight / Calle 24) and Chase Center to T2: not started (time; stopped at 00:30 as the
+  brief says).
+- A 390 × 844 shot of the skyline card and of Union Square.
+
 ## Requests
 
 - **Lane X** (voice): the lines in the three tables above, exact text (zh + en), for `data/sf/voiceW7.ts`.
@@ -332,3 +379,8 @@ Hide & seek (`play/hideSeek.ts` `HIDE_LINES` and the coach; wave 6's lines never
   a dynamic import, as `play/kiteEntry.ts` does; a new static import of a `play/` module breaks the budget.
 - **Lane B** (the toy Alcatraz ferry): see part a.
 
+- **Lane B / the lead** (`tests/opus-bay-w5-deadlock.test.ts`): "W5-bus 20+ simulated minutes" fails when run alone
+  (and failed once in a full run at 23:07) with `bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)`
+  (limit 25 s), at `c3dd95cc`, at `68037235` and with Alcatraz taken out of `W7_SITES` (same 29.2 s) — not this lane's
+  change; before W7-B1 (`80ef896b`) it failed with the day-0 "forced blockers (29)". It passed in this lane's full run
+  at 22:56 (1558 / 1558).
