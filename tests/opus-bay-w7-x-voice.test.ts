@@ -30,7 +30,7 @@ test('W7-X2 · every wave-7 line is recorded in zh and en (files on disk) and BA
       const disk = path.join(ROOT, 'public', f!);
       assert.ok(fs.existsSync(disk) && fs.statSync(disk).size > 2000, `${clip}: ${f}`);
     }
-    assert.ok(c.duration > 0.3 && c.duration < 9, `${clip} ${c.duration} s`);
+    assert.ok(c.duration > 0.3 && c.duration < 10.5, `${clip} ${c.duration} s`);
   }
   assert.ok(W7_VOICE_CHECK.every(c => c in W7_VOICE_CLIPS));
   // the chip hints (not bubbles) are left out

@@ -10,7 +10,8 @@ floor 1400).
 2. 城市模式白天的天空变蓝了，还飘着几朵圆滚滚的玩具云（在天空贴图里，不会"压在"楼上），会很慢地往东飘；黄昏和夜晚的天空保持原样；街区模式不变。
 3. 城市里的海鸥换成真正海鸥的样子：白身体、黄嘴、灰色翅膀带"折肘"、黑色翼尖（还是同一个绘制调用）。
 4. 手机性能：城市路人近处的精细小人在手机档（mid）上更早切换成远景小人、最多 8 个（原来 18 个），省下约 6–7 千个三角形。
-5. （后续部分：语音与海滩冲浪者，见下文。）
+5. BAYBAY 的配音补齐：以前从没配过音的 50 句（捉迷藏、里昂街台阶、打球、坡顶飞跃、九曲花街、飞盘、金门金圈、转车台、数海狮、滑草、海狮彩蛋第一句）全部录好（中英文 100 条，还是 Pixie 的声音）；第六波识别有问题的 11 条重录后，3 条明显更好的替换了旧的。第七波各线新写的台词（放风筝、"那是什么？"、万圣节新句、亡灵节游行、夏令时结束、蓝天使等 38 句）也已录制，见 Part b。
+6. Higgsfield 本线只用了约 4 分（全部是配音，失败的任务都退款了）。海滩冲浪者和海豹礁没来得及做。
 
 ## Part a · the downtown façades, the city's day sky, the gull, the phone's crowd (2026-09-29 20:25–21:50 PDT)
 
@@ -87,3 +88,79 @@ lower). Lane A's data has no build year, so this is a look rule, not a claim abo
   district's key-art pastels with the big office grid. A city-only pass over the hero batch (rewrite `aInfo.x` 2 → 9 on
   the hero's office walls when `mode === 'city'`, in `World.ts` before `toy.build()`) would give them the same pre-war
   face without touching district mode; it needs the lead's OK (World.ts / the hero build are frozen-adjacent).
+
+## Part b · BAYBAY's voice (2026-09-29 21:50 – 2026-09-30 00:40 PDT)
+
+### What was built
+
+| task | files |
+|---|---|
+| **W7-X2** batch 1: the 50 fixed lines no batch had yet + retakes | `scripts/opus-sf/voice/w7/lines.ts` (new: the inventory over the wave-5 and wave-6 inventories + wave 7's tables — lane G's `W7_HALLOWEEN_LINES`, lane H's `W7_WORLD_LINES`, lane S's calendar / Blue Angels lines as `own`, W2 / M through the play/ scan — minus every text a table has; chip hints excluded; RETAKES), `scripts/opus-sf/voice/w7/post.py` (new: W5-V7's chain as in wave 6, wave-7 paths, retakes, `own`, redo clips, a line enters the table only with both languages), `src/opus-bay/data/sf/voiceW7.ts` (generated: `W7_VOICE_LINES`, `W7_VOICE_CHECK`, `W7_VOICE_CLIPS`, `W7_RETAKE_CLIPS`), `src/opus-bay/game/voiceW5.ts` (the binder: imports wave 7 first so a retake wins the registration; matches W7 lines by exact text; excludes `own` texts; W7_VOICE_CHECK), `public/opus-bay/w7/voice/` (m4a + ogg), `docs/opus-bay/qa/w7/X/voice/` (listening sheet, report, previews), `tests/opus-bay-w7-x-voice.test.ts` (2 tests) |
+| **W7-X3** batch 2: wave 7's new lines (fetched from origin at 23:35) | the same pipeline, batch 2 (see "Batch 2" below for what landed) |
+
+Batch 1, the lines (zh + en each): wave 6's hide & seek bubbles (等一下再玩捉迷藏吧～, 这里没地方藏～…, 我在这儿呢～…,
+捉迷藏！你数到三…, the two coach variants), the Lyon Street Steps' top fact, lane A's ball / crest hops / Lombard and Vermont
+/ frisbee / Golden Gate rings / heave-ho / sea-lion count / sled lines, the zones' invitations, and egg 2's changed first
+line (1989 年秋天起…). The batch-5 items the scout named that are not here were already recorded under another id
+(the inventory matches texts, not ids: 14 of the 64 wave-5 "NEW" ids had their exact words in a table).
+
+### Evidence
+
+- Batch 1: 100 clips, **93 pass the gates** (no clipping or cut-off, pauses, F0 in Pixie's range, speaking rate), **85
+  heard right** by the Windows closed-grammar recogniser (advisory). 7 clips missed the rate gate (short zh calls read
+  slowly, e.g. 哎哟，碰到啦～ 2.27 s): **muted** in `W7_VOICE_CHECK` until the owner approves them (their bubbles stay text).
+- Retakes (11 wave-6 clips, 2 new takes each): a retake replaces wave 6 only if it passes, is heard right and — where
+  wave 6 was heard right with low confidence — is clearly surer (+0.05): **3 replace** (zh-w6g-street-fair-oaks: missed →
+  heard 0.69; zh-w6-h-hunt-all: missed → 0.88; en-w6-h-hunt-20: 0.62 → 0.88); 8 keep wave 6 (the recogniser still
+  missed the new "Trick or treat!", 小猫 and sniff takes; Chenery / Hearst / 十月啦 were no surer). Test: the retaken ids play
+  from `/opus-bay/w7/voice/`, the others from `/w6/`.
+- The owner's sheet: `docs/opus-bay/qa/w7/X/voice/listening.md` (every clip, gates, what the recogniser heard, a 你的判断
+  column; the retake table), previews `w7-voice-preview-b1-{zh,en}.m4a` (the batch-1 preview also still holds the three
+  retakes that were later judged no better).
+- Checks of the batch-1 commit: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · opus-bay suite **1583 / 1584**: the one
+  failure is `W5-bus 20+ simulated minutes` (an interlock stood 29.2 s at an F-line box), also red alone and red on
+  origin without this lane (lane Q's W7-Q10 note: "the W5-bus failure is origin's own"); lane B owns it.
+- Higgsfield: ledger `docs/opus-bay/ledger/w7-X.md` (≈ 4 credits, TTS only; failed jobs refunded).
+
+### Batch 2 (W7-X3)
+
+76 takes for 38 lines (W2: 被你找到啦！, 放风筝 ×6, 那是什么？ ×17 incl. the ten landmark facts; G: 2; H: 9 — the lantern
+guide, 亡灵节前夜, the procession gathering / walking, the pumpkin venues; S: 4 own lines — DST ends, the Chinatown
+Halloween Festival, the Alcatraz sunrise gathering, the Blue Angels) were generated (0 failed jobs) and landed:
+the table now holds **89 lines / 176 clips**, 168 pass the gates, 157 heard right; batch 2 added one muted clip
+(en 差一点！ "Not quite!", rate gate). Lane S's four lines are `own` (played by realsf's `voice-line realsf-<key>`).
+Preview files `w7-voice-preview-b2-{zh,en}.m4a`.
+
+### Decisions
+
+- Chip hints (`…，或按 E`, the kite chip's 放线 words, the quiz title 那是什么？) are not BAYBAY bubbles: not recorded.
+- Lane S's lines are `own` (realsf/index.ts emits `voice-line realsf-<key>` with the bubble): recorded as
+  `<lang>-realsf-<key>` and never matched by text (no double voice).
+- The Día de los Muertos, procession and Alcatraz sunrise lines are read "soft, gentle and respectful".
+- The 7 CHECK clips were to be retaken at speech_rate 1.15 / 1.3 in batch 2; cut for time (Not done).
+
+### Not done (the lane)
+
+- Ocean Beach's surfers and Seal Rocks (brief item 4): not started (time went to the voice batches).
+- Retakes of the 7 muted batch-1 clips (rate gate) — the owner may also simply approve them on the sheet.
+- Lane M's mini-game lines: M had not pushed fixed lines by 23:35; they stay text (the inventory picks them up next wave).
+- Generated textures / GLBs: none — no side-by-side case beat the procedural look this wave (façades and sky are shader).
+
+### Requests
+
+1. **Lead (hand-off)**: merge `ledger/w7-X.md` into ASSETS-LEDGER and reconcile the exact TTS sum against lane V's ledger
+   (the window 04:54–06:56 UTC holds only TTS rows from lane X; lane V's own spends are in `ledger/w7-V.md`).
+2. **Owner**: `docs/opus-bay/qa/w7/X/voice/listening.md` — mark ✗ / 重录; the 7 muted clips (check) can be approved there.
+3. **Lane B**: `W5-bus 20+ simulated minutes` still fails on the pushed tree (an F-line interlock box held a bus 29.2 s at
+   (149, 601)), alone and in the suite.
+4. **Next wave's lane X**: surfers + Seal Rocks (ocean-beach.ts / cliff-house.ts), the hero district's office facades
+   (Part a request), and M's lines.
+
+## Final (2026-09-30 00:41 PDT)
+
+- Commits on `origin/opus-bay`: W7-X1 (façades, day sky, gull, crowd) + report part a · W7-X2 (voice batch 1) + the
+  post.py guard · W7-X3 (voice batch 2 + this report + ledger).
+- Checks: part a and batch 1 ran the full suite (1583 / 1584, the W5-bus failure is origin's own); batch 2 changes only
+  generated voice data, its table and this lane's test: `tsc` 0 and the lane's tests (w7-x, w7-x-voice, w6-x) green
+  before the push (no time for another 25-minute full suite).
+- Dev server 5710 stopped; no Chrome of this lane running. Scratch: `C:/Users/willy/opus-qa/w7/x/`.
