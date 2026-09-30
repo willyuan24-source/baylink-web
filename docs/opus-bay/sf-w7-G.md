@@ -129,7 +129,10 @@ The gates (all read with the ledger's `isPaid`, so a card earned before this shi
   before: the toast 双倍糖果：巧克力 ×3！+10 金币 · 糖果袋 3 颗, the pill 🪙 10 · 🍬 3, still 42.5 px
   (`qa/w7/G/c-phone-toast.jpg`). The shop on the phone in season: 坐骑 opens on 蝙蝠翅膀 100 before 鹈鹕丝带 90
   (`c-phone-shop-rides.jpg`); BAYBAY's shelf reads 女巫帽, 南瓜头, 毛线帽, 遮阳帽, 水手帽, then the scarves.
-- Checks (22:57): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1538 / 1538**.
+- Checks (22:57): tsc 0 · `npx eslint .` 0 errors (43 old warnings) · the suite **1538 / 1538**. After the rebase onto
+  `c3dd95cc` (23:14): tsc 0 · eslint 0 errors · 1582 tests, 1581 pass: the one red is `W5-bus 20+ simulated minutes`,
+  now failing the same way every run ("bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)"), also with
+  this part's source files put back to origin's (so it is on origin, not from this lane; see Requests).
 - The kit skip: unit-tested on the real `KitSwap` class (a door's lot never swaps while the skip is set, swaps after,
   a swapped one leaves when it is set again). In the live dev runs the swap had 0 houses on at the spots tried (the
   Ferry plaza, Chenery door 12) whether or not the skip was set, so an in-game A/B shot was not possible tonight.
