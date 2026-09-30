@@ -19,7 +19,9 @@ import { FC, GC, PAT, bench, gfill, hedge, lamp } from './siteKit';
  */
 
 const X0 = -580.69, Z0 = 1311.93, YAW = (-44 * Math.PI) / 180;
-const BODY = '#eee5d2', TRIM = '#fbf6ec', CAP = '#5d5048', SAIL = '#f2ead8', FRAME = '#8a6a4c';
+// wave 7 (lane R, sf-w7-R-realism.md #39): the real tower is weathered grey-brown shingle, not cream (the AI texture of
+// sf-windmill-body was recoloured the same way: scripts/opus-sf/assets/w7r/recolour-glb.py windmill)
+const BODY = '#8e8579', TRIM = '#fbf6ec', CAP = '#5d5048', SAIL = '#f2ead8', FRAME = '#8a6a4c';
 const SAIL_R = 4.15;
 /** the sails' windshaft: the procedural cap's, or the AI body's stub (measured: tip at y 5.85, z 1.71; see SWAP) */
 const HUB = { proc: { y: 5.45, z: 1.2 }, ai: { y: 5.85, z: 2.0 } };

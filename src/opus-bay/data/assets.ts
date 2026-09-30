@@ -391,17 +391,17 @@ export const SF_MODELS: Record<SfModelId, SfModelAsset> = {
   /** Dutch windmill body: plinth, tapering octagonal tower, reefing stage, cap with the windshaft stub (sails procedural). */
   'sf-windmill-body': {
     url: sfFile('windmill-body.glb'), draco: true, kind: 'hero', landmarkId: 'dutch-windmill',
-    scale: 1, yOffset: 0, triangles: 5880, bytes: 91_692, size: [3.8, 6.5, 3.85],
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 83_956, size: [3.8, 6.5, 3.85],
   },
   /** Grace Cathedral: twin west towers, rose window, buttressed nave, transept, sage roofs and the crossing flèche. */
   'sf-grace-cathedral': {
     url: sfFile('grace-cathedral.glb'), draco: true, kind: 'hero', landmarkId: 'grace-cathedral',
-    scale: 1, yOffset: 0, triangles: 5880, bytes: 118_076, size: [8.42, 9.57, 13.0],
+    scale: 1, yOffset: 0, triangles: 5880, bytes: 111_804, size: [8.42, 9.57, 13.0],
   },
   /** City Hall: the Beaux-Arts block with porticos and corner pavilions, colonnaded drum, sage dome with gold trim. */
   'sf-city-hall': {
     url: sfFile('city-hall.glb'), draco: true, kind: 'hero', landmarkId: 'city-hall',
-    scale: 1, yOffset: 0, triangles: 6860, bytes: 151_068, size: [17.7, 14.24, 11.29],
+    scale: 1, yOffset: 0, triangles: 6860, bytes: 146_860, size: [17.7, 14.24, 11.29],
   },
   // ---- wave 4 (lane V, W4-V4 / W4-V4b): the four AI landmarks of lane L's sites (landmarkId = the site holding the slot)
   ...W4_MODELS,

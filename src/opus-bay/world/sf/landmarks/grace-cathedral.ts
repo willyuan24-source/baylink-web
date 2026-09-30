@@ -20,7 +20,9 @@ import { GC, PAT, bench, gfill, lamp, planter } from './siteKit';
  */
 
 const X0 = 1.33, Z0 = 232.25, YAW = (144.8 * Math.PI) / 180;
-const STONE = '#dcd6ca', STONE_SHADE = '#c6bfb1', ROOF = '#7e968c', DARK = '#4b4f55';
+// wave 7 (lane R, sf-w7-R-realism.md #42): cool light-grey concrete and dark slate roofs, as the real cathedral (the AI
+// texture of sf-grace-cathedral was recoloured the same way: scripts/opus-sf/assets/w7r/recolour-glb.py grace)
+const STONE = '#d6d5d0', STONE_SHADE = '#bfbebb', ROOF = '#646a70', DARK = '#4b4f55';
 const NAVE = { w: 3.8, z0: -0.9, z1: 6.2 }, TRANS = { w: 6.08, z0: -2.74, z1: -0.9 }, CHOIR = { w: 2.6, z0: -5.6, z1: -2.74 };
 const EAVE = 5.2, RIDGE = 7.4;
 const TOWER_X = 1.3, TOWER_W = 1.25, TOWER_Z = 5.75, TOWER_H = 11.0;

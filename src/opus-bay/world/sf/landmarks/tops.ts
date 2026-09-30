@@ -24,7 +24,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'oracle-park': { blockers: [7.5], tall: [12.4, 12.4, 12.4, 12.4] },
   'peace-pagoda': { blockers: [7.9], tall: [] },
   'ghirardelli-square': { blockers: [10.6, 10.8, 9.3, 14.2, 7, 7, 10.8, 6.2, 4.3, 6.2, 4.3, 3.2, 7.6, 4.6, 6.2], tall: [14.2] },
-  'fishermans-wharf': { blockers: [5.2, 2.1, 2.1], tall: [] },
+  'fishermans-wharf': { blockers: [6, 2.1, 2.1], tall: [] },
   'sutro-baths': { blockers: [0.7, 1.7, 1.3, 1.4, 3], tall: [] },
   'cliff-house': { blockers: [5.4, 4.9, 0.5, 0.5], tall: [] },
   'cable-car-turntable': { blockers: [2.4, 1, 2.4, 0.8, 1.3, 1.1], tall: [] },

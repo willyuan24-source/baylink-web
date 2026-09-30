@@ -18,7 +18,9 @@ import { flagpole, lamp, planter } from './siteKit';
  * flagpoles by the east steps, lamps and hedged planters along the front.
  */
 
-const WALL = '#e9e4d8', TRIM = '#f5f1e8', ROOF = '#bdb6a9', DOME = '#768d89', GOLD = SF.gold;
+// wave 7 (lane R, sf-w7-R-realism.md #14): the real dome is dark lead-grey with gold-leaf ribs, not sage (the AI texture
+// of sf-city-hall was recoloured the same way: scripts/opus-sf/assets/w7r/recolour-glb.py city-hall)
+const WALL = '#e9e4d8', TRIM = '#f5f1e8', ROOF = '#bdb6a9', DOME = '#6a7176', GOLD = SF.gold;
 const X = 8.86, Z0 = -5.85, Z1 = 6.35, ZC = (Z0 + Z1) / 2;
 const CORNICE = 6.3;
 

@@ -24,7 +24,7 @@ would help more than code; the "owner" column says who may touch the site this w
 |---|---|---|---|---|---|---|---|
 | 1 | Golden Gate Bridge (100) | site T1, proc | 5 | 4 | 5 | International Orange, the two towers and the catenary read at once. More: the towers' stepped Art Deco portals and the fluted top struts | no |
 | 2 | Alcatraz (95) | **W2** (building its T1 this wave) | 2 | 2 | 1 | today OSM boxes + the lighthouse; the long white cellhouse with barred window bands and the water tower on stilts are what everyone knows | W2 procedural first; a GLB of the cellhouse only if W2's shot loses |
-| 3 | Fisherman's Wharf sign (90) | **R** · site T2 proc | 2 | 4 | 3 | the real wheel is **dark-brown wood with a cream band and cream face**, not blue, and it hangs on a bundle of **tall wooden pilings wrapped in rope** that rise above the wheel (a grey steel post here) → **R fixes (part a/b)** | no |
+| 3 | Fisherman's Wharf sign (90) · **fixed, now 4/4/5** | **R** · site T2 proc | 2 | 4 | 3 | the real wheel is **dark-brown wood with a cream band and cream face**, not blue, and it hangs on a bundle of **tall wooden pilings wrapped in rope** that rise above the wheel (a grey steel post here) → **R fixes (part a/b)** | no |
 | 4 | Ferry Building (88) | district (frozen) | 5 | 4 | 5 | cream stone, the clock tower with four faces, the long arcade, the Bay Bridge behind: correct | no |
 | 5 | Chinatown Dragon Gate (86) | **W1** | 4 | 4 | 4 | green-tiled roofs and the three portals are right; the dragons and fish on the ridges are small; the street behind is grey-blue boxes (lane X's facades) | no |
 | 6 | Lombard St crooked block (85) | site T2 proc | 4 | 4 | 3 | red brick switchbacks between hedges ✔; the **hydrangeas** that make the postcard are tiny cubes — rounder, bigger blue / pink / purple clumps at the bends would sell it | no |
@@ -35,7 +35,7 @@ would help more than code; the "owner" column says who may touch the site this w
 | 11 | Twin Peaks overlook (78) | site T1 proc | 4 | 4 | 4 | the terrace and the view down Market St to downtown ✔ (the view is the feature) | no |
 | 12 | Union Square (77) | **W2** (to T2 this wave) | 3 | 3 | 2 | Dewey column ✔; the plaza is bare (terraces, palms, red café umbrellas, the heart sculpture missing) | W2 procedural |
 | 13 | PIER 39 (74) | district gateway + sea lions | 4 | 4 | 4 | weathered-wood two-storey shops, the gate, the sea-lion floats ✔ | no |
-| 14 | City Hall (72) | **R** · site T1 proc | 3 | 4 | 4 | the **dome is grey-green here; the real dome is dark lead-grey with gold-leaf ribs and a gold lantern** (the lantern is gold already) → **R fixes the dome colour** | no |
+| 14 | City Hall (72) · **fixed, now 5/4/5** | **R** · site T1 proc + AI mesh | 3 | 4 | 4 | the **dome is grey-green here; the real dome is dark lead-grey with gold-leaf ribs and a gold lantern** (the lantern is gold already) → **R fixes the dome colour** | no |
 | 15 | Bay Bridge (70) | backdrop | 4 | 4 | 4 | grey west span with its suspension towers seen from the Ferry plaza ✔ | no |
 | 16 | Cal Academy (70) | site · AI swap | 5 | 4 | 5 | the green living roof with the round skylights, the thin white canopy ✔ | no |
 | 17 | Haight-Ashbury (70) | corner (W5-L) | 3 | 3 | 3 | a busker, a clock, some colour; the famous corner is **bright Victorians and murals**; the rest of Haight St is generic | maybe (a mural-house kit) |
@@ -60,10 +60,10 @@ would help more than code; the "owner" column says who may touch the site this w
 | 36 | Sutro Tower (60) | site T1 proc | 5 | 4 | 5 | red-and-white, three legs pinched at the waist, the claw on top ✔ | no |
 | 37 | Legion of Honor (58) | site T2 proc | 4 | 4 | 4 | white arch, colonnaded court, the Thinker ✔ | no |
 | 38 | Cable Car Museum (57) | site proc | 4 | 4 | 4 | red-brick powerhouse with its chimney ✔ | no |
-| 39 | Dutch Windmill (57) | **R** · site T2 proc | 2 | 4 | 4 | the real tower is **weathered grey-brown shingle** with a dark cap and a wooden gallery; the model is cream-white → **R fixes the colours** | no |
+| 39 | Dutch Windmill (57) · **fixed, now 4/4/4** | **R** · site T2 proc + AI mesh | 2 | 4 | 4 | the real tower is **weathered grey-brown shingle** with a dark cap and a wooden gallery; the model is cream-white → **R fixes the colours** | no |
 | 40 | Fort Point (57) | site T2 proc | 4 | 4 | 5 | brick fort under the bridge's orange arch ✔ | no |
 | 41 | Castro Theatre (56) | site · AI swap + corner | 4 | 4 | 4 | the tall vertical blade sign with bulbs ✔ (red in reality, a little orange here), white Spanish-baroque front | no |
-| 42 | Grace Cathedral (55) | **R** · site T2 proc | 3 | 4 | 4 | twin towers, blue rose window ✔; the real concrete is **cool light grey** and the roofs dark grey (warm beige and green here) → **R fixes the colours** | no |
+| 42 | Grace Cathedral (55) · **fixed, now 4/4/4** | **R** · site T2 proc + AI mesh | 3 | 4 | 4 | twin towers, blue rose window ✔; the real concrete is **cool light grey** and the roofs dark grey (warm beige and green here) → **R fixes the colours** | no |
 | 43 | Harvey Milk Plaza (55) | site plaza (castro) | 4 | 3 | 4 | the giant rainbow flag and the rainbow crosswalk ✔ | no |
 | 44 | Japantown Peace Pagoda (54) | site T2 proc | 4 | 4 | 4 | five pale concrete tiers and the bronze sōrin ✔ | no |
 | 45 | St Ignatius (48) | site · AI swap | 4 | 4 | 4 | tall cream twin towers ✔; the tower cupolas are **grey metal** in reality (cream here) | maybe (V: regenerate with grey cupolas) |
@@ -79,7 +79,19 @@ as they are (district mode never changes; Salesforce's colour would be the lead'
 
 ## Fixes made by lane R
 
-(filled as they land: before / after shots, calls / triangles at the spot)
+Same cameras before (tree `80ef896b`) and after; calls / triangles read at each view with the dev QA hooks (the ±3 calls
+are walkers and cars moving between the two runs: every fix is inside the site's existing mesh, 0 new calls).
+
+| # | place | what changed | score now (C/P/F) | calls · tris before → after (photo view) | shot |
+|---|---|---|---|---|---|
+| 3 | Fisherman's Wharf wheel | the ring is dark-brown wood (was blue), a thin dark ring inside the plain band and one round the crab, the spokes only outside the rim (they no longer cross the face), and the wheel hangs on **four wooden pilings bound with rope** that rise above the rim (was a grey steel post); procedural site, +≈ 180 triangles, tops row regenerated (6.0 u) | 4 / 4 / 5 | 70 · 142.1k → 72 · 141.9k | `qa/w7/R/b-fishermans-wharf-before-after.jpg` |
+| 14 | City Hall | the AI mesh's texture: the sage dome and window panels → **lead-grey** (the gold ribs, lantern and trim stay gold); the procedural far model's dome the same grey | 5 / 4 / 5 | 75 · 238.4k → 78 · 239.1k | `qa/w7/R/b-city-hall-before-after.jpg` |
+| 39 | Dutch Windmill | the AI mesh's texture: the cream tower → **weathered grey-brown shingle**, the orange wood darker; the procedural body the same | 4 / 4 / 4 | 94 · 261.4k → 94 · 261.4k | `qa/w7/R/b-dutch-windmill-before-after.jpg` |
+| 42 | Grace Cathedral | the AI mesh's texture: warm beige → **cool light-grey concrete**, the green roofs and flèche → **dark slate**; the procedural model the same | 4 / 4 / 4 | 72 · 304.8k → 73 · 301.1k | `qa/w7/R/b-grace-cathedral-before-after.jpg` |
+
+The texture recolour is `scripts/opus-sf/assets/w7r/recolour-glb.py` (HSV rules per model on the baked WebP, the Draco
+mesh untouched, the GLB rewritten; sizes 151,068 → 146,860 B, 118,076 → 111,804 B, 91,692 → 83,956 B, pinned in
+`data/assets.ts` and `tests/opus-bay-w7-r.test.ts`). No Higgsfield credits were spent.
 
 ## References (Wikimedia Commons, thumbnails fetched 2026-09-29 to scratch only)
 

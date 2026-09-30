@@ -16,26 +16,43 @@ import { lamp } from './siteKit';
  * of the sign (the street stalls with their steaming cauldrons the wharf is known for), striped awnings without any
  * lettering, a lamp; the sidewalk west of them is a crowd spot (W4-L-int-review: "in front of them" was Jefferson St's
  * asphalt, where the cars drove through the sightseer — the stands fill the 1 u sidewalk).
+ *
+ * Wave 7 (lane R, the realism pass: docs/opus-bay/sf-w7-R-realism.md #3): the real wheel is dark-brown varnished wood
+ * with a cream outer band and a cream face (its lettering ring is left plain here), not blue, and it hangs on a bundle
+ * of old wooden pilings bound with rope that rise above the rim, not on a steel post (Wikimedia Commons, "Fishermans
+ * Wharf Sign, SF, CA, jjron 25.03.2012"; checked 2026-09-29).
  */
 
 const X0 = -201.14, Z0 = 74.81, YAW = (55.4 * Math.PI) / 180;
 const HUB_Y = 3.1, R = 1.35;
-const BLUE = '#2f6f96', WHITE = '#f6f2e8', WOOD = '#9a6a42', CRAB = '#d9573a';
+const RIM = '#5a3c29', CREAM = '#efe5cc', WOOD = '#6b4630', CRAB = '#d9573a';
+/** the pilings behind the wheel (local x, z, top y) and the rope binding them just above the rim */
+const PILES: [number, number, number][] = [[-0.21, -0.5, 5.55], [0.2, -0.52, 5.95], [0.0, -0.4, 5.3], [0.02, -0.68, 5.75]];
+const PILE = '#6a5040', PILE_DARK = '#57402f', ROPE = '#b99d6e';
 
 function build(b: BatchLike, lod: 0 | 2) {
   // planter island + post
   box(b, 0, -1.2, 0, 2.4, 1.55, 1.5, '#cfc6b6');
   box(b, 0, 0.35, 0, 2.1, 0.15, 1.2, '#7fa65e');
-  cyl(b, 0, 0.35, 0, 0.16, HUB_Y - 0.6, '#5b6b72', NONE, lod === 0 ? 8 : 4);
-  // the wheel: rim ring (a flat torus), plain lettering band, 8 spokes ending in handles
-  b.add(lod === 0 ? TORUS(1, 0.13, 6, 24) : TORUS(1, 0.13, 3, 8), M(0, HUB_Y, 0, 0, R, R, 1), BLUE, GLOW(0.3));
-  if (lod === 0) b.add(TORUS(1, 0.07, 4, 24), M(0, HUB_Y, 0.02, 0, R - 0.28, R - 0.28, 1), WHITE, GLOW(0.3));
-  disc(b, 0, HUB_Y, -0.08, R - 0.18, 0.1, 0, lod === 0 ? '#e9e2d0' : WHITE, GLOW(0.35), lod === 0 ? 20 : 8);
+  // the bundle of old wooden pilings the wheel hangs on, rising above the rim, bound with rope over the rim
+  if (lod === 2) cyl(b, 0, 0.35, -0.54, 0.3, 5.6, PILE, NONE, 4);
+  else {
+    for (const [i, [x, z, top]] of PILES.entries()) cyl(b, x, 0.35, z, 0.15, top - 0.35, i % 2 ? PILE_DARK : PILE, NONE, 7);
+    cyl(b, 0, HUB_Y + R + 0.05, -0.54, 0.38, 0.62, ROPE, NONE, 10);
+    for (const y of [0.8, 1.4]) cyl(b, 0, y, -0.54, 0.36, 0.12, ROPE, NONE, 10);
+  }
+  // the wheel: dark wooden rim, the cream face with a thin dark ring inside its (plain) lettering band and one round the crab
+  b.add(lod === 0 ? TORUS(1, 0.13, 6, 24) : TORUS(1, 0.13, 3, 8), M(0, HUB_Y, 0, 0, R, R, 1), RIM, GLOW(0.25));
+  if (lod === 0) {
+    b.add(TORUS(1, 0.035, 4, 24), M(0, HUB_Y, 0.04, 0, R - 0.34, R - 0.34, 1), RIM, GLOW(0.2));
+    b.add(TORUS(1, 0.035, 4, 24), M(0, HUB_Y, 0.04, 0, 0.78, 0.78, 1), RIM, GLOW(0.2));
+  }
+  disc(b, 0, HUB_Y, -0.08, R - 0.18, 0.1, 0, CREAM, GLOW(0.35), lod === 0 ? 20 : 8);
   if (lod === 2) return;
   for (let k = 0; k < 8; k++) {
     const a = (k / 8) * Math.PI * 2;
     const d = new THREE.Vector3(Math.cos(a), Math.sin(a), 0);
-    tube(b, new THREE.Vector3(0, HUB_Y, 0.05).addScaledVector(d, 0.35), new THREE.Vector3(0, HUB_Y, 0.05).addScaledVector(d, R + 0.45), 0.06, WOOD, NONE, 4);
+    tube(b, new THREE.Vector3(0, HUB_Y, 0.05).addScaledVector(d, R - 0.1), new THREE.Vector3(0, HUB_Y, 0.05).addScaledVector(d, R + 0.45), 0.07, WOOD, NONE, 4);
     cbox(b, d.x * (R + 0.52), HUB_Y + d.y * (R + 0.52), 0.05, 0.14, 0.3, 0.14, WOOD, NONE, 0, 0, a - Math.PI / 2);
   }
   // crab in the hub (both faces): body, eyes, claws, legs
