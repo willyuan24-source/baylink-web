@@ -11,7 +11,8 @@ Lane S owns `realsf/{eventVenues,eventKit,eventSounds,events,calendar,live,daily
 1. 网站 9/29 新增的旧金山活动进了 3D 城市：金门公园音乐台 Bay Beats 免费音乐会（10/24，用城里现成的音乐台当舞台，观众站在音乐广场）、Marina 图书馆开放日（10/17）、梅森堡秋季艺术古董展（10/15–18，按主办方每天的时间）、Inner Sunset 万圣节主题跳蚤市集（10/11，Irving 街拱门）、Potrero Hill 街区节（10/17，20 街拱门）、Excelsior 的 Sunday Streets（10/18，Mission 街拱门）。每个点都在 9/29 查过 OpenStreetMap，并确认在游戏步行网络上、离电车/公交线 20 格以上。
 2. 修了一个真 bug：图书馆的儿童万圣节服装交换、万圣节活版印刷、渡轮大厦拉丁裔创作者市集这几个活动名字太长，纪念章一直存不上（每天都会重复说“纪念章收好啦”，也不给 15 金币）。现在都能存，并加了一个守门测试：以后网站再加活动，只要进了游戏世界却没有纪念章或名字，测试就会红。
 3. 我做的决定：成人理财讲座日（10/24 总图书馆）不放进玩具城（是税务/遗产讲座和一对一理财咨询，不是出游活动），网站和“这周”列表照常显示；YBCA 的 NEXUS 夜间派对（20:00–23:30）按规矩不进游戏。
-4. 进度会在下面按部分更新（夏令时、亡灵节、唐人街万圣节、新店牌子、老人免费 Muni、主人的日期实测）。
+4. 真实日子：11/1 夏令时结束（“今天”页写明凌晨 2 点拨回 1 点、当天日落 17:11，BAYBAY 会提醒天黑得早）；亡灵节改到 11/2 晚 7 点 22 街 & Bryant 出发（按 2025 惯例，写“通常 · 以官网为准”，祭坛在 Potrero del Sol，不再是加菲尔德广场）；10/31 唐人街 Waverly Place 万圣节庆典 11:00–15:00；10/12 恶魔岛原住民日日出聚会（安静地纪念）；10/9 舰队周舰船游行；蓝天使“通常下午三点左右 · 以官网为准”。地图上 11/1 凌晨的“明天”也修正了（夏令时那天会算错）。
+5. 网站的新店规则同步：Raising Cane's（渔人码头）、La Boulangerie（Marina Chestnut 街）、Mess Hall（要塞公园 Tunnel Tops 旁）立了金色“新店”牌子，都在真实地址 3 格以内；65 岁以上老人免费 Muni 进了“今天”页的长期福利；大通中心的活动卡写上“持活动票当天可坐 Muni”。
 
 ## Part a · the Sep 29 website refresh's San Francisco events in the world (W7-S1)
 
@@ -118,3 +119,165 @@ Written 2026-09-29 ≈ 21:05 PDT.
 
 - **Lead**: GPT's `tests/opus-bay-w6-s-venues.test.ts` counts moved again (42 → 47 shown, NOT_PLACED rewritten): when the
   site adds events, main's own suite will need the same rows — the guard test now names any shown event without a souvenir.
+
+Push of part a: rebased over lanes G, Q, W2, R; `npx tsc` 0 and the lane's test files 39 / 39 before the push
+(`3915153a`, report `f9f7b7e5`, 21:37 PDT); the full run on the tree before that rebase: tsc 0 · eslint 0 errors ·
+**1509 / 1509** (the deadlock test passed alone as well: 9 / 9).
+
+## Part b · real dates, BAYBAY's calendar lines, Fleet Week, the map's 明天 (W7-S2)
+
+Written 2026-09-29 ≈ 23:10 PDT. Code pushed 22:25 (`1242bc5b`), before lane X's 23:30 line fetch.
+
+### What was built
+
+- **`realsf/calendar.ts`** — five rows, each with its own source checked on 2026-09-29 (`src29`; the wave-5 rows keep
+  2026-09-28):
+
+  | row | Bay date / time | where (带我去) | grade | source |
+  |---|---|---|---|---|
+  | `dst-end-2026` 夏令时结束 | Sun 1 Nov, 02:00 → 01:00 | all of SF (no 带我去) | official | https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst |
+  | `dia-de-los-muertos-2026` 亡灵节 (was hidden, at Garfield Square) | Mon 2 Nov, 19:00 | 22nd & Bryant (`BRYANT_22`, lane H's corner) · Potrero del Sol | usually · 以官网为准 | https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 |
+  | `chinatown-halloween-festival-2026` 唐人街万圣节庆典 | Sat 31 Oct, 11:00–15:00 | Waverly Place (`WAVERLY_PLACE`, pavement on the walking network) | official | https://www.cycsf.org/chinatown-halloween-festival/ |
+  | `alcatraz-sunrise-2026-10` 原住民日 · 恶魔岛日出聚会 | Mon 12 Oct, boats from 04:15 | Pier 33 (`PIER_33`) | secondary · 以官网为准 | https://sf.funcheap.com/event-series/sunrise-gathering-alcatraz-indigenous-peoples-day/ |
+  | `fleet-week-parade-of-ships-2026` 舰队周 · 舰船游行 | Fri 9 Oct, 11:00–12:00 | Marina Green | official | https://fleetweeksf.org/events/parade-of-ships/ |
+
+  Facts read on 2026-09-29: DST — "Sunday, November 1, 2026, 2:00:00 am clocks are turned backward 1 hour"
+  (https://www.timeanddate.com/time/change/usa/los-angeles, via web search; NIST states the rule); the 2025 procession
+  "will begin at 7 p.m. … from Bryant & 22nd", route Bryant → 24th → Mission → 22nd (SFMTA, above), and
+  https://www.dayofthedeadsf.org/festival-of-altars shows only "November 2, 2025 @ Potrero Del Sol Park" (no 2026 date);
+  the Chinatown festival "Saturday, October 31, 2026, from 11am-3pm on Waverly Place" (arts & crafts, games, a pumpkin
+  patch, a costume contest); the Sunrise Gathering "October 12 and November 26, 2026", boats 4:15–5:15 am from Pier 33,
+  organised by the International Indian Treaty Council; the Parade of Ships "Friday 10/9 11:00 am - 12:00 pm", under the
+  Golden Gate Bridge, the reviewing stand at Marina Green; the Blue Angels "often around 3 p.m." for about 45 minutes
+  (https://www.navyweek.org/fleetweek/san-francisco/, secondary).
+
+  The 今天 tab shows each on its day, 这周 a week ahead (on Oct 25: Halloween, the Chinatown festival, the DST change).
+  `sunsetNote` adds today's sunset to the DST row, read from `realsf/sun.ts` at runtime ("今天日落 17:11").
+- **`calendarLines(now, player)`** (`realsf/calendar.ts`): BAYBAY's lines of rows without a dressing (`line` + `lineAt`:
+  near a point within r, between two Bay times, or anywhere). Offered to the realsf scheduler through **one line in
+  `realsf/index.ts`** (surgical, not in my table; plus the DEV `__opusRealSF.offered().calendar`). The dressing rows
+  (Halloween's pumpkins, the king tides) keep their lines in `realsf/dressing.ts` (lane H's) — never twice.
+- **`realsf/jets.ts`**: `JETS_BLUE_LINE` + `blueLineOn(date)` — on a show day from 6 h before the show until 15:00 the
+  jets' lines add "蓝天使飞行队通常下午三点左右上场，以官网为准哦。" (the existing lines keep their exact text: they are
+  pinned by the wave-5 test).
+- **`ui/mapEvents.ts` `whenLabel`** (surgical, named in the plan): 明天 is `addDays(today, 1)` on the Bay calendar. **Red
+  before** (the old function run on this tree): at `2026-11-01T00:30` a Nov 2 19:00 event read `11/2 周一 19:00–21:00`, and
+  at `2027-03-13T23:30` a Mar 14 event read `3/14 周日 10:00–12:00`; now both read 明天.
+- Tests: new `tests/opus-bay-w7-s-dates.test.ts` (4): the five rows (source, date, shown, fixed lines), 这周 a week ahead,
+  the muertos row's corner / 19:00 / 以官网为准, the DST row and the sunsets (17:11 on Nov 1, 18:12 on Oct 31);
+  `calendarLines` (DST anywhere on Nov 1 only; Chinatown near Waverly 11:00–15:00 only; Alcatraz near Pier 33 in the
+  morning; no line twice for the dressing rows; none for muertos — lane H's world has the procession lines); the Blue
+  Angels window; the map's 明天 on both DST days. `tests/opus-bay-w5-calendar.test.ts` (lane R's wave-5 test of my
+  module): muertos shown, the new rows on Oct 31 / Nov 1 / 这周.
+
+### New fixed BAYBAY lines for lane X (zh + en exactly as in the code; no template)
+
+| key (voice id `realsf-<key>`) | zh | en |
+|---|---|---|
+| `calendar-dst-end-2026` | 今天凌晨两点，钟拨回了一小时，天会黑得早一点哦。 | The clocks went back an hour at 2 this morning — it gets dark earlier now. |
+| `calendar-chinatown-halloween-festival-2026` | 唐人街的万圣节庆典在 Waverly 巷，有手工、游戏和南瓜，去看看吧！ | Chinatown’s Halloween Festival is on Waverly Place — crafts, games and pumpkins. Let’s go see! |
+| `calendar-alcatraz-sunrise-2026-10` | 今天是原住民日。恶魔岛上通常有一场日出聚会，大家安静地纪念。 | It’s Indigenous Peoples’ Day. There is usually a sunrise gathering on Alcatraz — a quiet remembrance. |
+| `jets-blue` | 蓝天使飞行队通常下午三点左右上场，以官网为准哦。 | The Blue Angels usually fly around 3 pm — check the official schedule. |
+
+(The event lines "今天<地点>有<活动>…" and the souvenir lines "<活动>纪念章收好啦！" stay templated, as in waves 5–6.)
+
+### Evidence
+
+- The 今天 tab in the game (dev server 5707, phone 390 × 844 dpr 3, zh, `?date=2026-11-01T10:00`): the clock 11月1日 周日,
+  日出 6:35 · 日落 17:11; 今天在旧金山 "夏令时结束 · 整个旧金山 · 凌晨 2:00 钟拨回 1:00 · 天黑得更早 · 今天日落 17:11 · 官网日期 ·
+  来源 nist.gov · 查证于 2026-09-29"; 这周 "亡灵节 · 22 街 & Bryant · Potrero del Sol · 明天 · 周一 · 通常晚 7 点从 22 街 & Bryant
+  出发游行 · 以官网为准 · 带我去" (`qa/w7/S/s2-today-dst-2026-11-01-phone.jpg`).
+- Oct 31 12:00 at Waverly Place (desktop, the DEV `placePlayer`): the area chip reads 唐人街 · Waverly Place and
+  `__opusRealSF.offered().calendar` = `['calendar-chinatown-halloween-festival-2026']` (on offer to the scheduler; the
+  bubble itself did not come in the 45 s of a fresh `start=free` save — the scheduler's gates and its 20 s spacing).
+
+### Decisions
+
+1. **Día de los Muertos is shown** as grade *usually* on the 2025 pattern (the lead's §6): 2 Nov, 19:00, 22nd & Bryant;
+   the note says 以官网为准; the where names Potrero del Sol (the Festival of Altars since 2025), not Garfield Square. No
+   calendar line: lane H's world says the procession's lines.
+2. **DST is an official row** (US law; NIST states it): no place, a city-wide line on Nov 1 only, the sunset from sun.ts.
+3. **The Chinatown festival is a calendar row**, not an event (the catalog lacks it): no pennant, crowd or souvenir; the
+   Request below asks the site's editors to add it — then it can get a venue row (`downtown`, pennant + crowd).
+4. **The Alcatraz gathering is quiet**: secondary grade, a morning line near Pier 33 only, no dressing, no reward.
+5. **The Parade of Ships has no toy ships** this wave (not cheap: a new fleet on a path under the bridge); the row tells
+   the player where to watch. No line (it would send players to see nothing).
+
+## Part c · the site's openings rule, the seniors' Muni, the Chase Center Muni line (W7-S3)
+
+Written 2026-09-29 ≈ 23:10 PDT.
+
+### What was built
+
+- **`realsf/openings.ts`** follows the site's own list and rule — `currentOpenings` (`src/data/local-discoveries.ts`),
+  status open / soft_open, region sf (the filter of `src/data/planner-local-stops.ts`): 9 SF openings, **6 open → 6
+  signs**, 3 announced → none (Handroll Hawker, Florecita Panadería, Woods Beer & Wine). Three new signs:
+
+  | opening (BAYLINK id) | the site's address, check | OSM point (checked 2026-09-29) | sign (world u) |
+  |---|---|---|---|
+  | Raising Cane’s · Fisherman’s Wharf (`raising-canes-jefferson-sf`), opened 2026-09-21 | 211 Jefferson Street · site 2026-09-27 | https://www.openstreetmap.org/way/91185861 (211 Jefferson St, 37.8080974, −122.4160763) | −204.6, 79.4 (3.2 u; 6.8 u from the Crab Wheel) |
+  | La Boulangerie at ERIA Marina (`boulangerie-eria-celebration`) | 2300 Chestnut Street · site 2026-09-15 | https://www.openstreetmap.org/way/272700939 (2300–2320 Chestnut St, 37.8003427, −122.4415071) | −331.8, 387.0 (2.2 u) |
+  | The Mess Hall · Breadwinner (`mess-hall-presidio-breadwinner`) | 201 Halleck Street · site 2026-09-15 | https://www.openstreetmap.org/way/30130770 (Building 201, 37.8026073, −122.454658) | −471.5, 482.2 (1.5 u) |
+
+  Hours notes (the card's line, from the shop's own page, read 2026-09-29): Raising Cane's store page — daily from
+  10:00, to 01:00 (Fri–Sat 02:00) (https://locations.raisingcanes.com/ca/san-francisco/211-jefferson-st); La Boulangerie —
+  "7 am to 2:30pm Daily", weekend brunch (https://www.laboulangeriesf.com/locations-hours); the Mess Hall — opened Aug 15,
+  2026, Breadwinner open (https://sfstandard.com/2026/08/10/mess-hall-presidio-food-open/; the site's note "Breadwinner 从
+  11:00 供应").
+- **`live.json`** re-exported through `scripts/opus-sf/export-live.ts` (14 offers): **`sfmta-free-muni-seniors`** — a
+  standing transit offer like the youth one (place none, who "65 岁以上 SF 居民，收入符合，须先申请"), its rule read from
+  SFMTA's English page https://www.sfmta.com/fares/free-muni-seniors-ages-65 (2026-09-29: "All San Francisco seniors, ages
+  65+, with a gross annual family income at or below 100 percent of Bay Area Median Income"; apply first; cable cars
+  included with Clipper). The 今天 tab's 长期福利 lists it next to the youth Muni. (The export writes its UTC date:
+  `exported` reads 2026-09-30.)
+- **The Chase Center cards** (`realsf/HowToGo.tsx` + the new `realsf/chaseMuni.ts`): a card whose point is at Chase Center
+  (its events' board, its place card; not Thrive City's free plaza events) says "持大通中心活动票，当天可坐 Muni 公交和轻轨
+  （不含缆车） · BAYLINK 优惠详情" → `/offers/chase-center-ticket-muni-included` (a purchase deal: never a live.json row).
+  Source: https://www.sfmta.com/fares/your-chase-center-event-ticket-your-muni-fare (the site's; checked 2026-09-29).
+- Tests: `tests/opus-bay-w6-s-openings.test.ts` follows `currentOpenings` (every open SF opening has a sign and only those,
+  the announced ones none, each ≤ 5 u from its OSM point, **≥ 6 u from the Crab Wheel**, standable, off the road, on the
+  walking network); new `tests/opus-bay-w7-s-site.test.ts` (2): the seniors' row (standing, English rule, never dated), the
+  Chase Center line at the arena and its place card, not at Thrive City, the offer link in the rendered card.
+
+### Evidence
+
+- Raising Cane's in the game (desktop, zh, `?date=2026-10-03T12:00`): `openings()` = `{ built: 'raising-canes-jefferson-sf',
+  tris: 180 }`. **Found in play**: at the first spot (2.4 u from the Crab Wheel) the E prompt was the Crab Wheel's card
+  even at the sign's front; moved 3.2 u west along Jefferson St (6.8 u from the wheel) the prompt is "E · 看看新店 · Raising
+  Cane’s · Fisherman’s Wharf" and the card opens: 新店 · 已开业 · 炸鸡柳快餐 · 旧金山首店 · 211 Jefferson Street … · 门店页：每天
+  10:00 起，营业到深夜 · BAYLINK 新店页 · BAYLINK 编辑 2026-09-27 核对 (`qa/w7/S/s3-opening-raising-canes-card-desktop.jpg`).
+- The Warriors v Lakers card at Chase Center (desktop, zh, `?date=2026-10-06T19:15`): `presence()` open
+  `sf-warriors-lakers-preseason-2026`, board 128 triangles; E · 看看活动 · 勇士对湖人季前赛; the card shows the Muni line with
+  BAYLINK 优惠详情 (`qa/w7/S/s3-chase-center-card-muni-desktop.jpg`).
+- Checks of the parts b + c push (`68037235`, rebased over lanes Q, W2, R, W1, P, H, G, K, B): `npx tsc -p tsconfig.app.json
+  --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings; HowToGo.tsx's constants had added 3 fast-refresh warnings, fixed
+  by moving them to `chaseMuni.ts` before the push) · the suite on the pushed tree **1548 / 1548** (before it, the part
+  b + c tree: 1518 / 1518).
+
+### Decisions
+
+1. **The site's rule decides the signs** (the lead's plan): open or soft_open, region sf, from the list the site
+   publishes; announced shops wait until the site flips them.
+2. **Raising Cane's sign stands 3.2 u west of its address point** (the brief's ≤ 5 u), because the Crab Wheel landmark is
+   2.4 u from the first spot and took the E prompt; the openings test now keeps every sign ≥ 6 u from the wheel.
+3. **The Chase Center Muni line is a card line, not an offer row**: the offer is a purchase (a ticket), and a live.json row
+   would read like a discount; the line goes where the ticket matters (the arena's events and its place card).
+
+### Known gaps
+
+- The Waverly Place line was seen on offer, not heard in the bubble in the shot's 45 s (fresh save).
+- The Chase Center line's external-link icon wraps to its own line on the desktop card (cosmetic).
+
+### Requests
+
+- **The site's editors (via the lead / owner)**: (1) add the **Chinatown Halloween Festival** (Sat 31 Oct 2026, 11:00–15:00,
+  Waverly Place, free, family; https://www.cycsf.org/chinatown-halloween-festival/, checked 2026-09-29) to the catalog —
+  the game then gives it a venue row; (2) `sfmta-free-muni-seniors`' `sourceUrl` is SFMTA's Vietnamese page
+  (https://www.sfmta.com/vi/node/12193): the English page is https://www.sfmta.com/fares/free-muni-seniors-ages-65;
+  (3) Handroll Hawker (2360 Polk St) was announced for Sep 29: when the site marks it open, the game adds a sign.
+- **Lane X**: the four fixed lines of part b (table above) are on origin since 22:25 (`1242bc5b`, `realsf/calendar.ts`,
+  `realsf/jets.ts`); the voice id is `realsf-<key>`.
+- **Lane H**: Día de los Muertos' calendar row now points at 22nd & Bryant (your `ROUTE_CORNERS.bryant22`) at 19:00, grade
+  usually; the Chinatown festival (Oct 31 11–15, Waverly Place `{ x: 36.0, z: 149.0 }`) has a pumpkin patch — pumpkins
+  there would fit if you dress it.
+- **Lane K**: the area chip at Raising Cane's reads 北滩 · Jefferson Street (your `cityAreaAt` item 4, the Wharf area).
