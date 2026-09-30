@@ -164,7 +164,8 @@ test('W5-R2 venues: every point and kit spot stands in the published city and jo
   city.setFar(await sf.far());
   const { kitCrowd } = await import('../src/opus-bay/realsf/eventKit');
   const { kitSpot } = await import('../src/opus-bay/realsf/presence');
-  const spots = EVENT_VENUES.flatMap(v => { const k = kitSpot(v), c = kitCrowd(v.kit, k); return [{ id: v.id, x: v.x, z: v.z }, { id: `${v.id} kit`, x: k.x, z: k.z }, ...(c ? [{ id: `${v.id} crowd`, x: c.center.x, z: c.center.z }] : [])]; });
+  // (W7-S) a place with its own stage (the Golden Gate Bandshell): no kit stands there, its crowd and venue point do
+  const spots = EVENT_VENUES.flatMap(v => { const k = kitSpot(v), c = kitCrowd(v.kit, k); return [{ id: v.id, x: v.x, z: v.z }, ...(v.ownStage ? [] : [{ id: `${v.id} kit`, x: k.x, z: k.z }]), ...(c ? [{ id: `${v.id} crowd`, x: c.center.x, z: c.center.z }] : [])]; });
   for (const s of spots) await sf.attachAround(city, s.x, s.z, 24, lms);
   setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
   try {
@@ -182,7 +183,7 @@ test('W5-R2 venues: every point and kit spot stands in the published city and jo
     const { KIT_FOOTPRINT } = await import('../src/opus-bay/realsf/eventKit');
     const { surfaceAt } = await import('../src/opus-bay/core/terrain');
     // (a board is a small sign at a door: its own spot is checked above)
-    for (const v of EVENT_VENUES.filter(x => x.kit !== 'board')) {
+    for (const v of EVENT_VENUES.filter(x => x.kit !== 'board' && !x.ownStage)) {
       const k = kitSpot(v), cos = Math.cos(k.yaw), sin = Math.sin(k.yaw);
       const [x0, x1, z0, z1] = KIT_FOOTPRINT[v.kit];
       let ok = 0, road = 0, n = 0;
@@ -191,7 +192,8 @@ test('W5-R2 venues: every point and kit spot stands in the published city and jo
         n++; if (canStand(x, z)) ok++; if (surfaceAt(x, z) === 'road') road++;
       }
       assert.ok(ok / n >= 0.75, `${v.id}: ${(ok / n * 100).toFixed(0)} % of the kit stands on open ground`);
-      if (v.id !== 'castro-market') assert.ok(road / n <= 0.25, `${v.id}: ${(road / n * 100).toFixed(0)} % of the kit on a road`);
+      // (W7-S) every street fair's arch spans its street (the Castro precedent): the arch's own test below
+      if (v.kit !== 'street') assert.ok(road / n <= 0.25, `${v.id}: ${(road / n * 100).toFixed(0)} % of the kit on a road`);
     }
   } finally { setCityTerrain(null); }
 });
@@ -276,6 +278,12 @@ test('W5-R3 street arch: nothing hangs lower than 4 u over the roadway between i
   const castro = EVENT_VENUES.find(v => v.id === 'castro-market')!;
   assert.equal(castro.kit, 'street');
   const transit = JSON.parse(fs.readFileSync(path.resolve('public/opus-bay/sf/v1/transit.json'), 'utf8')) as { lines: { id: string; path: number[] }[] };
-  const k = kitSpot(castro);
-  for (const l of transit.lines) for (let i = 0; i + 2 < l.path.length; i += 3) assert.ok(Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z) > 20, `${l.id} runs ${Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z).toFixed(1)} u from the arch`);
+  // (W7-S) every street arch: the Castro, the Inner Sunset flea, the Potrero Hill festival, Sunday Streets Excelsior
+  const arches = EVENT_VENUES.filter(v => v.kit === 'street');
+  assert.deepEqual(arches.map(v => v.id), ['castro-market', 'irving-11th', 'potrero-20th', 'mission-excelsior']);
+  for (const v of arches) {
+    const k = kitSpot(v);
+    for (const l of transit.lines) for (let i = 0; i + 2 < l.path.length; i += 3) assert.ok(Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z) > 20, `${v.id}: ${l.id} runs ${Math.hypot(l.path[i] - k.x, l.path[i + 2] - k.z).toFixed(1)} u from the arch`);
+    assert.ok(dist(k, v) < 6, `${v.id}: the pennant beside its arch`);
+  }
 });

@@ -43,6 +43,9 @@ export interface EventVenue {
   kitAt?: { x: number; z: number; yaw: number };
   /** Ferry gate / Chinatown / FiDi / Union Square: pennant + crowd only (plan MF9, D15) */
   downtown?: boolean;
+  /** (W7-S) the place has its own stage in the city (the Golden Gate Bandshell): no toy kit is built; `kitAt` is that
+   *  stage, the crowd stands before it (kitCrowd of `kit`), the loop plays and the E prompt stands at the venue point */
+  ownStage?: boolean;
   /** per event: Bay date → [open, close] minutes after midnight (organiser pages, verified) */
   hours?: Readonly<Record<string, Readonly<Record<string, readonly [number, number]>>>>;
   /** the place's own source (OpenStreetMap) and the day it was checked */
@@ -143,7 +146,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     placeId: 'ferry-building',
     match: /Ferry Building/i,
     // W6-S: the autumn catalog lists the Ferry Plaza market as an event (its Tue / Thu / Sat hours from the label)
-    events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn'],
+    events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn', 'sf-foodwise-latine-makers-oct3-2026'],
     kit: 'board',
     kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
@@ -167,7 +170,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     // beside the building, off the street (its centre is at 122.8, 388.6; the doors face Larkin St, a car street here)
     x: 117.1, z: 382.1,
     match: /Main Library|100 Larkin/i,
-    events: ['sf-filbookfest-2026'],
+    events: ['sf-filbookfest-2026', 'sf-main-halloween-costume-swap-oct15-2026', 'sf-halloween-broadside-printing-oct17-2026'],
     kit: 'board',
     kitAt: { x: 117.1, z: 382.1, yaw: deg(195) },
     sourceUrl: 'https://www.openstreetmap.org/way/24446086',
@@ -290,7 +293,106 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     sourceUrl: 'https://www.openstreetmap.org/node/3789606760',
     verifiedAt: '2026-09-29',
   },
+  // ---- W7-S: GPT's Sep 29 website refresh (catalog 305 events). Points from OpenStreetMap (Nominatim / Overpass, read on
+  // 2026-09-29), the board, arch or crowd on the published city's walking network (a probe, tests/opus-bay-w5-events.test.ts);
+  // the three street fairs use the Castro 'street' arch (≥ 20 u from every transit line) ----
+  {
+    id: 'golden-gate-bandshell',
+    name: { zh: '金门公园音乐台', en: 'Golden Gate Bandshell' },
+    // the Spreckels Temple of Music (75 Hagiwara Tea Garden Dr; OSM way 30896932, 37.7698795, -122.4685913) — the city's
+    // own bandshell model (world/sf/landmarks/music-concourse.ts) is the stage: the pennant and the prompt on the walk
+    // before it, the crowd in the Music Concourse's bowl facing it, the music loop
+    x: -225.3, z: 953.4,
+    placeId: 'osm-w30896932',
+    match: /Golden Gate Bandshell|Spreckels Temple|75 Hagiwara/i,
+    events: ['sf-bay-beats-bandshell-oct24-2026'],
+    kit: 'music',
+    // the shell's axis, 2.5 u behind its front: the music crowd's centre (15.5 u before it) falls on the bowl's open
+    // ground between the fountain and the benches (the fountain itself is not standable)
+    kitAt: { x: -225.1, z: 959.0, yaw: deg(180) },
+    ownStage: true,
+    sourceUrl: 'https://www.openstreetmap.org/way/30896932',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'marina-library',
+    name: { zh: 'Marina 分馆图书馆', en: 'Marina Branch Library' },
+    // 1890 Chestnut St (OSM way 288394771, 37.8014046, -122.4341905): the board on the pavement beside the branch
+    x: -282.0, z: 316.0,
+    match: /Marina Branch Library|1890 Chestnut/i,
+    events: ['sf-marina-library-open-house-oct17-2026'],
+    kit: 'board',
+    kitAt: { x: -282.0, z: 316.0, yaw: deg(0) },
+    sourceUrl: 'https://www.openstreetmap.org/way/288394771',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'fort-mason-festival-pavilion',
+    name: { zh: '梅森堡 · 节日展馆', en: 'Festival Pavilion, Fort Mason' },
+    // Pier 3 – Festival Pavilion (OSM way 288387753, centre 37.8083606, -122.430222): the board at the pier's landward
+    // door on the Fort Mason Center apron (the pier itself is the building)
+    x: -307.8, z: 219.5,
+    match: /Festival Pavilion/i,
+    events: ['sf-fall-show-oct15-18-2026'],
+    kit: 'board',
+    kitAt: { x: -307.8, z: 219.5, yaw: deg(135) },
+    // the organiser's hours (the label's first '·' part hides the Oct 15–17 hours from the per-date reader)
+    hours: { 'sf-fall-show-oct15-18-2026': { '2026-10-15': [H(10, 30), H(19)], '2026-10-16': [H(10, 30), H(19)], '2026-10-17': [H(10, 30), H(19)], '2026-10-18': [H(11), H(17)] } },
+    hoursSource: 'https://sffallshow.org/about/',
+    sourceUrl: 'https://www.openstreetmap.org/way/288387753',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'irving-11th',
+    name: { zh: 'Irving 街 · 9–11 大道', en: 'Irving St, 9th–11th Ave' },
+    // the flea fills Irving St between 9th and 11th Ave (sunsetmercantilesf.com, 2026-09-29); the N-Judah turns off Irving
+    // at 9th Ave, so the arch spans Irving at its 11th Ave end (OSM node 65355419, Irving & 11th; 25 u from the N), the
+    // pennant on the corner's pavement
+    x: -160.4, z: 1015.8,
+    match: /Irving Street · 9th|Inner Sunset Flea/i,
+    events: ['sf-inner-sunset-flea-oct11-2026'],
+    kit: 'street',
+    kitAt: { x: -158.0, z: 1017.9, yaw: deg(319.2) },
+    sourceUrl: 'https://www.openstreetmap.org/node/65355419',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'potrero-20th',
+    name: { zh: 'Potrero Hill · 20 街', en: '20th St, Potrero Hill' },
+    // the festival fills 20th St from Wisconsin to Missouri St (the catalog; potrerofestival.com "four blocks"): the arch
+    // spans 20th St just west of Arkansas St (OSM node 65357028 is 20th & Connecticut, one block east), the pennant on
+    // the pavement beside it
+    x: 489.3, z: 443.2,
+    match: /20th Street · Wisconsin|Potrero Hill Festival/i,
+    events: ['sf-potrero-hill-festival-oct17-2026'],
+    kit: 'street',
+    kitAt: { x: 487.2, z: 441.3, yaw: deg(317) },
+    sourceUrl: 'https://www.openstreetmap.org/node/65357028',
+    verifiedAt: '2026-09-29',
+  },
+  {
+    id: 'mission-excelsior',
+    name: { zh: 'Excelsior · Mission 街', en: 'Mission St, Excelsior' },
+    // Sunday Streets closes Mission St from Avalon to Geneva Ave (sfrecpark.org, 2026-09-29): the arch spans Mission St a
+    // block north of Persia Ave (OSM node 65363029, Mission & Persia), the pennant on its west pavement
+    x: 568.9, z: 1163.1,
+    match: /Mission Street · Avalon|Sunday Streets Excelsior/i,
+    events: ['sf-sunday-streets-excelsior-oct18-2026'],
+    kit: 'street',
+    kitAt: { x: 571.8, z: 1162.3, yaw: deg(14.9) },
+    sourceUrl: 'https://www.openstreetmap.org/node/65363029',
+    verifiedAt: '2026-09-29',
+  },
 ];
+
+/**
+ * (W7-S) Catalog events a venue row's text would catch but the toy world leaves out (the catalog, the 这周 list and
+ * BAYLINK still show them): an adults' financial-planning day of tax / estate talks and one-on-one CFP consultations is
+ * not an outing for the toy city — no pennant, crowd, souvenir or BAYBAY line.
+ */
+export const WORLD_SKIP: Readonly<Record<string, string>> = {
+  'sf-financial-planning-day-oct24-2026': 'adults’ financial-planning talks and one-on-one CFP consultations: not a toy-city outing',
+};
 
 /**
  * The event souvenirs' ids for lane E's ledger (`registerRewardIds('event', …)`: bit i of `play.g.souvenir` is id i).
@@ -310,6 +412,11 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-doja-cat-2026', 'sf-warriors-grizzlies-2026', 'sf-phoebe-bridgers-2026', 'sf-opera-mary-queen-scots-2026', 'sf-opera-manon-2026',
   'sf-opera-figaro-opening-2026', 'sf-symphony-fleming-strauss-2026', 'sf-symphony-ring-film-2026', 'sf-symphony-hisaishi-2026',
   'sf-exploratorium-family-science-oct24-2026', 'sf-apature-literary-2026', 'ferry-plaza-farmers-market-2026-autumn',
+  // W7-S: the Sep 29 website refresh — the three the venue text already showed (their `event:<id>` source is over the
+  // ledger's 40-character one-off limit, so without a bit here the stamp never saved), then the six new venue rows
+  'sf-main-halloween-costume-swap-oct15-2026', 'sf-halloween-broadside-printing-oct17-2026', 'sf-foodwise-latine-makers-oct3-2026',
+  'sf-bay-beats-bandshell-oct24-2026', 'sf-marina-library-open-house-oct17-2026', 'sf-fall-show-oct15-18-2026',
+  'sf-inner-sunset-flea-oct11-2026', 'sf-potrero-hill-festival-oct17-2026', 'sf-sunday-streets-excelsior-oct18-2026',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -332,6 +439,13 @@ export const VENUE_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'davies-symphony-hall': { zh: '交响音乐厅', en: 'Davies Symphony Hall' },
   exploratorium: { zh: '探索馆', en: 'the Exploratorium' },
   'arc-gallery': { zh: 'Arc 画廊', en: 'Arc Gallery' },
+  // W7-S
+  'golden-gate-bandshell': { zh: '金门公园音乐台', en: 'the Golden Gate Bandshell' },
+  'marina-library': { zh: 'Marina 图书馆', en: 'the Marina Library' },
+  'fort-mason-festival-pavilion': { zh: '梅森堡', en: 'Fort Mason' },
+  'irving-11th': { zh: 'Irving 街', en: 'Irving Street' },
+  'potrero-20th': { zh: 'Potrero Hill', en: 'Potrero Hill' },
+  'mission-excelsior': { zh: 'Excelsior', en: 'the Excelsior' },
 };
 
 /** Short event names for BAYBAY's lines (catalog titles are long); an event missing here is named by its venue. */
@@ -376,6 +490,16 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-exploratorium-family-science-oct24-2026': { zh: '家庭科学日', en: 'a family science day' },
   'sf-apature-literary-2026': { zh: 'APAture 文学夜', en: 'APAture’s literary night' },
   'ferry-plaza-farmers-market-2026-autumn': { zh: '农夫市集', en: 'the farmers market' },
+  // W7-S
+  'sf-main-halloween-costume-swap-oct15-2026': { zh: '儿童万圣节服装交换', en: 'a kids’ Halloween costume swap' },
+  'sf-halloween-broadside-printing-oct17-2026': { zh: '万圣节活版印刷', en: 'Halloween letterpress printing' },
+  'sf-foodwise-latine-makers-oct3-2026': { zh: '拉丁裔创作者市集', en: 'the Latine Makers market' },
+  'sf-bay-beats-bandshell-oct24-2026': { zh: 'Bay Beats 音乐会', en: 'Bay Beats' },
+  'sf-marina-library-open-house-oct17-2026': { zh: '图书馆开放日', en: 'a library open house' },
+  'sf-fall-show-oct15-18-2026': { zh: '秋季艺术古董展', en: 'the Fall Show' },
+  'sf-inner-sunset-flea-oct11-2026': { zh: '秋日跳蚤市集', en: 'the Inner Sunset Flea' },
+  'sf-potrero-hill-festival-oct17-2026': { zh: '街区节', en: 'the Potrero Hill Festival' },
+  'sf-sunday-streets-excelsior-oct18-2026': { zh: '街区运动日', en: 'Sunday Streets' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

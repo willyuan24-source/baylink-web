@@ -140,7 +140,8 @@ export function initPresence(): Presence {
 
   // the E prompt at each open event's kit (or venue)
   const offInteract = registerInteractables('w5-realsf-events', () => open.map((w): Interactable => {
-    const s = kitPrompt(w.venue.kit, kitSpot(w.venue));
+    // (W7-S) a place with its own stage: the prompt at the venue point before it
+    const s = w.venue.ownStage ? { x: w.venue.x, z: w.venue.z, r: 8 } : kitPrompt(w.venue.kit, kitSpot(w.venue));
     return {
       id: `realsf-event:${w.event.id}`, source: 'event', action: 'info', verb: { zh: '看看活动', en: 'See the event' },
       name: EVENT_SAY[w.event.id] ?? w.venue.name, x: s.x, z: s.z, radius: s.r,
@@ -175,8 +176,9 @@ export function initPresence(): Presence {
       invalidateInteractables();
     }
     const p = { x: runtime.player.x, z: runtime.player.z };
-    // kits: the nearest KITS_MAX open events within KIT_NEAR (never downtown until the headroom is published)
-    const want = open.filter(w => !w.venue.downtown && dist(p, kitSpot(w.venue)) < KIT_NEAR)
+    // kits: the nearest KITS_MAX open events within KIT_NEAR (never downtown until the headroom is published; W7-S: never
+    // where the city has its own stage)
+    const want = open.filter(w => !w.venue.downtown && !w.venue.ownStage && dist(p, kitSpot(w.venue)) < KIT_NEAR)
       .sort((a, b) => dist(p, kitSpot(a.venue)) - dist(p, kitSpot(b.venue))).slice(0, KITS_MAX);
     const wantIds = new Set(want.map(w => w.event.id));
     for (const id of [...kits.keys()]) if (!wantIds.has(id)) dropKit(id);

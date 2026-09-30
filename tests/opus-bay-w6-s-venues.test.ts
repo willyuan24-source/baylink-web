@@ -39,16 +39,11 @@ const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.start
 const NOT_PLACED: Readonly<Record<string, string>> = {
   // a street party along 2nd St between Market and Howard, 17:00–22:00, billed to adults; no single point to pin
   'sf-downtown-first-thursday-oct-2026': 'street segment, adults',
-  // These two Sep 29 website additions still need a world venue import and walking-network point acceptance.
-  'sf-bay-beats-bandshell-oct24-2026': 'website/calendar/planner only; Golden Gate Bandshell event import and navigation-point acceptance pending',
-  'sf-marina-library-open-house-oct17-2026': 'website/calendar/planner only; Marina Branch open-house import and navigation-point acceptance pending',
-  // W7-0h: five more Sep 29 website additions (GPT's b4f71de8) wait for wave 7 lane S's venue rows (OSM point on the
-  // walking network, or a stated reason); the sixth, sf-foodwise-latine-makers-oct3-2026, matches the Ferry Building.
-  'sf-nexus-party-oct1-2026': 'wave 7 lane S: Yerba Buena Center for the Arts venue row pending',
-  'sf-inner-sunset-flea-oct11-2026': 'wave 7 lane S: Irving St 9th–11th Ave street segment pending',
-  'sf-fall-show-oct15-18-2026': 'wave 7 lane S: Fort Mason Festival Pavilion venue row pending',
-  'sf-potrero-hill-festival-oct17-2026': 'wave 7 lane S: 20th St Wisconsin–Missouri street segment pending',
-  'sf-sunday-streets-excelsior-oct18-2026': 'wave 7 lane S: Mission St Avalon–Geneva street segment pending',
+  // (W7-S) a YBCA dance party 20:00–23:30, 音乐与夜生活, age not published: nightlife stays out of the toy city (the lead's
+  // decision, sf-w7-lead.md §6); the YBG row must never widen to /Yerba Buena/ and catch it
+  'sf-nexus-party-oct1-2026': 'nightlife 20:00–23:30',
+  // (W7-S) realsf/eventVenues.ts WORLD_SKIP: the adults' financial-planning day at the Main Library
+  'sf-financial-planning-day-oct24-2026': 'adults’ financial-planning talks and CFP consultations',
 };
 
 test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekdays, 其余, doors, several ranges joined; the old labels unchanged', () => {
@@ -81,7 +76,7 @@ test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekd
   }
 });
 
-test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (38 + 3 existing-venue matches + 1 Ferry Building match shown)', () => {
+test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (W7-S: 47 shown)', () => {
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
@@ -89,28 +84,28 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
     const shown = sf.filter(e => worldEvent(e));
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
-    assert.equal(shown.length, 42, shown.map(e => e.id).join(' '));
-    assert.equal(worldEvent(byId('sf-foodwise-latine-makers-oct3-2026'))?.id, 'ferry-building', 'the Foodwise makers market stands at the Ferry Building');
-    // The existing Main Library matcher admits three additions. The other two retain specific pending-import reasons.
-    // None may disappear behind an accidental audience/title classification.
+    for (const id of Object.keys(NOT_PLACED)) assert.equal(worldEvent(byId(id)), null, `${id} stays out`);
+    assert.equal(shown.length, 47, shown.map(e => e.id).join(' '));
+    // (W7-S) the Sep 29 website refresh: the three the venue text already caught, and the six new venue rows
     for (const [id, venue] of [
-      ['sf-bay-beats-bandshell-oct24-2026', null],
-      ['sf-financial-planning-day-oct24-2026', 'main-library'],
-      ['sf-marina-library-open-house-oct17-2026', null],
-      ['sf-halloween-broadside-printing-oct17-2026', 'main-library'],
+      ['sf-foodwise-latine-makers-oct3-2026', 'ferry-building'],
       ['sf-main-halloween-costume-swap-oct15-2026', 'main-library'],
+      ['sf-halloween-broadside-printing-oct17-2026', 'main-library'],
+      ['sf-bay-beats-bandshell-oct24-2026', 'golden-gate-bandshell'],
+      ['sf-marina-library-open-house-oct17-2026', 'marina-library'],
+      ['sf-fall-show-oct15-18-2026', 'fort-mason-festival-pavilion'],
+      ['sf-inner-sunset-flea-oct11-2026', 'irving-11th'],
+      ['sf-potrero-hill-festival-oct17-2026', 'potrero-20th'],
+      ['sf-sunday-streets-excelsior-oct18-2026', 'mission-excelsior'],
     ] as const) {
       const event = byId(id);
       assert.equal(isAdultOnly(event), false, `${id} has no adult-only admission rule`);
       assert.equal(isProfessional(event), false, `${id} is not a professional/tech-industry event`);
-      if (venue) {
-        assert.equal(worldEvent(event)?.id, venue, `${id} matches the existing Main Library venue`);
-        assert.equal(NOT_PLACED[id], undefined, `${id} is visible through the existing venue matcher`);
-      } else {
-        assert.ok(NOT_PLACED[id], `${id} retains its explicit pending-import reason`);
-        assert.equal(worldEvent(event), null, `${id} awaits world venue and navigation acceptance`);
-      }
+      assert.equal(worldEvent(event)?.id, venue, id);
     }
+    // the adults' finance day: the Main Library's text would catch it, WORLD_SKIP keeps it out (it is still in the catalog)
+    assert.equal(worldEvent(byId('sf-financial-planning-day-oct24-2026')), null);
+    assert.equal(worldEvent(byId('sf-executorch-hackathon-2026')), null, 'the Fort Mason hackathon stays out (professional)');
     // Halloween first: all four family Halloween events stand at their venues
     for (const [id, venue] of [['sf-halloween-hoopla-2026', 'yerba-buena-gardens'], ['sf-sunnydale-pumpkin-fest-2026', 'sunnydale-hub'], ['sf-family-connections-halloween-2026', 'portola-family-connections'], ['sf-thrive-thrill-o-ween-2026', 'thrive-city']] as const) {
       assert.equal(worldEvent(byId(id))?.id, venue, id);
