@@ -26,7 +26,7 @@ interface NavLike {
  * mutes the whole game. A hint only (sf-w7-lead §6: `navigator.audioSession.type = 'playback'` would pause the player's
  * own music — not without the owner). Shown on touch iOS: under 音效 in Settings, and on the title after sound is on.
  */
-export const SILENT_HINT = { zh: '没声音？看看 iPhone 是不是开了静音模式', en: 'No sound? Check that your iPhone is not in silent mode' } as const;
+export const SILENT_HINT = { zh: '没声音？iPhone 可能开了静音模式', en: 'No sound? Your iPhone may be in silent mode' } as const;
 
 /** An in-app browser (a WKWebView / WebView inside another app). */
 export const IN_APP_UA = /MicroMessenger|WeChat|FBAN|FBAV|FB_IAB|Instagram|\bLine\/|Weibo|\bQQ\/|DingTalk|AlipayClient/i;

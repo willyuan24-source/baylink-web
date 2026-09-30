@@ -162,6 +162,8 @@ const q = new URLSearchParams({ start: 'free', world: 'city', time: args.time ||
 if (args.date) q.set('date', String(args.date));
 // W6-Z: --halloween 1|season|night|muertos previews the season (halloween/season.ts halloweenPreview, any build)
 if (args.halloween) q.set('halloween', String(args.halloween));
+// W7-Q: --pool tile|batched forces the city cell pool (world/sf/pools.ts; an iPhone without WEBGL_multi_draw runs tile)
+if (args.pool) q.set('pool', String(args.pool));
 const url = `http://localhost:${port}/opus-bay?${q}`;
 const pick = args.spots ? String(args.spots).split(',') : null;
 const runTime = args.time || 'golden';

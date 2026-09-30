@@ -1318,3 +1318,31 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 .ob-gl-lost-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--ob-ink); }
 .ob-gl-lost-body { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ob-ink-2); }
 .ob-gl-lost-btn { min-height: 44px; min-width: 140px; margin-top: 4px; }
+
+/* ---------- W7-Q5 · iPhone landscape with Safari's bars (667 × 320 on an SE, 844 × 340 on an iPhone 12–15) ---------- */
+/* the round-button column (six buttons + the 问我 hint: 382 px) ran off the top — 设置 at y −56…−10, unreachable — and at
+   844 × 340 its ··· sat on the objective pill. Under 420 px tall it packs: 44 px buttons, BAYBAY 48, 6 px gaps, the hint
+   beside BAYBAY instead of above her — 298 px from 12 px over the bottom edge; the pill keeps left of it */
+@media (min-width: 601px) and (max-width: 1180px) and (max-height: 420px) {
+  .ob-hud-buttons { gap: 6px; bottom: calc(12px + var(--ob-sb)); }
+  .ob-hud-buttons .ob-round { width: 44px; height: 44px; }
+  .ob-hud-buttons .ob-round.is-baybay { width: 48px; height: 48px; }
+  .ob-hud-buttons .ob-round.is-baybay:has(.ob-ask-me) { margin-top: 0; }
+  .ob-hud-buttons .ob-ask-me { left: auto; right: calc(100% + 10px); bottom: auto; top: 50%; transform: translateY(-50%); animation: none; }
+  .ob-hud-buttons .ob-ask-me::after { left: auto; right: -4px; bottom: auto; top: 50%; transform: translateY(-50%) rotate(45deg); }
+  .ob-objective { right: calc(70px + var(--ob-sr)); }
+}
+/* the title card ran off both ends at 667 × 320 (湾区小旅 cut at the top, 不玩了，直接看攻略 below the screen): short and
+   narrow landscape drops the subtitle, the greeting and the hint, and the title scrolls if it still does not fit */
+@media (max-width: 820px) and (max-height: 460px) and (orientation: landscape) {
+  .ob-title { align-items: safe center; overflow-y: auto; touch-action: pan-y; }
+  .ob-title .ob-title-sub, .ob-title .ob-title-greet, .ob-title .ob-title-hint { display: none; }
+  .ob-title .ob-title-h1, .ob-title.has-art .ob-title-h1 { font-size: 34px; }
+  .ob-title .ob-title-card, .ob-title.has-art .ob-title-card { gap: 10px; padding-top: calc(12px + var(--ob-st)); padding-bottom: 12px; }
+  .ob-title .ob-btn-xl { min-height: 48px; }
+}
+/* the desktop shop counter is min(420px, 52vh) tall: 177 px at 844 × 340, its cards under its own head. Short windows
+   give it the height of the screen (its width still leaves the HUD column and BAYBAY in view) */
+@media (min-width: 721px) and (max-height: 500px) {
+  .ob-overlay .ob-sheet.ob-shop { max-height: calc(100dvh - 32px - var(--ob-st) - var(--ob-sb)); }
+}
