@@ -195,6 +195,9 @@ shaft under a capital, a little further apart. The flower boxes stay where they 
   aside, the test alone: "bus at an interlock stood 29.2 s (box:f-line@5661:750) at (149, 601)"); lanes Q and M report
   the same on pristine origin: not lane V's (lane B owns the test). After the fixes: `tsc` 0; the sf-models, sf-landmarks,
   landmark-context, w4-assets and my tests green.
+- **Final, on the pushed tree** (part b + the wake fix rebased on origin at 00:00): `tsc` 0 · `eslint .` 0 errors · the
+  full suite **1614 / 1616**: the two failures are `W5-bus 20+ simulated minutes` (red on origin itself, above) and the
+  wall-clock `W5-D-review the paid memo` (555 ms under load; alone 5 / 5 green).
 
 ### Requests
 
