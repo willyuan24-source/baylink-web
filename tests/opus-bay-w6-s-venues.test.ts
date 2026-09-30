@@ -42,6 +42,13 @@ const NOT_PLACED: Readonly<Record<string, string>> = {
   // These two Sep 29 website additions still need a world venue import and walking-network point acceptance.
   'sf-bay-beats-bandshell-oct24-2026': 'website/calendar/planner only; Golden Gate Bandshell event import and navigation-point acceptance pending',
   'sf-marina-library-open-house-oct17-2026': 'website/calendar/planner only; Marina Branch open-house import and navigation-point acceptance pending',
+  // W7-0h: five more Sep 29 website additions (GPT's b4f71de8) wait for wave 7 lane S's venue rows (OSM point on the
+  // walking network, or a stated reason); the sixth, sf-foodwise-latine-makers-oct3-2026, matches the Ferry Building.
+  'sf-nexus-party-oct1-2026': 'wave 7 lane S: Yerba Buena Center for the Arts venue row pending',
+  'sf-inner-sunset-flea-oct11-2026': 'wave 7 lane S: Irving St 9th–11th Ave street segment pending',
+  'sf-fall-show-oct15-18-2026': 'wave 7 lane S: Fort Mason Festival Pavilion venue row pending',
+  'sf-potrero-hill-festival-oct17-2026': 'wave 7 lane S: 20th St Wisconsin–Missouri street segment pending',
+  'sf-sunday-streets-excelsior-oct18-2026': 'wave 7 lane S: Mission St Avalon–Geneva street segment pending',
 };
 
 test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekdays, 其余, doors, several ranges joined; the old labels unchanged', () => {
@@ -74,15 +81,16 @@ test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekd
   }
 });
 
-test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (38 + 3 existing-venue matches shown)', () => {
+test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (38 + 3 existing-venue matches + 1 Ferry Building match shown)', () => {
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 62, 'the autumn catalog including the five Sep 29 website additions');
+    assert.equal(sf.length, 68, 'the autumn catalog including the eleven Sep 29 website additions');
     const shown = sf.filter(e => worldEvent(e));
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
-    assert.equal(shown.length, 41, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 42, shown.map(e => e.id).join(' '));
+    assert.equal(worldEvent(byId('sf-foodwise-latine-makers-oct3-2026'))?.id, 'ferry-building', 'the Foodwise makers market stands at the Ferry Building');
     // The existing Main Library matcher admits three additions. The other two retain specific pending-import reasons.
     // None may disappear behind an accidental audience/title classification.
     for (const [id, venue] of [
