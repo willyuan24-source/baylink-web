@@ -154,3 +154,20 @@ where Nominatim's hit was a shop a block west (the intersection itself, 37.76993
   recolour, no credits") into `ASSETS-LEDGER.md`.
 - **Lane V**: the scorecard's "generated model?" column (Palace peristyle, de Young tower, St Ignatius cupolas, a Haight
   Victorian / mural kit); the sites R edited (Wharf, City Hall, Grace, the windmill, Lombard) are done by code.
+
+## Part d · a few more cards (commit W7-R4)
+
+| card | added | source (checked 2026-09-29) |
+|---|---|---|
+| Musée Mécanique | hours: daily about 10am–8pm; the tip "check the hours" became a fact: Laffing Sal, the 6-ft laughing automaton | https://museemecanique.com/ (hours through the search index; the page renders in script) · https://en.wikipedia.org/wiki/Mus%C3%A9e_M%C3%A9canique |
+| City Lights | hours: daily about 10am–10pm; free to browse | https://citylights.com/ (through the search index) |
+| Hippie Hill | hours: with Golden Gate Park 5am–midnight; free | Park Code §3.21 |
+| 16th Avenue Tiled Steps, SF State | cost: free (the steps: homes on both sides, keep it quiet) | the cards' own sources |
+
+### Evidence and the checks of the pushed tree
+
+- `opus-bay-sf-cards` + `opus-bay-w7-r`: 19 / 19.
+- The full suite on the rebased tree (parts c + d): see the push note below. **`W5-bus 20+ simulated minutes` fails
+  on origin itself**: re-run alone on my tree (29.2 s at the f-line box near (149, 601)) and on a clean checkout of
+  `origin/opus-bay` `c3dd95cc` without my commits (a temporary worktree, removed after): the same 29.2 s at the same box.
+  Not caused by lane R (card texts, Lombard's flowers, tops rows); lane B owns that test (W7-B1 made it deterministic).
