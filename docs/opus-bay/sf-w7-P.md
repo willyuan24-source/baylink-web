@@ -363,3 +363,9 @@ Adversarial review of lane P's seven commits (`404a7752` … `3213201b`) by W7-P
 ### Blocking the go-live
 
 None.
+
+### Checks
+
+On `30028e90` + the fix: `tsc` 0 · `eslint .` 0 errors (43 old warnings) · opus-bay suite **1640 / 1640**. Rebased onto
+origin (lane K-review, X3, W14: disjoint files) and pushed. Preview server on 5724 stopped; one headless Chrome at a time;
+no PERF-LOCK seen; no Higgsfield spend.
