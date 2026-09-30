@@ -39,6 +39,17 @@ const LONG_KEEP = 8;
 /** (W6-K1) a talk mark farther than this from the player is stale (every live one is beside them) */
 export const TALK_FAR = 30;
 
+/**
+ * (W7-K2, lane B's request) City mode: where BAYBAY on foot steps to when a transit vehicle comes at her on its rails or
+ * lane (actors/vehicles/transitClear.ts guideAside, registered by the city's ride module), else null. The transit stops
+ * only for the player; without this a tram passed through her. Asked ASIDE_HZ times a second while she walks or waits.
+ */
+let transitAside: ((x: number, z: number) => Vec2 | null) | null = null;
+export function setTransitAside(fn: ((x: number, z: number) => Vec2 | null) | null) { transitAside = fn; }
+const ASIDE_EVERY = 0.2;
+/** her quick step off the rails: at least this long (s), at running pace */
+const ASIDE_MIN_S = 0.25;
+
 const dist = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z);
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 
@@ -78,6 +89,9 @@ export class GuideMover {
   /** a scripted move in progress: the hop-in arc, or (W5-F5) a dash to the pull spot (`dur` s, running legs, no arc) */
   private hop: { fx: number; fz: number; tx: number; tz: number; t: number; dur?: number } | null = null;
   private gateT = 0;
+  /** (W7-K2) the next transit check (s, the step clock) and how often she stepped aside (QA / tests) */
+  private asideAt = -1;
+  asides = 0;
   /** city mode: the long route of the current target (E2-2) */
   readonly route = new RouteFollower();
   /** following `route` (pending: still on the clamped local path) */
@@ -179,6 +193,17 @@ export class GuideMover {
       if (k >= 1) { this.hop = null; g.y = heightAt(g.x, g.z); this.vx = this.vz = 0; }
       this.lastX = g.x; this.lastZ = g.z;
       return;
+    }
+
+    // --- (W7-K2) a cable car / streetcar / bus / train coming at her on its rails or lane: step off it
+    if (transitAside && opts.playing && !opts.riding && now >= this.asideAt) {
+      this.asideAt = now + ASIDE_EVERY;
+      const to = transitAside(g.x, g.z);
+      if (to) {
+        this.asides++;
+        this.dash(to, Math.max(ASIDE_MIN_S, Math.hypot(to.x - g.x, to.z - g.z) / GUIDE_RUN), opts.visible !== false);
+        return;
+      }
     }
 
     const gp = Math.hypot(g.x - p.x, g.z - p.z);

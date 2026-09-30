@@ -2,7 +2,9 @@ import { groundPending } from '../../core/terrain';
 import { CITY_BENCHES, CITY_BIKE_SPOTS, type CityBikeSpot } from '../../data/sf/rideSpots';
 import type { SeatSpot, VehicleSpot } from '../../data/vehicles';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../../game/interactables';
+import { setTransitAside } from '../guide';
 import type { Fleet, Ride } from './fleet';
+import { clearTransitPaths, guideAside } from './transitClear';
 
 /**
  * City bike racks and benches (lane E2, wave 3, E2-12). Loaded by actors/moveSystem.ts with a dynamic import in city
@@ -16,6 +18,9 @@ import type { Fleet, Ride } from './fleet';
  * - Benches: every drawn city bench is a seat (`seat:city-bench-<n>`), merged into the movement system's seats.
  * Both are offered through one interactables source ('e2-city-rides'), rebuilt when the pool moves a bike.
  */
+
+// (W7-K2) city mode: BAYBAY steps off the rails for the transit (actors/guide.ts; this module loads in city mode only)
+setTransitAside(guideAside);
 
 export const POOL_SIZE = 4;
 export const PARK_R = 120;
@@ -65,14 +70,17 @@ export class CityBikePool {
    * id changed: the caller republishes the rideables).
    */
   update(dt: number, player: { x: number; z: number }, seen: (r: Ride) => boolean): boolean {
+    // (W7-K2) the transit never drives through a parked, empty ride: it is towed to the kerb (actors/vehicles/transitClear)
+    const towed = clearTransitPaths(this.fleet, dt);
+    if (towed) invalidateInteractables();
     this.checkIn -= dt;
-    if (this.checkIn > 0) return false;
+    if (this.checkIn > 0) return towed;
     this.checkIn = 0.5;
     const d = (a: { x: number; z: number }) => Math.hypot(a.x - player.x, a.z - player.z);
     const want = this.spots.filter(s => d(s) < PARK_R).sort((a, b) => d(a) - d(b)).slice(0, POOL_SIZE);
     // (a rack whose ground is still streaming in waits: the bike would stand on the far DEM's rough height)
     const missing = want.filter(s => !this.rides.some(r => r.id === s.id) && !groundPending(s.x, s.z, 1.5));
-    if (!missing.length) return false;
+    if (!missing.length) return towed;
     let moved = false;
     for (const spot of missing) {
       const free = this.rides.find(r => !r.occupied && !r.call && !want.some(w => w.id === r.id) && d(r.spot) > RECYCLE_R && d(r.sim) > RECYCLE_R && !seen(r));
@@ -80,7 +88,7 @@ export class CityBikePool {
       else if (this.rides.length < POOL_SIZE) { this.rides.push(this.fleet.add(spot)); moved = true; }
     }
     if (moved) invalidateInteractables();
-    return moved;
+    return moved || towed;
   }
 
   /** Save v2: put a pooled bike at the rack a save names (so the restore can move it on). Null: no such rack / none free. */
@@ -97,5 +105,5 @@ export class CityBikePool {
     return ride;
   }
 
-  dispose() { this.unregister?.(); this.unregister = null; }
+  dispose() { this.unregister?.(); this.unregister = null; setTransitAside(null); }
 }

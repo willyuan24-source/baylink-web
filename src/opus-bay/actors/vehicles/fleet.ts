@@ -41,7 +41,15 @@ export interface Ride {
   /** hold-F autopilot target and time left */
   call: { x: number; z: number; t: number } | null;
   dirty: boolean;
+  /** (W7-K2) a tow out of a transit vehicle's path in progress (from → to, progress 0…1; actors/vehicles/transitClear) */
+  tow?: { fx: number; fz: number; fh: number; tx: number; tz: number; th: number; k: number } | null;
+  /** (W7-K2) the tow's hop over the ground (u), added to the drawn pose */
+  hopY?: number;
 }
+
+/** (W7-K2) the tow's hop: as the toy traffic's give-way hop (world/sf/traffic.ts HOP_UP, LEAVE_RATE) */
+export const TOW_HOP = 0.35;
+export const TOW_RATE = 2;
 
 const tmpE = new THREE.Euler(0, 0, 0, 'YXZ');
 const COLUMN = new THREE.Vector3(0, Math.sin(0.9), Math.cos(0.9)).normalize();
@@ -101,8 +109,33 @@ export class Fleet {
   /** A squash impulse (negative = squash down). */
   kick(ride: Ride, v: number) { ride.squashV += v * 14; }
 
+  /**
+   * (W7-K2) Tow a parked, empty ride to (x, z, heading): a little hop over ≈ 1 / TOW_RATE s (the toy traffic's give-way
+   * hop), squash on landing. Stepped by idle(); a player who gets in ends it where it is.
+   */
+  tow(ride: Ride, x: number, z: number, heading: number) {
+    const s = ride.sim;
+    ride.tow = { fx: s.x, fz: s.z, fh: s.heading, tx: x, tz: z, th: heading, k: 0 };
+    ride.call = null;
+    ride.displaced = true;
+    ride.dirty = true;
+  }
+
+  private stepTow(ride: Ride, dt: number) {
+    const t = ride.tow!, s = ride.sim;
+    t.k = Math.min(1, t.k + dt * TOW_RATE);
+    const e = t.k * t.k * (3 - 2 * t.k);
+    const dh = Math.atan2(Math.sin(t.th - t.fh), Math.cos(t.th - t.fh));
+    s.place(t.fx + (t.tx - t.fx) * e, t.fz + (t.tz - t.fz) * e, t.fh + dh * e, TERRAIN_WORLD);
+    s.v = 0;
+    ride.hopY = Math.sin(Math.PI * t.k) * TOW_HOP;
+    ride.dirty = true;
+    if (t.k >= 1) { ride.tow = null; ride.hopY = 0; this.kick(ride, -0.16); }
+  }
+
   /** Parked / abandoned vehicles: settle, roll home when far and unseen, run a call autopilot. */
   idle(ride: Ride, dt: number, player: { x: number; z: number }, visible: boolean) {
+    if (ride.tow) { if (ride.occupied) { ride.tow = null; ride.hopY = 0; } else { this.stepTow(ride, dt); return; } }
     if (ride.call) { this.autopilot(ride, dt); return; }
     const s = ride.sim;
     if (Math.abs(s.v) > 0.05 || s.airborne) { s.step(dt, { throttle: 0, brake: 1, steer: 0, digital: false, sprint: false, hop: false }, TERRAIN_WORLD); ride.dirty = true; }
@@ -114,6 +147,7 @@ export class Fleet {
     ride.sim.place(ride.spot.x, ride.spot.z, ride.spot.heading, TERRAIN_WORLD);
     ride.displaced = false;
     ride.call = null;
+    ride.tow = null; ride.hopY = 0;
     ride.dirty = true;
   }
 
@@ -202,11 +236,11 @@ export class Fleet {
       b.wheel.quaternion.setFromAxisAngle(COLUMN, -s.steer * 2.5);
       b.body.position.y = rig.rest.body.y + Math.sin(ride.spin * 0.7) * 0.01 * Math.min(1, Math.abs(v) / 8);
     }
-    mesh.position.set(s.x, s.y, s.z);
+    mesh.position.set(s.x, s.y + (ride.hopY ?? 0), s.z);
     mesh.quaternion.setFromEuler(tmpE);
     const sq = ride.squash;
     mesh.scale.set(1 - sq * 0.5, 1 + sq, 1 - sq * 0.5);
-    ride.dirty = Math.abs(sq) > 1e-3 || Math.abs(ride.squashV) > 1e-3;
+    ride.dirty = Math.abs(sq) > 1e-3 || Math.abs(ride.squashV) > 1e-3 || !!ride.tow;
   }
 
   dispose() {
