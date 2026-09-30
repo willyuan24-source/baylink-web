@@ -5,14 +5,14 @@ import { heightAt } from '../core/terrain';
 import { bayNow } from '../game/bayNow';
 import { registerSceneSystem } from '../game/systemsRegistry';
 import { U } from '../world/materials';
-import { MARINA_STRIP } from './kiteEntry';
+import { MARINA_STRIP } from './kiteZone';
 import { KITE_PARTS, commitKites, kiteAt, kiteMesh, placeKite, registerKiteWarmup } from './kiteKind';
 
 /**
  * Wave 7 · lane W2 · Marina Green's kites (sf-w7-lead §3 W2 (2)): the lawn BAYBAY's r2 line and her arrival call "the
  * city's kite-flying lawn" had none. Four toy kites staked on strings along the lawn by day, riding the sea breeze
  * (higher and livelier in the afternoon), each a sail with a waving tail: ONE InstancedMesh of the kite kind
- * (play/kiteKind.ts, +1 draw call, 80 triangles) mounted by play/kiteEntry.ts only near the lawn by day.
+ * (play/kiteKind.ts, +1 draw call, 80 triangles) mounted by play/kiteZone.ts only near the lawn by day.
  *
  * Marina Green is a kite-flying lawn with a steady bay breeze from the west, liveliest in the afternoon —
  * https://goldengatepark.com/marina-green-park.html , https://sanfranciscojeeptours.com/attractions/marina-green/
@@ -31,7 +31,7 @@ export const AMBIENT: readonly Ambient[] = [
   { t: 0.86, line: 11.5, e: 1.0, yaw: 0.2, sail: new THREE.Color('#3fae6a'), tail: new THREE.Color('#b98ad6'), phase: 4.4 },
 ];
 
-/** A stake on the lawn's midline (play/kiteEntry MARINA_STRIP, the city's park rings) at `t` (0 = its south-east end). */
+/** A stake on the lawn's midline (play/kiteZone MARINA_STRIP, the city's park rings) at `t` (0 = its south-east end). */
 export function stakeAt(t: number, out = new THREE.Vector3()): THREE.Vector3 {
   const { a, b } = MARINA_STRIP, x = a.x + (b.x - a.x) * t, z = a.z + (b.z - a.z) * t;
   return out.set(x, heightAt(x, z) + 0.15, z);
@@ -63,16 +63,18 @@ export function poseAmbient(mesh: THREE.InstancedMesh, time: number, hour: numbe
   return i;
 }
 
-/** The scene layer (mounted near the lawn by day: play/kiteEntry.ts). */
+const clock = { hour: 15, next: 0 };
+/** One frame of the ambient kites (the Bay hour re-read every 5 s). */
+export function kitesFrame(mesh: THREE.InstancedMesh, time: number, cam: THREE.Vector3) {
+  if (time >= clock.next || time < clock.next - 10) { clock.next = time + 5; clock.hour = bayHourNow(); }
+  commitKites(mesh, poseAmbient(mesh, time, clock.hour, cam));
+}
+
+/** The scene layer (mounted near the lawn by day: play/kiteZone.ts). */
 function KitesLayer() {
   const mesh = useMemo(() => kiteMesh(AMBIENT.length * KITE_PARTS), []);
   useEffect(() => () => { mesh.dispose(); }, [mesh]);
-  const clock = useMemo(() => ({ hour: 15, next: 0 }), []);
-  useFrame(st => {
-    const now = st.clock.elapsedTime;
-    if (now >= clock.next) { clock.next = now + 5; clock.hour = bayHourNow(); }
-    commitKites(mesh, poseAmbient(mesh, now, clock.hour, st.camera.position));
-  });
+  useFrame(st => { kitesFrame(mesh, st.clock.elapsedTime, st.camera.position); });
   return createElement('primitive', { object: mesh });
 }
 

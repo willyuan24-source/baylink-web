@@ -23,6 +23,8 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   { key: 'bell', name: { zh: '缆车摇铃', en: 'Cable-car bell' }, unit: 'points' },
   // W7-W2 (lane W2): 放风筝 (points: a point a second aloft, ten more for the top of the line)
   { key: 'kite', name: { zh: '放风筝', en: 'Kite flying' }, unit: 'points' },
+  // W7-W2: 那是什么？ the skyline quiz (points: landmarks named of three)
+  { key: 'skyline', name: { zh: '那是什么？认地标', en: 'What’s that? Landmarks named' }, unit: 'points' },
 ];
 
 /** Days since 1970 of a Bay date (lane A's `steps-day`). */

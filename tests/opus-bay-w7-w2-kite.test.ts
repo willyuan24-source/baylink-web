@@ -5,7 +5,7 @@ import test from 'node:test';
 import zlib from 'node:zlib';
 
 /**
- * Wave 7 · lane W2 · 放风筝 (play/kite.ts, play/kiteEntry.ts, play/kiteKind.ts, play/kites.ts): the kite's physics (a
+ * Wave 7 · lane W2 · 放风筝 (play/kite.ts, play/kiteEntry.ts, play/kiteZone.ts, play/kiteKind.ts, play/kites.ts): the kite's physics (a
  * gust lets the line out, a lull sinks it, a long hold dives, holding through the dive brings it down, letting go
  * climbs), a player who plays by the gauge reaches ★ inside the round, the tiers and points, a whole round through the
  * frame systems (medal:kite:n through the kit), where 放风筝 is offered, the ambient kites (day only, on the lawn, one
@@ -22,7 +22,7 @@ g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const K = await import('../src/opus-bay/play/kite');
-const E = await import('../src/opus-bay/play/kiteEntry');
+const E = await import('../src/opus-bay/play/kiteZone');
 const kind = await import('../src/opus-bay/play/kiteKind');
 const amb = await import('../src/opus-bay/play/kites');
 const { KITE_LINES, KITE_ID } = await import('../src/opus-bay/play/kiteLines');
@@ -48,8 +48,8 @@ test('W7-W2 kite physics: a gust lets the line out fast, a lull sinks it, a long
   assert.ok(k.line - l0 > 2, `in a gust 1 s of holding lets out ${(k.line - l0).toFixed(2)} u`);
   assert.ok(e0 - k.e < 0.1, 'the elevation holds in a gust');
   // held too long: it dives; hold on and it comes down (a crash: a short line again)
-  let ev: string | null = null, dived = false, crashed = false;
-  for (let i = 0; i < 60 && !crashed; i++) { ev = K.stepKite(k, 0.1, true); if (ev === 'dive') dived = true; if (ev === 'crash') crashed = true; }
+  let dived = false, crashed = false;
+  for (let i = 0; i < 60 && !crashed; i++) { const ev = K.stepKite(k, 0.1, true); if (ev === 'dive') dived = true; if (ev === 'crash') crashed = true; }
   assert.ok(dived && crashed, 'dive, then down');
   assert.equal(k.crashes, 1);
   assert.ok(k.line < K.KITE.max);
@@ -162,13 +162,15 @@ test('W7-W2 kite: the words are fixed bubbles (voiceable), the records row is ap
   const ROOT = path.resolve(import.meta.dirname, '..'), dir = path.join(ROOT, 'src/opus-bay/play');
   const entrySrc = fs.readFileSync(path.join(dir, 'kiteEntry.ts'), 'utf8');
   assert.match(entrySrc, /import\('\.\/kite'\)/);
-  assert.match(entrySrc, /import\('\.\/kites'\)/);
-  assert.doesNotMatch(entrySrc, /from '\.\/kites?'/);
+  assert.match(entrySrc, /import\('\.\/kiteZone'\)/);
+  assert.match(entrySrc, /import\('\.\/skyline'\)/);
+  assert.doesNotMatch(entrySrc, /from '\.\/(kite|kites|kiteZone|kiteLines|skyline|skylineLines|partc)'/, 'the core entry imports none of the chunks');
+  assert.match(fs.readFileSync(path.join(dir, 'kiteZone.ts'), 'utf8'), /import\('\.\/kites'\)/);
   assert.match(fs.readFileSync(path.join(dir, 'index.ts'), 'utf8'), /registerKites\(\)/);
   assert.doesNotMatch(fs.readFileSync(path.join(ROOT, 'src/opus-bay/game/GameRoot.tsx'), 'utf8'), /kite/i);
   const { build } = await import('esbuild');
-  const shared = new Set(['kit', 'chip', 'partc', 'sounds3', 'toyMesh', 'kiteLines', 'kiteEntry'].map(n => path.join(dir, `${n}.ts`)));
-  for (const f of ['kite.ts', 'kites.ts']) {
+  const shared = new Set(['kit', 'chip', 'partc', 'sounds3', 'toyMesh', 'kiteLines', 'kiteEntry', 'kiteZone'].map(n => path.join(dir, `${n}.ts`)));
+  for (const f of ['kite.ts', 'kites.ts', 'kiteZone.ts', 'skyline.ts']) {
     const r = await build({
       entryPoints: [path.join(dir, f)], bundle: true, write: false, minify: true, format: 'esm', target: 'es2022', logLevel: 'silent',
       plugins: [{ name: 'own', setup(b) { b.onResolve({ filter: /.*/ }, a => { if (a.kind === 'entry-point') return undefined; const base = path.resolve(a.resolveDir, a.path); const hit = `${base}.ts`; return !a.path.startsWith('.') || !hit.startsWith(dir) || shared.has(hit) ? { path: a.path, external: true } : { path: hit }; }); } }],

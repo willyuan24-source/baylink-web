@@ -19,7 +19,7 @@ import { ensurePlaySounds3 } from './sounds3';
 
 /**
  * Wave 7 · lane W2 · 放风筝 with BAYBAY (sf-w7-lead §3 W2 (2)): on the Marina Green or Crissy Field lawn, 问 BAYBAY →
- * 放风筝 (play/kiteEntry.ts). The sea breeze comes and goes; the chip's gauge shows it, its band is a gust.
+ * 放风筝 (play/kiteEntry.ts, play/kiteZone.ts). The sea breeze comes and goes; the chip's gauge shows it, its band is a gust.
  *
  *   hold  (the chip's 放线 button, Space or E) lets the line out: fast in a gust, slowly (and sinking) in a lull;
  *         held longer than HOLD_MAX the kite dives (release and it recovers; hold on and it comes down)
@@ -244,31 +244,34 @@ function driveBaybay() {
 const SAIL = new THREE.Color('#e8483c'), TAIL = new THREE.Color('#f2c14e'), B_SAIL = new THREE.Color('#2f7fd0'), B_TAIL = new THREE.Color('#ffffff');
 const kp = new THREE.Vector3(), bk = new THREE.Vector3(), camTo = new THREE.Vector3(), tgtTo = new THREE.Vector3();
 
+/** One frame of the round's scene: BAYBAY's spot, both kites, the camera up the line (kept out of the component: the
+ * hooks lint forbids mutating the memoised mesh inside it). */
+export function kiteFrame(mesh: THREE.InstancedMesh, cam: THREE.Camera, time: number, dt: number, portrait: boolean) {
+  const g = live;
+  if (!g) { mesh.count = 0; return; }
+  driveBaybay();
+  kitePos(g, kp);
+  let n = placeKite(mesh, 0, { anchor: HAND, kite: kp, t: time, sail: SAIL, tail: TAIL }, cam.position);
+  const b = runtime.guide;
+  BHAND.set(b.x + Math.sin(b.heading - 0.5) * 0.25, b.y + 0.95, b.z + Math.cos(b.heading - 0.5) * 0.25);
+  kiteAt(BHAND, 8.5, 0.95 + Math.sin(time * 0.9) * 0.1, Math.sin(time * 0.45) * 0.25, bk);
+  n = placeKite(mesh, n, { anchor: BHAND, kite: bk, t: time + 1.3, sail: B_SAIL, tail: B_TAIL, size: 0.9 }, cam.position);
+  commitKites(mesh, n);
+  // the camera: upwind behind you, low, looking up the line (portrait screens stand further off)
+  const p = runtime.player, wide = portrait ? 1.35 : 1;
+  const sx = -DOWNWIND.z, sz = DOWNWIND.x;
+  camTo.set(p.x - DOWNWIND.x * 8.5 * wide + sx * 2.6, p.y + 2.4, p.z - DOWNWIND.z * 8.5 * wide + sz * 2.6);
+  tgtTo.set(p.x, p.y + 1.4, p.z).lerp(kp, 0.5);
+  if (!g.cam || !g.tgt) { g.cam = cam.position.clone(); g.tgt = new THREE.Vector3(p.x, p.y + 1.2, p.z); }
+  const a = 1 - Math.exp(-dt * 2.5);
+  g.cam.lerp(camTo, a); g.tgt.lerp(tgtTo, a);
+  runtime.camera.shot = { position: [g.cam.x, g.cam.y, g.cam.z], target: [g.tgt.x, g.tgt.y, g.tgt.z], duration: 0.001 };
+}
+
 function KiteLayer() {
   const mesh = useMemo(() => kiteMesh(2 * KITE_PARTS), []);
   useEffect(() => () => { mesh.dispose(); }, [mesh]);
-  useFrame((st, dt) => {
-    const g = live;
-    if (!g) { mesh.count = 0; return; }
-    driveBaybay();
-    const cam = st.camera.position, time = st.clock.elapsedTime;
-    kitePos(g, kp);
-    let n = placeKite(mesh, 0, { anchor: HAND, kite: kp, t: time, sail: SAIL, tail: TAIL }, cam);
-    const b = runtime.guide;
-    BHAND.set(b.x + Math.sin(b.heading - 0.5) * 0.25, b.y + 0.95, b.z + Math.cos(b.heading - 0.5) * 0.25);
-    kiteAt(BHAND, 8.5, 0.95 + Math.sin(time * 0.9) * 0.1, Math.sin(time * 0.45) * 0.25, bk);
-    n = placeKite(mesh, n, { anchor: BHAND, kite: bk, t: time + 1.3, sail: B_SAIL, tail: B_TAIL, size: 0.9 }, cam);
-    commitKites(mesh, n);
-    // the camera: upwind behind you, low, looking up the line (portrait screens stand further off)
-    const p = runtime.player, wide = st.size.height > st.size.width ? 1.35 : 1;
-    const sx = -DOWNWIND.z, sz = DOWNWIND.x;
-    camTo.set(p.x - DOWNWIND.x * 8.5 * wide + sx * 2.6, p.y + 2.4, p.z - DOWNWIND.z * 8.5 * wide + sz * 2.6);
-    tgtTo.set(p.x, p.y + 1.4, p.z).lerp(kp, 0.5);
-    if (!g.cam) { g.cam = st.camera.position.clone(); g.tgt = new THREE.Vector3(p.x, p.y + 1.2, p.z); }
-    const a = 1 - Math.exp(-dt * 2.5);
-    g.cam.lerp(camTo, a); g.tgt!.lerp(tgtTo, a);
-    runtime.camera.shot = { position: [g.cam.x, g.cam.y, g.cam.z], target: [g.tgt!.x, g.tgt!.y, g.tgt!.z], duration: 0.001 };
-  });
+  useFrame((st, dt) => { kiteFrame(mesh, st.camera, st.clock.elapsedTime, dt, st.size.height > st.size.width); });
   return createElement('primitive', { object: mesh });
 }
 
