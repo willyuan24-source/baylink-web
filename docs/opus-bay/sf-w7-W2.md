@@ -388,3 +388,19 @@ push brought lanes H, V, X only (no shared file): tsc 0 on the pushed tree).
   (limit 25 s), at `c3dd95cc`, at `68037235` and with Alcatraz taken out of `W7_SITES` (same 29.2 s) — not this lane's
   change; before W7-B1 (`80ef896b`) it failed with the day-0 "forced blockers (29)". It passed in this lane's full run
   at 22:56 (1558 / 1558).
+
+## Final checks (00:40 PDT, the pushed tree `0746cafa`)
+
+- `npx tsc -p tsconfig.app.json --noEmit` **0** · `npx eslint .` **0 errors** (43 old warnings), both on `0746cafa`.
+- Before that push (rebased on lanes V, M, K, S, Q, G, P, R, H): W2's tests + the play core + the sites + lane H's
+  hunt spots 80 / 80 (the play core 6,110 B ≤ 6,144, with lane M's games registered).
+- The last full suite that finished (`a236c76a`, 00:10): 1574 / 1577 — (1) lane H's hunt lantern 38 inside a new Union
+  Square blocker: fixed in `0746cafa`'s parent (W7-W2d2), red → green; (2) "city-mode queries stay O(1)" (a wall-clock
+  case under load): passes alone; (3) "W5-bus 20+ simulated minutes": lane B's (see Requests; it fails the same with
+  Alcatraz removed). A full suite on `0746cafa` was still running at the 00:45 stop (≈ 400 tests in, none failed): the
+  reviewer re-runs it.
+- The dev server (5709) is stopped; the scratch check worktree `w7-w2-chk` is removed (its git metadata folder under the
+  main checkout's `.git/worktrees/` could not be deleted: permission denied — `git worktree prune` later).
+
+Commits on `origin/opus-bay`: part a `3727a49c`, `f90e3bf3`; part b `f8512c0f`, `049762fc`; part c `3568e2b5`,
+`c3dd95cc`; part d `ff6e8187`, `0746cafa` (+ this report line).
