@@ -79,7 +79,8 @@ function Game({ startRequested }: { startRequested: boolean }) {
         dpr={[1, DPR[quality] ?? 1.25]}
         gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
         camera={{ fov: 40, near: 0.5, far: FAR[worldMode], position: [0, 30, 40] }}
-        onCreated={({ gl }) => { gl.setClearColor('#f3ecdf'); }}
+        // (W7-Q3, lane Q) a lost GL context (iOS): save, then a 重新载入 card — ui/glHealth.ts, its own small chunk
+        onCreated={({ gl }) => { gl.setClearColor('#f3ecdf'); void import('../ui/glHealth').then(m => m.watchGl(gl), () => {}); }}
       >
         <Suspense fallback={null}>
           <WorldScene />
