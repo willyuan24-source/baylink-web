@@ -17,7 +17,7 @@
 
 .ob-album-grid {
   display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; overflow-y: auto; min-height: 0; padding: 2px;
-  max-height: min(62vh, 520px); overscroll-behavior: contain;
+  max-height: min(62vh, 520px); max-height: min(62svh, 520px); overscroll-behavior: contain;
 }
 .ob-album-grid button {
   display: block; width: 100%; aspect-ratio: 4 / 3; padding: 0; border-radius: 12px; overflow: hidden; background: var(--ob-cream-3);
@@ -32,7 +32,7 @@
 .ob-album-view { display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .ob-album-view figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; min-height: 0; }
 .ob-album-photo {
-  position: relative; max-width: 100%; max-height: min(60vh, 520px); border-radius: 10px; overflow: hidden;
+  position: relative; max-width: 100%; max-height: min(60vh, 520px); max-height: min(60svh, 520px); border-radius: 10px; overflow: hidden;
   box-shadow: var(--ob-shadow-s); background: var(--ob-cream-3);
 }
 .ob-album-photo img { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -53,8 +53,8 @@
 
 @media (max-width: 720px) {
   .ob-album { padding: 12px 12px 10px; border-radius: 22px; }
-  .ob-album-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 58vh; }
-  .ob-album-photo { max-height: 56vh; }
+  .ob-album-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 58vh; max-height: 58svh; }
+  .ob-album-photo { max-height: 56vh; max-height: 56svh; }
 }
 @media (max-width: 360px) {
   .ob-album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -49,7 +49,7 @@
 .mw-trip-row.is-go { border-style: dashed; }
 
 /* --- legend -------------------------------------------------------------------------------------------------------- */
-.mw-legend { display: grid; gap: 6px; padding: 12px; border-radius: var(--ob-r-m); background: var(--ob-cream); border: 1px solid var(--ob-line); max-height: min(70vh, 560px); overflow-y: auto; overscroll-behavior: contain; }
+.mw-legend { display: grid; gap: 6px; padding: 12px; border-radius: var(--ob-r-m); background: var(--ob-cream); border: 1px solid var(--ob-line); max-height: min(70vh, 560px); max-height: min(70svh, 560px); overflow-y: auto; overscroll-behavior: contain; }
 .mw-legend header { display: flex; align-items: center; justify-content: space-between; }
 .mw-legend h3 { margin: 0; font-size: 16px; font-weight: 800; }
 .mw-legend h4 { margin: 8px 0 2px; font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--ob-ink-3); }

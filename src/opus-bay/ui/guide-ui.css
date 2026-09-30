@@ -19,7 +19,7 @@
 /* ---------- trip card: a card under the pill (desktop), a 40 % bottom sheet (phones) ---------- */
 .ob-trip-card {
   position: absolute; z-index: 20; right: calc(16px + var(--ob-sr)); top: calc(72px + var(--ob-st)); width: min(360px, calc(100vw - 32px));
-  max-height: min(60vh, 520px); display: flex; flex-direction: column; border-radius: var(--ob-r-l); background: var(--ob-cream);
+  max-height: min(60vh, 520px); max-height: min(60svh, 520px); display: flex; flex-direction: column; border-radius: var(--ob-r-l); background: var(--ob-cream);
   border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow); overflow: hidden; pointer-events: auto; animation: ob-pop .3s var(--ob-spring);
 }
 .ob-trip-card-head { display: flex; align-items: flex-start; gap: 8px; padding: 14px 10px 8px 18px; }

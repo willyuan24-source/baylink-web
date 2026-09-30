@@ -366,7 +366,7 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   .ob-context-name { display: none; }
   .ob-ride { top: calc(60px + var(--ob-st)); font-size: 13px; }
   .ob-place-list { grid-template-columns: 1fr; }
-  .ob-map-svg { max-height: 44vh; }
+  .ob-map-svg { max-height: 44vh; max-height: 44svh; }
   .ob-link-grid { grid-template-columns: 1fr 1fr; }
   /* below BAYBAY's speech bubble (z 8) on phones: her lines matter more than the checklist */
   /* (.ob-overlay prefix: the base .ob-goals-card rules come later in this file) */
@@ -490,6 +490,12 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   .ob-sheet-title { font-size: 19px; }
   .ob-sheet-body { padding: 0 18px 18px; }
   .ob-sheet-foot { padding: 10px 18px calc(12px + var(--ob-sb)); }
+  /* (W7-Q5) a sheet without a footer: its last row clear of the home indicator (landscape, Home Screen mode) */
+  .ob-sheet:not(:has(.ob-sheet-foot)) .ob-sheet-body { padding-bottom: calc(18px + var(--ob-sb)); }
+  /* (W7-Q5) iOS portrait with Safari's bars is ≈ 553 px tall on an iPhone SE, landscape ≈ 320–340: a 35–38 % snap (the
+     shop's 38) left a 122–210 px sliver with the cards behind the footer. A sheet at rest is at least 320 px, never more
+     than the screen minus a 40 px strip of the world; dragging follows the finger as before */
+  .ob-sheet:not(.is-dragging), .ob-sheet.is-wide:not(.is-dragging) { height: max(var(--ob-sheet-h, 70dvh), min(320px, calc(100dvh - var(--ob-st) - 40px))); }
 }
 
 /* ---------- POI card ---------- */
@@ -603,7 +609,7 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
 
 /* ---------- map ---------- */
 .ob-map-frame { position: relative; border-radius: var(--ob-r-m); overflow: hidden; background: #a9d6d0; border: 1px solid var(--ob-line); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45); }
-.ob-map-svg { width: 100%; height: auto; max-height: 56vh; display: block; transition: none; }
+.ob-map-svg { width: 100%; height: auto; max-height: 56vh; max-height: 56svh; display: block; transition: none; }
 .ob-map-svg text { font-family: var(--ob-font); pointer-events: none; }
 .m-water { fill: #9fd0cb; }
 .m-hill ellipse { fill: #cfdcb0; stroke: #b7c895; }
@@ -988,6 +994,10 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 }
 .ob-hud.is-narrow .ob-context { bottom: calc(max(6px, var(--ob-sb)) + 66px); }
 .ob-overlay.is-talking .ob-bar, .ob-overlay.is-modal .ob-bar { opacity: 0; pointer-events: none; transform: translate(-50%, 12px); }
+/* (W7-Q5) a panel's sheet covers the whole width on a phone, over the bar; while it slid in (0.38 s, from 40 % opacity) the
+   bar showed through it over the last row (W6-K2 review: 显示地标旗 under 问 BAYBAY · 地图 · 旅行本 · 更多). The bar
+   goes at once under an open panel and fades back when it closes */
+.ob-overlay.has-panel .ob-bar { opacity: 0; pointer-events: none; transition: none; }
 
 /* F3 · objective pill: two lines instead of an ellipsis, plus a compact "看 ›" chip on phones */
 .ob-objective-chip { display: none; align-items: center; gap: 1px; flex: none; font-size: 12px; font-weight: 800; color: var(--ob-teal-d); background: var(--ob-teal-l); border-radius: 999px; padding: 3px 6px 3px 9px; }
@@ -1016,7 +1026,7 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-choice-sub { font-size: 12.5px; font-weight: 600; color: var(--ob-ink-3); line-height: 1.3; }
 .ob-dialogue-foot { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--ob-ink-3); text-align: right; }
 @media (max-width: 720px) {
-  .ob-choices.is-grid { grid-template-columns: 1fr 1fr; max-height: 30vh; overflow-y: auto; overscroll-behavior: contain; gap: 6px; }
+  .ob-choices.is-grid { grid-template-columns: 1fr 1fr; max-height: 30vh; max-height: 30svh; overflow-y: auto; overscroll-behavior: contain; gap: 6px; }
   .ob-choices.is-grid .ob-choice { min-height: 44px; padding: 6px 8px 6px 6px; gap: 7px; font-size: 13.5px; line-height: 1.25; border-radius: 12px; }
   .ob-choices.is-grid .ob-choice-key { width: 24px; height: 24px; border-radius: 8px; font-size: 12.5px; }
   .ob-choices.is-grid .ob-choice-sub { font-size: 11px; }

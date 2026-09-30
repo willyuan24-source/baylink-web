@@ -1,5 +1,5 @@
 /* City map (lane G1, ui/CityMap.tsx): loaded with the map chunk. */
-.ob-citymap-frame { position: relative; height: min(56vh, 430px); border-radius: var(--ob-r-m); overflow: hidden; background: #9fd0cb; border: 1px solid var(--ob-line); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45); touch-action: none; user-select: none; cursor: grab; -webkit-user-select: none; -webkit-touch-callout: none; }
+.ob-citymap-frame { position: relative; height: min(56vh, 430px); height: min(56svh, 430px); border-radius: var(--ob-r-m); overflow: hidden; background: #9fd0cb; border: 1px solid var(--ob-line); box-shadow: inset 0 0 0 4px rgba(255, 255, 255, .45); touch-action: none; user-select: none; cursor: grab; -webkit-user-select: none; -webkit-touch-callout: none; }
 /* (W5-N review) the long-press 去这里 on an iPhone: the sheet above sets -webkit-user-select: text (Safari reads only the
    prefixed one), so a held finger on the map selected the labels or opened the image callout instead of the press card */
 .ob-citymap-frame:active { cursor: grabbing; }
@@ -57,7 +57,7 @@
 .ob-citymap-tabs { margin: 10px 0 6px; }
 .ob-place-num.is-found { background: var(--ob-teal); color: #fff; }
 .ob-citymap-empty { padding: 10px 4px; color: var(--ob-ink-3); font-size: 13px; }
-@media (max-width: 600px) { .ob-citymap-frame { height: 46vh; } }
+@media (max-width: 600px) { .ob-citymap-frame { height: 46vh; height: 46svh; } }
 /* 足迹 (ui/Footprints.tsx, the Journal's city tab) */
 .ob-steps-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
 .ob-steps-stats li { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px 8px; border-radius: var(--ob-r-m); background: #fff; border: 1px solid var(--ob-line); text-align: center; }
