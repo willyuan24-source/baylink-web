@@ -9,10 +9,12 @@ import { bayNow, bayParts } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { BAYBAY_ID } from '../game/interactables';
 import { BOX, CBOX, CYL, ICO, M, Batch, type Info } from '../world/builder';
+import { addRoadPeople } from '../world/sf/roadPeople';
 import { spawnFx } from '../world/fx';
 import { TOY_DYN } from '../world/materials';
 import { MARIGOLDS, MUERTOS_SPOTS, PICADO, ROUTE_CORNERS } from './muertosSpots';
 import { halloweenSource } from './rewards';
+import { createWalkers, type Walkers } from './muertosWalkers';
 import { halloweenPreview } from './season';
 import type { HaloSpot } from './worldHalos';
 import { lineText, type WorldLineKey } from './worldLines';
@@ -248,11 +250,13 @@ export interface Muertos {
   halos(): readonly HaloSpot[];
   /** BAYBAY's lines on offer near the Mission now, in order (the scheduler says each once a Bay day) */
   near(px: number, pz: number, now?: Date): { key: string; line: WorldLineKey }[];
-  stats(): { built: boolean; tris: number; seen: number; altars: boolean; procession: ProcessionPhase };
+  stats(): { built: boolean; tris: number; seen: number; altars: boolean; procession: ProcessionPhase; walkers: number };
   dispose(): void;
 }
 /** the gathering line within this of 22nd & Bryant (u) */
 export const GATHER_NEAR = 40;
+/** BAYBAY's procession line within this of a walker (u) */
+export const WALKERS_NEAR = 22;
 
 export function createMuertos(): Muertos {
   const group = new THREE.Group();
@@ -262,16 +266,47 @@ export function createMuertos(): Muertos {
   let halos: HaloSpot[] = [];
   let acc = 0;
   let today: MuertosDay = { day: 0, altars: false, procession: 'none', walkS: 0 };
+  // W7-H6: the procession's walkers (2 November 18:00–21:00), stepped every frame; walkS runs on between the schedule's reads
+  let walkers: Walkers | null = null;
+  let offRoad: (() => void) | null = null;
+  let walkBase = { at: 0, s: 0 };
+  let clock = 0;
+  let both: HaloSpot[] = [];
+  let bothKey: [readonly HaloSpot[], readonly HaloSpot[]] = [[], []];
   const offCleared = onSaveCleared(() => { sessionSeen.clear(); paid.forget(); });
-  const drop = () => { if (!mesh) return; group.remove(mesh); mesh.geometry.dispose(); mesh = null; halos = []; };
+  const dropWalkers = () => {
+    if (!walkers) return;
+    offRoad?.();
+    offRoad = null;
+    group.remove(walkers.group);
+    walkers.dispose();
+    walkers = null;
+  };
+  const drop = () => {
+    dropWalkers();
+    if (!mesh) return;
+    group.remove(mesh); mesh.geometry.dispose(); mesh = null; halos = [];
+  };
   return {
     group,
     step: (dt, px, py, pz, on) => {
+      clock += dt;
+      if (walkers && today.procession !== 'none') walkers.step(today.procession, walkBase.s + (clock - walkBase.at), clock);
       if ((acc += dt) < 0.15) return;
       acc = 0;
       today = muertosSchedule();
+      walkBase = { at: clock, s: today.walkS };
       const want = on && Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_NEAR;
       if (!want) { drop(); return; }
+      if (today.procession === 'none') dropWalkers();
+      else if (!walkers) {
+        const w = createWalkers();
+        walkers = w;
+        group.add(w.group);
+        w.step(today.procession, today.walkS, clock);
+        // the toy traffic stops short of them (they walk the curb lane)
+        offRoad = addRoadPeople(put => w.each((x, z) => put(x, z, 0.35)));
+      }
       // the park's altars come at 08:00 and go at 21:00 on 2 November: rebuild when that changes
       if (mesh && builtAltars !== today.altars) drop();
       if (!mesh) {
@@ -288,13 +323,19 @@ export function createMuertos(): Muertos {
       if (!canVisit()) return;
       for (const s of MUERTOS_SPOTS) if (spotShown(s, today) && Math.hypot(s.x - px, s.z - pz) <= MUERTOS_PICK && Math.abs(s.y - py) < 3) { visit(s); break; }
     },
-    halos: () => halos,
+    halos: () => {
+      const wh = walkers ? walkers.halos() : [];
+      if (!wh.length) return halos;
+      if (bothKey[0] !== halos || bothKey[1] !== wh) { bothKey = [halos, wh]; both = [...halos, ...wh]; }
+      return both;
+    },
     near: (px, pz, now) => {
       const d = now ? muertosSchedule(now) : today;
       const out: { key: string; line: WorldLineKey }[] = [];
       const c = ROUTE_CORNERS.bryant22;
       const atStart = Math.hypot(px - c.x, pz - c.z);
       if (d.procession === 'gather' && atStart < GATHER_NEAR) out.push({ key: 'procession-gather', line: 'processionGather' });
+      if (d.procession === 'walk' && walkers?.near(px, pz, WALKERS_NEAR)) out.push({ key: 'procession-walk', line: 'processionWalk' });
       if (d.altars && atStart < PROCESSION_NEAR) out.push({ key: 'muertos-procession', line: 'muertosProcession' });
       if (Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_HELLO_NEAR) {
         out.push({ key: 'muertos-hello', line: 'muertosHello' });
@@ -302,7 +343,7 @@ export function createMuertos(): Muertos {
       }
       return out;
     },
-    stats: () => ({ built: !!mesh, tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, seen: muertosCount(), altars: builtAltars, procession: today.procession }),
+    stats: () => ({ built: !!mesh, tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, seen: muertosCount(), altars: builtAltars, procession: today.procession, walkers: walkers?.count() ?? 0 }),
     dispose: () => { drop(); offCleared(); },
   };
 }

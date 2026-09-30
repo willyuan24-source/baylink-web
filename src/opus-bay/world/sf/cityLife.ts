@@ -12,6 +12,7 @@ import { RESIDENTS } from '../../data/sf/residents';
 import { travelActive } from '../../game/fastTravel';
 import { activeLineFleet } from '../../data/transit';
 import { U } from '../materials';
+import { eachRoadPerson } from './roadPeople';
 import { CROWD, CrowdLayer, type CrowdEnv, type StandSpot } from './crowd';
 import { WAVE_REACH, addClearLane, crowdPins, crowdWave, takeCrowdWaves, walkerLanes } from './crowdSpots';
 import { GGB } from './landmarks/golden-gate-bridge';
@@ -162,6 +163,8 @@ export class CityLife {
         const carried = runtime.vehicle.occupied ? Math.hypot(g.x - runtime.vehicle.x, g.z - runtime.vehicle.z) < 3 : flying;
         if (!carried && !(aboard && Math.hypot(g.x - p.x, g.z - p.z) < 6) && surfaceAt(g.x, g.z) === 'road') put(g.x, g.z, 0.4);
         if (this.crowd) for (const w of this.crowd.sim.walkers) if (w.on && (w.onRoad || w.hopT >= 0)) put(w.x, w.z, CROWD.r);
+        // (W7-H6, lane H) another feature's people on the roadway: the Día de los Muertos procession (world/sf/roadPeople.ts)
+        eachRoadPerson(put);
       },
       transitStreet: (x, z, dx, dz) => onTransitStreet(x, z, dx, dz),
       // (W5-bus) crossing boxes (a junction on a transit street) and the loop's stop zones (world/sf/lineFleet.ts)

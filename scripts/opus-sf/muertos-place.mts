@@ -17,9 +17,19 @@
  * - MARIGOLDS: marigold pots along both sidewalks of 24th St (every ~9 u, the side alternating).
  * - ALTARS: six at Potrero del Sol Park (the Festival of Altars), one at Acción Latina's door on 24th St, and the
  *   procession's gathering point at 22nd & Bryant (a marigold arch) — the muertos:n finds.
+ * - PROCESSION (W7-H6): the route the toy walkers take on 2 November from 19:00 — south on Bryant from 22nd, west on
+ *   24th, north on Mission, east on 22nd back to Bryant (SFMTA's 2025 route above; re-checked 2026-09-29: the organisers
+ *   have not posted 2026) — a closed line in the curb lane on the loop's inside (each street's centreline moved
+ *   w / 2 − PROCESSION_INSET toward the middle of the loop, the corners where those lines meet), sampled every
+ *   PROCESSION_STEP u with the ground y.
  */
 import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sfDisk } from '../../tests/opus-bay-sf-disk';
+
+/** the repo this script lives in (W7: not a hard-coded worktree) */
+const REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const g = globalThis as unknown as Record<string, unknown>;
 const noop = () => undefined;
@@ -80,7 +90,7 @@ const crossing = (A: { pts: P[] }[], B: { pts: P[] }[]): P => {
   throw new Error('no crossing');
 };
 const r24 = await roadsNamed('24th Street'), bryant = await roadsNamed('Bryant Street'), mission = await roadsNamed('Mission Street'), r22 = await roadsNamed('22nd Street');
-const x24m = crossing(r24, mission), x24b = crossing(r24, bryant), x22b = crossing(r22, bryant);
+const x24m = crossing(r24, mission), x24b = crossing(r24, bryant), x22b = crossing(r22, bryant), x22m = crossing(r22, mission);
 console.error(`24th × Mission ${x24m.x.toFixed(1)},${x24m.z.toFixed(1)} · 24th × Bryant ${x24b.x.toFixed(1)},${x24b.z.toFixed(1)} · 22nd × Bryant ${x22b.x.toFixed(1)},${x22b.z.toFixed(1)}`);
 
 /** Stations every `step` u along the named road's segments between two crossings: point, unit direction, width. */
@@ -168,7 +178,54 @@ const accion = at('osm-n10653835784'); // Acción Latina, 2958 24th St
 }
 console.error(`picado ${picado.length} strings · marigolds ${marigolds.length} · altars ${altars.map(a => `${a.n} ${a.where} ${a.x},${a.z}`).join(' | ')}`);
 
-fs.writeFileSync('C:/Users/willy/wt/w6-h/src/opus-bay/halloween/muertosSpots.ts', `/**
+// --- the procession's route (W7-H6) ---
+const PROCESSION_INSET = 0.8, PROCESSION_STEP = 2;
+const loop = [x22b, x24b, x24m, x22m];
+const legRoads = [bryant, r24, mission, r22];
+const mid = { x: loop.reduce((a, q) => a + q.x, 0) / 4, z: loop.reduce((a, q) => a + q.z, 0) / 4 };
+/** each leg's line moved toward the loop's middle: a point on it and its direction */
+const legs = loop.map((a, k) => {
+  const b = loop[(k + 1) % 4];
+  const len = Math.hypot(b.x - a.x, b.z - a.z), d = { x: (b.x - a.x) / len, z: (b.z - a.z) / len };
+  let n = { x: -d.z, z: d.x };
+  const m = { x: (a.x + b.x) / 2, z: (a.z + b.z) / 2 };
+  if ((mid.x - m.x) * n.x + (mid.z - m.z) * n.z < 0) n = { x: -n.x, z: -n.z };
+  // the street's width at the leg's middle (the nearest segment of that street)
+  let w = 12, bd = Infinity;
+  for (const r of legRoads[k]) for (let i = 1; i < r.pts.length; i++) {
+    const s0 = r.pts[i - 1], s1 = r.pts[i], dx = s1.x - s0.x, dz = s1.z - s0.z, l2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((m.x - s0.x) * dx + (m.z - s0.z) * dz) / l2));
+    const dist = Math.hypot(s0.x + dx * t - m.x, s0.z + dz * t - m.z);
+    if (dist < bd) { bd = dist; w = r.w; }
+  }
+  const off = w / 2 - PROCESSION_INSET;
+  return { p: { x: a.x + n.x * off, z: a.z + n.z * off }, d, w };
+});
+const meet = (A: { p: P; d: P }, B: { p: P; d: P }): P => {
+  const den = A.d.x * B.d.z - A.d.z * B.d.x;
+  const t = ((B.p.x - A.p.x) * B.d.z - (B.p.z - A.p.z) * B.d.x) / den;
+  return { x: A.p.x + A.d.x * t, z: A.p.z + A.d.z * t };
+};
+// corner k = where leg k−1 meets leg k (corner 0: 22nd & Bryant, the start)
+const corners = legs.map((L, k) => meet(legs[(k + 3) % 4], L));
+const route: number[] = [];
+const cornerS: number[] = [];
+let s0 = 0;
+for (let k = 0; k < 4; k++) {
+  const a = corners[k], b = corners[(k + 1) % 4], len = Math.hypot(b.x - a.x, b.z - a.z);
+  cornerS.push(r2(s0));
+  const n = Math.max(1, Math.round(len / PROCESSION_STEP));
+  for (let i = 0; i < n; i++) {
+    const q = { x: a.x + (b.x - a.x) * i / n, z: a.z + (b.z - a.z) * i / n };
+    route.push(r2(q.x), r2(q.z), r2(heightAt(q.x, q.z)));
+  }
+  s0 += len;
+}
+let onRoad = 0;
+for (let i = 0; i < route.length; i += 3) if (surfaceAt(route[i], route[i + 1]) === 'road') onRoad++;
+console.error(`procession: ${legs.map(l => `w ${l.w}`).join(' · ')} · loop ${s0.toFixed(1)} u · ${route.length / 3} samples (${onRoad} on the roadway) · corners at ${cornerS.join(', ')}`);
+
+fs.writeFileSync(path.join(REPO, 'src/opus-bay/halloween/muertosSpots.ts'), `/**
  * Wave 6 · lane H (W6-H3) · GENERATED by scripts/opus-sf/muertos-place.mts on the published city (sf/v1) — do not edit
  * by hand; re-run the script (it carries the sources). Día de los Muertos in the Mission: the papel picado strings over
  * the procession's first legs (24th St Bryant → Mission, Bryant 22nd → 24th), the marigold pots along 24th St, the
@@ -180,7 +237,15 @@ export const PICADO: readonly (readonly number[])[] = ${JSON.stringify(picado)};
 /** x, z, ground y */
 export const MARIGOLDS: readonly (readonly number[])[] = ${JSON.stringify(marigolds)};
 export const MUERTOS_SPOTS: readonly { n: number; x: number; z: number; y: number; f: number; kind: 'altar' | 'arch'; where: string }[] = ${JSON.stringify(altars, null, 1).replace(/\n\s*/g, ' ')};
-/** 24th & Mission · 24th & Bryant · 22nd & Bryant (the route's corners) */
-export const ROUTE_CORNERS = ${JSON.stringify({ mission24: { x: r2(x24m.x), z: r2(x24m.z) }, bryant24: { x: r2(x24b.x), z: r2(x24b.z) }, bryant22: { x: r2(x22b.x), z: r2(x22b.z) } })} as const;
+/** 24th & Mission · 24th & Bryant · 22nd & Bryant · 22nd & Mission (the route's corners, the street centrelines' crossings) */
+export const ROUTE_CORNERS = ${JSON.stringify({ mission24: { x: r2(x24m.x), z: r2(x24m.z) }, bryant24: { x: r2(x24b.x), z: r2(x24b.z) }, bryant22: { x: r2(x22b.x), z: r2(x22b.z) }, mission22: { x: r2(x22m.x), z: r2(x22m.z) } })} as const;
+/**
+ * (W7-H6) The procession's route: a closed line in the curb lane on the loop's inside, from 22nd & Bryant south on
+ * Bryant, west on 24th, north on Mission, east on 22nd — x, z, ground y every ≈ ${PROCESSION_STEP} u (the last point joins the first).
+ */
+export const PROCESSION: readonly number[] = ${JSON.stringify(route)};
+/** the route's length (u) and the arc length of each corner (22nd & Bryant = 0, 24th & Bryant, 24th & Mission, 22nd & Mission) */
+export const PROCESSION_LENGTH = ${r2(s0)};
+export const PROCESSION_CORNERS: readonly number[] = ${JSON.stringify(cornerS)};
 `);
 setCityTerrain(null);
