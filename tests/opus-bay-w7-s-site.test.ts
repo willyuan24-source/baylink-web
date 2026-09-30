@@ -40,6 +40,27 @@ test('W7-S3 live.json: the seniors’ free Muni is a standing transit offer with
   assert.equal(currentFreebies.find(o => o.id === 'chase-center-ticket-muni-included')?.kind, 'purchase');
 });
 
+test('W7-S3 网站联动: every page the game links resolves in vercel.json — /events/:id of every shown SF event, /openings/:id of every 新店 sign, /offers/:id of every live.json offer and the Chase Center Muni offer', async () => {
+  const vercel = JSON.parse(fs.readFileSync(path.resolve('vercel.json'), 'utf8')) as { routes: { src?: string; dest?: string }[] };
+  const routed = (url: string) => vercel.routes.some(r => r.src && r.dest && /\$1\.html$/.test(r.dest) && new RegExp(r.src).test(url));
+  const { sanitizeCatalog, setCatalogForTests } = await import('../src/opus-bay/data/catalog');
+  const { worldEvent } = await import('../src/opus-bay/realsf/events');
+  const { OPENING_SIGNS } = await import('../src/opus-bay/realsf/openings');
+  const { CHASE_MUNI } = await import('../src/opus-bay/realsf/chaseMuni');
+  const catalog = sanitizeCatalog(JSON.parse(fs.readFileSync(path.resolve('public/planner-catalog.json'), 'utf8')));
+  setCatalogForTests(catalog);
+  try {
+    const shown = catalog.events.filter(e => e.region === 'sf' && (e.endDate ?? e.startDate) >= '2026-09-29' && worldEvent(e));
+    assert.ok(shown.length >= 47);
+    for (const e of shown) assert.ok(routed(`/events/${e.id}`), `/events/${e.id} is routed`);
+  } finally { setCatalogForTests(null); }
+  for (const s of OPENING_SIGNS) assert.ok(routed(`/openings/${s.id}`), `/openings/${s.id} is routed`);
+  const offers = live.parseLive(JSON.parse(fs.readFileSync(path.resolve('public/opus-bay/sf/v1/live.json'), 'utf8')))!;
+  for (const o of offers) assert.ok(routed(o.href), `${o.href} is routed`);
+  assert.ok(routed(`/offers/${CHASE_MUNI.offerId}`));
+  assert.ok(!routed('/openings/no-such-shop'), 'the check can fail');
+});
+
 test('W7-S3 the Chase Center cards: the ticket-includes-Muni line with the BAYLINK offer link; not at Thrive City or elsewhere', async () => {
   const { registerHooks } = await import('node:module');
   const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
