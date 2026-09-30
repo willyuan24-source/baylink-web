@@ -287,6 +287,15 @@ export function stationZh(name: string): string {
   return parts.every(Boolean) ? parts.join(' · ') : short;
 }
 
+/**
+ * (W7-B6) A turntable's Chinese name, like its station's: "鲍威尔街 · 市场街转车台" (the three named ones in
+ * TURNTABLE_NAMES; this for any other). A station without a Chinese name keeps "X & Y 转车台".
+ */
+export function turntableZh(stationName: string): string {
+  const zh = stationZh(stationName);
+  return /[A-Za-z]$/.test(zh) ? `${zh} 转车台` : `${zh}转车台`;
+}
+
 /** "Powell & Market" → "powell-market" (`[a-z0-9-]`, ≤ 64). */
 export function stationSlug(name: string): string {
   const s = shortStationName(name).toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -323,9 +332,9 @@ function cumulative(pts: P3[]): Float32Array {
 }
 
 const TURNTABLE_NAMES: Record<string, Bilingual> = {
-  'powell-market': { zh: 'Powell & Market 转车台', en: 'Powell & Market turntable' },
-  'hyde-beach': { zh: 'Hyde & Beach 转车台', en: 'Hyde & Beach turntable' },
-  'taylor-bay': { zh: 'Taylor & Bay 转车台', en: 'Taylor & Bay turntable' },
+  'powell-market': { zh: '鲍威尔街 · 市场街转车台', en: 'Powell & Market turntable' },
+  'hyde-beach': { zh: '海德街 · 海滩街转车台', en: 'Hyde & Beach turntable' },
+  'taylor-bay': { zh: '泰勒街 · 湾街转车台', en: 'Taylor & Bay turntable' },
 };
 
 /** zh glossary (G2): transit.json says 缆车; everything the player reads says 叮当车 ("鲍威尔-海德线叮当车"). */
@@ -339,7 +348,7 @@ export function buildTransit(file: TransitFileJson): TransitData {
     let t = turntables.find(tt => Math.hypot(tt.x - x, tt.z - z) < 1);
     if (!t) {
       const id = stationSlug(stationName);
-      t = { id, name: TURNTABLE_NAMES[id] ?? { zh: `${shortStationName(stationName)} 转车台`, en: `${shortStationName(stationName)} turntable` }, x, z, lines: [], landmark: id === 'powell-market', stub };
+      t = { id, name: TURNTABLE_NAMES[id] ?? { zh: turntableZh(stationName), en: `${shortStationName(stationName)} turntable` }, x, z, lines: [], landmark: id === 'powell-market', stub };
       turntables.push(t);
     }
     if (!t.lines.includes(line)) t.lines.push(line);

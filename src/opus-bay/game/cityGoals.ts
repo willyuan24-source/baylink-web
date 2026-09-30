@@ -40,7 +40,7 @@ export function cityGoalTargets(): GoalTarget[] {
     const at = CITY_DATA?.LANDMARK_ARRIVALS[landmark]; // (W6-P3: the arrivals come with the city data chunk)
     if (at) out.push({ id: cityPoiId(landmark), goal, x: at.x, z: at.z, name, radius: 4 });
   };
-  add(CITY_GOAL.cableCar, 'cable-car-turntable', { zh: '叮当车 · Powell & Market 转车台', en: 'Cable car · Powell & Market turntable' });
+  add(CITY_GOAL.cableCar, 'cable-car-turntable', { zh: '叮当车 · 鲍威尔街 · 市场街转车台', en: 'Cable car · Powell & Market turntable' });
   add(CITY_GOAL.twinPeaks, 'twin-peaks', { zh: '爬上双峰', en: 'Climb Twin Peaks' });
   add(CITY_GOAL.goldenGate, 'golden-gate-bridge', { zh: '走过金门大桥', en: 'Cross the Golden Gate Bridge' });
   add(CITY_GOAL.paintedLadies, 'painted-ladies', { zh: '给彩绘女士拍张照', en: 'Photograph the Painted Ladies' });

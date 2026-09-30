@@ -53,7 +53,7 @@ export const CITY_FREE_GOALS: FreeGoal[] = [
   // wave 5 (lane C, W5-C2; plan MF3): first — the pelican unlocks flying anywhere (Coit is ≈ 70 s from the Ferry Building)
   { id: CITY_GOAL.pelican, label: bi('先去科伊特塔找鹈鹕朋友', 'Meet the pelican at Coit Tower'), hint: bi('从菲尔伯特台阶爬上去；双峰等观景台也行', 'Climb the Filbert Steps — Twin Peaks and the other viewpoints work too') },
   { id: CITY_GOAL.postcards,label: bi('找齐 24 张旧金山明信片', 'Find all 24 San Francisco postcards'), hint: bi('留意发金光的小卡片，旅行本里有线索', 'Look for little golden glints — your journal has clues') },
-  { id: CITY_GOAL.cableCar, label: bi('坐一段真的叮当车', 'Ride a real cable car'), hint: bi('去 Powell & Market 转车台上车，多坐几站', 'Board at the Powell & Market turntable and ride a few stops') },
+  { id: CITY_GOAL.cableCar, label: bi('坐一段真的叮当车', 'Ride a real cable car'), hint: bi('去鲍威尔街 · 市场街转车台上车，多坐几站', 'Board at the Powell & Market turntable and ride a few stops') },
   { id: CITY_GOAL.twinPeaks, label: bi('自己爬上双峰', 'Climb Twin Peaks yourself'), hint: bi('走路、骑车或开小车上山都算，飞过去不算', 'On foot, by bike or in the toy car — flying there doesn’t count') },
   { id: CITY_GOAL.goldenGate, label: bi('走过金门大桥', 'Cross the Golden Gate Bridge'), hint: bi('在桥面上从一座桥塔走到另一座', 'On the deck, from one tower to the other') },
   { id: CITY_GOAL.paintedLadies, label: bi('给彩绘女士拍张照', 'Photograph the Painted Ladies'), hint: bi('去阿拉莫广场，对着那排彩色老房子拍一张', 'Head to Alamo Square and snap the row of colourful houses') },

@@ -68,7 +68,7 @@ export interface ResidentDef {
   at: Vec2 & { heading: number };
   /** far.zones neighbourhood id of the spot */
   zone: string;
-  /** where they are, in words ("Powell & Market 转车台旁") */
+  /** where they are, in words ("鲍威尔街 · 市场街转车台旁") */
   place: Bilingual;
   idle: ResidentIdle;
   task: ResidentTask;
@@ -104,21 +104,21 @@ export const RESIDENTS: readonly ResidentDef[] = [
     key: 'gripman', id: 'npc-gripman',
     name: bi('叮当车司机 Ray', 'Ray, gripman'), short: bi('Ray', 'Ray'),
     at: { x: 128.8, z: 266.2, heading: 2.96 }, zone: 'south-of-market',
-    place: bi('Powell & Market 转车台旁', 'by the Powell & Market turntable'),
+    place: bi('鲍威尔街 · 市场街转车台旁', 'by the Powell & Market turntable'),
     idle: 'bell',
     task: {
       goal: { kind: 'ride' },
       title: bi('帮 Ray 试坐叮当车', 'Test-ride a cable car for Ray'),
       hint: bi('在转车台上车，多坐几站再下', 'Board at the turntable and ride a few stops'),
-      teaser: bi('Powell & Market 转车台旁的叮当车司机', 'A gripman by the Powell & Market turntable'),
-      target: { id: 'sf:cable-car-turntable', x: 131.58, z: 254.17, name: bi('叮当车 · Powell & Market 转车台', 'Cable car · Powell & Market turntable'), r: 4 },
+      teaser: bi('鲍威尔街 · 市场街转车台旁的叮当车司机', 'A gripman by the Powell & Market turntable'),
+      target: { id: 'sf:cable-car-turntable', x: 131.58, z: 254.17, name: bi('叮当车 · 鲍威尔街 · 市场街转车台', 'Cable car · Powell & Market turntable'), r: 4 },
     },
     task2: {
       goal: { kind: 'play', activity: 'bell' },
       title: bi('陪 Ray 摇一段铃', 'Ring a bell riff for Ray'),
       hint: bi('坐上叮当车，车开起来就能摇铃', 'Ride a cable car and ring once it rolls'),
       teaser: bi('Ray 还想请你帮个忙', 'Ray has one more favour'),
-      target: { id: 'sf:cable-car-turntable', x: 131.58, z: 254.17, name: bi('叮当车 · Powell & Market 转车台', 'Cable car · Powell & Market turntable'), r: 4 },
+      target: { id: 'sf:cable-car-turntable', x: 131.58, z: 254.17, name: bi('叮当车 · 鲍威尔街 · 市场街转车台', 'Cable car · Powell & Market turntable'), r: 4 },
     },
   },
   {
@@ -130,7 +130,7 @@ export const RESIDENTS: readonly ResidentDef[] = [
     task: {
       goal: { kind: 'deliver', to: 'gripman' },
       title: bi('把面包送给 Ray', 'Take the loaf to Ray'),
-      hint: bi('Ray 在 Powell & Market 转车台旁', 'Ray is by the Powell & Market turntable'),
+      hint: bi('Ray 在鲍威尔街 · 市场街转车台旁', 'Ray is by the Powell & Market turntable'),
       teaser: bi('北滩华盛顿广场旁的面包师', 'A baker by Washington Square in North Beach'),
       target: { id: 'npc-gripman', x: 128.8, z: 266.2, name: bi('叮当车司机 Ray', 'Ray, gripman'), r: 3 },
     },

@@ -250,7 +250,7 @@ test('verify D14: a city postcard clue leads to a spot ≈ 8 u short of the card
 
 test('verify m4: the city’s soft goal chip drops while you ride and once you stand at it; the district keeps it', () => {
   reset('city');
-  flow.set({ freeHint: { id: 'sf:cable-car-turntable', x: 134.9, z: 261, name: { zh: '叮当车 · Powell & Market 转车台', en: 'Cable car' } } });
+  flow.set({ freeHint: { id: 'sf:cable-car-turntable', x: 134.9, z: 261, name: { zh: '叮当车 · 鲍威尔街 · 市场街转车台', en: 'Cable car' } } });
   runtime.player.x = 60; runtime.player.z = 200;
   assert.equal(flowMod.objectiveTarget()?.soft, true, 'on foot: the soft chip');
   store.game.set({ move: { mode: 'transit', line: 'powell-hyde', spot: 'rail' } });

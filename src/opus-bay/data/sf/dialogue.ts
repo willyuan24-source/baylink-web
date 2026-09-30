@@ -82,11 +82,11 @@ const SCRIPTS: Record<ResidentKey, Script> = {
   baker: {
     // no "早呀 / Morning": the chat can happen at any hour of the Bay's clock (night included)
     hi: ['wave', '哈喽，我是面包师 Rosa！刚出炉的酸面包，闻到了吗？', "Hiya, I'm Rosa, the baker! Smell that? Sourdough, fresh from the oven."],
-    ask: ['happy', '能帮我把这个面包送给叮当车司机 Ray 吗？他在 Powell & Market 转车台。', "Could you take this loaf to Ray the gripman? He's at the Powell & Market turntable."],
+    ask: ['happy', '能帮我把这个面包送给叮当车司机 Ray 吗？他在鲍威尔街 · 市场街转车台。', "Could you take this loaf to Ray the gripman? He's at the Powell & Market turntable."],
     accept: bi('交给我吧', 'Leave it to me'),
     yes: ['excited', '谢谢！趁热送去，他最爱这一口～', "Thank you! Take it while it's warm — it's his favourite~"],
     no: ['happy', '好，面包我先给他留着～', "Okay, I'll keep it for him~"],
-    remind: ['thinking', '面包还热着呢！Ray 在 Powell & Market 转车台旁。', "The bread's still warm! Ray's by the Powell & Market turntable."],
+    remind: ['thinking', '面包还热着呢！Ray 在鲍威尔街 · 市场街转车台旁。', "The bread's still warm! Ray's by the Powell & Market turntable."],
     go: ['wave', '快去快回～', 'Off you go~'],
     thanks: ['excited', '送到啦？谢谢你！Ray 每天早上都等着这一口。', 'Delivered? Thank you! Ray waits for that loaf every morning.'],
     fact: ['happy', '告诉你个秘密：酸面包里有种乳酸菌，学名就叫 sanfranciscensis！', "Here's a secret: a bacterium in sourdough is named after this city — sanfranciscensis!"],

@@ -235,3 +235,23 @@ test('W7-B5: with the rider riding the F-line back and forth (their streetcar ne
     assert.deepEqual([...bus.violations(), ...cable.violations()], []);
   } finally { T.setActiveLineFleet(null); fleet.dispose(); T.setTransitData(null); }
 });
+
+test('W7-B6: zh without half-English place names — the three cable-car turntables (鲍威尔街 · 市场街转车台 …), the places, lines and goals that name the Powell & Market turntable; ids and English unchanged', async () => {
+  const FILE = JSON.parse(fs.readFileSync(path.join(PUB, 'transit.json'), 'utf8')) as import('../src/opus-bay/data/transit').TransitFileJson;
+  const data = T.buildTransit(FILE);
+  const tt = Object.fromEntries(data.turntables.map(t => [t.id, t.name]));
+  assert.deepEqual(tt['powell-market'], { zh: '鲍威尔街 · 市场街转车台', en: 'Powell & Market turntable' });
+  assert.deepEqual(tt['hyde-beach'], { zh: '海德街 · 海滩街转车台', en: 'Hyde & Beach turntable' });
+  assert.deepEqual(tt['taylor-bay'], { zh: '泰勒街 · 湾街转车台', en: 'Taylor & Bay turntable' });
+  for (const t of data.turntables) assert.doesNotMatch(t.name.zh, /[A-Za-z]/, t.id);
+  assert.equal(T.turntableZh('California Street & Drumm Street'), '加州街 · 德拉姆街转车台');
+  assert.equal(T.turntableZh('Nowhere Street & Market Street'), 'Nowhere & Market 转车台');
+  // the zh side of every place / line / goal text the day-0 scout listed
+  const zhOf = /(?:\bbi\(|\bzh: |\[\s*'[a-z]+',\s*)'([^']*)'/g;
+  for (const f of ['data/sf/attractions.ts', 'data/sf/dialogue.ts', 'data/sf/extraPlaces.ts', 'data/sf/goals.ts', 'data/sf/landmarks.ts', 'data/sf/residents.ts', 'game/cityGoals.ts']) {
+    const src = fs.readFileSync(path.resolve(import.meta.dirname, '../src/opus-bay', f), 'utf8');
+    for (const m of src.matchAll(zhOf)) if (/[一-龥]/.test(m[1])) assert.doesNotMatch(m[1], /(Powell|Hyde|Taylor) & (Market|Beach|Bay)/, `${f}: ${m[1]}`);
+  }
+  // (the Muni Metro keeps its wave-4 glossary rule, src/opus-bay/data/VOICE.md: English stays primary on the real
+  // signs, "Van Ness 站", "Carl & Cole · 科尔谷" — a decision, not a leftover)
+});

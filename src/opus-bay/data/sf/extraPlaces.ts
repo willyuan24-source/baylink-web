@@ -177,7 +177,7 @@ export const EXTRA_PLACE_SNAPS: Readonly<Record<string, { y: number; zone: strin
 export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
   'ggb-deck-mid': bi('金门大桥', 'Golden Gate Bridge'),
   'osm-w32776540': bi('苏特罗浴场遗址', 'Sutro Baths ruins'),
-  'cable-car-powell-market': bi('Powell & Market 叮当车转车台', 'Powell & Market cable-car turntable'),
+  'cable-car-powell-market': bi('鲍威尔街 · 市场街叮当车转车台', 'Powell & Market cable-car turntable'),
   'cable-car-hyde-turnaround': bi('叮当车掉头点 · 海德街', 'Cable car turnaround · Hyde & Beach'),
   'cable-car-museum': bi('叮当车博物馆', 'Cable Car Museum'),
   'twin-peaks': bi('双峰', 'Twin Peaks'),

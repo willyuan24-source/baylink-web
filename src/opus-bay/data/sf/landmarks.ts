@@ -618,7 +618,7 @@ export const SF_LANDMARK_INFO: SfLandmarkInfo[] = [
   {
     id: 'cable-car-turntable',
     placeId: 'cable-car-powell-market',
-    name: bi('Powell & Market 叮当车转车台', 'Powell & Market cable-car turntable'),
+    name: bi('鲍威尔街 · 市场街叮当车转车台', 'Powell & Market cable-car turntable'),
     zone: bi('联合广场 · 市场街', 'Union Square · Market St'),
     plaza: bi('哈勒迪广场', 'Hallidie Plaza'),
     lat: 37.78477, lng: -122.40776,
