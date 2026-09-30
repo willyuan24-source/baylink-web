@@ -94,6 +94,10 @@
 .ob-play-hold { touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .ob-play-hold:active { background: var(--ob-teal-d); transform: scale(.95); }
 @keyframes ob-play-beat { from { transform: scale(1.35); } }
+/* W7-K5 (lane W's review: 放弃 / Give up measured 74 × 36 on a phone): a finger-sized target on a touch screen */
+@media (pointer: coarse) {
+  .ob-play-chip .ob-play-btn { min-height: 44px; min-width: 44px; }
+}
 @media (max-width: 600px) {
   .ob-play-chip { max-width: calc(100vw - 24px); flex-wrap: wrap; justify-content: center; row-gap: 4px; white-space: normal; border-radius: 24px; padding: 4px 8px 4px 12px; }
   .ob-play-chip .ob-play-flight-hint { flex: 1 0 100%; justify-content: center; font-size: 12px; order: 5; }
