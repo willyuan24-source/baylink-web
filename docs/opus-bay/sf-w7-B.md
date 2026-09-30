@@ -281,7 +281,7 @@ Nothing.
 ### Checks (review)
 
 `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old warnings) · the opus-bay suite started at
-00:47 on origin `3213201b`: 1549 of ≈ 1630 tests done at 01:42 with **0 failures** (not finished at the push deadline; this is a report-only change; the log is `C:/Users/willy/opus-qa/w7/b-rev/suite-1.txt`) · after rebasing onto `e10457b5` (K-review, X3, W12–W14): the deadlock file
+00:47 on origin `3213201b`: **1634 / 1634** (finished 01:42; log `C:/Users/willy/opus-qa/w7/b-rev/suite-1.txt`; the rebase at 01:26 changed the tree under its last files) · after rebasing onto `e10457b5` (K-review, X3, W12–W14): the deadlock file
 9 / 9 with the same 47 / 7.0 s report, and `opus-bay-w7-b`, `sf-verify-c`, `w6-b`, `w6-k2-pause` 29 / 29. The review
 changes only this report. Dev server 5723 stopped; one headless Chrome at a time, none left; no PERF-LOCK met; no
 Higgsfield credits used; no relayed owner message.
