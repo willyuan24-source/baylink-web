@@ -25,7 +25,8 @@ import { waterGrid } from './water';
 /** Real positions (city frame) of the backdrop pieces in city mode (telescopes / camera subjects can aim here). */
 export const CITY_BACKDROP = {
   alcatraz: projectCity(37.8267, -122.423),
-  'alcatraz-lighthouse': projectCity(37.82652, -122.42219),
+  /** OSM way 99202294 (Alcatraz Island Lighthouse; W7-W2: was 37.82652, −122.42219, ≈ 30 m off, in the warden's garden) */
+  'alcatraz-lighthouse': projectCity(37.82625, -122.4223),
   'yerba-buena': projectCity(37.8105, -122.3637),
   'treasure-island': projectCity(37.8235, -122.3707),
   'angel-island': projectCity(37.8609, -122.4326),
@@ -327,17 +328,20 @@ function alcatraz(b: Batch, halos: HaloSpec[], def: BackdropDef, beams: BeamSpec
 }
 
 /**
- * City mode: Alcatraz itself (land, cellhouse, buildings) streams in with the city; its lighthouse (the beam that
- * sweeps the Bay at night) stands on the island's crest at its real place (ground about 7.6 u = 35 m on the curve).
+ * City mode: Alcatraz's land streams in with the city and its buildings are the T1 site world/sf/landmarks/alcatraz.ts
+ * (W7-W2); its lighthouse (the beam that sweeps the Bay at night) stands here at its OSM place by the cellhouse's east
+ * end, on the city ground there (9.0 u), 95 ft = 7.7 u tall (nps.gov/places/000/alcatraz-lighthouse.htm: the 1909
+ * tower was built to shine over the new cellhouse, so its lamp clears the cellhouse's roof and clerestory).
  */
 function alcatrazLighthouse(b: Batch, halos: HaloSpec[], beams: BeamSpec[]) {
   const { x, z } = CITY_BACKDROP['alcatraz-lighthouse'];
-  const top = 7.6;
+  const g = 9.0;
   const f = new Frame(x, 0, z, 0);
-  b.add(CYL(8, 0.8), f.at(0, top - 2.5, 0, 0, 0.75, 7.2, 0.75), '#f6f2e8', [0, top, 0, 0]);
-  b.add(CYL(8), f.at(0, top + 4.7, 0, 0, 0.85, 1.0, 0.85), '#fff1c4', [0, 0, 0, 1]);
-  b.add(CONE(8), f.at(0, top + 5.7, 0, 0, 0.95, 0.8, 0.95), '#4a5552');
-  const lamp = f.point(0, top + 5.2, 0);
+  b.add(CYL(8, 0.8), f.at(0, g - 0.5, 0, 0, 0.52, 6.7, 0.52), '#f6f2e8', [0, g, 0, 0]);
+  b.add(CYL(8), f.at(0, g + 6.1, 0, 0, 0.7, 0.18, 0.7), '#4a5552');
+  b.add(CYL(8), f.at(0, g + 6.28, 0, 0, 0.55, 0.85, 0.55), '#fff1c4', [0, 0, 0, 1]);
+  b.add(CONE(8), f.at(0, g + 7.13, 0, 0, 0.66, 0.62, 0.66), '#4a5552');
+  const lamp = f.point(0, g + 6.7, 0);
   halos.push({ x: lamp.x, y: lamp.y, z: lamp.z, size: 4, color: new THREE.Color(1, 0.9, 0.62) });
   beams.push({ x: lamp.x, y: lamp.y, z: lamp.z, length: 90, speed: 0.9 });
 }
