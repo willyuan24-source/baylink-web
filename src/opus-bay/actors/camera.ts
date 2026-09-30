@@ -6,10 +6,9 @@ import { blockersNear, canStand, cityEpoch, cityTerrain, forEachBlockerNear, hei
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { cinemaKind, currentFraming, measureBottomCover, takeFaceRequest, type Framing } from '../game/cinema';
 import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
-import { deckAt, deckCameraYaw, heroRelaxed, type DeckAt } from './deckSteer';
+import { deckAt, deckCameraYaw, heroRelaxed, heroView, preferredCameraYaw, preferredViewDir, type DeckAt } from './citySlots';
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
-import { heroView, preferredCameraYaw, preferredViewDir } from './viewField';
 import { collectObstacles, moveBasis, residents, view } from './view';
 import type { Obstacle } from './controller';
 

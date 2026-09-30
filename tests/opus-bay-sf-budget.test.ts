@@ -325,3 +325,28 @@ test('city ?debug panel (G1 w3 a3): on a phone it wraps inside the screen at 10 
   const desk = cityDebugPlacement(false, 160);
   assert.deepEqual([desk.right, desk.bottom, desk.top, desk.whiteSpace, desk.fontSize], ['8px', '96px', 'auto', 'pre', '11px']);
 });
+
+test('W7-P1 / P2: the play layer carries hudLayout; drei\'s PerformanceMonitor, discovery + the place index, the GGB deck steer, the city view field and the district cards\' texts leave GameRoot\'s static graph', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  // (measured on the production build, sf-w7-P.md: GameRoot 279.21 → 267.14 KB gzip with these moves)
+  const moved = ['game/hudLayout.ts', 'world/perfMonitor.tsx', 'game/discovery.ts', 'data/sf/places.ts', 'actors/deckSteer.ts', 'actors/viewField.ts', 'data/poiTexts.ts', 'ui/PoiCardBody.tsx'];
+  assert.deepEqual(moved.filter(m => graph.has(m)).map(why), [], 'W7-P modules back in the main graph (read them through their stand-ins / lazy imports)');
+  for (const m of ['game/hudLayoutSlot.ts', 'actors/citySlots.ts', 'ui/playLayer.tsx']) assert.ok(graph.has(m), `${m}: the stand-ins stay in the main graph`);
+  // drei (≈ 0.7 KB of PerformanceMonitor) only through world/perfMonitor.tsx: no module of the main graph imports it
+  const drei = [...graph.keys()].filter(m => /^\s*import\s+(?!type\s)[^;]*from\s+'@react-three\/drei'/m.test(fs.readFileSync(path.join(root, m), 'utf8')));
+  assert.deepEqual(drei, [], 'static drei imports in the main graph');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  // the play-layer chunk carries hudLayout (Systems reads it through the stand-ins); the city chunk carries the view field
+  assert.match(src('ui/playParts.tsx'), /^export \* as hudLayout from '\.\.\/game\/hudLayout';\r?$/m);
+  assert.match(src('game/Systems.tsx'), /from '\.\/hudLayoutSlot';/);
+  assert.match(src('world/sf/cityMode.ts'), /^import '\.\.\/\.\.\/actors\/viewField';\r?$/m);
+  // each moved actor module registers itself with the stand-ins when it loads
+  assert.match(src('actors/deckSteer.ts'), /^registerDeckSteer\(\{ deckAt, deckDip, deckWish, onDeck, heroRelaxed, deckCameraYaw \}\);\r?$/m);
+  assert.match(src('actors/viewField.ts'), /^registerViewField\(\{ heroView, preferredViewDir, preferredCameraYaw \}\);\r?$/m);
+  // the card body fills the district cards' texts before it renders; node fills them when data/pois.ts loads
+  assert.match(src('ui/PoiCardBody.tsx'), /^fillPoiTexts\(DISTRICT_POI_TEXTS\);\r?$/m);
+  // discovery: the Overlay's boot fetches it (both modes, as before); resume and the QA map export import it lazily
+  assert.match(src('ui/Overlay.tsx'), /void import\('\.\.\/game\/discovery'\)\.then\(m => \{ m\.initG1\(\); \}/);
+});

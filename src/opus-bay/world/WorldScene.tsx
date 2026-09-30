@@ -1,6 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { PerformanceMonitor } from '@react-three/drei';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { game, useGame, type TimeOfDay } from '../core/store';
@@ -36,6 +35,16 @@ function loadPost(): Promise<void> {
   return (postLoad ??= import('./post').then(m => { postMod = m; postSettled = true; }, () => { postSettled = true; /* offline: no post pass */ }));
 }
 if (typeof window !== 'undefined') void loadPost();
+/**
+ * W7-P1 (lane P, sf-w6-P.md Request 5): drei's PerformanceMonitor is its own small chunk (world/perfMonitor.tsx), fetched
+ * when play begins; it mounts 9 s later in its own Suspense (nothing else waits for it). A lost fetch: no monitor this
+ * visit (the quality stays where it started), never an error in the world.
+ */
+type Monitor = typeof import('./perfMonitor').PerformanceMonitor;
+const noMonitor = (() => null) as unknown as Monitor;
+let monitorLoad: Promise<{ default: Monitor }> | null = null;
+const loadMonitor = () => (monitorLoad ??= import('./perfMonitor').then(m => ({ default: m.PerformanceMonitor }), () => ({ default: noMonitor })));
+const PerformanceMonitor = lazy(loadMonitor);
 let timeApplied = false;
 const post$ = { focus: 0.3, warm: 0.25, vignette: 0.35, night: 0 } satisfies PostParams;
 /** seconds to the next material / shadow-depth sweep by object kind (materials.ts kindSweep; objects come and go with the city) */
@@ -163,6 +172,7 @@ export function WorldScene() {
   useEffect(() => {
     // Only judge performance once shaders are compiled and the GLBs are in (avoids downgrading on load hitches).
     if (phase !== 'playing' || locked) return;
+    void loadMonitor();
     const id = window.setTimeout(() => setMonitor(true), 9000);
     return () => window.clearTimeout(id);
   }, [phase, locked]);
@@ -170,16 +180,18 @@ export function WorldScene() {
     <>
       <primitive object={world.root} />
       {monitor && (
-        <PerformanceMonitor
-          ms={MONITOR.ms}
-          iterations={MONITOR.iterations}
-          threshold={MONITOR.threshold}
-          flipflops={MONITOR.flipflops}
-          // slow = under ≈ 50 fps on high (world/quality.ts); the upper bound is never reached: no step back up in a visit
-          bounds={() => monitorBounds(game.get().settings.quality)}
-          // this visit only: a load hitch must not lower the saved quality for good
-          onDecline={() => { declineQuality(); }}
-        />
+        <Suspense fallback={null}>
+          <PerformanceMonitor
+            ms={MONITOR.ms}
+            iterations={MONITOR.iterations}
+            threshold={MONITOR.threshold}
+            flipflops={MONITOR.flipflops}
+            // slow = under ≈ 50 fps on high (world/quality.ts); the upper bound is never reached: no step back up in a visit
+            bounds={() => monitorBounds(game.get().settings.quality)}
+            // this visit only: a load hitch must not lower the saved quality for good
+            onDecline={() => { declineQuality(); }}
+          />
+        </Suspense>
       )}
     </>
   );

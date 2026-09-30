@@ -5,7 +5,6 @@ import { loadCatalog } from '../data/catalog';
 import { DISTRICT } from '../data/district';
 import { progressExtras } from '../data/wishlist';
 import { skipCinema } from '../game/cinema';
-import { initG1 } from '../game/discovery';
 import { skipTravel, travelActive } from '../game/fastTravel';
 import {
   beginPlaying, callBaybay, initFlowListeners, closeFishing, closePanel, closePostcardReward, enterPhotoMode, noteInteractHandled, openPanel, reel, requestInteract,
@@ -172,8 +171,9 @@ function useBoot() {
     booted = true;
     const qa = readQa();
     initFlowListeners();
-    // lane G1: discovery, the HUD street name and the save v2 sampler (city mode only; district untouched)
-    initG1();
+    // lane G1: discovery, the HUD street name and the save v2 sampler (city mode only; district untouched). W7-P1: its
+    // own chunk with the place index, fetched here in both modes as before (it is in long before Start)
+    void import('../game/discovery').then(m => { m.initG1(); }, () => { /* offline: no discovery this visit */ });
     // F11: a first visit opens at golden hour (the key art's light); from the second visit the Bay clock applies
     if (!qa.time && !progressExtras().visited && game.get().settings.timeOfDay === 'auto') flow.set({ goldenFirstVisit: true });
     game.set(s => ({ settings: { ...s.settings, ...(qa.quality ? { quality: qa.quality } : {}), ...(qa.time ? { timeOfDay: qa.time } : {}) } }));

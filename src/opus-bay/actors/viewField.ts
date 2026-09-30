@@ -1,6 +1,7 @@
 import { CHUNK } from '../core/geo';
 import { cityChunkEpoch, cityTerrain, forEachBlockerNear, heightAt, inSlab, inWorld, isWater, type Blocker } from '../core/terrain';
 import { frameAt, stationOf } from '../data/district';
+import { registerViewField } from './citySlots';
 
 /**
  * Where the view is (lane E2, wave 3, E2-5): the direction worth looking toward from a spot, for the follow camera's
@@ -146,3 +147,7 @@ export function preferredCameraYaw(x: number, z: number): number {
 
 /** QA / tests: forget the cached city cells. */
 export function resetViewField() { cells.clear(); cellsOf = null; }
+
+// W7-P1 (lane P): GameRoot's graph reaches this module through actors/citySlots.ts; the city chunk (world/sf/cityMode.ts)
+// imports it, and it registers itself when it loads
+registerViewField({ heroView, preferredViewDir, preferredCameraYaw });

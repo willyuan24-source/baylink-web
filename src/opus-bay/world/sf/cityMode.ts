@@ -2,6 +2,9 @@
  * Entry of the lazy city chunk (lane C2, HC-2): loaded by `world/cityLoader.ts` only in city mode. Import city code
  * through here (or from inside the chunk), never from the main graph.
  */
+// W7-P1 (lane P): the city's view field for the follow camera rides with this chunk (it registers itself with
+// actors/citySlots.ts, before the city terrain exists; district mode answers the hero rule without it)
+import '../../actors/viewField';
 export { CityStreamer, cityStreamer } from './stream';
 export { CitySites } from './sites';
 export { CityWater } from './water';

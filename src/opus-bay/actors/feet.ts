@@ -1,6 +1,6 @@
 import { canStand, forEachBlockerNear, heightAt, inWorld, isWater, pointInPolygon, standAt, type Blocker } from '../core/terrain';
 import type { Polygon } from '../core/types';
-import { onDeck } from './deckSteer';
+import { onDeck } from './citySlots';
 
 /**
  * Wave 5 · W5-F5 forgiving feet (plan sf-w5-plan.md §2 MF2 table; walk speed, jump and stair rules unchanged). Pure

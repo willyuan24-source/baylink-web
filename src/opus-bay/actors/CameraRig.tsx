@@ -2,7 +2,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import type * as THREE from 'three';
 import { CameraController, chooseYaw, heroPoints, yawCandidates, zoneViews } from './camera';
-import { preferredViewDir } from './viewField';
+import { preferredViewDir } from './citySlots';
 import { frameStats } from './frameStats';
 
 /** Third-person follow camera (see actors/camera.ts). Runs after Actors in the frame loop. */

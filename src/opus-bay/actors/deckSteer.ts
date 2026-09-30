@@ -1,4 +1,5 @@
 import { canStand, heightAt } from '../core/terrain';
+import { registerDeckSteer } from './citySlots';
 
 /**
  * Wave 5 · W5-F6 (plan sf-w5-plan.md §2 MF2 "The GGB deck", §4.4): bridge decks the feet and the follow camera know
@@ -186,3 +187,6 @@ export function deckCameraYaw(deck: Deck, dir: number): number {
   const h = deck.heading + (dir >= 0 ? 0 : Math.PI);
   return Math.atan2(-Math.sin(h), -Math.cos(h));
 }
+
+// W7-P1 (lane P): GameRoot's graph reaches this module through actors/citySlots.ts; it registers itself when it loads
+registerDeckSteer({ deckAt, deckDip, deckWish, onDeck, heroRelaxed, deckCameraYaw });

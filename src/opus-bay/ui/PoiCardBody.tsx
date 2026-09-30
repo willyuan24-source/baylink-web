@@ -4,7 +4,8 @@ import { useGame } from '../core/store';
 import type { PoiDef } from '../core/types';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
 import { guideUrl, mapsUrl, planStopTitles, planUrl, safeHref, sourceDomain } from '../data/links';
-import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS } from '../data/pois';
+import { PHOTO_SOURCE_PAGES, POI_EXTRA_SOURCES, POI_OFFICIAL_URLS, fillPoiTexts } from '../data/pois';
+import { DISTRICT_POI_TEXTS } from '../data/poiTexts';
 import { CITY_POI_ZONES, cardOfficialUrl } from '../data/sf/cityPois';
 import { bayNow } from '../game/bayNow';
 import { closePanel, openEvent, toggleWish, tourStops } from '../game/flow';
@@ -19,6 +20,9 @@ import './content-ui.css';
 
 /** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk): the nearest real Muni stops, city mode only (R's request 1a) */
 const HowToGo = lazy(() => import('../realsf/HowToGo'));
+
+// W7-P2 (lane P): the district cards' texts come with this chunk (data/poiTexts.ts): in before any card body renders
+fillPoiTexts(DISTRICT_POI_TEXTS);
 
 /**
  * The body of the real-info card (ui/PoiCard.tsx resolves which card an id opens). F10: BAYLINK leads — the matching

@@ -17,7 +17,7 @@ import { flow } from './flowStore';
 import { BAYBAY_ID, JOGGER_ID, buildInteractables, interactableById, interactablesEpoch, postcardIdOf, setInteractables, subscribeInteractables, type Interactable } from './interactables';
 import { consumeShutter } from './shutterHook';
 import { domAnchors, overlayInsets } from './projector';
-import { type Box, hudBoxes, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, releaseHudLayout, scanHudBoxes } from './hudLayout';
+import { type Box, hudBoxes, hudBoxesVersion, hudScanCount, placeBubble, placeWaypoint, releaseHudLayout, scanHudBoxes } from './hudLayoutSlot';
 import { routeLeftTo } from './mapRoute';
 import { autoWalkSeconds, gameTimeLabel, secondsLabel } from './travel';
 import { stepTravel } from './fastTravel';
@@ -27,7 +27,6 @@ import { parseAt, readQa } from './qa';
 import { goToCitySpot } from './resume';
 import { extraProxies, sceneSystems, stepFrameSystems, subscribeSystemsRegistry, systemsRegistryEpoch } from './systemsRegistry';
 import { stepTransit } from './transit';
-import { zoneVisited } from './discovery';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { qualityDecision } from '../world/quality';
 import { registerWarmup } from '../world/warmup';
@@ -788,7 +787,7 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
 async function exportCityMap(opts: { px?: number; fog?: boolean; paper?: boolean; download?: boolean } = {}) {
   const far = cityStreamerLazy()?.far;
   if (!far) return { error: 'far.obc not loaded yet (city mode only)' };
-  const [{ drawCityMap, fitScale }, { MAP_FRAME }, { transitData }] = await Promise.all([import('../ui/cityMapDraw'), import('../data/mapPaper'), import('../data/transit')]);
+  const [{ drawCityMap, fitScale }, { MAP_FRAME }, { transitData }, { zoneVisited }] = await Promise.all([import('../ui/cityMapDraw'), import('../data/mapPaper'), import('../data/transit'), import('./discovery')]);
   const w = Math.max(256, Math.min(8192, Math.round(opts.px ?? 4096)));
   const h = Math.round((w * (MAP_FRAME.maxZ - MAP_FRAME.minZ)) / (MAP_FRAME.maxX - MAP_FRAME.minX));
   const cv = document.createElement('canvas');

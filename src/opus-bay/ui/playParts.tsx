@@ -18,3 +18,6 @@ export { Hud, RideBanner } from './Hud';
 export { FishGame, GoalsCard, PhotoMode, PostcardReward, Recap } from './Moments';
 export { PoiCard } from './PoiCard';
 export { TouchControls } from '../actors/TouchControls';
+// W7-P1: the bubble / waypoint placement around the fixed HUD (game/Systems.tsx reads it through game/hudLayoutSlot.ts)
+// eslint-disable-next-line react-refresh/only-export-components -- a plain module the play layer carries, not a component
+export * as hudLayout from '../game/hudLayout';

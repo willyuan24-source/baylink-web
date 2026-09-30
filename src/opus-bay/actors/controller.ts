@@ -4,7 +4,7 @@ import { runtime } from '../core/runtime';
 import { canStand, cityTerrain, groundPending, heightAt, inWorld, nearestWalkable, pushOutOfBlockers, surfaceAt, blockersNear } from '../core/terrain';
 import type { SurfaceKind, Vec2 } from '../core/types';
 import { DISTRICT } from '../data/district';
-import { deckAt, deckDip, deckWish, type DeckAt, type DeckWish } from './deckSteer';
+import { deckAt, deckDip, deckWish, type DeckAt, type DeckWish } from './citySlots';
 import { FEET, corridorAt, vaultPlan, type VaultPlan } from './feet';
 import { findPath, pathLength } from './nav';
 import { RouteFollower, isLongRoute } from './routeFollow';
