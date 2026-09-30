@@ -237,3 +237,78 @@ suite (below).
   and `W5-bus 20+ simulated minutes` is the failure `origin/opus-bay` has on its own (see part c, Requests to lane B).
 - This lane's commits: W7-Q1 … W7-Q10 (the last is this section).
 
+
+## Review (W7-Q-review, 2026-09-30 00:13–01:40 PDT)
+
+Adversarial reviewer, worktree `C:/Users/willy/wt/w7-q-rev` (from `origin/opus-bay` 0746cafa), dev port 5722, scratch
+`C:/Users/willy/opus-qa/w7/q-rev/`.
+
+### 给主人的摘要
+
+1. Lane Q 的 iPhone 改动我逐个提交读过、在手机尺寸和桌面上试玩过：点「开始」那一下解锁声音的接线是对的（Chrome 里用 `?unlock=1` 看到：点一下 primes 2、到站后 context running、unlocked），但苹果的规则只能在真 iPhone 上确认——请按 `iphone-checklist.md` 第 1 步听雾笛。
+2. 找到并修好两个问题：(a) 手机上面板（旅行本、小铺等）停在最低一档时，手指一按住标题栏，面板会先"掉下去"一截（390×664 上从 320 px 掉到 232 px），现在按住不再跳；(b) 相册第一次存照片时，Firefox 浏览器会弹出一个"是否允许持久存储"的系统对话框，现在 Firefox 上不再问（Safari / Chrome 不弹窗，照旧问一次）。
+3. 没有阻挡上线的问题。district 模式（`?world=district`）桌面画面和设置面板照旧。
+
+### What was checked
+
+- Every lane commit read (7d7f5772, b2a3290d, 4fdca8a1, d0b9242f, b0660505, d263377b, 987388f0, 39d46e8e, 9690c56d,
+  cd5a9da1) against the brief (lead §3 row Q) and the iOS scout (read in full).
+- **Audio unlock** (`audio/unlock.ts`, `audio.ts`): the prime runs synchronously inside the click (OpusBayPage.start;
+  React dispatches inside the native click); a title-tap prime from `onGesture` that lands before the Start prime cannot
+  suspend the context afterwards (its `settle` sees `startPrimed`); sound off at Start: the context runs until `goLive` →
+  `applySettings` → `suspendSoon` (350 ms); dispose releases the shared context; Chrome / Android untouched
+  (`gestureUnlockNeeded` false). Played at 390 × 844 dpr 3 with `?unlock=1&debug=1`: before the tap `suspended`, `shared`,
+  0 primes; the Start click → primes 2, `startPrimed`; after the arrival `running`, `unlocked: true`, the page's one
+  context. The ?debug phone lines read `audio running a1 u1 p2 · clips 42 12.4MB ev0` (scratch `p-arrival.jpg`).
+- **Voice LRU** (`voice.ts`): Map-order LRU, deletes during iteration are safe, null markers / barks / stop pins never
+  evicted, `dispose` clears; the boot preload (38 city lines + barks = 42 clips, 12.4 MB measured) fits under 64 / 32 MB.
+- **Context loss** (`ui/glHealth.ts`): preventDefault, `flushSave`, one card (zh / en / 繁體 text written out, 44 px
+  button), R3F's forced loss after unmount ignored via `isConnected`; district gets the same card only on a real loss.
+- **Album** (`game/album.ts`, `ui/shareFile.ts`, `ui/Album.tsx`): the reopen-once `run()`, a put retried after a failed
+  transaction is idempotent (keyPath ids), the 3 s open timeout, `保存` = `{ files }`, the long-press route for in-app
+  browsers / iOS without file sharing, no false toast. Found: `persist()` on Firefox (below).
+- **Touch / CSS**: `iosTouch.ts` (gesture events, focusout / visualViewport scroll-back never while typing); the
+  `:where()` pan rules; the phone sheet floor; `.ob-overlay.has-panel .ob-bar` (the bar exists only ≤ 600 px, so desktop is
+  unaffected); the landscape column: at 844 × 340 (zh, touch) the six round buttons sit at y 30…328, 设置 on top at
+  30–74 (44 px) — on screen (scratch `l844x340.jpg`). Found: the sheet floor's drag-start jump (below).
+- **Desktop / district**: 1440 × 900 `?world=district&start=free` with Settings open — HUD, column and Settings as in
+  wave 6, no silent-mode line on desktop (scratch `d-district-settings.jpg`).
+- Per-frame allocations: none added (the ?debug line refreshes once a second, only with `?debug=1`).
+
+### Defects fixed (commit 67463325, tests red then green)
+
+1. **A phone sheet held at the W7-Q7 floor dropped under the finger when a drag started.** The 320 px floor applies
+   only `:not(.is-dragging)`; a pointerdown on the head adds `.is-dragging`, and the drag began from the snap's
+   percentage, so the sheet fell to `--ob-sheet-h` before the finger moved. Measured at 390 × 664 (the journal dragged
+   to the 35 % snap, then held): **before 320 → 232 px** (the 35dvh height under `.is-dragging`), **after 320 → 320 px**
+   (`--ob-sheet-h` 48.19dvh); a tap still steps to 70 % (465 px). Same drop for the shop's 38 % snap (320 → 210 px at
+   375 × 553) and the 35 % snap on the 390 × 844 hero phone (320 → 295 px). Fix: `ui/sheetDrag.ts` `sheetDragStart`
+   (the shown height where the floor holds the sheet more than 0.5 % above its snap), used by the Sheet's
+   `onPointerDown` (`ui/common.tsx`). Test `tests/opus-bay-w7-q-review.test.ts` (red: the module and the call were
+   missing).
+2. **Firefox raised a permission popup at the first photo.** `navigator.storage.persist()` in Gecko asks the user
+   ("In Firefox, when a site chooses to use persistent storage, the user is notified with a UI popup" —
+   https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria, checked
+   2026-09-30); Safari and Chromium decide silently. `askPersist` now skips Gecko (`Gecko/<n>` in the UA; FxiOS is
+   WebKit and keeps the ask). Test in `tests/opus-bay-w7-q-album.test.ts` (red: persist asked once on Firefox desktop).
+
+### Checks
+
+- On the fixed tree before the push: `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (43 old
+  warnings) · suite **1634 tests, 1632 pass**: `E2-5 view field in the city` (a timing test, my Chrome was running)
+  passed alone (`opus-bay-sf-move2` 24 / 24); `W5-bus 20+ simulated minutes` is the failure `origin/opus-bay` has on its
+  own (the baseline run of the untouched tree failed the same test, 1 fail).
+
+### Open items (not blocking)
+
+- Real-iPhone only (the checklist covers them): WebKit's gesture rule for the unlock, 存储图像, WeChat's long press on the
+  `data:` photo, iOS context loss, `svh` / safe-area values, the iOS 26 floating bar.
+- The IndexedDB 3 s open timeout falls back to memory for the whole page; on a very starved main thread a slow success
+  could lose the race (then that page's photos live in memory — the sheet says so). Rare; left as is.
+- `watchGl`'s listeners are removed on the next event after the canvas leaves the page (GameRoot drops the disposer);
+  harmless (one renderer reference until the next visibility change).
+- Lane Q's requests stand (lane B's deadlock test, W7-Z's `--pool tile` row, lane K's goals card at 844 × 340).
+
+### Blocking the go-live
+
+- None.
