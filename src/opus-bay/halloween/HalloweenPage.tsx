@@ -10,6 +10,7 @@ import { goTo } from '../game/goTo';
 import { useT } from '../i18n';
 import { CostumeArt } from './costumeArt';
 import { pumpkinsFound, pumpkinTotal } from './hunt';
+import { HalloweenPostcardGrid } from './playPostcardGrid';
 import { halloweenGoals } from './progress';
 import { halloweenPhase, type HalloweenPhase } from './season';
 import { candyCount, doorsKnocked, pageSourceOf, streetGoOffered } from './treat';
@@ -70,6 +71,9 @@ export default function HalloweenPage() {
           );
         })}
       </ul>
+
+      {/* W7-G1: the four Halloween postcards (also in the notebook's 发现 page, which keeps them after 2 November) */}
+      <HalloweenPostcardGrid where="page" />
 
       <h3 className="ob-hw-h">{t(`糖果袋 · ${bag} 颗`, `Candy bag · ${bag}`)}<span className="ob-nb-h-count">{t(`敲开 ${knocked}/${doors.length} 户`, `${knocked}/${doors.length} doors`)}</span></h3>
       <ul className="ob-hw-list">

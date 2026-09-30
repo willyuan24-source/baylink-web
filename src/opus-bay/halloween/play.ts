@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { isPaid } from '../economy/ledger';
 import { openJournal, registerJournalTab, registerPillBadge } from '../ui/slots';
 import { initCostumes } from './costume';
+import { initHalloweenPostcards } from './playPostcardRun';
 import { goalsDoneText } from './progress';
 import { inHalloween } from './season';
 import { CandyBadge } from './treatBadge';
@@ -21,12 +22,17 @@ const PumpkinIcon = () => createElement('span', { 'aria-hidden': true, style: { 
  *   the 万圣节 page   halloween/HalloweenPage.tsx — a Journal tab in the season: the three goals (progress.ts), the
  *                    candy bag and the streets (带我去), the pumpkins found, the costumes
  *
+ *   postcards        halloween/playPostcardRun.ts (W7-G1) — the four Halloween postcards at their moments (playPostcards.ts
+ *                    gates on the ledger; the `h-postcard` overlay), kept in the notebook after the season
+ *
  * DEV / QA: `__opusBay.g` — `knock(n)` knocks on door n from anywhere, `look(n, out)` stands in front of it, `page()` opens the 万圣节 page, `stats()` (phase, built streets, triangles, the
- * door answering, the bag).
+ * door answering, the bag), `card(id)` opens a Halloween postcard as if just earned, `cards()` the ones waiting.
  */
 export function initHalloweenPlay(): () => void {
   const treat = initTreat();
-  const offs: (() => void)[] = [treat.off, registerPillBadge({ id: 'g-candy', order: 11, Component: CandyBadge }), injectCandyCss(), initCostumes()];
+  // W7-G1: the four Halloween postcards at their moments (the ledger's gates; the `h-postcard` overlay)
+  const cards = initHalloweenPostcards();
+  const offs: (() => void)[] = [treat.off, cards.off, registerPillBadge({ id: 'g-candy', order: 11, Component: CandyBadge }), injectCandyCss(), initCostumes()];
   // the 万圣节 page: a Journal tab while the season lasts (after 手帐 7, before 明信片 10)
   let offTab: (() => void) | null = null;
   const tab = () => {
@@ -39,7 +45,7 @@ export function initHalloweenPlay(): () => void {
   offs.push(() => { clearInterval(tabTimer); offTab?.(); offTab = null; });
   if (typeof window !== 'undefined' && (import.meta.env?.DEV || import.meta.env?.VITE_OPUS_QA === '1')) {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    w.__opusBay = { ...(w.__opusBay ?? {}), g: { knock: treat.knock, look: treat.look, stats: treat.stats, page: () => openJournal('halloween') } };
+    w.__opusBay = { ...(w.__opusBay ?? {}), g: { knock: treat.knock, look: treat.look, stats: treat.stats, page: () => openJournal('halloween'), card: cards.show, cards: cards.pending } };
   }
   return () => { for (const off of offs.splice(0).reverse()) off(); };
 }

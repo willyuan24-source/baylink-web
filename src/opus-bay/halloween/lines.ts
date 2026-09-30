@@ -52,7 +52,18 @@ export const HALLOWEEN_LINES: readonly HalloweenLine[] = [
   { id: 'w6g-goal-done', when: 'the Halloween goal done (five doors)', zh: '敲开了五户人家的门，糖果袋满满的！', en: 'Five doors knocked — our candy bag is full!' },
 ];
 
-const BY_ID = new Map(HALLOWEEN_LINES.map(l => [l.id, l]));
+/**
+ * Wave 7 · lane G · the new fixed lines of wave 7 (lane X records them into data/sf/voiceW7.ts; kept apart from the
+ * wave-6 table, whose recordings tests/opus-bay-w6-x.test.ts checks line by line). Same rules as above.
+ */
+export const W7_HALLOWEEN_LINES: readonly HalloweenLine[] = [
+  // --- the Halloween postcards (halloween/playPostcardRun.ts: said when a card is kept) --------------------------------
+  { id: 'w7g-postcard-keep', when: 'a Halloween postcard was kept (its card closed)', zh: '万圣节明信片收进手帐啦，随时都能翻出来看！', en: 'The Halloween postcard’s in our notebook — we can look at it any time!' },
+  // --- the pelican's costume (the 小铺's rides shelf) -----------------------------------------------------------------
+  { id: 'w7g-costume-bat-wings', when: 'the pelican wears the bat wings (first time a session)', zh: '鹈鹕也扮成小蝙蝠啦，扑扇扑扇！', en: 'Our pelican’s a little bat now — flap, flap!' },
+];
+
+const BY_ID = new Map([...HALLOWEEN_LINES, ...W7_HALLOWEEN_LINES].map(l => [l.id, l]));
 
 /** A line by id as a bubble text ({ zh, en }); throws on an unknown id (a typo would be a silent bubble). */
 export function hLine(id: string): Bilingual {

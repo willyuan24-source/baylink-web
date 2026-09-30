@@ -5,6 +5,7 @@ import {
   Ticket, TrainFront, TramFront, Trees, Trophy, Waves, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { readWorldMode } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { ATTRACTION_AREAS, type AttractionArea } from '../data/sf/attractionTypes';
 import { EGG_POSTCARDS, type EggPostcard } from '../data/sf/eggPostcards';
@@ -12,6 +13,9 @@ import { bayParts } from '../game/bayNow';
 import { discoveredIds, visitedZoneIds } from '../game/discovery';
 import { goTo } from '../game/goTo';
 import { CITY_SOUNDS } from '../eggs/citySounds';
+import { HalloweenPostcardGrid } from '../halloween/playPostcardGrid';
+import { showCardsBlock } from '../halloween/playPostcards';
+import { inHalloween } from '../halloween/season';
 import { PEBBLE_IDS, pebbleRewardSource } from '../eggs/pebbleSpots';
 import { ALL_EGGS, EGG_AREAS, EGG_AREA_NAMES } from '../eggs/registry';
 import { useT } from '../i18n';
@@ -233,6 +237,8 @@ function FindsPage({ seen }: { seen: (k: string) => boolean }) {
   return (
     <>
       <SecretPostcards />
+      {/* W7-G1 (lane G, surgical): the Halloween postcards — in the season, and after it once one is earned */}
+      {readWorldMode() === 'city' && showCardsBlock(isPaid, inHalloween()) && <HalloweenPostcardGrid where="notebook" />}
       <Pebbles />
       {EGG_AREAS.map(area => {
         const eggs = ALL_EGGS.filter(e => e.area === area);
