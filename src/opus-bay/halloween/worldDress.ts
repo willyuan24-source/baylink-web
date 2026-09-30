@@ -265,8 +265,10 @@ export function stoopsByDoors(): ReadonlySet<number> {
     if (d.gone) continue;
     for (const p of [{ x: d.x, z: d.z }, { x: d.x + Math.sin(d.f) * KNOCK_OUT, z: d.z + Math.cos(d.f) * KNOCK_OUT }]) {
       for (let i = 0, n = stoopCount(); i < n; i++) {
-        const o = i * STOOP_STRIDE;
-        if (Math.hypot(STOOPS[o] / 10 - p.x, STOOPS[o + 1] / 10 - p.z) < DOOR_CLEAR) byDoor.add(i);
+        const o = i * STOOP_STRIDE, dx = STOOPS[o] / 10 - p.x;
+        // (part c) a cheap reject first: ≈ 220k pairs once, at the first stoop index
+        if (dx > DOOR_CLEAR || dx < -DOOR_CLEAR) continue;
+        if (Math.hypot(dx, STOOPS[o + 1] / 10 - p.z) < DOOR_CLEAR) byDoor.add(i);
       }
     }
   }

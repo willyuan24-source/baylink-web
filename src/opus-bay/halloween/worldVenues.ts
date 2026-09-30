@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { canStand, heightAt, isWater, surfaceAt } from '../core/terrain';
 import { KIT_FOOTPRINT } from '../realsf/eventKit';
 import { activeEventsAt, type EventWindow } from '../realsf/events';
-import type { KitKind } from '../realsf/eventVenues';
+import { EVENT_VENUES, type KitKind } from '../realsf/eventVenues';
 import { BOX, M, Batch, type Info } from '../world/builder';
 import { TOY } from '../world/materials';
 import { addPumpkin } from './worldDress';
@@ -25,6 +25,14 @@ import type { HaloSpot } from './worldHalos';
 export const PUMPKIN_EVENTS: readonly string[] = ['sf-sunnydale-pumpkin-fest-2026', 'sf-thrive-thrill-o-ween-2026'];
 /** built within this of the kit (u) */
 export const VENUE_NEAR = 140;
+/**
+ * (W7-H7 part c) The kits that can hold a pumpkin event (lane S's venue rows listing one): the catalog is only scanned
+ * (activeEventsAt, ≈ 300 events) when the player is within VENUE_NEAR of one of them — elsewhere the step costs a few
+ * distance checks.
+ */
+export const PUMPKIN_KITS: readonly { x: number; z: number }[] = EVENT_VENUES
+  .filter(v => v.events.some(e => PUMPKIN_EVENTS.includes(e)))
+  .map(v => v.kitAt ?? { x: v.x, z: v.z });
 /** BAYBAY's line within this of the kit (u) */
 export const VENUE_LINE_NEAR = 30;
 
@@ -103,7 +111,8 @@ export function createVenuePatches(active: (now?: Date) => EventWindow[] = activ
     group,
     step: (px, pz, on, now) => {
       let want: EventWindow | null = null;
-      if (on) for (const w of active(now)) {
+      const nearKit = on && PUMPKIN_KITS.some(k => Math.hypot(k.x - px, k.z - pz) < VENUE_NEAR);
+      if (nearKit) for (const w of active(now)) {
         if (!PUMPKIN_EVENTS.includes(w.event.id)) continue;
         const at = w.venue.kitAt ?? { x: w.venue.x, z: w.venue.z, yaw: 0 };
         if (Math.hypot(at.x - px, at.z - pz) < VENUE_NEAR) { want = w; break; }

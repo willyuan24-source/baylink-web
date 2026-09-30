@@ -157,6 +157,15 @@ test('W7-H6 muertos on 2 November: the walkers come at 18:00, walk from 19:00, g
 test('W7-H7 pumpkin patches at the pumpkin events: beside S\'s kits, only in the catalog\'s window, mirrored, carved faces glow', async () => {
   const ids = new Set(EVENT_VENUES.flatMap(v => v.events));
   for (const id of WV.PUMPKIN_EVENTS) assert.ok(ids.has(id), `${id} has a venue row (lane S)`);
+  assert.equal(WV.PUMPKIN_KITS.length, 2, 'Sunnydale and Thrive City');
+  // far from both kits the catalog is never scanned
+  let scans = 0;
+  const far = WV.createVenuePatches(() => { scans++; return []; }, () => true, () => 5);
+  far.step(0, 0, true);
+  assert.equal(scans, 0);
+  far.step(WV.PUMPKIN_KITS[0].x + 3, WV.PUMPKIN_KITS[0].z, true);
+  assert.equal(scans, 1);
+  far.dispose();
   const sunny = EVENT_VENUES.find(v => v.events.includes('sf-sunnydale-pumpkin-fest-2026'))!;
   const kit = sunny.kitAt!;
   const spots = WV.patchSpots(kit, sunny.kit);
