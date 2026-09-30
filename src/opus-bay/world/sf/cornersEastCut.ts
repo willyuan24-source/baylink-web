@@ -188,7 +188,13 @@ function cupid(b: BatchLike) {
     b.tri(a, c, e, FEATHER, NONE);
     b.tri(c, a, e, FEATHER, NONE);
   }
-  return { foot: W(S0.u, 0), tip: W(tip.u, 0) };
+  // W7-W1-review: the bow's lower limb and the arrow's lower shaft stand at a walker's height on the lawn: soft
+  // obstacles every ≈ 0.45 u along them (the feet alone let a walker pass through the sculpture)
+  const low: THREE.Vector3[] = [];
+  const keep = (u: number, y: number) => { const p = W(u, 0); if (y < 2.0 && low.every(q => q.distanceTo(p) > 0.45)) low.push(p); };
+  for (let k = 0; k <= 40; k++) { const q = Q(k / 40); keep(q.u, q.y); }
+  for (let k = 0; k <= 40; k++) { const t = -0.5 + (k / 40) * (tGround + 0.5); keep(mid.u + d.u * t, mid.y + d.y * t); }
+  return { foot: W(S0.u, 0), tip: W(tip.u, 0), low };
 }
 
 /** the redwood grove's trunks (world), inside the district's r 4 circle; deterministic */
@@ -255,10 +261,10 @@ export function buildEastCut(): { deck: THREE.Mesh; toy: THREE.Mesh; triangles: 
   const toy = new THREE.Mesh(TypedBatch.toGeometry(a), TOY);
   toy.name = 'sf:east-cut:toy';
   for (const m of [deckMesh, toy]) { m.castShadow = false; m.receiveShadow = true; m.matrixAutoUpdate = false; }
-  return { deck: deckMesh, toy, triangles: ad.indexCount / 3 + a.indexCount / 3, cupidFeet: [feet.foot, feet.tip] };
+  return { deck: deckMesh, toy, triangles: ad.indexCount / 3 + a.indexCount / 3, cupidFeet: [feet.foot, feet.tip, ...feet.low] };
 }
 
-/** the corner's soft obstacles (world): the redwood trunks, the fountain, the sculpture's feet */
+/** the corner's soft obstacles (world): the redwood trunks, the fountain, the sculpture's feet and its low bow limb / shaft */
 export function ecObstacles(cupidFeet: readonly { x: number; z: number }[]): Obstacle[] {
   return [
     ...redwoods().map(p => ({ x: p.x, z: p.z, r: 0.28, kind: 'static' as const })),

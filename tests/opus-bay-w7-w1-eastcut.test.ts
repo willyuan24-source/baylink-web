@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCityTerrain, landmarkWalkInputs } from '../src/opus-bay/core/sfTerrain';
-import { STAND_RADIUS, canStand, setCityTerrain } from '../src/opus-bay/core/terrain';
+import { STAND_RADIUS, canStand, heightAt, setCityTerrain } from '../src/opus-bay/core/terrain';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { ATTRACTION_INDEX } from '../src/opus-bay/data/sf/attractions';
 import { SENTINEL_H, SENTINEL_OSM, SENTINEL_RING, nbDropLots } from '../src/opus-bay/world/sf/cornersNB';
@@ -110,4 +110,22 @@ test('W7-W12 the corner walks in city mode: obstacles clear of the graph and the
     assert.ok(canStand(174, 120, STAND_RADIUS) && onDeck(174, 120), 'under the deck');
     assert.ok(TC_RING.length >= 10);
   } finally { setCityTerrain(null); }
+});
+
+test('W7-W1-review: Cupid\'s Span\'s low bow limb and arrow shaft are solid (a walker on the lawn cannot pass through them)', () => {
+  const ec = buildEastCut();
+  const obs = ecObstacles(ec.cupidFeet.map(v => ({ x: v.x, z: v.z })));
+  const y0 = heightAt(CUPID.x, CUPID.z);
+  const pos = ec.toy.geometry.getAttribute('position');
+  let low = 0;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i) - y0, z = pos.getZ(i);
+    // the sculpture's vertices at a walker's body height (the lawn up to 1.5 u)
+    if (Math.hypot(x - CUPID.x, z - CUPID.z) > 10 || y < 0.1 || y > 1.5) continue;
+    low++;
+    const d = Math.min(...obs.map(o => Math.hypot(o.x - x, o.z - z) - o.r));
+    assert.ok(d <= 0.2, `the sculpture at (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)}) is ${d.toFixed(2)} u outside every obstacle`);
+  }
+  assert.ok(low >= 8, `${low} low vertices`);
+  ec.deck.geometry.dispose(); ec.toy.geometry.dispose();
 });

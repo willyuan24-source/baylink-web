@@ -301,3 +301,82 @@ Started 23:40 PDT (part b committed as `f2843de8`; its full suite on the rebased
   look / attractions / transit-review / hero regression / landmarks / budget tests 87 / 87, then 52 / 52.
 - District mode: untouched (every change is in the city worker's fill or city-only world systems; lot-117 and lot-211
   are hidden in city mode only; the hero regression is green).
+
+## Review
+
+Adversarial review of lane W1 (W7-W11 `7e93789a`, W7-W12 `dc9f1099`, W7-W13 `30028e90`, W7-W14 `9338460a`) by
+W7-W1-review, 00:47–01:40 PDT, worktree `C:/Users/willy/wt/w7-w1-rev` on `67e20f0a`, dev port 5728, scratch
+`C:/Users/willy/opus-qa/w7/w1-rev/`.
+
+### 给主人的摘要
+
+1. W1 这条线做的东西（金融区南边补上 39 栋房子、Salesforce 屋顶公园、丘比特之箭、红杉林、哨兵大厦、潘帕尼托号潜艇）都在，
+   桌面和手机上都看过，手工区（district 模式）的开局画面没有变化。
+2. 找到并修好一个问题：丘比特之箭只有「脚」两处挡人，小人在草坪上可以直接穿过弓身下半段和箭杆。现在弓和箭在人身高度的部分都会挡路，
+   草坪其余地方照样能走；先写了会失败的测试，修好后通过。
+3. 性能：ferry-gate 105 次绘制 / 35.9 万三角形（上限 40 万，W6-Z 是 36.5 万），fidi 100 / 27.1 万，chinatown 122 / 28.9 万，
+   pier45 85 / 18.0 万，和本线报告的数一致。手机帧率这次没法量准（量的时候全量测试同时在跑），交给 W7-Z 在空机上复测。
+4. 不挡上线（没有 BLOCKING 项）。没做完的（唐人街宝塔楼群、奥布莱恩号、北滩收尾）是本线自己报告过的缺口，不是毛病。
+
+### What was checked
+
+- Every commit of the lane read (`git show`): `cornersNB.ts` (SEAM_REGIONS, seamRegionAt, SEAM_DROP_LOT_IDS, the
+  Sentinel ring), `seam-fill.mts`, `cornersSeamData.ts`, `cornersEastCut.ts`, `wharfShips.ts`, `cityWorld.ts`
+  (registration + detach), `cornersNorthBeach.ts` (NB_BUDGET), the `sentinel-building` row of `attractions.ts`, the
+  three new tests and the report.
+- Teardown / world switch: both systems return from `World.addSystem`, whose remover takes the group out of the root and
+  calls `dispose` (geometries disposed, TOY shared, the obstacle source unregistered); the deck's per-frame test
+  (`deckHidden` → `inRing` / `ringDist`) allocates nothing; the ship's `update` returns at once once built.
+- District mode: every change is city-only (city WorldSystems, the city worker's seam fill, `lot-117` dropped through
+  `cityDropLots` in city mode only); `?world=district` start view shot `district-start.jpg`: unchanged (the hero
+  regression is in the suite).
+- Played (budget-views, desktop 1440 × 900 quality high golden, and phone 390 × 844 dpr 3 quality mid; every JPEG read,
+  in `bv1/` and `bv-phone/`): the Transit Center from the street (`deck-street`) and a walker beside it (`deck-walk`: the
+  deck shows, lawn and trees on top), Cupid's Span from the promenade and walking on the lawn on the phone, the Sentinel
+  (copper-green bands, dome), the Pampanito from the water, the start band over the Embarcadero on the phone
+  (`start-sw`: the FiDi fill reads as a filled downtown, the Muni kiosk keeps its forecourt).
+- Calls / triangles (desktop high, the perf spots' own positions): fidi 100 / 270.8k · ferry-gate 105 / 358.8k (< W6-Z's
+  365k, gate 400k) · chinatown 122 / 289.5k · pier45 85 / 179.6k — the lane's numbers within actor noise. Phone
+  (quality mid): start-sw 98 / 342k, fidi 97 / 270k.
+- Phone fps (`w4-perf.mjs --mobile --dpr 3 --quality mid --throttle 4`, fidi and ferry-gate): 17–22 fps, measured while
+  the full suite (concurrency 4) ran on the same machine — **not a valid reading** (W6-Z's ≥ 45 was on an idle machine
+  under PERF-LOCK); no paired baseline was possible in the time.
+- Static sweep on the current tree (after the fix): 694 targets · ok 547 · CORRIDOR 146 · **BOXED 0 · SNAG 0** ·
+  UNREACHABLE 1 (`trip:ss-jeremiah-obrien`, as the lane reported). The one CORRIDOR more than the lane's run is
+  `cable:powell-geary` (98, 235), far from anything of this lane (later lanes' tree).
+- Facts re-checked on the web 2026-09-30: Cupid's Span "golden curves of the bow", red feathers, fiberglass and steel,
+  60–70 ft (https://en.wikipedia.org/wiki/Cupid%27s_Span , https://www.kreysler.com/projects/all/sculpture/cupid-span ,
+  sfchronicle.com's Oldenburg piece in the search results); USS Pampanito 311 ft 6 in, a 4-inch/50 deck gun on the
+  **forward** main deck (https://en.wikipedia.org/wiki/USS_Pampanito , https://maritime.org/tour/fdeck.php ,
+  https://maritime.org/tech/fire.php) — the model's gun forward of the sail is right. Not verifiable in the time: which
+  way the Pampanito's bow points at her berth (the model takes OSM's west end as the bow).
+- zh / en / 繁體 text, touch targets, save format, audio: the lane added no UI, no strings, no save fields, no audio.
+
+### Defects fixed
+
+1. **Cupid's Span could be walked through** (`cornersEastCut.ts`). Only the bow's lower tip and the arrow's point had
+   soft obstacles (r 0.35); the bow's lower limb (≈ 2.7 u of it below 1.6 u, from the foot toward the grip) and the
+   arrow's lower shaft (≈ 3 u below 1.6 u, from the grip down to the lawn) stood at a walker's height on the walkable
+   Rincon lawn with no collision — a walker passed through the sculpture.
+   - Before: new test `W7-W1-review: Cupid's Span's low bow limb and arrow shaft are solid` **red** — "the sculpture at
+     (189.08, 0.12, 11.17) is 0.34 u outside every obstacle".
+   - Fix: `cupid()` also returns the bow's centreline points and the shaft's points below 2 u, one every ≥ 0.45 u; they
+     join `cupidFeet` and become soft obstacles (r 0.35) like the feet. The grip (≈ 2.2 u up) stays open.
+   - After: green; the lane's four East Cut tests stay green (the new obstacles are on the lawn, > r + 0.3 u from every
+     graph edge, clear of the district's roadways / tracks / lots and ≥ 1.5 u from the lawn's benches and trees); the
+     static sweep unchanged (0 BOXED / 0 SNAG).
+
+### Open items (not blocking)
+
+- Phone fps at fidi / ferry-gate after this lane (+5 calls / +8k tris at fidi, +5 / +5k at ferry-gate on desktop) was
+  not measured on an idle machine by the lane or by this review: **W7-Z** should include fidi and ferry-gate phone
+  walks in its final verify (both were at the 45 fps floor in W6-Z).
+- The Salesforce Park deck pops out when the player comes within 2.5 u of the Transit Center (a design choice the lane
+  recorded; no collision on the deck).
+- The lane's own not-done list stands: Chinatown's pagoda cluster, the SS Jeremiah O'Brien and its arrival (the Pier 35
+  promenade has no graph edge within 3 u — the lane's request), the North Beach leftovers.
+- The Pampanito's bow direction at the berth is unverified (see above).
+
+### BLOCKING for the go-live to main
+
+- None.
