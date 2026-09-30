@@ -298,6 +298,8 @@ Adversarial reviewer, worktree `C:/Users/willy/wt/w7-q-rev` (from `origin/opus-b
   warnings) · suite **1634 tests, 1632 pass**: `E2-5 view field in the city` (a timing test, my Chrome was running)
   passed alone (`opus-bay-sf-move2` 24 / 24); `W5-bus 20+ simulated minutes` is the failure `origin/opus-bay` has on its
   own (the baseline run of the untouched tree failed the same test, 1 fail).
+- After the rebase onto `origin/opus-bay` e10457b5 (it brought W7-B9, which pins the Bay clock in the deadlock proof):
+  tsc 0 · eslint 0 errors (43 old warnings) · suite **1647 / 1647**.
 
 ### Open items (not blocking)
 
