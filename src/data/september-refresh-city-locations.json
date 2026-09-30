@@ -1,0 +1,32 @@
+{
+  "Corte Madera": {
+    "lat": 37.932,
+    "lng": -122.508,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Fairfax": {
+    "lat": 37.989,
+    "lng": -122.595,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Mountain View": {
+    "lat": 37.400,
+    "lng": -122.079,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Point Reyes Station": {
+    "lat": 38.085,
+    "lng": -122.809,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "San Lorenzo": {
+    "lat": 37.676,
+    "lng": -122.136,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  }
+}

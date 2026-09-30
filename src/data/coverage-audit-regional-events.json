@@ -1,0 +1,129 @@
+[
+  {
+    "id": "daly-city-top-of-the-hill-festival-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "region": "peninsula",
+    "city": "Daly City",
+    "venue": "Mission Street × John Daly Boulevard",
+    "category": "culture",
+    "cost": "free",
+    "imageKey": "autumn-neighbors",
+    "title": "Daly City Top of the Hill：免费街区音乐与文化节",
+    "dateLabel": "10 月 17 日 · 12:00–18:00",
+    "costLabel": "全年龄免费入场 · 餐饮与购物另付",
+    "summary": "第三届 Top of the Hill Festival 回到 Mission Street 与 John Daly Boulevard 一带，用现场音乐、文化表演和本地商家摊位连接社区。",
+    "plan": [
+      "市府确认活动为 12:00–18:00；这是整场街庆的开放窗口，各舞台节目时刻请查看主办方更新。",
+      "县政府当年活动说明明确全年龄免费入场。免费入场不代表餐饮、商品或所有附加项目免费。",
+      "活动在 Mission Street 街区，不在 Daly City City Hall；现场人流与道路安排以市府公告为准，具体预约要求未公布。"
+    ],
+    "audience": [
+      "社区居民",
+      "全年龄"
+    ],
+    "officialUrl": "https://www.dalycity.org/1221/Daly-Citys-Top-of-the-Hill-Festival",
+    "sourceLabel": "City of Daly City / County of San Mateo",
+    "verifiedAt": "2026-09-29"
+  },
+  {
+    "id": "fremont-fog-diwali-mela-2026",
+    "kind": "event",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ],
+    "region": "east-bay",
+    "city": "Fremont",
+    "venue": "Washington High School · 38442 Fremont Boulevard",
+    "category": "culture",
+    "cost": "paid",
+    "imageKey": "autumn-neighbors",
+    "title": "Fremont FOG Diwali Mela：排灯节表演与市集",
+    "dateLabel": "10 月 24 日 · 10:00–19:00",
+    "costLabel": "付费入场 · 核查时早鸟 $4 + $0.22 手续费，票务正文列 $5；以购买时票档为准",
+    "summary": "FOG Silicon Valley 与 Fremont Hindu Temple 合办排灯节文化聚会，包含 Ramayana 激光表演、Garba 与 Dandiya 舞蹈、手作竞赛及印度市集。",
+    "plan": [
+      "活动在 Washington High School，10:00–19:00；官网页脚的 Kearney Street 办公地址不是活动地点。各表演和仪式的具体开场时间未公布。",
+      "主办方官网写免费登记与免费停车，但其链接的 EventMozo 售票页明确收费。不能把免费登记当免费入场；核查时早鸟为 $4 加 $0.22 手续费，正文另列 $5。",
+      "通过官网的 Buy Tickets 入口确认可售票档、最终费用和儿童规则；餐饮与市集购物另付。票务条款列不可转让、原则上不退款，并要求核对购票人与入场凭证。",
+      "票价核对来源：https://eventmozo.com/event/fog-diwali-mela-2026-224231788158445 。早鸟库存及结束时间未确认，不保证到访时仍能购买该价格。"
+    ],
+    "audience": [
+      "文化节庆",
+      "亲友结伴"
+    ],
+    "officialUrl": "https://fogsv.com/event/fog-diwali/",
+    "sourceLabel": "Festival of Globe / EventMozo",
+    "verifiedAt": "2026-09-29"
+  },
+  {
+    "id": "san-jose-hellflowers-free-concert-oct2-2026",
+    "kind": "performance",
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-02",
+    "occurrenceDates": [
+      "2026-10-02"
+    ],
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "Lake Cunningham Skate Park · 2305 South White Road",
+    "category": "culture",
+    "cost": "free",
+    "imageKey": "autumn-neighbors",
+    "title": "San Jose 免费摇滚夜：The Hellflowers 与 Knights of Molino",
+    "dateLabel": "10 月 2 日 · 18:00–22:00；18:30 开始演出",
+    "costLabel": "音乐会、停车与滑板免费 · 餐车食品另购",
+    "summary": "Fridays at the Lake 在 Lake Cunningham 滑板公园安排两支朋克乐队演出。主办方欢迎家庭参加，也可带滑板，在音乐与户外活动之间自由选择。",
+    "plan": [
+      "官方活动页列 18:00–22:00，18:00 开门、18:30 开始演出。各乐队的单独演出时间与结束时刻未列明，不把整个开放窗口当作单支乐队时长。",
+      "主办方明确音乐会、停车与滑板免费；食品餐车另外消费。是否仍需领取免费到场票及现场容量，请查看官方活动页。",
+      "活动适合家庭；参加滑板须遵守公园现场设备与安全规则。不能根据免费滑板推断包含器材借用、教学或全部护具。"
+    ],
+    "audience": [
+      "现场音乐",
+      "亲子家庭",
+      "滑板爱好者"
+    ],
+    "officialUrl": "https://www.eventbrite.com/e/the-hellflowers-and-knights-of-molino-free-concert-tickets-1996056752479",
+    "sourceLabel": "Filco Events · Fridays at the Lake",
+    "verifiedAt": "2026-09-29"
+  },
+  {
+    "id": "woodside-djerassi-free-art-hike-oct5-2026",
+    "kind": "event",
+    "startDate": "2026-10-05",
+    "endDate": "2026-10-05",
+    "occurrenceDates": [
+      "2026-10-05"
+    ],
+    "region": "peninsula",
+    "city": "Woodside",
+    "venue": "Djerassi Resident Artists Program · 2325 Bear Gulch Road",
+    "category": "outdoors",
+    "cost": "free",
+    "imageKey": "garden-walk",
+    "title": "Woodside Djerassi 免费艺术徒步：预约进入山间创作园区",
+    "dateLabel": "10 月 5 日 · 10:00–12:00，须预约",
+    "costLabel": "此场免费 · 须提前预约，剩余名额未确认",
+    "summary": "在导览带领下认识 Djerassi 艺术家驻留园区的自然环境与户外艺术。这是官网明确列出的十月免费场，不能直接到访，也不代表其他秋季徒步日期免费。",
+    "plan": [
+      "10/5 单独列出的时间为 10:00–12:00；官网一般徒步介绍另写约 3 小时、3.5 英里，不能直接套用到这场两小时免费行程，实际路线与强度须向主办方确认。",
+      "官网列报名开放，但未核实实时余位；通过活动页 Register 预约。园区平时不向公众开放，没有预约、邀请或事先安排不能自行进入。",
+      "官方地址为 2325 Bear Gulch Road, Woodside，所有徒步在入口闸门集合。山路狭窄、双向通行，移动信号有限；按官方路线准备，不能用 Woodside 城市地图点导航到场。",
+      "出行说明：https://djerassi.org/about/directions/ 。本条只收录 10/5 免费场；最低年龄、无障碍条件和剩余名额未确认。"
+    ],
+    "audience": [
+      "艺术爱好者",
+      "徒步爱好者"
+    ],
+    "officialUrl": "https://djerassi.org/events/fall-art-hikes/",
+    "sourceLabel": "Djerassi Resident Artists Program",
+    "verifiedAt": "2026-09-29"
+  }
+]

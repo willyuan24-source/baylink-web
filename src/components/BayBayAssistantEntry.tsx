@@ -135,20 +135,20 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
   return <>
     {variant !== 'headless' && (variant === 'sidebar' ? <div className="member-baybay-entry member-baybay-entry--sidebar">
       <div className="flex gap-2.5"><img src={BRAND.baybayAvatar} alt="BayBay" className="h-12 w-12 shrink-0 rounded-xl object-cover" width={48} height={48} />
-        <div className="min-w-0 flex-1"><h3 className="sidebar-section-title leading-tight">BayBay 生活助手</h3>
+        <div className="min-w-0 flex-1"><h3 className="sidebar-section-title leading-tight">BayBay AI 生活助手</h3>
           <p className="mt-1 text-[11px] leading-snug text-baylink-muted">周末去哪、怎么省钱、刚来湾区怎么安排，一起从攻略找到下一步。</p>
           <button type="button" onClick={() => setOpen(true)} className="member-primary mt-3 w-full">问问 BayBay</button></div></div>
     </div> : <button type="button" onClick={() => setOpen(true)} className="member-baybay-entry member-baybay-entry--inline">
       <img src={BRAND.baybayAvatar} alt="BayBay" className="h-9 w-9 shrink-0 rounded-lg object-cover" width={36} height={36} />
-      <span className="min-w-0 flex-1"><span className="block text-[12px] font-medium text-baylink-text">问问 BayBay · 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
+      <span className="min-w-0 flex-1"><span className="block text-[12px] font-medium text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
     </button>)}
     {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay">
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>
         <div className="member-baybay-header">
           <div className="flex min-w-0 gap-3"><img src={BRAND.baybayAvatar} alt="" className="member-baybay-avatar" width={48} height={48} />
             <div className="min-w-0"><span className="member-compose-eyebrow">YOUR BAY AREA, A LITTLE EASIER</span>
-              <h2 id="baybay-panel-title"><Sparkles size={15} /><span>BayBay 湾区生活助手</span></h2>
-              <p>说说需要什么，下一步一起安排。</p></div></div>
+              <h2 id="baybay-panel-title"><Sparkles size={15} /><span>BayBay AI 湾区生活助手</span></h2>
+              <p>BAYLINK 的 AI 助手，陪你安排湾区生活。</p></div></div>
           <button type="button" onClick={close} className="member-compose-close" aria-label="关闭"><X size={20} /></button>
         </div>
         <div className="member-baybay-body baybay-scroll">

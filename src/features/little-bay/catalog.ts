@@ -27,6 +27,7 @@ export type LittleBayStop = {
 const categoryLabels = { culture: '艺术文化', outdoors: '户外探索', food: '美食市集', family: '亲子活动' };
 const attractionsById = new Map(ATTRACTIONS.map(place => [place.id, place]));
 const guidesBySlug = new Map(guides.map(guide => [guide.slug, guide]));
+const placeAvailableOn = (place: PlannerPlace, date: string) => place.openingStatus !== 'announced' && (!place.openedOn || place.openedOn <= date);
 
 function eventStop(event: PlannerEvent): LittleBayStop {
   const stop: Stop = { kind: 'event', id: event.id };
@@ -44,11 +45,12 @@ function placeStop(place: PlannerPlace): LittleBayStop {
   const stop: Stop = { kind: 'place', id: place.id };
   const attraction = attractionsById.get(place.id);
   const guide = guidesBySlug.get(place.guideSlug);
-  const imageMeta = guide ? getGuideMedia(guide).cover : undefined;
+  const imageMeta = (place.imageKey ? GUIDE_IMAGES[place.imageKey] : undefined) || (guide ? getGuideMedia(guide).cover : undefined);
+  const unknownCost = place.category === 'restaurant' || place.category === 'cafe' ? '餐饮费用待确认' : place.category === 'shop' ? '消费费用待确认' : '入场费用待确认';
   return {
     key: `place:${place.id}`, stop, kind: 'place', title: place.title,
     subtitle: place.summary, city: place.city, region: place.region,
-    price: ATTRACTION_COSTS.find(cost => cost.id === place.cost)?.label || '请查看官方票价',
+    price: ATTRACTION_COSTS.find(cost => cost.id === place.cost)?.label || unknownCost,
     free: place.cost === 'free', href: stopPath(stop), sourceUrl: place.officialUrl || undefined,
     image: imageMeta?.src, imageMeta, location: place.location,
     tags: (attraction?.themes || []).map(theme => ATTRACTION_THEMES.find(item => item.id === theme)!.label),
@@ -97,7 +99,7 @@ export function getLittleBayStops({ date, region, freeOnly = false }: {
   if (!validCalendarDay(date) || !ATTRACTION_REGIONS.some(item => item.id === region)) return [];
   const matches = (item: { region: string; cost: string }) => (region === 'all' || item.region === region) && (!freeOnly || item.cost === 'free');
   const events = varied(PLANNER_EVENTS.filter(event => matches(event) && eventOccursOn(event, date)).map(eventStop));
-  const places = varied(PLANNER_PLACES.filter(matches).map(placeStop));
+  const places = varied(PLANNER_PLACES.filter(place => matches(place) && placeAvailableOn(place, date)).map(placeStop));
   const result: LittleBayStop[] = [];
   while (result.length < 6 && (events.length || places.length)) {
     if (events.length) result.push(events.shift()!);
@@ -110,7 +112,7 @@ export function getLittleBayStops({ date, region, freeOnly = false }: {
 export function pickLittleBayOuting(anchor: LittleBayStop, date: string, freeOnly = false): Stop[] {
   const selected = resolveLittleBayStop(anchor.stop);
   if (!selected || !cleanLittleBayPlanStops([selected.stop], date).length || (freeOnly && !selected.free)) return [];
-  const places = PLANNER_PLACES.filter(place => place.city === selected.city
+  const places = PLANNER_PLACES.filter(place => place.city === selected.city && placeAvailableOn(place, date)
     && !(selected.kind === 'place' && place.id === selected.stop.id));
   const freePlaces = places.filter(place => place.cost === 'free');
   const candidates = freeOnly || freePlaces.length ? freePlaces : places;
@@ -132,7 +134,10 @@ export function cleanLittleBayPlanStops(input: unknown, date: string): Stop[] {
   if (!validCalendarDay(date) || !Array.isArray(input)) return [];
   return cleanStops(input.filter((stop): stop is Stop => {
     if (!validStop(stop)) return false;
-    if (stop.kind === 'place') return true;
+    if (stop.kind === 'place') {
+      const place = PLANNER_PLACES.find(item => item.id === stop.id);
+      return !!place && placeAvailableOn(place, date);
+    }
     const event = PLANNER_EVENTS.find(item => item.id === stop.id);
     return !!event && eventOccursOn(event, date);
   })).slice(0, 3);

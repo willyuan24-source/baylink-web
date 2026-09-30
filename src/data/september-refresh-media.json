@@ -1,0 +1,91 @@
+[
+  {
+    "key": "water-lantern-festival-promo",
+    "src": "/guides/september-refresh/water-lantern-festival-promo.avif",
+    "alt": "画有图案的水灯漂浮在暮色中的水面上",
+    "caption": "主办方水灯节主题宣传资料照片，不代表 Foster City 2026 年本场活动实拍。",
+    "credit": "Water Lantern Festival · 官方宣传照片",
+    "creditUrl": "https://www.waterlanternfestival.com/events/san-francisco",
+    "kind": "photo",
+    "width": 2010,
+    "height": 2712,
+    "srcSet": "/guides/september-refresh/water-lantern-festival-promo.avif 2010w"
+  },
+  {
+    "key": "refresh-community-swap",
+    "src": "/guides/september-refresh/refresh-community-swap.webp",
+    "alt": "邻居与亲子在图书、拼图和儿童服装交换桌旁挑选物品",
+    "caption": "社区交换主题插图，不代表所列活动现场、库存或场馆景观。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-community-swap-small.webp 480w, /guides/september-refresh/refresh-community-swap.webp 1280w"
+  },
+  {
+    "key": "refresh-makers",
+    "src": "/guides/september-refresh/refresh-makers.webp",
+    "alt": "邻居在手作空间修理台灯、缝补衣物，背景设有创作设备",
+    "caption": "手作与维修主题插图，不代表特定场馆设备、课程或修理成果。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-makers-small.webp 480w, /guides/september-refresh/refresh-makers.webp 1280w"
+  },
+  {
+    "key": "refresh-pets",
+    "src": "/guides/september-refresh/refresh-pets.webp",
+    "alt": "主人牵着穿简单万圣节服饰的狗参加秋日社区聚会",
+    "caption": "宠物社区活动主题插图，不代表所列活动现场或公园景观。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-pets-small.webp 480w, /guides/september-refresh/refresh-pets.webp 1280w"
+  },
+  {
+    "key": "refresh-sailing",
+    "src": "/guides/september-refresh/refresh-sailing.webp",
+    "alt": "穿救生衣的成人与儿童乘小帆船体验海湾航行",
+    "caption": "帆船体验主题插图，不代表实际船型、当天海况或保证可用船位。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-sailing-small.webp 480w, /guides/september-refresh/refresh-sailing.webp 1280w"
+  },
+  {
+    "key": "refresh-smoothie-rewards",
+    "src": "/guides/september-refresh/refresh-smoothie-rewards.webp",
+    "alt": "咖啡桌上的两杯水果冰沙、芒果、草莓与会员卡示意",
+    "caption": "果昔优惠主题插图，不代表 Jamba 的实际产品、分量、口味或奖励界面。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-smoothie-rewards-small.webp 480w, /guides/september-refresh/refresh-smoothie-rewards.webp 1280w"
+  },
+  {
+    "key": "refresh-bats",
+    "src": "/guides/september-refresh/refresh-bats.webp",
+    "alt": "讲解员陪伴家庭隔着展示箱观察蝙蝠与翼部示意图",
+    "caption": "蝙蝠科普主题插图，不代表本场展示物种、设备或场馆实景。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-bats-small.webp 480w, /guides/september-refresh/refresh-bats.webp 1280w"
+  },
+  {
+    "key": "refresh-music",
+    "src": "/guides/september-refresh/refresh-music.webp",
+    "alt": "吉他与小提琴演奏者为社区家庭和轮椅使用者演出",
+    "caption": "社区音乐主题插图，不代表所列演出阵容、乐器组合或场馆实景。",
+    "credit": "BAYLINK · AI 原创插图",
+    "kind": "illustration",
+    "width": 1280,
+    "height": 853,
+    "srcSet": "/guides/september-refresh/refresh-music-small.webp 480w, /guides/september-refresh/refresh-music.webp 1280w"
+  }
+]

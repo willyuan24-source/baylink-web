@@ -14,6 +14,7 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   sourceUrl: string;
 }> = {
   ...autumnCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
+  ...refreshCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   'American Canyon': { lat: 38.179, lng: -122.260, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Rohnert Park': { lat: 38.348, lng: -122.701, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -24,6 +25,8 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Campbell': { lat: 37.280, lng: -121.953, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Clayton': { lat: 37.940, lng: -121.930, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Cupertino': { lat: 37.319, lng: -122.045, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Added 2026-09-29 from Census place GEOID 0617918; not the festival entrance.
+  'Daly City': { lat: 37.702, lng: -122.465, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Emeryville': { lat: 37.839, lng: -122.302, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Foster City': { lat: 37.565, lng: -122.251, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Fremont': { lat: 37.495, lng: -121.941, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -48,6 +51,8 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'San Mateo': { lat: 37.560, lng: -122.311, precision: 'city', sourceUrl: CENSUS_PLACES },
   'San Rafael': { lat: 37.981, lng: -122.507, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Santa Rosa': { lat: 38.446, lng: -122.706, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Added 2026-09-29 from Census place GEOID 0670364; not a festival entrance.
+  'Sausalito': { lat: 37.858, lng: -122.492, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Sonoma County': { lat: 38.522, lng: -122.916, precision: 'area', sourceUrl: CENSUS_COUNTIES },
   'Sonoma': { lat: 38.290, lng: -122.460, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Sunnyvale': { lat: 37.386, lng: -122.026, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -55,5 +60,8 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Vacaville': { lat: 38.359, lng: -121.969, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Walnut Creek': { lat: 37.903, lng: -122.040, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Windsor': { lat: 38.542, lng: -122.809, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Census place GEOID 0686440; never use the town reference point as a hiking meet-up location.
+  'Woodside': { lat: 37.422, lng: -122.259, precision: 'city', sourceUrl: CENSUS_PLACES },
 };
 import autumnCities from './autumn-calendar-cities.json';
+import refreshCities from './september-refresh-city-locations.json';

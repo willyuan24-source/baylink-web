@@ -1,4 +1,8 @@
 {
+  "餐饮费用待确认": "Food prices unconfirmed",
+  "消费费用待确认": "Purchase costs unconfirmed",
+  "入场费用待确认": "Admission prices unconfirmed",
+  "最多六站，时间和预算一起安排。": "Plan up to six stops, with time and budget together.",
   "小小湾区": "Little Bay",
   "小小湾区 · 3D 逛一圈": "Little Bay · Explore in 3D",
   "小小湾区 · 跟 BayBay 逛一圈｜BAYLINK": "Little Bay · Explore with BayBay | BAYLINK",
@@ -5216,5 +5220,20 @@
   "Marufuku Ramen · 官方宣传资料": "Marufuku Ramen · Official publicity material",
   "Broken Dreams 官网的煎蛋、猪肉与碎米饭菜品照片": "An official Broken Dreams food photograph of fried egg, pork and broken rice",
   "Broken Dreams 官方菜品资料照片；展示碎米饭与配菜，实际菜单、份量和供应以店家为准。": "Official Broken Dreams food photograph showing broken rice and accompaniments. Check with the restaurant for its current menu, portions and availability.",
-  "Broken Dreams · 官方宣传资料": "Broken Dreams · Official publicity material"
+  "Broken Dreams · 官方宣传资料": "Broken Dreams · Official publicity material",
+  "告诉 BayBay 想吃什么、去哪里、想花多少。从活动、餐厅、新店或景点开始，把这一天安排好。": "Tell BayBay what you want to eat, where you want to go and your budget. Start with an event, restaurant, new shop or attraction and plan your day.",
+  "10月3日旧金山找家餐厅，再去附近逛逛": "Find a restaurant in San Francisco on October 3, then explore nearby",
+  "这个周末东湾有哪些新店？": "What new shops are open in the East Bay this weekend?",
+  "AI 根据已收录活动与地点整理，可查看每条建议的资料来源。": "AI organizes recorded events and places. Each suggestion links to its sources.",
+  "根据已收录活动、地点与筛选条件匹配。": "Matched from recorded events and places using your filters.",
+  "没有完全符合条件的活动或地点。可以调整条件，或点击下方站外搜索，查看更多来源。": "No events or places fully match. Adjust the conditions or use the web search below for more sources.",
+  "撤销上次调整": "Undo the last change",
+  "采用完整出游方案": "Complete outings adopted",
+  "采用一句话修改": "Suggested plan edits applied",
+  "完成站外搜索": "Web searches completed",
+  "试着这样问": "Try asking",
+  "后天东湾，带5岁和12岁的孩子，不开车": "The East Bay the day after tomorrow, with children aged 5 and 12, without a car",
+  "已确认室内外结合": "Confirmed indoor and outdoor venues",
+  "仅比较同城准确地点。直线距离不代表步行路线或路程时间；请确认交通、开放时间与入场条件。": "Only precise locations in the same city are compared. Straight-line distances are not walking routes or journey times; check transport, opening hours and entry requirements.",
+  "搜索湾区活动、餐厅、新店与景点，查看站外来源，安排时间和预算，一句话调整、保存与分享出游计划。": "Find Bay Area events, restaurants, new shops and attractions, check web sources, plan your time and budget, then edit, save and share your outing."
 }

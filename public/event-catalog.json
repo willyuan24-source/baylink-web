@@ -249,6 +249,15 @@
     "endDate": "2026-10-01"
   },
   {
+    "id": "sf-nexus-party-oct1-2026",
+    "title": "NEXUS Party：湾区黑人艺术周官方派对",
+    "startDate": "2026-10-01",
+    "endDate": "2026-10-01",
+    "occurrenceDates": [
+      "2026-10-01"
+    ]
+  },
+  {
     "id": "sf-symphony-fleming-strauss-2026",
     "title": "芮妮·弗莱明演唱施特劳斯",
     "startDate": "2026-10-01",
@@ -365,6 +374,15 @@
     "endDate": "2026-10-02"
   },
   {
+    "id": "san-jose-hellflowers-free-concert-oct2-2026",
+    "title": "San Jose 免费摇滚夜：The Hellflowers 与 Knights of Molino",
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-02",
+    "occurrenceDates": [
+      "2026-10-02"
+    ]
+  },
+  {
     "id": "san-jose-sofa-pocket-market-2026",
     "title": "San José 花园小市集：艺术、手作与预约餐券",
     "startDate": "2026-10-02",
@@ -440,6 +458,16 @@
     "endDate": "2026-10-03"
   },
   {
+    "id": "foster-city-water-lantern-festival-2026",
+    "title": "San Francisco 水灯节：Foster City 湖畔两晚",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-03",
+      "2026-10-04"
+    ]
+  },
+  {
     "id": "fremont-namiwalks-2026",
     "title": "Fremont NAMIWalks 心理健康社区步行",
     "startDate": "2026-10-03",
@@ -486,6 +514,15 @@
     "endDate": "2026-10-03"
   },
   {
+    "id": "redwood-city-fixit-clinic-oct-2026",
+    "title": "Redwood City 免费维修诊断：Fixit Clinic",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-03",
+    "occurrenceDates": [
+      "2026-10-03"
+    ]
+  },
+  {
     "id": "redwood-city-portfest-2026",
     "title": "Redwood City PortFest：走进湾边工作港口",
     "startDate": "2026-10-03",
@@ -513,10 +550,29 @@
     "endDate": "2026-10-03"
   },
   {
+    "id": "sf-foodwise-latine-makers-oct3-2026",
+    "title": "Foodwise Latine Makers：渡轮大厦拉丁裔创作者市集",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-03",
+    "occurrenceDates": [
+      "2026-10-03"
+    ]
+  },
+  {
     "id": "sj-sharks-kings-2026",
     "title": "圣何塞 Sharks 对 Kings：开季周末",
     "startDate": "2026-10-03",
     "endDate": "2026-10-03"
+  },
+  {
+    "id": "sonoma-valley-book-sale-free-child-book-2026",
+    "title": "Sonoma 图书馆书展：儿童免费一本，教师购书半价",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-03",
+      "2026-10-04"
+    ]
   },
   {
     "id": "sunnyvale-diwali-2026",
@@ -551,6 +607,24 @@
   {
     "id": "alameda-point-antiques-oct-2026",
     "title": "Alameda Point 十月古董市集",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-04"
+    ]
+  },
+  {
+    "id": "berkeley-cal-sailing-open-house-oct4-2026",
+    "title": "Cal Sailing 免费帆船开放日",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-04",
+    "occurrenceDates": [
+      "2026-10-04"
+    ]
+  },
+  {
+    "id": "berkeley-crowden-community-music-day-oct4-2026",
+    "title": "Crowden 免费社区音乐日：试奏乐器与亲子音乐会",
     "startDate": "2026-10-04",
     "endDate": "2026-10-04",
     "occurrenceDates": [
@@ -633,6 +707,16 @@
     "endDate": "2026-10-04"
   },
   {
+    "id": "santa-rosa-big-book-sale-discount-days-2026",
+    "title": "Santa Rosa 大型书展优惠日：半价与 $5 一袋",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-05",
+    "occurrenceDates": [
+      "2026-10-04",
+      "2026-10-05"
+    ]
+  },
+  {
     "id": "sf-castro-street-fair-2026",
     "title": "Castro 街区节：在音乐与市集中认识社区",
     "startDate": "2026-10-04",
@@ -661,6 +745,15 @@
     "title": "SurrealDB × Mastra：智能体共享记忆与生产实践",
     "startDate": "2026-10-05",
     "endDate": "2026-10-05"
+  },
+  {
+    "id": "woodside-djerassi-free-art-hike-oct5-2026",
+    "title": "Woodside Djerassi 免费艺术徒步：预约进入山间创作园区",
+    "startDate": "2026-10-05",
+    "endDate": "2026-10-05",
+    "occurrenceDates": [
+      "2026-10-05"
+    ]
   },
   {
     "id": "east-bay-aespa-live-tour-synk-complaexity-in-oakland-2026",
@@ -703,6 +796,15 @@
     "endDate": "2026-10-07"
   },
   {
+    "id": "san-lorenzo-banned-books-storytime-oct7-2026",
+    "title": "San Lorenzo 阅读自由故事会与赠书",
+    "startDate": "2026-10-07",
+    "endDate": "2026-10-07",
+    "occurrenceDates": [
+      "2026-10-07"
+    ]
+  },
+  {
     "id": "sf-ai-infra-scale-dinner-2026",
     "title": "AI 基础设施扩展问题交流晚餐",
     "startDate": "2026-10-07",
@@ -719,6 +821,33 @@
     "title": "SOMBR 圣何塞演唱会",
     "startDate": "2026-10-07",
     "endDate": "2026-10-07"
+  },
+  {
+    "id": "stanford-noon-guitar-oct-2026",
+    "title": "Stanford 免费午间音乐会：吉他学生演出",
+    "startDate": "2026-10-07",
+    "endDate": "2026-10-07",
+    "occurrenceDates": [
+      "2026-10-07"
+    ]
+  },
+  {
+    "id": "corte-madera-wooden-sugar-skull-painting-2026",
+    "title": "Corte Madera 免费手作：木制糖骷髅彩绘",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "occurrenceDates": [
+      "2026-10-08"
+    ]
+  },
+  {
+    "id": "san-rafael-civic-center-puzzle-swap-2026",
+    "title": "San Rafael 免费拼图交换：不必捐赠也能参加",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "occurrenceDates": [
+      "2026-10-08"
+    ]
   },
   {
     "id": "sf-exploratorium-after-dark-08-oct2026",
@@ -873,6 +1002,16 @@
     "endDate": "2026-10-10"
   },
   {
+    "id": "mountain-view-oktoberfest-2026",
+    "title": "Mountain View Oktoberfest：免费入场的街区啤酒节",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-11",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-11"
+    ]
+  },
+  {
     "id": "napa-beyond-bin-oct10-2026",
     "title": "Beyond the Bin：看看回收物离开家后去了哪里",
     "startDate": "2026-10-10",
@@ -940,6 +1079,15 @@
     "endDate": "2026-10-11"
   },
   {
+    "id": "san-lorenzo-metal-milagros-oct10-2026",
+    "title": "San Lorenzo 墨西哥 Milagros 金属浮雕手工",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "occurrenceDates": [
+      "2026-10-10"
+    ]
+  },
+  {
     "id": "santa-clara-library-comic-con-2026",
     "title": "Santa Clara 图书馆免费 Comic Con",
     "startDate": "2026-10-10",
@@ -1000,6 +1148,15 @@
     "endDate": "2026-10-11"
   },
   {
+    "id": "sf-inner-sunset-flea-oct11-2026",
+    "title": "Inner Sunset Flea：Tricks, Treats & Treasures 秋日市集",
+    "startDate": "2026-10-11",
+    "endDate": "2026-10-11",
+    "occurrenceDates": [
+      "2026-10-11"
+    ]
+  },
+  {
     "id": "sf-italian-heritage-parade-2026",
     "title": "旧金山意大利文化游行：从渔人码头走进 North Beach",
     "startDate": "2026-10-11",
@@ -1010,6 +1167,15 @@
     "title": "YBG Dance Day：免费试跳不同舞风",
     "startDate": "2026-10-11",
     "endDate": "2026-10-11"
+  },
+  {
+    "id": "stanford-art-for-all-oct-2026",
+    "title": "Stanford Art for All：免费家庭艺术日",
+    "startDate": "2026-10-11",
+    "endDate": "2026-10-11",
+    "occurrenceDates": [
+      "2026-10-11"
+    ]
   },
   {
     "id": "uptown-killer-queen-a-tribute-to-queen-ft-patrick-myers-as-freddie-mercury-2026",
@@ -1036,6 +1202,15 @@
     "endDate": "2026-10-13"
   },
   {
+    "id": "san-rafael-norcal-bats-library-2026",
+    "title": "San Rafael 免费动物科普：认识本地蝙蝠",
+    "startDate": "2026-10-14",
+    "endDate": "2026-10-14",
+    "occurrenceDates": [
+      "2026-10-14"
+    ]
+  },
+  {
     "id": "east-bay-disney-on-ice-presents-find-your-hero-2026",
     "title": "Disney On Ice：Find Your Hero 冰上演出",
     "startDate": "2026-10-15",
@@ -1045,6 +1220,15 @@
       "2026-10-16",
       "2026-10-17",
       "2026-10-18"
+    ]
+  },
+  {
+    "id": "novato-teen-ai-literacy-escape-room-2026",
+    "title": "Novato 青少年 AI 游戏：密室逃脱与信息辨识",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-15",
+    "occurrenceDates": [
+      "2026-10-15"
     ]
   },
   {
@@ -1058,6 +1242,27 @@
     "title": "Exploratorium After Dark：Speak Easy 沟通实验",
     "startDate": "2026-10-15",
     "endDate": "2026-10-15"
+  },
+  {
+    "id": "sf-fall-show-oct15-18-2026",
+    "title": "San Francisco Fall Show：艺术、古董与设计展",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-18",
+    "occurrenceDates": [
+      "2026-10-15",
+      "2026-10-16",
+      "2026-10-17",
+      "2026-10-18"
+    ]
+  },
+  {
+    "id": "sf-main-halloween-costume-swap-oct15-2026",
+    "title": "SF Main Library 儿童万圣节服装交换",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-15",
+    "occurrenceDates": [
+      "2026-10-15"
+    ]
   },
   {
     "id": "sf-opera-manon-2026",
@@ -1153,6 +1358,15 @@
     "endDate": "2026-10-18"
   },
   {
+    "id": "berkeley-borp-adaptive-sports-expo-oct17-2026",
+    "title": "BORP 无障碍体育体验日与社区庆祝",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
     "id": "berkeley-harvest-festival-2026",
     "title": "Berkeley 免费丰收节与种子交换",
     "startDate": "2026-10-17",
@@ -1174,8 +1388,26 @@
     "endDate": "2026-10-17"
   },
   {
+    "id": "daly-city-top-of-the-hill-festival-2026",
+    "title": "Daly City Top of the Hill：免费街区音乐与文化节",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
     "id": "el-cerrito-garage-sale-2026",
     "title": "El Cerrito 全城庭院旧物市集",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
+    "id": "fairfax-kids-halloween-costume-swap-2026",
+    "title": "Fairfax 儿童万圣节服装交换：免费来挑一套",
     "startDate": "2026-10-17",
     "endDate": "2026-10-17",
     "occurrenceDates": [
@@ -1221,6 +1453,15 @@
   {
     "id": "oakland-vintage-fashion-faire-2026",
     "title": "Vintage Fashion Faire：Bridge Yard 复古服饰市集",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
+    "id": "point-reyes-halloween-clothing-swap-2026",
+    "title": "Point Reyes 免费万圣节服装交换：成人、儿童与宠物",
     "startDate": "2026-10-17",
     "endDate": "2026-10-17",
     "occurrenceDates": [
@@ -1276,6 +1517,15 @@
     ]
   },
   {
+    "id": "sausalito-toast-street-fair-oct17-2026",
+    "title": "A Toast to Sausalito：艺术街区节与品饮",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
     "id": "sf-bay-area-science-festival-2026",
     "title": "湾区科学节：到 UCSF 动手做实验",
     "startDate": "2026-10-17",
@@ -1292,6 +1542,33 @@
     "title": "旧金山菲律宾裔国际书展：阅读、讲座与签书",
     "startDate": "2026-10-17",
     "endDate": "2026-10-18"
+  },
+  {
+    "id": "sf-halloween-broadside-printing-oct17-2026",
+    "title": "万圣节活版印刷：体验 1909 年手压印刷机",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
+    "id": "sf-marina-library-open-house-oct17-2026",
+    "title": "Marina 图书馆开放日：音乐、手工与赠书",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
+  },
+  {
+    "id": "sf-potrero-hill-festival-oct17-2026",
+    "title": "Potrero Hill Festival：秋日街区节",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ]
   },
   {
     "id": "sf-sunnydale-pumpkin-fest-2026",
@@ -1358,6 +1635,15 @@
     "title": "Petaluma 免费复古市集",
     "startDate": "2026-10-18",
     "endDate": "2026-10-18"
+  },
+  {
+    "id": "sf-sunday-streets-excelsior-oct18-2026",
+    "title": "Sunday Streets Excelsior：免费街区运动日",
+    "startDate": "2026-10-18",
+    "endDate": "2026-10-18",
+    "occurrenceDates": [
+      "2026-10-18"
+    ]
   },
   {
     "id": "sj-funeral-gangster-dinner-2026",
@@ -1529,6 +1815,15 @@
     "endDate": "2026-10-23"
   },
   {
+    "id": "springline-barks-boos-2026",
+    "title": "Springline Barks & Boos：宠物装扮与免费社区聚会",
+    "startDate": "2026-10-23",
+    "endDate": "2026-10-23",
+    "occurrenceDates": [
+      "2026-10-23"
+    ]
+  },
+  {
     "id": "stanford-football-nc-state-2026",
     "title": "Stanford 橄榄球主场对 NC State",
     "startDate": "2026-10-23",
@@ -1574,6 +1869,15 @@
     "endDate": "2026-10-24"
   },
   {
+    "id": "fremont-fog-diwali-mela-2026",
+    "title": "Fremont FOG Diwali Mela：排灯节表演与市集",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ]
+  },
+  {
     "id": "hayward-trunk-treat-mobile-rec-2026",
     "title": "Hayward Trunk or Treat 与流动攀岩墙",
     "startDate": "2026-10-24",
@@ -1587,6 +1891,15 @@
     "title": "Menlo Park 万圣节游行与嘉年华",
     "startDate": "2026-10-24",
     "endDate": "2026-10-24"
+  },
+  {
+    "id": "mountain-view-monster-bash-2026",
+    "title": "Mountain View Monster Bash：免费万圣节亲子庆典",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ]
   },
   {
     "id": "petaluma-coco-matinee-2026",
@@ -1647,10 +1960,28 @@
     "endDate": "2026-10-24"
   },
   {
+    "id": "sf-bay-beats-bandshell-oct24-2026",
+    "title": "Bay Beats 金门公园免费音乐会",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ]
+  },
+  {
     "id": "sf-exploratorium-family-science-oct24-2026",
     "title": "Exploratorium 家庭科学日：蝴蝶手作与乐团排练",
     "startDate": "2026-10-24",
     "endDate": "2026-10-24"
+  },
+  {
+    "id": "sf-financial-planning-day-oct24-2026",
+    "title": "Financial Planning Day：免费财务讲座与一对一咨询",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ]
   },
   {
     "id": "sf-fishermans-wharf-chowder-fest-2026",
@@ -1679,6 +2010,15 @@
     "title": "Windsor 免费预约讨糖步道",
     "startDate": "2026-10-24",
     "endDate": "2026-10-24"
+  },
+  {
+    "id": "ameswell-barks-boos-2026",
+    "title": "Ameswell Barks & Boos：宠物巡游、装扮与市集",
+    "startDate": "2026-10-25",
+    "endDate": "2026-10-25",
+    "occurrenceDates": [
+      "2026-10-25"
+    ]
   },
   {
     "id": "burlingame-downtown-fall-fest-2026",
@@ -1884,6 +2224,15 @@
   {
     "id": "san-leandro-senior-halloween-bingo-2026",
     "title": "San Leandro 长者中心万圣节宾果下午",
+    "startDate": "2026-10-30",
+    "endDate": "2026-10-30",
+    "occurrenceDates": [
+      "2026-10-30"
+    ]
+  },
+  {
+    "id": "stanford-halloween-concert-2026",
+    "title": "Stanford 万圣节音乐会：交响乐与管乐团同台",
     "startDate": "2026-10-30",
     "endDate": "2026-10-30",
     "occurrenceDates": [

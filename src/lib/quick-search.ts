@@ -10,6 +10,7 @@ import { validCalendarDay } from './event-calendar';
 import { translateText, type Locale } from '../i18n/locale';
 import { PLANNER_EVENTS } from '../data/planner-catalog';
 import { discoveryText, normalizeDiscoveryTopic, parseDiscoveryQuery } from './discovery-query';
+import { recognizeNamedEvent } from './named-event-search';
 
 const eventFacts = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning]));
 
@@ -33,7 +34,14 @@ const isCurrentOffer = (offer: FreebieOffer, today: string): boolean => {
 
 /** Local discovery keeps free-form queries private until the user chooses posts or AI. */
 export function searchQuickDestinations(query: string, locale: Locale, today = getBayAreaToday()) {
-  const queryInfo = parseDiscoveryQuery(query, today, [...MONTHLY_EVENTS.map(event => event.city), ...currentOpenings.map(shop => shop.city), ...ATTRACTIONS.map(place => place.city)]);
+  const namedEvent = recognizeNamedEvent(query.trim().slice(0, 300));
+  const queryInfo = parseDiscoveryQuery(namedEvent.constraintText, today, [...MONTHLY_EVENTS.map(event => event.city), ...currentOpenings.map(shop => shop.city), ...ATTRACTIONS.map(place => place.city)]);
+  queryInfo.original = query.trim();
+  if (namedEvent.eventIds.length) {
+    queryInfo.structured = true;
+    if (queryInfo.intent === 'mixed') queryInfo.intent = 'events';
+    if (namedEvent.blocked && !queryInfo.unsupported.includes('negative-preference')) queryInfo.unsupported.push('negative-preference');
+  }
   const { tokens, intent, dateRange } = queryInfo;
   const active = !!query.trim() && !queryInfo.invalidDate && !queryInfo.unsupported.some(value => value === 'negative-preference' || value === 'multiple-dates');
   const normalize = (value: string) => normalizeGuideQuery(normalizeDiscoveryTopic(value));
@@ -56,7 +64,7 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
   const eventMatches = (event: typeof MONTHLY_EVENTS[number]) => {
     const facts = eventFacts.get(event.id);
     const rangeStart = dateRange && (dateRange.start > today ? dateRange.start : today);
-    return getEventStatus(event, today) !== 'ended' && locationMatches(event.region, event.city) &&
+    return (!namedEvent.eventIds.length || namedEvent.eventIds.includes(event.id)) && getEventStatus(event, today) !== 'ended' && locationMatches(event.region, event.city) &&
       (!dateRange || rangeStart! <= dateRange.end && event.startDate <= dateRange.end && event.endDate >= rangeStart! &&
         (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= rangeStart! && day <= dateRange.end && day >= event.startDate && day <= event.endDate))) &&
       (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(event.cost, facts?.admissionUsd) &&
@@ -88,9 +96,9 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     budgetMatches(place.cost) && !queryInfo.setting && !queryInfo.family && matches([
       place.title, place.note, place.mapQuery, ...place.themes.map(theme => ATTRACTION_THEMES.find(item => item.id === theme)!.label),
     ]);
-  const offers = intent === 'mixed' || intent === 'offers' ? currentFreebies.filter(offerMatches) : [];
-  const openings = intent === 'mixed' || intent === 'openings' || intent === 'places' ? currentOpenings.filter(openingMatches) : [];
-  const attractions = intent === 'mixed' || intent === 'attractions' || intent === 'places' ? ATTRACTIONS.filter(attractionMatches) : [];
+  const offers = !namedEvent.eventIds.length && (intent === 'mixed' || intent === 'offers') ? currentFreebies.filter(offerMatches) : [];
+  const openings = !namedEvent.eventIds.length && (intent === 'mixed' || intent === 'openings' || intent === 'places') ? currentOpenings.filter(openingMatches) : [];
+  const attractions = !namedEvent.eventIds.length && (intent === 'mixed' || intent === 'attractions' || intent === 'places') ? ATTRACTIONS.filter(attractionMatches) : [];
   const events = intent === 'mixed' || intent === 'events' ? MONTHLY_EVENTS.filter(eventMatches) : [];
   if (queryInfo.structured) events.sort((a, b) => {
     const nextDay = (event: typeof MONTHLY_EVENTS[number]) => event.occurrenceDates?.filter(day => day >= today && (!dateRange || day >= dateRange.start && day <= dateRange.end)).sort()[0] || (event.startDate > today ? event.startDate : today);

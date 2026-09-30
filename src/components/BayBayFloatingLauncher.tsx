@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { X } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 
 type BayBayFloatingLauncherProps = {
@@ -14,9 +15,9 @@ type BayBayFloatingLauncherProps = {
 type ActionRunKey = 'onWriteRent' | 'onLocalHelp' | 'onAskBayBay' | 'onPromoteService';
 
 const QUICK_ACTIONS: { id: string; emoji: string; label: string; runKey: ActionRunKey }[] = [
+  { id: 'ask', emoji: '💬', label: '问问 BayBay', runKey: 'onAskBayBay' },
   { id: 'rent', emoji: '✨', label: '帮我写求租帖', runKey: 'onWriteRent' },
   { id: 'help', emoji: '🆘', label: '发本地求助', runKey: 'onLocalHelp' },
-  { id: 'ask', emoji: '💬', label: '问问 BayBay', runKey: 'onAskBayBay' },
   { id: 'promote', emoji: '📣', label: '推广我的服务', runKey: 'onPromoteService' },
 ];
 
@@ -54,19 +55,20 @@ const BayBayOrbButton = ({
     <button
       type="button"
       onClick={onToggle}
-      className={`relative flex items-center justify-center rounded-full border border-black/[0.04] bg-white shadow-rest transition active:scale-95 ${
-        isSm ? 'h-12 w-12 hover:shadow-rest' : 'h-14 w-14 hover:shadow-elevated'
+      className={`relative ml-auto flex items-center justify-center gap-2 rounded-full border border-black/[0.04] bg-white pl-1.5 pr-4 shadow-rest transition active:scale-95 ${
+        isSm ? 'h-12 hover:shadow-rest' : 'h-14 hover:shadow-elevated'
       }`}
-      aria-label={expanded ? '关闭 BayBay 快捷菜单' : '打开 BayBay 快捷菜单'}
+      aria-label={expanded ? '关闭 BayBay AI 助手菜单' : '打开 BayBay AI 助手菜单'}
       aria-expanded={expanded}
     >
       <img
         src={BRAND.baybayAvatar}
-        alt="BayBay"
+        alt=""
         className={`rounded-full object-cover ${isSm ? 'h-9 w-9' : 'h-11 w-11'}`}
         width={isSm ? 36 : 44}
         height={isSm ? 36 : 44}
       />
+      <span className="text-left leading-tight"><span className="block text-[12px] font-semibold text-baylink-text">BayBay</span><span className="mt-0.5 block text-[10px] text-baylink-muted">AI 助手</span></span>
     </button>
   );
 };
@@ -141,7 +143,8 @@ export const BayBayFloatingLauncher = ({
             role="dialog"
             aria-label="BayBay 快捷操作"
           >
-            <p className="text-[15px] font-semibold leading-snug text-baylink-text">我是 BayBay，需要帮忙吗？</p>
+            <p className="text-[15px] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
+            <p className="mt-1 text-[12px] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p>
             <div className="mt-3">
               <ActionButtons onAction={runDesktopAction} />
             </div>
@@ -162,7 +165,7 @@ export const BayBayFloatingLauncher = ({
         </div>
 
         {mobileSheetOpen && (
-          <div className="fixed inset-0 z-[43]" role="presentation">
+          <div className="fixed inset-0 z-[60]" role="presentation">
             <button
               type="button"
               className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
@@ -170,13 +173,17 @@ export const BayBayFloatingLauncher = ({
               onClick={() => setMobileSheetOpen(false)}
             />
             <div
-              className="absolute bottom-0 left-0 right-0 rounded-t-[28px] border-t border-black/[0.06] bg-white/90 px-4 pt-4 pb-safe-bar shadow-elevated backdrop-blur-xl"
+              className="absolute bottom-0 left-0 right-0 max-h-[85dvh] overflow-y-auto rounded-t-[28px] border-t border-black/[0.06] bg-white/90 px-4 pt-4 pb-safe-bar shadow-elevated backdrop-blur-xl"
               role="dialog"
               aria-label="BayBay 快捷操作"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-baylink-border/80" aria-hidden />
-              <p className="text-[15px] font-semibold leading-snug text-baylink-text">我是 BayBay，需要帮忙吗？</p>
+              <div className="flex items-start justify-between gap-3">
+                <div><p className="text-[15px] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
+                  <p className="mt-1 text-[12px] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p></div>
+                <button type="button" aria-label="关闭" onClick={() => setMobileSheetOpen(false)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-baylink-muted hover:bg-baylink-green/[0.04]"><X size={20} aria-hidden="true" /></button>
+              </div>
               <div className="mt-3 mb-1">
                 <ActionButtons onAction={runMobileAction} />
               </div>

@@ -10,6 +10,7 @@ type ContextPhotoUse = {
  * Captions and source links are checked by the media audit alongside this list.
  */
 export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
+  'water-lantern-festival-promo': { purpose: 'theme', eventIds: ['foster-city-water-lantern-festival-2026'] },
   'coverage-yerba-buena': { purpose: 'venue', eventIds: [
     'sf-african-arts-festival-2026', 'sf-quinteto-latino-lunchtime-2026',
     'sf-ybg-dance-day-2026', 'sf-indigenous-peoples-day-2026',
