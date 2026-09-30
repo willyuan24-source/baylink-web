@@ -71,3 +71,34 @@ test('W7-P3: the play layer retries quickly, then (as before) reloads the page o
   assert.deepEqual([...PLAY_PARTS_RETRY_MS], [500, 2000]);
   assert.ok(PLAY_PARTS_RETRY_MS.reduce((a, b) => a + b, 0) < 3000, 'Start waits at most ≈ 2.5 s more before the reload');
 });
+
+test('W7-P-review: a chunk whose stylesheet was lost gets the stylesheet back before it loads (Vite\'s preload helper skips a CSS it has seen: the chunk would come in unstyled)', async () => {
+  const mod = await import('../src/opus-bay/game/importRetry');
+  const { importRetry } = mod;
+  const failedCssUrl = (mod as { failedCssUrl?: (e: unknown) => string | null }).failedCssUrl;
+  const css = 'https://www.baylink.us/assets/content-ui-DwTBFpTr.css';
+  const VITE_CSS = (u: string) => new Error(`Unable to preload CSS for ${u}`);
+  assert.equal(typeof failedCssUrl, 'function', 'importRetry reads the stylesheet Vite names');
+  assert.equal(failedCssUrl!(VITE_CSS(css)), css);
+  assert.equal(failedCssUrl!(VITE_CSS(`${css}?retry=1`)), css, 'a busted URL is read without its query');
+  assert.equal(failedCssUrl!(new TypeError(`Failed to fetch dynamically imported module: ${css.replace('.css', '.js')}`)), null);
+  // the play layer: its content-ui stylesheet lost once, back by the first retry
+  const order: string[] = [];
+  let loads = 0;
+  const load = () => { loads++; order.push(`load ${loads}`); return loads === 1 ? Promise.reject(VITE_CSS(css)) : Promise.resolve({ parts: true }); };
+  const opts = {
+    sleep: async () => {},
+    importUrl: async () => { throw new Error('not a module URL'); },
+    loadCss: async (u: string) => { order.push(`css ${u}`); },
+  };
+  assert.deepEqual(await importRetry(load, opts), { parts: true });
+  assert.deepEqual(order, ['load 1', `css ${css}?retry=1`, 'load 2'], 'the stylesheet is in before the chunk is asked again');
+  // lost for good: every retry puts it in again, then the last error (the caller's fallback: the play layer's reload)
+  let n2 = 0;
+  const urls: string[] = [];
+  await assert.rejects(importRetry(() => { n2++; return Promise.reject(VITE_CSS(css)); }, {
+    sleep: async () => {}, loadCss: async (u: string) => { urls.push(u); throw VITE_CSS(u); },
+  }), /Unable to preload CSS/);
+  assert.equal(n2, 1, 'the chunk is not asked without its stylesheet');
+  assert.deepEqual(urls, [`${css}?retry=1`, `${css}?retry=2`, `${css}?retry=3`]);
+});

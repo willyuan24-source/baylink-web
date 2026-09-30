@@ -285,3 +285,81 @@ warnings) · suite **1630 / 1631** — the one failure is `W5-bus 20+ simulated 
 Dev / preview server on 5704 stopped at the end; one headless Chrome at a time; no
 PERF-LOCK seen at any build or Chrome run; no Higgsfield spend.
 
+
+## Review
+
+Adversarial review of lane P's seven commits (`404a7752` … `3213201b`) by W7-P-review, 00:44–01:45 PDT, worktree
+`C:/Users/willy/wt/w7-p-rev` on origin `30028e90`, production build and preview on 5724, scratch
+`C:/Users/willy/opus-qa/w7/p-rev/`.
+
+### 给主人的摘要
+
+1. **车道 P 的主包瘦身是真的，行为没变**：我在最新的树上重新打了生产包，GameRoot 压缩后 **261.68 KB**（低于 265，但只剩约 3 KB 余量——其他线今晚还在往里加东西）。从标题页按"开始"实玩：街区（电脑）开场对话、Bay 101 导览、HUD、路标都正常，且**街区不下载任何城市包**；城市（手机 390×844）开场对话正常。
+2. **修了 1 个问题**：新的"自动重试"在一种情况下会把界面变成"没样式"——如果某个小包的**样式表**恰好下载失败，重试会只把代码拿回来、样式表永远缺席（对话框、地标卡、HUD 会变成白底裸字，整局都这样）；在这次改动之前，这种失败会自动刷新一次页面、样式会回来。现在重试会先把样式表重新拿回来，再加载代码。已加测试（先红后绿）。
+3. **没有阻止上线的问题。**
+
+### What was checked
+
+- Every source diff of `404a7752`, `0f03c125`, `8c855922` (the report commits read for claims). The moves are import-line
+  changes plus one registration line per moved module, as briefed; lane K / Q's files untouched beyond that.
+- **Stand-ins vs the modules** (`actors/citySlots.ts`): `heroView` / `preferredViewDir` / `preferredCameraYaw` answer
+  exactly `viewField.ts`'s district branch (`!cityTerrain()` → the promenade normal); `deckAt` null / `onDeck` false
+  equals `deckSteer.ts` with no deck registered, and the only thing that registers a deck (`actors/cityViews.ts`) imports
+  `deckSteer`, so a deck never exists without the module. No new per-frame allocation (the district branch allocates the
+  same `{ x, z }` it did).
+- **The dialogue script behind live bindings** (`data/scriptSlot.ts`): every read in `game/flow.ts`, `brain.ts`,
+  `content.ts`, `cityContent.ts` is inside a function (no top-level capture of the empty values); `contentFor` is a
+  function; Start, 继续旅程 (resume goes through the same `startRequested` gate) and `?start=` all wait for the play
+  layer. Node (tests / scripts: `tsx --test`, no `import.meta.env`) fills the script and the POI texts at load.
+- **The POI texts** (`data/poiTexts.ts`): the only readers of `realInfo.summary / tips / hours / cost` are
+  `ui/PoiCardBody.tsx` (which fills them first), `data/sf/cityPois.ts cityDistrictPoi` (re-filled in the city's words by
+  `fillPoiTexts`) and `game/cityCards.ts refreshedPoi`, which only touches the city landmarks of `CARD_REFRESHES` (no
+  district id) — so no copy keeps the empty texts.
+- **importRetry in Chrome with a lost dependency**: a local page (`p-rev/dep/`) whose `a.js` imports a 404ing `b.js`:
+  Chrome names the **top-level** URL (`Failed to fetch dynamically imported module: …/a.js`), so the helper never imports
+  the wrong module; `a.js?retry=1` still fails (the dependency's failure stays in the module map) — the limit the lane
+  documented, confirmed.
+- **Vite 7's preload helper** (`node_modules/vite/dist/node/chunks/config.js`): marks a dependency `seen` before it
+  loads and skips a `<link>` that already exists → the defect below.
+- **Production build** of `30028e90` (`--outDir C:/Users/willy/opus-qa/w7/p-rev/dist`, 5 m 17 s, no PERF-LOCK;
+  `public/` restored, `git status` clean): GameRoot **261.68 KB** gzip (692.94 KB raw) · playParts 17.25 · script 13.60 ·
+  poiTexts 7.24 · PoiCardBody 3.40 · places 2.93 · discovery 2.46 · cityViews 1.68 · deckSteer 1.13 · perfMonitor 0.76 ·
+  cityMode 63.24. The play layer's preload list carries `content-ui.css`; GuideLayer carries `guideCity.css`.
+- **Played on the production preview** from the title with the Start button: district desktop 1440 × 900 — before
+  Start no city chunk and no catalog; after Start the welcome with its four choices, "1" → Bay 101 1/7 with the waypoint
+  placed and the HUD styled (`qa/w7/P/rev-district-tour.jpg`); the whole visit fetched no `cityMode` / `cityViews` /
+  `deckSteer` / `cityDataChunk`. City phone 390 × 844 dpr 3: first frame at 4.57 s, then the catalog; after Start the
+  city's welcome (`qa/w7/P/rev-city-phone-start.jpg`). Console: only the old THREE.Clock deprecation warning.
+
+### Defects fixed
+
+1. **A lost stylesheet left a lazy chunk unstyled for the whole visit** (`game/importRetry.ts`). Vite's preload helper
+   rejects with `Unable to preload CSS for …/content-ui-….css` when a chunk's stylesheet fails; `isLoadFailure` matched
+   it, `failedModuleUrl` found no `.js` URL, so the helper asked the same `load()` again — which skips the stylesheet it
+   has already seen and resolves the module **without its CSS**. For the play layer (whose preload list carries
+   `content-ui.css`: the dialogue box, the POI card, the moments) that meant an unstyled UI for the rest of the visit,
+   where before W7-P3 the failure reloaded the page once (`reloadOnce`) and the styles came back; the same for
+   GuideLayer (`guideCity.css`) and the other retried sites with a stylesheet.
+   *Before:* `importRetry(load)` with a first `Unable to preload CSS` → `load()` again → module in, stylesheet never
+   loaded. *After:* `failedCssUrl` reads the stylesheet Vite names; the retry puts it in under `?retry=n` (a `<link
+   rel=stylesheet>`, resolved on `load`) and only then asks the chunk again; a stylesheet lost for good exhausts the
+   retries and rejects as before (the play layer's reload then applies). Test (red first: `failedCssUrl` missing):
+   `tests/opus-bay-w7-p-retry.test.ts` "W7-P-review: a chunk whose stylesheet was lost…".
+
+### Open items (not blocking)
+
+- **GameRoot headroom is ≈ 3.3 KB** (261.68 of 265 on `30028e90`): the lane's request to lanes V / X stands — the next
+  city-only additions should go behind the city chunk or a `citySlots`-style registration.
+- **A lost shared dependency is not recovered** by the retry (confirmed above): only a lost chunk file is. Most real
+  blips on a phone lose several files at once, so the retry helps less than the report's wording suggests; the play
+  layer still has its one reload behind it.
+- **继续旅程 after a lost discovery chunk** waits for the retries (up to ≈ 12 s with no feedback) before play begins
+  (`game/resume.ts resumeAt` awaits `importRetry(() => import('./discovery'))`); only when the chunk failed at boot and
+  the network is still down — rare, left as is.
+- The `?start=` deep links (QA) now begin a moment later (after the play layer); scripts that eval right after load
+  should wait for `ob-phase-playing`.
+- Not re-run here: Firefox / Safari, a real phone, the perf spots (the moves change no geometry or draw calls).
+
+### Blocking the go-live
+
+None.

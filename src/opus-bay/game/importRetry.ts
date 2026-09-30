@@ -33,6 +33,18 @@ export function failedModuleUrl(e: unknown): string | null {
   return m ? m[1] : null;
 }
 
+/**
+ * (W7-P-review) The stylesheet Vite's preload helper names when a chunk's CSS failed ("Unable to preload CSS for …"), or
+ * null. The helper marks that stylesheet as seen before it loads, so a plain second `load()` skips it and the chunk would
+ * come in without its CSS (the play layer: an unstyled dialogue box / card for the rest of the visit, where before W7-P3
+ * the failure reloaded the page once): the retry puts the stylesheet in itself first.
+ */
+export function failedCssUrl(e: unknown): string | null {
+  const msg = e instanceof Error ? e.message : String(e);
+  const m = /Unable to preload CSS for (\S+?\.css)(?:\?\S*)?(?=\s|$)/.exec(msg);
+  return m ? m[1] : null;
+}
+
 /** `url` with `retry=n` in its query (so the module map treats it as a new module). */
 export function bustUrl(url: string, n: number): string {
   return `${url}${url.includes('?') ? '&' : '?'}retry=${n}`;
@@ -44,14 +56,24 @@ export interface RetryOptions<T> {
   /** tests: the timer and the URL import */
   sleep?: (ms: number) => Promise<void>;
   importUrl?: (url: string) => Promise<T>;
+  /** tests: put a stylesheet in (resolves once it loaded; rejects with Vite's own message when it did not) */
+  loadCss?: (url: string) => Promise<void>;
 }
 
 const nativeImport = <T>(url: string): Promise<T> => import(/* @vite-ignore */ url) as Promise<T>;
 const wait = (ms: number) => new Promise<void>(resolve => { setTimeout(resolve, ms); });
+const nativeCss = (url: string): Promise<void> => new Promise<void>((resolve, reject) => {
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = url;
+  link.addEventListener('load', () => { resolve(); });
+  link.addEventListener('error', () => { link.remove(); reject(new Error(`Unable to preload CSS for ${url}`)); });
+  document.head.appendChild(link);
+});
 
 /** Run `load` (a dynamic import); retry a loading failure (see above). */
 export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<T> = {}): Promise<T> {
-  const waits = opts.waits ?? RETRY_MS, sleep = opts.sleep ?? wait, importUrl = opts.importUrl ?? nativeImport<T>;
+  const waits = opts.waits ?? RETRY_MS, sleep = opts.sleep ?? wait, importUrl = opts.importUrl ?? nativeImport<T>, loadCss = opts.loadCss ?? nativeCss;
   try {
     return await load();
   } catch (first) {
@@ -59,8 +81,10 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
     for (let n = 1; n <= waits.length; n++) {
       if (!isLoadFailure(last)) throw last;
       await sleep(waits[n - 1]);
-      const url = failedModuleUrl(last);
+      const css = failedCssUrl(last), url = css ? null : failedModuleUrl(last);
       try {
+        // (W7-P-review) a lost stylesheet first, under a new URL; then the chunk (the helper skips a CSS it has seen)
+        if (css) { await loadCss(bustUrl(css, n)); return await load(); }
         return url ? await importUrl(bustUrl(url, n)) : await load();
       } catch (e) { last = e; }
     }
