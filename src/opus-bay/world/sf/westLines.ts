@@ -1,4 +1,5 @@
 import type { Bilingual, Vec2 } from '../../core/types';
+import { LAKE_CENTRE } from './westLakePose';
 import { SEAL_ROCKS_CENTRE, seaPoint } from './westSeaPose';
 
 /**
@@ -10,7 +11,9 @@ import { SEAL_ROCKS_CENTRE, seaPoint } from './westSeaPose';
  * (https://en.wikipedia.org/wiki/Ocean_Beach,_San_Francisco , read 2026-09-30); Seal Rocks — Steller and California sea
  * lions haul out there (https://en.wikipedia.org/wiki/Seal_Rocks_(San_Francisco) , read 2026-09-30); Brandt's cormorants
  * nest on Seal Rocks, "turning the rocks bright white" with their guano (https://nps.gov/goga/learn/nature/birds.htm ,
- * read 2026-09-30).
+ * read 2026-09-30); Blue Heron Lake — the boathouse rents "American-Made row and pedal boats", "In operation since 1893"
+ * (https://blueheronboathouse.com/ , read 2026-09-30), the lake is named after the great blue heron (OSM relation 12908
+ * name:etymology; renamed from Stow Lake: world/sf/landmarks/blue-heron-lake.ts).
  */
 
 export interface WestLine { id: string; text: Bilingual }
@@ -23,12 +26,23 @@ export const WEST_LINES: Record<'surf1' | 'surf2' | 'kelly' | 'seal1' | 'seal2',
   seal2: { id: 'w8-w2-seal-2', text: { zh: '礁石顶上白白的，是鸬鹚留下的鸟粪！', en: "See the white on top? That's cormorant guano!" } },
 };
 
+/** Blue Heron Lake (world/sf/westLake.ts) */
+export const LAKE_LINES: Record<'boats' | 'heron' | 'since', WestLine> = {
+  boats: { id: 'w8-w2-lake-boats', text: { zh: '湖上有人踩脚踏船、有人划船，好悠闲。', en: 'People are out on the lake in pedal boats and rowboats — so peaceful.' } },
+  heron: { id: 'w8-w2-lake-heron', text: { zh: '这片湖叫蓝鹭湖。看，岸边就站着一只大蓝鹭！', en: "It's called Blue Heron Lake — look, there's a great blue heron on the shore!" } },
+  since: { id: 'w8-w2-lake-1893', text: { zh: '从1893年起，这座船屋就一直租船给游客。', en: 'This boathouse has been renting out boats since 1893.' } },
+};
+
 /** a spot: where, how near (u), its lines in order, by day only */
 export interface WestSpot { id: string; at: Vec2; r: number; lines: readonly WestLine[]; day: boolean }
 export const WEST_SPOTS: readonly WestSpot[] = [
   { id: 'kelly', at: seaPoint(32, 0), r: 60, lines: [WEST_LINES.kelly, WEST_LINES.surf1, WEST_LINES.surf2], day: true },
   { id: 'judah', at: seaPoint(245, 0), r: 70, lines: [WEST_LINES.surf1, WEST_LINES.surf2], day: true },
   { id: 'seal', at: SEAL_ROCKS_CENTRE, r: 60, lines: [WEST_LINES.seal1, WEST_LINES.seal2], day: false },
+];
+export const LAKE_SPOTS: readonly WestSpot[] = [
+  { id: 'lake', at: LAKE_CENTRE, r: 48, lines: [LAKE_LINES.boats, LAKE_LINES.heron], day: true },
+  { id: 'boathouse', at: { x: -306.3, z: 1024.0 }, r: 14, lines: [LAKE_LINES.since], day: false },
 ];
 /** a spot is left again this much beyond its radius (no flicker on its edge) */
 export const SPOT_HYSTERESIS = 15;
@@ -39,9 +53,9 @@ export const LINE_NIGHT_MAX = 0.35;
  * The line to say now, or null: on entering a spot (`onFoot`: walking, cycling or sitting — not on a ride; a day spot
  * by day) the first of its lines not said this session. `inside` (the spots the player is in) is updated; `said` is the caller's (ids it managed to say).
  */
-export function westLineDue(x: number, z: number, night: number, inside: Set<string>, said: ReadonlySet<string>, onFoot: boolean): WestLine | null {
+export function westLineDue(x: number, z: number, night: number, inside: Set<string>, said: ReadonlySet<string>, onFoot: boolean, spots: readonly WestSpot[] = WEST_SPOTS): WestLine | null {
   let due: WestLine | null = null;
-  for (const s of WEST_SPOTS) {
+  for (const s of spots) {
     const d = Math.hypot(x - s.at.x, z - s.at.z);
     if (inside.has(s.id)) { if (d > s.r + SPOT_HYSTERESIS) inside.delete(s.id); continue; }
     if (d > s.r || !onFoot || (s.day && night > LINE_NIGHT_MAX)) continue;

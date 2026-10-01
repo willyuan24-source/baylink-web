@@ -4,7 +4,7 @@ import { game } from '../../core/store';
 import { baybayLine } from '../../game/cityContent';
 import type { WorldSystem } from '../world';
 import { westLineDue } from './westLines';
-import { registerWestWarmup, westBall, westToyMaterial } from './westToy';
+import { attachWestInstanced, registerWestWarmup, westBall, westToyMaterial } from './westToy';
 import { OB_SHORE, SEAL_ROCKS_CENTRE, WEST_SEA_CAPACITY, paintWestSea, poseRocks, poseWestSea } from './westSeaPose';
 
 /**
@@ -22,7 +22,6 @@ import { OB_SHORE, SEAL_ROCKS_CENTRE, WEST_SEA_CAPACITY, paintWestSea, poseRocks
 export const WEST_SEA_KIND = 'west-sea';
 /** the camera's distance (u) to the beach or the rocks within which the mesh draws */
 export const WEST_RANGE = 420;
-const CHECK_EVERY = 0.2;
 
 registerWestWarmup(WEST_SEA_KIND);
 
@@ -56,37 +55,18 @@ export function buildWestSea(): THREE.InstancedMesh {
 
 /** City mode: the west side's sea life as a world system (world/sf/cityWorld.ts adds it). */
 export function attachWestSea(): WorldSystem {
-  const group = new THREE.Group();
-  group.name = 'sf:west-sea';
-  group.visible = false;
-  let mesh: THREE.InstancedMesh | null = null;
-  let next = 0, near = false;
-  const said = new Set<string>();
-  const inside = new Set<string>();
-  return {
+  return attachWestInstanced({
     name: 'west-sea',
-    group,
-    update(_dt, t, camera, night) {
-      if (t >= next || t < next - 1) {
-        next = t + CHECK_EVERY;
-        const c = camera.position;
-        near = westSeaDist2(c.x, c.z) <= WEST_RANGE * WEST_RANGE;
-        if (near && !mesh) { mesh = buildWestSea(); group.add(mesh); group.updateMatrixWorld(true); }
-        group.visible = near && !!mesh;
-        if (near) speak(night);
-      }
-      if (!near || !mesh) return;
-      mesh.count = poseWestSea(mesh, t, night);
-      mesh.instanceMatrix.needsUpdate = true;
-    },
-    dispose() { mesh?.geometry.dispose(); mesh?.dispose(); mesh = null; },
-  };
+    build: buildWestSea,
+    dist2: westSeaDist2,
+    range: WEST_RANGE,
+    pose: (mesh, t, night) => poseWestSea(mesh, t, night),
+    line: (x, z, night, inside, said, onFoot) => westLineDue(x, z, night, inside, said, onFoot),
+  }, text => baybayLine(text, { ttl: 25 }), westPlayer);
+}
 
-  /** BAYBAY's line for the spot the player is at (on foot), once per visit, each line once a session. */
-  function speak(night: number) {
-    const p = runtime.player;
-    const mode = game.get().move.mode;
-    const due = westLineDue(p.x, p.z, night, inside, said, mode === 'foot' || mode === 'bike' || mode === 'sit');
-    if (due && baybayLine(due.text, { ttl: 25 })) said.add(due.id);
-  }
+/** the player for BAYBAY's spot test: where, and out walking (on foot, cycling or sitting on a bench — not on a ride) */
+export function westPlayer() {
+  const mode = game.get().move.mode;
+  return { x: runtime.player.x, z: runtime.player.z, afoot: mode === 'foot' || mode === 'bike' || mode === 'sit' };
 }

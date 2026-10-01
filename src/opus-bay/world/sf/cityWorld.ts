@@ -26,6 +26,7 @@ import { attachEastCut } from './cornersEastCut';
 import { attachNorthBeach } from './cornersNorthBeach';
 import { attachWharfShips } from './wharfShips';
 import { attachSights } from './cornersSights';
+import { attachWestLake } from './westLake';
 import { attachWestSea } from './westSea';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
@@ -234,6 +235,8 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const detachSights = host.addSystem(attachSights());
   // W8-W2: Ocean Beach's surfers and Seal Rocks (world/sf/westSea.ts)
   const detachWestSea = host.addSystem(attachWestSea());
+  // W8-W2: Blue Heron Lake's boats, ducks and heron (world/sf/westLake.ts)
+  const detachWestLake = host.addSystem(attachWestLake());
   void streamer.start().then(() => {
     const m = streamer.manifest;
     // the far detail chunks carry the same lots: cut them out there too
@@ -257,6 +260,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
       detachShips();
       detachSights();
       detachWestSea();
+      detachWestLake();
       for (const d of detachAtmos) d();
     },
   };
