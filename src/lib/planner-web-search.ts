@@ -4,6 +4,14 @@ export type PlannerWebResult = { answer: string; sources: PlannerWebSource[]; ch
 export type SavedWebCandidate = PlannerWebCandidate & { checkedAt: string | null; requestedDate: string | null };
 export const GUEST_WEB_CANDIDATES_KEY = 'baylink.planner.web-candidates.guest.v1';
 
+/** A name-based lookup, not a verified coordinate or route. */
+export function plannerWebMapSearchUrl(candidate: Pick<PlannerWebCandidate, 'name' | 'city'>): string {
+  const url = new URL('https://www.google.com/maps/search/');
+  url.searchParams.set('api', '1');
+  url.searchParams.set('query', [candidate.name.trim(), candidate.city?.trim(), 'California'].filter(Boolean).join(', '));
+  return url.href;
+}
+
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 
 /** Public web references only. No embedded credentials, local hosts or IP literals.

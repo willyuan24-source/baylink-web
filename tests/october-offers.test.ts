@@ -25,7 +25,7 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid anchors and merges reviewed autumn benefits by canonical ID', () => {
-  assert.equal(currentFreebies.length, 95);
+  assert.equal(currentFreebies.length, 102);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);

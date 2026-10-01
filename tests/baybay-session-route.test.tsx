@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { after, afterEach } from 'node:test';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -22,7 +22,8 @@ const { MemoryRouter, Routes, Route, useLocation } = await import('react-router-
 const { default: AppLayout } = await import('../src/app/AppLayout');
 const { useApp } = await import('../src/app/context');
 const { api } = await import('../src/lib/api');
-styles.deregister();
+// AppLayout can import lazy overlays while the interaction is running.
+after(() => { styles.deregister(); dom.window.close(); });
 
 afterEach(() => { cleanup(); localStorage.clear(); dom.window.sessionStorage.clear(); });
 

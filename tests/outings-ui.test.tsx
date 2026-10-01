@@ -231,6 +231,35 @@ test('confirmed members can read after a changed plan but cannot speak on the ol
   assert.ok(view.getByText(/请先在上方确认新的安排/)); assert.equal(view.queryByRole('button', { name: '发送消息' }), null);
 });
 
+test('discussion removes cached private messages after access is revoked and rechecks before recovery', async t => {
+  signIn(user); let denied = false, reads = 0;
+  t.mock.method(api, 'request', async (path: string) => {
+    if (!path.endsWith('/messages')) return { outing: memberOuting() };
+    reads++; if (denied) throw { status: 403 };
+    return { messages: [{ id: 'private-message', outingId: outing().id, senderId: host.id, senderName: host.nickname, text: '仅成员可见的集合说明', createdAt: now }] };
+  });
+  const view = render(<DiscussionHarness item={memberOuting()} />); await view.findByText('仅成员可见的集合说明');
+  fireEvent.change(view.getByRole('textbox', { name: '给小队发消息' }), { target: { value: '保留未发送草稿' } });
+  denied = true; fireEvent.click(view.getByRole('button', { name: '刷新讨论' }));
+  await view.findByText(/已隐藏之前读取的消息/); await act(async () => {});
+  assert.equal(view.queryByText('仅成员可见的集合说明'), null); assert.equal(view.queryByRole('textbox', { name: '给小队发消息' }), null);
+  denied = false; fireEvent.click(view.getByRole('button', { name: '刷新讨论' })); await view.findByText('仅成员可见的集合说明'); await act(async () => {});
+  assert.equal((view.getByRole('textbox', { name: '给小队发消息' }) as HTMLTextAreaElement).value, '保留未发送草稿');
+  assert.equal((view.getByRole('button', { name: '发送消息' }) as HTMLButtonElement).disabled, false); assert.equal(reads, 3);
+});
+
+test('a revoked message write also hides prior discussion instead of leaving an active composer', async t => {
+  signIn(user);
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => {
+    if (options.method === 'POST') throw { status: 404 };
+    return { messages: [{ id: 'private-message', outingId: outing().id, senderId: host.id, senderName: host.nickname, text: '旧的私密讨论', createdAt: now }] };
+  });
+  const view = render(<DiscussionHarness item={memberOuting()} />); await view.findByText('旧的私密讨论');
+  fireEvent.change(view.getByRole('textbox', { name: '给小队发消息' }), { target: { value: '提交时权限已变化' } });
+  fireEvent.click(view.getByRole('button', { name: '发送消息' })); await view.findByText(/已隐藏之前读取的消息/);
+  assert.equal(view.queryByText('旧的私密讨论'), null); assert.equal(view.queryByRole('button', { name: '发送消息' }), null);
+});
+
 test('two successful messages use refreshed revisions and never present optimistic unsaved messages', async t => {
   signIn(user); let revision = 4; const sent: Record<string, unknown>[] = [], storedMessages: { id: string; outingId: string; senderId: string; senderName: string; text: string; createdAt: number }[] = [];
   t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {

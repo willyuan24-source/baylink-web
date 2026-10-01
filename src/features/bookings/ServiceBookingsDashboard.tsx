@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, MessageCircle, RefreshCw, ShieldCheck } from 'lucide-react';
-import { bookingDisplayStatus, serviceBookings, type BookingAction, type BookingNotifications, type ServiceBooking, type ServiceBookingInbox } from '../../lib/service-bookings';
+import { bookingDisplayStatus, serviceBookings, type BookingAction, type ServiceBooking, type ServiceBookingInbox } from '../../lib/service-bookings';
 import type { UserData } from '../../lib/types';
 import { useBookingCopy } from './booking-copy';
 import { BookingError, BookingNotice, BookingNotificationNotice, BookingStatusLabel } from './booking-shared';
@@ -18,7 +18,7 @@ function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDas
   const setTab = (next: 'customer' | 'provider') => setParams(current => { const updated = new URLSearchParams(current); updated.set('view', next === 'provider' ? 'received' : 'mine'); return updated; }, { replace: true });
   const [busy, setBusy] = useState('');
   const [confirmation, setConfirmation] = useState<{ id: string; action: 'cancel' | 'decline' } | null>(null);
-  const [notification, setNotification] = useState<{ notifications: BookingNotifications; conversationId?: string } | null>(null), [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const readVersion = useRef(0), mutationLock = useRef(false);
   const load = useCallback(async () => {
     if (!user) return;
@@ -38,12 +38,13 @@ function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDas
   const actOnBooking = async (booking: ServiceBooking, action: BookingAction) => {
     if (mutationLock.current || !session.current()) return;
     const payload = { providerId: booking.providerId, bookingId: booking.id, action }, key = session.key(payload), controller = session.controller();
-    mutationLock.current = true; ++readVersion.current; setBusy(booking.id); setError(''); setNotification(null);
+    mutationLock.current = true; ++readVersion.current; setBusy(booking.id); setError('');
     try {
       const response = await serviceBookings.action(booking, action, key, controller.signal);
       if (!session.current()) return;
-      setData(previous => previous && { ...previous, asCustomer: previous.asCustomer.map(item => item.id === booking.id ? response.booking : item), asProvider: previous.asProvider.map(item => item.id === booking.id ? response.booking : item) });
-      setNotification({ notifications: response.notifications, conversationId: response.booking.conversationId }); setConfirmation(null); session.clearKey(payload); showToast(t('预约状态已更新。', 'Booking status updated.'), 'success');
+      const updated = { ...response.booking, notifications: response.notifications };
+      setData(previous => previous && { ...previous, asCustomer: previous.asCustomer.map(item => item.id === booking.id ? updated : item), asProvider: previous.asProvider.map(item => item.id === booking.id ? updated : item) });
+      setConfirmation(null); session.clearKey(payload); showToast(t('预约状态已更新。', 'Booking status updated.'), 'success');
     } catch (reason) { if (session.current()) setError(bookingError(reason, t)); }
     finally { session.release(controller); if (session.current()) { mutationLock.current = false; setBusy(''); setLoading(false); } }
   };
@@ -68,7 +69,7 @@ function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDas
     <header className="booking-dashboard-heading"><div><span className="booking-eyebrow">A LITTLE TIME, WELL PLANNED</span><h1>{t('把需要，安排妥当', 'Make time for what you need')}</h1><p>{t('约时间、看进度，与邻居把服务细节说清楚。', 'Book a time, follow its progress and agree on the details together.')}</p></div><span className="booking-dashboard-art" aria-hidden="true"><CalendarDays size={37} strokeWidth={1.4} /></span></header>
     {!user ? <section className="booking-surface booking-guest"><h2>{t('登录后管理你的预约', 'Sign in to manage your bookings')}</h2><p>{t('预约记录属于你的账号，只会向预约双方展示。', 'Booking records belong to your account and are only shown to the participants.')}</p><button className="booking-primary" type="button" onClick={onLoginNeeded}>{t('登录 / 注册', 'Sign in / Register')}</button></section> : <>
       <div className="booking-dashboard-toolbar"><div className="booking-tabs" role="group" aria-label={t('预约方向', 'Booking view')}><button type="button" aria-pressed={tab === 'customer'} onClick={() => { setTab('customer'); setConfirmation(null); }}>{t('我预约的', 'My bookings')}{data && <span>{data.asCustomer.length}</span>}</button><button type="button" aria-pressed={tab === 'provider'} onClick={() => { setTab('provider'); setConfirmation(null); }}>{t('我收到的', 'Received')}{data && <span>{data.asProvider.length}</span>}</button></div><button className="booking-icon-button" aria-label={t('刷新预约记录', 'Refresh bookings')} disabled={!!busy || loading} type="button" onClick={() => void load()}><RefreshCw size={17} aria-hidden="true" /></button></div>
-      {loading && <p role="status">{t('正在读取预约记录…', 'Loading bookings…')}</p>}{error && <BookingError message={error} onRetry={() => void load()} retryLabel={t('刷新预约状态', 'Refresh booking status')} disabled={!!busy || loading} />}{notification && <BookingNotificationNotice {...notification} t={t} />}
+      {loading && <p role="status">{t('正在读取预约记录…', 'Loading bookings…')}</p>}{error && <BookingError message={error} onRetry={() => void load()} retryLabel={t('刷新预约状态', 'Refresh booking status')} disabled={!!busy || loading} />}
       {data && !rows.length && <section className="booking-empty booking-surface"><CalendarDays size={26} aria-hidden="true" /><h2>{tab === 'customer' ? t('还没有预约', 'No bookings yet') : t('还没有收到预约', 'No booking requests yet')}</h2><p>{tab === 'customer' ? t('从服务帖选择可约时间，提交后在这里查看进度。', 'Choose an available time on a service listing, then track it here.') : t('在你已发布的服务帖里设置可约时段，邻居就能发来申请。', 'Set available times on your existing service listings to receive requests.')}</p><Link className="booking-secondary" to="/category/service">{t('浏览社区服务', 'Browse community services')}</Link></section>}
       <div className="booking-records">{rows.map(booking => {
         const status = bookingDisplayStatus(booking, now), provider = booking.providerId === user.id;
@@ -78,6 +79,7 @@ function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDas
           <div className="booking-record-top"><BookingStatusLabel booking={booking} t={t} now={now} /><span>{provider ? t('来自', 'From') : t('服务者', 'Provider')} · {provider ? booking.customerName || t('预约用户', 'Customer') : booking.providerName || t('服务发布者', 'Provider')}</span></div>
           <h2><Link to={`/posts/${encodeURIComponent(booking.postId)}`}>{booking.postTitle}</Link></h2><p className="booking-record-time"><CalendarDays size={17} aria-hidden="true" /><time dateTime={booking.date}>{booking.date}</time> <strong>{booking.startTime}–{booking.endTime}</strong></p><p className="booking-footnote">{t('湾区时间 · America/Los_Angeles', 'Bay Area time · America/Los_Angeles')}</p>
           {booking.note && <p className="booking-record-note">{booking.note}</p>}
+          {booking.notifications && (booking.notifications.inApp !== 'sent' || ['failed', 'unknown', 'pending', 'unconfigured'].includes(booking.notifications.sms)) && <BookingNotificationNotice notifications={booking.notifications} conversationId={booking.conversationId} t={t} />}
           {pending && <p className="booking-deadline">{t('待确认申请，不代表预约成功。服务者需在', 'A request is not a confirmed booking. The provider must respond before')} <time dateTime={new Date(Math.min(booking.expiresAt ?? booking.startAt, booking.startAt)).toISOString()}>{dateTime(Math.min(booking.expiresAt ?? booking.startAt, booking.startAt))}</time> {t('前答复，逾期自动释放时段。', '; the time is released if the request expires.')}</p>}
           {confirmed && booking.endAt <= now && <p className="booking-footnote">{t('预约时间已过，完成状态仍需服务者确认。', 'The appointment time has passed. The provider still needs to mark completion.')}</p>}
           <div className="booking-record-actions">

@@ -1,0 +1,154 @@
+[
+  {
+    "id": "san-jose-365-night-market-october-2026",
+    "title": "San Jose 365 Night Market：十月底夜市",
+    "startDate": "2026-10-30",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-30",
+      "2026-10-31"
+    ],
+    "dateLabel": "10/30–31 · 每日具体开放时段待确认",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "Grand Century Mall · 1111 Story Rd, San Jose",
+    "category": "food",
+    "cost": "free",
+    "costLabel": "入场免费；食品、饮料和购物另付",
+    "summary": "两天的餐饮、购物与音乐夜市，适合把月底晚餐换成一次逛摊。",
+    "plan": [
+      "先选10/30或10/31到访 Grand Century Mall，地址为1111 Story Rd, San Jose。",
+      "官网合并显示10/30 16:00至10/31 22:00，未分列两天时段；不代表通宵开放。",
+      "先在主办方页面核对当晚开放时间、RSVP和摊位安排，再安排交通。"
+    ],
+    "audience": [
+      "美食爱好者",
+      "朋友同行"
+    ],
+    "officialUrl": "https://www.365nightmarket.com/event-details/365-night-market-at-grand-century-mall-san-jose-2026-10-30-16-00",
+    "sourceLabel": "365 Night Market",
+    "imageKey": "autumn-neighbors",
+    "verifiedAt": "2026-09-30"
+  },
+  {
+    "id": "oakland-drunken-film-fest-free-shorts-2026",
+    "title": "Oakland Drunken Film Fest：免费短片周",
+    "startDate": "2026-10-04",
+    "endDate": "2026-10-09",
+    "occurrenceDates": [
+      "2026-10-04",
+      "2026-10-05",
+      "2026-10-06",
+      "2026-10-07",
+      "2026-10-08",
+      "2026-10-09"
+    ],
+    "dateLabel": "10/4–9 · 每晚不同场地；开映时间待确认",
+    "region": "east-bay",
+    "city": "Oakland",
+    "venue": "Oakland 多个场地，按日期查节目单",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "10/4–9短片放映免费；10/3开幕长片另售票，餐饮另付",
+    "summary": "在不同社区场地看独立短片，先挑一天和一组片单，再约同好见面。",
+    "plan": [
+      "10/4 Double Standard；10/5 Stay Gold；10/6 Beeryland；10/7 Temescal Brewing；10/8 Eli’s；10/9 Prescott Market。",
+      "核对所选场次的开映时间、RSVP和场地年龄限制，不默认儿童可参加。",
+      "10/4–9短片放映免费，餐饮另付；10/3开幕长片另售票。"
+    ],
+    "audience": [
+      "电影爱好者"
+    ],
+    "officialUrl": "https://www.drunkenfilmfest.com/2026-program",
+    "sourceLabel": "Drunken Film Fest Oakland",
+    "imageKey": "culture-visit",
+    "verifiedAt": "2026-09-30"
+  },
+  {
+    "id": "napa-tulocay-heritage-halloween-tour-2026",
+    "title": "Napa Tulocay：万圣节历史步行导览",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "dateLabel": "10/24 周六 · 16:00–17:30",
+    "region": "north-bay",
+    "city": "Napa",
+    "venue": "Tulocay Cemetery · 411 Coombsville Rd, Napa",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "非会员$45；NCHS会员$30；最终附加费与余票以售票页为准",
+    "summary": "由 Napa County Historical Society 组织的90分钟历史导览，了解当地人物与城市记忆。",
+    "plan": [
+      "提前在官方售票页核对余票与附加费；非会员$45，NCHS会员$30。",
+      "按10/24 16:00–17:30安排，在原入口内的 Juarez Building 集合。",
+      "路线有铺装路面但包含陡坡；穿适合步行的鞋，行动辅助设备需适合坡地。"
+    ],
+    "audience": [
+      "历史爱好者"
+    ],
+    "officialUrl": "https://donapa.com/event/heritage-halloween-tulocay-cemetery-tour/",
+    "sourceLabel": "Downtown Napa · Napa County Historical Society",
+    "imageKey": "culture-visit",
+    "verifiedAt": "2026-09-30"
+  },
+  {
+    "id": "palo-alto-cal-ave-halloween-live-2026",
+    "title": "Palo Alto Cal Ave：万圣节街区音乐日",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "dateLabel": "10/31 周六 · 暂定10:00–13:00，临行复核",
+    "region": "peninsula",
+    "city": "Palo Alto",
+    "venue": "California Avenue · El Camino Real–Birch Street, Palo Alto",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "活动免费；餐饮与购物另付，赠品数量以现场为准",
+    "summary": "在步行街听现场音乐、参加节日活动，把万圣节上午留给轻松的街区散步。",
+    "plan": [
+      "系列名虽为 Thursday Live，此特别场在10/31周六，按活动日期安排。",
+      "官方日期栏列10:00–13:00，正文仍称10:00暂定；时段与各项表演以市府后续确认为准。",
+      "前往 California Avenue 的 El Camino Real–Birch Street 路段；活动免费，餐饮购物另付，赠品供应以现场为准。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "朋友同行"
+    ],
+    "officialUrl": "https://www.paloalto.gov/Events-Directory/City-Manager/Thursday-Live-on-Cal-Ave.-October-31",
+    "sourceLabel": "City of Palo Alto",
+    "imageKey": "autumn-neighbors",
+    "verifiedAt": "2026-09-30"
+  },
+  {
+    "id": "concord-sidegate-trivia-october-2026",
+    "title": "Concord Side Gate：周三知识问答夜",
+    "kind": "meetup",
+    "startDate": "2026-10-07",
+    "endDate": "2026-10-28",
+    "occurrenceDates": [
+      "2026-10-07",
+      "2026-10-14",
+      "2026-10-21",
+      "2026-10-28"
+    ],
+    "dateLabel": "10/7、14、21、28 · 18:30签到，19:00开始",
+    "region": "east-bay",
+    "city": "Concord",
+    "venue": "Side Gate Brewery & Beer Garden · 1822 Grant St, Concord",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "来源未明确参加费用；餐饮、年龄及入场条件请向场地方确认",
+    "summary": "Geeks Who Drink 的周三问答活动，适合和朋友组成小队、试试平日晚间社交。",
+    "plan": [
+      "官方旅游日历列18:30–20:30，19:00开始答题；仅列出的四个周三有活动。",
+      "参加费用未明确，先向场地方确认收费、预约要求与年龄限制。",
+      "与朋友确认组队方式，再到1822 Grant St的 Side Gate 参加；不默认酒吧活动适合儿童。"
+    ],
+    "audience": [
+      "知识问答爱好者",
+      "朋友同行"
+    ],
+    "officialUrl": "https://www.visitconcordca.com/events/sidegate-trivia-night-with-geeks-who-drink/",
+    "sourceLabel": "Visit Concord · Side Gate",
+    "imageKey": "autumn-neighbors",
+    "verifiedAt": "2026-09-30"
+  }
+]

@@ -10,7 +10,7 @@ export const octoberDealsGuides: Guide[] = [{
   audience: ['湾区亲子家庭', '想省门票的本地居民', '十月周末出行者'],
   tags: ['2026年10月', '当月优惠', '免费场馆', '亲子手工', 'Discover & Go', 'BAMPFA', 'OMCA', 'Lowe’s', 'Yogurtland', '图书馆', '南湾', '东湾', '半岛', '北湾'],
   priority: 'P0', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
-  updatedAt: '2026-09-29', editionMonth: '2026-10',
+  updatedAt: '2026-09-30', editionMonth: '2026-10',
   sourceNote: '2026-09-29 补充赠书、拼图交换、免费体验与会员福利入口，并核对所列项目的官方条件。9 月 27 日新增的六项福利及其他条目仍保留各自原核查日（9 月 8–27 日），并非全部于本次重新核查。按周期规则推算的日期在条目中注明；库存、门店参与、预约余票和临时闭馆需出发前复核。',
   sources: [...new Map([
     ...octoberOfferSources,

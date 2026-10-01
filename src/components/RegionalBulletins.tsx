@@ -1,11 +1,12 @@
 import { ArrowUpRight } from 'lucide-react';
 import { regionalBulletins } from '../data/late-september-local';
+import { octoberRefreshBulletins } from '../data/october-refresh-bulletins';
 import { GUIDE_IMAGES } from '../data/guide-media';
 import { GuideImageCaption } from './GuideVisuals';
 import { recordProductEvent } from '../lib/product-events';
 
 export function RegionalBulletins({ today }: { today: string }) {
-  const items = regionalBulletins.filter(item => item.expiresAt >= today);
+  const items = [...octoberRefreshBulletins, ...regionalBulletins].filter(item => item.expiresAt >= today);
   if (!items.length) return null;
   return <section className="regional-bulletins" id="monthly-news" aria-labelledby="monthly-news-heading">
     <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">AROUND THE BAY</span><h2 id="monthly-news-heading">五区生活快讯</h2></div><p>交通、图书馆与生活服务的近期变动，按地区快速查阅。</p></div>

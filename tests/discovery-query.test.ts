@@ -105,3 +105,15 @@ test('alternative and conflicting dates do not silently keep the final date', ()
   assert.deepEqual(parseDiscoveryQuery('10/3–10/4活动', today).dateRange, { start: '2026-10-03', end: '2026-10-04' });
   assert.deepEqual(parseDiscoveryQuery('10月3日周六活动', today).dateRange, { start: '2026-10-03', end: '2026-10-03' });
 });
+
+test('an exact date with its weekday is one day even when it is not the next Saturday', () => {
+  for (const text of ['10月17日周六，半岛两个人，不开车，想找免费活动', '10月17日（星期六）免費活動', '2026-10-17 Saturday free events', 'October 17, 2026 (Saturday) free events', '10/17, Saturday events']) {
+    const query = parseDiscoveryQuery(text, '2026-09-30');
+    assert.deepEqual(query.dateRange, { start: '2026-10-17', end: '2026-10-17' }, text);
+    assert.equal(query.invalidDate, false, text); assert.equal(query.unsupported.includes('multiple-dates'), false, text);
+  }
+  for (const text of ['10月17日周日活动', 'October 17 (Sunday) events']) assert.equal(parseDiscoveryQuery(text, '2026-09-30').invalidDate, true, text);
+  for (const text of ['10月17日周六或10月18日周日', '10月17日或周六', '10/17 Saturday or 10/18 Sunday', '10月17日下周六']) {
+    assert.equal(parseDiscoveryQuery(text, '2026-09-30').unsupported.includes('multiple-dates'), true, text);
+  }
+});

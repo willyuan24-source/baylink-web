@@ -1,0 +1,275 @@
+[
+  {
+    "id": "sfpl-ocean-view-stem-oct8-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "occurrenceDates": [
+      "2026-10-08"
+    ],
+    "dateLabel": "10 月 8 日 · 15:30–16:30",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "Ocean View：STEM 自由探索游戏",
+    "venue": "Ocean View Library · Ocean View Meeting Room",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页未明确入场费 · 出发前向分馆确认",
+    "officialUrl": "https://sfpl.org/events/2026/10/08/activity-stem-free-play",
+    "summary": "孩子可自由尝试水画、Octoplay 与 Little Builders。官方面向 3 岁及以上儿童及其照护者，适合放学后安排一小时探索。",
+    "plan": [
+      "10/8 15:30–16:30，以官方日历时间为准；Ocean View Meeting Room，3 岁及以上儿童须有照护者陪同。",
+      "标题中的 Free Play 指自由游戏，活动页没有明确入场费；不把它自动记作免费门票。",
+      "未另说明时可直接到场，容量和临时调整向 Ocean View 分馆确认。"
+    ],
+    "audience": [
+      "3 岁以上亲子",
+      "STEM 探索"
+    ]
+  },
+  {
+    "id": "sfpl-richmond-lego-oct7-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-07",
+    "endDate": "2026-10-07",
+    "occurrenceDates": [
+      "2026-10-07"
+    ],
+    "dateLabel": "10 月 7 日 · 16:00–17:30",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "Richmond：LEGO 自由搭建",
+    "venue": "Richmond/Senator Milton Marks Library · Richmond Meeting Room",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页未明确入场费 · 出发前向分馆确认",
+    "officialUrl": "https://sfpl.org/events/2026/10/07/activity-lego-free-play",
+    "summary": "用 LEGO 搭建高楼、堡垒或想象中的建筑。官方面向 5 岁及以上儿童，这场在 Richmond 分馆，不要与其他分馆的同名活动混淆。",
+    "plan": [
+      "10/7 16:00–17:30，官方日历确认；地点为 Richmond Meeting Room，面向 5 岁及以上儿童。",
+      "本场活动页未单列入场费用；Free Play 指自由搭建，不是费用证据。",
+      "未另说明时无需报名，容量和最新安排向 Richmond 分馆确认。"
+    ],
+    "audience": [
+      "5 岁以上亲子",
+      "积木与动手"
+    ]
+  },
+  {
+    "id": "sfpl-career-coaching-oct8-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "occurrenceDates": [
+      "2026-10-08"
+    ],
+    "dateLabel": "10 月 8 日 · 11:00–13:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "SFPL：免费一对一职业咨询",
+    "venue": "Main Library · Sycip Family Conference Room, 4th Floor",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费 · 每人每次 30 分钟，须预约",
+    "officialUrl": "https://sfpl.org/events/2026/10/08/workshop-career-coaching",
+    "summary": "与职业顾问一对一讨论求职和职业发展。免费咨询为现场预约服务，适合带着具体问题参加。",
+    "plan": [
+      "10/8 服务窗口为 11:00–13:00；实际每次咨询 30 分钟，须以预约确认中的时间安排，不能把两小时窗口当作已订时段。",
+      "官方明确免费，须通过活动页的预约入口预约，最多提前 15 天。",
+      "每人限 2 次预约，仅现场咨询；地点为 Main Library 四楼 Sycip Family Conference Room。"
+    ],
+    "audience": [
+      "求职与职业发展"
+    ]
+  },
+  {
+    "id": "sfpl-writing-gravity-oct8-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "occurrenceDates": [
+      "2026-10-08"
+    ],
+    "dateLabel": "10 月 8 日 · 18:00–19:15",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "SFPL：Writing Hard Enough to Shift Gravity 写作工坊",
+    "venue": "Main Library · Latino/Hispanic Community Room",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费写作工坊",
+    "officialUrl": "https://sfpl.org/events/2026/10/08/workshop-writing-hard-enough-shift-gravity",
+    "summary": "参与诗歌写作练习，把观察和想法转为文字。官方说明这是一场免费的写作密集练习。",
+    "plan": [
+      "官方日历列 10/8 18:00–19:15；正文称写作练习约一小时，计划保留完整 75 分钟活动窗口。",
+      "前往 Main Library 的 Latino/Hispanic Community Room 参加写作练习。",
+      "官方明确免费；未另说明时无需报名，临时安排以图书馆公告为准。"
+    ],
+    "audience": [
+      "诗歌与写作"
+    ]
+  },
+  {
+    "id": "sfpl-western-addition-open-house-oct24-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ],
+    "dateLabel": "10 月 24 日 · 12:00–16:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "autumn-neighbors",
+    "title": "Western Addition 图书馆社区开放日",
+    "venue": "Western Addition Library · Back Courtyard and branch activity spaces",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费娱乐与点心",
+    "officialUrl": "https://sfpl.org/events/2026/10/24/celebration-western-addition-open-house",
+    "summary": "到 Western Addition 分馆参加社区开放日，和家人一起体验图书馆活动。官方列明免费娱乐、点心和适合全家的节目。",
+    "plan": [
+      "按官方日历安排10/24 12:00–16:00到访 Western Addition 分馆。",
+      "活动涉及分馆后院及馆内活动空间，到场后按现场指引参加节目。",
+      "官方列明免费娱乐与点心；具体节目和食物供应以现场为准，交通和个人消费不包括在内。"
+    ],
+    "audience": [
+      "社区家庭"
+    ]
+  },
+  {
+    "id": "sfpl-omi-history-day-oct17-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10 月 17 日 · 15:00–17:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "OMI History Day：认识旧金山三个社区的历史",
+    "venue": "Ingleside Library · Ingleside Meeting Room",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费参加 · 无需历史背景",
+    "officialUrl": "https://sfpl.org/events/2026/10/17/presentation-ocean-view-merced-heights-and-ingleside-history-day",
+    "summary": "了解 Ocean View、Merced Heights 与 Ingleside 的社区历史。无需历史或文物保护知识，也可以参加。",
+    "plan": [
+      "按10/17 15:00–17:00安排，官方日历已明确活动起止时间。",
+      "前往 Ingleside Library 的 Ingleside Meeting Room，别与其他分馆同日活动混淆。",
+      "官方明确活动免费，并说明无需历史或保护知识；未另说明时可直接到场。"
+    ],
+    "audience": [
+      "社区历史"
+    ]
+  },
+  {
+    "id": "sfpl-garden-green-bin-oct10-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "occurrenceDates": [
+      "2026-10-10"
+    ],
+    "dateLabel": "10 月 10 日 · 11:00–12:30",
+    "region": "sf",
+    "city": "San Francisco",
+    "sourceLabel": "San Francisco Public Library",
+    "imageKey": "culture-visit",
+    "title": "从花园到绿桶：在家实践气候行动",
+    "venue": "Main Library · Steve Silver Music Center, 4th Floor",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页未明确入场费 · 出发前向分馆确认",
+    "officialUrl": "https://sfpl.org/events/2026/10/10/workshop-garden-green-bin-climate-action-home",
+    "summary": "学习花园、堆肥与家庭气候行动之间的联系。这场讲座在市中心 Main Library，适合对日常环保实践感兴趣的人。",
+    "plan": [
+      "按10/10 11:00–12:30安排，活动起止时间来自官方日历。",
+      "前往 Main Library 四楼的 Steve Silver Music Center 参加讲座。",
+      "活动页提到旧金山居民可获得免费堆肥，但没有明确本场入场费用；不把堆肥福利视为免费门票或现场一定可领取。"
+    ],
+    "audience": [
+      "园艺与环保"
+    ]
+  },
+  {
+    "id": "palo-alto-pet-palooza-oct17-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10 月 17 日 · 10:00–12:00",
+    "region": "peninsula",
+    "city": "Palo Alto",
+    "sourceLabel": "City of Palo Alto",
+    "imageKey": "autumn-neighbors",
+    "title": "Palo Alto Pet Palooza：宠物游行与装扮赛",
+    "venue": "Cal Ave · 457–433 California Avenue",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费参加 · 须预先报名",
+    "officialUrl": "https://www.paloalto.gov/Events-Directory/Community-Services/Pet-Parade",
+    "summary": "Palo Alto 第二届宠物游行与装扮赛，欢迎行为良好的宠物与毛绒玩具参加。可以为宠物装扮，参加服饰、可爱或才艺类别比赛。",
+    "plan": [
+      "市府 2026 活动页确认 10/17 10:00–12:00，地点为 California Avenue 的 457–433 号路段。",
+      "市府明确参加免费，须通过官方页面的 Register Here 入口预先报名。",
+      "参加前查看宠物管理与比赛细则；官方欢迎行为良好的宠物与毛绒玩具。"
+    ],
+    "audience": [
+      "宠物家庭",
+      "社区居民"
+    ]
+  },
+  {
+    "id": "palo-alto-art-center-reception-oct2-2026",
+    "kind": "event",
+    "verifiedAt": "2026-09-30",
+    "startDate": "2026-10-02",
+    "endDate": "2026-10-02",
+    "occurrenceDates": [
+      "2026-10-02"
+    ],
+    "dateLabel": "10 月 2 日 · 18:00–20:00",
+    "region": "peninsula",
+    "city": "Palo Alto",
+    "sourceLabel": "Palo Alto Art Center Foundation",
+    "imageKey": "culture-visit",
+    "title": "Palo Alto Art Center：Live the moment light 公众开幕夜",
+    "venue": "Palo Alto Art Center · 1313 Newell Road",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费向公众开放 · 餐食与酒水另付",
+    "officialUrl": "https://paacf.org/event/friday-night-at-the-art-center-live-the-moment-light-opening-reception/",
+    "summary": "在艺术中心参观 Live the moment light 开幕展，参加艺术创作活动。公众开幕夜免费开放，适合给周五晚安排一段艺术时间。",
+    "plan": [
+      "10/2 公众开幕夜为 18:00–20:00，不包含此前的会员预览；地点为 1313 Newell Road。",
+      "基金会明确免费并向所有人开放，有免费艺术创作；报名入口见官方页面。",
+      "餐食售卖和现金酒吧另付，不包含在免费入场或艺术创作中。"
+    ],
+    "audience": [
+      "艺术爱好者"
+    ]
+  }
+]

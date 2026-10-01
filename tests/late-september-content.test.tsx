@@ -7,6 +7,7 @@ import { lateSeptemberSfEastEvents, lateSeptemberSfEastOpenings } from '../src/d
 import { lateSeptemberPeninsulaSouthEvents, lateSeptemberPeninsulaSouthOpenings } from '../src/data/late-september-peninsula-south';
 import { lateSeptemberNorthEvents, lateSeptemberNorthOpenings, lateSeptemberNorthOffers } from '../src/data/late-september-north';
 import { lateSeptemberLocalOffers, regionalBulletins } from '../src/data/late-september-local';
+import { octoberRefreshBulletins } from '../src/data/october-refresh-bulletins';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
@@ -77,14 +78,18 @@ test('every new Chinese editorial string translates through the loaded English r
 test('regional bulletins disappear at their expiry boundary without leaving an empty section', () => {
   const bart = regionalBulletins.find(item => item.id === 'east-bay-yellow-line-sep29');
   assert.ok(bart);
-  const initial = renderToStaticMarkup(<RegionalBulletins today="2026-09-27" />);
-  assert.equal((initial.match(/<article>/g) || []).length, 5);
+  const initial = renderToStaticMarkup(<RegionalBulletins today="2026-09-30" />);
+  assert.equal((initial.match(/<article>/g) || []).length, 8);
   assert.ok(renderToStaticMarkup(<RegionalBulletins today="2026-10-01" />).includes(bart.sourceUrl), 'BART remains on its final listed day');
   const october = renderToStaticMarkup(<RegionalBulletins today="2026-10-02" />);
-  assert.equal((october.match(/<article>/g) || []).length, 4);
+  assert.equal((october.match(/<article>/g) || []).length, 7);
   assert.ok(!october.includes(bart.sourceUrl), 'BART must not remain after October 1');
   for (const bulletin of regionalBulletins.filter(item => item.id !== bart.id)) {
     assert.ok(october.includes(bulletin.sourceUrl), `${bulletin.id}: still-current bulletin missing`);
+  }
+  for (const bulletin of octoberRefreshBulletins) {
+    assert.ok(renderToStaticMarkup(<RegionalBulletins today={bulletin.expiresAt} />).includes(bulletin.sourceUrl), `${bulletin.id}: visible through its expiry date`);
+    assert.ok(!renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(bulletin.expiresAt, 1)} />).includes(bulletin.sourceUrl), `${bulletin.id}: removed after its expiry date`);
   }
   assert.equal(renderToStaticMarkup(<RegionalBulletins today="2026-11-01" />), '');
 });
