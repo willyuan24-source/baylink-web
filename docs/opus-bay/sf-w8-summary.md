@@ -1,7 +1,7 @@
 # Wave 8 · summary and hand-off
 
 Written 2026-10-01 05:05–05:19 PDT by the hand-off agent in `C:/Users/willy/wt/w8-handoff`, then fact-checked against the
-same sources (≈ 05:20–05:50 PDT). Sources: the plan / lead note
+same sources (05:20–05:32 PDT). Sources: the plan / lead note
 `sf-w8-lead.md` (incl. §7, the switch to one Ultra workflow), the ten lane reports `sf-w8-{K,Q,P,A,H,S,W1,W2,M,X}.md` (each
 with its `## Review (Ultra)`), `sf-w8-integration.md` (W8-I and `## Completeness pass`, W8-C), `sf-w8-final-verify.md`
 (W8-Z), the ledger `ledger/w8-X.md`, the workflow journal of run `wf_66c65596-f6a` (47 agents: every lane, lens, fixer,
