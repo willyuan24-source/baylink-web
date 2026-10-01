@@ -21,6 +21,7 @@ import { halloweenPhase, type HalloweenPhase } from './season';
 import { BAT_COLONIES, createDress, nearestStoop } from './worldDress';
 import { createHaloPool } from './worldHalos';
 import { createHaunt } from './worldHaunt';
+import { createFestival } from './worldFestival';
 import { createVenuePatches, VENUE_LINE_NEAR } from './worldVenues';
 import { lineText, type WorldLineKey } from './worldLines';
 
@@ -77,9 +78,11 @@ export function initHalloweenWorld(): () => void {
   const muertos = createMuertos();
   const haunt = createHaunt();
   const venues = createVenuePatches();
+  // W8-H: the Chinatown Halloween Festival on Waverly Place (31 Oct 2026, 11:00–15:00; halloween/worldFestival.ts)
+  const festival = createFestival();
   const group = new THREE.Group();
   group.name = 'halloween-world';
-  group.add(dress.group, hunt.group, muertos.group, haunt.group, venues.group, pool.mesh);
+  group.add(dress.group, hunt.group, muertos.group, haunt.group, venues.group, festival.group, pool.mesh);
   let offSystem: (() => void) | null = null;
   const attach = () => {
     if (offSystem || !cityStreamerLazy()) return;
@@ -137,6 +140,8 @@ export function initHalloweenWorld(): () => void {
     // W7-H7: the pumpkin patches at the season's pumpkin events (the catalog's windows, lane S's kits)
     venues.step(p.x, p.z, !!offSystem && (phase === 'season' || phase === 'night'), now);
     pool.set('venues', venues.halos(), 1);
+    // W8-H: the festival's kit on its day and hours, near Waverly Place (any season phase but 'off': it is 31 October)
+    festival.step(p.x, p.z, !!offSystem && phase !== 'off', now);
     if (!offSystem || phase === 'off') return;
 
     const s = game.get(), f = flow.get();
@@ -158,6 +163,10 @@ export function initHalloweenWorld(): () => void {
     const street = !!nearestStoop(p.x, p.z, STREET_NEAR);
     if (wants.muertos) for (const m of muertos.near(p.x, p.z, now)) offer(m.key, m.line);
     if (venues.near(p.x, p.z, VENUE_LINE_NEAR)) offer('venue-pumpkins', 'venuePumpkins');
+    // W8-H: the Chinatown festival — the contest line by the stage, the lantern line in the alley
+    const fest = festival.near(p.x, p.z);
+    if (fest === 'contest') offer('chinatown-contest', 'chinatownContest');
+    if (fest) offer('chinatown-lanterns', 'chinatownLanterns');
     if (near && Math.hypot(near.x - p.x, near.z - p.z) < WISP_LINE_NEAR) offer('hunt-wisp', 'huntWisp');
     if (wants.hunt && hunt.nearUnfound(p.x, p.z, 30)) offer('hunt-hint', night > 0.5 ? 'huntNight' : 'huntSniff');
     if (wants.bats && dress.stats().bats && BAT_COLONIES.some(c => Math.hypot(c.x - p.x, c.z - p.z) < 70)) offer('bats', 'bats');
@@ -179,7 +188,7 @@ export function initHalloweenWorld(): () => void {
       ...(w.__opusBay ?? {}),
       halloween: {
         phase: () => phase,
-        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), venues: venues.stats(), halos: pool.count(), attached: !!offSystem }),
+        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), venues: venues.stats(), festival: festival.stats(), halos: pool.count(), attached: !!offSystem }),
         pickPumpkin, huntList, pumpkinsFound, pumpkinTotal, visitMuertos,
       },
     };
@@ -197,6 +206,7 @@ export function initHalloweenWorld(): () => void {
     muertos.dispose();
     haunt.dispose();
     venues.dispose();
+    festival.dispose();
     pool.dispose();
   };
 }
