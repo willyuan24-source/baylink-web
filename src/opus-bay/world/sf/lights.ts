@@ -14,6 +14,7 @@ import { type FarData, ROAD_CLASSES, ROAD_FLAG } from './format';
 import { GGB, goldenGateBridge } from './landmarks/golden-gate-bridge';
 import { LAMP_STEP, STREET_LAMP } from './look';
 import { inPoly } from './raster';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * The night light field (lane C2-9, city chunk; CS-12): ONE THREE.Points draw for the lights of the whole city, so it
@@ -442,7 +443,7 @@ export class LightField implements WorldSystem {
     if (this.opts.glints) return this.opts.glints();
     if (!this.coins && !this.coinsAsked) {
       this.coinsAsked = true;
-      import('../../economy/coins').then(m => { if (!this.disposed) this.coins = m as unknown as CoinsModule; }, () => { /* no economy: no glints */ });
+      importRetry(() => import('../../economy/coins')).then(m => { if (!this.disposed) this.coins = m as unknown as CoinsModule; }, () => { /* no economy: no glints */ });
     }
     return coinGlints(this.coins?.coinWorld ?? null);
   }

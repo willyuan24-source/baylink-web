@@ -28,6 +28,7 @@ import { boardLine, requestHopOff } from './transit';
 import { timeLabel } from './tripText';
 import { currentLeg, isArrived, legTarget, tripEvents, tripReducer, walkLeg, type TripAction } from './trips';
 import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './tripTypes';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -251,7 +252,7 @@ function skip() {
   const t = flow.get().trip;
   if (!t || isArrived(t)) return;
   stopGlide();
-  if (t.source === 'tour') { void import('./cityTour').then(m => m.skipCityTourStop()); return; }
+  if (t.source === 'tour') { void importRetry(() => import('./cityTour')).then(m => m.skipCityTourStop()); return; }
   if (driving) { cancelDrive(); driving = false; }
   const next = dispatchTrip({ type: 'skip-leg' });
   if (!next) return;

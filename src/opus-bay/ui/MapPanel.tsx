@@ -14,6 +14,7 @@ import { Sheet } from './common';
 import { InteractIcon } from './icons';
 import { placeLabels, textWidth, type Box, type LabelOut } from './mapLabels';
 import { travelLabel } from '../game/travel';
+import { importRetry } from '../game/importRetry';
 
 const pts = (poly: Polygon | Vec2[]) => poly.map(p => `${p.x.toFixed(1)},${p.z.toFixed(1)}`).join(' ');
 
@@ -48,7 +49,7 @@ function jitter(id: string, amount: number): Vec2 {
   return { x: ((h & 0xff) / 255 - 0.5) * amount, z: (((h >> 8) & 0xff) / 255 - 0.5) * amount };
 }
 
-const CityMapPanel = lazy(() => import('./CityMap').then(m => ({ default: m.CityMapPanel })));
+const CityMapPanel = lazy(() => importRetry(() => import('./CityMap')).then(m => ({ default: m.CityMapPanel })));
 
 /** City mode: the whole-city map (ui/CityMap.tsx, lane G1); district mode: the waterfront map below, unchanged. */
 export function MapPanel() {

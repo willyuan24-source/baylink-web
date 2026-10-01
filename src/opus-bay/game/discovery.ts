@@ -14,6 +14,7 @@ import { type Interactable, setExtraResolver } from './interactables';
 import { travelActive } from './fastTravel';
 import { readQa } from './qa';
 import { rideLog, setLineMapOpener } from './transit';
+import { importRetry } from './importRetry';
 
 /**
  * Discovery (lane G1, plan §6.7 / G1-4), city mode only.
@@ -259,7 +260,7 @@ export function initG1(): () => void {
   // a place already underfoot when the index arrives (resume, ?at=) is found on the next tick; repaint the map now
   const offPlaces = onPlaces(() => changed());
   // lane T's boarding dialogue 看线路图: the map's 线路 tab with that line highlighted (wave 4, lane P)
-  setLineMapOpener(line => { void import('./mapPanel').then(m => m.openMapLine(line)); });
+  setLineMapOpener(line => { void importRetry(() => import('./mapPanel')).then(m => m.openMapLine(line)); });
   return () => { offHook(); offPlaces(); setExtraResolver(null); setLineMapOpener(null); booted = false; };
 }
 

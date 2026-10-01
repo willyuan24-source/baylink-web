@@ -23,6 +23,7 @@ import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState, useWindowKey } from './hooks';
 import { postcardArt } from './format';
 import './content-ui.css';
+import { importRetry } from '../game/importRetry';
 
 // ---------------------------------------------------------------------------
 // Fishing mini game (3 s bobber)
@@ -263,9 +264,9 @@ function FavoursMini({ done }: { done: readonly string[] }) {
 // ---------------------------------------------------------------------------
 
 /** Wave 4 · lane C: the Grand Tour's recap (lazy with the tour data; ui/CityTourRecap.tsx → ui/TourRecap.tsx). */
-const CityTourRecap = lazy(() => import('./CityTourRecap'));
+const CityTourRecap = lazy(() => importRetry(() => import('./CityTourRecap')));
 /** The first lesson's recap, lazy too (it opens once, at the end of the tour). */
-const DistrictRecap = lazy(() => import('./DistrictRecap'));
+const DistrictRecap = lazy(() => importRetry(() => import('./DistrictRecap')));
 
 /** The recap panel: the first lesson's, or a city tour's when `game.tour` holds one (tour.id). */
 export function Recap() {

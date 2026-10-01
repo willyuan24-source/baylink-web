@@ -17,9 +17,10 @@ import { useIsMobile } from './hooks';
 import { InteractIcon } from './icons';
 import { formatDay, postcardArt, postcardForPoi } from './format';
 import './content-ui.css';
+import { importRetry } from '../game/importRetry';
 
 /** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk): the nearest real Muni stops, city mode only (R's request 1a) */
-const HowToGo = lazy(() => import('../realsf/HowToGo'));
+const HowToGo = lazy(() => importRetry(() => import('../realsf/HowToGo')));
 
 // W7-P2 (lane P): the district cards' texts come with this chunk (data/poiTexts.ts): in before any card body renders
 fillPoiTexts(DISTRICT_POI_TEXTS);

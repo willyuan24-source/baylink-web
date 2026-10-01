@@ -2,6 +2,7 @@ import { runtime } from '../../core/runtime';
 import type { Bilingual, Vec2 } from '../../core/types';
 import type { WorldSystem } from '../world';
 import { CT_GATE, ctPoint } from './cornersChinatown';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * Wave 8 · lane W1 · BAYBAY's sight lines at this lane's new models (W8-W1, city mode only): one fixed line, once per
@@ -69,7 +70,7 @@ export function attachSights(say?: (text: Bilingual) => void): WorldSystem {
   const said = new Set<string>();
   let wait = 0, disposed = false;
   const speak = say ?? ((text: Bilingual) => {
-    void import('../../game/cityContent').then(m => { if (!disposed) m.baybayLine(text, { ttl: SIGHT_TTL }); }, () => {});
+    void importRetry(() => import('../../game/cityContent')).then(m => { if (!disposed) m.baybayLine(text, { ttl: SIGHT_TTL }); }, () => {});
   });
   return {
     name: 'w1-sights',

@@ -23,6 +23,7 @@ import { cityDropLots } from './hero';
 import { lookZones } from './look';
 import { CitySites } from './sites';
 import type { WorkerIn } from './worker';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * CityStreamer (plan §5.4): streams the whole of San Francisco around the hero district in city mode.
@@ -382,7 +383,7 @@ export class CityStreamer {
   private loadBoards() {
     if (this.boards.status !== 'none') return;
     this.boards.status = 'loading';
-    import('./boards').then(async m => {
+    importRetry(() => import('./boards')).then(async m => {
       const data: BoardsData | null = await m.loadBoards(this.base);
       if (this.disposed) return;
       if (!data) { this.boards.status = 'error'; this.opts.onBoards?.(null); return; }

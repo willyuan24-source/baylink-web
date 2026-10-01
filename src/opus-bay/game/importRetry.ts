@@ -13,8 +13,17 @@
  *   3. up to RETRY_MS.length retries, then rejects with the last error (the caller's own fallback applies, as before).
  *
  * A retried chunk is a new module instance only because the first one never loaded (nothing ran twice); its own imports
- * resolve to the page's instances as before (a failed shared dependency stays failed: the caller's fallback). Calls for
- * the same loader share nothing here: each call site keeps its own promise, as it did.
+ * resolve to the page's instances as before (a failed shared dependency stays failed: the caller's fallback).
+ *
+ * W8-P5 (lane P) · **one instance per lost chunk, and a visible state**:
+ *
+ *   - every call that meets the same lost URL shares one retry (in flight) and, once it landed, its module (`memo`):
+ *     two call sites of one chunk (the Overlay's boot and a resume both load discovery) used to retry on their own and
+ *     could land on two `?retry=n` URLs — two instances of one module, each with its own state;
+ *   - a chunk still lost after every retry (the network is down, a deploy removed it, or one of its *shared
+ *     dependencies* was lost — Chrome names the importing chunk, and `?retry=n` of it imports the same failed dependency
+ *     URL again: only a reload brings it back) tells `onChunkLost` listeners: game/chunkLost.ts shows the reload card.
+ *     `quiet: true` (a prefetch nobody waits for) tells nobody.
  */
 
 /** waits before each retry (ms) */
@@ -53,11 +62,15 @@ export function bustUrl(url: string, n: number): string {
 export interface RetryOptions<T> {
   /** waits before each retry (default RETRY_MS) */
   waits?: readonly number[];
+  /** (W8-P5) a prefetch nobody waits for: a chunk lost for good tells no `onChunkLost` listener */
+  quiet?: boolean;
   /** tests: the timer and the URL import */
   sleep?: (ms: number) => Promise<void>;
   importUrl?: (url: string) => Promise<T>;
   /** tests: put a stylesheet in (resolves once it loaded; rejects with Vite's own message when it did not) */
   loadCss?: (url: string) => Promise<void>;
+  /** tests: the per-URL table of retries in flight / chunks recovered (default: the page's one) */
+  memo?: Map<string, LostChunk>;
 }
 
 const nativeImport = <T>(url: string): Promise<T> => import(/* @vite-ignore */ url) as Promise<T>;
@@ -71,12 +84,38 @@ const nativeCss = (url: string): Promise<void> => new Promise<void>((resolve, re
   document.head.appendChild(link);
 });
 
+/** (W8-P5) a lost chunk: the retry in flight, then the recovered module; `loud` once any caller is not `quiet` */
+export interface LostChunk { p: Promise<unknown>; loud: boolean }
+/** the page's lost chunks, per URL the browser named */
+const MEMO = new Map<string, LostChunk>();
+const lostListeners = new Set<(e: unknown) => void>();
+let lostCount = 0;
+
+/** (W8-P5) Called once per chunk still lost after every retry (not for `quiet` loads). Returns the unsubscribe. */
+export function onChunkLost(fn: (e: unknown) => void): () => void {
+  lostListeners.add(fn);
+  return () => { lostListeners.delete(fn); };
+}
+/** chunks lost for good on this page (QA, ?debug=1) */
+export const chunksLost = (): number => lostCount;
+
+function lost(e: unknown, quiet: boolean | undefined): void {
+  lostCount++;
+  if (!quiet) for (const fn of [...lostListeners]) { try { fn(e); } catch { /* a listener's own error never hides the load's */ } }
+}
+
 /** Run `load` (a dynamic import); retry a loading failure (see above). */
 export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<T> = {}): Promise<T> {
   const waits = opts.waits ?? RETRY_MS, sleep = opts.sleep ?? wait, importUrl = opts.importUrl ?? nativeImport<T>, loadCss = opts.loadCss ?? nativeCss;
+  const memo = opts.memo ?? MEMO;
+  let first: unknown;
   try {
     return await load();
-  } catch (first) {
+  } catch (e) {
+    first = e;
+  }
+  if (!isLoadFailure(first)) throw first;
+  const retry = async (): Promise<T> => {
     let last: unknown = first;
     for (let n = 1; n <= waits.length; n++) {
       if (!isLoadFailure(last)) throw last;
@@ -89,5 +128,21 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
       } catch (e) { last = e; }
     }
     throw last;
+  };
+  // (W8-P5) one retry per lost URL: a second caller joins the one in flight, or takes the module it recovered
+  const key = failedCssUrl(first) ? null : failedModuleUrl(first);
+  if (key) {
+    const known = memo.get(key);
+    if (known) { known.loud ||= !opts.quiet; return known.p as Promise<T>; }
+    const entry: LostChunk = { p: retry(), loud: !opts.quiet };
+    memo.set(key, entry);
+    entry.p.catch((e: unknown) => { if (memo.get(key) === entry) memo.delete(key); if (isLoadFailure(e)) lost(e, !entry.loud); });
+    return entry.p as Promise<T>;
+  }
+  try {
+    return await retry();
+  } catch (e) {
+    if (isLoadFailure(e)) lost(e, opts.quiet);
+    throw e;
   }
 }

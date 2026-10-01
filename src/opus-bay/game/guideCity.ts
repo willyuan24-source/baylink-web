@@ -34,6 +34,7 @@ import type { TripLeg, TripState } from './tripTypes';
 import { CHEVRONS, WAYPOINT, chevronPoses, layoutWaypoint, occludedByTerrain, routeRemaining, waypointSafeArea } from './waypoint';
 // the waypoint's label / notch / arrow rules (data-label, --ob-label-dy …) come with the layout that writes them
 import '../ui/guide-ui.css';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 4 · lane G's guidance in the city (integration phase; plan sf-w4-plan.md §4.2, §5.5). LAZY and CITY-ONLY:
@@ -156,7 +157,7 @@ let sources: readonly Attraction[] | null = null;
 async function flagSources(): Promise<readonly Attraction[]> {
   if (sources) return sources;
   try {
-    const { siteFlagTop } = await import('../world/sf/landmarks/context');
+    const { siteFlagTop } = await importRetry(() => import('../world/sf/landmarks/context'));
     sources = withSiteFlags(ATTRACTIONS, siteFlagTop);
   } catch {
     sources = ATTRACTIONS;
@@ -732,7 +733,7 @@ function revealSpec(a: Attraction): { frame: { x: number; y: number; z: number; 
 async function qaTrip(attraction: string, mode?: string) {
   const a = ATTRACTION_INDEX.get(attraction);
   if (!a) return null;
-  const [{ planTrips }, { tripProviders }, { startTrip }] = await Promise.all([import('./tripPlan'), import('./tripProviders'), import('./flow')]);
+  const [{ planTrips }, { tripProviders }, { startTrip }] = await Promise.all([importRetry(() => import('./tripPlan')), importRetry(() => import('./tripProviders')), importRetry(() => import('./flow'))]);
   const d = tripDestination(a);
   let options = planTrips(runtime.player, { placeId: d.placeId, x: d.x, z: d.z, name: d.name, attraction: a.id }, tripProviders());
   // the walking routes land a moment later: plan again once they did
@@ -801,6 +802,6 @@ export function initGuideCity(): () => void {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
     w.__opusBay = { ...(w.__opusBay ?? {}), guide: { stats: guideStats, ui: guideUi, startPanorama, flow, qaTrip } };
   }
-  void import('../world/sf/landmarks/context').then(m => { siteContext = m; }, () => { /* no reveal without the site data */ });
+  void importRetry(() => import('../world/sf/landmarks/context')).then(m => { siteContext = m; }, () => { /* no reveal without the site data */ });
   return () => { offScene(); offFlow(); offRide(); offStreet(); setDiscoveryAnnouncer(null); window.clearTimeout(foundTimer); inited = false; };
 }

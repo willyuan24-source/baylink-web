@@ -32,6 +32,7 @@ import { bayNow } from './bayNow';
 import { initPelicanFirst, stepPelican, unlockPelican, unlocksAt } from './pelicanFirst';
 import { rewardArrival } from './rewards';
 import { frameRumour, pickRumour, rumourDue, rumourSourceCount } from './rumours';
+import { importRetry } from './importRetry';
 
 // wave 5 (W5-C2): flow reaches the pelican moment through game/cityContent.ts unlockPelican
 export { unlockPelican };
@@ -359,7 +360,7 @@ export function initCityMoments(): () => void {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
     const api = {
       moments: { offerLine, onTransit, applyArrival, arrivalSeen, sayTunnel, noteLoopRide, openGoalRules, rideGoalTargets, watcher: () => watcher },
-      trips: () => import('./tripRun'), tour: () => import('./cityTour'),
+      trips: () => importRetry(() => import('./tripRun')), tour: () => importRetry(() => import('./cityTour')),
       // wave 5 (W5-C1 / C2): the pelican moment and the rumour teller, for QA scripts
       pelican: { unlock: unlockPelican }, rumours: { state: rumours, step: stepRumours },
     };

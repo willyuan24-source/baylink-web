@@ -1,6 +1,7 @@
 import type { Bilingual } from '../../core/types';
 import type { PlacesFile, SfPlace, SfPlaceKind } from '../../world/sf/format';
 import { POIS } from '../pois';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * San Francisco places for the map, discovery, search and fast travel (lane G1, plan §5.9 / G1-1).
@@ -253,7 +254,7 @@ export const searchPlaces = (q: string, limit?: number) => INDEX?.search(q, limi
 /** The landmark registry as builder inputs (city-only code, imported on demand). */
 async function landmarkInputs(): Promise<LandmarkInput[]> {
   const [{ SF_LANDMARKS }, { sfLandmarkAnchor }, { sfLandmarkInfo }] = await Promise.all([
-    import('../../world/sf/landmarks/index'), import('../../world/sf/landmarks/context'), import('./landmarks'),
+    importRetry(() => import('../../world/sf/landmarks/index')), importRetry(() => import('../../world/sf/landmarks/context')), importRetry(() => import('./landmarks')),
   ]);
   return landmarkInputsFrom(SF_LANDMARKS, sfLandmarkInfo, sfLandmarkAnchor);
 }
@@ -294,10 +295,10 @@ export function loadPlaces(root = '/opus-bay/sf'): Promise<PlaceIndex | null> {
       const cur = (await (await fetch(`${root}/current.json`)).json()) as { version: string };
       const res = await fetch(`${root}/${cur.version}/places.json`);
       if (!res.ok) throw new Error(`places.json: HTTP ${res.status}`);
-      const [file, lms, { applyW4Places }] = await Promise.all([res.json() as Promise<PlacesFile>, landmarkInputs(), import('./extraPlaces')]);
+      const [file, lms, { applyW4Places }] = await Promise.all([res.json() as Promise<PlacesFile>, landmarkInputs(), importRetry(() => import('./extraPlaces'))]);
       const rows: PlaceRow[] = applyW4Places(file);
       // the stations join the index (search, discovery at 12 u, fly once discovered); the places never wait on them
-      const stations = await import('./stationPlaces').then(m => m.loadStationRows(new Set(rows.map(r => r.id)), file.verifiedAt)).catch(() => [] as PlaceRow[]);
+      const stations = await importRetry(() => import('./stationPlaces')).then(m => m.loadStationRows(new Set(rows.map(r => r.id)), file.verifiedAt)).catch(() => [] as PlaceRow[]);
       const ix = buildPlaceIndex({ places: [...rows, ...stations] }, lms, poiInputs());
       setPlaceIndex(ix);
       return ix;

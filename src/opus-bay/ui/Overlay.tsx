@@ -46,16 +46,16 @@ const Toasts = lazyPart('Toasts');
 const Waypoint = lazyPart('Waypoint');
 
 // Side panels are their own chunks (opened by a key / HUD button, prefetched once play starts).
-const loadMap = () => import('./MapPanel');
-const loadJournal = () => import('./Journal');
-const loadWeek = () => import('./WeekPanel');
-const loadSettings = () => import('./Settings');
+const loadMap = () => importRetry(() => import('./MapPanel'));
+const loadJournal = () => importRetry(() => import('./Journal'));
+const loadWeek = () => importRetry(() => import('./WeekPanel'));
+const loadSettings = () => importRetry(() => import('./Settings'));
 const MapPanel = lazy(() => loadMap().then(m => ({ default: m.MapPanel })));
 const Journal = lazy(() => loadJournal().then(m => ({ default: m.Journal })));
 const WeekPanel = lazy(() => loadWeek().then(m => ({ default: m.WeekPanel })));
 const SettingsPanel = lazy(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
 // wave 4 · lane T: the subway overlay, only during a Muni Metro ride (its own chunk)
-const LineRideLayer = lazy(() => import('./LineRideLayer'));
+const LineRideLayer = lazy(() => importRetry(() => import('./LineRideLayer')));
 // Wave 4 · lane G's city guidance on screen (arrival toast and card, panorama tags, trip card): city mode only
 const GuideOverlay = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideOverlay })));
 const GuideToasts = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideToasts })));

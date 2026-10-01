@@ -14,6 +14,7 @@ import { Keycap, Sheet } from './common';
 import { LangPills } from './LangPills';
 import { useDevice } from './hooks';
 import { SILENT_HINT, isIOS } from './shareFile';
+import { importRetry } from '../game/importRetry';
 
 type Settings = GameState['settings'];
 const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
@@ -27,7 +28,7 @@ const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
  * glide, the zone greetings …). A dynamic import: baybayLines stays in its city chunk (the P7 guard walks static imports).
  */
 function resetLineMemory() {
-  void import('../game/baybayLines').then(m => m.clearLineMemory(), () => { /* chunk offline: the memory stays */ });
+  void importRetry(() => import('../game/baybayLines')).then(m => m.clearLineMemory(), () => { /* chunk offline: the memory stays */ });
 }
 
 /** Pause + settings (Esc). */

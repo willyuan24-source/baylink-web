@@ -8,6 +8,7 @@ import { noteHoldActivity } from '../game/baybayHold';
 import { holdLock } from '../game/playerLock';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · PlayKit (W5-A1, plan sf-w5-plan.md §3.2): the small core every activity stands on.
@@ -146,7 +147,7 @@ let bestWriter: BestWriter | null | undefined;
 async function writeBest(key: string, value: number) {
   if (bestWriter === undefined) {
     try {
-      const mod = (await import('../economy/index')) as unknown as { recordBest?: BestWriter };
+      const mod = (await importRetry(() => import('../economy/index'))) as unknown as { recordBest?: BestWriter };
       bestWriter = typeof mod.recordBest === 'function' ? mod.recordBest : null;
     } catch { bestWriter = null; }
   }
@@ -293,7 +294,7 @@ export interface ResultProps {
 }
 
 export const RESULT_OVERLAY = 'play-result';
-const ResultCard = lazy(() => import('./ResultCard'));
+const ResultCard = lazy(() => importRetry(() => import('./ResultCard')));
 const ResultSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(ResultCard, { props: props as ResultProps, close }));
 
 let resultOff: (() => void) | null = null;

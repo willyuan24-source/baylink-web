@@ -10,6 +10,7 @@ import { Animator, type Emote } from './anim';
 import { dampAngle, wrapAngle, type Obstacle } from './controller';
 import { NPC_BONES, box, buildNpc, buildRig, type NpcLook, type Rig, type Vec3 } from './models';
 import { joggerState } from './view';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Ambient residents (DESIGN §2): market vendor, Pier 7 angler, promenade jogger, a visiting family (parent +
@@ -82,7 +83,7 @@ export const RESIDENT_LOAD = 220;
 
 type LooksModule = typeof import('./residentLooks');
 let looks: Promise<LooksModule> | null = null;
-const loadLooks = () => (looks ??= import('./residentLooks').catch((e: unknown) => { looks = null; throw e; }));
+const loadLooks = () => (looks ??= importRetry(() => import('./residentLooks')).catch((e: unknown) => { looks = null; throw e; }));
 /** a body fetch that has not answered in this long is started again (a stalled request must not hide a resident) */
 const LOOKS_RETRY_MS = 8000;
 

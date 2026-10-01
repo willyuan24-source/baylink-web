@@ -8,9 +8,10 @@ import { useT } from './i18n';
 import { installIosTouchGuards } from './ui/iosTouch';
 import { TitleScreen } from './ui/TitleScreen';
 import './opus-bay.css';
+import { importRetry } from './game/importRetry';
 
 // The game chunk (three, R3F, the world, actors, UI) — requested once the title has painted.
-const GameRoot = lazy(() => import('./game/GameRoot'));
+const GameRoot = lazy(() => importRetry(() => import('./game/GameRoot')));
 
 type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
 

@@ -31,6 +31,7 @@ import { registerEggSounds } from './sounds';
 import { heronsHost, sundialHost } from './south';
 import { alcatrazHost, laughingLadyHost, seaLionsHost } from './wharf';
 import { chinaBeachHost, labyrinthHost } from './west';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane D — the 24 real San Francisco easter eggs (小发现), their hosts, fact cards and rumours.
@@ -51,10 +52,10 @@ import { chinaBeachHost, labyrinthHost } from './west';
 
 // the cards load with their stylesheet on first show (the overlay render point wraps them in Suspense): the init chunk stays
 // small and loads in node too (the contracts test starts every feature)
-const FactCard = lazy(() => import('./FactCard').then(m => ({ default: m.FactCard })));
-const NoteCard = lazy(() => import('./FactCard').then(m => ({ default: m.NoteCard })));
-const OperatorBubble = lazy(() => import('./FactCard').then(m => ({ default: m.OperatorBubble })));
-const ListenRing = lazy(() => import('./FactCard').then(m => ({ default: m.ListenRing })));
+const FactCard = lazy(() => importRetry(() => import('./FactCard')).then(m => ({ default: m.FactCard })));
+const NoteCard = lazy(() => importRetry(() => import('./FactCard')).then(m => ({ default: m.NoteCard })));
+const OperatorBubble = lazy(() => importRetry(() => import('./FactCard')).then(m => ({ default: m.OperatorBubble })));
+const ListenRing = lazy(() => importRetry(() => import('./FactCard')).then(m => ({ default: m.ListenRing })));
 
 /** One host per egg, in the registry's order (W5-D3: eggs 1–12; W5-D4: eggs 13–24; W5-D6: eggs 25–33), then 城市之声 and the pebbles (W5-D6). */
 export function makeHosts(): EggHost[] {
@@ -91,7 +92,7 @@ export function init(): () => void {
   add(registerSceneSystem('eggs', makeEggScene(root)));
 
   // the cards' chunk a little after start (the first find should not wait for it)
-  const prefetch = setTimeout(() => { void import('./FactCard').catch(() => {}); }, 4000);
+  const prefetch = setTimeout(() => { void importRetry(() => import('./FactCard')).catch(() => {}); }, 4000);
   add(() => clearTimeout(prefetch));
 
   const hosts = makeHosts();

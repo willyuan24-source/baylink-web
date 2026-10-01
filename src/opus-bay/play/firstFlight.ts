@@ -14,6 +14,7 @@ import { registerOverlay, openOverlay, closeOverlay } from '../ui/slots';
 import { spawnFx } from '../world/fx';
 import { GGB_COURSE, GGB_ID, GGB_LINES, GGB_NAME } from './ggbRings';
 import { ensureResultOverlay, startActivity, tierFor, type ActivityRun } from './kit';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · the first flight (W5-A5, plan §2 MF3 + §3.2 A-flight): right after the pelican unlock (lane C's
@@ -191,7 +192,7 @@ export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean 
   }));
   offs.push(registerOverlay({ id: CHIP_OVERLAY, Component: FlightChipSlot }));
   openOverlay(CHIP_OVERLAY);
-  void import('./rings').then(m => {
+  void importRetry(() => import('./rings')).then(m => {
     if (!state) return;
     setFloorSource(m.glideFloor);
     offs.push(registerSceneSystem(RINGS_SCENE, m.RingsLayer));
@@ -325,7 +326,7 @@ function teardown() {
 
 // --- the chip (lazy) ------------------------------------------------------------------------------------------------
 
-const FlightChip = lazy(() => import('./FlightChip'));
+const FlightChip = lazy(() => importRetry(() => import('./FlightChip')));
 function FlightChipSlot() {
   return createElement(Suspense, { fallback: null }, createElement(FlightChip));
 }

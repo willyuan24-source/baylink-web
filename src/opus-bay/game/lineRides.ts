@@ -28,6 +28,7 @@ import { busStalls, busWatchNow, watchBuses } from './busWatch';
 import { type RideState, beginLineRide, currentRide, isLineRide, lineRideEta, rideSeconds } from './ride';
 import type { TransitKind } from '../core/events';
 import { registerLineEstimator, registerTripLines, transitTripLine } from './tripProviders';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 4 · lane T, integration (W4-T4 / T9 / T10 / T11 / T12): the game side of the sightseeing loop and the Muni Metro
@@ -566,7 +567,7 @@ export function boardBubble(r: RideState): Bilingual | null {
 export function sayHopOffTip(station: string | null): boolean {
   const line = station ? loopHopOffTip(station) : null;
   if (!line) return false;
-  void import('./cityMoments').then(m => m.offerLine(line.id, LINE_TTL.tip), () => {});
+  void importRetry(() => import('./cityMoments')).then(m => m.offerLine(line.id, LINE_TTL.tip), () => {});
   return true;
 }
 

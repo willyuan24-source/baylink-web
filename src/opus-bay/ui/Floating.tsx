@@ -11,6 +11,7 @@ import { registerAnchor } from '../game/projector';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice } from './hooks';
+import { importRetry } from '../game/importRetry';
 
 /** Speech bubble projected over BAYBAY / NPCs (position written per frame by the Canvas ticker). */
 export function SpeechBubble() {
@@ -145,7 +146,7 @@ export function DebugOverlay() {
   const ios = useRef<HTMLPreElement>(null);
   useEffect(() => {
     let id = 0, live = true;
-    void import('./iosDebug').then(m => {
+    void importRetry(() => import('./iosDebug')).then(m => {
       if (!live) return;
       const tick = () => { if (ios.current) { try { ios.current.textContent = m.iosDebugLine(); } catch { /* a probe failed: next second */ } } };
       tick();

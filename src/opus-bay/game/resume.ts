@@ -73,7 +73,7 @@ export async function resolveCityAt(spec: AtSpec): Promise<{ x: number; z: numbe
   if (spec.kind === 'll') return project(spec.lat, spec.lng);
   if (spec.kind !== 'id') return null;
   const lmId = spec.id.startsWith('lm-') ? spec.id.slice(3) : spec.id;
-  const { sfLandmarkAnchor } = await import('../world/sf/landmarks/context');
+  const { sfLandmarkAnchor } = await importRetry(() => import('../world/sf/landmarks/context'));
   const lm = sfLandmarkAnchor(lmId);
   if (lm) return lm;
   const ix = await (await importRetry(() => import('../data/sf/places'))).loadPlaces(); // (W7-P1: the place index is a lazy chunk)

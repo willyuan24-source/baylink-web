@@ -7,6 +7,7 @@ import { flow } from '../game/flowStore';
 import { openOverlay, openOverlays, registerOverlay, subscribeOverlays } from '../ui/slots';
 import { earnedHalloweenCards, newlyEarned } from './playPostcards';
 import { sayLine } from './treatRun';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 7 · lane G (W7-G1) · hands a Halloween postcard over at its moment. It listens to the ledger (no hook in lane H's
@@ -27,7 +28,7 @@ export const CARD_QUIET = 0.8;
 export const CARD_MAX_WAIT = 14;
 const TICK = 0.25;
 
-const HalloweenPostcardCard = lazy(() => import('./playPostcardCard'));
+const HalloweenPostcardCard = lazy(() => importRetry(() => import('./playPostcardCard')));
 
 interface Pending { id: string; at: number }
 

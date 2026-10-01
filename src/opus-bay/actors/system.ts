@@ -24,6 +24,7 @@ import { bindMoveApi } from './moveApi';
 import { FACADE_REACH, facadeAlongRay, frontSpot, type FacadeIntersection } from './tapTarget';
 import type { CharHost, CharImpl } from './charImpl';
 import { StuckHelper, type PullStart, type StuckInput } from './stuckHelper';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Everything the actors module puts in the scene, driven imperatively from one useFrame (Actors.tsx):
@@ -931,7 +932,7 @@ export class ActorSystem {
     this.glbRequestedIn = game.get().phase;
     // D2 w3 c2: the shared Draco-capable loader (world/models heroGltfLoader), imported dynamically so the district's
     // first load keeps DRACOLoader out; lane V can then publish BAYBAY as Draco + WebP like the other heroes
-    import('../world/models').then(m => m.heroGltfLoader().loadAsync(MODELS.baybay.url)).then(gltf => {
+    importRetry(() => import('../world/models')).then(m => m.heroGltfLoader().loadAsync(MODELS.baybay.url)).then(gltf => {
       if (this.disposed) return;
       const built = rigFromGltf(gltf.scene, MODELS.baybay.size[1]);
       if (!built) { this.guideModel = 'failed'; return; }

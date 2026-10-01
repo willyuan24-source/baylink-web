@@ -9,9 +9,10 @@ import { useFlow } from '../game/flowStore';
 import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
+import { importRetry } from '../game/importRetry';
 
 /** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
-const HowToGo = lazy(() => import('../realsf/HowToGo'));
+const HowToGo = lazy(() => importRetry(() => import('../realsf/HowToGo')));
 
 /** One live BAYLINK event (only ids from /planner-catalog.json). */
 export default function EventCardBody({ id }: { id?: string }) {

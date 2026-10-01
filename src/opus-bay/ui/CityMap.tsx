@@ -46,6 +46,7 @@ import { optionTitle, optionWay, tripSecondsLabel } from './tripRows';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
 import './map-w4.css';
+import { importRetry } from '../game/importRetry';
 
 /**
  * The whole-city map (lane G1 in wave 3; wave 4 lane P, plan sf-w4-plan.md §4.1): far.obc on a canvas
@@ -190,7 +191,7 @@ export function CityMapPanel() {
   useEffect(() => {
     if (!tourId) { setTourNext(null); return; }
     let live = true;
-    void Promise.all([import('../game/cityTour'), import('../data/sf/tours')]).then(([ct, tours]) => {
+    void Promise.all([importRetry(() => import('../game/cityTour')), importRetry(() => import('../data/sf/tours'))]).then(([ct, tours]) => {
       const run = ct.cityTourRun(), def = tours.cityTour(tourId);
       const stop = run?.stop && def ? def.chapters.flatMap(c => c.stops).find(s => s.id === run.stop) : undefined;
       const a = stop?.attraction ? ATTRACTION_INDEX.resolve(stop.attraction) : undefined;

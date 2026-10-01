@@ -2,6 +2,7 @@ import { lazy, Suspense, useSyncExternalStore } from 'react';
 import { placeCardTarget } from '../data/sf/cityPois';
 import { onPlaces, placeById as cityPlaceById, placeIndex } from '../data/sf/places';
 import { poiById } from '../game/interactables';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Real-info card for a landmark (the body: ui/PoiCardBody.tsx, its own chunk since wave 4 part b; fetched at idle so
@@ -20,10 +21,10 @@ export function PoiCard({ id }: { id?: string }) {
   if ('poi' in target) { const other = poiById(target.poi); return other ? <Suspense fallback={null}><PoiCardBody poi={other} /></Suspense> : null; }
   return <Suspense fallback={null}><PlaceCard place={target.place} /></Suspense>;
 }
-const loadBody = () => import('./PoiCardBody');
+const loadBody = () => importRetry(() => import('./PoiCardBody'));
 const PoiCardBody = lazy(loadBody);
 /** Wave 4 · lane C: the generic place card is city-only, so it loads with its first use (not in the main graph). */
-const PlaceCard = lazy(() => import('./PlaceCard'));
+const PlaceCard = lazy(() => importRetry(() => import('./PlaceCard')));
 const subscribePlaces = (fn: () => void) => onPlaces(() => fn());
 
 // the browser fetches the card body once the game is up (never in node tests: no vite env there)

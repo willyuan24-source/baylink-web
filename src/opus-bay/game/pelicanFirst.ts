@@ -20,6 +20,7 @@ import { isArrived } from './trips';
 import { PELICAN_TARGET } from './cityGoals';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 5 · lane C · W5-C2 (plan sf-w5-plan.md MF3 "the pelican first", §4.6): the pelican glide is unlocked early, and
@@ -276,7 +277,7 @@ function takeOff() {
     try { void Promise.resolve(start()).then(ok => { if (ok === false) plain(); }, plain); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); plain(); }
   };
   if (flightStarter) { run(flightStarter); return; }
-  void import('../play/index').then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
+  void importRetry(() => import('../play/index')).then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
 }
 
 // 试试起飞 opens GO_NODE: remembered for the moment's end (module level: this module lives in the city chunk only)

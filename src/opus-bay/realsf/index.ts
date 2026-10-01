@@ -35,6 +35,7 @@ import { loadTides, tideLoudness } from './tides';
 import { todayLine } from './todayLine';
 import { isParadeDay } from '../world/sf/fleetWeekDay';
 import type { FleetWeek } from '../world/sf/fleetWeek';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane R — the real San Francisco: the sun, events at their venues, 今天 · SF Today, 今日三件小事, Fleet Week.
@@ -137,7 +138,7 @@ export function init(): () => void {
   const offTab = registerJournalTab({
     id: 'today', order: 5, label: { zh: '今天', en: 'Today' }, icon: TodayIcon,
     count: () => { const list = daily.tasks(); return list ? `${list.filter(t => daily.done(t)).length}/${list.length}` : undefined; },
-    load: () => import('./TodayTab'),
+    load: () => importRetry(() => import('./TodayTab')),
   });
   const offAsk = registerAskItem({ id: 'realsf-today', order: 40, label: { zh: '今天旧金山有什么？', en: 'What’s on in SF today?' }, icon: AskIcon, onSelect: () => openJournal('today') });
   let welcomeSaid = false;
@@ -155,7 +156,7 @@ export function init(): () => void {
   const idle = setTimeout(() => {
     void loadTides();
     void loadLive();
-    void import('../eggs/marina').then(m => { if (!live) return; m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
+    void importRetry(() => import('../eggs/marina')).then(m => { if (!live) return; m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
   }, IDLE_FETCH_MS);
   // W8-S: Fleet Week's Parade of Ships (9 Oct 11:00–12:00) — its own lazy chunk, loaded on the parade's Bay day only
   let parade: FleetWeek | null = null;
@@ -163,7 +164,7 @@ export function init(): () => void {
   const loadParade = () => {
     if (parade || paradeLoading) return;
     paradeLoading = true;
-    void import('../world/sf/fleetWeek').then(m => { if (live) parade = m.initFleetWeek(); }, () => { paradeLoading = false; });
+    void importRetry(() => import('../world/sf/fleetWeek')).then(m => { if (live) parade = m.initFleetWeek(); }, () => { paradeLoading = false; });
   };
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {

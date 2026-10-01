@@ -21,6 +21,7 @@ import { flow } from './flowStore';
 import { invalidateInteractables, registerPrefixResolver, type Interactable } from './interactables';
 import { REWARD_COINS, emitReward, rewardFavour } from './rewards';
 import { registerFrameSystem } from './systemsRegistry';
+import { importRetry } from './importRetry';
 
 /**
  * The six city residents' favours at runtime (lane G2, plan G2-6). Loaded lazily by game/cityContent.ts (city mode
@@ -59,7 +60,7 @@ export const LETTER_GAP_MS = 20_000;
 export const RIFF_NEAR = 6;
 export const RIFF_GAP_MS = 240_000;
 export const LETTER_OVERLAY = 'c-letter';
-const Letter = lazy(() => import('../ui/Letter'));
+const Letter = lazy(() => importRetry(() => import('../ui/Letter')));
 
 /** Ways of getting somewhere that count as going yourself (not the pelican, fast travel or a transit car). */
 const OWN_WAY: ReadonlySet<MoveMode> = new Set<MoveMode>(['foot', 'sit', 'bike', 'car', 'photo']);
@@ -163,7 +164,7 @@ export function initResidentTasks(): () => void {
     if (!want) { if (offOtter) { offOtter(); offOtter = null; otterLoading = false; } return; }
     if (offOtter || otterLoading) return;
     otterLoading = true;
-    void import('./otterMark').then(m => { if (task2State(game.get().goalsDone, 'muralist') === 'done') offOtter = m.initOtterMark(); else otterLoading = false; }, () => { otterLoading = false; });
+    void importRetry(() => import('./otterMark')).then(m => { if (task2State(game.get().goalsDone, 'muralist') === 'done') offOtter = m.initOtterMark(); else otterLoading = false; }, () => { otterLoading = false; });
   };
   syncOtter();
   const bridge = sfLandmark('golden-gate-bridge');

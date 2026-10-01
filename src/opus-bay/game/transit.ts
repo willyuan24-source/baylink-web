@@ -18,6 +18,7 @@ import { announce, bubble, completeGoal, defineNode, openPanel, playDialogue, re
 import { flow, type FlowRide } from './flowStore';
 import { interactableById, invalidateInteractables, registerInteractables, type Interactable } from './interactables';
 import { type RideState, beginLineRide, beginRide, currentRide, endRide, isLineRide, lineRideEta, lineRideTurning, nearestStopId, rideMinOdometer, rideSeconds, sortedStops, stepRide } from './ride';
+import { importRetry } from './importRetry';
 
 /**
  * Transit flow (lane F owns this file from wave 2; the day-0 commit moved the streetcar section of game/flow.ts here
@@ -952,7 +953,7 @@ const W4_NOT_READY: [string, string] = ['车还没开过来，稍等一下', 'No
 
 /** The lazy wave-4 game module (game/lineRides.ts), fetched once in city mode by initTransit. */
 export function loadLineRides(): Promise<LineRidesModule> {
-  w4Loading ??= import('./lineRides').then(m => { W4G = m; invalidateInteractables(); return m; }, (e: unknown) => { w4Loading = null; throw e; });
+  w4Loading ??= importRetry(() => import('./lineRides')).then(m => { W4G = m; invalidateInteractables(); return m; }, (e: unknown) => { w4Loading = null; throw e; });
   return w4Loading;
 }
 /** The wave-4 game module once loaded (null in district mode / before initTransit's fetch lands). */

@@ -11,6 +11,7 @@ import { crowdPeopleMaterial } from './life';
 import { TOY_DYN, TOY_INST, TOY_INST_TINT } from './materials';
 import { registerWarmup } from './warmup';
 import type { TransitLayer } from './transitLayer';
+import { importRetry } from '../game/importRetry';
 
 /**
  * F-line vintage streetcars. Two double-ended cars shuttle along DISTRICT.streetcar.path, dwell 6 s at
@@ -304,7 +305,7 @@ export class Streetcars {
       mesh.receiveShadow = true;
       return { objects: [mesh], dispose: () => geo.dispose() };
     });
-    void import('./transitLayer').then(m => m.createTransitLayer()).then(layer => {
+    void importRetry(() => import('./transitLayer')).then(m => m.createTransitLayer()).then(layer => {
       if (!layer) return;
       if (this.disposed) { layer.dispose(); return; }
       this.layer = layer;

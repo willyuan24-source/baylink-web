@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import { registerAskItem } from '../ui/slots';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 6 · lane W · the way into 捉迷藏 (play/hideSeek.ts, its own small chunk): an item in BAYBAY's menu (问 BAYBAY →
@@ -7,7 +8,7 @@ import { registerAskItem } from '../ui/slots';
  * coach line that tells a new player it is there. play/index.ts init() registers it with the other ask items.
  */
 let mod: typeof import('./hideSeek') | null = null;
-const load = () => import('./hideSeek').then(m => (mod = m));
+const load = () => importRetry(() => import('./hideSeek')).then(m => (mod = m));
 
 export function registerHideSeek(): () => void {
   let offCoach: (() => void) | null = null, gone = false;

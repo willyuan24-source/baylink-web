@@ -26,6 +26,7 @@ import { autoGliding } from '../actors/moveApi';
 import { isScenicLeg, scenicResumeOffered } from '../game/scenicTrip';
 import { tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 4 · lane G's guidance on screen, city mode only (a lazy chunk: ui/Hud.tsx and ui/Overlay.tsx mount these through
@@ -248,11 +249,11 @@ export function GuideLeadChip() {
     return () => { window.clearTimeout(id); setCoach(false); };
   }, [touchOn]);
   if (scenicLeg && ownWings && !dialogue && !panel) {
-    return <GoChip auto={false} fly device={device} onResume={() => { void import('../game/tripRun').then(m => m.resumeScenicGlide()); }} />;
+    return <GoChip auto={false} fly device={device} onResume={() => { void importRetry(() => import('../game/tripRun')).then(m => m.resumeScenicGlide()); }} />;
   }
   if (tripChip) {
     if (auto) return <GoChip auto device={device} />;
-    if (touch || handIdle) return <GoChip auto={false} device={device} onResume={() => { void import('../game/tripRun').then(m => m.resumeAutoTravel()); }} />;
+    if (touch || handIdle) return <GoChip auto={false} device={device} onResume={() => { void importRetry(() => import('../game/tripRun')).then(m => m.resumeAutoTravel()); }} />;
     return null;
   }
   if (tripLive || (!touchOn && !idleChip) || dialogue || panel) return null;

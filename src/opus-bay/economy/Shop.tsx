@@ -23,6 +23,7 @@ import { compassStarted, flyWithTicket, magnifierStarted, pelicanOut, ticketDest
 import { clearPreview, setPreview } from './wear';
 import { CostumeArt } from '../halloween/costumeArt';
 import './economy.css';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane E · W5-E6: the BAYBAY 小铺 sheet (ui/slots overlay 'e-shop') and the 飞行券 picker ('e-ticket').
@@ -288,7 +289,7 @@ function useDestinations(): TicketDest[] | null {
   const [list, setList] = useState<TicketDest[] | null>(null);
   useEffect(() => {
     let live = true;
-    void import('../data/sf/attractions').then(m => {
+    void importRetry(() => import('../data/sf/attractions')).then(m => {
       if (live) setList(ticketDestinations(m, { x: runtime.player.x, z: runtime.player.z }));
     }).catch(() => { if (live) setList([]); });
     return () => { live = false; };

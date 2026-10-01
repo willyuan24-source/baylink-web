@@ -13,6 +13,7 @@ import { openOverlays, registerOverlay } from '../ui/slots';
 import { currentActivity } from './kit';
 import { BUSK_LINES, BUSK_NAME, FOG_LINES, FOG_NAME, GRIP_LINES } from './sfgames8Lines';
 import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 8 · lane M · the second set of San Francisco mini-games' zones (one small chunk play/zones3.ts loads at init,
@@ -64,7 +65,7 @@ function buskIt(s: BuskSpot, id: string): Interactable {
   const p = buskAt(s);
   return {
     id, source: 'activity', action: 'info', verb: BUSK_VERB, name: BUSK_NAME, x: p.x, z: p.z, radius: s.r,
-    act: () => { const out = buskerOut(s); void import('./busk').then(m => { m.startBusk(s.style, out); }); },
+    act: () => { const out = buskerOut(s); void importRetry(() => import('./busk')).then(m => { m.startBusk(s.style, out); }); },
   };
 }
 export const buskHaightIt = buskIt(BUSK_HAIGHT, 'play:busk-haight');
@@ -96,11 +97,11 @@ const onPowell = (r: Pick<FlowRide, 'kind' | 'line'> | null) => !!r && r.kind ==
 /** The grip pad: a Powell car under way, no game panel up. */
 export const gripPadVisible = (r: FlowRide) => onPowell(r) && r.stage !== 'waiting' && !openOverlays().some(o => o.id === 'play-grip');
 
-const GripPanel = lazy(() => import('./GripPanel'));
+const GripPanel = lazy(() => importRetry(() => import('./GripPanel')));
 const GripSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPanel));
-const GripPad = lazy(() => import('./GripPad'));
+const GripPad = lazy(() => importRetry(() => import('./GripPad')));
 const GripPadSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPad));
-const BuskPanel = lazy(() => import('./BuskPanel'));
+const BuskPanel = lazy(() => importRetry(() => import('./BuskPanel')));
 const BuskSlot = () => createElement(Suspense, { fallback: null }, createElement(BuskPanel));
 const FogPanel = lazy(() => import('./FogPanel'));
 const FogSlot = () => createElement(Suspense, { fallback: null }, createElement(FogPanel));
@@ -133,7 +134,7 @@ export function initSfGames8(): () => void {
     // the grip: its chunks while you wait for (or ride) a Powell car; BAYBAY's invite a few seconds into the ride
     const ride = flow.get().ride;
     if (onPowell(ride)) {
-      zonePrefetch('grip', () => Promise.all([import('./grip'), import('./GripPanel'), import('./GripPad')]));
+      zonePrefetch('grip', () => Promise.all([importRetry(() => import('./grip')), importRetry(() => import('./GripPanel')), importRetry(() => import('./GripPad'))]));
       rideT = ride!.stage === 'waiting' ? 0 : rideT + step;
       const f = flow.get(), s = game.get();
       if (!gripInvited && rideT >= GRIP_INVITE_AFTER && !currentActivity() && !baybayHeld() && !f.bubble && !f.cinematic && !s.dialogue.nodeId && !s.photoMode && performance.now() >= f.quietUntil && runtime.move.mode === 'transit') {
@@ -145,7 +146,7 @@ export function initSfGames8(): () => void {
     for (const [, s] of BUSK_PROMPTS) {
       const p = buskAt(s);
       if (!nearPlayer(p.x, p.z, PREFETCH_R)) continue;
-      zonePrefetch('busk', () => Promise.all([import('./busk'), import('./BuskPanel')]));
+      zonePrefetch('busk', () => Promise.all([importRetry(() => import('./busk')), importRetry(() => import('./BuskPanel'))]));
       if (nearPlayer(p.x, p.z, INVITE_R) && !running && !played.has('busk') && !baybayHeld()) {
         zoneInvite(`busk-${s.style}`, buskerOut(s) ? (s.style === 'mission' ? BUSK_LINES.inviteMission : BUSK_LINES.inviteHaight) : BUSK_LINES.closed);
       }

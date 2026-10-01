@@ -35,6 +35,7 @@ import { rewardGoal, rewardPostcard } from './rewards';
 import { bubbleWaits } from './baybayHold';
 import { W8K_LINES } from './fixedLines';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
+import { importRetry } from './importRetry';
 
 // W6-P3 (lane P, MF9): the six city residents come with the city data chunk (data/sf/cityDataChunk.ts; none in district
 // mode, where no resident exists: residentByKey is undefined for every district NPC as before)
@@ -645,7 +646,7 @@ export function setCityTourApi(api: CityTourApi | null) { cityTourApi = api; }
 export const cityTourActive = () => { const t = game.get().tour; return t.active && tourIdOf(t) !== DEFAULT_TOUR_ID; };
 function startCityTour(id: string) {
   if (cityTourApi) { cityTourApi.start(id); return; }
-  void import('./cityTour').then(m => { m.initCityTour(); cityTourApi?.start(id); }, (e: unknown) => {
+  void importRetry(() => import('./cityTour')).then(m => { m.initCityTour(); cityTourApi?.start(id); }, (e: unknown) => {
     if (import.meta.env?.DEV) console.error('[opus-bay city tour]', e);
     say('一日游还没准备好，稍后再试', 'The Grand Tour is not ready yet — try again in a moment');
   });

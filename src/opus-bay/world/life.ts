@@ -12,6 +12,7 @@ import { cityStreamerLazy } from './cityLoader';
 import { K_DOCK_FLOATS, kDockFrame, kDockSpots } from './landmarks';
 import { TOY_DYN, TOY_INST, TOY_INST_TINT, U } from './materials';
 import { MAX_WAKES } from './water';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Ambient life: ferries (incl. the arrival ferry), sailboats, sea lions on the K-Dock, pelicans, gulls,
@@ -488,7 +489,7 @@ async function loadModel(id: string): Promise<LoadedModel | null> {
   if (!asset) return null;
   // the shared Draco-capable loader (D2 w3 c2 / HC-4: lane V can publish Draco + WebP heroes); world/models is imported
   // dynamically so district mode keeps DRACOLoader out of its first load
-  const gltf = await (await import('./models')).heroGltfLoader().loadAsync(asset.url);
+  const gltf = await (await importRetry(() => import('./models'))).heroGltfLoader().loadAsync(asset.url);
   let mesh: THREE.Mesh | null = null;
   gltf.scene.traverse(o => { if (!mesh && (o as THREE.Mesh).isMesh) mesh = o as THREE.Mesh; });
   if (!mesh) return null;

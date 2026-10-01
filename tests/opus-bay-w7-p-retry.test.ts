@@ -42,7 +42,8 @@ test('W7-P3: importRetry — a lost chunk is fetched again under a new URL after
   assert.deepEqual(waits, [RETRY_MS[0]]);
   // lost for good: every retry, then the last error (the caller's own fallback applies, as before)
   const waits2: number[] = [];
-  await assert.rejects(importRetry(load, { sleep: async ms => { waits2.push(ms); }, importUrl: async u => { throw CHROME(u); } }), /Failed to fetch dynamically imported module/);
+  // (W8-P5: on a fresh page — on the page above, a later caller of the same lost URL takes the module it recovered)
+  await assert.rejects(importRetry(load, { memo: new Map(), sleep: async ms => { waits2.push(ms); }, importUrl: async u => { throw CHROME(u); } }), /Failed to fetch dynamically imported module/);
   assert.deepEqual(waits2, [...RETRY_MS]);
   // the old behaviour (a plain retry of the same import) never lands in Chrome: the helper is what makes it load
   let plain = 0;

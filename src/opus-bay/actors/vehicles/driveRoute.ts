@@ -6,6 +6,7 @@ import { GRAPH_SNAP, graphNodeFilter, navInside, navWindowFor, walkGraph } from 
 import { BIKE_SPEC } from './bike';
 import type { SurfaceRule } from './collide';
 import { CAR_SPEC } from './toyCar';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * Where a bike or the toy car can drive, and the way there (plan §6.4 "tap-to-drive", checkpoint E2-3). Pure apart
@@ -366,7 +367,7 @@ export async function driveRoute(from: Vec2, to: Vec2, kind: DriveKind, opts: As
   let nodes: number[] = [];
   const sameEdge = (a.u === b.u && a.v === b.v) || (a.u === b.v && a.v === b.u);
   if (!sameEdge) {
-    const { findGraphPathAsync } = await import('../../core/walkGraph');
+    const { findGraphPathAsync } = await importRetry(() => import('../../core/walkGraph'));
     const path = await findGraphPathAsync(ix, a.u, b.u, { ...opts, accept: nodeOk, edgeAccept: driveEdgeAccept(ix, kind) });
     if (!path) return null;
     nodes = path.nodes.slice();

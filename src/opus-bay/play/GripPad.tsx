@@ -1,6 +1,7 @@
 import { Hand } from 'lucide-react';
 import { useT } from '../i18n';
 import { useMedia } from '../ui/hooks';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 8 · lane M · the grip game's pad in lane T's ride banner (ui/rideSlots registerRidePad, from play/sfgames8.ts):
@@ -10,7 +11,7 @@ import { useMedia } from '../ui/hooks';
 export default function GripPad() {
   const { t } = useT();
   const narrow = useMedia('(max-width: 600px)');
-  const start = () => { void import('./grip').then(m => { m.startGrip(); }); };
+  const start = () => { void importRetry(() => import('./grip')).then(m => { m.startGrip(); }); };
   return (
     <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={start} style={{ minHeight: 44 }} aria-label={t('拉闸当司机', 'Work the grip')}>
       <Hand size={15} aria-hidden />{narrow ? t('拉闸', 'Grip it') : t('拉闸当司机', 'Work the grip')}

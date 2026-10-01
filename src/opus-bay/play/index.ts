@@ -20,6 +20,7 @@ import { registerKites } from './kiteEntry';
 import { currentActivity, ensureResultOverlay, forgetSession, unregisterResultOverlay } from './kit';
 import { registerPlaySounds } from './sounds';
 import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpots';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A — PlayKit and the activities. game/w5Features.ts loads this module lazily in city mode only and calls
@@ -40,7 +41,7 @@ import { VIEW_RADIUS, VIEW_SPOT_IDS, VIEW_SPOTS, type ViewSpot } from './viewSpo
  */
 
 const WHEEL_OVERLAY = 'play-emotes';
-const EmoteWheel = lazy(() => import('./EmoteWheel'));
+const EmoteWheel = lazy(() => importRetry(() => import('./EmoteWheel')));
 const WheelSlot = ({ close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(EmoteWheel, { close }));
 
 /** 坐下 is offered after standing still this long (s) on these surfaces, when nothing else is in reach. */
@@ -69,11 +70,11 @@ export function openWheel(): boolean {
 }
 export function toggleWheel() { if (wheelOpen()) closeOverlay(WHEEL_OVERLAY); else openWheel(); }
 
-export const petNow = () => import('./pet').then(m => m.pet());
-const sitNow = () => { void import('./sit').then(m => { if (!m.sitHere()) emit({ type: 'ui', action: 'error' }); }); };
-const sitSpot = (s: ViewSpot) => { void import('./sit').then(m => { m.sitAtSpot(s); }); };
+export const petNow = () => importRetry(() => import('./pet')).then(m => m.pet());
+const sitNow = () => { void importRetry(() => import('./sit')).then(m => { if (!m.sitHere()) emit({ type: 'ui', action: 'error' }); }); };
+const sitSpot = (s: ViewSpot) => { void importRetry(() => import('./sit')).then(m => { m.sitAtSpot(s); }); };
 type StartFlight = (opts?: { course?: 'coit' | 'local' }) => Promise<boolean>;
-const startFlight: StartFlight = opts => import('./firstFlight').then(m => m.startFirstFlight(opts));
+const startFlight: StartFlight = opts => importRetry(() => import('./firstFlight')).then(m => m.startFirstFlight(opts));
 /**
  * The first-flight entry lane C's pelican moment calls (game/pelicanFirst.ts: 试试起飞 → `startFirstFlight()`); set
  * while this feature runs (init → teardown), so a play chunk that failed to start leaves lane C its plain take-off.
@@ -185,11 +186,11 @@ export function init(): () => void {
   const prefetchRings = () => {
     if (ringsAsked || disposed || !glideUnlocked()) return;
     ringsAsked = true;
-    void import('./rings').catch(() => { ringsAsked = false; });
+    void importRetry(() => import('./rings')).catch(() => { ringsAsked = false; });
   };
   prefetchRings();
   offs.push(subscribeGlide(prefetchRings));
-  void import('./sit').then(m => { if (!disposed) sitModule = m; });
+  void importRetry(() => import('./sit')).then(m => { if (!disposed) sitModule = m; });
   offs.push(registerFrameSystem('a-play-offer', dt => {
     const p = runtime.player;
     still = !p.moving && p.speed < 0.3 && !p.pathTarget ? still + dt : 0;
@@ -204,10 +205,10 @@ export function init(): () => void {
 
   // BAYBAY's shoreline float (idle) — the pet chunk
   let offFloat: (() => void) | null = null;
-  void import('./pet').then(m => { if (!disposed) offFloat = m.startFloatWatch(); });
+  void importRetry(() => import('./pet')).then(m => { if (!disposed) offFloat = m.startFloatWatch(); });
   // part b: the zones (the slides, the stair courses, the cable car's bell pad, the step counter) — their own chunk
   let offZones: (() => void) | null = null;
-  void import('./zones').then(m => { if (!disposed) offZones = m.initZones(); });
+  void importRetry(() => import('./zones')).then(m => { if (!disposed) offZones = m.initZones(); });
   offs.push(() => { disposed = true; offFloat?.(); offZones?.(); sitModule?.resetSit(); });
   // Settings → reset progress: the session's bests, medals and view finds go with the save (zones.ts forgets the steps,
   // crests.ts its set)

@@ -9,6 +9,7 @@ import { inHalloween } from './season';
 import { CandyBadge } from './treatBadge';
 import { injectCandyCss } from './treatNear';
 import { initTreat } from './treatRun';
+import { importRetry } from '../game/importRetry';
 
 const PumpkinIcon = () => createElement('span', { 'aria-hidden': true, style: { fontSize: 15, lineHeight: 1 } }, '🎃');
 
@@ -40,7 +41,7 @@ export function initHalloweenPlay(): () => void {
   let offRow: (() => void) | null = null;
   const tab = () => {
     const want = inHalloween();
-    if (want && !offTab) offTab = registerJournalTab({ id: 'halloween', order: 8, label: { zh: '万圣节', en: 'Halloween' }, icon: PumpkinIcon, count: () => goalsDoneText(isPaid), load: () => import('./HalloweenPage') });
+    if (want && !offTab) offTab = registerJournalTab({ id: 'halloween', order: 8, label: { zh: '万圣节', en: 'Halloween' }, icon: PumpkinIcon, count: () => goalsDoneText(isPaid), load: () => importRetry(() => import('./HalloweenPage')) });
     else if (!want && offTab) { offTab(); offTab = null; }
     if (want && !offRow) offRow = registerGoalsRow({ id: 'g-halloween', order: 10, Component: HalloweenGoalsRow, Mini: HalloweenGoalsMini });
     else if (!want && offRow) { offRow(); offRow = null; }

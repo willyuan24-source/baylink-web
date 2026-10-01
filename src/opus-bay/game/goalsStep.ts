@@ -7,6 +7,7 @@ import { sayFreeLine, startFreeLead } from './flow';
 import { flow } from './flowStore';
 import { STREET_FACTOR, autoTravelSeconds } from './tripPlan';
 import { timeLabel } from './tripText';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 5 · lane C · W5-C3 (plan sf-w5-plan.md MF6 "goals once", MF3 "the pelican first"): the goals step.
@@ -22,7 +23,7 @@ import { timeLabel } from './tripText';
  * has not seen the step, so it never opens on an empty frame.
  */
 
-const load = () => import('../ui/GoalsStep');
+const load = () => importRetry(() => import('../ui/GoalsStep'));
 
 /**
  * The big button's time over a straight distance d (u). The button carries you (a free lead is one of lane N's

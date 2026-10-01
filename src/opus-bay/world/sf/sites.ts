@@ -14,6 +14,7 @@ import { siteLod0R } from './landmarks/w4sites';
 import type { KitSwap } from './kitSwap';
 import { CityBatch, type PoolArrays } from './mesh';
 import type { CellPool } from './pools';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * The San Francisco landmarks and the wave-4 sites (world/sf/landmarks SF_SITES) placed in the streamed city:
@@ -63,7 +64,7 @@ let modelsMod: ModelsModule | null = null;
 let modelsP: Promise<ModelsModule> | null = null;
 /** world/models.ts, imported on first use (keeps DRACOLoader out of district mode). */
 function modelsModule(): Promise<ModelsModule> {
-  return (modelsP ??= import('../models').then(m => (modelsMod = m)));
+  return (modelsP ??= importRetry(() => import('../models')).then(m => (modelsMod = m)));
 }
 
 /**
@@ -640,7 +641,7 @@ export class CitySites {
     const src = cityStreamerLazy();
     if (!src) return;
     this.kitStarted = true;
-    void Promise.all([import('./kitSwap'), modelsModule()]).then(([k, m]) => {
+    void Promise.all([importRetry(() => import('./kitSwap')), modelsModule()]).then(([k, m]) => {
       if (this.disposed) return;
       this.kit = new k.KitSwap(src, { peek: id => m.peekModel(id), retain: id => { void m.retainModel(id); }, release: id => m.releaseModel(id) }, { frameTriangles: () => this.frameTris, onRender: this.grab });
       this.group.add(this.kit.group);

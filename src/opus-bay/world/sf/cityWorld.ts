@@ -33,6 +33,7 @@ import { CitySites } from './sites';
 import { mountCityDebug } from './stats';
 import { CityStreamer } from './stream';
 import type { CityWater } from './water';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * City mode's part of the World (world/world.ts), in the city chunk (wave 4, lane V: "city code through
@@ -247,7 +248,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const unmountDebug = mountCityDebug(streamer, renderer);
   // W5-V7: BAYBAY's recorded wave-5 lines play with her bubbles (game/voiceW5.ts, its own small chunk)
   let offVoice: (() => void) | null = null, detached = false;
-  void import('../../game/voiceW5').then(m => { if (!detached) offVoice = m.initW5Voice(); }, () => { /* text bubbles only */ });
+  void importRetry(() => import('../../game/voiceW5')).then(m => { if (!detached) offVoice = m.initW5Voice(); }, () => { /* text bubbles only */ });
   return {
     city: streamer,
     detach: () => {
