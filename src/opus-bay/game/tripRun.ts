@@ -148,11 +148,16 @@ function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   if (source !== 'tour' && source !== 'free-lead') {
     const first = t.legs[0];
     // (a scenic flight: lane F's take-off says 抓稳，飞咯！ and how to take the wings — no third line on top)
+    const ride = first.via === 'line' || t.legs.some(l => l.via === 'line');
+    // (W8-K10) the city: fixed lines lane X can voice (game/fixedLines.ts W8K_LINES; the trip pill and the announce name
+    // the place); the district keeps its named bubbles
     const line = isScenicLeg(first) ? null
-      : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
-      : first.via === 'line' || t.legs.some(l => l.via === 'line') ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
-        : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
-          : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
+      : game.get().worldMode === 'city'
+        ? first.via === 'fly' ? W8K_LINES.tripFly : ride ? W8K_LINES.tripToStop : first.via === 'bike' ? W8K_LINES.tripBike : first.via === 'car' ? W8K_LINES.tripCar : W8K_LINES.leadGo
+        : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
+          : ride ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
+            : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
+              : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
     if (line) bubble(line, 3000, BAYBAY_ID, 'call');
   }
   announce({ zh: `出发：${name.zh}`, en: `Heading to ${name.en}` });

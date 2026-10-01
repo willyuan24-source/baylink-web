@@ -23,4 +23,10 @@ export const W8K_LINES = {
   allAboard: { zh: '上车！出发咯～', en: 'All aboard — off we go!' },
   /** play/sit.ts a view spot: was 坐一会儿，看看<name>的风景～ — the slow look's caption names it */
   sitView: { zh: '坐一会儿，看看风景～', en: 'Let’s sit and take in the view.' },
+  /** (W8-K10) game/tripRun.ts a trip that starts with a flight: was 抓紧！我们飞去<name> — the trip pill names it */
+  tripFly: { zh: '抓紧！我们飞过去～', en: 'Hold on — we’ll fly there!' },
+  /** (W8-K10) game/tripRun.ts a trip that starts on the player's bike: was 先去骑上单车，再去<name>！ */
+  tripBike: { zh: '先骑上单车，再出发！', en: 'Hop on the bike first, then off we go!' },
+  /** (W8-K10) game/tripRun.ts a trip that starts in the toy car: was 先去坐上小车，再去<name>！ */
+  tripCar: { zh: '先坐上小车，再出发！', en: 'Into the toy car first, then off we go!' },
 } satisfies Record<string, Bilingual>;

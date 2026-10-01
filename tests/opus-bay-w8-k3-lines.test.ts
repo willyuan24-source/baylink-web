@@ -95,3 +95,17 @@ test('W8-K3 the city’s trip / go-to / boarding / sit bubbles are fixed lines (
   assert.match(src('game/lineRides.ts'), /W8K_LINES\.allAboard/);
   assert.match(src('play/sit.ts'), /W8K_LINES\.sitView/);
 });
+
+test('W8-K10 a trip’s first line in the city is fixed (fly / ride / bike / car / walk): no place name in a bubble; the district keeps its own', () => {
+  for (const k of ['tripFly', 'tripBike', 'tripCar'] as const) {
+    const v = W8K_LINES[k];
+    assert.ok(v.zh && v.en && [...v.zh].length <= 45 && !/\d|\$\{/.test(v.zh + v.en), k);
+  }
+  const trip = src('game/tripRun.ts');
+  const at = trip.indexOf("const line = isScenicLeg(first) ? null");
+  const block = trip.slice(at, trip.indexOf('if (line) bubble(line', at));
+  const city = block.slice(block.indexOf("game.get().worldMode === 'city'"), block.indexOf(': first.via === \'fly\' ? { zh:'));
+  assert.match(city, /W8K_LINES\.tripFly : ride \? W8K_LINES\.tripToStop : first\.via === 'bike' \? W8K_LINES\.tripBike : first\.via === 'car' \? W8K_LINES\.tripCar : W8K_LINES\.leadGo/);
+  assert.ok(!/\$\{/.test(city), 'the city branch has no template');
+  assert.match(block, /`跟我来！坐车去\$\{name\.zh\}`/, 'the district keeps its bubbles');
+});
