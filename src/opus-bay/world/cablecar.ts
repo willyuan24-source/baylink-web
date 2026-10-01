@@ -121,7 +121,19 @@ export function cableCarGeometry(): THREE.BufferGeometry {
     box(b, 0, F + 0.5, z + e * 0.055, W - 0.3, 0.04, 0.01, GOLD);
     b.add(CYL(10), M(0, F + 0.36, z + e * 0.05, 0, 0.13, 0.08, 0.13, e * Math.PI / 2), e > 0 ? '#fff1c8' : '#ffc08a', LAMP);
     box(b, 0, 0.3, z + e * 0.06, 1.2, 0.2, 0.12, IRON);
+    // (W8-X2) the lamp's brass rim and a gold-lined panel either side of it under the dash's gold line (blank: no
+    // number, no lettering)
+    b.add(CYL(14), M(0, F + 0.36, z + e * 0.045, 0, 0.19, 0.05, 0.19, e * Math.PI / 2), BRASS, NO);
+    for (const s of [-1, 1]) {
+      const px = s * 0.66, pz = z + e * 0.056;
+      for (const [dx, dy, w, h] of [[0, 0.1, 0.56, 0.025], [0, 0.42, 0.56, 0.025], [-0.27, 0.1, 0.025, 0.345], [0.27, 0.1, 0.025, 0.345]] as const) {
+        box(b, px + dx, F + dy, pz, w, h, 0.01, GOLD);
+      }
+    }
   }
+  // (W8-X2) the roof's gentle arch: a flat half-round along the car under the clerestory (it also vaults the open ends'
+  // ceilings), so the roof line is not a slab
+  b.add(CYL(16), M(0, ROOF_Y + 0.04, -(L + 0.2) / 2, 0, W / 2 + 0.07, L + 0.2, 0.1, Math.PI / 2), ROOF, NO);
   // --- roof: cream roof with an overhang at the ends, maroon fascia over the open sections, clerestory, roof lamps
   box(b, 0, ROOF_Y, 0, W + 0.14, 0.1, L + 0.2, ROOF);
   box(b, 0, ROOF_Y - 0.03, 0, W - 0.1, 0.03, L, CREAM_DARK);

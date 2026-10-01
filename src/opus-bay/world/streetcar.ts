@@ -76,8 +76,8 @@ export function carGeometry(livery: string, pole = false): THREE.BufferGeometry 
       b.add(BOX(), M(x, WIN, z, 0, T, HEAD - WIN, 0.16), cream);
     }
     b.add(BOX(), M(x, HEAD, 0, 0, T, ROOF - HEAD, L), cream);
-    // inner faces a touch darker (reads as the inside of the car through the windows)
-    b.add(BOX(), M(side * (W / 2 - T - 0.005), 0.5, 0, 0, 0.01, WIN - 0.5, L - 0.6), inside);
+    // inner faces a touch darker (reads as the inside of the car through the windows); (W8-X2) city: lit warm at night
+    b.add(BOX(), M(side * (W / 2 - T - 0.005), 0.5, 0, 0, 0.01, WIN - 0.5, L - 0.6), inside, pole ? CAB_GLASS : undefined);
     // longitudinal bench: seat, front skirt, backrest
     b.add(BOX(), M(side * 0.66, 0.86, 0, 0, 0.44, 0.09, L - 1.5), wood);
     b.add(BOX(), M(side * 0.46, 0.5, 0, 0, 0.04, 0.36, L - 1.5), shade(wood, 0.8));
@@ -90,25 +90,60 @@ export function carGeometry(livery: string, pole = false): THREE.BufferGeometry 
     b.add(CYL(14), M(0, 0.5, s * L / 2, 0, W / 2, BELT - 0.5, 1.0), livery);
     b.add(CYL(14), M(0, BELT, s * L / 2, 0, W / 2 + 0.01, SILL - BELT, 1.01), '#e0a94a');
     b.add(CYL(14), M(0, SILL, s * L / 2, 0, W / 2, ROOF - SILL, 1.0), cream);
-    b.add(BOX(), M(0, 1.45, s * (L / 2 + 0.72), s > 0 ? 0 : Math.PI, 1.3, 0.75, 0.35), glass);
+    // (W8-X2) city mode (pole): a wrap-round windscreen, a lamp with a rim, a bumper, a rounded cab roof, wheels — the
+    // district's car keeps its own pieces (district mode never changes)
+    if (pole) cityCab(b, s, L, W);
+    else b.add(BOX(), M(0, 1.45, s * (L / 2 + 0.72), s > 0 ? 0 : Math.PI, 1.3, 0.75, 0.35), glass);
     b.add(BOX(), M(0, 2.3, s * (L / 2 + 0.55), 0, 1.0, 0.26, 0.3), '#ffcf7a', [0, 0, 0, 1]);
-    b.add(CYL(8), M(0, 0.8, s * (L / 2 + 0.98), 0, 0.12, 0.12, 0.05), '#fff4d0', [0, 0, 0, 1]);
+    if (!pole) b.add(CYL(8), M(0, 0.8, s * (L / 2 + 0.98), 0, 0.12, 0.12, 0.05), '#fff4d0', [0, 0, 0, 1]);
     // cab bulkhead facing the saloon
-    b.add(BOX(), M(0, 0.5, s * (L / 2 - 0.02), 0, W - 0.1, ROOF - 0.5, 0.04), inside);
+    b.add(BOX(), M(0, 0.5, s * (L / 2 - 0.02), 0, W - 0.1, ROOF - 0.5, 0.04), inside, pole ? CAB_GLASS : undefined);
   }
   // roof (cream underside inside), vents
   b.add(BOX(), M(0, ROOF, 0, 0, W - 0.2, 0.22, L + 0.8), '#d9d4c7');
-  b.add(BOX(), M(0, ROOF - 0.02, 0, 0, W - 0.1, 0.02, L), inside);
+  b.add(BOX(), M(0, ROOF - 0.02, 0, 0, W - 0.1, 0.02, L), inside, pole ? CAB_GLASS : undefined);
   b.add(BOX(), M(0, ROOF + 0.22, 0, 0, 0.9, 0.18, L * 0.6), '#bdb7aa');
   // bogies
   for (const s of [-1, 1]) b.add(BOX(), M(0, 0.05, s * (L / 2 - 1), 0, 1.6, 0.35, 1.8), dark);
   // city mode (instanced cars): the trolley pole baked in, trailing up to the wire as the district's separate pole does
   if (pole) {
+    // (W8-X2) the bogies' wheels, the roof's rain strips and a gold line under the windows' header
+    for (const s of [-1, 1]) for (const wz of [-0.55, 0.55]) for (const wx of [-0.8, 0.89]) b.add(CYL(10), M(wx, 0.25 - CAR_Y, s * (L / 2 - 1) + wz, 0, 0.27, 0.09, 0.27, 0, Math.PI / 2), '#2a2a2a', CAB_NO);
+    for (const side of [-1, 1]) {
+      b.add(BOX(), M(side * (W / 2 - 0.07), ROOF + 0.18, 0, 0, 0.06, 0.06, L + 0.7), '#bdb7aa', CAB_NO);
+      b.add(BOX(), M(side * (W / 2 - 0.03), HEAD - 0.02, 0, 0, 0.04, 0.04, L), '#e0a94a', CAB_NO);
+    }
     const base = new THREE.Matrix4().makeTranslation(0, 2.9 - CAR_Y, -1.8).multiply(new THREE.Matrix4().makeRotationX(-0.71));
     b.add(CYL(5), base.clone().multiply(M(0, 0, 0, 0, 0.04, 2.9, 0.04)), '#2a2a2a');
     b.add(CYL(6), base.clone().multiply(M(0, 2.9, 0, 0, 0.08, 0.12, 0.08)), '#2a2a2a');
   }
   return b.build();
+}
+
+/** no contact AO (the car runs over hills), a warm window at night (style 7, as the cable car's glass) */
+const CAB_NO: [number, number, number, number] = [0, -100, 0, 0];
+const CAB_GLASS: [number, number, number, number] = [7, -100, 0, 0];
+
+/**
+ * (W8-X2) The city car's cab at end `s` (± along z): five glass panes round the rounded front between the sill and the
+ * header (the old car had one dark slab poking out of the curve), a round headlamp with a brass rim, a dark bumper, two
+ * amber marker lamps by the roof and a rounded roof cap over the cab. Pieces only: the car's size, platform and collider
+ * are unchanged.
+ */
+function cityCab(b: Batch, s: number, L: number, W: number) {
+  const WIN = 1.3, HEAD = 2.22, ROOF = 2.57, cz = s * L / 2, rx = W / 2, rz = 1.0;
+  for (const th of [-1.18, -0.6, 0, 0.6, 1.18]) {
+    const nx = Math.sin(th) / rx, nz = Math.cos(th) / rz, nl = Math.hypot(nx, nz);
+    // on the ellipse (x = rx sin θ, z = rz cos θ), turned to its normal
+    b.add(BOX(), M(Math.sin(th) * (rx + 0.012), WIN, cz + s * Math.cos(th) * (rz + 0.012), Math.atan2(nx / nl, s * nz / nl), Math.abs(th) > 1 ? 0.5 : 0.56, HEAD - WIN, 0.03), '#4b6068', CAB_GLASS);
+  }
+  // the headlamp: a warm lens in a brass rim, low on the dash; the bumper under it
+  b.add(CYL(12), M(0, 0.82, cz + s * (rz - 0.02), 0, 0.2, 0.05, 0.2, s * Math.PI / 2), '#d9b25a', CAB_NO);
+  b.add(CYL(12), M(0, 0.82, cz + s * (rz + 0.02), 0, 0.15, 0.03, 0.15, s * Math.PI / 2), '#fff4d0', [0, -100, 0, 1]);
+  b.add(BOX(), M(0, 0.36, cz + s * (rz - 0.1), 0, 1.1, 0.1, 0.14), '#2d3431', CAB_NO);
+  for (const side of [-1, 1]) b.add(BOX(), M(side * 0.6, 2.38, cz + s * 0.8, 0, 0.08, 0.08, 0.08), '#ffb35c', [0, -100, 0, 1]);
+  // a rounded roof cap over the cab (the flat roof slab stops short of the curve)
+  b.add(CYL(14), M(0, ROOF, cz, 0, rx - 0.1, 0.2, rz - 0.06), '#d9d4c7', CAB_NO);
 }
 
 /** The car seen from afar (city mode, beyond ~110 u): the same silhouette, livery, lamps and warm sign in a few boxes. */

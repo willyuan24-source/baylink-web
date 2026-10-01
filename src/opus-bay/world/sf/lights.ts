@@ -89,9 +89,28 @@ export function ggbLights(): LightSpec[] {
     out.push(at(sx, TOP + 0.5, zs * 2.55, BLINK + (sx > 0 ? 0.5 : 0), RED));
     out.push(at(sx, TOP * 0.62, zs * 2.55, 0.55, RED));
     out.push(at(sx, 3.5, zs * 4.3, 1, FLOOD));
+    // (W8-X6) the floodlit towers: both faces of each leg (toward either shore) washed in warm light from the base up,
+    // dimmer toward the top so the towers seem to soar past the light (GGB_TOWER_LIGHT_SOURCE); far dots only (the
+    // field fades within ≈ 60–150 u of the camera)
+    for (let y = 1.5; y < TOP - 1.5; y += TOWER_FLOOD_STEP) {
+      const level = 0.7 - 0.45 * (y / TOP);
+      for (const face of [-1, 1]) out.push(at(sx + face * 1.25, y, zs * 2.55, level, FLOOD));
+    }
   }
   return out;
 }
+
+/** (W8-X6) one flood dot up each tower-leg face every this many u */
+export const TOWER_FLOOD_STEP = 2.5;
+/**
+ * The towers have been lit at night since 22 June 1987 (after the 50th anniversary; the bridge district's history page);
+ * Irving Morrow's plan gave the tops less light so the towers seem to soar beyond it (Radiant History). Checked 2026-09-30.
+ */
+export const GGB_TOWER_LIGHT_SOURCE = {
+  sourceUrl: 'https://www.goldengate.org/bridge/history-research/moments-events/golden-gate-bridge-anniversaries/',
+  design: 'https://radianthistory.com/lighting-the-golden-gate-bridge-scale-and-dignity/',
+  verifiedAt: '2026-09-30',
+} as const;
 
 /** Jim Campbell's LED crown ("Day for Night", 11,000 LEDs): a generic warm glow, no pictures (plan §2.4 row 32, W4-V8). */
 const CROWN = [1.0, 0.9, 0.74] as const;

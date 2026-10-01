@@ -41,9 +41,11 @@ export function tourBusGeometry(): THREE.BufferGeometry {
   const b = new Batch();
   const BASE = 0.66, BELT = 1.28, LOW_TOP = UP_FLOOR - 0.08;
   // --- running gear: four wheels (8-sided) standing proud under the body (toy style), hubs, the dark chassis
+  // (W8-X2) both sides alike: the tyre spans |x| HW − 0.34 … HW + 0.1 (the cylinder grows toward −x from its origin, so
+  // the left tyre was inset with its hub plate floating outside it), the hub plate on its outer face
   for (const z of [HL - 1.55, -HL + 1.65]) for (const s of [-1, 1]) {
-    b.add(CYL(8), M(s * (HW - 0.28), 0.48, z, 0, 0.48, 0.44, 0.48, 0, Math.PI / 2), TYRE, NO);
-    b.add(BOX(), M(s * (HW - 0.05), 0.35, z, 0, 0.04, 0.26, 0.26), RIM, NO);
+    b.add(CYL(8), M(s > 0 ? HW + 0.1 : -(HW - 0.34), 0.48, z, 0, 0.48, 0.44, 0.48, 0, Math.PI / 2), TYRE, NO);
+    b.add(BOX(), M(s * (HW + 0.12), 0.35, z, 0, 0.04, 0.26, 0.26), RIM, NO);
   }
   box(b, 0, 0.25, 0, BUS_W - 0.9, BASE - 0.25, BUS_L - 0.6, DARK);
   // --- lower deck: coral body, cream band, the window strip with cream pillars
@@ -62,7 +64,10 @@ export function tourBusGeometry(): THREE.BufferGeometry {
   box(b, 0, BELT + 0.1, HL + 0.01, BUS_W - 0.3, 0.8, 0.03, GLASS, WINDOW);
   box(b, 0, BELT + 0.95, HL + 0.015, 1.3, 0.16, 0.03, '#fff3d6', LAMP);
   box(b, 0, BASE + 0.1, HL + 0.02, 1.0, 0.3, 0.04, DARK);
-  for (const s of [-1, 1]) box(b, s * 0.85, BASE + 0.22, HL + 0.03, 0.3, 0.16, 0.04, '#fff1c8', LAMP);
+  // (W8-X2) the windscreen's cream pillars (middle + corners), two chrome bars on the grille, round head lamps
+  for (const x of [0, -(HW - 0.17), HW - 0.17]) box(b, x, BELT + 0.08, HL + 0.025, 0.08, 0.84, 0.03, CREAM);
+  for (let k = 0; k < 2; k++) box(b, 0, BASE + 0.18 + k * 0.11, HL + 0.045, 0.88, 0.025, 0.01, RIM);
+  for (const s of [-1, 1]) b.add(CYL(10), M(s * 0.82, BASE + 0.28, HL + 0.02, 0, 0.15, 0.04, 0.15, Math.PI / 2), '#fff1c8', LAMP);
   box(b, 0, BASE - 0.14, HL + 0.04, BUS_W - 0.1, 0.2, 0.1, CREAM_DARK);
   // --- rear: window, tail lamps, bumper
   box(b, 0, BELT + 0.25, -HL - 0.01, BUS_W - 0.5, 0.62, 0.03, GLASS, WINDOW);
