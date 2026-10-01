@@ -97,3 +97,18 @@ test('W8-Q6: on a coarse pointer the map\'s tools and compass are 44 px circles 
   assert.match(read('opus-bay.css'), /\.ob-waypoint-dismiss \{[^}]*width: 24px; height: 24px;/);
   assert.match(guide.slice(guide.indexOf('W8-Q6')), /@media \(pointer: coarse\) \{\n {2}\.ob-overlay \.ob-waypoint-dismiss::before \{ content: ''; position: absolute; inset: -10px; border-radius: 50%; \}/);
 });
+
+test('W8-Q8: the goals step in short landscape (≤ 460 px tall, ≥ 560 px wide) is two columns: the list scrolls above the buttons, the note goes', () => {
+  const css = read('ui/goals-step.css');
+  const at = css.indexOf('W8-Q8');
+  assert.ok(at > 0, 'the W8-Q8 block');
+  const block = /@media \(max-height: 460px\) and \(min-width: 560px\) \{([\s\S]*?)\n\}/.exec(css.slice(at))![1];
+  assert.match(block, /\.ob-gstep \{[^}]*display: grid; grid-template-columns: minmax\(0, 1fr\) minmax\(0, 1fr\); grid-template-rows: auto minmax\(0, 1fr\) auto;/);
+  assert.match(block, /\.ob-gstep > \.ob-gstep-list \{ grid-column: 2; grid-row: 1 \/ 3;[^}]*min-height: 0; overflow-y: auto;/);
+  assert.match(block, /\.ob-gstep-actions \{ grid-column: 2; grid-row: 3;/);
+  assert.match(block, /\.ob-gstep-hero \{ grid-column: 1; grid-row: 2 \/ 4;/);
+  assert.match(block, /\.ob-gstep-note \{ display: none; \}/);
+  // it comes after the W7-I max-height rule (same specificity for the list: later wins) and keeps its card height cap
+  assert.ok(css.indexOf('@media (max-height: 700px)') < at);
+  assert.match(css, /@media \(max-height: 700px\) \{\n {2}\.ob-gstep \{ max-height: calc\(100vh - 32px/);
+});
