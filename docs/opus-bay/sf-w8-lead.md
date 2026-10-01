@@ -126,3 +126,24 @@ SendMessage anyone.
 - P's district vehicles (W6 Request 3) stay as they are.
 - Go-live: on W8-Z's GO, merge `origin/main` once more if GPT pushed, re-check the site sync (§7.2 of wave 7), `npm run
   check`, fast-forward `main`. The owner confirms the deploy (the lead's curl of the live site is refused).
+
+## 7. Addendum 19:30 PDT — run as an Ultra workflow
+
+The owner, 2026-09-30 ≈ 19:25 PDT: "用ULTRA来运行哦". The ten lanes had run 19:00–19:20 as background agents (W8-K1 /
+W8-K2 pushed; the others had committed or uncommitted work in their worktrees, lane X had submitted ≈ 120 TTS takes); they
+were stopped and the wave was relaunched as one workflow run **`wf_66c65596-f6a`** (script
+`opus-bay-wave8-ultra-wf_66c65596-f6a.js` under the lead session's `workflows/scripts/`). Each lane agent resumes its
+predecessor's worktree (keep what is good, finish it, push).
+
+- **Shape:** lanes (§3) → per lane, as soon as it ends, two read-only adversarial lenses in parallel — **code & facts**
+  (`wt/w8-<id>-rc`: every diff, leaks, per-frame allocations, save, district, ownership, tests, calls / tris, facts
+  re-checked on the web, words) and **player** (`wt/w8-<id>-rp`, port lane + 20: desktop + 390 × 844, try to break it) —
+  → one **fixer** (`wt/w8-<id>-rev`, port lane + 40) that reproduces every finding (default: refuted), fixes the confirmed
+  ones and appends "## Review (Ultra)" → **W8-I**: three read-only lenses (phone playtest 5861, desktop playtest 5862,
+  words + site-sync scan 5863) → the W8-I fixer (`wt/w8-int`, 5864, `sf-w8-integration.md`) → a **completeness critic**
+  (read-only; P0 status, unverified claims, go-live risks) → a bounded **fix pass** (`W8-C`, ≤ 45 min) → **W8-Z** alone
+  (PERF-LOCK, 5870, `sf-w8-final-verify.md`, GO / NO-GO).
+- **Times (replace §2):** lanes stop new work 23:45, last push 00:00; new fixed lines by 22:45 (X records at ≈ 23:00 and
+  ≈ 23:40); lens reports ≈ 45 min after their lane; fixers' last push 01:40; W8-I fixer 03:05; the fix pass 03:50; W8-Z
+  ≈ 90 min after; the lead's go-live after W8-Z's GO.
+- Higgsfield caps unchanged (§6); `balance` 361.52 at 19:22 PDT (lane X's first takes).
