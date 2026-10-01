@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -89,7 +90,8 @@ function street(c: CanvasRenderingContext2D, g: BuskGame) {
 function track(c: CanvasRenderingContext2D, g: BuskGame, now: number) {
   const s = g.song, beatPh = (g.t / s.beat) % 1;
   c.fillStyle = 'rgba(255,250,241,.88)';
-  c.beginPath(); c.roundRect(RING_X - 7, TRACK_Y - 6, TRACK_END - RING_X + 10, 12, 6); c.fill();
+  // (W8-M-review) roundRect is Safari 16+ / Chrome 99+: on iOS 15 it threw here and the drawing loop died on its first frame
+  c.beginPath(); if (typeof c.roundRect === 'function') c.roundRect(RING_X - 7, TRACK_Y - 6, TRACK_END - RING_X + 10, 12, 6); else c.rect(RING_X - 7, TRACK_Y - 6, TRACK_END - RING_X + 10, 12); c.fill();
   c.strokeStyle = 'rgba(59,54,49,.25)'; c.lineWidth = 0.3; c.beginPath(); c.moveTo(RING_X, TRACK_Y); c.lineTo(TRACK_END, TRACK_Y); c.stroke();
   // the beats' ticks
   const first = Math.ceil(g.t / s.beat);
@@ -144,6 +146,8 @@ export default function BuskPanel() {
   const device = useDevice();
   useSyncExternalStore(subscribeBusk, buskSeq, buskSeq);
   const g = buskGame();
+  // (W8-M-review) Settings pauses the game: the panel steps out of the sheet's way
+  const paused = useGame(s => s.paused);
   const busker = buskWithBusker() ?? true;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clockRef = useRef<HTMLElement>(null);
@@ -178,7 +182,7 @@ export default function BuskPanel() {
   const key = device !== 'touch' ? <Keycap>{t('空格', 'Space')}</Keycap> : null;
   const tap = (e: { preventDefault(): void }) => { e.preventDefault(); buskTap(); };
   return (
-    <div className="ob-sfg-panel is-busk" role="dialog" aria-label={t(BUSK_NAME)}>
+    <div className={`ob-sfg-panel is-busk${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(BUSK_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(BUSK_NAME)}</strong>
         <span className="ob-sfg-run" ref={runRef} aria-hidden="true" />

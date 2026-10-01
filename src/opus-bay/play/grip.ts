@@ -1,6 +1,6 @@
 import { playSound } from '../audio/hooks';
 import { game } from '../core/store';
-import { activeCableSystem, cableLine, pointAt, type CableLine } from '../data/transit';
+import { activeCableSystem, cableLine, pointAt, type CableLine, type TrackPoint } from '../data/transit';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { registerFrameSystem } from '../game/systemsRegistry';
@@ -176,6 +176,9 @@ export class GripGame {
   private bellSaid = false;
   private spamSaid = false;
   private hydeSaid = false;
+  /** (W8-M-review) the frame's scratch point and Hyde St's Chestnut–Bay stretch, found once (were made every frame) */
+  private readonly pt: TrackPoint = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
+  private readonly hyde: readonly [number, number] | null;
   constructor(line: GripGame['line'], start: CarView, to: number) {
     this.line = line;
     this.dir = start.dir;
@@ -185,6 +188,9 @@ export class GripGame {
     const m = gripMarks(line, start.dir, start.s, to);
     this.zones = m.zones; this.bells = m.bells; this.stops = m.stops; this.inZone = m.inZone;
     this.wasDwell = start.mode === 'dwell';
+    const a = line.id === 'powell-hyde' ? line.stops.find(st => st.station === 'hyde-chestnut')?.at : undefined;
+    const b = line.id === 'powell-hyde' ? line.stops.find(st => st.station === 'hyde-bay')?.at : undefined;
+    this.hyde = a !== undefined && b !== undefined ? [Math.min(a, b), Math.max(a, b)] : null;
   }
   get timeLeft() { return Math.max(0, GRIP_SECONDS - this.t); }
   /** the held share of the running time (1 before any) */
@@ -312,7 +318,7 @@ export class GripGame {
       this.need += dt;
       if (grip) { this.held += dt; this.slipT = 0; }
       else {
-        const p = pointAt(this.line, car.s);
+        const p = pointAt(this.line, car.s, this.pt);
         if (p.grade * dir > 0.05) {
           this.slipT += dt;
           if (this.slipT > 0.8 && this.t - this.slipSaid > 8) { this.slipSaid = this.t; out.push('slip'); }
@@ -320,10 +326,8 @@ export class GripGame {
       }
     }
     // Hyde St from Chestnut to Bay: the steepest grade on the system (once)
-    if (!this.hydeSaid && this.line.id === 'powell-hyde' && moving) {
-      const a = this.line.stops.find(st => st.station === 'hyde-chestnut')?.at, b = this.line.stops.find(st => st.station === 'hyde-bay')?.at;
-      if (a !== undefined && b !== undefined && car.s > Math.min(a, b) && car.s < Math.max(a, b)) { this.hydeSaid = true; out.push('hyde'); }
-    }
+    const hy = this.hyde;
+    if (!this.hydeSaid && hy && moving && car.s > hy[0] && car.s < hy[1]) { this.hydeSaid = true; out.push('hyde'); }
     this.wasDwell = dwell;
     if (this.t >= GRIP_SECONDS) { this.done = true; out.push('done'); }
     return out;

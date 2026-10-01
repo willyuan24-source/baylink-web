@@ -1,6 +1,7 @@
 import { BellRing, X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
 import { pointAt } from '../data/transit';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -25,18 +26,29 @@ const BEHIND = 9;
 const CAR_X = 16;
 const W = 100, H = 36;
 
+// (W8-M-review) the frame's scratch: one track point, the line and the car's height, the sky's gradient per context (a new
+// point, two closures and a gradient were made every animation frame)
+const P = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
+let line: GripGame['line'] | null = null;
+let y0 = 0;
+let skyCtx: CanvasRenderingContext2D | null = null;
+let skyGrad: CanvasGradient | null = null;
+const xOf = (ds: number) => CAR_X + (ds / AHEAD) * (W - CAR_X - 3);
+const yOf = (s: number) => {
+  const dy = pointAt(line!, s, P).y - y0;
+  return Math.max(7, Math.min(H - 6, 22 - dy * 1.25));
+};
+
 function draw(c: CanvasRenderingContext2D, g: GripGame, now: number) {
-  const p = { x: 0, y: 0, z: 0, heading: 0, grade: 0 };
-  const y0 = pointAt(g.line, g.s, p).y;
-  const xOf = (ds: number) => CAR_X + (ds / AHEAD) * (W - CAR_X - 3);
-  const yOf = (s: number) => {
-    const dy = pointAt(g.line, s, p).y - y0;
-    return Math.max(7, Math.min(H - 6, 22 - dy * 1.25));
-  };
+  line = g.line;
+  y0 = pointAt(g.line, g.s, P).y;
   // the sky (fog-grey) and the street under the track
-  const sky = c.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#cfe3ea'); sky.addColorStop(1, '#f4ead8');
-  c.fillStyle = sky; c.fillRect(0, 0, W, H);
+  if (skyCtx !== c || !skyGrad) {
+    skyCtx = c;
+    skyGrad = c.createLinearGradient(0, 0, 0, H);
+    skyGrad.addColorStop(0, '#cfe3ea'); skyGrad.addColorStop(1, '#f4ead8');
+  }
+  c.fillStyle = skyGrad; c.fillRect(0, 0, W, H);
   const step = 1.5;
   c.beginPath();
   c.moveTo(0, H);
@@ -129,6 +141,8 @@ export default function GripPanel() {
   const device = useDevice();
   useSyncExternalStore(subscribeGrip, gripSeq, gripSeq);
   const g = gripGame();
+  // (W8-M-review) Settings pauses the game: the panel steps out of the sheet's way (it lay over its rows, its buttons live)
+  const paused = useGame(s => s.paused);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clockRef = useRef<HTMLElement>(null);
   const scoreRef = useRef<HTMLElement>(null);
@@ -163,7 +177,7 @@ export default function GripPanel() {
     : want === 'wait' ? t('停站中……发车时再拉闸', 'At the stop… grip again as we leave')
     : t('按住「拉闸」，抓紧缆绳上坡！', 'Hold “Grip” to take the cable up the hill!');
   return (
-    <div className="ob-sfg-panel is-grip" role="dialog" aria-label={t(GRIP_NAME)}>
+    <div className={`ob-sfg-panel is-grip${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(GRIP_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(GRIP_NAME)}</strong>
         <span className="ob-sfg-score" ref={scoreRef}>{g.score}</span>

@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -134,6 +135,8 @@ export default function FogPanel() {
   const device = useDevice();
   useSyncExternalStore(subscribeFog, fogSeq, fogSeq);
   const g = fogGame();
+  // (W8-M-review) Settings pauses the game: the panel steps out of the sheet's way
+  const paused = useGame(s => s.paused);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scoreRef = useRef<HTMLElement>(null);
 
@@ -167,7 +170,7 @@ export default function FogPanel() {
     onPointerUp: () => fogRelease(h), onPointerCancel: () => fogRelease(h), onLostPointerCapture: () => fogRelease(h),
   });
   return (
-    <div className="ob-sfg-panel is-fog" role="dialog" aria-label={t(FOG_NAME)}>
+    <div className={`ob-sfg-panel is-fog${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(FOG_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(FOG_NAME)}</strong>
         <span className="ob-sfg-run">{n} / {g.tunes.length}</span>

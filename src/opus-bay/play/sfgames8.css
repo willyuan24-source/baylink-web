@@ -19,7 +19,27 @@
 @media (max-height: 560px) {
   .ob-sfg-panel.is-grip { gap: 4px; padding: 6px 10px 8px; }
   .ob-sfg-panel.is-grip .ob-sfg-foot { display: none; }
+  /* (W8-M-review) a short phone (375 × 553): a lower track picture, so BAYBAY's coaching bubble clears the panel */
+  .ob-sfg-canvas.is-grip { max-height: 16vh; width: auto; align-self: center; }
+  .ob-sfg-panel.is-grip .ob-sfg-btn.is-grip, .ob-sfg-panel.is-grip .ob-sfg-btn.is-bell { min-height: 56px; }
 }
+/* (W8-M-review) a phone on its side (844 × 340, 667 × 320): the track picture beside the hint and the two buttons, so the
+   panel stays under the ride banner (one column it reached the screen's top and the banner hid the whole picture) */
+@media (max-height: 560px) and (min-width: 600px) {
+  .ob-sfg-panel.is-grip {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'canvas head' 'canvas clock' 'canvas hint' 'canvas controls';
+    align-items: center; column-gap: 10px; width: min(640px, calc(100vw - 20px));
+  }
+  .ob-sfg-panel.is-grip > .ob-sfg-head { grid-area: head; }
+  .ob-sfg-panel.is-grip > .ob-sfg-clock { grid-area: clock; }
+  .ob-sfg-panel.is-grip > .ob-sfg-canvas { grid-area: canvas; max-height: none; width: 100%; }
+  .ob-sfg-panel.is-grip > .ob-sfg-hint { grid-area: hint; font-size: 13px; }
+  .ob-sfg-panel.is-grip > .ob-sfg-controls { grid-area: controls; }
+}
+/* (W8-M-review) the set's panels: opaque (the HUD row's labels showed through the legend on phones), and out of the way
+   while Settings pauses their game (the sheet opened under them, their buttons live over its rows) */
+.ob-sfg-panel:is(.is-grip, .is-busk, .is-fog) { background: #fffaf1; }
+.ob-sfg-panel.is-paused { visibility: hidden; }
 
 /* the busker jam: at the bottom on phones (the thumb's button), at the right on a wide screen (sfgames.css) */
 .ob-sfg-canvas.is-busk { aspect-ratio: 100 / 58; background: #d9ecf0; cursor: pointer; }
@@ -50,4 +70,9 @@
 @media (max-height: 560px) {
   .ob-sfg-panel.is-fog { gap: 4px; padding: 6px 10px 8px; }
   .ob-sfg-canvas.is-fog { max-height: 34vh; width: auto; align-self: center; }
+}
+/* (W8-M-review) a wide screen with a side sheet open (the journal, the map: the game runs on under them): the panel steps
+   left of the sheet and of the HUD's buttons, as the HUD does (opus-bay.css .has-sheet) — it lay over the sheet's rows */
+@media (min-width: 1000px) {
+  .ob-overlay.has-sheet .ob-sfg-panel:is(.is-grip, .is-busk, .is-fog) { right: calc(var(--ob-sheet-w, 452px) + 88px); }
 }
