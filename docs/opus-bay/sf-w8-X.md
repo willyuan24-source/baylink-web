@@ -80,6 +80,15 @@ line after it was recorded); the voice test now reports such a line as a diagnos
 We’re off: grip! (rate gate) and Nice driving! Let’s do another run! (clipped samples). 跟我来！我带你过去～ passes now.
 Credits **2.08** (ledger).
 
+### Batch 4 (W8-X6, 22:20–23:00 PDT)
+
+Lane A's seven Alcatraz lines (`world/sf/alcatrazLines.ts ALCA_LINES`: read soft, gentle and respectful — a former federal
+prison, the 1969–71 occupation by Indians of All Tribes), lane W1's three sight lines (`W8_W1_LINES`), lane W2's Blue
+Heron Lake lines, lane M's reworded busker / foghorn lines, + redo takes of batch 3's muted clips: 46 takes. `--prune`
+dropped the two lines lane M reworded after batch 3. The table: **129 lines / 258 clips, 256 pass, 247 heard right**;
+muted: 当——当——当！ (the bell, every take under the rate gate: the owner's ear) and the Alcatraz stair line in zh (clipped
+samples). Credits **0.99** (ledger).
+
 ## Part b · looks: the vehicles up close, one burst per reward, the floodlit Golden Gate (2026-09-30 19:50–21:20 PDT)
 
 ### What was built (W8-X2)

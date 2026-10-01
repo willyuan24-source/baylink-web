@@ -451,3 +451,92 @@ total: 4.34.**
 | 350 | `zh-w5-a-4d43f1a8` | 1 | `ccaf18b0-a06f-476b-9e08-73fa52a7c5b5` | 04:48:22 | raw/350.wav | completed |
 | 391 | `en-w5-w2-9844f094` | 1 | `3b9ae801-ba65-4e28-a70a-a843ad0c386e` | 04:48:22 | raw/391.wav | completed |
 | 399 | `en-realsf-parade-day` | 1 | `45553b11-b830-4118-9335-6c0ac97a15be` | 04:48:23 | raw/399.wav | completed |
+
+## Batch 4 · lanes A, W1, W2 and M's lines on origin at 22:15 PDT (W8-X6), 2026-10-01 05:24–05:33 UTC
+
+Balance before: **358.43**. 18 new lines × zh / en — lane A's `ALCA_LINES` (7: boarding, ashore, the stair, the cellhouse,
+the 1969–71 occupation, the way back, back at Pier 33 — all read "soft, gentle and respectful"), lane W1's
+`W8_W1_LINES` (3 sight lines: the pagodas, Old St. Mary's bells, the O'Brien at Normandy; their own ids), lane W2's
+Blue Heron Lake lines (3, `westLines.ts`), lane M's reworded busker / foghorn lines (5, the play/ scan) — + 10 redo takes
+of batch 3's 5 muted clips = **46 takes** (indices 500–545). 25 jobs failed (refunded) and one submission was answered 429;
+the new lines' takes were resubmitted until all were in (the four redo takes whose sibling take came in were not).
+`post.py --prune` dropped the two lines lane M reworded after batch 3 (`w5-a-3e5b9d08` 街头艺人下午才来哦…, `w5-a-4aa60f8a`
+南塔的雾笛就在头顶！…: rows and files).
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W8X-VO8 | 36 clips (18 lines × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | verbatim | 0.01–0.05 a take | table below | `public/opus-bay/w8/voice/` | 36 used; 35 pass, **1 muted** (`zh-w5-al-cd19434a` 监狱楼在坡顶上…: clipped samples) |
+| W8X-VO9 | 6 redo takes that came in | same, 1.15 / 1.3 | verbatim | 0.01 a take | below | clips replaced | 松得正好！滑过去～, 松闸、刹车，停得稳稳的！, We’re off: grip!, Nice driving! now pass and play; 当——当——当！ still muted |
+
+**Credits:** balance 358.43 → **357.38** = 1.05, of which **0.99** this batch (05:24:53–05:33:27 UTC); two TTS spends of
+0.03 at 05:44:46 / 05:44:48 UTC are not this lane's (nothing submitted then). **Wave-8 lane X running total: 5.33.**
+
+| take | clip | rate | job id | created (UTC) | output | status |
+|---|---|---|---|---|---|---|
+| 500 | `zh-w5-a-17acef05` | 1 | `9d43aebd-79aa-4e57-8dc1-d318ce7579c4` | — | — | failed (refunded), resubmitted |
+| 501 | `en-w5-a-17acef05` | 1 | `5c6848a5-1e2a-4f13-abbb-8d379f01397e` | — | — | failed (refunded), resubmitted |
+| 502 | `zh-w5-a-a7d44dbd` | 1 | `bbc072b6-6d97-41e3-a43f-86fc2b1979d0` | 05:24:53 | raw/502.wav | completed |
+| 503 | `en-w5-a-a7d44dbd` | 1 | `666dbc4f-efb9-45f0-bc9e-1c644fd312a5` | — | — | failed (refunded), resubmitted |
+| 504 | `zh-w5-a-13cc9833` | 1 | `2e0c47d8-385a-4477-ae65-c86bf88f0682` | 05:24:53 | raw/504.wav | completed |
+| 505 | `en-w5-a-13cc9833` | 1 | `75f35042-9388-4ed9-8969-24ebdad63866` | 05:24:53 | raw/505.wav | completed |
+| 506 | `zh-w5-a-2934c9a3` | 1 | `d762019a-5ca5-49d3-9994-3cd84182064e` | — | — | failed (refunded), resubmitted |
+| 507 | `en-w5-a-2934c9a3` | 1 | `52a3f454-2df8-415f-80ef-8f6965879dd0` | 05:24:53 | raw/507.wav | completed |
+| 508 | `zh-w5-a-41359d1c` | 1 | `07e83061-2e6a-43e6-9c23-2dc62666185f` | 05:24:53 | raw/508.wav | completed |
+| 509 | `en-w5-a-41359d1c` | 1 | `65f2ad5a-4e6f-4d2d-ae15-eef5e1c20a9b` | — | — | failed (refunded), resubmitted |
+| 510 | `zh-w5-w2-8d4ca008` | 1 | `751df012-e0c8-4e3f-904d-5bb55b5354b4` | — | — | failed (refunded), resubmitted |
+| 511 | `en-w5-w2-8d4ca008` | 1 | `fe726939-dc07-4255-aeb7-fb453caf7562` | — | — | failed (refunded), resubmitted |
+| 512 | `zh-w5-w2-559a3fc8` | 1 | `08df8872-1473-490a-8946-d0e014c1312d` | 05:25:53 | raw/512.wav | completed |
+| 513 | `en-w5-w2-559a3fc8` | 1 | `f808ad3c-26ed-4fcb-9c02-ef9639315158` | 05:25:53 | raw/513.wav | completed |
+| 514 | `zh-w5-w2-3f60dca9` | 1 | `9d58efec-d492-45fd-b626-f6035ef7615e` | 05:25:53 | raw/514.wav | completed |
+| 515 | `en-w5-w2-3f60dca9` | 1 | `249a1131-7e51-46d9-939c-9eaa725b623f` | 05:25:53 | raw/515.wav | completed |
+| 517 | `en-w5-al-9a4f2404` | 1 | `b8ca7c4d-31bc-46c6-8024-5fcd4ca8586b` | — | — | failed (refunded), resubmitted |
+| 518 | `zh-w5-al-ae4cef3d` | 1 | `ee2bae3e-d0aa-4fbc-981a-f049e63b5a42` | — | — | failed (refunded), resubmitted |
+| 519 | `en-w5-al-ae4cef3d` | 1 | `379e11be-b54f-443b-88af-58ed60722321` | — | — | failed (refunded), resubmitted |
+| 520 | `zh-w5-al-5b488218` | 1 | `c563892c-7dea-4229-9213-885bac573204` | — | — | failed (refunded), resubmitted |
+| 521 | `en-w5-al-5b488218` | 1 | `e7f6f092-08f1-46e2-8af0-677c017fdd87` | 05:25:53 | raw/521.wav | completed |
+| 522 | `zh-w5-al-cd19434a` | 1 | `c3e4e5b0-1164-4877-8239-95d892abb5cc` | — | — | failed (refunded), resubmitted |
+| 523 | `en-w5-al-cd19434a` | 1 | `ba6b5cf6-ec39-4866-9485-f5d6b6638914` | — | — | failed (refunded), resubmitted |
+| 516 | `zh-w5-al-9a4f2404` | 1 | `21852c12-22f6-42b3-b0bd-52af97268116` | — | — | failed (refunded), resubmitted |
+| 524 | `zh-w5-al-d5b49c34` | 1 | `39044179-a50c-46ee-8dbf-d9d402f61750` | — | — | failed (refunded), resubmitted |
+| 525 | `en-w5-al-d5b49c34` | 1 | `b590a4e4-19f6-4373-b167-9d19d896cf22` | 05:26:52 | raw/525.wav | completed |
+| 526 | `zh-w5-al-3748ec64` | 1 | `1d6ccfff-4c42-4b48-ab28-f3fbd8bc87d4` | 05:26:52 | raw/526.wav | completed |
+| 527 | `en-w5-al-3748ec64` | 1 | `9a47cf06-de33-43f1-a97d-fcf7681789fd` | 05:26:52 | raw/527.wav | completed |
+| 528 | `zh-w5-al-1d5f1d1f` | 1 | `e8598429-0bb3-4879-93ee-d457a7a50539` | 05:26:53 | raw/528.wav | completed |
+| 529 | `en-w5-al-1d5f1d1f` | 1 | `c72b0a4b-4d7d-430d-a850-f4398570468d` | — | — | failed (refunded), resubmitted |
+| 530 | `zh-w8w1-pagodas-ahead` | 1 | `27cf2971-cc5e-425d-9177-d1dd4c7dfd19` | 05:26:53 | raw/530.wav | completed |
+| 531 | `en-w8w1-pagodas-ahead` | 1 | `68e5df35-40c4-430b-ba99-834298f53ed0` | 05:26:52 | raw/531.wav | completed |
+| 532 | `zh-w8w1-st-marys-bells` | 1 | `b778a105-6c76-4c9f-873f-8d19a3b62462` | 05:26:52 | raw/532.wav | completed |
+| 533 | `en-w8w1-st-marys-bells` | 1 | `2b12582b-a8d7-4813-8275-73a0d4517f65` | — | — | failed (refunded), resubmitted |
+| 534 | `zh-w8w1-obrien-normandy` | 1 | `78e1cf17-6223-4f85-85c1-a24a84a5f037` | 05:26:52 | raw/534.wav | completed |
+| 535 | `en-w8w1-obrien-normandy` | 1 | `d9cf375d-e0ec-454d-bf98-fbee7f21a9ee` | 05:27:52 | raw/535.wav | completed |
+| 536 | `zh-w5-k-83579ca0` | 1.15 | `6335679a-91b0-4798-9d53-3d8b0a1e9249` | 05:27:52 | raw/536.wav | completed |
+| 537 | `zh-w5-k-83579ca0` | 1.3 | `3af1a3d0-cc53-4ad7-ad2c-2f510896bfe8` | — | — | failed (refunded) |
+| 538 | `zh-w5-a-96c9bbc3` | 1.15 | `832ae634-4e96-4f43-857c-527b7a14b4af` | — | — | failed (refunded) |
+| 539 | `zh-w5-a-96c9bbc3` | 1.3 | `d7c0fad8-2e84-490f-b8e2-d44a2e6e1c94` | 05:27:52 | raw/539.wav | completed |
+| 540 | `zh-w5-a-61c180e4` | 1.15 | `c63eb900-6ba2-4ea6-b897-a1863b3a8abe` | 05:27:52 | raw/540.wav | completed |
+| 541 | `zh-w5-a-61c180e4` | 1.3 | `4d3539bd-53cb-41ab-a274-0a189108bdae` | — | — | failed (refunded) |
+| 542 | `en-w5-a-db91854d` | 1.15 | `b135b661-2264-4f4b-b68a-104473ded513` | — | — | failed (refunded) |
+| 543 | `en-w5-a-db91854d` | 1.3 | `c94c6997-112f-46c3-96c0-6c210a10bdb9` | 05:27:52 | raw/543.wav | completed |
+| 544 | `en-w5-a-f1002ae5` | 1.15 | `6b285b7b-8514-42dd-95bf-989561801b0c` | 05:27:52 | raw/544.wav | completed |
+| 545 | `en-w5-a-f1002ae5` | 1.3 | `4e2adff4-53da-4c4f-b15f-622109016b3f` | 05:27:52 | raw/545.wav | completed |
+| 500 | `zh-w5-a-17acef05` | 1 | `36d42931-fa4b-48a4-9077-c43dc1173b90` | 05:31:03 | raw/500.wav | completed |
+| 501 | `en-w5-a-17acef05` | 1 | `f925e026-7fc1-4580-bd4c-aaf0c81d17e5` | 05:31:03 | raw/501.wav | completed |
+| 503 | `en-w5-a-a7d44dbd` | 1 | `33c37d38-22ce-4c35-9573-7193891facd8` | 05:31:04 | raw/503.wav | completed |
+| 506 | `zh-w5-a-2934c9a3` | 1 | `72030df4-c3fd-436f-b433-5b49ae9ff782` | 05:31:04 | raw/506.wav | completed |
+| 509 | `en-w5-a-41359d1c` | 1 | `a90f8f9d-746d-4549-b747-eeded72e1bd6` | — | — | failed (refunded), resubmitted |
+| 510 | `zh-w5-w2-8d4ca008` | 1 | `995772bf-ec9d-49bc-bd29-9028fe27e9f6` | — | — | failed (refunded), resubmitted |
+| 511 | `en-w5-w2-8d4ca008` | 1 | `2da4b3bc-8b0c-45af-85a6-578ea922cd89` | — | — | failed (refunded), resubmitted |
+| 517 | `en-w5-al-9a4f2404` | 1 | `a2844871-b26e-4423-8684-f2f054e65777` | 05:31:04 | raw/517.wav | completed |
+| 518 | `zh-w5-al-ae4cef3d` | 1 | `f59a1191-705b-4c49-ab45-31eb2a0c33b7` | — | — | failed (refunded), resubmitted |
+| 519 | `en-w5-al-ae4cef3d` | 1 | `b4d2e086-5c3a-420e-bc40-5e8991898c22` | 05:31:04 | raw/519.wav | completed |
+| 520 | `zh-w5-al-5b488218` | 1 | `a6db1f02-62b2-4405-af34-f711d2d9a62b` | 05:31:04 | raw/520.wav | completed |
+| 522 | `zh-w5-al-cd19434a` | 1 | `3bec8bff-eb82-4e02-a87f-dc85e2cea8f9` | 05:31:04 | raw/522.wav | completed |
+| 523 | `en-w5-al-cd19434a` | 1 | `84472e8b-ef55-41b0-aa61-7f1c89149c63` | 05:31:48 | raw/523.wav | completed |
+| 516 | `zh-w5-al-9a4f2404` | 1 | `625df66e-c341-48d2-874e-a6527241efc6` | 05:31:48 | raw/516.wav | completed |
+| 524 | `zh-w5-al-d5b49c34` | 1 | `899293dc-8f5a-4375-a974-462154abed45` | 05:31:48 | raw/524.wav | completed |
+| 529 | `en-w5-al-1d5f1d1f` | 1 | `b160801e-cf7c-4479-ac2a-5c4304f02fd7` | 05:31:48 | raw/529.wav | completed |
+| 533 | `en-w8w1-st-marys-bells` | 1 | `1e54ff02-3f07-4389-9635-da3eb0b5e383` | 05:31:48 | raw/533.wav | completed |
+| 509 | `en-w5-a-41359d1c` | 1 | `109da8ad-d19d-4b69-bc50-9c07803594dd` | 05:33:27 | raw/509.wav | completed |
+| 510 | `zh-w5-w2-8d4ca008` | 1 | `5fb6b8b4-1575-4eb5-b554-0ae9f121fa2d` | 05:33:27 | raw/510.wav | completed |
+| 511 | `en-w5-w2-8d4ca008` | 1 | `e171d378-748d-4d9a-a221-d8387cec777c` | 05:33:27 | raw/511.wav | completed |
+| 518 | `zh-w5-al-ae4cef3d` | 1 | `050a726a-03f1-4db9-8880-0cbc0499322f` | 05:33:27 | raw/518.wav | completed |

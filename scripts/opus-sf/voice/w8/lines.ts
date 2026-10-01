@@ -62,6 +62,10 @@ export const W8_SOURCES: readonly W8Source[] = [
   { lane: 'h', file: 'halloween/worldLines.ts', only: ['W8_WORLD_LINES'], ids: true },
   { lane: 'w2', file: 'world/sf/westLines.ts' },
   { lane: 's', file: 'world/sf/fleetWeek.ts', only: ['PARADE_DAY_LINE', 'PARADE_NOW_LINE', 'PARADE_NEAR_LINE', 'PARADE_PHOTO_LINE'], own: k => `realsf-${k.replace(/_LINE$/, '').toLowerCase().replace(/_/g, '-')}` },
+  // batch 4 (origin at 22:15 PDT): lane A's Alcatraz lines (W8-A2: a former federal prison, the 1969–71 occupation — read
+  // soft and respectful), lane W1's three sight lines (W8-W12: their own ids); lane M's final foghorn lines via the scan
+  { lane: 'al', file: 'world/sf/alcatrazLines.ts', only: ['ALCA_LINES'], mood: 'gentle' },
+  { lane: 'w1', file: 'world/sf/cornersSights.ts', only: ['W8_W1_LINES'], ids: true },
 ];
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
