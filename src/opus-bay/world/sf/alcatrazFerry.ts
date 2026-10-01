@@ -14,8 +14,8 @@ import { currentRide } from '../../game/ride';
 import { BOX, Batch, CYL, M } from '../builder';
 import { FERRY_PLATFORM } from '../ferry';
 import { spawnFx } from '../fx';
-import { ferryGeometry } from '../life';
-import { TOY, TOY_DYN } from '../materials';
+import { cityGullGeometry, ferryGeometry } from '../life';
+import { TOY, TOY_DYN, TOY_INST } from '../materials';
 import { type AlcaClock, type AlcaTraffic, AlcaFerrySystem } from './alcatrazFerrySystem';
 import { ALCA_LINES } from './alcatrazLines';
 import { ALCA_ARRIVAL, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
@@ -32,7 +32,9 @@ import { ALCA_ARRIVAL, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
  * - two quay signs (Pier 33's plaza and the island's dock: a navy board with a white toy boat over blue waves, no
  *   lettering) as one static mesh each, only drawn within 160 u of the player;
  * - the boat's events as `transit` game events (the horn on leaving: the rider's own, or from out on the water when near;
- *   depart / arrive / board for the rider), the wake's foam and a little bow spray near the player (the shared fx pool).
+ *   depart / arrive / board for the rider), the wake's foam and a little bow spray near the player (the shared fx pool);
+ * - three gulls gliding along over the stern while the boat makes way near the player (life.ts's city gull figure, one
+ *   TOY_INST InstancedMesh: 1 call, ≈ 700 triangles, only then).
  *
  * The crossing of the waterfront's ferry tracks gives way to the other boats: `traffic` (transitLayer passes the
  * water's wake list — every ferry and sailboat life.ts moves, with its heading; the moving ones are given way to).
@@ -42,6 +44,10 @@ import { ALCA_ARRIVAL, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
  * ferry (a glide in) — how to get back (once a visit). Never while BAYBAY is held (game/baybayHold), a dialogue or a
  * panel is open, or an arrival / cinematic plays: the line waits for the next tick.
  */
+
+/** the gulls over the stern (boat-local: right, up, along — negative = aft — and their circling phase / radius) */
+const GULLS = [{ x: 1.6, y: 4.6, z: -6.5, ph: 0, r: 0.9 }, { x: -2.2, y: 5.4, z: -8.5, ph: 2.1, r: 1.2 }, { x: 0.4, y: 6.3, z: -11, ph: 4.2, r: 1.4 }] as const;
+const GULL_NEAR = 140;
 
 /** the toy ferry's line colour: navy (the Ferry Building boat is teal) */
 const STRIPE = '#27466f';
@@ -93,12 +99,15 @@ export const ALCA_SIGNS = [
 ] as const;
 
 const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(1, 1, 1);
+const _m = new THREE.Matrix4(), _g = new THREE.Vector3(1.4, 1.4, 1.4);
 
 export class AlcaFerryLayer {
   readonly sys: AlcaFerrySystem;
   readonly group = new THREE.Group();
   readonly boat: THREE.Mesh;
   private readonly signs: THREE.Mesh[] = [];
+  /** the gulls following the boat (visible while it makes way near the player) */
+  readonly gulls: THREE.InstancedMesh;
   private wakeIn = 0;
   private readonly traffic: AlcaTraffic[] = [];
   private readonly wakes: AlcaFerryOptions['wakes'];
@@ -124,6 +133,12 @@ export class AlcaFerryLayer {
       this.signs.push(m);
       this.group.add(m);
     }
+    this.gulls = new THREE.InstancedMesh(cityGullGeometry(), TOY_INST, GULLS.length);
+    this.gulls.name = 'alcatraz-ferry-gulls';
+    this.gulls.frustumCulled = false;
+    this.gulls.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.gulls.visible = false;
+    this.group.add(this.gulls);
     definePlatform(ALCA_FERRY_ID, FERRY_PLATFORM);
     setFerrySystemFor(ALCA_FERRY_ID, this.sys);
     this.place();
@@ -164,6 +179,7 @@ export class AlcaFerryLayer {
       this.signs[i].visible = Math.abs(s.x - p.x) < SIGN_NEAR && Math.abs(s.z - p.z) < SIGN_NEAR;
     }
     const d = Math.hypot(b.pose.x - p.x, b.pose.z - p.z), mine = b.rider;
+    this.moveGulls(b.v > 1 && d < GULL_NEAR);
     // foam in the wake and a little spray at the bow while the boat makes way (the shared fx pool, near the player only)
     if (b.v > 1.2 && d < WAKE_NEAR && (this.wakeIn -= dt) <= 0) {
       this.wakeIn = 0.14;
@@ -186,6 +202,22 @@ export class AlcaFerryLayer {
     }
     sys.events.length = 0;
     this.watchIsland(dt);
+  }
+
+  /** The gulls: each on a small circle over its spot aft of the boat, along with it, banking into the circle. */
+  private moveGulls(on: boolean) {
+    const g = this.gulls;
+    g.visible = on;
+    if (!on) return;
+    const pose = this.sys.boat.pose, t = this.sys.time, c = Math.cos(pose.heading), sn = Math.sin(pose.heading);
+    GULLS.forEach((q, i) => {
+      const a = t * 0.8 + q.ph, lx = q.x + Math.cos(a) * q.r, lz = q.z + Math.sin(a) * q.r * 0.6;
+      // boat-local (right = (cos h, −sin h), forward = (sin h, cos h)) → world
+      const x = pose.x + lx * c + lz * sn, z = pose.z - lx * sn + lz * c;
+      _e.set(0, pose.heading + Math.sin(a) * 0.25, -Math.cos(a) * 0.35, 'YXZ');
+      g.setMatrixAt(i, _m.compose(_p.set(x, pose.y + q.y + Math.sin(t * 1.3 + q.ph) * 0.25, z), _q.setFromEuler(_e), _g));
+    });
+    g.instanceMatrix.needsUpdate = true;
   }
 
   // --- the island watcher -------------------------------------------------------------------------------------
@@ -232,6 +264,7 @@ export class AlcaFerryLayer {
   dispose() {
     setFerrySystemFor(ALCA_FERRY_ID, null);
     this.boat.geometry.dispose();
+    this.gulls.geometry.dispose();
     this.signs[0]?.geometry.dispose();
   }
 }

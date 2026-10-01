@@ -2,7 +2,7 @@ import type { SurfaceKind, Vec2 } from '../core/types';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { cityTerrain, isLand, surfaceAt } from '../core/terrain';
-import { activeFerrySystem, transitData } from '../data/transit';
+import { activeFerrySystem, rideSystemFor, transitData } from '../data/transit';
 import { cityHooks } from './cityHooks';
 import type { AudioEngine } from './engine';
 import {
@@ -73,6 +73,8 @@ export class CityLayers {
   private readonly timers = { crash: 0, bird: 0, cricket: 0, sheave: 0, park: 0 };
   private park = 0;
   private ferryPrev: { x: number; z: number; t: number } | null = null;
+  /** (wave 8, lane A) the ferry system the engine last followed (a switch to another boat restarts its speed estimate) */
+  private ferrySysPrev: unknown = null;
   private ferrySpeed = 0;
   private cableBoxes: { pts: Float32Array; x0: number; z0: number; x1: number; z1: number }[] | null = null;
   private readonly ring: (SurfaceKind | null)[] = [];
@@ -208,7 +210,10 @@ export class CityLayers {
     }
 
     // --- the ferry's engine: aboard, or near the boat
-    const ferrySys = activeFerrySystem();
+    // (wave 8, lane A, surgical) aboard another ferry line (the Alcatraz boat): its engine, not the Ferry Building boat's
+    const mv = game.get().move, own = mv.mode === 'transit' && mv.line?.startsWith('ferry') && mv.line !== 'ferry' ? rideSystemFor(mv.line) : null;
+    const ferrySys = own ?? activeFerrySystem();
+    if (ferrySys !== this.ferrySysPrev) { this.ferrySysPrev = ferrySys; this.ferryPrev = null; }
     const ferry = ferrySys?.cars[0]?.pose ?? null;
     if (ferry) {
       if (this.ferryPrev && dt > 0) {
@@ -219,7 +224,7 @@ export class CityLayers {
       // aboard once the boat carries you (review: the ride's move mode is 'transit' from the moment you start waiting on
       // the quay, which played the engine centred at full level with the boat 385 u away at the other terminal)
       const move = game.get().move, phase = ferrySys?.rideStatus()?.phase;
-      const aboard = move.mode === 'transit' && move.line === 'ferry' && (phase === 'riding' || phase === 'arrived');
+      const aboard = move.mode === 'transit' && !!move.line?.startsWith('ferry') && (phase === 'riding' || phase === 'arrived');
       const d = Math.hypot(ferry.x - L.x, ferry.z - L.z);
       const engine = aboard ? 1 : proximity(d, 8, 60);
       this.last.engine = +engine.toFixed(2);

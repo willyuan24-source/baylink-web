@@ -10,7 +10,7 @@ times) and finished it. Nothing of it was discarded.
 1. **可以坐船去恶魔岛了**：在 33 号码头（恶魔岛渡轮码头）按 E，水手问去哪儿，坐上海军蓝条纹的小渡轮——倒出船位、掉头、让开海湾里的其他船，约 90 秒到岛上码头；BAYBAY 一起上船，设置打开时船会停住。
 2. **班次照真实时刻表**：早上 8:40 第一班出发、下午 3:50 最后一班去岛上、傍晚 6:30 最后一班回来（感恩节、圣诞、元旦闭岛）；晚上小渡轮在码头休息，水手会提一句夜游团，"以官网为准"，不写票价。人在岛上时，任何时候船都会来接，不会被困。
 3. **岛上能走了**：从码头沿 64 号楼走到台阶，爬上去就是监狱楼正门和灯塔平台；第一次走到正门有到达时刻（提示、镜头、印章 +10 金币、地点卡），BAYBAY 的台词轻松但尊重（联邦监狱 1934–63、1969–71 年"所有部落的印第安人"占领，均出自国家公园管理局官网）。
-4. **性能**：33 号码头、船上、岛上桌面最多 91 次绘制 / 34 万三角形（上限 150 / 40 万），手机（390×844）最多 60 / 19 万；全城静态巡检 699 个点 0 卡住。
+4. 船上有海鸥跟着飞，船的引擎声也有了。**性能**：33 号码头、船上、岛上桌面最多 91 次绘制 / 34 万三角形（上限 150 / 40 万），手机（390×844）最多 60 / 19 万；全城静态巡检 699 个点 0 卡住。
 5. 10 月 9 日舰队周"舰船巡游"那一小时（11:00–12:00），小渡轮让军舰先过，在码头等到中午再开。
 
 ## Part a · W8-A1 the toy ferry and the island on foot (19:25–20:24 PDT, pushed `f80e8a2d`)
@@ -169,6 +169,11 @@ BAYBAY's.
   leaves the slip (a boat already out comes back first, ≈ 11:02, while the ships are still out by the Golden Gate);
   Pier 33's deckhand says 舰船巡游正从海湾里经过，小渡轮等巡游过去再开，大约中午 12 点。; a rider calling from the island
   is fetched at noon (the ETA says so, the island's deckhand says why and that 直接到站 works).
+- **Gulls and the engine** (W8-A4): three gulls glide along over the stern while the boat makes way within 140 u of the
+  player (life.ts's city gull figure, one TOY_INST InstancedMesh: +1 call, ≈ 700 triangles, only then); aboard the
+  Alcatraz boat the ferry engine plays (`audio/city.ts`, lane X's, surgical: the engine follows the ferry line you ride,
+  `move.line` starting with `ferry`; it followed only the Ferry Building boat). Shot: `qa/w8/A/a-ride-midbay.jpg` (the
+  player and BAYBAY at the rail, a gull alongside, the city behind; 90 calls / 342k triangles there, desktop high).
 - **The return ferry** is the same shuttle (tested through game/transit: the island → Pier 33 after the last boat out,
   BAYBAY's boarding line and 回到 33 号码头啦… ashore, the rider set down on Pier 33's quay).
 
@@ -199,7 +204,6 @@ BAYBAY's.
 - The island's own walk is the dock, the dock road, the stair and the cellhouse front / terrace; the rest of the island
   (the parade ground, West Road, the Agave Trail) is the city's walkable fragments, not joined to it (a glide can land
   there; the way-back line and the quay's boat are offered).
-- No gulls following the boat (life.ts's gulls are lane X's; not added).
 - Night: the toy boat rests; the lighthouse beam is unchanged (world/backdrop.ts).
 
 ### Requests
