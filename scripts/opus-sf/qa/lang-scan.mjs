@@ -14,7 +14,9 @@
 // · week (这周去哪 + the board) · event (cards of --events a,b,c) · ask (问 BAYBAY) · journal (every tab and every page of
 // a tab with its own tablist, e.g. the Notebook's; top and end) · shop · album · settings (top + end) · result (a play
 // result card) · postcard (a Halloween postcard) · ride (a cable car card) · metro (an underground Muni Metro ride: the
-// subway overlay) · arrival (Coit Tower) · canvas (every canvas text painted during the run).
+// subway overlay) · busk (lane M's busker jam) · ferry (lane A's Alcatraz boat from Pier 33: add
+// --query '&halloween=1&date=2026-10-02T11:00' for a day crossing) · arrival (Coit Tower) · canvas (every canvas text
+// painted during the run).
 // W8-Q (2026-09-30): English and 繁體 at 390 × 844 (touch) and 1440 × 900 found the 今天 week row's venue, the event
 // card's Where row and the Notebook's "Tap 听一听" (fixed in W8-Q2 / W8-Q3). Node twins of the catalog parts:
 // tests/opus-bay-w8-q-lang.test.ts and tests/opus-bay-w8-q-cards.test.ts. Re-run after new overlays land (W8-I, W8-Z).
@@ -241,6 +243,20 @@ try {
     const on = await waitFor(`document.querySelector('.ob-subway.is-on')`, 90000);
     await sleep(1500);
     await scan(`metro${on ? '' : ' (no subway overlay)'}`);
+    await page(`ob.transit.finish?.(); return 1`); await sleep(2500);
+  }
+  // wave 8's new overlays: the busker jam (lane M) and the Alcatraz boat's ride card from Pier 33 (lane A; by day)
+  if (want('busk')) {
+    // stand on the Haight St busker's spot (lane M's ring; the jam stops at once away from it), 11:00–19:00 Bay time
+    await page(`const m = await imp('play/sfgames8.ts'); (await imp('game/flow.ts')).teleportPlayer(m.buskAt(m.BUSK_HAIGHT)); return 1`); await sleep(5000);
+    const ok = await page(`(await imp('game/flow.ts')).closeDialogue(); return (await imp('play/busk.ts')).startBusk('haight')`);
+    if (ok === true) await waitFor(`document.querySelector('.ob-sfg-panel.is-busk')`, 20000); await sleep(1500); await scan(ok === true ? 'busk' : `busk (not started: ${JSON.stringify(ok)})`);
+    await page(`(await imp('ui/slots.ts')).closeOverlay('play-busk'); return 1`); await sleep(1200);
+  }
+  if (want('ferry')) {
+    await page(`(await imp('game/flow.ts')).teleportPlayer({ x: -94.0, z: -21.8 }); return 1`); await sleep(4000);
+    await page(`(await imp('game/flow.ts')).closeDialogue(); (await imp('game/transit.ts')).rideFerry('pier-33', 'alcatraz-dock'); return 1`);
+    await sleep(3000); await scan('ferry');
     await page(`ob.transit.finish?.(); return 1`); await sleep(2500);
   }
   if (want('arrival')) {
