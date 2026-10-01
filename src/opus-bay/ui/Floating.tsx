@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
 import { Footprints, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -12,6 +12,9 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice } from './hooks';
 import { importRetry } from '../game/importRetry';
+import { openOverlays, subscribeOverlays } from './slots';
+
+const anyOverlay = () => openOverlays().length > 0;
 
 /** Speech bubble projected over BAYBAY / NPCs (position written per frame by the Canvas ticker). */
 export function SpeechBubble() {
@@ -56,7 +59,11 @@ const TIME_ACTION = { morning: { zh: '看此刻的早晨', en: 'See this morning
 export function TimeOffer() {
   const { t, locale } = useT();
   const offer = useFlow(s => s.timeOffer);
-  if (!offer) return null;
+  // (W8-I, W8I-P-4) the 10 s toast steps aside while a sheet / panel is up (in short landscape it lay across the shop's
+  // tabs, which could not be read or tapped)
+  const covered = useSyncExternalStore(subscribeOverlays, anyOverlay, anyOverlay);
+  const panel = useGame(s => !!s.panel.kind);
+  if (!offer || covered || panel) return null;
   const clock = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date());
   const word = TIME_WORDS[offer], act = TIME_ACTION[offer];
   return (

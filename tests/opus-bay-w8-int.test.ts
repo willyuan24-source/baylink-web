@@ -136,3 +136,23 @@ test('W8I-WS-7 the 今天 tab lists days with their own comma apart (it read "Sa
   assert.doesNotMatch(tab, /\.join\(t\('、', ', '\)\)/);
   assert.equal((tab.match(/\.join\(t\('、', DAYS_JOIN_EN\)\)/g) ?? []).length, 2);
 });
+
+test('W8I-D-6 city: an open panel (Settings) keeps BAYBAY\'s small talk quiet, as the pacer does; the district unchanged', () => {
+  const brain = fs.readFileSync(path.join(SRC, 'game/brain.ts'), 'utf8');
+  assert.match(brain.split('\n').find(l => l.includes('const quiet ='))!, /game\.get\(\)\.worldMode === 'city' && game\.get\(\)\.panel\.kind !== null/);
+});
+
+test('W8I-P-6 touch: the Today tab\'s Go and the result card\'s buttons get a 44 px hit area on a coarse pointer (the map chips had one)', () => {
+  const css = (f: string) => fs.readFileSync(path.join(SRC, f), 'utf8').replace(/\s+/g, ' ');
+  assert.match(css('ui/map-w4.css'), /\.mw-chip::before \{ content: ''; position: absolute; inset: -6px -3px; \}/, '32 + 2·6 = 44');
+  assert.match(css('realsf/realsf.css'), /@media \(pointer: coarse\) \{ \.ob-today-go \{ position: relative; \} \.ob-today-go::before \{ content: ""; position: absolute; inset: -6px -2px; \} \}/);
+  assert.match(css('play/play.css'), /@media \(pointer: coarse\) \{ \.ob-play-btn \{ position: relative; \} \.ob-play-btn::before \{ content: ""; position: absolute; inset: -2px 0; \} \}/);
+});
+
+test('W8I-P-4 / P-5 short landscape: the time offer steps aside under a sheet or panel; the Ask-me tag waits while a context action shows', () => {
+  const fl = fs.readFileSync(path.join(SRC, 'ui/Floating.tsx'), 'utf8');
+  assert.match(fl, /if \(!offer \|\| covered \|\| panel\) return null;/);
+  assert.match(fl, /useSyncExternalStore\(subscribeOverlays, anyOverlay, anyOverlay\)/);
+  const css = fs.readFileSync(path.join(SRC, 'opus-bay.css'), 'utf8').replace(/\s+/g, ' ');
+  assert.match(css, /@media \(max-height: 460px\) and \(orientation: landscape\) \{ \.ob-overlay:has\(\.ob-touch-action:not\(\.is-behind-sheet\)\) \.ob-ask-me \{ display: none; \} \}/);
+});

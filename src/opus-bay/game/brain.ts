@@ -333,7 +333,9 @@ function follow(now: number) {
   // (W8-K4, city) her small talk (the light line, the idle lines, the pass-by barks) waits under a play panel, an egg
   // card, the Halloween postcard… like her other lines (game/baybayHold.ts): the claw's own 60 s quiet ran out with the
   // panel still up and 金色时刻！ was said under it (the W8-K1 live proof). The district is unchanged.
-  const quiet = performance.now() < flow.get().quietUntil || settling || baybayHeld();
+  // (W8-I, W8I-D-6, city) nor with a panel up (Settings paused the game and an idle line still came beside it): the
+  // pacer's rule, an open panel is quiet
+  const quiet = performance.now() < flow.get().quietUntil || settling || baybayHeld() || (game.get().worldMode === 'city' && game.get().panel.kind !== null);
   // once per visit, a line about the light right now (morning fog, golden hour, night lights)
   if (!quiet && !timeBarked && playingSince && now - playingSince > 20000 && !flow.get().bubble && gp < 10) {
     const line = bark(game.get().timeOfDay);

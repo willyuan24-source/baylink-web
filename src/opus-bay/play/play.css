@@ -176,3 +176,8 @@
   background: var(--ob-gold); border: 2px solid #fff; color: #fff; font: 900 14px/26px var(--ob-font); text-align: center;
   box-shadow: var(--ob-shadow-s); font-variant-numeric: tabular-nums;
 }
+/* (W8-I, W8I-P-6) the result card buttons (40 px): a 44 px hit area on a touch screen, the card unchanged */
+@media (pointer: coarse) {
+  .ob-play-btn { position: relative; }
+  .ob-play-btn::before { content: ""; position: absolute; inset: -2px 0; }
+}

@@ -1103,6 +1103,10 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-ask-me::after { content: ''; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: var(--ob-teal); transform: translateX(-50%) rotate(45deg); }
 @keyframes ob-bob-y { 50% { transform: translate(-50%, -3px); } }
 .ob-overlay.has-sheet .ob-ask-me { display: none; }
+/* (W8-I, W8I-P-5) short landscape: the context action (Take the ferry …) sits on the tag ('…me' showed); the tag waits */
+@media (max-height: 460px) and (orientation: landscape) {
+  .ob-overlay:has(.ob-touch-action:not(.is-behind-sheet)) .ob-ask-me { display: none; }
+}
 
 /* F2 · coach mark (teaches moving once, after the screen is free) */
 .ob-coach {
