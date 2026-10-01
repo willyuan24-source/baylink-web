@@ -193,4 +193,7 @@ to stop".
   skyline quiz and the goals step are city surfaces. Two rules are mode-blind and reach the district only on a touch
   screen or a 601–1080 px window: the waypoint ×'s 44 px touch area (Q6, coarse pointers) and the play chip under the
   pills (Q12) — the same overlaps exist there; the hero view (1440 × 900, the regression test in the suite) is unchanged.
+- **Final checks** (the tree of `64c32397`, W8-Q13 on origin; Q14 adds this report only): `npx tsc -p tsconfig.app.json
+  --noEmit` 0 · `npx eslint . --quiet` exit 0 (0 errors; the 50 old warnings) · the full suite
+  `tests/opus-bay-*.test.ts` **1802 / 1802 pass, 0 fail** (23:05–23:35 PDT, under the wave's load).
 - Dev server 5802 stopped; no Chrome of this lane left running.
