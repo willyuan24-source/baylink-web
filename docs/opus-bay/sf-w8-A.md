@@ -240,7 +240,7 @@ BAYBAY's.
 | `65478b6d` W8-A3 | the parade hour (Fleet Week), the return-ferry test, report c |
 | `1eddee39` W8-A4 | gulls over the stern, the engine aboard (audio/city.ts) |
 | `c4a67d3e` W8-A5 | the controller walks the island, one pier name |
-| W8-A6 | the island lines wait instead of being dropped; this wrap-up |
+| `fff82f23` W8-A6 | the island lines wait instead of being dropped; this wrap-up |
 
 ### Not done
 
