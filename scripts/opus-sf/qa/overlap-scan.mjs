@@ -8,9 +8,12 @@
 //        [--lang zh-Hans|zh-Hant|en] [--out <dir>] [--shots]
 // Surfaces: hud · gstep (the goals step, a fresh save) · skyline (the 那是什么 quiz at Twin Peaks) · metro (an underground
 // Muni Metro ride and its 设置) · ferry (the Alcatraz boat from Pier 33: the ride card, ?date by day) · grip (the cable-car
-// grip game on a Powell–Hyde ride: it waits up to 3 min for a car) · busk (the busker jam) · settings (top and end).
+// grip game on a Powell–Hyde ride, from its first stop's station: it waits up to 90 s for a car) · busk (the busker jam) ·
+// settings (top and end). A canvas (a game's board) counts as a control: its centre covered is a defect (W8-Q-review Q-PL-4).
 // Before each surface an open dialogue is closed (a goal done on the way, e.g. the pelican's at Twin Peaks, opens one).
-// Prints one JSON line per surface ({ size, surface, n, covered, off }) and writes <out>/overlap-<size>.json. Exit 0 always
+// Each size starts from cleared site storage, so the goals step opens at every size; a surface asked for that did not open
+// is a row with missing: true (W8-Q-review Q-RC-4).
+// Prints one JSON line per surface ({ size, surface, n, covered, off }) and writes <out>/overlap-<lang>.json. Exit 0 always
 // (a report): what is "covered" or "off" is what to read — a sticky header passing over a scrolled list is not a defect.
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
@@ -44,7 +47,7 @@ const SCAN = String.raw`(root, label) => {
   if (!roots.length) return { label, root, missing: true };
   const out = { label, root, covered: [], off: [], n: 0 };
   for (const rootEl of roots) {
-    const els = [...rootEl.querySelectorAll('button, a[href], input, select, [role=button], [role=switch], [role=radio], summary')].filter(vis);
+    const els = [...rootEl.querySelectorAll('button, a[href], input, select, [role=button], [role=switch], [role=radio], summary, canvas')].filter(vis);
     for (const el of els) {
       out.n++;
       const r = el.getBoundingClientRect();
@@ -102,6 +105,8 @@ try {
     };
     // one page per size: free roam on a fresh save (the goals step first), by day, Halloween on
     const load = async (q = '') => {
+      // a fresh player at every size: the goals step's seen mark (and any other) must not carry over from the last size
+      await send('Storage.clearDataForOrigin', { origin: `http://localhost:${PORT}`, storageTypes: 'all' }).catch(() => {});
       await send('Page.navigate', { url: `http://localhost:${PORT}/opus-bay?world=city&start=free&save=off&lang=${LANG}&quality=mid&halloween=1&date=2026-10-02T11:00${q}` });
       await waitFor(`window.__opusBay?.game?.get?.().phase === 'playing'`, 120000);
       await sleep(3000);
@@ -110,6 +115,7 @@ try {
       await load();
       const gstep = await waitFor(`document.querySelector('.ob-gstep-wrap')`, 10000);
       if (gstep && want('gstep')) { await sleep(800); await scan('.ob-gstep-wrap', 'gstep'); }
+      else if (want('gstep')) { const row = { size, surface: 'gstep (did not open)', n: 0, missing: true, covered: [], off: [] }; report.results.push(row); console.log(JSON.stringify(row)); }
       await ev(`(() => { const e = [...document.querySelectorAll('.ob-gstep button')].pop(); e?.click(); return !!e; })()`);
       await sleep(2000);
       await page(`(await imp('game/flow.ts')).closeDialogue(); return 1`);
@@ -145,8 +151,8 @@ try {
         await page(`ob.transit.finish?.(); return 1`); await sleep(2500);
       }
       if (want('grip')) {
-        await page(`(await imp('game/flow.ts')).closeDialogue(); const d = ob.transit.data(); const l = (d.cable?.lines ?? d.lines ?? []).find(x => /powell-hyde/.test(x.id)); if (!l) return 'no line'; ob.transit.ride(l.id, l.stops[0].station, l.stops[Math.min(4, l.stops.length - 1)].station); return l.id`);
-        const riding = await waitFor(`window.__opusBay.flow?.get?.()?.ride?.stage === 'riding'`, 180000);
+        await page(`(await imp('game/flow.ts')).closeDialogue(); const d = ob.transit.data(); const l = (d.cable?.lines ?? d.lines ?? []).find(x => /powell-hyde/.test(x.id)); if (!l) return 'no line'; const st = ob.transit.station(l.stops[0].station); if (st) (await imp('game/flow.ts')).teleportPlayer({ x: st.x, z: st.z }); await new Promise(r => setTimeout(r, 5000)); ob.transit.ride(l.id, l.stops[0].station, l.stops[Math.min(4, l.stops.length - 1)].station); return l.id`);
+        const riding = await waitFor(`window.__opusBay.flow?.get?.()?.ride?.stage === 'riding'`, 90000);
         await sleep(2000);
         const ok = riding ? await page(`return (await imp('play/grip.ts')).startGrip()`) : 'no ride';
         await sleep(2500); await scan('.ob-overlay', ok === true ? 'grip' : `grip (${JSON.stringify(ok)})`, { bottom: false });
