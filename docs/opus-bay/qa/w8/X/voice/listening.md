@@ -134,13 +134,16 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 120 | 4 | A 恶魔岛 | `zh-w5-al-9a4f2404` | 开往恶魔岛！往西看是金门大桥，回头看是海湾大桥。 | 5.56 | pass | ✓ (0.99) | |
 | 121 | 4 | A 恶魔岛 | `zh-w5-al-ae4cef3d` | 上岛啦。这里以前是联邦监狱，现在是国家公园，我们轻声走、慢慢看。 | 8.07 | pass | ✓ (0.99) | |
 | 122 | 4 | A 恶魔岛 | `zh-w5-al-5b488218` | 回到 33 号码头啦。恶魔岛，去过咯！ | 5.37 | pass | ✓ (0.99) | |
-| 123 | 4 | A 恶魔岛 | `zh-w5-al-cd19434a` | 监狱楼在坡顶上。真的岛上，从码头走上去差不多等于爬 13 层楼！ | 6.16 | check | ✓ (0.98) | |
-| 124 | 4 | A 恶魔岛 | `zh-w5-al-d5b49c34` | 这就是恶魔岛的监狱楼。1934 到 1963 年，这里是联邦监狱。 | 5.78 | pass | ✓ (0.97) | |
-| 125 | 4 | A 恶魔岛 | `zh-w5-al-3748ec64` | 1969 年，“所有部落的印第安人”来到岛上，守了将近 19 个月，为原住民的权利发声。 | 8.68 | pass | ✓ (0.99) | |
-| 126 | 4 | A 恶魔岛 | `zh-w5-al-1d5f1d1f` | 想回城里？去岛上的码头叫船，小渡轮随时来接我们。 | 4.44 | pass | ✓ (0.99) | |
-| 127 | 4 | W1 唐人街/码头 | `zh-w8w1-pagodas-ahead` | 往上看！路口那两座宝塔楼，黄顶的是 Sing Fat，绿顶的是 Sing Chong。 | 8.33 | pass | ✓ (0.84) | |
-| 128 | 4 | W1 唐人街/码头 | `zh-w8w1-st-marys-bells` | 1906 年的大火把教堂里的钟都烧化了，砖墙和钟楼却挺了过来。 | 5.00 | pass | ✓ (0.98) | |
-| 129 | 4 | W1 唐人街/码头 | `zh-w8w1-obrien-normandy` | 这艘自由轮 1994 年还自己开回诺曼底，参加了登陆 50 周年纪念！ | 5.32 | pass | ✓ (0.95) | |
+| 123 | 4 | A 恶魔岛 | `zh-w5-al-d5b49c34` | 这就是恶魔岛的监狱楼。1934 到 1963 年，这里是联邦监狱。 | 5.78 | pass | ✓ (0.97) | |
+| 124 | 4 | A 恶魔岛 | `zh-w5-al-3748ec64` | 1969 年，“所有部落的印第安人”来到岛上，守了将近 19 个月，为原住民的权利发声。 | 8.68 | pass | ✓ (0.99) | |
+| 125 | 4 | A 恶魔岛 | `zh-w5-al-1d5f1d1f` | 想回城里？去岛上的码头叫船，小渡轮随时来接我们。 | 4.44 | pass | ✓ (0.99) | |
+| 126 | 4 | W1 唐人街/码头 | `zh-w8w1-pagodas-ahead` | 往上看！路口那两座宝塔楼，黄顶的是 Sing Fat，绿顶的是 Sing Chong。 | 8.33 | pass | ✓ (0.84) | |
+| 127 | 4 | W1 唐人街/码头 | `zh-w8w1-st-marys-bells` | 1906 年的大火把教堂里的钟都烧化了，砖墙和钟楼却挺了过来。 | 5.00 | pass | ✓ (0.98) | |
+| 128 | 4 | W1 唐人街/码头 | `zh-w8w1-obrien-normandy` | 这艘自由轮 1994 年还自己开回诺曼底，参加了登陆 50 周年纪念！ | 5.32 | pass | ✓ (0.95) | |
+| 129 | 5 | A 恶魔岛 | `zh-w5-al-cd19434a` | 监狱楼在坡顶上。真的岛上，从码头走上去差不多等于爬 13 层楼！ | 5.42 | pass | ✓ (0.79) | |
+| 130 | 5 | K 出行/跟车 | `zh-w5-k-acd5eb53` | 抓紧！我们飞过去～ | 2.20 | pass | ✓ (0.35) | |
+| 131 | 5 | K 出行/跟车 | `zh-w5-k-dab54396` | 先骑上单车，再出发！ | 2.40 | pass | ✓ (0.97) | |
+| 132 | 5 | K 出行/跟车 | `zh-w5-k-1af44651` | 先坐上小车，再出发！ | 2.17 | pass | ✓ (0.99) | |
 
 ## en
 
@@ -275,6 +278,9 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 127 | 4 | W1 唐人街/码头 | `en-w8w1-pagodas-ahead` | Look up the street! At the corner, the yellow roofs are Sing Fat and the green ones Sing Chong. | 5.07 | pass | ✓ (0.93) | |
 | 128 | 4 | W1 唐人街/码头 | `en-w8w1-st-marys-bells` | The 1906 fire melted the church bells, but the brick walls and the clock tower held. | 7.09 | pass | ✓ (0.95) | |
 | 129 | 4 | W1 唐人街/码头 | `en-w8w1-obrien-normandy` | In 1994 this Liberty ship steamed back to Normandy for D-Day's 50th anniversary! | 6.60 | pass | ✓ (0.94) | |
+| 130 | 5 | K 出行/跟车 | `en-w5-k-acd5eb53` | Hold on — we’ll fly there! | 2.47 | pass | ✓ (0.95) | |
+| 131 | 5 | K 出行/跟车 | `en-w5-k-dab54396` | Hop on the bike first, then off we go! | 3.43 | pass | ✓ (0.75) | |
+| 132 | 5 | K 出行/跟车 | `en-w5-k-1af44651` | Into the toy car first, then off we go! | 3.43 | pass | ✓ (0.81) | |
 
 ## 重录 · retakes of wave-7 muted clips
 

@@ -7,10 +7,11 @@ lane's first agent (19:00–19:20 PDT, nothing committed).
 
 ## 给主人的摘要
 
-1. BAYBAY 的配音继续补齐：第七波小游戏（抓娃娃机、码头捞螃蟹、捏酸面包）的 34 句和出行/坐车时的 18 句提示（让路、提前下车、"坐过一站才算坐过"等）全部录好，中英文共 104 条，还是 Pixie 的声音。5 条短句读得太慢或有爆音，先静音（气泡照常显示），等你在试听单里点头。
-2. 第七波因为"读得太慢"被静音的 8 条短句重新录了更快的版本：7 条通过检查并被语音识别听对，已经替换并恢复发声；英文 "Ho! Spot on!" 还是没过，继续静音。
-3. 试听单：`docs/opus-bay/qa/w8/X/voice/listening.md`（每条一行，最后一栏写 ✗ 或 重录）；整批连播：同目录 `w8-voice-preview-b1-zh.m4a` / `-en.m4a`。
-4. Higgsfield 这批只花了 1.92 分（第一位 agent 提交的录音，这次直接取回结果，没有重复付费；失败的任务都退款了）。
+1. **配音全部补齐**：BAYBAY 第七、八波所有固定台词都配上了 Pixie 的声音 —— 抓娃娃 / 捞螃蟹 / 捏酸面包、三个新小游戏（叮当车拉闸、街头艺人合奏、雾笛对答）、坐车出行的提示、万圣节新句、海洋海滩冲浪和海豹岩、蓝鹭湖、舰船巡游、坐渡轮去恶魔岛（语气轻柔、尊重）、唐人街宝塔和自由轮，共约 130 句、260 条中英文录音。第七波静音的 8 条里 7 条重录后恢复发声。
+2. 只有 2 条暂时静音（气泡照常显示）：模仿钟声的"当——当——当！"（机器把三下钟声当成"说得太慢"）和第七波的 "Ho! Spot on!"（识别器听不出来）。试听单：`docs/opus-bay/qa/w8/X/voice/listening.md`，最后一栏写 ✗ 或 重录；每批连播在同目录 `w8-voice-preview-b*-zh/en.m4a`。
+3. **车辆更精致**：F 线电车车头换成环绕式玻璃窗、黄铜圈车灯、保险杠、圆车顶和车轮，夜里车头玻璃和车厢里亮暖光；叮当车车头加了金线装饰板、黄铜灯圈和弧形车顶；观光巴士前脸有了窗框、格栅和圆车灯，并修好一侧车轮"浮在车身外"的问题。没有增加绘制调用。
+4. **夜景和小修**：金门大桥两座塔夜里亮起暖光（1987 年起真实如此），越往上越暗；奖励时"星光 + 金币"不再连放两次；天空云朵边缘可能出现的一像素细线修掉；渡轮尾浪更明显。
+5. Higgsfield 本线只花了 5.44 分（全部是配音，失败的任务都退款了）。没有找到 AI 贴图或 3D 模型明显胜过现有画面的地方，所以没有花在图片和模型上（规则：并排对比赢了才用）。
 
 ## Part a · BAYBAY's voice, batch 1 (2026-09-30 19:24–19:45 PDT)
 
@@ -89,6 +90,12 @@ dropped the two lines lane M reworded after batch 3. The table: **129 lines / 25
 muted: 当——当——当！ (the bell, every take under the rate gate: the owner's ear) and the Alcatraz stair line in zh (clipped
 samples). Credits **0.99** (ledger).
 
+### Batch 5 (W8-X7, 23:00–23:35 PDT)
+
+Lane K's last three fixed lines (`W8K_LINES.tripFly / tripBike / tripCar`) and the Alcatraz stair line again (gently): all
+pass. **Final table: 132 lines / 264 clips, 263 pass the gates, 253 heard right; one clip muted** — the bell
+当——当——当！ (`W8_VOICE_CHECK`), plus wave 7's "Ho! Spot on!" still muted by the retake rule. Credits 0.11.
+
 ## Part b · looks: the vehicles up close, one burst per reward, the floodlit Golden Gate (2026-09-30 19:50–21:20 PDT)
 
 ### What was built (W8-X2)
@@ -128,3 +135,64 @@ camera following the nearest vehicle of the kind from the same offset (`…/x/vc
   +116; at the Ferry plaza with a near F-line car the frame read 82–84 calls / 245–252k triangles before and after (the
   moving cars make single readings noisy). Phone (mid) at the Ferry plaza: 63–67 calls / 208–216k.
 - The double coin pop and the sky-puff edge are not visible in a still: their evidence is the tests (red on the old code).
+
+### Decisions (Part b)
+
+- City only, district untouched: the F-line's new pieces sit behind `carGeometry`'s `pole` flag (the city's instanced
+  cars); the district's car is byte-identical (a pinned checksum). The cable car and the tour bus are city-only meshes
+  (the lazy transit layer). The light field and the sky blocks are city-only.
+- No numbers, lettering or real liveries on any vehicle (the dash panels are blank gold frames).
+- The toy traffic cars were left as they are: they sit at their 300-triangle budget (`sf-life` test) with up to 40 on
+  screen, and their rounded soft-box bodies already read well up close.
+- The Golden Gate's tower light is far dots (the light field fades within ≈ 60–150 u): close up the towers stay as they
+  were at night (a lit tower material would be the landmark's file, not this lane's).
+
+## Part c · Higgsfield (2026-09-30)
+
+Every credit went to the voice: 5 batches of `qwen_audio_tts` (≈ 5.4 credits in all; the ledger has one row per job and
+the reconciliation). No image, texture or GLB was generated: the candidates were weighed against what is there —
+the vehicles and the night lights are geometry and shader work inside existing draws (a texture would add a material /
+program per kind and not beat a resolution-free pattern at every distance, as wave 7 found for the façades); a GLB swap
+(the Palace of Fine Arts' open peristyle, the scorecard's best candidate outside W1 / W2 / A) needs a concept, image-to-3D,
+a decimation pass and the wave-4 gate's SoloView + city shots — more than the hours left after the voice batches, and
+image-to-3D tends to fill open colonnades. Standalone sound effects are not offered by the tool (speech only). So: no
+generated look asset shipped, by the rule "only when a side-by-side shot beats what is there".
+
+## Not done
+
+- A Higgsfield look asset (see Part c).
+- Salesforce Tower's bands (city-only): the tower is built by `world/landmarks.ts` (the district's landmarks, shared with
+  the city build) with window style 6; a city-only look needs a city-only window style on the hero batch — the lead's
+  call (Requests).
+- Night street-lamp pools: the pools and their material are `world/sf/props.ts` / `world/materials.ts POOL` (lane K's /
+  shared with the district); the night Market St shot shows the lamp heads and halos but faint pools — Requests.
+- The bell 当——当——当！: no take passes the speech-rate gate (three bell strokes in ≈ 1.3–1.9 s); muted for the owner's ear.
+- "Ho! Spot on!" (wave 7's muted en clip): the new takes pass every gate but the recogniser hears nothing; muted.
+- A before shot of the F-line at night on desktop (the phone pair stands in), and a phone "after" of the Golden Gate at
+  night (that shot did not save).
+
+## Requests
+
+1. **Owner**: `docs/opus-bay/qa/w8/X/voice/listening.md` — the 3 muted clips can be approved there (the bell, "Ho! Spot
+   on!", and the Alcatraz stair line if batch 5's take is still muted); mark ✗ / 重录 on any clip that sounds off.
+2. **Lead (a later wave)**: Salesforce Tower's shaft reads dark-banded (style 6 glass) where the real one is pale
+   silver-blue with fine white lines (W7-R's scorecard #32): a city-only window style for the tower's faces in
+   `world/landmarks.ts salesforce()` (when the world is the city) — frozen-adjacent, so the lead's OK.
+3. **Lane K / lead**: the city lamp pools (`world/sf/props.ts` + `materials.ts POOL`) read faint at street level at night
+   (Market St at Powell); a stronger city-only pool would warm the night streets.
+4. **Lead (hand-off)**: merge `ledger/w8-X.md` into ASSETS-LEDGER (wave 8, lane X: 5 TTS batches; ≈ 0.73 credits of
+   other TTS on the shared account at 02:29–02:35 and 05:44 UTC are not this lane's).
+
+## Final (2026-09-30 23:40 PDT)
+
+- Commits on `origin/opus-bay`: W8-X1 (voice batch 1 + binder) · W8-X2 (vehicles, one burst per reward, the floodlit
+  Golden Gate, the wake) · W8-X3 (voice batch 2) · W8-X4 (the sky puffs' edge) · W8-X5 (voice batch 3 + Part b shots) ·
+  W8-X6 (voice batch 4) · W8-X7 (voice batch 5 + this report's end).
+- Checks: every push ran `tsc` 0 and `eslint .` 0 errors (50 old warnings) and the opus-bay suite — 1668 / 1668 (X1),
+  1678 / 1680 (X2 / X3: two wall-clock budgets red under load, red alone too, modules this lane does not touch),
+  1779 / 1779 (X4 / X5), 1795 / 1796 (X6: the `sf-terrain` 200k-query wall-clock budget, green alone). X6 was pushed
+  straight after a clean rebase onto lane P's import-retry commits; `tsc` and their tests (sf-hud, w5-play-acts,
+  w7-p-retry, w8-p-retry, w8-q-phone) + this lane's ran green right after (115 / 115). W8-X7: below / in its commit.
+- Higgsfield: **5.44** credits (cap 240), all TTS; ledger `docs/opus-bay/ledger/w8-X.md` reconciled with `transactions`.
+- Dev server 5810 stopped; no Chrome of this lane running. Scratch `C:/Users/willy/opus-qa/w8/x/` (shoot.mjs, vcam.js,
+  batch-ba.sh, voice/ … voice5/).

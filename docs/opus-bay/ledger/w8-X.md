@@ -540,3 +540,18 @@ the new lines' takes were resubmitted until all were in (the four redo takes who
 | 510 | `zh-w5-w2-8d4ca008` | 1 | `5fb6b8b4-1575-4eb5-b554-0ae9f121fa2d` | 05:33:27 | raw/510.wav | completed |
 | 511 | `en-w5-w2-8d4ca008` | 1 | `e171d378-748d-4d9a-a221-d8387cec777c` | 05:33:27 | raw/511.wav | completed |
 | 518 | `zh-w5-al-ae4cef3d` | 1 | `050a726a-03f1-4db9-8880-0cbc0499322f` | 05:33:27 | raw/518.wav | completed |
+
+## Batch 5 · lane K's last fixed lines + the Alcatraz stair redo (W8-X7), 2026-10-01 06:02 UTC
+
+Balance before: **357.38**. Lane K's three new `W8K_LINES` (`tripFly` 抓紧！我们飞过去～, `tripBike`, `tripCar`) × zh / en
++ two redo takes of `zh-w5-al-cd19434a` (the Alcatraz stair line, clipped in batch 4; read gently at 1.0 / 1.1) = 8 takes
+(the bell's redo was dropped: no speed gets three bell strokes past the speech-rate gate). Job ids
+`C:/Users/willy/opus-qa/w8/x/voice5/jobs1.txt`: 7 completed, 1 failed (608, refunded; its sibling 609 came in).
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W8X-VO10 | 6 clips (3 lines × zh / en) + 1 redo | qwen_audio_tts, Pixie | verbatim | 0.01–0.03 a take | 600–605, 609 (608 failed) | `public/opus-bay/w8/voice/` | all pass; the Alcatraz stair line now plays |
+
+**Credits:** 357.38 → **357.27** = **0.11** (06:02:23–06:02:31 UTC: 8 spends, 1 refund). **Wave-8 lane X total: 5.44 credits**
+(cap 240). Reconciliation: 363.44 (day 0) − 357.27 = 6.17 = 5.44 lane X + 0.73 other TTS on the shared account (02:29–02:35
+and 05:44 UTC, not this lane's).

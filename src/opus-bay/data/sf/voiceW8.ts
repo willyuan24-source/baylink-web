@@ -135,17 +135,20 @@ export const W8_VOICE_LINES: readonly W8VoiceLine[] = [
   { id: "w5-al-9a4f2404", lane: "al", zh: "开往恶魔岛！往西看是金门大桥，回头看是海湾大桥。", en: "Off to Alcatraz! The Golden Gate is to the west, the Bay Bridge back east.", s: [5.56, 5.2] },
   { id: "w5-al-ae4cef3d", lane: "al", zh: "上岛啦。这里以前是联邦监狱，现在是国家公园，我们轻声走、慢慢看。", en: "We’re on the island. It was a federal prison; now it’s a national park. Let’s walk quietly and take our time.", s: [8.07, 8.97] },
   { id: "w5-al-5b488218", lane: "al", zh: "回到 33 号码头啦。恶魔岛，去过咯！", en: "Back at Pier 33. Alcatraz: been there!", s: [5.37, 4.56] },
-  { id: "w5-al-cd19434a", lane: "al", zh: "监狱楼在坡顶上。真的岛上，从码头走上去差不多等于爬 13 层楼！", en: "The cellhouse is up the hill. On the real island, the walk up from the dock is like climbing 13 storeys!", s: [6.16, 7.1] },
+  { id: "w5-al-cd19434a", lane: "al", zh: "监狱楼在坡顶上。真的岛上，从码头走上去差不多等于爬 13 层楼！", en: "The cellhouse is up the hill. On the real island, the walk up from the dock is like climbing 13 storeys!", s: [5.42, 7.1] },
   { id: "w5-al-d5b49c34", lane: "al", zh: "这就是恶魔岛的监狱楼。1934 到 1963 年，这里是联邦监狱。", en: "This is Alcatraz’s cellhouse. From 1934 to 1963 it was a federal prison.", s: [5.78, 6.93] },
   { id: "w5-al-3748ec64", lane: "al", zh: "1969 年，“所有部落的印第安人”来到岛上，守了将近 19 个月，为原住民的权利发声。", en: "In 1969, Indians of All Tribes came to the island and held it for almost 19 months, speaking up for Native rights.", s: [8.68, 9.79] },
   { id: "w5-al-1d5f1d1f", lane: "al", zh: "想回城里？去岛上的码头叫船，小渡轮随时来接我们。", en: "Ready to head back? Call the boat at the island’s dock: the little ferry always comes for us.", s: [4.44, 6.13] },
   { id: "w8w1-pagodas-ahead", lane: "w1", zh: "往上看！路口那两座宝塔楼，黄顶的是 Sing Fat，绿顶的是 Sing Chong。", en: "Look up the street! At the corner, the yellow roofs are Sing Fat and the green ones Sing Chong.", s: [8.33, 5.07] },
   { id: "w8w1-st-marys-bells", lane: "w1", zh: "1906 年的大火把教堂里的钟都烧化了，砖墙和钟楼却挺了过来。", en: "The 1906 fire melted the church bells, but the brick walls and the clock tower held.", s: [5.0, 7.09] },
   { id: "w8w1-obrien-normandy", lane: "w1", zh: "这艘自由轮 1994 年还自己开回诺曼底，参加了登陆 50 周年纪念！", en: "In 1994 this Liberty ship steamed back to Normandy for D-Day's 50th anniversary!", s: [5.32, 6.6] },
+  { id: "w5-k-acd5eb53", lane: "k", zh: "抓紧！我们飞过去～", en: "Hold on — we’ll fly there!", s: [2.2, 2.47] },
+  { id: "w5-k-dab54396", lane: "k", zh: "先骑上单车，再出发！", en: "Hop on the bike first, then off we go!", s: [2.4, 3.43] },
+  { id: "w5-k-1af44651", lane: "k", zh: "先坐上小车，再出发！", en: "Into the toy car first, then off we go!", s: [2.17, 3.43] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */
-export const W8_VOICE_CHECK: readonly string[] = ["zh-w5-k-83579ca0", "zh-w5-al-cd19434a"];
+export const W8_VOICE_CHECK: readonly string[] = ["zh-w5-k-83579ca0"];
 
 const DIR = '/opus-bay/w8/voice';
 export const W8_VOICE_CLIPS: Record<string, VoiceClip> = Object.fromEntries(W8_VOICE_LINES.flatMap(l => (['zh', 'en'] as const).map((lang, k): [string, VoiceClip] => [
