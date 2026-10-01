@@ -52,7 +52,7 @@ test('every card passes placeCardProblems (texts, limits, sources, https, dates,
   for (const c of CARDS) {
     assert.ok(zhWidth(c.bark.zh) <= 45, `${c.id} bark ≤ 45 (${c.bark.zh})`);
     assert.ok(zhWidth(c.summary.zh) <= CARD_LIMITS.summary, `${c.id} summary`);
-    assert.ok([CARD_VERIFIED_AT, '2026-09-29'].includes(c.verifiedAt), `${c.id} verifiedAt ${c.verifiedAt} (wave 7 lane R re-checked some on 2026-09-29)`);
+    assert.ok([CARD_VERIFIED_AT, '2026-09-29', '2026-09-30'].includes(c.verifiedAt), `${c.id} verifiedAt ${c.verifiedAt} (wave 7 lane R re-checked some on 2026-09-29, wave 8 lane S on 2026-09-30)`);
     assert.ok(c.sourceUrl.startsWith('https://'), `${c.id} sourceUrl`);
     if (c.depth === 'full') assert.ok(c.sources.length >= 1, `${c.id} has a secondary source`);
   }

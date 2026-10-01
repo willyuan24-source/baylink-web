@@ -12,6 +12,7 @@ theirs) and the new `world/sf/fleetWeek*.ts` (lead note `sf-w8-lead.md` §3). Wo
 2. 我决定**不在游戏里放「一起去 · 小队」入口**：小队是网站给成年人约陌生人一起出门的功能（要登录、2–8 位成年人），玩具城不该直接把玩家带过去；游戏里的活动卡本来就链到网站活动页，那里有网站自己的「一起去」。
 3. 65 岁以上免费 Muni 的来源链接改成 SFMTA 英文官方页（网站原来指向越南语页）；舰队周三天的「今天」页新增一行「蓝天使通常下午三点左右上场 · 以官网为准」，BAYBAY 在码头绿地也会说这句（以前只有离得远才说）。
 4. **舰队周「舰船巡游」做好了**：10/9 上午 11:00–12:00（游戏里的湾区时间），一艘红色消防船喷着水领头，后面六艘灰色玩具军舰（手机上四艘，没有武器细节、没有旗帜和舷号）从金门大桥下开进来，沿码头绿地、水上公园外侧开到海湾大桥下；11:20 在码头绿地正好看到船队经过。BAYBAY 当天会提醒、带路去码头绿地，按 E「拍舰船巡游」拍到船队就得纪念章 + 15 金币。只多 2 个绘制调用，不进首屏包。
+5. 50 张地点卡补上了开放时间或价格（今天逐个查官网：市立公园 5:00–24:00、国家公园海滩 6:00 到日落后 1 小时、海湾水族馆成人约 28 美元、Tadich 周日休息等；公共小巷/台阶写「全天可走」）；坎德尔斯蒂克州立公园的时间改成官网的 7:00–19:00。剩下 8 张（演出场馆、在翻修的朴茨茅斯广场等）写明了原因。
 
 ## Part a · re-sync with the site after GPT's three day-0 commits (W8-S1)
 
@@ -198,3 +199,63 @@ No new overlay: the parade opens no panel (the photo uses photo mode), so nothin
   (Marina Green seawall: `cameraRig.pitch` 0.04, `camera.rotation.x` ≈ −0.43): for a photo spot facing the water, keep
   the camera over the walkway (or let the face request choose the orbit side), so the parade and the jets sit mid-frame.
 - **Lane X**: the four lines above (`realsf-parade-day`, `-now`, `-near`, `-photo`).
+
+## Part c · the place cards without hours or a price (W8-S3)
+
+Written 2026-09-30 ≈ 20:40 PDT. W7-R left ≈ 60 cards (mostly the short priority-4 ones) with neither hours nor a price.
+
+### What was built
+
+**50 cards** gained an `hours` and / or a `cost` line (zh + en, hedged like the rest: 以官网为准 / 以现场为准 / 约), each
+re-dated `verifiedAt: '2026-09-30'`, the page it comes from added to `sources` where it is not the card's own source
+(`data/sf/placeCards.ts` 10 full cards, `data/sf/placeCards2.ts` 40 short cards; text only). Sources, all read
+2026-09-30:
+
+| group | cards | the line | source |
+|---|---|---|---|
+| city parks (Rec and Park) | Alta Plaza, Buena Vista, Glen Canyon, Ina Coolbrith, Lafayette, McLaren, Mountain Lake, Patricia's Green, India Basin, Grand View, the Bison Paddock, Murphy Windmill (+ the cost of Seward St slides, Huntington Park) | 每天 5:00 到午夜开放（市公园规定，以官网为准）· 免费 | SF Park Code §3.21 https://codelibrary.amlegal.com/codes/san_francisco/latest/sf_park/0-0-0-46781 ("Persons may enter and use any park from 5:00 a.m. to midnight daily"; the page answers 403 to scripts: read through the search index); Rec and Park's own pages for Ina Coolbrith (https://sfrecpark.org/Facilities/Facility/Details/Ina-Coolbrith-Park-175: "Park Hours 5 a.m. to Midnight") and Patricia's Green |
+| the national park (GGNRA) | China Beach, Sutro Heights | 每天 6:00 到日落后 1 小时 · 免费 | https://www.nps.gov/goga/planyourvisit/hours.htm ("open from 6 a.m. until 1 hour after sunset") |
+| | Baker Beach, Fort Funston | 大部分地方全天可去，停车场日出到日落 · 免费 | the same page ("GGNRA is accessible 24 hours a day in most areas, parking lots are open between sunrise to sunset") |
+| other open spaces | Mount Sutro | 日出到日落，风速超过每小时 40 英里时关闭 · 免费 | https://www.ucsf.edu/about/locations/mount-sutro-open-space-reserve (search index) |
+| | Heron's Head Park | 公园 5:00 到午夜；生态中心自然区周六 10:00–16:00 · 免费 | https://sfrecpark.org/facilities/facility/details/Herons-Head-Park-Nature-Exploration-Area-447 |
+| | Crane Cove Park, Visitacion Valley Greenway | 免费（Crane Cove: kayak / paddleboard launch, paid rentals from Dogpatch Paddle) | https://www.sfport.com/cranecovepark; the greenway is a public park (its card's source) |
+| public ways | Balmy Alley, Clarion Alley, Macondray Lane, Lyon St Steps, Greenwich Steps, Hidden Garden Steps, the 16th Ave Tiled Steps, Vermont St, Calle 24, Union St, Clement St, Irving St, Haight-Ashbury, Maiden Lane, Harvey Milk Plaza, the Ingleside sundial, Cupid's Span, the Yoda fountain, the Wave Organ, the Sentinel Building, the Chinese Telephone Exchange | 公共小巷 / 阶梯 / 街道，全天可走 · 免费 / 逛街免费; outdoor works 全天可看 | the cards' own sources (public streets, stairs and outdoor works) |
+| | the Women's Building | 壁画在外墙上随时可看；楼内自助参观周二 10:00–15:30 · 看壁画免费 | https://www.womensbuilding.org/our-building/the-mural |
+| venues | Aquarium of the Bay | 成人约 28 美元，4–12 岁约 20 美元，65 岁以上约 24 美元（预购价） | https://www.aquariumofthebay.org/tickets ("Adult (13-64): $28.25", "Child (4-12): $20.25", "Senior (65+): $24.25") |
+| | Boudin at the Wharf | 隔着约 30 英尺长的观察窗看师傅做面包，免费 | https://boudinbakery.com/boudin-at-the-wharf/ |
+| | the Buena Vista Cafe | 约周一至周四 9:00–23:00，周五 9:00–24:00，周六 8:00–24:00，周日 8:00–23:00 | https://www.thebuenavista.com/ |
+| | Tadich Grill | 约周一至周五 11:00–21:00，周六 16:00–21:00，周日休息；可订位 | https://www.tadichgrillsf.com/ |
+| | Glide Memorial Church (quiet) | 每周日 9:00 和 11:00 有礼拜，欢迎所有人 | https://www.glide.org/church/ |
+| | Candlestick Point SRA | **changed**: 约每天 7:00–19:00 (the card said sunrise to sunset) | https://www.parks.ca.gov/candlestickpoint/ ("7:00 am to 7:00 pm") |
+
+Re-checked and **unchanged** (2026-09-30): SS Jeremiah O'Brien (daily 10–4, $20 general — ssjeremiahobrien.org/visit-us),
+MoAD (Tue–Sun, Thu to 8 pm, $15 adults, every Second Saturday free — moadsf.org/visit), the Chinese Historical Society
+(Wed and Sat 10–5 — chsa.org/visit), the Children's Creativity Museum (Wed–Sun 10–4, $20 for age 1+ —
+creativity.org/hours-admission), the Tenderloin Museum (Tue–Sat 10–5, $10 / $6 / under 13 free — tenderloinmuseum.org),
+Haas-Lilienthal tours (select Wed / Sat, $10 — haas-lilienthalhouse.org/house-tours), the Railway Museum (Tue–Sun 12–5,
+free — streetcar.org/museum), the Presidio Officers' Club (Fri–Sun 11–4, free — presidio.gov), the fortune-cookie
+factory (Mon–Fri 9–6:30, weekends 9–7 — goldengatefortunecookies.com/visit). Hyde Street Pier stays **closed** (NPS:
+"Hyde Street Pier is closed at this time"; the ships open some weekends at Mare Island) — its status line holds.
+
+### Not filled (reason)
+
+- Balboa Theatre, SFJAZZ Center, The Fillmore: per-show tickets; their pages gave no hours / price to quote (SFJAZZ
+  answered 403, the Fillmore's page lists no box-office hours). Palace Hotel's Garden Court: its page answered 403
+  (the search index says Saturday tea 12–2 pm; not on an official page we could open). Bayview Opera House: the site
+  (now rwoh.org) lists events but no hours. Moscone Center: open for events only (not re-read). Portsmouth Square:
+  closed for its renovation (status line). The full cards of the universities and churches keep their notes (working
+  campuses / services) — not part of W7-R's short-card list.
+
+### Evidence
+
+- `tests/opus-bay-w8-s-cards.test.ts` (2): the 50 ids re-dated 2026-09-30, each with hours or a price, valid
+  (`placeCardProblems`), hours hedged, a price with a number hedged; the short cards still without either are exactly
+  the eight above; the sources behind each group (the park code, the GGNRA page, the venues' pages), the Aquarium's
+  three prices, Tadich's 周日休息, Glide still quiet, Candlestick's new 7:00–19:00; no free public place gained a price.
+- Surgical: `tests/opus-bay-sf-cards.test.ts` (lane C's wave-4 file) allows `verifiedAt` 2026-09-30 next to 09-27 /
+  09-29. `sf-cards` + `w7-r` + `w8-s-cards` + `w8-s-site`: 27 / 27.
+
+### Decisions
+
+- Public streets, alleys and stairs say "全天可走" from their own nature (a public right of way), not from a page; parks
+  use the park code unless a park page says otherwise; no price is written where no official page states one.
