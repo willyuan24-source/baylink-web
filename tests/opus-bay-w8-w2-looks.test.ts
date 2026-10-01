@@ -18,6 +18,8 @@ test('W8-W2 St Ignatius: the lead shells cover the AI model\'s cupolas and dome 
     ...IGN_SHELLS.cupola.at.map(([cx, cz]) => ({ cx, cz, y0: IGN_SHELLS.cupola.y0, profile: IGN_SHELLS.cupola.profile, seg: 12 })),
     { cx: IGN_SHELLS.dome.at[0], cz: IGN_SHELLS.dome.at[1], y0: IGN_SHELLS.dome.y0, profile: IGN_SHELLS.dome.profile, seg: 12 },
     { cx: IGN_SHELLS.cap.at[0], cz: IGN_SHELLS.cap.at[1], y0: IGN_SHELLS.cap.y0, profile: IGN_SHELLS.cap.profile, seg: 12 },
+    // W8-W2-review (C5): the lantern between the dome and its cap (the model's band is cream)
+    { cx: IGN_SHELLS.lantern.at[0], cz: IGN_SHELLS.lantern.at[1], y0: IGN_SHELLS.lantern.y0, profile: IGN_SHELLS.lantern.profile, seg: 12 },
   ];
   /** the shell's inner radius at height y over its foot (linear between profile points) */
   const rAt = (prof: readonly (readonly [number, number])[], dy: number) => {

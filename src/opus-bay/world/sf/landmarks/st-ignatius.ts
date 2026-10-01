@@ -67,7 +67,7 @@ function church(b: BatchLike, lod: 0 | 2) {
   if (lod === 2) { lathe(b, [[1.6, 0], [1.6, 1.6], [0.2, 4.2]], CX, fy + 5.9, CROSS_Z, DOME, NONE, 5); return; }
   lathe(b, [[1.55, 0], [1.55, 1.6]], CX, fy + 5.9, CROSS_Z, BUFF_SHADE, GLOW(0.12), 8);
   lathe(b, [[1.62, 0], [1.5, 0.75], [1.15, 1.45], [0.6, 1.95], [0.25, 2.1]], CX, fy + 7.5, CROSS_Z, (ly: number) => new THREE.Color(ly < 0.8 ? DOME_DARK : DOME), NONE, 12);
-  lathe(b, [[0.3, 0], [0.3, 0.55], [0.08, 0.95]], CX, fy + 9.55, CROSS_Z, TRIM, GLOW(0.3), 6);
+  lathe(b, [[0.3, 0], [0.3, 0.55], [0.08, 0.95]], CX, fy + 9.55, CROSS_Z, LEAD_DARK, GLOW(0.3), 6);
   // the front: steps, four columns and their entablature, the pediment, the saint's niche, three doors
   const zf = 5.12;
   for (let k = 0; k < 2; k++) box(b, CX + 0.35, fy - 0.3 + k * 0.15, zf + 0.05 - k * 0.12, 2.3 - k * 0.3, 0.3, 0.45, '#d8ccb6');
@@ -144,12 +144,20 @@ export const IGN_SHELLS = {
   cupola: { at: [[-2.39, 4.42], [2.59, 4.41]] as [number, number][], y0: 10.95, profile: [[0.8, 0], [0.66, 0.3], [0.62, 0.55], [0.52, 0.8], [0.33, 1.05], [0.14, 1.22], [0.05, 1.27]] as [number, number][] },
   dome: { at: [0, -1.89] as [number, number], y0: 8.68, profile: [[1.77, 0], [1.72, 0.32], [1.66, 0.57], [1.58, 0.82], [1.42, 1.07], [1.26, 1.32], [1.08, 1.57], [0.8, 1.82], [0.72, 1.86]] as [number, number][] },
   cap: { at: [0, -1.89] as [number, number], y0: 11.72, profile: [[0.82, 0], [0.64, 0.3], [0.42, 0.52], [0.2, 0.66], [0.06, 0.72]] as [number, number][] },
+  /**
+   * W8-W2-review (C5): the open lantern between the dome and its cap, cream in the model (r ≤ 0.723 over model y
+   * 10.54–11.72, scratch opus-qa/w8/w2-rev/lantern.mts), is the same dark grey metal as the dome on the restored church
+   * (https://commons.wikimedia.org/wiki/File:Dome,_Saint_Ignatius_Church_-_San_Francisco,_CA.jpg , taken 14 Jan 2024,
+   * viewed 2026-10-01): a lead drum over it (its arched openings read as a band at the distances the church is seen from)
+   */
+  lantern: { at: [0, -1.89] as [number, number], y0: 10.5, profile: [[0.79, 0], [0.79, 1.24]] as [number, number][] },
 } as const;
 function leadShells(b: BatchLike) {
-  const { cupola, dome, cap } = IGN_SHELLS;
+  const { cupola, dome, cap, lantern } = IGN_SHELLS;
   for (const [mx, mz] of cupola.at) lathe(b, cupola.profile, AI_AT.x + mx, AI_AT.y + cupola.y0, AI_AT.z + mz, LEAD, NONE, 12);
   lathe(b, dome.profile, AI_AT.x + dome.at[0], AI_AT.y + dome.y0, AI_AT.z + dome.at[1], (ly: number) => new THREE.Color(ly < 0.1 ? LEAD_DARK : LEAD), NONE, 12);
   lathe(b, cap.profile, AI_AT.x + cap.at[0], AI_AT.y + cap.y0, AI_AT.z + cap.at[1], LEAD, NONE, 12);
+  lathe(b, lantern.profile, AI_AT.x + lantern.at[0], AI_AT.y + lantern.y0, AI_AT.z + lantern.at[1], LEAD, NONE, 12);
 }
 const SWAP: LandmarkSwap = {
   parts: [{ model: 'sf-st-ignatius', x: AI_AT.x, y: AI_AT.y, z: AI_AT.z, yaw: 0, scale: [1, 1, 1], glow: 0.12, castShadow: true }],

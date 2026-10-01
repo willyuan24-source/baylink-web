@@ -313,3 +313,86 @@ Started 22:16 PDT after part b's push. Pushed 23:36 PDT (`1791604f`; see "Final 
    boats in the six basins; the heron at the south footbridge; at night (lit lodge, no boats out).
 3. St Ignatius from Fulton & Parker and from afar (the grey cupolas / dome over the AI church; `?ai=0` the procedural).
 4. Phone 390 × 844: the Ocean Beach walk (surfers read in portrait) and haight-usf.
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+1. 两位审查员一共报了 13 个问题，我逐个复现：10 个修好，2 个确认但没改（要重新配音或改站点的繁体转换），1 个不算问题（越界改动是规则允许的、而且写明了）。
+2. 最要紧的一个（major）：BAYBAY 的海豹岩台词会排队等前一句说完，玩家这时传送走了，她就在蓝鹭湖上说"那几块礁石叫海豹岩"。现在玩家一离开那个地方，排队的这句就作废；没说出口的台词下次来还会说，不会丢；同时进两个范围（湖和船屋）两句都会说。
+3. "看，岸边就站着一只大蓝鹭！"原来在湖的另一边也会说（被小山挡住看不见）。现在只在对岸、看得见那只鹭的小路上说。
+4. 画面：海豹岩上的鸬鹚不再悬空；冲浪的人有了手臂，不再像企鹅；傍晚冲浪手和船一个一个回家，不再同一帧全部消失；那条原地打转的划艇挪到宽水面；圣依纳爵教堂远景塔顶不再是"尖刺顶着帽子"，穹顶上的灯笼亭也改成和穹顶一样的铅灰色。
+5. 没有阻挡上线的问题。最终检查全绿（数字见下面 Final checks）。
+
+### What was checked
+
+- Every W2 commit (`eb60b4df`, `c587cdc7`, `8f62ada6`, `09f1e21b` and the report commits) read in full; each lens
+  finding reproduced from its own script or shot before acting (scratch `C:/Users/willy/opus-qa/w8/w2-rev/`, the
+  lenses' `w2-rc/` and `w2-rp/`).
+- Played on the dev server (port 5848, desktop 1440 × 900, `?world=city&time=day&save=off&lang=en`, one Chrome):
+  Judah St beach (surfers with arms, `b/a1-judah.jpg`), Seal Rocks close (birds on the summits, `b/a4-seal-close.jpg`),
+  the Cliff House terrace then a teleport to Blue Heron Lake (the Seal Rocks line said at the terrace, never at the lake;
+  the boats line at the lake), the heron spot (the heron line, the heron in view, `b/a6-heron.jpg`), St Ignatius close
+  and far (`c3/c1-ign.jpg`, `c3/c2-ign-far.jpg`). Calls / tris read in passing: terrace 50 / 94.7k, lake north shore
+  87–88 / 235–243k (within 150 / 400k; the lane's table stands, the fixes add 0 calls).
+
+### Findings and verdicts
+
+| id | sev | verdict | evidence / what changed |
+|---|---|---|---|
+| W2-P1 | major | **fixed** | Reproduced from the code path (the pacer never re-checks the place) and the lens's `d3-phone-lake.jpg`. A waiting line now carries `valid` (game/linePacer.ts `PacedLine.valid`, checked where expired lines are dropped; game/cityMoments.ts `offerLine` / `offerLineOr` take `hooks`; game/cityContent.ts `baybayLine({ valid, onSay })` — surgical, additive, lane K's files, named here and in the commit). westToy's `valid`: on foot, the visit still open and the player within r + 15 u of the spot. Test: `W8-W2-review pacer…` and `lines: kept offered … dropped when the player leaves`. In the browser: terrace → teleport to the lake, no Seal Rocks bubble at the lake. |
+| W2-P3 | minor | **fixed** | Confirmed from the code (`said.add` at queue time). The line now counts as said only in `stepPacer` once its bubble is shown (`onSay`); while the visit lasts it is offered again every 0.2 s check (the pacer keeps one copy and extends its ttl), so behind the goals card it plays when the card closes, and a dropped line comes back on the next visit. Test: westsea `BAYBAY's west-side lines` (re-visit gives the unsaid line). |
+| W2-C3 | minor | **fixed** | Reproduced (a): `inside` kept after the camera left range; (b): the lake / boathouse edge (47.8 u out on the line through both centres) offered only the boats line; (c): a false `say` lost the line. Now `westVisits` keeps a visit per spot, every spot entered gets its line, a far camera clears the visits, and a refused offer is simply offered again. Test: `two spots entered in one check both get their line; a camera far away ends every visit`. |
+| W2-C2 | minor | **fixed** | Reproduced with the published terrain (`heronspot.mts`: the hill hides the heron from much of the lake circle). The heron line has its own spot `HERON_SPOT` (−263, 1002), r 7, on the outer shore path across the channel ≈ 10 u from the heron; the test casts the sight line from 3 rings of points in the spot (≤ 10 % blocked; measured 1 of 42). Seen in `b/a6-heron.jpg`. |
+| W2-C4 | minor | **fixed** | Confirmed from kit.ts `pyramid` (a 1.5 u buff pyramid 0.044 u wide under a 0.9 u lead cap). lod 2 tower top = belfry box (fy + 7.6 … 9.65) + a 1.4 u lead pyramid (h 3.0). Test: `St Ignatius lod 2: each tower narrows upward` (the half-width never grows going up). |
+| W2-C5 | minor | **fixed (lantern); crosses open** | Confirmed on the lens's 14 Jan 2024 Commons photo (dome, lantern and cap all dark grey metal; gilded cross and ball). A 12-sided lead drum `IGN_SHELLS.lantern` (r 0.79, model y 10.5 … 11.74; the model's band is r ≤ 0.723, `lantern.mts`) over the AI lantern; the procedural lantern recoloured. The looks test covers the new shell (no model vertex pokes through). Close up it reads as a solid grey drum (the openings are lost); far away the dome reads as one grey dome like the real one. The gilded crosses stay cream (they are the model's): open item. |
+| W2-C6 | minor | **confirmed, not fixed** | Fact re-read: the boathouse business since 1893, the present building 1946–49 (the lane's own comment). The zh "这座船屋…一直" leans on the building; the line is already voiced by exact text (data/sf/voiceW8.ts `w5-w2-3f60dca9`), so a text change silences it until lane X re-records. Next wave: "船屋从1893年起就租船给游客。" / "The boathouse has rented out boats since 1893." with a retake. |
+| W2-C7 | minor | **fixed** | Confirmed from the table (a 1.9 u rowboat on a 0.7 u circle). It now sails the south basin (−253.5, 998.5) half a turn from boat 4 (r 2.1, 4.2 u apart); boat 7's circle 1.3 → 1.5. The existing bank test passes (hull + 0.3 u on water all round). Test: `no boat pivots on the spot` (circle ≥ 1.6 × the hull's length across). |
+| W2-C8 | minor | **refuted** | sf-w8-lead.md §3's header allows "anything else: a small, surgical fix named in the commit and the report"; `8f62ada6`'s message and part b of this report name all three edits (index.ts registration, tops.ts regenerated, the W4-IL1 list). The suite is green with them. |
+| W2-P2 | minor | **confirmed, not fixed** | 繁體 shows "看海里！" (海里 = nautical mile there). The conversion is the site's `translateText` (outside src/opus-bay); it also hits three other opus-bay lines (data/sf/landmarks.ts McCovey Cove "掉进海里", play/sfgamesLines.ts "放回海里", ui/Moments.tsx). Rewording the W2 line would silence its recorded clip. Request below. |
+| W2-P4 | minor | **fixed** | Confirmed from the code (one `if (night > 0.35) return`). `duskOut`: each surfer / boat has its own point of the night factor spread over 0.20–0.35 (neighbours not in turn) and shrinks into the water over 0.012; all gone at 0.35 as before. Test: `dusk: … go in one by one` (never more than one figure's instances vanish per 0.0025 step). |
+| W2-P5 | minor | **fixed** | Seen on the lens's `b5-judah.jpg`. Two arms per surfer (held out riding, by the rails paddling, at the sides sitting); `SURFER_PARTS` 4 → 6: +22 instances (+1.8k tris) in the same call. Shot `b/a1-judah.jpg`: the rider reads as a person. |
+| W2-C1 | minor | **fixed** | Reproduced (`float.mts`: birds 0.08–0.29 u over the drawn facets). `drawnTop` ray-tests the stacks' triangles as drawn (`westBall(ROCK_JITTER)` under each `boulderMatrix`; `westBall.ts` split out of westToy.ts so westSeaPose can use it without an import cycle); birds and sea lions stand on it, and each sea lion's body pitches with its ledge (± 0.4 rad). Test: `the cormorants stand on the drawn (faceted) rock` (raycast, feet within −0.03 … +0.12 u). Shot `b/a4-seal-close.jpg`. |
+
+### Own pass (both lenses missed)
+
+- **Lines held by the goals card**: before, a new player arriving at Kelly's Cove with the goals card open lost the
+  Kelly line (P3); now the line waits for the card while the player stays. No other change to BAYBAY's pacing.
+- **The heron line is rarer now** (a 7 u spot on the shore path): it is said where it is true; the boats line still
+  greets every visit to the lake.
+- **繁體 "海里"** is site-wide (four opus-bay lines), not just W2's: a Request.
+- Checked, no defect: the two west systems are added only by world/sf/cityWorld.ts (city mode); district untouched
+  (the hero regression in the suite); teardown disposes the instanced geometry (the toy material is shared and cached,
+  as the city's trees'); the checks allocate nothing per frame (the hooks are made once per spot and line); tonight's
+  date (1 Oct) gates nothing in W2; the dusk stagger shows at tonight's sunset on the Bay clock.
+
+### Open items
+
+- St Ignatius's dome cross and ball (gilded on the real church) and the towers' crosses are the AI model's cream:
+  next wave, small gold boxes over them measured on the GLB, or a material split.
+- C6 zh wording + lane X retake; P2 (below).
+- The open lantern's arches are hidden under the lead drum (a lantern mesh with openings would restore them).
+
+### Requests
+
+- **Site (GPT / owner)**: `translateText(…, 'zh-Hant')` should give 裡 in 海里 when it means "in the sea" (看海裡、
+  掉進海裡、放回海裡); today it leaves 里 (nautical mile in Traditional Chinese). Four opus-bay lines are affected.
+- **Lane X (next wave)**: re-record `w8-w2-lake-1893` if its zh becomes "船屋从1893年起就租船给游客。".
+
+### Blocking the go-live to main
+
+Nothing.
+
+### Commits
+
+| commit | what |
+|---|---|
+| W8-W2-review: BAYBAY's west-side place lines never play somewhere else… | P1, P3, C3, C2, C4, C7, P4, C1, P5 + tests/opus-bay-w8-w2-review.test.ts (10 tests) |
+| W8-W2-review: St Ignatius's lantern in lead… + report | C5 (the lead lantern shell, the procedural lantern, the looks test entry) and this section |
+
+### Final checks (01:06 PDT, on the fixes rebased onto origin 1f1176fb)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 warnings, none new in the touched files) ·
+`npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1831 tests: 1830 pass, 0 fail, 1 todo (W8-P9's
+255 KB GameRoot target, lane P's known todo; GameRoot ≈ 257.8 KB, its 258.5 KB guard green). The W2 files alone:
+21 / 21 + looks / sf-models 24 / 24 after the C5 change.
