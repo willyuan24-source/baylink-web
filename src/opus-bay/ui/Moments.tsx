@@ -16,7 +16,7 @@ import { interactableById, postcardById } from '../game/interactables';
 import { downloadUrl, requestShutter } from '../game/photo';
 import { SF_NAME, zoneName } from '../data/cityZones';
 import { cityDistrictZh } from '../data/sf/cityPois';
-import { closeOverlay, openOverlay, openOverlays, subscribeOverlays } from './slots';
+import { closeOverlay, goalsRows, openOverlay, openOverlays, subscribeOverlays } from './slots';
 import { registerAnchor } from '../game/projector';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
@@ -230,9 +230,16 @@ export function GoalsCard() {
       <ul>
         {FREE_GOALS.map(goal => { const progress = goalProgress(goal.id, done); return <li key={goal.id} className={done.includes(goal.id) ? 'is-done' : ''}><span className="ob-check">{done.includes(goal.id) && <Check size={12} aria-hidden />}</span><span>{t(goal.label)}{progress && ` · ${progress}`}<small>{t(goal.hint)}</small></span></li>; })}
       </ul>
+      {city && <GoalsRowsMini />}
       {city && <FavoursMini done={done} />}
     </aside>
   );
+}
+
+/** W8-H (surgical, lane H): the one-line versions of the goals tab's feature blocks (ui/slots registerGoalsRow `Mini`). */
+function GoalsRowsMini() {
+  const rows = useSyncExternalStore(goalsRows.subscribe, goalsRows.list, goalsRows.list);
+  return <>{rows.map(r => (r.Mini ? <r.Mini key={r.id} /> : null))}</>;
 }
 
 /** 邻居的小忙 in the goals card (city, plan G2-11): the count and the favours you said yes to (two at most). */

@@ -110,9 +110,12 @@ export function treatMilestone(before: BagState, after: BagState, goalDoors: num
 export function treatToast(candy: Candy, big: boolean, added: number, coins: number, bag: number): { zh: string; en: string } {
   const n = Math.max(1, added);
   const times = n > 1 ? ` ×${n}` : '';
+  // W8-H: on the big night the toast says where the candies come from — the night doubles every treat (×2), and a door
+  // never knocked before adds its own first treat (×3): "double" alone read wrong next to ×3 (W7-G-review)
+  const head = !big ? null : n >= 3 ? { zh: '新门 + 万圣夜加倍', en: 'New door + Halloween double' } : { zh: '万圣夜糖果加倍', en: 'Halloween night, treats doubled' };
   return {
-    zh: `${big ? '双倍糖果' : '得到'}${big ? '：' : ''}${candy.name.zh}${times}！${coins > 0 ? `+${coins} 金币 · ` : ''}糖果袋 ${bag} 颗`,
-    en: `${big ? 'Double treat' : 'Treat'}: ${candy.name.en}${times}! ${coins > 0 ? `+${coins} coins · ` : ''}Candy bag: ${bag}`,
+    zh: `${head ? `${head.zh}：` : '得到'}${candy.name.zh}${times}！${coins > 0 ? `+${coins} 金币 · ` : ''}糖果袋 ${bag} 颗`,
+    en: `${head ? head.en : 'Treat'}: ${candy.name.en}${times}! ${coins > 0 ? `+${coins} coins · ` : ''}Candy bag: ${bag}`,
   };
 }
 

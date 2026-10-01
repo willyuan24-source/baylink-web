@@ -78,8 +78,9 @@ test('W7-G4 the phone pill near a treat street: the goals line becomes the purse
 test('W7-G5 the toast: one candy in the season; ×2 on the big night; ×3 and +10 coins at a door never knocked before', () => {
   const c = treat.CANDIES[2];
   assert.deepEqual(treat.treatToast(c, false, 1, 5, 4), { zh: '得到巧克力！+5 金币 · 糖果袋 4 颗', en: 'Treat: chocolate bar! +5 coins · Candy bag: 4' });
-  assert.deepEqual(treat.treatToast(c, true, 2, 5, 12), { zh: '双倍糖果：巧克力 ×2！+5 金币 · 糖果袋 12 颗', en: 'Double treat: chocolate bar ×2! +5 coins · Candy bag: 12' });
-  assert.deepEqual(treat.treatToast(c, true, 3, 10, 3), { zh: '双倍糖果：巧克力 ×3！+10 金币 · 糖果袋 3 颗', en: 'Double treat: chocolate bar ×3! +10 coins · Candy bag: 3' });
+  // W8-H: the big night's toast says where the candies come from (the night doubles; a new door adds its first treat)
+  assert.deepEqual(treat.treatToast(c, true, 2, 5, 12), { zh: '万圣夜糖果加倍：巧克力 ×2！+5 金币 · 糖果袋 12 颗', en: 'Halloween night, treats doubled: chocolate bar ×2! +5 coins · Candy bag: 12' });
+  assert.deepEqual(treat.treatToast(c, true, 3, 10, 3), { zh: '新门 + 万圣夜加倍：巧克力 ×3！+10 金币 · 糖果袋 3 颗', en: 'New door + Halloween double: chocolate bar ×3! +10 coins · Candy bag: 3' });
   // the ledger gave nothing (a cap, a replay): no coin part
   assert.equal(treat.treatToast(c, false, 1, 0, 1).zh, '得到巧克力！糖果袋 1 颗');
   // what a knock pays on the big night at a new door: door + night, and the bag grows by three
