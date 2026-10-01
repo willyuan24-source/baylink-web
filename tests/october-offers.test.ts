@@ -25,7 +25,7 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid anchors and merges reviewed autumn benefits by canonical ID', () => {
-  assert.equal(currentFreebies.length, 95);
+  assert.equal(currentFreebies.length, 102);
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
@@ -234,7 +234,7 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-09-29');
+  assert.equal(guide.updatedAt, '2026-09-30');
   assert.match(guide.sourceNote || '', /原核查日（9 月 8–27 日）/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);
   assert.ok(guide.sources.every(source => source.title && source.description && new URL(source.url).protocol === 'https:'));

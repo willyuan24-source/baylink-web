@@ -18,7 +18,7 @@ export const MONTHLY_EDITION = {
   month: '2026-10',
   startMonth: '2026-09',
   label: '2026 年 9–10 月',
-  checkedAt: '2026-09-29',
+  checkedAt: '2026-09-30',
   title: '这个秋天，把周末留给湾区。',
   intro: '从九月余下的好去处，到十月底的南瓜季、社区节庆和免费文化日。按日期和地区挑活动，把交通、预约与领取条件一起安排好。',
 };

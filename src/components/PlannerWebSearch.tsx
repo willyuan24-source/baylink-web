@@ -2,7 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Globe2, LoaderCircle } from 'lucide-react';
 import { api } from '../lib/api';
 import { recordProductEvent } from '../lib/product-events';
-import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, type PlannerWebCandidate, type PlannerWebResult, type SavedWebCandidate } from '../lib/planner-web-search';
+import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, plannerWebMapSearchUrl, type PlannerWebCandidate, type PlannerWebResult, type SavedWebCandidate } from '../lib/planner-web-search';
 
 type PlannerWebSearchProps = {
   query: string;
@@ -53,7 +53,7 @@ function WebCandidateCard({ candidate, locale, children }: { candidate: PlannerW
     {candidate.summary && <p>{candidate.summary}</p>}
     <dl><div><dt>{text('时间', 'Times', '時間')}</dt><dd>{candidate.timeSummary || text('时段待确认，请查看来源', 'Hours unconfirmed; check the source', '時段待確認，請查看來源')}</dd></div><div><dt>{text('费用', 'Costs', '費用')}</dt><dd>{candidate.priceSummary || text('费用待确认，不能按免费计算', 'Costs unconfirmed; cannot be treated as free', '費用待確認，不能按免費計算')}</dd></div></dl>
     <p className="planner-small-note">{text('尚未核对准确位置、所选日期时段与预约，暂不能自动排入行程。', 'Exact location, date-specific hours and booking conditions need checking before scheduling.', '尚未核對準確位置、所選日期時段與預約，暫不能自動排入行程。')}</p>
-    <div className="planner-web-candidate-links">{candidate.sourceUrls.map(url => <a key={url} href={url} target="_blank" rel="noopener noreferrer">{new URL(url).hostname.replace(/^www\./, '')} ↗</a>)}</div>
+    <div className="planner-web-candidate-links"><a href={plannerWebMapSearchUrl(candidate)} target="_blank" rel="noopener noreferrer">{text('在地图查找位置', 'Find location on map', '在地圖查找位置')} ↗</a>{candidate.sourceUrls.map(url => <a key={url} href={url} target="_blank" rel="noopener noreferrer">{new URL(url).hostname.replace(/^www\./, '')} ↗</a>)}</div>
     {children}
   </article>;
 }

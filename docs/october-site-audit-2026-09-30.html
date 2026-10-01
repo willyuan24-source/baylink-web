@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>BAYLINK · 2026 十月内容与网站验收报告</title>
+  <style>
+    :root{--ink:#173d32;--muted:#5e7068;--paper:#faf8f2;--line:#d8e0d7;--soft:#eef2e8;--accent:#b86639}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.75 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif}
+    main{max-width:1160px;margin:auto;padding:42px 30px 64px}header{padding-bottom:26px;border-bottom:2px solid var(--ink)}.eyebrow{font-size:12px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}h1{font-size:clamp(28px,4vw,42px);line-height:1.3;margin:12px 0 18px;letter-spacing:-.03em;text-wrap:balance}h2{font-size:24px;margin:42px 0 15px;line-height:1.4}h3{font-size:18px;margin:26px 0 8px}p{margin:10px 0}a{color:#17624c;text-underline-offset:3px;overflow-wrap:anywhere}a:hover{color:var(--accent)}a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}small,.muted{color:var(--muted)}strong{font-weight:650}
+    .status{display:inline-block;padding:4px 10px;background:var(--soft);border:1px solid var(--line);border-radius:6px;font-size:13px}.lead{max-width:900px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:25px 0}.stat{padding:18px;background:white;border:1px solid var(--line);border-radius:10px}.stat b{display:block;font-size:30px;line-height:1.2}.stat span{font-size:14px;color:var(--muted)}nav{display:flex;gap:9px 22px;flex-wrap:wrap;font-size:14px}section{scroll-margin-top:20px}.note{padding:15px 18px;border-left:3px solid var(--accent);background:#f4eee1;border-radius:0 7px 7px 0}.note p:first-child{margin-top:0}.note p:last-child{margin-bottom:0}.table-wrap{width:100%;overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:14px 13px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}th{background:var(--soft);font-weight:650}td:first-child{min-width:170px}.events td:nth-child(2){min-width:125px}.events td:nth-child(3){min-width:185px}.events td:last-child{min-width:240px}.area-table td,.area-table th{padding:10px 13px}.area-table td:first-child{min-width:100px}.tag{font-size:12px;color:var(--muted);display:block;margin-top:4px}.details{padding-left:22px}.details li{margin:10px 0}.links{padding:18px 22px;border:1px solid var(--line);border-radius:10px;background:white}.links a{display:block;margin:7px 0}footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}code{font-size:.88em;overflow-wrap:anywhere} @media(max-width:700px){main{padding:25px 17px 44px}.stats{grid-template-columns:repeat(2,1fr);gap:9px}.stat{padding:14px}.stat b{font-size:27px}h2{font-size:22px;margin-top:34px}.events,.events tbody,.events tr,.events td{display:block}.events thead{display:none}.events tr{padding:14px 0;border-bottom:1px solid var(--line)}.events td{padding:5px 0;border:0;min-width:0!important}.events td::before{content:attr(data-label);display:block;color:var(--muted);font-size:12px}.events td:first-child{font-weight:650}.table-wrap{overflow:visible}.area-table{font-size:13px}.area-table td,.area-table th{padding:9px 5px}.area-table td:first-child{min-width:0}}@media print{body{background:white;font-size:11pt}main{padding:0;max-width:none}nav{display:none}.stat,.note,.links{break-inside:avoid}a{color:inherit}.events tr{break-inside:avoid}h2{break-after:avoid}.table-wrap{overflow:visible}footer{font-size:9pt}}
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">BAYLINK · Content &amp; experience review</div>
+    <h1>2026 十月内容与网站验收报告</h1>
+    <p class="lead">本轮补充 14 条活动、7 项福利、2 家新店资讯及 3 条地区快讯，并修正日期理解、计划筛选及预约／小队状态展示。核验日期为 <strong>2026 年 9 月 30 日</strong>，以湾区时间为准；3D 玩法与场景不在本轮范围内。仅更新共用资料的兼容隔离表，让七条新旧金山活动等待独立导入游戏，避免网站更新自动破坏原有游戏映射。</p>
+    <span class="status">最终测试与上线状态：以本轮最终验收为准</span>
+  </header>
+
+  <div class="stats" aria-label="本轮内容数量">
+    <div class="stat"><b>14</b><span>新增活动 · 5 条综合 + 9 条社区</span></div>
+    <div class="stat"><b>7</b><span>新增福利 · 含付费会员优惠</span></div>
+    <div class="stat"><b>2</b><span>新增已营业店家资讯</span></div>
+    <div class="stat"><b>97</b><span>现有指南 · 未宣称全部重核</span></div>
+  </div>
+  <nav aria-label="报告目录"><a href="#scope">口径与覆盖</a><a href="#changes">体验修正</a><a href="#events">14 条活动</a><a href="#bulletins">3 条快讯与旧讯复核</a><a href="#offers">7 项福利</a><a href="#openings">2 家新店</a><a href="#next">待补与限制</a><a href="#acceptance">验收与资料</a></nav>
+
+  <section id="scope">
+    <h2>口径与五区覆盖</h2>
+    <p>10 月覆盖由 <strong>290 → 304 条活动记录</strong>，已通过本地页面的 10 月筛选与导出目录交叉确认。目录共 319 条活动，304 条是与 10 月相交的记录，不包含仅在 9 月已结束的活动，也不是每日场次之和；多日夜市、短片周和每周问答各保留一个活动记录，并按真实日期展开。</p>
+    <p>本轮保留旧内容，新增条目逐项记录官方来源与核验日。97 篇现有指南不等于 97 篇全文都已在本轮重新核验；旧资料没有批量更新核验日期。</p>
+    <p>当前总库存另有 <strong>102 项优惠</strong>（9/30 活跃 95 项）、<strong>46 家新店资讯</strong>及 <strong>97 篇指南</strong>。总库存、当天活跃数量与本轮新增数量分开统计，不能把历史优惠库存全当成今天可领取。</p>
+    <div class="table-wrap"><table class="area-table"><thead><tr><th>地区</th><th>活动</th><th>福利</th><th>新店</th><th>本轮补充重点</th></tr></thead><tbody>
+      <tr><td>旧金山</td><td>7</td><td>1</td><td>0</td><td>分馆亲子、求职、写作、社区历史与居民免票</td></tr>
+      <tr><td>东湾</td><td>2</td><td>1</td><td>1</td><td>免费短片、平日晚间社交、住户堆肥与 Fremont 新店</td></tr>
+      <tr><td>半岛</td><td>3</td><td>1</td><td>0</td><td>Palo Alto 社区活动、艺术开幕夜与 Woodside 讲座赠品</td></tr>
+      <tr><td>南湾</td><td>1</td><td>1</td><td>0</td><td>San Jose 夜市与教育工作者交流</td></tr>
+      <tr><td>北湾</td><td>1</td><td>1</td><td>1</td><td>Napa 历史导览、SMART 年龄免票与 Sonoma 新餐厅</td></tr>
+      <tr><td>跨区／线上</td><td>0</td><td>2</td><td>0</td><td>IKEA 两项会员付费优惠；不重复计入东湾及半岛</td></tr>
+      <tr><td><strong>合计</strong></td><td><strong>14</strong></td><td><strong>7</strong></td><td><strong>2</strong></td><td>这是新增分布，不代表全站五区存量或覆盖均衡程度</td></tr>
+    </tbody></table></div>
+    <p class="muted">另新增地区快讯 3 条：旧金山、东湾、半岛各 1 条，单独计数，不混入上表的活动、福利或新店。</p>
+  </section>
+
+  <section id="changes">
+    <h2>本轮体验与可靠性修正</h2>
+    <ul class="details">
+      <li><strong>具体日期与紧邻星期按同一天理解。</strong>例如“10 月 17 日周六”不再额外变成另一个周六；仍核对星期是否匹配，真正的备选日期不能被吞掉。</li>
+      <li><strong>已排除的地点不应重新进入计划。</strong>邻近地点补充继续遵守排除条件，并按实际出游日检查未开业、休息等可用性；不把直线相近写成步行可达。</li>
+      <li><strong>预约保存与通知结果分开说明。</strong>再次打开页面仍能看到已记录的通知异常；通知失败不等于预约失败，不诱导重复预约。短信提交不代表手机已收到。</li>
+      <li><strong>失去成员权限后清理旧讨论。</strong>确认无权访问时隐藏先前读取的消息、举报面板及发送入口；临时网络失败保留未发草稿，恢复访问前重新核实权限。</li>
+      <li><strong>首页增加找搭子入口。</strong>把活动发现与真实小队衔接起来；收藏想去、申请小队、主办方正式报名和服务预约仍是不同动作，不自动公开收藏或完成报名。</li>
+      <li><strong>站外候选增加地图查询出口。</strong>帮助用户自行核对地点与交通；地图查询链接不等于已验证路线、实时营业、最终票价或预约成功。</li>
+    </ul>
+    <p class="muted">以上为本轮纳入的修正范围，不代表生产环境已发布；功能、语言、手机端及回归结果以本轮最终验收为准。</p>
+  </section>
+
+  <section id="events">
+    <h2>14 条新增活动与官方依据</h2>
+    <p>以下均为 <strong>2026 年 10 月</strong>。时间使用当地时间；“免费”仅覆盖明确写明的项目，未写费用的活动不自动标为免费。点击活动名可到官方页面核对最新安排。</p>
+    <div class="table-wrap"><table class="events"><thead><tr><th>活动与来源</th><th>日期／时间</th><th>费用与资格</th><th>需保留的边界</th></tr></thead><tbody>
+      <tr><td data-label="活动"><a href="https://www.365nightmarket.com/event-details/365-night-market-at-grand-century-mall-san-jose-2026-10-30-16-00">San Jose 365 Night Market</a><span class="tag">南湾 · 主办方</span></td><td data-label="时间">10/30–31<br>每日开放时段待确认</td><td data-label="费用">入场免费；餐饮购物另付</td><td data-label="边界">官网合并列 10/30 16:00 至 10/31 22:00，不代表通宵。先核对当天时段、RSVP 与摊位。</td></tr>
+      <tr><td data-label="活动"><a href="https://www.drunkenfilmfest.com/2026-program">Oakland Drunken Film Fest 免费短片周</a><span class="tag">东湾 · 主办方节目单</span></td><td data-label="时间">10/4–9<br>每天不同场地；开映待确认</td><td data-label="费用">这六晚短片免费；餐饮另付</td><td data-label="边界">不包含 10/3 另售票的开幕长片。按日期核对场地、RSVP 和年龄限制，不默认适合儿童。</td></tr>
+      <tr><td data-label="活动"><a href="https://donapa.com/event/heritage-halloween-tulocay-cemetery-tour/">Napa Tulocay 历史步行导览</a><span class="tag">北湾 · Downtown Napa / NCHS</span></td><td data-label="时间">10/24<br>16:00–17:30</td><td data-label="费用">非会员 $45；NCHS 会员 $30</td><td data-label="边界">附加费与余票看售票页；路线含陡坡。提前核对集合点及行动辅助需求。</td></tr>
+      <tr><td data-label="活动"><a href="https://www.paloalto.gov/Events-Directory/City-Manager/Thursday-Live-on-Cal-Ave.-October-31">Cal Ave 万圣节街区音乐日</a><span class="tag">半岛 · Palo Alto 市府</span></td><td data-label="时间">10/31 周六<br>暂定 10:00–13:00</td><td data-label="费用">活动免费；餐饮购物另付</td><td data-label="边界">官方日期栏列 10–13 点，正文仍称 10 点暂定，临行复核；系列名 Thursday Live 不代表本场在周四。赠品不保证供应。</td></tr>
+      <tr><td data-label="活动"><a href="https://www.visitconcordca.com/events/sidegate-trivia-night-with-geeks-who-drink/">Concord Side Gate 周三知识问答</a><span class="tag">东湾 · Visit Concord</span></td><td data-label="时间">10/7、14、21、28<br>18:30 签到，19:00 开始；官方窗口至 20:30</td><td data-label="费用">参加费用未明确</td><td data-label="边界">先确认收费、预约、年龄与组队条件；不是整个月每天举办。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/08/activity-stem-free-play">Ocean View STEM 自由探索游戏</a><span class="tag">旧金山 · SFPL</span></td><td data-label="时间">10/8<br>15:30–16:30</td><td data-label="费用">费用未明确；3 岁及以上儿童与照护者</td><td data-label="边界">Free Play 指自由游戏，不是费用证据。场地为 Ocean View Meeting Room，容量和临时调整向分馆确认。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/07/activity-lego-free-play">Richmond LEGO 自由搭建</a><span class="tag">旧金山 · SFPL</span></td><td data-label="时间">10/7<br>16:00–17:30</td><td data-label="费用">费用未明确；5 岁及以上儿童</td><td data-label="边界">本场是 Richmond 分馆，不与其他同名活动混淆；Free Play 不单独证明免费。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/08/workshop-career-coaching">SFPL 一对一职业咨询</a><span class="tag">旧金山 · SFPL Main Library</span></td><td data-label="时间">10/8<br>11:00–13:00 服务窗口</td><td data-label="费用">免费；每次 30 分钟，须预约</td><td data-label="边界">最多提前 15 天预约、每人限 2 次，仅现场；两小时是服务窗口，不是用户已订时段。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/08/workshop-writing-hard-enough-shift-gravity">Writing Hard Enough to Shift Gravity 写作工坊</a><span class="tag">旧金山 · SFPL Main Library</span></td><td data-label="时间">10/8<br>18:00–19:15</td><td data-label="费用">免费写作工坊</td><td data-label="边界">正文称练习约一小时；安排保留日历完整 75 分钟窗口。临时调整以图书馆公告为准。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/24/celebration-western-addition-open-house">Western Addition 社区开放日</a><span class="tag">旧金山 · SFPL</span></td><td data-label="时间">10/24<br>12:00–16:00</td><td data-label="费用">免费娱乐与点心</td><td data-label="边界">节目和食物供应以现场为准；不包含交通及个人消费。活动涉及后院和馆内空间。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/17/presentation-ocean-view-merced-heights-and-ingleside-history-day">OMI History Day 社区历史日</a><span class="tag">旧金山 · SFPL Ingleside Library</span></td><td data-label="时间">10/17<br>15:00–17:00</td><td data-label="费用">免费；无需历史背景</td><td data-label="边界">在 Ingleside Meeting Room 了解三个社区历史，地点和最新安排看本场页面。</td></tr>
+      <tr><td data-label="活动"><a href="https://sfpl.org/events/2026/10/10/workshop-garden-green-bin-climate-action-home">从花园到绿桶：家庭气候行动</a><span class="tag">旧金山 · SFPL Main Library</span></td><td data-label="时间">10/10<br>11:00–12:30</td><td data-label="费用">本场入场费未明确</td><td data-label="边界">页面提到居民免费堆肥，不能据此承诺本场免费或现场一定可领堆肥。</td></tr>
+      <tr><td data-label="活动"><a href="https://www.paloalto.gov/Events-Directory/Community-Services/Pet-Parade">Palo Alto Pet Palooza 宠物游行</a><span class="tag">半岛 · Palo Alto 市府</span></td><td data-label="时间">10/17<br>10:00–12:00</td><td data-label="费用">免费；须预先报名</td><td data-label="边界">通过官方 Register Here 完成报名；行为良好的宠物与毛绒玩具可参加，具体管理及比赛细则看市府要求。</td></tr>
+      <tr><td data-label="活动"><a href="https://paacf.org/event/friday-night-at-the-art-center-live-the-moment-light-opening-reception/">Palo Alto Art Center 公众开幕夜</a><span class="tag">半岛 · 艺术中心基金会</span></td><td data-label="时间">10/2<br>18:00–20:00</td><td data-label="费用">公众免费；餐食和酒水另付</td><td data-label="边界">仅列公众窗口，不包含更早的会员预览。免费艺术创作与付费餐饮分别说明，报名入口见官方页面。</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="bulletins">
+    <h2>3 条新增快讯与原有 5 条复核</h2>
+    <p>新增快讯已接入地区资讯入口，逐项核对官方来源。这些是交通或机构服务公告，不是新的活动或免费福利；页面展示截止日也不代表工程结束、机构重开或服务恢复日期。</p>
+    <div class="table-wrap"><table class="events"><thead><tr><th>快讯／官方来源</th><th>日期与影响</th><th>适用范围及边界</th></tr></thead><tbody>
+      <tr><td data-label="快讯"><a href="https://www.bart.gov/news/articles/2026/news20260902">BART 黄线数字铁路施工</a><span class="tag">东湾 · BART</span></td><td data-label="日期">10/5–8、12–14、20–21 工程夜晚；午夜前开工，午夜起可能延误 10–15 分钟</td><td data-label="边界">仅 North Concord/Martinez 至 Pittsburg/Bay Point 区间。行程跨午夜，预计次日正常开行前结束；须核对乘车日期、末班车和当晚公告。不要与另一段黄线 20–30 分钟延误的工程混为一谈。</td></tr>
+      <tr><td data-label="快讯"><a href="https://smcl.org/locations/1W/">Woodside 图书馆十月闭馆日</a><span class="tag">半岛 · San Mateo County Libraries</span></td><td data-label="日期">10/1 培训闭馆；10/11–12 节日闭馆，均为全天</td><td data-label="边界">仅适用于 Woodside 分馆所列日历，不能推广为所有 SMCL 分馆或湾区图书馆统一闭馆；取书、活动及借还书须另看本馆实际时段。</td></tr>
+      <tr><td data-label="快讯"><a href="https://www.milibrary.org/about-us/renovation/">Mechanics’ Institute 装修安排</a><span class="tag">旧金山 · 机构官网</span></td><td data-label="日期">10/1–3 图书馆二、三楼关闭；10/5 二楼重开，三楼预计十二月中旬重开</td><td data-label="边界">预计工期可能调整，部分节目移址或改线上。该机构不等同免费公共图书馆；去 57 Post Street 前需核对开放楼层、活动地点及参加资格，不据此承诺免费使用。</td></tr>
+    </tbody></table></div>
+    <h3>原有 5 条快讯：复核保留，不重复计为新增</h3>
+    <p>本轮亦对照官方来源复核了下列旧讯：<a href="https://www.sfmta.com/travel-updates/37-corbett-resumes-30-foot-bus-service-monday-september-28-2026">37 Corbett 恢复原进城路线</a>、<a href="https://smcl.org/blogs/post/homework-help-and-learning-resources/">SMCL Tutor.com 学习资源</a>、<a href="https://www.vta.org/projects/notices/upcoming-long-term-wolfe-road-northbound-i-280-ramp-closure-beginning-october-2">Wolfe Road 北向 I-280 上匝道关闭</a>、<a href="https://www.bart.gov/news/articles/2025/news20250326-1">Lafayette–Pleasant Hill 黄线深夜施工</a>、<a href="https://sonomalibrary.org/visit/locations/rohnertparkcotati">Rohnert Park–Cotati 临时取书点</a>。</p>
+    <p>保留各自限制：公交恢复仅指公告方向与站点；学习资源需核对对应图书馆入口；匝道施工预计约一年而非确定重开承诺；旧黄线工程需核对跨午夜日期；Library To Go 并非完整分馆服务，打印、复印等并未恢复。复核这些公告不等于重新核验全部历史资讯。</p>
+  </section>
+
+  <section id="offers">
+    <h2>7 项新增福利：免费与优惠分清楚</h2>
+    <div class="table-wrap"><table class="events"><thead><tr><th>福利／官方来源</th><th>时间</th><th>获得条件与边界</th></tr></thead><tbody>
+      <tr><td data-label="福利"><a href="https://www.sfzoo.org/calendar/sf-resident-free-day-5/">SF Zoo 居民免费日</a><span class="tag">旧金山 · 免入场费</span></td><td data-label="时间">10/7，10:00–16:00</td><td data-label="条件">SF 居民凭政府签发的地址证明，每份合格证件一人；停车餐饮另付，无本人证件或同行儿童的核验方式先问园方。</td></tr>
+      <tr><td data-label="福利"><a href="https://www.hayward-ca.gov/discover/events/compost-giveaway-oct-24-2026">Hayward 堆肥领取</a><span class="tag">东湾 · 限量赠品</span></td><td data-label="时间">10/24，07:30–10:30</td><td data-label="条件">Hayward 住户、须按官方要求签 waiver；每户 4 袋，供应有限，不代表已预留。</td></tr>
+      <tr><td data-label="福利"><a href="https://www.woodsideca.gov/CivicAlerts.aspx?AID=104">Woodside 讲座赠堆肥</a><span class="tag">半岛 · 参加活动后领取</span></td><td data-label="时间">10/12，18:00 开门、18:30 开讲</td><td data-label="条件">现场参加者可先到先得领一袋，送完即止；公告未给结束时间、报名要求或其他待遇。</td></tr>
+      <tr><td data-label="福利"><a href="https://www.ikea.com/us/en/customer-service/terms-and-conditions-pub88f6a8d0/">IKEA 会员餐饮价</a><span class="tag">跨区 · 需消费、需会员</span></td><td data-label="时间">9/15–10/15</td><td data-label="条件">Family 会员堂食：指定鸡肉餐 $7.99、蛋糕切片 $1.99，税前、不可叠加、售完即止。先查 Emeryville／East Palo Alto 餐厅，不是免费儿童餐。</td></tr>
+      <tr><td data-label="福利"><a href="https://www.ikea.com/us/en/customer-service/terms-and-conditions-pub88f6a8d0/">IKEA 指定 KUSTFYR 八折</a><span class="tag">跨区／线上 · 需消费、需会员</span></td><td data-label="时间">9/8–10/12</td><td data-label="条件">Family 或 Business Network 会员；仅指定商品减 20%，不能叠加，库存有限，电池另售。</td></tr>
+      <tr><td data-label="福利"><a href="https://www.sonomamarintrain.org/fares">SMART 青少年与长者免票</a><span class="tag">北湾 · 年龄资格</span></td><td data-label="时间">9/30 核对的现行政策</td><td data-label="条件">0–18 岁及 65 岁及以上，无需车票；普通成人仍付费。不延伸到渡轮或其他公交，也不是十月全体乘客免费日。</td></tr>
+      <tr><td data-label="福利"><a href="https://outreach-foundation.org/programs/teachers-tacos/">Teachers &amp; Tacos</a><span class="tag">南湾 · <a href="https://www.thetech.org/upcomingevents">The Tech 免费报名说明</a></span></td><td data-label="时间">10/23，16:00–18:00</td><td data-label="条件">面向教育工作者，须经官方报名确认；不等于普通游客全馆全天免费，也不保证家属或学生自动符合资格。</td></tr>
+    </tbody></table></div>
+  </section>
+
+  <section id="openings">
+    <h2>2 家新店：已营业资讯，不写成十月全部首开</h2>
+    <ul class="details">
+      <li><strong>Sucré d’Amour Café &amp; Sushi · Fremont。</strong><a href="https://www.sucredamourca.com/">官网</a>已列营业与点单；<a href="https://content.govdelivery.com/bulletins/gd/CAFREMONT-4293ade?wgt_ref=CAFREMONT_WIDGET_5">市府九月通讯</a>预告 10/11 11:30 开业庆典。庆典日不是已核实的首营业日；餐饮需付费，官网赠袋图片的有效期与条件未核清，不承诺十月赠品。</li>
+      <li><strong>Dead Letter · Sonoma。</strong><a href="https://www.sonomacounty.com/media/whats-new/whats-new-in-sonoma-county-late-summer-early-fall-2026/">旅游局 9/1 文章</a>已介绍其营业，<a href="https://www.deadlettersonoma.com/location/dead-letter/">餐厅官网</a>提供时间与地址。按初秋新店发现发布，文章日期不是开业日；未找到可信首日，不填写首开日期，也未声称有开业折扣或亲测评分。</li>
+    </ul>
+  </section>
+
+  <section id="next">
+    <h2>待补方向与发布边界</h2>
+    <p>本轮较多补充旧金山平日社区活动；南湾、北湾仍值得继续寻找<strong>无车可达、亲子、晚间、低消费</strong>且有明确时间与资格的项目。五区已各有新增，不表示各城市、各人群已均衡覆盖。</p>
+    <ul class="details">
+      <li><strong>等待官方后续公告：</strong>San Jose 夜市每日时段、Cal Ave 暂定时间、短片周开映／限龄、Concord 费用等仍须临行复核，不能用 AI 或往年习惯补成确定值。</li>
+      <li><strong>Instagram 与博主只作发现线索：</strong>无法读取或缺少可核验的 2026 日期、资格、价格时，不升级为已确认活动、已开业或赠品保证；未完成核验的线索留在研究记录。</li>
+      <li><strong>折扣需要具体条件：</strong>特别菜单不等于优惠，免费入场不包含餐饮购物；九月已结束的优惠不能自动延长至十月。供应有限与报名成功必须分别说明。</li>
+      <li><strong>图片与核验日期不夸大：</strong>沿用的情境插画不是活动实拍、门票或商家产品照片；9/30 是本轮核验日，不是来源发布时间、开业日或永久有效保证。</li>
+      <li><strong>付费 API 仅做评估：</strong>先补现有来源、费用与时间解释，再评估按需路线与地点查询；511、票务及 Instagram 能力另按真实需要排序。本轮没有新开通付费供应商，预算示例不等于报价或费用硬上限。</li>
+    </ul>
+  </section>
+
+  <section id="acceptance">
+    <h2>验收状态与进一步资料</h2>
+    <div class="note"><p><strong>内容与关键流程已完成本地复核。</strong>已确认 304 条十月活动、319 条活动目录、79 个计划地点和 97 篇指南的导出；手机端检验了日期搜索、月度搜索转计划、预约与小队入口。回归发现并修正了来源标题漏译、新详情路由遗漏、活动准备步骤不足及测试 CSS 加载器清理时机问题。相关路由、英文、快讯到期及账号隔离回归 39/39 通过，活动数据与社区活动回归 28/28 通过；后端完整回归 371/371 通过。正式构建、完整前端检查与生产部署状态以本次交付消息及 <a href="https://github.com/willyuan24-source/baylink-web/actions/workflows/check.yml">Website checks 流水线</a>为准。以上不表示每一个旧条目都在本轮重新人工核验。</p></div>
+    <p>预约和小队的本地合成测试不能证明真实短信必定送达、生产压力表现或线下履约；本轮没有代替用户报名、购票、消费或公开个人资料。</p>
+    <div class="links" aria-label="相关专项报告">
+      <a href="october-refresh-sources-2026-09-30.html">优惠与新店：逐项来源、未采纳线索和发布边界</a>
+      <a href="booking-outings-review-2026-09-30.md">服务预约与一起去：修正项、隐私约束及专项验证限制</a>
+      <a href="search-planning-api-evaluation-2026-09-30.md">搜索与计划 API：现有能力、推荐顺序、成本单位和接入限制</a>
+    </div>
+  </section>
+  <footer>报告日期：2026-09-30 · America/Los_Angeles。独立静态报告，无跟踪脚本。官方安排可能更新，请以对应主办方或机构最新公告为准。</footer>
+</main>
+</body>
+</html>

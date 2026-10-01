@@ -3,6 +3,8 @@ import { afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
 import type { Recommendations } from '../src/lib/planner';
+import type { AppContextValue } from '../src/app/context';
+import type { UserData } from '../src/lib/types';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/plan' });
 Object.assign(globalThis, {
@@ -11,7 +13,7 @@ Object.assign(globalThis, {
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');
-const { MemoryRouter, Routes, Route, useLocation } = await import('react-router-dom');
+const { MemoryRouter, Routes, Route, useLocation, Outlet } = await import('react-router-dom');
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
 const { api } = await import('../src/lib/api');
@@ -21,6 +23,7 @@ const { getGuideMedia } = await import('../src/data/guide-media');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { setLocale } = await import('../src/i18n/locale');
 const originalRequest = api.request;
+const account = { id: 'planner-user', token: 'planner-token', nickname: 'Planner user', role: 'user', isBanned: false } as UserData;
 
 // This published event spans three days: the requested day is deliberately not its first day.
 const event = PLANNER_EVENTS.find(row => row.id === 'ai-conference-sf-2026')!;
@@ -55,6 +58,14 @@ async function ask(view: View) {
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '帮我挑选方案' })); });
   assert.ok(view.getByRole('heading', { name: '有依据的出游建议' }));
 }
+async function openAccountPlanner(search: string) {
+  localStorage.setItem('currentUser', JSON.stringify(account));
+  let view!: View;
+  await act(async () => {
+    view = render(<MemoryRouter initialEntries={['/plan' + search]}><Routes><Route element={<Outlet context={{ user: account, setShowLogin: () => {} } as AppContextValue}/>}><Route path="/plan" element={<PlannerPage/>}/></Route></Routes></MemoryRouter>);
+  });
+  return view;
+}
 
 beforeEach(context => {
   context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
@@ -63,6 +74,50 @@ beforeEach(context => {
   api.request = async () => { throw new Error('Unexpected API call in guest planner test'); };
 });
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
+
+test('failed initial account reads keep favorites unknown and saving disabled, then restore real preferences on retry', async () => {
+  let fail = true, writes = 0;
+  api.request = async (path, options) => {
+    if (options?.method) { writes++; throw new Error('Unexpected write'); }
+    if (path === '/planner/me') {
+      if (fail) throw { status: 503 };
+      return { plans: [], favorites: [{ kind: 'place', id: 'golden-gate' }], preferences: { regions: ['sf'], interests: [], travelMode: 'transit' } };
+    }
+    throw new Error(`Unexpected read: ${path}`);
+  };
+  const view = await openAccountPlanner('?date=2026-09-30&stops=place:golden-gate');
+  assert.equal((view.getByLabelText('地区') as HTMLSelectElement).value, 'all');
+  assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'any');
+  const unavailable = within(view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement).getByRole('button', { name: '收藏状态待载入' });
+  assert.equal(unavailable.getAttribute('aria-pressed'), null);
+  assert.equal((unavailable as HTMLButtonElement).disabled, true);
+  const save = editor(view).getByRole('button', { name: '保存这份计划' }); assert.equal((save as HTMLButtonElement).disabled, true);
+  fireEvent.click(save); fireEvent.click(unavailable); assert.equal(writes, 0);
+  fail = false; await act(async () => { fireEvent.click(view.getByRole('button', { name: '刷新账号资料' })); });
+  assert.equal((view.getByLabelText('地区') as HTMLSelectElement).value, 'sf', 'the failed read must not consume preference initialization');
+  assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'transit');
+  const favorite = within(view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement).getByRole('button', { name: '取消收藏' });
+  assert.equal(favorite.getAttribute('aria-pressed'), 'true'); assert.equal((favorite as HTMLButtonElement).disabled, false);
+  assert.equal((editor(view).getByRole('button', { name: '保存这份计划' }) as HTMLButtonElement).disabled, false);
+});
+
+test('an edit link waits through a failed read and hydrates the saved plan after recovery', async () => {
+  let fail = true;
+  const saved = { id: 'recover-plan', title: '账号里原来的计划', date: '2026-10-17', stops: [{ kind: 'place', id: 'golden-gate' }], createdAt: '2026-09-23', updatedAt: '2026-09-23', version: 4 };
+  api.request = async path => {
+    assert.equal(path, '/planner/me');
+    if (fail) throw { status: 503 };
+    return { plans: [saved], favorites: [], preferences: { regions: ['sf'], interests: [], travelMode: 'walk' } };
+  };
+  const view = await openAccountPlanner('?edit=recover-plan');
+  assert.equal((editor(view).getByRole('button', { name: '保存这份计划' }) as HTMLButtonElement).disabled, true);
+  assert.equal(view.queryByText(/找不到计划|未找到.*计划/), null, 'a failed read cannot establish that the plan is missing');
+  fail = false; await act(async () => { fireEvent.click(view.getByRole('button', { name: '刷新账号资料' })); });
+  assert.equal((editor(view).getByLabelText('计划名称') as HTMLInputElement).value, saved.title);
+  assert.equal((editor(view).getByLabelText('日期') as HTMLInputElement).value, saved.date);
+  assert.equal(within(editor(view).getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length, 1);
+  assert.equal((editor(view).getByRole('button', { name: '更新这份计划' }) as HTMLButtonElement).disabled, false);
+});
 
 test('selecting an attraction reveals its real photograph and changing selection removes the previous preview', async () => {
   const view = await openPlanner();

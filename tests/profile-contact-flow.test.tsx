@@ -35,6 +35,7 @@ test('cancelled profile contact login does not resume after a later unrelated si
       onChat={contact.openChat} onLoginNeeded={() => { loginRequests += 1; }} />;
   }
   const view = render(<Harness />);
+  await act(async () => {});
   await view.findByRole('button', { name: '登录后发私信' });
   await act(async () => fireEvent.click(view.getByRole('button', { name: '登录后发私信' })));
   assert.equal(loginRequests, 1);

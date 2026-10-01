@@ -10,7 +10,7 @@ import { TrustBadge } from '../../components/TrustBadge';
 import { SavedPostsPanel } from '../../components/SavedPostsPanel';
 import { OfficialVerificationModal } from '../../components/OfficialVerificationModal';
 import {
-  calcProfileCompletion, getJoinDays, getMyOfficialTrustLabel,
+  getJoinDays, getMyOfficialTrustLabel,
   getOfficialTypeLabel, getPhoneVerificationTrustLabel,
 } from '../../lib/format';
 import type { UserData, PostData } from '../../lib/types';
@@ -21,6 +21,7 @@ import { ProfileIdentity, ProfileShareButton } from './ProfileIdentity';
 import { Link } from 'react-router-dom';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
 import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
+import { ProfileActivityLinks, ProfilePersonalSpace } from './ProfilePersonalSpace';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
@@ -40,7 +41,6 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
   const [showOfficialModal, setShowOfficialModal] = useState(false);
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
-  const completion = user ? calcProfileCompletion(user) : 0;
 
 
   if (!user) return (
@@ -97,17 +97,9 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
             </ProfileIdentity>
           </div>
 
-          {completion < 100 && (
-            <div className="member-profile-completion">
-              <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-baylink-text">资料完成度 {completion}%</p><p className="mt-1 text-xs text-baylink-text-secondary leading-relaxed">完善地区、兴趣和简介，让附近用户更容易认识你。</p><div className="member-completion-track" role="progressbar" aria-label="资料完成度" aria-valuenow={completion} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${completion}%` }} /></div></div>
-              <button type="button" onClick={() => setSubView('edit_profile')} className="member-text-action shrink-0">去完善<ArrowUpRight size={15} aria-hidden="true" /></button>
-            </div>
-          )}
-
+          <ProfileActivityLinks />
+          <ProfilePersonalSpace user={user} onEdit={() => setSubView('edit_profile')} />
           <SavedPostsPanel key={user.id} userId={user.id} />
-          <Link to="/my-week" className="member-menu-row"><strong>我的这周</strong><ArrowUpRight size={18} /></Link>
-          <Link to="/me/bookings" className="member-menu-row"><strong>服务预约</strong><span>我预约的 · 我收到的</span><ArrowUpRight size={18} /></Link>
-          <Link to="/together?view=mine" className="member-menu-row"><strong>我的小队</strong><span>申请 · 已确认 · 我发起的</span><ArrowUpRight size={18} /></Link>
 
           <div className="member-profile-panel">
             <h2 className="member-panel-title">信任信息</h2>

@@ -20,6 +20,7 @@ await import('../src/i18n/router');
 const { AboutContent } = await import('../src/components/AboutContent');
 const { ProfileView } = await import('../src/features/profile/ProfileView');
 const { api } = await import('../src/lib/api');
+const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { setLocale } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
@@ -65,7 +66,11 @@ test('About keeps its assistant action and navigation usable when switching Engl
 
 test('guest and signed-in About entries open the same public page without requesting the old editable content', async t => {
   const requests: string[] = [];
-  t.mock.method(api, 'request', async (path: string) => { requests.push(path); return {}; });
+  let plannerReads = 0;
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/planner/me') { plannerReads++; return structuredClone(EMPTY_LIBRARY); }
+    requests.push(path); return {};
+  });
   const user: UserData = { id: 'about-viewer', nickname: 'Neighbor', email: '', role: 'user', contactType: 'wechat', contactValue: '' };
   for (const currentUser of [null, user]) {
     const view = render(<MemoryRouter initialEntries={['/me']}><Routes>
@@ -77,4 +82,5 @@ test('guest and signed-in About entries open the same public page without reques
     view.unmount();
   }
   assert.deepEqual(requests, []);
+  assert.equal(plannerReads, 1, 'only the signed-in profile reads its private planner library');
 });

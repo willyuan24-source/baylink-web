@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://www.baylink.us/</loc></url>
   <url><loc>https://www.baylink.us/guides</loc></url>
-  <url><loc>https://www.baylink.us/this-month</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/this-month</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/calendar</loc></url>
   <url><loc>https://www.baylink.us/explore</loc></url>
   <url><loc>https://www.baylink.us/plan</loc></url>
@@ -91,7 +91,7 @@
   <url><loc>https://www.baylink.us/guides/east-bay-tilden-october-family-guide-2026</loc><lastmod>2026-09-15</lastmod></url>
   <url><loc>https://www.baylink.us/guides/north-bay-china-camp-october-culture-guide-2026</loc><lastmod>2026-09-15</lastmod></url>
   <url><loc>https://www.baylink.us/guides/bay-area-october-library-museum-pass-guide-2026</loc><lastmod>2026-09-15</lastmod></url>
-  <url><loc>https://www.baylink.us/guides/bay-area-freebies-deals-2026-10</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/guides/bay-area-freebies-deals-2026-10</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/guides/bay-area-october-muni-clipper-payment-update-2026</loc><lastmod>2026-09-23</lastmod></url>
   <url><loc>https://www.baylink.us/guides/sf-sunset-dunes-october-coastal-walk-2026</loc><lastmod>2026-09-23</lastmod></url>
   <url><loc>https://www.baylink.us/guides/san-mateo-japanese-garden-october-guide-2026</loc><lastmod>2026-09-23</lastmod></url>
@@ -162,6 +162,7 @@
   <url><loc>https://www.baylink.us/events/oakland-civic-ai-design-sprint-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/oakland-first-fridays-health-harmony-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/oakland-oacc-mending-circle-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/palo-alto-art-center-reception-oct2-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/pleasanton-pumpkins-after-dark-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/rio-vista-bass-derby-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-jose-first-friday-ballet-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -202,6 +203,7 @@
   <url><loc>https://www.baylink.us/events/litquake-out-loud-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/little-italy-san-jose-festival-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/millbrae-japanese-culture-festival-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/oakland-drunken-film-fest-free-shorts-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-marin-family-keepsake-20261004</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-vallejo-wonder-sundays-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-francisco-fleet-week-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -216,17 +218,22 @@
   <url><loc>https://www.baylink.us/events/east-bay-aespa-live-tour-synk-complaexity-in-oakland-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-leandro-library-game-night-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-warriors-lakers-preseason-2026</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://www.baylink.us/events/concord-sidegate-trivia-october-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/napa-water-wise-workshops-oct2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-marin-coffee-curator-20261007</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-lorenzo-banned-books-storytime-oct7-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-ai-infra-scale-dinner-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-rod-wave-2026</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-richmond-lego-oct7-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/sj-sombr-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/stanford-noon-guitar-oct-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/corte-madera-wooden-sugar-skull-painting-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-rafael-civic-center-puzzle-swap-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-exploratorium-after-dark-08-oct2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-quinteto-latino-lunchtime-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-career-coaching-oct8-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-ocean-view-stem-oct8-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-writing-gravity-oct8-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/silicon-valley-african-film-festival-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/uptown-creed-bratton-an-evening-of-music-tales-from-the-office-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/marinwood-halloween-harvest-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -261,6 +268,7 @@
   <url><loc>https://www.baylink.us/events/san-lorenzo-metal-milagros-oct10-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/santa-clara-library-comic-con-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-warriors-kings-preseason-2026</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-garden-green-bin-oct10-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/sj-sharks-oilers-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/sonoma-harvest-fair-gala-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sonoma-womens-suffrage-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -308,6 +316,7 @@
   <url><loc>https://www.baylink.us/events/mcm-food-sense-20261017</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/menlo-heritage-harvest-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/oakland-vintage-fashion-faire-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/palo-alto-pet-palooza-oct17-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/point-reyes-halloween-clothing-swap-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-benicia-witching-wine-walk-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-calistoga-ghost-stories-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -324,6 +333,7 @@
   <url><loc>https://www.baylink.us/events/sf-marina-library-open-house-oct17-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-potrero-hill-festival-oct17-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-sunnydale-pumpkin-fest-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-omi-history-day-oct17-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/sonoma-dia-movie-night-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/stanford-football-elon-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/sunnyvale-hands-on-arts-2026</loc><lastmod>2026-09-28</lastmod></url>
@@ -368,6 +378,7 @@
   <url><loc>https://www.baylink.us/events/hayward-trunk-treat-mobile-rec-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/menlo-park-halloween-hoopla-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/mountain-view-monster-bash-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/napa-tulocay-heritage-halloween-tour-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/petaluma-coco-matinee-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/petaluma-witches-wizards-water-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-marin-boyd-house-oct-tour-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -382,6 +393,7 @@
   <url><loc>https://www.baylink.us/events/sf-financial-planning-day-oct24-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-fishermans-wharf-chowder-fest-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-thrive-thrill-o-ween-2026</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://www.baylink.us/events/sfpl-western-addition-open-house-oct24-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/sj-symphonic-spooktacular-2026</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/windsor-trick-or-treat-trail-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/ameswell-barks-boos-2026</loc><lastmod>2026-09-29</lastmod></url>
@@ -414,10 +426,12 @@
   <url><loc>https://www.baylink.us/events/oakland-omca-friday-finale-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/palo-alto-addams-family-opening-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/r2-american-canyon-halloween-party-2026</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/events/san-jose-365-night-market-october-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-leandro-senior-halloween-bingo-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/stanford-halloween-concert-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/vacaville-boo-bash-20261030</loc><lastmod>2026-09-28</lastmod></url>
   <url><loc>https://www.baylink.us/events/mcm-halloween-spectacular-20261031</loc><lastmod>2026-09-28</lastmod></url>
+  <url><loc>https://www.baylink.us/events/palo-alto-cal-ave-halloween-live-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/events/san-jose-avenida-altares-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-halloween-hoopla-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/events/sf-opera-figaro-opening-2026</loc><lastmod>2026-09-28</lastmod></url>
@@ -484,6 +498,13 @@
   <url><loc>https://www.baylink.us/offers/oakland-zoo-resident-discount</loc><lastmod>2026-09-27</lastmod></url>
   <url><loc>https://www.baylink.us/offers/marin-transit-clean-air-oct7-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/offers/napa-costume-exchange-oct3-2026</loc><lastmod>2026-09-27</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/sf-zoo-resident-free-oct7-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/hayward-compost-giveaway-oct24-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/woodside-compost-workshop-gift-oct12-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/ikea-family-heritage-meal-oct15-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/ikea-kustfyr-halloween-oct12-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/smart-youth-senior-fare-free</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/offers/tech-teachers-tacos-oct23-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/offers/concord-taco-trail-challenge-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/offers/san-jose-airport-coffee-day-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/offers/sf-opera-dolby-figaro-offer-2026</loc><lastmod>2026-09-28</lastmod></url>
@@ -518,6 +539,8 @@
   <url><loc>https://www.baylink.us/offers/chase-center-ticket-muni-included</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/offers/south-novato-the-shop-free-makerspace</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/offers/marin-city-the-lab-free-makerspace</loc><lastmod>2026-09-29</lastmod></url>
+  <url><loc>https://www.baylink.us/openings/dead-letter-sonoma-new-restaurant-2026</loc><lastmod>2026-09-30</lastmod></url>
+  <url><loc>https://www.baylink.us/openings/sucre-damour-fremont-celebration-2026</loc><lastmod>2026-09-30</lastmod></url>
   <url><loc>https://www.baylink.us/openings/walnut-creek-vici-new-store-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/openings/san-jose-bitterbuck-soft-opening-2026</loc><lastmod>2026-09-29</lastmod></url>
   <url><loc>https://www.baylink.us/openings/santa-clara-cider-valley-fair-opening-2026</loc><lastmod>2026-09-29</lastmod></url>

@@ -1,6 +1,6 @@
 // 编辑资料全屏弹层 + 手机号验证弹窗 + 标签选择字段
-import React, { useRef, useState } from 'react';
-import { X, ShieldCheck, Camera, Smartphone, Check, Loader2, ImagePlus, LockKeyhole, Globe2, Palette, Trash2 } from 'lucide-react';
+import React, { useId, useRef, useState } from 'react';
+import { X, ShieldCheck, Camera, Smartphone, Check, Loader2, ImagePlus, LockKeyhole, Globe2, Palette, Trash2, Users } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
 import type { UserData } from '../../lib/types';
@@ -9,8 +9,9 @@ import { friendlyErrorMessage, getPhoneVerificationTrustLabel, validateContactVa
 import { UnsupportedImageError } from '../../utils/imageCompression';
 import { prepareProfileImage } from './profile-images';
 import { ProfileIdentity } from './ProfileIdentity';
-import { PROFILE_THEMES, resolveProfileTheme } from './profile-personality';
+import { PROFILE_THEMES, resolveProfileTheme, SOCIAL_INTENTS, normalizeSocialIntents, appendProfilePrompt } from './profile-personality';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
+import { translateText, useLocale } from '../../i18n/locale';
 
 const ProfileTagField = ({
   label,
@@ -29,6 +30,7 @@ const ProfileTagField = ({
   onChange: (next: string[]) => void;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }) => {
+  const inputId = useId();
   const [custom, setCustom] = useState('');
   const toggle = (tag: string) => {
     if (tags.includes(tag)) {
@@ -53,8 +55,8 @@ const ProfileTagField = ({
     setCustom('');
   };
   return (
-    <div>
-      <label className="mb-1 block text-xs font-bold text-gray-500 ml-1">{label}</label>
+    <div className="profile-tag-field">
+      <label htmlFor={inputId} className="mb-1 block text-xs font-bold text-gray-500 ml-1">{label}</label>
       <p className="mb-2 text-[11px] text-baylink-muted ml-1">{hint}</p>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {presets.map((p) => (
@@ -90,6 +92,7 @@ const ProfileTagField = ({
       )}
       <div className="flex gap-2">
         <input
+          id={inputId}
           className="flex-1 rounded-xl bg-white px-3 py-2 text-xs outline-none shadow-sm focus:ring-2 focus:ring-green-500/20"
           placeholder="自定义标签，回车添加"
           value={custom}
@@ -194,6 +197,7 @@ type EditProfileProps = ProfileEditorCallbacks & { onUpdate: (user: UserData) =>
 export const EditProfileModal = (props: EditProfileProps) => <EditProfileSession key={JSON.stringify([props.user.id, props.user.token])} {...props} />;
 const EditProfileSession = ({ user, onClose, onUpdate, showToast }: EditProfileProps) => {
   const isCurrentSession = useProfileSessionGuard(user);
+  const locale = useLocale();
   const [form, setForm] = useState({
     nickname: user.nickname || '', contactType: user.contactType || 'wechat', contactValue: user.contactValue || '',
     bio: user.bio || '', statusText: user.statusText || '', avatar: user.avatar || '', coverImage: user.coverImage || '',
@@ -201,6 +205,8 @@ const EditProfileSession = ({ user, onClose, onUpdate, showToast }: EditProfileP
     profileTags: (user.profileTags || []) as string[], interests: (user.interests || []) as string[],
     website: user.website || '', xiaohongshu: user.xiaohongshu || '',
     socialLinks: { linkedin: user.socialLinks?.linkedin || '', instagram: user.socialLinks?.instagram || '' },
+    socialIntents: normalizeSocialIntents(user.socialIntents),
+    profileVisibility: { location: user.profileVisibility?.location !== false, interests: user.profileVisibility?.interests !== false, socialLinks: user.profileVisibility?.socialLinks !== false },
   });
   const [saving, setSaving] = useState(false);
   const [showVerify, setShowVerify] = useState(false);
@@ -208,6 +214,16 @@ const EditProfileSession = ({ user, onClose, onUpdate, showToast }: EditProfileP
   const processingRef = useRef(false);
   const savingRef = useRef(false);
   const [saveError, setSaveError] = useState('');
+  const addWritingPrompt = (field: 'bio' | 'statusText', prompt: string) => {
+    const next = appendProfilePrompt(form[field], translateText(prompt, locale), field === 'bio' ? 200 : 60);
+    if (next === null) { showToast('字数不够放下这句话，你原来的内容已保留。请先缩短文字。', 'info'); return; }
+    setForm(previous => ({ ...previous, [field]: next }));
+  };
+  const jumpTo = (id: string) => {
+    const section = document.getElementById(id);
+    section?.scrollIntoView({ block: 'start' });
+    section?.focus({ preventScroll: true });
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, kind: 'avatar' | 'coverImage') => {
     if (processingRef.current || savingRef.current || !isCurrentSession()) return;
@@ -246,28 +262,35 @@ const EditProfileSession = ({ user, onClose, onUpdate, showToast }: EditProfileP
   const busy = saving || !!processing;
   return <ModalShell onClose={() => { if (!savingRef.current) onClose(); }} closeOnBackdrop={false} label="编辑资料" className="profile-editor-modal fixed inset-0 z-[90] flex flex-col">
     <header className="profile-editor-header pt-safe-top"><button type="button" onClick={onClose} disabled={saving}>取消</button><div><strong>编辑你的名片</strong><span>让别人看见你的生活方式</span></div><button type="button" className="profile-editor-save" onClick={handleSave} disabled={busy}>{processing ? '图片处理中…' : saving ? '保存中...' : '保存资料'}</button></header>
-    <div className="profile-editor-scroll"><div className="profile-editor-layout">
-      <aside className="profile-editor-preview"><p className="profile-editor-eyebrow"><Globe2 size={14} />别人看到的名片</p><ProfileIdentity profile={{ ...user, ...form }} preview /><p className="profile-preview-note">预览随编辑更新，保存后才会公开。</p></aside>
+    <div className="profile-editor-scroll"><nav className="profile-editor-jumps" aria-label="编辑名片分区"><button type="button" onClick={() => jumpTo('profile-introduction')}>介绍与兴趣</button><button type="button" onClick={() => jumpTo('profile-style')}>视觉风格</button><button type="button" onClick={() => jumpTo('profile-visibility')}>显示与隐私</button><button type="button" onClick={() => jumpTo('profile-preview')}>名片预览</button></nav><div className="profile-editor-layout">
+      <aside className="profile-editor-preview" id="profile-preview" tabIndex={-1}><p className="profile-editor-eyebrow"><Globe2 size={14} />别人看到的名片</p><ProfileIdentity profile={{ ...user, ...form }} preview /><p className="profile-preview-note">预览随编辑更新，保存后才会公开。</p></aside>
       <fieldset disabled={saving} className="profile-editor-fields">
         {saveError && <p role="alert" className="profile-editor-error">{saveError}</p>}
-        <section className="profile-editor-section"><div className="profile-section-heading"><Palette size={19} /><div><h2>你的视觉风格</h2><p>选一种颜色，再加上自己的照片。</p></div></div>
+        <section className="profile-editor-section" id="profile-style" tabIndex={-1}><div className="profile-section-heading"><Palette size={19} /><div><h2>你的视觉风格</h2><p>选一种颜色，再加上自己的照片。</p></div></div>
           <fieldset disabled={busy}><legend>名片主题</legend><div className="profile-theme-options">{PROFILE_THEMES.map(theme => <button key={theme.id} type="button" aria-pressed={form.profileTheme === theme.id} onClick={() => setForm(p => ({ ...p, profileTheme: theme.id }))} className={`profile-theme-option profile-theme-${theme.id}`}><span className="profile-theme-swatch">{form.profileTheme === theme.id && <Check size={18} />}</span><strong>{theme.title}</strong><small>{theme.description}</small></button>)}</div></fieldset>
           <div className="profile-image-controls">{(['avatar', 'coverImage'] as const).map(kind => <div key={kind}><label className="profile-upload-control">{processing === kind ? <Loader2 size={17} className="animate-spin" /> : kind === 'avatar' ? <Camera size={17} /> : <ImagePlus size={17} />}<span>{kind === 'avatar' ? '上传头像' : '上传封面'}</span><input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" aria-label={kind === 'avatar' ? '上传头像' : '上传封面'} disabled={busy} onChange={event => void handleImageUpload(event, kind)} /></label>{form[kind] && <button type="button" className="profile-image-remove" disabled={busy} onClick={() => setForm(p => ({ ...p, [kind]: '' }))}><Trash2 size={12} />{kind === 'avatar' ? '移除头像' : '移除封面'}</button>}</div>)}</div>
           <p className="profile-field-hint">照片不超过 10MB；封面建议用横图，主体放在中央。图片会自动缩小后上传。</p>{processing && <p role="status" className="profile-field-hint">正在处理照片，请稍候再保存。</p>}
         </section>
-        <section className="profile-editor-section"><div className="profile-section-heading"><Globe2 size={19} /><div><h2>公开介绍</h2><p>这些内容会显示在你的名片上。</p></div></div>
+        <section className="profile-editor-section" id="profile-introduction" tabIndex={-1}><div className="profile-section-heading"><Globe2 size={19} /><div><h2>公开介绍</h2><p>昵称、近况、简介和身份标签会公开；地区与兴趣可在下方设置显示范围。</p></div></div>
           <div className="profile-editor-field"><label htmlFor="profile-nickname">昵称</label><input id="profile-nickname" maxLength={30} value={form.nickname} onChange={event => setForm(p => ({ ...p, nickname: event.target.value }))} /></div>
           <div className="profile-editor-field"><label htmlFor="profile-status">此刻的生活状态</label><input id="profile-status" maxLength={60} placeholder="最近在找一起徒步的朋友…" value={form.statusText} onChange={event => setForm(p => ({ ...p, statusText: event.target.value }))} /><div className="profile-field-meta"><span>一句近况，也可以是一个聊天话题。</span><span>{form.statusText.length}/60</span></div></div>
+          <div className="profile-writing-prompts" aria-label="近况开场白"><span>给近况加一句</span><div>{['找个时间一起喝咖啡。', '周末想去户外走走。', '最近想认识有共同兴趣的邻居。'].map(prompt => <button key={prompt} type="button" onClick={() => addWritingPrompt('statusText', prompt)}>{prompt}</button>)}</div><p>接在已有文字后，可继续修改；保存前不会公开。</p></div>
           <div className="profile-editor-field"><label htmlFor="profile-bio">一句话介绍</label><textarea id="profile-bio" maxLength={200} rows={3} placeholder="例如：住在半岛，喜欢咖啡、摄影和周末海边散步。" value={form.bio} onChange={event => setForm(p => ({ ...p, bio: event.target.value }))} /><small>{form.bio.length}/200</small></div>
+          <div className="profile-writing-prompts" aria-label="简介开场白"><span>给简介加一句</span><div>{['喜欢从一杯咖啡开始认识新朋友。', '期待一起发现湾区的小地方。'].map(prompt => <button key={prompt} type="button" onClick={() => addWritingPrompt('bio', prompt)}>{prompt}</button>)}</div></div>
           <div className="profile-field-grid"><div className="profile-editor-field"><label htmlFor="profile-area">所在区域</label><select id="profile-area" value={form.area} onChange={event => setForm(p => ({ ...p, area: event.target.value }))}><option value="">选择大区</option>{REGIONS.map(region => <option key={region} value={region}>{region}</option>)}</select></div><div className="profile-editor-field"><label htmlFor="profile-city">所在城市</label><input id="profile-city" maxLength={60} placeholder="如 Millbrae" value={form.city} onChange={event => setForm(p => ({ ...p, city: event.target.value }))} /></div></div>
           <ProfileTagField label="身份标签" hint="选择最能代表你身份的标签，最多 8 个" presets={PROFILE_TAG_PRESETS} tags={form.profileTags} max={8} onChange={profileTags => setForm(p => ({ ...p, profileTags }))} showToast={showToast} />
           <ProfileTagField label="兴趣标签" hint="分享你的兴趣，方便附近用户认识你，最多 12 个" presets={INTEREST_PRESETS} tags={form.interests} max={12} onChange={interests => setForm(p => ({ ...p, interests }))} showToast={showToast} />
         </section>
+        <section className="profile-editor-section"><div className="profile-section-heading"><Users size={19} /><div><h2>想一起做什么</h2><p>选最多 3 个，给新朋友一个开场话题。也可以全部留空。</p></div></div><div className="profile-social-intents" role="group" aria-label="选择想一起做的事">{SOCIAL_INTENTS.map(intent => <button type="button" key={intent.id} aria-pressed={form.socialIntents.includes(intent.id)} onClick={() => {
+          if (!form.socialIntents.includes(intent.id) && form.socialIntents.length >= 3) { showToast('最多选择 3 个想一起做的事。', 'info'); return; }
+          setForm(previous => ({ ...previous, socialIntents: previous.socialIntents.includes(intent.id) ? previous.socialIntents.filter(id => id !== intent.id) : [...previous.socialIntents, intent.id] }));
+        }}>{form.socialIntents.includes(intent.id) && <Check size={14} aria-hidden="true" />}{intent.label}</button>)}</div><p className="profile-field-hint">这些选择会公开，不代表已发出邀请、接受私信或确定活动时间。</p></section>
         <section className="profile-editor-section"><div className="profile-section-heading"><Globe2 size={19} /><div><h2>公开社交链接</h2><p>愿意分享的主页，让同好更容易找到你。</p></div></div>
           <div className="profile-editor-field"><label htmlFor="profile-instagram">Instagram</label><input id="profile-instagram" placeholder="用户名或完整链接" value={form.socialLinks.instagram} onChange={event => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, instagram: event.target.value } }))} /></div>
           <div className="profile-editor-field"><label htmlFor="profile-linkedin">LinkedIn</label><input id="profile-linkedin" placeholder="https://www.linkedin.com/in/..." value={form.socialLinks.linkedin} onChange={event => setForm(p => ({ ...p, socialLinks: { ...p.socialLinks, linkedin: event.target.value } }))} /></div>
           <div className="profile-field-grid"><div className="profile-editor-field"><label htmlFor="profile-xhs">小红书</label><input id="profile-xhs" placeholder="主页链接或 ID" value={form.xiaohongshu} onChange={event => setForm(p => ({ ...p, xiaohongshu: event.target.value }))} /></div><div className="profile-editor-field"><label htmlFor="profile-website">个人网站</label><input id="profile-website" placeholder="https://..." value={form.website} onChange={event => setForm(p => ({ ...p, website: event.target.value }))} /></div></div>
         </section>
+        <section className="profile-editor-section profile-editor-visibility" id="profile-visibility" tabIndex={-1} aria-label="名片显示设置"><div className="profile-section-heading"><LockKeyhole size={19} /><div><h2>名片显示设置</h2><p>只展示你愿意分享的部分，关闭后仍保留资料，方便以后恢复。</p></div></div><div className="profile-visibility-options">{([{ key: 'location', label: '公开名片显示地区', detail: '所在区域与城市' }, { key: 'interests', label: '公开名片显示兴趣', detail: '兴趣标签与共同兴趣提示' }, { key: 'socialLinks', label: '公开名片显示社交链接', detail: 'Instagram、LinkedIn、小红书与个人网站' }] as const).map(option => <label key={option.key}><input type="checkbox" checked={form.profileVisibility[option.key]} onChange={event => setForm(previous => ({ ...previous, profileVisibility: { ...previous.profileVisibility, [option.key]: event.target.checked } }))} /><span><strong>{option.label}</strong><small>{option.detail}</small></span></label>)}</div><p className="profile-field-hint">这些设置只控制个人名片与用户名片摘要；不会隐藏帖子和小队中你单独填写的地点，也不会清除简介或近况里手动写入的信息。</p></section>
         <section className="profile-editor-section profile-editor-private" aria-label="私人账号设置"><div className="profile-section-heading"><LockKeyhole size={19} /><div><h2>私人账号设置</h2><p>以下信息不会出现在公开名片上。</p></div></div>
           <div className="profile-phone-verification"><Smartphone size={21} /><div><strong>手机号验证</strong><p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p></div>{!user.isPhoneVerified ? <button type="button" onClick={() => setShowVerify(true)}>验证手机号</button> : <span><Check size={14} />已验证</span>}</div>
           <div className="profile-editor-field"><label htmlFor="profile-contact-type">账号联系方式类型</label><select id="profile-contact-type" value={form.contactType} onChange={event => setForm(p => ({ ...p, contactType: event.target.value as UserData['contactType'] }))}><option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option></select></div>

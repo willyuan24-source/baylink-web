@@ -17,6 +17,11 @@ export function parseStoredUser(raw: string | null): UserData | null {
     if (!optionalStringsAreValid(user, ['email', 'nickname', 'contactValue', 'bio', 'avatar', 'area', 'city', 'website', 'xiaohongshu', 'phone', 'profileTheme', 'statusText', 'coverImage'])) return null;
     if (['profileTags', 'interests'].some((field) => user[field] != null
       && (!Array.isArray(user[field]) || !user[field].every((item: unknown) => typeof item === 'string')))) return null;
+    if (user.socialIntents != null && (!Array.isArray(user.socialIntents) || user.socialIntents.length > 3
+      || !user.socialIntents.every((item: unknown) => typeof item === 'string' && ['coffee', 'food', 'outdoors', 'culture', 'family', 'learn'].includes(item))
+      || new Set(user.socialIntents).size !== user.socialIntents.length)) return null;
+    if (user.profileVisibility != null && (!isRecord(user.profileVisibility)
+      || Object.entries(user.profileVisibility).some(([key, value]) => !['location', 'interests', 'socialLinks'].includes(key) || typeof value !== 'boolean'))) return null;
     if (user.socialLinks != null && (!isRecord(user.socialLinks)
       || !optionalStringsAreValid(user.socialLinks, ['instagram', 'linkedin']))) return null;
     if (user.officialVerification != null && (!isRecord(user.officialVerification)

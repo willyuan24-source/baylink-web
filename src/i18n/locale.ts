@@ -60,6 +60,10 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/september-refresh-offers-en.json'), import('../data/september-refresh-media-en.json'),
     import('../data/september-refresh-planning-en.json'), import('../data/september-refresh-guide-en.json'),
     import('../data/coverage-audit-regional-en.json'), import('../data/coverage-audit-sf-north-en.json'),
+    import('../data/october-refresh-en.json'), import('../data/october-refresh-events-en.json'),
+    import('../data/october-refresh-community-en.json'),
+    import('../data/october-refresh-bulletins-en.json'),
+    import('./social-profile-en.json'), import('./profile-space-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }

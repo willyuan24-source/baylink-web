@@ -104,11 +104,23 @@ export function parseDiscoveryQuery(query: string, today = getBayAreaToday(), kn
       result.dateRange = undefined;
     } else result.dateRange = { start, end };
   };
+  // A weekday attached to an exact date describes that day, not the next weekday
+  // from today. Validate it before the ordinary date parser removes the date.
+  const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+  const weekdayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const weekdaySuffix = '\\s*[,，]?\\s*[（(]?\\s*((?:周|星期)[一二三四五六日天]|(?:sunday|monday|tuesday|wednesday|thursday|friday|saturday)\\b)\\s*[)）]?';
+  const annotation = (dateText: string, value: string, weekday: string) => {
+    const target = weekdayNames.includes(weekday) ? weekdayNames.indexOf(weekday) : ['日天', '一', '二', '三', '四', '五', '六'].findIndex(chars => chars.includes(weekday.at(-1)!));
+    if (!validCalendarDay(value) || new Date(`${value}T12:00:00Z`).getUTCDay() !== target) result.invalidDate = true;
+    return `${dateText} `;
+  };
+  text = text.replace(new RegExp(`(\\b\\d{4}-\\d{2}-\\d{2}\\b)${weekdaySuffix}`, 'g'), (_, dateText: string, weekday: string) => annotation(dateText, dateText, weekday));
+  text = text.replace(new RegExp(`((?:(\\d{4})年)?(\\d{1,2})(?:月|/)(\\d{1,2})[日号]?)${weekdaySuffix}`, 'g'), (_, dateText: string, y: string, m: string, d: string, weekday: string) => annotation(dateText, day(m, d, y ? Number(y) : year), weekday));
+  text = text.replace(new RegExp(`(\\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?(?:,?\\s+(20\\d{2}))?)${weekdaySuffix}`, 'g'), (_, dateText: string, m: string, d: string, y: string, weekday: string) => annotation(dateText, day(months.findIndex(name => name.startsWith(m === 'sept' ? 'sep' : m)) + 1, d, y ? Number(y) : year), weekday));
   // Explicit ranges precede single dates, so 10/3–5 is not read as just 10/3.
   text = text.replace(/(\d{4}-\d{2}-\d{2})\s*(?:至|到|through|to|[-–—~])\s*(\d{4}-\d{2}-\d{2})/g, (_, start: string, end: string) => { setRange(start, end); return ' '; });
   text = text.replace(/(?:(\d{4})年)?(\d{1,2})月(\d{1,2})[日号]?\s*(?:至|到|[-–—~])\s*(?:(\d{1,2})月)?(\d{1,2})[日号]?/g, (_, y: string, m: string, d: string, m2: string, d2: string) => { setRange(day(m, d, y ? Number(y) : year), day(m2 || m, d2, y ? Number(y) : year)); return ' '; });
   text = text.replace(/\b(\d{1,2})\/(\d{1,2})\s*(?:至|到|through|to|[-–—~])\s*(?:(\d{1,2})\/)?(\d{1,2})\b/g, (_, m: string, d: string, m2: string, d2: string) => { setRange(day(m, d), day(m2 || m, d2)); return ' '; });
-  const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
   text = text.replace(/\b(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*(?:through|to|[-–—])\s*(\d{1,2})(?:st|nd|rd|th)?)?(?:,?\s+(20\d{2}))?\b/g, (_, m: string, d: string, d2: string, y: string) => { const month = months.findIndex(name => name.startsWith(m === 'sept' ? 'sep' : m)) + 1; setRange(day(month, d, y ? Number(y) : year), day(month, d2 || d, y ? Number(y) : year)); return ' '; });
   text = text.replace(/\b\d{4}-\d{2}-\d{2}\b/g, value => { setRange(value); return ' '; });
   text = text.replace(/(?:(\d{4})年)?(\d{1,2})月(\d{1,2})[日号]?/g, (_, y: string, m: string, d: string) => { setRange(day(m, d, y ? Number(y) : year)); return ' '; });

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
-import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, safePlannerWebUrl } from '../src/lib/planner-web-search';
+import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, parsePlannerWebResult, plannerWebAnswerParts, plannerWebMapSearchUrl, safePlannerWebUrl } from '../src/lib/planner-web-search';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/plan' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage,
@@ -18,6 +18,15 @@ const response = (answer = 'Check event details before going. [1]') => ({ ok: tr
   sources: [{ title: 'Venue calendar', url: 'https://museumca.org/events/', snippet: 'Check admission and event conditions.' }] });
 const deferred = () => { let resolve!: (value: unknown) => void; const promise = new Promise<unknown>(done => { resolve = done; }); return { promise, resolve }; };
 const candidateResponse = () => ({ ...response(), candidates: [{ id: 'web-omca', name: 'Oakland Museum of California', city: 'Oakland', summary: 'Museum visit', timeSummary: null, priceSummary: null, sourceUrls: ['https://museumca.org/events/'] }] });
+
+test('candidate map lookup encodes names as search text and never guesses coordinates or city', () => {
+  const url = new URL(plannerWebMapSearchUrl({ name: 'A&B #1 / 咖啡', city: 'Oakland' }));
+  assert.equal(url.origin, 'https://www.google.com');
+  assert.equal(url.searchParams.get('query'), 'A&B #1 / 咖啡, Oakland, California');
+  assert.equal(url.searchParams.get('api'), '1');
+  assert.equal(url.hash, '');
+  assert.equal(new URL(plannerWebMapSearchUrl({ name: 'Cafe', city: null })).searchParams.get('query'), 'Cafe, California');
+});
 
 beforeEach(context => {
   localStorage.clear();

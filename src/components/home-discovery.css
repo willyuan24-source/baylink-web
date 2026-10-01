@@ -210,12 +210,13 @@
   .home-discovery *, .home-discovery *::after { transition: none !important; }
   .home-discovery-feature:hover .home-discovery-image img, .home-discovery-pick:hover .home-discovery-image img { transform: none; }
 }
-.home-start-paths { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0 0 10px; }
+.home-start-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 10px; }
 .home-start-paths > a { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 17px 14px; border: 1px solid #dce4d4; border-radius: 13px; background: #f7f8ef; color: #35563b; transition: background .18s, border-color .18s; }
 .home-start-paths > a:hover { background: #edf2e3; border-color: #9eb292; }
 .home-start-paths > a > span { display: grid; place-items: center; width: 39px; height: 39px; flex-shrink: 0; border-radius: 12px; background: #e5edd9; }
 .home-start-paths > a:nth-child(2) > span { background: #f2e8d4; color: #87633c; }
 .home-start-paths > a:nth-child(3) > span { background: #e1edeb; color: #3c7772; }
+.home-start-paths > a:nth-child(4) > span { background: #ece6f1; color: #756080; }
 .home-start-paths > a > div { min-width: 0; flex: 1; }
 .home-start-paths strong { display: block; font-size: 13px; line-height: 1.6; }
 .home-start-paths small { display: block; margin-top: 3px; color: #69775f; font-size: 10px; line-height: 1.65; }

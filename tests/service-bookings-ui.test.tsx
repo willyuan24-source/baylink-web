@@ -163,7 +163,7 @@ test('provider inbox uses actual lifecycle actions, separate SMS consent and sto
 test('customer cancellation asks once, pending deadlines expire truthfully, and old confirmed bookings stay uncompleted', async t => {
   let mutations = 0;
   const expired = { ...booking, id: 'expired', postTitle: '到期申请', expiresAt: now - 1 };
-  const ended = { ...booking, id: 'ended', postTitle: '过去的确认预约', status: 'confirmed', startAt: now - 7200_000, endAt: now - 3600_000 };
+  const ended = { ...booking, id: 'ended', postTitle: '过去的确认预约', status: 'confirmed', date: '2026-09-30', startTime: '09:00', endTime: '10:00', startAt: now - 7200_000, endAt: now - 3600_000 };
   t.mock.method(api, 'request', async (path: string) => { if (path.endsWith('/actions')) { mutations++; return { booking: { ...booking, status: 'cancelled' }, notifications }; } return { asCustomer: [booking, expired, ended], asProvider: [], sms: { enabled: false, eligible: false, configured: false } }; });
   const view = render(dashboard()); await view.findByText('申请已到期');
   assert.equal(view.container.querySelector('main'), null, 'the dashboard fits within the app main landmark');
@@ -335,4 +335,38 @@ test('quick pause and open change only saved availability while preserving unsav
   assert.deepEqual(writes[1], { enabled: true, mode: 'request', minNoticeMinutes: 120, bufferMinutes: 30 });
   fireEvent.click(view.getByRole('button', { name: '保存预约设置' })); await view.findByText('预约设置已保存。');
   assert.deepEqual(writes[2], { enabled: true, mode: 'instant', minNoticeMinutes: 1440, bufferMinutes: 30 });
+});
+
+test('reopened booking records show notification failures on the affected card and refresh removes resolved warnings', async t => {
+  let recovered = false;
+  t.mock.method(api, 'request', async () => ({ asCustomer: [{ ...booking, notifications: recovered ? notifications : { inApp: 'failed', sms: 'unknown' } }, { ...booking, id: 'healthy', postTitle: '已通知的另一预约', notifications }], asProvider: [], sms: { enabled: false, eligible: false, configured: false } }));
+  const view = render(dashboard());
+  const card = within(await view.findByRole('article', { name: '家庭清洁' }));
+  assert.ok(card.getByText(/预约状态已保存，但站内通知未发送成功/));
+  assert.ok(card.getByText(/短信发送结果尚未确认/));
+  assert.equal(card.getByRole('link', { name: '进入站内消息' }).getAttribute('href'), '/messages/conversation-1');
+  assert.equal(within(view.getByRole('article', { name: '已通知的另一预约' })).queryByText(/通知未发送成功/), null);
+  recovered = true; fireEvent.click(view.getByRole('button', { name: '刷新预约记录' })); await act(async () => {});
+  assert.equal(view.queryByText(/通知未发送成功/), null); assert.ok(card.getByText('待服务者确认'));
+});
+
+test('booking responses reject another participant before showing their receipt or a success toast', async t => {
+  const toasts: string[] = [];
+  t.mock.method(api, 'request', async (path: string) => path.endsWith('/book') ? { booking: { ...booking, customerId: 'another-customer', note: 'private details' }, notifications } : availability);
+  const view = render(panel(customer, { showToast: (message: string) => toasts.push(message) })); await choose(view);
+  fireEvent.click(view.getByRole('button', { name: '提交预约申请' })); await view.findByRole('alert');
+  assert.equal(view.queryByText('private details'), null); assert.equal(view.queryByRole('link', { name: '查看我的预约' }), null); assert.deepEqual(toasts, []);
+});
+
+test('booking timestamps agree with displayed Bay Area time in summer and winter and invalid ranges fail closed', () => {
+  assert.equal(parseAvailability(availability).slots[0].startTime, '09:00');
+  const winter = { ...availability.slots[0], date: '2026-12-17', startAt: Date.parse('2026-12-17T17:00:00Z'), endAt: Date.parse('2026-12-17T20:00:00Z') };
+  assert.equal(parseAvailability({ ...availability, slots: [winter] }).slots[0].date, '2026-12-17');
+  assert.equal(parseBooking({ ...booking, ...winter, status: 'confirmed' }).startTime, '09:00');
+  for (const patch of [{ endAt: Infinity }, { startAt: availability.slots[0].startAt + 3600_000 }, { date: '2026-10-18' }, { endAt: 8.64e15 + 1 }]) {
+    assert.throws(() => parseAvailability({ ...availability, slots: [{ ...availability.slots[0], ...patch }] }));
+    assert.throws(() => parseBooking({ ...booking, ...patch }));
+  }
+  assert.throws(() => parseBooking({ ...booking, expiresAt: 8.64e15 + 1 }));
+  assert.throws(() => parseBooking({ ...booking, notifications: { inApp: 'delivered', sms: 'sent' } }));
 });

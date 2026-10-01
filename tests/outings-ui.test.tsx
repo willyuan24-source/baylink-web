@@ -231,6 +231,35 @@ test('confirmed members can read after a changed plan but cannot speak on the ol
   assert.ok(view.getByText(/请先在上方确认新的安排/)); assert.equal(view.queryByRole('button', { name: '发送消息' }), null);
 });
 
+test('discussion removes cached private messages after access is revoked and rechecks before recovery', async t => {
+  signIn(user); let denied = false, reads = 0;
+  t.mock.method(api, 'request', async (path: string) => {
+    if (!path.endsWith('/messages')) return { outing: memberOuting() };
+    reads++; if (denied) throw { status: 403 };
+    return { messages: [{ id: 'private-message', outingId: outing().id, senderId: host.id, senderName: host.nickname, text: '仅成员可见的集合说明', createdAt: now }] };
+  });
+  const view = render(<DiscussionHarness item={memberOuting()} />); await view.findByText('仅成员可见的集合说明');
+  fireEvent.change(view.getByRole('textbox', { name: '给小队发消息' }), { target: { value: '保留未发送草稿' } });
+  denied = true; fireEvent.click(view.getByRole('button', { name: '刷新讨论' }));
+  await view.findByText(/已隐藏之前读取的消息/); await act(async () => {});
+  assert.equal(view.queryByText('仅成员可见的集合说明'), null); assert.equal(view.queryByRole('textbox', { name: '给小队发消息' }), null);
+  denied = false; fireEvent.click(view.getByRole('button', { name: '刷新讨论' })); await view.findByText('仅成员可见的集合说明'); await act(async () => {});
+  assert.equal((view.getByRole('textbox', { name: '给小队发消息' }) as HTMLTextAreaElement).value, '保留未发送草稿');
+  assert.equal((view.getByRole('button', { name: '发送消息' }) as HTMLButtonElement).disabled, false); assert.equal(reads, 3);
+});
+
+test('a revoked message write also hides prior discussion instead of leaving an active composer', async t => {
+  signIn(user);
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => {
+    if (options.method === 'POST') throw { status: 404 };
+    return { messages: [{ id: 'private-message', outingId: outing().id, senderId: host.id, senderName: host.nickname, text: '旧的私密讨论', createdAt: now }] };
+  });
+  const view = render(<DiscussionHarness item={memberOuting()} />); await view.findByText('旧的私密讨论');
+  fireEvent.change(view.getByRole('textbox', { name: '给小队发消息' }), { target: { value: '提交时权限已变化' } });
+  fireEvent.click(view.getByRole('button', { name: '发送消息' })); await view.findByText(/已隐藏之前读取的消息/);
+  assert.equal(view.queryByText('旧的私密讨论'), null); assert.equal(view.queryByRole('button', { name: '发送消息' }), null);
+});
+
 test('two successful messages use refreshed revisions and never present optimistic unsaved messages', async t => {
   signIn(user); let revision = 4; const sent: Record<string, unknown>[] = [], storedMessages: { id: string; outingId: string; senderId: string; senderName: string; text: string; createdAt: number }[] = [];
   t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
@@ -612,4 +641,48 @@ test('hosts can remove or decline blocked members without unblocking while ordin
   await memberView.findByRole('heading', { level: 1, name: initial.title });
   assert.equal(memberView.queryByRole('button', { name: waiting.nickname }), null); assert.equal(memberView.queryByText(waiting.note), null);
   assert.equal(memberView.queryByRole('button', { name: '移除成员' }), null); assert.equal(memberView.queryByRole('button', { name: '婉拒' }), null);
+});
+
+test('calendar export rechecks current confirmed membership before creating a file', async t => {
+  signIn(user); let reads = 0, downloads = 0;
+  t.mock.method(api, 'request', async (path: string) => path.endsWith('/messages') ? { messages: [] } : (reads++, { outing: memberOuting() }));
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:outing-calendar-test'; });
+  t.mock.method(URL, 'revokeObjectURL', () => {});
+  t.mock.method(dom.window.HTMLAnchorElement.prototype, 'click', () => {});
+  const view = render(detail(user));
+  fireEvent.click(await view.findByRole('button', { name: '将集合时间存入日历' }));
+  await view.findByText(/已生成日历文件/);
+  assert.equal(reads, 2); assert.equal(downloads, 1);
+});
+
+test('calendar export refuses a changed plan or membership and replaces the stale detail', async t => {
+  signIn(user); let current = memberOuting(), downloads = 0;
+  t.mock.method(api, 'request', async (path: string) => path.endsWith('/messages') ? { messages: [] } : { outing: current });
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:must-not-download'; });
+  const view = render(detail(user));
+  const button = await view.findByRole('button', { name: '将集合时间存入日历' });
+  current = memberOuting({ planVersion: 3, revision: 5 });
+  fireEvent.click(button);
+  await view.findByText(/小队安排或你的参加状态已变化/);
+  assert.equal(downloads, 0); assert.equal(view.queryByRole('button', { name: '将集合时间存入日历' }), null);
+  assert.ok(view.getByText('安排有变化，请重新确认'));
+});
+
+test('a failed calendar refresh never exports a stale file and waitlisted members cannot export', async t => {
+  signIn(user); let failure = false, downloads = 0;
+  let current = memberOuting();
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path.endsWith('/messages')) return { messages: [] };
+    if (failure) throw { status: 503 };
+    return { outing: current };
+  });
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:must-not-download'; });
+  const view = render(detail(user));
+  const button = await view.findByRole('button', { name: '将集合时间存入日历' });
+  failure = true; fireEvent.click(button);
+  await view.findByRole('alert'); assert.equal(downloads, 0);
+  view.unmount(); failure = false;
+  current = outing({ me: { userId:user.id,role:'member',status:'requested',confirmedVersion:2,waitlisted:true },confirmedCount:3 });
+  const waiting = render(detail(user)); await waiting.findByText('候补中，尚未加入');
+  assert.equal(waiting.queryByRole('button', { name: '将集合时间存入日历' }), null);
 });

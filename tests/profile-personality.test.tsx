@@ -17,8 +17,10 @@ const { UserProfileModal } = await import('../src/features/users/UserProfileModa
 const { ProfileView } = await import('../src/features/profile/ProfileView');
 const { OfficialVerificationModal } = await import('../src/components/OfficialVerificationModal');
 const { prepareProfileImage } = await import('../src/features/profile/profile-images');
-const { commonProfileInterests, safeProfileLink, resolveProfileTheme, profileShareUrl } = await import('../src/features/profile/profile-personality');
+const { commonProfileInterests, safeProfileLink, resolveProfileTheme, profileShareUrl, normalizeSocialIntents, appendProfilePrompt } = await import('../src/features/profile/profile-personality');
+const { parseStoredUser } = await import('../src/lib/session');
 const { api } = await import('../src/lib/api');
+const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { calcProfileCompletion } = await import('../src/lib/format');
 const { setLocale, translateText } = await import('../src/i18n/locale');
 const user: UserData = { id: 'profile-test-user', email: 'private@example.test', nickname: '生活指南', role: 'user', contactType: 'wechat', contactValue: 'private_wechat', phone: '+14155550101', isBanned: false, bio: '周末出门', statusText: '我的收藏', profileTheme: 'bay', coverImage: 'https://example.test/cover.jpg', avatar: 'https://example.test/avatar.jpg', interests: ['摄影', 'Hiking'], profileTags: ['生活指南'], socialLinks: { linkedin: 'https://www.linkedin.com/in/test-neighbor/' } };
@@ -34,6 +36,80 @@ test('profile helpers use real interest intersections and safe canonical links',
   assert.equal(safeProfileLink('https://name:secret@example.com/'), null);
   assert.equal(safeProfileLink('www.linkedin.com/in/example'), 'https://www.linkedin.com/in/example');
   assert.equal(profileShareUrl('person/path', 'en'), 'https://www.baylink.us/users/person%2Fpath?lang=en');
+});
+
+test('social preferences restore only supported unique values and preserve old sessions', () => {
+  const stored = { ...user, token: 'session-token' };
+  assert.ok(parseStoredUser(JSON.stringify(stored)));
+  assert.deepEqual(normalizeSocialIntents(['coffee', 'coffee', 'unknown', 'outdoors', 'learn', 'food']), ['coffee', 'outdoors', 'learn']);
+  assert.deepEqual(normalizeSocialIntents({ coffee: true }), []);
+  const next = { ...stored, socialIntents: ['coffee', 'outdoors'], profileVisibility: { location: false, interests: true, socialLinks: false } };
+  assert.deepEqual(parseStoredUser(JSON.stringify(next))?.socialIntents, ['coffee', 'outdoors']);
+  for (const socialIntents of [['coffee', 'coffee'], ['coffee', 'food', 'family', 'learn'], ['unknown'], 'coffee']) assert.equal(parseStoredUser(JSON.stringify({ ...stored, socialIntents })), null);
+  for (const profileVisibility of [{ location: 'false' }, { preciseLocation: false }, [], false]) assert.equal(parseStoredUser(JSON.stringify({ ...stored, profileVisibility })), null);
+});
+
+test('public profile visibility hides actual fields while opt-in social topics remain public', () => {
+  const hidden = { ...user, city: 'Secret City', area: 'Secret Area', website: 'https://private-site.test', xiaohongshu: 'private_xhs', socialIntents: ['coffee', 'outdoors'] as const,
+    profileVisibility: { location: false, interests: false, socialLinks: false } };
+  const view = render(<ProfileIdentity profile={{ ...hidden, socialIntents: [...hidden.socialIntents] }} />);
+  assert.doesNotMatch(view.container.textContent!, /Secret City|Secret Area|摄影|Hiking|private_xhs|LinkedIn/);
+  assert.equal(view.container.querySelector('a[href="https://private-site.test/"]'), null);
+  assert.ok(view.getByText('喝杯咖啡'));
+  assert.ok(view.getByText('户外走走'));
+  assert.ok(view.getByText(user.bio!));
+  view.rerender(<ProfileIdentity profile={{ ...user, city: 'Public City' }} />);
+  assert.ok(view.getByText('Public City'));
+  assert.ok(view.getByText('摄影'));
+  assert.ok(view.getByRole('link', { name: 'LinkedIn' }));
+  assert.equal(view.queryByText('想一起做什么'), null);
+});
+
+test('editor opt-in topics are capped, visibility is previewed, and hidden originals survive save', async t => {
+  const owner = { ...user, city: 'Private City', area: 'Private Area', website: 'https://my-site.test', socialLinks: { instagram: 'myaccount', linkedin: 'https://linkedin.com/in/me' } };
+  let payload: Partial<UserData> | undefined;
+  const notices: string[] = [];
+  t.mock.method(api, 'updateProfile', async (data: Partial<UserData>) => { payload = data; return { ...owner, ...data }; });
+  const view = render(<EditProfileModal user={owner} onClose={() => {}} onUpdate={() => {}} showToast={message => notices.push(message)} />);
+  const choices = within(view.getByRole('group', { name: '选择想一起做的事' }));
+  for (const name of ['喝杯咖啡', '户外走走', '学习交流', '吃饭探店']) fireEvent.click(choices.getByRole('button', { name }));
+  assert.equal(choices.getByRole('button', { name: '吃饭探店' }).getAttribute('aria-pressed'), 'false');
+  assert.ok(notices.includes('最多选择 3 个想一起做的事。'));
+  for (const name of ['公开名片显示地区', '公开名片显示兴趣', '公开名片显示社交链接']) fireEvent.click(view.getByRole('checkbox', { name: new RegExp(name) }));
+  const preview = view.getByRole('region', { name: '名片即时预览' });
+  assert.doesNotMatch(preview.textContent!, /Private City|Private Area|摄影|Hiking|Instagram|LinkedIn/);
+  assert.ok(within(preview).getByText('喝杯咖啡'));
+  assert.equal((view.getByRole('textbox', { name: '所在城市' }) as HTMLInputElement).value, owner.city);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '保存资料' })); });
+  assert.deepEqual(payload?.socialIntents, ['coffee', 'outdoors', 'learn']);
+  assert.deepEqual(payload?.profileVisibility, { location: false, interests: false, socialLinks: false });
+  assert.equal(payload?.city, owner.city);
+  assert.equal(payload?.website, owner.website);
+  assert.deepEqual(payload?.socialLinks, owner.socialLinks);
+});
+
+test('writing prompts append without overwriting or truncating existing personal text', () => {
+  assert.equal(appendProfilePrompt('Original ', 'A prompt.', 30), 'Original A prompt.');
+  assert.equal(appendProfilePrompt('Original', 'A prompt.', 10), null);
+  const notices: string[] = [];
+  const view = render(<EditProfileModal user={{ ...user, bio: '原来的介绍', statusText: '原来的近况' }} onClose={() => {}} onUpdate={() => {}} showToast={message => notices.push(message)} />);
+  fireEvent.click(view.getByRole('button', { name: '找个时间一起喝咖啡。' }));
+  assert.equal((view.getByRole('textbox', { name: '此刻的生活状态' }) as HTMLInputElement).value, '原来的近况 找个时间一起喝咖啡。');
+  fireEvent.click(view.getByRole('button', { name: '期待一起发现湾区的小地方。' }));
+  assert.equal((view.getByRole('textbox', { name: '一句话介绍' }) as HTMLTextAreaElement).value, '原来的介绍 期待一起发现湾区的小地方。');
+  const full = '保'.repeat(60);
+  fireEvent.change(view.getByRole('textbox', { name: '此刻的生活状态' }), { target: { value: full } });
+  fireEvent.click(view.getByRole('button', { name: '找个时间一起喝咖啡。' }));
+  assert.equal((view.getByRole('textbox', { name: '此刻的生活状态' }) as HTMLInputElement).value, full);
+  assert.ok(notices.some(message => message.includes('你原来的内容已保留')));
+});
+
+test('English writing prompts insert the chosen language and keep personal text unchanged', async () => {
+  await setLocale('en', false);
+  const view = render(<EditProfileModal user={{ ...user, statusText: 'Hi!' }} onClose={() => {}} onUpdate={() => {}} showToast={() => {}} />);
+  fireEvent.click(view.getByRole('button', { name: "Let's find time for coffee." }));
+  assert.equal((view.getByRole('textbox', { name: translateText('此刻的生活状态') }) as HTMLInputElement).value, "Hi! Let's find time for coffee.");
+  assert.ok(view.getByRole('checkbox', { name: /Show location on my public profile/ }));
 });
 
 test('profile completion counts LinkedIn as a social link without double-counting multiple links', () => {
@@ -142,6 +218,9 @@ test('public profile highlights common interests only for another real signed-in
   assert.doesNotMatch(view.baseElement.textContent!, /private@example|private_wechat|14155550101/);
   assert.doesNotMatch(view.baseElement.textContent!, /已加入 BAYLINK|Joined BAYLINK|— days/);
   assert.ok(view.getByText('已发布 0 条本地信息'));
+  view.rerender(<UserProfileModal userId={profile.id} currentUser={{ ...user, profileVisibility: { interests: false } }} onClose={() => {}} onChat={() => {}} />);
+  await act(async () => {});
+  assert.equal(view.queryByRole('region', { name: '你们的共同兴趣' }), null);
   view.rerender(<UserProfileModal userId={profile.id} currentUser={null} onClose={() => {}} onChat={() => {}} />);
   await act(async () => {});
   assert.equal(view.queryByRole('region', { name: '你们的共同兴趣' }), null);
@@ -218,6 +297,7 @@ test('a late official verification cannot restore the previous account after swi
   const first = { ...user, token: 'first-verification-token' };
   const second = { ...user, id: 'second-account', nickname: '第二个账号', token: 'second-verification-token' };
   localStorage.setItem('currentUser', JSON.stringify(first));
+  t.mock.method(api, 'request', async (path: string) => { assert.equal(path, '/planner/me'); return structuredClone(EMPTY_LIBRARY); });
   t.mock.method(api, 'submitOfficialVerification', () => pending.promise);
   let updates = 0; let notices = 0;
   const props = { onLogout() {}, onLogin() {}, onOpenPost() {}, onUpdateUser() { updates += 1; }, showToast() { notices += 1; }, onOpenBlockedUsers() {} };

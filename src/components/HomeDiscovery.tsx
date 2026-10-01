@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket, TramFront } from 'lucide-react';
+import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket, TramFront, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BRAND } from '../brandAssets';
 import { getGuideBySlug, guides, type Guide } from '../data/guides';
@@ -126,6 +126,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
       <Link to="/play"><span><TramFront size={22}/></span><div><strong>{locale==='en'?'Explore the 3D Bay':'逛一圈 3D 湾区'}</strong><small>{locale==='en'?'Meet a city. Find a place worth visiting.':'认识一座城，找到想去的地方。'}</small></div><ArrowUpRight size={17}/></Link>
       <Link to="/calendar"><span><CalendarDays size={22}/></span><div><strong>{locale==='en'?'Find an event':'挑一场本地活动'}</strong><small>{locale==='en'?'Dates, places and people to go with.':'看日期、地点，也能找一起去的人。'}</small></div><ArrowUpRight size={17}/></Link>
       <Link to="/plan"><span><Sparkles size={22}/></span><div><strong>{locale==='en'?'Plan with BayBay':'让 BayBay 排一天'}</strong><small>{locale==='en'?'Turn your ideas into a sourced itinerary.':'把想法变成有来源的出游安排。'}</small></div><ArrowUpRight size={17}/></Link>
+      <Link to="/together"><span><Users size={22}/></span><div><strong>{locale==='en'?'Find people to go with':'找搭子一起去'}</strong><small>{locale==='en'?'Find a small group. Agree on the details.':'先看时间地点，再申请加入小队。'}</small></div><ArrowUpRight size={17}/></Link>
     </nav>
     <div className="home-start-continue"><Link to="/my-week"><Ticket size={14}/>{locale==='en'?'Continue my saved plans':'继续我的收藏与计划'}<ArrowRight size={13}/></Link><button type="button" onClick={onBrowseCommunity}>{locale==='en'?'Find local posts':'找本地信息'}<ArrowDownRight size={13}/></button><Link to="/ai-in-the-bay">{locale==='en'?'Local AI events':'湾区 AI 活动'}<ArrowUpRight size={13}/></Link></div>
 

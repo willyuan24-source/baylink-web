@@ -11,11 +11,42 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { QuickExplore } = await import('../src/components/QuickExplore');
-const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath } = await import('../src/lib/baybay-conversation');
+const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
 afterEach(cleanup);
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
+
+test('search continuation remains opaque and separate from model context and short history', async t => {
+  const token = 'public-conditions.signature', history = [{ role:'user' as const,content:'只看有空位' },{ role:'assistant' as const,content:'已保留条件' }];
+  let sent: Record<string, unknown> | undefined;
+  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => { sent = JSON.parse(String(options.body)); return answer('好的'); });
+  await fetchBayBayReply('改用英文',{ currentPath:'/together',outingSearchToken:token },history,new AbortController().signal);
+  assert.equal(sent?.outingSearchToken,token);
+  assert.deepEqual(sent?.context,{ currentPath:'/together' });
+  assert.deepEqual(sent?.history,history);
+  await fetchBayBayReply('新问题',{ currentPath:'/' },[],new AbortController().signal);
+  assert.equal(Object.hasOwn(sent!,'outingSearchToken'),false);
+});
+
+test('search response accepts bounded continuation tokens while preserving compatibility with older replies', () => {
+  const search = { source:'site-search',state:'ready',filters:{sort:'soonest'},missing:[] };
+  assert.deepEqual(parseBayBayOutingSearch(search),search);
+  assert.equal(parseBayBayOutingSearch({...search,continuationToken:'eyJ2IjoxfQ.signature'}).continuationToken,'eyJ2IjoxfQ.signature');
+  for (const token of ['', {}, 'raw text', 'a.b.c', 'a.'.padEnd(4097,'b')]) {
+    assert.throws(()=>parseBayBayOutingSearch({...search,continuationToken:token}));
+  }
+});
+
+test('expired search context is a recoverable new-search error, not an ordinary retry', async t => {
+  t.mock.method(globalThis,'fetch',async () => Response.json({ok:false,code:'INVALID_OUTING_SEARCH_TOKEN',error:'搜索条件已失效，请开启新对话。'},{status:400}));
+  await assert.rejects(fetchBayBayReply('改用英文',{currentPath:'/',outingSearchToken:'old.token'},[],new AbortController().signal), error => {
+    assert.equal(isBayBaySearchContextExpired(error),true);
+    assert.equal(bayBayErrorMessage(error),'搜索条件已失效，请开启新对话。');
+    return true;
+  });
+  assert.equal(isBayBaySearchContextExpired(new Error('Network error')),false);
+});
 
 test('completed conversations send bounded history and retain earlier answers', async t => {
   const bodies: { message: string; history: unknown[] }[] = [];

@@ -4,6 +4,7 @@ import { guides, type Guide } from '../data/guides';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
+import type { OutingFilters } from './outings';
 
 export type BayBayHistoryMessage = { role: 'user' | 'assistant'; content: string };
 export type GuideChatAction = {
@@ -11,18 +12,52 @@ export type GuideChatAction = {
   url?: string; postType?: 'client' | 'provider'; category?: string;
 };
 export type GuideChatResponse = {
-  ok: boolean; answer?: string; error?: string;
+  ok: boolean; answer?: string; error?: string; code?: string;
   suggestedGuides?: { title: string; slug: string; url: string }[];
   suggestedActions?: GuideChatAction[]; safetyNote?: string;
   interactiveCards?: BayBayInteractiveCard[]; matchingPosts?: unknown[];
   matchNote?: string; degraded?: boolean;
+  responseMode?: string; outingSearch?: BayBayOutingSearch;
 };
+export type BayBayOutingSearch = {
+  source: 'site-search'; state: 'ready' | 'needs_clarification';
+  filters: Omit<OutingFilters, 'eventId' | 'cursor'> & { sort: 'soonest' };
+  missing: ('city' | 'date')[]; question?: string; continuationToken?: string;
+};
+
+/** Only the server's bounded search contract may initiate a public outing lookup. */
+export function parseBayBayOutingSearch(value: unknown): BayBayOutingSearch {
+  const fail = (): never => { throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。'); };
+  const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+  if (!record(value) || value.source !== 'site-search' || !['ready', 'needs_clarification'].includes(String(value.state)) || !record(value.filters)
+    || !Array.isArray(value.missing) || value.missing.length > 2 || value.missing.some(key => key !== 'city' && key !== 'date') || new Set(value.missing).size !== value.missing.length) return fail();
+  const filters = value.filters;
+  if (filters.sort !== 'soonest' || Object.keys(filters).some(key => !['sort', 'city', 'q', 'date', 'dateFrom', 'dateTo', 'language', 'seats'].includes(key))) return fail();
+  for (const [key, max] of [['city', 80], ['q', 120]] as const) if (filters[key] !== undefined && (typeof filters[key] !== 'string' || !filters[key].trim() || filters[key].length > max)) return fail();
+  const day = (v: unknown): v is string => typeof v === 'string' && /^20\d{2}-\d{2}-\d{2}$/.test(v) && Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v;
+  for (const key of ['date', 'dateFrom', 'dateTo']) if (filters[key] !== undefined && !day(filters[key])) return fail();
+  if ((filters.date && (filters.dateFrom || filters.dateTo)) || (typeof filters.dateFrom === 'string' && typeof filters.dateTo === 'string' && filters.dateFrom > filters.dateTo)
+    || (filters.language !== undefined && !['zh', 'en'].includes(String(filters.language))) || (filters.seats !== undefined && filters.seats !== 'open')
+    || (value.question !== undefined && (typeof value.question !== 'string' || !value.question.trim() || value.question.length > 500))
+    || (value.continuationToken !== undefined && (typeof value.continuationToken !== 'string' || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.continuationToken) || value.continuationToken.length > 4096))
+    || (value.state === 'ready' && value.missing.length) || (value.state === 'needs_clarification' && (!value.missing.length || !value.question))) return fail();
+  return value as unknown as BayBayOutingSearch;
+}
+
+export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: string): string {
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) if (value) params.set(key, value);
+  if (id) params.set('outing', id);
+  return `/together?${params}`;
+}
 export type BayBayTurn = {
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
-  response?: GuideChatResponse; error?: string; currentPath?: string;
+  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean;
 };
 
 class BayBayServiceError extends Error {}
+class BayBaySearchContextExpiredError extends BayBayServiceError {}
+export const isBayBaySearchContextExpired = (error: unknown): boolean => error instanceof BayBaySearchContextExpiredError;
 
 export function bayBayErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message.trim() : '';
@@ -114,10 +149,15 @@ export function safeBayBayPath(path?: string): path is string {
 
 export const bayBayPlanPath = (message: string) => `/plan?${new URLSearchParams({ q: message.trim().slice(0, 800), auto: '1' })}`;
 
+/** Social discovery must reach the server even when the same request mentions planning. */
+export function isBayBaySocialRequest(message: string): boolean {
+  return /找搭子|搭子|找人.{0,8}(?:一起|同行)|有人.{0,12}一起|谁.{0,8}一起|小队|组队|结伴|同行|一起去|\b(?:find|join|look(?:ing)?\s+for|meet)\b.{0,35}\b(?:companions?|budd(?:y|ies)|people|groups?|company)\b|\banyone\b.{0,35}\b(?:join|go|come|together)\b|\b(?:travel|outing|hiking|activity)\s+(?:companions?|budd(?:y|ies))\b/i.test(simplifySearch(message));
+}
+
 /** Route clear first-turn outing requests; advice and follow-up questions stay conversational. */
 export function isBayBayPlanRequest(message: string): boolean {
   message = simplifySearch(message);
-  if (isBayBaySchoolRequest(message)) return false;
+  if (isBayBaySchoolRequest(message) || isBayBaySocialRequest(message)) return false;
   if (/租房|租屋|维修|清洁|接送|搬家|工作|找服务|房东|landlord|repair|cleaning|moving|job|airport|\brent(?:al|ing)?\b/i.test(message)) return false;
   const outing = /周末|周[一二三四五六日天]|星期|今天|明天|出游|玩|去哪|亲子|孩子|\b(?:weekend|saturday|sunday|tomorrow|outing|trip|day\s*out|kids?|child)\b/i.test(message);
   const planning = /(?:帮我|给我|替我)?.{0,4}(?:安排|规划|计划|排).{0,10}(?:一天|出游|路线|行程|周末)|\b(?:plan|itinerary)\b/i.test(message);
@@ -144,13 +184,14 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
 
 export async function fetchBayBayReply(
   message: string,
-  context: { currentPath: string; categoryHint?: string },
+  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string },
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
   timeoutMs = 25_000,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
-  const requestContext = { ...context, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
+  const { outingSearchToken, ...pageContext } = context;
+  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort: (() => void) | undefined;
@@ -167,12 +208,15 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale() }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
         const data = await response.json() as GuideChatResponse;
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
+          if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(typeof data.error === 'string' ? data.error : '搜索条件已过期，请开启新对话并重新说明城市和日期。');
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
+        if (data.outingSearch !== undefined) return { ...data, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
+        if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');
         return data;
       })(),
     ]);

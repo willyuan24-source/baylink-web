@@ -9,6 +9,8 @@ import { VERIFIED_EVENT_SCHEDULES, VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCA
 import { SEPTEMBER_REFRESH_PLANNING, SEPTEMBER_REFRESH_SCHEDULES } from './september-refresh-planning';
 import { COVERAGE_AUDIT_REGIONAL_PLANNING, COVERAGE_AUDIT_REGIONAL_SCHEDULES } from './coverage-audit-regional-planning';
 import { COVERAGE_AUDIT_SF_NORTH_PLANNING, COVERAGE_AUDIT_SF_NORTH_SCHEDULES } from './coverage-audit-sf-north-planning';
+import { OCTOBER_REFRESH_PLANNING, OCTOBER_REFRESH_SCHEDULES, OCTOBER_REFRESH_LOCATIONS } from './october-refresh-planning';
+import { OCTOBER_REFRESH_COMMUNITY_PLANNING, OCTOBER_REFRESH_COMMUNITY_SCHEDULES, OCTOBER_REFRESH_COMMUNITY_LOCATIONS } from './october-refresh-community-planning';
 
 const placeLocations = placeLocationData as Record<string, GeoPoint>;
 
@@ -16,6 +18,8 @@ const eventPlanning: Record<string, PlanningFacts> = {
   ...SEPTEMBER_REFRESH_PLANNING,
   ...COVERAGE_AUDIT_REGIONAL_PLANNING,
   ...COVERAGE_AUDIT_SF_NORTH_PLANNING,
+  ...OCTOBER_REFRESH_PLANNING,
+  ...OCTOBER_REFRESH_COMMUNITY_PLANNING,
   'portola-2026': { setting: 'mixed', minAge: 21, reservation: 'required' },
   'burlingame-mandarin-storytime-2026': { setting: 'indoor', minAge: 0, maxAge: 6 },
   'emeryville-art-exhibition-closing-2026': { setting: 'indoor' },
@@ -42,6 +46,8 @@ const eventPlanning: Record<string, PlanningFacts> = {
   'fremont-trick-or-treat-2026': { minAge: 2, maxAge: 10, reservation: 'required' },
 };
 const eventLocations: Record<string, GeoPoint> = {
+  ...OCTOBER_REFRESH_LOCATIONS,
+  ...OCTOBER_REFRESH_COMMUNITY_LOCATIONS,
   ...aiEventLocations,
   'ferry-plaza-farmers-market-2026-autumn': VERIFIED_VENUE_LOCATIONS['ferry-plaza'],
   ...Object.fromEntries(['01', '08', '15', '22', '29'].map(day => [`sf-exploratorium-after-dark-${day}-oct2026`, VERIFIED_VENUE_LOCATIONS.exploratorium])),
@@ -54,7 +60,7 @@ const eventLocations: Record<string, GeoPoint> = {
 };
 
 // Coordinates are added only from individually checked public venue sources.
-const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES };
+const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(event.cost === 'unknown' ? { admissionUsd: null } : {}), ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,
