@@ -244,7 +244,7 @@ Started 22:16 PDT after part b's push. Last push ≈ 23:30 (see "Final checks").
   day-0 run faced City Hall (`opus-qa/w8/w2/perf-before/civic-center.jpg` vs `perf-after/civic-center.jpg`); nothing of
   this lane is drawn there. Phone 390 × 844 (dpr 3, quality mid, golden): haight-usf 70 / 206.3k, ocean-beach
   40 / 96.9k (the surfers and the crest lines read in portrait).
-- Night (`--time night`, read 22:55): the boathouse's café windows and entrance glow, the three moored boats stay, no
+- Night (`--time night`, read 22:47): the boathouse's café windows and entrance glow, the three moored boats stay, no
   boat out on the lake (83 / 183.1k); Kelly's Cove: no surfers, the crest lines faint on the dark sea (56 / 89.0k).
 - The far view from the south-west (97 / 308.4k): the church's grey domes read over the Richmond's roofs like the photo.
 
@@ -257,13 +257,15 @@ Started 22:16 PDT after part b's push. Last push ≈ 23:30 (see "Final checks").
 
 ### Not done (part c and the lane)
 
-- **The Haight Victorian / mural kit** (2–3 generic mural walls, painted façades along Haight St): not started for
-  lack of time after St Ignatius. The corner model's own walls are its painted fronts; the rest of Haight St is the
-  city's generic boxes, so murals there need their street-facing walls from the OSM footprints (a first pass,
-  `opus-qa/w8/w2/haightb.mts`, lists the buildings round the corner in its frame) — next wave: thin painted panels
-  (abstract suns, waves, rainbows, flowers; no lettering, no real artist's work) on 4–6 ground floors and one tall
-  party wall, inside the haight-ashbury site's mesh (0 new calls). Higgsfield mural textures were not needed for what
-  shipped: **0 credits spent**.
+- **The Haight Victorian / mural kit** (2–3 generic mural walls, painted façades along Haight St): tried at 22:50 and
+  backed out. Two generic toy murals (a sunrise over green hills with flowers; a rainbow over scalloped waves with
+  clouds — flat colour layers in the corner site's own mesh, 0 calls, +1.2k triangles) on the corner model's two side
+  walls (the corner building's back wall facing down Haight St, the row's east end wall facing along Ashbury): the shots
+  (`opus-qa/w8/w2/mural1`, `mural2`) showed both walls hidden behind the city's abutting generic buildings (their
+  footprints come from the DataSF join, not in the OSM list I checked), so the murals were invisible from the streets —
+  reverted (nothing pushed). Next wave: put the panels where the city's own building heights (the chunk data, not OSM)
+  leave a wall exposed above a lower neighbour, or on the generic buildings' street fronts at ground floor; no
+  lettering, no real artist's work. Higgsfield mural textures were not needed for what shipped: **0 credits spent**.
 - **Chase Center to T2**, **the de Young tower's twist** (the AI tower's twist direction is still unchecked against
   the real one), **the far City Hall dome** (lane R's W7 recolour already gives the far lod 2 a grey dome with the gold
   lantern; the gold ribs are lod 0 only): not done.
