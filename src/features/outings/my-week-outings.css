@@ -1,0 +1,28 @@
+.week-outings{margin:2rem 0;padding:clamp(1rem,3vw,1.6rem);border:1px solid #dce5dd;border-radius:22px;background:#fbfcf8;color:#233c30}
+.week-outings-heading,.week-outings-toolbar{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.week-outings-heading h2{display:flex;gap:.55rem;align-items:center;margin:.4rem 0;font-size:clamp(1.25rem,3vw,1.55rem)}
+.week-outings-heading nav{display:flex;align-items:center;flex-wrap:wrap;gap:.35rem 1rem}
+.week-outings-heading nav a{display:inline-flex;align-items:center;min-height:44px;font-size:.9rem}
+.week-outings a{color:#24563b;text-underline-offset:3px;overflow-wrap:anywhere}
+.week-outings button{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:44px;padding:.6rem .85rem;border:1px solid #b7c9b9;border-radius:12px;background:#fff;color:#24563b;font:inherit;font-size:.9rem;cursor:pointer}
+.week-outings button:disabled{opacity:.55;cursor:not-allowed}
+.week-outings :is(a,button):focus-visible{outline:3px solid #487c4e;outline-offset:3px}
+.week-outings-help,.week-outings-toolbar{font-size:.9rem;line-height:1.65;color:#506358}
+.week-outings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1rem;margin:1rem 0}
+.week-outing-card{min-width:0;padding:1.15rem;background:#fff;border:1px solid #dce5dd;border-radius:16px}
+.week-outing-card.needs-confirmation{border-color:#c4a55a;background:#fffdf5}
+.week-outing-status{display:inline-block;padding:.2rem .55rem;background:#edf3e9;color:#345841;border-radius:7px;font-size:.82rem;line-height:1.5}
+.needs-confirmation .week-outing-status{color:#775512;background:#faf0ce}
+.week-outing-card h3,.week-outing-requests h4{margin:.7rem 0;line-height:1.5;overflow-wrap:anywhere}
+.week-outing-card p{display:flex;align-items:flex-start;gap:.4rem;font-size:.92rem;line-height:1.65;overflow-wrap:anywhere}
+.week-outing-card p svg{flex-shrink:0;margin-top:.25rem}
+.week-outing-actions{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+.week-outing-actions a,.week-outing-requests li>a,.week-outings-empty a{display:inline-flex;align-items:center;min-height:44px;font-size:.9rem}
+.week-outing-requests{border-top:1px solid #dce5dd;margin-top:1.5rem;padding-top:1rem}
+.week-outing-requests ul{list-style:none;margin:0;padding:0}
+.week-outing-requests li{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem 1rem;padding:1rem 0;border-top:1px solid #e3e8df}
+.week-outing-requests li>div{min-width:0;flex:1 1 230px}
+.week-outing-requests time{font-size:.9rem;color:#506358}
+.week-outings-empty{margin:1rem 0;padding:1rem;border-radius:14px;background:#f0f4ed;line-height:1.6}
+.week-outings-alert,.week-outings-notice{padding:.8rem 1rem;border-radius:12px;line-height:1.65;background:#fff5df;color:#6f511b}
+@media(max-width:480px){.week-outings{border-radius:16px}.week-outing-actions{align-items:stretch}.week-outing-actions>*{flex:1 1 120px}.week-outings-toolbar{gap:.4rem}.week-outing-card{padding:1rem}}

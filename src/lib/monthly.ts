@@ -1,6 +1,7 @@
 import type { MonthlyEvent } from '../data/monthly-types';
 import { MONTHLY_EDITION } from '../data/monthly-edition';
 import { translateText } from '../i18n/locale';
+import { eventOccursOn } from './event-calendar';
 
 const bayDate = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' });
 export const getBayAreaToday = (now = new Date()): string => {
@@ -62,9 +63,10 @@ const foldCalendarLine = (line: string): string => {
   return result;
 };
 
-export const buildEventCalendar = (event: MonthlyEvent): string => {
+export const buildEventCalendar = (event: MonthlyEvent, date?: string): string => {
+  if (date !== undefined && !eventOccursOn(event, date)) throw new Error('This date is not a confirmed event occurrence.');
   const description = `这是活动日期提醒，不代表全天开放、预约或购票。具体场次、年龄限制与最新变动请查看主办方。\n${event.costLabel}\n${event.summary}\n官方详情：${event.officialUrl}\nBAYLINK 核对日期：${event.verifiedAt}`;
-  const dates = event.occurrenceDates === undefined ? [{ start: event.startDate, end: event.endDate, uid: event.id }]
+  const dates = date ? [{ start: date, end: date, uid: `${event.id}-${date}` }] : event.occurrenceDates === undefined ? [{ start: event.startDate, end: event.endDate, uid: event.id }]
     : [...new Set(event.occurrenceDates)].filter(day => day >= event.startDate && day <= event.endDate).sort().map(day => ({ start: day, end: day, uid: `${event.id}-${day}` }));
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//BAYLINK//Monthly Local Life//ZH', 'CALSCALE:GREGORIAN',
@@ -76,8 +78,8 @@ export const buildEventCalendar = (event: MonthlyEvent): string => {
   ].map(foldCalendarLine).join('\r\n') + '\r\n';
 };
 
-export const downloadEventCalendar = (event: MonthlyEvent): void => {
-  const blob = new Blob([buildEventCalendar(event)], { type: 'text/calendar;charset=utf-8' });
+export const downloadEventCalendar = (event: MonthlyEvent, date?: string): void => {
+  const blob = new Blob([buildEventCalendar(event, date)], { type: 'text/calendar;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url; anchor.download = `baylink-${event.id}.ics`;

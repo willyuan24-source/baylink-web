@@ -7,13 +7,14 @@ import { OutingForm } from './OutingForm';
 import { OutingDiscussion, OutingReport } from './OutingDiscussion';
 import { useOutingCopy, useOutingNow, type OutingTranslate } from './outing-copy';
 import { outingError, useOutingSession } from './outing-session';
+import { canExportOutingCalendar, downloadOutingCalendar } from '../../lib/outing-calendar';
 
 export const outingEligible = (app: Pick<AppContextValue, 'user'>) => !!app.user && (app.user.isPhoneVerified || app.user.officialVerification?.status === 'approved' || (app.user.isOfficialVerified && (!app.user.officialVerification?.status || app.user.officialVerification.status === 'none')));
 export const memberLabel = (status: OutingMemberStatus, t: OutingTranslate, waitlisted = false) => status === 'requested' && waitlisted ? t('候补中，尚未加入','Waitlisted — not yet joined') : ({ requested:t('待发起人确认','Awaiting host'), confirmed:t('已加入','Confirmed'), declined:t('申请未通过','Declined'), left:t('已退出','Left'), removed:t('已移出','Removed') })[status];
 export const outingLabel = (outing: Outing, t: OutingTranslate, now: number) => outing.status === 'cancelled' ? t('已取消','Cancelled') : outing.status === 'completed' || outing.endAt <= now ? t('已结束','Ended') : outing.startAt <= now ? t('进行中','In progress') : outing.confirmedCount >= outing.capacity ? t('已满员 · 可候补','Full · waitlist available') : t('招募同行','Open for requests');
 
 export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextValue; onBack: () => void }) {
-  const { t } = useOutingCopy(), session = useOutingSession(app.user);
+  const { t, locale } = useOutingCopy(), session = useOutingSession(app.user);
   const [outing, setOuting] = useState<Outing | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState(''), [notice, setNotice] = useState('');
   const [edit, setEdit] = useState(false), [report, setReport] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(''), [adult, setAdult] = useState(false);
   const [waitlistConsent,setWaitlistConsent] = useState(false), [acknowledgedVersion,setAcknowledgedVersion] = useState<number | null>(null);
@@ -47,6 +48,24 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
     finally { session.release(controller); if (session.current()) { lock.current = false; setBusy(false); setLoading(false); } }
   };
   const login = () => app.setShowLogin(true);
+  const exportCalendar = async () => {
+    if (!outing || !app.user || lock.current || loading || !session.current() || !canExportOutingCalendar(outing, app.user.id, Date.now())) return;
+    const previous = outing, controller = session.controller(), version = ++serial.current;
+    lock.current = true; setBusy(true); setError(''); setNotice('');
+    try {
+      const latest = (await outings.get(previous.id, controller.signal)).outing;
+      if (!session.current() || controller.signal.aborted || version !== serial.current) return;
+      if (latest.me && latest.me.userId !== app.user.id) throw new Error('Unexpected outing account');
+      setOuting(latest);
+      if (latest.planVersion !== previous.planVersion || latest.startAt !== previous.startAt || latest.endAt !== previous.endAt || !canExportOutingCalendar(latest, app.user.id, Date.now())) {
+        setNotice(t('小队安排或你的参加状态已变化。请先核对最新内容，确认后再存入日历。','The plan or your membership has changed. Review the latest details before saving a calendar file.'));
+        return;
+      }
+      downloadOutingCalendar(latest, app.user.id, Date.now(), locale);
+      setNotice(t('已生成日历文件。文件不会自动同步后续变更，出发前请回小队核对最新安排。','Calendar file created. It will not sync later changes automatically; check the outing again before leaving.'));
+    } catch (reason) { if (session.current() && !controller.signal.aborted && version === serial.current) setError(outingError(reason, t, true)); }
+    finally { session.release(controller); if (session.current()) { lock.current = false; setBusy(false); } }
+  };
   const draftOf = (row: Outing): OutingDraft => ({ title:row.title,description:row.description,eventId:row.eventId,date:row.date,startTime:row.startTime,endTime:row.endTime,city:row.city,venue:row.venue,capacity:row.capacity,costNote:row.costNote,transport:row.transport,language:row.language });
   if (!outing) return <><button className="outing-link-button" onClick={onBack}><ArrowLeft size={16}/>{t('返回小队','Back to outings')}</button>{loading && <p role="status" className="outing-read-status">{t('正在读取小队…','Loading outing…')}</p>}{error && <div className="outing-error" role="alert"><p>{error}</p><button className="outing-secondary" onClick={() => void load()}>{t('重新读取','Try again')}</button></div>}</>;
   const host = outing.host.id === app.user?.id, member = outing.me, canChange = outing.status === 'open' && outing.endAt > now;
@@ -65,6 +84,7 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
       <h2>{t('费用与报名说明','Costs and registration')}</h2><p className="outing-detail-description">{outing.costNote}</p>
       {outing.eventId && <div className="outing-associated"><Link to={`/events/${encodeURIComponent(outing.eventId)}`}>{outing.eventTitle || t('查看关联活动','View linked event')}</Link><p>{t('小队由个人发起，与主办方报名和门票分开。','This is an independently organized team, separate from official registration and tickets.')}</p>{outing.officialUrl && safeOutingUrl(outing.officialUrl) && <a href={outing.officialUrl} target="_blank" rel="noopener noreferrer">{t('去主办方核对报名与购票 ↗','Check registration and tickets with the organizer ↗')}</a>}</div>}
       <div className="outing-inline-actions"><Link className="outing-secondary" to={`/plan?date=${outing.date}${outing.eventId ? `&stops=event:${encodeURIComponent(outing.eventId)}` : ''}`}>{t('安排这天的行程','Plan this day')}</Link><button className="outing-link-button" onClick={() => app.user ? setReport(!report) : login()}><Flag size={15}/>{t('举报小队','Report outing')}</button></div><p className="outing-footnote">{t('行程是你自己的出游草稿，不会替小队确认时间，也不自动更改成员安排。','The itinerary is your own draft. It does not confirm or change the team’s arrangements.')}</p>
+      {canExportOutingCalendar(outing, app.user?.id, now) && <div className="outing-associated"><button type="button" className="outing-secondary" disabled={busy || loading} onClick={() => void exportCalendar()}><CalendarDays size={16}/>{t('将集合时间存入日历','Save meeting time to calendar')}</button><p className="outing-footnote">{t('仅导出这次已确认的同行安排。下载的日历文件不会自动同步取消或改期；出发前请回小队核对。','Exports this confirmed outing only. The downloaded file does not sync cancellations or changes; check the outing again before leaving.')}</p></div>}
       {report && <OutingReport outingId={outing.id} session={session} onClose={() => setReport(false)} />}
     </article><aside className="outing-surface"><p className="outing-eyebrow">{t('个人发起 · 非主办方','Independent host · not the organizer')}</p><button className="outing-person" onClick={() => app.openUserProfile(outing.host.id)}><Users size={18}/>{outing.host.nickname}</button><p className="outing-footnote">{outing.host.verified ? t('已通过手机或平台资料验证；这不保证身份、资质或线下安全。','Phone or platform profile verification does not guarantee identity, qualifications or in-person safety.') : t('自行核对发起人的资料与安排。','Review the host’s profile and plan yourself.')}</p>
       {!host && <button className="outing-link-button" onClick={() => app.user ? app.handleToggleBlockUser(outing.host.id) : login()}>{app.blockedUserIds.includes(outing.host.id) ? t('取消屏蔽发起人','Unblock host') : t('屏蔽发起人','Block host')}</button>}

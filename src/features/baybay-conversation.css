@@ -1,4 +1,30 @@
 .baybay-conversation { max-width: 730px; }
+.baybay-outing-results { margin-top:18px; border-top:1px solid #e2e7dc; padding-top:18px; color:#263d30; }
+.baybay-outing-results>header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.baybay-outing-eyebrow { color:#6b7b66; font-size:10px; letter-spacing:.08em; }
+.baybay-outing-results h3 { margin:4px 0 0; font-size:17px; font-weight:650; }
+.baybay-outing-filters { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+.baybay-outing-filters span { background:#f1f4ed; border-radius:6px; padding:4px 8px; font-size:12px; overflow-wrap:anywhere; }
+.baybay-outing-cards { display:grid; gap:9px; }
+.baybay-outing-card { display:block; padding:14px; border:1px solid #dce3d5; border-radius:13px; background:#fcfcf8; transition:border-color .15s,background .15s; }
+.baybay-outing-card:hover { border-color:#799478; background:#f5f8ef; }
+.baybay-outing-card-top { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
+.baybay-outing-card-top h4 { margin:0; font-size:14px; font-weight:650; line-height:1.6; overflow-wrap:anywhere; }
+.baybay-outing-card svg { flex-shrink:0; }
+.baybay-outing-card p { display:flex; align-items:flex-start; gap:7px; margin-top:7px; font-size:12px; line-height:1.65; color:#667360; }
+.baybay-outing-card p svg { margin-top:3px; }
+.baybay-outing-card p span { min-width:0; overflow-wrap:anywhere; }
+.baybay-outing-card-bottom { display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; margin-top:12px; font-size:12px; }
+.baybay-outing-card-bottom strong { font-weight:550; color:#3f684a; }
+.baybay-outing-all, .baybay-outing-state button { display:inline-flex; min-height:44px; align-items:center; gap:7px; color:#356446; font-size:13px; font-weight:550; }
+.baybay-outing-state { margin:12px 0; font-size:13px; line-height:1.8; color:#63735f; }
+p.baybay-outing-state { display:flex; gap:8px; align-items:center; }
+.baybay-outing-note { margin:3px 0 0; color:#72806b; font-size:11px; line-height:1.8; }
+.baybay-outing-clarify { display:flex; gap:10px; margin-top:16px; padding:13px; border-radius:12px; background:#f4f6ef; color:#3b563e; }
+.baybay-outing-clarify>svg { flex-shrink:0; margin-top:3px; }
+.baybay-outing-clarify strong { font-size:13px; font-weight:600; }
+.baybay-outing-clarify p { margin:6px 0; font-size:13px; line-height:1.8; }
+.baybay-outing-clarify small { font-size:12px; line-height:1.7; }
 .baybay-conversation .member-baybay-body { padding: 18px 25px 22px; }
 .baybay-context-line { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#71816e; font-size:11px; margin-bottom:17px; }
 .baybay-context-line button,.baybay-start-links button { display:flex; align-items:center; gap:6px; color:#386344; font-weight:600; }

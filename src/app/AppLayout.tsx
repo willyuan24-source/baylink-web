@@ -873,6 +873,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
           currentPath={location.pathname}
           categoryHint={baybayCategoryHint}
+          blockedUserIds={blockedUserIds}
           onNavigate={navigate}
           onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category, opts?.initialIntent)}
         />

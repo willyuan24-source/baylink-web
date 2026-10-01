@@ -613,3 +613,47 @@ test('hosts can remove or decline blocked members without unblocking while ordin
   assert.equal(memberView.queryByRole('button', { name: waiting.nickname }), null); assert.equal(memberView.queryByText(waiting.note), null);
   assert.equal(memberView.queryByRole('button', { name: '移除成员' }), null); assert.equal(memberView.queryByRole('button', { name: '婉拒' }), null);
 });
+
+test('calendar export rechecks current confirmed membership before creating a file', async t => {
+  signIn(user); let reads = 0, downloads = 0;
+  t.mock.method(api, 'request', async (path: string) => path.endsWith('/messages') ? { messages: [] } : (reads++, { outing: memberOuting() }));
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:outing-calendar-test'; });
+  t.mock.method(URL, 'revokeObjectURL', () => {});
+  t.mock.method(dom.window.HTMLAnchorElement.prototype, 'click', () => {});
+  const view = render(detail(user));
+  fireEvent.click(await view.findByRole('button', { name: '将集合时间存入日历' }));
+  await view.findByText(/已生成日历文件/);
+  assert.equal(reads, 2); assert.equal(downloads, 1);
+});
+
+test('calendar export refuses a changed plan or membership and replaces the stale detail', async t => {
+  signIn(user); let current = memberOuting(), downloads = 0;
+  t.mock.method(api, 'request', async (path: string) => path.endsWith('/messages') ? { messages: [] } : { outing: current });
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:must-not-download'; });
+  const view = render(detail(user));
+  const button = await view.findByRole('button', { name: '将集合时间存入日历' });
+  current = memberOuting({ planVersion: 3, revision: 5 });
+  fireEvent.click(button);
+  await view.findByText(/小队安排或你的参加状态已变化/);
+  assert.equal(downloads, 0); assert.equal(view.queryByRole('button', { name: '将集合时间存入日历' }), null);
+  assert.ok(view.getByText('安排有变化，请重新确认'));
+});
+
+test('a failed calendar refresh never exports a stale file and waitlisted members cannot export', async t => {
+  signIn(user); let failure = false, downloads = 0;
+  let current = memberOuting();
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path.endsWith('/messages')) return { messages: [] };
+    if (failure) throw { status: 503 };
+    return { outing: current };
+  });
+  t.mock.method(URL, 'createObjectURL', () => { downloads++; return 'blob:must-not-download'; });
+  const view = render(detail(user));
+  const button = await view.findByRole('button', { name: '将集合时间存入日历' });
+  failure = true; fireEvent.click(button);
+  await view.findByRole('alert'); assert.equal(downloads, 0);
+  view.unmount(); failure = false;
+  current = outing({ me: { userId:user.id,role:'member',status:'requested',confirmedVersion:2,waitlisted:true },confirmedCount:3 });
+  const waiting = render(detail(user)); await waiting.findByText('候补中，尚未加入');
+  assert.equal(waiting.queryByRole('button', { name: '将集合时间存入日历' }), null);
+});
