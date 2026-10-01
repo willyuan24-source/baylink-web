@@ -291,7 +291,8 @@ export function createMuertos(): Muertos {
     group,
     step: (dt, px, py, pz, on) => {
       clock += dt;
-      if (walkers && today.procession !== 'none') walkers.step(today.procession, walkBase.s + (clock - walkBase.at), clock);
+      // W8-H: the player's and BAYBAY's positions and the frame time: the walkers step aside for them
+      if (walkers && today.procession !== 'none') walkers.step(today.procession, walkBase.s + (clock - walkBase.at), clock, px, pz, dt, runtime.guide.x, runtime.guide.z);
       if ((acc += dt) < 0.15) return;
       acc = 0;
       today = muertosSchedule();
@@ -335,6 +336,8 @@ export function createMuertos(): Muertos {
       const c = ROUTE_CORNERS.bryant22;
       const atStart = Math.hypot(px - c.x, pz - c.z);
       if (d.procession === 'gather' && atStart < GATHER_NEAR) out.push({ key: 'procession-gather', line: 'processionGather' });
+      // W8-H: the walkers part round a player standing in their lane — BAYBAY suggests the sidewalk (before the watch line)
+      if (d.procession === 'walk' && walkers?.aside()) out.push({ key: 'procession-aside', line: 'processionAside' });
       if (d.procession === 'walk' && walkers?.near(px, pz, WALKERS_NEAR)) out.push({ key: 'procession-walk', line: 'processionWalk' });
       if (d.altars && atStart < PROCESSION_NEAR) out.push({ key: 'muertos-procession', line: 'muertosProcession' });
       if (Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_HELLO_NEAR) {
