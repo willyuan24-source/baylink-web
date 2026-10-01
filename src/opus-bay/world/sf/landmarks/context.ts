@@ -4,6 +4,7 @@ import { SF_SITES, type SfLandmark, landmarkToWorld, sfLandmark, tallParts } fro
 import { plazaSpots } from './setting';
 import type { SitePhoto } from './siteKit';
 import { w4Site } from './w4sites';
+import { ALCA_PHOTO } from '../alcatrazWalk';
 
 // lane L's flag poles and lookups (plan §4.2), for lanes P and G: one import path for the landmark helpers
 export { HERO_FLAGS, LANDMARK_FLAGS, flagHeight, siteFlagTop, w4Site, w4SiteByPlace, w4SiteOf } from './w4sites';
@@ -90,7 +91,8 @@ export function siteFrame(id: string, baseOf: (l: SfLandmark) => number): SiteFr
 export function sitePhoto(id: string): SitePhoto | null {
   const info = sfLandmarkInfo(id);
   if (info) return { target: [...info.photo.target], distance: info.photo.distance, elevation: info.photo.elevation, bearing: info.photo.bearing };
-  const w = w4Site(id)?.w4.photo;
+  // (wave 8, lane A) a wave-7 site with a landing (Alcatraz by ferry: world/sf/alcatrazWalk.ts ALCA_PHOTO)
+  const w = w4Site(id)?.w4.photo ?? (id === 'alcatraz' ? ALCA_PHOTO : undefined);
   return w ? { target: [...w.target], distance: w.distance, elevation: w.elevation, bearing: w.bearing } : null;
 }
 

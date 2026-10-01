@@ -2,6 +2,7 @@ import { platformStop } from '../../actors/platform';
 import type { Bilingual, Vec2 } from '../../core/types';
 import { ALCA_BACK, ALCA_CROSSING, ALCA_FERRY_ID, ALCA_OUT, ALCA_PIVOT, ALCA_TERMINALS, FERRY } from '../../data/ferry';
 import type { CarPose, RideStatus, RiderRequest } from '../transitLine';
+import { ALCA_LINES } from './alcatrazLines';
 
 /**
  * Wave 8 · lane A · the toy Alcatraz ferry, Pier 33 (Alcatraz Landing) ⇄ the island's dock. PURE (no three.js, no
@@ -278,6 +279,10 @@ export class AlcaFerrySystem {
 
   /** A note instead of a ride from `station` now (the timetable), or null. */
   serviceNote(station: string): Bilingual | null { return alcaServiceNote(station, this.serviceState()); }
+
+  /** BAYBAY's fixed lines on boarding and stepping ashore (game/transit.ts asks a ferry line's own system). */
+  boardLine(): Bilingual { return ALCA_LINES.board; }
+  offLine(to: string): Bilingual { return to === ISL ? ALCA_LINES.ashore : ALCA_LINES.backAt33; }
 
   /** Seconds until the boat can take a rider waiting at `station` (0 when it lies there). */
   waitSeconds(station: string): number { return this.eta(station); }

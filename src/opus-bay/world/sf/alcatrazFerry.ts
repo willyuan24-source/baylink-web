@@ -6,6 +6,10 @@ import { runtime } from '../../core/runtime';
 import { ALCA_FERRY_ID, ALCA_TERMINALS, FERRY } from '../../data/ferry';
 import { setFerrySystemFor } from '../../data/transit';
 import { bayParts } from '../../game/bayNow';
+import { baybayHeld } from '../../game/baybayHold';
+import { bubble } from '../../game/flow';
+import { flow } from '../../game/flowStore';
+import { game } from '../../core/store';
 import { currentRide } from '../../game/ride';
 import { BOX, Batch, CYL, M } from '../builder';
 import { FERRY_PLATFORM } from '../ferry';
@@ -13,6 +17,8 @@ import { spawnFx } from '../fx';
 import { ferryGeometry } from '../life';
 import { TOY, TOY_DYN } from '../materials';
 import { type AlcaClock, type AlcaTraffic, AlcaFerrySystem } from './alcatrazFerrySystem';
+import { ALCA_LINES } from './alcatrazLines';
+import { ALCA_ARRIVAL, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
 
 /**
  * Wave 8 · lane A · the toy Alcatraz ferry in the city (installed by world/transitLayer.ts, the lazy city transit chunk;
@@ -30,6 +36,11 @@ import { type AlcaClock, type AlcaTraffic, AlcaFerrySystem } from './alcatrazFer
  *
  * The crossing of the waterfront's ferry tracks gives way to the other boats: `traffic` (transitLayer passes the
  * water's wake list — every ferry and sailboat life.ts moves, with its heading; the moving ones are given way to).
+ *
+ * The island watcher (2 Hz, on foot on Alcatraz): BAYBAY's fixed lines (world/sf/alcatrazLines.ts) at the stair's foot
+ * (once a page), the occupation after a while at the cellhouse front (once a page), and — on the island without the
+ * ferry (a glide in) — how to get back (once a visit). Never while BAYBAY is held (game/baybayHold), a dialogue or a
+ * panel is open, or an arrival / cinematic plays: the line waits for the next tick.
  */
 
 /** the toy ferry's line colour: navy (the Ferry Building boat is teal) */
@@ -170,9 +181,46 @@ export class AlcaFerryLayer {
       }
       if (e.what === 'depart' && mine) emit({ ...base, what: 'depart' });
       if (e.what === 'arrive' && mine) emit({ ...base, what: 'arrive' });
+      if (e.what === 'arrive' && mine && e.station === ALCA_TERMINALS.island.id) this.ferriedIn = true;
       if (e.what === 'board') emit({ ...base, what: 'board' });
     }
     sys.events.length = 0;
+    this.watchIsland(dt);
+  }
+
+  // --- the island watcher -------------------------------------------------------------------------------------
+
+  private islandT = 0;
+  /** on the island now; came by ferry this visit; seconds near the cellhouse front this visit */
+  private visit = { on: false, ferried: false, front: 0, wayBack: false };
+  /** lines said this page */
+  private said = { stair: false, occupation: false };
+  /** the rider stepped ashore at the island (set from the boat's arrival with its rider) */
+  private ferriedIn = false;
+
+  private quiet(): boolean {
+    const s = game.get(), f = flow.get();
+    return baybayHeld() || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || !!f.arrival || !!f.bubble;
+  }
+
+  private watchIsland(dt: number) {
+    if ((this.islandT -= dt) > 0) return;
+    const step = 0.5;
+    this.islandT = step;
+    const p = runtime.player, v = this.visit;
+    if (!onAlcatraz(p.x, p.z) || game.get().worldMode !== 'city') {
+      if (v.on) { v.on = false; v.ferried = false; v.front = 0; v.wayBack = false; }
+      return;
+    }
+    // (a visit starts on foot: riding in alongside the island is not landing on it)
+    if (game.get().move.mode !== 'foot') return;
+    if (!v.on) { v.on = true; v.ferried = this.ferriedIn; this.ferriedIn = false; v.front = 0; v.wayBack = false; }
+    // gliding in (no ferry): how to get back, once a visit, a moment after landing
+    if (!v.ferried && !v.wayBack && !this.quiet()) { v.wayBack = true; bubble(ALCA_LINES.wayBack, 4600); return; }
+    const stair = ALCA_WALK_GRAPH.nodes[4];
+    if (!this.said.stair && Math.hypot(p.x - stair.x, p.z - stair.z) < 3.5 && !this.quiet()) { this.said.stair = true; bubble(ALCA_LINES.stair, 4600); return; }
+    if (Math.hypot(p.x - ALCA_ARRIVAL.x, p.z - ALCA_ARRIVAL.z) < 7) v.front += step;
+    if (!this.said.occupation && v.front >= 12 && !this.quiet()) { this.said.occupation = true; bubble(ALCA_LINES.occupation, 5600); }
   }
 
   /** QA: where the boat is and what it does */

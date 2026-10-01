@@ -478,7 +478,8 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
     // (the wave-4 fleet emits its own board event, with the station and the direction)
     if (!w4Kind(r.line!)) emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
     if (W4G && w4Kind(r.line!)) { const b = W4G.boardBubble(r); if (b) bubble(b, 3600); }
-    else if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
+    // (wave 8, lane A) another ferry line's own boarding line (the Alcatraz boat: world/sf/alcatrazLines.ts)
+    else if (r.kind === 'ferry') { const own = ferryHooksOf(r.line)?.boardLine?.(); bubble(own ?? hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, own ? 4200 : 3200); }
     else if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
     else bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
     announce({ zh: `上车：${name.zh}`, en: `Aboard the ${name.en}` });
@@ -625,7 +626,8 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightA
     const tipped = (r.counted || finishing) && W4G!.sayHopOffTip(at);
     if (!tipped && !r.counted && r.mode === 'follow') bubble({ zh: '坐过一站再下车，才算坐过哦', en: 'Ride at least one stop and it counts as a ride' }, 3000);
   } else if (r.kind === 'ferry') {
-    if (r.counted && !skip) bubble(hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, 2800);
+    // (wave 8, lane A) another ferry line's own line ashore (the Alcatraz boat: on the island, back at Pier 33)
+    if (r.counted && !skip) { const own = ferryHooksOf(r.line)?.offLine?.(r.to); bubble(own ?? hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, own ? 4600 : 2800); }
   } else if (r.kind === 'streetcar') {
     if (r.counted && !skip) bubble(hookText('streetcarOff') ?? { zh: '叮叮！F 线电车，下次再坐', en: 'Ding ding! Let’s take the F-line again' }, 2800);
     else if (r.mode === 'follow') bubble({ zh: '坐到下一站再下车，才算坐过 F 线电车哦', en: 'Ride to the next stop and it counts as a streetcar ride' }, 3200);
@@ -710,9 +712,18 @@ const FERRY_LINE = 'ferry';
  * (wave 8, lane A) What a ferry line's own system may answer besides the rider protocol (the Alcatraz boat,
  * world/sf/alcatrazFerrySystem.ts): its ride time, a timetable note instead of a ride, the quay's greeting.
  */
-interface FerryLineHooks { rideSeconds?(from: string, to: string): number; serviceNote?(station: string): Bilingual | null; greeting?(station: string): Bilingual | null }
+interface FerryLineHooks {
+  rideSeconds?(from: string, to: string): number;
+  serviceNote?(station: string): Bilingual | null;
+  greeting?(station: string): Bilingual | null;
+  /** BAYBAY on boarding, and stepping ashore at `to` (fixed lines: lane X voices them) */
+  boardLine?(): Bilingual;
+  offLine?(to: string): Bilingual;
+}
 /** (wave 8, lane A) the system of a ferry line: the Ferry Building boat, or another line's own (data/transit setFerrySystemFor) */
 const ferrySystemOf = (line: string) => (line === FERRY_LINE ? activeFerrySystem() : rideSystemFor(line));
+/** (wave 8, lane A) a ferry line's own hooks (null for the Ferry Building boat) */
+const ferryHooksOf = (line: string | undefined): FerryLineHooks | null => (line && line !== FERRY_LINE ? (ferrySystemOf(line) as unknown as FerryLineHooks | null) : null);
 /** (wave 8, lane A) the ride line of a ferry terminal (= its route id) */
 const ferryLineOf = (station: string) => ferryTerminal(station)?.route.id ?? FERRY_LINE;
 

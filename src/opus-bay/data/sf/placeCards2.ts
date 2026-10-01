@@ -699,7 +699,8 @@ export const CURATED_CARDS: PlaceCard[] = [
     tips: [
       bi('只绕岛不靠岸的观光船，不算登岛票。', 'A cruise that only circles the island is not a landing ticket.'),
       bi('岛上码头到监狱要爬一段坡，穿好走的鞋。', 'It\'s an uphill walk from the island dock to the prison: wear good shoes.'),
-      bi('游戏里上不了岛：BAYBAY 带你到恶魔岛渡轮码头 · 33 号码头，用望远镜看它。', 'You can\'t land in the game: BAYBAY takes you to Pier 33 (Alcatraz Landing) to look through the telescope.'),
+      // (wave 8, lane A, surgical: the island is landable now) the toy ferry leaves from the same pier
+      bi('游戏里在恶魔岛渡轮码头 · 33 号码头坐小渡轮就能上岛，码头的望远镜也看得到它；BAYBAY 带路会先到码头。', 'In the game, the little ferry from Pier 33 (Alcatraz Landing) takes you to the island, and the pier’s telescope looks out to it; BAYBAY’s trips go to the pier first.'),
     ],
     officialUrl: 'https://www.nps.gov/alca/index.htm',
     verifiedAt: '2026-09-29',
