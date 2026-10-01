@@ -406,7 +406,8 @@ export function startGrip(source: () => ReturnType<typeof liveCar> = liveCar): b
 export function setGripHold(on: boolean) { padHold = on; }
 export function gripBell() {
   const r = cur;
-  if (!r) return;
+  // (W8-M-review) Settings pauses the ride and hides the panel: H then rings nothing (it was judged, a stray)
+  if (!r || game.get().paused) return;
   playSound('play-bell', { pitch: 1 + (Math.random() - 0.5) * 0.02 });
   for (const e of r.game.ring()) onGripEvent(r, e);
   changed();

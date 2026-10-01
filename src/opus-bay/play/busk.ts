@@ -283,7 +283,8 @@ function scheduleBeats(r: Run) {
 /** A tap (the panel's button, a tap on the street picture, Space / Enter / J / F). */
 export function buskTap() {
   const r = cur;
-  if (!r) return;
+  // (W8-M-review) Settings pauses the song and hides the panel: a key then is no tap (it was judged, a stray costing a point)
+  if (!r || game.get().paused) return;
   const g = r.game;
   playSound(g.song.style === 'mission' ? 'm8-maracas' : 'm8-tambourine', { pitch: 1 + (Math.random() - 0.5) * 0.06 });
   // judged at the tap's own moment between two frames (a paused song: at its frozen time)

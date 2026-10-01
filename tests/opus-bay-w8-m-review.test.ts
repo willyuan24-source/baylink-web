@@ -138,3 +138,18 @@ test('W8-M-review panels: hidden while Settings pauses their game; the grip pane
   assert.match(css, /\.ob-sfg-panel:is\(\.is-grip, \.is-busk, \.is-fog\)\s*\{[^}]*background:\s*#fffaf1/, 'opaque: no HUD labels through the legend');
   assert.match(css, /\.ob-overlay\.has-sheet \.ob-sfg-panel:is\(\.is-grip, \.is-busk, \.is-fog\)\s*\{[^}]*right:\s*calc\(var\(--ob-sheet-w/, 'left of an open side sheet');
 });
+
+test('W8-M-review busker: a tap while Settings pauses the song (its panel hidden) is no stray', async () => {
+  const busk = await import('../src/opus-bay/play/busk');
+  kit.__resetKit();
+  busk.__resetBusk();
+  game.set({ phase: 'playing', mode: 'free', riding: null, photoMode: false, paused: false } as never);
+  runtime.move.mode = 'foot';
+  assert.ok(busk.startBusk('haight', false));
+  const g = busk.buskGame()!;
+  game.set({ paused: true } as never);
+  for (let i = 0; i < 5; i++) busk.buskTap();
+  assert.equal(g.strays, 0, 'no tap judged under Settings');
+  game.set({ paused: false } as never);
+  busk.cancelBusk();
+});
