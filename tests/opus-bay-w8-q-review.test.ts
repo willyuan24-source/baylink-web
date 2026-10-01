@@ -22,15 +22,14 @@ const mediaAfter = (src: string, marker: string, query: string) => {
   return src.slice(start + head.length, src.indexOf('\n}', start));
 };
 
-test('Q-PL-1: in short landscape the ride banner waits while the grip game is up, and the canvas is short enough for the panel to fit', () => {
-  const block = mediaAfter(css('play/sfgames8.css'), 'Q-PL-1', '(max-height: 520px)');
-  assert.match(block, /\.ob-overlay:has\(\.ob-sfg-panel\.is-grip\) \.ob-topstack > \.ob-ride \{ visibility: hidden; \}/);
-  const vh = Number(/\.ob-sfg-canvas\.is-grip \{ width: min\(100%, (\d+)vh\); align-self: center; \}/.exec(block)![1]);
-  // the canvas is 100 / 36: its height is width × 0.36 — at most 34vh (as the busker's)
-  assert.ok(vh * 0.36 <= 34, `${vh}vh wide → ${vh * 0.36}vh tall`);
-  // the grip panel is bottom-anchored on a phone (the banner held the top: there was no other room)
-  assert.match(css('play/sfgames8.css'), /\.ob-sfg-panel\.is-grip \{ top: auto; bottom: calc\(12px/);
-  assert.match(css('play/sfgames8.css'), /\.ob-sfg-canvas\.is-grip \{ aspect-ratio: 100 \/ 36;/);
+test('Q-PL-1: in short landscape the grip game\'s canvas sits beside its controls, so the panel stays under the ride banner (W8-M-review\'s fix)', () => {
+  const g = css('play/sfgames8.css');
+  const block = mediaAfter(g, 'W8-M-review', '(max-height: 560px) and (min-width: 600px)');
+  assert.match(block, /grid-template-areas: 'canvas head' 'canvas clock' 'canvas hint' 'canvas controls';/);
+  assert.match(block, /\.ob-sfg-panel\.is-grip > \.ob-sfg-canvas \{ grid-area: canvas;/);
+  // the grip panel is bottom-anchored on a phone; nothing hides the ride banner (it stays in view above the panel)
+  assert.match(g, /\.ob-sfg-panel\.is-grip \{ top: auto; bottom: calc\(12px/);
+  assert.doesNotMatch(g, /\.ob-topstack > \.ob-ride \{ visibility: hidden; \}/);
 });
 
 test('Q-PL-2: a phone on its side with a side sheet: the pills, the waypoint and the bubble wait under the sheet', () => {
