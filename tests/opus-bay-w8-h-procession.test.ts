@@ -92,6 +92,8 @@ test('W8-H walkers step aside: a player standing in the lane is walked round, th
   } finally { w.dispose(); }
   // muertos.ts offers BAYBAY's aside line while they part round the player (before the watch line)
   const src = (await import('node:fs')).readFileSync(new URL('../src/opus-bay/halloween/muertos.ts', import.meta.url), 'utf8');
-  assert.match(src, /walkers\?\.aside\(\)\) out\.push\(\{ key: 'procession-aside', line: 'processionAside' \}\)/);
-  assert.match(src, /walkers\.step\(today\.procession, walkBase\.s \+ \(clock - walkBase\.at\), clock, px, pz, dt, runtime\.guide\.x, runtime\.guide\.z\)/);
+  // (W8-H-review: only while the player is on foot — and the walkers part only round someone on the street; the
+  // behaviour is in tests/opus-bay-w8-h-review.test.ts)
+  assert.match(src, /walkers\?\.aside\(\) && asideLineFits\(\)\) out\.push\(\{ key: 'procession-aside', line: 'processionAside' \}\)/);
+  assert.match(src, /walkers\.step\(today\.procession, walkBase\.s \+ \(clock - walkBase\.at\), clock, ground \? px : undefined, ground \? pz : undefined, dt, ground \? runtime\.guide\.x : undefined, ground \? runtime\.guide\.z : undefined\)/);
 });

@@ -36,9 +36,9 @@ export const WALK = { speed: 0.7, row: 1.25, spread: 0.34, pause: 18 } as const;
 /**
  * (W8-H) stepping aside: a walker whose spot in the files is within `radius` (u) of the player (and within `ahead` along
  * the walking direction) slides sideways until it clears the player by `radius`; `rate` (1/s) the smoothing, `max` (u)
- * the farthest it goes off its file
+ * the farthest it goes off its file; (W8-H-review) `pair` (u) the least gap across between the two walkers of a row
  */
-export const ASIDE = { radius: 1.0, ahead: 1.6, rate: 5, max: 1.4 } as const;
+export const ASIDE = { radius: 1.0, ahead: 1.6, rate: 5, max: 1.4, pair: 0.6 } as const;
 /** (W8-H) the legs: the hip's height, the half gap between the legs, the swing (rad) while walking, its rate (rad/s) */
 export const LEGS = { hip: 0.3, gap: 0.075, swing: 0.5, rate: 6.5 } as const;
 /** (W8-H) instances a walker in the robes' mesh: the robe, the sleeve, the left leg, the right leg */
@@ -296,6 +296,8 @@ export function createWalkers(ground: (x: number, z: number) => number = heightA
   const px = new Float32Array(count), pz = new Float32Array(count);
   // W8-H: each walker's sideways slide off its file (u, + = left of the walking direction), smoothed toward its target
   const dodge = new Float32Array(count);
+  // W8-H-review: each walker's wanted slide this frame (the pair rule below reads both of a row before either moves)
+  const wants = new Float32Array(count);
   let asideNow = false;
   const m4 = new THREE.Matrix4(), pm = new THREE.Matrix4(), part = new THREE.Matrix4(), qt = new THREE.Quaternion(), qr = new THREE.Quaternion(), pos = new THREE.Vector3(), scl = new THREE.Vector3(1, 1, 1);
   const up = new THREE.Vector3(0, 1, 0), fwd = new THREE.Vector3(0, 0, 1), f = new THREE.Vector3();
@@ -305,6 +307,9 @@ export function createWalkers(ground: (x: number, z: number) => number = heightA
   const leadY = leadGround(ground);
   let halos: HaloSpot[] = [];
   let gathered = false;
+  // walker i's place along the route (row behind the head, a little jitter) and across it (its file, + = left)
+  const sOf = (i: number, gather: boolean) => head.s - (i >> 1) * WALK.row + (hash(i) - 0.5) * (gather ? 0.7 : 0.3);
+  const latOf = (i: number, gather: boolean) => (i & 1 ? 1 : -1) * WALK.spread + (hash(i + 101) - 0.5) * (gather ? 0.5 : 0.14);
   return {
     group,
     step: (phase, walkS, clock, playerX, playerZ, dt = 0, guideX, guideZ) => {
@@ -315,16 +320,15 @@ export function createWalkers(ground: (x: number, z: number) => number = heightA
       const player = playerX !== undefined && playerZ !== undefined && Number.isFinite(playerX) && Number.isFinite(playerZ);
       const guide = guideX !== undefined && guideZ !== undefined && Number.isFinite(guideX) && Number.isFinite(guideZ);
       asideNow = false;
-      for (let i = 0; i < count; i++) {
-        const row = i >> 1, side = i & 1 ? 1 : -1, h1 = hash(i), h2 = hash(i + 101), h3 = hash(i + 202);
-        const s = head.s - row * WALK.row + (h1 - 0.5) * (gather ? 0.7 : 0.3);
-        placeAt(s, at, leadY);
-        // left of the walking direction is (−hz, hx)… the files either side of the line
-        const lat = side * WALK.spread + (h2 - 0.5) * (gather ? 0.5 : 0.14);
-        // W8-H: step aside for the player and BAYBAY — their place in this walker's frame (along / across its file); the
-        // stronger push wins
-        let want = 0;
-        if (player || guide) {
+      wants.fill(0);
+      if (player || guide) {
+        for (let i = 0; i < count; i++) {
+          const side = i & 1 ? 1 : -1;
+          placeAt(sOf(i, gather), at, leadY);
+          const lat = latOf(i, gather);
+          // W8-H: step aside for the player and BAYBAY — their place in this walker's frame (along / across its file); the
+          // stronger push wins
+          let want = 0;
           const bx = at.x - at.hz * lat, bz = at.z + at.hx * lat;
           for (let o = 0; o < 2; o++) {
             if (o === 0 ? !player : !guide) continue;
@@ -336,7 +340,25 @@ export function createWalkers(ground: (x: number, z: number) => number = heightA
             const w = away * (ASIDE.radius - Math.abs(across)) * (1 - (Math.abs(along) / ASIDE.ahead) * 0.5);
             if (Math.abs(w) > Math.abs(want)) want = Math.max(-ASIDE.max, Math.min(ASIDE.max, w));
           }
+          wants[i] = want;
         }
+        // W8-H-review: the two walkers of a row part as a pair. Pushed one by one, a player standing just beside a file
+        // sent that file's walker across onto the other file's line (0.14 u apart: two robes merged into one); now the
+        // walker stepping round someone harder keeps its place and its row-mate makes room beyond it, on its own side
+        for (let a = 0; a + 1 < count; a += 2) {
+          const b = a + 1, ta = latOf(a, gather) + wants[a], tb = latOf(b, gather) + wants[b];
+          if (Math.abs(tb - ta) >= ASIDE.pair || (wants[a] === 0 && wants[b] === 0)) continue;
+          const keep = Math.abs(wants[a]) >= Math.abs(wants[b]) ? a : b, move = keep === a ? b : a;
+          const at2 = (keep === a ? ta : tb) + (move & 1 ? 1 : -1) * ASIDE.pair;
+          wants[move] = Math.max(-ASIDE.max, Math.min(ASIDE.max, at2 - latOf(move, gather)));
+        }
+      }
+      for (let i = 0; i < count; i++) {
+        const h3 = hash(i + 202);
+        placeAt(sOf(i, gather), at, leadY);
+        // left of the walking direction is (−hz, hx)… the files either side of the line
+        const lat = latOf(i, gather);
+        const want = wants[i];
         dodge[i] += (want - dodge[i]) * (dt > 0 ? k : 1);
         if (Math.abs(dodge[i]) > 0.15) asideNow = true;
         const latD = lat + dodge[i];
