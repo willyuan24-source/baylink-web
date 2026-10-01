@@ -52,8 +52,11 @@ export const overlaps = (a: Box, b: Box, pad = 0) => a.l < b.r + pad && a.r > b.
 /**
  * The bubble hangs above its anchor point (x, y): box = [x ± w/2, y − 10 − h … y − 10]. Boxes in the upper half of the
  * screen push it down, boxes in the lower half push it up (3 passes), then it is clamped to [minY, maxY] (anchor y).
+ * W8-K4b: when it still covers a box after that (a tall play panel above a round button: the passes swung between the
+ * two and left the claw's 新的纪念品！ half under the panel on a phone), the free spot nearest the anchor wins — below /
+ * above each box, also beside each box within [minX, maxX] (anchor x; the caller's on-screen range).
  */
-export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number): { x: number; y: number } {
+export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number, minX = -Infinity, maxX = Infinity): { x: number; y: number } {
   let ay = Math.min(maxY, Math.max(minY, y));
   for (let pass = 0; pass < 3; pass++) {
     let moved = false;
@@ -65,7 +68,29 @@ export function placeBubble(x: number, y: number, w: number, h: number, boxes: r
     }
     if (!moved) break;
   }
-  return { x, y: Math.min(maxY, Math.max(minY, ay)) };
+  ay = Math.min(maxY, Math.max(minY, ay));
+  if (!bubbleHits(x, ay, w, h, boxes)) return { x, y: ay };
+  // (W8-K4b) the nearest free candidate: rows below / above each box (and the anchor's own), columns beside each box
+  const y0 = Math.min(maxY, Math.max(minY, y));
+  let bx = x, by = ay, best = Infinity;
+  for (let i = -1; i < boxes.length * 2; i++) {
+    const cy = i < 0 ? y0 : i % 2 === 0 ? boxes[i >> 1].b + GAP + 10 + h + 0.5 : boxes[i >> 1].t - GAP + 10 - 0.5;
+    if (cy < minY || cy > maxY) continue;
+    for (let j = -1; j < boxes.length * 2; j++) {
+      const raw = j < 0 ? x : j % 2 === 0 ? boxes[j >> 1].l - GAP - w / 2 - 0.5 : boxes[j >> 1].r + GAP + w / 2 + 0.5;
+      const cx = Math.min(maxX, Math.max(minX, raw));
+      const cost = Math.abs(cy - y) + 2 * Math.abs(cx - x);
+      if (cost < best && !bubbleHits(cx, cy, w, h, boxes)) { best = cost; bx = cx; by = cy; }
+    }
+  }
+  return { x: bx, y: by };
+}
+
+/** The bubble anchored at (x, y) covers (or comes within GAP of) one of the boxes. */
+function bubbleHits(x: number, y: number, w: number, h: number, boxes: readonly Box[]): boolean {
+  const l = x - w / 2, r = x + w / 2, t = y - 10 - h, b = y - 10;
+  for (const o of boxes) if (l < o.r + GAP && r > o.l - GAP && t < o.b + GAP && b > o.t - GAP) return true;
+  return false;
 }
 
 export interface WaypointBox {

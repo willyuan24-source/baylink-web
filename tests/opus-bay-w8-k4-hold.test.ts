@@ -110,3 +110,17 @@ test('W8-K4 the play panels are fixed HUD boxes: a bubble over the claw panel on
   assert.ok(!overlaps(box, panel) && !overlaps(box, bar), `clear of the panel and the bar: ${JSON.stringify(box)}`);
   assert.ok(box.t > panel.b && box.b < bar.t, 'between them');
 });
+
+test('W8-K4b a bubble caught between a tall panel and a round button below it lands on a free spot (it swung between them, half under the panel)', () => {
+  // 390 × 844: the claw panel, the Hop button under it on the right, the bottom bar (W8-K4 live run 3,
+  // a-k4-claw-phone-own-bubble.jpg: 新的纪念品！ half under the panel); BAYBAY's head projected under the panel's right half
+  const panel = { l: 12, t: 114, r: 378, b: 595 }, hop = { l: 315, t: 640, r: 370, b: 695 }, bar = { l: 64, t: 780, r: 326, b: 836 };
+  const W = 230, H = 64, h = 844, half = W / 2 + 8;
+  const at = placeBubble(267, 520, W, H, [panel, hop, bar], h, 58 + 10 + H + 10, h - 60, half, 390 - half);
+  const box = { l: at.x - W / 2, r: at.x + W / 2, t: at.y - 10 - H, b: at.y - 10 };
+  for (const o of [panel, hop, bar]) assert.ok(!overlaps(box, o), `clear of ${JSON.stringify(o)}: ${JSON.stringify(box)}`);
+  assert.ok(box.l >= 0 && box.r <= 390, 'on screen');
+  // the 3-pass answer was enough before: unchanged (no box in the way, one box above)
+  assert.deepEqual(placeBubble(200, 420, 230, 60, [], h, 130, h - 60), { x: 200, y: 420 });
+  assert.deepEqual(placeBubble(195, 420, 200, 46, [panel], h, 114, h - 60, 108, 282), { x: 195, y: 595 + 6 + 10 + 46 });
+});
