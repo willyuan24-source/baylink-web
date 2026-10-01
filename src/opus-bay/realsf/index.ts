@@ -7,6 +7,7 @@ import { game } from '../core/store';
 import type { Bilingual, CatalogEvent } from '../core/types';
 import { eventById, getCatalog, setEventVenueHooks, type EventSpot } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { startTravel, travelActive } from '../game/fastTravel';
 import { bubble, closePanel, dialogueOpen, navigateTo, openEvent } from '../game/flow';
@@ -183,15 +184,15 @@ export function init(): () => void {
     if (!offered.length) return;
     const line = sched.step(performance.now() / 1000, day, {
       silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
-        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null
+        || baybayHeld(), // W8-K1 (lane K, surgical): a play panel, an egg card, the Halloween postcard… (game/baybayHold.ts)
       bubble: !!f.bubble,
       quiet: performance.now() < f.quietUntil,
     }, offered);
     if (!line) return;
     if (line.key === 'today-welcome') welcomeLate = false;
     if (line.key.startsWith('jets-')) jets.said(line.key);
-    bubble(line.text, 4600, BAYBAY_ID, 'bark');
-    emit({ type: 'voice-line', id: `realsf-${line.key}` });
+    if (bubble(line.text, 4600, BAYBAY_ID, 'bark')) emit({ type: 'voice-line', id: `realsf-${line.key}` });
   }, 5);
 
   return () => {

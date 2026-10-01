@@ -11,6 +11,7 @@ import { ATTRACTIONS } from '../data/sf/attractions';
 import { CITY_GOAL } from '../data/sf/goals';
 import { W5_PELICAN, w5Text } from '../data/sf/linesW5';
 import type { ArrivalHit } from './arrival';
+import { baybayHeld } from './baybayHold';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say, setTalkMarkSource } from './flow';
@@ -214,7 +215,7 @@ function quiet(now: number, p: Pending): boolean {
   if (Math.hypot(g.x - pl.x, g.z - pl.z) > PAIR_NEAR && now - p.since < PAIR_WAIT_MS) return false;
   if (leadingToPelican() && now - p.since < LEAD_WAIT_MS) return false;
   return s.phase === 'playing' && !s.paused && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.arrival
-    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen();
+    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen() && !baybayHeld();
 }
 
 /** City frame system (≈ 4 Hz, game/cityMoments.ts): play the moment once the screen is free. `offer` = BAYBAY's pacer. */

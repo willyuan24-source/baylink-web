@@ -3,6 +3,7 @@ import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { travelActive } from '../game/fastTravel';
 import { bubble, dialogueOpen } from '../game/flow';
@@ -141,7 +142,8 @@ export function initHalloweenWorld(): () => void {
     const s = game.get(), f = flow.get();
     const gates = {
       silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
-        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null
+        || baybayHeld(), // W8-K1 (lane K, surgical): a play panel, an egg card, the Halloween postcard… (game/baybayHold.ts)
       bubble: !!f.bubble,
       quiet: performance.now() < f.quietUntil,
     };

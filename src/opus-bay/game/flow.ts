@@ -32,6 +32,7 @@ import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
 import { rewardGoal, rewardPostcard } from './rewards';
+import { bubbleWaits } from './baybayHold';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
 
 // W6-P3 (lane P, MF9): the six city residents come with the city data chunk (data/sf/cityDataChunk.ts; none in district
@@ -51,7 +52,8 @@ const taskState: CityData['taskState'] = (...a) => CITY_DATA!.taskState(...a);
  *
  *   bubble(text, ms = 3200, who = BAYBAY_ID, tone = 'bark')
  *       BAYBAY's (or a resident's, `who` = their id) speech bubble, right now. Dropped while a postcard reward is up and
- *       while the goals step is open; a later bubble replaces it. For a line that must not talk over BAYBAY's tour /
+ *       while the goals step is open, waits behind the Halloween postcard (W8-K1; returns false then); a later bubble
+ *       replaces it. An unprompted line also asks game/baybayHold.ts baybayHeld() first. For a line that must not talk over BAYBAY's tour /
  *       transit / arrival lines, use cityContent `baybayLine(text, { ttl })` (her pacer: it waits its turn, and is
  *       dropped after `ttl` s rather than said late). zh ≤ 45 characters.
  *   markGoalsDone(ids, { quiet }?)
@@ -75,13 +77,43 @@ export function announce(text: Bilingual | string) { flow.set({ announce: text }
 
 let bubbleKey = 0;
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null;
-export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble['tone'] = 'bark') {
+/** W8-K1: a bubble said while the Halloween postcard is open waits this long at most (ms), then it is dropped */
+export const BUBBLE_WAIT_MAX = 15_000;
+/** W8-K1: after the card closes the waiting bubble shows once no bubble is up (the card's keep line goes first) */
+const BUBBLE_WAIT_TICK = 250;
+let waitingBubble: { text: Bilingual; ms: number; who: string; tone: Bubble['tone']; at: number } | null = null;
+let waitTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Show a speech bubble now. Returns whether it is on screen: false when it was dropped (a postcard reward, the goals
+ * step) or waits (W8-K1: behind the Halloween postcard, game/baybayHold.ts BUBBLE_WAIT_OVERLAYS — the last one said
+ * waits up to BUBBLE_WAIT_MAX and shows after the card closes). A caller that plays a voice line next to its bubble
+ * plays it only on true: a voice never plays with its bubble hidden.
+ */
+export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble['tone'] = 'bark'): boolean {
   // nothing talks over a postcard reward, nor over the goals step (W5-C3: bubbles paused while it is open)
-  if (flow.get().postcardReward || flow.get().postcardFly || goalsStepOpen()) return;
+  if (flow.get().postcardReward || flow.get().postcardFly || goalsStepOpen()) return false;
+  if (bubbleWaits()) {
+    waitingBubble = { text, ms, who, tone, at: performance.now() };
+    waitTimer ??= setInterval(flushWaitingBubble, BUBBLE_WAIT_TICK);
+    return false;
+  }
   const key = ++bubbleKey;
   flow.set({ bubble: { who, text, key, tone } });
   if (bubbleTimer) clearTimeout(bubbleTimer);
   bubbleTimer = setTimeout(() => { if (flow.get().bubble?.key === key) flow.set({ bubble: null }); }, ms);
+  return true;
+}
+
+/** W8-K1: the bubble waiting behind the Halloween postcard (tests / QA). */
+export const waitingBubbleText = (): Bilingual | null => waitingBubble?.text ?? null;
+
+/** W8-K1: show the waiting bubble once the card is closed and no other bubble is up; drop it when it waited too long. */
+export function flushWaitingBubble(): void {
+  const w = waitingBubble;
+  if (w && performance.now() - w.at > BUBBLE_WAIT_MAX) waitingBubble = null;
+  else if (w && !bubbleWaits() && !flow.get().bubble) { waitingBubble = null; bubble(w.text, w.ms, w.who, w.tone); }
+  if (!waitingBubble && waitTimer) { clearInterval(waitTimer); waitTimer = null; }
 }
 
 // ---------------------------------------------------------------------------

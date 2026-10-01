@@ -7,6 +7,7 @@ import {
 } from '../data/sf/lines';
 import { sfLandmark } from '../world/sf/landmarks/index';
 import { cityStreamerLazy } from '../world/cityLoader';
+import { baybayHeld } from './baybayHold';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { bubble, dialogueOpen } from './flow';
@@ -25,7 +26,8 @@ import { registerFrameSystem } from './systemsRegistry';
  *
  * Rules: 60 s per key (a line's `cooldown` may be longer), at least 8 s between two of these lines, never while a
  * bubble is on screen (anyone's) nor within 1 s after one, silent in dialogue / cinematics / fast travel / photo mode /
- * postcard rewards / open panels / the local "quiet" start (a line waits there until its `ttl` runs out); a
+ * postcard rewards / open panels / the overlays and activities of game/baybayHold.ts (W8-K1) / the local "quiet"
+ * start (a line waits there until its `ttl` runs out); a
  * neighbourhood greeting waits while you are in that neighbourhood, and while you glide it is held and only the
  * neighbourhood you land in is greeted.
  */
@@ -239,13 +241,16 @@ export function initBaybayLines(): () => void {
     if (!travelling) { const z = zoneLineAt(s.area, p); sched.zone(z.id, z.line); }
     const line = sched.step(t, {
       silent: s.phase !== 'playing' || s.paused || dialogueOpen() || cinemaActive() || !!f.cinematic || travelling || s.photoMode
-        || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+        || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null
+        // W8-K1: a play panel, an egg card, the Halloween postcard, hide & seek, the kite… (game/baybayHold.ts)
+        || baybayHeld(),
       bubble: !!f.bubble,
       gliding: s.move.mode === 'glide',
       quiet: performance.now() < f.quietUntil,
     });
     if (!line) return;
-    bubble(line.text, lineMs(line.text), BAYBAY_ID, 'bark');
+    // (W8-K1) the voice only with its bubble on screen
+    if (!bubble(line.text, lineMs(line.text), BAYBAY_ID, 'bark')) return;
     emit({ type: 'voice-line', id: line.voice });
     // a gesture only while she walks beside you (in the basket, the car or on the pelican she just talks)
     if (line.emote && (s.move.mode === 'foot' || s.move.mode === 'sit')) {

@@ -4,6 +4,7 @@ import { emit, onEvent, REWARD_SOURCE } from '../core/events';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { readSave } from '../data/save';
+import { noteHoldActivity } from '../game/baybayHold';
 import { holdLock } from '../game/playerLock';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
@@ -206,7 +207,7 @@ export function startActivity(spec: ActivitySpec, opts: ActivityOpts = {}): Acti
     active = false;
     offFrame();
     release();
-    if (current === run) current = null;
+    if (current === run) { current = null; noteHoldActivity(null); }
     try { opts.onStop?.(how); } catch (error) { if (import.meta.env?.DEV) console.error('[opus-bay play] onStop', spec.id, error); }
     return true;
   };
@@ -228,6 +229,8 @@ export function startActivity(spec: ActivitySpec, opts: ActivityOpts = {}): Acti
     });
   }
   current = run;
+  // W8-K1: BAYBAY's ambient lines hold during some activities (game/baybayHold.ts BAYBAY_HOLD_ACTIVITIES)
+  noteHoldActivity(spec.id);
   emit({ type: 'play', activity: spec.id, what: 'start' });
   return run;
 }
@@ -270,7 +273,7 @@ function finish(spec: ActivitySpec, result: ActivityResult) {
 export function forgetSession() { paidThisSession.clear(); sessionBests.clear(); }
 
 /** tests: forget the session state */
-export function __resetKit() { current?.cancel(); current = null; paidThisSession.clear(); sessionBests.clear(); }
+export function __resetKit() { current?.cancel(); current = null; noteHoldActivity(null); paidThisSession.clear(); sessionBests.clear(); }
 
 // --- the result card ----------------------------------------------------------------------------------------------------
 
