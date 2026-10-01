@@ -567,9 +567,22 @@ export function activeFerrySystem(): LineRideSystem | null { return FERRY; }
 let FERRY_PENDING: { takeOver(): void } | null = null;
 export function setPendingFerry(f: { takeOver(): void } | null) { FERRY_PENDING = f; }
 export function pendingFerry(): { takeOver(): void } | null { return FERRY_PENDING; }
+/**
+ * (wave 8, lane A) Ferry lines beyond the Ferry Building ⇄ Pier 41 boat, by line id (= route id): the Alcatraz ferry
+ * (world/sf/alcatrazFerry.ts, installed by the city transit layer). rideSystemFor answers them; a ferry line without its
+ * system answers null (never the cable cars).
+ */
+const FERRY_LINES = new Map<string, LineRideSystem>();
+let ferryLinesEpoch = 0;
+export function setFerrySystemFor(line: string, sys: LineRideSystem | null) {
+  if (sys) FERRY_LINES.set(line, sys); else FERRY_LINES.delete(line);
+  ferryLinesEpoch++;
+}
+/** bumps whenever a ferry line's system comes or goes (game/transit.ts re-lists the quays) */
+export const ferrySystemsEpoch = () => ferryLinesEpoch;
 
 // the ferry route table (lane F, F8) lives in data/ferry.ts
-export { FERRY, FERRY_ROUTES, buildFerryLine, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
+export { ALCA_FERRY_ID, FERRY, FERRY_ROUTES, buildFerryLine, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
 
 /**
  * The wave-4 fleet (world/sf/lineFleet.ts `LineFleet`: the sightseeing buses and the Muni Metro trains), installed by the
@@ -592,6 +605,8 @@ export const w4Kind = (line: string): 'bus' | 'light-rail' | null => (line === W
 export function rideSystemFor(line: string): LineRideSystem | null {
   if (line === 'streetcar') return STREETCAR;
   if (line === 'ferry') return FERRY;
+  // (wave 8, lane A) the other ferry lines ('ferry-alcatraz'): their own system, or none yet
+  if (line.startsWith('ferry')) return FERRY_LINES.get(line) ?? null;
   const k = w4Kind(line);
   if (k) return k === 'bus' ? FLEET?.bus ?? null : FLEET?.rail ?? null;
   return ACTIVE;

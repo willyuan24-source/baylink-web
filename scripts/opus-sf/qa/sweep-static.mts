@@ -34,6 +34,7 @@ import { ATTRACTIONS, tripDestination } from '../../../src/opus-bay/data/sf/attr
 import { SF_ROUTES } from '../../../src/opus-bay/data/sf/routes';
 import { CITY_POSTCARDS } from '../../../src/opus-bay/data/sf/postcards';
 import { FERRY_ROUTES } from '../../../src/opus-bay/data/ferry';
+import { ALCA_WALK_GRAPH, onAlcatraz } from '../../../src/opus-bay/world/sf/alcatrazWalk';
 import { buildTransit, buildTransitW4, setFlineJson, setTransitData, setTransitW4, type TransitFileJson } from '../../../src/opus-bay/data/transit';
 import { findPath } from '../../../src/opus-bay/actors/nav';
 import { openHeading, openSpot } from '../../../src/opus-bay/actors/faceOpen';
@@ -135,6 +136,9 @@ try {
   for (const v of VIEW_SPOTS) if (!v.retired) add({ id: `view:${v.id}`, kind: 'view', owner: 'A', x: v.x, z: v.z, name: v.name.en });
 } catch (e) { console.warn('[sweep] no view spots yet', String(e).slice(0, 120)); }
 for (const c of CITY_POSTCARDS) add({ id: `postcard:${c.id}`, kind: 'postcard', owner: 'C', x: c.position.x, z: c.position.z, name: c.title.en });
+// (wave 8, lane A) Alcatraz on foot: the spots of the island's own walking graph (world/sf/alcatrazWalk.ts: the stair's
+// top, the cellhouse front = the arrival, the lighthouse's terrace; the quay is judged as `ferry:alcatraz-dock`)
+for (const i of ALCA_WALK_GRAPH.spots) { const n = ALCA_WALK_GRAPH.nodes[i]; add({ id: `island:alcatraz:${i}`, kind: 'arrival', owner: 'A', x: n.x, z: n.z, name: i === ALCA_WALK_GRAPH.arrival ? 'Alcatraz cellhouse front' : `Alcatraz walk ${i}` }); }
 
 // coin trails are dense (8 per trail): judge every trail's ends and middle only
 const judged = targets.filter(t => !ONLY || ONLY.includes(t.kind)).filter(t => {
@@ -192,13 +196,21 @@ for (const [i, t] of judged.entries()) {
   }
   let reach: number | null = null;
   const dirs: Result['dirs'] = [];
-  if (at) {
+  if (at && onAlcatraz(at.x, at.z)) {
+    // (wave 8, lane A) on Alcatraz, the island's own graph: reached on foot from the ferry's quay (its dock node)
+    const dock = ALCA_WALK_GRAPH.nodes[ALCA_WALK_GRAPH.dock];
+    const res = findPath(dock, at, 8);
+    const e = res?.points[res.points.length - 1];
+    reach = res ? (e ? +Math.hypot(e.x - at.x, e.z - at.z).toFixed(2) : 0) : null;
+  } else if (at) {
     const n = ix.nearestNode(at.x, at.z, 60, k => ix.component(k) === main);
     if (n >= 0) {
       const res = findPath({ x: ix.x(n), z: ix.z(n) }, at, 8);
       const e = res?.points[res.points.length - 1];
       reach = res ? (e ? +Math.hypot(e.x - at.x, e.z - at.z).toFixed(2) : 0) : null;
     }
+  }
+  if (at) {
     const first = openHeading(at.x, at.z, 0).heading;
     for (let k = 0; k < 4; k++) { const h = wrap(first + (k * Math.PI) / 2); dirs.push({ heading: +h.toFixed(3), ...push(at, h) }); }
   }

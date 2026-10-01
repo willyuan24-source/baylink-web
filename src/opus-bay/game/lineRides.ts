@@ -7,7 +7,7 @@ import { TUNNELS, W4_LINES, type W4LineId, metroStation, stationAttractions, w4S
 import { LOOP_STOP_LINES, loopHopOffTip, metroNarration } from '../data/sf/tourLines';
 import { METRO_ENDS } from '../data/sf/goalMarks';
 import { DISTRICT } from '../data/district';
-import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, flineJson, rideSystemFor, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
+import { type TransitStation, type TransitW4, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, boardAt, ferryTerminal, flineJson, rideSystemFor, stopPos as cableStopPos, transitData, transitW4, w4Kind } from '../data/transit';
 import { canStand, groundPending, nearestWalkable } from '../core/terrain';
 import { type TransitLine, type TransitTunnel, tunnelAt } from '../world/sf/format';
 import { BUS, type BusRideStatus } from '../world/busSystem';
@@ -844,6 +844,10 @@ export function skipNeedsVeil(to: { x: number; z: number }, far = SKIP_VEIL_OVER
  * dwell at the other end cut short the way a waiting rider cuts it (verify D11 / m5: the offer left out an 80–140 s wait).
  */
 export function ferryWaitSeconds(from: string): number {
+  // (wave 8, lane A) another ferry line's own system answers for its quays (the Alcatraz boat: world/sf/alcatrazFerry.ts)
+  const route = ferryTerminal(from)?.route.id;
+  const own = route && route !== 'ferry' ? (rideSystemFor(route) as unknown as { waitSeconds?(station: string): number } | null) : null;
+  if (own?.waitSeconds) return Math.max(0, own.waitSeconds(from));
   const sys = activeFerrySystem() as unknown as { line?: { stops: { terminal: string }[] }; eta?(i: number): number; boat?: { mode: string; at: number; timer: number } } | null;
   const i = sys?.line?.stops.findIndex(s => s.terminal === from) ?? -1;
   if (!sys?.eta || i < 0) return 0;

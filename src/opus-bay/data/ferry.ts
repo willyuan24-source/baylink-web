@@ -63,6 +63,12 @@ export interface FerryRouteDef {
   terminals: FerryTerminal[];
   /** closed loop through open water (control points, smoothed Catmull-Rom); includes each berth */
   loop: Vec2[];
+  /**
+   * (wave 8, lane A) the route runs a shuttle system of its own (world/sf/alcatrazFerry.ts: astern out of a slip, a
+   * pivot, its own boat), not buildFerryLine's loop; `loop` then lists its paths' control points (open water and both
+   * berths) for the checks that keep other traffic clear of the route (tests/opus-bay-w5-jets)
+   */
+  shuttle?: true;
 }
 
 /** Gate E: the district's ferry dock and the frame the district's own harbour loop leaves it by (world/life.ts). */
@@ -76,6 +82,52 @@ const G = gateE();
 /** alongside the Wharf promenade (its edge runs NNW here), the hull ≥ 3 u off the stones; the quay is on the promenade */
 const PIER41_BERTH: Vec2 = { x: -194.9, z: 46.4 };
 const PIER41_QUAY: Vec2 = { x: -186.5, z: 48.4 };
+
+// --- wave 8 (lane A): the Alcatraz ferry, Pier 33 (Alcatraz Landing) ⇄ the island's dock ---------------------------------
+//
+// Alcatraz City Cruises: "All tours depart from Pier 33, Alcatraz Landing, located along San Francisco's scenic
+// Embarcadero" (https://alcatrazcitycruises.com/plan-your-visit/directions/, read 2026-09-30). The boats lie in the slip
+// between Pier 31 and Pier 33: OSM's floating pier "San Francisco Pier 33" (way 740486822, network Alcatraz Cruises) and
+// its stop "Ferry Alcatraz" (node 3202359193, 37.8069704, −122.4041590 — https://www.openstreetmap.org/node/3202359193,
+// read 2026-09-30). In the hand-made hero slab that slip is the water between the district's PIER 31 and PIER 33 decks
+// (data/district.ts PIER_SPECS), 7–14 u wide: the toy boat lies there bow toward the shore, backs out past the pier heads
+// and turns (world/sf/alcatrazFerry.ts). The island end lies alongside the ferry float (Alcatraz Ferry Terminal, OSM way
+// 27999864; FLOAT in world/sf/landmarks/alcatraz.ts).
+
+/** the Alcatraz route's ride line = its route id = its platform id */
+export const ALCA_FERRY_ID = 'ferry-alcatraz';
+/** Alcatraz's landmark origin (world/sf/landmarks/alcatrazGround.ts ALCA_X / ALCA_Z; a test keeps them equal) */
+export const ALCA_ORIGIN: Vec2 = { x: -467.86, z: -58.25 };
+const AL = (x: number, z: number): Vec2 => ({ x: +(ALCA_ORIGIN.x + x).toFixed(2), z: +(ALCA_ORIGIN.z + z).toFixed(2) });
+/**
+ * The two terminals: the Pier 33 berth in the slip (boat centre; bow toward the shore, 2.9 u off the pier33-front
+ * plaza's edge) and the quay on that plaza (east of the telescope); the island berth alongside the float's water side
+ * (local 18.65, −21.31: the float's half width + the half beam + 0.25) and the quay on the dock apron by the float.
+ */
+export const ALCA_TERMINALS = {
+  pier33: { id: 'pier-33', name: { zh: '33 号码头 · 恶魔岛渡轮', en: 'Pier 33 · Alcatraz Landing' }, quay: { x: -94.0, z: -21.8 }, berth: { x: -94.1, z: -32.6 } },
+  island: { id: 'alcatraz-dock', name: { zh: '恶魔岛码头', en: 'Alcatraz dock' }, quay: AL(15.6, -16.6), berth: AL(18.65, -21.31) },
+} as const satisfies Record<string, FerryTerminal>;
+/** where the boat turns after backing out of the slip (past the pier heads, on the slip's axis) */
+export const ALCA_PIVOT: Vec2 = { x: -103.9, z: -60.95 };
+/**
+ * The outbound path: from the pivot on along the slip's axis (north-north-west) across the waterfront's ferry tracks —
+ * west of the little sailboat loop off Pier 35 (life.ts, its west tip at x −104) — to a lane north of all the other
+ * boats, west to the island, round its south-west in a U-turn and east alongside the float (the boat lies heading east).
+ */
+export const ALCA_OUT: readonly Vec2[] = [
+  ALCA_PIVOT, { x: -108.47, z: -74.18 }, { x: -112.39, z: -85.52 }, { x: -116.0, z: -95.9 }, { x: -120.5, z: -107 }, { x: -129, z: -120 },
+  { x: -148, z: -129 }, { x: -250, z: -131 }, { x: -380, z: -129 }, { x: -460, z: -128 }, AL(-10, -68), AL(-36, -60), AL(-50, -46), AL(-52, -31),
+  AL(-40, -22.5), AL(-14, -21.3), AL(5, -21.3), ALCA_TERMINALS.island.berth,
+];
+/** The return path: east from the float, a lane north of the ambient ferries, south down the slip's axis, into the slip. */
+export const ALCA_BACK: readonly Vec2[] = [
+  ALCA_TERMINALS.island.berth, AL(31.86, -22.65), AL(52.86, -27.75), { x: -380, z: -100 }, { x: -300, z: -117 }, { x: -190, z: -121 },
+  { x: -146, z: -119 }, { x: -126, z: -112 }, { x: -117.62, z: -100.65 }, { x: -112.39, z: -85.52 }, { x: -107.17, z: -70.4 }, ALCA_PIVOT,
+  ALCA_TERMINALS.pier33.berth,
+];
+/** The crossing of the waterfront's ferry tracks: the stretch of the slip's axis both paths share (pivot → lane north). */
+export const ALCA_CROSSING: readonly [Vec2, Vec2] = [ALCA_PIVOT, { x: -120.5, z: -107 }];
 
 export const FERRY_ROUTES: FerryRouteDef[] = [
   {
@@ -109,6 +161,15 @@ export const FERRY_ROUTES: FerryRouteDef[] = [
       { x: -900, z: 40 }, { x: -1150, z: 90 }, { x: -1258, z: 106 }, { x: -1240, z: 70 }, { x: -1000, z: 0 }, { x: -620, z: -120 },
       { x: -300, z: -130 }, { x: -60, z: -100 }, { x: 60, z: -90 }, G.out(22, 30), G.out(8, 18),
     ],
+  },
+  {
+    // wave 8 (lane A): city mode, its own boat and shuttle (world/sf/alcatrazFerry.ts); by day, on the real timetable's hours
+    id: ALCA_FERRY_ID,
+    name: { zh: '渡轮 · 33 号码头 ⇄ 恶魔岛', en: 'Ferry · Pier 33 ⇄ Alcatraz' },
+    running: true,
+    shuttle: true,
+    terminals: [ALCA_TERMINALS.pier33, ALCA_TERMINALS.island],
+    loop: [...ALCA_OUT, ...ALCA_BACK.slice(1, -1)],
   },
 ];
 
