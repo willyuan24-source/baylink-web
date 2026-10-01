@@ -3,7 +3,7 @@ import type { Message } from '../../lib/types';
 export type DisplayMessage = Message & { delivery?: 'sending' | 'failed' };
 export const MESSAGE_REACTIONS = ['👍', '❤️', '😂', '🎉', '🙏', '👀'] as const;
 export type MessageReaction = typeof MESSAGE_REACTIONS[number];
-export const isReplyable = (message: DisplayMessage) => message.type === 'text' && message.messageType !== 'contact_card' && !message.delivery && !message.id.startsWith('local:');
+export const isReplyable = (message: DisplayMessage) => message.type === 'text' && (!message.messageType || message.messageType === 'text') && !message.delivery && !message.id.startsWith('local:');
 
 /** Match server identities only: two legitimate messages may have identical text. */
 export const mergeMessages = (
@@ -34,7 +34,7 @@ export const readServerMessage = (value: unknown): Message | null => {
     type: message.type!, content: typeof message.content === 'string' ? message.content : '',
     createdAt: Number.isFinite(Number(message.createdAt)) && Number(message.createdAt) > 0 ? Number(message.createdAt) : Date.now(),
     messageType: message.messageType, contactCard: message.contactCard,
-    ...(message.type === 'text' && message.messageType !== 'contact_card' && message.replyTo && typeof message.replyTo.id === 'string' && typeof message.replyTo.senderId === 'string' && typeof message.replyTo.content === 'string'
+    ...(message.type === 'text' && (!message.messageType || message.messageType === 'text') && message.replyTo && typeof message.replyTo.id === 'string' && typeof message.replyTo.senderId === 'string' && typeof message.replyTo.content === 'string'
       ? { replyTo: { id: message.replyTo.id, senderId: message.replyTo.senderId, content: message.replyTo.content.slice(0, 2000) } } : {}),
     ...(Array.isArray(message.reactions) ? { reactions: message.reactions.filter(reaction => MESSAGE_REACTIONS.includes(reaction?.emoji as MessageReaction) && Array.isArray(reaction.userIds)).map(reaction => ({ emoji: reaction.emoji, userIds: [...new Set(reaction.userIds.filter(id => typeof id === 'string' && id))] })) } : {}),
     ...(typeof message.reactionVersion === 'number' && Number.isSafeInteger(message.reactionVersion) && message.reactionVersion >= 0 ? { reactionVersion: message.reactionVersion } : {}),

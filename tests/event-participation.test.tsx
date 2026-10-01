@@ -46,7 +46,7 @@ function controls() {
 }
 function fixture(app?: AppContextValue, today = '2026-10-15') {
   const contents = <EventParticipationProvider events={[EVENT]}><EventParticipationActions event={EVENT} today={today} /></EventParticipationProvider>;
-  return <MemoryRouter><Routes><Route element={<Outlet context={app} />}><Route index element={contents} /></Route></Routes></MemoryRouter>;
+  return <MemoryRouter><Routes><Route element={<Outlet context={app} />}><Route index element={contents} /><Route path="together" element={<p>小队公开浏览页</p>} /></Route></Routes></MemoryRouter>;
 }
 const interestedButton = (view: ReturnType<typeof render>, selected = false) => view.getByRole('button', { name: `${selected ? '取消想去' : '我想去'}：${EVENT.title}`, exact: true });
 const getNote = (count: number) => `${count} 人想去 · 意向不等于报名或购票。`;
@@ -89,13 +89,31 @@ test('guest browsing stays public; interest and buddy signup request login only 
   assert.deepEqual(writes, []);
   fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
   const dialog = await view.findByRole('dialog', { name: '一起去 · 活动搭子' });
-  assert.ok(within(dialog).getByText('由你决定是否公开加入'));
+  assert.ok(within(dialog).getByText(/才会在这里显示你的昵称、头像与城市/));
+  assert.ok(within(dialog).getByText('此名单只表示意向，不代表已加入小队或保留名额。'));
+  assert.equal(within(dialog).getByRole('link', { name: '查看或发起小队' }).getAttribute('href'), `/together?event=${EVENT.id}`);
   assert.deepEqual(actions.logins, [true], 'opening the public list must not prompt login');
   await within(dialog).findByText(buddy.nickname);
   fireEvent.click(within(dialog).getByRole('button', { name: '登录后加入一起去' }));
   assert.deepEqual(actions.logins, [true, true]);
   assert.deepEqual(writes, []);
   assert.deepEqual(actions.chats, []);
+});
+
+test('the event small-group link closes the interest sheet and opens public browsing without login or membership writes', async t => {
+  const actions = controls(), writes: unknown[] = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method) writes.push(options);
+    return path.includes('/buddies?') ? buddyList : list(state(null));
+  });
+  const view = render(fixture(actions.app(null))); await view.findByText(getNote(7));
+  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  const dialog = await view.findByRole('dialog', { name: '一起去 · 活动搭子' });
+  const link = within(dialog).getByRole('link', { name: '查看或发起小队' });
+  const destination = new URL(link.getAttribute('href')!, 'https://www.baylink.us');
+  assert.equal(destination.pathname, '/together'); assert.deepEqual([...destination.searchParams], [['event', EVENT.id]]);
+  fireEvent.click(link); await view.findByText('小队公开浏览页');
+  assert.equal(view.queryByRole('dialog'), null); assert.deepEqual(actions.logins, []); assert.deepEqual(writes, []); assert.deepEqual(actions.chats, []);
 });
 
 test('failed counts and malformed count payloads display unavailable rather than zero participants', async t => {

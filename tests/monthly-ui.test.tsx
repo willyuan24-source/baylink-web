@@ -271,7 +271,11 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assertResultTitles(revisited, []);
   fireEvent.click(revisited.getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(queryParams(revisited).has('when'), false);
-  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-sjma-dia-muertos-community-2026']);
+  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026']);
+  const addedConcert = item('san-jose-hellflowers-free-concert-oct2-2026');
+  assert.equal(addedConcert.city, 'San Jose');
+  assert.equal(addedConcert.cost, 'free');
+  assert.deepEqual(addedConcert.occurrenceDates, ['2026-10-02'], 'the new Friday concert appears only after clearing the October 3–4 weekend filter');
   fireEvent.change(revisited.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   showAllResults(revisited);
   assert.ok(revisited.getByRole('article', { name: item('san-jose-short-film-festival-2026').title, exact: true }));
@@ -425,7 +429,7 @@ test('event planning details expand to readable steps and date-reminder controls
   const cardElement = eventArticle(view, event.id);
   const card = within(cardElement);
   assert.ok(card.getByRole('button', { name: `下载${event.title}日期提醒` }));
-  const summary = card.getByText('去之前，先安排这三件事');
+  const summary = card.getByText('去之前，先做好这些安排');
   const details = summary.closest('details')!;
   assert.equal(details.open, false);
   fireEvent.click(summary);
@@ -437,6 +441,21 @@ test('event planning details expand to readable steps and date-reminder controls
   fireEvent.click(summary);
   assert.equal(details.open, false);
   assert.match(view.getByText(/“日期提醒”下载仅含活动日期/).textContent!, /不含具体场次与入场时间/);
+});
+
+test('four-step activity preparations retain their final directions or ticket-source note in the expandable list', () => {
+  for (const id of ['woodside-djerassi-free-art-hike-oct5-2026', 'fremont-fog-diwali-mela-2026']) {
+    const event = item(id);
+    assert.equal(event.plan.length, 4);
+    const view = render(edition('2026-09-30', '/this-month?q=' + encodeURIComponent(event.title)));
+    const card = within(eventArticle(view, id));
+    const summary = card.getByText('去之前，先做好这些安排');
+    fireEvent.click(summary);
+    assert.equal(summary.closest('details')!.open, true);
+    assert.deepEqual([...card.getByRole('list').querySelectorAll('li p')].map(step => step.textContent), event.plan);
+    assert.match(event.plan[3], /https:\/\//, 'the separately recorded official directions or ticket evidence remains available');
+    view.unmount();
+  }
 });
 
 test('monthly spotlight changes current-month language to archive language in both full and compact layouts', () => {

@@ -153,6 +153,13 @@ test('hosting config has explicit public routes, a real missing-page status and 
   }
   assert.equal(routeFor('/my-week').dest, '/index.html');
   assert.equal(routeFor('/my-week/').dest, '/index.html');
+  for (const path of ['/me/bookings', '/me/bookings/']) {
+    assert.equal(routeFor(path).dest, '/index.html', 'booking notification links must load directly');
+    const headers = config.routes.find((route: { src?: string; headers?: Record<string, string> }) => route.headers?.['X-Robots-Tag'] && route.src && new RegExp(route.src).test(path))?.headers;
+    assert.equal(headers?.['X-Robots-Tag'], 'noindex, follow');
+    assert.equal(headers?.['Cache-Control'], 'no-store');
+  }
+  assert.equal(routeFor('/me/bookings/unknown').status, 404);
   const privateWeekHeaders = config.routes.find((route: { src?: string; headers?: Record<string, string> }) => route.headers?.['X-Robots-Tag'] && route.src && new RegExp(route.src).test('/my-week'))?.headers;
   assert.equal(privateWeekHeaders?.['X-Robots-Tag'], 'noindex, follow');
   assert.equal(privateWeekHeaders?.['Cache-Control'], 'no-store');

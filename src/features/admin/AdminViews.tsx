@@ -4,6 +4,7 @@ import { ChevronLeft, Loader2, AlertTriangle, X } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { confirmDialog, promptDialog } from '../../components/ui/confirm';
 import { api } from '../../lib/api';
+import { outings, outingRequestKey, outingUrl } from '../../lib/outings';
 import Avatar from '../../components/Avatar';
 import {
   ACCOUNT_STATUS_LABELS, MODERATION_ACTION_LABELS, MODERATION_TARGET_TYPE_LABELS, REPORT_REASON_LABELS,
@@ -29,7 +30,9 @@ type ModerationLogItem = {
 type AdminReportItem = {
   id: string;
   reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; accountStatus?: string } | null;
-  targetType: 'post' | 'user';
+  targetType: 'post' | 'user' | 'outing' | 'outing_message';
+  outingId?: string;
+  evidence?: { title?: string; date?: string; startTime?: string; endTime?: string; city?: string; venue?: string; description?: string; message?: { text?: string; senderId?: string; createdAt?: number } };
   targetId: string;
   reason: string;
   detail: string;
@@ -280,6 +283,21 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
     }
   };
 
+  const handleCancelOuting = async (id: string) => {
+    const reason = await promptDialog({ title: '关闭小队', message: '关闭后停止接受申请与讨论，并通知参与者。请填写处理原因：', confirmText: '关闭小队', danger: true, input: { placeholder: '处理原因', defaultValue: '' } });
+    if (reason === null) return;
+    if (!reason.trim()) { showToast('请填写处理原因', 'error'); return; }
+    setUpdatingId(id);
+    try {
+      const { outing } = await outings.adminGet(id);
+      if (outing.status === 'cancelled') { showToast('小队已经关闭', 'info'); return; }
+      const result = await outings.adminCancel(id, outing.revision, reason.trim(), outingRequestKey());
+      showToast(result.notificationWarning || '小队已关闭，举报可继续处理。', result.notificationWarning ? 'info' : 'success');
+      await load();
+    } catch (error) { showToast(friendlyErrorMessage(error, '关闭失败，请刷新后重试'), 'error'); }
+    finally { setUpdatingId(null); }
+  };
+
   const statusLabel = (s: string) => {
     if (s === 'open') return '待处理';
     if (s === 'reviewed') return '已处理';
@@ -375,7 +393,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     <div className="mt-1 text-sm font-semibold text-baylink-text">
                       {REPORT_REASON_LABELS[r.reason] || r.reason}
                       <span className="ml-2 text-xs font-normal text-baylink-muted">
-                        · {r.targetType === 'post' ? '帖子举报' : '用户举报'}
+                        · {r.targetType === 'post' ? '帖子举报' : r.targetType === 'outing' ? '小队举报' : r.targetType === 'outing_message' ? '小队消息举报' : '用户举报'}
                       </span>
                     </div>
                     {r.detail && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
@@ -388,7 +406,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     )}
                     {r.targetUser && (
                       <div className="mt-2 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2 text-[11px]">
-                        <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : '帖子作者'}：{r.targetUser.nickname}</p>
+                        <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : r.targetType === 'outing' ? '小队队长' : r.targetType === 'outing_message' ? '消息发送者' : '帖子作者'}：{r.targetUser.nickname}</p>
                         <p className="mt-0.5 text-baylink-muted">账号状态：{ACCOUNT_STATUS_LABELS[r.targetUser.accountStatus || 'active'] || r.targetUser.accountStatus}</p>
                         {r.targetUser.accountStatusReason && (
                           <p className="mt-1 text-baylink-text-secondary line-clamp-2">限制原因：{r.targetUser.accountStatusReason}</p>
@@ -405,6 +423,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     {r.targetType === 'post' && !r.targetPost && (
                       <p className="mt-1 text-[11px] text-baylink-muted">关联帖子已不存在</p>
                     )}
+                    {r.outingId && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-xs"><a href={outingUrl(r.outingId)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{r.evidence?.title || '查看关联小队'} ↗</a><p>{r.evidence?.date} {r.evidence?.startTime}–{r.evidence?.endTime} · {r.evidence?.city} · {r.evidence?.venue}</p>{r.evidence?.description && <p className="mt-1 whitespace-pre-wrap break-words">{r.evidence.description}</p>}{r.evidence?.message?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2">{r.evidence.message.text}</blockquote>}<p className="mt-2 text-baylink-muted">举报提交时的内容快照</p></div>}
                     {r.adminNote && <p className="mt-1 text-[11px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>
                   <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">{statusLabel(r.status)}</span>
@@ -429,6 +448,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                       {postHidden ? '恢复帖子公开' : '隐藏帖子'}
                     </button>
                   )}
+                  {r.outingId && <button type="button" disabled={updatingId === r.outingId} onClick={() => void handleCancelOuting(r.outingId!)} className="w-full rounded-lg border border-red-200 bg-red-50 py-2 text-xs font-semibold text-red-700 disabled:opacity-50">关闭小队</button>}
                   {r.targetUser && (
                     <div className="flex w-full flex-wrap gap-2">
                       <button type="button" disabled={updatingId === r.targetUser!.id} onClick={() => openStatusModal(r.targetUser!.id, r.targetUser!.nickname, 'limited')} className="flex-1 min-w-[90px] rounded-lg border border-orange-200 bg-orange-50 py-2 text-xs font-semibold text-orange-800 disabled:opacity-50">限制账号</button>

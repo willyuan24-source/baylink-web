@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeMessages, messageText, readServerMessage, restoreFailedDraft } from '../src/features/messages/messageState.ts';
+import { isReplyable, mergeMessages, messageText, readServerMessage, restoreFailedDraft } from '../src/features/messages/messageState.ts';
 
 const message = (id, content = '你好', createdAt = 1) => ({ id, senderId: 'me', conversationId: 'thread', type: 'text', content, createdAt });
 
@@ -42,4 +42,18 @@ test('only structured server messages can replace local messages', () => {
   const canonical = message('server');
   assert.deepEqual(readServerMessage(canonical)?.id, 'server');
   assert.deepEqual(readServerMessage({ message: canonical })?.id, 'server');
+});
+
+test('system booking notices remain readable but only delivered normal text can be quoted', () => {
+  const normal = message('normal');
+  const system = { ...message('booking_notice', '预约待确认'), messageType: 'system' };
+  assert.equal(isReplyable(normal), true);
+  assert.equal(isReplyable({ ...normal, messageType: 'text' }), true);
+  for (const unavailable of [system, { ...normal, messageType: 'contact_card' }, { ...normal, type: 'contact-share' }, { ...normal, delivery: 'sending' }, { ...normal, id: 'local:pending' }]) {
+    assert.equal(isReplyable(unavailable), false);
+  }
+  const parsed = readServerMessage({ ...system, replyTo: { id: 'normal', senderId: 'me', content: '旧引用' } });
+  assert.equal(parsed.messageType, 'system');
+  assert.equal(messageText(parsed), '预约待确认');
+  assert.equal(parsed.replyTo, undefined);
 });

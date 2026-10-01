@@ -121,10 +121,11 @@ const mergeContactMethod = (
   };
 };
 
-export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast, defaultType = 'client', defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
+export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailability, user, showToast, defaultType = 'client', defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
   onClose: () => void;
   onCreated: () => void;
   onUpdated?: () => void;
+  onManageAvailability?: (postId: string) => void;
   user: UserData;
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
   defaultType?: PostType;
@@ -135,6 +136,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
 }) => {
   const isEdit = mode === 'edit' && !!editingPost;
   const [step, setStep] = useState(isEdit || initialIntent.trim() ? 2 : 1);
+  const [createdPostId, setCreatedPostId] = useState('');
   const [savedDraft, setSavedDraft] = useState(() => isEdit ? null : readPostDraft(user.id));
   const [draftReady, setDraftReady] = useState(() => isEdit || !savedDraft);
   const [draftSaveState, setDraftSaveState] = useState<'empty' | 'saved' | 'failed'>('empty');
@@ -354,6 +356,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
         onClose();
       } else {
         const res = await api.request('/posts', { method: 'POST', body: JSON.stringify(payload) });
+        if (typeof res?.id === 'string') setCreatedPostId(res.id);
         draftCompleted.current = true;
         if (!clearPostDraft(user.id)) showToast('发布成功，但浏览器未能清除本机草稿，请稍后丢弃。', 'info');
         onCreated();
@@ -402,6 +405,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, user, showToast
                {postTrustWarning}
              </p>
            )}
+           {form.type === 'provider' && ['清洁', '维修', '接送', '搬家', '翻译', '其他'].includes(form.category) && createdPostId && onManageAvailability && <div className="mb-4 rounded-xl border border-baylink-border p-4 text-left"><strong className="text-sm">下一步：开放服务预约</strong><p className="my-2 text-xs text-baylink-muted">在服务详情中选择可用日期与时段。完成手机号验证或平台资料核验后，即可接收预约申请，无需线上收款。</p><button type="button" className="member-primary w-full" onClick={() => { onClose(); onManageAvailability(createdPostId); }}>设置可预约时段</button></div>}
            <button onClick={onClose} className="member-primary w-full">知道了</button>
         </div>
       </ModalShell>

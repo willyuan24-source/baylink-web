@@ -63,6 +63,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const other = conversation.otherUser;
   const blocked = !!blockedUserIds?.includes(other.id);
   const dateLocale = locale === 'en' ? 'en-US' : locale === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
+  const systemLabel = locale === 'en' ? 'System notification' : tr('系统通知');
 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   useEffect(() => {
@@ -265,7 +266,12 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
             const showAvatar = !mine && (index === 0 || messages[index - 1].senderId !== message.senderId || newDay);
             return <div className="modern-chat-message-group" key={message.id}>
               {newDay && <div className="modern-chat-day"><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { month: 'short', day: 'numeric', weekday: 'short', ...(date.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) }).format(date)}</time></div>}
-              <article className={`modern-chat-message ${mine ? 'is-mine' : ''}`} data-message-id={message.id} aria-label={new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}>
+              {message.messageType === 'system' ? <article className="mx-auto my-4 max-w-lg rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700" data-message-id={message.id} aria-label={systemLabel}>
+                <div className="mb-2 flex items-center justify-between gap-4 text-xs text-stone-500"><strong>{systemLabel}</strong><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time></div>
+                <p className="whitespace-pre-wrap break-words leading-relaxed" translate="no">{messageText(message)}</p>
+                {message.id.startsWith('booking_') && <Link to="/me/bookings" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View booking' : tr('查看预约')}</Link>}
+                {message.id.startsWith('outing_') && <Link to="/together?view=mine" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View my groups' : locale === 'zh-Hant' ? '查看我的小隊' : '查看我的小队'}</Link>}
+              </article> : <article className={`modern-chat-message ${mine ? 'is-mine' : ''}`} data-message-id={message.id} aria-label={new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}>
                 {!mine && <div className="modern-chat-avatar">{showAvatar && <Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={8} />}</div>}
                 <div className="modern-chat-message-content">
                   {isContactCard && message.contactCard?.methods?.length ? <ContactCardMessage methods={message.contactCard.methods} isMine={mine} onCopied={(text, type) => showToast?.(text, type)} /> : <div className="modern-chat-bubble">
@@ -278,7 +284,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
                   {message.reactions?.some(reaction => reaction.userIds.length) && <div className="modern-chat-reactions" aria-label="消息回应">{message.reactions.filter(reaction => reaction.userIds.length).map(reaction => <button type="button" key={reaction.emoji} translate="no" aria-label={`${reaction.emoji} · ${reaction.userIds.length}`} aria-pressed={reaction.userIds.includes(currentUser.id)} disabled={!!reactionPending || blocked || !isReplyable(message)} onClick={() => void reactTo(message, reaction.emoji as MessageReaction)}><span>{reaction.emoji}</span><span>{reaction.userIds.length}</span></button>)}</div>}
                   {reactionFor === message.id && <div className="modern-chat-reaction-picker" role="group" aria-label="选择回应表情">{MESSAGE_REACTIONS.map(emoji => <button type="button" key={emoji} translate="no" aria-label={emoji} onClick={() => void reactTo(message, emoji)}>{emoji}</button>)}<button type="button" aria-label="关闭回应选择" onClick={() => setReactionFor(null)}><X size={14} /></button></div>}
                 </div>
-              </article>
+              </article>}
             </div>;
           })}
         </div>

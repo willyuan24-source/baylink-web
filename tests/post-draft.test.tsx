@@ -100,6 +100,25 @@ test('editing an existing post neither restores nor changes a new-post draft', a
   assert.deepEqual(readPostDraft(user.id), original);
 });
 
+test('a published service has an explicit next step into its own availability, never an automatic booking', async t => {
+  const draft = snapshot();
+  draft.form = { ...draft.form, type: 'provider', category: '清洁', title: '周末提供居家清洁服务', description: '在中半岛提供居家清洁，可先沟通范围与工具。' };
+  draft.hadPhotos = false;
+  savePostDraft(user.id, draft);
+  const paths: string[] = [];
+  let managed = '', closed = false;
+  t.mock.method(api, 'request', async (path: string) => { paths.push(path); return { id: 'cleaning-published' }; });
+  const view = mount({ onManageAvailability: postId => { assert.equal(closed, true); managed = postId; }, onClose: () => { closed = true; } });
+  fireEvent.click(view.getByRole('button', { name: '继续之前的草稿' }));
+  fireEvent.click(view.getByRole('button', { name: '下一步' }));
+  await act(async () => fireEvent.click(view.getByRole('button', { name: '确认发布' })));
+  assert.equal(managed, '');
+  assert.deepEqual(paths, ['/posts']);
+  fireEvent.click(view.getByRole('button', { name: '设置可预约时段' }));
+  assert.equal(managed, 'cleaning-published');
+  assert.deepEqual(paths, ['/posts']);
+});
+
 test('blocked storage is reported honestly instead of claiming the draft is saved', (t) => {
   t.mock.method(dom.window.Storage.prototype, 'setItem', () => { throw new Error('Storage unavailable'); });
   const view = mount({ initialIntent: '这周需要找家庭清洁服务' });

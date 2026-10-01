@@ -298,7 +298,7 @@ test('discovery posters and full-frame photos stay contained and open their comp
 test('event recipients see all planning, cost, venue and audience details and retain safe source and return links', () => {
   const view = render(detail(eventItem, eventItem.event.endDate));
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
-  assert.ok(view.getByRole('heading', { name: '出发前，把这三件事安排好' }));
+  assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
   const steps = within(view.getByRole('list')).getAllByRole('listitem');
   assert.equal(steps.length, 3);
   eventItem.event.plan.forEach((step, index) => assert.ok(steps[index].textContent!.includes(step)));
@@ -311,6 +311,17 @@ test('event recipients see all planning, cost, venue and audience details and re
   assert.equal(view.getByRole('link', { name: '发现更多湾区好去处' }).getAttribute('href'), '/this-month#monthly-events');
   assert.equal(view.getByRole('link', { name: '十月活动日历' }).getAttribute('href'), '/this-month?when=october');
   assert.equal(view.queryByText(/这条信息的日期已过/), null);
+});
+
+test('four-step activity detail pages keep all preparation notes without a fixed three-step heading', () => {
+  for (const id of ['woodside-djerassi-free-art-hike-oct5-2026', 'fremont-fog-diwali-mela-2026']) {
+    const selected = find('event', row => row.event.id === id);
+    const view = render(detail(selected, '2026-09-30'));
+    assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
+    assert.equal(selected.event.plan.length, 4);
+    assert.deepEqual([...view.container.querySelectorAll('.discovery-plan li p')].map(step => step.textContent), selected.event.plan);
+    view.unmount();
+  }
 });
 
 test('expired event links remain readable and shareable but cannot create new interest or a calendar reminder', () => {

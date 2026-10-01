@@ -45,6 +45,12 @@ export default function MessagesPage() {
         <span className="member-heading-icon"><MessageCircle size={24} aria-hidden="true" /></span>
       </div>
       {user && (
+        <Link to="/me/bookings" className="member-menu-row"><strong>服务预约</strong><span>查看申请与确认状态</span><ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} /></Link>
+      )}
+      {user && (
+        <Link to="/together?view=mine" className="member-menu-row"><strong>我的小队</strong><span>确认安排与成员讨论</span><ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} /></Link>
+      )}
+      {user && (
         <ContactRequestInboxPanel
           key={`${user.id}:${user.token}`}
           refreshKey={contactRequestRefreshKey}

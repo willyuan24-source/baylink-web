@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap } from 'lucide-react';
+import { ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard } from './BayBaySmartCard';
@@ -158,6 +158,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
           {currentGuide && <div className="baybay-followups" role="group" aria-label="围绕这篇指南提问"><span>围绕这篇指南提问</span>{bayBayPageQuestions(currentPath).map(prompt => <button type="button" key={prompt.label} disabled={loading} onClick={() => askBayBay(translateText(prompt.question, locale))}>{prompt.label}<ArrowUp size={12} /></button>)}</div>}
           {turns.length === 0 && <section className="baybay-welcome"><h3>今天，想让生活轻松一点？</h3><p>选一件想做的事，或直接在下方告诉我。</p>
             <div className="baybay-action-grid">
+              <button type="button" onClick={() => navigate('/together')}><span className="baybay-action-icon"><Users size={20} /></span><span><strong>{locale === 'en' ? 'Find a small group' : locale === 'zh-Hant' ? '找搭子一起去' : '找搭子一起去'}</strong><small>{locale === 'en' ? 'Choose a day or draft a plan with BayBay' : locale === 'zh-Hant' ? '選日期，讓 BayBay 幫你整理邀約' : '选日期，让 BayBay 帮你整理邀约'}</small></span><ChevronRight size={15} /></button>
               <button type="button" onClick={() => navigate(question.trim().length >= 2 ? bayBayPlanPath(question) : '/plan')}><span className="baybay-action-icon"><CalendarDays size={20} /></span><span><strong>安排周末</strong><small>说出城市、同行人和预算</small></span><ChevronRight size={15} /></button>
               <button type="button" onClick={() => navigate('/plan?import=event')}><span className="baybay-action-icon"><ImagePlus size={20} /></span><span><strong>读活动截图</strong><small>把海报整理成日历活动</small></span><ChevronRight size={15} /></button>
               <button type="button" onClick={() => { setQuestion(translateText('我想找本地服务：', locale)); inputRef.current?.focus(); }}><span className="baybay-action-icon"><MapPin size={20} /></span><span><strong>找本地服务</strong><small>从需求开始，查找站内信息</small></span><ChevronRight size={15} /></button>

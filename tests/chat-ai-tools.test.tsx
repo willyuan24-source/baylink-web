@@ -15,7 +15,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const scrolledResults: HTMLElement[] = [];
 Object.defineProperty(dom.window.HTMLElement.prototype, 'scrollIntoView', { configurable: true, value(this: HTMLElement) { scrolledResults.push(this); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
-const { MemoryRouter } = await import('react-router-dom');
+const { MemoryRouter, useLocation } = await import('react-router-dom');
 const { ChatView } = await import('../src/features/messages/ChatView');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
@@ -41,6 +41,52 @@ function mockRequests(ai: (call: Call) => Promise<unknown>, history = [message()
   return calls;
 }
 afterEach(async () => { cleanup(); api.request = originalRequest; sessionStorage.clear(); localStorage.clear(); scrolledResults.length = 0; await setLocale('zh-Hans', false); });
+
+test('booking system notices are labeled separately without quote, reaction, or AI actions while normal messages still work', async () => {
+  await setLocale('en', false);
+  const systemContent = 'BAYLINK 服务预约 · 待确认\n这是时间安排记录，不含支付。';
+  const calls = mockRequests(async () => ({ ok: true, text: 'Translation' }), [
+    message('booking_notice', systemContent, { messageType: 'system', senderId: 'alice' }), message(),
+  ]);
+  const view = render(viewChat());
+  await act(async () => {});
+  const notice = view.getByRole('article', { name: 'System notification' });
+  assert.equal(notice.dataset.messageId, 'booking_notice');
+  assert.ok(notice.textContent?.includes(systemContent));
+  assert.ok(notice.querySelector('time[datetime]'));
+  assert.equal(notice.querySelectorAll('button, img').length, 0);
+  assert.equal(view.getByRole('link', { name: 'View booking' }).getAttribute('href'), '/me/bookings');
+  assert.equal(notice.classList.contains('is-mine'), false);
+  assert.equal(view.getAllByRole('button', { name: 'Reply to message' }).length, 1);
+  assert.equal(view.getAllByRole('button', { name: 'Add a reaction' }).length, 1);
+  assert.equal(view.getAllByRole('button', { name: 'Translate', exact: true }).length, 1);
+  fireEvent.click(view.getByRole('button', { name: 'Reply to message' }));
+  fireEvent.change(view.getByRole('textbox', { name: 'Message' }), { target: { value: 'Thanks, see you tomorrow.' } });
+  await act(async () => fireEvent.click(view.getByRole('button', { name: 'Send message' })));
+  assert.equal(calls.at(-1)?.body.replyToId, 'one');
+  assert.equal(calls.at(-1)?.body.content, 'Thanks, see you tomorrow.');
+});
+
+test('only backend booking system notices link to bookings, and the link closes chat and navigates inside the site', async () => {
+  const textWithUrl = '预约详情：https://example.test/private https://www.baylink.us/me/bookings';
+  mockRequests(async () => ({}), [
+    message('booking_confirmed', textWithUrl, { messageType: 'system' }),
+    message('other_system', textWithUrl, { messageType: 'system' }),
+    message('booking_user_text', textWithUrl),
+  ]);
+  let closed = 0;
+  const RouteProbe = () => <output data-testid="booking-link-route">{useLocation().pathname}</output>;
+  const view = render(<MemoryRouter initialEntries={['/messages/thread']}><ChatView currentUser={currentUser()} conversation={conversation()} socket={null} onClose={() => { closed++; }} /><RouteProbe /></MemoryRouter>);
+  await act(async () => {});
+  const link = view.getByRole('link', { name: '查看预约' });
+  assert.equal(link.closest('[data-message-id]')?.getAttribute('data-message-id'), 'booking_confirmed');
+  assert.equal(document.querySelector('[data-message-id="other_system"] a'), null);
+  assert.equal(document.querySelector('[data-message-id="booking_user_text"] a'), null);
+  assert.equal(document.querySelector('a[href^="https://example.test"]'), null);
+  await act(async () => fireEvent.click(link));
+  assert.equal(closed, 1);
+  assert.equal(view.getByTestId('booking-link-route').textContent, '/me/bookings');
+});
 
 test('translation is requested for one normal message only, clearly labeled, and original stays available', async () => {
   await setLocale('en', false);

@@ -106,6 +106,8 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
 
           <SavedPostsPanel key={user.id} userId={user.id} />
           <Link to="/my-week" className="member-menu-row"><strong>我的这周</strong><ArrowUpRight size={18} /></Link>
+          <Link to="/me/bookings" className="member-menu-row"><strong>服务预约</strong><span>我预约的 · 我收到的</span><ArrowUpRight size={18} /></Link>
+          <Link to="/together?view=mine" className="member-menu-row"><strong>我的小队</strong><span>申请 · 已确认 · 我发起的</span><ArrowUpRight size={18} /></Link>
 
           <div className="member-profile-panel">
             <h2 className="member-panel-title">信任信息</h2>
