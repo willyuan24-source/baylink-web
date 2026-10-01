@@ -10,7 +10,7 @@ Worktree `C:/Users/willy/wt/w8-k` (branch `w8-k`), dev port 5801, scratch `C:/Us
 1. **P0 已修并在手机上实测**：抓娃娃面板开着等 60 秒——BAYBAY 不再自己插话（以前到 59 秒会冒出「金色时刻！」，第一次进游戏的玩家还会听到「点一下你自己…」的配音）；关上面板后，攒着的台词按顺序再说。小游戏面板、彩蛋卡、万圣节明信片、相册、来信、新店卡都算。
 2. 小游戏自己的台词（「哎呀，滑掉了！」「新的纪念品！」，X 线已配音）以前被面板盖住、只听到声音；现在气泡会自动挪到面板下方，看得见。
 3. **海德街叮当车坐着时，路边树冠不再挡住镜头**：只对行道树的叶子做"镜头和人之间的半透明"，不加任何绘制批次；手机和电脑上都拍了前后对比（见 `qa/w8/K/b-k5-*`）。走路时的树保持原样（试过全透，树只剩光秃秃的树干，不好看，已取消）。
-4. 带名字的 BAYBAY 气泡（「最近的观景点：××」「跟我来！去××」等 8 句）改成固定句子，名字放到提示条/地图标记上，这样 X 线能给它们配音。
+4. 带名字的 BAYBAY 气泡（「最近的观景点：××」「跟我来！去××」「抓紧！我们飞去××」等）改成固定句子，名字放到提示条/地图标记/行程条上，这样 X 线能给它们配音（前 8 句 X 线已录好，最后 3 句 22:45 推送，等 X 线 23:40 那一轮录）。
 5. 其他线加新面板时，只要在 `game/baybayHold.ts` 的列表里加一行；面板根节点加 `data-ob-hud-box`，BAYBAY 的气泡就会自动避开它。
 
 ## Part a (2026-09-30, 18:52–19:15 PDT): P0 · BAYBAY talks under a lazy overlay
@@ -250,3 +250,53 @@ Read on origin (`f80e8a2d` A1, `65478b6d` A3, `ec790ebc` S2): **they do not appl
 
 - On `5485c1a8` (W8-K7 + W8-K8 on `67bbd5b0`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50
   old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1769 / 1769**.
+
+### W8-K10: a trip's first line (pushed ≈ 22:50, for lane X's 23:40 pass)
+
+`game/tripRun.ts startTrip` (the map's 带我去, a row, 问 BAYBAY, goTo) said 抓紧！我们飞去<name> / 跟我来！坐车去<name> / 先去坐上小车
+（骑上单车），再去<name>！ / 跟我来！去<name> — templated, never voiced. In the city (the trip pill and the announce name the
+place) it now says a fixed line; the district keeps its bubbles. **Three new fixed lines for lane X** (`game/fixedLines.ts`):
+
+| key | zh | en |
+|---|---|---|
+| `tripFly` | 抓紧！我们飞过去～ | Hold on — we’ll fly there! |
+| `tripBike` | 先骑上单车，再出发！ | Hop on the bike first, then off we go! |
+| `tripCar` | 先坐上小车，再出发！ | Into the toy car first, then off we go! |
+
+A ride on any leg says the recorded `tripToStop`, on foot the recorded `leadGo` (both W8-X3). Test: `w8-k3-lines` W8-K10.
+Live (`trip10.mjs`, phone, from the Ferry Building, `guide.qaTrip` walk to the Palace of Fine Arts and to Coit Tower):
+the bubble 跟我来！我带你过去～ / Follow me — I’ll take you there!, the pill "Next: The Palace ~2 min" and the waypoint
+"Palace of Fine Arts · ~2 min" name the place (read).
+The district's first tour (`flow.ts leadBubble` 下一站：<stop>) is district-only and stays.
+
+## Final (2026-09-30, 22:50 PDT)
+
+### Where a reviewer should look first
+
+1. The claw panel at the Musée (phone 390 × 844): open it and wait 60 s — no ambient bubble / voice; the claw's own lines
+   docked below the panel, clear of Hop (`hold60.mjs` in scratch reproduces it with a log).
+2. Seated on the Powell–Hyde up Hyde St (phone and desktop): the kerb trees' canopies dither in front of the rider; on foot
+   the trees are as before (`hyde8.mjs`, `walk8.mjs`).
+3. `game/baybayHold.ts` (the list other lanes extend; `baybayHeld()` is now city-only) and `game/hudLayout.ts`
+   (`HUD_BOX_SELECTOR`, `placeBubble`'s fallback).
+4. The kite on desktop: a mouse press on 放线, then Space (the focus is back on the page).
+
+### Requests
+
+- **Lanes M / A / H / S / W1 / W2:** a new panel → one line in `game/baybayHold.ts BAYBAY_HOLD_OVERLAYS`; a panel root
+  that is not `.ob-sfg-panel` → `data-ob-hud-box` on it so BAYBAY's bubble is placed round it (lane M's grip and busk
+  panels are `.ob-sfg-panel`: covered).
+- **Lane X:** the three W8-K10 lines above (zh + en exactly as in `game/fixedLines.ts`).
+- **Lane P / the lead:** W5-A1's play-core budget is at 6143 / 6144 B gzip after W8-K4's coach gate — the next static
+  addition to `play/index.ts`'s graph needs a trim or a decision on the budget.
+- **QA scripts:** a first click on the activity chip must wait for its pop-in (≈ 0.5 s): measured too early, the press
+  lands on the Postcards pill (top right) and opens the journal.
+
+### Final checks
+
+- On W8-K10 (rebased onto `d3114585`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 old
+  warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1785 / 1785**. After the last
+  rebase before the push: tsc and the incoming lanes' test files re-run (below the push line in the commit log).
+- No Higgsfield credits spent (lane K has no allowance). Dev server 5801 and every headless Chrome of the lane stopped
+  at the end; scratch scripts in `C:/Users/willy/opus-qa/w8/k/` (`hold60.mjs`, `hyde8.mjs`, `walk8.mjs`, `kite8.mjs`,
+  `trip10.mjs`, `drv.mjs`, `pair.py`).
