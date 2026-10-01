@@ -62,16 +62,69 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 48 | 1 | K 出行/跟车 | `zh-w5-k-7538cb4b` | 这段地铁比较长，想快点可以点「直接到站」。 | 3.93 | pass | ✓ (0.99) | |
 | 49 | 2 | M/A 小游戏 | `zh-w5-a-eb85ad0b` | 金黄酥脆！完美！ | 1.97 | pass | ✓ (0.48) | |
 | 50 | 2 | K 出行/跟车 | `zh-w5-k-2a49803a` | 这段路有点难走，你来带路吧！ | 2.29 | pass | ✓ (0.69) | |
-| 51 | 2 | K 出行/跟车 | `zh-w5-k-83579ca0` | 当——当——当！ | 1.90 | check | ✓ (0.98) | |
-| 52 | 2 | K 出行/跟车 | `zh-w5-k-eabf6332` | 嗯～好吃！ | 1.00 | pass | ✓ (0.45) | |
-| 53 | 2 | M/A 小游戏 | `zh-w5-a-b2601524` | 最近的观景点我标出来啦，跟着标记走吧！ | 3.08 | pass | ✓ (0.96) | |
-| 54 | 2 | K 出行/跟车 | `zh-w5-k-7755a76a` | 跟我来！我带你过去～ | 2.79 | check | ✓ (0.93) | |
-| 55 | 2 | K 出行/跟车 | `zh-w5-k-d77094cb` | 到啦！试试看吧～ | 1.46 | pass | ✓ (0.86) | |
-| 56 | 2 | K 出行/跟车 | `zh-w5-k-23a8415a` | 到啦！就是这里～ | 1.79 | pass | ✓ (0.99) | |
-| 57 | 2 | K 出行/跟车 | `zh-w5-k-0d12e5c2` | 去车站，我们坐车过去！ | 3.12 | pass | ✓ (0.99) | |
-| 58 | 2 | K 出行/跟车 | `zh-w5-k-268761c0` | 就在这里啦！ | 1.33 | pass | ✓ (0.98) | |
-| 59 | 2 | K 出行/跟车 | `zh-w5-k-6b7424b5` | 上车！出发咯～ | 1.87 | pass | ✓ (0.79) | |
-| 60 | 2 | K 出行/跟车 | `zh-w5-k-fce1d40b` | 坐一会儿，看看风景～ | 3.31 | pass | ✓ (0.99) | |
+| 51 | 2 | K 出行/跟车 | `zh-w5-k-eabf6332` | 嗯～好吃！ | 1.00 | pass | ✓ (0.45) | |
+| 52 | 2 | M/A 小游戏 | `zh-w5-a-b2601524` | 最近的观景点我标出来啦，跟着标记走吧！ | 3.08 | pass | ✓ (0.96) | |
+| 53 | 2 | K 出行/跟车 | `zh-w5-k-d77094cb` | 到啦！试试看吧～ | 1.46 | pass | ✓ (0.86) | |
+| 54 | 2 | K 出行/跟车 | `zh-w5-k-23a8415a` | 到啦！就是这里～ | 1.79 | pass | ✓ (0.99) | |
+| 55 | 2 | K 出行/跟车 | `zh-w5-k-0d12e5c2` | 去车站，我们坐车过去！ | 3.12 | pass | ✓ (0.99) | |
+| 56 | 2 | K 出行/跟车 | `zh-w5-k-268761c0` | 就在这里啦！ | 1.33 | pass | ✓ (0.98) | |
+| 57 | 2 | K 出行/跟车 | `zh-w5-k-6b7424b5` | 上车！出发咯～ | 1.87 | pass | ✓ (0.79) | |
+| 58 | 2 | K 出行/跟车 | `zh-w5-k-fce1d40b` | 坐一会儿，看看风景～ | 3.31 | pass | ✓ (0.99) | |
+| 59 | 3 | K 出行/跟车 | `zh-w5-k-83579ca0` | 当——当——当！ | 1.46 | check | ✓ (0.98) | |
+| 60 | 3 | K 出行/跟车 | `zh-w5-k-7755a76a` | 跟我来！我带你过去～ | 1.50 | pass | ✓ (0.84) | |
+| 61 | 3 | M/A 小游戏 | `zh-w5-a-f6168ad1` | 想当一回叮当车司机吗？拉闸、松闸，还要摇铃！ | 4.64 | pass | ✓ (0.85) | |
+| 62 | 3 | M/A 小游戏 | `zh-w5-a-2344395c` | 上坡抓紧缆绳，看到红色就松开！ | 2.88 | pass | ✓ (0.97) | |
+| 63 | 3 | M/A 小游戏 | `zh-w5-a-c2c286b1` | 前面是加州街路口，松开缆绳滑过去！ | 3.56 | pass | ✓ (0.78) | |
+| 64 | 3 | M/A 小游戏 | `zh-w5-a-145988d4` | 要转弯了，松开缆绳滑过去！ | 2.72 | pass | ✓ (0.82) | |
+| 65 | 3 | M/A 小游戏 | `zh-w5-a-96c9bbc3` | 松得正好！滑过去～ | 3.11 | check | 咻正好 (0.98) | |
+| 66 | 3 | M/A 小游戏 | `zh-w5-a-00bdef59` | 警报！松晚了，下次早一点～ | 3.07 | pass | ✓ (0.96) | |
+| 67 | 3 | M/A 小游戏 | `zh-w5-a-d036bc6b` | 过来了，再抓住缆绳！ | 1.67 | pass | ✓ (0.65) | |
+| 68 | 3 | M/A 小游戏 | `zh-w5-a-61c180e4` | 松闸、刹车，停得稳稳的！ | 4.06 | check | ✓ (0.83) | |
+| 69 | 3 | M/A 小游戏 | `zh-w5-a-c37a8eb0` | 进站前要先松开缆绳哦！ | 3.10 | pass | ✓ (0.82) | |
+| 70 | 3 | M/A 小游戏 | `zh-w5-a-db91854d` | 发车啦，快拉闸！ | 1.79 | pass | ✓ (0.99) | |
+| 71 | 3 | M/A 小游戏 | `zh-w5-a-c189fab9` | 上坡要抓紧，不然车会往下溜！ | 4.16 | pass | ✓ (0.99) | |
+| 72 | 3 | M/A 小游戏 | `zh-w5-a-3f26939f` | 叮叮！过路口记得摇铃！ | 2.90 | pass | ✓ (0.79) | |
+| 73 | 3 | M/A 小游戏 | `zh-w5-a-42f65f9f` | 铃不用一直摇哦～ | 2.22 | pass | ✓ (0.98) | |
+| 74 | 3 | M/A 小游戏 | `zh-w5-a-c9a9c4b2` | 海德街这段坡有百分之二十一，是叮当车最陡的一段！ | 4.59 | pass | ✓ (1.00) | |
+| 75 | 3 | M/A 小游戏 | `zh-w5-a-52d1ffc3` | 你是真正的叮当车司机！ | 2.70 | pass | ✓ (0.98) | |
+| 76 | 3 | M/A 小游戏 | `zh-w5-a-f1002ae5` | 开得不错！下次再开一趟！ | 2.45 | pass | ✓ (0.98) | |
+| 77 | 3 | M/A 小游戏 | `zh-w5-a-0b092526` | 街下面的缆绳一直在跑，每小时九点五英里！ | 3.50 | pass | ✓ (0.99) | |
+| 78 | 3 | M/A 小游戏 | `zh-w5-a-1079d14f` | 真的鲍威尔线叮当车，过加州街都要松开缆绳滑过去。 | 5.22 | pass | ✓ (1.00) | |
+| 79 | 3 | M/A 小游戏 | `zh-w5-a-2f693b59` | 拉闸要用全身的力气，叮当车司机真的很厉害！ | 3.89 | pass | ✓ (0.99) | |
+| 80 | 3 | M/A 小游戏 | `zh-w5-a-529b6223` | 海特街的街头艺人！拿个铃鼓一起合奏？ | 3.74 | pass | ✓ (0.96) | |
+| 81 | 3 | M/A 小游戏 | `zh-w5-a-39f33bd2` | 24 街的吉他手！拿对沙锤一起合奏？ | 3.63 | pass | ✓ (0.75) | |
+| 82 | 3 | M/A 小游戏 | `zh-w5-a-3e5b9d08` | 街头艺人下午才来哦，下午再来！ | 2.71 | pass | ✓ (0.98) | |
+| 83 | 3 | M/A 小游戏 | `zh-w5-a-02080b3a` | 跟着节拍，圆点碰到圈就拍！ | 3.06 | pass | ✓ (0.99) | |
+| 84 | 3 | M/A 小游戏 | `zh-w5-a-c0b0dc0b` | 节奏感真好！路人都在点头！ | 3.11 | pass | ✓ (0.99) | |
+| 85 | 3 | M/A 小游戏 | `zh-w5-a-22ab87f6` | 别急，听着鼓点再拍～ | 2.34 | pass | ✓ (0.96) | |
+| 86 | 3 | M/A 小游戏 | `zh-w5-a-4d43f1a8` | 副歌来啦，加点花样！ | 2.35 | pass | ✓ (0.99) | |
+| 87 | 3 | M/A 小游戏 | `zh-w5-a-34168bbe` | 一曲结束！大家都在鼓掌！ | 2.79 | pass | ✓ (0.65) | |
+| 88 | 3 | M/A 小游戏 | `zh-w5-a-6f8ae84a` | 你们简直就是一支乐队！ | 2.15 | pass | ✓ (0.99) | |
+| 89 | 3 | M/A 小游戏 | `zh-w5-a-ab9b375c` | 1967 年的“爱之夏”，十万年轻人涌进了海特街一带。 | 5.39 | pass | ✓ (0.97) | |
+| 90 | 3 | M/A 小游戏 | `zh-w5-a-aea29261` | 24 街是拉丁文化区，旧金山壁画最多的地方！ | 4.36 | pass | ✓ (0.99) | |
+| 91 | 3 | M/A 小游戏 | `zh-w5-a-4aa60f8a` | 南塔的雾笛就在头顶！来玩雾笛对答？ | 4.07 | pass | ✓ (0.98) | |
+| 92 | 3 | M/A 小游戏 | `zh-w5-a-3ae267bd` | 先听雾笛，再照着吹一遍！长音要按住！ | 4.79 | pass | ✓ (0.99) | |
+| 93 | 3 | M/A 小游戏 | `zh-w5-a-a9d45add` | 对上了！船都听见啦！ | 2.16 | pass | ✓ (0.98) | |
+| 94 | 3 | M/A 小游戏 | `zh-w5-a-c894f0db` | 哎呀，吹错啦，再听一遍～ | 2.65 | pass | ✓ (0.99) | |
+| 95 | 3 | M/A 小游戏 | `zh-w5-a-be5780ec` | 雾更浓了，雾笛也更长了！ | 2.87 | pass | ✓ (0.83) | |
+| 96 | 3 | M/A 小游戏 | `zh-w5-a-402a365d` | 你是金门大桥的雾笛手！ | 1.69 | pass | ✓ (0.98) | |
+| 97 | 3 | M/A 小游戏 | `zh-w5-a-2dbc29a0` | 雾散了，船都平安进港！ | 2.29 | pass | - (0.00) | |
+| 98 | 3 | M/A 小游戏 | `zh-w5-a-6f4acec9` | 南塔的雾笛吹两秒，再停十八秒。 | 3.66 | pass | ✓ (0.99) | |
+| 99 | 3 | M/A 小游戏 | `zh-w5-a-ebf7391f` | 桥中间的雾笛一次吹两声，两声音调不一样！ | 4.27 | pass | ✓ (0.94) | |
+| 100 | 3 | M/A 小游戏 | `zh-w5-a-feb3d947` | 起雾的时候，是桥上的工作人员手动打开雾笛的。 | 4.36 | pass | ✓ (0.73) | |
+| 101 | 3 | H 万圣 | `zh-w8h-costume-pumpkin-bow` | 鹈鹕戴上南瓜领结啦，好神气！ | 3.07 | pass | ✓ (0.98) | |
+| 102 | 3 | H 万圣 | `zh-w8-h-chinatown-contest` | 小朋友们排队上台比变装啦！大家都好可爱～ | 3.85 | pass | ✓ (0.99) | |
+| 103 | 3 | H 万圣 | `zh-w8-h-chinatown-lanterns` | 红灯笼配南瓜，这就是唐人街的万圣节！ | 4.03 | pass | ✓ (0.99) | |
+| 104 | 3 | H 万圣 | `zh-w8-h-procession-aside` | 队伍从我们身边绕过去了。我们站到路边吧～ | 4.67 | pass | ✓ (0.99) | |
+| 105 | 3 | W2 西区 | `zh-w5-w2-8c0a3f3e` | 看海里！冲浪的人坐在板上等浪呢。 | 3.24 | pass | ✓ (0.98) | |
+| 106 | 3 | W2 西区 | `zh-w5-w2-9844f094` | 海洋海滩浪大水冷，只有老练的冲浪手才下水。 | 4.46 | pass | ✓ (0.98) | |
+| 107 | 3 | W2 西区 | `zh-w5-w2-f14792e8` | 旧金山的冲浪，上世纪四十年代就是从这片凯利湾开始的。 | 5.71 | pass | ✓ (0.98) | |
+| 108 | 3 | W2 西区 | `zh-w5-w2-db9c6280` | 那几块礁石叫海豹岩，海狮会爬上去休息。 | 4.16 | pass | ✓ (0.99) | |
+| 109 | 3 | W2 西区 | `zh-w5-w2-a9ea6146` | 礁石顶上白白的，是鸬鹚留下的鸟粪！ | 3.53 | pass | ✓ (0.98) | |
+| 110 | 3 | S 真实日子 | `zh-realsf-parade-day` | 今天上午十一点有舰船巡游，从金门大桥下开进湾里，去码头绿地看吧！ | 5.54 | pass | ✓ (0.99) | |
+| 111 | 3 | S 真实日子 | `zh-realsf-parade-now` | 舰船巡游开始啦，船队正沿着海边开向海湾大桥！ | 5.11 | pass | ✓ (0.99) | |
+| 112 | 3 | S 真实日子 | `zh-realsf-parade-near` | 看，领头的消防船一边开一边喷水！打开拍照，把船队拍下来吧～ | 5.98 | pass | ✓ (0.95) | |
+| 113 | 3 | S 真实日子 | `zh-realsf-parade-photo` | 船队拍到啦，舰船巡游纪念章收好！ | 3.39 | pass | ✓ (0.95) | |
 
 ## en
 
@@ -137,6 +190,59 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 58 | 2 | K 出行/跟车 | `en-w5-k-268761c0` | It’s right here! | 1.01 | pass | ✓ (0.83) | |
 | 59 | 2 | K 出行/跟车 | `en-w5-k-6b7424b5` | All aboard — off we go! | 2.21 | pass | ✓ (0.94) | |
 | 60 | 2 | K 出行/跟车 | `en-w5-k-fce1d40b` | Let’s sit and take in the view. | 2.67 | pass | ✓ (0.93) | |
+| 61 | 3 | M/A 小游戏 | `en-w5-a-f6168ad1` | Want to be the gripman? Grip, let go, and ring the bell! | 4.42 | pass | ✓ (0.69) | |
+| 62 | 3 | M/A 小游戏 | `en-w5-a-2344395c` | Grip the cable uphill, and let go at the red! | 3.78 | pass | ✓ (0.89) | |
+| 63 | 3 | M/A 小游戏 | `en-w5-a-c2c286b1` | California Street ahead: drop the rope and coast! | 3.96 | pass | ✓ (0.95) | |
+| 64 | 3 | M/A 小游戏 | `en-w5-a-145988d4` | A corner: let go and coast round! | 3.45 | pass | ✓ (0.93) | |
+| 65 | 3 | M/A 小游戏 | `en-w5-a-96c9bbc3` | A perfect let-go! Coast on through! | 3.48 | pass | ✓ (0.94) | |
+| 66 | 3 | M/A 小游戏 | `en-w5-a-00bdef59` | The alarm! Let go a bit sooner next time. | 3.66 | pass | ✓ (0.86) | |
+| 67 | 3 | M/A 小游戏 | `en-w5-a-d036bc6b` | Made it! Take the rope again! | 2.39 | pass | ✓ (0.83) | |
+| 68 | 3 | M/A 小游戏 | `en-w5-a-61c180e4` | Let go, brake, and a smooth stop! | 3.55 | pass | ✓ (0.86) | |
+| 69 | 3 | M/A 小游戏 | `en-w5-a-c37a8eb0` | Let go of the cable before the stop! | 3.08 | pass | ✓ (0.93) | |
+| 70 | 3 | M/A 小游戏 | `en-w5-a-db91854d` | We’re off: grip! | 2.18 | check | ✓ (0.75) | |
+| 71 | 3 | M/A 小游戏 | `en-w5-a-c189fab9` | Hold tight uphill, or we’ll roll back! | 2.79 | pass | ✓ (0.95) | |
+| 72 | 3 | M/A 小游戏 | `en-w5-a-3f26939f` | Ding-ding! Ring at every crossing! | 3.01 | pass | ✓ (0.93) | |
+| 73 | 3 | M/A 小游戏 | `en-w5-a-42f65f9f` | No need to ring all the time! | 2.70 | pass | ✓ (0.86) | |
+| 74 | 3 | M/A 小游戏 | `en-w5-a-c9a9c4b2` | This bit of Hyde is a 21% grade: the steepest on the line! | 5.40 | pass | ✓ (0.90) | |
+| 75 | 3 | M/A 小游戏 | `en-w5-a-52d1ffc3` | You’re a real cable-car grip! | 2.84 | pass | ✓ (0.82) | |
+| 76 | 3 | M/A 小游戏 | `en-w5-a-f1002ae5` | Nice driving! Let’s do another run! | 3.52 | check | ✓ (0.89) | |
+| 77 | 3 | M/A 小游戏 | `en-w5-a-0b092526` | The cable under the street never stops: nine and a half miles an hour! | 5.38 | pass | ✓ (0.89) | |
+| 78 | 3 | M/A 小游戏 | `en-w5-a-1079d14f` | Real Powell cars drop the rope to coast across California Street. | 4.75 | pass | ✓ (0.91) | |
+| 79 | 3 | M/A 小游戏 | `en-w5-a-2f693b59` | Gripping takes real strength and coordination. Grips are amazing! | 5.79 | pass | ✓ (0.83) | |
+| 80 | 3 | M/A 小游戏 | `en-w5-a-529b6223` | A Haight Street busker! Grab a tambourine and jam? | 4.02 | pass | ✓ (0.77) | |
+| 81 | 3 | M/A 小游戏 | `en-w5-a-39f33bd2` | A 24th Street guitarist! Grab some maracas and jam? | 4.83 | pass | ✓ (0.90) | |
+| 82 | 3 | M/A 小游戏 | `en-w5-a-3e5b9d08` | The busker plays in the afternoon. Come back then! | 3.91 | pass | ✓ (0.77) | |
+| 83 | 3 | M/A 小游戏 | `en-w5-a-02080b3a` | Follow the beat: tap as each dot meets the ring! | 4.12 | pass | ✓ (0.88) | |
+| 84 | 3 | M/A 小游戏 | `en-w5-a-c0b0dc0b` | Great groove! People are nodding along! | 3.46 | pass | ✓ (0.94) | |
+| 85 | 3 | M/A 小游戏 | `en-w5-a-22ab87f6` | Easy now, listen for the beat. | 2.76 | pass | ✓ (0.95) | |
+| 86 | 3 | M/A 小游戏 | `en-w5-a-4d43f1a8` | Here comes the chorus: add some flair! | 3.41 | pass | ✓ (0.95) | |
+| 87 | 3 | M/A 小游戏 | `en-w5-a-34168bbe` | That’s the song! Everyone’s clapping! | 2.69 | pass | ✓ (0.95) | |
+| 88 | 3 | M/A 小游戏 | `en-w5-a-6f8ae84a` | You two sound like a real band! | 2.42 | pass | ✓ (0.83) | |
+| 89 | 3 | M/A 小游戏 | `en-w5-a-ab9b375c` | In the 1967 Summer of Love, up to 100,000 young people came to the Haight. | 6.33 | pass | ✓ (0.88) | |
+| 90 | 3 | M/A 小游戏 | `en-w5-a-aea29261` | 24th Street is the Latino Cultural District, with the most murals in the city! | 5.97 | pass | ✓ (0.95) | |
+| 91 | 3 | M/A 小游戏 | `en-w5-a-4aa60f8a` | The south tower’s foghorns are right above us! Call and answer? | 4.86 | pass | ✓ (0.92) | |
+| 92 | 3 | M/A 小游戏 | `en-w5-a-3ae267bd` | Listen to the horns, then blow them back! Hold for a long one! | 4.75 | pass | ✓ (0.96) | |
+| 93 | 3 | M/A 小游戏 | `en-w5-a-a9d45add` | Spot on! The ships heard you! | 3.00 | pass | ✓ (0.83) | |
+| 94 | 3 | M/A 小游戏 | `en-w5-a-c894f0db` | Oops, wrong horn. Listen again. | 3.32 | pass | ✓ (0.84) | |
+| 95 | 3 | M/A 小游戏 | `en-w5-a-be5780ec` | The fog’s thicker, and the calls get longer! | 3.81 | pass | ✓ (0.91) | |
+| 96 | 3 | M/A 小游戏 | `en-w5-a-402a365d` | You’re the Golden Gate’s foghorn keeper! | 3.07 | pass | - (0.00) | |
+| 97 | 3 | M/A 小游戏 | `en-w5-a-2dbc29a0` | The fog lifts, and every ship is safely in! | 4.41 | pass | ✓ (0.93) | |
+| 98 | 3 | M/A 小游戏 | `en-w5-a-6f4acec9` | The south tower horn: a two-second blast, then eighteen seconds of quiet. | 5.78 | pass | ✓ (0.91) | |
+| 99 | 3 | M/A 小游戏 | `en-w5-a-ebf7391f` | The mid-span horns blow twice, each in its own tone! | 4.53 | pass | ✓ (0.88) | |
+| 100 | 3 | M/A 小游戏 | `en-w5-a-feb3d947` | When the fog rolls in, bridge workers switch the horns on by hand. | 4.67 | pass | ✓ (0.92) | |
+| 101 | 3 | H 万圣 | `en-w8h-costume-pumpkin-bow` | Our pelican’s wearing a pumpkin bow tie — how dapper! | 4.18 | pass | ✓ (0.90) | |
+| 102 | 3 | H 万圣 | `en-w8-h-chinatown-contest` | The kids are lining up for the costume contest — everyone looks so cute! | 5.21 | pass | ✓ (0.70) | |
+| 103 | 3 | H 万圣 | `en-w8-h-chinatown-lanterns` | Red lanterns and pumpkins — that’s Halloween in Chinatown! | 5.20 | pass | ✓ (0.92) | |
+| 104 | 3 | H 万圣 | `en-w8-h-procession-aside` | They’re walking around us — let’s step onto the sidewalk. | 3.64 | pass | ✓ (0.91) | |
+| 105 | 3 | W2 西区 | `en-w5-w2-8c0a3f3e` | Look out there — surfers sitting on their boards, waiting for a wave! | 4.35 | pass | ✓ (0.89) | |
+| 106 | 3 | W2 西区 | `en-w5-w2-9844f094` | Ocean Beach has big waves and cold water — only experienced surfers go out. | 6.10 | pass | ✓ (0.94) | |
+| 107 | 3 | W2 西区 | `en-w5-w2-f14792e8` | San Francisco surfing began right here at Kelly's Cove, back in the 1940s. | 5.89 | pass | ✓ (0.94) | |
+| 108 | 3 | W2 西区 | `en-w5-w2-db9c6280` | Those rocks are Seal Rocks — sea lions climb up there to rest. | 4.05 | pass | ✓ (0.95) | |
+| 109 | 3 | W2 西区 | `en-w5-w2-a9ea6146` | See the white on top? That's cormorant guano! | 3.74 | pass | ✓ (0.94) | |
+| 110 | 3 | S 真实日子 | `en-realsf-parade-day` | At 11 this morning the Parade of Ships sails in under the Golden Gate — let’s watch from Marina Green! | 6.47 | pass | ✓ (0.95) | |
+| 111 | 3 | S 真实日子 | `en-realsf-parade-now` | The Parade of Ships is on — the ships are sailing along the shore to the Bay Bridge! | 6.22 | pass | ✓ (0.93) | |
+| 112 | 3 | S 真实日子 | `en-realsf-parade-near` | Look — the fireboat leads the way, spraying water! Open the camera and get the ships in a shot! | 6.12 | pass | ✓ (0.88) | |
+| 113 | 3 | S 真实日子 | `en-realsf-parade-photo` | Got the ships! A Parade of Ships stamp for your journal! | 4.18 | pass | ✓ (0.95) | |
 
 ## 重录 · retakes of wave-7 muted clips
 

@@ -67,6 +67,19 @@ and 嗯～好吃！ / Mmm, tasty! now pass and play. "Ho! Spot on!" passes every
 hears nothing in either: by the retake rule wave 7's clip stays muted (approve it on the sheet if it sounds right).
 Credits **0.34** (ledger). Preview files `w8-voice-preview-b2-{zh,en}.m4a`.
 
+### Batch 3 (W8-X5, 21:25–22:15 PDT)
+
+The lanes' wave-8 tables on origin at 21:10: lane M's three games (`play/sfgames8Lines.ts`, found by the play/ scan: the
+grip 20, the busker 11, the foghorn 10), lane H's `W8_HALLOWEEN_LINES` + `W8_WORLD_LINES` (their own ids, as wave 7; the
+procession line read gently), lane W2's `westLines.ts` (5), lane S's four Parade of Ships lines (`own`: realsf emits
+`voice-line realsf-parade-<key>`, so the binder never matches their text). `lines.ts` gained `ids` / `mood` per source;
+`post.py` gained `--prune` (a recorded line the game no longer says verbatim loses its row and files — a lane may reword a
+line after it was recorded); the voice test now reports such a line as a diagnostic instead of failing the other lanes.
+110 takes (47 failed jobs and 7 rate-limit answers resubmitted until all were in). The table: **113 lines / 226 clips,
+221 pass, 214 heard right**; muted (`W8_VOICE_CHECK`, the owner's ear): 当——当——当！, 松得正好！滑过去～, 松闸、刹车，停得稳稳的！,
+We’re off: grip! (rate gate) and Nice driving! Let’s do another run! (clipped samples). 跟我来！我带你过去～ passes now.
+Credits **2.08** (ledger).
+
 ## Part b · looks: the vehicles up close, one burst per reward, the floodlit Golden Gate (2026-09-30 19:50–21:20 PDT)
 
 ### What was built (W8-X2)
@@ -82,3 +95,27 @@ Credits **0.34** (ledger). Preview files `w8-voice-preview-b2-{zh,en}.m4a`.
 
 No new draw call, material or program: the vehicles are geometry inside their existing instanced / batched meshes, the fx
 and the light field keep their one draw each.
+
+### Evidence (Part b)
+
+Shots read before described; desktop 1440 × 900 quality high, phone 390 × 844 dpr 3 (quality mid); "before" = this lane's
+five files at `592136b6` swapped into the same tree (the scratch script `C:/Users/willy/opus-qa/w8/x/batch-ba.sh`), the
+camera following the nearest vehicle of the kind from the same offset (`…/x/vcam.js`):
+
+- `qa/w8/X/x2-fline-before-after.jpg` (desktop, Ferry plaza): the cab's dark slab → five panes round the curve, the
+  brass-rimmed headlamp, the bumper, the rounded roof cap, wheels under the bogies. Phone: `x2-fline-phone-before-after.jpg`.
+- `qa/w8/X/x2-fline-night.jpg` / `x2-fline-night-phone.jpg`: the cab glass glows warm at night, the headlamp and marker
+  lamps lit. (The phone "before" at night came up as the page's error card: the dev server re-optimising after the file
+  swap — a reload artefact of the swap, not the game; the "after" loads clean.)
+- `qa/w8/X/x2-cable-before-after.jpg` (Powell & Market): the gold-lined panels on the dash and the lamp's brass rim.
+- `qa/w8/X/x2-bus-before-after.jpg`: the windscreen pillars, grille bars, round lamps; the near side's tyres now stand
+  out like the far side's.
+- `qa/w8/X/x2-ggb-night-before-after.jpg` (from Crissy Field at night): the towers now carry warm light up their legs,
+  fainter toward the tops.
+- `qa/w8/X/x2-wake-before-after.jpg` (riding the Ferry Building ⇄ Pier 41 boat, camera above the stern): the foam trail
+  is a little denser and longer; a subtle change by design (the water shader's own wake lines stay).
+- Calls / triangles: no new draw call (the vehicles are geometry in their existing meshes; the fx pool and the light field
+  keep one draw each). The F-line's near car +820 triangles (×2 with its shadow, within 45 u), the cable car +368, the bus
+  +116; at the Ferry plaza with a near F-line car the frame read 82–84 calls / 245–252k triangles before and after (the
+  moving cars make single readings noisy). Phone (mid) at the Ferry plaza: 63–67 calls / 208–216k.
+- The double coin pop and the sky-puff edge are not visible in a still: their evidence is the tests (red on the old code).

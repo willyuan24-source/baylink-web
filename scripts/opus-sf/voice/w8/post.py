@@ -9,6 +9,8 @@ kept only if it passes every gate AND the recogniser hears it right; it is then 
 public/opus-bay/w8/voice/<clip> and listed in voiceW8.ts W8_RETAKE_CLIPS (registered before wave 7's table, and the binder
 no longer mutes it). Otherwise the wave-7 clip stays muted.
       --retakes   only print the clips whose best take misses a gate or the recogniser (the next round's list)
+      --prune     (batch 3) drop the recorded lines the game no longer says verbatim (a lane reworded a line after it was
+                  recorded): their table rows and files go, the listening sheet says so
 
 Batches add up: the clips already in the committed report keep their pick and their files byte for byte; a batch only
 adds clips (lines.ts --takes lists only the lines the table does not have). Same measured chain as wave 3 / 4
@@ -70,6 +72,7 @@ def main():
     ap.add_argument('--work', required=True)
     ap.add_argument('--repo', required=True)
     ap.add_argument('--retakes', action='store_true')
+    ap.add_argument('--prune', action='store_true')
     a = ap.parse_args()
     W, R = a.work, a.repo
     tk = json.load(open(f'{W}/takes.json', encoding='utf-8'))
@@ -175,6 +178,26 @@ def main():
             e['pick'].pop('files', None)
             print(f'retake {clip}: not better than wave 7, wave 7 stays muted')
         e['kept'] = keep
+
+    pruned = []
+    if a.prune:
+        # every source file of the game but the generated voice tables: a recorded line must be said there verbatim
+        src = []
+        for root, _, files in os.walk(f'{R}/src/opus-bay'):
+            for fn in files:
+                if fn.endswith(('.ts', '.tsx')) and not re.match(r'voiceW\d\.ts$', fn):
+                    src.append(open(os.path.join(root, fn), encoding='utf-8').read())
+        src = '\n'.join(src)
+        said = lambda t: t in src or json.dumps(t, ensure_ascii=False)[1:-1] in src or t.replace("'", "\\'") in src
+        for lid, ln in list(report['lines'].items()):
+            if said(ln['zh']) and said(ln['en']): continue
+            for lang in ('zh', 'en'):
+                report['clips'].pop(f'{lang}-{lid}', None)
+                for ext in ('m4a', 'ogg'):
+                    if os.path.exists(f'{out_dir}/{lang}-{lid}.{ext}'): os.remove(f'{out_dir}/{lang}-{lid}.{ext}')
+            report['lines'].pop(lid)
+            pruned.append(f"{lid} {ln['zh']}")
+            print('pruned (no longer said):', lid, ln['zh'])
 
     def fileinfo(clip, base):
         return {ext: {'path': f'public/opus-bay/w8/voice/{clip}.{ext}', 'bytes': os.path.getsize(base + '.' + ext),

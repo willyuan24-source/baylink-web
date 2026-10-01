@@ -17,7 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { isSentence, lineId, moodOf as moodW5 } from '../w5/lines';
-import { BUBBLE_INSTRUCTION, MAX_INSTRUCTION } from '../w6/lines';
+import { BUBBLE_INSTRUCTION, MAX_INSTRUCTION, moodOf as moodW6 } from '../w6/lines';
 import { PIXIE, w7Lines, type W7Line } from '../w7/lines';
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '../../../..');
@@ -41,7 +41,11 @@ export const EXCLUDE_W8: Record<string, string> = {};
  * one `{ zh, en }`. `own`: the lane plays the line itself with a `voice-line` event of `idOf(key)` (never matched by
  * text). Without `only`, every `{ zh: '…', en: '…' }` literal of the file that reads as a sentence (w5's rule).
  */
-export interface W8Source { lane: string; file: string; only?: readonly string[]; /** only the literals with these zh texts */ pick?: readonly string[]; own?: (key: string) => string }
+export interface W8Source {
+  lane: string; file: string; only?: readonly string[]; /** only the literals with these zh texts */ pick?: readonly string[]; own?: (key: string) => string;
+  /** (batch 3) an array of `{ id, zh, en }`: keep the lane's own ids (as wave 7 did for lanes G / H) */ ids?: true;
+  /** (batch 3) the mood note for every line of the source (e.g. 'gentle' for Alcatraz, the procession) */ mood?: string;
+}
 export const W8_SOURCES: readonly W8Source[] = [
   // part a: plain BAYBAY bubbles (bubble() / offerLine() with a literal) no inventory scanned — lane K's game/ files
   { lane: 'k', file: 'game/tripRun.ts', pick: ['这条线今天没开，我们走过去吧！', '提前下车啦，我们走过去！', '就在这儿降落啦，我们走过去！', '有车来，我们先让一让～', '这段路有点难走，你来带路吧！'] },
@@ -51,6 +55,13 @@ export const W8_SOURCES: readonly W8Source[] = [
   { lane: 'k', file: 'game/cityTour.ts', pick: ['拍得真好！这张可以当明信片了。', '这段地铁比较长，想快点可以点「直接到站」。'] },
   // batch 2 (W8-K3, 19:09 PDT): the templated city bubbles turned into fixed lines (the names go to a toast / the pin)
   { lane: 'k', file: 'game/fixedLines.ts', only: ['W8K_LINES'] },
+  // batch 3 (the lanes' wave-8 tables on origin at 21:10 PDT): lane H's Halloween lines (W8-H3, their own ids, as wave 7),
+  // lane W2's west-side lines (W8-W2a: Ocean Beach's surfers, Seal Rocks), lane S's Parade of Ships lines (W8-S2: own —
+  // realsf plays `voice-line realsf-parade-<key>`); lane M's grip game lines (play/sfgames8Lines.ts) come with the play/ scan
+  { lane: 'h', file: 'halloween/lines.ts', only: ['W8_HALLOWEEN_LINES'], ids: true },
+  { lane: 'h', file: 'halloween/worldLines.ts', only: ['W8_WORLD_LINES'], ids: true },
+  { lane: 'w2', file: 'world/sf/westLines.ts' },
+  { lane: 's', file: 'world/sf/fleetWeek.ts', only: ['PARADE_DAY_LINE', 'PARADE_NOW_LINE', 'PARADE_NEAR_LINE', 'PARADE_PHOTO_LINE'], own: k => `realsf-${k.replace(/_LINE$/, '').toLowerCase().replace(/_/g, '-')}` },
 ];
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
@@ -83,7 +94,8 @@ async function w8Tables(): Promise<W8Line[]> {
     const push = (zh: string, en: string, where: string, key?: string) => {
       if (!isSentence(zh, en)) return;
       const own = key && s.own ? s.own(key) : undefined;
-      out.push({ id: own ?? lineId(s.lane, zh, en), lane: s.lane, zh, en, source: `${s.file} ${where}`, mood: moodW5(zh), ...(own ? { own: 1 as const } : {}) });
+      const id = own ?? (s.ids && key ? key : lineId(s.lane, zh, en));
+      out.push({ id, lane: s.lane, zh, en, source: `${s.file} ${where}`, mood: s.mood ?? (s.ids ? moodW6(id, zh) : moodW5(zh)), ...(own ? { own: 1 as const } : {}) });
     };
     if (s.only) {
       const mod = await load<Record<string, unknown>>(`src/opus-bay/${s.file}`);
