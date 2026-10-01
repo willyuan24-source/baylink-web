@@ -6,7 +6,7 @@ import './event-go.css';
 import { eventUrl, mapsUrl, planUrl, safeHref } from '../data/links';
 import { closePanel, openPanel, toggleWish } from '../game/flow';
 import { useFlow } from '../game/flowStore';
-import { useT } from '../i18n';
+import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
 
@@ -65,7 +65,7 @@ export default function EventCardBody({ id }: { id?: string }) {
         )}
       </div>
       <dl className="ob-facts">
-        {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue, event.city, region ? t(region) : null])}</dd></div>}
+        {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue ? catalogText(event.venue, locale) : null, event.city, region ? t(region) : null])}</dd></div>}
         {(event.costLabel || event.cost) && <div><dt><Ticket size={15} aria-hidden />{t('费用', 'Cost')}</dt><dd>{event.costLabel ?? (event.cost === 'free' ? t('免费', 'Free') : event.cost)}</dd></div>}
         {event.audience?.length ? <div><dt><Users size={15} aria-hidden />{t('适合', 'For')}</dt><dd>{event.audience.slice(0, 4).join(' · ')}</dd></div> : null}
       </dl>
