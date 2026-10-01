@@ -69,7 +69,7 @@ export const BUSK_NAME: Bilingual = { zh: '和街头艺人合奏', en: 'Jam with
 export const BUSK_LINES = {
   inviteHaight: { zh: '海特街的街头艺人！拿个铃鼓一起合奏？', en: 'A Haight Street busker! Grab a tambourine and jam?' },
   inviteMission: { zh: '24 街的吉他手！拿对沙锤一起合奏？', en: 'A 24th Street guitarist! Grab some maracas and jam?' },
-  closed: { zh: '街头艺人下午才来哦，下午再来！', en: 'The busker plays in the afternoon. Come back then!' },
+  closed: { zh: '街头艺人下午才来，我们先练练他的曲子吧！', en: 'The busker comes in the afternoon. Let’s practise his tune!' },
   start: { zh: '跟着节拍，圆点碰到圈就拍！', en: 'Follow the beat: tap as each dot meets the ring!' },
   combo: { zh: '节奏感真好！路人都在点头！', en: 'Great groove! People are nodding along!' },
   miss: { zh: '别急，听着鼓点再拍～', en: 'Easy now, listen for the beat.' },

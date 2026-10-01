@@ -20,3 +20,15 @@
   .ob-sfg-panel.is-grip { gap: 4px; padding: 6px 10px 8px; }
   .ob-sfg-panel.is-grip .ob-sfg-foot { display: none; }
 }
+
+/* the busker jam: at the bottom on phones (the thumb's button), at the right on a wide screen (sfgames.css) */
+.ob-sfg-canvas.is-busk { aspect-ratio: 100 / 58; background: #d9ecf0; cursor: pointer; }
+.ob-sfg-run { min-width: 34px; text-align: right; font: 900 15px/1 'Noto Sans SC', var(--ob-font); color: var(--ob-terra); }
+.ob-sfg-btn.is-tap { max-width: none; min-height: 68px; font-size: 19px; }
+@media (max-width: 999px) {
+  .ob-sfg-panel.is-busk { top: auto; bottom: calc(12px + var(--ob-sb, env(safe-area-inset-bottom, 0px))); width: min(440px, calc(100vw - 20px)); }
+}
+@media (max-height: 560px) {
+  .ob-sfg-panel.is-busk { gap: 4px; padding: 6px 10px 8px; }
+  .ob-sfg-canvas.is-busk { max-height: 34vh; width: auto; align-self: center; }
+}
