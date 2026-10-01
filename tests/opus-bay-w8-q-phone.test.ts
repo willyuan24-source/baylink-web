@@ -92,10 +92,12 @@ test('W8-Q6: on a coarse pointer the map\'s tools and compass are 44 px circles 
   // is-two: three rows of 44 fit its max-height
   const two = Number(/\.ob-citymap-tools\.is-two \{ max-height: (\d+)px; \}/.exec(css)![1]);
   assert.ok(3 * 44 + 2 * gap <= two, `${3 * 44 + 2 * gap} <= ${two}`);
-  // the waypoint's × : 24 px + 2 × 10 = 44 px
+  // the waypoint's × : wave 7's 44 × 44 touch area (verify-phone m2: 24 + 4 + 16 wide, 24 + 10 + 10 tall) on every pointer;
+  // W8-Q-review (Q-RC-2) removed W8-Q6's smaller coarse-pointer circle (tests/opus-bay-w8-q-review.test.ts)
   const guide = read('ui/guide-ui.css');
   assert.match(read('opus-bay.css'), /\.ob-waypoint-dismiss \{[^}]*width: 24px; height: 24px;/);
-  assert.match(guide.slice(guide.indexOf('W8-Q6')), /@media \(pointer: coarse\) \{\n {2}\.ob-overlay \.ob-waypoint-dismiss::before \{ content: ''; position: absolute; inset: -10px; border-radius: 50%; \}/);
+  assert.match(read('opus-bay.css'), /\.ob-waypoint-dismiss::before \{ content: ''; position: absolute; inset: -10px -4px -10px -16px; border-radius: 12px; \}/);
+  assert.doesNotMatch(guide, /\.ob-waypoint-dismiss::before/);
 });
 
 test('W8-Q8: the goals step in short landscape (≤ 460 px tall, ≥ 560 px wide) is two columns: the list scrolls above the buttons, the note goes', () => {
