@@ -42,6 +42,11 @@ interface Spec {
   ruleCheckedAt?: string;
   /** the SF Today hand row (realsf/todayRows.ts) this offer belongs to: the tab links the offer there */
   hand?: string;
+  /**
+   * (W8-S) the site's source is a translated copy of an English page (`from`): the game links the English original
+   * (`url`, read on `checkedAt`). The export fails once the site's own source changes, so the override is dropped then.
+   */
+  sourceEn?: { from: string; url: string; checkedAt: string };
 }
 
 const H = (h: number, m = 0) => h * 60 + m;
@@ -102,6 +107,10 @@ const SPECS: Spec[] = [
   {
     id: 'sfmta-free-muni-seniors', kind: 'transit', free: true, who: { zh: '65 岁以上 SF 居民，收入符合，须先申请', en: 'SF residents 65+, income limit, apply first' }, place: null,
     ruleUrl: 'https://www.sfmta.com/fares/free-muni-seniors-ages-65', ruleCheckedAt: '2026-09-29',
+    // W8-S: the site's sourceUrl is SFMTA's Vietnamese page of the program; the English page states the same rule
+    // ("All San Francisco seniors, ages 65+, with a gross annual family income at or below 100 percent of Bay Area Median
+    // Income level are eligible"; apply first; cable cars included with Clipper — read 2026-09-30)
+    sourceEn: { from: 'https://www.sfmta.com/vi/node/12193', url: 'https://www.sfmta.com/fares/free-muni-seniors-ages-65', checkedAt: '2026-09-30' },
   },
   // W6-S: GPT's autumn release (2026-09-29) — the Museum of the African Diaspora reopens on Sep 30 (moadsf.org/visit:
   // Tue–Wed, Fri–Sun 11–5, Thu 12–8, closed Monday; "Every Second Saturday" free); its first-Thursday night is 4–8 pm
@@ -128,6 +137,7 @@ const rows = SPECS.map(s => {
   if (o.kind === 'purchase' && s.free) throw new Error(`offer ${s.id} is a purchase deal now`);
   if (!/^https:\/\//.test(o.sourceUrl)) throw new Error(`offer ${s.id}: no https source`);
   if (o.availability === 'dated' && !(o.startDate && o.endDate)) throw new Error(`offer ${s.id}: dated without dates`);
+  if (s.sourceEn && o.sourceUrl !== s.sourceEn.from) throw new Error(`offer ${s.id}: the site's source is now ${o.sourceUrl} — drop the sourceEn override`);
   return {
     id: s.id, kind: s.kind, free: s.free,
     title: bi(o.title), who: s.who, requirement: bi(o.requirement),
@@ -138,12 +148,16 @@ const rows = SPECS.map(s => {
     place: s.place,
     ...(s.hand ? { hand: s.hand } : {}),
     href: `/offers/${encodeURIComponent(s.id)}`,
-    source: { label: o.sourceLabel, url: o.sourceUrl, verifiedAt: o.verifiedAt ?? '2026-09-15' },
+    source: s.sourceEn
+      ? { label: o.sourceLabel, url: s.sourceEn.url, verifiedAt: s.sourceEn.checkedAt }
+      : { label: o.sourceLabel, url: o.sourceUrl, verifiedAt: o.verifiedAt ?? '2026-09-15' },
     ...(s.ruleUrl ? { rule: { url: s.ruleUrl, verifiedAt: s.ruleCheckedAt ?? RULES_CHECKED } } : {}),
   };
 });
 
-const out = { version: 1, exported: new Date().toISOString().slice(0, 10), source: 'BAYLINK offers (src/data), San Francisco museums, parks and transit', offers: rows };
+// (W8-S) the export's date is the Bay date (it wrote the UTC date: an evening export read tomorrow)
+const bayToday = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const out = { version: 1, exported: bayToday, source: 'BAYLINK offers (src/data), San Francisco museums, parks and transit', offers: rows };
 await mkdir(dirname(OUT), { recursive: true });
 await writeFile(OUT, JSON.stringify(out, null, 1) + '\n');
 console.log(`Wrote ${rows.length} San Francisco offers to ${OUT}`);

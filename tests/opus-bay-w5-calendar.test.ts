@@ -215,7 +215,8 @@ test('W5-R7 live.json: BAYLINK\'s own San Francisco offers (museums, parks, tran
     assert.ok(o.title.en.trim() && o.requirement.en.trim(), `${o.id}: English title and conditions are present`);
     assert.doesNotMatch(o.title.en, /\p{Script=Han}/u, `${o.id}: the English title must not fall back to Chinese`);
     assert.doesNotMatch(o.requirement.en, /\p{Script=Han}/u, `${o.id}: the English conditions must not fall back to Chinese`);
-    assert.equal(o.source.url, site!.sourceUrl);
+    // (W8-S) the seniors' row links SFMTA's English page of the program (the site's source is its Vietnamese copy)
+    assert.equal(o.source.url, o.id === 'sfmta-free-muni-seniors' && site!.sourceUrl === 'https://www.sfmta.com/vi/node/12193' ? 'https://www.sfmta.com/fares/free-muni-seniors-ages-65' : site!.sourceUrl);
     assert.equal(o.href, `/offers/${o.id}`);
     assert.ok(['museum', 'park', 'transit'].includes(o.kind), o.id);
     if (o.free) assert.notEqual(site!.kind, 'purchase', `${o.id}: a free row is never a purchase deal`);

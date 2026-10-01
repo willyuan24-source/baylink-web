@@ -337,6 +337,15 @@ export const JETS_PHOTO_LINE: Bilingual = { zh: '飞机编队拍到啦，舰队�
 export const JETS_PHOTO_PITCH = 0.06;
 /** The photo subject at Marina Green's seawall (and the waypoint's target). */
 export const WATCH = { id: 'realsf:jets-watch', x: -377.5, z: 287.5, r: 14 } as const;
+
+/**
+ * (W8-S) While the Parade of Ships sails (9 Oct 11:00–12:00, world/sf/fleetWeek.ts), the Marina Green spot — the parade's
+ * reviewing stand too — is the parade's photo prompt: the parade's lazy chunk sets this override; the jets keep the spot
+ * the rest of the show day.
+ */
+export interface WatchOverride { name: Bilingual; verb: Bilingual; act: () => void }
+let watchOverride: (() => WatchOverride | null) | null = null;
+export function setWatchOverride(fn: (() => WatchOverride | null) | null) { watchOverride = fn; invalidateInteractables(); }
 /** jets this near (u) and in frame count for the photo; the line and the roar reach this far */
 export const PHOTO_NEAR = 520;
 export const HEAR_FAR = 600, HEAR_FULL = 120;
@@ -464,7 +473,10 @@ export function initJets(): Jets {
 
   // the photo subject + waypoint target (all show day); before the show it opens the Fleet Week card
   let showDay = false;
-  const offInteract = registerInteractables('w5-realsf-jets', () => (showDay ? [{
+  const offInteract = registerInteractables('w5-realsf-jets', () => {
+    const o = !up ? watchOverride?.() ?? null : null;
+    if (showDay && o) return [{ id: WATCH.id, source: 'event', action: 'photo', name: o.name, verb: o.verb, x: WATCH.x, z: WATCH.z, radius: WATCH.r, act: o.act } satisfies Interactable];
+    return showDay ? [{
     id: WATCH.id, source: 'event', action: 'photo', name: up ? { zh: '飞机编队', en: 'The jet formation' } : { zh: '飞行表演 · 码头绿地', en: 'Air show · Marina Green' },
     verb: up ? { zh: '拍飞机编队', en: 'Photograph the jets' } : { zh: '看看飞行表演', en: 'See the air show' },
     x: WATCH.x, z: WATCH.z, radius: WATCH.r,
@@ -477,7 +489,8 @@ export function initJets(): Jets {
       const ahead = poseAt(table, leadArc(bayNow().getTime() + 1800, table));
       faceCameraToward(ahead.p.x, ahead.p.z, { seconds: 0.8, pitch: JETS_PHOTO_PITCH });
     },
-  } satisfies Interactable] : []));
+  } satisfies Interactable] : [];
+  });
 
   /** a jet of the formation is in the camera's frame, near enough (the shutter's test) */
   const ndc = new THREE.Vector3();
@@ -546,8 +559,10 @@ export function initJets(): Jets {
       const win = jetWindowOn(now);
       if (win && now.getTime() < win.close && now.getTime() >= win.open - 6 * 3600_000 && dist2({ x: runtime.player.x, z: runtime.player.z }, WATCH) > 300) {
         out.push({ key: 'jets-day', text: now.getTime() < win.open ? JETS_DAY_LINE : JETS_NOW_LINE });
-        if (blueLineOn(now)) out.push({ key: 'jets-blue', text: JETS_BLUE_LINE });
       }
+      // (W8-S) the hedged Blue Angels line wherever the player is (W7: only > 300 u from Marina Green, so a player
+      // already at the lawn never heard when the headliner usually flies)
+      if (blueLineOn(now)) out.push({ key: 'jets-blue', text: JETS_BLUE_LINE });
       if (photoLine) out.push({ key: 'jets-photo', text: JETS_PHOTO_LINE });
       if (nearLine && up) out.push({ key: 'jets-up', text: JETS_NEAR_LINE });
       return out;
