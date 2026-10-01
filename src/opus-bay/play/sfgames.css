@@ -77,6 +77,11 @@
   .ob-sfg-booth { width: 160px; height: 128px; }
 }
 @media (max-height: 700px) and (max-width: 600px) { .ob-sfg-panel { top: calc(64px + var(--ob-st)); } }
+/* W8-K-review (K-RP-3, lane K surgical): a rotated phone (≤ 520 px tall) — the panel ran past the bottom edge (Grab!, the
+   prizes, the arrows out of reach): it fits the screen and scrolls; the glass keeps its own drag (touch-action none) */
+@media (max-height: 520px) {
+  .ob-sfg-panel { top: calc(8px + var(--ob-st)); max-height: calc(100% - 16px - var(--ob-st) - var(--ob-sb, 0px)); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+}
 @media (prefers-reduced-motion: reduce) {
   .ob-sfg-panel, .ob-sfg-card, .ob-sfg-booth .ob-sfg-hand, .ob-sfg-booth .ob-sfg-ball, .ob-sfg-booth .ob-sfg-bulb { animation: none; }
 }
