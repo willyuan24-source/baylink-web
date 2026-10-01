@@ -396,3 +396,75 @@ Higgsfield: **0 credits** spent (no texture or decal beat the procedural look at
 3. The O'Brien: her trip end on the promenade (−148, 1), the hull in the water along Pier 35, the sight line at her stern.
 4. Columbus Ave in North Beach (the asphalt between the café fronts, the lawn corner, the slab's edge).
 
+
+## Review (Ultra)
+
+Fixer of the adversarial review (two read-only lenses: code & facts, player), 2026-10-01 00:24–01:20 PDT, worktree
+`C:/Users/willy/wt/w8-w1-rev`, scratch `C:/Users/willy/opus-qa/w8/w1-rev/`.
+
+### 给主人的摘要
+
+1. 奥布莱恩号的终点挪到了船尾旁的码头步道上（离船身中部约 11 格，原来在 39 号码头大门口，离船 26 格）。走过去、跟 BAYBAY 去，现在都会停在船边，也会记下“到过”。原来走到船边也不算到达，这个问题已经修好。电脑上船就在画面右侧。手机竖屏画面窄，船刚好在右边缘，要转一下镜头才能看全（留给下一波）。
+2. BAYBAY 的三句新台词现在只在步行、骑车或坐着时说，滑翔、开车、坐车时都不说。“1994 年开回诺曼底”这句挪到了 35 号码头仓库的拐角，而且要面朝船才说。实际玩了一遍：这句话在船尾说出，船就在画面右边。
+3. 全城静态扫描的“走得到”判定原来比游戏本身更严，现在和游戏的寻路规则一致。699 个目标里有 0 个走不到、0 个卡住，其余结果和改之前完全一样。
+4. 电话局的位置核对过了，就在 OSM 标的 743 号上，那条意见不成立。哥伦布大道柏油路有一小段压在一栋办公楼的墙角下面，但被楼挡住看不见，这次没有改，已经记下来留给以后。
+5. 没有挡住上线（main）的问题。整套测试 1812 个通过，0 个失败（另有 1 个是早就记录的待办项）。
+
+### Findings and verdicts
+
+| id | sev | verdict | what I did / evidence |
+|---|---|---|---|
+| W1-RC-1 | major | **fixed** | Reproduced: `arrivalAnchors(ATTRACTIONS)` put the O'Brien at (−148, 1). Walking the apron from the east to her stern produced no hit, and the ship's middle was 26.2 u away. Root cause: the static sweep found the nearest graph node of any kind, an unstandable hero node under the Embarcadero roadway, while `actors/nav routeTo` snaps to the nearest *usable* node (`graphNodeFilter`). My script (`cand2.mts`) shows every game route from 6 starts (the Embarcadero, the Dragon Gate, the Wharf, Pier 39, North Beach, SoMa) reaches stern-side ends, and the usable-node reach is 0.00 u. Fix: `ARRIVAL_OVERRIDES['ss-jeremiah-obrien']` is now (−126, −10) with heading −2.61 (toward OBRIEN_MID, 10.9 u; 4.4 u from the stern). `sweep-static.mts` now judges from the nearest usable node. Full sweep: 699 targets, ok 551, CORRIDOR 148, BOXED 0, SNAG 0, UNREACHABLE 0. The totals are the same as before; `trip:ss-jeremiah-obrien` is ok, 3 of 4 ways. Red then green: with the old override the new asserts fail ("the ship 26.2 u away", "the anchor by her stern"). |
+| W1-P1 | major | **fixed** (same change) | Reproduced in code: `placeTrips.ts` is the only place that applies `arrival.heading`, and only for fast travel. Played after the fix (dev server, golden hour, start (−100.9, −2.6), "go to SS Jeremiah O'Brien"): a 7.9 s walk ends at (−125.75, −9.99), and the ship lies broadside on the right with Alcatraz ahead (`docs/opus-bay/qa/w8/W1/review-obrien-arrived.jpg`, read). A walker from Pier 39's side arrives with the stern about 36° to the left, 4 u away (computed from the geometry, not played). Every approach now ends beside her, so no approach ends with the ship 26 u behind the player. |
+| W1-P2 | minor | **fixed** | Reproduced with the lens's `glide.mts`: on the old tree the line was said while gliding and in a car. On mine both say `[]`. `cornersSights.ts` now speaks only on foot, on a bike or sitting (lane W2's `westPlayer` rule). If the pacer refuses a line (`baybayLine` returns false), the line is not spent and is offered again on the next poll inside the circle. A line the pacer accepts and later drops after its TTL is still spent (the pacer does not report the drop), as before. New test: glide / car / transit / travel say nothing; a refused line is said on the retry, once. |
+| W1-P3 | minor | **fixed** | Confirmed from the lens's shot `a3b-t3.jpg` and from geometry: the old circle (−126.5, −9) lies on the walk west, and the bubble lands about 2 s later with Pier 39 ahead. The circle had to move anyway, because the test keeps the circles r+1 from every trip end. It is now at the Pier 35 shed corner (−120, −8.5), r 3, with `face` = OBRIEN_MID within 70° of the player's heading. Played twice. At (−116, −7.5) the line came while the hull was still behind the shed (`b1-walk.jpg`). At the shed corner it plays as the walk rounds it, and the bubble was on screen at the trip end with the ship in frame (`b2-arrived.jpg` = the committed shot). The texts are unchanged, so lane X's voice still matches. |
+| W1-RC-2 | minor | **refuted** | OSM today (api.openstreetmap.org, 2026-10-01): way 251790077 is "East West Bank", 743 Washington Street, across 2.26–2.97 / along 66.46–67.17 in Grant's frame. 256080511 is "854;864 Grant Avenue", across 0.91–2.10. 256080517 is "731;733;735 Washington Street", across 4.36–5.65, so it is **not** 743's frontage. The toy exchange spans across 1.84–3.17 (centre 2.5), so it stands on OSM's 743 Washington footprint, within 0.1 u of its centre. The corner shop (854 Grant) is gone because the city's Grant carve puts its front at 1.8 u, which leaves a 0.3 u sliver; the lane recorded this. ReelSF (https://reelsf.com/reelsf/lady-from-shanghai-on-the-lam-chinese-telepho, checked 2026-10-01) says the exchange is "just around the corner from Grant at Washington", with a corner shop beside it. That is the real layout; at toy scale the exchange reads as the corner building. No change. |
+| W1-RC-3 | minor | **confirmed, not fixed** | Reproduced (`nbroad.mts`): 5 of 605 ribbon samples, including one centre-line point, lie inside lot-154 (`DISTRICT.blocks[153]`, office h 18.15). City mode draws that block: the drop set is {232, 116, 210}. The ribbon runs *under* an opaque box, so trimming it would change nothing on screen. The visible point is that the district's block corner stands on real Columbus Ave's line, which predates wave 8 (the district never drew Columbus). Fixing that means hiding or cutting lot-154 in city mode and filling the seam (cornersSeamData), which is a wave-9 job. District mode must not change. Recorded as an open item. |
+
+### Own pass (`git log origin/opus-bay --grep "W8-W1[0-9:]"`: 814073eb, fefd7b46, 5e1ff378, 71d09a17)
+
+- **Softlocks**: none found. The new O'Brien end is "ok" (3 of 4 ways). The Telephone Exchange end, r1's two moved
+  via points and the cluster's sidewalks pass the sweep (no BOXED / SNAG / UNREACHABLE among the 699 targets).
+- **District mode**: the lane's files are city-only (the corners, `sites.ts` excludes / walk inputs, `wharfShips`,
+  `cornersSights` registered in `cityWorld.ts`). The hero regression and the district tests pass in the suite.
+- **Perf**: as the lane recorded, Chinatown is 123 calls / 299.4k (budget 150 / 400k). The O'Brien adds 0 calls
+  (one mesh with the Pampanito). On my played spots the Pier 35 apron read 88–92 calls / 275–280k. I read only
+  calls and triangles, no fps.
+- **The blocker tops row** (`landmarks/tops.ts` dragon-gate: the exchange 2.4 u): this is LOCAL y above the gate's
+  base. The exchange stands down the Washington St hill (ground 2.32), so its world top ≈ 6.8 matches the model. Not a bug.
+- **Tonight's date** (Oct 1, Fleet Week ahead): nothing in lane W1 is date-gated. The O'Brien often sails during Fleet
+  Week, and the toy keeps her at Pier 35. That is a known simplification, and lane S owns the ship line.
+- **The sweep rule change** affects every lane's reading of `sweep-static.mts`: it now judges like the game. The totals
+  are unchanged on today's tree (ok 551 / CORRIDOR 148 / 0 / 0 / 0).
+
+### Commits (W8-W1-review)
+
+- `d3459280` the O'Brien's trip end and arrival by her stern; sight lines on foot only, hers while facing the ship; the
+  sweep's usable-node rule; tests (W1-RC-1, W1-P1, W1-P2, W1-P3).
+- `bdaa6cde` the O'Brien's sight circle at Pier 35's shed corner (played; the committed shot).
+- this report.
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 old warnings) · `npx tsx --test
+tests/opus-bay-*.test.ts` 1827 tests: 1826 pass, 0 fail, 1 todo (the known W8-P9 GameRoot target), on the pushed tree after the rebase · the tests the rebase brought in (A / H / K / S review, w7-g-polish…) plus
+mine 69/69 · the static sweep as above.
+
+### Open items
+
+- W1-RC-3: lot-154's corner stands on Columbus Ave in city mode (a seam job: hide or cut the lot in city mode, fill
+  from OSM). For lane W1 or the seam owner in wave 9.
+- The pacer can still drop an accepted sight line after its 15 s TTL without telling the caller. It is then spent for
+  the session. This is rare (it needs 15 s of other bubbles or panels); fixing it needs a pacer callback (game/cityMoments.ts).
+- The P2 waiver in tests/opus-bay-sf-attractions for this row is now 17 u. The lane's request (a graph edge along the
+  Pier 35 apron) would let it go back to 3 u.
+- **Phone portrait (390×844 dpr 3, quality mid), played after the move**: the walk from the Embarcadero ends at the
+  stern, and the Normandy bubble shows at the end. The hull is at the right edge of the narrow frame, with Pier 39 and
+  Alcatraz ahead (`docs/opus-bay/qa/w8/W1/review-obrien-arrived-phone.jpg`, read). On desktop she fills the right
+  third. A walk ends facing the way it walked, and a tier-3 arrival gets no reveal camera. Turning the camera to
+  `arrival.heading` at the end of a walking trip would fix this, but that is a shared trip-end rule (game/tripRun.ts,
+  lane G / N). Request for wave 9; not done here.
+
+### Blocking the go-live to main
+
+Nothing.
