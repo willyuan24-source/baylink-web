@@ -160,7 +160,8 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
       const css = failedCssUrl(last), url = css ? null : failedModuleUrl(last);
       try {
         // (W7-P-review) a lost stylesheet first, under a new URL; then the chunk (the helper skips a CSS it has seen)
-        if (css) { await loadCss(bustUrl(css, nextBust(memo, css))); return await load(); }
+        // (W8-P-review) a stylesheet's <link> is fetched anew each time (no module map): `n` per chain is enough there
+        if (css) { await loadCss(bustUrl(css, n)); return await load(); }
         return url ? await importUrl(bustUrl(url, nextBust(memo, url))) : await load();
       } catch (e) { last = e; }
     }
