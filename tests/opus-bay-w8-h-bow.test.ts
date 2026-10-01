@@ -39,6 +39,10 @@ test('W8-H the pumpkin bow: appended last (every earlier index kept), rides shel
   assert.equal(it.season, 'halloween');
   assert.ok(it.price >= 50 && it.price <= 70, `${it.price} coins`);
   assert.ok([...it.short.zh].length <= 5 && it.short.en.length <= 13 && [...(it.note?.zh ?? '')].length <= 24);
+  // W8-H-review: the shop tile's label at 390 px holds about 66 css px of 13 px bold — 'Bat wings' fits, 'Pumpkin bow'
+  // showed as 'Pumpkin …' (the Me shelf's Pumpkin head?); the tile says 'Bow tie', the full name stays 'Pelican pumpkin bow'
+  assert.ok(it.short.en.length <= 9, `tile label '${it.short.en}' fits the phone's tile`);
+  assert.match(it.name.en, /pumpkin bow/i);
   assert.ok(items.forSale(it) === false, 'not on sale without the season gate');
   assert.match(hLine('w8h-costume-pumpkin-bow').zh, /南瓜领结/);
 });
