@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Footprints, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -6,7 +6,7 @@ import { skipCinema } from '../game/cinema';
 import { skipTravel, travelActive, useTravelView } from '../game/fastTravel';
 import { acceptRealTime, dismissFreeHint, objectiveTarget, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { BAYBAY_ID, interactableById } from '../game/interactables';
+import { BAYBAY_ID, interactableById, interactablesEpoch, subscribeInteractables } from '../game/interactables';
 import { registerAnchor } from '../game/projector';
 import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
@@ -137,6 +137,11 @@ export function LiveRegion() {
   const { t } = useT();
   const announce = useFlow(s => s.announce);
   const focus = useGame(s => s.focus);
+  // (W8-C, lane S's finding 2) a focused interactable renamed in place (the jets' 看看飞行表演 → 跟上船队) read its old
+  // verb: re-read the focus once its source rebuilds, as Hud.tsx's ContextAction does (W6-K1)
+  const epoch = useSyncExternalStore(subscribeInteractables, interactablesEpoch, interactablesEpoch);
+  const [, reread] = useState(0);
+  useEffect(() => { reread(n => n + 1); }, [epoch]);
   const it = interactableById(focus);
   return (
     <>
