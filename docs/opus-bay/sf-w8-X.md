@@ -227,10 +227,11 @@ generated look asset shipped, by the rule "only when a side-by-side shot beats w
 
 ### Open items
 - Record 2 lines (zh + en): `GRIP_LINES.short` and `SLED_LINES.short` (`npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/voice/w8/lines.ts` lists them as NEW).
-- Phone check of the two after-views (390×844) not shot tonight; the changes do not depend on the viewport (geometry / light data).
+- (done 01:21) Phone 390×844 dpr 3 after-shots: `docs/opus-bay/qa/w8/X/xrev-fline-night-after-m.jpg` (saloon lit through the windows; 69 calls / 206k tris, quality mid) and `xrev-ggb-night-after-m.jpg` (orange towers, no beads, only the foot floodlights; 46 / 72k).
 
 ### Blocking the go-live to main
 - None.
 
 ### Checks
 `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 warnings, none new) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1824 tests, pass 1823, fail 0, todo 1 (W8-P9's GameRoot ≤ 255 KB target, known: it reads ≈ 258.0 KB here; `holdBubble` in game/flow.ts and the mode gates in world/fx.ts add a few hundred bytes to the main graph) — before the rebase; after it, tsc and the incoming lanes' tests + lane X's re-run (below).
+After the rebase onto origin (lanes A, M, W1, W2, P reviews): `tsc` 0; their tests + lane X's + w5-perf (14 files) 145 / 145 green; the voice inventory still lists exactly the 2 unvoiced lines. Pushed 01:20: `22a276a3` (the fixes), `bbd48734` (district mode gates), `deb50761` (this report); this addendum after. Dev server 5850 stopped; worktree removed (see below).
