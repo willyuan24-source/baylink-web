@@ -252,26 +252,20 @@ export function startFoghorn(tunes?: Horn[][]): boolean {
   addFogSounds();
   ensureSf8Sounds();
   const g = new FogGame(tunes ?? drawTunes());
+  // (W8-M-review) a horn key's let-go is its keyup itself: polled once a frame, a tap shorter than a frame (or one made
+  // while Settings paused the game) was never let go — the horn stuck and the rest of the answer was ignored
   const keys = holdKeys(['Escape', 'KeyE', ...Object.keys(KEYS)], code => {
     if (code === 'Escape') { cancelFoghorn(); return; }
     const h = KEYS[code];
     if (h) fogPress(h);
-  });
+  }, code => { const h = KEYS[code]; if (h) fogRelease(h); });
   const r: Run = { run, game: g, keys, off: () => {}, quiet: performance.now() + 90000, said: -Infinity };
-  const down = new Set<string>();
   let grace = CANCEL_GRACE;
   r.off = registerFrameSystem('m-play-foghorn', dt => {
     if (cur !== r) return;
     if (game.get().paused) return;
     if (grace > 0) grace -= dt;
     else if (Math.hypot(runtime.input.moveX, runtime.input.moveY) > MOVE_CANCEL) { cancelFoghorn(); return; }
-    // a key let go: the horn's release
-    for (const code of Object.keys(KEYS)) {
-      const isDown = keys.isDown(code);
-      if (isDown) down.add(code);
-      else if (down.has(code)) { down.delete(code); fogRelease(KEYS[code]); }
-    }
-    if (cur !== r) return;
     const before = g.phase, calling = g.calling, round = g.round;
     for (const e of g.step(Math.min(dt, 0.1))) onFogEvent(r, e);
     if (before !== g.phase || calling !== g.calling || round !== g.round) changed();
@@ -288,7 +282,8 @@ export function startFoghorn(tunes?: Horn[][]): boolean {
 /** The panel's horn buttons and the keys: press, then release. */
 export function fogPress(h: Horn) {
   const r = cur;
-  if (!r || r.game.phase !== 'answer' || r.game.held) return;
+  // (W8-M-review) nothing blows while Settings pauses the game
+  if (!r || r.game.phase !== 'answer' || r.game.held || game.get().paused) return;
   playSound(`m8-horn-${h}`);
   for (const e of r.game.press(h)) onFogEvent(r, e);
   changed();
@@ -314,7 +309,9 @@ function onFogEvent(r: Run, e: FogEvent) {
     case 'call-S': case 'call-H': case 'call-L': playSound(`m8-horn-${e.slice(5)}`); break;
     case 'ship': if (g.round === 0) say(r, FOG_LINES.ship, 2400); break;
     case 'round-ok': playSound('m8-toot', { gain: 0.8 }); if (g.first + g.second === 1) say(r, FOG_LINES.good, 2400, true); break;
-    case 'retry': if (g.last?.ev !== 'short') say(r, FOG_LINES.wrong, 2400, true); break;
+    // the call again: a wrong horn says so; too slow (no horn, or not all of them) is not "wrong" but the start line again
+    // (W8-M-review: it said 吹错啦 to a player who had blown nothing); a short south horn has its own line
+    case 'retry': if (g.last?.ev === 'late') say(r, FOG_LINES.start, 2600, true); else if (g.last?.ev !== 'short') say(r, FOG_LINES.wrong, 2400, true); break;
     case 'short': say(r, FOG_LINES.hold, 2400, true); break;
     case 'round-lost': say(r, FOG_LINES.anchor, 2600, true); break;
     case 'longer': if (g.round === 3) say(r, FOG_LINES.longer, 2600); break;
