@@ -171,8 +171,15 @@ const BellPad = lazy(() => importRetry(() => import('./BellPad')));
 type PadProps = { ride: import('../game/flowStore').FlowRide };
 const PadSlot = ({ ride }: PadProps) => createElement(Suspense, { fallback: null }, createElement(BellPad, { ride }));
 
-/** The bell pad rides on a cable car once it has left the stop (lane T's ride banner). */
-export const bellPadVisible = (r: { kind?: string; stage: string }) => r.kind === 'cable-car' && r.stage !== 'waiting';
+/**
+ * The bell pad rides on a cable car once it has left the stop (lane T's ride banner) — not while another game runs on
+ * board (W8-M-review: lane M's grip; a tap on 铃声对答 there started the riff and so ended the grip with nothing paid).
+ * 'bell' is bell.ts's BELL_ID (not imported: this chunk stays free of the riff's).
+ */
+export const bellPadVisible = (r: { kind?: string; stage: string }) => {
+  const run = currentActivity();
+  return r.kind === 'cable-car' && r.stage !== 'waiting' && (!run || run.spec.id === 'bell');
+};
 
 // --- the helpers every zone uses (zones3.ts too) ---------------------------------------------------------------------
 

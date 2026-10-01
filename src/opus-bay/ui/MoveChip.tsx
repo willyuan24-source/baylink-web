@@ -8,6 +8,7 @@ import { useT } from '../i18n';
 import { Keycap } from './common';
 import { useDevice } from './hooks';
 import { hopOffNote } from './rideHop';
+import { openOverlays, subscribeOverlays } from './slots';
 import { spotActionLabel } from './spotLabel';
 
 /**
@@ -39,8 +40,11 @@ const glideStyle: CSSProperties = {
   boxShadow: 'var(--ob-shadow-s)', font: 'inherit', fontSize: 13.5, fontWeight: 800, cursor: 'pointer', pointerEvents: 'auto',
 };
 
-function Hint({ k, label, onPress }: { k: string; label: string; onPress?: () => void }) {
-  const body = <><Keycap className="ob-context-key">{k}</Keycap><span>{label}</span></>;
+const gripOpen = () => openOverlays().some(o => o.id === 'play-grip');
+const noGrip = () => false;
+
+function Hint({ k, label, onPress }: { k: string | null; label: string; onPress?: () => void }) {
+  const body = <>{k !== null && <Keycap className="ob-context-key">{k}</Keycap>}<span>{label}</span></>;
   return onPress
     ? <button type="button" style={hintStyle} onClick={onPress}>{body}</button>
     : <span style={{ ...hintStyle, cursor: 'default', background: 'transparent', padding: '0 4px' }}>{body}</span>;
@@ -56,6 +60,9 @@ export function MoveChip() {
   const dialogue = useGame(s => s.dialogue.nodeId);
   const focus = useGame(s => s.focus);
   const device = useDevice();
+  // (W8-M-review, lane M's grip) the grip game holds Space while it runs (拉闸, held): the hop-off hint shows no Space then
+  // (Space pressed for 下车 only gripped); a click on it still hops off
+  const spaceHeld = useSyncExternalStore(subscribeOverlays, gripOpen, noGrip);
   // on board, the hop-off rule follows the vehicle (a ferry docking, a train leaving a tunnel): look twice a second
   const [, setTick] = useState(0);
   const onBoard = mode === 'transit' && !!ride && ride.stage === 'riding';
@@ -108,7 +115,7 @@ export function MoveChip() {
       <Hint k={pad ? 'A' : 'E'} label={t(spotActionLabel(spot, kind))} onPress={() => { input.interactCount++; }} />
       {!pad && <Hint k="WASD" label={kind === 'ferry' ? t('走走甲板', 'Walk the deck') : t('车厢里走走', 'Walk the aisle')} />}
       {/* wave 4 (lane F review, lane T review open 1): under way / in a tunnel the key says why it waits */}
-      {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : 'Space'} label={ferry ? t('下船', 'Go ashore') : t('下车', 'Hop off')} onPress={requestHopOff} />}
+      {note ? <Hint k={pad ? 'B' : 'Space'} label={t(note)} /> : <Hint k={pad ? 'B' : spaceHeld ? null : 'Space'} label={ferry ? t('下船', 'Go ashore') : t('下车', 'Hop off')} onPress={requestHopOff} />}
     </>);
   }
   // on foot: the glide is ready (never over a context prompt)

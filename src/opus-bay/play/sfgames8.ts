@@ -94,8 +94,11 @@ export const sf8Its = (): Interactable[] => [buskHaightIt, buskMissionIt, fogIt]
 
 const POWELL = ['powell-hyde', 'powell-mason'];
 const onPowell = (r: Pick<FlowRide, 'kind' | 'line'> | null) => !!r && r.kind === 'cable-car' && !!r.line && POWELL.includes(r.line);
-/** The grip pad: a Powell car under way, no game panel up. */
-export const gripPadVisible = (r: FlowRide) => onPowell(r) && r.stage !== 'waiting' && !openOverlays().some(o => o.id === 'play-grip');
+/**
+ * The grip pad: a Powell car under way, no game panel up and no game running (W8-M-review: during the bell riff a tap on
+ * 拉闸 started the grip and so ended the riff with nothing paid; the riff's own pad hides while the grip runs).
+ */
+export const gripPadVisible = (r: FlowRide) => onPowell(r) && r.stage !== 'waiting' && !currentActivity() && !openOverlays().some(o => o.id === 'play-grip');
 
 const GripPanel = lazy(() => importRetry(() => import('./GripPanel')));
 const GripSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPanel));
