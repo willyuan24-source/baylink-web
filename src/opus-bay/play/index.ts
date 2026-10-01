@@ -8,6 +8,7 @@ import type { Bilingual } from '../core/types';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
 import { onSaveCleared } from '../data/save';
+import { baybayHeld } from '../game/baybayHold';
 import { bubble, runAction } from '../game/flow';
 import { registerRewardIds } from '../economy/ledger';
 import { flow } from '../game/flowStore';
@@ -222,7 +223,8 @@ export function init(): () => void {
     let coach = 0;
     const offCoach = registerFrameSystem('a-play-coach', dt => {
       const s = game.get(), f = flow.get(), p = runtime.player;
-      const quiet = s.phase === 'playing' && s.mode === 'free' && !s.dialogue.nodeId && !s.panel.kind && !f.bubble && !f.cinematic && !p.moving && runtime.move.mode === 'foot';
+      // (W8-K4, lane K surgical) not under a play panel / card: the W8-K1 live proof heard this voiced under the claw panel
+      const quiet = s.phase === 'playing' && s.mode === 'free' && !s.dialogue.nodeId && !s.panel.kind && !f.bubble && !f.cinematic && !p.moving && runtime.move.mode === 'foot' && !baybayHeld();
       coach = quiet ? coach + dt : Math.max(0, coach - dt);
       if (coach < COACH_AFTER || !charApi()) return;
       offCoach();

@@ -11,6 +11,7 @@ import {
   boardPosition, bubble, currentStop, freeLeadArrived, introPending, lastArrivalAt, lastLeadCall, nextFreeGoal, maybeStartIntro, openCallMenu, performInteraction, stageMark, talkMark, tourArrived,
   tripGuide, weekArrived, welcomeMark,
 } from './flow';
+import { baybayHeld } from './baybayHold';
 import { bark } from './content';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById, interactables, postcardIdOf, syncMoving } from './interactables';
@@ -326,7 +327,10 @@ function follow(now: number) {
   const arrivedAt = lastArrivalAt();
   const settling = game.get().worldMode === 'city'
     && (now - lastCarriedAt < SMALL_TALK_QUIET_MS || (arrivedAt > 0 && performance.now() - arrivedAt < SMALL_TALK_QUIET_MS));
-  const quiet = performance.now() < flow.get().quietUntil || settling;
+  // (W8-K4, city) her small talk (the light line, the idle lines, the pass-by barks) waits under a play panel, an egg
+  // card, the Halloween postcard… like her other lines (game/baybayHold.ts): the claw's own 60 s quiet ran out with the
+  // panel still up and 金色时刻！ was said under it (the W8-K1 live proof). The district is unchanged.
+  const quiet = performance.now() < flow.get().quietUntil || settling || baybayHeld();
   // once per visit, a line about the light right now (morning fog, golden hour, night lights)
   if (!quiet && !timeBarked && playingSince && now - playingSince > 20000 && !flow.get().bubble && gp < 10) {
     const line = bark(game.get().timeOfDay);

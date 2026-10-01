@@ -1,3 +1,4 @@
+import { game } from '../core/store';
 import { openOverlays } from '../ui/slots';
 
 /**
@@ -5,10 +6,13 @@ import { openOverlays } from '../ui/slots';
  *
  * BAYBAY's unprompted lines (game/cityMoments.ts `stepPacer`: arrival, tour, transit and tunnel lines, the rumours, the
  * pelican moment; game/baybayLines.ts: the event and neighbourhood lines; realsf/index.ts: the Bay's calendar lines;
- * halloween/world.ts: the season's lines; economy/lines.ts `sayWhenFree`) wait while one of these is open: their bubble
- * would sit under the panel / card and the voice would play with no text to read (W7-I, the claw panel and the 螃蟹方向盘
- * line; the neighbourhood greeting under the Halloween postcard). The game's own lines (a claw catch, a skyline answer, a
- * kite gust…) are bubbles the game says itself and are never held by this.
+ * halloween/world.ts: the season's lines; economy/lines.ts `sayWhenFree`; W8-K4: game/brain.ts small talk — the light
+ * line, the idle lines, the pass-by barks —, play/zones.ts invites and sayWhenQuiet, play/index.ts's emote coach,
+ * play/pet.ts's sea-otter float) wait while one of these is open: their bubble would sit under the panel / card and the
+ * voice would play with no text to read (W7-I, the claw panel and the 螃蟹方向盘 line; the neighbourhood greeting under the Halloween postcard). The
+ * game's own lines (a claw catch, a skyline answer, a kite gust…) are bubbles the game says itself and are never held
+ * by this: W8-K4 keeps the bubble out of the play panels' boxes (game/hudLayout.ts HUD_BOX_SELECTOR) so they are read.
+ * City mode only (W8-K4): in the district nothing is held, as before wave 8.
  *
  * Overlay ids are strings on purpose: importing the games' modules would pull their lazy chunks into GameRoot. Never
  * `openOverlays().length`: the play chip ('play-chip') and the first-flight chip ('play-flight') are overlays too, and
@@ -72,7 +76,9 @@ export function holdingOverlay(): string | null {
 
 /** BAYBAY's ambient lines must wait now (a holding overlay is open, or a holding activity runs). */
 export function baybayHeld(): boolean {
-  return holdingOverlay() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity));
+  // (W8-K4) a city rule: the district's lines never change (game/brain.ts small talk and play/zones.ts invites speak
+  // there too)
+  return game.get().worldMode === 'city' && (holdingOverlay() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity)));
 }
 
 /** A speech bubble must wait now (game/flow.ts bubble). */

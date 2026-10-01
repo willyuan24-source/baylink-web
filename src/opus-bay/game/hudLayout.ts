@@ -33,6 +33,10 @@ export const HUD_BOX_SELECTOR = [
   '.ob-found-chip',
   // lane F's request (part b): lane A's result card and first-flight chip keep the waypoint and the bubble off them
   '.ob-play-result', '.ob-play-flight',
+  // W8-K4 (lane K): the play panels (claw / crab / sourdough / fortune, 那是什么？, the crest polaroid, the sea-lion
+  // count) — the game's own lines (差一点点！, 新的纪念品！…) sat under the claw panel on a phone (bubble z 8, panel z 43) and
+  // would be voiced with no text to read. A new panel: give its root `data-ob-hud-box` (or add its class here).
+  '.ob-sfg-panel', '.ob-play-sky', '.ob-play-snap', '.ob-play-lion-badges', '[data-ob-hud-box]',
 ].join(', ');
 
 /**

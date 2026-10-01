@@ -401,6 +401,8 @@ test('W5-A3 pet BAYBAY: in reach only, hearts + a line, her own line when petted
     assert.equal(pet.waterNear(0, 0, 10, (x, z) => x > 9 && Math.abs(z) < 1), true);
     // the float watcher: still for FLOAT_IDLE s, a coin flip, water by her
     runtime.guide.x = PLAZA.x; runtime.guide.z = PLAZA.z - 60;
+    // W8-K4 (on purpose): the float waits for the bubble on screen (the pet line above) instead of cutting it
+    flow.set({ bubble: null });
     const off = pet.startFloatWatch(() => 0);
     try {
       for (let i = 0; i < 12; i++) stepFrameSystems(1, 1000 * (i + 1));

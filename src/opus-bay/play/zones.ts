@@ -7,6 +7,7 @@ import type { Bilingual } from '../core/types';
 import { SEWARD_SLIDES_WORLD } from '../data/sf/sewardSlides';
 import { onSaveCleared } from '../data/save';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { registerInteractables, type Interactable } from '../game/interactables';
@@ -153,7 +154,8 @@ export function sayWhenQuiet(line: Bilingual, delay: number, ms = 3600) {
   let waited = 0;
   const tryIt = () => {
     const s = game.get(), f = flow.get();
-    const busy = s.phase !== 'playing' || !!s.dialogue.nodeId || s.photoMode || !!f.cinematic || !!f.bubble || !!currentActivity();
+    // (W8-K4, lane K surgical) not under a play panel / card either (an egg card, the album, the Halloween postcard…)
+    const busy = s.phase !== 'playing' || !!s.dialogue.nodeId || s.photoMode || !!f.cinematic || !!f.bubble || !!currentActivity() || baybayHeld();
     if (!busy) { bubble(line, ms); return; }
     if ((waited += 1500) <= 30000) setTimeout(tryIt, 1500);
   };
@@ -179,7 +181,8 @@ const fetched = new Set<string>();
 export const nearPlayer = (x: number, z: number, r: number) => Math.hypot(runtime.player.x - x, runtime.player.z - z) <= r;
 function quiet() {
   const s = game.get(), f = flow.get();
-  return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity();
+  // (W8-K4, lane K surgical) not under a play panel / card either (an egg card, the album, the Halloween postcard…)
+  return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity() && !baybayHeld();
 }
 /** BAYBAY's invite at a zone: once per INVITE_GAP s per key, only when quiet and she is near. */
 export function zoneInvite(key: string, line: Bilingual) {
