@@ -203,7 +203,7 @@ three rebases onto other lanes' pushes; one conflict in `world/sf/cityWorld.ts`'
 
 ## Part c · W8-W2c St Ignatius's lead cupolas, the perf table
 
-Started 22:16 PDT after part b's push. Last push ≈ 23:30 (see "Final checks").
+Started 22:16 PDT after part b's push. Pushed 23:36 PDT (`1791604f`; see "Final checks").
 
 ### What was built
 
@@ -278,3 +278,38 @@ Started 22:16 PDT after part b's push. Last push ≈ 23:30 (see "Final checks").
 - **The lead / W8-Z**: the Civic Center perf spot's walking camera now comes up facing east (hero district) instead of
   City Hall — an arrival / camera change of another lane, not W2's; compare like for like before reading a delta.
 - **The next wave**: the Haight mural kit and Chase Center T2 (Not done above).
+
+## Final checks (23:15–23:36 PDT)
+
+- On the tree rebased on `origin/opus-bay` at 23:10 (this lane's parts a–c on top): `tsc` 0 · `eslint .` **0 errors**
+  (50 old warnings) · the opus-bay suite **1797 / 1797** (23:15–23:23 PDT). Rebased twice more before the push (lanes
+  X, Q, M, H, P, W1): `tsc` 0, then my tests + W8-P + landmark-context / landmarks / sf-models / W5-A1: 101 / 101, and
+  W1's new `opus-bay-w8-w1-northbeach` 2 / 2.
+- Earlier runs: part a 1688 / 1689 (W5-A1's play-import guard → `westToy.ts`, green); part b 1711 / 1712 and
+  1753 / 1754 (each 1 red a wall-clock test under load — `A* reaches the hill … string-pulled legs`, `E2-5 view field
+  in the city … a cached cell is cheap` — green alone).
+- District mode untouched (every W2 system is attached by `world/sf/cityWorld.ts`, city mode only; the boathouse is a
+  city site); the dev server on 5808 stopped; no Chrome left running.
+- Higgsfield: **0 credits** (no ledger rows: nothing generated).
+
+### Commits (on `origin/opus-bay`)
+
+| commit | what |
+|---|---|
+| `eb60b4df` | W8-W2a: Ocean Beach's toy surfers and Seal Rocks (one instanced call), `westToy.ts`, BAYBAY's 5 sea lines |
+| `4242a07a` | W8-W2a-report: part a + 2 QA JPEGs |
+| `c587cdc7` | W8-W2b: Blue Heron Lake's boats, moored boats, ducks, heron (one instanced call), 3 lake lines |
+| `8f62ada6` | W8-W2b2: the Blue Heron Lake Boathouse (a W8 site replacing the generic house), tops, W4-IL1 list |
+| `b5239e3c` | W8-W2b-report: part b + 2 QA JPEGs |
+| `09f1e21b` | W8-W2c: St Ignatius's lead cupolas and dome (shells over the AI church), tops, the looks test |
+| `81092fa8` | W8-W2c-report: part c, the perf table + 2 QA JPEGs |
+| `1791604f` | W8-W2c-report2: the Haight mural attempt (reverted, not pushed) in Not done |
+
+### Where a reviewer should look first
+
+1. Ocean Beach on foot at Kelly's Cove (world ≈ (−635.6, 1306.8), facing the Cliff House) by day: the surfers' cycle,
+   the crest lines, Seal Rocks' crags and white tops (no face); then the Cliff House terrace (−709.9, 1263.4).
+2. Blue Heron Lake: the boathouse from the north shore (≈ (−301, 1038)) and from the lake path (−309.5, 1016.5); the
+   boats in the six basins; the heron at the south footbridge; at night (lit lodge, no boats out).
+3. St Ignatius from Fulton & Parker and from afar (the grey cupolas / dome over the AI church; `?ai=0` the procedural).
+4. Phone 390 × 844: the Ocean Beach walk (surfers read in portrait) and haight-usf.
