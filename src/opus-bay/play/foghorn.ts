@@ -103,6 +103,9 @@ export class FogGame {
   clock = 0;
   done = false;
   private nextCall = 0;
+  /** this round's call (its horns' start times and its length), computed as the call begins */
+  private call: { h: Horn; at: number }[] = [];
+  private callEnd = 0;
   constructor(tunes: Horn[][] = drawTunes()) { this.tunes = tunes; }
   get tune(): readonly Horn[] { return this.tunes[this.round] ?? []; }
   get maxPts() { return this.tunes.reduce((s, t) => s + 3 * t.length, 0); }
@@ -114,7 +117,7 @@ export class FogGame {
   private go(p: FogPhase, out: FogEvent[]) {
     this.phase = p;
     this.t = 0;
-    if (p === 'call') { this.nextCall = 0; this.got = 0; }
+    if (p === 'call') { this.nextCall = 0; this.got = 0; this.call = callTimes(this.tune); this.callEnd = callLength(this.tune); }
     if (p === 'answer') { this.got = 0; this.held = null; out.push('answer'); }
     if (p === 'ship') out.push('ship');
   }
@@ -169,11 +172,11 @@ export class FogGame {
       case 'intro': if (this.t >= INTRO_S) this.go('ship', out); break;
       case 'ship': if (this.t >= SHIP_IN) this.go('call', out); break;
       case 'call': {
-        const c = callTimes(this.tune);
+        const c = this.call;
         while (this.nextCall < c.length && this.t >= c[this.nextCall].at) { out.push(`call-${c[this.nextCall].h}` as FogEvent); this.nextCall++; }
-        const cur = c.find(x => this.t >= x.at && this.t < x.at + CALL_LEN[x.h]);
-        this.calling = cur ? cur.h : null;
-        if (this.t >= callLength(this.tune)) { this.calling = null; this.go('answer', out); }
+        this.calling = null;
+        for (const x of c) if (this.t >= x.at && this.t < x.at + CALL_LEN[x.h]) this.calling = x.h;
+        if (this.t >= this.callEnd) { this.calling = null; this.go('answer', out); }
         break;
       }
       case 'answer':

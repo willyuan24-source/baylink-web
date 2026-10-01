@@ -113,7 +113,8 @@ export function gripMarks(line: Pick<CableLine, 'xyz' | 'cum' | 'length' | 'stop
     const p = zones[i - 1], q = zones[i];
     if (ahead(dir, p.b, q.a) < MERGE_GAP) { if (ahead(dir, p.b, q.b) > 0) p.b = q.b; if (q.kind === 'cross') p.kind = 'cross'; zones.splice(i, 1); }
   }
-  const inZone = (s: number) => zones.some(z => ahead(dir, z.a, s) >= 0 && ahead(dir, s, z.b) >= 0);
+  // (a loop, not zones.some: asked several times a frame by the run and the panel)
+  const inZone = (s: number) => { for (const z of zones) if (ahead(dir, z.a, s) >= 0 && ahead(dir, s, z.b) >= 0) return true; return false; };
   // bells: the cross streets the car runs through (request stops), the crossings
   const bells: BellMark[] = [];
   for (const st of line.stops) {
@@ -195,7 +196,8 @@ export class GripGame {
   }
   /** a red stretch starting within RELEASE_LEAD ahead (the hint turns to let go before it, not inside it) */
   zoneAhead(): GripZone | undefined {
-    return this.zones.find(z => !z.entered && ahead(this.dir, this.s, z.a) > 0 && ahead(this.dir, this.s, z.a) <= RELEASE_LEAD);
+    for (const z of this.zones) { const d = ahead(this.dir, this.s, z.a); if (!z.entered && d > 0 && d <= RELEASE_LEAD) return z; }
+    return undefined;
   }
   /** what the player should do now (the panel's hint) */
   get want(): 'grip' | 'release' | 'wait' {
@@ -214,7 +216,8 @@ export class GripGame {
   /** a bell to ring now (the lever's hint goes on: the crossing's bell is rung while coasting across) */
   get bellNow(): boolean { return !!this.bellWindow(); }
   private bellWindow(): BellMark | undefined {
-    return this.bells.find(b => !b.rung && !b.passed && ahead(this.dir, this.s, b.at) <= BELL_BEFORE && ahead(this.dir, this.s, b.at) >= -BELL_AFTER);
+    for (const b of this.bells) { const d = ahead(this.dir, this.s, b.at); if (!b.rung && !b.passed && d <= BELL_BEFORE && d >= -BELL_AFTER) return b; }
+    return undefined;
   }
   private judge(ev: GripEvent, got: number, of: number, out: GripEvent[]) {
     this.pts += got; this.max += of;

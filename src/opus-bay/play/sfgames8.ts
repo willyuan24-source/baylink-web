@@ -85,6 +85,9 @@ export const fogIt: Interactable = {
   act: () => { void import('./foghorn').then(m => { m.startFoghorn(); }); },
 };
 
+/** the busker prompts with their spots (a constant: the frame system walks it every frame) */
+const BUSK_PROMPTS: readonly (readonly [Interactable, BuskSpot])[] = [[buskHaightIt, BUSK_HAIGHT], [buskMissionIt, BUSK_MISSION]];
+
 /** Every prompt of the set (tests: each on standable ground) */
 export const sf8Its = (): Interactable[] => [buskHaightIt, buskMissionIt, fogIt];
 
@@ -118,7 +121,7 @@ export function initSfGames8(): () => void {
     const running = currentActivity();
     if (running) played.add(running.spec.id);
     // the prompts step aside while any game runs; the verb follows the busker's hours
-    for (const [it, s] of [[buskHaightIt, BUSK_HAIGHT], [buskMissionIt, BUSK_MISSION]] as const) {
+    for (const [it, s] of BUSK_PROMPTS) {
       it.radius = running ? 0 : s.r;
       it.verb = buskerOut(s) ? BUSK_VERB : PRACTICE_VERB;
     }
@@ -139,7 +142,7 @@ export function initSfGames8(): () => void {
       }
     } else rideT = 0;
     // the buskers: the chunks within PREFETCH_R, BAYBAY's invite once (the zones' own rate limit), not after a jam
-    for (const s of [BUSK_HAIGHT, BUSK_MISSION]) {
+    for (const [, s] of BUSK_PROMPTS) {
       const p = buskAt(s);
       if (!nearPlayer(p.x, p.z, PREFETCH_R)) continue;
       zonePrefetch('busk', () => Promise.all([import('./busk'), import('./BuskPanel')]));
