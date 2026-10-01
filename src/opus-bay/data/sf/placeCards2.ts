@@ -365,7 +365,7 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     bark: bi('烛台角是加州第一个城市里的州立休闲区，风特别大！', 'Candlestick Point: California\'s first urban state recreation area — and windy!'),
     summary: bi('加州第一个城市型州立休闲区，海边有步道、免执照的钓鱼码头，适合风帆和观鸟；旁边的老烛台公园球场已经拆除。', 'California\'s first urban state recreation area, with shoreline trails, a no-licence fishing pier, windsurfing and birding; the old Candlestick Park stadium next door is gone.'),
     verifiedAt: '2026-09-30',
-    hours: bi('约每天 7:00–19:00 开放（以官网为准）。', 'Open about 7am–7pm daily (per the official site).'),
+    hours: bi('约每天 7:00–19:00 开放；官网另一处写日出到日落，以官网为准。', 'Open about 7am–7pm daily; the official page also says sunrise to sunset — check before you go.'),
     officialUrl: 'https://www.parks.ca.gov/candlestickpoint/',
     sourceUrl: 'https://www.parks.ca.gov/candlestickpoint/', sources: ['https://en.wikipedia.org/wiki/Candlestick_Point_State_Recreation_Area'],
     lat: 37.71715, lng: -122.383,

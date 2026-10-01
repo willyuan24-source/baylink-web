@@ -63,6 +63,9 @@ test('W8-S3 the facts behind the lines: the park code, the national park, the of
   assert.ok(cites('glide-memorial-church', 'https://www.glide.org/church/'));
   assert.equal(card('glide-memorial-church').quiet, true, 'a church stays quiet');
   assert.match(card('candlestick-point-sra').hours!.zh, /约每天 7:00–19:00/, 'the state park page: 7 am to 7 pm (was sunrise to sunset)');
+  // (W8-S review) the same page also lists "Operating Hours: Sunrise - Sunset, 7 days a week" (re-read 2026-10-01): the line says both
+  assert.match(card('candlestick-point-sra').hours!.zh, /日出到日落/);
+  assert.match(card('candlestick-point-sra').hours!.en, /sunrise to sunset/);
   // (W8-S review) the hours and the 40 mph wind rule are the Sutro Stewards' trail-map page's (UCSF's reserve page states
   // neither: re-read 2026-09-30), so the line cites that page and does not say "per UCSF"
   assert.ok(cites('mount-sutro-open-space', 'https://www.sutrostewards.org/trail-map'));

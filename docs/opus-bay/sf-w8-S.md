@@ -365,6 +365,13 @@ no catalog, offers, openings, guides or routes (`public/planner-catalog.json`, `
 `main` at go-live, lane S's guards (venues, souvenirs, openings, `live.json`, links) should stay green; `/my-week` (which
 the game opens) gains the outings list — still the SPA.
 
+**Correction (review, 2026-10-01):** the paragraph above is out of date and wrong as a statement of the site. GPT pushed
+`b7b82ff4` and `2d9d9da9` to `main` at 21:41 PDT (before this wrap-up): they change `public/planner-catalog.json`,
+`src/data/october-offers.ts`, `src/data/local-discoveries.ts`, `vercel.json` and lane S's own `realsf/eventVenues.ts` /
+`tests/opus-bay-w6-s-venues.test.ts` (7 new SF library events kept out as "pending independent world import", the SF Zoo's
+resident free day). The merge stays clean and lane S's guards pass with main's data; the decisions and the follow-ups
+are in **Review (Ultra)** below.
+
 ### Not done
 
 - The Belvedere pill and `cable:powell-geary` (decided and recorded in part d: other lanes' files).
@@ -389,3 +396,61 @@ the game opens) gains the outings list — still the SPA.
 3. The cards' facts (part c table): spot-check the park code, the GGNRA hours page, the Aquarium's prices.
 4. `scripts/opus-sf/export-live.ts`'s `sourceEn` guard and `live.json`.
 
+## Review (Ultra)
+
+Written 2026-10-01 ≈ 00:30 PDT by the review's fixer (worktree `C:/Users/willy/wt/w8-s-rev`, dev port 5846, scratch
+`C:/Users/willy/opus-qa/w8/s-rev/`). Two read-only lenses (code & facts, player) reported 10 findings; each was
+reproduced before anything changed.
+
+### 给主人的摘要
+
+1. 舰队周「舰船巡游」修好了五处：码头绿地的「拍舰船巡游」只在船真的拍得到时出现（约 11:05–11:35），船队还没到时是「看看舰船巡游」，开过去以后变成「跟上船队」，按 E 就把路标指向下一处能看船的地方（水上公园、渡轮大厦）。
+2. BAYBAY 的路标跟着船队走：不再一律指回码头绿地；船就在你面前时，她不会再叫你去别处看。船队 10:54 左右从金门大桥外开进来，11:00 不再凭空冒出五艘船。
+3. 当天早上「看看舰船巡游」现在打开「今天」页（写着 11:00–12:00、从金门大桥开到海湾大桥），日历里统一叫「舰船巡游」。
+4. 地点卡：苏特罗山的开放时间改引 Sutro Stewards 官方页（UCSF 页面没写）；坎德尔斯蒂克公园官网同时写了 7:00–19:00 和「日出到日落」，卡片两种都写上。
+5. 网站同步：报告原来说 GPT 晚上的提交没动活动数据，这是错的。他 21:41 又推了两次，加了 7 场图书馆活动和 1 个动物园免费日。这些和游戏合并时不会冲突，测试 48/48 全过。我决定这次先不放进游戏，原因写在下面，下一波再接。
+6. 拍照时船在画面最上沿这个问题已确认，相机代码归 K 线，没有改。上线不受阻。
+
+### Findings and verdicts
+
+| id | sev | verdict | what was found / done | evidence |
+|---|---|---|---|---|
+| S-code-1 | major | fixed (report + decisions); content import left for after the merge | Reproduced: `origin/main` gained `b7b82ff4` + `2d9d9da9` (reflog: pushed 21:41:57 PDT, before the 22:10 wrap-up) changing `public/planner-catalog.json`, `src/data/october-offers.ts` (+ `october-refresh-offers.ts`), `local-discoveries.ts` (+ `october-refresh-openings.ts`: Fremont and Sonoma only), `vercel.json`, **and lane S's** `realsf/eventVenues.ts` (7 `WORLD_SKIP` rows "pending independent world import") + `tests/opus-bay-w6-s-venues.test.ts`; the wrap-up's "touch no catalog, offers, openings, guides or routes" was false (corrected in place above). In a scratch worktree at `origin/opus-bay` with main's site data: lane S's guards fail 2 (`W6-S1 venues` 75 ≠ 68; `W7-S1 guard`: `sfpl-writing-gravity-oct8-2026` shown at main-library without a souvenir); after a 3-way `git merge-file` of main's edits to the two lane-S files (0 conflicts) the lane-S + calendar files pass **48 / 48**, so the go-live merge stays clean. `f5b059ca` / `652a9975` (22:27, 22:41) touch no catalog, data, routes or `src/opus-bay`. **Decisions (lane S, recorded):** the 7 events stay out of the world for wave 8, consistent with main's own boundary test, which pins them as not imported (importing them on `opus-bay` now would fail main's test at the merge): `sfpl-career-coaching-oct8-2026` (one-on-one career coaching: professional), `sfpl-writing-gravity-oct8-2026` (an adults' evening writing workshop), `sfpl-garden-green-bin-oct10-2026` (an adults' climate-action talk) stay out for good; `sfpl-richmond-lego-oct7-2026` (5+ family), `sfpl-ocean-view-stem-oct8-2026` (3+ family), `sfpl-omi-history-day-oct17-2026`, `sfpl-western-addition-open-house-oct24-2026` are for everyone at branch libraries with no venue row: a wave-9 import after the merge (venue row, short name, souvenir, and replacing main's "pending" assertion). The Zoo's resident free day `sf-zoo-resident-free-oct7-2026` cannot enter `live.json` before the merge (`export-live.ts` throws on an offer the site data lacks; `/offers/sf-zoo-…` is only in main's `vercel.json`): add a `SPECS` row and re-export right after the merge. | scratch `C:/Users/willy/wt/w8-s-revm` (removed), test logs in this session |
+| S-code-2 | minor | fixed | Reproduced: UCSF's reserve page has no hours / wind rule; `https://www.sutrostewards.org/trail-map` has both ("open from sunrise to sunset", "close for winds over 40mph", re-read 2026-09-30). The English line now says "per the Sutro Stewards; check before you go"; the page joins the card's sources. | `tests/opus-bay-w8-s-cards.test.ts` red → green; `88f47da6`→`c3d777b4` |
+| S-code-3 | minor | fixed | Reproduced (`calendar.ts` title 舰队周 · 舰船游行). Now 舰队周 · 舰船巡游; a test pins one name across the row, the prompts and `EVENT_SAY`. | `017fe6ee`; `review-marina-green-today-…0900-desktop.jpg` (the row 舰队周 · 舰船巡游 · 码头绿地看台) |
+| S-code-4 | minor | fixed (with S-P6) | Same defect as S-P6 (the morning prompt opened a card without the parade's time). | see S-P6 |
+| S-P1 | major | fixed | Reproduced numerically from the shipped `shipPose`: nearest ship to the stand 536 u at 11:00, 417 at 11:04, 430 at 11:36, 672 at 11:50 (PHOTO_NEAR 420). Now `standState()`: 拍舰船巡游 only while a ship is within 380 u (≈ 11:05–11:35 on high), before that the info prompt (看看舰船巡游 → 今天 tab), after it **跟上船队 / Follow the ships** → the waypoint to the next viewing spot (`viewSpotAt`), near the end the info prompt. Played at 11:50: the prompt read 跟上船队 · 舰船巡游 · 船队开远了; E set `mapTarget` `place:ferry-building`, the pill 渡轮大厦 · 约 2 分钟. At 11:20 the photo still pays (`isPaid` true, "已存进相册"). | `review-marina-green-follow-…1150-desktop.jpg`; test S-P1 (every half-minute of 拍舰船巡游 has a ship < PHOTO_NEAR − 12 u from the spot) |
+| S-P2 | major | fixed | Reproduced in code (`said()` always set `WATCH.id`; parade-now offered whenever > 300 u from Marina Green). Now parade-now's waypoint is the first viewing spot along the route the line still passes for ≥ 5 min (stand → Aquatic Park → Ferry Building; none near the end), and neither go-and-watch line is offered while a ship is within 300 u of the player. Played at the Ferry Building 11:42: offered `parade: ['parade-near']`, the bubble 看，领头的消防船…, `mapTarget` null; the fireboat and the grey line in front of the player. | `review-ferry-building-…1142-desktop.jpg`; test S-P2 (Ferry Building 11:42, the Mission 11:42 → `place:ferry-building`, the path's end 11:59, the Golden Gate deck 10:58) |
+| S-P3 | major | confirmed-not-fixed | Reproduced at 11:20 (desktop 1440 × 900): photo mode shows the ships in the top ≈ 80 px, masts cut, the lower part lawn; the stamp pays. The lift is `actors/camera.ts` (lane K, frozen to lane S): the request to lane K stands (keep the photo camera over the walkway, or let the face request's low pitch survive the lift). Not a go-live blocker (the photo works). | `review-marina-green-photo-…1120-desktop.jpg` |
+| S-P4 | minor | fixed | Reproduced from `shipPose`: at 11:00:00 ships 0–4 at arc 200 / 155 / 110 / 65 / 20, all scale 1. Now the line sails in from the path's start (`paradeEntryMs` ≈ 10:54), each ship growing out of the water at arc 0; the fireboat is still under the main span at 11:00; built and photographable while any ship is on the water. Played at 10:57:30 on the Golden Gate deck: 3 ships on the water, 2 calls, 1,592 tris, parade-near offered, no parade-day. | test S-P4 (no ship first appears with scale ≥ 0.1 or arc ≥ 2 u) |
+| S-P5 | minor | fixed | Reproduced in code: `parade` is null on the tick that requests the chunk, and a fresh `initFleetWeek()` offered nothing before its own first tick. Now `realsf/index.ts` holds the jets' lines on the parade day while the chunk loads (`fleetWeekDay.ts holdJetsForParade`; after 3 failed loads the jets are released), and `initFleetWeek` measures its state at once. A live first-load repro was not possible with `save=off` (the new-player goals card holds every line until dismissed, by then the chunk is in). | test S-P5 (offered() right after init = `['parade-now']` at 11:42 far away; the gate's four cases) |
+| S-P6 | minor | fixed | Reproduced (`openEvent(JETS_EVENT)`: the Fleet Week card names only the week and the air show). The morning 看看舰船巡游 now opens the 今天 tab, whose row reads 舰队周 · 舰船巡游 · 码头绿地看台 — 11:00–12:00 消防船领头，舰船从金门大桥开往海湾大桥 (fleetweeksf.org). The 'soon' state still runs from 00:00 on 9 Oct, like the jets' own show-day prompt (kept). | `review-marina-green-today-…0900-desktop.jpg`; `lastJournalRequest()` = `{ tab: 'today' }` |
+
+### Own findings (the reviewer's pass over W8-S1 … S5)
+
+1. **Candlestick Point's hours (fixed)**: https://www.parks.ca.gov/candlestickpoint/ (re-read 2026-10-01) lists "Park Hours 7:00 am to 7:00 pm" and also "Operating Hours: Sunrise - Sunset, 7 days a week". The card now says both, hedged (`placeCards2.ts`; test red → green).
+2. **A stale screen-reader prompt (open, not lane S's file)**: `ui/Floating.tsx LiveRegion` re-renders on a focus change only; at Marina Green 11:50 its text read 飞行表演 · 码头绿地 · 按 E 看看飞行表演 while the visible prompt read 跟上船队. The same happens whenever a focused interactable changes its words in place (the jets' up / down switch too). Request to the UI owner: key the live region on the item's verb / name as well.
+3. Checked, no defect: tonight's live date (Bay 1 Oct): the world shows the Ferry Plaza market 10–14 and the Symphony matinee from 14:00, no calendar row, the Halloween season on from 00:05; no district file changed by lane S (`realsf/**` loads in city mode only); the parade adds 2 calls / ≤ 3,208 tris, built only near the line (lane S's table); the new prompts are UI text (not voiced), the four voiced lines are unchanged.
+
+### Commits (review)
+
+| commit | what |
+|---|---|
+| `c3d777b4` | Mount Sutro's hours line cites the Sutro Stewards (S-code-2) |
+| `017fe6ee` | the parade follows the line: Marina Green's prompt, BAYBAY's waypoint, no pop-in, the line order, the morning prompt, one name (S-P1, S-P2, S-P4, S-P5, S-P6, S-code-3, S-code-4) — rebase conflict in `realsf/index.ts` with lane P's `W8-P5` (`importRetry`): kept `importRetry` and added the failure count |
+| this commit | Candlestick's hours (own finding 1), this report, four QA shots |
+
+### Checks
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 old warnings) · lane S + jets + calendar + realsf + lane A + lane P retry + cards: 100 / 100 after the rebase; the whole opus-bay suite on the final tree (`017fe6ee` + this commit's card line): **1811 / 1811** + 1 todo, 0 failures.
+
+### Open items
+
+- **After the go-live merge of `main`** (lead / wave 9): add `sf-zoo-resident-free-oct7-2026` to `export-live.ts` `SPECS` (place `sf-zoo`, SF residents with proof of address, 10:00–16:00 per the site's label: re-check https://www.sfzoo.org/calendar/sf-resident-free-day-5/) and re-export `live.json`; import the four family / community branch-library events still ahead (venue rows, short names, souvenirs; replace main's "pending independent world import" assertion in `tests/opus-bay-w6-s-venues.test.ts`).
+- Lane K: S-P3's photo-mode lift at Marina Green's seawall.
+- UI owner: own finding 2.
+- The site's editors (via the owner / GPT): still open from lane S: the seniors' Muni `sourceUrl`, the Chinatown Halloween Festival in the catalog.
+
+### Blocking the go-live to main
+
+None from lane S. The merge of `main` into `opus-bay` is clean for lane S's files and its guards pass with main's site data (48 / 48).
