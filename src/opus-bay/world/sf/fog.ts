@@ -201,8 +201,9 @@ export class KarlState {
 
   /**
    * (W7-H1) A seasonal warm touch at golden hour that a city feature PUSHES (fog.ts reads no calendar): the Halloween
-   * world (halloween/world.ts, while halloweenPhase() is not 'off') sets `#f2a65a` × 0.18 — Karl's golden bank turns a
-   * little pumpkin-coloured. Only the colour at golden hour; it slides with Karl's own slide (a uniform: no cost).
+   * world (halloween/world.ts, while halloweenPhase() is not 'off') pushes its `DUSK_TINT` (`#f2a65a` × 0.35 since
+   * wave 7; this comment said × 0.18 until W8-S) — Karl's golden bank turns a little pumpkin-coloured. Only the colour
+   * at golden hour; it slides with Karl's own slide (a uniform: no cost).
    * `null` clears it. `instant`: no slide (the feature's first push at load).
    */
   setGoldenTint(color: string | null, amount = 0, instant = false) {

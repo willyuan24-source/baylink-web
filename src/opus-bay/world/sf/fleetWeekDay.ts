@@ -33,3 +33,13 @@ export function paradeOn(date: Date = bayNow()): boolean {
   const w = paradeWindow(), t = date.getTime();
   return t >= w.open && t < w.close;
 }
+
+/**
+ * (W8-S4) What the Marina Green spot (the jets' WATCH, the parade's reviewing stand) offers for the parade: 'soon' on the
+ * parade's morning before 11:00 (舰船巡游 · 码头绿地 → the Fleet Week card; BAYBAY's 今天上午十一点… line sends the
+ * player there), 'on' while the ships sail (拍舰船巡游 → photo mode), else null (the jets' own prompt).
+ */
+export function paradeWatchState(date: Date = bayNow()): 'soon' | 'on' | null {
+  if (paradeOn(date)) return 'on';
+  return isParadeDay(date) && date.getTime() < paradeWindow().open ? 'soon' : null;
+}

@@ -6,18 +6,18 @@ import type { Bilingual, Vec2 } from '../../core/types';
 import { isPaid } from '../../economy/ledger';
 import { bayNow, bayParts } from '../../game/bayNow';
 import { faceCameraToward } from '../../game/cinema';
-import { enterPhotoMode } from '../../game/flow';
+import { enterPhotoMode, openEvent } from '../../game/flow';
 import { flow } from '../../game/flowStore';
 import { invalidateInteractables } from '../../game/interactables';
 import { registerFrameSystem } from '../../game/systemsRegistry';
-import { setWatchOverride, WATCH } from '../../realsf/jets';
+import { JETS_EVENT, setWatchOverride, WATCH } from '../../realsf/jets';
 import type { OfferedLine } from '../../realsf/lines';
 import { BOX, CONE, CYL, ICO, M, Batch, extrudeXZ } from '../builder';
 import { cityStreamerLazy } from '../cityLoader';
 import { patchToyShader } from '../materials';
 import { instancedWarmup, registerWarmup } from '../warmup';
 import { getWorld, type WorldSystem } from '../world';
-import { isParadeDay, paradeOn, paradeWindow } from './fleetWeekDay';
+import { isParadeDay, paradeOn, paradeWatchState, paradeWindow } from './fleetWeekDay';
 
 /**
  * Wave 8 · lane S (W8-S2) · Fleet Week: the Parade of Ships (city mode only; a lazy chunk realsf/index.ts loads on the
@@ -31,10 +31,11 @@ import { isParadeDay, paradeOn, paradeWindow } from './fleetWeekDay';
  *   - a red toy fireboat with three arcs of water, then six grey toy ships (four on phones) in line astern, 45 u apart:
  *     plain grey hulls with a dark boot-top, deckhouses, a mast and a funnel — no weapons detail, no flags, no lettering.
  *   - one path over open water (PATH_POINTS): in from outside the Golden Gate, under the bridge's main span, along the
- *     shore ≈ 80–100 u off Crissy Field, Marina Green and Fort Mason, between Aquatic Park and Alcatraz, out past the
- *     district ferry's loop along the Embarcadero, and under the Bay Bridge's west span between its first two towers
+ *     shore ≈ 80–100 u off Crissy Field, Marina Green and Fort Mason, between Aquatic Park and Alcatraz, across the
+ *     Alcatraz ferry's lanes once (W8-S4: ≈ 106 u of the path within 30 u of them, then ≥ 30 u out), outside the
+ *     harbour ferry's loop along the Embarcadero, and under the Bay Bridge's west span between its first two towers
  *     (the mast tops stay under the toy deck) to the open Bay beyond. The fireboat passes under the Golden Gate at 11:00;
- *     the last ship reaches the path's end at 12:00 (the path is ≈ 1,915 u: ≈ 0.55 u/s, ≈ 7.5 knots at ≈ 7 m a unit;
+ *     the last ship reaches the path's end at 12:00 (the path is ≈ 1,940 u: ≈ 0.56 u/s, ≈ 7.5 knots at ≈ 7 m a unit;
  *     the fireboat passes Marina Green ≈ 11:16, the last ship ≈ 11:24). A ship grows out of the water over the path's
  *     first RAMP u and sinks from view over its last RAMP u (both ends are far from any shore). The positions follow
  *     the Bay clock: every player sees the same ship at the same minute.
@@ -44,7 +45,7 @@ import { isParadeDay, paradeOn, paradeWindow } from './fleetWeekDay';
  *     the Marina Green spot (the jets' WATCH, the reviewing stand); near the fireboat 看，领头的消防船…; the first photo
  *     with a ship near and in frame pays the Parade of Ships stamp + 15 coins (`event:fleet-week-2026-parade`, an
  *     appended SOUVENIR_IDS entry). During the parade the Marina Green spot's E prompt is 拍舰船巡游 (photo mode facing
- *     the ships).
+ *     the ships); on the parade's morning it is 舰船巡游 · 码头绿地 (the Fleet Week card; W8-S4, `paradeWatchState`).
  */
 
 export const PARADE_SOUVENIR = 'fleet-week-2026-parade';
@@ -55,13 +56,14 @@ const WATER = -0.6;
 /**
  * The path's control points (city units, projected with core/geo.ts projectCity from the real channel: outside the Gate
  * ≈ 37.818, −122.493; the Golden Gate Bridge's main span between its towers (−796.1, 564.4) / (−935.5, 452.7); off
- * Crissy Field, Marina Green, Fort Mason and Aquatic Park; between the city and Alcatraz (−455.5, −60.0); along the
- * Embarcadero outside the ferry's loop; under the Bay Bridge between its towers at the W2 and W3 piers).
+ * Crissy Field, Marina Green, Fort Mason and Aquatic Park; between the city and Alcatraz (−455.5, −60.0); across lane A's
+ * Alcatraz ferry lanes (data/ferry.ts ALCA_OUT / ALCA_BACK) once at x ≈ −330, then ≈ 40 u outside them and outside the
+ * harbour ferry's loop along the Embarcadero; under the Bay Bridge between its towers at the W2 and W3 piers).
  */
 export const PATH_POINTS: readonly Vec2[] = [
   { x: -990.8, z: 664.6 }, { x: -928.3, z: 586.6 }, { x: -865.8, z: 508.6 }, { x: -797, z: 423 },
   { x: -700, z: 405 }, { x: -580, z: 378 }, { x: -456, z: 242 }, { x: -392, z: 150 }, { x: -366, z: 60 },
-  { x: -356, z: -28 }, { x: -292, z: -118 }, { x: -180, z: -146 }, { x: -40, z: -152 }, { x: 90, z: -146 },
+  { x: -356, z: -28 }, { x: -322, z: -98 }, { x: -270, z: -160 }, { x: -170, z: -176 }, { x: -40, z: -168 }, { x: 90, z: -146 },
   { x: 180, z: -110 }, { x: 229.9, z: -49.3 }, { x: 300, z: -66 }, { x: 380, z: -98 }, { x: 440, z: -124 },
 ];
 /** the index of the control point under the Golden Gate's main span (the fireboat is there at 11:00) */
@@ -239,6 +241,8 @@ export const PARADE_NEAR_LINE: Bilingual = { zh: '看，领头的消防船一边
 export const PARADE_PHOTO_LINE: Bilingual = { zh: '船队拍到啦，舰船巡游纪念章收好！', en: 'Got the ships! A Parade of Ships stamp for your journal!' };
 /** the Marina Green spot's prompt while the ships sail */
 export const PARADE_WATCH: { name: Bilingual; verb: Bilingual } = { name: { zh: '舰船巡游', en: 'The Parade of Ships' }, verb: { zh: '拍舰船巡游', en: 'Photograph the ships' } };
+/** (W8-S4) its prompt on the parade's morning, before 11:00 (the waypoint BAYBAY's day line sets reads it): the Fleet Week card */
+export const PARADE_SOON: { name: Bilingual; verb: Bilingual } = { name: { zh: '舰船巡游 · 码头绿地', en: 'Parade of Ships · Marina Green' }, verb: { zh: '看看舰船巡游', en: 'See the Parade of Ships' } };
 
 /** a ship this near (u) and in frame counts for the photo; the near line within NEAR_LINE; built within BUILD_NEAR of a ship */
 export const PHOTO_NEAR = 420;
@@ -267,6 +271,8 @@ export function initFleetWeek(): FleetWeek {
   let line: THREE.InstancedMesh | null = null;
   let fire: THREE.InstancedMesh | null = null;
   let on = false;
+  /** (W8-S4) the Marina Green spot's parade state: 'soon' (the morning), 'on' (sailing) or null */
+  let watch: 'soon' | 'on' | null = paradeWatchState();
   let nearest: number | null = null;
   let nearLine = false, photoLine = false, dayLineSaid = false;
   let lineDay = '';
@@ -344,14 +350,14 @@ export function initFleetWeek(): FleetWeek {
     }
     return best;
   };
-  setWatchOverride(() => (on ? {
+  setWatchOverride(() => (watch === 'on' ? {
     ...PARADE_WATCH,
     act: () => {
       enterPhotoMode(WATCH.id);
       const s = nearestShip();
       if (s) faceCameraToward(s.x + s.hx * 12, s.z + s.hz * 12, { seconds: 0.8, pitch: 0.03 });
     },
-  } : null));
+  } : watch === 'soon' ? { ...PARADE_SOON, act: () => openEvent(JETS_EVENT) } : null));
 
   const ndc = new THREE.Vector3(), probe = new THREE.Vector3();
   const inFrame = (): boolean => {
@@ -373,9 +379,9 @@ export function initFleetWeek(): FleetWeek {
     const now = bayNow();
     const day = bayParts(now).dateKey;
     if (day !== lineDay) { lineDay = day; photoLine = false; dayLineSaid = false; }
-    const was = on;
     on = paradeOn(now);
-    if (on !== was) invalidateInteractables();
+    const w = paradeWatchState(now);
+    if (w !== watch) { watch = w; invalidateInteractables(); }
     const count = shipCount();
     sample(now.getTime(), count);
     let d = Infinity;

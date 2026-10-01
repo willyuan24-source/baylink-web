@@ -77,6 +77,36 @@ test('W8-S2 the line: the fireboat under the Golden Gate at 11:00, ships 45 u ap
   assert.ok(Math.min(...near) < 200, `${Math.min(...near).toFixed(0)} u from Marina Green at 11:20`);
 });
 
+test('W8-S4 the Alcatraz ferry (lane A): the line crosses its lanes once, briefly, and keeps ≥ 30 u from them otherwise', async () => {
+  const { ALCA_OUT, ALCA_BACK } = await import('../src/opus-bay/data/ferry');
+  const seg = (x: number, z: number, a: { x: number; z: number }, b: { x: number; z: number }) => {
+    const dx = b.x - a.x, dz = b.z - a.z, L2 = dx * dx + dz * dz;
+    const t = L2 > 0 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (z - a.z) * dz) / L2)) : 0;
+    return Math.hypot(x - (a.x + dx * t), z - (a.z + dz * t));
+  };
+  const lane = (x: number, z: number) => Math.min(...[ALCA_OUT, ALCA_BACK].map(pts => Math.min(...pts.slice(1).map((b, i) => seg(x, z, pts[i], b)))));
+  const p = F.paradePath();
+  const stretches: number[] = [];
+  let run = 0;
+  for (let i = 0; i < p.n; i++) {
+    if (lane(p.pos[i * 2], p.pos[i * 2 + 1]) < 30) run += p.step;
+    else if (run) { stretches.push(run); run = 0; }
+  }
+  if (run) stretches.push(run);
+  assert.equal(stretches.length, 1, `one crossing (${stretches.map(s => s.toFixed(0)).join(', ')} u)`);
+  assert.ok(stretches[0] <= 130, `the crossing is short: ${stretches[0].toFixed(0)} u within 30 u of the lanes`);
+});
+
+test('W8-S4 the Marina Green spot on the parade day: 舰船巡游 · 码头绿地 in the morning, 拍舰船巡游 while the ships sail, the jets’ after', () => {
+  assert.equal(D.paradeWatchState(bay('2026-10-09T06:00')), 'soon');
+  assert.equal(D.paradeWatchState(bay('2026-10-09T10:59')), 'soon');
+  assert.equal(D.paradeWatchState(bay('2026-10-09T11:00')), 'on');
+  assert.equal(D.paradeWatchState(bay('2026-10-09T11:59')), 'on');
+  for (const s of ['2026-10-09T12:00', '2026-10-09T15:00', '2026-10-08T10:00', '2026-10-10T10:00']) assert.equal(D.paradeWatchState(bay(s)), null, s);
+  assert.deepEqual(F.PARADE_SOON.name, { zh: '舰船巡游 · 码头绿地', en: 'Parade of Ships · Marina Green' });
+  assert.equal(F.PARADE_WATCH.verb.zh, '拍舰船巡游');
+});
+
 test('W8-S2 the path: over open water, ≥ 25 u from any shore, clear of the harbour ferry’s loop and Alcatraz, under both bridges between their towers', async () => {
   const { sfDisk } = await import('./opus-bay-sf-disk');
   const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');

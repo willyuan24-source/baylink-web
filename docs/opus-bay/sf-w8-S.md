@@ -11,7 +11,7 @@ theirs) and the new `world/sf/fleetWeek*.ts` (lead note `sf-w8-lead.md` §3). Wo
 1. 网站同步：GPT 9/30 的三个提交（服务预约、小队出游、AI 草稿）没有改动活动、优惠和新店数据，游戏里的活动点、纪念章、新店牌子、`live.json` 全部仍和网站一致；游戏能打开的网站链接（活动、优惠、新店、12 篇攻略、日历、计划页）全部能打开，已加测试。
 2. 我决定**不在游戏里放「一起去 · 小队」入口**：小队是网站给成年人约陌生人一起出门的功能（要登录、2–8 位成年人），玩具城不该直接把玩家带过去；游戏里的活动卡本来就链到网站活动页，那里有网站自己的「一起去」。
 3. 65 岁以上免费 Muni 的来源链接改成 SFMTA 英文官方页（网站原来指向越南语页）；舰队周三天的「今天」页新增一行「蓝天使通常下午三点左右上场 · 以官网为准」，BAYBAY 在码头绿地也会说这句（以前只有离得远才说）。
-4. **舰队周「舰船巡游」做好了**：10/9 上午 11:00–12:00（游戏里的湾区时间），一艘红色消防船喷着水领头，后面六艘灰色玩具军舰（手机上四艘，没有武器细节、没有旗帜和舷号）从金门大桥下开进来，沿码头绿地、水上公园外侧开到海湾大桥下；11:20 在码头绿地正好看到船队经过。BAYBAY 当天会提醒、带路去码头绿地，按 E「拍舰船巡游」拍到船队就得纪念章 + 15 金币。只多 2 个绘制调用，不进首屏包。
+4. **舰队周「舰船巡游」做好了**：10/9 上午 11:00–12:00（游戏里的湾区时间），一艘红色消防船喷着水领头，后面六艘灰色玩具军舰（手机上四艘，没有武器细节、没有旗帜和舷号）从金门大桥下开进来，沿码头绿地、水上公园外侧开到海湾大桥下；11:20 在码头绿地正好看到船队经过。BAYBAY 当天会提醒、带路去码头绿地，按 E「拍舰船巡游」拍到船队就得纪念章 + 15 金币。只多 2 个绘制调用，不进首屏包。船队航线后来又调整过，避开 A 线新做的恶魔岛渡轮航道（只横穿一次）；当天早上码头绿地的提示也改成「看看舰船巡游」。
 5. 50 张地点卡补上了开放时间或价格（今天逐个查官网：市立公园 5:00–24:00、国家公园海滩 6:00 到日落后 1 小时、海湾水族馆成人约 28 美元、Tadich 周日休息等；公共小巷/台阶写「全天可走」）；坎德尔斯蒂克州立公园的时间改成官网的 7:00–19:00。剩下 8 张（演出场馆、在翻修的朴茨茅斯广场等）写明了原因。
 
 ## Part a · re-sync with the site after GPT's three day-0 commits (W8-S1)
@@ -259,3 +259,82 @@ factory (Mon–Fri 9–6:30, weekends 9–7 — goldengatefortunecookies.com/vis
 
 - Public streets, alleys and stairs say "全天可走" from their own nature (a public right of way), not from a page; parks
   use the park code unless a park page says otherwise; no price is written where no official page states one.
+
+## Part d · the parade beside lane A's Alcatraz ferry, its morning prompt, the owner's live dates, small words (W8-S4)
+
+Written 2026-09-30 ≈ 21:30 PDT.
+
+### What was built
+
+- **The parade and the new Alcatraz ferry** (lane A's W8-A1 landed after W8-S2): the Alcatraz boat runs Pier 33 ↔ the
+  island on two lanes along z ≈ −100 … −131 (`data/ferry.ts ALCA_OUT / ALCA_BACK`), and the parade's line ran 226 u of
+  its path within 30 u of them — beside the ferry's lanes all the way from x ≈ −330 to Pier 33's end. Three control points
+  of `PATH_POINTS` moved out (−322, −98) · (−270, −160) · (−170, −176) · (−40, −168): the line now **crosses the lanes
+  once** (≈ 106 u of path within 30 u, a quick, steep crossing at x ≈ −330) and then runs ≈ 40 u outside them and
+  ≥ 55 u outside the harbour ferry's loop. The path is ≈ 1,940 u (≈ 0.56 u/s); the timings barely move (Marina Green
+  11:16 → 11:24, Aquatic Park 11:23 → 11:31, Pier 39 ≈ 11:32 → 11:40, the Bay Bridge 11:46 → 11:54).
+- **The Marina Green spot on the parade's morning**: until 11:00 on 9 Oct it reads **舰船巡游 · 码头绿地 / Parade of Ships ·
+  Marina Green — 看看舰船巡游 / See the Parade of Ships** and opens the Fleet Week card (the waypoint BAYBAY's
+  今天上午十一点… line sets now names the parade, not "Air show · Marina Green", which starts at noon); 11:00–12:00 the
+  photo prompt (W8-S2); after 12:00 the jets' own. `fleetWeekDay.ts paradeWatchState(date)` ('soon' / 'on' / null) is
+  pure; `fleetWeek.ts` invalidates the interactables when it changes.
+- **`world/sf/fog.ts`** `setGoldenTint`'s comment: it said the Halloween world pushes × 0.18; `DUSK_TINT` has been
+  × 0.35 since W7-H1 (comment only; lane H's dusk setter untouched).
+
+### The owner's live dates (the world's functions on this tree, then the moments marked ▶ played)
+
+From `C:/Users/willy/opus-qa/w8/s/dates.mts` (`activeEventsAt`, `calendarOn`, `calendarLines` at a far point, `jetsUp`,
+`blueLineOn`, `paradeOn`, `halloweenPhase`, `sunTimes`) over the site's real catalog:
+
+| Bay time | world events open (event @ venue row) | calendar rows | jets · parade | Halloween | sunset |
+|---|---|---|---|---|---|
+| Thu Oct 1 00:05 | — | — | — | **season** (live at midnight) | 18:52 |
+| Fri Oct 2 12:00 | Hardly Strictly @ hellman-hollow | — | — | season | 18:51 |
+| Sat Oct 3 10:30 | the market + Foodwise Latine Makers @ ferry-building, Hardly Strictly | — | — | season | 18:49 |
+| Sun Oct 4 13:00 | Litquake @ YBG, Castro Street Fair @ castro-market, Hardly Strictly | — | — | season | 18:48 |
+| ▶ Fri Oct 9 09:00 | — | Parade of Ships, **Blue Angels** | jets no (+ blue line) · parade day | season | 18:40 |
+| ▶ Fri Oct 9 11:20 | — | Parade of Ships, Blue Angels | **parade sailing** (+ blue line) | season | 18:40 |
+| Fri Oct 9 12:40 | Fleet Week @ marina-green | Parade of Ships, Blue Angels | jets up (+ blue line) | season | 18:40 |
+| Sat Oct 10 12:30 | the market, Fleet Week | Blue Angels | jets up (+ blue line) | season | 18:39 |
+| ▶ Sun Oct 11 13:00 | Fleet Week, Inner Sunset Flea, YBG Dance Day, Italian Heritage Parade @ jefferson-powell | Blue Angels | jets up | season | 18:38 |
+| Sat Oct 17 12:00 | the market, Potrero Hill Festival, the Marina library open house, the Pumpkin Fest, the Science Festival, FilBookFest, the Fall Show | — | — | season | 18:29 |
+| Sun Oct 18 12:00 | Sunday Streets Excelsior, the Fall Show, FilBookFest | — | — | season | 18:28 |
+| Sat Oct 24 12:30 / 15:00 | the market, Exploratorium family day, Chowder Fest, Thrill-O-Ween; + Bay Beats at the bandshell from 14:00 | — | — | season | 18:20 |
+| ▶ Sat Oct 31 12:30 | the market, the Halloween Hoopla @ YBG | Halloween, Chinatown Halloween Festival | — | night | 18:12 |
+| Sat Oct 31 19:30 | Figaro opening @ the Opera House | Halloween, Chinatown festival | — | night | 18:12 |
+| Sun Nov 1 00:30 / 10:00 | — | DST ends (BAYBAY's past-tense line only from 02:00: none at 00:30, `calendar-dst-end-2026` at 10:00) | — | muertos | **17:11** |
+| Mon Nov 2 12:00 / 19:30 | — | Día de los Muertos | — | muertos | 17:10 |
+
+Played (dev server 5806, desktop 1440 × 900 high unless said; `save=off` = a first visit, which is always golden light
+by design — the shots look like late afternoon whatever the hour):
+
+- **Oct 9 09:00**, Marina Green (`qa/w8/S/s4-parade-morning-prompt-2026-10-09T0900-desktop.jpg`): the E prompt **See the Parade of Ships · Parade of Ships · Marina Green**; E opens the
+  San Francisco Fleet Week card (air show 10/9–11 12:00–16:00). `offered()`: `jets-blue` (the player is at the lawn:
+  the far-away day lines are not offered there).
+- **Oct 9 11:20 / 11:26 / 11:01** (part b): the line at Marina Green, Aquatic Park, the Golden Gate deck; the photo stamp.
+- **Oct 11 13:00**, Jefferson & Powell (W7-S's heaviest overlap: the Italian Heritage Parade's kit, Fleet Week, the jets
+  up): **86 calls · 281.1k triangles** (desktop high) — under the 150 / 400k budget; BAYBAY's waypoint pill "The jet
+  formation".
+- **Oct 31 12:30**, Waverly Place: `offered().calendar` = `calendar-chinatown-halloween-festival-2026` (BAYBAY's festival
+  line), 119 calls · 329.2k (Chinatown, the city's busiest spot); lane H's festival kit was not on origin yet when shot.
+- Not re-shot (unchanged since W7-S part d / lane H's own runs): Oct 2–4, 17, 18, 24; Nov 1 (the 今天 tab's DST row);
+  Nov 2 (lane H's procession).
+
+### Small words: decided, not changed
+
+- **The Belvedere doors' pill (内日落 · Carmel St)**: the area comes from the city's neighbourhood polygons through
+  `data/cityZones.ts cityAreaAt` (lane K's), the street from the nearest centreline (Carmel St meets Belvedere there);
+  BAYBAY's line calls the street 贝尔维德街 (Cole Valley). Both names are used for that block; changing the zone grid or
+  adding a non-landmark area to `LANDMARK_AREAS` (tested against places.json anchors) is lane K's call — left, recorded.
+- **`cable:powell-geary` ok → CORRIDOR at Union Square**: W7-Z's sweep — the stop is open along Powell St and closed
+  across it since W2's Union Square terraces; two ways open is within the CORRIDOR waiver. Moving a planter is lane W2's
+  landmark (`union-square.ts`), not lane S's data — left, recorded.
+
+### Evidence
+
+- `tests/opus-bay-w8-s-fleet.test.ts` + 2 (9 / 9): the line crosses the Alcatraz ferry's lanes exactly once, ≤ 130 u of
+  path within 30 u of them (the old path measured 226 u with the same metric, scratch `alca.mts`); `paradeWatchState` 'soon' 06:00–10:59, 'on'
+  11:00–11:59, null after 12:00 and on other days. The water / shore / bridge / timing tests still pass on the new path
+  (also `pathcheck.mts`: no shore within 25 u off the Golden Gate's deck).
+- `npx tsc` 0 · `npx eslint` of the touched files 0 (the full checks before the push: below the commit).
+
