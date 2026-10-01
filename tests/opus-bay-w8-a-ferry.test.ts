@@ -335,3 +335,76 @@ test('W8-A Pier 33: the quay is walkable and joined to the city; the boat lies i
     assert.ok(n >= 0, 'a walking-graph node of the city within 40 u');
   } finally { setCityTerrain(null); }
 });
+
+test('W8-A Fleet Week: the Parade of Ships (lane S) crosses the boat\'s lanes; in its hour the boat stays in its slip, an island rider is fetched at noon', async () => {
+  const F = await import('../src/opus-bay/world/sf/fleetWeekDay');
+  const { PATH_POINTS } = await import('../src/opus-bay/world/sf/fleetWeek');
+  // the parade's path comes within a ship's beam of the outbound lane (why the boat waits)
+  const out = A.ALCA_FERRY_PATHS.out;
+  let near = Infinity;
+  for (let i = 0; i + 1 < PATH_POINTS.length; i++) {
+    const a = PATH_POINTS[i], b = PATH_POINTS[i + 1], n = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 2);
+    for (let k = 0; k <= n; k++) {
+      const x = a.x + ((b.x - a.x) * k) / n, z = a.z + ((b.z - a.z) * k) / n;
+      for (let s = 0; s < out.length; s += 2) { const q = A.alcaPoint(out, s); near = Math.min(near, Math.hypot(q.x - x, q.z - z)); }
+    }
+  }
+  assert.ok(near < 15, `the parade passes ${near.toFixed(1)} u from the lane`);
+  const day = F.PARADE_DAY.split('-').map(Number);
+  const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  let clock = at(`${F.PARADE_DAY}T${hhmm(F.PARADE_FROM + 20)}`);
+  assert.equal(A.alcaService(clock), 'parade');
+  assert.equal(A.alcaService(at(`${F.PARADE_DAY}T${hhmm(F.PARADE_TO)}`)), 'day');
+  assert.equal(A.alcaService(at(`${day[0]}-${String(day[1]).padStart(2, '0')}-${String(day[2] + 1).padStart(2, '0')}T${hhmm(F.PARADE_FROM + 20)}`)), 'day', 'the next day');
+  const sys = new A.AlcaFerrySystem({ clock: () => clock, brake: () => false });
+  assert.deepEqual(sys.serviceNote(P33), A.ALCA_PARADE_NOTE);
+  assert.equal(sys.request({ line: D.ALCA_FERRY_ID, station: P33, to: ISL, dir: 1 }), null);
+  for (let i = 0; i < 30 * 60; i++) sys.step(DT);
+  assert.equal(sys.boat.leg, 'dwell33', 'stays in its slip');
+  // the island can still call it: it comes after the parade (the ETA says so), the deckhand there says why
+  const st = sys.request({ line: D.ALCA_FERRY_ID, station: ISL, to: P33, dir: 1 })!;
+  assert.ok(st && st.eta > 35 * 60, `ETA ${st.eta.toFixed(0)} s`);
+  assert.ok(sys.greeting(ISL)?.en.includes('Parade'));
+  for (let i = 0; i < 30 * 30; i++) sys.step(DT);
+  assert.equal(sys.boat.leg, 'dwell33');
+  clock = at(`${F.PARADE_DAY}T${hhmm(F.PARADE_TO)}`);
+  let t = 0;
+  while (sys.rideStatus()?.phase !== 'here' && t < 200) { sys.step(DT); t += DT; }
+  assert.equal(sys.rideStatus()?.phase, 'here', 'fetched at noon');
+});
+
+test('W8-A the return ferry: the island → Pier 33 through game/transit (BAYBAY\'s lines on boarding and ashore), the rider set down on Pier 33\'s quay', async () => {
+  const { ALCA_LINES } = await import('../src/opus-bay/world/sf/alcatrazLines');
+  const { teleportPlayer } = await import('../src/opus-bay/game/flow');
+  const sys = new A.AlcaFerrySystem({ clock: () => at('2026-10-02T16:30') });
+  definePlatform(D.ALCA_FERRY_ID, FERRY_PLATFORM);
+  T.setFerrySystemFor(D.ALCA_FERRY_ID, sys);
+  const said: string[] = [];
+  try {
+    game.set({ phase: 'playing', worldMode: 'city', move: { mode: 'foot' } });
+    teleportPlayer(D.ALCA_TERMINALS.island.quay);
+    // 'returns' (after the last boat out): the island still calls the boat
+    assert.equal(sys.serviceState(), 'returns');
+    transit.rideFerry(ISL, P33);
+    assert.equal(ride.currentRide()?.mode, 'wait');
+    const step = (n: number, until: () => boolean) => {
+      for (let i = 0; i < n; i++) {
+        sys.step(DT); transit.stepTransit(DT);
+        const b = flow.get().bubble; if (b) { said.push(b.text.en); flow.set({ bubble: null }); }
+        if (until()) return true;
+      }
+      return false;
+    };
+    assert.ok(step(30 * 200, () => ride.currentRide()?.mode === 'follow'), 'the boat came out and the rider boarded');
+    assert.ok(said.includes(ALCA_LINES.board.en), 'the boarding line');
+    assert.ok(step(30 * 120, () => ride.currentRide() === null), 'back at Pier 33');
+    assert.ok(said.includes(ALCA_LINES.backAt33.en), 'the line ashore at Pier 33');
+    const q = D.ALCA_TERMINALS.pier33.quay, p = runtime.player;
+    assert.ok(Math.hypot(p.x - q.x, p.z - q.z) < 17, `on Pier 33's quay (${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
+  } finally {
+    T.setFerrySystemFor(D.ALCA_FERRY_ID, null);
+    ride.endRide();
+    game.set({ riding: null, worldMode: 'district' });
+    flow.set({ ride: null, bubble: null });
+  }
+});

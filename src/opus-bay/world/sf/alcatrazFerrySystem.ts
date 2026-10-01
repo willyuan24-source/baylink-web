@@ -3,6 +3,7 @@ import type { Bilingual, Vec2 } from '../../core/types';
 import { ALCA_BACK, ALCA_CROSSING, ALCA_FERRY_ID, ALCA_OUT, ALCA_PIVOT, ALCA_TERMINALS, FERRY } from '../../data/ferry';
 import type { CarPose, RideStatus, RiderRequest } from '../transitLine';
 import { ALCA_LINES } from './alcatrazLines';
+import { PARADE_DAY, PARADE_FROM, PARADE_TO } from './fleetWeekDay';
 
 /**
  * Wave 8 · lane A · the toy Alcatraz ferry, Pier 33 (Alcatraz Landing) ⇄ the island's dock. PURE (no three.js, no
@@ -24,7 +25,9 @@ import { ALCA_LINES } from './alcatrazLines';
  * toy boat shuttles all day inside those hours (a departure every few minutes: a toy cadence on the real day), takes no
  * one out after the last outbound departure, keeps bringing people back until the last return, then rests in its slip
  * (the night tour exists, Tuesday–Saturday: the quay says so, 以官网为准). One exception, so nobody is ever stranded: a
- * rider waiting on the island is always fetched, whatever the hour.
+ * rider waiting on the island is always fetched, whatever the hour. (Fleet Week, 9 Oct 2026 11:00–12:00: lane S's
+ * Parade of Ships sails through the boat's lanes, so the boat stays in its slip for that hour — an island rider is
+ * fetched at noon, or takes 直接到站.)
  *
  *   new AlcaFerrySystem({ clock, traffic })   clock = the Bay wall clock (minutes, weekday, date); traffic = the other
  *                                             boats near the waterfront (position + velocity) the crossing gives way to
@@ -63,7 +66,8 @@ export interface AlcaClock { year: number; month: number; day: number; hour: num
 /** The day's timetable (minutes after midnight, Bay time). */
 export const ALCA_HOURS = { first: 8 * 60 + 40, lastOut: 15 * 60 + 50, lastBack: 18 * 60 + 30 } as const;
 
-export type AlcaServiceState = 'early' | 'day' | 'returns' | 'night' | 'closed';
+/** 'parade': Fleet Week's Parade of Ships sails through the Bay (lane S, world/sf/fleetWeekDay.ts): the boat stays in its slip */
+export type AlcaServiceState = 'early' | 'day' | 'returns' | 'night' | 'closed' | 'parade';
 
 /** Thanksgiving (the fourth Thursday of November), Christmas Day, New Year's Day: the island is closed. */
 export function alcaClosedDay(c: Pick<AlcaClock, 'year' | 'month' | 'day'>): boolean {
@@ -77,10 +81,12 @@ export function alcaClosedDay(c: Pick<AlcaClock, 'year' | 'month' | 'day'>): boo
   return false;
 }
 
-/** Where the day is: before the first boat, Day Tour departures, return boats only, night, or a closed day. */
+/** Where the day is: before the first boat, Day Tour departures, return boats only, night, a closed day, the parade hour. */
 export function alcaService(c: AlcaClock): AlcaServiceState {
   if (alcaClosedDay(c)) return 'closed';
   const m = c.hour * 60 + c.minute;
+  // (lane S's toy warships cross the boat's lanes north of Fisherman's Wharf: it waits in its slip until they have gone)
+  if (`${c.year}-${String(c.month).padStart(2, '0')}-${String(c.day).padStart(2, '0')}` === PARADE_DAY && m >= PARADE_FROM && m < PARADE_TO) return 'parade';
   if (m < ALCA_HOURS.first) return 'early';
   if (m < ALCA_HOURS.lastOut) return 'day';
   if (m < ALCA_HOURS.lastBack) return 'returns';
@@ -101,9 +107,17 @@ export function alcaServiceNote(station: string, s: AlcaServiceState): Bilingual
     case 'returns': return { zh: '今天去岛上的最后一班已经开走了（下午 3:50）。回程船开到傍晚 6:30，时间以官网为准。', en: 'Today’s last boat out to the island has gone (3:50 p.m.). Boats come back until 6:30 p.m. Check the official site for times.' };
     case 'night': return { zh: '小渡轮收工休息啦。恶魔岛还有夜游团（周二到周六），时间和票务以官网为准。', en: 'The little ferry is resting for the night. There’s a night tour of Alcatraz (Tuesday to Saturday): check the official site for times and tickets.' };
     case 'closed': return { zh: '今天恶魔岛闭岛（感恩节、圣诞节和元旦闭岛），以官网为准。', en: 'Alcatraz is closed today (it closes on Thanksgiving, Christmas Day and New Year’s Day). Check the official site.' };
+    case 'parade': return ALCA_PARADE_NOTE;
     default: return null;
   }
 }
+
+/**
+ * The parade hour (9 Oct 2026, 11:00–12:00 Bay time): Pier 33's deckhand, and the island's when you call the boat there
+ * (it still comes for you: after the parade, or 直接到站 on the ride banner).
+ */
+export const ALCA_PARADE_NOTE: Bilingual = { zh: '舰船巡游正从海湾里经过，小渡轮等巡游过去再开，大约中午 12 点。', en: 'The Parade of Ships is passing through the Bay: the little ferry waits until it has gone by, about noon.' };
+const PARADE_ISLAND: Bilingual = { zh: '舰船巡游正从海湾里经过，小渡轮大约中午 12 点来接我们。等不及的话，可以直接到站。', en: 'The Parade of Ships is passing through the Bay: the little ferry comes for us about noon. Can’t wait? Skip to the stop.' };
 
 /** Distance from (x, z) to the segment a → b. */
 function segDist(x: number, z: number, a: Vec2, b: Vec2): number {
@@ -280,6 +294,15 @@ export class AlcaFerrySystem {
   /** A note instead of a ride from `station` now (the timetable), or null. */
   serviceNote(station: string): Bilingual | null { return alcaServiceNote(station, this.serviceState()); }
 
+  /** The deckhand's greeting at a quay instead of the usual one (game/transit.ts boardFerry): the island in the parade hour. */
+  greeting(station: string): Bilingual | null { return station === ISL && this.serviceState() === 'parade' ? PARADE_ISLAND : null; }
+
+  /** Seconds to the end of the parade hour (0 outside it). */
+  private paradeLeft(): number {
+    const c = this.opts.clock();
+    return alcaService(c) === 'parade' ? Math.max(0, (PARADE_TO - (c.hour * 60 + c.minute)) * 60) : 0;
+  }
+
   /** BAYBAY's fixed lines on boarding and stepping ashore (game/transit.ts asks a ferry line's own system). */
   boardLine(): Bilingual { return ALCA_LINES.board; }
   offLine(to: string): Bilingual { return to === ISL ? ALCA_LINES.ashore : ALCA_LINES.backAt33; }
@@ -301,7 +324,7 @@ export class AlcaFerrySystem {
     const quick = ALCA.dwellRider;
     const left = (leg: 'astern' | 'out' | 'back') => L(leg) * Math.max(0, 1 - b.s / P[leg].length);
     switch (b.leg) {
-      case 'dwell33': return target === P33 ? 0 : Math.min(dwellRest, quick) + outT;
+      case 'dwell33': return target === P33 ? 0 : Math.max(Math.min(dwellRest, quick), this.paradeLeft()) + outT;
       case 'dwellI': return target === ISL ? 0 : Math.min(dwellRest, quick) + backT;
       case 'astern': { const rest = left('astern') + L('pivot') + L('out'); return target === ISL ? rest : rest + quick + backT; }
       case 'pivot': { const rest = L('pivot') / 2 + L('out'); return target === ISL ? rest : rest + quick + backT; }
@@ -366,6 +389,8 @@ export class AlcaFerrySystem {
   private wantsToGo(at: string): boolean {
     const b = this.boat;
     if (at === ISL) return true; // never rests at the island
+    // the parade hour: nothing leaves the slip (the boat already out comes back first)
+    if (this.serviceState() === 'parade') return false;
     if (b.rider && b.dropoff === ISL) return true;
     if (b.pickup === ISL) return true;
     return alcaRuns(this.serviceState());

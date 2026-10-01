@@ -10,7 +10,8 @@ times) and finished it. Nothing of it was discarded.
 1. **可以坐船去恶魔岛了**：在 33 号码头（恶魔岛渡轮码头）按 E，水手问去哪儿，坐上海军蓝条纹的小渡轮——倒出船位、掉头、让开海湾里的其他船，约 90 秒到岛上码头；BAYBAY 一起上船，设置打开时船会停住。
 2. **班次照真实时刻表**：早上 8:40 第一班出发、下午 3:50 最后一班去岛上、傍晚 6:30 最后一班回来（感恩节、圣诞、元旦闭岛）；晚上小渡轮在码头休息，水手会提一句夜游团，"以官网为准"，不写票价。人在岛上时，任何时候船都会来接，不会被困。
 3. **岛上能走了**：从码头沿 64 号楼走到台阶，爬上去就是监狱楼正门和灯塔平台；第一次走到正门有到达时刻（提示、镜头、印章 +10 金币、地点卡），BAYBAY 的台词轻松但尊重（联邦监狱 1934–63、1969–71 年"所有部落的印第安人"占领，均出自国家公园管理局官网）。
-4. **性能**：33 号码头、船上、岛上桌面最多 91 次绘制 / 34 万三角形（上限 150 / 40 万）。
+4. **性能**：33 号码头、船上、岛上桌面最多 91 次绘制 / 34 万三角形（上限 150 / 40 万），手机（390×844）最多 60 / 19 万；全城静态巡检 699 个点 0 卡住。
+5. 10 月 9 日舰队周"舰船巡游"那一小时（11:00–12:00），小渡轮让军舰先过，在码头等到中午再开。
 
 ## Part a · W8-A1 the toy ferry and the island on foot (19:25–20:24 PDT, pushed `f80e8a2d`)
 
@@ -87,7 +88,7 @@ times) and finished it. Nothing of it was discarded.
   wall grade and reads as a toy shortcut ("the walk up is like 13 storeys" — NPS).
 - The district's ferry route, Gate E and life.ts are unchanged; district mode never builds the layer.
 
-## Part b · W8-A2 the island's arrival, BAYBAY's lines, the visitors (20:25–21:00 PDT)
+## Part b · W8-A2 the island's arrival, BAYBAY's lines, the visitors (20:25–21:14 PDT, pushed `42d0c654`)
 
 ### What was built
 
@@ -157,3 +158,56 @@ BAYBAY's.
   the lane, alongside the float ≈ 107 s after the request. Shots: `qa/w8/A/a-p33-quay.jpg` (the navy-striped boat in the
   slip, bow to the quay, the quay sign), `qa/w8/A/a-island-air.jpg` (the dock, the sign, the stairway up past Building
   64 to the cellhouse), `qa/w8/A/a-island-dock.jpg` (the player and BAYBAY on the island's quay).
+
+## Part c · W8-A3 the parade hour, the return ferry, the checks (21:15–21:45 PDT)
+
+### What was built
+
+- **Fleet Week** (`alcatrazFerrySystem.ts`, lane S's `world/sf/fleetWeekDay.ts` read-only): lane S's Parade of Ships
+  (9 Oct 2026, 11:00–12:00 Bay time, https://fleetweeksf.org/events/parade-of-ships/ as lane S read it 2026-09-30)
+  sails within 15 u of the boat's outbound lane north of the Wharf. In that hour the service state is `parade`: nothing
+  leaves the slip (a boat already out comes back first, ≈ 11:02, while the ships are still out by the Golden Gate);
+  Pier 33's deckhand says 舰船巡游正从海湾里经过，小渡轮等巡游过去再开，大约中午 12 点。; a rider calling from the island
+  is fetched at noon (the ETA says so, the island's deckhand says why and that 直接到站 works).
+- **The return ferry** is the same shuttle (tested through game/transit: the island → Pier 33 after the last boat out,
+  BAYBAY's boarding line and 回到 33 号码头啦… ashore, the rider set down on Pier 33's quay).
+
+### Evidence
+
+- `tests/opus-bay-w8-a-ferry.test.ts` 11 / 11 (+ the parade hour, + the return ride).
+- **Static sweep, whole city** (`scripts/opus-sf/qa/sweep-static.mts`, 64 s): **699 targets, 0 OFF / 0 BOXED / 0 SNAG**,
+  1 UNREACHABLE (`trip:ss-jeremiah-obrien`, lane W1's, as before), 150 CORRIDOR (reported, not failures) — among them
+  lane A's `ferry:pier-33`, `ferry:alcatraz-dock`, `island:alcatraz:6` (the cellhouse front) and `:7` (the terrace).
+- **Phone** (budget-views `--mobile --dpr 3 --w 390 --h 844`, quality mid, day; calls / triangles, no fps):
+
+  | spot | calls | triangles |
+  |---|---|---|
+  | Pier 33's quay | 60 | 186,414 |
+  | mid-Bay at deck height | 39 | 55,523 |
+  | the island's quay | 36 | 56,465 |
+  | the cellhouse front | 48 | 170,537 |
+
+- The island's arrival played in Chrome (`?date=2026-10-02T11:00`): walking up from the quay, "Arrived · Alcatraz
+  Island" + the stamp coins + the peek card fired at the stair's foot (8.8 u from the anchor, inside its 12 u ring: you
+  see the cellhouse at the top of the stair), then BAYBAY's 这就是恶魔岛的监狱楼… at the front (`qa/w8/A/a-island-arrival.jpg`);
+  gliding / teleporting onto the island first said the way-back line.
+
+### Known gaps
+
+- The reveal camera itself was not caught in a frame (the photo pose is unit-tested: 30–50 u out, above the island).
+- The arrival fires at the stair's foot rather than at its top (the anchor's 12 u ring reaches down the stair).
+- The island's own walk is the dock, the dock road, the stair and the cellhouse front / terrace; the rest of the island
+  (the parade ground, West Road, the Agave Trail) is the city's walkable fragments, not joined to it (a glide can land
+  there; the way-back line and the quay's boat are offered).
+- No gulls following the boat (life.ts's gulls are lane X's; not added).
+- Night: the toy boat rests; the lighthouse beam is unchanged (world/backdrop.ts).
+
+### Requests
+
+- **Lane X**: voice the 7 lines of `world/sf/alcatrazLines.ts` (table in part b; exact text) and, if wanted, the parade
+  note (an NPC deckhand's line, `ALCA_PARADE_NOTE`).
+- **Lane Q** (part c overlap scans): the ferry's ride card / move chip at Pier 33 and on the island use the existing
+  ferry UI (no new overlay); worth one 390 × 844 look with the goals step open on the first ride (the goals card covers
+  the deck view until the player answers it).
+- **Lane S**: if the parade's path or hour changes, `alcatrazFerrySystem.ts` reads `PARADE_DAY / PARADE_FROM /
+  PARADE_TO` from `fleetWeekDay.ts` (tests/opus-bay-w8-a-ferry checks the overlap).
