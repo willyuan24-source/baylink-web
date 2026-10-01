@@ -196,3 +196,41 @@ generated look asset shipped, by the rule "only when a side-by-side shot beats w
 - Higgsfield: **5.44** credits (cap 240), all TTS; ledger `docs/opus-bay/ledger/w8-X.md` reconciled with `transactions`.
 - Dev server 5810 stopped; no Chrome of this lane running. Scratch `C:/Users/willy/opus-qa/w8/x/` (shoot.mjs, vcam.js,
   batch-ba.sh, voice/ … voice5/).
+
+## Review (Ultra) (2026-10-01 00:52–01:40 PDT, the fixer; branch w8-x-rev → opus-bay)
+
+### 给主人的摘要
+- 两个审查视角共报 7 条，全部复核属实：6 条已修好，1 条（抓闸游戏"这趟太短啦"这句没有配音）确认存在但今晚没补录，留给下一批配音。
+- 金门大桥夜里塔腿上一串串的"灯泡点"去掉了：现在塔身整体亮橙色，只在塔脚留泛光灯；事实来源改成金门大桥官网讲灯光的那一页（已核对，2026-10-01）。
+- F 线电车夜里：车头五块玻璃不再像发光的桃色纸板，改成深色玻璃；车厢里的地板和长椅亮暖光，从街上透过车窗能看到；车顶下那条金色饰线现在露在外面了。
+- 领奖金币特效：小石子、南瓜寻宝这类小闪光不会再"吃掉"金币弹出；街区模式恢复原来的金币弹出和渡轮尾浪（街区模式不该变）。
+- BAYBAY 说话时，气泡会一直留到她说完（以前恶魔岛那几句气泡 4.6 秒就没了，声音要说 9 秒）。
+- 没有阻碍上线的问题。
+
+### Findings (7 received; 7 confirmed: 6 fixed, 1 confirmed-not-fixed)
+
+| id | sev | verdict | what I did / evidence |
+|---|---|---|---|
+| X-P1 | major | **fixed** | Reproduced from the lens's shots (`C:/Users/willy/opus-qa/w8/x-rp/crop-ggb.png`: bead rows on both edges of every leg) and the code (lights.ts: 128 dots, one every 2.5 u). The towers were already lit before W8-X6, so the loop is removed; the 4 floodlights at the legs' feet stay. After: `docs/opus-bay/qa/w8/X/xrev-ggb-night-after.jpg` (desktop, same camera as the lens: orange towers, no beads; 58 calls / 91k tris). Test rewritten: no dimmer dots on the legs, floods at the feet (red on W8-X6). |
+| X-RC-2 | minor | **fixed** | WebFetch 2026-10-01: the anniversaries page has no tower-lighting text (its 1987 sentences are Bridgewalk '87); the Color & Art Deco Styling page says the towers "came to life with light on June 22, 1987" and should have less light at the top. `GGB_TOWER_LIGHT_SOURCE.sourceUrl` → `https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/`, `verifiedAt` 2026-10-01; the test pins the URL. |
+| X-P2 | minor | **fixed** | Reproduced in code: the five cab panes are style 7 with aInfo.y −100 (a flat 0.69 warm emissive), while the lit inner faces sit behind the benches' backs and the lit ceiling above the windows. City car only: panes now CAB_NO (dark glass); a thin lit floor skin inside the walls (the floor box's own edge showed under the livery as a glowing strip in my first try — moved inside) and the bench seats and backs lit (style 7). After: `docs/opus-bay/qa/w8/X/xrev-fline-night-after.jpg` (dark cab, warm saloon through the windows). District car checksum unchanged (the pinned test). |
+| X-RC-4 | minor | **fixed** | Arithmetic confirmed: header wall spans |x| 0.97–1.05 from y 2.28; the line spanned |x| 1.00–1.04, y 2.26–2.30. Moved to the header's outer face (|x| 1.04–1.07, as the belt's gold line), y 2.25–2.31. Test: gold vertices beyond the header face (red before). |
+| X-P3 | minor | **fixed** | Code confirms: any sparkle within 4 u (the pebble glint count 5 every 2.5 s, the hunt glint, a ball / frisbee catch) set `lastBurst`. Now only a reward-sized burst counts (`POP_BURST_MIN` 8 glints, or confetti; the reward sparkles are 8–18, the default 12). Test: a count-5 glint next to the player, then a paid goal → the pop shows (red before). |
+| X-RC-3 | minor | **fixed** | Confirmed: `bubble()` clears after its ms; voiceW8 durations 8.07 / 8.97 s (ashore, 4.6 s bubble), 8.68 / 9.79 s (occupation, 5.6 s), parade 5.5–6.5 s (4.6 s). Fix in lane X's binder (game/voiceW5.ts, city chunk only): on a matched line and on a lane's own `voice-line` (lane S's parade), BAYBAY's bubble is held for the clip's length in this locale + 0.4 s (cap 12 s) through a new `holdBubble(key, ms)` in game/flow.ts (never shortens; no-op once the bubble is replaced). `bubble()` now arms its timer before `flow.set` so the binder's hold (called inside the set) is not overwritten. Muted clips are not held. District: the binder never runs there. Test red before (no hold), green now. |
+| X-RC-1 | minor | **confirmed-not-fixed** | Confirmed: `这趟太短啦，下次坐远一点再拉闸！` is said by grip.ts:445 and is in no voice table; the w5 scanner skipped it (`short:` in NOT_SPOKEN_KEYS). Fixed the scanner (`short` removed): the w8 inventory now reports **2 without a voice** — this line and an older one the same rule hid, `SLED_LINES.short` `嘿嘿，找个更陡的坡试试？` (play/sled.ts). Not recorded tonight: a new TTS batch through post.py rewrites voiceW8.ts / the report / the listening sheet, and that was not safe to do in the last 25 minutes before the deadline. Both lines play as text only (as before). → Requests. |
+
+### Own pass (`git log --grep "W8-X[0-9:]"`, W8-X1 … W8-X7)
+- **District changed (fixed):** W8-X2's merged coin pop (0.2 s late, dropped by a burst at the player) and the denser ferry wake ran in district mode too (fx.ts has no mode gate there; `world/ferry.ts` uses the same `wake`). Both are city-only now; district pops at once and keeps the old wake (test: a district pool's pop is not merged away — red on W8-X2's code).
+- **Voice inventory blind spot (found, listed):** the `short:` rule also hid `SLED_LINES.short` (above).
+- No softlock found: the bubble hold is capped (12 s) and only delays lines that already wait for `!flow.bubble`. Perf: the field loses 128 points (one Points draw either way); the F-line car gains one box (12 tris). Desktop shots read 89–90 calls / 246–253k tris at the Ferry plaza, 58 / 91k at Crissy Field (within 150 / 400k). No fps claims.
+- Live date (2026-10-01): nothing in lane X is date-gated.
+
+### Open items
+- Record 2 lines (zh + en): `GRIP_LINES.short` and `SLED_LINES.short` (`npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/voice/w8/lines.ts` lists them as NEW).
+- Phone check of the two after-views (390×844) not shot tonight; the changes do not depend on the viewport (geometry / light data).
+
+### Blocking the go-live to main
+- None.
+
+### Checks
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 warnings, none new) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` 1824 tests, pass 1823, fail 0, todo 1 (W8-P9's GameRoot ≤ 255 KB target, known: it reads ≈ 258.0 KB here; `holdBubble` in game/flow.ts and the mode gates in world/fx.ts add a few hundred bytes to the main graph) — before the rebase; after it, tsc and the incoming lanes' tests + lane X's re-run (below).
