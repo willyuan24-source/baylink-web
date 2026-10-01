@@ -9,10 +9,11 @@ uncommitted grip game was kept, fixed and finished — see part a).
 
 ## 给主人的摘要
 
-1. **叮当车「拉闸」小游戏**（鲍威尔街两条缆车线上）：坐上 Powell–Hyde 或 Powell–Mason 缆车开动后，横幅里多一个「拉闸」按钮（BAYBAY 也会邀请）。一分钟里像真的缆车司机一样：上坡**按住拉闸**抓缆绳，看到红色路段（加州街路口、转弯）**松开**滑过去，进站前松闸，发车时再拉，路过路口**摇铃**。游戏只"读"缆车的位置，不会改变缆车怎么开。
-2. 手机（单指：大大的「拉闸（按住）」+「摇铃」按钮）和电脑（空格 + H）都实际玩过、截图看过；奖励照旧：好 / 很好 / 太棒了三档，最好成绩进手帐"我的记录"。
-3. 修了上一位留下的几个不公平判定（停站后马上进红色路段被判"没松闸"、进站最后半步提示又跳回"拉闸"、路口铃在红色路段里根本摇不到），现在跟着提示玩能拿满分，一直按住或一直不按都拿不到奖牌。
-4. 缆车知识都查过官网/资料（缆绳时速 9.5 英里、鲍威尔线过加州街必须松缆、海德街 21% 是全线最陡）。
+1. **叮当车「拉闸」**（鲍威尔街两条缆车线上）：缆车开动后横幅里有「拉闸」按钮（BAYBAY 也会邀请）。像真的缆车司机一样：上坡**按住拉闸**抓缆绳，红色路段（加州街路口、转弯）**松开**滑过去，进站前松闸、发车再拉，路过路口**摇铃**。游戏只"读"缆车的位置，不改变缆车怎么开。
+2. **和街头艺人合奏**：海特街（拍铃鼓，民谣摇滚）和 24 街（摇沙锤，昆比亚舞曲）的吉他手旁边，圆点碰到圈就拍，拍得准硬币就掉进琴盒。街头艺人下午才出来；其他时间 BAYBAY 自己弹他的曲子陪你练，随时都能玩。
+3. **金门大桥雾笛对答**（Fort Point 炮台旁）：一艘艘船从雾里开来，先听桥上的雾笛（南塔长长的低音、桥中间一高一低两声），再照着吹一遍（南塔要按住），对了船就从桥下开过去，雾越来越浓、曲子越来越长。
+4. 三个游戏手机（单指）和电脑（键盘）都实际玩过、截图看过，都能拿到「太棒了」；奖励照旧三档（5 / 10 / 15 金币），最好成绩进手帐"我的记录"。修了上一位留下的几个不公平判定（拉闸游戏）。乱按、一直按、一直不按都拿不到奖牌。
+5. BAYBAY 的新台词全部是固定句子（拉闸 20 句、合奏 11 句、雾笛 13 句），22:45 前已推送给配音线。所有知识点都查过官网/资料（缆绳时速 9.5 英里、鲍威尔线过加州街必须松缆、海德街 21% 最陡、1967 爱之夏、24 街壁画最多、南塔雾笛吹 2 秒停 18 秒）。本线没有用 Higgsfield。
 
 ## Part a · W8-M1 the cable-car grip (19:24 → 20:10 PDT)
 
@@ -192,3 +193,100 @@ rhythm game (the grip game's bell is one tap per crossing, on the same ride).
 - **Lane X** (voice): `BUSK_LINES` in `play/sfgames8Lines.ts` (11, fixed; `closed` reworded this part:
   街头艺人下午才来，我们先练练他的曲子吧！ / The busker comes in the afternoon. Let’s practise his tune!).
 - **W8-I / W8-Z**: Haight St −36.97, 757.33 and 24th St 455.00, 636.47; `?date=…T14:30` for the guitarists.
+
+## Part c · W8-M5 / M6 the foghorns' call and answer at Fort Point (21:10 → 22:15 PDT)
+
+### Pick: the foghorns, not the Chinatown lanterns
+
+The brief offered the fog-horn call-and-answer at the bridge / Fort Point or a Chinatown lantern game at night. The
+foghorns are the more San Francisco one (the Golden Gate's horns are what the city hears in fog; Fort Point is under the
+bridge's south end) and play by day and night; lanterns would mix with the Halloween hunt's 40 lanterns this month and
+with lane H's Chinatown Halloween Festival kit on Waverly Place (31 Oct), and a night-only game is out of reach for a
+player in China's evening. It is not the foghorn-duet egg (eggs/marina.ts: listening on the deck in fog) nor the bell
+riff (a rhythm call-and-response on the cable car): this is a memory-and-listening game with three different horns, a
+held long blast, and ships to bring in.
+
+### What was built
+
+| file (new unless named) | what |
+|---|---|
+| `play/foghorn.ts` (3.3 KB gz) | `FogGame` (pure, stepped by the game clock). Three horns after the real ones: **南塔 · 长音** the south tower pier's long low horn (hold it ≥ 0.7 s), **桥中 · 高 / 低** the mid-span's two tones (a tap each). Six rounds: a ship comes out of the fog → the bridge calls a short tune (2, 3, 3, 4, 4, 5 horns, drawn fresh each game: the south horn at most once a round, never one mid-span horn three times running) → you blow it back in order (judged on release) → right: a toot back and the ship sails under the bridge; wrong / too short / too slow (2.6 s a horn + 2 s): the call plays again; wrong again: the ship drops anchor and the next one comes. 3 points a horn first time, 1 on a second listen; 0–100 of 63; tiers **● 40 · ◆ 70 · ★ 90** → `medal:foghorn:1..3`, best = score. The fog thickens each round. Synthesized `m8-horn-S/H/L` (sawtooth through a low-pass, a sub-octave sine, reverb) and `m8-toot`. Keys 1 / J, 2 / K, 3 / L (press = blow, release = judged), Esc; the stick gives up |
+| `play/FogPanel.tsx` (3.3 KB gz) | overlay `play-foghorn` (bottom on phones, at the right ≥ 1000 px): the Golden Gate from Fort Point on a canvas — the south tower in International Orange with its portal struts and pier, the main cable sagging to mid-span, the suspenders and the deck, the strait, Fort Point's brick corner in front; the ship of the round (a container ship, a sailboat, a tanker, a ferry, a fishing boat, a second container ship) coming in, waiting, sailing under the bridge or at anchor; the horns lighting and ringing over the water as they sound; the fog drifting, thicker each round; the tune's dots (lit as you answer) and the six ships' dots; three 64 px horn buttons (dimmed while the bridge calls) |
+| `play/sfgames8.ts` (+ 0.2 KB) | the prompt 雾笛对答 / Foghorn call and answer at Fort Point (the fort's local (−7, −3.5) = −743.71, 590.25, by its west wall on the water), BAYBAY's invite 南塔的雾笛就在旁边！来玩雾笛对答？ from the fort's arrival on (`FOG_INVITE_R` 12: the arrival is 9.5 u away), the chunks within 60 u |
+| `play/sfgames8Lines.ts` (W8-M5, pushed 21:35) | `FOG_LINES` final, 13 fixed lines: + `ship`, `hold`, `anchor`; the invite says 就在旁边 / right here (Fort Point is beside the south tower, not under it) |
+| `game/baybayHold.ts` (lane K's, the same line) | `'play-foghorn'` |
+| `economy/records.ts` (append) | row `foghorn` 金门大桥雾笛对答 (points) |
+| `tests/opus-bay-w8-m-foghorn.test.ts` | 6 tests (below) |
+
+### Evidence
+
+- **Tests** 6 / 6: the tunes over 60 seeds (lengths, the rules, ≥ 55 different games); **players**: a good ear **100 in
+  67 s**, a second listen on two rounds 78 (◆), two ships lost 67 (●), the south horn always tapped short never ★,
+  never answering 0 (12 late answers); a whole game through `stepFrameSystems` → `medal:foghorn:1..3`, best 100; 放弃,
+  the stick and Settings; the prompt **standable and reached on foot** from `LANDMARK_ARRIVALS['fort-point']` (a flood
+  fill on a 0.25 u grid at radius 0.3: the sea-wall walk on the strait side is not reachable from the arrival, so the
+  prompt stands by the fort's west wall), 6.4 u from egg 9, 9.5 u from the arrival; the hold list; the records row; the
+  chunks (foghorn 3283, panel 3298, zones8 2016 B gzip; lazy; nothing in GameRoot).
+- **Played in the game** (dev 5809, images read):
+  - desktop 1440 × 900: the prompt by the fort's brick wall and a lamp on the water (scratch `c/d-1-prompt.jpg`; egg 9's
+    otter story was up from the arrival); the answer of round 3 (`qa/w8/M/c2-foghorn-answer-desk.jpg`: the panel at the
+    right, the bridge drawn in orange, the ferry waiting, the three horn buttons with 1 / 2 / 3); an in-page player
+    pressing the keys → **★ Brilliant · 100 · 6 ships first time · +30 coins** (`c3-foghorn-card-desk.jpg`).
+  - phone 390 × 844 dpr 3 touch, pointer events on the horn buttons, one wrong horn on purpose in round 2: the log
+    `wrong@17.0` → the call again → `right, right, round-ok` (a second listen); round 4's ferry sailing under the bridge
+    in the thicker fog, the real bridge and its towers behind the panel (`c1-foghorn-ship-phone.jpg`). (The run's script
+    ended in the last round before the card: the card is the desktop's.)
+- **Calls / triangles** (dev `renderer.info`): at the prompt during the game 50 calls / 92k (desktop), 40 / 74k (phone).
+- **A landscape phone, 844 × 340 dpr 2 touch** (scratch `d/L-busk.jpg`, `d/L-fog.jpg`, read): the busker panel stands at
+  x 202–642, y 43–328 with its Tap button 418 × 68; the foghorn panel y 56–328 with three horn buttons 134 × 64 and the
+  bridge picture; both fit (the `max-height: 560px` rules shrink the canvas); while open they cover the left half of the
+  postcards pill.
+- **W8-M7** (after the part's suite): the set's hot paths no longer allocate per frame (grip's `inZone` / `zoneAhead` /
+  `bellWindow` closures, the foghorn call's `callTimes` rebuilt each frame, the busker prompts' pair array): plain
+  loops / computed once; behaviour unchanged (lane M's tests 22 / 22).
+- Checks on `293b9f3b` (W8-M6, before the rebase): `tsc` 0 · `eslint .` 0 errors · the opus-bay suite **1766 / 1766**
+  (212 s). Part b's run on `07850533`: **1729 / 1729**.
+
+### Decisions
+
+1. **Judged on release, the south horn by how long it was held**: the hold is the skill of the long blast; the
+   mid-span horns are taps. A press while the bridge calls does nothing (the buttons are dimmed).
+2. **One more listen, then anchor**: a mistake replays the call once (BAYBAY: 哎呀，吹错啦，再听一遍～); a second
+   mistake loses that ship, not the game — six ships always come.
+3. **The prompt by the fort's west wall**: the strait-side sea wall is not walkable from the arrival in the published
+   city; the west wall is on the water too and reached on foot (recorded in `play/sfgames8.ts`).
+
+### Facts (checked on the web 2026-09-30)
+
+- "There are two foghorns mounted on the south tower pier"; "A 2-second blast, an 18-second pause"; "three foghorns
+  mounted below the roadway level at mid-span … sound as two blasts, each with a distinct tones"; "When the fog rolls in
+  … the foghorns are manually turned on (and off) by Bridge workers" —
+  https://www.goldengate.org/bridge/history-research/bridge-features/foghorns-beacons/
+- Fort Point stands under the bridge's south arch (lane D2's landmark note, `world/sf/landmarks/fort-point.ts`).
+
+### Known gaps
+
+- The horns sound in the panel only: the city's own foghorn sounds (lane D's egg, the ambience) are not driven by the
+  game, and the 3D world's fog does not change with the panel's.
+- A game with second listens runs about 80 s (one minute when right first time).
+
+### Requests
+
+- **Lane X** (voice): `FOG_LINES` in `play/sfgames8Lines.ts` (13, fixed, final at W8-M5).
+- **W8-I / W8-Z**: Fort Point's prompt at −743.71, 590.25 (walk west from the fort's arrival along its wall).
+
+## Not done (lane)
+
+- The Chinatown lantern game (the brief's alternative to the foghorns: recorded in part c why the foghorns were picked).
+- The 3D guitarists strumming in time with the jam; the grip game's pull curves (every corner is a let-go curve here).
+- No Higgsfield credits were given to this lane and none were spent: everything is drawn and synthesized in code.
+
+## Requests (lane, all parts)
+
+- **Lane X**: BAYBAY's 44 new fixed lines are in `src/opus-bay/play/sfgames8Lines.ts` — `GRIP_LINES` 20, `BUSK_LINES` 11,
+  `FOG_LINES` 13 (exact zh + en; final since W8-M5, on origin since 21:35 PDT).
+- **Lane Q**: the ride banner's pad row (`ui/RideBanner.tsx` `PAD_ROW`) could wrap (three pads on a 390 px phone); the
+  new overlays `play-grip`, `play-busk`, `play-foghorn` for the iOS-size overlap scans.
+- **W8-I / W8-Z**: the grip on a Powell car (the banner's 拉闸 / Grip it pad), the buskers at Haight St (−36.97, 757.33)
+  and 24th St (455.00, 636.47) (`?date=…T14:30` for the guitarists; other hours: BAYBAY's practice), the foghorns at
+  Fort Point (−743.71, 590.25).
