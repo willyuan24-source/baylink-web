@@ -128,3 +128,39 @@ test('W8-A the island watcher: gliding in gets the way back, the stair its line,
     flow.set({ bubble: null });
   }
 });
+
+test('W8-A the player walks it: the real controller goes quay → dock road → up the stair → the cellhouse front (published city)', async () => {
+  const { sfDisk } = await import('./opus-bay-sf-disk');
+  const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
+  const { heightAt, setCityTerrain } = await import('../src/opus-bay/core/terrain');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { PlayerController } = await import('../src/opus-bay/actors/controller');
+  const { SF_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const sf = sfDisk();
+  const lms = landmarkWalkInputs(SF_SITES);
+  const city = createCityTerrain(sf.manifest, { landmarks: lms });
+  city.setFar(await sf.far());
+  const N = W.ALCA_WALK_GRAPH.nodes;
+  await sf.attachAround(city, N[0].x, N[0].z, 70, lms);
+  setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
+  const c = new PlayerController(), p = runtime.player, DT = 1 / 30;
+  try {
+    p.x = N[0].x; p.z = N[0].z; p.y = heightAt(p.x, p.z); p.pathTarget = null; p.locked = false; c.sync();
+    let t = 0;
+    for (let k = 1; k <= W.ALCA_WALK_GRAPH.arrival; k++) {
+      const goal = N[k];
+      let s = 0;
+      while (Math.hypot(goal.x - p.x, goal.z - p.z) > 0.6 && s < 15) {
+        runtime.input.moveX = 0; runtime.input.moveY = 1; runtime.input.run = false; runtime.input.jump = false;
+        c.step({ dt: DT, now: t, cameraYaw: Math.atan2(-(goal.x - p.x), -(goal.z - p.z)), frozen: false, riding: false });
+        s += DT; t += DT;
+      }
+      assert.ok(Math.hypot(goal.x - p.x, goal.z - p.z) <= 0.6, `reached node ${k} (stopped at ${p.x.toFixed(1)}, ${p.z.toFixed(1)})`);
+    }
+    assert.ok(p.y > 8, `up on the plateau (y ${p.y.toFixed(2)})`);
+    assert.ok(t < 20, `the climb takes ${t.toFixed(1)} s`);
+  } finally {
+    runtime.input.moveY = 0;
+    setCityTerrain(null);
+  }
+});

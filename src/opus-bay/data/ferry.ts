@@ -105,7 +105,7 @@ const AL = (x: number, z: number): Vec2 => ({ x: +(ALCA_ORIGIN.x + x).toFixed(2)
  * (local 18.65, −21.31: the float's half width + the half beam + 0.25) and the quay on the dock apron by the float.
  */
 export const ALCA_TERMINALS = {
-  pier33: { id: 'pier-33', name: { zh: '33 号码头 · 恶魔岛渡轮', en: 'Pier 33 · Alcatraz Landing' }, quay: { x: -94.0, z: -21.8 }, berth: { x: -94.1, z: -32.6 } },
+  pier33: { id: 'pier-33', name: { zh: '恶魔岛渡轮码头 · 33 号码头', en: 'Pier 33 · Alcatraz Landing' }, quay: { x: -94.0, z: -21.8 }, berth: { x: -94.1, z: -32.6 } },
   island: { id: 'alcatraz-dock', name: { zh: '恶魔岛码头', en: 'Alcatraz dock' }, quay: AL(15.6, -16.6), berth: AL(18.65, -21.31) },
 } as const satisfies Record<string, FerryTerminal>;
 /** where the boat turns after backing out of the slip (past the pier heads, on the slip's axis) */

@@ -174,6 +174,14 @@ BAYBAY's.
   Alcatraz boat the ferry engine plays (`audio/city.ts`, lane X's, surgical: the engine follows the ferry line you ride,
   `move.line` starting with `ferry`; it followed only the Ferry Building boat). Shot: `qa/w8/A/a-ride-midbay.jpg` (the
   player and BAYBAY at the rail, a gull alongside, the city behind; 90 calls / 342k triangles there, desktop high).
+- **Lane S's answer** (`W8-S4` b36b5906, 21:28): lane S moved the parade's path so it crosses the ferry's lanes once,
+  steeply, and runs ≈ 40 u outside them (their test checks it against `ALCA_OUT` / `ALCA_BACK`). The ferry still keeps
+  out of the way for that hour (the one crossing lies on its outbound lane); `tests/opus-bay-w8-a-ferry` checks the path
+  still meets the lane (< 15 u), so the hold is not left guarding nothing.
+- **The player walks it** (W8-A5): `tests/opus-bay-w8-a-island` drives the real `PlayerController` from the quay along
+  the graph's nodes, up the stair, to the cellhouse front (y > 8, ≈ 6 s of walking).
+- **One name for the pier**: the ferry's Pier 33 terminal reads 恶魔岛渡轮码头 · 33 号码头 / Pier 33 · Alcatraz Landing (the
+  trips' `ARRIVAL_PLACES` name; it said 33 号码头 · 恶魔岛渡轮).
 - **The return ferry** is the same shuttle (tested through game/transit: the island → Pier 33 after the last boat out,
   BAYBAY's boarding line and 回到 33 号码头啦… ashore, the rider set down on Pier 33's quay).
 
@@ -213,5 +221,5 @@ BAYBAY's.
 - **Lane Q** (part c overlap scans): the ferry's ride card / move chip at Pier 33 and on the island use the existing
   ferry UI (no new overlay); worth one 390 × 844 look with the goals step open on the first ride (the goals card covers
   the deck view until the player answers it).
-- **Lane S**: if the parade's path or hour changes, `alcatrazFerrySystem.ts` reads `PARADE_DAY / PARADE_FROM /
-  PARADE_TO` from `fleetWeekDay.ts` (tests/opus-bay-w8-a-ferry checks the overlap).
+- **Lane S**: thank you for W8-S4; if the parade's hour changes, `alcatrazFerrySystem.ts` reads `PARADE_DAY /
+  PARADE_FROM / PARADE_TO` from `fleetWeekDay.ts`, and `tests/opus-bay-w8-a-ferry` checks the path still meets the lane.
