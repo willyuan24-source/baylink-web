@@ -83,7 +83,7 @@ export const FOG_INVITE_R = 12;
 const FOG_VERB: Bilingual = { zh: '雾笛对答', en: 'Foghorn call and answer' };
 export const fogIt: Interactable = {
   id: 'play:foghorn', source: 'activity', action: 'info', verb: FOG_VERB, name: FOG_NAME, x: FOG_SPOT.x, z: FOG_SPOT.z, radius: FOG_SPOT.r,
-  act: () => { void import('./foghorn').then(m => { m.startFoghorn(); }); },
+  act: () => { void importRetry(() => import('./foghorn')).then(m => { m.startFoghorn(); }); },
 };
 
 /** the busker prompts with their spots (a constant: the frame system walks it every frame) */
@@ -103,7 +103,7 @@ const GripPad = lazy(() => importRetry(() => import('./GripPad')));
 const GripPadSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPad));
 const BuskPanel = lazy(() => importRetry(() => import('./BuskPanel')));
 const BuskSlot = () => createElement(Suspense, { fallback: null }, createElement(BuskPanel));
-const FogPanel = lazy(() => import('./FogPanel'));
+const FogPanel = lazy(() => importRetry(() => import('./FogPanel')));
 const FogSlot = () => createElement(Suspense, { fallback: null }, createElement(FogPanel));
 
 /** BAYBAY's grip invite: this long into a Powell ride, once a visit (s) */
@@ -153,7 +153,7 @@ export function initSfGames8(): () => void {
     }
     // the foghorns: the chunks within PREFETCH_R, BAYBAY's invite from the fort's arrival on
     if (nearPlayer(FOG_SPOT.x, FOG_SPOT.z, PREFETCH_R)) {
-      zonePrefetch('foghorn', () => Promise.all([import('./foghorn'), import('./FogPanel')]));
+      zonePrefetch('foghorn', () => Promise.all([importRetry(() => import('./foghorn')), importRetry(() => import('./FogPanel'))]));
       if (nearPlayer(FOG_SPOT.x, FOG_SPOT.z, FOG_INVITE_R) && !running && !played.has('foghorn') && !baybayHeld()) zoneInvite('foghorn', FOG_LINES.invite);
     }
   }));
