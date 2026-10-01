@@ -488,3 +488,22 @@ test('W8-P4: the district postcards\' words come with the play layer (data/scrip
   P.fillPostcardTexts({ 'ferry-building-dawn': { title: { zh: 'x', en: 'x' }, fact: { zh: 'x', en: 'x' }, hint: { zh: 'x', en: 'x' } } });
   assert.equal(P.DISTRICT_POSTCARDS[0].title.en, 'Ferry Building at Dawn');
 });
+
+test('W8-P7: the district POIs in the city\'s words (names, card-text names, cityDistrictZh / cityDistrictPoi) ride with the city data chunk; the slot hands them out by name', async () => {
+  const root = path.resolve('src/opus-bay');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  const slotSrc = src('data/sf/cityPois.ts');
+  for (const k of ["'coit-murals': '科伊特塔壁画'", 'export function cityDistrictPoi(', 'export function cityDistrictZh(']) assert.ok(!slotSrc.includes(k), `back in the slot: ${k}`);
+  assert.match(slotSrc, /export const cityDistrictPoi = \(poi: PoiDef\): PoiDef => \(T \? T\.cityDistrictPoi\(poi\) : \{ \.\.\.poi, \.\.\.\(poi\.realInfo \? \{ realInfo: \{ \.\.\.poi\.realInfo \} \} : \{\}\) \}\);/, 'district: the POI as written, with its own realInfo object (fillPoiTexts writes into it)');
+  const slot = await import('../src/opus-bay/data/sf/cityPois');
+  const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  const T = CITY_DATA!.CITY_POI_TABLES;
+  assert.equal(slot.CITY_DISTRICT_POI_NAMES, T.CITY_DISTRICT_POI_NAMES);
+  assert.equal(slot.CITY_DISTRICT_TEXT_NAMES, T.CITY_DISTRICT_TEXT_NAMES);
+  assert.equal(slot.CITY_DISTRICT_POI_NAMES['coit-murals'], '科伊特塔壁画');
+  assert.equal(slot.cityDistrictZh('Coit Tower 的壁画'), '科伊特塔的壁画');
+  const { DISTRICT_POIS, CITY_DISTRICT_POIS } = await import('../src/opus-bay/data/pois');
+  const coit = CITY_DISTRICT_POIS.find(p => p.id === 'coit-murals')!;
+  assert.equal(coit.name.zh, '科伊特塔壁画');
+  assert.notEqual(coit.realInfo, DISTRICT_POIS.find(p => p.id === 'coit-murals')!.realInfo, 'the city copy has its own card');
+});
