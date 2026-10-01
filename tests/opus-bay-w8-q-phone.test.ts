@@ -124,3 +124,18 @@ test('W8-Q9: while the skyline quiz shows its three names, the right-hand touch 
   const touch = fs.readFileSync(new URL('../src/opus-bay/actors/TouchControls.tsx', import.meta.url), 'utf8');
   assert.match(touch, /className="ob-move-buttons"/);
 });
+
+test('W8-Q12: between 601 and 1080 px wide the play chip drops under the top pills; in short landscape the skyline names sit low enough to clear it', () => {
+  const css = read('opus-bay.css');
+  const at = css.indexOf('W8-Q12');
+  assert.ok(at > 0);
+  const block = css.slice(at);
+  const chipTop = Number(/@media \(min-width: 601px\) and \(max-width: 1080px\) \{\n {2}\.ob-overlay \.ob-play-flight \{ top: calc\((\d+)px \+ var\(--ob-st\)\); \}/.exec(block)![1]);
+  // the pills: the HUD's top row is 12–16 px from the top and ≤ 48 px tall (W7-G1 / Hud.tsx); the chip starts under them
+  assert.ok(chipTop >= 60, `chip top ${chipTop}`);
+  // the play chip's own rule is less specific (one class) and puts it at 16 px over 600 px
+  assert.match(read('play/play.css'), /\.ob-play-flight \{\n {2}position: absolute; left: 50%; top: calc\(16px \+ var\(--ob-st\)\);/);
+  const names = Number(/@media \(max-height: 460px\) and \(min-width: 560px\) \{\n {2}\.ob-overlay \.ob-play-sky \{ bottom: calc\((\d+)px \+ env\(safe-area-inset-bottom, 0px\)\) !important; \}/.exec(block)![1]);
+  // 320 px tall (667 × 320): three names of 48 + 2 gaps of 8 = 160 px from `names` over the bottom; the chip ends ≈ chipTop + 52
+  assert.ok(320 - names - 160 >= chipTop + 52, `names top ${320 - names - 160} vs chip bottom ${chipTop + 52}`);
+});

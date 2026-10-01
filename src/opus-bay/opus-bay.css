@@ -1352,3 +1352,16 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
    pressed. While the names are up the column steps aside (a hop or a step ends the quiz anyway: cancelOnMove). W8-Q11:
    the arrival card too (the quiz started within its 6 s at a lookout: its photo and buttons showed between the names). */
 .ob-overlay:has(.ob-play-sky) :is(.ob-move-buttons, .ob-touch-action, .ob-arrival-card) { visibility: hidden; }
+/* W8-Q12 (lane Q) · the play chip between 601 and 1080 px wide (a phone in landscape, 667 × 320 / 844 × 340; a small tablet):
+   centred at the top (play/play.css .ob-play-flight, z 41) it lay over the area pill and the objective pill — the overlap
+   scan found 打开旅行本 under its 不玩了 during the skyline quiz at 667 × 320. There it drops under the pills, as phones'
+   chips do (top 118 px under 600 px). */
+@media (min-width: 601px) and (max-width: 1080px) {
+  .ob-overlay .ob-play-flight { top: calc(64px + var(--ob-st)); }
+}
+/* … and in short landscape the skyline's names (three rows of 48 + gaps = 160 px, 96 px over the bottom: up to y 64 at
+   320 px) would reach the chip: there they sit 12 px over the bottom. !important: the names' box is an inline style
+   (play/skyline.ts SkylineCard). */
+@media (max-height: 460px) and (min-width: 560px) {
+  .ob-overlay .ob-play-sky { bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
+}
