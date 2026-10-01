@@ -102,3 +102,22 @@ test('W8-H-review muertos: the walkers part only round someone on the street; BA
     runtime.move.mode = mode0; runtime.glide.active = glide0; runtime.guide.x = gx0; runtime.guide.z = gz0;
   }
 });
+
+test('W8-H-review hop: while the stoops\' mesh is not drawn the pending upload ranges stay bounded and still cover every child (own finding)', async () => {
+  const THREE = await import('three');
+  const WD = await import('../src/opus-bay/halloween/worldDress');
+  const key = [...WD.stoopIndex().keys()].find(k => (WD.stoopIndex().get(k) ?? []).filter(i => WD.stoopFigure(i) >= 0).length >= 2)!;
+  const cell = WD.buildCell(key, true);
+  const pos = new Float32Array(cell.pos);
+  const hops = WD.hopRanges([cell], pos);
+  const attr = new THREE.BufferAttribute(pos.slice(), 3);
+  // ten minutes at 60 fps and the renderer never uploads (the mesh culled): the ranges never cleared
+  let most = 0;
+  for (let f = 0; f < 36000; f++) { WD.stepHops(hops, attr, f / 60, false); most = Math.max(most, attr.updateRanges.length); }
+  assert.ok(most <= WD.HOP_RANGES_MAX + hops.length, `${most} pending ranges at most`);
+  // whatever is pending covers every child's vertices (the next upload brings them all up to date)
+  const covered = (v: number) => attr.updateRanges.some(r => v * 3 >= r.start && v * 3 + 3 <= r.start + r.count);
+  // one more frame with every child changed (reduced motion: all back to the ground) after the cap
+  WD.stepHops(hops, attr, 0, true);
+  for (const h of hops) assert.ok(covered(h.start) && covered(h.start + h.count - 1), `child at ${h.start} covered`);
+});

@@ -399,9 +399,20 @@ export function stepHops(hops: readonly HopRange[], attr: THREE.BufferAttribute,
     attr.addUpdateRange(h.start * 3, h.count * 3);
     changed = true;
   }
-  if (changed) attr.needsUpdate = true;
-  return changed;
+  if (!changed) return false;
+  // W8-H-review: the renderer clears the ranges only when it uploads — while the stoops' mesh is not drawn (culled, the
+  // group hidden) they piled up a frame at a time; past HOP_RANGES_MAX they collapse into one range over every child
+  if (attr.updateRanges.length > HOP_RANGES_MAX) {
+    let a = Infinity, b = 0;
+    for (const h of hops) { a = Math.min(a, h.start); b = Math.max(b, h.start + h.count); }
+    attr.clearUpdateRanges();
+    attr.addUpdateRange(a * 3, (b - a) * 3);
+  }
+  attr.needsUpdate = true;
+  return true;
 }
+/** (W8-H-review) at most this many pending update ranges on the stoops' positions (see stepHops) */
+export const HOP_RANGES_MAX = 64;
 
 function assemble(cells: readonly CellGeo[]): THREE.BufferGeometry | null {
   let nv = 0, ni = 0;
