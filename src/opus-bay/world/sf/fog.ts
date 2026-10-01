@@ -195,6 +195,11 @@ export class KarlState {
   private tint = new THREE.Color();
   private tintK = 0;
   private tintKey = '';
+  /** (W8-H) the golden-hour haze floor the feature asked for, and its slide (from → to, with the colour's slide) */
+  private hazeK = 0;
+  private hazeFrom = 0;
+  private hazeTo = 0;
+  private hazeCur = 0;
 
   /** the layout the cloud bank heads for */
   get target(): KarlTarget { return this.to; }
@@ -205,16 +210,24 @@ export class KarlState {
    * wave 7; this comment said × 0.18 until W8-S) — Karl's golden bank turns a little pumpkin-coloured. Only the colour
    * at golden hour; it slides with Karl's own slide (a uniform: no cost).
    * `null` clears it. `instant`: no slide (the feature's first push at load).
+   * (W8-H) `haze` (0 … 1): at golden hour the camera's own ground counts as at least this much under the bank
+   * (uKarlCam's floor), so the tinted dusk also lies — thinly, deepening with view depth — over the parts of the city the
+   * bank never reaches (downtown, the east side): W7's tint showed only where Karl's bank is. Same slide; 0 = none.
    */
-  setGoldenTint(color: string | null, amount = 0, instant = false) {
+  setGoldenTint(color: string | null, amount = 0, instant = false, haze = 0) {
     const k = color ? Math.min(1, Math.max(0, amount)) : 0;
-    const key = color ? `${color}:${k}` : '';
+    const h = color ? Math.min(1, Math.max(0, haze)) : 0;
+    const key = color ? `${color}:${k}:${h}` : '';
     if (key === this.tintKey) return;
     this.tintKey = key;
     this.tintK = k;
+    this.hazeK = h;
     if (color) this.tint.set(color);
     this.retarget(instant);
   }
+
+  /** (W8-H) the golden-hour haze floor in effect now (0 outside golden hour or without a tint; slides with Karl) */
+  get goldenHaze(): number { return this.hazeCur; }
 
   /** the golden-hour tint in effect: its amount (0 = none) */
   get goldenTint(): number { return this.tintK; }
@@ -244,6 +257,9 @@ export class KarlState {
     this.fromColor.copy(this.color);
     this.toColor.set(this.to.color);
     if (this.tintK > 0 && this.tod === 'golden') this.toColor.lerp(this.tint, this.tintK);
+    // (W8-H) the haze floor slides from where it is to the new time's (golden + a haze asked: the floor, else 0)
+    this.hazeFrom = this.hazeCur;
+    this.hazeTo = this.tod === 'golden' && this.tintK > 0 ? this.hazeK : 0;
     this.t = instant ? 1 : 0;
     this.epoch++;
     this.step(0);
@@ -253,7 +269,8 @@ export class KarlState {
   update(dt: number, cam?: { x: number; z: number }) {
     this.drift += dt * KARL_WIND;
     this.step(dt);
-    if (cam) KARL.uKarlCam.value = karlCover(cam.x, -1e3, cam.z, this.cur);
+    // (W8-H) at least the golden-hour haze floor (0 unless a feature set one with its tint)
+    if (cam) KARL.uKarlCam.value = Math.max(karlCover(cam.x, -1e3, cam.z, this.cur), this.hazeCur);
   }
 
   private step(dt: number) {
@@ -262,6 +279,7 @@ export class KarlState {
     for (const k of KEYS) this.cur[k] = this.from[k] + (this.to[k] - this.from[k]) * e;
     // a bank that is coming in shows at once, one that leaves fades with the slide
     this.color.copy(this.fromColor).lerp(this.toColor, e);
+    this.hazeCur = this.hazeFrom + (this.hazeTo - this.hazeFrom) * e;
     const u = KARL;
     u.uKarl.value = this.cur.level;
     u.uKarlColor.value.copy(this.color);

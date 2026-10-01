@@ -50,8 +50,11 @@ const STREET_NEAR = 22;
 /**
  * (W7-H1) The Halloween dusk: while the season runs (any phase but 'off') Karl's golden-hour colour leans this much toward
  * pumpkin orange (world/sf/fog.ts KarlState.setGoldenTint — fog.ts never reads the calendar: this feature pushes it).
+ * (W8-H) `haze`: and at golden hour that colour lies thinly over the whole city, not only inside Karl's bank (the west):
+ * the camera's own ground counts as `haze` under the bank (uKarlCam's floor) — downtown gets a soft apricot dusk that
+ * deepens with distance (W7: the tint showed only where the bank is).
  */
-export const DUSK_TINT = { color: '#f2a65a', amount: 0.35 } as const;
+export const DUSK_TINT = { color: '#f2a65a', amount: 0.35, haze: 0.35 } as const;
 
 /** The golden-hour tint the phase wants (null: none). */
 export const duskTintFor = (phase: HalloweenPhase): typeof DUSK_TINT | null => (phase === 'off' ? null : DUSK_TINT);
@@ -100,7 +103,7 @@ export function initHalloweenWorld(): () => void {
     const k = karl();
     if (!k) return;
     const t = duskTintFor(phase);
-    k.setGoldenTint(t?.color ?? null, t?.amount ?? 0, tinted !== k);
+    k.setGoldenTint(t?.color ?? null, t?.amount ?? 0, tinted !== k, t?.haze ?? 0);
     tinted = k;
   };
   pushTint();
