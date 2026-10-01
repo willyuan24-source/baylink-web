@@ -6,13 +6,14 @@ import type { Bilingual, Vec2 } from '../../core/types';
 import { isPaid } from '../../economy/ledger';
 import { bayNow, bayParts } from '../../game/bayNow';
 import { faceCameraToward } from '../../game/cinema';
-import { enterPhotoMode, openEvent } from '../../game/flow';
+import { enterPhotoMode } from '../../game/flow';
 import { flow } from '../../game/flowStore';
 import { invalidateInteractables } from '../../game/interactables';
 import { registerFrameSystem } from '../../game/systemsRegistry';
-import { JETS_EVENT, setWatchOverride, WATCH } from '../../realsf/jets';
+import { setWatchOverride, WATCH, type WatchOverride } from '../../realsf/jets';
 import type { OfferedLine } from '../../realsf/lines';
 import { BOX, CONE, CYL, ICO, M, Batch, extrudeXZ } from '../builder';
+import { openJournal } from '../../ui/slots';
 import { cityStreamerLazy } from '../cityLoader';
 import { patchToyShader } from '../materials';
 import { instancedWarmup, registerWarmup } from '../warmup';
@@ -109,16 +110,28 @@ export function paradeSpeed(path: ParadePath = paradePath()): number {
   return (path.length - path.sBridge + (SHIPS - 1) * GAP) / ((w.close - w.open) / 1000);
 }
 
+/**
+ * (W8-S review, S-P4) The instant the fireboat enters at the path's start, outside the Golden Gate (≈ 6 min before 11:00):
+ * the line sails in and is under the main span at the open — it no longer appears there out of nothing at 11:00:00.
+ */
+export function paradeEntryMs(path: ParadePath = paradePath()): number {
+  return paradeWindow().open - (path.sBridge / paradeSpeed(path)) * 1000;
+}
+
 /** Ship i's arc length at `ms` (may be < 0: not in yet, or > length: gone). */
 export function shipArc(i: number, ms: number, path: ParadePath = paradePath()): number {
   return path.sBridge + paradeSpeed(path) * ((ms - paradeWindow().open) / 1000) - i * GAP;
 }
 
 export interface ShipPose { x: number; z: number; hx: number; hz: number; s: number; scale: number }
-/** Ship i's pose at `ms`, or null when it is not on the water (outside the window, or before / past the path). */
+/**
+ * Ship i's pose at `ms`, or null when it is not on the water (before it reaches the path's start, past its end, or from
+ * 12:00). (W8-S review, S-P4) Before 11:00 the ships sail in from the path's start, growing out of the water one by one
+ * (paradeEntryMs): at 11:00 the fireboat is under the Golden Gate as before, with the first ships astern of it.
+ */
 export function shipPose(i: number, ms: number, path: ParadePath = paradePath(), out?: ShipPose): ShipPose | null {
   const w = paradeWindow();
-  if (ms < w.open || ms >= w.close) return null;
+  if (ms >= w.close) return null;
   const s = shipArc(i, ms, path);
   if (s < 0 || s > path.length) return null;
   const x = s / path.step, k = Math.min(path.n - 2, Math.floor(x)), f = x - k;
@@ -243,11 +256,95 @@ export const PARADE_PHOTO_LINE: Bilingual = { zh: '船队拍到啦，舰船巡�
 export const PARADE_WATCH: { name: Bilingual; verb: Bilingual } = { name: { zh: '舰船巡游', en: 'The Parade of Ships' }, verb: { zh: '拍舰船巡游', en: 'Photograph the ships' } };
 /** (W8-S4) its prompt on the parade's morning, before 11:00 (the waypoint BAYBAY's day line sets reads it): the Fleet Week card */
 export const PARADE_SOON: { name: Bilingual; verb: Bilingual } = { name: { zh: '舰船巡游 · 码头绿地', en: 'Parade of Ships · Marina Green' }, verb: { zh: '看看舰船巡游', en: 'See the Parade of Ships' } };
+/** (W8-S review, S-P1) its prompt once the line has passed the stand: the waypoint to the next viewing spot along the route */
+export const PARADE_FOLLOW: { name: Bilingual; verb: Bilingual } = { name: { zh: '舰船巡游 · 船队开远了', en: 'The Parade of Ships · sailing on' }, verb: { zh: '跟上船队', en: 'Follow the ships' } };
 
 /** a ship this near (u) and in frame counts for the photo; the near line within NEAR_LINE; built within BUILD_NEAR of a ship */
 export const PHOTO_NEAR = 420;
 export const NEAR_LINE = 260;
 export const BUILD_NEAR = 1100;
+
+// ---------------------------------------------------------------------------------------------------------------
+// (W8-S review, S-P1 / S-P2) Where the line can be watched: the Marina Green spot's prompt and BAYBAY's waypoint
+// ---------------------------------------------------------------------------------------------------------------
+
+/** the Marina Green spot says 拍舰船巡游 while a ship is this near it (u): the photo camera stands ≤ 12 u behind the
+ *  player, and the shutter pays for a ship within PHOTO_NEAR of the camera — a margin for the frame's edge */
+export const STAND_NEAR = PHOTO_NEAR - 40;
+/** a ship this near a viewing spot (u) is a good view of the line; BAYBAY sends a player to a spot the line still passes
+ *  for at least VIEW_LEAD (ms) */
+export const VIEW_NEAR = 250;
+export const VIEW_LEAD = 5 * 60_000;
+/** a player within this of a ship hears no "go and watch" line (the ships are in front of them, u) */
+export const LINE_FAR = 300;
+
+export interface ViewSpot { id: string; x: number; z: number }
+/**
+ * The viewing spots in route order: the reviewing stand (the jets' WATCH at Marina Green's seawall), Aquatic Park and
+ * the Ferry Building (places.json `aquatic-park-hyde-pier`, `ferry-building`: their waypoint ids resolve through
+ * game/discovery.ts). Pier 39 is left out: its own sheds hide the line (W8-S4).
+ */
+export const VIEW_SPOTS: readonly ViewSpot[] = [
+  { id: WATCH.id, x: WATCH.x, z: WATCH.z },
+  { id: 'place:aquatic-park-hyde-pier', x: -257.71, z: 115.81 },
+  { id: 'place:ferry-building', x: 132.11, z: 19.31 },
+];
+
+/** the nearest ship on the water (scale > 0.5) to (x, z) at `ms`, among the first `count` (u; Infinity when none) */
+function nearestShipTo(x: number, z: number, ms: number, path: ParadePath, count: number): number {
+  let d = Infinity;
+  for (let i = 0; i < count; i++) {
+    const p = shipPose(i, ms, path, scratchPose);
+    if (p && p.scale > 0.5) d = Math.min(d, Math.hypot(p.x - x, p.z - z));
+  }
+  return d;
+}
+const scratchPose: ShipPose = { x: 0, z: 0, hx: 0, hz: 1, s: 0, scale: 1 };
+
+const viewEnds = new Map<number, number[]>();
+/** per spot, the last instant (ms) a ship of a `count`-ship line is within VIEW_NEAR of it (sampled every 15 s) */
+function viewSpotEnds(path: ParadePath, count: number): number[] {
+  const hit = viewEnds.get(count);
+  if (hit) return hit;
+  const w = paradeWindow();
+  const ends = VIEW_SPOTS.map(spot => {
+    let last = -Infinity;
+    for (let ms = paradeEntryMs(path); ms < w.close; ms += 15_000) if (nearestShipTo(spot.x, spot.z, ms, path, count) < VIEW_NEAR) last = ms;
+    return last;
+  });
+  viewEnds.set(count, ends);
+  return ends;
+}
+
+/** The first viewing spot along the route the line still passes for VIEW_LEAD or more at `ms` (null near the end). */
+export function viewSpotAt(ms: number, path: ParadePath = paradePath(), count: number = SHIPS): ViewSpot | null {
+  if (ms >= paradeWindow().close) return null;
+  const ends = viewSpotEnds(path, count);
+  const i = ends.findIndex(end => end - ms >= VIEW_LEAD);
+  return i < 0 ? null : VIEW_SPOTS[i];
+}
+
+let standArcCache: number | null = null;
+/** the arc length (u) of the path's point nearest the reviewing stand */
+function standArc(path: ParadePath): number {
+  if (standArcCache !== null) return standArcCache;
+  let best = Infinity, arc = 0;
+  for (let i = 0; i < path.n; i++) {
+    const d = Math.hypot(path.pos[i * 2] - WATCH.x, path.pos[i * 2 + 1] - WATCH.z);
+    if (d < best) { best = d; arc = i * path.step; }
+  }
+  standArcCache = arc;
+  return arc;
+}
+
+/**
+ * What the Marina Green spot offers while the ships sail: 'photo' (a ship within STAND_NEAR: 拍舰船巡游 pays), 'coming'
+ * (the line is still on its way from the Gate) or 'follow' (it has passed: the waypoint to the next spot along it).
+ */
+export function standState(ms: number, path: ParadePath = paradePath(), count: number = SHIPS): 'photo' | 'coming' | 'follow' {
+  if (nearestShipTo(WATCH.x, WATCH.z, ms, path, count) < STAND_NEAR) return 'photo';
+  return shipArc(0, ms, path) < standArc(path) ? 'coming' : 'follow';
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // The runtime (from realsf/index.ts, on the parade's Bay day)
@@ -256,7 +353,9 @@ export const BUILD_NEAR = 1100;
 export interface FleetWeek {
   offered(): OfferedLine[];
   said(key: string): void;
-  stats(): { on: boolean; built: boolean; ships: number; tris: number; calls: number; lead: { x: number; z: number } | null; nearest: number | null };
+  stats(): { on: boolean; built: boolean; ships: number; tris: number; calls: number; lead: { x: number; z: number } | null; nearest: number | null; stand: 'photo' | 'coming' | 'follow' | null };
+  /** (W8-S review) the Marina Green spot's prompt now (null: the jets' own) — for QA and the tests */
+  prompt(): WatchOverride | null;
   off(): void;
 }
 
@@ -276,6 +375,9 @@ export function initFleetWeek(): FleetWeek {
   let nearest: number | null = null;
   let nearLine = false, photoLine = false, dayLineSaid = false;
   let lineDay = '';
+  /** (W8-S review) the Marina Green spot while the ships sail ('photo' / 'coming' / 'follow') and the spot 跟上船队 points to */
+  let stand: 'photo' | 'coming' | 'follow' | null = null;
+  let followId: string | null = null;
   const poses: (ShipPose | null)[] = [];
   const pose = (): ShipPose => ({ x: 0, z: 0, hx: 0, hz: 1, s: 0, scale: 1 });
   const slots: ShipPose[] = Array.from({ length: SHIPS }, pose);
@@ -350,14 +452,31 @@ export function initFleetWeek(): FleetWeek {
     }
     return best;
   };
-  setWatchOverride(() => (watch === 'on' ? {
+  // (W8-S review, S-P6) the morning's 看看舰船巡游 opens the 今天 tab, where the parade's row gives its 11:00–12:00 and its
+  // route (the Fleet Week card it opened names only the week and the air show's hours)
+  const info: WatchOverride = { ...PARADE_SOON, action: 'info', act: () => openJournal('today') };
+  const photo: WatchOverride = {
     ...PARADE_WATCH,
     act: () => {
       enterPhotoMode(WATCH.id);
       const s = nearestShip();
       if (s) faceCameraToward(s.x + s.hx * 12, s.z + s.hz * 12, { seconds: 0.8, pitch: 0.03 });
     },
-  } : watch === 'soon' ? { ...PARADE_SOON, act: () => openEvent(JETS_EVENT) } : null));
+  };
+  const follow: WatchOverride = {
+    ...PARADE_FOLLOW,
+    action: 'info',
+    act: () => { const spot = viewSpotAt(bayNow().getTime(), path, shipCount()); if (spot) flow.set({ mapTarget: spot.id }); },
+  };
+  // (W8-S review, S-P1) 拍舰船巡游 only while a ship is near enough to pay; before the line reaches the stand the info,
+  // after it has passed 跟上船队 (the waypoint to the next spot along the route) or the info near the end
+  const watchPrompt = (): WatchOverride | null => {
+    if (watch === 'soon') return info;
+    if (watch !== 'on') return null;
+    if (stand === 'photo') return photo;
+    return stand === 'follow' && followId && followId !== WATCH.id ? follow : info;
+  };
+  setWatchOverride(watchPrompt);
 
   const ndc = new THREE.Vector3(), probe = new THREE.Vector3();
   const inFrame = (): boolean => {
@@ -366,34 +485,45 @@ export function initFleetWeek(): FleetWeek {
     return poses.some(p => !!p && p.scale > 0.5 && (probe.set(p.x, WATER + 2.5, p.z), cam.position.distanceTo(probe) < PHOTO_NEAR) && (ndc.copy(probe).project(cam), ndc.z < 1 && Math.abs(ndc.x) < 1 && Math.abs(ndc.y) < 1));
   };
   const offShutter = onEvent(ev => {
-    if (ev.type !== 'shutter' || !on || !inFrame()) return;
+    // (W8-S review) any ship on the water counts (the line sails in from ≈ 10:54), not only 11:00–12:00
+    if (ev.type !== 'shutter' || !inFrame()) return;
     const source = `event:${PARADE_SOUVENIR}`;
     const first = !isPaid(source);
     emit({ type: 'find', kind: 'souvenir', id: PARADE_SOUVENIR, first });
     if (first) { emit({ type: 'reward', source, coins: 15, stamp: source }); photoLine = true; }
   });
 
-  let acc = 1;
-  const tick = () => {
-    attach();
-    const now = bayNow();
+  /** the parade's state now (no world access): on, the Marina Green spot, the nearest ship, the fireboat's line */
+  const measure = (now: Date) => {
     const day = bayParts(now).dateKey;
     if (day !== lineDay) { lineDay = day; photoLine = false; dayLineSaid = false; }
     on = paradeOn(now);
-    const w = paradeWatchState(now);
-    if (w !== watch) { watch = w; invalidateInteractables(); }
+    const ms = now.getTime();
     const count = shipCount();
-    sample(now.getTime(), count);
+    const w = paradeWatchState(now);
+    const st = w === 'on' ? standState(ms, path, count) : null;
+    const fid = st === 'follow' ? viewSpotAt(ms, path, count)?.id ?? null : null;
+    if (w !== watch || st !== stand || fid !== followId) { watch = w; stand = st; followId = fid; invalidateInteractables(); }
+    sample(ms, count);
     let d = Infinity;
     for (const p of poses) if (p) d = Math.min(d, Math.hypot(p.x - runtime.player.x, p.z - runtime.player.z));
     nearest = Number.isFinite(d) ? Math.round(d) : null;
-    const want = on && d < BUILD_NEAR && !!offSystem;
-    if (want && !line) build();
-    if (!want && line) drop();
     // the near line talks about the fireboat: offered only while the fireboat itself is near (not the tail of the line)
     const fireboat = poses[0];
-    nearLine = on && !!fireboat && fireboat.scale > 0 && Math.hypot(fireboat.x - runtime.player.x, fireboat.z - runtime.player.z) < NEAR_LINE;
+    nearLine = !!fireboat && fireboat.scale > 0 && Math.hypot(fireboat.x - runtime.player.x, fireboat.z - runtime.player.z) < NEAR_LINE;
+    return d;
   };
+  let acc = 1;
+  const tick = () => {
+    attach();
+    const d = measure(bayNow());
+    // (W8-S review, S-P4) built while any ship is on the water near the player (from the fireboat's entry ≈ 10:54)
+    const want = d < BUILD_NEAR && !!offSystem;
+    if (want && !line) build();
+    if (!want && line) drop();
+  };
+  // (W8-S review, S-P5) the state from the first frame: realsf/index.ts asks offered() before this module's first tick
+  measure(bayNow());
   const offFrame = registerFrameSystem('w8-fleet-week', dt => {
     if ((acc += dt) < 0.5) return;
     acc = 0;
@@ -408,20 +538,24 @@ export function initFleetWeek(): FleetWeek {
       if (isParadeDay(now)) {
         const w = paradeWindow(), t = now.getTime();
         const far = Math.hypot(runtime.player.x - WATCH.x, runtime.player.z - WATCH.z) > 300;
-        if (far && t >= w.open - 6 * 3600_000 && t < w.open) out.push({ key: 'parade-day', text: PARADE_DAY_LINE });
-        else if (far && on && !dayLineSaid) out.push({ key: 'parade-now', text: PARADE_NOW_LINE });
+        // (W8-S review, S-P2) never "go and watch" while the ships are already in front of the player
+        const shipsFar = nearest === null || nearest > LINE_FAR;
+        if (far && shipsFar && t >= w.open - 6 * 3600_000 && t < w.open) out.push({ key: 'parade-day', text: PARADE_DAY_LINE });
+        else if (shipsFar && on && !dayLineSaid) out.push({ key: 'parade-now', text: PARADE_NOW_LINE });
       }
       if (photoLine) out.push({ key: 'parade-photo', text: PARADE_PHOTO_LINE });
-      if (nearLine && on) out.push({ key: 'parade-near', text: PARADE_NEAR_LINE });
+      if (nearLine) out.push({ key: 'parade-near', text: PARADE_NEAR_LINE });
       return out;
     },
     said: key => {
       if (key === 'parade-photo') photoLine = false;
       if (key !== 'parade-day' && key !== 'parade-now') return;
       if (key === 'parade-day') dayLineSaid = true;
-      // the waypoint to the Marina Green spot, unless the player is already on the way somewhere
+      // the waypoint, unless the player is already on the way somewhere: the morning's line to the reviewing stand;
+      // (W8-S review, S-P2) during the parade to the first viewing spot along the route the line still passes
+      const target = key === 'parade-day' ? WATCH.id : viewSpotAt(bayNow().getTime(), path, shipCount())?.id;
       const f = flow.get(), s = game.get();
-      if (!f.trip && !f.mapTarget && !s.tour.active && s.mode === 'free') flow.set({ mapTarget: WATCH.id });
+      if (target && !f.trip && !f.mapTarget && !s.tour.active && s.mode === 'free') flow.set({ mapTarget: target });
     },
     stats: () => {
       const lead = poses[0];
@@ -429,9 +563,10 @@ export function initFleetWeek(): FleetWeek {
         on, built: !!line, ships: (line?.count ?? 0) + (fire?.count ?? 0),
         tris: line && fire ? triCount(shipGeo) * line.count + triCount(fireGeo) * fire.count : 0,
         calls: line && fire ? (line.count ? 1 : 0) + (fire.count ? 1 : 0) : 0,
-        lead: lead ? { x: +lead.x.toFixed(1), z: +lead.z.toFixed(1) } : null, nearest,
+        lead: lead ? { x: +lead.x.toFixed(1), z: +lead.z.toFixed(1) } : null, nearest, stand,
       };
     },
+    prompt: watchPrompt,
     off: () => {
       offFrame(); offShutter();
       setWatchOverride(null);

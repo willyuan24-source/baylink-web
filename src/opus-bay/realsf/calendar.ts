@@ -108,7 +108,7 @@ export const CALENDAR: readonly CalendarRow[] = [
     // W8-S: toy ships sail it (world/sf/fleetWeek.ts): in under the Golden Gate, along the shore to the Bay Bridge, the
     // fireboat first. "Friday 10/9 11:00 am - 12:00 pm", "seen from the Golden Gate Bridge to the Bay Bridge", "a
     // reviewing stand at the Marina Green", the SFFD fireboat leads "shooting jets of water into the air" (read 2026-09-30)
-    id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船游行', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
+    id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船巡游', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
     where: { zh: '码头绿地看台', en: 'the Marina Green reviewing stand' }, placeId: 'marina-green',
     note: { zh: '11:00–12:00 消防船领头，舰船从金门大桥开往海湾大桥', en: '11:00–12:00 · the fireboat leads the ships from the Golden Gate to the Bay Bridge' },
     grade: 'official', source: src30('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'),

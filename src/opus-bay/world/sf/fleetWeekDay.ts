@@ -43,3 +43,13 @@ export function paradeWatchState(date: Date = bayNow()): 'soon' | 'on' | null {
   if (paradeOn(date)) return 'on';
   return isParadeDay(date) && date.getTime() < paradeWindow().open ? 'soon' : null;
 }
+
+/**
+ * (W8-S review, S-P5) realsf/index.ts holds the jets' lines on the parade's Bay day while the parade's lazy chunk is
+ * still loading: the scheduler offers the parade's lines first (11:00 before the noon air show), but on the first ticks
+ * after a load the parade is not there yet, so a player who opened the game on the parade morning heard the jets' noon
+ * line first. A chunk that failed for good never mutes the jets.
+ */
+export function holdJetsForParade(date: Date, parade: { ready: boolean; failed: boolean }): boolean {
+  return isParadeDay(date) && !parade.ready && !parade.failed;
+}

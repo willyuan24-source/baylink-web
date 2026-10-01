@@ -65,7 +65,11 @@ test('W8-S2 the line: the fireboat under the Golden Gate at 11:00, ships 45 u ap
   const last = F.shipPose(F.SHIPS - 1, w.close - 1, p)!;
   assert.ok(last && p.length - last.s < 1 && last.scale < 0.1, 'the last ship sinks from view at the end');
   assert.equal(F.shipPose(0, w.close - 1, p), null, 'the fireboat is gone');
-  for (const ms of [w.open - 1, w.close, bay('2026-10-10T11:20').getTime()]) for (let i = 0; i < F.SHIPS; i++) assert.equal(F.shipPose(i, ms, p), null);
+  // (W8-S review) the line sails in from outside the Gate before 11:00 (no pop-in under the deck): nothing before the
+  // fireboat's entry at the path's start, nothing from 12:00, nothing the next day
+  const entry = F.paradeEntryMs(p);
+  assert.ok(entry < w.open && entry > w.open - 10 * 60_000, `the fireboat enters ${((w.open - entry) / 60_000).toFixed(1)} min before 11:00`);
+  for (const ms of [entry - 1, w.close, bay('2026-10-10T11:20').getTime()]) for (let i = 0; i < F.SHIPS; i++) assert.equal(F.shipPose(i, ms, p), null);
   // seven ships on high, five (the fireboat + four) on phones
   assert.equal(F.shipCount('high'), 7);
   assert.equal(F.shipCount('mid'), 5);
@@ -260,4 +264,141 @@ test('W8-S2 the runtime: the day line before 11:00, the now line during, the fir
     __setBayNowForTests(null);
     put(saved.x, saved.z);
   }
+});
+
+// ---------------------------------------------------------------------------------------------------------------
+// W8-S review (Ultra): the reviewers' findings S-P1 … S-P6, S-code-3 / 4
+// ---------------------------------------------------------------------------------------------------------------
+
+test('W8-S review S-P4: no ship pops in — each sails in from the path’s start, growing out of the water; the fireboat is under the Gate at 11:00', () => {
+  const p = F.paradePath(), w = D.paradeWindow();
+  for (let i = 0; i < F.SHIPS; i++) {
+    let was = false;
+    for (let ms = w.open - 15 * 60_000; ms < w.close; ms += 1000) {
+      const s = F.shipPose(i, ms, p);
+      const now = !!s && s.scale > 0;
+      if (now && !was) assert.ok(s!.scale < 0.1 && s!.s < 2, `ship ${i} appears at arc ${s!.s.toFixed(1)} u with scale ${s!.scale.toFixed(2)}`);
+      was = now;
+    }
+  }
+  const gg = F.PATH_POINTS[F.BRIDGE_POINT], lead = F.shipPose(0, w.open, p)!;
+  assert.ok(Math.hypot(lead.x - gg.x, lead.z - gg.z) < 3, 'the fireboat under the main span at 11:00');
+});
+
+test('W8-S review S-P1: the Marina Green spot says 拍舰船巡游 only while a ship is near enough to pay; before the line it informs, after it points on', () => {
+  const p = F.paradePath(), w = D.paradeWindow();
+  const WATCH = { x: -377.5, z: 287.5 };
+  let photo = 0;
+  for (let ms = w.open; ms < w.close; ms += 30_000) {
+    const st = F.standState(ms, p);
+    const ships = Array.from({ length: F.SHIPS }, (_, i) => F.shipPose(i, ms, p)).filter(s => s && s.scale > 0.5);
+    const near = Math.min(...ships.map(s => Math.hypot(s!.x - WATCH.x, s!.z - WATCH.z)));
+    // the photo camera stands ≤ 12 u behind the player: a ship within PHOTO_NEAR − 12 of the spot is near enough to pay
+    if (st === 'photo') { photo++; assert.ok(near < F.PHOTO_NEAR - 12, `${new Date(ms).toISOString()}: photo prompt with the nearest ship ${near.toFixed(0)} u away`); }
+  }
+  assert.ok(photo >= 40, `${photo} half-minutes of photo prompt`);
+  assert.equal(F.standState(w.open, p), 'coming', '11:00: the line is still at the Gate');
+  assert.equal(F.standState(bay('2026-10-09T11:20').getTime(), p), 'photo');
+  assert.equal(F.standState(bay('2026-10-09T11:50').getTime(), p), 'follow', '11:50: the line is off the Embarcadero');
+});
+
+test('W8-S review S-P2: BAYBAY’s waypoint follows the line — the first viewing spot along the route the ships still pass; never away from ships in front of the player', async () => {
+  const p = F.paradePath();
+  const at = (s: string) => bay(s).getTime();
+  assert.equal(F.viewSpotAt(at('2026-10-09T10:30'), p)?.id, 'realsf:jets-watch', 'before the parade: the reviewing stand');
+  assert.equal(F.viewSpotAt(at('2026-10-09T11:20'), p)?.id, 'realsf:jets-watch');
+  assert.equal(F.viewSpotAt(at('2026-10-09T11:30'), p)?.id, 'place:aquatic-park-hyde-pier');
+  assert.equal(F.viewSpotAt(at('2026-10-09T11:42'), p)?.id, 'place:ferry-building');
+  assert.equal(F.viewSpotAt(at('2026-10-09T11:55'), p), null, 'the line is nearly home: no spot to send anyone to');
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { stepFrameSystems } = await import('../src/opus-bay/game/systemsRegistry');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const keys = (fw: { offered(): { key: string }[] }) => fw.offered().map(l => l.key);
+  const put = (x: number, z: number) => { runtime.player.x = x; runtime.player.z = z; };
+  const saved = { x: runtime.player.x, z: runtime.player.z };
+  __setBayNowForTests('2026-10-09T11:42');
+  const fw = F.initFleetWeek();
+  try {
+    // the Ferry Building at 11:42: the line passes in front — the fireboat's line, not "go to Marina Green"
+    put(132.11, 19.31);
+    stepFrameSystems(0.6, 0);
+    assert.ok(!keys(fw).includes('parade-now'), `ships in front of the player: ${keys(fw)}`);
+    assert.ok(keys(fw).includes('parade-near'), `${keys(fw)}`);
+    // far away (the Mission) at 11:42: the now line, and its waypoint is the Ferry Building, not Marina Green
+    put(0, 600);
+    stepFrameSystems(0.6, 0);
+    assert.deepEqual(keys(fw), ['parade-now']);
+    const { game } = await import('../src/opus-bay/core/store');
+    const mode = game.get().mode;
+    game.set({ mode: 'free' });
+    try {
+      flow.set({ mapTarget: null });
+      fw.said('parade-now');
+      assert.equal(flow.get().mapTarget, 'place:ferry-building');
+    } finally { game.set({ mode }); flow.set({ mapTarget: null }); }
+    // the end of the path at 11:59: the last ship beside the player — no far line
+    __setBayNowForTests('2026-10-09T11:59');
+    put(420, -60);
+    stepFrameSystems(0.6, 0);
+    assert.ok(!keys(fw).includes('parade-now'), `${keys(fw)}`);
+    // the Golden Gate deck at 10:58: the fireboat sailing in under the player — no "watch from Marina Green"
+    __setBayNowForTests('2026-10-09T10:58');
+    put(-865.8, 508.6);
+    stepFrameSystems(0.6, 0);
+    assert.ok(!keys(fw).includes('parade-day'), `${keys(fw)}`);
+  } finally {
+    fw.off();
+    flow.set({ mapTarget: null });
+    __setBayNowForTests(null);
+    put(saved.x, saved.z);
+  }
+});
+
+test('W8-S review S-P5: the parade’s lines are on offer from its first frame; realsf/index.ts holds the jets’ lines while the chunk loads', async () => {
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const saved = { x: runtime.player.x, z: runtime.player.z };
+  runtime.player.x = 0; runtime.player.z = 600;
+  __setBayNowForTests('2026-10-09T11:42');
+  const fw = F.initFleetWeek();
+  try {
+    assert.deepEqual(fw.offered().map(l => l.key), ['parade-now'], 'no tick needed');
+  } finally {
+    fw.off();
+    __setBayNowForTests(null);
+    runtime.player.x = saved.x; runtime.player.z = saved.z;
+  }
+  const { holdJetsForParade } = D;
+  const day = bay('2026-10-09T11:42'), other = bay('2026-10-10T11:42');
+  assert.equal(holdJetsForParade(day, { ready: false, failed: false }), true, 'the parade day, the chunk still loading: the jets wait');
+  assert.equal(holdJetsForParade(day, { ready: true, failed: false }), false);
+  assert.equal(holdJetsForParade(day, { ready: false, failed: true }), false, 'a chunk that failed for good never mutes the jets');
+  assert.equal(holdJetsForParade(other, { ready: false, failed: false }), false);
+  const index = fs.readFileSync(path.resolve('src/opus-bay/realsf/index.ts'), 'utf8');
+  assert.match(index, /holdJetsForParade\(/);
+});
+
+test('W8-S review S-P6 / S-code-3 / 4: the morning prompt opens the 今天 tab (the parade’s row with its 11:00–12:00), one Chinese name everywhere', async () => {
+  const { runtime } = await import('../src/opus-bay/core/runtime');
+  const { lastJournalRequest } = await import('../src/opus-bay/ui/slots');
+  const saved = { x: runtime.player.x, z: runtime.player.z };
+  __setBayNowForTests('2026-10-09T09:00');
+  const fw = F.initFleetWeek();
+  try {
+    const pr = fw.prompt();
+    assert.ok(pr, 'the morning prompt');
+    assert.equal(pr!.verb.zh, '看看舰船巡游');
+    const seq = lastJournalRequest().seq;
+    pr!.act();
+    assert.equal(lastJournalRequest().seq, seq + 1);
+    assert.equal(lastJournalRequest().tab, 'today', 'the 今天 tab, where the parade row says 11:00–12:00');
+  } finally {
+    fw.off();
+    __setBayNowForTests(null);
+    runtime.player.x = saved.x; runtime.player.z = saved.z;
+  }
+  const cal = await import('../src/opus-bay/realsf/calendar');
+  const row = cal.CALENDAR.find(r => r.id === 'fleet-week-parade-of-ships-2026')!;
+  assert.match(row.title.zh, /舰船巡游/);
+  assert.match(row.note.zh, /11:00–12:00/);
+  for (const t of [row.title.zh, F.PARADE_WATCH.name.zh, F.PARADE_SOON.name.zh, F.PARADE_FOLLOW.name.zh, EVENT_SAY[F.PARADE_SOUVENIR].zh]) assert.doesNotMatch(t, /游行/, t);
 });

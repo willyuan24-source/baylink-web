@@ -33,7 +33,7 @@ import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
 import { todayLine } from './todayLine';
-import { isParadeDay } from '../world/sf/fleetWeekDay';
+import { holdJetsForParade, isParadeDay } from '../world/sf/fleetWeekDay';
 import type { FleetWeek } from '../world/sf/fleetWeek';
 import { importRetry } from '../game/importRetry';
 
@@ -161,10 +161,13 @@ export function init(): () => void {
   // W8-S: Fleet Week's Parade of Ships (9 Oct 11:00–12:00) — its own lazy chunk, loaded on the parade's Bay day only
   let parade: FleetWeek | null = null;
   let paradeLoading = false;
+  /** (W8-S review) failed loads: retried, and after PARADE_TRIES the jets' lines stop waiting for it */
+  let paradeFails = 0;
+  const PARADE_TRIES = 3;
   const loadParade = () => {
-    if (parade || paradeLoading) return;
+    if (parade || paradeLoading || paradeFails >= PARADE_TRIES) return;
     paradeLoading = true;
-    void importRetry(() => import('../world/sf/fleetWeek')).then(m => { if (live) parade = m.initFleetWeek(); }, () => { paradeLoading = false; });
+    void importRetry(() => import('../world/sf/fleetWeek')).then(m => { if (live) parade = m.initFleetWeek(); }, () => { paradeLoading = false; paradeFails++; });
   };
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
@@ -187,8 +190,10 @@ export function init(): () => void {
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
     if (!parade && isParadeDay(now)) loadParade();
-    // (W8-S) on 9 Oct the parade's lines (11:00) come before the jets' (12:00): the scheduler takes the first unsaid key
-    const offered: OfferedLine[] = [...presence.offered(), ...(parade?.offered() ?? []), ...jets.offered(), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
+    // (W8-S) on 9 Oct the parade's lines (11:00) come before the jets' (12:00): the scheduler takes the first unsaid key;
+    // (W8-S review, S-P5) while the parade's chunk is still loading that day the jets' lines wait for it
+    const holdJets = holdJetsForParade(now, { ready: !!parade, failed: paradeFails >= PARADE_TRIES });
+    const offered: OfferedLine[] = [...presence.offered(), ...(parade?.offered() ?? []), ...(holdJets ? [] : jets.offered()), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
     if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });

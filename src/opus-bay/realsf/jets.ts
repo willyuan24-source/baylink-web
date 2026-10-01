@@ -343,7 +343,8 @@ export const WATCH = { id: 'realsf:jets-watch', x: -377.5, z: 287.5, r: 14 } as 
  * reviewing stand too — is the parade's photo prompt: the parade's lazy chunk sets this override; the jets keep the spot
  * the rest of the show day.
  */
-export interface WatchOverride { name: Bilingual; verb: Bilingual; act: () => void }
+/** `action` picks the prompt's icon (default 'photo'; W8-S review: the parade's info / 跟上船队 prompts are 'info') */
+export interface WatchOverride { name: Bilingual; verb: Bilingual; act: () => void; action?: Interactable['action'] }
 let watchOverride: (() => WatchOverride | null) | null = null;
 export function setWatchOverride(fn: (() => WatchOverride | null) | null) { watchOverride = fn; invalidateInteractables(); }
 /** jets this near (u) and in frame count for the photo; the line and the roar reach this far */
@@ -475,7 +476,7 @@ export function initJets(): Jets {
   let showDay = false;
   const offInteract = registerInteractables('w5-realsf-jets', () => {
     const o = !up ? watchOverride?.() ?? null : null;
-    if (showDay && o) return [{ id: WATCH.id, source: 'event', action: 'photo', name: o.name, verb: o.verb, x: WATCH.x, z: WATCH.z, radius: WATCH.r, act: o.act } satisfies Interactable];
+    if (showDay && o) return [{ id: WATCH.id, source: 'event', action: o.action ?? 'photo', name: o.name, verb: o.verb, x: WATCH.x, z: WATCH.z, radius: WATCH.r, act: o.act } satisfies Interactable];
     return showDay ? [{
     id: WATCH.id, source: 'event', action: 'photo', name: up ? { zh: '飞机编队', en: 'The jet formation' } : { zh: '飞行表演 · 码头绿地', en: 'Air show · Marina Green' },
     verb: up ? { zh: '拍飞机编队', en: 'Photograph the jets' } : { zh: '看看飞行表演', en: 'See the air show' },
