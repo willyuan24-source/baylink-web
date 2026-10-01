@@ -9,7 +9,7 @@ import test from 'node:test';
 
 const { emit, onEvent, REWARD_PREFIXES } = await import('../src/opus-bay/core/events');
 const save = await import('../src/opus-bay/data/save');
-const { bitCount, bitGet, decodePlay, MAX_COINS, MAX_ONE_OFFS, MAX_PLAY_BITS, PLAY_BIT_KINDS } = await import('../src/opus-bay/data/playSave');
+const { bitCount, bitGet, decodePlay, MAX_BESTS, MAX_COINS, MAX_ONE_OFFS, MAX_PLAY_BITS, PLAY_BIT_KINDS } = await import('../src/opus-bay/data/playSave');
 const { __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
 const L = await import('../src/opus-bay/economy/ledger');
 const { FIXED_SOURCES } = await import('../src/opus-bay/economy/sources');
@@ -179,13 +179,13 @@ test('W5-E1 caps: the balance stops at 999,999; play.e holds 128 and refuses mor
   assert.equal(L.coinsTotal(), MAX_ONE_OFFS * 5);
 });
 
-test('W5-E1 the size test: a full play block (every bitset at its cap, 128 one-offs, 32 bests) with every save cap stays under 64 KB and round-trips', () => {
+test('W5-E1 the size test: a full play block (every bitset at its cap, 128 one-offs, MAX_BESTS bests) with every save cap stays under 64 KB and round-trips', () => {
   fresh();
   const full = (n: number) => Buffer.from(new Uint8Array(n).fill(255)).toString('base64').replace(/=+$/, '');
   const g = Object.fromEntries(PLAY_BIT_KINDS.map(k => [k, full(192)]));
   const play = {
     v: 1 as const, c: MAX_COINS, g, t: { d: '2026-10-03', b: full(192) }, w: { 'baybay-scarf': 255, 'baybay-hat': 255, 'player-hat': 255, 'player-pack': 255, bike: 255, car: 255, pelican: 255, frame: 255 },
-    b: Object.fromEntries(Array.from({ length: 32 }, (_, i) => [`activity-best-key-${String(i).padStart(21, '0')}`, -123456.789])),
+    b: Object.fromEntries(Array.from({ length: MAX_BESTS }, (_, i) => [`activity-best-key-${String(i).padStart(21, '0')}`, -123456.789])),
     d: { d: '2026-10-03', m: 255 }, e: Array.from({ length: 128 }, (_, i) => `medal:${String(i).padStart(33, 'x')}`),
   };
   const long = (i: number, n: number) => `${String(i).padStart(n, 'p')}`;
@@ -203,7 +203,7 @@ test('W5-E1 the size test: a full play block (every bitset at its cap, 128 one-o
   assert.ok(text.length <= save.SAVE_MAX_BYTES, `${text.length} B`);
   const back = save.decodeSave(text)!;
   assert.deepEqual(back.play, decodedPlay, 'the play block is never trimmed');
-  assert.ok(JSON.stringify(decodedPlay).length < 12 * 1024, `the play block alone at the format caps (realistic: ≈ 1 KB): ${JSON.stringify(decodedPlay).length} B`);
+  assert.ok(JSON.stringify(decodedPlay).length < 13 * 1024, `the play block alone at the format caps (realistic: ≈ 1 KB; 12 → 13 KB when W8-0d raised MAX_BESTS 32 → 64): ${JSON.stringify(decodedPlay).length} B`);
 });
 
 test('W5-E1 Settings → reset progress: the balance starts over and subscribers hear it', () => {
@@ -243,15 +243,15 @@ test('W5-E1 hints: the nearest unfound target of a kind; any = the compass kinds
   assert.equal(hints.hintTarget('any', { x: 0, z: 0 }), null);
 });
 
-test('W5-E1 recordBest (lane A through economy/index): play.b takes a best, bad keys / values refused, ≤ 32 keys; ring caps at 3 (first-flight rings)', () => {
+test('W5-E1 recordBest (lane A through economy/index): play.b takes a best, bad keys / values refused, ≤ MAX_BESTS (64) keys; ring caps at 3 (first-flight rings)', () => {
   fresh();
   assert.equal(typeof (economy as unknown as { recordBest?: unknown }).recordBest, 'function', 'the export play/kit.ts looks for');
   assert.equal(L.recordBest('slides:time', 18.4), true);
   assert.equal(L.recordBest('slides:time', 17.9), true, 'the caller decides it is better');
   assert.deepEqual(L.playState().b, { 'slides:time': 17.9 });
   for (const [k, v] of [['Bad Key', 1], ['ok', Number.NaN], ['x'.repeat(41), 1]] as const) assert.equal(L.recordBest(k, v), false, String(k));
-  for (let i = 0; i < 31; i++) assert.equal(L.recordBest(`a-${i}`, i), true);
-  assert.equal(L.recordBest('one-more', 1), false, 'the 33rd key');
+  for (let i = 0; i < MAX_BESTS - 1; i++) assert.equal(L.recordBest(`a-${i}`, i), true);
+  assert.equal(L.recordBest('one-more', 1), false, 'the key past MAX_BESTS');
   assert.equal(L.recordBest('slides:time', 16), true, 'an existing key still updates');
   const text = save.encodeSave({ version: 2, play: L.playState() as never });
   assert.deepEqual(save.decodeSave(text)!.play!.b, L.playState().b, 'round trip through the frozen decoder');

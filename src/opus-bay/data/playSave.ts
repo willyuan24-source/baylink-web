@@ -31,7 +31,7 @@ export interface PlaySaveV1 {
   t?: { d: string; b: string };
   /** worn item index per slot (an index into lane E's append-only item list), 0..255 */
   w?: Partial<Record<WearSlot, number>>;
-  /** activity bests (lane A), ≤ 32 finite numbers keyed `[a-z0-9:-]{1,40}` */
+  /** activity bests (lane A), ≤ MAX_BESTS (64) finite numbers keyed `[a-z0-9:-]{1,40}` */
   b?: Record<string, number>;
   /** 今日三件小事: the Bay date + the done mask (bits 0..7) */
   d?: { d: string; m: number };
@@ -43,7 +43,7 @@ export const PLAY_VERSION = 1;
 export const MAX_COINS = 999_999;
 export const MAX_BITSET_CHARS = 256;
 export const MAX_PLAY_BITS = (MAX_BITSET_CHARS / 4) * 3 * 8; // 1,536
-export const MAX_BESTS = 32;
+export const MAX_BESTS = 64;
 export const MAX_ONE_OFFS = 128;
 export const MAX_ONE_OFF_CHARS = 40;
 export const MAX_WEAR_INDEX = 255;
