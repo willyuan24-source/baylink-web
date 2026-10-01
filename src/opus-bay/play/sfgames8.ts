@@ -11,7 +11,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { registerRidePad } from '../ui/rideSlots';
 import { openOverlays, registerOverlay } from '../ui/slots';
 import { currentActivity } from './kit';
-import { BUSK_LINES, BUSK_NAME, GRIP_LINES } from './sfgames8Lines';
+import { BUSK_LINES, BUSK_NAME, FOG_LINES, FOG_NAME, GRIP_LINES } from './sfgames8Lines';
 import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
 
 /**
@@ -24,10 +24,11 @@ import { INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zo
  *   busk.ts + BuskPanel.tsx     play along with the street guitarist on Haight St (a tambourine) or 24th St (maracas):
  *                               a prompt beside each busker (lane L's corner figures, there in the afternoon; at other
  *                               hours BAYBAY plays his tune herself and the prompt says so)
+ *   foghorn.ts + FogPanel.tsx   the foghorns' call and answer at Fort Point, under the Golden Gate Bridge's south end
  */
 
 /** The overlay ids of this set's panels (lane K's BAYBAY-silence list names them). */
-export const SF8_OVERLAYS = ['play-grip', 'play-busk'] as const;
+export const SF8_OVERLAYS = ['play-grip', 'play-busk', 'play-foghorn'] as const;
 
 // --- the buskers -----------------------------------------------------------------------------------------------------------
 
@@ -68,8 +69,24 @@ function buskIt(s: BuskSpot, id: string): Interactable {
 }
 export const buskHaightIt = buskIt(BUSK_HAIGHT, 'play:busk-haight');
 export const buskMissionIt = buskIt(BUSK_MISSION, 'play:busk-mission');
+// --- the foghorns ----------------------------------------------------------------------------------------------------------
+
+/**
+ * Fort Point (landmarks/fort-point.ts frame −750.46, 594.21, yaw −123°): the prompt at the fort's local (−7, −3.5), by its
+ * west wall where Marine Drive's loop ends — on the ground the arrival (the trip end −747.66, 598.89, 9.5 u) walks to; the
+ * sea-wall walk on the strait side is not reachable from there. Clear of egg 9's spot (−747.3, 595.5) by 6.4 u.
+ */
+export const FOG_SPOT = { x: -743.71, z: 590.25, r: 1.5 };
+/** BAYBAY's invite reaches the fort's arrival (u) */
+export const FOG_INVITE_R = 12;
+const FOG_VERB: Bilingual = { zh: '雾笛对答', en: 'Foghorn call and answer' };
+export const fogIt: Interactable = {
+  id: 'play:foghorn', source: 'activity', action: 'info', verb: FOG_VERB, name: FOG_NAME, x: FOG_SPOT.x, z: FOG_SPOT.z, radius: FOG_SPOT.r,
+  act: () => { void import('./foghorn').then(m => { m.startFoghorn(); }); },
+};
+
 /** Every prompt of the set (tests: each on standable ground) */
-export const sf8Its = (): Interactable[] => [buskHaightIt, buskMissionIt];
+export const sf8Its = (): Interactable[] => [buskHaightIt, buskMissionIt, fogIt];
 
 const POWELL = ['powell-hyde', 'powell-mason'];
 const onPowell = (r: Pick<FlowRide, 'kind' | 'line'> | null) => !!r && r.kind === 'cable-car' && !!r.line && POWELL.includes(r.line);
@@ -82,6 +99,8 @@ const GripPad = lazy(() => import('./GripPad'));
 const GripPadSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPad));
 const BuskPanel = lazy(() => import('./BuskPanel'));
 const BuskSlot = () => createElement(Suspense, { fallback: null }, createElement(BuskPanel));
+const FogPanel = lazy(() => import('./FogPanel'));
+const FogSlot = () => createElement(Suspense, { fallback: null }, createElement(FogPanel));
 
 /** BAYBAY's grip invite: this long into a Powell ride, once a visit (s) */
 export const GRIP_INVITE_AFTER = 5;
@@ -91,6 +110,7 @@ export function initSfGames8(): () => void {
   offs.push(registerOverlay({ id: 'play-grip', Component: GripSlot }));
   offs.push(registerRidePad({ id: 'grip', order: 20, visible: gripPadVisible, Component: GripPadSlot }));
   offs.push(registerOverlay({ id: 'play-busk', Component: BuskSlot }));
+  offs.push(registerOverlay({ id: 'play-foghorn', Component: FogSlot }));
   offs.push(registerInteractables('m-play-sfgames8', sf8Its));
   let acc = 0, rideT = 0, gripInvited = false;
   const played = new Set<string>();
@@ -102,6 +122,7 @@ export function initSfGames8(): () => void {
       it.radius = running ? 0 : s.r;
       it.verb = buskerOut(s) ? BUSK_VERB : PRACTICE_VERB;
     }
+    fogIt.radius = running ? 0 : FOG_SPOT.r;
     if ((acc += dt) < 0.25) return;
     const step = acc;
     acc = 0;
@@ -126,11 +147,16 @@ export function initSfGames8(): () => void {
         zoneInvite(`busk-${s.style}`, buskerOut(s) ? (s.style === 'mission' ? BUSK_LINES.inviteMission : BUSK_LINES.inviteHaight) : BUSK_LINES.closed);
       }
     }
+    // the foghorns: the chunks within PREFETCH_R, BAYBAY's invite from the fort's arrival on
+    if (nearPlayer(FOG_SPOT.x, FOG_SPOT.z, PREFETCH_R)) {
+      zonePrefetch('foghorn', () => Promise.all([import('./foghorn'), import('./FogPanel')]));
+      if (nearPlayer(FOG_SPOT.x, FOG_SPOT.z, FOG_INVITE_R) && !running && !played.has('foghorn') && !baybayHeld()) zoneInvite('foghorn', FOG_LINES.invite);
+    }
   }));
   // DEV / QA: __opusBay.sfgames8 (the games' own module instances)
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     const w = window as unknown as { __opusBay?: Record<string, unknown> };
-    w.__opusBay = { ...(w.__opusBay ?? {}), sfgames8: { grip: () => import('./grip'), busk: () => import('./busk'), kit: () => import('./kit') } };
+    w.__opusBay = { ...(w.__opusBay ?? {}), sfgames8: { grip: () => import('./grip'), busk: () => import('./busk'), foghorn: () => import('./foghorn'), kit: () => import('./kit') } };
   }
   return () => { for (const off of offs.splice(0).reverse()) { try { off(); } catch { /* gone */ } } };
 }

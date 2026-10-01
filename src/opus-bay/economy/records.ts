@@ -33,6 +33,7 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   // W8-M (lane M): the second set (the kit keeps their bests under the activity id: points of 100)
   { key: 'grip', name: { zh: '叮当车拉闸', en: 'Cable-car grip' }, unit: 'points' },
   { key: 'busk', name: { zh: '和街头艺人合奏', en: 'Jam with the busker' }, unit: 'points' },
+  { key: 'foghorn', name: { zh: '金门大桥雾笛对答', en: 'Golden Gate foghorns' }, unit: 'points' },
 ];
 
 /** Days since 1970 of a Bay date (lane A's `steps-day`). */
