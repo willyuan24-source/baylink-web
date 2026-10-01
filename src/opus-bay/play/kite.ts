@@ -139,7 +139,7 @@ export const kiteTier = (k: Pick<KiteState, 'up' | 'aloft' | 'top'>): 0 | Tier =
 /** Points: a point a second aloft, ten more for the top of the line. */
 export const kitePoints = (k: Pick<KiteState, 'aloft' | 'top'>): number => Math.round(k.aloft) + (k.top ? 10 : 0);
 
-interface Live { run: ActivityRun; k: KiteState; start: { x: number; z: number }; chipHeld: boolean; endAt: number; shown: string; cam: THREE.Vector3 | null; tgt: THREE.Vector3 | null }
+interface Live { run: ActivityRun; k: KiteState; start: { x: number; z: number }; chipHeld: boolean; endAt: number; shown: string; cam: THREE.Vector3 | null; tgt: THREE.Vector3 | null; quiet: number }
 let live: Live | null = null;
 let offFrame: (() => void) | null = null;
 let offLayer: (() => void) | null = null;
@@ -155,7 +155,7 @@ export function startKite(rand?: () => number): boolean {
   if (!run) return false;
   rounds++;
   const p = runtime.player;
-  live = { run, k: newKite(rand), start: { x: p.x, z: p.z }, chipHeld: false, endAt: -1, shown: '', cam: null, tgt: null };
+  live = { run, k: newKite(rand), start: { x: p.x, z: p.z }, chipHeld: false, endAt: -1, shown: '', cam: null, tgt: null, quiet: performance.now() + 75000 };
   // face down the wind: the kite goes up in front of you
   runtime.player.heading = Math.atan2(DOWNWIND.x, DOWNWIND.z);
   showChip({
@@ -169,7 +169,7 @@ export function startKite(rand?: () => number): boolean {
   bubble(KITE_LINES.start, 3200);
   charApi()?.emote('baybay', 'cheer', { seconds: 1.2 });
   playSound('play-go');
-  flow.set({ quietUntil: performance.now() + 75000 });
+  flow.set({ quietUntil: live.quiet });
   offFrame = registerFrameSystem('w2-kite', step);
   offLayer = registerSceneSystem('w2-kite', KiteLayer);
   keys = holdKeys(['Space', 'KeyE']);
@@ -210,7 +210,14 @@ function finish(g: Live) {
   if (first) setTimeout(() => bubble(KITE_LINES.done, 2600), 2600);
 }
 
+/**
+ * (W8-K8, lane K surgical; W7-W2 review) the round's 75 s quiet ends KITE_QUIET_AFTER ms after the round does — an early
+ * 不玩了 or walking off left BAYBAY's idle chatter waiting up to 75 s; a later activity's own quiet is left alone
+ */
+export const KITE_QUIET_AFTER = 8000;
+
 function cleanup() {
+  if (live && flow.get().quietUntil === live.quiet) flow.set({ quietUntil: Math.min(live.quiet, performance.now() + KITE_QUIET_AFTER) });
   offFrame?.(); offFrame = null;
   keys?.off(); keys = null;
   hideChip(KITE_ID);
