@@ -148,6 +148,10 @@ export default function GripPanel() {
   const scoreRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // (W8-M-review) while the grip runs, the ride banner's pad row steps out (sfgames8.css): the bell riff's pad there
+    // started the riff and so ended the grip with nothing paid (M-RP-1)
+    const root = document.documentElement;
+    root.classList.add('ob-grip-on');
     let id = 0;
     const frame = (now: number) => {
       const cv = canvasRef.current, gg = gripGame();
@@ -162,7 +166,7 @@ export default function GripPanel() {
       id = requestAnimationFrame(frame);
     };
     id = requestAnimationFrame(frame);
-    return () => { cancelAnimationFrame(id); setGripHold(false); };
+    return () => { cancelAnimationFrame(id); setGripHold(false); root.classList.remove('ob-grip-on'); };
   }, []);
 
   if (!g) return null;

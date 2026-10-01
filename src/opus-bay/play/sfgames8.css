@@ -76,3 +76,6 @@
 @media (min-width: 1000px) {
   .ob-overlay.has-sheet .ob-sfg-panel:is(.is-grip, .is-busk, .is-fog) { right: calc(var(--ob-sheet-w, 452px) + 88px); }
 }
+/* (W8-M-review, M-RP-1) while the grip runs (GripPanel sets .ob-grip-on on the root), the ride banner's pad row steps out:
+   the bell riff's pad there started the riff and so ended the grip with nothing paid (play/zones.ts stays in its 5 KB) */
+.ob-grip-on .ob-ride-pads { display: none !important; } /* !important: the row's display is an inline style (ui/RideBanner.tsx PAD_ROW) */

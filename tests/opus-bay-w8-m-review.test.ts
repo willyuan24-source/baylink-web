@@ -110,12 +110,12 @@ test('W8-M-review ride pads: the bell riff pad hides while the grip runs, the gr
   assert.equal(zones8.gripPadVisible(ride), false, 'a tap on 拉闸 would end the riff');
   assert.equal(zones.bellPadVisible(ride), true, 'the riff keeps its own pad');
   riff!.cancel();
-  // the grip running: no bell pad (its 停 / 铃声对答 would end the grip)
-  const grip = kit.startActivity({ id: 'grip', name: { zh: '拉闸', en: 'Grip' }, better: 'higher' });
-  assert.ok(grip);
-  assert.equal(zones.bellPadVisible(ride), false, 'a tap on 铃声对答 would end the grip');
-  grip!.cancel();
-  assert.equal(zones.bellPadVisible(ride), true);
+  // the grip running: no bell pad (its 停 / 铃声对答 would end the grip) — the grip panel marks the root and the pad row
+  // steps out by CSS (play/zones.ts sits at its 5 KB chunk budget: W5-A1 chunks)
+  const panel = fs.readFileSync(path.join(PLAY, 'GripPanel.tsx'), 'utf8');
+  assert.match(panel, /classList\.add\('ob-grip-on'\)/);
+  assert.match(panel, /classList\.remove\('ob-grip-on'\)/);
+  assert.match(fs.readFileSync(path.join(PLAY, 'sfgames8.css'), 'utf8'), /\.ob-grip-on \.ob-ride-pads\s*\{\s*display:\s*none/);
 });
 
 test('W8-M-review busker canvas: no unguarded roundRect (iOS 15 has none: the drawing loop died on its first frame)', () => {
