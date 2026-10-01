@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
@@ -42,13 +43,13 @@ export const CRAB_SPOT: GameSpot = { x: 73.6, z: -24.3, r: 1.6 };
  */
 export const DOUGH_SPOT: GameSpot = { x: -193.4, z: 66.4, r: 1.6 };
 
-const ClawPanel = lazy(() => importRetry(() => import('./ClawPanel')));
-const CrabPanel = lazy(() => importRetry(() => import('./CrabPanel')));
+const ClawPanel = lazyChunk(() => importRetry(() => import('./ClawPanel')));
+const CrabPanel = lazyChunk(() => importRetry(() => import('./CrabPanel')));
 const CrabSlot = () => createElement(Suspense, { fallback: null }, createElement(CrabPanel));
-const DoughPanel = lazy(() => importRetry(() => import('./DoughPanel')));
+const DoughPanel = lazyChunk(() => importRetry(() => import('./DoughPanel')));
 const DoughSlot = () => createElement(Suspense, { fallback: null }, createElement(DoughPanel));
 const ClawSlot = () => createElement(Suspense, { fallback: null }, createElement(ClawPanel));
-const FortunePanel = lazy(() => importRetry(() => import('./FortunePanel')));
+const FortunePanel = lazyChunk(() => importRetry(() => import('./FortunePanel')));
 const FortuneSlot = (p: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(FortunePanel, p));
 
 const CLAW_VERB: Bilingual = { zh: '抓娃娃', en: 'Try the claw' };

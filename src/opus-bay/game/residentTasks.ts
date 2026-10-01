@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazyChunk } from './lazyChunk';
 import type { MoveMode } from '../core/store';
 import { playSound } from '../audio/hooks';
 import { emit, onEvent } from '../core/events';
@@ -60,7 +60,7 @@ export const LETTER_GAP_MS = 20_000;
 export const RIFF_NEAR = 6;
 export const RIFF_GAP_MS = 240_000;
 export const LETTER_OVERLAY = 'c-letter';
-const Letter = lazy(() => importRetry(() => import('../ui/Letter')));
+const Letter = lazyChunk(() => importRetry(() => import('../ui/Letter')));
 
 /** Ways of getting somewhere that count as going yourself (not the pelican, fast travel or a transit car). */
 const OWN_WAY: ReadonlySet<MoveMode> = new Set<MoveMode>(['foot', 'sit', 'bike', 'car', 'photo']);

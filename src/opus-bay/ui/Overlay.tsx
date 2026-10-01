@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useSyncExternalStore, type CSSProperties } from 'react';
+import { Suspense, useEffect, useSyncExternalStore, type CSSProperties } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import { loadCatalog } from '../data/catalog';
@@ -18,7 +19,7 @@ import { useIsMobile } from './hooks';
 import { loadGuideLayer, loadMoveChip, loadRideBanner } from './lazyParts';
 import { lazyPart, loadPlayParts } from './playLayer';
 import { afterFirstFrame } from '../game/firstFrame';
-import { importRetry } from '../game/importRetry';
+import { importRetry, quietly } from '../game/importRetry';
 import { closeOverlay, closeTopOverlay, openOverlays, overlays, subscribeOverlays } from './slots';
 
 // W6-P1 (lane P, MF9): the parts that render in play (and the toasts / live regions) are one chunk (ui/playParts.tsx), fetched as soon as GameRoot
@@ -50,16 +51,16 @@ const loadMap = () => importRetry(() => import('./MapPanel'));
 const loadJournal = () => importRetry(() => import('./Journal'));
 const loadWeek = () => importRetry(() => import('./WeekPanel'));
 const loadSettings = () => importRetry(() => import('./Settings'));
-const MapPanel = lazy(() => loadMap().then(m => ({ default: m.MapPanel })));
-const Journal = lazy(() => loadJournal().then(m => ({ default: m.Journal })));
-const WeekPanel = lazy(() => loadWeek().then(m => ({ default: m.WeekPanel })));
-const SettingsPanel = lazy(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
+const MapPanel = lazyChunk(() => loadMap().then(m => ({ default: m.MapPanel })));
+const Journal = lazyChunk(() => loadJournal().then(m => ({ default: m.Journal })));
+const WeekPanel = lazyChunk(() => loadWeek().then(m => ({ default: m.WeekPanel })));
+const SettingsPanel = lazyChunk(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
 // wave 4 · lane T: the subway overlay, only during a Muni Metro ride (its own chunk)
-const LineRideLayer = lazy(() => importRetry(() => import('./LineRideLayer')));
+const LineRideLayer = lazyChunk(() => importRetry(() => import('./LineRideLayer')));
 // Wave 4 · lane G's city guidance on screen (arrival toast and card, panorama tags, trip card): city mode only
-const GuideOverlay = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideOverlay })));
-const GuideToasts = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideToasts })));
-const GuideLeadChip = lazy(() => loadGuideLayer().then(m => ({ default: m.GuideLeadChip })));
+const GuideOverlay = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.GuideOverlay })));
+const GuideToasts = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.GuideToasts })));
+const GuideLeadChip = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.GuideLeadChip })));
 
 /**
  * All DOM UI over the canvas. The title screen is not here: OpusBayPage owns it (it paints before this chunk
@@ -199,7 +200,11 @@ function usePrefetchPanels() {
   const playing = useGame(s => s.phase === 'playing');
   useEffect(() => {
     if (!playing) return;
-    const id = window.setTimeout(() => { void loadMap(); void loadJournal(); void loadWeek(); void loadSettings(); void loadRideBanner(); void loadMoveChip(); }, 4000);
+    // (W8-P-review, P-RP-3) quietly, and caught: a prefetch lost in a tunnel pops no reload card over play (the press that
+    // needs the panel asks again, loudly) and throws no unhandled rejection
+    const id = window.setTimeout(() => {
+      quietly(() => { for (const load of [loadMap, loadJournal, loadWeek, loadSettings, loadRideBanner, loadMoveChip]) void load().catch(() => {}); });
+    }, 4000);
     return () => window.clearTimeout(id);
   }, [playing]);
 }

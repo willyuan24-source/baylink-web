@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { useGame } from '../core/store';
 import { useFlow } from '../game/flowStore';
 import { registerAnchor } from '../game/projector';
@@ -15,7 +16,7 @@ import { importRetry } from '../game/importRetry';
  * device, so GameRoot does not carry it on every later visit (it keeps GameRoot within its size while the city
  * guidance glue comes in).
  */
-const CoachMarkBody = lazy(() => importRetry(() => import('./CoachMarkBody')));
+const CoachMarkBody = lazyChunk(() => importRetry(() => import('./CoachMarkBody')));
 
 export function CoachMark() {
   const [due] = useState(() => !coachSeen());

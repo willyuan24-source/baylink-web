@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { autoGliding, glideUnlocked } from '../actors/moveApi';
 import { playSound } from '../audio/hooks';
 import { emit, onEvent } from '../core/events';
@@ -326,7 +327,7 @@ function teardown() {
 
 // --- the chip (lazy) ------------------------------------------------------------------------------------------------
 
-const FlightChip = lazy(() => importRetry(() => import('./FlightChip')));
+const FlightChip = lazyChunk(() => importRetry(() => import('./FlightChip')));
 function FlightChipSlot() {
   return createElement(Suspense, { fallback: null }, createElement(FlightChip));
 }

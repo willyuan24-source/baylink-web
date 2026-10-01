@@ -24,6 +24,18 @@
  *     dependencies* was lost — Chrome names the importing chunk, and `?retry=n` of it imports the same failed dependency
  *     URL again: only a reload brings it back) tells `onChunkLost` listeners: game/chunkLost.ts shows the reload card.
  *     `quiet: true` (a prefetch nobody waits for) tells nobody.
+ *
+ * W8-P-review (Ultra) · three holes closed:
+ *
+ *   - (P-RP-2) each retry asks for a `?retry=n` the page has never asked for: `n` counts on per URL across chains (a
+ *     chain that failed left its `?retry=1..3` failed in Chrome's module map for good, so a later chain — the network
+ *     back, 先继续玩, the panel opened again — used to fail on the very same three URLs and the part stayed dead);
+ *   - (P-RC-2) an error that already names a `?retry=` URL is another chain's last word (a top-level await of an
+ *     importRetry inside the module `load` imports — data/sf/cityData.ts): it is thrown on, never "retried" under a
+ *     URL that is not the module `load` imports (that resolved the data chunk as GameRoot when it landed);
+ *   - (P-RC-5) `quietly(() => …)`: every importRetry started synchronously inside it is `quiet` (the prefetches:
+ *     ui/Overlay.tsx's panels, play/zones.ts zonePrefetch) — a speculative fetch lost in a tunnel no longer pops the
+ *     reload card over play; the press that needs the part asks loudly, on a fresh URL.
  */
 
 /** waits before each retry (ms) */
@@ -52,6 +64,12 @@ export function failedCssUrl(e: unknown): string | null {
   const msg = e instanceof Error ? e.message : String(e);
   const m = /Unable to preload CSS for (\S+?\.css)(?:\?\S*)?(?=\s|$)/.exec(msg);
   return m ? m[1] : null;
+}
+
+/** (W8-P-review, P-RC-2) The browser's error names a `?retry=` URL: another importRetry chain's final error. */
+export function namesRetriedUrl(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  return /https?:\/\/[^\s'"<>]+?\.(?:m?js|tsx?|css)\?(?:[^\s'"<>]*&)?retry=\d/.test(msg);
 }
 
 /** `url` with `retry=n` in its query (so the module map treats it as a new module). */
@@ -90,6 +108,22 @@ export interface LostChunk { p: Promise<unknown>; loud: boolean }
 const MEMO = new Map<string, LostChunk>();
 const lostListeners = new Set<(e: unknown) => void>();
 let lostCount = 0;
+/** (W8-P-review, P-RP-2) the last `?retry=n` asked for, per URL, per memo table: a new chain never reuses a failed URL */
+const BUSTS = new WeakMap<Map<string, LostChunk>, Map<string, number>>();
+function nextBust(memo: Map<string, LostChunk>, url: string): number {
+  let t = BUSTS.get(memo);
+  if (!t) BUSTS.set(memo, t = new Map());
+  const n = (t.get(url) ?? 0) + 1;
+  t.set(url, n);
+  return n;
+}
+/** (W8-P-review, P-RC-5) > 0 while a `quietly` callback runs */
+let quietDepth = 0;
+/** Every importRetry started synchronously inside `fn` is `quiet` (a prefetch nobody waits for). Returns fn's value. */
+export function quietly<T>(fn: () => T): T {
+  quietDepth++;
+  try { return fn(); } finally { quietDepth--; }
+}
 
 /** (W8-P5) Called once per chunk still lost after every retry (not for `quiet` loads). Returns the unsubscribe. */
 export function onChunkLost(fn: (e: unknown) => void): () => void {
@@ -108,6 +142,7 @@ function lost(e: unknown, quiet: boolean | undefined): void {
 export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<T> = {}): Promise<T> {
   const waits = opts.waits ?? RETRY_MS, sleep = opts.sleep ?? wait, importUrl = opts.importUrl ?? nativeImport<T>, loadCss = opts.loadCss ?? nativeCss;
   const memo = opts.memo ?? MEMO;
+  const quiet = opts.quiet ?? quietDepth > 0; // read before the first await: `quietly` is synchronous
   let first: unknown;
   try {
     return await load();
@@ -115,6 +150,8 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
     first = e;
   }
   if (!isLoadFailure(first)) throw first;
+  // (P-RC-2) a nested chain already retried (and told the listeners): not ours to retry under its URL
+  if (namesRetriedUrl(first)) throw first;
   const retry = async (): Promise<T> => {
     let last: unknown = first;
     for (let n = 1; n <= waits.length; n++) {
@@ -123,8 +160,8 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
       const css = failedCssUrl(last), url = css ? null : failedModuleUrl(last);
       try {
         // (W7-P-review) a lost stylesheet first, under a new URL; then the chunk (the helper skips a CSS it has seen)
-        if (css) { await loadCss(bustUrl(css, n)); return await load(); }
-        return url ? await importUrl(bustUrl(url, n)) : await load();
+        if (css) { await loadCss(bustUrl(css, nextBust(memo, css))); return await load(); }
+        return url ? await importUrl(bustUrl(url, nextBust(memo, url))) : await load();
       } catch (e) { last = e; }
     }
     throw last;
@@ -133,8 +170,8 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
   const key = failedCssUrl(first) ? null : failedModuleUrl(first);
   if (key) {
     const known = memo.get(key);
-    if (known) { known.loud ||= !opts.quiet; return known.p as Promise<T>; }
-    const entry: LostChunk = { p: retry(), loud: !opts.quiet };
+    if (known) { known.loud ||= !quiet; return known.p as Promise<T>; }
+    const entry: LostChunk = { p: retry(), loud: !quiet };
     memo.set(key, entry);
     entry.p.catch((e: unknown) => { if (memo.get(key) === entry) memo.delete(key); if (isLoadFailure(e)) lost(e, !entry.loud); });
     return entry.p as Promise<T>;
@@ -142,7 +179,7 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
   try {
     return await retry();
   } catch (e) {
-    if (isLoadFailure(e)) lost(e, opts.quiet);
+    if (isLoadFailure(e)) lost(e, quiet);
     throw e;
   }
 }

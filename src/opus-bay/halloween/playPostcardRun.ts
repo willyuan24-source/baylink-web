@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { emit } from '../core/events';
 import { game } from '../core/store';
 import { isPaid, subscribeLedger } from '../economy/ledger';
@@ -28,7 +28,7 @@ export const CARD_QUIET = 0.8;
 export const CARD_MAX_WAIT = 14;
 const TICK = 0.25;
 
-const HalloweenPostcardCard = lazy(() => importRetry(() => import('./playPostcardCard')));
+const HalloweenPostcardCard = lazyChunk(() => importRetry(() => import('./playPostcardCard')));
 
 interface Pending { id: string; at: number }
 

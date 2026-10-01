@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazyChunk } from './lazyChunk';
 import { game } from '../core/store';
 import { CITY_GOAL, GOALS_STEP_ID, GOALS_STEP_SEEN } from '../data/sf/goals';
 import { registerOverlay } from '../ui/slots';
@@ -32,7 +32,7 @@ const load = () => importRetry(() => import('../ui/GoalsStep'));
  * Building while the trip it started showed the carried time).
  */
 export const goalsStepEta = (d: number) => timeLabel(autoTravelSeconds(d * STREET_FACTOR));
-const GoalsStep = lazy(load);
+const GoalsStep = lazyChunk(load);
 
 export function initGoalsStep(): () => void {
   if (!game.get().goalsDone.includes(GOALS_STEP_SEEN)) void load().catch(() => { /* offline: it loads when it opens */ });

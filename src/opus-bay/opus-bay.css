@@ -1319,6 +1319,7 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 .ob-gl-lost-card { max-width: 320px; padding: 20px 20px 18px; border-radius: var(--ob-r-l); background: var(--ob-cream); box-shadow: var(--ob-shadow); text-align: center; display: grid; gap: 10px; justify-items: center; }
 .ob-gl-lost-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--ob-ink); }
 .ob-gl-lost-body { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ob-ink-2); }
+.ob-chunk-lost:focus { outline: none; } /* W8-P-review: the card itself takes focus (Space / Enter stay the game's) */
 .ob-gl-lost-btn { min-height: 44px; min-width: 140px; margin-top: 4px; }
 
 /* ---------- W7-Q5 · iPhone landscape with Safari's bars (667 × 320 on an SE, 844 × 340 on an iPhone 12–15) ---------- */

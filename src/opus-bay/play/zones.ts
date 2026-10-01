@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { autoGliding, glideUnlocked } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
@@ -20,7 +21,7 @@ import { GGB_ID, GGB_INVITE_R, GGB_LINES, GGB_MID, GGB_NEAR } from './ggbRings';
 import { bestOf, currentActivity, saveNumber } from './kit';
 import { ensurePlaySounds2 } from './sounds2';
 import { courseFoot, courseTop, STAIR_COURSES, STEPS_PER_U } from './stairCourses';
-import { importRetry } from '../game/importRetry';
+import { importRetry, quietly } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · the activity zones (play/index.ts loads this chunk at init, city mode only): what is always there
@@ -165,9 +166,9 @@ export function sayWhenQuiet(line: Bilingual, delay: number, ms = 3600) {
 
 // --- the chip and the pad -----------------------------------------------------------------------------------------------
 
-const PlayChip = lazy(() => importRetry(() => import('./PlayChip')));
+const PlayChip = lazyChunk(() => importRetry(() => import('./PlayChip')));
 const ChipSlot = () => createElement(Suspense, { fallback: null }, createElement(PlayChip));
-const BellPad = lazy(() => importRetry(() => import('./BellPad')));
+const BellPad = lazyChunk(() => importRetry(() => import('./BellPad')));
 type PadProps = { ride: import('../game/flowStore').FlowRide };
 const PadSlot = ({ ride }: PadProps) => createElement(Suspense, { fallback: null }, createElement(BellPad, { ride }));
 
@@ -192,8 +193,8 @@ export function zoneInvite(key: string, line: Bilingual) {
   invited.set(key, runtime.time);
   bubble(line, 3600, undefined, 'call');
 }
-/** Fetch an activity chunk once (again after a failed fetch). */
-export function zonePrefetch(key: string, load: () => Promise<unknown>) { if (!fetched.has(key)) { fetched.add(key); void load().catch(() => fetched.delete(key)); } }
+/** Fetch an activity chunk once (again after a failed fetch). Quietly (W8-P-review P-RC-5): a walk past asked for nothing. */
+export function zonePrefetch(key: string, load: () => Promise<unknown>) { if (!fetched.has(key)) { fetched.add(key); void quietly(load).catch(() => fetched.delete(key)); } }
 
 export function initZones(): () => void {
   const offs: (() => void)[] = [];

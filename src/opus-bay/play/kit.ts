@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { audioNow, playSound } from '../audio/hooks';
 import { emit, onEvent, REWARD_SOURCE } from '../core/events';
 import { runtime } from '../core/runtime';
@@ -294,7 +295,7 @@ export interface ResultProps {
 }
 
 export const RESULT_OVERLAY = 'play-result';
-const ResultCard = lazy(() => importRetry(() => import('./ResultCard')));
+const ResultCard = lazyChunk(() => importRetry(() => import('./ResultCard')));
 const ResultSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(ResultCard, { props: props as ResultProps, close }));
 
 let resultOff: (() => void) | null = null;

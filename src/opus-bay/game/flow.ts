@@ -1697,7 +1697,8 @@ export const tripRunnerReady = () => !!tripRunner;
 export function startTrip(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   if (tripRunner) { tripRunner.start(option, dest, source); return; }
   if (game.get().worldMode !== 'city') return;
-  void import('./tripRun').then(m => { m.initTripRun(); tripRunner?.start(option, dest, source); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay trips]', e); });
+  // (W8-P-review, P-RC-4) through importRetry like every lazy chunk: a lost tripRun request no longer makes the trip a no-op
+  void importRetry(() => import('./tripRun')).then(m => { m.initTripRun(); tripRunner?.start(option, dest, source); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay trips]', e); });
 }
 /** The guide brain (on foot, free to lead): the running trip leads BAYBAY this tick (true), or nothing does. */
 export function tripGuide(now: number): boolean { return !!flow.get().trip && !!tripRunner?.guide(now); }

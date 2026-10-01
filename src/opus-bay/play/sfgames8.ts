@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
@@ -100,13 +101,13 @@ const onPowell = (r: Pick<FlowRide, 'kind' | 'line'> | null) => !!r && r.kind ==
  */
 export const gripPadVisible = (r: FlowRide) => onPowell(r) && r.stage !== 'waiting' && !currentActivity() && !openOverlays().some(o => o.id === 'play-grip');
 
-const GripPanel = lazy(() => importRetry(() => import('./GripPanel')));
+const GripPanel = lazyChunk(() => importRetry(() => import('./GripPanel')));
 const GripSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPanel));
-const GripPad = lazy(() => importRetry(() => import('./GripPad')));
+const GripPad = lazyChunk(() => importRetry(() => import('./GripPad')));
 const GripPadSlot = () => createElement(Suspense, { fallback: null }, createElement(GripPad));
-const BuskPanel = lazy(() => importRetry(() => import('./BuskPanel')));
+const BuskPanel = lazyChunk(() => importRetry(() => import('./BuskPanel')));
 const BuskSlot = () => createElement(Suspense, { fallback: null }, createElement(BuskPanel));
-const FogPanel = lazy(() => importRetry(() => import('./FogPanel')));
+const FogPanel = lazyChunk(() => importRetry(() => import('./FogPanel')));
 const FogSlot = () => createElement(Suspense, { fallback: null }, createElement(FogPanel));
 
 /** BAYBAY's grip invite: this long into a Powell ride, once a visit (s) */

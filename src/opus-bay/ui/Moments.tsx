@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { Aperture, Check, Download, HandHeart, Images, Mail, Sparkles, X } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, tourIdOf, useGame } from '../core/store';
@@ -264,9 +265,9 @@ function FavoursMini({ done }: { done: readonly string[] }) {
 // ---------------------------------------------------------------------------
 
 /** Wave 4 · lane C: the Grand Tour's recap (lazy with the tour data; ui/CityTourRecap.tsx → ui/TourRecap.tsx). */
-const CityTourRecap = lazy(() => importRetry(() => import('./CityTourRecap')));
+const CityTourRecap = lazyChunk(() => importRetry(() => import('./CityTourRecap')));
 /** The first lesson's recap, lazy too (it opens once, at the end of the tour). */
-const DistrictRecap = lazy(() => importRetry(() => import('./DistrictRecap')));
+const DistrictRecap = lazyChunk(() => importRetry(() => import('./DistrictRecap')));
 
 /** The recap panel: the first lesson's, or a city tour's when `game.tour` holds one (tour.id). */
 export function Recap() {

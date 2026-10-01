@@ -1,4 +1,5 @@
-import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { BookOpen, CalendarPlus, ChevronDown, Info, LocateFixed, Lock, Maximize2, Navigation } from 'lucide-react';
 import { runtime } from '../core/runtime';
 import { useGame } from '../core/store';
@@ -49,7 +50,7 @@ function jitter(id: string, amount: number): Vec2 {
   return { x: ((h & 0xff) / 255 - 0.5) * amount, z: (((h >> 8) & 0xff) / 255 - 0.5) * amount };
 }
 
-const CityMapPanel = lazy(() => importRetry(() => import('./CityMap')).then(m => ({ default: m.CityMapPanel })));
+const CityMapPanel = lazyChunk(() => importRetry(() => import('./CityMap')).then(m => ({ default: m.CityMapPanel })));
 
 /** City mode: the whole-city map (ui/CityMap.tsx, lane G1); district mode: the waterfront map below, unchanged. */
 export function MapPanel() {

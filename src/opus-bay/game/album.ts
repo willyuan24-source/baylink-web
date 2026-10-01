@@ -1,4 +1,5 @@
-import { createElement, lazy } from 'react';
+import { createElement } from 'react';
+import { lazyChunk } from './lazyChunk';
 import { Images } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import { registerMoreItem, registerOverlay, openOverlay } from '../ui/slots';
@@ -262,7 +263,7 @@ export function resetAlbumForTests(opts: { idb?: boolean; openTimeoutMs?: number
   persistAsked = false; albumPersisted = null;
 }
 
-const Album = lazy(() => importRetry(() => import('../ui/Album')));
+const Album = lazyChunk(() => importRetry(() => import('../ui/Album')));
 const AlbumIcon = () => createElement(Images, { size: 18, 'aria-hidden': true });
 
 /** The city chunk's boot: the 相册 More item and the overlay. Returns the disposer. */

@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { canStand, heightAt } from '../core/terrain';
@@ -21,7 +22,7 @@ import { importRetry } from '../game/importRetry';
  */
 
 /** the card (and its CSS) loads on the first E at a sign, not with the realsf chunk */
-const LazyCard = lazy(() => importRetry(() => import('./OpeningCard')));
+const LazyCard = lazyChunk(() => importRetry(() => import('./OpeningCard')));
 const OpeningCardSlot = (p: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(LazyCard, p));
 
 export interface Openings {

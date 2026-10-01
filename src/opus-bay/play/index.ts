@@ -1,5 +1,6 @@
 import { Heart, Smile } from 'lucide-react';
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { charApi } from '../actors/charApi';
 import { glideUnlocked, subscribeGlide } from '../actors/moveApi';
 import { emit, onEvent } from '../core/events';
@@ -41,7 +42,7 @@ import { importRetry } from '../game/importRetry';
  */
 
 const WHEEL_OVERLAY = 'play-emotes';
-const EmoteWheel = lazy(() => importRetry(() => import('./EmoteWheel')));
+const EmoteWheel = lazyChunk(() => importRetry(() => import('./EmoteWheel')));
 const WheelSlot = ({ close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(EmoteWheel, { close }));
 
 /** 坐下 is offered after standing still this long (s) on these surfaces, when nothing else is in reach. */

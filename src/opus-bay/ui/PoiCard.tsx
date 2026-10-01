@@ -1,4 +1,5 @@
-import { lazy, Suspense, useSyncExternalStore } from 'react';
+import { Suspense, useSyncExternalStore } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { placeCardTarget } from '../data/sf/cityPois';
 import { onPlaces, placeById as cityPlaceById, placeIndex } from '../data/sf/places';
 import { poiById } from '../game/interactables';
@@ -22,9 +23,9 @@ export function PoiCard({ id }: { id?: string }) {
   return <Suspense fallback={null}><PlaceCard place={target.place} /></Suspense>;
 }
 const loadBody = () => importRetry(() => import('./PoiCardBody'));
-const PoiCardBody = lazy(loadBody);
+const PoiCardBody = lazyChunk(loadBody);
 /** Wave 4 · lane C: the generic place card is city-only, so it loads with its first use (not in the main graph). */
-const PlaceCard = lazy(() => importRetry(() => import('./PlaceCard')));
+const PlaceCard = lazyChunk(() => importRetry(() => import('./PlaceCard')));
 const subscribePlaces = (fn: () => void) => onPlaces(() => fn());
 
 // the browser fetches the card body once the game is up (never in node tests: no vite env there)

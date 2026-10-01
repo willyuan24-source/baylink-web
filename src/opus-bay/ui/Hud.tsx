@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Suspense, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { BookOpen, Camera, ChevronRight, Ellipsis, Map as MapIcon, MapPin, Route, Settings, Sparkles } from 'lucide-react';
 import { glideUnlocked, subscribeGlide } from '../actors/moveApi';
 import { game, useGame } from '../core/store';
@@ -38,7 +39,7 @@ export function Hud() {
 }
 
 /** The city's area pill (neighbourhood + street, lane G1's G1-9): in the city-only guide chunk (ui/GuideLayer.tsx). */
-const CityAreaLabel = lazy(() => loadGuideLayer().then(m => ({ default: m.CityAreaLabel })));
+const CityAreaLabel = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.CityAreaLabel })));
 
 function AreaLabel() {
   const city = useGame(s => s.worldMode === 'city');
@@ -66,9 +67,9 @@ function DistrictAreaLabel() {
 }
 
 /** Wave 4 · lane G's trip pill (ui/GuideLayer.tsx, a city-only lazy chunk: the district never fetches it). */
-const TripPillSlot = lazy(() => loadGuideLayer().then(m => ({ default: m.TripPillSlot })));
+const TripPillSlot = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.TripPillSlot })));
 /** …and the Grand Tour's pill between its stops (lane C's tourPill; the same city-only chunk). */
-const CityTourPill = lazy(() => loadGuideLayer().then(m => ({ default: m.CityTourPill })));
+const CityTourPill = lazyChunk(() => loadGuideLayer().then(m => ({ default: m.CityTourPill })));
 
 function Objective() {
   const { t } = useT();
@@ -352,8 +353,8 @@ function PhoneBar() {
  * first ride / vehicle / glide (and prefetched a few seconds into play by the Overlay): GameRoot does not carry them
  * (wave 4 integration, lane G: room for the city guidance glue within GameRoot's size).
  */
-const RideBannerBody = lazy(loadRideBanner);
-const MoveChipBody = lazy(() => loadMoveChip().then(m => ({ default: m.MoveChip })));
+const RideBannerBody = lazyChunk(loadRideBanner);
+const MoveChipBody = lazyChunk(() => loadMoveChip().then(m => ({ default: m.MoveChip })));
 
 /** The ride banner (line, destination, 提前下车 / 直接到站): rendered in the Overlay's top stack. */
 export function RideBanner() {

@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import { REGION_LABELS, categoryLabel, eventById, eventSpot, goToEvent, nextShowing, useCatalog } from '../data/catalog';
@@ -12,7 +13,7 @@ import { formatDay, joinPlace } from './format';
 import { importRetry } from '../game/importRetry';
 
 /** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
-const HowToGo = lazy(() => importRetry(() => import('../realsf/HowToGo')));
+const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
 
 /** One live BAYLINK event (only ids from /planner-catalog.json). */
 export default function EventCardBody({ id }: { id?: string }) {

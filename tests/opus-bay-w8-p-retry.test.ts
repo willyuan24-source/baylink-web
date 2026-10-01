@@ -124,17 +124,22 @@ test('W8-P5: every relative dynamic import() in src/opus-bay loads through impor
   const root = path.resolve('src/opus-bay');
   // not wrapped on purpose: the helper itself; the frozen feature index (game/w5Features.ts, the lead's: sf-w8-P.md
   // Requests); the tiny goTo hook (type imports only, tests/opus-bay-w5-nav.test.ts W5-N1)
-  const EXEMPT = new Set(['game/importRetry.ts', 'game/w5Features.ts', 'game/goTo.ts']);
+  // (W8-P-review, P-RC-1) and OpusBayPage's GameRoot: the chunk the others import their shared modules from — a retried
+  // GameRoot is a second instance they never see (tests/opus-bay-w8-p-review.test.ts)
+  const EXEMPT = new Set(['game/importRetry.ts', 'game/w5Features.ts', 'game/goTo.ts', 'OpusBayPage.tsx']);
   const files: string[] = [];
   (function walk(d: string) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.tsx?$/.test(e.name)) files.push(p); } })(root);
   const bare: string[] = [];
+  // (W8-P-review, P-RC-4) node-only loads (tests, QA scripts) — not every line that mentions import.meta.env (that hid
+  // game/flow.ts startTrip's bare import('./tripRun'), a production load)
+  const NODE_ONLY = /^\s*if \(\(import\.meta\.env as object \| undefined\) === undefined\)/;
   const RE = /(?<!importRetry\(\(\) => )(?<!typeof )\bimport\((['"])(\.{1,2}\/[^'"]+)\1\)/g;
   for (const f of files) {
     const rel = path.relative(root, f).split(path.sep).join('/');
     if (EXEMPT.has(rel)) continue;
     fs.readFileSync(f, 'utf8').split(/\r?\n/).forEach((line, i) => {
       const t = line.trimStart();
-      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*') || line.includes('__opusBay') || line.includes('import.meta.env') || /^\s*(export\s+)?type\s/.test(line)) return;
+      if (t.startsWith('//') || t.startsWith('*') || t.startsWith('/*') || line.includes('__opusBay') || NODE_ONLY.test(line) || /^\s*(export\s+)?type\s/.test(line)) return;
       for (const m of line.matchAll(RE)) {
         const after = line.slice((m.index ?? 0) + m[0].length);
         if (/^\.(?!then\b|catch\b|finally\b)[A-Za-z_]/.test(after)) continue; // a type position: import('./x').Name

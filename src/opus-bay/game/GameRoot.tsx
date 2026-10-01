@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { lazyChunk } from './lazyChunk';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
@@ -19,7 +20,7 @@ const DPR: Record<string, number> = { high: 1.5, mid: 1.25, low: 1 };
 const FAR = { district: 1600, city: 3000 } as const;
 
 /** ?solo=<landmarkId> — landmark turntable for QA instead of the game (world/sf/landmarks/SoloView.tsx) */
-const SoloView = lazy(() => importRetry(() => import('../world/sf/landmarks/SoloView')));
+const SoloView = lazyChunk(() => importRetry(() => import('../world/sf/landmarks/SoloView')));
 function readSolo(): string | null {
   try { const v = new URLSearchParams(location.search).get('solo'); return v && /^[a-z0-9-]{1,64}$/i.test(v) ? v : null; } catch { return null; }
 }

@@ -16,7 +16,8 @@
  *   economy/hints.ts   registerHintSource(kind, fn) · hintTarget(kind, from)
  * and emit `{ type: 'reward', source, coins }` (core/events) to be paid.
  */
-import { createElement, lazy } from 'react';
+import { createElement } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { NotebookPen } from 'lucide-react';
 import { registerJournalTab, registerOverlay, registerPillBadge } from '../ui/slots';
 import { CoinBadge } from './CoinBadge';
@@ -27,8 +28,8 @@ import { importRetry } from '../game/importRetry';
 /** Lane A's PlayKit looks for this export (play/kit.ts writeBest): an activity best into save v2 `play.b`. */
 export const recordBest = (key: string, value: number): void => { ledger.recordBest(key, value); };
 
-const ShopSheet = lazy(() => importRetry(() => import('./Shop')).then(m => ({ default: m.ShopSheet })));
-const TicketPicker = lazy(() => importRetry(() => import('./Shop')).then(m => ({ default: m.TicketPicker })));
+const ShopSheet = lazyChunk(() => importRetry(() => import('./Shop')).then(m => ({ default: m.ShopSheet })));
+const TicketPicker = lazyChunk(() => importRetry(() => import('./Shop')).then(m => ({ default: m.TicketPicker })));
 const NotebookIcon = () => createElement(NotebookPen, { size: 16, 'aria-hidden': true });
 
 export function init(): () => void {

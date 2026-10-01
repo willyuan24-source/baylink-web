@@ -34,6 +34,7 @@ export function showChunkLostCard(doc: Document = document, reload: () => void =
   el.className = 'ob-gl-lost ob-chunk-lost';
   el.setAttribute('role', 'alertdialog');
   el.setAttribute('aria-live', 'assertive');
+  el.tabIndex = -1;
   const box = doc.createElement('div');
   box.className = 'ob-gl-lost-card';
   const h = doc.createElement('p');
@@ -56,7 +57,9 @@ export function showChunkLostCard(doc: Document = document, reload: () => void =
   el.append(box);
   (doc.querySelector('.ob-page') ?? doc.body).append(el);
   card = el;
-  try { b.focus({ preventScroll: true }); } catch { /* ignore */ }
+  // (W8-P-review, P-RC-3) the card takes focus, not 重新载入: the game runs on under it, and core/input.ts leaves Space /
+  // Enter on a focused button to the button — a jump or an interact pressed after the card appeared reloaded the page
+  try { el.focus({ preventScroll: true }); } catch { /* ignore */ }
   return true;
 }
 

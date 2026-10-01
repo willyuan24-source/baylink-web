@@ -1,5 +1,6 @@
 import { Disc, Volleyball } from 'lucide-react';
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { canStand, heightAt, surfaceAt } from '../core/terrain';
@@ -120,7 +121,7 @@ export function placeHeave(tt: { id: string; x: number; z: number } | null): boo
 
 export const SNAP_OVERLAY = 'play-snap';
 export const CREST_HINT: Bilingual = { zh: '前面坡顶插着小旗，开快点冲过去能飞起来！', en: 'Pennants on the crest ahead — go fast and we’ll fly!' };
-const CrestSnap = lazy(() => importRetry(() => import('./CrestSnap')));
+const CrestSnap = lazyChunk(() => importRetry(() => import('./CrestSnap')));
 const SnapSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(CrestSnap, { props, close }));
 /** A crest near the player for the pennants (u) and for BAYBAY's hint while riding (u). */
 export const CREST_NEAR = 160, CREST_HINT_R = 60;
@@ -143,7 +144,7 @@ export const lionIt: Interactable = {
   x: LION_SPOT.x, z: LION_SPOT.z, radius: LION_PROMPT_R,
   act: () => { void importRetry(() => import('./sealions')).then(m => { m.startSeaLions(); }); },
 };
-const SeaLionBadges = lazy(() => importRetry(() => import('./SeaLionBadges')));
+const SeaLionBadges = lazyChunk(() => importRetry(() => import('./SeaLionBadges')));
 const BadgeSlot = () => createElement(Suspense, { fallback: null }, createElement(SeaLionBadges));
 
 // --- frisbee with BAYBAY (W5-A9): 问 BAYBAY → 玩飞盘 on a lawn or a beach ---------------------------------------------
