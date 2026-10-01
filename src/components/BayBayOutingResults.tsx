@@ -5,13 +5,26 @@ import { getStoredUser } from '../lib/session';
 import { bayBayOutingPath, type BayBayOutingSearch } from '../lib/baybay-conversation';
 import { useOutingCopy } from '../features/outings/outing-copy';
 
-type Props = { search: BayBayOutingSearch; onNavigate: (path: string) => void; blockedUserIds?: string[] };
+type Props = { search: BayBayOutingSearch; onNavigate: (path: string) => void; blockedUserIds?: string[]; answer?: string; onAnswer?: (answer: string) => void };
 type Result = { state: 'loading' | 'error' | 'ready' | 'expired'; items: Outing[]; more: boolean };
 const accountScope = () => { const user = getStoredUser(); return `${user?.id || 'guest'}:${user?.token || ''}`; };
 
 export function BayBayOutingResults(props: Props) {
   const { t } = useOutingCopy();
-  if (props.search.state === 'needs_clarification') return <div className="baybay-outing-clarify" translate="no"><Users size={17} aria-hidden="true"/><div><strong>{t('先补充一点，就能查找小队', 'One more detail to find an outing')}</strong><p>{props.search.question}</p><small>{t('直接在下方回答即可，不必重写原来的问题。', 'Reply below; there is no need to repeat your original request.')}</small></div></div>;
+  if (props.search.state === 'needs_clarification') {
+    const answer = props.answer?.trim(), question = props.search.question?.trim();
+    // Keep all explanatory text. If it already contains the prompt, do not repeat it.
+    const normalize = (value: string) => value.replace(/\s+/g, ' ').trim();
+    const answeredPrompt = !!answer && !!question && normalize(answer).includes(normalize(question));
+    const suggestions = props.search.missing.includes('city')
+      ? [{ label:t('全湾区', 'Anywhere in the Bay Area'), reply:t('全湾区都可以。', 'Anywhere in the Bay Area is fine.') }]
+      : props.search.missing.includes('date')
+        ? [{ label:t('本周末', 'This weekend'), reply:t('本周末。', 'This weekend.') }, { label:t('未来7天', 'Next 7 days'), reply:t('未来7天，包含今天。', 'The next 7 days, including today.') }]
+        : [];
+    return <div className="baybay-outing-clarify" translate="no"><Users size={17} aria-hidden="true"/><div><strong>{t('先补充一点，就能查找小队', 'One more detail to find an outing')}</strong>{answer && <p>{answer}</p>}{!answeredPrompt && <p>{question}</p>}<small>{t('直接在下方回答即可，不必重写原来的问题。', 'Reply below; there is no need to repeat your original request.')}</small>
+      {props.onAnswer && suggestions.length > 0 && <div className="baybay-outing-quick-replies" role="group" aria-label={t('快捷回答（点选即发送）', 'Quick replies (select to send)')}><span>{t('点选即发送，也可自己输入', 'Select to send, or type your own answer')}</span><div>{suggestions.map(suggestion => <button type="button" key={suggestion.reply} onClick={() => props.onAnswer?.(suggestion.reply)}>{suggestion.label}</button>)}</div></div>}
+    </div></div>;
+  }
   return <ReadyOutingResults key={JSON.stringify(props.search.filters)} {...props}/>;
 }
 

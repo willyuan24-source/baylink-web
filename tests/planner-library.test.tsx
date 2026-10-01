@@ -22,6 +22,45 @@ const library = (plans: SavedPlan[] = []): Library => ({ ...copy(EMPTY_LIBRARY),
 
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
 
+test('failed initial reads cannot write empty defaults; recovery preserves server preferences and permits write retries', async () => {
+  session('alice'); let failRead = true, failWrite = false;
+  const writes: unknown[] = [], remote = library([plan]);
+  remote.preferences = { regions:['sf'],interests:['culture'],travelMode:'transit' };
+  api.request = async (_path,options) => {
+    if (options?.method) {
+      writes.push(JSON.parse(String(options.body)));
+      if (failWrite) throw new Error('temporary write error');
+      return { preferences:JSON.parse(String(options.body)) };
+    }
+    if (failRead) throw new Error('read unavailable');
+    return copy(remote);
+  };
+  const { result } = renderHook(()=>usePlannerLibrary('alice'));
+  await act(async()=>{});
+  assert.equal(result.current.ready,false);
+  assert.match(result.current.error,/read unavailable/);
+  await act(async()=>{
+    await result.current.savePreferences(EMPTY_LIBRARY.preferences);
+    await result.current.savePlan(input);
+    await result.current.toggleFavorite(stop);
+  });
+  assert.deepEqual(writes,[]);
+  assert.match(result.current.error,/read unavailable/,'blocked mutations must not clear the read failure');
+  failRead = false;
+  await act(async()=>{ await result.current.refresh(); });
+  assert.equal(result.current.ready,true);
+  assert.deepEqual(result.current.data.preferences,remote.preferences);
+  const changed = { ...result.current.data.preferences,regions:['sf','east-bay'] };
+  failWrite = true;
+  await act(async()=>{ await result.current.savePreferences(changed); });
+  assert.equal(result.current.ready,true,'a failed write does not invalidate the earlier confirmed read');
+  assert.deepEqual(result.current.data.plans,[plan]);
+  failWrite = false;
+  await act(async()=>{ await result.current.savePreferences(changed); });
+  assert.deepEqual(result.current.data.preferences,changed);
+  assert.deepEqual(writes,[changed,changed]);
+});
+
 test('corrupt guest JSON and malformed root collections recover to empty, independent defaults', () => {
   for (const raw of ['{broken', 'null', '[]', '"hello"', '{"plans":{},"favorites":[]}', '{"plans":[],"favorites":false}']) {
     localStorage.setItem(GUEST_PLANNER_KEY, raw);

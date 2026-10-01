@@ -166,8 +166,11 @@ test('My Week event card downloads only its displayed confirmed day rather than 
   const view = render(<MemoryRouter><MyWeekPage/></MemoryRouter>);
   await view.findByRole('link', { name: event.title });
   const card = view.getByRole('link', { name: event.title }).closest('article')!;
+  assert.equal(card.querySelector('.week-event-date time')?.getAttribute('datetime'), '2026-10-17');
+  assert.match(card.querySelector('.week-event-date')!.textContent!, /本次日期.*2026-10-17/);
+  assert.match(card.querySelector('.week-event-range')!.textContent!, /活动完整日期/);
   assert.match(card.querySelector('a[href^="/plan?"]')!.getAttribute('href')!, /date=2026-10-17/);
-  fireEvent.click(within(card).getByRole('button', { name: '存入日历' })); assert.equal(blobs.length, 1);
+  fireEvent.click(within(card).getByRole('button', { name: '提醒这一天' })); assert.equal(blobs.length, 1);
   const file = (await blobs[0].text()).replace(/\r\n /g, '');
   assert.equal((file.match(/BEGIN:VEVENT/g) || []).length, 1); assert.match(file, /DTSTART;VALUE=DATE:20261017/);
   assert.equal(file.includes('DTSTART;VALUE=DATE:20261031'), false);

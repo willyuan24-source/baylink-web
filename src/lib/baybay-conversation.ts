@@ -12,7 +12,7 @@ export type GuideChatAction = {
   url?: string; postType?: 'client' | 'provider'; category?: string;
 };
 export type GuideChatResponse = {
-  ok: boolean; answer?: string; error?: string;
+  ok: boolean; answer?: string; error?: string; code?: string;
   suggestedGuides?: { title: string; slug: string; url: string }[];
   suggestedActions?: GuideChatAction[]; safetyNote?: string;
   interactiveCards?: BayBayInteractiveCard[]; matchingPosts?: unknown[];
@@ -22,7 +22,7 @@ export type GuideChatResponse = {
 export type BayBayOutingSearch = {
   source: 'site-search'; state: 'ready' | 'needs_clarification';
   filters: Omit<OutingFilters, 'eventId' | 'cursor'> & { sort: 'soonest' };
-  missing: ('city' | 'date')[]; question?: string;
+  missing: ('city' | 'date')[]; question?: string; continuationToken?: string;
 };
 
 /** Only the server's bounded search contract may initiate a public outing lookup. */
@@ -39,6 +39,7 @@ export function parseBayBayOutingSearch(value: unknown): BayBayOutingSearch {
   if ((filters.date && (filters.dateFrom || filters.dateTo)) || (typeof filters.dateFrom === 'string' && typeof filters.dateTo === 'string' && filters.dateFrom > filters.dateTo)
     || (filters.language !== undefined && !['zh', 'en'].includes(String(filters.language))) || (filters.seats !== undefined && filters.seats !== 'open')
     || (value.question !== undefined && (typeof value.question !== 'string' || !value.question.trim() || value.question.length > 500))
+    || (value.continuationToken !== undefined && (typeof value.continuationToken !== 'string' || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(value.continuationToken) || value.continuationToken.length > 4096))
     || (value.state === 'ready' && value.missing.length) || (value.state === 'needs_clarification' && (!value.missing.length || !value.question))) return fail();
   return value as unknown as BayBayOutingSearch;
 }
@@ -51,10 +52,12 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
-  response?: GuideChatResponse; error?: string; currentPath?: string;
+  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean;
 };
 
 class BayBayServiceError extends Error {}
+class BayBaySearchContextExpiredError extends BayBayServiceError {}
+export const isBayBaySearchContextExpired = (error: unknown): boolean => error instanceof BayBaySearchContextExpiredError;
 
 export function bayBayErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message.trim() : '';
@@ -181,13 +184,14 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
 
 export async function fetchBayBayReply(
   message: string,
-  context: { currentPath: string; categoryHint?: string },
+  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string },
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
   timeoutMs = 25_000,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
-  const requestContext = { ...context, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
+  const { outingSearchToken, ...pageContext } = context;
+  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort: (() => void) | undefined;
@@ -204,10 +208,11 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale() }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
         const data = await response.json() as GuideChatResponse;
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
+          if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(typeof data.error === 'string' ? data.error : '搜索条件已过期，请开启新对话并重新说明城市和日期。');
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         if (data.outingSearch !== undefined) return { ...data, outingSearch: parseBayBayOutingSearch(data.outingSearch) };

@@ -169,3 +169,114 @@ test('a conversational date reply keeps prior social context and displays actual
   assert.equal(new URL(reads[0],'https://example.test').searchParams.get('date'),'2026-10-03');
   assert.deepEqual(paths,[]); assert.equal(view.queryByRole('button',{ name:/让 BayBay 帮我排一天/ }),null);
 });
+
+test('clarification renders an identical question once and preserves additional constraints', async t => {
+  const prompt = '想在哪个城市一起去？';
+  let answer = prompt;
+  t.mock.method(globalThis,'fetch',async () => Response.json({ ok:true,answer,responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city'],question:prompt } }));
+  const props = { variant:'headless' as const,panelOpen:true,onPanelOpenChange:noop,onNavigate:noop,onCreatePostClick:noop };
+  const view = render(<BayBayAssistantEntry {...props}/>);
+  const ask = () => { fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:'我想找搭子' } }); fireEvent.click(view.getByRole('button',{ name:'问一下' })); };
+  ask(); await view.findByText(prompt); assert.equal(view.getAllByText(prompt).length,1);
+  fireEvent.click(view.getByRole('button',{ name:'新对话' }));
+  answer = `${prompt} 这里只查询站内小队，不包含活动门票。`;
+  ask(); await view.findByText(answer);
+  assert.equal(document.body.textContent?.split(prompt).length,2,'question occurs once, with the extra explanation intact');
+  assert.ok(view.getByText(/不包含活动门票/));
+});
+
+test('current clarification quick reply sends only after an explicit click, preserving history and known filters', async t => {
+  const pending = deferred<Response>();
+  const bodies:{ message:string;history:{ content:string }[] }[] = [];
+  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    return bodies.length === 1 ? Response.json({ ok:true,answer:'想哪一天一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest',city:'Fremont' },missing:['date'],question:'想哪一天一起去？' } }) : pending.promise;
+  });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
+  fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:'我想在Fremont找搭子' } });
+  fireEvent.click(view.getByRole('button',{ name:'问一下' }));
+  const choice = await view.findByRole('button',{ name:'本周末' });
+  assert.equal(bodies.length,1,'displaying choices never submits them');
+  assert.equal(view.queryByRole('button',{ name:'全湾区' }),null,'known cities are not replaced by a suggestion');
+  const input = view.getByRole('textbox',{ name:'向 BayBay 提问' });
+  fireEvent.compositionStart(input); fireEvent.click(choice);
+  assert.equal(bodies.length,1,'a suggestion cannot interrupt an unfinished IME composition');
+  fireEvent.compositionEnd(input);
+  fireEvent.click(choice); assert.equal(bodies.length,2); assert.equal(bodies[1].message,'本周末。');
+  assert.equal(bodies[1].history[0].content,'我想在Fremont找搭子');
+  assert.equal(view.queryByRole('group',{ name:'快捷回答（点选即发送）' }),null,'old and pending turns cannot submit quick replies');
+  await act(async () => pending.resolve(Response.json({ ok:true,answer:'已保留Fremont和本周末。' })));
+  assert.equal(view.queryByRole('button',{ name:'本周末' }),null,'an earlier clarification stays read-only after the next reply');
+});
+
+test('typing a draft hides quick replies and never overwrites an unfinished answer', async t => {
+  let calls = 0;
+  t.mock.method(globalThis,'fetch',async () => { calls++; return Response.json({ ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？' } }); });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
+  const input = view.getByRole('textbox',{ name:'向 BayBay 提问' }) as HTMLInputElement;
+  fireEvent.change(input,{ target:{ value:'我想找搭子' } }); fireEvent.click(view.getByRole('button',{ name:'问一下' }));
+  await view.findByRole('button',{ name:'全湾区' });
+  assert.equal(view.queryByRole('button',{ name:'本周末' }),null,'ask for the missing city first');
+  fireEvent.change(input,{ target:{ value:'Fremont，但我还想补充' } });
+  assert.equal(view.queryByRole('group',{ name:'快捷回答（点选即发送）' }),null);
+  assert.equal(input.value,'Fremont，但我还想补充'); assert.equal(calls,1);
+});
+
+test('school and service conversations keep ordinary answers without outing quick replies', async t => {
+  t.mock.method(globalThis,'fetch',async () => Response.json({ ok:true,answer:'请说明需要了解的事项。' }));
+  for (const message of ['学校入学需要什么材料','在Fremont找水管维修服务']) {
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
+    fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:message } }); fireEvent.click(view.getByRole('button',{ name:'问一下' }));
+    await view.findByText('请说明需要了解的事项。');
+    assert.equal(view.queryByRole('group',{ name:'快捷回答（点选即发送）' }),null); view.unmount();
+  }
+});
+
+test('English and Traditional Chinese choices are explicit user replies, not translated search facts', async () => {
+  for (const item of [{ locale:'en' as const, prompt:'Which day?',label:'Next 7 days',reply:'The next 7 days, including today.' }, { locale:'zh-Hant' as const,prompt:'想哪一天一起去？',label:'未來7天',reply:'未來7天，包含今天。' }]) {
+    await setLocale(item.locale);
+    const sent:string[] = [];
+    const view = render(<BayBayOutingResults search={{ ...search,state:'needs_clarification',filters:{ sort:'soonest',city:'Fremont' },missing:['date'],question:item.prompt }} answer={item.prompt} onNavigate={noop} onAnswer={value => sent.push(value)}/>);
+    assert.equal(view.getAllByText(item.prompt).length,1); assert.deepEqual(sent,[]);
+    fireEvent.click(view.getByRole('button',{ name:item.label })); assert.deepEqual(sent,[item.reply]); view.unmount();
+  }
+});
+
+test('search continuation follows only the latest completed outing reply and clears with a new topic or conversation', async t => {
+  const token = 'fixture-signed-public-search-token.fixture-signature';
+  const bodies:{ message:string;outingSearchToken?:string;context:Record<string,unknown> }[] = [];
+  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+    const body = JSON.parse(String(options.body)); bodies.push(body);
+    const social = body.message === '我想找搭子';
+    return Response.json(social ? { ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？',continuationToken:token } } : { ok:true,answer:`已回答：${body.message}` });
+  });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
+  const ask = async (message:string) => { fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:message } }); fireEvent.click(view.getByRole('button',{ name:'问一下' })); await view.findByText(message === '我想找搭子' ? '想在哪个城市一起去？' : `已回答：${message}`); };
+  await ask('我想找搭子'); await ask('换个话题，学校入学'); await ask('继续学校话题');
+  assert.equal(bodies[0].outingSearchToken,undefined); assert.equal(bodies[1].outingSearchToken,token); assert.equal(bodies[1].context.outingSearchToken,undefined,'the token must not enter model context');
+  assert.equal(bodies[2].outingSearchToken,undefined,'a non-outing completed answer cuts off the older token');
+  fireEvent.click(view.getByRole('button',{ name:'新对话' })); await ask('我想找搭子');
+  fireEvent.click(view.getByRole('button',{ name:'新对话' })); await ask('一个新的生活问题');
+  assert.equal(bodies[4].outingSearchToken,undefined,'new conversations do not reuse the previous search token');
+});
+
+test('expired search memory offers a fresh editable search instead of retrying the invalid token', async t => {
+  const bodies:{ message:string;history:unknown[];outingSearchToken?:string }[] = [];
+  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    if (bodies.length === 2) return Response.json({ ok:false,code:'INVALID_OUTING_SEARCH_TOKEN',error:'搜索条件已过期，请开启新对话。' },{ status:400 });
+    return Response.json({ ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？',continuationToken:'fixture.fixture-signature' } });
+  });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
+  const input = view.getByRole('textbox',{ name:'向 BayBay 提问' }) as HTMLInputElement;
+  fireEvent.change(input,{ target:{ value:'我想找搭子' } }); fireEvent.click(view.getByRole('button',{ name:'问一下' }));
+  fireEvent.click(await view.findByRole('button',{ name:'全湾区' }));
+  const restart = await view.findByRole('button',{ name:'重新开始查找' });
+  assert.equal(view.queryByRole('button',{ name:'重试这个问题' }),null);
+  fireEvent.click(restart);
+  assert.equal(bodies.length,2,'restarting never automatically submits a new request');
+  assert.equal(view.queryByText('搜索条件已过期，请开启新对话。'),null);
+  assert.equal(input.value,'我想找搭子一起去。'); assert.equal(document.activeElement,input);
+  fireEvent.click(view.getByRole('button',{ name:'问一下' })); await view.findByText('想在哪个城市一起去？');
+  assert.equal(bodies[2].outingSearchToken,undefined); assert.deepEqual(bodies[2].history,[]);
+});

@@ -7,7 +7,7 @@ import { ModalShell } from './ui/Modal';
 import { BayBayMatchingPosts } from './BayBayMatchingPosts';
 import { BayBayOutingResults } from './BayBayOutingResults';
 import {
-  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBayPlanRequest, isBayBaySocialRequest, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath,
+  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBayPlanRequest, isBayBaySocialRequest, isBayBaySearchContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath,
   bayBayPageQuestions, bayBayReferenceGuides, bayBayGuideSources, isBayBaySchoolGuide, isBayBaySchoolRequest, BAYBAY_SCHOOL_NOTE, BAYBAY_SCHOOL_STARTER,
   type BayBayTurn, type GuideChatAction, type GuideChatResponse,
 } from '../lib/baybay-conversation';
@@ -87,10 +87,12 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
     const id = ++sequence.current;
     const controller = new AbortController();
     const history = conversationHistory(turnsRef.current);
+    const previousReply = [...turnsRef.current].reverse().find(turn => turn.state === 'complete')?.response;
+    const outingSearchToken = previousReply?.outingSearch?.continuationToken;
     activeRequest.current = { id, controller };
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, ...(categoryHint ? { categoryHint } : {}) }, history, controller.signal)
+    void fetchBayBayReply(message, { currentPath: requestPath, ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
@@ -99,7 +101,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
         updateTurns((previous) => previous.map((turn) => turn.id === id ? {
-          ...turn, state: 'error', error: bayBayErrorMessage(error),
+          ...turn, state: 'error', error: bayBayErrorMessage(error), restartRequired: isBayBaySearchContextExpired(error),
         } : turn));
       });
     return true;
@@ -176,12 +178,13 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
             {turns.map((turn) => <section className="baybay-turn" key={turn.id} aria-label={`问题：${turn.question}`}>
               <div className="baybay-user-question"><span>你</span><p>{turn.question}</p></div>
               {turn.state === 'pending' && <p role="status" className="baybay-thinking"><Loader2 size={15} className="animate-spin" />正在整理站内资料和你的需求…</p>}
-              {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p><button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button></div>}
+              {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { stop(); updateTurns(() => []); setQuestion(copy('我想找搭子一起去。', 'I want to find people to go with.')); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
               {turn.response && <div className="member-baybay-answer">
                 <div className="member-baybay-answer-label"><Sparkles size={12} />{turn.response.outingSearch ? copy('小队搜索', 'Outing search') : turn.response.degraded ? '参考指引' : 'BayBay 建议'}</div>
                 {turn.response.degraded && <p role="status" className="baybay-degraded">AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。</p>}
-                <p className="member-baybay-answer-text">{turn.response.answer}</p>
-                {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} blockedUserIds={blockedUserIds} onNavigate={navigate}/>}
+                {turn.response.outingSearch?.state !== 'needs_clarification' && <p className="member-baybay-answer-text">{turn.response.answer}</p>}
+                {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} answer={turn.response.answer} blockedUserIds={blockedUserIds} onNavigate={navigate}
+                  onAnswer={turn.id === turns[turns.length - 1]?.id && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) askBayBay(answer, turn.currentPath, true); } : undefined}/>}
                 <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.matchNote} onNavigate={navigate} />
                 {!turn.response.outingSearch && !isBayBaySocialRequest(turn.question) && !isBayBaySchoolRequest(turn.question) && !isBayBaySchoolGuide(currentBayBayGuide(turn.currentPath || '')) && /周末|出游|活动|去哪|weekend|outing|events?/i.test(turn.question) && <button type="button" className="member-primary" onClick={() => navigate(bayBayPlanPath(turn.question))}>让 BayBay 帮我排一天<ChevronRight size={14} /></button>}
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
@@ -191,7 +194,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
               </div>}
             </section>)}
           </div>
-          {lastComplete && !loading && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath))).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
+          {lastComplete && !loading && !turns[turns.length - 1]?.restartRequired && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath))).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
           <div ref={endRef} />
           {turns.length === 0 && <div className="baybay-start-links"><button type="button" onClick={() => navigate('/guides')}><BookOpen size={14} />自己浏览攻略</button><button type="button" onClick={() => navigate('/tools')}>打开生活工具箱<ChevronRight size={14} /></button></div>}
         </div>
@@ -206,7 +209,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
               if (!composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) askBayBay(question);
             }} placeholder={schoolContext ? '例如：东湾 Fremont，准备入读三年级' : turns.length ? '继续补充城市、预算或你的想法…' : '例如：周末带 6 岁孩子，东湾有什么免费去处？'} className="member-baybay-question-input" />
             {loading ? <button type="button" onClick={stop} className="member-baybay-ask"><Square size={13} />停止</button> : <button type="submit" disabled={question.trim().length < 2} className="member-baybay-ask"><span>问一下</span><ArrowUp size={15} /></button>}
-          </div><p className="baybay-composer-note" translate="no">{copy('对话仅保留在当前标签页，刷新即清除；最近 4 轮用于追问。小队以详情最新状态为准；官方活动日期与票价请到主办方核实。', 'This conversation stays in this tab and clears on refresh; the last 4 turns support follow-ups. Check outing details for current status and official organizers for event dates and ticket prices.')}</p>
+          </div><p className="baybay-composer-note" translate="no">{copy('对话仅保留在当前标签页，刷新即清除。小队搜索沿用已确认条件；其他问答参考最近 4 轮。小队以详情最新状态为准，活动日期与票价请向主办方核实。', 'This conversation clears on refresh. Outing searches retain confirmed conditions; other replies use the last 4 turns. Check outing details for current status and organizers for event dates and prices.')}</p>
         </form>
       </div>
     </ModalShell>}

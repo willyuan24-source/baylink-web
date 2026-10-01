@@ -26,25 +26,29 @@ export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'detail
 export function usePlannerLibrary(userId?: string) {
   const [state, setState] = useState<{ owner?: string; data: Library }>({ owner: userId, data: EMPTY_LIBRARY });
   const [loading, setLoading] = useState(true);
+  const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [guestCount, setGuestCount] = useState(0);
   const owner = useRef(userId);
   useEffect(() => { owner.current = userId; }, [userId]);
   const revision = useRef(0);
+  const loaded = useRef(false);
   const mutation = useRef<symbol | null>(null);
   const data = state.owner === userId ? state.data : EMPTY_LIBRARY;
   const dataRef = useRef(data);
   const isCurrent = (id: string | undefined, sequence: number) => owner.current === id && revision.current === sequence && (!id || getStoredUser()?.id === id);
   const refresh = useCallback(async () => {
     const sequence = ++revision.current;
+    loaded.current = false;
+    setReady(false);
     setLoading(true); setError(''); setBusy(false);
     setState({ owner: userId, data: EMPTY_LIBRARY });
     dataRef.current = EMPTY_LIBRARY;
     const guest = loadGuestLibrary(); setGuestCount(guest.plans.length + guest.favorites.length);
     try {
       const next: Library = userId ? await api.request('/planner/me') : guest;
-      if (isCurrent(userId, sequence)) { dataRef.current = next; setState({ owner: userId, data: next }); }
+      if (isCurrent(userId, sequence)) { loaded.current = true; setReady(true); dataRef.current = next; setState({ owner: userId, data: next }); }
     } catch (e) { if (isCurrent(userId, sequence)) setError(errorText(e)); }
     finally { if (isCurrent(userId, sequence)) setLoading(false); }
   }, [userId]);
@@ -58,7 +62,7 @@ export function usePlannerLibrary(userId?: string) {
   };
   const run = async <T,>(task: (sequence: number) => Promise<T>): Promise<T | undefined> => {
     const sequence = revision.current;
-    if (mutation.current || loading || !isCurrent(userId, sequence)) return;
+    if (mutation.current || loading || !loaded.current || state.owner !== userId || !isCurrent(userId, sequence)) return;
     const operation = Symbol(); mutation.current = operation;
     setBusy(true); setError('');
     try { return await task(sequence); }
@@ -120,5 +124,5 @@ export function usePlannerLibrary(userId?: string) {
     localStorage.removeItem(GUEST_PLANNER_KEY); setGuestCount(0); dataRef.current = current; setState({ owner: userId, data: current });
     return true;
   });
-  return { data, loading, busy, error, guestCount, refresh, savePlan, deletePlan, toggleFavorite, savePreferences, importGuest };
+  return { data, loading, ready: !loading && state.owner === userId && ready, busy, error, guestCount, refresh, savePlan, deletePlan, toggleFavorite, savePreferences, importGuest };
 }
