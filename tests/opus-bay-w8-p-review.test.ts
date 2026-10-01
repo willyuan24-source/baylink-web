@@ -151,3 +151,29 @@ test('P-RC-3 / P-RC-7: the chunk-lost card takes focus itself (Space / Enter sta
     resetChunkLostForTests();
   }
 });
+
+test('W8-P-review (own): BAYBAY\'s ambient lines hold while the chunk-lost card is up in the city (no voice under a modal card); the district is unchanged', async () => {
+  const store = await import('../src/opus-bay/core/store');
+  const { baybayHeld } = await import('../src/opus-bay/game/baybayHold');
+  const { showChunkLostCard, resetChunkLostForTests } = await import('../src/opus-bay/game/chunkLost');
+  const make = (): Record<string, unknown> => {
+    const el: Record<string, unknown> = { children: [] as unknown[], append(...c: unknown[]) { (el.children as unknown[]).push(...c); }, setAttribute() {}, addEventListener() {}, remove() {}, focus() {} };
+    return el;
+  };
+  const doc = { createElement: () => make(), querySelector: () => null, body: make() } as unknown as Document;
+  try {
+    store.game.set({ ...store.initialGameState(), phase: 'playing', worldMode: 'city', mode: 'free' });
+    resetChunkLostForTests();
+    assert.equal(baybayHeld(), false);
+    showChunkLostCard(doc, () => {});
+    assert.equal(baybayHeld(), true, 'the card holds her');
+    store.game.set({ worldMode: 'district' });
+    assert.equal(baybayHeld(), false, 'district: nothing is held, as before wave 8');
+    store.game.set({ worldMode: 'city' });
+    resetChunkLostForTests(); // 先继续玩
+    assert.equal(baybayHeld(), false);
+  } finally {
+    resetChunkLostForTests();
+    store.game.set(store.initialGameState());
+  }
+});

@@ -1,5 +1,6 @@
 import { game } from '../core/store';
 import { openOverlays } from '../ui/slots';
+import { chunkLostCard } from './chunkLost';
 
 /**
  * Wave 8 · lane K · W8-K1 — what holds BAYBAY's ambient lines (sf-w8-lead §4 "Overlay gate").
@@ -78,7 +79,8 @@ export function holdingOverlay(): string | null {
 export function baybayHeld(): boolean {
   // (W8-K4) a city rule: the district's lines never change (game/brain.ts small talk and play/zones.ts invites speak
   // there too)
-  return game.get().worldMode === 'city' && (holdingOverlay() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity)));
+  // (W8-P-review) and while the chunk-lost card (game/chunkLost.ts, not an overlay slot: plain DOM) is up
+  return game.get().worldMode === 'city' && (holdingOverlay() !== null || chunkLostCard() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity)));
 }
 
 /** A speech bubble must wait now (game/flow.ts bubble). */
