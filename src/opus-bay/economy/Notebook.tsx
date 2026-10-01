@@ -270,7 +270,7 @@ function SoundsPage({ seen }: { seen: (k: string) => boolean }) {
   const { t } = useT();
   return (
     <>
-      <p className="ob-muted">{t('在对的地方、对的时候点「听一听」，站着听 3 秒。有几种声音要赶上它响的那一刻。', 'Tap 听一听 in the right place at the right time and stand still for 3 seconds. Some sounds only come at their moment.')}</p>
+      <p className="ob-muted">{t('在对的地方、对的时候点「听一听」，站着听 3 秒。有几种声音要赶上它响的那一刻。', 'Tap Listen in the right place at the right time and stand still for 3 seconds. Some sounds only come at their moment.')}</p>{/* W8-Q2 (lane Q, surgical): the English line named the Chinese button 听一听; the button reads Listen */}
       {EGG_AREAS.map(area => {
         const list = CITY_SOUNDS.filter(s => s.area === area);
         if (!list.length) return null;

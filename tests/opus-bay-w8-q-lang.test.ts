@@ -16,8 +16,10 @@ const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', 
 Object.assign(globalThis, {
   window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node,
   KeyboardEvent: dom.window.KeyboardEvent, Image: dom.window.Image, localStorage: dom.window.localStorage, performance: globalThis.performance, IS_REACT_ACT_ENVIRONMENT: true,
+  requestAnimationFrame: (cb: (t: number) => void) => setTimeout(() => cb(performance.now()), 0), cancelAnimationFrame: (id: number) => clearTimeout(id),
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+dom.window.HTMLElement.prototype.scrollIntoView = function scrollIntoView() { /* JSDOM has none */ };
 Object.defineProperty(dom.window, 'matchMedia', { value: (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }) });
 registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 
@@ -95,5 +97,48 @@ test('W8-Q1: the 旅行本 想去 page in English — the 带去 BAYLINK line, "
     await act(async () => { await L.setLocale('zh-Hans', false); game.set({ ...initialGameState() }); });
     setCatalogForTests(null);
     __setBayNowForTests(null);
+  }
+});
+
+test('W8-Q2: the 今天 tab in English — a week row whose catalog venue has a Chinese part ("2nd Street（Market 至 Howard 段）") reads in English', async () => {
+  // Bay 2026-09-30 10:00: Downtown First Thursday (1 Oct, 2nd Street) is in the week list without a world venue, so its
+  // row is "Tomorrow · Thu · <the catalog venue> · free" — a joined line the site runtime cannot translate as a whole
+  __setBayNowForTests('2026-09-30T10:00');
+  setCatalogForTests(REAL);
+  const { default: TodayTab } = await import('../src/opus-bay/realsf/TodayTab');
+  try {
+    await act(async () => {
+      await L.setLocale('en', false);
+      game.set({ ...initialGameState(), phase: 'playing', worldMode: 'city', panel: { kind: 'journal', id: 'today' } });
+    });
+    const c = render(h(TodayTab)).container;
+    const rows = [...c.querySelectorAll('.ob-today-row')].map(el => el.textContent ?? '');
+    const first = rows.find(text => /2nd Street/.test(text));
+    assert.ok(first, `the First Thursday row (rows: ${rows.length})`);
+    assert.doesNotMatch(first!, HAN, first);
+    for (const text of rows) assert.doesNotMatch(text, HAN, text);
+  } finally {
+    await act(async () => { await L.setLocale('zh-Hans', false); game.set({ ...initialGameState() }); });
+    setCatalogForTests(null);
+    __setBayNowForTests(null);
+  }
+});
+
+test('W8-Q2: the Notebook\'s 城市之声 page in English names the Listen button (it said "Tap 听一听")', async () => {
+  const { default: Notebook } = await import('../src/opus-bay/economy/Notebook');
+  try {
+    await act(async () => {
+      await L.setLocale('en', false);
+      game.set({ ...initialGameState(), phase: 'playing', worldMode: 'city', panel: { kind: 'journal', id: 'cards' } });
+    });
+    const c = render(h(Notebook)).container;
+    const tab = [...c.querySelectorAll('[role=tab]')].find(el => /Sounds/i.test(el.textContent ?? ''));
+    assert.ok(tab, 'the sounds tab');
+    await act(async () => { (tab as HTMLElement).click(); });
+    const lede = c.querySelector('.ob-muted')?.textContent ?? '';
+    assert.match(lede, /Tap Listen/);
+    assert.doesNotMatch(c.textContent ?? '', HAN, (c.textContent ?? '').match(/.{0,30}\p{Script=Han}+.{0,30}/u)?.[0]);
+  } finally {
+    await act(async () => { await L.setLocale('zh-Hans', false); game.set({ ...initialGameState() }); });
   }
 });

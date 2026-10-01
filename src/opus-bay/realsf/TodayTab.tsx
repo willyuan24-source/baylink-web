@@ -11,7 +11,7 @@ import { goalTargets } from '../game/cityContent';
 import { navigateTo, openEvent, openPanel } from '../game/flow';
 import { goTo, type GoToTarget } from '../game/goTo';
 import { runtime } from '../core/runtime';
-import { useT } from '../i18n';
+import { catalogText, useT } from '../i18n';
 import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
@@ -378,7 +378,7 @@ export default function TodayTab() {
             {week.map(({ u, win }) => {
               const spot = eventSpot(u.event);
               const en = EVENT_SAY[u.event.id]?.en;
-              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${t(span(win))}` : u.event.venue ?? '';
+              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${t(span(win))}` : catalogText(u.event.venue ?? '', locale); // (W8-Q2, lane Q surgical) the catalog's venue is Simplified Chinese
               return (
                 <Row key={u.event.id} icon={<CalendarDays size={15} />}
                   title={<button type="button" className="ob-today-link" onClick={() => openEvent(u.event.id)}>{t(u.event.title, en ? cap(en) : u.event.title)}</button>}
