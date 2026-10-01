@@ -23,9 +23,11 @@ test('W8-W13 Columbus Ave\'s asphalt: one run inside the slab, never on the lawn
   const runs = nbColumbusRoad();
   assert.equal(runs.length, 1, 'one continuous street');
   const run = runs[0];
-  assert.ok(run.length >= 100, `${run.length} samples (≈ 1 u apart)`);
+  assert.ok(run.length >= 115, `${run.length} samples (≈ 1 u apart)`);
+  // it reaches the slab's edge where the city's own Columbus Ave begins (its first sample within 1 u of the edge)
+  assert.ok(run[0].z > 113 && run[0].x < -88, `starts at ${run[0].x.toFixed(1)}, ${run[0].z.toFixed(1)}`);
   for (const s of run) {
-    assert.ok(s.l >= 0.45 && s.l <= NB_ROAD.half + 1e-9 && s.r >= 0.45 && s.r <= NB_ROAD.half + 1e-9, 'half-widths');
+    assert.ok(s.l >= 0 && s.l <= NB_ROAD.half + 1e-9 && s.r >= 0 && s.r <= NB_ROAD.half + 1e-9 && s.l + s.r >= 0.9, 'half-widths (a side reaches 0 only at the slab edge)');
     for (const o of [s.l, 0, -s.r]) {
       const x = s.x + s.nx * o, z = s.z + s.nz * o;
       assert.ok(inPoly(x, z, DISTRICT.slab), `(${x.toFixed(1)}, ${z.toFixed(1)}) inside the slab (the city draws Columbus outside it)`);

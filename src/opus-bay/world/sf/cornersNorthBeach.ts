@@ -276,7 +276,8 @@ export interface NbRoadSample { x: number; z: number; nx: number; nz: number; l:
 
 /**
  * The ribbon's runs (consecutive samples every NB_ROAD.step u) inside the slab; where Columbus cuts Washington Square's
- * corner the side by the lawn narrows (to ≥ 0.45 u) so the asphalt never covers the lawn.
+ * corner the side by the lawn narrows (to ≥ 0.45 u) so the asphalt never covers the lawn, and where it runs along the
+ * slab's edge the outer side narrows to the edge (the city draws the rest of the street outside the slab).
  */
 export function nbColumbusRoad(): NbRoadSample[][] {
   const runs: NbRoadSample[][] = [];
@@ -288,9 +289,17 @@ export function nbColumbusRoad(): NbRoadSample[][] {
     for (let k = i === 1 ? 0 : 1; k <= n; k++) {
       const x = a.x + ux * (L * k / n), z = a.z + uz * (L * k / n), nx = -uz, nz = ux;
       const lawn = (px: number, pz: number) => inRing(px, pz, NB_SQUARE) || ringDist(px, pz, NB_SQUARE) <= 0.1;
-      const side = (s: number) => { let w = h; while (w >= 0.45 && lawn(x + nx * w * s, z + nz * w * s)) w -= 0.05; return w; };
+      // a side narrows by the lawn (to ≥ 0.45 u) and at the slab's edge (to ≥ 0: where Columbus runs along the edge the
+      // city draws its outer half, this ribbon the inner one)
+      const out = (px: number, pz: number) => !inRing(px, pz, SLAB);
+      const side = (s: number) => {
+        let w: number = h;
+        while (w > 0 && out(x + nx * w * s, z + nz * w * s)) w = Math.max(0, w - 0.05);
+        while (w >= 0.45 && lawn(x + nx * w * s, z + nz * w * s)) w -= 0.05;
+        return w;
+      };
       const l = side(1), r = side(-1);
-      const ok = l >= 0.45 && r >= 0.45 && !lawn(x, z) && [l, 0, -r].every(o => inRing(x + nx * o, z + nz * o, SLAB));
+      const ok = !out(x, z) && !lawn(x, z) && l + r >= 0.9 && !lawn(x + nx * l, z + nz * l) && !lawn(x - nx * r, z - nz * r);
       if (ok) run.push({ x, z, nx, nz, l, r });
       else if (run.length) { if (run.length > 1) runs.push(run); run = []; }
     }

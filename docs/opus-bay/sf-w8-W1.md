@@ -129,7 +129,13 @@ Started 19:24 PDT (`date`), on `origin/opus-bay` = `889cc614` + the two K commit
 - Sing Fat SW / Sing Chong NW of Grant & California, 1907–08, Ross & Burgren, for Tong Bong and Look Tin Eli —
   https://en.wikipedia.org/wiki/Look_Tin_Eli , https://commons.wikimedia.org/wiki/File:SING_FAT_CO_LEADING_CHINESE_BAZAAR_S.W._CORNER_CALFORNIA_ST._AND_GRANT_AVE._CHINATOWN._SAN_FRANCISCO_CALIFORNIA_(23603860561).jpg ,
   https://www.gpsmycity.com/attractions/sing-chong-building-52276.html ; colours from Wikimedia Commons photos
-  (`File:Sing_Chong_Building.jpg`, `File:601_Grant_Avenue_at_California_Street.jpg`), reference only, in scratch.
+  (`File:Sing_Chong_Building.jpg`: the three-storey buff building with the green-and-red tower, Old St. Mary's to its
+  right; `File:601_Grant_Avenue_at_California_Street.jpg`: the four-storey yellow-brick building with green bands and the
+  yellow three-tier tower — despite its file name the four storeys and the green bands are Sing Fat's), reference only,
+  in scratch. A web search on 2026-09-30 (re-checked at 23:05, a search summary, its page not pinned) describes Sing
+  Fat's façades as yellow pressed brick with green glazed terra-cotta strips at the corners and cornices, which the toy
+  follows; Sing Fat's 1908 date and architect (T. Paterson Ross of Ross & Burgren, 573 Grant Ave) —
+  https://www.flickr.com/photos/mateox/35052646581 .
 - Old St. Mary's: 660 California St at Grant Ave, 1854, red brick and granite, Gothic Revival, ≈ 27 m, the façade faces
   south, the clock and its inscription — https://en.wikipedia.org/wiki/Old_St._Mary%27s_Cathedral
 - Chinese Telephone Exchange: 743 Washington St, 1909, a three-tiered pagoda, upturned corners, sturdy pillars in front,
@@ -310,9 +316,83 @@ Started 21:50 PDT (`date`), on `fefd7b46`.
 ### Known gaps
 
 - Columbus Ave inside the slab carries no toy traffic (the district's traffic runs on its own streets).
-- The asphalt stops at the slab's edge 9 u before the city's own Columbus Ave begins (the seam: Columbus runs along the
-  slab's edge there).
+- Where Columbus runs along the slab's edge (x −91 … −79) the city draws the street's outer half and this ribbon its
+  inner half: from above, two dashed lines side by side for ≈ 12 u (`W8-W14`).
 
 ### Not done (this part)
 
 - Nothing else of items (3)–(4).
+
+### Checks at the push (part c)
+
+- This tree before the rebase: tsc 0 (after typing the ribbon's lift parameter: `y: number = lift`; the `as const`
+  literal had made it `0.04`) · `npx eslint .` 0 errors (50 old warnings) · suite **1755 / 1756**: sf-terrain's
+  "city-mode queries stay O(1): 200k canStand + heightAt < 1.5 s" (wall clock) failed under load and passes alone. After
+  the rebases (lanes A, H, W2, S, Q, K, M, then K, H, Q, A): tsc 0 and the incoming lanes' test files with this lane's
+  104 / 104, 4 / 4, then lanes A / K / H 26 / 26. Pushed `5e1ff378`.
+
+## Part d · W8-W14 Columbus Ave to the slab's edge; checks on the pushed tree
+
+Started 22:50 PDT.
+
+- **`world/sf/cornersNorthBeach.ts`**: the ribbon's outer side narrows to the slab's edge (down to 0) instead of the
+  run stopping 12 u short of it: one run of 121 samples from (−90.9, 113.9) — where the city's own Columbus Ave begins
+  — to Kearny St (8,602 triangles, budget 9,000). The lawn rule is unchanged (the lawn side narrows to ≥ 0.45 u and no
+  edge point lies on the lawn). `tests/opus-bay-w8-w1-northbeach.test.ts`: ≥ 115 samples, the run starting within 1 u of
+  the edge, half-widths 0 … 1.05 with ≥ 0.9 between them. Shot (read): the street continuing across the seam
+  (`C:/Users/willy/opus-qa/w8/w1/nb-columbus-edge.jpg`, scratch).
+- Checks (this tree, before the last rebase): `npx eslint .` 0 errors (50 old warnings) · suite **1788 / 1788** · tsc 0
+  after typing `let w: number = h` (the `as const` half-width had made it the literal `1.05`).
+- **Night** (budget-views `--time night`, read): Grant & California 109 calls / 230.8k — the shop windows and the
+  walk-ups' windows lit, the clock face glowing, the lantern strings; the O'Brien from the promenade 70 / 172.6k (a
+  dark hull against Pier 35's lit windows).
+- **The perf spots on the pushed tree** (`5e1ff378` + lanes up to `fff82f23`; 1440 × 900 high golden; read, not fps):
+
+  | spot | calls / triangles | this lane's share |
+  |---|---|---|
+  | perf-chinatown | 124 / 291.6k | city.landmarks 12 calls (the gate's meshes, no new one) |
+  | fidi | 103 / 275.5k | — |
+  | ferry · perf-ferry | 70 / 227.0k · 69 / 228.0k | — |
+  | pier45 (the Musée Mécanique door, facing the berth) | **124 / 367.6k** | `sf:wharf-ships` 1 / 0.6k |
+  | Pier 39's gate → Pier 35 | 90 / 261.5k | `sf:wharf-ships` 1 / 0.6k |
+
+  pier45 was 81–91 / 180–191k in wave 7: the growth is `life` 11 / 86k, `hero.buildings` 5 / 65k, `actors` 13 / 32k,
+  `streetcars` 11 / 23k — not this lane's (Requests).
+
+## Wrap-up
+
+### Commits on `origin/opus-bay`
+
+- `814073eb` W8-W11 — Chinatown's pagoda cluster in the Dragon Gate's own meshes (+ `excludeMore`, the exchange's trip end).
+- `fefd7b46` W8-W12 — the SS Jeremiah O'Brien at Pier 35, her reachable trip end, BAYBAY's three sight lines.
+- `5e1ff378` W8-W13 — Columbus Ave's asphalt inside the slab; r1's via 1 / via 3 onto junctions.
+- W8-W14 — Columbus Ave to the slab's edge; this wrap-up (the last push).
+
+Higgsfield: **0 credits** spent (no texture or decal beat the procedural look at toy scale in the time; the cap was 40).
+
+### Not done
+
+- The church steps' corridor (`r1-peter-paul`, `trip:saints-peter-and-paul-church`): by design (part c Decisions).
+- A walking-graph edge along the Pier 35 promenade (the graph is published data, `core/walkGraph.ts` frozen): the
+  O'Brien's trip end uses a recorded 3 u waiver instead.
+- `old-st-marys-cathedral`'s trip end stays on Grant Ave's roadway beside the church (CORRIDOR since wave 4).
+
+### Requests
+
+- **Lane X**: voice the three fixed lines of `world/sf/cornersSights.ts` `W8_W1_LINES` (`w8w1-pagodas-ahead`,
+  `w8w1-st-marys-bells`, `w8w1-obrien-normandy`; zh + en in part b's table), said through `baybayLine` (matched by text).
+- **W8-Z / the lead**: the pier45 perf spot reads 124 calls / 367.6k triangles on the pushed tree (wave 7: ≈ 91 / 191k);
+  the wharf ships are 1 call / 0.6k of it — the rest is `life` (86k), `hero.buildings` (65k), actors and streetcars:
+  please include pier45 in the final verify's phone walk.
+- **The lead (a later wave)**: a runtime walking-graph extension (or a re-published graph) with an edge along the
+  district's Pier 35 promenade apron, so the O'Brien's trip end can stand by her stern and the 3 u waiver can go.
+
+### Where a reviewer should look first
+
+1. Grant & California from the south-east and walking up Grant Ave from the Dragon Gate (the pagoda towers, Old St.
+   Mary's clock tower, the sight line), phone and desktop; the Telephone Exchange on Washington St.
+2. `world/sf/sites.ts` `excludes()` / `walkInputs()` (the `<site>+<k>` rows after the sites') and the gate's
+   `fade.procedural: false`.
+3. The O'Brien: her trip end on the promenade (−148, 1), the hull in the water along Pier 35, the sight line at her stern.
+4. Columbus Ave in North Beach (the asphalt between the café fronts, the lawn corner, the slab's edge).
+
