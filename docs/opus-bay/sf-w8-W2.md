@@ -9,11 +9,13 @@ worktree `C:/Users/willy/wt/w8-w2`, dev port 5808, scratch `C:/Users/willy/opus-
 2. **悬崖屋外的海豹岩**：按 OpenStreetMap 的真实位置摆了两座礁石（大的一座约 5 米高的玩具尺寸），顶上被鸬鹚鸟粪染白，下面平台上躺着海狮、水里有海狮探头、顶上站着鸬鹚、海鸥绕着飞。第一版的礁石像"企鹅脸"（圆白顶 + 两只鸟像眼睛），已经改成尖尖的岩峰。
 3. 整个海边只多 **1 次绘制**、约 1.2 万三角形，离开海边 420 米就不画。BAYBAY 在海滩 / 悬崖屋边会说 5 句新台词（中英固定句，可配音）。
 4. **金门公园蓝鹭湖（原斯托湖）**：白天湖上有 9 条玩具脚踏船和划艇在宽的湖湾里慢慢绕圈（划艇的桨会摆），船屋码头停着 3 条船，还有鸭子和一只站在岛边的大蓝鹭。原来船屋那里是一栋普通红顶两层楼，现在换成了真实样子的长条木屋（大斜屋顶、临湖的入口山墙、木平台、台阶下到水边的浮码头）。可以租船自己划：没做（成本高、湖道太窄容易撞岸），BAYBAY 有 3 句新台词。
+5. **圣依纳爵教堂**：照着真实照片，把两座塔顶的小圆顶和中间的大穹顶改成深铅灰色（以前是奶油色），十字架和塔身不变，不多绘制。
+6. 没做完：海特街壁画/彩绘房子（时间不够，留给下一波）、大通中心升级、de Young 塔的扭转方向核对；Higgsfield 一分没花。
 
 ## Part a · W8-W2a Ocean Beach's surfers and Seal Rocks
 
 Started 19:24 PDT (`date`; the first agent of this lane had worked 19:00–19:20 and left the work uncommitted: kept,
-finished and tested here). Pushed ≈ 20:30 (see the push line below).
+finished and tested here). Pushed 20:34 PDT (`4242a07a` on `origin/opus-bay`).
 
 ### What was built
 
@@ -113,7 +115,9 @@ finished and tested here). Pushed ≈ 20:30 (see the push line below).
 
 ## Part b · W8-W2b Blue Heron Lake (Stow Lake): boats, the boathouse
 
-Started 20:35 PDT (`date` 20:34:59 after part a's push); pushed ≈ 21:50 (see the push line below).
+Started 20:35 PDT (`date` 20:34:59 after part a's push); pushed 22:16 PDT (`b5239e3c` on `origin/opus-bay`, after
+three rebases onto other lanes' pushes; one conflict in `world/sf/cityWorld.ts`'s registration lines with lane W1's
+`attachSights` (W8-W12): resolved keeping both systems, imports and detaches).
 
 ### What was built
 
@@ -196,3 +200,79 @@ Started 20:35 PDT (`date` 20:34:59 after part a's push); pushed ≈ 21:50 (see t
 - The lake's banks are vertical 1.7 u walls (the city's lake cut, not this lane's): the landing's steps make the
   boathouse read, the rest of the shore stays as it was.
 - The heron and the ducks have no collision; the moored boats are not walkable.
+
+## Part c · W8-W2c St Ignatius's lead cupolas, the perf table
+
+Started 22:16 PDT after part b's push. Last push ≈ 23:30 (see "Final checks").
+
+### What was built
+
+- **St Ignatius's cupolas and dome in lead grey** (`world/sf/landmarks/st-ignatius.ts`; R's realism scorecard #45,
+  "maybe", left open by wave 7's lane V because the colour could not be confirmed). A photo from the de Young's Hamon
+  tower confirms it: both towers' domed cupolas with their spirelets and the crossing dome are dark lead-grey over the
+  cream stone. The shipped AI church (the `sf-st-ignatius` GLB) has them cream, so the swap's remainder now draws
+  **`IGN_SHELLS`**: a shell over each tower's domed cupola (from the open lantern's cornice to the cross's foot), one
+  over the crossing dome (from the drum's cornice to the lantern's foot) and one over the lantern's cap — 12-sided
+  lathes in `LEAD #7b8186` (a mid-dark grey; W7-R-review found a near-black read too dark on City Hall), their profiles
+  measured on the GLB's vertices (`glbNode`, scratch `opus-qa/w8/w2/ign.mts`) with ≥ 4 % + 0.03 u clearance. The cream
+  crosses, the lanterns' columns and the towers stay the model's. The procedural church (`?ai=0`, the fallback) gets
+  lead cupolas above its lantern stage and a lead dome; lod 2 a lead cap on each tower. `landmarks/tops.ts`
+  regenerated (the tower blockers 13 → 13.1, the crossing 11.8 → 12.1).
+- **`tests/opus-bay-w8-w2-looks.test.ts`** (new): no vertex of the AI model pokes through a shell (> 200 vertices in the
+  shells' spans checked against the 12-gon's inner radius).
+- The first try (16-sided shells with a vertical lip) took the swap's remainder to 1252 triangles: red on
+  `opus-bay-sf-models` W4-IL5 (≤ 1200) → 12 sides, no lip: green.
+
+### Evidence
+
+- `qa/w8/W2/c-ignatius-before.jpg` / `c-ignatius-after.jpg` (desktop day, the tower tops close from the front: cream
+  cupolas and dome → lead grey, the crosses cream). From Fulton & Parker 79 calls / 244.0k, the tower close-up 72 /
+  218.7k (+ 0 calls: the shells ride the site's TOY batch).
+- **The perf table** (desktop 1440 × 900, golden, quality high, the walking camera at each spot; main + shadow; before =
+  the first agent's run on the day-0 tree 18:58 PDT, after = 22:37 PDT on this lane's tree rebased on `origin`, so it
+  includes every lane pushed by then):
+
+  | spot | before calls / tris | after calls / tris | this lane's groups in view |
+  |---|---|---|---|
+  | haight-usf | 95 / 278.3k | 94 / 295.0k | St Ignatius in the distance (+0 calls) |
+  | ocean-beach | 50 / 98.3k | 50 / 104.2k | `sf:west-sea` 1 / 12k (the surfers, the break) |
+  | music-concourse | 92 / 244.6k | 93 / 250.0k | `sf:west-lake` within 200 u of the lake (1 call) |
+  | civic-center | 74 / 218.6k | 104 / 296.8k | none (see below) |
+
+  All within 150 / 400k. Civic Center's +30 calls are not this lane's: the same spot (108.4, 394.9) but the walking
+  camera came up facing east into the hero district (`hero.ground` 6 / 45k, `city.landmarks` 15 / 49k) where the
+  day-0 run faced City Hall (`opus-qa/w8/w2/perf-before/civic-center.jpg` vs `perf-after/civic-center.jpg`); nothing of
+  this lane is drawn there. Phone 390 × 844 (dpr 3, quality mid, golden): haight-usf 70 / 206.3k, ocean-beach
+  40 / 96.9k (the surfers and the crest lines read in portrait).
+- Night (`--time night`, read 22:55): the boathouse's café windows and entrance glow, the three moored boats stay, no
+  boat out on the lake (83 / 183.1k); Kelly's Cove: no surfers, the crest lines faint on the dark sea (56 / 89.0k).
+- The far view from the south-west (97 / 308.4k): the church's grey domes read over the Richmond's roofs like the photo.
+
+### Decisions
+
+- Shells, not a recoloured texture: the GLB's texture has no separate cream for the cupolas (a hue rule like W7-R's
+  `recolour-glb.py` would grey the whole church); a UV-space mask would need the Draco UVs decoded and rasterised —
+  the shells are measured, tested against every vertex and cost 0 calls.
+- No new BAYBAY lines in part c (lane X records from 22:45).
+
+### Not done (part c and the lane)
+
+- **The Haight Victorian / mural kit** (2–3 generic mural walls, painted façades along Haight St): not started for
+  lack of time after St Ignatius. The corner model's own walls are its painted fronts; the rest of Haight St is the
+  city's generic boxes, so murals there need their street-facing walls from the OSM footprints (a first pass,
+  `opus-qa/w8/w2/haightb.mts`, lists the buildings round the corner in its frame) — next wave: thin painted panels
+  (abstract suns, waves, rainbows, flowers; no lettering, no real artist's work) on 4–6 ground floors and one tall
+  party wall, inside the haight-ashbury site's mesh (0 new calls). Higgsfield mural textures were not needed for what
+  shipped: **0 credits spent**.
+- **Chase Center to T2**, **the de Young tower's twist** (the AI tower's twist direction is still unchecked against
+  the real one), **the far City Hall dome** (lane R's W7 recolour already gives the far lod 2 a grey dome with the gold
+  lantern; the gold ribs are lod 0 only): not done.
+- A rentable boat ride on Blue Heron Lake (part b, Decisions).
+
+## Requests
+
+- **Lane X (voice)**: the 8 new fixed lines of parts a and b (the tables above; ids `w8-w2-*`), said through
+  `game/cityContent baybayLine` with exactly that text (sf-w8-lead §4: voice is matched by exact zh + en text).
+- **The lead / W8-Z**: the Civic Center perf spot's walking camera now comes up facing east (hero district) instead of
+  City Hall — an arrival / camera change of another lane, not W2's; compare like for like before reading a delta.
+- **The next wave**: the Haight mural kit and Chase Center T2 (Not done above).
