@@ -15,6 +15,7 @@ import { baybayHeld } from './baybayHold';
 import { bark } from './content';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById, interactables, postcardIdOf, syncMoving } from './interactables';
+import { lockHeldBy } from './playerLock';
 
 /**
  * 10 Hz decision systems: focus detection, pending-interact trigger, area label, and the guide brain.
@@ -74,7 +75,9 @@ export function updateFocus() {
   if (mapTarget) { const it = interactableById(mapTarget); if (!it || dist(p, it) < it.radius + 2) flow.set({ mapTarget: null }); }
 
   const f = flow.get();
-  const blocked = s.phase !== 'playing' || s.photoMode || s.riding !== null || !!s.dialogue.nodeId || !!f.fishing || !!f.cinematic || !!f.postcardReward || !!f.postcardFly;
+  // (W8-I, W8I-D-3) nor while a play activity holds the feet: the busk / foghorn games showed 'E Talk to BAYBAY' for
+  // their whole run, and E does nothing then
+  const blocked = s.phase !== 'playing' || s.photoMode || s.riding !== null || !!s.dialogue.nodeId || !!f.fishing || !!f.cinematic || !!f.postcardReward || !!f.postcardFly || lockHeldBy('activity');
   if (blocked) { if (s.focus !== null) game.set({ focus: null }); return; }
 
   // pending click-to-interact

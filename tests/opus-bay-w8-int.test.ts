@@ -77,3 +77,62 @@ test('W8I-P-1 grip invite: never after a grip already played this visit (as the 
   assert.ok(invite, 'the invite condition');
   assert.match(invite, /!played\.has\('grip'\)/);
 });
+
+test('W8I-P-2 / D-4 / P-8 areas: the walkable Alcatraz says 恶魔岛, the Powell & Market turntable says 联合广场; the Dragon Gate, Pier 33 and the bridge keep theirs', async () => {
+  const CZ = await import('../src/opus-bay/data/cityZones');
+  const places = (JSON.parse(fs.readFileSync(path.join(ROOT, 'public/opus-bay/sf/v1/places.json'), 'utf8')) as { places: { id: string; x: number; z: number }[] }).places;
+  const at = (id: string) => places.find(p => p.id === id)!;
+  for (const [area, pid] of [['alcatraz', 'alcatraz'], ['union-square', 'union-square']] as const) {
+    const row = CZ.LANDMARK_AREAS.find(a => a.id === area)!;
+    assert.ok(row, area);
+    assert.ok(Math.hypot(row.x - at(pid).x, row.z - at(pid).z) < 1, `${area} sits on places.json ${pid}`);
+  }
+  // the island: the quay, the cellhouse front, the lens's spot (-452.3, -74.8); the dock's berth
+  const { ALCA_TERMINALS } = await import('../src/opus-bay/data/ferry');
+  for (const p of [{ x: -452.3, z: -74.8 }, { x: -461, z: -63 }, ALCA_TERMINALS.island.quay, ALCA_TERMINALS.island.berth]) {
+    assert.deepEqual(CZ.cityAreaAt(p.x, p.z)?.name, { zh: '恶魔岛', en: 'Alcatraz Island' }, JSON.stringify(p));
+  }
+  assert.notEqual(CZ.cityAreaAt(-92.8, -18.5)?.id, 'alcatraz', 'Pier 33 is not the island');
+  // the turntable (the lens stood at 128.24, 256) and the square
+  const turn = at('cable-car-powell-market');
+  for (const p of [{ x: 128.24, z: 256 }, turn, at('union-square')]) assert.equal(CZ.cityAreaAt(p.x, p.z)?.id, 'union-square', JSON.stringify(p));
+  assert.equal(CZ.cityAreaAt(82, 176)?.id, 'chinatown', 'the Dragon Gate stays Chinatown');
+  assert.equal(CZ.cityAreaAt(92.31, 418.18)?.id, 'civic-center');
+});
+
+test('W8I-WS-2 a panel holds the otter float line and the 飞行券 gift (their voices played with the bubble off screen under a place card)', async () => {
+  const { game: G } = await import('../src/opus-bay/core/store');
+  const shop = await import('../src/opus-bay/economy/shopRun');
+  const prev = G.get();
+  try {
+    G.set({ phase: 'playing', mode: 'free', panel: { kind: null }, dialogue: { ...prev.dialogue, nodeId: null } } as never);
+    const open = shop.ticketGiftWaits();
+    G.set({ panel: { kind: 'poi', id: 'sf:alcatraz' } } as never);
+    assert.equal(shop.ticketGiftWaits(), true, 'a place card holds the gift');
+    G.set({ panel: { kind: null } } as never);
+    assert.equal(shop.ticketGiftWaits(), open, 'closed: as before');
+  } finally { G.set({ phase: prev.phase, mode: prev.mode, panel: prev.panel, dialogue: prev.dialogue } as never); }
+  const pet = fs.readFileSync(path.join(SRC, 'play/pet.ts'), 'utf8');
+  assert.match(pet.split('\n').find(l => l.includes('const idle ='))!, /s\.panel\.kind === null/);
+});
+
+test('W8I-D-3 no E prompt while a play activity holds the feet (busk / foghorn showed "E Talk to BAYBAY", and E does nothing)', async () => {
+  const L = await import('../src/opus-bay/game/playerLock');
+  assert.equal(L.lockHeldBy('activity'), false);
+  const off = L.holdLock('activity', 'busk');
+  try { assert.equal(L.lockHeldBy('activity'), true); assert.equal(L.lockHeldBy('ride'), false); } finally { off(); }
+  assert.equal(L.lockHeldBy('activity'), false);
+  const brain = fs.readFileSync(path.join(SRC, 'game/brain.ts'), 'utf8');
+  assert.match(brain.split('\n').find(l => l.includes('const blocked ='))!, /lockHeldBy\('activity'\)/);
+});
+
+test('W8I-P-3 / D-5 Halloween night after dark: a first visit follows the Bay clock (no golden hour under 今晚是万圣节)', () => {
+  const w = fs.readFileSync(path.join(SRC, 'halloween/world.ts'), 'utf8');
+  assert.match(w, /phase === 'night' && flow\.get\(\)\.goldenFirstVisit && bayTimeOfDay\(now\) === 'night'\) flow\.set\(\{ goldenFirstVisit: false, timeOffer: null \}\)/);
+});
+
+test('W8I-WS-7 the 今天 tab lists days with their own comma apart (it read "Sat, Sun, Oct 11" as one date)', () => {
+  const tab = fs.readFileSync(path.join(SRC, 'realsf/TodayTab.tsx'), 'utf8');
+  assert.doesNotMatch(tab, /\.join\(t\('、', ', '\)\)/);
+  assert.equal((tab.match(/\.join\(t\('、', DAYS_JOIN_EN\)\)/g) ?? []).length, 2);
+});

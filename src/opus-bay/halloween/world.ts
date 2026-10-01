@@ -9,6 +9,7 @@ import { travelActive } from '../game/fastTravel';
 import { bubble, dialogueOpen } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID } from '../game/interactables';
+import { bayTimeOfDay } from '../game/qa';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { createDayMemory, RealLineScheduler, type OfferedLine } from '../realsf/lines';
 import { cityStreamerLazy } from '../world/cityLoader';
@@ -135,6 +136,9 @@ export function initHalloweenWorld(): () => void {
       dress.want(wants);
       emit({ type: 'halloween', what: 'phase', id: phase });
     }
+    // (W8-I, W8I-P-3 / D-5) Halloween night is the promo night: a first visit then follows the Bay clock (the lit stoops,
+    // the bats, the night sky), not F11's golden hour — BAYBAY said 今晚是万圣节 and then 金色时刻 in sunlight
+    if (phase === 'night' && flow.get().goldenFirstVisit && bayTimeOfDay(now) === 'night') flow.set({ goldenFirstVisit: false, timeOffer: null });
     pushTint();
     pool.set('dress', dress.halos());
     pool.set('hunt', wants.hunt ? hunt.halos() : [], 2);

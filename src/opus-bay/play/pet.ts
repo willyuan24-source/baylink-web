@@ -111,7 +111,9 @@ export function startFloatWatch(rand: () => number = Math.random): () => void {
   let still = 0, lastFloat = -Infinity, checked = false;
   return registerFrameSystem('a-play-float', (dt, now) => {
     const s = game.get(), p = runtime.player;
-    const idle = s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && s.riding === null && runtime.move.mode === 'foot' && !p.moving && !p.locked && !flow.get().cinematic;
+    // (W8-I, W8I-WS-2) not with a panel up (a place card on the phone hid the bubble while its voice played): the
+    // pacer's rule, an open panel is quiet
+    const idle = s.phase === 'playing' && s.panel.kind === null && !s.dialogue.nodeId && !s.photoMode && s.riding === null && runtime.move.mode === 'foot' && !p.moving && !p.locked && !flow.get().cinematic;
     if (!idle) { still = 0; checked = false; return; }
     still += dt;
     if (still < FLOAT_IDLE || checked) return;
