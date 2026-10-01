@@ -71,8 +71,9 @@ export const W8_W1_LINES: readonly SightLine[] = [
   },
   {
     // the apron east of her trip end (data/sf/attractions ARRIVAL_OVERRIDES: (-126, -10)), where the walk from the
-    // Embarcadero heads west with the hull ahead; `face` = world/sf/wharfShips OBRIEN_MID (the test keeps them equal)
-    id: 'w8w1-obrien-normandy', x: -116, z: -7.5, r: 4, face: { x: -131.56, z: -19.42 },
+    // Embarcadero heads west and rounds Pier 35's shed with the hull ahead; `face` = world/sf/wharfShips OBRIEN_MID (the
+    // test keeps them equal)
+    id: 'w8w1-obrien-normandy', x: -120, z: -8.5, r: 3, face: { x: -131.56, z: -19.42 },
     zh: '这艘自由轮 1994 年还自己开回诺曼底，参加了登陆 50 周年纪念！',
     en: 'In 1994 this Liberty ship steamed back to Normandy for D-Day\'s 50th anniversary!',
     source: 'https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien',
