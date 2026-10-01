@@ -1,6 +1,6 @@
 {
  "version": 1,
- "exported": "2026-09-30",
+ "exported": "2026-10-01",
  "source": "BAYLINK offers (src/data), San Francisco museums, parks and transit",
  "offers": [
   {
@@ -587,6 +587,48 @@
    "rule": {
     "url": "https://www.moadsf.org/visit",
     "verifiedAt": "2026-09-29"
+   }
+  },
+  {
+   "id": "sf-zoo-resident-free-oct7-2026",
+   "kind": "park",
+   "free": true,
+   "title": {
+    "zh": "10/7 SF 居民凭证免费进动物园",
+    "en": "October 7: free zoo admission for SF residents with proof"
+   },
+   "who": {
+    "zh": "SF 居民 · 凭地址证件",
+    "en": "SF residents · with proof of address"
+   },
+   "requirement": {
+    "zh": "仅 San Francisco 居民；在验票处出示能证明 SF 居住地址的政府签发证件，每份合格证件对应一人免费入场。",
+    "en": "San Francisco residents only. Show government-issued ID proving SF residency at ticket scanning; each qualifying ID admits one person free."
+   },
+   "from": "2026-10-07",
+   "to": "2026-10-07",
+   "hours": [
+    600,
+    960
+   ],
+   "place": {
+    "id": "sf-zoo",
+    "x": -110.3,
+    "z": 1657.6,
+    "name": {
+     "zh": "旧金山动物园",
+     "en": "the San Francisco Zoo"
+    }
+   },
+   "href": "/offers/sf-zoo-resident-free-oct7-2026",
+   "source": {
+    "label": "SF Zoo 官方 2026 免费日日历",
+    "url": "https://www.sfzoo.org/calendar/sf-resident-free-day-5/",
+    "verifiedAt": "2026-09-30"
+   },
+   "rule": {
+    "url": "https://www.sfzoo.org/calendar/sf-resident-free-day-5/",
+    "verifiedAt": "2026-09-30"
    }
   }
  ]

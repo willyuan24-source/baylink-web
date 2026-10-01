@@ -124,6 +124,11 @@ const SPECS: Spec[] = [
     place: { id: 'osm-n415567060', x: 164.14, z: 183.56, name: { zh: '非洲侨民博物馆', en: 'the Museum of the African Diaspora' } }, hours: [H(11), H(17)],
     ruleUrl: 'https://www.moadsf.org/visit', ruleCheckedAt: '2026-09-29',
   },
+  {
+    id: 'sf-zoo-resident-free-oct7-2026', kind: 'park', free: true, who: { zh: 'SF 居民 · 凭地址证件', en: 'SF residents · with proof of address' },
+    place: { id: 'sf-zoo', x: -110.3, z: 1657.6, name: { zh: '旧金山动物园', en: 'the San Francisco Zoo' } }, hours: [H(10), H(16)],
+    ruleUrl: 'https://www.sfzoo.org/calendar/sf-resident-free-day-5/', ruleCheckedAt: '2026-09-30',
+  },
 ];
 
 // Use the same dictionaries and override order as the website and guide catalog.
