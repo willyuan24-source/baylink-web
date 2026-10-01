@@ -7,6 +7,7 @@ import { heightAt } from '../core/terrain';
 import { bitGet } from '../data/playSave';
 import { readSave } from '../data/save';
 import { cinemaActive, playShots, type Shot } from '../game/cinema';
+import { W8K_LINES } from '../game/fixedLines';
 import { bubble } from '../game/flow';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { MOVE_CANCEL } from './kit';
@@ -74,7 +75,8 @@ function sitAt(pose: { x: number; z: number; heading: number }, spot: ViewSpot |
   // BAYBAY sits down beside you (her body emote ends by itself when she walks off)
   if (posed) setTimeout(() => { if (seat?.posed) charApi()?.emote('baybay', 'sit', { loop: true }); }, 700);
   emit({ type: 'play', activity: spot ? 'view' : 'sit', what: 'start' });
-  if (spot) bubble({ zh: `坐一会儿，看看${spot.name.zh}的风景～`, en: `Let’s sit and take in ${spot.name.en}.` }, 2600);
+  // (W8-K3, lane K surgical) a fixed line lane X can voice: the slow look's caption names the spot
+  if (spot) bubble(W8K_LINES.sitView, 2600);
   watch();
   return true;
 }

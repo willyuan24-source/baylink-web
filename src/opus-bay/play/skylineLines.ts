@@ -74,4 +74,6 @@ export const SKYLINE_LINES = {
   allRight: { zh: '全答对了，你是旧金山通！', en: 'All correct: you know your San Francisco!' },
   done: { zh: '又认识了几个地标！', en: 'A few more landmarks you know now!' },
   noView: { zh: '从这儿看不到大地标呢，去附近的观景点看看吧！', en: 'No big landmarks in sight from here. Let’s try a lookout nearby!' },
+  /** W8-K3 (lane K): after noView — the lookout's name is on a toast and the waypoint (was 最近的观景点：<name>, templated) */
+  noViewPin: { zh: '最近的观景点我标出来啦，跟着标记走吧！', en: 'I’ve marked the nearest lookout — just follow the pin!' },
 } satisfies Record<string, Bilingual>;

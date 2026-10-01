@@ -33,6 +33,7 @@ import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
 import { rewardGoal, rewardPostcard } from './rewards';
 import { bubbleWaits } from './baybayHold';
+import { W8K_LINES } from './fixedLines';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
 
 // W6-P3 (lane P, MF9): the six city residents come with the city data chunk (data/sf/cityDataChunk.ts; none in district
@@ -483,8 +484,12 @@ export function welcomeBack(): void {
   const zone = readSave()?.lastSafe?.zone ?? game.get().area ?? null;
   const name = zoneName(zone);
   const known = name !== SF_NAME && !!zone;
-  bubble(known ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : WELCOME_BACK, 4400, BAYBAY_ID, 'call');
-  if (!known) speakRecorded(W5_LINE_IDS.welcomeBack);
+  // (W8-K3) the city: the recorded 欢迎回来！我们接着逛吧。 (voiced) and the area on a toast (上次我们走到<area>了 was
+  // templated: never voiced); elsewhere as before
+  const city = game.get().worldMode === 'city';
+  bubble(known && !city ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : WELCOME_BACK, 4400, BAYBAY_ID, 'call');
+  if (!known || city) speakRecorded(W5_LINE_IDS.welcomeBack);
+  if (known && city) say(`上次走到 · ${name.zh}`, `Last time · ${name.en}`, 'info', 4400);
   const extra = runWelcome({ kind: 'returning', zone, at: performance.now() });
   const next = extra ?? (goalDone(CITY_GOAL.pelican) ? null : PELICAN_NUDGE);
   if (next) baybayLine(next, { ttl: 60, ...(next === PELICAN_NUDGE ? { id: W5_LINE_IDS.nudge } : {}) });
@@ -1636,7 +1641,8 @@ export function startFreeLead(id: string) {
   if (!it) return;
   flow.set({ freeLead: id, freeHint: null });
   leadCallAt = performance.now();
-  bubble({ zh: `跟我来！去${it.name.zh}`, en: `Follow me — to ${it.name.en}!` }, 3000, BAYBAY_ID, 'call');
+  // (W8-K3) the city: a fixed line lane X can voice (the lead chip and the waypoint name the place); the district as before
+  bubble(game.get().worldMode === 'city' ? W8K_LINES.leadGo : { zh: `跟我来！去${it.name.zh}`, en: `Follow me — to ${it.name.en}!` }, 3000, BAYBAY_ID, 'call');
   announce({ zh: `跟 BAYBAY 去${it.name.zh}`, en: `Follow BAYBAY to ${it.name.en}` });
   // wave 4 · city: the free lead is a one-leg walking trip (the trip pill, the map route and the LeadChip follow it)
   tripRunner?.freeLead(it);
@@ -1653,7 +1659,8 @@ export function freeLeadArrived() {
   // (review: the goals step's lead to the pelican ends at the summit with the pelican met on the steps just below — its
   // moment speaks next (game/pelicanFirst.ts), not 到啦！试试「眺望海湾」 over it)
   if (it.id === PELICAN_TARGET && goalDone(CITY_GOAL.pelican)) return;
-  bubble({ zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
+  // (W8-K3) the city: a fixed line lane X can voice (the prompt shows the verb); the district as before
+  bubble(game.get().worldMode === 'city' ? W8K_LINES.leadArrive : { zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
 }
 
 // ---------------------------------------------------------------------------

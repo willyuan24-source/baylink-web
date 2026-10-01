@@ -16,6 +16,7 @@ import {
 } from './autoTravel';
 import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
+import { W8K_LINES } from './fixedLines';
 import { isScenicLeg } from './scenicTrip';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
@@ -214,7 +215,8 @@ function arrived() {
   if (isArrived(next)) { onTripEnd(next); return; }
   onLegStart(next);
   const leg = currentLeg(next);
-  if (leg?.via === 'line' && next.source !== 'tour') bubble({ zh: `去车站，坐车到${leg.to.name?.zh ?? '下一站'}`, en: `To the stop — we ride to ${leg.to.name?.en ?? 'the next stop'}` }, 2800, BAYBAY_ID, 'call');
+  // (W8-K3) a fixed line lane X can voice: the trip pill names the stop
+  if (leg?.via === 'line' && next.source !== 'tour') bubble(W8K_LINES.tripToStop, 2800, BAYBAY_ID, 'call');
 }
 
 function onTripEnd(t: TripState) {
@@ -223,7 +225,12 @@ function onTripEnd(t: TripState) {
   autoEnd();
   if (t.source === 'free-lead') { freeLeadArrived(); return; }
   // an attraction's own arrival moment speaks for it (game/cityArrivals.ts); a plain place gets a short line
-  if (t.source !== 'tour' && !t.attraction) bubble({ zh: `到啦！这里就是${destName(t).zh}`, en: `Here we are — ${destName(t).en}!` }, 3200, BAYBAY_ID, 'call');
+  // (W8-K3) a fixed line lane X can voice, the place's name on a toast
+  if (t.source !== 'tour' && !t.attraction) {
+    const name = destName(t);
+    bubble(W8K_LINES.tripHere, 3200, BAYBAY_ID, 'call');
+    say(`到达 · ${name.zh}`, `Arrived · ${name.en}`, 'info', 3200);
+  }
 }
 
 /** The rest of the trip as one walk from here (a hop-off before the stop, a line that is not running). */

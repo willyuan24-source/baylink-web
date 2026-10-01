@@ -18,6 +18,7 @@ import { getLocale } from '../../i18n/locale';
 import { pick } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { travelEpoch } from './fastTravel';
+import { W8K_LINES } from './fixedLines';
 import { announce, bubble, defineNode, playDialogue, refreshLock, say } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import type { Interactable } from './interactables';
@@ -231,7 +232,8 @@ export function boardLine(station: string, o: { to?: string; line?: string; auto
   const pre = auto ? stationChoices(station, o).find(c => c.kind === 'ride' && c.to === o.to && c.line) : undefined;
   if (pre?.line && pre.to) {
     const to = w4StationShort(pre.to) ?? w4StationName(pre.to);
-    if (to) bubble({ zh: `上车！坐到${to.zh}`, en: `All aboard — we ride to ${to.en}!` }, 2600);
+    // (W8-K3) a fixed line lane X can voice: the ride banner names the stop
+    if (to) bubble(W8K_LINES.allAboard, 2600);
     rideLine(pre.line, station, pre.to);
     return;
   }

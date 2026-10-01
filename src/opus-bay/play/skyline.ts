@@ -7,7 +7,8 @@ import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { heightAt } from '../core/terrain';
 import type { Bilingual } from '../core/types';
-import { bubble } from '../game/flow';
+import { bubble, say } from '../game/flow';
+import { flow } from '../game/flowStore';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { useT } from '../i18n';
 import { closeOverlay, openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
@@ -75,10 +76,31 @@ export function choicesFor(right: SkylineSpot, rand: () => number, list: readonl
 }
 
 /** The nearest 看风景 spot (play/viewSpots) to (x, z). */
-export function nearestViewSpot(x: number, z: number): { name: Bilingual; d: number } | null {
-  let best: { name: Bilingual; d: number } | null = null;
-  for (const v of VIEW_SPOTS) { const d = Math.hypot(v.x - x, v.z - z); if (!best || d < best.d) best = { name: v.name, d }; }
+export function nearestViewSpot(x: number, z: number): { id: string; name: Bilingual; d: number } | null {
+  let best: { id: string; name: Bilingual; d: number } | null = null;
+  for (const v of VIEW_SPOTS) {
+    if (v.retired) continue;
+    const d = Math.hypot(v.x - x, v.z - z);
+    if (!best || d < best.d) best = { id: v.id, name: v.name, d };
+  }
   return best;
+}
+
+/** the follow-up after noView (ms) */
+export const NO_VIEW_FOLLOW_MS = 3100;
+
+/**
+ * W8-K3 (lane K, surgical): after "nothing in sight" BAYBAY points at the nearest lookout — a fixed line lane X can voice
+ * (SKYLINE_LINES.noViewPin), the lookout's name on a toast and on the waypoint (its `view:<id>` prompt as the map
+ * target: the pin shows until you get there). Was the templated bubble 最近的观景点：<name>. False when none.
+ */
+export function pointNearestLookout(x: number, z: number): boolean {
+  const v = nearestViewSpot(x, z);
+  if (!v) return false;
+  bubble(SKYLINE_LINES.noViewPin, 3200);
+  say(`最近的观景点 · ${v.name.zh}`, `Nearest lookout · ${v.name.en}`, 'info', 4200);
+  if (!flow.get().trip && !flow.get().freeLead) flow.set({ mapTarget: `view:${v.id}` });
+  return true;
 }
 
 interface CardProps { round: number; choices: { id: string; name: Bilingual }[]; answered: string | null; right: string }
@@ -97,8 +119,8 @@ export function startSkyline(opts: { occ?: Occluder; rand?: () => number } = {})
   const seen = spotsInSight(eye, opts.occ ?? liveOccluder());
   if (!seen.length) {
     bubble(SKYLINE_LINES.noView, 3000);
-    const v = nearestViewSpot(p.x, p.z);
-    if (v) setTimeout(() => bubble({ zh: `最近的观景点：${v.name.zh}`, en: `Nearest lookout: ${v.name.en}` }, 3200), 3100);
+    const at = { x: p.x, z: p.z };
+    setTimeout(() => pointNearestLookout(at.x, at.z), NO_VIEW_FOLLOW_MS);
     return false;
   }
   const run = startActivity({ id: SKYLINE_ID, name: SKYLINE_NAME, better: 'higher' }, { cancelOnMove: true, onStop: () => cleanup() });
