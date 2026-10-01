@@ -115,7 +115,8 @@ test('W8-Q8: the goals step in short landscape (≤ 460 px tall, ≥ 560 px wide
 
 test('W8-Q9: while the skyline quiz shows its three names, the right-hand touch column steps aside (the names covered it on a phone)', () => {
   const css = read('opus-bay.css');
-  assert.match(css.slice(css.indexOf('W8-Q9')), /\.ob-overlay:has\(\.ob-play-sky\) :is\(\.ob-move-buttons, \.ob-touch-action\) \{ visibility: hidden; \}/);
+  // (W8-Q11) and the arrival card (a quiz started within its 6 s at a lookout showed it between the names)
+  assert.match(css.slice(css.indexOf('W8-Q9')), /\.ob-overlay:has\(\.ob-play-sky\) :is\(\.ob-move-buttons, \.ob-touch-action, \.ob-arrival-card\) \{ visibility: hidden; \}/);
   // the card and the column it covers are what this rule names
   const sky = fs.readFileSync(new URL('../src/opus-bay/play/skyline.ts', import.meta.url), 'utf8');
   assert.match(sky, /className: 'ob-play-sky'/);

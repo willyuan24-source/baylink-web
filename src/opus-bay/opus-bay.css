@@ -1349,5 +1349,6 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 
 /* ---- W8-Q9 (lane Q) · the skyline quiz on a phone: its three names (play/skyline.ts SkylineCard, 92vw wide, 96 px over the
    bottom) lie over the right-hand touch column — 跳 / 飞 / the action button peeked out round the names and could not be
-   pressed. While the names are up the column steps aside (a hop or a step ends the quiz anyway: cancelOnMove). */
-.ob-overlay:has(.ob-play-sky) :is(.ob-move-buttons, .ob-touch-action) { visibility: hidden; }
+   pressed. While the names are up the column steps aside (a hop or a step ends the quiz anyway: cancelOnMove). W8-Q11:
+   the arrival card too (the quiz started within its 6 s at a lookout: its photo and buttons showed between the names). */
+.ob-overlay:has(.ob-play-sky) :is(.ob-move-buttons, .ob-touch-action, .ob-arrival-card) { visibility: hidden; }
