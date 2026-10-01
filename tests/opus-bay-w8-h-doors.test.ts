@@ -3,10 +3,11 @@ import { test } from 'node:test';
 
 /**
  * Wave 8 · lane H (W8-H) · the door-to-street check on all six trick-or-treat streets (W7-G checked Belvedere only):
- * every live door of halloween/treatDoors.ts stands on its own street's frontage — straight out of the door the ground
- * is standable up to the roadway (no wall, no other house between), the roadway is within FRONT_MAX, the street there is
- * the door's own and the door faces square to it (tests/opus-bay-w8-h-doorcheck.ts). The numbers stay: a door that
- * moved keeps its n (its ledger id `halloween:door:<n>`), the list keeps its length and order.
+ * every live door of halloween/treatDoors.ts stands on its own street's frontage — it faces its street, does not front
+ * a nearer one, its knock spot reaches its street on foot and (W8-H-review) by the way out of the door, not round a
+ * neighbour's house, and straight out of the door is a roadway that is not a cross street's corner
+ * (tests/opus-bay-w8-h-doorcheck.ts doorProblem has the rule and its numbers). The numbers stay: a door that moved keeps
+ * its n (its ledger id `halloween:door:<n>`), the list keeps its length and order.
  */
 
 const g = globalThis as unknown as Record<string, unknown>;
@@ -21,7 +22,7 @@ g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getCont
 const { TREAT_DOORS } = await import('../src/opus-bay/halloween/treatDoors');
 const { TREAT_STREETS, KNOCK_OUT } = await import('../src/opus-bay/halloween/treatStreets');
 
-test('W8-H doors: every live treat door fronts its own street (straight out: standable to the kerb, its street, square to it)', async () => {
+test('W8-H doors: every live treat door fronts its own street (faces it, reached on foot without going round another house, its roadway straight out)', async () => {
   const { sfDisk } = await import('./opus-bay-sf-disk');
   const { doorProblem, roadsOf } = await import('./opus-bay-w8-h-doorcheck');
   const { createCityTerrain, landmarkWalkInputs } = await import('../src/opus-bay/core/sfTerrain');
@@ -56,9 +57,11 @@ test('W8-H doors: every live treat door fronts its own street (straight out: sta
   }
 });
 
-test('W8-H doors: the numbers never change (1 … 54 in order, the gone doors stay gone, ≥ 7 live doors a street)', () => {
+test('W8-H doors: the numbers never change (1 … 54 in order, the gone doors stay gone, ≥ 6 live doors a street)', () => {
   assert.deepEqual(TREAT_DOORS.map(d => d.n), Array.from({ length: TREAT_DOORS.length }, (_, i) => i + 1));
   assert.equal(TREAT_DOORS.length, 54);
   assert.ok(TREAT_DOORS.find(d => d.n === 8)?.gone, 'Belvedere door 8 (a Clayton St house, W7-G7) stays gone');
-  for (const st of TREAT_STREETS) assert.ok(TREAT_DOORS.filter(d => d.street === st.id && !d.gone).length >= 7, st.id);
+  // W8-H-review: doors 3, 20, 21, 38, 47, 48 went too (behind a neighbour's house, a gap, a 25th Ave corner) — the floor ≥ 6
+  for (const n of [3, 20, 21, 38, 47, 48]) assert.ok(TREAT_DOORS.find(d => d.n === n)?.gone, `door ${n} is gone`);
+  for (const st of TREAT_STREETS) assert.ok(TREAT_DOORS.filter(d => d.street === st.id && !d.gone).length >= 6, st.id);
 });

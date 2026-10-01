@@ -161,8 +161,9 @@ test('W7-G7 Belvedere: door 8 (a Clayton Street face at the Parnassus end) is go
   assert.ok(belv.find(d => d.n === 8)?.gone, 'door 8 is gone');
   // W8-H: door 9 (walled in, in a courtyard inside the block) and doors 36 / 46 of Jordan Ave / Sea Cliff Ave are gone too
   // (tests/opus-bay-w8-h-doors.test.ts, the door-to-street rule)
-  assert.deepEqual(belv.filter(d => !d.gone).map(d => d.n), [1, 2, 3, 4, 5, 6, 7]);
-  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 50, '50 doors to knock');
+  // W8-H-review: door 3 too (behind a neighbour's house on the 17th St corner) and five on the other streets
+  assert.deepEqual(belv.filter(d => !d.gone).map(d => d.n), [1, 2, 4, 5, 6, 7]);
+  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 44, '44 doors to knock');
   assert.equal(Math.max(...TREAT_DOORS.map(d => d.n)), 54, 'no new number');
   assert.equal(new Set(TREAT_DOORS.map(d => d.n)).size, TREAT_DOORS.length);
 });

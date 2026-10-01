@@ -17,7 +17,10 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   // Belvedere Street (17th Street → Parnassus Avenue)
   { n: 1, street: 'belvedere', x: 55.14, z: 860.12, y: 28.68, f: -0.653 },
   { n: 2, street: 'belvedere', x: 47.92, z: 869.97, y: 27.43, f: 2.978 },
-  { n: 3, street: 'belvedere', x: 49.63, z: 857.6, y: 27.94, f: -0.625 },
+  // (W8-H-review: door 3 stood behind a neighbour's house on the 17th St corner — its knock spot reaches Belvedere St only
+  // by a 10.8 u walk round that house for 1.5 u straight (tests/opus-bay-w8-h-doorcheck.ts DETOUR_MAX) — gone; every
+  // other Belvedere face within 80 u is a door already or within 2.8 u of one)
+  { n: 3, street: 'belvedere', x: 49.63, z: 857.6, y: 27.94, f: -0.625, gone: true },
   { n: 4, street: 'belvedere', x: 25.55, z: 854.16, y: 24.3, f: 2.555 },
   { n: 5, street: 'belvedere', x: 21.45, z: 851.19, y: 23.59, f: 2.531 },
   { n: 6, street: 'belvedere', x: 16.91, z: 848.04, y: 23.31, f: 2.559 },
@@ -40,8 +43,11 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 18, street: 'chenery', x: 474.38, z: 1009.25, y: 16.14, f: 1.064 },
   { n: 19, street: 'chenery', x: 482.68, z: 982.6, y: 18.04, f: 1.656 },
   // Fair Oaks Street (21st Street → 26th Street)
-  { n: 20, street: 'fair-oaks', x: 294.22, z: 707.48, y: 12.83, f: 2.434 },
-  { n: 21, street: 'fair-oaks', x: 354.76, z: 744.92, y: 8.37, f: -0.697 },
+  // (W8-H-review: door 20 faced a gap between two houses — no roadway within 6 u straight out of it, the place chip says
+  // 21st Street — and door 21 stood behind a neighbour's house: a 12.8 u walk round it to Fair Oaks St for 2.4 u straight
+  // — both gone; no free Fair Oaks face within 80 u passes)
+  { n: 20, street: 'fair-oaks', x: 294.22, z: 707.48, y: 12.83, f: 2.434, gone: true },
+  { n: 21, street: 'fair-oaks', x: 354.76, z: 744.92, y: 8.37, f: -0.697, gone: true },
   { n: 22, street: 'fair-oaks', x: 366.44, z: 754.89, y: 9.55, f: -0.693 },
   { n: 23, street: 'fair-oaks', x: 369.81, z: 768.51, y: 10.69, f: 2.581 },
   { n: 24, street: 'fair-oaks', x: 374.62, z: 766.82, y: 10.38, f: -1.118 },
@@ -64,7 +70,10 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 37, street: 'sea-cliff', x: -576.18, z: 901.44, y: 4.94, f: -2.29 },
   // (W8-H: door 38 stood in a pocket between houses its knock spot could not leave (was x -583.74, z 910.05, f -2.593):
   // moved, same number, to the nearest face that fronts Sea Cliff Ave — scripts/opus-sf/halloween-doors.mts --fix)
-  { n: 38, street: 'sea-cliff', x: -580.2, z: 890.6, y: 3.94, f: 1.01 },
+  // (W8-H-review: that face is a 25th Avenue corner — 3.0 u from 25th Ave's centreline, 5.7 from Sea Cliff Ave's, facing
+  // into the junction, the place chip says 25th Avenue (the W7-G7 door 8 / W8-H door 46 case) — gone; the two other free
+  // faces within 80 u face a gap between houses)
+  { n: 38, street: 'sea-cliff', x: -580.2, z: 890.6, y: 3.94, f: 1.01, gone: true },
   { n: 39, street: 'sea-cliff', x: -592.9, z: 919.3, y: 5.33, f: -1.687 },
   { n: 40, street: 'sea-cliff', x: -603.13, z: 925.46, y: 5.97, f: 1.052 },
   { n: 41, street: 'sea-cliff', x: -608.77, z: 931.74, y: 6, f: 0.851 },
@@ -76,8 +85,10 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   // gone; no Sea Cliff Ave face within 30 u passes the rule)
   { n: 46, street: 'sea-cliff', x: -604.45, z: 946.71, y: 7.2, f: -1.396, gone: true },
   // Hearst Avenue (Edna Street → Congo Street)
-  { n: 47, street: 'hearst', x: 343.44, z: 1231.74, y: 24.32, f: 0.784 },
-  { n: 48, street: 'hearst', x: 346.65, z: 1228.06, y: 24.11, f: 0.813 },
+  // (W8-H-review: doors 47 and 48 stood behind the front row at the Edna St end — a 6.5 u / 11.6 u walk round a
+  // neighbour's house to Hearst Ave for 2.2 / 2.4 u straight — gone; no free Hearst face within 80 u passes)
+  { n: 47, street: 'hearst', x: 343.44, z: 1231.74, y: 24.32, f: 0.784, gone: true },
+  { n: 48, street: 'hearst', x: 346.65, z: 1228.06, y: 24.11, f: 0.813, gone: true },
   { n: 49, street: 'hearst', x: 362.75, z: 1217.27, y: 23.02, f: 1.334 },
   { n: 50, street: 'hearst', x: 391.83, z: 1193.83, y: 20.42, f: -2.386 },
   { n: 51, street: 'hearst', x: 395.04, z: 1192.93, y: 20.14, f: -2.333 },

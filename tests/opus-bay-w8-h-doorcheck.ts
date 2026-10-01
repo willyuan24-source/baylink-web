@@ -3,9 +3,21 @@
  * tests/opus-bay-w8-h-doors.test.ts and scripts/opus-sf/halloween-doors.mts (`--fix`). Node only (the published city
  * on disk through tests/opus-bay-sf-disk.ts, with the city terrain set).
  *
- * A door stands on its OWN street's frontage when, walking straight out of it (its facing), every step is standable
- * ground (no wall, no other house, no fence) until the roadway, the roadway comes within FRONT_MAX u of the door, and
- * the street there is the door's own (its centreline the nearest named one at the kerb). Wave 6 placed a door on any
+ * A door stands on its OWN street's frontage (doorProblem) when:
+ *   - it does not front another named street that is nearer to it than its own by more than 1 u (square to its facing
+ *     — SQUARE_MIN — and in front of it);
+ *   - it faces its street (FACE_MIN);
+ *   - its knock spot reaches its street on foot (walkToStreet: a shortest walk on a 0.25 u grid of cells where the
+ *     player's disc stands, ≤ WALK_MAX, to within AT_STREET of the centreline);
+ *   - (W8-H-review) that walk is the way out of the door, not round another house: at most DETOUR_MAX longer than the
+ *     straight distance from the knock spot to AT_STREET of the centreline (W8-H's 18 u let four doors through that sit
+ *     behind a neighbour's house, a 6.5–12.8 u walk round it);
+ *   - (W8-H-review) straight out of the door (its facing) there is a roadway within RAY_MAX of the knock spot, and that
+ *     roadway is not a cross street's corner the door belongs to (its nearest centreline another street that is nearer
+ *     the door than its own by more than CORNER_GAP): a door facing a gap between two houses, or diagonally into a
+ *     junction from a cross street's face, is not its street's door.
+ * Not a straight standable line to the kerb: toy houses have porches, stoops and parked cars at the kerb, and 32 of 53
+ * doors failed such a ray while plainly reachable round a step or a car (W8-H decisions). Wave 6 placed a door on any
  * face roughly parallel to the street within 7 u of its centreline: some ended on a cross street's sidewalk at a corner,
  * on the side of a house, or behind the front row (W8-H: the check over all six streets).
  */
@@ -14,9 +26,7 @@ import type { ChunkData } from '../src/opus-bay/world/sf/format';
 export interface P { x: number; z: number }
 export interface Road { name: string; pts: P[] }
 
-/** the roadway must come within this of the door (u): wall → pavement (the knock spot at 0.9) → the kerb */
-export const FRONT_MAX = 4.2;
-/** the door's facing must be this square to its street (|cos| of the angle between the facing and the street's normal) */
+/** another street counts as one the door FRONTS when it is this square to the door's facing (|cos| of the angle) */
 export const SQUARE_MIN = 0.8;
 
 const segNear = (p: P, a: P, b: P) => {
@@ -133,7 +143,7 @@ export function doorProblem(door: P & { f: number }, knockOut: number, street: s
       if (d + 1 >= own.d) continue;
       const square = Math.abs(s * (-ez / el) + c * (ex / el));
       const ahead = (s * (qx - door.x) + c * (qz - door.z)) / (d || 1);
-      if (square >= 0.8 && ahead > 0.5) return `fronts ${r.name} (${d.toFixed(1)} u) rather than ${street} (${own.d.toFixed(1)} u)`;
+      if (square >= SQUARE_MIN && ahead > 0.5) return `fronts ${r.name} (${d.toFixed(1)} u) rather than ${street} (${own.d.toFixed(1)} u)`;
     }
   }
   // the way to the street: the normal of its local direction, pointing from the door to the centreline
@@ -142,7 +152,35 @@ export function doorProblem(door: P & { f: number }, knockOut: number, street: s
   if (probe && probe.d > own.d) { nx = -nx; nz = -nz; }
   const face = s * nx + c * nz;
   if (face < FACE_MIN) return `faces away from ${street} (${face.toFixed(2)})`;
-  const walk = walkToStreet({ x: door.x + s * knockOut, z: door.z + c * knockOut }, street, roads, ground);
+  const knock = { x: door.x + s * knockOut, z: door.z + c * knockOut };
+  const walk = walkToStreet(knock, street, roads, ground);
   if (walk === null) return `the knock spot does not reach ${street} within ${WALK_MAX} u`;
+  // W8-H-review: the walk is the way out of the door, not round a neighbour's house
+  const straight = Math.max(0, (nearestRoad(roads, knock, n => n === street)?.d ?? 0) - AT_STREET);
+  if (walk - straight > DETOUR_MAX) return `the knock spot reaches ${street} only round another house (a ${walk.toFixed(1)} u walk for ${straight.toFixed(1)} u straight)`;
+  // W8-H-review: straight out of the door, a roadway — its own street's, not a cross street's corner
+  const road = firstRoadway(knock, s, c, ground);
+  if (!road) return `no roadway within ${RAY_MAX} u straight out of the door (the side of a house, a gap between two)`;
+  const there = nearestRoad(roads, road);
+  if (there && there.name !== street) {
+    const other = nearestRoad(roads, door, n => n === there.name);
+    if (other && other.d + CORNER_GAP < own.d) return `faces ${there.name}'s roadway, its corner (${other.d.toFixed(1)} u from ${there.name}, ${own.d.toFixed(1)} u from ${street})`;
+  }
+  return null;
+}
+
+/** (W8-H-review) the walk to the street may be at most this much longer than the straight distance (u) */
+export const DETOUR_MAX = 3.5;
+/** (W8-H-review) straight out of the door a roadway within this of the knock spot (u) */
+export const RAY_MAX = 6;
+/** (W8-H-review) a cross street the door's roadway belongs to, nearer the door than its own by more than this (u) */
+export const CORNER_GAP = 2;
+
+/** (W8-H-review) the first roadway point straight out from (x, z) along (dx, dz), 0.1 u steps up to RAY_MAX, or null */
+export function firstRoadway(from: P, dx: number, dz: number, ground: Ground): P | null {
+  for (let t = 0; t <= RAY_MAX + 1e-6; t += 0.1) {
+    const p = { x: from.x + dx * t, z: from.z + dz * t };
+    if (ground.surfaceAt(p.x, p.z) === 'road') return p;
+  }
   return null;
 }
