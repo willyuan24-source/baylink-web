@@ -343,13 +343,24 @@ export class CitySites {
 
   /** Exclusion shapes for the stream workers (city buildings / props inside are dropped). */
   excludes(): Exclude[] {
-    return this.sites.map(({ l }) => {
+    const own: Exclude[] = this.sites.map(({ l }) => {
       const e = l.exclude, sink = landmarkSink(l);
       if ('r' in e) return { id: l.id, x: l.x, z: l.z, r: e.r, base: l.base, sink };
       let r = 0;
       for (const p of e.poly) r = Math.max(r, Math.hypot(p.x - l.x, p.z - l.z));
       return { id: l.id, x: l.x, z: l.z, poly: e.poly.map(p => ({ x: p.x, z: p.z })), r, base: l.base, sink };
     });
+    // W8-W1: a site's `excludeMore` polygons after every site's own row (no base, no sink: buildings / props dropped)
+    return [...own, ...this.moreExcludes().map(m => ({ id: m.id, x: m.x, z: m.z, poly: m.poly, r: m.r, sink: 0 }))];
+  }
+
+  /** W8-W1: every site's `excludeMore` polygon as `<site id>+<k>` with its vertex-mean centre and radius (world). */
+  private moreExcludes(): { id: string; x: number; z: number; r: number; poly: Vec2[] }[] {
+    return this.sites.flatMap(({ l }) => (l.excludeMore ?? []).map((poly, k) => {
+      const x = poly.reduce((s, p) => s + p.x, 0) / poly.length, z = poly.reduce((s, p) => s + p.z, 0) / poly.length;
+      const r = Math.max(...poly.map(p => Math.hypot(p.x - x, p.z - z)));
+      return { id: `${l.id}+${k}`, x, z, r, poly: poly.map(p => ({ x: p.x, z: p.z })) };
+    }));
   }
 
   /**
@@ -358,6 +369,13 @@ export class CitySites {
    * provider turns into world Blocker.top once the base is known.
    */
   walkInputs(): LandmarkWalkInput[] {
+    // W8-W1: the `excludeMore` polygons follow every site's own row, as walk inputs with no walk data (numeric base 0:
+    // nothing of theirs depends on it), so collision drops the same city buildings the renderer does
+    const more: LandmarkWalkInput[] = this.moreExcludes().map(m => ({ id: m.id, x: m.x, z: m.z, yaw: 0, base: 0, exclude: { poly: m.poly } }));
+    return [...this.siteWalkInputs(), ...more];
+  }
+
+  private siteWalkInputs(): LandmarkWalkInput[] {
     return this.sites.map(s => {
       const e = s.l.exclude, w = s.l.walk, tops = blockerTops(s.l);
       return {

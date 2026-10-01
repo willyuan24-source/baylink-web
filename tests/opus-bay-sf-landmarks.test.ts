@@ -319,7 +319,8 @@ test('W4-IL1: SF_SITES = the 24 landmarks + every wave-4 record; sfLandmark find
   const sites = new CitySites();
   try {
     assert.equal(sites.counts().sites, SF_SITES.length);
-    assert.deepEqual(sites.excludes().map(e => e.id), SF_SITES.map(l => l.id), 'every site excludes its footprint from the city');
+    // (W8-W1: then each site's `excludeMore` polygons as `<site>+<k>` rows: the Dragon Gate's pagoda cluster lots)
+    assert.deepEqual(sites.excludes().map(e => e.id), [...SF_SITES.map(l => l.id), ...SF_SITES.flatMap(l => (l.excludeMore ?? []).map((_, k) => `${l.id}+${k}`))], 'every site excludes its footprint from the city');
     const walk = sites.walkInputs();
     for (const s of W4_ALL_SITES) {
       const w = walk.find(q => q.id === s.id)!;

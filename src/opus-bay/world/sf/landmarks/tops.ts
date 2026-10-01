@@ -13,7 +13,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'palace-of-fine-arts': { blockers: [9.1, 8.9, 8.8, 9.2, 9.1, 9.1, 9, 9.1, 5.2, 5.2, 5.2, 5.2, 5.3, 5.2, 5.2, 5.2, 5.2, 5.3, 4.9, 4.9, 4.9, 4.9, 4.9, 4.9, 4.9, 4.9, 4.5, 1.1, 1, 1, 0.8, 3.5, 4.2, 4.4, 4, 4.2, 4.2, 5.6, 5.6, 5.7], tall: [11.1] },
   'twin-peaks': { blockers: [3.8, 3.8, 7.2], tall: [] },
   'painted-ladies': { blockers: [8.1, 7.8, 7.6, 7.4, 7.1, 6.8, 5.7], tall: [] },
-  'dragon-gate': { blockers: [5.9, 4.4, 5.9, 4.4], tall: [] },
+  'dragon-gate': { blockers: [5.9, 4.4, 5.9, 4.4, 10, 7.9, 10.9, 8, 8.5, 8.5, 6.2, 6.2, 2.4], tall: [] },
   'conservatory-of-flowers': { blockers: [6, 4.9, 4.8, 0.7, 0.7, 4.1, 4.1, 0.9, 0.9, 5.6, 5.3], tall: [] },
   'dutch-windmill': { blockers: [10.3, 0.5, 0.9, 0.6, 1.1, 0.8, 1.2, 1, 1.5, 1, 1.5], tall: [10.3] },
   'mission-dolores': { blockers: [6.4, 3.5], tall: [] },

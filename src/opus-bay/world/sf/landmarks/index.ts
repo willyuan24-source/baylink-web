@@ -127,6 +127,7 @@ export interface SfLandmark {
   base: 'terrain' | number;         // 'terrain' = stand on the city ground (lowest point under the footprint), or explicit world y
   baseLift?: number;                // lane D2: a 'terrain' base this much above that lowest point (a flat plaza on a slope with a gutter in its footprint)
   exclude: { r: number } | { poly: Vec2[] };   // generated city buildings inside are dropped (poly in world coords)
+  excludeMore?: Vec2[][];           // W8-W1: more world polygons dropped like `exclude` (no sink, no say in the base) where the site models its neighbours' buildings (the Dragon Gate's pagoda cluster up Grant Ave); world/sf/sites.ts appends them after the sites' own rows
   sink?: number;                    // lane D2: the city ground sinks this much inside `exclude` (default 0.2, the bridge 0): 0 where the landmark's setting restores the city's streets at their own height
   build(b: BatchLike, lod: 0 | 2): void;       // LOCAL space: origin at ground centre, +y up, front faces +z; lod 2 = silhouette version ≤ 10 % triangles for far view
   buildKey?: () => number;          // lane D2: a lod 0 that depends on runtime state (the turntable under F's disc) changes this; sites.ts rebuilds it
@@ -142,9 +143,12 @@ export interface SfLandmark {
 /** Does the city draw landmark `l` with its AI parts (`swap.ship`), unless `ai` overrides it (SoloView ?ai=0|1)? */
 export const usesAi = (l: SfLandmark, ai?: boolean | null) => !!l.swap && (ai ?? l.swap.ship);
 
-/** Triangle budgets per tier (plan §7); the Golden Gate Bridge has its own. */
+/**
+ * Triangle budgets per tier (plan §7); the Golden Gate Bridge has its own, and the Dragon Gate carries Chinatown's
+ * pagoda cluster up Grant Ave in its lod 0 (W8-W1, world/sf/cornersChinatown.ts: ≈ 2.3k triangles, no new draw call).
+ */
 export const TIER_TRIANGLES: Record<LandmarkTier, number> = { 1: 6000, 2: 2500, 3: 800 };
-export const BUDGET_OVERRIDE: Record<string, number> = { 'golden-gate-bridge': 12000 };
+export const BUDGET_OVERRIDE: Record<string, number> = { 'golden-gate-bridge': 12000, 'dragon-gate': 4500 };
 export const triangleBudget = (l: SfLandmark) => BUDGET_OVERRIDE[l.id] ?? TIER_TRIANGLES[l.tier];
 
 export const SF_LANDMARKS: SfLandmark[] = [

@@ -302,6 +302,10 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   // district's own Kearny / Jackson corner (cornersNB.ts SENTINEL_RING): the old end was 0.6 u off its wall, in the
   // carriageway; the new one faces its rounded tip and dome.
   'sentinel-building': { x: 24.2, z: 109.4, heading: -2.88, why: 'the corner in front of the rounded tip and the dome (the toy stands in the corner the district draws)' },
+  // W8-W1 (lane W1's row): the Dragon Gate site draws the Chinese Telephone Exchange's three tiers on its lot
+  // (world/sf/cornersChinatown.ts); the old end (OSM's tiny footprint's middle) stood 0.1 u in front of the new front.
+  // Washington St's sidewalk in front of the red columns, 2.8 u from the walking graph's nearest node.
+  'chinese-telephone-exchange': { x: 27.11, z: 133.46, heading: 0.96, why: 'Washington St\'s sidewalk in front of the pagoda\'s red columns: the old end was 0.1 u from its new front wall' },
   'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
   'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };
