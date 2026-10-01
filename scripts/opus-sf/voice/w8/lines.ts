@@ -23,7 +23,8 @@ import { PIXIE, w7Lines, type W7Line } from '../w7/lines';
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1')), '../../../..');
 
 export { PIXIE };
-export type W8Line = W7Line;
+/** (batch 2) `redo`: a re-take of this wave-8 clip language only (its earlier pick missed a gate) */
+export type W8Line = W7Line & { redo?: 'zh' | 'en' };
 
 /** Sources whose literals are not BAYBAY's bubbles: source prefix → why. */
 export const EXCLUDE_SOURCES_W8: Record<string, string> = {
@@ -45,9 +46,11 @@ export const W8_SOURCES: readonly W8Source[] = [
   // part a: plain BAYBAY bubbles (bubble() / offerLine() with a literal) no inventory scanned — lane K's game/ files
   { lane: 'k', file: 'game/tripRun.ts', pick: ['这条线今天没开，我们走过去吧！', '提前下车啦，我们走过去！', '就在这儿降落啦，我们走过去！', '有车来，我们先让一让～', '这段路有点难走，你来带路吧！'] },
   { lane: 'k', file: 'game/transit.ts', pick: ['坐过一站再下车，才算坐过哦', '坐到下一站再下车，才算坐过 F 线电车哦'] },
-  { lane: 'k', file: 'game/flow.ts', pick: ['当——当——当！', '嗯～好吃！', '差一点！再来一竿，这次一定行～', '还没咬钩，再等等～'] },
+  { lane: 'k', file: 'game/flow.ts', pick: ['当——当——当！', '嗯～好吃！', '差一点！再来一竿，这次一定行～', '还没咬钩，再等等～', '欢迎回来！我们接着逛吧。'] },
   { lane: 'k', file: 'game/lineRides.ts', pick: ['上车啦！上层前排视野最好，每一站我都给你讲', '叮当车在等我们让路呢，往路边站一站吧', '电车在等我们让路呢，往路边站一站吧', '观光巴士在等我们让路呢，往路边站一站吧', '轻轨在等我们让路呢，往路边站一站吧'] },
   { lane: 'k', file: 'game/cityTour.ts', pick: ['拍得真好！这张可以当明信片了。', '这段地铁比较长，想快点可以点「直接到站」。'] },
+  // batch 2 (W8-K3, 19:09 PDT): the templated city bubbles turned into fixed lines (the names go to a toast / the pin)
+  { lane: 'k', file: 'game/fixedLines.ts', only: ['W8K_LINES'] },
 ];
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
@@ -140,14 +143,28 @@ export const RETAKES_W8: readonly { clip: string; why: string }[] = [
   { clip: 'en-w5-a-9a2d1075', why: 'rate 1.28 < 1.4 (batch 2)' },
 ];
 
-/** The wave-7 lines behind RETAKES_W8 (their recorded text, from voiceW7.ts). */
-export async function retakeLines(): Promise<W8Line[]> {
+/** The wave-7 lines behind RETAKES_W8 (their recorded text, from voiceW7.ts); `only`: just these clips. */
+export async function retakeLines(only?: readonly string[]): Promise<W8Line[]> {
   const { W7_VOICE_LINES } = await load<{ W7_VOICE_LINES: readonly { id: string; lane: string; zh: string; en: string }[] }>('src/opus-bay/data/sf/voiceW7.ts');
-  return RETAKES_W8.map(r => {
+  return RETAKES_W8.filter(r => !only || only.includes(r.clip)).map(r => {
     const lang = r.clip.slice(0, 2) as 'zh' | 'en', id = r.clip.slice(3);
     const l = W7_VOICE_LINES.find(x => x.id === id);
     if (!l) throw new Error(`retake ${r.clip}: no such wave-7 line`);
     return { id, lane: l.lane, zh: l.zh, en: l.en, source: `retake (${r.why})`, mood: 'quick', retake: lang };
+  });
+}
+
+/**
+ * (batch 2) Wave 8's own muted clips (W8_VOICE_CHECK, an earlier batch's pick missed a gate): two faster takes each,
+ * re-taken in place (takes.json `redo`: post.py measures the new takes and replaces the clip's pick).
+ */
+export async function redoLines(): Promise<W8Line[]> {
+  const { W8_VOICE_LINES, W8_VOICE_CHECK } = await load<{ W8_VOICE_LINES: readonly { id: string; lane: string; zh: string; en: string }[]; W8_VOICE_CHECK: readonly string[] }>('src/opus-bay/data/sf/voiceW8.ts');
+  return W8_VOICE_CHECK.map(clip => {
+    const lang = clip.slice(0, 2) as 'zh' | 'en', id = clip.slice(3);
+    const l = W8_VOICE_LINES.find(x => x.id === id);
+    if (!l) throw new Error(`redo ${clip}: no such wave-8 line`);
+    return { id, lane: l.lane, zh: l.zh, en: l.en, source: 'redo (W8_VOICE_CHECK)', mood: 'quick', redo: lang };
   });
 }
 
@@ -174,6 +191,10 @@ export function takesFor(lines: readonly W8Line[], start = 0, retakeRates: reado
       for (const rate of retakeRates) takes.push({ index: start + takes.length, clip: `${l.retake}-${l.id}`, line: l.id, lane: l.lane, text: l[l.retake], language: l.retake, instruction, speechRate: rate, retake: 1 });
       continue;
     }
+    if (l.redo) {
+      for (const rate of retakeRates) takes.push({ index: start + takes.length, clip: `${l.redo}-${l.id}`, line: l.id, lane: l.lane, text: l[l.redo], language: l.redo, instruction, speechRate: rate });
+      continue;
+    }
     for (const language of ['zh', 'en'] as const) takes.push({ index: start + takes.length, clip: `${language}-${l.id}`, line: l.id, lane: l.lane, text: l[language], language, instruction, speechRate: 1.0 });
   }
   return takes;
@@ -195,12 +216,16 @@ if (isMain) {
   const arg = (k: string) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : undefined; };
   const out = arg('--takes');
   if (out) {
-    const re = process.argv.includes('--retakes') ? await retakeLines() : [];
-    const lines = [...fresh, ...re];
+    // --retakes [clip,clip]: wave 7's muted clips (all of RETAKES_W8, or just these); --redo: wave 8's own muted clips
+    const ra = arg('--retakes'), only = ra && !ra.startsWith('--') ? ra.split(',') : undefined;
+    const re = process.argv.includes('--retakes') ? await retakeLines(only) : [];
+    const redo = process.argv.includes('--redo') ? await redoLines() : [];
+    const lines = [...fresh, ...re, ...redo];
+    const redoClips = [...redo.map(l => `${l.redo}-${l.id}`), ...re.map(l => `${l.retake}-${l.id}`)];
     const takes = takesFor(lines, Number(arg('--start') ?? 0));
-    fs.writeFileSync(out, JSON.stringify({ voice: PIXIE, batch: Number(arg('--batch') ?? 1), lines, takes }, null, 1) + '\n');
+    fs.writeFileSync(out, JSON.stringify({ voice: PIXIE, batch: Number(arg('--batch') ?? 1), redo: redoClips, lines, takes }, null, 1) + '\n');
     requestsFor(takes).forEach((g, i) => fs.writeFileSync(out.replace(/\.json$/, `-req-${String(i).padStart(2, '0')}.json`), JSON.stringify(g) + '\n'));
-    console.log(`${fresh.length} new lines + ${re.length} retakes, ${takes.length} takes → ${out}`);
+    console.log(`${fresh.length} new lines + ${re.length} retakes + ${redo.length} redos, ${takes.length} takes → ${out}`);
   } else {
     for (const l of fresh) console.log(`NEW  ${l.id.padEnd(26)} ${l.zh}  |  ${l.en}  (${l.source})${l.own ? ' own' : ''}`);
     for (const l of excluded) console.log(`out  ${l.id.padEnd(26)} ${l.zh}  (${l.why})`);

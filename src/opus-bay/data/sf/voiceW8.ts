@@ -44,18 +44,18 @@ export const W8_VOICE_LINES: readonly W8VoiceLine[] = [
   { id: "w5-a-a35821dc", lane: "a", zh: "进烤箱！颜色金黄就拿出来！", en: "Into the oven! Out when it’s golden!", s: [2.32, 3.09] },
   { id: "w5-a-ecac118d", lane: "a", zh: "还有点白，再烤一会儿就好了～", en: "A little pale — a bit longer next time.", s: [3.36, 3.76] },
   { id: "w5-a-2de97f72", lane: "a", zh: "烤得有点黑啦，不过闻着好香！", en: "A bit dark — but it smells great!", s: [3.33, 3.33] },
-  { id: "w5-a-eb85ad0b", lane: "a", zh: "金黄酥脆！完美！", en: "Golden and crackly! Perfect!", s: [3.33, 2.53] },
+  { id: "w5-a-eb85ad0b", lane: "a", zh: "金黄酥脆！完美！", en: "Golden and crackly! Perfect!", s: [1.97, 2.53] },
   { id: "w5-a-44f5a821", lane: "a", zh: "1849 年淘金热的时候，酸面包就是旧金山的日常面包了。", en: "Since the 1849 Gold Rush, sourdough has been San Francisco’s everyday bread.", s: [5.51, 6.32] },
   { id: "w5-a-7e8dde5d", lane: "a", zh: "酸面包里有一种细菌，名字就叫“旧金山”！", en: "There’s a bacterium in sourdough named after San Francisco!", s: [4.68, 4.44] },
   { id: "w5-k-2aa6fb42", lane: "k", zh: "这条线今天没开，我们走过去吧！", en: "That line isn't running today — let's walk!", s: [2.39, 3.35] },
   { id: "w5-k-2e87c7f2", lane: "k", zh: "提前下车啦，我们走过去！", en: "Off early — we walk from here!", s: [2.57, 2.26] },
   { id: "w5-k-257c510d", lane: "k", zh: "就在这儿降落啦，我们走过去！", en: "We landed here — let’s walk the rest!", s: [2.63, 2.26] },
   { id: "w5-k-7c88ffac", lane: "k", zh: "有车来，我们先让一让～", en: "A car is coming. Let’s step aside", s: [1.81, 3.25] },
-  { id: "w5-k-2a49803a", lane: "k", zh: "这段路有点难走，你来带路吧！", en: "This bit is tricky — you steer for a moment!", s: [2.84, 3.6] },
+  { id: "w5-k-2a49803a", lane: "k", zh: "这段路有点难走，你来带路吧！", en: "This bit is tricky — you steer for a moment!", s: [2.29, 3.6] },
   { id: "w5-k-169f9235", lane: "k", zh: "坐过一站再下车，才算坐过哦", en: "Ride at least one stop and it counts as a ride", s: [2.68, 3.63] },
   { id: "w5-k-deef4cff", lane: "k", zh: "坐到下一站再下车，才算坐过 F 线电车哦", en: "Ride to the next stop and it counts as a streetcar ride", s: [4.24, 3.87] },
-  { id: "w5-k-83579ca0", lane: "k", zh: "当——当——当！", en: "Dong — dong — dong!", s: [2.16, 1.46] },
-  { id: "w5-k-eabf6332", lane: "k", zh: "嗯～好吃！", en: "Mmm, tasty!", s: [2.58, 1.87] },
+  { id: "w5-k-83579ca0", lane: "k", zh: "当——当——当！", en: "Dong — dong — dong!", s: [1.9, 1.46] },
+  { id: "w5-k-eabf6332", lane: "k", zh: "嗯～好吃！", en: "Mmm, tasty!", s: [1.0, 1.29] },
   { id: "w5-k-4b1387ba", lane: "k", zh: "差一点！再来一竿，这次一定行～", en: "So close! One more cast — you’ve got this~", s: [3.56, 4.02] },
   { id: "w5-k-9124e340", lane: "k", zh: "还没咬钩，再等等～", en: "Not yet — wait for the bite!", s: [2.22, 2.6] },
   { id: "w5-k-9ae1d629", lane: "k", zh: "上车啦！上层前排视野最好，每一站我都给你讲", en: "All aboard! The front of the top deck has the best view, and I’ll tell you about every stop", s: [4.14, 6.31] },
@@ -65,10 +65,18 @@ export const W8_VOICE_LINES: readonly W8VoiceLine[] = [
   { id: "w5-k-91a6801c", lane: "k", zh: "轻轨在等我们让路呢，往路边站一站吧", en: "The train is waiting for us. Let’s step to the side", s: [3.95, 3.74] },
   { id: "w5-k-3f22bdb5", lane: "k", zh: "拍得真好！这张可以当明信片了。", en: "Great shot — that could be a postcard!", s: [4.1, 3.22] },
   { id: "w5-k-7538cb4b", lane: "k", zh: "这段地铁比较长，想快点可以点「直接到站」。", en: "A long Metro leg — tap Skip to stop to get there sooner.", s: [3.93, 4.56] },
+  { id: "w5-a-b2601524", lane: "a", zh: "最近的观景点我标出来啦，跟着标记走吧！", en: "I’ve marked the nearest lookout — just follow the pin!", s: [3.08, 3.56] },
+  { id: "w5-k-7755a76a", lane: "k", zh: "跟我来！我带你过去～", en: "Follow me — I’ll take you there!", s: [2.79, 1.96] },
+  { id: "w5-k-d77094cb", lane: "k", zh: "到啦！试试看吧～", en: "Here we are — give it a try!", s: [1.46, 2.76] },
+  { id: "w5-k-23a8415a", lane: "k", zh: "到啦！就是这里～", en: "Here we are!", s: [1.79, 1.49] },
+  { id: "w5-k-0d12e5c2", lane: "k", zh: "去车站，我们坐车过去！", en: "To the stop — we’ll ride there!", s: [3.12, 1.77] },
+  { id: "w5-k-268761c0", lane: "k", zh: "就在这里啦！", en: "It’s right here!", s: [1.33, 1.01] },
+  { id: "w5-k-6b7424b5", lane: "k", zh: "上车！出发咯～", en: "All aboard — off we go!", s: [1.87, 2.21] },
+  { id: "w5-k-fce1d40b", lane: "k", zh: "坐一会儿，看看风景～", en: "Let’s sit and take in the view.", s: [3.31, 2.67] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */
-export const W8_VOICE_CHECK: readonly string[] = ["zh-w5-a-eb85ad0b", "zh-w5-k-2a49803a", "zh-w5-k-83579ca0", "zh-w5-k-eabf6332", "en-w5-k-eabf6332"];
+export const W8_VOICE_CHECK: readonly string[] = ["zh-w5-k-83579ca0", "zh-w5-k-7755a76a"];
 
 const DIR = '/opus-bay/w8/voice';
 export const W8_VOICE_CLIPS: Record<string, VoiceClip> = Object.fromEntries(W8_VOICE_LINES.flatMap(l => (['zh', 'en'] as const).map((lang, k): [string, VoiceClip] => [

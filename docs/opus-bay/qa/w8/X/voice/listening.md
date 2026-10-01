@@ -43,27 +43,35 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 29 | 1 | M/A 小游戏 | `zh-w5-a-a35821dc` | 进烤箱！颜色金黄就拿出来！ | 2.32 | pass | ✓ (0.77) | |
 | 30 | 1 | M/A 小游戏 | `zh-w5-a-ecac118d` | 还有点白，再烤一会儿就好了～ | 3.36 | pass | ✓ (0.99) | |
 | 31 | 1 | M/A 小游戏 | `zh-w5-a-2de97f72` | 烤得有点黑啦，不过闻着好香！ | 3.33 | pass | ✓ (0.99) | |
-| 32 | 1 | M/A 小游戏 | `zh-w5-a-eb85ad0b` | 金黄酥脆！完美！ | 3.33 | check | ✓ (0.58) | |
-| 33 | 1 | M/A 小游戏 | `zh-w5-a-44f5a821` | 1849 年淘金热的时候，酸面包就是旧金山的日常面包了。 | 5.51 | pass | ✓ (0.99) | |
-| 34 | 1 | M/A 小游戏 | `zh-w5-a-7e8dde5d` | 酸面包里有一种细菌，名字就叫“旧金山”！ | 4.68 | pass | ✓ (0.99) | |
-| 35 | 1 | K 出行/跟车 | `zh-w5-k-2aa6fb42` | 这条线今天没开，我们走过去吧！ | 2.39 | pass | ✓ (0.95) | |
-| 36 | 1 | K 出行/跟车 | `zh-w5-k-2e87c7f2` | 提前下车啦，我们走过去！ | 2.57 | pass | ✓ (0.98) | |
-| 37 | 1 | K 出行/跟车 | `zh-w5-k-257c510d` | 就在这儿降落啦，我们走过去！ | 2.63 | pass | ✓ (0.94) | |
-| 38 | 1 | K 出行/跟车 | `zh-w5-k-7c88ffac` | 有车来，我们先让一让～ | 1.81 | pass | ✓ (0.97) | |
-| 39 | 1 | K 出行/跟车 | `zh-w5-k-2a49803a` | 这段路有点难走，你来带路吧！ | 2.84 | check | ✓ (0.95) | |
-| 40 | 1 | K 出行/跟车 | `zh-w5-k-169f9235` | 坐过一站再下车，才算坐过哦 | 2.68 | pass | - (0.00) | |
-| 41 | 1 | K 出行/跟车 | `zh-w5-k-deef4cff` | 坐到下一站再下车，才算坐过 F 线电车哦 | 4.24 | pass | - (0.00) | |
-| 42 | 1 | K 出行/跟车 | `zh-w5-k-83579ca0` | 当——当——当！ | 2.16 | check | ✓ (0.98) | |
-| 43 | 1 | K 出行/跟车 | `zh-w5-k-eabf6332` | 嗯～好吃！ | 2.58 | check | - (0.00) | |
-| 44 | 1 | K 出行/跟车 | `zh-w5-k-4b1387ba` | 差一点！再来一竿，这次一定行～ | 3.56 | pass | ✓ (0.76) | |
-| 45 | 1 | K 出行/跟车 | `zh-w5-k-9124e340` | 还没咬钩，再等等～ | 2.22 | pass | ✓ (0.61) | |
-| 46 | 1 | K 出行/跟车 | `zh-w5-k-9ae1d629` | 上车啦！上层前排视野最好，每一站我都给你讲 | 4.14 | pass | ✓ (0.94) | |
-| 47 | 1 | K 出行/跟车 | `zh-w5-k-00c99efb` | 叮当车在等我们让路呢，往路边站一站吧 | 3.73 | pass | ✓ (0.99) | |
-| 48 | 1 | K 出行/跟车 | `zh-w5-k-d3e5f745` | 电车在等我们让路呢，往路边站一站吧 | 3.38 | pass | ✓ (0.99) | |
-| 49 | 1 | K 出行/跟车 | `zh-w5-k-831da4b9` | 观光巴士在等我们让路呢，往路边站一站吧 | 3.97 | pass | ✓ (0.90) | |
-| 50 | 1 | K 出行/跟车 | `zh-w5-k-91a6801c` | 轻轨在等我们让路呢，往路边站一站吧 | 3.95 | pass | ✓ (0.99) | |
-| 51 | 1 | K 出行/跟车 | `zh-w5-k-3f22bdb5` | 拍得真好！这张可以当明信片了。 | 4.10 | pass | ✓ (0.99) | |
-| 52 | 1 | K 出行/跟车 | `zh-w5-k-7538cb4b` | 这段地铁比较长，想快点可以点「直接到站」。 | 3.93 | pass | ✓ (0.99) | |
+| 32 | 1 | M/A 小游戏 | `zh-w5-a-44f5a821` | 1849 年淘金热的时候，酸面包就是旧金山的日常面包了。 | 5.51 | pass | ✓ (0.99) | |
+| 33 | 1 | M/A 小游戏 | `zh-w5-a-7e8dde5d` | 酸面包里有一种细菌，名字就叫“旧金山”！ | 4.68 | pass | ✓ (0.99) | |
+| 34 | 1 | K 出行/跟车 | `zh-w5-k-2aa6fb42` | 这条线今天没开，我们走过去吧！ | 2.39 | pass | ✓ (0.95) | |
+| 35 | 1 | K 出行/跟车 | `zh-w5-k-2e87c7f2` | 提前下车啦，我们走过去！ | 2.57 | pass | ✓ (0.98) | |
+| 36 | 1 | K 出行/跟车 | `zh-w5-k-257c510d` | 就在这儿降落啦，我们走过去！ | 2.63 | pass | ✓ (0.94) | |
+| 37 | 1 | K 出行/跟车 | `zh-w5-k-7c88ffac` | 有车来，我们先让一让～ | 1.81 | pass | ✓ (0.97) | |
+| 38 | 1 | K 出行/跟车 | `zh-w5-k-169f9235` | 坐过一站再下车，才算坐过哦 | 2.68 | pass | - (0.00) | |
+| 39 | 1 | K 出行/跟车 | `zh-w5-k-deef4cff` | 坐到下一站再下车，才算坐过 F 线电车哦 | 4.24 | pass | - (0.00) | |
+| 40 | 1 | K 出行/跟车 | `zh-w5-k-4b1387ba` | 差一点！再来一竿，这次一定行～ | 3.56 | pass | ✓ (0.76) | |
+| 41 | 1 | K 出行/跟车 | `zh-w5-k-9124e340` | 还没咬钩，再等等～ | 2.22 | pass | ✓ (0.61) | |
+| 42 | 1 | K 出行/跟车 | `zh-w5-k-9ae1d629` | 上车啦！上层前排视野最好，每一站我都给你讲 | 4.14 | pass | ✓ (0.94) | |
+| 43 | 1 | K 出行/跟车 | `zh-w5-k-00c99efb` | 叮当车在等我们让路呢，往路边站一站吧 | 3.73 | pass | ✓ (0.99) | |
+| 44 | 1 | K 出行/跟车 | `zh-w5-k-d3e5f745` | 电车在等我们让路呢，往路边站一站吧 | 3.38 | pass | ✓ (0.99) | |
+| 45 | 1 | K 出行/跟车 | `zh-w5-k-831da4b9` | 观光巴士在等我们让路呢，往路边站一站吧 | 3.97 | pass | ✓ (0.90) | |
+| 46 | 1 | K 出行/跟车 | `zh-w5-k-91a6801c` | 轻轨在等我们让路呢，往路边站一站吧 | 3.95 | pass | ✓ (0.99) | |
+| 47 | 1 | K 出行/跟车 | `zh-w5-k-3f22bdb5` | 拍得真好！这张可以当明信片了。 | 4.10 | pass | ✓ (0.99) | |
+| 48 | 1 | K 出行/跟车 | `zh-w5-k-7538cb4b` | 这段地铁比较长，想快点可以点「直接到站」。 | 3.93 | pass | ✓ (0.99) | |
+| 49 | 2 | M/A 小游戏 | `zh-w5-a-eb85ad0b` | 金黄酥脆！完美！ | 1.97 | pass | ✓ (0.48) | |
+| 50 | 2 | K 出行/跟车 | `zh-w5-k-2a49803a` | 这段路有点难走，你来带路吧！ | 2.29 | pass | ✓ (0.69) | |
+| 51 | 2 | K 出行/跟车 | `zh-w5-k-83579ca0` | 当——当——当！ | 1.90 | check | ✓ (0.98) | |
+| 52 | 2 | K 出行/跟车 | `zh-w5-k-eabf6332` | 嗯～好吃！ | 1.00 | pass | ✓ (0.45) | |
+| 53 | 2 | M/A 小游戏 | `zh-w5-a-b2601524` | 最近的观景点我标出来啦，跟着标记走吧！ | 3.08 | pass | ✓ (0.96) | |
+| 54 | 2 | K 出行/跟车 | `zh-w5-k-7755a76a` | 跟我来！我带你过去～ | 2.79 | check | ✓ (0.93) | |
+| 55 | 2 | K 出行/跟车 | `zh-w5-k-d77094cb` | 到啦！试试看吧～ | 1.46 | pass | ✓ (0.86) | |
+| 56 | 2 | K 出行/跟车 | `zh-w5-k-23a8415a` | 到啦！就是这里～ | 1.79 | pass | ✓ (0.99) | |
+| 57 | 2 | K 出行/跟车 | `zh-w5-k-0d12e5c2` | 去车站，我们坐车过去！ | 3.12 | pass | ✓ (0.99) | |
+| 58 | 2 | K 出行/跟车 | `zh-w5-k-268761c0` | 就在这里啦！ | 1.33 | pass | ✓ (0.98) | |
+| 59 | 2 | K 出行/跟车 | `zh-w5-k-6b7424b5` | 上车！出发咯～ | 1.87 | pass | ✓ (0.79) | |
+| 60 | 2 | K 出行/跟车 | `zh-w5-k-fce1d40b` | 坐一会儿，看看风景～ | 3.31 | pass | ✓ (0.99) | |
 
 ## en
 
@@ -111,16 +119,24 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 40 | 1 | K 出行/跟车 | `en-w5-k-169f9235` | Ride at least one stop and it counts as a ride | 3.63 | pass | ✓ (0.93) | |
 | 41 | 1 | K 出行/跟车 | `en-w5-k-deef4cff` | Ride to the next stop and it counts as a streetcar ride | 3.87 | pass | ✓ (0.94) | |
 | 42 | 1 | K 出行/跟车 | `en-w5-k-83579ca0` | Dong — dong — dong! | 1.46 | pass | ✓ (0.95) | |
-| 43 | 1 | K 出行/跟车 | `en-w5-k-eabf6332` | Mmm, tasty! | 1.87 | check | - (0.00) | |
-| 44 | 1 | K 出行/跟车 | `en-w5-k-4b1387ba` | So close! One more cast — you’ve got this~ | 4.02 | pass | ✓ (0.94) | |
-| 45 | 1 | K 出行/跟车 | `en-w5-k-9124e340` | Not yet — wait for the bite! | 2.60 | pass | ✓ (0.75) | |
-| 46 | 1 | K 出行/跟车 | `en-w5-k-9ae1d629` | All aboard! The front of the top deck has the best view, and I’ll tell you about every stop | 6.31 | pass | ✓ (0.94) | |
-| 47 | 1 | K 出行/跟车 | `en-w5-k-00c99efb` | The cable car is waiting for us. Let’s step to the side | 4.06 | pass | ✓ (0.90) | |
-| 48 | 1 | K 出行/跟车 | `en-w5-k-d3e5f745` | The streetcar is waiting for us. Let’s step to the side | 3.72 | pass | ✓ (0.95) | |
-| 49 | 1 | K 出行/跟车 | `en-w5-k-831da4b9` | The tour bus is waiting for us. Let’s step to the side | 4.05 | pass | ✓ (0.87) | |
-| 50 | 1 | K 出行/跟车 | `en-w5-k-91a6801c` | The train is waiting for us. Let’s step to the side | 3.74 | pass | ✓ (0.90) | |
-| 51 | 1 | K 出行/跟车 | `en-w5-k-3f22bdb5` | Great shot — that could be a postcard! | 3.22 | pass | ✓ (0.71) | |
-| 52 | 1 | K 出行/跟车 | `en-w5-k-7538cb4b` | A long Metro leg — tap Skip to stop to get there sooner. | 4.56 | pass | ✓ (0.96) | |
+| 43 | 1 | K 出行/跟车 | `en-w5-k-4b1387ba` | So close! One more cast — you’ve got this~ | 4.02 | pass | ✓ (0.94) | |
+| 44 | 1 | K 出行/跟车 | `en-w5-k-9124e340` | Not yet — wait for the bite! | 2.60 | pass | ✓ (0.75) | |
+| 45 | 1 | K 出行/跟车 | `en-w5-k-9ae1d629` | All aboard! The front of the top deck has the best view, and I’ll tell you about every stop | 6.31 | pass | ✓ (0.94) | |
+| 46 | 1 | K 出行/跟车 | `en-w5-k-00c99efb` | The cable car is waiting for us. Let’s step to the side | 4.06 | pass | ✓ (0.90) | |
+| 47 | 1 | K 出行/跟车 | `en-w5-k-d3e5f745` | The streetcar is waiting for us. Let’s step to the side | 3.72 | pass | ✓ (0.95) | |
+| 48 | 1 | K 出行/跟车 | `en-w5-k-831da4b9` | The tour bus is waiting for us. Let’s step to the side | 4.05 | pass | ✓ (0.87) | |
+| 49 | 1 | K 出行/跟车 | `en-w5-k-91a6801c` | The train is waiting for us. Let’s step to the side | 3.74 | pass | ✓ (0.90) | |
+| 50 | 1 | K 出行/跟车 | `en-w5-k-3f22bdb5` | Great shot — that could be a postcard! | 3.22 | pass | ✓ (0.71) | |
+| 51 | 1 | K 出行/跟车 | `en-w5-k-7538cb4b` | A long Metro leg — tap Skip to stop to get there sooner. | 4.56 | pass | ✓ (0.96) | |
+| 52 | 2 | K 出行/跟车 | `en-w5-k-eabf6332` | Mmm, tasty! | 1.29 | pass | - (0.00) | |
+| 53 | 2 | M/A 小游戏 | `en-w5-a-b2601524` | I’ve marked the nearest lookout — just follow the pin! | 3.56 | pass | ✓ (0.95) | |
+| 54 | 2 | K 出行/跟车 | `en-w5-k-7755a76a` | Follow me — I’ll take you there! | 1.96 | pass | ✓ (0.93) | |
+| 55 | 2 | K 出行/跟车 | `en-w5-k-d77094cb` | Here we are — give it a try! | 2.76 | pass | Here we are (0.88) | |
+| 56 | 2 | K 出行/跟车 | `en-w5-k-23a8415a` | Here we are! | 1.49 | pass | ✓ (0.94) | |
+| 57 | 2 | K 出行/跟车 | `en-w5-k-0d12e5c2` | To the stop — we’ll ride there! | 1.77 | pass | ✓ (0.87) | |
+| 58 | 2 | K 出行/跟车 | `en-w5-k-268761c0` | It’s right here! | 1.01 | pass | ✓ (0.83) | |
+| 59 | 2 | K 出行/跟车 | `en-w5-k-6b7424b5` | All aboard — off we go! | 2.21 | pass | ✓ (0.94) | |
+| 60 | 2 | K 出行/跟车 | `en-w5-k-fce1d40b` | Let’s sit and take in the view. | 2.67 | pass | ✓ (0.93) | |
 
 ## 重录 · retakes of wave-7 muted clips
 
@@ -129,7 +145,7 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | `zh-w5-a-5d9dcf9c` | 哎哟，碰到啦～ | 2.27 | 2.00 | ✓ (0.99) | ✓ 替换 |
 | `zh-w5-a-6807a93e` | 差一点！我去捡回来～ | 3.38 | 2.46 | ✓ (0.75) | ✓ 替换 |
 | `zh-w5-a-b95c4fe2` | 咻！正好！ | 1.26 | 1.11 | ✓ (0.92) | ✓ 替换 |
-| `en-w5-a-b95c4fe2` | Ho! Spot on! | 2.28 | 1.44 | - (0.00) | 仍静音 |
+| `en-w5-a-b95c4fe2` | Ho! Spot on! | 2.28 | 1.62 | - (0.00) | 仍静音 |
 | `en-w5-a-0b992197` | Hot! Really close! | 2.36 | 1.75 | ✓ (0.74) | ✓ 替换 |
 | `zh-w5-a-420d6131` | 滑了好远！草地真滑～ | 3.44 | 2.63 | ✓ (0.99) | ✓ 替换 |
 | `zh-w5-a-6c4f2c8f` | 车要掉头啦！跟着我喊：嘿——咻！ | 4.73 | 3.08 | ✓ (0.86) | ✓ 替换 |

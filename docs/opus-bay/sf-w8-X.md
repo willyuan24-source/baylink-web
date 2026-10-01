@@ -53,3 +53,32 @@ twice. Nothing of the first agent's was discarded.
 - Lane M's wave-7 lines keep wave 5's id scheme (`w5-a-<hash>`: the play/ scan's lane letter), like waves 6–7.
 - The 5 muted clips are left to the owner's ear or to the next batch's faster retakes (batch 2 retakes them at 1.15 / 1.3).
 - The bell call 当——当——当！ is a fair case for the owner to approve as is (the gate measures speech, not a bell).
+
+### Batch 2 (W8-X3, 20:25–20:40 PDT)
+
+Lane K pushed `W8-K3` at 19:09 (its templated city bubbles became fixed lines: `game/fixedLines.ts W8K_LINES` and
+`SKYLINE_LINES.noViewPin`); `lines.ts` reads `W8K_LINES` (`W8_SOURCES`), and gained `--redo` (wave 8's own muted clips:
+two faster takes each, `takes.json redo`, the new pick replaces the clip) and `--retakes <clips>` (a subset of
+`RETAKES_W8`). 28 takes: 8 new lines × zh / en, 10 redo takes of batch 1's 5 muted clips, 2 more takes of "Ho! Spot
+on!". Result: the table holds **60 lines / 120 clips, 118 pass the gates, 111 heard right**; muted now
+`zh-w5-k-83579ca0` 当——当——当！ (three bell strokes in 1.40 s still read as "slow speech" by the rate gate: the owner's
+ear) and `zh-w5-k-7755a76a` 跟我来！我带你过去～ (a 0.99 s pause; redone in batch 3). 金黄酥脆！完美！, 这段路有点难走，你来带路吧！
+and 嗯～好吃！ / Mmm, tasty! now pass and play. "Ho! Spot on!" passes every gate in both new takes but the recogniser
+hears nothing in either: by the retake rule wave 7's clip stays muted (approve it on the sheet if it sounds right).
+Credits **0.34** (ledger). Preview files `w8-voice-preview-b2-{zh,en}.m4a`.
+
+## Part b · looks: the vehicles up close, one burst per reward, the floodlit Golden Gate (2026-09-30 19:50–21:20 PDT)
+
+### What was built (W8-X2)
+
+| file | change |
+|---|---|
+| `src/opus-bay/world/streetcar.ts` | `carGeometry(livery, pole = true)` is the **city** F-line car (the district's car, `pole` false, is byte-identical — checksum pinned in the test): `cityCab()` at both ends — five glass panes round the rounded cab between sill and header (one dark slab poked out of the curve before), glass style 7 (warm at night); a round headlamp in a brass rim; a low bumper; two amber marker lamps; a rounded roof cap over the cab. Bogie wheels, roof rain strips, a gold header line. The saloon's inner faces, bulkheads and ceiling glow warm at night (a lit car through its open windows). 1,068 → 1,888 triangles for the near car only (mid / far looks unchanged), the same footprint, platform and pole |
+| `src/opus-bay/world/cablecar.ts` (city only: the lazy transit layer) | the dash lamp's brass rim and a gold-lined blank panel either side under the dash's gold line (no number, no lettering); the roof's gentle arch (a flat half-round along the car under the clerestory, vaulting the open ends' ceilings). 2,124 → 2,492 triangles; size, name, platform unchanged |
+| `src/opus-bay/world/sf/tourBus.ts` | **bug**: the tyres were not mirrored — the cylinder grows toward −x from its origin, so the left tyres sat inset with their hub plates floating outside them; now both sides stand out alike with the plate on the outer face. The windscreen's cream pillars, two chrome grille bars, round head lamps. 1,176 triangles (≤ 1,200, the W4 budget test), footprint `BUS.width` + 0.28 (≤ + 0.3) |
+| `src/opus-bay/world/fx.ts` | **one burst per reward moment** (the W7-V review's "double coin pop"): a paid-coins pop now starts `POP_DELAY` 0.2 s late and dies when a sparkle or confetti bursts within `POP_NEAR` 4 u of the player in that beat; no pop within `POP_MERGE` 0.6 s after such a burst — a postcard, a stamp, an egg, a crest or the hunt bursts once; paid coins on their own still pop. A per-particle tag copied in the compaction (no allocation). The ferry's wake foam denser by day (alpha 0.5 → 0.75; 0.55 at night) and a little longer (W7-V: "faint on bright water") |
+| `src/opus-bay/world/sf/lights.ts` | `ggbLights()`: warm far dots up both faces of every Golden Gate tower leg every 2.5 u, dimmer toward the top — the towers have been lit at night since 22 June 1987, and Irving Morrow's plan gave the tops less light so they seem to soar (`GGB_TOWER_LIGHT_SOURCE`: https://www.goldengate.org/bridge/history-research/moments-events/golden-gate-bridge-anniversaries/ and https://radianthistory.com/lighting-the-golden-gate-bridge-scale-and-dignity/, checked 2026-09-30). +128 points in the light field's one Points draw (they fade within ≈ 60–150 u of the camera like the rest) |
+| `tests/opus-bay-w8-x-looks.test.ts` (new) | 4 tests: the F-line (district checksum, warm faces, footprint, budget), the cable car and the bus (sizes, budgets, both sides' wheels), the coin pop (either order one burst; alone it pops), the tower lights. **Red on the old code** (3 of 4: the bus wheels, the coin pop, the tower lights), green now |
+
+No new draw call, material or program: the vehicles are geometry inside their existing instanced / batched meshes, the fx
+and the light field keep their one draw each.

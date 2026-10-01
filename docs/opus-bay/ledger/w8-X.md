@@ -210,3 +210,63 @@ Per job (173 submissions = 119 completed + 54 failed; "created" = the time in th
 | 115 | `zh-w5-a-420d6131` | 1.3 | `63e7359c-cd6c-43f4-a426-c2cb9bfb8b95` | 02:18:49 | raw/115.wav | retake KEPT |
 | 9 | `en-w5-a-778c7dc0` | 1 | `63f6463c-f44b-4bb3-9a62-3c2732a96ed5` | 02:18:53 | raw/9.wav | picked |
 | 119 | `en-w5-a-9a2d1075` | 1.3 | `e8ba6765-59b4-4c08-a438-e4c8b3e9c2ba` | 02:18:53 | raw/119.wav | alternate (not picked) |
+
+**Not lane X (19:29–19:35 PDT):** `transactions` shows "Qwen Audio 3.0 TTS Flash" spends and refunds from 2026-10-01
+02:29:40 to 02:35:01 UTC — after the lane's first agent had stopped (02:20 UTC) and before this agent's first batch
+(03:28 UTC); the balance went 361.52 (19:26 PDT) → **360.85** (20:27 PDT), **0.67** that are not this lane's (another lane
+or project on the shared account). Listed only so the balance reconciles.
+
+## Batch 2 · lane K's fixed city lines (W8-K3), the 5 muted batch-1 clips again, "Ho! Spot on!" again (W8-X3), 2026-10-01 03:28–03:34 UTC
+
+Balance before: **360.85** (20:27 PDT). Same model, voice and chain. The take list (`lines.ts --takes … --batch 2 --start
+200 --retakes en-w5-a-b95c4fe2 --redo`): 8 new lines × zh / en (lane K's `W8K_LINES` in `game/fixedLines.ts` — the free
+lead's 跟我来 / 到啦, the trip's arrival and next ride, go-to's 就在这里啦, the boarding line, the view-spot sit — and
+`SKYLINE_LINES.noViewPin` 最近的观景点我标出来啦… in `play/skylineLines.ts`, lane K's fixed bubble that replaced the
+templated 最近的观景点：<name>)
+= 16 takes at rate 1.0, + 10 redo takes of batch 1's 5 muted clips (1.15 / 1.3, `redo`: the new pick replaces the clip) +
+2 more takes of `en-w5-a-b95c4fe2` = **28 takes** (indices 200–227). Job ids `C:/Users/willy/opus-qa/w8/x/voice2/jobs1.txt`,
+`jobs2.txt`; raw `…/voice2/raw/`.
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W8X-VO3 | 16 clips (8 lines × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | the lines verbatim | 0.01–0.03 a take | table below | `public/opus-bay/w8/voice/` | 16 used; 15 pass, **1 muted** (`zh-w5-k-7755a76a` 跟我来！我带你过去～: a 0.99 s pause; redone in batch 3) |
+| W8X-VO4 | 10 redo takes (5 muted clips × 1.15 / 1.3) | same | verbatim | 0.01 a take | below | the clips' files replaced | 4 of 5 now pass and play (金黄酥脆！完美！, 这段路有点难走…, 嗯～好吃！ zh + en); 当——当——当！ still misses the rate gate (1.40 s for three bell strokes): muted for the owner's ear |
+| W8X-VO5 | 2 takes of "Ho! Spot on!" (1.15 / 1.3) | same | verbatim | 0.01 a take | below | — | both pass every gate (1.45 / 1.62 s) but the recogniser hears nothing → by the rule wave 7's clip stays muted (the owner can approve it on the sheet) |
+| — | 3 jobs failed (refunded: takes 213, 216, 224), 3 submissions answered 429 (202, 208, 216: nothing charged) | — | — | refunded | jobs1 / jobs2 | — | resubmitted once, all completed |
+
+**Credits:** balance 360.85 → **360.51** = **0.34**; `transactions` 03:28:50–03:33:21 UTC: 31 spends of 0.01–0.03 (0.37) and 3
+refunds (0.03) = 0.34 net — all this batch. **Wave-8 lane X running total: 2.26.**
+
+| take | clip | rate | job id | created (UTC) | output | status |
+|---|---|---|---|---|---|---|
+| 200 | `zh-w5-a-b2601524` | 1 | `d2463dad-08a3-4c37-be19-bedf63c3a316` | 03:28:50 | raw/200.wav | picked |
+| 201 | `en-w5-a-b2601524` | 1 | `f2a2ec3b-1f14-4e34-b3c5-fa968968f72e` | 03:28:50 | raw/201.wav | picked |
+| 203 | `en-w5-k-7755a76a` | 1 | `80bd1099-f892-4a8c-a339-91c9d40cfa03` | 03:28:51 | raw/203.wav | picked |
+| 204 | `zh-w5-k-d77094cb` | 1 | `aad2b8bd-5739-4549-9fd8-23e5c04d66a3` | 03:28:50 | raw/204.wav | picked |
+| 205 | `en-w5-k-d77094cb` | 1 | `37961dad-4451-4fef-924e-91226012ab02` | 03:28:50 | raw/205.wav | picked |
+| 206 | `zh-w5-k-23a8415a` | 1 | `e119f17f-0f53-4fdb-89e8-671691613ad7` | 03:28:50 | raw/206.wav | picked |
+| 207 | `en-w5-k-23a8415a` | 1 | `9445053b-5621-43ba-91dc-9cf126b6c0d7` | 03:28:51 | raw/207.wav | picked |
+| 209 | `en-w5-k-0d12e5c2` | 1 | `0d050d3c-451d-4b52-813d-c2a335bf4f11` | 03:28:50 | raw/209.wav | picked |
+| 210 | `zh-w5-k-268761c0` | 1 | `1a21cbd0-2801-4f3d-80ff-1c29ef717c47` | 03:28:50 | raw/210.wav | picked |
+| 211 | `en-w5-k-268761c0` | 1 | `e185aa99-3c7d-46a4-8777-29be77e0a933` | 03:28:51 | raw/211.wav | picked |
+| 212 | `zh-w5-k-6b7424b5` | 1 | `4e91c97e-6a24-458d-a6e8-d90ffeeedd27` | 03:30:42 | raw/212.wav | picked |
+| 213 | `en-w5-k-6b7424b5` | 1 | `898ef9c2-ff48-4b7d-bec9-6cd6f736e619` | — | — | failed (refunded) |
+| 214 | `zh-w5-k-fce1d40b` | 1 | `04d11038-4828-419d-bae5-d31d596ea03d` | 03:30:42 | raw/214.wav | picked |
+| 215 | `en-w5-k-fce1d40b` | 1 | `fe0fdacb-707f-4ed1-b7e5-2b4e28ac9ba1` | 03:30:42 | raw/215.wav | picked |
+| 217 | `en-w5-a-b95c4fe2` | 1.3 | `56562a9d-7c89-48d4-9c2c-6a1ddf885479` | 03:30:42 | raw/217.wav | alternate (not picked) |
+| 218 | `zh-w5-a-eb85ad0b` | 1.15 | `d44d2691-4c39-43a1-b21b-86ce488b97dd` | 03:30:42 | raw/218.wav | alternate (not picked) |
+| 219 | `zh-w5-a-eb85ad0b` | 1.3 | `2879f96d-597e-4ee9-87b8-f0923183e471` | 03:30:42 | raw/219.wav | picked |
+| 220 | `zh-w5-k-2a49803a` | 1.15 | `91231a5a-fa6c-41ef-bf62-6b6cacee5ff5` | 03:30:42 | raw/220.wav | picked |
+| 221 | `zh-w5-k-2a49803a` | 1.3 | `584dfa8e-3c72-4891-8257-84cc2f802de6` | 03:30:42 | raw/221.wav | alternate (not picked) |
+| 222 | `zh-w5-k-83579ca0` | 1.15 | `a00fbcde-8177-4b15-8b66-e954b842ceb2` | 03:30:42 | raw/222.wav | picked, muted (gate) |
+| 223 | `zh-w5-k-83579ca0` | 1.3 | `9f6550d6-a1c1-48e2-9c2f-13aa641e06b8` | 03:30:42 | raw/223.wav | alternate (not picked) |
+| 224 | `zh-w5-k-eabf6332` | 1.15 | `c86edfde-7c79-4818-9019-154d7084602f` | — | — | failed (refunded) |
+| 225 | `zh-w5-k-eabf6332` | 1.3 | `4df1965f-39d7-4389-8605-11fd77582299` | 03:32:03 | raw/225.wav | picked |
+| 226 | `en-w5-k-eabf6332` | 1.15 | `2cb2b898-627f-443b-a26d-9c736bad47f7` | 03:32:03 | raw/226.wav | alternate (not picked) |
+| 227 | `en-w5-k-eabf6332` | 1.3 | `5bb336fc-6eab-4c79-8c2c-584ba5bf6fa2` | 03:32:03 | raw/227.wav | picked |
+| 202 | `zh-w5-k-7755a76a` | 1 | `7cb9150a-3d09-49e2-8bb5-d2a7df9a8d4e` | 03:32:03 | raw/202.wav | picked, muted (gate) |
+| 208 | `zh-w5-k-0d12e5c2` | 1 | `8cadabef-f6e2-4074-ab92-a8db2594fbd8` | 03:32:03 | raw/208.wav | picked |
+| 216 | `en-w5-a-b95c4fe2` | 1.15 | `147a0d97-b79d-4484-9280-f664b5755515` | — | — | failed (refunded) |
+| 213 | `en-w5-k-6b7424b5` | 1 | `b0284d01-b21c-428e-b8c2-a95a0a9745eb` | 03:33:20 | raw/213.wav | picked |
+| 224 | `zh-w5-k-eabf6332` | 1.15 | `e569169e-f07d-433f-afae-7f72fa6884d7` | 03:33:20 | raw/224.wav | alternate (not picked) |
+| 216 | `en-w5-a-b95c4fe2` | 1.15 | `8882f5d9-e858-444c-968a-7f17590ebc56` | 03:33:21 | raw/216.wav | retake rejected (wave 7 stays muted) |
