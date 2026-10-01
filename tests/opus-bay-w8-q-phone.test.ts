@@ -112,3 +112,14 @@ test('W8-Q8: the goals step in short landscape (≤ 460 px tall, ≥ 560 px wide
   assert.ok(css.indexOf('@media (max-height: 700px)') < at);
   assert.match(css, /@media \(max-height: 700px\) \{\n {2}\.ob-gstep \{ max-height: calc\(100vh - 32px/);
 });
+
+test('W8-Q9: while the skyline quiz shows its three names, the right-hand touch column steps aside (the names covered it on a phone)', () => {
+  const css = read('opus-bay.css');
+  assert.match(css.slice(css.indexOf('W8-Q9')), /\.ob-overlay:has\(\.ob-play-sky\) :is\(\.ob-move-buttons, \.ob-touch-action\) \{ visibility: hidden; \}/);
+  // the card and the column it covers are what this rule names
+  const sky = fs.readFileSync(new URL('../src/opus-bay/play/skyline.ts', import.meta.url), 'utf8');
+  assert.match(sky, /className: 'ob-play-sky'/);
+  assert.match(sky, /cancelOnMove: true/, 'a hop or a step ends the quiz: nothing is lost by hiding the column');
+  const touch = fs.readFileSync(new URL('../src/opus-bay/actors/TouchControls.tsx', import.meta.url), 'utf8');
+  assert.match(touch, /className="ob-move-buttons"/);
+});
