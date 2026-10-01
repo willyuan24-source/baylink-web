@@ -262,19 +262,17 @@ Chunks on that build: cityDataChunk 11.63 (city only) · playParts 17.52 · tran
 
 ## Commits
 
-| commit (on origin) | what |
+| commit on origin | what |
 |---|---|
-| `79326be9` W8-P1 | the city-only GLSL of the materials and the sky into the city data chunk |
-| `47305f17` W8-P2 (as pushed in `2713ebf0`'s series) | the landmark cards' tables into the city data chunk |
-| W8-P3 | the cable-car network builder a lazy chunk |
-| W8-P4 (`2713ebf0`) | the district postcards' words with the play layer; report part a |
-| W8-P5 | every lazy import through importRetry (one instance per lost chunk), the reload card |
-| W8-P6 | the resume no longer waits on a lost discovery chunk; report part b |
-| W8-P5b (`5125566b` series) | lane M's four foghorn imports through importRetry |
-| W8-P7 | the district POIs in the city's words into the city data chunk |
-| W8-P8 | wave 8's new chunks named outside GameRoot; the size guard (258.5) and the 255 todo; report part c |
-
-(Rebased several times over other lanes' commits; the ids in the final answer are the ones on origin.)
+|  W8-P1 | the city-only GLSL of the materials and the sky into the city data chunk |
+|  W8-P2 | the landmark cards' tables into the city data chunk |
+|  W8-P3 | the cable-car network builder a lazy chunk |
+|  W8-P4 | the district postcards' words with the play layer; report part a |
+|  W8-P5 | every lazy import through importRetry (one instance per lost chunk), the reload card |
+|  W8-P6 | the resume no longer waits on a lost discovery chunk; report part b |
+|  W8-P5b | lane M's four foghorn imports through importRetry |
+|  W8-P7 | the district POIs in the city's words into the city data chunk |
+|  W8-P8 | wave 8's new chunks named outside GameRoot; the size guard (258.5) and the 255 todo; report part c |
 
 ## Final checks
 
