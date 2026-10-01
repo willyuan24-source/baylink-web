@@ -394,3 +394,20 @@ test('W7-P5: the live catalog prefetch (≈ 125 KB gzip) waits for the world\'s 
   assert.doesNotMatch(src('ui/Overlay.tsx'), /^\s*const id = window\.setTimeout\(\(\) => \{ void loadCatalog\(\); \}, 1500\);/m, 'no blind timer from the boot');
   assert.match(src('game/GameRoot.tsx'), /done\.current = true; markFirstFrame\(\); onDrawn\(true\);/);
 });
+
+test('W8-P1: the city-only GLSL of the shared materials and the sky rides with the city data chunk; GameRoot\'s modules splice it in through world/cityShaderSlot.ts', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  // (measured on the production build, sf-w8-P.md: GameRoot 262.00 → 259.10 KB gzip with this move; the wave's target ≤ 255)
+  assert.ok(!graph.has('data/sf/cityShaders.ts'), `data/sf/cityShaders.ts in the main graph: ${graph.has('data/sf/cityShaders.ts') ? why('data/sf/cityShaders.ts') : ''}`);
+  assert.ok(graph.has('world/cityShaderSlot.ts'), 'the slot stays in the main graph');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/sf/cityDataChunk.ts'), /^export \{ CITY_SHADERS \} from '\.\/cityShaders';\r?$/m);
+  assert.doesNotMatch(src('data/sf/cityShaders.ts'), /^\s*import\s/m, 'the blocks import nothing (the data chunk shares no module with GameRoot\'s graph)');
+  for (const m of ['world/materials.ts', 'world/environment.ts']) assert.match(src(m), /^import \{ CITY_SHADERS \} from '\.\/cityShaderSlot';\r?$/m, m);
+  // no module of GameRoot's graph carries the moved GLSL again (a copy back would put the bytes back in its chunk)
+  const markers = ['vec2 obPuffs(vec3 d)', 'obFac == 9.0 || obFac == 10.0', '} else if (pat == 9.0) {', 'if (pat == 5.0 && vInfo.w > 1.05 && uNight > 0.01) {', 'if (uCityDay > 0.0 && y > 0.0) {'];
+  const back = [...graph.keys()].filter(m => m.endsWith('.ts') || m.endsWith('.tsx')).flatMap(m => markers.filter(k => src(m).includes(k)).map(k => `${m}: ${k}`));
+  assert.deepEqual(back, [], 'city-only GLSL in a main-graph module (put it in data/sf/cityShaders.ts)');
+});

@@ -17,3 +17,5 @@ export { CITY_PHOTOS } from './cityPhotos';
 // data/sf/cityPois.ts read them from `CITY_DATA` (the lazy chunks keep their static imports).
 export { RESIDENTS, asideMark, nextPhotoSpot, residentByKey, task2DoneId, task2State, taskDoneId, taskState } from './residents';
 export { LANDMARK_ARRIVALS } from './arrivals';
+// W8-P1 (lane P): the city-only GLSL blocks of the shared materials and the sky (world/cityShaderSlot.ts reads them)
+export { CITY_SHADERS } from './cityShaders';
