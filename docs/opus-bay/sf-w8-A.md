@@ -248,3 +248,82 @@ BAYBAY's.
 - The rest of the island (the parade ground, West Road, the Agave Trail, the recreation yard) joined to the walk.
 - The reveal camera caught in a frame (unit-tested only); the arrival fires at the stair's foot (inside the 12 u ring).
 - The ferry's own wake strip in the water shader (life.ts's wake list is lane X's; the boat has fx foam only).
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+- 两个检查视角一共报了 10 个问题，我逐个复现：10 个都是真问题，其中 9 个已修好并推送，1 个只修了一半（33 号码头的牌子还能穿过去）。
+- 最要紧的三个已修好：① 从岛上坐回程船时，BAYBAY 以前会说“开往恶魔岛！”，现在回程说普通的上船台词；② “这就是恶魔岛的监狱楼”以前刚下船、还在码头边就触发，现在要爬到台阶上段或平台才触发；③ 手机点地面走路，以前会卡在台阶旁边离顶上 2 米的地方原地跑，现在能一路走到监狱楼正门、灯塔平台，也能走回码头。
+- 小问题也修了：岛上码头的牌子挪到了栈桥边、走不穿；海湾里有渡轮停在航道上时小渡轮会等；帆船不会再让每班船在 33 号码头外干等十几秒；人站在 33 号码头时空船会多等一会儿；11 月 2 日以后（官网只公布到 11 月 1 日的夏季时刻表）水手不再报具体几点几分，只说以官网为准；每帧不再产生临时对象。
+- 全城静态巡检 699 个点：0 个卡死、0 个卡脚、0 个到不了。区服（district）模式没有改动。没有阻碍上线的问题。
+
+### Findings and verdicts
+
+Every finding was reproduced before it was touched (a red test in `tests/opus-bay-w8-a-review.test.ts`, or the existing
+test that asserted the bug). Times PDT, 2026-09-30 23:41 → 2026-10-01 01:xx.
+
+| id | sev | verdict | evidence (before → after) |
+|---|---|---|---|
+| A-RC-1 | major | fixed `ecd0bf08` | `AlcaFerrySystem.boardLine()` ignored the direction; the return-ferry test even asserted "Off to Alcatraz!" on the island → Pier 33 ride. Red: review test "A-RC-1" (`back: not the outbound line`). Now `boardLine()` answers the outbound line only when the rider's drop-off is not Pier 33, else `null` → game/transit says the ferry's usual (already voiced) boarding line `ferry.board`. `FerryLineHooks.boardLine` type is `Bilingual \| null` (game/transit.ts, one type, surgical). The return-ferry test now asserts the usual line and not the outbound one. |
+| A-RP-1 | major | fixed `ecd0bf08` | same defect as A-RC-1 seen in the game (the lens's `s6-03-board-isl.jpg`); same fix. |
+| A-RC-2 | major | fixed `ecd0bf08` | Red: walking the island graph from the quay, the arrival fired on leg 1 at (−455.24, −73.33), 3.2 u off the boat (game/arrival's 12 u floor). `ISLAND_LANDINGS.alcatraz.radius = 5` (data/sf/attractions.ts, lane A's row) and game/arrival honours an island landing's own radius (`ArrivalAnchor.landing`, surgical, named). Now it fires on the upper half of the stair / the plateau, after the stair's 监狱楼在坡顶上 line. |
+| A-RP-2 | major | fixed `ecd0bf08` | Reproduced in node with the real `PlayerController` path follower (`pathTarget`, what a tap / click sets): stopped 3.11 u short at (−463.12, 5.89, −65.19) after 9.3 s — the lens's stall point. Cause: findPath's string-pull cut the corner off the stair's east side onto the hill's 0.9 grade, a wall off stairs (controller WALL_GRADE). Fix: the stair's drawn east kerb / rail is a walk blocker (alcatrazWalk `ALCA_WALK_BLOCKERS`; tops.ts alcatraz row re-measured, only that row). Now the follower reaches the front, the terrace and back down to the quay (review test "A-RP-2"). |
+| A-RC-3 | minor | island fixed `32b25307`; Pier 33 confirmed-not-fixed | The island sign stood 0.22 u from walk node 1: moved to the jetty's south side (`ALCA_ISLAND_SIGN`, ≥ 1.5 u from every walk edge) with its board a walk blocker (test "A-RC-3"). Pier 33's sign stands on a base-city plaza: a blocker there needs core/terrain (frozen) — left walk-through (a thin post 2.7 u east of the quay, off the quay itself). |
+| A-RC-4 | minor | fixed `ecd0bf08` | Red: a ferry stopped on the crossing (strength 0 in life.ts's wake list) → `crossingClear()` true. `readTraffic` now keeps stopped boats (zero velocity) and skips only the list's all-zero slots (test "A-RC-4"). |
+| A-RC-5 | minor | fixed `32b25307` | Re-checked 2026-10-01: the concessioner's sheet (https://statue-static-content.s3.us-east-1.amazonaws.com/Alcatraz+City+Cruises+-+Schedule.pdf) reads "SUMMER SCHEDULE MARCH 8 - NOVEMBER 1, 2026"; NPS (https://www.nps.gov/alca/planyourvisit/hours.htm) says only that hours vary with the season. Outside the sheet's dates (`alcaPublished`) the deckhand's early / returns notes carry no clock times (以官网为准). The toy keeps its day hours (a toy cadence); tonight's live date is inside the sheet. Test "A-RC-5". |
+| A-RC-6 | minor | fixed `32b25307` | `alcaPoint(path, s, out?)` fills module scratch points in `step` / `updatePose`; `readTraffic` reuses a pool; the gulls loop has no closure. Only build-time calls allocate now. |
+| A-RP-3 | minor | fixed `32b25307` | Red in node: life.ts's sailboat loop off Pier 35 (centre −70, −92; 34 × 6; never within 10 u of the crossing) held the outbound boat up to 10.5 s by its straight-line forecast (the lens saw 15–18 s with the live traffic). After 4 s a slow boat (< 4 u/s) counts for 1 s of its course only; ferries keep the full 16 s forecast, and a boat stopped on the crossing still holds it (tests "A-RP-3", "A-RC-4"). The ETA still leaves out a hold for a real ferry (≤ ~16 s; noted). |
+| A-RP-4 | minor | fixed `32b25307` | Red: with someone on the quay the empty boat still cast off at 20 s. Now it waits up to `ALCA.quayWait` (20 s) more while the player stands on foot within 6 u of Pier 33's quay (layer `atQuay33`; test "A-RP-4"); pressing E then gets the boat in the slip. |
+
+### Played in Chrome (dev server, `?world=city&date=2026-10-02T11:00`, after both fix commits)
+
+- Desktop 1440 × 900: from the island quay, a click-to-walk target at the cellhouse front climbs the stair; the arrival
+  fires on the stair's upper part (−464.54, 5.37, −65.75; the reveal's letterbox, "Arrived · Alcatraz Island") and
+  the player stops 0.27 u from the front at y 8.43 (`pathTarget` cleared) with BAYBAY's 这就是恶魔岛的监狱楼 line and the
+  ARRIVED peek card. Calling the boat at the island quay: boarded after 98 s; the ride card reads "Ferry · to Pier 33 ·
+  Alcatraz Landing" and BAYBAY says "All aboard! Grab a spot by the rail and watch the water~" (no "Off to Alcatraz!").
+- Phone 390 × 844 (dpr 3, touch): the same walk — the stair line at its foot, then the arrival on the upper stair, then
+  the front reached (−461.22, 8.44, −62.91), `pathTarget` cleared; nothing stalls beside the stair (the lens's stall
+  point was (−463.0, 5.8, −65.2)). Shots in scratch (`C:/Users/willy/opus-qa/w8/a-rev/p1-*.jpg`, `m1-*.jpg`), read.
+
+### Own pass (both lenses missed)
+
+- **District mode**: lane A's code runs only in the lazy city transit chunk; the Ferry Building ⇄ Pier 41 route is
+  still the first running route (route test) — the hero regression test is in the full suite (green).
+- **Tonight's live date** (1 Oct 2026, Bay clock past midnight): `night` → the boat rests in its slip; the deckhand's
+  quiet line at Pier 33; an island rider is still fetched (test "night"). The summer sheet covers 1 Oct.
+- **Softlocks**: none found. The island watcher's way-back line + the always-fetched boat cover a glide in; the tap
+  route down from the plateau to the quay now works too (it failed in the same corner before the rail).
+- **Sweep**: whole city, 699 targets, 0 OFF / BOXED / SNAG / UNREACHABLE (`trip:ss-jeremiah-obrien` is reachable now —
+  another lane's fix). `island:alcatraz:5` (the stair top) became a CORRIDOR (the new rail on one side, the slope on
+  the other): reported, not a failure.
+- **Wall-clock flake**: `E2-5 view field in the city` ("a cached cell is cheap", 1000 lookups < 50 ms) failed in the first
+  full run and once alone at CPU 100 % (93 node processes); it does not touch lane A's code, and it passed in the second
+  full run — a load flake.
+
+### Checks
+
+- After `32b25307` (both fix commits): the full opus-bay suite **1820 tests, 1819 pass, 0 fail, 1 todo** (00:55 PDT);
+  `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint .` 0 errors (50 warnings, none new); the whole-city static
+  sweep 699 targets, 0 OFF / BOXED / SNAG / UNREACHABLE (149 CORRIDOR, reported).
+- `tests/opus-bay-w8-a-review.test.ts` 9 tests: A-RC-1, A-RC-2, A-RP-2, A-RC-4, A-RC-5, A-RP-3, A-RP-4 red before their
+  fixes (A-RC-3 and A-RC-6 have no red: a placement check and an allocation clean-up).
+
+### Commits
+
+| commit | what |
+|---|---|
+| `ecd0bf08` W8-A-review | A-RC-1 / A-RP-1, A-RC-2, A-RP-2, A-RC-4 |
+| `32b25307` W8-A-review | A-RC-5, A-RP-3, A-RP-4, A-RC-3 (island), A-RC-6 |
+
+### Open items
+
+- Pier 33's quay sign is still walk-through (needs a blocker hook for base-city plazas: core/terrain, the lead's).
+- The ride card's ETA leaves out a crossing hold for a real ferry (now ≤ 16 s, rare; sailboats ≤ ~5 s).
+- The deckhand's return boarding uses the shared voiced ferry line (no Alcatraz-specific return line: a new fixed line
+  would be unvoiced tonight; lane X could add one in wave 9).
+
+### Blocking the go-live to main
+
+Nothing from lane A.
