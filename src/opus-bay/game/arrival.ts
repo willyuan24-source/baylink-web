@@ -71,6 +71,8 @@ export interface ArrivalAnchor {
   landmark?: string;
   /** a panorama spot (PANORAMA_SPOTS): fires the panorama on its own, never counts as a neighbour's visit */
   spot?: 'panorama';
+  /** (wave 8, lane A review) an island landing (data/sf/attractions ISLAND_LANDINGS): its own `radius`, no 12 u floor */
+  landing?: true;
   /** unique key of the anchor in the seen / inside sets (default: `attraction`; spots: `<attraction>@<spot>`) */
   key?: string;
 }
@@ -139,6 +141,8 @@ export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAncho
       // a viewpoint with a spot of its own: the panorama plays there, not at the door
       ...(a.panorama && !spot ? { panorama: true } : {}),
       ...(a.landmarkId ? { landmark: a.landmarkId } : {}),
+      // (W8-A review) the island landing's own radius: up on the plateau, not down at the dock
+      ...(land ? { landing: true as const, radius: land.radius } : {}),
     };
     if (!spot) return [anchor];
     const { x, z, radius } = spot;
@@ -146,8 +150,8 @@ export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAncho
   });
 }
 
-/** Trigger radius: max(12, radius) for arrival anchors; a panorama spot's own (small) radius. */
-const radiusOf = (a: ArrivalAnchor) => (a.spot ? a.radius ?? 7 : Math.max(ARRIVAL_MIN_R, a.radius ?? 0));
+/** Trigger radius: max(12, radius) for arrival anchors; a panorama spot's (and, W8-A review, an island landing's) own (small) radius. */
+const radiusOf = (a: ArrivalAnchor) => (a.spot || a.landing ? a.radius ?? 7 : Math.max(ARRIVAL_MIN_R, a.radius ?? 0));
 const keyOf = (a: ArrivalAnchor) => a.key ?? a.attraction;
 
 /** Save v2 `arrivals` (untrusted): well-formed seen keys only (attraction ids, `<attraction>@<spot>`), unique, ≤ 512. */

@@ -94,6 +94,10 @@ export const ALCA_WALK_BLOCKERS: readonly ({ x: number; z: number; r: number } |
   { x: ALCA_LIGHTHOUSE.x, z: ALCA_LIGHTHOUSE.z, r: 0.8 },
   ...([[9.19, -4.33, 0.59, 1.72, 98], [9.44, -1.26, 1.54, 2.69, 0], [12.48, -1.24, 0.63, 0.9, 94], [13.57, -5.47, 2.57, 1.8, 5]] as const)
     .map(([x, z, L, Wd, a]) => ({ poly: R(x, z, L, Wd, (-a * Math.PI) / 180) })),
+  // (W8-A review, A-RP-2) the stair's east kerb and rail (alcatraz.ts stair() draws them), from above the foot to the
+  // top: tap-to-walk cut the corner off the stair toward the cellhouse front, onto the hill's 0.9 grade (a wall off the
+  // stairs), and ran in place 2 u below the top; now the path keeps to the steps until the plateau
+  { poly: R(ALCA_STAIR.x + ALCA_STAIR.width / 2 - 0.05, (ALCA_STAIR.z0 + 0.8 + ALCA_STAIR.z1) / 2, 0.14, ALCA_STAIR.z1 - ALCA_STAIR.z0 - 0.8) },
 ];
 
 /** The arrival spot (WORLD): the cellhouse front, before the Administration Block's main door. */

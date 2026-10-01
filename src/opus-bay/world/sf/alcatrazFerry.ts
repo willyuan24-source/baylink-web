@@ -57,7 +57,7 @@ const WAKE_LIFT = 0.06, WAKE_NEAR = 160;
 const SIGN_NEAR = 160;
 
 export interface AlcaFerryOptions {
-  /** the other boats on the water (x, z, heading, moving: life.ts's wake list); default none */
+  /** the other boats on the water (x, z, heading, strength — 0 = stopped: life.ts's wake list); default none */
   wakes?: () => readonly { x: number; y: number; z: number; w: number }[] | null;
 }
 
@@ -144,16 +144,18 @@ export class AlcaFerryLayer {
     this.place();
   }
 
-  /** the moving boats on the water (the wake list: x, z, heading, strength > 0 = moving), as positions + velocities */
+  /** the boats on the water (the wake list: x, z, heading, strength > 0 = moving, 0 = stopped), as positions + velocities */
   private readTraffic(): readonly AlcaTraffic[] {
     const out = this.traffic;
     out.length = 0;
     const list = this.wakes?.();
     if (!list) return out;
     for (const w of list) {
-      if (!(w.w > 0)) continue;
-      // a ferry (strength 1) makes ≈ 6–9 u/s, a sailboat (0.45) ≈ 3
-      const v = w.w >= 0.9 ? 8 : 3.2;
+      // (an unused slot of the list is all zeros)
+      if (!(w.w > 0) && w.x === 0 && w.y === 0) continue;
+      // a ferry (strength 1) makes ≈ 6–9 u/s, a sailboat (0.45) ≈ 3; a ferry stopped on the water (strength 0: its
+      // rider's Settings / hop-off brake, W8-A review A-RC-4) still sits in the way — given way to where it lies
+      const v = w.w >= 0.9 ? 8 : w.w > 0 ? 3.2 : 0;
       out.push({ x: w.x, z: w.y, vx: Math.sin(w.z) * v, vz: Math.cos(w.z) * v });
     }
     return out;

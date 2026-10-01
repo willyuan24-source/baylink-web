@@ -103,6 +103,6 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'sutro-heights-park': { blockers: [2.2, 2.2, 2.2, 2.2, 2.2, 2.2, 2.1, 2.2], tall: [] },
   'wave-organ': { blockers: [1.3, 1, 1.4, 1.1, 0.9, 1.1, 0.9, 1, 1.1, 1.4], tall: [] },
   'ina-coolbrith-park': { blockers: [2.8, 5.8], tall: [] },
-  'alcatraz': { blockers: [13.8, 12.7, 12.7, 13.2, 5.3, 6.1, 7.2, 4.1, 9.9, 9.6, 9.9, 9.2, 10.1], tall: [13.2] },
+  'alcatraz': { blockers: [13.8, 12.7, 12.7, 13.2, 5.3, 6.1, 7.2, 4.1, 9.9, 9.6, 9.9, 9.2, 10.1, 8.7], tall: [13.2] },
   'blue-heron-boathouse': { blockers: [2.4, 2.4], tall: [] },
 };

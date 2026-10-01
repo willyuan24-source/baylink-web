@@ -383,9 +383,19 @@ export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 
  * fixed `line` (game/arrival.ts arrivalAnchors / defaultArrivalLine). The row's `siteId` names the island's landmark,
  * whose photo pose plays the reveal (world/sf/landmarks/context sitePhoto).
  */
-export interface IslandLanding { x: number; z: number; line: Bilingual }
+export interface IslandLanding {
+  x: number;
+  z: number;
+  line: Bilingual;
+  /**
+   * the trigger radius (u), its own rather than game/arrival's 12 u floor (W8-A review, A-RC-2): Alcatraz's 12 u reached
+   * down to the dock road under Building 64, 8 u below the plateau — the moment ("This is Alcatraz's cellhouse") fired at
+   * the water's edge, before the stair's "the cellhouse is up the hill". 5 u: the top third of the stair and the plateau.
+   */
+  radius: number;
+}
 export const ISLAND_LANDINGS: Readonly<Record<string, IslandLanding>> = {
-  alcatraz: { x: -460.96, z: -62.95, line: ALCA_LINES.arrive },
+  alcatraz: { x: -460.96, z: -62.95, line: ALCA_LINES.arrive, radius: 5 },
 };
 
 /**

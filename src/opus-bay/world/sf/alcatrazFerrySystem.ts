@@ -303,8 +303,12 @@ export class AlcaFerrySystem {
     return alcaService(c) === 'parade' ? Math.max(0, (PARADE_TO - (c.hour * 60 + c.minute)) * 60) : 0;
   }
 
-  /** BAYBAY's fixed lines on boarding and stepping ashore (game/transit.ts asks a ferry line's own system). */
-  boardLine(): Bilingual { return ALCA_LINES.board; }
+  /**
+   * BAYBAY's fixed lines on boarding and stepping ashore (game/transit.ts asks a ferry line's own system). The boarding
+   * line ("Off to Alcatraz!") is the outbound one: on the way back (the rider's drop-off is Pier 33) it answers null and
+   * game/transit says the ferry's usual boarding line (W8-A review, A-RC-1).
+   */
+  boardLine(): Bilingual | null { return this.boat.dropoff === P33 ? null : ALCA_LINES.board; }
   offLine(to: string): Bilingual { return to === ISL ? ALCA_LINES.ashore : ALCA_LINES.backAt33; }
 
   /** Seconds until the boat can take a rider waiting at `station` (0 when it lies there). */

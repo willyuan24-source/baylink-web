@@ -396,7 +396,9 @@ test('W8-A the return ferry: the island → Pier 33 through game/transit (BAYBAY
       return false;
     };
     assert.ok(step(30 * 200, () => ride.currentRide()?.mode === 'follow'), 'the boat came out and the rider boarded');
-    assert.ok(said.includes(ALCA_LINES.board.en), 'the boarding line');
+    // (W8-A review, A-RC-1) the way back: the ferry's usual boarding line, never "Off to Alcatraz!"
+    assert.ok(!said.includes(ALCA_LINES.board.en), 'not the outbound line on the way back');
+    assert.ok(said.some(s => /^All aboard!/.test(s)), `the ferry's usual boarding line (${said.join(' | ')})`);
     assert.ok(step(30 * 120, () => ride.currentRide() === null), 'back at Pier 33');
     assert.ok(said.includes(ALCA_LINES.backAt33.en), 'the line ashore at Pier 33');
     const q = D.ALCA_TERMINALS.pier33.quay, p = runtime.player;

@@ -717,8 +717,8 @@ interface FerryLineHooks {
   rideSeconds?(from: string, to: string): number;
   serviceNote?(station: string): Bilingual | null;
   greeting?(station: string): Bilingual | null;
-  /** BAYBAY on boarding, and stepping ashore at `to` (fixed lines: lane X voices them) */
-  boardLine?(): Bilingual;
+  /** BAYBAY on boarding (null: the ferry's usual line — W8-A review: the Alcatraz boat's only on the way out), and stepping ashore at `to` (fixed lines: lane X voices them) */
+  boardLine?(): Bilingual | null;
   offLine?(to: string): Bilingual;
 }
 /** (wave 8, lane A) the system of a ferry line: the Ferry Building boat, or another line's own (data/transit setFerrySystemFor) */
