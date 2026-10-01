@@ -197,3 +197,67 @@ to stop".
   --noEmit` 0 · `npx eslint . --quiet` exit 0 (0 errors; the 50 old warnings) · the full suite
   `tests/opus-bay-*.test.ts` **1802 / 1802 pass, 0 fail** (23:05–23:35 PDT, under the wave's load).
 - Dev server 5802 stopped; no Chrome of this lane left running.
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+- Q 线的复查做完了（00:34–01:40 PDT）。两位检查员一共报了 8 个问题，我逐个在手机尺寸上重现：8 个全部属实，8 个都已修好。
+- 手机横屏时：叮当车「拉闸」小游戏原来被乘车条盖住看不到（M 线的复查已经先修好，我确认了效果）；打开地图时左上角几个条叠在一起，现在会让开；地铁卡片不再盖住站名；小游戏顶部的条不再被提示消息压住。
+- 地图上的「隐藏 ×」按钮恢复成第 7 波更大的触摸范围；手机上地图卡片打开时，右边工具按钮变两列，地名会自动让开。
+- 给后面复查用的手机遮挡检查脚本也修好了：每个尺寸都会重新检查目标卡，叮当车会从车站出发，被盖住的游戏画面也会被发现。
+- 全部检查通过：类型检查 0 错误，eslint 0 错误，测试 1834 个里 1832 个通过；唯一没过的是一个计时测试（机器忙时才会慢），单独重跑 24/24 全过。没有任何阻挡上线的问题。
+
+### How the findings were checked
+
+One headless Chrome at a time (touch emulation, an iPhone UA, `?world=city&start=free&save=off&quality=mid&date=2026-10-02T11:00`),
+dev server 5842 on this worktree, a probe script in scratch (`C:/Users/willy/opus-qa/w8/q-rev/probe.mjs`: cases chip / grip / map /
+metro / mapcard) that reproduces each lens's steps and reads the rects; shots `before-*.jpg` / `after-*.jpg` / `rebased-*.jpg` in
+`C:/Users/willy/opus-qa/w8/q-rev/` (scratch, not shipped), every one looked at. Every fix has a test in
+`tests/opus-bay-w8-q-review.test.ts` (7 tests: all 7 red on `origin/opus-bay` 017fe6ee, green after).
+
+| id | sev | verdict | evidence (before → after) |
+|---|---|---|---|
+| Q-PL-1 grip game under the ride banner (short landscape) | major | **fixed** (by W8-M-review, already on origin when this review rebased; verified) | Before 844x340: banner [49,70,795,178] over the canvas [213,76,631,227] (`before-grip-844x340.jpg`: the game is blind). This review's own fix (hide the banner, a 34vh canvas) conflicted on rebase with W8-M-review's two-column panel (`sfgames8.css`: the canvas beside its controls, the banner kept in view); lane M's kept, mine dropped. Rebased probe: 844x340 banner to y 128, panel from 175, canvas [113,196,417,305], 放弃 / 摇铃 / 拉闸 all hit-tested ok; 667x320 banner to 146, panel from 155. Test Q-PL-1 pins lane M's layout and that nothing hides the banner. |
+| Q-PL-2 HUD pile-up left of a side sheet (map, 844x340) | major | **fixed** `49c5c788` | Before: objective [10,16,256,67] over the area pill [16,17,202,53], the gear on its right end, the bubble at x −93 (`before-map-844x340.jpg`). `opus-bay.css` `@media (min-width: 721px) and (max-height: 500px)`: `.ob-overlay.has-sheet :is(.ob-area, .ob-objective, .ob-waypoint, .ob-bubble-anchor) { visibility: hidden }` (phones ≤ 720 px already hide the waypoint and bubble under a sheet). After: no pill, the gear clear, no clipped bubble (`after-map-844x340.jpg`). Pre-existing (the wave-4/5 side-sheet layout), not caused by W8-Q6; fixed since it is a phone held sideways. |
+| Q-PL-3 Metro card over the station strip | minor | **fixed** `49c5c788` | Before: card [192,33,652,244] at 844x340 over 市政中心站 / Van Ness 站 / 教堂街站 / 卡斯特罗站 (4 of 9). `transit-ui.css` under 480 px tall: the card 6 px over the bottom, max-height `100% − 106px` (scrolls inside if ever needed). After: 844x340 [192,121,652,332], 667x320 [104,104,564,312], 0 labels under the card; 设置 still 44x44 (`after-metro-667x320.jpg`). |
+| Q-RC-1 play chip in the top stack's band (601–1080 px) | minor | **fixed** `49c5c788` | Before 844x340: chip [225,64,619,118], toast [307,70,537,111] inside it, objective to 67. After: chip at 72 px [225,72,619,126]; `.ob-overlay:has(.ob-play-flight) .ob-topstack` at 134 px → toast [307,134,537,175]. The play-result rule (281 px, more specific) still wins when both show. |
+| Q-RC-2 waypoint × touch area shrank | minor | **fixed** `a61297d1` | Code: wave 7's `.ob-waypoint-dismiss::before { inset: -10px -4px -10px -16px; border-radius: 12px }` (a 44x44 rounded rectangle, every pointer) was overridden on coarse pointers by W8-Q6's 44 px circle (≈ 1520 vs ≈ 1812 px², −16%). W8-Q6's rule removed (it was mode-blind too: the district gets wave 7's × back); the W8-Q6 test now asserts wave 7's rule and no override. |
+| Q-RC-3 map tool column vs a pinned card | minor | **fixed** `a61297d1` | Before 390x844, Coit pinned: cap 248 px, five 44 px tools need 252 → the legend wrapped to a second column, no `is-two`, toolRight 56. `CityMap.tsx`: `toolsFitOneColumn(count, coarse, toolsMaxHeight(h, true))` → state `toolsWrapPinned` → `tallTools` false → `is-two` and toolRight 106 (fine pointers 90: also the older six-tool route case). After: tools [266,274,362,474], class `ob-citymap-tools is-two`. |
+| Q-RC-4 overlap scan checks the goals step at the first size only | minor | **fixed** `c4311116` | Reproduced: `--sizes 390x664,844x340` gave gstep rows for 390x664 only. Now `Storage.clearDataForOrigin` before each size's load; a step that does not open is a `missing: true` row; the header names `overlap-<lang>.json`. Re-run: gstep:top / gstep:end at both sizes, 0 covered, 0 off. |
+| Q-PL-4 overlap scan's grip surface | minor | **fixed** `c4311116` | The surface now stands at the line's first stop's station before riding (a car came in ≈ 20 s, as the lens said; a 90 s wait) and a `canvas` counts as a control, so a covered game board is reported. |
+
+### Own pass (`git log --grep "W8-Q[0-9:]"`, 15 commits)
+
+- **No softlock found.** The skyline rule hides the move column, but the stick and the chip's 不玩了 end the quiz
+  (cancelOnMove); the Metro 设置 opens the same Settings sheet (z 41 over the tunnel) and closes back to the ride; the goals step
+  in short landscape keeps both buttons on screen (overlap scan re-run at 844x340: 0 off).
+- **District mode:** the hero view (1440 x 900) is untouched by every lane-Q and review rule (the hero regression test passes in
+  the full suite). Mode-blind rules remain, as lane Q reported: W8-Q12's chip at 72 px and this review's top-stack companion
+  (601–1080 px wide only), and the Q-PL-2 sheet rule (short landscape only). `.ob-overlay` carries no city class, and in the
+  district they fix the same HUD collisions. Decision: left; Q-RC-2's removal gives the district its wave-7 × back.
+- **Perf:** CSS plus one `useEffect` in CityMap that runs when the pinned-wrap state flips; no draw-call change.
+- **Live date tonight (Oct 1):** nothing date-dependent in lane Q's work; the probes ran with `?date=2026-10-02T11:00`.
+- **QA lesson (for W8-I / W8-Z):** after editing source with the dev server running, a probe that imports `/src/...` modules can
+  get a second instance of an HMR-invalidated module (startGrip returned true and no panel ever showed). Restart the dev server
+  before a probe run; both "no panel" runs here were that, not a defect.
+
+### Open items (none blocking)
+
+- `CityMap.tsx` `firstOpenView` still frames the first view with the frame-height column (`toolColumn`) when a card is pinned on
+  open; labels and later framings use the corrected toolRight. Cosmetic.
+- At 667 x 320 the one-time first-visit time offer (top stack, ≈ 70–120 px, 10 s once per session) can still touch the top
+  ≈ 20 px of the Metro card if a ride starts within its 10 s.
+- Lane Q's request to lane K (the waypoint edge arrow under the ride banner / play chip at 375 x 553 and 844 x 340) stands.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 (after the last rebase) · `npx eslint . --quiet` 0 errors.
+- Full suite `tests/opus-bay-*.test.ts` on the fixes (01:10 PDT, under the wave's load): **1832 / 1834 pass**, 1 fail = the
+  wall-clock test "a cached cell is cheap" (`opus-bay-sf-move2.test.ts`), green alone (24 / 24); after the last rebase the
+  brought-in and touched tests 80 / 80.
+- Commits on origin: `49c5c788`, `a61297d1`, `c4311116`, `f7a0a6d5` (+ this report). Dev server 5842 stopped, worktree removed.
+
+### Blocking the go-live to main
+
+Nothing.
