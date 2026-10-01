@@ -89,7 +89,7 @@ test('W8-X3 · one burst per reward moment: a coin pop waits a beat and goes whe
   const { emit } = await import('../src/opus-bay/core/events');
   const { game } = await import('../src/opus-bay/core/store');
   const { runtime } = await import('../src/opus-bay/core/runtime');
-  game.set({ worldMode: 'district' });
+  game.set({ worldMode: 'city' });
   runtime.player.x = 0; runtime.player.z = 0;
   const pool = new FxPool();
   try {
@@ -125,6 +125,18 @@ test('W8-X3 · one burst per reward moment: a coin pop waits a beat and goes whe
     emit({ type: 'coins', total: 40, delta: 10, source: 'goal:test' });
     assert.ok(n() - c3 > 0, 'a goal paid next to a pebble glint still pops');
   } finally { pool.dispose(); }
+  // (W8-X-review) district mode never changes: its pop shows at once, and a burst at the player does not take it
+  game.set({ worldMode: 'district' });
+  const d = new FxPool();
+  try {
+    emit({ type: 'coins', total: 50, delta: 10, source: 'egg:test' });
+    const pop = d.count;
+    assert.ok(pop > 0);
+    d.spawn('sparkle', 0.5, 1.1, 0.3);
+    const all = d.count;
+    d.update(0.01);
+    assert.equal(d.count, all, 'the district pop is not merged away');
+  } finally { d.dispose(); game.set({ worldMode: 'city' }); }
 });
 
 test('W8-X-review · the Golden Gate towers are washed from floodlights at their feet, no strings of dots up the legs (W8-X6’s rows read as bulbs); the source is the bridge district’s styling page', async () => {

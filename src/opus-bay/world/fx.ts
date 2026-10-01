@@ -243,7 +243,12 @@ export class FxPool {
       } else if (e.type === 'postcard' || e.type === 'goal' || e.type === 'stamp') {
         this.spawn('sparkle', p.x, p.y + 1.1, p.z);
         if (e.type === 'postcard') this.spawn('confetti', p.x, p.y + 1.4, p.z, { count: 18 });
-      } else if (e.type === 'coins' && e.delta > 0 && !SELF_SPARKLING.test(e.source)) this.coinPop(Math.min(10, 4 + Math.round(e.delta / 5)));
+      } else if (e.type === 'coins' && e.delta > 0 && !SELF_SPARKLING.test(e.source)) {
+        // (W8-X-review) the merged pop is the city's; district mode never changes (its pop at once, as before)
+        const count = Math.min(10, 4 + Math.round(e.delta / 5));
+        if (game.get().worldMode === 'city') this.coinPop(count);
+        else this.spawn('coin', p.x, p.y + 1.7, p.z, { count });
+      }
       else if (e.type === 'play' && e.what === 'end' && e.tier === 3) this.spawn('confetti', p.x, p.y + 1.4, p.z);
       else if (e.type === 'play' && e.what === 'end' && e.tier === 2) this.spawn('sparkle', p.x, p.y + 1.2, p.z, { count: 16 });
       else if (e.type === 'arrival' && e.first && e.tier === 1) this.spawn('confetti', p.x, p.y + 1.4, p.z, { count: 14, scale: 0.9 });
@@ -370,9 +375,12 @@ export class FxPool {
       case 'wake': {
         // flat foam behind a boat: foam puffs spreading on the water (y = the water); (W8-X5) denser and a little longer
         // so the trail reads on the bright day water (it was faint: W7-V's note), softer at night
+        // (W8-X-review: the city's; district mode never changes — its wake as before)
         _c.set(opts.color ?? (night ? '#9fb0b8' : '#f4fbf9'));
+        const city = game.get().worldMode === 'city';
         for (let j = 0, m = n(2); j < m; j++) {
-          this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 3.0 + R() * 0.9, 0.9 * k, 3.6 * k, night ? 0.55 : 0.75, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.1);
+          if (city) this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 3.0 + R() * 0.9, 0.9 * k, 3.6 * k, night ? 0.55 : 0.75, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.1);
+          else this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 2.6 + R() * 0.8, 0.9 * k, 3.2 * k, 0.5, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.12);
         }
         break;
       }
