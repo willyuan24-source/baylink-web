@@ -26,7 +26,7 @@ export type UseKind = 'compass' | 'magnifier' | 'fly-ticket' | 'fly-gift';
 /** the notebook pages (economy/stamps.ts PAGE_IDS) */
 export type PageId = 'stamps' | 'finds' | 'views' | 'sounds';
 /** W6-G3 (lane G): the Halloween costumes (their geometry and tile pictures live in halloween/costume*) */
-export type CostumeKind = 'witch-hat' | 'pumpkin-head' | 'cat-ears' | 'ghost-sheet' | 'bat-wings';
+export type CostumeKind = 'witch-hat' | 'pumpkin-head' | 'cat-ears' | 'ghost-sheet' | 'bat-wings' | 'pumpkin-bow';
 
 export interface ItemDef {
   /** append-only id `[a-z0-9-]` (the `shop` event's item, the `coins` source `shop:<id>`) */
@@ -119,6 +119,9 @@ export const ITEMS: readonly ItemDef[] = [
   // W7-G2 (lane G, append-only): the pelican's Halloween costume — bat wings on its wing bones (charApi 'pelican' wingL /
   // wingR, halloween/costumeMesh.ts); worn in the pelican's slot instead of the ribbon
   { id: 'pelican-bat-wings', shelf: 'rides', slot: 'pelican', name: bi('鹈鹕蝙蝠翅膀', 'Pelican bat wings'), short: bi('蝙蝠翅膀', 'Bat wings'), price: 100, costume: 'bat-wings', season: 'halloween', note: bi('万圣节限定 · 飞起来会扑扇', 'Halloween only · they flap in flight') },
+  // W8-H (lane H, append-only): the pelican's second Halloween costume — a pumpkin bow tied on its neck (charApi
+  // 'pelican' neck, halloween/costumeMesh.ts); worn in the pelican's slot instead of the ribbon / the bat wings
+  { id: 'pelican-pumpkin-bow', shelf: 'rides', slot: 'pelican', name: bi('鹈鹕南瓜领结', 'Pelican pumpkin bow'), short: bi('南瓜领结', 'Pumpkin bow'), price: 60, costume: 'pumpkin-bow', season: 'halloween', note: bi('万圣节限定 · 系在脖子上', 'Halloween only · tied on its neck') },
 ];
 
 export const ITEM_IDS: readonly string[] = ITEMS.map(i => i.id);

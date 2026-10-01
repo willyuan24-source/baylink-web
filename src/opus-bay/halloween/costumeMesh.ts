@@ -16,6 +16,9 @@ import { hatMaterial } from '../economy/hats';
  *     ghost      a white sheet over the whole bean, two black eyes and an "oo" mouth; the feet show under the hem
  *   the pelican's wing bones (W7-G2, charApi 'pelican' wingL / wingR)
  *     bat-wings  a bat's membrane over each wing, scalloped, with finger ribs and a claw; it flaps with the wing
+ *   the pelican's neck (W8-H, charApi 'pelican' neck: actors/charImpl SLOTS.pelican, the body bone at (0, 0.2, 1.14))
+ *     pumpkin-bow  a bow tie on the hindneck where the ribbon's bow sits, facing the riders: two ribbed pumpkin-orange
+ *                  loops, two short tails and a little pumpkin knot with its stem and leaf
  *
  * One plain Mesh per kind on the hats' material (the TOY_DYN program 'ob-toy-dyn': no new program), built on first use
  * and kept; ≤ 420 triangles each (the hats' budget), no shadow cast.
@@ -142,6 +145,42 @@ export function pelicanBatWingMesh(wing: 'L' | 'R'): THREE.Mesh {
     BAT.set(wing, m);
   }
   return m;
+}
+
+/** W8-H: where the bow sits in the neck slot's frame (the slot is the ribbon ring's centre, body (0, 0.2, 1.14)): on top
+ * of the hindneck where the ribbon's own bow sits (models.ts: mesh (±0.13, 0.06, 1.0) = body (0, 0.56, 1.0); the neck's top
+ * there is at body y ≈ 0.60), facing the riders */
+export const BOW_AT = { x: 0, y: 0.42, z: -0.16 } as const;
+const BOW_ORANGE = '#e8792b', BOW_RIB = '#d2641f', BOW_KNOT = '#f0913a', BOW_STEM = '#5e7a3a', BOW_LEAF = '#6f9a45';
+
+/** The pelican's pumpkin bow in the neck slot's frame (+z the way the pelican faces: the bow faces −z, the riders). */
+export function pumpkinBowGeometry(): THREE.BufferGeometry {
+  const b = new Batch();
+  const { x, y, z } = BOW_AT;
+  for (const s of [-1, 1]) {
+    // a loop: a squashed ball leaning out and a little down, with a darker rib along its middle (a pumpkin's groove)
+    b.add(ICO(1), M(x + s * 0.17, y + 0.01, z, 0, 0.17, 0.12, 0.075, 0, s * -0.35), BOW_ORANGE, NONE);
+    b.add(BOX(), M(x + s * 0.17, y - 0.005, z - 0.07, 0, 0.26, 0.022, 0.012, 0, s * -0.35), BOW_RIB, NONE);
+    // a short tail hanging down from the knot
+    b.add(BOX(), M(x + s * 0.06, y - 0.2, z - 0.01, 0, 0.055, 0.18, 0.02, 0, s * 0.3), BOW_RIB, NONE);
+  }
+  // the knot: a little pumpkin with its stem and a leaf
+  b.add(ICO(0), M(x, y, z - 0.02, 0.3, 0.075, 0.068, 0.07), BOW_KNOT, NONE);
+  b.add(CONE(4), M(x, y + 0.055, z - 0.02, 0.4, 0.016, 0.05, 0.016), BOW_STEM, NONE);
+  b.add(BOX(), M(x + 0.035, y + 0.08, z - 0.02, 0.2, 0.05, 0.012, 0.028, 0, -0.5), BOW_LEAF, NONE);
+  return b.build();
+}
+
+let BOW: THREE.Mesh | null = null;
+/** The pelican's pumpkin bow for its neck slot (built on first use, kept; the hats' material, no shadow). */
+export function pelicanPumpkinBowMesh(): THREE.Mesh {
+  if (!BOW) {
+    BOW = new THREE.Mesh(pumpkinBowGeometry(), hatMaterial());
+    BOW.name = 'ob-costume-pumpkin-bow';
+    BOW.castShadow = false;
+    BOW.receiveShadow = false;
+  }
+  return BOW;
 }
 
 const PLAYER = new Map<PlayerCostume, THREE.Mesh>();

@@ -21,7 +21,7 @@ import { sayLine } from './treatRun';
 
 export const COSTUME_FIRST_COINS = 10;
 const SLOTS: readonly WearSlot[] = ['baybay-hat', 'player-hat', 'pelican'];
-const LINE: Readonly<Record<string, string>> = { 'witch-hat': 'w6g-costume-witch', 'pumpkin-head': 'w6g-costume-pumpkin', 'cat-ears': 'w6g-costume-cat', 'ghost-sheet': 'w6g-costume-ghost', 'bat-wings': 'w7g-costume-bat-wings' };
+const LINE: Readonly<Record<string, string>> = { 'witch-hat': 'w6g-costume-witch', 'pumpkin-head': 'w6g-costume-pumpkin', 'cat-ears': 'w6g-costume-cat', 'ghost-sheet': 'w6g-costume-ghost', 'bat-wings': 'w7g-costume-bat-wings', 'pumpkin-bow': 'w8h-costume-pumpkin-bow' };
 const FIRST = halloweenSource('costume:first');
 
 const costumeIn = (slot: WearSlot): ItemDef | null => { const it = wornItem(slot); return it?.costume ? it : null; };
