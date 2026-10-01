@@ -223,3 +223,28 @@ BAYBAY's.
   the deck view until the player answers it).
 - **Lane S**: thank you for W8-S4; if the parade's hour changes, `alcatrazFerrySystem.ts` reads `PARADE_DAY /
   PARADE_FROM / PARADE_TO` from `fleetWeekDay.ts`, and `tests/opus-bay-w8-a-ferry` checks the path still meets the lane.
+
+## Wrap-up (22:34–22:50 PDT)
+
+- **W8-A6** (last): the island watcher's lines also wait behind the goals step, a postcard reward and lane K's waiting
+  overlays (`bubbleWaits()`), so a line is never dropped by `bubble()` and marked as said; the night check in Chrome
+  (`?date=2026-10-02T21:30`, `time=night`): the boat rests in its slip, E at the quay opens the deckhand's 小渡轮收工休息啦…
+  dialogue, no ride starts.
+
+### Commits (origin/opus-bay)
+
+| commit | what |
+|---|---|
+| `f80e8a2d` W8-A1 | the toy ferry Pier 33 ⇄ the island (route, shuttle, timetable, layer, game/transit hooks), the island on foot (dock, dock road, stair, cellhouse front), the sweep's island graph, tests |
+| `42d0c654` W8-A2 | the island's arrival (anchor, own line, photo pose, stamp), BAYBAY's 7 fixed lines, 8 visitors on the island, the card tip, report a + b |
+| `65478b6d` W8-A3 | the parade hour (Fleet Week), the return-ferry test, report c |
+| `1eddee39` W8-A4 | gulls over the stern, the engine aboard (audio/city.ts) |
+| `c4a67d3e` W8-A5 | the controller walks the island, one pier name |
+| W8-A6 | the island lines wait instead of being dropped; this wrap-up |
+
+### Not done
+
+- A switchback road you walk (the toy has a stair; the DEM has no benches for the road).
+- The rest of the island (the parade ground, West Road, the Agave Trail, the recreation yard) joined to the walk.
+- The reveal camera caught in a frame (unit-tested only); the arrival fires at the stair's foot (inside the 12 u ring).
+- The ferry's own wake strip in the water shader (life.ts's wake list is lane X's; the boat has fx foam only).

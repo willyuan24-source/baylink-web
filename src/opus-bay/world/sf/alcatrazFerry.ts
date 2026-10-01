@@ -6,8 +6,8 @@ import { runtime } from '../../core/runtime';
 import { ALCA_FERRY_ID, ALCA_TERMINALS, FERRY } from '../../data/ferry';
 import { setFerrySystemFor } from '../../data/transit';
 import { bayParts } from '../../game/bayNow';
-import { baybayHeld } from '../../game/baybayHold';
-import { bubble } from '../../game/flow';
+import { baybayHeld, bubbleWaits } from '../../game/baybayHold';
+import { bubble, goalsStepOpen } from '../../game/flow';
 import { flow } from '../../game/flowStore';
 import { game } from '../../core/store';
 import { currentRide } from '../../game/ride';
@@ -232,7 +232,9 @@ export class AlcaFerryLayer {
 
   private quiet(): boolean {
     const s = game.get(), f = flow.get();
-    return baybayHeld() || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || !!f.arrival || !!f.bubble;
+    // (and whatever would drop or park the bubble: the goals step, a postcard reward, lane K's waiting overlays)
+    return baybayHeld() || bubbleWaits() || goalsStepOpen() || !!f.postcardReward || !!f.postcardFly
+      || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || !!f.arrival || !!f.bubble;
   }
 
   private watchIsland(dt: number) {
