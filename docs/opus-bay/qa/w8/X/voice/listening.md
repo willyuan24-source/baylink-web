@@ -294,3 +294,14 @@ Each batch's picks play in this order in `w8-voice-preview-b<n>-{zh,en}.m4a` (0.
 | `zh-w5-a-420d6131` | 滑了好远！草地真滑～ | 3.44 | 2.63 | ✓ (0.99) | ✓ 替换 |
 | `zh-w5-a-6c4f2c8f` | 车要掉头啦！跟着我喊：嘿——咻！ | 4.73 | 3.08 | ✓ (0.86) | ✓ 替换 |
 | `en-w5-a-9a2d1075` | Not quite! | 1.56 | 1.06 | ✓ (0.78) | ✓ 替换 |
+
+## 未配音（只显示文字）· text-only lines, not voiced (W8-I, W8I-WS-5)
+
+Added by the integration pass (W8-I) so the sheet names every new fixed line that has no clip. All three stay text only
+in wave 8 (no recording slot was left tonight); wave 9 records them or keeps them silent on purpose.
+
+| line | where | zh | en | why no clip |
+|---|---|---|---|---|
+| `GRIP_LINES.short` | play/sfgames8Lines.ts:58 | 这趟太短啦，下次坐远一点再拉闸！ | That ride was too short! Grip on a longer one next time. | new in W8-M after lane X's batches; listed as NEW by scripts/opus-sf/voice/w8/lines.ts |
+| `SLED_LINES.short` | play/sled.ts:45 | 嘿嘿，找个更陡的坡试试？ | Hehe, try a steeper slope? | the same (W8-M review) |
+| `PELICAN_FIRST.laterBubble` | game/pelicanFirst.ts:65 | 想飞的时候…就行～ (the device's key) | Whenever you want to fly, just … | a template (K-RC-3): text only by the rule; wave 9 makes it a fixed line with the key on a toast, then records it |

@@ -41,8 +41,10 @@ fs.mkdirSync(OUT, { recursive: true });
 if (fs.existsSync(LOCK)) { console.log(JSON.stringify({ error: `PERF-LOCK present (${LOCK}): no Chrome now` })); process.exit(0); }
 
 // 繁體: the site's own converter decides what is Simplified (a converted text converts to itself)
+// (W8-I, W8I-WS-3) opencc's cn→tw is not idempotent ('馬里納區' → '馬裡納區'): a text is Simplified only when a
+// round trip through Simplified does not give it back (tw→cn→tw), so a correctly converted transliteration is no leak
 let toTw = null;
-if (LANG === 'zh-Hant') { const O = await import('opencc-js'); toTw = O.Converter({ from: 'cn', to: 'tw' }); }
+if (LANG === 'zh-Hant') { const O = await import('opencc-js'); const tw = O.Converter({ from: 'cn', to: 'tw' }), cn = O.Converter({ from: 'tw', to: 'cn' }); toTw = t => tw(cn(t)); }
 const HAN = /\p{Script=Han}/u;
 const wrong = text => (LANG === 'en' ? HAN.test(text) : LANG === 'zh-Hant' ? HAN.test(text) && toTw(text) !== text : false);
 const showWrong = text => (LANG === 'zh-Hant' ? [...text].filter(ch => HAN.test(ch) && toTw(ch) !== ch).join('') : '');
