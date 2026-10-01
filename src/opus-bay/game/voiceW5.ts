@@ -17,7 +17,7 @@
  */
 import { getLocale } from '../../i18n/locale';
 import type { Bilingual } from '../core/types';
-import { emit } from '../core/events';
+import { emit, onEvent } from '../core/events';
 // (W8-X1) wave 8's table first: its module registers the retakes of wave 7's muted clips under their wave-7 ids
 // (data/sf/voiceW7.ts skips its muted clips, so the retake is the only file for that id) and wave 8's lines
 import { W8_RETAKE_CLIPS, W8_VOICE_CHECK, W8_VOICE_LINES } from '../data/sf/voiceW8';
@@ -27,6 +27,7 @@ import { W7_VOICE_CHECK, W7_VOICE_LINES } from '../data/sf/voiceW7';
 import { W5_VOICE_CHECK, W5_VOICE_LINES } from '../data/sf/voiceW5';
 import { W6_VOICE_CHECK, W6_VOICE_LINES } from '../data/sf/voiceW6';
 import { flow } from './flowStore';
+import { holdBubble } from './flow';
 import { BAYBAY_ID } from './interactables';
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
@@ -59,10 +60,33 @@ export function w5VoiceMuted(clip: string): boolean {
   return W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip) || W8_VOICE_CHECK.includes(clip);
 }
 
+let seconds: Map<string, readonly [number, number]> | null = null;
+/** (W8-X-review) a recorded line's length in this locale (s), or 0 when unknown */
+export function w5VoiceSeconds(id: string): number {
+  seconds ??= new Map([...W5_VOICE_LINES, ...W6_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES].map(l => [l.id, l.s]));
+  const s = seconds.get(id);
+  return s ? s[getLocale() === 'en' ? 1 : 0] : 0;
+}
+/** (W8-X-review) the bubble stays this long after its clip ends; and never longer than VOICE_HOLD_MAX ms in all */
+export const VOICE_HOLD_TAIL = 400;
+export const VOICE_HOLD_MAX = 12000;
+
+/**
+ * (W8-X-review) BAYBAY's bubble stays up while her voice says it: several clips run longer than the bubble their lane
+ * gave (the Alcatraz landing ≈ 9 s in a 4.6 s bubble), so the words went while she still spoke, and with the bubble gone
+ * the next line could start over the clip. Both the lines matched here and a lane's own voice-line (lane S's parade).
+ */
+function holdForVoice(id: string): void {
+  const b = flow.get().bubble, s = w5VoiceSeconds(id);
+  if (!b || b.who !== BAYBAY_ID || !s || w5VoiceMuted(`${getLocale() === 'en' ? 'en' : 'zh'}-${id}`)) return;
+  holdBubble(b.key, Math.min(VOICE_HOLD_MAX, s * 1000 + VOICE_HOLD_TAIL));
+}
+
 /** Start voicing BAYBAY's recorded bubbles; returns the off. */
 export function initW5Voice(): () => void {
   let last = flow.get().bubble?.key ?? -1;
-  return flow.subscribe(() => {
+  const offOwn = onEvent(e => { if (e.type === 'voice-line') holdForVoice(e.id); });
+  const off = flow.subscribe(() => {
     const b = flow.get().bubble;
     if (!b || b.key === last) return;
     last = b.key;
@@ -72,4 +96,5 @@ export function initW5Voice(): () => void {
     if (!id || w5VoiceMuted(clip)) return;
     emit({ type: 'voice-line', id });
   });
+  return () => { offOwn(); off(); };
 }

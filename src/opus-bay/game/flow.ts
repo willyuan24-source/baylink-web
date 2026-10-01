@@ -101,10 +101,27 @@ export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble
     return false;
   }
   const key = ++bubbleKey;
-  flow.set({ bubble: { who, text, key, tone } });
+  // (W8-X-review) the timer first: the voice binder, called from inside flow.set, may hold this bubble longer
   if (bubbleTimer) clearTimeout(bubbleTimer);
   bubbleTimer = setTimeout(() => { if (flow.get().bubble?.key === key) flow.set({ bubble: null }); }, ms);
+  bubbleEnds = performance.now() + ms;
+  flow.set({ bubble: { who, text, key, tone } });
   return true;
+}
+
+let bubbleEnds = 0;
+/**
+ * (W8-X-review, city voice) Keep bubble `key` up at least `ms` from now: its recorded line runs longer than the
+ * caller's ms (game/voiceW5.ts), so the words stay while BAYBAY says them and the lanes' `!!flow.bubble` checks keep
+ * the next line from starting over the clip. Never shortens; a no-op once that bubble is gone or replaced.
+ */
+export function holdBubble(key: number, ms: number): void {
+  if (flow.get().bubble?.key !== key) return;
+  const end = performance.now() + ms;
+  if (end <= bubbleEnds) return;
+  bubbleEnds = end;
+  if (bubbleTimer) clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => { if (flow.get().bubble?.key === key) flow.set({ bubble: null }); }, ms);
 }
 
 /** W8-K1: the bubble waiting behind the Halloween postcard (tests / QA). */

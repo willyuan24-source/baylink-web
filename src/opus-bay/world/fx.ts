@@ -159,6 +159,12 @@ const SELF_SPARKLING = /^(trail|cache|ring):/;
 export const POP_MERGE = 0.6;
 export const POP_DELAY = 0.2;
 export const POP_NEAR = 4;
+/**
+ * (W8-X-review) only a reward-sized burst counts (a sparkle of ≥ this many glints, or confetti): the small glints the
+ * world makes on its own near the player (a pebble's or the hunt's glint every 2–3 s, a ball or frisbee catch: 5–6) took
+ * the coin pop of a goal or an arrival paid in the same beat, and those coins arrived with no burst at all
+ */
+export const POP_BURST_MIN = 8;
 
 export class FxPool {
   readonly mesh: THREE.InstancedMesh;
@@ -291,7 +297,7 @@ export class FxPool {
   }
 
   spawn(preset: FxPreset, x: number, y: number, z: number, opts: FxOpts = {}) {
-    if ((preset === 'sparkle' || preset === 'confetti') && Math.hypot(x - runtime.player.x, z - runtime.player.z) < POP_NEAR) {
+    if ((preset === 'confetti' || (preset === 'sparkle' && (opts.count ?? 12) >= POP_BURST_MIN)) && Math.hypot(x - runtime.player.x, z - runtime.player.z) < POP_NEAR) {
       // (W8-X3) a burst at the player: a coin pop still waiting for its beat goes (it dies at the next update)
       this.lastBurst = this.clock;
       if (this.clock <= this.popUntil) for (let i = 0; i < this.alive; i++) if (this.tag[i] === this.popId) this.life[i] = -1;

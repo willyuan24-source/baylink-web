@@ -87,3 +87,35 @@ test('W8-X1 · a kept retake plays a muted wave-7 clip (registered under the wav
   const src = fs.readFileSync(path.join(ROOT, 'src/opus-bay/game/voiceW5.ts'), 'utf8');
   assert.ok(src.indexOf("from '../data/sf/voiceW8'") < src.indexOf("from '../data/sf/voiceW7'"));
 });
+
+test('W8-X-review · BAYBAY\'s bubble stays up while her clip plays: a matched line and a lane\'s own voice-line hold it to the clip\'s length (never shorter, never past the cap)', async () => {
+  const { bubble } = await import('../src/opus-bay/game/flow');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { emit } = await import('../src/opus-bay/core/events');
+  const { initW5Voice, w5VoiceSeconds, VOICE_HOLD_MAX } = await import('../src/opus-bay/game/voiceW5');
+  const { W8_VOICE_LINES } = await import('../src/opus-bay/data/sf/voiceW8');
+  const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+  const off = initW5Voice();
+  try {
+    // the Alcatraz landing line (≈ 8–9 s) given a 4.6 s bubble by its lane: here 80 ms, read back at 300 ms
+    const ashore = W8_VOICE_LINES.find(l => l.id === 'w5-al-ae4cef3d')!;
+    assert.ok(w5VoiceSeconds(ashore.id) > 7 && w5VoiceSeconds(ashore.id) * 1000 < VOICE_HOLD_MAX);
+    assert.equal(bubble({ zh: ashore.zh, en: ashore.en }, 80), true);
+    await wait(300);
+    assert.equal(flow.get().bubble?.text.zh, ashore.zh, 'the words stay while she says them');
+    // a lane's own line (lane S's parade): its voice-line event holds the bubble it just showed
+    const parade = W8_VOICE_LINES.find(l => l.id === 'realsf-parade-near')!;
+    assert.equal(bubble({ zh: parade.zh, en: parade.en }, 80), true);
+    emit({ type: 'voice-line', id: parade.id });
+    await wait(300);
+    assert.equal(flow.get().bubble?.text.zh, parade.zh);
+    // an unrecorded text keeps its own ms
+    bubble({ zh: '测试一句没有录音的话', en: 'A test line with no recording' }, 80);
+    await wait(300);
+    assert.equal(flow.get().bubble, null);
+  } finally {
+    off();
+    bubble({ zh: '清', en: 'clear' }, 1);
+    await wait(20);
+  }
+});

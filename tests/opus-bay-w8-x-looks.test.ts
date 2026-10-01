@@ -43,6 +43,31 @@ test('W8-X2 · the city F-line car: a glazed cab that glows at night and a lit s
   assert.ok(tris(carMidGeometry('#2f7d5a')) < tris(city) * 0.46);
 });
 
+/** the positions of the vertices whose aInfo style is 7 (warm at night) */
+const warmAt = (g: THREE.BufferGeometry) => {
+  const a = g.getAttribute('aInfo'), p = g.getAttribute('position'), out: { x: number; y: number; z: number }[] = [];
+  for (let i = 0; i < a.count; i++) if (Math.round(a.getX(i)) === 7) out.push({ x: p.getX(i), y: p.getY(i), z: p.getZ(i) });
+  return out;
+};
+
+test('W8-X-review · the city F-line car at night: dark cab glass, a lit saloon seen through the windows (floor, bench seats and backs), and the gold header line on the outside', async () => {
+  const { carGeometry, CAR_LEN } = await import('../src/opus-bay/world/streetcar');
+  const city = carGeometry('#2f7d5a', true), L = CAR_LEN - 2;
+  const w = warmAt(city);
+  assert.ok(w.every(p => Math.abs(p.z) <= L / 2 + 0.05), 'nothing warm in the cab: lit, its five panes read as peach boards');
+  assert.ok(w.every(p => p.y >= 0.5 - 1e-3 && Math.abs(p.x) <= 1.0 + 1e-3), 'nothing warm on the outside (the floor’s edge under the livery)');
+  assert.ok(w.some(p => p.y > 1.0 && p.y < 1.3 && Math.abs(p.x) > 0.85 && Math.abs(p.x) < 0.95 && Math.abs(p.z) < L / 2), 'the benches’ backs glow below the window band');
+  assert.ok(w.some(p => p.y > 0.5 && p.y < 0.51 && Math.abs(Math.abs(p.x) - 0.9) < 0.01), 'the aisle floor glows');
+  // the gold line under the header: on its outer face (it sat inside the header wall)
+  const pos = city.getAttribute('position'), col = city.getAttribute('color');
+  let out = 0;
+  for (let i = 0; i < pos.count; i++) {
+    const x = Math.abs(pos.getX(i)), y = pos.getY(i), z = Math.abs(pos.getZ(i));
+    if (x > 2.1 / 2 + 0.005 && y > 2.2 && y < 2.32 && z < L / 2 + 0.01 && col.getX(i) > col.getZ(i) * 1.5) out++;
+  }
+  assert.ok(out >= 8, `the gold header line stands on the header's outer face (${out} vertices)`);
+});
+
 test('W8-X2 · the cable car (dash panels, lamp rims, the roof arch) and the tour bus (front, symmetric wheels) keep their sizes and budgets', async () => {
   const { cableCarGeometry, cableCarMidGeometry } = await import('../src/opus-bay/world/cablecar');
   const { CABLE } = await import('../src/opus-bay/data/transit');
@@ -92,19 +117,24 @@ test('W8-X3 · one burst per reward moment: a coin pop waits a beat and goes whe
     assert.ok(pop2 > 0, 'a paid reward pops');
     pool.update(POP_DELAY + 0.01);
     assert.equal(n(), c2 + pop2, 'it lives past its beat');
+    // (W8-X-review) a small glint the world makes near the player (a pebble's, the hunt's: 5) is not the reward's burst
+    for (let i = 0; i < 40; i++) pool.update(0.1);
+    pool.spawn('sparkle', 2, 0.5, 0, { count: 5, color: '#ffffff' });
+    pool.update(0.3);
+    const c3 = n();
+    emit({ type: 'coins', total: 40, delta: 10, source: 'goal:test' });
+    assert.ok(n() - c3 > 0, 'a goal paid next to a pebble glint still pops');
   } finally { pool.dispose(); }
 });
 
-test('W8-X6 · the Golden Gate towers are floodlit at night: far dots up both faces of every leg, dimmer toward the top', async () => {
+test('W8-X-review · the Golden Gate towers are washed from floodlights at their feet, no strings of dots up the legs (W8-X6’s rows read as bulbs); the source is the bridge district’s styling page', async () => {
   const { ggbLights, GGB_TOWER_LIGHT_SOURCE } = await import('../src/opus-bay/world/sf/lights');
   const { GGB } = await import('../src/opus-bay/world/sf/landmarks/golden-gate-bridge');
-  const flood = ggbLights().filter(l => l.level < 1 && l.color[1] === 0.8);
-  assert.ok(flood.length >= 2 * 2 * 2 * 14, `${flood.length} tower dots`);
-  const mean = (a: { level: number }[]) => a.reduce((s, l) => s + l.level, 0) / a.length;
-  const low = flood.filter(l => l.y < GGB.TOP * 0.4), high = flood.filter(l => l.y > GGB.TOP * 0.8);
-  assert.ok(low.length && high.length && mean(low) > mean(high) + 0.2, 'the tops get less light (they seem to soar)');
-  assert.ok(flood.every(l => l.y < GGB.TOP), 'below the tower tops (the red aviation lights are above)');
-  assert.match(GGB_TOWER_LIGHT_SOURCE.sourceUrl, /^https:\/\/www\.goldengate\.org\//);
+  const flood = ggbLights().filter(l => l.color[1] === 0.8 && l.color[0] === 1);
+  assert.equal(flood.filter(l => l.level < 1).length, 0, 'no dimmer dots up the legs');
+  assert.ok(flood.every(l => l.y - Math.min(...flood.map(f => f.y)) < 1), 'the floodlights stand at the legs’ feet');
+  assert.ok(flood.length >= 4 && flood.every(l => l.y < GGB.TOP * 0.2));
+  assert.equal(GGB_TOWER_LIGHT_SOURCE.sourceUrl, 'https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/');
 });
 
 test('W8-X4 · the sky puffs take their edge width from the view direction (its derivative before the city sky\'s branch), not fwidth of the puff distance', async () => {

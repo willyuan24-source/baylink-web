@@ -63,8 +63,12 @@ export function carGeometry(livery: string, pole = false): THREE.BufferGeometry 
   // heights (car frame): livery to the belt, gold belt, cream sill, open windows up to the header, roof — the window
   // band starts at chest height so a rider standing in the aisle shows from the shoulders up
   const BELT = 1.02, SILL = 1.14, WIN = 1.26, HEAD = 2.28, ROOF = 2.57;
-  // floor + underframe
+  // floor + underframe. (W8-X-review) city: the aisle floor (a lit skin inside the walls: the floor's own edge shows under
+  // the livery) and the benches are lit warm at night too — the inner faces sit behind the benches and the ceiling above
+  // the windows, so from the street the saloon read dark with only its cab lit
+  const lit = pole ? CAB_GLASS : undefined;
   b.add(BOX(), M(0, 0.4, 0, 0, W - 0.06, 0.1, L), '#8f7a62');
+  if (pole) b.add(BOX(), M(0, 0.5, 0, 0, W - 0.3, 0.004, L - 0.6), '#8f7a62', lit);
   b.add(BOX(), M(0, 0.1, 0, 0, W - 0.3, 0.3, L - 1), '#454b48');
   for (const side of [-1, 1]) {
     const x = side * (W / 2 - T / 2);
@@ -80,9 +84,9 @@ export function carGeometry(livery: string, pole = false): THREE.BufferGeometry 
     // inner faces a touch darker (reads as the inside of the car through the windows); (W8-X2) city: lit warm at night
     b.add(BOX(), M(side * (W / 2 - T - 0.005), 0.5, 0, 0, 0.01, WIN - 0.5, L - 0.6), inside, pole ? CAB_GLASS : undefined);
     // longitudinal bench: seat, front skirt, backrest
-    b.add(BOX(), M(side * 0.66, 0.86, 0, 0, 0.44, 0.09, L - 1.5), wood);
+    b.add(BOX(), M(side * 0.66, 0.86, 0, 0, 0.44, 0.09, L - 1.5), wood, lit);
     b.add(BOX(), M(side * 0.46, 0.5, 0, 0, 0.04, 0.36, L - 1.5), shade(wood, 0.8));
-    b.add(BOX(), M(side * 0.9, 0.95, 0, 0, 0.07, 0.3, L - 1.5), shade(wood, 0.9));
+    b.add(BOX(), M(side * 0.9, 0.95, 0, 0, 0.07, 0.3, L - 1.5), shade(wood, 0.9), lit);
     // brass poles by the aisle
     for (const pz of [-1.35, 1.35]) b.add(CYL(8), M(side * 0.4, 0.5, pz, 0, 0.035, 2.0, 0.035), brass);
   }
@@ -108,11 +112,12 @@ export function carGeometry(livery: string, pole = false): THREE.BufferGeometry 
   for (const s of [-1, 1]) b.add(BOX(), M(0, 0.05, s * (L / 2 - 1), 0, 1.6, 0.35, 1.8), dark);
   // city mode (instanced cars): the trolley pole baked in, trailing up to the wire as the district's separate pole does
   if (pole) {
-    // (W8-X2) the bogies' wheels, the roof's rain strips and a gold line under the windows' header
+    // (W8-X2) the bogies' wheels, the roof's rain strips and a gold line under the windows' header (W8-X-review: on the
+    // header's outer face, as the belt's gold line — it sat inside the header wall, unseen)
     for (const s of [-1, 1]) for (const wz of [-0.55, 0.55]) for (const wx of [-0.8, 0.89]) b.add(CYL(10), M(wx, 0.25 - CAR_Y, s * (L / 2 - 1) + wz, 0, 0.27, 0.09, 0.27, 0, Math.PI / 2), '#2a2a2a', CAB_NO);
     for (const side of [-1, 1]) {
       b.add(BOX(), M(side * (W / 2 - 0.07), ROOF + 0.18, 0, 0, 0.06, 0.06, L + 0.7), '#bdb7aa', CAB_NO);
-      b.add(BOX(), M(side * (W / 2 - 0.03), HEAD - 0.02, 0, 0, 0.04, 0.04, L), '#e0a94a', CAB_NO);
+      b.add(BOX(), M(side * (W / 2 + 0.005), HEAD - 0.03, 0, 0, 0.03, 0.06, L), '#e0a94a', CAB_NO);
     }
     const base = new THREE.Matrix4().makeTranslation(0, 2.9 - CAR_Y, -1.8).multiply(new THREE.Matrix4().makeRotationX(-0.71));
     b.add(CYL(5), base.clone().multiply(M(0, 0, 0, 0, 0.04, 2.9, 0.04)), '#2a2a2a');
@@ -126,7 +131,8 @@ const CAB_NO: [number, number, number, number] = [0, -100, 0, 0];
 const CAB_GLASS: [number, number, number, number] = [7, -100, 0, 0];
 
 /**
- * (W8-X2) The city car's cab at end `s` (± along z): five glass panes round the rounded front between the sill and the
+ * (W8-X2) The city car's cab at end `s` (± along z): five glass panes (W8-X-review: dark glass at night, as the cab is —
+ * lit, they read as solid peach boards, the brightest thing on the car, while the saloon behind stayed dark) round the rounded front between the sill and the
  * header (the old car had one dark slab poking out of the curve), a round headlamp with a brass rim, a dark bumper, two
  * amber marker lamps by the roof and a rounded roof cap over the cab. Pieces only: the car's size, platform and collider
  * are unchanged.
@@ -136,7 +142,7 @@ function cityCab(b: Batch, s: number, L: number, W: number) {
   for (const th of [-1.18, -0.6, 0, 0.6, 1.18]) {
     const nx = Math.sin(th) / rx, nz = Math.cos(th) / rz, nl = Math.hypot(nx, nz);
     // on the ellipse (x = rx sin θ, z = rz cos θ), turned to its normal
-    b.add(BOX(), M(Math.sin(th) * (rx + 0.012), WIN, cz + s * Math.cos(th) * (rz + 0.012), Math.atan2(nx / nl, s * nz / nl), Math.abs(th) > 1 ? 0.5 : 0.56, HEAD - WIN, 0.03), '#4b6068', CAB_GLASS);
+    b.add(BOX(), M(Math.sin(th) * (rx + 0.012), WIN, cz + s * Math.cos(th) * (rz + 0.012), Math.atan2(nx / nl, s * nz / nl), Math.abs(th) > 1 ? 0.5 : 0.56, HEAD - WIN, 0.03), '#4b6068', CAB_NO);
   }
   // the headlamp: a warm lens in a brass rim, low on the dash; the bumper under it
   b.add(CYL(12), M(0, 0.82, cz + s * (rz - 0.02), 0, 0.2, 0.05, 0.2, s * Math.PI / 2), '#d9b25a', CAB_NO);
