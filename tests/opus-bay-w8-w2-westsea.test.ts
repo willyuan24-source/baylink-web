@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
 import { projectCity } from '../src/opus-bay/core/geo';
-import { WEST_LINES, WEST_SPOTS, SPOT_HYSTERESIS, westLineDue } from '../src/opus-bay/world/sf/westLines';
+import { WEST_LINES, WEST_SPOTS, SPOT_HYSTERESIS, atSpot, westLinesDue, westVisits, type WestVisits } from '../src/opus-bay/world/sf/westLines';
 import {
   BREAKS, CORMORANTS, CORMORANT_Y, CYCLE_LEN, FOAM_IN, OB_SHORE, SEAL_BOULDERS, SEAL_ROCKS_CENTRE, SEAL_ROCK_OUTLINES, SEA_LIONS, SEA_LION_Y, SEA_Y, SURFERS,
   SURFERS_FROM, SURF_NIGHT_MAX, STATIC_COUNT, WEST_SEA_CAPACITY, type InstanceSink, paintWestSea, poseRocks, poseWestSea, rockTop, seaPoint, surfState,
@@ -146,21 +146,29 @@ test('W8-W2 BAYBAY\'s west-side lines: fixed zh + en, on foot, by day at the sur
     assert.ok(!/[㐀-鿿]/.test(l.text.en), `English has no Han characters: ${l.id}`);
   }
   const kelly = WEST_SPOTS.find(s => s.id === 'kelly')!, seal = WEST_SPOTS.find(s => s.id === 'seal')!;
-  const inside = new Set<string>(), said = new Set<string>();
+  const visits: WestVisits = new Map(), said = new Set<string>();
+  const due = (x: number, z: number, night: number, onFoot = true) => { westVisits(x, z, night, visits, said, onFoot); return westLinesDue(visits, said, WEST_SPOTS).map(l => l.id); };
   // not out walking (on a ride, driving, gliding: westSea passes false), then on foot
-  assert.equal(westLineDue(kelly.at.x, kelly.at.z, 0, inside, said, false), null);
-  const first = westLineDue(kelly.at.x, kelly.at.z, 0, inside, said, true);
-  assert.equal(first?.id, kelly.lines[0].id);
-  said.add(first!.id);
-  // still inside: nothing more; out past the hysteresis and back in: the next line
-  assert.equal(westLineDue(kelly.at.x, kelly.at.z, 0, inside, said, true), null);
-  assert.equal(westLineDue(kelly.at.x + kelly.r + SPOT_HYSTERESIS - 1, kelly.at.z, 0, inside, said, true), null, 'inside the hysteresis band');
-  assert.equal(westLineDue(kelly.at.x + 400, kelly.at.z, 0, inside, said, true), null, 'left');
-  assert.equal(westLineDue(kelly.at.x, kelly.at.z, 0, inside, said, true)?.id, kelly.lines[1].id);
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0, false), []);
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0), [kelly.lines[0].id]);
+  // (W8-W2-review, P3) not said yet (held behind a card): still due at the next check, the visit keeps its line
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0), [kelly.lines[0].id]);
+  said.add(kelly.lines[0].id);
+  // said: nothing more this visit; out past the hysteresis and back in: the next line
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0), []);
+  assert.deepEqual(due(kelly.at.x + kelly.r + SPOT_HYSTERESIS - 1, kelly.at.z, 0), [], 'inside the hysteresis band');
+  assert.ok(atSpot(kelly, kelly.at.x + kelly.r + SPOT_HYSTERESIS - 1, kelly.at.z) && !atSpot(kelly, kelly.at.x + 400, kelly.at.z));
+  assert.deepEqual(due(kelly.at.x + 400, kelly.at.z, 0), [], 'left');
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0), [kelly.lines[1].id]);
+  // (P3) a line the pacer dropped unsaid comes again on the next visit (it counts as said only when she says it)
+  assert.deepEqual(due(kelly.at.x + 400, kelly.at.z, 0), []);
+  assert.deepEqual(due(kelly.at.x, kelly.at.z, 0), [kelly.lines[1].id]);
   // at night the surf spots are quiet (no surfers), Seal Rocks still speaks
-  const i2 = new Set<string>();
-  assert.equal(westLineDue(kelly.at.x, kelly.at.z, 1, i2, new Set(), true), null);
-  assert.equal(westLineDue(seal.at.x, seal.at.z, 1, i2, new Set(), true)?.id, seal.lines[0].id);
+  const v2: WestVisits = new Map();
+  westVisits(kelly.at.x, kelly.at.z, 1, v2, new Set(), true);
+  assert.deepEqual(westLinesDue(v2, new Set(), WEST_SPOTS), []);
+  westVisits(seal.at.x, seal.at.z, 1, v2, new Set(), true);
+  assert.deepEqual(westLinesDue(v2, new Set(), WEST_SPOTS).map(l => l.id), [seal.lines[0].id]);
   // the spots sit inside the mesh's draw range (she never talks about something not drawn)
   for (const s of WEST_SPOTS) assert.ok(westSeaDist2(s.at.x, s.at.z) + s.r * s.r < WEST_RANGE * WEST_RANGE);
 });

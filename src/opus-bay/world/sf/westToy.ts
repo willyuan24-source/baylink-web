@@ -3,6 +3,7 @@ import type { Bilingual } from '../../core/types';
 import { patchToyShader } from '../materials';
 import { instancedWarmup, registerWarmup } from '../warmup';
 import type { WorldSystem } from '../world';
+import { atSpot, westVisits, type WestLine, type WestSpot, type WestVisits } from './westLines';
 
 /**
  * Wave 8 · lane W2 · the instanced toy pieces of the west side (westSea.ts: Ocean Beach / Seal Rocks; westLake.ts: the
@@ -31,30 +32,8 @@ export function registerWestWarmup(kind: string): () => void {
   return registerWarmup(`w8-west-${kind}`, () => instancedWarmup(westToyMaterial(kind), { instanceColor: true }));
 }
 
-/**
- * The unit ball (an 80-face icosphere, diameter 1, non-indexed) with white vertex colours and the toy program's aInfo
- * (w −1); `jitter` > 0 moves every vertex sideways by a fixed ± jitter/2 of its distance from the axis (the same for the
- * copies of a vertex: still closed) and flattens the normals into facets — a rock's lumpy faces; the poles stay put.
- */
-export function westBall(jitter = 0): THREE.BufferGeometry {
-  const base = new THREE.IcosahedronGeometry(0.5, 1);
-  const g = base.index ? base.toNonIndexed() : base;
-  const pos = g.getAttribute('position') as THREE.BufferAttribute, n = pos.count;
-  if (jitter > 0) {
-    for (let i = 0; i < n; i++) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const h = Math.sin(Math.round(x * 997) * 12.9898 + Math.round(y * 991) * 78.233 + Math.round(z * 983) * 37.719) * 43758.5453;
-      const j = 1 + jitter * (h - Math.floor(h) - 0.5);
-      pos.setXYZ(i, x * j, y, z * j);
-    }
-    g.computeVertexNormals();
-  }
-  const info = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) info[i * 4 + 3] = -1;
-  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
-  g.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
-  return g;
-}
+/** (W8-W2-review: the unit ball lives in westBall.ts, so westSeaPose can measure the drawn rock without an import cycle) */
+export { westBall } from './westBall';
 
 /** What the factory needs of a west-side scene: its mesh, its range, its pose and BAYBAY's spots. */
 export interface WestInstancedSpec {
@@ -68,25 +47,46 @@ export interface WestInstancedSpec {
   range: number;
   /** one frame: writes the instances, returns the count to draw */
   pose(mesh: THREE.InstancedMesh, t: number, night: number): number;
-  /** BAYBAY's line for the player at (x, z), or null (westLines.westLineDue with the scene's spots) */
-  line?(x: number, z: number, night: number, inside: Set<string>, said: ReadonlySet<string>, onFoot: boolean): { id: string; text: Bilingual } | null;
+  /** BAYBAY's spots round the scene (westLines.ts) */
+  spots?: readonly WestSpot[];
 }
+
+/** What BAYBAY's pacer gets with a place line (game/cityContent baybayLine's `valid` / `onSay`). */
+export interface WestSayHooks { valid: () => boolean; onSay: () => void }
 
 const CHECK_EVERY = 0.2;
 
 /**
  * A city WorldSystem for one west-side instanced scene: built lazily, drawn only within range, posed every frame while
- * drawn, no shadows, no collision. BAYBAY: on entering one of its spots on foot / cycling / sitting she offers the line
- * through her pacer (game/cityContent baybayLine: it waits for the line she is saying and holds while a panel is open —
- * lane K's W8-K1), each line once a session.
+ * drawn, no shadows, no collision. BAYBAY: on entering one of its spots on foot / cycling / sitting the visit gets the
+ * spot's next line (westLines.westVisits); it is offered through her pacer (game/cityContent baybayLine: it waits for
+ * the line she is saying and holds while a panel is open, lane K's W8-K1) and offered again at every check while the
+ * visit lasts (the pacer keeps one copy and extends its ttl), so a line held behind a long card is said when the card
+ * closes. W8-W2-review: the pacer drops it the moment the player is no longer at the spot (`valid`, P1: never said over
+ * another place after a fast travel), and it counts as said only when BAYBAY says it (`onSay`, P3: a dropped line comes
+ * again on the next visit). Each line once a session.
  */
-export function attachWestInstanced(spec: WestInstancedSpec, say: (text: Bilingual) => boolean, player: () => { x: number; z: number; afoot: boolean }): WorldSystem {
+export function attachWestInstanced(spec: WestInstancedSpec, say: (text: Bilingual, hooks: WestSayHooks) => boolean, player: () => { x: number; z: number; afoot: boolean }): WorldSystem {
   const group = new THREE.Group();
   group.name = `sf:${spec.name}`;
   group.visible = false;
   let mesh: THREE.InstancedMesh | null = null;
   let next = 0, near = false;
-  const said = new Set<string>(), inside = new Set<string>();
+  const said = new Set<string>(), visits: WestVisits = new Map();
+  // one pair of hooks per spot and line, made once (the checks allocate nothing)
+  const hooks = new Map<string, WestSayHooks>();
+  const hooksFor = (s: WestSpot, l: WestLine): WestSayHooks => {
+    const key = `${s.id}|${l.id}`;
+    let h = hooks.get(key);
+    if (!h) {
+      h = {
+        valid: () => { const p = player(); return p.afoot && visits.get(s.id) === l && atSpot(s, p.x, p.z); },
+        onSay: () => { said.add(l.id); },
+      };
+      hooks.set(key, h);
+    }
+    return h;
+  };
   return {
     name: spec.name,
     group,
@@ -97,11 +97,14 @@ export function attachWestInstanced(spec: WestInstancedSpec, say: (text: Bilingu
         near = spec.dist2(c.x, c.z) <= spec.range * spec.range;
         if (near && !mesh) { mesh = spec.build(); group.add(mesh); group.updateMatrixWorld(true); }
         group.visible = near && !!mesh;
-        if (near && spec.line) {
+        if (near && spec.spots) {
           const p = player();
-          const due = spec.line(p.x, p.z, night, inside, said, p.afoot);
-          if (due && say(due.text)) said.add(due.id);
-        }
+          westVisits(p.x, p.z, night, visits, said, p.afoot, spec.spots);
+          for (const s of spec.spots) {
+            const l = visits.get(s.id);
+            if (l && !said.has(l.id)) say(l.text, hooksFor(s, l));
+          }
+        } else if (!near) visits.clear(); // (C3: far from every spot, e.g. after a fast travel: every visit ends)
       }
       if (!near || !mesh) return;
       mesh.count = spec.pose(mesh, t, night);

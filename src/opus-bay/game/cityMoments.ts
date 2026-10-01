@@ -68,15 +68,17 @@ const clock = () => performance.now() / 1000;
 
 const EMOTES: Partial<Record<Mood, Emote>> = { point: 'point', excited: 'hop', wave: 'wave', proud: 'clap', thinking: 'think' };
 
+/** W8-W2-review: a place line's hooks (game/linePacer.ts PacedLine `valid` / `onSay`). */
+export type LineHooks = Pick<PacedLine, 'valid' | 'onSay'>;
 /** Queue one of BAYBAY's lines (a tourLines id or a plain bubble); false when it is a repeat or unknown. */
-export function offerLine(say: string | Bilingual, ttl?: number, now = clock()): boolean {
+export function offerLine(say: string | Bilingual, ttl?: number, now = clock(), hooks?: LineHooks): boolean {
   const line = sayLine(say, ttl);
-  return line ? pacer.offer(line, now) : false;
+  return line ? pacer.offer(hooks ? { ...line, ...hooks } : line, now) : false;
 }
 /** Queue a frozen line by id (its voice once recorded), or `text` when the id is unknown (wave 5, W5-C6). */
-export function offerLineOr(id: string, text: Bilingual, ttl?: number, now = clock()): boolean {
+export function offerLineOr(id: string, text: Bilingual, ttl?: number, now = clock(), hooks?: LineHooks): boolean {
   const line = sayLine(id, ttl) ?? sayLine(text, ttl);
-  return line ? pacer.offer(line, now) : false;
+  return line ? pacer.offer(hooks ? { ...line, ...hooks } : line, now) : false;
 }
 /** The clip of a frozen line in the current voice language exists (lane V's table). */
 export const lineRecorded = (id: string): boolean => (clipSeconds(id) ?? 0) > 0;
@@ -123,6 +125,8 @@ function stepPacer(now: number) {
   lastSaid = said;
   // (W8-K1) the voice only with its bubble on screen
   if (!bubble(said.text, said.bubbleMs, BAYBAY_ID, 'bark')) return;
+  // (W8-W2-review, P3) a place line counts as said only now, with its bubble on screen
+  said.onSay?.();
   if (said.voiced && said.voice) emit({ type: 'voice-line', id: said.voice });
   const emote = said.mood ? EMOTES[said.mood] : undefined;
   if (emote) { runtime.guide.emote = emote; emit({ type: 'emote', who: 'baybay', emote }); }

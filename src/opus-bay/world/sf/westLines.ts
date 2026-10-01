@@ -40,8 +40,15 @@ export const WEST_SPOTS: readonly WestSpot[] = [
   { id: 'judah', at: seaPoint(245, 0), r: 70, lines: [WEST_LINES.surf1, WEST_LINES.surf2], day: true },
   { id: 'seal', at: SEAL_ROCKS_CENTRE, r: 60, lines: [WEST_LINES.seal1, WEST_LINES.seal2], day: false },
 ];
+/**
+ * W8-W2-review (C2): the heron line has its own small spot on the outer shore path south of the heron, across the narrow
+ * channel by the south footbridge (≈ 10 u from it, the sight line clear from the published terrain: scratch
+ * opus-qa/w8/w2-rev/heronspot.mts) — from the lake spot's far side Strawberry Hill hid the heron she said "look" at.
+ */
+export const HERON_SPOT: Vec2 = { x: -263, z: 1002 };
 export const LAKE_SPOTS: readonly WestSpot[] = [
-  { id: 'lake', at: LAKE_CENTRE, r: 48, lines: [LAKE_LINES.boats, LAKE_LINES.heron], day: true },
+  { id: 'lake', at: LAKE_CENTRE, r: 48, lines: [LAKE_LINES.boats], day: true },
+  { id: 'heron', at: HERON_SPOT, r: 7, lines: [LAKE_LINES.heron], day: true },
   { id: 'boathouse', at: { x: -306.3, z: 1024.0 }, r: 14, lines: [LAKE_LINES.since], day: false },
 ];
 /** a spot is left again this much beyond its radius (no flicker on its edge) */
@@ -49,18 +56,30 @@ export const SPOT_HYSTERESIS = 15;
 /** the sky's night factor above which the surf spots stay quiet (the surfers are gone) */
 export const LINE_NIGHT_MAX = 0.35;
 
+/** The spots the player is in, each with the line chosen on entering it (null: nothing left to say there). */
+export type WestVisits = Map<string, WestLine | null>;
+
+/** The player at (x, z) is still at the spot (inside its radius plus the hysteresis). */
+export const atSpot = (s: WestSpot, x: number, z: number): boolean => Math.hypot(x - s.at.x, z - s.at.z) <= s.r + SPOT_HYSTERESIS;
+
 /**
- * The line to say now, or null: on entering a spot (`onFoot`: walking, cycling or sitting — not on a ride; a day spot
- * by day) the first of its lines not said this session. `inside` (the spots the player is in) is updated; `said` is the caller's (ids it managed to say).
+ * Update the visits for the player at (x, z) (W8-W2-review, C3 / P1 / P3): entering a spot (`onFoot`: walking, cycling
+ * or sitting — not on a ride; a day spot by day) starts a visit with the first of its lines not said this session;
+ * leaving it by r + SPOT_HYSTERESIS ends the visit. Every spot entered counts (two spots entered in one check each get
+ * their line). The caller (westToy.ts) keeps offering each visit's line until BAYBAY says it, and the pacer drops a
+ * waiting line once the player has left the spot (`atSpot`).
  */
-export function westLineDue(x: number, z: number, night: number, inside: Set<string>, said: ReadonlySet<string>, onFoot: boolean, spots: readonly WestSpot[] = WEST_SPOTS): WestLine | null {
-  let due: WestLine | null = null;
+export function westVisits(x: number, z: number, night: number, visits: WestVisits, said: ReadonlySet<string>, onFoot: boolean, spots: readonly WestSpot[] = WEST_SPOTS): void {
   for (const s of spots) {
-    const d = Math.hypot(x - s.at.x, z - s.at.z);
-    if (inside.has(s.id)) { if (d > s.r + SPOT_HYSTERESIS) inside.delete(s.id); continue; }
-    if (d > s.r || !onFoot || (s.day && night > LINE_NIGHT_MAX)) continue;
-    inside.add(s.id);
-    due ??= s.lines.find(l => !said.has(l.id)) ?? null;
+    if (visits.has(s.id)) { if (!atSpot(s, x, z)) visits.delete(s.id); continue; }
+    if (Math.hypot(x - s.at.x, z - s.at.z) > s.r || !onFoot || (s.day && night > LINE_NIGHT_MAX)) continue;
+    visits.set(s.id, s.lines.find(l => !said.has(l.id)) ?? null);
   }
-  return due;
+}
+
+/** The lines due now: each visit's line not said yet, in the spots' order (tests; westToy.ts walks the same loop). */
+export function westLinesDue(visits: WestVisits, said: ReadonlySet<string>, spots: readonly WestSpot[]): WestLine[] {
+  const out: WestLine[] = [];
+  for (const s of spots) { const l = visits.get(s.id); if (l && !said.has(l.id)) out.push(l); }
+  return out;
 }

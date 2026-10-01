@@ -3,8 +3,9 @@ import { runtime } from '../../core/runtime';
 import { game } from '../../core/store';
 import { baybayLine } from '../../game/cityContent';
 import type { WorldSystem } from '../world';
-import { westLineDue } from './westLines';
+import { WEST_SPOTS } from './westLines';
 import { attachWestInstanced, registerWestWarmup, westBall, westToyMaterial } from './westToy';
+import { ROCK_JITTER } from './westBall';
 import { OB_SHORE, SEAL_ROCKS_CENTRE, WEST_SEA_CAPACITY, paintWestSea, poseRocks, poseWestSea } from './westSeaPose';
 
 /**
@@ -37,7 +38,7 @@ export function westSeaDist2(x: number, z: number): number {
  * distance from the axis) and flat facets — a rock's lumpy faces on the stacks; on the small parts (heads, boards, foam)
  * the jitter is too small to see. The poles stay put, so westSeaPose.rockTop (the true ellipsoid) is where the summits are.
  */
-export const rockBall = (): THREE.BufferGeometry => westBall(0.18);
+export const rockBall = (): THREE.BufferGeometry => westBall(ROCK_JITTER);
 
 /** The mesh (count 0 until the first frame); the stacks posed and every instance painted. */
 export function buildWestSea(): THREE.InstancedMesh {
@@ -61,8 +62,8 @@ export function attachWestSea(): WorldSystem {
     dist2: westSeaDist2,
     range: WEST_RANGE,
     pose: (mesh, t, night) => poseWestSea(mesh, t, night),
-    line: (x, z, night, inside, said, onFoot) => westLineDue(x, z, night, inside, said, onFoot),
-  }, text => baybayLine(text, { ttl: 25 }), westPlayer);
+    spots: WEST_SPOTS,
+  }, (text, hooks) => baybayLine(text, { ttl: 25, ...hooks }), westPlayer);
 }
 
 /** the player for BAYBAY's spot test: where, and out walking (on foot, cycling or sitting on a bench — not on a ride) */

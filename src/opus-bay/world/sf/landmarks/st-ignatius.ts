@@ -51,7 +51,8 @@ function church(b: BatchLike, lod: 0 | 2) {
   // the two front towers: square shafts, an open belfry stage, an octagonal lantern, a small cupola
   for (const tx of TOWERS) {
     box(b, tx, -1.2, TOWER_Z, TOWER_W, fy + 7.6 + 1.2, TOWER_W, BUFF, GLOW(0.15));
-    if (lod === 2) { pyramid(b, tx, fy + 7.6, TOWER_Z, 1.5, 1.5, 3.4, BUFF_SHADE); pyramid(b, tx, fy + 10.9, TOWER_Z, 0.9, 0.9, 1.7, LEAD); continue; }
+    // lod 2: the belfry stage, then the lead cupola on it (W8-W2-review C4: no lead cap balanced on a buff spike)
+    if (lod === 2) { box(b, tx, fy + 7.6, TOWER_Z, 1.55, 2.05, 1.55, BUFF_SHADE); pyramid(b, tx, fy + 9.65, TOWER_Z, 1.4, 1.4, 3.0, LEAD); continue; }
     box(b, tx, fy + 7.6, TOWER_Z, TOWER_W + 0.2, 0.25, TOWER_W + 0.2, TRIM);
     box(b, tx, fy + 7.85, TOWER_Z, 1.55, 1.6, 1.55, BUFF_SHADE, GLOW(0.15));
     for (let f = 0; f < 4; f++) {

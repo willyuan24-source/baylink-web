@@ -110,11 +110,15 @@ export const arrivalSeen = (attraction: string): boolean => moments?.arrivalSeen
  * few minutes. Before the city chunk lands (or in district mode) it is a plain bubble. zh ≤ 45 characters. Returns
  * false when the pacer refused it (a repeat).
  */
-export function baybayLine(text: Bilingual, opts: { ttl?: number; id?: string } = {}): boolean {
+export function baybayLine(text: Bilingual, opts: { ttl?: number; id?: string; valid?: () => boolean; onSay?: () => void } = {}): boolean {
   // (W5-C6: `id` = a frozen line of data/sf/linesW5.ts with the same text: the pacer plays its clip once recorded)
-  if (moments) return opts.id ? moments.offerLineOr(opts.id, text, opts.ttl ?? 30) : moments.offerLine(text, opts.ttl ?? 30);
+  // (W8-W2-review: `valid` drops a waiting place line once the player has left the place; `onSay` when it is said)
+  const hooks = opts.valid || opts.onSay ? { valid: opts.valid, onSay: opts.onSay } : undefined;
+  if (moments) return opts.id ? moments.offerLineOr(opts.id, text, opts.ttl ?? 30, undefined, hooks) : moments.offerLine(text, opts.ttl ?? 30, undefined, hooks);
   // (no pacer yet: after the bubble on screen, never over it)
+  if (opts.valid && !opts.valid()) return false;
   if (flow.get().bubble) setTimeout(() => bubble(text, 4200), 4600); else bubble(text, 4200);
+  opts.onSay?.();
   return true;
 }
 

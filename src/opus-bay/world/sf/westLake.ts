@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { baybayLine } from '../../game/cityContent';
 import type { WorldSystem } from '../world';
-import { LAKE_SPOTS, westLineDue } from './westLines';
+import { LAKE_SPOTS } from './westLines';
 import { LAKE_CAPACITY, LAKE_CENTRE, paintLake, poseLake } from './westLakePose';
 import { westPlayer } from './westSea';
 import { attachWestInstanced, registerWestWarmup, westBall, westToyMaterial } from './westToy';
@@ -45,6 +45,6 @@ export function attachWestLake(): WorldSystem {
     dist2: lakeDist2,
     range: LAKE_RANGE,
     pose: (mesh, t, night) => poseLake(mesh, t, night),
-    line: (x, z, night, inside, said, onFoot) => westLineDue(x, z, night, inside, said, onFoot, LAKE_SPOTS),
-  }, text => baybayLine(text, { ttl: 25 }), westPlayer);
+    spots: LAKE_SPOTS,
+  }, (text, hooks) => baybayLine(text, { ttl: 25, ...hooks }), westPlayer);
 }

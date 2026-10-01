@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as THREE from 'three';
-import { LAKE_LINES, LAKE_SPOTS, westLineDue } from '../src/opus-bay/world/sf/westLines';
+import { LAKE_LINES, LAKE_SPOTS, westLinesDue, westVisits, type WestVisits } from '../src/opus-bay/world/sf/westLines';
 import { LAKE_RANGE, buildLake, lakeDist2 } from '../src/opus-bay/world/sf/westLake';
 import {
   BOAT, BOATS, BOATS_FROM, BOATS_NIGHT_MAX, BOAT_PARTS, DUCKS, HERON, LAKE_CAPACITY, LAKE_CENTRE, LAKE_Y, MOORED, type Boat, boatAt, paintLake, poseLake,
@@ -115,10 +115,10 @@ test('W8-W2 lake: BAYBAY\'s lake lines are fixed zh + en, by day at the lake, th
     assert.ok(!/[{}$%]/.test(l.text.zh + l.text.en) && !/[㐀-鿿]/.test(l.text.en), l.id);
   }
   const lake = LAKE_SPOTS.find(s => s.id === 'lake')!, house = LAKE_SPOTS.find(s => s.id === 'boathouse')!;
-  const inside = new Set<string>();
-  assert.equal(westLineDue(lake.at.x, lake.at.z, 0, inside, new Set(), true, LAKE_SPOTS)?.id, LAKE_LINES.boats.id);
-  assert.equal(westLineDue(house.at.x, house.at.z, 1, new Set(), new Set(), true, LAKE_SPOTS)?.id, LAKE_LINES.since.id, 'the boathouse at night');
-  assert.equal(westLineDue(lake.at.x, lake.at.z, 1, new Set(), new Set(), true, LAKE_SPOTS), null, 'no boats at night: quiet');
+  const due = (x: number, z: number, night: number) => { const v: WestVisits = new Map(); westVisits(x, z, night, v, new Set(), true, LAKE_SPOTS); return westLinesDue(v, new Set(), LAKE_SPOTS).map(l => l.id); };
+  assert.deepEqual(due(lake.at.x, lake.at.z, 0), [LAKE_LINES.boats.id]);
+  assert.deepEqual(due(house.at.x, house.at.z, 1), [LAKE_LINES.since.id], 'the boathouse at night');
+  assert.deepEqual(due(lake.at.x, lake.at.z, 1), [], 'no boats at night: quiet');
   for (const s of LAKE_SPOTS) assert.ok(Math.sqrt(lakeDist2(s.at.x, s.at.z)) + s.r < LAKE_RANGE, 'spots inside the draw range');
   assert.equal(BOAT_PARTS, 8);
 });

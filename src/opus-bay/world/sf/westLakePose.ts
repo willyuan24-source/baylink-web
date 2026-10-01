@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../core/types';
-import type { InstanceSink } from './westSeaPose';
+import { duskOut, type InstanceSink } from './westSeaPose';
 
 /**
  * Wave 8 · lane W2 · Blue Heron Lake (formerly Stow Lake, Golden Gate Park): toy pedal boats and rowboats out on the
@@ -38,8 +38,9 @@ export const BOATS: readonly Boat[] = [
   bt(-251.5, 1010.5, 2.5, -0.34, 0.8, 'row', 0), bt(-251.5, 1010.5, 2.5, -0.34, 0.8 + Math.PI, 'pedal', 2),
   bt(-253.5, 998.5, 2.1, 0.3, 2.0, 'row', 1),
   bt(-296, 1034, 1.7, -0.36, 1.1, 'pedal', 3), bt(-296, 1034, 1.7, -0.36, 1.1 + Math.PI, 'row', 2),
-  bt(-284, 1019, 1.3, 0.3, 0.4, 'pedal', 4),
-  bt(-277.5, 1049.5, 0.7, 0.18, 2.6, 'row', 0),
+  bt(-284, 1019, 1.5, 0.3, 0.4, 'pedal', 4),
+  // W8-W2-review C7: the rowboat that pivoted on a 0.7 u circle in the narrow north basin shares the south basin, half a turn apart
+  bt(-253.5, 998.5, 2.1, 0.3, 2.0 + Math.PI, 'row', 0),
 ];
 /**
  * boats moored at the boathouse's landing, bows to the shore: 2.9 u out from the building's axis on its lake side, 1.5 u
@@ -72,8 +73,12 @@ export const BOATS_NIGHT_MAX = 0.35;
 const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Euler(0, 0, 0, 'YXZ'), p3 = new THREE.Vector3(), s3 = new THREE.Vector3();
 const col = new THREE.Color();
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
+/** W8-W2-review (P4): a boat going in at dusk shrinks about its centre on the water (k 1 … 0) */
+const about = { k: 1, x: 0, z: 0 };
 function put(sink: InstanceSink, i: number, x: number, y: number, z: number, sx: number, sy: number, sz: number, yaw: number, pitch = 0, roll = 0) {
   e3.set(pitch, yaw, roll);
+  const k = about.k;
+  if (k !== 1) { x = about.x + (x - about.x) * k; y = LAKE_Y + (y - LAKE_Y) * k; z = about.z + (z - about.z) * k; sx *= k; sy *= k; sz *= k; }
   sink.setMatrixAt(i, m4.compose(p3.set(x, y, z), q.setFromEuler(e3), s3.set(sx, sy, sz)));
 }
 
@@ -151,10 +156,11 @@ export function poseLake(sink: InstanceSink, t: number, night: number): number {
     // the tail, a little behind and low
     put(sink, i++, x - fx * 0.32, y + 0.86, z - fz * 0.32, 0.18, 0.1, 0.3, h, -0.3);
   }
-  if (night > BOATS_NIGHT_MAX) return i;
+  if (night >= BOATS_NIGHT_MAX) return i;
   for (let k = 0; k < BOATS.length; k++) {
     const b = BOATS[k];
     boatAt(b, t, at);
+    about.k = duskOut(k, BOATS.length, night, BOATS_NIGHT_MAX); about.x = at.x; about.z = at.z;
     const fx = Math.sin(at.yaw), fz = Math.cos(at.yaw), rx = fz, rz = -fx;
     const bob = Math.sin(t * 1.1 + k) * 0.025, roll = Math.sin(t * 0.8 + k * 1.7) * 0.04;
     hull(sink, i, at.x, at.z, at.yaw, b.kind, bob, roll);
@@ -182,5 +188,6 @@ export function poseLake(sink: InstanceSink, t: number, night: number): number {
     }
     i += BOAT_PARTS;
   }
+  about.k = 1;
   return i;
 }

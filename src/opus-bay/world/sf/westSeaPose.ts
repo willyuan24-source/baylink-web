@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Vec2 } from '../../core/types';
+import { ROCK_JITTER, westBall } from './westBall';
 
 /**
  * Wave 8 · lane W2 · the west side's sea life (sf-w8-lead §3 W2 (1)): Ocean Beach's toy surfers out on the break by day
@@ -171,9 +172,47 @@ export const CORMORANTS: readonly Vec2[] = BIRDS.map(([b, dx, dz]) => { const s 
 /** gulls wheeling over the rocks: radius, height over the sea, speed (rad / s), phase */
 export const GULLS: readonly [number, number, number, number][] = [[6.5, 8.0, 0.42, 0], [8.5, 9.5, -0.33, 2.1], [5.0, 7.2, 0.5, 4.2], [10.0, 11.0, 0.28, 1.0]];
 export const SEAL_ROCKS_CENTRE: Vec2 = { x: -726.5, z: 1287.6 };
-/** the heights the hauled-out sea lions and the cormorants stand at (static: measured once) */
-export const SEA_LION_Y: readonly number[] = SEA_LIONS.map(([x, z]) => rockTop(x, z) ?? SEA_Y);
-export const CORMORANT_Y: readonly number[] = CORMORANTS.map(c => rockTop(c.x, c.z) ?? SEA_Y);
+/**
+ * W8-W2-review (C1): the top of the DRAWN rock over (x, z) — the 80-face jittered ball's flat facets lie up to ≈ 0.3 u
+ * under the true ellipsoid near the summits (rockTop), so the birds stood on air: a vertical ray against the stacks'
+ * triangles as drawn (westBall(ROCK_JITTER) under each boulderMatrix), or null over open water.
+ */
+let drawn: Float32Array | null = null;
+function drawnTris(): Float32Array {
+  if (drawn) return drawn;
+  const g = westBall(ROCK_JITTER), p = g.getAttribute('position'), n = p.count;
+  const out = new Float32Array(SEAL_BOULDERS.length * n * 3), v = new THREE.Vector3(), m = new THREE.Matrix4();
+  let o = 0;
+  for (const b of SEAL_BOULDERS) {
+    boulderMatrix(b, m);
+    for (let i = 0; i < n; i++) { v.fromBufferAttribute(p, i).applyMatrix4(m); out[o++] = v.x; out[o++] = v.y; out[o++] = v.z; }
+  }
+  g.dispose();
+  return (drawn = out);
+}
+export function drawnTop(x: number, z: number): number | null {
+  const t = drawnTris();
+  let best: number | null = null;
+  for (let i = 0; i < t.length; i += 9) {
+    const x0 = t[i], z0 = t[i + 2], x1 = t[i + 3], z1 = t[i + 5], x2 = t[i + 6], z2 = t[i + 8];
+    const d = (z1 - z2) * (x0 - x2) + (x2 - x1) * (z0 - z2);
+    if (Math.abs(d) < 1e-12) continue;
+    const a = ((z1 - z2) * (x - x2) + (x2 - x1) * (z - z2)) / d, b = ((z2 - z0) * (x - x2) + (x0 - x2) * (z - z2)) / d, c = 1 - a - b;
+    if (a < -1e-9 || b < -1e-9 || c < -1e-9) continue;
+    const y = a * t[i + 1] + b * t[i + 4] + c * t[i + 7];
+    if (best === null || y > best) best = y;
+  }
+  return best;
+}
+const top = (x: number, z: number) => drawnTop(x, z) ?? rockTop(x, z) ?? SEA_Y;
+/** the heights the hauled-out sea lions and the cormorants stand at, on the drawn rock (static: measured once) */
+export const SEA_LION_Y: readonly number[] = SEA_LIONS.map(([x, z]) => top(x, z));
+/** each sea lion's body follows its ledge (nose down where the rock falls away in front: + pitch), ± 0.4 rad */
+export const SEA_LION_PITCH: readonly number[] = SEA_LIONS.map(([x, z, h]) => {
+  const fx = Math.sin(h) * 0.5, fz = Math.cos(h) * 0.5;
+  return Math.max(-0.4, Math.min(0.4, Math.atan2(top(x - fx, z - fz) - top(x + fx, z + fz), 1)));
+});
+export const CORMORANT_Y: readonly number[] = CORMORANTS.map(c => top(c.x, c.z));
 
 // ---------------------------------------------------------------------------------------------------------------
 // Surfers and the break
@@ -236,8 +275,9 @@ export function surfState(f: Surfer, t: number, out: SurfState = { ds: 0, d: 0, 
 // Instances
 // ---------------------------------------------------------------------------------------------------------------
 
-/** instances per surfer: the board, the body, the head, the spray behind a rider */
-export const SURFER_PARTS = 4;
+/** instances per surfer: the board, the body, the head, the spray behind a rider, two arms (W8-W2-review P5: without arms
+ * a black egg with a ball on top read as a penguin on a board) */
+export const SURFER_PARTS = 6;
 /** the toy surfers' size over a 1:1 sitting figure (they read from the promenade 40–60 u away) */
 export const SURFER_SCALE = 1.35;
 export const STATIC_COUNT = SEAL_BOULDERS.length;
@@ -247,6 +287,17 @@ export const SURFERS_FROM = STATIC_COUNT + LIFE_COUNT + FOAM_COUNT;
 export const WEST_SEA_CAPACITY = SURFERS_FROM + SURFERS.length * SURFER_PARTS;
 /** surfers are out by day: the sky's night factor (0 day … 1 night) below this */
 export const SURF_NIGHT_MAX = 0.35;
+/**
+ * W8-W2-review (P4): at dusk they go in one by one, never all in one frame: each has its own point of the night factor
+ * (spread over DUSK_SPREAD below the max, neighbours not in turn) and shrinks into the water over DUSK_FADE (the same
+ * for the lake's boats, westLakePose.ts). 1 = out, 0 = gone.
+ */
+export const DUSK_SPREAD = 0.15, DUSK_FADE = 0.012;
+export function duskOut(n: number, count: number, night: number, max: number): number {
+  const order = count > 1 ? ((n * 7) % count) / (count - 1) : 0;
+  const th = max - DUSK_FADE - (DUSK_SPREAD - DUSK_FADE) * order;
+  return Math.min(1, Math.max(0, (th + DUSK_FADE - night) / DUSK_FADE));
+}
 
 /** What the pose writer needs of an InstancedMesh (a fake one in tests). */
 export interface InstanceSink {
@@ -276,6 +327,8 @@ export function paintWestSea(sink: InstanceSink) {
     sink.setColorAt(i++, col.set('#1f2328'));
     sink.setColorAt(i++, col.set(f.skin));
     sink.setColorAt(i++, col.set('#f8fbfb'));
+    sink.setColorAt(i++, col.set('#2a2f35'));
+    sink.setColorAt(i++, col.set('#2a2f35'));
   }
 }
 
@@ -297,11 +350,11 @@ export function poseWestSea(sink: InstanceSink, t: number, night: number): numbe
   let i = STATIC_COUNT;
   // sea lions: a long body on the ledge, the small head at its front, lifted now and then
   for (let k = 0; k < SEA_LIONS.length; k++) {
-    const l = SEA_LIONS[k], x = l[0], z = l[1], h = l[2], ph = l[4], y = SEA_LION_Y[k];
+    const l = SEA_LIONS[k], x = l[0], z = l[1], h = l[2], ph = l[4], y = SEA_LION_Y[k], pb = SEA_LION_PITCH[k];
     const fx = Math.sin(h), fz = Math.cos(h);
     const lift = Math.max(0, Math.sin(t * 0.45 + ph) - 0.55) * 0.55;
-    put(sink, i++, x, y + 0.14, z, 0.55, 0.38, 1.35, h, -0.06);
-    put(sink, i++, x + fx * 0.62, y + 0.28 + lift * 0.8, z + fz * 0.62, 0.3, 0.3, 0.36, h, -0.25 - lift);
+    put(sink, i++, x, y + 0.14, z, 0.55, 0.38, 1.35, h, pb - 0.06);
+    put(sink, i++, x + fx * 0.62, y + 0.28 - Math.sin(pb) * 0.62 + lift * 0.8, z + fz * 0.62, 0.3, 0.3, 0.36, h, -0.25 - lift + pb * 0.5);
   }
   for (let k = 0; k < SWIMMERS.length; k++) {
     const x = SWIMMERS[k][0], z = SWIMMERS[k][1], ph = SWIMMERS[k][2];
@@ -344,35 +397,44 @@ export function poseWestSea(sink: InstanceSink, t: number, night: number): numbe
       put(sink, i++, sp.x + sp.nx * dd, SEA_Y + 0.03, sp.z + sp.nz * dd, 0.3 + 0.4 * wash, 0.04, len * 0.36, Math.atan2(sp.tx, sp.tz));
     }
   }
-  if (night > SURF_NIGHT_MAX) return i;
-  // the surfers (toy size: K × a sitting figure, so they read from the promenade)
-  const K = SURFER_SCALE;
+  if (night >= SURF_NIGHT_MAX) return i;
+  // the surfers (toy size: K × a sitting figure, so they read from the promenade; at dusk each shrinks into the water in turn)
   for (let n = 0; n < SURFERS.length; n++) {
     const f = SURFERS[n];
+    const K = SURFER_SCALE * duskOut(n, SURFERS.length, night, SURF_NIGHT_MAX);
     surfState(f, t, st);
     shoreAt(f.s + st.ds, sp);
     const x = sp.x + sp.nx * st.d, z = sp.z + sp.nz * st.d;
     const vx = sp.tx * st.vs + sp.nx * st.vd, vz = sp.tz * st.vs + sp.nz * st.vd;
-    const yaw = Math.atan2(vx, vz), fx = Math.sin(yaw), fz = Math.cos(yaw);
+    const yaw = Math.atan2(vx, vz), fx = Math.sin(yaw), fz = Math.cos(yaw), rx = fz, rz = -fx;
     const yb = swellY(st.d, t) + 0.06 * K;
     const slope = SWELL.amp * ((2 * Math.PI) / SWELL.length) * Math.cos(((2 * Math.PI) / SWELL.length) * st.d + ((2 * Math.PI) / SWELL.period) * t);
     const pitch = -slope * Math.sign(st.vd) * 0.8 + (st.pose === 'stand' ? -0.08 : 0);
     put(sink, i++, x, yb, z, 0.46 * K, 0.1 * K, 1.7 * K, yaw, pitch);
     if (st.pose === 'sit') {
-      put(sink, i++, x - fx * 0.15 * K, yb + 0.36 * K, z - fz * 0.15 * K, 0.36 * K, 0.62 * K, 0.3 * K, yaw, 0, Math.sin(t * 0.7 + f.phase) * 0.06);
+      put(sink, i++, x - fx * 0.15 * K, yb + 0.36 * K, z - fz * 0.15 * K, 0.32 * K, 0.6 * K, 0.26 * K, yaw, 0, Math.sin(t * 0.7 + f.phase) * 0.06);
       put(sink, i++, x - fx * 0.12 * K, yb + 0.8 * K, z - fz * 0.12 * K, 0.3 * K, 0.3 * K, 0.3 * K, yaw);
       sink.setMatrixAt(i++, ZERO);
+      // the arms: hands resting on the board in front, a little out to the sides
+      for (let side = -1; side <= 1; side += 2) put(sink, i++, x - fx * 0.02 * K + rx * side * 0.2 * K, yb + 0.36 * K, z - fz * 0.02 * K + rz * side * 0.2 * K, 0.09 * K, 0.46 * K, 0.09 * K, yaw, 0.45, side * 0.25);
     } else if (st.pose === 'paddle') {
       const stroke = Math.sin(t * 4 + f.phase) * 0.03;
       put(sink, i++, x - fx * 0.12 * K, yb + (0.14 + stroke) * K, z - fz * 0.12 * K, 0.34 * K, 0.22 * K, 0.78 * K, yaw, pitch);
       put(sink, i++, x + fx * 0.42 * K, yb + 0.24 * K, z + fz * 0.42 * K, 0.28 * K, 0.28 * K, 0.3 * K, yaw);
       sink.setMatrixAt(i++, ZERO);
+      // the arms paddling by the board's rails, in turn
+      for (let side = -1; side <= 1; side += 2) {
+        const sw = Math.sin(t * 4 + f.phase + (side > 0 ? Math.PI : 0)) * 0.22;
+        put(sink, i++, x + fx * (0.3 + sw) * K + rx * side * 0.28 * K, yb + 0.06 * K, z + fz * (0.3 + sw) * K + rz * side * 0.28 * K, 0.09 * K, 0.09 * K, 0.5 * K, yaw, 0.35);
+      }
     } else {
       const lean = 0.18 * f.dir;
-      put(sink, i++, x, yb + 0.5 * K, z, 0.34 * K, 0.74 * K, 0.3 * K, yaw, 0.12, lean);
+      put(sink, i++, x, yb + 0.5 * K, z, 0.3 * K, 0.74 * K, 0.26 * K, yaw, 0.12, lean);
       put(sink, i++, x + fx * 0.06 * K, yb + 0.98 * K, z + fz * 0.06 * K, 0.28 * K, 0.28 * K, 0.28 * K, yaw);
       // the white water the board throws up behind it
       put(sink, i++, x - fx * 1.0 * K, SEA_Y + 0.05, z - fz * 1.0 * K, 1.3 * K, 0.18 * K, 1.4 * K, yaw);
+      // the arms held out for balance (the toy surfer's T), drooping a little
+      for (let side = -1; side <= 1; side += 2) put(sink, i++, x + rx * side * 0.36 * K, yb + 0.74 * K, z + rz * side * 0.36 * K, 0.1 * K, 0.1 * K, 0.52 * K, yaw + Math.PI / 2, side * 0.3, 0);
     }
   }
   return i;
