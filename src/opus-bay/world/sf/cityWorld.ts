@@ -25,6 +25,7 @@ import { CrownDrift, LightField, siteLightSpecs } from './lights';
 import { attachEastCut } from './cornersEastCut';
 import { attachNorthBeach } from './cornersNorthBeach';
 import { attachWharfShips } from './wharfShips';
+import { attachWestSea } from './westSea';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
 import { mountCityDebug } from './stats';
@@ -228,6 +229,8 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const detachEastCut = host.addSystem(attachEastCut());
   // W7-W1: USS Pampanito alongside Pier 45 (world/sf/wharfShips.ts)
   const detachShips = host.addSystem(attachWharfShips());
+  // W8-W2: Ocean Beach's surfers and Seal Rocks (world/sf/westSea.ts)
+  const detachWestSea = host.addSystem(attachWestSea());
   void streamer.start().then(() => {
     const m = streamer.manifest;
     // the far detail chunks carry the same lots: cut them out there too
@@ -249,6 +252,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
       detachNorthBeach();
       detachEastCut();
       detachShips();
+      detachWestSea();
       for (const d of detachAtmos) d();
     },
   };
