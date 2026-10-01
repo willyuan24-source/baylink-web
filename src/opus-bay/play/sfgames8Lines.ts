@@ -10,7 +10,7 @@ import type { Bilingual } from '../core/types';
  *            car leaves, ring the bell at the cross streets — read from the running ride, never changing it
  *   busk     playing along with the street guitarist on Haight St (a tambourine) or 24th St (maracas): a synthesized
  *            loop, the taps judged on the beat
- *   foghorn  the Golden Gate's foghorns at Fort Point, right under the south tower: listen to the horns' call, blow it
+ *   foghorn  the Golden Gate's foghorns at Fort Point, under the bridge's south end: listen to the horns' call, blow it
  *            back (three real horns: the south tower's, the two at mid-span; a long blast is held)
  *
  * Facts (checked on the web 2026-09-30):
@@ -86,10 +86,13 @@ export const FOG_ID = 'foghorn';
 export const FOG_NAME: Bilingual = { zh: '金门大桥 · 雾笛对答', en: 'Golden Gate · foghorn call and answer' };
 
 export const FOG_LINES = {
-  invite: { zh: '南塔的雾笛就在头顶！来玩雾笛对答？', en: 'The south tower’s foghorns are right above us! Call and answer?' },
+  invite: { zh: '南塔的雾笛就在旁边！来玩雾笛对答？', en: 'The south tower’s foghorns are right here! Call and answer?' },
   start: { zh: '先听雾笛，再照着吹一遍！长音要按住！', en: 'Listen to the horns, then blow them back! Hold for a long one!' },
+  ship: { zh: '大船从雾里开出来了！', en: 'A big ship is coming out of the fog!' },
   good: { zh: '对上了！船都听见啦！', en: 'Spot on! The ships heard you!' },
   wrong: { zh: '哎呀，吹错啦，再听一遍～', en: 'Oops, wrong horn. Listen again.' },
+  hold: { zh: '南塔的长音要按住哦～', en: 'Hold the south horn for its long blast!' },
+  anchor: { zh: '这艘船先抛锚等一等，下一艘！', en: 'This one drops anchor to wait. Next ship!' },
   longer: { zh: '雾更浓了，雾笛也更长了！', en: 'The fog’s thicker, and the calls get longer!' },
   star: { zh: '你是金门大桥的雾笛手！', en: 'You’re the Golden Gate’s foghorn keeper!' },
   end: { zh: '雾散了，船都平安进港！', en: 'The fog lifts, and every ship is safely in!' },
