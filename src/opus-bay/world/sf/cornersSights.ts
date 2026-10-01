@@ -1,4 +1,5 @@
 import { runtime } from '../../core/runtime';
+import { game } from '../../core/store';
 import type { Bilingual, Vec2 } from '../../core/types';
 import type { WorldSystem } from '../world';
 import { CT_GATE, ctPoint } from './cornersChinatown';
@@ -13,6 +14,11 @@ import { importRetry } from '../../game/importRetry';
  * texts (no template: lane X voices them by exact text, data/sf/voiceW8.ts). The circles stand away from the
  * attractions' own trip ends, so a trip's arrival bark and a sight line do not meet at one spot.
  *
+ * W8-W1-review: only on foot, on a bike or sitting (W1-P2: not from the pelican high over Grant Ave, a car or transit;
+ * lane W2's westPlayer rule); a line BAYBAY's pacer refuses is not spent (offered again on the next poll inside); the
+ * O'Brien's circle sits on the apron east of her trip end and speaks only while the player faces the ship (W1-P3: the
+ * walk west from the Embarcadero used to hear "this Liberty ship" with Pier 39 on screen and the ship behind).
+ *
  * Facts (checked on the web 2026-09-30): Sing Fat on the south-west corner of Grant & California, Sing Chong on the
  * north-west (https://en.wikipedia.org/wiki/Look_Tin_Eli; the colours: the Wikimedia Commons photos of the two towers);
  * the fire after the 1906 quake "melted the church bells and marble altar", the walls and tower survived
@@ -26,6 +32,22 @@ export interface SightLine extends Bilingual {
   /** the circle (world) the player walks into */
   x: number; z: number; r: number;
   source: string;
+  /** said only while the player's heading points at this spot (within FACE_MAX) */
+  face?: Vec2;
+}
+
+/** a `face` line waits until the player's heading is within this of the spot (rad) */
+export const FACE_MAX = (70 * Math.PI) / 180;
+/** The player at (x, z) with this heading faces `face` (within FACE_MAX). */
+export function facing(x: number, z: number, heading: number, face: Vec2): boolean {
+  let d = Math.abs(Math.atan2(face.x - x, face.z - z) - heading) % (Math.PI * 2);
+  d = Math.min(d, Math.PI * 2 - d);
+  return d <= FACE_MAX;
+}
+/** BAYBAY's sight lines are for a player on foot, on a bike or sitting (not gliding, driving, on transit, travelling). */
+export function sightMode(): boolean {
+  const m = game.get().move.mode;
+  return m === 'foot' || m === 'bike' || m === 'sit';
 }
 
 /** Grant Ave frame (along, across) → world (the Dragon Gate's frame) */
@@ -48,7 +70,9 @@ export const W8_W1_LINES: readonly SightLine[] = [
     source: 'https://en.wikipedia.org/wiki/Old_St._Mary%27s_Cathedral',
   },
   {
-    id: 'w8w1-obrien-normandy', x: -126.5, z: -9.0, r: 4.5,
+    // the apron east of her trip end (data/sf/attractions ARRIVAL_OVERRIDES: (-126, -10)), where the walk from the
+    // Embarcadero heads west with the hull ahead; `face` = world/sf/wharfShips OBRIEN_MID (the test keeps them equal)
+    id: 'w8w1-obrien-normandy', x: -116, z: -7.5, r: 4, face: { x: -131.56, z: -19.42 },
     zh: '这艘自由轮 1994 年还自己开回诺曼底，参加了登陆 50 周年纪念！',
     en: 'In 1994 this Liberty ship steamed back to Normandy for D-Day\'s 50th anniversary!',
     source: 'https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien',
@@ -66,12 +90,16 @@ export function sightAt(x: number, z: number): SightLine | null {
 }
 
 /** City mode: the sight lines as a world system (world/sf/cityWorld.ts adds it). `say` stands in for BAYBAY in tests. */
-export function attachSights(say?: (text: Bilingual) => void): WorldSystem {
+export function attachSights(say?: (text: Bilingual) => boolean | void): WorldSystem {
   const said = new Set<string>();
   let wait = 0, disposed = false;
-  const speak = say ?? ((text: Bilingual) => {
-    void importRetry(() => import('../../game/cityContent')).then(m => { if (!disposed) m.baybayLine(text, { ttl: SIGHT_TTL }); }, () => {});
-  });
+  // a refused line (the pacer's queue would not take it) is not spent: the next poll inside the circle offers it again
+  const speak = (id: string, text: Bilingual) => {
+    if (say) { if (say(text) === false) said.delete(id); return; }
+    void importRetry(() => import('../../game/cityContent')).then(m => {
+      if (!disposed && !m.baybayLine(text, { ttl: SIGHT_TTL })) said.delete(id);
+    }, () => { said.delete(id); });
+  };
   return {
     name: 'w1-sights',
     update(dt) {
@@ -79,9 +107,9 @@ export function attachSights(say?: (text: Bilingual) => void): WorldSystem {
       if (wait > 0) return;
       wait = POLL;
       const p = runtime.player, l = sightAt(p.x, p.z);
-      if (!l || said.has(l.id)) return;
+      if (!l || said.has(l.id) || !sightMode() || (l.face && !facing(p.x, p.z, p.heading, l.face))) return;
       said.add(l.id);
-      speak({ zh: l.zh, en: l.en });
+      speak(l.id, { zh: l.zh, en: l.en });
     },
     dispose() { disposed = true; },
   };

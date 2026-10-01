@@ -478,9 +478,10 @@ test('P2: moved arrivals are walkable and their place rows end travel there; the
     assert.deepEqual(a.arrival, { x: o.x, z: o.z, ...(o.heading !== undefined ? { heading: o.heading } : {}) }, `${id}: the override is the arrival`);
     // (wave 5: Lombard's graph runs down the crooked block's lane; the top's sidewalk, where its trip now ends, is ≤ 6 u off it)
     // (wave 8, W8-W1: the O'Brien's promenade by Pier 35 has no graph node within 3 u — the nodes beside it run under
-    // the Embarcadero roadway, not standable — so its end is 9.8 u from the nearest standable node, which the static
-    // sweep's nav path reaches it from; a waiver, recorded in docs/opus-bay/sf-w8-W1.md part b)
-    const graphR = id === 'lombard-crooked' ? 6 : id === 'ss-jeremiah-obrien' ? 10 : 3;
+    // the Embarcadero roadway, not standable. W8-W1-review moved her end to the apron by her stern: 16.5 u from that
+    // roadway's nearest node; routeTo snaps to the nearest usable node and the nav grid walks the apron, which the
+    // static sweep and tests/opus-bay-w8-w1-obrien check; a waiver, recorded in docs/opus-bay/sf-w8-W1.md Review)
+    const graphR = id === 'lombard-crooked' ? 6 : id === 'ss-jeremiah-obrien' ? 17 : 3;
     assert.ok(gi.nearestNode(o.x, o.z, graphR, i => gi.component(i) === main) >= 0, `${id}: moved arrival within ${graphR} u of the main walking graph`);
     const row = by.get(a.placeId!)!;
     assert.deepEqual({ x: row.arrival!.x, z: row.arrival!.z }, { x: o.x, z: o.z }, `${id}: its place row ends travel there`);

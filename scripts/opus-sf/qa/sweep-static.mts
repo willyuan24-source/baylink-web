@@ -10,7 +10,8 @@
 //
 // For each target, on the city as the game streams it (the chunks within 48 u, the landmark sites' walk inputs):
 //   stand   core/terrain canStand (0.4 u) at the point; else the nearest walkable spot within 3 u is used (`snap`)
-//   reach   a nav path (actors/nav findPath) from the nearest node of the walk graph's main component ends within 1.1 u
+//   reach   a nav path (actors/nav findPath) from the nearest usable node (graphNodeFilter, as routeTo) of the walk graph's
+//           main component ends within 1.1 u
 //   walk    the real controller (actors/controller PlayerController, no obstacles) pushed 1.5 s in four directions — the
 //           most open one first (actors/faceOpen openHeading: the way a landing faces), then 90° steps; per direction the
 //           distance moved and whether the ground 3 u ahead is standable (a direction with open ground that does not
@@ -36,7 +37,7 @@ import { CITY_POSTCARDS } from '../../../src/opus-bay/data/sf/postcards';
 import { FERRY_ROUTES } from '../../../src/opus-bay/data/ferry';
 import { ALCA_WALK_GRAPH, onAlcatraz } from '../../../src/opus-bay/world/sf/alcatrazWalk';
 import { buildTransit, buildTransitW4, setFlineJson, setTransitData, setTransitW4, type TransitFileJson } from '../../../src/opus-bay/data/transit';
-import { findPath } from '../../../src/opus-bay/actors/nav';
+import { findPath, graphNodeFilter } from '../../../src/opus-bay/actors/nav';
 import { openHeading, openSpot } from '../../../src/opus-bay/actors/faceOpen';
 import { PlayerController } from '../../../src/opus-bay/actors/controller';
 import { sfDisk } from '../../../tests/opus-bay-sf-disk';
@@ -64,6 +65,10 @@ sites.attach(null as never, (x, z) => demSample(far.dem, x, z));
 setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
 const ix = await sf.graphIndex();
 const main = ix.mainComponent();
+// (W8-W1-review) the game's own node filter (actors/nav routeTo: the nearest USABLE node — a hero node under the
+// Embarcadero roadway, where no walker stands, is never a route's end): the sweep judged from the nearest node of any
+// kind, so ground beside the roadway (the O'Brien's apron by Pier 35) read UNREACHABLE while every game route reached it
+const usable = graphNodeFilter(ix);
 
 const TRANSIT = JSON.parse(fs.readFileSync(path.join(sf.root, 'v1', 'transit.json'), 'utf8')) as TransitFileJson;
 setFlineJson(TRANSIT.lines.find(l => l.id === 'f-line') ?? null);
@@ -203,7 +208,7 @@ for (const [i, t] of judged.entries()) {
     const e = res?.points[res.points.length - 1];
     reach = res ? (e ? +Math.hypot(e.x - at.x, e.z - at.z).toFixed(2) : 0) : null;
   } else if (at) {
-    const n = ix.nearestNode(at.x, at.z, 60, k => ix.component(k) === main);
+    const n = ix.nearestNode(at.x, at.z, 60, k => ix.component(k) === main && usable(k));
     if (n >= 0) {
       const res = findPath({ x: ix.x(n), z: ix.z(n) }, at, 8);
       const e = res?.points[res.points.length - 1];

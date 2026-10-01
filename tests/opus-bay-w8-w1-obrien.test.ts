@@ -4,10 +4,12 @@ import { createCityTerrain } from '../src/opus-bay/core/sfTerrain';
 import { runtime } from '../src/opus-bay/core/runtime';
 import { canStand, isWater, setCityTerrain } from '../src/opus-bay/core/terrain';
 import type { Bilingual } from '../src/opus-bay/core/types';
-import { findPath } from '../src/opus-bay/actors/nav';
+import { findPath, graphNodeFilter, routeTo } from '../src/opus-bay/actors/nav';
+import { game } from '../src/opus-bay/core/store';
+import { ARRIVAL_MIN_R, ArrivalWatcher, arrivalAnchors } from '../src/opus-bay/game/arrival';
 import { DISTRICT } from '../src/opus-bay/data/district';
 import { ATTRACTIONS, ATTRACTION_INDEX } from '../src/opus-bay/data/sf/attractions';
-import { W8_W1_LINES, attachSights, sightAt } from '../src/opus-bay/world/sf/cornersSights';
+import { W8_W1_LINES, attachSights, facing, sightAt } from '../src/opus-bay/world/sf/cornersSights';
 import { demSample } from '../src/opus-bay/world/sf/format';
 import { CitySites } from '../src/opus-bay/world/sf/sites';
 import { OBRIEN, OBRIEN_MID, PIER35_WEST, SHIPS_MID, SHIP_BUDGET, SHIP_CULL, buildShipBatch, buildWharfShips } from '../src/opus-bay/world/sf/wharfShips';
@@ -55,7 +57,8 @@ test('W8-W12 the O\'Brien: a Liberty ship\'s size, one mesh with the Pampanito w
   }
   // the LOD (one mesh for both ships) reaches the O'Brien's promenade and the Pampanito's door
   assert.ok(Math.hypot(OBRIEN_MID.x - SHIPS_MID.x, OBRIEN_MID.z - SHIPS_MID.z) < SHIP_CULL - 120);
-  assert.ok(Math.hypot(-148 - SHIPS_MID.x, 1 - SHIPS_MID.z) < SHIP_CULL - 80);
+  const e = ATTRACTION_INDEX.get('ss-jeremiah-obrien')!.arrival!;
+  assert.ok(Math.hypot(e.x - SHIPS_MID.x, e.z - SHIPS_MID.z) < SHIP_CULL - 80);
 });
 
 test('W8-W12 in city mode: the hull lies in the water, the arrival on the promenade faces her and is reached from the walking graph', async () => {
@@ -78,18 +81,29 @@ test('W8-W12 in city mode: the hull lies in the water, the arrival on the promen
     let near = false;
     for (let dz = -3; dz <= 3; dz += 0.5) for (let dx = -3; dx <= 3; dx += 0.5) if (Math.hypot(dx, dz) <= 3 && canStand(OBRIEN.stern.x + dx, OBRIEN.stern.z + dz, 0.4)) near = true;
     assert.ok(near, 'the stern by the promenade');
-    // the trip end: standable, the nearest main-component graph node standable and a nav path from it ends on it (the
-    // static sweep's own rule), the ship ahead within 30 u
+    // the trip end: standable, the nearest USABLE main-component graph node (actors/nav routeTo's own filter, the
+    // static sweep's rule since W8-W1-review) and a nav path from it ends on it; the ship beside it (W1-RC-1 / W1-P1:
+    // the wave-8 end by Pier 39's gate stood 26 u from her)
     const a = ATTRACTION_INDEX.get('ss-jeremiah-obrien')!, e = a.arrival!;
     assert.ok(canStand(e.x, e.z, 0.4), 'the arrival stands');
-    const ix = await sf.graphIndex(), main = ix.mainComponent();
-    const n = ix.nearestNode(e.x, e.z, 60, k => ix.component(k) === main);
-    assert.ok(canStand(ix.x(n), ix.z(n), 0.4), `its nearest graph node ${n} stands`);
+    const ix = await sf.graphIndex(), main = ix.mainComponent(), usable = graphNodeFilter(ix);
+    const n = ix.nearestNode(e.x, e.z, 60, k => ix.component(k) === main && usable(k));
+    assert.ok(n >= 0, 'a usable graph node within 60 u');
     const res = findPath({ x: ix.x(n), z: ix.z(n) }, e, 8);
     const end = res?.points[res.points.length - 1];
     assert.ok(res && (!end || Math.hypot(end.x - e.x, end.z - e.z) <= 1.1), 'a nav path reaches it');
     const d = Math.hypot(OBRIEN_MID.x - e.x, OBRIEN_MID.z - e.z);
-    assert.ok(d < 30, `the ship ${d.toFixed(1)} u away`);
+    assert.ok(d < 12, `the ship ${d.toFixed(1)} u away`);
+    assert.ok(Math.hypot(OBRIEN.stern.x - e.x, OBRIEN.stern.z - e.z) < 6, 'by her stern');
+    // the game's walking route reaches it from the Embarcadero (east of Pier 35) and from Pier 39's gate (local routes)
+    for (const from of [{ x: -100.9, z: -2.6 }, { x: -160.66, z: 24.1 }]) {
+      const r = await routeTo(from, e, { graph: ix, budgetMs: 1000 });
+      assert.ok(r && !r.snapped, `a route from ${from.x}, ${from.z}`);
+      const last = r.points[r.points.length - 1];
+      assert.ok(Math.hypot(last.x - e.x, last.z - e.z) < 0.5, 'ends on the trip end');
+      const p = findPath(from, e, 8), pe = p?.points[p.points.length - 1];
+      assert.ok(p && (!pe || Math.hypot(pe.x - e.x, pe.z - e.z) <= 1.1), `the nav grid walks it from ${from.x}, ${from.z}`);
+    }
     const want = Math.atan2(OBRIEN_MID.x - e.x, OBRIEN_MID.z - e.z);
     let dh = Math.abs(want - (e.heading ?? 99)) % (Math.PI * 2);
     dh = Math.min(dh, Math.PI * 2 - dh);
@@ -113,17 +127,62 @@ test('W8-W1 sight lines: fixed zh + en, short, each said once per session, never
     }
   }
   const said: Bilingual[] = [];
-  const sys = attachSights(t => said.push(t));
-  const saved = { x: runtime.player.x, z: runtime.player.z };
+  const sys = attachSights(t => { said.push(t); });
+  const saved = { x: runtime.player.x, z: runtime.player.z, heading: runtime.player.heading };
+  const at = (l: (typeof W8_W1_LINES)[number]) => {
+    runtime.player.x = l.x; runtime.player.z = l.z;
+    runtime.player.heading = l.face ? Math.atan2(l.face.x - l.x, l.face.z - l.z) : 0;
+  };
   try {
     for (const l of W8_W1_LINES) {
-      runtime.player.x = l.x; runtime.player.z = l.z;
+      at(l);
       sys.update!(0.5, 0, null as never, 0);
       sys.update!(0.5, 0, null as never, 0);
     }
-    runtime.player.x = W8_W1_LINES[0].x; runtime.player.z = W8_W1_LINES[0].z;
+    at(W8_W1_LINES[0]);
     sys.update!(0.5, 0, null as never, 0);
     assert.deepEqual(said.map(t => t.zh), W8_W1_LINES.map(l => l.zh), 'each once, in order');
     assert.equal(sightAt(0, 0), null);
-  } finally { runtime.player.x = saved.x; runtime.player.z = saved.z; sys.dispose?.(); }
+  } finally { Object.assign(runtime.player, saved); sys.dispose?.(); }
+});
+
+test('W8-W1-review sight lines: on foot only (W1-P2), the O\'Brien\'s while facing her (W1-P3), a refused line is not spent; her arrival fires by the ship (W1-RC-1)', () => {
+  const saved = { x: runtime.player.x, z: runtime.player.z, heading: runtime.player.heading, move: game.get().move };
+  const ob = W8_W1_LINES.find(l => l.id === 'w8w1-obrien-normandy')!;
+  assert.ok(ob.face && Math.hypot(ob.face.x - OBRIEN_MID.x, ob.face.z - OBRIEN_MID.z) < 0.05, 'faces OBRIEN_MID');
+  const setMode = (mode: string) => game.set({ move: { mode } } as never);
+  const said: string[] = [];
+  let refuse = false;
+  const sys = attachSights(t => { if (refuse) return false; said.push(t.en); return true; });
+  const step = () => { sys.update!(0.5, 0, null as never, 0); };
+  try {
+    // gliding over Grant Ave, driving through the O'Brien's circle, riding, travelling: nothing
+    for (const mode of ['glide', 'car', 'transit', 'travel']) {
+      setMode(mode);
+      for (const l of W8_W1_LINES) { runtime.player.x = l.x; runtime.player.z = l.z; runtime.player.heading = l.face ? Math.atan2(l.face.x - l.x, l.face.z - l.z) : 0; step(); }
+    }
+    assert.deepEqual(said, [], 'nothing said off foot');
+    setMode('foot');
+    // the walk with the ship behind (heading east / south / north-east): nothing; facing her: the line
+    runtime.player.x = ob.x; runtime.player.z = ob.z;
+    for (const h of [Math.PI / 2, 0, Math.PI / 4]) { runtime.player.heading = h; assert.equal(facing(ob.x, ob.z, h, ob.face!), false); step(); }
+    assert.deepEqual(said, [], 'not with the ship behind');
+    runtime.player.heading = -Math.PI / 2 - 0.3; // walking west-north-west along the apron, the hull ahead
+    refuse = true; step();
+    assert.deepEqual(said, [], 'refused by the pacer');
+    refuse = false; step();
+    assert.deepEqual(said, [ob.en], 'offered again and said once');
+    step();
+    assert.equal(said.length, 1);
+  } finally { game.set({ move: saved.move } as never); runtime.player.x = saved.x; runtime.player.z = saved.z; runtime.player.heading = saved.heading; sys.dispose?.(); }
+  // the arrival anchor: a walk along the apron from the east to her stern arrives (the wave-8 anchor by Pier 39 never did)
+  const anchors = arrivalAnchors(ATTRACTIONS), o = anchors.find(q => q.attraction === 'ss-jeremiah-obrien')!;
+  assert.ok(Math.hypot(o.x - OBRIEN.stern.x, o.z - OBRIEN.stern.z) < ARRIVAL_MIN_R / 2, 'the anchor by her stern');
+  const w = new ArrivalWatcher(anchors, []);
+  const hits: string[] = [];
+  for (let x = -100; x >= -125; x -= 0.5) {
+    const h = w.step({ x, z: -9, now: 1e6 - x * 100, onFoot: true, hoppedOffAt: -1e9, busy: false, travelling: false });
+    if (h) hits.push(h.anchor.attraction);
+  }
+  assert.ok(hits.includes('ss-jeremiah-obrien'), `arrived (${hits.join(', ')})`);
 });
