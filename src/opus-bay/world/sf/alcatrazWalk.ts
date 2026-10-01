@@ -82,6 +82,13 @@ export const ALCA_WALK_SURFACES: readonly { poly: Vec2[]; y: number | 'terrain';
   },
 ];
 
+/**
+ * The island's quay sign (world/sf/alcatrazFerry.ts draws it; LOCAL x, z, heading): on the jetty's south side by the
+ * float, off the way up the dock road (W8-A review, A-RC-3: it stood on the walk line, 0.2 u from the dock road's first
+ * node, and everyone walked through its board); its board is a walk blocker (ALCA_WALK_BLOCKERS).
+ */
+export const ALCA_ISLAND_SIGN = { x: 11.6, z: -17.6, heading: -1.0 } as const;
+
 /** The lighthouse (world/backdrop.ts draws it at OSM way 99202294, 37.82625, −122.4223: local ≈ 11.0, −1.37). */
 export const ALCA_LIGHTHOUSE: Vec2 = { x: 11.0, z: -1.37 };
 
@@ -98,6 +105,8 @@ export const ALCA_WALK_BLOCKERS: readonly ({ x: number; z: number; r: number } |
   // top: tap-to-walk cut the corner off the stair toward the cellhouse front, onto the hill's 0.9 grade (a wall off the
   // stairs), and ran in place 2 u below the top; now the path keeps to the steps until the plateau
   { poly: R(ALCA_STAIR.x + ALCA_STAIR.width / 2 - 0.05, (ALCA_STAIR.z0 + 0.8 + ALCA_STAIR.z1) / 2, 0.14, ALCA_STAIR.z1 - ALCA_STAIR.z0 - 0.8) },
+  // (W8-A review, A-RC-3) the quay sign's board (1.33 u wide: alcatrazFerry.ts signGeometry)
+  { poly: R(ALCA_ISLAND_SIGN.x, ALCA_ISLAND_SIGN.z, 1.4, 0.3, ALCA_ISLAND_SIGN.heading) },
 ];
 
 /** The arrival spot (WORLD): the cellhouse front, before the Administration Block's main door. */

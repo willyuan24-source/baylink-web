@@ -52,19 +52,38 @@ export const ALCA = {
   /** dwell at a terminal (s); cut to `dwellRider` when a rider waits at the other end */
   dwell: 20,
   dwellRider: 4,
+  /** (W8-A review, A-RP-4) the empty boat stays in Pier 33's slip up to this much longer while someone stands on the quay */
+  quayWait: 20,
   /**
    * the crossing of the waterfront's ferry tracks (data/ferry ALCA_CROSSING, the slip's axis from the pivot to the lane
    * north of them): no other boat within `clear` u of it now or on its course (straight on at its speed) over the next
    * `secs` s — how long the boat takes from where it waits to the far side
    */
-  cross: { clear: 10, secs: 16 },
+  cross: { clear: 10, secs: 16, patience: 4, slowSecs: 1, slow: 4 },
 } as const;
+// (W8-A review, A-RP-3) `patience` / `slowSecs` / `slow`: once the boat has waited `patience` s, a slow boat (under
+// `slow` u/s: life.ts's sailboats) counts only for `slowSecs` of its straight course — the loop off Pier 35 turns back
+// 10 u short of the crossing, but its straight-line forecast held every outbound boat 10–18 s ("held up" on the ride
+// card, the ETA frozen). A ferry is forecast the whole 16 s; a boat stopped on the crossing holds it however long.
 
 /** Bay wall-clock parts the schedule reads (game/bayNow BayParts). */
 export interface AlcaClock { year: number; month: number; day: number; hour: number; minute: number; weekday: number }
 
 /** The day's timetable (minutes after midnight, Bay time). */
 export const ALCA_HOURS = { first: 8 * 60 + 40, lastOut: 15 * 60 + 50, lastBack: 18 * 60 + 30 } as const;
+
+/**
+ * The season the published sheet covers ("SUMMER SCHEDULE MARCH 8 - NOVEMBER 1, 2026", the concessioner's schedule
+ * sheet above, re-read 2026-10-01). Outside it the official pages give no times (NPS: "The hours of operation vary with
+ * the season", https://www.nps.gov/alca/planyourvisit/hours.htm, read 2026-10-01): the toy keeps its day, but the
+ * deckhand quotes no clock times then (W8-A review, A-RC-5). ISO dates, Bay time.
+ */
+export const ALCA_PUBLISHED = { from: '2026-03-08', to: '2026-11-01' } as const;
+/** Does the published (summer 2026) sheet cover this Bay date? */
+export function alcaPublished(c: Pick<AlcaClock, 'year' | 'month' | 'day'>): boolean {
+  const d = `${c.year}-${String(c.month).padStart(2, '0')}-${String(c.day).padStart(2, '0')}`;
+  return d >= ALCA_PUBLISHED.from && d <= ALCA_PUBLISHED.to;
+}
 
 /** 'parade': Fleet Week's Parade of Ships sails through the Bay (lane S, world/sf/fleetWeekDay.ts): the boat stays in its slip */
 export type AlcaServiceState = 'early' | 'day' | 'returns' | 'night' | 'closed' | 'parade';
@@ -98,10 +117,13 @@ export const alcaRuns = (s: AlcaServiceState) => s === 'day' || s === 'returns';
 
 /**
  * What the deckhand at a quay says when there is no boat out from it now (fixed lines: no numbers spliced in), or null
- * when a boat can be had. The island always gets null (a rider there is always fetched).
+ * when a boat can be had. The island always gets null (a rider there is always fetched). `published` false (a date the
+ * official summer sheet does not cover): the same notes without clock times.
  */
-export function alcaServiceNote(station: string, s: AlcaServiceState): Bilingual | null {
+export function alcaServiceNote(station: string, s: AlcaServiceState, published = true): Bilingual | null {
   if (station !== ALCA_TERMINALS.pier33.id) return null;
+  if (!published && s === 'early') return { zh: '小渡轮还没开工。班次时间随季节变化，以官网为准。', en: 'The little ferry isn’t running yet. Times change with the season: check the official site.' };
+  if (!published && s === 'returns') return { zh: '今天去岛上的船已经开完了，回程船还在开。班次时间随季节变化，以官网为准。', en: 'Today’s boats out to the island have gone; boats still come back. Times change with the season: check the official site.' };
   switch (s) {
     case 'early': return { zh: '小渡轮还没开工。第一班船早上 8:40 开，时间以官网为准。', en: 'The little ferry isn’t running yet. The first boat leaves at 8:40 a.m. Check the official site for times.' };
     case 'returns': return { zh: '今天去岛上的最后一班已经开走了（下午 3:50）。回程船开到傍晚 6:30，时间以官网为准。', en: 'Today’s last boat out to the island has gone (3:50 p.m.). Boats come back until 6:30 p.m. Check the official site for times.' };
@@ -130,10 +152,11 @@ function segDist(x: number, z: number, a: Vec2, b: Vec2): number {
  * Is the crossing clear: no boat within ALCA.cross.clear u of the crossing's stretch now, nor on its straight course over
  * the next ALCA.cross.secs s (sampled every second)? PURE (tests drive it with made-up traffic).
  */
-export function alcaCrossingClear(traffic: readonly AlcaTraffic[]): boolean {
+export function alcaCrossingClear(traffic: readonly AlcaTraffic[], slowSecs: number = ALCA.cross.secs): boolean {
   const [a, b] = ALCA_CROSSING, R = ALCA.cross.clear;
   for (const t of traffic) {
-    for (let s = 0; s <= ALCA.cross.secs; s++) if (segDist(t.x + t.vx * s, t.z + t.vz * s, a, b) < R) return false;
+    const secs = Math.hypot(t.vx, t.vz) < ALCA.cross.slow ? Math.min(ALCA.cross.secs, slowSecs) : ALCA.cross.secs;
+    for (let s = 0; s <= secs; s++) if (segDist(t.x + t.vx * s, t.z + t.vz * s, a, b) < R) return false;
   }
   return true;
 }
@@ -189,15 +212,21 @@ export function buildAlcaPath(src: readonly Vec2[], ends: { slowStart: boolean; 
   return path;
 }
 
-/** Point on a path at arc length s (clamped): position, heading of travel, sample index. */
-export function alcaPoint(path: Pick<AlcaPath, 'xz' | 'cum' | 'length'>, s: number): { x: number; z: number; heading: number; i: number } {
+export interface AlcaPoint { x: number; z: number; heading: number; i: number }
+/** Point on a path at arc length s (clamped): position, heading of travel, sample index (into `out` when given: the per-frame callers reuse one, W8-A review A-RC-6). */
+export function alcaPoint(path: Pick<AlcaPath, 'xz' | 'cum' | 'length'>, s: number, out?: AlcaPoint): AlcaPoint {
   const cum = path.cum, a = path.xz, n = cum.length;
   const ss = Math.max(0, Math.min(path.length, s));
   let lo = 0, hi = n - 1;
   while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (cum[mid] <= ss) lo = mid; else hi = mid; }
   const j = Math.min(n - 1, lo + 1), t = (ss - cum[lo]) / (cum[j] - cum[lo] || 1);
-  return { x: a[lo * 2] + (a[j * 2] - a[lo * 2]) * t, z: a[lo * 2 + 1] + (a[j * 2 + 1] - a[lo * 2 + 1]) * t, heading: Math.atan2(a[j * 2] - a[lo * 2], a[j * 2 + 1] - a[lo * 2 + 1]), i: lo };
+  const o = out ?? { x: 0, z: 0, heading: 0, i: 0 };
+  o.x = a[lo * 2] + (a[j * 2] - a[lo * 2]) * t; o.z = a[lo * 2 + 1] + (a[j * 2 + 1] - a[lo * 2 + 1]) * t;
+  o.heading = Math.atan2(a[j * 2] - a[lo * 2], a[j * 2 + 1] - a[lo * 2 + 1]); o.i = lo;
+  return o;
 }
+/** scratch points of the per-frame step / pose (no garbage per frame) */
+const _pa: AlcaPoint = { x: 0, z: 0, heading: 0, i: 0 }, _pb: AlcaPoint = { x: 0, z: 0, heading: 0, i: 0 };
 
 /** The three paths: out (pivot → island), back (island → the slip berth), astern (the berth → the pivot, straight). */
 export const ALCA_FERRY_PATHS = {
@@ -262,6 +291,8 @@ export interface AlcaOptions {
   traffic?: () => readonly AlcaTraffic[];
   /** the hop-off / pause brake on the ride line (default actors/platform platformStop) */
   brake?: () => boolean;
+  /** someone stands on Pier 33's quay (the layer: the player on foot by it): the empty boat waits a while for them */
+  waiting?: () => boolean;
 }
 
 const P33: string = ALCA_TERMINALS.pier33.id, ISL: string = ALCA_TERMINALS.island.id;
@@ -276,6 +307,8 @@ export class AlcaFerrySystem {
   time = 0;
   /** QA: how long the crossing has held the boat in all (s) */
   heldTotal = 0;
+  /** how long the empty boat has waited past its dwell for someone on Pier 33's quay (this stay) */
+  private lingered = 0;
 
   constructor(opts: AlcaOptions) {
     this.opts = opts;
@@ -292,7 +325,7 @@ export class AlcaFerrySystem {
   // --- the deckhand's questions -------------------------------------------------------------------------------
 
   /** A note instead of a ride from `station` now (the timetable), or null. */
-  serviceNote(station: string): Bilingual | null { return alcaServiceNote(station, this.serviceState()); }
+  serviceNote(station: string): Bilingual | null { const c = this.opts.clock(); return alcaServiceNote(station, alcaService(c), alcaPublished(c)); }
 
   /** The deckhand's greeting at a quay instead of the usual one (game/transit.ts boardFerry): the island in the parade hour. */
   greeting(station: string): Bilingual | null { return station === ISL && this.serviceState() === 'parade' ? PARADE_ISLAND : null; }
@@ -383,8 +416,8 @@ export class AlcaFerrySystem {
   // --- motion ---------------------------------------------------------------------------------------------------
 
   /** Is the crossing of the waterfront's ferry tracks clear of the other boats (none near, none coming)? */
-  crossingClear(): boolean {
-    return alcaCrossingClear(this.opts.traffic?.() ?? []);
+  crossingClear(patient = false): boolean {
+    return alcaCrossingClear(this.opts.traffic?.() ?? [], patient ? ALCA.cross.slowSecs : ALCA.cross.secs);
   }
 
   private braking(): boolean { return this.opts.brake ? this.opts.brake() : platformStop(ALCA_FERRY_ID) !== null; }
@@ -412,12 +445,16 @@ export class AlcaFerrySystem {
         b.timer -= dt;
         const at = b.leg === 'dwell33' ? P33 : ISL;
         const holding = this.status?.phase === 'here' || (b.rider && brake);
-        if (b.timer <= 0 && !holding && this.wantsToGo(at)) {
+        // someone on Pier 33's quay and nobody aboard or called: wait a while rather than back out in their face
+        const linger = b.timer <= 0 && at === P33 && !b.rider && !this.status && this.lingered < ALCA.quayWait && this.opts.waiting?.() === true;
+        if (linger) this.lingered += dt;
+        if (b.timer <= 0 && !holding && !linger && this.wantsToGo(at)) {
+          this.lingered = 0;
           b.leg = b.leg === 'dwell33' ? 'astern' : 'back';
           b.s = 0; b.v = 0;
           this.events.push({ what: 'depart', station: at });
           if (this.status) this.status.station = null;
-        } else if (b.timer <= 0) b.timer = 0.3;
+        } else if (b.timer <= 0 && !linger) b.timer = 0.3;
         break;
       }
       case 'astern': {
@@ -431,7 +468,7 @@ export class AlcaFerrySystem {
         break;
       }
       case 'pivot': {
-        const want = alcaPoint(P.out, 1.5).heading;
+        const want = alcaPoint(P.out, 1.5, _pa).heading;
         const dh = wrap(want - this.heading);
         if (!brake) this.heading += Math.sign(dh) * Math.min(Math.abs(dh), ALCA.pivotRate * dt);
         if (Math.abs(wrap(want - this.heading)) < 0.01) { this.heading = want; b.leg = 'out'; b.s = 0; b.v = 0; }
@@ -442,7 +479,7 @@ export class AlcaFerrySystem {
         const path = b.leg === 'out' ? P.out : P.back;
         const left = path.length - b.s;
         let limit = Math.sqrt(2 * ALCA.dec * Math.max(0, left));
-        const i0 = alcaPoint(path, b.s).i, n = path.vlim.length;
+        const i0 = alcaPoint(path, b.s, _pa).i, n = path.vlim.length;
         limit = Math.min(limit, path.vlim[i0], path.vlim[Math.min(n - 1, i0 + 1)]);
         const reach = (b.v * b.v) / (2 * ALCA.dec) + 6;
         for (let i = i0; i < n; i++) {
@@ -452,7 +489,7 @@ export class AlcaFerrySystem {
         }
         // the crossing: out waits at its start (after the pivot), back before it turns south across the tracks
         const holdAt = b.leg === 'out' ? 0 : ALCA_BACK_HOLD;
-        if (b.s <= holdAt + 0.05 && !this.crossingClear()) {
+        if (b.s <= holdAt + 0.05 && !this.crossingClear(b.held > ALCA.cross.patience)) {
           limit = Math.min(limit, Math.sqrt(2 * ALCA.dec * Math.max(0, holdAt - b.s)));
           b.held += dt; this.heldTotal += dt;
         } else if (b.s > holdAt + 0.05) b.held = 0;
@@ -503,12 +540,12 @@ export class AlcaFerrySystem {
     let x: number, z: number, want: number | null = null;
     switch (b.leg) {
       case 'dwell33': { const p = ALCA_TERMINALS.pier33.berth; x = p.x; z = p.z; want = ALCA_SLIP_HEADING; break; }
-      case 'dwellI': { const p = alcaPoint(P.out, P.out.length); x = p.x; z = p.z; want = alcaPoint(P.out, P.out.length - 2.5).heading; break; }
-      case 'astern': { const p = alcaPoint(P.astern, b.s); x = p.x; z = p.z; want = ALCA_SLIP_HEADING; break; }
+      case 'dwellI': { const p = alcaPoint(P.out, P.out.length, _pa); x = p.x; z = p.z; want = alcaPoint(P.out, P.out.length - 2.5, _pb).heading; break; }
+      case 'astern': { const p = alcaPoint(P.astern, b.s, _pa); x = p.x; z = p.z; want = ALCA_SLIP_HEADING; break; }
       case 'pivot': { x = ALCA_PIVOT.x; z = ALCA_PIVOT.z; break; }
       default: {
         const path = b.leg === 'out' ? P.out : P.back;
-        const p = alcaPoint(path, b.s), q = alcaPoint(path, b.s + 2.5);
+        const p = alcaPoint(path, b.s, _pa), q = alcaPoint(path, b.s + 2.5, _pb);
         x = p.x; z = p.z; want = Math.atan2(q.x - p.x, q.z - p.z);
       }
     }

@@ -124,3 +124,85 @@ test('W8-A review A-RC-4: the crossing gives way to a ferry stopped on it (its r
     layer.dispose();
   }
 });
+
+test('W8-A review A-RC-5: the deckhand quotes the summer sheet\'s clock times only on the dates it covers (8 Mar – 1 Nov 2026); after that, the same notes with no times', () => {
+  const at = (y: number, mo: number, d: number, h: number, mi: number) => ({ year: y, month: mo, day: d, hour: h, minute: mi, weekday: new Date(Date.UTC(y, mo - 1, d)).getUTCDay() });
+  const note = (c: ReturnType<typeof at>) => new A.AlcaFerrySystem({ clock: () => c, brake: () => false }).serviceNote(P33);
+  // tonight's live date (1 Oct) and the sheet's last day: the sheet's times
+  assert.match(note(at(2026, 10, 1, 16, 0))!.en, /3:50 p\.m\..*6:30 p\.m\./);
+  assert.match(note(at(2026, 11, 1, 7, 0))!.en, /8:40 a\.m\./);
+  // 2 and 5 November (the winter season: no official times published) — no clock times, still 以官网为准
+  for (const c of [at(2026, 11, 2, 16, 0), at(2026, 11, 5, 16, 0), at(2026, 11, 5, 7, 0), at(2027, 2, 10, 16, 0)]) {
+    const n = note(c)!;
+    assert.ok(n, 'a note out of hours');
+    assert.ok(!/\d:\d\d/.test(n.zh + n.en), `no clock times off-season (${n.en})`);
+    assert.ok(n.zh.includes('以官网为准') && /official site/.test(n.en));
+  }
+  assert.equal(A.alcaPublished({ year: 2026, month: 3, day: 7 }), false);
+  assert.equal(A.alcaPublished({ year: 2026, month: 3, day: 8 }), true);
+});
+
+test('W8-A review A-RP-3: a sailboat looping off Pier 35 (life.ts\'s loop, never on the crossing) holds the outbound boat a few seconds at most, not 15–18 s every trip; a ferry coming does hold it', () => {
+  // life.ts's sailboat loop off Pier 35: centre (−70, −92), radii 34 × 6, ≈ 2.2–3.4 u/s
+  const sail = { s: 0, v: 2.8 };
+  const pos = (u: number) => ({ x: -70 + Math.cos(u) * 34, z: -92 + Math.sin(u) * 6 });
+  const traffic = () => {
+    const a = pos(sail.s), b = pos(sail.s + 0.01), L = Math.hypot(b.x - a.x, b.z - a.z) || 1;
+    return [{ x: a.x, z: a.z, vx: ((b.x - a.x) / L) * sail.v, vz: ((b.z - a.z) / L) * sail.v }];
+  };
+  let worst = 0;
+  for (const start of [0, 1, 2, 3, 4, 5]) {
+    sail.s = start;
+    const sys = new A.AlcaFerrySystem({ clock, brake: () => false, traffic });
+    sys.request({ station: P33, to: ISL });
+    sys.board();
+    const DT = 1 / 30;
+    for (let t = 0; t < 200 && sys.boat.leg !== 'dwellI'; t += DT) {
+      // the sailboat makes way along its ellipse (≈ arc length / mean radius)
+      const a = pos(sail.s), b = pos(sail.s + 0.01);
+      sail.s += (sail.v * DT) / (Math.hypot(b.x - a.x, b.z - a.z) / 0.01);
+      sys.step(DT);
+    }
+    assert.equal(sys.boat.leg, 'dwellI', 'the boat got to the island');
+    worst = Math.max(worst, sys.heldTotal);
+  }
+  assert.ok(worst <= 8, `held at most ${worst.toFixed(1)} s by a sailboat that never reaches the crossing`);
+  // a ferry on the waterfront's track heading for the crossing (8 u/s, 40 u east of it) still holds the boat
+  const [ca] = D.ALCA_CROSSING;
+  const ferry = [{ x: ca.x + 40, z: ca.z - 12, vx: -8, vz: 0 }];
+  assert.equal(A.alcaCrossingClear(ferry), false, 'a ferry on its way across: wait');
+});
+
+test('W8-A review A-RP-4: someone standing on Pier 33\'s quay keeps the empty boat in its slip a while (it does not back out in their face), then it goes', () => {
+  let there = true;
+  const sys = new A.AlcaFerrySystem({ clock, brake: () => false, waiting: () => there } as ConstructorParameters<typeof A.AlcaFerrySystem>[0]);
+  const DT = 1 / 30;
+  const run = (secs: number) => { for (let t = 0; t < secs; t += DT) sys.step(DT); };
+  run(A.ALCA.dwell + 5);
+  assert.equal(sys.boat.leg, 'dwell33', 'still in the slip while someone is on the quay');
+  run(A.ALCA.quayWait);
+  assert.notEqual(sys.boat.leg, 'dwell33', 'it does not wait for ever');
+  // nobody on the quay: the usual dwell
+  there = false;
+  const sys2 = new A.AlcaFerrySystem({ clock, brake: () => false, waiting: () => there } as ConstructorParameters<typeof A.AlcaFerrySystem>[0]);
+  for (let t = 0; t < A.ALCA.dwell + 1; t += DT) sys2.step(DT);
+  assert.equal(sys2.boat.leg, 'astern', 'casts off after its 20 s');
+});
+
+test('W8-A review A-RC-3: the island\'s quay sign stands off the walk (≥ 1.5 u from every edge of the island\'s walking graph) and its board is a walk blocker', async () => {
+  const { ALCA_SIGNS } = await import('../src/opus-bay/world/sf/alcatrazFerry');
+  const sign = ALCA_SIGNS[1], N = W.ALCA_WALK_GRAPH.nodes;
+  const seg = (p: { x: number; z: number }, a: { x: number; z: number }, b: { x: number; z: number }) => {
+    const dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz)));
+    return Math.hypot(p.x - (a.x + dx * t), p.z - (a.z + dz * t));
+  };
+  for (const [i, j] of W.ALCA_WALK_GRAPH.edges) assert.ok(seg(sign, N[i], N[j]) >= 1.5, `edge ${i}-${j}: ${seg(sign, N[i], N[j]).toFixed(2)} u from the sign`);
+  // the sign's spot (local) is inside one of the island's walk blockers
+  const lx = sign.x - W.ALCA_ORIGIN.x, lz = sign.z - W.ALCA_ORIGIN.z;
+  const inPoly = (poly: readonly { x: number; z: number }[]) => {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) if ((poly[i].z > lz) !== (poly[j].z > lz) && lx < ((poly[j].x - poly[i].x) * (lz - poly[i].z)) / (poly[j].z - poly[i].z) + poly[i].x) inside = !inside;
+    return inside;
+  };
+  assert.ok(W.ALCA_WALK_BLOCKERS.some(b => 'poly' in b && inPoly(b.poly)), 'the board blocks the walk');
+});

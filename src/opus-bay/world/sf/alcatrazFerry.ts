@@ -18,7 +18,7 @@ import { cityGullGeometry, ferryGeometry } from '../life';
 import { TOY, TOY_DYN, TOY_INST } from '../materials';
 import { type AlcaClock, type AlcaTraffic, AlcaFerrySystem } from './alcatrazFerrySystem';
 import { ALCA_LINES } from './alcatrazLines';
-import { ALCA_ARRIVAL, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
+import { ALCA_ARRIVAL, ALCA_ISLAND_SIGN, ALCA_ORIGIN, ALCA_WALK_GRAPH, onAlcatraz } from './alcatrazWalk';
 
 /**
  * Wave 8 · lane A · the toy Alcatraz ferry in the city (installed by world/transitLayer.ts, the lazy city transit chunk;
@@ -55,6 +55,8 @@ const HEAR = 90;
 const WAKE_LIFT = 0.06, WAKE_NEAR = 160;
 /** the quay signs are drawn within this of the player (u) */
 const SIGN_NEAR = 160;
+/** someone within this of Pier 33's quay (u) is waiting for the boat (W8-A review, A-RP-4) */
+const QUAY_NEAR = 6;
 
 export interface AlcaFerryOptions {
   /** the other boats on the water (x, z, heading, strength — 0 = stopped: life.ts's wake list); default none */
@@ -94,8 +96,9 @@ function signGeometry(): THREE.BufferGeometry {
 export const ALCA_SIGNS = [
   // Pier 33's plaza: just east of the quay, the board facing the Embarcadero (south-west)
   { x: ALCA_TERMINALS.pier33.quay.x + 2.6, z: ALCA_TERMINALS.pier33.quay.z + 0.9, heading: 0.35 },
-  // the island's dock apron, by the float, facing up the dock road
-  { x: ALCA_TERMINALS.island.quay.x - 1.6, z: ALCA_TERMINALS.island.quay.z + 0.9, heading: -1.0 },
+  // the island's jetty by the float, off the way up the dock road, facing up it (alcatrazWalk ALCA_ISLAND_SIGN: its
+  // board is a walk blocker there)
+  { x: ALCA_ORIGIN.x + ALCA_ISLAND_SIGN.x, z: ALCA_ORIGIN.z + ALCA_ISLAND_SIGN.z, heading: ALCA_ISLAND_SIGN.heading },
 ] as const;
 
 const _e = new THREE.Euler(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(1, 1, 1);
@@ -110,11 +113,13 @@ export class AlcaFerryLayer {
   readonly gulls: THREE.InstancedMesh;
   private wakeIn = 0;
   private readonly traffic: AlcaTraffic[] = [];
+  /** the traffic entries, reused frame to frame (W8-A review, A-RC-6) */
+  private readonly trafficPool: AlcaTraffic[] = [];
   private readonly wakes: AlcaFerryOptions['wakes'];
 
   constructor(opts: AlcaFerryOptions = {}) {
     this.wakes = opts.wakes;
-    this.sys = new AlcaFerrySystem({ clock: clockReader(), traffic: () => this.readTraffic() });
+    this.sys = new AlcaFerrySystem({ clock: clockReader(), traffic: () => this.readTraffic(), waiting: () => this.atQuay33() });
     this.group.name = 'alcatraz-ferry';
     this.boat = new THREE.Mesh(ferryGeometry(STRIPE, true), TOY_DYN);
     this.boat.name = 'alcatraz-ferry-boat';
@@ -144,6 +149,12 @@ export class AlcaFerryLayer {
     this.place();
   }
 
+  /** (W8-A review, A-RP-4) the player on foot on Pier 33's quay (the empty boat waits a while for them) */
+  private atQuay33(): boolean {
+    const p = runtime.player, q = ALCA_TERMINALS.pier33.quay;
+    return Math.hypot(p.x - q.x, p.z - q.z) < QUAY_NEAR && game.get().move.mode === 'foot';
+  }
+
   /** the boats on the water (the wake list: x, z, heading, strength > 0 = moving, 0 = stopped), as positions + velocities */
   private readTraffic(): readonly AlcaTraffic[] {
     const out = this.traffic;
@@ -156,7 +167,9 @@ export class AlcaFerryLayer {
       // a ferry (strength 1) makes ≈ 6–9 u/s, a sailboat (0.45) ≈ 3; a ferry stopped on the water (strength 0: its
       // rider's Settings / hop-off brake, W8-A review A-RC-4) still sits in the way — given way to where it lies
       const v = w.w >= 0.9 ? 8 : w.w > 0 ? 3.2 : 0;
-      out.push({ x: w.x, z: w.y, vx: Math.sin(w.z) * v, vz: Math.cos(w.z) * v });
+      const t = this.trafficPool[out.length] ?? (this.trafficPool[out.length] = { x: 0, z: 0, vx: 0, vz: 0 });
+      t.x = w.x; t.z = w.y; t.vx = Math.sin(w.z) * v; t.vz = Math.cos(w.z) * v;
+      out.push(t);
     }
     return out;
   }
@@ -212,13 +225,13 @@ export class AlcaFerryLayer {
     g.visible = on;
     if (!on) return;
     const pose = this.sys.boat.pose, t = this.sys.time, c = Math.cos(pose.heading), sn = Math.sin(pose.heading);
-    GULLS.forEach((q, i) => {
-      const a = t * 0.8 + q.ph, lx = q.x + Math.cos(a) * q.r, lz = q.z + Math.sin(a) * q.r * 0.6;
+    for (let i = 0; i < GULLS.length; i++) {
+      const q = GULLS[i], a = t * 0.8 + q.ph, lx = q.x + Math.cos(a) * q.r, lz = q.z + Math.sin(a) * q.r * 0.6;
       // boat-local (right = (cos h, −sin h), forward = (sin h, cos h)) → world
       const x = pose.x + lx * c + lz * sn, z = pose.z - lx * sn + lz * c;
       _e.set(0, pose.heading + Math.sin(a) * 0.25, -Math.cos(a) * 0.35, 'YXZ');
       g.setMatrixAt(i, _m.compose(_p.set(x, pose.y + q.y + Math.sin(t * 1.3 + q.ph) * 0.25, z), _q.setFromEuler(_e), _g));
-    });
+    }
     g.instanceMatrix.needsUpdate = true;
   }
 
