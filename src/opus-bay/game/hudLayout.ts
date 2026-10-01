@@ -37,6 +37,9 @@ export const HUD_BOX_SELECTOR = [
   // count) — the game's own lines (差一点点！, 新的纪念品！…) sat under the claw panel on a phone (bubble z 8, panel z 43) and
   // would be voiced with no text to read. A new panel: give its root `data-ob-hud-box` (or add its class here).
   '.ob-sfg-panel', '.ob-play-sky', '.ob-play-snap', '.ob-play-lion-badges', '[data-ob-hud-box]',
+  // W8-K-review (K-RC-2): the egg card (z 13; an opened one is 58vh tall on a phone), the notes / operator papers and the
+  // listening ring — the egg's 2nd and 3rd voiced lines came after the card opened and hung under it
+  '.ob-egg-card', '.ob-egg-note', '.ob-egg-operator', '.ob-egg-listen',
 ].join(', ');
 
 /**
@@ -55,8 +58,11 @@ export const overlaps = (a: Box, b: Box, pad = 0) => a.l < b.r + pad && a.r > b.
  * W8-K4b: when it still covers a box after that (a tall play panel above a round button: the passes swung between the
  * two and left the claw's 新的纪念品！ half under the panel on a phone), the free spot nearest the anchor wins — below /
  * above each box, also beside each box within [minX, maxX] (anchor x; the caller's on-screen range).
+ * W8-K-review (K-RP-1 / K-RP-2): when no candidate is free (a short or rotated phone under a tall play panel: no row
+ * between the panel and the bar), the least-covered candidate wins (ties: nearest the anchor) and `over` is set — the
+ * ticker then draws the bubble above the boxes, so a voiced line is never said with its text under a panel.
  */
-export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number, minX = -Infinity, maxX = Infinity): { x: number; y: number } {
+export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number, minX = -Infinity, maxX = Infinity): { x: number; y: number; over?: true } {
   let ay = Math.min(maxY, Math.max(minY, y));
   for (let pass = 0; pass < 3; pass++) {
     let moved = false;
@@ -73,6 +79,8 @@ export function placeBubble(x: number, y: number, w: number, h: number, boxes: r
   // (W8-K4b) the nearest free candidate: rows below / above each box (and the anchor's own), columns beside each box
   const y0 = Math.min(maxY, Math.max(minY, y));
   let bx = x, by = ay, best = Infinity;
+  // (K-RP-1) the least-covered spot, kept in case nothing is free: the 3-pass answer to start with
+  let ox = Math.min(maxX, Math.max(minX, x)), oy = ay, oArea = coverArea(ox, oy, w, h, boxes), oCost = Math.abs(oy - y) + 2 * Math.abs(ox - x);
   for (let i = -1; i < boxes.length * 2; i++) {
     const cy = i < 0 ? y0 : i % 2 === 0 ? boxes[i >> 1].b + GAP + 10 + h + 0.5 : boxes[i >> 1].t - GAP + 10 - 0.5;
     if (cy < minY || cy > maxY) continue;
@@ -81,8 +89,13 @@ export function placeBubble(x: number, y: number, w: number, h: number, boxes: r
       const cx = Math.min(maxX, Math.max(minX, raw));
       const cost = Math.abs(cy - y) + 2 * Math.abs(cx - x);
       if (cost < best && !bubbleHits(cx, cy, w, h, boxes)) { best = cost; bx = cx; by = cy; }
+      if (best === Infinity) {
+        const a = coverArea(cx, cy, w, h, boxes);
+        if (a < oArea - 0.5 || (a < oArea + 0.5 && cost < oCost)) { oArea = a; oCost = cost; ox = cx; oy = cy; }
+      }
     }
   }
+  if (best === Infinity) return { x: ox, y: oy, over: true };
   return { x: bx, y: by };
 }
 
@@ -91,6 +104,14 @@ function bubbleHits(x: number, y: number, w: number, h: number, boxes: readonly 
   const l = x - w / 2, r = x + w / 2, t = y - 10 - h, b = y - 10;
   for (const o of boxes) if (l < o.r + GAP && r > o.l - GAP && t < o.b + GAP && b > o.t - GAP) return true;
   return false;
+}
+
+/** How much of the bubble anchored at (x, y) the boxes cover (px², the boxes' own areas summed). */
+function coverArea(x: number, y: number, w: number, h: number, boxes: readonly Box[]): number {
+  const l = x - w / 2, r = x + w / 2, t = y - 10 - h, b = y - 10;
+  let a = 0;
+  for (const o of boxes) a += Math.max(0, Math.min(r, o.r) - Math.max(l, o.l)) * Math.max(0, Math.min(b, o.b) - Math.max(t, o.t));
+  return a;
 }
 
 export interface WaypointBox {

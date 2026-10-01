@@ -222,7 +222,9 @@ function arrived() {
   onLegStart(next);
   const leg = currentLeg(next);
   // (W8-K3) a fixed line lane X can voice: the trip pill names the stop
-  if (leg?.via === 'line' && next.source !== 'tour') bubble(W8K_LINES.tripToStop, 2800, BAYBAY_ID, 'call');
+  // (W8-K-review K-RC-1) not in the city: start() already said this very line there (W8-K10: a line on any leg), and
+  // the player now stands at the stop, where the boarding question (offerBoarding / lane T's boardLine) speaks
+  if (leg?.via === 'line' && next.source !== 'tour' && game.get().worldMode !== 'city') bubble(W8K_LINES.tripToStop, 2800, BAYBAY_ID, 'call');
 }
 
 function onTripEnd(t: TripState) {

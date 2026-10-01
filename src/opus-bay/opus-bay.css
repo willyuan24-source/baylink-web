@@ -379,6 +379,8 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
    Speech bubble, waypoint, goals card
    ========================================================================== */
 .ob-bubble-anchor { position: absolute; left: 0; top: 0; z-index: 8; will-change: transform; pointer-events: none; }
+/* W8-K-review (K-RP-1): no free spot beside the fixed HUD (a short / rotated phone under a play panel, z 43): drawn on top */
+.ob-bubble-anchor[data-over='1'] { z-index: 45; }
 .ob-bubble {
   position: absolute; left: 0; bottom: 10px; transform: translateX(-50%); width: max-content; max-width: 250px; padding: 9px 14px; border-radius: 16px;
   background: var(--ob-cream); border: 1px solid var(--ob-line); color: var(--ob-ink); font-size: 15px; font-weight: 700; line-height: 1.4; text-align: center;

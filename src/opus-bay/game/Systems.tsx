@@ -699,7 +699,9 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
     // (M1) never over the fixed HUD: below a top box, above a bottom one
     // (W8-K4b) and, when no row is free across its width, beside a box: x kept on screen ([half, w − half])
     const placed = placeBubble(x, y, bubbleBox.w, bubbleBox.h, boxes, h, minY, h - 60, half, w - half);
-    bubbleRect = { l: placed.x - bubbleBox.w / 2, r: placed.x + bubbleBox.w / 2, t: placed.y - 10 - bubbleBox.h, b: placed.y - 10 };
+    // (W8-K-review K-RP-1) no free spot at all (a short / rotated phone under a play panel): drawn above the boxes
+    writeData(bubbleEl, 'over', placed.over ? '1' : '0');
+    bubbleRect ={ l: placed.x - bubbleBox.w / 2, r: placed.x + bubbleBox.w / 2, t: placed.y - 10 - bubbleBox.h, b: placed.y - 10 };
     writeTransform(bubbleEl, `translate3d(${placed.x.toFixed(offscreen ? 0 : 1)}px, ${placed.y.toFixed(offscreen ? 0 : 1)}px, 0)`);
   }
   // touch onboarding: tap marker on the ground between the player and BAYBAY
