@@ -269,12 +269,12 @@ test that asserted the bug). Times PDT, 2026-09-30 23:41 → 2026-10-01 01:xx.
 | A-RP-1 | major | fixed `ecd0bf08` | same defect as A-RC-1 seen in the game (the lens's `s6-03-board-isl.jpg`); same fix. |
 | A-RC-2 | major | fixed `ecd0bf08` | Red: walking the island graph from the quay, the arrival fired on leg 1 at (−455.24, −73.33), 3.2 u off the boat (game/arrival's 12 u floor). `ISLAND_LANDINGS.alcatraz.radius = 5` (data/sf/attractions.ts, lane A's row) and game/arrival honours an island landing's own radius (`ArrivalAnchor.landing`, surgical, named). Now it fires on the upper half of the stair / the plateau, after the stair's 监狱楼在坡顶上 line. |
 | A-RP-2 | major | fixed `ecd0bf08` | Reproduced in node with the real `PlayerController` path follower (`pathTarget`, what a tap / click sets): stopped 3.11 u short at (−463.12, 5.89, −65.19) after 9.3 s — the lens's stall point. Cause: findPath's string-pull cut the corner off the stair's east side onto the hill's 0.9 grade, a wall off stairs (controller WALL_GRADE). Fix: the stair's drawn east kerb / rail is a walk blocker (alcatrazWalk `ALCA_WALK_BLOCKERS`; tops.ts alcatraz row re-measured, only that row). Now the follower reaches the front, the terrace and back down to the quay (review test "A-RP-2"). |
-| A-RC-3 | minor | island fixed `32b25307`; Pier 33 confirmed-not-fixed | The island sign stood 0.22 u from walk node 1: moved to the jetty's south side (`ALCA_ISLAND_SIGN`, ≥ 1.5 u from every walk edge) with its board a walk blocker (test "A-RC-3"). Pier 33's sign stands on a base-city plaza: a blocker there needs core/terrain (frozen) — left walk-through (a thin post 2.7 u east of the quay, off the quay itself). |
+| A-RC-3 | minor | island fixed `85e116ad`; Pier 33 confirmed-not-fixed | The island sign stood 0.22 u from walk node 1: moved to the jetty's south side (`ALCA_ISLAND_SIGN`, ≥ 1.5 u from every walk edge) with its board a walk blocker (test "A-RC-3"). Pier 33's sign stands on a base-city plaza: a blocker there needs core/terrain (frozen) — left walk-through (a thin post 2.7 u east of the quay, off the quay itself). |
 | A-RC-4 | minor | fixed `ecd0bf08` | Red: a ferry stopped on the crossing (strength 0 in life.ts's wake list) → `crossingClear()` true. `readTraffic` now keeps stopped boats (zero velocity) and skips only the list's all-zero slots (test "A-RC-4"). |
-| A-RC-5 | minor | fixed `32b25307` | Re-checked 2026-10-01: the concessioner's sheet (https://statue-static-content.s3.us-east-1.amazonaws.com/Alcatraz+City+Cruises+-+Schedule.pdf) reads "SUMMER SCHEDULE MARCH 8 - NOVEMBER 1, 2026"; NPS (https://www.nps.gov/alca/planyourvisit/hours.htm) says only that hours vary with the season. Outside the sheet's dates (`alcaPublished`) the deckhand's early / returns notes carry no clock times (以官网为准). The toy keeps its day hours (a toy cadence); tonight's live date is inside the sheet. Test "A-RC-5". |
-| A-RC-6 | minor | fixed `32b25307` | `alcaPoint(path, s, out?)` fills module scratch points in `step` / `updatePose`; `readTraffic` reuses a pool; the gulls loop has no closure. Only build-time calls allocate now. |
-| A-RP-3 | minor | fixed `32b25307` | Red in node: life.ts's sailboat loop off Pier 35 (centre −70, −92; 34 × 6; never within 10 u of the crossing) held the outbound boat up to 10.5 s by its straight-line forecast (the lens saw 15–18 s with the live traffic). After 4 s a slow boat (< 4 u/s) counts for 1 s of its course only; ferries keep the full 16 s forecast, and a boat stopped on the crossing still holds it (tests "A-RP-3", "A-RC-4"). The ETA still leaves out a hold for a real ferry (≤ ~16 s; noted). |
-| A-RP-4 | minor | fixed `32b25307` | Red: with someone on the quay the empty boat still cast off at 20 s. Now it waits up to `ALCA.quayWait` (20 s) more while the player stands on foot within 6 u of Pier 33's quay (layer `atQuay33`; test "A-RP-4"); pressing E then gets the boat in the slip. |
+| A-RC-5 | minor | fixed `85e116ad` | Re-checked 2026-10-01: the concessioner's sheet (https://statue-static-content.s3.us-east-1.amazonaws.com/Alcatraz+City+Cruises+-+Schedule.pdf) reads "SUMMER SCHEDULE MARCH 8 - NOVEMBER 1, 2026"; NPS (https://www.nps.gov/alca/planyourvisit/hours.htm) says only that hours vary with the season. Outside the sheet's dates (`alcaPublished`) the deckhand's early / returns notes carry no clock times (以官网为准). The toy keeps its day hours (a toy cadence); tonight's live date is inside the sheet. Test "A-RC-5". |
+| A-RC-6 | minor | fixed `85e116ad` | `alcaPoint(path, s, out?)` fills module scratch points in `step` / `updatePose`; `readTraffic` reuses a pool; the gulls loop has no closure. Only build-time calls allocate now. |
+| A-RP-3 | minor | fixed `85e116ad` | Red in node: life.ts's sailboat loop off Pier 35 (centre −70, −92; 34 × 6; never within 10 u of the crossing) held the outbound boat up to 10.5 s by its straight-line forecast (the lens saw 15–18 s with the live traffic). After 4 s a slow boat (< 4 u/s) counts for 1 s of its course only; ferries keep the full 16 s forecast, and a boat stopped on the crossing still holds it (tests "A-RP-3", "A-RC-4"). The ETA still leaves out a hold for a real ferry (≤ ~16 s; noted). |
+| A-RP-4 | minor | fixed `85e116ad` | Red: with someone on the quay the empty boat still cast off at 20 s. Now it waits up to `ALCA.quayWait` (20 s) more while the player stands on foot within 6 u of Pier 33's quay (layer `atQuay33`; test "A-RP-4"); pressing E then gets the boat in the slip. |
 
 ### Played in Chrome (dev server, `?world=city&date=2026-10-02T11:00`, after both fix commits)
 
@@ -304,7 +304,7 @@ test that asserted the bug). Times PDT, 2026-09-30 23:41 → 2026-10-01 01:xx.
 
 ### Checks
 
-- After `32b25307` (both fix commits): the full opus-bay suite **1820 tests, 1819 pass, 0 fail, 1 todo** (00:55 PDT);
+- After `85e116ad` (both fix commits): the full opus-bay suite **1820 tests, 1819 pass, 0 fail, 1 todo** (00:55 PDT);
   `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint .` 0 errors (50 warnings, none new); the whole-city static
   sweep 699 targets, 0 OFF / BOXED / SNAG / UNREACHABLE (149 CORRIDOR, reported).
 - `tests/opus-bay-w8-a-review.test.ts` 9 tests: A-RC-1, A-RC-2, A-RP-2, A-RC-4, A-RC-5, A-RP-3, A-RP-4 red before their
@@ -315,7 +315,7 @@ test that asserted the bug). Times PDT, 2026-09-30 23:41 → 2026-10-01 01:xx.
 | commit | what |
 |---|---|
 | `ecd0bf08` W8-A-review | A-RC-1 / A-RP-1, A-RC-2, A-RP-2, A-RC-4 |
-| `32b25307` W8-A-review | A-RC-5, A-RP-3, A-RP-4, A-RC-3 (island), A-RC-6 |
+| `85e116ad` W8-A-review | A-RC-5, A-RP-3, A-RP-4, A-RC-3 (island), A-RC-6 |
 
 ### Open items
 
