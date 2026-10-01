@@ -94,7 +94,7 @@ boarding, the view-spot sit → `game/fixedLines.ts W8K_LINES`; the welcome back
 suite 1670: 1669 pass, 1 wall-clock assert (`sf-move2` E2-5 "a cached cell is cheap", 1000 calls < 50 ms) under load —
 alone 24 / 24 (rule 9).
 
-**New fixed BAYBAY lines for lane X (zh + en, no templates; on origin since `cc5dbdc5`, not in X's batch 1):**
+**New fixed BAYBAY lines for lane X (zh + en, no templates; on origin since `cc5dbdc5`; recorded by lane X in W8-X3 `da07f2a9`):**
 
 | where | zh | en |
 |---|---|---|
@@ -197,3 +197,56 @@ offers them (the loop's voiced Ferry Building approach through the pacer, a `hil
 - The dither edge is visible on a large canopy at the tube's rim (a band of dither, read in the desktop pair) — the
   smoothstep from 0.55 R to R; acceptable for a toy look.
 - Not played with the Powell–Mason / California lines (the same `CityProps` code; their kerb trees are fewer).
+
+## Part c (2026-09-30, 22:00–22:45 PDT): the bubble beside the panels, the kite, the new boats
+
+### W8-K7: the bubble half under the claw panel
+
+The run-3 shot of part a2 showed the claw's own 新的纪念品！ **half under the panel**: `placeBubble`'s three passes pushed it
+below the panel, then above the Hop button, then below the panel again, and stopped there. Now, when the bubble still
+covers a box after the passes, the free candidate nearest the anchor wins (rows below / above every box, each with the
+anchor's x or beside a box; x kept on screen — `game/Systems.tsx` passes `[half, w − half]`, `hudLayoutSlot` forwards
+it). The 3-pass answer is kept whenever it is free (the sf-hud / w7-p placement tests unchanged). Test `W8-K4b` (the
+phone layout of that shot) red on the old file, green now. **Live again** (`hold60.mjs`, phone, 22:05): the bubble
+sits fully below the panel, left of Hop (`qa/w8/K/a-k7-claw-phone-bubble-below-panel.jpg`, read); the claw's 4 own
+lines now voiced (W8-X1 on origin) with their bubbles on screen; still no ambient line, 0 other voices under the panel.
+
+### W8-K8: the kite (W7-W2 review items)
+
+- `play/PlayChip.tsx`: the hold button (放线, the slides' tuck, the marshmallow's 按住烤) blurs after a **mouse** press, so
+  Space / E reach the games' own keys again (`play/partc.ts holdKeys` skips a focused BUTTON); with the keyboard focus on
+  it (tabbed to) it holds on Space / Enter / E itself and lets go on blur. Pure helper `play/chipKeys.ts`.
+- `play/kite.ts` (lane W2's, surgical): the 75 s `quietUntil` it sets at the start is brought down to 8 s after the round
+  (不玩了, walking off, the end) when it is still the kite's own.
+- Test `tests/opus-bay-w8-k8-kite.test.ts` (2), the quiet part red on the old `kite.ts`; `w7-w2-kite` (5) green.
+- **Live** (`kite8.mjs`, desktop 1440 × 900, Marina Green, 放风筝 from 问 BAYBAY, a mouse press on 放线 at its settled
+  place, `elementFromPoint` = the button): `document.activeElement` after the press = **BODY** (before: the button), so
+  Space goes to the kite's `holdKeys`. (The line % while Space was held moved with the wind: 30 → 32 % in a lull; in the
+  first, mis-aimed run — the press landed on the Postcards pill while the chip was still popping in and opened the
+  journal, also not a button — 22 → 73 % in a gust. A first press must wait for the chip's pop-in: noted for QA scripts.)
+
+### Part c item 5: BAYBAY on foot and the parked ride vs wave 8's new boats — do the W7 rules hold?
+
+Read on origin (`f80e8a2d` A1, `65478b6d` A3, `ec790ebc` S2): **they do not apply — the boats stay on the water.**
+- Lane A's Alcatraz ferry (`world/sf/alcatrazFerrySystem.ts`) lies in Pier 33's slip bow to the shore and runs its own
+  lanes on the Bay; lane S's Parade of Ships (`world/sf/fleetWeek.ts`) sails a line under the bridge to the Bay Bridge.
+  Neither is in streetNet's road-vehicle list (`world/transitLayer.ts roadVehicles`: the cable cars, the F-line, the
+  loop bus and the Metro only), so W7-K2's `clearTransitPaths` (the tow) and `guideAside` (BAYBAY's step off the rails)
+  never see them — and need not: BAYBAY's targets must pass `canStand` (no water) and a parked ride cannot be driven
+  into a slip (`collide`). Boarding (the player and BAYBAY) is the ferry's own protocol (lane A).
+- No code change; nothing to test beyond what A / S test (their ferry / parade tests pass on my tree).
+
+### Not done
+
+- **A parked ride > 250 u away is still towed only on the player's return** (W7 known gap): the road-vehicle list holds
+  the transit within 250 u of the player, so a car left on the rails far away is towed the moment the player comes back
+  within 250 u (≈ at the edge of what is drawn). A static check against every line's path when the player leaves needs
+  the four lines' geometry (the cable lines, the F-line path, the loop and the Metro), ≈ 1 h with tests: left for wave 9
+  as the item stands (nobody sees the car meanwhile).
+- The emote coach was the last byte of W5-A1's play-core budget (6143 / 6144 B): a lane adding static play code needs
+  room (lane P's call).
+
+### Checks (part c)
+
+- On `5485c1a8` (W8-K7 + W8-K8 on `67bbd5b0`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50
+  old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1769 / 1769**.
