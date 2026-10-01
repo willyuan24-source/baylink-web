@@ -23,6 +23,7 @@ import { openOverlays } from '../ui/slots';
 export const BAYBAY_HOLD_OVERLAYS: readonly string[] = [
   // the play panels and cards (play/*.ts)
   'play-claw', 'play-crab', 'play-dough', 'play-fortune', // lane M (W7): claw, crab net, sourdough, fortune teller
+  'play-grip', // lane M (W8): the cable-car grip
   'w2-skyline', // lane W2 (W7): 那是什么？'s three names
   'play-result', // PlayKit's medal card
   'play-snap', // the crest hop's polaroid

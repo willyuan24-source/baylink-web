@@ -30,6 +30,8 @@ export const BEST_ROWS: readonly { key: string; name: Bilingual; unit: 'seconds'
   { key: 'claw', name: { zh: '机械博物馆抓娃娃', en: 'Musée claw machine' }, unit: 'points' },
   { key: 'crab', name: { zh: '7 号码头捞螃蟹', en: 'Crabbing off Pier 7' }, unit: 'points' },
   { key: 'sourdough', name: { zh: '捏酸面包', en: 'Shaping sourdough' }, unit: 'points' },
+  // W8-M (lane M): the second set (the kit keeps their bests under the activity id: points of 100)
+  { key: 'grip', name: { zh: '叮当车拉闸', en: 'Cable-car grip' }, unit: 'points' },
 ];
 
 /** Days since 1970 of a Bay date (lane A's `steps-day`). */

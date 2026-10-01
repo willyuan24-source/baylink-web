@@ -1,0 +1,22 @@
+/* Wave 8 · lane M · the second set of mini-games' panels (on top of sfgames.css: the cable-car grip, the busker, the
+   foghorns). Tokens from opus-bay.css; every tap target ≥ 44 px (the main controls 56 px and more). */
+
+/* the grip: at the bottom of the screen on every size (the ride banner holds the top) */
+.ob-sfg-panel.is-grip { top: auto; bottom: calc(12px + var(--ob-sb, env(safe-area-inset-bottom, 0px))); width: min(440px, calc(100vw - 20px)); }
+/* desktop: at the right, above the HUD's round buttons and the ride's key hints */
+@media (min-width: 1000px) { .ob-sfg-panel.is-grip { top: auto; right: 28px; bottom: 108px; } }
+.ob-sfg-canvas.is-grip { aspect-ratio: 100 / 36; background: #cfe3ea; cursor: default; }
+.ob-sfg-hint.is-release { color: #c0392b; }
+.ob-sfg-hint.is-bell { color: var(--ob-gold-d); }
+.ob-sfg-btn.is-bell { flex: none; min-width: 92px; min-height: 64px; background: var(--ob-gold-l); border-color: var(--ob-gold); color: var(--ob-gold-d); }
+.ob-sfg-btn.is-bell:active { background: var(--ob-gold); color: #fff; }
+.ob-sfg-btn.is-grip { max-width: none; min-height: 64px; }
+.ob-sfg-key { display: inline-block; width: 10px; height: 10px; margin: 0 3px 0 2px; border-radius: 2px; vertical-align: -1px; }
+.ob-sfg-key.is-red { background: repeating-linear-gradient(90deg, #d8433a 0 3px, #f2b3a6 3px 6px); }
+.ob-sfg-key.is-bell { border-radius: 50% 50% 2px 2px; background: #e2a52a; }
+.ob-sfg-key.is-stop { background: linear-gradient(#c8452c 0 30%, #fffaf1 30%); border: 1px solid var(--ob-line-2); box-sizing: border-box; }
+
+@media (max-height: 560px) {
+  .ob-sfg-panel.is-grip { gap: 4px; padding: 6px 10px 8px; }
+  .ob-sfg-panel.is-grip .ob-sfg-foot { display: none; }
+}

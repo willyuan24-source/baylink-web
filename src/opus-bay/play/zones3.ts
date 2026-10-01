@@ -223,6 +223,10 @@ export function initZones3(): () => void {
   let offSf: (() => void) | null = null, sfGone = false;
   void import('./sfgames').then(m => { if (!sfGone) offSf = m.initSfGames(); }).catch(() => { /* the games stay away */ });
   offs.push(() => { sfGone = true; offSf?.(); });
+  // W8-M (lane M): the second set (play/sfgames8.ts, its own chunk: the cable-car grip, the busker, the foghorns)
+  let offSf8: (() => void) | null = null;
+  void import('./sfgames8').then(m => { if (!sfGone) offSf8 = m.initSfGames8(); }).catch(() => { /* the games stay away */ });
+  offs.push(() => { offSf8?.(); });
   // a crest hop (lane F's vehicle:hop) at one of the 12 crests
   offs.push(onEvent(ev => {
     if (ev.type !== 'vehicle:hop' || !ev.crest) return;
