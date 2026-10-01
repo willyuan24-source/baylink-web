@@ -291,3 +291,71 @@ headless Chrome at a time; no Higgsfield spend.
 4. `data/transit.ts`'s node-only top-level `await` (bindBuilder) and `data/transitBuild.ts`'s type-only imports.
 5. Play: a city resume (继续旅程) with the discovery chunk blocked (it no longer waits); a blocked panel chunk on a phone
    (the card); the district's first minute (unchanged).
+
+## Review (Ultra)
+
+W8-P-review, 2026-10-01 00:15–01:30 PDT (the fixer of the two-lens adversarial review: code & facts, player).
+Worktree `w8-p-rev` on origin `017fe6ee`, rebased onto `f9b95504`; dev server on 5843; one headless Chrome at a time;
+no PERF-LOCK seen; no production build (none needed: the lenses' build `opus-qa/w8/p-rc/dist` was read for P-RC-1); no
+Higgsfield spend.
+
+### 给主人的摘要
+
+1. 两位审查员指出的 10 个问题全部核实为真，全部修好并加了测试（先红后绿）。最严重的两个：某个界面部件（地图、旅行本、小游戏面板等）下载失败 12 秒后，整个游戏会被网站的英文错误页替换；以及断网恢复后，那个部件这一整次访问都再也加载不出来。
+2. 现在：部件下载不下来时只显示“有一部分没加载好 · 重新载入 / 先继续玩”的小卡片，游戏照常运行；网络恢复后再打开就能加载（已在 Chrome 实测：断网按 M → 卡片 → 恢复网络 → 再按 M，地图出现）。
+3. 路过小游戏区、开局 4 秒的面板预取等“没人等着的预下载”失败时不再弹卡片；卡片出现时按空格（跳）不会再误触“重新载入”；卡片显示期间 BAYBAY 不再在卡片底下说话。
+4. 首屏主包（GameRoot）不再走重试（重试出来的是第二份实例，其他 150 个分包看不到它），改为丢包时自动刷新一次页面。
+5. 街区模式照旧（实测打开街区地图正常）；主包静态估算 ≈ 258.0 KB，在 258.5 的护栏内。没有阻碍上线的问题。
+
+### The findings (12 relayed; the list arrived cut after P-RP-3, so 10 were received)
+
+| id | sev. | verdict | evidence (before → after) |
+|---|---|---|---|
+| P-RP-1 | major | **fixed** | Confirmed: the lens's `p-rp/b2-map16s.jpg` (read) is the site's "Something went wrong on this page" 16 s after M with `MapPanel.tsx` blocked; `c2-resume-18s.jpg` the same after a resume with `discovery.ts` blocked. Cause: every `React.lazy(() => importRetry(…))` rejected into the site's root ErrorBoundary. Fix: new `game/lazyChunk.ts` (React.lazy whose *loading* failure renders nothing in place of the part — importRetry already showed the card — and whose next mount asks again with a fresh lazy; a module's own error still throws); all 51 React.lazy sites in 26 files use it (a scan test fails on a bare `lazy(`). After: `p-rev/a2-after-M.jpg` (same block + M at 15 s: the card over the running game, `sitePage:false`), `p-rev/c2-resume-20s.jpg` (resume with discovery lost: playing, card up, no site page at 20 s). Test `P-RP-1` red on origin, green. |
+| P-RP-2 | major | **fixed** | Confirmed in node (test `P-RP-2`, red on origin): a second chain for a URL asked for `?retry=1..3` again, the URLs the first chain left failed in Chrome's module map. Fix: `importRetry` counts `n` per module URL across chains (`nextBust`, per memo table): the second chain asks `?retry=4` (a stylesheet keeps `n` per chain: a `<link>` has no module map). After, in Chrome: `MapPanel.tsx` blocked, M → card at ~15 s → unblock → 先继续玩 → M (closes the empty panel) → M → the city map opens (`p-rev/b3-map-back.jpg`, `b.log` `map:true`). |
+| P-RP-3 | minor | **fixed** | Same cause as P-RC-5 plus an unhandled rejection per lost `void loadX()`. Fix: `ui/Overlay.tsx` runs the six panel prefetches inside `quietly(…)` with `.catch(() => {})`. After: `MapPanel.tsx` blocked from the start, 22 s into play no card (`a.log` `after-prefetch card:false`); the M press then shows it. |
+| P-RC-1 | minor | **fixed** | Confirmed on the lens's production build: `grep -l '"./GameRoot-DGU6F6lk.js"' opus-qa/w8/p-rc/dist/assets/*.js` → 148 chunks import their shared modules from GameRoot's own file; a GameRoot recovered as `?retry=1` is an instance none of them sees (importRetry's own header documents that Chrome keeps the bare URL failed). Fix: `OpusBayPage.tsx` imports GameRoot bare; a load failure reloads the page once per session (`sessionStorage opus-bay:game-reload`, cleared on success — fresh HTML is the cure after a deploy), then the site's error page as before W8-P5. `isLoadFailure` keeps importRetry in the route chunk (GameRoot's estimate unchanged by the move). Test `P-RC-1` red/green; the W8-P5 scan exempts OpusBayPage.tsx with the reason. |
+| P-RC-2 | minor | **fixed** | Confirmed in node (test `P-RC-2`, red on origin): an error naming `cityDataChunk-A.js?retry=3` (cityData's own chain's last error, thrown through its top-level await) started a second chain that imported the data chunk in GameRoot's place. Fix: `namesRetriedUrl(e)` — an error naming a `?retry=` URL is another chain's last word and is thrown on (that chain already told the listeners). With P-RC-1 the concrete GameRoot case is gone too. |
+| P-RC-3 | minor | **fixed** | Confirmed by reading: `chunkLost.ts` focused 重新载入 and `core/input.ts:120-122` leaves Space on a focused BUTTON to the button (the browser clicks it) — a jump reloaded the page. Fix: the card's root (`tabIndex -1`) takes focus (`.ob-chunk-lost:focus { outline: none }`); Space / Enter stay the game's, Tab reaches the buttons. After: `a.log` `focus:"ob-gl-lost ob-chunk-lost"`. Test red/green. |
+| P-RC-4 | minor | **fixed** | Confirmed: `game/flow.ts:1700` `void import('./tripRun')` (startTrip) was bare and the scan skipped any line containing `import.meta.env`. Fix: wrapped in importRetry; the scan now skips only the node-only pattern `if ((import.meta.env as object \| undefined) === undefined)` (data/pois.ts, postcards.ts, scriptSlot.ts, transit.ts). Test `P-RC-4` red/green. |
+| P-RC-5 | minor | **fixed** | Confirmed: `grep -rn "quiet: true" src/opus-bay` found no importRetry caller. Fix: `quietly(fn)` in importRetry (every importRetry started synchronously inside fn is quiet; read before the first await); used by `play/zones.ts` `zonePrefetch` (all 14 game-zone prefetches: zones, zones3, sfgames, sfgames8), `ui/Overlay.tsx`'s panel prefetch, and `{ quiet: true }` on the eggs' FactCard prefetch. GameRoot's module-level audio load stays loud on purpose (it is needed, not speculative: no sound for the visit is worth the card). Test red/green. |
+| P-RC-6 | minor | **fixed** | Confirmed: W8-P5 raised the play core 6 → 6.5 KB for +49 B and zones3 5 → 5.5 KB for +33 B. Measured on the review tree: core 6204 B, zones3 5163 B, zones.ts 5131 B (5104 B on origin; +27 B for lazyChunk / quietly). Guards now: core 6.1 KB (6246 B), zones3 5.1 KB (5222 B), zones.ts 5.1 KB, every other chunk 5 KB as before. |
+| P-RC-7 | minor | **fixed** | Confirmed: the test only checked the title was one of the three. Now `setLocale('en' / 'zh-Hant' / 'zh-Hans')` each and every word of the card is compared (test `P-RC-3 / P-RC-7`). |
+| P-RP-4, P-RP-5 | — | not received | The relayed list was cut inside P-RP-3. I read the player lens's remaining evidence instead: `b3-phone-hant.jpg` / `b3-844x340.jpg` (the card in 繁體 at 390×844 and landscape 844×340: fits, 44 px buttons, no bubble over it), `d1.log` (the district postcards filled, 8/8), `c1.log` (cable-car network 3 lines / 56 stations, 24 POIs; city 73 calls / 229k tris). Nothing there needed a fix. |
+
+### Own pass (`git log --grep "W8-P[0-9:]"`, P1–P9)
+
+- **Fixed — BAYBAY under the card** (`game/baybayHold.ts`): the card is plain DOM, not an overlay slot, so lane K's hold
+  list never saw it; `p-rev/a2-after-M.jpg` shows an ambient bubble ("If I had pockets…") under the open card.
+  `baybayHeld()` now also holds while `chunkLostCard()` is up (city only, like every W8-K hold; the district unchanged).
+  Test in `tests/opus-bay-w8-p-review.test.ts`.
+- **Open — an empty panel stays "open"**: with P-RP-1's fix a lost panel renders nothing but its panel state is open (the
+  HUD rail stays shifted; the first M after 先继续玩 closes the empty panel, the second opens it). Harmless, but a
+  `onLost` close hook per panel would be nicer (wave 9).
+- **Open — a game whose panel chunk is lost**: `play/sfgames.ts` starts `claw` / `crab` / … without waiting for its panel
+  chunk, so a lost `ClawPanel` (only the panel) leaves the game running with no panel (before: the site error page
+  12 s later; now: the reload card over it — not played through to the end here). A start that awaits both would be cleaner (lane M's file; wave 9).
+- **Checked, no defect**: W8-P3's `loadTransit` returns null (cars absent, card shown) when the builder chunk is lost, and
+  retries on the next call; W8-P4 fills the district postcards before Start (the lens's `d1.log`); W8-P6's 600 ms grace
+  (test green); W8-P1/P2/P7 district fallbacks (the W8-P budget tests green). District mode played: `p-rev/d2-district-map.jpg`
+  (the Embarcadero map opens through lazyChunk, no card).
+- **Size**: GameRoot's static estimate is 258.0 KB on the review tree (guard 258.5; it read 258.9 while importRetry had left the route chunk — hence `isLoadFailure` in OpusBayPage). The 255 KB
+  target stays the lane's open item (W8-Z's production build is the number of record).
+
+### Commits
+
+| commit | what |
+|---|---|
+| `cb83d277` W8-P-review | lazyChunk (P-RP-1), fresh `?retry=n` per chain (P-RP-2), quiet prefetches (P-RP-3 / P-RC-5), bare GameRoot + reload once (P-RC-1), nested chain thrown on (P-RC-2), the card's focus (P-RC-3), tripRun (P-RC-4), tight guards (P-RC-6), the locale test (P-RC-7) |
+| `d2f28146` W8-P-review | BAYBAY holds under the chunk-lost card (own) |
+| `48c6efbb` W8-P-review | a lost stylesheet keeps its per-chain `?retry=n` (a `<link>` is fetched anew; the W7-P-review CSS test caught the page-wide counter there) |
+| this report | docs only |
+
+### Final checks
+
+On `w8-p-rev` (origin `f9b95504` + the three code commits; the suite ran on `2adcbeb9` + them, the files later rebases brought in re-tested): `tsc` 0 · `eslint .` 0 errors (50 old warnings) · opus-bay suite
+**1841 / 1842** pass, 0 fail, 1 todo (the 255 KB target), 01:16 PDT. Dev server stopped; worktree removed (node_modules junction first).
+
+### Blocking the go-live to main
+
+Nothing. The two open items above are polish for wave 9; the 255 KB target is the lane's own open item.
