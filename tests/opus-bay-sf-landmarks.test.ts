@@ -306,13 +306,13 @@ test('D2-12: every landmark names its places.json row; zh follows the city gloss
 // ---------------------------------------------------------------------------
 
 test('W4-IL1: SF_SITES = the 24 landmarks + every wave-4 record; sfLandmark finds each; CitySites draws, excludes and walks them all', async () => {
-  const { SF_SITES, W7_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
+  const { SF_SITES, W7_SITES, W8_SITES } = await import('../src/opus-bay/world/sf/landmarks/index');
   const { W4_ALL_SITES, W4_SITES, siteLod0R } = await import('../src/opus-bay/world/sf/landmarks/w4sites');
   const { W4_SITES_T3 } = await import('../src/opus-bay/world/sf/landmarks/w4list3');
   const { CitySites, LOD0 } = await import('../src/opus-bay/world/sf/sites');
   assert.equal(SF_LANDMARKS.length, 24, 'SF_LANDMARKS stays the 24 records with an info card (cards, arrivals, place rows)');
-  // W7-W2: then the wave-7 sites (Alcatraz)
-  assert.deepEqual(SF_SITES.map(l => l.id), [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES].map(l => l.id));
+  // W7-W2: then the wave-7 sites (Alcatraz); W8-W2: then the wave-8 sites (the Blue Heron Lake Boathouse)
+  assert.deepEqual(SF_SITES.map(l => l.id), [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES, ...W8_SITES].map(l => l.id));
   assert.deepEqual(W4_ALL_SITES.map(l => l.id), [...W4_SITES, ...W4_SITES_T3].map(l => l.id));
   assert.equal(new Set(SF_SITES.map(l => l.id)).size, SF_SITES.length, 'unique ids across the landmarks and the sites');
   for (const l of SF_SITES) assert.equal(sfLandmark(l.id), l, l.id);

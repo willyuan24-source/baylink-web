@@ -122,3 +122,26 @@ test('W8-W2 lake: BAYBAY\'s lake lines are fixed zh + en, by day at the lake, th
   for (const s of LAKE_SPOTS) assert.ok(Math.sqrt(lakeDist2(s.at.x, s.at.z)) + s.r < LAKE_RANGE, 'spots inside the draw range');
   assert.equal(BOAT_PARTS, 8);
 });
+
+test('W8-W2 the Blue Heron Lake Boathouse: a plain site on the OSM lot that drops the generic house, T3 budget, its landing at the water', async () => {
+  const { blueHeronBoathouse: l, BOATHOUSE_BASE } = await import('../src/opus-bay/world/sf/westBoathouse');
+  const { SF_SITES, buildLandmark, sfLandmark, triangleBudget } = await import('../src/opus-bay/world/sf/landmarks/index');
+  assert.equal(sfLandmark('blue-heron-boathouse'), l);
+  assert.ok(SF_SITES.includes(l));
+  // OSM way 120479803's outline (world x, z; the project's snapshot) lies inside the exclusion: the city's box goes
+  const OSM: [number, number][] = [[-308.21, 1024.93], [-307.26, 1025.92], [-304.86, 1023.62], [-305.02, 1023.45], [-304.51, 1022.97], [-305.3, 1022.15]];
+  const poly = 'poly' in l.exclude ? l.exclude.poly : [];
+  const inPoly = (x: number, z: number) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a.z > z) !== (b.z > z) && x < ((b.x - a.x) * (z - a.z)) / (b.z - a.z) + a.x) c = !c; } return c; };
+  for (const [x, z] of OSM) assert.ok(inPoly(x, z), `OSM corner (${x}, ${z}) inside the exclusion`);
+  // the moored boats lie outside it (on the water), within 3.5 u of the lodge
+  for (const m of MOORED) { assert.ok(!inPoly(m[0], m[1])); assert.ok(Math.hypot(m[0] - l.x, m[1] - l.z) < 3.5); }
+  const geo = (lod: 0 | 2) => { const g = buildLandmark(l, lod); const n = (g.index ? g.index.count : g.getAttribute('position').count) / 3; g.computeBoundingBox(); return { g, n }; };
+  const lod0 = geo(0), lod2 = geo(2);
+  assert.ok(lod0.n <= triangleBudget(l), `${lod0.n} triangles (T3 ${triangleBudget(l)})`);
+  assert.ok(lod2.n <= lod0.n * 0.15, `lod 2 ${lod2.n} triangles`);
+  // the landing reaches the lake's surface (local y LAKE_Y − base), the roof stays a low lodge's
+  const bb = lod0.g.boundingBox!;
+  assert.ok(Math.abs(bb.min.y - (LAKE_Y - BOATHOUSE_BASE - 0.6)) < 0.5, `the landing's posts reach ${bb.min.y.toFixed(2)}`);
+  assert.ok(bb.max.y > 2.2 && bb.max.y < 3.0, `the ridge at ${bb.max.y.toFixed(2)}`);
+  lod0.g.dispose(); lod2.g.dispose();
+});

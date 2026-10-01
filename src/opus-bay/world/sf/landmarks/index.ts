@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { SurfaceKind, Vec2 } from '../../../core/types';
 import { Batch, type BatchLike } from '../../builder';
 import { alcatraz } from './alcatraz';
+import { blueHeronBoathouse } from '../westBoathouse';
 import { cableCarTurntable } from './cable-car-turntable';
 import { castroTheatre } from './castro-theatre';
 import { chaseCenter } from './chase-center';
@@ -186,6 +187,8 @@ export const SF_LANDMARKS: SfLandmark[] = [
  * from the shore; its card and the ferry trip live in data/sf/attractions).
  */
 export const W7_SITES: readonly SfLandmark[] = [alcatraz];
+/** Wave-8 sites (W8-W2), plain records like W7_SITES: the Blue Heron Lake Boathouse (world/sf/westBoathouse.ts). */
+export const W8_SITES: readonly SfLandmark[] = [blueHeronBoathouse];
 
 /**
  * Every site the city draws (lane L, wave-4 integration): the 24 landmarks above, then the wave-4 sites (w4list.ts: P1–P3
@@ -201,7 +204,7 @@ export const W7_SITES: readonly SfLandmark[] = [alcatraz];
  * runtime, and this file never imports w4sites.ts or context.ts (both read the registry): a cycle there throws at load
  * (tests/opus-bay-sf-sites-w4.test.ts "integration safety").
  */
-export const SF_SITES: readonly SfLandmark[] = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES];
+export const SF_SITES: readonly SfLandmark[] = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES, ...W8_SITES];
 
 const byId = new Map(SF_SITES.map(l => [l.id, l]));
 /** A landmark or a wave-4 site by id (SF_SITES). */
