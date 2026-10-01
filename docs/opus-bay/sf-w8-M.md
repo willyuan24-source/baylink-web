@@ -324,3 +324,87 @@ held long blast, and ships to bring in.
   bottom, the crossing at California ≈ 30 s in); the busker at 24th St with `?date=2026-09-30T14:30` (the guitarist out)
   and at Haight St at any other hour (BAYBAY's practice); the foghorns at Fort Point (a wrong horn → the call again; a
   short south horn → 南塔的长音要按住哦～).
+
+## Review (Ultra) · the fixer (W8-M-review, 23:52 → 01:15 PDT, 2026-09-30 / 10-01)
+
+### 给主人的摘要
+
+1. 两位审查员一共报了 10 条（清单在第 10 条中途被截断，第 11 条没收到）。10 条我都先亲手复现再修：10 条全部属实，都修了（只有一小半没改：手机上玩这三个游戏时点不到「设置」，这是设计如此，先点 ✕ 就行）。另外我自己又找到并修好 3 个问题。
+2. 最要紧的几处：雾笛游戏里键盘「点一下就松」会卡住喇叭、后面的音全被吞掉——已修，真实游戏里快速点按能一次过关；坐缆车拉闸时，横幅上的「摇铃对答」按钮一碰就把拉闸游戏直接结束（反过来也一样）——现在一个游戏进行时，另一个按钮自动隐藏。
+3. 打开「设置」时，三个游戏的面板不再压在设置上；按 Esc 现在先关设置，不会把游戏偷偷放弃（这一条审查员没发现，是我自己找到的，所有小游戏都受益）。电脑上打开旅行本 / 地图时，游戏面板会让到左边。
+4. 手机横屏（844×340）拉闸面板改成左右两栏，整个画面都看得见，不再被缆车横幅挡住；矮屏手机（375×553）面板变矮，BAYBAY 的提示泡泡露出来了。旧 iPhone（iOS 15）上街头艺人游戏的画面不会再冻住。
+5. 雾笛没吹（太慢）时 BAYBAY 不再说「吹错啦」，改说开场那句「先听雾笛，再照着吹一遍」。
+6. 没有阻挡上线的问题。全部测试、tsc、eslint 见下面「Final checks」。
+
+### What was checked
+
+- Every lane-M commit on origin (W8-M1 … W8-M9, W8-P5b's import change), every finding of both lenses reproduced
+  before any change: a red node test where it could be tested (`tests/opus-bay-w8-m-review.test.ts`, 7 tests, each red
+  on the old code), then the real game on the dev server (5849): phone 390×844 / 375×553 / 844×340 / 667×320 touch at
+  dpr 2 and desktop 1440×900, every image read (scratch `C:/Users/willy/opus-qa/w8/m-rev/{p1,p2,p3,d1,d2,d3}/`; p2 / p3 after rebasing onto lane K's review).
+- District mode: lane M's prompts sit at city coordinates and its zones' frame system returns outside the city; no
+  change of mine touches district code; the hero regression test is in the green suite and the player lens's district
+  shot (m-rp/r6) reads unchanged. No fact was changed, so none re-checked on the web.
+
+### The findings
+
+| id | sev | verdict | evidence (before → after) | commit |
+|---|---|---|---|---|
+| M-C1 | major | **fixed** | holdKeys polled the let-go once a frame: a horn key down and up inside one frame stuck (`held` set, every later horn ignored, the answer timed out `late`). Red: review test "the high horn let go". Now `holdKeys(codes, onPress, onRelease)` (play/partc.ts, optional, also on a lost focus) releases on the keyup itself; no horn blows while Settings pauses. Live: tune [S, H], S held 0.9 s, H as keydown + keyup in one task → `phase pass, tries 0` | W8-M-review 1 |
+| M-C2 | minor | **fixed** | a timed-out first answer said FOG_LINES.wrong (吹错啦) to a player who blew nothing. Red in the review test. Now the retry after `late` says FOG_LINES.start (voiced already, no new line for lane X). Live: the bubble on the replay = 先听雾笛，再照着吹一遍！长音要按住！ | 1 |
+| M-C3 | minor | **fixed** | `c.roundRect` unguarded in BuskPanel's per-frame track() (Safari < 16 throws, the rAF loop dies). Now `typeof c.roundRect === 'function'` else `rect`. Live with `delete CanvasRenderingContext2D.prototype.roundRect`: the jam ran 7 s, the canvas drew the dots and the ring, no exception (d2/04 read) | 3 |
+| M-C4 / M-RP-2 | minor / major | **fixed** | 844×340: panel 12–328 under the banner 70–178, the whole track picture hidden (lens r3/01). Now, at `max-height 560 and min-width 600`, the grip panel is a grid (picture left, head / clock / hint / buttons right, 640 px wide) and the riff pad leaves the banner during the grip (M-RP-1), so: 844×340 panel 175–328 vs banner 70–128, picture 304×109 in view; 667×320 panel 155–308 vs banner 62–144 (p1/03, p1/04 read). Buttons 56 px | 3 |
+| M-C5 | minor | **fixed** | the move chip said `Space · Hop off` while the grip holds Space. `ui/MoveChip.tsx` (surgical, lane K's / the ride UI): while the `play-grip` overlay is open the hop-off hint has no key (a click still hops off). Live desktop: `SpaceHop off` → `Hop off` (d1) | 2 |
+| M-C6 | minor | **fixed** | grip.ts made a TrackPoint and two `find` closures per frame, GripPanel a point, two closures and a gradient per frame. Now a scratch point, Hyde St's stretch found once in the constructor, module-level xOf / yOf, the sky gradient cached per context. (Each game's `step()` still returns a fresh event array: the PlayKit pattern of every game, left.) | 3 |
+| M-RP-1 | major | **fixed** | during the grip the banner's 铃声对答 / Bell riff pad started the riff, which cancelled the grip with nothing paid (and 拉闸 cancelled the riff). Red in the review test. `gripPadVisible` (play/sfgames8.ts): hidden while any game runs; the riff's pad: the grip panel sets `.ob-grip-on` on the root and `.ob-grip-on .ob-ride-pads { display: none !important }` (the row's display is inline) — a first try in `play/zones.ts bellPadVisible` (2) put lane A's zones chunk 7 B over its 5 KB budget (W5-A1 chunks, red in my full suite) and was replaced (5); zones.ts is origin's. Live phone: the pad row `display none` while gripping, all three pads back after 放弃; during the riff no Grip it (p3, p1/05 read) | 2, 5 |
+| M-RP-3 | major | **fixed** | Settings opened under the panel (z 43 over 20), the paused game's buttons live over its rows. The three panels read `useGame(s => s.paused)` and get `.is-paused { visibility: hidden }`. Live: grip and foghorn under Settings `visibility hidden`, a hit test there lands on `.ob-sheet-body` (d1/02, d2/02 read) | 3 |
+| M-RP-4 | minor | **fixed** (b in part) | (a) 375×553: the coaching bubble half under the panel (top 256). The grip picture there is ≤ 16 vh and its buttons 56 px: panel 295–541, bubble 171–212 clear (p1/02 read); lane K's review (3bd844aa, rebased in) also draws a bubble with no free spot over the panel. (b) the HUD labels showed through the legend: the set's panels are opaque now (p1/01 read). That a phone cannot reach Settings while a bottom panel is up is by design (✕ first): not changed | 3 |
+| M-RP-5 | — | not received | the brief's finding list was cut off inside M-RP-4 ("11 items"); the player lens's scratch (m-rp/r1–r8: foghorn keys, Esc, 繁體 jam, hop-off, district, lean-out, bell riff) was read for it: the lean-out during the grip worked (r7), nothing else found | — |
+
+### Own findings (both lenses missed)
+
+| # | what | fix | commit |
+|---|---|---|---|
+| R1 | **Esc with Settings open gave the running game up under the sheet, and Settings stayed open** (every activity using holdKeys with Escape: the grip, the busker, the foghorns and the W5 / W7 games). Live before: Esc → `running false, paused true` | `holdKeys` lets Esc through while the game is paused (play/partc.ts, one line). Red in the review test; live: Esc → Settings closed, the foghorn running; a second Esc gives it up | 1 |
+| R2 | on a wide screen the journal / map sheet (the game runs on under them) opened under the set's panels | `.ob-overlay.has-sheet` moves them left of the sheet and the HUD buttons (as the HUD does). Live: foghorn panel 500–900, sheet 1004–1424 (d3 read) | 3 |
+| R3 | a busker tap or a grip bell (keys) while Settings pauses the game was judged at the frozen time: a stray, −1 point, blind now that the panel hides | both ignore input while paused, like the horns. Red in the review test | 4 |
+
+### Open items (not blocking)
+
+- 844×340, after rebasing onto lane K's bubble placement (3bd844aa): the coaching bubble now clears the grip panel but
+  its first line sits under the ride banner (p2/03: "Hold tight up…") — for lane K (the ride banner as a HUD box in
+  `game/hudLayout.ts`); the 'Sit down' context button is half under the panel's top-right there (still tappable).
+- The lean-out photo is not offered during the 60 s grip (the riff pad hides with it; its L key still works on a
+  keyboard). By design.
+- The grip panel's score reads 100 until the first judgement (no judgement yet = the held share 1), then drops (p3/01:
+  100 at 2.5 s; 0 a few seconds later). Cosmetic; the card's score is right. Not changed.
+- 721–999 px wide with a side sheet open: the set's panels sit bottom-centre and may meet the sheet (not checked).
+- `play/zones3.ts` imports `./sfgames8` with a plain `import()` (not `importRetry`): a failed fetch leaves the set away
+  until a reload (lane P's W8-P5b covered the foghorn's own imports only).
+- Shots were in the headless Chrome only; no iOS 15 device (M-C3 checked by deleting roundRect).
+
+### Blocking the go-live to main
+
+None.
+
+### Commits
+
+| # | commit on origin | what |
+|---|---|---|
+| 1 | `4167eb8c` | the foghorns' keys: let-go on the keyup (holdKeys onRelease), nothing blown under Settings, too slow ≠ wrong horn, Esc under Settings is the sheet's (M-C1, M-C2, R1) |
+| 2 | `e82f5863` | the ride pads: the grip pad hides while any game runs; the move chip's hop-off hint without Space during the grip (M-RP-1 half, M-C5); its zones.ts half replaced in 5 |
+| 3 | `14846f7d` | the panels: hidden under Settings, left of a side sheet, opaque; the grip's landscape grid and short-phone picture; busker roundRect guard; no per-frame objects in the grip; the review test (M-RP-3, R2, M-RP-4, M-RP-2 / M-C4, M-C3, M-C6) |
+| 4 | `a60aa275` | a busker tap / grip bell under Settings is nothing (R3) |
+| 5 | `2adcbeb9` | the riff's pad hides during the grip by CSS (`.ob-grip-on`), zones.ts back to origin's (W5-A1 chunk budget) (M-RP-1) |
+| 6 | this report | docs only |
+
+### Final checks
+
+- On the code pushed as `2adcbeb9` (rebased onto `7adbf126`, 01:04–01:09 PDT): `npx tsc -p tsconfig.app.json --noEmit`
+  **0** · `npx eslint .` **0 errors** (the 50 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test
+  tests/opus-bay-*.test.ts` **1832 / 1832 pass, 0 fail** (+ 1 todo). The push's last rebase brought in two W8-W1-review
+  commits (O'Brien sight circles): tsc **0** and their tests + this review's again **35 / 35** (01:10).
+- An earlier full run (00:39–00:50) was red on one test, W5-A1 chunks (`zones.ts: 5129 B` > 5 KB) — my first
+  bellPadVisible change; fixed by commit 5 (zones.ts origin's again, 5104 B), green since.
+- Lane M's tests (grip 10, busk 6, foghorn 6) and the review's 7: all green. Higgsfield: none used. The dev server on
+  5849 is stopped; no Chrome of mine is running.
