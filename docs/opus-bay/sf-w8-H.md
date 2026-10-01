@@ -227,3 +227,95 @@ After the last rebase (onto lanes K / M / W1 / X, 23:00): tsc 0; the incoming te
    24th St.
 4. `src/opus-bay/halloween/worldDress.ts` hop (Alamo Square, any season date) and `economy/wear.ts` / `costumeMesh.ts`
    (the bow on a glide, 鹈鹕南瓜领结 in the 小铺 in season).
+
+## Review (Ultra)
+
+Fixer of the Ultra review of lane H (two read-only lenses — code & facts, player — then this pass), 30 Sep 23:44 – 1 Oct
+01:00 PDT; worktree `C:/Users/willy/wt/w8-h-rev` (branch `w8-h-rev`), dev port 5845, scratch
+`C:/Users/willy/opus-qa/w8/h-rev/`.
+
+### 给主人的摘要
+
+1. 两组审查共提出 10 条问题，我收到其中 9 条（第 10 条在转交时被截断，没看到内容），9 条全部独立复现、全部确认、全部修好。
+2. **讨糖的门**：又发现 6 扇门放得不对——4 扇藏在邻居房子后面（要绕一大圈才能走到街上），1 扇对着两栋房子之间的窄缝，1 扇其实是 25 大道街角的房子。规则加严后这 6 扇撤掉（编号不变、存档不受影响），现在 44 扇门，每条街至少 6 扇。
+3. **亡灵节游行**：玩家站在队伍一侧时，同一排的两个小人会挤成一个——已修好，两人一起让路；骑鹈鹕从队伍上空飞过时队伍不再“让路”，BAYBAY 也不会在天上或开车时说“我们站到路边吧”。
+4. 南瓜领结在英文手机商店里显示成「Pumpkin …」，改成「Bow tie」（完整名字不变）。另外自己查出一个小隐患：讨糖小朋友跳一跳时，画面外的更新记录会越积越多，已加上上限。
+5. 最终检查全绿，没有阻碍上线的问题。
+
+### What was checked
+
+Every finding was reproduced on the current tree before any change (scripts in scratch: `doormetrics.mts` — walk,
+straight distance, detour, the roadway straight out of every door; `doorascii.mts` — the walk raster round a door;
+`overlap.mts` — the lens's walker overlap sim; `fastcand.mts` — the free faces near a failing door). Then my own pass
+over W8-H1 … H12: the festival kit (2 Hz, dropped off its day / hours / range, disposed with the world), the dusk haze
+(uniform-only, the Halloween world only), the hop (per-frame partial uploads), the toast wording, the bow (wear / save
+index append-only), the BAYBAY lines (lane X recorded all four), district mode (the hero regression test in the suite).
+
+### Findings and verdicts
+
+| id | lens | verdict | evidence / what changed |
+|---|---|---|---|
+| H-code-1 (major) | code | **fixed** | Reproduced: doors 3 / 21 / 47 / 48 reach their street only by a 10.8 / 12.8 / 6.5 / 11.6 u walk for 1.5 / 2.4 / 2.2 / 2.4 u straight (every other live door ≤ 2.8 u of detour); the rasters show a neighbour's house between door and street. New rule `DETOUR_MAX` 3.5 u (walk − straight) in `tests/opus-bay-w8-h-doorcheck.ts`; no free face of the same street within 80 u passes (`fastcand.mts`: every other face is a door or within 2.8 u of one), so the four are `gone` (numbers kept). Red: `doors-red.txt` (6 doors); green after. |
+| H-code-2 | code | **fixed** | Confirmed: the test name / header promised a straight standable ray to the kerb within FRONT_MAX; the code checked a ≤ 18 u walk, FRONT_MAX / SQUARE_MIN were dead. The header now states the real rule (fronts / faces / walk / detour / roadway straight out) and why a straight standable ray is not used (porches, stoops and parked cars at the kerb block it for doors plainly reachable); FRONT_MAX removed, SQUARE_MIN used in the fronts loop; the test's name says what it checks. |
+| H-code-3 | code | **fixed** | Confirmed: door 38's moved spot is 3.0 u from 25th Ave, 5.7 from Sea Cliff Ave; straight out of it the first roadway (3.5 u) is nearest 25th Avenue. New rule `RAY_MAX` / `CORNER_GAP`: the roadway straight out of a door must not be a cross street's corner nearer the door than its own street by > 2 u — door 38 fails it alone (door 40 at the 27th Ave corner is a tie, 2.21 vs 2.22, and passes). Its two other free faces within 80 u face a gap between houses: `gone`. |
+| H-code-4 | code | **fixed** | Reproduced with the lens's sim: player 0.5 u beside a file → two walkers 0.140 u apart (0.308 u without the player). `muertosWalkers.ts`: the wanted slides are computed first, then the two walkers of a row part as a pair (the one stepping round someone harder keeps its place, its row-mate makes room `ASIDE.pair` 0.6 u beyond it, on its own side; clamp `ASIDE.max`); no per-frame allocation (a preallocated `wants` array, `sOf` / `latOf` hoisted). After: 0.308 u at every offset (−0.9 … +0.9), walker-to-player ≥ 0.97 u unchanged. Test: `tests/opus-bay-w8-h-review.test.ts` (red 0.140 before). |
+| H-code-5 | code | **fixed** | Confirmed in code and by a red test: `muertos.ts` passed the player's x / z whatever the mode; `near()` offered the aside line whenever `aside()`. Now the walkers part only round someone on the street (`processionParts()` = foot / sit / bike / car, not gliding) and BAYBAY's line only on foot (`asideLineFits()` = foot / sit, not gliding); BAYBAY's own position is passed only then (she rides the pelican). Test: glide → no line, foot → line, toy car → they part but no line, glide again → back in their files. |
+| H-RP-1 | player | **fixed** | Same door as H-code-3 (the knock prompt 'A house on Sea Cliff Ave' under the chip 'Seacliff · 25th Avenue'): door 38 gone. |
+| H-RP-2 | player | **fixed** | Confirmed (the lens's `d20-top.jpg` read: the knock spot in a slot between two houses): straight out of door 20 there is no roadway within 6 u (`RAY_MAX`; the first is Guerrero St at 15 u). No free Fair Oaks face within 80 u passes: `gone`. |
+| H-RP-3 | player | **fixed** | Confirmed (the lens's `s4-wear.jpg` read: 'Pumpkin …'; the tile's label holds ≈ 66 css px of 13 px bold). The English tile label is now 'Bow tie' (the full name stays 'Pelican pumpkin bow', zh 南瓜领结 unchanged); the bow test asserts ≤ 9 characters (red with 'Pumpkin bow'). Phone check: see Evidence. |
+| H-RP-4 | player | **fixed** | The same defect as H-code-5 (found by reading; reproduced by the new test): fixed with it. |
+| (10th item) | — | not received | The relayed list of the two lenses was cut off after H-RP-4's repro; the tenth item's text never reached the fixer, so it was neither verified nor fixed (open item). |
+
+### Own findings
+
+| id | verdict | what |
+|---|---|---|
+| H-rev-1 | **fixed** | `worldDress.ts stepHops` added an update range per hopping child per frame; three.js clears them only when it uploads, so while the stoops' mesh is not drawn (culled, the group hidden) they piled up without bound (≈ 1–2 a frame, ≈ 5,000 a minute) and the next upload sorted them all. Past `HOP_RANGES_MAX` (64) they now collapse into one range over every child (correct: it covers every cleared range). Test: ten minutes at 60 fps without an upload → ≤ 64 + n pending, every child covered. |
+| H-rev-2 | open (not a blocker) | Doors 22 and 26 (Fair Oaks) face a neighbour's wall 1–2 u straight out (`doorascii.mts` rasters) but reach their street with a 2.8 / 2.4 u detour, under the new 3.5 u rule; there is no free face to move them to. |
+| H-rev-3 | open (not a blocker) | Belvedere doors 4–7 are nearer a cross street's centreline (Rivoli / Alma / Grattan, 2.6–3.0 u) than Belvedere's (5.4 u), beside the door rather than in front (W7-G accepted them); the place chip at door 5 reads Alma Street. |
+
+### Evidence
+
+- Doors: `C:/Users/willy/opus-qa/w8/h-rev/doormetrics.txt` (all 54: walk, straight, detour, the roadway straight out),
+  `doors-red.txt` (the strengthened test on the old doors: the six), `fastcand.txt` (the free faces near each), `fix1.txt`
+  (`halloween-doors.mts --fix` with the new rule: the same six, no candidate within 30 u).
+- Walkers: `overlap.mts` output before / after (0.140 → 0.308 u). In the game (dev 5845, desktop high,
+  `?date=2026-11-02T19:10&time=night`, the player 0.55 u beside a file six rows behind the head): the column passes on
+  both sides of the player and BAYBAY; 106 calls / 345k triangles there (`proc/p1-beside-file.jpg`, `p2-later.jpg`, read —
+  dark and from above, so the numbers in the test are the proof).
+- The bow: phone 390 × 844 dpr 3, `lang=en`, 15 Oct 12:00, the shop's Rides shelf — 'Bat wings | Bow tie | Ribbon |
+  Maroon', the label 48 px wide and not cut (`ui/s1-shop-rides.jpg`, read; `s2-tiles` measures every tile).
+
+### Checks
+
+- On the tree with W8-H-review 1–3 (rebased on `017fe6ee`) plus the hop cap: `npx tsc -p tsconfig.app.json --noEmit` 0 ·
+  `npx eslint . --quiet` 0 errors · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1814 pass,
+  0 fail, 1 todo** (lane P's GameRoot ≤ 255 KB target, a known todo) of 1815 (622 s).
+- After the last rebase (onto lanes A / K / S reviews, `12366546`): tsc 0; the incoming test files with lane H's 40 / 40.
+  Pushed 00:49 PDT (`44097f1a` … `24699c7c`).
+
+### Commits
+
+| commit | what |
+|---|---|
+| `44097f1a` W8-H-review | the door rule asks for the way out of the door (DETOUR_MAX, RAY_MAX, CORNER_GAP); doors 3 / 20 / 21 / 38 / 47 / 48 gone; the test's name and docs match the rule (H-code-1, H-code-2, H-code-3, H-RP-1, H-RP-2) |
+| `0e5ef9b5` W8-H-review | the procession's row parts as a pair; the walkers part only round someone on the street, the sidewalk line only on foot (H-code-4, H-code-5, H-RP-4) |
+| `995efcf0` W8-H-review | the bow's English shop tile says 'Bow tie' (H-RP-3) |
+| `24699c7c` W8-H-review | the hop's pending upload ranges stay bounded (H-rev-1) |
+
+### Open items
+
+- The tenth item of the two lenses' list was not received (the relay cut it off); whoever holds the lens outputs should
+  check it against this table.
+- Doors 22 / 26 face a neighbour's wall straight out (H-rev-2) and Belvedere doors 4–7 sit nearer a cross street
+  (H-rev-3): reachable, not blockers; a better spot needs new faces (none free today).
+- 44 live doors now (Belvedere 6, Chenery 10, Fair Oaks 7, Jordan 7, Sea Cliff 8, Hearst 6); the season's goal asks for
+  5 doors (progress.ts GOAL_DOORS), so nothing else moves.
+- Not lane H's: on the phone the Rides shelf's 'Int’l Orange' tile label overflows its tile (`s2-tiles`: its text wider
+  than the label box, the only one of nine) — the same kind as H-RP-3, for the lane that owns that item.
+
+### Blocking the go-live to main
+
+Nothing. The door changes only take doors away (numbers kept: a door knocked on main before the merge stays paid); the
+walker and hop changes are inside lane H's own files; district mode is untouched (its hero regression test is in the
+green suite).
