@@ -18,6 +18,8 @@ photos in scratch `ref/`, the "before" budget views in `bv-before/`) were used. 
 4. **自由轮「奥布莱恩号」停进了 35 号码头**（灰色船身、船中间的驾驶楼和黑顶烟囱、三根桅杆），和潘帕尼托号潜艇画在同一个网格里，
    不多绘制次数。它的到达点改到 35 号码头西边的海堤步道上，正对着船——全城扫描最后一个“走不到”的景点没有了（0 个走不到）。
 5. BAYBAY 新说三句固定台词（中英文，等 X 线配音）：走上都板街时认宝塔楼、走到老圣玛利亚钟楼门口讲 1906 年大火、走到船尾讲 1994 年开回诺曼底。
+6. 北滩的哥伦布大道终于有了柏油路面和中间的白色虚线（以前那一段是一片人行道，看不出是条街）；步行路线 1 的两个拐点挪到路口，
+   全城扫描里又少了两个“窄道”。渔人码头的舵轮招牌看过，颜色是对的，没改。
 
 ## Part a · W8-W1 Chinatown's pagoda cluster (Sing Chong, Sing Fat, Old St. Mary's, the Telephone Exchange)
 
@@ -140,7 +142,7 @@ Started 19:24 PDT (`date`), on `origin/opus-bay` = `889cc614` + the two K commit
 
 ### Known gaps
 
-- Sing Chong's real tower has two pagoda roofs over its stage; the toy has three (it reads better at toy scale).
+- The towers' proportions and tier counts are read off a few photos (toy approximations, not measured drawings).
 - The church's east windows are behind the parish hall (not drawn); the inscription is a blank panel.
 - The `old-st-marys-cathedral` trip end stays where the scouting put it (Grant Ave's roadway by the church; CORRIDOR).
 
@@ -249,3 +251,68 @@ Started 20:42 PDT (`date`), on `814073eb`.
 ### Not done (this part)
 
 - Nothing of item (2)'s scope.
+
+### Checks at the push (part b)
+
+- This tree before the rebase: tsc 0 · `npx eslint .` 0 errors (50 old warnings) · suite **1728 / 1730**: `E2-5 view
+  field in the city` (sf-move2) and `city mode: local A* window leaves the hero through the Ferry crosswalk` (sf-nav, its
+  window-build wall clock) failed under the machine's load and pass alone (32 / 32). After the rebases (lanes A, X, H,
+  S, K, then H, P, A): tsc 0 and the incoming lanes' test files with this lane's 114 / 114, 26 / 26, 11 / 11. Pushed
+  `fefd7b46`.
+
+## Part c · W8-W13 North Beach leftovers (Columbus Ave's asphalt, r1's corridors), the Wharf wheel, Beach St
+
+Started 21:50 PDT (`date`), on `fefd7b46`.
+
+### What was built
+
+- **`src/opus-bay/world/sf/cornersNorthBeach.ts`**: `NB_ROAD` / `nbColumbusRoad()` / `columbusRoad()` — Columbus Ave's
+  carriageway painted inside the hero slab (the district has no Columbus: its ground there was pavement, so the street
+  the café fronts line read as a plaza; sf-w6-W.md Known gaps): a toy asphalt ribbon (the district's own road colour) on
+  `NB_COLUMBUS`, sampled every 1 u, draped on the walked ground (+0.04 u), half-width 1.05 u, a dashed centre line; only
+  inside `DISTRICT.slab` (the city draws Columbus outside it: one run from the slab's edge at (−79, 113) to Kearny St at
+  (29.3, 104)); where Columbus cuts Washington Square's corner the lawn side narrows (≥ 0.45 u) so no asphalt lies on the
+  lawn. In the corner's existing TOY mesh (no new mesh); the corner is 8,568 triangles (budget 9,000). Paint only:
+  walking, the walk raster and traffic are unchanged.
+- **`data/sf/routes.ts`** (surgical, named): route r1's `r1-washington-sq` via 1 (4.3, 120.6) → **(2, 119)** and via 3
+  (−31.3, 95.8) → **(−34.1, 93.8)**: both stood mid-street since the W6-W1 seam fill (two ways open); they now stand on
+  the junctions the generated walk already turns at — `scripts/opus-sf/assets/routes-build.ts` re-run:
+  `data/sf/routePaths.ts` comes out byte-identical. `tests/opus-bay-w5-landmarks.test.ts` (surgical): the two entries
+  leave `ROUTE_CORRIDORS` (the route sweep now asks 3 ways of them, and they have them).
+- **Tests** — new `tests/opus-bay-w8-w1-northbeach.test.ts` (2): one continuous run of ≥ 100 samples, every edge point
+  inside the slab and off the lawn, half-widths 0.45–1.05, every café cluster ≥ 0.4 u and every pole ≥ 0.5 u off the
+  asphalt's edge, the corner within its budget; r1's via points on corners of the generated walk (< 0.25 u).
+
+### Evidence
+
+- Static sweep on this tree: 699 targets · **ok 551** · CORRIDOR 148 · BOXED 0 · SNAG 0 · UNREACHABLE 0 —
+  `route:r1-washington-sq:via1` and `:via3` CORRIDOR → **ok**.
+- Calls / triangles (read, not fps): over Columbus Ave 107 / 335.6k, walking down it 99 / 343.7k (desktop high golden);
+  phone dpr 3 mid walking down it **80 / 245.6k**; the square's corner 73 / 241.6k.
+- Shots (read): `qa/w8/W1/c-columbus-desk.jpg` (the diagonal street with its dashed centre line between the café fronts,
+  umbrellas on the sidewalk), `c-columbus-phone.jpg` (390 × 844 dpr 3: walking down Columbus past a café table and the
+  tricolour poles, the dashes ahead), `c-wharf-wheel-desk.jpg` (the wheel from Jefferson St).
+
+### Decisions
+
+- **The church steps stay a corridor** (`route:r1-peter-paul`, `trip:saints-peter-and-paul-church`, (−76.1, 100.1)):
+  the nave is behind and the towers' feet beside, by design (W6); 1.7 u out — where 3 ways would open — is the middle of
+  the district's Filbert St roadway (`street-filbert-0`, 3.2 u wide, 0.16 u from its centreline), a driven lane. Not moved.
+- **The asphalt is paint**: the district's walk / drive data are frozen (district mode never changes) and the city's
+  traffic does not enter the slab; a narrower 2.1 u carriageway keeps the café tables (their nearest edge ≥ 1.15 u off
+  the centreline) on the sidewalk without moving them.
+- **The Wharf wheel's cream band reads right** (dark varnished rim, the cream lettering band and face with two thin dark
+  rings, the red crab, the pilings with rope above the rim — wave 7's lane R fix): no change.
+- **Ghirardelli Square / Beach St west of Hyde stay outside 渔人码头**: the zone names are lane K's `data/cityZones.ts`,
+  and wave 7's call (Wikipedia's first definition ends at Hyde St; sf-w7-K.md) stands; nothing of this lane's models
+  depends on it. No change.
+
+### Known gaps
+
+- Columbus Ave inside the slab carries no toy traffic (the district's traffic runs on its own streets).
+- The asphalt stops at the slab's edge 9 u before the city's own Columbus Ave begins (the seam: Columbus runs along the
+  slab's edge there).
+
+### Not done (this part)
+
+- Nothing else of items (3)–(4).
