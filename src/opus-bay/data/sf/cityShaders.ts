@@ -11,6 +11,7 @@
  *   toyFacades        TOY window styles 9 / 10 (the pre-war downtown and Chinatown façades, W7-X: world/recipes/city.ts)
  *   skyPuffs          the sky: the city's day-sky cloud puffs (W7-X; a function before main)
  *   skyCityDay        the sky: the city's day-sky blend (uCityDay is 0 in district mode)
+ *   toyCanopy         TOY (W8-K5, lane K): the street trees' leaves (aInfo.x 11) thin round the player (uCanopy.w)
  *
  * The LOOK inside the strings stays lane X's (and the materials' owners'): edit it here. No imports (the data chunk shares
  * no module with GameRoot's graph: tests/opus-bay-sf-budget.test.ts "W5-V3" / "W8-P1").
@@ -149,6 +150,24 @@ vec2 obPuffs(vec3 d) {
     vec2 pc = obPuffs(d);
     cs = mix(cs, mix(vec3(0.70, 0.76, 0.84), vec3(0.98, 0.975, 0.96), pc.y), pc.x);
     col = mix(col, cs, uCityDay);
+  }`,
+  toyCanopy: /* glsl */ `  // W8-K5 (lane K): the street trees' leaves (aInfo.x 11: world/sf/props.ts CANOPY_INFO, the streamed city only) thin
+  // to a dither along the camera's last 3.5 u to the player's chest while a canopy hangs over / beside the player
+  // (uCanopy.w: CityProps.stepCanopyFade each frame) — the seated Hyde St rider under a kerb tree. Unlike the occlusion
+  // fade above there is no L − 1.2 / +0.35 cut-off (the leaves at the rider are the ones in the way); the leaves beside
+  // and behind the player stay (a sphere round the chest, tried first, left a bare trunk over a walker)
+  if (uCanopy.w > 0.5 && abs(vInfo.x - 11.0) < 0.5) {
+    vec3 cd = uCanopy.xyz - uCam;
+    float cL = length(cd);
+    if (cL > 0.5) {
+      vec3 cdir = cd / cL;
+      float ct = dot(vWPos - uCam, cdir);
+      if (ct > cL - 3.5 && ct < cL + 0.4) {
+        float cR = mix(1.0, 2.2, clamp(ct / cL, 0.0, 1.0));
+        float cf = 1.0 - smoothstep(cR * 0.55, cR, length(vWPos - (uCam + cdir * ct)));
+        if (min(cf, 0.9) > obBayer8(gl_FragCoord.xy)) discard;
+      }
+    }
   }`,
 } as const;
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Batch, C, CBOX, CONE, CYL, Frame, ICO, SPHERE, freezeStatic, mixColor } from '../builder';
+import { runtime } from '../../core/runtime';
+import { Batch, C, CBOX, CONE, CYL, Frame, ICO, SPHERE, freezeStatic, mixColor, type Info } from '../builder';
 import { HALO, POOL, TOY_INST_TINT, U } from '../materials';
 import { PAL } from '../palette';
 import type { PropArrays } from './build';
@@ -63,6 +64,26 @@ export function propCaps(camH: number): PropCaps {
   return { tree: lerp(CAP.tree, P.tree), lolli: lerp(CAP.lolli, P.lolli), lamp: lerp(CAP.lamp, P.lamp), rFull: lerp(R_FULL, P.rFull), rLolli: R_LOLLI, rLamp: lerp(R_LAMP, P.rLamp), step };
 }
 
+/**
+ * (W8-K5, lane K) The street trees' leaves carry aInfo.x CANOPY_INFO: TOY_FRAG thins them to a dither in front of the
+ * player while U.uCanopy.w is on (CityProps.update: a canopy within CANOPY_FADE_REACH u of the player, the occlusion fade
+ * on). Trunks, lamps and the far lollipops stay untagged; nothing else in the city or the district uses 11.
+ */
+export const CANOPY_INFO = 11;
+const LEAF: Info = [CANOPY_INFO, 0, 0, 0];
+/** a canopy edge this near the player (u, XZ) switches the dither on */
+export const CANOPY_FADE_REACH = 2.6;
+/** ...if it hangs between these heights over the player's feet (u): over the head, not a tree down the hill */
+export const CANOPY_FADE_BAND = { below: 0.5, above: 3.6 } as const;
+/** the dither's target over the player's feet (u): the chest */
+export const CANOPY_FADE_CHEST = 0.9;
+/**
+ * ...and only with the camera this near the chest (u): the seated / side-on ride shots stand ≈ 4 u off at bench height,
+ * where the occlusion fade's cut-offs keep the leaves at the rider; the follow camera on foot (≈ 12 u off, high) keeps
+ * the occlusion fade alone (played: with the dither on there a walker's tree lost its whole canopy to a bare trunk)
+ */
+export const CANOPY_CAM_NEAR = 7;
+
 /** Unit geometry from a Batch (keeps aInfo; TOY_INST reads it). */
 function geo(build: (b: Batch) => void): THREE.BufferGeometry {
   const b = new Batch();
@@ -74,29 +95,29 @@ function roundTree(b: Batch) {
   const f = new Frame(0, 0, 0);
   b.add(CYL(5, 0.8), f.at(0, 0, 0, 0, 0.16, 1.9, 0.16), '#7a5a3e');
   const blobs: [number, number, number, number][] = [[0, 2.4, 0, 1.15], [0.55, 2.1, 0.3, 0.85], [-0.45, 2.2, -0.35, 0.8]];
-  blobs.forEach(([x, y, z, r], k) => b.add(ICO(k === 0 ? 1 : 0), f.at(x, y, z, k, r, r * 0.92, r), mixColor(PAL.tree, PAL.treeDark, k === 0 ? 0.15 : 0.45)));
+  blobs.forEach(([x, y, z, r], k) => b.add(ICO(k === 0 ? 1 : 0), f.at(x, y, z, k, r, r * 0.92, r), mixColor(PAL.tree, PAL.treeDark, k === 0 ? 0.15 : 0.45), LEAF));
 }
 function cypress(b: Batch) {
   b.add(CYL(5), new Frame(0, 0, 0).at(0, 0, 0, 0, 0.14, 1.2, 0.14), '#6b4f36');
-  b.add(CONE(7), new Frame(0, 0, 0).at(0, 0.6, 0, 0, 0.9, 4.6, 0.9), PAL.pine);
+  b.add(CONE(7), new Frame(0, 0, 0).at(0, 0.6, 0, 0, 0.9, 4.6, 0.9), PAL.pine, LEAF);
 }
 function pine(b: Batch) {
   const f = new Frame(0, 0, 0);
   b.add(CYL(5), f.at(0, 0, 0, 0, 0.14, 1.5, 0.14), '#6b4f36');
-  for (let k = 0; k < 3; k++) b.add(CONE(7), f.at(0, 0.9 + k * 1.0, 0, k, 1.25 - k * 0.3, 1.7, 1.25 - k * 0.3), mixColor(PAL.pine, '#3f6340', k * 0.3));
+  for (let k = 0; k < 3; k++) b.add(CONE(7), f.at(0, 0.9 + k * 1.0, 0, k, 1.25 - k * 0.3, 1.7, 1.25 - k * 0.3), mixColor(PAL.pine, '#3f6340', k * 0.3), LEAF);
 }
 function palm(b: Batch) {
   const f = new Frame(0, 0, 0);
   const H = 4.3;
   b.add(CYL(6, 0.78), f.at(0, 0, 0, 0, 0.34, H, 0.34), '#9a7a55');
-  b.add(ICO(0), f.at(0, H + 0.05, 0, 0, 0.5, 0.42, 0.5), '#7a6a3c');
+  b.add(ICO(0), f.at(0, H + 0.05, 0, 0, 0.5, 0.42, 0.5), '#7a6a3c', LEAF);
   for (let i = 0; i < 8; i++) {
     const yaw = (i / 8) * Math.PI * 2;
     let px = 0, py = H + 0.15, pz = 0, pitch = i % 2 ? 0.7 : 0.35;
     for (let k = 0; k < 2; k++) {
       const seg = 0.95;
       const dx = Math.sin(yaw) * Math.cos(pitch) * seg, dy = Math.sin(pitch) * seg, dz = Math.cos(yaw) * Math.cos(pitch) * seg;
-      b.add(CBOX(), f.at(px + dx / 2, py + dy / 2, pz + dz / 2, yaw, 0.5 - k * 0.14, 0.05, seg * 1.04, -pitch), mixColor('#5d8a42', '#86ae57', k * 0.5));
+      b.add(CBOX(), f.at(px + dx / 2, py + dy / 2, pz + dz / 2, yaw, 0.5 - k * 0.14, 0.05, seg * 1.04, -pitch), mixColor('#5d8a42', '#86ae57', k * 0.5), LEAF);
       px += dx; py += dy; pz += dz; pitch -= 0.75;
     }
   }
@@ -305,28 +326,61 @@ export class CityProps {
    * hero slab (the hero draws its own trees) or the district.
    */
   treesNear(x: number, z: number, r: number, fn: (c: Canopy) => void): void {
+    // (W8-K5) Map.forEach with one bound callback and the query in fields: no iterator or entry array per resident chunk
+    // per call (a few calls a frame while riding a city line, one for the follow camera's lift, one for the dither)
+    const Q = this.query;
+    Q.x = x; Q.z = z; Q.r = r; Q.fn = fn;
+    this.sources.forEach(this.scanSource);
+    Q.fn = null;
+  }
+
+  private readonly query: { x: number; z: number; r: number; fn: ((c: Canopy) => void) | null } = { x: 0, z: 0, r: 0, fn: null };
+  private readonly scanSource = (p: PropArrays, key: number): void => {
+    const { x, z, r, fn } = this.query;
+    if (!fn) return;
     const R = r + CANOPY_MAX_R, c = this.canopy;
-    for (const [key, p] of this.sources) {
-      let ix = this.treeIdx.get(key);
-      if (ix === undefined) { ix = buildTreeIndex(p); this.treeIdx.set(key, ix); }
-      if (!ix || x + R < ix.minX || x - R > ix.maxX || z + R < ix.minZ || z - R > ix.maxZ) continue;
-      const c0 = Math.max(0, Math.floor((x - R - ix.minX) / TREE_CELL)), c1 = Math.min(ix.cols - 1, Math.floor((x + R - ix.minX) / TREE_CELL));
-      const r0 = Math.max(0, Math.floor((z - R - ix.minZ) / TREE_CELL)), r1 = Math.min(ix.rows - 1, Math.floor((z + R - ix.minZ) / TREE_CELL));
-      for (let row = r0; row <= r1; row++) {
-        for (let col = c0; col <= c1; col++) {
-          const cell = row * ix.cols + col;
-          for (let k = ix.start[cell]; k < ix.start[cell + 1]; k++) {
-            const i = ix.idx[k], kind = p.kind[i], variant = p.variant[i];
-            const shape = kind === K.palm ? CANOPY_SHAPE.palm : kind === K.pine ? (variant === 0 ? CANOPY_SHAPE.cypress : CANOPY_SHAPE.pine) : CANOPY_SHAPE.round;
-            const s = treeScale(kind, variant, key * 8192 + i), gy = p.xyzr[i * 4 + 1] - 0.02;
-            c.x = p.xyzr[i * 4]; c.z = p.xyzr[i * 4 + 2]; c.r = shape.r * s;
-            if ((c.x - x) ** 2 + (c.z - z) ** 2 > (r + c.r) ** 2) continue;
-            c.y0 = gy + shape.y0 * s; c.y1 = gy + shape.y1 * s;
-            fn(c);
-          }
+    let ix = this.treeIdx.get(key);
+    if (ix === undefined) { ix = buildTreeIndex(p); this.treeIdx.set(key, ix); }
+    if (!ix || x + R < ix.minX || x - R > ix.maxX || z + R < ix.minZ || z - R > ix.maxZ) return;
+    const c0 = Math.max(0, Math.floor((x - R - ix.minX) / TREE_CELL)), c1 = Math.min(ix.cols - 1, Math.floor((x + R - ix.minX) / TREE_CELL));
+    const r0 = Math.max(0, Math.floor((z - R - ix.minZ) / TREE_CELL)), r1 = Math.min(ix.rows - 1, Math.floor((z + R - ix.minZ) / TREE_CELL));
+    for (let row = r0; row <= r1; row++) {
+      for (let col = c0; col <= c1; col++) {
+        const cell = row * ix.cols + col;
+        for (let k = ix.start[cell]; k < ix.start[cell + 1]; k++) {
+          const i = ix.idx[k], kind = p.kind[i], variant = p.variant[i];
+          const shape = kind === K.palm ? CANOPY_SHAPE.palm : kind === K.pine ? (variant === 0 ? CANOPY_SHAPE.cypress : CANOPY_SHAPE.pine) : CANOPY_SHAPE.round;
+          const s = treeScale(kind, variant, key * 8192 + i), gy = p.xyzr[i * 4 + 1] - 0.02;
+          c.x = p.xyzr[i * 4]; c.z = p.xyzr[i * 4 + 2]; c.r = shape.r * s;
+          if ((c.x - x) ** 2 + (c.z - z) ** 2 > (r + c.r) ** 2) continue;
+          c.y0 = gy + shape.y0 * s; c.y1 = gy + shape.y1 * s;
+          fn(c);
         }
       }
     }
+  };
+
+  // --- (W8-K5) the canopy dither in front of the player (data/sf/cityShaders.ts toyCanopy in TOY_FRAG, U.uCanopy) ---
+  private canopyHit = false;
+  private readonly canopyBand = { y0: 0, y1: 0 };
+  private readonly canopyProbe = (c: Canopy): void => { if (c.y1 > this.canopyBand.y0 && c.y0 < this.canopyBand.y1) this.canopyHit = true; };
+
+  /**
+   * (W8-K5) Each frame: U.uCanopy = the player's chest, w = 1 while a street tree's canopy hangs within CANOPY_FADE_REACH
+   * u of them (in CANOPY_FADE_BAND over their feet), the camera stands within CANOPY_CAM_NEAR u of their chest and the
+   * occlusion fade is on (photo mode / SoloView turn it off), else 0 (the shader's branch is then skipped for every fragment). A seated rider on the Powell-Hyde, a stop under a
+   * kerb tree: the leaves between the camera and them thin out; no new draw call.
+   */
+  stepCanopyFade(px = runtime.player.x, py = runtime.player.y, pz = runtime.player.z): boolean {
+    const u = U.uCanopy.value;
+    this.canopyHit = false;
+    const cam = U.uCam.value, cy = py + CANOPY_FADE_CHEST;
+    if (U.uFade.value > 0.5 && this.sources.size && (cam.x - px) ** 2 + (cam.y - cy) ** 2 + (cam.z - pz) ** 2 < CANOPY_CAM_NEAR ** 2) {
+      this.canopyBand.y0 = py - CANOPY_FADE_BAND.below; this.canopyBand.y1 = py + CANOPY_FADE_BAND.above;
+      this.treesNear(px, pz, CANOPY_FADE_REACH, this.canopyProbe);
+    }
+    u.set(px, cy, pz, this.canopyHit ? 1 : 0);
+    return this.canopyHit;
   }
 
   /** Query the canopies along the segment SEG (a disc round its middle that holds it). */
@@ -489,6 +543,7 @@ export class CityProps {
     const night = U.uNight.value > 0.02;
     this.halos.visible = night;
     this.pools.visible = night;
+    this.stepCanopyFade();
   }
 
   counts() {
@@ -498,6 +553,7 @@ export class CityProps {
   }
 
   dispose() {
+    U.uCanopy.value.w = 0;
     for (const L of Object.values(this.layers)) { L.mesh.geometry.dispose(); L.mesh.dispose(); }
     this.halos.geometry.dispose(); this.halos.dispose();
     this.pools.geometry.dispose(); this.pools.dispose();

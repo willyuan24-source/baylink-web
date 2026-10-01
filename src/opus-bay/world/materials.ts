@@ -27,6 +27,11 @@ export const U = {
   uCam: { value: new THREE.Vector3() },
   /** 1 = occlusion fade enabled */
   uFade: { value: 1 },
+  /**
+   * (W8-K5, lane K · city only) the street-tree canopy dither (data/sf/cityShaders.ts toyCanopy on aInfo.x 11): xyz = the
+   * player's chest, w = 1 while a canopy stands near them (world/sf/props.ts stepCanopyFade each frame; 0 in the district)
+   */
+  uCanopy: { value: new THREE.Vector4(0, -999, 0, 0) },
   uWind: { value: 1 },
   /** building-distance field (R8, 0..BDIST_MAX u) for ground contact shadows */
   uBDist: { value: null as THREE.Texture | null },
@@ -59,6 +64,7 @@ uniform float uNight;
 uniform vec3 uPlayer;
 uniform vec3 uCam;
 uniform float uFade;
+uniform vec4 uCanopy;
 uniform float uTierFade;
 float obHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float obNoise(vec2 p) {
@@ -312,6 +318,7 @@ float obGlowW = vInfo.w < -0.5 ? -vInfo.w - 1.0 : vInfo.w;
       }
     }
   }
+${CITY_SHADERS.toyCanopy}
 #endif
   // pier sheds: rows of cargo doors along the deck + a clerestory window band (style 8)
   if (floor(vInfo.x + 0.5) == 8.0 && abs(vWN.y) < 0.4) {
