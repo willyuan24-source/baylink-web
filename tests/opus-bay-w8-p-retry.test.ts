@@ -95,6 +95,31 @@ test('W8-P5: the chunk-lost card — once per page, in the reader\'s language, �
   resetChunkLostForTests();
 });
 
+test('W8-P6: a resume no longer waits on a lost discovery chunk — play begins after a short grace, the first finds stay quiet once it lands', async () => {
+  const { quietDiscoveryOrGo, DISCOVERY_GRACE_MS } = await import('../src/opus-bay/game/resume');
+  assert.ok(DISCOVERY_GRACE_MS > 0 && DISCOVERY_GRACE_MS <= 1000);
+  // in long before (the Overlay's boot): quiet first, then play
+  let quiet = 0;
+  await quietDiscoveryOrGo(async () => ({ quietNextDiscovery: () => { quiet++; } }), 50);
+  assert.equal(quiet, 1);
+  // still being fetched again (importRetry: up to 1 + 3 + 8 s): play after the grace, quiet when it lands
+  let land!: () => void;
+  const pending = new Promise<{ quietNextDiscovery(): void }>(r => { land = () => r({ quietNextDiscovery: () => { quiet++; } }); });
+  const t0 = performance.now();
+  await quietDiscoveryOrGo(() => pending, 40);
+  assert.ok(performance.now() - t0 < 1000, 'play is not held for the retries');
+  assert.equal(quiet, 1, 'not yet');
+  land();
+  await new Promise(r => setTimeout(r, 0));
+  assert.equal(quiet, 2, 'the first finds round the resumed spot stay quiet once discovery is in');
+  // lost for good: play goes on (the chunk-lost card says so), no throw
+  await quietDiscoveryOrGo(() => Promise.reject(CHROME(URL_A)), 10);
+  // the resume itself: no bare wait on the discovery import any more (before W8-P6: `await importRetry(() => import('./discovery'))`)
+  const src = fs.readFileSync(path.resolve('src/opus-bay/game/resume.ts'), 'utf8');
+  assert.doesNotMatch(src, /await importRetry\(\(\) => import\('\.\/discovery'\)\)/);
+  assert.match(src, /await quietDiscoveryOrGo\(\(\) => importRetry\(\(\) => import\('\.\/discovery'\)\)\);\r?\n\s*beginPlaying\('local'\);/);
+});
+
 test('W8-P5: every relative dynamic import() in src/opus-bay loads through importRetry — wrap a new one as importRetry(() => import(\'./x\'))', () => {
   const root = path.resolve('src/opus-bay');
   // not wrapped on purpose: the helper itself; the frozen feature index (game/w5Features.ts, the lead's: sf-w8-P.md

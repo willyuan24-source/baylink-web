@@ -53,9 +53,26 @@ async function resumeAt(spot: { x: number; z: number; heading: number }) {
   if (fleet) restoreFleet(fleet);
   // (W5-N6) BAYBAY's welcome back is the greeting (flow's local start; lane C's onWelcome 'returning'): no toast on top
   // (W6-K2: nor the discovery batch of the spot the player stood on last time)
-  // (W7-P1: discovery is its own chunk, in since the Overlay's boot)
-  await importRetry(() => import('./discovery')).then(m => { m.quietNextDiscovery(); }, () => { /* offline: no discovery */ });
+  // (W7-P1: discovery is its own chunk, in since the Overlay's boot; W8-P6: never held for it, quietDiscoveryOrGo)
+  await quietDiscoveryOrGo(() => importRetry(() => import('./discovery')));
   beginPlaying('local');
+}
+
+/** W8-P6: the longest a resume waits for the discovery chunk before play begins (ms) */
+export const DISCOVERY_GRACE_MS = 600;
+
+/**
+ * W8-P6 (lane P; sf-w7-P.md Review "继续旅程 after a lost discovery chunk"): discovery has been in since the Overlay's boot
+ * in practice, so its first finds round the resumed spot are made quiet before play begins. When its request was lost
+ * and is being fetched again (importRetry: 1 + 3 + 8 s, shared with the Overlay's boot — one module instance), the resume
+ * used to wait for all of it on the arrival screen with nothing to show; now play begins after at most `grace` ms and
+ * the finds are made quiet the moment the chunk lands (before discovery's first tick: the Overlay's `initG1` and this
+ * run in the same turn). Lost for good: play goes on, and the chunk-lost card says a reload brings it back
+ * (game/chunkLost.ts — discovery also keeps the save's last safe spot).
+ */
+export function quietDiscoveryOrGo(load: () => Promise<{ quietNextDiscovery(): void }>, grace = DISCOVERY_GRACE_MS): Promise<void> {
+  const quiet = load().then(m => { m.quietNextDiscovery(); }, () => { /* lost for good: the chunk-lost card */ });
+  return Promise.race([quiet, new Promise<void>(resolve => { setTimeout(resolve, grace); })]);
 }
 
 /**

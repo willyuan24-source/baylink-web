@@ -9,7 +9,8 @@ lost discovery chunk; a lost shared chunk dependency; wave 8's new chunks outsid
 
 1. 游戏首屏主包（GameRoot，压缩后）从 **262.00 KB 降到 255.87 KB**（中途其他线又往里加了约 0.9 KB，按同一棵树算一共挪走约 7 KB）。挪走的都是“只有城市才用得到”或“按开始以后才用得到”的东西：城市专用的着色器（天空云朵、唐人街外墙、夜间街灯光带）、24 张地标卡片的表格、缆车线路的搭建代码、8 张街区明信片的文字。
 2. 行为不变：城市和街区都实际玩过——地标卡片、缆车站名、明信片标题都和以前一样；城市画面的着色器逐字节不变，街区本来就用不到被挪走的部分。
-3. （进行中）下一步：所有按需下载的小包都加上“丢了自动重试”，并且真丢了会弹出“重新载入”小卡片；“继续旅程”不再因为丢包干等 12 秒。
+3. 手机信号一抖不再让某个功能整局失效：所有按需下载的小包（约 180 处：面板、小游戏、城市分块、万圣节、彩蛋……）都会自动重试；同一个包丢了只重下一次、不会出现两份。真的下不来时（断网、刚好在更新网站），会弹出“有一部分没加载好 · 重新载入 / 先继续玩”的小卡片（进度先存好）。已在 Chrome 里实测：断掉一个小游戏包会弹卡片；短暂断网 1.7 秒后自动恢复。
+4. “继续旅程”不再因为丢包在到达画面干等最多 12 秒：最多等 0.6 秒就开始玩。
 
 ## Measuring
 
@@ -116,3 +117,72 @@ the city or only once play has begun:
   the slot's values are the chunk's own objects, the glossaries agree, the copied helpers agree), "W8-P3" (the builder
   out of the graph, type imports only, the export bound in node and equal to a direct build), "W8-P4" (the words out of
   the graph, the play layer fills them, in place, once); the existing cityPois / transit / postcard suites unchanged.
+
+## Part b · W8-P5 – P6 every lazy chunk through importRetry, the chunk-lost card, the resume
+
+Started 21:40 PDT (`date`), on origin `7d416d42`.
+
+### What was built
+
+- **W8-P5 · `game/importRetry.ts`: one instance per lost chunk, and a visible state.** Every caller that meets the same
+  lost URL now shares one retry (in flight) and, once it landed, its module (a per-page table keyed by the URL the
+  browser names): the Overlay's boot and a resume both load `game/discovery`; before, each ran its own `?retry=n` chain
+  and two that landed on different `n` were two instances of one module (two states). A chunk still lost after every
+  retry — the network down, a deploy that replaced the files, or a lost *shared dependency* (Chrome names the importing
+  chunk and `?retry=n` of it imports the same failed dependency URL again: only a reload brings it back, W7-P review) —
+  now tells `onChunkLost` listeners once per chunk; `quiet: true` (a prefetch nobody waits for) tells nobody, and a quiet
+  prefetch and a press of the same chunk: the press wins. The helper still imports nothing.
+- **`game/chunkLost.ts` (new, in GameRoot's chunk on purpose — a card in a chunk of its own could be lost too):** the
+  card 有一部分没加载好 / Part of the game didn't load / 有一部分沒載入好 · "the connection dropped … your progress is
+  saved — a reload brings it back" · 重新载入 (writes the save first, then reloads) · 先继续玩 (closes it). Once per page, in
+  the reader's language, in the GL-lost card's style (`.ob-gl-lost*` of opus-bay.css, always loaded; no CSS change; 44 px
+  buttons). `game/GameRoot.tsx` registers it on mount.
+- **The ≈ 180 other lazy imports** (scratch codemod `est/codemod.cjs`, mechanical: `import('./x')` →
+  `importRetry(() => import('./x'))` + one import line; type positions, comments, DEV-only `__opusBay` hooks and the
+  node-only loads skipped) — 180 sites in 67 files: panels and cards (`ui/Overlay.tsx` map / journal / week / settings /
+  ride layer, `PoiCard`, `PlaceCard`, `EventCard*`, `Floating`, `CoachMark`, `Moments`, `GuideLayer`, `Footprints`,
+  `CityMap`, `MapPanel`, `Settings`, `mapEvents`), the page's own `GameRoot` chunk (`OpusBayPage.tsx` — the largest chunk
+  on the first-load path had no retry and no fallback), GameRoot's audio / GL-health / solo view, the city chunks
+  (`world/sf/{stream,sites,lights,cityWorld}.ts`, `world/{life,streetcar}.ts`, `data/sf/{places,placeCardTypes}.ts`,
+  `actors/{Actors,moveSystem,nav,npcs,system}.tsx?`, `actors/vehicles/driveRoute.ts`, `audio/{audio,ambience}.ts`),
+  the play chunks (`play/{index,zones,zones3,sfgames,sfgames8,kit,kiteEntry,kiteZone,firstFlight,hideSeekEntry,GripPad}`),
+  Halloween (`halloween/{play,playPostcardRun,treatRun}.ts`), the eggs (`eggs/index.ts`), the economy
+  (`economy/{index,coins,Shop}`), realsf (`realsf/{index,openingSigns}.ts`) and the game's own (`game/{album,cityContent,
+  cityMoments,discovery,flow,goalsStep,guideCity,lineRides,pelicanFirst,photo,residentTasks,Systems,transit,tripRun}`).
+  Import lines and the wrapped calls only; every file is named here (lanes K, Q, M, H, S, A, W1, W2, X own most of them).
+  Not wrapped, on purpose: `game/w5Features.ts` (frozen — Requests), `game/goTo.ts` (the "tiny hook" contract of
+  W5-N1: type imports only), the helper itself.
+- **W8-P6 · the resume (`game/resume.ts`).** `resumeAt` no longer awaits the discovery chunk: `quietDiscoveryOrGo` makes
+  the first finds quiet before play when discovery is in (as always in practice), else begins play after at most
+  `DISCOVERY_GRACE_MS` (600 ms) and makes them quiet the moment the chunk lands (the Overlay's `initG1` and this run in
+  the same turn, before discovery's first tick). Before, a lost discovery chunk held 继续旅程 on the arrival screen for
+  the whole 1 + 3 + 8 s of retries with nothing to show; lost for good, play now goes on and the card says a reload
+  brings it back (discovery also keeps the save's last safe spot).
+
+### Evidence
+
+- **In Chrome (dev server 5803, city, a playing new player; CDP `Network.setBlockedURLs`, scratch `est/p-shot.mjs`):**
+  `play/claw.ts` blocked for good → `claw.ts?retry=1 … ?retry=3` all refused, the load rejects after ≈ 12 s, `chunksLost()`
+  = 1 and the card shows over the game (desktop `qa/w8/P/b-lost-card-en.jpg`; 390 × 844 dpr 3
+  `qa/w8/P/b-lost-card-phone.jpg`: the card centred, the HUD under the scrim). `play/crab.ts` blocked for 0.4 s then
+  let through → loaded after 1 747 ms (the first retry), no card; a second `importRetry` of it → the same module at once
+  (0 ms).
+- Tests (red first on the old helper and resume: 4 / 4 failed, then green): `tests/opus-bay-w8-p-retry.test.ts` — two
+  callers share one retry and one instance, a later caller takes the recovered module without a wait; lost for good →
+  one listener call per chunk, none for quiet, loud wins, none for a module's own error, Safari's message too; the card
+  (once, the locale's words, 重新载入 then reload, 先继续玩 closes, no Han in English); the resume (play after the
+  grace while the chunk is pending, quiet once it lands, no throw when lost; the bare await gone); **a scan: every
+  relative dynamic `import()` in `src/opus-bay` goes through importRetry** (except the three above) — a new bare one
+  fails with the fix in the message.
+- Tests adjusted for the wrappers (surgical, named): `tests/opus-bay-w7-p-retry.test.ts` (its "lost for good" case runs
+  on a fresh page table), `tests/opus-bay-sf-hud.test.ts` (two source regexes accept the wrapper), and
+  `tests/opus-bay-w5-play-acts.test.ts` — the play core budget 6 → 6.5 KB and zones3's 5 → 5.5 KB: with the wrappers the
+  core is 6 193 B (≤ 6 144 B on origin) and zones3 5 153 B (lane M adds wave 8's games to both).
+
+### Decisions
+
+1. **Retry everywhere, quietly by default.** A retry only ever repeats a load whose module never ran, so it is safe at
+   every site; the cost is a later fallback (up to 12 s) where a site had one, which the card now explains. Only a site
+   that must not wait (the resume) was changed in behaviour.
+2. **The card once per page, in every phase.** A second lost chunk does not show it again (the player chose); at the
+   title the play layer's own one reload still applies.
