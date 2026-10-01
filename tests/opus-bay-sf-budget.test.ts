@@ -411,3 +411,32 @@ test('W8-P1: the city-only GLSL of the shared materials and the sky rides with t
   const back = [...graph.keys()].filter(m => m.endsWith('.ts') || m.endsWith('.tsx')).flatMap(m => markers.filter(k => src(m).includes(k)).map(k => `${m}: ${k}`));
   assert.deepEqual(back, [], 'city-only GLSL in a main-graph module (put it in data/sf/cityShaders.ts)');
 });
+
+test('W8-P2: the landmark cards\' tables ride with the city data chunk; data/sf/cityPois.ts keeps every export name and hands out the chunk\'s own values', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(!graph.has('data/sf/cityPoisData.ts'), `data/sf/cityPoisData.ts in the main graph: ${graph.has('data/sf/cityPoisData.ts') ? why('data/sf/cityPoisData.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/sf/cityDataChunk.ts'), /^export \* as CITY_POI_TABLES from '\.\/cityPoisData';\r?$/m);
+  // the tables' code is not in the slot any more (a copy back would put the bytes back in GameRoot's chunk)
+  for (const k of ['export const ZH_GLOSSARY: readonly (readonly [from: string, to: string])[] = [', 'function cityPoi(info: SfLandmarkInfo)', "landmark: { zh: '地标', en: 'Landmark' }"]) assert.ok(!src('data/sf/cityPois.ts').includes(k), k);
+  const slot = await import('../src/opus-bay/data/sf/cityPois');
+  const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  const T = CITY_DATA!.CITY_POI_TABLES;
+  // every name the module exported before the move (sf-w8-P.md) is still exported
+  const before = ['CITY_POI_PREFIX', 'cityPoiId', 'ZH_GLOSSARY', 'glossZh', 'ZH_TEXT_NAMES', 'glossZhText', 'SF_GUIDE_SLUG', 'isMonthTagged', 'CITY_PHOTOS', 'CITY_POIS', 'CITY_DISTRICT_POI_NAMES', 'CITY_DISTRICT_TEXT_NAMES', 'cityDistrictZh', 'cityDistrictPoi', 'CITY_POI_ZONES', 'CITY_POI_OFFICIAL_URLS', 'cardOfficialUrl', 'CITY_POI_EXTRA_SOURCES', 'CITY_PHOTO_SOURCE_PAGES', 'CITY_SUBJECT_FACTS', 'PLACE_KIND_NAMES', 'setCardLookup', 'placeCardTarget', 'attractionCardId', 'placeCardName'];
+  assert.deepEqual(before.filter(k => !(k in slot)), []);
+  // node loads the chunk: the slot's tables are the chunk's own objects, its glossaries the chunk's functions
+  for (const k of ['ZH_GLOSSARY', 'ZH_TEXT_NAMES', 'CITY_POIS', 'CITY_POI_ZONES', 'CITY_POI_OFFICIAL_URLS', 'CITY_POI_EXTRA_SOURCES', 'CITY_PHOTO_SOURCE_PAGES', 'CITY_SUBJECT_FACTS', 'PLACE_KIND_NAMES'] as const) assert.equal(slot[k], T[k], k);
+  for (const s of ['双子峰 · 码头区 Marina 的缆车', '沿 Grant Avenue 一路走到 North Beach 的 Washington Square', 'Twin Peaks']) {
+    assert.equal(slot.glossZh(s), T.glossZh(s));
+    assert.equal(slot.glossZhText(s), T.glossZhText(s));
+  }
+  assert.deepEqual(slot.placeCardName({ zh: '中国城', en: 'Chinatown' }), { zh: '唐人街', en: 'Chinatown' });
+  // the data chunk's private copies of the slot's helpers agree (the chunk may not import the slot: W5-V3)
+  assert.ok(T.CITY_POIS.length >= 24 && T.CITY_POIS.every(p => p.id === slot.cityPoiId(p.id.slice(slot.CITY_POI_PREFIX.length))));
+  for (const slug of ['san-francisco-guide', 'sf-october-2026-payment-update', 'muni-2025', 'golden-gate-park', 'march-events', '']) assert.equal(T.isMonthTagged(slug), slot.isMonthTagged(slug), slug);
+  assert.equal(T.SF_GUIDE_SLUG, slot.SF_GUIDE_SLUG);
+  assert.equal(T.cityPoiId('coit-tower'), slot.cityPoiId('coit-tower'));
+});
