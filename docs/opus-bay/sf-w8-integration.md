@@ -99,3 +99,59 @@ was refuted. Every fix is a few lines in its lane's file.
 ### Blocking the go-live
 
 Nothing. The one major (D-1) is fixed, live-checked and tested. The open items are minors or lead tasks for the merge.
+
+## Completeness pass
+
+W8-C, the completeness critic's three safe items, 02:38–03:05 PDT on 1 October, worktree w8-cfix from origin/opus-bay 35a9edd8, dev server 5865, one headless Chrome at a time.
+
+### 给主人的摘要
+
+- 三件事都做完了。读屏的「按 E …」提示现在会跟着改名的互动点一起更新（飞行表演 → 跟上船队），已推送。
+- 宝塔颜色：Sing Chong的绿顶找到了来源。Sing Fat 的黄顶找不到任何来源。这一点已经写进代码注释，第九波补上来源或者重录。语音没动。
+- 万圣节晚上第一次来，实机看过：直接是夜景，BAYBAY 说的是「城里的灯一盏盏亮起来了」，没有金色时刻，也没有时间提示。
+- BAYBAY 实机看过：没开面板时她照常说话（35 秒说了 5 句）；打开设置后 45 秒一句没说；关掉设置马上恢复。D-6 不用回退。
+- 检查全绿：tsc 0，eslint 0 个错误，测试 1871 项、0 失败。GameRoot 的估算是 258.3 KB，没变。
+- 有四条审查结果在转发时被截断了：H 的第 10 条、M-RP-5、P-RP-4、P-RP-5。磁盘上找不到原文，只有手里有那几个 lens 输出的人能补上。现在看不出它们挡不挡上线。
+
+### English
+
+#### The items
+
+| # | item | verdict | commit |
+|---|---|---|---|
+| 1 | W8I-WS-4: a source for the pagoda roof colours in `w8w1-pagodas-ahead` (world/sf/cornersSights.ts) | **Half sourced, recorded.** Sing Chong's green roof has a source: a photo caption in The Epoch Times, 13 Jul 2026, which reads "a green, multi-tiered pagoda-style roof" (https://cmsapi.theepochtimes.com/bright/defining-chinatown-architecture-and-cultural-identity-after-destruction-6055349, checked 2026-10-01). **No source found for Sing Fat's yellow roofs.** That article gives Sing Fat's palette only as "red, green, and yellow". Wikipedia (Look_Tin_Eli), theclio.com/entry/186932, virtourist.com/america/san-francisco/42.htm and the Commons file descriptions name no roof colour. I did not download Commons photos to look at them. The header comment and the `source` string now say this. Comment and data string only: the zh / en text and the voice match are untouched. Wave 9 needs one of two things: a source for Sing Fat's roof colour, or a re-recording that drops "yellow". | c3b4ec3b |
+| 2 | Lane S's own finding 2: the screen-reader prompt kept a renamed interactable's old verb (飞行表演 … 按 E 看看飞行表演 was read while 跟上船队 showed) | **Fixed.** ui/Floating.tsx `LiveRegion` now re-reads the focus on the interactables epoch. It uses Hud.tsx's ContextAction pattern (W6-K1): `useSyncExternalStore(subscribeInteractables, interactablesEpoch, …)`, plus a `reread` effect on the epoch. No per-frame work. Floating.tsx is in the play layer's lazy chunk, so the GameRoot estimate stays ≈ 258.3 KB. The size guard passes (tests/opus-bay-sf-budget.test.ts 23/23, 1 todo). Test: tests/opus-bay-w8-c.test.ts, red before the fix and green after. | 8fe3ff61 |
+| 3 | Live check of W8-I's fixes that only had source tests (P-3 / D-5 and D-6) | **Done, both hold; no revert.** Details below. | (no code) |
+
+#### Claims verified, and how
+
+- **W8I-P-3 / D-5 (first visit on Halloween night).** Run on the dev server: `?world=city&start=free&save=off&date=2026-10-31T19:30` at 1440×900. A recorder hooked on `flow.subscribe` / `game.subscribe` ran from the first frame of play through 45 s after the goals step closed. Every sample read `night | golden=false | offer=null`. BAYBAY's light line was the night one, 城里的灯一盏盏亮起来了，好温柔。, with no 金色时刻. Shot: docs/opus-bay/qa/w8/int/cfix-a2-halloween-night-first-visit.jpg (moonlit bay, lit lamp, no time pill).
+  - Control, on a normal date (today, 02:5x): the first visit opens at golden hour and BAYBAY says 金色时刻！. So F11 still works off Halloween.
+  - Gap: `?start=free` skips the welcome choice, so `offerRealTime()` was not called through the welcome. The offer's `show()` reads `goldenFirstVisit`, which was already false, so no offer can appear.
+- **W8I-D-6 (an open panel quiets her city small talk).** Run on the dev server: `?world=city&start=free&save=off`, desktop.
+  - With no panel open (the goals step closed by Esc), she said, with `panel=null`: the light line at 5.6 s, the 飞行券 gift at 9.9 s, and in a second run the today line, the bridge-lights news and the city idle line 每个街区都有自己的颜色，慢慢看。. So her small talk and idle lines still come.
+  - Esc opened Settings (PAUSED) at 32.2 s. No line came for 45 s. Shot: docs/opus-bay/qa/w8/int/cfix-c1-settings-quiet.jpg.
+  - After Esc closed Settings, lines resumed within 1–9 s (an idle line, the bridge news, the otter float).
+  - Not played: a pinned place card on desktop.
+  - The goals step (W5-C3) also keeps her quiet while it is open, as before.
+- **WS-4.** Checked as described in item 1.
+- **GameRoot.** I measured only the static estimate: 258.3 KB, under the 258.5 KB guard and unchanged by this pass. The production-build figure is still W8-Z's.
+- **The four findings cut off in the relay (lane H's 10th item, M-RP-5, P-RP-4, P-RP-5).** I could not recover them. opus-qa/w8/{h,m,p}-rp hold only the player lenses' evidence (shots, logs, drivers), not their finding lists. The lane reports (sf-w8-H.md l.267, sf-w8-M.md l.362, sf-w8-P.md l.324) record them as "not received". Recovering them needs the original lens outputs from the wave-8 workflow (wf_66c65596-f6a). **Unverified.**
+
+#### Not verified by this pass (for W8-Z or wave 9)
+
+- WS-2 (the otter float and the 飞行券 gift under a panel), WS-7 (the TodayTab join) and P-6 (the 44 px hit areas) were not played after their fixes.
+- D-3 was not played, and neither was D-6 with a pinned place card on desktop.
+- The production GameRoot size, fps (W8-Z only), a real iOS device, lane K's fly trip and the canopy dither on the Powell–Mason / California lines were not checked.
+- The final lang-scan and the overlap-scan `--shots` were not re-run on the final tree, and the merged tree's full `npm run check` was not run.
+
+#### Observations
+
+- In the Halloween run the idle line 要是我有口袋，一定装满酸面包。 came twice, 18 s apart (14.7 s and 32.9 s). A minor point for wave 9: the idle pool could skip the line it just said.
+- QA lesson: my first opus-shot run hung. Its eval read `__opusBay.flow` 25 s after load on a cold dev server, before the game had mounted. The throw inside a `setInterval` meant the promise never resolved. A QA eval should poll until the hooks exist, as the later runs did.
+
+#### Checks
+
+- Before the first push: `npx tsc -p tsconfig.app.json --noEmit` returned 0, and the touched tests passed (w8-c, w8-w1-obrien, w8-w1-chinatown: 9/9; sf-budget 23/23, 1 todo).
+- Right after the push, on the same tree: `npx eslint .` gave 0 errors (50 warnings), and `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` ran 1871 tests: 1870 pass, 0 fail, 1 todo (the W8-P9 255 KB target).
+- This report and the two shots are docs only.
