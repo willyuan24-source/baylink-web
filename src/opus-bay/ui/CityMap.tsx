@@ -63,8 +63,13 @@ const MAX_CANVAS = 1800;
 const HIT_PX = 22;
 /** From this frame height the tool column is one button wide (below it: two columns, the 375 × 667 phone) */
 const TALL_TOOLS_H = 300;
+/**
+ * W8-Q6: on a touch screen the tools are 44 px circles (map-w4.css `pointer: coarse`; they were 36 px with a 44 px ::before):
+ * one column of six needs 6 × 44 + 5 × 8 + 30 = 334 px, and the column is 56 / 106 px wide (one / two columns)
+ */
+const TALL_TOOLS_H_TOUCH = 340;
 /** px the right-hand tool column takes (labels keep off it, framings keep you, BAYBAY and the target clear of it) */
-const toolColumn = (frameH: number) => (frameH >= TALL_TOOLS_H ? 48 : 90);
+const toolColumn = (frameH: number, touch: boolean) => (frameH >= (touch ? TALL_TOOLS_H_TOUCH : TALL_TOOLS_H) ? (touch ? 56 : 48) : (touch ? 106 : 90));
 /** W5-N4: a map frame this narrow (px) is a phone's: the selection's card is pinned over the map, a "+n" opens the chooser */
 const COMPACT_W = 520;
 
@@ -222,7 +227,7 @@ export function CityMapPanel() {
         focus: targetPoint ? [targetPoint] : [],
         t1: T1_LIST.map(a => ({ x: a.x, z: a.z, found: isDiscovered(a.placeId ?? a.id) })),
         // you, BAYBAY and the target clear of the tool column (the size's own: the column is one or two wide)
-        right: toolColumn(size.h),
+        right: toolColumn(size.h, coarse),
       });
     });
   }, [size?.w, size?.h]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -259,9 +264,9 @@ export function CityMapPanel() {
   }, [view, pos]);
   const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
   const youAt = view ? toPx(view, pos.x, pos.z) : null;
-  const tallTools = !!size && size.h >= TALL_TOOLS_H;
+  const tallTools = !!size && size.h >= (coarse ? TALL_TOOLS_H_TOUCH : TALL_TOOLS_H);
   // (a literal, not toolColumn(): the React compiler keeps the memos below only for values it knows are primitives)
-  const toolRight = tallTools ? 48 : 90;
+  const toolRight = tallTools ? (coarse ? 56 : 48) : (coarse ? 106 : 90);
   // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ moved: number; pinch: number | null }>({ moved: 0, pinch: null });

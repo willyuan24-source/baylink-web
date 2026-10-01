@@ -70,3 +70,30 @@ test('W8-Q5: the ride layer wires 设置 to the Settings panel; the CSS: a 44 ×
   const btn = /\.ob-subway-settings \{([^}]*)\}/.exec(css)![1];
   assert.match(btn, /width: 44px; height: 44px;/);
 });
+
+test('W8-Q6: on a coarse pointer the map\'s tools and compass are 44 px circles and the column the labels keep off fits them; the waypoint × gets a 44 px touch area', () => {
+  const css = read('ui/map-w4.css');
+  const coarse = css.slice(css.indexOf('W8-Q6'));
+  const block = /@media \(pointer: coarse\) \{([\s\S]*?)\n\}/.exec(coarse)![1];
+  assert.match(block, /\.ob-overlay \.ob-citymap-tools \.ob-icon-btn, \.ob-overlay \.mw-compass \{ width: 44px; height: 44px; \}/);
+  assert.match(block, /::before, \.ob-overlay \.mw-compass::before \{ inset: 0; \}/);
+  // the desktop rules stay 36 px (fine pointers: unchanged)
+  assert.match(read('ui/city-ui.css'), /\.ob-citymap-tools \.ob-icon-btn \{ position: relative; width: 36px; height: 36px;/);
+  // CityMap.tsx: one column from TALL_TOOLS_H_TOUCH (6 buttons + 5 gaps + the 30 px credit fit), 56 / 106 px reserved
+  const gap = Number(/\.ob-citymap-tools \{[^}]*gap: (\d+)px/.exec(read('ui/city-ui.css'))![1]);
+  const map = read('ui/CityMap.tsx');
+  const tall = Number(/const TALL_TOOLS_H_TOUCH = (\d+);/.exec(map)![1]);
+  assert.ok(6 * 44 + 5 * gap + 30 <= tall, `one column of six fits from ${tall} px`);
+  const right = /const toolRight = tallTools \? \(coarse \? (\d+) : 48\) : \(coarse \? (\d+) : 90\);/.exec(map);
+  assert.ok(right, 'toolRight for a coarse pointer');
+  const [one, two2] = [Number(right![1]), Number(right![2])];
+  assert.ok(8 + 44 + 4 <= one, `one column: ${one}`);
+  assert.ok(8 + 44 + gap + 44 + 2 <= two2, `two columns: ${two2}`);
+  // is-two: three rows of 44 fit its max-height
+  const two = Number(/\.ob-citymap-tools\.is-two \{ max-height: (\d+)px; \}/.exec(css)![1]);
+  assert.ok(3 * 44 + 2 * gap <= two, `${3 * 44 + 2 * gap} <= ${two}`);
+  // the waypoint's × : 24 px + 2 × 10 = 44 px
+  const guide = read('ui/guide-ui.css');
+  assert.match(read('opus-bay.css'), /\.ob-waypoint-dismiss \{[^}]*width: 24px; height: 24px;/);
+  assert.match(guide.slice(guide.indexOf('W8-Q6')), /@media \(pointer: coarse\) \{\n {2}\.ob-overlay \.ob-waypoint-dismiss::before \{ content: ''; position: absolute; inset: -10px; border-radius: 50%; \}/);
+});

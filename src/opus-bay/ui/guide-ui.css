@@ -193,3 +193,9 @@
 .ob-found-chip svg { flex: none; color: var(--ob-gold-d); }
 @keyframes ob-found-in { from { opacity: 0; transform: translateY(-4px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ob-found-chip { animation: none; } }
+
+/* ---- W8-Q6 (lane Q) · touch: the waypoint's 隐藏 × (opus-bay.css .ob-waypoint-dismiss, a 24 × 24 circle at the end of the
+   free-roam hint's label) gets a 44 × 44 touch area round it (::before, inset −10 px); the circle keeps its size */
+@media (pointer: coarse) {
+  .ob-overlay .ob-waypoint-dismiss::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; }
+}
