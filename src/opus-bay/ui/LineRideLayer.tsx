@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { alightHere, finishRide, subwayView } from '../game/transit';
+import { openPanel } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { SubwayOverlay } from './SubwayOverlay';
 
@@ -11,6 +12,9 @@ type View = NonNullable<ReturnType<typeof subwayView>>;
  * game/transit.ts `subwayView()` ≈ 12 times a second and keeps the last view for the 0.6 s fade-out as the train
  * surfaces or the rider gets off.
  */
+/** W8-Q5: the overlay's 设置 button — the same panel as the HUD's (Settings pauses the game; the sheet shows above the tunnel) */
+const openSettings = () => openPanel('settings');
+
 export default function LineRideLayer() {
   const kind = useFlow(s => s.ride?.kind);
   const say = useFlow(s => s.bubble?.text ?? null);
@@ -32,5 +36,5 @@ export default function LineRideLayer() {
     return () => cancelAnimationFrame(raf);
   }, [kind]);
   if (!view) return null;
-  return <SubwayOverlay {...view} visible={on && kind === 'light-rail'} say={say} onAlight={alightHere} onSkip={finishRide} />;
+  return <SubwayOverlay {...view} visible={on && kind === 'light-rail'} say={say} onAlight={alightHere} onSkip={finishRide} onSettings={openSettings} />;
 }

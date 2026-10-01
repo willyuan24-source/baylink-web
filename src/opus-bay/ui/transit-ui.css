@@ -8,6 +8,9 @@
 /* (W7-B2, lane B, surgical) a sheet opened on an underground ride (Esc → Settings, which now also stands the train)
    shows above the tunnel instead of opening unseen under it */
 .ob-overlay:has(.ob-subway.is-on) .ob-sheet { z-index: 41; }
+/* (W8-Q5) the album, a resident's letter and the goals step (lazy overlays at z 34–36) opened on an underground ride show
+   above the tunnel too (W7-B's open item: they opened unseen under it) */
+.ob-overlay:has(.ob-subway.is-on) :is(.ob-album-wrap, .ob-letter-wrap, .ob-gstep-wrap) { z-index: 42; }
 
 /* tunnel lamps: warm streaks sliding past on both walls while moving; still at a station */
 .ob-subway-tunnel { position: absolute; inset: 0; perspective: 600px; }
@@ -60,6 +63,13 @@
   border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 18px 40px -20px rgba(0, 0, 0, .8); font-size: 14px;
 }
 .ob-subway-line { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 15px; }
+/* (W8-Q5) 设置 on the card: the layer covers the HUD's Settings button and the phone bar (44 × 44, the card's top-right) */
+.ob-subway-settings {
+  display: inline-flex; align-items: center; justify-content: center; flex: none; width: 44px; height: 44px; margin: -8px -8px -8px auto;
+  border-radius: 50%; border: 1px solid rgba(245, 239, 226, .3); background: rgba(255, 255, 255, .06); color: #f5efe2; cursor: pointer;
+}
+.ob-subway-settings:hover { background: rgba(255, 255, 255, .14); }
+.ob-subway-settings:focus-visible { outline: 2px solid #ffd98a; outline-offset: 2px; }
 .ob-subway-disc {
   display: inline-flex; align-items: center; justify-content: center; flex: none; width: 30px; height: 30px; border-radius: 50%;
   background: var(--ob-line-color); color: #fff; font-size: 16px; font-weight: 900; letter-spacing: 0;
