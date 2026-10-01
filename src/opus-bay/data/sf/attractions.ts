@@ -307,6 +307,13 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   // (world/sf/cornersChinatown.ts); the old end (OSM's tiny footprint's middle) stood 0.1 u in front of the new front.
   // Washington St's sidewalk in front of the red columns, 2.8 u from the walking graph's nearest node.
   'chinese-telephone-exchange': { x: 27.11, z: 133.46, heading: 0.96, why: 'Washington St\'s sidewalk in front of the pagoda\'s red columns: the old end was 0.1 u from its new front wall' },
+  // W8-W1 (lane W1's row): the O'Brien now lies in the water along the toy Pier 35's west face (world/sf/wharfShips.ts
+  // OBRIEN). The old end (−130.1, −8.3) stood on the promenade apron, which the walking graph never reaches (its nodes
+  // there run under the Embarcadero roadway, not standable): the static sweep's one UNREACHABLE. The new end is the same
+  // apron's west end by the seawall, where the nearest graph node (992, the Embarcadero / North Point crossing) stands and
+  // a nav path reaches it; the ship 26 u ahead across the water. 9.8 u from that node: tests/opus-bay-sf-attractions
+  // waives the 3 u rule for this row (recorded there).
+  'ss-jeremiah-obrien': { x: -148, z: 1, heading: 2.46, why: 'the promenade by the seawall west of Pier 35, the Liberty ship across the water: the old end was on an apron no walk reaches' },
   'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
   'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };

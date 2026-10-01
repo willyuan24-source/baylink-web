@@ -25,6 +25,7 @@ import { CrownDrift, LightField, siteLightSpecs } from './lights';
 import { attachEastCut } from './cornersEastCut';
 import { attachNorthBeach } from './cornersNorthBeach';
 import { attachWharfShips } from './wharfShips';
+import { attachSights } from './cornersSights';
 import { attachWestSea } from './westSea';
 import { attachMurals } from './murals';
 import { CitySites } from './sites';
@@ -227,8 +228,10 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
   const detachNorthBeach = host.addSystem(attachNorthBeach());
   // W7-W1: the East Cut / Embarcadero corner (Salesforce Park's deck, Cupid's Span, Redwood Park, the Sentinel)
   const detachEastCut = host.addSystem(attachEastCut());
-  // W7-W1: USS Pampanito alongside Pier 45 (world/sf/wharfShips.ts)
+  // W7-W1: USS Pampanito alongside Pier 45, W8-W1: the SS Jeremiah O'Brien at Pier 35 (world/sf/wharfShips.ts)
   const detachShips = host.addSystem(attachWharfShips());
+  // W8-W1: BAYBAY's sight lines at the pagoda corner, Old St. Mary's and the O'Brien (world/sf/cornersSights.ts)
+  const detachSights = host.addSystem(attachSights());
   // W8-W2: Ocean Beach's surfers and Seal Rocks (world/sf/westSea.ts)
   const detachWestSea = host.addSystem(attachWestSea());
   void streamer.start().then(() => {
@@ -252,6 +255,7 @@ export function startCityWorld(host: CityWorldHost, renderer: THREE.WebGLRendere
       detachNorthBeach();
       detachEastCut();
       detachShips();
+      detachSights();
       detachWestSea();
       for (const d of detachAtmos) d();
     },
