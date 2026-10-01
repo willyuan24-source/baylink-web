@@ -8,6 +8,7 @@ worktree `C:/Users/willy/wt/w8-w2`, dev port 5808, scratch `C:/Users/willy/opus-
 1. **海洋海滩有冲浪的人了**：白天海里有 11 个玩具冲浪手（凯利湾 4 个、Judah 街 N 线终点站前 7 个），坐在板上随浪起伏等浪、划水、站起来冲一段、再划回去；前面一道道白浪滚上沙滩。天黑他们就回家了。只是风景，不是玩家能玩的项目（游戏从不建议下海）。
 2. **悬崖屋外的海豹岩**：按 OpenStreetMap 的真实位置摆了两座礁石（大的一座约 5 米高的玩具尺寸），顶上被鸬鹚鸟粪染白，下面平台上躺着海狮、水里有海狮探头、顶上站着鸬鹚、海鸥绕着飞。第一版的礁石像"企鹅脸"（圆白顶 + 两只鸟像眼睛），已经改成尖尖的岩峰。
 3. 整个海边只多 **1 次绘制**、约 1.2 万三角形，离开海边 420 米就不画。BAYBAY 在海滩 / 悬崖屋边会说 5 句新台词（中英固定句，可配音）。
+4. **金门公园蓝鹭湖（原斯托湖）**：白天湖上有 9 条玩具脚踏船和划艇在宽的湖湾里慢慢绕圈（划艇的桨会摆），船屋码头停着 3 条船，还有鸭子和一只站在岛边的大蓝鹭。原来船屋那里是一栋普通红顶两层楼，现在换成了真实样子的长条木屋（大斜屋顶、临湖的入口山墙、木平台、台阶下到水边的浮码头）。可以租船自己划：没做（成本高、湖道太窄容易撞岸），BAYBAY 有 3 句新台词。
 
 ## Part a · W8-W2a Ocean Beach's surfers and Seal Rocks
 
@@ -109,3 +110,89 @@ finished and tested here). Pushed ≈ 20:30 (see the push line below).
 
 - The rocks have no collision (they are at sea; a glider can pass through them).
 - The surfers do not react to the player's glider or a boat (none sail there).
+
+## Part b · W8-W2b Blue Heron Lake (Stow Lake): boats, the boathouse
+
+Started 20:35 PDT (`date` 20:34:59 after part a's push); pushed ≈ 21:50 (see the push line below).
+
+### What was built
+
+- **`src/opus-bay/world/sf/westLakePose.ts`** (new, pure data + the pose writer): **9 boats** (5 pedal boats with two
+  riders side by side, 4 rowboats with a rower facing aft whose oars sweep on a 2.6 s stroke and a passenger in the
+  stern) potter round small circles inside the lake's **six wide basins** — found on the published city's water raster
+  (the clearance from each 0.5 u water cell to the nearest non-water cell, scratch `opus-qa/w8/w2/lake/basins.mts`):
+  the narrow channels stay empty, so no boat ever meets the vertical banks; two boats sharing a basin sail half a
+  turn apart. **3 boats moored** bows-in at the boathouse's landing, **3 ducks** paddling small circles, a **great blue
+  heron** on the island's south shore dipping its head now and then. `LAKE_Y` 18.29 = the drawn lake surface (`far.ts`:
+  the far ring's lowest shore point − 0.2; read on the `city-lakes` mesh in the browser). The boats are out while the
+  sky's night factor ≤ 0.35; the moored boats, the ducks and the heron stay. No allocation per frame.
+- **`src/opus-bay/world/sf/westLake.ts`** (new): `attachWestLake()` — ONE `InstancedMesh` (`sf:west-lake`, capacity 93,
+  the smooth toy ball, ≤ 7.4k triangles) drawn within 200 u of the lake's centre.
+- **`src/opus-bay/world/sf/westBoathouse.ts`** (new): **the Blue Heron Lake Boathouse** as a plain site
+  (`blue-heron-boathouse`, T3, like Alcatraz in `W7_SITES`): the city drew a generic two-storey house with a red roof on
+  OSM way 120479803; the site's exclusion drops it and draws a long low log lodge (4.0 × 1.5 u on the OSM footprint,
+  1.5 u walls under a broad dark green roof, the entrance gable on the lake side with a white gable end, trimmed café
+  windows lit at night, plank bands and log-end corner posts), the deck along the bank with its rail, steps down the
+  1.6 u bank to a floating landing at the water with mooring posts — where the three moored boats lie. 2 walk blockers
+  (the lodge, the entrance bay). No lettering.
+- **`src/opus-bay/world/sf/landmarks/index.ts`** (registration, surgical: `W8_SITES = [blueHeronBoathouse]` appended to
+  `SF_SITES`); **`landmarks/tops.ts`** regenerated (`scripts/opus-sf/assets/landmark-tops.ts`: one new row);
+  **`tests/opus-bay-sf-landmarks.test.ts`** (W4-IL1's expected list gains `W8_SITES`, one line).
+- **`world/sf/westToy.ts`**: `attachWestInstanced()` — the lazy-build / range / pose / BAYBAY-spot system now shared by
+  the sea and the lake (`westSea.ts` uses it, same behaviour). **`world/sf/westLines.ts`**: the lake's 3 lines and 2
+  spots (the lake by day r 48 · the boathouse any time r 14).
+- **`tests/opus-bay-w8-w2-lake.test.ts`** (new, 5 tests): counts by day / night; boats sharing a basin > 2.2 u apart,
+  bow first, 0.1–0.6 u/s; **every boat's hull outline + 0.3 u is water over its whole circle**, the moored hulls and the
+  ducks too, the heron on land with water ahead at its measured ground (sfDisk); `LAKE_Y` = far.ts's rule on the
+  published far data; the lines; the boathouse: the OSM outline inside its exclusion, the moored boats outside it,
+  lod 0 within T3's 800 triangles, lod 2 ≤ 15 %, the landing's posts down to the water, the ridge 2.2–3.0 u.
+
+### Evidence
+
+- Shots (desktop 1440 × 900 high, day): `qa/w8/W2/b-lake-boats.jpg` (over the lake: pedal boats and rowboats in the
+  basins, the heron by the south footbridge, the pavilion), `qa/w8/W2/b-boathouse.jpg` (the lodge's lake side from the
+  north shore: the entrance gable, windows, rail, the steps to the landing, three moored boats). Before:
+  `opus-qa/w8/w2/lake1/boathouse-cam.jpg` (the generic two-storey house with a red roof).
+- Calls / triangles (main + shadow): over the lake 60 / 167.7k (before 59 / 160.5k), the pavilion arrival 70 / 184.0k
+  (before 73 / 194.9k: a different moment of the crowd), the boathouse from the north shore 77 / 191.3k, the lake path
+  at the boathouse 72 / 198.8k. `sf:west-lake` = 1 call; the boathouse rides the sites' TOY batch.
+- Checks: the opus-bay suite on the part-b1 tree (21:00–21:13 PDT): **1711 / 1712** — the 1 red was
+  `A* reaches the hill … string-pulled legs` (`opus-bay-actors`, a wall-clock "planned in 414 ms" under load), green
+  alone (220 ms). Then the boathouse: sf-landmarks 20/20, the landmark-context tops test, sites-w4 / w4t3, budget,
+  models, W8-P: 88 / 88 after the W4-IL1 list fix; the lake test 5 / 5; tsc 0; eslint 0 errors.
+
+### Decisions
+
+- **No rentable boat ride** (the brief: only if cheap and safe): a boat the player steers needs its own controls,
+  water collision against vertical banks, the ride card, Settings' pause and a way out at any point — not cheap, and
+  the lake's narrow channels would make a toy boat hit the banks often. The boats are scenery; the boathouse is a place
+  to look at them from. Not done, recorded.
+- Boats circle inside the basins instead of touring the lake: the published lake is a ring ≈ 3–10 u wide with vertical
+  banks 1.7 u high; a loop round the island would have to squeeze through 2 u channels.
+- The boats' colours are the toy's own (the boathouse's page names "American-Made row and pedal boats", no colours).
+- The boathouse is a W8 plain site (no card, no arrival): the lake's card stays the pavilion's (`blue-heron-lake`).
+
+### Facts (checked on the web 2026-09-30)
+
+- The boathouse: "American-Made row and pedal boats" for hourly rentals, "In operation since 1893" —
+  https://blueheronboathouse.com/ (stowlakeboathouse.com redirects there); OSM way 120479803 (amenity=boat_rental,
+  pedalboat_rental=yes, rowboat_rental=yes, height 6).
+- The building: built 1946–1949 by Warren C. Perry, "an alpine chalet style look"; "the first building constructed in
+  Golden Gate Park after the end of World War II" — https://en.wikipedia.org/wiki/Blue_Heron_Lake_Boathouse ; a photo
+  (Commons File:Stow_Lake_Boathouse.jpg, scratch only): a long low lodge, plank walls, a broad roof with a gable over
+  the lake-side entrance, a deck at the water.
+- The lake: OSM relation 12908 "Blue Heron Lake", old_name Stow Lake, name:etymology Great Blue Heron.
+
+### BAYBAY's new fixed lines (part b, for lane X), zh / en — exact text
+
+| id | zh | en |
+|---|---|---|
+| `w8-w2-lake-boats` | 湖上有人踩脚踏船、有人划船，好悠闲。 | People are out on the lake in pedal boats and rowboats — so peaceful. |
+| `w8-w2-lake-heron` | 这片湖叫蓝鹭湖。看，岸边就站着一只大蓝鹭！ | It's called Blue Heron Lake — look, there's a great blue heron on the shore! |
+| `w8-w2-lake-1893` | 从1893年起，这座船屋就一直租船给游客。 | This boathouse has been renting out boats since 1893. |
+
+### Known gaps
+
+- The lake's banks are vertical 1.7 u walls (the city's lake cut, not this lane's): the landing's steps make the
+  boathouse read, the rest of the shore stays as it was.
+- The heron and the ducks have no collision; the moored boats are not walkable.
