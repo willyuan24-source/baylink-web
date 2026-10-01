@@ -158,8 +158,10 @@ test('W7-G6 the kit swap leaves a treat door\'s house alone while the skip is se
 test('W7-G7 Belvedere: door 8 (a Clayton Street face at the Parnassus end) is gone; the other eight stay; the ids stay append-only', () => {
   const belv = TREAT_DOORS.filter(d => d.street === 'belvedere');
   assert.ok(belv.find(d => d.n === 8)?.gone, 'door 8 is gone');
-  assert.deepEqual(belv.filter(d => !d.gone).map(d => d.n), [1, 2, 3, 4, 5, 6, 7, 9]);
-  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 53, '53 doors to knock');
+  // W8-H: door 9 (walled in, in a courtyard inside the block) and doors 36 / 46 of Jordan Ave / Sea Cliff Ave are gone too
+  // (tests/opus-bay-w8-h-doors.test.ts, the door-to-street rule)
+  assert.deepEqual(belv.filter(d => !d.gone).map(d => d.n), [1, 2, 3, 4, 5, 6, 7]);
+  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 50, '50 doors to knock');
   assert.equal(Math.max(...TREAT_DOORS.map(d => d.n)), 54, 'no new number');
   assert.equal(new Set(TREAT_DOORS.map(d => d.n)).size, TREAT_DOORS.length);
 });

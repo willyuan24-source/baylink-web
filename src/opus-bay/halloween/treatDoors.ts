@@ -8,7 +8,8 @@ import type { TreatStreetId } from './treatStreets';
  * re-checks every door on the published city).
  *
  * APPEND-ONLY: door `n` is paid through `halloween:door:<n>` (and `halloween:night:<n>` on 31 October), so a door never
- * changes its number; a door that has to go stays with `gone: true`.
+ * changes its number; a door that has to go stays with `gone: true`. W8-H: a door may MOVE along its own street (same
+ * number, its old spot in a comment) when it fails the door-to-street rule (tests/opus-bay-w8-h-doorcheck.ts).
  */
 export interface TreatDoor { n: number; street: TreatStreetId; x: number; z: number; y: number; f: number; gone?: true }
 
@@ -24,7 +25,9 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   // (W7-G7: door 8 was a Clayton Street face at the Parnassus end — 3.3 u from Clayton's centreline, 6.7 from
   // Belvedere's; the W6 run only asked for a face parallel to Belvedere within 7 u — gone)
   { n: 8, street: 'belvedere', x: 8.83, z: 827.46, y: 23.49, f: -0.785, gone: true },
-  { n: 9, street: 'belvedere', x: 1.18, z: 838.3, y: 22.33, f: 2.53 },
+  // (W8-H: door 9's knock spot stood in a courtyard inside the block, walled in by houses: Belvedere St is not reachable
+  // from it on foot within 18 u (tests/opus-bay-w8-h-doors.test.ts) — gone; no face within 30 u passes the rule)
+  { n: 9, street: 'belvedere', x: 1.18, z: 838.3, y: 22.33, f: 2.53, gone: true },
   // Chenery Street (Elk Street → Diamond Street)
   { n: 10, street: 'chenery', x: 419.46, z: 1051.29, y: 16.54, f: 0.678 },
   { n: 11, street: 'chenery', x: 427.37, z: 1048.99, y: 15.93, f: 0.4 },
@@ -54,10 +57,14 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 33, street: 'jordan', x: -271.48, z: 706.53, y: 14.21, f: -0.736 },
   { n: 34, street: 'jordan', x: -276.21, z: 702.66, y: 13.95, f: -0.707 },
   { n: 35, street: 'jordan', x: -280.91, z: 695.01, y: 14.14, f: -0.747 },
-  { n: 36, street: 'jordan', x: -281.51, z: 691.74, y: 14.36, f: -0.709 },
+  // (W8-H: door 36 faced Jordan Ave from behind the front row; its knock spot opens onto a yard that reaches Jordan Ave
+  // only round the block — gone; no face within 30 u passes the rule)
+  { n: 36, street: 'jordan', x: -281.51, z: 691.74, y: 14.36, f: -0.709, gone: true },
   // Sea Cliff Avenue
   { n: 37, street: 'sea-cliff', x: -576.18, z: 901.44, y: 4.94, f: -2.29 },
-  { n: 38, street: 'sea-cliff', x: -583.74, z: 910.05, y: 5.12, f: -2.593 },
+  // (W8-H: door 38 stood in a pocket between houses its knock spot could not leave (was x -583.74, z 910.05, f -2.593):
+  // moved, same number, to the nearest face that fronts Sea Cliff Ave — scripts/opus-sf/halloween-doors.mts --fix)
+  { n: 38, street: 'sea-cliff', x: -580.2, z: 890.6, y: 3.94, f: 1.01 },
   { n: 39, street: 'sea-cliff', x: -592.9, z: 919.3, y: 5.33, f: -1.687 },
   { n: 40, street: 'sea-cliff', x: -603.13, z: 925.46, y: 5.97, f: 1.052 },
   { n: 41, street: 'sea-cliff', x: -608.77, z: 931.74, y: 6, f: 0.851 },
@@ -65,7 +72,9 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 43, street: 'sea-cliff', x: -613.43, z: 934.98, y: 5.92, f: 0.859 },
   { n: 44, street: 'sea-cliff', x: -615.62, z: 937.13, y: 5.93, f: 0.857 },
   { n: 45, street: 'sea-cliff', x: -612.33, z: 943.11, y: 6.45, f: 2.477 },
-  { n: 46, street: 'sea-cliff', x: -604.45, z: 946.71, y: 7.2, f: -1.396 },
+  // (W8-H: door 46 was a 29th Avenue face — 2.1 u from 29th Ave's centreline, 3.6 from Sea Cliff Ave's, facing 29th —
+  // gone; no Sea Cliff Ave face within 30 u passes the rule)
+  { n: 46, street: 'sea-cliff', x: -604.45, z: 946.71, y: 7.2, f: -1.396, gone: true },
   // Hearst Avenue (Edna Street → Congo Street)
   { n: 47, street: 'hearst', x: 343.44, z: 1231.74, y: 24.32, f: 0.784 },
   { n: 48, street: 'hearst', x: 346.65, z: 1228.06, y: 24.11, f: 0.813 },
