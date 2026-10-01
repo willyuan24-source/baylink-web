@@ -463,3 +463,28 @@ test('W8-P3: the cable-car network builder is a lazy chunk loadTransit fetches w
   assert.deepEqual(viaExport.stations.map(s => [s.id, s.name.zh]), [['powell-market', '鲍威尔街 · 市场街'], ['hyde-beach', '海德街 · 海滩街']]);
   assert.equal(viaExport.lines[0].name.zh, '鲍威尔-海德线叮当车');
 });
+
+test('W8-P4: the district postcards\' words come with the play layer (data/scriptLoad.ts) and are filled in place: the cards keep their objects, every word is there once filled', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(!graph.has('data/postcardTexts.ts'), `data/postcardTexts.ts in the main graph: ${graph.has('data/postcardTexts.ts') ? why('data/postcardTexts.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/scriptLoad.ts'), /^fillPostcardTexts\(DISTRICT_POSTCARD_TEXTS\);\r?$/m);
+  assert.match(src('ui/playParts.tsx'), /^import '\.\.\/data\/scriptLoad';\r?$/m, 'the play layer loads it (GameRoot holds Start until that chunk is in)');
+  assert.ok(!src('data/postcards.ts').includes('清晨的渡轮大厦'), 'the words are not back in data/postcards.ts');
+  const P = await import('../src/opus-bay/data/postcards');
+  const { DISTRICT_POSTCARD_TEXTS } = await import('../src/opus-bay/data/postcardTexts');
+  assert.ok(P.postcardTextsFilled(), 'node fills them at load');
+  assert.equal(P.DISTRICT_POSTCARDS.length, 8);
+  for (const c of P.DISTRICT_POSTCARDS) {
+    const t = DISTRICT_POSTCARD_TEXTS[c.id as keyof typeof DISTRICT_POSTCARD_TEXTS];
+    assert.deepEqual({ title: c.title, fact: c.fact, hint: c.hint }, t, c.id);
+    assert.notEqual(c.title, t.title, `${c.id}: the card keeps its own object (filled in place, so a name taken before Start reads it)`);
+    assert.ok(c.title.zh && c.title.en && c.fact.zh && c.fact.en && c.hint?.zh && c.hint.en && c.sourceUrl.startsWith('https://'), c.id);
+  }
+  assert.deepEqual(P.DISTRICT_POSTCARDS[0].title, { zh: '清晨的渡轮大厦', en: 'Ferry Building at Dawn' });
+  // a second fill is a no-op (the play layer and node never fill twice)
+  P.fillPostcardTexts({ 'ferry-building-dawn': { title: { zh: 'x', en: 'x' }, fact: { zh: 'x', en: 'x' }, hint: { zh: 'x', en: 'x' } } });
+  assert.equal(P.DISTRICT_POSTCARDS[0].title.en, 'Ferry Building at Dawn');
+});
