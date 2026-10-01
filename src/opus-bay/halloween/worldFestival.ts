@@ -144,18 +144,28 @@ export interface Festival {
   dispose(): void;
 }
 
+/** the alley's ground is re-checked here (its two ends and middle) while the kit is up: a change rebuilds it */
+const GROUND_PROBES = [0, 0.5, 1] as const;
+
 export function createFestival(ground: (x: number, z: number) => number = heightAt): Festival {
   const group = new THREE.Group();
   group.name = 'halloween-festival';
   let mesh: THREE.Mesh | null = null;
   const mid = alleyAt(ALLEY_LEN / 2), stage = alleyAt(STAGE.s, STAGE.side);
+  const probes = GROUND_PROBES.map(k => alleyAt(ALLEY_LEN * k));
+  // the ground the kit was built on: the city streams its chunks in as the player comes (the far heights first), so a
+  // kit built from 160 u away is rebuilt once the alley's own ground arrives (2 Hz, three samples)
+  const built = new Float32Array(probes.length);
+  const groundMoved = () => probes.some((p, k) => { const y = ground(p.x, p.z); return Number.isFinite(y) && (!Number.isFinite(built[k]) || Math.abs(y - built[k]) > 0.05); });
   const drop = () => { if (mesh) { group.remove(mesh); mesh.geometry.dispose(); mesh = null; } };
   return {
     group,
     step: (px, pz, on, now) => {
       const want = on && festivalOn(now) && Math.hypot(px - mid.x, pz - mid.z) < FEST_NEAR;
       if (!want) { drop(); return; }
-      if (mesh) return;
+      if (mesh && !groundMoved()) return;
+      drop();
+      probes.forEach((p, k) => { built[k] = ground(p.x, p.z); });
       mesh = new THREE.Mesh(buildFestival(ground).geo, TOY);
       mesh.name = 'halloween-festival';
       mesh.matrixAutoUpdate = false;

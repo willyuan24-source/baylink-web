@@ -78,6 +78,22 @@ test('W8-H festival: the kit along Waverly Place — lanterns, a stage, the line
     assert.equal(fest.stats().shown, false, 'gone at 15:00');
     assert.equal(fest.near(stage.x, stage.z), null);
   } finally { fest.dispose(); }
+  // the ground streams in after the kit was built (far heights first): the kit is rebuilt on the alley's own ground
+  let h = 2;
+  const late = F.createFestival(() => h);
+  try {
+    late.step(mid.x, mid.z, true, at('2026-10-31T12:00'));
+    const first = (late.group.children[0] as import('three').Mesh).geometry;
+    late.step(mid.x, mid.z, true, at('2026-10-31T12:00'));
+    assert.equal((late.group.children[0] as import('three').Mesh).geometry, first, 'the same ground: kept');
+    h = 5.5;
+    late.step(mid.x, mid.z, true, at('2026-10-31T12:00'));
+    const again = (late.group.children[0] as import('three').Mesh).geometry;
+    assert.notEqual(again, first, 'rebuilt on the new ground');
+    again.computeBoundingBox();
+    assert.ok(again.boundingBox!.min.y >= 5.4, 'standing on it');
+    assert.equal(late.group.children.length, 1);
+  } finally { late.dispose(); }
 });
 
 test('W8-H festival: wired into the Halloween world (its group, its step, BAYBAY\'s two lines, its teardown)', async () => {
