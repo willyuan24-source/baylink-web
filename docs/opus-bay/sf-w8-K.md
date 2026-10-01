@@ -300,3 +300,65 @@ The district's first tour (`flow.ts leadBubble` 下一站：<stop>) is district-
 - No Higgsfield credits spent (lane K has no allowance). Dev server 5801 and every headless Chrome of the lane stopped
   at the end; scratch scripts in `C:/Users/willy/opus-qa/w8/k/` (`hold60.mjs`, `hyde8.mjs`, `walk8.mjs`, `kite8.mjs`,
   `trip10.mjs`, `drv.mjs`, `pair.py`).
+
+## Review (Ultra)
+
+Fixer of the adversarial review (2026-09-30 23:38 – 2026-10-01 01:00 PDT), worktree `C:/Users/willy/wt/w8-k-rev`, dev port
+5841, scratch `C:/Users/willy/opus-qa/w8/k-rev/`. Two read-only lenses (code & facts `k-rc`, player `k-rp`) found 6 items;
+each was reproduced before any change.
+
+### 给主人的摘要
+
+1. 两个“大问题”都已修好并实测：坐车行程里 BAYBAY 以前会把同一句「去车站，我们坐车过去！」连说两遍（出发时一遍、到站时又一遍），现在只说一遍，到站后由“上车”提问接话。
+2. 手机横屏或屏幕较矮时，抓娃娃面板把屏幕占满，BAYBAY 的气泡被压在面板下面、却照样播配音；现在找不到空位时，气泡放在遮挡最少的地方并显示在面板上方，字和声音始终对得上（375×553、390×664、844×340 都拍图确认）。
+3. 彩蛋卡片展开后，彩蛋后面几句配音的气泡以前被卡片盖住；现在气泡自动躲到卡片上方。
+4. 横屏时抓娃娃面板超出屏幕底部、按钮够不着（M 线的面板）：加了一条只对矮屏生效的规则，面板缩到屏幕内并可上下滑动；竖屏和电脑不受影响。
+5. 鹈鹕「想飞的时候点『起飞』就行～」这句仍是带按键名的模板（只有文字、没有配音），属于既定的例外，今晚已无法录音，留给下一波。没有阻碍上线的问题。
+
+### Verdicts
+
+| id | lens · severity | verdict | evidence |
+|---|---|---|---|
+| K-RC-1 | code · major | **fixed** (`3bd844aa`) | Reproduced with the lens's harness on my tree: `COUNT 2` — 去车站，我们坐车过去！ at t 205.0 s (start, W8-K10) and 206.5 s (`arrived()` at the stop, W8-K3). `game/tripRun.ts arrived()` now says it only outside the city (the district path, unreachable for line legs — goTo and the map refuse the district — is untouched); at the stop the boarding question speaks. Test `w8-k-review` K-RC-1 red (2 ≠ 1) → green; `sf-tripflow` green. |
+| K-RC-2 | code · minor | **fixed** (`3bd844aa`) | Code: `eggs/hosts.ts reveal()` says lines 2..n at ≈ 3.5 / 7 s, the card opens at 1.6 s (z 13 over the bubble's z 8) and `.ob-egg-card` was not in `HUD_BOX_SELECTOR`. Fix: `.ob-egg-card`, `.ob-egg-note`, `.ob-egg-operator`, `.ob-egg-listen` are fixed HUD boxes. Live (`run1.mjs`, 390×844, egg `karl-the-fog-diary`, its card tapped open): the card spans y 412–710 and all 3 voiced lines' bubbles end at y 406 — exactly the 6 px gap above the card, i.e. the card box moved them (`r-krc2-egg-card-open.jpg`, read). Test red → green. |
+| K-RC-3 | code · minor | **confirmed-not-fixed** | True: `game/pelicanFirst.ts` `laterBubble` 想飞的时候${key}就行～ is templated and unvoiced (0 hits in `data/sf/voiceW*.ts`). Not changed tonight: it is the documented exception (`data/VOICE.md`, `linesW5.ts`: a line naming the device's control is text only), lane X's last batch (W8-X7, 23:49) is pushed, so a fixed line would still be silent, and the change would rewrite lane C's frozen-content test. Wave 9: one fixed line + the key on a toast + its recording, together. |
+| K-RP-1 | player · major | **fixed** (`3bd844aa`) | Lens shots/logs: the claw's 差一点点！ bubble 100 % / 82 % / 98 % under the panel at 375×553 / 844×340 / 844×390 while `w5-a-778c7dc0` played. Cause: `placeBubble` returned the 3-pass spot when no candidate was free. Now the least-covered candidate wins (ties: nearest the anchor) with `over: true`; `game/Systems.tsx` writes `data-over` and `.ob-bubble-anchor[data-over='1']` is z 45 (above the panels' 43, under the toasts' 60). Free spots keep their old answers (`sf-hud`, `w7-p`, `w8-k4` tests unchanged and green). Live (`run1.mjs`): 375×553 over=1 z 45, bubble over the panel's title row, readable (`r-krp1-claw-375x553-over.jpg`, read); 844×340 over=1, bubble left of the panel, 7 % on its edge; 390×844 over=0 (free, as before). Test red → green. |
+| K-RP-2 | player · minor | **fixed** (`3bd844aa`) | Same root: at 390×664 the new placement puts 差一点点！ below the panel, 26 % over its bottom edge but drawn on top (over=1, `rev-claw-390x664.jpg` in scratch, read: face and text whole). The Hop button under the panel at that size is the touch column's own layout (not lane K's). |
+| K-RP-3 | player · major (lane M) | **fixed** (`9c483579`, lane M's `play/sfgames.css`, surgical) | Lens: at 844×340 the panel ran y 72–594. One rule `@media (max-height: 520px)`: top 8 px, max-height the screen, `overflow-y: auto`, `touch-action: pan-y` (the glass keeps `touch-action: none` for its drag). Live (`run2.mjs`): 844×340 panel 8–332, scrollHeight 515 / 322, scrolled → Grab! at y 221–277; 844×390 Grab! 271–327; 390×844 panel 12–378 × 112–596 as before (`r-krp3-claw-844x340-scrolled.jpg`, read). |
+
+### Own pass (`git log --grep "W8-K[0-9:]"`, 11 commits)
+
+- **Softlocks:** none found. Every hold gate is a "wait" on an unprompted line (pacer ttl, `bubble()`'s 15 s wait behind the
+  Halloween postcard, the pelican's 45 s `MOMENT_WAIT_MS`); nothing the player must do waits on a held line. `noteHoldActivity`
+  is cleared on stop / reset; a replaced run does not clear the new one.
+- **District:** `baybayHeld()` is city-only; the W8-K3 / K10 bubbles branch on `worldMode`. One note: W8-K3 also replaced the
+  `arrived()` line in the district branch, which no district trip reaches (line legs come from the city map / goTo, which
+  refuse the district); the hero regression test is green.
+- **Perf:** `treesNear` (W8-K5) walks a per-chunk grid index with a bounding-box reject, no allocation; the dither branch runs
+  only with `uCanopy.w = 1`. My `placeBubble` addition only measures cover while no free spot has been found.
+- **The live date tonight:** the Halloween season starts 2026-10-01 (`halloween/season.ts seasonFrom`), so W8-K1's
+  "bubble waits behind the Halloween postcard" path is live from midnight; its node tests (`w8-k1-hold`) are green.
+- **Observation (not changed):** the pelican moment, pending at a viewpoint while a held panel is open (the skyline quiz at
+  Coit), still falls back after 45 s to its text-only later-bubble and the 解锁 toast — the W5 design; the bubble is now always
+  readable beside / over the panel.
+- W8-K10's three new lines are recorded (lane X, W8-X7 `8bd916c7`), so the trips' first lines are voiced.
+
+### Open items
+
+- K-RC-3 for wave 9 (a fixed later-line + the key on a toast + its recording).
+- From lane K's own report, unchanged: a parked ride > 250 u away is towed only on return; the canopy dither not played on
+  the Powell–Mason / California lines; W5-A1's play-core budget at 6143 / 6144 B.
+- Lane M (wave 9): a real landscape layout for the seven SF game panels (glass beside the controls) instead of scrolling.
+
+### Blocking the go-live to main
+
+Nothing from lane K.
+
+### Checks
+
+- On `341c2905` (fix 1 rebased onto `8bd916c7`): `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (50 old
+  warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts` **1809 pass / 0 fail / 1 todo** (the
+  W8-P9 GameRoot ≤ 255 KB target, a todo). After the rebases onto the S-review and A-review commits: tsc 0; their test files
+  + mine (`w8-s-fleet`, `w8-s-cards`, `w8-a-ferry`, `w8-a-review`, `w8-k1-hold`, `w8-k4-hold`, `w8-k-review`, `sf-hud`,
+  `sf-tripflow`) 70 / 70. Pushed `3bd844aa`, `9c483579` at 00:37 PDT.
+- No Higgsfield credits (none in this brief). One headless Chrome at a time; dev server 5841 stopped at the end.
