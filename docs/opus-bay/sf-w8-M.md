@@ -284,9 +284,43 @@ held long blast, and ships to bring in.
 ## Requests (lane, all parts)
 
 - **Lane X**: BAYBAY's 44 new fixed lines are in `src/opus-bay/play/sfgames8Lines.ts` — `GRIP_LINES` 20, `BUSK_LINES` 11,
-  `FOG_LINES` 13 (exact zh + en; final since W8-M5, on origin since 21:35 PDT).
+  `FOG_LINES` 13 (exact zh + en; final since W8-M5, on origin since 21:35 PDT). **W8-X5 (batch 3) voiced 38 of them**
+  (checked 22:58 against `data/sf/voiceW8.ts`); **6 still to record** (exact text):
+  `GRIP_LINES.short` 这趟太短啦，下次坐远一点再拉闸！ / That ride was too short! Grip on a longer one next time. ·
+  `BUSK_LINES.closed` 街头艺人下午才来，我们先练练他的曲子吧！ / The busker comes in the afternoon. Let’s practise his tune! ·
+  `FOG_LINES.invite` 南塔的雾笛就在旁边！来玩雾笛对答？ / The south tower’s foghorns are right here! Call and answer? ·
+  `FOG_LINES.ship` 大船从雾里开出来了！ / A big ship is coming out of the fog! ·
+  `FOG_LINES.hold` 南塔的长音要按住哦～ / Hold the south horn for its long blast! ·
+  `FOG_LINES.anchor` 这艘船先抛锚等一等，下一艘！ / This one drops anchor to wait. Next ship!
+  Two clips of batch 3 carry the first agent's older wording and match no bubble now (`w5-a-3e5b9d08` 街头艺人下午才来哦，
+  下午再来！ and `w5-a-4aa60f8a` 南塔的雾笛就在头顶！…): the new wording is kept on purpose (the busker game plays at any
+  hour with BAYBAY; Fort Point is beside the south tower, not under it).
 - **Lane Q**: the ride banner's pad row (`ui/RideBanner.tsx` `PAD_ROW`) could wrap (three pads on a 390 px phone); the
   new overlays `play-grip`, `play-busk`, `play-foghorn` for the iOS-size overlap scans.
 - **W8-I / W8-Z**: the grip on a Powell car (the banner's 拉闸 / Grip it pad), the buskers at Haight St (−36.97, 757.33)
   and 24th St (455.00, 636.47) (`?date=…T14:30` for the guitarists; other hours: BAYBAY's practice), the foghorns at
   Fort Point (−743.71, 590.25).
+
+## Commits and final checks (23:05 PDT)
+
+| commit | what |
+|---|---|
+| W8-M1 | the cable-car grip game (kept the first agent's draft; four unfair judgements fixed red-then-green) |
+| W8-M2 | report part a + 3 shots |
+| W8-M3 | play along with the busker (Haight St tambourine, 24th St maracas; BAYBAY's practice off-hours) |
+| W8-M4 | report part b + 3 shots |
+| W8-M5 | the foghorn lines final for lane X (13) |
+| W8-M6 | the foghorns' call and answer at Fort Point |
+| W8-M7 | no per-frame allocations in the set's hot paths |
+| W8-M8 | report part c, 给主人的摘要 for the three games + 3 shots |
+| W8-M9 | report: the 6 lines lane X has still to voice; these final checks |
+
+- Final checks on `11537357` (W8-M8 on origin; W8-M9 is docs only): `npx tsc -p tsconfig.app.json --noEmit` **0** ·
+  `npx eslint .` **0 errors** (50 old warnings) · `npx tsx --tsconfig tsconfig.app.json --test tests/opus-bay-*.test.ts`
+  **1795 / 1795** (22:56–22:59 PDT). Lane M's own tests: grip 10, busk 6, foghorn 6.
+- Higgsfield: **0 credits** (none granted to this lane). The dev server on 5809 is stopped; no Chrome of this lane is
+  left running.
+- Where a reviewer looks first: the grip on a Powell car from Powell & Market (the phone's pad row, the panel at the
+  bottom, the crossing at California ≈ 30 s in); the busker at 24th St with `?date=2026-09-30T14:30` (the guitarist out)
+  and at Haight St at any other hour (BAYBAY's practice); the foghorns at Fort Point (a wrong horn → the call again; a
+  short south horn → 南塔的长音要按住哦～).
