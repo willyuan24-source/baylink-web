@@ -106,3 +106,20 @@ test('W8-X6 · the Golden Gate towers are floodlit at night: far dots up both fa
   assert.ok(flood.every(l => l.y < GGB.TOP), 'below the tower tops (the red aviation lights are above)');
   assert.match(GGB_TOWER_LIGHT_SOURCE.sourceUrl, /^https:\/\/www\.goldengate\.org\//);
 });
+
+test('W8-X4 · the sky puffs take their edge width from the view direction (its derivative before the city sky\'s branch), not fwidth of the puff distance', async () => {
+  const { CITY_SHADERS } = await import('../src/opus-bay/data/sf/cityShaders');
+  const code = (g: string) => g.split('\n').map(l => l.replace(/\/\/.*$/, '')).join('\n');
+  const puffs = code(CITY_SHADERS.skyPuffs), day = code(CITY_SHADERS.skyCityDay);
+  assert.ok(puffs.includes('vec2 obPuffs(vec3 d, float pix)'));
+  assert.ok(!/fwidth|dFdx|dFdy/.test(puffs), 'no derivative inside the puff loop');
+  const pix = day.indexOf('fwidth(d)');
+  assert.ok(pix >= 0 && pix < day.indexOf('if ('), 'the derivative is taken before the branch');
+  assert.ok(day.includes('obPuffs(d, pix)'));
+  // the sky program in city mode carries both blocks (lane P's slot)
+  const { Environment } = await import('../src/opus-bay/world/environment');
+  const env = new Environment('city');
+  const frag = (env as unknown as { skyMat: { fragmentShader: string } }).skyMat.fragmentShader;
+  assert.ok(frag.includes('obPuffs(d, pix)') && frag.includes('float pix = length(fwidth(d));'));
+  env.dispose();
+});

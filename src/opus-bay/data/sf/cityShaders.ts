@@ -116,7 +116,11 @@ export const CITY_SHADERS = {
   }`,
   skyPuffs: /* glsl */ `// W7-X (city, by day): toy cloud puffs hung on the dome — a row of cells around the horizon, about one in three holds a
 // flat-bottomed cumulus of four round puffs (white top, soft blue-grey belly), drifting slowly east. x = coverage, y = shade
-vec2 obPuffs(vec3 d) {
+// (W8-X4) pix = the view direction's change per pixel, taken by skyCityDay before its branch (uniform control flow): the
+// edge width no longer comes from fwidth() of the puff distance, which jumps across the azimuth seam (due north) and the
+// row boundaries — there a 1-px half-white line could show beside a puff (the W7-X review) — and derivatives inside this
+// loop's non-uniform branches are undefined in GLSL ES 3.00 (§8.9). One azimuth cell ≈ one row ≈ 5 cloud units a radian.
+vec2 obPuffs(vec3 d, float pix) {
   float el = asin(clamp(d.y, -1.0, 1.0));
   float v = (el - 0.07) / 0.2;
   if (v < 0.0 || v > 2.0) return vec2(0.0);
@@ -136,18 +140,19 @@ vec2 obPuffs(vec3 d) {
     float dd = min(min(length(q - vec2(-0.95, -0.05)) - 0.52, length(q - vec2(-0.3, 0.28 + 0.1 * w)) - 0.74),
                    min(length(q - vec2(0.5, 0.12)) - 0.62, length(q - vec2(1.12, -0.08)) - 0.42 - 0.1 * w));
     dd = max(dd, -(q.y + 0.34));
-    float aa = fwidth(dd) + 0.02;
+    float aa = 5.0 * pix / s + 0.02;
     float c = 1.0 - smoothstep(-aa, aa, dd);
     if (c > cov) { cov = c; sh = smoothstep(-0.34, 0.75, q.y); }
   }
   return vec2(cov * smoothstep(0.0, 0.25, v) * 0.96, sh);
 }`,
-  skyCityDay: /* glsl */ `  if (uCityDay > 0.0 && y > 0.0) {
+  skyCityDay: /* glsl */ `  float pix = length(fwidth(d));
+  if (uCityDay > 0.0 && y > 0.0) {
     // W7-X: the city's day sky — the horizon keeps the haze (= the fog, so far blocks settle into it), a pale blue from a
     // few degrees up and a clear toy blue overhead (the district's palette.ts sky is untouched: uCityDay is 0 there)
     vec3 cs = mix(uHorizon, vec3(0.60, 0.75, 0.86), smoothstep(0.0, 0.13, y));
     cs = mix(cs, vec3(0.17, 0.42, 0.74), pow(smoothstep(0.07, 0.8, y), 0.85));
-    vec2 pc = obPuffs(d);
+    vec2 pc = obPuffs(d, pix);
     cs = mix(cs, mix(vec3(0.70, 0.76, 0.84), vec3(0.98, 0.975, 0.96), pc.y), pc.x);
     col = mix(col, cs, uCityDay);
   }`,
