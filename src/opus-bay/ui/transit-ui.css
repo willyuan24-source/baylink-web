@@ -92,6 +92,12 @@
 }
 /* the subway card carries the ride (line, destination, next stop, 直接到站): the RideBanner above it steps aside */
 .ob-overlay:has(.ob-subway.is-on) .ob-topstack > .ob-ride { display: none; }
+/* W8-Q-review (Q-PL-3) · short landscape (844 × 340, 667 × 320): the card (96 px over the bottom, ≈ 211 tall) climbed over the
+   station strip (20–96 px): 4 of 9 names under it at 844 × 340, 6 of 8 at 667 × 320, while the bottom 96 px stayed empty.
+   Under 480 px tall it sits 6 px over the bottom and never reaches above the strip (its facts scroll inside if need be). */
+@media (max-height: 480px) {
+  .ob-subway-card { bottom: calc(6px + var(--ob-sb, 0px)); max-height: calc(100% - 106px - var(--ob-st, 0px) - var(--ob-sb, 0px)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+}
 
 @media (max-width: 420px) {
   .ob-subway-card { bottom: calc(118px + var(--ob-sb, 0px)); padding: 12px 14px; font-size: 13px; }

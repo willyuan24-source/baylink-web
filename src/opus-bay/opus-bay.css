@@ -343,6 +343,13 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   .ob-overlay.has-sheet .ob-context { left: calc((100% - var(--ob-sheet-w, 452px)) / 2); }
   .ob-overlay.has-sheet .ob-toasts { left: calc((100% - var(--ob-sheet-w, 452px)) / 2); }
 }
+/* W8-Q-review (Q-PL-2) · a phone on its side with a side sheet open (the map at 844 × 340): the strip left of the sheet
+   (≈ 290 px) cannot hold the area pill, the objective pill and the HUD column (bottom-anchored, it reaches the top at 340 px):
+   the objective lay over the area pill, the gear over the objective, and BAYBAY's bubble ran off the left edge. Under
+   500 px tall the two pills, the waypoint and the bubble wait under the sheet, as phones' do (≤ 720 px, the bottom sheet). */
+@media (min-width: 721px) and (max-height: 500px) {
+  .ob-overlay.has-sheet :is(.ob-area, .ob-objective, .ob-waypoint, .ob-bubble-anchor) { visibility: hidden; }
+}
 .ob-overlay.is-modal .ob-context, .ob-overlay.is-modal .ob-hud-buttons, .ob-overlay.is-modal .ob-touch-action { display: none; }
 .ob-overlay.is-photo .ob-bubble-anchor, .ob-overlay.is-photo .ob-waypoint { display: none; }
 .ob-overlay.is-modal .ob-bubble-anchor, .ob-overlay.is-modal .ob-waypoint, .ob-overlay.is-modal .ob-coach, .ob-overlay.is-modal .ob-lead-chip { display: none; }
@@ -1360,7 +1367,11 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
    scan found 打开旅行本 under its 不玩了 during the skyline quiz at 667 × 320. There it drops under the pills, as phones'
    chips do (top 118 px under 600 px). */
 @media (min-width: 601px) and (max-width: 1080px) {
-  .ob-overlay .ob-play-flight { top: calc(64px + var(--ob-st)); }
+  .ob-overlay .ob-play-flight { top: calc(72px + var(--ob-st)); }
+  /* W8-Q-review (Q-RC-1): at 64 px the chip lay 3 px over the two-line objective pill (to 67 px) and in the top stack's band
+     (70 px, z 60): a toast covered its name, n/3 and hint. 72 px clears the pill; the top stack starts under the chip
+     (≈ 54 tall), as the phones' rule (185 px) does under 600 px */
+  .ob-overlay:has(.ob-play-flight) .ob-topstack { top: calc(134px + var(--ob-st)); }
 }
 /* … and in short landscape the skyline's names (three rows of 48 + gaps = 160 px, 96 px over the bottom: up to y 64 at
    320 px) would reach the chip: there they sit 12 px over the bottom. !important: the names' box is an inline style
