@@ -507,3 +507,52 @@ test('W8-P7: the district POIs in the city\'s words (names, card-text names, cit
   assert.equal(coit.name.zh, '科伊特塔壁画');
   assert.notEqual(coit.realInfo, DISTRICT_POIS.find(p => p.id === 'coit-murals')!.realInfo, 'the city copy has its own card');
 });
+
+test('W8-P8: wave 8\'s new features land outside GameRoot\'s static graph (lazy chunks): the Alcatraz ferry and island, the grip / busker / foghorn games, Fleet Week, the Chinatown festival, the west sea and Blue Heron Lake, the new corners, BAYBAY\'s wave-8 voice', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  // named as they appeared on origin (sf-w8-P.md part c); a file a lane renamed or dropped is skipped, not failed
+  const W8 = [
+    'world/sf/alcatrazFerry.ts', 'world/sf/alcatrazFerrySystem.ts', 'world/sf/alcatrazLines.ts', 'world/sf/alcatrazWalk.ts',
+    'play/grip.ts', 'play/GripPanel.tsx', 'play/GripPad.tsx', 'play/busk.ts', 'play/BuskPanel.tsx', 'play/buskSounds.ts',
+    'play/sfgames8.ts', 'play/sfgames8Lines.ts', 'play/sfgames8Sounds.ts',
+    'world/sf/fleetWeek.ts', 'world/sf/fleetWeekDay.ts', 'halloween/worldFestival.ts',
+    'world/sf/westSea.ts', 'world/sf/westSeaPose.ts', 'world/sf/westToy.ts', 'world/sf/westLines.ts', 'world/sf/westLake.ts', 'world/sf/westLakePose.ts', 'world/sf/westBoathouse.ts',
+    'world/sf/cornersChinatown.ts', 'world/sf/cornersSights.ts', 'data/sf/voiceW8.ts',
+  ].filter(m => fs.existsSync(path.join(root, m)));
+  assert.ok(W8.length >= 15, `the wave-8 files are where they were (${W8.length})`);
+  assert.deepEqual(W8.filter(m => graph.has(m)).map(why), [], 'a wave-8 feature module in GameRoot\'s static graph: load it lazily (game/importRetry.ts)');
+});
+
+// W8-P9 · GameRoot's first-load size as a static estimate: the esbuild-minified modules only GameRoot's static walk reaches
+// (what OpusBayPage also imports sits in the page's chunks), gzip -9, scaled by one calibration on a production build
+// (sf-w8-P.md part c: vite reported GameRoot 257.79 KB gzip on 8ba22115 + W8-P7, where this estimate read 277.909 KB).
+// The ratio drifts with tree-shaking (≈ ±1 KB): W8-Z's production build is the number of record.
+const GAMEROOT_CAL = 257.79 / 277.909;
+let estimateOnce: Promise<{ kb: number; mods: number }> | null = null;
+const gameRootEstimateKB = () => (estimateOnce ??= estimateGameRoot());
+async function estimateGameRoot(): Promise<{ kb: number; mods: number }> {
+  const { transformSync } = await import('esbuild');
+  const zlib = await import('node:zlib');
+  const root = path.resolve('src/opus-bay');
+  const game = mainGraph(root);
+  const page = mainGraph(root, 'OpusBayPage.tsx');
+  const mods = [...game.keys()].filter(m => !page.has(m)).sort();
+  let code = '';
+  for (const m of mods) {
+    const ext = path.extname(m).slice(1);
+    code += transformSync(fs.readFileSync(path.join(root, m), 'utf8'), { loader: ext === 'tsx' ? 'tsx' : ext === 'json' ? 'json' : 'ts', minify: true, jsx: 'automatic', format: 'esm', define: { 'import.meta.env': '{"DEV":false,"PROD":true}' } }).code;
+  }
+  return { kb: (zlib.gzipSync(code, { level: 9 }).length / 1000) * GAMEROOT_CAL, mods: mods.length };
+}
+
+test('W8-P9: GameRoot\'s chunk does not grow past 258.5 KB gzip (static estimate) — the wave-8 tree is at ≈ 257.8; the 255 KB target is the next test (todo)', async () => {
+  const { kb, mods } = await gameRootEstimateKB();
+  assert.ok(kb <= 258.5, `GameRoot ≈ ${kb.toFixed(1)} KB gzip (${mods} modules) — over the first-load guard. Code only the city or only play needs belongs behind the city chunk (world/cityLoader.ts, data/sf/cityDataChunk.ts) or a lazy import through game/importRetry.ts, not in GameRoot's static graph (sf-w8-P.md, sf-w7-P.md)`);
+});
+
+test('W8-P9: GameRoot ≤ 255 KB gzip (static estimate) — the wave-8 target, not met on the final wave-8 tree (sf-w8-P.md Requests)', { todo: 'GameRoot ≈ 257.8 KB on 8ba22115 + W8-P7: lanes added ≈ 1.9 KB and the reload card 0.9 KB after part a reached 255.87' }, async () => {
+  const { kb } = await gameRootEstimateKB();
+  assert.ok(kb <= 255, `GameRoot ≈ ${kb.toFixed(1)} KB gzip`);
+});

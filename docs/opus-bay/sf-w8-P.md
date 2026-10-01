@@ -7,10 +7,11 @@ lost discovery chunk; a lost shared chunk dependency; wave 8's new chunks outsid
 
 ## 给主人的摘要
 
-1. 游戏首屏主包（GameRoot，压缩后）从 **262.00 KB 降到 255.87 KB**（中途其他线又往里加了约 0.9 KB，按同一棵树算一共挪走约 7 KB）。挪走的都是“只有城市才用得到”或“按开始以后才用得到”的东西：城市专用的着色器（天空云朵、唐人街外墙、夜间街灯光带）、24 张地标卡片的表格、缆车线路的搭建代码、8 张街区明信片的文字。
+1. 游戏首屏主包（GameRoot，压缩后）：我这条线挪走了约 7.5 KB——城市专用的着色器、24 张地标卡片的表格、缆车线路的搭建代码、8 张街区明信片的文字、街区景点的“城市叫法”。在当时的树上从 **262.00 降到 255.87 KB**；但今晚其他线新加的内容（渡轮、电车、特效等约 1.9 KB）和我加的“重新载入”小卡片（0.9 KB）之后，最终树上是 **257.79 KB，没有达到 255 的目标**。已加一个自动检查：以后谁让主包超过 258.5 KB 测试就会报错；下一步还能挪的东西列在报告里。
 2. 行为不变：城市和街区都实际玩过——地标卡片、缆车站名、明信片标题都和以前一样；城市画面的着色器逐字节不变，街区本来就用不到被挪走的部分。
-3. 手机信号一抖不再让某个功能整局失效：所有按需下载的小包（约 180 处：面板、小游戏、城市分块、万圣节、彩蛋……）都会自动重试；同一个包丢了只重下一次、不会出现两份。真的下不来时（断网、刚好在更新网站），会弹出“有一部分没加载好 · 重新载入 / 先继续玩”的小卡片（进度先存好）。已在 Chrome 里实测：断掉一个小游戏包会弹卡片；短暂断网 1.7 秒后自动恢复。
-4. “继续旅程”不再因为丢包在到达画面干等最多 12 秒：最多等 0.6 秒就开始玩。
+3. 今晚新加的功能（恶魔岛渡轮、三个小游戏、舰队周、唐人街节庆、西边海浪和湖、新街角、新配音）全部是按需下载，不在首屏主包里（有测试点名）。
+4. 手机信号一抖不再让某个功能整局失效：所有按需下载的小包（约 180 处：面板、小游戏、城市分块、万圣节、彩蛋……）都会自动重试；同一个包丢了只重下一次、不会出现两份。真的下不来时（断网、刚好在更新网站），会弹出“有一部分没加载好 · 重新载入 / 先继续玩”的小卡片（进度先存好）。已在 Chrome 里实测：断掉一个小游戏包会弹卡片；短暂断网 1.7 秒后自动恢复。
+5. “继续旅程”不再因为丢包在到达画面干等最多 12 秒：最多等 0.6 秒就开始玩。
 
 ## Measuring
 
@@ -186,3 +187,109 @@ Started 21:40 PDT (`date`), on origin `7d416d42`.
    that must not wait (the resume) was changed in behaviour.
 2. **The card once per page, in every phase.** A second lost chunk does not show it again (the player chose); at the
    title the play layer's own one reload still applies.
+
+## Part c · W8-P7 – P9 one more move, wave 8's chunks named, a size guard
+
+Started 23:02 PDT (`date`), on origin `8ba22115` (every lane's wave-8 code in).
+
+### What was built
+
+- **W8-P7 · the district POIs in the city's words with the city data chunk.** `CITY_DISTRICT_POI_NAMES`,
+  `CITY_DISTRICT_TEXT_NAMES`, `cityDistrictZh`, `cityDistrictPoi` moved verbatim from `data/sf/cityPois.ts` into
+  `data/sf/cityPoisData.ts`; the slot keeps the names. `data/pois.ts` builds `CITY_DISTRICT_POIS` with `cityDistrictPoi`
+  in both modes but only the city reads it; in district mode the copy is the POI as written with its own `realInfo`
+  object (`fillPoiTexts` writes into it), `cityDistrictZh` the identity.
+- **W8-P8 · wave 8's new features are lazy.** Every module the lanes added tonight is outside GameRoot's static graph:
+  the Alcatraz ferry and island (`world/sf/alcatraz{Ferry,FerrySystem,Lines,Walk}.ts`), the three games
+  (`play/{grip,GripPanel,GripPad,busk,BuskPanel,buskSounds,sfgames8,sfgames8Lines,sfgames8Sounds}`; the foghorn's own
+  files load through `sfgames8.ts`), Fleet Week (`world/sf/fleetWeek{,Day}.ts`), the Chinatown festival
+  (`halloween/worldFestival.ts`), the west (`world/sf/west{Sea,SeaPose,Toy,Lines,Lake,LakePose,Boathouse}.ts`), the
+  corners (`world/sf/corners{Chinatown,Sights}.ts`) and BAYBAY's wave-8 voice (`data/sf/voiceW8.ts`): a test names them.
+  Into GameRoot this wave went only `game/baybayHold.ts`, `game/fixedLines.ts` (lane K: BAYBAY's hold and her fixed
+  lines, read every frame), `game/chunkLost.ts` (the card, on purpose) and `world/cityShaderSlot.ts` (0.1 KB) — plus the
+  lanes' growth inside existing modules (below).
+- **W8-P9 · a size guard.** `tests/opus-bay-sf-budget.test.ts` estimates GameRoot's chunk statically (esbuild-minified
+  modules only GameRoot's walk reaches, gzip, one calibration on the production build: 257.79 / 277.909) — about 40 s in
+  the suite. It fails when GameRoot would pass **258.5 KB**, with the fix in the message; the **255 KB** target is a
+  `todo` test (reported, not failing) because the final tree is over it.
+
+### Evidence
+
+| GameRoot (gzip, vite) | KB |
+|---|---|
+| day 0 `889cc614` | 262.00 |
+| part a on `64cdf803` (P1 – P4) | **255.87** |
+| the lanes' wave-8 growth since, in GameRoot's own modules (gzip of parts): `data/ferry.ts` +0.45 (A), `world/streetcar.ts` +0.38, `game/transit.ts` +0.30, `game/cityContent.ts` +0.26, `world/fx.ts` +0.21 (X), `game/fixedLines.ts` +0.11 (K) … | ≈ +1.9 |
+| part b: the reload card `game/chunkLost.ts` +0.88; `importRetry` left GameRoot for the page's chunk −0.68 (OpusBayPage imports it now) | ≈ +0.2 |
+| **final tree `8ba22115` + W8-P7** (production build, own outDir, `public/` unchanged) | **257.79** |
+
+Chunks on that build: cityDataChunk 11.63 (city only) · playParts 17.52 · transitBuild 2.11 · postcardTexts 2.02.
+
+### Known gaps
+
+- **GameRoot is 257.79 KB, not ≤ 255**, on the final wave-8 tree: part a reached 255.87 on its tree, the lanes' own
+  wave-8 growth (+1.9) and the reload card (+0.9) came after. The guard stops further growth at 258.5; the 255 test is
+  a `todo`.
+- The budget estimate is approximate (tree-shaking differs from rollup's): W8-Z's production build is the number of
+  record.
+- Firefox / Safari not run (no such browsers here); their failure messages are unit-tested from their formats (W7).
+- The card's 简体 / 繁體 words were checked in the test (not on a screenshot: headless Chrome here ran in English).
+
+## Not done
+
+- GameRoot ≤ 255 on the final tree (above). Candidates for the next wave, measured: the Golden Gate fog wisps in
+  `world/fx.ts` (city only, ≈ 0.4 KB), the city gull / open-deck ferry in `world/life.ts` (≈ 0.4), the POI link tables
+  in `data/pois.ts` (read only by the card body, ≈ 0.8), the district subject facts (≈ 0.4), `data/ferry.ts`'s line
+  builder (only `world/ferry.ts` uses it, ≈ 0.6), `game/transit.ts`'s ride-UI helpers used only by lazy chunks.
+- `game/w5Features.ts`'s five feature imports (economy, play, eggs, realsf, halloween) still load without a retry: the
+  file is frozen (Requests 1).
+
+## Requests
+
+1. **Lead (frozen `game/w5Features.ts`):** wrap its five `import('../<feature>/index')` loaders as
+   `importRetry(() => import('../<feature>/index'))` with `import { importRetry } from './importRetry';` — a lost feature
+   chunk then retries and shows the reload card instead of the feature missing for the visit.
+2. **Lead / W8-Z:** read GameRoot on the final build (257.79 KB here on `8ba22115` + W8-P7); decide whether 255 stays the
+   target for wave 9 (the Not done list is the way there) or the guard's 258.5 becomes the line.
+3. **Every lane (wave 9):** a new lazy import is `importRetry(() => import('./x'))` (the W8-P5 scan test says so); city-only
+   or play-only code goes behind the city chunk / a lazy import — the W8-P9 guard fails above 258.5 KB.
+
+## Rebase notes
+
+- W8-P5's rebase onto `d3114585` conflicted in lane M's `play/sfgames8.ts` (M's busker lines beside the wrapped grip
+  lines): resolved by taking origin's file and re-running the codemod on it (and on lane W1's new
+  `world/sf/cornersSights.ts`); W8-P5b wrapped M's four foghorn imports that landed after.
+
+## Commits
+
+| commit (on origin) | what |
+|---|---|
+| `79326be9` W8-P1 | the city-only GLSL of the materials and the sky into the city data chunk |
+| `47305f17` W8-P2 (as pushed in `2713ebf0`'s series) | the landmark cards' tables into the city data chunk |
+| W8-P3 | the cable-car network builder a lazy chunk |
+| W8-P4 (`2713ebf0`) | the district postcards' words with the play layer; report part a |
+| W8-P5 | every lazy import through importRetry (one instance per lost chunk), the reload card |
+| W8-P6 | the resume no longer waits on a lost discovery chunk; report part b |
+| W8-P5b (`5125566b` series) | lane M's four foghorn imports through importRetry |
+| W8-P7 | the district POIs in the city's words into the city data chunk |
+| W8-P8 | wave 8's new chunks named outside GameRoot; the size guard (258.5) and the 255 todo; report part c |
+
+(Rebased several times over other lanes' commits; the ids in the final answer are the ones on origin.)
+
+## Final checks
+
+On the lane tree (origin `8ba22115` + W8-P7 / P8): `tsc` 0 · `eslint .` 0 errors (50 old warnings) · opus-bay suite
+**1804 / 1804** (+ 1 todo: the 255 KB target), 23:27 PDT. Production builds to `C:/Users/willy/opus-qa/w8/p/dist-*`
+(no PERF-LOCK seen at any build; `public/*.json` unchanged every time). Dev server on 5803 stopped at the end; one
+headless Chrome at a time; no Higgsfield spend.
+
+## Where a reviewer should look first
+
+1. `src/opus-bay/game/importRetry.ts` (the shared per-URL table, the listeners) and `game/chunkLost.ts` + its call in
+   `game/GameRoot.tsx`; the 180 wrapped sites are mechanical (the scan test lists any bare one).
+2. `src/opus-bay/OpusBayPage.tsx` line 14: the page's `GameRoot` chunk now loads through importRetry (it had no retry).
+3. The in-place fills: `data/postcards.ts` `fillPostcardTexts` via `data/scriptLoad.ts`; the slots `data/sf/cityPois.ts`
+   and `world/cityShaderSlot.ts` (their district fallbacks).
+4. `data/transit.ts`'s node-only top-level `await` (bindBuilder) and `data/transitBuild.ts`'s type-only imports.
+5. Play: a city resume (继续旅程) with the discovery chunk blocked (it no longer waits); a blocked panel chunk on a phone
+   (the card); the district's first minute (unchanged).
