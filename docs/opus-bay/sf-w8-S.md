@@ -336,5 +336,56 @@ by design — the shots look like late afternoon whatever the hour):
   path within 30 u of them (the old path measured 226 u with the same metric, scratch `alca.mts`); `paradeWatchState` 'soon' 06:00–10:59, 'on'
   11:00–11:59, null after 12:00 and on other days. The water / shore / bridge / timing tests still pass on the new path
   (also `pathcheck.mts`: no shore within 25 u off the Golden Gate's deck).
-- `npx tsc` 0 · `npx eslint` of the touched files 0 (the full checks before the push: below the commit).
+- The full checks on the part-d tree (rebased on `1d5b00ab` + lanes P, H, W1, A, M): `npx tsc` 0 · `npx eslint .` 0 errors
+  (50 old warnings) · the opus-bay suite **1744 / 1745** — the one failure `E2-5 view field in the city … cached per 16 u
+  cell` (`tests/opus-bay-sf-move2.test.ts`, a wall-clock assertion, 5.7 s under the machine's load) passes alone
+  (24 / 24). After the last rebases (lanes M, K, H): `tsc` 0, the incoming files' tests (`w8-a-ferry` — lane A's W8-A3
+  now holds its boat in the slip during the parade hour, reading `fleetWeekDay.ts` — `w8-m-*`, `w8-h-bow`,
+  `w8-k5-canopy`, `w5-shop`) and lane S's: green. Pushed `b36b5906`.
+- Looked at from Pier 39's sea-lion viewpoint at 11:34 (phone): Pier 39's own sheds hide the line (two mast tips over the
+  roofs) — the parade is watched from Marina Green, Aquatic Park, Fort Mason or the Embarcadero, as in real life.
+
+## Wrap-up (≈ 22:15 PDT)
+
+### Commits on `origin/opus-bay`
+
+| commit | what |
+|---|---|
+| `987a8780` W8-S1 | re-sync after GPT's day-0 commits: catalog / offers / openings unchanged (guards hold); `live.json` seniors' English source + the Bay-date stamp; the Blue Angels calendar row; `jets-blue` at Marina Green too; `setWatchOverride`; no outings link (test) |
+| `ec790ebc` W8-S2 | Fleet Week's Parade of Ships (toy fireboat + six grey ships, 9 Oct 11:00–12:00, a lazy chunk, 2 calls), its four fixed lines, the photo stamp |
+| `1d5b00ab` W8-S3 | 50 place cards gain hours and / or a price (official pages, 2026-09-30) |
+| `b36b5906` W8-S4 | the parade clear of the Alcatraz ferry's lanes, its morning prompt, the `fog.ts` comment, the live-dates table |
+
+### The site after day 0
+
+GPT pushed two more commits to `main` after the day-0 merge (`263bfc43` "Connect BayBay outing search with weekly plans
+and verified calendars", `25ab971a` "Make BayBay followups clearer and protect planner recovery"; 27 files). They touch
+no catalog, offers, openings, guides or routes (`public/planner-catalog.json`, `src/data/october-offers.ts`,
+`src/data/local-discoveries.ts`, `src/data/september-openings.ts`, `vercel.json` unchanged): when the lead merges
+`main` at go-live, lane S's guards (venues, souvenirs, openings, `live.json`, links) should stay green; `/my-week` (which
+the game opens) gains the outings list — still the SPA.
+
+### Not done
+
+- The Belvedere pill and `cable:powell-geary` (decided and recorded in part d: other lanes' files).
+- 8 short cards without hours / price (reasons in part c).
+- No collider between the parade and other boats: lane A's ferry now waits in its slip during the parade hour
+  (W8-A3); the harbour ferry's loop is ≥ 55 u away.
+
+### Requests (exact)
+
+- **Lane K** (camera, `actors/camera.ts`): photo mode at Marina Green's seawall keeps the camera lifted (rig pitch 0.04,
+  `camera.rotation.x` ≈ −0.43) — horizon subjects (the parade, the jets) sit at the frame's top edge (part b).
+- **The site's editors (via the owner / GPT)**: `sfmta-free-muni-seniors.sourceUrl` → the English page (part a); the
+  Chinatown Halloween Festival in the catalog (lane H built the world's festival from the calendar row, W8-H6).
+- **Lane X**: the four parade lines (part b table), voice ids `realsf-parade-day / -now / -near / -photo`.
+
+### For the reviewers: look here first
+
+1. `?world=city&start=free&date=2026-10-09T11:20`, Marina Green (`fastTravel.placePlayer({x:-377.5,z:287.5})`): the line,
+   the E prompt 拍舰船巡游, the photo stamp; `?date=2026-10-09T09:00` the morning prompt; phone 390 × 844.
+2. `world/sf/fleetWeek.ts` (per-frame `place()`, the build / drop, `off()`), `realsf/index.ts` (the lazy load and the line
+   order), `realsf/jets.ts setWatchOverride`.
+3. The cards' facts (part c table): spot-check the park code, the GGNRA hours page, the Aquarium's prices.
+4. `scripts/opus-sf/export-live.ts`'s `sourceEn` guard and `live.json`.
 
