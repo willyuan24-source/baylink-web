@@ -1142,7 +1142,7 @@ reserve (up to 1800) is untouched; the game lanes' floor stays 1900 until the pr
 
 ## Wave 8 (local)
 
-Merged verbatim from `docs/opus-bay/ledger/w8-X.md` at the wave-8 hand-off (2026-10-01 ≈ 05:10 PDT). Lanes W1 and W2 (caps 40 / 60) generated nothing and kept no ledger; no other lane, lens, fixer, W8-I, W8-C or W8-Z spent credits (the workflow journal's `higgsfield_spent` is 0 for every lane but X; `transactions` shows no charge after lane X's last take). The owner's rule this wave: all of the remaining credits usable (363.44 at day 0); lane X ≤ 240, W2 ≤ 60, W1 ≤ 40; the shared balance never under 20 (`sf-w8-lead.md` §6). Spent **5.44** (lane X, all Qwen Audio 3.0 TTS Flash: batch 1 1.92, batch 2 0.34, batch 3 2.08, batch 4 0.99, batch 5 0.11); balance 363.44 → **357.27**; 0.73 of other TTS on the shared account in the same hours is claimed by no lane (below). Whole-SF round: 422.81 (waves 1–7) + 5.44 = **428.25 credits**.
+Merged verbatim from `docs/opus-bay/ledger/w8-X.md` at the wave-8 hand-off (2026-10-01 ≈ 05:10 PDT). Lanes W1 and W2 (caps 40 / 60) generated nothing and kept no ledger; no other lane reported a spend (the workflow journal's `higgsfield_spent` is 0 for every lane but X), and `transactions` shows no charge after lane X's last take (23:02 PDT), so the fixers, W8-I, the critic, W8-C and W8-Z spent nothing. The 0.73 of other TTS in the lanes' hours (below) carries no job id: who spent it is not known. The owner's rule this wave: all of the remaining credits usable (363.44 at day 0); lane X ≤ 240, W2 ≤ 60, W1 ≤ 40; the shared balance never under 20 (`sf-w8-lead.md` §6). Spent **5.44** (lane X, all Qwen Audio 3.0 TTS Flash: batch 1 1.92, batch 2 0.34, batch 3 2.08, batch 4 0.99, batch 5 0.11); balance 363.44 → **357.27**; 0.73 of other TTS on the shared account in the same hours is claimed by no lane (below). Whole-SF round: 422.81 (waves 1–7) + 5.44 = **428.25 credits**.
 
 ### Wave 8 · lane X (from docs/opus-bay/ledger/w8-X.md)
 
@@ -1706,7 +1706,7 @@ and 05:44 UTC, not this lane's).
 
 | step | charges (`transactions`, UTC) | credits | balance after |
 |---|---|---|---|
-| wave 7 end (above) | — | — | 2213.87 (`balance` 2026-09-30 ≈ 10:30) |
+| wave 7 end (above) | — | — | 2213.87 (`balance` 2026-09-30 ≈ 10:30 UTC) |
 | other work on the shared account between the waves (not Opus Bay) | the newest of these rows: Seed Audio 1.0 (2026-09-30 23:09:33.050–23:12:51.425), GPT Image 2.5 Flare −2.75 × 4 (23:18:34.998–23:18:35.611), Qwen Audio 3.0 TTS Flash × 9 (23:20:37.386–23:20:38.266), Seedance 2.5 −35, −35, −28, −28 (23:20:53.026–23:21:08.576); not summed row by row here | 1850.43 (by the two balances) | 363.44 (`balance` 2026-10-01 01:42, the lead's day 0 = 18:42 PDT) |
 | wave 8 · X batch 1 (W8X-VO1, VO2) | Qwen Audio 3.0 TTS Flash spends and the failed jobs' refunds (02:01:16.171–02:18:57.990) | 1.92 | 361.52 (`balance` 19:22 / 19:26 PDT) |
 | TTS on the shared account claimed by no lane | 30 spends, 2 refunds (02:29:39.999–02:35:01.100) | 0.67 | 360.85 (`balance` 20:27 PDT) |
@@ -1721,7 +1721,7 @@ account is 2026-10-01 06:02:31.718 UTC (lane X's batch 5, 23:02 PDT): nothing wa
 from 02:01:16.171 to 06:02:31.718 UTC are all "Qwen Audio 3.0 TTS Flash"; the row before them is "Seedance 2.5" −28 at
 2026-09-30 23:21:08.576 UTC, before the day-0 reading. Lane X's ledger attributes its five batches by job id and time; the
 0.67 of 02:29–02:35 UTC (19:29–19:35 PDT, after lane X's first agent had stopped and before its resumed agent's first
-batch) was re-summed row by row here (30 spends 0.71, 2 refunds 0.04). Sum check: 363.44 − 357.27 = **6.17** = 1.92 +
+batch) was re-summed row by row here, twice (30 spends 0.71, 2 refunds 0.04; 0-based offsets 341–372 of the newest-first listing). Sum check: 363.44 − 357.27 = **6.17** = 1.92 +
 0.67 + 0.34 + 2.08 + 0.99 + 0.06 + 0.11.
 
-**Wave 8 total: 5.44 credits** for Opus Bay (lane X, all voice) — far under every limit. Balance **357.27**.
+**Wave 8 total: 5.44 credits** recorded for Opus Bay (lane X, all voice) — far under every limit; 0.73 more TTS on the shared account in the same hours is claimed by no one. Balance **357.27** (read again ≈ 05:30 PDT: unchanged; newest charge still 06:02:31.718 UTC).

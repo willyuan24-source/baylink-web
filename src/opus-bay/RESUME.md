@@ -1,17 +1,18 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
-## WAVE 8 DONE · LIVE ON baylink.us — 2026-10-01 (≈ 05:15 PDT)
+## WAVE 8 DONE · main FAST-FORWARDED — 2026-10-01 05:17 PDT (the deploy to baylink.us to be confirmed by the owner)
 
 - **State.** W8-Z said **GO** on `8e3e8e72` (04:52 PDT). At the go-live the lead merged `origin/main` (**W8-0g** `0d9093f5`:
   GPT's six site commits `263bfc43`, `25ab971a`, `b7b82ff4`, `2d9d9da9`, `f5b059ca`, `652a9975`), mapped the 7 Oct SF Zoo
   resident free day (**W8-0s** `a1cc3f60`: `scripts/opus-sf/export-live.ts` SPECS, `live.json` 15 SF offers), ran
   the full `npm run check` on that tree (red on one test, W5-R7: 15 SF offers ≠ 14), made the test follow the zoo row
   (**W8-0t** `90c6859e`), ran the check again (EXIT 0) and fast-forwarded `main` to **`90c6859e`** (= `opus-bay` before this
-  hand-off) at ≈ 05:15 PDT (`origin/main` read `90c6859e` at 05:17). `origin/opus-bay` = that + this hand-off commit
+  hand-off; it contains `a1cc3f60`) at 05:17:36 PDT (the remote-tracking reflog; `origin/opus-bay` went 8e3e8e72 →
+  `90c6859e` at 05:17:34). `origin/opus-bay` = that + this hand-off commit
   (docs only: `docs/opus-bay/sf-w8-summary.md`, the wave-8 ledger merged into `src/opus-bay/ASSETS-LEDGER.md` § "Wave 8 (local)", this section). **The deploy is to be confirmed
   by the owner**: the lead's curl of the live site is refused by a permission check; the owner opens
   https://www.baylink.us/opus-bay?start=free&at=xz:-94,-21.8 (Pier 33 · Alcatraz Landing with the ferry prompt = wave 8 is
-  live). The Halloween season runs by the Bay date since 1 Oct 00:00.
+  live). The Halloween season runs by the Bay date since 1 Oct (tests and local play; nobody has seen it on the live site).
 - Read, in order: this section → `docs/opus-bay/sf-w8-summary.md` (给主人的摘要, the ten lanes, the review in numbers,
   W8-Z's numbers, Higgsfield, **§6 NEXT**) → `docs/opus-bay/sf-w8-final-verify.md` (W8-Z) →
   `docs/opus-bay/sf-w8-integration.md` (W8-I and `## Completeness pass` = W8-C) → the lane reports `sf-w8-<ID>.md` (each
@@ -29,13 +30,16 @@
   (`game/chunkLost.ts`) and `game/lazyChunk.ts`; GameRoot **258.04 KB**.
 - **Checks at W8-Z** (`ca25fc7b` + W8-Z's docs): `npm run check` **EXIT 0** — eslint 0 errors (50 warnings), **2845 tests,
   2844 pass, 0 fail, 1 todo**, build, prerender 566, share cards 541 (the first fully green check since wave 6) · tsc 0 ·
-  opus-bay **1871 tests, 0 fail, 1 todo** (W8-P9's 255 KB target) · perf desktop all 60.1 fps, max 126 calls / 387k (on
-  board the Alcatraz ferry) · phone 4× 0 frames > 100 ms in every measured window, every spot ≥ 45 fps after paired W7 /
+  opus-bay **1871 tests, 0 fail, 1 todo** (W8-P9's 255 KB target) · perf desktop all 60.1 fps, max 126 calls (Chinatown) / 387k triangles
+  (on board the Alcatraz ferry) · phone 4× 0 frames > 100 ms in every measured window, every spot ≥ 45 fps after paired W7 /
   W8 runs · sweep 699 targets 0 boxed / 0 snag / 0 unreachable / 0 off · production CSP 0 / 0 of 1789 · district 71 /
-  225,070 / 262 (unchanged) · English 56 screens 0 Chinese, 繁體 55 screens 0 Simplified-only. **The go-live tree** `90c6859e`: `npm run check` EXIT 0 — eslint 0 errors (50 warnings),
-  2933 tests (2932 pass, 0 fail, 1 todo), build, prerender 589, share cards 564 (`C:/Users/willy/opus-qa/w8/golive-check3.txt`).
-- **Higgsfield:** wave 8 spent **5.44** (lane X, all TTS; no other lane spent); `balance` 363.44 (day 0) → 361.52 (19:22)
-  → **357.27** (04:58 and ≈ 05:00 PDT, read only); 0.73 of other TTS on the shared account is claimed by no lane. The
+  225,070 / 262 (unchanged) · English 56 screens 0 Chinese, 繁體 55 screens 0 Simplified-only. **The go-live tree** `90c6859e`: `npm run check` EXIT 0 (05:06:38–05:17:11, started six seconds after W8-0t's
+  commit) — eslint 0 errors (50 warnings), 2933 tests (2932 pass, 0 fail, 1 todo), build (GameRoot 258.03 KB gzip),
+  prerender 589, share cards 564 (`C:/Users/willy/opus-qa/w8/golive-check3.txt`).
+- **Higgsfield:** wave 8 recorded **5.44** (lane X, all TTS; no other lane reported a spend, and nothing was charged
+  after lane X's last take at 23:02 PDT); `balance` 363.44 (day 0) → 361.52 (19:22) → **357.27** (04:58, ≈ 05:00 and
+  ≈ 05:30 PDT, read only); the other 0.73 (TTS at 19:29–19:35 and 22:44 PDT, while the lanes ran) is claimed by no one —
+  the rows carry no job id. The
   promo videos are done (766.43 of the 1800 the owner reserved, `C:/Users/willy/baylink-promo`); the owner's last rule
   (wave 8): all of the remaining credits usable, read `balance` before every batch (the account is shared).
 - **Workflow run:** `wf_66c65596-f6a`, one Ultra workflow of 47 agents, 19:24 → 04:53 PDT; script
@@ -43,11 +47,13 @@
   journal (every agent's structured result)
   `C:/Users/willy/.claude/projects/C--Users-willy-baylink-opus/f0bf32bb-00df-4c15-bf61-df7e5e6b5e50/subagents/workflows/wf_66c65596-f6a/journal.jsonl`
   with each agent's transcript beside it. Finished; a run cannot be resumed across sessions.
-- **Worktrees kept** `C:/Users/willy/wt/w8-{k,q,p,a,h,s,w1,w2,m,x}` and `wt/w8-handoff` (branches `w8-*`, pushed; every
+- **Worktrees kept** `C:/Users/willy/wt/w8-{k,q,p,a,h,s,w1,w2,m,x}` (branches `w8-*`, pushed; `wt/w8-handoff` is removed
+  after its push; every
   `node_modules` is a **junction** — remove with `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` first, check it is
   gone, then `git worktree remove <path>`, never `--force`). The lenses', fixers', W8-I's, the critic's, W8-C's and W8-Z's
   worktrees are removed, but 46 `w8-*` admin folders sit in `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/`
-  (11 of them the kept worktrees): `git worktree prune` with OneDrive paused. Scratch `C:/Users/willy/opus-qa/w8/` (lanes
+  (counted ≈ 05:30: 11 for the kept worktrees incl. the hand-off's; the 35 stale ones have no `gitdir` file): `git
+  worktree prune` with OneDrive paused. Scratch `C:/Users/willy/opus-qa/w8/` (lanes
   `<id>/`, lenses `<id>-rc/` `<id>-rp/`, fixers `<id>-rev/`, `int*/`, `critic/`, `cfix/`, `final/`, the go-live check
   logs `golive-check*.txt`). The lead's checkout `C:/Users/willy/baylink-opus` is on `opus-bay`. The LAN phone package
   `C:/Users/willy/opus-qa/dist-phone` was rebuilt by W8-Z at 04:46 from its tree (before the go-live merge); start the
@@ -89,11 +95,11 @@
   the owner-side P0 first (confirm the deploy, the real iPhone pass, the listening sheets, the site items to GPT). Then
   launch wave 9 like wave 8 (day 0 = merge `origin/main` once if GPT pushed and re-sync the world with the site, a plan
   with a default for every question, lanes in parts, the workflow shape of rule 1 when the owner says Ultra, a final
-  verify alone with PERF-LOCK, fast-forward `main` on GO, the hand-off). Time-bound first: the parade photo framing before
-  9 Oct, the branch-library events before 17 / 24 Oct, Waverly Place's parked car before 31 Oct. Higgsfield: read
+  verify alone with PERF-LOCK, fast-forward `main` on GO, the hand-off). Time-bound first: the four branch-library events
+  before 7 / 8 / 17 / 24 Oct, the parade photo framing before 9 Oct, Waverly Place's parked car before 31 Oct. Higgsfield: read
   `balance` first.
 
-## NEXT SESSION → WAVE 8 — done: wave 8 ran 2026-09-30 19:00 → 10-01 04:53 PDT; its list and the owner's to-dos are carried into the section above and `docs/opus-bay/sf-w8-summary.md` §6.
+## NEXT SESSION → WAVE 8 — done: wave 8 ran 2026-09-30 19:00 → 10-01 04:53 PDT (W8-Z's GO; `main` fast-forwarded 05:17); its list and the owner's to-dos are carried into the section above and `docs/opus-bay/sf-w8-summary.md` §6.
 
 ## WAVE 7 DONE · LIVE ON baylink.us — 2026-09-30 03:25 PDT
 

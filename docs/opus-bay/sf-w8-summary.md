@@ -1,33 +1,37 @@
 # Wave 8 · summary and hand-off
 
-Written 2026-10-01 ≈ 05:05 PDT by the hand-off agent in `C:/Users/willy/wt/w8-handoff`. Sources: the plan / lead note
+Written 2026-10-01 05:05–05:19 PDT by the hand-off agent in `C:/Users/willy/wt/w8-handoff`, then fact-checked against the
+same sources (≈ 05:20–05:50 PDT). Sources: the plan / lead note
 `sf-w8-lead.md` (incl. §7, the switch to one Ultra workflow), the ten lane reports `sf-w8-{K,Q,P,A,H,S,W1,W2,M,X}.md` (each
 with its `## Review (Ultra)`), `sf-w8-integration.md` (W8-I and `## Completeness pass`, W8-C), `sf-w8-final-verify.md`
 (W8-Z), the ledger `ledger/w8-X.md`, the workflow journal of run `wf_66c65596-f6a` (47 agents: every lane, lens, fixer,
 W8-I lens and fixer, the critic, W8-C and W8-Z, with their structured results; start / end times from the agents'
 transcripts beside it), `git log 889cc614..90c6859e`, the lead's go-live check logs
-`C:/Users/willy/opus-qa/w8/golive-check{,2,3}.txt`, and Higgsfield's `balance` / `transactions` (read only, 2026-10-01
-≈ 05:00 PDT).
+`C:/Users/willy/opus-qa/w8/golive-check{,2,3}.txt` (with their file times), the remote-tracking reflogs of `origin/main` /
+`origin/opus-bay`, and Higgsfield's `balance` / `transactions` (read only, 2026-10-01 ≈ 05:00 and again ≈ 05:30 PDT).
 
-**Go-live:** on W8-Z's GO (`8e3e8e72`, 04:52 PDT) the lead merged `origin/main` (**W8-0g** `0d9093f5`, GPT's six site
-commits), mapped the 7 Oct SF Zoo resident free day (**W8-0s** `a1cc3f60`: `live.json` re-exported, 15 SF offers), ran the
-full `npm run check` on that tree — red on one test, W5-R7 counting the SF offers (15 ≠ 14) — made the test follow the zoo
-row (**W8-0t** `90c6859e`), ran the check again (**EXIT 0**: eslint 0 errors, 2933 tests, 2932 pass, 0 fail, 1 todo;
-prerender 589 pages; 564 share cards verified) and fast-forwarded `main` to **`90c6859e`** (= `opus-bay` before this
-hand-off) at ≈ 05:15 PDT (`origin/main` read `90c6859e` at 05:17). **The deploy is to be confirmed by the owner**: the
-lead's curl of the live site is refused by a permission check.
+**Go-live:** on W8-Z's GO (`8e3e8e72`, 04:52 PDT) the lead merged `origin/main` (**W8-0g** `0d9093f5`, 04:54, GPT's six
+site commits), mapped the 7 Oct SF Zoo resident free day (**W8-0s** `a1cc3f60`, 04:55: `live.json` re-exported, 15 SF
+offers), ran the full `npm run check` on that tree — the first run (04:55–04:57) stopped on lint (the lead's untracked
+`.claude/*.js`), the second (04:57–05:06) was red on one test, W5-R7 counting the SF offers (15 ≠ 14) — made the test
+follow the zoo row (**W8-0t** `90c6859e`, 05:06:32), ran the check again (05:06:38–05:17: **EXIT 0**: eslint 0 errors,
+2933 tests, 2932 pass, 0 fail, 1 todo; prerender 589 pages; 564 share cards verified) and pushed: `origin/opus-bay`
+8e3e8e72 → `90c6859e` at 05:17:34 and **`main` fast-forwarded to `90c6859e`** (= `opus-bay` before this hand-off; it
+contains `a1cc3f60`) at **05:17:36 PDT** (the reflogs). **The deploy is to be confirmed by the owner**: the lead's curl of
+the live site is refused by a permission check.
 
 ## 给主人的摘要
 
-1. **第八波已经上线**（凌晨约 5:15，main 快进到 `90c6859e`，上线前的全站检查全绿）。自动检查网站被权限拦住，请你打开 https://www.baylink.us/opus-bay?start=free&at=xz:-94,-21.8 看一眼：人站在 33 号码头、旁边有坐渡轮去恶魔岛的提示，就说明新版已经上去了。
+1. **第八波已经合并到 main**（凌晨 5:17，main 快进到 `90c6859e`；合并前的全站检查全绿）。网站有没有真的更新，我们这边没法自动查（被权限拦住），请你打开 https://www.baylink.us/opus-bay?start=free&at=xz:-94,-21.8 看一眼：人站在 33 号码头、旁边有坐渡轮去恶魔岛的提示，就说明新版已经上去了。
 2. **坐船去恶魔岛**：33 号码头上小渡轮（约 90 秒，BAYBAY 一起上船），岛上从码头走台阶到监狱楼正门和灯塔平台，到达有印章和金币，再坐船回来。班次照官网时刻表，晚上船在码头休息；人在岛上时船随时来接，不会被困。
-3. **三个新小游戏**（都有 BAYBAY 配音）：鲍威尔街叮当车「拉闸」、海特街和 24 街跟街头艺人合奏、Fort Point 旁的金门大桥雾笛对答。
+3. **三个新小游戏**：鲍威尔街叮当车「拉闸」、海特街和 24 街跟街头艺人合奏、Fort Point 旁的金门大桥雾笛对答。BAYBAY 在游戏里的话都配了音，只差一句（拉闸时坐得太短的那句）。
 4. **更多旧金山**：唐人街宝塔楼群（Sing Chong、Sing Fat、老圣玛利亚教堂、华人电话局）；35 号码头的自由轮奥布莱恩号（全城最后一个走不到的地方，现在能走到）；西边海洋海滩的冲浪小人和海豹岩、蓝鹭湖的小船和船屋、圣依纳爵教堂的铅灰圆顶；电车、缆车、观光巴士更精致，金门大桥的塔夜里亮着。
 5. **真实日子和万圣节**：10/9 舰队周「舰船巡游」（11:00–12:00，红色消防船领头，灰色玩具军舰从金门大桥下开到海湾大桥，拍到有纪念章）；10/31 唐人街万圣节庆典（Waverly 巷挂满红灯笼、小朋友变装比赛）；亡灵节游行的小人会迈腿、会让路；讨糖的小孩会跳；六条讨糖街的门都检查过；鹈鹕新衣服南瓜领结；10/7 动物园 SF 居民免费日上线时也补进去了。
-6. **上一波留下的大问题都修好了**：小游戏面板、明信片打开时 BAYBAY 不再插话；英文版不再夹中文；手机坐地铁时能打开设置，地图按钮够大；坐海德街缆车时路边树冠不挡人；万圣节 10/1 已自动开始。
-7. **检查结果**：审查员一共提了 93 条意见，修好 83 条，8 条留到第九波（都不挡上线），2 条不成立；整合试玩又提了 21 条，修好 16 条。全站检查自第六波以来第一次全绿；电脑全部 60 帧，手机没有超过 100 毫秒的卡顿；全城 699 个点 0 个走不到；首屏主包 258.04 KB。Higgsfield 只花了 5.44 分（全是配音），余额 357.27。
-8. **请你有空时做**：① 确认上线（第 1 条）；② 用真 iPhone 玩 5 分钟：电脑上先开预览 `opus-bay-phone`，手机连同一个 Wi-Fi 打开 http://10.0.0.85:4174/opus-bay，照 `docs/opus-bay/iphone-checklist.md` 做，顺便试试三个新小游戏和恶魔岛渡轮；③ 听配音：第八波 `docs/opus-bay/qa/w8/X/voice/listening.md`（两条静音的等你批准），第七、六波的试听单如果还没听也一起；④ 把网站的问题转给 GPT（§6 P0 第 4 条：iOS 16 老 Safari 白屏的正则、繁体转换把「馬里納區」写成「馬裡納區」等）。
-9. 下一波说「继续 Opus Bay，做第九波」，先看本文 §6。
+6. **上一波留下的大问题都修好了**：小游戏面板、明信片打开时 BAYBAY 不再插话；英文版不再夹中文；手机坐地铁时能打开设置，地图按钮够大；坐海德街缆车时路边树冠不挡人；万圣节按日期从 10/1 起自动开始（测试和本地试玩都确认了，线上还没人亲眼看过）。
+7. **检查结果**：审查员一共提了 93 条意见：修好 83 条（其中 2 条只修了一部分），8 条留到第九波（都不挡上线），2 条不成立。整合试玩又提了 21 条，修好 16 条。全站检查自第六波以来第一次全绿；电脑上每个点都是 60 帧；手机模拟时每个测量段都没有超过 100 毫秒的卡顿（坐渡轮全程测了两次，一次有 2 帧超过，重测没有）；全城 699 个点 0 个走不到；首屏主包 258.04 KB。
+8. **Higgsfield**：账上记的是 X 线配音花了 5.44 分；余额从 363.44 降到 357.27，一共少了 6.17 分，另外 0.73 分也是配音费，查不到是谁花的（账户是几个项目共用的）。
+9. **请你有空时做**：① 确认网站已更新（第 1 条）；② 用真 iPhone 玩 5 分钟（今晚所有手机检查都是电脑模拟的）：照 `docs/opus-bay/iphone-checklist.md` 做，再试试三个新小游戏和恶魔岛渡轮。直接用手机打开正式网站最简单；局域网那个包（http://10.0.0.85:4174/opus-bay）是合并前打的，要先重新打包；③ 听配音：第八波 `docs/opus-bay/qa/w8/X/voice/listening.md`（两条静音的等你决定），第七、六波的试听单如果还没听也一起；④ 把网站的问题转给 GPT（§6 P0 第 4 条：iPhone 上 iOS 16.0–16.3 的老 Safari 会白屏的那个正则、繁体转换把「馬里納區」写成「馬裡納區」等）。
+10. 下一波说「继续 Opus Bay，做第九波」，先看本文 §6。最赶时间的：10/7、10/8 两个图书馆亲子活动要在当天前放进游戏，10/9 舰队周拍照时船在画面最上边要先修（§6 第 6 条）。
 
 ## 1. Wave 8 at a glance
 
@@ -45,7 +49,7 @@ lead's curl of the live site is refused by a permission check.
   | 01:29 → 02:31 | **W8-I**: three lenses (phone 5861, desktop 5862, words & site sync 5863) 01:29–02:05, the fixer 02:05–02:31 (its report says 02:05–02:45) | agent transcripts, `sf-w8-integration.md` |
   | 02:31 → 02:59 | the completeness critic (02:31–02:38), then **W8-C** (02:38–02:59; its report says to 03:05) | agent transcripts |
   | 02:59 → 04:53 | **W8-Z** alone under PERF-LOCK: **GO**, `8e3e8e72` at 04:52 | `sf-w8-final-verify.md`, git |
-  | 04:54 → ≈ 05:15 | the lead: **W8-0g** `0d9093f5` (merge `origin/main`) 04:54, **W8-0s** `a1cc3f60` (the zoo row, 15 SF offers) 04:55; `npm run check` red on W5-R7 (15 ≠ 14; the first run also stopped on lint, the lead's untracked `.claude/*.js`) → **W8-0t** `90c6859e` 05:06 → the check EXIT 0 → `main` fast-forwarded to `90c6859e` | git, `golive-check{,2,3}.txt` |
+  | 04:54 → 05:17 | the lead: **W8-0g** `0d9093f5` (merge `origin/main`) 04:54, **W8-0s** `a1cc3f60` (the zoo row, 15 SF offers) 04:55; `npm run check` red on W5-R7 (15 ≠ 14; the first run also stopped on lint, the lead's untracked `.claude/*.js`) → **W8-0t** `90c6859e` 05:06 → the check EXIT 0 (05:17:11) → pushed: `origin/opus-bay` 05:17:34, `main` fast-forwarded to `90c6859e` 05:17:36 | git and its remote-tracking reflogs, `golive-check{,2,3}.txt` |
 
   The workflow ran **19:24 → 04:53, ≈ 9.5 h, 47 agents**.
 - **The workflow's shape (47 agents):** 10 lanes (K Q P A H S W1 W2 M X) → per lane, as soon as it ended, **two read-only
@@ -66,7 +70,7 @@ lead's curl of the live site is refused by a permission check.
   | GPT (site, merged by W8-0g) | 6: `263bfc43`, `25ab971a`, `b7b82ff4`, `2d9d9da9`, `f5b059ca`, `652a9975` |
 
 - **The review:** 93 lens findings (24 major, 69 minor); the fixers received 89 (four were cut off in the relay) and
-  judged 81 fixed, 6 confirmed-not-fixed, 2 refuted; W8-Z recovered the four lost ones from the journal (2 already fixed,
+  judged 81 fixed (2 of them only in part: A-RC-3, M-RP-4), 6 confirmed-not-fixed, 2 refuted; W8-Z recovered the four lost ones from the journal (2 already fixed,
   2 open minors). **Nothing blocked the go-live** (every fixer's `blocking_for_go_live` is empty; W8-C's one "unknown"
   was resolved by W8-Z). W8-I: 21 findings, 16 fixed. W8-Z changed no product code, reverted nothing.
 
@@ -113,7 +117,9 @@ Verdicts: the lane's fixer from the journal (fixed / confirmed-not-fixed / refut
   received", W8-C could not find them on disk) were recovered by **W8-Z from this journal**: M-RP-5 = M-C5 (fixed,
   `e82f5863`), P-RP-4 (fixed by the P fixer's own pass, `d2f28146`), **H-RP-5 open** (a toy car in Waverly Place during
   the festival), **P-RP-5 open** (no loading state while a panel chunk retries). Final count of the 93: **83 fixed, 8 open,
-  2 refuted**.
+  2 refuted**. Two of the 83 are fixed only in part (the fixers' own notes): A-RC-3 (the island sign moved off the walk;
+  Pier 33's sign is still walk-through, §6 item 14) and M-RP-4 (the bubble and the see-through panels fixed; Settings
+  still cannot be reached on a phone while a game panel is up, kept by design, §6 item 15).
 - Fixers' own passes (beyond the lenses), notable fixes: BAYBAY held under the chunk-lost card (P); unbounded hop upload
   ranges (H); Candlestick Point's two official hours lines (S); Esc under Settings giving up a running game, panels under
   a side sheet, input judged while paused (M); the coin pop and wake changing the district (X); the Kelly line lost
@@ -126,7 +132,8 @@ W8-0s); the map-chip part of P-6 refuted. The major, **D-1** (the grip's start l
 frame), was fixed and live-checked. Checks after its last code push `cab78eef`: tsc 0, eslint 0 errors, opus-bay 1870
 tests (1869 pass, 0 fail, 1 todo).
 
-**The completeness critic** (02:31–02:38, read-only, on `35a9edd8`): P0 table —
+**The completeness critic** (02:31–02:38, read-only, on `35a9edd8`): P0 table (six rows; the critic's own Chinese summary
+counts five P0s, Settings in the Metro and the map tools as one) —
 
 | P0 | status | evidence (short) |
 |---|---|---|
@@ -159,7 +166,7 @@ See `sf-w8-final-verify.md` (W8-Z: **GO**, `8e3e8e72`; alone on the machine, PER
 | `tsc` · opus-bay suite | 0 · **1871 tests: 1870 pass, 0 fail, 1 todo** (lane P's 255 KB target) | 0 · 1660 / 1660 |
 | GameRoot (gzip) | **258.04 KB** (682.94 KB raw): ≤ 265, 3.92 KB under W7-Z; the 255 target missed | 261.96 KB |
 | perf desktop 1440 × 900 high | every spot and ride 60.1 fps, 0 frames > 100 ms; max **126 calls** (Chinatown) / **387k triangles** (on board the Alcatraz ferry; worst frame 17.6 ms of 15,717); highest standing spot Pier 45 366k | max 123 (Chinatown) / 360k (Pier 45) |
-| perf phone 390 × 844 mid 4× CPU | **0 frames > 100 ms in every measured window**; every spot ≥ 45 fps after the paired runs — the chain's one reading under 45 (Aquatic Park on 9 Oct, 41.8 / 39.1) re-run at **53.1 / 53.2**, the live W7 tree 54.4 / 48.2 there; Waverly festival W8 57.1 / 51.9 vs W7 49.1 / 44.1; Metro rides and the pagodas within 1 fps of W7 | min 58.4, 0 frames > 100 ms |
+| perf phone 390 × 844 mid 4× CPU | **0 frames > 100 ms in every measured window**; every spot ≥ 45 fps after the paired runs — the chain's one reading under 45 (Aquatic Park on 9 Oct, 41.8 / 39.1) re-run at **53.1 / 53.2**, the live W7 tree 54.4 / 48.2 there; Waverly festival W8 57.1 / 51.9 vs W7 49.1 / 44.1; Metro rides W8 56.7 / 57.8 vs W7 56.1 / 57.3; the pagodas W8 57.4 / 57.1 vs W7 58.4 / 59.2 (the report calls both "within 1 fps of W7"; the pagodas' walk differs by 2.1) | min 58.4, 0 frames > 100 ms |
 | tile pool (`--pool tile`) | ferry-gate 93 · chinatown 105 · pier45 108 calls; 0 frames > 100 ms | +10 calls max |
 | static sweep | **699** targets: 550 ok · 149 CORRIDOR · **0 boxed · 0 snag · 0 unreachable · 0 off** (the O'Brien reachable) | 694: 547 · 146 · 0 · 0 · 1 · 0 |
 | production build + CSP (6 sessions: the Halloween title, a phone new player, Pier 33's deckhand, Alcatraz's quay, the busker jam, the district start) | **0 violations · 0 failed** of 1789 requests | 0 / 0 of 1514 (5 sessions) |
@@ -175,19 +182,23 @@ See `sf-w8-final-verify.md` (W8-Z: **GO**, `8e3e8e72`; alone on the machine, PER
 - The LAN phone package `C:/Users/willy/opus-qa/dist-phone` was rebuilt by W8-Z at 04:46 from its tree (GameRoot
   `GameRoot-BbJH-ms2.js`, the site build's file) — before the go-live merge; the preview `opus-bay-phone` (4174) was not
   running.
-- **The go-live tree** (the lead, after W8-Z; logs `C:/Users/willy/opus-qa/w8/golive-check{,2,3}.txt`): the first
-  `npm run check` stopped on lint (9 parse errors in the lead's untracked `.claude/*.js` workflow copies); the second, on
-  the merged tree with the zoo row, ran 2933 tests — 2931 pass, **1 fail** (`tests/opus-bay-w5-calendar.test.ts` W5-R7: 15
-  SF offers ≠ 14), 1 todo; after **W8-0t** the third: **EXIT 0** — eslint 0 errors (50 warnings), **2933 tests, 2932
-  pass, 0 fail, 1 todo**, build, prerender **589** pages, **564** share cards verified (GPT's site commits added pages and
-  cards since W8-Z's 566 / 541).
+- **The go-live tree** (the lead, after W8-Z; logs `C:/Users/willy/opus-qa/w8/golive-check{,2,3}.txt`, times from the
+  files): the first `npm run check` (04:55:41–04:56:58, started the second `a1cc3f60` was committed) stopped on lint (9 parse errors in the lead's
+  untracked `.claude/*.js` workflow copies); the second (04:57:08–05:05:57), on the merged tree with the zoo row, ran 2933
+  tests — 2931 pass, **1 fail** (`tests/opus-bay-w5-calendar.test.ts` W5-R7: 15 SF offers ≠ 14), 1 todo; the third
+  (05:06:38–05:17:11, started six seconds after **W8-0t** `90c6859e` was committed at 05:06:32; the log names no commit):
+  **EXIT 0** — eslint 0 errors (50 warnings), **2933 tests, 2932 pass, 0 fail, 1 todo**, build (GameRoot 258.03 KB gzip
+  in that build), prerender **589** pages, **564** share cards verified. The rise from W8-Z's 566 / 541 comes with GPT's
+  six merged site commits (an inference: the logs do not split it).
 
 ## 5. Higgsfield
 
 The owner's rule: all of the remaining credits usable (363.44 at day 0); caps lane X ≤ 240, W2 ≤ 60, W1 ≤ 40, a floor of
-20 on the shared account (lead note §6). The only Opus Bay spender was lane X; every other lane, lens, fixer, W8-I, W8-C
-and W8-Z spent nothing (the journal's `higgsfield_spent` is 0 for every lane but X; `transactions` has no row after lane
-X's last take at 2026-10-01 06:02:31 UTC = 23:02 PDT). Ledger `ledger/w8-X.md`, merged into `src/opus-bay/ASSETS-LEDGER.md`
+20 on the shared account (lead note §6). Lane X is the only recorded spender: the journal's `higgsfield_spent` is 0 for
+every other lane, and `transactions` has no row after lane X's last take at 2026-10-01 06:02:31 UTC = 23:02 PDT, so the
+fixers (from 22:55), W8-I, the critic, W8-C and W8-Z spent nothing. The 0.73 of other TTS below fell at 19:29–19:35 and
+22:44 PDT, while the lanes (and at 22:44 lane S's two lenses) were running; the rows carry no job id, so who spent it —
+an Opus Bay agent that did not report it or another project on the shared account — is not known. Ledger `ledger/w8-X.md`, merged into `src/opus-bay/ASSETS-LEDGER.md`
 § "Wave 8 (local)".
 
 | lane | what | credits |
@@ -197,22 +208,25 @@ X's last take at 2026-10-01 06:02:31 UTC = 23:02 PDT). Ledger `ledger/w8-X.md`, 
 | X | batch 3: 106 clips + 4 redo takes (04:30–04:48 UTC) | 2.08 |
 | X | batch 4: 36 clips + redo takes (05:24–05:33 UTC) | 0.99 |
 | X | batch 5: 6 clips + 1 redo (06:02 UTC) | 0.11 |
-| **wave 8 (Opus Bay)** | all TTS; no image, texture or GLB shipped (no side-by-side win) | **5.44** |
-| W1 · W2 · all others | nothing generated | 0 |
+| **wave 8, recorded (lane X)** | all TTS; no image, texture or GLB shipped (no side-by-side win) | **5.44** |
+| W1 · W2 · all other agents | none reported | 0 |
+| claimed by no one | other TTS on the shared account in the same hours (below) | 0.73 |
 
 - **Balance trail:** **363.44** (day 0, 18:42 PDT) → **361.52** (19:22 PDT, after lane X's first takes) → 360.85 (20:27)
   → 360.51 → 358.43 → 357.38 → **357.27** (after 23:02 PDT; the lead's reading at 04:58 PDT, and again at this hand-off,
-  ≈ 05:00 PDT, plan ultra). 363.44 − 357.27 = **6.17** = 5.44 lane X + **0.73 other TTS on the shared account not
-  claimed by any lane**: 0.67 at 02:29:39–02:35:01 UTC (19:29–19:35 PDT; re-summed row by row at this hand-off) and 2 ×
-  0.03 at 05:44:46 / 05:44:48 UTC.
+  ≈ 05:00 and ≈ 05:30 PDT, plan ultra). 363.44 − 357.27 = **6.17** = 5.44 lane X + **0.73 other TTS on the shared account
+  not claimed by any lane**: 0.67 at 02:29:39–02:35:01 UTC (19:29–19:35 PDT; 30 spends 0.71, 2 refunds 0.04, re-summed row
+  by row twice at this hand-off) and 2 × 0.03 at 05:44:46 / 05:44:48 UTC (22:44 PDT).
 - **Reconciled with `transactions`** (read at this hand-off, newest first, 630 rows): the 600 rows from 2026-10-01
   02:01:16 UTC to 06:02:31 UTC are all "Qwen Audio 3.0 TTS Flash"; the row before is "Seedance 2.5" at 2026-09-30 23:21:08
-  UTC, before day 0. Lane X's per-batch sums (its ledger) and the balance trail agree.
+  UTC, before day 0. Lane X's per-batch sums (its ledger) and the balance trail agree. The rows name no job, so the 0.73
+  cannot be traced further.
 - **Between the waves** (other work on the shared account, not Opus Bay): wave 7 ended at 2213.87, day 0 read 363.44 —
   1850.43 by the balances; the newest of those rows (30 Sep 23:09–23:21 UTC) are Seed Audio 1.0, GPT Image 2.5 Flare,
   Qwen TTS and Seedance 2.5. The RESUME's day-0 note puts the BAYLINK promo films at 766.43 and another project at
   ≈ 1,050 (not summed row by row here).
-- **Whole-SF round:** 422.81 (waves 1–7) + 5.44 = **428.25 credits**.
+- **Whole-SF round:** 422.81 (waves 1–7, `sf-w7-summary.md`) + 5.44 = **428.25 credits** recorded (428.98 if the
+  unclaimed 0.73 was Opus Bay's).
 
 ## 6. NEXT (wave 9 candidates)
 
@@ -231,10 +245,12 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
 3. **The owner's ear:** `docs/opus-bay/qa/w8/X/voice/listening.md` (132 lines / 264 clips; muted until approved: the bell
    当——当——当！ and wave 7's "Ho! Spot on!"; the "未配音 · text-only lines" list), plus `qa/w7/X/voice/listening.md` (88
    lines / 176 clips) and `qa/w6/X/voice/listening.md` (80 Halloween clips) if not heard yet.
-4. **The site (GPT, via the owner)** — checked on `a1cc3f60` (the go-live tree; W8-0t changed one test) where marked:
-   - the lookbehind regex `(?<!…)` at `src/lib/named-event-search.ts:2` is **still there** (checked): it blanks the
-     whole site, the game too, on Safari 16.0–16.3; `src/lib/guide-search.ts:58` also uses a lookbehind `(?<=…)`
-     (seen while checking; whether it is on the first-load path was not checked);
+4. **The site (GPT, via the owner)** — checked on `90c6859e` (= `main` now; the same site files as `a1cc3f60`) where
+   marked:
+   - the lookbehind regex `(?<!…)` at `src/lib/named-event-search.ts:2` is **still there** (checked): wave 7 found it in
+     the entry chunk, where it blanks the whole site, the game too, on Safari 16.0–16.3 (`sf-w7-summary.md`; the chunk
+     not re-checked tonight); `src/lib/guide-search.ts:58` also has a lookbehind `(?<=…)`, and `src/lib/quick-search.ts`
+     imports both modules (checked), so both need the rewrite;
    - the 繁體 converter (`translateText`): 馬里納區 → 馬裡納區, 小傢伙 → 小傢夥 (W8-Z), 海里 → 海裡 when it means "in the sea"
      (W2-P2: four opus-bay lines);
    - `sfmta-free-muni-seniors` `sourceUrl` is **still** SFMTA's Vietnamese page (`src/data/september-refresh-offers.json:100`,
@@ -246,17 +262,22 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
      summary (lane Q);
    - from wave 7's promo notes, not re-checked tonight: the planner's HTTP 400 on 「10月17日周六」, free admission read as
      an unknown price. Wave 7's 4 red site tests are **closed** (GPT's `f3fa187f`; W8-Z's check green).
-5. **Housekeeping (lead):** `git worktree prune` with OneDrive paused — 46 `w8-*` admin folders sit in
-   `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/`, 11 of them the kept worktrees (lanes + this hand-off): the
-   rest are the lenses' / fixers' / W8-I / critic / W8-C / W8-Z folders the OneDrive lock kept. The lead's untracked
+5. **Housekeeping (lead):** `git worktree prune` with OneDrive paused — 46 `w8-*` admin folders sat in
+   `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/` at ≈ 05:30 (counted): 11 for the kept worktrees (the ten
+   lanes and this hand-off's, removed after its push) and 35 stale ones of the lenses / fixers / W8-I / critic / W8-C /
+   W8-Z that the OneDrive lock kept — none of the 35 has a `gitdir` file any more (checked), which `git worktree prune`
+   treats as prunable; `git worktree list` no longer shows them. The lead's untracked
    `.claude/*.js` workflow copies make `eslint .` in `C:/Users/willy/baylink-opus` report 9 parse errors (day 0, and the
    first go-live run `C:/Users/willy/opus-qa/w8/golive-check.txt`): run the check where they are not.
 
 **P1**
 6. **Time-bound:** before **9 Oct** S-P3 — the photo camera at Marina Green's seawall puts the parade (and the jets) in the
-   frame's top ≈ 80 px (`actors/camera.ts`, lane K); before **17 / 24 Oct** import `sfpl-omi-history-day-oct17-2026` and
-   `sfpl-western-addition-open-house-oct24-2026` (venue rows in `realsf/eventVenues.ts`, short names, `SOUVENIR_IDS`,
-   replace main's "pending independent world import" assertion in `tests/opus-bay-w6-s-venues.test.ts`; lane S); before
+   frame's top ≈ 80 px (`actors/camera.ts`, lane K); the four family branch-library events lane S kept out for a wave-9
+   import (its review decision in `sf-w8-S.md`; the critic's `next_wave`), each before its day — **7 Oct**
+   `sfpl-richmond-lego-oct7-2026`, **8 Oct** `sfpl-ocean-view-stem-oct8-2026`, **17 Oct** `sfpl-omi-history-day-oct17-2026`,
+   **24 Oct** `sfpl-western-addition-open-house-oct24-2026` (venue rows in `realsf/eventVenues.ts` `WORLD_SKIP` → rows,
+   short names, `SOUVENIR_IDS`, replace main's "pending independent world import" assertion in
+   `tests/opus-bay-w6-s-venues.test.ts`; lane S; the other three SFPL rows stay out for good); before
    **31 Oct** H-RP-5 — keep parked cars off Waverly Place while the festival kit is up (the parked-car layer; lane H / K);
    a look on 7 Oct at the zoo row (W8-0s).
 7. **GameRoot** 258.04 KB, static guard 258.5 (≈ 0.2 KB headroom), target 255 (lane P): the measured moves in
@@ -270,7 +291,10 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
    pacer telling the caller when it drops an accepted line after its TTL (W1: sight lines spent unsaid); the ride banner as
    a HUD box so the coaching bubble clears it at 844 × 340 (`game/hudLayout.ts`, M); turn to `arrival.heading` at a
    walking trip's end (`game/tripRun.ts`, W1); the idle pool repeating a line 18 s apart (`game/brain.ts`, W8-C); a parked
-   ride > 250 u away towed only on return; play the canopy dither on the Powell–Mason / California lines.
+   ride > 250 u away towed only on return; play the canopy dither on the Powell–Mason / California lines. Never played
+   yet (the critic, W8-C's open items; W8-Z's report does not name them): lane K's fly-trip first line (`tripFly`; the QA
+   'fly' trip fell back to walking), and W8-I's late fixes WS-2, WS-7, P-6, D-3 and D-6 with a place card pinned on
+   desktop (source / behaviour tests only).
 9. **Phone / desktop layout (lane Q, with M):** D-2 the map sheet during a ride on desktop (Ask BAYBAY and SPACE Hop off
    covered, the ride banner over the spark pill); a real landscape layout for the seven SF game panels
    (`play/sfgames.css`, `play/sfgames8.css`) instead of scrolling; `ui/RideBanner.tsx PAD_ROW` wrapping; the 667 × 320
@@ -283,7 +307,8 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
     (`world/sf/cornersSights.ts`); an Alcatraz return-boarding line (`world/sf/alcatrazLines.ts`).
 11. **Lazy chunks (lane P):** P-RP-5 a loading state for a panel being retried; a per-panel close-on-lost hook (a lost
     panel stays "open"); a game start that waits for its panel chunk (`play/sfgames.ts`); `play/zones3.ts` → `./sfgames8`
-    through `importRetry` (M fixer's note).
+    through `importRetry` (M fixer's note); the chunk-lost card never run on Firefox or Safari, its zh / zh-Hant words
+    checked by a test only (lane P's Not done).
 12. **Perf watch:** the ferry crossing at 387k is 13k from the cap — measure anything new on the north waterfront from the
     boat; profile the phone's wait on Pier 33's quay at 4× (lane A); Aquatic Park on 9 Oct and Waverly Place on 31 Oct
     read 44–54 fps at 4× on both trees (trim the crowd there first).
@@ -294,21 +319,24 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
     Chinatown lantern game, the guitarists strumming in time, the grip's pull curves (M); Salesforce Tower's city-only
     bands (`world/landmarks.ts salesforce()`, the lead's OK) and stronger city lamp pools (`world/sf/props.ts` +
     `world/materials.ts POOL`, K / lead) (X); a Higgsfield look asset only where a side-by-side wins.
-14. **Places:** Pier 33's quay sign walk-through (a base-city blocker hook in `core/terrain`, the lead's); the rest of
-    Alcatraz joined to the walk, a switchback road, the boat's own wake strip (A); W1-RC-3 lot-154 on Columbus Ave
+14. **Places:** Pier 33's quay sign walk-through (A-RC-3's open half; a base-city blocker hook in `core/terrain`, the
+    lead's); the ride card's ETA leaves out a crossing hold behind a Ferry Building ferry (up to ≈ 16 s, rare); the rest of
+    Alcatraz joined to the walk, a switchback road, the boat's own wake strip, the island arrival's reveal camera never
+    caught in a frame (its photo pose unit-tested only), gulls without wing flaps (A); W1-RC-3 lot-154 on Columbus Ave
     (`world/sf/cornersSeamData.ts`) and a Pier 35 apron graph edge so the O'Brien's waiver (17 u in
     `tests/opus-bay-sf-attractions.test.ts`) can go (`core/walkGraph.ts`, the lead's) (W1); doors 22 / 26 and Belvedere
     4–7 (H-rev-2 / 3), a walking festival line-up, a stronger downtown dusk via `world/environment.ts` (H); 8 short place
     cards without hours / price (S).
 15. **Rules to decide (lead):** lane Q's mode-blind touch rules reach the district on touch screens (the 1440 × 900 hero
     unchanged, the hero test green); the M grip panel's live score before the first judgement; 721–999 px with a side
-    sheet.
+    sheet; Settings out of reach on a phone while an SF game panel is up (M-RP-4's open half, kept by the M fixer "by
+    design": the panel's ✕ comes first).
 16. **Process:** pass lens results to fixers as files (or tell fixers to read the journal), not inline relayed text
     (rule 2 in the RESUME).
 
 ## 7. Where things are
 
-- `src/opus-bay/RESUME.md` top section "WAVE 8 DONE · LIVE ON baylink.us — 2026-10-01 (≈ 05:15 PDT)": the state, the
+- `src/opus-bay/RESUME.md` top section "WAVE 8 DONE · main FAST-FORWARDED — 2026-10-01 05:17 PDT": the state, the
   reading order, the rules learnt this wave, how to continue.
 - Reports `docs/opus-bay/sf-w8-*.md`; QA images `docs/opus-bay/qa/w8/<LANE>/`, `qa/w8/int/`, `qa/w8/final/`; the voice
   sheet `docs/opus-bay/qa/w8/X/voice/listening.md`; the ledger `docs/opus-bay/ledger/w8-X.md` (merged); perf spots
@@ -316,13 +344,13 @@ they start with `scripts/`, `tests/`, `public/`, `docs/` or `src/` (the site).
   `scripts/opus-sf/qa/overlap-scan.mjs`; the iPhone checklist `docs/opus-bay/iphone-checklist.md`.
 - **Worktrees kept:** `C:/Users/willy/wt/w8-{k,q,p,a,h,s,w1,w2,m,x}` (branches `w8-*`, all pushed) with `node_modules`
   **junctions** to the main checkout's (remove a junction with `cmd //c rmdir` first, check it is gone, then `git worktree
-  remove`, never `--force`); `wt/w8-handoff` (this hand-off). The lenses' (`-rc`, `-rp`), fixers' (`-rev`, `w8-s-revm`),
+  remove`, never `--force`); `wt/w8-handoff` (this hand-off) is removed the same way after its push. The lenses' (`-rc`, `-rp`), fixers' (`-rev`, `w8-s-revm`),
   `w8-int`, `w8-int-586{1,2,3}`, `w8-critic`, `w8-cfix`, `w8-verify`, `w8-verify-w7` worktree folders are removed; their
   admin folders under `.git/worktrees/` remain (OneDrive lock) → `git worktree prune` later (§6 item 5). Local branches
   of the removed worktrees (e.g. `w8-k-rev`, `w8-int`, `w8-cfix`, `w8-verify`) are kept.
 - Scratch `C:/Users/willy/opus-qa/w8/` (`day0/`, lanes `<id>/`, lenses `<id>-rc/` / `<id>-rp/`, fixers `<id>-rev/`,
   `int-586{1,2,3}/`, `int/`, `critic/`, `cfix/`, `final/` = W8-Z's logs, perf tables, pairs, sweep, CSP, district, language
-  scans; the go-live check logs `golive-check.txt`, `golive-check2.txt`).
+  scans; the go-live check logs `golive-check.txt`, `golive-check2.txt`, `golive-check3.txt`).
 - **The workflow:** run `wf_66c65596-f6a`, script
   `C:/Users/willy/.claude/projects/C--Users-willy-baylink-opus/f0bf32bb-00df-4c15-bf61-df7e5e6b5e50/workflows/scripts/opus-bay-wave8-ultra-wf_66c65596-f6a.js`;
   journal `C:/Users/willy/.claude/projects/C--Users-willy-baylink-opus/f0bf32bb-00df-4c15-bf61-df7e5e6b5e50/subagents/workflows/wf_66c65596-f6a/journal.jsonl`
