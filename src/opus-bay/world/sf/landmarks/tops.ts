@@ -34,7 +34,7 @@ export const LANDMARK_TOPS: Record<string, { blockers: readonly number[]; tall: 
   'sfsu': { blockers: [8.6, 6.8, 5.4, 5.7, 5.3, 5.3, 6.1, 5.3, 5.4, 5.1, 4.7, 4.6, 4.5, 5], tall: [] },
   'ucsf-parnassus': { blockers: [17.7], tall: [] },
   'usf-lone-mountain': { blockers: [16.1, 16.1, 6.3, 6.8, 2.2, 5.2, 9.1], tall: [] },
-  'st-ignatius-church': { blockers: [13, 13, 13.8, 13.8, 11.8, 4.4, 4.2, 4.2, 4.1], tall: [] },
+  'st-ignatius-church': { blockers: [13.1, 13.1, 13.8, 13.8, 12.1, 4.4, 4.2, 4.2, 4.1], tall: [] },
   'ccsf-ocean': { blockers: [10.6, 9.8, 9.8, 9.8, 9.8, 5.8, 5.9, 5, 4.7, 4.7, 5, 4.5, 4.5], tall: [] },
   'ccsf-drpac': { blockers: [15.4], tall: [] },
   'ucsf-mission-bay': { blockers: [3.8, 3.9, 3.9, 3.9, 3.9, 4], tall: [] },
