@@ -126,3 +126,69 @@ rhythm game (the grip game's bell is one tap per crossing, on the same ride).
   the long labels overlapped — the grip pad now uses a short label; a `flexWrap: 'wrap'` would make it robust.
 - **W8-I / W8-Z**: ride a Powell car (`__opusBay.transit.ride('powell-hyde','powell-market','hyde-beach')`), tap 拉闸 /
   Grip it in the banner.
+
+## Part b · W8-M3 play along with the busker (20:40 → 21:20 PDT)
+
+### What was built
+
+| file (new unless named) | what |
+|---|---|
+| `play/busk.ts` (4.0 KB gz) | `BuskGame` (pure, stepped by the game clock) + the run. Two songs of 18 bars (2 to listen in, 6 verse, 8 chorus, 2 outro): **Haight St** — a folk-rock strum in G at 108 BPM, you play the **tambourine** on the backbeat (2 and 4), then every beat and the "and"s in the chorus (49 dots, 40 s); **24th St** — a **cumbia** in A minor at 96 BPM, you shake the **maracas** on the off-beats, then the güiro's figure (73 dots, 45 s). A tap is judged against the nearest dot still to play: within 70 ms perfect (2), 140 ms good (1); a near miss breaks the run; a tap with no dot near is a stray (−1: no mashing); a dot passed unplayed is a miss. The first taps teach the player's own offset (the PlayKit's `RhythmJudge`, ±0.25 s: a late thumb, a Bluetooth speaker). Score = the share of a perfect take; tiers **● 50 · ◆ 75 · ★ 90** → `medal:busk:1..3`, best = score. A coin falls into the open guitar case every 4 in a run. The city's music and ambience are ducked while you jam |
+| `play/buskSounds.ts` | synthesized, scheduled beat by beat 0.18 s ahead on the audio clock: `m8-busk-beat` (Haight: a steel-string strum D · D U · U · D U over a stomp box; 24th St: the bass on 1 and 3, the nylon guitar's chop on the off-beat, a soft güiro), `m8-tambourine`, `m8-maracas`, `m8-clink`; chords voiced in code, no melody of any real song |
+| `play/BuskPanel.tsx` (3.1 KB gz) | overlay `play-busk` (bottom on phones, at the right ≥ 1000 px): the street on a canvas (Haight's painted fronts / 24th St's papel picado and a mural of shapes — no copy of a real mural), the busker strumming on the beat (or **BAYBAY with a toy ukulele** when he is not out), his open case filling with coins, the track (dots slide in to the ring: the tambourine / the maracas; it pulses on the beat; green / gold / grey / red flash), the run ×n and the score; one 68 px button 拍铃鼓 / 摇沙锤 (Tap / Shake), a tap anywhere on the picture counts; Space / Enter / J / F |
+| `play/sfgames8.ts` (+ 0.8 KB) | the two prompts beside lane L's guitarists (`play:busk-haight` at −36.97, 757.33 — the corner's local (0.5, −7.6); `play:busk-mission` at 455.00, 636.47 — local (0.2, 2.7)), **their hours = the corners' afternoon windows** (Haight 11–19, 24th St 12–20 Bay time): 和街头艺人合奏 / Jam with the busker while he plays, **和 BAYBAY 练一曲 / Practise with BAYBAY** otherwise (she plays his tune: the same game and medal); BAYBAY's invite (the busker's line, or 街头艺人下午才来，我们先练练他的曲子吧！) once, not after a jam, not under lane K's hold; the chunks within 60 u; the prompts step aside while any game runs |
+| `game/baybayHold.ts` (lane K's, the same line) | `'play-busk'` |
+| `economy/records.ts` (append) | row `busk` 和街头艺人合奏 (points) |
+| `tests/opus-bay-w8-m-busk.test.ts` | 6 tests (below) |
+
+### Evidence
+
+- **Tests** 6 / 6: the charts (18 bars, dots ≥ 0.27 s apart, the backbeat / the off-beats in the verses, a chord a bar,
+  40 / 45 s); **players**: on the dot 100, ±40 ms 100, ±110 ms 61 / 64 (●), a +130 ms thumb learnt (offset 0.12) 100,
+  every third dot skipped 65 / 66 (no ★), a masher every 60 ms **0**, a dozer 0; a whole jam through `stepFrameSystems`
+  → `medal:busk:1..3`, best ≥ 90; 放弃 and the stick pay nothing; Settings pauses the song; the prompts **standable on
+  the published city**, ≥ 0.6 u clear of the guitarist / his case (soft obstacles) and ≥ 0.75 u of his listeners, the
+  hours and frames pinned to `HAIGHT_CORNER` / `CALLE_24_CORNER`; the hold list; the records row; the chunks (busk
+  3997, panel 3127, zones8 1793 B gzip; lazy; nothing in GameRoot).
+- **Played in the game** (dev 5809, images read):
+  - desktop 1440 × 900, Haight St at 21:00 Bay time (no busker out): the contextual button **Practise with BAYBAY · Jam
+    with the busker** and her invite 街头艺人下午才来… (scratch `b/d-0-prompt.jpg`); an in-page player pressing Space on
+    `document.body` at each dot: the chorus with the run ×39 and BAYBAY's ukulele on the panel
+    (`qa/w8/M/b2-busk-haight-practice-desk.jpg`), **49 / 49 perfect → 100**, the coins 15 → 45 (+30: the three medals),
+    then the Summer of Love fact.
+  - phone 390 × 844 dpr 3 touch, 24th St at `?date=2026-09-30T14:30` (the guitarist out): BAYBAY's 24 街的吉他手！拿对沙锤
+    一起合奏？ and the contextual button **Jam with the busker** (`b3-busk-invite-phone.jpg`); pointer events on 摇沙锤:
+    the chorus (`b1-busk-mission-phone.jpg`: the papel picado, the mural of shapes, the guitarist, ×52), the card
+    **★ Brilliant · 99 · perfect 72 · good 1 · best run 73 · 18 coins in the case · +30 coins** and BAYBAY's 你们简直就是一支
+    乐队！ (the card's text read from the DOM).
+- **Calls / triangles** (dev `renderer.info`): Haight St during the jam 94 calls / 305k (desktop), 24th St 61 / 205k
+  (phone, quality mid); the jam draws nothing in 3D.
+
+### Decisions
+
+1. **Both buskers, by their real hours in the game**: lane L's corners show the guitarists in the afternoon; outside
+   that window the game is still there — BAYBAY plays his tune herself (the prompt and the invite say so) — so a player
+   in China's evening (the Bay's early morning) can play it too, and the world never shows a busker who is not there.
+2. **Rhythm on the game clock, the sound scheduled beat by beat** (each beat handed to the audio clock 0.18 s ahead):
+   the dots and the sound stay together on a slow phone, Settings pauses the song cleanly, and the game works with the
+   sound off. The windows are generous (70 / 140 ms) and the offset is learnt.
+3. **No mashing**: a stray tap costs a point (a masher scores 0); a tap a little off breaks the run but costs nothing.
+4. The instruments are the player's (tambourine on Haight St, maracas on 24th St): the busker's own part is the guitar.
+
+### Facts (checked on the web 2026-09-30)
+
+- "As many as 100,000 people … converged in San Francisco's Haight-Ashbury district and Golden Gate Park" (the Summer of
+  Love, 1967) — https://en.wikipedia.org/wiki/Summer_of_Love
+- Calle 24 Latino Cultural District: recognized by the Board of Supervisors in May 2014; "The district boasts the most
+  murals in the city" — https://en.wikipedia.org/wiki/Calle_24_Latino_Cultural_District
+
+### Known gaps
+
+- The 3D guitarist does not strum in time with the jam (lane L's corner figure is static; the panel's figure strums).
+- The songs are toy loops (no melody line): the busker's strum and the bass carry the beat.
+
+### Requests
+
+- **Lane X** (voice): `BUSK_LINES` in `play/sfgames8Lines.ts` (11, fixed; `closed` reworded this part:
+  街头艺人下午才来，我们先练练他的曲子吧！ / The busker comes in the afternoon. Let’s practise his tune!).
+- **W8-I / W8-Z**: Haight St −36.97, 757.33 and 24th St 455.00, 636.47; `?date=…T14:30` for the guitarists.
