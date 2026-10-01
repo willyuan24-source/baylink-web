@@ -185,8 +185,8 @@ dark, the door red with its facing).
 | `f15eddbc` W8-H7 | the pelican's pumpkin bow (items append, neck slot, 248 triangles) |
 | `d1e3abec` W8-H8 | the golden-hour haze floor beyond Karl's bank (uniform-only) |
 | `10de0860` W8-H9 | the trick-or-treaters' hop (partial uploads, no new program / call) |
-| W8-H10 | the festival kit rebuilt on the streamed ground |
-| W8-H11 | this report's parts b and c and the final checks (docs only) |
+| `4b700a4e` W8-H10 | the festival kit rebuilt on the streamed ground |
+| `8ba22115` W8-H11 | this report's parts b and c and the final checks (docs only) |
 
 ## Final checks (22:37 – 22:57 PDT, the tree with W8-H1 … H9 on origin `10de0860` + W8-H10 in the working tree)
 
@@ -195,6 +195,8 @@ dark, the door red with its facing).
 - Lane H's wave-8 test files alone: 17 / 17 (doors 2, polish 2, lines 1, procession 2, festival 3, bow 3, dusk 2, hop 2).
 - The dev server (5805) and every Chrome of this lane are stopped; scratch `C:/Users/willy/opus-qa/w8/h/` keeps the
   drivers (`drive.mjs`, `drive-png.mjs`, the door map / check scripts) and every capture named in this report.
+
+After the last rebase (onto lanes K / M / W1 / X, 23:00): tsc 0; the incoming test files with lane H's 46 / 46.
 
 ## Not done
 
@@ -207,8 +209,8 @@ dark, the door red with its facing).
 
 ## Requests
 
-- **Lane X**: record the four W8-H lines (part a's table; `halloween/worldLines.ts` W8_WORLD_LINES, `halloween/lines.ts`
-  W8_HALLOWEEN_LINES) into `data/sf/voiceW8.ts` — all four are said as bubbles with exactly these texts.
+- **Lane X**: the four W8-H lines (part a's table) — **done by lane X already**: `data/sf/voiceW8.ts` on origin carries
+  w8-h-chinatown-contest, w8-h-chinatown-lanterns, w8-h-procession-aside and w8h-costume-pumpkin-bow (checked 23:01).
 - **Lane X / the lead (optional)**: if a stronger pumpkin dusk downtown is wanted, the place is the sky's horizon colour
   in `world/environment.ts` (the Karl mix there is weighted to the western horizon only); `KarlState.goldenHaze` says
   when the season's dusk is on.
