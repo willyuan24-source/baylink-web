@@ -25,7 +25,7 @@ g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getCont
 
 const { parseBayDate } = await import('../src/opus-bay/game/bayNow');
 const { isAdultOnly, isProfessional, sanitizeCatalog, setCatalogForTests } = await import('../src/opus-bay/data/catalog');
-const { EVENT_VENUES, EVENT_SAY, SOUVENIR_IDS } = await import('../src/opus-bay/realsf/eventVenues');
+const { EVENT_VENUES, EVENT_SAY, SOUVENIR_IDS, WORLD_SKIP } = await import('../src/opus-bay/realsf/eventVenues');
 const { activeEventsAt, eventHours, handRowOf, labelHours, labelHoursOn, worldEvent } = await import('../src/opus-bay/realsf/events');
 const { daySignals, dailyThree } = await import('../src/opus-bay/realsf/daily');
 
@@ -35,8 +35,16 @@ const H = (h: number, m = 0) => h * 60 + m;
 const byId = (id: string) => { const e = CATALOG.events.find(x => x.id === id); assert.ok(e, id); return e!; };
 const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.startDate) >= '2026-09-29' && e.startDate <= '2026-11-30';
 
+/** Website additions are retained in the shared catalog, awaiting a separate world import. */
+const SEP30_WEBSITE_ONLY = [
+  'sfpl-ocean-view-stem-oct8-2026', 'sfpl-richmond-lego-oct7-2026', 'sfpl-career-coaching-oct8-2026',
+  'sfpl-writing-gravity-oct8-2026', 'sfpl-western-addition-open-house-oct24-2026',
+  'sfpl-omi-history-day-oct17-2026', 'sfpl-garden-green-bin-oct10-2026',
+] as const;
+
 /** SF events of the window kept out of the world although they are for everyone (the reason is in the report). */
 const NOT_PLACED: Readonly<Record<string, string>> = {
+  ...Object.fromEntries(SEP30_WEBSITE_ONLY.map(id => [id, 'Sep 30 website event: pending independent world import'])),
   // a street party along 2nd St between Market and Howard, 17:00–22:00, billed to adults; no single point to pin
   'sf-downtown-first-thursday-oct-2026': 'street segment, adults',
   // (W7-S) a YBCA dance party 20:00–23:30, 音乐与夜生活, age not published: nightlife stays out of the toy city (the lead's
@@ -80,7 +88,14 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 68, 'the autumn catalog including the eleven Sep 29 website additions');
+    assert.equal(sf.length, 75, 'the autumn catalog including the eleven Sep 29 and seven Sep 30 SF website additions');
+    for (const id of SEP30_WEBSITE_ONLY) {
+      assert.ok(sf.some(event => event.id === id), `${id} remains available in the shared website catalog`);
+      assert.match(WORLD_SKIP[id], /pending independent world import/, `${id} has an explicit compatibility boundary`);
+      assert.equal(worldEvent(byId(id)), null, `${id} must not be imported by a venue-text match`);
+      assert.ok(!EVENT_VENUES.some(venue => venue.events.includes(id)), `${id} has no newly added game venue mapping`);
+      assert.ok(!SOUVENIR_IDS.includes(id), `${id} has no newly added game souvenir bit`);
+    }
     const shown = sf.filter(e => worldEvent(e));
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);

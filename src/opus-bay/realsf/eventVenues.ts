@@ -392,6 +392,16 @@ export const EVENT_VENUES: readonly EventVenue[] = [
  */
 export const WORLD_SKIP: Readonly<Record<string, string>> = {
   'sf-financial-planning-day-oct24-2026': 'adults’ financial-planning talks and one-on-one CFP consultations: not a toy-city outing',
+  // Sep 30 website additions remain in BAYLINK's catalog. Importing an event into
+  // the world separately requires a reviewed venue, short name and souvenir bit;
+  // a shared "Main Library" venue string alone must not import new game content.
+  'sfpl-ocean-view-stem-oct8-2026': 'Sep 30 website event: pending independent world import',
+  'sfpl-richmond-lego-oct7-2026': 'Sep 30 website event: pending independent world import',
+  'sfpl-career-coaching-oct8-2026': 'Sep 30 website appointment service: pending independent world import',
+  'sfpl-writing-gravity-oct8-2026': 'Sep 30 website event: pending independent world import',
+  'sfpl-western-addition-open-house-oct24-2026': 'Sep 30 website event: pending independent world import',
+  'sfpl-omi-history-day-oct17-2026': 'Sep 30 website event: pending independent world import',
+  'sfpl-garden-green-bin-oct10-2026': 'Sep 30 website event: pending independent world import',
 };
 
 /**

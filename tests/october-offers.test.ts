@@ -234,7 +234,7 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-09-29');
+  assert.equal(guide.updatedAt, '2026-09-30');
   assert.match(guide.sourceNote || '', /原核查日（9 月 8–27 日）/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);
   assert.ok(guide.sources.every(source => source.title && source.description && new URL(source.url).protocol === 'https:'));

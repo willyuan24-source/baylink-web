@@ -271,11 +271,15 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assertResultTitles(revisited, []);
   fireEvent.click(revisited.getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(queryParams(revisited).has('when'), false);
-  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026']);
+  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026', 'san-jose-365-night-market-october-2026']);
   const addedConcert = item('san-jose-hellflowers-free-concert-oct2-2026');
   assert.equal(addedConcert.city, 'San Jose');
   assert.equal(addedConcert.cost, 'free');
   assert.deepEqual(addedConcert.occurrenceDates, ['2026-10-02'], 'the new Friday concert appears only after clearing the October 3–4 weekend filter');
+  const addedNightMarket = item('san-jose-365-night-market-october-2026');
+  assert.equal(addedNightMarket.city, 'San Jose');
+  assert.equal(addedNightMarket.cost, 'free');
+  assert.deepEqual(addedNightMarket.occurrenceDates, ['2026-10-30', '2026-10-31'], 'the new late-October night market appears only after clearing the October 3–4 weekend filter');
   fireEvent.change(revisited.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   showAllResults(revisited);
   assert.ok(revisited.getByRole('article', { name: item('san-jose-short-film-festival-2026').title, exact: true }));
