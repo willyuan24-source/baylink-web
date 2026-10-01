@@ -141,7 +141,8 @@ export function initSfGames8(): () => void {
       zonePrefetch('grip', () => Promise.all([importRetry(() => import('./grip')), importRetry(() => import('./GripPanel')), importRetry(() => import('./GripPad'))]));
       rideT = ride!.stage === 'waiting' ? 0 : rideT + step;
       const f = flow.get(), s = game.get();
-      if (!gripInvited && rideT >= GRIP_INVITE_AFTER && !currentActivity() && !baybayHeld() && !f.bubble && !f.cinematic && !s.dialogue.nodeId && !s.photoMode && performance.now() >= f.quietUntil && runtime.move.mode === 'transit') {
+      // (W8-I) not after a grip already played this visit (a game started in the first 5 s, then closed, was invited to)
+      if (!gripInvited && rideT >= GRIP_INVITE_AFTER && !played.has('grip') && !currentActivity() && !baybayHeld() && !f.bubble && !f.cinematic && !s.dialogue.nodeId && !s.photoMode && performance.now() >= f.quietUntil && runtime.move.mode === 'transit') {
         gripInvited = true;
         bubble(GRIP_LINES.invite, 3600, undefined, 'call');
       }

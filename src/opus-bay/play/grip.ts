@@ -352,7 +352,7 @@ export function liveCar(): { view: CarView; line: CableLine; to: number } | null
   return { view: { s: car.s, dir: car.dir, v: car.v, mode: car.mode }, line, to };
 }
 
-interface Run { run: ActivityRun; game: GripGame; keys: HeldKeys | null; off: () => void; quiet: number; said: number }
+interface Run { run: ActivityRun; game: GripGame; keys: HeldKeys | null; off: () => void; quiet: number; said: number; later: { line: { zh: string; en: string }; ms: number }[] }
 let cur: Run | null = null;
 let listeners = new Set<() => void>();
 let seq = 0;
@@ -380,7 +380,9 @@ export function startGrip(source: () => ReturnType<typeof liveCar> = liveCar): b
     if (code === 'Escape') { cancelGrip(); return; }
     if (code === 'KeyH') gripBell();
   });
-  const r: Run = { run, game: g, keys, off: () => {}, quiet: performance.now() + 75000, said: -Infinity };
+  // (W8-I) the start line counts as said: it stays up its 2.8 s before the next line (a bell window at the start
+  // said 'bell-first' in the same frame, both voiced, and the game's main instruction was never readable)
+  const r: Run = { run, game: g, keys, off: () => {}, quiet: performance.now() + 75000, said: START_MS / 1000 - SAY_GAP, later: [] };
   let lastGrip = false;
   r.off = registerFrameSystem('m-play-grip', dt => {
     if (cur !== r) return;
@@ -391,13 +393,15 @@ export function startGrip(source: () => ReturnType<typeof liveCar> = liveCar): b
     if (grip !== lastGrip) { lastGrip = grip; playSound(grip ? 'm8-grip-on' : 'm8-grip-off'); }
     const before = g.last?.at, want = g.want, bell = g.bellNow;
     for (const e of g.step(Math.min(dt, 0.1), live ? live.view : null, grip)) onGripEvent(r, e);
+    // (W8-I) a kept line (the bell, the Hyde grade) waits for the gap instead of cutting in or being lost
+    if (cur === r && r.later.length && r.game.t - r.said >= SAY_GAP) { const l = r.later.shift()!; say(r, l.line, l.ms); }
     if (before !== g.last?.at || want !== g.want || bell !== g.bellNow) changed();
   });
   cur = r;
   rounds++;
   openOverlay(GRIP_OVERLAY);
   flow.set({ quietUntil: Math.max(flow.get().quietUntil, r.quiet) });
-  bubble(GRIP_LINES.start, 2800);
+  bubble(GRIP_LINES.start, START_MS);
   changed();
   return true;
 }
@@ -413,10 +417,15 @@ export function gripBell() {
   changed();
 }
 
-/** BAYBAY at most every 2.2 s, an important line always */
-function say(r: Run, line: { zh: string; en: string }, ms = 2400, force = false) {
+/** BAYBAY at most every SAY_GAP s, an important line always; a `keep` line waits its turn (at most two wait) */
+const SAY_GAP = 2.2;
+const START_MS = 2800;
+function say(r: Run, line: { zh: string; en: string }, ms = 2400, force = false, keep = false) {
   const now = r.game.t;
-  if (!force && now - r.said < 2.2) return;
+  if (!force && now - r.said < SAY_GAP) {
+    if (keep && r.later.length < 2) r.later.push({ line, ms });
+    return;
+  }
   r.said = now;
   bubble(line, ms);
 }
@@ -432,10 +441,10 @@ function onGripEvent(r: Run, e: GripEvent) {
     case 'go-ok': playSound('m8-take'); break;
     case 'stop-ok': if (r.game.max <= PTS.stop * 2) say(r, GRIP_LINES.stopGood); break;
     case 'stop-bad': playSound('m8-alarm', { gain: 0.5 }); say(r, GRIP_LINES.stopBad); break;
-    case 'bell-first': say(r, GRIP_LINES.bellFirst); break;
+    case 'bell-first': say(r, GRIP_LINES.bellFirst, 2400, false, true); break;
     case 'bell-spam': say(r, GRIP_LINES.bellSpam); break;
     case 'slip': say(r, GRIP_LINES.slip); break;
-    case 'hyde': say(r, GRIP_LINES.hyde, 3200); break;
+    case 'hyde': say(r, GRIP_LINES.hyde, 3200, false, true); break;
     case 'done': finish(r); break;
     default: break;
   }
