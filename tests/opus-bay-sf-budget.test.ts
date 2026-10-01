@@ -440,3 +440,26 @@ test('W8-P2: the landmark cards\' tables ride with the city data chunk; data/sf/
   assert.equal(T.SF_GUIDE_SLUG, slot.SF_GUIDE_SLUG);
   assert.equal(T.cityPoiId('coit-tower'), slot.cityPoiId('coit-tower'));
 });
+
+test('W8-P3: the cable-car network builder is a lazy chunk loadTransit fetches with transit.json; it imports types only (node binds it at data/transit.ts\'s top level without a wait on itself)', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(graph.has('data/transit.ts'), 'data/transit.ts stays in the main graph');
+  assert.ok(!graph.has('data/transitBuild.ts'), `data/transitBuild.ts in the main graph: ${graph.has('data/transitBuild.ts') ? why('data/transitBuild.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  const build = src('data/transitBuild.ts');
+  assert.deepEqual([...build.matchAll(/^import\s+(?!type\s)[^\n]*$/gm)].map(m => m[0]), [], 'type imports only (a runtime import of data/transit.ts would make the node-side await wait on itself)');
+  const transit = src('data/transit.ts');
+  assert.ok(!/^export function buildTransit\(/m.test(transit) && !transit.includes('function stubPoints('), 'the builder\'s code is not back in data/transit.ts');
+  assert.match(transit, /const builder = importRetry\(\(\) => import\('\.\/transitBuild'\)\);/);
+  // node: the export is bound at load and builds through the chunk with data/transit.ts's own helpers
+  const T = await import('../src/opus-bay/data/transit');
+  const B = await import('../src/opus-bay/data/transitBuild');
+  const file = { version: 't', source: 't', props: {}, lines: [{ id: 'powell-hyde', kind: 'cable-car', name: { zh: '鲍威尔-海德线缆车', en: 'Powell–Hyde' }, color: '#c33', sourceUrl: 'x', doubleEnded: false, length: 40, heroSpans: [], turntables: [], path: [0, 0, 0, 0, 0, 20, 0, 0, 40], stops: [{ id: 'a', name: { zh: 'A', en: 'Powell Street & Market Street' }, at: 0, x: 0, z: 0, osmId: null }, { id: 'b', name: { zh: 'B', en: 'Hyde Street & Beach Street' }, at: 40, x: 0, z: 40, osmId: null }] }] } as unknown as import('../src/opus-bay/data/transit').TransitFileJson;
+  const viaExport = T.buildTransit(file);
+  const direct = B.buildTransit(file, { CABLE: T.CABLE, CROSSING_STOP: T.CROSSING_STOP, pointAt: T.pointAt, stationSlug: T.stationSlug, shortStationName: T.shortStationName, stationZh: T.stationZh, turntableZh: T.turntableZh, glossName: T.glossName });
+  assert.deepEqual(viaExport, direct);
+  assert.deepEqual(viaExport.stations.map(s => [s.id, s.name.zh]), [['powell-market', '鲍威尔街 · 市场街'], ['hyde-beach', '海德街 · 海滩街']]);
+  assert.equal(viaExport.lines[0].name.zh, '鲍威尔-海德线叮当车');
+});
