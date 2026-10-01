@@ -1,32 +1,99 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
-## NEXT SESSION → WAVE 8 (written 2026-09-30 ≈ 18:45 PDT; the owner continues in a new window)
+## WAVE 8 DONE · LIVE ON baylink.us — 2026-10-01 (≈ 05:15 PDT)
 
-- **Say "继续 Opus Bay，做第八波".** Read this section → the wave-7 section below → `docs/opus-bay/sf-w7-summary.md` §5 NEXT
-  (the wave-8 list, P0 / P1 / P2) → `docs/opus-bay/sf-w7-lead.md` (the process, §5 protocol, §7 the addendum lanes).
-- **The owner's decisions (2026-09-30 18:40 PDT):** go ahead with wave 8 the same way ("直接做"); **Higgsfield: all of the
-  remaining ≈ 363 credits may be used** (no floor; quality first, a ledger row per job). The account is shared: another
-  project spent ≈ 1,050 credits on 2026-09-30 (Seedance 2.5 / GPT Image / Seed Audio), so read `balance` before every
-  batch. The owner was offered: run wave 8 overnight with the machine on — confirm the timing at the start.
-- **Day 0 must merge `origin/main` again**: GPT pushed 3 site commits after the go-live (`f3fa187f` simple service booking
-  flows + "fix release checks", `11ffcf60` verified small-group outings + BayBay planning drafts, `f2f3f889` outing
-  discovery / waitlist / AI drafts; head `f2f3f889`, 16:34 PDT) — "fix release checks" may clear the 4 red site tests of
-  `b4f71de8`; re-run `npm run check`. Then re-sync the world with the site (the S lane: events / openings / offers /
-  live.json / links), and before the go-live merge `origin/main` once more if GPT pushed (sf-w7-lead.md §7.2).
-- **Proposed wave-8 shape** (from §5 + the promo films): P0 — BAYBAY silent under lazy overlays (cityMoments / baybayLines
-  gates), the game's English hand-off line still names stops in Chinese (seen in promo film B's English version),
-  `play.b` MAX_BESTS 32 cap before adding games, phone UI (Settings under the subway overlay, 36 px map buttons, 844 × 340
-  goals card), the Hyde St canopy dither; time-bound — Halloween polish (live from 1 Oct), Fleet Week toy Parade of Ships
-  (9 Oct 11:00–12:00), the Chinatown Halloween Festival venue (31 Oct, once in the site catalog); more SF — Chinatown's
-  pagoda cluster, SS Jeremiah O'Brien at Pier 35 (+ the sweep's last UNREACHABLE), a boardable Alcatraz ferry from Pier 33,
-  Ocean Beach surfers + Seal Rocks, the busker play-along, the cable-car grip game, Stow Lake pedal boats; looks — St
-  Ignatius, Haight Victorians / murals, vehicles, night glows; later — Thanksgiving / the Union Square tree and rink
-  (verify 2026 dates), daily challenges tied to the site's 这周去哪.
-- **Still owed by the owner:** confirm the wave-7 deploy (`?halloween=1`), the real-iPhone pass
-  (`docs/opus-bay/iphone-checklist.md`), the voice listening sheets (w6, w7), and relaying the site issues to GPT
-  (the planner's HTTP 400 on 「10月17日周六」, free admission read as an unknown price, the Safari 16.0–16.3 lookbehind).
-- **Promo videos are DONE** (separate local project `C:/Users/willy/baylink-promo`, not in this repo): `a/DELIVERY.md`,
-  `B/DELIVERY.md`, `PRODUCTION.md`; 766.43 credits of the owner's 1800.
+- **State.** W8-Z said **GO** on `8e3e8e72` (04:52 PDT). At the go-live the lead merged `origin/main` (**W8-0g** `0d9093f5`:
+  GPT's six site commits `263bfc43`, `25ab971a`, `b7b82ff4`, `2d9d9da9`, `f5b059ca`, `652a9975`), mapped the 7 Oct SF Zoo
+  resident free day (**W8-0s** `a1cc3f60`: `scripts/opus-sf/export-live.ts` SPECS, `live.json` 15 SF offers), ran
+  the full `npm run check` on that tree (red on one test, W5-R7: 15 SF offers ≠ 14), made the test follow the zoo row
+  (**W8-0t** `90c6859e`), ran the check again (EXIT 0) and fast-forwarded `main` to **`90c6859e`** (= `opus-bay` before this
+  hand-off) at ≈ 05:15 PDT (`origin/main` read `90c6859e` at 05:17). `origin/opus-bay` = that + this hand-off commit
+  (docs only: `docs/opus-bay/sf-w8-summary.md`, the wave-8 ledger merged into `src/opus-bay/ASSETS-LEDGER.md` § "Wave 8 (local)", this section). **The deploy is to be confirmed
+  by the owner**: the lead's curl of the live site is refused by a permission check; the owner opens
+  https://www.baylink.us/opus-bay?start=free&at=xz:-94,-21.8 (Pier 33 · Alcatraz Landing with the ferry prompt = wave 8 is
+  live). The Halloween season runs by the Bay date since 1 Oct 00:00.
+- Read, in order: this section → `docs/opus-bay/sf-w8-summary.md` (给主人的摘要, the ten lanes, the review in numbers,
+  W8-Z's numbers, Higgsfield, **§6 NEXT**) → `docs/opus-bay/sf-w8-final-verify.md` (W8-Z) →
+  `docs/opus-bay/sf-w8-integration.md` (W8-I and `## Completeness pass` = W8-C) → the lane reports `sf-w8-<ID>.md` (each
+  with `## Review (Ultra)`) → the plan / lead note `docs/opus-bay/sf-w8-lead.md` (ownership §3, contracts §4, protocol §5,
+  decisions §6, §7 the Ultra shape).
+- **What wave 8 added:** the five P0s (BAYBAY silent under play panels / cards / the Halloween postcard via
+  `game/baybayHold.ts`; English never shows Chinese + `scripts/opus-sf/qa/lang-scan.mjs`; Settings in the underground
+  Metro and 44 px map tools + `scripts/opus-sf/qa/overlap-scan.mjs`; the Hyde St canopy dither; Halloween live from 1
+  Oct); **Alcatraz by ferry** from Pier 33 and the island on foot; three games (the cable-car grip, the busker jam, the
+  foghorns at Fort Point); Chinatown's pagoda cluster; the SS Jeremiah O'Brien at Pier 35 (the sweep's last
+  UNREACHABLE gone); Ocean Beach surfers + Seal Rocks, Blue Heron Lake's boats and boathouse, St Ignatius's lead domes;
+  Fleet Week's Parade of Ships (9 Oct); the Chinatown Halloween Festival (31 Oct), the procession's legs, the doors
+  re-checked, the pelican's pumpkin bow; 50 place cards with hours / prices; the vehicles' fronts, the lit Golden Gate
+  towers; voice for 132 lines / 264 clips; every lazy import through `importRetry` + the reload card
+  (`game/chunkLost.ts`) and `game/lazyChunk.ts`; GameRoot **258.04 KB**.
+- **Checks at W8-Z** (`ca25fc7b` + W8-Z's docs): `npm run check` **EXIT 0** — eslint 0 errors (50 warnings), **2845 tests,
+  2844 pass, 0 fail, 1 todo**, build, prerender 566, share cards 541 (the first fully green check since wave 6) · tsc 0 ·
+  opus-bay **1871 tests, 0 fail, 1 todo** (W8-P9's 255 KB target) · perf desktop all 60.1 fps, max 126 calls / 387k (on
+  board the Alcatraz ferry) · phone 4× 0 frames > 100 ms in every measured window, every spot ≥ 45 fps after paired W7 /
+  W8 runs · sweep 699 targets 0 boxed / 0 snag / 0 unreachable / 0 off · production CSP 0 / 0 of 1789 · district 71 /
+  225,070 / 262 (unchanged) · English 56 screens 0 Chinese, 繁體 55 screens 0 Simplified-only. **The go-live tree** `90c6859e`: `npm run check` EXIT 0 — eslint 0 errors (50 warnings),
+  2933 tests (2932 pass, 0 fail, 1 todo), build, prerender 589, share cards 564 (`C:/Users/willy/opus-qa/w8/golive-check3.txt`).
+- **Higgsfield:** wave 8 spent **5.44** (lane X, all TTS; no other lane spent); `balance` 363.44 (day 0) → 361.52 (19:22)
+  → **357.27** (04:58 and ≈ 05:00 PDT, read only); 0.73 of other TTS on the shared account is claimed by no lane. The
+  promo videos are done (766.43 of the 1800 the owner reserved, `C:/Users/willy/baylink-promo`); the owner's last rule
+  (wave 8): all of the remaining credits usable, read `balance` before every batch (the account is shared).
+- **Workflow run:** `wf_66c65596-f6a`, one Ultra workflow of 47 agents, 19:24 → 04:53 PDT; script
+  `C:/Users/willy/.claude/projects/C--Users-willy-baylink-opus/f0bf32bb-00df-4c15-bf61-df7e5e6b5e50/workflows/scripts/opus-bay-wave8-ultra-wf_66c65596-f6a.js`;
+  journal (every agent's structured result)
+  `C:/Users/willy/.claude/projects/C--Users-willy-baylink-opus/f0bf32bb-00df-4c15-bf61-df7e5e6b5e50/subagents/workflows/wf_66c65596-f6a/journal.jsonl`
+  with each agent's transcript beside it. Finished; a run cannot be resumed across sessions.
+- **Worktrees kept** `C:/Users/willy/wt/w8-{k,q,p,a,h,s,w1,w2,m,x}` and `wt/w8-handoff` (branches `w8-*`, pushed; every
+  `node_modules` is a **junction** — remove with `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` first, check it is
+  gone, then `git worktree remove <path>`, never `--force`). The lenses', fixers', W8-I's, the critic's, W8-C's and W8-Z's
+  worktrees are removed, but 46 `w8-*` admin folders sit in `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/`
+  (11 of them the kept worktrees): `git worktree prune` with OneDrive paused. Scratch `C:/Users/willy/opus-qa/w8/` (lanes
+  `<id>/`, lenses `<id>-rc/` `<id>-rp/`, fixers `<id>-rev/`, `int*/`, `critic/`, `cfix/`, `final/`, the go-live check
+  logs `golive-check*.txt`). The lead's checkout `C:/Users/willy/baylink-opus` is on `opus-bay`. The LAN phone package
+  `C:/Users/willy/opus-qa/dist-phone` was rebuilt by W8-Z at 04:46 from its tree (before the go-live merge); start the
+  `opus-bay-phone` preview for http://10.0.0.85:4174/opus-bay.
+- **Still owed by the owner** (summary §6 P0): confirm the deploy; the real-iPhone pass (`docs/opus-bay/iphone-checklist.md`
+  + the wave-8 panels); the voice listening sheets (`docs/opus-bay/qa/w8/X/voice/listening.md`, the w7 and w6 sheets); the
+  site issues for GPT (the Safari 16.0–16.3 lookbehind at `src/lib/named-event-search.ts:2`, still there; the 繁體
+  converter's 馬裡納區 / 小傢夥 / 海里; the seniors' Muni source; the Chinatown Halloween Festival in the catalog; the
+  Exploratorium / Gott's English entries; the planner's HTTP 400 and the free-admission price from wave 7, not re-checked).
+- **Rules learnt this wave** (add them to every brief, on top of the wave-7 rules and "Rules learnt" below):
+  1. **When the owner says Ultra, run the wave as one Workflow**: lanes → two read-only lenses → a fixer that reproduces
+     each finding → integration lenses + fixer → completeness critic → bounded fix pass → final verify; it took ≈ 9.5 h
+     for 47 agents (19:24 → 04:53 PDT). Lanes already started as background agents are stopped and resumed inside the
+     workflow: each lane agent keeps its predecessor's worktree work.
+  2. **Lens findings can be cut off in the relay**: W8-Z recovered four from the journal (the lists for lanes H, M and P
+     arrived truncated, so 4 of 93 findings never reached a fixer) — fixers should read the journal / the lens reports,
+     not only the relayed list, and the script should hand lens results over as files.
+  3. **Restart the dev server before a probe** after editing source: a probe that imports `/src/...` modules can get a
+     second instance of an HMR-invalidated module (a game that "started" with no panel: Q's review).
+  4. **QA evals poll until the game's hooks exist**: on a cold dev server `__opusBay` was not mounted 25 s after load and a
+     throw inside a `setInterval` hung the run (W8-C). A first click on the activity chip waits for its pop-in (≈ 0.5 s) or
+     it lands on the Postcards pill (lane K).
+  5. **A low phone reading after a long perf chain is re-measured back to back on the live tree and the new tree** before
+     it is called a regression: after 30 min of desktop load the chain read lower, and the W7 tree measured that night
+     sat below W7-Z's own figures (W8-Z's paired runs).
+  6. **A recorded line's words are frozen**: voice is matched by exact zh + en text, so rewording a voiced line silences it
+     until lane X re-records; a wrong voiced fact needs a source or a retake in the same wave (W2-C6, WS-4), and a
+     templated bubble is split into a fixed line + a toast / pin.
+  7. **Lazy code goes through the guards**: every new relative `import()` is `importRetry(() => import('./x'))` and every
+     `React.lazy` goes through `game/lazyChunk.ts` (both scan tests fail on a bare one); GameRoot's static guard fails above
+     258.5 KB (≈ 0.2 KB headroom) and the play core is near its 6246 B guard.
+  8. **Run the whole-repo `eslint .` and the full suite before a push**, not after (W8-C pushed first; both were green).
+  9. **Site data lands with the go-live merge**: a site offer / event new on `main` is mapped after the merge
+     (`export-live.ts` throws for an id the site data lacks), and only the merged tree's full `npm run check` catches the
+     tests that count it (the go-live's second check failed W5-R7, 15 ≠ 14: W8-0t).
+  10. **`eslint .` in the lead's checkout parses its untracked `.claude/*.js` workflow copies** (9 parse errors in the
+      go-live's first check, `C:/Users/willy/opus-qa/w8/golive-check.txt`): run the check where they are not.
+- **How to continue:** say **"继续 Opus Bay，做第九波"**. Read this section and `docs/opus-bay/sf-w8-summary.md` §6 NEXT; do
+  the owner-side P0 first (confirm the deploy, the real iPhone pass, the listening sheets, the site items to GPT). Then
+  launch wave 9 like wave 8 (day 0 = merge `origin/main` once if GPT pushed and re-sync the world with the site, a plan
+  with a default for every question, lanes in parts, the workflow shape of rule 1 when the owner says Ultra, a final
+  verify alone with PERF-LOCK, fast-forward `main` on GO, the hand-off). Time-bound first: the parade photo framing before
+  9 Oct, the branch-library events before 17 / 24 Oct, Waverly Place's parked car before 31 Oct. Higgsfield: read
+  `balance` first.
+
+## NEXT SESSION → WAVE 8 — done: wave 8 ran 2026-09-30 19:00 → 10-01 04:53 PDT; its list and the owner's to-dos are carried into the section above and `docs/opus-bay/sf-w8-summary.md` §6.
 
 ## WAVE 7 DONE · LIVE ON baylink.us — 2026-09-30 03:25 PDT
 
