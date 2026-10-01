@@ -2,6 +2,8 @@
 export type Role = 'user' | 'admin';
 export type PostType = 'client' | 'provider';
 export type ProfileTheme = 'bay' | 'sunset' | 'redwood' | 'lavender';
+export type SocialIntent = 'coffee' | 'food' | 'outdoors' | 'culture' | 'family' | 'learn';
+export type ProfileVisibility = { location?: boolean; interests?: boolean; socialLinks?: boolean };
 
 export interface UserData {
   id: string; email: string; nickname: string; role: Role;
@@ -10,6 +12,8 @@ export interface UserData {
   profileTheme?: ProfileTheme; statusText?: string; coverImage?: string;
   area?: string; city?: string;
   profileTags?: string[]; interests?: string[];
+  socialIntents?: SocialIntent[];
+  profileVisibility?: ProfileVisibility;
   website?: string; xiaohongshu?: string;
   createdAt?: number;
   isPhoneVerified?: boolean; isOfficialVerified?: boolean; // ✨ 信任字段
@@ -71,6 +75,8 @@ export type PublicUserProfile = {
   city?: string;
   profileTags?: string[];
   interests?: string[];
+  socialIntents?: SocialIntent[];
+  profileVisibility?: ProfileVisibility;
   website?: string;
   xiaohongshu?: string;
   role: Role;

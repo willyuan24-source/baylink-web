@@ -80,7 +80,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
   };
 
   const joinDays = profile ? getJoinDays(profile) : null;
-  const commonInterests = currentUser?.id !== profile?.id ? commonProfileInterests(currentUser?.interests, profile?.interests) : [];
+  const commonInterests = currentUser?.id !== profile?.id && currentUser?.profileVisibility?.interests !== false && profile?.profileVisibility?.interests !== false ? commonProfileInterests(currentUser?.interests, profile?.interests) : [];
   const isBlocked = profile ? (blockedUserIds ? blockedUserIds.includes(profile.id) : profile.viewerHasBlockedUser) : false;
 
   return (

@@ -1,4 +1,20 @@
 import type { Locale } from '../../i18n/locale';
+import type { SocialIntent } from '../../lib/types';
+
+export const SOCIAL_INTENTS: ReadonlyArray<{ id: SocialIntent; label: string }> = [
+  { id: 'coffee', label: '喝杯咖啡' }, { id: 'food', label: '吃饭探店' },
+  { id: 'outdoors', label: '户外走走' }, { id: 'culture', label: '看展看演出' },
+  { id: 'family', label: '亲子活动' }, { id: 'learn', label: '学习交流' },
+];
+
+export function normalizeSocialIntents(value: unknown): SocialIntent[] {
+  return Array.isArray(value) ? [...new Set(value.filter((item): item is SocialIntent => SOCIAL_INTENTS.some(intent => intent.id === item)))].slice(0, 3) : [];
+}
+
+export function appendProfilePrompt(current: string, prompt: string, maxLength: number): string | null {
+  const next = current ? `${current}${/\s$/.test(current) ? '' : ' '}${prompt}` : prompt;
+  return next.length <= maxLength ? next : null;
+}
 
 export const PROFILE_THEMES = [
   { id: 'bay', title: '海湾蓝', description: '像海风一样自在' },

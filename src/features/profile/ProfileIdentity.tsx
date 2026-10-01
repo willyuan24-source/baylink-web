@@ -5,22 +5,24 @@ import { TrustBadge } from '../../components/TrustBadge';
 import { formatProfileLocation, normalizeInstagramUrl } from '../../lib/format';
 import { translateText, useLocale } from '../../i18n/locale';
 import type { UserData } from '../../lib/types';
-import { resolveProfileTheme, safeProfileLink, profileShareUrl } from './profile-personality';
+import { resolveProfileTheme, safeProfileLink, profileShareUrl, SOCIAL_INTENTS, normalizeSocialIntents } from './profile-personality';
 
-export type ProfileIdentityData = Pick<UserData, 'nickname' | 'avatar' | 'bio' | 'city' | 'area' | 'profileTags' | 'interests' | 'website' | 'xiaohongshu' | 'socialLinks' | 'role' | 'isPhoneVerified' | 'isOfficialVerified' | 'officialVerification'> & {
+export type ProfileIdentityData = Pick<UserData, 'nickname' | 'avatar' | 'bio' | 'city' | 'area' | 'profileTags' | 'interests' | 'website' | 'xiaohongshu' | 'socialLinks' | 'role' | 'isPhoneVerified' | 'isOfficialVerified' | 'officialVerification' | 'socialIntents' | 'profileVisibility'> & {
   profileTheme?: string; statusText?: string; coverImage?: string;
 };
 
 export function ProfileIdentity({ profile, children, preview = false }: { profile: ProfileIdentityData; children?: ReactNode; preview?: boolean }) {
   const theme = resolveProfileTheme(profile.profileTheme);
   const [failedCover, setFailedCover] = useState('');
-  const location = formatProfileLocation(profile.area, profile.city);
+  const visibility = profile.profileVisibility;
+  const location = visibility?.location === false ? '' : formatProfileLocation(profile.area, profile.city);
   const tags = profile.profileTags?.filter(Boolean) || [];
-  const interests = profile.interests?.filter(Boolean) || [];
-  const instagram = profile.socialLinks?.instagram ? safeProfileLink(normalizeInstagramUrl(profile.socialLinks.instagram) || '') : null;
-  const linkedin = safeProfileLink(profile.socialLinks?.linkedin);
-  const website = safeProfileLink(profile.website);
-  const xhs = profile.xiaohongshu?.trim();
+  const interests = visibility?.interests === false ? [] : profile.interests?.filter(Boolean) || [];
+  const intents = normalizeSocialIntents(profile.socialIntents);
+  const instagram = visibility?.socialLinks !== false && profile.socialLinks?.instagram ? safeProfileLink(normalizeInstagramUrl(profile.socialLinks.instagram) || '') : null;
+  const linkedin = visibility?.socialLinks === false ? null : safeProfileLink(profile.socialLinks?.linkedin);
+  const website = visibility?.socialLinks === false ? null : safeProfileLink(profile.website);
+  const xhs = visibility?.socialLinks === false ? '' : profile.xiaohongshu?.trim();
   const xhsUrl = xhs && /^https?:\/\//i.test(xhs) ? safeProfileLink(xhs) : null;
   return <section className={`profile-identity profile-theme-${theme}${preview ? ' profile-identity--preview' : ''}`} aria-label={preview ? '名片即时预览' : '公开个人名片'} data-profile-theme={theme}>
     <div className="profile-identity-cover">
@@ -36,6 +38,7 @@ export function ProfileIdentity({ profile, children, preview = false }: { profil
       <p className="profile-identity-bio">{profile.bio?.trim() ? <span translate="no">{profile.bio.trim()}</span> : '一点兴趣，一段日常，都是认识你的开始。'}</p>
       {tags.length > 0 && <div className="profile-identity-tags" aria-label="身份标签">{tags.map(tag => <span key={tag} translate="no">{tag}</span>)}</div>}
       {interests.length > 0 && <div className="profile-identity-interests" aria-label="兴趣">{interests.map(tag => <span key={tag} translate="no">{tag}</span>)}</div>}
+      {intents.length > 0 && <div className="profile-identity-intents" aria-label="想一起做什么"><h3>想一起做什么</h3><div>{intents.map(id => <span key={id}>{SOCIAL_INTENTS.find(intent => intent.id === id)!.label}</span>)}</div><p>这些是聊天话题，具体安排再一起商量。</p></div>}
       {(instagram || linkedin || website || xhs) && <div className="profile-identity-social" aria-label="社交链接">
         {instagram && <a href={instagram} target="_blank" rel="noopener noreferrer"><Instagram size={14} />Instagram</a>}
         {linkedin && <a href={linkedin} target="_blank" rel="noopener noreferrer"><Linkedin size={14} />LinkedIn</a>}
