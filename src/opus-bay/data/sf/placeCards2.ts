@@ -267,11 +267,11 @@ export const PLACE_CARDS_2: PlaceCard[] = [
     name: bi('苏特罗山森林保护区', 'Mount Sutro Open Space Reserve'), zone: bi('内日落区 · UCSF 后山', 'Inner Sunset · above UCSF'),
     bark: bi('苏特罗山的桉树林会“喝雾”，雾一来树上就滴水！', 'Mount Sutro\'s eucalyptus drinks the fog — the trees drip when Karl rolls in!'),
     summary: bi('UCSF 后山 61 英亩的桉树“云雾森林”，三到四成水分来自雾滴，对公众开放；步道能走到山顶的 Rotary Meadow 原生植物园。', 'A 61-acre eucalyptus "cloud forest" above UCSF that gets 30–40% of its water from fog drip, open to the public, with trails up to the native-plant Rotary Meadow at the summit.'),
-    hours: bi('日出到日落开放，风速超过每小时 40 英里时关闭（以官网为准）。', 'Open sunrise to sunset; closed when winds top 40 mph (per UCSF).'),
+    hours: bi('日出到日落开放，风速超过每小时 40 英里时关闭（以官网为准）。', 'Open sunrise to sunset; closed when winds top 40 mph (per the Sutro Stewards; check before you go).'),
     cost: bi('免费。', 'Free.'),
     verifiedAt: '2026-09-30',
     tips: [bi('UCSF 负责管理，请走在步道上。', 'UCSF manages it: stay on the trails.')],
-    sourceUrl: 'https://en.wikipedia.org/wiki/Mount_Sutro', sources: ['https://www.ucsf.edu/about/locations/mission-bay', 'https://www.ucsf.edu/about/locations/mount-sutro-open-space-reserve'],
+    sourceUrl: 'https://en.wikipedia.org/wiki/Mount_Sutro', sources: ['https://www.ucsf.edu/about/locations/mission-bay', 'https://www.ucsf.edu/about/locations/mount-sutro-open-space-reserve', 'https://www.sutrostewards.org/trail-map'],
     lat: 37.75811, lng: -122.45718,
   }),
   short({

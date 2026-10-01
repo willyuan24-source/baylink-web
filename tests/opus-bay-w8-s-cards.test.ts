@@ -63,7 +63,11 @@ test('W8-S3 the facts behind the lines: the park code, the national park, the of
   assert.ok(cites('glide-memorial-church', 'https://www.glide.org/church/'));
   assert.equal(card('glide-memorial-church').quiet, true, 'a church stays quiet');
   assert.match(card('candlestick-point-sra').hours!.zh, /约每天 7:00–19:00/, 'the state park page: 7 am to 7 pm (was sunrise to sunset)');
-  assert.ok(cites('mount-sutro-open-space', 'https://www.ucsf.edu/about/locations/mount-sutro-open-space-reserve'));
+  // (W8-S review) the hours and the 40 mph wind rule are the Sutro Stewards' trail-map page's (UCSF's reserve page states
+  // neither: re-read 2026-09-30), so the line cites that page and does not say "per UCSF"
+  assert.ok(cites('mount-sutro-open-space', 'https://www.sutrostewards.org/trail-map'));
+  assert.doesNotMatch(card('mount-sutro-open-space').hours!.en, /UCSF/);
+  assert.match(card('mount-sutro-open-space').hours!.en, /Sutro Stewards/);
   assert.ok(cites('herons-head-park', 'https://sfrecpark.org/facilities/facility/details/Herons-Head-Park-Nature-Exploration-Area-447'));
   assert.ok(cites('crane-cove-park', 'https://www.sfport.com/cranecovepark'));
   assert.ok(cites('boudin-bakery', 'https://boudinbakery.com/boudin-at-the-wharf/'));
