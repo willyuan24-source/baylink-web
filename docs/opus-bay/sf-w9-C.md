@@ -116,7 +116,7 @@ stop; the shot is the classic one, the car and the grip man from outside with th
 
 ## Part c · looks and the ride camera (03:00 → 04:45)
 
-### W9-C6 · Chinatown's lanterns glow at night + a little neon — 0 new draw calls
+### W9-C6 · Chinatown's lanterns glow at night + a little neon — 0 new draw calls — `2b739d39`
 
 - `world/sf/lights.ts`: a new band of the night light field, HALO_GLOW (aLevel 6 + diameter / 4): a soft glow of a
   fixed world size from 1.5 u out to ≈ 160 u (the field's other lights only fade in beyond 60 u, so near the camera a
@@ -130,7 +130,7 @@ stop; the shot is the classic one, the car and the grip man from outside with th
   triangles 275.5k / 279.4k (the same draw list; traffic and walkers vary ±3 calls between runs). Two stronger settings
   (1.5 u, a wider falloff) merged into a red haze and were rejected.
 
-### W9-C7 · the ride camera's look-at never parks in the houses (R§5 #15, the N line)
+### W9-C7 · the ride camera's look-at never parks in the houses (R§5 #15, the N line) — `4c1f31c2`
 
 - Why: W4-G9's look-at (a stop's attraction on approach, a portal on portal-out) puts the camera on the far side of
   the rider from the point; on Carl St UCSF is up the hill to the south, so the camera went into the north side's
@@ -142,8 +142,14 @@ stop; the shot is the classic one, the car and the grip man from outside with th
   call (GameRoot +0.070 KB; ≈ 257.9 after W9-P6, guard 258.5).
 - Test (red on origin: pulled in to 4.9 u / x −3.5): an LRV passing a row of houses while a look 100 u east is on —
   open street as before; 6 u houses: over the roofs at > 10 u; 14 u houses: the look dropped, behind the train at > 12 u.
-- **Not played live on the N** (a Metro ride with its real wait takes minutes; the time went to the checks above):
-  Requests.
+- **Played live once after the push** (04:25, a fresh dev server, desktop, the N outbound Duboce & Church → Carl &
+  Hillway; the scene rendered at night although `?date=…T12:00`, so the frames are dark): out of the Sunset Tunnel at
+  Carl & Cole (「Out of the Sunset Tunnel! This is Carl & Cole」) the camera stood over the street looking west along
+  Carl St, not in a building (`qa/w9/C/c2-n-carl-cole-portal-out.jpg`; verify-explorer 35-nj-a had it inside one).
+  Between Cole and Hillway the camera-to-rider distance (logged every 0.5 s) still dipped to 4.1–5.3 u three times
+  (the line's own pull-in in front of a house, not the look) and one frame was mostly roofs; the approach to Hillway
+  (the UCSF line) fell after the last shot. So: the portal case is better live; the UCSF moment is test-verified only
+  (Requests).
 
 ### Fleet Week framing, re-checked live (time-bound, before 9 Oct)
 
@@ -152,6 +158,14 @@ at ≈ 38 % of the frame height, the player and BAYBAY on the walkway, no walker
 (`qa/w9/C/a2-marina-parade-photo-lens.jpg`; camera rotation.x −0.128, 64 calls / 118k triangles). `?date=…T14:00`
 (the show 12:00–16:00), E → 拍飞机编队: the jets and their smoke trails across the frame's upper third, Alcatraz behind
 (`a2-marina-jets-photo.jpg`; −0.143, 77 calls / 171k triangles). Both under the desktop budget.
+
+### Checks (parts b + c)
+
+Before the 02:44 push: tsc 0 · `eslint .` 0 errors (50 warnings) · the opus-bay suite 2008 tests, 2007 pass, 0 fail
+(1 todo). Before the 04:21 push (W9-C6 / C7 / C8 on W9-R7): tsc 0 · `eslint .` 0 errors (53 warnings) · the suite 2111
+tests, 2110 pass, 0 fail (1 todo); after the last rebases (W9-S4, L7, E9) tsc 0 again and the brought-in tests
+(w9-l-search, w9-s-card) + sf-budget + lane C's pass. GameRoot static estimate ≈ 257.9 KB (guard 258.5). A W5-D wall-clock
+test (w5-eggs-review, 74.7 ms) failed once under load during an earlier run and passed alone.
 
 ## Not done (lane C's list)
 
