@@ -195,6 +195,12 @@ export class GripGame {
   get timeLeft() { return Math.max(0, GRIP_SECONDS - this.t); }
   /** the held share of the running time (1 before any) */
   get heldShare() { return this.need > 0.5 ? this.held / this.need : 1; }
+  /**
+   * (W9-G5) the live number on the panel: the points gathered so far, never below 0 — a miss adds nothing and takes nothing
+   * (only a bell rung over and over past the free ones costs 1) (review 2026-10-01 R§6: the share `score` showed 100 and fell
+   * to 14 at the first alarm); the 0–100 `score` is the card's
+   */
+  get livePoints() { return Math.max(0, Math.round(this.pts)); }
   /** 0–100 */
   get score() {
     const ev = this.max > 0 ? Math.max(0, this.pts) / this.max : this.heldShare;

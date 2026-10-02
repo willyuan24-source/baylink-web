@@ -66,7 +66,8 @@ function buskIt(s: BuskSpot, id: string): Interactable {
   const p = buskAt(s);
   return {
     id, source: 'activity', action: 'info', verb: BUSK_VERB, name: BUSK_NAME, x: p.x, z: p.z, radius: s.r,
-    act: () => { const out = buskerOut(s); void importRetry(() => import('./busk')).then(m => { m.startBusk(s.style, out); }); },
+    // (W9-G5, w8 NEXT #11) the jam starts once its panel's chunk is in too (the song ran on while the panel loaded)
+    act: () => { const out = buskerOut(s); void Promise.all([importRetry(() => import('./busk')), importRetry(() => import('./BuskPanel'))]).then(([m]) => { m.startBusk(s.style, out); }); },
   };
 }
 export const buskHaightIt = buskIt(BUSK_HAIGHT, 'play:busk-haight');
@@ -78,13 +79,14 @@ export const buskMissionIt = buskIt(BUSK_MISSION, 'play:busk-mission');
  * west wall where Marine Drive's loop ends — on the ground the arrival (the trip end −747.66, 598.89, 9.5 u) walks to; the
  * sea-wall walk on the strait side is not reachable from there. Clear of egg 9's spot (−747.3, 595.5) by 6.4 u.
  */
-export const FOG_SPOT = { x: -743.71, z: 590.25, r: 1.5 };
+// (W9-G5) reach 1.5 → 3 u: the review's player probed ten steps round the fort without finding the prompt (gamer notes 08:40)
+export const FOG_SPOT = { x: -743.71, z: 590.25, r: 3 };
 /** BAYBAY's invite reaches the fort's arrival (u) */
 export const FOG_INVITE_R = 12;
 const FOG_VERB: Bilingual = { zh: '雾笛对答', en: 'Foghorn call and answer' };
 export const fogIt: Interactable = {
   id: 'play:foghorn', source: 'activity', action: 'info', verb: FOG_VERB, name: FOG_NAME, x: FOG_SPOT.x, z: FOG_SPOT.z, radius: FOG_SPOT.r,
-  act: () => { void importRetry(() => import('./foghorn')).then(m => { m.startFoghorn(); }); },
+  act: () => { void Promise.all([importRetry(() => import('./foghorn')), importRetry(() => import('./FogPanel'))]).then(([m]) => { m.startFoghorn(); }); },
 };
 
 /** the busker prompts with their spots (a constant: the frame system walks it every frame) */

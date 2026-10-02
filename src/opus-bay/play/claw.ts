@@ -9,6 +9,8 @@ import { bestOf, saveNumber, startActivity, tierFor, type ActivityRun } from './
 import { freeOnFoot, holdKeys, type HeldKeys } from './partc';
 import { CLAW_ID, CLAW_LINES, CLAW_NAME } from './sfgamesLines';
 import { ensureSfSounds } from './sfgamesSounds';
+import { drawPrize } from './clawArt';
+import { importRetry } from '../game/importRetry';
 import { sayWhenQuiet } from './zones';
 
 /**
@@ -30,6 +32,8 @@ export const CLAW_REST = 8;
 export const CLAW_SPEED = 30;
 export const AIM_SECONDS = 12;
 export const TRIES = 5;
+/** (W9-G5) the last seconds of the aim shown as a blinking count over the glass before the claw drops by itself */
+export const COUNT_FROM = 3;
 /** The souvenirs are drawn (and caught) this much larger than their art units. */
 export const PRIZE_SCALE = 1.3;
 /** Half the width a claw can catch a prize by (u). */
@@ -97,6 +101,8 @@ export class ClawGame {
   private readonly rand: () => number;
   constructor(rand: () => number = Math.random) { this.rand = rand; this.prizes = layoutPrizes(rand); }
   get aimLeft() { return this.phase === 'aim' ? Math.max(0, AIM_SECONDS - this.t) : 0; }
+  /** (W9-G5) the count over the glass: 3, 2, 1 in the aim's last COUNT_FROM seconds, else 0 (none) */
+  get countdown() { const left = this.aimLeft; return this.phase === 'aim' && left > 0 && left <= COUNT_FROM ? Math.ceil(left) : 0; }
   /** 抓！ (only while aiming) */
   drop() { if (this.phase === 'aim') this.dropAsked = true; }
   private go(p: ClawPhase) { this.phase = p; this.t = 0; }
@@ -261,11 +267,39 @@ function onClawEvent(r: Run, e: ClawEvent) {
   } else if (e === 'done') finish(r);
 }
 
+/**
+ * (W9-G5) the souvenirs won, drawn big on a little card (review 2026-10-01 R§6: the claw's result was too cold for a child):
+ * the result card shows it as its snapshot (保存照片 saves it). Null when nothing was won or no canvas (node).
+ */
+export function prizeSnapshot(won: readonly number[]): string | null {
+  if (!won.length || typeof document === 'undefined') return null;
+  try {
+    const cv = document.createElement('canvas');
+    cv.width = 320; cv.height = 240;
+    const c = cv.getContext('2d');
+    if (!c || typeof cv.toDataURL !== 'function') return null;
+    c.fillStyle = '#fff4df'; c.fillRect(0, 0, 320, 240);
+    c.fillStyle = '#f1d9b0'; c.fillRect(0, 186, 320, 54);
+    // one row up to three (big), four or five in two rows (3 + the rest) so each stays a good size on the card
+    const n = Math.min(won.length, 5), rows = n > 3 ? 2 : 1, scale = n === 1 ? 14 : n === 2 ? 10 : rows === 1 ? 7.5 : 5.2;
+    for (let i = 0; i < n; i++) {
+      const row = rows === 2 && i >= 3 ? 1 : 0, inRow = rows === 1 ? n : row === 0 ? 3 : n - 3, at = row === 0 ? i : i - 3;
+      drawPrize(c as unknown as CanvasRenderingContext2D, won[i], (320 / inRow) * (at + 0.5), rows === 1 ? 190 : row === 0 ? 108 : 214, scale);
+    }
+    const url = cv.toDataURL('image/png');
+    return typeof url === 'string' && url.startsWith('data:image') ? url : null;
+  } catch { return null; }
+}
+
 function finish(r: Run) {
   const g = r.game, n = g.won.length, kinds = setCount(clawSet());
   const names = g.won.map(k => PRIZE_KINDS[k].name);
   cleanup();
+  // (W9-G5) a cheer and the souvenirs big on the card
+  if (n) charApi()?.emote('baybay', 'cheer', { seconds: 1.6 });
+  const shot = prizeSnapshot(g.won);
   r.run.end({
+    ...(shot ? { photo: { url: shot, save: () => { void importRetry(() => import('../game/photo')).then(m => { m.downloadUrl(shot, 'claw-souvenirs.png'); }); } } } : {}),
     tier: clawTier(n),
     score: n,
     detail: n

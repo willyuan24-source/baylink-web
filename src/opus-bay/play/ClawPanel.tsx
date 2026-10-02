@@ -27,6 +27,10 @@ export default function ClawPanel() {
   const game = clawGame();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const clockRef = useRef<HTMLElement>(null);
+  // (W9-G5) the last 3 s before the claw drops by itself: a blinking count over the glass; a souvenir won: it pops up big
+  const countRef = useRef<HTMLElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const popCv = useRef<HTMLCanvasElement>(null);
   const dragging = useRef(false);
   const stripRef = useRef<HTMLCanvasElement>(null);
   const setMask = clawSet();
@@ -68,6 +72,22 @@ export default function ClawPanel() {
         }
         const clock = clockRef.current;
         if (clock) clock.style.width = `${(g.aimLeft / AIM_SECONDS) * 100}%`;
+        const n = g.countdown, el = countRef.current;
+        if (el && el.dataset.n !== String(n)) { el.dataset.n = String(n); el.textContent = n ? String(n) : ''; el.className = n ? `ob-sfg-count is-on n${n}` : 'ob-sfg-count'; clock?.parentElement?.classList.toggle('is-last', n > 0); }
+        const pop = popRef.current;
+        if (pop && g.won.length !== Number(pop.dataset.won ?? 0)) {
+          const before = Number(pop.dataset.won ?? 0);
+          pop.dataset.won = String(g.won.length);
+          if (g.won.length > before) {
+            const k = g.won[g.won.length - 1], pc = popCv.current, pctx = pc?.getContext('2d');
+            if (pc && pctx) { pc.width = 192; pc.height = 144; pctx.clearRect(0, 0, 192, 144); drawPrize(pctx, k, 96, 118, 9); }
+            pop.classList.remove('is-on'); void pop.offsetWidth; pop.classList.add('is-on');
+            window.clearTimeout(Number(pop.dataset.timer ?? 0));
+            pop.dataset.timer = String(window.setTimeout(() => pop.classList.remove('is-on'), 1900));
+            const name = pop.querySelector('span');
+            if (name) { let names: string[] = []; try { names = JSON.parse(pop.dataset.names ?? '[]') as string[]; } catch { /* none */ } name.textContent = `${pop.dataset.got ?? ''}${names[k] ?? ''}`; }
+          }
+        }
       }
       id = requestAnimationFrame(draw);
     };
@@ -106,8 +126,14 @@ export default function ClawPanel() {
         </span>
         <button type="button" className="ob-sfg-x" onClick={cancelClaw} aria-label={t('放弃', 'Give up')}><X size={20} /></button>
       </div>
+      {/* (W9-G5) the rules in one line: the review's player lost quarters to the silent 12 s drop */}
+      <p className="ob-sfg-rule">{t(`每枚硬币 ${AIM_SECONDS} 秒：对准后按「抓！」，时间到会自己落爪`, `${AIM_SECONDS} s per quarter: aim, then Grab — at 0 the claw drops by itself`)}</p>
       <div className="ob-sfg-clock"><i ref={clockRef} /></div>
-      <canvas ref={canvasRef} className="ob-sfg-canvas is-claw" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { dragging.current = false; }} />
+      <div className="ob-sfg-glass">
+        <canvas ref={canvasRef} className="ob-sfg-canvas is-claw" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={() => { dragging.current = false; }} />
+        <b ref={countRef} className="ob-sfg-count" aria-hidden="true" />
+        <div ref={popRef} className="ob-sfg-pop" aria-hidden="true" data-got={t('抓到啦！', 'Got it! ')} data-names={JSON.stringify(PRIZE_KINDS.map(k => t(k.name)))}><canvas ref={popCv} /><span /></div>
+      </div>
       <p className="ob-sfg-hint">{aiming ? hint : game.phase === 'done' ? '' : t('爪子在动……', 'The claw is on its way…')}</p>
       <div className="ob-sfg-controls">
         <button type="button" onMouseDown={keepFocus} className="ob-sfg-btn is-dir" disabled={!aiming} aria-label={t('向左', 'Left')} {...hold(-1)}><ChevronLeft size={28} />{device !== 'touch' && <Keycap>←</Keycap>}</button>

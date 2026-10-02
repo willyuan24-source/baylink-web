@@ -11,7 +11,8 @@ import { importRetry } from '../game/importRetry';
 export default function GripPad() {
   const { t } = useT();
   const narrow = useMedia('(max-width: 600px)');
-  const start = () => { void importRetry(() => import('./grip')).then(m => { m.startGrip(); }); };
+  // (W9-G5) the grip starts once its panel's chunk is in too
+  const start = () => { void Promise.all([importRetry(() => import('./grip')), importRetry(() => import('./GripPanel'))]).then(([m]) => { m.startGrip(); }); };
   return (
     <button type="button" className="ob-btn ob-btn-soft ob-btn-sm" onClick={start} style={{ minHeight: 44 }} aria-label={t('拉闸当司机', 'Work the grip')}>
       <Hand size={15} aria-hidden />{narrow ? t('拉闸', 'Grip it') : t('拉闸当司机', 'Work the grip')}

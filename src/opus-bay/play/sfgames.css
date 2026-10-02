@@ -99,3 +99,40 @@
 .ob-sfg-set { display: flex; align-items: center; gap: 8px; justify-content: center; }
 .ob-sfg-strip { width: min(240px, 62vw); height: 34px; }
 .ob-sfg-set span { font-size: 12.5px; font-weight: 800; color: var(--ob-ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Wave 9 · lane G · W9-G5 the claw: its rule in one line, the last 3 s before the claw drops by itself (a blinking count
+   over the glass, the clock red), a souvenir won pops up big over the glass */
+.ob-sfg-rule { margin: -2px 0 0; text-align: center; font-size: 13px; font-weight: 700; line-height: 1.35; color: var(--ob-ink-2); }
+.ob-sfg-glass { position: relative; }
+.ob-sfg-clock.is-last i { background: #d8433a; }
+.ob-sfg-count { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); display: none; pointer-events: none;
+  font: 900 64px/1 var(--ob-font); color: #fff; text-shadow: 0 3px 0 #b84a32, 0 0 18px rgba(0, 0, 0, .35); }
+.ob-sfg-count.is-on { display: block; animation: ob-sfg-count-blink .5s steps(1) infinite; }
+@keyframes ob-sfg-count-blink { 50% { opacity: .25; } }
+.ob-sfg-pop { position: absolute; inset: 8% 10% auto; display: none; flex-direction: column; align-items: center; gap: 2px; padding: 8px 10px;
+  border-radius: 16px; background: rgba(255, 250, 241, .96); box-shadow: var(--ob-shadow); pointer-events: none; }
+.ob-sfg-pop.is-on { display: flex; animation: ob-sfg-pop-in .55s var(--ob-spring); }
+.ob-sfg-pop canvas { width: 144px; height: 108px; }
+.ob-sfg-pop span { font: 900 17px/1.25 var(--ob-font); color: var(--ob-terra); text-align: center; }
+@keyframes ob-sfg-pop-in { from { opacity: 0; transform: scale(.6) rotate(-6deg); } }
+@media (prefers-reduced-motion: reduce) { .ob-sfg-count.is-on, .ob-sfg-pop.is-on { animation: none; } }
+
+/* W9-G5 (w8 NEXT #9) · a phone on its side (844 × 340, 667 × 320): the picture on the left, the rest beside it — the one
+   column reached past the screen and scrolled (W8-K-review's stopgap above); the grip keeps its own (sfgames8.css) */
+@media (max-height: 560px) and (min-width: 600px) {
+  .ob-sfg-panel.ob-sfg-panel:is(.is-claw, .is-crab, .is-dough, .is-fortune, .is-busk, .is-fog) {
+    display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); grid-auto-flow: row dense; align-items: center;
+    column-gap: 12px; row-gap: 6px; width: min(720px, calc(100vw - 24px)); max-height: calc(100% - 16px - var(--ob-st) - var(--ob-sb, 0px));
+    top: calc(8px + var(--ob-st)); bottom: auto; left: 50%; right: auto; transform: translateX(-50%); overflow-y: auto;
+  }
+  .ob-sfg-panel:is(.is-claw, .is-crab, .is-dough, .is-fortune, .is-busk, .is-fog) > * { grid-column: 2; }
+  .ob-sfg-panel:is(.is-claw, .is-crab, .is-dough, .is-busk, .is-fog) > :is(.ob-sfg-canvas, .ob-sfg-glass),
+  .ob-sfg-panel.is-fortune > .ob-sfg-booth { grid-column: 1; grid-row: 1 / span 9; align-self: center; justify-self: center; }
+  .ob-sfg-panel.ob-sfg-panel > .ob-sfg-canvas, .ob-sfg-panel .ob-sfg-glass > .ob-sfg-canvas { --ar: 1.25; width: min(100%, calc((100dvh - 64px - var(--ob-st) - var(--ob-sb, 0px)) * var(--ar))); max-height: none; }
+  .ob-sfg-panel .ob-sfg-canvas.is-crab { --ar: 1.111; }
+  .ob-sfg-panel .ob-sfg-canvas.is-dough { --ar: 1.428; }
+  .ob-sfg-panel .ob-sfg-canvas.is-busk { --ar: 1.724; }
+  .ob-sfg-panel .ob-sfg-canvas.is-fog { --ar: 1.667; }
+  .ob-sfg-panel :is(.ob-sfg-btn) { min-height: 48px; }
+  .ob-sfg-panel .ob-sfg-btn.is-tap, .ob-sfg-panel .ob-sfg-btn.is-horn { min-height: 56px; }
+}

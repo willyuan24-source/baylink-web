@@ -60,24 +60,25 @@ const DOUGH_VERB: Bilingual = { zh: '捏酸面包', en: 'Shape a sourdough' };
 export const clawIt: Interactable = {
   id: 'play:claw', source: 'activity', action: 'info', verb: CLAW_VERB, name: CLAW_NAME,
   x: CLAW_SPOT.x, z: CLAW_SPOT.z, radius: CLAW_SPOT.r,
-  act: () => { void importRetry(() => import('./claw')).then(m => { m.startClaw(); }); },
+  // (W9-G5, w8 NEXT #11) the game starts once its panel's chunk is in too: the claw's 12 s ran on while the panel loaded
+  act: () => { void Promise.all([importRetry(() => import('./claw')), importRetry(() => import('./ClawPanel'))]).then(([m]) => { m.startClaw(); }); },
 };
 export const fortuneIt: Interactable = {
   id: 'play:fortune', source: 'activity', action: 'info', verb: FORTUNE_VERB, name: FORTUNE_NAME,
   x: FORTUNE_SPOT.x, z: FORTUNE_SPOT.z, radius: FORTUNE_SPOT.r,
-  act: () => { void importRetry(() => import('./fortune')).then(m => { m.tellFortune(); }); },
+  act: () => { void Promise.all([importRetry(() => import('./fortune')), importRetry(() => import('./FortunePanel'))]).then(([m]) => { m.tellFortune(); }); },
 };
 
 export const crabIt: Interactable = {
   id: 'play:crab', source: 'activity', action: 'info', verb: CRAB_VERB, name: CRAB_NAME,
   x: CRAB_SPOT.x, z: CRAB_SPOT.z, radius: CRAB_SPOT.r,
-  act: () => { void importRetry(() => import('./crab')).then(m => { m.startCrab(); }); },
+  act: () => { void Promise.all([importRetry(() => import('./crab')), importRetry(() => import('./CrabPanel'))]).then(([m]) => { m.startCrab(); }); },
 };
 
 export const doughIt: Interactable = {
   id: 'play:sourdough', source: 'activity', action: 'info', verb: DOUGH_VERB, name: DOUGH_NAME,
   x: DOUGH_SPOT.x, z: DOUGH_SPOT.z, radius: DOUGH_SPOT.r,
-  act: () => { void importRetry(() => import('./dough')).then(m => { m.startDough(); }); },
+  act: () => { void Promise.all([importRetry(() => import('./dough')), importRetry(() => import('./DoughPanel'))]).then(([m]) => { m.startDough(); }); },
 };
 
 /** Every prompt of the mini-games (tests: each on standable ground, clear of the other prompts). */

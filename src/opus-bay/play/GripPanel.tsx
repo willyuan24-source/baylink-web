@@ -161,7 +161,8 @@ export default function GripPanel() {
         const c = cv.getContext('2d');
         if (c) { c.setTransform(dpr * w / W, 0, 0, dpr * h / H, 0, 0); draw(c, gg, now / 1000); }
         if (clockRef.current) clockRef.current.style.width = `${(gg.timeLeft / 60) * 100}%`;
-        if (scoreRef.current) scoreRef.current.textContent = String(gg.score);
+        // (W9-G5) the points so far (they only grow); the 0–100 score waits for the card
+        if (scoreRef.current) scoreRef.current.textContent = String(gg.livePoints);
       }
       id = requestAnimationFrame(frame);
     };
@@ -184,7 +185,7 @@ export default function GripPanel() {
     <div className={`ob-sfg-panel is-grip${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(GRIP_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(GRIP_NAME)}</strong>
-        <span className="ob-sfg-score" ref={scoreRef}>{g.score}</span>
+        <span className="ob-sfg-score"><b ref={scoreRef}>{g.livePoints}</b> {t('分', 'pts')}</span>
         <button type="button" className="ob-sfg-x" onClick={cancelGrip} aria-label={t('放弃', 'Give up')}><X size={20} /></button>
       </div>
       <div className="ob-sfg-clock"><i ref={clockRef} /></div>
