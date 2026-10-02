@@ -1,3 +1,4 @@
+import { october2026NewOffers, october2026OfferUpdates } from './october-2026-verified-offers';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
 import { septemberFreebies } from './september-freebies';
@@ -122,8 +123,10 @@ export const octoberOffers: FreebieOffer[] = [
   ...septemberFreebies.filter(offer => offer.availability === 'ongoing' || offer.startDate?.startsWith('2026-10')),
 ];
 
-export const currentFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers, ...octoberRefreshOffers].map(offer => [offer.id, offer])).values()]
+const previousFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers, ...octoberRefreshOffers].map(offer => [offer.id, offer])).values()]
   .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23'));
+
+export const currentFreebies: FreebieOffer[] = [...new Map([...previousFreebies, ...october2026NewOffers].map(offer => [offer.id, offer])).values()].map(offer => ({ ...offer, ...october2026OfferUpdates[offer.id] }));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),

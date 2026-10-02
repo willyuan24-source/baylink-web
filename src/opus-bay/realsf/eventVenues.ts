@@ -466,6 +466,12 @@ export const EVENT_VENUES: readonly EventVenue[] = [
  * not an outing for the toy city — no pennant, crowd, souvenir or BAYBAY line.
  */
 export const WORLD_SKIP: Readonly<Record<string, string>> = {
+  // October website entries need an independently reviewed venue, name and save bit before world import.
+  'sf-mandarin-conversation-oct6-2026': 'October 2 website event: pending independent world import',
+  'sf-chinatown-calligraphy-oct8-2026': 'October 2 website event: pending independent world import',
+  'sf-sundown-beetlejuice-2026': 'October 2 website event: pending independent world import',
+  'sf-presidio-artspan-oct24-2026': 'October 2 website event: pending independent world import',
+  'sf-scaregrove-2026': 'October 2 website event: pending independent world import',
   'sf-financial-planning-day-oct24-2026': 'adults’ financial-planning talks and one-on-one CFP consultations: not a toy-city outing',
   // Sep 30 website additions remain in BAYLINK's catalog. Importing an event into
   // the world separately requires a reviewed venue, short name and souvenir bit;

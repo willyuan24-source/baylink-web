@@ -87,6 +87,8 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 
 export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await (englishLoad ||= Promise.all([
+    import('../data/october-2026-refresh-ui-en.json'), import('../data/october-2026-events-refresh-en.json'),
+    import('../data/guides-october-2026-visit-en.json'), import('../data/october-2026-verified-offers-en.json'), import('../data/october-2026-newcomer-en.json'),
     import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
     import('../data/service-booking-entry-en.json'),
     import('../data/october-offers-en.json'), import('../data/october-local-en.json'),

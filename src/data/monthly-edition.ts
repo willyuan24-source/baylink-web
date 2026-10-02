@@ -13,21 +13,22 @@ import { lateSeptemberPeninsulaSouthEvents } from './late-september-peninsula-so
 import { lateSeptemberNorthEvents } from './late-september-north';
 import type { MonthlyPlace } from './monthly-types';
 import { mergeReviewedEvents } from './autumn-release';
+import { applyOctober2026Events } from './october-2026-events-refresh';
 
 export const MONTHLY_EDITION = {
   month: '2026-10',
   startMonth: '2026-09',
   label: '2026 年 9–10 月',
-  checkedAt: '2026-09-30',
+  checkedAt: '2026-10-02',
   title: '这个秋天，把周末留给湾区。',
-  intro: '从九月余下的好去处，到十月底的南瓜季、社区节庆和免费文化日。按日期和地区挑活动，把交通、预约与领取条件一起安排好。',
+  intro: '从十月音乐节、舰队周到社区活动，补上交通变动、免费资格与第一次来的出行提醒。每条信息保留自己的核对日期，出发前再查官方安排。',
 };
 
 // Keep published URLs in the catalog; the UI hides expired events by local date.
-export const MONTHLY_EVENTS = mergeReviewedEvents([...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents, ...communityDiscoveryEvents, ...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents]
+export const MONTHLY_EVENTS = applyOctober2026Events(mergeReviewedEvents([...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents, ...communityDiscoveryEvents, ...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents]
   .filter(event => event.endDate >= '2026-09-23')
   .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) })))
-  .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+  ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

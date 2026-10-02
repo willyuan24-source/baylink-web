@@ -1,4 +1,6 @@
 import { practicalGuides } from './guides-practical';
+import { october2026NewcomerGuides } from './guides-october-2026-newcomer';
+import { october2026VisitGuides } from './guides-october-2026-visit';
 import { serviceGuides } from './guides-services';
 import { localLifeGuides } from './guides-local-life';
 import { settlingInGuides } from './guides-settling-in';
@@ -1875,6 +1877,8 @@ export const guides: Guide[] = [
     ],
   },
   ...practicalGuides,
+  ...october2026NewcomerGuides,
+  ...october2026VisitGuides,
   ...serviceGuides,
   ...localLifeGuides,
   ...settlingInGuides,

@@ -68,6 +68,7 @@ for (const photo of photoCredits) {
 for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
+GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 // Reuse verified regional photographs with their original attribution intact.
@@ -180,6 +181,19 @@ Object.assign(bySlug, {
 for (const { key, ...asset } of schoolCampusMedia) {
   if (!Object.values(GUIDE_IMAGES).some(image => image.src === asset.src)) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
+
+// The introductory routes revisit these same places and services. Reuse their
+// credited reference photos and labelled illustrations, including original dates.
+export const FIRST_VISIT_GUIDE_MEDIA: Record<string, [string, string]> = {
+  'sf-first-72-hours-car-free-october-2026': ['sf-chinatown', 'presidio'],
+  'bay-area-airport-first-night-decision-october-2026': ['sfo', 'bart'],
+  'bay-area-first-7-30-days-action-plan-october-2026': ['settling', 'utilities-setup'],
+  'bay-area-cross-bay-commute-home-base-october-2026': ['train', 'bay'],
+  'sf-first-visit-tickets-waterfront-october-2026': ['sf-alcatraz', 'sf-bridge'],
+  'sf-free-culture-eligibility-october-2026': ['culture-visit', 'ggp-conservatory'],
+  'sf-family-rain-fog-car-free-october-2026': ['presidio', 'culture-visit'],
+};
+Object.assign(bySlug, FIRST_VISIT_GUIDE_MEDIA);
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

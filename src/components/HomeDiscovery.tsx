@@ -11,6 +11,15 @@ import { useLocale } from '../i18n/locale';
 
 const discoveries = [
   {
+    id: 'first-visit', label: '第一次来玩', eyebrow: 'YOUR FIRST SAN FRANCISCO VISIT',
+    note: '三天无车路线、景点门票与免费文化去处，先选适合自己的一条。',
+    hero: ['sf-first-72-hours-car-free-october-2026'],
+    picks: [['sf-first-visit-tickets-waterfront-october-2026'], ['sf-free-culture-eligibility-october-2026'], ['sf-family-rain-fog-car-free-october-2026']],
+    question: '我是第一次来旧金山，想安排三天无车旅行。请先问我住宿区域、抵达日期、同行人和预算，再结合本站首次到访攻略安排路线、预约与天气备选。',
+    placeholder: '例如：住 Union Square，带父母玩三天，不租车',
+  },
+
+  {
     id: 'weekend', label: '周末出门', eyebrow: 'LEAVE A LITTLE ROOM FOR WANDERING',
     note: '海岸、红杉和城市散步，挑一篇就能开始安排。',
     hero: ['golden-gate-park-free-car-free-day-guide', 'half-moon-bay-coastal-half-day-guide'],
@@ -29,8 +38,8 @@ const discoveries = [
   {
     id: 'newcomer', label: '新来先安顿', eyebrow: 'A NEW PLACE, ONE SMALL STEP AT A TIME',
     note: '从落地到通勤，先找到与你的第一周有关的答案。',
-    hero: ['bay-area-airport-arrival-guide'],
-    picks: [['bay-area-where-to-live-first-month'], ['bay-area-commute-guide'], ['san-jose-guide']],
+    hero: ['bay-area-airport-first-night-decision-october-2026', 'bay-area-airport-arrival-guide'],
+    picks: [['bay-area-first-7-30-days-action-plan-october-2026'], ['bay-area-cross-bay-commute-home-base-october-2026'], ['bay-area-library-starter-guide']],
     question: '我刚来湾区，想安排好第一个月。请先问我工作或学校地点、预算和出行方式，再结合本站指南整理落地、住处与通勤的优先清单。',
     placeholder: '例如：下周到 SFO，要去 Sunnyvale 安顿',
   },

@@ -255,7 +255,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);
-    assert.match(item.verifiedAt, /^2026-09-\d{2}$/);
+    assert.match(item.verifiedAt, /^2026-(?:09|10)-\d{2}$/);
     assert.equal(new Date(`${item.verifiedAt}T12:00:00Z`).toISOString().slice(0, 10), item.verifiedAt, `${item.id} has a valid verification date`);
     assert.ok(item.verifiedAt <= MONTHLY_EDITION.checkedAt, `${item.id} must not claim verification after the latest edition update`);
     if (item.endDate < item.verifiedAt) assert.equal(getEventStatus(item, item.verifiedAt), 'ended', `${item.id}: a historical review cannot revive an ended event`);

@@ -38,6 +38,11 @@ const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.start
 /** Website additions are retained in the shared catalog, awaiting a separate world import (W9-R: the three Main Library
  *  programmes stay out; the four family / community branch events are imported — SEP30_IMPORTED below). */
 const SEP30_WEBSITE_ONLY = [
+  'sf-mandarin-conversation-oct6-2026',
+  'sf-chinatown-calligraphy-oct8-2026',
+  'sf-sundown-beetlejuice-2026',
+  'sf-presidio-artspan-oct24-2026',
+  'sf-scaregrove-2026',
   'sfpl-career-coaching-oct8-2026', 'sfpl-writing-gravity-oct8-2026', 'sfpl-garden-green-bin-oct10-2026',
 ] as const;
 /** (W9-R) the four branch-library events of 7 / 8 / 17 / 24 Oct, re-read on sfpl.org on 2026-10-01, and their venue rows */
@@ -94,7 +99,7 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 75, 'the autumn catalog including the eleven Sep 29 and seven Sep 30 SF website additions');
+    assert.equal(sf.length, 80, 'the autumn catalog including the five new October 2 SF website entries');
     for (const id of SEP30_WEBSITE_ONLY) {
       assert.ok(sf.some(event => event.id === id), `${id} remains available in the shared website catalog`);
       assert.match(WORLD_SKIP[id], /pending independent world import/, `${id} has an explicit compatibility boundary`);

@@ -67,7 +67,7 @@ test('intent switches change the featured guide and all three reading paths with
   const view = render(<MemoryRouter><HomeDiscovery today="2026-09-09" onBrowseCommunity={() => { browsed += 1; }} onAskBayBay={question => questions.push(question || '')} /></MemoryRouter>);
   for (const [label, slug, expected] of [
     ['日常少麻烦', 'bay-area-library-starter-guide', '图书馆'],
-    ['新来先安顿', 'bay-area-airport-arrival-guide', '第一个月'],
+    ['新来先安顿', 'bay-area-airport-first-night-decision-october-2026', '第一个月'],
     ['周末出门', 'golden-gate-park-free-car-free-day-guide', '半日出游'],
   ]) {
     fireEvent.click(view.getByRole('button', { name: label, exact: true }));

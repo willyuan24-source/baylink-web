@@ -167,7 +167,7 @@
   .home-discovery-heading-side > a { min-height: 39px; padding: 0 11px; font-size: 10px; }
   .home-discovery-heading-side > a svg { width: 13px; }
   .home-discovery-heading-side > button { min-height: 39px; font-size: 10px; }
-  .home-discovery-intents { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 12px; }
+  .home-discovery-intents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 12px; }
   .home-discovery-intents button { min-width: 0; gap: 4px; padding: 8px; font-size: 11px; }
   .home-discovery-feature { min-height: 333px; border-radius: 15px; }
   .home-discovery-feature-copy { padding: 21px 19px; }

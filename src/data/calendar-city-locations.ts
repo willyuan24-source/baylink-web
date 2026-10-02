@@ -16,6 +16,8 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   ...autumnCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   ...refreshCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
+  // Census 2026 GEOID 0600562; city reference only, never a venue entrance.
+  'Alameda': { lat: 37.742, lng: -122.261, precision: 'city', sourceUrl: CENSUS_PLACES },
   'American Canyon': { lat: 38.179, lng: -122.260, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Rohnert Park': { lat: 38.348, lng: -122.701, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Benicia': { lat: 38.073, lng: -122.155, precision: 'city', sourceUrl: CENSUS_PLACES },

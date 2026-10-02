@@ -10,8 +10,8 @@ export const octoberDealsGuides: Guide[] = [{
   audience: ['湾区亲子家庭', '想省门票的本地居民', '十月周末出行者'],
   tags: ['2026年10月', '当月优惠', '免费场馆', '亲子手工', 'Discover & Go', 'BAMPFA', 'OMCA', 'Lowe’s', 'Yogurtland', '图书馆', '南湾', '东湾', '半岛', '北湾'],
   priority: 'P0', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
-  updatedAt: '2026-09-30', editionMonth: '2026-10',
-  sourceNote: '2026-09-29 补充赠书、拼图交换、免费体验与会员福利入口，并核对所列项目的官方条件。9 月 27 日新增的六项福利及其他条目仍保留各自原核查日（9 月 8–27 日），并非全部于本次重新核查。按周期规则推算的日期在条目中注明；库存、门店参与、预约余票和临时闭馆需出发前复核。',
+  updatedAt: '2026-10-02', editionMonth: '2026-10',
+  sourceNote: '2026-10-02 新增六项长期福利，并复核 SFPL 预约规则与 SFMOMA 家庭日节目。其他条目保留各自原有核验日期，不代表本次重新确认。按周期推算的日期另有注明；预约余票、活动例外和临时闭馆请出发前复核。',
   sources: [...new Map([
     ...octoberOfferSources,
     { title: 'Sonoma County Library：10/3 书展与儿童赠书', url: 'https://events.sonomalibrary.org/event/friends-library-book-sale-120268', description: '核对 10/3 书展、儿童每人一本免费书及教育工作者半价条件；普通购书仍付费。' },

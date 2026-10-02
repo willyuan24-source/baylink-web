@@ -166,6 +166,28 @@ test('requested dates honor discrete occurrences and distinguish ongoing offers 
   assert.equal(searchQuickDestinations('旧金山咖啡店', 'zh-Hans', '2026-09-29').events.length, 0, 'cafe intent must not be filled with unrelated events');
 });
 
+test('coffee requests do not treat free event admission as a drink price, while explicit coffee events remain searchable', () => {
+  const count = MONTHLY_EVENTS.length;
+  const id = 'search-coffee-event-fixture';
+  try {
+    MONTHLY_EVENTS.push({
+      ...MONTHLY_EVENTS[0], id, title: 'Neighborhood Fixture', city: 'San Francisco',
+      summary: '邻里活动有咖啡店聚会；饮品收费另计。', cost: 'free',
+      startDate: '2026-10-18', endDate: '2026-10-18', occurrenceDates: undefined,
+    });
+    for (const query of ['帮我找旧金山咖啡20美元以内', '幫我找舊金山咖啡20美元以內', 'Find coffee in San Francisco under $20']) {
+      const result = searchQuickDestinations(query, 'zh-Hans', '2026-09-29');
+      assert.equal(result.queryInfo.intent, 'places');
+      assert.equal(result.events.length, 0, 'free event entry is not evidence of a coffee price');
+    }
+    for (const query of ['旧金山咖啡活动20美元以内', 'coffee events in San Francisco under $20']) {
+      const result = searchQuickDestinations(query, 'zh-Hans', '2026-09-29');
+      assert.equal(result.queryInfo.intent, 'events');
+      assert.ok(result.events.some(event => event.id === id), 'an explicit event request retains relevant coffee events');
+    }
+  } finally { MONTHLY_EVENTS.splice(count); }
+});
+
 test('new search UI explains understood conditions and missing evidence, with the original query handed to BayBay', async () => {
   const asked: (string | undefined)[] = [];
   const view = render(<QuickExplore onClose={() => {}} onSearch={() => {}} onNavigate={() => {}} onAsk={query => asked.push(query)} />);

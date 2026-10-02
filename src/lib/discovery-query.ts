@@ -173,7 +173,10 @@ export function parseDiscoveryQuery(query: string, today = getBayAreaToday(), kn
   const meetup = take(/聚会|见面会|\bmeetups?\b/g);
   const events = take(/活动|\b(?:events?|activities)\b/g);
   if (result.intent === 'mixed' && (events || performance || sports || meetup)) result.intent = 'events';
-  if (result.intent === 'mixed' && /咖啡[店馆]|餐厅|甜品店|\b(?:coffee shops?|cafes?|restaurants?)\b/.test(text)) result.intent = 'places';
+  // A coffee request concerns a place or drink budget, not admission to an
+  // unrelated event whose description happens to mention refreshments.
+  // Explicit event intent above still allows coffee tastings and meetups.
+  if (result.intent === 'mixed' && /咖啡(?:[店馆])?|餐厅|甜品店|\b(?:coffee(?: shops?)?|cafes?|restaurants?)\b/.test(text)) result.intent = 'places';
   if (performance) result.eventKind = 'performance';
   else if (sports) result.eventKind = 'sports';
   else if (meetup) result.eventKind = 'meetup';
