@@ -1,5 +1,6 @@
 import { CHUNK } from '../../core/geo';
 import type { StreetClass, WarpEnd } from '../../core/geo';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * Binary formats of the streamed San Francisco (plan §5.2). Pure and worker-safe: no three.js, no DOM beyond
@@ -1143,9 +1144,15 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return new Uint8Array(await new Response(src).arrayBuffer());
 }
 
-/** Inflate gzip bytes with DecompressionStream; bytes that are not gzip (a server already inflated them) pass through. */
+/**
+ * Inflate gzip bytes with DecompressionStream; bytes that are not gzip (a server already inflated them) pass through.
+ * W9-E-review (E-RC-1): an engine without DecompressionStream (Safari / iOS before 16.4, Firefox before 113) inflates
+ * them with world/sf/inflate.ts, loaded only then.
+ */
 export async function gunzip(bytes: Uint8Array): Promise<Uint8Array> {
-  return isGzip(bytes) ? pipe(bytes, new DecompressionStream('gzip')) : bytes;
+  if (!isGzip(bytes)) return bytes;
+  if (typeof DecompressionStream === 'undefined') return (await importRetry(() => import('./inflate'))).gunzipSync(bytes);
+  return pipe(bytes, new DecompressionStream('gzip'));
 }
 export async function gzip(bytes: Uint8Array): Promise<Uint8Array> {
   return pipe(bytes, new CompressionStream('gzip'));
