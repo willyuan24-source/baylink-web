@@ -53,7 +53,14 @@ export interface PacedLine {
   valid?: () => boolean;
   /** W8-W2-review (P3): called when the line is actually said (its bubble shown), not when it is queued */
   onSay?: () => void;
+  /**
+   * W9-F (w8 NEXT #8, W1's sight lines spent unsaid): called once when an accepted line leaves the queue unsaid — its ttl
+   * ran out ('expired'), `valid()` said no ('invalid'), a newer line pushed it out of the PACER_MAX queue ('overflow') or
+   * the queue was cleared ('cleared'); a caller that marked the line as used can take that back
+   */
+  onDrop?: (why: PacedDrop) => void;
 }
+export type PacedDrop = 'expired' | 'invalid' | 'overflow' | 'cleared';
 
 export interface SaidLine extends PacedLine {
   /** the clock time it starts */
@@ -75,6 +82,12 @@ export const PACER_GAP = 0.6;
 export const REPEAT_GAP = 25;
 /** Lines waiting at most (the oldest is dropped). */
 export const PACER_MAX = 4;
+/**
+ * W9-F (w8 NEXT #8, W8-I P-7: "about one line every 5 s after a held release" on a first Powell ride): after a hold (a
+ * dialogue, a panel, a card, another bubble) the next line waits this long (s), so what queued under the hold does not
+ * come out back to back.
+ */
+export const HELD_GAP = 2;
 /**
  * The transit narration's repeat window (s): a boarding / sight line is said once in five minutes. The Grand Tour
  * boards the N twice (135 s apart) and the M twice (157 s) and passes Winston again on the way back (105 s); a stop's
@@ -118,9 +131,14 @@ export class LinePacer {
   private readonly gap: number;
   private readonly repeatGap: number;
   private readonly max: number;
+  private readonly heldGap: number;
+  private heldAt = -Infinity;
+  /** lines that left unsaid (tests / QA) */
+  dropped = 0;
 
-  constructor(clipSeconds: ClipSeconds = () => undefined, opts: { gap?: number; repeatGap?: number; max?: number } = {}) {
+  constructor(clipSeconds: ClipSeconds = () => undefined, opts: { gap?: number; repeatGap?: number; max?: number; heldGap?: number } = {}) {
     this.clipSeconds = clipSeconds;
+    this.heldGap = opts.heldGap ?? HELD_GAP;
     this.gap = opts.gap ?? PACER_GAP;
     this.repeatGap = opts.repeatGap ?? REPEAT_GAP;
     this.max = opts.max ?? PACER_MAX;
@@ -144,17 +162,28 @@ export class LinePacer {
     if (repeatGap > this.longestGap) this.longestGap = repeatGap;
     if (this.said.size > 256) for (const [k, t] of this.said) if (now - t >= this.longestGap) this.said.delete(k);
     this.queue.push({ line, key, deadline });
-    while (this.queue.length > this.max) this.queue.shift();
+    while (this.queue.length > this.max) this.drop(this.queue.shift()!.line, 'overflow');
     return true;
+  }
+
+  private drop(line: PacedLine, why: PacedDrop) {
+    this.dropped++;
+    try { line.onDrop?.(why); } catch (e) { if (import.meta.env?.DEV) console.warn('[opus-bay pacer] onDrop', e); }
   }
 
   /** The line to say now, or null (still speaking, blocked, or nothing waiting). Expired (or no longer valid) lines are dropped here. */
   step(now: number, blocked = false): SaidLine | null {
     // drop the expired lines in place (no array per call: a city system steps this several times a second)
     let n = 0;
-    for (const w of this.queue) if (now <= w.deadline && (!w.line.valid || w.line.valid())) this.queue[n++] = w;
+    for (const w of this.queue) {
+      if (now > w.deadline) this.drop(w.line, 'expired');
+      else if (w.line.valid && !w.line.valid()) this.drop(w.line, 'invalid');
+      else this.queue[n++] = w;
+    }
     this.queue.length = n;
-    if (blocked || now < this.until || !n) return null;
+    if (blocked) { this.heldAt = now; return null; }
+    // (W9-F, P-7) a breath after a hold before what waited under it
+    if (now < this.until || !n || now - this.heldAt < this.heldGap) return null;
     const { line, key } = this.queue.shift()!;
     const clip = line.voice ? this.clipSeconds(line.voice) : undefined;
     const voiced = clip !== undefined && Number.isFinite(clip) && clip > 0;
@@ -171,5 +200,5 @@ export class LinePacer {
   pending(): number { return this.queue.length; }
 
   /** Drop what waits (the tour was cancelled or ended); the line being spoken keeps its time. */
-  clear(): void { this.queue = []; }
+  clear(): void { const q = this.queue; this.queue = []; for (const w of q) this.drop(w.line, 'cleared'); }
 }

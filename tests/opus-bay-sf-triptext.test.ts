@@ -8,7 +8,7 @@ import test from 'node:test';
 const text = await import('../src/opus-bay/game/tripText');
 const { timeLabel, timeParts, minutesLabel, arrivalToast, PENDING_TIME } = text;
 const pacerMod = await import('../src/opus-bay/game/linePacer');
-const { LinePacer, readSeconds, LINE_TTL, PACER_GAP, REPEAT_GAP, PACER_MAX } = pacerMod;
+const { LinePacer, readSeconds, LINE_TTL, PACER_GAP, REPEAT_GAP, PACER_MAX, HELD_GAP } = pacerMod;
 const { tripTimeLabel } = await import('../src/opus-bay/game/tripPlan');
 const { tripSecondsLabel } = await import('../src/opus-bay/ui/tripRows');
 const { arrivalToastText, tripPillText } = await import('../src/opus-bay/ui/guideText');
@@ -175,7 +175,9 @@ test('pacer: once per stop (review O6), late lines dropped by their ttl, busy ho
   const b = new LinePacer();
   b.offer({ text: bi('跟我来！', 'Follow me!'), ttl: 3 }, 0);
   assert.equal(b.step(1, true), null);
-  assert.equal(b.step(2)!.text.zh, '跟我来！');
+  // (W9-F, P-7) a breath of HELD_GAP after the hold before what waited under it
+  assert.equal(b.step(2), null, 'HELD_GAP after the hold');
+  assert.equal(b.step(1 + HELD_GAP)!.text.zh, '跟我来！');
   b.offer({ text: bi('再来一句', 'One more'), ttl: 3 }, 10);
   assert.equal(b.step(11, true), null);
   assert.equal(b.step(14), null, 'expired while blocked');
@@ -296,9 +298,9 @@ test('review 2 · pacer: a line\'s own repeat window; a stop\'s lead said again 
   const r = new LinePacer(clipsOf('zh'));
   assert.equal(r.offer(sayLine('loop-golden-gate-bridge-arrive', LINE_TTL.arrive)!, 0.1), true);
   assert.equal(r.offer(sayLine('loop-golden-gate-bridge-arrive', LINE_TTL.stop)!, 0.2), false, 'already waiting');
-  // held (a dialogue) past the transit copy's 8 s
+  // held (a dialogue) past the transit copy's 8 s (W9-F: + HELD_GAP's breath after the hold)
   assert.equal(r.step(0.1 + LINE_TTL.arrive + 2, true), null);
-  assert.equal(r.step(0.1 + LINE_TTL.arrive + 3)!.voice, 'loop-golden-gate-bridge-arrive', 'kept by the stop copy\'s ttl');
+  assert.equal(r.step(0.1 + LINE_TTL.arrive + 2 + HELD_GAP)!.voice, 'loop-golden-gate-bridge-arrive', 'kept by the stop copy\'s ttl');
   // step() drops expired lines in place: no new array per call
   const s = new LinePacer();
   const queue = Reflect.get(s, 'queue');

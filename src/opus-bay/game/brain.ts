@@ -2,7 +2,7 @@ import { emit } from '../core/events';
 import { runtime, type Emote } from '../core/runtime';
 import { game } from '../core/store';
 import { canStand, pointInPolygon } from '../core/terrain';
-import type { Vec2 } from '../core/types';
+import type { Bilingual, Vec2 } from '../core/types';
 import { AREA_NAMES, cityAreaAt } from '../data/cityZones';
 import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
@@ -141,6 +141,7 @@ let lastNudgeAt = -Infinity;
 let lastHint = 0;
 let playerAtStopSince = 0;
 let lastIdleEmote = 0;
+let lastIdleLine: Bilingual | undefined;
 let stillSince = 0;
 let lastBarkAt = 0;
 let playingSince = 0;
@@ -349,8 +350,9 @@ function follow(now: number) {
     lastIdleEmote = now;
     const pool: Emote[] = ['wave', 'hop', 'think', 'shrug'];
     emote(pool[Math.floor(Math.random() * pool.length)]);
+    // (W9-F, w8 NEXT #8: 要是我有口袋，一定装满酸面包。 came twice 18 s apart) never the idle line she said last
     const line = Math.random() < 0.5 ? bark('idle') : undefined;
-    if (line && !flow.get().bubble) bubble(line, 3600);
+    if (line && line !== lastIdleLine && !flow.get().bubble) { lastIdleLine = line; bubble(line, 3600); }
   }
   if (!quiet) barks(now);
 }
@@ -458,7 +460,7 @@ export function updateGuide(now: number) {
 
 /** Test/QA helper. */
 export function resetBrain() {
-  lastTarget = null; waiting = false; lastWave = 0; lastHint = 0; playerAtStopSince = 0; lastIdleEmote = 0; stillSince = 0; lastBarkAt = 0; lastArea = undefined;
+  lastTarget = null; waiting = false; lastWave = 0; lastHint = 0; playerAtStopSince = 0; lastIdleEmote = 0; lastIdleLine = undefined; stillSince = 0; lastBarkAt = 0; lastArea = undefined;
   lastWaitLine = ''; ledIdleSince = 0; lastNudgeAt = -Infinity; freeSince = 0; hintAt = 0;
   playingSince = 0; timeBarked = false; lastCarriedAt = -Infinity; seenEmote = 'none'; emoteSince = 0; lastPos = { x: NaN, z: NaN }; welcomeWaved = false;
   barkedAt.clear();
