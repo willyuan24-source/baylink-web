@@ -1,0 +1,5 @@
+/* Wave 9 · lane G · W9-G2 · the map's 玩 layer (ui/mapGames.tsx) and the game rows of the map list (ui/CityMapList.tsx). */
+.mw-gamepin { cursor: pointer; }
+.mw-gamepin-disc { stroke: #fffaf1; stroke-width: 2px; }
+.mw-gamepin.is-on .mw-gamepin-disc { stroke: var(--ob-gold); stroke-width: 3px; }
+.mw-row-disc.is-game { background: #efe9fa; color: #5b3fa8; }

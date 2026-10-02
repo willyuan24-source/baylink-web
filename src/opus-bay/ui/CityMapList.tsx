@@ -13,6 +13,9 @@ import { closePanel } from '../game/flow';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import type { MapSel } from './cityMapModel';
+import { GAME_ICONS } from './gameIcons';
+import { filterAttraction, type MapFilter } from './mapFilterRules';
+import { DEX_GAMES, nearestSpot, type DexGame } from './playDexData';
 import { attractionThumb, listWalkSeconds } from './mapListData';
 import { MapBadge } from './MapBadge';
 import { type QuickDest, RowGo, goQuick, useQuickWays } from './MapGoCard';
@@ -75,6 +78,13 @@ export interface CityMapListProps {
   onLine: (id: string) => void;
   /** a walking route (data/sf/routes.ts): highlight it on the map */
   onRoute: (id: SfRouteId) => void;
+  /**
+   * (W9-G2) the map's chip: a category / 必看 keeps only its places in the 景点 · 附近 · 去过的 lists, 交通 shows the lines,
+   * 玩 lists the mini-games nearest first (review 2026-10-01 R§6: the chips only dimmed the map, the list stayed the same)
+   */
+  filter?: MapFilter;
+  /** (W9-G2) a game row: its pin on the map (`game:<id>:<spot>`) */
+  onGame?: (pinKey: string) => void;
 }
 
 type Row =
@@ -86,11 +96,20 @@ type Row =
   | { kind: 'route'; key: string; r: SfRoute }
   | { kind: 'routeStop'; key: string; r: SfRoute; i: number }
   /** (W9-L) a game or an event the search found (data/sf/searchSpots.ts) */
-  | { kind: 'spot'; key: string; e: SearchEntry };
+  | { kind: 'spot'; key: string; e: SearchEntry }
+  /** (W9-G2) a game under the map's 玩 chip (ui/playDexData.ts) */
+  | { kind: 'game'; key: string; g: DexGame; pin: string; at: Vec2 };
 
 export function CityMapList(p: CityMapListProps) {
   const { t } = useT();
-  const { ix, lines, stations, pos, query, tab } = p;
+  const { ix, lines, stations, pos, query } = p;
+  const filter = p.filter ?? 'all';
+  // (W9-G2) 交通 lists the lines whatever the tab; 玩 lists the games
+  const tab: MapTab = filter === 'transit' ? 'lines' : p.tab;
+  const games = filter === 'play' && !query.trim();
+  /** an attraction the chip keeps (全部 · 这周 · 交通 · 玩: every one) */
+  const kept = (a: Attraction) => filter === 'all' || filter === 'week' || filter === 'transit' || filter === 'play' || filterAttraction(filter, a).alpha === 1;
+  const placesKept = filter === 'all' || filter === 'week';
   const covered = useMemo(() => coveredPlaceIds(), []);
   const lineIds = useMemo(() => lines.map(l => l.id).sort((a, b) => (LINE_STYLES[a]?.order ?? 10) - (LINE_STYLES[b]?.order ?? 10)), [lines]);
   const stationById = useMemo(() => new Map(stations.map(s => [s.id, s])), [stations]);
@@ -109,6 +128,13 @@ export function CityMapList(p: CityMapListProps) {
 
   const rows = useMemo((): Row[] => {
     const q = query.trim();
+    if (games) {
+      const out: Row[] = [];
+      const list = DEX_GAMES.flatMap(g => { const n = nearestSpot(g, pos); return n ? [{ g, n }] : []; }).sort((a, b) => a.n.d - b.n.d);
+      out.push({ kind: 'head', key: 'h:games', text: { zh: `${list.length} 个小游戏 · 由近到远`, en: `${list.length} mini-games · nearest first` } });
+      for (const { g, n } of list) out.push({ kind: 'game', key: `g:${g.id}`, g, pin: `game:${g.id}:${g.spots.indexOf(n.spot)}`, at: n.spot });
+      return out;
+    }
     if (q) {
       const out: Row[] = [];
       for (const g of groupHits(rankSearch(search, q, 30))) {
@@ -127,7 +153,8 @@ export function CityMapList(p: CityMapListProps) {
     if (tab === 'sights') {
       const out: Row[] = [];
       for (const area of AREA_ORDER) {
-        const list = ATTRACTIONS.filter(a => a.rank <= 2 && a.area === area);
+        // (W9-G2) under a category chip every rank of it (the list is short then); else the T1 / T2
+        const list = ATTRACTIONS.filter(a => a.area === area && (filter === 'all' || filter === 'week' || filter === 'play' ? a.rank <= 2 : kept(a)));
         if (!list.length) continue;
         out.push({ kind: 'head', key: `h:${area}`, text: ATTRACTION_AREAS[area] });
         for (const a of list) out.push({ kind: 'attraction', key: `a:${a.id}`, a });
@@ -151,9 +178,9 @@ export function CityMapList(p: CityMapListProps) {
     if (tab === 'near') {
       // attractions, stations and found places within 320 u, nearest first
       const near: { d: number; row: Row }[] = [];
-      for (const a of ATTRACTIONS) { const d = Math.hypot(a.x - pos.x, a.z - pos.z); if (d < 320) near.push({ d, row: { kind: 'attraction', key: `a:${a.id}`, a } }); }
-      for (const st of stations) { const d = Math.hypot(st.x - pos.x, st.z - pos.z); if (d < 320) near.push({ d, row: { kind: 'station', key: `s:${st.id}`, st } }); }
-      for (const pl of ix?.near(pos.x, pos.z, 320) ?? []) if (!covered.has(pl.id) && !pl.station && (pl.curated || isDiscovered(pl.id))) near.push({ d: Math.hypot(pl.x - pos.x, pl.z - pos.z), row: { kind: 'place', key: `p:${pl.id}`, p: pl } });
+      for (const a of ATTRACTIONS) { const d = Math.hypot(a.x - pos.x, a.z - pos.z); if (d < 320 && kept(a)) near.push({ d, row: { kind: 'attraction', key: `a:${a.id}`, a } }); }
+      if (placesKept) for (const st of stations) { const d = Math.hypot(st.x - pos.x, st.z - pos.z); if (d < 320) near.push({ d, row: { kind: 'station', key: `s:${st.id}`, st } }); }
+      if (placesKept) for (const pl of ix?.near(pos.x, pos.z, 320) ?? []) if (!covered.has(pl.id) && !pl.station && (pl.curated || isDiscovered(pl.id))) near.push({ d: Math.hypot(pl.x - pos.x, pl.z - pos.z), row: { kind: 'place', key: `p:${pl.id}`, p: pl } });
       return near.sort((a, b) => a.d - b.d).slice(0, 30).map(n => n.row);
     }
     // 去过的: newest first (G1 review open 6: it was in index order)
@@ -164,19 +191,22 @@ export function CityMapList(p: CityMapListProps) {
       if (!pl || seen.has(id)) continue;
       seen.add(id);
       const a = ATTRACTIONS.find(x => (x.placeId ?? x.id) === id), st = pl.station ? stationById.get(pl.id) : undefined;
+      if (a ? !kept(a) : !placesKept) continue;
       out.push(a ? { kind: 'attraction', key: `a:${a.id}`, a } : st ? { kind: 'station', key: `s:${st.id}`, st } : { kind: 'place', key: `p:${pl.id}`, p: pl });
       if (out.length >= 40) break;
     }
     return out;
-  }, [query, search, tab, ix, pos.x, pos.z, stations, lineIds, p.highlight, p.epoch, attrById, stationById, covered]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query, search, tab, ix, pos.x, pos.z, stations, lineIds, p.highlight, p.epoch, attrById, stationById, covered, filter, games]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // W5-N4 · search results carry the go button (plan MF4): the 推荐 way of the first rows, from the route cache (the
   // tap plans again with the routes: goTo); such a row's own time goes (the button says it)
   const quick = useMemo((): QuickDest[] => {
-    if (!query.trim()) return [];
+    if (!query.trim() && !games) return [];
     const out: QuickDest[] = [];
     for (const r of rows) {
       if (out.length >= QUICK_ROWS) break;
+      // (W9-G2) a game: the trip ends at its prompt (a point, never the place's centre)
+      if (r.kind === 'game') { out.push({ key: r.key, placeId: `game:${r.g.id}`, x: r.at.x, z: r.at.z, name: r.g.name }); continue; }
       if (r.kind === 'attraction') { const d = tripDestination(r.a); out.push({ key: r.key, placeId: d.placeId, x: d.x, z: d.z, name: d.name, attraction: r.a.id }); }
       else if (r.kind === 'place' && r.p.walkable) out.push({ key: r.key, placeId: r.p.id, x: r.p.arrival.x, z: r.p.arrival.z, name: r.p.name });
       else if (r.kind === 'station') out.push({ key: r.key, placeId: r.st.id, x: r.st.x, z: r.st.z, name: r.st.name });
@@ -187,7 +217,7 @@ export function CityMapList(p: CityMapListProps) {
       }
     }
     return out;
-  }, [rows, query, attrById]);
+  }, [rows, query, attrById, games]);
   const ways = useQuickWays(quick, QUICK_ASK);
   const quickBy = useMemo(() => new Map(quick.map(q => [q.key, q])), [quick]);
   const [going, setGoing] = useState<string | null>(null);
@@ -213,7 +243,7 @@ export function CityMapList(p: CityMapListProps) {
         <Search size={16} aria-hidden />
         <input type="search" value={query} onChange={e => p.setQuery(e.target.value)} placeholder={t('搜地方：金门大桥、大学、N 线…', 'Search: Golden Gate, university, N Judah…')} aria-label={t('搜索地点', 'Search places')} />
       </label>
-      {!query.trim() && (
+      {!query.trim() && !games && filter !== 'transit' && (
         <div className="ob-map-zoom ob-citymap-tabs" role="tablist">
           {([['sights', t('景点', 'Sights')], ['lines', t('线路', 'Lines')], ['near', t('附近', 'Nearby')], ['found', t('去过的', 'Visited')]] as const).map(([k, label]) => (
             <button key={k} type="button" role="tab" aria-selected={tab === k} className={tab === k ? 'is-on' : ''} onClick={() => p.setTab(k)}>{label}</button>
@@ -223,6 +253,18 @@ export function CityMapList(p: CityMapListProps) {
       <ul className="ob-place-list mw-list">
         {rows.map(r => {
           if (r.kind === 'head') return <li key={r.key} className="mw-list-head" role="presentation">{t(r.text)}</li>;
+          if (r.kind === 'game') {
+            const Icon = GAME_ICONS[r.g.icon], go = hasGo(r.key);
+            return (
+              <li key={r.key} className={go ? 'has-go' : undefined}>
+                <button type="button" className="mw-row is-game" onClick={() => p.onGame?.(r.pin)}>
+                  <span className="mw-row-disc is-game" aria-hidden><Icon size={15} /></span>
+                  <span className="ob-place-text"><span>{t(r.g.name)}</span><small>{t(r.g.where)}{go ? '' : ` · ${t(timeLabel(listWalkSeconds(pos, r.at)))}`}</small></span>
+                </button>
+                {go && rowGo(r.key)}
+              </li>
+            );
+          }
           if (r.kind === 'attraction') {
             const a = r.a, found = isDiscovered(a.placeId ?? a.id), go = hasGo(r.key);
             return (

@@ -34,6 +34,7 @@ import { MapBadge, MapLabel, MapTargetPin } from './MapBadge';
 import { type ChooserRow, ClusterChooser, MapGoCard, useQuickWays } from './MapGoCard';
 import { type PressLookups, type PressSpot, PRESS, chooserHeight, creditGuarded, goCardHeight, mapGestureTarget, panForCard, pressPlaceId, pressSpot, toolsMaxHeight } from './mapGo';
 import { pinsFor, useWeekPins, weekFitPoints } from './mapEvents';
+import { GameGoCard, GamePinsLayer, gameFitPoints, gamePinByKey, hitGamePin, layGamePins } from './mapGames';
 import { useMapLines, useMapStations, useStickersReady } from './mapData';
 import { filterLines, loadMapFilter, saveMapFilter, type MapFilter } from './mapFilterRules';
 import { MapFilters } from './MapFilters';
@@ -158,6 +159,8 @@ export function CityMapPanel() {
   const weekPinsAll = useWeekPins();
   const filter: MapFilter = filterPicked === 'week' && !weekPinsAll.length ? 'all' : filterPicked;
   const [evSel, setEvSel] = useState<string | null>(null);
+  // (W9-G2) the 玩 layer's picked game pin (`game:<id>:<spot>`)
+  const [gameSel, setGameSel] = useState<string | null>(null);
   const [highlight, setHighlight] = useState<string | null>(null);
   const [legend, setLegend] = useState(false);
   const frameRef = useRef<HTMLDivElement>(null);
@@ -178,7 +181,7 @@ export function CityMapPanel() {
   const viewRef = useRef<MapView | null>(null);
   useEffect(() => { viewRef.current = view; }, [view]);
   // a new selection (a tap, the list, the search) replaces a pressed spot and the chooser
-  useEffect(() => { setMoreOpen(false); if (sel) { setPress(null); setChooser(null); setEvSel(null); } }, [sel?.kind, sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { setMoreOpen(false); if (sel) { setPress(null); setChooser(null); setEvSel(null); setGameSel(null); } }, [sel?.kind, sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 带我去 in progress (flow.mapTarget = place:<id>) or a trip (lane C's flow.trip): the target pin, the trip's route
   const mapTarget = useFlow(s => s.mapTarget);
@@ -352,6 +355,14 @@ export function CityMapPanel() {
     // chooser lists them, each with its go button)
     const p = local(e);
     setPress(null);
+    // (W9-G2) a game pin (the 玩 chip): over the badges and the event pins
+    const gp = hitGamePin(shownGames, p.x, p.y);
+    if (gp) {
+      setSel(null); setChooser(null); setEvSel(null); setGameSel(gp.key);
+      setView(v => (v ? panForCard(v, gp.at) ?? v : v));
+      return;
+    }
+    setGameSel(null);
     // (W5-N8) an event pin first: they stand over the badges
     const pin = shownPins.reduce<{ key: string; d: number; at: Vec2 } | null>((best, q) => {
       const d = Math.hypot(q.x - p.x, q.y - p.y);
@@ -668,6 +679,8 @@ export function CityMapPanel() {
     .map(p => { const [x, y] = toPx(view, p.venue.x, p.venue.z); return { p, x, y }; })
     .filter(q => q.x > -14 && q.y > -14 && q.x < view.w + 14 && q.y < view.h + 14);
   const evPin = evSel ? weekPinsAll.find(p => p.key === evSel) ?? null : null;
+  // (W9-G2) the 玩 chip's game pins
+  const shownGames = layGamePins(filter, view);
   const evFirst = evPin?.events[0] ?? null;
   const evDest = useMemo((): PlaceTripDest | null => (evPin && evFirst ? { placeId: evPin.venue.placeId ?? `event:${evFirst.id}`, x: evPin.venue.x, z: evPin.venue.z, name: evPin.venue.name } : null), [evPin?.key, evFirst?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const { options: evWays, busy: evBusy } = useTripOptions(evDest);
@@ -679,11 +692,16 @@ export function CityMapPanel() {
   // near the player the pins sat outside the frame or under the zoom buttons)
   const pickFilter = (f: MapFilter) => {
     setFilter(f);
+    if (f === 'play' && f !== filter) {
+      const pts = gameFitPoints({ x: runtime.player.x, z: runtime.player.z });
+      if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.1, 1.2, toolRight) : v));
+      return;
+    }
     if (f !== 'week' || f === filter) return;
     const pts = weekFitPoints(weekPinsAll, { x: runtime.player.x, z: runtime.player.z });
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.1, 1.2, toolRight) : v));
   };
-  const pinned = cardSel || !!press || !!evPin;
+  const pinned = cardSel || !!press || !!evPin || !!gameSel;
   const wrapPinned = pinned && !!size && !toolsFitOneColumn((plan?.route || trip) ? 6 : 5, coarse, toolsMaxHeight(size.h, true));
   useEffect(() => { setToolsWrapPinned(wrapPinned); }, [wrapPinned]);
   const cardH = size ? goCardHeight(size.h) : 0;
@@ -770,6 +788,7 @@ export function CityMapPanel() {
                 {p.events.length > 1 && <><circle className="mw-evpin-n" cx={9} cy={-9} r={6.5} /><text className="mw-evpin-nt" x={9} y={-6.3}>{p.events.length}</text></>}
               </g>
             ))}
+            <GamePinsLayer pins={shownGames} sel={gameSel} />
             {press?.spot && (() => { const [x, y] = toPx(view, press.spot.x, press.spot.z); return <MapTargetPin x={x} y={y} />; })()}
             {youAt && (() => {
               // heading (three.js yaw: forward = (sin h, cos h) in world x/z = screen x/y)
@@ -813,6 +832,7 @@ export function CityMapPanel() {
           <MapGoCard title={{ zh: evFirst.title, en: evFirst.title }} meta={evMeta} option={evRec} busy={evBusy && !evRec} short={!!size && size.h < 340}
             onGo={o => { if (evDest) startPlaceTrip(o, evDest); }} onMore={() => openEvent(evFirst.id)} more="info" onClose={() => setEvSel(null)} />
         )}
+        {gameSel && !press && !evPin && filter === 'play' && <GameGoCard pinKey={gameSel} short={!!size && size.h < 340} onClose={() => setGameSel(null)} />}
         {chooser && chooserRows.length > 0 && (
           <ClusterChooser rows={chooserRows} ways={chooserWays} onPick={pickRow} onZoom={() => { const c = chooser; setChooser(null); zoomCluster(c.id, c.members); }} onClose={() => setChooser(null)} />
         )}
@@ -833,6 +853,7 @@ export function CityMapPanel() {
         ix={ix} lines={lines} stations={stations} pos={pos} query={query} setQuery={setQuery} tab={tab} setTab={setTab} selected={sel} highlight={highlight} epoch={epoch}
         onAttraction={a => { pickAttraction(a); revealMap(); }} onPlace={p => { pickPlace(p); revealMap(); }} onStation={st => { pickStation(st.id); revealMap(); }}
         onLine={id => { pickLine(id); revealMap(); }} onRoute={id => { pickRoute(id); revealMap(); }}
+        filter={filter} onGame={key => { const gp = gamePinByKey(key); setSel(null); setChooser(null); setEvSel(null); setGameSel(key); if (gp) setView(v => (v ? panForCard(v, gp.at) ?? v : v)); revealMap(); }}
       />
     </Sheet>
   );

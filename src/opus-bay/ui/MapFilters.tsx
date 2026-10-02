@@ -1,8 +1,8 @@
 import { type CSSProperties, useEffect, useRef } from 'react';
-import { CalendarDays, Star, TrainFront } from 'lucide-react';
+import { CalendarDays, Gamepad2, Star, TrainFront } from 'lucide-react';
 import { ATTRACTION_CAT_STYLE } from '../data/sf/attractionTypes';
 import { useT } from '../i18n';
-import { MAP_FILTERS, type MapFilter, WEEK_CORAL } from './mapFilterRules';
+import { MAP_FILTERS, type MapFilter, PLAY_VIOLET, WEEK_CORAL } from './mapFilterRules';
 import { ATTRACTION_ICONS } from './mapIcons';
 
 /**
@@ -26,8 +26,8 @@ export function MapFilters({ value, onChange, week = 0 }: { value: MapFilter; on
     <div ref={row} className="mw-chips" role="radiogroup" aria-label={t('按类别看地图', 'Filter the map')}>
       {list.map(f => {
         const on = f.id === value;
-        const Icon = f.cat ? ATTRACTION_ICONS[ATTRACTION_CAT_STYLE[f.cat].glyph] : f.id === 'must' ? Star : f.id === 'transit' ? TrainFront : f.id === 'week' ? CalendarDays : null;
-        const color = f.cat ? ATTRACTION_CAT_STYLE[f.cat].color : f.id === 'must' ? '#e0a94a' : f.id === 'transit' ? '#2f6fb0' : f.id === 'week' ? WEEK_CORAL : undefined;
+        const Icon = f.cat ? ATTRACTION_ICONS[ATTRACTION_CAT_STYLE[f.cat].glyph] : f.id === 'must' ? Star : f.id === 'transit' ? TrainFront : f.id === 'week' ? CalendarDays : f.id === 'play' ? Gamepad2 : null;
+        const color = f.cat ? ATTRACTION_CAT_STYLE[f.cat].color : f.id === 'must' ? '#e0a94a' : f.id === 'transit' ? '#2f6fb0' : f.id === 'week' ? WEEK_CORAL : f.id === 'play' ? PLAY_VIOLET : undefined;
         return (
           <button key={f.id} type="button" role="radio" aria-checked={on} className={`mw-chip${on ? ' is-on' : ''}`} onClick={() => onChange(f.id)}
             style={color ? ({ '--mw-chip': color } as CSSProperties) : undefined}>

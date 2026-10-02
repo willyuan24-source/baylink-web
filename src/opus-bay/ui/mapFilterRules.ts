@@ -12,14 +12,16 @@ import type { Attraction, AttractionCat } from '../data/sf/attractionTypes';
  *   - 交通 shows the lines and stations and the T1 only.
  */
 
-/** (wave 5, W5-N8 · 这周: lane R's events of the next seven days; its chip shows only while there are some) */
-export const MAP_FILTER_IDS = ['all', 'must', 'museum', 'park', 'viewpoint', 'campus', 'shopping', 'transit', 'week'] as const;
+/** (wave 5, W5-N8 · 这周: lane R's events of the next seven days; its chip shows only while there are some; W9-G2 · 玩: the
+ * mini-games' pins, ui/mapGames.tsx — the places dim like a category chip's others, the list lists the games) */
+export const MAP_FILTER_IDS = ['all', 'must', 'museum', 'park', 'viewpoint', 'campus', 'shopping', 'transit', 'week', 'play'] as const;
 export type MapFilter = (typeof MAP_FILTER_IDS)[number];
 
 export interface MapFilterDef { id: MapFilter; label: Bilingual; cat?: AttractionCat }
 export const MAP_FILTERS: readonly MapFilterDef[] = [
   { id: 'all', label: { zh: '全部', en: 'All' } },
   { id: 'must', label: { zh: '必看', en: 'Must-see' } },
+  { id: 'play', label: { zh: '玩', en: 'Play' } },
   { id: 'museum', label: { zh: '博物馆', en: 'Museums' }, cat: 'museum' },
   { id: 'park', label: { zh: '公园', en: 'Parks' }, cat: 'park' },
   { id: 'viewpoint', label: { zh: '观景', en: 'Views' }, cat: 'viewpoint' },
@@ -30,6 +32,8 @@ export const MAP_FILTERS: readonly MapFilterDef[] = [
 ];
 /** The 这周 chip's coral (lane R's event pennant colour, realsf/presence.ts EVENT_CORAL). */
 export const WEEK_CORAL = '#e8705a';
+/** (W9-G2) the 玩 chip's and the game pins' violet (ui/mapGames.tsx). */
+export const PLAY_VIOLET = '#7a5cc8';
 
 /** How an attraction shows under a filter. */
 export interface FilterLook { show: boolean; alpha: number; label: boolean }
@@ -39,7 +43,7 @@ export interface FilterLines { lines: 'full' | 'dim'; stations: boolean }
 export function filterAttraction(f: MapFilter, a: Pick<Attraction, 'cat' | 'rank'>): FilterLook {
   if (f === 'all') return { show: true, alpha: 1, label: true };
   if (f === 'transit') return a.rank === 1 ? { show: true, alpha: 1, label: true } : { show: false, alpha: 0, label: false };
-  const keep = f === 'must' ? a.rank === 1 : MAP_FILTERS.find(d => d.id === f)?.cat === a.cat;
+  const keep = f === 'must' ? a.rank === 1 : f === 'play' ? false : MAP_FILTERS.find(d => d.id === f)?.cat === a.cat;
   if (keep) return { show: true, alpha: 1, label: true };
   return a.rank === 1 ? { show: true, alpha: 0.4, label: true } : { show: true, alpha: 0.25, label: false };
 }
