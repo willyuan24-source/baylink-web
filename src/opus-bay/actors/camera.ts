@@ -5,7 +5,7 @@ import { game } from '../core/store';
 import { blockersNear, canStand, cityEpoch, cityTerrain, forEachBlockerNear, heightAt, inWorld, type Blocker } from '../core/terrain';
 import { DISTRICT, frameAt, stationOf } from '../data/district';
 import { cinemaKind, currentFraming, measureBottomCover, takeFaceRequest, type Framing } from '../game/cinema';
-import { RideCamera, canopySource, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
+import { RideCamera, rideCamInfo, type RideCamMode, type RidePose } from './cameraModes';
 import { deckAt, deckCameraYaw, heroRelaxed, heroView, preferredCameraYaw, preferredViewDir, type DeckAt } from './citySlots';
 import { BAYBAY_HEIGHT, CHAR_SCALE, PLAYER_HEIGHT } from './dims';
 import { platforms, toLocal } from './platform';
@@ -64,13 +64,7 @@ const SETTLE_S = 8;
 const OPEN_HOLD_S = 3;
 /** W5-F6: on a deck, a camera more than this off the axis turns firmly (rate DECK_TURN), else it follows gently */
 const DECK_FAR = 0.44, DECK_TURN = 3, DECK_FOLLOW = 2.2;
-/** city: the follow camera clears roofs by this much (u), lifting at most this share of its distance */
-const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
-/** (W7-K1) city: the follow camera clears the street trees' canopies by this much (u), under the same cap */
-const CANOPY_CLEAR = 0.6;
-// (roofLiftStep's blocker test writes here: module state, no closure per sample)
-let roofTopMax = -Infinity;
-const roofMax = (b: Blocker) => { if (b.top !== undefined && b.top > roofTopMax) roofTopMax = b.top; };
+// (the roof / canopy lift's maths: actors/cityViews.ts roofNeed, city only — W9-C1 moved it out of GameRoot's graph)
 
 const clamp = (v: number, a: number, b: number) => (v < a ? a : v > b ? b : v);
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -739,7 +733,7 @@ export class CameraController {
       this.rideCam.reset();
       fp.target.set(this.focus.x, this.focus.y + lookUp, this.focus.z);
       fp.pos.set(fp.target.x + offX, fp.target.y + offY, fp.target.z + offZ);
-      this.roofLiftStep(fp.target, fp.pos, dt);
+      this.roofLiftStep(fp.target, fp.pos, dt, photo);
       this.avoidTerrain(fp.target, fp.pos, dt);
       fp.fov = baseFov + RUN_FOV * this.runW;
       fp.cover = 0;
@@ -1328,29 +1322,12 @@ export class CameraController {
    * handle it), at most ROOF_LIFT_MAX of the distance; rises fast, settles slowly. District mode and the hero slab's
    * blockers carry no tops: nothing changes there. W7-K1: the street trees' canopies count like roofs (CANOPY_CLEAR).
    */
-  private roofLiftStep(target: THREE.Vector3, pos: THREE.Vector3, dt: number) {
-    let need = 0;
-    if (cityTerrain()) {
-      const dx = pos.x - target.x, dy = pos.y - target.y, dz = pos.z - target.z, L = Math.hypot(dx, dz);
-      const n = Math.ceil(L / 0.8);
-      for (let i = Math.ceil(n * 0.35); i <= n; i++) {
-        const f = i / n;
-        roofTopMax = -Infinity;
-        forEachBlockerNear(target.x + dx * f, target.z + dz * f, 0.4, roofMax);
-        if (roofTopMax === -Infinity) continue;
-        const clear = roofTopMax + ROOF_CLEAR;
-        if (target.y + dy * f < clear) need = Math.max(need, (clear - target.y) / f - dy);
-      }
-      // the camera itself between two houses (the ray clear down the gap): above their roofs too
-      roofTopMax = -Infinity;
-      forEachBlockerNear(pos.x, pos.z, 1.8, roofMax);
-      if (roofTopMax > -Infinity) need = Math.max(need, roofTopMax + ROOF_CLEAR - pos.y);
-      // (W7-K1, lane B's review: on a phone the camera stood inside a street tree at Powell & Sacramento) over the
-      // street trees' canopies too — the far part of the line and the camera itself (world/sf/props.ts canopies)
-      const trees = canopySource();
-      if (trees) need = Math.max(need, trees.canopyLift(target.x, target.y, target.z, pos.x, pos.y, pos.z, 0.35, CANOPY_CLEAR));
-      need = Math.min(need, L * ROOF_LIFT_MAX);
-    }
+  private roofLiftStep(target: THREE.Vector3, pos: THREE.Vector3, dt: number, photo = false) {
+    const cv = cityTerrain() ? cityViewsNow() : null;
+    // (W9-C1) photo mode pulls in instead (cityViews.photoPullStep)
+    if (photo) { if (cv) this.photoPull = cv.photoPullStep(target, pos, dt, this.photoPull); return; }
+    this.photoPull = 1;
+    const need = cv ? cv.roofNeed(target, pos) : 0;
     const k = this.roofCut ? 1 : need > this.roofLift ? 1 - Math.exp(-8 * dt) : 1 - Math.exp(-1.5 * dt);
     this.roofCut = false;
     this.roofLift += (need - this.roofLift) * k;
@@ -1360,6 +1337,8 @@ export class CameraController {
   private roofLift = 0;
   /** a cut (teleport): the next roof lift applies at once */
   private roofCut = false;
+  /** (W9-C1) photo mode's pull-in: the share of the orbit distance the camera stands at (1 = the full orbit) */
+  private photoPull = 1;
 
   /** Raise the camera when Telegraph Hill (or any terrain) would sit between it and the player. */
   private avoidTerrain(target: THREE.Vector3, pos: THREE.Vector3, dt: number) {

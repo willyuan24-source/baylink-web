@@ -3,7 +3,10 @@ import { GGB } from '../world/sf/landmarks/golden-gate-bridge';
 import { oceanBeachFireRings } from '../world/sf/landmarks/ocean-beach-fire-rings';
 import { sfLandmarkAnchor } from '../world/sf/landmarks/context';
 import { landmarkToWorld, sfLandmark } from '../world/sf/landmarks/index';
+import type * as THREE from 'three';
+import { forEachBlockerNear, type Blocker } from '../core/terrain';
 import type { HeroPoint, ZoneView } from './camera';
+import { canopySource } from './cameraModes';
 import { registerDeck, type Deck } from './deckSteer';
 import { registerNoVault } from './feet';
 import { PLAYER_HEIGHT } from './dims';
@@ -139,4 +142,75 @@ export function cityZoneViews(ground: (x: number, z: number) => number): ZoneVie
   const out: ZoneView[] = [];
   for (const info of SF_LANDMARK_INFO) { const v = landmarkZoneView(info.id, ground); if (v) out.push(v); }
   return out;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// The roof / canopy lift (E2-6, W7-K1) and photo mode's pull-in (W9-C1): city only, so out of GameRoot's graph
+// ---------------------------------------------------------------------------------------------------------------
+
+/** the follow camera clears roofs by this much (u), lifting at most this share of its distance */
+const ROOF_CLEAR = 1.2, ROOF_LIFT_MAX = 0.6;
+/** (W7-K1) the follow camera clears the street trees' canopies by this much (u), under the same cap */
+const CANOPY_CLEAR = 0.6;
+/** photo mode's closest orbit (camera.ts PHOTO_DIST_MIN) */
+const PHOTO_DIST_MIN = 3.5;
+// (the blocker test writes here: module state, no closure per sample)
+let roofTopMax = -Infinity;
+const roofMax = (b: Blocker) => { if (b.top !== undefined && b.top > roofTopMax) roofTopMax = b.top; };
+
+/**
+ * How far (u) the follow camera at `pos` must rise so the ray from `target` clears the roofs (Blocker.top) and the street
+ * trees' canopies beyond 35 % of the way out, and the camera stands over the roofs right round it (E2-6, W7-K1), capped
+ * at ROOF_LIFT_MAX of the horizontal distance. Only buildings ≥ 35 % of the way out count (next to the player the dither
+ * and the occlusion turn handle it).
+ */
+export function roofNeed(target: THREE.Vector3, pos: { x: number; y: number; z: number }): number {
+  let need = 0;
+  const dx = pos.x - target.x, dy = pos.y - target.y, dz = pos.z - target.z, L = Math.hypot(dx, dz);
+  const n = Math.ceil(L / 0.8);
+  for (let i = Math.ceil(n * 0.35); i <= n; i++) {
+    const f = i / n;
+    roofTopMax = -Infinity;
+    forEachBlockerNear(target.x + dx * f, target.z + dz * f, 0.4, roofMax);
+    if (roofTopMax === -Infinity) continue;
+    const clear = roofTopMax + ROOF_CLEAR;
+    if (target.y + dy * f < clear) need = Math.max(need, (clear - target.y) / f - dy);
+  }
+  // the camera itself between two houses (the ray clear down the gap): above their roofs too
+  roofTopMax = -Infinity;
+  forEachBlockerNear(pos.x, pos.z, 1.8, roofMax);
+  if (roofTopMax > -Infinity) need = Math.max(need, roofTopMax + ROOF_CLEAR - pos.y);
+  // (W7-K1, lane B's review: on a phone the camera stood inside a street tree at Powell & Sacramento) over the
+  // street trees' canopies too — the far part of the line and the camera itself (world/sf/props.ts canopies)
+  const trees = canopySource();
+  if (trees) need = Math.max(need, trees.canopyLift(target.x, target.y, target.z, pos.x, pos.y, pos.z, 0.35, CANOPY_CLEAR));
+  return Math.min(need, L * ROOF_LIFT_MAX);
+}
+
+/**
+ * (W9-C1) Photo mode's pull-in (pure, tests): the largest share k ∈ [kMin, 1] of the orbit distance whose camera needs
+ * (almost) no roof / canopy lift (`need(k)` ≤ 0.05 u), in steps of 0.05 from the full orbit inward; kMin when nothing is.
+ */
+export function photoPullFor(need: (k: number) => number, kMin: number): number {
+  if (need(1) <= 0.05) return 1;
+  for (let k = 0.95; k > kMin; k -= 0.05) if (need(k) <= 0.05) return k;
+  return kMin;
+}
+
+const probe = { x: 0, y: 0, z: 0 };
+/**
+ * (W9-C1, w8 S-P3) Photo mode keeps the pitch the player (or a photo spot's face request) chose: a roof or a street tree
+ * behind the camera pulls it in along the orbit, toward the player, instead of lifting it over them — at Marina Green's
+ * seawall a lawn tree lifted the parade photo's camera 3.7 u (its 0.04 pitch became a 0.6 rad look down at the lawn, the
+ * ships at the frame's top edge). Only what is left at the closest photo distance is lifted. The pull comes in fast and
+ * lets out slowly (the roof lift's rates). Moves `pos`; returns the new pull (the rig keeps it).
+ */
+export function photoPullStep(target: THREE.Vector3, pos: THREE.Vector3, dt: number, pull: number): number {
+  const dx = pos.x - target.x, dy = pos.y - target.y, dz = pos.z - target.z, L = Math.hypot(dx, dy, dz) || 1;
+  const kMin = Math.min(1, PHOTO_DIST_MIN / L);
+  const want = photoPullFor(k => { probe.x = target.x + dx * k; probe.y = target.y + dy * k; probe.z = target.z + dz * k; return roofNeed(target, probe); }, kMin);
+  const k = pull + (want - pull) * (want < pull ? 1 - Math.exp(-14 * dt) : 1 - Math.exp(-2.2 * dt));
+  pos.set(target.x + dx * k, target.y + dy * k, target.z + dz * k);
+  if (k <= kMin + 1e-3) pos.y += roofNeed(target, pos);
+  return k;
 }

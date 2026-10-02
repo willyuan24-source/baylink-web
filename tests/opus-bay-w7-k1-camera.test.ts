@@ -139,7 +139,9 @@ test('W7-K1 (lane B\'s review: the phone\'s waiting shot stood inside a street t
   const { runtime } = await import('../src/opus-bay/core/runtime');
   const { game } = await import('../src/opus-bay/core/store');
   const { view } = await import('../src/opus-bay/actors/view');
-  const { CameraController } = await import('../src/opus-bay/actors/camera');
+  const { CameraController, loadCityViews } = await import('../src/opus-bay/actors/camera');
+  // (W9-C1: the roof / canopy lift's maths moved to the city camera data, actors/cityViews.ts — loaded in city mode)
+  await loadCityViews();
   world([]);
   const saved = game.get();
   game.set({ worldMode: 'city', phase: 'playing' } as never);
