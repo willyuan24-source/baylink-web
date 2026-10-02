@@ -117,3 +117,51 @@ the full suite re-run on it is in the "Final check" line below. Higgsfield: 0 cr
 - Hide & seek from the Ferry Building plaza (G3).
 
 **Final check** (the pushed tree `39d1a3bc`, opus-bay suite re-run 04:47 →): 2128 tests, 2127 pass, 0 fail, 1 todo (the W8-P9 GameRoot ≤ 255 KB target), finished 04:54 PDT.
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+- 审查发现 4 个问题，其中 2 个重要问题已修好并有测试（先红后绿），但**没有推送**：我 06:30 才开始（用量上限中断后），修好时已过 06:45 的推送截止时间，所以修复只提交在本地分支 `w9-g-rev`（`ac69ed42`），留给负责人决定是否 cherry-pick。
+- 修复 1：摸摸 BAYBAY 或看风景会悄悄领走「今日小游戏」的 10 金币，之后真正玩小游戏反而没有奖励；现在只有小游戏结束才发。
+- 修复 2：抓娃娃时打开「设置」，游戏显示已暂停，但抓娃娃面板仍盖在设置上面、倒计时照走、硬币自动掉落；现在暂停时抓娃娃、捞螃蟹、酸面包都停住，四个面板都会隐藏。
+- 未修（小问题）：结算卡把今日奖励算了两次（显示 +20，实际只加 10）。站在抓娃娃机旁按 E 打开 BAYBAY 菜单的问题，代码上游戏优先级高于 BAYBAY，无法复现，判为不成立。
+- 以上都不阻碍上线。Higgsfield 没有花费。
+
+### Findings
+
+| ID | Severity | Verdict | Evidence |
+|---|---|---|---|
+| G-RV-1 · 摸摸 / 看风景 take the day's 今日小游戏 coins | major | **fixed** (local commit `ac69ed42`, **not pushed**) | Code: `play/pet.ts:88` emits `{type:'play', activity:'pet', what:'end'}`, `play/sit.ts:90` emits `view` end; `play/dexEntry.ts` paid on any `play` end. Fix: `NOT_GAMES` (pet / sit / view) is skipped. `tests/opus-bay-w9-g-review.test.ts` test 1: red on `origin/opus-bay` files ("pet / view / sit are not mini-games"), green on the fix; a crab end still pays `daily:<date>:4`. |
+| G-RV-2 · the claw (and crab / dough / fortune) under Settings | major | **fixed** (same commit, **not pushed**) | Code: `game/Systems.tsx:557` steps every frame system whatever `paused` says; `m-play-claw` / `m-play-crab` / `m-play-dough` had no pause check; the W7 panels had no `is-paused` (only `sfgames8.css:42`). Fix: the three frame systems return while `game.get().paused`; Claw / Crab / Dough / Fortune panels get `is-paused` and `sfgames.css` hides `.ob-sfg-panel.is-paused` like `sfgames8.css`. Test 2: the claw's `aimLeft` unchanged over 20 s paused and running again after — red on the old files ("the aim clock waited"), green on the fix. Not played in Chrome (time). |
+| G-RV-3 · the card counts today's bonus twice | minor | **confirmed-not-fixed** | `play/kit.ts` passes `coins: paid + today` and `today`; `ResultCard.tsx` prints `+{coins} 金币` and `今日小游戏奖励 +{today}` — the lens's shot `d-15-claw-result.jpg` reads +10 and +10 on a 0-medal run (HUD +10). Started after 06:15 → majors only. One-line fix: `coins: paid`. |
+| G-RV-4 · E at the claw goes to BAYBAY | minor (PLAUSIBLE) | **refuted** | Not reproduced. In the city lane A's `ui/interactPriority.ts` puts an `activity` (the claw, tier 0) 6 points above BAYBAY (tier 2) whenever both are in reach, so BAYBAY can only win when the player is outside the claw's reach (`CLAW_SPOT` r 1.8; the lens spawned 1.7 from its centre and then moved) or while a game / its card is up (`sfgames.ts` sets the radius 0 while busy). The shot shows the result card, not a missed claw. Kept as an open item: check live that 带我去 stops within 1.8 of (−202.8, 71.8). |
+
+### My own pass (lane G commits cc8c3ff2 … e9c3c35c)
+
+- Files: all inside `src/opus-bay/` (play/, ui/, data/sf/searchSpots.ts via L7), `tests/opus-bay-*`, docs; no frozen file
+  (core/**, data/save*.ts, economy ledger caps), no site file, nothing district-mode. GameRoot untouched (dexEntry is a lazy
+  chunk from play/index.ts).
+- Nothing new beyond the lens's four: the payer's only other emitters are the kit (every kit activity is a game, incl. the
+  first flight, which is fine) and pet / sit (now excluded).
+
+### Open items
+
+- Push `ac69ed42` (branch `w9-g-rev`, built on `e9c3c35c`; it cherry-picks onto `origin/opus-bay` 537fcc48 without conflict — the only play/ change since is BellPad.tsx) after the go-live or in wave 10; it needs the full
+  suite on the target tree (see Checks).
+- G-RV-3 one-line fix (`coins: paid` in `play/kit.ts`).
+- Play the claw / crab / dough / fortune with Settings open on desktop and a 390 × 844 phone once `ac69ed42` lands.
+- G-RV-4: check live where 带我去 to the claw stops (inside r 1.8?).
+- The lane's own not-done list stands: the foghorn prop, Ray's name tag, the skyline waypoint label.
+
+### Blocking the go-live to main
+
+None from lane G: both majors are wrong-but-harmless (10 coins paid for a pet; a claw run spent under Settings), no
+softlock, no crash, nothing in district mode.
+
+### Checks (`ac69ed42`, local)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint` on the 10 touched files 0 · `tests/opus-bay-w9-g-review.test.ts`
+2 / 2 (red 0 / 2 on the old files) · `npx eslint .` 0 errors (53 warnings) · `npx tsx --tsconfig tsconfig.app.json --test
+"tests/opus-bay-*.test.ts"` 2140 tests, 2139 pass, 0 fail, 1 todo (the W8-P9 GameRoot ≤ 255 KB target), 06:56 → 07:01 PDT on
+`e9c3c35c` + `ac69ed42`. Not pushed: past the 06:45 cut-off; no Chrome run (time). Higgsfield: 0 credits.
