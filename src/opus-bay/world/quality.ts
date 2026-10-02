@@ -114,7 +114,7 @@ export function initQualityPolicy(): void {
   started = true;
   const url = readQa().quality ?? null;
   const d = deviceInfo();
-  decided = startQuality({ url, choice: readChoice(), saved: readProgress()?.settings.quality ?? null, coarse: d.coarse, dpr: d.dpr, software: glSupport() === 'software' });
+  decided = startQuality({ url, choice: readChoice(), saved: readProgress()?.settings.quality ?? null, coarse: d.coarse, dpr: d.dpr, software: glSupport() === 'software' && game.get().worldMode === 'city' });
   // ?quality= is applied by the page (locked, session-only); the rest here, for this visit only
   if (decided.reason !== 'url' && game.get().settings.quality !== decided.quality) applyLevel(decided.quality);
   if (url) return; // a QA link never records a choice

@@ -94,7 +94,9 @@ export default function OpusBayPage() {
 
   // (W7-Q1) inside the tap (Start, 继续旅程, 从头开始, Enter): on WebKit the audio must start in the gesture itself — the
   // game's 'start' comes seconds later, after the first frame (audio/unlock.ts)
-  const start = useCallback(() => { primeAudio({ starting: true }); setLoad(true); setWantStart(true); }, []);
+  // (W9-P-review, P-RC-3) the probe inside the press too: the district's Start is live before the idle probe (no WebGL:
+  // the title's note, never the site's error page)
+  const start = useCallback(() => { if (!glOk()) return; primeAudio({ starting: true }); setLoad(true); setWantStart(true); }, []);
   const showTitle = (!direct || noGl) && phase === 'title';
   return (
     <main className="ob-page">

@@ -12,12 +12,14 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState } from './hooks';
 import { LangPills } from './LangPills';
-import { useGlSupport, useWarmReady } from '../game/warmReady';
+import { queueStart, useGlSupport, useStartQueued, useWarmReady } from '../game/warmReady';
 import { TitleGlNote } from './TitleGl';
 import { SILENT_HINT, isIOS } from './shareFile';
 import { importRetry } from '../game/importRetry';
 
 /** (W9-F9) the 今天在旧金山 strip: one line, cut with … when long (inline: the stylesheet is lane Q's). */
+/** (W9-P1 / W9-P-review) Start and 从头开始 while the world warms up: dimmed, a progress cursor. */
+const WAIT_STYLE = { opacity: 0.72, cursor: 'progress' } as const;
 const TODAY_STYLE = { margin: 0, fontSize: 13.5, lineHeight: 1.45, color: 'var(--ob-ink-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' } as const;
 
 const typing = (el: HTMLElement | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
@@ -46,11 +48,16 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   // primary 继续旅程 resumes there (Enter too); the secondary starts over at the Ferry Building (progress kept)
   const resume = city ? resumeSpot('city') : null;
   // (W9-P1, lane P) city mode: Start waits until the world's programs are linked and its first frame is drawn
-  // (game/warmReady.ts): 准备中… with aria-disabled + aria-busy, a press does nothing yet; no WebGL: no Start at all
+  // (game/warmReady.ts): 准备中… with aria-disabled + aria-busy; no WebGL: no Start at all. (W9-P-review, P-RP-1) a press
+  // meanwhile is kept, not thrown away: the audio is primed inside the tap, the button reads 好了就自动开始…, and the game
+  // starts by itself once warm-ready (the first press wins: Start / 继续旅程 / Enter, or 从头开始)
   const gl = useGlSupport();
   const warm = useWarmReady();
+  const queued = useStartQueued();
   const preparing = (city && !warm) || gl === 'none';
-  const primary = useMemo(() => (preparing ? () => {} : resume ? () => { requestResume(); onStart(); } : onStart), [preparing, resume, onStart]);
+  const hold = useCallback((fn: () => void) => { if (gl === 'none') return; primeAudio({ starting: true }); queueStart(fn); }, [gl]);
+  const go = useMemo(() => (resume ? () => { requestResume(); onStart(); } : onStart), [resume, onStart]);
+  const primary = useMemo(() => (preparing ? () => hold(go) : go), [preparing, hold, go]);
   // lang-review: the pills stay under the pointer through a language switch (usePillsInPlace)
   const cardRef = useRef<HTMLDivElement>(null);
   const clickedAtRef = useRef<number | null>(null);
@@ -116,12 +123,12 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         {/* the language before Start (简体 · 繁體 · English): a tap switches the title at once, saved for the site */}
         <LangPills onSwitch={beforeSwitch} />
         {gl === 'none' ? <TitleGlNote kind="none" /> : <div className="ob-title-actions">
-          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || preparing || undefined} aria-disabled={preparing || undefined} style={preparing ? { opacity: 0.72, cursor: 'progress' } : undefined}>
-            <span>{preparing ? t('准备中…', 'Getting ready…') : returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
+          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || preparing || undefined} aria-disabled={preparing || undefined} style={preparing ? WAIT_STYLE : undefined}>
+            <span>{preparing ? (queued ? t('好了就自动开始…', 'Starting when ready…') : t('准备中…', 'Getting ready…')) : returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
             {waiting || preparing ? <span className="ob-boot-dot" style={{ background: 'currentColor' }} aria-hidden /> : device === 'touch' ? <ArrowRight size={20} aria-hidden /> : <Keycap className="on-dark">Enter</Keycap>}
           </button>
           {resume && (
-            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={preparing ? undefined : onStart} aria-disabled={preparing || undefined}>
+            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={preparing ? () => hold(onStart) : onStart} aria-disabled={preparing || undefined} style={preparing ? WAIT_STYLE : undefined}>
               <MapPin size={18} aria-hidden /><span>{t('从头开始 · 渡轮大厦', 'Start over · Ferry Building')}</span>
             </button>
           )}
@@ -129,7 +136,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
             {sound ? <Volume2 size={22} aria-hidden /> : <VolumeX size={22} aria-hidden />}
           </button>
         </div>}
-        {gl === 'software' && <TitleGlNote kind="software" />}
+        {gl === 'software' && city && <TitleGlNote kind="software" /> /* W9-P-review P-RC-3: the district stays as it was */}
         {silentHint && sound && <p className="ob-title-silent" role="status">{t(SILENT_HINT)}</p>}
         <a className="ob-title-link" href={guidesUrl(locale)}>
           <BookOpen size={16} aria-hidden />{t('先不玩，直接看攻略', 'Not now — read the guides')}<ArrowRight size={15} aria-hidden />

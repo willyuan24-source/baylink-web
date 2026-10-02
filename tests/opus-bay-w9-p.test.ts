@@ -73,15 +73,15 @@ test('W9-P2 software GL: the visit starts at low unless a ?quality= link says ot
 
 // --- the title (ui/TitleScreen.tsx, surgical) and the page (OpusBayPage.tsx) ---
 
-test('W9-P1 title: Start shows 准备中… with aria-busy + aria-disabled until warm-ready (city mode), a press then does nothing; no WebGL: no Start, the note', () => {
+test('W9-P1 title: Start shows 准备中… with aria-busy + aria-disabled until warm-ready (city mode), a press then is kept (W9-P-review P-RP-1); no WebGL: no Start, the note', () => {
   const t = src('ui/TitleScreen.tsx');
   assert.match(t, /const preparing = \(city && !warm\) \|\| gl === 'none';/);
-  assert.match(t, /preparing \? \(\) => \{\} :/, 'Start, 继续旅程 and Enter / Space are no-ops while preparing');
+  assert.match(t, /preparing \? \(\) => hold\(go\) : go/, 'Start, 继续旅程 and Enter / Space are kept while preparing (tests/opus-bay-w9-p-review.test.ts)');
   assert.match(t, /aria-busy=\{waiting \|\| preparing \|\| undefined\} aria-disabled=\{preparing \|\| undefined\}/);
-  assert.match(t, /preparing \? t\('准备中…', 'Getting ready…'\)/);
-  assert.match(t, /onClick=\{preparing \? undefined : onStart\} aria-disabled=\{preparing \|\| undefined\}/, '从头开始 waits too');
+  assert.match(t, /preparing \? \(queued \? t\('好了就自动开始…', 'Starting when ready…'\) : t\('准备中…', 'Getting ready…'\)\)/);
+  assert.match(t, /onClick=\{preparing \? \(\) => hold\(onStart\) : onStart\} aria-disabled=\{preparing \|\| undefined\}/, '从头开始 waits too');
   assert.match(t, /gl === 'none' \? <TitleGlNote kind="none" \/>/);
-  assert.match(t, /gl === 'software' && <TitleGlNote kind="software" \/>/);
+  assert.match(t, /gl === 'software' && city && <TitleGlNote kind="software" \/>/);
   // the guides link and the language pills are never gated (plain DOM: they work while the world warms up)
   assert.match(t, /<a className="ob-title-link" href=\{guidesUrl\(locale\)\}>/);
   const note = src('ui/TitleGl.tsx');

@@ -22,7 +22,8 @@ export function TitleGlNote({ kind }: { kind: 'none' | 'software' }) {
   return (
     <div className="ob-title-nogl" role="alert" style={{ display: 'grid', gap: 6 }}>
       <p className="ob-title-silent" style={{ fontSize: 15 }}>{t('这台设备打不开 3D 画面', 'This device can’t show the 3D world')}</p>
-      <p className="ob-title-hint" style={{ margin: 0 }}>
+      {/* (W9-P-review, P-RP-5) its own line: .ob-title-hint is hidden by the title in short windows and short landscape phones */}
+      <p className="ob-title-nogl-why" style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: 'var(--ob-ink-2)' }}>
         {t('可能是浏览器关掉了硬件加速，或者正在远程桌面里。不玩游戏，也能看到同样的地方和活动：', 'Hardware acceleration may be off in this browser, or you’re on a remote desktop. The same places and events are all here without the game:')}
       </p>
       <a className="ob-title-link" href={thisMonthUrl(locale)}><Sparkles size={16} aria-hidden />{t('这个月湾区有什么', 'This month in the Bay')}<ArrowRight size={15} aria-hidden /></a>

@@ -19,14 +19,35 @@ import { useSyncExternalStore } from 'react';
 export type GlSupport = 'ok' | 'software' | 'none';
 
 let ready = false;
+let queued: (() => void) | null = null;
 let support: GlSupport | null = null;
 const subs = new Set<() => void>();
 const notify = () => { for (const f of [...subs]) f(); };
 const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 
 export const warmReady = (): boolean => ready;
-export function setWarmReady(v = true): void { if (ready !== v) { ready = v; notify(); } }
+export function setWarmReady(v = true): void {
+  if (ready === v) return;
+  ready = v;
+  const fn = v ? queued : null;
+  queued = null;
+  notify();
+  // a task later: out of the setter's caller (GameRoot's effect), as if pressed now
+  if (fn) setTimeout(fn, 0);
+}
 export const useWarmReady = (): boolean => useSyncExternalStore(subscribe, warmReady, warmReady);
+
+/**
+ * (W9-P-review, P-RP-1) a Start pressed while the title reads 准备中… is kept, not thrown away: it runs once warm-ready
+ * (the title then reads 好了就自动开始…). The first press wins; null forgets it; when already warm it runs at once.
+ */
+export function queueStart(fn: (() => void) | null): void {
+  if (fn && ready) { fn(); return; }
+  if (fn && queued) return;
+  if (queued !== fn) { queued = fn; notify(); }
+}
+export const startQueued = (): boolean => queued !== null;
+export const useStartQueued = (): boolean => useSyncExternalStore(subscribe, startQueued, startQueued);
 
 export const glSupport = (): GlSupport | null => support;
 export function setGlSupport(v: GlSupport | null): void { if (support !== v) { support = v; notify(); } }
@@ -58,4 +79,4 @@ export function probeGl(doc: ProbeDoc | null = typeof document !== 'undefined' ?
 }
 
 /** Tests. */
-export function resetWarmReadyForTests(): void { ready = false; support = null; subs.clear(); }
+export function resetWarmReadyForTests(): void { ready = false; support = null; queued = null; subs.clear(); }
