@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { afterEach, type TestContext } from 'node:test';
+import test, { after, afterEach, type TestContext } from 'node:test';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -23,7 +23,9 @@ const { render, fireEvent, cleanup, act, within } = await import('@testing-libra
 const { MemoryRouter, Routes, Route, useLocation, useNavigate } = await import('react-router-dom');
 const { default: AppLayout } = await import('../src/app/AppLayout');
 const { api } = await import('../src/lib/api');
-styles.deregister();
+// AppLayout preloads detail dialogs after mounting; those lazy modules import
+// CSS too. Keep the Node-only style loader for the entire mounted test lifetime.
+after(() => { styles.deregister(); });
 
 afterEach(() => { cleanup(); localStorage.clear(); dom.window.sessionStorage.clear(); });
 
@@ -59,6 +61,9 @@ test('a password reset URL with a trailing slash still opens its token dialog', 
 
 test('closing password reset replaces the router entry so Back and Forward cannot restore its token', async t => {
   const { view, calls } = fixture(t);
+  // Exercise and await the same lazy modules as AppLayout's idle preload while
+  // mounted, rather than letting CPU load decide whether their CSS loads in time.
+  await act(async () => { await Promise.all([import('../src/features/posts/PostDetailModal'), import('../src/features/users/UserProfileModal')]); });
   const dialog = await view.findByRole('dialog', { name: '重设密码', exact: true });
   await act(async () => { fireEvent.keyDown(dialog, { key: 'Escape' }); });
   assert.equal(view.getByTestId('router-location').textContent, '/');

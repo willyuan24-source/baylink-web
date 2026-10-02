@@ -44,6 +44,27 @@ test('public outings preserve real states and reject malformed identities, dates
   for (const patch of bad) assert.throws(() => parseOuting({ ...fixture(), ...patch }), /Invalid outing response/, JSON.stringify(patch));
 });
 
+test('time polls require private confirmed membership, coherent local times and bounded complete aggregates', async t => {
+  const me = { userId: 'host', role: 'host', status: 'confirmed', confirmedVersion: 2 } as const;
+  const option = { id: 'option-1', date: fixture().date, startTime: fixture().startTime, endTime: fixture().endTime, startAt: fixture().startAt, endAt: fixture().endAt, counts: { yes: 1, maybe: 0, no: 0 } };
+  const second = { ...option, id: 'option-2', date: '2026-10-18', startAt: option.startAt + 86400000, endAt: option.endAt + 86400000 };
+  const poll = { id: 'poll-1', status: 'open', planVersion: 2, createdAt: fixture().createdAt, eligibleCount: 2, repliedCount: 1,
+    options: [option, second], myAnswers: { 'option-1': 'yes', 'option-2': 'yes' } };
+  const current = parseOuting({ ...fixture(), me, timePoll: poll });
+  assert.equal(current.timePoll!.repliedCount, 1);
+  assert.throws(() => parseOuting({ ...fixture(), timePoll: poll }));
+  for (const patch of [{ eligibleCount: 9 }, { repliedCount: 3 }, { status: 'adopted' }, { planVersion: 1 }, { myAnswers: { 'option-1': 'yes' } },
+    { options: [option] }, { options: [option, option] }, { options: [option, { ...option, id: 'option-2', startAt: option.startAt + 3600000 }] },
+    { options: [option, { ...option, id: 'option-2', counts: { yes: 2, maybe: 0, no: 0 } }] }]) {
+    assert.throws(() => parseOuting({ ...fixture(), me, timePoll: { ...poll, ...patch } }), /Invalid outing response/);
+  }
+  const calls: Array<{ path: string; body: Record<string, unknown> }> = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit) => { calls.push({ path, body: JSON.parse(String(options.body)) }); return { outing: current }; });
+  await outings.timePoll(current, { action: 'vote', pollId: 'poll-1', answers: { 'option-1': 'yes', 'option-2': 'maybe' } }, 'stable-poll-key');
+  assert.equal(calls[0].path, '/outings/outing-fixture/time-poll');
+  assert.deepEqual(calls[0].body, { action: 'vote', pollId: 'poll-1', answers: { 'option-1': 'yes', 'option-2': 'maybe' }, revision: 4, idempotencyKey: 'stable-poll-key' });
+});
+
 test('the displayed Pacific date and time must describe the same instants, including winter UTC offset', () => {
   const winter = fixture({ date: '2026-11-08', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-11-08T22:00:00Z'), endAt: Date.parse('2026-11-09T00:00:00Z') });
   assert.equal(parseOuting(winter).date, '2026-11-08');
@@ -51,6 +72,19 @@ test('the displayed Pacific date and time must describe the same instants, inclu
     assert.throws(() => parseOuting({ ...fixture(), ...patch }), /Invalid outing response/);
   }
   assert.throws(() => parseOuting({ ...winter, startAt: Date.parse('2026-11-08T21:00:00Z') }), /Invalid outing response/);
+});
+
+test('outing cover references are optional and never allow URLs or arbitrary metadata', () => {
+  assert.equal(parseOuting(fixture()).cover, undefined);
+  for (const cover of [{ kind: 'auto' }, { kind: 'card' }, ...['guide', 'event', 'offer', 'opening'].map(kind => ({ kind, id: 'bay-area-2026_10' }))]) {
+    assert.deepEqual(parseOuting({ ...fixture(), cover }).cover, cover);
+  }
+  for (const cover of [null, [], 'photo', {}, { kind: 'auto', id: 'x' }, { kind: 'card', url: '/x.webp' },
+    { kind: 'guide' }, { kind: 'photo', id: 'x' }, { kind: 'guide', id: '../private' },
+    { kind: 'event', id: 'https://example.test/image' }, { kind: 'opening', id: 'x', src: '/x.webp' },
+    { kind: 'offer', id: 'x'.repeat(141) }]) {
+    assert.throws(() => parseOuting({ ...fixture(), cover }), /Invalid outing response/);
+  }
 });
 
 test('official links and outing navigation do not accept active protocols, credentials or query injection', () => {

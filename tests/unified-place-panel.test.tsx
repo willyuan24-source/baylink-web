@@ -10,8 +10,9 @@ import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/play' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, cleanup, fireEvent, waitFor } = await import('@testing-library/react');
+const { render, cleanup, fireEvent, waitFor, act } = await import('@testing-library/react');
 const { default: UnifiedPlacePanel } = await import('../src/features/little-bay/UnifiedPlacePanel');
+const { loadSfGuidePreview } = await import('../src/features/little-bay/sf-guide-preview');
 afterEach(() => cleanup());
 
 test('regional nearby events require a venue location, the chosen day and matching region', () => {
@@ -53,6 +54,7 @@ test('regional reader connects existing guide and planner without offering dupli
   const place = getUnifiedPlace('peninsula:stanford')!;
   const additions: string[] = [];
   const view = render(<UnifiedPlacePanel place={place} locale="en" date="2026-09-25" addedPlaceIds={[]} onAddPlace={id => additions.push(id)} onClose={() => {}} onNavigate={() => {}} />);
+  await act(async () => { await loadSfGuidePreview(place.guideSlug!, 'en'); });
   await waitFor(() => assert.ok(view.getByRole('link', { name: 'Read full guide' })));
   assert.equal(view.getByRole('link', { name: 'Read full guide' }).getAttribute('href'), `/guides/${place.guideSlug}?lang=en`);
   fireEvent.click(view.getByRole('button', { name: 'Add to my day' })); assert.deepEqual(additions, ['stanford']);

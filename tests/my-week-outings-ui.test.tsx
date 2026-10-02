@@ -70,6 +70,26 @@ test('StrictMode loads sorted real plans, marks reconfirmation, and keeps reques
   assert.equal(view.getByRole('link', { name: '找同行 ↗' }).getAttribute('href'), '/together');
 });
 
+test('My Week shows source-backed covers and a private time-vote task only for upcoming unanswered polls', async t => {
+  const first = fixture();
+  const poll: NonNullable<Outing['timePoll']> = { id: 'time-poll', status: 'open', planVersion: 2, createdAt: now, eligibleCount: 2, repliedCount: 0, myAnswers: null,
+    options: [{ id: 'option-1', date: first.date, startTime: first.startTime, endTime: first.endTime, startAt: first.startAt, endAt: first.endAt, counts: { yes: 0, maybe: 0, no: 0 } },
+      { id: 'option-2', date: '2026-10-18', startTime: first.startTime, endTime: first.endTime, startAt: first.startAt + 86400000, endAt: first.endAt + 86400000, counts: { yes: 0, maybe: 0, no: 0 } }] };
+  const answered = { ...poll, repliedCount: 1, myAnswers: { 'option-1': 'yes' as const, 'option-2': 'yes' as const }, options: poll.options.map(option => ({ ...option, counts: { yes: 1, maybe: 0, no: 0 } })) };
+  t.mock.method(api, 'request', async () => ({ outings: [fixture({ id: 'needs-vote', title: '请选合适的时间', cover: { kind: 'guide', id: 'san-francisco-guide' }, timePoll: poll }),
+    fixture({ id: 'answered', title: '已经投票', timePoll: answered }), fixture({ id: 'closed', title: '投票已结束', timePoll: { ...poll, status: 'closed', closeReason: 'host-closed', closedAt: now } }),
+    fixture({ id: 'started', title: '已经开始', date: '2026-10-16', startTime: '10:00', endTime: '12:00', startAt: Date.parse('2026-10-16T17:00:00Z'), endAt: Date.parse('2026-10-16T19:00:00Z'), timePoll: poll }),
+    fixture({ id: 'cancelled', title: '已经取消', status: 'cancelled', timePoll: poll })] }));
+  const view = render(page());
+  const link = await view.findByRole('link', { name: '时间待投票 ↗' });
+  assert.equal(link.getAttribute('href'), '/together?view=mine&outing=needs-vote');
+  assert.equal(view.getAllByRole('link', { name: '时间待投票 ↗' }).length, 1);
+  assert.ok(view.container.querySelectorAll('.week-outing-card .outing-cover').length >= 3);
+  const photo = view.container.querySelector('.week-outing-card .outing-cover-image');
+  assert.ok(photo); assert.equal(photo.getAttribute('loading'), 'lazy');
+  assert.ok(view.getByText('图片说明与署名')); assert.equal(view.queryByText('option-1'), null);
+});
+
 test('account switching and logout discard old rows and late results immediately', async t => {
   const pending = deferred<unknown>(); let firstSignal: AbortSignal | null | undefined;
   t.mock.method(api, 'request', async (_path: string, options: RequestInit) => { firstSignal ||= options.signal; return pending.promise; });

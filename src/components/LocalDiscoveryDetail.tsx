@@ -10,6 +10,7 @@ import { translateText } from '../i18n/locale';
 import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { SaveToWeek } from './SaveToWeek';
+import { OutingInspirationLink } from './OutingInspirationLink';
 import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { placeFor } from '../lib/planner';
@@ -43,6 +44,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       {item.kind === 'event' && planDate && <Link className="discovery-primary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}
       {openingPlace && <><SaveToWeek favorite={{ kind: 'place', id: openingPlace.id }} /><Link className="discovery-primary" to={`/plan?stops=place:${openingPlace.id}`}>用这家店开始出游计划<ArrowRight size={16} /></Link></>}
     </header>
+    {item.kind !== 'event' && !ended && <OutingInspirationLink kind={item.kind} id={share.id} />}
     {image && <div className={`discovery-detail-media${image.kind === 'poster' || image.fullFrame ? ' discovery-detail-media--full' : ''}`}><GuideFigure image={image} variant="cover" /></div>}
     <div className="discovery-detail-body">
       {item.kind === 'event' ? <><h2>出发前，做好这些安排</h2><ol className="discovery-plan">{item.event.plan.map((tip, i) => <li key={tip}><span>0{i + 1}</span><p>{tip}</p></li>)}</ol><p><strong>具体地点</strong> · {item.event.venue}</p><p><strong>适合</strong> · {item.event.audience.map(value => translateText(value)).join(' / ')}</p></> : item.kind === 'offer' ? <><h2>先看领取条件</h2><p className="discovery-important">{item.offer.requirement}</p><h2>这份福利怎么用</h2><p>{item.offer.description}</p><p className="discovery-small">免费或优惠资格、名额与参与门店，以官方入口的最新说明为准。</p></> : <><h2>这一趟怎么安排</h2><p>{item.shop.editorTip}</p><h2>地点与开业状态</h2><p>{item.shop.city} · {item.shop.address}</p><p>{item.shop.dateLabel}</p></>}

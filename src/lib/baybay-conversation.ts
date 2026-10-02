@@ -5,6 +5,10 @@ import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 import type { OutingFilters } from './outings';
+import { parsePlannerWebResult, type PlannerWebResult } from './planner-web-search';
+
+export type BayBaySearchMode = 'smart' | 'web' | 'site';
+export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable'; checkedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
 
 export type BayBayHistoryMessage = { role: 'user' | 'assistant'; content: string };
 export type GuideChatAction = {
@@ -18,7 +22,52 @@ export type GuideChatResponse = {
   interactiveCards?: BayBayInteractiveCard[]; matchingPosts?: unknown[];
   matchNote?: string; degraded?: boolean;
   responseMode?: string; outingSearch?: BayBayOutingSearch;
+  retrieval?: BayBayRetrieval;
+  sources?: { title: string; url: string }[];
+  webCandidates?: PlannerWebResult['candidates'];
 };
+
+/** Only validated response citations can become clickable references or saved candidates. */
+export function bayBayWebResult(response: GuideChatResponse): PlannerWebResult | null {
+  if (response.retrieval?.webStatus !== 'completed' || !['web', 'site+web'].includes(response.retrieval.scope)) return null;
+  return parsePlannerWebResult({ ok: true, responseMode: 'web', answer: response.answer, sources: response.sources,
+    candidates: response.webCandidates, checkedAt: response.retrieval.checkedAt, cached: response.retrieval.cached });
+}
+
+/** Carry the user's own requirements forward; model recommendations are never treated as user facts. */
+export function bayBayTaskBrief(turns: BayBayTurn[]): string {
+  const questions = turns.filter(turn => turn.state === 'complete').slice(-4).map(turn => turn.question.trim().slice(0, 500)).filter(Boolean);
+  // Remove superseded dimensions; never use model answers as user facts.
+  const dates = /\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|(?:20\d{2}\s*年\s*)?\d{1,2}\s*(?:月|\/)\s*\d{1,2}(?:\s*(?:日|号|號))?|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+20\d{2})?\b|(?:(?:这|這|本|下下?|上上?)\s*)?(?:周|週|星期)[一二三四五六日天末]|今天|明天|后天|後天|\b(?:(?:this|next|following|coming|last)\s+)?(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|weekend)\b|\b(?:day after tomorrow|tomorrow|today)\b/giu;
+  const budget = /(?:(?:每人|每位|人均|总共|總共|总|總|全程|per person|total)\s*)?(?:(?:门票|門票|入场|入場|admission)\s*)?(?:(?:预算|預算|budget|under|below|up to|at most|within|不超过|不超過|最多)\s*)?(?:[$＄]\s*\d[\d,.]*|USD\s*\d[\d,.]*|\d[\d,.]*\s*(?:美元|美金|USD|刀))(?:\s*(?:以内|以內|以下|封顶|封頂|per person|each|total))?|(?:门票|門票|admission)?\s*(?:预算|預算|budget)\s*(?:改为|改為|改成|最多|不超过|不超過|to|is|of)?\s*\d[\d,.]*(?:\s*(?:以内|以內|以下))?|(?:只(?:要|看|找)|仅|僅)?\s*(?:免费|免費)(?!停车|停車|餐)|\b(?:only\s+)?free(?:\s+(?:admission|entry|only))?\b(?!\s+parking)|(?:预算|預算|budget)\s*(?:不限|无限制|無限制|unlimited)|\bno budget limit\b/giu;
+  const transport = /(?:(?:不|没|沒)(?:想|要)?|只(?:想|要))?\s*(?:开车|開車|驾车|駕車)|(?:公共交通|公交|地铁|地鐵|步行)(?:出行)?|\bwithout\s+(?:(?:a|my|our)\s+)?car\b|\b(?:(?:do not|don't|don’t|not|no)\s+)?(?:driv(?:e|ing)|cars?)\b|\b(?:public (?:transit|transport(?:ation)?)|transit|BART|Muni|walk(?:ing)?)\b/giu;
+  const setting = /(?:(?:不|只)(?:想|要|看)?)?\s*(?:室内|室內|户外|戶外|室外)|\b(?:(?:not|no|only)\s+)?(?:indoors?|outdoors?)\b/giu;
+  const cityPattern = /\b(?:South San Francisco|San Francisco|San Jos[eé]|San Mateo|Palo Alto|Mountain View|Redwood City|San Rafael|Santa Clara|Santa Cruz|Walnut Creek|Union City|Half Moon Bay|East Bay|South Bay|North Bay|Peninsula|Fremont|Oakland|Berkeley|Sunnyvale|Cupertino|Burlingame|Millbrae|San Bruno|Daly City|Hayward|Alameda|Concord|Pleasanton|Dublin|Livermore|Pacifica|Sausalito|Tiburon|Napa|Sonoma|SF Bay Area|Bay Area|SF)\b|旧金山|舊金山|三藩市|奥克兰|奧克蘭|屋崙|伯克利|柏克萊|圣何塞|聖荷西|弗里蒙特|佛利蒙|費利蒙|东湾|東灣|南湾|南灣|北湾|北灣|半岛|半島|湾区|灣區/giu;
+  const has = (pattern: RegExp, value: string) => { pattern.lastIndex = 0; return pattern.test(value); };
+  const cities = (value: string) => [...value.matchAll(new RegExp(cityPattern.source, 'giu'))].map(match => ({
+    at: match.index!, end: match.index! + match[0].length,
+    origin: /(?:从|從|住在|居住在|家在|\bfrom|\bleaving|\bdeparting|\blive in|\bbased in)\s*$/i.test(value.slice(0, match.index)) || /^\s*(?:出发|出發|to\b|[-=]?>|→)/i.test(value.slice(match.index! + match[0].length)),
+  }));
+  const cleaned = (value: string) => value.replace(/[ \t]+/g, ' ').replace(/^[\s,，;；。]+|[\s,，;；。]+$/g, '').replace(/[,，;；]\s*[,，;；]+/g, '，');
+  let carried: string[] = [];
+  for (const question of questions) {
+    if (/重新开始|重新開始|换个(?:话题|話題|计划|計畫)|\b(?:start over|new topic|new plan)\b/i.test(question)) carried = [];
+    const overrides = [dates, budget, transport, setting].filter(pattern => has(pattern, question));
+    const newCities = cities(question);
+    carried = carried.map(previous => {
+      for (const pattern of overrides) previous = previous.replace(pattern, ' ');
+      // A destination change keeps a separately stated departure city.
+      const replacements = cities(previous).filter(old => newCities.some(next => next.origin === old.origin));
+      for (const old of replacements.reverse()) previous = previous.slice(0, old.at) + ' ' + previous.slice(old.end);
+      return cleaned(previous);
+    }).filter(Boolean);
+    carried.push(question);
+  }
+  const latest = carried.pop() || '';
+  const earlier = carried.join('；');
+  const prefix = earlier ? `${earlier.slice(0, Math.max(0, 770 - latest.length))}；最新补充：` : '';
+  return `${prefix}${latest}`.slice(0, 800);
+}
 export type BayBayOutingSearch = {
   source: 'site-search'; state: 'ready' | 'needs_clarification';
   filters: Omit<OutingFilters, 'eventId' | 'cursor'> & { sort: 'soonest' };
@@ -184,13 +233,13 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
 
 export async function fetchBayBayReply(
   message: string,
-  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string },
+  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; searchMode?: BayBaySearchMode; searchContext?: { date?: string; region?: string; city?: string } },
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
-  timeoutMs = 25_000,
+  timeoutMs = 55_000,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
-  const { outingSearchToken, ...pageContext } = context;
+  const { outingSearchToken, searchMode = 'smart', searchContext, ...pageContext } = context;
   const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -208,7 +257,7 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), ...(outingSearchToken ? { outingSearchToken } : {}) }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
         const data = await response.json() as GuideChatResponse;
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {

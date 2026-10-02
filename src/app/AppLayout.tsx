@@ -859,6 +859,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
         <BayBayAssistantEntry
           key={baybaySessionScope}
+          ownerId={user?.id}
+          sessionKey={baybaySessionScope}
           variant="headless"
           panelOpen={baybayPanelOpen}
           onPanelOpenChange={(open) => {

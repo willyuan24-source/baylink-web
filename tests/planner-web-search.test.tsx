@@ -226,17 +226,58 @@ test('guest candidates survive a new search and reload, preserve date, and can b
   assert.deepEqual(loadGuestWebCandidates(), []);
 });
 
-test('account candidates stay in memory and switching owners clears results and candidates', async () => {
-  api.request = async () => candidateResponse();
-  const view = render(<PlannerWebSearch {...props} ownerId="account-a" />);
+test('account candidates persist through reload, remain private and switching owners isolates responses', async () => {
+  let library = { candidates: [] as unknown[], revision: 0 };
+  let owner = 'account-a';
+  api.request = async (endpoint, options) => {
+    if (endpoint === '/planner/web-search') return candidateResponse();
+    assert.equal(endpoint, '/planner/web-candidates');
+    if (options?.method === 'PUT') { const body = JSON.parse(String(options.body)); assert.equal(body.revision, library.revision); library = { candidates: body.candidates, revision: library.revision + 1 }; }
+    return owner === 'account-a' ? library : { candidates: [], revision: 0 };
+  };
+  const view = render(<PlannerWebSearch {...props} ownerId={owner} />);
+  await act(async () => {});
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
-  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
-  assert.match(view.container.textContent!, /not synced to your account/);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Keep candidate' })); });
+  assert.match(view.container.textContent!, /Saved to your account, visible only to you/);
+  assert.equal(library.candidates.length, 1);
   assert.equal(localStorage.getItem(GUEST_WEB_CANDIDATES_KEY), null);
-  view.rerender(<PlannerWebSearch {...props} ownerId="account-b" />);
-  assert.equal(view.queryByRole('region', { name: 'My web candidates' }), null);
-  assert.equal(view.container.querySelector('.planner-web-results'), null);
-  view.rerender(<PlannerWebSearch {...props} />);
+  view.unmount();
+  const again = render(<PlannerWebSearch {...props} ownerId={owner} />);
+  await act(async () => {});
+  assert.ok(again.getByText('Oakland Museum of California'));
+  owner = 'account-b'; again.rerender(<PlannerWebSearch {...props} ownerId={owner} />);
+  await act(async () => {});
+  assert.equal(again.queryByRole('region', { name: 'My web candidates' }), null);
+  assert.equal(again.container.querySelector('.planner-web-results'), null);
+  again.rerender(<PlannerWebSearch {...props} />);
+  assert.equal(again.queryByText('Oakland Museum of California'), null);
+});
+
+test('account save failure preserves the prior library and requires reload before another write', async () => {
+  const kept = { ...candidateResponse().candidates[0], checkedAt: response().checkedAt, requestedDate: props.date };
+  let writes = 0;
+  api.request = async (endpoint, options) => {
+    if (endpoint === '/planner/web-search') return candidateResponse();
+    if (options?.method === 'PUT') { writes++; throw { status: 409 }; }
+    return { candidates: [kept], revision: 2 };
+  };
+  const view = render(<PlannerWebSearch {...props} ownerId="account-a" />);
+  await act(async () => {});
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Remove candidate' })); });
+  assert.equal(writes, 1); assert.ok(view.getByText('Oakland Museum of California'));
+  assert.equal((view.getByRole('button', { name: 'Remove candidate' }) as HTMLButtonElement).disabled, true);
+  assert.ok(view.getByRole('button', { name: 'Reload candidates' }));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Reload candidates' })); });
+  assert.equal((view.getByRole('button', { name: 'Remove candidate' }) as HTMLButtonElement).disabled, false);
+});
+
+test('an old account load finishing after account switch cannot expose its candidates', async () => {
+  const pending = deferred(); let owner = 'a';
+  api.request = async () => owner === 'a' ? pending.promise : { candidates: [], revision: 0 };
+  const view = render(<PlannerWebSearch {...props} ownerId={owner} />);
+  owner = 'b'; view.rerender(<PlannerWebSearch {...props} ownerId={owner} />);
+  await act(async () => { pending.resolve({ candidates: [{ ...candidateResponse().candidates[0], checkedAt: null, requestedDate: null }], revision: 1 }); });
   assert.equal(view.queryByText('Oakland Museum of California'), null);
 });
 
@@ -274,4 +315,14 @@ test('stored candidate data is bounded and rejects unsafe URLs or malformed reco
   assert.equal(saved.length, 1);
   assert.equal(saved[0].checkedAt, null);
   assert.equal(saved[0].requestedDate, null);
+});
+
+test('saved candidate retrieval dates use Bay Area time without shifting date-only values', () => {
+  for (const [checkedAt, expected] of [['2026-10-02T02:00:00Z', 'Retrieved: 2026-10-01 (Bay Area time)'], ['2026-10-01', 'Retrieved: 2026-10-01'], ['2026-02-30', 'Retrieved: Unknown']]) {
+    localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([{ ...candidateResponse().candidates[0], checkedAt, requestedDate: '2026-10-17' }]));
+    const view = render(<PlannerWebSearch {...props} />);
+    assert.ok(view.container.textContent!.includes(expected));
+    assert.ok(view.container.textContent!.includes('Searched for: 2026-10-17'));
+    view.unmount();
+  }
 });

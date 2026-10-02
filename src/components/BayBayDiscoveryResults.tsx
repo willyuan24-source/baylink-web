@@ -1,0 +1,68 @@
+import { useEffect, useRef, useState } from 'react';
+import { ArrowRight, Bookmark, Check, Globe2, MapPin } from 'lucide-react';
+import { useLocale, translateText } from '../i18n/locale';
+import { bayBayPlanPath, bayBayWebResult, type GuideChatResponse } from '../lib/baybay-conversation';
+import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type SavedWebCandidate } from '../lib/planner-web-search';
+import { getStoredUser } from '../lib/session';
+
+function useCopy() {
+  const locale = useLocale();
+  return (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+}
+
+export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse }) {
+  const t = useCopy(), web = bayBayWebResult(response), retrieval = response.retrieval;
+  const checked = web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
+  return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
+}
+
+export function BayBayAnswer({ response }: { response: GuideChatResponse }) {
+  const result = bayBayWebResult(response);
+  return <p className="member-baybay-answer-text">{result ? plannerWebAnswerParts(result).map((part, index) => part.source ? <a key={index} href={part.source.url} target="_blank" rel="noopener noreferrer" title={part.source.title} className="baybay-inline-citation">{part.text}</a> : <span key={index}>{part.text}</span>) : response.answer}</p>;
+}
+
+export function BayBayDiscoveryResults({ response, ownerId, sessionKey }: { response: GuideChatResponse; ownerId?: string; sessionKey?: string }) {
+  return <DiscoverySession key={JSON.stringify([ownerId || 'guest', sessionKey])} response={response} ownerId={ownerId} />;
+}
+
+function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; ownerId?: string }) {
+  const t = useCopy(), result = bayBayWebResult(response);
+  const [saved, setSaved] = useState<string[]>([]), [busy, setBusy] = useState(''), [error, setError] = useState('');
+  const request = useRef<AbortController | null>(null);
+  useEffect(() => () => request.current?.abort(), []);
+  const save = async (candidate: SavedWebCandidate) => {
+    const session = getStoredUser();
+    if (request.current || session?.id !== ownerId) return;
+    const sameSession = () => getStoredUser()?.id === ownerId && getStoredUser()?.token === session?.token;
+    const controller = new AbortController(); request.current = controller; setBusy(candidate.id); setError('');
+    try {
+      if (ownerId) await saveAccountWebCandidate(candidate, controller.signal);
+      else {
+        const previous = loadGuestWebCandidates().filter(item => item.id !== candidate.id);
+        if (previous.length >= 20) throw new Error(t('候选清单已满，请到计划页移除不需要的项目。', 'Your shortlist is full. Remove an item on the planner page.'));
+        localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([candidate, ...previous]));
+      }
+      if (!controller.signal.aborted && sameSession()) setSaved(previous => [...previous, candidate.id]);
+    } catch (reason) {
+      if (!controller.signal.aborted && sameSession()) setError(reason instanceof Error ? reason.message : t('未能保存，请重试。', 'Could not save. Please try again.'));
+    } finally { if (!controller.signal.aborted) { request.current = null; setBusy(''); } }
+  };
+  if (!result) return null;
+  return <section className="baybay-discovery" aria-label={t('站外发现与来源', 'Web discoveries and sources')} translate="no">
+    {result.candidates.length > 0 && <><div className="baybay-discovery-heading"><span>{t('值得再看一眼', 'A closer look')}</span><small>{t('站外候选 · 待确认', 'Web shortlist · Unconfirmed')}</small></div><div className="baybay-discovery-cards">{result.candidates.map((candidate, index) => <article key={candidate.id}>
+      <div className="baybay-discovery-cover" aria-hidden="true"><MapPin size={32} /><span>{String(index + 1).padStart(2, '0')}</span></div>
+      <div className="baybay-discovery-content"><small>{candidate.city || t('城市待确认', 'City unconfirmed')}</small><h4>{candidate.name}</h4>{candidate.summary && <p>{candidate.summary}</p>}
+        <dl><div><dt>{t('时间', 'When')}</dt><dd>{candidate.timeSummary || t('请查看来源确认', 'Check the source')}</dd></div><div><dt>{t('费用', 'Cost')}</dt><dd>{candidate.priceSummary || t('待确认', 'Unconfirmed')}</dd></div></dl>
+        <a href={plannerWebMapSearchUrl(candidate)} target="_blank" rel="noopener noreferrer"><MapPin size={13} />{t('地图查找', 'Find on map')}</a>
+        <button type="button" disabled={!!busy || saved.includes(candidate.id)} onClick={() => void save({ ...candidate, checkedAt: result.checkedAt, requestedDate: validPlannerWebDate(response.retrieval?.requestedDate) })}>{saved.includes(candidate.id) ? <Check size={14} /> : <Bookmark size={14} />}{saved.includes(candidate.id) ? t('已存入候选', 'Saved') : busy === candidate.id ? t('保存中…', 'Saving…') : t('存入候选', 'Save to shortlist')}</button>
+      </div></article>)}</div><p className="baybay-discovery-note">{ownerId ? t('保存到你的私人候选清单，在计划页继续查看。', 'Saved to your private shortlist. Continue on the planner page.') : t('游客候选保存在这个浏览器，可在计划页继续查看。', 'Guest candidates stay in this browser. Continue on the planner page.')}{t('具体位置、所选日期时段与预约仍需核实。', ' Exact location, date-specific hours and reservations still need checking.')}</p></>}
+    {error && <p role="alert">{error}</p>}
+    <details className="baybay-web-sources" open={!result.candidates.length}><summary>{t('查看本次联网来源', 'Sources from this lookup')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={`${source.number}:${source.url}`} value={source.number}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>
+  </section>;
+}
+
+export function BayBayTaskHandoff({ brief, onNavigate }: { brief: string; onNavigate: (path: string) => void }) {
+  const t = useCopy(), [draft, setDraft] = useState(brief);
+  if (!brief) return null;
+  return <details className="baybay-task-handoff" translate="no"><summary>{t('带着这些需求，继续做计划', 'Continue to a plan with your needs')}<ArrowRight size={15} /></summary><label>{t('已经说过的条件，可以再修改', 'Your requirements — edit before continuing')}<textarea value={draft} maxLength={800} onChange={event => setDraft(event.target.value)} /></label><button type="button" disabled={draft.trim().length < 2} onClick={() => onNavigate(bayBayPlanPath(draft))}>{t('带入计划', 'Continue to planner')}<ArrowRight size={14} /></button></details>;
+}

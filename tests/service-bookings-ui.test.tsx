@@ -14,6 +14,7 @@ const { render, fireEvent, cleanup, act, within } = await import('@testing-libra
 const { MemoryRouter } = await import('react-router-dom');
 const { ServiceBookingPanel } = await import('../src/features/bookings/ServiceBookingPanel');
 const { ServiceBookingsDashboard } = await import('../src/features/bookings/ServiceBookingsDashboard');
+const { MyWeekBookings } = await import('../src/features/bookings/MyWeekBookings');
 const { BookingReceipt } = await import('../src/features/bookings/booking-shared');
 const { bookingDisplayStatus, parseAvailability, parseBooking, serviceBookings } = await import('../src/lib/service-bookings');
 const { setLocale } = await import('../src/i18n/locale');
@@ -39,6 +40,68 @@ const choose = async (view: ReturnType<typeof render>) => {
   fireEvent.change(await view.findByRole('combobox', { name: '可约日期' }), { target: { value: '2026-10-17' } });
   fireEvent.click(view.getByRole('button', { name: '09:00–12:00' }));
 };
+
+test('reschedule proposals show old and proposed times and only the other participant can accept', async t => {
+  const proposal = { id: 'proposal-one', slotId: 'new-time', proposedBy: provider.id, status: 'pending', date: '2026-10-18', startTime: '09:00', endTime: '12:00', startAt: Date.parse('2026-10-18T16:00:00Z'), endAt: Date.parse('2026-10-18T19:00:00Z'), createdAt: now, expiresAt: now + 86400_000 };
+  const current = { ...booking, status: 'confirmed', reschedule: proposal };
+  const requests: Record<string, unknown>[] = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (path.endsWith('/reschedule')) { requests.push(JSON.parse(String(options.body))); return { booking: { ...current, date: proposal.date, startAt: proposal.startAt, endAt: proposal.endAt, reschedule: { ...proposal, status: 'accepted', resolvedAt: now } }, notifications }; }
+    return { asCustomer: [current], asProvider: [], sms: { enabled: false, configured: false, eligible: false } };
+  });
+  const view = render(dashboard()); await view.findByText('对方提出改期，等你回应');
+  assert.ok(view.getByText('当前已确认')); assert.ok(view.getByText('提议改为')); assert.ok(view.getByText(/在此之前保留原预约/));
+  assert.equal(view.queryByRole('button', { name: '撤回改期提议' }), null);
+  fireEvent.click(view.getByRole('button', { name: '同意改到这个时间' }));
+  await act(async () => {});
+  assert.equal(requests.length, 1); assert.equal(requests[0].action, 'accept'); assert.equal(requests[0].proposalId, proposal.id);
+  assert.equal(view.queryByText('对方提出改期，等你回应'), null);
+});
+
+test('selecting an available replacement sends an explicit proposal without claiming a new confirmed booking', async t => {
+  const current = { ...booking, status: 'confirmed' as const };
+  const next = { ...availability.slots[0], id: 'new-time', date: '2026-10-18', startAt: Date.parse('2026-10-18T16:00:00Z'), endAt: Date.parse('2026-10-18T19:00:00Z') };
+  let requests = 0;
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (path.endsWith('/reschedule-options')) return { bookingId: booking.id, slots: [next, availability.slots[1]] };
+    if (path.endsWith('/reschedule')) { requests++; const body = JSON.parse(String(options.body)); assert.equal(body.action, 'propose'); assert.equal(body.slotId, next.id); return { booking: { ...current, reschedule: { ...next, slotId: next.id, id: 'proposal-new', proposedBy: customer.id, status: 'pending', createdAt: now, expiresAt: now + 86400_000 } }, notifications }; }
+    return { asCustomer: [current], asProvider: [], sms: { enabled: false, configured: false, eligible: false } };
+  });
+  const view = render(dashboard()); fireEvent.click(await view.findByRole('button', { name: '协商改期' }));
+  const select = await view.findByRole('combobox', { name: '提议的新时间' });
+  assert.equal(view.queryByRole('option', { name: /14:00/ }), null);
+  assert.equal((view.getByRole('button', { name: '发送改期提议' }) as HTMLButtonElement).disabled, true);
+  fireEvent.change(select, { target: { value: next.id } }); fireEvent.click(view.getByRole('button', { name: '发送改期提议' }));
+  await view.findByText('已提出改期，等对方回应'); assert.equal(requests, 1);
+  assert.equal(view.queryByRole('button', { name: '同意改到这个时间' }), null); assert.ok(view.getByRole('button', { name: '撤回改期提议' }));
+});
+
+test('My Week shows private booking tasks without notes or addresses and explains incomplete conflict checks', async t => {
+  const received = { ...booking, providerId: customer.id, customerId: provider.id, note: 'secret 123 home address', expiresAt: now + 86400_000 };
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/outings/me') throw { status: 503 };
+    return { asCustomer: [], asProvider: [received], sms: { enabled: false, configured: false, eligible: false } };
+  });
+  const view = render(<MemoryRouter><MyWeekBookings user={customer} onLoginNeeded={noop} plans={[]} plansReady /></MemoryRouter>);
+  await view.findByText('有 1 份安排等你回应');
+  assert.ok(view.getByText('等你回应')); assert.ok(view.getByRole('link', { name: '查看并回应' }));
+  assert.equal(view.queryByText(/secret 123/), null); assert.ok(view.getByText(/冲突检查尚不完整/));
+});
+
+test('My Week ignores late responses after an account switch and makes booking read errors retryable', async t => {
+  let resolveOld: ((value: unknown) => void) | undefined;
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/outings/me') return { outings: [] };
+    if (JSON.parse(localStorage.getItem('currentUser')!).id === customer.id) return new Promise(resolve => { resolveOld = resolve; });
+    throw { status: 503 };
+  });
+  const draw = (user: UserData) => <MemoryRouter><MyWeekBookings user={user} onLoginNeeded={noop} plans={[]} plansReady /></MemoryRouter>;
+  const view = render(draw(customer)); await act(async () => {});
+  signIn(provider); view.rerender(draw(provider)); await view.findByRole('alert');
+  await act(async () => resolveOld?.({ asCustomer: [booking], asProvider: [], sms: { enabled: false, configured: false, eligible: false } }));
+  assert.equal(view.queryByText(booking.postTitle), null); assert.ok(view.getByRole('button', { name: '刷新预约' }));
+  assert.equal(view.queryByText('这周暂无服务预约，也没有待确认申请。'), null);
+});
 
 test('StrictMode loads customer availability, hides occupied times, and clearly submits a request without claiming confirmation', async t => {
   const sent: Record<string, unknown>[] = [];

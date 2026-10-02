@@ -3,12 +3,14 @@ import { api } from './api';
 export type BookingMode = 'request' | 'instant';
 export type BookingStatus = 'pending' | 'confirmed' | 'declined' | 'cancelled' | 'expired' | 'completed';
 export type BookingAction = 'confirm' | 'decline' | 'cancel' | 'complete';
+export type BookingReschedule = { id: string; slotId: string; proposedBy: string; status: 'pending' | 'accepted' | 'declined' | 'withdrawn' | 'expired' | 'cancelled'; date: string; startTime: string; endTime: string; startAt: number; endAt: number; createdAt: number; expiresAt: number; resolvedAt?: number };
+export type BookingRescheduleAction = { action: 'propose'; slotId: string } | { action: 'accept' | 'decline' | 'withdraw'; proposalId: string };
 export type ServiceSlot = { id: string; date: string; startTime: string; endTime: string; startAt: number; endAt: number; available: boolean; reason?: string };
 export type ServiceAvailability = { eligible: boolean; enabled: boolean; mode: BookingMode; timezone: string; providerVerified: boolean; reason?: string; minNoticeMinutes: number; bufferMinutes: number; slots: ServiceSlot[] };
 export type ServiceBooking = {
   id: string; postId: string; providerId: string; customerId: string; providerName: string; customerName: string; postTitle: string;
   date: string; startTime: string; endTime: string; startAt: number; endAt: number; timezone: string; status: BookingStatus; note: string;
-  createdAt: number; updatedAt: number; expiresAt?: number; conversationId?: string; bufferMinutes: number; notifications?: BookingNotifications;
+  createdAt: number; updatedAt: number; expiresAt?: number; conversationId?: string; bufferMinutes: number; notifications?: BookingNotifications; reschedule?: BookingReschedule;
 };
 export type BookingNotifications = { inApp: 'sent' | 'failed' | 'skipped' | 'pending'; sms: 'sent' | 'failed' | 'disabled' | 'unconfigured' | 'not_eligible' | 'pending' | 'unknown' };
 export type BookingSmsSettings = { enabled: boolean; configured: boolean; eligible: boolean };
@@ -39,6 +41,13 @@ function validSlot(value: unknown): value is ServiceSlot {
   return record(value) && typeof value.id === 'string' && !!value.id && validInterval(value) && typeof value.available === 'boolean'
     && (value.reason === undefined || typeof value.reason === 'string');
 }
+function validReschedule(value: unknown, booking: Record<string, unknown>): boolean {
+  return record(value) && ['id', 'slotId'].every(key => typeof value[key] === 'string' && !!value[key])
+    && [booking.providerId, booking.customerId].includes(value.proposedBy)
+    && ['pending', 'accepted', 'declined', 'withdrawn', 'expired', 'cancelled'].includes(String(value.status)) && validInterval(value)
+    && validTimestamp(value.createdAt) && validTimestamp(value.expiresAt) && value.expiresAt > value.createdAt
+    && (value.resolvedAt === undefined || validTimestamp(value.resolvedAt));
+}
 export function parseAvailability(value: unknown): ServiceAvailability {
   if (!record(value) || typeof value.eligible !== 'boolean' || typeof value.enabled !== 'boolean' || !['request', 'instant'].includes(String(value.mode))
     || value.timezone !== 'America/Los_Angeles' || typeof value.providerVerified !== 'boolean' || ![0, 60, 120, 1440].includes(Number(value.minNoticeMinutes)) || typeof value.minNoticeMinutes !== 'number'
@@ -52,6 +61,7 @@ export function parseBooking(value: unknown): ServiceBooking {
     || !statuses.has(String(value.status)) || typeof value.note !== 'string' || !['createdAt', 'updatedAt'].every(key => validTimestamp(value[key]))
     || (value.expiresAt !== undefined && !validTimestamp(value.expiresAt)) || typeof value.bufferMinutes !== 'number' || ![0, 15, 30, 60].includes(value.bufferMinutes)
     || (value.notifications !== undefined && !validNotifications(value.notifications))
+    || (value.reschedule !== undefined && !validReschedule(value.reschedule, value))
     || (value.conversationId !== undefined && typeof value.conversationId !== 'string')
     || ['providerName', 'customerName'].some(key => value[key] !== undefined && typeof value[key] !== 'string')) return fail();
   return value as unknown as ServiceBooking;
@@ -84,6 +94,17 @@ export const serviceBookings = {
   sms: async (enabled: boolean, signal?: AbortSignal) => parseSms((await api.request(`${base}/sms-settings`, { ...body({ enabled }, signal), method: 'PATCH' })).sms),
   action: async (booking: ServiceBooking, action: BookingAction, idempotencyKey: string, signal?: AbortSignal) => {
     const result = parseResult(await api.request(`${base}/${encodeURIComponent(booking.providerId)}/${encodeURIComponent(booking.id)}/actions`, body({ action, idempotencyKey }, signal)));
+    if (result.booking.id !== booking.id || result.booking.providerId !== booking.providerId || result.booking.customerId !== booking.customerId) return fail();
+    return result;
+  },
+  rescheduleOptions: async (booking: ServiceBooking, signal?: AbortSignal): Promise<ServiceSlot[]> => {
+    const result = await api.request(`${base}/${encodeURIComponent(booking.providerId)}/${encodeURIComponent(booking.id)}/reschedule-options`, { signal });
+    if (!record(result) || result.bookingId !== booking.id || !Array.isArray(result.slots) || !result.slots.every(validSlot)
+      || new Set(result.slots.map(slot => slot.id)).size !== result.slots.length) return fail();
+    return result.slots;
+  },
+  reschedule: async (booking: ServiceBooking, action: BookingRescheduleAction, idempotencyKey: string, signal?: AbortSignal) => {
+    const result = parseResult(await api.request(`${base}/${encodeURIComponent(booking.providerId)}/${encodeURIComponent(booking.id)}/reschedule`, body({ ...action, idempotencyKey }, signal)));
     if (result.booking.id !== booking.id || result.booking.providerId !== booking.providerId || result.booking.customerId !== booking.customerId) return fail();
     return result;
   },

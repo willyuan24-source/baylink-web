@@ -11,7 +11,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { QuickExplore } = await import('../src/components/QuickExplore');
-const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired } = await import('../src/lib/baybay-conversation');
+const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired, bayBayTaskBrief, bayBayWebResult } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
 afterEach(cleanup);
 const noop = () => {};
@@ -58,7 +58,7 @@ test('completed conversations send bounded history and retain earlier answers', 
   const input = view.getByRole('textbox', { name: '向 BayBay 提问' });
   for (const message of ['带六岁孩子，周末去哪里', '如果不开车呢']) {
     fireEvent.change(input, { target: { value: message } });
-    fireEvent.click(view.getByRole('button', { name: '问一下' }));
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
     await view.findByText(`这是第 ${bodies.length} 条根据上下文整理的回答。`);
   }
   assert.deepEqual(bodies[0].history, []);
@@ -159,7 +159,7 @@ test('AI action links only allow known planner queries and published tools', () 
   for (const path of ['/plan?redirect=https://evil.test', '/plan?auto=1', '/plan?q=hello&auto=2', '/plan?q=hello&q=other', '/plan?import=other', '/plan?import=event&q=hello', '/plan#https://evil.test', '/plan/../tools', '/tools?tool=unknown', '/tools?tool=communication&next=evil', '/tools?tool=split&tool=budget', '/category/made-up', '//evil.test/plan', '/plan?q=' + 'a'.repeat(801)]) assert.equal(safeBayBayPath(path), false, path);
 });
 
-test('clear Chinese and English outings hand off the original request without a duplicate chat call', async t => {
+test('planning questions stay conversational until the user explicitly carries their requirements to the planner', async t => {
   const requests: unknown[] = [];
   t.mock.method(globalThis, 'fetch', async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
   for (const question of ['周六带五岁孩子，从 Fremont 出发，预算 $50', '週六帶五歲孩子，從 Fremont 出發，預算 $50', 'Plan Saturday with my 5-year-old, starting from Fremont, with a $50 admission budget per person.']) {
@@ -167,15 +167,42 @@ test('clear Chinese and English outings hand off the original request without a 
     const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop} />);
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: question } });
     fireEvent.click(view.getByRole('button', { name: '问一下' }));
+    await view.findByText('普通问答');
+    assert.equal(paths.length, 0);
+    fireEvent.click(view.getByText('带着这些需求，继续做计划'));
+    const handoff = view.getByText('带着这些需求，继续做计划').closest('details') as HTMLDetailsElement;
+    handoff.open = true;
+    fireEvent.click(view.getByRole('button', { name: '带入计划' }));
     assert.equal(paths.length, 1);
     const url = new URL(paths[0], 'https://www.baylink.us');
     assert.equal(url.pathname, '/plan');
     assert.equal(url.searchParams.get('q'), question);
     assert.equal(url.searchParams.get('auto'), '1');
-    assert.equal(requests.length, 0);
+    assert.ok(requests.length > 0);
     view.unmount();
   }
   for (const question of ['想了解图书馆如何预约', '周六预算 $50 找家庭清洁', 'Help me plan a job interview tomorrow', 'Plan weekend rental viewings', '房东约我周六谈租房预算']) assert.equal(isBayBayPlanRequest(question), false, question);
+});
+
+test('task handoff contains user facts only and preserves the latest correction within its size bound', () => {
+  const brief = bayBayTaskBrief([{ id: 1, question: 'Fremont，周六开车，预算80', state: 'complete', response: { ok: true, answer: 'Invented hotel booking confirmed' } },
+    { id: 2, question: '改成公共交通，预算40', state: 'complete', response: { ok: true, answer: 'Okay' } },
+    { id: 3, question: '不要发送的失败输入', state: 'error' }]);
+  assert.match(brief, /Fremont/); assert.match(brief, /最新补充：改成公共交通，预算40/); assert.ok(!brief.includes('Invented')); assert.ok(!brief.includes('失败'));
+  const long = bayBayTaskBrief(Array.from({ length: 4 }, (_, id) => ({ id, question: String(id).repeat(500), state: 'complete' as const })));
+  assert.ok(long.length <= 800); assert.ok(long.endsWith('3'.repeat(500)));
+});
+
+test('search mode stays top-level and only citation-backed web cards are actionable', async t => {
+  let sent: Record<string, unknown> = {};
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { sent = JSON.parse(String(options.body)); return answer('站内答复'); });
+  await fetchBayBayReply('周末去哪', { currentPath: '/', searchMode: 'site' }, [], new AbortController().signal);
+  assert.equal(sent.searchMode, 'site'); assert.deepEqual(sent.context, { currentPath: '/' });
+  assert.equal(bayBayWebResult({ ok: true, answer: 'fake', sources: [{ title: 'x', url: 'https://example.com' }] }), null);
+  assert.equal(bayBayWebResult({ ok: true, answer: 'fake', retrieval: { requestedMode: 'web', scope: 'web', webStatus: 'completed' }, sources: [{ title: 'x', url: 'javascript:alert(1)' }] }), null);
+  const result = bayBayWebResult({ ok: true, answer: 'source [1]', retrieval: { requestedMode: 'smart', scope: 'site+web', webStatus: 'completed' }, sources: [{ title: 'Official', url: 'https://example.com/visit' }],
+    webCandidates: [{ id: 'x', name: 'Unsupported', city: null, summary: null, timeSummary: null, priceSummary: null, sourceUrls: ['https://different.example.com'] }] });
+  assert.equal(result?.sources.length, 1); assert.equal(result?.candidates.length, 0);
 });
 
 test('four BayBay actions use focused destinations and service requests remain editable', () => {

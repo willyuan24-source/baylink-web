@@ -8,7 +8,7 @@ import path from 'node:path';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/play' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, cleanup, fireEvent, waitFor } = await import('@testing-library/react');
+const { render, cleanup, fireEvent, waitFor, act } = await import('@testing-library/react');
 const { default: SfGuidePanel } = await import('../src/features/little-bay/SfGuidePanel');
 const { loadSfGuidePreview } = await import('../src/features/little-bay/sf-guide-preview');
 const { SF_LANDMARKS } = await import('../src/features/little-bay/sf-world');
@@ -44,6 +44,9 @@ test('in-game reader loads the article, traps focus, closes on Escape and restor
   const view = render(<SfGuidePanel landmark={park} locale="zh-Hans" onClose={() => { closed += 1; }} />);
   const close = view.getByRole('button', { name: '关闭攻略，返回探索' });
   assert.equal(document.activeElement, close);
+  // Settle the actual lazy catalog work inside React's async boundary before
+  // checking the rendered reader; a DOM polling deadline is not a load signal.
+  await act(async () => { await loadSfGuidePreview(park.guideSlug!, 'zh-Hans'); });
   await waitFor(() => assert.ok(view.getByRole('link', { name: '阅读全文' })));
   const fullArticle = view.getByRole('link', { name: '阅读全文' });
   assert.equal(fullArticle.getAttribute('href'), `/guides/${park.guideSlug}`);
@@ -68,6 +71,7 @@ test('English reader uses existing editorial translations and carries language i
   const bridge = SF_LANDMARKS.find(place => place.id === 'bridge')!;
   const guide = getGuideBySlug(bridge.guideSlug!)!;
   const view = render(<SfGuidePanel landmark={bridge} locale="en" onClose={() => {}} />);
+  await act(async () => { await loadSfGuidePreview(bridge.guideSlug!, 'en'); });
   await waitFor(() => assert.ok(view.getByRole('link', { name: 'Read full guide' })));
   assert.ok(view.getByRole('heading', { name: translateText(guide.title, 'en') }));
   assert.doesNotMatch(view.container.querySelector('.sf-guide-summary')?.textContent || '', /[\u3400-\u9fff]/);
