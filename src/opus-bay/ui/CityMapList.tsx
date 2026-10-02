@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
-import { Check, Footprints, Search, TrainFront } from 'lucide-react';
+import { Check, Footprints, Gamepad2, PartyPopper, Search, TrainFront } from 'lucide-react';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTION_AREAS, type Attraction, type AttractionArea } from '../data/sf/attractionTypes';
 import { ATTRACTIONS, coveredPlaceIds, tripDestination } from '../data/sf/attractions';
 import type { CityPlace, PlaceIndex } from '../data/sf/places';
 import { SF_ROUTES, type SfRoute, type SfRouteId, routePath } from '../data/sf/routes';
-import { SEARCH_GROUP_NAMES, SEARCH_SUGGESTIONS, type SearchEntry, attractionEntries, groupHits, lineEntries, placeEntries, prepareSearch, rankSearch, stationEntries } from '../data/sf/placeSearch';
+import { SEARCH_GROUP_NAMES, SEARCH_SUGGESTIONS, type SearchEntry, attractionEntries, groupHits, lineEntries, placeEntries, prepareSearch, rankSearch, spotEntries, stationEntries } from '../data/sf/placeSearch';
+import { searchSpots } from '../data/sf/searchSpots';
 import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { discoveredIds, isDiscovered } from '../game/discovery';
+import { closePanel } from '../game/flow';
 import { timeLabel } from '../game/tripText';
 import { useT } from '../i18n';
 import type { MapSel } from './cityMapModel';
@@ -16,6 +18,7 @@ import { MapBadge } from './MapBadge';
 import { type QuickDest, RowGo, goQuick, useQuickWays } from './MapGoCard';
 import { badgeSize } from './mapBadges';
 import { LINE_STYLES, type MapLine, type MapStation, lineStrokes } from './mapLines';
+import { runAskItem, visibleAskItems } from './slots';
 
 /**
  * Wave 4 · the list under the city map (lane P, W4-P8 / W4-P9; plan §4.1 "Filters, legend, list, search"): the search
@@ -81,7 +84,9 @@ type Row =
   | { kind: 'station'; key: string; st: MapStation }
   | { kind: 'line'; key: string; id: string }
   | { kind: 'route'; key: string; r: SfRoute }
-  | { kind: 'routeStop'; key: string; r: SfRoute; i: number };
+  | { kind: 'routeStop'; key: string; r: SfRoute; i: number }
+  /** (W9-L) a game or an event the search found (data/sf/searchSpots.ts) */
+  | { kind: 'spot'; key: string; e: SearchEntry };
 
 export function CityMapList(p: CityMapListProps) {
   const { t } = useT();
@@ -96,6 +101,8 @@ export function CityMapList(p: CityMapListProps) {
       ...lineEntries(lineIds.map(id => LINE_STYLES[id]).filter(Boolean)),
       ...stationEntries(stations),
       ...(ix ? placeEntries(ix.list.filter(pl => !pl.station), covered) : []),
+      // (W9-L) the games and the season's events: 螃蟹 → 捞螃蟹 at Pier 7, 万圣 → the treat streets and the festival
+      ...spotEntries(searchSpots()),
     ];
     return prepareSearch(entries);
   }, [ix, stations, lineIds, covered]);
@@ -111,6 +118,7 @@ export function CityMapList(p: CityMapListProps) {
           if (e.group === 'attraction') { const a = attrById.get(e.id); if (a) out.push({ kind: 'attraction', key: `a:${a.id}`, a }); }
           else if (e.group === 'station') { const st = stationById.get(e.id); if (st) out.push({ kind: 'station', key: `s:${st.id}`, st }); }
           else if (e.group === 'line') out.push({ kind: 'line', key: `l:${e.id}`, id: e.id });
+          else if (e.group === 'play' || e.group === 'event') out.push({ kind: 'spot', key: `g:${e.id}`, e });
           else { const pl = ix?.get(e.id); if (pl) out.push({ kind: 'place', key: `p:${pl.id}`, p: pl }); }
         }
       }
@@ -172,9 +180,14 @@ export function CityMapList(p: CityMapListProps) {
       if (r.kind === 'attraction') { const d = tripDestination(r.a); out.push({ key: r.key, placeId: d.placeId, x: d.x, z: d.z, name: d.name, attraction: r.a.id }); }
       else if (r.kind === 'place' && r.p.walkable) out.push({ key: r.key, placeId: r.p.id, x: r.p.arrival.x, z: r.p.arrival.z, name: r.p.name });
       else if (r.kind === 'station') out.push({ key: r.key, placeId: r.st.id, x: r.st.x, z: r.st.z, name: r.st.name });
+      else if (r.kind === 'spot') {
+        // a game's prompt / an event's point; a spot named only by an attraction goes to that attraction's arrival
+        const a = !r.e.at && r.e.go ? attrById.get(r.e.go) : undefined, d = a ? tripDestination(a) : null, at = r.e.at ?? (d ? { x: d.x, z: d.z } : null);
+        if (at) out.push({ key: r.key, placeId: r.e.go ?? `spot:${r.e.id}`, x: at.x, z: at.z, name: r.e.name, ...(a ? { attraction: a.id } : {}) });
+      }
     }
     return out;
-  }, [rows, query]);
+  }, [rows, query, attrById]);
   const ways = useQuickWays(quick, QUICK_ASK);
   const quickBy = useMemo(() => new Map(quick.map(q => [q.key, q])), [quick]);
   const [going, setGoing] = useState<string | null>(null);
@@ -183,6 +196,12 @@ export function CityMapList(p: CityMapListProps) {
     const q = quickBy.get(key), o = ways.get(key);
     if (!q || !o) return null;
     return <RowGo option={o} busy={going === key} onGo={() => { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }} />;
+  };
+  // (W9-L) a game / event row: its 问 BAYBAY item at once when it is offered here, else go there (the go button's way)
+  const spotAct = (key: string, e: SearchEntry) => {
+    if (e.ask && visibleAskItems().some(a => a.id === e.ask)) { closePanel(); runAskItem(e.ask); return; }
+    const q = quickBy.get(key);
+    if (q) { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }
   };
   const sel = p.selected;
   const area = (x: number, z: number, zone: string | null) => t(landmarkAreaAt(x, z)?.name ?? zoneName(zone));
@@ -225,6 +244,18 @@ export function CityMapList(p: CityMapListProps) {
                   <span className="mw-row-disc" aria-hidden><TrainFront size={15} /></span>
                   <span className="ob-place-text"><span>{t(st.name)}</span><small>{[...new Set(st.lines.map(l => t(LINE_STYLES[l]?.disc ?? { zh: l, en: l })))].join(' · ')}{go ? '' : ` · ${t(timeLabel(listWalkSeconds(pos, st)))}`}</small></span>
                   {isDiscovered(st.id) && <Check size={16} className="mw-found" aria-label={t('去过', 'Visited')} />}
+                </button>
+                {go && rowGo(r.key)}
+              </li>
+            );
+          }
+          if (r.kind === 'spot') {
+            const e = r.e, go = hasGo(r.key), can = quickBy.has(r.key) || !!e.ask;
+            return (
+              <li key={r.key} className={go ? 'has-go' : undefined}>
+                <button type="button" className="mw-row is-spot" onClick={() => spotAct(r.key, e)} disabled={!can || going === r.key}>
+                  <span className="mw-row-disc" aria-hidden>{e.group === 'play' ? <Gamepad2 size={15} /> : <PartyPopper size={15} />}</span>
+                  <span className="ob-place-text"><span>{t(e.name)}</span>{e.where && <small>{t(e.where)}</small>}</span>
                 </button>
                 {go && rowGo(r.key)}
               </li>
