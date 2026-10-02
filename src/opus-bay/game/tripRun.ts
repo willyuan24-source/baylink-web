@@ -32,6 +32,9 @@ import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './
 import { importRetry } from './importRetry';
 import { tripRouteCache } from './tripProviders';
 import { TRIP_SPEED, autoTravelSeconds } from './tripPlan';
+import { ATTENTION_PRIORITY, requestSlot, type SlotTicket } from './attention';
+import { readSave } from '../data/save';
+import { minutesLabel } from './tripText';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -669,7 +672,7 @@ function deliver(to: Vec2) {
   }, DELIVER_VEIL), () => { delivering = false; });
 }
 
-/** The stuck card (a BAYBAY card with three answers; F's attention arbiter takes it in the title slot once it lands). */
+/** The stuck card: a BAYBAY card with three answers, in F's title slot at the top priority (game/attention.ts). */
 function openStuckCard() {
   if (dialogueOpen() || game.get().phase !== 'playing') { say(STUCK_LINE.zh, STUCK_LINE.en, 'info', 4200); return; }
   const choices: NonNullable<DialogueNode['choices']> = [
@@ -677,7 +680,93 @@ function openStuckCard() {
     { hotkey: '2', label: STUCK_DETOUR, action: { type: 'ask', id: ASK_STUCK_DETOUR } },
     { hotkey: '3', label: STUCK_SELF, action: { type: 'end' } },
   ];
-  playDialogue(defineNode({ id: 'flow.trip.stuck', speaker: 'baybay', mood: 'thinking', text: STUCK_LINE, choices }));
+  const id = defineNode({ id: 'flow.trip.stuck', speaker: 'baybay', mood: 'thinking', text: STUCK_LINE, choices });
+  showCard(id, ATTENTION_PRIORITY.stuck, () => { if (!dialogueOpen() && flow.get().trip) playDialogue(id); });
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// W9-N3 · cards through F's attention arbiter (sf-w9-lead.md §4): the stuck card, the tour's resume and chapter cards
+// ---------------------------------------------------------------------------------------------------------------
+
+/** the cards asked for or on screen: the dialogue node each one opens, and whether it is up */
+const cards = new Map<string, { ticket: SlotTicket | null; shown: boolean }>();
+
+/**
+ * Show a card (a dialogue node) in the title slot: `open` runs when F's arbiter grants it (at once when the slot is
+ * free); the slot is released when that dialogue closes (watched at 10 Hz) or when the card was not shown in time.
+ */
+export function showCard(nodeId: string, priority: number, open: () => void, maxWaitMs = 15000) {
+  cards.get(nodeId)?.ticket?.release();
+  const entry: { ticket: SlotTicket | null; shown: boolean } = { ticket: null, shown: false };
+  cards.set(nodeId, entry);
+  entry.ticket = requestSlot('title', `n:${nodeId}`, {
+    priority, maxWaitMs,
+    onGrant: () => { entry.shown = true; open(); },
+    onDrop: () => { if (cards.get(nodeId) === entry) cards.delete(nodeId); },
+  });
+}
+
+/** 10 Hz: a card whose dialogue closed (or never opened: another dialogue held the screen) frees the title slot. */
+function watchCards() {
+  if (!cards.size) return;
+  const open = game.get().dialogue.nodeId;
+  for (const [nodeId, e] of cards) {
+    if (!e.shown || open === nodeId) continue;
+    e.ticket?.release();
+    cards.delete(nodeId);
+  }
+}
+
+/** (W9-N3) the resume card's line: a fixed line lane X can voice (C:/Users/willy/opus-qa/w9/new-lines.md) */
+export const RESUME_LINE: Bilingual = { zh: '上次的一日游还没走完，接着走吗？', en: 'We didn’t finish the Grand Tour last time. Shall we go on?' };
+/** the resume card waits this long (ms) of free play on return before it asks */
+export const RESUME_AFTER_MS = 6000;
+/** a Grand Tour left half way when this page loaded: offer it once (null: nothing to offer, or offered) */
+let resumeOffer: { since: number } | null = null;
+
+/**
+ * "继续一日游 · 第 3 章（约 22 分钟）" (pure): the chapter of the first open stop and the minutes left, scaled to the
+ * measured quote (the tour's "约 36 分钟" is the measured run, the stops keep the timing model's minutes).
+ */
+export function tourResumeChoice(def: { chapters: { stops: { id: string; optional?: boolean; minutes: number }[] }[]; minutes: number; modelMinutes?: number }, completed: readonly string[]): { chapter: number; minutes: number; label: Bilingual } | null {
+  let chapter = -1, left = 0;
+  def.chapters.forEach((c, ci) => c.stops.forEach(s => {
+    if (s.optional || completed.includes(s.id)) return;
+    if (chapter < 0) chapter = ci;
+    left += s.minutes;
+  }));
+  if (chapter < 0) return null;
+  const minutes = Math.max(1, Math.round(left * (def.minutes / (def.modelMinutes || def.minutes))));
+  const m = minutesLabel(minutes);
+  return { chapter: chapter + 1, minutes, label: { zh: `继续一日游 · 第 ${chapter + 1} 章（${m.zh}）`, en: `Resume the Grand Tour · chapter ${chapter + 1} (${m.en})` } };
+}
+
+/** 10 Hz: on return with a Grand Tour left half way, one card after RESUME_AFTER_MS of free play (never mid-tour). */
+function maybeOfferResume(now: number) {
+  const o = resumeOffer;
+  if (!o) return;
+  const s = game.get(), f = flow.get();
+  if (s.tour.active) { resumeOffer = null; return; }
+  const idle = s.worldMode === 'city' && s.phase === 'playing' && s.mode === 'free' && !s.dialogue.nodeId && !s.panel.kind && !f.trip && !f.cinematic && s.move.mode === 'foot';
+  if (!idle) { o.since = 0; return; }
+  if (!o.since) { o.since = now; return; }
+  if (now - o.since < RESUME_AFTER_MS) return;
+  resumeOffer = null;
+  const completed = readSave()?.tours?.['sf-grand']?.completed ?? [];
+  if (!completed.length) return;
+  void importRetry(() => import('../data/sf/tours')).then(T => {
+    const def = T.cityTour('sf-grand');
+    const pick = def ? tourResumeChoice(def, completed) : null;
+    if (!pick || game.get().tour.active) return;
+    const id = defineNode({
+      id: 'flow.tour.resume', speaker: 'baybay', mood: 'excited', text: RESUME_LINE,
+      choices: [
+        { hotkey: '1', label: pick.label, action: { type: 'start-tour', tourId: 'sf-grand' } },
+        { hotkey: '2', label: { zh: '先自己逛逛', en: 'I’ll roam for now' }, action: { type: 'end' } },
+      ],
+    });
+    showCard(id, ATTENTION_PRIORITY.card, () => { if (!dialogueOpen() && !game.get().tour.active) playDialogue(id); });
+  }, () => { /* the tour chunk failed: nothing to offer */ });
 }
 
 const ASK_STUCK_FLY = 'n-stuck-fly';
@@ -761,12 +850,15 @@ export function initTripRun(): () => void {
     registerAskItem({ id: ASK_STUCK_DETOUR, order: 999, label: STUCK_DETOUR, icon: Navigation, visible: () => false, onSelect: stuckDetour }),
   ];
   let acc = 0;
+  // (W9-N3) a Grand Tour the save holds half done when the city opens: one resume card on return
+  try { const p = readSave()?.tours?.['sf-grand']; resumeOffer = p && p.completed.length ? { since: 0 } : null; } catch { resumeOffer = null; }
   const offFrame = registerFrameSystem('c-trips', (dt, now) => {
     // every frame: a held movement key / stick is a takeover (a quick tap must not slip between the 10 Hz steps)
     if (input.manualMove) manualAt = now;
     if ((acc += dt) < 0.1) return;
     acc = 0;
-    if (game.get().phase === 'playing') { tick(now); autoTick(now); }
+    if (game.get().phase === 'playing') { tick(now); autoTick(now); maybeOfferResume(now); }
+    watchCards();
     syncAskItem();
   });
   // a fast-travel trip that the player did not start as a fly leg moves them away: the walk would lead back, so end it
@@ -775,5 +867,11 @@ export function initTripRun(): () => void {
     const t = flow.get().trip, leg = currentLeg(t);
     if (t && leg && leg.via !== 'fly') end();
   });
-  return () => { offFrame(); offEvents(); offAsk?.(); offAsk = null; askText = ''; offStuck.forEach(off => off()); autoEnd(); setTripRunner(null); resetLeg(); booted = false; };
+  return () => {
+    offFrame(); offEvents(); offAsk?.(); offAsk = null; askText = ''; offStuck.forEach(off => off());
+    // (W9-N3) a card still up or waiting frees F's title slot with the runner
+    for (const e of cards.values()) e.ticket?.release();
+    cards.clear(); resumeOffer = null;
+    autoEnd(); setTripRunner(null); resetLeg(); booted = false;
+  };
 }

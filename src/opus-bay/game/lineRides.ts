@@ -225,6 +225,9 @@ export function nextArrival(station: string, line?: string, dir?: 1 | -1): numbe
  * ride banner's 不坐了 — no dialogue (the scout's tour: 自动跟上 → the driver asked 上车 · 坐到 … again at every stop).
  */
 export function boardLine(station: string, o: { to?: string; line?: string; auto?: boolean } = {}) {
+  // (W9-N3, review R§6: during the Grand Tour the bus menu had no 金门大桥) E at the pole of the tour's next ride: that
+  // ride, pre-filled (the tour boards it at once, as its own lead does)
+  if (!o.to) { const pre = tourRideFrom(station); if (pre) o = { ...o, ...pre }; }
   const ls = stationLines(station);
   if (!ls.length || !activeLineFleet()) { say(...NOT_RUNNING); return; }
   const bus = ls.every(l => l.kind === 'bus');
@@ -253,6 +256,16 @@ export function boardLine(station: string, o: { to?: string; line?: string; auto
     npcName: npcLine(bus ? 'busDriver' : 'metroOperator').name ?? (bus ? BUS_DRIVER : METRO_OPERATOR),
     text, choices,
   }));
+}
+
+/** The running Grand Tour trip's next ride boarding at `station` (its current leg or a later one), or null. */
+export function tourRideFrom(station: string, trip: { source?: string; leg: number; legs: readonly { via: string; board?: string; alight?: string; line?: string }[] } | null = flow.get().trip): { to: string; line: string } | null {
+  if (!trip || trip.source !== 'tour') return null;
+  for (let i = trip.leg; i < trip.legs.length; i++) {
+    const l = trip.legs[i];
+    if (l.via === 'line' && l.board === station && l.alight && l.line) return { to: l.alight, line: l.line };
+  }
+  return null;
 }
 
 /** Wait at `from` for a bus / train of `line` toward `to` (to = from on the loop: the whole lap), then ride it. */

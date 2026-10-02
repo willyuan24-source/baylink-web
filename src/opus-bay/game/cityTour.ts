@@ -1,4 +1,4 @@
-import { onEvent, type GameEvent } from '../core/events';
+import { emit, onEvent, type GameEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { DEFAULT_TOUR_ID, game, tourIdOf } from '../core/store';
 import type { Bilingual, DialogueNode } from '../core/types';
@@ -12,13 +12,20 @@ import {
   announce, bubble, closePanel, defineNode, dialogueOpen, endTrip, openPanel, playDialogue, say, setCityTourApi, startFree, startTrip, type CityTourApi, type TourPill,
 } from './flow';
 import { flow } from './flowStore';
-import { BAYBAY_ID, interactableById } from './interactables';
+import { BAYBAY_ID, interactableById, postcardById } from './interactables';
 import { autoEndReason, autoOn, subscribeAuto } from './autoTravel';
 import { unlockPelican } from './pelicanFirst';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
-import { resumeAutoTravel } from './tripRun';
+import { resumeAutoTravel, showCard } from './tripRun';
 import { minutesLabel } from './tripText';
+import { ATTENTION_PRIORITY } from './attention';
+import { coinsTotal } from '../economy/ledger';
+import { rewardPostcard } from './rewards';
+import { wishlist } from '../data/wishlist';
+import { ATTRACTION_INDEX } from '../data/sf/attractions';
+import { registerAskItem } from '../ui/slots';
+import { Heart } from 'lucide-react';
 import { isArrived } from './trips';
 import type { TripState } from './tripTypes';
 
@@ -98,6 +105,8 @@ interface Run {
   paused: boolean;
   /** W5-C5: BAYBAY carries the player on the stops' on-foot legs (off after a takeover, on again with 继续：带我去 / 自动跟上) */
   carry: boolean;
+  /** (W9-N3) the coin balance when the current chapter began (the chapter card's +N) */
+  chapterCoins?: number;
 }
 
 let run: Run | null = null;
@@ -167,6 +176,7 @@ function startStop(r: Run) {
   if (!flat) { finish(r); return; }
   if (flat.chapter !== r.chapter) {
     r.chapter = flat.chapter;
+    try { r.chapterCoins = coinsTotal(); } catch { r.chapterCoins = undefined; }
     const intro = chapterSay(r.def.chapters[flat.chapter], 'intro');
     if (intro) offerPaced(intro);
     announce(r.def.chapters[flat.chapter].name);
@@ -211,12 +221,89 @@ function arrived(r: Run) {
   r.shotAt = 0;
   r.at = { x: runtime.player.x, z: runtime.player.z };
   flow.set({ tourPhase: 'arrived' });
-  // the chapter's last stop: its outro
+  // the chapter's last stop: its outro, and (W9-N3) the chapter card once BAYBAY has said it
   const next = r.stops[r.i + 1];
-  if (!next || next.chapter !== flat.chapter) { const outro = chapterSay(r.def.chapters[flat.chapter], 'outro'); if (outro) offerPaced(outro); }
+  if (!next || next.chapter !== flat.chapter) {
+    const outro = chapterSay(r.def.chapters[flat.chapter], 'outro'); if (outro) offerPaced(outro);
+    if (next) chapterCard(r, flat.chapter, next.chapter);
+  }
   setTourState(r, true);
   saveProgress(r);
 }
+
+/**
+ * (W9-N3, plan §3 N (3)) A chapter's settlement card: the chapter's stop postcards (the ones the tour walked past are
+ * claimed now, quietly — review R§6: the recap said 0/24), the coins it brought, 下一章 with its minutes, the chapter's
+ * places into 想去, or a rest here (the tour waits for 继续一日游). Through F's arbiter (a card, after the outro line).
+ */
+function chapterCard(r: Run, ci: number, nextCi: number) {
+  const chapter = r.def.chapters[ci], upcoming = r.def.chapters[nextCi];
+  const claimed = claimChapterPostcards(chapter, r.completed);
+  const cards = chapter.stops.filter(s => s.postcard && !(r.express && s.express === 'skip'));
+  const have = cards.filter(s => game.get().postcards.includes(s.postcard!)).length;
+  let coins: number;
+  try { coins = r.chapterCoins !== undefined ? Math.max(0, coinsTotal() - r.chapterCoins) : 0; } catch { coins = 0; }
+  const m = minutesLabel(chapterMinutesScaled(r.def, upcoming, r.express));
+  const parts = [`第 ${ci + 1} 章 · ${chapter.name.zh} 完成！`, cards.length ? `明信片 ${have}/${cards.length}${claimed ? `（新 +${claimed}）` : ''}` : '', coins ? `金币 +${coins}` : ''].filter(Boolean);
+  const partsEn = [`Chapter ${ci + 1} · ${chapter.name.en} done!`, cards.length ? `postcards ${have}/${cards.length}${claimed ? ` (+${claimed} new)` : ''}` : '', coins ? `+${coins} coins` : ''].filter(Boolean);
+  pendingWish = chapter.stops.flatMap(s => (s.attraction ? [s.attraction] : []));
+  const id = defineNode({
+    id: 'flow.tour.chapter', speaker: 'narrator', text: { zh: parts.join(' · '), en: partsEn.join(' · ') },
+    choices: [
+      { hotkey: '1', label: { zh: `下一章：${upcoming.name.zh}（${m.zh}）`, en: `Next: ${upcoming.name.en} (${m.en})` }, action: { type: 'tour-next' } },
+      { hotkey: '2', label: { zh: '这一章的地方加到想去', en: 'Save this chapter’s places' }, action: { type: 'ask', id: ASK_CHAPTER_WISH } },
+      { hotkey: '3', label: { zh: '先在这儿逛逛', en: 'Stay here a while' }, action: { type: 'ask', id: ASK_CHAPTER_REST } },
+    ],
+  });
+  showCard(id, ATTENTION_PRIORITY.card, () => {
+    // after BAYBAY's outro has been said (the pacer), never over another dialogue
+    const tryOpen = (n: number) => {
+      if (run !== r || r.phase !== 'dwell') return;
+      if ((lineSpeaking(clock()) || dialogueOpen()) && n < 40) { setTimeout(() => tryOpen(n + 1), 250); return; }
+      if (!dialogueOpen()) { r.dwellAt = clock(); playDialogue(id); }
+    };
+    tryOpen(0);
+  }, 30000);
+}
+
+/** The next chapter's minutes at the measured quote's scale (the stops keep the timing model's minutes). */
+function chapterMinutesScaled(def: CityTourDef, c: CityTourDef['chapters'][number], express: boolean): number {
+  const model = c.stops.filter(s => !s.optional).reduce((sum, s) => sum + (express ? s.expressMinutes : s.minutes), 0);
+  const k = express ? def.expressMinutes / (def.modelExpressMinutes || def.expressMinutes) : def.minutes / (def.modelMinutes || def.minutes);
+  return Math.max(1, Math.round(model * k));
+}
+
+/**
+ * The chapter's stop postcards not found yet, of the stops this run reached (a skipped or optional stop not walked to
+ * gives none): collected now, without the reward card (one coin reward each, once).
+ */
+function claimChapterPostcards(c: CityTourDef['chapters'][number], reached: readonly string[]): number {
+  const have = game.get().postcards;
+  const ids = c.stops.flatMap(s => (s.postcard && reached.includes(s.id) && !have.includes(s.postcard) && postcardById(s.postcard) ? [s.postcard] : []));
+  if (!ids.length) return 0;
+  game.set({ postcards: [...have, ...ids] });
+  for (const id of ids) { emit({ type: 'postcard', id }); rewardPostcard(id); }
+  return ids.length;
+}
+
+let pendingWish: string[] = [];
+const ASK_CHAPTER_WISH = 'n-tour-chapter-wish';
+const ASK_CHAPTER_REST = 'n-tour-chapter-rest';
+/** 这一章的地方加到想去: the chapter's attractions into the journal's 想去 (one toast). */
+function chapterWish() {
+  let added = 0;
+  for (const a of pendingWish) {
+    const at = ATTRACTION_INDEX.get(a);
+    if (!at) continue;
+    const id = at.placeId ?? at.id;
+    if (!wishlist.has('place', id) && wishlist.add({ kind: 'place', id, title: at.name.zh })) added++;
+  }
+  say(added ? `已加入想去 · ${added} 个地方` : '这些地方已经在想去里了', added ? `Saved · ${added} places` : 'Already saved', 'success', 2600);
+  // the card closed with the ask: the tour goes on to the next stop as 下一章 would
+  next();
+}
+/** 先在这儿逛逛: the tour waits here (the call menu's 继续一日游 leads on). */
+function chapterRest() { const r = run; if (r && r.phase === 'dwell') pause(r); }
 
 /** "Take a photo" in the words of this device: phones keep the camera under 更多 (ui/Hud.tsx PhoneBar, ≤ 600 px). */
 export function photoPrompt(device = runtime.input.device, width = typeof window !== 'undefined' ? window.innerWidth : 1440): Bilingual {
@@ -428,6 +515,9 @@ export function initCityTour(): void {
   booted = true;
   const api: CityTourApi = { start, next, skip: skipCityTourStop, end, callChoices, pill };
   setCityTourApi(api);
+  // (W9-N3) the chapter card's answers (ask actions; never listed in the 问 BAYBAY menu)
+  registerAskItem({ id: ASK_CHAPTER_WISH, order: 999, label: { zh: '加到想去', en: 'Save' }, icon: Heart, visible: () => false, onSelect: chapterWish });
+  registerAskItem({ id: ASK_CHAPTER_REST, order: 999, label: { zh: '先逛逛', en: 'Stay' }, icon: Heart, visible: () => false, onSelect: chapterRest });
   // the call menu's 跳过这一站
   defineNode({ id: 'flow.tour.skip', speaker: 'baybay', mood: 'point', text: { zh: '好，这站先跳过，去下一站！', en: 'OK, we skip this one — on to the next!' }, action: { type: 'end' } });
   let acc = 0;

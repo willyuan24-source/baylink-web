@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
-import { ArrowRight, Bird, Check, Mail, Map as MapIcon, Route, Sparkles, Stamp, X } from 'lucide-react';
+import { ArrowRight, Bird, CalendarDays, Check, Mail, Map as MapIcon, Route, Sparkles, Stamp, X } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import type { CityTourDef } from '../data/sf/tours';
 import { minutesLabel } from '../game/tripText';
@@ -34,9 +34,16 @@ export interface TourRecapProps {
   onKeepExploring?(): void;
   /** lane P's recap map, replacing the built-in sketch */
   mapSlot?: ReactNode;
+  /**
+   * (W9-N3, review R§6: the recap had no "带回现实" step) this week's events near the tour's stops: the title (the
+   * catalog's, already in the reader's language), when, the place — each opens its event card; none → the journal's 这周
+   */
+  nearby?: readonly { id: string; title: string; when: Bilingual; where: Bilingual }[];
+  onEvent?(id: string): void;
+  onWeek?(): void;
 }
 
-export function TourRecap({ tour, completed, postcards, stamps, express, stopName, onClose, onOpenMap, onKeepExploring, mapSlot }: TourRecapProps) {
+export function TourRecap({ tour, completed, postcards, stamps, express, stopName, onClose, onOpenMap, onKeepExploring, mapSlot, nearby, onEvent, onWeek }: TourRecapProps) {
   const { t } = useT();
   // count and draw the version played: an express run is complete without the side stops it skips
   const model = useMemo(() => tourRecapModel(tour, completed, stopName, !!express), [tour, completed, stopName, express]);
@@ -62,10 +69,21 @@ export function TourRecap({ tour, completed, postcards, stamps, express, stopNam
         </ol>
         <div className="ob-recap-stats">
           <span><Route size={16} aria-hidden />{t(`${express ? '快速版' : '完整版'} · ${time.zh}`, `${express ? 'Express' : 'Full tour'} · ${time.en}`)}</span>
-          <span><Mail size={16} aria-hidden />{postcards.found}/{postcards.total} {t('明信片', 'postcards')}</span>
+          <span><Mail size={16} aria-hidden />{postcards.found}/{postcards.total} {t('站点明信片', 'stop postcards')}</span>
           <span><Stamp size={16} aria-hidden />{stamps.found}/{stamps.total} {t('盖章', 'stamps')}</span>
           <span><Sparkles size={16} aria-hidden />{model.done}/{model.total} {t('站', 'stops')}</span>
         </div>
+        {(nearby || onWeek) && (
+          <section className="ob-recap-real" aria-label={t('带回现实', 'Take it home')} style={REAL_BOX}>
+            <h3 style={REAL_HEAD}><CalendarDays size={16} aria-hidden />{t('带回现实 · 这周这些站附近', 'Take it home · this week near the stops')}</h3>
+            {nearby && nearby.length > 0
+              ? <ul style={REAL_LIST}>{nearby.map(e => (
+                  <li key={e.id}><button type="button" className="ob-btn ob-btn-soft" style={REAL_ROW} onClick={() => onEvent?.(e.id)}><strong>{e.title}</strong><small>{t(e.when)} · {t(e.where)}</small></button></li>
+                ))}</ul>
+              : <p className="ob-muted" style={{ margin: 0 }}>{t('这周这些站附近没有登记的活动，旅行本「这周」里还有别的。', 'Nothing listed near the stops this week; the journal’s This week has more.')}</p>}
+            {onWeek && <button type="button" className="ob-btn ob-btn-ghost" onClick={onWeek}><span>{t('看这周去哪', 'See this week')}</span><ArrowRight size={16} aria-hidden /></button>}
+          </section>
+        )}
         <div className="ob-actions is-center is-stack">
           {onOpenMap && <button type="button" className="ob-btn ob-btn-primary" onClick={onOpenMap}>{model.complete ? <Bird size={18} aria-hidden /> : <MapIcon size={18} aria-hidden />}<span>{model.complete ? t('全城都能飞了 · 打开地图', 'Fly anywhere · open the map') : t('打开地图', 'Open the map')}</span></button>}
           <button type="button" className="ob-btn ob-btn-ghost" onClick={onKeepExploring ?? onClose}><span>{t('继续自由逛', 'Keep exploring')}</span><ArrowRight size={17} aria-hidden /></button>
@@ -74,6 +92,12 @@ export function TourRecap({ tour, completed, postcards, stamps, express, stopNam
     </div>
   );
 }
+
+// (W9-N3) the 带回现实 box: inline (the recap family's stylesheet stays as it is); 44 px rows on touch
+const REAL_BOX = { display: 'grid', gap: 8, margin: '12px 0 4px', padding: '10px 12px', borderRadius: 14, background: 'rgba(31,111,105,.07)', textAlign: 'left' } as const;
+const REAL_HEAD = { display: 'flex', alignItems: 'center', gap: 6, margin: 0, fontSize: 14 } as const;
+const REAL_LIST = { listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 } as const;
+const REAL_ROW = { width: '100%', minHeight: 44, display: 'grid', justifyItems: 'start', gap: 2, textAlign: 'left', whiteSpace: 'normal' } as const;
 
 /** The built-in route sketch: rides in their line colours, walks as gold dashes, stops as dots (done = filled). */
 function RouteSketch({ model, label }: { model: ReturnType<typeof tourRecapModel>; label: string }) {
