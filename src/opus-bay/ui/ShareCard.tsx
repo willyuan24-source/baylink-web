@@ -49,7 +49,8 @@ const TEXT = {
  */
 const said = (e: CatalogEvent, locale: Locale): CatalogEvent => {
   const tx = (s?: string) => (s ? catalogText(s, locale) : s);
-  const pub = (s?: string) => (s ? publicText(s, locale) || undefined : s);
+  // (publicText gives zh-Hant the Simplified text for the site runtime to convert in the DOM: a picture converts here)
+  const pub = (s?: string) => (s ? (locale === 'zh-Hant' ? catalogText(publicText(s, locale), locale) : publicText(s, locale)) || undefined : s);
   return { ...e, title: tx(e.title) ?? e.title, dateLabel: pub(e.dateLabel), venue: tx(e.venue), city: tx(e.city), costLabel: pub(e.costLabel) };
 };
 
