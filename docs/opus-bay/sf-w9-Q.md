@@ -166,3 +166,32 @@ wraps to two lines each — it scrolls with the sheet and covers nothing.
 - From part a: the waypoint's edge arrow under a desktop side sheet during a ride; the move column's 坐下 label wider than
   its button at 390 × 844.
 - No new or changed BAYBAY lines from this lane (nothing for `new-lines.md`).
+
+## Review (Ultra)
+
+### 给主人的摘要
+- 复审找到 4 个问题（3 个 major、1 个 minor），我逐个在 dev 服务器上重现，全部属实，已经修好并推送（3c29f9ad）。
+- 电脑窗口很窄（比如放大到 175%）时，坐叮当车再打开地图：底部提示条不再被裁掉，「下车」又看得见、点得到了；乘车卡片和 BAYBAY 的气泡不再压住右边的设置、拍照、地图按钮。
+- 手机横放并把字调到 130% 时，「问 BAYBAY」菜单不再顶出屏幕，第一项的三行字也不再压在按钮边框上。
+- 窄窗口的这些新规则现在只对城市生效，district 模式恢复原样。
+- 不影响上线；没有新增或改动 BAYBAY 台词。
+
+### Findings
+| id | verdict | evidence (dev 5951, ?world=city&start=free&save=off&lang=zh-Hans&quality=mid&date=2026-10-02T11:00) |
+|---|---|---|
+| Q-RV-1 chip clipped (W9-Q11 overflow: hidden) | fixed | before: 1024×700 chip scrollW 452 / clientW 350, 下车 clipped; 823×514 clientW 149, all 3 hints clipped. After: chip wraps — 1024×700 [12,578,364,674] 2 rows; 823×514 [12,311,163,488] 4 rows, every hint inside; 0 covered |
+| Q-RV-2 ride banner / bubble over the HUD column at 823×514 | fixed | before: banner x −2…253 covered 设置 / 更多 / 拍照 (x 181–235), bubble over 旅行本 / 地图 (shot q-rev/shots/ride-823x514-map-before.jpg). After: top stack centred left of the column; ≤ 900 px beside a wide sheet (≤ 780 beside any) the bubble and the ride's games row wait under the sheet. 823×514 banner [12,70,163,251], HUD 6/6 uncovered; 940×600, 1024×700, 760×600 0 covered (ride-*-map-after.jpg) |
+| Q-RV-3 Ask menu at 130 % text, 844×340 | fixed | before: box [98,−64,812,318], line y −35…5, rows 50 px, label [7,86] over button [14,79]. After (cap ÷ zoom under data-ob-text 115/130, grid rows max-content): box [98,24,812,318], line 54–93, choice 1 [102,204] holds label [114,192]; 115 % en, 390×664 130 %, 100 %: on screen, 0 covered |
+| Q-RV-4 district changed by W9-Q11 | fixed | W9-Q11's rules (and W9-Q1's chip rule, found in my own pass) now start `.ob-overlay.has-sheet:has(.ob-area-lines)`. District 823×514 + journal after: area visible, objective max-width 380px, prompt left 185.5px (pre-wave-9 values); 1440 / 1100 also |
+
+Tests: tests/opus-bay-w9-q.test.ts + 4 (W9-Q-review Q-RV-1…4; W9-Q1 / W9-Q11 follow the city selectors) — 5 red on the previous CSS, 21/21 green. Checks: tsc 0, whole-repo eslint exit 0, the 15 opus-bay test files that read opus-bay.css 124/124 pass. The full opus-bay suite was started after the push (the first attempt failed on Windows' command-line length; the quoted glob re-run was still going at report time).
+
+### Own findings
+- W9-Q1's chip rule was unscoped too (district's chip in sit / glide / vehicle modes would move beside a sheet): scoped to the city in the same commit.
+
+### Open items (not blocking)
+- At 760×600 with the 540 px map open (a ≈ 1330 px laptop at 175 %) the strip is 204 px: the banner is 88 px wide and the chip's 下车 button pokes 8 px past the chip; visible, clickable, 0 covered — cramped, not broken.
+- The ride's games row and BAYBAY's bubble are hidden (not moved) in the narrowest windows while a sheet is open; they return when it closes. The voice still plays.
+
+### Blocking the go-live
+- Nothing from lane Q.
