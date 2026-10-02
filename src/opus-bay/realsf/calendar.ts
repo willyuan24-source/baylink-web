@@ -54,6 +54,11 @@ export interface CalendarRow {
   lineAt?: { near?: Vec2; r?: number; from?: number; to?: number };
   /** (W7-S) the 今天 row adds today's sunset (the DST day: 天黑得更早) */
   sunsetNote?: boolean;
+  /** (W9-R) the organiser's on-hours that day [from, to] in Bay minutes, when its source states them (todayHeadline's
+   *  「正在进行」); a row without them is announced only until `at` */
+  show?: readonly [number, number];
+  /** (W9-R) todayHeadline's own words for the row (before its hours / while on), when the generic ones would mislead */
+  headline?: { before?: Bilingual; now?: Bilingual };
 }
 
 const CHECKED = '2026-09-28';
@@ -111,7 +116,7 @@ export const CALENDAR: readonly CalendarRow[] = [
     id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船巡游', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
     where: { zh: '码头绿地看台', en: 'the Marina Green reviewing stand' }, placeId: 'marina-green',
     note: { zh: '11:00–12:00 消防船领头，舰船从金门大桥开往海湾大桥', en: '11:00–12:00 · the fireboat leads the ships from the Golden Gate to the Bay Bridge' },
-    grade: 'official', source: src30('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'),
+    grade: 'official', source: src30('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'), show: [11 * 60, 12 * 60],
   },
   {
     // W8-S: the air show "October 9, 10, 11, 2026", "12:00 Noon - 4:00 PM", the Blue Angels the headliner with no slot
@@ -122,6 +127,13 @@ export const CALENDAR: readonly CalendarRow[] = [
     note: { zh: '飞行表演 12:00–16:00 · 蓝天使通常下午三点左右上场', en: 'Air show 12:00–16:00 · the Blue Angels usually fly around 3 pm' },
     grade: 'secondary',
     source: src30('navyweek.org', 'https://www.navyweek.org/fleetweek/san-francisco/'),
+    // (W9-R) the air show's own hours, "12:00 Noon - 4:00 PM" (fleetweeksf.org/events/air-show/, read 2026-09-30)
+    show: [12 * 60, 16 * 60],
+    // the show runs 12–16; the Blue Angels' own slot is not posted (secondary: about 3 pm)
+    headline: {
+      before: { zh: '今天 12:00–16:00 舰队周飞行表演 · 码头绿地', en: 'Fleet Week air show today 12:00–16:00 · Marina Green' },
+      now: { zh: '舰队周飞行表演正在进行 · 蓝天使通常 3 点左右', en: 'The Fleet Week air show is on · the Blue Angels usually fly around 3 pm' },
+    },
   },
   {
     id: 'alcatraz-sunrise-2026-10', title: { zh: '原住民日 · 恶魔岛日出聚会', en: 'Indigenous Peoples’ Day · Sunrise Gathering' }, from: '2026-10-12', to: '2026-10-12', at: 4 * 60 + 15,
@@ -138,7 +150,7 @@ export const CALENDAR: readonly CalendarRow[] = [
     note: { zh: '11:00–15:00 · 手工、游戏、南瓜和变装比赛', en: '11:00–15:00 · crafts, games, pumpkins, a costume contest' },
     // "Saturday, October 31, 2026, from 11am-3pm on Waverly Place" (the organiser, Chinatown YMCA / CYC); not in the
     // BAYLINK catalog yet (a request to the site's editors in sf-w7-S.md)
-    grade: 'official', source: src29('cycsf.org', 'https://www.cycsf.org/chinatown-halloween-festival/'),
+    grade: 'official', source: src29('cycsf.org', 'https://www.cycsf.org/chinatown-halloween-festival/'), show: [11 * 60, 15 * 60],
     line: { zh: '唐人街的万圣节庆典在 Waverly 巷，有手工、游戏和南瓜，去看看吧！', en: 'Chinatown’s Halloween Festival is on Waverly Place — crafts, games and pumpkins. Let’s go see!' },
     lineAt: { near: WAVERLY_PLACE, r: 220, from: 11 * 60, to: 15 * 60 },
   },

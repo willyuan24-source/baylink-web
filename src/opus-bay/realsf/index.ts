@@ -32,6 +32,7 @@ import { initOpenings } from './openingSigns';
 import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
+import { setPrefs } from './prefs';
 import { todayLine } from './todayLine';
 import { holdJetsForParade, isParadeDay } from '../world/sf/fleetWeekDay';
 import type { FleetWeek } from '../world/sf/fleetWeek';
@@ -141,6 +142,15 @@ export function init(): () => void {
     load: () => importRetry(() => import('./TodayTab')),
   });
   const offAsk = registerAskItem({ id: 'realsf-today', order: 40, label: { zh: '今天旧金山有什么？', en: 'What’s on in SF today?' }, icon: AskIcon, onSelect: () => openJournal('today') });
+  // W9-R1: the three answers of 这周去哪 become the travel profile (realsf/prefs.ts): kept across visits, read by the
+  // recommendations, today's three small things and the cards' emphasis
+  let lastWeek = game.get().week;
+  const offPrefs = game.subscribe(() => {
+    const w = game.get().week;
+    if (w === lastWeek) return;
+    lastWeek = w;
+    if (w.step >= 3 && w.companions && w.vibe && w.region) setPrefs({ companions: w.companions, vibe: w.vibe, region: w.region, at: bayParts(bayNow()).dateKey });
+  });
   let welcomeSaid = false;
   const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; return todayLine(); });
   const lw = lastWelcome();
@@ -218,7 +228,7 @@ export function init(): () => void {
   return () => {
     live = false;
     clearTimeout(idle); organOff?.(); organOff = null; dressing.off(); openings.off();
-    offLines(); parade?.off(); parade = null; jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
+    offLines(); parade?.off(); parade = null; jets.off(); offWelcome(); offPrefs(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
 }
