@@ -136,7 +136,9 @@ test('hosting config has explicit public routes, a real missing-page status and 
   assert.equal(config.functions['api/post-page.ts'].includeFiles, 'dist/index.html');
   assert.equal(config.rewrites, undefined);
   assert.equal(config.headers, undefined);
-  const routeFor = (path: string) => config.routes.find((route: { src?: string; dest?: string }) => route.dest && route.src && new RegExp(route.src).test(path));
+  // (W9-E-review, E-RP-1) a path without a query: the routes conditional on a query (`has`: an old /play?stops= ticket
+  // -> /plan.html, tests/opus-bay-w9-e-switch.test.tsx) do not apply, so they are skipped here
+  const routeFor = (path: string) => config.routes.find((route: { src?: string; dest?: string; has?: unknown }) => route.dest && route.src && !route.has && new RegExp(route.src).test(path));
   for (const guide of guides) assert.equal(routeFor(`/guides/${guide.slug}`).dest, '/guides/$1.html');
   for (const slug of Object.keys(SLUG_TO_CATEGORY)) assert.equal(routeFor(`/category/${slug}`).dest, '/category/$1.html');
   assert.equal(routeFor('/guides/not-a-real-guide').status, 404);
