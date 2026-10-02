@@ -6,7 +6,7 @@
 //
 // Usage (a dev server of this worktree must be running; one headless Chrome; respects the PERF-LOCK):
 //   node scripts/opus-sf/qa/lang-scan.mjs --port 5802 --lang en [--mobile] [--w 390 --h 844] [--out <dir>] [--shots]
-//        [--only title,hud,map,...] [--query '&halloween=1'] [--lock C:/Users/willy/opus-qa/w8/PERF-LOCK]
+//        [--only title,hud,map,...] [--query '&halloween=1'] [--lock C:/Users/willy/opus-qa/w9/PERF-LOCK]
 // Prints one JSON line per screen ({ screen, leaks: [...] }) and writes <out>/lang-<lang>-<size>.json (+ a JPEG per
 // screen with --shots). Exit code 0 always (it is a report, not a gate); "leaks" are what to read.
 // Screens (--only takes these names): title · start (the ferry arrival, the hello dialogue) · goals (the goals step) ·
@@ -17,6 +17,10 @@
 // subway overlay) · busk (lane M's busker jam) · ferry (lane A's Alcatraz boat from Pier 33: add
 // --query '&halloween=1&date=2026-10-02T11:00' for a day crossing) · arrival (Coit Tower) · canvas (every canvas text
 // painted during the run).
+// (W9-L, part c) wave 9's screens: the map's filter chips (map:chip:*, lane G's 玩 chip and a game pin's card), the
+// search's 小游戏 chip (search:games-all), 问 BAYBAY → 附近能玩什么？ (ask:play-nearby: the journal's 游乐 tab), hide & seek
+// (hide-seek, lane G), the result card's 今日小游戏 line (result), a city photo card (photo: its painted caption /
+// address, lane S; read under canvas).
 // W8-Q (2026-09-30): English and 繁體 at 390 × 844 (touch) and 1440 × 900 found the 今天 week row's venue, the event
 // card's Where row and the Notebook's "Tap 听一听" (fixed in W8-Q2 / W8-Q3). Node twins of the catalog parts:
 // tests/opus-bay-w8-q-lang.test.ts and tests/opus-bay-w8-q-cards.test.ts. Re-run after new overlays land (W8-I, W8-Z).
@@ -34,7 +38,7 @@ const MOBILE = !!args.mobile;
 const W = Number(args.w || (MOBILE ? 390 : 1440)), H = Number(args.h || (MOBILE ? 844 : 900));
 const OUT = path.resolve(args.out || 'lang-scan');
 const ONLY = args.only ? new Set(String(args.only).split(',')) : null;
-const LOCK = args.lock || 'C:/Users/willy/opus-qa/w8/PERF-LOCK';
+const LOCK = args.lock || 'C:/Users/willy/opus-qa/w9/PERF-LOCK';
 const SHOTS = !!args.shots;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 fs.mkdirSync(OUT, { recursive: true });
@@ -160,8 +164,12 @@ try {
   if (want('title')) await scan('title');
 
   // Start → the ferry arrival → the hello dialogue → choices → the goals step
+  // (W9-L) wave 9's Start says 准备中… (aria-disabled) until the shaders are linked (lane P's warm-ready): a press before
+  // that does nothing, so wait for it (a loaded machine takes minutes), then press; once more if the game did not start
+  const ready = await waitFor(`document.querySelector('.ob-title-start') && document.querySelector('.ob-title-start').getAttribute('aria-disabled') !== 'true'`, 300000);
+  if (!ready) console.log(JSON.stringify({ note: 'Start still 准备中… after 300 s: pressed anyway' }));
   await tapSel('.ob-title-start');
-  await waitFor(`window.__opusBay?.game?.get?.().phase === 'playing'`, 60000);
+  if (!(await waitFor(`window.__opusBay?.game?.get?.().phase === 'playing'`, 60000))) { await tapSel('.ob-title-start'); await waitFor(`window.__opusBay?.game?.get?.().phase === 'playing'`, 60000); }
   await sleep(2500);
   if (want('start')) await scan('start');
   for (let k = 0; k < 16; k++) {
@@ -180,7 +188,15 @@ try {
 
   // the map, its search, a place card
   if (want('map') || want('search')) {
-    await page(`ob.game.set({ panel: { kind: 'map' } }); return 1`); await sleep(2500);
+    // (W9-L) open it until its search box shows (in wave 9 a map opened in the first minute could be closed again by
+    // the first-minute flow before the scan read it: the 39-screen run of 01:10 scanned the HUD as "map")
+    let mapOpen = false;
+    for (let k = 0; k < 5 && !mapOpen; k++) {
+      await page(`(await imp('game/flow.ts')).openPanel('map'); return 1`);
+      mapOpen = await waitFor(`[...document.querySelectorAll('input')].some(el => el.checkVisibility?.() && el.type === 'search')`, 8000);
+      if (!mapOpen) console.log(JSON.stringify({ note: `map not open (try ${k + 1})`, panel: await ev(`window.__opusBay?.game?.get?.().panel`), dialogue: await ev(`window.__opusBay?.game?.get?.().dialogue?.nodeId ?? null`) }));
+    }
+    await sleep(1500);
     if (want('map')) {
       await scan('map');
       // the map's own tabs / modes (list, legend, filters …): every one once
@@ -192,6 +208,20 @@ try {
       }
       const legend = await ev(`(() => { const b = [...document.querySelectorAll('button')].find(el => el.checkVisibility?.() && /legend|图例|圖例/i.test((el.getAttribute('aria-label') || '') + el.textContent)); if (!b) return false; b.click(); return true; })()`);
       if (legend) { await sleep(900); await scan('map:legend'); }
+      // (W9-L) the filter chips (role=radio: the tab loop above never pressed them), each once; under 玩 a game pin's card
+      // (the legend closed first: it covers the map's pins)
+      if (legend) { await ev(`(() => { const b = [...document.querySelectorAll('button')].find(el => el.checkVisibility?.() && /legend|图例|圖例/i.test((el.getAttribute('aria-label') || '') + el.textContent)); b?.click(); return 1; })()`); await sleep(600); }
+      await ev(`document.querySelectorAll('.ob-map [role=tab], .ob-citymap [role=tab], .ob-sheet [role=tab]')[0]?.click()`); await sleep(800);
+      const chips = (await ev(`[...document.querySelectorAll('.mw-chips [role=radio]')].map(b => (b.textContent || '').trim())`)) || [];
+      for (let i = 0; i < Math.min(chips.length, 10); i++) {
+        await ev(`document.querySelectorAll('.mw-chips [role=radio]')[${i}]?.click()`); await sleep(1100);
+        await scan(`map:chip:${chips[i] || i}`, { shot: false });
+        if (/^(玩|play)/i.test(chips[i])) {
+          const c = await centre('.mw-gamepin', '');
+          if (c) { await tap(c[0], c[1]); await sleep(1200); await scan('map:game-pin'); } else console.log(JSON.stringify({ screen: 'map:game-pin', note: 'no game pin in the frame' }));
+        }
+      }
+      if (chips.length) { await ev(`document.querySelectorAll('.mw-chips [role=radio]')[0]?.click()`); await sleep(600); }
     }
     if (want('search')) {
       const type = q => ev(`(() => { const i = [...document.querySelectorAll('input')].find(el => el.checkVisibility?.() && /search|搜|find|找/i.test((el.placeholder || '') + (el.getAttribute('aria-label') || '') + el.type)); if (!i) return false; const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; i.focus(); set.call(i, ${JSON.stringify(q)}); i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
@@ -200,6 +230,9 @@ try {
       if (typed) await scan('search'); else console.log(JSON.stringify({ screen: 'search', note: 'no search input found' }));
       // (W9-L) the games and the season's events the search finds (data/sf/searchSpots.ts), in the reader's language
       if (typed) for (const [name, q] of [['search:games', LANG === 'en' ? 'crab' : '螃蟹'], ['search:events', LANG === 'en' ? 'Halloween' : '萬聖'], ['search:empty', 'zzzz']]) { await type(q); await sleep(1200); await scan(name); }
+      // (W9-L6) the empty state's 小游戏 chip → every game
+      if (typed && (await ev(`(() => { const b = [...document.querySelectorAll('.ob-citymap-list button')].find(el => /^(小游戏|小遊戲|games)$/i.test((el.textContent || '').trim())); if (!b) return false; b.click(); return true; })()`))) { await sleep(1200); await scan('search:games-all'); }
+      else if (typed) console.log(JSON.stringify({ screen: 'search:games-all', note: 'no 小游戏 chip under 沒找到' }));
     }
     await closeAll();
   }
@@ -218,10 +251,38 @@ try {
   }
   // 问 BAYBAY: the ask dialogue and its choices
   if (want('ask')) {
+    // (W9-L) a dialogue of the first minute (lane F's pelican 先试试起飞？ at ≈ 45 s) answered 以后再说 / closed first
+    if (!(await tapSel('.ob-choice', '以后再说|以後再說|later|not now'))) await page(`(await imp('game/flow.ts')).closeDialogue(); return 1`);
+    await sleep(1500);
     const asked = await ev(`(() => { const b = [...document.querySelectorAll('button')].find(el => el.checkVisibility?.() && /^(ask|问|問)/i.test(((el.getAttribute('aria-label') || '') + ' ' + el.textContent).trim())); if (!b) return false; b.click(); return true; })()`);
     await sleep(1500);
     await scan(asked ? 'ask' : 'ask (no ask button)');
+    // (W9-L) lane G's 附近能玩什么？ (it may sit behind 更多…, lane A's paging) → the journal's 游乐 tab, nearest first
+    if (asked) {
+      if (!(await tapSel('.ob-choice', '附近能玩|play nearby')) && (await tapSel('.ob-choice', '^\s*\d?\s*(更多|more)'))) { await sleep(900); await tapSel('.ob-choice', '附近能玩|play nearby'); }
+      await sleep(1800); await scan('ask:play-nearby'); await closeAll();
+    }
     await page(`ob.flow?.closeDialogue?.(); return 1`); await sleep(500);
+  }
+  // (W9-L) hide & seek (lane G, W9-G3): offered by 问 BAYBAY where it is allowed; its panel and words while she hides
+  if (want('hide')) {
+    // (where the scan stands: the Ferry Building plaza, the review's own hide & seek spot)
+    const asked = await ev(`(() => { const b = [...document.querySelectorAll('button')].find(el => el.checkVisibility?.() && /^(ask|问|問)/i.test(((el.getAttribute('aria-label') || '') + ' ' + el.textContent).trim())); if (!b) return false; b.click(); return true; })()`);
+    await sleep(1500);
+    let on = asked && (await tapSel('.ob-choice', '捉迷藏|hide'));
+    if (asked && !on && (await tapSel('.ob-choice', '^\s*\d?\s*(更多|more)'))) { await sleep(900); on = await tapSel('.ob-choice', '捉迷藏|hide'); }
+    if (!on) { await page(`(await imp('game/flow.ts')).closeDialogue(); return 1`); await sleep(600); on = (await page(`return (await imp('play/hideSeek.ts')).startHideSeek()`)) === true; }
+    await sleep(6000); await scan(on ? 'hide-seek' : 'hide-seek (not offered here)');
+    if (on) { await sleep(8000); await scan('hide-seek:later', { shot: false }); }
+    await page(`ob.flow?.closeDialogue?.(); for (const k of ['play-hide-seek', 'hide-seek']) (await imp('ui/slots.ts')).closeOverlay?.(k); return 1`); await press('Escape'); await sleep(800); await closeAll();
+  }
+  // (lane A's storage-refused notice cannot show here: ?save=off never fails a write, data/save.ts; its text is in the
+  // node sweep tests/opus-bay-w9-l-sweep.test.ts)
+  // (W9-L) a city photo card (lane S's caption + address + code, painted: read under canvas) and the photo mode's HUD
+  if (want('photo')) {
+    const r = await page(`const p = await imp('game/photo.ts'); p.requestShutter(${JSON.stringify(LANG === 'en' ? 'Little Bay Trip · Embarcadero · Oct 2' : LANG === 'zh-Hant' ? '灣區小旅 · 內河碼頭 · 10月2日' : '湾区小旅 · 内河码头 · 10月2日')}, 'BAYLINK'); return 1`);
+    await sleep(3000); await scan(r === 1 ? 'photo' : `photo (${JSON.stringify(r)})`);
+    await closeAll();
   }
 
   // the journal: every top tab, and every page of a tab that has its own tablist (the Notebook's stamps / finds / views /
@@ -252,7 +313,7 @@ try {
     await ev(`(() => { for (const e of document.querySelectorAll('.ob-sheet-body')) e.scrollTop = 99999; return 1; })()`); await sleep(500);
     await scan('settings:end', { shot: false }); await closeAll();
   }
-  if (want('result')) { await page(`const k = await imp('play/kit.ts'); k.ensureResultOverlay(); k.showResult({ activity: 'slides', name: { zh: '滑梯', en: 'Slides' }, tier: 2, detail: { zh: '12.4 秒', en: '12.4 s' }, best: { zh: '最好 11.0 秒', en: 'Best 11.0 s' }, coins: 5 }); return 1`); await sleep(1500); await scan('result'); await closeAll(); }
+  if (want('result')) { await page(`const k = await imp('play/kit.ts'); k.ensureResultOverlay(); k.showResult({ activity: 'slides', name: { zh: '滑梯', en: 'Slides' }, tier: 2, detail: { zh: '12.4 秒', en: '12.4 s' }, best: { zh: '最好 11.0 秒', en: 'Best 11.0 s' }, coins: 15, today: 10 }); return 1`); await sleep(1500); await scan('result'); await closeAll(); }
   if (want('postcard')) { const r = await page(`if (!ob.g?.card) return 'no g'; ob.g.card('halloween-big-night'); return 1`); await sleep(1800); await scan(`postcard${r === 1 ? '' : ' (' + JSON.stringify(r) + ')'}`); await closeAll(); }
   if (want('ride')) {
     const r = await page(`const t = ob.transit; const d = t.data(); const lines = d.cable?.lines ?? d.lines ?? []; const l = lines.find(x => /hyde/i.test(x.id)) ?? lines[0]; if (!l) return 'no line'; t.ride(l.id, l.stops[0].station, l.stops[Math.min(3, l.stops.length - 1)].station); return l.id;`);
