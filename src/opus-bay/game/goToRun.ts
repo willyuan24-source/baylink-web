@@ -13,6 +13,9 @@ import { BAYBAY_ID, interactableById } from './interactables';
 import { GOAL_SLACK, HERE_R, optionPending, planTrips } from './tripPlan';
 import { tripProviders, tripRouteCache } from './tripProviders';
 import { initTripRun } from './tripRun';
+import { onEvent } from '../core/events';
+import { flow } from './flowStore';
+import { ATTENTION_PRIORITY, requestSlot } from './attention';
 import type { TripOption, TripSource } from './tripTypes';
 
 /**
@@ -139,6 +142,29 @@ async function planFor(dest: GoToDest, prefer?: GoToOptions['prefer']): Promise<
   return pick;
 }
 
+/** after an arrival, the caller's card waits this long (ms): the arrival moment / toast goes first */
+export const ARRIVE_CARD_MS = 1500;
+
+/**
+ * (W9-N4) Run `fn` once the trip just started arrives — not when it is cancelled, ended, or replaced by another trip
+ * (换个方式 keeps the trip: a replan is the same trip) — in F's title slot as a card. Returns the disposer.
+ */
+export function whenArrived(fn: () => void, placeId: string): () => void {
+  const t0 = flow.get().trip?.startedAt;
+  if (t0 === undefined) return () => {};
+  const off = onEvent(e => {
+    if (e.type !== 'trip') return;
+    const t = flow.get().trip;
+    if (!t || t.startedAt !== t0 || e.what === 'cancel') { off(); return; }
+    if (e.what !== 'end' || e.place !== placeId) return;
+    off();
+    setTimeout(() => {
+      const ticket = requestSlot('title', `n:arrive:${placeId}`, { priority: ATTENTION_PRIORITY.card, maxWaitMs: 20000, onGrant: () => { try { fn(); } finally { setTimeout(() => ticket.release(), 2500); } } });
+    }, ARRIVE_CARD_MS);
+  });
+  return off;
+}
+
 /** game/goTo.ts goTo(): resolve, plan, close the panel, start (the trip runner leads; W5-N3 carries the player). */
 export async function runGoTo(target: GoToTarget, opts: GoToOptions = {}): Promise<GoToResult> {
   const s = game.get();
@@ -164,6 +190,7 @@ export async function runGoTo(target: GoToTarget, opts: GoToOptions = {}): Promi
   }
   closePanel();
   startTrip(option, { placeId: dest.placeId, x: dest.x, z: dest.z, name: dest.name, ...(dest.attraction ? { attraction: dest.attraction } : {}) }, goToSource(opts.source));
+  if (opts.onArrive) whenArrived(opts.onArrive, dest.placeId);
   if (import.meta.env?.DEV) console.debug('[opus-bay goTo]', opts.source ?? '-', dest.placeId, option.mode, Math.round(option.seconds));
   return { ok: true, mode: option.mode, seconds: option.seconds, placeId: dest.placeId, name: dest.name };
 }

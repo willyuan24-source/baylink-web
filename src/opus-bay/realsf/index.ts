@@ -77,7 +77,8 @@ const spotOf = (v: EventVenue): EventSpot => ({ x: v.x, z: v.z, ...venueLatLng(v
 export function goToVenue(event: CatalogEvent, venue: EventVenue) {
   const id = `event:${event.id}`;
   const target = venue.placeId ? { placeId: venue.placeId, name: venue.name } : { point: { x: venue.x, z: venue.z }, name: venue.name };
-  void goTo(target, { source: 'realsf:event' }).then(r => {
+  // (W9-N4, lane N's surgical edit: review R§6 "到了也没有任何回报") the event card opens again on arrival
+  void goTo(target, { source: 'realsf:event', onArrive: () => { if (!dialogueOpen() && !game.get().panel.kind) openEvent(event.id); } }).then(r => {
     if (r.ok || (r.why !== 'unknown' && r.why !== 'no-way')) return;
     if (glideUnlocked()) {
       const s = game.get();

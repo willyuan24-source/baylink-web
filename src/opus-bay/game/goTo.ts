@@ -40,6 +40,11 @@ export interface GoToOptions {
   prefer?: 'fly' | 'ground';
   /** the caller ('realsf:event', 'eggs:rumour', 'economy:compass', 'map', 'ask', …) */
   source?: string;
+  /**
+   * (W9-N4, review R§6 现实出行: "到了也没有任何回报") called once when THIS trip arrives (not when it is cancelled or
+   * replaced by another trip): lane R reopens the event card there. Runs in F's title slot (a card), after the arrival.
+   */
+  onArrive?: () => void;
 }
 
 export type GoToFail = 'district' | 'busy' | 'unknown' | 'here' | 'no-way';

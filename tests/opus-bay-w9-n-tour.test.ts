@@ -73,6 +73,12 @@ test('W9-N3 tourResumeChoice: the first open stop\'s chapter and the minutes lef
   assert.equal(tripRun.RESUME_LINE.zh, '上次的一日游还没走完，接着走吗？');
 });
 
+test('W9-N4 arrivalHeading: the place row\'s, else the landmark arrival\'s; trips end facing it', () => {
+  assert.equal(tripRun.arrivalHeading('pier-35', id => (id === 'pier-35' ? { arrival: { heading: 1.25 } } : undefined), {}), 1.25);
+  assert.equal(tripRun.arrivalHeading('sf:golden-gate-bridge', () => undefined), 4.037);
+  assert.equal(tripRun.arrivalHeading('nowhere', () => undefined, {}), null);
+});
+
 test('W9-N3 the chapter card: at the end of 海湾 the chapter\'s postcards are claimed, the card asks F\'s title slot and offers 下一章 / 想去 / a rest', async () => {
   reset();
   pelican.resetPelicanForTests(null, () => true);
@@ -156,4 +162,32 @@ test('W9-N3 the recap: the tour\'s stop postcards (not every postcard of the cit
   const near = R.eventsNearStops(SF_GRAND, [win('a', 133, 20), win('far', 5000, 5000), win('a', 133, 20), win('b', -700, 600), win('c', 150, 980), win('d', 200, 1550)]);
   assert.deepEqual(near.map((w: { event: { id: string } }) => w.event.id), ['a', 'b', 'c'], 'near a stop, once each, at most 3');
   assert.deepEqual(R.dayLabel('2026-10-03'), { zh: '周六 10/3', en: 'Sat 10/3' });
+});
+
+test('W9-N4 goTo onArrive: called once when THAT trip arrives (the event card again), never after a cancel or another trip', async () => {
+  reset();
+  attention.clearAttention();
+  tick(5000);
+  // (goToRun inits the runner before it starts the trip: the start is synchronous then)
+  const offRun = tripRun.initTripRun();
+  const GR = await import('../src/opus-bay/game/goToRun');
+  const walkTo = (x: number) => ({ mode: 'walk' as const, legs: [{ via: 'walk' as const, from: { x: 0, z: 0 }, to: { x, z: 0 }, seconds: 5, length: 20 }], seconds: 5 });
+  let arrived = 0;
+  flowMod.startTrip(walkTo(20), { placeId: 'ferry-building', x: 20, z: 0 }, 'card');
+  GR.whenArrived(() => { arrived++; }, 'ferry-building');
+  tripRun.dispatchTrip({ type: 'leg-arrived' });
+  await new Promise(r => setTimeout(r, GR.ARRIVE_CARD_MS + 300));
+  assert.equal(arrived, 1, 'the arrival runs it (after the arrival moment)');
+  tick(5000);
+  // cancelled: never
+  flowMod.endTrip();
+  flowMod.startTrip(walkTo(30), { placeId: 'ferry-building', x: 30, z: 0 }, 'card');
+  GR.whenArrived(() => { arrived++; }, 'ferry-building');
+  flowMod.endTrip();
+  flowMod.startTrip(walkTo(40), { placeId: 'ferry-building', x: 40, z: 0 }, 'card');
+  tripRun.dispatchTrip({ type: 'leg-arrived' });
+  await new Promise(r => setTimeout(r, GR.ARRIVE_CARD_MS + 300));
+  assert.equal(arrived, 1, 'a cancelled trip\'s callback never runs, not even when the next trip arrives');
+  flowMod.endTrip();
+  offRun();
 });

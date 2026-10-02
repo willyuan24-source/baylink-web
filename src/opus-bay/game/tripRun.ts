@@ -35,6 +35,9 @@ import { TRIP_SPEED, autoTravelSeconds } from './tripPlan';
 import { ATTENTION_PRIORITY, requestSlot, type SlotTicket } from './attention';
 import { readSave } from '../data/save';
 import { minutesLabel } from './tripText';
+import { placeById } from '../data/sf/places';
+import { LANDMARK_ARRIVALS } from '../data/sf/arrivals';
+import { faceCameraToward } from './cinema';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -233,8 +236,35 @@ function arrived() {
   if (leg?.via === 'line' && next.source !== 'tour' && game.get().worldMode !== 'city') bubble(W8K_LINES.tripToStop, 2800, BAYBAY_ID, 'call');
 }
 
+/**
+ * (W9-N4, w8 NEXT #8: a walk to the Jeremiah O'Brien ended facing the shed wall) the heading a trip to `placeId` ends
+ * facing: the place row's arrival heading, else the landmark arrival's (`sf:<landmark>`), else null. Pure over lookups.
+ */
+export function arrivalHeading(placeId: string, place: (id: string) => { arrival: { heading?: number } } | undefined = placeById, landmarks: Readonly<Record<string, { heading: number }>> = LANDMARK_ARRIVALS): number | null {
+  const id = placeId.replace(/^(?:place:|sf:)/, '');
+  const h = place(id)?.arrival.heading ?? landmarks[id]?.heading;
+  return typeof h === 'number' && Number.isFinite(h) ? h : null;
+}
+/** a walking trip's end turns the player (and, without an arrival moment, the camera) once the last steps are done */
+let endTurn: { heading: number; look: boolean; at: Vec2 } | null = null;
+function applyEndTurn() {
+  const e = endTurn;
+  if (!e) return;
+  const pl = runtime.player;
+  if (input.manualMove || game.get().move.mode !== 'foot') { endTurn = null; return; }
+  if (pl.pathTarget || dist(P(), e.at) > END_R + 3) return;
+  endTurn = null;
+  pl.heading = e.heading;
+  if (e.look) faceCameraToward(pl.x + Math.sin(e.heading) * 20, pl.z + Math.cos(e.heading) * 20, { seconds: 0.8 });
+}
+
 function onTripEnd(t: TripState) {
   endedAt = performance.now();
+  // (W9-N4) on foot to the end: face the place's arrival heading once the last steps are walked (an attraction's own
+  // arrival moment frames the camera itself: then only the body turns)
+  const lastLeg = t.legs[t.legs.length - 1];
+  const h = lastLeg && (lastLeg.via === 'walk' || lastLeg.via === 'run') ? arrivalHeading(t.placeId) : null;
+  endTurn = h === null ? null : { heading: h, look: !t.attraction && t.source !== 'tour', at: { x: lastLeg.to.x, z: lastLeg.to.z } };
   // (the last few steps to the exact point finish by themselves: the walk target stays)
   autoEnd();
   if (t.source === 'free-lead') { freeLeadArrived(); return; }
@@ -399,6 +429,7 @@ function tick(now: number) {
   const t = flow.get().trip;
   if (!t) { if (legKey) resetLeg(); return; }
   if (isArrived(t)) {
+    applyEndTurn();
     if (!endedAt) endedAt = now;
     if (now - endedAt > CLEAR_AFTER_MS && !dialogueOpen()) { dispatchTrip({ type: 'clear' }); endedAt = 0; resetLeg(); }
     return;
