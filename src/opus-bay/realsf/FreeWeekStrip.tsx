@@ -31,8 +31,9 @@ export default function FreeWeekStrip({ limit = 3, title = HEAD, companions = nu
   const catalog = useCatalog();
   const offers = useSyncExternalStore(subscribeLive, liveOffers, liveOffers);
   useEffect(() => { void loadLive(); }, []);
-  const today = bayParts(bayNow()).dateKey;
-  const week = freeWeek(today, 7, offers, catalog, companions);
+  const parts = bayParts(bayNow());
+  const today = parts.dateKey;
+  const week = freeWeek(today, 7, offers, catalog, companions, parts.hour * 60 + parts.minute);
   const first = Math.max(0, week.findIndex(d => d.items.length > 0));
   const [picked, setPicked] = useState<number | null>(null);
   const k = picked ?? first;
@@ -73,7 +74,7 @@ export default function FreeWeekStrip({ limit = 3, title = HEAD, companions = nu
 function FreeRow({ item }: { item: FreeItem }) {
   const { t, locale } = useT();
   const calendar = (
-    <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm ob-free-cal" onClick={() => addToCalendar(item)}
+    <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm ob-free-cal" onClick={() => addToCalendar(item, locale)}
       aria-label={t('加到日历（提前一天提醒）', 'Add to calendar (a reminder the day before)')}>
       <CalendarPlus size={15} aria-hidden /><span>{t('加到日历', 'Calendar')}</span>
     </button>

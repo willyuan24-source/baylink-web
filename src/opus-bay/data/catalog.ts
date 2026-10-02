@@ -197,10 +197,12 @@ export function companionFit(event: CatalogEvent, companions: string | null): bo
 }
 
 /** (W9-R4, review R§5 #12) 户外 by what the event is, not only its category: the catalog's outdoor setting, an open-air
- *  venue in the world (a stage / tents / a street arch), or a park / lawn / street / beach in the venue text. */
+ *  venue in the world (a stage / tents / a street arch), or a park / lawn / street / beach in the venue text. `city`
+ *  false (district mode, W9-R-review R-RC-3: district mode never changes): the catalog's category only, as before. */
 const OUTDOOR_RE = /park|garden|lawn|meadow|hollow|green\b|beach|plaza|street|streets|avenue|pier|公园|花园|草坪|草地|广场|海滩|街/i;
-export function isOutdoor(event: CatalogEvent): boolean {
+export function isOutdoor(event: CatalogEvent, city = true): boolean {
   if (event.category === 'outdoors') return true;
+  if (!city) return false;
   const setting = (event as EventExtra).planning?.setting;
   if (setting === 'outdoor') return true;
   if (setting === 'indoor') return false;
@@ -209,12 +211,12 @@ export function isOutdoor(event: CatalogEvent): boolean {
 }
 
 /** How close an event is to a vibe it does not strictly match (used to rank once the vibe was relaxed). 0–3. */
-export function vibeCloseness(event: CatalogEvent, vibe: string | null): number {
+export function vibeCloseness(event: CatalogEvent, vibe: string | null, city = true): number {
   const festive = FESTIVE_RE.test(`${event.title} ${(event.audience ?? []).join(' ')}`);
-  const freeOutdoors = event.cost === 'free' && isOutdoor(event);
+  const freeOutdoors = event.cost === 'free' && isOutdoor(event, city);
   switch (vibe) {
     case 'food': return event.category === 'food' ? 3 : festive || freeOutdoors ? 2 : event.category === 'culture' ? 1 : 0;
-    case 'outdoors': return isOutdoor(event) ? 3 : festive ? 2 : event.category === 'family' ? 1.5 : event.category === 'culture' ? 1 : 0;
+    case 'outdoors': return isOutdoor(event, city) ? 3 : festive ? 2 : event.category === 'family' ? 1.5 : event.category === 'culture' ? 1 : 0;
     case 'culture': return event.category === 'culture' ? 3 : festive ? 2 : 1;
     case 'free': return event.cost === 'free' ? 3 : event.cost === 'mixed' ? 2 : 0;
     default: return 0;
@@ -228,10 +230,10 @@ export function categoryLabel(event: CatalogEvent): Bilingual | undefined {
 }
 
 /** Vibe fit: free→cost free, outdoors→isOutdoor (W9-R4: by what it is, not only the category), food/culture→category. */
-export function vibeFit(event: CatalogEvent, vibe: string | null): boolean {
+export function vibeFit(event: CatalogEvent, vibe: string | null, city = true): boolean {
   if (!vibe || vibe === 'any') return true;
   if (vibe === 'free') return event.cost === 'free';
-  if (vibe === 'outdoors') return isOutdoor(event);
+  if (vibe === 'outdoors') return isOutdoor(event, city);
   return event.category === vibe;
 }
 
@@ -268,14 +270,15 @@ export const SENIORS_OPTION = { value: 'seniors', label: { zh: '带长辈', en: 
 
 /**
  * The part of San Francisco a point is in (lat / lng): the west = west of Twin Peaks' longitude (the Richmond, the
- * Sunset, Golden Gate Park, the Presidio, Ocean Beach, Lake Merced); else the north shore = north of Bush St's latitude
+ * Sunset, Golden Gate Park, the Presidio, Ocean Beach, Lake Merced) down to Sloat Blvd's latitude, and south of it only
+ * west of 19th Ave (the zoo, Lake Merced, SF State; W9-R-review R-RP-3: Ocean View and Ingleside are the south); else the north shore = north of Bush St's latitude
  * (the Marina, North Beach, Chinatown, Fisherman's Wharf, the Embarcadero); else downtown = north of Duboce / 15th St's
  * latitude (Civic Center, SoMa, Hayes Valley, the Western Addition) and the east side down to 23rd St (Mission Bay, the
  * Chase Center, Potrero Hill, Dogpatch); else the south (the Mission, the Castro, Noe Valley, Bernal Heights, the
  * Excelsior, Ingleside, Bayview).
  */
 export function sfAreaAt(ll: { lat: number; lng: number }): SfArea {
-  if (ll.lng < -122.447) return 'sf-west';
+  if (ll.lng < -122.447 && (ll.lat >= 37.734 || ll.lng < -122.475)) return 'sf-west';
   if (ll.lat >= 37.789) return 'sf-north';
   if (ll.lat >= 37.7685 || (ll.lng > -122.405 && ll.lat >= 37.755)) return 'sf-central';
   return 'sf-south';
@@ -317,13 +320,13 @@ export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string,
     const label = isSfArea(prefs.region) ? SF_AREA_LABELS[prefs.region] : REGION_LABELS[event.region] ?? { zh: event.region, en: event.region };
     reasons.push(label);
   } else if (isSfArea(prefs.region) && event.region === 'sf') score += 1.5; // another part of the city: still near
-  if (prefs.vibe && prefs.vibe !== 'any' && vibeFit(event, prefs.vibe)) {
+  if (prefs.vibe && prefs.vibe !== 'any' && vibeFit(event, prefs.vibe, cityFirst)) {
     score += 3;
     reasons.push(prefs.vibe === 'free' ? { zh: '免费', en: 'Free' } : categoryLabel(event) ?? { zh: '合你口味', en: 'Your vibe' });
   } else {
     if (event.cost === 'free') score += 0.5;
     // the vibe was relaxed: the nearest kind of thing first (food → markets / festivals / free outdoors → culture)
-    if (vibeRelaxed && prefs.vibe && prefs.vibe !== 'any') score += vibeCloseness(event, prefs.vibe) * 1.2;
+    if (vibeRelaxed && prefs.vibe && prefs.vibe !== 'any') score += vibeCloseness(event, prefs.vibe, cityFirst) * 1.2;
   }
   // Companion reason tags only from positive audience wording — never from the category alone.
   if (prefs.companions === 'kids' && companionFit(event, 'kids')) {
@@ -377,8 +380,8 @@ function whereName(region: string | null): Bilingual | null {
 }
 
 /** What an off-vibe pick actually is, in plain words ("免费户外", "节庆", "文化"). */
-function kindOf(event: CatalogEvent): Bilingual {
-  if (event.cost === 'free' && isOutdoor(event)) return { zh: '免费户外', en: 'free outdoor picks' };
+function kindOf(event: CatalogEvent, city = true): Bilingual {
+  if (event.cost === 'free' && isOutdoor(event, city)) return { zh: '免费户外', en: 'free outdoor picks' };
   if (FESTIVE_RE.test(event.title)) return { zh: '节庆', en: 'festivals' };
   const label = categoryLabel(event);
   return label ? { zh: label.zh, en: label.en.toLowerCase() } : { zh: '其他活动', en: 'other events' };
@@ -390,7 +393,7 @@ function kindOf(event: CatalogEvent): Bilingual {
  * really had (`counts.inRegion`: its events that fit the other answers), and the vibe note names the place and the week
  * (「旧金山合适的吃喝类这周只有 2 个」).
  */
-export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windowDays'> & { counts?: WeekCounts }, prefs: WeekPrefs): Bilingual | null {
+export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windowDays'> & { counts?: WeekCounts }, prefs: WeekPrefs, city = true): Bilingual | null {
   if (!result.relaxed.length || !result.events.length) return null;
   const zh: string[] = [], en: string[] = [];
   const week = result.windowDays > 7 ? { zh: '这两周', en: 'these two weeks' } : { zh: '这周', en: 'this week' };
@@ -407,7 +410,7 @@ export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windo
     else { zh.push(`${where.zh}${week.zh}合适的只有 ${n} 个，也放了${rest.zh}的`); en.push(`only ${n} pick${n > 1 ? 's' : ''} in ${where.en} fit ${week.en}, so I added ${rest.en}`); }
   }
   if (result.relaxed.includes('vibe') && prefs.vibe && VIBE_NAMES[prefs.vibe]) {
-    const off = result.events.filter(item => !vibeFit(item.event, prefs.vibe)).map(item => kindOf(item.event));
+    const off = result.events.filter(item => !vibeFit(item.event, prefs.vibe, city)).map(item => kindOf(item.event, city));
     const kinds = off.filter((kind, i) => off.findIndex(other => other.zh === kind.zh) === i).slice(0, 2);
     const v = VIBE_NAMES[prefs.vibe];
     const fitting = result.events.length - off.length;
@@ -445,7 +448,7 @@ export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today
   let wholeCity = false;
   const regionOk = (event: CatalogEvent) => !active.region || (wholeCity ? event.region === 'sf' : regionFit(event, prefs.region));
   const filter = () => pool.filter(({ event }) =>
-    (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe)) && regionOk(event));
+    (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe, cityFirst)) && regionOk(event));
   let matches = filter();
   const strictCount = matches.length;
   // 1) a two-week window, then (district) region → vibe → companions; (W9-R4, review R§5 #12) in city mode the place
@@ -469,22 +472,23 @@ export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today
   const ranked = scoreEvents(matches, prefs, today, !active.vibe, cityFirst);
   // (W9-R4) once the vibe is relaxed, every pick that does fit it comes first (the note counts them: 「只有 2 个」 must be
   // the two on the board, not one of them pushed off by a festival); a stable sort keeps the score order inside each
-  if (!active.vibe && prefs.vibe && prefs.vibe !== 'any') ranked.sort((a, b) => Number(vibeFit(b.event, prefs.vibe)) - Number(vibeFit(a.event, prefs.vibe)));
+  if (cityFirst && !active.vibe && prefs.vibe && prefs.vibe !== 'any') ranked.sort((a, b) => Number(vibeFit(b.event, prefs.vibe)) - Number(vibeFit(a.event, prefs.vibe)));
   const events = ranked.slice(0, max);
   // Report only what the shown picks actually relax (honest: never claim a relaxation nobody sees).
   const end7 = addDays(today, days);
   const relaxed: RelaxStep[] = [];
   if (events.some(item => item.nextDate > end7)) relaxed.push('window');
   if ((!active.region || wholeCity) && events.some(item => !regionFit(item.event, prefs.region))) relaxed.push('region');
-  if (!active.vibe && events.some(item => !vibeFit(item.event, prefs.vibe))) relaxed.push('vibe');
+  if (!active.vibe && events.some(item => !vibeFit(item.event, prefs.vibe, cityFirst))) relaxed.push('vibe');
   if (!active.companions && events.some(item => !companionFit(item.event, prefs.companions))) relaxed.push('companions');
   const windowDays = relaxed.includes('window') ? 14 : days;
   // what the asked place really had (the region note's count): its events fitting the answers still held
   const inRegion = pool.filter(({ event }) => regionFit(event, prefs.region)
-    && (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe))
+    && (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe, cityFirst))
     && eventDaysInWindow(event, today, addDays(today, windowDays), today).length > 0).length;
-  const result: WeekResult = { events, relaxed, windowDays, strictCount, counts: { inRegion } };
-  result.note = relaxNote(result, prefs);
+  // (W9-R-review R-RC-3) district mode keeps its old note (the counted wording is city mode's)
+  const result: WeekResult = { events, relaxed, windowDays, strictCount, ...(cityFirst ? { counts: { inRegion } } : {}) };
+  result.note = relaxNote(result, prefs, cityFirst);
   return result;
 }
 

@@ -20,8 +20,9 @@ export default function FreeDays({ point, ids = [] }: { point: Vec2; ids?: reado
   const { t, locale } = useT();
   const offers = useSyncExternalStore(subscribeLive, liveOffers, liveOffers);
   useEffect(() => { void loadLive(); }, []);
-  const today = bayParts(bayNow()).dateKey;
-  const days = freeDaysAt(point, today, 7, offers, ids);
+  const parts = bayParts(bayNow());
+  const today = parts.dateKey;
+  const days = freeDaysAt(point, today, 7, offers, ids, parts.hour * 60 + parts.minute);
   const always = alwaysFreeAt(point, offers, ids);
   if (!days.length && !always.length) return null;
   return (
@@ -40,7 +41,7 @@ export default function FreeDays({ point, ids = [] }: { point: Vec2; ids?: reado
               </small>
             </div>
             <div className="ob-today-side">
-              <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm ob-free-cal" onClick={() => addToCalendar(item)}
+              <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm ob-free-cal" onClick={() => addToCalendar(item, locale)}
                 aria-label={t('加到日历（提前一天提醒）', 'Add to calendar (a reminder the day before)')}>
                 <CalendarPlus size={15} aria-hidden /><span>{t('加到日历', 'Calendar')}</span>
               </button>

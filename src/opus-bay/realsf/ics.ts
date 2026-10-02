@@ -1,6 +1,8 @@
 import type { CatalogEvent } from '../core/types';
 import { addDays } from '../data/catalog';
 import { publicText } from '../data/publicText';
+import { catalogText } from '../i18n';
+import type { Locale } from '../../i18n/locale';
 import { atMinute } from './todayRows';
 import { eventDayHours } from './freeWeek';
 import type { LiveOffer } from './live';
@@ -74,44 +76,60 @@ export function buildIcs(e: IcsEntry, stamp: number = Date.now()): string {
 
 export { eventDayHours };
 
-/** The .ics of a catalog event on one of its days (zh text: the catalog's own language; the reminder is bilingual). */
-export function eventIcs(event: CatalogEvent, day: string, stamp?: number): string {
+/** The venue, then the city unless the venue already names it (W9-R-review R-RP-6: never "…, San Francisco, CA, San Francisco"). */
+export function icsLocation(venue: string | null | undefined, city: string | null | undefined): string {
+  const v = (venue ?? '').trim(), c = (city ?? '').trim();
+  if (!v) return c;
+  return c && !v.toLowerCase().includes(c.toLowerCase()) ? `${v}, ${c}` : v;
+}
+
+/**
+ * The .ics of a catalog event on one of its days, in the reader's language (W9-R-review R-RC-2 / R-RP-2: in English the
+ * file was the catalog's Chinese — the card translates through the site runtime, a saved file never does): the title and
+ * the venue through the site's dictionary (catalogText), the cost line through publicText; the first line stays bilingual.
+ */
+export function eventIcs(event: CatalogEvent, day: string, stamp?: number, locale: Locale = 'zh-Hans'): string {
   const h = eventDayHours(event, day);
+  const title = catalogText(event.title, locale);
+  const venue = event.venue ? catalogText(event.venue, locale) : '';
+  const cost = event.costLabel ? publicText(event.costLabel, locale) : ''; // W9-R5: no working notes
+  const en = locale === 'en';
   return buildIcs({
     uid: `${event.id}-${day}`,
-    title: event.title,
+    title,
     day,
     ...(h ? { start: h[0], end: h[1] } : {}),
-    location: [event.venue, event.city].filter(Boolean).join(', '),
+    location: icsLocation(venue, event.city),
     description: [
       '日期提醒 · 以官网为准 / Date reminder — check the official site before you go.',
-      publicText(event.costLabel), // W9-R5: no working notes
-      event.officialUrl ? `官网 / Official: ${event.officialUrl}` : '',
+      locale === 'zh-Hant' ? catalogText(cost, locale) : cost,
+      event.officialUrl ? `${en ? 'Official' : '官网 / Official'}: ${event.officialUrl}` : '',
       `BAYLINK: https://www.baylink.us/events/${encodeURIComponent(event.id)}`,
-      event.verifiedAt ? `BAYLINK 核对日期 / checked: ${event.verifiedAt}` : '',
+      event.verifiedAt ? `${en ? 'BAYLINK checked' : 'BAYLINK 核对日期 / checked'}: ${event.verifiedAt}` : '',
     ].filter(Boolean).join('\n'),
     url: event.officialUrl,
-    alarm: `明天 / Tomorrow: ${event.title}`,
+    alarm: en ? `Tomorrow: ${title}` : `${catalogText('明天', locale)}：${title}`,
   }, stamp);
 }
 
-/** The .ics of an offer's free day (its hours that day, when known). */
-export function offerIcs(offer: LiveOffer, day: string, hours: [number, number] | null, stamp?: number): string {
+/** The .ics of an offer's free day (its hours that day, when known); the reminder in the reader's language. */
+export function offerIcs(offer: LiveOffer, day: string, hours: [number, number] | null, stamp?: number, locale: Locale = 'zh-Hans'): string {
+  const en = locale === 'en';
   return buildIcs({
     uid: `offer-${offer.id}-${day}`,
-    title: `${offer.title.zh} / ${offer.title.en}`,
+    title: en ? offer.title.en : `${offer.title.zh} / ${offer.title.en}`,
     day,
     ...(hours ? { start: hours[0], end: hours[1] } : {}),
     location: offer.place ? `${offer.place.name.en}, San Francisco` : 'San Francisco',
     description: [
-      `${offer.who.zh} / ${offer.who.en}`,
-      `${offer.requirement.zh}`,
-      `${offer.requirement.en}`,
-      `以官网为准 / Check before you go: ${offer.source.url} (${offer.source.verifiedAt})`,
+      en ? offer.who.en : `${offer.who.zh} / ${offer.who.en}`,
+      ...(en ? [] : [offer.requirement.zh]),
+      offer.requirement.en,
+      `${en ? 'Check before you go' : '以官网为准 / Check before you go'}: ${offer.source.url} (${offer.source.verifiedAt})`,
       `BAYLINK: https://www.baylink.us${offer.href}`,
     ].join('\n'),
     url: offer.source.url,
-    alarm: `明天免费 / Free tomorrow: ${offer.title.zh}`,
+    alarm: en ? `Free tomorrow: ${offer.title.en}` : `明天免费：${offer.title.zh}`,
   }, stamp);
 }
 

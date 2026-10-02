@@ -65,12 +65,22 @@ export function freeEventsOn(day: string, catalog: Catalog | null, companions: s
   return out;
 }
 
-/** The next `days` Bay dates from `today` (inclusive), each with its free things (offers first). */
-export function freeWeek(today: string, days: number, offers: LiveOffer[] | null, catalog: Catalog | null, companions: string | null = null): FreeDay[] {
+/** An item still ahead (or on) at minute `now` of its own day (W9-R-review R-RP-1 / R-RC-4: at 15:00 today's chip listed
+ *  the tea garden's 9–10 free hour with 带我去 and 加到日历); an item without hours is the whole day. */
+export function notOver(item: FreeItem, now: number | null | undefined): boolean {
+  if (now === null || now === undefined) return true;
+  const h = item.kind === 'offer' ? item.hours : eventDayHours(item.event, item.day);
+  return !h || h[1] > now;
+}
+
+/** The next `days` Bay dates from `today` (inclusive), each with its free things (offers first). `now`: the Bay minute
+ *  of today — today's slots that are over by then are left out (later days are whole days). */
+export function freeWeek(today: string, days: number, offers: LiveOffer[] | null, catalog: Catalog | null, companions: string | null = null, now: number | null = null): FreeDay[] {
   const out: FreeDay[] = [];
   for (let i = 0; i < days; i++) {
     const day = addDays(today, i);
-    out.push({ day, items: [...freeOffersOn(day, offers), ...freeEventsOn(day, catalog, companions)] });
+    const items = [...freeOffersOn(day, offers), ...freeEventsOn(day, catalog, companions)];
+    out.push({ day, items: i === 0 ? items.filter(item => notOver(item, now)) : items });
   }
   return out;
 }
@@ -91,14 +101,18 @@ export function eventDayHours(event: CatalogEvent, day: string): [number, number
 const near = (o: LiveOffer, p: Vec2, ids: readonly string[] = []) =>
   !!o.place && ((!!o.place.id && ids.includes(o.place.id)) || Math.hypot(o.place.x - p.x, o.place.z - p.z) <= NEAR_PLACE);
 
-/** A place card's free days in the next `days` days (its offers that are not mostly free), soonest first. */
-export function freeDaysAt(point: Vec2, today: string, days: number, offers: LiveOffer[] | null, ids: readonly string[] = []): FreeItem[] {
+/** A place card's free days in the next `days` days (its offers that are not mostly free), soonest first; `now` as in
+ *  freeWeek (the zoo's resident day is gone from its card at 16:00). */
+export function freeDaysAt(point: Vec2, today: string, days: number, offers: LiveOffer[] | null, ids: readonly string[] = [], now: number | null = null): FreeItem[] {
   if (!offers) return [];
   const mine = offers.filter(o => o.free && near(o, point, ids) && !mostlyFree(o));
   const out: FreeItem[] = [];
   for (let i = 0; i < days; i++) {
     const day = addDays(today, i);
-    for (const { offer, hours } of offersOn(day, mine)) out.push({ kind: 'offer', day, offer, hours });
+    for (const { offer, hours } of offersOn(day, mine)) {
+      const item: FreeItem = { kind: 'offer', day, offer, hours };
+      if (i > 0 || notOver(item, now)) out.push(item);
+    }
   }
   return out;
 }

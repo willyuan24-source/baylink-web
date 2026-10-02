@@ -12,7 +12,7 @@ import { handRowOf, weekEvents, windowEndKnown, type EventWindow } from './event
 import { isFireRingLit } from './seasons';
 import { roundMinute, sunBandAt, sunTimes } from './sun';
 import { atMinute, fireSeasonKey, freePlacesOn, hm, marketHours, PLACES } from './todayRows';
-import { getPrefs, type TravelProfile } from './prefs';
+import { dailyProfilePin, getPrefs, pinDailyProfile, type TravelProfile } from './prefs';
 
 /**
  * Wave 5 · lane R (W5-R5) · 今日三件小事 — three small things to do today, seeded by the Bay date from San Francisco's
@@ -266,22 +266,32 @@ export function initDaily(opts: { introAfter?: number } = {}): DailyRuntime {
 
   // the pick waits for the catalog (today's events); if it cannot load, the day goes on without events
   let noCatalog = false;
-  let profileSeen = getPrefs().profile;
+  let profileUsed: TravelProfile | null | undefined;
+  // (W9-R4) a new travel profile (这周去哪's 带娃 / 带长辈) re-picks today's three — only while none of the day is paid, so
+  // a paid `daily:<date>:<n>` never lands on another task. (W9-R-review R-RC-1: that guard lived in this page only; a
+  // reload rebuilt the three with the new profile) — the profile of the day's pick is recorded (realsf/prefs.ts) and,
+  // once one slot of the day is paid, the day keeps it.
+  const slotPaid = (d: string) => [1, 2, 3].some(n => { const src = `daily:${d}:${n}`; return doneHere.has(src) || isPaid(src); });
+  const profileFor = (d: string): TravelProfile | null => {
+    const now = getPrefs().profile;
+    if (!slotPaid(d)) return now;
+    const pinned = dailyProfilePin(d);
+    if (pinned !== undefined) return pinned;
+    // a slot paid before the pick was recorded (or in this page): keep what this page picked with
+    return d === day && profileUsed !== undefined ? profileUsed : now;
+  };
   const refresh = () => {
     const d = bayParts(bayNow()).dateKey, c = getCatalog();
     const failed = !c && game.get().catalogStatus === 'error';
-    // (W9-R4) a new travel profile (这周去哪's 带娃 / 带长辈) re-picks today's three — only while none is done yet, so a
-    // paid `daily:<date>:<n>` never lands on another task
-    const profile = getPrefs().profile;
-    const reprofile = profile !== profileSeen && !!list && !list.some(t => taskDone(t));
-    if (profile !== profileSeen && !reprofile && list) profileSeen = profile;
-    if (d === day && c === catalogSeen && failed === noCatalog && list && !reprofile) return;
-    profileSeen = profile;
+    const profile = profileFor(d);
+    if (d === day && c === catalogSeen && failed === noCatalog && list && profile === profileUsed) return;
+    profileUsed = profile;
     // (review) a new Bay day forgets yesterday's lines: the intro named yesterday's three, and 'daily-all' would have
     // said "all three done" again right after midnight (the scheduler's day memory had just rolled over)
     if (d !== day) lines.length = 0;
     day = d; catalogSeen = c; noCatalog = failed;
-    list = c || failed ? dailyThree(d, daySignals(d, c)) : null;
+    list = c || failed ? dailyThree(d, daySignals(d, c, profile)) : null;
+    if (list) pinDailyProfile(d, profile);
   };
 
   const complete = (t: DailyTask): boolean => {

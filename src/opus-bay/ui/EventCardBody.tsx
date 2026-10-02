@@ -94,7 +94,7 @@ export default function EventCardBody({ id }: { id?: string }) {
         {next && <LinkButton href={planUrl({ date: next, stops: [{ kind: 'event', id: event.id }] }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="soft">{t('安排进计划', 'Plan it')}</LinkButton>}
         {/* W9-R3 (review R§6: no calendar on event cards): the next day of it as an .ics, a reminder the day before */}
         {next && (
-          <button type="button" className="ob-btn ob-btn-soft" onClick={() => addEventToCalendar(event, next)} aria-label={`${t('加到日历（提前一天提醒）', 'Add to calendar (a reminder the day before)')} · ${formatDay(next, locale)}`}>
+          <button type="button" className="ob-btn ob-btn-soft" onClick={() => addEventToCalendar(event, next, locale)} aria-label={`${t('加到日历（提前一天提醒）', 'Add to calendar (a reminder the day before)')} · ${formatDay(next, locale)}`}>
             <CalendarDays size={17} aria-hidden /><span>{t('加到日历', 'Add to calendar')}</span>
           </button>
         )}

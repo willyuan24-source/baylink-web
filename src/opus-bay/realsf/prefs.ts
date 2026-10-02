@@ -107,8 +107,42 @@ export function setPrefs(patch: Partial<Pick<TravelPrefs, 'companions' | 'vibe' 
   return next;
 }
 
+// ---------------------------------------------------------------------------
+// W9-R-review R-RC-1 · the profile today's three were picked with. Their completion is paid by slot (daily:<date>:<n>),
+// so once one is paid the day's pick must not change on a reload with a new profile (the paid slot would point at
+// another task: one never done shown ticked, the one done paid again). Its own key: { day, profile } of the last pick.
+// ---------------------------------------------------------------------------
+
+export const DAILY_PIN_KEY = 'opus-bay:daily-pick:v1';
+const PROFILES: readonly string[] = ['kids', 'seniors', 'solo', 'pair'];
+let pin: { day: string; profile: TravelProfile | null } | null | undefined;
+
+function readPin(): { day: string; profile: TravelProfile | null } | null {
+  if (pin !== undefined) return pin;
+  pin = null;
+  try {
+    const v = JSON.parse(store()?.getItem(DAILY_PIN_KEY) ?? 'null') as Record<string, unknown> | null;
+    if (v && typeof v.day === 'string' && DAY_RE.test(v.day)) pin = { day: v.day, profile: typeof v.profile === 'string' && PROFILES.includes(v.profile) ? v.profile as TravelProfile : null };
+  } catch { /* unreadable: no pin */ }
+  return pin;
+}
+
+/** The profile today's three of `day` were picked with (undefined: none recorded for that day). */
+export function dailyProfilePin(day: string): TravelProfile | null | undefined {
+  const p = readPin();
+  return p && p.day === day ? p.profile : undefined;
+}
+
+/** Record the profile the three of `day` were picked with. */
+export function pinDailyProfile(day: string, profile: TravelProfile | null): void {
+  const p = readPin();
+  if (p && p.day === day && p.profile === profile) return;
+  pin = { day, profile };
+  try { store()?.setItem(DAILY_PIN_KEY, JSON.stringify(pin)); } catch { /* blocked / full: this page only */ }
+}
+
 /** Re-render when the prefs change. */
 export function subscribePrefs(fn: () => void): () => void { listeners.add(fn); return () => { listeners.delete(fn); }; }
 
 /** Tests: start over with a given storage (null: memory only) and forget the cached value. */
-export function __resetPrefsForTests(s: Store | null = null): void { storage = s; current = null; }
+export function __resetPrefsForTests(s: Store | null = null): void { storage = s; current = null; pin = undefined; }
