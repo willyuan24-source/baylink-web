@@ -55,6 +55,9 @@ export const TODAY_PLAIN_LINE: Bilingual = { zh: '旅行本「今天」里有今
 
 /** BAYBAY's today line as she says it (fixed, voiced) + the toast with today's names / time (null: nothing to add). */
 export function todaySpoken(now: Date = bayNow(), catalog: Catalog | null = getCatalog()): { line: Bilingual; toast: Bilingual | null } {
+  // (W9-X5) lane H's big Halloween days first, as in todayLine(): the day's own fixed line names its place and time
+  const big = halloweenTodayLine(now);
+  if (big) return { line: big, toast: null };
   const day = bayParts(now).dateKey;
   const w = weekEvents(now, 1, catalog).find(x => x.dateKey === day);
   if (w) {
