@@ -15,6 +15,7 @@ import { Keycap, Sheet } from './common';
 import { LangPills } from './LangPills';
 import { useDevice } from './hooks';
 import { TEXT_SIZES, setTextSize, useTextSize } from './textSize';
+import { leaveOverGuard } from './backGuard';
 import { SILENT_HINT, isIOS } from './shareFile';
 import { importRetry } from '../game/importRetry';
 
@@ -137,7 +138,8 @@ export function SettingsPanel() {
         ) : (
           <button type="button" className="ob-btn ob-btn-ghost" onClick={() => setConfirmReset(true)}>{t('重置游戏进度', 'Reset progress')}</button>
         )}
-        <a className="ob-btn ob-btn-ghost" href={homeUrl(locale)}><LogOut size={17} aria-hidden /><span>{t('回到 BAYLINK', 'Back to BAYLINK')}</span></a>
+        {/* W9-A: with Settings open the back guard's entry is on top — replace it, so the site's back lands on the game once */}
+        <a className="ob-btn ob-btn-ghost" href={homeUrl(locale)} onClick={e => { if (!e.defaultPrevented && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && leaveOverGuard(homeUrl(locale))) e.preventDefault(); }}><LogOut size={17} aria-hidden /><span>{t('回到 BAYLINK', 'Back to BAYLINK')}</span></a>
       </div>
       <p className="ob-muted ob-center">{t('旅行本（明信片、目标、想去）只存在这台设备上。', 'Your journal (postcards, goals, saves) is stored on this device only.')}</p>
     </Sheet>

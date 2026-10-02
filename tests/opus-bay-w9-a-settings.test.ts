@@ -167,3 +167,16 @@ test('W9-A4: the title\'s sound toggle keeps one name (声音) and says its stat
   assert.notEqual(btn.getAttribute('aria-pressed'), on, 'the state does');
   fireEvent.click(btn);
 });
+
+test('W9-A6: Settings › 回到 BAYLINK replaces the back guard\'s entry (the site\'s back then lands on the game once, not twice); without the entry the link navigates as before', async () => {
+  const { leaveOverGuard } = await import('../src/opus-bay/ui/backGuard');
+  const went: string[] = [];
+  const fake = (state: unknown) => ({ history: { state } as History, location: { replace: (u: string) => { went.push(u); } } as Location });
+  assert.equal(leaveOverGuard('/', fake({ idx: 3, obBack: 'w9a' })), true);
+  assert.deepEqual(went, ['/']);
+  assert.equal(leaveOverGuard('/', fake({ idx: 3 })), false, 'no guard entry: the link does its own navigation');
+  assert.equal(leaveOverGuard('/', fake(null)), false);
+  assert.deepEqual(went, ['/']);
+  // the panel's link calls it (checked live: docs/opus-bay/sf-w9-A.md part c)
+  assert.match(fs.readFileSync(new URL('../src/opus-bay/ui/Settings.tsx', import.meta.url), 'utf8'), /leaveOverGuard\(homeUrl\(locale\)\)\) e\.preventDefault\(\)/);
+});

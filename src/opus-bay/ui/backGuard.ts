@@ -47,6 +47,17 @@ function openDialogs(doc: Document): number {
   return n;
 }
 
+/**
+ * Leaving the game by a link while the guard's entry is on top (Settings › 回到 BAYLINK with Settings open): replace that
+ * entry instead of pushing past it, or the site's back would land on the game twice. Returns true when it navigated
+ * (the caller then prevents the link's default).
+ */
+export function leaveOverGuard(href: string, win: Pick<Window, 'history' | 'location'> = window): boolean {
+  if ((win.history.state as HistoryState)?.obBack !== MARK) return false;
+  win.location.replace(href);
+  return true;
+}
+
 export function installBackGuard(win: Window = window): () => void {
   const doc = win.document, hist = win.history;
   const now = () => closableNow(game.get(), flow.get(), openOverlays().length, openDialogs(doc), lockHeldBy('activity'));
