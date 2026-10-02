@@ -92,8 +92,11 @@ export function eventIcs(event: CatalogEvent, day: string, stamp?: number, local
   const h = eventDayHours(event, day);
   const title = catalogText(event.title, locale);
   const venue = event.venue ? catalogText(event.venue, locale) : '';
-  const cost = event.costLabel ? publicText(event.costLabel, locale) : ''; // W9-R5: no working notes
   const en = locale === 'en';
+  // W9-R5: no working notes. (W9-R-review own-1) a cost line the site's dictionary does not know stays Chinese: never in
+  // an English file (the official link is there)
+  const shown = event.costLabel ? publicText(event.costLabel, locale) : '';
+  const cost = en && /[\u3400-\u9fff]/.test(shown) ? '' : shown;
   return buildIcs({
     uid: `${event.id}-${day}`,
     title,

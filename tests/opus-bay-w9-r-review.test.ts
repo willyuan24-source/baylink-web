@@ -169,3 +169,13 @@ test('R-RC-5 带娃 keeps Fleet Week (free general areas, open air, by day); nev
   assert.ok(daily.eventFitsProfile(fleet, 'kids'), 'Fleet Week with kids');
   for (const e of CATALOG.events) if (daily.eventFitsProfile(e, 'kids')) assert.ok(!C.isAdultOnly(e) && (C.companionFit(e, 'kids') || !C.startsAtNight(e)), e.id);
 });
+
+test('W9-R-review own-1: an English .ics never carries a cost line the site dictionary does not know (it stays Chinese)', async () => {
+  const ev = { ...byId('sf-african-arts-festival-2026'), costLabel: '这一句不在网站词典里，只有中文。' };
+  await Loc.setLocale('en', false);
+  try {
+    const desc = field(ics.eventIcs(ev, '2026-10-03', 0, 'en'), 'DESCRIPTION').split('\n').slice(1).join(' ');
+    assert.doesNotMatch(desc, HAN, desc);
+  } finally { await Loc.setLocale('zh-Hans', false); }
+  assert.match(field(ics.eventIcs(ev, '2026-10-03', 0), 'DESCRIPTION'), /只有中文/, 'zh keeps it');
+});
