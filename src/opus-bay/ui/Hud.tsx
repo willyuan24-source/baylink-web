@@ -192,8 +192,15 @@ function HudButtons() {
   const { seen, mark } = useHudSeen();
   const kb = device === 'keyboard';
   const fresh = (id: string) => (seen.includes(id) ? '' : 'is-new');
+  // W9-A (lane A, surgical; review R§6 "Tab 会落到隐藏的 HUD 按钮上"): faded under a line / the fishing strip
+  // (opus-bay.css .is-talking) = inert — out of Tab and the accessibility tree
+  const talking = useGame(s => !!s.dialogue.nodeId);
+  const fishing = useFlow(s => !!s.fishing);
+  const faded = talking || fishing;
+  const navRef = useRef<HTMLElement>(null);
+  useEffect(() => { if (navRef.current) navRef.current.inert = faded; }, [faded]);
   return (
-    <nav className="ob-hud-buttons" aria-label={t('游戏菜单', 'Game menu')}>
+    <nav ref={navRef} className="ob-hud-buttons" aria-label={t('游戏菜单', 'Game menu')}>
       <button type="button" className={`ob-round is-baybay ${fresh('baybay')}`} onClick={() => { mark('baybay'); callBaybay(); }} aria-label={t('问 BAYBAY（Q）', 'Ask BAYBAY (Q)')}>
         <BaybayFace size={40} />
         {!seen.includes('baybay') && <span className="ob-ask-me" aria-hidden>{t('问我', 'Ask me')}</span>}
