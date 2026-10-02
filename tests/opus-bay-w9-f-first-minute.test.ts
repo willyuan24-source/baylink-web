@@ -187,3 +187,25 @@ test('W9-F6: the pacer waits HELD_GAP after a hold (P-7: "one line every 5 s aft
   assert.deepEqual(dropped, ['过期:expired', '换地方了:invalid', '第0句:overflow', '第1句:cleared', '第2句:cleared', '第3句:cleared', '第4句:cleared']);
   assert.equal(q.dropped, 7);
 });
+
+test('W9-C / F-RP-3: the 捉迷藏 invite (play/hideSeek.ts startHideCoach) waits through 我是本地人\'s hush — none after HIDE_COACH_AFTER quiet seconds inside the 3 minutes, it comes after them (before: the invite at 40 s)', async () => {
+  const hs = await import('../src/opus-bay/play/hideSeek');
+  const { stepFrameSystems } = await import('../src/opus-bay/game/systemsRegistry');
+  reset();
+  const mem = new Map<string, string>();
+  const coachStore = { get: (k: string) => mem.get(k) ?? null, set: (k: string, v: string) => { mem.set(k, v); } };
+  flow.set({ hushUntil: clock + flowMod.QUIET_MS, bubble: null });
+  const off = hs.startHideCoach(coachStore);
+  try {
+    // 60 quiet seconds standing still inside the hush (HIDE_COACH_AFTER is 40)
+    for (let i = 0; i < hs.HIDE_COACH_AFTER + 20; i++) { tick(1000); stepFrameSystems(1, clock / 1000); }
+    assert.equal(mem.get(hs.HIDE_COACH_KEY), undefined, 'no invite inside the hush');
+    assert.doesNotMatch(bubbleZh() ?? '', /捉迷藏/);
+    // the hush ends: HIDE_COACH_AFTER quiet seconds later the invite comes, once
+    tick(flowMod.QUIET_MS);
+    assert.equal(hold.baybayHeld(), false);
+    for (let i = 0; i < hs.HIDE_COACH_AFTER + 2; i++) { tick(1000); stepFrameSystems(1, clock / 1000); if (mem.get(hs.HIDE_COACH_KEY)) break; }
+    assert.equal(mem.get(hs.HIDE_COACH_KEY), '1', 'the invite after the hush');
+    assert.match(bubbleZh() ?? '', /捉迷藏/);
+  } finally { off(); flow.set({ bubble: null, hushUntil: 0 }); }
+});

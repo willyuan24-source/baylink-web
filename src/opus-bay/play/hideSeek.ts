@@ -7,6 +7,7 @@ import { input } from '../core/input';
 import { canStand, heightAt, STAND_RADIUS, surfaceAt } from '../core/terrain';
 import type { Bilingual, Vec2 } from '../core/types';
 import { ATTRACTIONS } from '../data/sf/attractions';
+import { baybayHeld } from '../game/baybayHold';
 import { faceCameraToward } from '../game/cinema';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
@@ -494,7 +495,8 @@ export function startHideCoach(store: CoachStore = LOCAL): () => void {
   let quiet = 0;
   const off = registerFrameSystem('w-hide-coach', dt => {
     const s = game.get(), f = flow.get(), p = runtime.player;
-    const ok = hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving;
+    // W9-C (F-RP-3): and never through a hold — 我是本地人's 3 quiet minutes (flow.hushUntil), an open card, a game; city only
+    const ok = hideSeekAllowed() && !s.panel.kind && !f.bubble && !p.moving && !baybayHeld();
     quiet = ok ? quiet + dt : Math.max(0, quiet - dt);
     if (quiet < HIDE_COACH_AFTER) return;
     off();
