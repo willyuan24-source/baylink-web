@@ -4,7 +4,7 @@
  * A panel / card / game chunk whose first load failed is retried by game/importRetry.ts for up to 1 + 3 + 8 s; until now
  * the player saw nothing at all in that time (M pressed, no map), then — lost for good — the reload card. While at least
  * one such retry runs that somebody waits for (`retryingLoud() > 0`; a quiet prefetch never counts), a small pill at the
- * top of the screen says 还在加载… / Still loading…; it goes the moment the part lands, or the reload card
+ * top of the screen (under the HUD's top chips) says 还在加载… / Still loading…; it goes the moment the part lands, or the reload card
  * (game/chunkLost.ts) takes over. Plain DOM in the page's chunk (OpusBayPage installs it): nothing in GameRoot's.
  */
 import { getLocale } from '../../i18n/locale';
@@ -26,7 +26,7 @@ export function initChunkPending(doc: Doc | null = typeof document !== 'undefine
     el.setAttribute('role', 'status');
     el.textContent = loc === 'en' ? TEXT.en : loc === 'zh-Hant' ? TEXT.hant : TEXT.zh;
     Object.assign(el.style, {
-      position: 'fixed', top: 'calc(12px + env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)', zIndex: '60',
+      position: 'fixed', top: 'calc(68px + env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)', zIndex: '60',
       padding: '8px 16px', borderRadius: '999px', background: 'rgba(255, 250, 241, .96)', color: '#1f5f59', fontWeight: '700', fontSize: '14px', lineHeight: '1.3',
       boxShadow: '0 4px 14px rgba(40, 30, 20, .18)', pointerEvents: 'none',
     });
