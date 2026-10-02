@@ -30,3 +30,41 @@ test('W9-X5 · todaySpoken: the welcome back on the big Halloween days is the da
   assert.deepEqual(T.todaySpoken(bay('2026-10-30T10:30'), empty).line, T.TODAY_SUNSET_LINE);
   assert.deepEqual(T.todaySpoken(bay('2026-11-03T22:30'), empty).line, T.TODAY_PLAIN_LINE);
 });
+
+test('W9-X review (X-RV-2) · the today toast comes with its line\'s bubble, not in the welcome back\'s own tick; once; never after its ttl', async () => {
+  const fs = await import('node:fs');
+  const line = T.TODAY_SUNSET_LINE, toast = { zh: '今天旧金山日落 18:51', en: 'Sunset in San Francisco today: 18:51' };
+  let shown: { zh: string; en: string } | null = null, now = 1000;
+  const subs = new Set<() => void>();
+  const said: string[] = [];
+  const deps = { bubble: () => shown, subscribe: (fn: () => void) => { subs.add(fn); return () => { subs.delete(fn); }; }, say: (t: { en: string }) => { said.push(t.en); }, now: () => now, ttlMs: 60_000 };
+  const show = (b: typeof shown) => { shown = b; for (const fn of [...subs]) fn(); };
+  T.toastWithLine(line, toast, deps);
+  assert.deepEqual(said, [], 'nothing in the welcome\'s tick');
+  show({ zh: '欢迎回来！我们接着逛吧。', en: 'Welcome back! Let\'s keep exploring.' });
+  assert.deepEqual(said, [], 'not with the welcome-back bubble');
+  show(null);
+  now += 6000;
+  show(line);
+  assert.deepEqual(said, [toast.en], 'with the line\'s own bubble');
+  show(null); show(line);
+  assert.deepEqual(said, [toast.en], 'once');
+  assert.equal(subs.size, 0, 'unsubscribed');
+  // a line never said within its ttl: no toast at all
+  said.length = 0;
+  T.toastWithLine(line, toast, deps);
+  now += 61_000;
+  show(line);
+  assert.deepEqual(said, [], 'after the ttl the line was let go: no toast');
+  // no toast to add: nothing waits; the off stops a waiting toast
+  T.toastWithLine(line, null, deps);
+  const off = T.toastWithLine(line, toast, deps);
+  off();
+  show(null); show(line);
+  assert.deepEqual(said, []);
+  assert.equal(subs.size, 0);
+  // the welcome listener itself no longer raises the toast (before: sayTodayToast(s.toast) inside onWelcome)
+  const src = fs.readFileSync('src/opus-bay/realsf/index.ts', 'utf8');
+  assert.doesNotMatch(src, /onWelcome\([^\n]*sayTodayToast\(s\.toast\)/);
+  assert.match(src, /toastWithLine\(s\.line, s\.toast/);
+});

@@ -75,6 +75,13 @@ const NIGHT_PHASE: Extract<GameEvent, { type: 'halloween' }> = { type: 'hallowee
  */
 export const MUSIC_GESTURE_GAP = 1200;
 export const MUSIC_FADE_TAU = 3;
+/**
+ * (W9-X review, X-RV-5) A gesture that reaches for the sound is not the music's cue: the tap on ⚙ / the More menu's
+ * 设置, Esc, the gamepad's settings button, or any tap inside Settings (its 音乐 switch, the sliders). The gesture counts
+ * only when Settings is closed both as it happens and this long after it (the click that opens the panel lands in
+ * between); the first gesture after Settings is closed again starts the music (at the level just chosen).
+ */
+export const MUSIC_SETTINGS_GRACE = 300;
 /** (W9-X1, tests / QA) the music's start in the running startAudio: the player's gesture has come, the music has begun */
 export const musicProbe = { wanted: false, started: false };
 /**
@@ -109,6 +116,8 @@ export function startAudio(): () => void {
   /** (W9-X1) the player's own first gesture after Start has come: the music may begin (and once begun, it stays begun) */
   let musicWanted = false;
   let musicStarted = false;
+  /** (X-RV-5) a gesture's music cue waiting out MUSIC_SETTINGS_GRACE */
+  let musicCue = 0;
   let disposed = false;
   let loop = 0;
   let lastTick = 0;
@@ -489,6 +498,7 @@ export function startAudio(): () => void {
     void voice.preload().then(() => { if (!disposed && game.get().worldMode === 'city') void voice.preloadLines(); });
   });
 
+  const settingsOpen = () => game.get().panel.kind === 'settings';
   const onGesture = () => {
     if (disposed) return;
     // (W7-Q1) a tap on the title does not activate sound yet, but on WebKit it starts the context inside the gesture
@@ -496,9 +506,17 @@ export function startAudio(): () => void {
     if (!activated && game.get().phase === 'title') { primeAudio(); return; }
     // (W9-X1) the player's own gesture: the one that activates sound when the title was skipped (?start=), or the first
     // one well after the Start tap (not that tap's own pointer / touch / key events)
-    if (!musicWanted && (!activated || performance.now() - activatedAt > MUSIC_GESTURE_GAP)) musicWanted = musicProbe.wanted = true;
+    const own = !musicWanted && (!activated || performance.now() - activatedAt > MUSIC_GESTURE_GAP);
     activate();
-    maybeStartMusic();
+    // (X-RV-5) …unless it reaches for the sound: Settings open now, or open once the gesture's click has landed
+    if (own && !musicCue && !settingsOpen()) {
+      musicCue = window.setTimeout(() => {
+        musicCue = 0;
+        if (disposed || musicWanted || settingsOpen()) return;
+        musicWanted = musicProbe.wanted = true;
+        maybeStartMusic();
+      }, MUSIC_SETTINGS_GRACE);
+    }
   };
   const onVisibility = () => {
     if (!ctx || !activated) return;
@@ -552,6 +570,7 @@ export function startAudio(): () => void {
     document.removeEventListener('visibilitychange', onVisibility);
     window.clearInterval(loop);
     window.clearTimeout(suspendTimer);
+    window.clearTimeout(musicCue);
     timers.forEach(t => window.clearTimeout(t));
     prep?.cancel();
     bindAudioHooks(null);

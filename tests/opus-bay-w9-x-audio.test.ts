@@ -223,6 +223,7 @@ async function withAudio(run: (h: { fire: (t: string) => void; probe: { wanted: 
 
 test('W9-X1 the music waits for the player\'s own first gesture after Start (not the Start tap, not 2.2 s later), then begins', async () => {
   const { game } = await import('../src/opus-bay/core/store');
+  const { MUSIC_SETTINGS_GRACE } = await import('../src/opus-bay/audio/audio');
   const { emit } = await import('../src/opus-bay/core/events');
   await withAudio(async ({ fire, probe }) => {
     game.set({ phase: 'arrival' } as never);
@@ -232,17 +233,49 @@ test('W9-X1 the music waits for the player\'s own first gesture after Start (not
     await new Promise(r => setTimeout(r, 2500)); // wave 8 began the music 2.2 s after Start
     assert.equal(probe.started, false, 'no music on its own after Start');
     fire('keydown'); // the player's first own gesture (Esc to skip the intro, a choice, a step)
+    // (X-RV-5) the cue waits MUSIC_SETTINGS_GRACE: a gesture that opens Settings is not one
+    await new Promise(r => setTimeout(r, MUSIC_SETTINGS_GRACE + 60));
     assert.equal(probe.wanted, true);
     assert.equal(probe.started, true, 'the music begins');
   });
   game.set({ phase: 'title' } as never);
 });
 
+test('W9-X review (X-RV-5) a gesture that reaches for the sound is not the music’s cue: the tap that opens Settings, a tap inside it, the tap that closes it; the next one is', async () => {
+  const { game } = await import('../src/opus-bay/core/store');
+  const { emit } = await import('../src/opus-bay/core/events');
+  const { MUSIC_SETTINGS_GRACE, MUSIC_GESTURE_GAP } = await import('../src/opus-bay/audio/audio');
+  const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+  await withAudio(async ({ fire, probe }) => {
+    game.set({ phase: 'arrival' } as never);
+    emit({ type: 'start' } as never);
+    await wait(MUSIC_GESTURE_GAP + 100); // well after the Start tap: a gesture now is the player's own
+    game.set({ phase: 'playing' } as never);
+    fire('pointerdown'); // the tap on ⚙ (or Esc, or the More menu's 设置)…
+    game.set({ panel: { kind: 'settings' } } as never); // …whose click opens Settings
+    await wait(MUSIC_SETTINGS_GRACE + 60);
+    assert.equal(probe.started, false, 'no music as Settings opens');
+    fire('pointerdown'); // the 音乐 switch, a slider
+    await wait(MUSIC_SETTINGS_GRACE + 60);
+    assert.equal(probe.started, false, 'no music from a tap inside Settings');
+    fire('pointerdown'); // the close tap
+    game.set({ panel: { kind: null } } as never);
+    await wait(MUSIC_SETTINGS_GRACE + 60);
+    assert.equal(probe.started, false, 'nor from the tap that closes it');
+    fire('keydown'); // the next own gesture, Settings closed
+    await wait(MUSIC_SETTINGS_GRACE + 60);
+    assert.equal(probe.started, true, 'the music begins (at the level just chosen)');
+  });
+  game.set({ phase: 'title', panel: { kind: null } } as never);
+});
+
 test('W9-X1 ?start= (title skipped): the gesture that turns sound on is the player\'s own — the music begins with it', async () => {
   const { game } = await import('../src/opus-bay/core/store');
+  const { MUSIC_SETTINGS_GRACE } = await import('../src/opus-bay/audio/audio');
   await withAudio(async ({ fire, probe }) => {
     game.set({ phase: 'playing' } as never);
     fire('keydown');
+    await new Promise(r => setTimeout(r, MUSIC_SETTINGS_GRACE + 60)); // (X-RV-5) the cue's grace
     assert.equal(probe.started, true);
   });
   game.set({ phase: 'title' } as never);

@@ -1,4 +1,5 @@
 import { restoreFleet } from '../actors/moveApi';
+import { emit } from '../core/events';
 import { game } from '../core/store';
 import { project } from '../core/geo';
 import type { Vec2 } from '../core/types';
@@ -40,6 +41,10 @@ export function startOrResume(): void {
   const spot = want && s.worldMode === 'city' ? resumeSpot('city') : null;
   if (!spot || s.phase !== 'title') { startGame(); return; }
   noteInteractHandled();
+  // (W9-X review, X-RV-1) the Continue tap is the Start tap: the sound comes on with it (audio/audio.ts activates on
+  // 'start', inside the tap's turn on WebKit) — else BAYBAY's recorded welcome back was dropped and no sound played
+  // until the player's next gesture. (No foghorn / gull: the arrival cinematic is skipped.)
+  emit({ type: 'start' });
   game.set({ phase: 'arrival' });
   void resumeAt(spot);
 }

@@ -33,7 +33,7 @@ import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
 import { setPrefs } from './prefs';
-import { todaySpoken } from './todayLine';
+import { toastWithLine, todaySpoken } from './todayLine';
 import { holdJetsForParade, isParadeDay } from '../world/sf/fleetWeekDay';
 import type { FleetWeek } from '../world/sf/fleetWeek';
 import { importRetry } from '../game/importRetry';
@@ -157,7 +157,17 @@ export function init(): () => void {
   let welcomeSaid = false;
   // (W9-X, surgical) BAYBAY says a fixed, voiced today line; the day's venue / event or sunset time is on a toast
   const sayTodayToast = (t: Bilingual | null) => { if (t) say(t.zh, t.en, 'info', 4600); };
-  const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; const s = todaySpoken(); sayTodayToast(s.toast); return s.line; });
+  // (W9-X review, X-RV-2) the toast with the line's own bubble (realsf/todayLine.ts toastWithLine), not in the welcome's tick
+  let offTodayToast: (() => void) | null = null;
+  const baybayWords = (): Bilingual | null => { const b = flow.get().bubble; return b && b.who === BAYBAY_ID ? b.text : null; };
+  const offWelcome = onWelcome(kind => {
+    if (kind !== 'returning') return null;
+    welcomeSaid = true;
+    const s = todaySpoken();
+    offTodayToast?.();
+    offTodayToast = toastWithLine(s.line, s.toast, { bubble: baybayWords, subscribe: fn => flow.subscribe(fn), say: sayTodayToast, now: () => performance.now(), ttlMs: WELCOME_LATE });
+    return s.line;
+  });
   const lw = lastWelcome();
   let welcomeLate = !!lw && lw.kind === 'returning' && performance.now() - lw.at < WELCOME_LATE;
   const jets = initJets();
@@ -238,7 +248,7 @@ export function init(): () => void {
   return () => {
     live = false;
     clearTimeout(idle); organOff?.(); organOff = null; dressing.off(); openings.off();
-    offLines(); parade?.off(); parade = null; jets.off(); offWelcome(); offPrefs(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
+    offLines(); parade?.off(); parade = null; jets.off(); offWelcome(); offTodayToast?.(); offPrefs(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
 }

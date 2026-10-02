@@ -53,6 +53,35 @@ export const TODAY_EVENT_LINE: Bilingual = { zh: '今天城里有活动！旅行
 export const TODAY_SUNSET_LINE: Bilingual = { zh: '今天的日落时间和三件小事，都在旅行本「今天」里～', en: 'Today’s sunset time and three small things are on the journal’s Today page.' };
 export const TODAY_PLAIN_LINE: Bilingual = { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait on the journal’s Today page — no rush.' };
 
+/**
+ * (W9-X review, X-RV-2) The today line's toast comes WITH its bubble, never before it. The welcome back's listener only
+ * returns the line (BAYBAY's pacer says it after the welcome-back bubble, or lets it go after its ttl); the toast waits
+ * for BAYBAY's bubble with the line's exact words, at most `ttlMs` (a line never said: no toast). Returns the off.
+ * Before this the toast was raised in the welcome's own tick: three messages at once, the line itself said later or not.
+ */
+export function toastWithLine(line: Bilingual, toast: Bilingual | null, deps: {
+  /** BAYBAY's bubble on screen now (null: none, or someone else's) */
+  bubble: () => Bilingual | null;
+  subscribe: (fn: () => void) => () => void;
+  say: (t: Bilingual) => void;
+  now: () => number;
+  ttlMs: number;
+}): () => void {
+  if (!toast) return () => {};
+  const until = deps.now() + deps.ttlMs;
+  let done = false;
+  let off: (() => void) | null = null;
+  const stop = () => { done = true; off?.(); off = null; };
+  off = deps.subscribe(() => {
+    if (done) return;
+    if (deps.now() > until) { stop(); return; }
+    const b = deps.bubble();
+    if (b && b.zh === line.zh && b.en === line.en) { stop(); deps.say(toast); }
+  });
+  if (done) { off(); off = null; }
+  return stop;
+}
+
 /** BAYBAY's today line as she says it (fixed, voiced) + the toast with today's names / time (null: nothing to add). */
 export function todaySpoken(now: Date = bayNow(), catalog: Catalog | null = getCatalog()): { line: Bilingual; toast: Bilingual | null } {
   // (W9-X5) lane H's big Halloween days first, as in todayLine(): the day's own fixed line names its place and time
