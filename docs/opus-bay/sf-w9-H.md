@@ -9,8 +9,8 @@ big-night greeting in `realsf/todayLine.ts` (lane R's file, surgical).
 
 1. 万圣夜（10/31 晚）老玩家回来时，BAYBAY 第一句就说「万圣节快乐！今天讨糖街家家都开门，糖果加倍……」，不再是通用的"三件小事"；10/31 中午说唐人街庆典，11/2 傍晚说亡灵节游行（X 线已配音）。第一次来的新玩家玩过第一分钟后（约 90 秒）也会听到这句。
 2. 万圣节页面不再写「10 月 1–30 日」，改成"整个 10 月都能讨糖，31 日万圣夜每家都开门、糖果加倍——还有 n 天！"。
-3. 讨糖的门全部在游戏里实际走了一遍：44 扇门里有 4 扇按不到「敲门」、1 扇点地面走不到。修好后 42 扇门全部能敲（2 扇夹在房子缝里的门撤掉，编号和存档不变；3 扇「敲门」范围放大）。
-4. 11/2 亡灵节游行第一次真正玩了一遍：原来玩具车在游行的四条街上照常开，还有一辆停在队伍中间。现在游行期间（18:00–21:00，和 SFMTA 实际封街一致）这四条街不走车，横街的车在路口等队伍过去。
+3. 讨糖的门全部在游戏里实际走了一遍：44 扇门里有 4 扇按不到「敲门」、1 扇点地面走不到。修好后 42 扇门全部能敲（2 扇夹在房子缝里的门撤掉，编号不变；已敲过这 2 扇门的存档，糖和「敲开 5 户」目标由评审 W9-H-review 保住；3 扇「敲门」范围放大）。
+4. 11/2 亡灵节游行第一次真正玩了一遍：原来玩具车在游行的四条街上照常开，还有一辆停在队伍中间。现在游行期间（18:00–21:00，游戏里队伍在场的时间；SFMTA 2025 年通告写的是 18:45–22:00，评审更正）这四条街不走车，横街的车在路口等队伍过去。
 5. 10/31 唐人街庆典、?halloween=night / muertos 预览、11/3 撤装都看过了：庆典在手机上只多 1 个绘制调用；11/3 所有万圣节 / 亡灵节装饰和封街都干净撤掉。
 6. 拥挤点（10/31 Waverly 巷、10/9 水上公园）数过了：活动本身几乎不加负担（≤ 1 个调用、≤ 8.5k 三角形），负担来自那里平常的人群和车，没有乱砍——留给 W9-Z 测帧率后决定（见 Requests）。
 
@@ -160,9 +160,13 @@ city, which needs an fps measurement this lane may not make — see Requests.
 
 - SFMTA, "Dia de los Muertos Procession — Street Closures and Muni Reroutes" (2025):
   https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 (read 2026-10-02) — "Bryant
-  from 19th to 24th", "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", in effect
-  "during staging at 6 p.m.", the procession at 7 p.m. 2026's notice is not published yet; the game follows 2025's
-  pattern (like W7-H6's times).
+  from 19th to 24th", "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", listed
+  after "The procession will begin staging at approximately 6 p.m. on Bryant, between 19th and 22nd streets"; the notice
+  runs "Temporary, from 6:45 to 10 p.m." (Muni reroutes 6:45 to 10 p.m., the 27 from 5 p.m.); the procession "will begin
+  at 7 p.m." from Bryant & 22nd. *(Corrected by the review, H-RV-3: this line quoted "during staging at 6 p.m.", which is
+  not on the page; re-read 2026-10-02 ≈ 06:05 PDT.)* The game closes the four streets while its own walkers are out
+  (18:00–21:00: its staging to the procession's end), a game choice, not the notice's 18:45–22:00. 2026's notice is not
+  published yet; the game follows 2025's pattern (like W7-H6's times).
 
 ## Not done
 
@@ -183,3 +187,47 @@ city, which needs an fps measurement this lane may not make — see Requests.
 3. **Reviewers**: look first at `halloween/muertos.ts` `onProcessionStreets` (the 4 u threshold against the street graph
    round the route, the lead-in) with `tests/opus-bay-w9-h-procession.test.ts`, then `halloween/treatDoors.ts`'s `reach`
    values and the two gone doors (W9-H3).
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+1. 评审发现的最大问题已修好：老玩家在 10/31、11/1–2 点「继续」回来时，BAYBAY 说完「欢迎回来」后本该说当天的万圣节台词，但 F 线 W9-F4 加的 3 分钟「安静期」把这句话压住直到过期，玩家永远听不到（平时 R 线的「今天旧金山」那句也一样被吞掉）。现在这句作为欢迎的一部分，在「欢迎回来」之后说出来，安静期照旧。真机桌面版复测：继续后 2.3 秒「欢迎回来」，7.0 秒「Happy Halloween! Every treat-street door answers today…」（截图 `qa/w9/H/rev-welcome-back-big-night.jpg`）。
+2. 撤掉的 10 号、43 号讨糖门：已经敲过这两扇门的存档原来会少糖、「敲开 5 户」目标会从完成退回 3/5。现在敲过的糖和目标都保住，页面上的「x/42 户」仍只数还能敲的门。
+3. SFMTA 游行通告的引文原来写错了（页面上没有 "during staging at 6 p.m."），代码注释、测试和报告都已改成原文：6 点左右开始集结，通告时间 18:45–22:00。游戏里 18:00–21:00 封街是按游戏里队伍在场的时间定的，没改。
+4. 三条评审意见都确认并修好；没有阻挡上线的问题。
+
+### Findings
+
+| id | severity | verdict | evidence |
+|---|---|---|---|
+| H-RV-1 · returning player never hears the big day's line (W9-F4 hush × welcomeBack's pacer line) | major | **fixed** (`W9-H-review` 954d5f0b, `game/flow.ts` surgical, lane F's file) | Reproduced twice: (a) new `tests/opus-bay-w9-h-review.test.ts` with the real pacer (`initCityContent`), 31 Oct 19:30, 继续 → before: only 欢迎回来 in 60 s (red), after: the big-night line follows it with the hush still running (green); (b) played on the dev server (desktop 1440×900, en, the lens's resume probe on port 5952): after the fix 2.3 s 欢迎回来, 7.0 s "Happy Halloween! Every treat-street door answers today, treats doubled…" (`qa/w9/H/rev-welcome-back-big-night.jpg`). Cause confirmed in code: `resume.ts` → `beginPlaying('local')` → `startFree({ local, back })` sets `hushUntil = now + 180 s`; `baybayHeld()` holds the pacer; `welcomeBack()` offered the line with ttl 60. Fix: while the hush runs, `welcomeBack` says its second line as the welcome's own bubble once 欢迎回来 is off the screen and play is free (no dialogue / panel / holding overlay / cinematic), dropped after 60 s or on a newer welcome back; otherwise the pacer as before. The same loss hit lane R's SF-today line and goal #1's nudge on every other day: fixed by the same change. |
+| H-RV-2 · removing doors 10 / 43 shrinks saves | minor | **fixed** (954d5f0b, `halloween/treat.ts`, `HalloweenPage.tsx`) | Reproduced in the test: a save with doors 10, 11, 12, 13, 43 paid → doorsKnocked 3 / candy 3 / goal 3/5 on the old code (red). Now `doorsKnocked` / `candyCount` count every paid door (gone too: a treat once given stays given), `allDoorsKnocked` asks every live door (gone ones never stand in), the page's x / 42 passes the live doors (never 44 / 42). Green; `opus-bay-w6-g-treat` / `w7-g-polish` / `w9-h-doors` unchanged and green. The report's 「编号和存档不变」 line corrected. |
+| H-RV-3 · SFMTA quote "during staging at 6 p.m." not on the page | minor | **fixed** (f172e850 comments; this report's facts line and 摘要 line 4) | Re-read https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 on 2026-10-02 ≈ 06:03 PDT: "begin staging at approximately 6 p.m. on Bryant, between 19th and 22nd streets", then the four closures; the notice "Temporary, from 6:45 to 10 p.m."; Muni reroutes 6:45 to 10 p.m. (the 27 from 5 p.m.); "will begin at 7 p.m." from Bryant & 22nd. No "during staging". The game's 18:00–21:00 closure is kept and named as a game choice (while its walkers are out). W9-H5's commit message (77fd1bba) keeps the old words (no force-push). |
+
+### Own pass (W9-H1 … H5, 9e77ea05, the reports)
+
+- W9-H5's closure goes through `world/sf/roadClosures.ts` (traffic only; transit, the player's own vehicles and the
+  district untouched: the procession is a city-only feature); `onProcessionStreets` is bbox-gated (cheap per edge). No
+  softlock found in the code; the cross-street cars that wait at the crossings were reported by the lane.
+- Observation, not changed: a returning player who presses Start (not 继续) and picks 我是本地人 in the welcome still
+  gets the listener's line held by the hush (`welcomed('local')`) — that player asked for quiet, so it stays.
+- Observation (lane D's, not H's): in the node harness with the player at (0, 0), the pebble egg's 「嗯？这附近好像有块好石头……」
+  replaced 欢迎回来 within 0.1 s during the hush — a direct bubble that ignores `baybayHeld()`. Not seen in the game run
+  above (the player resumed at Alamo Square); named for lane D / F.
+
+### Checks (on 954d5f0b + f172e850)
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors · touched suites (w5-content, w9-f-first-minute,
+  w8-k1-hold, w5-tours, flow-brain, w9-h-procession, w9-h-review, w6-g-treat, w7-g-polish, w9-h-doors) green · the full
+  opus-bay suite: see the push commit.
+
+### Open items
+
+- Not played: the fixed welcome on the phone (390×844, zh-Hant) and on 1–2 Nov in the browser (the test covers the
+  mechanism; the day's line is the same `todaySpoken()` path); `?halloween=night|muertos` on the phone; Firefox / Safari.
+- The crowd trim at Waverly Place / Aquatic Park waits for W9-Z's fps reading (lane F's `CROWD.count.mid`).
+
+### Blocking the go-live to main
+
+- Nothing from lane H's review.
