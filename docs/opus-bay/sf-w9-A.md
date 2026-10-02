@@ -199,3 +199,53 @@ QA images (`docs/opus-bay/qa/w9/A/`): `a01-before-esc-q.jpg` (origin: Settings a
 - **W9-A6 · 回到 BAYLINK with Settings open** took two backs to leave the homepage again (the guard's same-URL entry sat
   between the game and the homepage). The link now replaces that entry (`ui/backGuard.ts leaveOverGuard`): navigation
   history [about:blank, /opus-bay, /opus-bay (obBack)] → click → [about:blank, /opus-bay, /?lang=en].
+
+## Review (Ultra) · the fixer of the adversarial review (05:51–06:45 PDT)
+
+### 给主人的摘要
+
+- 审查找到的 3 个问题都是真的，3 个都修好了，测试先红后绿；但 06:45 的推送截止时间已过（变基时与 lane Q 的同一修复冲突），所以没有推送，提交留在本地分支 w9-a-rev（代码 0ec8ca48 + 本报告），请负责人挑选合入。
+- 手机返回键：BAYBAY 还在打字时按返回，以前只是把字显示完，再按一次就直接离开游戏；现在一按就关掉这句话。
+- 菜单：BAYBAY 打字时按一下方向键，以前之后按空格会误选第一项（让 BAYBAY 带路）；现在空格照样是"没事，继续逛"。
+- 手机横屏 + 130% 字号：以前对话框比屏幕还高，名字和问题被顶出屏幕；现在整句问题都看得到，选项在框里滚动。
+- 没有新台词，Higgsfield 没花钱。没有阻挡上线的问题（130% 横屏的高度上限 lane Q 已经推上去了）。
+
+### Findings and verdicts
+
+| ID | Severity | Verdict | Evidence |
+|---|---|---|---|
+| A-RV-1 back while a line types | major | fixed | Reproduced in jsdom (tests/opus-bay-w9-a-review.test.ts "A-RV-1": back left `qa.long` open, red). `backGuard.escape()` now marks its synthetic keydown `obBack`, so `Dialogue.tsx`'s `viaBack` branch closes a typing line; the key Esc still only finishes it (same test). Green. |
+| A-RV-2 Space after an arrow during the menu line | major | fixed | Red in jsdom (Space after ArrowUp-while-typing, and after a repeat ArrowDown / a Tab while typing, left `flow.call` open = the browser clicks row 1). `navigated` is now set only by an arrow that moved the focus (rows shown) or a Tab once the rows are shown, never by a repeat. Real browser, dev server 5950, 1440 × 900, the reviewer's repro (Q, 150 ms, ArrowUp, 2.5 s, Space): the 7-row call menu with focus on row 1 (`a-rev/shots/d08-callmenu-after-arrow-fixed.jpg`), then `dialogue null, panel null`, no "is leading" (`d09-after-space-fixed.jpg`). A fresh arrow after the line still moves the focus and Space presses that row (test). |
+| A-RV-3 130 % on 844 × 340 | major | fixed (the cap upstream by lane Q, the rest on w9-a-rev) | Root cause measured: the W9-Q9 cap `max-height: calc(100dvh − 46px …)` is multiplied by the box's own zoom (1.3 × 294 = 382 px). My fix divided both caps by the zoom (`--ob-text-zoom`); lane Q's review (3c29f9ad, Q-RV-3) pushed the same division first, so the rebase kept theirs (the conflict in opus-bay.css resolved to lane Q's cap rules; my variable dropped). The first fix alone left the cards squeezed (rows 71 px around 121 px labels, the question's 2nd line under row 1: `a-rev/shots/p02-welcome-844-130-after.jpg`), so under a text size the question does not shrink and the cards keep `max-content` rows; the choices scroll. After (844 × 340 touch, dpr 2, 130 %): box 24..318, name tag 7..43, question 54..129, cap 226 CSS px × 1.3 = 294 (`p04-welcome-844-130-final.jpg`). 100 % unchanged (box 57..318). |
+
+### Own pass (`git log origin/opus-bay --grep "W9-A[0-9:-]"`, 7 commits; the lens had read every diff)
+
+- No other zoomed surface (sheet bodies, toasts, bubbles, the arrival card) has its own viewport-unit max-height, so the
+  zoom-multiplies-the-cap bug is only the dialogue box's.
+- The 100 % layout is untouched by A-RV-3 (the two remaining rules are under `.ob-page[data-ob-text]`).
+- District mode: no change (the three edits are the play layer's keys and CSS).
+- Not found: softlocks, site breakage. GameRoot not touched (no new module).
+
+### Open items (not blocking)
+
+- A-RV-1 is verified in jsdom (history + the guard + the dialogue) but not re-run in a real browser on this tree: the dev
+  server was stopped by its time limit after the A-RV-2 run, under 100 % CPU (161 node processes). The mechanism is the
+  same popstate → Escape path the lane verified in a browser in part a / c.
+- At 100 % the grid menus keep their card height through lane Q's `.ob-dialogue-box > .ob-choices.is-grid { grid-auto-rows:
+  max-content }` (3c29f9ad); a one-column menu at 100 % on 844 × 340 not measured.
+
+### Not pushed (the 06:45 deadline)
+
+- The first push (06:43) was rejected (new commits upstream); the second rebase hit a conflict in `src/opus-bay/opus-bay.css`
+  with lane Q's Q-RV-3 (the same cap fix), resolved to lane Q's rules + this fix's two text-size rules; by then it was
+  06:50. As the brief says the last push is 06:45, the two commits stay on the local branch **w9-a-rev** (rebased onto
+  38afd264): 0ec8ca48 (code + tests/opus-bay-w9-a-review.test.ts) and this report. The lead can cherry-pick them.
+
+### Checks (tree 4ed7dc4a before the rebase)
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (53 warnings) · lane A tests 29 / 29 + the 4 new ·
+  the opus-bay suite was still running at the 06:45 push deadline under 100 % CPU: 1385 passed, 0 failed so far (the rest
+  unrun at push time); it finished at 06:51: 2146 tests, 2145 pass, 0 fail, 1 todo (GameRoot ≤ 255 KB, the known wave-8
+  target; the tree moved under it with the rebases). After the rebase onto 686e4c02: tests/opus-bay-w9-a-review + w9-p-review
+  10 / 10; after the conflict resolution on 38afd264: tests/opus-bay-w9-a-review 4 / 4 (one run under load 3 / 4 — a
+  700 ms wait — re-run green).
