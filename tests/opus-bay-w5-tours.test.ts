@@ -178,7 +178,13 @@ test('W5-C5 the Grand Tour carries the player on every stop (like a map trip); a
   flowMod.tourNext();
   assert.equal(cityTour.cityTourRun()?.stop, 'bay-ride-ggb');
   assert.equal(auto.autoOn(), true, 'the next stop carries too');
-  // a takeover (auto-travel off while the stop's trip runs): the tour remembers it
+  // (W9-N1) a stuck leg the runner gave up and rescued is not a takeover: the tour keeps carrying the next legs
+  auto.noteAutoEnd('giveup');
+  auto.autoEnd();
+  assert.equal(cityTour.cityTourRun()?.carry, true, 'a give-up keeps the tour carrying');
+  auto.autoBegin();
+  // a takeover (auto-travel off while the stop's trip runs — game/tripRun notes why): the tour remembers it
+  auto.noteAutoEnd('takeover');
   auto.autoEnd();
   assert.equal(cityTour.cityTourRun()?.carry, false);
   // the call menu: 继续：带我去… (a tour-next) carries again

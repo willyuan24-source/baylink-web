@@ -258,19 +258,16 @@ test('the Grand Tour copy in the main graph equals the lazy tour data (welcome s
   for (const n of [1, 3, 5]) assert.deepEqual(GRAND_TOUR.resume(n), tourResumeLabel(SF_GRAND, { chapter: n - 1, stop: 0, completed: ['bay-start'] }));
 });
 
-test('the Grand Tour: welcome → 完整版 / 快速版 → each stop a tour trip → arrive line + dwell → next; end keeps the progress; the call menu resumes it', async () => {
+test('the Grand Tour: welcome → the full tour at once (W9-N3: no 完整版 / 快速版 question) → each stop a tour trip → arrive line + dwell → next; end keeps the progress; the call menu resumes it', async () => {
   reset('city');
   save.resetSaveCache();
   const cityTour = await import('../src/opus-bay/game/cityTour');
   cityTour.initCityTour();
   const moments = await import('../src/opus-bay/game/cityMoments');
   flowMod.startTour(GRAND_TOUR.id);
-  assert.equal(game.get().dialogue.nodeId, 'flow.tour.sf-grand', '完整版 / 快速版 first');
-  const node = flowMod.nodeById('flow.tour.sf-grand')!;
-  // (W5-C5, lane C: the tour times come from the re-timed model, not typed here)
-  assert.ok(node.choices![0].label.zh.startsWith(`完整版 · ${minutesLabel(SF_GRAND.minutes).zh}`), node.choices![0].label.zh);
-  assert.ok(node.choices![1].label.zh.startsWith(`快速版 · ${minutesLabel(SF_GRAND.expressMinutes).zh}`), node.choices![1].label.zh);
-  flowMod.chooseDialogue(0);
+  // (W9-N3, review R§6 上手与引导: the two versions differed by 7 minutes; the question sat on top of the time toast)
+  assert.notEqual(game.get().dialogue.nodeId, 'flow.tour.sf-grand', 'no version question');
+  assert.equal(cityTour.cityTourRun()?.express, false, 'the full tour');
   assert.equal(game.get().tour.id, GRAND_TOUR.id);
   assert.equal(game.get().tour.active, true);
   assert.equal(game.get().mode, 'tour');

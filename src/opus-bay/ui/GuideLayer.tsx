@@ -8,7 +8,7 @@ import PHOTO_ASSETS from '../../data/sf-landmark-photo-assets.json';
 import { runtime } from '../core/runtime';
 import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
-import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourPill, walkTo } from '../game/flow';
+import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourNext, tourPill, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
 import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
@@ -258,9 +258,13 @@ export function GuideLeadChip() {
   }
   if (tripLive || (!touchOn && !idleChip) || dialogue || panel) return null;
   const go = () => {
+    flow.set({ leadChip: false });
+    // (W9-N1, review R§5 #7: the chip walked the same blocked way again) a Grand Tour stop: BAYBAY carries the player
+    // again (the watchdog and the stuck card included), as 继续：带我去… in the call menu does
+    const f = flow.get();
+    if (f.tourPhase === 'leading' && f.trip?.source === 'tour') { tourNext(); return; }
     const target = runtime.guide.target ?? objectiveTarget();
     if (target) walkTo(target);
-    flow.set({ leadChip: false });
   };
   return (
     <>

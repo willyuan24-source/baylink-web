@@ -358,7 +358,8 @@ test('W5-N3 reducer: persistent across legs; a stopped-short walk retries after 
     assert.equal(r.state.fails, i);
   }
   r = short(r.state.issuedAt + AT.AUTO_RETRY_MS);
-  assert.deepEqual(r.decision, { type: 'giveup' });
+  // (W9-N1) the give-up says why: the fails (the watchdog's is `stall`)
+  assert.deepEqual(r.decision, { type: 'giveup', why: 'fails' });
   assert.equal(r.state.on, false);
   // a step-out done (the target moved on): issued again at once, no fail counted
   const st = { ...AT.AUTO_IDLE, on: true, issued: { x: 3, z: 0 }, issuedAt: 5000, legKey: 'L3' };

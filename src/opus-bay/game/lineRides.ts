@@ -385,7 +385,7 @@ export function leaveSpot(r: RideState, st: W4Status | null, finishing: boolean,
   const pose = at && st ? rideSystemFor(l.id)?.cars[st.car]?.pose : undefined;
   if (at && pose) {
     const pole = boardAt(w4, at);
-    if (Math.hypot(pole.x - pose.x, pole.z - pose.z) <= POLE_STEP) return { spot: clearOfPath(l.path, pole), side, station: at.id };
+    if (Math.hypot(pole.x - pose.x, pole.z - pose.z) <= POLE_STEP) return { spot: roomySpot(l.path, clearOfPath(l.path, pole)), side, station: at.id };
   }
   return { spot: null, side, station: st?.station ?? null };
 }
@@ -420,6 +420,38 @@ export function clearOfPath(path: readonly number[], p: { x: number; z: number }
   return { x: p.x, z: p.z };
 }
 
+/** (W9-N1) The room (u, a standing disc) a rider gets off into at a surface stop. */
+export const ALIGHT_CLEAR = 0.9;
+
+/** Distance from `p` to a line's centreline (flat [x, y, z, …] path), scanning the segments within 12 u. */
+function pathDist(path: readonly number[], p: { x: number; z: number }): number {
+  let d = Infinity;
+  for (let i = 3; i + 2 < path.length; i += 3) {
+    const ax = path[i - 3], az = path[i - 1], bx = path[i], bz = path[i + 2];
+    if (Math.max(ax, bx) < p.x - 12 || Math.min(ax, bx) > p.x + 12 || Math.max(az, bz) < p.z - 12 || Math.min(az, bz) > p.z + 12) continue;
+    const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((p.x - ax) * dx + (p.z - az) * dz) / L2));
+    d = Math.min(d, Math.hypot(p.x - (ax + dx * t), p.z - (az + dz * t)));
+  }
+  return d;
+}
+
+/**
+ * (W9-N1, review R§5 #7: off at Lands End the rider stood pinned in a corner and the carried walk gave up) the spot a
+ * rider gets off at, with ALIGHT_CLEAR of room round it: the spot itself when it has the room, else the nearest point on
+ * rings up to 3 u that has it and stays PATH_CLEAR off the line (the vehicle never waits for them), else the spot.
+ */
+export function roomySpot(path: readonly number[], p: { x: number; z: number }, stand: (x: number, z: number, r: number) => boolean = canStand): { x: number; z: number } {
+  if (stand(p.x, p.z, ALIGHT_CLEAR)) return p;
+  for (const r of [0.75, 1.5, 2.25, 3]) {
+    for (let k = 0; k < 12; k++) {
+      const a = (k * Math.PI) / 6, q = { x: p.x + Math.cos(a) * r, z: p.z + Math.sin(a) * r };
+      if (stand(q.x, q.z, ALIGHT_CLEAR) && pathDist(path, q) >= PATH_CLEAR) return q;
+    }
+  }
+  return p;
+}
+
 /** 直接到站 farther than this (u, straight to the destination: beyond the ring the streamer holds round the player) waits under a veil for the city to stream in. */
 export const SKIP_VEIL_OVER = 250;
 
@@ -431,7 +463,7 @@ export const SKIP_VEIL_OVER = 250;
  * (W5-T2) Returns a handle: `cancel()` drops the jump and lifts the veil at once — a hop-off or a fly-to during the veil
  * wins (game/transit.ts leaveLineRide / the jump's travel check).
  */
-export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void): { cancel(): void } {
+export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null, jump: () => void, text: Bilingual | null = null): { cancel(): void } {
   if (typeof document === 'undefined') { jump(); return { cancel() {} }; }
   const host = document.querySelector('.ob-overlay') ?? document.body;
   const veil = document.createElement('div');
@@ -443,7 +475,9 @@ export function veiledSkip(to: { x: number; z: number }, name: Bilingual | null,
     color: '#f5efe2', font: '800 17px/1.4 inherit', letterSpacing: '.02em',
   } as Partial<CSSStyleDeclaration>);
   // (plain DOM: pick() gives 繁體 its own characters — the site's React layer never sees this node)
-  if (name) veil.textContent = pick({ zh: `直接到站：${name.zh} …`, en: `Next stop: ${name.en} …` }, getLocale());
+  // (W9-N1) `text`: the trip runner's own words (a blocked way delivered: "BAYBAY 带你绕过去…")
+  if (text) veil.textContent = pick(text, getLocale());
+  else if (name) veil.textContent = pick({ zh: `直接到站：${name.zh} …`, en: `Next stop: ${name.en} …` }, getLocale());
   host.appendChild(veil);
   requestAnimationFrame(() => { veil.style.opacity = '1'; });
   const streamer = cityStreamerLazy();

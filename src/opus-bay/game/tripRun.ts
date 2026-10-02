@@ -4,14 +4,15 @@ import { emit, onEvent } from '../core/events';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import { canStand, nearestWalkable } from '../core/terrain';
+import { canStand, heightAt, nearestWalkable } from '../core/terrain';
+import { findPath } from '../actors/nav';
 import type { Bilingual, DialogueNode, Vec2 } from '../core/types';
 import { ATTRACTION_INDEX } from '../data/sf/attractions';
 import { activeCableSystem, activeLineFleet, activeStreetcarSystem, rideSystemFor } from '../data/transit';
 import { isDiscovered } from './discovery';
 import { registerAskItem } from '../ui/slots';
 import {
-  type AutoWant, YIELD_AFTER_S, YIELD_CLEAR_R, YIELD_OTHER_CLEAR, YIELD_SIDE, autoBegin, autoEnd, autoOn, autoState, autoStep, setAutoState, vehicleAxisDist,
+  type AutoWant, YIELD_AFTER_S, YIELD_CLEAR_R, YIELD_OTHER_CLEAR, YIELD_SIDE, autoBegin, autoEnd, autoOn, autoState, autoStep, noteAutoEnd, setAutoState, vehicleAxisDist,
   yieldSpot,
 } from './autoTravel';
 import { leadStep, leadTo } from './brain';
@@ -19,7 +20,7 @@ import { startTravel, travelActive } from './fastTravel';
 import { W8K_LINES } from './fixedLines';
 import { isScenicLeg } from './scenicTrip';
 import {
-  announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
+  announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, teleportPlayer, type TripDest, type TripRunner,
 } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById, type Interactable } from './interactables';
@@ -29,6 +30,7 @@ import { timeLabel } from './tripText';
 import { currentLeg, isArrived, legTarget, tripEvents, tripReducer, walkLeg, type TripAction } from './trips';
 import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './tripTypes';
 import { importRetry } from './importRetry';
+import { tripRouteCache } from './tripProviders';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -172,13 +174,13 @@ function withDestName(legs: TripLeg[], name: Bilingual): TripLeg[] {
   return [...legs.slice(0, -1), { ...last, to: { ...last.to, name } } as TripLeg];
 }
 
-function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; stopGlide(); }
+function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; detour = null; shortChecked = ''; shortSince = 0; stopGlide(); }
 
 /** A leg just became current: fly legs take off at once. */
 function onLegStart(t: TripState) {
   const leg = currentLeg(t);
   legKey = keyOf(t);
-  stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false;
+  stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; detour = null;
   stopGlide();
   if (!leg) return;
   if (leg.via === 'fly') {
@@ -497,14 +499,19 @@ export function vehicleYield(player: Vec2, vehicles: readonly LineVehicle[], tow
 /** 10 Hz (and at a trip's start): step auto-travel and apply its decision. */
 function autoTick(now: number) {
   const st = autoState();
-  if (!st.on) return;
+  if (!st.on || delivering) return;
   const t = flow.get().trip, leg = currentLeg(t);
   if (!t || !leg) { autoEnd(); return; }
   const s = game.get(), f = flow.get(), pl = runtime.player;
   const blocked = s.phase !== 'playing' || !!s.dialogue.nodeId || !!s.panel.kind || !!f.cinematic || travelActive() || s.riding !== null
     || s.move.mode !== 'foot' || s.photoMode;
   const player = { x: pl.x, z: pl.z };
-  const want = autoWant(leg, pl);
+  // (W9-N1) 换条路 on the stuck card: the detour spot first, then the leg's own target
+  if (detour && dist(player, detour) <= DETOUR_AT_R) detour = null;
+  const want = detour ? { p: detour, r: DETOUR_AT_R } : autoWant(leg, pl);
+  // (W9-N1) a short way that walks a long way round (the Golden Gate stop → the Welcome Center: 30 u straight, 259 u on
+  // foot round the cliff) is delivered at once under the veil
+  if (!blocked && want && !detour && !st.escaping && shortLegCheck(keyOf(t), player, want)) return;
   const y = blocked || !want ? { to: null, near: false } : vehicleYield(player, lineVehicles(), want.p);
   const { state, decision } = autoStep(st, {
     now, manualAt, pathTarget: pl.pathTarget, player, want, blocked, legKey: keyOf(t), yieldTo: y.to, vehicleNear: y.near,
@@ -515,9 +522,167 @@ function autoTick(now: number) {
     pl.pathTarget = decision.p;
     pl.pendingInteract = decision.interact ?? null;
     if (decision.yield) bubble({ zh: '有车来，我们先让一让～', en: 'A car is coming. Let’s step aside' }, 2600, BAYBAY_ID, 'call');
+  } else if (decision.type === 'escape') {
+    // (W9-N1) the player gets out of the stuck spot by hand: our walk stops, BAYBAY carries on once they let go
+    if (st.issued && pl.pathTarget === st.issued) { pl.pathTarget = null; pl.pendingInteract = null; }
+  } else if (decision.type === 'takeover') {
+    noteAutoEnd('takeover');
   } else if (decision.type === 'giveup') {
-    bubble({ zh: '这段路有点难走，你来带路吧！', en: 'This bit is tricky — you steer for a moment!' }, 3000, BAYBAY_ID, 'call');
+    // (W9-N1, review R§5 #7) no silent "you steer" any more: a short way is delivered, a long one gets the stuck card
+    noteAutoEnd('giveup');
+    detour = null;
+    if (st.issued && pl.pathTarget === st.issued) { pl.pathTarget = null; pl.pendingInteract = null; }
+    rescue(t, want);
   }
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// W9-N1 · the stuck rescue (review R§5 #7: a tour leg stood 6 min after three silent retries; the SoMa leg 45 s of
+// "BAYBAY 带路中", then a chip that retried the same blocked way)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** A carried leg that gave up this close (u, straight) to where it walks is delivered under a veil — no card. */
+export const DELIVER_R = 60;
+/** 换条路: the detour spot counts as reached this close (u). */
+export const DETOUR_AT_R = 2;
+/** 换条路: candidate detour spots on rings this far round the player (u), 12 bearings each. */
+export const DETOUR_RINGS = [10, 16, 24] as const;
+/** 换条路: at most this many candidates get a path check (the local A*: a click, not a frame). */
+export const DETOUR_CHECKS = 16;
+/** (W9-N1) the stuck card's line (a fixed line lane X can voice; C:/Users/willy/opus-qa/w9/new-lines.md) */
+export const STUCK_LINE: Bilingual = { zh: '这段路被挡住了，我们怎么走？', en: 'This way is blocked. How shall we go?' };
+const STUCK_FLY: Bilingual = { zh: '飞过去', en: 'Fly there' };
+const STUCK_DETOUR: Bilingual = { zh: '换条路', en: 'Try another way' };
+const STUCK_SELF: Bilingual = { zh: '我自己走', en: 'I’ll walk myself' };
+/** the veil's words while a short blocked way is skipped (plain DOM, not voiced) */
+const DELIVER_VEIL: Bilingual = { zh: 'BAYBAY 带你绕过去…', en: 'BAYBAY takes you round…' };
+
+let detour: Vec2 | null = null;
+/** (W9-N1) a blocked way is being delivered under the veil: the carried walk waits */
+let delivering = false;
+
+/** (W9-N1) A carried on-foot way this short (u, straight) is checked against its walking route once per leg … */
+export const SHORT_LEG_R = 60;
+/** … and delivered at once when the route is this many times the straight line and this much longer (u), or none exists. */
+export const DETOUR_K = 3;
+export const DETOUR_EXTRA = 80;
+/** the route check gives up waiting for the A* after this long (ms): then the leg is walked (the watchdog covers it) */
+export const SHORT_LEG_WAIT_MS = 8000;
+
+/** Deliver a short way at once (pure): `route` = the walking route's length, null = no route, undefined = not known. */
+export function deliverAtOnce(straight: number, route: number | null | undefined): boolean {
+  if (straight > SHORT_LEG_R || straight < AUTO_AT_R || route === undefined) return false;
+  return route === null || route > Math.max(straight * DETOUR_K, straight + DETOUR_EXTRA);
+}
+
+/** the leg (key) whose short-way check is done, and since when it waits for the route */
+let shortChecked = '';
+let shortSince = 0;
+let shortFor = '';
+/** Once per leg: ask the route cache (the A* the planner uses) and deliver a short way that walks far round. True = delivering. */
+function shortLegCheck(key: string, player: Vec2, want: AutoWant): boolean {
+  if (shortChecked === key) return false;
+  const straight = dist(player, want.p);
+  if (straight > SHORT_LEG_R || straight < AUTO_AT_R) { shortChecked = key; return false; }
+  const now = performance.now();
+  if (!shortSince || shortFor !== key) { shortSince = now; shortFor = key; }
+  let route: number | null | undefined;
+  try { const a = tripRouteCache().walk(player, want.p); route = a === null ? null : a?.length; } catch { route = undefined; }
+  if (route === undefined && now - shortSince < SHORT_LEG_WAIT_MS) return false;
+  shortChecked = key; shortSince = 0;
+  if (!deliverAtOnce(straight, route)) return false;
+  deliver(want.p);
+  return true;
+}
+
+/** What a give-up does with the way left (pure): within DELIVER_R → 'deliver' (veil + set down there), else 'card'. */
+export function rescueKind(player: Vec2, target: Vec2, r: number = DELIVER_R): 'deliver' | 'card' {
+  return dist(player, target) <= r ? 'deliver' : 'card';
+}
+
+/**
+ * 换条路 (pure): a standable spot on a ring round the player (DETOUR_RINGS × 12 bearings), nearest the target first,
+ * from which the local path to the target exists and to which the player can walk — the first of at most `checks`
+ * candidates that pass, else null (then the way is delivered). Not the spot the player stands on (≥ the first ring).
+ */
+export function detourSpot(player: Vec2, target: Vec2, stand: (p: Vec2) => boolean, path: (a: Vec2, b: Vec2) => boolean, checks: number = DETOUR_CHECKS): Vec2 | null {
+  const cands: Vec2[] = [];
+  for (const r of DETOUR_RINGS) for (let k = 0; k < 12; k++) { const a = (k * Math.PI) / 6; cands.push({ x: player.x + Math.cos(a) * r, z: player.z + Math.sin(a) * r }); }
+  let n = 0;
+  for (const c of cands.filter(stand).sort((a, b) => dist(a, target) - dist(b, target))) {
+    if (n++ >= checks) break;
+    if (path(player, c) && path(c, target)) return c;
+  }
+  return null;
+}
+
+/** The local A* answers with a way (the city window's grid; a clamped answer still leads toward the goal). */
+const pathOk = (a: Vec2, b: Vec2): boolean => { const r = findPath(a, b, 6); return !!r && r.points.length > 0; };
+
+function rescue(t: TripState, want: AutoWant | null) {
+  const leg = currentLeg(t);
+  const target = want?.p ?? (leg ? legTarget(leg, 'approach') : null);
+  if (!target) return;
+  if (rescueKind(P(), target) === 'deliver') { deliver(target); return; }
+  openStuckCard();
+}
+
+/** Under a veil, set the player (and BAYBAY) down at the blocked way's end on walkable ground; carrying goes on. */
+function deliver(to: Vec2) {
+  if (delivering) return;
+  const t0 = flow.get().trip;
+  const spot = nearestWalkable(to, 8) ?? to;
+  delivering = true;
+  const pl = runtime.player;
+  if (pl.pathTarget && pl.pathTarget === autoState().issued) { pl.pathTarget = null; pl.pendingInteract = null; }
+  void importRetry(() => import('./lineRides')).then(m => m.veiledSkip(spot, null, () => {
+    delivering = false;
+    // (the trip may have ended or changed under the veil: then nothing moves)
+    const now = flow.get().trip;
+    if (!now || !t0 || now.startedAt !== t0.startedAt || isArrived(now)) return;
+    teleportPlayer(spot);
+    runtime.guide.x = spot.x + 1.2; runtime.guide.z = spot.z + 0.8; runtime.guide.y = heightAt(runtime.guide.x, runtime.guide.z);
+    if (!autoOn()) autoBegin();
+    autoTick(performance.now());
+  }, DELIVER_VEIL), () => { delivering = false; });
+}
+
+/** The stuck card (a BAYBAY card with three answers; F's attention arbiter takes it in the title slot once it lands). */
+function openStuckCard() {
+  if (dialogueOpen() || game.get().phase !== 'playing') { say(STUCK_LINE.zh, STUCK_LINE.en, 'info', 4200); return; }
+  const choices: NonNullable<DialogueNode['choices']> = [
+    { hotkey: '1', label: STUCK_FLY, action: { type: 'ask', id: ASK_STUCK_FLY } },
+    { hotkey: '2', label: STUCK_DETOUR, action: { type: 'ask', id: ASK_STUCK_DETOUR } },
+    { hotkey: '3', label: STUCK_SELF, action: { type: 'end' } },
+  ];
+  playDialogue(defineNode({ id: 'flow.trip.stuck', speaker: 'baybay', mood: 'thinking', text: STUCK_LINE, choices }));
+}
+
+const ASK_STUCK_FLY = 'n-stuck-fly';
+const ASK_STUCK_DETOUR = 'n-stuck-detour';
+
+/** 飞过去: the rest of the trip as one flight to its end (the pelican's hop; set down under a veil if it cannot fly). */
+function stuckFly() {
+  const t = flow.get().trip;
+  if (!t || isArrived(t)) return;
+  const last = t.legs[t.legs.length - 1].to;
+  const from = P();
+  const length = dist(from, last);
+  const leg: TripLeg = { via: 'fly', from: { x: from.x, z: from.z }, to: { ...last }, place: t.placeId, seconds: 8, length };
+  replan({ mode: 'fly', legs: [leg], seconds: leg.seconds });
+}
+
+/** 换条路: a detour spot BAYBAY walks to first, then on to the leg's target (no spot: the way is delivered). */
+function stuckDetour() {
+  const t = flow.get().trip, leg = currentLeg(t);
+  if (!t || !leg) return;
+  const target = autoWant(leg, runtime.player)?.p ?? legTarget(leg, 'approach');
+  if (!target) return;
+  const spot = detourSpot(P(), target, p => canStand(p.x, p.z, 0.6), pathOk);
+  if (!spot) { deliver(target); return; }
+  detour = spot;
+  if (!autoOn()) autoBegin();
+  autoTick(performance.now());
 }
 
 /**
@@ -568,6 +733,11 @@ export function initTripRun(): () => void {
   booted = true;
   const runner: TripRunner = { start, skip, replan, end, arrived, freeLead, objective, guide };
   setTripRunner(runner);
+  // (W9-N1) the stuck card's answers (ask actions; never listed in the 问 BAYBAY menu)
+  const offStuck = [
+    registerAskItem({ id: ASK_STUCK_FLY, order: 999, label: STUCK_FLY, icon: Navigation, visible: () => false, onSelect: stuckFly }),
+    registerAskItem({ id: ASK_STUCK_DETOUR, order: 999, label: STUCK_DETOUR, icon: Navigation, visible: () => false, onSelect: stuckDetour }),
+  ];
   let acc = 0;
   const offFrame = registerFrameSystem('c-trips', (dt, now) => {
     // every frame: a held movement key / stick is a takeover (a quick tap must not slip between the 10 Hz steps)
@@ -583,5 +753,5 @@ export function initTripRun(): () => void {
     const t = flow.get().trip, leg = currentLeg(t);
     if (t && leg && leg.via !== 'fly') end();
   });
-  return () => { offFrame(); offEvents(); offAsk?.(); offAsk = null; askText = ''; autoEnd(); setTripRunner(null); resetLeg(); booted = false; };
+  return () => { offFrame(); offEvents(); offAsk?.(); offAsk = null; askText = ''; offStuck.forEach(off => off()); autoEnd(); setTripRunner(null); resetLeg(); booted = false; };
 }

@@ -29,9 +29,20 @@ export interface AutoState {
    * (a streetcar held 72 s, the walk gave up, 自动跟上 walked back into it).
    */
   yielding: { p: Vec2; since: number } | null;
+  /**
+   * (W9-N1, review R§5 #7) the no-progress watchdog: where the carried player last made progress (moved
+   * AUTO_PROGRESS_U from it) and when (ms); null = not measured yet (a new leg, a begin)
+   */
+  anchor?: Vec2 | null;
+  progressAt?: number;
+  /**
+   * (W9-N1) the player is getting out of a stuck spot by hand (the stick / WASD / a tap while the walk was stuck):
+   * not a takeover — BAYBAY carries on once they let go (AUTO_ESCAPE_IDLE_MS)
+   */
+  escaping?: boolean;
 }
 
-export const AUTO_IDLE: AutoState = { on: false, issued: null, issuedAt: 0, fails: 0, legKey: '', yielding: null };
+export const AUTO_IDLE: AutoState = { on: false, issued: null, issuedAt: 0, fails: 0, legKey: '', yielding: null, anchor: null, progressAt: 0, escaping: false };
 
 /** Where auto-travel walks now: a point, the arrival radius, and an interactable to use on arrival (a parked bike). */
 export interface AutoWant { p: Vec2; r: number; interact?: string }
@@ -60,8 +71,13 @@ export type AutoDecision =
   | { type: 'issue'; p: Vec2; interact?: string; yield?: true }
   /** the player took over (stick / WASD / a tap elsewhere): auto-travel is off, the trip goes on */
   | { type: 'takeover' }
-  /** the auto-walk kept stopping short: off, BAYBAY says "这段你来走" */
-  | { type: 'giveup' };
+  /**
+   * the auto-walk kept stopping short (`fails`) or made no progress for AUTO_STALL_MS (`stall`): off, and the trip
+   * runner rescues the leg (W9-N1: a short leg is delivered under a veil, a long one gets the stuck card)
+   */
+  | { type: 'giveup'; why?: 'fails' | 'stall' }
+  /** (W9-N1) the stick / a tap while the walk was stuck: the player gets out by hand — still on, not a takeover */
+  | { type: 'escape' };
 
 /** A re-issue waits this long after the auto-walk stopped short (ms). */
 export const AUTO_RETRY_MS = 1500;
@@ -69,6 +85,22 @@ export const AUTO_RETRY_MS = 1500;
 export const AUTO_MAX_FAILS = 3;
 /** The leg's target moved this far from the issued one: walk to the new one (u). */
 export const AUTO_RETARGET = 1;
+
+/**
+ * (W9-N1, review R§5 #7: a tour leg stood 6 min after three silent retries) the watchdog: no progress (moving
+ * AUTO_PROGRESS_U from the last spot that counted) for this long (ms) while carried and free to walk → give up and rescue
+ */
+export const AUTO_STALL_MS = 20000;
+/** Moving this far (u) from the last progress spot counts as progress (a detour that first leads away still counts). */
+export const AUTO_PROGRESS_U = 3;
+/**
+ * (W9-N1) The walk counts as stuck after this long without progress (ms) or after a failed re-issue: the stick or a
+ * tap then is the player getting out by hand, not a takeover (the review: an escape from the Lands End shelter turned
+ * BAYBAY's carrying off for the rest of the tour).
+ */
+export const AUTO_STUCK_MS = 5000;
+/** … and BAYBAY carries on once the stick / keys have been let go this long (ms) and no walk of theirs runs. */
+export const AUTO_ESCAPE_IDLE_MS = 1200;
 
 /** A line vehicle has stood this long (s) short of the carried player on its track: step aside (CP-1). */
 export const YIELD_AFTER_S = 1;
@@ -125,22 +157,38 @@ export function yieldSpot(player: Vec2, car: { x: number; z: number; heading: nu
 export function autoStep(s: AutoState, i: AutoInput): { state: AutoState; decision: AutoDecision } {
   const none = (state: AutoState = s) => ({ state, decision: { type: 'none' } as AutoDecision });
   if (!s.on) return none();
-  // the player took over: a movement key / the stick since the last issue, or a walk target that is not ours
-  if (s.issued && (i.manualAt > s.issuedAt || (i.pathTarget !== null && i.pathTarget !== s.issued))) {
-    return { state: { ...AUTO_IDLE }, decision: { type: 'takeover' } };
+  // the player took over: a movement key / the stick since the last issue, or a walk target that is not ours —
+  // (W9-N1) unless the walk was stuck: then it is the player getting out by hand, and BAYBAY carries on after
+  const manual = !!s.issued && (i.manualAt > s.issuedAt || (i.pathTarget !== null && i.pathTarget !== s.issued));
+  if (manual && !s.escaping) {
+    const stuck = s.fails > 0 || (s.anchor != null && i.now - (s.progressAt ?? i.now) >= AUTO_STUCK_MS);
+    if (!stuck || !i.want || i.legKey !== s.legKey) return { state: { ...AUTO_IDLE }, decision: { type: 'takeover' } };
+    return { state: { ...s, issued: null, escaping: true, anchor: null }, decision: { type: 'escape' } };
   }
   let st = s;
-  if (i.legKey !== st.legKey) st = { ...st, legKey: i.legKey, fails: 0, issued: null, yielding: null };
-  if (!i.want) return none(st.issued || st.yielding ? { ...st, issued: null, yielding: null } : st);
-  if (i.blocked) return none(st);
+  if (i.legKey !== st.legKey) st = { ...st, legKey: i.legKey, fails: 0, issued: null, yielding: null, anchor: null, escaping: false };
+  if (!i.want) return none(st.issued || st.yielding || st.escaping ? { ...st, issued: null, yielding: null, escaping: false } : st);
+  // (W9-N1) getting out by hand: wait until the stick / keys are let go and no walk of theirs runs, then on (afresh)
+  if (st.escaping) {
+    if (i.now - i.manualAt < AUTO_ESCAPE_IDLE_MS || i.pathTarget !== null || i.blocked) return none(st);
+    st = { ...st, escaping: false, fails: 0, issued: null, anchor: { x: i.player.x, z: i.player.z }, progressAt: i.now };
+  }
+  // (W9-N1) the watchdog's clock stops while the player cannot walk (a dialogue, a panel, a ride) or steps aside
+  const pause = (x: AutoState): AutoState => (x.anchor ? { ...x, progressAt: i.now } : x);
+  if (i.blocked) return none(pause(st));
   // CP-1: a vehicle waits for us — step aside, let it pass, then walk on (the fails are not counted meanwhile)
   if (st.yielding) {
     const y = st.yielding, age = i.now - y.since;
-    if (age < YIELD_MAX_MS && (age < YIELD_MIN_MS || i.yieldTo || i.vehicleNear)) return none(st);
+    if (age < YIELD_MAX_MS && (age < YIELD_MIN_MS || i.yieldTo || i.vehicleNear)) return none(pause(st));
     st = { ...st, yielding: null };
   } else if (i.yieldTo) {
     const p = { x: i.yieldTo.x, z: i.yieldTo.z };
-    return { state: { ...st, issued: p, issuedAt: i.now, yielding: { p, since: i.now } }, decision: { type: 'issue', p, yield: true } };
+    return { state: { ...pause(st), issued: p, issuedAt: i.now, yielding: { p, since: i.now } }, decision: { type: 'issue', p, yield: true } };
+  }
+  // (W9-N1) progress: moved AUTO_PROGRESS_U from the last spot that counted; none for AUTO_STALL_MS → give up (rescue)
+  if (!st.anchor || dist(i.player, st.anchor) >= AUTO_PROGRESS_U) st = { ...st, anchor: { x: i.player.x, z: i.player.z }, progressAt: i.now };
+  else if (i.now - (st.progressAt ?? i.now) >= AUTO_STALL_MS && dist(i.player, i.want.p) > i.want.r) {
+    return { state: { ...AUTO_IDLE }, decision: { type: 'giveup', why: 'stall' } };
   }
   const w = i.want;
   const issue = (fails: number) => {
@@ -154,7 +202,7 @@ export function autoStep(s: AutoState, i: AutoInput): { state: AutoState; decisi
   if (dist(st.issued, w.p) > AUTO_RETARGET) return issue(st.fails);
   if (dist(i.player, w.p) <= w.r) return none(st);
   if (i.now - st.issuedAt < AUTO_RETRY_MS) return none(st);
-  if (st.fails + 1 > AUTO_MAX_FAILS) return { state: { ...AUTO_IDLE }, decision: { type: 'giveup' } };
+  if (st.fails + 1 > AUTO_MAX_FAILS) return { state: { ...AUTO_IDLE }, decision: { type: 'giveup', why: 'fails' } };
   return issue(st.fails + 1);
 }
 
@@ -163,6 +211,15 @@ export function autoStep(s: AutoState, i: AutoInput): { state: AutoState; decisi
 // ---------------------------------------------------------------------------------------------------------------
 
 let live: AutoState = { ...AUTO_IDLE };
+/**
+ * (W9-N1) Why carrying last stopped: 'takeover' (the player steered), 'giveup' (stuck: the runner rescued the leg) or
+ * 'end' (the trip ended / was cancelled). The Grand Tour turns its carrying off for the rest of the tour only on a
+ * takeover (review R§5 #7: a stuck leg used to count as one).
+ */
+export type AutoEndReason = 'takeover' | 'giveup' | 'end';
+let endReason: AutoEndReason | null = null;
+export const autoEndReason = (): AutoEndReason | null => endReason;
+export function noteAutoEnd(why: AutoEndReason) { endReason = why; }
 const subs = new Set<() => void>();
 const notify = () => { for (const fn of subs) fn(); };
 
@@ -179,7 +236,7 @@ export function setAutoState(next: AutoState) {
 }
 
 /** Start carrying (a trip from the map, a row, 问 BAYBAY, goTo; 自动跟上 on the chip). */
-export function autoBegin() { setAutoState({ ...AUTO_IDLE, on: true }); }
+export function autoBegin() { endReason = null; setAutoState({ ...AUTO_IDLE, on: true }); }
 /** Stop carrying (the trip ended or was cancelled). Returns the walk target this module had set, if any. */
 export function autoEnd(): Vec2 | null {
   const issued = live.issued;

@@ -13,7 +13,7 @@ import {
 } from './flow';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById } from './interactables';
-import { autoOn, subscribeAuto } from './autoTravel';
+import { autoEndReason, autoOn, subscribeAuto } from './autoTravel';
 import { unlockPelican } from './pelicanFirst';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
@@ -120,8 +120,18 @@ export function savedProgress(id: string): TourProgress | undefined {
   return decodeTourSaves(readSave()?.tours ?? {})[id];
 }
 
+/**
+ * The stop a resume starts at (pure): the first stop at or after `i` that is not completed (a stop just reached is
+ * completed, so the chapter after a chapter's last stop is the next one), else `i`. (W9-N3, review R§6 growth row: the
+ * save kept the finished chapter, and "继续一日游 · 第 n 章" said one less at every chapter boundary.)
+ */
+export function resumeIndex(stops: readonly FlatStop[], i: number, completed: readonly string[]): number {
+  for (let k = Math.max(0, i); k < stops.length; k++) if (!completed.includes(stops[k].stop.id)) return k;
+  return Math.min(Math.max(0, i), stops.length - 1);
+}
+
 function saveProgress(r: Run) {
-  const cur = r.stops[Math.min(r.i, r.stops.length - 1)];
+  const cur = r.stops[resumeIndex(r.stops, r.i, r.completed)];
   const chapter = cur?.chapter ?? 0;
   const stop = cur ? r.def.chapters[chapter].stops.findIndex(s => s.id === cur.stop.id) : 0;
   patchSave(s => { s.tours = { ...(s.tours ?? {}), [r.def.id]: { chapter, stop: Math.max(0, stop), completed: [...r.completed], ...(r.express ? { express: true } : {}) } }; });
@@ -264,7 +274,11 @@ export function skipCityTourStop() {
   nextStop(r);
 }
 
-/** The intro: 完整版 / 快速版 (a fresh tour), then off we go. */
+/**
+ * The intro: 完整版 / 快速版. (W9-N3) No longer asked — `start` begins the full tour; kept for a QA / test hook only
+ * (`chooseCityTourVersion`), the express version stays playable from a saved express run.
+ */
+export function chooseCityTourVersion(id: string) { const def = cityTour(id); if (def) choose(def); }
 function choose(def: CityTourDef) {
   const full = minutesLabel(def.minutes), express = minutesLabel(def.expressMinutes);
   const choices: NonNullable<DialogueNode['choices']> = [
@@ -294,7 +308,9 @@ function start(id: string) {
   if (run && run.def.id === id) { say('一日游已经在进行中啦', 'The Grand Tour is already under way', 'info', 2400); return; }
   const saved = savedProgress(id);
   if (saved && saved.completed.length) { begin(def, !!saved.express, saved.completed); return; }
-  choose(def);
+  // (W9-N3, review R§6: the two versions differed by 7 minutes and the question came on top of the morning toast) the
+  // full tour at once — any stop can be skipped and the tour ended at any time; a saved express run still resumes as one
+  begin(def, false, []);
 }
 
 /** The tour waits for the player (int-review): paused, or leading without the stop's trip. */
@@ -426,7 +442,9 @@ export function initCityTour(): void {
   // the chip turns carrying back on (a trip's own end switches it off with the trip already arrived: no change)
   subscribeAuto(() => {
     const r = run, trip = flow.get().trip;
-    if (r && r.phase === 'leading' && trip?.source === 'tour' && !isArrived(trip)) r.carry = autoOn();
+    // (W9-N1, review R§5 #7) only the player steering turns it off: a stuck leg the runner rescued (or the player got
+    // out of by hand) leaves BAYBAY carrying the next legs
+    if (r && r.phase === 'leading' && trip?.source === 'tour' && !isArrived(trip)) r.carry = autoOn() || autoEndReason() !== 'takeover';
   });
   // Settings → reset progress (verify F5): a running tour stops without writing its progress back into the new save
   onSaveCleared(() => { if (run) clearLines(); run = null; lastRun = null; pendingPick = null; });
