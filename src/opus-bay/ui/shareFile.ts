@@ -95,3 +95,20 @@ export function downloadFile(file: File): void {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
+
+/**
+ * W9-S-review (S-RV-1, review R§6 "点保存没有任何反应") · what a 保存 / 分享 tap that did not end in the share sheet
+ * says, and whether it counts as a share (S-RV-2). Shown as a status line INSIDE the sheet (the album viewer, the 约家人
+ * card), never as a toast: the title host (ui/titleHost.ts modalUp) holds every toast while a card / panel or a held
+ * overlay is up and drops it after 10 s, so a toast here was never seen.
+ *
+ *   longpress  the press hint, said as a reason (a download does nothing in this browser); 分享 counts (the album counts
+ *              its long-press route the same way: the player meant to send it, and WKWebView fires no event on the press)
+ *   download   保存: saved; 分享: saved + the link copied (or saved alone when the clipboard refused), counts
+ */
+export interface SendNote { note: 'press' | 'saved' | 'copied'; counts: boolean }
+export function sendNote(route: Exclude<SaveRoute, 'share'>, asSave: boolean, copied = false): SendNote {
+  if (route === 'longpress') return { note: 'press', counts: !asSave };
+  if (asSave) return { note: 'saved', counts: false };
+  return { note: copied ? 'copied' : 'saved', counts: true };
+}

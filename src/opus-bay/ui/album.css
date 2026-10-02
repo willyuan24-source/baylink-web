@@ -76,3 +76,9 @@
   -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; pointer-events: auto;
 }
 .ob-share-card .ob-album-press-hint { font-size: 13.5px; }
+
+/* W9-S-review (S-RV-1) · what 保存 / 分享 did, said in the sheet (a toast waits under the card and is dropped): the line
+   comes in again on every tap so a repeated tap is seen */
+.ob-share-note { animation: ob-share-note-in 0.32s ease-out; }
+@keyframes ob-share-note-in { from { opacity: 0.2; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ob-share-note { animation: none; } }

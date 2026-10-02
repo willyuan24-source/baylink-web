@@ -10,7 +10,7 @@ import { track } from '../game/metrics';
 import { photoLink } from '../game/photoCard';
 import { useT } from '../i18n';
 import { useDevice, useWindowKey } from './hooks';
-import { downloadFile, fileToDataUrl, refusedShareRoute, saveRoute, sharePayload, type SaveRoute } from './shareFile';
+import { downloadFile, fileToDataUrl, refusedShareRoute, saveRoute, sendNote, sharePayload, type SaveRoute } from './shareFile';
 import type { OverlayProps } from './slots';
 import './album.css';
 
@@ -23,6 +23,8 @@ import './album.css';
  * W9-S2 (review R§5 #8): 分享 carries the title 湾区小旅 / Little Bay Trip and the link back to the photo's spot
  * (game/photoCard.ts gameLink: `?at=<spot>&from=photo`, the same as the QR code on the card); a share the host app
  * refuses (not the player's own cancel) falls back to the long-press photo or a download instead of doing nothing.
+ * W9-S-review (S-RV-1): 照片已保存 / 链接复制好了 is a status line under the buttons, not a toast (the album is on
+ * BAYBAY's hold list, so the title host held those toasts while it was open and dropped them after 10 s).
  */
 
 const ALBUM_TEXT = {
@@ -119,6 +121,9 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
   const [asking, setAsking] = useState(false);
   // W7-Q4: the long-press photo (a data: URL) and whether it came from 保存 or 分享
   const [press, setPress] = useState<{ url: string; asSave: boolean } | null>(null);
+  // S-RV-1: what the last 保存 / 分享 did (n re-plays the line's entrance on a repeated tap); a new photo clears it
+  const [note, setNote] = useState<{ text: Bilingual; n: number } | null>(null);
+  useEffect(() => { setNote(null); }, [photo.id]);
   const url = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
   // the card itself, loaded when the photo opens (so 保存 / 分享 run inside the tap: iOS shares only from a gesture)
@@ -152,11 +157,14 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
       return;
     }
     downloadFile(file);
-    if (asSave) { toast(ALBUM_TEXT.saved, 'info', 2000); return; }
-    track('share', 'photo');
-    let copied: boolean;
-    try { await navigator.clipboard?.writeText(`${t(ALBUM_TEXT.shareText)} ${link}`); copied = !!navigator.clipboard; } catch { copied = false; }
-    toast(copied ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved, 'info', 2600);
+    let copied = false;
+    if (!asSave) {
+      try { await navigator.clipboard?.writeText(`${t(ALBUM_TEXT.shareText)} ${link}`); copied = !!navigator.clipboard; } catch { copied = false; }
+    }
+    const r = sendNote(route, asSave, copied);
+    if (r.counts) track('share', 'photo');
+    const text = r.note === 'copied' ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved;
+    setNote(prev => ({ text, n: (prev?.n ?? 0) + 1 }));
   };
   const remove = async () => { setAsking(false); await deletePhoto(photo.id); onGone(); };
 
@@ -201,6 +209,7 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
           <button type="button" className="ob-icon-btn ob-album-del" onClick={() => setAsking(true)} aria-label={t(ALBUM_TEXT.del)}><Trash2 size={18} aria-hidden /></button>
         </div>
       )}
+      {note && !asking && <p key={note.n} className="ob-album-press-hint ob-share-note" role="status" aria-live="polite">{t(note.text)}</p>}
     </div>
   );
 }

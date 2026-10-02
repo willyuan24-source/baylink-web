@@ -1,13 +1,15 @@
 import { API_BASE_URL } from './api';
 import { getLocale } from '../i18n/locale';
+import type { OpusEvent } from '../opus-bay/game/metricNames';
 
 export type ProductEvent = 'planner_recommendation' | 'plan_saved' | 'plan_shared' | 'official_source_click' | 'favorite_saved' | 'planner_map_opened' | 'planner_outing_adopted' | 'planner_edit_applied' | 'planner_web_search' | OpusProductEvent;
 /**
  * The 3D game's counters (/opus-bay). Its exact allowlist is src/opus-bay/game/metricNames.ts `OPUS_EVENTS`; the game
  * sends them only while its `OPUS_METRICS_LIVE` is on, i.e. once the API accepts them
- * (docs/opus-bay/w9-backend-metrics.patch) — an unknown name is rejected and spends the visitor's write limit.
+ * (docs/opus-bay/w9-backend-metrics.patch) — an unknown name is rejected and spends the visitor's write limit, so the type
+ * is that exact list (a type-only import: nothing of the game enters the site's bundle), not any `opus_` string.
  */
-export type OpusProductEvent = `opus_${string}`;
+export type OpusProductEvent = OpusEvent;
 
 /** Aggregate action counts only. Never send auth, referrers, URLs or user content. */
 export function recordProductEvent(event: ProductEvent): void {

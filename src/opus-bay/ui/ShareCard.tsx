@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { Download, Share2, Users, X } from 'lucide-react';
-import { toast } from '../core/store';
 import type { Bilingual, Catalog, CatalogEvent } from '../core/types';
 import { eventById, eventSpot, nextShowing, useCatalog } from '../data/catalog';
 import { landmarkAreaAt } from '../data/cityZones';
@@ -13,7 +12,7 @@ import { catalogText, useT } from '../i18n';
 import type { Locale } from '../../i18n/locale';
 import { loadedRealStops, nearestRealStops } from '../realsf/transitReal';
 import { useDevice } from './hooks';
-import { downloadFile, fileToDataUrl, inAppBrowser, refusedShareRoute, saveRoute, sharePayload, type SaveRoute } from './shareFile';
+import { downloadFile, fileToDataUrl, inAppBrowser, refusedShareRoute, saveRoute, sendNote, sharePayload, type SaveRoute, type SendNote } from './shareFile';
 import { cardFont, layoutCard, paintCard, type Measure } from './shareCardDraw';
 import { eventCard, howLines, placeCard, weekendCard, type FamilyCard, type ShareCardSpec, type Tr } from './shareCardModel';
 import type { OverlayProps } from './slots';
@@ -26,6 +25,9 @@ import './album.css';
  * press saves or forwards it in WeChat and the other in-app browsers; 保存 / 分享 go the album's way (ui/shareFile.ts:
  * the share sheet with the file + the link, a refused share falls back, a download elsewhere). A sent card counts
  * `track('share', 'card')`.
+ * W9-S-review (S-RV-1 / S-RV-2): what 保存 / 分享 did is said in the sheet's own status line (ui/shareFile.ts sendNote),
+ * not a toast — the title host holds toasts while this sheet is up and drops them after 10 s; the long-press route's
+ * 分享 counts the card, a right-click on a desktop does not.
  */
 
 const TEXT = {
@@ -33,6 +35,8 @@ const TEXT = {
   making: { zh: '正在做卡片…', en: 'Making the card…' },
   failed: { zh: '这张卡片没做出来，稍后再试', en: 'Could not make the card — try again later' },
   pressHint: { zh: '长按图片，保存或发给家人', en: 'Press and hold the picture to save or send it' },
+  // (S-RV-1: a tap in WeChat & co. — the browser cannot save from a button, so the line says why and what to do)
+  pressNow: { zh: '这里不能直接保存：请长按上面的图片，保存或发给家人', en: 'This app cannot save it from a button: press and hold the picture above' },
   hint: { zh: '保存到相册，或直接分享到家人群', en: 'Save it to Photos, or share it with your family' },
   save: { zh: '保存', en: 'Save' },
   share: { zh: '分享', en: 'Share' },
@@ -97,6 +101,14 @@ export default function ShareCard({ props, close }: OverlayProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   // a long press on the picture (WeChat & co.: the way out) counts the card once per opening
   const pressed = useRef(false);
+  const countOnce = () => { if (!pressed.current) { pressed.current = true; track('share', 'card'); } };
+  // S-RV-1: what the last 保存 / 分享 did, in the sheet itself (n re-plays the line's entrance on a repeated tap)
+  const [note, setNote] = useState<{ text: Bilingual; n: number } | null>(null);
+  const say = (r: SendNote) => {
+    if (r.counts) countOnce();
+    const text = r.note === 'press' ? TEXT.pressNow : r.note === 'copied' ? TEXT.copied : TEXT.saved;
+    setNote(prev => ({ text, n: (prev?.n ?? 0) + 1 }));
+  };
   const tr: Tr = (zh, en) => t(zh, en);
 
   useEffect(() => holdLock('panel', 'share-card'), []);
@@ -132,7 +144,7 @@ export default function ShareCard({ props, close }: OverlayProps) {
     if (route === 'share') {
       try {
         await navigator.share(sharePayload(nav, file, { title: card.title, text: t(TEXT.shareText), url: card.url }, asSave));
-        if (!asSave) track('share', 'card');
+        if (!asSave) countOnce();
         return;
       } catch (error) {
         const next = refusedShareRoute(error, nav);
@@ -140,13 +152,12 @@ export default function ShareCard({ props, close }: OverlayProps) {
         route = next;
       }
     }
-    if (route === 'longpress') { toast(TEXT.pressHint, 'info', 2600); return; }
+    if (route === 'longpress') { say(sendNote(route, asSave)); return; }
     downloadFile(file);
-    if (asSave) { toast(TEXT.saved, 'info', 2000); return; }
-    track('share', 'card');
+    if (asSave) { say(sendNote(route, true)); return; }
     let copied: boolean;
     try { await navigator.clipboard?.writeText(`${card.title} ${card.url}`); copied = !!navigator.clipboard; } catch { copied = false; }
-    toast(copied ? TEXT.copied : TEXT.saved, 'info', 2600);
+    say(sendNote(route, false, copied));
   };
 
   return (
@@ -158,9 +169,9 @@ export default function ShareCard({ props, close }: OverlayProps) {
           <button ref={closeRef} type="button" className="ob-icon-btn ob-icon-sm ob-album-close" onClick={close} aria-label={t('关闭', 'Close')}><X size={20} aria-hidden /></button>
         </header>
         <div className="ob-share-card-pic">
-          {ready ? <img src={ready.url} alt={ready.card.title} onContextMenu={() => { if (!pressed.current) { pressed.current = true; track('share', 'card'); } }} /> : <p className="ob-album-empty">{t(state === 'failed' ? TEXT.failed : TEXT.making)}</p>}
+          {ready ? <img src={ready.url} alt={ready.card.title} onContextMenu={() => { if (touch) countOnce(); }} /> : <p className="ob-album-empty">{t(state === 'failed' ? TEXT.failed : TEXT.making)}</p>}
         </div>
-        {ready && <p className="ob-album-press-hint">{t(inApp ? TEXT.pressHint : TEXT.hint)}</p>}
+        {ready && <p key={note?.n ?? 0} className={`ob-album-press-hint${note ? ' ob-share-note' : ''}`} role="status" aria-live="polite">{t(note?.text ?? (inApp ? TEXT.pressHint : TEXT.hint))}</p>}
         <div className="ob-album-actions">
           <button type="button" className="ob-btn ob-btn-primary" disabled={!ready} onClick={() => { void send(true); }}><Download size={17} aria-hidden /><span>{t(TEXT.save)}</span></button>
           <button type="button" className="ob-btn ob-btn-soft" disabled={!ready} onClick={() => { void send(false); }}><Share2 size={17} aria-hidden /><span>{t(TEXT.share)}</span></button>

@@ -42,6 +42,7 @@ export const BAYBAY_HOLD_OVERLAYS: readonly string[] = [
   // the city's cards
   'c-album', 'c-letter', // game/album.ts, game/residentTasks.ts
   'realsf-opening', // realsf/openings.ts OVERLAY_ID (a 新店 card)
+  'c-share-card', // lane S (W9): the 约家人 card (ui/shareCardModel.ts SHARE_CARD_ID)
 ];
 
 /**
