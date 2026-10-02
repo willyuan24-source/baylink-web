@@ -77,7 +77,7 @@ export function MoveChip() {
   const glide = () => { input.glideCount++; };
   const horn = () => { input.hornCount++; };
   const chip = (icon: ReactNode, name: string, hints: ReactNode) => (
-    <div style={chipStyle} role="status" aria-live="polite">
+    <div className="ob-move-chip" style={chipStyle} role="status" aria-live="polite">
       {icon}<strong style={{ fontSize: 14.5 }}>{name}</strong>{hints}
     </div>
   );

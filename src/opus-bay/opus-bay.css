@@ -1383,3 +1383,30 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 @media (max-height: 460px) and (min-width: 560px) {
   .ob-overlay .ob-play-sky { bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+/* ==========================================================================
+   Wave 9 · lane Q · phone & layout (sf-w9-lead.md §3 Q; the first-use review's 界面与交互 rows; w8 NEXT #9)
+   ========================================================================== */
+/* W9-Q1 (w8 W8I-D-2) · a ride with the map open on a desktop: the move chip (车厢里 · E 坐下 · WASD · Space 下车, ui/MoveChip.tsx,
+   centred on the window by an inline style) ran under the side sheet and over 问 BAYBAY at the foot of the HUD column
+   (1440 × 900: the chip 493…947, BAYBAY 792…852, the sheet from 868). With a sheet open it centres in the space left of the
+   sheet, as the prompt and the dialogue do. (!important: the chip's box is an inline style.) */
+@media (min-width: 721px) {
+  .ob-overlay.has-sheet .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px)) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 120px) !important; }
+}
+/* W9-Q2 (R§6 界面与交互: "HUD 和这周去哪按钮会跳位置", planner/shots/008 vs 039) · on a wide desktop (≥ 1181 px) the round
+   buttons were a row at the bottom right and turned into a column beside a side sheet, and the pills jumped: the row now stays
+   a row and slides left with the sheet (the objective pill too, the same distance), so every button keeps its order and its
+   height on screen. The prompt and the move chip step up over the row (it holds the bottom right of the space left of the
+   sheet). City only (the area pill's two lines exist only there): district mode keeps its column. */
+.ob-hud-buttons { transition: transform .4s var(--ob-ease), opacity .25s, right .35s var(--ob-ease); }
+.ob-objective { transition: transform .4s var(--ob-ease), box-shadow .2s, right .35s var(--ob-ease); }
+@media (min-width: 1181px) {
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-hud-buttons { flex-direction: row; }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-context { bottom: calc(86px + var(--ob-sb)); }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-context.is-lifted { bottom: calc(144px + var(--ob-sb)); }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-move-chip { bottom: calc(86px + var(--ob-sb)) !important; }
+}
+/* W9-Q3 (w8-Q review open item) · the one-time first-visit time offer (top stack, z 60) sat over the Metro card's top ≈ 20 px at
+   667 × 320 when a ride started within its 10 s: it waits while the underground layer is on */
+.ob-overlay:has(.ob-subway.is-on) .ob-topstack > .ob-time-offer { display: none; }
