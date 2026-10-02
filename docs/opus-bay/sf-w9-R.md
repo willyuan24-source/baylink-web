@@ -5,9 +5,12 @@ Times are PDT (America/Los_Angeles), 2026-10-01 → 10-02.
 
 ## 给主人的摘要
 
-1. 「今天在旧金山」一句话接口 `todayHeadline()` 已上线（舰队周 10/9–10/11、日落前 30 分钟「日落还有 n 分钟 · 飞去双峰」、当天免费福利、当天活动、三天内的大日子），标题页那条由 F 线接上。
-2. 「出行档案」`realsf/prefs.ts`：这周去哪的三个答案（带娃 / 带长辈 / 自己 / 两个人）会被记住，下次推荐、每日三件小事和卡片重点都能用。
-3. 有截止日期的四场旧金山图书馆亲子 / 社区活动（10/7 乐高、10/8 儿童科学游戏、10/17 社区历史日、10/24 开放日）已经进游戏：每场都在官网重新核对过（2026-10-01），门口有活动牌，有纪念章。
+1. 免费福利能「提前看到」了：这周去哪顶上有「这周免费」7 天条，地点卡写「近 7 天免费」（例：动物园卡在 10/1 就显示 10/7 旧金山居民免费日），活动卡和免费日都能「加到日历」（前一天提醒）。
+2. 「这周去哪」在城市模式先放宽「感觉」、再放宽「和谁」，最后才放宽地区；第三问改成旧金山的几片区域，新增「带长辈」；「带娃 · 户外 · 旧金山」不再推到圣罗莎和瓦卡维尔。答案会被记住，每日三件小事也按它挑。
+3. 卡片上不再出现编辑的内部备注（如「售票详情页本次触发等待页」），中英文都过滤；被空格粘在一起的两句话补上标点（全目录 113 处）。
+4. 迪扬博物馆和荣勋宫的卡写上「湾区九县居民每周六免费」（官网 2026-10-02 核对）；动物园小火车改成「11–16 点开，下雨或维护时停」；活动卡的公交班次按活动当天分工作日 / 周末。
+5. 四场有截止日期的旧金山图书馆活动（10/7、10/8、10/17、10/24）已进游戏；`todayHeadline()` 和出行档案接口按时交付。
+6. 需要网站那边做的：把「迪扬 / 荣勋宫周六免费」加进 BAYLINK 优惠库（游戏的免费条才能显示）、唐人街万圣节（10/31）录入活动库、修 First Thursdays 的 8 月旧链接、源头删掉内部备注。
 
 ## Part a (21:35 → ) — the contract APIs and the time-bound library events
 
@@ -130,3 +133,103 @@ E2-5 cached cell): both green alone (18 / 0, 24 / 0).
   "SF is quiet"), 户外 by what it is, the parts (venues in the right part; a part → the city → the Bay; 湾区其他地方 never
   SF), the notes, 带长辈 + a sweep of 3 × 5 × 6 answers (no 18+ for kids, no tech outside solo + culture, a note whenever
   something relaxed), the profile in today's three over 61 days. `tests/opus-bay-w9-r-free.test.ts` (5).
+
+## Part c (02:14 → 04:45) — the resume after the usage limit, correctness (W9-R3b, R5, R6, R7)
+
+The first lane-R agent stopped at ≈ 00:35 at an account usage limit. At 02:14 the worktree held W9-R3 and W9-R4
+committed but not pushed and three uncommitted files (`ui/EventCardBody.tsx`, new `data/publicText.ts`, new
+`tests/opus-bay-w9-r-words.test.ts`), 35 commits behind origin. What happened to them:
+
+- **W9-R3 / W9-R4**: kept as they were, rebased onto origin (no conflict), checked (tsc 0, eslint . 0 errors, the
+  opus-bay suite on the rebased tree: 2012 tests, 2010 pass, 1 todo, 1 fail = W8-Q3, caused by the uncommitted W9-R5
+  work, not by R3 / R4) and pushed at 02:52 (`9348e21f`, `d461bbd6`).
+- **W9-R3b** (`2bda2d03`): the event card's 「加到日历」 button — W9-R3's message and this report already named it, but
+  it was still in the uncommitted diff; split out and pushed with R3 / R4.
+- **The uncommitted publicText work was broken in English** (kept and fixed, not discarded): it filtered the zh string
+  before the site's runtime translated the text node, and the runtime's dictionary is keyed by the catalog's exact
+  text — so every changed SF card showed Chinese in English (W8-Q3 red, 20+ cards). Rewritten as W9-R5 below.
+
+### W9-R5 · the editors' working notes never reach a card (`0fb3cb6d`; review R§6 现实出行价值 row 4)
+
+- `data/publicText.ts` `publicText(s, locale)` / `publicLines(lines, locale)`. zh: a clause (or a ，part) that only
+  describes the editors' checking goes (触发 / 等待页 / 被阻 / 核实日之后 / 未代预约 / 不补造); 「本次」 leaves the honest
+  ones (「具体结束时间本次未复核」 → 「具体结束时间未复核」 — the honest uncertainty is the review's §4.2 strength, so it is kept,
+  not dropped); 节目页时长 → 时长; two sentences joined by a space get a ；. en: the site's translation of the ORIGINAL, then
+  the same in English ("during this check" goes, a "waiting screen" / "was blocked" / "verification date" / "on your
+  behalf" / "has been invented" sentence goes; "Prices and availability have not been retrieved." → "Check the official
+  ticket page for prices and availability."). zh-Hant: the zh result.
+- Used by the event card (date label, cost, summary, 出发前), the 今天 tab's event rows (cost) and the .ics description.
+  `scripts/opus-sf/export-live.ts` throws when an offer's title / requirement (zh or en) carries a working-note word.
+- Before / after over the whole catalog (1916 shown texts, all regions): working-note words zh **46 → 0**, en **48 → 0**;
+  zh sentences joined by a space **113 → 0**. Played (dev server 5904, 1440×900, `?date=2026-10-02T10:00`, English):
+  Renée Fleming's card reads "Cost and eligibility: Ticket prices have not been verified; check the official ticket page.
+  Purchase tickets for a specific performance." (the waiting-screen sentence gone) —
+  `docs/opus-bay/qa/w9/R/fleming-card-en-weekend.jpg`.
+
+### W9-R6 · de Young / Legion of Honor free Saturdays, the zoo's train (`1f098c09`; R§6 rows 6 + 11)
+
+- famsf.org answers 403 / a Cloudflare challenge to plain fetches (the first agent's `deyoung.html` in the scratch is the
+  challenge page); the ticket pages were read in headless Chrome on **2026-10-02**:
+  https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c (de Young) and
+  https://ticketing.famsf.org/events/019185a9-f777-f93c-59fc-52de9182bc57 (Legion of Honor): residents of the nine Bay
+  Area counties (Alameda, Contra Costa, Marin, Napa, San Francisco, San Mateo, Santa Clara, Solano, Sonoma) get free
+  general admission every Saturday; ID on site (a driver's license or a postmarked envelope with the address); four per
+  household; special exhibitions extra.
+- `data/sf/placeCards.ts` CARD_REFRESHES: de Young cost 「观景塔免费；湾区九县居民每周六免费看常设展（带有地址的证件或信件，特展另付）。」,
+  Legion cost the same + 「其他日子要买票」, both verifiedAt 2026-10-02. They are card text only: 这周免费 / 近 7 天免费 show
+  BAYLINK's own offers (`live.json`), and the site has no Free Saturdays offer (Request 1).
+- The zoo tip 「园里的小火车目前停运。」 → 「园里的 Little Puffer 蒸汽小火车 11:00–16:00 开，每人 9 美元；下雨或维护时停开，出发前确认。」
+  (https://www.sfzoo.org/rides-more/, read 2026-10-02: "Train Hours of Operation: 11:00 a.m. to 4 p.m.", "$9 per
+  person", "does not run in wet weather … periodically closed for maintenance").
+- `tests/opus-bay-w9-r-cards.test.ts` 2/2 (red 0/2 on the previous placeCards.ts); `tests/opus-bay-sf-cards.test.ts`
+  (surgical) accepts verifiedAt 2026-10-02.
+
+### W9-R7 · transit by the event's day (`cc292f37`; R§6 "交通班次不分工作日和周末")
+
+- `realsf/transitReal.ts serviceLabel(…, onDay)`: an event's row names 工作日 / 周末 (sfmta.com's two columns, checked
+  2026-09-28) and says 「那时停运」 when the line is not running at the event's start; without `onDay` it is unchanged.
+- `realsf/HowToGo.tsx` takes `day` / `event` (the event card passes its next day): the rows use that day and the
+  event's start (`eventDayHours`), the heading adds the day when it is not today. Played: Fleming's next showing (Sat
+  10/3 19:30) seen on Fri 10/2 — "Getting there for real · Tomorrow · Sat", N Judah "about every 12 min by day on
+  weekends", M "every 10–15 min by day on weekends" (before: the weekday columns of the day you look).
+- `tests/opus-bay-w9-r-transit.test.ts` 2/2 (red 1/2 on the previous transitReal.ts).
+
+### Checked, nothing to change
+
+- **The Chinatown Halloween Festival** (31 Oct): `realsf/calendar.ts` row `chinatown-halloween-festival-2026` (11:00–15:00,
+  cycsf.org) and lane L's map search (W9-L1 / L1b: 万圣 → 唐人街万圣节庆典 first) already make it findable;
+  https://www.cycsf.org/chinatown-halloween-festival/ re-read 2026-10-02: "Saturday, October 31, 2026, from 11am-3pm",
+  "on Waverly Place" — the row is right. The site catalog still lacks it (Request 2).
+- **live.json**: `npx tsx scripts/opus-sf/export-live.ts` re-run at ≈ 03:15 with the new guard: the same 15 SF offers
+  (the latest dated row is SFMOMA's 25 Oct family day); only `exported` changed, so the file was restored, not committed.
+- **New voiced lines**: none (C:/Users/willy/opus-qa/w9/new-lines.md has lane R's "none" row, 03:46).
+
+### Not done (handed on)
+
+- **The link-patrol script** (status + a month in the URL) was not written. Its one known find: the catalog's
+  `sf-downtown-first-thursday-oct-2026` links `https://www.theeastcut.org/event/downtown-first-thursday-august-2-2-3-7/`
+  (August) — the event day (1 Oct) has passed, so the game card shows 已结束; the source is the site's (Request 3).
+- **Manual "how to get there" for the T1 cards without one** (Golden Gate Bridge, the zoo, Legion of Honor: 28 bus,
+  PresidiGo, the L terminus) — not started; each needs an official source read (sfmta.com route pages, presidio.gov).
+- **de Young / Legion Saturdays in 这周免费**: waits for the site offer (Request 1); a game-side offer would have no
+  `/offers/:id` page to link.
+- The zh-Hans event card was checked by the jsdom tests and the probe scripts, not in a zh screenshot (headless Chrome
+  opened the game in English).
+
+### Requests
+
+1. **Site (offers)**: add BAYLINK offers for FAMSF's Free Saturdays (de Young and Legion of Honor; the two ticket pages
+   above, read 2026-10-02; weekly, Saturday; Bay Area residents of the nine counties). Then lane R adds two SPECS rows in
+   `scripts/opus-sf/export-live.ts` (weekdays [6], the museums' hours) and re-exports.
+2. **Site (catalog)**: the Chinatown Halloween Festival, Sat 31 Oct 2026 11:00–15:00, Waverly Place,
+   https://www.cycsf.org/chinatown-halloween-festival/ (checked 2026-10-02).
+3. **Site (catalog editors)**: fix the First Thursdays official link (August page) and take the working notes out of the
+   source rows (e.g. `sf-symphony-fleming-strauss-2026` cost 「售票详情页本次触发等待页」, `sf-opera-mary-queen-scots-2026`
+   「收录核实日之后的三场」, `menlo-hana-baba-folktales-2026` 「单场详情点击本次被阻」); the game filters them now, the
+   site's own pages still show them.
+
+### Part c checks
+
+tsc 0 after every rebase; `npx eslint .` 0 errors (50 old warnings) at 02:30, and on every changed file before each
+commit; each commit's own tests are listed in its message.
+The final opus-bay suite on `cc292f37` (W9-R7 on origin, 04:15–04:30): **2106 tests, 2105 pass, 0 fail, 1 todo** (W8-P9, the wave-8 GameRoot target). `npx eslint .` at 04:42: 0 errors (53 warnings, none in lane R's files).
