@@ -340,6 +340,20 @@ export function metroNarration(event: { what: string; line: string; station?: st
 }
 
 /**
+ * W9-C-review (C-RV-2, review R§5 #15: 「窗外是 X」 only when X is in view) The approach lines that name what is out of
+ * the window: they wait for the ride camera's look-at check (actors/cityViews.ts rideLookClear: the look toward the
+ * stop's attraction is kept when its pose clears the houses, else dropped and the line's own shot stays) and are said
+ * only when the look was kept. `look` = actors/cameraModes `lookBias` (t0 = the look's start, `checked` = the t0 of the
+ * look last judged); `since` = the approach's time less a moment (the look may start just before the line's handler).
+ */
+export const VIEW_LINES: ReadonlySet<string> = new Set([METRO_LINES['ucsf-window'].id]);
+export function viewLineGate(look: { t0: number; checked: number; kept: boolean }, since: number, until: number, now: number): 'say' | 'drop' | 'wait' {
+  if (look.t0 >= since && look.checked === look.t0) return look.kept ? 'say' : 'drop';
+  // (no look started, the player's drag cancelled it, or not judged in time: the camera is not showing X)
+  return now > until ? 'drop' : 'wait';
+}
+
+/**
  * The line for the subway overlay (lane T's SubwayOverlay) when a ride goes under ground on the arc span
  * [fromAt, toAt] (either order): the Twin Peaks Tunnel on an M ride that passes between the Castro (661) and West Portal
  * (1164), else the Market Street subway. The short Sunset Tunnel says nothing itself: the arrive at Carl & Cole does

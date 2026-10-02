@@ -1,4 +1,5 @@
 import { getLocale } from '../../i18n/locale';
+import { lookBias } from '../actors/cameraModes';
 import { emit, onEvent, type GameEvent } from '../core/events';
 import { runtime, type Emote } from '../core/runtime';
 import { game } from '../core/store';
@@ -9,7 +10,7 @@ import { CAMPUS_IDS, LOOP_LINE, campusArrived, loopStopReached, metroRideCounts 
 import { CITY_GOAL, SIGHTSEEING_STOPS, loopStopsReached } from '../data/sf/goals';
 import { CITY_POSTCARDS } from '../data/sf/postcards';
 import { placeIndex } from '../data/sf/places';
-import { sayLine, tunnelNarration } from '../data/sf/tourLines';
+import { VIEW_LINES, sayLine, tunnelNarration, viewLineGate } from '../data/sf/tourLines';
 import { TOUR_GEO, rideArc, transitSay } from '../data/sf/tours';
 import { TOUR_VOICE_CLIPS } from '../data/sf/voiceTour';
 import { W5_PACED_CLIPS } from '../data/sf/voiceW5';
@@ -115,6 +116,11 @@ export function sayTunnel(line: string, fromAt: number, toAt: number) {
  * game/baybayHold.ts baybayHeld() (a play panel, an egg card, the Halloween postcard, hide & seek, the kite…).
  */
 function stepPacer(now: number) {
+  // (W9-C-review, C-RV-2) a 「窗外是 X」 line said only once the ride camera's look toward X was kept
+  if (viewWait) {
+    const g = viewLineGate(lookBias, viewWait.since, viewWait.until, now);
+    if (g !== 'wait') { if (g === 'say') pacer.offer(viewWait.say, now); viewWait = null; }
+  }
   const s = game.get(), f = flow.get();
   const silent = s.phase !== 'playing' || s.paused || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive() || s.move.mode === 'travel' || s.photoMode
     || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null || goalsStepOpen()
@@ -138,6 +144,8 @@ function stepPacer(now: number) {
 // ---------------------------------------------------------------------------------------------------------------
 
 type TransitEvent = Extract<GameEvent, { type: 'transit' }>;
+/** (W9-C-review, C-RV-2) the 「窗外是 X」 line waiting for the ride look's verdict (data/sf/tourLines.ts viewLineGate) */
+let viewWait: { say: PacedLine; since: number; until: number } | null = null;
 /** the Metro ride in progress (lane T's rider `board` → `arrive`s) */
 let metroRide: { line: string; board: string; stops: number } | null = null;
 
@@ -152,7 +160,9 @@ export function onTransit(e: TransitEvent, now = clock()) {
   if (e.kind !== 'bus' && e.kind !== 'light-rail') return;
   // narration: the loop's approach / arrive, the Metro's board / approach / arrive (once per outing: NARRATION_REPEAT)
   const say = transitSay(e);
-  if (say) pacer.offer(say, now);
+  // (W9-C-review, C-RV-2) a 「窗外是 X」 approach line waits (≤ 1.5 s) for the look's verdict (stepPacer)
+  if (say && e.what === 'approach' && VIEW_LINES.has(say.key)) viewWait = { say, since: now - 0.1, until: now + 1.5 };
+  else if (say) pacer.offer(say, now);
   if (e.real === false || travelActive()) return;
   const done = game.get().goalsDone;
   if (e.kind === 'bus' && e.line === LOOP_LINE && e.what === 'arrive' && e.station) {

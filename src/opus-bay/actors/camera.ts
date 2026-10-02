@@ -546,7 +546,7 @@ export class CameraController {
     if (input.camPresetCount !== this.presetSeen) {
       this.presetSeen = input.camPresetCount;
       if (rideMode) this.rideCam.cyclePreset();
-      else if (!photo) { this.footPreset = (this.footPreset + 1) % 3; this.distance = [15, 9, 24][this.footPreset]; this.persistDistance(false); this.zoneZoomed = true; }
+      else if (!photo) { this.footPreset = (this.footPreset + 1) % 3; this.distance = [15, 9, 24][this.footPreset]; this.persistDistance(false, DIST_MAX); this.zoneZoomed = true; }
     }
     if (input.dragX || input.dragY) {
       this.yaw -= (input.dragX * Math.PI * 1.15) / h;
@@ -1365,13 +1365,14 @@ export class CameraController {
   /**
    * Wheel / pinch changes become the saved camera distance (debounced; photo mode zoom is temporary). (W9-C4, review
    * explorer: a scroll out to the 30 u diorama view came back as the next session's camera) never saved past
-   * SAVE_DIST_MAX — the zoom itself is not capped; the Settings slider still saves any distance.
+   * SAVE_DIST_MAX — the zoom itself is not capped; the Settings slider still saves any distance. (W9-C-review, C-RV-7)
+   * the C key's far preset (24 u) is a chosen view, not a scroll: saved as it is.
    */
-  private persistDistance(photo: boolean) {
+  private persistDistance(photo: boolean, cap = SAVE_DIST_MAX) {
     if (photo) return;
     if (this.persistTimer) clearTimeout(this.persistTimer);
     this.persistTimer = setTimeout(() => {
-      const d = Math.round(clamp(this.distance, DIST_MIN, SAVE_DIST_MAX));
+      const d = Math.round(clamp(this.distance, DIST_MIN, cap));
       game.set(st => (st.settings.cameraDistance === d ? {} : { settings: { ...st.settings, cameraDistance: d } }));
     }, 450);
   }

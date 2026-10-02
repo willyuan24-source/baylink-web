@@ -69,7 +69,9 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
  * toward the point — 85 % of the way, the rider stays in frame — easing in and out over 0.8 s. A drag cancels it.
  * Performance-clock seconds (the callers are event handlers, not the camera's frame clock).
  */
-export const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9, wide: false };
+// (W9-C-review, C-RV-2) `checked`: the t0 of the look the city check (cityViews rideLookClear) last judged, `kept`:
+// its verdict — a 「窗外是 X」 line plays only when its look was kept (data/sf/tourLines.ts viewLineGate)
+export const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9, wide: false, checked: -1e9, kept: false };
 const perfNow = () => performance.now() / 1000;
 /**
  * `wide` (part b, the portal): the camera also pulls back (+5 u), lifts a little and widens (+6°) while it looks, so the

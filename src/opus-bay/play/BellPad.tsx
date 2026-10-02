@@ -103,13 +103,15 @@ export default function BellPad({ ride }: { ride: FlowRide }) {
   // (W9-C5, lane C surgical) the lean button follows the car: disabled while it stands (bell.ts re-renders the pad on the flip)
   const board = onRunningBoard(), moving = carMoving();
   // (W9-C5, review R§6: say how — hold, and the key — and why it is off: not on the running board, or the car standing)
+  const why = !board ? t('站到踏板上才能探身', 'Stand on the running board first') : !moving ? t('车开起来才能探身', 'Lean out once the car is moving') : undefined;
   const leanBtn = (
     <button
       type="button" className={`ob-btn ob-btn-soft ob-btn-sm ob-play-lean${lean.on ? ' is-on' : ''}`} aria-pressed={lean.on} disabled={!board || !moving}
-      title={!board ? t('站到踏板上才能探身', 'Stand on the running board first') : !moving ? t('车开起来才能探身', 'Lean out once the car is moving') : undefined}
+      title={why}
       onPointerDown={press(true)} onPointerUp={press(false)} onPointerCancel={press(false)} onContextMenu={e => e.preventDefault()}
     >
-      <Camera size={15} aria-hidden /> {keys ? t('按住 L 探身', 'Hold L to lean out') : t('按住探身', 'Hold to lean out')}
+      {/* (W9-C-review, C-RV-8) on touch a disabled button's title never shows: the reason is its label there */}
+      <Camera size={15} aria-hidden /> {keys ? t('按住 L 探身', 'Hold L to lean out') : why ?? t('按住探身', 'Hold to lean out')}
     </button>
   );
   const flashEl = flashing && typeof document !== 'undefined' ? createPortal(<div className="ob-play-flash" aria-hidden />, document.body) : null;

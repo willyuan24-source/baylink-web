@@ -244,6 +244,8 @@ export function rideLookClear(rc: RideCamera, sub: RideSubject, yaw: number, pit
     for (const lift of LOOK_LIFTS) {
       if (rc.clearAt(sub, yaw, Math.min(1.2, Math.max(-0.1, pitch + lift)), dist, lookUp, dist * SWING_CLEAR)) { s.keep = 1; s.lift = lift; break; }
     }
+    // (W9-C-review, C-RV-2) the verdict on this look, for its 「窗外是 X」 line
+    lookBias.checked = lookBias.t0; lookBias.kept = s.keep === 1;
   }
   const ease = 1 - Math.exp(-4 * dt);
   s.keepS += (s.keep - s.keepS) * ease;
