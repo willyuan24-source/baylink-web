@@ -7,10 +7,12 @@ big-night greeting in `realsf/todayLine.ts` (lane R's file, surgical).
 
 ## 给主人的摘要
 
-1. 万圣夜（10/31 晚）老玩家回来时，BAYBAY 第一句就说「万圣节快乐！今天讨糖街家家都开门，糖果加倍……」，不再是通用的"日落 / 三件小事"；10/31 中午说唐人街庆典，11/2 傍晚说亡灵节游行。第一次来的新玩家玩过第一分钟后（约 90 秒）也会听到这句。
+1. 万圣夜（10/31 晚）老玩家回来时，BAYBAY 第一句就说「万圣节快乐！今天讨糖街家家都开门，糖果加倍……」，不再是通用的"三件小事"；10/31 中午说唐人街庆典，11/2 傍晚说亡灵节游行（X 线已配音）。第一次来的新玩家玩过第一分钟后（约 90 秒）也会听到这句。
 2. 万圣节页面不再写「10 月 1–30 日」，改成"整个 10 月都能讨糖，31 日万圣夜每家都开门、糖果加倍——还有 n 天！"。
-3. 讨糖的门全部在游戏里实际走了一遍（电脑，10/31 晚 19:30）：从街上用摇杆走过去，44 扇门里有 4 扇按不到「敲门」，点地面自动走有 1 扇走不到。修好后 42 扇门全部能敲（2 扇夹在房子缝里、人物身体进不去的门撤掉，编号不变、存档不受影响；3 扇把「敲门」的范围放大一点）。
-4. 新台词 3 句已交给 X 线配音（01:45 前已推送）。
+3. 讨糖的门全部在游戏里实际走了一遍：44 扇门里有 4 扇按不到「敲门」、1 扇点地面走不到。修好后 42 扇门全部能敲（2 扇夹在房子缝里的门撤掉，编号和存档不变；3 扇「敲门」范围放大）。
+4. 11/2 亡灵节游行第一次真正玩了一遍：原来玩具车在游行的四条街上照常开，还有一辆停在队伍中间。现在游行期间（18:00–21:00，和 SFMTA 实际封街一致）这四条街不走车，横街的车在路口等队伍过去。
+5. 10/31 唐人街庆典、?halloween=night / muertos 预览、11/3 撤装都看过了：庆典在手机上只多 1 个绘制调用；11/3 所有万圣节 / 亡灵节装饰和封街都干净撤掉。
+6. 拥挤点（10/31 Waverly 巷、10/9 水上公园）数过了：活动本身几乎不加负担（≤ 1 个调用、≤ 8.5k 三角形），负担来自那里平常的人群和车，没有乱砍——留给 W9-Z 测帧率后决定（见 Requests）。
 
 ## Part a · the big night played, the greeting, the page's words, every door walked up to (21:35 – 01:30 PDT)
 
@@ -87,6 +89,97 @@ prompt says 敲门 · 贝尔维德街的人家) — left as W7-G / W8-H accepted
 
 | commit | what |
 |---|---|
-| `dbdb276d` W9-H1 | the 万圣节 page's season line: the whole of October + the countdown (was 「1–30 October」) |
-| `716ecdec` W9-H2 | the big days' greeting (welcome back + a first visit's invitation), 3 new fixed lines, `festivalDate.ts` |
-| W9-H3 | every door can be knocked: doors 10 / 43 gone, reach for 4 / 52 / 54 (this push) |
+| `28a4e9ad` W9-H1 | the 万圣节 page's season line: the whole of October + the countdown (was 「1–30 October」) |
+| `103b917a` W9-H2 | the big days' greeting (welcome back + a first visit's invitation), 3 new fixed lines, `festivalDate.ts` |
+| `8d627111` W9-H3 | every door can be knocked: doors 10 / 43 gone, reach for 4 / 52 / 54 |
+
+## Part b · the resume, the festival, the procession, the previews, 3 November, the crowd counts (02:14 – 04:55 PDT)
+
+A second agent of the lane resumed at 02:14 after the first one was stopped by an account usage limit. Kept as it was:
+W9-H3 (committed, not pushed), the part-a report draft and its two shots. Nothing was discarded.
+
+### What the resume found and fixed
+
+- **The rebase at 02:20 (≈ 45 commits of other lanes)**: W9-X4 had switched `realsf/index.ts`'s welcome back to
+  `todaySpoken()` (a fixed, voiced line + a toast), which skipped W9-H2's big-day branch in `todayLine()` — on Halloween
+  night the welcome back would again say 旅行本「今天」里有今日三件小事. Lane H's 2-line fix in `todaySpoken()` collided on
+  the push with lane X's identical W9-X5 (`25c2847a`): **X's code kept**; H's commit (W9-H4 `be99aab3`) keeps only the
+  test that pins all four big-day moments through `todaySpoken()` (red on the W9-X4 tree, green now). The conflict in
+  `realsf/todayLine.ts` (lane R's file) was resolved by taking origin's side.
+- **The full suite before the push (02:38)**: 2000 / 2001 — `tests/opus-bay-w9-l-search.test.ts` "every game's point is
+  its play module's own": lane L's search point for Chenery St still sat on door 10 (gone in W9-H3). W9-H3 follow-up
+  `9e77ea05`: `data/sf/searchSpots.ts` (lane L's file, 1 line) → door 11's knock spot 427.72, 1049.82. No other copy of
+  doors 10 / 43 in src / tests / public.
+- Lane X has since recorded the three part-a lines (`public/opus-bay/w9/voice/{zh,en}-w9-h-today-*.{m4a,ogg}` on origin).
+
+### Played (dev 5912, `?world=city`, desktop 1440 × 900 high and phone 390 × 844 dpr 3 mid; scratch `drive.mjs` + `v-*.json`)
+
+| moment | what the player sees / hears | numbers (renderer.info; breakdown) | verdict / change |
+|---|---|---|---|
+| **31 Oct 12:00 · Waverly Place** (the Chinatown Halloween Festival) | lanterns strung across the alley, the line-up of toy kids (ghost, witch, pumpkin) queueing to the red stage; BAYBAY 唐人街的万圣节庆典在 Waverly 巷，有手工、游戏和南瓜，去看看吧！ (24.7 s) and 小朋友们排队上台比变装啦！大家都好可爱～ near the stage (38.5 s); no toy car in the alley (lane C's W9-C2) | desktop 94–102 calls / 314–346k tris; phone 75–92 calls / 198–256k; the kit 1 call / 5,426 tris, `halloween-world` 2 calls / 7.0k | ok. The player and the kids overlap when the player stands in the queue (the kids are not colliders: the alley stays walkable, W8's design). On the phone the two festival lines had not come within 35 s (the pacer gave the slots to the Chinatown hello, Karl, the cable car) — not changed |
+| **2 Nov 19:10 · 24th & Bryant** (the procession) | the robed walkers with candles and marigold crowns walk the curb lane and part round the player (队伍从我们身边绕过去了。我们站到路边吧～ / 游行的队伍过来了。我们在路边安静地看，好吗？); the legs swing; papel picado over 24th; **a toy car standing in the column on Bryant** (`qa/w9/H/b-procession-car-before.jpg`) | desktop 71–81 calls / 277–307k; `halloween-world` 6 calls / 52k (stoops 23.7k, the kit 8.9k, 40 walkers); halos 690 | **fixed (W9-H5)**: the route's streets are closed to the toy traffic 18:00–21:00 — 60 one-second samples: **73 car-samples on the route's own streets (34 moving) → 0**; within 4 u of its line 136 → 39 (29 turning through a junction on a cross street, 10 waiting at a cross street's mouth for the walkers). Phone after: `qa/w9/H/b-procession-phone-after.jpg` |
+| the procession on the phone | the column reads at night by its candles; the aside line came 22 s after the player stepped into the column (the pacer's queue) | — | ok. At 19:10 the head is on its second lap (the toy procession loops the 319 u route ≈ every 8.8 min until 21:00, W7's design) |
+| `?halloween=night` (2 Oct, 04:00) | Belvedere: 今晚是万圣节！每家都开门，糖果还加倍！ then the street's line; stoops with figures, bats over Twin Peaks | 100 calls / 331k; dress 16 cells / 217 stoops / 23k; halos 658 | ok |
+| `?halloween=muertos` | the Mission: 今天是亡灵节！教会区挂满了彩色剪纸旗，还有万寿菊。; the altars at any hour (a preview shows 2 November's altars), no procession (it follows the clock) | 107 calls / 338k; the kit 8.9k | ok |
+| **3 Nov 19:30** · the Mission, Belvedere, Waverly | nothing of the season: no stoops, figures, pumpkins, picado, altars, festival; no 敲门 button; the toy traffic back on 24th (17 cars) | `halloween` stats all 0 (phase off, halos 0); no Halloween group in the breakdown | ok — the decor comes off cleanly |
+| 1–30 Oct day decor | unchanged by this wave's commits: W9-H1–H5 touch the page text, the greeting, two gone doors and three prompt radii, the procession's road closure | — | ok |
+
+### Crowd trims (w8 NEXT #12: Aquatic Park on 9 Oct and Waverly Place on 31 Oct read 44–54 fps at 4× on both trees)
+
+Counted on the phone (390 × 844 dpr 3, mid) at W8-Z's spots (`scripts/opus-sf/qa/perf/w8-spots.json`), each on its event
+day and on a plain day (one run per date, both spots; `__opusCityLife.stats()`, `city.breakdown()`):
+
+| spot | event day | plain day | the event's own share |
+|---|---|---|---|
+| waverly-festival | 31 Oct 12:00: 92 calls / 256k; crowd 44 walkers (13 walking, 15 standing, 16 crossing, 5 pinned), traffic 16 cars, 26 vehicles | 9 Oct 11:20: 91 / 248k; crowd 44 (5 pinned), traffic 16, 26 vehicles | the festival kit: +1 call, +5.4k tris (`halloween-world` 2 / 7.0k with the lantern hunt) |
+| aquatic-park | 9 Oct 11:20 (Fleet Week): 91 / 271k; crowd 44, traffic 16, 21 vehicles | 31 Oct 12:00: 92 / 273k; crowd 44, traffic 16, 21 vehicles | none measurable |
+
+Decision: **no trim this wave**. The events add ≤ 1 call and ≤ 8.5k triangles; the load at both spots is the place's
+everyday city life (44 walkers at mid, 16 cars, 8 cable-car calls in Chinatown, 12 landmark calls at Aquatic Park), the
+same on the plain day — and "both trees" read low there, the wave-7 tree without the festival kit included. The only
+lever that would act is the crowd's count (`world/sf/crowd.ts CROWD.count.mid` 44, lane F's file) for the whole phone
+city, which needs an fps measurement this lane may not make — see Requests.
+
+### Checks (part b)
+
+- tsc 0 · `npx eslint .` 0 errors (53 warnings: the baseline grew with other lanes' commits; none in lane H's files) ·
+  the full opus-bay suite before the W9-H5 push (03:55–04:04): **2066 tests, 2063 pass, 2 fail, 1 todo** — the two
+  wall-clock tests named in the rules (`E2-5 view field in the city` in sf-move2, `P1: preparation runs in slices` in
+  audio) re-run alone 2 / 2 and 1 / 1 · after the last rebase tsc 0 and the incoming lanes' test files 30 / 30 (incl.
+  W9-L search with the Chenery point, W9-C lanterns, W9-X voice).
+
+### Commits (part b)
+
+| commit | what |
+|---|---|
+| `be99aab3` W9-H4 | a test pins what BAYBAY says on the big days' welcome back through `todaySpoken()` (lane X's identical code fix W9-X5 kept) |
+| `9e77ea05` W9-H3 follow-up | lane L's search point for Chenery St follows the first standing door (door 11) |
+| `77fd1bba` W9-H5 | the procession's streets closed to the toy traffic 18:00–21:00 (SFMTA's 2025 closures): 73 → 0 car-samples on its streets |
+
+### Real-world facts (part b)
+
+- SFMTA, "Dia de los Muertos Procession — Street Closures and Muni Reroutes" (2025):
+  https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 (read 2026-10-02) — "Bryant
+  from 19th to 24th", "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", in effect
+  "during staging at 6 p.m.", the procession at 7 p.m. 2026's notice is not published yet; the game follows 2025's
+  pattern (like W7-H6's times).
+
+## Not done
+
+- **The crowd trim** at Waverly Place / Aquatic Park (counts above; no change without an fps reading).
+- **The festival's two lines on the phone** compete with the place's other lines in the pacer (lane F's); not re-ordered.
+  The player can stand among the line-up's kids (no colliders, W8's design).
+- **The procession** still loops its route every ≈ 8.8 min between 19:00 and 21:00 (W7's choice); cross-street cars wait
+  at the procession's crossings; the staging closure covers 30 u of Bryant north of 22nd, not the three blocks to 19th.
+- Not played this wave: the trick-or-treat postcards beyond 不给糖就捣蛋 2 / 4 (part a); `?halloween=night|muertos` on
+  the phone (desktop only); Firefox / Safari.
+
+## Requests
+
+1. **W9-Z (fps)**: when you read Waverly Place (31 Oct 12:00) and Aquatic Park (9 Oct 11:20) at 4× on the phone, compare
+   with a plain day (the counts above: the events add ≤ 1 call). If they read < 45 again, the lever is lane F's
+   `world/sf/crowd.ts CROWD.count.mid` (44, e.g. 36) — a whole-phone change for lane F / the lead to decide.
+2. **Lane X**: no new fixed line from part b (W9-H4 / H5 add none); the three part-a lines are recorded.
+3. **Reviewers**: look first at `halloween/muertos.ts` `onProcessionStreets` (the 4 u threshold against the street graph
+   round the route, the lead-in) with `tests/opus-bay-w9-h-procession.test.ts`, then `halloween/treatDoors.ts`'s `reach`
+   values and the two gone doors (W9-H3).
