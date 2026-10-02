@@ -297,6 +297,9 @@ try {
       const name = await ev(`(document.querySelectorAll('${TOP}')[${i}]?.textContent || 'tab${i}').replace(/[0-9/]+/g, '').trim()`);
       await scan(`journal:${name}`);
       await end(`journal:${name}`);
+      // (W9-L) the Notebook's pages render in their own chunk: on a loaded machine they came after the 1.6 s above (the
+      // 04:20 phone run scanned no page of it), so wait for them there
+      if (/手帐|手帳|notebook/i.test(name || '')) await waitFor(`document.querySelector('.ob-journal [role=tablist]:not(.ob-tabs) [role=tab]')`, 8000);
       const sub = (await ev(`[...document.querySelectorAll('.ob-journal [role=tablist]:not(.ob-tabs) [role=tab]')].length`)) || 0;
       for (let j = 0; j < Math.min(sub, 10); j++) {
         const page2 = await ev(`(() => { const b = document.querySelectorAll('.ob-journal [role=tablist]:not(.ob-tabs) [role=tab]')[${j}]; if (!b) return null; b.click(); return (b.textContent || 'page${j}').replace(/[0-9/]+/g, '').trim().slice(0, 20); })()`);
