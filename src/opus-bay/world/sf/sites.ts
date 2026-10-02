@@ -80,7 +80,8 @@ function modelsModule(): Promise<ModelsModule> {
  *            light field polls siteLights() every few seconds at night and rebuilds when the count changes
  */
 export interface SiteHooks {
-  lights?: { x: number; y: number; z: number; size: number; color: string }[];
+  /** (W9-C6) `halo`: a near glow of this world diameter (u) round the light (world/sf/lights.ts HALO_GLOW: lanterns, neon) */
+  lights?: { x: number; y: number; z: number; size: number; color: string; halo?: number }[];
   lightsOn?(): boolean;
   mount?(group: THREE.Group, baseY: number): void | (() => void);
   plaza?: { poly: Vec2[]; surface: SurfaceKind }[];
@@ -649,13 +650,13 @@ export class CitySites {
   }
 
   /** Every landmark's SiteHooks.lights in world space (lane C2's night light field; call after the bases settle). */
-  siteLights(): { x: number; y: number; z: number; size: number; color: string }[] {
-    const out: { x: number; y: number; z: number; size: number; color: string }[] = [];
+  siteLights(): { x: number; y: number; z: number; size: number; color: string; halo?: number }[] {
+    const out: { x: number; y: number; z: number; size: number; color: string; halo?: number }[] = [];
     for (const s of this.sites) {
       const h = s.l as SfLandmark & SiteHooks, lights = h.lights;
       if (!lights?.length || h.lightsOn?.() === false) continue;
       const c = Math.cos(s.l.yaw), sn = Math.sin(s.l.yaw);
-      for (const p of lights) out.push({ x: s.l.x + p.x * c + p.z * sn, y: s.baseY + p.y, z: s.l.z - p.x * sn + p.z * c, size: p.size, color: p.color });
+      for (const p of lights) out.push({ x: s.l.x + p.x * c + p.z * sn, y: s.baseY + p.y, z: s.l.z - p.x * sn + p.z * c, size: p.size, color: p.color, ...(p.halo ? { halo: p.halo } : {}) });
     }
     return out;
   }

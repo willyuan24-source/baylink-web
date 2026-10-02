@@ -195,7 +195,35 @@ const LIGHTS: NonNullable<SiteHooks['lights']> = [
   // W5-L6: the Chinatown corner's lantern strings and dragon lamps (drawn by CHINATOWN_CORNER), at their baked ground
   ...CT_STRINGS.map(along => { const m = grant(along, 0); return { ...m, y: cornerGroundWorld('chinatown', m.x, m.z) - Z_BASE + CT_WIRE - 0.5, size: 0.55, color: '#ff8a5c' }; }),
   ...CT_LAMPS.map(([along, side]) => { const p = grant(along, side * CT_KERB); return { ...p, y: cornerGroundWorld('chinatown', p.x, p.z) - Z_BASE + 3.0, size: 0.8, color: '#ffc27a' }; }),
+  ...chinatownGlows(),
 ];
+
+/**
+ * (W9-C6, lane C — review R§6 世界、镜头与美术: 「唐人街夜里…灯笼几乎不发光，没有霓虹」, explorer 70-ct-night / 71) the near
+ * glows at night (world/sf/lights.ts HALO_GLOW, the light field's one Points draw: no call, no triangle): a warm red
+ * glow round every paper lantern on the strings across Grant Ave (the gate's three, the corner's five: at the lanterns'
+ * own sag), a warm one round each dragon lamp's lantern, and a little neon — a pink and a teal glow by three of the blade
+ * signs (generic trade signs: the glow is light, no lettering, no shop's sign).
+ */
+function chinatownGlows(): { x: number; y: number; z: number; size: number; color: string; halo: number }[] {
+  const out: { x: number; y: number; z: number; size: number; color: string; halo: number }[] = [];
+  const LANTERN = '#ff5a3a', NEON = ['#ff4fa3', '#36e2cf', '#ff4fa3'];
+  for (const z of STRINGS) {
+    const y = G.at(0, z) + WIRE;
+    for (const x of [-1.15, -0.4, 0.4, 1.15]) out.push({ x, y: y - 0.35 * (1 - (x / GRANT_HALF) ** 2) - 0.32, z, size: 0.5, color: LANTERN, halo: 1.2 });
+  }
+  for (const along of CT_STRINGS) {
+    const a = grant(along, -GA_HALF), c = grant(along, GA_HALF), m = grant(along, 0);
+    const y = cornerGroundWorld('chinatown', m.x, m.z) - Z_BASE + CT_WIRE;
+    for (const t of [0.161, 0.383, 0.617, 0.839]) out.push({ x: a.x + (c.x - a.x) * t, y: y - 0.35 * 4 * t * (1 - t) - 0.3, z: a.z + (c.z - a.z) * t, size: 0.5, color: LANTERN, halo: 1.2 });
+  }
+  for (const [along, side] of CT_LAMPS) { const p = grant(along, side * CT_KERB); out.push({ ...p, y: cornerGroundWorld('chinatown', p.x, p.z) - Z_BASE + 2.9, size: 0.6, color: '#ffb066', halo: 1.4 }); }
+  [CT_BLADES[0], CT_BLADES[2], CT_BLADES[5]].forEach(([along, side], i) => {
+    const p = grant(along, side * (GA_HALF - 0.3));
+    out.push({ ...p, y: cornerGroundWorld('chinatown', p.x, p.z) - Z_BASE + 2.8, size: 0.4, color: NEON[i], halo: 2.0 });
+  });
+  return out;
+}
 /**
  * Where people stop for the photo: Grant Ave's west sidewalk south of Bush St, the gate across the street.
  * W4-L-int-review: the old strip under the gate (z 0.5–1.4) lay on Bush St's asphalt 0.1 u from the sightseeing loop's

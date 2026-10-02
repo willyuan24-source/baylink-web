@@ -128,6 +128,16 @@ export const BAY_DOT = 1;
 /** cool LED white, a little over 1 (the small dots are additive: they read as the brightest lights on the Bay) */
 const LED_WHITE = [1.1, 1.15, 1.25] as const;
 export const BAY_LIGHTS_SOURCE = { sourceUrl: 'https://illuminate.org/projects/thebaylights/', verifiedAt: '2026-09-28' } as const;
+/**
+ * aLevel ≥ HALO_GLOW (W9-C6, review R§6 世界、镜头与美术: 「唐人街夜里…灯笼几乎不发光，没有霓虹」; fract = the glow's world
+ * diameter / HALO_MAX_D): a soft round glow of a fixed WORLD size round a lit thing near the camera — a paper lantern, a
+ * neon sign — from 1.5 u out to ≈ 160 u (the field's other lights fade in only beyond 60 u: near the camera the street
+ * lamps have their own halos, a site's lanterns had none). A landmark asks for it with `halo` (u) on a site light
+ * (world/sf/sites.ts SiteHooks.lights). A slow breath per light (its position's phase). Same Points draw: no call, no
+ * program.
+ */
+export const HALO_GLOW = 6;
+export const HALO_MAX_D = 4;
 
 /** true north in the world frame (the map is turned 46°: core/geo.ts) */
 function northXZ(): { x: number; z: number } {
@@ -291,7 +301,12 @@ void main() {
   float d = max(-mv.z, 1.0);
   float lvl = aLevel, blink = 1.0, reach = smoothstep(60.0, 150.0, d), star = 0.0, size = 1.6;
   vec3 col = aColor;
-  if (aLevel >= ${CROWN_DRIFT.toFixed(1)}) {
+  if (aLevel >= ${HALO_GLOW.toFixed(1)}) {
+    // W9-C6 a lantern's / a neon sign's glow: a world-sized soft disc near the camera, a slow breath
+    lvl = 1.0; star = 2.0; size = fract(aLevel) * ${HALO_MAX_D.toFixed(1)};
+    blink = 0.85 + 0.15 * sin(uTime * 1.6 + fract(wp.x * 0.37 + wp.z * 0.61) * 6.2832);
+    reach = smoothstep(1.5, 3.0, d) * (1.0 - smoothstep(110.0, 160.0, d));
+  } else if (aLevel >= ${CROWN_DRIFT.toFixed(1)}) {
     // W5-V10 the crown's slow colour drift: our own soft palette, one turn in ≈ 2 min, a band rising up the crown
     lvl = 1.0;
     float ph = uTime * 0.008 - fract(aLevel) * 0.6;
@@ -315,7 +330,9 @@ void main() {
   a *= (1.0 - 0.85 * obKarl(wp.xyz, d)) * (1.0 - smoothstep(uObFar.x, uObFar.y, d));
   vCol = col * a;
   vStar = star;
-  gl_PointSize = star > 0.5
+  gl_PointSize = star > 1.5
+    ? clamp(size * uPx / d, 2.0, 0.09 * uPx)
+    : star > 0.5
     ? clamp(1.3 * uPx / d, 0.01 * uPx, 0.034 * uPx) * (0.7 + 0.4 * blink)
     : clamp(size * uPx / d, 1.5, size > 1.0 ? 4.5 : 3.0) * (0.75 + 0.35 * lvl);
   gl_Position = projectionMatrix * mv;
@@ -328,7 +345,10 @@ void main() {
   vec2 q = (gl_PointCoord - 0.5) * 2.0;
   float r = length(q);
   float k;
-  if (vStar > 0.5) {
+  if (vStar > 1.5) {
+    // (W9-C6) a lantern's glow: a soft wide falloff round a warm core
+    k = 0.6 * pow(max(0.0, 1.0 - r), 2.4) + 0.45 * pow(max(0.0, 1.0 - r * 3.0), 2.0);
+  } else if (vStar > 0.5) {
     // a coin glint: a small hot core and four thin rays
     float core = pow(max(0.0, 1.0 - r * 2.2), 2.0);
     float rays = pow(max(0.0, 1.0 - abs(q.x) * 9.0), 2.0) * max(0.0, 1.0 - abs(q.y)) + pow(max(0.0, 1.0 - abs(q.y) * 9.0), 2.0) * max(0.0, 1.0 - abs(q.x));
@@ -367,10 +387,17 @@ registerWarmup('c2-light-field', () => {
   return { objects: [new THREE.Points(g, LIGHT_FIELD)], dispose: () => g.dispose() };
 });
 
-/** CitySites.siteLights() (hex colours, size ≈ brightness) as light specs. */
-export function siteLightSpecs(list: readonly { x: number; y: number; z: number; size: number; color: string }[]): LightSpec[] {
+/**
+ * CitySites.siteLights() (hex colours, size ≈ brightness) as light specs; (W9-C6) one with `halo` (u, the glow's world
+ * diameter) is a near glow: aLevel HALO_GLOW + halo / HALO_MAX_D.
+ */
+export function siteLightSpecs(list: readonly { x: number; y: number; z: number; size: number; color: string; halo?: number }[]): LightSpec[] {
   const c = new THREE.Color();
-  return list.map(l => { c.set(l.color); return { x: l.x, y: l.y, z: l.z, level: Math.min(1, Math.max(0.3, l.size)), color: [c.r, c.g, c.b] as const }; });
+  return list.map(l => {
+    c.set(l.color);
+    const level = l.halo ? HALO_GLOW + Math.min(0.999, Math.max(0.05, l.halo / HALO_MAX_D)) : Math.min(1, Math.max(0.3, l.size));
+    return { x: l.x, y: l.y, z: l.z, level, color: [c.r, c.g, c.b] as const };
+  });
 }
 
 /** A glint's position (world). */
