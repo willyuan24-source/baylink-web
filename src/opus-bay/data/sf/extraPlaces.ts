@@ -201,6 +201,9 @@ export const PLACE_NAME_FIXES: Readonly<Record<string, Bilingual>> = {
   'osm-n11055875368': bi('鹰角 · 天涯海角', 'Eagles Point (Lands End)'),
   'osm-n3789606760': bi('ARC 画廊与工作室', 'ARC Gallery & Studios'),
   'osm-w1214385020': bi('莫斯科尼遛狗区', 'Moscone Dog Play Area'),
+  // (W9-L, review R§6 语言 row 2) the Golden Gate Bridge Welcome Center (OSM way 164569681 "Welcome Center"): its zh was
+  // the English name, so the Grand Tour's beacon read "Welcome Center · 约 12 秒" in Chinese (verify-strategy zh-22)
+  'osm-w164569681': bi('金门大桥游客中心', 'Golden Gate Bridge Welcome Center'),
 };
 
 /** New anchors / arrivals (plan §4.1). `x` / `z` move the badge; `arrival` is where travel ends. */

@@ -1266,6 +1266,11 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-waypoint-dismiss::before { content: ''; position: absolute; inset: -10px -4px -10px -16px; border-radius: 12px; }
 /* verify-desktop D9 · English text in the Noto-first stacks: Noto Sans SC's full-width ’ left a gap ("The Mission’ s") */
 html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: var(--ob-font); }
+/* (W9-L, review R§6 语言 row 6 · gamer/shots/041 "What’ s that?") the same for the play chips, cards and panels (play.css,
+   sfgames.css, sfgames8.css): tests/opus-bay-w9-l-words.test.ts fails on a Noto-first selector without its line here */
+html[lang='en'] .ob-play-result-body strong, html[lang='en'] .ob-play-slot span, html[lang='en'] .ob-play-flight-name,
+html[lang='en'] .ob-play-snap figcaption span, html[lang='en'] .ob-sfg-panel, html[lang='en'] .ob-sfg-btn,
+html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
 
 /* Wave 5 day 0 (lead) · ui/slots.ts render points. Pill badges: inside the objective pill after 明信片 n/m
    (`明信片 3/24 · 🪙 42`); the desktop 更多 button exists only while a lane registered a More item; its menu opens

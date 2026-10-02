@@ -45,7 +45,10 @@ test('W8-Q1: catalogText — the site dictionary in English, 繁體 converted, �
     assert.doesNotMatch(en, HAN, en);
     assert.match(en, /Ferry Plaza/);
     // not in the dictionary: the Latin parts ("X · 中文" and "Latin 中文" titles), never an empty name
-    assert.equal(catalogText('Exploratorium · 日间科学探索馆', 'en'), 'Exploratorium');
+    // (W9-L) the Exploratorium's title is in the dictionary now (src/data/planner-en.json, as src/lib/planner-copy.ts
+    // words it); an unknown "X · 中文" title still keeps its Latin part
+    assert.equal(catalogText('Exploratorium · 日间科学探索馆', 'en'), 'Exploratorium · Daytime science museum');
+    assert.equal(catalogText('Zzyzx Museum · 日间科学馆', 'en'), 'Zzyzx Museum');
     assert.equal(catalogText('Zzyzx Plaza 周日小市集', 'en'), 'Zzyzx Plaza');
     assert.equal(catalogText('无名小市集', 'en'), '无名小市集', 'nothing Latin to keep: the title as it is');
     // every SF title of the catalog reads without Han in English
