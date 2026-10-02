@@ -59,3 +59,69 @@ parse either, so on iOS 15 / 16.0–16.3 (and WeChat there) the whole site staye
 `from=` in the same tab wins. Helpers: `parseEntrySource(search)`, `searchWithoutFrom(search)`,
 `withEntrySource(href, source)` (for S's share links), `ENTRY_SOURCES`. No game import (title-chunk safe); never throws
 (no window, storage or replaceState refused). Tests: `tests/opus-bay-w9-e-entry.test.ts` (5).
+
+## Part b — /opus-bay's own page and first paint (review R§5 #3) + the boot check · 22:10 → 00:35 PDT
+
+**What was wrong.** `vercel.json` sent `/opus-bay` to the homepage's prerendered `index.html` (after the filesystem): the
+first paint was the BAYLINK homepage (clickable, in Chinese for everyone) for 1–5 s, its ~480 KB of homepage images were
+downloaded for nothing, and every crawler that does not run script (iMessage, Slack, WhatsApp, WeChat) saw the homepage's
+title / description / canonical `/` and the app icon. After the script ran, App.tsx's `/opus-bay` route had
+`<Suspense fallback={null}>`: a blank screen until the route chunk arrived.
+
+**What changed.**
+- `scripts/prerender.tsx` writes `dist/opus-bay.html` from the built `index.html` (so the same module script, modulepreloads
+  and css link): `<title>湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK</title>`, the game's own description, canonical
+  `https://www.baylink.us/opus-bay`, hreflang zh-Hans / zh-Hant (`?lang=zh-Hant`) / en (`?lang=en`) / x-default, og + twitter
+  `summary_large_image` with `og:image:width/height/alt`, and in `#root` the static first paint `OpusBayShell`. The sitemap
+  (prerender and the tracked `public/sitemap.xml`) lists `/opus-bay`. `PRERENDER_OUT_DIR` lets QA prerender a scratch build.
+- New `src/components/OpusBayShell.tsx`: the title screen's look without its script — the key art (`<picture>`: tall art
+  on portrait phones), `小小湾区 · BAYLINK`, `湾区小旅`, `Little Bay Trip`, a `准备中… Loading…` pill where Start will be, and
+  `先不玩，直接看攻略 · Read the guides →` (a plain link: works without script). It copies the title's own layout formulas
+  (`.ob-title.has-art`: card column, art box, the `(max-width: 820px) and (max-aspect-ratio: 5/4)` phone rule), so the
+  swap to the real title is in place. Bilingual and `translate="no"` (the static HTML cannot know the language and the
+  React copy must not differ); one inline `<style>` (the CSP allows inline styles, not inline scripts); no animation under
+  reduced motion; the Halloween art in October (the title's rule, restated: no game module in the site bundle).
+- `src/App.tsx`: `/opus-bay`'s Suspense fallback is the same `OpusBayShell` (was `null`), so the page goes static shell →
+  the same shell → the title, with nothing in between, and an SPA visit from the homepage shows it too.
+- New `src/lib/opus-bay-metadata.ts`: the page copy (the game's own words from OpusBayPage), the share images, the art
+  URLs, `opusBayInHalloween`, `opusBayMetadata`, the alternates and the extra head tags.
+- New `public/opus-bay/og-key.jpg` (57.8 KB) and `og-halloween.jpg` (59.3 KB): 1200 × 630 crops (rows 40–1048 of the
+  1920 × 1080 key art, Lanczos, JPEG q84) — the share card is the key art, not the app icon. OpusBayPage's client-side
+  metadata sets the same image (it used to reset og:image to the icon after hydration).
+- `vercel.json`: `/opus-bay` joins the plain prerendered pages (`/$1.html`) and leaves the index.html fallback.
+- `public/boot-check.js` (review R§5 #2 suggestion 3; "only if cheap and proven harmless": 4.2 KB, one deferred
+  same-origin request): a classic ES5 script `index.html` loads with `defer` before the module (every prerendered page has
+  it). No ES modules → a bilingual notice at once; a SyntaxError before the app starts → "这台设备的浏览器版本较旧 … 生活攻略
+  可以直接看" + `/guides`; the entry module failing to load → "页面没能加载完 … 刷新一下试试" + `/guides`; on `/opus-bay` the
+  shell's 准备中 line says the same. App.tsx sets `<html data-app="ready">` on its first render: from then on nothing shows
+  (and an early notice is taken away).
+
+**Verified** (production build + prerender to `C:/Users/willy/opus-qa/w9/e/build-c/dist`, `vite preview` on 5901; probe
+`C:/Users/willy/opus-qa/w9/e/probe/shell-probe.mjs`: a MutationObserver injected before any page script records any
+homepage / site-shell DOM (`.home-discovery`, `.site-sidebar`, `.site-nav`, `.home-start-paths`, `.site-mobile-nav`, the
+homepage's texts), the shell's and the title's first appearance and any moment with neither; DevTools throttling presets,
+cache off; then it presses Start and waits for a canvas with the title gone; results `C:/Users/willy/opus-qa/w9/e/shell/*.json|jpg`):
+
+| run | homepage DOM | shell at | title at | blank gaps | Start → game |
+|---|---|---|---|---|---|
+| desktop 1440 × 900, Fast 4G, zh | never | 246 ms | 2.6 s | 0 | 0.8 s, canvas |
+| phone 390 × 844, Slow 4G + 4× CPU, `?lang=en` | never | 1.2 s | 23.9 s ¹ | 0 | English intro (Skip) |
+| phone 390 × 844, Fast 4G, `?lang=zh-Hant` | never | 238 ms | 10.8 s ¹ | 0 | 1.1 s, 開始 → canvas |
+
+¹ the site renders only after `initializeLocale()` has loaded the edition's dictionaries (English / OpenCC); the shell
+holds the screen meanwhile (before: the homepage, in Chinese). The very first desktop run after the preview server started
+saw the HTML only at 9.3 s (a cold server / Chrome on a loaded machine; still no homepage DOM); the re-run is in the table.
+Before (the review, the live build): homepage painted at 0.3 s, the title at 2.5–6 s. On every run: document title, `<html
+lang>`, h1 (湾区小旅 / Little Bay Trip / 灣區小旅), canonical and og:image as expected; no old-browser notice; `data-app="ready"`.
+Boot check in Chrome (`probe/boot-probe.mjs`): the entry module blocked → the notice on `/` and on `/opus-bay` (phone), the
+shell line "没能加载完 · Did not finish loading"; normal loads → none. `dist-syntax` on this build: look-behind 0.
+Tests: `tests/opus-bay-w9-e-shell.test.ts` 5, `tests/opus-bay-w9-e-boot.test.ts` 4, `tests/seo.test.ts` 7/7 with two added
+checks (none removed).
+Screens to look at first: `docs/opus-bay/qa/w9/E/shell-desktop.jpg`, `shell-phone.jpg` (the static first paint) and
+`boot-notice-phone.jpg`.
+
+**Not done / notes.** The share card in a real iMessage / Slack / WeChat preview is unverified (no access); the
+`og:image` is absolute and public. The hreflang links and `og:image:*` tags are static in `opus-bay.html` (client
+navigation to another page leaves them in the head: harmless for crawlers, which load each URL fresh). No fixed BAYBAY
+line is new or changed in this lane (the shell and the notice are static page text, not voiced) — nothing for
+`new-lines.md`.
