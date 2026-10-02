@@ -14,10 +14,29 @@ test('W9-X2 · voice coverage: ≥ 95 % of BAYBAY\'s fixed lines are voiced (zh 
   assert.ok(c.lines >= 590, `${c.lines} lines: the inventory lost lines (a scan broke?)`);
   assert.equal(c.lines, c.voiced + c.muted + c.unvoiced);
   // a lane may add a line after lane X's last batch (it plays as text only until recorded): a floor, not 100 %
-  assert.ok(c.pct >= 95, `voice coverage ${c.pct} % < 95 %`);
-  // the two families: the bubbles the binder matches by text, the lines the lanes play by id (tour, city lines)
+  // (W9-X review, X-RV-3: the floor is the bubbles' and the by-id lines'; the dialogue boxes are counted, not yet recorded)
+  assert.ok(c.bubbles.pct >= 95, `voice coverage of the bubbles ${c.bubbles.pct} % < 95 %`);
+  // the families: the bubbles the binder matches by text, the lines the lanes play by id (tour, city lines), the boxes
   assert.ok(c.byFamily.text.lines >= 440 && c.byFamily.id.lines >= 140, JSON.stringify(c.byFamily));
   assert.equal(c.byFamily.id.unvoiced, 0, 'every tour / city line played by id has both clips');
+  assert.equal(c.lines, c.bubbles.lines + c.byFamily.dialogue.lines, 'the headline counts every family');
+});
+
+test('W9-X review (X-RV-3) · coverage counts BAYBAY’s dialogue boxes: the static nodes of data/script.ts (the first-use welcome among them) and the code-built ones with fixed words', async () => {
+  const { coverage } = await import('../scripts/opus-sf/voice/w9/coverage');
+  const { NODES } = await import('../src/opus-bay/data/script');
+  const c = await coverage();
+  const hello = NODES['intro.hello.city'];
+  assert.ok(hello && hello.speaker === 'baybay', 'the welcome every new player meets');
+  const row = c.rows.find(r => r.zh === hello.text.zh && r.en === hello.text.en);
+  assert.ok(row, 'intro.hello.city is a counted line (wave 9’s first number left the dialogue boxes out)');
+  assert.equal(row!.family, 'dialogue');
+  const statics = Object.values(NODES).filter(n => n.speaker === 'baybay').length;
+  assert.ok(statics >= 100, `${statics} static BAYBAY nodes`);
+  assert.ok(c.byFamily.dialogue.lines >= statics - 10, JSON.stringify(c.byFamily.dialogue));
+  assert.ok(c.rows.some(r => r.family === 'dialogue' && r.id === 'flow.tour.skip'), 'a code-built node with fixed words');
+  assert.ok(!c.rows.some(r => r.family === 'dialogue' && /\$\{/.test(r.zh + r.en)), 'no template');
+  assert.ok(c.pct < c.bubbles.pct, 'the headline is no longer the bubbles-only number');
 });
 
 test('W9-X2 · coverage rows: a recorded line counts once (the earliest table wins, as in the binder); no row is a template', async () => {

@@ -12,18 +12,29 @@
  *   2. **By id** (the lanes play them with a `voice-line` event): the Grand Tour / loop narration (data/sf/voiceTour.ts,
  *      lane C's tourLines), the city lines (data/voiceLinesSf.ts SF_VOICE_LINES), wave 5's paced lines.
  *
+ *   3. **Dialogue** (W9-X review, X-RV-3): BAYBAY's dialogue boxes — every static node of data/script.ts she speaks
+ *      (103 on 2 Oct, the first-use welcome intro.hello.city among them) and the code-built nodes with fixed literal
+ *      words (`defineNode({ … speaker: 'baybay' … text: { zh: '…', en: '…' } })`). The binder voices a node by its exact
+ *      text since W9-X6 (game/voiceW5.ts w5VoiceForNode): a node whose words are a recorded table line is counted once,
+ *      with that line; the others are unvoiced (blips only). Templated nodes (a place name in the words) cannot be voiced.
+ *
  * A line is **voiced** when both languages have a clip and neither is muted (a CHECK list: the owner's ear), **muted** when
- * a clip exists but waits for the owner, **unvoiced** when there is none. Coverage = voiced / all lines.
+ * a clip exists but waits for the owner, **unvoiced** when there is none. Coverage = voiced / all lines (all three
+ * families); `bubbles` = the first two only (wave 9's first number, which left the dialogue boxes out).
  * Barks (zh-hi …) and the dialogue blips are not lines. The report's numbers: docs/opus-bay/sf-w9-X.md.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, TABLES, w9Lines } from './lines';
 
-export interface LineRow { id: string; family: 'text' | 'id'; table: string; zh: string; en: string; status: 'voiced' | 'muted' | 'unvoiced'; source?: string; /** the muted clips (`zh-<id>` / `en-<id>`) */ mutedClips?: string[] }
+type Family = 'text' | 'id' | 'dialogue';
+type Counts = { lines: number; voiced: number; muted: number; unvoiced: number };
+export interface LineRow { id: string; family: Family; table: string; zh: string; en: string; status: 'voiced' | 'muted' | 'unvoiced'; source?: string; /** the muted clips (`zh-<id>` / `en-<id>`) */ mutedClips?: string[] }
 export interface Coverage {
   lines: number; voiced: number; muted: number; unvoiced: number; pct: number;
-  byFamily: Record<'text' | 'id', { lines: number; voiced: number; muted: number; unvoiced: number }>;
+  byFamily: Record<Family, Counts>;
+  /** (X-RV-3) the text-matched bubbles and the by-id lines only (no dialogue boxes): wave 9's first, partial number */
+  bubbles: Counts & { pct: number };
   rows: LineRow[];
   /** recorded lines the game no longer says verbatim (a lane reworded them: silent until re-recorded) */
   dead: { id: string; table: string; zh: string; en: string }[];
@@ -114,9 +125,35 @@ export async function coverage(): Promise<Coverage> {
   const sf = await load<{ SF_VOICE_LINES: Record<string, { zh: string; en: string }> }>('src/opus-bay/data/voiceLinesSf.ts');
   for (const [id, l] of Object.entries(sf.SF_VOICE_LINES)) rows.push({ id, family: 'id', table: 'voiceLinesSf', zh: l.zh, en: l.en, status: byIdStatus(id) });
 
-  const count = (rs: LineRow[]) => ({ lines: rs.length, voiced: rs.filter(r => r.status === 'voiced').length, muted: rs.filter(r => r.status === 'muted').length, unvoiced: rs.filter(r => r.status === 'unvoiced').length });
+  // --- 3. (X-RV-3) BAYBAY's dialogue boxes: the static nodes, then the code-built nodes with fixed literal words
+  const textStatus = new Map(rows.filter(r => r.family === 'text').map(r => [key(r.zh, r.en), r.status] as const));
+  const { NODES } = await load<{ NODES: Record<string, { id: string; speaker?: string; text: { zh: string; en: string } }> }>('src/opus-bay/data/script.ts');
+  const nodes: { id: string; zh: string; en: string; source: string }[] = [];
+  for (const n of Object.values(NODES)) if (n.speaker === 'baybay' && typeof n.text?.zh === 'string') nodes.push({ id: n.id, zh: n.text.zh, en: n.text.en, source: 'data/script.ts' });
+  const unq = (q: string) => q.replace(/\\'/g, "'");
+  for (const m of src.matchAll(/defineNode\(\{ id: [`'"]([^`'"]+)[`'"], speaker: 'baybay'[^\n]*?text: \{ zh: '((?:[^'\\\n]|\\.)*)', en: '((?:[^'\\\n]|\\.)*)' \}/g)) {
+    if (/\$\{/.test(m[2] + m[3])) continue;
+    nodes.push({ id: m[1], zh: unq(m[2]), en: unq(m[3]), source: 'code' });
+  }
+  const seenNode = new Set<string>();
+  for (const n of nodes) {
+    const k = key(n.zh, n.en);
+    if (seenNode.has(k)) continue;
+    seenNode.add(k);
+    if (textStatus.has(k)) continue; // a recorded table line: counted once, above (the binder voices the node with it)
+    rows.push({ id: n.id, family: 'dialogue', table: 'script', zh: n.zh, en: n.en, status: 'unvoiced', source: n.source });
+  }
+
+  const count = (rs: LineRow[]): Counts => ({ lines: rs.length, voiced: rs.filter(r => r.status === 'voiced').length, muted: rs.filter(r => r.status === 'muted').length, unvoiced: rs.filter(r => r.status === 'unvoiced').length });
+  const pctOf = (c: Counts) => c.lines ? Math.round((c.voiced / c.lines) * 1000) / 10 : 0;
   const all = count(rows);
-  return { ...all, pct: all.lines ? Math.round((all.voiced / all.lines) * 1000) / 10 : 0, byFamily: { text: count(rows.filter(r => r.family === 'text')), id: count(rows.filter(r => r.family === 'id')) }, rows, dead };
+  const bubbles = count(rows.filter(r => r.family !== 'dialogue'));
+  return {
+    ...all, pct: pctOf(all),
+    byFamily: { text: count(rows.filter(r => r.family === 'text')), id: count(rows.filter(r => r.family === 'id')), dialogue: count(rows.filter(r => r.family === 'dialogue')) },
+    bubbles: { ...bubbles, pct: pctOf(bubbles) },
+    rows, dead,
+  };
 }
 
 export { TABLES };
@@ -130,5 +167,6 @@ if (isMain) {
   if (process.argv.includes('--list')) for (const r of c.rows) if (r.status !== 'voiced') console.log(`${r.status.padEnd(8)} ${r.id.padEnd(30)} ${r.zh}  |  ${r.en}${r.source ? `  (${r.source})` : ''}`);
   for (const d of c.dead) console.log(`dead     ${d.id.padEnd(30)} ${d.zh}  (${d.table}: the game no longer says it verbatim)`);
   console.log(`BAYBAY fixed lines: ${c.lines} — voiced ${c.voiced} (${c.pct} %), muted ${c.muted} (the owner's ear), unvoiced ${c.unvoiced}; dead recordings ${c.dead.length}`);
-  console.log(`  text-matched ${JSON.stringify(c.byFamily.text)} · by id ${JSON.stringify(c.byFamily.id)}`);
+  console.log(`  text-matched ${JSON.stringify(c.byFamily.text)} · by id ${JSON.stringify(c.byFamily.id)} · dialogue boxes ${JSON.stringify(c.byFamily.dialogue)}`);
+  console.log(`  bubbles + by id only (no dialogue boxes): ${c.bubbles.lines} — voiced ${c.bubbles.voiced} (${c.bubbles.pct} %)`);
 }
