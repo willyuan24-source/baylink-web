@@ -71,27 +71,29 @@ test('W9-F2: while the arrival card holds the title (absorb), a toast goes into 
   card.release();
 });
 
-test('W9-F2: a dialogue holds the title level — a toast waits under it and shows after it closes', () => {
+// W9-I (F-RC-1 / F-RP-2: 想去, 已保存, 链接已复制 and the map compass waited behind the 'modal' holder and were dropped
+// after 10 s; was "a toast waits under it and shows after it closes" / "a toast that waited too long is not shown late")
+test('W9-F2 / W9-I: a dialogue holds the title level — a toast raised under it is that panel’s own feedback and shows at once', () => {
   reset();
   game.set({ dialogue: { nodeId: 'test.node' } });
   assert.equal(A.slotHolder('title'), 'modal');
   toast({ zh: '已加入想去', en: 'Added to your list' });
-  assert.equal(shown(), null, 'not over the dialogue');
-  advance(2000);
+  assert.equal(shown(), '已加入想去', 'at once, beside the dialogue');
+  advance(H.toastMs('已加入想去') + 100);
+  assert.equal(shown(), null, 'gone after its reading time');
   game.set({ dialogue: { nodeId: null } });
   assert.equal(A.slotHolder('title'), null);
-  advance(A.ATTENTION_GAP_MS + 100);
-  assert.equal(shown(), '已加入想去');
 });
 
-test('W9-F2: a toast that waited too long is not shown late', () => {
+test('W9-I: a toast raised inside an open panel (the map compass, the album) is never dropped', () => {
   reset();
   game.set({ panel: { kind: 'map' } });
-  toast({ zh: '一会儿就过期', en: 'Stale soon' });
+  toast({ zh: '已转回正北', en: 'North is up' });
+  assert.equal(shown(), '已转回正北');
   advance(H.TOAST_MAX_WAIT_MS + 500);
   game.set({ panel: { kind: null } });
   advance(A.ATTENTION_GAP_MS + 500);
-  assert.equal(shown(), null);
+  assert.equal(shown(), null, 'shown once, not again later');
 });
 
 test('W9-F2: isProgress / toastMs (pure)', () => {

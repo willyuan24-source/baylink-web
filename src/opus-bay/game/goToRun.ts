@@ -168,7 +168,10 @@ export function whenArrived(fn: () => void, placeId: string): () => void {
     if (e.what !== 'end' || e.place !== placeId) return;
     off();
     setTimeout(() => {
-      const ticket = requestSlot('title', `n:arrive:${placeId}`, { priority: ATTENTION_PRIORITY.card, maxWaitMs: 20000, onGrant: () => { try { fn(); } finally { setTimeout(() => ticket.release(), 2500); } } });
+      // (W9-I, W9I-P-1: on a first visit the sticky arrival card held the level, this waited 20 s and was dropped — the
+      // event card never came back) the card the player asked for takes over once the arrival card has had its CARD_MIN_MS
+      // (between a card and N's stuck card, which still wins)
+      const ticket = requestSlot('title', `n:arrive:${placeId}`, { priority: ATTENTION_PRIORITY.card + 0.5, maxWaitMs: 20000, onGrant: () => { try { fn(); } finally { setTimeout(() => ticket.release(), 2500); } } });
     }, ARRIVE_CARD_MS);
   });
   return off;

@@ -252,7 +252,7 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
     border-radius: 28px 28px 0 0; box-shadow: 0 -18px 40px -24px rgba(74, 52, 22, .3); border-top: 1px solid var(--ob-line);
   }
   /* (W9-F9, lane F surgical — review R§5 #14: the phone title hid its controls line) the greeting goes, one line of controls stays */
-  .ob-title.has-art .ob-title-greet { display: none; }
+  .ob-title.has-art .ob-title-greet, .ob-title.has-art .ob-title-hint-d { display: none; } /* (W9-I: the district's phone title as before W9-F) */
   .ob-title.has-art .ob-title-h1 { font-size: clamp(36px, 11vw, 48px); }
   .ob-title.has-art .ob-title-h1::after { margin-top: 8px; }
   .ob-title.has-art .ob-title-sub { font-size: 15px; }

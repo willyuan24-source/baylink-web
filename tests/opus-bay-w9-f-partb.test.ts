@@ -85,7 +85,8 @@ test('W9-F8: on touch a ghost stick plays for 3 s at the first free control; the
   // on screen COACH_SEEN_MS in all (the act steps run a little slower than the clock: up to 3 s more)
   for (let i = 0; i < 40 && !coachSeen(); i++) await wait(150);
   assert.equal(coachSeen(), true, `${COACH_SEEN_MS / 1000} s on screen counts as seen`);
-  assert.ok(c.querySelector('[data-coach="move"]'), 'seen, but up until the player moves or something covers it');
+  // W9-I (F-RC-3: a tap-walking or touring player kept the bar for good): seen, and it goes
+  assert.ok(await until(() => !c.querySelector('[data-coach="move"]'), 1000), 'seen after 8 s on screen, and it goes');
   runtime.input.device = 'keyboard';
 });
 

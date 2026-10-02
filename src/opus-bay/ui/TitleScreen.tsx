@@ -139,10 +139,11 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         {gl === 'software' && city && <TitleGlNote kind="software" /> /* W9-P-review P-RC-3: the district stays as it was */}
         {silentHint && sound && <p className="ob-title-silent" role="status">{t(SILENT_HINT)}</p>}
         <a className="ob-title-link" href={guidesUrl(locale)}>
-          <BookOpen size={16} aria-hidden />{t('先不玩，直接看攻略', 'Not now — read the guides')}<ArrowRight size={15} aria-hidden />
+          <BookOpen size={16} aria-hidden />{city ? t('先不玩，直接看攻略', 'Not now — read the guides') : t('不玩了，直接看攻略', 'Skip the game — read the guides')}<ArrowRight size={15} aria-hidden />
         </a>
         {/* (W9-F9, review R§5 #14) one wording for walking and turning on touch: the coach, this line and Settings */}
-        <p className="ob-title-hint">{device === 'touch' ? t('左边拖动走路 · 右边拖动转视角 · 点发光的东西互动', 'Drag left to walk · drag right to look · tap glowing things') : t('WASD 移动 · E 互动 · Q 问 BAYBAY · M 地图', 'WASD move · E interact · Q ask BAYBAY · M map')}</p>
+        {/* (W9-I, F-RC-2: district mode never changes) the district keeps its pre-W9-F hint, hidden on the phone title as before */}
+        <p className={city ? 'ob-title-hint' : 'ob-title-hint ob-title-hint-d'}>{device === 'touch' ? (city ? t('左边拖动走路 · 右边拖动转视角 · 点发光的东西互动', 'Drag left to walk · drag right to look · tap glowing things') : t('点地面走路 · 点发光的东西互动', 'Tap the ground to walk · tap glowing things to use them')) : t('WASD 移动 · E 互动 · Q 问 BAYBAY · M 地图', 'WASD move · E interact · Q ask BAYBAY · M map')}</p>
       </div>
     </div>
   );

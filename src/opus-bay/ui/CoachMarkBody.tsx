@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Hand } from 'lucide-react';
 import { runtime } from '../core/runtime';
-import { game } from '../core/store';
+import { game, useGame } from '../core/store';
 import { cinemaActive } from '../game/cinema';
 import { flow } from '../game/flowStore';
 import { useAttention } from '../game/attention';
@@ -69,7 +69,13 @@ function GhostStick() {
   return <div className="ob-ghost-stick" style={ghostBase} aria-hidden><div ref={knob} style={ghostKnob} /></div>;
 }
 
+/** (W9-I, F-RC-2: district mode never changes) the city gets W9-F8's coach; the district its pre-W9-F one. */
 export default function CoachMarkBody() {
+  const city = useGame(s => s.worldMode === 'city');
+  return city ? <CityCoach /> : <DistrictCoach />;
+}
+
+function CityCoach() {
   const { t } = useT();
   const device = useDevice();
   const [want, setWant] = useState(false);
@@ -99,7 +105,8 @@ export default function CoachMarkBody() {
       if (!showRef.current) return; // waiting for its turn (game/attention.ts)
       if (!ghosted && runtime.input.device === 'touch') { ghosted = true; setGhost(true); window.setTimeout(() => setGhost(false), GHOST_MS); }
       shownFor += dt;
-      if (shownFor > COACH_SEEN_MS) markCoachSeen(); // seen, but keep it up until the player moves or something covers it
+      // (W9-I, F-RC-3: a player who only taps the ground, or rides the tour, kept the bar for good) 8 s on screen: seen, and it goes
+      if (shownFor > COACH_SEEN_MS) { done.current = true; markCoachSeen(); setWant(false); setGhost(false); window.clearInterval(id); }
     }, 150);
     return () => window.clearInterval(id);
   }, []);
@@ -122,5 +129,50 @@ export default function CoachMarkBody() {
         )}
       </div>
     </>
+  );
+}
+
+/** The district's coach exactly as before W9-F8 (7a232652~1): any move marks it seen, 4 s on screen counts, a bubble hides it. */
+function DistrictCoach() {
+  const { t } = useT();
+  const device = useDevice();
+  const [show, setShow] = useState(false);
+  const done = useRef(coachSeen());
+  useEffect(() => {
+    if (done.current) return;
+    let freeSince = 0, shownFor = 0, last = performance.now();
+    const id = window.setInterval(() => {
+      const now = performance.now(), dt = now - last;
+      last = now;
+      const p = runtime.player;
+      // first successful move: the lesson landed
+      if (p.moving && p.speed > 0.8 && game.get().phase === 'playing' && game.get().mode !== 'onboarding') {
+        done.current = true; markCoachSeen(); setShow(false); window.clearInterval(id); return;
+      }
+      if (!screenIsFree() || flow.get().bubble) { freeSince = 0; setShow(false); return; }
+      if (!freeSince) freeSince = now;
+      if (now - freeSince < 1500) return;
+      setShow(true);
+      shownFor += dt;
+      if (shownFor > 4000) markCoachSeen(); // seen, but keep it up until the player moves or something covers it
+    }, 150);
+    return () => window.clearInterval(id);
+  }, []);
+  if (!show) return null;
+  return (
+    <div className={`ob-coach ${device === 'touch' ? 'is-touch' : ''}`} role="status">
+      {device === 'touch' ? (
+        <span className="ob-coach-line"><Hand size={18} aria-hidden />{t('点地面走过去 · 左边拖动摇杆 · 右边拖动转视角', 'Tap the ground to walk · drag left to steer · drag right to look')}</span>
+      ) : (
+        <span className="ob-coach-line">
+          <span className="ob-coach-keys"><Keycap>W</Keycap><Keycap>A</Keycap><Keycap>S</Keycap><Keycap>D</Keycap></span>
+          <span className="ob-coach-or">/</span>
+          <span className="ob-coach-keys is-arrows"><Keycap>↑</Keycap><Keycap>↓</Keycap><Keycap>←</Keycap><Keycap>→</Keycap></span>
+          <b>{t('走路', 'walk')}</b>
+          <span className="ob-coach-dot">·</span>{t('点地面也能走', 'or click the ground')}
+          <span className="ob-coach-dot">·</span><Keycap>Shift</Keycap>{t('跑', 'run')}
+        </span>
+      )}
+    </div>
   );
 }

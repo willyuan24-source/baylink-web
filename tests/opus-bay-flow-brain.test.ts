@@ -324,8 +324,11 @@ test('F11 / W9-F3: a first visit opens at golden hour for the intro only; the we
   reset();
   mock.timers.enable({ apis: ['setTimeout'] });
   try {
+    const was = game.get().worldMode;
+    game.set({ worldMode: 'city' });
     flow.set({ goldenFirstVisit: true, timeOffer: null });
     flowMod.offerRealTime();
+    game.set({ worldMode: was });
     assert.equal(flow.get().goldenFirstVisit, false, 'the real Bay time from the choice on');
     mock.timers.tick(12000);
     assert.equal(flow.get().timeOffer, null, 'no 现在湾区是晚上 · 看看此刻的样子？ toast (before W9-F3: \'night\' 1.8 s after the choice at 21:50)');

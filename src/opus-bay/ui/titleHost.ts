@@ -84,6 +84,10 @@ function onToasts(list: readonly Toast[]) {
     // progress → the ribbon; anything while the arrival card holds the title → its ribbon row
     if (isProgress(item.text) || titleAbsorbs()) { ribbonNote(bi); continue; }
     const key = `toast:${item.id}`;
+    // (W9-I, F-RC-1 / F-RP-2: 想去, 已保存, 链接已复制 and the map compass waited behind the 'modal' holder and were dropped
+    // after 10 s) a toast raised while a dialogue / panel / card is up is that panel's own feedback: it shows at once
+    // (the top stack sits beside the sheet)
+    if (modalUp()) { showToast(key, item); continue; }
     const ticket = requestSlot('title', key, {
       // toasts never cut each other short (first come, first shown); a card takes over after TOAST_MIN_MS
       priority: ATTENTION_PRIORITY.toast,
@@ -121,7 +125,7 @@ function onAttention() {
   seenRibbon = r;
   // the arrival card shows it in its own row
   if (!r || titleAbsorbs()) return;
-  if (ribbonTicket?.granted) { holdRibbon(); return; }
+  if (ribbonTicket?.granted || modalUp()) { holdRibbon(); return; } // (W9-I, F-RC-1: under a panel, at once)
   if (ribbonTicket?.waiting) return;
   ribbonTicket = requestSlot('title', `ribbon:${r.key}`, {
     priority: ATTENTION_PRIORITY.toast,

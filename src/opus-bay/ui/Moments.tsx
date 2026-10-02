@@ -90,6 +90,7 @@ export function PostcardReward() {
   const total = activePostcardTotal();
   const count = useGame(s => activePostcardCount(s.postcards));
   const reduced = useGame(s => s.settings.reducedMotion);
+  const city = useGame(s => s.worldMode === 'city');
   const [flipped, setFlipped] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
   const card = postcardById(id);
@@ -102,10 +103,10 @@ export function PostcardReward() {
     setFlipped(false);
     if (!id) return;
     closeRef.current?.focus({ preventScroll: true });
-    if (ok) return;
+    if (ok && city) return; // (W9-I, F-RC-2: the district's card turns over by itself as before W9-F10)
     const timer = window.setTimeout(() => setFlipped(true), reduced ? 50 : 1100);
     return () => window.clearTimeout(timer);
-  }, [id, reduced, ok]);
+  }, [id, reduced, ok, city]);
   if (!id || !card) return null;
   return (
     <div className="ob-reward" role="dialog" aria-modal="true" aria-label={t(card.title)} onClick={e => { if (e.target === e.currentTarget) closePostcardReward(); }}>
@@ -116,7 +117,7 @@ export function PostcardReward() {
           {ok && art ? <img className="ob-postcard-img" src={art.src} srcSet={art.srcSet} sizes="(max-width: 720px) 86vw, 460px" alt="" draggable={false} decoding="async" />
             : <span className="ob-postcard-art"><Mail size={40} aria-hidden /><em>{card.title.en}</em></span>}
           <span className="ob-postcard-caption">{t(card.title)}</span>
-          {!flipped && ok && <span className="ob-postcard-caption" style={TURN_HINT}>{t('点一下翻面', 'Tap to turn over')}</span>}
+          {!flipped && ok && city && <span className="ob-postcard-caption" style={TURN_HINT}>{t('点一下翻面', 'Tap to turn over')}</span>}
         </span>
         <span className="ob-postcard-face back">
           <span className="ob-postcard-message">
@@ -182,7 +183,7 @@ export function PhotoMode() {
     <div className="ob-photo">
       <div className="ob-photo-frame" aria-hidden><i className="c tl" /><i className="c tr" /><i className="c bl" /><i className="c br" /><i className="g v1" /><i className="g v2" /><i className="g h1" /><i className="g h2" /></div>
       {flashing && <div className="ob-photo-flash" aria-hidden />}
-      <p className="ob-photo-hint">{device === 'touch' ? t('拖动转视角 · 双指缩放 · 点快门拍照', 'Drag to look · pinch to zoom · tap the shutter') : t('右键拖动转视角 · 滚轮缩放 · 空格拍照', 'Right-drag to turn · wheel to zoom · Space to shoot')}</p>
+      <p className="ob-photo-hint">{device === 'touch' ? (city ? t('拖动转视角 · 双指缩放 · 点快门拍照', 'Drag to look · pinch to zoom · tap the shutter') : t('双指旋转缩放取景', 'Two fingers to turn & zoom')) : t('右键拖动转视角 · 滚轮缩放 · 空格拍照', 'Right-drag to turn · wheel to zoom · Space to shoot')}</p>
       <div className="ob-photo-bar">
         <button type="button" className="ob-icon-btn ob-photo-exit" onClick={exitPhotoMode} aria-label={t('退出拍照', 'Exit photo mode')}><X size={22} aria-hidden /></button>
         <button type="button" className="ob-shutter" onClick={shoot} aria-label={t('拍照', 'Take photo')}><Aperture size={30} aria-hidden /></button>

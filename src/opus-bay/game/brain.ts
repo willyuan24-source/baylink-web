@@ -352,7 +352,7 @@ function follow(now: number) {
     emote(pool[Math.floor(Math.random() * pool.length)]);
     // (W9-F, w8 NEXT #8: 要是我有口袋，一定装满酸面包。 came twice 18 s apart) never the idle line she said last
     const line = Math.random() < 0.5 ? bark('idle') : undefined;
-    if (line && line !== lastIdleLine && !flow.get().bubble) { lastIdleLine = line; bubble(line, 3600); }
+    if (line && (line !== lastIdleLine || game.get().worldMode !== 'city') && !flow.get().bubble) { lastIdleLine = line; bubble(line, 3600); } // (W9-I: the district as before)
   }
   if (!quiet) barks(now);
 }

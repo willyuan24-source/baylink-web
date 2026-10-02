@@ -130,6 +130,20 @@ export function CinematicLayer() {
  * one ribbon line; under the arrival card they are its ribbon row; under a dialogue / panel / card they wait.
  */
 export function Toasts() {
+  // (W9-I, F-RC-2: district mode never changes) the district keeps the pre-W9-F2 stack of up to three toasts
+  const city = useGame(s => s.worldMode === 'city');
+  return city ? <CityToasts /> : <DistrictToasts />;
+}
+function DistrictToasts() {
+  const { t } = useT();
+  const toasts = useGame(s => s.toasts);
+  return (
+    <div className="ob-toasts" role="status" aria-live="polite">
+      {toasts.map(item => <div key={item.id} className={`ob-toast tone-${item.tone ?? 'info'}`}>{item.bi ? t(item.bi) : item.text}</div>)}
+    </div>
+  );
+}
+function CityToasts() {
   const { t } = useT();
   useEffect(() => initTitleHost(), []);
   const host = useSyncExternalStore(subscribeTitleHost, titleHostState, titleHostState);

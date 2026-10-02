@@ -25,6 +25,7 @@ import { endRide } from './ride';
 import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, speakRecorded, unlockPelican } from './cityContent';
 import { CITY_DATA } from '../data/sf/cityData';
 import { boardFrom, initTransit, openRideNode } from './transit';
+import { bayTimeOfDay } from './qa';
 import { bayNow } from './bayNow';
 import { PELICAN_TARGET } from './cityGoals';
 import { gameTimeLabel } from './travel';
@@ -607,8 +608,9 @@ export function startFree(opts: { local?: boolean; quiet?: boolean; back?: boole
   // unprompted line source while quietUntil runs, the 飞行券 gift too)
   const now = performance.now(), hush = opts.local || wander;
   // (我自己逛逛: her "you lead" line, then 15 s for the player's own first steps — W9-F's first run heard 4 lines in 20 s)
-  const until = opts.local ? now + QUIET_MS : wander ? now + 15_000 : 0;
-  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: card, quietUntil: until, hushUntil: until, ...(hush ? { freeHint: null, freeHintOffUntil: now + QUIET_MS } : {}) });
+  // (W9-I, F-RC-2: district mode never changes) the district's 我是本地人 keeps its one quiet minute and its hints (F9)
+  const until = opts.local ? now + (city ? QUIET_MS : 60000) : wander ? now + 15_000 : 0;
+  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: card, quietUntil: until, hushUntil: city ? until : 0, ...(hush && city ? { freeHint: null, freeHintOffUntil: now + QUIET_MS } : {}) });
   if (opts.back) welcomeBack();
   else if (opts.local) bubble(hookText('localIntro') ?? { zh: '欢迎回来！M 看地图，Q 随时叫我。', en: 'Welcome back! M opens the map, Q calls me anytime.' }, 4200);
   else if (step) return; // (the step carries BAYBAY's intro; her pelican line follows when it closes)
@@ -625,8 +627,28 @@ export const FREE_AGAIN: Bilingual = { zh: '好嘞，你带路，我跟着！想
 // ---------------------------------------------------------------------------
 
 /** After the welcome choice on a first visit: the real Bay time from now on (no 看此刻 toast; nothing is saved). */
-export function offerRealTime() {
+export function offerRealTime(now = bayNow()) {
+  if (game.get().worldMode !== 'city') { offerRealTimeDistrict(now); return; }
   if (flow.get().goldenFirstVisit) flow.set({ goldenFirstVisit: false, timeOffer: null });
+}
+
+let timeOffered = false;
+/**
+ * (W9-I, F-RP-1: district mode never changes) the district's F11 exactly as before W9-F3 (03784d32~1): golden hour
+ * stays and the real Bay time is offered as a 看此刻 toast for 10 s — this visit only.
+ */
+function offerRealTimeDistrict(now: Date) {
+  const f = flow.get();
+  if (timeOffered || !f.goldenFirstVisit) return;
+  timeOffered = true;
+  const real = bayTimeOfDay(now);
+  if (real === 'golden') { flow.set({ goldenFirstVisit: false }); return; } // it really is golden hour
+  const show = () => {
+    if (goalsStepOpen()) { setTimeout(show, 500); return; }
+    if (flow.get().goldenFirstVisit) flow.set({ timeOffer: real });
+    setTimeout(() => { if (flow.get().timeOffer === real) flow.set({ timeOffer: null }); }, 10000);
+  };
+  setTimeout(show, 1800);
 }
 
 /** [看夜景]: follow the real Bay clock for the rest of this visit (nothing is saved). */
