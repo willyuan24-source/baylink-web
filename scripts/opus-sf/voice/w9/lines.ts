@@ -45,7 +45,8 @@ export const W9_SOURCES: readonly W9Source[] = [
   // lane H (W9-H2): the big Halloween days' greeting (halloween/today.ts; the welcome back and a first visit's invitation)
   { lane: 'h', file: 'halloween/worldLines.ts', only: ['W9_WORLD_LINES'], ids: true },
   // lane N (W9-N): the stuck card's question, BAYBAY's dialogue node (the binder voices her nodes by text since W9-X6)
-  { lane: 'n', file: 'game/tripRun.ts', pick: ['这段路被挡住了，我们怎么走？'] },
+  // and (W9-N3) the Grand Tour's resume card on return, her dialogue node too
+  { lane: 'n', file: 'game/tripRun.ts', pick: ['这段路被挡住了，我们怎么走？', '上次的一日游还没走完，接着走吗？'] },
   // (lane G's hide & seek crossing line, play/hideSeek.ts HIDE_LINES.crosswalk, is found by wave 5's scan of that file)
 ];
 

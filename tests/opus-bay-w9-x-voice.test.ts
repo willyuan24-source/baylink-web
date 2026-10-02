@@ -146,3 +146,13 @@ test('W9-X7 · batch 3: lane H\'s big-day greetings, lane G\'s crossing line and
   assert.ok(fs.readFileSync('src/opus-bay/game/tripRun.ts', 'utf8').includes(`STUCK_LINE: Bilingual = { zh: '${n.zh}', en: '${n.en}' }`), 'tripRun says the recorded words');
   for (const l of [g, n]) assert.ok(w5VoiceFor(l), `${l.zh} voiced`);
 });
+
+test('W9-X8 · batch 4 (lane X\'s 04:00 pass over new-lines.md): lane N\'s Grand Tour resume question (BAYBAY\'s dialogue node flow.tour.resume) is voiced', async () => {
+  const fs = await import('node:fs');
+  const { w5VoiceFor } = await import('../src/opus-bay/game/voiceW5');
+  const r = { zh: '上次的一日游还没走完，接着走吗？', en: 'We didn’t finish the Grand Tour last time. Shall we go on?' };
+  const src = fs.readFileSync('src/opus-bay/game/tripRun.ts', 'utf8');
+  assert.ok(src.includes(`RESUME_LINE: Bilingual = { zh: '${r.zh}', en: '${r.en}' }`), 'tripRun says the recorded words');
+  assert.match(src, /id: 'flow\.tour\.resume', speaker: 'baybay'[^\n]*text: RESUME_LINE/, 'her dialogue node (the binder voices it, W9-X6)');
+  assert.equal(w5VoiceFor(r), 'w5-n-0dede64c');
+});

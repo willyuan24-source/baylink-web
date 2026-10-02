@@ -100,3 +100,17 @@ G's hide & seek crossing line (`play/hideSeek.ts` `HIDE_LINES.crosswalk`), lane 
 (0.05 + 0.02 + 0.02 + 0.02 + 0.05 + 0.01 + 0.01 + 0.02 = 0.20), 2 refunds of the failed jobs (+0.01, +0.02, 10:05:51–52),
 4 resubmissions at 10:06:27–28 (0.05 + 0.02 + 0.02 + 0.01 = 0.10): 0.20 − 0.03 + 0.10 = 0.27; the row before is batch 2's
 resubmission (06:46:55): nobody else spent on the account in between. **Wave-9 lane X running total: 0.68.**
+
+## Batch 4 · the 04:00 PDT pass over `new-lines.md` (W9-X7), 2026-10-02 11:10 UTC
+
+Balance before: **356.59** (11:09 UTC). At 04:04 PDT `C:/Users/willy/opus-qa/w9/new-lines.md` had 17 rows (lane L and R:
+no new lines); the inventory over origin `b6570935` found one unrecorded line: lane N's Grand Tour resume question
+(`game/tripRun.ts` `RESUME_LINE`, W9-N3). 1 line × zh / en = 2 takes (indices 300–301), scratch
+`C:/Users/willy/opus-qa/w9/x/voice4/`.
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W9X-VO4 | 2 clips (1 line × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | `RESUME_LINE` 上次的一日游还没走完，接着走吗？ / We didn’t finish the Grand Tour last time. Shall we go on?, verbatim | 0.01 + 0.03 | `0ddd3443-4ac7-4cc5-bfda-851729bedc4a` (zh, 11:10:38), `5abfab8b-96f4-4c61-868f-7d7d839cc08e` (en, 11:10:38) | `public/opus-bay/w9/voice/{zh,en}-w5-n-0dede64c.{m4a,ogg}` | 2 used: **2 pass every gate, 2 heard right** |
+
+**Credits:** `balance` 356.59 → **356.55** = **0.04**. `transactions` (newest 4 at 11:12 UTC): 2 spends at 11:10:38 (0.01 +
+0.03); the row before is batch 3's last resubmission (10:06:28). **Wave-9 lane X running total: 0.72.**

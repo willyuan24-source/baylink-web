@@ -26,6 +26,7 @@ Each batch's picks play in this order in `w9-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 12 | 3 | H 万圣 | `zh-w9-h-today-big-night` | 万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～ | 8.66 | pass | ✓ (0.99) | |
 | 13 | 3 | H 万圣 | `zh-w9-h-today-procession` | 今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。 | 5.89 | pass | ✓ (0.93) | |
 | 14 | 3 | N 去哪 | `zh-w5-n-645daeca` | 这段路被挡住了，我们怎么走？ | 2.69 | pass | ✓ (0.99) | |
+| 15 | 4 | N 去哪 | `zh-w5-n-0dede64c` | 上次的一日游还没走完，接着走吗？ | 3.07 | pass | ✓ (0.99) | |
 
 ## en
 
@@ -45,6 +46,7 @@ Each batch's picks play in this order in `w9-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 12 | 3 | H 万圣 | `en-w9-h-today-big-night` | Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there. | 6.46 | pass | ✓ (0.95) | |
 | 13 | 3 | H 万圣 | `en-w9-h-today-procession` | The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site. | 7.76 | pass | ✓ (0.92) | |
 | 14 | 3 | N 去哪 | `en-w5-n-645daeca` | This way is blocked. How shall we go? | 3.60 | pass | ✓ (0.80) | |
+| 15 | 4 | N 去哪 | `en-w5-n-0dede64c` | We didn’t finish the Grand Tour last time. Shall we go on? | 4.26 | pass | ✓ (0.75) | |
 
 ## 重录 · retakes of wave-7 muted clips
 

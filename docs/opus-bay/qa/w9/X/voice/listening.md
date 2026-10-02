@@ -4,7 +4,7 @@
 
 **怎么听**
 
-1. 最快：按批次听合集（每句之间停 0.7 秒，顺序 = 下表）：`w9-voice-preview-b1-zh.m4a` / `-en.m4a`、`w9-voice-preview-b2-zh.m4a` / `-en.m4a`、`w9-voice-preview-b3-zh.m4a` / `-en.m4a`（都在本目录）。
+1. 最快：按批次听合集（每句之间停 0.7 秒，顺序 = 下表）：`w9-voice-preview-b1-zh.m4a` / `-en.m4a`、`w9-voice-preview-b2-zh.m4a` / `-en.m4a`、`w9-voice-preview-b3-zh.m4a` / `-en.m4a`、`w9-voice-preview-b4-zh.m4a` / `-en.m4a`（都在本目录）。
 2. 单句：`public/opus-bay/w9/voice/<clip>.m4a`（游戏里播的就是这个文件）。
 3. 在游戏里听：打开 `https://www.baylink.us/opus-bay`（上线后），走到对应地点；每句的位置写在「在哪儿听」一栏。
 
@@ -12,7 +12,7 @@
 「机器」= 机器检查（没有爆音、没有截断、停顿和语速正常）：pass 的已经在游戏里播放；check 的先静音，等你写 ✓ 才播放。
 「识别」= Windows 语音识别在所有台词里听出的是不是这一句（✓ = 听对），只作参考。
 
-**现在的配音覆盖率**：BAYBAY 的固定台词共 607 句，已配音 602 句（99.2%），5 句等你批准（下面第二部分），0 句还没有录音。
+**现在的配音覆盖率**：BAYBAY 的固定台词共 608 句，已配音 603 句（99.2%），5 句等你批准（下面第二部分），0 句还没有录音。
 
 ## 第一部分 · 第九波新录音
 
@@ -34,6 +34,7 @@
 | 12 | 3 | 万圣 | `zh-w9-h-today-big-night` | 万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～ | 8.66 | pass | ✓ | 10 月 31 日其他时间回访：讨糖街家家开门（?halloween=night 也能听） | |
 | 13 | 3 | 万圣 | `zh-w9-h-today-procession` | 今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。 | 5.89 | pass | ✓ | 11 月 2 日 16:00–21:00 回访：亡灵节游行 | |
 | 14 | 3 | 带路 | `zh-w5-n-645daeca` | 这段路被挡住了，我们怎么走？ | 2.69 | pass | ✓ | 一日游 / 带路时路被挡住、卡住不动：BAYBAY 的对话框问怎么走（对话框第一次有录音） | |
+| 15 | 4 | 带路 | `zh-w5-n-0dede64c` | 上次的一日游还没走完，接着走吗？ | 3.07 | pass | ✓ | 一日游没走完，下次回来时：BAYBAY 的对话框问接着走吗 | |
 
 ### English
 
@@ -53,6 +54,7 @@
 | 12 | 3 | 万圣 | `en-w9-h-today-big-night` | Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there. | 6.46 | pass | ✓ | 10 月 31 日其他时间回访：讨糖街家家开门（?halloween=night 也能听） | |
 | 13 | 3 | 万圣 | `en-w9-h-today-procession` | The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site. | 7.76 | pass | ✓ | 11 月 2 日 16:00–21:00 回访：亡灵节游行 | |
 | 14 | 3 | 带路 | `en-w5-n-645daeca` | This way is blocked. How shall we go? | 3.60 | pass | ✓ | 一日游 / 带路时路被挡住、卡住不动：BAYBAY 的对话框问怎么走（对话框第一次有录音） | |
+| 15 | 4 | 带路 | `en-w5-n-0dede64c` | We didn’t finish the Grand Tour last time. Shall we go on? | 4.26 | pass | ✓ | 一日游没走完，下次回来时：BAYBAY 的对话框问接着走吗 | |
 
 ## 第二部分 · 以前录好、还在静音等你批准的
 

@@ -140,3 +140,18 @@ limit (not by a fault); its last local work was three real-game probes of the so
   **0.68**; ledger reconciled with `transactions`: nobody else spent in between).
 - **Coverage now: 607 fixed lines, 602 voiced (99.2 %), 5 muted (the owner's ear), 0 unvoiced**; 6 dead recordings (wave
   5's three, wave 8's old 1893 / pagodas words, and wave 8's 这段路有点难走，你来带路吧！ which lane N replaced by the stuck card).
+- W9-X6 pushed ≈ 04:03 PDT (`b6570935`; the first push loop hit a stale `rebase-merge` folder in the worktree's admin
+  directory — "could not remove" on the OneDrive path — removed by hand after `git rebase --continue`; nothing lost).
+
+### The 04:00 pass (W9-X7)
+
+- `new-lines.md` at 04:04 PDT: 17 rows; lanes L (03:40) and R (03:46) wrote that they have no new lines. Every row's text was
+  re-read in the committed source on origin `b6570935` (not only the list): H's three, N's two, G's one, X's six match their
+  files verbatim and are recorded; the inventory over origin found **one** unrecorded line: lane N's Grand Tour resume card
+  (`game/tripRun.ts` `RESUME_LINE`, the dialogue node `flow.tour.resume`, W9-N3) — the binder voices it since W9-X6.
+- A scan of every `bubble(` / `defineNode(` added since day 0 (`git diff f1460b0c origin/opus-bay -- src/opus-bay`):
+  the chapter-end card is the narrator's and templated (not BAYBAY's, not voiceable), `firstFlight`'s 跟着金圈飞！ was
+  recorded in wave 5, the device-dependent bubbles (`firstFlight`, `hideSeek`, `pet`) are literal pairs the scans hold.
+- Batch 4: 2 takes, **2 / 2 pass every gate, 2 / 2 heard right** (zh 3.07 s, en 4.26 s). Credits **0.04** (lane X total
+  **0.72**).
+- **Coverage: 608 fixed lines, 603 voiced (99.2 %), 5 muted (the owner's ear), 0 unvoiced.**

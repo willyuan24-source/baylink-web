@@ -25,6 +25,7 @@ export const W9_VOICE_LINES: readonly W9VoiceLine[] = [
   { id: "w9-h-today-big-night", lane: "h", zh: "万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～", en: "Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there.", s: [8.66, 6.46] },
   { id: "w9-h-today-procession", lane: "h", zh: "今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。", en: "The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site.", s: [5.89, 7.76] },
   { id: "w5-n-645daeca", lane: "n", zh: "这段路被挡住了，我们怎么走？", en: "This way is blocked. How shall we go?", s: [2.69, 3.6] },
+  { id: "w5-n-0dede64c", lane: "n", zh: "上次的一日游还没走完，接着走吗？", en: "We didn’t finish the Grand Tour last time. Shall we go on?", s: [3.07, 4.26] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */
