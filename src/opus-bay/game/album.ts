@@ -5,6 +5,7 @@ import type { Bilingual } from '../core/types';
 import { registerMoreItem, registerOverlay, openOverlay } from '../ui/slots';
 import { importRetry } from './importRetry';
 import { bootMetrics } from './metricsBoot';
+import { SHARE_CARD_ID } from '../ui/shareCardModel';
 
 /**
  * Wave 5 · lane C · W5-C7 (plan sf-w5-plan.md §3.5 "Photo album"): every shutter in the city goes into an album on
@@ -267,16 +268,20 @@ export function resetAlbumForTests(opts: { idb?: boolean; openTimeoutMs?: number
 }
 
 const Album = lazyChunk(() => importRetry(() => import('../ui/Album')));
+/** W9-S4: the 约家人 card (ui/ShareCard.tsx, its own chunk) — the event / place cards' and 我的周末's 约家人 button opens it. */
+const ShareCard = lazyChunk(() => importRetry(() => import('../ui/ShareCard')));
 const AlbumIcon = () => createElement(Images, { size: 18, 'aria-hidden': true });
 
 /**
  * The city chunk's boot: the 相册 More item and the overlay. Returns the disposer.
+ * W9-S4: and the 约家人 card's overlay (SHARE_CARD_ID: city mode only, like the album).
  * W9-S3: it also boots the metrics (game/metricsBoot.ts: the runner loads after the first frame) — this chunk is the
  * city's lazy boot already (game/cityContent.ts), so the metrics cost GameRoot nothing.
  */
 export function initAlbum(): () => void {
   const offOverlay = registerOverlay({ id: ALBUM_ID, Component: Album });
   const offMore = registerMoreItem({ id: ALBUM_ID, order: 20, label: ALBUM_LABEL, icon: AlbumIcon, onSelect: () => openAlbum() });
+  const offCard = registerOverlay({ id: SHARE_CARD_ID, Component: ShareCard });
   const offMetrics = bootMetrics();
-  return () => { offOverlay(); offMore(); offMetrics(); };
+  return () => { offOverlay(); offMore(); offCard(); offMetrics(); };
 }

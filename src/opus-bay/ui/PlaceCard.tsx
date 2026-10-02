@@ -12,6 +12,7 @@ import { closePanel, navigateTo } from '../game/flow';
 import { useT } from '../i18n';
 import { cityStreamerLazy } from '../world/cityLoader';
 import { LinkButton, Sheet } from './common';
+import { ShareCardButton } from './ShareCardButton';
 import { useIsMobile } from './hooks';
 import { GuideRow, NearEvents } from './PoiCardBody';
 import { importRetry } from '../game/importRetry';
@@ -74,6 +75,7 @@ export default function PlaceCard({ place }: { place: CityPlace }) {
       <Suspense fallback={null}><HowToGo point={{ x: place.x, z: place.z }} /></Suspense>
       <div className="ob-link-grid">
         <LinkButton href={mapsUrl(ll.lat, ll.lng, place.name.en)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>
+        <ShareCardButton spec={{ kind: 'place', name, zone: zone ?? undefined, x: place.x, z: place.z }} />
       </div>
       <NearEvents near={near} />
       <p className="ob-source">

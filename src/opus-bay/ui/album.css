@@ -65,3 +65,14 @@
 .ob-album-press-hint { font-size: 15px; font-weight: 800; color: var(--ob-teal-d); text-align: center; }
 .ob-album-press .ob-album-photo img { -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; pointer-events: auto; }
 .ob-album-press .ob-album-actions { width: 100%; }
+
+/* W9-S4 · the 约家人 card (ui/ShareCard.tsx): the whole vertical picture scaled into the sheet, the buttons always in
+   view; a long press on the picture opens the system image menu (WeChat: 保存 / 发送给朋友) */
+.ob-share-card { width: min(480px, 100%); }
+.ob-share-card-pic { display: flex; justify-content: center; align-items: center; min-height: 160px; }
+.ob-share-card-pic img {
+  display: block; width: auto; height: auto; max-width: 100%; border-radius: 12px; box-shadow: var(--ob-shadow-s);
+  max-height: min(64vh, 760px, calc(100vh - 210px)); max-height: min(64svh, 760px, calc(100svh - 210px));
+  -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; pointer-events: auto;
+}
+.ob-share-card .ob-album-press-hint { font-size: 13.5px; }

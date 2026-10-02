@@ -9,6 +9,7 @@ import { closePanel, openPanel, toggleWish } from '../game/flow';
 import { useFlow } from '../game/flowStore';
 import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
+import { ShareCardButton } from './ShareCardButton';
 import { formatDay, joinPlace } from './format';
 import { importRetry } from '../game/importRetry';
 import { addEventToCalendar } from '../realsf/addCal';
@@ -99,6 +100,7 @@ export default function EventCardBody({ id }: { id?: string }) {
         )}
         {official && <LinkButton href={official} icon={<ExternalLink size={17} aria-hidden />} tone="soft" external>{t('官网', 'Official site')}</LinkButton>}
         {event.location && <LinkButton href={mapsUrl(event.location.lat, event.location.lng, event.venue)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>}
+        {next && <ShareCardButton spec={{ kind: 'event', id: event.id }} />}
       </div>
     </Sheet>
   );

@@ -14,6 +14,7 @@ import { useFlow } from '../game/flowStore';
 import { postcardById } from '../game/interactables';
 import { useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
+import { ShareCardButton } from './ShareCardButton';
 import { useIsMobile } from './hooks';
 import { InteractIcon } from './icons';
 import { formatDay, postcardArt, postcardForPoi } from './format';
@@ -128,6 +129,7 @@ export default function PoiCardBody({ poi }: { poi: PoiDef }) {
           <div className="ob-link-grid">
             {official && <LinkButton href={official} icon={<ExternalLink size={17} aria-hidden />} tone="soft" external>{t('官网', 'Official site')}</LinkButton>}
             <LinkButton href={mapsUrl(info.lat, info.lng, poi.name.en)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>
+            {city && <ShareCardButton spec={{ kind: 'place', name: poi.name, zone, hours: info.hours, cost: info.cost, x: poi.position.x, z: poi.position.z }} />}
           </div>
           <p className="ob-source">
             {t('资料来源', 'Source')} · <a href={safeHref(info.sourceUrl)} target="_blank" rel="noopener noreferrer">{sourceDomain(info.sourceUrl) || t('来源', 'source')}</a> · {t('查证于', 'checked')} {info.verifiedAt}

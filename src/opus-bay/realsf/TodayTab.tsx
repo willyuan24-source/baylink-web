@@ -25,6 +25,7 @@ import { calendarAhead, calendarOn, GRADE_SAY, type CalendarRow } from './calend
 import { liveOffers, loadLive, offersOn, standingOffers, subscribeLive } from './live';
 import { hm, rowState, rowsOn, WALK_GUIDES, weekendOf, type HandRow, type SourceRef } from './todayRows';
 import { COAST_SAFETY, COAST_SAFETY_SOURCE, ftLabel, loadTides, tidesOnDay, TIDE_SOURCE, WAVE_ORGAN_SOURCE, WRECK_LOW_FT, WRECKS_SOURCE, type TideExtreme } from './tides';
+import { ShareCardButton } from '../ui/ShareCardButton';
 import './realsf.css';
 
 /**
@@ -421,6 +422,7 @@ export default function TodayTab() {
         <div className="ob-actions ob-today-actions">
           {planStops.length > 0 && <LinkButton href={planUrl({ date: planDay, stops: planStops }, catalog, locale, day)} tone="primary" icon={<CalendarPlus size={17} aria-hidden />}>{t('去 BAYLINK 排周末', 'Plan the weekend on BAYLINK')}</LinkButton>}
           <LinkButton href={myWeekUrl(locale)} tone={planStops.length ? 'soft' : 'primary'} icon={<CalendarDays size={17} aria-hidden />}>{t('我的一周', 'My week')}</LinkButton>
+          {planStops.length > 0 && <ShareCardButton spec={{ kind: 'weekend', days: weekend, events: wishEvents.map(x => ({ id: x.e.id, on: x.on })), places: wishPlaces.map(w => catalog?.places.find(p => p.id === w.id)?.title ?? w.title) }} />}
         </div>
       </section>
 

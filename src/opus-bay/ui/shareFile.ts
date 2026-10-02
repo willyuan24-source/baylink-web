@@ -86,3 +86,12 @@ export function fileToDataUrl(file: Blob): Promise<string> {
     r.readAsDataURL(file);
   });
 }
+
+/** A download of the file through an <a download> (desktop 保存; the album and the 约家人 card). */
+export function downloadFile(file: File): void {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = file.name; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}

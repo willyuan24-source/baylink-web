@@ -10,7 +10,7 @@ import { track } from '../game/metrics';
 import { photoLink } from '../game/photoCard';
 import { useT } from '../i18n';
 import { useDevice, useWindowKey } from './hooks';
-import { fileToDataUrl, refusedShareRoute, saveRoute, sharePayload, type SaveRoute } from './shareFile';
+import { downloadFile, fileToDataUrl, refusedShareRoute, saveRoute, sharePayload, type SaveRoute } from './shareFile';
 import type { OverlayProps } from './slots';
 import './album.css';
 
@@ -52,15 +52,6 @@ const ALBUM_TEXT = {
 const dateLabel = (at: number, locale: string) => {
   try { return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(at)); } catch { return ''; }
 };
-
-function download(file: File) {
-  const url = URL.createObjectURL(file);
-  const a = document.createElement('a');
-  a.href = url; a.download = file.name; a.rel = 'noopener';
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 30_000);
-}
-
 
 export default function Album({ props, close }: OverlayProps) {
   const { t, locale } = useT();
@@ -160,7 +151,7 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
       try { setPress({ url: await fileToDataUrl(file), asSave }); if (!asSave) track('share', 'photo'); } catch { toast(ALBUM_TEXT.gone, 'info', 2200); }
       return;
     }
-    download(file);
+    downloadFile(file);
     if (asSave) { toast(ALBUM_TEXT.saved, 'info', 2000); return; }
     track('share', 'photo');
     let copied: boolean;
