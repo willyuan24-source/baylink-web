@@ -93,7 +93,7 @@ export const PLAY_SPOTS: readonly SearchSpot[] = [
 const TREAT_WORDS = ['讨糖', '万圣', '万圣节', '讨糖街', '不给糖就捣蛋', '南瓜', 'halloween', 'trick or treat', 'trick-or-treat', 'trick or treating', 'candy', 'treats'];
 export const TREAT_SPOTS: readonly SearchSpot[] = [
   { id: 'treat-belvedere', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · 贝尔维德街', en: 'Trick-or-treat · Belvedere St' }, where: { zh: '科尔谷', en: 'Cole Valley' }, aliases: [...TREAT_WORDS, 'belvedere'], at: { x: 54.59, z: 860.83 } },
-  { id: 'treat-chenery', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Chenery 街', en: 'Trick-or-treat · Chenery St' }, where: { zh: '格伦公园', en: 'Glen Park' }, aliases: [...TREAT_WORDS, 'chenery'], at: { x: 420.02, z: 1051.99 } },
+  { id: 'treat-chenery', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Chenery 街', en: 'Trick-or-treat · Chenery St' }, where: { zh: '格伦公园', en: 'Glen Park' }, aliases: [...TREAT_WORDS, 'chenery'], at: { x: 427.72, z: 1049.82 } },
   { id: 'treat-fair-oaks', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Fair Oaks 街', en: 'Trick-or-treat · Fair Oaks St' }, where: { zh: '诺伊谷', en: 'Noe Valley' }, aliases: [...TREAT_WORDS, 'fair oaks'], at: { x: 365.87, z: 755.58 } },
   { id: 'treat-jordan', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Jordan 大道', en: 'Trick-or-treat · Jordan Ave' }, where: { zh: '乔丹公园', en: 'Jordan Park' }, aliases: [...TREAT_WORDS, 'jordan'], at: { x: -259.84, z: 721.23 } },
   { id: 'treat-sea-cliff', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · 海崖大道', en: 'Trick-or-treat · Sea Cliff Ave' }, where: { zh: '海崖区', en: 'Sea Cliff' }, aliases: [...TREAT_WORDS, 'sea cliff'], at: { x: -576.86, z: 900.85 } },
