@@ -43,6 +43,11 @@ export interface EventVenue {
   kitAt?: { x: number; z: number; yaw: number };
   /** Ferry gate / Chinatown / FiDi / Union Square: pennant + crowd only (plan MF9, D15) */
   downtown?: boolean;
+  /**
+   * (W9-N6, lane N's surgical edit: review R§6 现实出行 — 带我去 left the market's visitor at the F-line platform across
+   * the Embarcadero) where 带我去 ends when the venue point is a pennant by the street: the stalls / the door (world u)
+   */
+  door?: { x: number; z: number };
   /** (W7-S) the place has its own stage in the city (the Golden Gate Bandshell): no toy kit is built; `kitAt` is that
    *  stage, the crowd stands before it (kitCrowd of `kit`), the loop plays and the E prompt stands at the venue point */
   ownStage?: boolean;
@@ -150,6 +155,8 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     kit: 'board',
     kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
+    // (W9-N6) the farmers-market stalls on the front plaza (data/district.ts anchors['farmers-market'], the market's E spot)
+    door: { x: 122.6, z: -4.1 },
     sourceUrl: 'https://www.openstreetmap.org/way/558731934',
     verifiedAt: '2026-09-28',
   },

@@ -33,6 +33,12 @@ export interface GoToTarget {
   point?: Vec2;
   /** the name BAYBAY and the pill use (default: the place's own name; a bare point: 那里 / there) */
   name?: Bilingual;
+  /**
+   * (W9-N6, review R§6 现实出行: "Take me there" left the Ferry Plaza market's visitor at the F-line platform across the
+   * Embarcadero) where the trip ends instead of the place's arrival — a venue's stalls / door — snapped to walkable
+   * ground; the place id, its name and its arrival moment stay the place's.
+   */
+  at?: Vec2;
 }
 
 export interface GoToOptions {

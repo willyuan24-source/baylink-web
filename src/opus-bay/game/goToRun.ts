@@ -58,6 +58,15 @@ const fromAttraction = (a: NonNullable<ReturnType<GoToLookups['attraction']>>, n
  * `place:` / `sf:` / `lm-` prefix, an interactable — then the point, snapped to walkable ground. Null: nothing found.
  */
 export function resolveGoToTarget(target: GoToTarget, lk: GoToLookups): GoToDest | null {
+  const dest = resolveTarget(target, lk);
+  // (W9-N6) a venue's own end spot (its stalls / door) instead of the place's arrival; the place stays the place
+  const at = target.at;
+  if (!dest || !target.placeId || !at || !Number.isFinite(at.x) || !Number.isFinite(at.z)) return dest;
+  const s = lk.snap?.(at) ?? at;
+  return { ...dest, x: s.x, z: s.z };
+}
+
+function resolveTarget(target: GoToTarget, lk: GoToLookups): GoToDest | null {
   const id = target.placeId?.trim();
   if (id) {
     const ids = [id, id.replace(/^(?:place:|sf:)/, ''), id.replace(/^(?:place:|sf:)?lm-/, '')];
