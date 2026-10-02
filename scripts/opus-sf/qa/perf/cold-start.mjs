@@ -11,6 +11,9 @@
 //   --glq          wrap the WebGL query calls (getProgramInfoLog & co.): how many programs were first used in a render
 //                  and how long the main thread waited on links, before and after the click
 //   --profile dir --warm   reuse a profile (shader + HTTP cache): a returning player
+//   --cpuprofile   record a sampled CPU profile (2 ms) of the whole run: <dir>/cpu.cpuprofile (open in DevTools) and
+//                  <dir>/cpu-top.json: for the run's three longest rAF gaps (the freezes), the top functions by self
+//                  and by inclusive time inside each (page time mapped onto the profile's clock at the stop)
 //
 // Per run (ms from navigation start): title (Start visible), ready (Start enabled), firstFrame (the world's first frame,
 // performance mark), click (the Start press the game took), titleFreeze (longest rAF gap between the title and that
@@ -111,6 +114,7 @@ async function run(n) {
   if (CPU > 1) await send('Emulation.setCPUThrottlingRate', { rate: CPU });
   if (NETS[NET]) { await send('Network.enable'); await send('Network.emulateNetworkConditions', NETS[NET]); }
   await send('Page.addScriptToEvaluateOnNewDocument', { source: RECORDER });
+  if (args.cpuprofile) { await send('Profiler.enable'); await send('Profiler.setSamplingInterval', { interval: 2000 }); await send('Profiler.start'); }
   const t0 = Date.now();
   await send('Page.navigate', { url: URL });
   let titleAt = null, firstTry = null, clicked = false, choiceDone = false, shotTitle = false;
@@ -160,8 +164,9 @@ async function run(n) {
     glq: args.glq ? { firstUses: rec.glq.n, waitMs: Math.round(rec.glq.ms), slowBeforeClick: rec.glq.slow.filter(s => click == null || s[0] < click).length, slowAfterClick: rec.glq.slow.filter(s => click != null && s[0] >= click).length, slow: rec.glq.slow.slice(0, 40) } : undefined,
     warm, gaps: rec.gaps, marks: m, gpu, errors: errors.slice(0, 5),
   };
+  if (args.cpuprofile) { try { const pnow = await ev('performance.now()'); const { profile } = await send('Profiler.stop'); fs.writeFileSync(path.join(dir, 'cpu.cpuprofile'), JSON.stringify(profile)); res.cpuTop = freezesIn(profile, pnow, rec.gaps, m); fs.writeFileSync(path.join(dir, 'cpu-top.json'), JSON.stringify(res.cpuTop, null, 1)); } catch (e) { res.cpuTop = String(e).slice(0, 200); } }
   fs.writeFileSync(path.join(dir, 'result.json'), JSON.stringify(res, null, 1));
-  const { gaps: _g, marks: _m, glq, ...line } = res;
+  const { gaps: _g, marks: _m, glq, cpuTop: _c, ...line } = res;
   const brief = { ...line, glq: glq && { firstUses: glq.firstUses, waitMs: glq.waitMs, slowBeforeClick: glq.slowBeforeClick, slowAfterClick: glq.slowAfterClick } };
   fs.appendFileSync(path.join(OUT, 'summary.jsonl'), JSON.stringify(brief) + '\n');
   console.log(JSON.stringify(brief));
@@ -169,6 +174,28 @@ async function run(n) {
   await sleep(800); try { chrome.kill(); } catch { /* gone */ }
   if (fresh) { await sleep(500); try { fs.rmSync(profile, { recursive: true, force: true }); } catch { /* locked: leave it */ } }
   return brief;
+}
+
+// the run's three longest rAF gaps (page ms) read in the CPU profile: performance.now() at the stop ≈ the profile's endTime,
+// so page time t is profile time endTime - (pnow - t) ms; per gap its top functions by self and by inclusive time (ms)
+function freezesIn(profile, pnow, gaps, marks) {
+  const byId = new Map(profile.nodes.map(n => [n.id, n])); const parent = new Map();
+  for (const n of profile.nodes) for (const c of n.children || []) parent.set(c, n.id);
+  const key = n => `${n.callFrame.functionName || '(anon)'} ${(n.callFrame.url || '').replace(/^.*\//, '').replace(/\?.*$/, '')}:${n.callFrame.lineNumber + 1}`;
+  const t = []; let acc = profile.startTime; for (const d of profile.timeDeltas) { acc += d; t.push(acc); }
+  const toProf = ms => profile.endTime - (pnow - ms) * 1000;
+  const top = (m, k) => [...m].sort((x, y) => y[1] - x[1]).slice(0, k).map(([f, ms]) => [f, Math.round(ms)]);
+  return [...gaps].sort((x, y) => y[1] - x[1]).slice(0, 3).map(([at, dur]) => {
+    const a = toProf(at), b = toProf(at + dur); const self = new Map(), incl = new Map();
+    for (let i = 0; i < profile.samples.length; i++) {
+      if (t[i] < a || t[i] > b) continue;
+      const dt = ((t[i + 1] ?? t[i]) - t[i]) / 1000; const n = byId.get(profile.samples[i]); if (!n) continue;
+      self.set(key(n), (self.get(key(n)) || 0) + dt);
+      const seen = new Set(); for (let id = n.id; id != null; id = parent.get(id)) { const k = key(byId.get(id)); if (!seen.has(k)) { seen.add(k); incl.set(k, (incl.get(k) || 0) + dt); } }
+    }
+    const phase = marks.click != null && at >= marks.click ? 'after the press' : marks.title != null && at >= marks.title ? 'on the title' : 'before the title';
+    return { at, ms: dur, phase, self: top(self, 25), inclusive: top(incl, 45) };
+  });
 }
 
 const rows = [];
