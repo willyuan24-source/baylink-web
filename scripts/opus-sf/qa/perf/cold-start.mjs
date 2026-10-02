@@ -5,7 +5,9 @@
 //        [--mobile] [--cpu 4] [--net none|fast4g] [--tag name] [--out dir] [--glq] [--profile dir --warm]
 //
 //   --mode eager   click Start 300 ms after it shows (most first-time players); while it is disabled (准备中…) the click
-//                  is a dead one and the run clicks again as soon as it is enabled (a player tapping again)
+//                  is a dead one and the run clicks again as soon as it is enabled (a player tapping again) — unless the
+//                  title KEPT it (W9-P-review: 好了就自动开始… / Starting when ready…, the game starts by itself): then that
+//                  press is the press (mark 'kept'; click = kept, so clickToChoice includes the wait on the title)
 //   --mode wait10  click 10 s after the title shows (or as soon as Start is enabled after that)
 //   --mobile       390 × 844, dpr 2, touch (the phone the review emulated); with --cpu 4 --net fast4g = "phone 4×"
 //   --glq          wrap the WebGL query calls (getProgramInfoLog & co.): how many programs were first used in a render
@@ -55,12 +57,12 @@ const RECORDER = `(() => { if (window.top !== window) return;
     const st = document.querySelector('.ob-title-start');
     if (visible(st)) { mark('title'); if (!st.disabled && st.getAttribute('aria-disabled') !== 'true' && st.getAttribute('aria-busy') !== 'true') mark('ready'); }
     if (document.querySelector('canvas')) mark('canvas');
-    if (P.marks.click != null && document.querySelector('.ob-choices.is-in .ob-choice')) mark('choice');
+    if ((P.marks.click != null || P.marks.kept != null) && document.querySelector('.ob-choices.is-in .ob-choice')) mark('choice');
     if (P.marks.choiceClick != null && document.querySelector('.ob-hud, .ob-stick, .ob-hud-buttons')) mark('hud');
   };
   new MutationObserver(check).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['disabled', 'aria-busy', 'class'] });
   addEventListener('pointerdown', e => { const t = e.target.closest && e.target.closest('button');
-    if (t && t.classList.contains('ob-title-start')) { if (t.disabled || t.getAttribute('aria-disabled') === 'true' || t.getAttribute('aria-busy') === 'true') P.dead++; else mark('click'); }
+    if (t && t.classList.contains('ob-title-start')) { if (t.disabled || t.getAttribute('aria-disabled') === 'true' || t.getAttribute('aria-busy') === 'true') { P.dead++; setTimeout(() => { if (/好了就自[动動][开開]始|Starting when ready/.test(t.textContent || '') && P.marks.kept == null) { P.dead--; mark('kept'); } }, 60); } else mark('click'); }
     if (t && t.classList.contains('ob-choice')) mark('choiceClick'); }, true);
   // a disabled button gets no pointer event: count the attempt from the window
   addEventListener('pointerdown', e => { const s = document.querySelector('.ob-title-start'); if (s && s.disabled && s.contains(document.elementFromPoint(e.clientX, e.clientY))) P.dead++; }, true);
@@ -131,7 +133,7 @@ async function run(n) {
           // the title as the press found it (准备中… or Start), after the press: the shot never delays it
           if (!shotTitle) { shotTitle = true; await shot('title'); }
           const mm = await ev('window.__cold.marks').catch(() => ({}));
-          if (mm && mm.click != null) clicked = true;
+          if (mm && (mm.click != null || mm.kept != null)) clicked = true;
         }
       }
     } else if (m.choice != null) {
@@ -146,7 +148,7 @@ async function run(n) {
   const ff = await ev(`(() => { const e = performance.getEntriesByName('opus-bay:first-frame')[0]; return e ? Math.round(e.startTime) : null; })()`);
   const warm = await ev('(() => { const w = window.__opusBay && window.__opusBay.warmup; return w ? { before: w.before, after: w.after, ms: Math.round(w.ms), pre: w.pre } : null; })()').catch(() => null);
   const gpu = await ev(`(() => { try { const c = document.createElement('canvas').getContext('webgl2'); const e = c.getExtension('WEBGL_debug_renderer_info'); return { r: e ? c.getParameter(e.UNMASKED_RENDERER_WEBGL) : '?', khr: !!c.getExtension('KHR_parallel_shader_compile') }; } catch (x) { return String(x); } })()`);
-  const m = rec.marks; const click = m.click ?? null;
+  const m = rec.marks; const click = m.click ?? m.kept ?? null;
   const after = click == null ? [] : rec.gaps.filter(g => g[0] >= click - 50);
   const big = after.filter(g => g[1] > 250);
   const res = {
