@@ -69,10 +69,15 @@ test('W9-L 繁體: on the game page, Taiwan words, 裡 for "in", 公尺 for metr
     ['海特-阿什伯里（嬉皮区）', '海特-阿什伯里（嬉皮區）'], ['建在公交中心屋顶上', '建在轉運中心屋頂上'], ['Ned Kahn 的《公交喷泉》', 'Ned Kahn 的《公車噴泉》'],
     ['桥塔离水面 227 米', '橋塔離水面 227 公尺'], ['主跨 1,280 米', '主跨 1,280 公尺'], ['约 15,000 平方米铜板', '約 15,000 平方公尺銅板'], ['（约 94 米）', '（約 94 公尺）'],
     ['巴松管', '低音管'], ['施特劳斯', '史特勞斯'],
+    // (W9-L9) the wave-9 screens (lane P's loading lines, lane A's storage notice, lane S's album)
+    ['还在加载，稍等一下…', '還在載入，稍等一下…'], ['地点加载中…', '地點載入中…'], ['画面需要重新加载', '畫面需要重新載入'],
+    ['这台设备在用软件模式显示 3D（没有用到显卡）', '這臺裝置在用軟體模式顯示 3D（沒有用到顯示卡）'], ['可能是浏览器关掉了硬件加速', '可能是瀏覽器關掉了硬體加速'],
+    ['这次的进度无法保存（浏览器禁止了存储）', '這次的進度無法儲存（瀏覽器禁止了儲存）'], ['进度已经保存好。', '進度已經儲存好。'], ['照片已保存', '照片已儲存'],
+    ['长按图片保存到相册', '長按圖片儲存到相簿'], ['已存进相册 · 点缩略图就能看', '已存進相簿 · 點縮圖就能看'], ['触屏', '觸控'],
   ];
   for (const [zh, tr] of want) assert.equal(tw(zh), tr, zh);
   // untouched: 米 that is not a length, the words the site keeps, plain Latin
-  for (const [zh, tr] of [['米饭', '米飯'], ['米色的墙', '米色的牆'], ['3 米其林星', '3 米其林星'], ['玉米', '玉米'], ['这里', '這裡'], ['面包', '麵包'], ['乾隆', '乾隆'], ['国际橙围巾', '國際橙圍巾'], ['Fort Point 🌉 2026', 'Fort Point 🌉 2026']] as const) assert.equal(tw(zh), tr, zh);
+  for (const [zh, tr] of [['米饭', '米飯'], ['米色的墙', '米色的牆'], ['3 米其林星', '3 米其林星'], ['玉米', '玉米'], ['这里', '這裡'], ['面包', '麵包'], ['乾隆', '乾隆'], ['国际橙围巾', '國際橙圍巾'], ['保存完好的老房子', '保存完好的老房子'], ['健身设备', '健身設備'], ['回车站', '回車站'], ['Fort Point 🌉 2026', 'Fort Point 🌉 2026']] as const) assert.equal(tw(zh), tr, zh);
   // every TAIWAN_WORDS value is stable, with the words and without
   for (const [, v] of L.TAIWAN_WORDS) { assert.equal(tw(v), v, v); assert.equal(conv(v), v, v); }
   // the rest of the site reads as before (its own tests pin 收起設置): the words only where asked

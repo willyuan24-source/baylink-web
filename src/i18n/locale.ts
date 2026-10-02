@@ -43,6 +43,11 @@ export const TAIWAN_WORDS: readonly (readonly [string, string])[] = [
   ['带娃', '帶小孩'], ['巴松管', '低音管'], ['施特劳斯', '史特勞斯'], ['弗莱明', '佛萊明'],
   ['旅行本里', '旅行本裡'], ['游戏里', '遊戲裡'], ['隧道里', '隧道裡'], ['进海里', '進海裡'], ['掉进海里', '掉進海裡'], ['放回海里', '放回海裡'],
   ['回海里', '回海裡'], ['看海里', '看海裡'], ['在海里', '在海裡'], ['到海里', '到海裡'],
+  // (W9-L9) the wave-9 screens' words (loading, the device, saving a photo): whole phrases where the bare word has other
+  // senses in the catalog's text (保存完好, 健身设备)
+  ['加载', '載入'], ['这台设备', '這臺裝置'], ['卡或设备', '卡或裝置'], ['显卡', '顯示卡'], ['硬件加速', '硬體加速'], ['存储', '儲存'],
+  ['已保存', '已儲存'], ['保存好', '儲存好'], ['无法保存', '無法儲存'], ['保存照片', '儲存照片'], ['保存到相册', '儲存到相簿'],
+  ['相册', '相簿'], ['缩略图', '縮圖'], ['触屏', '觸控'],
 ];
 /** …and after opencc: a name it splits wrong (Haight-Ashbury: 阿什伯里, not 阿什伯裡) */
 const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '阿什伯里']];
