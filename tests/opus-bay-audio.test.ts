@@ -442,6 +442,7 @@ test('F10 (review): the ferry engine plays aboard only once the boat carries you
   const { game } = await import('../src/opus-bay/core/store');
   const { runtime } = await import('../src/opus-bay/core/runtime');
   const T = await import('../src/opus-bay/data/transit');
+  const FL = await import('../src/opus-bay/data/ferryLine'); // (W9-P6) buildFerryLine's module
   const { FerrySystem } = await import('../src/opus-bay/world/ferry');
   const ctx = new fake.FakeContext() as unknown as BaseAudioContext & { currentTime: number };
   const engine = new AudioEngine(ctx, drain(engineBuffersJob(ctx)));
@@ -449,7 +450,7 @@ test('F10 (review): the ferry engine plays aboard only once the boat carries you
   const saved = g.window;
   g.window = fake.win;
   const prev = game.get();
-  const sys = new FerrySystem(T.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
+  const sys = new FerrySystem(FL.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
   T.setActiveFerrySystem(sys);
   try {
     game.set({ worldMode: 'city', timeOfDay: 'day' } as never);

@@ -717,7 +717,7 @@ test('W5-T review: boarding is not a hold-up — the ferry\'s quay dwell and a c
         assert.ok(r.most < transit.STALL_BIG && !r.banner, `${lineId} from ${from}: stalled ${r.most.toFixed(1)} s aboard (the banner said held up: ${r.banner})`);
       } finally { transit.cancelRide(); setActiveCableSystem(null); }
     }
-    const D = await import('../src/opus-bay/data/ferry');
+    const D = { ...(await import('../src/opus-bay/data/ferry')), ...(await import('../src/opus-bay/data/ferryLine')) }; // (W9-P6) the builder's module
     const { FerrySystem } = await import('../src/opus-bay/world/ferry');
     const LINE = D.buildFerryLine(D.FERRY_ROUTES.find(x => x.running)!);
     for (const [from, to] of [['pier-41', 'ferry-building'], ['ferry-building', 'pier-41']] as const) {

@@ -17,7 +17,8 @@ const ctx2d = new Proxy({}, {
 g.window ??= globalThis;
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
-const D = await import('../src/opus-bay/data/ferry');
+// (W9-P6) the line builder moved to data/ferryLine.ts (out of GameRoot's first load)
+const D = { ...(await import('../src/opus-bay/data/ferry')), ...(await import('../src/opus-bay/data/ferryLine')) };
 const T = await import('../src/opus-bay/data/transit');
 const { FerrySystem, FERRY_ID, FERRY_PLATFORM } = await import('../src/opus-bay/world/ferry');
 const { game } = await import('../src/opus-bay/core/store');

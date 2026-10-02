@@ -441,7 +441,8 @@ export function setFerrySystemFor(line: string, sys: LineRideSystem | null) {
 export const ferrySystemsEpoch = () => ferryLinesEpoch;
 
 // the ferry route table (lane F, F8) lives in data/ferry.ts
-export { ALCA_FERRY_ID, FERRY, FERRY_ROUTES, buildFerryLine, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
+export { ALCA_FERRY_ID, FERRY, FERRY_ROUTES, ferryTerminal, type FerryLine, type FerryRouteDef, type FerryTerminal } from './ferry';
+// (W9-P6) buildFerryLine lives in data/ferryLine.ts (the lazy transit layer's): import it from there
 
 /**
  * The wave-4 fleet (world/sf/lineFleet.ts `LineFleet`: the sightseeing buses and the Muni Metro trains), installed by the

@@ -34,6 +34,7 @@ doc.body ??= { appendChild: (el: { removed: boolean }) => { veils.push(el); } };
 g.requestAnimationFrame ??= (fn: () => void) => setTimeout(fn, 0);
 
 const T = await import('../src/opus-bay/data/transit');
+const FL = await import('../src/opus-bay/data/ferryLine'); // (W9-P6) buildFerryLine's module
 const { CableSystem } = await import('../src/opus-bay/world/transitLine');
 const { FerrySystem } = await import('../src/opus-bay/world/ferry');
 const { game } = await import('../src/opus-bay/core/store');
@@ -199,7 +200,7 @@ test('verify M2: 直接到站 on a cable car to a stop that has not streamed in 
 });
 
 test('verify D11 / m5: the ferry offer counts the wait for the boat (boat at Gate E, rider at Pier 41)', () => {
-  const sys = new FerrySystem(T.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
+  const sys = new FerrySystem(FL.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
   T.setActiveFerrySystem(sys);
   const prev = game.get();
   try {
@@ -229,7 +230,7 @@ test('verify D11 / m5: the ferry offer counts the wait for the boat (boat at Gat
 });
 
 test('verify m5: while waiting for the ferry, 直接到站 puts the rider on the other quay (the label offers it); it does not count as a ride', async () => {
-  const sys = new FerrySystem(T.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
+  const sys = new FerrySystem(FL.buildFerryLine(T.FERRY_ROUTES.find(r => r.running)!));
   T.setActiveFerrySystem(sys);
   const prev = game.get();
   try {

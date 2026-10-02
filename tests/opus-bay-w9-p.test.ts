@@ -360,3 +360,19 @@ test('W9-P4 w5Features: the five feature chunks load through importRetry (a lost
   for (const id of ['economy', 'play', 'eggs', 'realsf', 'halloween']) assert.ok(w.includes(`${id}: () => importRetry(() => import('../${id}/index')),`), id);
   assert.doesNotMatch(fs.readFileSync('tests/opus-bay-w8-p-retry.test.ts', 'utf8'), /'game\/w5Features\.ts', 'game\/goTo\.ts'/);
 });
+
+// --- W9-P6 (w8 NEXT #7, measured in sf-w8-P.md "Not done": data/ferry.ts's line builder ≈ 0.6 KB) ---
+
+test('W9-P6 GameRoot: the ferry line builder sits in data/ferryLine.ts, out of GameRoot\'s static graph; data/ferry.ts keeps the table, the boat and ferryTerminal', async () => {
+  const D = await import('../src/opus-bay/data/ferry');
+  const FL = await import('../src/opus-bay/data/ferryLine');
+  assert.equal((D as Record<string, unknown>).buildFerryLine, undefined, 'no runtime builder left in data/ferry.ts');
+  assert.equal(typeof FL.buildFerryLine, 'function');
+  assert.ok(D.ferryTerminal('pier-41'), 'game/transit.ts still finds a terminal through data/ferry.ts');
+  const line = FL.buildFerryLine(D.FERRY_ROUTES.find(r => r.running)!);
+  assert.ok(line.length > 100 && line.stops.length === 2 && line.vlim.length === line.xz.length / 2, 'the moved builder builds the running line');
+  const p = FL.ferryPoint(line, line.stops[0].u);
+  assert.ok(Number.isFinite(p.x) && Number.isFinite(p.heading));
+  assert.match(src('world/ferry.ts'), /from '\.\.\/data\/ferryLine';/);
+  assert.match(src('data/ferry.ts'), /^export type \{ FerryLine, FerryStop \} from '\.\/ferryLine';$/m, 'a type-only re-export (erased: no runtime edge)');
+});
