@@ -7,9 +7,10 @@
  * Since W9-E the site parses on Safari / iOS 15 (build.target), and the /play switch sends every card, sidebar and /play
  * visitor into the game: on iOS 15 – 16.3 the title and Start worked, then every city decode threw a ReferenceError.
  *
- * A small RFC 1951 inflate (puff-style canonical Huffman decode) behind RFC 1952's gzip header. It is loaded only when
- * DecompressionStream is missing (a lazy chunk on the main thread; inlined into the iife city worker), so nothing
- * changes for engines that have the stream. No dependency (package.json is frozen).
+ * A small RFC 1951 inflate (puff-style canonical Huffman decode) behind RFC 1952's gzip header. It runs only when
+ * DecompressionStream is missing, so nothing
+ * changes for engines that have the stream. No dependency (package.json is frozen). Imported statically by format.ts:
+ * Vite builds the city worker as iife, which cannot code-split a dynamic import (the build failed with one).
  */
 
 const LBASE = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
