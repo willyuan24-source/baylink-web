@@ -173,7 +173,7 @@ test('the 10 built landmarks that become stops get refreshes (status / hours / t
   for (const [id, r] of Object.entries(CARD_REFRESHES)) {
     assert.ok(landmarkIds.has(id), `${id} is an SF_LANDMARK_INFO id`);
     assert.ok(r.sources.length >= 1 && r.sources.every(s => /^https?:\/\//.test(s)), `${id} sources`);
-    assert.ok([CARD_VERIFIED_AT, '2026-09-29'].includes(r.verifiedAt), `${id} verifiedAt ${r.verifiedAt}`);
+    assert.ok([CARD_VERIFIED_AT, '2026-09-29', '2026-10-02'].includes(r.verifiedAt), `${id} verifiedAt ${r.verifiedAt}`); // W9-R6 re-checked the de Young / Legion on 2026-10-02
     if (r.hours) assert.match(r.hours.zh, /约|官网|确认|现场/, `${id} hours are hedged`);
     for (const b of [r.status?.text, r.hours, r.cost, ...(r.addTips ?? [])].filter(Boolean)) {
       assert.ok(zhWidth(b!.zh) <= CARD_LIMITS.hours && b!.en.length <= 180, `${id}: ${b!.zh}`);

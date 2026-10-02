@@ -267,10 +267,12 @@ export const PLACE_CARDS: PlaceCard[] = [
     summary: bi('临海的 100 英亩动物园，1929 年开园，有 1,500 多只动物，有大猩猩和非洲草原展区，还有一座约 1921 年的 Dentzel 老旋转木马。', 'A 100-acre zoo by the ocean, opened in 1929, with more than 1,500 animals — gorillas, an African savanna — and a Dentzel carousel from about 1921.'),
     hours: bi('每天 10:00–17:00，16:00 停止入园；出发前查官网确认。', 'Daily 10am–5pm, last entry 4pm; check the official site before you go.'),
     cost: bi('需要买票，票价以官网为准。', 'Ticketed; prices on the official site.'),
-    tips: [bi('园里的小火车目前停运。', 'The zoo\'s little train is out of service for now.')],
+    // W9-R6 (review R§6: 「园里的小火车目前停运」 was doubtful): sfzoo.org/rides-more read 2026-10-02 — "Train Hours of
+    // Operation: 11:00 a.m. to 4 p.m.", $9, "does not run in wet weather … periodically closed for maintenance"
+    tips: [bi('园里的 Little Puffer 蒸汽小火车 11:00–16:00 开，每人 9 美元；下雨或维护时停开，出发前确认。', 'The Little Puffer steam train runs 11am–4pm, $9 a ride; it stops in wet weather or for maintenance — check before you go.')],
     officialUrl: 'https://www.sfzoo.org/',
     sourceUrl: 'https://www.sfzoo.org/',
-    sources: ['https://en.wikipedia.org/wiki/San_Francisco_Zoo'],
+    sources: ['https://en.wikipedia.org/wiki/San_Francisco_Zoo', 'https://www.sfzoo.org/rides-more/'],
     lat: 37.73306, lng: -122.50306, guideSlug: SF_GUIDE,
   }),
   full({
@@ -997,9 +999,14 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
   },
   'de-young-tower': {
     hours: bi('周二至周日 9:30–17:15，周一闭馆；观景塔约到 16:30，以官网为准。', 'Tue–Sun 9:30am–5:15pm, closed Mondays; the tower until about 4:30pm; check the official site.'),
+    // W9-R6 (review R§6 "de Young 卡漏写湾区居民周六免费"): FAMSF's Free Saturdays ticket page (the third source) read
+    // 2026-10-02 — "Residents of the nine Bay Area counties enjoy free general admission every Saturday … Additional fees
+    // apply for special exhibitions", "ID is required on-site … driver's license or postmarked envelope with the visitor's
+    // address", "Limit four per household"
+    cost: bi('观景塔免费；湾区九县居民每周六免费看常设展（带有地址的证件或信件，特展另付）。', 'Tower free; Bay Area residents (9 counties) get free general admission every Saturday — bring ID with your address; special shows extra.'),
     addTips: [bi('汉蒙观景塔免费上；博物馆周一闭馆。', 'The Hamon Tower is free to go up; the museum is closed on Mondays.')],
     sources: ['https://www.famsf.org/visit/de-young-tickets-hours', 'https://www.famsf.org/', 'https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c'],
-    verifiedAt: '2026-09-29',
+    verifiedAt: '2026-10-02',
   },
   'dutch-windmill': {
     addTips: [
@@ -1012,9 +1019,11 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     verifiedAt: V,
   },
   'legion-of-honor': {
+    // W9-R6: FAMSF's Legion of Honor Free Saturdays ticket page read 2026-10-02 (the same rule as the de Young's)
+    cost: bi('湾区九县居民每周六免费看常设展（带有地址的证件或信件，特展另付）；其他日子要买票。', 'Bay Area residents (9 counties) get free general admission every Saturday — bring ID with your address; special shows extra. Ticketed otherwise.'),
     addTips: [bi('博物馆周一闭馆；外面的林肯公园和海景随时可看。', 'The museum is closed on Mondays; Lincoln Park and the sea views are always open.')],
-    sources: ['https://www.famsf.org/visit/legion-tickets-hours'],
-    verifiedAt: V,
+    sources: ['https://www.famsf.org/visit/legion-tickets-hours', 'https://ticketing.famsf.org/events/019185a9-f777-f93c-59fc-52de9182bc57'],
+    verifiedAt: '2026-10-02',
   },
   'sutro-tower': {
     sources: ['https://sutrotower.org/'],
