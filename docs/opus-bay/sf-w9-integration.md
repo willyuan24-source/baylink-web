@@ -54,7 +54,7 @@ link. W9-Z can revert that one line for the district if the owner reads the rule
 
 | id | sev | verdict | note |
 |---|---|---|---|
-| W9I-D10 | blocker | fixed | 8eb8b0c5; verified by code (each lane-F path now `worldMode === 'city'`-gated, the district bodies are the pre-W9-F ones) and tests/opus-bay-w9-int.test.ts; the hero regression + district tests pass. No browser re-run of the district (time). |
+| W9I-D10 | blocker | fixed | 8eb8b0c5; verified by code (each lane-F path now `worldMode === 'city'`-gated, the district bodies are the pre-W9-F ones), tests/opus-bay-w9-int.test.ts, the hero regression + district tests, and in Chrome on a production build of 231b202e (vite preview :5964, 08:03–08:05 PDT, ?world=district&save=off&lang=en, 1440x900): the title link reads "Skip the game — read the guides", no 今天 strip; after Start + 3 the golden light stays and "It's morning in the Bay right now (08:04). Want to see it? [See this morning]" shows ([d10-district-after-choice-fixed.jpg](qa/w9/int/d10-district-after-choice-fixed.jpg), read). |
 | W9I-P-1 | major | fixed | Mechanism confirmed in code (goToRun.ts whenArrived at priority card, maxWaitMs 20 s vs. ArrivalCard's sticky first-visit holder at the same priority) and the lens's s11-goto.json; fixed in 8eb8b0c5 with a red / green test. |
 | W9I-D1 | major | confirmed-not-fixed | Code: ArrivalCard closes on `move.mode === 'transit'` (W9-F2) and cityTour boards the bus 2.3 s after the Ferry Building arrival; the GGB card is replaced by the chapter card after 1.8 s (tour.jsonl). Needs a tour pacing change (game/cityTour.ts: wait for the card or board after it) and a play-through: open. |
 | W9I-D2 | major | confirmed-not-fixed | The lens's shot (d2-ggb-chapter-card.jpg, read): the Welcome Center's beige wall fills the frame, the bridge is a sliver at the left edge, a dithered lamp post crosses the right third. Camera work (lanes C / N): open. |
@@ -108,8 +108,9 @@ the coach bar), F-RC-4, F-RC-5, F-RP-9 — open.
    card should survive a tour-driven boarding) and the GGB card should precede the chapter card by its CARD_MIN_MS.
 2. W9I-D2 (major): the chapter-1 finale camera at the Golden Gate Welcome Center (actors/reveal.ts / cityViews.ts).
 3. The minors in the table above, and lane F's open F-RP-3 / 4 / 5 / 6, F-RC-4 / 5, F-RP-9.
-4. Not re-run in a browser after these fixes (time): the district title and first minute (?world=district&save=off), a
-   toast inside the map (the compass), the event card's return after 带我去 on a first visit. W9-Z: please include them.
+4. Not re-run in a browser after these fixes (time): the district's postcard turn and coach, a toast inside the map (the
+   compass), the event card's return after 带我去 on a first visit. W9-Z: please include them. (The district title and its
+   golden first visit + 看此刻 offer were checked in Chrome, see W9I-D10.)
 
 ## Blocking the go-live or the /play switch
 
@@ -123,4 +124,6 @@ tsc app 0 · eslint . 0 errors (53 warnings, none new) · the touched tests 56 /
 8eb8b0c5: 2183 tests, 2180 pass, 1 todo, 2 fail — both were tests pinning the behaviour this pass changed:
 opus-bay-w5-lang (lane F's one-toast expectation now runs in the city; the district renders its old stack) and
 opus-bay-w9-s-review S-RV-1 "the cause, reproduced" (a toast under an event card was held and dropped; now it shows at
-once — rewritten, lane S's file). Both re-run green (13 / 13).
+once — rewritten, lane S's file). Both re-run green (13 / 13). Production build of 231b202e (scratch outDir, exit 0, 44 s,
+no tracked churn): GameRoot 681.71 / 257.46 KB gzip (+0.13 KB for the district paths; guard 258.5), three-vendor 233.60 KB;
+dist-syntax: 433 chunks, look-behind 0 → PASS.
