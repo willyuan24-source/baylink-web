@@ -233,3 +233,62 @@ committed but not pushed and three uncommitted files (`ui/EventCardBody.tsx`, ne
 tsc 0 after every rebase; `npx eslint .` 0 errors (50 old warnings) at 02:30, and on every changed file before each
 commit; each commit's own tests are listed in its message.
 The final opus-bay suite on `cc292f37` (W9-R7 on origin, 04:15–04:30): **2106 tests, 2105 pass, 0 fail, 1 todo** (W8-P9, the wave-8 GameRoot target). `npx eslint .` at 04:42: 0 errors (53 warnings, none in lane R's files).
+
+## Review (Ultra) — W9-R-review (fixer, 05:43 → 06:45 PDT, 2026-10-02)
+
+Worktree `C:/Users/willy/wt/w9-r-rev` from origin/opus-bay `e9c3c35c`, scratch `C:/Users/willy/opus-qa/w9/r-rev/`.
+Lenses: code (`opus-qa/w9/r-rc/findings.json`, 6 findings) and player (`opus-qa/w9/r-rp/findings.json`, 7 findings).
+
+### 给主人的摘要
+
+1. 审查找到 13 个问题，全部复现确认，13 个都修好了（5 个重要，8 个次要），没有驳回的。
+2. 英文模式下「加到日历」存下来的日历条目原来是中文，现在标题、地点、费用和提醒都是英文；地点不再重复写两遍「San Francisco」。
+3. 「这周免费」和地点卡的「近 7 天免费」不再列出今天已经结束的时段（例如下午 3 点还显示早上 9–10 点的茶园免费时段）。
+4. 每日三件小事：做完一件后改「和谁去」再刷新页面，原来会把完成标记挪到别的任务上、同一件事还能再领一次金币；现在当天一旦领过奖励，选题就不再变。
+5. 区域模式（district）又和以前一样了：「户外」只按活动分类判断；「金门公园 · 西边」不再包含 Ocean View 和 Ingleside。
+6. 自己又查出一个小问题并修好：网站词典里没有的中文费用说明，不会再写进英文日历。检查：tsc 0；eslint 0 错误；opus-bay 测试没有失败的。这次没有在浏览器里实际试玩，用的是 node 测试。没有阻碍上线到 main 的问题。
+
+### Verdicts
+
+| id | sev | verdict | evidence / fix |
+|---|---|---|---|
+| R-RC-1 | major | fixed | Reproduced red in `tests/opus-bay-w9-r-review.test.ts` ("the same three in the same slots": 10/9 no profile = event · ride · sunset, after paying the ride, 带娃 and a reload = ride · sunset · new). Fix: `realsf/prefs.ts` `dailyProfilePin` / `pinDailyProfile` (own key `opus-bay:daily-pick:v1`, memory only with `?save=off`); `realsf/daily.ts` keeps the recorded profile of the day once any `daily:<date>:<n>` is paid. The test now finds an October day whose pick changes with a profile (10/9 stopped changing once R-RC-5 was fixed) and asserts the same three in the same slots, only the ride done, and that the next day follows the new profile. |
+| R-RC-2 | major | fixed | Same defect as R-RP-2. Red: `SUMMARY:芮妮·弗莱明演唱施特劳斯` with `setLocale('en')`. `realsf/ics.ts` `eventIcs(…, locale)`: the title and venue go through `catalogText`, the cost through `publicText(…, locale)`, and the reminder reads "Tomorrow: …". `offerIcs` gives an English title, who, requirement and reminder for an English reader. `addToCalendar` / `addEventToCalendar` take the locale from the event card, the strip and the place card. Test: Fleming, Richmond LEGO and African Arts in English have no Han in SUMMARY, LOCATION, the reminder or the description after its bilingual first line. |
+| R-RP-2 | major | fixed | See R-RC-2 (the player lens captured the same .ics). |
+| R-RC-3 | major | fixed | Red: `isOutdoor(HSB)` was true in district mode. `data/catalog.ts`: `isOutdoor` / `vibeFit` / `vibeCloseness` / `kindOf` / `relaxNote` take `city` (default true), and `recommendEvents` passes `cityFirst`. District mode reads 户外 as `category === 'outdoors'` again. The "fitting picks first" sort and the counted region note (`counts.inRegion`) now apply in city mode only, so district results and notes match pre-W9-R4. City mode is unchanged (`w9-r-recommend` 6/6). |
+| R-RC-4 | minor | fixed | Same defect as R-RP-1. |
+| R-RP-1 | major | fixed | Red: at 15:00 on 10/2, today's chip still listed `japanese-tea-garden-free-hour` (9:00–10:00). `realsf/freeWeek.ts` `notOver(item, now)`; `freeWeek(…, now)` and `freeDaysAt(…, now)` drop today's items whose end is ≤ the Bay minute (later days stay whole; an item without hours is all day). `FreeWeekStrip` / `FreeDays` pass `bayParts(bayNow())`. Test: at 8:00 the tea garden is listed, at 15:00 nothing listed has ended; the zoo card on 10/7 shows the zoo at 11:00 and not at 18:30. |
+| R-RP-3 | major | fixed | Red: `sfAreaAt(37.7142, -122.4640)` (Ocean View) returned `sf-west`. Fix: the west covers lng < -122.447 north of 37.734 (Sloat Blvd), and south of Sloat only west of -122.475 (19th Ave: the zoo, Lake Merced, SF State). Test: Ocean View and Ingleside → south; the park, the Sunset, the zoo and Lake Merced → west; `eventArea(sfpl-ocean-view-stem-oct8-2026)` with the world's venue hooks → `sf-south`. |
+| R-RC-5 | minor | fixed | Confirmed: on 10/9, kids profile = ride · sunset · new (Fleet Week has cost 'mixed'). `eventFitsProfile` kids now also accepts 'mixed' when the costLabel says 免费 (free general areas), still only open-air, by day and never 18+. The test also sweeps the whole catalog. |
+| R-RC-6 | minor | fixed | Confirmed by reading `FreeWeekStrip.tsx` (the 今天 tab lists today only). For today the line keeps its wording (「今天还有 N 个…」). For another day it links the BAYLINK calendar on that day: `calendarUrl(locale, { date })`, text 「在 BAYLINK 日历里看这天」. |
+| R-RP-4 | minor | fixed | Confirmed in `ui/WeekPanel.tsx` (the strip was rendered above `<ul className="ob-board">` for 免费就好). It now goes below the flyers for every answer. The 免费就好 title says it covers the whole city: 「免费就好 · 全城这几天的免费福利和活动」. The strip still ignores the third question (it is the city's list; flyers are filtered). |
+| R-RP-5 | minor | fixed | Confirmed from the CSS (`min-height: 32px`, no min-width; the links had no hit area). Under `(pointer: coarse)`, `.ob-free-cal` gets `min-width: 44px`; with the existing `::before` it is 44 tall. The source links get `display: inline-block; padding: 13px 4px; margin: -13px 0` (a 44 px tall hit area; the layout does not change). Not re-measured in a browser. |
+| R-RP-6 | minor | fixed | `icsLocation(venue, city)` adds the city only when the venue does not already name it (Fleming: one "San Francisco"). Tested. |
+| R-RP-7 | minor | fixed | Confirmed: the footer's date is the card's `verifiedAt` and the primary source is Wikipedia (`landmarks.ts`). The de Young goes back to '2026-09-29' and the Legion to `CARD_VERIFIED_AT`. The comments say only the FAMSF Free Saturdays pages were read 2026-10-02. The `w9-r-cards` test now asserts the date is not 2026-10-02. |
+
+Refuted: none. Confirmed-not-fixed: none.
+
+### Own pass (`git log origin/opus-bay --grep "W9-R[0-9:-]"`: R1 … R8)
+
+- **Own-1 (fixed, minor)**: a catalog cost line the site dictionary does not know falls back to the Chinese filter (`publicText` en → `publicZh`). That Chinese line would land in an English .ics, so `eventIcs` leaves it out in English (the official link stays).
+- District: `?world=district` reaches none of the changed UI. WeekPanel's strip is `city &&`, and the region options and 带长辈 are city only. The catalog changes are now gated by `cityFirst`. The hero / district tests are in the suite run below.
+- Size: no new module. `ics.ts` (a lazy chunk) now imports `../i18n`, which is already in the main bundle. `FreeWeekStrip` (lazy) imports `calendarUrl` from `data/links` (already in the bundle).
+- Voice: no BAYBAY line changed. Only UI strings changed (the strip's more line and the 免费就好 title). There is nothing to add to new-lines.md.
+- Not re-done (in the lane's not_done, unchanged): the link-patrol script, the manual 现实中怎么去 for the T1 cards without one, and de Young / Legion in 这周免费 (needs the site's offer).
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0, on 8304fc44 (own-1 only adds a local const).
+- `npx eslint .`: 0 errors, 53 warnings (the same 53 as the lane's 04:42 run). own-1's two files: 0.
+- Lane and neighbour tests: `w9-r-review` 8/8, `w9-r-recommend`, `w9-r-free`, `w9-r-today`, `w9-r-cards`, `flow-data` and `w5-today`: all green.
+- Whole opus-bay suite, `tests/opus-bay-*.test.ts`, on 8304fc44 under the shared load (06:12 → 06:31): 1637 subtests passed and none failed before the 1100 s `timeout` stopped it in the w7 files. The ten file-level ✖ are the processes the timeout killed; every subtest they printed passed. The w7-r … w9 files (107) were then re-run alone (06:32 →). **535 tests, 535 pass, 0 fail** (06:32 → 06:41). Together with the first run, every opus-bay file passed with no failing test.
+
+### Open items
+
+1. Not played in a browser this pass: the strip's place under the flyers, the 44 px targets and an English .ics download were checked only by node tests and code reading. W9-Z or the next lane-R session should open `?world=city&save=off&date=2026-10-02T15:00&lang=en` once.
+2. The strip still lists the whole city under a part-of-SF answer (R-RP-4's second half). Its title now says 全城. A per-area filter would need offer points → SF areas.
+3. The lane's own not_done list and its three site Requests (de Young / Legion offers, the Chinatown Halloween Festival in the catalog, First Thursdays' link and working notes at the source).
+
+### Blocking the go-live to main
+
+Nothing from lane R. R-RC-1, which lets a coin reward be paid twice, was the one that mattered for the go-live, and it is fixed.
