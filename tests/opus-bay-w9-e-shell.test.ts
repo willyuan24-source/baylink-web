@@ -11,7 +11,7 @@ import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { OpusBayShell } from '../src/components/OpusBayShell';
-import { OPUS_BAY_ALTERNATES, OPUS_BAY_ART, OPUS_BAY_OG, opusBayHeadExtras, opusBayInHalloween, opusBayMetadata, opusBayOgImage } from '../src/lib/opus-bay-metadata';
+import { OPUS_BAY_ART, OPUS_BAY_OG, opusBayHeadExtras, opusBayInHalloween, opusBayMetadata, opusBayOgImage } from '../src/lib/opus-bay-metadata';
 import { renderMetadataHtml } from '../src/lib/seo';
 
 test('W9-E shell: the static first paint is the title (key art, 湾区小旅 · Little Bay Trip, 准备中, a guides link) and nothing of the homepage', () => {
@@ -71,10 +71,12 @@ test('W9-E shell: the share card — own title / description / canonical / hrefl
   const head = renderMetadataHtml(opusBayMetadata(new Date('2026-10-02T09:00:00-07:00'))) + opusBayHeadExtras();
   for (const s of ['<title>湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK</title>', '<link rel="canonical" href="https://www.baylink.us/opus-bay" />', 'content="https://www.baylink.us/opus-bay/og-halloween.jpg"',
     '<meta name="twitter:card" content="summary_large_image" />', '<meta property="og:url" content="https://www.baylink.us/opus-bay" />', '<meta property="og:image:width" content="1200" />',
-    'hreflang="zh-Hant" href="https://www.baylink.us/opus-bay?lang=zh-Hant"', 'hreflang="en" href="https://www.baylink.us/opus-bay?lang=en"', 'hreflang="x-default"']) assert.ok(head.includes(s), s);
+    '<meta property="og:image:alt"']) assert.ok(head.includes(s), s);
   assert.ok(!head.includes('baylink-app-icon'), 'not the site icon');
   assert.ok(!head.includes('Opus Bay'), 'no user-visible "Opus Bay" (review §10.1)');
-  assert.equal(OPUS_BAY_ALTERNATES.length, 4);
+  // (W9-E-review, E-RC-4) this expected four hreflang links (zh-Hant / en → /opus-bay?lang=…); they are gone: one file
+  // serves every ?lang with canonical /opus-bay, and alternates that are not their own canonical are ignored by Google
+  assert.ok(!head.includes('hreflang'), 'no hreflang cluster that contradicts the canonical');
 });
 
 test('W9-E shell: the wiring — vercel.json serves /opus-bay.html (not the homepage), prerender writes it, App shows the same shell while the route chunk loads, OpusBayPage keeps the share image', () => {

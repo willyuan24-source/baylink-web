@@ -79,6 +79,21 @@
       "dest": "/category/$1.html"
     },
     {
+      "src": "^/play/?$",
+      "has": [{ "type": "query", "key": "stops" }],
+      "dest": "/plan.html"
+    },
+    {
+      "src": "^/play/?$",
+      "has": [{ "type": "query", "key": "places" }],
+      "dest": "/plan.html"
+    },
+    {
+      "src": "^/play/?$",
+      "has": [{ "type": "query", "key": "date" }],
+      "dest": "/plan.html"
+    },
+    {
       "src": "^/(guides|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },

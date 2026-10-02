@@ -132,3 +132,37 @@ test('W9-E-review (E-RC-3): the homepage card and the sidebar enter the game wit
   fireEvent.click(view.container.querySelector('a[href="/calendar"]')!);
   assert.equal(where, '/calendar');
 });
+
+test('W9-E-review (E-RP-1 / E-RC-4): an old ticket is served the planner\'s page (first paint, link preview), and no game head tags reach /plan', async () => {
+  // vercel.json: the first route (before the filesystem) whose src and `has` queries match
+  type RouteRule = { src?: string; dest?: string; handle?: string; continue?: boolean; has?: { type: string; key: string }[] };
+  const routes = (JSON.parse(fs.readFileSync('vercel.json', 'utf8')) as { routes: RouteRule[] }).routes;
+  const served = (url: string) => {
+    const u = new URL(url, 'https://www.baylink.us');
+    for (const r of routes) {
+      if (r.handle) break;
+      const m = r.src && r.dest && !r.continue ? new RegExp(r.src).exec(u.pathname) : null; // (the headers rule continues)
+      if (!m) continue;
+      if (r.has && !r.has.every(h => h.type === 'query' && u.searchParams.has(h.key))) continue;
+      return r.dest!.replace(/\$(\d)/g, (_, i: string) => m[Number(i)]);
+    }
+    return undefined;
+  };
+  for (const t of ['/play?date=2026-10-10&stops=place:golden-gate', '/play?date=2026-10-10&places=ferry-building,coit-tower&lang=zh-Hant', '/play/?stops=a']) assert.equal(served(t), '/plan.html', t);
+  for (const g of ['/play', '/play?lang=en', '/play?from=nav']) assert.equal(served(g), '/play.html', g);
+  assert.equal(served('/opus-bay?lang=zh-Hant'), '/opus-bay.html');
+  assert.equal(served('/plan?stops=a'), '/plan.html');
+  // where play.html is served anyway (a host without the route), the game's extra head tags leave with the visitor
+  const { opusBayHeadExtras } = await import('../src/lib/opus-bay-metadata');
+  const reset = () => { document.head.innerHTML = opusBayHeadExtras(); return document.head.querySelectorAll('meta').length; };
+  assert.ok(reset() >= 4);
+  let view = render(<MemoryRouter initialEntries={['/play?date=2026-10-10&stops=place:golden-gate']}><Routes><Route path="/play" element={<PlayRedirect />} /><Route path="/plan" element={<p>plan</p>} /></Routes></MemoryRouter>);
+  assert.equal(view.container.textContent, 'plan');
+  assert.equal(document.head.querySelectorAll('meta').length, 0, 'og:image:* / og:locale:alternate removed for /plan');
+  view.unmount();
+  reset();
+  view = render(<MemoryRouter initialEntries={['/play?lang=en']}><Routes><Route path="/play" element={<PlayRedirect />} /><Route path="/opus-bay" element={<p>game</p>} /></Routes></MemoryRouter>);
+  assert.equal(view.container.textContent, 'game');
+  assert.ok(document.head.querySelectorAll('meta').length >= 4, 'kept for the game');
+  document.head.innerHTML = '';
+});

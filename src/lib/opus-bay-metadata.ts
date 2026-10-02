@@ -71,19 +71,18 @@ export const opusBayMetadata = (date: Date = new Date(), lang: 'zh' | 'en' = 'zh
   preserveText: true,
 });
 
-/** The language editions (the site's ?lang rule: Simplified carries no parameter). */
-export const OPUS_BAY_ALTERNATES: readonly (readonly [hreflang: string, href: string])[] = [
-  ['zh-Hans', `${SITE_URL}${OPUS_BAY_PATH}`],
-  ['zh-Hant', `${SITE_URL}${OPUS_BAY_PATH}?lang=zh-Hant`],
-  ['en', `${SITE_URL}${OPUS_BAY_PATH}?lang=en`],
-  ['x-default', `${SITE_URL}${OPUS_BAY_PATH}`],
-];
+// (W9-E-review, E-RC-4) no hreflang links: W9-E pointed zh-Hant / en at /opus-bay?lang=…, but one prerendered file serves
+// every ?lang and both its static and the client canonical are /opus-bay, and Google ignores alternates that are not
+// their own canonical (an hreflang page should carry a canonical in its own language). Until each edition has its own
+// canonical URL the cluster only sent mixed signals.
 
 const attr = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-/** Head tags seo.ts does not write: the hreflang alternates and the share image's size and alt text. */
+/** The game shell's head tags seo.ts does not write (the share image's size and alt text, the other locales). */
+export const OPUS_BAY_HEAD_EXTRA_SELECTOR = 'meta[property="og:image:width"], meta[property="og:image:height"], meta[property="og:image:alt"], meta[property="og:locale:alternate"]';
+
+/** Head tags seo.ts does not write: the share image's size and alt text. */
 export const opusBayHeadExtras = (): string => [
-  ...OPUS_BAY_ALTERNATES.map(([lang, href]) => `<link rel="alternate" hreflang="${lang}" href="${attr(href)}" />`),
   `<meta property="og:image:width" content="${OPUS_BAY_OG.width}" />`,
   `<meta property="og:image:height" content="${OPUS_BAY_OG.height}" />`,
   `<meta property="og:image:alt" content="${attr(OPUS_BAY_OG.alt.zh)}" />`,
