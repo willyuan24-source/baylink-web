@@ -35,11 +35,17 @@ const H = (h: number, m = 0) => h * 60 + m;
 const byId = (id: string) => { const e = CATALOG.events.find(x => x.id === id); assert.ok(e, id); return e!; };
 const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.startDate) >= '2026-09-29' && e.startDate <= '2026-11-30';
 
-/** Website additions are retained in the shared catalog, awaiting a separate world import. */
+/** Website additions are retained in the shared catalog, awaiting a separate world import (W9-R: the three Main Library
+ *  programmes stay out; the four family / community branch events are imported — SEP30_IMPORTED below). */
 const SEP30_WEBSITE_ONLY = [
-  'sfpl-ocean-view-stem-oct8-2026', 'sfpl-richmond-lego-oct7-2026', 'sfpl-career-coaching-oct8-2026',
-  'sfpl-writing-gravity-oct8-2026', 'sfpl-western-addition-open-house-oct24-2026',
-  'sfpl-omi-history-day-oct17-2026', 'sfpl-garden-green-bin-oct10-2026',
+  'sfpl-career-coaching-oct8-2026', 'sfpl-writing-gravity-oct8-2026', 'sfpl-garden-green-bin-oct10-2026',
+] as const;
+/** (W9-R) the four branch-library events of 7 / 8 / 17 / 24 Oct, re-read on sfpl.org on 2026-10-01, and their venue rows */
+const SEP30_IMPORTED = [
+  ['sfpl-richmond-lego-oct7-2026', 'richmond-library'],
+  ['sfpl-ocean-view-stem-oct8-2026', 'ocean-view-library'],
+  ['sfpl-omi-history-day-oct17-2026', 'ingleside-library'],
+  ['sfpl-western-addition-open-house-oct24-2026', 'western-addition-library'],
 ] as const;
 
 /** SF events of the window kept out of the world although they are for everyone (the reason is in the report). */
@@ -96,11 +102,21 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
       assert.ok(!EVENT_VENUES.some(venue => venue.events.includes(id)), `${id} has no newly added game venue mapping`);
       assert.ok(!SOUVENIR_IDS.includes(id), `${id} has no newly added game souvenir bit`);
     }
+    // (W9-R) the four branch-library events: in the catalog, out of WORLD_SKIP, at their own venue row (listed by id and
+    // caught by the venue text alone), with a souvenir bit appended at the end of SOUVENIR_IDS and a short name
+    for (const [id, venue] of SEP30_IMPORTED) {
+      const event = byId(id);
+      assert.equal(WORLD_SKIP[id], undefined, `${id} is no longer skipped`);
+      assert.equal(worldEvent(event)?.id, venue, id);
+      assert.ok(EVENT_VENUES.find(v => v.id === venue)!.match.test(event.venue!), `${id}: the venue text "${event.venue}" matches its row`);
+      assert.ok(SOUVENIR_IDS.indexOf(id) >= SOUVENIR_IDS.indexOf('fleet-week-2026-parade'), `${id}: its souvenir bit is appended (never reordered)`);
+      assert.ok(EVENT_SAY[id], id);
+    }
     const shown = sf.filter(e => worldEvent(e));
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
     for (const id of Object.keys(NOT_PLACED)) assert.equal(worldEvent(byId(id)), null, `${id} stays out`);
-    assert.equal(shown.length, 47, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 51, shown.map(e => e.id).join(' '));
     // (W7-S) the Sep 29 website refresh: the three the venue text already caught, and the six new venue rows
     for (const [id, venue] of [
       ['sf-foodwise-latine-makers-oct3-2026', 'ferry-building'],

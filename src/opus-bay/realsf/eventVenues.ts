@@ -383,6 +383,71 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     sourceUrl: 'https://www.openstreetmap.org/node/65363029',
     verifiedAt: '2026-09-29',
   },
+  // ---- W9-R: four family / community events at San Francisco branch libraries (the Sep 30 website additions that w8
+  // kept for a reviewed world import). Each event page re-read on sfpl.org on 2026-10-01 (date, hours, branch, room,
+  // free / drop-in); each point is the pavement outside the branch's door (OSM, read 2026-10-01 through the OSM API),
+  // projected into the city frame, standable and on the walking network (a probe and tests/opus-bay-w5-events.test.ts).
+  {
+    id: 'richmond-library',
+    name: { zh: 'Richmond 分馆图书馆', en: 'Richmond Branch Library' },
+    // 351 9th Ave: the main entrance faces 9th Ave (OSM node 6483159794, entrance=main, 37.7818621, -122.4680142 on way
+    // 68876388); the board on the 9th Ave pavement before it, facing the street.
+    // "Activity Lego Free Play", Wednesday 10/7/2026 4:00 - 5:30, Richmond Meeting Room, ages 5+, drop-in
+    // (https://sfpl.org/events/2026/10/07/activity-lego-free-play, read 2026-10-01)
+    x: -352.3, z: 822.5,
+    match: /Richmond\/Senator Milton Marks Library|351 9th Ave/i,
+    events: ['sfpl-richmond-lego-oct7-2026'],
+    kit: 'board',
+    kitAt: { x: -352.3, z: 822.5, yaw: deg(90) },
+    sourceUrl: 'https://www.openstreetmap.org/way/68876388',
+    verifiedAt: '2026-10-01',
+  },
+  {
+    id: 'ocean-view-library',
+    name: { zh: 'Ocean View 分馆图书馆', en: 'Ocean View Branch Library' },
+    // 345 Randolph St: the main entrance on the Randolph St side (OSM node 11746456801, 37.7141897, -122.4659927 on way
+    // 277741614); the board on the pavement before it, facing the street.
+    // "Activity: STEM Free Play", Thursday 10/8/2026 3:30 - 4:30, Ocean View Meeting Room, ages 3+ with a caregiver
+    // (https://sfpl.org/events/2026/10/08/activity-stem-free-play, read 2026-10-01)
+    x: 414.4, z: 1530.1,
+    match: /Ocean View Library|345 Randolph/i,
+    events: ['sfpl-ocean-view-stem-oct8-2026'],
+    kit: 'board',
+    kitAt: { x: 414.4, z: 1530.1, yaw: deg(180) },
+    sourceUrl: 'https://www.openstreetmap.org/way/277741614',
+    verifiedAt: '2026-10-01',
+  },
+  {
+    id: 'ingleside-library',
+    name: { zh: 'Ingleside 分馆图书馆', en: 'Ingleside Branch Library' },
+    // 1298 Ocean Ave (OSM way 159024969, no entrance node): the board on the Ocean Ave pavement at the building's street
+    // side, facing the street.
+    // "Presentation: Ocean View, Merced Heights, and Ingleside History Day", Saturday 10/17/2026 3:00 - 5:00, Ingleside
+    // Meeting Room, free (https://sfpl.org/events/2026/10/17/presentation-ocean-view-merced-heights-and-ingleside-history-day,
+    // read 2026-10-01)
+    x: 389.0, z: 1336.3,
+    match: /Ingleside Library|1298 Ocean Ave/i,
+    events: ['sfpl-omi-history-day-oct17-2026'],
+    kit: 'board',
+    kitAt: { x: 389.0, z: 1336.3, yaw: deg(180) },
+    sourceUrl: 'https://www.openstreetmap.org/way/159024969',
+    verifiedAt: '2026-10-01',
+  },
+  {
+    id: 'western-addition-library',
+    name: { zh: 'Western Addition 分馆图书馆', en: 'Western Addition Branch Library' },
+    // 1550 Scott St (OSM way 160833254): the board on the Scott St pavement at the building's east side, facing the street.
+    // "Celebration: Western Addition Open House", Saturday 10/24/2026 12:00 - 4:00, the Back Courtyard and the Children's
+    // Area, "FREE entertainment, snacks and fun for the whole family!"
+    // (https://sfpl.org/events/2026/10/24/celebration-western-addition-open-house, read 2026-10-01)
+    x: -115.3, z: 526.2,
+    match: /Western Addition Library|1550 Scott/i,
+    events: ['sfpl-western-addition-open-house-oct24-2026'],
+    kit: 'board',
+    kitAt: { x: -115.3, z: 526.2, yaw: deg(90) },
+    sourceUrl: 'https://www.openstreetmap.org/way/160833254',
+    verifiedAt: '2026-10-01',
+  },
 ];
 
 /**
@@ -395,12 +460,10 @@ export const WORLD_SKIP: Readonly<Record<string, string>> = {
   // Sep 30 website additions remain in BAYLINK's catalog. Importing an event into
   // the world separately requires a reviewed venue, short name and souvenir bit;
   // a shared "Main Library" venue string alone must not import new game content.
-  'sfpl-ocean-view-stem-oct8-2026': 'Sep 30 website event: pending independent world import',
-  'sfpl-richmond-lego-oct7-2026': 'Sep 30 website event: pending independent world import',
+  // (W9-R) the four family / community branch events were reviewed and imported (their venue rows above); these three
+  // Main Library programmes stay out for good (an appointment service, an adults' writing session, a talk)
   'sfpl-career-coaching-oct8-2026': 'Sep 30 website appointment service: pending independent world import',
   'sfpl-writing-gravity-oct8-2026': 'Sep 30 website event: pending independent world import',
-  'sfpl-western-addition-open-house-oct24-2026': 'Sep 30 website event: pending independent world import',
-  'sfpl-omi-history-day-oct17-2026': 'Sep 30 website event: pending independent world import',
   'sfpl-garden-green-bin-oct10-2026': 'Sep 30 website event: pending independent world import',
 };
 
@@ -429,6 +492,9 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-inner-sunset-flea-oct11-2026', 'sf-potrero-hill-festival-oct17-2026', 'sf-sunday-streets-excelsior-oct18-2026',
   // W8-S: the Parade of Ships' photo (world/sf/fleetWeek.ts), not a catalog id
   'fleet-week-2026-parade',
+  // W9-R: the four branch-library events (realsf/eventVenues.ts rows above)
+  'sfpl-richmond-lego-oct7-2026', 'sfpl-ocean-view-stem-oct8-2026', 'sfpl-omi-history-day-oct17-2026',
+  'sfpl-western-addition-open-house-oct24-2026',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -458,6 +524,11 @@ export const VENUE_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'irving-11th': { zh: 'Irving 街', en: 'Irving Street' },
   'potrero-20th': { zh: 'Potrero Hill', en: 'Potrero Hill' },
   'mission-excelsior': { zh: 'Excelsior', en: 'the Excelsior' },
+  // W9-R
+  'richmond-library': { zh: 'Richmond 图书馆', en: 'the Richmond library' },
+  'ocean-view-library': { zh: 'Ocean View 图书馆', en: 'the Ocean View library' },
+  'ingleside-library': { zh: 'Ingleside 图书馆', en: 'the Ingleside library' },
+  'western-addition-library': { zh: '西增区图书馆', en: 'the Western Addition library' },
 };
 
 /** Short event names for BAYBAY's lines (catalog titles are long); an event missing here is named by its venue. */
@@ -514,6 +585,11 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-inner-sunset-flea-oct11-2026': { zh: '秋日跳蚤市集', en: 'the Inner Sunset Flea' },
   'sf-potrero-hill-festival-oct17-2026': { zh: '街区节', en: 'the Potrero Hill Festival' },
   'sf-sunday-streets-excelsior-oct18-2026': { zh: '街区运动日', en: 'Sunday Streets' },
+  // W9-R (sfpl.org, read 2026-10-01)
+  'sfpl-richmond-lego-oct7-2026': { zh: '乐高自由搭建', en: 'LEGO free play' },
+  'sfpl-ocean-view-stem-oct8-2026': { zh: '儿童科学游戏', en: 'STEM free play for kids' },
+  'sfpl-omi-history-day-oct17-2026': { zh: '社区历史日', en: 'a neighbourhood history day' },
+  'sfpl-western-addition-open-house-oct24-2026': { zh: '图书馆开放日', en: 'a library open house' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));
