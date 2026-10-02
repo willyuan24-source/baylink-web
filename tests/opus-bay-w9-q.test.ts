@@ -177,3 +177,15 @@ test('W9-Q12: large text on a phone (260 px wide): the title has no fixed floors
   assert.match(decl(map, '.mw-list li.has-go', narrow).join(), /flex-wrap: wrap/);
   assert.match(decl(map, '.mw-list li.has-go > .mw-rowgo', narrow).join(), /flex: 1 1 100%/);
 });
+
+test('W9-Q13: the map search with a soft keyboard: the sheet takes the screen while the field has focus, the field scrolls to the top', () => {
+  const css = read('opus-bay.css');
+  assert.match(decl(css, '.ob-sheet:has(.ob-citymap-search input:focus)', ['(max-width: 720px)']).join(), /height: calc\(100dvh - var\(--ob-st\)\)/);
+  const map = read('ui/CityMap.tsx');
+  assert.match(map, /sheet\.addEventListener\('focusin', onFocus\)/);
+  assert.match(map, /input\?\.matches\('\.ob-citymap-search input'\)/);
+  assert.match(map, /body\.scrollTop \+= label\.getBoundingClientRect\(\)\.top - body\.getBoundingClientRect\(\)\.top - 8/);
+  assert.match(map, /if \(!sheet \|\| !coarse\) return;/);
+  // the field still lives in CityMapList's label
+  assert.match(read('ui/CityMapList.tsx'), /<label className="ob-citymap-search">/);
+});

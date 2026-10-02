@@ -208,6 +208,30 @@ export function CityMapPanel() {
     return () => { live = false; };
   }, [tourId, tourStep, trip?.placeId]);
 
+  // W9-Q13 · a phone's soft keyboard over the map search: the search sat ≈ 615 px down a 390 × 844 screen, under the keyboard
+  // (≈ 336 px tall), and its results below it — Safari panned the page instead. On a touch screen the focused search
+  // scrolls to the top of the sheet's body (the sheet grows to the screen's height meanwhile: opus-bay.css), so the field
+  // and the first results sit above the keyboard; on blur a page Safari left panned goes back to 0.
+  useEffect(() => {
+    const sheet = frameRef.current?.closest('.ob-sheet');
+    if (!sheet || !coarse) return;
+    let timer = 0;
+    const onFocus = (e: Event) => {
+      const input = e.target instanceof HTMLElement ? e.target : null;
+      const label = input?.matches('.ob-citymap-search input') ? input.closest<HTMLElement>('.ob-citymap-search') : null;
+      const body = label?.closest<HTMLElement>('.ob-sheet-body');
+      if (!label || !body) return;
+      const lift = () => { body.scrollTop += label.getBoundingClientRect().top - body.getBoundingClientRect().top - 8; };
+      lift();
+      window.clearTimeout(timer);
+      timer = window.setTimeout(lift, 320); // again once the sheet has grown (its .28 s height transition)
+    };
+    const onBlur = () => { if (window.scrollY) window.scrollTo(0, 0); };
+    sheet.addEventListener('focusin', onFocus);
+    sheet.addEventListener('focusout', onBlur);
+    return () => { window.clearTimeout(timer); sheet.removeEventListener('focusin', onFocus); sheet.removeEventListener('focusout', onBlur); };
+  }, [coarse]);
+
   // size: follow the frame
   useEffect(() => {
     const el = frameRef.current;
