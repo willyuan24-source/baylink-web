@@ -22,7 +22,7 @@ const ctx2d = new Proxy({}, {
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const { parseBayDate } = await import('../src/opus-bay/game/bayNow');
-const { todayLine } = await import('../src/opus-bay/realsf/todayLine');
+const { todayLine, todaySpoken } = await import('../src/opus-bay/realsf/todayLine');
 const T = await import('../src/opus-bay/halloween/today');
 const WL = await import('../src/opus-bay/halloween/worldLines');
 const HL = await import('../src/opus-bay/halloween/lines');
@@ -64,6 +64,20 @@ test('W9-H today: the welcome back on Halloween night is the big night\'s line, 
   // any other day is lane R's line as before
   assert.match(todayLine(bay('2026-10-30T19:30'), empty).zh, /三件小事/);
   assert.match(todayLine(bay('2026-11-03T10:00'), empty).zh, /日落/);
+});
+
+test("W9-H today: what BAYBAY SAYS on the welcome back (todaySpoken, the game's call since W9-X4) is the big day's line too", () => {
+  // realsf/index.ts's welcome back and its late welcome call todaySpoken(), not todayLine(): between W9-X4 and W9-X5 it
+  // said 旅行本「今天」里有今日三件小事… on 31 Oct 19:30 instead of the big night's line (W9-X5 fixed it; this pins all
+  // four big-day moments from lane H's side)
+  const at = (iso: string) => todaySpoken(bay(iso), empty);
+  assert.deepEqual(at('2026-10-31T19:30'), { line: WL.lineText('todayBigNight'), toast: null });
+  assert.deepEqual(at('2026-10-31T12:30'), { line: WL.lineText('todayFestival'), toast: null });
+  assert.deepEqual(at('2026-11-01T18:00'), { line: WL.lineText('muertosHello'), toast: null });
+  assert.deepEqual(at('2026-11-02T19:10'), { line: WL.lineText('todayProcession'), toast: null });
+  // any other day is W9-X's fixed line as before
+  assert.doesNotMatch(at('2026-10-30T19:30').line.zh, /万圣|亡灵/);
+  assert.doesNotMatch(at('2026-11-03T10:00').line.zh, /万圣|亡灵/);
 });
 
 test('W9-H today: a first visit is invited after the first minute, away from the place, never after a welcome back', () => {
