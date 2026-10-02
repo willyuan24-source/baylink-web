@@ -19,3 +19,12 @@
 @media (max-width: 420px) {
   .ob-event-when .ob-event-go { margin-left: 0; }
 }
+
+/* W9-Q7 (lane Q, surgical in lane R's file; R§6 界面与交互 "传单里的带我去只有 51×25", verify-phone/shots/s3-results.jpg) · on a touch
+   screen the flyer's 带我去 is a real 44 px button (its box, not only a pseudo hit area), 13 px words; the flyer grows by the
+   difference so the chip keeps under the date block, clear of the tags beside it */
+@media (pointer: coarse) {
+  .ob-flyer .ob-flyer-go { left: 8px; bottom: 7px; min-width: 56px; min-height: 44px; padding: 0 8px; font-size: 13px; }
+  .ob-flyer .ob-flyer-go::after { inset: 0; }
+  .ob-flyer.has-go > button:first-child { min-height: 138px; }
+}
