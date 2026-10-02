@@ -87,3 +87,27 @@ Pushed 22:12 PDT: `a5af4106` (W9-X1), `c2b8059d` (W9-X2).
   lists them in `C:/Users/willy/opus-qa/w9/new-lines.md`.
 - The pelican's later line (F's `game/pelicanFirst.ts`) and the today line (R's `realsf/todayLine.ts`) wait for those
   lanes' part-a pushes (both files are being edited tonight), then get a fixed line + a toast (part c).
+
+Pushed 23:34 PDT: `de263e3b` (W9-X3).
+
+## Part c · the pelican's and the today line as fixed voiced lines, one voice per bubble (2026-10-01 23:35 → 10-02 00:30 PDT)
+
+### What was built (W9-X4)
+
+| file | change |
+|---|---|
+| `game/pelicanFirst.ts` (F's file, surgical · w8 K-RC-3) | the later line was templated (想飞的时候${key}就行～: never recordable) → `PELICAN_LATER_LINE` **想飞的时候，叫上鹈鹕就行～** / Whenever you want to fly, just call the pelican! on every device; the control goes on a toast `PELICAN_LINES.laterToast` 「随时飞 · 按 G 起飞」 / 「随时飞 · 点「起飞」」 after 「以后再说」 (shown only with its bubble). The late-bubble path already has the unlock toast with the key, so no second toast there. `laterBubble(key)` keeps its shape (w5-content's regex still holds) |
+| `realsf/todayLine.ts` + `realsf/index.ts` (R's files, surgical · w8 W8I-WS-1) | `todaySpoken(now, catalog)` → `{ line, toast }`: BAYBAY's welcome-back today line is one of three fixed lines — `TODAY_EVENT_LINE` 今天城里有活动！旅行本「今天」里写着呢～, `TODAY_SUNSET_LINE` 今天的日落时间和三件小事，都在旅行本「今天」里～, `TODAY_PLAIN_LINE` (the old plain branch) — and the venue · event or the sunset time go on a toast (「今天 · 金门公园 · 蓝草音乐节」, 「今天旧金山日落 18:47」). `todayLine()` stays the text of record (its tests unchanged); realsf/index says `todaySpoken` in both welcome paths, the late one shows the toast only when its bubble is on screen |
+| `audio/audio.ts` | **one voice per bubble**: the first `voice-line` of a bubble wins (the binder's text match comes first, inside `bubble()`); a lane's own id for the same bubble after it (realsf's `realsf-today-welcome`, never recorded) is skipped instead of chirping over the clip. `voiceLineProbe` (tests) |
+| `scripts/opus-sf/voice/w9/lines.ts` | `W9_SOURCES`: realsf/todayLine.ts' three lines (the pelican's is found by wave 5's scan of `game/pelicanFirst.ts`) |
+| voice batch 2 → `data/sf/voiceW9.ts`, `public/opus-bay/w9/voice/` | 4 lines × zh / en = 8 clips |
+| tests | `opus-bay-w9-x-audio` + one voice per bubble (two events, one bubble → 1 taken, 1 skipped; a new bubble's line is taken); `opus-bay-w9-x-voice` + the today line / the pelican line are fixed and voiced, the names / time / control on the toast (Bay clock pinned: 10:30 and 22:30 PDT on 3 Oct, an empty catalog) |
+
+### Evidence
+
+- Batch 2: 8 takes (2 failed jobs refunded and resubmitted), **8 / 8 pass every gate, 8 / 8 heard right**; zh 2.88–4.65 s,
+  en 3.65–5.06 s. Credits **0.19** (lane X total 0.41).
+- **Coverage: 603 fixed lines, 598 voiced (99.2 %), 5 muted (the owner's ear), 0 unvoiced** (the 4 lines are new to the
+  inventory: the today line's plain branch was a literal no scan read).
+- Tests of the touched files (w5-calendar, w5-content, w5-favours, w5-r-review, w5-today, w5-tours, w6-k2-review,
+  w8-k1-hold, w8-s-fleet, w9-r-today, w9-x-voice) 95 / 95.

@@ -247,3 +247,26 @@ test('W9-X1 ?start= (title skipped): the gesture that turns sound on is the play
   });
   game.set({ phase: 'title' } as never);
 });
+
+test('W9-X3 one voice per bubble: the first voice-line of a bubble is taken (the binder\'s clip), a second id for the same bubble is skipped; a new bubble\'s line is taken', async () => {
+  const { game } = await import('../src/opus-bay/core/store');
+  const { emit } = await import('../src/opus-bay/core/events');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { voiceLineProbe } = await import('../src/opus-bay/audio/audio');
+  await withAudio(async ({ fire }) => {
+    game.set({ phase: 'playing' } as never);
+    fire('keydown'); // sound on (title skipped)
+    await new Promise(r => setTimeout(r, 30));
+    const a0 = voiceLineProbe.accepted, s0 = voiceLineProbe.skipped;
+    flow.set({ bubble: { who: 'baybay', text: { zh: '甲', en: 'A' }, key: 9001, tone: 'bark' } } as never);
+    emit({ type: 'voice-line', id: 'w9-test-binder' });
+    emit({ type: 'voice-line', id: 'realsf-test-own' }); // the lane's own id for the same bubble
+    assert.equal(voiceLineProbe.accepted - a0, 1);
+    assert.equal(voiceLineProbe.skipped - s0, 1);
+    flow.set({ bubble: { who: 'baybay', text: { zh: '乙', en: 'B' }, key: 9002, tone: 'bark' } } as never);
+    emit({ type: 'voice-line', id: 'w9-test-next' });
+    assert.equal(voiceLineProbe.accepted - a0, 2, 'a new bubble\'s line is taken');
+    flow.set({ bubble: null } as never);
+  });
+  game.set({ phase: 'title' } as never);
+});

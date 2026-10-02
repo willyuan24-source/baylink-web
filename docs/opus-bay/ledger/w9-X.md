@@ -40,3 +40,30 @@ Balance before: **357.27** (05:00 and 05:40 UTC). The take list: `scripts/opus-s
 (0.01 + 0.01 + 0.01 + 0.02 + 0.02 + 0.03 + 0.04 + 0.01 + 0.04 + 0.03 = 0.22), the refund of take 2's failed job (+0.01,
 05:40:48), the resubmission (−0.01, 05:42:38); the row before is 2026-10-01 06:02 UTC (wave 8's batch 5). **Wave-9 lane X
 running total: 0.22.**
+
+## Batch 2 · the pelican's later line and the today line as fixed lines (W9-X4), 2026-10-02 06:46–06:47 UTC
+
+Balance before: **357.05** (06:45 UTC). 4 lines × zh / en = 8 takes (indices 100–107), scratch
+`C:/Users/willy/opus-qa/w9/x/voice2/`.
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W9X-VO2 | 8 clips (4 lines × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | `PELICAN_LATER_LINE`, `TODAY_EVENT_LINE`, `TODAY_SUNSET_LINE`, `TODAY_PLAIN_LINE`, verbatim | 0.01–0.04 a take | below | `public/opus-bay/w9/voice/` | 8 used: **8 pass every gate, 8 heard right** |
+
+| take | clip | job id | created (UTC) | output | status |
+|---|---|---|---|---|---|
+| 100 | `zh-w5-c-df86205a` | `29261a59-59b3-4c53-a192-714f26f4b8b7` | 06:46:31 | raw/100.wav | picked |
+| 101 | `en-w5-c-df86205a` | `a97b6234-7ceb-4688-85e7-10648ee5bcfb` | 06:46:31 | raw/101.wav | picked |
+| 102 | `zh-w5-r-a13d0aed` | `64d6cb57-6413-448e-b6f3-ae7bd49fb1ef` | 06:46:31 | raw/102.wav | picked |
+| 103 | `en-w5-r-a13d0aed` | `6f0ad49d-2cf2-43b7-b7e9-c7514ca1e7dc` | 06:46:31 | raw/103.wav | picked |
+| 104 | `zh-w5-r-abd86c7b` | `7a5571c6-ff3b-472c-8ff0-05c1195b33c2` | — | — | failed (refunded 06:46:38), resubmitted |
+| 104 | `zh-w5-r-abd86c7b` | `e06eef62-f7ef-4d2b-ab1d-86f81e8e0b32` | 06:46:55 | raw/104.wav | picked |
+| 105 | `en-w5-r-abd86c7b` | `03bd0ab8-ef41-4b37-9796-6c1a453769d5` | 06:46:31 | raw/105.wav | picked |
+| 106 | `zh-w5-r-7d16e184` | `b2d9163d-cd49-4eee-81f7-b02b5137c721` | — | — | failed (refunded 06:46:39), resubmitted |
+| 106 | `zh-w5-r-7d16e184` | `2986a400-5861-4a49-b53a-3193d70c5ef0` | 06:46:54 | raw/106.wav | picked |
+| 107 | `en-w5-r-7d16e184` | `89cb415e-0804-4ffa-a4b3-e456dd6a7693` | 06:46:31 | raw/107.wav | picked |
+
+**Credits:** `balance` 357.05 → **356.86** = **0.19**. `transactions` (newest 14 read at 06:50 UTC): 8 spends at
+06:46:31–32 (0.04 + 0.04 + 0.03 + 0.01 + 0.03 + 0.01 + 0.02 + 0.01 = 0.19), 2 refunds of the failed jobs (+0.02, +0.01,
+06:46:38–39), 2 resubmissions (−0.01, −0.02, 06:46:54–55); the row before is batch 1's resubmission (05:42:38). **Wave-9
+lane X running total: 0.41.**

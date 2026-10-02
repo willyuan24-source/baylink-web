@@ -10,7 +10,7 @@ import { bayNow, bayParts } from '../game/bayNow';
 import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { startTravel, travelActive } from '../game/fastTravel';
-import { bubble, closePanel, dialogueOpen, navigateTo, openEvent } from '../game/flow';
+import { bubble, closePanel, dialogueOpen, navigateTo, openEvent, say } from '../game/flow';
 import { goTo } from '../game/goTo';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID, registerPrefixResolver, type Interactable } from '../game/interactables';
@@ -33,7 +33,7 @@ import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
 import { setPrefs } from './prefs';
-import { todayLine } from './todayLine';
+import { todaySpoken } from './todayLine';
 import { holdJetsForParade, isParadeDay } from '../world/sf/fleetWeekDay';
 import type { FleetWeek } from '../world/sf/fleetWeek';
 import { importRetry } from '../game/importRetry';
@@ -152,7 +152,9 @@ export function init(): () => void {
     if (w.step >= 3 && w.companions && w.vibe && w.region) setPrefs({ companions: w.companions, vibe: w.vibe, region: w.region, at: bayParts(bayNow()).dateKey });
   });
   let welcomeSaid = false;
-  const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; return todayLine(); });
+  // (W9-X, surgical) BAYBAY says a fixed, voiced today line; the day's venue / event or sunset time is on a toast
+  const sayTodayToast = (t: Bilingual | null) => { if (t) say(t.zh, t.en, 'info', 4600); };
+  const offWelcome = onWelcome(kind => { if (kind !== 'returning') return null; welcomeSaid = true; const s = todaySpoken(); sayTodayToast(s.toast); return s.line; });
   const lw = lastWelcome();
   let welcomeLate = !!lw && lw.kind === 'returning' && performance.now() - lw.at < WELCOME_LATE;
   const jets = initJets();
@@ -204,7 +206,8 @@ export function init(): () => void {
     // (W8-S review, S-P5) while the parade's chunk is still loading that day the jets' lines wait for it
     const holdJets = holdJetsForParade(now, { ready: !!parade, failed: paradeFails >= PARADE_TRIES });
     const offered: OfferedLine[] = [...presence.offered(), ...(parade?.offered() ?? []), ...(holdJets ? [] : jets.offered()), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
-    if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
+    const today = welcomeLate && !welcomeSaid ? todaySpoken(now) : null;
+    if (today) offered.unshift({ key: 'today-welcome', text: today.line });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });
     const p = bayParts(now);
@@ -222,7 +225,11 @@ export function init(): () => void {
     if (line.key === 'today-welcome') welcomeLate = false;
     if (line.key.startsWith('jets-')) jets.said(line.key);
     if (line.key.startsWith('parade-')) parade?.said(line.key);
-    if (bubble(line.text, 4600, BAYBAY_ID, 'bark')) emit({ type: 'voice-line', id: `realsf-${line.key}` });
+    if (bubble(line.text, 4600, BAYBAY_ID, 'bark')) {
+      emit({ type: 'voice-line', id: `realsf-${line.key}` });
+      // (W9-X) the today line's names / time on a toast, with its bubble
+      if (line.key === 'today-welcome') sayTodayToast(today?.toast ?? null);
+    }
   }, 5);
 
   return () => {

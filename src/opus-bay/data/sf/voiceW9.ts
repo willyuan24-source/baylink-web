@@ -16,6 +16,10 @@ export const W9_VOICE_LINES: readonly W9VoiceLine[] = [
   { id: "w5-w2-280f73fb", lane: "w2", zh: "船屋从1893年起就租船给游客。", en: "The boathouse has rented boats to visitors since 1893.", s: [3.35, 6.15] },
   { id: "w5-al-3042cee4", lane: "al", zh: "回城啦。回头再看一眼恶魔岛，前面就是旧金山。", en: "Heading back to the city. One last look at Alcatraz — San Francisco is just ahead.", s: [4.88, 5.84] },
   { id: "w8w1-pagodas-ahead-w9", lane: "w1", zh: "往上看！路口两座宝塔楼：Sing Fat 和绿顶的 Sing Chong。", en: "Look up! The two pagoda towers at the corner: Sing Fat, and Sing Chong with the green roofs.", s: [5.31, 6.67] },
+  { id: "w5-c-df86205a", lane: "c", zh: "想飞的时候，叫上鹈鹕就行～", en: "Whenever you want to fly, just call the pelican!", s: [2.88, 3.65] },
+  { id: "w5-r-a13d0aed", lane: "r", zh: "今天城里有活动！旅行本「今天」里写着呢～", en: "Something’s on in the city today — it’s on the journal’s Today page!", s: [4.02, 4.57] },
+  { id: "w5-r-abd86c7b", lane: "r", zh: "今天的日落时间和三件小事，都在旅行本「今天」里～", en: "Today’s sunset time and three small things are on the journal’s Today page.", s: [4.65, 5.06] },
+  { id: "w5-r-7d16e184", lane: "r", zh: "旅行本「今天」里有今日三件小事，慢慢逛～", en: "Three small things for today wait on the journal’s Today page — no rush.", s: [3.99, 5.03] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */

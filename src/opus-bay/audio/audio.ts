@@ -77,6 +77,8 @@ export const MUSIC_GESTURE_GAP = 1200;
 export const MUSIC_FADE_TAU = 3;
 /** (W9-X1, tests / QA) the music's start in the running startAudio: the player's gesture has come, the music has begun */
 export const musicProbe = { wanted: false, started: false };
+/** (W9-X3, tests / QA) voice-line events taken / skipped (a second one for the same bubble) */
+export const voiceLineProbe = { accepted: 0, skipped: 0 };
 
 /**
  * (W6-X review) The big night's toll waits for the sound to be live: halloween/world.ts announces the phase once, when the
@@ -416,6 +418,10 @@ export function startAudio(): () => void {
       // a newer bubble cuts it (offBubble below). No bubble (a card or a dialogue box carries the words): no gate.
       case 'voice-line': {
         const key = flow.get().bubble?.key;
+        // one voice per bubble: the first voice-line of a bubble wins (the binder's text match comes first, inside
+        // bubble(); a lane's own id for the same bubble after it — realsf's `realsf-<key>` — would chirp over the clip)
+        if (key !== undefined && key === lineKey) { voiceLineProbe.skipped++; break; }
+        voiceLineProbe.accepted++;
         // a line of another bubble still playing stops now (not only once the new clip has loaded)
         if (key !== lineKey && voice.stopLine()) voice.lineStats.cut++;
         lineKey = key;

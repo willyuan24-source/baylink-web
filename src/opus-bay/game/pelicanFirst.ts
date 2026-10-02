@@ -54,6 +54,9 @@ export const PELICAN_VIEWPOINTS: ReadonlySet<string> = new Set(ATTRACTIONS.filte
 export const unlocksAt = (hit: Pick<ArrivalHit, 'anchor'>): boolean => PELICAN_VIEWPOINTS.has(hit.anchor.attraction);
 
 /** The moment's words; BAYBAY's spoken lines are lane C's frozen wave-5 set (data/sf/linesW5.ts, W5-C6: voice ids). */
+/** (W9-X) BAYBAY's fixed later line: fly whenever you like — the control is on a toast (PELICAN_LINES.laterToast) */
+export const PELICAN_LATER_LINE: Bilingual = { zh: '想飞的时候，叫上鹈鹕就行～', en: 'Whenever you want to fly, just call the pelican!' };
+
 export const PELICAN_LINES = {
   /** the toast: "解锁：随时飞！" + the take-off key of this device */
   toast: (key: Bilingual): Bilingual => ({ zh: `解锁：随时飞！${key.zh}`, en: `Unlocked: fly anytime! ${key.en}` }),
@@ -61,8 +64,14 @@ export const PELICAN_LINES = {
   yes: { zh: '试试起飞', en: "Let's fly!" },
   later: { zh: '以后再说', en: 'Maybe later' },
   go: w5Text(W5_PELICAN.go),
-  /** (names the device's control: text only, never recorded) */
-  laterBubble: (key: Bilingual): Bilingual => ({ zh: `想飞的时候${key.zh}就行～`, en: `Whenever you want to fly, just ${key.en}.` }),
+  /**
+   * (W9-X, lane X surgical · w8 K-RC-3) BAYBAY's later line is fixed (voiced: lines match by their exact words); the
+   * device's control is on the 随时飞 toast (`laterToast`), not in her words. `key` is kept for the callers' shape.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- the callers' shape (the key is on the toast now)
+  laterBubble: (_key?: Bilingual): Bilingual => PELICAN_LATER_LINE,
+  /** the take-off control of this device, on a toast with the later line (W9-X) */
+  laterToast: (key: Bilingual): Bilingual => ({ zh: `随时飞 · ${key.zh}`, en: `Fly anytime · ${key.en}` }),
   tour: w5Text(W5_PELICAN.tour),
 } as const;
 
@@ -260,7 +269,8 @@ export function stepPelican(now: number, offer: Offer) {
   setTimeout(() => { if (game.get().dialogue.nodeId === ASK_NODE && greetBehind()) pelicanGreet(undefined, undefined, { seconds: 2.6 }); }, GREET_AFTER_MS);
   playDialogue(ask, () => {
     if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); takeOff(); return; }
-    bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200, BAYBAY_ID, 'call');
+    const key = takeOffKey();
+    if (bubble(PELICAN_LINES.laterBubble(key), 4200, BAYBAY_ID, 'call')) say(PELICAN_LINES.laterToast(key).zh, PELICAN_LINES.laterToast(key).en, 'info', 4200);
     // (phones: lane F's 起飞 pulses once more, where the line points)
     pulseGlideButton();
   }, { kind: 'two-shot', subject: null });

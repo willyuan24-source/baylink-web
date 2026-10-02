@@ -4,7 +4,7 @@
 
 **怎么听**
 
-1. 最快：按批次听合集（每句之间停 0.7 秒，顺序 = 下表）：`w9-voice-preview-b1-zh.m4a` / `-en.m4a`（都在本目录）。
+1. 最快：按批次听合集（每句之间停 0.7 秒，顺序 = 下表）：`w9-voice-preview-b1-zh.m4a` / `-en.m4a`、`w9-voice-preview-b2-zh.m4a` / `-en.m4a`（都在本目录）。
 2. 单句：`public/opus-bay/w9/voice/<clip>.m4a`（游戏里播的就是这个文件）。
 3. 在游戏里听：打开 `https://www.baylink.us/opus-bay`（上线后），走到对应地点；每句的位置写在「在哪儿听」一栏。
 
@@ -12,7 +12,7 @@
 「机器」= 机器检查（没有爆音、没有截断、停顿和语速正常）：pass 的已经在游戏里播放；check 的先静音，等你写 ✓ 才播放。
 「识别」= Windows 语音识别在所有台词里听出的是不是这一句（✓ = 听对），只作参考。
 
-**现在的配音覆盖率**：BAYBAY 的固定台词共 599 句，已配音 594 句（99.2%），5 句等你批准（下面第二部分），0 句还没有录音。
+**现在的配音覆盖率**：BAYBAY 的固定台词共 603 句，已配音 598 句（99.2%），5 句等你批准（下面第二部分），0 句还没有录音。
 
 ## 第一部分 · 第九波新录音
 
@@ -25,6 +25,10 @@
 | 3 | 1 | 西区 | `zh-w5-w2-280f73fb` | 船屋从1893年起就租船给游客。 | 3.35 | pass | ✓ | 金门公园蓝鹭湖，船屋旁（以前的「这座船屋…一直」改了说法：船屋这门生意从 1893 年开始，现在的房子是 1946–49 年的） | |
 | 4 | 1 | 恶魔岛 | `zh-w5-al-3042cee4` | 回城啦。回头再看一眼恶魔岛，前面就是旧金山。 | 4.88 | pass | ✓ | 恶魔岛码头坐船回 33 号码头时（新加的一句，以前说的是普通渡轮的「上船啦」） | |
 | 5 | 1 | 唐人街 | `zh-w8w1-pagodas-ahead-w9` | 往上看！路口两座宝塔楼：Sing Fat 和绿顶的 Sing Chong。 | 5.31 | pass | ✓ | 唐人街 Grant 街和 California 街路口（去掉了没有出处的「黄顶」） | |
+| 6 | 2 | 镜头 | `zh-w5-c-df86205a` | 想飞的时候，叫上鹈鹕就行～ | 2.88 | pass | ✓ | 鹈鹕第一次见面时选「以后再说」（以前这句带按键名、没法配音；按键现在写在「随时飞」小提示里） | |
+| 7 | 2 | 真实旧金山 | `zh-w5-r-a13d0aed` | 今天城里有活动！旅行本「今天」里写着呢～ | 4.02 | pass | ✓ | 回访时 BAYBAY 说今天的事（今天城里有活动的日子；活动名和地点写在小提示里） | |
+| 8 | 2 | 真实旧金山 | `zh-w5-r-abd86c7b` | 今天的日落时间和三件小事，都在旅行本「今天」里～ | 4.65 | pass | ✓ | 回访时（日落前；日落时间写在小提示里） | |
+| 9 | 2 | 真实旧金山 | `zh-w5-r-7d16e184` | 旅行本「今天」里有今日三件小事，慢慢逛～ | 3.99 | pass | ✓ | 回访时（日落后） | |
 
 ### English
 
@@ -35,6 +39,10 @@
 | 3 | 1 | 西区 | `en-w5-w2-280f73fb` | The boathouse has rented boats to visitors since 1893. | 6.15 | pass | ✓ | 金门公园蓝鹭湖，船屋旁（以前的「这座船屋…一直」改了说法：船屋这门生意从 1893 年开始，现在的房子是 1946–49 年的） | |
 | 4 | 1 | 恶魔岛 | `en-w5-al-3042cee4` | Heading back to the city. One last look at Alcatraz — San Francisco is just ahead. | 5.84 | pass | ✓ | 恶魔岛码头坐船回 33 号码头时（新加的一句，以前说的是普通渡轮的「上船啦」） | |
 | 5 | 1 | 唐人街 | `en-w8w1-pagodas-ahead-w9` | Look up! The two pagoda towers at the corner: Sing Fat, and Sing Chong with the green roofs. | 6.67 | pass | ✓ | 唐人街 Grant 街和 California 街路口（去掉了没有出处的「黄顶」） | |
+| 6 | 2 | 镜头 | `en-w5-c-df86205a` | Whenever you want to fly, just call the pelican! | 3.65 | pass | ✓ | 鹈鹕第一次见面时选「以后再说」（以前这句带按键名、没法配音；按键现在写在「随时飞」小提示里） | |
+| 7 | 2 | 真实旧金山 | `en-w5-r-a13d0aed` | Something’s on in the city today — it’s on the journal’s Today page! | 4.57 | pass | ✓ | 回访时 BAYBAY 说今天的事（今天城里有活动的日子；活动名和地点写在小提示里） | |
+| 8 | 2 | 真实旧金山 | `en-w5-r-abd86c7b` | Today’s sunset time and three small things are on the journal’s Today page. | 5.06 | pass | ✓ | 回访时（日落前；日落时间写在小提示里） | |
+| 9 | 2 | 真实旧金山 | `en-w5-r-7d16e184` | Three small things for today wait on the journal’s Today page — no rush. | 5.03 | pass | ✓ | 回访时（日落后） | |
 
 ## 第二部分 · 以前录好、还在静音等你批准的
 

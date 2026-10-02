@@ -39,6 +39,9 @@ export interface W9Source {
   /** the mood note for every line of the source (e.g. 'gentle' for Alcatraz) */ mood?: string;
 }
 export const W9_SOURCES: readonly W9Source[] = [
+  // lane X (surgical, w8 W8I-WS-1): the today line BAYBAY says is fixed (the names / time on a toast)
+  { lane: 'r', file: 'realsf/todayLine.ts', only: ['TODAY_EVENT_LINE', 'TODAY_SUNSET_LINE', 'TODAY_PLAIN_LINE'] },
+  // (the pelican's fixed later line, game/pelicanFirst.ts PELICAN_LATER_LINE, is found by wave 5's scan of that file)
 ];
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;

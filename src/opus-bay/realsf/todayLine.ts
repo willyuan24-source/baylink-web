@@ -41,7 +41,33 @@ export function todayLine(now: Date = bayNow(), catalog: Catalog | null = getCat
     const t = sunHm(sun.sunset);
     return { zh: `今天旧金山日落 ${t}，旅行本「今天」里有三件小事～`, en: `Sunset in San Francisco today is at ${t}; three small things wait on the journal's Today page.` };
   }
-  return { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait on the journal’s Today page — no rush.' };
+  return TODAY_PLAIN_LINE;
+}
+
+/**
+ * (W9-X, lane X surgical · w8 W8I-WS-1) What BAYBAY SAYS for today is a fixed line (voiced: lines are matched by their
+ * exact words), and the day's names / time go on a toast — the templated todayLine() above names a venue or a time, so it
+ * could never be recorded. todayLine() stays the text of record (tests, any written use).
+ */
+export const TODAY_EVENT_LINE: Bilingual = { zh: '今天城里有活动！旅行本「今天」里写着呢～', en: 'Something’s on in the city today — it’s on the journal’s Today page!' };
+export const TODAY_SUNSET_LINE: Bilingual = { zh: '今天的日落时间和三件小事，都在旅行本「今天」里～', en: 'Today’s sunset time and three small things are on the journal’s Today page.' };
+export const TODAY_PLAIN_LINE: Bilingual = { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait on the journal’s Today page — no rush.' };
+
+/** BAYBAY's today line as she says it (fixed, voiced) + the toast with today's names / time (null: nothing to add). */
+export function todaySpoken(now: Date = bayNow(), catalog: Catalog | null = getCatalog()): { line: Bilingual; toast: Bilingual | null } {
+  const day = bayParts(now).dateKey;
+  const w = weekEvents(now, 1, catalog).find(x => x.dateKey === day);
+  if (w) {
+    const place = VENUE_SAY[w.venue.id] ?? w.venue.name;
+    const name = EVENT_SAY[w.event.id] ?? { zh: '活动', en: 'an event' };
+    return { line: TODAY_EVENT_LINE, toast: { zh: `今天 · ${place.zh} · ${name.zh}`, en: `Today · ${name.en.charAt(0).toUpperCase()}${name.en.slice(1)} · ${place.en.charAt(0).toUpperCase()}${place.en.slice(1)}` } };
+  }
+  const sun = sunTimes(now);
+  if (now.getTime() < sun.sunset.getTime()) {
+    const t = sunHm(sun.sunset);
+    return { line: TODAY_SUNSET_LINE, toast: { zh: `今天旧金山日落 ${t}`, en: `Sunset in San Francisco today: ${t}` } };
+  }
+  return { line: TODAY_PLAIN_LINE, toast: null };
 }
 
 // ---------------------------------------------------------------------------

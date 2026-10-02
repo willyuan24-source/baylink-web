@@ -79,3 +79,28 @@ test('W9-X3 · w8 NEXT #10: the grip / sled "too short" lines, the boathouse sin
     assert.ok(w5VoiceFor(l), `${l.zh} is voiced`);
   }
 });
+
+test('W9-X4 · the today line and the pelican\'s later line are fixed (voiceable) lines; the names, the time and the control go on a toast', async () => {
+  const T = await import('../src/opus-bay/realsf/todayLine');
+  // the Bay clock pinned: a morning (before sunset, no event in an empty catalog) and a night
+  const empty = { events: [], venues: [] } as never;
+  const morning = new Date('2026-10-03T17:30:00Z'); // 10:30 PDT
+  const night = new Date('2026-10-04T05:30:00Z'); // 22:30 PDT
+  const m = T.todaySpoken(morning, empty);
+  assert.deepEqual(m.line, T.TODAY_SUNSET_LINE);
+  assert.match(m.toast!.zh, /^今天旧金山日落 \d\d:\d\d$/);
+  assert.match(m.toast!.en, /^Sunset in San Francisco today: \d\d:\d\d$/);
+  const n = T.todaySpoken(night, empty);
+  assert.deepEqual(n.line, T.TODAY_PLAIN_LINE);
+  assert.equal(n.toast, null);
+  for (const l of [T.TODAY_EVENT_LINE, T.TODAY_SUNSET_LINE, T.TODAY_PLAIN_LINE]) assert.ok(!/\d/.test(l.zh + l.en) && [...l.zh].length <= 45, l.zh);
+  const P = await import('../src/opus-bay/game/pelicanFirst');
+
+  // voiced (W9-X4 batch 2)
+  const { w5VoiceFor } = await import('../src/opus-bay/game/voiceW5');
+  for (const l of [T.TODAY_EVENT_LINE, T.TODAY_SUNSET_LINE, T.TODAY_PLAIN_LINE, P.PELICAN_LATER_LINE]) assert.ok(w5VoiceFor(l), `${l.zh} is voiced`);
+  for (const d of ['touch', 'keyboard', 'gamepad'] as const) {
+    assert.deepEqual(P.PELICAN_LINES.laterBubble(P.takeOffKey(d)), P.PELICAN_LATER_LINE, `${d}: the same words on every device`);
+    assert.ok(P.PELICAN_LINES.laterToast(P.takeOffKey(d)).zh.includes(P.takeOffKey(d).zh), `${d}: the control on the toast`);
+  }
+});
