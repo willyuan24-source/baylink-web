@@ -182,3 +182,51 @@ discarded.
 - 驱动 / 窗口 keep their mainland form where they appear (one line each, lane P's GPU note and lane S's album note):
   a bare-word rule would turn catalog text wrong (AI 驱动, 售票窗口); a phrase rule for those two lines is cheap if wanted.
 
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+- 评审找出 L 线 4 个问题（1 个较重、3 个小问题），我逐个复现后全部修好，已推送（提交 36bd1987）。
+- 较重的问题：地图里搜街区名会先出小游戏，排在景点前面。比如搜「haight」先出「和街头艺人合奏」，搜「jordan」先出讨糖街。现在先出景点或地点本身，小游戏排在后面，但仍然能搜到。
+- 搜「节日 / festival」现在按日期排：10 月 9 日的舰队周排第一，11 月下旬的特大潮排在后面。以前特大潮反而排在舰队周前面。
+- 坐车途中点搜索结果里的「捉迷藏」，以前完全没反应；现在会关掉地图，BAYBAY 说「等一下再玩捉迷藏吧～」。
+- 手机上的游戏列表不再出现键盘按键（Q）（G）。没有新增或改动配音台词，没有用 Higgsfield 积分，没有阻碍上线的问题。
+
+### Findings and verdicts
+
+| id | severity | verdict | evidence |
+|---|---|---|---|
+| L-RV-1 · a street / neighbourhood name puts a game or a treat street above the sight of that name | major | **fixed** | Reproduced with the lens's probe (rankSearch + groupHits on the test index, 2 Oct): haight → busker −1.5 over Haight-Ashbury −0.7; mission, filbert, lyon, 马赛克, ball, jordan, sea cliff, waverly the same. Fix (`data/sf/searchSpots.ts`, `data/sf/placeSearch.ts`): the place words move from the aliases to a new `near` list (haight, mission, filbert, lyon, 马赛克, the six treat streets, waverly), which scores 1.5 with no bonus; a word inside a game's or an event's name gets −0.6 (like a curated place), not −1.5 (so "jordan" no longer wins through "Trick-or-treat · Jordan Ave"); the bare `ball` alias goes; `groupHits` puts 小游戏 / 节日活动 before the first other group they beat, never before a better one. After: haight → 景點 Haight-Ashbury, 車站, then 小遊戲 the busker; filbert → Filbert Steps, then the stair race; lyon / 马赛克 → the steps; ball → Oracle Park, then the beach-ball rally; jordan → Jordan Park; sea cliff → Seacliff; waverly → Tin How Temple, then the festival. Test `W9-L-review L-RV-1` red on e9c3c35c (`haight: the sights first (got play busk-haight)`), green after. Played: `opus-qa/w9/l-rev/shots/dt-zh-Hant-q-haight.jpg`. Not changed, by decision: **fire**, **music / guitar**, **arcade**, **sea lions**, **bakery** still lead with the game. These are the game's own activity words, the other hits are weak word matches of unranked places, and for arcade / sea lions the game is inside that sight (claw → Musée Mécanique, K-Dock → Pier 39). |
+| L-RV-2 · 节日 / festival not in date order | minor | **fixed** | Reproduced (2 Oct: Halloween, King tides, Día, Chinatown festival, Blue Angels, Parade of Ships, Indigenous Peoples' Day). `calendarSpots` now gives each row a fame of 80 (on now or today) falling to 70 (60 days away), so a tie lists the rows by date, still above the treat streets (50). After: Blue Angels, Parade of Ships (9 Oct), Indigenous Peoples' Day (12 Oct), Halloween, Chinatown festival (31 Oct), Día (2 Nov), King tides (24 Nov), then the treat streets. Test `L-RV-2` red, then green; played: `shots/dt-zh-Hant-q-festival.jpg`. |
+| L-RV-3 · 捉迷藏 search row does nothing on a trip | minor | **fixed** | Confirmed in the code: the row is enabled through `ask`; `spotAct` found no item offered and nowhere to go, so the tap did nothing. New pure `spotTap()` (searchSpots.ts) used by `ui/CityMapList.tsx` `spotAct`: the item is offered → run it; else a destination → go; else (an ask-only row) the item runs anyway, and `startHideSeek` answers with its existing line 等一下再玩捉迷藏吧～. Played on the dev server (zh-Hant 1440×900, a trip to 撈螃蟹 on): after the tap the map closes and the bubble says 等一下再玩捉迷藏吧～ (`shots/dt-zh-Hant-hide-row-during-trip2.jpg`, `{trip:true, panel:null, allowed:false}`). Test `L-RV-3 / L-RV-4` red (`spotTap is not a function`), green after. |
+| L-RV-4 · key names (Q) / (G) in the search's game rows on phones | minor | **fixed** | Confirmed (searchSpots.ts hide-seek and ggb-rings `where`). Now 随时问 BAYBAY 就能玩 / Ask BAYBAY to play, anywhere and 金门大桥上空 · 骑鹈鹕 / Over the Golden Gate · on the pelican. These are row captions, not voiced lines. A test checks that no game or treat row's `where` has a (X) key. The dev-server games list showed both rows without the keys. |
+
+### My own pass (`git log origin/opus-bay --grep "W9-L[0-9:-]"`, 13 commits)
+
+- No softlock, no district change, no GameRoot growth from lane L or from this fix. The map, its search and searchSpots are in the lazy CityMap chunk (`ui/MapPanel.tsx` lazyChunk), and the district hero test is in the suite run below.
+- Site file `src/i18n/locale.ts` (W9-L2 / L9): TAIWAN_WORDS apply only when `location.pathname` is /opus-bay. The trie that makes a second conversion safe only learns Traditional phrases mapped to themselves. I grepped the game text for over-broad keys: no 在线 (online vs 在线路…). 设置 / 信息 / 数据 / 链接 / 网络 appear only in their UI sense.
+- `data/sf/places.ts` `normalizeQuery` still has no 繁體 folding. `searchPlaces()` has no caller in the UI, so no player sees it. Noted only.
+- Kept, by decision: with `mission` as a place word, the Mission busker falls below the 30-row cut for "mission" (dozens of Mission places score higher). It is still found by busker / 街头艺人 / maracas / 沙锤 / the 小游戏 chip.
+- The lens did not cover one item: the 8 am 黄昏 words. Lane L's report hands this to W9-Z, and lane F's W9-F3 is the fix. I did not replay it at 8 am either, so it stays open.
+
+### Checks
+
+- Run on 36bd1987 (origin/opus-bay e9c3c35c + this fix):
+  - `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
+  - `npx eslint .`: 0 errors (53 warnings, all already there).
+  - `tests/opus-bay-w9-l-search.test.ts`: 8 / 8 pass (5 before plus 3 new; the 3 new ones failed on e9c3c35c).
+  - The opus-bay suite (`--test "tests/opus-bay-*.test.ts"`):
+    - The first run was stopped at the 25-minute background limit. By then 2010 tests had passed with 0 failures. The 19 files that were still running (w9-n-time … w9-x-voice) were cut off with 'test failed'.
+    - I re-ran those 19 files on their own: 121 / 121 pass, 0 fail.
+- No site files touched, so no site tests to run. One dev server and one headless Chrome (port 5946), both stopped.
+- No voiced line changed. The 捉迷藏 tap uses the existing 等一下再玩捉迷藏吧～, so new-lines.md has nothing to add.
+
+### Open items
+
+- The 8 am time-of-day words: not replayed by lane L or by this review (W9-Z, `?date=2026-10-0xT08:00`).
+- The requests in lane L's own report to lanes S, E and G are still open.
+
+### Blocking the go-live to main
+
+Nothing from lane L or this review.
