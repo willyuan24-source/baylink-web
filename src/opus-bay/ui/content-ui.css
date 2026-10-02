@@ -49,3 +49,18 @@
 .ob-journal .ob-tabs.is-many { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .ob-journal .ob-tabs.is-many::-webkit-scrollbar { display: none; }
 .ob-journal .ob-tabs.is-many:has(> button) > button { flex: 1 0 auto; min-width: max-content; padding-left: 6px; padding-right: 6px; }
+
+/* W9-Q5 (R§6 界面与交互: "旅行本标签栏溢出（足迹被截断）", strategy/shots/en-16-journal.jpg) · the city's journal has seven tabs in
+   the Halloween season (今天 · 手帐 · 万圣节 · 明信片 · 目标 · 想去 · 足迹) and lane G adds 游乐 in wave 9: the row scrolled sideways with
+   no hint, so 足迹 sat cut off at the right edge (390 px English: 575 px of tabs in 352). Five or more tabs now stand in two rows
+   (3 columns up to six tabs, 4 up to eight, 5 beyond), every tab whole on screen, icon over its words; a label too long for its
+   cell lets its count drop under it. */
+.ob-journal .ob-tabs.is-many { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; overflow: visible; touch-action: auto; }
+.ob-journal .ob-tabs.is-many:has(> button:nth-child(7)) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.ob-journal .ob-tabs.is-many:has(> button:nth-child(9)) { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.ob-journal .ob-tabs.is-many:has(> button) > button {
+  display: flex; flex-wrap: wrap; align-content: center; justify-content: center; column-gap: 3px; row-gap: 1px; min-width: 0;
+  padding: 5px 3px; white-space: nowrap; line-height: 1.2; font-size: 13px;
+}
+.ob-journal .ob-tabs.is-many > button > :first-child:not(:only-child) { flex: 0 0 100%; display: flex; justify-content: center; }
+.ob-journal .ob-tabs.is-many > button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
