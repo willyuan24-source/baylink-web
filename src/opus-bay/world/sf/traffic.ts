@@ -5,6 +5,7 @@ import { BOX, Batch, CYL, M } from '../builder';
 import { TOY_INST_TINT } from '../materials';
 import { EK, type RoadVehicle, type StreetEdge, type StreetNet, lifeRng } from './streetNet';
 import { obstaclePool, setVehicle, vehiclePool } from './recordPool';
+import { anyRoadClosed, roadClosed } from './roadClosures';
 
 /**
  * Toy traffic (lane F, checkpoint F12): up to 24 little instanced cars on the streets around the player, city mode only
@@ -244,6 +245,8 @@ export class TrafficSim {
     const s = net.edge(e);
     if (!s || !s.road || s.raised || net.isHero(s.u) || net.isHero(s.v)) return null;
     if (s.curbL < TRAFFIC.minHalf || s.curbR < TRAFFIC.minHalf) return null;
+    // (W9-C2) a street an event's kit closes (world/sf/roadClosures.ts: Waverly Place during the festival)
+    if (this.closedEdge(e)) return null;
     let ok = this.okCache.get(e);
     if (ok === undefined) {
       const mx = (s.ax + s.bx) / 2, mz = (s.az + s.bz) / 2;
@@ -252,6 +255,13 @@ export class TrafficSim {
       this.okCache.set(e, ok);
     }
     return ok ? s : null;
+  }
+
+  /** (W9-C2) Is the street of edge `e` closed now (its middle, world/sf/roadClosures.ts)? */
+  private closedEdge(e: number): boolean {
+    if (e < 0 || !anyRoadClosed()) return false;
+    const s = this.net.edge(e);
+    return !!s && roadClosed((s.ax + s.bx) / 2, (s.az + s.bz) / 2);
   }
 
   /** Lateral offset of the right-hand lane (to the right of travel). */
@@ -289,6 +299,12 @@ export class TrafficSim {
     for (const c of this.cars) {
       if (!c.on) continue;
       if (c === thin) { this.off(c); this.stats.recycled++; continue; }
+      // (W9-C2) a car on (or turning into) a street an event's kit closed — it was there when the kit went up, or turned in
+      // just before: out of sight it goes at once, in sight it gives way (the kerb hop and shrink). By the street's middle,
+      // like usable(): a car crossing the alley on a cross street drives on
+      if (!c.leaving && this.closedEdge(c.mode === 'turn' ? c.next : c.e)) {
+        if (this.env.visible(c.x, c.z)) this.clearLane(c, 'closed'); else { this.off(c); this.stats.recycled++; continue; }
+      }
       const far = Math.hypot(c.x - f.x, c.z - f.z) > this.radius + 20;
       const lost = !this.net.edge(c.e) || (c.mode === 'turn' && c.next >= 0 && !this.net.edge(c.next));
       const seen = this.env.visible(c.x, c.z);

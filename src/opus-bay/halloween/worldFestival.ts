@@ -3,6 +3,7 @@ import { heightAt } from '../core/terrain';
 import { bayParts } from '../game/bayNow';
 import { BOX, CBOX, ICO, M, Batch, type Info } from '../world/builder';
 import { TOY } from '../world/materials';
+import { closeRoad } from '../world/sf/roadClosures';
 import { addFigure, addPumpkin } from './worldDress';
 
 /**
@@ -144,6 +145,22 @@ export interface Festival {
   dispose(): void;
 }
 
+/**
+ * (W9-C2, lane C surgical — w8 H-RP-5) While the kit is up the alley is closed to the toy traffic (world/sf/roadClosures.ts):
+ * a point within ALLEY_CLOSED u of the centreline, between its two ends (the cross streets' own junctions stay open).
+ */
+export const ALLEY_CLOSED = 2.6;
+export function inAlley(x: number, z: number): boolean {
+  let s0 = 0;
+  for (let i = 1; i < WAVERLY.length; i++) {
+    const a = WAVERLY[i - 1], b = WAVERLY[i], dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz);
+    const t = Math.max(0, Math.min(L, ((x - a.x) * dx + (z - a.z) * dz) / L)), s = s0 + t;
+    if (s > 1.5 && s < ALLEY_LEN - 1.5 && Math.hypot(a.x + (dx * t) / L - x, a.z + (dz * t) / L - z) < ALLEY_CLOSED) return true;
+    s0 += L;
+  }
+  return false;
+}
+
 /** the alley's ground is re-checked here (its two ends and middle) while the kit is up: a change rebuilds it */
 const GROUND_PROBES = [0, 0.5, 1] as const;
 
@@ -157,7 +174,8 @@ export function createFestival(ground: (x: number, z: number) => number = height
   // kit built from 160 u away is rebuilt once the alley's own ground arrives (2 Hz, three samples)
   const built = new Float32Array(probes.length);
   const groundMoved = () => probes.some((p, k) => { const y = ground(p.x, p.z); return Number.isFinite(y) && (!Number.isFinite(built[k]) || Math.abs(y - built[k]) > 0.05); });
-  const drop = () => { if (mesh) { group.remove(mesh); mesh.geometry.dispose(); mesh = null; } };
+  let reopen: (() => void) | null = null;
+  const drop = () => { reopen?.(); reopen = null; if (mesh) { group.remove(mesh); mesh.geometry.dispose(); mesh = null; } };
   return {
     group,
     step: (px, pz, on, now) => {
@@ -172,6 +190,7 @@ export function createFestival(ground: (x: number, z: number) => number = height
       mesh.matrixWorldAutoUpdate = false;
       mesh.receiveShadow = true;
       group.add(mesh);
+      reopen = closeRoad(inAlley);
     },
     near: (x, z) => {
       if (!mesh) return null;
