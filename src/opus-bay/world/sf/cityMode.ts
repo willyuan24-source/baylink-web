@@ -5,6 +5,8 @@
 // W7-P1 (lane P): the city's view field for the follow camera rides with this chunk (it registers itself with
 // actors/citySlots.ts, before the city terrain exists; district mode answers the hero rule without it)
 import '../../actors/viewField';
+// (W9-P) the city-only figures of world/life.ts (the ferry's sun deck, the city gull) fill its slot at load
+import './cityFigures';
 export { CityStreamer, cityStreamer } from './stream';
 export { CitySites } from './sites';
 export { CityWater } from './water';

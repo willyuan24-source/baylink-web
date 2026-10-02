@@ -101,7 +101,8 @@ test('W7-X1 · the city\'s day sky: a bluer zenith and cloud puffs by day and (l
 });
 
 test('W7-X1 · the city gull: white body, grey bent wings with black tips, every wing part flaps; the district keeps its gull', async () => {
-  const { cityGullGeometry } = await import('../src/opus-bay/world/life');
+  // (W9-P) the city gull rides with the city chunk (world/sf/cityFigures.ts) since GameRoot's wave-9 move
+  const { cityGullGeometry } = await import('../src/opus-bay/world/sf/cityFigures');
   const g = cityGullGeometry();
   const tris = (g.index ? g.index.count : g.getAttribute('position').count) / 3;
   assert.ok(tris <= 260, `city gull ${tris} ≤ 260 triangles`);
