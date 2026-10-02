@@ -26,6 +26,12 @@ export default defineConfig({
           if (/node_modules[\\/](three[\\/]build|@react-three[\\/]fiber|react-reconciler|its-fine|suspend-react|react-use-measure)[\\/]/.test(id)) {
             return 'three-vendor'
           }
+          // W9-E-review (E-RC-2): BufferGeometryUtils keeps the small chunk it had while LittleBayScene shared it with the
+          // game (build-c: 4.8 KB raw / 1.5 KB gzip); with /play gone Rollup folded it into GameRoot (+1.25 KB gzip there,
+          // over W9-Z's 258.5 KB guard). Same first-load bytes either way: GameRoot imports it statically.
+          if (/node_modules[\\/]three[\\/]examples[\\/]jsm[\\/]utils[\\/]BufferGeometryUtils/.test(id)) {
+            return 'BufferGeometryUtils'
+          }
         },
       },
     },

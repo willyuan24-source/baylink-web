@@ -106,7 +106,29 @@ test('W9-E-switch: three.js + react-three-fiber keep their own chunk (once share
   const chunk = config.build.rollupOptions.output.manualChunks;
   for (const id of ['C:/x/node_modules/three/build/three.module.js', '/x/node_modules/three/build/three.core.js', '/x/node_modules/@react-three/fiber/dist/react-three-fiber.esm.js',
     '/x/node_modules/@react-three/fiber/dist/events-abc.esm.js', '/x/node_modules/react-reconciler/cjs/react-reconciler.production.min.js', '/x/node_modules/its-fine/dist/index.js', '/x/node_modules/suspend-react/dist/index.js']) assert.equal(chunk(id), 'three-vendor', id);
-  for (const id of ['/x/node_modules/three/examples/jsm/utils/BufferGeometryUtils.js', '/x/src/opus-bay/game/GameRoot.tsx', '/x/src/App.tsx', '/x/node_modules/zustand/esm/vanilla.mjs', '/x/node_modules/maplibre-gl/dist/maplibre-gl.js']) assert.equal(chunk(id), undefined, id);
+  // (W9-E-review, E-RC-2) BufferGeometryUtils was pinned to no chunk here; it has its own again (as before the switch): with
+  // no chunk rule Rollup folded it into GameRoot, +1.25 KB gzip over W9-Z's 258.5 KB guard
+  assert.equal(chunk('/x/node_modules/three/examples/jsm/utils/BufferGeometryUtils.js'), 'BufferGeometryUtils');
+  assert.equal(chunk('C:\\x\\node_modules\\three\\examples\\jsm\\utils\\BufferGeometryUtils.js'), 'BufferGeometryUtils');
+  for (const id of ['/x/src/opus-bay/game/GameRoot.tsx', '/x/src/App.tsx', '/x/node_modules/zustand/esm/vanilla.mjs', '/x/node_modules/maplibre-gl/dist/maplibre-gl.js']) assert.equal(chunk(id), undefined, id);
   assert.equal(chunk('/x/node_modules/react-dom/client.js'), 'react-vendor');
   assert.equal(chunk('/x/node_modules/@react-three/fiber/node_modules/scheduler/index.js'), 'react-vendor', 'as before: the nested scheduler goes with React');
+});
+
+test('W9-E-review (E-RC-3): the homepage card and the sidebar enter the game with a full page load, never client-side', async () => {
+  // a client-side entry left the game's store (phase 'playing') and its window / document listeners behind after Back, and
+  // the next entry remounted straight into the paused world: no title, no Start, the sound never unlocked
+  const { fireEvent } = await import('@testing-library/react');
+  let where = '';
+  function Where() { where = useLocation().pathname; return null; }
+  const view = render(<MemoryRouter initialEntries={['/']}><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-10-02" /><SiteNavigation active="home" category="全部" homeActive user={null} notification={false} notificationCount={0} onCreate={() => {}} onAsk={() => {}} onAccount={() => {}} /><Where /></MemoryRouter>);
+  for (const href of ['/opus-bay?from=home', '/opus-bay?from=nav']) {
+    const a = view.container.querySelector(`a[href="${href}"]`);
+    assert.ok(a, href);
+    assert.equal(fireEvent.click(a!), true, `${href}: the browser's own navigation (not prevented)`);
+    assert.equal(where, '/', `${href}: the router did not move`);
+  }
+  // the other links stay client-side (the control: this test sees a router move)
+  fireEvent.click(view.container.querySelector('a[href="/calendar"]')!);
+  assert.equal(where, '/calendar');
 });
