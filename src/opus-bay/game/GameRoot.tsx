@@ -5,15 +5,16 @@ import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
 import { loadCity } from '../world/cityLoader';
 import { initQualityPolicy, nextWarmState } from '../world/quality';
-import { stopWarmup, warmPrograms } from '../world/warmup';
+import { PRE_MAX_MS, prewarmPrograms, stopWarmup, warmPrograms } from '../world/warmup';
 import { Actors } from '../actors/Actors';
 import { CameraRig } from '../actors/CameraRig';
 import { Systems } from './Systems';
 import { Overlay } from '../ui/Overlay';
 import { loadPlayParts, usePlayParts } from '../ui/playLayer';
-import { markFirstFrame } from './firstFrame';
+import { firstFrameDrawn, markFirstFrame } from './firstFrame';
 import { importRetry } from './importRetry';
 import { initChunkLostCard } from './chunkLost';
+import { setWarmReady } from './warmReady';
 
 const DPR: Record<string, number> = { high: 1.5, mid: 1.25, low: 1 };
 /** Camera far plane: the district fits in 1600 u; the whole city (Twin Peaks → Ferry Building + boards) needs 3000. */
@@ -61,6 +62,10 @@ function Game({ startRequested }: { startRequested: boolean }) {
   const [drawn, setDrawn] = useState(false);
   // …and for the play layer's parts (W6-P1): in long before the first frame in practice; a failed fetch retries
   const partsIn = usePlayParts() !== null;
+  // (W9-P1, the review's R§5 #4) city mode: no frame until every program the first frame needs has linked (Warmup), so
+  // the title never freezes on a synchronous link; the title's Start waits for that frame (game/warmReady.ts)
+  const [framesOn, setFramesOn] = useState(() => game.get().worldMode !== 'city' || firstFrameDrawn());
+  useEffect(() => { if (drawn && partsIn) setWarmReady(); }, [drawn, partsIn]);
   useEffect(() => {
     if (partsIn) return;
     const id = window.setInterval(() => { loadPlayParts().catch(() => { /* next tick */ }); }, 2000);
@@ -81,6 +86,7 @@ function Game({ startRequested }: { startRequested: boolean }) {
     <div className={`ob-root ob-phase-${phase}`}>
       <Canvas
         className="ob-canvas"
+        frameloop={framesOn ? 'always' : 'never'}
         shadows={quality !== 'low' ? 'percentage' : false}
         dpr={[1, DPR[quality] ?? 1.25]}
         gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
@@ -91,7 +97,7 @@ function Game({ startRequested }: { startRequested: boolean }) {
         <Suspense fallback={null}>
           <WorldScene />
           <FirstFrame onDrawn={setDrawn} />
-          <Warmup />
+          <Warmup onPre={setFramesOn} />
           <Actors />
           <CameraRig />
           <Systems />
@@ -113,9 +119,11 @@ function FirstFrame({ onDrawn }: { onDrawn: (v: boolean) => void }) {
 /**
  * Compiles the streamed city's shader variants once the world has mounted (world/warmup.ts) — in both world
  * modes, so the first city cell never stalls — and again after a quality / motion change (the render path
- * is part of each program's key). Exposes the result on window.__opusBay.warmup in DEV.
+ * is part of each program's key). Exposes the result on window.__opusBay.warmup in DEV. (W9-P1) City mode before the page's
+ * first frame: the pre-first-frame pass (prewarmPrograms + the post pass's programs, at most PRE_MAX_MS), then
+ * `onPre(true)` turns the frame loop on.
  */
-function Warmup() {
+function Warmup({ onPre }: { onPre: (on: boolean) => void }) {
   const gl = useThree(s => s.gl);
   const scene = useThree(s => s.scene);
   const camera = useThree(s => s.camera);
@@ -123,17 +131,25 @@ function Warmup() {
   const quality = useGame(s => s.settings.quality);
   useEffect(() => {
     let gone = false;
-    // after the world's own effects (fog, tone mapping, shadow map) and the first frames
+    const first = game.get().worldMode === 'city' && !firstFrameDrawn();
+    // after the world's own effects (fog, tone mapping, shadow map) — and, from the second warm-up on, the first frames
     const id = window.setTimeout(() => {
-      void warmPrograms(gl, scene, camera, { offscreen, next: nextWarmState(quality) }).then(r => {
-        if (gone || !import.meta.env.DEV) return;
+      const st = { offscreen, next: nextWarmState(quality) };
+      const run = first
+        ? Promise.race([
+          Promise.all([prewarmPrograms(gl, scene, camera, st), offscreen && importRetry(() => import('../world/post')).then(m => m.warmPost(gl), () => null)]).then(([r]) => r),
+          new Promise<null>(r => window.setTimeout(() => r(null), PRE_MAX_MS)),
+        ])
+        : warmPrograms(gl, scene, camera, st);
+      void run.then(r => {
+        if (gone || !r || !import.meta.env.DEV) return;
         const w = window as unknown as { __opusBay?: Record<string, unknown> };
-        w.__opusBay = { ...(w.__opusBay ?? {}), warmup: r };
-        console.debug(`[opus-bay warmup] ${r.before} → ${r.after} programs in ${r.ms.toFixed(0)} ms`);
-      }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay warmup]', error); });
-    }, 250);
+        w.__opusBay = { ...(w.__opusBay ?? {}), warmup: { ...r, pre: !!first } };
+        console.debug(`[opus-bay warmup${first ? ' pre' : ''}] ${r.before} → ${r.after} programs in ${r.ms.toFixed(0)} ms`);
+      }).catch(error => { if (import.meta.env.DEV) console.warn('[opus-bay warmup]', error); }).finally(() => { if (!gone && first) onPre(true); });
+    }, first ? 0 : 250);
     // the background passes of this warm-up stop with it (a new level warms up again; an unmount frees the renderer)
     return () => { gone = true; window.clearTimeout(id); stopWarmup(gl); };
-  }, [gl, scene, camera, offscreen, quality]);
+  }, [gl, scene, camera, offscreen, quality, onPre]);
   return null;
 }

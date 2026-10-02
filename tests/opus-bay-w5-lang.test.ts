@@ -152,6 +152,8 @@ test('lang: the pills — on the title before Start and in Settings, the current
   const { game, initialGameState } = await import('../src/opus-bay/core/store');
   const { TitleScreen } = await import('../src/opus-bay/ui/TitleScreen');
   const { SettingsPanel } = await import('../src/opus-bay/ui/Settings');
+  // (W9-P1) the world is warm: Start reads 开始 / Start (before that it reads 准备中…: tests/opus-bay-w9-p.test.ts)
+  (await import('../src/opus-bay/game/warmReady')).setWarmReady();
   const radios = (root: ParentNode) => [...root.querySelectorAll<HTMLButtonElement>('.ob-lang-pills [role="radio"]')].map(b => [b.lang, b.getAttribute('aria-checked'), b.textContent]);
   const expect = (locale: string) => GAME_LANGS.map(o => [o.value, String(o.value === locale), o.label]);
   try {

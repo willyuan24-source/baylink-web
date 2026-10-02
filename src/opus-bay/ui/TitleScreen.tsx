@@ -12,6 +12,8 @@ import { useT } from '../i18n';
 import { BaybayFace, Keycap } from './common';
 import { useDevice, useImageState } from './hooks';
 import { LangPills } from './LangPills';
+import { useGlSupport, useWarmReady } from '../game/warmReady';
+import { TitleGlNote } from './TitleGl';
 import { SILENT_HINT, isIOS } from './shareFile';
 
 const typing = (el: HTMLElement | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
@@ -39,7 +41,12 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   // lane G1 (G1-10): a saved city spot (data/save.ts only: the title chunk stays small). W5-N6 (plan MF6): then the
   // primary 继续旅程 resumes there (Enter too); the secondary starts over at the Ferry Building (progress kept)
   const resume = city ? resumeSpot('city') : null;
-  const primary = useMemo(() => (resume ? () => { requestResume(); onStart(); } : onStart), [resume, onStart]);
+  // (W9-P1, lane P) city mode: Start waits until the world's programs are linked and its first frame is drawn
+  // (game/warmReady.ts): 准备中… with aria-disabled + aria-busy, a press does nothing yet; no WebGL: no Start at all
+  const gl = useGlSupport();
+  const warm = useWarmReady();
+  const preparing = (city && !warm) || gl === 'none';
+  const primary = useMemo(() => (preparing ? () => {} : resume ? () => { requestResume(); onStart(); } : onStart), [preparing, resume, onStart]);
   // lang-review: the pills stay under the pointer through a language switch (usePillsInPlace)
   const cardRef = useRef<HTMLDivElement>(null);
   const clickedAtRef = useRef<number | null>(null);
@@ -94,20 +101,21 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         </div>
         {/* the language before Start (简体 · 繁體 · English): a tap switches the title at once, saved for the site */}
         <LangPills onSwitch={beforeSwitch} />
-        <div className="ob-title-actions">
-          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || undefined}>
-            <span>{returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
-            {waiting ? <span className="ob-boot-dot" style={{ background: 'currentColor' }} aria-hidden /> : device === 'touch' ? <ArrowRight size={20} aria-hidden /> : <Keycap className="on-dark">Enter</Keycap>}
+        {gl === 'none' ? <TitleGlNote kind="none" /> : <div className="ob-title-actions">
+          <button ref={startRef} type="button" className="ob-btn ob-btn-primary ob-btn-xl ob-title-start" onClick={primary} aria-busy={waiting || preparing || undefined} aria-disabled={preparing || undefined} style={preparing ? { opacity: 0.72, cursor: 'progress' } : undefined}>
+            <span>{preparing ? t('准备中…', 'Getting ready…') : returning || resume ? t('继续旅程', 'Continue') : t('开始', 'Start')}</span>
+            {waiting || preparing ? <span className="ob-boot-dot" style={{ background: 'currentColor' }} aria-hidden /> : device === 'touch' ? <ArrowRight size={20} aria-hidden /> : <Keycap className="on-dark">Enter</Keycap>}
           </button>
           {resume && (
-            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={onStart}>
+            <button type="button" className="ob-btn ob-btn-ghost ob-btn-xl ob-title-resume" onClick={preparing ? undefined : onStart} aria-disabled={preparing || undefined}>
               <MapPin size={18} aria-hidden /><span>{t('从头开始 · 渡轮大厦', 'Start over · Ferry Building')}</span>
             </button>
           )}
           <button type="button" className="ob-icon-btn ob-title-sound" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? t('关闭声音', 'Mute sound') : t('打开声音', 'Turn sound on')} title={sound ? t('声音：开', 'Sound: on') : t('声音：关', 'Sound: off')}>
             {sound ? <Volume2 size={22} aria-hidden /> : <VolumeX size={22} aria-hidden />}
           </button>
-        </div>
+        </div>}
+        {gl === 'software' && <TitleGlNote kind="software" />}
         {silentHint && sound && <p className="ob-title-silent" role="status">{t(SILENT_HINT)}</p>}
         <a className="ob-title-link" href={guidesUrl(locale)}>
           <BookOpen size={16} aria-hidden />{t('不玩了，直接看攻略', 'Skip the game — read the guides')}<ArrowRight size={15} aria-hidden />

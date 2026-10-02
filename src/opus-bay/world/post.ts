@@ -173,6 +173,20 @@ export class PostFX {
     this.pass(gl, this.material, null);
   }
 
+  /** The three passes' programs, each compiled in its render state (bright / blur into a target, the last to the screen). */
+  compile(gl: THREE.WebGLRenderer): Promise<unknown> {
+    const prev = gl.getRenderTarget();
+    const jobs: Promise<unknown>[] = [];
+    for (const [m, t] of [[this.bright, this.bloomA], [this.blur, this.bloomB], [this.material, null]] as const) {
+      this.quad.material = m;
+      gl.setRenderTarget(t);
+      jobs.push(gl.compileAsync(this.scene, this.camera));
+    }
+    gl.setRenderTarget(prev);
+    this.quad.material = this.material;
+    return Promise.all(jobs);
+  }
+
   dispose() {
     this.rt.dispose();
     this.bloomA.dispose();
@@ -182,4 +196,14 @@ export class PostFX {
     this.blur.dispose();
     this.quad.geometry.dispose();
   }
+}
+
+let spare: PostFX | null = null;
+/**
+ * W9-P1 · the post pass's programs linked before the world's first frame (GameRoot's Warmup, with world/warmup.ts
+ * prewarmPrograms): a PostFX of its own, kept for the page (its materials hold the three programs; WorldScene's PostFX
+ * takes the same programs by key), compiled pass by pass in each pass's render state.
+ */
+export function warmPost(gl: THREE.WebGLRenderer): Promise<unknown> {
+  return (spare ??= new PostFX()).compile(gl);
 }

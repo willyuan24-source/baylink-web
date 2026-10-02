@@ -10,6 +10,13 @@ import { TitleScreen } from './ui/TitleScreen';
 import { entrySource } from './ui/entrySource';
 import './opus-bay.css';
 import { isLoadFailure } from './game/importRetry';
+import { glSupport, probeGl, setGlSupport, useGlSupport } from './game/warmReady';
+
+/** (W9-P2, lane P) the WebGL probe once per page, before the game chunk mounts (game/warmReady.ts): false = no WebGL 2. */
+function glOk(): boolean {
+  if (glSupport() === null) { try { setGlSupport(probeGl().support); } catch { setGlSupport('ok'); } }
+  return glSupport() !== 'none';
+}
 
 // The game chunk (three, R3F, the world, actors, UI) — requested once the title has painted.
 // (W8-P-review, P-RC-1) a bare import, never importRetry: in the production build ~150 lazy chunks import their shared
@@ -52,7 +59,9 @@ function initPersistenceOnce() {
 export default function OpusBayPage() {
   const phase = useGame(s => s.phase);
   const [direct] = useState(() => { try { return !!readQa().start || new URLSearchParams(location.search).has('solo'); } catch { return false; } });
-  const [load, setLoad] = useState(direct);
+  // (W9-P2) no WebGL 2: the game never mounts (its canvas threw into the site's error page); the title stays with a note
+  const [load, setLoad] = useState(() => direct && glOk());
+  const noGl = useGlSupport() === 'none';
   const [wantStart, setWantStart] = useState(false);
 
   // (W9-E) where this visit came from (?from=home|nav|play|photo|…): read and taken off the address bar as the page
@@ -72,8 +81,9 @@ export default function OpusBayPage() {
     const w = window as IdleWindow;
     let idle = 0, timer = 0;
     const raf = requestAnimationFrame(() => {
-      if (w.requestIdleCallback) idle = w.requestIdleCallback(() => setLoad(true), { timeout: 1200 });
-      else timer = window.setTimeout(() => setLoad(true), 300);
+      const go = () => { if (glOk()) setLoad(true); };
+      if (w.requestIdleCallback) idle = w.requestIdleCallback(go, { timeout: 1200 });
+      else timer = window.setTimeout(go, 300);
     });
     return () => { cancelAnimationFrame(raf); if (idle) w.cancelIdleCallback?.(idle); window.clearTimeout(timer); };
   }, [load]);
@@ -81,7 +91,7 @@ export default function OpusBayPage() {
   // (W7-Q1) inside the tap (Start, 继续旅程, 从头开始, Enter): on WebKit the audio must start in the gesture itself — the
   // game's 'start' comes seconds later, after the first frame (audio/unlock.ts)
   const start = useCallback(() => { primeAudio({ starting: true }); setLoad(true); setWantStart(true); }, []);
-  const showTitle = !direct && phase === 'title';
+  const showTitle = (!direct || noGl) && phase === 'title';
   return (
     <main className="ob-page">
       <PageMeta />

@@ -561,6 +561,8 @@ test('W5-N6 the title: with a saved city spot 继续旅程 resumes (primary) and
   const { createElement: h } = await import('react');
   const { renderToStaticMarkup } = await import('react-dom/server');
   const { TitleScreen } = await import('../src/opus-bay/ui/TitleScreen');
+  // (W9-P1) the world is warm: Start reads 开始 / 继续旅程 (before that 准备中…: tests/opus-bay-w9-p.test.ts)
+  (await import('../src/opus-bay/game/warmReady')).setWarmReady();
   const render = () => renderToStaticMarkup(h(TitleScreen, { onStart: () => undefined }));
   try {
     save.clearSave();

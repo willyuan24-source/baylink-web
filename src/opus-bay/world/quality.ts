@@ -1,6 +1,7 @@
 import { game, type Quality } from '../core/store';
 import { readProgress, setSessionSettings } from '../data/wishlist';
 import { readQa } from '../game/qa';
+import { glSupport } from '../game/warmReady';
 
 /**
  * Quality policy (wave 3, P4 / CS-7). On the owner's machine the phone profile ran 30–45 fps on `high` and never stepped
@@ -31,11 +32,14 @@ export interface StartQualityInput {
   coarse: boolean;
   /** window.devicePixelRatio */
   dpr: number;
+  /** (W9-P2) the WebGL probe found only a software rasteriser (game/warmReady.ts): low for the visit (only a ?quality= link wins) */
+  software?: boolean;
 }
 
 /** The quality a visit starts at, and why (pure). */
 export function startQuality(i: StartQualityInput): { quality: Quality; reason: QualityReason } {
   if (i.url) return { quality: i.url, reason: 'url' };
+  if (i.software) return { quality: 'low', reason: 'device' };
   if (i.choice) return { quality: i.choice, reason: 'choice' };
   if (i.saved && i.saved !== 'high') return { quality: i.saved, reason: 'saved' };
   if (i.coarse || i.dpr >= 2) return { quality: 'mid', reason: 'device' };
@@ -110,7 +114,7 @@ export function initQualityPolicy(): void {
   started = true;
   const url = readQa().quality ?? null;
   const d = deviceInfo();
-  decided = startQuality({ url, choice: readChoice(), saved: readProgress()?.settings.quality ?? null, coarse: d.coarse, dpr: d.dpr });
+  decided = startQuality({ url, choice: readChoice(), saved: readProgress()?.settings.quality ?? null, coarse: d.coarse, dpr: d.dpr, software: glSupport() === 'software' });
   // ?quality= is applied by the page (locked, session-only); the rest here, for this visit only
   if (decided.reason !== 'url' && game.get().settings.quality !== decided.quality) applyLevel(decided.quality);
   if (url) return; // a QA link never records a choice

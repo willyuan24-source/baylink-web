@@ -35,13 +35,24 @@ const TEXT = {
   en: { title: 'The picture needs a reload', body: 'Your phone took back the game’s graphics memory. Your progress is saved.', reload: 'Reload' },
   hant: { title: '畫面需要重新載入', body: '手機把遊戲的圖形記憶體收回了。進度已經儲存好。', reload: '重新載入' },
 };
+/** (W9-P2, the review's R§6 language row: a desktop read 「手机…」) the body on a computer (no touch-first pointer) */
+const DESK_BODY = {
+  zh: '浏览器暂停了游戏的 3D 画面（显卡忙或驱动重置了）。进度已经保存好。',
+  en: 'The browser paused the game’s 3D graphics (the graphics card was busy or its driver restarted). Your progress is saved.',
+  hant: '瀏覽器暫停了遊戲的 3D 畫面（顯示卡忙碌或驅動程式重新啟動了）。進度已經儲存好。',
+};
+/** A touch-first device (a phone or a tablet without a mouse): the phone's words. */
+export const touchFirst = (win: { matchMedia?: (q: string) => { matches: boolean } } | null = typeof window !== 'undefined' ? window : null): boolean => {
+  try { return !!win?.matchMedia?.('(pointer: coarse)').matches && !win.matchMedia('(any-pointer: fine)').matches; } catch { return false; }
+};
 
 let card: HTMLElement | null = null;
 
 function showCard(doc: Document) {
   if (card || !doc?.createElement) return;
   const locale = getLocale();
-  const tx = locale === 'en' ? TEXT.en : locale === 'zh-Hant' ? TEXT.hant : TEXT.zh;
+  const key = locale === 'en' ? 'en' : locale === 'zh-Hant' ? 'hant' : 'zh';
+  const tx = touchFirst() ? TEXT[key] : { ...TEXT[key], body: DESK_BODY[key] };
   const el = doc.createElement('div');
   el.className = 'ob-gl-lost';
   el.setAttribute('role', 'alertdialog');
