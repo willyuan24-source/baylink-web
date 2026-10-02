@@ -224,3 +224,40 @@ Nothing of the first agent's work was discarded.
    tour, wait 6 s), and the farmers market's 带我去 (the event card → 带我去 → the stalls, the card again).
 3. **Lane X**: the two lines in `C:/Users/willy/opus-qa/w9/new-lines.md` from lane N (w9-n-stuck, w9-n-tour-resume)
    — no further lines from N after 01:45.
+
+## Review (Ultra)
+
+### 给主人的摘要
+- 两个评审镜头（代码 / 真人试玩）共报 12 条：4 条重要、8 条次要。时间只够修重要的一部分，06:06 开工、06:45 截止。
+- 修了：N 线在 La Playa 一直写「车 9 秒后到」—— 现在实时时间 15 秒不动就改写「车快到了」（横幅那行属 T 组，仍写约 9 秒）；同一段路右上角写 12 秒、路标写 16 秒 —— 现在两处共用一个时间；一日游章节卡补领明信片时，集齐全部明信片的目标也会完成。
+- 没修：金门大桥观光巴士刚开始等车时先报「3 分钟」，5 秒后变 8 秒（毛病在巴士的实时到站时间，不归本组）；一日游「加到想去」的 10 个地方都不在 BAYLINK 目录里；地图卡上同一段路写「约 1 分钟」和「约 85 秒」；跳过一站后续游卡章节号不对；等车提示在手机上换成三行。
+- 这些修复的代码提交 c81dcf27 **没有推送**：机器满载，全量测试在 06:45 截止前没跑完（跑到 698 条时有 1 条与本组无关的镜头测试报错），按规则不能推。它留在本地分支 w9-n-rev 上，总负责人跑完测试后可以 cherry-pick。
+
+### Verdicts (fixer, 06:06–06:45 PDT, tree origin/opus-bay e9c3c35c; the fixes are commit c81dcf27 on the LOCAL branch w9-n-rev of C:/Users/willy/baylink-opus, NOT pushed — see Checks)
+
+| id | sev | verdict | evidence |
+|---|---|---|---|
+| N-RC-1 | major | fixed (pill) | Confirmed by the lane's own not_done and tour3/log.jsonl (n-ride-9th-irving, STUCK ×5, arrival at age 314 s). Fix: guideCity `trackWait` / `shownWait` — a live wait ≤ 30 s that has not fallen for 15 s makes the pill say 车快到了 / "Train due soon" (guideText `waitRideLabel(…, soon)`). Test tests/opus-bay-w9-n-review.test.ts (red before: no stall rule). The ride banner (lane T) still says 约 9 秒; the root cause stays in world/lightRail.ts eta(). |
+| N-RC-2 | major | confirmed-not-fixed | Code: cityTour chapterWish saves `at.placeId ?? at.id`; attractions.ts carries no plannerPlaceId, and none of the 10 ids is in planner-catalog.json (lens's node check). Needs a catalog id per tour attraction (data job) or a bilingual title in WishItem (core/types, frozen shape). Only the English toast plural fixed ("Saved · 1 place"). |
+| N-RC-3 | minor | confirmed-not-fixed | tripRows.ts walkGoTime (5-s steps 60–119 s) vs tripSecondsLabel in the card header / aria / pill: 约 85 秒 next to 约 1 分钟. |
+| N-RC-4 | minor | confirmed-not-fixed | tripRun.ts showCard onGrant sets shown = true before the deferred dialogue opens; watchCards releases any shown entry whose dialogue is not open. Code path only. |
+| N-RC-5 | minor | confirmed-not-fixed | cityTour.ts: completed.push only on arrival (line 216), a skip only r.i++ (188 / 326); tourResumeChoice / begin() use the first not-completed stop. |
+| N-RC-6 | minor | fixed | claimChapterPostcards now emits 'stamp' and calls completeGoal('postcards') when the claim completes the set (collectPostcard's tail). Not covered by a new unit test (the tour harness test runs > 80 s under tonight's load). |
+| N-RP-1 | major | confirmed-not-fixed | n-rp/b-phone3/log.jsonl: t 88.1 pill 车 3 分钟后到 + banner 约 3 分钟 → t 93.4 both 8 秒 → t 104.1 上车啦. Pill and banner agree (one source works); the number is the sightseeing loop's live ETA right after the resume, lane T's rideStatus — not lane N's file. |
+| N-RP-2 | major | fixed | One smoothed value for the pill, the card and the last leg's waypoint (`tripEtaShown` → slot 'trip'); the key carries the pace (carried / walking), so a takeover re-bases the time instead of holding the carried low. Test in tests/opus-bay-w9-n-review.test.ts. |
+| N-RP-3 | minor | refuted (not reproduced) | 1 of 2 lens runs; the fixer had no time for a phone replay. The lens's shot e-market-again/1-arrived.jpg stands for a wave-10 re-check. |
+| N-RP-4 | minor | refuted (not reproduced) | Not re-shot by the fixer (time); the three-line wait pill on 390×844 is in b-phone3/06-tour-010.jpg for a re-check. |
+| N-RP-5 | minor | confirmed-not-fixed | b-phone3/log.jsonl t 82.4: pill 去车站 金门大桥 1/2 约 3 分钟, t 88.1 already at the stop: the short-leg delivery veils at once with a quote that said 3 min. |
+| N-RP-6 | minor | refuted (not reproduced) | Not replayed by the fixer; the reopened sheet without an arrived state is a design gap to re-check (d-market-phone/1-arrived.jpg). |
+
+### Own pass
+- No softlock, district or perf change found in the W9-N commits in the time; the review's La Playa case is only half gone (the banner).
+
+### Open items
+- world/lightRail.ts frozen ETA at Judah & La Playa (banner still 约 9 秒); the sightseeing loop's first live ETA after a resume (N-RP-1); N-RC-2 catalog ids; N-RC-3/4/5; N-RP-3..6.
+
+### Checks
+- On c81dcf27: tsc 0; eslint of the touched files 0; tests/opus-bay-w9-n-review.test.ts 2/2. The whole opus-bay suite (started 06:34) had reached 698 pass / 1 fail by 06:42 — the fail is 'E2-5 view field in the city' in tests/opus-bay-sf-move2.test.ts (not a file this fix touches; not re-run alone in the time) — and had not finished; whole-repo eslint was not run. So the code was NOT pushed (the push rule needs fail 0): cherry-pick c81dcf27 (branch w9-n-rev) after a suite run.
+
+### Blocking the go-live
+- Nothing new from lane N blocks the go-live; the La Playa pill (N-RC-1) and the 12-vs-16 s pill / waypoint (N-RP-2) stay as reviewed on origin until c81dcf27 lands. The 'E2-5 view field in the city' fail seen under load should be re-run alone on the go-live tree.
