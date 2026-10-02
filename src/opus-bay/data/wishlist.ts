@@ -1,6 +1,7 @@
 import { emit } from '../core/events';
 import { DEFAULT_TOUR_ID, game, tourIdOf, type GameState } from '../core/store';
 import type { WishItem } from '../core/types';
+import { noteWriteFailure, storageBlocked } from './save';
 
 /**
  * Local-only persistence: the "想去" wishlist and game progress. Everything is wrapped so a blocked,
@@ -25,7 +26,10 @@ function readJson<T>(key: string): T | null {
   try { const raw = storage()?.getItem(key); return raw ? JSON.parse(raw) as T : null; } catch { return null; }
 }
 function writeJson(key: string, value: unknown) {
-  try { storage()?.setItem(key, JSON.stringify(value)); } catch { /* quota / blocked: ignore */ }
+  // W9-A (lane A, surgical): a blocked / full storage is told once (data/save.ts onWriteFailure → the play layer's notice)
+  const s = storage();
+  if (!s) { if (storageOverride === undefined && storageBlocked()) noteWriteFailure(); return; }
+  try { s.setItem(key, JSON.stringify(value)); } catch { noteWriteFailure(); /* quota / blocked: keep playing */ }
 }
 
 const KINDS = new Set<WishItem['kind']>(['place', 'event', 'poi', 'guide']);

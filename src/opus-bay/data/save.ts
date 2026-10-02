@@ -218,6 +218,28 @@ function storage(): Storage | null {
   try { return hasWindow() ? window.localStorage : null; } catch { return null; }
 }
 
+// W9-A (lane A: the one hook in this frozen file; review R§6 技术 "存储被拦截时静默丢档") — a refused write is told once
+let writeFailed = false;
+const failListeners = new Set<() => void>();
+/**
+ * A save could not be written this visit (storage blocked by the browser, or full): `fn` runs once — at once when that
+ * already happened (the play layer's notice 这次的进度无法保存). ?save=off never fails. Returns the unregister.
+ */
+export function onWriteFailure(fn: () => void): () => void {
+  if (writeFailed) { fn(); return () => {}; }
+  failListeners.add(fn);
+  return () => { failListeners.delete(fn); };
+}
+/** A write was refused (here and data/wishlist.ts): the listeners hear it once. */
+export function noteWriteFailure() {
+  if (writeFailed || savesOff()) return;
+  writeFailed = true;
+  for (const fn of [...failListeners]) { try { fn(); } catch { /* the listener's own error */ } }
+  failListeners.clear();
+}
+/** The page's storage getter throws or is null (blocked), unlike a stub window without one (node tests). */
+export const storageBlocked = (): boolean => { try { return hasWindow() && window.localStorage === null; } catch { return true; } };
+
 /** The validated save or null. Read once, then served from memory (patchSave keeps it current). */
 export function readSave(): SaveV2 | null {
   if (cache !== undefined) return cache;
@@ -231,7 +253,7 @@ export function readSave(): SaveV2 | null {
 export function flushSave() {
   if (timer) { clearTimeout(timer); timer = null; }
   if (!cache || savesOff()) return;
-  try { storage()?.setItem(SAVE_KEY, encodeSave({ ...cache, savedAt: Date.now() })); } catch { /* quota / private mode: keep playing */ }
+  try { storage()?.setItem(SAVE_KEY, encodeSave({ ...cache, savedAt: Date.now() })); } catch { noteWriteFailure(); /* quota / private mode: keep playing */ }
 }
 
 /** Change the save in memory (`fn` edits a shallow copy); written after 1 s of quiet. */
@@ -240,7 +262,8 @@ export function patchSave(fn: (s: SaveV2) => void) {
   fn(draft);
   cache = draft;
   // no storage (node tests with a stub window, blocked storage): memory only
-  if (savesOff() || !storage()) return;
+  if (savesOff()) return;
+  if (!storage()) { if (hasWindow() && storageBlocked()) noteWriteFailure(); return; }
   if (!flushHooked && typeof window.addEventListener === 'function') {
     flushHooked = true;
     window.addEventListener('pagehide', flushSave);
