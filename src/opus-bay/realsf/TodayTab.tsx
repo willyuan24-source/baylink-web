@@ -12,6 +12,7 @@ import { navigateTo, openEvent, openPanel } from '../game/flow';
 import { goTo, type GoToTarget } from '../game/goTo';
 import { runtime } from '../core/runtime';
 import { catalogText, useT } from '../i18n';
+import { publicText } from '../data/publicText';
 import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
@@ -285,7 +286,7 @@ export default function TodayTab() {
             const name = EVENT_SAY[w.event.id];
             const place = VENUE_SAY[w.venue.id] ?? w.venue.name;
             const on = live.has(w.event.id);
-            const cost = w.event.cost === 'free' ? t('免费', 'free') : w.event.costLabel ?? '';
+            const cost = w.event.cost === 'free' ? t('免费', 'free') : publicText(w.event.costLabel, locale); // W9-R5: no working notes
             return (
               <Row key={w.event.id} icon={<Music size={15} />} tone={on ? 'now' : 'later'}
                 title={<button type="button" className="ob-today-link" onClick={() => openEvent(w.event.id)}>{t(w.event.title, name ? cap(name.en) : w.event.title)}</button>}

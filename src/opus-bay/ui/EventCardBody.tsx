@@ -12,6 +12,7 @@ import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
 import { importRetry } from '../game/importRetry';
 import { addEventToCalendar } from '../realsf/addCal';
+import { publicLines, publicText } from '../data/publicText';
 
 /** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
 const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
@@ -41,6 +42,7 @@ export default function EventCardBody({ id }: { id?: string }) {
   const official = safeHref(event.officialUrl);
   // wave 5 (city mode): its San Francisco venue in the world (lane R's table): 带我去 through N's goTo
   const spot = next ? eventSpot(event) : null;
+  const plan = publicLines(event.plan, locale);
 
   return (
     <Sheet
@@ -60,7 +62,7 @@ export default function EventCardBody({ id }: { id?: string }) {
     >
       <div className="ob-event-when">
         <span className={`ob-chip ${next ? 'is-teal' : ''}`}>{showing?.tonight ? t('今晚', 'Tonight') : next ? formatDay(next, locale) : t('已结束', 'Ended')}</span>
-        {event.dateLabel && <span className="ob-event-datelabel">{event.dateLabel}</span>}
+        {event.dateLabel && <span className="ob-event-datelabel">{publicText(event.dateLabel, locale)}</span>}
         {spot && (
           <button type="button" className="ob-btn ob-btn-primary ob-btn-sm ob-event-go" onClick={() => { goToEvent(event); }} aria-label={t(`带我去${spot.name.zh}`, `Take me to ${spot.name.en}`)}>
             <Navigation size={15} aria-hidden /><span>{t('带我去', 'Take me there')}</span>
@@ -69,15 +71,16 @@ export default function EventCardBody({ id }: { id?: string }) {
       </div>
       <dl className="ob-facts">
         {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue ? catalogText(event.venue, locale) : null, event.city, region ? t(region) : null])}</dd></div>}
-        {(event.costLabel || event.cost) && <div><dt><Ticket size={15} aria-hidden />{t('费用', 'Cost')}</dt><dd>{event.costLabel ?? (event.cost === 'free' ? t('免费', 'Free') : event.cost)}</dd></div>}
+        {(event.costLabel || event.cost) && <div><dt><Ticket size={15} aria-hidden />{t('费用', 'Cost')}</dt><dd>{event.costLabel ? publicText(event.costLabel, locale) : (event.cost === 'free' ? t('免费', 'Free') : event.cost)}</dd></div>}
         {event.audience?.length ? <div><dt><Users size={15} aria-hidden />{t('适合', 'For')}</dt><dd>{event.audience.slice(0, 4).join(' · ')}</dd></div> : null}
       </dl>
-      {event.summary && <p className="ob-lede">{event.summary}</p>}
+      {event.summary && <p className="ob-lede">{publicText(event.summary, locale)}</p>}
       {spot && <Suspense fallback={null}><HowToGo point={{ x: spot.x, z: spot.z }} /></Suspense>}
-      {event.plan?.length ? (
+      {/* W9-R5 (review R§6): the editors' working notes never reach the card (data/publicText.ts) */}
+      {plan.length ? (
         <section className="ob-block">
           <h3 className="ob-h3">{t('出发前', 'Before you go')}</h3>
-          <ul className="ob-tips">{event.plan.map((line, i) => <li key={i}>{line}</li>)}</ul>
+          <ul className="ob-tips">{plan.map((line, i) => <li key={i}>{line}</li>)}</ul>
         </section>
       ) : null}
       <p className="ob-source">

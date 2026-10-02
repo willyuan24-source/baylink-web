@@ -1,5 +1,6 @@
 import type { CatalogEvent } from '../core/types';
 import { addDays } from '../data/catalog';
+import { publicText } from '../data/publicText';
 import { atMinute } from './todayRows';
 import { eventDayHours } from './freeWeek';
 import type { LiveOffer } from './live';
@@ -84,7 +85,7 @@ export function eventIcs(event: CatalogEvent, day: string, stamp?: number): stri
     location: [event.venue, event.city].filter(Boolean).join(', '),
     description: [
       '日期提醒 · 以官网为准 / Date reminder — check the official site before you go.',
-      event.costLabel ?? '',
+      publicText(event.costLabel), // W9-R5: no working notes
       event.officialUrl ? `官网 / Official: ${event.officialUrl}` : '',
       `BAYLINK: https://www.baylink.us/events/${encodeURIComponent(event.id)}`,
       event.verifiedAt ? `BAYLINK 核对日期 / checked: ${event.verifiedAt}` : '',

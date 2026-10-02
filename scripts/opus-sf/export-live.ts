@@ -16,6 +16,7 @@ import { dirname, resolve } from 'node:path';
 import type { FreebieOffer } from '../../src/components/FreebieBoard';
 import { currentFreebies } from '../../src/data/october-offers';
 import { loadLocale, translateText } from '../../src/i18n/locale';
+import { INTERNAL_EN_RE, INTERNAL_RE } from '../../src/opus-bay/data/publicText';
 
 const OUT = resolve('public/opus-bay/sf/v1/live.json');
 const RULES_CHECKED = '2026-09-28';
@@ -142,6 +143,11 @@ const rows = SPECS.map(s => {
   if (!/^https:\/\//.test(o.sourceUrl)) throw new Error(`offer ${s.id}: no https source`);
   if (o.availability === 'dated' && !(o.startDate && o.endDate)) throw new Error(`offer ${s.id}: dated without dates`);
   if (s.sourceEn && o.sourceUrl !== s.sourceEn.from) throw new Error(`offer ${s.id}: the site's source is now ${o.sourceUrl} — drop the sourceEn override`);
+  // (W9-R5, review R§6) an editor's working note never reaches the game: the site's editors fix the offer first
+  for (const [field, zh] of [['title', o.title], ['requirement', o.requirement]] as const) {
+    const en = translateText(zh, 'en');
+    if (INTERNAL_RE.test(zh) || INTERNAL_EN_RE.test(en)) throw new Error(`offer ${s.id}: its ${field} carries an editor's working note: ${zh} / ${en}`);
+  }
   return {
     id: s.id, kind: s.kind, free: s.free,
     title: bi(o.title), who: s.who, requirement: bi(o.requirement),
