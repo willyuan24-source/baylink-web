@@ -213,6 +213,31 @@ const LEAN_CAMS: readonly (readonly [number, number, number])[] = [[2.1, 5.2, 2.
 const lean = { on: false, k: 0, held: 0, shot: false, caption: '', camFrom: null as null | { p: THREE.Vector3; t: THREE.Vector3 }, camT: 0, ownShot: false };
 export const leanState = (): Readonly<typeof lean> => lean;
 
+/**
+ * (W9-C5, lane C surgical — review R§6 world row: the best side shot of the ride hid behind 「行驶中按住 L」, and pressing
+ * it at the stop did nothing) The lean shot comes on its own for AUTO_LEAN_S once per stretch between stops,
+ * AUTO_LEAN_AFTER_S after the car pulls away (the camera outside the car looking back along it; on the running board the
+ * rider leans out too) — no shutter (the photo stays the held lean's), not under reduced motion. A car standing still
+ * (below CAR_MOVING u/s) re-arms it and the button is disabled there.
+ */
+export const AUTO_LEAN_S = 3, AUTO_LEAN_AFTER_S = 2, CAR_MOVING = 0.5;
+/** the automatic lean's clock: seconds under way this stretch (−1 once it has shown), and the car moving last frame */
+const auto = { t: 0, moving: false };
+
+/** The cable car you ride is under way (not parked at a stop): the lean button's state. */
+export const carMoving = (): boolean => auto.moving;
+
+/** (W9-C5) step the automatic lean's clock: true while it shows. */
+function stepAutoLean(dt: number, speed: number, held: boolean, reduced: boolean): boolean {
+  const moving = speed >= CAR_MOVING;
+  if (moving !== auto.moving) { auto.moving = moving; changed(); }
+  if (!moving) { auto.t = 0; return false; }
+  if (held || reduced || auto.t < 0) { auto.t = -1; return false; }
+  auto.t += dt;
+  if (auto.t >= AUTO_LEAN_AFTER_S + AUTO_LEAN_S) auto.t = -1;
+  return auto.t >= AUTO_LEAN_AFTER_S;
+}
+
 /** On the running board of a cable car (lane F's rail spot on a railMirror platform)? */
 export function onRunningBoard(): boolean {
   if (!onCableCar() || game.get().move.spot !== 'rail') return false;
@@ -234,17 +259,22 @@ let playerBody: THREE.Object3D | null = null;
 
 /** The lean layer's frame (a scene system while the pad is up: after the actors placed the rider, before the render). */
 export function stepLean(dt: number, scene: THREE.Object3D | null, camera: THREE.Camera | null, aspect = 1.6) {
-  const want = lean.on && onRunningBoard();
-  if (lean.on && !want) { lean.on = false; changed(); }
-  lean.k = Math.max(0, Math.min(1, lean.k + (want ? dt : -dt) * LEAN_RATE));
+  const held = lean.on && onRunningBoard();
+  if (lean.on && !held) { lean.on = false; changed(); }
   const plat = platformRider.platform ? platforms.get(platformRider.platform) : undefined;
+  // (W9-C5) a held lean waits for the car to move (the button is disabled at the stop; L held there leans out as it
+  // pulls away); the automatic lean once a stretch; the body leans only on the running board
+  const speed = plat && plat.live ? Math.hypot(plat.vx, plat.vz) : 0;
+  const autoOn = stepAutoLean(dt, speed, held, game.get().settings.reducedMotion) && onCableCar();
+  const want = (held && speed >= CAR_MOVING) || autoOn;
+  lean.k = Math.max(0, Math.min(1, lean.k + (want ? dt : -dt) * LEAN_RATE));
   const feet = riderWorld();
   if (lean.k <= 0 || !plat || !feet) { releaseCamera(); return; }
   // the outward side: the running board the rider hangs on is the ride camera's side (lane F's railMirror); local +x is
   // the car's left, world (cos h, −sin h)
   const side = rideCamInfo.side, s = Math.sin(plat.heading), c = Math.cos(plat.heading);
   const ox = c * side, oz = -s * side;
-  if (scene) {
+  if (scene && onRunningBoard()) {
     if (!playerBody?.parent) playerBody = scene.getObjectByName('opus-player') ?? null;
     if (playerBody) {
       axis.set(oz, 0, -ox).normalize();
@@ -270,8 +300,9 @@ export function stepLean(dt: number, scene: THREE.Object3D | null, camera: THREE
     tgtP.copy(lean.camFrom?.t ?? tgtTo).lerp(tgtTo, k);
     runtime.camera.shot = { position: [camP.x, camP.y, camP.z], target: [tgtP.x, tgtP.y, tgtP.z], duration: 0.001 };
     lean.ownShot = true;
-    lean.held += dt;
-    if (!lean.shot && lean.held >= LEAN_SHUTTER_S && lean.k >= 0.95) {
+    const holding = held && speed >= CAR_MOVING;
+    if (holding) lean.held += dt;
+    if (holding && !lean.shot && lean.held >= LEAN_SHUTTER_S && lean.k >= 0.95) {
       lean.shot = true;
       requestShutter(lean.caption || BELL_NAME.zh, 'BAYLINK');
       bubble(BELL_LINES.lean, 2600);
@@ -315,4 +346,4 @@ export function mountBellPad(): () => void {
 }
 
 /** tests */
-export function __resetBell() { cancelRiff(); stopRiff(); riffs = 0; Object.assign(lean, { on: false, k: 0, held: 0, shot: false, caption: '', camFrom: null, camT: 0, ownShot: false }); playerBody = null; }
+export function __resetBell() { cancelRiff(); stopRiff(); riffs = 0; Object.assign(lean, { on: false, k: 0, held: 0, shot: false, caption: '', camFrom: null, camT: 0, ownShot: false }); Object.assign(auto, { t: 0, moving: false }); playerBody = null; }
