@@ -116,6 +116,32 @@ test('W9-N3 the chapter card: at the end of 海湾 the chapter\'s postcards are 
   if (game.get().panel.kind) flowMod.closePanel();
 });
 
+test("W9-N3b the last chapter's stop postcards are claimed at the tour's last stop (the run's recap said 7/9)", async () => {
+  reset();
+  pelican.resetPelicanForTests(null, () => true);
+  const cityTour = await import('../src/opus-bay/game/cityTour');
+  cityTour.initCityTour();
+  const last = SF_GRAND.chapters.length - 1;
+  save.resetSaveCache();
+  save.patchSave(s => { s.tours = { 'sf-grand': { chapter: last, stop: 0, completed: SF_GRAND.chapters.slice(0, last).flatMap(c => c.stops.filter(x => !x.optional).map(x => x.id)) } }; });
+  Object.assign(runtime.player, { x: 150, z: -20 });
+  flowMod.startTour(GRAND_TOUR.id);
+  const stops = tourStops(SF_GRAND).filter(f => f.chapter === last);
+  const cards = [...new Set(stops.flatMap(f => (f.stop.postcard && !f.stop.optional ? [f.stop.postcard] : [])))];
+  assert.ok(cards.length >= 1, 'the last chapter has stop postcards');
+  for (let k = 0; k < stops.length && cityTour.cityTourRun(); k++) {
+    if (cityTour.cityTourRun()?.stop !== stops[k].stop.id) continue;
+    tripRun.dispatchTrip({ type: 'leg-arrived' });
+    while (flow.get().trip && flow.get().trip!.leg < flow.get().trip!.legs.length) tripRun.dispatchTrip({ type: 'leg-arrived' });
+    if (k < stops.length - 1) { if (game.get().dialogue.nodeId) flowMod.closeDialogue(); flowMod.tourNext(); }
+  }
+  const have = game.get().postcards;
+  assert.deepEqual(cards.filter(c => !have.includes(c)), [], 'every stop postcard of the last chapter is claimed');
+  flowMod.endTour();
+  if (game.get().dialogue.nodeId) flowMod.closeDialogue();
+  if (game.get().panel.kind) flowMod.closePanel();
+});
+
 test('W9-N3 the resume card: on return with a Grand Tour half done, one card after 6 s of free play — 继续一日游 · 第 n 章（约 m 分钟）', async () => {
   reset();
   save.resetSaveCache();

@@ -226,6 +226,9 @@ function arrived(r: Run) {
   if (!next || next.chapter !== flat.chapter) {
     const outro = chapterSay(r.def.chapters[flat.chapter], 'outro'); if (outro) offerPaced(outro);
     if (next) chapterCard(r, flat.chapter, next.chapter);
+    // (W9-N3b) the last chapter has no card (the recap follows): its stop postcards are claimed here, so the recap's
+    // 站点明信片 counts them (the unattended run's recap said 7/9: chapter 5's two were never claimed)
+    else claimChapterPostcards(r.def.chapters[flat.chapter], r.completed);
   }
   setTourState(r, true);
   saveProgress(r);
