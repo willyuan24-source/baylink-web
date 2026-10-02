@@ -1414,8 +1414,8 @@ html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
    (1440 × 900: the chip 493…947, BAYBAY 792…852, the sheet from 868). With a sheet open it centres in the space left of the
    sheet, as the prompt and the dialogue do. (!important: the chip's box is an inline style.) */
 @media (min-width: 721px) {
-  .ob-overlay.has-sheet .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px)) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 120px) !important; }
-}
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px)) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 120px) !important; }
+} /* (W9-Q-review: city only — district mode never changes) */
 /* W9-Q2 (R§6 界面与交互: "HUD 和这周去哪按钮会跳位置", planner/shots/008 vs 039) · on a wide desktop (≥ 1181 px) the round
    buttons were a row at the bottom right and turned into a column beside a side sheet, and the pills jumped: the row now stays
    a row and slides left with the sheet (the objective pill too, the same distance), so every button keeps its order and its
@@ -1449,6 +1449,17 @@ html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
 .ob-dialogue-box { display: flex; flex-direction: column; max-height: calc(100dvh - 46px - var(--ob-sb) - var(--ob-st)); }
 .ob-dialogue-box > .ob-choices { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 3px 5px 5px; margin-left: -5px; margin-right: -5px; margin-bottom: -5px; }
 @media (max-width: 720px) { .ob-dialogue-box { max-height: calc(100dvh - 70px - var(--ob-sb) - var(--ob-st)); } }
+/* W9-Q-review (Q-RV-3) · Settings › 文字大小 zooms the box (zoom: 1.15 / 1.3, top of this file), and a zoomed box's own
+   max-height is zoomed too: at 130 % on 844 × 340 the cap was 382 px and the box ran from y −64 (BAYBAY's line above the
+   screen). The cap is divided by the zoom; and the choices keep their content height and scroll (the flex column squeezed
+   the grid's rows to 50 px: 「带我去下一个目标…」's three lines ran over its button's border). */
+.ob-page[data-ob-text='115'] .ob-dialogue-box { max-height: calc((100dvh - 46px - var(--ob-sb) - var(--ob-st)) / 1.15); }
+.ob-page[data-ob-text='130'] .ob-dialogue-box { max-height: calc((100dvh - 46px - var(--ob-sb) - var(--ob-st)) / 1.3); }
+@media (max-width: 720px) {
+  .ob-page[data-ob-text='115'] .ob-dialogue-box { max-height: calc((100dvh - 70px - var(--ob-sb) - var(--ob-st)) / 1.15); }
+  .ob-page[data-ob-text='130'] .ob-dialogue-box { max-height: calc((100dvh - 70px - var(--ob-sb) - var(--ob-st)) / 1.3); }
+}
+.ob-dialogue-box > .ob-choices.is-grid { grid-auto-rows: max-content; }
 @media (max-height: 460px) { .ob-dialogue-text { min-height: 1.7em; } .ob-dialogue-box > .ob-choices { margin-top: 4px; } }
 /* W9-Q10 (found by this wave's 667 × 320 census) · a small phone on its side (an iPhone SE with Safari's bars): a place card's
    footer (BAYLINK 攻略 over 加入想去, 136 px) and its head (100 px) left ≈ 44 px of a 280 px bottom sheet for the card itself —
@@ -1471,16 +1482,35 @@ html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
    问 BAYBAY at the foot of the column). There the prompt and the move chip centre in the strip left of the column (76 px)
    and never reach it; the area pill waits under the sheet while the strip cannot hold both pills (the objective keeps its
    place: it is the next thing to do; the place's name is in the sheet or on the map). */
+/* (W9-Q-review, Q-RV-4: city only, :has(.ob-area-lines) as W9-Q2 — district mode never changes. Q-RV-1: the move chip wraps
+   instead of clipping — overflow: hidden cut 下车 off at 1024 × 700 and every hint at 823 × 514 during a ride with the map open) */
 @media (min-width: 721px) and (max-width: 1180px) {
-  .ob-overlay.has-sheet .ob-context { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2); max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px); }
-  .ob-overlay.has-sheet .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px) !important; overflow: hidden; }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-context { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2); max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px); }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px) !important; flex-wrap: wrap; justify-content: center; row-gap: 4px; white-space: normal !important; border-radius: 22px !important; padding: 6px 8px 6px 14px !important; }
   /* the objective pill slides left with the sheet: with the map open at 823 px the stats pill (明信片 0/24 · 🪙 0 · 🍬 0, 246 px)
      began 11 px off the left edge; it now keeps 12 px from it and its line ends in … */
-  .ob-overlay.has-sheet .ob-objective { max-width: calc(100% - var(--ob-sheet-w, 452px) - 28px); }
-  .ob-overlay.has-sheet .ob-objective-text strong { overflow: hidden; text-overflow: ellipsis; }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-objective { max-width: calc(100% - var(--ob-sheet-w, 452px) - 28px); }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-objective-text strong { overflow: hidden; text-overflow: ellipsis; }
+  /* (W9-Q-review, Q-RV-2) the top stack (the ride banner, toasts) keeps to the strip left of the HUD column too: at 823 × 514
+     on a ride with the map open the banner (x −2…253) lay over 设置 / 更多 / 拍照 (x 181–235) */
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-topstack { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2); width: min(760px, calc(100% - var(--ob-sheet-w, 452px) - 100px)); }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-topstack > .ob-ride { max-width: 100%; flex-wrap: wrap; justify-content: center; row-gap: 4px; white-space: normal; border-radius: 22px; padding: 6px 8px 6px 14px; }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-topstack > .ob-ride > span { flex: 1 1 100%; min-width: 0; line-height: 1.3; text-align: center; }
 }
-@media (min-width: 721px) and (max-width: 1080px) { .ob-overlay.has-sheet:has(.ob-sheet.is-wide) .ob-area { visibility: hidden; } }
-@media (min-width: 721px) and (max-width: 960px) { .ob-overlay.has-sheet .ob-area { visibility: hidden; } }
+@media (min-width: 721px) and (max-width: 1080px) { .ob-overlay.has-sheet:has(.ob-area-lines):has(.ob-sheet.is-wide) .ob-area { visibility: hidden; } }
+@media (min-width: 721px) and (max-width: 960px) { .ob-overlay.has-sheet:has(.ob-area-lines) .ob-area { visibility: hidden; } }
+/* (W9-Q-review, Q-RV-2) where the strip left of the HUD column is under ≈ 250 px (beside the map / the week board under
+   900 px, beside any sheet under 780 px: a desktop at 175 %) BAYBAY's bubble (≈ 230 px) and the ride's games (铃声对答 /
+   按住 L 探身 / 拉闸当司机) cannot sit beside the column: they wait under the sheet, as they do on a phone on its side
+   (Q-PL-2); the banner keeps the line, 提前下车 and 直接到站 */
+@media (min-width: 721px) and (max-width: 900px) {
+  .ob-overlay.has-sheet:has(.ob-area-lines):has(.ob-sheet.is-wide) .ob-bubble-anchor { visibility: hidden; }
+  .ob-overlay.has-sheet:has(.ob-area-lines):has(.ob-sheet.is-wide) .ob-topstack > .ob-ride > .ob-ride-pads { display: none !important; }
+}
+@media (min-width: 721px) and (max-width: 780px) {
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-bubble-anchor { visibility: hidden; }
+  .ob-overlay.has-sheet:has(.ob-area-lines) .ob-topstack > .ob-ride > .ob-ride-pads { display: none !important; }
+}
 /* W9-Q12 (part b: a phone with large text — iOS Safari's page zoom at 150 % on a 390 px iPhone lays the page out at 260 CSS px,
    125 % at 312; Android's font scale likewise) · at 260 × 563 the title card needed 294 px (Start's 180 px floor + the sound
    button; the language pills' 64 px floors) and ran off the right edge — English and the sound button cut; a place card's

@@ -44,7 +44,7 @@ test('rules(): flattens selectors and @media', () => {
 test('W9-Q1 (W8I-D-2): with a side sheet open the move chip centres left of the sheet (its box is an inline style)', () => {
   const chip = read('ui/MoveChip.tsx');
   assert.match(chip, /<div className="ob-move-chip" style=\{chipStyle\} role="status"/, 'the chip carries a class the overlay can place');
-  const body = decl(read('opus-bay.css'), '.ob-overlay.has-sheet .ob-move-chip', ['(min-width: 721px)']).join(';');
+  const body = decl(read('opus-bay.css'), '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-move-chip', ['(min-width: 721px)']).filter(x => /- 120px/.test(x)).join(';'); // city only (W9-Q-review)
   assert.match(body, /left: calc\(\(100% - var\(--ob-sheet-w, 452px\)\) \/ 2\) !important/);
   assert.match(body, /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 120px\) !important/);
 });
@@ -146,16 +146,16 @@ test('W9-Q10: short landscape phones: compact sheet heads, the place card\'s foo
   assert.match(read('ui/PoiCardBody.tsx'), /<div className="ob-poi-foot-guide">\{guideRow\}<\/div>\}\s*<div className="ob-actions">/);
 });
 
-test('W9-Q11: narrow desktop windows with a sheet (175 % zoom): the prompt / move chip keep left of the HUD column, the objective on screen, the area pill waits', () => {
+test('W9-Q11: narrow desktop windows with a sheet (175 % zoom; city only since W9-Q-review): the prompt / move chip keep left of the HUD column, the objective on screen, the area pill waits', () => {
   const css = read('opus-bay.css');
   const m = ['(min-width: 721px) and (max-width: 1180px)'];
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-context', m).join(), /left: calc\(\(100% - var\(--ob-sheet-w, 452px\) - 76px\) \/ 2\)/);
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-context', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 100px\)/);
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-move-chip', m).join(), /- 76px\) \/ 2\) !important/);
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-objective', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 28px\)/);
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-objective-text strong', m).join(), /text-overflow: ellipsis/);
-  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-sheet.is-wide) .ob-area', ['(min-width: 721px) and (max-width: 1080px)']).join(), /visibility: hidden/);
-  assert.match(decl(css, '.ob-overlay.has-sheet .ob-area', ['(min-width: 721px) and (max-width: 960px)']).join(), /visibility: hidden/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-context', m).join(), /left: calc\(\(100% - var\(--ob-sheet-w, 452px\) - 76px\) \/ 2\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-context', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 100px\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-move-chip', m).join(), /- 76px\) \/ 2\) !important/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-objective', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 28px\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-objective-text strong', m).join(), /text-overflow: ellipsis/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines):has(.ob-sheet.is-wide) .ob-area', ['(min-width: 721px) and (max-width: 1080px)']).join(), /visibility: hidden/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-area-lines) .ob-area', ['(min-width: 721px) and (max-width: 960px)']).join(), /visibility: hidden/);
   // the docked bubble is clamped on screen like the anchored one (game/Systems.tsx: one clamp after both branches)
   const sys = read('game/Systems.tsx');
   const i = sys.indexOf('if (offscreen) {');
@@ -215,4 +215,57 @@ test('W9-Q16: the waypoint\'s safe area keeps out of the notch (an iPhone on its
   const g = read('game/guideCity.ts');
   assert.match(g, /waypointSafeArea\(\{ w, h, phone: fr\.mobile, inset: safeInsetsLR\(wp, fr\.fullW, h\) \}\)/);
   assert.match(g, /getPropertyValue\('--ob-sl'\)/);
+});
+
+// ---------------------------------------------------------------------------------------------------------------------------
+// W9-Q-review (the lane's adversarial review, findings Q-RV-1 … Q-RV-4; docs/opus-bay/sf-w9-Q.md "Review (Ultra)")
+// ---------------------------------------------------------------------------------------------------------------------------
+const NARROW = ['(min-width: 721px) and (max-width: 1180px)'];
+const CITY = '.ob-overlay.has-sheet:has(.ob-area-lines)';
+
+test('W9-Q-review Q-RV-1: in a narrow window with a sheet the move chip wraps, never clips (下车 stays visible and clickable)', () => {
+  const css = read('opus-bay.css');
+  const chip = rules(css).filter(r => /\.ob-move-chip$/.test(r.selector) && r.media.includes('(max-width: 1180px)')).map(r => r.body).join(';');
+  assert.doesNotMatch(chip, /overflow: hidden/, 'overflow: hidden cut the hop-off hint at 1024 × 700 and every hint at 823 × 514');
+  const body = decl(css, `${CITY} .ob-move-chip`, NARROW).join();
+  assert.match(body, /flex-wrap: wrap/);
+  assert.match(body, /white-space: normal !important/, 'the inline style says nowrap');
+  assert.match(read('ui/MoveChip.tsx'), /whiteSpace: 'nowrap'/, 'the inline style the rule overrides');
+});
+
+test("W9-Q-review Q-RV-2: the top stack keeps left of the HUD column; under ≈ 250 px of strip the bubble and the ride's games wait", () => {
+  const css = read('opus-bay.css');
+  const top = decl(css, `${CITY} .ob-topstack`, NARROW).join();
+  assert.match(top, /left: calc\(\(100% - var\(--ob-sheet-w, 452px\) - 76px\) \/ 2\)/);
+  assert.match(top, /width: min\(760px, calc\(100% - var\(--ob-sheet-w, 452px\) - 100px\)\)/);
+  assert.match(decl(css, `${CITY} .ob-topstack > .ob-ride`, NARROW).join(), /flex-wrap: wrap/);
+  const wide = ['(min-width: 721px) and (max-width: 900px)'], any = ['(min-width: 721px) and (max-width: 780px)'];
+  assert.match(decl(css, `${CITY}:has(.ob-sheet.is-wide) .ob-bubble-anchor`, wide).join(), /visibility: hidden/);
+  assert.match(decl(css, `${CITY}:has(.ob-sheet.is-wide) .ob-topstack > .ob-ride > .ob-ride-pads`, wide).join(), /display: none !important/);
+  assert.match(decl(css, `${CITY} .ob-bubble-anchor`, any).join(), /visibility: hidden/);
+  assert.match(decl(css, `${CITY} .ob-topstack > .ob-ride > .ob-ride-pads`, any).join(), /display: none !important/);
+  // the markup the rules read: the pads row is the banner's own child (ui/RideBanner.tsx)
+  assert.match(read('ui/RideBanner.tsx'), /<div className="ob-ride-pads" style=\{PAD_ROW\}>/);
+});
+
+test("W9-Q-review Q-RV-3: with Settings › 文字大小 the dialogue box's cap is divided by its zoom; the choices keep their height", () => {
+  const css = read('opus-bay.css');
+  for (const t of ['115', '130']) {
+    const zoomRule = rules(css).find(r => r.selector.startsWith(`.ob-page[data-ob-text='${t}'] :where(.ob-dialogue-box`) && r.media === '');
+    const z = /zoom: ([\d.]+)/.exec(zoomRule?.body ?? '')?.[1];
+    assert.ok(z, `the ${t} % zoom rule`);
+    const sel = `.ob-page[data-ob-text='${t}'] .ob-dialogue-box`;
+    const plain = rules(css).filter(r => r.selector === sel && r.media === '').map(r => r.body).join();
+    assert.ok(plain.includes(`max-height: calc((100dvh - 46px - var(--ob-sb) - var(--ob-st)) / ${z})`), `${sel}: ${plain}`);
+    const phone = decl(css, sel, ['(max-width: 720px)']).join();
+    assert.ok(phone.includes(`max-height: calc((100dvh - 70px - var(--ob-sb) - var(--ob-st)) / ${z})`), `${sel} (phones): ${phone}`);
+  }
+  assert.match(decl(css, '.ob-dialogue-box > .ob-choices.is-grid').join(), /grid-auto-rows: max-content/);
+});
+
+test("W9-Q-review Q-RV-4: the narrow-window rules (721–1180 px) are the city's only — district mode never changes", () => {
+  const css = read('opus-bay.css');
+  const narrow = rules(css).filter(r => /\(min-width: 721px\) and \(max-width: (1180|1080|960|900|780)px\)/.test(r.media) && r.selector.startsWith('.ob-overlay.has-sheet'));
+  assert.ok(narrow.length >= 10, `found ${narrow.length}`);
+  for (const r of narrow) assert.ok(r.selector.startsWith(CITY), `${r.media} ${r.selector}`);
 });
