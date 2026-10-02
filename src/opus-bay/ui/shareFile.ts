@@ -47,11 +47,34 @@ export function saveRoute(nav: NavLike | null | undefined, file: File, asSave: b
   return 'download';
 }
 
-/** What goes to navigator.share: 保存 = the file alone; 分享 = the file with the words when the browser accepts both. */
-export function sharePayload(nav: NavLike | null | undefined, file: File, text: string, asSave: boolean): ShareData {
+/** The words that go with a shared picture (W9-S2: the game's visible title, never "Opus Bay"; the link back). */
+export interface ShareWords { title: string; text: string; url?: string }
+
+/**
+ * What goes to navigator.share: 保存 = the file alone; 分享 = the file with the title, the words and (W9-S2, review
+ * R§5 #8) the link back to the game — as `url` where the browser takes it with a file, else inside the text, else the
+ * file alone.
+ */
+export function sharePayload(nav: NavLike | null | undefined, file: File, words: ShareWords, asSave: boolean): ShareData {
   if (asSave) return { files: [file] };
-  const rich: ShareData = { files: [file], title: 'Opus Bay', text };
-  return canShareData(nav, rich) ? rich : { files: [file] };
+  const { title, text, url } = words;
+  if (url) {
+    const rich: ShareData = { files: [file], title, text, url };
+    if (canShareData(nav, rich)) return rich;
+  }
+  const said: ShareData = { files: [file], title, text: url ? `${text} ${url}` : text };
+  return canShareData(nav, said) ? said : { files: [file] };
+}
+
+/**
+ * W9-S2 (review R§6: 宿主应用拒绝 Web Share 时，点"保存"没有任何反应) · a share that did not go through: the player's own
+ * cancel (AbortError) is final; anything else (NotAllowedError from a host app or a policy, a TypeError for data the
+ * sheet refused, a DataError) falls back like a browser without sharing — the long-press photo where a download does
+ * nothing (in-app browsers, iOS), else a download.
+ */
+export function refusedShareRoute(error: unknown, nav: NavLike | null | undefined): Exclude<SaveRoute, 'share'> | null {
+  if ((error as { name?: string } | null)?.name === 'AbortError') return null;
+  return inAppBrowser(nav?.userAgent) || isIOS(nav) ? 'longpress' : 'download';
 }
 
 /** The file as a data: URL (for the long-press photo). */

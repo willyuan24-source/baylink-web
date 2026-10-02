@@ -3,6 +3,7 @@ import { runtime } from '../core/runtime';
 import { game, toast } from '../core/store';
 import { flow } from './flowStore';
 import { decorateFrame, photoTags } from './photoFrames';
+import { bandLayout, drawQr, gameLink, LINK_TEXT, loadQr, photoSpot } from './photoCard';
 import { setShutterConsumer } from './shutterHook';
 import { importRetry } from './importRetry';
 
@@ -14,6 +15,9 @@ import { importRetry } from './importRetry';
  * Wave 5 · W5-C7: in the city the card goes into the album on this device (game/album.ts, lazy: a JPEG and a
  * thumbnail, the shot's tags from photoFrames registerPhotoTagger) instead of a forced download — the owner's phone
  * asked "download?" at every picture; district mode still downloads the PNG, as before.
+ * Wave 9 · lane S · W9-S2 (review R§5 #8): the city's card prints the game's address and a QR code under the picture
+ * that opens the game at the same spot (game/photoCard.ts: `?at=<spot>&from=photo`); the album shares that link with
+ * the picture. The district's card is drawn exactly as before.
  */
 
 let requested: null | { caption: string; stamp: string } = null;
@@ -37,6 +41,7 @@ export function consumeShutter(canvas: HTMLCanvasElement) {
 setShutterConsumer(consumeShutter);
 
 function compose(source: HTMLCanvasElement, caption: string, stamp: string) {
+  if (game.get().worldMode === 'city') { composeCity(source, caption, stamp); return; }
   const maxW = 1800;
   const scale = Math.min(1, maxW / source.width);
   const w = Math.round(source.width * scale), h = Math.round(source.height * scale);
@@ -70,7 +75,6 @@ function compose(source: HTMLCanvasElement, caption: string, stamp: string) {
   ctx.fillText(stamp, out.width - pad - stampWidth, h + pad + band / 2);
   // wave 5 (W5-C1): the registered frame decorators paint on the finished card (lane E's shop frames)
   decorateFrame({ ctx, width: out.width, height: out.height, photo: { x: pad, y: pad, w, h }, band: { x: 0, y: h + pad, w: out.width, h: band }, pad, caption, stamp, at: new Date() });
-  if (game.get().worldMode === 'city') { keepInAlbum(out, caption, stamp); return; }
   out.toBlob(blob => {
     if (!blob) return;
     const url = URL.createObjectURL(blob);
@@ -86,9 +90,67 @@ function compose(source: HTMLCanvasElement, caption: string, stamp: string) {
 export const THUMB_W = 360;
 let albumToldOnce = false;
 
+/** the colours of the city card's band (the caption as before; the address in the stamp's teal and a quiet grey) */
+const INK = '#22322f', TEAL = '#2f8f88', GREY = '#6b7a75';
+const SANS = '"Noto Sans SC", "Plus Jakarta Sans", system-ui, sans-serif';
+
+/**
+ * W9-S2 · the city's card: the picture (copied in this task), then a band with the caption, `BAYLINK · baylink.us/opus-bay`
+ * and — once the `qrcode` chunk is in — the code to `?at=<spot>&from=photo`; then into the album. Without the chunk (a
+ * lost request) the card keeps the printed address and goes without the code.
+ */
+function composeCity(source: HTMLCanvasElement, caption: string, stamp: string) {
+  const at = Date.now(), p = runtime.player, x = p.x, z = p.z, area = game.get().area ?? '';
+  const scale = Math.min(1, 1800 / source.width);
+  const w = Math.round(source.width * scale), h = Math.round(source.height * scale);
+  const L = bandLayout(w, h);
+  const { pad, band } = L;
+  const out = document.createElement('canvas');
+  out.width = w + pad * 2;
+  out.height = h + pad + band;
+  const ctx = out.getContext('2d');
+  if (!ctx) return;
+  // Copy the WebGL frame first (must happen in this task).
+  ctx.fillStyle = '#fffaf1';
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(source, pad, pad, w, h);
+  ctx.strokeStyle = 'rgba(80, 60, 30, .12)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(pad, pad, w, h);
+  const top = h + pad;
+  const fit = fitCaption(ctx, caption, L.captionSize, L.textW);
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = INK;
+  ctx.font = `700 ${fit.size}px ${SANS}`;
+  ctx.fillText(fit.text, L.textX, top + L.captionY);
+  // BAYLINK · baylink.us/opus-bay — the stamp in teal, the address in grey (the address alone, in teal, when the
+  // column is too narrow for both: the way back matters more than the name)
+  ctx.font = `700 ${L.linkSize}px ${SANS}`;
+  const stampW = ctx.measureText(stamp).width;
+  ctx.font = `600 ${L.linkSize}px ${SANS}`;
+  const rest = ` · ${LINK_TEXT}`;
+  const both = stampW + ctx.measureText(rest).width <= L.textW;
+  if (both) {
+    ctx.font = `700 ${L.linkSize}px ${SANS}`;
+    ctx.fillStyle = TEAL;
+    ctx.fillText(stamp, L.textX, top + L.linkY);
+    ctx.font = `600 ${L.linkSize}px ${SANS}`;
+  }
+  ctx.fillStyle = both ? GREY : TEAL;
+  ctx.fillText(both ? rest : LINK_TEXT, L.textX + (both ? stampW : 0), top + L.linkY);
+  decorateFrame({ ctx, width: out.width, height: out.height, photo: { x: pad, y: pad, w, h }, band: { x: 0, y: top, w: out.width, h: band }, pad, caption, stamp, at: new Date(at) });
+  void (async () => {
+    const places = await importRetry(() => import('../data/sf/places')).catch(() => null);
+    const spot = photoSpot(x, z, places?.placesNear);
+    const qr = await loadQr(gameLink(spot, 'photo'));
+    if (qr) { try { drawQr(ctx, qr, { x: L.qr.x, y: top + L.qr.y, size: L.qr.size }, INK); } catch { /* a card without the code */ } }
+    keepInAlbum(out, caption, stamp, { at, x, z, area, spot });
+  })();
+}
+
 /** City: the card (JPEG .92) and a thumbnail into the album; the thumb in photo mode opens it. */
-function keepInAlbum(card: HTMLCanvasElement, caption: string, stamp: string) {
-  const at = Date.now(), p = runtime.player, area = game.get().area ?? '';
+function keepInAlbum(card: HTMLCanvasElement, caption: string, stamp: string, shot: { at: number; x: number; z: number; area: string; spot: string }) {
+  const { at, area, spot } = shot, p = { x: shot.x, z: shot.z };
   const tags = photoTags({ x: p.x, z: p.z, area, at: new Date(at) });
   const tw = Math.min(THUMB_W, card.width), th = Math.round((card.height * tw) / card.width);
   const small = document.createElement('canvas');
@@ -101,9 +163,9 @@ function keepInAlbum(card: HTMLCanvasElement, caption: string, stamp: string) {
     const previous = flow.get().lastPhoto;
     if (previous) URL.revokeObjectURL(previous.url);
     const album = await importRetry(() => import('./album')).catch(() => null);
-    const id = album ? await album.addPhoto(full, thumb, { at, caption, stamp, w: card.width, h: card.height, x: p.x, z: p.z, area, tags }) : null;
+    const id = album ? await album.addPhoto(full, thumb, { at, caption, stamp, w: card.width, h: card.height, x: p.x, z: p.z, area, tags, spot }) : null;
     // (no album — the chunk failed to load, nothing could be kept —: the download, as before)
-    if (!id) { const name = `opus-bay-${new Date(at).toISOString().slice(0, 19).replace(/[:T]/g, '-')}.jpg`; flow.set({ lastPhoto: { url, name } }); downloadUrl(url, name); return; }
+    if (!id) { const name = `little-bay-trip-${new Date(at).toISOString().slice(0, 19).replace(/[:T]/g, '-')}.jpg`; flow.set({ lastPhoto: { url, name } }); downloadUrl(url, name); return; }
     flow.set({ lastPhoto: { url, name: id, album: true } });
     const first = !albumToldOnce;
     albumToldOnce = true;

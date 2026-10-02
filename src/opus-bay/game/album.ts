@@ -43,6 +43,8 @@ export interface AlbumMeta {
   area?: string;
   /** registered taggers' tags (`view:twin-peaks`, …) */
   tags: string[];
+  /** W9-S2: the `?at=` value of the spot (game/photoCard.ts photoSpot) the card's QR code and its share open */
+  spot?: string;
 }
 export interface AlbumPhoto extends AlbumMeta {
   /** an object URL of the thumbnail (valid while the photo is in the album) */
@@ -178,7 +180,7 @@ export const albumVersion = () => version;
 
 const toUrl = (data: ArrayBuffer, type: string) => (typeof URL !== 'undefined' && URL.createObjectURL ? URL.createObjectURL(new Blob([data], { type })) : '');
 const revoke = (url: string) => { if (url && typeof URL !== 'undefined' && URL.revokeObjectURL) URL.revokeObjectURL(url); };
-const strip = (m: StoredMeta): AlbumMeta => ({ id: m.id, at: m.at, caption: m.caption, stamp: m.stamp, w: m.w, h: m.h, x: m.x, z: m.z, area: m.area, tags: m.tags ?? [] });
+const strip = (m: StoredMeta): AlbumMeta => ({ id: m.id, at: m.at, caption: m.caption, stamp: m.stamp, w: m.w, h: m.h, x: m.x, z: m.z, area: m.area, tags: m.tags ?? [], ...(m.spot ? { spot: m.spot } : {}) });
 
 /** Every photo, newest first (loads the thumbnails once per page). */
 export async function listPhotos(): Promise<AlbumPhoto[]> {
@@ -230,7 +232,7 @@ export async function photoFile(id: string): Promise<File | null> {
   return new File([f.data], photoFileName(p?.at ?? Date.now(), f.type), { type: f.type });
 }
 
-/** `opus-bay-2026-09-28-14-03-22.jpg` (the Bay date and time it was taken). */
+/** `little-bay-trip-2026-09-28-14-03-22.jpg` (the Bay date and time it was taken; W9-S2: the game's visible name). */
 export function photoFileName(at: number, type = 'image/jpeg'): string {
   const d = new Date(at);
   let stamp: string;
@@ -238,7 +240,7 @@ export function photoFileName(at: number, type = 'image/jpeg'): string {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).formatToParts(d).map(p => [p.type, p.value]));
     stamp = `${parts.year}-${parts.month}-${parts.day}-${parts.hour}-${parts.minute}-${parts.second}`;
   } catch { stamp = d.toISOString().slice(0, 19).replace(/[:T]/g, '-'); }
-  return `opus-bay-${stamp}.${type === 'image/png' ? 'png' : 'jpg'}`;
+  return `little-bay-trip-${stamp}.${type === 'image/png' ? 'png' : 'jpg'}`;
 }
 
 export async function deletePhoto(id: string): Promise<void> {

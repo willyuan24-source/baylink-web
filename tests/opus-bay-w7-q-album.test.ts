@@ -37,10 +37,12 @@ test('W7-Q4 sharePayload: 保存 = the file alone (no text: iOS keeps 存储图�
   const { sharePayload } = await import('../src/opus-bay/ui/shareFile');
   const f = jpeg();
   const any = sharer(() => true);
-  assert.deepEqual(sharePayload(any, f, 'hi', true), { files: [f] });
-  assert.deepEqual(sharePayload(any, f, 'hi', false), { files: [f], title: 'Opus Bay', text: 'hi' });
+  // (W9-S2: the words are the caller's — the game's visible title, never "Opus Bay")
+  const words = { title: '湾区小旅', text: 'hi' };
+  assert.deepEqual(sharePayload(any, f, words, true), { files: [f] });
+  assert.deepEqual(sharePayload(any, f, words, false), { files: [f], title: '湾区小旅', text: 'hi' });
   const filesOnly = sharer(d => !d.text && !d.title);
-  assert.deepEqual(sharePayload(filesOnly, f, 'hi', false), { files: [f] });
+  assert.deepEqual(sharePayload(filesOnly, f, words, false), { files: [f] });
 });
 
 // --- a fake IndexedDB ----------------------------------------------------------------------------------------------

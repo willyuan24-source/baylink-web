@@ -32,7 +32,7 @@ test('W5-C7 album: kept newest first, read back as a File, deleted, found by tag
   assert.equal(await album.albumCount(), 2);
   const file = await album.photoFile(a!);
   assert.ok(file && file.size === 2000 && file.type === 'image/jpeg');
-  assert.match(file!.name, /^opus-bay-\d{4}-\d\d-\d\d-\d\d-\d\d-\d\d\.jpg$/);
+  assert.match(file!.name, /^little-bay-trip-\d{4}-\d\d-\d\d-\d\d-\d\d-\d\d\.jpg$/); // (W9-S2: the game's visible name)
   assert.deepEqual((await album.photosTagged('view:twin-peaks')).map(p => p.id), [a]);
   await album.deletePhoto(a!);
   assert.deepEqual((await album.listPhotos()).map(p => p.id), [b]);
@@ -47,9 +47,9 @@ test('W5-C7 album: past ALBUM_MAX the oldest photos leave; the file name is the 
   const list = await album.listPhotos();
   assert.equal(list.length, album.ALBUM_MAX);
   assert.equal(list[list.length - 1].at, 1_700_000_000_000 + 3000, 'the three oldest went');
-  // 2023-11-14T22:13:20Z = 14:13:20 in San Francisco (PST)
-  assert.equal(album.photoFileName(1_700_000_000_000), 'opus-bay-2023-11-14-14-13-20.jpg');
-  assert.equal(album.photoFileName(1_700_000_000_000, 'image/png'), 'opus-bay-2023-11-14-14-13-20.png');
+  // 2023-11-14T22:13:20Z = 14:13:20 in San Francisco (PST); W9-S2: the file carries the game's visible name (no "opus-bay")
+  assert.equal(album.photoFileName(1_700_000_000_000), 'little-bay-trip-2023-11-14-14-13-20.jpg');
+  assert.equal(album.photoFileName(1_700_000_000_000, 'image/png'), 'little-bay-trip-2023-11-14-14-13-20.png');
 });
 
 test('W5-C7 photo tags: registered taggers tag each shot (unique, valid, ≤ 16); a throwing tagger or a bad tag is skipped', () => {

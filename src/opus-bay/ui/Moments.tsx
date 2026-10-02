@@ -152,7 +152,8 @@ export function PhotoMode() {
   const cityName = cityZone && cityZone !== SF_NAME ? cityZone : districtZone ?? SF_NAME;
   const zone = city ? { zh: cityDistrictZh(cityName.zh), en: cityName.en } : districtZone ?? DISTRICT.name;
   const shoot = () => {
-    const date = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { timeZone: 'America/Los_Angeles', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date());
+    // (W9-S2, lane S, review R§5 #8: a short date — 10月1日 / Oct 1 — so the caption is not cut to 「2026年1…」 on a phone)
+    const date = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { timeZone: 'America/Los_Angeles', month: 'short', day: 'numeric' }).format(new Date());
     requestShutter(`${t('湾区小旅', 'Little Bay Trip')} · ${t(zone)} · ${date}`, 'BAYLINK');
     window.setTimeout(notePhotoTaken, 200);
   };

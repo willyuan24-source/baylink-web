@@ -6,9 +6,11 @@ import {
   ALBUM_MAX, albumKind, albumVersion, deletePhoto, listPhotos, photoFile, photosNow, subscribeAlbum, type AlbumPhoto,
 } from '../game/album';
 import { holdLock } from '../game/playerLock';
+import { track } from '../game/metrics';
+import { photoLink } from '../game/photoCard';
 import { useT } from '../i18n';
 import { useDevice, useWindowKey } from './hooks';
-import { fileToDataUrl, saveRoute, sharePayload } from './shareFile';
+import { fileToDataUrl, refusedShareRoute, saveRoute, sharePayload, type SaveRoute } from './shareFile';
 import type { OverlayProps } from './slots';
 import './album.css';
 
@@ -18,6 +20,9 @@ import './album.css';
  * with 保存 · 分享 · 删除. 保存 on a phone that can share files opens the share sheet (iOS: 存储图像 puts it in Photos),
  * elsewhere it downloads the file; 分享 shares the file where the browser can, else downloads it and copies the
  * game's link. The player stays put while it is open (playerLock 'panel').
+ * W9-S2 (review R§5 #8): 分享 carries the title 湾区小旅 / Little Bay Trip and the link back to the photo's spot
+ * (game/photoCard.ts gameLink: `?at=<spot>&from=photo`, the same as the QR code on the card); a share the host app
+ * refuses (not the player's own cancel) falls back to the long-press photo or a download instead of doing nothing.
  */
 
 const ALBUM_TEXT = {
@@ -36,6 +41,7 @@ const ALBUM_TEXT = {
   saved: { zh: '照片已保存', en: 'Photo saved' },
   linkCopied: { zh: '照片已保存，游戏链接也复制好了', en: 'Photo saved, and the game link is copied' },
   shareText: { zh: '我在 BAYLINK 的湾区小旅拍的照片', en: 'A photo from my Little Bay Trip on BAYLINK' },
+  shareTitle: { zh: '湾区小旅', en: 'Little Bay Trip' },
   gone: { zh: '这张照片找不到了', en: 'That photo is gone' },
   // W7-Q4: in-app browsers (WeChat …) and iOS without file sharing: the photo large, a long press saves it
   pressSave: { zh: '长按图片保存到相册', en: 'Press and hold the photo to save it to Photos' },
@@ -55,8 +61,6 @@ function download(file: File) {
   setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
-/** The game's address (shared with a downloaded photo). */
-const gameLink = () => (typeof location !== 'undefined' ? `${location.origin}/opus-bay` : 'https://baylink.app/opus-bay');
 
 export default function Album({ props, close }: OverlayProps) {
   const { t, locale } = useT();
@@ -136,21 +140,31 @@ function Viewer({ photo, count, onStep, onGone, touch, date }: { photo: AlbumPho
   const share = async (asSave: boolean) => {
     if (!file) return;
     const nav = typeof navigator !== 'undefined' ? navigator : null;
-    const route = saveRoute(nav, file, asSave, touch);
+    const link = photoLink(photo);
+    let route: SaveRoute = saveRoute(nav, file, asSave, touch);
     // (inside the tap: iOS shares only from a gesture — nothing is awaited before navigator.share)
     if (route === 'share') {
-      try { await navigator.share(sharePayload(nav, file, t(ALBUM_TEXT.shareText), asSave)); } catch { /* cancelled */ }
-      return;
+      try {
+        await navigator.share(sharePayload(nav, file, { title: t(ALBUM_TEXT.shareTitle), text: t(ALBUM_TEXT.shareText), url: link }, asSave));
+        if (!asSave) track('share', 'photo');
+        return;
+      } catch (error) {
+        // W9-S2: the player's own cancel ends it; a host app's refusal falls back (no more "nothing happens")
+        const next = refusedShareRoute(error, nav);
+        if (!next) return;
+        route = next;
+      }
     }
     // WeChat & co. ignore a download: no 已保存 toast there — the photo itself, to long-press
     if (route === 'longpress') {
-      try { setPress({ url: await fileToDataUrl(file), asSave }); } catch { toast(ALBUM_TEXT.gone, 'info', 2200); }
+      try { setPress({ url: await fileToDataUrl(file), asSave }); if (!asSave) track('share', 'photo'); } catch { toast(ALBUM_TEXT.gone, 'info', 2200); }
       return;
     }
     download(file);
     if (asSave) { toast(ALBUM_TEXT.saved, 'info', 2000); return; }
+    track('share', 'photo');
     let copied: boolean;
-    try { await navigator.clipboard?.writeText(`${t(ALBUM_TEXT.shareText)} ${gameLink()}`); copied = !!navigator.clipboard; } catch { copied = false; }
+    try { await navigator.clipboard?.writeText(`${t(ALBUM_TEXT.shareText)} ${link}`); copied = !!navigator.clipboard; } catch { copied = false; }
     toast(copied ? ALBUM_TEXT.linkCopied : ALBUM_TEXT.saved, 'info', 2600);
   };
   const remove = async () => { setAsking(false); await deletePhoto(photo.id); onGone(); };
