@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { lazyChunk } from '../game/lazyChunk';
-import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import { REGION_LABELS, categoryLabel, eventById, eventSpot, goToEvent, nextShowing, useCatalog } from '../data/catalog';
 import './event-go.css';
@@ -11,6 +11,7 @@ import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
 import { importRetry } from '../game/importRetry';
+import { addEventToCalendar } from '../realsf/addCal';
 
 /** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
 const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
@@ -86,6 +87,12 @@ export default function EventCardBody({ id }: { id?: string }) {
       </p>
       <div className="ob-link-grid">
         {next && <LinkButton href={planUrl({ date: next, stops: [{ kind: 'event', id: event.id }] }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="soft">{t('安排进计划', 'Plan it')}</LinkButton>}
+        {/* W9-R3 (review R§6: no calendar on event cards): the next day of it as an .ics, a reminder the day before */}
+        {next && (
+          <button type="button" className="ob-btn ob-btn-soft" onClick={() => addEventToCalendar(event, next)} aria-label={`${t('加到日历（提前一天提醒）', 'Add to calendar (a reminder the day before)')} · ${formatDay(next, locale)}`}>
+            <CalendarDays size={17} aria-hidden /><span>{t('加到日历', 'Add to calendar')}</span>
+          </button>
+        )}
         {official && <LinkButton href={official} icon={<ExternalLink size={17} aria-hidden />} tone="soft" external>{t('官网', 'Official site')}</LinkButton>}
         {event.location && <LinkButton href={mapsUrl(event.location.lat, event.location.lng, event.venue)} icon={<MapPinned size={17} aria-hidden />} tone="soft" external>{t('地图', 'Maps')}</LinkButton>}
       </div>
