@@ -71,7 +71,10 @@ test('W8-S1 the seniors’ free Muni row links SFMTA’s English page; no live.j
   const offers = live.parseLive(raw)!;
   const seniors = offers.find(o => o.id === 'sfmta-free-muni-seniors')!;
   assert.equal(seniors.source.url, 'https://www.sfmta.com/fares/free-muni-seniors-ages-65');
-  assert.equal(seniors.source.verifiedAt, '2026-09-30');
+  // (W9-L) the site's row cites that page itself now (the sourceEn override is gone): its own check date
+  const site = (JSON.parse(fs.readFileSync(path.resolve('src/data/september-refresh-offers.json'), 'utf8')) as { id: string; sourceUrl: string; verifiedAt: string }[]).find(o => o.id === 'sfmta-free-muni-seniors')!;
+  assert.equal(site.sourceUrl, seniors.source.url);
+  assert.equal(seniors.source.verifiedAt, site.verifiedAt);
   for (const o of offers) assert.doesNotMatch(o.source.url, /sfmta\.com\/(vi|zh|zh-hant|es|tl|ru)\//, `${o.id}: an English source`);
   // the export script keeps the override honest: it fails once the site's own source changes
   const script = fs.readFileSync(path.resolve('scripts/opus-sf/export-live.ts'), 'utf8');
