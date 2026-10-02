@@ -29,18 +29,20 @@ const off = H.initTitleHost();
 const shown = () => { const s = H.titleHostState(); return s.toast ? (typeof s.toast.text === 'string' ? s.toast.text : s.toast.text.zh) : null; };
 const src = (p: string) => readFileSync(new URL(`../src/opus-bay/${p}`, import.meta.url), 'utf8');
 
-test('S-RV-1 (the cause, reproduced): under an event card a toast is never on screen and is dropped after 10 s — so the sheet cannot rely on one', () => {
+// (W9-I, F-RC-1 / F-RP-2) the cause is fixed in ui/titleHost.ts: a toast raised under a panel / card shows at once. The
+// sheet still says what 保存 / 分享 did in its own status line (the next test). Before W9-I: held, then dropped after 10 s.
+test('S-RV-1 (the cause) / W9-I: under an event card a toast is the card’s own feedback and shows at once, then goes', () => {
   advance(20_000); A.clearAttention(); game.set({ dialogue: { nodeId: null }, panel: { kind: null } }); advance(3000);
   game.set({ panel: { kind: 'event' } });
   advance(200);
   assert.equal(H.modalUp(), true);
   toast({ zh: '长按图片，保存或发给家人', en: 'Press and hold the picture to save or send it' }, 'info', 2600);
-  advance(1500);
-  assert.notEqual(shown(), '长按图片，保存或发给家人', 'held under the card');
+  advance(200);
+  assert.equal(shown(), '长按图片，保存或发给家人', 'at once, beside the card');
   advance(11_000);
   game.set({ panel: { kind: null } });
   advance(3000);
-  assert.notEqual(shown(), '长按图片，保存或发给家人', 'dropped after waiting 10 s, never shown');
+  assert.notEqual(shown(), '长按图片，保存或发给家人', 'gone after its time, not shown again');
   off();
   mock.timers.reset();
 });

@@ -124,7 +124,8 @@ test('lang: a toast or an announcement given { zh, en } follows a switch while i
   const { flow } = await import('../src/opus-bay/game/flowStore');
   const { Toasts, LiveRegion } = await import('../src/opus-bay/ui/Floating');
   try {
-    await act(async () => { await L.setLocale('zh-Hans', false); game.set({ toasts: [] }); });
+    // (W9-I: one toast at a time is the city's — the district keeps its stack of three, as before W9-F2)
+    await act(async () => { await L.setLocale('zh-Hans', false); game.set({ toasts: [], worldMode: 'city' }); });
     act(() => {
       toast({ zh: '已存进相册', en: 'Saved to your album' }, 'info', 60_000);
       say('欢迎回来！我们接着逛吧。', "Welcome back! Let's keep exploring.", 'info', 60_000);
