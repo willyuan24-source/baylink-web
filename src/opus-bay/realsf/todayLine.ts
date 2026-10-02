@@ -2,6 +2,7 @@ import type { Bilingual, Catalog, Vec2 } from '../core/types';
 import { getCatalog, weekday } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
 import { CALENDAR, calendarAhead, calendarOn, type CalendarRow } from './calendar';
+import { halloweenTodayLine } from '../halloween/today';
 import { EVENT_SAY, VENUE_SAY } from './eventVenues';
 import { weekEvents } from './events';
 import { liveOffers, offersOn, type LiveOffer } from './live';
@@ -19,6 +20,11 @@ import { atMinute, hm } from './todayRows';
 const cut = (zh: string, alt: string) => ([...zh].length <= 45 ? zh : alt);
 
 export function todayLine(now: Date = bayNow(), catalog: Catalog | null = getCatalog()): Bilingual {
+  // (W9-H, lane H surgical) the big Halloween days come first — 31 Oct (the Chinatown festival / every door answers),
+  // 1–2 Nov (Día de los Muertos, the procession): a fixed, voiced line (halloween/today.ts); the review's 19:30 return
+  // on Halloween night heard the generic line
+  const big = halloweenTodayLine(now);
+  if (big) return big;
   const day = bayParts(now).dateKey;
   const w = weekEvents(now, 1, catalog).find(x => x.dateKey === day);
   if (w) {

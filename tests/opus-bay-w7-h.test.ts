@@ -218,6 +218,6 @@ test('W7-H lines: the new fixed lines (w7-h-*) are short, bilingual, never templ
     assert.match(WL.HALLOWEEN_WORLD_LINES[k].en, /official/, k);
   }
   assert.ok(WL.ALL_WORLD_LINES.every(l => l.id.startsWith('w6-h-')), 'ALL_WORLD_LINES stays wave 6\'s recorded list');
-  assert.equal(WL.EVERY_WORLD_LINE.length, WL.ALL_WORLD_LINES.length + WL.W7_WORLD_LINES.length + WL.W8_WORLD_LINES.length); // W8-H: + wave 8's
+  assert.equal(WL.EVERY_WORLD_LINE.length, WL.ALL_WORLD_LINES.length + WL.W7_WORLD_LINES.length + WL.W8_WORLD_LINES.length + WL.W9_WORLD_LINES.length); // W8-H: + wave 8's, W9-H: + wave 9's
   assert.ok(WL.W7_WORLD_LINES.length >= 9);
 });

@@ -70,7 +70,20 @@ const W8_LINES = {
   processionAside: l('w8-h-procession-aside', '队伍从我们身边绕过去了。我们站到路边吧～', 'They’re walking around us — let’s step onto the sidewalk.'),
 } as const satisfies Record<string, WorldLine>;
 
-export const HALLOWEEN_WORLD_LINES = { ...W6_LINES, ...W7_LINES, ...W8_LINES } as const satisfies Record<string, WorldLine>;
+/**
+ * Wave 9 (lane H): new lines, ids `w9-h-*` — lane X records them (C:/Users/willy/opus-qa/w9/new-lines.md). BAYBAY's
+ * greeting on the big days (halloween/today.ts: the 'returning' welcome through realsf/todayLine.ts, and the first visit's
+ * invitation after the first minute in halloween/world.ts): the festival's hours (CYC's page, checked 2026-10-01:
+ * "Saturday, October 31, 2026, from 11am-3pm", Waverly Place), the big night (every door answers, double treats:
+ * halloween/treat.ts), the procession (SFMTA's 2025 route and time, the 2026 times not published: 通常 · 以官网为准).
+ */
+const W9_LINES = {
+  todayFestival: l('w9-h-today-festival', '万圣节快乐！今天唐人街的 Waverly 巷有万圣节庆典，下午三点结束～', 'Happy Halloween! Chinatown’s Halloween Festival is on Waverly Place today, until three o’clock.'),
+  todayBigNight: l('w9-h-today-big-night', '万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～', 'Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there.'),
+  todayProcession: l('w9-h-today-procession', '今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。', 'The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site.'),
+} as const satisfies Record<string, WorldLine>;
+
+export const HALLOWEEN_WORLD_LINES = { ...W6_LINES, ...W7_LINES, ...W8_LINES, ...W9_LINES } as const satisfies Record<string, WorldLine>;
 
 export type WorldLineKey = keyof typeof HALLOWEEN_WORLD_LINES;
 
@@ -83,5 +96,7 @@ export const ALL_WORLD_LINES: readonly WorldLine[] = Object.values(W6_LINES);
 export const W7_WORLD_LINES: readonly WorldLine[] = Object.values(W7_LINES);
 /** The wave-8 lines (lane X's wave-8 recording list: data/sf/voiceW8.ts). */
 export const W8_WORLD_LINES: readonly WorldLine[] = Object.values(W8_LINES);
+/** The wave-9 lines (lane X's wave-9 recording list: C:/Users/willy/opus-qa/w9/new-lines.md). */
+export const W9_WORLD_LINES: readonly WorldLine[] = Object.values(W9_LINES);
 /** Every line lane H shows. */
-export const EVERY_WORLD_LINE: readonly WorldLine[] = [...ALL_WORLD_LINES, ...W7_WORLD_LINES, ...W8_WORLD_LINES];
+export const EVERY_WORLD_LINE: readonly WorldLine[] = [...ALL_WORLD_LINES, ...W7_WORLD_LINES, ...W8_WORLD_LINES, ...W9_WORLD_LINES];

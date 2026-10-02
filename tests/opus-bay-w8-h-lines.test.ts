@@ -28,7 +28,7 @@ test('W8-H lines: the wave-8 lines are fixed, short, bilingual, unique; wave 6 /
     assert.doesNotMatch(l.zh + l.en, /\$\{|undefined|NaN|\d{1,2}:\d{2}|\d/, `${l.id}: fixed text, no number`);
   }
   assert.ok(WL.ALL_WORLD_LINES.every(l => l.id.startsWith('w6-h-')) && WL.W7_WORLD_LINES.every(l => l.id.startsWith('w7-h-')));
-  assert.equal(WL.EVERY_WORLD_LINE.length, WL.ALL_WORLD_LINES.length + WL.W7_WORLD_LINES.length + WL.W8_WORLD_LINES.length);
+  assert.equal(WL.EVERY_WORLD_LINE.length, WL.ALL_WORLD_LINES.length + WL.W7_WORLD_LINES.length + WL.W8_WORLD_LINES.length + WL.W9_WORLD_LINES.length); // W9-H: + wave 9's
   assert.deepEqual(HL.hLine('w8h-costume-pumpkin-bow'), { zh: HL.W8_HALLOWEEN_LINES[0].zh, en: HL.W8_HALLOWEEN_LINES[0].en });
   for (const k of ['chinatownContest', 'chinatownLanterns', 'processionAside'] as const) assert.ok(WL.lineText(k).zh.length > 0, k);
 });

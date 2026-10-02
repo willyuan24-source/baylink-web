@@ -64,7 +64,10 @@ test('W5-R review · sun times are printed as the almanac prints them (rounded):
   // what the player reads: BAYBAY's sunset line and the SF Today line on Halloween (the sun sets at 18:11:49)
   assert.match(sun.sunsetLine(bay('2026-10-31T16:00')).zh, /日落 18:12，/);
   const empty: Catalog = { checkedAt: '2026-09-27', events: [], places: [], guides: [] };
-  assert.match(todayLine(bay('2026-10-31T10:00'), empty).zh, /日落 18:12，/);
+  // (W9-H) on Halloween itself the SF Today line is the big day's (halloween/today.ts); the rounded sunset through the
+  // SF Today line is checked on 9 Oct (USNO 18:40)
+  assert.match(todayLine(bay('2026-10-31T10:00'), empty).zh, /^万圣节快乐！今天讨糖街/);
+  assert.match(todayLine(bay('2026-10-09T10:00'), empty).zh, /日落 18:40，/);
   // the daily sunset task's hours: golden light to civil dusk, rounded the same way (dusk Dec 21 17:23:47 → 17:24)
   for (let i = 0; i < 90; i++) {
     const day = new Date(Date.UTC(2026, 11, 1 + i)).toISOString().slice(0, 10);

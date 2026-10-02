@@ -17,14 +17,17 @@ import { U } from '../world/materials';
 import { getWorld } from '../world/world';
 import { createHunt, huntList, pickPumpkin, pumpkinsFound, pumpkinTotal } from './hunt';
 import { createHuntGuide, HUNT_RADAR, WISP_LINE_NEAR } from './huntGuide';
-import { createMuertos, visitMuertos } from './muertos';
+import { createMuertos, MUERTOS_AT, visitMuertos } from './muertos';
 import { halloweenPhase, type HalloweenPhase } from './season';
 import { BAT_COLONIES, createDress, nearestStoop } from './worldDress';
 import { createHaloPool } from './worldHalos';
 import { createHaunt } from './worldHaunt';
-import { createFestival } from './worldFestival';
+import { alleyAt, alleyLength, createFestival } from './worldFestival';
 import { createVenuePatches, VENUE_LINE_NEAR } from './worldVenues';
 import { lineText, type WorldLineKey } from './worldLines';
+import { bigDayInvite, halloweenTodayKey } from './today';
+import { TREAT_DOORS } from './treatDoors';
+import { lastWelcome } from '../game/welcome';
 
 /**
  * Wave 6 · lane H · the Halloween season in the world (halloween/season.ts decides the phase; nothing here reads a date
@@ -115,6 +118,15 @@ export function initHalloweenWorld(): () => void {
   const offer = (key: string, k: WorldLineKey) => offered.push({ key, text: lineText(k) });
 
   let clock = 0, acc = 1;
+  // W9-H: seconds of play (not on the title or in the welcome), for the first visit's big-day invitation
+  let playS = 0;
+  const festivalMid = alleyAt(alleyLength() / 2);
+  const liveDoors = TREAT_DOORS.filter(d => !d.gone);
+  const placeOf = (k: WorldLineKey, x: number, z: number): number => {
+    if (k === 'todayFestival') return Math.hypot(x - festivalMid.x, z - festivalMid.z);
+    if (k === 'todayBigNight') return Math.min(...liveDoors.map(d => Math.hypot(x - d.x, z - d.z)));
+    return Math.hypot(x - MUERTOS_AT.x, z - MUERTOS_AT.z);
+  };
   const offFrame = registerFrameSystem('w6-halloween-world', dt => {
     clock += dt;
     const p = runtime.player;
@@ -126,6 +138,8 @@ export function initHalloweenWorld(): () => void {
       pool.step();
     }
     if ((acc += dt) < 0.5) return;
+    const s0 = game.get();
+    if (s0.phase === 'playing' && s0.mode !== 'onboarding' && !s0.paused) playS += acc;
     acc = 0;
     attach();
     const now = bayNow();
@@ -183,6 +197,11 @@ export function initHalloweenWorld(): () => void {
     if (street && night < 0.3 && phase === 'season') offer('season-hello', 'seasonHello');
     // W7-H1: the pumpkin-coloured dusk (the season's golden hour, outdoors in the city)
     if ((phase === 'season' || phase === 'night') && karl()?.tod === 'golden' && night < 0.3) offer('dusk', 'dusk');
+    // W9-H: a first visit on a big day (31 Oct, 1–2 Nov) hears what is on once the first minute is over, far from it
+    // (a returning player heard the same line in the welcome: realsf/todayLine.ts); lowest priority, once a Bay day
+    const big = halloweenTodayKey(now);
+    const invite = big && bigDayInvite(big, placeOf(big, p.x, p.z), playS, lastWelcome()?.kind === 'returning');
+    if (invite) offer(invite === 'muertosHello' ? 'muertos-hello' : `invite-${invite}`, invite);
     if (!offered.length) return;
     const line = sched.step(performance.now() / 1000, bayParts(now).dateKey, gates, offered);
     if (line) bubble(line.text, 4600, BAYBAY_ID, 'bark');

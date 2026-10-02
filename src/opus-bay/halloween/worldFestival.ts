@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { heightAt } from '../core/terrain';
-import { bayParts } from '../game/bayNow';
+import { festivalOn } from './festivalDate';
 import { BOX, CBOX, ICO, M, Batch, type Info } from '../world/builder';
 import { TOY } from '../world/materials';
 import { closeRoad } from '../world/sf/roadClosures';
@@ -22,7 +22,8 @@ import { addFigure, addPumpkin } from './worldDress';
  * nothing else of the season is drawn in Chinatown. The pieces are not colliders (the alley stays walkable).
  */
 
-export const FESTIVAL = { id: 'chinatown-halloween-festival-2026', date: '2026-10-31', from: 11 * 60, to: 15 * 60 } as const;
+// (W9-H) the date and hours live in halloween/festivalDate.ts (pure: BAYBAY's 31 October greeting reads them too)
+export { FESTIVAL, festivalOn } from './festivalDate';
 /** Waverly Place's centreline in the published city (OSM way, Washington St end first), x / z */
 export const WAVERLY: readonly { x: number; z: number }[] = [
   { x: 20.8, z: 140.1 }, { x: 23.1, z: 141.7 }, { x: 24.7, z: 142.8 }, { x: 29.5, z: 146.2 }, { x: 32.2, z: 148.0 }, { x: 37.8, z: 151.9 }, { x: 43.5, z: 155.9 },
@@ -33,13 +34,6 @@ export const FEST_NEAR = 160;
 export const CONTEST_NEAR = 7, LANTERN_NEAR = 30;
 /** a phone's toy budget for the whole kit (triangles) */
 export const FESTIVAL_TRIS_MAX = 9000;
-
-/** Whether the festival is on at `now` (the Bay clock): 31 October 2026, 11:00 ≤ t < 15:00. */
-export function festivalOn(now: Date): boolean {
-  const p = bayParts(now);
-  const m = p.hour * 60 + p.minute;
-  return p.dateKey === FESTIVAL.date && m >= FESTIVAL.from && m < FESTIVAL.to;
-}
 
 const ALLEY_LEN = (() => { let s = 0; for (let i = 1; i < WAVERLY.length; i++) s += Math.hypot(WAVERLY[i].x - WAVERLY[i - 1].x, WAVERLY[i].z - WAVERLY[i - 1].z); return s; })();
 /** A point `s` u along the alley from its Washington St end and `side` u to its left (+) / right (−), with the alley's heading. */
