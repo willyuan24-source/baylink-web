@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { setPageMetadata } from '../lib/seo';
+import { SITE_URL, setPageMetadata } from '../lib/seo';
+import { OPUS_BAY_OG, opusBayOgImage } from '../lib/opus-bay-metadata';
 import { primeAudio } from './audio/unlock';
 import { game, useGame, type GameState } from './core/store';
 import { initPersistence } from './data/wishlist';
@@ -119,18 +120,21 @@ export default function OpusBayPage() {
 function PageMeta() {
   const { t } = useT();
   useEffect(() => {
-    // W5-Z: the city is the default world; ?world=district keeps the district's words
+    // W5-Z: the city is the default world; ?world=district keeps the district's words. (W9-E) the share image is the key
+    // art's 1200 × 630 crop (the Halloween one in October), as in the prerendered dist/opus-bay.html — not the site's icon
     setPageMetadata(game.get().worldMode === 'city' ? {
       title: t('湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK', 'Little Bay Trip · Explore San Francisco with BAYBAY | BAYLINK'),
       description: t('跟 BAYBAY 逛整座旧金山：金门大桥、叮当车、双峰，真实景点和这周活动，一个可以边玩边查的迷你旧金山。',
         'Roam all of San Francisco with BAYBAY — the Golden Gate, cable cars, Twin Peaks: real places and this week’s events in a mini San Francisco you can play.'),
       path: '/opus-bay',
+      image: opusBayOgImage(),
       preserveText: true,
     } : {
       title: t('湾区小旅 · 跟 BAYBAY 逛 Embarcadero｜BAYLINK', 'Little Bay Trip · Explore the Embarcadero with BAYBAY | BAYLINK'),
       description: t('刚来湾区？让 BAYBAY 带你从渡轮大厦走到 PIER 39：真实景点、这周活动和出游计划，一个可以边玩边查的迷你湾区。',
         'New to the Bay? Let BAYBAY walk you from the Ferry Building to Pier 39 — real places, this week’s events and day plans in a mini Bay Area you can play.'),
       path: '/opus-bay',
+      image: `${SITE_URL}${OPUS_BAY_OG.key}`,
       preserveText: true,
     });
   }, [t]);

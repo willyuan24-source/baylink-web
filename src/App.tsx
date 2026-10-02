@@ -3,12 +3,14 @@
 // 页面区继续按"背景位置"渲染（来源页保持挂载），覆盖层本身由 AppLayout 按真实 URL 渲染。
 // 直接深链 /posts/:id、/users/:id（无背景）时，以首页 feed 作为覆盖层背景。
 // 除首页外全部路由懒加载（Suspense 边界在 AppLayout 的 <Outlet> 外层）。
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import './i18n/router';
 import { Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
 import HomePage from './pages/HomePage';
 import { SLUG_TO_CATEGORY } from './routing';
+import { OpusBayShell } from './components/OpusBayShell';
+import { opusBayInHalloween } from './lib/opus-bay-metadata';
 
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
 const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
@@ -40,14 +42,16 @@ const CategoryPage = () => {
 
 export default function App() {
   const location = useLocation();
+  // W9-E: the site's script runs — public/boot-check.js (the old-browser notice) stands down from here on
+  useEffect(() => { document.documentElement.setAttribute('data-app', 'ready'); }, []);
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
 
   return (
     // 注意：<Routes location> 会把内部的 LocationContext 一并替换成传入的位置，
     // 因此覆盖层所需的"真实位置"必须从这里（Router 层）作为 prop 传给 AppLayout。
     <Routes location={backgroundLocation || location}>
-      {/* Opus Bay：独立全屏 3D 世界，不套站点外框 */}
-      <Route path="/opus-bay" element={<Suspense fallback={null}><OpusBayPage /></Suspense>} />
+      {/* Opus Bay：独立全屏 3D 世界，不套站点外框。W9-E：路由 chunk 加载时显示与预渲染 opus-bay.html 相同的首屏（不再空白、不闪首页） */}
+      <Route path="/opus-bay" element={<Suspense fallback={<OpusBayShell halloween={opusBayInHalloween(new Date(), location.search)} />}><OpusBayPage /></Suspense>} />
       <Route element={<AppLayout realLocation={location} />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categorySlug" element={<CategoryPage />} />

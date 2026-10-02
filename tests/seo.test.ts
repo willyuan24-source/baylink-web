@@ -151,6 +151,8 @@ test('hosting config has explicit public routes, a real missing-page status and 
     assert.equal(routeFor(path).dest, '/$1.html');
     assert.equal(routeFor(`${path}/`).dest, '/$1.html');
   }
+  // W9-E (review 2026-10-01 R§5 #3): /opus-bay has its own prerendered page, no longer the SPA's index.html
+  for (const path of ['/opus-bay', '/opus-bay/']) assert.equal(routeFor(path).dest, '/$1.html', path);
   assert.equal(routeFor('/my-week').dest, '/index.html');
   assert.equal(routeFor('/my-week/').dest, '/index.html');
   for (const path of ['/me/bookings', '/me/bookings/']) {
@@ -171,6 +173,7 @@ test('hosting config has explicit public routes, a real missing-page status and 
   assert.ok(sitemap.includes('/plan</loc>'));
   assert.ok(sitemap.includes('/play</loc>'));
   assert.ok(sitemap.includes('/ai-in-the-bay</loc>'));
+  assert.ok(sitemap.includes('/opus-bay</loc>'), 'W9-E: the game is listed');
   assert.ok(!sitemap.includes('/my-week</loc>'), 'private account plans must not be promoted as public indexed content');
   for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc><lastmod>${guide.updatedAt}</lastmod>`));
 });

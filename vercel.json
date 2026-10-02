@@ -79,7 +79,7 @@
       "dest": "/category/$1.html"
     },
     {
-      "src": "^/(guides|explore|plan|play|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },
     {
@@ -95,7 +95,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:me(?:/bookings)?|my-week|together|messages(?:/[^/]+)?|reset-password|users/[^/]+|opus-bay)/?$",
+      "src": "^/(?:me(?:/bookings)?|my-week|together|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
       "dest": "/index.html"
     },
     {
