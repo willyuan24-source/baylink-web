@@ -9,7 +9,8 @@
 // Surfaces: hud · gstep (the goals step, a fresh save) · skyline (the 那是什么 quiz at Twin Peaks) · metro (an underground
 // Muni Metro ride and its 设置) · ferry (the Alcatraz boat from Pier 33: the ride card, ?date by day) · grip (the cable-car
 // grip game on a Powell–Hyde ride, from its first stop's station: it waits up to 90 s for a car) · busk (the busker jam) ·
-// settings (top and end). A canvas (a game's board) counts as a control: its centre covered is a defect (W8-Q-review Q-PL-4).
+// settings (top and end) · (W9-Q) week (这周去哪: the questions step and the 免费就好 board with lane R's 这周免费 strip) ·
+// games (the journal's 游乐 tab) · mapplay (the map's 玩 chip and a game's go card) · freedays (SF Zoo's card: 近 7 天免费). A canvas (a game's board) counts as a control: its centre covered is a defect (W8-Q-review Q-PL-4).
 // Before each surface an open dialogue is closed (a goal done on the way, e.g. the pelican's at Twin Peaks, opens one).
 // Each size starts from cleared site storage, so the goals step opens at every size; a surface asked for that did not open
 // is a row with missing: true (W8-Q-review Q-RC-4).
@@ -28,7 +29,7 @@ const SIZES = String(args.sizes || '390x664,375x553,667x320,844x340').split(',')
 const ONLY = args.only ? new Set(String(args.only).split(',')) : null;
 const LANG = args.lang || 'zh-Hans';
 const OUT = path.resolve(args.out || 'overlap-scan');
-const LOCK = args.lock || 'C:/Users/willy/opus-qa/w8/PERF-LOCK';
+const LOCK = args.lock || 'C:/Users/willy/opus-qa/w9/PERF-LOCK';
 const SHOTS = !!args.shots;
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -121,6 +122,30 @@ try {
       await page(`(await imp('game/flow.ts')).closeDialogue(); return 1`);
       if (want('hud')) await scan('.ob-overlay', 'hud', { bottom: false });
       if (want('settings')) { await page(`ob.game.set({ panel: { kind: 'settings' } }); return 1`); await sleep(1500); await scan('.ob-sheet', 'settings'); await page(`ob.game.set({ panel: { kind: null }, paused: false }); return 1`); await sleep(700); }
+      // (W9-Q) wave 9's surfaces: 这周去哪 (the questions step with lane R's 这周免费 strip, then 免费就好 → the board with the
+      // six-row strip), the journal's 游乐 tab (lane G's 游乐图鉴), the map's 玩 chip + a game's go card (lane G), a place card
+      // with lane R's 近 7 天免费 (SF Zoo: the residents' free day of 7 Oct, ?date 2 Oct)
+      if (want('week')) {
+        await page(`(await imp('game/flow.ts')).openPanel('week'); return 1`); await sleep(2500); await scan('.ob-sheet', 'week-q');
+        const pickRe = s => ev(`(() => { const re = new RegExp(${JSON.stringify(s)}); for (const el of document.querySelectorAll('.ob-sheet button')) if (re.test(el.textContent)) { el.click(); return 1; } return 0; })()`);
+        for (let i = 0; i < 6 && !(await ev(`!!document.querySelector('.ob-board')`)); i++) { (await pickRe('免费就好|Free is fine|免費就好')) || (await pickRe('带娃|With kids|帶娃')) || (await pickRe('都行|Anywhere|都可以')) || (await pickRe('城里|In the city|城裡')); await sleep(1500); }
+        await sleep(1200); await scan('.ob-sheet', 'week-board');
+        await page(`ob.game.set({ panel: { kind: null }, paused: false }); return 1`); await sleep(700);
+      }
+      if (want('games')) { await page(`(await imp('ui/slots.ts')).openJournal('games'); return 1`); await sleep(2500); await scan('.ob-sheet', 'journal-games'); await page(`ob.game.set({ panel: { kind: null }, paused: false }); return 1`); await sleep(700); }
+      if (want('mapplay')) {
+        await page(`ob.game.set({ panel: { kind: 'map' } }); return 1`); await sleep(3000);
+        await ev(`(() => { for (const b of document.querySelectorAll('.ob-sheet button')) if (['玩', 'Play'].includes(b.textContent.trim())) { b.click(); return 1; } return 0; })()`); await sleep(1500);
+        await scan('.ob-sheet', 'map-play', { bottom: false });
+        await ev(`(() => { const b = [...document.querySelectorAll('.mw-list li')].find(l => l.querySelector('button'))?.querySelector('button'); b?.click(); return !!b; })()`); await sleep(1500);
+        await scan('.ob-sheet', 'map-play-go', { bottom: false });
+        await page(`ob.game.set({ panel: { kind: null }, paused: false }); return 1`); await sleep(700);
+      }
+      if (want('freedays')) {
+        await page(`const { ATTRACTIONS } = await imp('data/sf/attractions.ts'); const a = ATTRACTIONS.find(x => x.id === 'sf-zoo'); ob.game.set({ panel: { kind: 'poi', id: (await imp('data/sf/cityPois.ts')).attractionCardId(a) } }); return 1`);
+        await sleep(3000); await scan('.ob-sheet', 'zoo-card');
+        await page(`ob.game.set({ panel: { kind: null }, paused: false }); return 1`); await sleep(700);
+      }
       if (want('skyline')) {
         await page(`const { ATTRACTIONS } = await imp('data/sf/attractions.ts'); const a = ATTRACTIONS.find(x => x.id === 'twin-peaks'); (await imp('game/flow.ts')).teleportPlayer({ x: a.arrival?.x ?? a.x, z: a.arrival?.z ?? a.z }); return 1`);
         await sleep(5000);

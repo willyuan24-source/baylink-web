@@ -195,3 +195,11 @@ test('W9-Q14: in short landscape the journal tabs put the icon beside the words'
   assert.match(decl(css, '.ob-journal .ob-tabs.is-many > button > :first-child:not(:only-child)', ['(max-height: 460px)']).join(), /flex: 0 0 auto/);
   assert.match(decl(css, '.ob-journal .ob-tabs.is-many:has(> button) > button', ['(max-height: 460px)']).join(), /padding-top: 3px; padding-bottom: 3px/);
 });
+
+test('W9-Q15: the overlap scan opens wave 9\'s surfaces (这周去哪 + 这周免费, the 游乐 tab, the map\'s 玩 chip + go card, 近 7 天免费)', () => {
+  const scan = fs.readFileSync(new URL('../scripts/opus-sf/qa/overlap-scan.mjs', import.meta.url), 'utf8');
+  for (const s of ['week', 'games', 'mapplay', 'freedays']) assert.ok(scan.includes(`want('${s}')`), s);
+  assert.match(scan, /openJournal\('games'\)/);
+  assert.match(scan, /ATTRACTIONS\.find\(x => x\.id === 'sf-zoo'\)/);
+  assert.match(scan, /opus-qa\/w9\/PERF-LOCK/);
+});
