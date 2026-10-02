@@ -27,6 +27,7 @@ export function initChunkPending(doc: Doc | null = typeof document !== 'undefine
     el.textContent = loc === 'en' ? TEXT.en : loc === 'zh-Hant' ? TEXT.hant : TEXT.zh;
     Object.assign(el.style, {
       position: 'fixed', top: 'calc(68px + env(safe-area-inset-top, 0px))', left: '50%', transform: 'translateX(-50%)', zIndex: '60',
+      whiteSpace: 'nowrap', maxWidth: 'calc(100vw - 32px)', overflow: 'hidden', textOverflow: 'ellipsis',
       padding: '8px 16px', borderRadius: '999px', background: 'rgba(255, 250, 241, .96)', color: '#1f5f59', fontWeight: '700', fontSize: '14px', lineHeight: '1.3',
       boxShadow: '0 4px 14px rgba(40, 30, 20, .18)', pointerEvents: 'none',
     });

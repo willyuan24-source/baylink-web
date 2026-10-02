@@ -192,6 +192,11 @@ MapPanel chunk blocked with CDP `Network.setBlockedURLs`, `?world=city&start=fre
 playing*), the pill gone, the map panel closed (the goals chip back top-right) —
 `docs/opus-bay/qa/w9/P/b-lost-map-closed-en.jpg` (read). The first shot showed the pill over the goals chip, which sits
 top-centre while the map panel shifts the HUD → W9-P4b.
+The same run on the phone (390 × 844, dpr 2, 04:05 PDT): the pill under the top chips at +1.5 s, the reload card at
++12.3 s, the map closed (the dock back) — `docs/opus-bay/qa/w9/P/b-lost-map-closed-phone-en.jpg` (read); the pill's text
+wrapped to two lines in a 195 px box (a fixed box at `left: 50%` shrinks to the half width) → **W9-P4c** `white-space:
+nowrap` + `max-width: calc(100vw - 32px)` (not re-shot: the dev-server phone re-run did not reach the city within its
+5-minute limit at 04:20; the unit tests pass).
 
 **Software GL, in a real run** (Chrome `--use-angle=swiftshader --enable-unsafe-swiftshader`, the production build):
 renderer *SwiftShader Device (Subzero)*, no KHR; the title shows *This device draws the 3D world in software (no graphics
