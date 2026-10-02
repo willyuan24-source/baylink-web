@@ -503,7 +503,10 @@ test('W5-N3 trip runner: a panel pauses auto-travel; a start inside a blocker st
 
 test('W5-N3 the go button says the way and its time', async () => {
   const { goButtonLabel } = await import('../src/opus-bay/ui/tripRows');
-  assert.deepEqual(goButtonLabel(opt('walk', 185)), { zh: 'BAYBAY 带路 · 约 3 分钟', en: 'BAYBAY leads · ~3 min' });
+  // (W9-N5) a walk says it walks with BAYBAY; under two minutes in seconds (the review's "~1 min" was ≈ 85 s)
+  assert.deepEqual(goButtonLabel(opt('walk', 185)), { zh: '和 BAYBAY 走 · 约 3 分钟', en: 'Walk with BAYBAY · ~3 min' });
+  assert.deepEqual(goButtonLabel(opt('walk', 84)), { zh: '和 BAYBAY 走 · 约 85 秒', en: 'Walk with BAYBAY · ~85s' });
+  assert.deepEqual(goButtonLabel(opt('walk', 40)), { zh: '和 BAYBAY 走 · 约 40 秒', en: 'Walk with BAYBAY · ~40s' });
   assert.deepEqual(goButtonLabel(opt('fly', 8)), { zh: '飞过去 · 约 8 秒', en: 'Fly · ~8s' });
   assert.deepEqual(goButtonLabel(opt('bike', 120)), { zh: '骑车 · 约 2 分钟', en: 'Bike · ~2 min' });
 });

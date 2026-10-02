@@ -100,9 +100,18 @@ export const optionWay = (o: Pick<TripOption, 'mode' | 'legs'>): TripWay => (isS
  * its ride. One tap starts moving (game/tripRun: auto-travel).
  */
 export function goButtonLabel(o: TripOption): Bilingual {
-  const what: Bilingual = o.mode === 'walk' || o.mode === 'run' ? { zh: 'BAYBAY 带路', en: 'BAYBAY leads' } : optionTitle(o);
-  const time = tripSecondsLabel(o.seconds);
+  // (W9-N5, review R§6 界面: the map's "~1 min" read like a teleport and was ≈ 85 s on foot) a walk says it walks, with
+  // BAYBAY, in seconds up to two minutes
+  if (o.mode === 'walk' || o.mode === 'run') { const time = walkGoTime(o.seconds); return { zh: `和 BAYBAY 走 · ${time.zh}`, en: `Walk with BAYBAY · ${time.en}` }; }
+  const what = optionTitle(o), time = tripSecondsLabel(o.seconds);
   return { zh: `${what.zh} · ${time.zh}`, en: `${what.en} · ${time.en}` };
+}
+
+/** A walk's time on the go button: 5-second steps up to two minutes ("约 85 秒" / "~85s"), then the one time rule. */
+export function walkGoTime(sec: number): Bilingual {
+  if (!Number.isFinite(sec) || sec < 60 || sec >= 120) return tripSecondsLabel(sec);
+  const n = Math.round(sec / 5) * 5;
+  return n >= 120 ? tripSecondsLabel(sec) : { zh: `约 ${n} 秒`, en: `~${n}s` };
 }
 
 /** A screen-reader line for a row ("观光巴士 2 站，约 3 分钟，推荐"). */

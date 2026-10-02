@@ -494,7 +494,8 @@ test('review: during a trip here the place card changes its way (换个方式: t
   assert.doesNotMatch(plain, /换个方式|其他方式|跟 BAYBAY 去/);
   const idle = renderToStaticMarkup(h(PlaceActions, { place, attraction: coit }));
   // W5-N3: the go button says the way and its time (in node: the walk, BAYBAY leading)
-  assert.match(idle, /mw-go[^>]*>.*BAYBAY 带路 · 约 \d+ (秒|分钟)/);
+  // (W9-N5) a walk says it walks with BAYBAY (the review's "~1 min" read like a teleport)
+  assert.match(idle, /mw-go[^>]*>.*和 BAYBAY 走 · 约 \d+ (秒|分钟)/);
 });
 
 test('review: a Grand Tour stop\'s trip (its placeId an interactable id) gets its pin and its selection on the map; a station opener takes any of the station\'s stop ids', async () => {
