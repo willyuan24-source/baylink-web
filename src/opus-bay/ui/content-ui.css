@@ -64,3 +64,9 @@
 }
 .ob-journal .ob-tabs.is-many > button > :first-child:not(:only-child) { flex: 0 0 100%; display: flex; justify-content: center; }
 .ob-journal .ob-tabs.is-many > button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* (W9-Q14) a phone on its side (≤ 460 px tall): the icon goes beside its words, so every tab is 44 px (844 × 390 with eight tabs:
+   the grid 107 → 100 px of the 358 px side sheet; the first row's tabs were 51 px) */
+@media (max-height: 460px) {
+  .ob-journal .ob-tabs.is-many > button > :first-child:not(:only-child) { flex: 0 0 auto; }
+  .ob-journal .ob-tabs.is-many:has(> button) > button { padding-top: 3px; padding-bottom: 3px; }
+}

@@ -189,3 +189,9 @@ test('W9-Q13: the map search with a soft keyboard: the sheet takes the screen wh
   // the field still lives in CityMapList's label
   assert.match(read('ui/CityMapList.tsx'), /<label className="ob-citymap-search">/);
 });
+
+test('W9-Q14: in short landscape the journal tabs put the icon beside the words', () => {
+  const css = read('ui/content-ui.css');
+  assert.match(decl(css, '.ob-journal .ob-tabs.is-many > button > :first-child:not(:only-child)', ['(max-height: 460px)']).join(), /flex: 0 0 auto/);
+  assert.match(decl(css, '.ob-journal .ob-tabs.is-many:has(> button) > button', ['(max-height: 460px)']).join(), /padding-top: 3px; padding-bottom: 3px/);
+});
