@@ -13,6 +13,7 @@ import { installBackGuard } from './backGuard';
 import { BaybayFace, Keycap } from './common';
 import { installFocusTrap } from './focusTrap';
 import { interactWeight } from './interactPriority';
+import { applyTextSize } from './textSize';
 import { portraitSrc, useDevice, useWindowKey } from './hooks';
 import { askItems } from './slots';
 import './content-ui.css';
@@ -32,14 +33,15 @@ const STORAGE_NOTICE = { zh: '这次的进度无法保存（浏览器禁止了�
 /**
  * W9-A · the play layer's keyboard / back-button / robustness helpers, installed once while it is mounted (this component
  * is always rendered after the title): the focus trap of the aria-modal dialogs (ui/focusTrap.ts), the back button that
- * closes the open thing first (ui/backGuard.ts), the city's E priority (ui/interactPriority.ts) and the storage notice —
- * said once, after Start.
+ * closes the open thing first (ui/backGuard.ts), the city's E priority (ui/interactPriority.ts), the stored text size
+ * (ui/textSize.ts) and the storage notice — said once, after Start.
  */
 function usePlayA11y() {
   useEffect(() => {
     const offTrap = installFocusTrap();
     const offBack = installBackGuard();
     setFocusWeight(interactWeight);
+    applyTextSize(); // Settings › 文字大小 (ui/textSize.ts), as stored on this device
     let offPhase: (() => void) | null = null;
     const notice = () => say(STORAGE_NOTICE.zh, STORAGE_NOTICE.en, 'info', 7000);
     const offSave = onWriteFailure(() => {

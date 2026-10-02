@@ -14,13 +14,16 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   --ob-line-2: #d9cab2;
   --ob-ink: #22322f;
   --ob-ink-2: #4d5d58;
-  --ob-ink-3: #7e8a85;
-  --ob-teal: #2f8f88;
+  /* W9-A (surgical; review tech notes: the muted 12–13 px text 3.4–3.6:1) — #7e8a85 → #626f6a: 5.25:1 on white, 5.05 on cream */
+  --ob-ink-3: #626f6a;
+  /* W9-A (lane A, surgical; review R§6 技术: white on the teal buttons 3.89:1) — #2f8f88 → #287c76: white 4.96:1 */
+  --ob-teal: #287c76;
   --ob-teal-d: #1f6f69;
   --ob-teal-l: #e2f0ec;
   --ob-teal-2: #cfe6e1;
   --ob-gold: #e0a94a;
-  --ob-gold-d: #a8741f;
+  /* W9-A (surgical; review: the coin / postcard counts 3.87:1) — #a8741f → #8a5d14: 5.74:1 on white, 5.08 on gold-l */
+  --ob-gold-d: #8a5d14;
   --ob-gold-l: #fbf0d8;
   --ob-terra: #d8744a;
   --ob-terra-l: #f8e4d9;
@@ -56,10 +59,14 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
 .ob-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; font-size: 15px; line-height: 1.5; }
 .ob-overlay :where(button, a, input, [role='button'], [role='tab'], [role='switch'], summary, .ob-sheet, .ob-dialogue, .ob-reward, .ob-fish, .ob-title, .ob-recap-wrap, .ob-goals-card, .ob-photo-bar, .ob-ride) { pointer-events: auto; }
 .ob-overlay :where(button, a) { font: inherit; color: inherit; cursor: pointer; }
-.ob-overlay :where(button, a, input, summary, [tabindex]):focus-visible { outline: 3px solid rgba(47, 143, 136, .55); outline-offset: 2px; }
+.ob-overlay :where(button, a, input, summary, [tabindex]):focus-visible { outline: 2px solid var(--ob-teal-d); outline-offset: 2px; } /* W9-A: opaque 2 px (was teal at 55 %, ≈ 1.8:1) */
 .ob-overlay :where(h1, h2, h3, p) { margin: 0; }
 .ob-overlay svg { flex: none; }
 .ob-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* W9-A · Settings › 文字大小 (ui/textSize.ts, data-ob-text on .ob-page): the reading surfaces scale; the map (its pointer
+   maths), the HUD frame and the 3D view stay */
+.ob-page[data-ob-text='115'] :where(.ob-dialogue-box, .ob-sheet:not(.ob-map) > .ob-sheet-body, .ob-toast, .ob-bubble, .ob-arrival-body) { zoom: 1.15; }
+.ob-page[data-ob-text='130'] :where(.ob-dialogue-box, .ob-sheet:not(.ob-map) > .ob-sheet-body, .ob-toast, .ob-bubble, .ob-arrival-body) { zoom: 1.3; }
 .ob-muted { color: var(--ob-ink-3); font-size: 13px; line-height: 1.55; }
 .ob-center { text-align: center; }
 
@@ -101,7 +108,7 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   font: 800 12px/1 var(--ob-font); color: var(--ob-ink); background: #fff; border: 1px solid var(--ob-line-2);
   border-bottom-width: 2px; box-shadow: 0 1px 0 rgba(0, 0, 0, .04); text-transform: uppercase; letter-spacing: .02em;
 }
-.ob-key.on-dark { background: rgba(255, 255, 255, .18); color: #fff; border-color: rgba(255, 255, 255, .35); }
+.ob-key.on-dark { background: rgba(0, 0, 0, .2); color: #fff; border-color: rgba(255, 255, 255, .45); } /* W9-A: white on it 2.95 → ≥ 5:1 */
 
 .ob-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px; background: var(--ob-cream-3); color: var(--ob-ink-2); font-size: 13px; font-weight: 600; }
 .ob-chip.is-teal { background: var(--ob-teal-l); color: var(--ob-teal-d); }
@@ -184,19 +191,19 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
 .ob-cloud.c3 { width: 140px; top: 2.5vh; left: 100vw; opacity: .55; animation: ob-drift 110s linear infinite -60s; }
 .ob-title-gulls { position: absolute; left: 50vw; top: 18vh; width: 120px; fill: none; stroke: #5c6b67; stroke-width: 2; stroke-linecap: round; opacity: .55; animation: ob-gulls 9s ease-in-out infinite; }
 .ob-title-card { position: relative; z-index: 2; margin-left: max(6vw, calc(24px + var(--ob-sl))); padding: 28px 0; display: flex; flex-direction: column; gap: 18px; animation: ob-rise .7s var(--ob-ease) .1s both; }
-.ob-title-mark { font-size: 12.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--ob-teal); }
+.ob-title-mark { font-size: 12.5px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #17524e; } /* W9-A: over the key art (sampled under it: 2.34:1 → 5.37:1) */
 .ob-title-h1 { font-size: clamp(54px, 6.4vw, 88px); line-height: 1; font-weight: 900; letter-spacing: .04em; color: var(--ob-ink); font-family: 'Noto Sans SC', var(--ob-font); position: relative; }
 .ob-title-h1::after { content: ''; display: block; width: 84px; height: 8px; margin-top: 16px; border-radius: 8px; background: linear-gradient(90deg, var(--ob-teal), var(--ob-gold)); }
-.ob-title-sub { font-size: 17px; line-height: 1.65; color: var(--ob-ink-2); max-width: 30em; }
+.ob-title-sub { font-size: 17px; line-height: 1.65; color: #44534e; max-width: 30em; } /* W9-A: 4.30 → 5.04:1 over the key art */
 .ob-title-greet { display: flex; align-items: center; gap: 12px; }
 .ob-title-greet p { position: relative; padding: 10px 14px; border-radius: 16px 16px 16px 4px; background: var(--ob-cream); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s); font-weight: 600; font-size: 15px; animation: ob-pop .5s var(--ob-spring) .6s both; }
 .ob-title-greet .ob-face { box-shadow: 0 0 0 3px #fff, var(--ob-shadow-s); animation: ob-wiggle 3.2s ease-in-out 1.2s infinite; }
 .ob-title-actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .ob-title-actions .ob-btn-primary { min-width: 180px; }
 .ob-title-sound { background: var(--ob-cream); border: 1px solid var(--ob-line); box-shadow: var(--ob-shadow-s); width: 52px; height: 52px; }
-.ob-title-link { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; font-weight: 700; color: var(--ob-teal-d); text-decoration: none; border-bottom: 1px dashed rgba(31, 111, 105, .4); }
+.ob-title-link { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 44px; font-weight: 700; color: #17524e; /* W9-A: 3.83 → 5.75:1 over the art */ text-decoration: none; border-bottom: 1px dashed rgba(31, 111, 105, .4); }
 .ob-title-link:hover { color: var(--ob-teal); }
-.ob-title-hint { font-size: 13px; color: var(--ob-ink-3); }
+.ob-title-hint { font-size: 13px; color: var(--ob-ink-2); width: fit-content; padding: 3px 10px; border-radius: 999px; background: rgba(255, 250, 241, .92); } /* W9-A: 2.60:1 over the art → ink-2 on cream ≈ 6.4:1 */
 /* W7-Q8: the silent-mode line after the title's sound button turned sound on (touch iOS) */
 .ob-title-silent { font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); margin: 0; }
 /* the language before Start (ui/LangPills, variant 'title'): 文A + 简体 · 繁體 · English in a cream capsule */
@@ -779,6 +786,12 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-range { display: block; }
 .ob-range output { margin-left: auto; font-weight: 800; color: var(--ob-teal-d); }
 .ob-range input { width: 100%; accent-color: var(--ob-teal); height: 28px; }
+.ob-levels .ob-level + .ob-level { margin-top: 6px; }
+/* W9-A: the text-size choices stack word / percent (a 420 px sheet at 130 % is ≈ 320 px wide: one line overflowed it) */
+.ob-setting { min-width: 0; }
+.ob-setting-text .ob-seg button { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; padding: 4px 6px; white-space: normal; line-height: 1.15; }
+.ob-setting-text .ob-seg small { font-size: 12px; font-weight: 700; }
+.ob-level.is-off { opacity: .55; } /* W9-A: its sound is switched off above (the slider still sets the level) */
 .ob-controls { margin-top: 18px; border: 1px solid var(--ob-line); border-radius: var(--ob-r-m); background: #fff; }
 .ob-controls summary { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 14px; font-weight: 800; font-size: 14px; cursor: pointer; list-style: none; }
 .ob-controls summary svg { color: var(--ob-teal); }
@@ -1032,8 +1045,8 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 /* F1 / F3 / F9 · choices: a 2×2 grid everywhere, a second line that sets expectations, ≤ 30vh on phones */
 .ob-choice { align-items: center; }
 .ob-choice-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.ob-choice-sub { font-size: 12.5px; font-weight: 600; color: var(--ob-ink-3); line-height: 1.3; }
-.ob-dialogue-foot { margin-top: 8px; font-size: 12.5px; font-weight: 600; color: var(--ob-ink-3); text-align: right; }
+.ob-choice-sub { font-size: 13px; font-weight: 600; color: var(--ob-ink-3); line-height: 1.3; }
+.ob-dialogue-foot { margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--ob-ink-3); text-align: right; }
 @media (max-width: 720px) {
   .ob-choices.is-grid { grid-template-columns: 1fr 1fr; max-height: 30vh; max-height: 30svh; overflow-y: auto; overscroll-behavior: contain; gap: 6px; }
   .ob-choices.is-grid .ob-choice { min-height: 44px; padding: 6px 8px 6px 6px; gap: 7px; font-size: 13.5px; line-height: 1.25; border-radius: 12px; }
