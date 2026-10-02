@@ -81,6 +81,11 @@ test('W9-L the games: crab / claw / foghorn / busker / kite / sourdough / fortun
     ['sealions', ['sea lions', '数海狮', '數海獅']],
     ['marshmallow', ['marshmallow', '棉花糖', '篝火']],
     ['hide-seek', ['hide and seek', '捉迷藏']],
+    // (W9-L7) the dex's games that had no row
+    ['sled', ['sled', 'grass slide', '滑草', '纸板滑草', '紙板滑草']],
+    ['crests', ['crest hops', 'crest', '坡顶飞跃', '坡頂飛躍', '坡顶']],
+    ['crooked', ['弯弯街', '彎彎街', '慢慢开', 'gently down']],
+    ['ggb-rings', ['金圈', '鹈鹕穿金圈', '鵜鶘', 'ring run', 'pelican']],
   ];
   for (const [id, qs] of want) for (const q of qs) {
     const hits = rankSearch(ix, q, 10);
@@ -97,6 +102,11 @@ test('W9-L the games: crab / claw / foghorn / busker / kite / sourdough / fortun
   assert.equal(groupHits(rankSearch(ix, '金门大桥', 30))[0].group, 'attraction');
   assert.equal(ids('金门大桥', 1)[0], 'golden-gate-bridge');
   assert.equal(ids('Musée Mécanique', 1)[0], 'musee-mecanique');
+  // (W9-L7) a game row never takes a landmark's own words: 金门 / Golden Gate / 九曲花街 / crooked street answer the landmark
+  for (const [q, id] of [['金门', 'golden-gate-bridge'], ['Golden Gate', 'golden-gate-bridge'], ['golden', 'golden-gate-bridge'], ['九曲花街', 'lombard-crooked'], ['Lombard', 'lombard-crooked'], ['crooked street', 'lombard-crooked']] as const) {
+    assert.equal(groupHits(rankSearch(ix, q, 30))[0].group, 'attraction', q);
+    assert.equal(ids(q, 1)[0], id, q);
+  }
   // every game spot is found by its own name (zh and en) and every alias
   for (const s of PLAY_SPOTS) {
     for (const q of [s.name.zh, s.name.en, ...s.aliases]) assert.ok(ids(q, 40).includes(s.id), `"${q}" does not find ${s.id}`);
@@ -147,6 +157,12 @@ test('W9-L every game\'s point is its play module\'s own (the map chunk keeps a 
   const itIds = new Set(['play:claw', 'play:fortune', 'play:crab', 'play:sourdough', 'play:foghorn', 'play:busk-haight', 'play:busk-mission', 'play:slides', 'play:sealions', `play:fire:${FIRE_RINGS[0].k}`, ...stairsIts.map(i => i.id)]);
   for (const s of PLAY_SPOTS) if (s.go?.startsWith('play:')) assert.ok(itIds.has(s.go), s.go);
   for (const s of PLAY_SPOTS) if (s.go && !s.go.startsWith('play:')) assert.ok(ATTRACTIONS.some(a => a.id === s.go), s.go);
+  // (W9-L7) the dex's games: every game of lane G's 游乐图鉴 has a search row, at the dex's own point
+  const { DEX_GAMES, dexGame } = await import('../src/opus-bay/ui/playDexData');
+  const ROW: Record<string, string[]> = { bell: ['cable-car'], grip: ['cable-car'], heave: ['turntable'], busk: ['busk-haight', 'busk-mission'] };
+  for (const g of DEX_GAMES) for (const id of ROW[g.id] ?? [g.id]) assert.ok(by.has(id), `the dex's ${g.id} has no search row (${id})`);
+  for (const id of ['sled', 'crests', 'crooked']) near(id, dexGame(id)!.spots[0]);
+  assert.equal(by.get('ggb-rings')?.go, 'golden-gate-bridge');
   // the treat streets: the street's first standing door's knock spot
   for (const st of TREAT_STREETS) {
     const d = TREAT_DOORS.find(x => x.street === st.id && !x.gone)!;

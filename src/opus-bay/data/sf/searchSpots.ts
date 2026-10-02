@@ -82,6 +82,17 @@ export const PLAY_SPOTS: readonly SearchSpot[] = [
     aliases: ['beach ball', 'ball', 'volleyball', '沙滩球', '排球', '颠球'], go: 'ocean-beach', ask: 'play-ball' },
   { id: 'skyline', group: 'play', name: { zh: '那是什么？', en: 'What’s that?' }, where: { zh: '有风景的地方问 BAYBAY', en: 'Anywhere with a view, ask BAYBAY' },
     aliases: ['quiz', 'what is that', 'whats that', 'landmark quiz', 'skyline', '那是什么', '猜地标', '问答', '考考我'], go: 'twin-peaks', ask: 'play-skyline' },
+  // (W9-L7) the games of lane G's 游乐图鉴 that had no search row (ui/playDexData.ts DEX_GAMES: sled, crests, crooked,
+  // ggb-rings; their points are the dex's own, pinned by the test). Never named after the landmark they sit by, so 金门 /
+  // Golden Gate / 九曲花街 still answer the landmark first.
+  { id: 'sled', group: 'play', name: { zh: '纸板滑草', en: 'Cardboard grass slide' }, where: { zh: '多洛雷斯公园的陡草坡', en: 'Dolores Park’s steep lawn' },
+    aliases: ['sled', 'sledding', 'grass sled', 'grass slide', 'cardboard sled', '滑草', '纸板滑草', '草坡', '坐纸板'], at: { x: 240, z: 696 } },
+  { id: 'crests', group: 'play', name: { zh: '坡顶飞跃', en: 'Crest hops' }, where: { zh: '全城 12 个插小旗的坡顶 · 骑车或开车', en: 'Twelve pennanted crests · on the bike or the toy car' },
+    aliases: ['crest', 'crests', 'crest hop', 'jump', 'hill jump', 'bike jump', '坡顶', '飞跃', '冲坡', '小旗', '骑车飞'], at: { x: -154.2, z: 240.4 } },
+  { id: 'crooked', group: 'play', name: { zh: '慢慢开下弯弯街', en: 'Gently down a crooked street' }, where: { zh: '九曲花街坡顶 · 骑车或开车', en: 'The top of Lombard St · on the bike or the toy car' },
+    aliases: ['crooked ride', 'gently down', 'speed sign', 'slowly', '慢慢开', '弯弯街', '开下坡', '限速'], at: { x: -163.02, z: 177.29 } },
+  { id: 'ggb-rings', group: 'play', name: { zh: '鹈鹕穿金圈', en: 'Pelican ring run' }, where: { zh: '金门大桥上空 · 骑鹈鹕（G）', en: 'Over the Golden Gate · on the pelican (G)' },
+    aliases: ['rings', 'ring run', 'pelican', 'flying', 'fly', '金圈', '穿圈', '鹈鹕', '飞行', '骑鹈鹕'], go: 'golden-gate-bridge' },
   { id: 'hide-seek', group: 'play', name: { zh: '捉迷藏', en: 'Hide & seek' }, where: { zh: '问 BAYBAY（Q）就能玩', en: 'Ask BAYBAY (Q) to play' },
     aliases: ['hide and seek', 'hide & seek', 'hide-and-seek', 'hide', '捉迷藏', '躲猫猫', '藏起来'], ask: 'play-hide-seek' },
 ];
