@@ -85,11 +85,14 @@ export const CATEGORY_WORDS: readonly CategoryWords[] = [
   { words: ['体育', '球场', '体育场', 'stadium', 'sports', 'ballpark', 'arena'], cats: ['sports'], kinds: ['stadium'] },
   { words: ['地标', 'landmark', 'landmarks', '必看', 'must see', 'sights'], cats: ['landmark'] },
   { words: ['地铁', '轻轨', '交通', '车站', '坐车', 'metro', 'muni', 'subway', 'transit', 'station', 'stations', 'light rail'], groups: ['line', 'station'] },
+  // (W9-L) every game, every event ahead (data/sf/searchSpots.ts): the empty state's 小游戏 chip
+  { words: ['小游戏', '游戏', '玩什么', '好玩', 'games', 'game', 'minigames', 'mini games', 'play'], groups: ['play'] },
+  { words: ['节日', '节日活动', '节庆', '庆典', 'festival', 'festivals', 'events', 'holiday'], groups: ['event'] },
 ];
 
-/** The empty state's suggestions (plan §4.1: "金门大桥 · 大学 · 石镇 · N 线"). */
+/** The empty state's suggestions (plan §4.1: "金门大桥 · 大学 · 石镇 · N 线"; W9-L: + 小游戏, every game). */
 export const SEARCH_SUGGESTIONS: readonly Bilingual[] = [
-  { zh: '金门大桥', en: 'Golden Gate' }, { zh: '大学', en: 'university' }, { zh: '石镇', en: 'Stonestown' }, { zh: 'N 线', en: 'N Judah' },
+  { zh: '金门大桥', en: 'Golden Gate' }, { zh: '小游戏', en: 'games' }, { zh: '大学', en: 'university' }, { zh: '石镇', en: 'Stonestown' }, { zh: 'N 线', en: 'N Judah' },
 ];
 
 interface Prepared { e: SearchEntry; keys: string[]; aliases: string[]; words: string[]; phrases: string[][]; spaced: string[] }

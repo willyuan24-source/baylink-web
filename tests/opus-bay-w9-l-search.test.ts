@@ -153,3 +153,26 @@ test('W9-L every game\'s point is its play module\'s own (the map chunk keeps a 
     near(`treat-${st.id}`, { x: d.x + Math.sin(d.f) * KNOCK_OUT, z: d.z + Math.cos(d.f) * KNOCK_OUT }, 0.02);
   }
 });
+
+test('W9-L the 小游戏 chip and the words for "a game" / "a festival" list every game / every event ahead (zh, 繁體, en)', async () => {
+  await setLocale('zh-Hant', false);
+  // the empty state's new chip (between 金门大桥 and 大学): 小游戏 / games, typed or tapped, in either script
+  assert.ok(SEARCH_SUGGESTIONS.some(s => s.zh === '小游戏' && s.en === 'games'));
+  const games = PLAY_SPOTS.map(s => s.id).sort();
+  for (const q of ['小游戏', hant('小游戏'), '游戏', '玩什么', '好玩', 'games', 'game', 'minigames', 'play']) {
+    const g = groupHits(rankSearch(ix, q, 60));
+    assert.equal(g[0]?.group, 'play', `${q}: the games first (${g.map(x => x.group).join(' ')})`);
+    assert.deepEqual(g[0].hits.map(h => h.entry.id).sort(), games, `${q}: every game`);
+  }
+  // the events ahead (15 Oct: the six streets + the calendar rows within 60 days)
+  const events = searchSpots(OCT_15).filter(s => s.group === 'event').map(s => s.id).sort();
+  assert.ok(events.length >= 7);
+  for (const q of ['节日', '節日', '节日活动', '庆典', '慶典', 'festival', 'festivals', 'events']) {
+    const g = groupHits(rankSearch(ix, q, 60));
+    assert.equal(g[0]?.group, 'event', `${q}: the events first`);
+    assert.deepEqual(g[0].hits.map(h => h.entry.id).sort(), events, `${q}: every event`);
+  }
+  // a word that is a name keeps its name: "playland" is not every game, 金门大桥 is still the bridge
+  assert.notEqual(groupHits(rankSearch(ix, 'playland', 30))[0]?.hits.length, games.length);
+  assert.equal(ids('金门大桥', 1)[0], 'golden-gate-bridge');
+});

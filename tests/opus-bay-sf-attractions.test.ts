@@ -321,13 +321,15 @@ test('places.json (published, wave 4): lib/places.ts poiKind takes the wave-4 ki
 });
 
 test('search: every alias finds its attraction; the plan\'s queries rank as asked (大学 / 石镇 / SFSU / UCSF / N 线 / muni)', async () => {
-  const { prepareSearch, rankSearch, groupHits, attractionEntries, lineEntries, stationEntries, placeEntries, SEARCH_SUGGESTIONS, normalizeSearch } = await import('../src/opus-bay/data/sf/placeSearch');
+  const { prepareSearch, rankSearch, groupHits, attractionEntries, lineEntries, stationEntries, placeEntries, spotEntries, SEARCH_SUGGESTIONS, normalizeSearch } = await import('../src/opus-bay/data/sf/placeSearch');
+  const { searchSpots } = await import('../src/opus-bay/data/sf/searchSpots');
   const { LINE_STYLES, mapStations } = await import('../src/opus-bay/ui/mapLines');
   const w4 = { lines: w4TransitLines() };
   const stations = mapStations(w4.lines);
   const rows = applyW4Places(places);
   const covered = new Set(ATTRACTIONS.map(a => a.placeId ?? a.id));
-  const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(rows, covered)]);
+  // (W9-L6) + the games and the season's events, as the map list builds it (ui/CityMapList.tsx): the 小游戏 chip finds them
+  const ix = prepareSearch([...attractionEntries(ATTRACTIONS), ...lineEntries(Object.values(LINE_STYLES)), ...stationEntries(stations), ...placeEntries(rows, covered), ...spotEntries(searchSpots(new Date('2026-10-15T19:00:00Z')))]);
   const ids = (q: string, n = 5) => rankSearch(ix, q, n).map(h => h.entry.id);
   // per keystroke: the best of 5 batches (the suite runs files in parallel on a shared machine: wall-clock noise)
   let perQuery = Infinity;
