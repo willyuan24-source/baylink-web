@@ -86,7 +86,7 @@ test('W9-Q5: five or more journal tabs stand in two rows (3 / 4 / 5 columns), ne
   assert.match(grid, /overflow: visible/);
   assert.match(decl(css, '.ob-journal .ob-tabs.is-many:has(> button:nth-child(7))').join(), /repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(decl(css, '.ob-journal .ob-tabs.is-many:has(> button:nth-child(9))').join(), /repeat\(5, minmax\(0, 1fr\)\)/);
-  const btn = all.filter(r => r.selector === '.ob-journal .ob-tabs.is-many:has(> button) > button').map(r => r.body).pop() ?? '';
+  const btn = all.filter(r => !r.media && r.selector === '.ob-journal .ob-tabs.is-many:has(> button) > button').map(r => r.body).pop() ?? '';
   assert.match(btn, /flex-wrap: wrap/);
   assert.match(btn, /min-width: 0/, 'the old min-width: max-content is overridden by the later rule');
   assert.match(btn, /font-size: 13px/);
@@ -145,3 +145,23 @@ test('W9-Q10: short landscape phones: compact sheet heads, the place card\'s foo
   // the footer markup the rule reads (PoiCardBody / PlaceCard): the guide row, then the actions
   assert.match(read('ui/PoiCardBody.tsx'), /<div className="ob-poi-foot-guide">\{guideRow\}<\/div>\}\s*<div className="ob-actions">/);
 });
+
+test('W9-Q11: narrow desktop windows with a sheet (175 % zoom): the prompt / move chip keep left of the HUD column, the objective on screen, the area pill waits', () => {
+  const css = read('opus-bay.css');
+  const m = ['(min-width: 721px) and (max-width: 1180px)'];
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-context', m).join(), /left: calc\(\(100% - var\(--ob-sheet-w, 452px\) - 76px\) \/ 2\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-context', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 100px\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-move-chip', m).join(), /- 76px\) \/ 2\) !important/);
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-objective', m).join(), /max-width: calc\(100% - var\(--ob-sheet-w, 452px\) - 28px\)/);
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-objective-text strong', m).join(), /text-overflow: ellipsis/);
+  assert.match(decl(css, '.ob-overlay.has-sheet:has(.ob-sheet.is-wide) .ob-area', ['(min-width: 721px) and (max-width: 1080px)']).join(), /visibility: hidden/);
+  assert.match(decl(css, '.ob-overlay.has-sheet .ob-area', ['(min-width: 721px) and (max-width: 960px)']).join(), /visibility: hidden/);
+  // the docked bubble is clamped on screen like the anchored one (game/Systems.tsx: one clamp after both branches)
+  const sys = read('game/Systems.tsx');
+  const i = sys.indexOf('if (offscreen) {');
+  const clamp = sys.indexOf('x = Math.min(w - half, Math.max(half, x));', i);
+  const place = sys.indexOf('const placed = placeBubble(', i);
+  assert.ok(i > 0 && clamp > i && clamp < place, 'one clamp between the branches and placeBubble');
+  assert.equal(sys.split('x = Math.min(w - half, Math.max(half, x));').length - 1, 1);
+});
+

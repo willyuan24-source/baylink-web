@@ -1461,3 +1461,19 @@ html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
   .ob-sheet-foot:has(> .ob-poi-foot-guide) > .ob-actions { flex: none; }
   .ob-choices.is-grid { max-height: none; }
 }
+/* W9-Q11 (part b: a 1440 × 900 desktop zoomed to 175 % = 823 × 514 CSS px; a 1024 px tablet) · narrow desktop windows with a
+   side sheet: the strip left of the sheet (251 px beside the map / the week board, 371 px beside a place card) held the area
+   pill, the objective pill (这周去哪 lay over 渡轮大厦), the HUD column and the prompt (坐渡轮 ran off the left edge and over
+   问 BAYBAY at the foot of the column). There the prompt and the move chip centre in the strip left of the column (76 px)
+   and never reach it; the area pill waits under the sheet while the strip cannot hold both pills (the objective keeps its
+   place: it is the next thing to do; the place's name is in the sheet or on the map). */
+@media (min-width: 721px) and (max-width: 1180px) {
+  .ob-overlay.has-sheet .ob-context { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2); max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px); }
+  .ob-overlay.has-sheet .ob-move-chip { left: calc((100% - var(--ob-sheet-w, 452px) - 76px) / 2) !important; max-width: calc(100% - var(--ob-sheet-w, 452px) - 100px) !important; overflow: hidden; }
+  /* the objective pill slides left with the sheet: with the map open at 823 px the stats pill (明信片 0/24 · 🪙 0 · 🍬 0, 246 px)
+     began 11 px off the left edge; it now keeps 12 px from it and its line ends in … */
+  .ob-overlay.has-sheet .ob-objective { max-width: calc(100% - var(--ob-sheet-w, 452px) - 28px); }
+  .ob-overlay.has-sheet .ob-objective-text strong { overflow: hidden; text-overflow: ellipsis; }
+}
+@media (min-width: 721px) and (max-width: 1080px) { .ob-overlay.has-sheet:has(.ob-sheet.is-wide) .ob-area { visibility: hidden; } }
+@media (min-width: 721px) and (max-width: 960px) { .ob-overlay.has-sheet .ob-area { visibility: hidden; } }

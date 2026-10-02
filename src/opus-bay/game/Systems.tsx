@@ -693,9 +693,10 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
         const fx = (focusProj.x + 1) / 2 * fullW, fy = (1 - focusProj.y) / 2 * h;
         if (Math.abs(fx - rawX) < half + 40 && fy > rawY - bubbleBox.h - 20 && fy < rawY + 160) x = fx < rawX ? Math.max(rawX, fx + half + 36) : Math.min(rawX, fx - half - 36);
       }
-      x = Math.min(w - half, Math.max(half, x));
       y = rawY;
     }
+    // (W9-Q11, lane Q) docked too: beside a 572 px sheet in a narrow window (823 px at 175 % zoom) w − 250 put it half off-screen
+    x = Math.min(w - half, Math.max(half, x));
     // (M1) never over the fixed HUD: below a top box, above a bottom one
     // (W8-K4b) and, when no row is free across its width, beside a box: x kept on screen ([half, w − half])
     const placed = placeBubble(x, y, bubbleBox.w, bubbleBox.h, boxes, h, minY, h - 60, half, w - half);
