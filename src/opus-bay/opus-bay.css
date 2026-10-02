@@ -1410,3 +1410,14 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 /* W9-Q3 (w8-Q review open item) · the one-time first-visit time offer (top stack, z 60) sat over the Metro card's top ≈ 20 px at
    667 × 320 when a ride started within its 10 s: it waits while the underground layer is on */
 .ob-overlay:has(.ob-subway.is-on) .ob-topstack > .ob-time-offer { display: none; }
+/* W9-Q8 (R§6 界面与交互: "手机上的小字……正文至少 13px"; verify-phone: the flyers' meta at 12 px) · on phones every running text
+   (a description, a sub-line, a note, a hint) is ≥ 13 px — the census at 390 × 844 found the goals' and 今天's sub-lines, the
+   postcard hints, the 今天 note, the goals step's list and note, Settings' explanations, 足迹's sub-lines, the album's note and
+   the flyers' place line at 12–12.5 px. Labels on chips, badges, keycaps and counters, and fine print (sources, photo credits,
+   map attribution) keep their sizes; the fine print is ≥ 12 px. (.ob-overlay prefix: these beat the lanes' own sheets
+   whatever their load order.) */
+@media (max-width: 720px) {
+  .ob-overlay :is(.ob-goals small:not(.ob-goal-reward), .ob-card-hint, .ob-today-main small, .ob-today-note, .ob-toggle-text small, .ob-steps-text small, .ob-album-note, .ob-flyer-meta, .ob-gstep-note) { font-size: 13px; }
+  .ob-overlay .ob-gstep-list li { font-size: 13px; }
+  .ob-overlay .ob-today-src { font-size: 12px !important; }
+}
