@@ -143,3 +143,31 @@ maps · guide · offer · event (links), wish (the wishlist), ics (this), card s
 - An event card → 约家人 (city mode, e.g. the Ferry Plaza market); Coit Tower's card → 约家人; the journal's 今天 tab →
   我的周末 with a saved weekend event → 约家人.
 - The album: take a photo, open it, the band's code; 分享 on desktop copies the link.
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+1. 评审发现的主要问题已修好：在「约家人」卡片和相册里点「保存 / 分享」，以前的提示都被游戏的提示队列压住、10 秒后丢掉，微信里看起来"点了没反应"。现在结果直接写在卡片里（例如"这里不能直接保存：请长按上面的图片"、"卡片已保存，链接也复制好了"）。
+2. 微信里点「分享」现在会计入分享次数；电脑上右键图片不再误算成分享。
+3. 「约家人」卡片打开时，BAYBAY 不再插话；网站的计数名字只接受确切的那 39 个，拼错会在编译时报错。
+4. 还没修（不阻塞上线）：扫码后地址栏一直带着 ?at=，刷新会回到卡片的地点；扫活动卡的家人落地后看不到是哪个活动。留给第 10 波。
+
+Fixer: W9-S-review, 2026-10-02 05:56–06:45 PDT, worktree w9-s-rev (from origin/opus-bay e9c3c35c, rebased on 686e4c02). Findings: C:/Users/willy/opus-qa/w9/s-rv/findings.json.
+
+| id | sev | verdict | evidence |
+|---|---|---|---|
+| S-RV-1 | major | fixed | Cause reproduced in node (tests/opus-bay-w9-s-review.test.ts test 1: panel.kind 'event' → modalUp() true; a toast is not shown in 1.5 s and is dropped after 10 s). Fix: ui/shareFile.ts sendNote() + a role=status line in the sheet (ShareCard: replaces the hint, a new reason line for the long-press route; Album viewer: under the buttons; album.css .ob-share-note re-plays per tap). ShareCard.tsx calls no toast() now; the album viewer toasts neither 照片已保存 nor the link line. Tests 2–3: red on the old code, green after. Not re-played in Chrome: two probe runs of the reviewer's card flow on my dev server (5945) did not reach play within 120 s on the loaded machine (no shot). |
+| S-RV-2 | minor | fixed | Code read confirmed (send() longpress route had no track(); onContextMenu counted on a desktop). Now: 分享 on the long-press route counts once per opening (as the album does), onContextMenu counts only on a touch device. Test 4 red → green. |
+| S-RV-3 | minor | confirmed-not-fixed | The reviewer's qr-phone-report.json: addressAfterLoad / addressNow keep at=xz%3A132%2C15 after from= is removed. Not fixed: dropping at= safely needs QaBridge (game/Systems.tsx) and resume.goToCitySpot to have placed the player first (they re-apply it when play begins); too risky in the time left. Wave 10: replaceState away at= once the spot was applied for a from=photo / family entry. |
+| S-RV-4 | minor | confirmed-not-fixed | shareCardModel.eventCard() url is coordinates only; nothing reads from=family on landing (qr-phone-03-landed.jpg: the generic arrival). A recipient view (the event card opened on landing via an `ev=` id, out-of-SF events hidden or linking to the site's event page) is a feature for wave 10. |
+| S-RV-5 | minor | fixed | grep found no 'c-share-card' in game/baybayHold.ts; appended one line (lane S, W9). Test 5 red → green. |
+| S-RV-6 | minor | fixed | src/lib/product-events.ts: OpusProductEvent = metricNames.ts OpusEvent (a type-only import). A probe file with recordProductEvent('opus_start_hom') now fails tsc (TS2345), 'opus_start_home' passes; probe removed. Site tests product-events / product-metrics-ui 5 / 5. |
+
+Own pass (S1–S5 diffs, read in the time left): the link decoration (metricNames.ts withGameFrom) leaves other sites' links and /opus-bay untouched; downloadFile's programmatic blob: click is ignored by linkAction (non-http); the reviewer's qr report shows `metrics: TypeError: Failed to fetch dynamically imported module …/metricsRun.ts` — not investigated in the time (it looks like a dev-server re-optimise during their probe's own import; the game loads the runner through importRetry quiet in metricsBoot.ts, so a lost chunk only means no metrics that visit); listed as open. No district change (ShareCardButton renders nothing without the overlay; compose() unchanged). No BAYBAY voiced line added or changed (the new pressNow line is a UI label).
+
+Open items: S-RV-3, S-RV-4 (above); the 约家人 card and the photo share still not tried inside the real WeChat; a Chrome re-play of S-RV-1's status line (the probe is C:/Users/willy/opus-qa/w9/s-rev/probe.mjs --flow card --mobile --ua wechat, it now records afterSaveStatus / afterShareStatus).
+
+Blocking the go-live to main: nothing from lane S.
+
+Checks (this tree): tsc 0 · eslint . 0 errors (53 warnings, none in the files this review touched) · opus-bay suite: the full run hit my 25-min background limit after 1960 tests on the loaded machine with 2 failures (E2-5 view field 5.4 s, W5-D-review paid memo), both pass alone, re-run with w9-s-*, w9-f-titlehost, w9-p, w9-p-review: 92 / 92 · site tests product-events + product-metrics-ui 5 / 5.
