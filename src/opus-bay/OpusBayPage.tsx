@@ -7,6 +7,7 @@ import { readQa } from './game/qa';
 import { useT } from './i18n';
 import { installIosTouchGuards } from './ui/iosTouch';
 import { TitleScreen } from './ui/TitleScreen';
+import { entrySource } from './ui/entrySource';
 import './opus-bay.css';
 import { isLoadFailure } from './game/importRetry';
 
@@ -54,6 +55,9 @@ export default function OpusBayPage() {
   const [load, setLoad] = useState(direct);
   const [wantStart, setWantStart] = useState(false);
 
+  // (W9-E) where this visit came from (?from=home|nav|play|photo|…): read and taken off the address bar as the page
+  // mounts; lane S's metrics and the game ask entrySource() again and get the same answer
+  useLayoutEffect(() => { entrySource(); }, []);
   useLayoutEffect(() => initPersistenceOnce(), []);
   useEffect(() => {
     const html = document.documentElement;
