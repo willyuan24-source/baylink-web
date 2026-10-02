@@ -92,7 +92,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         </div>
       )}
       <div className="ob-title-card" ref={cardRef}>
-        <span className="ob-title-mark">Opus Bay · BAYLINK</span>
+        <span className="ob-title-mark">{t('小小湾区 · BAYLINK', 'Little Bay · BAYLINK')}</span>
         <h1 className="ob-title-h1">{t('湾区小旅', 'Little Bay Trip')}</h1>
         <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
         <div className="ob-title-greet">

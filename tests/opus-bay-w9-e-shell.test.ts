@@ -92,3 +92,10 @@ test('W9-E shell: the wiring — vercel.json serves /opus-bay.html (not the home
   assert.equal((page.match(/image: /g) || []).length, 2, 'both worlds set the share image (the city: opusBayOgImage, the district: the plain crop)');
   assert.ok(fs.readFileSync('public/sitemap.xml', 'utf8').includes('<loc>https://www.baylink.us/opus-bay</loc>'));
 });
+
+test('W9-E names (sf-w9-lead.md §6, review §10.1): the game\'s title shows no "Opus Bay" — its eyebrow is 小小湾区 · BAYLINK / Little Bay · BAYLINK, as the static shell', () => {
+  const src = fs.readFileSync('src/opus-bay/ui/TitleScreen.tsx', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
+  assert.doesNotMatch(src, /Opus Bay/i, 'no user-visible "Opus Bay" on the title');
+  assert.match(src, /<span className="ob-title-mark">\{t\('小小湾区 · BAYLINK', 'Little Bay · BAYLINK'\)\}<\/span>/);
+  assert.ok(renderToStaticMarkup(createElement(OpusBayShell, { halloween: false })).includes('小小湾区 · BAYLINK'), 'the shell says the same');
+});
