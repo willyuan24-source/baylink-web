@@ -8,12 +8,11 @@ Brief: `docs/opus-bay/sf-w9-lead.md` §3 A; the first-use review `docs/opus-bay/
 
 1. **菜单听键盘的话了**：BAYBAY 的菜单按 Esc 或空格就是“没事，继续逛”，空格再也不会误选第一项“做个动作”；菜单最多 6 行 + 「更多…」，最常用的排在前面（下一个目标、附近、这周、今天），每一行都有数字键。
 2. **不会再叠两层**：打开设置（暂停）时按 Q，设置会先关上再出 BAYBAY 的菜单，小游戏不会在暂停中开始；E 键先给小游戏和明信片，再给地点卡，最后才是 BAYBAY 和长椅；刚关掉对话的那一下 E 不会再触发别的。
-3. **手机返回键 / 浏览器后退**：先关掉打开的菜单、面板或小游戏，什么都没开时才离开游戏，不会被困住。
-4. **存储被浏览器禁止时**会提示一次「这次的进度无法保存（浏览器禁止了存储）」，游戏照常能玩。
-5. 读屏软件不会再一个字一个字地念打字机效果；Tab 键不会跑到看不见的按钮上，也不会跑出对话卡片。
-6. **设置里新增**：音乐 / 音效 / BAYBAY 语音三个音量滑块、「只关语音」、文字大小（标准 100% · 大 115% · 特大 130%，对话框、卡片、
+3. **手机返回键 / 浏览器后退**：先关掉打开的菜单、面板或小游戏，什么都没开时才离开游戏，不会被困住。存储被浏览器禁止时会提示一次
+   「这次的进度无法保存（浏览器禁止了存储）」；读屏软件不再一个字一个字地念打字机效果，Tab 键不会跑出对话卡片。
+4. **设置里新增**：音乐 / 音效 / BAYBAY 语音三个音量滑块、「只关语音」、文字大小（标准 100% · 大 115% · 特大 130%，对话框、卡片、
    面板的字一起变大，手机上 130% 时选项改成一行一个）；镜头距离滑块有了名字。
-7. **看得更清楚**：主按钮的青绿色加深（白字对比 3.89 → 4.96:1），键盘焦点框改成不透明的 2 像素深青色，标题页的小字提示、灰色说明字、
+5. **看得更清楚**：主按钮的青绿色加深（白字对比 3.89 → 4.96:1），键盘焦点框改成不透明的 2 像素深青色，标题页的小字提示、灰色说明字、
    金色计数都达到 4.5:1 以上。
 
 ## Part a · W9-A1 … A3 menus, one modal at a time, E priority, focus, back button, the storage hook (21:35–23:55 PDT)
@@ -186,3 +185,17 @@ QA images (`docs/opus-bay/qa/w9/A/`): `a01-before-esc-q.jpg` (origin: Settings a
   cancel); a reviewer may prefer 115 % as the phone maximum.
 - New BAYBAY lines: none (the menu's 更多… / 返回 are choice labels, the storage notice is a toast) — nothing for lane X.
 - Not tested with a real screen reader (NVDA / VoiceOver): the AX tree is the evidence.
+- Text size does not reach the goals card, the postcard card, the recaps, the letter or the SF game panels (fixed
+  layouts with their own max-heights; zooming them needs a per-card check on 667 × 320 / 390 × 844).
+
+## Part c · the run on the switch tree, W9-A6 (03:56–04:40 PDT)
+
+- **Smoke run on origin after W9-E-switch1** (dev server restarted, 1440 × 900, `?save=off`, keyboard only): title →
+  Enter → the welcome (digit 3) → Esc → Settings (paused) → **Q**: Settings closed, unpaused, the menu with 7 rows (next
+  goal · 附近能玩什么 · 附近 · 这周 · 今天 · 更多… · 没事) → 6 = 更多…: page 2 with 8 rows (two tours, 捉迷藏, 那是什么, 做个动作,
+  摸摸, 打开地图, 返回), every row a digit → **Space**: the menu closed (0 rows, no dialog) → **J**: the journal, the guard's
+  entry on top (`state.obBack`) → the browser's back: the journal closed, `phase: playing`, the URL unchanged, the entry
+  gone. The other lanes' 45 commits did not break part a.
+- **W9-A6 · 回到 BAYLINK with Settings open** took two backs to leave the homepage again (the guard's same-URL entry sat
+  between the game and the homepage). The link now replaces that entry (`ui/backGuard.ts leaveOverGuard`): navigation
+  history [about:blank, /opus-bay, /opus-bay (obBack)] → click → [about:blank, /opus-bay, /?lang=en].
