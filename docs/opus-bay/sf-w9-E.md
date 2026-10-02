@@ -266,3 +266,45 @@ w9-a-settings, w9-p) 98 / 98. In Chrome on the dev server (`probe/mark-shot.mjs`
   zh-Hant / en; if the switch gate fails, `git revert d57e8a1c` alone.
 - **The owner**: open https://www.baylink.us/opus-bay and /play on an iPhone with iOS 15 or 16.0–16.3 if one is at hand, and
   paste https://www.baylink.us/opus-bay into a WeChat chat to see the card (the key art, 湾区小旅).
+
+## Review (Ultra) · fixer, 05:50 → 07:00 PDT (lenses: code `e-rc`, player `e-rp`)
+
+### 给主人的摘要
+
+1. 审查发现的唯一重大问题已修好：iOS 15 到 16.3 的 iPhone（以及 Firefox 113 以前）没有解压接口，以前能进标题页但城市永远加载不出来；现在游戏自带一个小解压器，城市照常出现（所有城市数据文件逐字节验证）。
+2. 首页卡片和侧栏「小小湾区」改为整页打开游戏：以前按返回再进，会跳过标题直接卡在对话里、声音也不响。
+3. 旧的周末车票链接 /play?stops=… 现在服务器直接给出行计划页，不再先闪 9 秒游戏加载页；分享预览也是计划页。
+4. 去掉了互相矛盾的 hreflang 标签；GameRoot 多出的 1.25 KB 是切换造成的（不是别的线），已放回独立小 chunk。
+5. 两个小的视觉问题没来得及修：静态首屏到标题页文字会跳一下；万圣节画面按构建日期而不是访问日期选。都不影响上线。
+6. 代码推送 06:54，比 06:45 的期限晚了 9 分钟（机器负载高，测试慢）；之后的生产构建发现我的解压器写法让构建失败，07:01 修好并推送（构建通过，GameRoot 257.33 KB，低于 258.5 KB 上限）。
+
+### Verdicts
+
+| id | sev | verdict | evidence / fix |
+|---|---|---|---|
+| E-RC-1 | major | **fixed** `b7ff7016` + `f673bbda` | Re-checked MDN browser-compat-data api/DecompressionStream.json on 2026-10-02: safari 16.4, safari_ios mirror, firefox 113, chrome 80. Reproduced red in node: the new test with `DecompressionStream` deleted threw `ReferenceError: DecompressionStream is not defined` on the old `gunzip`. Fix: `src/opus-bay/world/sf/inflate.ts`, a small RFC 1951 / 1952 inflate with no dependency, used only when the stream is missing. It was first loaded through a dynamic `importRetry` import, and the production build failed on that: Vite builds the city worker as iife, which cannot code-split. `f673bbda` makes it a static import of `format.ts`, so it now sits in the worker chunk and in format's own main-thread chunk `format-*.js`, not in GameRoot. That broken tree was on origin from 06:54 to 07:01. `tests/opus-bay-w9-e-review.test.ts`: every published `.obc` / `.obb` (194 chunks + far + graph + 2 boards, 4.4 MB) inflates byte for byte as zlib without the stream (686 ms), and the inflate matches zlib on stored / fixed / dynamic blocks, every header flag, two members and truncated data. |
+| E-RC-2 | minor | **fixed** `35acffe2` | Confirmed from the lens's two builds (BufferGeometryUtils chunk only in build-c, its code in build-e's GameRoot, +4,626 B raw ≈ the chunk). A manualChunks rule `BufferGeometryUtils` restores the pre-switch chunk. The switch test pinned that id to "no chunk"; its expectation changed and the reason is written beside it. Footnote ¹ above is wrong: the growth came from the switch, not from F / S / L. |
+| E-RC-3 | minor | **fixed** `a363149e` | Confirmed in the code: OpusBayPage never resets the zustand store's `phase` on unmount. The player lens also saw it on its own ("a second card click remounts the game straight into the world"). Fix: `<Link reloadDocument>` on the home card and on the sidebar's `/opus-bay` link, so the href stays the same and the browser does the navigation. Test in `tests/opus-bay-w9-e-switch.test.tsx`: red before (the router moved to `/opus-bay`), green after; control: `/calendar` still navigates client-side. |
+| E-RC-4 | minor | **fixed** `18a109ea` | (a) Confirmed in the code: one file serves every `?lang`, with canonical `/opus-bay` both static and on the client. The hreflang links are dropped, and the shell test's expectation now says why. (b) Confirmed in the code: `seo.ts` never removes these tags. Fixed twice over: the vercel ticket route below serves `/plan.html`, and PlayRedirect removes `og:image:width/height/alt` and `og:locale:alternate` before it leaves for `/plan`. jsdom test. |
+| E-RP-1 | minor | **fixed** `18a109ea`, `76834363` | Confirmed in the code: the vercel route sends `/play` to `play.html`, the game shell, and only the bundle's PlayRedirect moves a ticket on. Fix: three routes ahead of the plain-pages rule, `^/play/?$` with `has: [{type:'query', key: stops / places / date}]` → `/plan.html`. Vercel docs, read 2026-10-02: the `routes` objects take `has` with `type: query` (https://vercel.com/docs/project-configuration/vercel-json#routes). The test runs the routes table on its own matcher. `tests/seo.test.ts`'s `routeFor` now skips `has` routes (the reason is written beside it; its expectations are unchanged). **Cannot be tested locally** (vite preview has no vercel routes): W9-Z should open `https://www.baylink.us/play?date=2026-10-10&stops=place:golden-gate` after the deploy and see the planner as the first paint. |
+| E-RP-2 | minor | **confirmed-not-fixed** | The lens's `sv.json`: at 1440×900 the shell card is 353 px tall and the title card 561 px. The title card has grown since the shell was drawn: lane F's W9-F8–F11 added 先不玩, a controls line and 今天在旧金山. Both cards are placed the same way (`.obs-card` / `.ob-title-card` share `--card-x/--card-w`), so h1 moves −104 px. Not fixed: there was no time to verify a CSS fix at five viewports. Open for wave 10: give `.obs-card` the title card's rows as invisible placeholders, or a matching min-height. |
+| E-RP-3 | minor | **confirmed-not-fixed** | Code: `scripts/prerender.tsx:91` passes `opusBayInHalloween(buildDate)`, while `src/App.tsx:56` and PlayRedirect pass `new Date()` plus `location.search`. Open: the static HTML cannot know the visit date. Options are a neutral art in the shell, or letting `public/boot-check.js` (classic, `'self'`) toggle the art class early. Today's deploys fall in October, so the visible mismatch is `?world=district` / `?halloween=off`, plus any visit after 1 Nov until the next deploy. |
+
+### Own pass
+
+- `git log origin/opus-bay --grep "W9-E[0-9:-]"` was read for the switch and the shell only. There was no time for a full second play-through, and that is said here rather than claimed.
+- Found by this fix: the site's `tests/seo.test.ts` route matcher ignores `has`. Fixed in `76834363`, as above.
+- `build.target` keeps `firefox104`, and Firefox 104–112 also lack DecompressionStream. The E-RC-1 fallback covers them too.
+
+### Checks
+
+- `npx tsc -p tsconfig.app.json --noEmit` 0 (06:46 and 06:54, after the last rebase).
+- `npx eslint .` on the tree of `18a109ea` gave 1 error, mine: react-hooks/globals in the new E-RC-3 test. Fixed in `3b6ee7d0`, and eslint on every touched file now gives 0 errors. The rest of the repo is unchanged since that run.
+- The opus-bay suite `tests/opus-bay-*.test.ts` was run on the tree of E-RC-1..3: **2140 tests, 2139 pass, 0 fail, 1 todo**. The lane files were re-run after the later commits: switch + shell + review 15 / 15, `seo.test.ts` 7 / 7, home-discovery + unified-bay-navigation green.
+- Production build to scratch (`vite.opus.config.ts`, outDir `C:/Users/willy/opus-qa/w9/e-rev/dist`). The first run, on `76834363`, failed (the worker iife code-split above). After `f673bbda` it exits 0 in 2 min 4 s: GameRoot 681.29 KB / **257.33 KB gzip** (guard 258.5; it was 259.30 in the lane's build-e), BufferGeometryUtils 4.84 / 1.45 KB, three-vendor 874.36 / 233.60 KB, and the inflate code is only in `worker-*.js` and `format-*.js`. `node scripts/opus-sf/qa/dist-syntax.mjs` gives 433 chunks, look-behind 0, class static blocks 0: PASS. No tracked public file changed.
+- Pushes: `76834363` at 06:54 PDT and `f673bbda` at 07:01 PDT, both after the 06:45 deadline (the machine was loaded: the opus-bay suite took about 30 min).
+
+### Blocking the go-live
+
+- Nothing from lane E's review. E-RP-1's vercel route needs a check on the live deploy, since it cannot be tested locally.
+- The go-live tree must include `f673bbda`. `76834363` alone fails `vite build`, and a revert of only `b7ff7016` would need `f673bbda` reverted with it.
