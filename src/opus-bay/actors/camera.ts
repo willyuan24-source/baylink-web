@@ -39,7 +39,7 @@ import { importRetry } from '../game/importRetry';
  * camera 83° across the deck at the south end, so holding forward walked into the rail.
  */
 
-export const DIST_MIN = 7, DIST_MAX = 30;
+export const DIST_MIN = 7, DIST_MAX = 30, SAVE_DIST_MAX = 20;
 const PITCH_MIN = 0.1, PITCH_MAX = 1.22;
 const PHOTO_PITCH_MIN = 0.04, PHOTO_PITCH_MAX = 1.45, PHOTO_DIST_MIN = 3.5, PHOTO_DIST_MAX = 46;
 const FOV_BASE = 42, FOV_MAX = 62, MIN_HFOV = (36 * Math.PI) / 180;
@@ -1362,12 +1362,16 @@ export class CameraController {
     pos.y += this.lift;
   }
 
-  /** Wheel / pinch changes become the saved camera distance (debounced; photo mode zoom is temporary). */
+  /**
+   * Wheel / pinch changes become the saved camera distance (debounced; photo mode zoom is temporary). (W9-C4, review
+   * explorer: a scroll out to the 30 u diorama view came back as the next session's camera) never saved past
+   * SAVE_DIST_MAX — the zoom itself is not capped; the Settings slider still saves any distance.
+   */
   private persistDistance(photo: boolean) {
     if (photo) return;
     if (this.persistTimer) clearTimeout(this.persistTimer);
     this.persistTimer = setTimeout(() => {
-      const d = Math.round(clamp(this.distance, DIST_MIN, DIST_MAX));
+      const d = Math.round(clamp(this.distance, DIST_MIN, SAVE_DIST_MAX));
       game.set(st => (st.settings.cameraDistance === d ? {} : { settings: { ...st.settings, cameraDistance: d } }));
     }, 450);
   }

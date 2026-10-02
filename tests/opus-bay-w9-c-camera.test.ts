@@ -77,3 +77,17 @@ test('W9-C1 (w8 S-P3): photo mode keeps a low pitch with a street tree behind th
     assert.ok(props.segmentCanopy(shot.t.x, shot.t.y, shot.t.z, shot.c.x, shot.c.y, shot.c.z) < 0, 'the line from the camera to the player misses the canopy');
   } finally { CM.setCanopySourceForTests(null); T.setCityTerrain(null); game.set(saved); }
 });
+
+test('W9-C4 (review explorer: a scroll out to the 30 u diorama view came back as the next session\'s camera): a wheel / pinch zoom is saved at most SAVE_DIST_MAX; a zoom within it is saved as is; photo mode saves nothing', async () => {
+  const { game } = await import('../src/opus-bay/core/store');
+  const saved = game.get().settings;
+  const rig = new camera.CameraController() as unknown as { distance: number; persistDistance(photo: boolean): void };
+  const persist = async (d: number, photo = false) => { rig.distance = d; rig.persistDistance(photo); await new Promise(r => setTimeout(r, 520)); return game.get().settings.cameraDistance; };
+  try {
+    assert.equal(camera.SAVE_DIST_MAX, 20);
+    assert.equal(await persist(30), 20, 'zoomed out to 30 u: saved as 20 (before W9-C4: 30)');
+    assert.equal(await persist(12.4), 12, 'within the cap: as is (rounded)');
+    assert.equal(await persist(4), camera.DIST_MIN, 'never under DIST_MIN');
+    assert.equal(await persist(28, true), camera.DIST_MIN, 'photo mode: nothing saved');
+  } finally { game.set({ settings: saved } as never); }
+});
