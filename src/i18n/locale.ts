@@ -10,7 +10,7 @@ export const LOCALE_KEY = 'baylink.reading-language.v1';
 const listeners = new Set<() => void>();
 let current: Locale = 'zh-Hans';
 let english: Record<string, string> = {};
-let traditional: ((text: string) => string) | undefined;
+let traditional: ((text: string, words?: boolean) => string) | undefined;
 let simplified: ((text: string) => string) | undefined;
 let request = 0;
 let englishLoad: Promise<void> | undefined;
@@ -27,8 +27,58 @@ export const subscribeLocale = (listener: () => void) => { listeners.add(listene
 export const useLocale = () => useSyncExternalStore(subscribeLocale, getLocale, () => 'zh-Hans' as Locale);
 
 const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
-  traditional = module.Converter({ from: 'cn', to: 'tw' });
+  traditional = taiwanConverter(module);
 }).catch((error) => { chineseLoad = undefined; throw error; });
+
+/**
+ * The game's 繁體 (wave 9, lane L): mainland words with a different everyday Taiwan word, and the 里 that mean "in" where
+ * opencc keeps 里. Keys are Simplified, values Traditional; applied before opencc on the game's page only (/opus-bay:
+ * `gamePage()`), so the rest of the site reads as before.
+ */
+export const TAIWAN_WORDS: readonly (readonly [string, string])[] = [
+  ['设置', '設定'], ['信息', '資訊'], ['意大利', '義大利'], ['视频', '影片'], ['音频', '音訊'], ['网络', '網路'], ['软件', '軟體'],
+  ['默认', '預設'], ['屏幕', '螢幕'], ['搜索', '搜尋'], ['登录', '登入'], ['菜单', '選單'], ['鼠标', '滑鼠'], ['在线', '線上'],
+  ['数据', '資料'], ['内存', '記憶體'], ['链接', '連結'], ['账号', '帳號'], ['短信', '簡訊'], ['博客', '部落格'], ['打印', '列印'],
+  ['发布', '發布'], ['出租车', '計程車'], ['自行车', '腳踏車'], ['公交中心', '轉運中心'], ['公交车', '公車'], ['公交', '公車'],
+  ['带娃', '帶小孩'], ['巴松管', '低音管'], ['施特劳斯', '史特勞斯'], ['弗莱明', '佛萊明'],
+  ['旅行本里', '旅行本裡'], ['游戏里', '遊戲裡'], ['隧道里', '隧道裡'], ['进海里', '進海裡'], ['掉进海里', '掉進海裡'], ['放回海里', '放回海裡'],
+  ['回海里', '回海裡'], ['看海里', '看海裡'], ['在海里', '在海裡'], ['到海里', '到海裡'],
+];
+/** …and after opencc: a name it splits wrong (Haight-Ashbury: 阿什伯里, not 阿什伯裡) */
+const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '阿什伯里']];
+
+/** The game's own page (TAIWAN_WORDS apply there). */
+const gamePage = () => typeof location !== 'undefined' && /^\/opus-bay(?:[/?#]|$)/.test(location.pathname);
+
+/**
+ * The site's cn → tw converter (opencc 'tw'), safe to run twice. opencc turns a phrase it knows into Traditional
+ * (马里纳区 → 馬里納區, 小家伙 → 小傢伙, 花岗岩 → 花崗岩), but a second pass over that output goes character by character
+ * (馬裡納區, 小傢夥, 花崗巖) — and the site does convert twice wherever a string already in Traditional (the game's
+ * pick()) is a JSX child (i18n/host.ts). So every conversion is checked: when its output would change again, each phrase
+ * of the text is added to the trie as itself (Traditional → Traditional) and the second pass leaves it alone. Cheap: one
+ * extra pass per string; the trie learns only the phrases that need it. `words`: TAIWAN_WORDS first and metres as 公尺.
+ */
+export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>): (text: string, words?: boolean) => string {
+  const [st0] = O.Locale.from.cn, [tw0] = O.Locale.to.tw;
+  const st = new O.Trie(), tw = new O.Trie(), local = new O.Trie();
+  st.loadDictGroup(st0);
+  tw.loadDictGroup(tw0);
+  local.loadDict(TAIWAN_WORDS);
+  const once = (text: string) => tw.convert(st.convert(text));
+  return (text: string, words = false) => {
+    const source = words ? local.convert(text) : text;
+    const out = once(source);
+    if (once(out) !== out) {
+      for (const part of st.segment(source)) {
+        if (part.length < 2) continue;
+        const fin = once(part);
+        if (once(fin) !== fin) st.addWord(fin, fin);
+      }
+    }
+    // metres: 40 米 → 40 公尺, 15,000 平方米 → 15,000 平方公尺 (never 米飯 / 米色 / 米其林 …)
+    return words ? TAIWAN_AFTER.reduce((t, [from, to]) => t.replaceAll(from, to), out.replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺')) : out;
+  };
+}
 
 export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await (englishLoad ||= Promise.all([
@@ -115,7 +165,7 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
 export function translateText(text: string, locale: Locale = current, depth = 0): string {
   if (locale === 'zh-Hans' || !/[\u3400-\u9fff]/.test(text)) return text;
-  if (locale === 'zh-Hant') return (traditional?.(text) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
+  if (locale === 'zh-Hant') return (traditional?.(text, gamePage()) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const composed = translateKnownComposition(text);
