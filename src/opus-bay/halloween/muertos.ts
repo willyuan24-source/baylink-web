@@ -9,12 +9,13 @@ import { bayNow, bayParts } from '../game/bayNow';
 import { bubble } from '../game/flow';
 import { BAYBAY_ID } from '../game/interactables';
 import { BOX, CBOX, CYL, ICO, M, Batch, type Info } from '../world/builder';
+import { closeRoad } from '../world/sf/roadClosures';
 import { addRoadPeople } from '../world/sf/roadPeople';
 import { spawnFx } from '../world/fx';
 import { TOY_DYN } from '../world/materials';
 import { MARIGOLDS, MUERTOS_SPOTS, PICADO, ROUTE_CORNERS } from './muertosSpots';
 import { halloweenSource } from './rewards';
-import { createWalkers, type Walkers } from './muertosWalkers';
+import { createWalkers, processionRoute, type Walkers } from './muertosWalkers';
 import { halloweenPreview } from './season';
 import type { HaloSpot } from './worldHalos';
 import { lineText, type WorldLineKey } from './worldLines';
@@ -85,6 +86,49 @@ export const MUERTOS_AT = { x: 470, z: 640 };
 /** BAYBAY's hello within this of the route's middle, the procession line within this of 22nd & Bryant */
 export const MUERTOS_HELLO_NEAR = 120;
 export const PROCESSION_NEAR = 25;
+
+/**
+ * (W9-H) The procession's streets are closed to the toy traffic from the staging to the end (procession 'gather' and
+ * 'walk': 2 November 18:00–21:00, while the walkers are out). SFMTA's 2025 notice (read 2026-10-02):
+ * https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 — "Bryant from 19th to 24th",
+ * "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", taking effect "during staging
+ * at 6 p.m.". Played on 2 Nov 19:10 before: the cars drove the route's four streets among the walkers (110 of 1360 car
+ * samples within 3 u of the route's line in 40 s, a toy car standing in the column on Bryant).
+ *
+ * A street edge is closed (world/sf/roadClosures.ts, by its middle) within ROUTE_CLOSED u of the route's line — in the
+ * game the four legs' edges sit 1.0–1.6 u from it, their pieces at the corners ≤ 3.7, the cross streets' short pieces
+ * across it ≤ 2.0 (closed with it: the crossings), a cross street's next piece ≥ 4.2 (open) — or of LEAD_CLOSED u of
+ * Bryant Street north of 22nd, where the staging stands.
+ */
+export const ROUTE_CLOSED = 4;
+export const LEAD_CLOSED = 30;
+let closedSegs: Float32Array | null = null;
+const closedBox = { x0: 0, x1: 0, z0: 0, z1: 0 };
+const procSegs = (): Float32Array => {
+  if (closedSegs) return closedSegs;
+  const r = processionRoute(), n = r.x.length, out = new Float32Array((n + 1) * 4);
+  for (let i = 0; i < n; i++) { const j = (i + 1) % n; out.set([r.x[i], r.z[i], r.x[j], r.z[j]], i * 4); }
+  // the lead-in: Bryant north of 22nd (back along the route's first heading)
+  const L = Math.hypot(r.x[1] - r.x[0], r.z[1] - r.z[0]) || 1;
+  out.set([r.x[0] - ((r.x[1] - r.x[0]) / L) * LEAD_CLOSED, r.z[0] - ((r.z[1] - r.z[0]) / L) * LEAD_CLOSED, r.x[0], r.z[0]], n * 4);
+  closedBox.x0 = closedBox.z0 = Infinity; closedBox.x1 = closedBox.z1 = -Infinity;
+  for (let k = 0; k < out.length; k += 2) {
+    closedBox.x0 = Math.min(closedBox.x0, out[k]); closedBox.x1 = Math.max(closedBox.x1, out[k]);
+    closedBox.z0 = Math.min(closedBox.z0, out[k + 1]); closedBox.z1 = Math.max(closedBox.z1, out[k + 1]);
+  }
+  return (closedSegs = out);
+};
+/** Is (x, z) on one of the procession's streets (within ROUTE_CLOSED of its line or the staging's stretch of Bryant)? */
+export function onProcessionStreets(x: number, z: number): boolean {
+  const g = procSegs(), R = ROUTE_CLOSED;
+  if (x < closedBox.x0 - R || x > closedBox.x1 + R || z < closedBox.z0 - R || z > closedBox.z1 + R) return false;
+  for (let k = 0; k < g.length; k += 4) {
+    const ax = g[k], az = g[k + 1], dx = g[k + 2] - ax, dz = g[k + 3] - az, L2 = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+    if (Math.hypot(ax + dx * t - x, az + dz * t - z) < R) return true;
+  }
+  return false;
+}
 
 const PICADO_COLORS = ['#e8488a', '#f28c28', '#8e44ad', '#f4d03f', '#27ae60', '#3498db', '#e74c3c'];
 const MARIGOLD = ['#f39c12', '#f5b041', '#e67e22'];
@@ -316,8 +360,11 @@ export function createMuertos(): Muertos {
         walkers = w;
         group.add(w.group);
         w.step(today.procession, today.walkS, clock);
-        // the toy traffic stops short of them (they walk the curb lane)
-        offRoad = addRoadPeople(put => w.each((x, z) => put(x, z, 0.35)));
+        // the toy traffic stops short of them (they walk the curb lane) — W9-H: and keeps off the procession's streets
+        // (onProcessionStreets above: the four legs, the crossings, the staging on Bryant)
+        const offPeople = addRoadPeople(put => w.each((x, z) => put(x, z, 0.35)));
+        const reopen = closeRoad(onProcessionStreets);
+        offRoad = () => { offPeople(); reopen(); };
       }
       // the park's altars come at 08:00 and go at 21:00 on 2 November: rebuild when that changes
       if (mesh && builtAltars !== today.altars) drop();
