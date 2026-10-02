@@ -4,9 +4,11 @@ import { test } from 'node:test';
 /**
  * Wave 9 · lane H · 2 November's procession played (19:10, desktop, dev 5912; docs/opus-bay/sf-w9-H.md part b): the toy
  * traffic drove the procession's four streets among the walkers (110 of 1360 car samples within 3 u of the route's line in
- * 40 s; a toy car standing in the column on Bryant). The real streets are closed from the staging at 6 p.m. (SFMTA's 2025
- * notice, https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025, read 2026-10-02):
- * while the walkers are out (18:00–21:00, near) the route's streets are closed to the toy traffic (world/sf/roadClosures.ts).
+ * 40 s; a toy car standing in the column on Bryant). The real streets are closed for the procession (SFMTA's 2025 notice,
+ * https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025, read 2026-10-02: staging "at
+ * approximately 6 p.m. on Bryant, between 19th and 22nd streets", then the four streets' closures; the notice "Temporary,
+ * from 6:45 to 10 p.m." — W9-H-review H-RV-3: not "from the staging at 6 p.m."): while the game's walkers are out
+ * (18:00–21:00, near) the route's streets are closed to the toy traffic (world/sf/roadClosures.ts).
  */
 
 const g = globalThis as unknown as Record<string, unknown>;

@@ -91,8 +91,11 @@ export const PROCESSION_NEAR = 25;
  * (W9-H) The procession's streets are closed to the toy traffic from the staging to the end (procession 'gather' and
  * 'walk': 2 November 18:00–21:00, while the walkers are out). SFMTA's 2025 notice (read 2026-10-02):
  * https://www.sfmta.com/travel-updates/dia-de-los-muertos-procession-sunday-november-2-2025 — "Bryant from 19th to 24th",
- * "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", taking effect "during staging
- * at 6 p.m.". Played on 2 Nov 19:10 before: the cars drove the route's four streets among the walkers (110 of 1360 car
+ * "24th from Bryant to Mission", "Mission from 24th to 22nd", "22nd from Mission to Bryant", listed right after "The
+ * procession will begin staging at approximately 6 p.m. on Bryant, between 19th and 22nd streets"; the notice itself runs
+ * "Temporary, from 6:45 to 10 p.m." (the Muni reroutes too), the procession "will begin at 7 p.m." (W9-H-review H-RV-3:
+ * the page has no "during staging at 6 p.m."). The game closes them while ITS walkers are out — its staging from 18:00 to
+ * the procession's end at 21:00 — a game choice, not the notice's 18:45–22:00. Played on 2 Nov 19:10 before: the cars drove the route's four streets among the walkers (110 of 1360 car
  * samples within 3 u of the route's line in 40 s, a toy car standing in the column on Bryant).
  *
  * A street edge is closed (world/sf/roadClosures.ts, by its middle) within ROUTE_CLOSED u of the route's line — in the
