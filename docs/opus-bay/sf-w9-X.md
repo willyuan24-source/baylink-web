@@ -6,10 +6,11 @@ Ultra workflow.
 
 ## 给主人的摘要
 
-1. **公共场合不再突然放音乐**：点「开始」后音乐不会自己响起，要等你自己第一次操作（按键、点一下、走一步）才从无声慢慢淡入，而且默认音量比以前低（原来的 60%）。环境声和 BAYBAY 的声音照旧随「开始」出现（iPhone 解锁声音的做法没动）。
-2. **设置里的音量接口已备好**（给 A 线做滑块）：音乐、音效、语音三个音量，以及「只关语音」（只让 BAYBAY 安静，音乐和音效照常；关了以后连录音文件都不下载）。音量会记在这台设备上。
-3. **一次只说一句**：BAYBAY 的新一句录音开始时，上一句会立刻淡出；气泡被别的气泡换掉，它的录音也停；气泡没出现（被丢掉、被挡住、还没加载完就过期）就绝不会只剩声音；她说话时不会再叠一个"耶"之类的短叫声。
-4. **配音覆盖率**：新写了统计脚本，现在 BAYBAY 的固定台词共 598 句，已配音 591 句（98.8%），5 句等你试听批准，2 句没配音（拉闸太短、雪橇坡太缓，这一波补录）。
+1. **公共场合不再突然放音乐**：点「开始」后音乐不自己响，等你自己第一次操作才从无声慢慢淡入，默认音量是以前的 60%。设置里的音乐、音效、语音三个音量和「只关语音」已经接好（A 线的设置页在用）。
+2. **一次只说一句**：BAYBAY 新的一句开始，上一句立刻淡出；气泡没出现或被换掉，录音就不播；她的对话框现在也能说录好的话（比如「这段路被挡住了，我们怎么走？」「上次的一日游还没走完，接着走吗？」），翻到下一页就停，不和"嘀嘀"声叠在一起。
+3. **配音覆盖率 99.2%**：BAYBAY 的固定台词共 608 句，603 句有中英文录音，5 句等你试听批准，0 句没录音。这一波新录了 15 句（30 个音频），全部通过音量、断句、音高检查，花了 0.72 积分（上限 60）。
+4. **修了一个我自己引起的问题**：万圣节当天回来时，BAYBAY 又说回了普通的「今日三件小事」（H 线修好的又被我的改动盖掉了），现在她会说万圣节当天的那句。
+5. **请你试听**：docs/opus-bay/qa/w9/X/voice/listening.md 列了每一句在游戏里哪儿能听到，以及要用耳朵确认的声音设置。
 
 ## Part a · the audio API, the music in public, one voice at a time, the coverage (2026-10-01 21:36–22:30 PDT)
 
@@ -155,3 +156,37 @@ limit (not by a fault); its last local work was three real-game probes of the so
 - Batch 4: 2 takes, **2 / 2 pass every gate, 2 / 2 heard right** (zh 3.07 s, en 4.26 s). Credits **0.04** (lane X total
   **0.72**).
 - **Coverage: 608 fixed lines, 603 voiced (99.2 %), 5 muted (the owner's ear), 0 unvoiced.**
+
+### The 04:40 pass
+
+- 04:37–04:40 PDT: `new-lines.md` unchanged (17 rows); the inventory over origin `8df35b78` finds **0** unrecorded lines; no
+  `bubble(` / BAYBAY node added since `b6570935`; no recorded line reworded since 04:03 (the 6 dead recordings are the
+  known ones). No batch 5. Lane X's recorded total for wave 9: **15 lines, 30 clips** (batches 1–4), every one through all
+  gates, 29 / 30 heard right by the recogniser (the en sled line of batch 1 is the advisory miss).
+
+## Not done
+
+- **A real-game probe of the sound** (the music's start after the first gesture, the levels, played / dropped / cut lines
+  over a minute): the first agent ran it three times (01:23–01:32 PDT, `C:/Users/willy/opus-qa/w9/x/probe-d*`, its script
+  `probe-audio.mjs`) but its numbers were lost with the session; the resumed agent did not re-run it (the machine took
+  10 min for one `tsc` at 04:20 PDT; the brief's time box). The behaviour is covered by the unit tests (music gate, levels,
+  one voice at a time, the dialogue tie); W9-I / W9-Z or the owner's ear (the listening sheet's part three) should check it.
+- **F's arbiter for BAYBAY's lines**: lane F routed the title level through `game/attention.ts`; the `line` level is not
+  used by the pacer yet. The voice does not depend on it: a line plays only while its own bubble (or dialogue node) is on
+  screen, so whatever F's arbiter drops never speaks.
+- The 5 muted clips wait for the owner's ear; the 6 dead recordings (reworded lines) still ship their small files
+  (`post.py --prune` handles only wave 9's own table; the older tables are frozen for their waves).
+
+## Requests
+
+- **Owner**: listen through `docs/opus-bay/qa/w9/X/voice/listening.md` (30 wave-9 clips + the 5 older muted ones; the sound
+  defaults: music after your first touch at 60 %, the three sliders, 只关语音). A clip you reject: name it there; lane X
+  re-takes it next wave.
+- **W9-I / W9-Z**: on a phone, after Start, the music must stay silent until the first own touch and then fade in; on the
+  stuck card (`flow.trip.stuck`) her question is voiced once and stops on a choice.
+
+## Higgsfield
+
+Lane X wave 9: **0.72 credits** of 60 (batch 1 0.22, batch 2 0.19, batch 3 0.27, batch 4 0.04), balance 357.27 → 356.55,
+every spend matched in `transactions` by time (ledger `docs/opus-bay/ledger/w9-X.md`); no other spend on the account between
+lane X's batches.
