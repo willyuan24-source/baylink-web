@@ -10,7 +10,7 @@ import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
 import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourNext, tourPill, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, rideNow, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripEtaShown, tripNames } from '../game/guideCity';
+import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, rideNow, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, shownWait, tripEtaShown, tripNames } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
 import { type TripLineInfo, tripTimeLabel } from '../game/tripPlan';
 import type { TripState } from '../game/tripTypes';
@@ -80,7 +80,8 @@ export function TripPillSlot() {
   const eta = tripEtaShown('pill', trip, runtime.player);
   const cur = trip.legs[trip.leg];
   const r = cur.via === 'line' && stage === 'waiting' ? rideNow() : null;
-  const wait = r && r.waitLeft !== undefined && cur.via === 'line' ? { wait: r.waitLeft, ride: Math.max(0, cur.seconds - cur.wait) } : null;
+  // (W9-N-review N-RC-1) a live wait that stood still says 车快到了 (shownWait), not a frozen number
+  const wait = r && r.waitLeft !== undefined && cur.via === 'line' ? { ...shownWait(trip, r.waitLeft), ride: Math.max(0, cur.seconds - cur.wait) } : null;
   const end = trip.legs[trip.legs.length - 1].to;
   const near = Math.hypot(end.x - runtime.player.x, end.z - runtime.player.z) <= NEAR_R;
   const text = tripPillText(trip, eta.seconds, { lines, phase: stage, compact: narrow, ...tripNames(trip), wait, near, detour: eta.detour });

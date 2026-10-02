@@ -274,9 +274,37 @@ export function shownEta(slot: string, key: string, raw: number, now: number = p
   etaSlots.set(slot, s);
   return { seconds: s.shown, detour: s.detourAt > 0 && now - s.detourAt < ETA_DETOUR_MS };
 }
-/** The trip's seconds left as the pill / the card show them (smoothed per slot). */
-export function tripEtaShown(slot: string, trip: TripState, pos: Vec2): { seconds: number; detour: boolean } {
-  return shownEta(slot, `${trip.startedAt}:${trip.leg}:${trip.legs.length}`, tripSecondsLeft(trip, pos));
+/**
+ * The trip's seconds left as the pill / the card / the waypoint show them. (W9-N-review N-RP-2: the pill said 约 12 秒
+ * and the waypoint 约 16 秒 for one walk, frozen: each slot held its own low.) The slots of one trip share ONE smoothed
+ * value (`slot` is kept for the callers), and the key carries the pace (BAYBAY carrying or the player walking): a tap
+ * to walk / 自动跟上 re-bases the time instead of holding the carried pace's low for good.
+ */
+export function tripEtaKey(trip: TripState, auto: boolean = autoOn()): string {
+  return `${trip.startedAt}:${trip.leg}:${trip.legs.length}:${auto ? 'a' : 'w'}`;
+}
+export function tripEtaShown(_slot: string, trip: TripState, pos: Vec2): { seconds: number; detour: boolean } {
+  return shownEta('trip', tripEtaKey(trip), tripSecondsLeft(trip, pos));
+}
+
+/**
+ * (W9-N-review N-RC-1: at Judah & La Playa the pill said 「车 9 秒后到」 for ~230 s while the rail model's live ETA stood
+ * still) a live wait that has not gone down for WAIT_STALL_MS and is short (≤ WAIT_STALL_MAX s) is no longer said as a
+ * number: the pill says 车快到了 instead. A new ride / leg (`key`) or a falling wait starts afresh.
+ */
+export const WAIT_STALL_MS = 15000;
+export const WAIT_STALL_MAX = 30;
+export interface WaitTrack { key: string; low: number; since: number }
+export function trackWait(prev: WaitTrack | null, key: string, wait: number, now: number): { track: WaitTrack; soon: boolean } {
+  if (!prev || prev.key !== key || wait < prev.low - 0.5) return { track: { key, low: wait, since: now }, soon: false };
+  return { track: prev, soon: wait <= WAIT_STALL_MAX && now - prev.since >= WAIT_STALL_MS };
+}
+let waitTrackNow: WaitTrack | null = null;
+/** The pill's wait for the current trip leg: the live seconds and whether it has stalled (车快到了). */
+export function shownWait(trip: TripState, wait: number, now: number = performance.now()): { wait: number; soon: boolean } {
+  const r = trackWait(waitTrackNow, `${trip.startedAt}:${trip.leg}`, wait, now);
+  waitTrackNow = r.track;
+  return { wait, soon: r.soon };
 }
 
 /** The pill's destination words for a trip: lane P's `tripDestination` name and, on foot, the attraction's short name. */
@@ -359,7 +387,9 @@ function tripTargetSeconds(target: Vec2, pos: Vec2): number | null {
   if (Math.hypot(leg.to.x - target.x, leg.to.z - target.z) > 3) return null;
   const r = rideNow();
   // (W9-N2) the waypoint's own smoothed slot: never rising without a detour, like the pill
-  return shownEta('wp', `${trip.startedAt}:${trip.leg}:${trip.legs.length}`, legSecondsLeft(leg, pos, r.aboard, r.waitLeft, { auto: autoOn(), ...(r.eta !== undefined ? { rideEta: r.eta } : {}) })).seconds;
+  // (W9-N-review N-RP-2) on the trip's last leg the waypoint's time IS the pill's (one shared smoothed value)
+  if (trip.leg === trip.legs.length - 1) return tripEtaShown('wp', trip, pos).seconds;
+  return shownEta('wp', tripEtaKey(trip), legSecondsLeft(leg, pos, r.aboard, r.waitLeft, { auto: autoOn(), ...(r.eta !== undefined ? { rideEta: r.eta } : {}) })).seconds;
 }
 
 /**

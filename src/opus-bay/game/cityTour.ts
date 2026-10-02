@@ -18,6 +18,8 @@ import { unlockPelican } from './pelicanFirst';
 import { registerFrameSystem } from './systemsRegistry';
 import { tourStopOption } from './tourTrips';
 import { resumeAutoTravel, showCard } from './tripRun';
+import { completeGoal } from './flow';
+import { allPostcardsFound } from '../data/postcards';
 import { minutesLabel } from './tripText';
 import { ATTENTION_PRIORITY } from './attention';
 import { coinsTotal } from '../economy/ledger';
@@ -284,8 +286,11 @@ function claimChapterPostcards(c: CityTourDef['chapters'][number], reached: read
   const have = game.get().postcards;
   const ids = c.stops.flatMap(s => (s.postcard && reached.includes(s.id) && !have.includes(s.postcard) && postcardById(s.postcard) ? [s.postcard] : []));
   if (!ids.length) return 0;
-  game.set({ postcards: [...have, ...ids] });
-  for (const id of ids) { emit({ type: 'postcard', id }); rewardPostcard(id); }
+  const postcards = [...have, ...ids];
+  game.set({ postcards });
+  // (W9-N-review N-RC-6) collectPostcard's tail: the stamp, and the 'postcards' goal when these were the last ones
+  for (const id of ids) { emit({ type: 'postcard', id }); emit({ type: 'stamp' }); rewardPostcard(id); }
+  if (allPostcardsFound(postcards)) completeGoal('postcards');
   return ids.length;
 }
 
@@ -301,7 +306,7 @@ function chapterWish() {
     const id = at.placeId ?? at.id;
     if (!wishlist.has('place', id) && wishlist.add({ kind: 'place', id, title: at.name.zh })) added++;
   }
-  say(added ? `已加入想去 · ${added} 个地方` : '这些地方已经在想去里了', added ? `Saved · ${added} places` : 'Already saved', 'success', 2600);
+  say(added ? `已加入想去 · ${added} 个地方` : '这些地方已经在想去里了', added ? `Saved · ${added} ${added === 1 ? 'place' : 'places'}` : 'Already saved', 'success', 2600);
   // the card closed with the ask: the tour goes on to the next stop as 下一章 would
   next();
 }
