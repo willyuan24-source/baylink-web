@@ -186,7 +186,7 @@ export const stationEntries = (stations: readonly { id: string; name: Bilingual;
 
 /** The games and the season's events (data/sf/searchSpots.ts searchSpots()). */
 export const spotEntries = (spots: readonly SearchSpot[]): SearchEntry[] => spots.map(s => ({
-  id: s.id, group: s.group, name: s.name, aliases: s.aliases, where: s.where, fame: 60,
+  id: s.id, group: s.group, name: s.name, aliases: s.aliases, where: s.where, fame: s.fame ?? 60,
   ...(s.at ? { at: s.at } : {}), ...(s.go ? { go: s.go } : {}), ...(s.ask ? { ask: s.ask } : {}),
 }));
 

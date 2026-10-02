@@ -35,6 +35,8 @@ export interface SearchSpot {
   go?: string;
   /** the 问 BAYBAY item id that starts it (ui/slots registerAskItem) */
   ask?: string;
+  /** the tie-break among equal scores (default 60): the calendar's dated rows 70 before the treat streets 50 */
+  fame?: number;
 }
 
 const STAIR_WORDS = ['stairs', 'steps', 'stair race', 'race', '台阶', '爬台阶', '台阶赛跑', '赛跑', '爬楼梯', '比赛'];
@@ -90,12 +92,12 @@ export const PLAY_SPOTS: readonly SearchSpot[] = [
  */
 const TREAT_WORDS = ['讨糖', '万圣', '万圣节', '讨糖街', '不给糖就捣蛋', '南瓜', 'halloween', 'trick or treat', 'trick-or-treat', 'trick or treating', 'candy', 'treats'];
 export const TREAT_SPOTS: readonly SearchSpot[] = [
-  { id: 'treat-belvedere', group: 'event', name: { zh: '万圣节讨糖 · 贝尔维德街', en: 'Trick-or-treat · Belvedere St' }, where: { zh: '科尔谷', en: 'Cole Valley' }, aliases: [...TREAT_WORDS, 'belvedere'], at: { x: 54.59, z: 860.83 } },
-  { id: 'treat-chenery', group: 'event', name: { zh: '万圣节讨糖 · Chenery 街', en: 'Trick-or-treat · Chenery St' }, where: { zh: '格伦公园', en: 'Glen Park' }, aliases: [...TREAT_WORDS, 'chenery'], at: { x: 420.02, z: 1051.99 } },
-  { id: 'treat-fair-oaks', group: 'event', name: { zh: '万圣节讨糖 · Fair Oaks 街', en: 'Trick-or-treat · Fair Oaks St' }, where: { zh: '诺伊谷', en: 'Noe Valley' }, aliases: [...TREAT_WORDS, 'fair oaks'], at: { x: 365.87, z: 755.58 } },
-  { id: 'treat-jordan', group: 'event', name: { zh: '万圣节讨糖 · Jordan 大道', en: 'Trick-or-treat · Jordan Ave' }, where: { zh: '乔丹公园', en: 'Jordan Park' }, aliases: [...TREAT_WORDS, 'jordan'], at: { x: -259.84, z: 721.23 } },
-  { id: 'treat-sea-cliff', group: 'event', name: { zh: '万圣节讨糖 · 海崖大道', en: 'Trick-or-treat · Sea Cliff Ave' }, where: { zh: '海崖区', en: 'Sea Cliff' }, aliases: [...TREAT_WORDS, 'sea cliff'], at: { x: -576.86, z: 900.85 } },
-  { id: 'treat-hearst', group: 'event', name: { zh: '万圣节讨糖 · Hearst 大道', en: 'Trick-or-treat · Hearst Ave' }, where: { zh: '阳光谷', en: 'Sunnyside' }, aliases: [...TREAT_WORDS, 'hearst'], at: { x: 363.62, z: 1217.48 } },
+  { id: 'treat-belvedere', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · 贝尔维德街', en: 'Trick-or-treat · Belvedere St' }, where: { zh: '科尔谷', en: 'Cole Valley' }, aliases: [...TREAT_WORDS, 'belvedere'], at: { x: 54.59, z: 860.83 } },
+  { id: 'treat-chenery', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Chenery 街', en: 'Trick-or-treat · Chenery St' }, where: { zh: '格伦公园', en: 'Glen Park' }, aliases: [...TREAT_WORDS, 'chenery'], at: { x: 420.02, z: 1051.99 } },
+  { id: 'treat-fair-oaks', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Fair Oaks 街', en: 'Trick-or-treat · Fair Oaks St' }, where: { zh: '诺伊谷', en: 'Noe Valley' }, aliases: [...TREAT_WORDS, 'fair oaks'], at: { x: 365.87, z: 755.58 } },
+  { id: 'treat-jordan', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Jordan 大道', en: 'Trick-or-treat · Jordan Ave' }, where: { zh: '乔丹公园', en: 'Jordan Park' }, aliases: [...TREAT_WORDS, 'jordan'], at: { x: -259.84, z: 721.23 } },
+  { id: 'treat-sea-cliff', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · 海崖大道', en: 'Trick-or-treat · Sea Cliff Ave' }, where: { zh: '海崖区', en: 'Sea Cliff' }, aliases: [...TREAT_WORDS, 'sea cliff'], at: { x: -576.86, z: 900.85 } },
+  { id: 'treat-hearst', group: 'event', fame: 50, name: { zh: '万圣节讨糖 · Hearst 大道', en: 'Trick-or-treat · Hearst Ave' }, where: { zh: '阳光谷', en: 'Sunnyside' }, aliases: [...TREAT_WORDS, 'hearst'], at: { x: 363.62, z: 1217.48 } },
 ];
 
 /** A calendar row's words: its own title plus the season's (万圣 / Halloween for the festival and the night). */
@@ -122,7 +124,7 @@ export function calendarSpots(dateKey: string, days = 60, rows: readonly Calenda
   return rows.filter(r => !r.hidden && !r.later && r.to >= dateKey && r.from <= end && (r.xz || r.placeId)).map(r => {
     const when = dateWords(r.from, r.to);
     return {
-      id: `cal:${r.id}`, group: 'event', name: r.title, where: { zh: `${when.zh} · ${r.where.zh}`, en: `${when.en} · ${r.where.en}` },
+      id: `cal:${r.id}`, group: 'event', name: r.title, fame: 70, where: { zh: `${when.zh} · ${r.where.zh}`, en: `${when.en} · ${r.where.en}` },
       aliases: CALENDAR_WORDS[r.id] ?? [], ...(r.xz ? { at: r.xz } : {}), ...(r.placeId ? { go: r.placeId } : {}),
     };
   });
