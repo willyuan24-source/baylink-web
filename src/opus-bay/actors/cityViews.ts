@@ -6,7 +6,7 @@ import { landmarkToWorld, sfLandmark } from '../world/sf/landmarks/index';
 import type * as THREE from 'three';
 import { forEachBlockerNear, type Blocker } from '../core/terrain';
 import type { HeroPoint, ZoneView } from './camera';
-import { canopySource } from './cameraModes';
+import { SWING_CLEAR, canopySource, lookBias, rideLookCheck, type RideCamera, type RideSubject } from './cameraModes';
 import { registerDeck, type Deck } from './deckSteer';
 import { registerNoVault } from './feet';
 import { PLAYER_HEIGHT } from './dims';
@@ -214,3 +214,41 @@ export function photoPullStep(target: THREE.Vector3, pos: THREE.Vector3, dt: num
   if (k <= kMin + 1e-3) pos.y += roofNeed(target, pos);
   return k;
 }
+
+/** (W9-C7) the rises (rad) a ride's look-at tries, in order, before it is dropped */
+export const LOOK_LIFTS = [0, 0.18, 0.36, 0.54] as const;
+/** a ride camera's look check: next check (ride clock), kept / rise wanted, eased, and the last call */
+interface LookState { at: number; keep: number; lift: number; keepS: number; liftS: number; last: number }
+const lookStates = new WeakMap<RideCamera, LookState>();
+const lookOut: [number, number] = [1, 0];
+/**
+ * (W9-C7, review R§5 #15: on the N at Carl & Arguello BAYBAY said 「窗外…UCSF」 with the camera against a house front,
+ * explorer 59-n-d; at Carl & Cole by the Sunset Tunnel's portal it sat in a building, verify-explorer 35-nj-a) The ride
+ * camera's look-at bias (W4-G9: a stop's attraction, a portal) puts the camera on the far side of the rider from the
+ * point — on Carl St, UCSF up the hill to the south sent it into the north side's houses, and the pull-in parked it in
+ * front of a house. On a city line the look's pose is checked at 5 Hz with the swing's own test (no wall nearer than
+ * SWING_CLEAR of the distance, now and a moment ahead) at rises of LOOK_LIFTS: the first clear rise is taken; when none
+ * clears, the look is dropped (the line's own shot stays). Both eased (4/s). Registered with cameraModes when this city
+ * chunk loads; returns [the share of the look kept, its rise].
+ */
+export function rideLookClear(rc: RideCamera, sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, now: number, dt: number): readonly [number, number] {
+  // (the look's own lift; a portal's look also pulls back and lifts: cameraModes' W4-G9 part b)
+  pitch += lookBias.wide ? 0.14 : 0.06;
+  if (lookBias.wide) dist += 5;
+  let s = lookStates.get(rc);
+  if (!s || now - s.last > 0.5 || now < s.last) { s = { at: -1, keep: 1, lift: 0, keepS: 0, liftS: 0, last: now }; lookStates.set(rc, s); }
+  s.last = now;
+  if (now >= s.at) {
+    s.at = now + 0.2;
+    s.keep = 0; s.lift = 0;
+    for (const lift of LOOK_LIFTS) {
+      if (rc.clearAt(sub, yaw, Math.min(1.2, Math.max(-0.1, pitch + lift)), dist, lookUp, dist * SWING_CLEAR)) { s.keep = 1; s.lift = lift; break; }
+    }
+  }
+  const ease = 1 - Math.exp(-4 * dt);
+  s.keepS += (s.keep - s.keepS) * ease;
+  s.liftS += (s.lift - s.liftS) * ease;
+  lookOut[0] = s.keepS; lookOut[1] = s.liftS;
+  return lookOut;
+}
+rideLookCheck.fn = rideLookClear;

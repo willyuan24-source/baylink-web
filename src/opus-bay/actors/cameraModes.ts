@@ -69,7 +69,7 @@ const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
  * toward the point — 85 % of the way, the rider stays in frame — easing in and out over 0.8 s. A drag cancels it.
  * Performance-clock seconds (the callers are event handlers, not the camera's frame clock).
  */
-const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9, wide: false };
+export const lookBias = { x: 0, z: 0, t0: -1e9, t1: -1e9, wide: false };
 const perfNow = () => performance.now() / 1000;
 /**
  * `wide` (part b, the portal): the camera also pulls back (+5 u), lifts a little and widens (+6°) while it looks, so the
@@ -134,6 +134,11 @@ export const SWING_HOLD = 2.5;
 const SWING_AHEAD = [0.5, 1, 1.5] as const;
 /** (W7-K1) how far ahead (s) the pull-in looks for a canopy crossing the line */
 const CANOPY_LEAD = 0.35;
+/**
+ * (W9-C7) the look-at bias's check on a city line — set by actors/cityViews.ts (the city camera chunk) when it loads:
+ * [the share of the look kept 0 … 1, its rise (rad)] for the look's full pose
+ */
+export const rideLookCheck: { fn: null | ((rc: RideCamera, sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, now: number, dt: number) => readonly [number, number]) } = { fn: null };
 
 export class RideCamera {
   /** manual yaw / pitch offsets from the mode's default (drag / right stick) */
@@ -260,9 +265,12 @@ export class RideCamera {
         const w = this.dragPerf >= lookBias.t0 ? 0 : rideLookWeight();
         if (w > 0) {
           const look = Math.atan2(sub.x - lookBias.x, sub.z - lookBias.z);
-          yaw += wrap(look - yaw) * 0.85 * w;
-          pitch += 0.06 * w;
-          if (lookBias.wide) { dist += 5 * w; pitch += 0.08 * w; fov += 6 * w; }
+          // (W9-C7) a city line: the share of the look kept and its rise (actors/cityViews.ts rideLookClear)
+          const c = sub.occlude && rideLookCheck.fn ? rideLookCheck.fn(this, sub, yaw + wrap(look - yaw) * 0.85, pitch + this.pitchOff, dist * zoom, lookUp, now, dt) : null;
+          const k = c ? w * c[0] : w;
+          yaw += wrap(look - yaw) * 0.85 * k;
+          pitch += (0.06 + (c ? c[1] : 0)) * k;
+          if (lookBias.wide) { dist += 5 * k; pitch += 0.08 * k; fov += 6 * k; }
         }
         break;
       }
@@ -305,7 +313,7 @@ export class RideCamera {
    * and where the car will be SWING_AHEAD s from now (a kerb tree 8 u on passed through a step that was clear at the
    * check: every other second the line ran through a canopy)
    */
-  private clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, need: number): boolean {
+  clearAt(sub: RideSubject, yaw: number, pitch: number, dist: number, lookUp: number, need: number): boolean {
     if (!this.clearFrom(sub, yaw, pitch, dist, lookUp, need)) return false;
     const v = sub.speed;
     if (Math.abs(v) < 0.5) return true;
