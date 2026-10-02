@@ -13,6 +13,7 @@ import type { AudioEngine, Voice } from './engine';
 import { CLIP_MOODS, blipPlan, hashString, mulberry32, voiceClipForMood, type VoiceLang, type Voicing } from './logic';
 import { otterChirp, type ChirpKind } from './sfx';
 import { audioProbe } from './unlock';
+import { getAudioLevels } from './levels';
 
 const CLIP_GAP = 6;
 const SAME_CLIP_GAP = 25;
@@ -58,6 +59,10 @@ export class VoicePlayer {
   private lastClip = -Infinity;
   private readonly lastById: Record<string, number> = {};
   private utterance: Voice | null = null;
+  /** (W9-X3) the recorded line playing now (one at a time: a new line, or a stopLine, fades it out) */
+  private lineVoice: Voice | null = null;
+  /** (W9-X3, QA / tests) lines dropped because their bubble was gone before the clip could start, lines cut by a newer one */
+  readonly lineStats = { played: 0, dropped: 0, cut: 0, muted: 0 };
   private lines = 0;
   private disposed = false;
 
@@ -136,6 +141,8 @@ export class VoicePlayer {
   /** The tour clips of this stop and the next (audio.ts preloadStopVoices): loaded and pinned; the previous stop's unpinned. */
   loadStop(ids: readonly string[]) {
     this.stopPins = new Set(ids);
+    // (W9-X1) 只关语音: nothing to fetch
+    if (getAudioLevels().voiceMuted) return;
     for (const id of ids) void this.load(id);
   }
 
@@ -158,6 +165,7 @@ export class VoicePlayer {
 
   /** Warm up the barks for the current language (sequential, low priority). */
   async preload() {
+    if (getAudioLevels().voiceMuted) return;
     const lang = VoicePlayer.lang();
     const ids = BARK_KINDS.map(s => `${lang}-${s}`)
       .filter(id => (lang === 'zh' || !/wow|think/.test(id)) && !MUTED_CLIPS.has(id));
@@ -170,7 +178,7 @@ export class VoicePlayer {
 
   /** Play a recorded bark if it is loaded and not rate-limited; returns its duration or 0. */
   private playClip(id: string, delay = 0): number {
-    if (MUTED_CLIPS.has(id)) return 0;
+    if (MUTED_CLIPS.has(id) || getAudioLevels().voiceMuted) return 0;
     const buffer = this.use(id);
     if (!buffer) { if (buffer === undefined) void this.load(id); return 0; }
     const now = this.e.now;
@@ -188,9 +196,20 @@ export class VoicePlayer {
    * a deliberate moment) but keeps SAME_CLIP_GAP; waits up to LINE_WAIT for a clip still loading; otherwise (missing,
    * muted, rate-limited) plays the `fallback` chirp. Volume and mute follow the voice bus like every clip.
    */
-  line(id: string, fallback: ChirpKind = 'hi') {
+  line(id: string, fallback: ChirpKind = 'hi', shown: (() => boolean) | null = null) {
     const clipId = `${VoicePlayer.lang()}-${id}`;
+    // (W9-X1) 只关语音: no clip is fetched or played, no chirp (the bubble carries the words)
+    if (getAudioLevels().voiceMuted) { this.lineStats.muted++; return; }
+    // (W9-X3) the line's bubble must still be the one on screen when its clip (or chirp) would start: a bubble dropped,
+    // replaced or gone while the clip loaded (LINE_WAIT) never plays its voice
+    const gone = () => {
+      if (!shown || shown()) return false;
+      this.lineStats.dropped++;
+      this.e.log('voice-line:dropped', clipId);
+      return true;
+    };
     const chirp = () => {
+      if (gone()) return;
       const now = this.e.now;
       if (now - (this.lastById[`chirp:${fallback}`] ?? -Infinity) < 3) return;
       this.lastById[`chirp:${fallback}`] = now;
@@ -201,9 +220,14 @@ export class VoicePlayer {
       if (!buffer || MUTED_CLIPS.has(clipId)) { chirp(); return; }
       const now = this.e.now;
       if (now - (this.lastById[clipId] ?? -Infinity) < SAME_CLIP_GAP) { chirp(); return; }
+      if (gone()) return;
+      // (W9-X3) one voice at a time: a line still playing fades out under the new one
+      if (this.stopLine()) this.lineStats.cut++;
       const v = this.e.voice({ bus: 'voice', at: now, dur: buffer.duration, gain: 0.95, priority: 3, reverb: 0.06, name: `voice-clip:${clipId}` });
       if (!v) return;
       this.e.buffer(v, buffer);
+      this.lineVoice = v;
+      this.lineStats.played++;
       this.lastClip = now;
       this.lastById[clipId] = now;
     };
@@ -216,6 +240,7 @@ export class VoicePlayer {
 
   /** City mode: warm the current language's line clips (after preload(); sequential, low priority). */
   async preloadLines() {
+    if (getAudioLevels().voiceMuted) return;
     const lang = VoicePlayer.lang();
     for (const id of Object.keys(SF_VOICE_LINES)) {
       if (this.disposed) return;
@@ -223,8 +248,29 @@ export class VoicePlayer {
     }
   }
 
+  /** (W9-X3) a recorded line is playing now */
+  lineSpeaking(): boolean {
+    const v = this.lineVoice;
+    return !!v && !v.done && this.e.now < v.end;
+  }
+
+  /** (W9-X3) fade out the recorded line playing now (its bubble was replaced, or a newer line starts); true if one was cut */
+  stopLine(fade = 0.08): boolean {
+    const v = this.lineVoice;
+    this.lineVoice = null;
+    if (!v || v.done || this.e.now >= v.end) return false;
+    const t = this.e.now;
+    v.input.gain.cancelScheduledValues(t);
+    v.input.gain.setTargetAtTime(0, t, fade / 3);
+    for (const src of v.sources) { try { src.stop(t + fade + 0.05); } catch { /* ignore */ } }
+    this.e.log('voice-line:stopped');
+    return true;
+  }
+
   /** A short bark (recorded if available, synth chirp otherwise). */
   bark(kind: ChirpKind, delay = 0) {
+    // (W9-X3) one voice at a time: no bark or chirp over a recorded line (the goal fanfare / postcard sparkle still play)
+    if (this.lineSpeaking() || getAudioLevels().voiceMuted) return;
     const lang = VoicePlayer.lang();
     const id = `${lang}-${kind}`;
     if (this.playClip(id, delay) > 0) return;
@@ -249,7 +295,8 @@ export class VoicePlayer {
     const node = NODES[nodeId];
     const speaker = (node?.speaker ?? speakerRaw) as Speaker | string;
     this.cancel();
-    if (speaker === 'narrator') return;
+    // (W9-X1) 只关语音: the voice bus is silent; no blips, no bark, no duck
+    if (speaker === 'narrator' || getAudioLevels().voiceMuted) return;
     const lang = VoicePlayer.lang();
     const text = node ? (lang === 'en' ? node.text.en : node.text.zh) : '';
     const voicing: Voicing = speaker === 'baybay' ? 'baybay' : speaker === 'player' ? 'player' : 'npc';
@@ -332,6 +379,7 @@ export class VoicePlayer {
   dispose() {
     this.disposed = true;
     this.cancel();
+    this.stopLine();
     this.clips.clear();
     this.held = 0; this.bytes = 0;
     audioProbe.clips = 0; audioProbe.clipBytes = 0;

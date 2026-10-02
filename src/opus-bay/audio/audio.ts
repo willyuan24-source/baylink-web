@@ -28,11 +28,13 @@ import * as rides from './rides';
 import * as sfx from './sfx';
 import { runSliced, type Job, type Sliced } from './slices';
 import { VoicePlayer } from './voice';
+import { busGains, getAudioLevels, onAudioLevels } from './levels';
 import { adoptAudioContext, audioProbe, primeAudio, releaseAudioContext, shareAudioContext, silentSample } from './unlock';
 import type { LineLoops } from './lines';
 import { platforms } from '../actors/platform';
 import { w4Kind } from '../data/transit';
 import { currentRide, lineRideUnderground } from '../game/ride';
+import { flow } from '../game/flowStore';
 import { importRetry } from '../game/importRetry';
 
 type AudioCtor = typeof AudioContext;
@@ -64,6 +66,19 @@ function halloweenSfx(e: AudioEngine, ev: Extract<GameEvent, { type: 'halloween'
 const NIGHT_PHASE: Extract<GameEvent, { type: 'halloween' }> = { type: 'halloween', what: 'phase', id: 'night' };
 
 /**
+ * (W9-X1) Music in a public place (the first-use review's risk: music on by default, straight out of the speaker): the
+ * music no longer starts 2.2 s after the Start tap. It waits for the player's own first gesture after Start (a gesture
+ * at least MUSIC_GESTURE_GAP ms later — the Start tap's own pointer / touch / click events do not count; with ?start= the
+ * activating gesture is the player's own, so it counts) and then fades in from silence (MUSIC_FADE_TAU: ≈ 95 % after
+ * 3 τ ≈ 9 s), at the player's music level (audio/levels.ts, default 60 % of wave 8's mix). The master, the soundscape
+ * and BAYBAY come in with the Start tap as before (the W7 iPhone unlock inside the tap is unchanged).
+ */
+export const MUSIC_GESTURE_GAP = 1200;
+export const MUSIC_FADE_TAU = 3;
+/** (W9-X1, tests / QA) the music's start in the running startAudio: the player's gesture has come, the music has begun */
+export const musicProbe = { wanted: false, started: false };
+
+/**
  * (W6-X review) The big night's toll waits for the sound to be live: halloween/world.ts announces the phase once, when the
  * feature starts, and that is before the audio is live (live QA with ?halloween=night: no toll). Every event is `see`n
  * before the live gate; the first live moment after a `night` announcement `take`s the toll (once; a later phase disarms it).
@@ -86,6 +101,9 @@ export function startAudio(): () => void {
   let activatedAt = 0;
   /** how long opening the context took (QA: the one stall preparation cannot slice) */
   let ctxMs = 0;
+  /** (W9-X1) the player's own first gesture after Start has come: the music may begin (and once begun, it stays begun) */
+  let musicWanted = false;
+  let musicStarted = false;
   let disposed = false;
   let loop = 0;
   let lastTick = 0;
@@ -157,14 +175,36 @@ export function startAudio(): () => void {
     }, delay);
   };
 
+  /** (W9-X1) the music bus's gain: its mix level × the player's music level (audio/levels.ts), lower in photo mode; 0 before it begins */
+  const musicGain = () => musicStarted ? busGains(getAudioLevels(), BUS_LEVELS).music * (game.get().photoMode ? 0.55 : 1) : 0;
+  let applied: ReturnType<typeof busGains> | null = null;
+  /** (W9-X1) the player's levels on the four buses (only the buses whose gain changed are touched: a fade in progress keeps going) */
+  const applyLevels = (tau = 0.15) => {
+    if (!rig) return;
+    const g = { ...busGains(getAudioLevels(), BUS_LEVELS), music: musicGain() };
+    const b = rig.engine.buses;
+    for (const k of ['ambience', 'sfx', 'voice', 'music'] as const) if (!applied || Math.abs(applied[k] - g[k]) > 1e-4) b[k].setLevel(g[k], tau);
+    applied = g;
+  };
+  /** (W9-X1) the music begins once: after the player's own first gesture, from silence, fading in at their level */
+  const maybeStartMusic = () => {
+    if (musicStarted || !musicWanted || !rig || !activated || disposed) return;
+    musicStarted = true;
+    musicProbe.started = true;
+    rig.engine.log('music:begin');
+    applyLevels(MUSIC_FADE_TAU);
+    const s = game.get().settings;
+    if (s.sound && s.music) rig.music.setEnabled(true);
+  };
+
   const applySettings = (first = false) => {
     if (!rig || !activated) return;
     const s = game.get().settings;
     rig.engine.setMaster(s.sound, first ? 0.9 : 0.25);
     const musicOn = s.sound && s.music;
+    // (W9-X1) before the player's first own gesture the music waits (maybeStartMusic), whatever the switch says
     if (!musicOn) rig.music.setEnabled(false);
-    else if (first) timers.push(window.setTimeout(() => { if (rig && game.get().settings.sound && game.get().settings.music) rig.music.setEnabled(true); }, 2200));
-    else rig.music.setEnabled(true);
+    else if (musicStarted) rig.music.setEnabled(true);
     if (s.sound) resume(); else suspendSoon();
   };
 
@@ -222,7 +262,11 @@ export function startAudio(): () => void {
     rig.engine.log('boot', { state: rig.ctx.state, sampleRate: rig.ctx.sampleRate });
     // wave 5 (audio/hooks.ts): the lanes' playSound / setLoop / duck reach this engine from now on
     bindAudioHooks(rig.engine, live);
+    // (W9-X1) the player's levels (the music bus silent until the music begins), then the switches
+    applied = null;
+    applyLevels(0.05);
     applySettings(true);
+    maybeStartMusic();
     rig.engine.setMuffled(s.paused);
     timers.push(window.setTimeout(() => {
       if (!rig || disposed) return;
@@ -283,6 +327,8 @@ export function startAudio(): () => void {
     resume();
   };
 
+  /** (W9-X3) the bubble the playing recorded line belongs to (undefined: none, or a line with no bubble) */
+  let lineKey: number | undefined;
   const night = nightTollGate();
   const handle = (ev: GameEvent) => {
     night.see(ev);
@@ -365,7 +411,17 @@ export function startAudio(): () => void {
       // wave 6 (lane X, W6-X3): the Halloween sounds live in their own small chunk, fetched at the season's first event
       case 'halloween': if (ev.what !== 'phase') halloweenSfx(e, ev); break;
       // recorded city lines (lane H2b data, lane G2 triggers): the clip, else the line's chirp
-      case 'voice-line': voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi'); break;
+      // (W9-X3) the line belongs to the bubble on screen when it is emitted (every lane emits it right after its bubble():
+      // game/voiceW5.ts, the pacer, baybayLines, realsf, economy): its clip starts only while that bubble is still up, and
+      // a newer bubble cuts it (offBubble below). No bubble (a card or a dialogue box carries the words): no gate.
+      case 'voice-line': {
+        const key = flow.get().bubble?.key;
+        // a line of another bubble still playing stops now (not only once the new clip has loaded)
+        if (key !== lineKey && voice.stopLine()) voice.lineStats.cut++;
+        lineKey = key;
+        voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi', key === undefined ? null : () => flow.get().bubble?.key === key);
+        break;
+      }
     }
   };
 
@@ -381,13 +437,25 @@ export function startAudio(): () => void {
     if (activated && (s.settings.sound !== p.settings.sound || s.settings.music !== p.settings.music)) applySettings();
     if (s.timeOfDay !== p.timeOfDay || s.mode !== p.mode) rig.music.setMood(s.timeOfDay, s.mode);
     if (s.paused !== p.paused) rig.engine.setMuffled(s.paused);
-    if (s.photoMode !== p.photoMode) rig.engine.buses.music.setLevel(BUS_LEVELS.music * (s.photoMode ? 0.55 : 1), 0.8);
+    if (s.photoMode !== p.photoMode) applyLevels(0.8);
     if (s.dialogue.nodeId !== p.dialogue.nodeId) {
       // music sits lower while a speech bubble is open (blips duck it further)
       rig.engine.buses.music.hold(s.dialogue.nodeId ? 0.65 : 1);
       if (s.dialogue.nodeId === null) rig.voice.cancel();
     }
   });
+
+  // (W9-X3) one voice at a time: when another bubble replaces the one a recorded line belongs to (a new line, a resident's
+  // bubble, a card's line), that line fades out — its words are gone. A bubble that simply ends keeps its clip (the
+  // binder holds a voiced bubble for its clip's length, game/voiceW5.ts).
+  const offBubble = flow.subscribe(() => {
+    if (lineKey === undefined || !rig) return;
+    const b = flow.get().bubble;
+    if (b && b.key !== lineKey) { lineKey = undefined; if (rig.voice.stopLine()) rig.voice.lineStats.cut++; }
+  });
+
+  // (W9-X1) Settings' sliders / 只关语音 (audio/levels.ts) apply live
+  const offLevels = onAudioLevels(() => applyLevels(0.15));
 
   // a language switch (Settings · 语言): BAYBAY's next line is in the new language (VoicePlayer.lang() is read per line);
   // warm the new language's barks — and in the city its recorded lines — as at boot, so that line does not wait for
@@ -408,7 +476,11 @@ export function startAudio(): () => void {
     // (W7-Q1) a tap on the title does not activate sound yet, but on WebKit it starts the context inside the gesture
     // (then quiet again), so the later 'start' may resume it; the Start tap itself primes it in OpusBayPage.start
     if (!activated && game.get().phase === 'title') { primeAudio(); return; }
+    // (W9-X1) the player's own gesture: the one that activates sound when the title was skipped (?start=), or the first
+    // one well after the Start tap (not that tap's own pointer / touch / key events)
+    if (!musicWanted && (!activated || performance.now() - activatedAt > MUSIC_GESTURE_GAP)) musicWanted = musicProbe.wanted = true;
     activate();
+    maybeStartMusic();
   };
   const onVisibility = () => {
     if (!ctx || !activated) return;
@@ -438,10 +510,15 @@ export function startAudio(): () => void {
         hooks: audioHooksStats(),
         ducks: { music: rig.engine.buses.music.ducking, ambience: rig.engine.buses.ambience.ducking },
         unlock: unlockStats(),
+        // (W9-X1) the player's levels and the music's start
+        levels: { ...getAudioLevels(), musicWanted, musicStarted, buses: applied },
+        // (W9-X3) recorded lines played / dropped with their bubble gone / cut by a newer bubble / skipped (只关语音)
+        lines: { ...rig.voice.lineStats, speaking: rig.voice.lineSpeaking() },
       } : { state: ctx ? 'preparing' : 'not-started', activated, unlock: unlockStats(), prep: prep ? { slices: prep.stats.slices, ctxMs: +ctxMs.toFixed(1), longestAfterContext: Math.max(0, ...prep.stats.times.slice(1)), times: prep.stats.times } : null },
       boot: activate,
     };
   }
+  musicProbe.wanted = musicProbe.started = false;
   startPrep();
 
   return () => {
@@ -449,6 +526,8 @@ export function startAudio(): () => void {
     offEvent();
     offStore();
     offLocale();
+    offLevels();
+    offBubble();
     window.removeEventListener('pointerdown', onGesture, gestureOpts);
     window.removeEventListener('keydown', onGesture, gestureOpts);
     window.removeEventListener('touchend', onGesture, gestureOpts);
