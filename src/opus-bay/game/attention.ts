@@ -110,7 +110,7 @@ interface Req {
   seq: number;
 }
 
-interface LevelState { holder: Req | null; queue: Req[]; freeAt: number }
+interface LevelState { holder: Req | null; queue: Req[]; freeAt: number; freePriority: number }
 
 let now = (): number => (typeof performance !== 'undefined' ? performance.now() : Date.now());
 type Timer = ReturnType<typeof setTimeout>;
@@ -118,9 +118,9 @@ let setTimer = (fn: () => void, ms: number): Timer => setTimeout(fn, ms);
 let clearTimer = (t: Timer) => clearTimeout(t);
 
 const levels: Record<AttentionLevel, LevelState> = {
-  title: { holder: null, queue: [], freeAt: -Infinity },
-  action: { holder: null, queue: [], freeAt: -Infinity },
-  line: { holder: null, queue: [], freeAt: -Infinity },
+  title: { holder: null, queue: [], freeAt: -Infinity, freePriority: -Infinity },
+  action: { holder: null, queue: [], freeAt: -Infinity, freePriority: -Infinity },
+  line: { holder: null, queue: [], freeAt: -Infinity, freePriority: -Infinity },
 };
 const timers: Partial<Record<AttentionLevel, Timer>> = {};
 const freeListeners = new Set<(level: AttentionLevel) => void>();
@@ -185,7 +185,8 @@ function pump(level: AttentionLevel) {
     drop(old, 'preempted');
     grant(L, h, t);
     granted = h;
-  } else if (h && !L.holder && t >= L.freeAt) {
+  } else if (h && !L.holder && (t >= L.freeAt || h.priority > L.freePriority)) {
+    // (a waiter above the one that just left would have taken over from it: no gap)
     grant(L, h, t);
     granted = h;
   }
@@ -203,7 +204,7 @@ function schedule(level: AttentionLevel) {
   let at = Infinity;
   for (const r of L.queue) at = Math.min(at, r.askedAt + r.maxWaitMs + 1);
   const h = head(L.queue)!;
-  if (!L.holder) at = Math.min(at, L.freeAt);
+  if (!L.holder) at = Math.min(at, h.priority > L.freePriority ? t : L.freeAt);
   else if (h.priority > L.holder.priority) at = Math.min(at, L.holder.grantedAt + L.holder.minMs);
   if (!Number.isFinite(at)) return;
   timers[level] = setTimer(() => { delete timers[level]; pump(level); }, Math.max(0, at - t));
@@ -233,6 +234,7 @@ function releaseReq(r: Req) {
   if (L.holder === r) {
     L.holder = null;
     L.freeAt = now() + LEVEL_GAP_MS[r.level];
+    L.freePriority = r.priority;
     log(r.level, r.id, 'release');
     changed();
     for (const fn of [...freeListeners]) { try { fn(r.level); } catch (e) { if (import.meta.env?.DEV) console.error('[opus-bay attention]', e); } }
@@ -295,7 +297,9 @@ export const attentionVersion = () => version;
 // The ribbon: progress (今日小事 1/3, 南瓜灯 1/40, +10 金币, 解锁…) merged into one line
 // ---------------------------------------------------------------------------------------------------------------
 
-export interface RibbonItem { key: number; parts: Bilingual[]; at: number }
+/** A note of the ribbon; `kind` (optional) names what a later note of the same kind replaces (the finds' chip: +1 · X → +2 个地点). */
+export type RibbonPart = Bilingual & { kind?: string };
+export interface RibbonItem { key: number; parts: RibbonPart[]; at: number }
 /** Progress notes that arrive this close together (ms) share one ribbon line. */
 export const RIBBON_MERGE_MS = 2500;
 /** At most this many notes in one ribbon line (the oldest leaves). */
@@ -312,17 +316,18 @@ export function ribbonText(parts: readonly Bilingual[]): Bilingual {
  * Add a note to the ribbon (the merge rule, pure over `cur`): within RIBBON_MERGE_MS of the last note it joins the line
  * (a note of the same kind — same text before its count — replaces the older one: 南瓜灯 1/40 → 2/40), else a new line.
  */
-export function mergeRibbon(cur: RibbonItem | null, note: Bilingual, at: number, key: number): RibbonItem {
+export function mergeRibbon(cur: RibbonItem | null, note: RibbonPart, at: number, key: number): RibbonItem {
   if (!cur || at - cur.at > RIBBON_MERGE_MS) return { key, parts: [note], at };
-  const kind = (b: Bilingual) => b.zh.replace(/[\d\s/·+✓]+.*$/u, '') || b.zh;
+  // the words before the first count / tick (今日小事, 南瓜灯), or after a leading "+N" (金币)
+  const kind = (b: RibbonPart) => b.kind ?? (b.zh.split(/[\d✓·+]/u)[0].trim() || b.zh.replace(/^[\s+\d·]+/u, '').trim() || b.zh);
   const parts = cur.parts.filter(p => kind(p) !== kind(note));
   parts.push(note);
   return { key: cur.key, parts: parts.slice(-RIBBON_MAX_PARTS), at };
 }
 
 /** A progress note for the ribbon (the arrival card's row when one is up, else ui/Floating's top ribbon). */
-export function ribbonNote(note: Bilingual): void {
-  ribbonItem = mergeRibbon(ribbonItem, note, now(), ++ribbonKey);
+export function ribbonNote(note: Bilingual, kind?: string): void {
+  ribbonItem = mergeRibbon(ribbonItem, kind ? { zh: note.zh, en: note.en, kind } : note, now(), ++ribbonKey);
   const holder = levels.title.holder;
   log('title', holder?.absorb ? holder.id : 'ribbon', 'absorb');
   changed();
@@ -372,7 +377,7 @@ export function clearAttention(): void {
   for (const level of ATTENTION_LEVELS) {
     const L = levels[level];
     const all = [...(L.holder ? [L.holder] : []), ...L.queue];
-    L.holder = null; L.queue = []; L.freeAt = -Infinity;
+    L.holder = null; L.queue = []; L.freeAt = -Infinity; L.freePriority = -Infinity;
     const tm = timers[level];
     if (tm !== undefined) { clearTimer(tm); delete timers[level]; }
     for (const r of all) drop(r, 'cleared');

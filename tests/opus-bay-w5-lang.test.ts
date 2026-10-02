@@ -137,12 +137,13 @@ test('lang: a toast or an announcement given { zh, en } follows a switch while i
     assert.deepEqual(flow.get().announce, { zh: '抵达渡轮大厦', en: 'Arrived at the Ferry Building' }, 'kept in both languages');
     const view = render(h('div', null, h(Toasts), h(LiveRegion)));
     const shown = () => [...view.container.querySelectorAll('.ob-toast, .ob-sr')].map(e => e.textContent).filter(Boolean);
-    assert.deepEqual(shown(), ['已存进相册', '欢迎回来！我们接着逛吧。', '纯文字', '抵达渡轮大厦']);
-    // the same toasts, still on screen, after a switch
+    // (W9-F2, review R§5 #5) one toast on screen at a time (ui/titleHost.ts): the first, the others wait their turn
+    assert.deepEqual(shown(), ['已存进相册', '抵达渡轮大厦']);
+    // the same toast, still on screen, after a switch
     await act(async () => { await L.setLocale('en', false); });
-    assert.deepEqual(shown(), ['Saved to your album', "Welcome back! Let's keep exploring.", '纯文字', 'Arrived at the Ferry Building']);
+    assert.deepEqual(shown(), ['Saved to your album', 'Arrived at the Ferry Building']);
     await act(async () => { await L.setLocale('zh-Hant', false); });
-    assert.deepEqual(shown(), ['已存進相冊', '歡迎回來！我們接著逛吧。', '純文字', '抵達渡輪大廈']);
+    assert.deepEqual(shown(), ['已存進相冊', '抵達渡輪大廈']);
   } finally {
     await act(async () => { await L.setLocale('zh-Hans', false); game.set({ ...initialGameState(), toasts: [] }); flow.set({ announce: '' }); });
   }

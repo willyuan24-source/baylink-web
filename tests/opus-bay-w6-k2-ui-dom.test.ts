@@ -38,7 +38,8 @@ test('W6-K2: the More menu store counts open menus (phone bar + desktop 更多);
 
 test('W6-K2: an open More menu wins over the ARRIVED card — it steps back, its timer waits, and it comes back after', async () => {
   let closed = 0;
-  const view = render(h(ArrivalCard, { arrival: ARRIVAL, onInfo: () => {}, onPhoto: () => {}, onClose: () => { closed++; }, ms: 400 }));
+  // (W9-F2: a first visit's card is sticky by default; the timer case is the non-sticky card)
+  const view = render(h(ArrivalCard, { arrival: ARRIVAL, onInfo: () => {}, onPhoto: () => {}, onClose: () => { closed++; }, ms: 400, sticky: false }));
   const card = () => view.container.querySelector('.ob-arrival-card')!;
   assert.ok(!card().classList.contains('is-waiting'), 'shown at first');
   let release = () => {};

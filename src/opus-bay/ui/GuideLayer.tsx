@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
-import { Footprints, Hand, MapPin, Route, Sparkles } from 'lucide-react';
+import { Footprints, Hand, MapPin, Route } from 'lucide-react';
 import { DISTRICT } from '../data/district';
 import { AREA_NAMES } from '../game/brain';
 import { CITY_HERO_ZONE_NAMES } from '../data/cityZones';
@@ -27,6 +27,7 @@ import { isScenicLeg, scenicResumeOffered } from '../game/scenicTrip';
 import { tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
 import { importRetry } from '../game/importRetry';
+import { ribbonNote } from '../game/attention';
 
 /**
  * Wave 4 · lane G's guidance on screen, city mode only (a lazy chunk: ui/Hud.tsx and ui/Overlay.tsx mount these through
@@ -123,11 +124,11 @@ export function CityAreaLabel() {
  * 名称") for 4.5 s after the last one, instead of a gold toast each (12 toasts in 50 s at wave 4).
  */
 function FoundChipView() {
-  const { t } = useT();
   const found = useGuide(s => s.found);
-  if (!found) return null;
-  const text = foundChipText(found);
-  return <span key={found.key} className="ob-found-chip" role="status"><Sparkles size={13} aria-hidden /><span>{t(text)}</span></span>;
+  // (W9-F2, lane F surgical — review R§5 #5: "+1 · 渡轮大厦" was one more message beside the arrival banner and card) the
+  // finds join the one progress ribbon (game/attention.ts: the arrival card's row, else the ribbon in the top stack)
+  useEffect(() => { if (found) ribbonNote(foundChipText(found), 'found'); }, [found]);
+  return null;
 }
 
 /** The Grand Tour between its stops (ui/Hud Objective, city only): lane C's tourPill — chapter, step / total, next, dots. */

@@ -24,6 +24,7 @@ const { TripCard } = await import('../src/opus-bay/ui/TripPill');
 const { PanoramaTags } = await import('../src/opus-bay/ui/PanoramaTags');
 const { placePanoramaTags } = await import('../src/opus-bay/ui/panoramaPlace');
 const { ArrivalCard } = await import('../src/opus-bay/ui/ArrivalCard');
+const { clearAttention } = await import('../src/opus-bay/game/attention');
 styles.deregister();
 afterEach(cleanup);
 
@@ -90,18 +91,28 @@ test('panorama tags: placed by the layout, hidden when dropped; an unchanged fra
   assert.deepEqual(picked, ['city-hall']);
 });
 
-test('arrival card: goes by itself after its time, waits while the pointer is on it, Esc and every button close it', async () => {
+test('arrival card: (not sticky) goes by itself after its time, waits while the pointer is on it; (W9-F2) a first visit\'s card stays; Esc and every button close it', async () => {
   const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
   const arrival = { place: 'sf-state', name: { zh: '旧金山州立大学', en: 'San Francisco State University' }, tier: 1 as const, next: { zh: '石镇', en: 'Stonestown' } };
   let closed = 0, info = 0;
   const onClose = () => { closed++; };
-  const a = render(h(ArrivalCard, { arrival, onInfo: () => { info++; }, onPhoto: () => {}, onNext: () => {}, onClose, ms: 60 }));
+  // (each card holds game/attention.ts' title level: a fresh arbiter per card, as two arrivals seconds apart are 2.5 s apart)
+  clearAttention();
+  const a = render(h(ArrivalCard, { arrival, onInfo: () => { info++; }, onPhoto: () => {}, onNext: () => {}, onClose, ms: 60, sticky: false }));
   await act(() => wait(150));
   assert.equal(closed, 1, 'closed after its time');
   a.unmount();
+  // W9-F2 (review R§5 #5: "真正有价值的地点卡 6 秒就消失了"): the default card (an arrival moment = a first visit) has no timer
+  clearAttention();
+  const s = render(h(ArrivalCard, { arrival, onInfo: () => {}, onPhoto: () => {}, onClose, ms: 60 }));
+  await act(() => wait(200));
+  assert.equal(closed, 1, 'still up after 3× its old time');
+  assert.equal(s.container.querySelector('.ob-arrival-timer'), null, 'no timer bar');
+  s.unmount();
   // held while the pointer is on it
   closed = 0;
-  const b = render(h(ArrivalCard, { arrival, onInfo: () => {}, onPhoto: () => {}, onClose, ms: 60 }));
+  clearAttention();
+  const b = render(h(ArrivalCard, { arrival, onInfo: () => {}, onPhoto: () => {}, onClose, ms: 60, sticky: false }));
   const card = b.container.querySelector<HTMLElement>('.ob-arrival-card')!;
   fireEvent.pointerEnter(card);
   await act(() => wait(150));
@@ -111,6 +122,7 @@ test('arrival card: goes by itself after its time, waits while the pointer is on
   b.unmount();
   // a button acts and closes; Esc closes
   closed = 0;
+  clearAttention();
   const c = render(h(ArrivalCard, { arrival, onInfo: () => { info++; }, onPhoto: () => {}, onNext: () => {}, onClose }));
   fireEvent.click(c.getByText('看介绍'));
   assert.deepEqual([info, closed], [1, 1]);

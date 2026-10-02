@@ -13,6 +13,8 @@ import { BaybayFace, Keycap } from './common';
 import { useDevice } from './hooks';
 import { importRetry } from '../game/importRetry';
 import { openOverlays, subscribeOverlays } from './slots';
+import { initTitleHost, subscribeTitleHost, titleHostState } from './titleHost';
+import { ribbonText } from '../game/attention';
 
 const anyOverlay = () => openOverlays().length > 0;
 
@@ -122,12 +124,20 @@ export function CinematicLayer() {
   );
 }
 
+/**
+ * The toasts (core/store `toast()`). W9-F2 (review R§5 #5): ONE at a time through game/attention.ts' title level
+ * (ui/titleHost.ts) — the next ≥ 2.5 s later; progress (今日小事 ✓ 1/3, 南瓜灯 1/40, the finds, the coins of a reward) as
+ * one ribbon line; under the arrival card they are its ribbon row; under a dialogue / panel / card they wait.
+ */
 export function Toasts() {
   const { t } = useT();
-  const toasts = useGame(s => s.toasts);
+  useEffect(() => initTitleHost(), []);
+  const host = useSyncExternalStore(subscribeTitleHost, titleHostState, titleHostState);
+  const item = host.toast, ribbon = host.ribbon;
   return (
     <div className="ob-toasts" role="status" aria-live="polite">
-      {toasts.map(item => <div key={item.id} className={`ob-toast tone-${item.tone ?? 'info'}`}>{item.bi ? t(item.bi) : item.text}</div>)}
+      {item && <div key={item.key} className={`ob-toast tone-${item.tone ?? 'info'}`}>{typeof item.text === 'string' ? item.text : t(item.text)}</div>}
+      {!item && ribbon && <div key={`r${ribbon.key}`} className="ob-toast ob-ribbon tone-success">{t(ribbonText(ribbon.parts))}</div>}
     </div>
   );
 }
