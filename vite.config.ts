@@ -9,6 +9,10 @@ export default defineConfig({
   resolve: { alias: { '@baylink/locale': fileURLToPath(new URL('./src/i18n', import.meta.url)) } },
   optimizeDeps: { exclude: ['@baylink/locale/jsx-runtime', '@baylink/locale/jsx-dev-runtime'] },
   build: {
+    // W9-E (review 2026-10-01 R§5 #2): Vite 7's default ('baseline-widely-available': safari16) plus Safari / iOS 15, so
+    // esbuild lowers any syntax an iPhone on iOS 15 (6s, 7, SE 1) or 16.0–16.3 cannot parse; a regex look-behind cannot be
+    // lowered (tests/opus-bay-w9-e-lookbehind.test.ts bans it in src/**, scripts/opus-sf/qa/dist-syntax.mjs scans dist/)
+    target: ['chrome107', 'edge107', 'firefox104', 'safari15', 'ios15'],
     rollupOptions: {
       output: {
         manualChunks(id) {

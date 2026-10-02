@@ -21,6 +21,21 @@ export const normalizeGuideQuery = (text: string): string => {
   return value.trim();
 };
 
+/**
+ * The text cut after each 。！？； or line break, the mark kept at the end of its piece; a mark at the very end makes no
+ * empty piece; '' → ['']. W9-E (review 2026-10-01 R§5 #2): this was a split on a regex look-behind, which Safari before
+ * 16.4 (iOS 15, iOS 16.0–16.3) cannot parse; the same pieces (tests/opus-bay-w9-e-lookbehind.test.ts).
+ */
+export function splitAfterSentenceEnds(text: string): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  for (let i = 0; i < text.length - 1; i++) {
+    if ('。！？；\n'.includes(text[i])) { parts.push(text.slice(start, i + 1)); start = i + 1; }
+  }
+  parts.push(text.slice(start));
+  return parts;
+}
+
 export type GuideSearchResult = { guide: Guide; snippet?: string; section?: string };
 type Passage = { text: string; section?: string; weight: number };
 
@@ -55,7 +70,7 @@ export const searchGuides = (
       score: tokens.filter((token) => normalizeGuideQuery(passage.text).includes(token)).length * passage.weight,
     })).filter((passage) => passage.score > 0).sort((a, b) => b.score - a.score);
     const best = matches.find((passage) => passage.section && passage.weight === 2) || matches[0];
-    const sentence = best?.text.split(/(?<=[。！？；\n])/).find((part) => tokens.some((token) => normalizeGuideQuery(part).includes(token))) || best?.text;
+    const sentence = best && splitAfterSentenceEnds(best.text).find((part) => tokens.some((token) => normalizeGuideQuery(part).includes(token))) || best?.text;
     const snippet = sentence ? sentence.trim().slice(0, 150) + (sentence.trim().length > 150 ? '…' : '') : undefined;
     return [{ guide, score: matches.reduce((sum, passage) => sum + passage.score, 0), snippet, section: best?.section }];
   });
