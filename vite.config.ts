@@ -20,6 +20,12 @@ export default defineConfig({
           if (/node_modules[\\/](react|react-dom|scheduler|react-router|react-router-dom)[\\/]/.test(id)) {
             return 'react-vendor'
           }
+          // W9-E-switch: three.js + react-three-fiber keep their own long-cached chunk. It used to be the chunk the game
+          // shared with /play's LittleBayScene; with /play redirecting to the game Rollup inlined it into GameRoot
+          // (+882 KB raw / +236 KB gzip there, downloaded again on every game deploy). Only the game's lazy chunks import it.
+          if (/node_modules[\\/](three[\\/]build|@react-three[\\/]fiber|react-reconciler|its-fine|suspend-react|react-use-measure)[\\/]/.test(id)) {
+            return 'three-vendor'
+          }
         },
       },
     },

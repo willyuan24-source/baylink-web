@@ -11,6 +11,7 @@ import HomePage from './pages/HomePage';
 import { SLUG_TO_CATEGORY } from './routing';
 import { OpusBayShell } from './components/OpusBayShell';
 import { opusBayInHalloween } from './lib/opus-bay-metadata';
+import { PlayRedirect } from './components/PlayRedirect';
 
 const GuidesPage = lazy(() => import('./pages/GuidesPage'));
 const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
@@ -19,7 +20,8 @@ const LocalDiscoveryPage = lazy(() => import('./pages/LocalDiscoveryPage'));
 const ToolsPage = lazy(() => import('./pages/ToolsPage'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage'));
 const PlannerPage = lazy(() => import('./pages/PlannerPage'));
-const LittleBayPage = lazy(() => import('./pages/LittleBayPage'));
+// W9-E-switch: /play redirects to the game (components/PlayRedirect.tsx); pages/LittleBayPage.tsx stays in the repo, unrouted —
+// revert the W9-E-switch commits to route it again
 const OpusBayPage = lazy(() => import('./opus-bay/OpusBayPage'));
 const MyWeekPage = lazy(() => import('./pages/MyWeekPage'));
 const AiLocalPage = lazy(() => import('./pages/AiLocalPage'));
@@ -52,6 +54,8 @@ export default function App() {
     <Routes location={backgroundLocation || location}>
       {/* Opus Bay：独立全屏 3D 世界，不套站点外框。W9-E：路由 chunk 加载时显示与预渲染 opus-bay.html 相同的首屏（不再空白、不闪首页） */}
       <Route path="/opus-bay" element={<Suspense fallback={<OpusBayShell halloween={opusBayInHalloween(new Date(), location.search)} />}><OpusBayPage /></Suspense>} />
+      {/* W9-E-switch：/play 进入 3D 旧金山（/opus-bay?from=play，保留 lang）；旧的周末车票链接打开 /plan 的同一计划。不套站点外框 */}
+      <Route path="/play" element={<PlayRedirect />} />
       <Route element={<AppLayout realLocation={location} />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/category/:categorySlug" element={<CategoryPage />} />
@@ -68,7 +72,6 @@ export default function App() {
         <Route path="/tools" element={<ToolsPage />} />
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/plan" element={<PlannerPage />} />
-        <Route path="/play" element={<LittleBayPage />} />
         <Route path="/my-week" element={<MyWeekPage />} />
         <Route path="/ai-in-the-bay" element={<AiLocalPage />} />
         <Route path="/guides/:slug" element={<GuideDetailPage />} />

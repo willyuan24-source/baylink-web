@@ -19,12 +19,13 @@ type Props = {
 };
 
 export function SiteNavigation({ active, category, homeActive, user, notification, notificationCount, onCreate, onAsk, onAccount }: Props) {
-  const littleBayActive = /^\/play\/?$/.test(useLocation().pathname);
+  // W9-E-switch: 小小湾区 · Little Bay is the 3D San Francisco game now (/play redirects there)
+  const littleBayActive = /^\/(?:opus-bay|play)\/?$/.test(useLocation().pathname);
   const links = [
     { href: '/', label: '发现湾区', sub: 'Discover', icon: Home, current: homeActive },
     { href: '/guides', label: '生活指南', sub: 'Local guides', icon: BookOpen, current: active === 'guides' },
     { href: '/explore', label: '景点探索', sub: 'Places & day trips', icon: MapPin, current: active === 'explore' && !littleBayActive },
-    { href: '/play', label: '小小湾区', sub: 'Little Bay', icon: TramFront, current: littleBayActive },
+    { href: '/opus-bay?from=nav', label: '小小湾区', sub: 'Little Bay', icon: TramFront, current: littleBayActive },
     { href: '/tools', label: '生活工具箱', sub: 'Everyday tools', icon: Wrench, current: active === 'tools' },
     { href: '/recommend', label: '编辑精选', sub: 'Our picks', icon: Compass, current: active === 'notifications' },
     { href: '/messages', label: '消息', sub: 'Conversations', icon: MessageCircle, current: active === 'messages' },

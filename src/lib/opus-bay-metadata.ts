@@ -90,3 +90,22 @@ export const opusBayHeadExtras = (): string => [
   `<meta property="og:locale:alternate" content="zh_TW" />`,
   `<meta property="og:locale:alternate" content="en_US" />`,
 ].join('\n    ');
+
+/**
+ * W9-E-switch · /play is now the 3D San Francisco game (the owner, 2026-10-01: "当OPUS-BAY没问题的时候，就可以替代PLAY了";
+ * W9-Z's switch gate decides — reverting the W9-E-switch commits brings the old page back, LittleBayPage is kept unrouted).
+ * `/play` → `/opus-bay?from=play`, keeping `?lang`; an old shared weekend ticket (`/play?date=&stops=&places=`, what
+ * LittleBayPage's 分享车票 made) → the site's planner with the same plan (`/plan` reads date / stops / places:
+ * lib/planner.ts parseSharedPlan), keeping `?lang`. Every other parameter of the old page (view=…) is dropped.
+ */
+export function playRedirectTarget(search: string): string {
+  const q = new URLSearchParams(search);
+  const out = new URLSearchParams();
+  const ticket = ['date', 'stops', 'places'].filter(k => q.get(k));
+  for (const k of ticket) out.set(k, q.get(k)!);
+  const lang = q.get('lang');
+  if (lang) out.set('lang', lang);
+  if (ticket.length) return `/plan?${out.toString()}`;
+  out.set('from', 'play');
+  return `/opus-bay?${out.toString()}`;
+}

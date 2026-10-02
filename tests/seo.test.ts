@@ -171,7 +171,8 @@ test('hosting config has explicit public routes, a real missing-page status and 
   for (const directive of ["frame-ancestors 'none'", "object-src 'none'", "base-uri 'self'", 'https://fonts.googleapis.com', 'https://fonts.gstatic.com', 'wss://baylink-api.onrender.com', 'blob:']) assert.ok(csp.includes(directive));
   const sitemap = readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8');
   assert.ok(sitemap.includes('/plan</loc>'));
-  assert.ok(sitemap.includes('/play</loc>'));
+  // W9-E-switch: /play only redirects to /opus-bay now (its page is the game's shell with canonical /opus-bay)
+  assert.ok(!sitemap.includes('/play</loc>'));
   assert.ok(sitemap.includes('/ai-in-the-bay</loc>'));
   assert.ok(sitemap.includes('/opus-bay</loc>'), 'W9-E: the game is listed');
   assert.ok(!sitemap.includes('/my-week</loc>'), 'private account plans must not be promoted as public indexed content');

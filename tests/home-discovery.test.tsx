@@ -29,7 +29,8 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.ok(document.querySelector('a[href="/guides/golden-gate-park-free-car-free-day-guide"]'));
   assert.ok(document.querySelector('a[href="/guides/bay-area-october-weekend-planner-2026"]'));
   assert.ok(document.querySelector('a[href="/this-month"]'));
-  assert.ok(document.querySelector('a[href="/play"]'), 'Little Bay is discoverable from the homepage without loading its scene');
+  // W9-E-switch: the card opens the 3D San Francisco game (小小湾区 now; /play redirects there), with its entry source
+  assert.ok(document.querySelector('a[href="/opus-bay?from=home"]'), 'Little Bay is discoverable from the homepage without loading its scene');
   assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-10#freebie-board-0"]'));
   assert.match(document.querySelector('.home-discovery-count')!.textContent!, new RegExp(`${guides.length} 篇生活指南`));
   const photos = [...document.querySelectorAll<HTMLImageElement>('.home-discovery-panel img')];
