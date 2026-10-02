@@ -3,6 +3,7 @@ import { playSound } from '../audio/hooks';
 import type { Bilingual } from '../core/types';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
+import { game as obStore } from '../core/store';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay } from '../ui/slots';
 import { bestOf, saveNumber, startActivity, tierFor, type ActivityRun } from './kit';
@@ -220,7 +221,8 @@ export function startClaw(rand: () => number = Math.random): boolean {
   });
   const r: Run = { run, game, keys, off: () => {}, newKinds: 0, quiet: performance.now() + 60000 };
   r.off = registerFrameSystem('m-play-claw', dt => {
-    if (cur !== r) return;
+    // (W9-G-review G-RV-2) Settings pauses the game: the claw's clock and its auto drop wait too
+    if (cur !== r || obStore.get().paused) return;
     if (keys.held()) {
       const l = keys.isDown('ArrowLeft') || keys.isDown('KeyA'), rt = keys.isDown('ArrowRight') || keys.isDown('KeyD');
       if (l !== rt) { game.target = null; game.dir = l ? -1 : 1; } else if (game.target === null) game.dir = 0;

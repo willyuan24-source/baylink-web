@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -24,6 +25,8 @@ const SHAPE_WORD: Record<DoughShape, { zh: string; en: string }> = {
 
 export default function DoughPanel() {
   const { t } = useT();
+  // (W9-G-review G-RV-2) Settings pauses the game: the panel hides under the sheet like the wave-8 panels (sfgames8.css)
+  const paused = useGame(s => s.paused);
   const device = useDevice();
   useSyncExternalStore(subscribeDough, doughSeq, doughSeq);
   const game = doughGame();
@@ -58,7 +61,7 @@ export default function DoughPanel() {
     : t('出炉啦！', 'Out of the oven!');
   const label = step === 'knead' ? t('揉！', 'Knead!') : step === 'score' ? t('划！', 'Score!') : t('出炉！', 'Take it out!');
   return (
-    <div className="ob-sfg-panel is-dough" role="dialog" aria-label={t(DOUGH_NAME)}>
+    <div className={`ob-sfg-panel is-dough${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(DOUGH_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(DOUGH_NAME)}</strong>
         <span className="ob-sfg-score">{game.score}</span>

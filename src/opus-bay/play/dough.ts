@@ -2,6 +2,7 @@ import { charApi } from '../actors/charApi';
 import { playSound } from '../audio/hooks';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
+import { game as obStore } from '../core/store';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay } from '../ui/slots';
 import { runtime } from '../core/runtime';
@@ -152,7 +153,8 @@ export function startDough(): boolean {
   const r: Run = { run, game, keys, off: () => {}, quiet: performance.now() + 90000 };
   let grace = CANCEL_GRACE;
   r.off = registerFrameSystem('m-play-dough', dt => {
-    if (cur !== r) return;
+    // (W9-G-review G-RV-2) Settings pauses the game: the oven waits too
+    if (cur !== r || obStore.get().paused) return;
     if (grace > 0) grace -= dt;
     else if (game.phase !== 'done' && Math.hypot(runtime.input.moveX, runtime.input.moveY) > MOVE_CANCEL) { cancelDough(); return; }
     const before = game.phase, beat = game.beat;

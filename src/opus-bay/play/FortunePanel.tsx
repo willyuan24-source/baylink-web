@@ -1,6 +1,7 @@
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { playSound } from '../audio/hooks';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import type { OverlayProps } from '../ui/slots';
 import { FORTUNE_WORK_MS, fortunePanelGone, fortunePanelUp, type Fortune } from './fortune';
@@ -15,6 +16,8 @@ import './sfgames.css';
 
 export default function FortunePanel({ props, close }: OverlayProps) {
   const { t } = useT();
+  // (W9-G-review G-RV-2) Settings pauses the game: the panel hides under the sheet like the wave-8 panels (sfgames8.css)
+  const paused = useGame(s => s.paused);
   const p = props as { fortune?: Fortune; n?: number } | undefined;
   const [out, setOut] = useState(false);
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function FortunePanel({ props, close }: OverlayProps) {
   let host = '';
   try { host = new URL(f.source).hostname.replace(/^www\./, ''); } catch { /* keep it empty */ }
   return (
-    <div className="ob-sfg-panel is-fortune" role="dialog" aria-label={t(FORTUNE_NAME)}>
+    <div className={`ob-sfg-panel is-fortune${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(FORTUNE_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(FORTUNE_NAME)}</strong>
         <button type="button" className="ob-sfg-x" onClick={close} aria-label={t('关闭', 'Close')}><X size={20} /></button>

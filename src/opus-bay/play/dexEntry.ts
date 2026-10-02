@@ -18,6 +18,11 @@ import { TODAY_COINS, todaySource } from './kit';
 
 export const DEX_TAB = 'games';
 export const DEX_ASK = 'play-dex-near';
+/**
+ * (W9-G-review G-RV-1) `play` end events that are not mini-games: 摸摸 (play/pet.ts) and a finished 看风景 sit
+ * (play/sit.ts) emit one too — they must not take the day's 今日小游戏 coins (silently, with no card).
+ */
+export const NOT_GAMES: ReadonlySet<string> = new Set(['pet', 'sit', 'view']);
 
 /** The tab's count: games played of all. */
 export function dexCount(): string {
@@ -34,6 +39,8 @@ export function initDex(): () => void {
     id: DEX_ASK, order: -16, label: { zh: '附近能玩什么？', en: 'What can I play nearby?' }, icon: Gamepad2,
     onSelect: () => { openJournal(DEX_TAB); },
   });
-  const offToday = onEvent(e => { if (e.type === 'play' && e.what === 'end' && !isPaid(todaySource())) pay(todaySource(), TODAY_COINS); });
+  const offToday = onEvent(e => {
+    if (e.type === 'play' && e.what === 'end' && !NOT_GAMES.has(e.activity) && !isPaid(todaySource())) pay(todaySource(), TODAY_COINS);
+  });
   return () => { offTab(); offAsk(); offToday(); };
 }

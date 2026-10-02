@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -20,6 +21,8 @@ const keepFocus = (e: { preventDefault(): void }) => e.preventDefault();
 
 export default function CrabPanel() {
   const { t } = useT();
+  // (W9-G-review G-RV-2) Settings pauses the game: the panel hides under the sheet like the wave-8 panels (sfgames8.css)
+  const paused = useGame(s => s.paused);
   const device = useDevice();
   useSyncExternalStore(subscribeCrab, crabSeq, crabSeq);
   const game = crabGame();
@@ -60,7 +63,7 @@ export default function CrabPanel() {
     : cr ? (cr.kind === 'dungeness' ? t('珍宝蟹（白色钳尖）· 看尺子', 'Dungeness (white claw tips) · read the gauge') : t('石蟹（黑色钳尖）· 看尺子：够 4 英寸吗？', 'Rock crab (black claw tips) · 4 inches or more?'))
     : '';
   return (
-    <div className="ob-sfg-panel is-crab" role="dialog" aria-label={t(CRAB_NAME)}>
+    <div className={`ob-sfg-panel is-crab${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(CRAB_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(CRAB_NAME)}</strong>
         <span className="ob-sfg-nets" aria-label={t(`第 ${game.net} / ${NETS} 网`, `Net ${game.net} of ${NETS}`)}>

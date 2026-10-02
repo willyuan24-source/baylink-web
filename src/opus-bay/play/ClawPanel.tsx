@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useRef, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
+import { useGame } from '../core/store';
 import { useT } from '../i18n';
 import { Keycap } from '../ui/common';
 import { useDevice } from '../ui/hooks';
@@ -22,6 +23,8 @@ const CAB_H = 80;
 
 export default function ClawPanel() {
   const { t } = useT();
+  // (W9-G-review G-RV-2) Settings pauses the game: the panel hides under the sheet like the wave-8 panels (sfgames8.css)
+  const paused = useGame(s => s.paused);
   const device = useDevice();
   useSyncExternalStore(subscribeClaw, clawSeq, clawSeq);
   const game = clawGame();
@@ -118,7 +121,7 @@ export default function ClawPanel() {
     ? t('在玻璃里拖动爪子，松手就抓', 'Drag the claw in the glass, let go to grab')
     : t('← → 移动 · 空格 抓 · 也可以用鼠标拖', '← → to move · Space to grab · or drag with the mouse');
   return (
-    <div className="ob-sfg-panel is-claw" role="dialog" aria-label={t(CLAW_NAME)}>
+    <div className={`ob-sfg-panel is-claw${paused ? ' is-paused' : ''}`} role="dialog" aria-label={t(CLAW_NAME)}>
       <div className="ob-sfg-head">
         <strong>{t(CLAW_NAME)}</strong>
         <span className="ob-sfg-coins" aria-label={t(`还剩 ${game.tries} 枚硬币`, `${game.tries} quarters left`)}>

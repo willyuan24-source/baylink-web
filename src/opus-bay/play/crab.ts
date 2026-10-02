@@ -2,6 +2,7 @@ import { charApi } from '../actors/charApi';
 import { playSound } from '../audio/hooks';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
+import { game as obStore } from '../core/store';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay } from '../ui/slots';
 import { startActivity, tierFor, type ActivityRun } from './kit';
@@ -217,7 +218,8 @@ export function startCrab(rand: () => number = Math.random): boolean {
   // a Space still held from 放网 never starts the haul: it has to be let go and pressed again
   let fresh = true, lastEat = 0;
   r.off = registerFrameSystem('m-play-crab', dt => {
-    if (cur !== r) return;
+    // (W9-G-review G-RV-2) Settings pauses the game: the haul waits too
+    if (cur !== r || obStore.get().paused) return;
     const spaceHeld = keys.isDown('Space') || keys.isDown('Enter');
     if (!spaceHeld) fresh = true;
     else if (game.phase === 'ready' || game.phase === 'sink') fresh = false;
