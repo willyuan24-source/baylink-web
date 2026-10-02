@@ -67,6 +67,8 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
    maths), the HUD frame and the 3D view stay */
 .ob-page[data-ob-text='115'] :where(.ob-dialogue-box, .ob-sheet:not(.ob-map) > .ob-sheet-body, .ob-toast, .ob-bubble, .ob-arrival-body) { zoom: 1.15; }
 .ob-page[data-ob-text='130'] :where(.ob-dialogue-box, .ob-sheet:not(.ob-map) > .ob-sheet-body, .ob-toast, .ob-bubble, .ob-arrival-body) { zoom: 1.3; }
+/* a phone at 130 %: one choice a row (the 2 × 2 grid broke 「带我去下一个目标…」 into seven lines of two words) */
+@media (max-width: 720px) { .ob-page[data-ob-text='130'] .ob-choices.is-grid { grid-template-columns: 1fr; } }
 .ob-muted { color: var(--ob-ink-3); font-size: 13px; line-height: 1.55; }
 .ob-center { text-align: center; }
 
@@ -789,6 +791,7 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-levels .ob-level + .ob-level { margin-top: 6px; }
 /* W9-A: the text-size choices stack word / percent (a 420 px sheet at 130 % is ≈ 320 px wide: one line overflowed it) */
 .ob-setting { min-width: 0; }
+.ob-setting + .ob-setting-group { margin-top: 14px; } /* the text-size row sat flush on the switches */
 .ob-setting-text .ob-seg button { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; padding: 4px 6px; white-space: normal; line-height: 1.15; }
 .ob-setting-text .ob-seg small { font-size: 12px; font-weight: 700; }
 .ob-level.is-off { opacity: .55; } /* W9-A: its sound is switched off above (the slider still sets the level) */

@@ -154,3 +154,16 @@ test('W9-A5: ?save=off keeps the text size for the page only (nothing written)',
     TS.setTextSize(100);
   }
 });
+
+test('W9-A4: the title\'s sound toggle keeps one name (声音) and says its state with aria-pressed (before: "关闭声音" + pressed = read as muted)', async () => {
+  const { TitleScreen } = await import('../src/opus-bay/ui/TitleScreen');
+  game.set({ ...initialGameState(), phase: 'title' });
+  const { container } = render(h(TitleScreen, { onStart: () => undefined }));
+  const btn = container.querySelector<HTMLButtonElement>('.ob-title-sound')!;
+  assert.equal(btn.getAttribute('aria-label'), '声音');
+  const on = btn.getAttribute('aria-pressed');
+  fireEvent.click(btn);
+  assert.equal(btn.getAttribute('aria-label'), '声音', 'the name does not flip');
+  assert.notEqual(btn.getAttribute('aria-pressed'), on, 'the state does');
+  fireEvent.click(btn);
+});

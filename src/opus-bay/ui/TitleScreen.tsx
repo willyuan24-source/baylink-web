@@ -111,7 +111,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
               <MapPin size={18} aria-hidden /><span>{t('从头开始 · 渡轮大厦', 'Start over · Ferry Building')}</span>
             </button>
           )}
-          <button type="button" className="ob-icon-btn ob-title-sound" onClick={toggleSound} aria-pressed={sound} aria-label={sound ? t('关闭声音', 'Mute sound') : t('打开声音', 'Turn sound on')} title={sound ? t('声音：开', 'Sound: on') : t('声音：关', 'Sound: off')}>
+          <button type="button" className="ob-icon-btn ob-title-sound" onClick={toggleSound} aria-pressed={sound} aria-label={t('声音', 'Sound') /* W9-A (surgical): a toggle's name stays put — "Mute sound, pressed" read as muted (review tech notes: double semantics) */} title={sound ? t('声音：开', 'Sound: on') : t('声音：关', 'Sound: off')}>
             {sound ? <Volume2 size={22} aria-hidden /> : <VolumeX size={22} aria-hidden />}
           </button>
         </div>}
