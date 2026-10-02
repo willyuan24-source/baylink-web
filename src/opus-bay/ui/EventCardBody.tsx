@@ -75,7 +75,8 @@ export default function EventCardBody({ id }: { id?: string }) {
         {event.audience?.length ? <div><dt><Users size={15} aria-hidden />{t('适合', 'For')}</dt><dd>{event.audience.slice(0, 4).join(' · ')}</dd></div> : null}
       </dl>
       {event.summary && <p className="ob-lede">{publicText(event.summary, locale)}</p>}
-      {spot && <Suspense fallback={null}><HowToGo point={{ x: spot.x, z: spot.z }} /></Suspense>}
+      {/* W9-R7: the headways of the event's day and start (a Saturday event shows weekend service) */}
+      {spot && <Suspense fallback={null}><HowToGo point={{ x: spot.x, z: spot.z }} day={next ?? undefined} event={event} /></Suspense>}
       {/* W9-R5 (review R§6): the editors' working notes never reach the card (data/publicText.ts) */}
       {plan.length ? (
         <section className="ob-block">

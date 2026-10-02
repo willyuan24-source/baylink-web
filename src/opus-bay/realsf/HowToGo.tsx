@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { ExternalLink, Ticket, TramFront } from 'lucide-react';
-import type { Vec2 } from '../core/types';
+import type { CatalogEvent, Vec2 } from '../core/types';
 import { offerUrl } from '../data/links';
 import { loadTransit } from '../data/transit';
 import { bayNow, bayParts } from '../game/bayNow';
 import { useT } from '../i18n';
+import { formatDay } from '../ui/format';
+import { eventDayHours } from './freeWeek';
 import { CHASE_MUNI, CHASE_MUNI_NOTE, chaseMuniAt } from './chaseMuni';
 import { CHECK_511, loadedRealStops, nearestRealStops, serviceLabel, URL_511, type RealStop } from './transitReal';
 import './realsf.css';
@@ -20,7 +22,8 @@ import './realsf.css';
  */
 
 
-export default function HowToGo({ point }: { point: Vec2 }) {
+/** `day` / `event` (W9-R7): an event card's next day and the event — the rows show that day's headways at its start, not now's. */
+export default function HowToGo({ point, day, event }: { point: Vec2; day?: string; event?: CatalogEvent }) {
   const { t, locale } = useT();
   const [stops, setStops] = useState<RealStop[]>(() => loadedRealStops());
   useEffect(() => {
@@ -29,6 +32,11 @@ export default function HowToGo({ point }: { point: Vec2 }) {
     return () => { on = false; };
   }, [stops.length]);
   const now = bayNow(), p = bayParts(now);
+  const onDay = !!day;
+  const dateKey = day ?? p.dateKey;
+  // the event's start; a day without a time: midday (its daytime headway); today without a time: now
+  const minute = day && event ? eventDayHours(event, day)?.[0] : undefined;
+  const at = minute ?? (day && day !== p.dateKey ? 12 * 60 : p.hour * 60 + p.minute);
   const near = nearestRealStops(point, stops);
   const chase = chaseMuniAt(point);
   const muni = chase && (
@@ -41,14 +49,14 @@ export default function HowToGo({ point }: { point: Vec2 }) {
   const checked = near[0].line.verifiedAt;
   return (
     <section className="ob-block ob-howto">
-      <h3 className="ob-h3"><TramFront size={15} aria-hidden />{t('现实中怎么去', 'Getting there for real')}</h3>
+      <h3 className="ob-h3"><TramFront size={15} aria-hidden />{t('现实中怎么去', 'Getting there for real')}{onDay && day !== p.dateKey ? ` · ${formatDay(dateKey, locale)}` : ''}</h3>
       {muni}
       <ul className="ob-howto-rows">
         {near.map(n => (
           <li key={n.line.id}>
             <strong>{t(n.line.name)}</strong>
             <span>{t(n.stop.name)} · {t(`步行约 ${n.walkMin} 分钟`, `~${n.walkMin} min walk`)}</span>
-            <small>{t(serviceLabel(n.line, p.dateKey, p.hour * 60 + p.minute))}</small>
+            <small>{t(serviceLabel(n.line, dateKey, at, onDay))}</small>
           </li>
         ))}
       </ul>

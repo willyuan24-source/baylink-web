@@ -79,13 +79,19 @@ export const lineRunning = (line: RealLine, minute: number) => !line.hours || (m
 
 const hh = (m: number) => `${Math.floor(m / 60) % 24}:${String(m % 60).padStart(2, '0')}`;
 
-/** The service line of a row: the daytime headway on that day, or its hours when it is not running now. */
-export function serviceLabel(line: RealLine, dateKey: string, minute: number): Bilingual {
+/**
+ * The service line of a row: the daytime headway on that day, or its hours when it is not running now. `onDay` (W9-R7,
+ * review R§6 "交通班次不分工作日和周末"): the row is for an event's day and time, not now — it names the day's kind
+ * (工作日 / 周末: sfmta.com gives weekday and weekend columns) and says 那时停运 when the line is not running then.
+ */
+export function serviceLabel(line: RealLine, dateKey: string, minute: number, onDay = false): Bilingual {
   const w = weekday(dateKey);
-  const [lo, hi] = w === 0 || w === 6 ? line.day.we : line.day.wd;
+  const weekend = w === 0 || w === 6;
+  const [lo, hi] = weekend ? line.day.we : line.day.wd;
   const every = lo === hi ? `${lo}` : `${lo}–${hi}`;
   const hours: Bilingual = line.hours ? { zh: `${hh(line.hours[0])}–${line.hours[1] >= H(24) ? '24:00' : hh(line.hours[1])}`, en: `${hh(line.hours[0])}–${line.hours[1] >= H(24) ? '24:00' : hh(line.hours[1])}` } : { zh: '全天 24 小时', en: '24 hours' };
-  if (!lineRunning(line, minute)) return { zh: `现在停运 · 运营 ${hours.zh}`, en: `Not running now · runs ${hours.en}` };
+  if (!lineRunning(line, minute)) return onDay ? { zh: `那时停运 · 运营 ${hours.zh}`, en: `Not running then · runs ${hours.en}` } : { zh: `现在停运 · 运营 ${hours.zh}`, en: `Not running now · runs ${hours.en}` };
+  if (onDay) return { zh: `${hours.zh} · ${weekend ? '周末' : '工作日'}白天约 ${every} 分钟一班`, en: `${hours.en} · about every ${every} min by day on ${weekend ? 'weekends' : 'weekdays'}` };
   return { zh: `${hours.zh} · 白天约 ${every} 分钟一班`, en: `${hours.en} · about every ${every} min by day` };
 }
 
