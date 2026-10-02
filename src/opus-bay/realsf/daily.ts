@@ -85,7 +85,9 @@ export interface DailyTask {
  * otherwise any. A day without a fitting event simply has no event task.
  */
 export function eventFitsProfile(event: CatalogEvent, profile: TravelProfile | null | undefined): boolean {
-  if (profile === 'kids') return companionFit(event, 'kids') || (event.cost === 'free' && isOutdoor(event) && !startsAtNight(event) && !isAdultOnly(event));
+  // (W9-R-review R-RC-5) 'mixed' with free general areas (Fleet Week's air show) is free to go to as well
+  const freeToGo = event.cost === 'free' || (event.cost === 'mixed' && /免费/.test(event.costLabel ?? ''));
+  if (profile === 'kids') return companionFit(event, 'kids') || (freeToGo && isOutdoor(event) && !startsAtNight(event) && !isAdultOnly(event));
   if (profile === 'seniors') return companionFit(event, 'seniors');
   return true;
 }

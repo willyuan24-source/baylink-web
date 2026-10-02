@@ -2,7 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { CalendarPlus, ExternalLink, Gift, Navigation, Newspaper } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import { useCatalog } from '../data/catalog';
-import { offerUrl } from '../data/links';
+import { calendarUrl, offerUrl } from '../data/links';
 import { bayNow, bayParts } from '../game/bayNow';
 import { openEvent } from '../game/flow';
 import { goTo } from '../game/goTo';
@@ -27,7 +27,7 @@ import './realsf.css';
 const HEAD: Bilingual = { zh: '这周免费', en: 'Free this week' };
 
 export default function FreeWeekStrip({ limit = 3, title = HEAD, companions = null }: { limit?: number; title?: Bilingual; companions?: string | null }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const catalog = useCatalog();
   const offers = useSyncExternalStore(subscribeLive, liveOffers, liveOffers);
   useEffect(() => { void loadLive(); }, []);
@@ -65,7 +65,10 @@ export default function FreeWeekStrip({ limit = 3, title = HEAD, companions = nu
           {shown.map(item => <FreeRow key={item.kind === 'offer' ? `o-${item.offer.id}` : `e-${item.event.id}`} item={item} />)}
         </ul>
       )}
-      {more > 0 && <p className="ob-muted ob-free-more">{t(`这天还有 ${more} 个免费的，旅行本「今天」和 BAYLINK 日历里都有`, `${more} more free that day — in the journal’s Today page and the BAYLINK calendar`)}</p>}
+      {/* (W9-R-review R-RC-6) the journal's 今天 lists today only: another day points to the BAYLINK calendar on that day */}
+      {more > 0 && (k === 0
+        ? <p className="ob-muted ob-free-more">{t(`今天还有 ${more} 个免费的，旅行本「今天」和 BAYLINK 日历里都有`, `${more} more free today — in the journal’s Today page and the BAYLINK calendar`)}</p>
+        : <p className="ob-muted ob-free-more">{t(`这天还有 ${more} 个免费的：`, `${more} more free that day: `)}<a href={calendarUrl(locale, { date: day.day })} target="_blank" rel="noopener">{t('在 BAYLINK 日历里看这天', 'see that day on the BAYLINK calendar')}<ExternalLink size={11} aria-hidden /></a></p>)}
       <small className="ob-today-src">{t('来自 BAYLINK 的优惠和活动库，每条都有来源和查证日期', 'From BAYLINK’s offers and events, each with its source and check date')}</small>
     </section>
   );

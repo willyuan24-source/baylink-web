@@ -173,9 +173,6 @@ function Board() {
             : t(`完全符合的只有 ${result.strictCount} 个。`, `Only ${result.strictCount} matched exactly. `)}{t(result.note)}</span>
         </p>
       )}
-      {/* W9-R3: 免费就好 merges BAYLINK's free offers (the zoo's resident day, museum free days) with the free events;
-          other answers get the 7-day strip's first two rows */}
-      {city && week.vibe === 'free' && <Suspense fallback={null}><FreeWeekStrip limit={6} companions={week.companions} title={{ zh: '免费就好 · 这几天的免费福利和活动', en: 'Free: offers and events this week' }} /></Suspense>}
       {result.events.length === 0 ? (
         <div className="ob-empty">
           <BaybayFace mood="thinking" size={64} />
@@ -187,7 +184,12 @@ function Board() {
           {result.events.map((item, i) => <Flyer key={item.event.id} item={item} index={i} saved={wishlist.some(w => w.kind === 'event' && w.id === item.event.id)} />)}
         </ul>
       )}
-      {city && week.vibe !== 'free' && <Suspense fallback={null}><FreeWeekStrip limit={2} companions={week.companions} /></Suspense>}
+      {/* W9-R3: 免费就好 merges BAYLINK's free offers (the zoo's resident day, museum free days) with the free events;
+          other answers get the 7-day strip's first two rows. (W9-R-review R-RP-4) below the answer, never above it: the
+          strip is the whole city's and ignores the third question; on a phone it filled the sheet before any flyer */}
+      {city && <Suspense fallback={null}>{week.vibe === 'free'
+        ? <FreeWeekStrip limit={6} companions={week.companions} title={{ zh: '免费就好 · 全城这几天的免费福利和活动', en: 'Free across the city: offers and events this week' }} />
+        : <FreeWeekStrip limit={2} companions={week.companions} />}</Suspense>}
       <div className="ob-link-grid">
         <LinkButton href={calendarUrl(locale, { region: calRegion })} icon={<CalendarDays size={17} aria-hidden />} tone="soft">{t('在 BAYLINK 看完整日历', 'Full calendar on BAYLINK')}</LinkButton>
         {saved.length > 0 && <LinkButton href={planUrl({ stops: saved }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="primary">{t('把想去的带去安排', 'Plan my saved events')}</LinkButton>}

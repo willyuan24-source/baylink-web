@@ -114,6 +114,9 @@
   .ob-free-day { min-height: 48px; }
   .ob-free-cal { position: relative; }
   .ob-free-cal::before { content: ""; position: absolute; inset: -6px -2px; }
+  /* W9-R-review R-RP-5: the icon-only button 44 wide, the 17 px source links a 44 px tall hit area */
+  .ob-free-cal { min-width: 44px; justify-content: center; }
+  .ob-free .ob-today-src a, .ob-free-place .ob-today-src a, .ob-free-more a { display: inline-block; padding: 13px 4px; margin: -13px 0; }
 }
 /* W9-R4: 这周去哪 · 用上次的 (the travel profile's last answers) */
 .ob-week-last { align-self: flex-start; max-width: 100%; margin: 8px 0 4px; white-space: normal; text-align: left; line-height: 1.35; }

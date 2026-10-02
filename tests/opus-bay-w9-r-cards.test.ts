@@ -20,7 +20,8 @@ test('W9-R6 the de Young and the Legion of Honor: free Saturdays for Bay Area re
     assert.match(r.cost!.en, /Bay Area residents \(9 counties\).*every Saturday.*ID with your address/, r.cost!.en);
     assert.ok([...r.cost!.zh].length <= CARD_LIMITS.cost && r.cost!.en.length <= CARD_LIMITS_EN.cost, `${id}: within the card limits`);
     assert.ok(r.sources.includes(page), `${id}: the Free Saturdays page is a source`);
-    assert.equal(r.verifiedAt, '2026-10-02');
+    // (W9-R-review R-RP-7) the card's footer date stays its primary source's: only the FAMSF page was read 2026-10-02
+    assert.notEqual(r.verifiedAt, '2026-10-02');
   }
 });
 

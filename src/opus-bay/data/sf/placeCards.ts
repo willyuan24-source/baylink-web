@@ -1006,7 +1006,9 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     cost: bi('观景塔免费；湾区九县居民每周六免费看常设展（带有地址的证件或信件，特展另付）。', 'Tower free; Bay Area residents (9 counties) get free general admission every Saturday — bring ID with your address; special shows extra.'),
     addTips: [bi('汉蒙观景塔免费上；博物馆周一闭馆。', 'The Hamon Tower is free to go up; the museum is closed on Mondays.')],
     sources: ['https://www.famsf.org/visit/de-young-tickets-hours', 'https://www.famsf.org/', 'https://ticketing.famsf.org/events/0191859e-ae61-6e35-b2cf-55f10d95ca3c'],
-    verifiedAt: '2026-10-02',
+    // (W9-R-review R-RP-7) the footer's date is the card's primary source's (en.wikipedia.org, 2026-09-29); only the
+    // Free Saturdays page above was read 2026-10-02
+    verifiedAt: '2026-09-29',
   },
   'dutch-windmill': {
     addTips: [
@@ -1023,7 +1025,8 @@ export const CARD_REFRESHES: Record<string, CardRefresh> = {
     cost: bi('湾区九县居民每周六免费看常设展（带有地址的证件或信件，特展另付）；其他日子要买票。', 'Bay Area residents (9 counties) get free general admission every Saturday — bring ID with your address; special shows extra. Ticketed otherwise.'),
     addTips: [bi('博物馆周一闭馆；外面的林肯公园和海景随时可看。', 'The museum is closed on Mondays; Lincoln Park and the sea views are always open.')],
     sources: ['https://www.famsf.org/visit/legion-tickets-hours', 'https://ticketing.famsf.org/events/019185a9-f777-f93c-59fc-52de9182bc57'],
-    verifiedAt: '2026-10-02',
+    // (W9-R-review R-RP-7) the card's date as before; only the Free Saturdays page was read 2026-10-02
+    verifiedAt: V,
   },
   'sutro-tower': {
     sources: ['https://sutrotower.org/'],

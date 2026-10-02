@@ -99,7 +99,15 @@ test('R-RC-1 today’s three keep their slots after a reload once one is paid, w
   prefs.__resetPrefsForTests(null);
   const offLedger = L.initLedger();
   C.setCatalogForTests(CATALOG);
-  __setBayNowForTests('2026-10-09T10:00');
+  // a day of October whose three change with a profile, with a ride among them (the lens found 15 such pairs)
+  const kinds = (d: string, pr: 'kids' | 'seniors' | null) => daily.dailyThree(d, daily.daySignals(d, CATALOG, pr)).map(t => t.kind);
+  let DAY = '', PROFILE: 'kids' | 'seniors' = 'kids';
+  for (let i = 0; i < 31 && !DAY; i++) {
+    const d = C.addDays('2026-10-01', i);
+    for (const pr of ['kids', 'seniors'] as const) if (!DAY && kinds(d, null).includes('ride') && kinds(d, pr).join() !== kinds(d, null).join()) { DAY = d; PROFILE = pr; }
+  }
+  assert.ok(DAY, 'a day whose pick changes with a profile');
+  __setBayNowForTests(`${DAY}T10:00`);
   const saved = { phase: game.get().phase, mode: game.get().mode };
   game.set({ phase: 'playing', mode: 'free' });
   let rt = daily.initDaily({ introAfter: 9999 });
@@ -107,13 +115,12 @@ test('R-RC-1 today’s three keep their slots after a reload once one is paid, w
     assert.equal(game.get().worldMode, 'city');
     const before = rt.tasks()!.map(t => t.kind);
     const ride = rt.tasks()!.find(t => t.kind === 'ride');
-    assert.ok(ride, `a ride task on 10/9: ${before.join()}`);
+    assert.ok(ride, `a ride task on ${DAY}: ${before.join()}`);
     emit({ type: 'transit', what: 'ride', line: 'powell-hyde', kind: 'cable-car', real: true });
     assert.ok(L.isPaid(ride!.source), ride!.source);
-    // 这周去哪: 带娃 — a profile that would pick another three for 10/9
-    prefs.setPrefs({ companions: 'kids', at: '2026-10-09' });
-    const kidsFresh = daily.dailyThree('2026-10-09', daily.daySignals('2026-10-09', CATALOG, 'kids')).map(t => t.kind);
-    assert.notDeepEqual(kidsFresh, before, 'the probe’s day: the kids profile changes the slots');
+    // 这周去哪: 带娃 / 带长辈 — a profile that would pick another three for the day
+    prefs.setPrefs({ companions: PROFILE, at: DAY });
+    assert.notDeepEqual(kinds(DAY, PROFILE), before, 'the profile changes the slots');
     // reload: a new runtime, the page's own marks gone, the ledger and the prefs kept
     rt.off();
     daily.__resetDailyForTests();
@@ -122,9 +129,9 @@ test('R-RC-1 today’s three keep their slots after a reload once one is paid, w
     assert.deepEqual(after.map(t => t.kind), before, 'the same three in the same slots');
     assert.deepEqual(after.filter(t => rt.done(t)).map(t => t.kind), ['ride'], 'only the ride shows done');
     // a new day follows the profile again
-    __setBayNowForTests('2026-10-10T10:00');
-    const next = rt.tasks()!.map(t => t.kind);
-    assert.deepEqual(next, daily.dailyThree('2026-10-10', daily.daySignals('2026-10-10', CATALOG, 'kids')).map(t => t.kind));
+    const NEXT = C.addDays(DAY, 1);
+    __setBayNowForTests(`${NEXT}T10:00`);
+    assert.deepEqual(rt.tasks()!.map(t => t.kind), kinds(NEXT, PROFILE));
   } finally {
     rt.off(); offLedger(); C.setCatalogForTests(null); game.set(saved); prefs.__resetPrefsForTests(null); __setBayNowForTests(null);
   }
@@ -154,4 +161,11 @@ test('R-RP-3 the parts of San Francisco: Ocean View and Ingleside are the south;
     assert.equal(C.eventArea(byId('sfpl-ocean-view-stem-oct8-2026')), 'sf-south', 'the Ocean View STEM free play');
     assert.equal(C.eventArea(byId('hardly-strictly-bluegrass-2026')), 'sf-west');
   } finally { off(); }
+});
+
+test('R-RC-5 带娃 keeps Fleet Week (free general areas, open air, by day); never an 18+ or a night start', () => {
+  const fleet = byId('san-francisco-fleet-week-2026');
+  assert.equal(fleet.cost, 'mixed');
+  assert.ok(daily.eventFitsProfile(fleet, 'kids'), 'Fleet Week with kids');
+  for (const e of CATALOG.events) if (daily.eventFitsProfile(e, 'kids')) assert.ok(!C.isAdultOnly(e) && (C.companionFit(e, 'kids') || !C.startsAtNight(e)), e.id);
 });
