@@ -388,6 +388,23 @@ function wireTurn(wp: HTMLElement, label: string) {
  * Lay out and write the waypoint (plan §4.2 "Waypoint (edge compass)"). Returns `recheck` when the label could not be
  * measured yet or its text is due (the projector runs once more even while nothing moves).
  */
+// (W9-Q, lane Q) the device's left / right safe-area insets (opus-bay.css --ob-sl / --ob-sr = env(safe-area-inset-*)), read
+// once per canvas size (a rotation changes it), not every frame
+let safeKey = '';
+const safeLR = { l: 0, r: 0 };
+function safeInsetsLR(el: HTMLElement, w: number, h: number): { l: number; r: number } {
+  const key = `${w}x${h}`;
+  if (key !== safeKey) {
+    safeKey = key;
+    try {
+      const cs = getComputedStyle(el);
+      safeLR.l = parseFloat(cs.getPropertyValue('--ob-sl')) || 0;
+      safeLR.r = parseFloat(cs.getPropertyValue('--ob-sr')) || 0;
+    } catch { safeLR.l = 0; safeLR.r = 0; } // (node tests: no computed style)
+  }
+  return safeLR;
+}
+
 export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
   const { wp, lab, target, camera, w, h, now } = fr;
   wireTurn(wp, fr.pick({ zh: '转过去', en: 'Turn to it' }));
@@ -429,7 +446,7 @@ export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
     const lw = lab.offsetWidth;
     if (lw) { wpState.fullW = lw; wpState.measured = true; } else recheck = true;
   }
-  const area = waypointSafeArea({ w, h, phone: fr.mobile });
+  const area = waypointSafeArea({ w, h, phone: fr.mobile, inset: safeInsetsLR(wp, fr.fullW, h) });
   const L = layoutWaypoint({ x: rawX, y: rawY, behind, area, labelW: wpState.fullW, shortW: wpState.shortW, bubble: fr.bubble, boxes: fr.boxes, occluded: wpState.occluded });
   writeData(wp, 'show', L.hidden ? '0' : '1');
   if (L.hidden) return { recheck };

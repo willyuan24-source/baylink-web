@@ -101,10 +101,13 @@ export function waypointSeconds(o: { pos: Vec2; target: Vec2; path?: readonly nu
 // ---------------------------------------------------------------------------------------------------------------
 
 /** The safe area for the pin, arrow and label. `dockLeft` = the left edge of a docked button column on the right (px). */
-export function waypointSafeArea(o: { w: number; h: number; phone: boolean; dockLeft?: number | null }): Box {
+export function waypointSafeArea(o: { w: number; h: number; phone: boolean; dockLeft?: number | null; inset?: { l: number; r: number } | null }): Box {
   const ins = o.phone ? WAYPOINT.phone : WAYPOINT.desktop;
-  const right = Math.min(o.w - WAYPOINT.side, o.dockLeft != null ? o.dockLeft - WAYPOINT.gap : Infinity);
-  return { l: WAYPOINT.side, t: ins.top, r: Math.max(WAYPOINT.side + 40, right), b: Math.max(ins.top + 40, o.h - ins.bottom) };
+  // (W9-Q, lane Q) `inset`: the device's safe-area insets left / right (an iPhone on its side: the notch, 47 px) — the edge
+  // arrow (转过去) sat at x 12–50 inside the notch band
+  const il = o.inset?.l ?? 0, ir = o.inset?.r ?? 0;
+  const right = Math.min(o.w - WAYPOINT.side - ir, o.dockLeft != null ? o.dockLeft - WAYPOINT.gap : Infinity);
+  return { l: WAYPOINT.side + il, t: ins.top, r: Math.max(WAYPOINT.side + il + 40, right), b: Math.max(ins.top + 40, o.h - ins.bottom) };
 }
 
 /**

@@ -203,3 +203,16 @@ test('W9-Q15: the overlap scan opens wave 9\'s surfaces (这周去哪 + 这周�
   assert.match(scan, /ATTRACTIONS\.find\(x => x\.id === 'sf-zoo'\)/);
   assert.match(scan, /opus-qa\/w9\/PERF-LOCK/);
 });
+
+test('W9-Q16: the waypoint\'s safe area keeps out of the notch (an iPhone on its side: 47 px left / right insets)', async () => {
+  const { waypointSafeArea } = await import('../src/opus-bay/game/waypoint.ts');
+  // no inset: as before (tests/opus-bay-sf-waypoint.test.ts pins these)
+  assert.deepEqual(waypointSafeArea({ w: 844, h: 390, phone: true }), waypointSafeArea({ w: 844, h: 390, phone: true, inset: { l: 0, r: 0 } }));
+  const a = waypointSafeArea({ w: 844, h: 390, phone: true, inset: { l: 47, r: 47 } });
+  assert.equal(a.l, 12 + 47);
+  assert.equal(a.r, 844 - 12 - 47);
+  // the city reads --ob-sl / --ob-sr once per canvas size and passes them
+  const g = read('game/guideCity.ts');
+  assert.match(g, /waypointSafeArea\(\{ w, h, phone: fr\.mobile, inset: safeInsetsLR\(wp, fr\.fullW, h\) \}\)/);
+  assert.match(g, /getPropertyValue\('--ob-sl'\)/);
+});
