@@ -21,6 +21,7 @@ import {
 } from "../data/guides";
 import { GuideCardMini } from "./GuideCard";
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
+import { OutingInspirationLink } from './OutingInspirationLink';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './MonthlyDealsSpotlight';
 import { FreebieBoard } from './FreebieBoard';
@@ -212,6 +213,7 @@ const GuideDetailSession = ({
           {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} checkedAt={guide.updatedAt} today={today} />}
           <GuideReaderActions guide={guide} onAsk={onAsk} />
           <SaveToWeek favorite={{ kind: 'guide', id: guide.slug }} />
+          {(guide.category === 'city' || guide.category === 'events') && <OutingInspirationLink kind="guide" id={guide.slug} />}
           <GuideFigure image={media.cover} variant="cover" />
           <div className="bl-guide-abstract">
             <span>这篇指南，帮你理清</span>

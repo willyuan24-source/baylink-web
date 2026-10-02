@@ -15,12 +15,18 @@ const { render, fireEvent, cleanup, act, within } = await import('@testing-libra
 const { MemoryRouter } = await import('react-router-dom');
 const { OutingForm } = await import('../src/features/outings/OutingForm');
 const { OutingDetail } = await import('../src/features/outings/OutingDetail');
+const { OutingTimePoll } = await import('../src/features/outings/OutingTimePoll');
 const { OutingsHub } = await import('../src/features/outings/OutingsHub');
 const { OutingDiscussion, OutingReport } = await import('../src/features/outings/OutingDiscussion');
 const { useOutingSession, outingSessionKey } = await import('../src/features/outings/outing-session');
 const { outings } = await import('../src/lib/outings');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
+const { guides } = await import('../src/data/guides');
+const { getGuideMedia, GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
+const coverGuide = guides.find(guide => guide.slug === 'san-francisco-guide')!;
+const coverEvent = MONTHLY_EVENTS.find(event => GUIDE_IMAGES[event.imageKey])!;
 const now = Date.parse('2026-09-30T18:00:00Z');
 const user = { id: 'member', token: 'member-token', nickname: 'Neighbour', email: 'member@example.test', city: 'Fremont', role: 'user', contactType: 'email', contactValue: 'member@example.test', isBanned: false, isPhoneVerified: true } as UserData;
 const host = { ...user, id: 'host', token: 'host-token', nickname: 'Host' };
@@ -28,9 +34,9 @@ const initial: OutingDraft = { title: '周六公园散步', description: '仅用
 const outing = (patch: Partial<Outing> = {}): Outing => ({ ...initial, id: 'outing-fixture', startAt: Date.parse('2026-10-17T21:00:00Z'), endAt: Date.parse('2026-10-17T23:00:00Z'), timezone: 'America/Los_Angeles', status: 'open', revision: 4, planVersion: 2, host: { id: host.id, nickname: host.nickname, verified: true }, confirmedCount: 1, me: null, createdAt: now, updatedAt: now, ...patch });
 const signIn = (account: UserData | null) => account ? localStorage.setItem('currentUser', JSON.stringify(account)) : localStorage.removeItem('currentUser');
 const noop = () => {};
-function FormHarness({ account = host, existing, onSaved = noop }: { account?: UserData; existing?: Outing; onSaved?: (result: OutingResult) => void }) {
+function FormHarness({ account = host, existing, draft = initial, onSaved = noop }: { account?: UserData; existing?: Outing; draft?: OutingDraft; onSaved?: (result: OutingResult) => void }) {
   const session = useOutingSession(account);
-  return <OutingForm initial={initial} outing={existing} session={session} onSaved={onSaved} onCancel={noop} />;
+  return <OutingForm initial={draft} outing={existing} session={session} onSaved={onSaved} onCancel={noop} />;
 }
 const form = (props: React.ComponentProps<typeof FormHarness> = {}) => <MemoryRouter><FormHarness key={outingSessionKey(props.account || host)} {...props} /></MemoryRouter>;
 function DiscussionHarness({ item, account = user }: { item: Outing; account?: UserData }) {
@@ -42,6 +48,12 @@ function DiscussionHarness({ item, account = user }: { item: Outing; account?: U
 const memberOuting = (patch: Partial<Outing> = {}) => outing({ confirmedCount: 2, me: { userId: user.id, role: 'member', status: 'confirmed', confirmedVersion: 2 }, ...patch });
 const appFor = (account: UserData | null, extras: Partial<AppContextValue> = {}) => ({ user: account, blockedUserIds: [], openUserProfile: noop, handleToggleBlockUser: noop, setShowLogin: noop, showToast: noop, ...extras }) as unknown as AppContextValue;
 const detail = (account: UserData | null = user, extras: Partial<AppContextValue> = {}) => <MemoryRouter><OutingDetail key={outingSessionKey(account)} id={outing().id} app={appFor(account, extras)} onBack={noop} /></MemoryRouter>;
+function PollHarness({ item, account = host, onSaved = noop }: { item: Outing; account?: UserData; onSaved?: (result: OutingResult) => void }) {
+  const session = useOutingSession(account), [current, setCurrent] = React.useState(item);
+  return <OutingTimePoll outing={current} session={session} onRefresh={async () => true} onUpdated={result => { setCurrent(result.outing); onSaved(result); }}/>;
+}
+const timePoll = (patch: Partial<NonNullable<Outing['timePoll']>> = {}): NonNullable<Outing['timePoll']> => ({ id: 'poll-fixture', status: 'open', planVersion: 2, createdAt: now, eligibleCount: 2, repliedCount: 0, myAnswers: null,
+  options: [{ id: 'option-1', date: '2026-10-17', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-17T21:00:00Z'), endAt: Date.parse('2026-10-17T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }, { id: 'option-2', date: '2026-10-18', startTime: '14:00', endTime: '16:00', startAt: Date.parse('2026-10-18T21:00:00Z'), endAt: Date.parse('2026-10-18T23:00:00Z'), counts: { yes: 0, maybe: 0, no: 0 } }], ...patch });
 const hub = (account: UserData | null = user, path = '/together', extras: Partial<AppContextValue> = {}) => <MemoryRouter initialEntries={[path]}><OutingsHub app={appFor(account, extras)} /></MemoryRouter>;
 const deferred = <T,>() => { let resolve!: (value: T) => void; let reject!: (reason: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const consent = (view: ReturnType<typeof render>) => {
@@ -51,6 +63,54 @@ const consent = (view: ReturnType<typeof render>) => {
 beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); localStorage.clear(); signIn(host); await setLocale('zh-Hans'); });
 afterEach(() => cleanup());
 after(() => { styles.deregister(); dom.window.close(); });
+
+test('time poll displays current arrangement separately, saves all choices explicitly and requires host adoption confirmation', async t => {
+  const current = outing({ me: { userId: host.id, role: 'host', status: 'confirmed', confirmedVersion: 2 }, timePoll: timePoll() });
+  const writes: unknown[] = [];
+  t.mock.method(outings, 'timePoll', async (_outing, action) => { writes.push(action); return { outing: { ...current, revision: 5 } }; });
+  const view = render(<PollHarness item={current}/>);
+  assert.ok(view.getByText('当前安排')); assert.ok(view.getByText(/投票仅表达时间偏好/));
+  const save = view.getByRole('button', { name: '保存我的时间选择' }) as HTMLButtonElement;
+  assert.equal(save.disabled, true);
+  fireEvent.click(view.getAllByRole('button', { name: '可以' })[0]);
+  fireEvent.click(view.getAllByRole('button', { name: '待定' })[1]);
+  assert.equal(writes.length, 0, 'choosing chips does not send a vote'); assert.equal(save.disabled, false);
+  fireEvent.click(save); await view.findByText('你的时间偏好已保存，可在投票结束前修改。');
+  assert.deepEqual(writes[0], { action: 'vote', pollId: 'poll-fixture', answers: { 'option-1': 'yes', 'option-2': 'maybe' } });
+  fireEvent.click(view.getAllByRole('button', { name: '选择这个时间…' })[1]);
+  assert.equal(writes.length, 1); assert.ok(view.getByRole('group', { name: '确认采用时间' }));
+  fireEvent.click(view.getByRole('button', { name: '确认采用并通知成员' })); await act(async () => {});
+  assert.deepEqual(writes[1], { action: 'adopt', pollId: 'poll-fixture', optionId: 'option-2' });
+});
+
+test('only host can propose time polls and cancelled or stale arrangements cannot vote', async () => {
+  const item = memberOuting({ timePoll: timePoll() }); signIn(user);
+  const view = render(<PollHarness item={item} account={user}/>);
+  assert.equal(view.queryByRole('button', { name: '选择这个时间…' }), null);
+  assert.equal(view.queryByRole('button', { name: '提出 2–3 个候选时间' }), null);
+  view.rerender(<PollHarness key="stale" item={{ ...item, me: { ...item.me!, confirmedVersion: 1 } }} account={user}/>);
+  assert.equal((view.getByRole('button', { name: '保存我的时间选择' }) as HTMLButtonElement).disabled, true);
+  assert.ok(view.getByText('请先在上方确认最新安排，再参与协调。'));
+  view.rerender(<PollHarness key="cancelled" item={{ ...item, status: 'cancelled' }} account={user}/>);
+  assert.equal(view.queryByRole('button', { name: '保存我的时间选择' }), null);
+  view.rerender(<PollHarness key="guest" item={{ ...item, me: null }} account={user}/>);
+  assert.equal(view.queryByText('小队时间投票'), null);
+});
+
+test('time poll creation offers bounded concrete dates and preserves retry identity on an uncertain response', async t => {
+  const item = outing({ me: { userId: host.id, role: 'host', status: 'confirmed', confirmedVersion: 2 } }), writes: Array<{ action: unknown; key: string }> = [];
+  t.mock.method(outings, 'timePoll', async (_outing, action, key) => { writes.push({ action, key }); throw { status: 503 }; });
+  const view = render(<PollHarness item={item}/>);
+  fireEvent.click(view.getByRole('button', { name: '提出 2–3 个候选时间' }));
+  fireEvent.change(view.getAllByLabelText('日期')[1], { target: { value: '2026-10-18' } });
+  fireEvent.click(view.getByRole('button', { name: '加一个候选时间' }));
+  assert.equal(view.getAllByLabelText('日期').length, 3); assert.equal(view.queryByRole('button', { name: '加一个候选时间' }), null);
+  fireEvent.click(view.getByRole('button', { name: '移除' }));
+  fireEvent.click(view.getByRole('button', { name: '发起投票，暂不改期' })); await view.findByRole('alert');
+  fireEvent.click(view.getByRole('button', { name: '发起投票，暂不改期' })); await act(async () => {});
+  assert.equal(writes.length, 2); assert.equal(writes[0].key, writes[1].key);
+  assert.deepEqual(writes[0].action, { action: 'create', options: [{ date: '2026-10-17', startTime: '14:00', endTime: '16:00' }, { date: '2026-10-18', startTime: '14:00', endTime: '16:00' }] });
+});
 
 test('creating an outing requires explicit adult and public-place consent and sends one request while pending', async t => {
   const pending = deferred<OutingResult>(), writes: Record<string, unknown>[] = [], saved: OutingResult[] = [];
@@ -685,4 +745,106 @@ test('a failed calendar refresh never exports a stale file and waitlisted member
   current = outing({ me: { userId:user.id,role:'member',status:'requested',confirmedVersion:2,waitlisted:true },confirmedCount:3 });
   const waiting = render(detail(user)); await waiting.findByText('候补中，尚未加入');
   assert.equal(waiting.queryByRole('button', { name: '将集合时间存入日历' }), null);
+});
+
+test('a guide inspiration URL previews its cover, carries it into creation and sends only the catalog reference', async t => {
+  const writes: Record<string, unknown>[] = [];
+  const cover = { kind: 'guide' as const, id: coverGuide.slug };
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (options.method === 'POST') { writes.push(JSON.parse(String(options.body))); return { outing: outing({ cover }) }; }
+    if (path === `/outings/${outing().id}`) return { outing: outing({ cover }) };
+    return { outings: [], nextCursor: null };
+  });
+  const view = render(hub(host, `/together?coverKind=guide&coverId=${coverGuide.slug}&date=${initial.date}`));
+  await act(async () => {});
+  const inspiration = within(view.getByRole('region', { name: '已带入的参考内容' }));
+  assert.equal(inspiration.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal(inspiration.getByRole('link', { name: `参考内容 · ${coverGuide.title}` }).getAttribute('href'), `https://www.baylink.us/guides/${coverGuide.slug}`);
+  assert.equal(writes.length, 0, 'following a content link never publishes an outing');
+  fireEvent.click(inspiration.getByRole('button', { name: '用这张配图发起小队' }));
+  const editor = within(view.getByRole('region', { name: '发起小队' }));
+  assert.equal(editor.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal((editor.getByRole('textbox', { name: '公共集合地点' }) as HTMLInputElement).value, '', 'reference content must not invent a meeting place');
+  assert.equal((editor.getByLabelText('参加日期') as HTMLInputElement).value, initial.date);
+  for (const [name, value] of [['小队名称', initial.title], ['活动与同行说明', initial.description], ['城市', initial.city], ['公共集合地点', initial.venue], ['费用与报名说明', initial.costNote]]) {
+    fireEvent.change(editor.getByRole('textbox', { name }), { target: { value } });
+  }
+  fireEvent.change(editor.getByLabelText('集合时间'), { target: { value: initial.startTime } });
+  fireEvent.change(editor.getByLabelText('预计结束时间'), { target: { value: initial.endTime } });
+  consent(view); fireEvent.click(editor.getByRole('button', { name: '发布小队' }));
+  await view.findByRole('heading', { level: 1, name: initial.title });
+  assert.equal(writes.length, 1); assert.deepEqual(writes[0].cover, cover);
+  assert.equal(writes[0].eventId, null); assert.equal(writes[0].date, initial.date); assert.equal(writes[0].venue, initial.venue);
+  assert.equal('imageUrl' in writes[0], false, 'source URLs remain catalog-owned rather than arbitrary user input');
+});
+
+test('choosing a guide cover on a linked-event draft leaves its event, date and meeting place unchanged', async t => {
+  const writes: Record<string, unknown>[] = [];
+  const linked = { ...initial, eventId: coverEvent.id };
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit) => {
+    const payload = JSON.parse(String(options.body)); writes.push(payload);
+    return { outing: outing({ eventId: coverEvent.id, cover: payload.cover }) };
+  });
+  const view = render(form({ draft: linked }));
+  assert.equal(view.getByRole('img').getAttribute('src'), GUIDE_IMAGES[coverEvent.imageKey].src);
+  fireEvent.click(view.getByRole('button', { name: '从攻略与资讯选图' }));
+  fireEvent.change(view.getByRole('searchbox', { name: '搜索地点、攻略、活动或店名' }), { target: { value: coverGuide.title } });
+  fireEvent.click(view.getByRole('button', { name: new RegExp(coverGuide.title) }));
+  assert.equal(view.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal((view.getByLabelText('参加日期') as HTMLInputElement).value, initial.date);
+  assert.equal((view.getByRole('textbox', { name: '公共集合地点' }) as HTMLInputElement).value, initial.venue);
+  assert.equal(view.getByRole('link', { name: coverEvent.title }).getAttribute('href'), `/events/${coverEvent.id}`);
+  consent(view); fireEvent.click(view.getByRole('button', { name: '发布小队' })); await act(async () => {});
+  assert.equal(writes.length, 1); assert.equal(writes[0].eventId, coverEvent.id);
+  assert.equal(writes[0].date, initial.date); assert.equal(writes[0].venue, initial.venue);
+  assert.deepEqual(writes[0].cover, { kind: 'guide', id: coverGuide.slug });
+});
+
+test('host editing reopens a saved guide cover and persists an explicit text-card choice across another edit', async t => {
+  const owner = { userId: host.id, role: 'host' as const, status: 'confirmed' as const, confirmedVersion: 2 };
+  let current = outing({ me: owner, cover: { kind: 'guide', id: coverGuide.slug } });
+  const writes: Record<string, unknown>[] = [];
+  t.mock.method(api, 'request', async (path: string, options: RequestInit = {}) => {
+    if (path.endsWith('/messages')) return { messages: [] };
+    if (options.method === 'PATCH') {
+      const payload = JSON.parse(String(options.body)); writes.push(payload);
+      current = { ...current, cover: payload.cover, revision: current.revision + 1 };
+    }
+    return { outing: current };
+  });
+  const view = render(detail(host));
+  fireEvent.click(await view.findByRole('button', { name: '编辑安排' }));
+  assert.equal(view.getByRole('img').getAttribute('src'), getGuideMedia(coverGuide).cover.src);
+  assert.equal(view.getByRole('button', { name: '从攻略与资讯选图' }).getAttribute('aria-pressed'), 'true');
+  fireEvent.click(view.getByRole('button', { name: '文字卡片' }));
+  assert.equal(view.queryByRole('img'), null); assert.equal(writes.length, 0, 'cover changes remain a private unsaved draft');
+  consent(view); fireEvent.click(view.getByRole('button', { name: '保存更新' }));
+  await view.findByRole('button', { name: '编辑安排' });
+  assert.equal(writes.length, 1); assert.deepEqual(writes[0].cover, { kind: 'card' });
+  assert.equal(writes[0].revision, 4); assert.equal(writes[0].date, initial.date); assert.equal(writes[0].venue, initial.venue);
+  assert.equal('planVersion' in writes[0], false, 'the server owns decisions about plan versions');
+  fireEvent.click(view.getByRole('button', { name: '编辑安排' }));
+  assert.equal(view.getByRole('button', { name: '文字卡片' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.queryByRole('img'), null);
+});
+
+test('old outing list rows gain designed or linked-event covers while keeping facts and detail actions intact', async t => {
+  signIn(null);
+  const standalone = outing({ id: 'legacy-standalone', title: '无需配图也清楚的散步小队' });
+  const linked = outing({ id: 'legacy-linked', title: '沿用活动配图的小队', eventId: coverEvent.id });
+  t.mock.method(api, 'request', async () => ({ outings: [standalone, linked], nextCursor: null }));
+  const view = render(hub(null));
+  const standaloneCard = (await view.findByRole('link', { name: standalone.title })).closest('article')!;
+  const linkedCard = view.getByRole('link', { name: linked.title }).closest('article')!;
+  assert.equal(within(standaloneCard).queryByRole('img'), null);
+  assert.ok(within(standaloneCard).getByText('BAYLINK · TOGETHER'));
+  assert.equal(within(linkedCard).getByRole('img').getAttribute('src'), GUIDE_IMAGES[coverEvent.imageKey].src);
+  assert.equal(within(linkedCard).getByRole('link', { name: `参考内容 · ${coverEvent.title}` }).getAttribute('href'), `https://www.baylink.us/events/${coverEvent.id}`);
+  for (const [row, card] of [[standalone, standaloneCard], [linked, linkedCard]] as const) {
+    assert.equal(within(card).getByRole('link', { name: `查看小队: ${row.title}` }).getAttribute('href'), `/together?outing=${row.id}`);
+    assert.equal(within(card).getByRole('link', { name: '查看安排' }).getAttribute('href'), `/together?outing=${row.id}`);
+    assert.ok(within(card).getByText(`${initial.date} · ${initial.startTime}–${initial.endTime}`));
+    assert.ok(within(card).getByText(`${initial.city} · ${initial.venue}`));
+    assert.ok(within(card).getByText('还可接受 2 人 · 需发起人确认'));
+  }
 });

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, MapPin, RefreshCw, Users } from 'lucide-react';
+import { CalendarClock, CalendarDays, MapPin, RefreshCw, Users } from 'lucide-react';
 import type { UserData } from '../../lib/types';
 import { outings, type Outing } from '../../lib/outings';
 import { canExportOutingCalendar, downloadOutingCalendar } from '../../lib/outing-calendar';
 import { useOutingCopy, useOutingNow } from './outing-copy';
 import { outingError, outingSessionKey, useOutingSession } from './outing-session';
 import { selectMyWeekOutings } from './my-week-outings-model';
+import { OutingCover } from './OutingCover';
 
 type Props = { user: UserData | null; onLoginNeeded: () => void };
 export function MyWeekOutings(props: Props) {
@@ -82,13 +83,18 @@ function MyWeekOutingsSession({ user, onLoginNeeded }: Props) {
         {!arrangements.length && <div className="week-outings-empty"><p>{t('未来7天还没有你发起或已加入的小队安排。', 'No groups you host or joined are scheduled in the next 7 days.')}</p><Link to="/together">{t('找个搭子一起去', 'Find people to go with')} ↗</Link></div>}
         <div className="week-outings-grid">{arrangements.map(row => {
           const host = row.host.id === userId, reconfirm = !host && row.me?.confirmedVersion !== row.planVersion;
+          const voteNeeded = row.me?.status === 'confirmed' && row.status === 'open' && row.startAt > now && row.timePoll?.status === 'open' && !row.timePoll.myAnswers;
           return <article className={`week-outing-card${reconfirm ? ' needs-confirmation' : ''}`} key={row.id}>
+            <OutingCover outing={row} to={link(row)} />
+            <div className="week-outing-card-body">
             <span className="week-outing-status">{host ? t('我发起的', 'Hosted by me') : reconfirm ? t('安排已变，待重新确认', 'Plan changed — reconfirm') : t('已加入', 'Joined')}</span>
             <h3 translate="no"><Link to={link(row)}>{row.title}</Link></h3>
             <p><CalendarDays size={15} aria-hidden="true"/><time dateTime={new Date(row.startAt).toISOString()}>{row.date} · {row.startTime}–{row.endTime}</time></p>
             <p translate="no"><MapPin size={15} aria-hidden="true"/>{row.city} · {row.venue}</p>
             {reconfirm && <p className="week-outings-help">{t('先查看变更并重新确认，再存入日历。', 'Review the changes and reconfirm before saving a calendar.')}</p>}
+            {voteNeeded && <div className="week-outing-attention"><Link to={link(row)}><CalendarClock size={16} aria-hidden="true"/>{t('时间待投票', 'Time vote needed')} ↗</Link><span>{reconfirm ? t('先确认最新安排，再选择可参加的时间。', 'Reconfirm the latest plan before sharing availability.') : t('告诉小队哪些时间适合你；当前安排暂不变。', 'Tell the team what works for you; the current time is unchanged.')}</span></div>}
             <div className="week-outing-actions"><Link to={link(row)}>{reconfirm ? t('查看变更并确认', 'Review and reconfirm') : t('查看安排与讨论', 'Plan and discussion')}</Link><button type="button" disabled={!!exporting || !canExportOutingCalendar(row, userId, now)} onClick={() => void exportCalendar(row)}>{exporting === row.id ? t('正在核对…', 'Checking…') : t('存入日历', 'Save to calendar')}</button></div>
+            </div>
           </article>;
         })}</div>
         {requests.length > 0 && <div className="week-outing-requests"><h3>{t('待处理申请 · 尚未加入', 'Pending requests · not joined')}</h3><p className="week-outings-help">{t('包括未来7天以后的申请。发起人接受后才算加入；候补不会自动补位，小队不包含活动门票。', 'Includes requests beyond the next 7 days. You join only after host approval; waitlists do not move automatically and groups do not include event tickets.')}</p><ul>{requests.map(row => <li key={row.id}><div><span className="week-outing-status">{row.me?.waitlisted ? t('候补中，尚未加入', 'Waitlisted, not joined') : t('申请待确认，尚未加入', 'Request pending, not joined')}</span><h4 translate="no"><Link to={link(row)}>{row.title}</Link></h4><time dateTime={row.date}>{row.date} · {row.startTime}–{row.endTime}</time></div><Link to={link(row)}>{t('查看或撤回申请', 'Review or withdraw')} ↗</Link></li>)}</ul></div>}

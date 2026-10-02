@@ -1,5 +1,5 @@
 import { useLocale } from '../i18n/locale';
-import { buildItinerary, clockLabel, planBudget, stopKey } from '../lib/planner-itinerary';
+import { buildItinerary, clockLabel, planBudget, stopKey, planDetailsError } from '../lib/planner-itinerary';
 import { stopTitle, type PlanDetails, type Stop } from '../lib/planner';
 
 export function PlannerPlanOverview({ stops, date, details }: { stops: Stop[]; date: string; details: PlanDetails }) {
@@ -8,9 +8,10 @@ export function PlannerPlanOverview({ stops, date, details }: { stops: Stop[]; d
   if (!stops.length) return null;
   const timeline = buildItinerary(stops, details, date);
   const budget = planBudget(stops, details);
+  const invalid = planDetailsError(details);
   return <section className="planner-plan-overview" aria-label={text('当前计划概览', 'Current plan overview')}>
     <div><span className="planner-eyebrow">YOUR DAY, AT A GLANCE</span><h2>{text('这一天，已经有了轮廓', 'Your day is taking shape')}</h2><p>{date || text('日期待选', 'Choose a date')} · {stops.length} {text('站', 'stops')} · {details.partySize} {text('人', 'people')}</p></div>
-    <dl><div><dt>{text('计划时段', 'Planned times')}</dt><dd>{details.startTime}–{clockLabel(timeline.end)}</dd></div><div><dt>{text('已知金额与预留小计', 'Known costs + allowances')}</dt><dd>${budget.subtotal.toFixed(2)}</dd></div><div><dt>{text('费用待确认', 'Unpriced stops')}</dt><dd>{budget.unknown.length} {text('站', 'stops')}</dd></div></dl>
+    <dl><div><dt>{text('计划时段', 'Planned times')}</dt><dd>{invalid ? text('请修正输入', 'Check your inputs') : `${details.startTime}–${clockLabel(timeline.end)}`}</dd></div><div><dt>{text('已知金额与预留小计', 'Known costs + allowances')}</dt><dd>{invalid ? '—' : `$${budget.subtotal.toFixed(2)}`}</dd></div><div><dt>{text('费用待确认', 'Unpriced stops')}</dt><dd>{budget.unknown.length} {text('站', 'stops')}</dd></div></dl>
     <ol>{stops.map(stop => <li key={stopKey(stop)}>{stopTitle(stop)}</li>)}</ol>
     <p className="planner-overview-note">{text('费用不是完整报价；交通时间为预留。门票、预约与营业安排出发前再确认。', 'Costs are not a full quote; travel times are allowances. Recheck tickets, reservations and opening hours before visiting.')}</p>
     {budget.admissionOverBy > 0 && <p className="planner-budget-warning">{text(`已知门票超过门票预算 $${budget.admissionOverBy.toFixed(2)}。`, `Known admission exceeds the admission budget by $${budget.admissionOverBy.toFixed(2)}.`)}</p>}

@@ -6,6 +6,7 @@ import { getBayAreaToday } from '../../lib/monthly';
 import { outings, type Outing, type OutingAiDraft, type OutingCreate, type OutingDraft, type OutingResult } from '../../lib/outings';
 import { useOutingCopy } from './outing-copy';
 import { outingError, type OutingSession } from './outing-session';
+import { OutingCoverPicker } from './OutingCoverPicker';
 
 export const emptyOutingDraft = (eventId = '', date = ''): OutingDraft => {
   const event = MONTHLY_EVENTS.find(row => row.id === eventId);
@@ -73,7 +74,7 @@ export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefr
   const previewValue = (key: string, value: unknown) => key === 'transport' ? ({ own:t('各自到场','Arrive independently'), transit:t('公共交通同行','Public transit together'), walk:t('步行同行','Walk together') }[value as OutingDraft['transport']]) : key === 'language' ? ({ any:t('不限','Any'), zh:t('中文','Chinese'), en:t('英文','English') }[value as OutingDraft['language']]) : String(value ?? '');
   return <section className="outing-form outing-surface" aria-label={outing ? t('编辑小队安排', 'Edit outing') : t('发起小队', 'Create an outing')}>
     <button type="button" className="outing-link-button" onClick={() => setCancelConfirm(true)} disabled={busy}><ArrowLeft size={16} />{t('返回小队', 'Back to outings')}</button>
-    <h2>{outing ? t('更新安排，让成员重新确认。', 'Update the plan for members to review.') : t('从一个具体的约定开始。', 'Start with a clear plan.')}</h2>
+    <h2>{outing ? t('更新小队的安排与封面。', 'Update your outing and cover.') : t('从一个具体的约定开始。', 'Start with a clear plan.')}</h2>
     <p className="outing-footnote">{t('2–8 人，包含发起人。这里只组织同行，不售票、不收费，也不保证对方身份。请勿填写家庭住址、电话或其他私人联系方式。', '2–8 people, including the host. This is for arranging company, not selling tickets or collecting payments. Identity is not guaranteed. Do not include home addresses, phone numbers or private contact details.')}</p>
     {cancelConfirm && <div className="outing-notice"><p>{t('返回会关闭这份未保存的草稿。', 'Going back closes this unsaved draft.')}</p><div className="outing-inline-actions"><button className="outing-secondary" onClick={onCancel}>{t('放弃草稿并返回', 'Discard draft and return')}</button><button className="outing-link-button" onClick={() => setCancelConfirm(false)}>{t('继续填写', 'Keep editing')}</button></div></div>}
     {!outing && <details className="outing-ai"><summary><Sparkles size={17} />{t('可选：让 AI 帮我起草', 'Optional: draft with AI')}</summary><p>{t('说说想去哪天、做什么、在哪座城市集合。可以直接回答追问，不用重写。AI 只整理草稿；地点、开放时间和费用需要你核对，不会自动发布。', 'Describe the date, activity and meeting city. Answer follow-up questions without rewriting your idea. AI only drafts text; check places, opening hours and costs yourself. Nothing is published automatically.')}</p>
@@ -90,6 +91,7 @@ export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefr
       <section className="outing-form-section"><h3><span className="outing-step">01</span>{t('一起做什么', 'What you will do')}</h3>
         {event ? <div className="outing-associated">{t('关联活动', 'Linked event')} · <Link to={`/events/${event.id}`}>{event.title}</Link><p className="outing-footnote">{t('加入小队不包含门票或正式报名。每位成员自行核对主办方要求。', 'Joining the outing does not include a ticket or official registration. Each member must check the organizer’s requirements.')}</p>{!outing && <button type="button" className="outing-link-button" onClick={() => set('eventId', null)}>{t('改为独立自发小队', 'Make this an independent outing')}</button>}</div> : <p className="outing-footnote">{t('独立自发小队；请确认目的地允许公众到访。', 'An independently organized outing. Check that your destination is open to visitors.')}</p>}
         <div className="outing-fields"><label className="is-wide">{t('小队名称', 'Outing title')}<input required maxLength={100} value={draft.title} onChange={e => set('title', e.target.value)} /></label><label className="is-wide">{t('活动与同行说明', 'Activity and expectations')}<textarea required maxLength={1200} value={draft.description} onChange={e => set('description', e.target.value)} placeholder={t('例如：轻松步行看展，午后结束；请说明体力要求、需要自备的东西。', 'For example: an easy museum visit ending in the afternoon. Include access needs, physical demands and what to bring.')} /></label></div>
+        <OutingCoverPicker outing={draft} onChange={cover => set('cover', cover)} disabled={busy} />
       </section>
       <section className="outing-form-section"><h3><span className="outing-step">02</span>{t('把时间和地点说清楚', 'Set the time and meeting place')}</h3><div className="outing-fields">
         <label>{t('参加日期', 'Outing date')}<input type="date" required min={getBayAreaToday()} value={draft.date} onChange={e => set('date', e.target.value)} /></label><label>{t('人数上限（包含你）', 'Capacity (including you)')}<select value={draft.capacity} onChange={e => set('capacity', Number(e.target.value))}>{[2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</select></label>

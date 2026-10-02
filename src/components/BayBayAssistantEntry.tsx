@@ -6,10 +6,13 @@ import { BayBaySmartCard } from './BayBaySmartCard';
 import { ModalShell } from './ui/Modal';
 import { BayBayMatchingPosts } from './BayBayMatchingPosts';
 import { BayBayOutingResults } from './BayBayOutingResults';
+import { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel, BayBayTaskHandoff } from './BayBayDiscoveryResults';
+import { getGuideMedia } from '../data/guide-media';
+import { GuideFigure } from './GuideVisuals';
 import {
-  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBayPlanRequest, isBayBaySocialRequest, isBayBaySearchContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath,
+  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBaySocialRequest, isBayBaySearchContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath, bayBayTaskBrief,
   bayBayPageQuestions, bayBayReferenceGuides, bayBayGuideSources, isBayBaySchoolGuide, isBayBaySchoolRequest, BAYBAY_SCHOOL_NOTE, BAYBAY_SCHOOL_STARTER,
-  type BayBayTurn, type GuideChatAction, type GuideChatResponse,
+  type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode,
 } from '../lib/baybay-conversation';
 import { translateText, useLocale } from '../i18n/locale';
 
@@ -26,6 +29,8 @@ type BayBayAssistantEntryProps = {
   pendingQuestionId?: number;
   onPendingQuestionConsumed?: (id?: number) => void;
   blockedUserIds?: string[];
+  ownerId?: string;
+  sessionKey?: string;
 };
 
 const resolveCategoryLabel = (category?: string) => {
@@ -34,9 +39,11 @@ const resolveCategoryLabel = (category?: string) => {
   return label === '全部' ? category : label;
 };
 
-export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, categoryHint,
+export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBayAssistantSession key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} />;
+
+const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, categoryHint,
   currentPath = typeof window === 'undefined' ? '/' : window.location.pathname,
-  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds,
+  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -45,6 +52,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
     if (onPanelOpenChange) onPanelOpenChange(value); else setInternalOpen(value);
   }, [onPanelOpenChange]);
   const [question, setQuestion] = useState('');
+  const [searchMode, setSearchMode] = useState<BayBaySearchMode>('smart');
   const [turns, setTurns] = useState<BayBayTurn[]>([]);
   const turnsRef = useRef<BayBayTurn[]>([]);
   const activeRequest = useRef<{ id: number; controller: AbortController } | null>(null);
@@ -78,12 +86,9 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
   const askBayBay = useCallback((text: string, requestPath = currentPath, keepConversation = false): boolean => {
     const message = text.trim();
     if (message.length < 2 || message.length > 500 || activeRequest.current) return false;
-    if (!keepConversation && !turnsRef.current.length && !currentBayBayGuide(requestPath) && isBayBayPlanRequest(message)) {
-      setQuestion('');
-      onNavigate(bayBayPlanPath(message));
-      setOpen(false);
-      return true;
-    }
+    // Keep the first request in the conversation, including plans. Moving to the
+    // planner is an explicit action after the user has reviewed their needs.
+    void keepConversation;
     const id = ++sequence.current;
     const controller = new AbortController();
     const history = conversationHistory(turnsRef.current);
@@ -92,7 +97,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
     activeRequest.current = { id, controller };
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
+    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
@@ -105,7 +110,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
         } : turn));
       });
     return true;
-  }, [categoryHint, currentPath, onNavigate, setOpen, updateTurns]);
+  }, [categoryHint, currentPath, searchMode, updateTurns]);
 
   useEffect(() => {
     if (!pendingQuestion) { consumedPending.current = null; pendingContext.current = null; return; }
@@ -158,7 +163,7 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
           <button type="button" onClick={close} className="member-compose-close" aria-label="关闭"><X size={20} /></button>
         </div>
         <div className="member-baybay-body baybay-scroll">
-          <div className="baybay-context-line"><span translate="no">{copy('参考站内资料 · 小队按实际查询展示', 'Site references · outing results from live site queries')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
+          <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
           {currentGuide && <div className="baybay-reading-context"><BookOpen size={16} /><div><small>正在结合你阅读的攻略</small><strong>{currentGuide.title}</strong></div>
             <button type="button" disabled={loading} onClick={() => askBayBay(translateText(bayBayPageQuestions(currentPath)[0].question, locale))}>帮我读</button></div>}
           {currentGuide && <div className="baybay-followups" role="group" aria-label="围绕这篇指南提问"><span>围绕这篇指南提问</span>{bayBayPageQuestions(currentPath).map(prompt => <button type="button" key={prompt.label} disabled={loading} onClick={() => askBayBay(translateText(prompt.question, locale))}>{prompt.label}<ArrowUp size={12} /></button>)}</div>}
@@ -177,28 +182,31 @@ export const BayBayAssistantEntry = ({ variant, onNavigate, onCreatePostClick, c
           <div className="baybay-thread" aria-label="本次对话">
             {turns.map((turn) => <section className="baybay-turn" key={turn.id} aria-label={`问题：${turn.question}`}>
               <div className="baybay-user-question"><span>你</span><p>{turn.question}</p></div>
-              {turn.state === 'pending' && <p role="status" className="baybay-thinking"><Loader2 size={15} className="animate-spin" />正在整理站内资料和你的需求…</p>}
+              {turn.state === 'pending' && <p role="status" className="baybay-thinking"><Loader2 size={15} className="animate-spin" />{searchMode === 'site' ? copy('正在整理站内资料和你的需求…', 'Checking site information and your needs…') : copy('正在查找资料；需要时补查公开来源…', 'Finding information and checking public sources when needed…')}</p>}
               {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { stop(); updateTurns(() => []); setQuestion(copy('我想找搭子一起去。', 'I want to find people to go with.')); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
               {turn.response && <div className="member-baybay-answer">
                 <div className="member-baybay-answer-label"><Sparkles size={12} />{turn.response.outingSearch ? copy('小队搜索', 'Outing search') : turn.response.degraded ? '参考指引' : 'BayBay 建议'}</div>
+                <BayBayRetrievalLabel response={turn.response} />
                 {turn.response.degraded && <p role="status" className="baybay-degraded">AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。</p>}
-                {turn.response.outingSearch?.state !== 'needs_clarification' && <p className="member-baybay-answer-text">{turn.response.answer}</p>}
+                {turn.response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={turn.response} />}
                 {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} answer={turn.response.answer} blockedUserIds={blockedUserIds} onNavigate={navigate}
                   onAnswer={turn.id === turns[turns.length - 1]?.id && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) askBayBay(answer, turn.currentPath, true); } : undefined}/>}
-                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.matchNote} onNavigate={navigate} />
-                {!turn.response.outingSearch && !isBayBaySocialRequest(turn.question) && !isBayBaySchoolRequest(turn.question) && !isBayBaySchoolGuide(currentBayBayGuide(turn.currentPath || '')) && /周末|出游|活动|去哪|weekend|outing|events?/i.test(turn.question) && <button type="button" className="member-primary" onClick={() => navigate(bayBayPlanPath(turn.question))}>让 BayBay 帮我排一天<ChevronRight size={14} /></button>}
+                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={['completed', 'unavailable'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
+                <BayBayDiscoveryResults response={turn.response} ownerId={ownerId} sessionKey={sessionKey} />
                 <BayBayReferences response={turn.response} currentPath={turn.currentPath} onNavigate={navigate} />
                 {!!turn.response.suggestedActions?.length && <div className="mt-2.5 flex flex-wrap gap-1.5">{turn.response.suggestedActions.map((action, index) => <button type="button" key={`${action.label}-${index}`} onClick={() => handleAction(action, turn.question)} className="member-baybay-action border border-baylink-border/50 bg-white text-baylink-text">{action.label}</button>)}</div>}
                 {turn.response.safetyNote && <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">{turn.response.safetyNote}</p>}
               </div>}
             </section>)}
           </div>
+          {lastComplete && !loading && !schoolContext && !outingContext && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} onNavigate={navigate} />}
           {lastComplete && !loading && !turns[turns.length - 1]?.restartRequired && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath))).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
           <div ref={endRef} />
           {turns.length === 0 && <div className="baybay-start-links"><button type="button" onClick={() => navigate('/guides')}><BookOpen size={14} />自己浏览攻略</button><button type="button" onClick={() => navigate('/tools')}>打开生活工具箱<ChevronRight size={14} /></button></div>}
         </div>
         <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>
+          <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={searchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}<span>{searchMode === 'site' ? copy('只参考站内资料', 'Site information only') : copy('联网时查询公开资料，结果会标明来源', 'Public web lookups include sources')}</span></div>
           {schoolContext && <p className="baybay-composer-note" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
           <div className="member-baybay-composer"><input ref={inputRef} type="text" aria-label="向 BayBay 提问" value={question} maxLength={500}
             aria-describedby={schoolContext ? 'baybay-school-privacy' : undefined}
@@ -222,6 +230,7 @@ function BayBayReferences({ response, currentPath, onNavigate }: { response: Gui
   const items = reading ? [reading, ...references.filter(guide => guide.slug !== reading.slug)] : references;
   if (!items.length) return null;
   return <div className="baybay-references"><p>原文与核验来源</p><small className="block text-[11px] leading-relaxed text-baylink-muted">以下是站内指南列出的参考资料，不表示已实时核验。</small>{items.map(guide => <div key={guide.slug} className="mt-2">
+    <div className="baybay-reference-image"><GuideFigure image={getGuideMedia(guide).cover} variant="preview" /></div>
     {guide.slug === reading?.slug && <small className="text-[11px] text-baylink-muted">提问时阅读的指南</small>}
     <button type="button" onClick={() => onNavigate(`/guides/${guide.slug}`)}><BookOpen size={13} /><span>{guide.title}</span><ChevronRight size={13} /></button>
     {bayBayGuideSources(guide).length > 0 && <details><summary className="cursor-pointer text-[11px] text-baylink-muted">查看原文来源</summary><ul className="mt-2 space-y-2 pl-4 text-[11px] leading-relaxed">{bayBayGuideSources(guide).map(source => <li key={source.url}><a className="break-words underline underline-offset-2" href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}

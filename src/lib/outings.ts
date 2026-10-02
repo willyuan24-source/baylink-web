@@ -2,19 +2,26 @@ import { api } from './api';
 
 export type OutingMemberStatus = 'requested' | 'confirmed' | 'declined' | 'left' | 'removed';
 export type OutingAction = 'request' | 'withdraw' | 'accept' | 'decline' | 'remove' | 'cancel' | 'reconfirm';
+export type OutingCoverSelection = { kind: 'auto' | 'card' } | { kind: 'guide' | 'event' | 'offer' | 'opening'; id: string };
 export type OutingDraft = {
   title: string; description: string; eventId: string | null; date: string; startTime: string; endTime: string;
   city: string; venue: string; capacity: number; costNote: string;
   transport: 'own' | 'transit' | 'walk'; language: 'any' | 'zh' | 'en';
+  cover?: OutingCoverSelection;
 };
 export type OutingCreate = OutingDraft & { adultConsent: boolean; publicPlaceConsent: boolean };
 export type OutingMember = { userId: string; nickname: string; role: 'host' | 'member'; status: OutingMemberStatus; confirmedVersion: number; note?: string; waitlisted?: boolean; requestedAt?: number };
+export type OutingPollAnswer = 'yes' | 'maybe' | 'no';
+export type OutingTimeOption = { date: string; startTime: string; endTime: string };
+export type OutingTimePoll = { id: string; status: 'open' | 'closed' | 'adopted'; planVersion: number; createdAt: number; closedAt?: number; closeReason?: 'host-closed' | 'arrangement-changed'; selectedOptionId?: string;
+  eligibleCount: number; repliedCount: number; options: Array<OutingTimeOption & { id: string; startAt: number; endAt: number; counts: Record<OutingPollAnswer, number> }>; myAnswers: Record<string, OutingPollAnswer> | null };
+export type OutingPollAction = { action: 'create'; options: OutingTimeOption[] } | { action: 'vote'; pollId: string; answers: Record<string, OutingPollAnswer> } | { action: 'close'; pollId: string } | { action: 'adopt'; pollId: string; optionId: string };
 export type Outing = OutingDraft & {
   id: string; eventTitle?: string; officialUrl?: string; startAt: number; endAt: number; timezone: 'America/Los_Angeles';
   status: 'open' | 'cancelled' | 'completed'; revision: number; planVersion: number;
   host: { id: string; nickname: string; verified: boolean }; confirmedCount: number; requestCount?: number; waitlistCount?: number; waitlistReviewNeeded?: boolean;
   me: null | Pick<OutingMember, 'userId' | 'role' | 'status' | 'confirmedVersion' | 'waitlisted'>;
-  members?: OutingMember[]; createdAt: number; updatedAt: number;
+  members?: OutingMember[]; timePoll?: OutingTimePoll; createdAt: number; updatedAt: number;
 };
 export type OutingMessage = { id: string; outingId: string; senderId: string; senderName: string; text: string; createdAt: number };
 export type OutingResult = { outing: Outing; notificationWarning?: string };
@@ -22,6 +29,12 @@ export type OutingAiDraft = { answer: string; questions: string[]; draft: Partia
 export type OutingFilters = { eventId?: string; q?: string; date?: string; dateFrom?: string; dateTo?: string; city?: string; language?: 'zh' | 'en'; seats?: 'open'; sort?: 'soonest'; cursor?: string };
 export type OutingDraftAnswer = { question: string; answer: string };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
+export function isOutingCover(value: unknown): value is OutingCoverSelection {
+  if (!record(value)) return false;
+  if (value.kind === 'auto' || value.kind === 'card') return Object.keys(value).length === 1;
+  return ['guide', 'event', 'offer', 'opening'].includes(String(value.kind))
+    && Object.keys(value).length === 2 && typeof value.id === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,139}$/.test(value.id);
+}
 const str = (v: unknown, max = 2000): v is string => typeof v === 'string' && v.length <= max;
 const integer = (v: unknown, min = 0) => Number.isSafeInteger(v) && Number(v) >= min;
 const finite = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
@@ -41,9 +54,27 @@ function member(v: unknown, named: boolean): boolean {
     && (v.waitlisted === undefined || (typeof v.waitlisted === 'boolean' && (!v.waitlisted || v.status === 'requested')))
     && (v.requestedAt === undefined || (finite(v.requestedAt) && Number(v.requestedAt) >= 0 && Number(v.requestedAt) <= 8.64e15));
 }
+export function isOutingTimePoll(value: unknown): value is OutingTimePoll {
+  if (!record(value) || !str(value.id, 140) || !value.id || !['open', 'closed', 'adopted'].includes(String(value.status)) || !integer(value.planVersion, 1)
+    || !finite(value.createdAt) || (value.closedAt !== undefined && !finite(value.closedAt)) || !integer(value.eligibleCount, 1) || Number(value.eligibleCount) > 8
+    || !integer(value.repliedCount) || Number(value.repliedCount) > Number(value.eligibleCount)
+    || (value.closeReason !== undefined && !['host-closed', 'arrangement-changed'].includes(String(value.closeReason)))
+    || !Array.isArray(value.options) || value.options.length < 2 || value.options.length > 3) return false;
+  const options = value.options;
+  if (options.some(option => !record(option) || !str(option.id, 140) || !option.id || !date(option.date) || !time(option.startTime) || !time(option.endTime) || option.endTime <= option.startTime
+    || !sameLocalTime(option.startAt, option.date, option.startTime) || !sameLocalTime(option.endAt, option.date, option.endTime)
+    || !record(option.counts) || !['yes', 'maybe', 'no'].every(key => integer((option.counts as Record<string, unknown>)[key]))
+    || Object.values(option.counts).reduce<number>((total, count) => total + Number(count), 0) !== value.repliedCount)
+    || new Set(options.map(option => option.id)).size !== options.length
+    || new Set(options.map(option => `${option.date}:${option.startTime}:${option.endTime}`)).size !== options.length) return false;
+  if (value.status === 'adopted' ? !options.some(option => option.id === value.selectedOptionId) : value.selectedOptionId !== undefined) return false;
+  if (value.myAnswers !== null && (!record(value.myAnswers) || Object.keys(value.myAnswers).length !== options.length
+    || !options.every(option => ['yes', 'maybe', 'no'].includes(String((value.myAnswers as Record<string, unknown>)[option.id]))))) return false;
+  return true;
+}
 export function parseOuting(v: unknown): Outing {
   if (!record(v) || !str(v.id, 140) || !v.id || !str(v.title, 160) || !v.title
-    || !str(v.description) || !(v.eventId === null || (str(v.eventId, 140) && !!v.eventId))
+    || !str(v.description) || (v.cover !== undefined && !isOutingCover(v.cover)) || !(v.eventId === null || (str(v.eventId, 140) && !!v.eventId))
     || !date(v.date) || !time(v.startTime) || !time(v.endTime) || v.endTime <= v.startTime
     || !['city', 'venue', 'costNote'].every(key => str(v[key])) || !integer(v.capacity, 2) || Number(v.capacity) > 8
     || !['own', 'transit', 'walk'].includes(String(v.transport)) || !['any', 'zh', 'en'].includes(String(v.language))
@@ -55,6 +86,7 @@ export function parseOuting(v: unknown): Outing {
     || !(v.me === null || member(v.me, false)) || (v.requestCount !== undefined && !integer(v.requestCount))
     || (v.waitlistCount !== undefined && !integer(v.waitlistCount)) || (v.waitlistReviewNeeded !== undefined && typeof v.waitlistReviewNeeded !== 'boolean')
     || (v.members !== undefined && (!Array.isArray(v.members) || !v.members.every(item => member(item, true)) || new Set(v.members.map(item => item.userId)).size !== v.members.length))
+    || (v.timePoll !== undefined && (!isOutingTimePoll(v.timePoll) || !record(v.me) || v.me.status !== 'confirmed' || (v.timePoll.status === 'open' && v.timePoll.planVersion !== v.planVersion)))
     || (v.eventTitle !== undefined && !str(v.eventTitle, 300))
     || (v.officialUrl !== undefined && (!str(v.officialUrl, 2000) || (v.officialUrl && !safeOutingUrl(v.officialUrl))))) return invalid();
   return v as unknown as Outing;
@@ -93,6 +125,7 @@ export const outings = {
   create: async (draft: OutingCreate, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(base, body({ ...draft, idempotencyKey }, signal))),
   update: async (outing: Outing, draft: OutingDraft & { publicPlaceConsent?: boolean }, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(path(outing.id), { ...body({ ...draft, revision: outing.revision, idempotencyKey }, signal), method: 'PATCH' }), outing.id),
   action: async (outing: Outing, action: OutingAction, options: { userId?: string; note?: string; adultConsent?: boolean; waitlist?: boolean }, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(`${path(outing.id)}/actions`, body({ ...options, action, revision: outing.revision, idempotencyKey }, signal)), outing.id),
+  timePoll: async (outing: Outing, action: OutingPollAction, idempotencyKey: string, signal?: AbortSignal) => result(await api.request(`${path(outing.id)}/time-poll`, body({ ...action, revision: outing.revision, idempotencyKey }, signal)), outing.id),
   messages: async (id: string, signal?: AbortSignal) => {
     const value: unknown = await api.request(`${path(id)}/messages`, { signal }); if (!record(value) || !Array.isArray(value.messages)) return invalid();
     const messages = value.messages.map(parseOutingMessage); if (messages.some(item => item.outingId !== id) || new Set(messages.map(item => item.id)).size !== messages.length) return invalid(); return { messages };

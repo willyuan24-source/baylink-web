@@ -79,6 +79,7 @@ test('failed account reads do not claim saved plans disappeared and retain impor
   const plan = { id: 'saved-fixture', title: '服务端仍保存的计划', date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), version: 1 };
   t.mock.method(api, 'request', async (path: string) => {
     if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
     if (path === '/planner/imported-events') throw { status: 503 };
     if (path === '/planner/me') { if (fail) throw { status: 503 }; return { ...structuredClone(EMPTY_LIBRARY), plans: [plan], favorites: [{ kind: 'place', id: PLANNER_PLACES[0].id }] }; }
     if (path === '/planner/preferences') throw { status: 503 };
@@ -112,6 +113,7 @@ test('a real failed guest import keeps browser data and its visible import actio
   let fail = true, writes = 0;
   t.mock.method(api, 'request', async (path: string) => {
     if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
     if (path === '/planner/imported-events') return { events: [], revision: 0 };
     if (path === '/planner/me') return structuredClone(EMPTY_LIBRARY);
     if (path.startsWith('/planner/favorites/')) { writes++; if (fail) throw { status: 503 }; return { favorites: guest.favorites }; }

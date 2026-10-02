@@ -17,7 +17,9 @@ export const loadGuestLibrary = (): Library => {
     const travelMode = ['any', 'drive', 'transit', 'walk'].includes(prefs?.travelMode) ? prefs.travelMode : 'any';
     const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => other.kind === f.kind && other.id === f.id) === i).slice(0, 150);
     const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops), ...(p.details ? { details: normalizePlanDetails(p.details, cleanStops(p.stops)) } : {}) }));
-    return { preferences: { regions, interests, travelMode }, favorites, plans };
+    const admissionBudgetUsd = prefs?.admissionBudgetUsd === null || (typeof prefs?.admissionBudgetUsd === 'number' && Number.isFinite(prefs.admissionBudgetUsd) && prefs.admissionBudgetUsd >= 0 && prefs.admissionBudgetUsd <= 10000) ? prefs.admissionBudgetUsd : undefined;
+    const setting = ['any', 'indoor', 'outdoor', 'mixed'].includes(prefs?.setting) ? prefs.setting : undefined;
+    return { preferences: { regions, interests, travelMode, ...(admissionBudgetUsd !== undefined ? { admissionBudgetUsd } : {}), ...(setting ? { setting } : {}) }, favorites, plans };
   } catch { return structuredClone(EMPTY_LIBRARY); }
 };
 export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>, b: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>) => a.title === b.title && a.date === b.date && JSON.stringify(a.stops) === JSON.stringify(b.stops) && JSON.stringify(a.details) === JSON.stringify(b.details);

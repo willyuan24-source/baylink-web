@@ -119,20 +119,22 @@ test('an edit link waits through a failed read and hydrates the saved plan after
   assert.equal((editor(view).getByRole('button', { name: '更新这份计划' }) as HTMLButtonElement).disabled, false);
 });
 
-test('selecting an attraction reveals its real photograph and changing selection removes the previous preview', async () => {
+test('visual catalog starts with a bounded page of lazy images and reveals more without changing the plan', async () => {
   const view = await openPlanner();
-  assert.equal(view.container.querySelectorAll('.planner-place-media').length, 0, 'unselected lists do not load every attraction photo');
+  assert.ok(view.container.querySelectorAll('.planner-place-media').length > 0);
+  assert.ok(view.container.querySelectorAll('.planner-place').length <= 12, 'the first page stays bounded on mobile');
   for (const id of ['golden-gate', 'hakone']) {
     const place = PLANNER_PLACES.find(item => item.id === id)!;
     const image = getGuideMedia(getGuideBySlug(place.guideSlug)!).cover;
     assert.equal(image.kind, 'photo', 'map attraction previews must use actual place photography');
+    while (!view.container.querySelector(`[id="catalog-place:${id}"]`)) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
     const card = view.container.querySelector(`[id="catalog-place:${id}"]`)!;
     fireEvent.click(card.querySelector('.planner-place-title')!);
     const photo = card.querySelector('.planner-place-media img')!;
     assert.equal(photo.getAttribute('src'), image.src);
     assert.equal(photo.getAttribute('alt'), image.alt);
     assert.equal(photo.getAttribute('loading'), 'lazy');
-    assert.equal(view.container.querySelectorAll('.planner-place-media').length, 1);
+    assert.ok(view.container.querySelectorAll('.planner-place-media').length <= view.container.querySelectorAll('.planner-place').length);
     assert.ok(card.textContent?.includes(image.caption), 'historical/context captions remain visible beside the photo');
     assert.ok(card.querySelector(`a[href="${image.creditUrl}"]`), 'photo source remains available');
   }
