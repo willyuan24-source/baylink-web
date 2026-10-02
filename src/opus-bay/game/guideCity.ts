@@ -15,7 +15,8 @@ import { rideLookAt } from '../actors/cameraModes';
 import { landmarkBaseY } from '../actors/glideTall';
 import { emit, onEvent } from '../core/events';
 import { activeLineFleet } from '../data/transit';
-import { planReveal, photoPose, revealShots, type CamPose, type PhotoSpec } from '../actors/reveal';
+import { REVEAL_VIEWS, planReveal, photoPose, revealShots, revealSight, revealView, type CamPose, type PhotoSpec } from '../actors/reveal';
+import { faceAfterLanding } from '../actors/arrivalFace';
 import { faceCameraToward, playShots } from './cinema';
 import { registerFocusHook } from './brain';
 import { isDiscovered, setDiscoveryAnnouncer } from './discovery';
@@ -687,13 +688,17 @@ function onArrival(a: NonNullable<ReturnType<typeof flow.get>['arrival']>) {
     if (a.panorama) window.setTimeout(() => { if (arrivalKey === key) startPanorama(); }, 400);
   };
   if (a.reveal && attr && revealCamera && reveal(attr, revealCamera, after)) return;
+  // (W9-C3, lane C surgical) off the pelican with no reveal: face the arrival's heading (actors/arrivalFace)
+  if (attr) faceAfterLanding(attr);
   after();
 }
 
 /** The 2.4 s reveal from the landmark's photo pose (game/cinema shots; skippable with Esc / E / Enter / Space). */
 function reveal(a: Attraction, camera: THREE.PerspectiveCamera, done: () => void): boolean {
-  const spec = revealSpec(a);
-  if (!spec) return false;
+  // (W9-C3, lane C surgical) an overlook looks out at its view and Coit Tower at the tower (actors/reveal REVEAL_VIEWS)
+  const own = !!REVEAL_VIEWS[a.id];
+  const spec = own ? null : revealSpec(a);
+  if (!spec && !own) return false;
   const p = runtime.player;
   // the city around the player still streaming in (an arrival right after ?at= / a resume): no stage for a reveal
   const g = groundOrNull(p.x, p.z);
@@ -702,7 +707,10 @@ function reveal(a: Attraction, camera: THREE.PerspectiveCamera, done: () => void
   // reveal hands back to would sit inside the hill — seen at Twin Peaks: the camera at y 4.6 under the 46 u summit)
   const feet = Math.max(p.y, g);
   const start: CamPose = { pos: { x: camera.position.x, y: camera.position.y, z: camera.position.z }, target: { x: p.x, y: feet + 1.6, z: p.z } };
-  const plan = planReveal(start, photoPose(spec.frame, spec.photo), { x: p.x, y: feet, z: p.z }, groundOrNull);
+  const player = { x: p.x, y: feet, z: p.z }, view = spec ? null : revealView(a.id, player);
+  if (!spec && !view) return false;
+  // (W9-C3) a photo line through a street tree or a roof turns / rises / comes in to a clear one (revealSight)
+  const plan = planReveal(start, spec ? photoPose(spec.frame, spec.photo) : view!.photo, player, groundOrNull, { pivot: view?.pivot, sight: revealSight });
   playShots('arrival', revealShots(plan), done);
   return true;
 }

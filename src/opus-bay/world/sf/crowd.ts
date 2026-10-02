@@ -1049,15 +1049,19 @@ export class CrowdLayer {
   private nearMax: number = CROWD.nearBy.high.max;
   setQuality(q: Quality) { const n = CROWD.nearBy[q] ?? CROWD.nearBy.high; this.nearLod = n.lod; this.nearMax = n.max; }
 
-  /** Step the crowd and draw it (camera position for the LOD split and the lens shrink). */
-  update(dt: number, cam: { x: number; y: number; z: number }) {
+  /** Step the crowd and draw it (camera position for the LOD split and the lens shrink; W9-C3: what it looks at). */
+  update(dt: number, cam: { x: number; y: number; z: number }, look?: { x: number; y: number; z: number }) {
     this.sim.step(dt);
-    this.draw(cam);
+    this.draw(cam, look);
   }
 
-  draw(cam: { x: number; y: number; z: number }) {
+  draw(cam: { x: number; y: number; z: number }, look?: { x: number; y: number; z: number }) {
     let n = 0, nf = 0;
     const t = this.sim.time;
+    // (W9-C3, review R§5 #15: an NPC's head in the Painted Ladies' reveal, a walker filling the parade photo) the view
+    // line from the camera to what it looks at (the player, a reveal's subject): unit direction and length
+    let lx = 0, ly = 0, lz = 0, lL = 0;
+    if (look) { lx = look.x - cam.x; ly = look.y - cam.y; lz = look.z - cam.z; lL = Math.hypot(lx, ly, lz); if (lL > 1e-3) { lx /= lL; ly /= lL; lz /= lL; } else lL = 0; }
     // the near figure for the nearMax walkers closest to the camera within nearLod (a triangle cap; per quality, W7-X)
     const ws = this.sim.walkers, dist = this.dist;
     let within = 0;
@@ -1074,7 +1078,8 @@ export class CrowdLayer {
       if (!w.on) continue;
       const d = dist[j];
       // people right at the lens shrink away (like the promenade's)
-      const lens = d < 1.6 ? 0 : d < 3.6 ? smooth((d - 1.6) / 2) : 1;
+      let lens = d < 1.6 ? 0 : d < 3.6 ? smooth((d - 1.6) / 2) : 1;
+      if (lL > 0 && lens > 0) lens *= inLens(w.x - cam.x, w.y + 0.9 - cam.y, w.z - cam.z, lx, ly, lz, lL);
       const k = w.scale * w.grow * lens;
       if (k < 0.02) continue;
       const bob = w.walking * Math.abs(Math.sin(t * 7.5 + w.ph)) * 0.05;
@@ -1116,3 +1121,19 @@ export class CrowdLayer {
 }
 
 const smooth = (x: number) => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
+
+/** (W9-C3) the lens rule's numbers: the near cone's reach (u) and half width (rad, as a slope); the view line's half width (u) */
+export const LENS_HIDE = { near: 8, cone: 0.32, line: 0.75 } as const;
+/**
+ * (W9-C3) 1 = draw, 0 = hide (smoothly between) for a walker at v (from the camera; its chest) when the camera looks along
+ * the unit (dx, dy, dz) at a subject L u away: within LENS_HIDE.near u in front of the lens inside a ≈ 18° cone (a face
+ * filling the frame's middle), or standing on the view line short of the subject (between the camera and the player /
+ * the landmark). A walker by the subject, behind the camera or off to the side stays. Pure (tests).
+ */
+export function inLens(vx: number, vy: number, vz: number, dx: number, dy: number, dz: number, L: number): number {
+  const t = vx * dx + vy * dy + vz * dz;
+  if (t <= 0 || t >= L - 1.5) return 1;
+  const r = Math.hypot(vx - dx * t, vy - dy * t, vz - dz * t);
+  const R = Math.max(t < LENS_HIDE.near ? LENS_HIDE.cone * t : 0, LENS_HIDE.line);
+  return smooth((r - R) / 0.6);
+}

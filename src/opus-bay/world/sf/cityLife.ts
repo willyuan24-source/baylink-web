@@ -57,6 +57,18 @@ const PLAYER_CAR = { halfL: 1.05, halfW: 0.6 };
 const STAND_KINDS: Record<string, number> = { plaza: 16, landmark: 10, viewpoint: 6, attraction: 7, museum: 6, historic: 5 };
 /** a hop-aside is heard within this of the player (u) */
 const HOP_HEARD = 22;
+/**
+ * (W9-C3) What the camera looks at, for the crowd's lens rule (world/sf/crowd.ts inLens): a cinematic shot's target (the
+ * arrival reveal's landmark), else the player's chest.
+ */
+const lensPoint = { x: 0, y: 0, z: 0 };
+function lensLook(): { x: number; y: number; z: number } {
+  const shot = runtime.camera.shot, p = runtime.player;
+  if (shot) { lensPoint.x = shot.target[0]; lensPoint.y = shot.target[1]; lensPoint.z = shot.target[2]; }
+  else { lensPoint.x = p.x; lensPoint.y = p.y + 1; lensPoint.z = p.z; }
+  return lensPoint;
+}
+
 /** the crowd hides while the camera is this far above the ground under the player (u): a glide over the streets */
 const CROWD_HIGH = 55;
 
@@ -229,7 +241,7 @@ export class CityLife {
     const p = runtime.player, above = cam.y - heightAt(p.x, p.z);
     const high = this.high = above > CROWD_HIGH || (this.high && above > CROWD_HIGH - 10);
     // (a wave nobody is there to see is dropped, not played later)
-    if (high) { crowd.hide(); takeCrowdWaves(); } else crowd.update(dt, cam);
+    if (high) { crowd.hide(); takeCrowdWaves(); } else crowd.update(dt, cam, lensLook());
     this.listen(high);
   }
 
