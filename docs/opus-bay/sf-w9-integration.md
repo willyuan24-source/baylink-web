@@ -127,3 +127,56 @@ opus-bay-w9-s-review S-RV-1 "the cause, reproduced" (a toast under an event card
 once — rewritten, lane S's file). Both re-run green (13 / 13). Production build of 231b202e (scratch outDir, exit 0, 44 s,
 no tracked churn): GameRoot 681.71 / 257.46 KB gzip (+0.13 KB for the district paths; guard 258.5), three-vendor 233.60 KB;
 dist-syntax: 433 chunks, look-behind 0 → PASS.
+
+## Completeness pass (W9-C, 08:15–08:45 PDT)
+
+Worktree C:/Users/willy/wt/w9-cfix (branch w9-cfix from origin/opus-bay 33f0be76), pushed 08:30 PDT as 33f0be76..d523fd71.
+
+### 给主人的摘要
+
+- A、G、N 三条线评审后修好但没推上去的代码，现在都上线分支了：手机返回键在 BAYBAY 说话时不再直接退出游戏；菜单里按方向键后空格仍能取消；横屏手机对话框不再超出屏幕；摸摸 / 看风景不再抢走「今日小游戏」的金币；打开设置时夹娃娃、捞螃蟹、揉面团会暂停、面板收起；N 线的「车快到了」和同一段路只显示一个时间。
+- 新修一条：选「我是本地人」后的 3 分钟安静时间里，BAYBAY 不会再在 40 秒时邀请你玩捉迷藏，安静时间过后才邀请（有先红后绿的测试）。
+- 全部检查通过：类型检查 0 错、整个仓库 lint 0 错、游戏测试 2191 条全过、网站测试 1071 条全过；正式构建 GameRoot 257.45 KB（上限 258.5），旧 Safari 语法扫描通过。
+- 回退开关要注意：只回退 d57e8a1c 一个提交现在会冲突（之后 E 线评审又改了 5 个文件）。正确做法是按顺序回退 5 个提交：`git revert 3b6ee7d0 18a109ea 35acffe2 a363149e d57e8a1c`。已经试过：不冲突，构建通过，GameRoot 257.55 KB，相关测试全过。
+- 真机、微信、Vercel 线上路由、首分钟桌面和英文、冷启动这些只能在浏览器或真机上看，这次没做，仍交给 W9-Z。
+
+### The items
+
+| item | result | commits on origin | evidence |
+|---|---|---|---|
+| Land lanes A's and G's held review fixes (A-RV-1 / 2 / 3, G-RV-1 / 2) with their reports | done | 0ec8ca48 → 589ed14e, e9ae0e73 → 605a1968 (A); ac69ed42 → cf702617, cb582ff3 → bdeda0e7 (G) | cherry-picked clean onto 33f0be76; tests opus-bay-w9-a*, w9-g* (incl. a-review, g-review) green; sf-budget estimate 258.2 KB (≤ 258.5); hero-regression, district green |
+| Land lane N's held review fix (N-RC-1, N-RP-2, N-RC-6) | done | c81dcf27 → 24c7e9c7 | clean pick; opus-bay-w9-n* (review, time, tour, stuck, venue, wp) green; opus-bay-sf-move2 alone 24 / 24 (its E2-5 case, the one that blocked lane N's push, green); sf-w9-N.md Review Checks gains the "landed as" line |
+| F-RP-3: the 捉迷藏 invite respects 我是本地人's hush | done | d523fd71 | play/hideSeek.ts startHideCoach's `ok` gains `&& !baybayHeld()` (game/baybayHold.ts, already in GameRoot; city only, so the district is unchanged). New case in tests/opus-bay-w9-f-first-minute.test.ts: red on 24c7e9c7 ("no invite inside the hush": '1' !== undefined — the invite came at 40 s), green after (none in 60 quiet seconds inside the hush; once ≤ 42 s after it). hideSeek is a lazy chunk: GameRoot unchanged. No BAYBAY line changed (nothing for new-lines.md). |
+
+Checks on d523fd71 before the push: tsc app 0 · `npx eslint .` 0 errors (53 warnings, none new) · the whole opus-bay suite
+(`--test-concurrency=6 "tests/opus-bay-*.test.ts"`): 2192 tests, 2191 pass, 0 fail, 1 todo (W8-P9's 255 KB target) · after
+the push, the site's tests (every tests/*.test.{ts,tsx,mjs} that is not opus-bay-*, plus tests/opus-bay-w9-e-switch.test.tsx,
+concurrency 4): 1071 / 1071 pass · production build of d523fd71 (scratch outDir, 39 s, exit 0, no tracked churn): GameRoot
+681.73 / 257.45 KB gzip, three-vendor 874.36 / 233.60, BufferGeometryUtils 1.45 · dist-syntax: 433 chunks, look-behind 0,
+class static blocks 0 → PASS. Not run: the rest of `npm run check` (`npm run build`'s export / prerender steps and
+verify:share-cards).
+
+### The critic's claims, verified or not
+
+| claim | verdict | how |
+|---|---|---|
+| W9-I's "nothing left blocks" was made without A / G's review results; their fixer commits and N's c81dcf27 never reached origin; five lens majors live | **verified, now fixed** | `git merge-base --is-ancestor <sha> origin/opus-bay` was false for all five on 33f0be76; they are on origin now (table above) |
+| Old iPhones / WeChat: Safari 15.4 APIs unpolyfilled | **verified statically** | vite.config.ts build.target `['chrome107','edge107','firefox104','safari15','ios15']` lowers syntax only; package.json has no core-js / plugin-legacy. Uses: `Array.prototype.at` in 35 src/opus-bay files (40 in src), `Object.hasOwn` in 8 site files (src/App.tsx, src/routing.ts's category helpers, …), `structuredClone` in src/lib/planner-edit.ts / planner-library.ts, unguarded `crypto.randomUUID()` in ChatView.tsx, planner-library.ts, useImportedEvents.ts (three other uses are guarded). On iOS 15.0–15.3 these throw where they are called. Look-behind: 0 in src and 0 in the tip's dist (above); DecompressionStream has the E-RC-1 fallback (world/sf/format.ts). No real device tried. |
+| Vercel routing (the /play redirect, /opus-bay, the has-query route for old tickets) | **not verifiable here** | vercel.json read: routes 12–14 send `/play` with `stops` / `places` / `date` to /plan.html before route 15's `/play → /play.html`; the redirect itself is the client's PlayRedirect (src/App.tsx). `git.deploymentEnabled.opus-bay: false`, so no preview: the live behaviour, first paint and link previews stay W9-Z's / the go-live's. |
+| Revert path: `git revert d57e8a1c` never built after the E-review split | **verified: the one-commit revert does not apply** | `git merge-tree --write-tree --merge-base=d57e8a1c d523fd71 d57e8a1c^` conflicts in 5 files (HomeDiscovery.tsx, SiteNavigation.tsx, vite.config.ts; PlayRedirect.tsx and tests/opus-bay-w9-e-switch.test.tsx modify / delete), touched later by a363149e, 35acffe2, 18a109ea, 3b6ee7d0. The revert that works, newest first: `git revert 3b6ee7d0 18a109ea 35acffe2 a363149e d57e8a1c` — chained merge-tree dry run all clean (13 files, +25 / −270, incl. vercel.json's ticket routes and both chunk rules). A throwaway detached worktree of that tree: production build exit 0 (56 s): GameRoot 681.89 / 257.55 KB gzip (guard 258.5), three.js + r3f back in the shared react-three-fiber.esm chunk 874.40 / 233.63 KB gzip (not in GameRoot), BufferGeometryUtils 1.46 KB, LittleBayScene 7.91 KB; tests opus-bay-sf-budget, opus-bay-w9-e-shell, home-discovery, seo: 40 pass / 0 fail / 1 todo. Nothing of it was committed. |
+| No full `npm run check` on the tip | **mostly done** | lint, the whole test set (opus-bay 2191 + site 1071 + the switch .tsx) and a vite production build + dist-syntax on d523fd71, all green; the export / prerender steps and verify:share-cards not run |
+| 8 am time-of-day words (黄昏 at 8 am) | **partly verified** | a throwaway node test: `bayTimeOfDay` for 2026-10-02 06:45–09:00 PDT is `morning` in both the city and the district (golden from 18:45), so the band is right at 8 am. Where 黄昏 could still show at 8 am (the city intro's golden first visit, Settings' 黄昏 label for `golden`) was not replayed in a browser. |
+| First-minute gate on desktop + English; W9-I's district fixes in a browser; cold start; lane N's Grand Tour on the review tree; lane R's browser pass; lane F part b screens; lane C's sea lions; voice; the title's dead second; metrics | **not verified** | browser / device / owner work, none of it cheap or safe in this pass (one Chrome at a time, no fps claims): W9-Z's and the owner's |
+
+### Switch risks this pass changes
+
+- "Unpushed A / G review fixes": closed — Back while a line types (A-RV-1) and Space in the menu (A-RV-2) are on origin.
+- "Revert path": the one-commit revert is no longer the revert; the five-commit one above builds within the guard.
+- The rest stand as the critic listed them (the §6 Top-15 acceptances, the desktop / en first-minute runs, phone cold
+  start, old iPhones / WeChat, Vercel-only routes, what /play users lose, no metrics, sound on Start).
+
+### Housekeeping
+
+- The throwaway worktree C:/Users/willy/wt/w9-cfix-rev was removed (its node_modules link first); git could not delete its
+  admin folder .git/worktrees/w9-cfix-rev in the main checkout (Permission denied, OneDrive) — it holds no gitdir file, so
+  `git worktree prune` clears it later. The dry-run revert commits are unreferenced (no branch), nothing was pushed from them.

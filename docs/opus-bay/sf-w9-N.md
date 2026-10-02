@@ -258,6 +258,7 @@ Nothing of the first agent's work was discarded.
 
 ### Checks
 - On c81dcf27: tsc 0; eslint of the touched files 0; tests/opus-bay-w9-n-review.test.ts 2/2. The whole opus-bay suite (started 06:34) had reached 698 pass / 1 fail by 06:42 — the fail is 'E2-5 view field in the city' in tests/opus-bay-sf-move2.test.ts (not a file this fix touches; not re-run alone in the time) — and had not finished; whole-repo eslint was not run. So the code was NOT pushed (the push rule needs fail 0): cherry-pick c81dcf27 (branch w9-n-rev) after a suite run.
+- c81dcf27 landed as 24c7e9c7 (W9-C completeness pass, pushed 08:30 PDT; whole opus-bay suite 2191 pass / 0 fail / 1 todo, `npx eslint .` 0 errors, tsc 0; opus-bay-sf-move2 alone 24 / 24 incl. the E2-5 case — see sf-w9-integration.md "Completeness pass").
 
 ### Blocking the go-live
 - Nothing new from lane N blocks the go-live; the La Playa pill (N-RC-1) and the 12-vs-16 s pill / waypoint (N-RP-2) stay as reviewed on origin until c81dcf27 lands. The 'E2-5 view field in the city' fail seen under load should be re-run alone on the go-live tree.
