@@ -66,7 +66,8 @@ import { importRetry } from '../game/importRetry';
  * realsf/eventVenues.ts (eventVenue), realsf/events.ts (activeEventsAt, weekEvents).
  */
 
-const spotOf = (v: EventVenue): EventSpot => ({ x: v.x, z: v.z, ...venueLatLng(v), name: v.name });
+// (W9-R4) an open-air venue (every kit but the sandwich board at an indoor door) counts as 户外 for 这周去哪
+const spotOf = (v: EventVenue): EventSpot => ({ x: v.x, z: v.z, ...venueLatLng(v), name: v.name, outdoor: v.kit !== 'board' });
 
 /**
  * 带我去 a venue through lane N's goTo (the planner's best way: BAYBAY leads, a ride, or the pelican once unlocked). If

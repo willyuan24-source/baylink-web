@@ -71,3 +71,62 @@ Each event page re-read on sfpl.org on **2026-10-01**:
 1872 pass, 3 fail, 1 todo → the W7-S1 guard (the Western Addition line at 50 > 45 characters: fixed with 西增区图书馆, re-run
 green with the new tests: 7 / 0) and two wall-clock tests under load (`opus-bay-audio` P1 sliced jobs, `opus-bay-sf-move2`
 E2-5 cached cell): both green alone (18 / 0, 24 / 0).
+
+## Part b (22:50 → 01:30) — free days ahead (R§5 #10) and the recommendations (R§5 #12)
+
+### W9-R3 · 这周免费 / free days ahead / 加到日历
+
+- **`realsf/freeWeek.ts`** (pure): `freeWeek(today, 7, offers, catalog, companions?)` — each of the next 7 Bay days with
+  its free things: BAYLINK's offers that apply that day (dated first, then monthly, then weekly; an offer free on ≥ 5 days
+  of the week — the cable car museum, the Randall — is 常年免费, never a day's item) and the catalog's free San Francisco
+  events (never 18+ / professional; with 带娃 / 带长辈 only the ones that fit them). `freeDaysAt(point, today, 7, offers,
+  ids)` = a card's free days (by the card's place ids first, else within 8 u — SFMOMA and MoAD stand 12.5 u apart, a
+  30 u ring showed MoAD's 10/10 on SFMOMA's card: red in the test before the change), `alwaysFreeAt` (one 常年免费 line),
+  `eventDayHours` (the catalog schedule, else the date label).
+- **`realsf/FreeWeekStrip.tsx`** (lazy chunk): 7 day chips with counts, the chosen day's rows with 带我去 (N's `goTo`), 看看
+  (event card), 加到日历, the BAYLINK offer page, the official source and its check date. In `ui/WeekPanel.tsx` (city
+  mode): under the first question (2 rows), on 「免费就好」's board **above** the flyers (6 rows: offers merged with the
+  free events, "免费就好 · 这几天的免费福利和活动"), on any other board below the flyers (2 rows). English rows show the
+  hours as numbers and the venue through `catalogText` (the catalog's Chinese date label leaked into English at first:
+  「周二、四10:00–14:00」 on the Ferry Plaza row — read in the probe, fixed before the commit).
+- **`realsf/FreeDays.tsx`** (lazy) on `ui/PoiCardBody.tsx` (city) and `ui/PlaceCard.tsx`: 「近 7 天免费」 — the zoo's card on
+  1 Oct now says **Wed 10/7 · 10:00–16:00 · SF residents · with proof of address** + 加到日历 (before: 需要买票 only;
+  `offersForPlace` had no caller).
+- **`realsf/ics.ts`** (lazy, loaded on the tap through `realsf/addCal.ts`): an .ics with `VALARM` `TRIGGER:-P1D` (timed) /
+  `-PT15H` (all day → 09:00 the day before), UTC times (no VTIMEZONE), RFC 5545 escaping and 75-octet folding, the same
+  shape as the site's `src/lib/monthly.ts buildEventCalendar` (written here: the site builder pulls the site translator
+  and edition data, has no VALARM and takes the site's event type). 「加到日历」 on the event card (`ui/EventCardBody.tsx`,
+  the next showing day), the strip rows and the card rows.
+- Played (dev server 5904, 1440×900, `?date=2026-10-01T10:00`, headless Chrome, read every image): the questions with
+  带长辈 and the strip (today 4 · Fri 2 · Sat 4 · Sun 5 · Mon 1 · Tue 2 · Wed 2); 带娃 / 免费就好 / 旧金山哪儿都行 → the free
+  strip above the flyers, the evening block party gone for kids; the zoo card's free day; the event card's buttons
+  (… Plan it | **Add to calendar** | Official site …). Images: `docs/opus-bay/qa/w9/R/`.
+
+### W9-R4 · 这周去哪 in city mode: relax order, 户外, the city's parts, 带长辈, honest notes, the profile in today's three
+
+- `data/catalog.ts`: city mode relaxes **vibe → companions → region**, and a part of the city relaxes to all of San
+  Francisco before the Bay (district mode keeps region → vibe → companions: `tests/opus-bay-flow-data.test.ts` green).
+  **Before / after** on the 1 Oct catalog (probe `C:/Users/willy/opus-qa/w9/r/rec-probe.mts`, the old module side by side):
+  带娃 / 户外 / 旧金山 — before: Santa Rosa pumpkins, Vacaville colour run, Fremont Ohlone gathering, note 「旧金山这几天不多，也放了
+  别的地区的。」; after: the African Arts Festival, Foodwise Latine Makers, the Inner Sunset Flea, the Italian Heritage Parade
+  (all SF), note 「7 天内合适的不多，我把时间放宽到了两周。」. 和朋友 / 吃喝 / 旧金山 — before: 2 SF + Clayton / Oakland
+  Oktoberfest + Tiburon wine, 「旧金山这几天不多」; after: the market + Latine Makers first, then HSB / Castro / YBG,
+  「…旧金山合适的吃喝类这两周只有 2 个，另外给你挑了免费户外。」 (once the vibe relaxes, every fitting pick comes first so the
+  count is the board's).
+- 户外 = `isOutdoor(event)`: category, the catalog's `planning.setting`, an open-air venue in the world (`EventSpot.outdoor`
+  from `realsf/index.ts`: any kit but the door board), or a park / lawn / street / beach venue (not a library / hall /
+  museum). Hardly Strictly Bluegrass (culture, Hellman Hollow) and the African Arts Festival (YBG's Great Lawn) are 户外 now.
+- The third question in city mode (`ui/WeekPanel.tsx weekOptions`): 北岸 · 码头 · 唐人街 / 市中心 · SoMa / 金门公园 · 西边 /
+  Mission · 南边 / 旧金山哪儿都行 / 湾区其他地方 (`sfAreaAt(lat, lng)`; the voiced question line is unchanged). The first
+  question gains **带长辈** (daytime, for everyone: no start ≥ 19:00, no 18+ / tech; 「适合带长辈」 only from audience words
+  长者 / 所有年龄 / 全龄). The board's calendar link maps a part of SF to `region=sf`.
+- The notes count what the place had: 「旧金山这周合适的只有 2 个，也放了别的地区的。」, 「北岸一带这周没有完全合适的，放了旧金山
+  别处和湾区其他地方的。」.
+- **The profile**: the three answers → `realsf/prefs.ts`; 「用上次的：带娃 · 免费就好 · 旧金山哪儿都行」 on the first question;
+  `realsf/daily.ts daySignals(…, profile)` — with 带娃 the event task is a kids event or a free open-air daytime one (never
+  the symphony / opera / arena), with 带长辈 never a night start; a new profile re-picks today's three only while none is
+  done (a paid `daily:<date>:<n>` never lands on another task).
+- Tests: `tests/opus-bay-w9-r-recommend.test.ts` (6): the planner's case (all SF, no North Bay, kids never relaxed, no
+  "SF is quiet"), 户外 by what it is, the parts (venues in the right part; a part → the city → the Bay; 湾区其他地方 never
+  SF), the notes, 带长辈 + a sweep of 3 × 5 × 6 answers (no 18+ for kids, no tech outside solo + culture, a note whenever
+  something relaxed), the profile in today's three over 61 days. `tests/opus-bay-w9-r-free.test.ts` (5).

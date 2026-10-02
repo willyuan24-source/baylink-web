@@ -1,9 +1,10 @@
-import { useMemo, type CSSProperties } from 'react';
-import { ArrowLeft, CalendarDays, CalendarPlus, Heart, RefreshCw, Sparkles } from 'lucide-react';
+import { Suspense, useMemo, useSyncExternalStore, type CSSProperties } from 'react';
+import { ArrowLeft, CalendarDays, CalendarPlus, Heart, History, RefreshCw, Sparkles } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import type { Bilingual, WeekOption } from '../core/types';
-import { REGION_LABELS, categoryLabel, eventSpot, goToEvent, loadCatalog, todayInBay, useCatalog, type RankedEvent } from '../data/catalog';
+import { CITY_REGION_OPTIONS, REGION_LABELS, SENIORS_OPTION, categoryLabel, eventSpot, goToEvent, isSfArea, loadCatalog, regionLabel, todayInBay, useCatalog, type RankedEvent } from '../data/catalog';
 import './event-go.css';
+import '../realsf/realsf.css';
 import { calendarUrl, planUrl, thisMonthUrl } from '../data/links';
 import { NODES, WEEK_QUESTIONS } from '../data/script';
 import { closePanel, openEvent, setWeekPref, showWeekResults, startWeek, weekBack } from '../game/flow';
@@ -11,6 +12,24 @@ import { useFlow } from '../game/flowStore';
 import { useT } from '../i18n';
 import { BaybayFace, LinkButton, Sheet } from './common';
 import { useWindowKey } from './hooks';
+import { lazyChunk } from '../game/lazyChunk';
+import { importRetry } from '../game/importRetry';
+import { getPrefs, subscribePrefs } from '../realsf/prefs';
+
+/** W9-R3 (review R§5 #10): the next 7 days' free offers and events (city mode; its own chunk) */
+const FreeWeekStrip = lazyChunk(() => importRetry(() => import('../realsf/FreeWeekStrip')));
+
+/**
+ * W9-R4 (review R§5 #12): the answers. City mode asks 带长辈 too and, for the third question, a part of San Francisco
+ * (the game is the city: 东湾 / 北湾 had no 带我去) or the rest of the Bay; the district keeps the original lists.
+ */
+function weekOptions(key: 'companions' | 'vibe' | 'region', city: boolean): WeekOption[] {
+  const base = WEEK_QUESTIONS[key] ?? [];
+  if (!city) return base;
+  if (key === 'companions') return [...base, { value: SENIORS_OPTION.value, label: SENIORS_OPTION.label }];
+  if (key === 'region') return CITY_REGION_OPTIONS;
+  return base;
+}
 import { catalogUpdatedLabel, joinPlace, shortDay, windowLabel } from './format';
 
 const QUESTIONS: { key: 'companions' | 'vibe' | 'region'; q: Bilingual }[] = [
@@ -73,7 +92,13 @@ function Questions() {
   const week = useGame(s => s.week);
   const step = Math.min(week.step, 2);
   const question = QUESTIONS[step];
-  const options = useMemo<WeekOption[]>(() => WEEK_QUESTIONS[question.key] ?? [], [question.key]);
+  const city = useGame(s => s.worldMode === 'city');
+  const options = useMemo<WeekOption[]>(() => weekOptions(question.key, city), [question.key, city]);
+  // (W9-R4) last time's three answers (realsf/prefs.ts): one tap to use them again
+  const prefs = useSyncExternalStore(subscribePrefs, getPrefs, getPrefs);
+  const last = city && step === 0 && prefs.companions && prefs.vibe && prefs.region
+    ? (['companions', 'vibe', 'region'] as const).map(key => labelFor(key, prefs[key], city)) : null;
+  const applyLast = () => { if (!prefs.companions || !prefs.vibe || !prefs.region) return; setWeekPref('companions', prefs.companions); setWeekPref('vibe', prefs.vibe); setWeekPref('region', prefs.region); };
   const chosen = week[question.key];
   const asked = NODES[`week.${question.key}`]?.text ?? question.q;
   const intro = step === 0 ? NODES['week.intro']?.text : undefined;
@@ -103,6 +128,12 @@ function Questions() {
           </button>
         ))}
       </div>
+      {last && last.every(Boolean) && (
+        <button type="button" className="ob-btn ob-btn-soft ob-btn-sm ob-week-last" onClick={applyLast}>
+          <History size={15} aria-hidden /><span>{t('用上次的：', 'Same as last time: ')}{last.map(l => t(l!)).join(' · ')}</span>
+        </button>
+      )}
+      {city && step === 0 && <Suspense fallback={null}><FreeWeekStrip limit={2} /></Suspense>}
       <div className="ob-qa-foot">
         {step > 0 ? <button type="button" className="ob-btn ob-btn-ghost ob-btn-sm" onClick={weekBack}><ArrowLeft size={16} aria-hidden /><span>{t('上一步', 'Back')}</span></button> : <span />}
         <p className="ob-muted">{catalogUpdatedLabel(catalog?.checkedAt, locale)}</p>
@@ -111,9 +142,9 @@ function Questions() {
   );
 }
 
-function labelFor(key: 'companions' | 'vibe' | 'region', value: string | null): Bilingual | null {
+function labelFor(key: 'companions' | 'vibe' | 'region', value: string | null, city = false): Bilingual | null {
   if (!value) return null;
-  return WEEK_QUESTIONS[key]?.find(option => option.value === value)?.label ?? null;
+  return weekOptions(key, city).find(option => option.value === value)?.label ?? WEEK_QUESTIONS[key]?.find(option => option.value === value)?.label ?? (key === 'region' ? regionLabel(value) : null);
 }
 
 function Board() {
@@ -123,7 +154,10 @@ function Board() {
   const week = useGame(s => s.week);
   const wishlist = useGame(s => s.wishlist);
   const saved = wishlist.filter(item => item.kind === 'event').map(item => ({ kind: 'event' as const, id: item.id }));
-  const prefs = (['companions', 'vibe', 'region'] as const).map(key => labelFor(key, week[key])).filter((label): label is Bilingual => !!label);
+  const city = useGame(s => s.worldMode === 'city');
+  const prefs = (['companions', 'vibe', 'region'] as const).map(key => labelFor(key, week[key], city)).filter((label): label is Bilingual => !!label);
+  // the BAYLINK calendar's region filter: a part of San Francisco is San Francisco; the rest of the Bay is no filter
+  const calRegion = week.region && week.region !== 'any' && week.region !== 'bay' ? (isSfArea(week.region) ? 'sf' : week.region) : undefined;
 
   return (
     <div className="ob-board-wrap">
@@ -139,6 +173,9 @@ function Board() {
             : t(`完全符合的只有 ${result.strictCount} 个。`, `Only ${result.strictCount} matched exactly. `)}{t(result.note)}</span>
         </p>
       )}
+      {/* W9-R3: 免费就好 merges BAYLINK's free offers (the zoo's resident day, museum free days) with the free events;
+          other answers get the 7-day strip's first two rows */}
+      {city && week.vibe === 'free' && <Suspense fallback={null}><FreeWeekStrip limit={6} companions={week.companions} title={{ zh: '免费就好 · 这几天的免费福利和活动', en: 'Free: offers and events this week' }} /></Suspense>}
       {result.events.length === 0 ? (
         <div className="ob-empty">
           <BaybayFace mood="thinking" size={64} />
@@ -150,8 +187,9 @@ function Board() {
           {result.events.map((item, i) => <Flyer key={item.event.id} item={item} index={i} saved={wishlist.some(w => w.kind === 'event' && w.id === item.event.id)} />)}
         </ul>
       )}
+      {city && week.vibe !== 'free' && <Suspense fallback={null}><FreeWeekStrip limit={2} companions={week.companions} /></Suspense>}
       <div className="ob-link-grid">
-        <LinkButton href={calendarUrl(locale, { region: week.region && week.region !== 'any' ? week.region : undefined })} icon={<CalendarDays size={17} aria-hidden />} tone="soft">{t('在 BAYLINK 看完整日历', 'Full calendar on BAYLINK')}</LinkButton>
+        <LinkButton href={calendarUrl(locale, { region: calRegion })} icon={<CalendarDays size={17} aria-hidden />} tone="soft">{t('在 BAYLINK 看完整日历', 'Full calendar on BAYLINK')}</LinkButton>
         {saved.length > 0 && <LinkButton href={planUrl({ stops: saved }, catalog, locale)} icon={<CalendarPlus size={17} aria-hidden />} tone="primary">{t('把想去的带去安排', 'Plan my saved events')}</LinkButton>}
       </div>
       <p className="ob-muted ob-center">{t(`只显示${windowLabel(todayInBay(), result.windowDays, 'zh-Hans')}还没结束的活动`, `Only events ${windowLabel(todayInBay(), result.windowDays, 'en')} that haven’t ended`)} · {catalogUpdatedLabel(catalog?.checkedAt, locale)}</p>

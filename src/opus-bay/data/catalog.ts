@@ -131,7 +131,10 @@ export type WeekResult = {
   strictCount: number;
   /** honest one-liner about what was swapped when filters were relaxed (null when nothing was relaxed) */
   note?: Bilingual | null;
+  /** (W9-R4) what the asked place really had (the note's numbers) */
+  counts?: WeekCounts;
 };
+export type WeekCounts = { inRegion?: number };
 
 const has = (list: string[] | undefined, words: string[]) => !!list?.some(item => words.some(word => item.includes(word)));
 /** Kids: only positive audience wording — never a bare "岁" (it also matches "21 岁及以上"). */
@@ -146,7 +149,7 @@ const PRO_TITLE_RE = /\bAI\b|LLM|Conference|大会|Summit|Hackathon|Design Sprin
 const FESTIVE_RE = /市集|集市|节|庆|festival|fest\b|market|faire|fair\b|oktoberfest/i;
 
 /** The published catalog carries a few planning fields our core type does not list; read them defensively. */
-type EventExtra = CatalogEvent & { planning?: { minAge?: number | null } | null };
+type EventExtra = CatalogEvent & { planning?: { minAge?: number | null; setting?: string | null } | null };
 
 /** Positive kid wording in the audience (not "养狗家庭"). */
 export const kidsAudience = (event: CatalogEvent) => !!event.audience?.some(line => KIDS_RE.test(line) && !NOT_KIDS_RE.test(line));
@@ -170,23 +173,48 @@ export function hardFit(event: CatalogEvent, prefs: WeekPrefs): boolean {
   return true;
 }
 
-/** Companion fit: kids→family/亲子 (never adult-only), date→food/culture, friends→any, solo→culture/outdoors. */
+/** (W9-R4) 带长辈: an outing for everyone (never 18+ / professional), by day — not a night at the arena (starts ≥ 19:00). */
+const FIRST_TIME_RE = /(\d{1,2})[:：](\d{2})/;
+/** The label's first time after its date part is ≥ 19:00 (a night start; a range ending at 19:00 is not). */
+export function startsAtNight(event: CatalogEvent): boolean {
+  const m = FIRST_TIME_RE.exec((event.dateLabel ?? '').split(' · ').slice(1).join(' · '));
+  return !!m && Number(m[1]) >= 19;
+}
+export const seniorsFit = (event: CatalogEvent) => !isAdultOnly(event) && !isProfessional(event) && !startsAtNight(event);
+/** Positive wording for older people in the audience (长者, 所有年龄, 全龄). */
+const SENIORS_RE = /长者|老人|长辈|所有年龄|全龄|senior/i;
+
+/** Companion fit: kids→family/亲子 (never adult-only), date→food/culture, friends→any, solo→culture/outdoors, seniors
+ *  (W9-R4)→ daytime and for everyone. */
 export function companionFit(event: CatalogEvent, companions: string | null): boolean {
   switch (companions) {
     case 'kids': return !isAdultOnly(event) && !isProfessional(event) && (event.category === 'family' || kidsAudience(event));
     case 'date': return !isProfessional(event) && (event.category === 'food' || event.category === 'culture' || has(event.audience, DATE_WORDS));
     case 'solo': return event.category === 'culture' || event.category === 'outdoors';
+    case 'seniors': return seniorsFit(event);
     default: return true;
   }
+}
+
+/** (W9-R4, review R§5 #12) 户外 by what the event is, not only its category: the catalog's outdoor setting, an open-air
+ *  venue in the world (a stage / tents / a street arch), or a park / lawn / street / beach in the venue text. */
+const OUTDOOR_RE = /park|garden|lawn|meadow|hollow|green\b|beach|plaza|street|streets|avenue|pier|公园|花园|草坪|草地|广场|海滩|街/i;
+export function isOutdoor(event: CatalogEvent): boolean {
+  if (event.category === 'outdoors') return true;
+  const setting = (event as EventExtra).planning?.setting;
+  if (setting === 'outdoor') return true;
+  if (setting === 'indoor') return false;
+  if (eventSpot(event)?.outdoor) return true;
+  return OUTDOOR_RE.test((event.venue ?? '').split(' · ')[0]) && !/library|图书馆|theater|theatre|hall|center|centre|museum|博物馆|中心/i.test(event.venue ?? '');
 }
 
 /** How close an event is to a vibe it does not strictly match (used to rank once the vibe was relaxed). 0–3. */
 export function vibeCloseness(event: CatalogEvent, vibe: string | null): number {
   const festive = FESTIVE_RE.test(`${event.title} ${(event.audience ?? []).join(' ')}`);
-  const freeOutdoors = event.cost === 'free' && event.category === 'outdoors';
+  const freeOutdoors = event.cost === 'free' && isOutdoor(event);
   switch (vibe) {
     case 'food': return event.category === 'food' ? 3 : festive || freeOutdoors ? 2 : event.category === 'culture' ? 1 : 0;
-    case 'outdoors': return event.category === 'outdoors' ? 3 : festive ? 2 : event.category === 'family' ? 1.5 : event.category === 'culture' ? 1 : 0;
+    case 'outdoors': return isOutdoor(event) ? 3 : festive ? 2 : event.category === 'family' ? 1.5 : event.category === 'culture' ? 1 : 0;
     case 'culture': return event.category === 'culture' ? 3 : festive ? 2 : 1;
     case 'free': return event.cost === 'free' ? 3 : event.cost === 'mixed' ? 2 : 0;
     default: return 0;
@@ -199,20 +227,96 @@ export function categoryLabel(event: CatalogEvent): Bilingual | undefined {
   return event.category ? CATEGORY_LABELS[event.category] : undefined;
 }
 
-/** Vibe fit: free→cost free, food/outdoors/culture→category. */
+/** Vibe fit: free→cost free, outdoors→isOutdoor (W9-R4: by what it is, not only the category), food/culture→category. */
 export function vibeFit(event: CatalogEvent, vibe: string | null): boolean {
   if (!vibe || vibe === 'any') return true;
   if (vibe === 'free') return event.cost === 'free';
+  if (vibe === 'outdoors') return isOutdoor(event);
   return event.category === vibe;
 }
 
-export const regionFit = (event: CatalogEvent, region: string | null) => !region || region === 'any' || event.region === region;
+// ---------------------------------------------------------------------------
+// W9-R4 · the city's own parts (review R§5 #12: the game's third question asked East Bay / North Bay although the game
+// is San Francisco only). City mode asks for a part of San Francisco ('sf-north' …), all of it ('sf') or the rest of
+// the Bay ('bay': no 带我去 there). An event's part comes from its venue in the world, else its own location.
+// ---------------------------------------------------------------------------
+
+export const SF_AREAS = ['sf-north', 'sf-central', 'sf-west', 'sf-south'] as const;
+export type SfArea = (typeof SF_AREAS)[number];
+export const SF_AREA_LABELS: Record<SfArea, Bilingual> = {
+  'sf-north': { zh: '北岸 · 码头 · 唐人街', en: 'North shore · the Wharf · Chinatown' },
+  'sf-central': { zh: '市中心 · SoMa', en: 'Downtown · SoMa' },
+  'sf-west': { zh: '金门公园 · 西边', en: 'Golden Gate Park · the west' },
+  'sf-south': { zh: 'Mission · 南边', en: 'the Mission · the south' },
+};
+/** Short names for notes (「北岸这几天合适的不多」). */
+const SF_AREA_SHORT: Record<SfArea, Bilingual> = {
+  'sf-north': { zh: '北岸一带', en: 'the north shore' },
+  'sf-central': { zh: '市中心一带', en: 'downtown' },
+  'sf-west': { zh: '西边一带', en: 'the west side' },
+  'sf-south': { zh: '南边一带', en: 'the south side' },
+};
+export const isSfArea = (v: string | null | undefined): v is SfArea => !!v && (SF_AREAS as readonly string[]).includes(v);
+/** 这周去哪's third question in city mode: four parts of San Francisco, all of it, or the rest of the Bay. */
+export const CITY_REGION_OPTIONS: { value: string; label: Bilingual }[] = [
+  ...SF_AREAS.map(value => ({ value, label: SF_AREA_LABELS[value] })),
+  { value: 'sf', label: { zh: '旧金山哪儿都行', en: 'Anywhere in SF' } },
+  { value: 'bay', label: { zh: '湾区其他地方', en: 'Elsewhere in the Bay' } },
+];
+/** 这周去哪's first question gains 带长辈 (the planner's request: no option for parents / elders). */
+export const SENIORS_OPTION = { value: 'seniors', label: { zh: '带长辈', en: 'With elders' } } as const;
+
+/**
+ * The part of San Francisco a point is in (lat / lng): the west = west of Twin Peaks' longitude (the Richmond, the
+ * Sunset, Golden Gate Park, the Presidio, Ocean Beach, Lake Merced); else the north shore = north of Bush St's latitude
+ * (the Marina, North Beach, Chinatown, Fisherman's Wharf, the Embarcadero); else downtown = north of Duboce / 15th St's
+ * latitude (Civic Center, SoMa, Hayes Valley, the Western Addition) and the east side down to 23rd St (Mission Bay, the
+ * Chase Center, Potrero Hill, Dogpatch); else the south (the Mission, the Castro, Noe Valley, Bernal Heights, the
+ * Excelsior, Ingleside, Bayview).
+ */
+export function sfAreaAt(ll: { lat: number; lng: number }): SfArea {
+  if (ll.lng < -122.447) return 'sf-west';
+  if (ll.lat >= 37.789) return 'sf-north';
+  if (ll.lat >= 37.7685 || (ll.lng > -122.405 && ll.lat >= 37.755)) return 'sf-central';
+  return 'sf-south';
+}
+
+/** An event's part of San Francisco (null: not in San Francisco, or nowhere known). */
+export function eventArea(event: CatalogEvent): SfArea | null {
+  if (event.region !== 'sf') return null;
+  const own = event.location && Number.isFinite(event.location.lat) && Number.isFinite(event.location.lng) ? event.location : null;
+  const at = eventSpot(event) ?? own;
+  return at ? sfAreaAt(at) : null;
+}
+
+/** Region fit: a region id, a part of San Francisco ('sf-north' …), 'bay' (anywhere but San Francisco), 'any'. */
+export function regionFit(event: CatalogEvent, region: string | null): boolean {
+  if (!region || region === 'any') return true;
+  if (region === 'bay') return event.region !== 'sf';
+  if (isSfArea(region)) return eventArea(event) === region;
+  return event.region === region;
+}
+
+/** The label of an answer to the third question (a region, a part of the city, the rest of the Bay). */
+export function regionLabel(region: string | null): Bilingual | null {
+  if (!region || region === 'any') return null;
+  if (isSfArea(region)) return SF_AREA_LABELS[region];
+  if (region === 'bay') return { zh: '湾区其他地方', en: 'Elsewhere in the Bay' };
+  return REGION_LABELS[region] ?? null;
+}
+
+/** A San Francisco answer ('sf' or one of its parts): the city ranks first and its region relaxes last. */
+const inSf = (region: string | null) => region === 'sf' || isSfArea(region);
 
 export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string, vibeRelaxed = false, cityFirst = false): RankedEvent {
   const { event } = item;
   let score = 0;
   const reasons: Bilingual[] = [];
-  if (prefs.region && prefs.region !== 'any' && event.region === prefs.region) { score += 3; reasons.push(REGION_LABELS[event.region] ?? { zh: event.region, en: event.region }); }
+  if (prefs.region && prefs.region !== 'any' && regionFit(event, prefs.region)) {
+    score += 3;
+    const label = isSfArea(prefs.region) ? SF_AREA_LABELS[prefs.region] : REGION_LABELS[event.region] ?? { zh: event.region, en: event.region };
+    reasons.push(label);
+  } else if (isSfArea(prefs.region) && event.region === 'sf') score += 1.5; // another part of the city: still near
   if (prefs.vibe && prefs.vibe !== 'any' && vibeFit(event, prefs.vibe)) {
     score += 3;
     reasons.push(prefs.vibe === 'free' ? { zh: '免费', en: 'Free' } : categoryLabel(event) ?? { zh: '合你口味', en: 'Your vibe' });
@@ -231,6 +335,10 @@ export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string,
     if (has(event.audience, DATE_WORDS)) { score += 1; reasons.push(COMPANION_REASONS.date); }
   }
   if (prefs.companions === 'solo' && companionFit(event, 'solo')) { score += 2; reasons.push(COMPANION_REASONS.solo); }
+  if (prefs.companions === 'seniors' && companionFit(event, 'seniors')) {
+    score += 1.5;
+    if (SENIORS_RE.test((event.audience ?? []).join(' '))) { score += 1; reasons.push(COMPANION_REASONS.seniors); }
+  }
   if (prefs.companions === 'friends' && has(event.audience, FRIEND_WORDS)) { score += 1.5; reasons.push(COMPANION_REASONS.friends); }
   // Sooner is a little better; the weekend a little more.
   const daysAway = Math.max(0, (Date.parse(`${item.nextDate}T12:00:00Z`) - Date.parse(`${today}T12:00:00Z`)) / 86_400_000);
@@ -239,7 +347,7 @@ export function scoreEvent(item: UpcomingEvent, prefs: WeekPrefs, today: string,
   if (item.tonight) score -= item.days.length > 1 ? 1 : 2.5; // late in the evening: "today" is nearly over — never the top pick
   // wave 5 (city mode): the playable city first — San Francisco events, and above all the ones you can walk to in the
   // world — unless the player asked for another part of the Bay
-  if (cityFirst && event.region === 'sf' && (!prefs.region || prefs.region === 'any' || prefs.region === 'sf')) score += eventSpot(event) ? 2.5 : 1.5;
+  if (cityFirst && event.region === 'sf' && (!prefs.region || prefs.region === 'any' || inSf(prefs.region))) score += eventSpot(event) ? 2.5 : 1.5;
   return { ...item, score, reasons };
 }
 
@@ -257,36 +365,60 @@ const VIBE_NAMES: Record<string, Bilingual> = {
 const COMPANION_NAMES: Record<string, Bilingual> = {
   date: { zh: '约会', en: 'a date' },
   solo: { zh: '一个人', en: 'going solo' },
+  seniors: { zh: '带长辈', en: 'going with elders' },
 };
+
+/** How a note names where the player asked for (「旧金山」「北岸一带」「东湾」). */
+function whereName(region: string | null): Bilingual | null {
+  if (!region || region === 'any') return null;
+  if (isSfArea(region)) return SF_AREA_SHORT[region];
+  if (region === 'bay') return { zh: '湾区其他地方', en: 'the rest of the Bay' };
+  return REGION_LABELS[region] ?? null;
+}
 
 /** What an off-vibe pick actually is, in plain words ("免费户外", "节庆", "文化"). */
 function kindOf(event: CatalogEvent): Bilingual {
-  if (event.cost === 'free' && event.category === 'outdoors') return { zh: '免费户外', en: 'free outdoor picks' };
+  if (event.cost === 'free' && isOutdoor(event)) return { zh: '免费户外', en: 'free outdoor picks' };
   if (FESTIVE_RE.test(event.title)) return { zh: '节庆', en: 'festivals' };
   const label = categoryLabel(event);
   return label ? { zh: label.zh, en: label.en.toLowerCase() } : { zh: '其他活动', en: 'other events' };
 }
 
-/** The honest note shown above relaxed results: says exactly what was swapped. */
-export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windowDays'>, prefs: WeekPrefs): Bilingual | null {
+/**
+ * The honest note shown above relaxed results: says exactly what was swapped. (W9-R4, review R§5 #12: "San Francisco is
+ * quiet" was false — that week had 29 events, only few of the asked kind) — the region note counts what the asked place
+ * really had (`counts.inRegion`: its events that fit the other answers), and the vibe note names the place and the week
+ * (「旧金山合适的吃喝类这周只有 2 个」).
+ */
+export function relaxNote(result: Pick<WeekResult, 'events' | 'relaxed' | 'windowDays'> & { counts?: WeekCounts }, prefs: WeekPrefs): Bilingual | null {
   if (!result.relaxed.length || !result.events.length) return null;
   const zh: string[] = [], en: string[] = [];
+  const week = result.windowDays > 7 ? { zh: '这两周', en: 'these two weeks' } : { zh: '这周', en: 'this week' };
   if (result.relaxed.includes('window')) { zh.push('7 天内合适的不多，我把时间放宽到了两周'); en.push('not much in the next 7 days, so I looked two weeks out'); }
-  if (result.relaxed.includes('region') && prefs.region && prefs.region !== 'any') {
-    const r = REGION_LABELS[prefs.region] ?? { zh: prefs.region, en: prefs.region };
-    zh.push(`${r.zh}这几天不多，也放了别的地区的`); en.push(`${r.en} is quiet, so I added other areas`);
+  const where = whereName(prefs.region);
+  if (result.relaxed.includes('region') && where) {
+    const n = result.counts?.inRegion;
+    const outSf = result.events.some(item => item.event.region !== 'sf');
+    const rest = isSfArea(prefs.region)
+      ? (outSf ? { zh: '旧金山别处和湾区其他地方', en: 'the rest of San Francisco and the Bay' } : { zh: '旧金山别处', en: 'the rest of San Francisco' })
+      : { zh: '别的地区', en: 'other areas' };
+    if (n === undefined) { zh.push(`${where.zh}这几天合适的不多，也放了${rest.zh}的`); en.push(`few picks in ${where.en} these days, so I added ${rest.en}`); }
+    else if (n === 0) { zh.push(`${where.zh}${week.zh}没有完全合适的，放了${rest.zh}的`); en.push(`nothing in ${where.en} fits ${week.en}, so I picked from ${rest.en}`); }
+    else { zh.push(`${where.zh}${week.zh}合适的只有 ${n} 个，也放了${rest.zh}的`); en.push(`only ${n} pick${n > 1 ? 's' : ''} in ${where.en} fit ${week.en}, so I added ${rest.en}`); }
   }
   if (result.relaxed.includes('vibe') && prefs.vibe && VIBE_NAMES[prefs.vibe]) {
     const off = result.events.filter(item => !vibeFit(item.event, prefs.vibe)).map(item => kindOf(item.event));
     const kinds = off.filter((kind, i) => off.findIndex(other => other.zh === kind.zh) === i).slice(0, 2);
     const v = VIBE_NAMES[prefs.vibe];
     const fitting = result.events.length - off.length;
+    // the place it counted in, when the region answer still holds
+    const at = where && !result.relaxed.includes('region') ? where : null;
     if (kinds.length && fitting > 0) {
-      zh.push(`合适的${v.zh}只有 ${fitting} 个，另外给你挑了${kinds.map(kind => kind.zh).join('和')}`);
-      en.push(`only ${fitting} ${v.en} pick${fitting > 1 ? 's' : ''} fit, so I added ${kinds.map(kind => kind.en).join(' and ')}`);
+      zh.push(`${at ? at.zh : ''}合适的${v.zh}${week.zh}只有 ${fitting} 个，另外给你挑了${kinds.map(kind => kind.zh).join('和')}`);
+      en.push(`only ${fitting} ${v.en} pick${fitting > 1 ? 's' : ''}${at ? ` in ${at.en}` : ''} fit ${week.en}, so I added ${kinds.map(kind => kind.en).join(' and ')}`);
     } else if (kinds.length) {
-      zh.push(`这周没有合适的${v.zh}，给你挑了${kinds.map(kind => kind.zh).join('和')}`);
-      en.push(`there's little ${v.en} this week, so I picked ${kinds.map(kind => kind.en).join(' and ')}`);
+      zh.push(`${week.zh}${at ? at.zh : ''}没有合适的${v.zh}，给你挑了${kinds.map(kind => kind.zh).join('和')}`);
+      en.push(`there's little ${v.en}${at ? ` in ${at.en}` : ''} ${week.en}, so I picked ${kinds.map(kind => kind.en).join(' and ')}`);
     } else { zh.push(`${v.zh}不多，我放宽了一点`); en.push(`${v.en} picks are thin, so I loosened it a little`); }
   }
   if (result.relaxed.includes('companions') && prefs.companions && COMPANION_NAMES[prefs.companions]) {
@@ -309,29 +441,49 @@ export function recommendEvents(catalog: Catalog | null, prefs: WeekPrefs, today
   const cityFirst = opts.cityFirst ?? game.get().worldMode === 'city';
   let pool = upcomingEvents(catalog, today, days, opts.now).filter(({ event }) => hardFit(event, prefs));
   const active = { companions: true, vibe: true, region: true };
+  // (W9-R4) a part of San Francisco relaxes in two stages: to all of the city first, then to the Bay
+  let wholeCity = false;
+  const regionOk = (event: CatalogEvent) => !active.region || (wholeCity ? event.region === 'sf' : regionFit(event, prefs.region));
   const filter = () => pool.filter(({ event }) =>
-    (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe)) && (!active.region || regionFit(event, prefs.region)));
+    (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe)) && regionOk(event));
   let matches = filter();
   const strictCount = matches.length;
-  // 1) a two-week window, 2) region, 3) vibe, 4) companions — cumulative, until there are enough picks
+  // 1) a two-week window, then (district) region → vibe → companions; (W9-R4, review R§5 #12) in city mode the place
+  // the player asked for holds longest: vibe → companions → region (a part of the city → all of San Francisco → the Bay)
   if (matches.length < min && days < 14) { pool = upcomingEvents(catalog, today, 14, opts.now).filter(({ event }) => hardFit(event, prefs)); matches = filter(); }
-  for (const step of ['region', 'vibe', 'companions'] as const) {
+  const order = cityFirst ? (['vibe', 'companions', 'region'] as const) : (['region', 'vibe', 'companions'] as const);
+  for (const step of order) {
     if (matches.length >= min) break;
     if (step === 'companions' && prefs.companions === 'kids') continue; // never relax "with kids"
     const meaningful = step === 'companions' ? !!prefs.companions && prefs.companions !== 'friends' : !!prefs[step] && prefs[step] !== 'any';
     if (!meaningful) continue;
+    if (step === 'region' && cityFirst && isSfArea(prefs.region)) {
+      wholeCity = true;
+      matches = filter();
+      if (matches.length >= min) break;
+      wholeCity = false;
+    }
     active[step] = false;
     matches = filter();
   }
-  const events = scoreEvents(matches, prefs, today, !active.vibe, cityFirst).slice(0, max);
+  const ranked = scoreEvents(matches, prefs, today, !active.vibe, cityFirst);
+  // (W9-R4) once the vibe is relaxed, every pick that does fit it comes first (the note counts them: 「只有 2 个」 must be
+  // the two on the board, not one of them pushed off by a festival); a stable sort keeps the score order inside each
+  if (!active.vibe && prefs.vibe && prefs.vibe !== 'any') ranked.sort((a, b) => Number(vibeFit(b.event, prefs.vibe)) - Number(vibeFit(a.event, prefs.vibe)));
+  const events = ranked.slice(0, max);
   // Report only what the shown picks actually relax (honest: never claim a relaxation nobody sees).
   const end7 = addDays(today, days);
   const relaxed: RelaxStep[] = [];
   if (events.some(item => item.nextDate > end7)) relaxed.push('window');
-  if (!active.region && events.some(item => !regionFit(item.event, prefs.region))) relaxed.push('region');
+  if ((!active.region || wholeCity) && events.some(item => !regionFit(item.event, prefs.region))) relaxed.push('region');
   if (!active.vibe && events.some(item => !vibeFit(item.event, prefs.vibe))) relaxed.push('vibe');
   if (!active.companions && events.some(item => !companionFit(item.event, prefs.companions))) relaxed.push('companions');
-  const result: WeekResult = { events, relaxed, windowDays: relaxed.includes('window') ? 14 : days, strictCount };
+  const windowDays = relaxed.includes('window') ? 14 : days;
+  // what the asked place really had (the region note's count): its events fitting the answers still held
+  const inRegion = pool.filter(({ event }) => regionFit(event, prefs.region)
+    && (!active.companions || companionFit(event, prefs.companions)) && (!active.vibe || vibeFit(event, prefs.vibe))
+    && eventDaysInWindow(event, today, addDays(today, windowDays), today).length > 0).length;
+  const result: WeekResult = { events, relaxed, windowDays, strictCount, counts: { inRegion } };
   result.note = relaxNote(result, prefs);
   return result;
 }
@@ -359,6 +511,7 @@ const COMPANION_REASONS: Record<string, Bilingual> = {
   date: { zh: '适合约会', en: 'Date-friendly' },
   solo: { zh: '一个人也自在', en: 'Good solo' },
   friends: { zh: '适合朋友结伴', en: 'Good with friends' },
+  seniors: { zh: '适合带长辈', en: 'Good with elders' },
 };
 
 export function placesByRegion(catalog: Catalog | null): { region: string; places: CatalogPlace[] }[] {
@@ -395,7 +548,8 @@ export const walkMinutes = (km: number) => Math.max(5, Math.round((km * 1000) / 
 // ---------------------------------------------------------------------------
 
 /** An event's place in the world: the venue point (city frame), its real coordinates and its name. */
-export interface EventSpot { x: number; z: number; lat: number; lng: number; name: Bilingual }
+/** (W9-R4) `outdoor`: an open-air venue (a stage, tents, a street arch — not a board at an indoor door). */
+export interface EventSpot { x: number; z: number; lat: number; lng: number; name: Bilingual; outdoor?: boolean }
 export interface EventVenueHooks {
   /** the event's mapped venue (null: not in San Francisco's venue table, adult-only or professional) */
   locate(event: CatalogEvent): EventSpot | null;

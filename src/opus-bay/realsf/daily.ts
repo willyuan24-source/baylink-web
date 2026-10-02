@@ -1,8 +1,8 @@
 import { emit, onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
-import type { Bilingual, Catalog, Vec2 } from '../core/types';
-import { getCatalog } from '../data/catalog';
+import type { Bilingual, Catalog, CatalogEvent, Vec2 } from '../core/types';
+import { companionFit, getCatalog, isAdultOnly, isOutdoor, startsAtNight } from '../data/catalog';
 import { isPaid } from '../economy/ledger';
 import { bayNow, bayParts } from '../game/bayNow';
 import { say } from '../game/flow';
@@ -12,6 +12,7 @@ import { handRowOf, weekEvents, windowEndKnown, type EventWindow } from './event
 import { isFireRingLit } from './seasons';
 import { roundMinute, sunBandAt, sunTimes } from './sun';
 import { atMinute, fireSeasonKey, freePlacesOn, hm, marketHours, PLACES } from './todayRows';
+import { getPrefs, type TravelProfile } from './prefs';
 
 /**
  * Wave 5 · lane R (W5-R5) · 今日三件小事 — three small things to do today, seeded by the Bay date from San Francisco's
@@ -78,11 +79,22 @@ export interface DailyTask {
   freeId?: 'teaGarden' | 'conservatory' | 'botanical';
 }
 
-/** The date-level signals of a Bay date. */
-export function daySignals(dateKey: string, catalog: Catalog | null = getCatalog()): DaySignals {
+/**
+ * (W9-R4, review R§5 #12: after 带娃 the daily three still sent the family to the symphony) an event for the travel
+ * profile: with kids a family / kids event, or a free open-air one by day; with elders a daytime outing for everyone;
+ * otherwise any. A day without a fitting event simply has no event task.
+ */
+export function eventFitsProfile(event: CatalogEvent, profile: TravelProfile | null | undefined): boolean {
+  if (profile === 'kids') return companionFit(event, 'kids') || (event.cost === 'free' && isOutdoor(event) && !startsAtNight(event) && !isAdultOnly(event));
+  if (profile === 'seniors') return companionFit(event, 'seniors');
+  return true;
+}
+
+/** The date-level signals of a Bay date (`profile`: the travel profile of realsf/prefs.ts, read when not given). */
+export function daySignals(dateKey: string, catalog: Catalog | null = getCatalog(), profile: TravelProfile | null = getPrefs().profile): DaySignals {
   const start = atMinute(dateKey, 0);
   // (W6-S) an event the day already has as a hand task (the Ferry Plaza market → `market`) is not a second task
-  const events = Number.isFinite(start) ? weekEvents(new Date(start), 1, catalog).filter(w => w.dateKey === dateKey && !handRowOf(w.event)) : [];
+  const events = Number.isFinite(start) ? weekEvents(new Date(start), 1, catalog).filter(w => w.dateKey === dateKey && !handRowOf(w.event) && eventFitsProfile(w.event, profile)) : [];
   events.sort((a, b) => a.event.id.localeCompare(b.event.id));
   return { dateKey, events, market: marketHours(dateKey), free: freePlacesOn(dateKey), fire: fireSeasonKey(dateKey) };
 }
@@ -254,10 +266,17 @@ export function initDaily(opts: { introAfter?: number } = {}): DailyRuntime {
 
   // the pick waits for the catalog (today's events); if it cannot load, the day goes on without events
   let noCatalog = false;
+  let profileSeen = getPrefs().profile;
   const refresh = () => {
     const d = bayParts(bayNow()).dateKey, c = getCatalog();
     const failed = !c && game.get().catalogStatus === 'error';
-    if (d === day && c === catalogSeen && failed === noCatalog && list) return;
+    // (W9-R4) a new travel profile (这周去哪's 带娃 / 带长辈) re-picks today's three — only while none is done yet, so a
+    // paid `daily:<date>:<n>` never lands on another task
+    const profile = getPrefs().profile;
+    const reprofile = profile !== profileSeen && !!list && !list.some(t => taskDone(t));
+    if (profile !== profileSeen && !reprofile && list) profileSeen = profile;
+    if (d === day && c === catalogSeen && failed === noCatalog && list && !reprofile) return;
+    profileSeen = profile;
     // (review) a new Bay day forgets yesterday's lines: the intro named yesterday's three, and 'daily-all' would have
     // said "all three done" again right after midnight (the scheduler's day memory had just rolled over)
     if (d !== day) lines.length = 0;
