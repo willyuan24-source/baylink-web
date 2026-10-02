@@ -556,3 +556,43 @@ test('W8-P9: GameRoot ≤ 255 KB gzip (static estimate) — the wave-8 target, n
   const { kb } = await gameRootEstimateKB();
   assert.ok(kb <= 255, `GameRoot ≈ ${kb.toFixed(1)} KB gzip`);
 });
+
+// W9-P3 · wave 9 lands nothing new in GameRoot's chunk: its static-only module set (the W8-P9 walk minus what OpusBayPage
+// also imports) is the one of wave 9's day 0 (f1460b0c, 112 modules). A module that appears here is in the first-load
+// chunk: load it through importRetry / lazyChunk (or from the page's chunk, if the title needs it) — or, if it truly
+// belongs in GameRoot, add it here in the same commit and say so (sf-w9-lead.md §4 "Lazy"). A module that leaves is fine.
+const GAMEROOT_W9_DAY0 = [
+  'actors/Actors.tsx', 'actors/CameraRig.tsx', 'actors/anim.ts', 'actors/camera.ts', 'actors/cameraModes.ts', 'actors/charApi.ts',
+  'actors/citySlots.ts', 'actors/controller.ts', 'actors/dims.ts', 'actors/faceOpen.ts', 'actors/feet.ts', 'actors/frameStats.ts',
+  'actors/glide.ts', 'actors/glideTall.ts', 'actors/guide.ts', 'actors/models.ts', 'actors/modes.ts', 'actors/moveApi.ts',
+  'actors/moveSystem.ts', 'actors/nav.ts', 'actors/npcs.ts', 'actors/platform.ts', 'actors/pointer.ts', 'actors/routeFollow.ts',
+  'actors/stuckHelper.ts', 'actors/system.ts', 'actors/tapTarget.ts', 'actors/vehicles/bike.ts', 'actors/vehicles/collide.ts',
+  'actors/vehicles/fleet.ts', 'actors/vehicles/models.ts', 'actors/vehicles/pelican.ts', 'actors/vehicles/toyCar.ts', 'actors/view.ts',
+  'audio/hooks.ts', 'core/geo.ts', 'core/input.ts', 'core/polyline.ts', 'core/terrain.ts', 'data/cityZones.ts', 'data/contentMode.ts',
+  'data/district.ts', 'data/ferry.ts', 'data/pois.ts', 'data/postcards.ts', 'data/scriptSlot.ts', 'data/sf/cityData.ts',
+  'data/sf/cityPois.ts', 'data/sf/goals.ts', 'data/sf/postcards.ts', 'data/tours.ts', 'data/transit.ts', 'data/vehicles.ts',
+  'game/GameRoot.tsx', 'game/Systems.tsx', 'game/baybayHold.ts', 'game/brain.ts', 'game/chunkLost.ts', 'game/cinema.ts',
+  'game/cityContent.ts', 'game/cityGoals.ts', 'game/content.ts', 'game/fastTravel.ts', 'game/firstFrame.ts', 'game/fixedLines.ts',
+  'game/flow.ts', 'game/flowStore.ts', 'game/hudLayoutSlot.ts', 'game/interactables.ts', 'game/lazyChunk.ts', 'game/lockWatchdog.ts',
+  'game/mapRoute.ts', 'game/playerLock.ts', 'game/projector.ts', 'game/resume.ts', 'game/rewards.ts', 'game/ride.ts',
+  'game/shutterHook.ts', 'game/systemsRegistry.ts', 'game/transit.ts', 'game/travel.ts', 'game/w5Features.ts', 'game/welcome.ts',
+  'ui/Overlay.tsx', 'ui/lazyParts.ts', 'ui/playLayer.tsx', 'ui/slots.ts', 'world/WorldScene.tsx', 'world/backdrop.ts',
+  'world/builder.ts', 'world/city.ts', 'world/cityLoader.ts', 'world/cityShaderSlot.ts', 'world/clock.ts', 'world/environment.ts',
+  'world/fogShader.ts', 'world/fx.ts', 'world/ground.ts', 'world/labels.ts', 'world/landmarks.ts', 'world/life.ts',
+  'world/materials.ts', 'world/palette.ts', 'world/props.ts', 'world/quality.ts', 'world/recipes/district.ts',
+  'world/recipes/palettes.ts', 'world/recipes/shapes.ts', 'world/streetcar.ts', 'world/warmup.ts', 'world/water.ts', 'world/world.ts',
+];
+
+test('W9-P3: no new module in GameRoot\'s first-load chunk this wave (its static-only set ⊆ the wave-9 day-0 set); the contract modules of §4 sit outside it', () => {
+  const root = path.resolve('src/opus-bay');
+  const game = mainGraph(root);
+  const page = mainGraph(root, 'OpusBayPage.tsx');
+  const only = [...game.keys()].filter(m => !page.has(m));
+  const added = only.filter(m => !GAMEROOT_W9_DAY0.includes(m)).map(m => `${m} (reached from ${game.get(m)})`);
+  assert.deepEqual(added, [], 'new module(s) in GameRoot\'s static graph: import them lazily (game/importRetry.ts importRetry, game/lazyChunk.ts) — GameRoot has ≈ 0.2 KB of room under its 258.5 KB guard');
+  // wave 9's contract modules (sf-w9-lead.md §4): small, but outside GameRoot's chunk (the page's chunk or lazy)
+  for (const m of ['game/attention.ts', 'ui/entrySource.ts', 'realsf/todayLine.ts', 'realsf/prefs.ts', 'game/metrics.ts', 'game/warmReady.ts']) {
+    if (!fs.existsSync(path.join(root, m))) continue;
+    assert.ok(!game.has(m) || page.has(m), `${m} is in GameRoot's static graph (reached from ${game.get(m)}): import it lazily`);
+  }
+});
