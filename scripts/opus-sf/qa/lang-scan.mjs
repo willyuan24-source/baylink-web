@@ -43,10 +43,26 @@ if (fs.existsSync(LOCK)) { console.log(JSON.stringify({ error: `PERF-LOCK presen
 // 繁體: the site's own converter decides what is Simplified (a converted text converts to itself)
 // (W8-I, W8I-WS-3) opencc's cn→tw is not idempotent ('馬里納區' → '馬裡納區'): a text is Simplified only when a
 // round trip through Simplified does not give it back (tw→cn→tw), so a correctly converted transliteration is no leak
-let toTw = null;
-if (LANG === 'zh-Hant') { const O = await import('opencc-js'); const tw = O.Converter({ from: 'cn', to: 'tw' }), cn = O.Converter({ from: 'tw', to: 'cn' }); toTw = t => tw(cn(t)); }
+// (W9-L) …and on the game page the site adds its Taiwan words (src/i18n/locale.ts TAIWAN_WORDS / TAIWAN_AFTER, read from
+// that file: 设置 → 設定, 旅行本里 → 旅行本裡, 227 米 → 227 公尺): a text is right when either round trip gives it back.
+// A text that still has the mainland word (設置, 資訊's 信息, 意大利, 視頻 …: the stock cn → tw of a TAIWAN_WORDS key) is a
+// leak too, reported with `mainland`.
+let toTw = null, mainland = [];
+if (LANG === 'zh-Hant') {
+  const O = await import('opencc-js');
+  const tw = O.Converter({ from: 'cn', to: 'tw' }), cn = O.Converter({ from: 'tw', to: 'cn' });
+  const src = fs.readFileSync(path.resolve('src/i18n/locale.ts'), 'utf8');
+  const pairs = name => { const i = src.indexOf(`const ${name}`); return i < 0 ? [] : [...src.slice(i, src.indexOf('];', i)).matchAll(/\['([^']+)', '([^']+)'\]/g)].map(m => [m[1], m[2]]); };
+  const words = pairs('TAIWAN_WORDS'), after = pairs('TAIWAN_AFTER');
+  const pre = words.length ? O.CustomConverter(words) : t => t;
+  const twWords = t => after.reduce((x, [a, b]) => x.replaceAll(a, b), tw(pre(t)).replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺'));
+  toTw = t => { const s0 = cn(t), a = tw(s0); return a === t ? a : twWords(s0); };
+  mainland = [...new Set(words.map(([k, v]) => [tw(k), v]).filter(([m, v]) => m !== v).map(([m]) => m))];
+  if (!words.length) console.log(JSON.stringify({ note: 'TAIWAN_WORDS not found in src/i18n/locale.ts: the stock round trip only' }));
+}
 const HAN = /\p{Script=Han}/u;
-const wrong = text => (LANG === 'en' ? HAN.test(text) : LANG === 'zh-Hant' ? HAN.test(text) && toTw(text) !== text : false);
+const mainlandIn = text => mainland.filter(w => text.includes(w));
+const wrong = text => (LANG === 'en' ? HAN.test(text) : LANG === 'zh-Hant' ? HAN.test(text) && (toTw(text) !== text || mainlandIn(text).length > 0) : false);
 const showWrong = text => (LANG === 'zh-Hant' ? [...text].filter(ch => HAN.test(ch) && toTw(ch) !== ch).join('') : '');
 // Bilingual on purpose (reported as "allowed", not as leaks): the language switch's own label (the way back for a
 // reader who cannot read the current language), the district / city weekly board's painted title, and the shop-sign
@@ -121,7 +137,7 @@ const COLLECT = `(() => {
 const report = { lang: LANG, size: `${W}x${H}`, mobile: MOBILE, url: '', screens: [] };
 const allWrong = new Map(), allAllowed = new Map();
 /** wrong-script finds → leaks, minus the ALLOW list (kept apart, with the reason) */
-const sortOut = finds => { const leaks = []; for (const f0 of finds) { if (!wrong(f0.text)) continue; const f = LANG === 'zh-Hant' ? { ...f0, simplified: showWrong(f0.text) } : f0; const why = allowed(f); if (why) { if (!allAllowed.has(f.text)) allAllowed.set(f.text, { ...f, why }); } else leaks.push(f); } return leaks; };
+const sortOut = finds => { const leaks = []; for (const f0 of finds) { if (!wrong(f0.text)) continue; const f = LANG === 'zh-Hant' ? { ...f0, simplified: showWrong(f0.text), ...(mainlandIn(f0.text).length ? { mainland: mainlandIn(f0.text) } : {}) } : f0; const why = allowed(f); if (why) { if (!allAllowed.has(f.text)) allAllowed.set(f.text, { ...f, why }); } else leaks.push(f); } return leaks; };
 async function scan(screen, { shot = SHOTS } = {}) {
   await sleep(250);
   const found = (await ev(COLLECT)) || [];
@@ -178,9 +194,12 @@ try {
       if (legend) { await sleep(900); await scan('map:legend'); }
     }
     if (want('search')) {
-      const typed = await ev(`(() => { const i = [...document.querySelectorAll('input')].find(el => el.checkVisibility?.() && /search|搜|find|找/i.test((el.placeholder || '') + (el.getAttribute('aria-label') || '') + el.type)); if (!i) return false; const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; i.focus(); set.call(i, 'coit'); i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+      const type = q => ev(`(() => { const i = [...document.querySelectorAll('input')].find(el => el.checkVisibility?.() && /search|搜|find|找/i.test((el.placeholder || '') + (el.getAttribute('aria-label') || '') + el.type)); if (!i) return false; const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set; i.focus(); set.call(i, ${JSON.stringify(q)}); i.dispatchEvent(new Event('input', { bubbles: true })); return true; })()`);
+      const typed = await type('coit');
       await sleep(1200);
       if (typed) await scan('search'); else console.log(JSON.stringify({ screen: 'search', note: 'no search input found' }));
+      // (W9-L) the games and the season's events the search finds (data/sf/searchSpots.ts), in the reader's language
+      if (typed) for (const [name, q] of [['search:games', LANG === 'en' ? 'crab' : '螃蟹'], ['search:events', LANG === 'en' ? 'Halloween' : '萬聖'], ['search:empty', 'zzzz']]) { await type(q); await sleep(1200); await scan(name); }
     }
     await closeAll();
   }
