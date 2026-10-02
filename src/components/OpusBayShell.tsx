@@ -33,7 +33,7 @@ export function OpusBayShell({ halloween }: { halloween: boolean }) {
 // The title screen's own layout (src/opus-bay/opus-bay.css .ob-title.has-art: the same card column and art box formulas,
 // the same portrait-phone rule), without its safe-area variables and animations: desktop = the card on the left and the
 // wide art on the right; a portrait phone = the tall art full-bleed, the card docked at the bottom.
-export const SHELL_CSS = `
+const SHELL_CSS = `
 .obs{--card-x:max(5.5vw,28px);--card-w:clamp(340px,28vw,430px);--card-r:calc(var(--card-x) + var(--card-w));--art-avail:calc(100vw - var(--card-r) - 56px);--art-w:min(calc(var(--art-avail) / .62),calc(100vh * 1.72));--art-x:calc(var(--card-r) + 32px + (var(--art-avail) - var(--art-w) * .62) / 2 - var(--art-w) * .19);position:fixed;inset:0;z-index:1;overflow:hidden;display:flex;align-items:center;box-sizing:border-box;padding-bottom:3vh;background:linear-gradient(180deg,#ead3b9 0%,#eed8c1 48%,#f0d9c3 100%);color:#22322f;font-family:'Plus Jakarta Sans','Noto Sans SC',system-ui,-apple-system,'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;-webkit-font-smoothing:antialiased;text-align:left}
 .obs-art{position:absolute;left:var(--art-x);bottom:0;width:var(--art-w);aspect-ratio:16/9;pointer-events:none}
 .obs-art img{display:block;width:100%;height:100%;object-fit:cover;-webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 21%),linear-gradient(180deg,transparent 0%,#000 18%);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 0%,#000 21%),linear-gradient(180deg,transparent 0%,#000 18%);mask-composite:intersect}

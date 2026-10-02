@@ -10,7 +10,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { OpusBayShell, SHELL_CSS } from '../src/components/OpusBayShell';
+import { OpusBayShell } from '../src/components/OpusBayShell';
 import { OPUS_BAY_ALTERNATES, OPUS_BAY_ART, OPUS_BAY_OG, opusBayHeadExtras, opusBayInHalloween, opusBayMetadata, opusBayOgImage } from '../src/lib/opus-bay-metadata';
 import { renderMetadataHtml } from '../src/lib/seo';
 
@@ -21,8 +21,9 @@ test('W9-E shell: the static first paint is the title (key art, 湾区小旅 · 
     for (const s of ['id="opus-bay-shell"', 'translate="no"', '湾区小旅', 'Little Bay Trip', '准备中', 'Loading', '小小湾区 · BAYLINK', 'href="/guides"', art.wide, art.tallSrcSet.split(' ')[0]]) assert.ok(html.includes(s), `${halloween}: ${s}`);
     for (const s of ['湾区的日常', 'home-discovery', 'site-sidebar', 'BayBay 聊聊', '<script', 'Opus Bay']) assert.ok(!html.includes(s), `${halloween}: no "${s}"`);
     // the CSS goes out raw (a <style> child is not HTML-escaped: no &gt; / &quot; that would break the rules)
-    assert.ok(html.includes(SHELL_CSS.slice(0, 60)), 'raw CSS');
+    assert.doesNotMatch(html.match(/<style>([\s\S]*?)<\/style>/)![1], /&(?:gt|lt|quot|#39|amp);/, 'raw CSS');
   }
+  const SHELL_CSS = renderToStaticMarkup(createElement(OpusBayShell, { halloween: false })).match(/<style>([\s\S]*?)<\/style>/)![1];
   assert.match(SHELL_CSS, /\.obs\{[^}]*position:fixed;inset:0/);
   assert.match(SHELL_CSS, /@media \(prefers-reduced-motion:reduce\)/);
   assert.match(SHELL_CSS, /@media \(max-width:820px\) and \(max-aspect-ratio:5\/4\)/, 'the portrait phone layout (the title\'s own rule)');
