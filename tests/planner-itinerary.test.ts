@@ -10,6 +10,26 @@ test('an empty editor does not show a date conflict before the user has chosen a
   assert.ok(buildItinerary(stops.slice(0, 1), defaultPlanDetails(), '').issues.some(issue => issue.includes('日期')));
 });
 
+test('Sunnydale Pumpkin Fest waits for its published noon opening and enforces the event date and closing time', () => {
+  const stop: Stop = { kind: 'event', id: 'sf-sunnydale-pumpkin-fest-2026' };
+  const details: PlanDetails = { ...defaultPlanDetails(), partySize: 2, travelMode: 'transit' };
+  const asOf = '2026-10-02';
+  const early = buildItinerary([stop], details, '2026-10-17', asOf).rows[0];
+  assert.equal(early.evidence.status, 'confirmed');
+  assert.equal(early.evidence.sourceUrl, 'https://thehubinsf.org/event/sunnydale-pumpkin-fest-2/');
+  assert.equal(early.evidence.verifiedAt, asOf);
+  assert.deepEqual(early.evidence.windows, [{ open: '12:00', close: '15:00' }]);
+  assert.deepEqual([early.arrival, early.start, early.end, early.wait], [600, 720, 810, 120]);
+  assert.equal(early.conflicts.length, 0);
+  assert.ok(early.notices.some(issue => issue.code === 'wait-for-opening'));
+  const late = buildItinerary([stop], { ...details, startTime: '14:30' }, '2026-10-17', asOf).rows[0];
+  assert.ok(late.conflicts.some(issue => issue.code === 'closing-overrun'));
+  const otherDay = buildItinerary([stop], details, '2026-10-18', asOf).rows[0];
+  assert.equal(otherDay.evidence.status, 'out-of-range');
+  assert.deepEqual(otherDay.evidence.windows, []);
+  assert.ok(otherDay.conflicts.some(issue => issue.code === 'event-date-mismatch'));
+});
+
 test('Town Fare 15:30 arrival misses 15:15 last order, while a timely calendar export preserves official caveats', () => {
   const stop: Stop = { kind: 'place', id: 'restaurant-town-fare-omca' };
   const now = new Date('2026-09-29T20:00:00Z');

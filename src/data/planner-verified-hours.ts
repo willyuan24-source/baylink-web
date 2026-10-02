@@ -58,6 +58,11 @@ const afterDarkDates = [
   ['22', 'after-dark-death-and-life'], ['29', 'after-dark-creepatorium'],
 ] as const;
 export const VERIFIED_EVENT_SCHEDULES: Record<string, PlanningSchedule> = {
+  'sf-sunnydale-pumpkin-fest-2026': {
+    sourceUrl: 'https://thehubinsf.org/event/sunnydale-pumpkin-fest-2/', verifiedAt: '2026-10-02',
+    validFrom: '2026-10-17', validThrough: '2026-10-17', dates: { '2026-10-17': window('12:00', '15:00') },
+    note: '南瓜节整体活动窗口；具体节目与临时变动请以主办方当天公告为准。',
+  },
   ...Object.fromEntries(afterDarkDates.map(([day, slug]) => [`sf-exploratorium-after-dark-${day}-oct2026`, dated(`https://www.exploratorium.edu/visit/calendar/${slug}`, `2026-10-${day}`, '18:00', '22:00', '18 岁以上活动开放窗口；具体节目另有时间。Tactile Dome 需另行预约与购票。')])),
   'ferry-plaza-farmers-market-2026-autumn': weekly('https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/', { 0: [], 1: [], 2: window('10:00', '14:00'), 3: [], 4: window('10:00', '14:00'), 5: [], 6: window('08:00', '14:00') }, '市集每周二、四、六举行，风雨照常；此时间不代表 Ferry Building 内所有商家营业时间。购物与餐饮另付费。'),
   'san-jose-first-friday-ballet-2026': dated('https://sjmusart.org/event/first-friday-new-ballet-season-preview', '2026-10-02', '18:00', '21:00', '18:00–21:00 为免费美术馆之夜；芭蕾演出所在教室 19:25 开门，座位先到先得。演出开始及结束钟点未单独公布；提前登记可加快入馆。'),
