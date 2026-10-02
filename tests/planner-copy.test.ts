@@ -22,6 +22,9 @@ test('all recorded official time notes translate without losing dates, times, am
   const brunch = plannerNoticeText(VERIFIED_PLACE_SCHEDULES['restaurant-town-fare-omca'].note!, true);
   assert.match(brunch, /Last dine-in orders.*15:15/);
   assert.match(brunch, /does not take reservations/);
+  const pumpkinFest = plannerNoticeText(VERIFIED_EVENT_SCHEDULES['sf-sunnydale-pumpkin-fest-2026'].note!, true);
+  assert.match(pumpkinFest, /Overall Pumpkin Fest event window/);
+  assert.match(pumpkinFest, /announcements on the day.*individual programs and last-minute changes/);
 });
 
 test('dynamic notices retain admission-only scope, draft group size and source-language fallback', async () => {
