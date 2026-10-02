@@ -193,3 +193,59 @@ test (w5-eggs-review, 74.7 ms) failed once under load during an earlier run and 
   call, no new program; the props layer belongs to the street lamps).
 - The ride look's check sits in the city camera chunk (GameRoot had 0.05 KB of room before W9-P6).
 - Higgsfield: 0 credits (no side-by-side needed one).
+
+## Review (Ultra)
+
+The adversarial review of lane C (lens findings `C:/Users/willy/opus-qa/w9/c-rv/findings.json`, 8 items, reviewed on
+3dc72f5e) and its fixer (worktree `C:/Users/willy/wt/w9-c-rev`, 2026-10-02 05:49 → 06:45 PDT, scratch
+`C:/Users/willy/opus-qa/w9/c-rev/`). Commit `W9-C-review: 「窗外是 UCSF」 only when the ride look toward UCSF was kept …`.
+
+### 给主人的摘要
+
+1. 坐 N 线到 UCSF 那站时，如果镜头被房子挡住、看不到 UCSF，BAYBAY 就不再说「窗外山坡上那片楼群，就是 UCSF」；能看到时照常说（原句原配音，不用重录）。
+2. 手机上站台停车时，「探身」按钮变灰后会直接写出原因（「车开起来才能探身」），不再按了没反应。
+3. 按 C 切到最远的步行镜头（24），下次进游戏会记住 24，不再被压成 20。
+4. 没修完的两件大事：叮当车在唐人街停站时镜头仍往楼缝里俯拍；九曲花街「已到达」时弯道仍被楼挡住。这两件需要实机反复试镜头，这一轮时间不够，留给下一轮。
+5. 蓝鹭湖白天确实有脚踏船和划艇（那句台词只在白天、湖边才说），不是问题；39 号码头的海狮在代码里是有的，这次没来得及实地确认。
+6. Higgsfield 一分没花。
+
+### Verdicts
+
+| id | sev | verdict | evidence |
+|---|---|---|---|
+| C-RV-1 | major | confirmed-not-fixed | The lane's own `qa/w9/C/c1-california-ride-stop.jpg`: the swung shot looks ≈ 35° down into the gap, the car dithered; `cameraModes.ts` RideCamera's W6-K1 swing is unchanged by W9-C5 (the lean is 3 s per stretch only). A retune needs its own before / after rides; not attempted in this window. |
+| C-RV-2 | major | fixed | `tourLines.ts` `metroNarration` returned `ucsf-window` with no view input while W9-C7 drops the look. Now `cityViews.ts` `rideLookClear` records its verdict (`lookBias.checked / kept`), `cityMoments.ts` (lane F's file, surgical) holds a `VIEW_LINES` line ≤ 1.5 s for `viewLineGate` and offers it only when the look was kept. Test `tests/opus-bay-w9-c-review.test.ts`: tall houses → `drop`, open street → `say`, not before the camera judged → `wait` (red on origin: no gate). Not played live (no Chrome run in this window). |
+| C-RV-3 | major | confirmed-not-fixed | verify-explorer `07-lomb-c.jpg` read: at Leavenworth the zigzag is hidden behind buildings. Lombard is rank 1 and gets the site reveal (`guideCity.ts` `revealSpec`), but the arrival framing / the follow pose after it is still blocked. Needs a probed pose; not started. |
+| C-RV-4 | major | refuted (in part; Pier 39 not reproduced) | Blue Heron Lake: `world/sf/westLakePose.ts` poses pedal boats and rowboats out on the lake by day (`BOATS_NIGHT_MAX`), and the line `w8-w2-lake-boats` is gated `day: true` within 48 u of the lake (`westLines.ts`); `placeCards.ts:677` is a card tip about renting, not a view claim. Pier 39: `world/life.ts` `CityLife` (built by `transitLayer.ts` in city mode) draws the K-dock sea lions when the camera is within 150 u; the review shot `63-pier39-in.jpg` is at night from the pier's entrance. Not probed live in this window → left as an open check, no change made. |
+| C-RV-5 | minor | confirmed-not-fixed | `arrival.ts` `arrivalBeats`: `reveal` needs `anchor.rank === 1`; Mount Davidson, Bernal Heights, Corona Heights, Lands End are rank 2 (`attractions.ts`), so their `REVEAL_VIEWS` entries only feed `vistaHeading` (the heading after a pelican landing), not a reveal. W9-C3's wording "look out at downtown … as reveals" overstates it: only Twin Peaks (and Coit Tower) reveal. The test checks `revealView` non-null only. Corrected here; no code change. |
+| C-RV-6 | minor | confirmed-not-fixed | `c-rv/fw-b-parade-photo.jpg` read: a lawn tree's trunk and canopy fill the left ≈ 12 % of the 9 Oct parade photo; the ships are on the horizon (the main W9-C1 fix holds). `photoPullStep` counts only canopies on the camera → player line. Time-bound (before 9 Oct), cosmetic. |
+| C-RV-7 | minor | confirmed-not-fixed (b fixed) | (b) fixed: the C key's far preset saves 24 (`camera.ts` `persistDistance(false, DIST_MAX)`; test). (a) a pre-W9-C4 save of 30 still loads as 30 — left: the load cannot tell a wheel's 30 from the Settings slider's deliberate 30 (W9-C4 kept the slider saving any distance); it heals at the player's next wheel / pinch. (c) after a wheel zoom past 20 the Settings slider shows the saved 20 while the camera is at 30 — `ui/Settings.tsx` is not lane C's file; left. |
+| C-RV-8 | minor | fixed | `play/BellPad.tsx` (surgical): on touch the disabled button's label is its reason (`why ?? 按住探身`); the title stays for desktop. Source test; not played on a phone in this window. |
+
+### Own pass
+
+- Read the file lists of W9-C1 … C7 (`git log --grep "W9-C[0-9:-]"`): no district-only file touched; the shared camera
+  files are covered by the hero regression test in the suite. No further defect found in the time (no live probe was
+  made in this window: the eslint run of the whole repo took ≈ 10 min of it).
+- The lane's report claims for the overlook reveals are corrected above (C-RV-5).
+
+### Open items
+
+- C-RV-1 the cable-car base shot in Chinatown's canyon; C-RV-3 Lombard's curves in frame on arrival (both R§5 #15).
+- C-RV-4 Pier 39: stand at the K-dock in the city by day and night and check the sea lions are drawn while the loop's
+  approach line 「海狮就趴在码头边的浮台上」 plays.
+- C-RV-6 the lawn tree at the parade photo's left edge (before 9 Oct); C-RV-7 (a) / (c).
+- C-RV-2 and C-RV-8 played live once (the N to Carl & Hillway on desktop and 390 × 844).
+
+### Blocking the go-live to main
+
+None from lane C: the open majors are experience gaps the review named (C-RV-1, C-RV-3), not breakage.
+
+### Checks
+
+Before the push (06:38 PDT): `npx tsc -p tsconfig.app.json --noEmit` 0; `npx eslint .` 0 errors (53 warnings); the tests that touch
+the changed files (w9-c-review / ridelook / camera / lean, sf-tours, sf-metro, w5-tours, w8-k1-hold, sf-tripflow, w6-k1-feel,
+w5-play-acts, w7-k1-camera, sf-citymap, sf-budget incl. the GameRoot guard, contracts, w5-content, sf-verify-c) 222 pass / 0 fail.
+The whole opus-bay suite was still running at the push (1325 tests in, 1 fail: sf-citymap's wall-clock redraw test,
+857.8 ms under load, green alone); its end result is in the fixer's final answer, not in this file (the push window closed
+at 06:45).
