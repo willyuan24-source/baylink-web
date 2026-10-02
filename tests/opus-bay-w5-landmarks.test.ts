@@ -276,9 +276,8 @@ const ROUTE_CORRIDORS: Record<string, string> = {
   'r2-south-tower': 'the bridge deck, between its railings',
   'r3-de-young': 'the de Young\'s forecourt between the tower\'s wall and the concourse\'s planting (the landmark\'s arrival)',
   'r3-windmill': 'the windmill\'s path between its tulip beds (the landmark\'s arrival)',
-  // W6-W1: the North Beach seam fill put the city's buildings back in the band these crossed as open pavement
-  'r1-washington-sq:via1': 'Grant Ave by Columbus Ave, a street between buildings since the North Beach seam fill (W6-W1)',
-  'r1-washington-sq:via3': 'a North Beach street between buildings since the seam fill (W6-W1)',
+  // (W8-W1: r1-washington-sq's via 1 and via 3, mid-street since the W6-W1 seam fill, moved onto the junctions the
+  // route's walk already turns at — (2, 119) and (−34.1, 93.8), data/sf/routePaths.ts unchanged — and stand 3–4 ways)
   'r1-peter-paul': 'the church steps on Filbert St: the nave behind, the square ahead across the street (W6-W1 / W6-W2)',
 };
 

@@ -8,9 +8,26 @@ import { useT } from './i18n';
 import { installIosTouchGuards } from './ui/iosTouch';
 import { TitleScreen } from './ui/TitleScreen';
 import './opus-bay.css';
+import { isLoadFailure } from './game/importRetry';
 
 // The game chunk (three, R3F, the world, actors, UI) — requested once the title has painted.
-const GameRoot = lazy(() => import('./game/GameRoot'));
+// (W8-P-review, P-RC-1) a bare import, never importRetry: in the production build ~150 lazy chunks import their shared
+// modules from GameRoot's own file, so a GameRoot recovered under `?retry=n` is a second instance those chunks never see
+// (Chrome keeps the bare URL failed: the play layer then failed and reloaded, or Start never went through). A lost
+// GameRoot reloads the page once per session (fresh HTML: a deploy between the page and its chunk is the usual cause), then
+// the site's error page with its Refresh button, as before W8-P5. (importRetry stays in this route chunk: isLoadFailure.)
+const GAME_RELOAD_KEY = 'opus-bay:game-reload';
+const GameRoot = lazy(() => import('./game/GameRoot').then(m => {
+  try { sessionStorage.removeItem(GAME_RELOAD_KEY); } catch { /* storage blocked */ }
+  return m;
+}, (e: unknown) => {
+  if (isLoadFailure(e)) {
+    try {
+      if (!sessionStorage.getItem(GAME_RELOAD_KEY)) { sessionStorage.setItem(GAME_RELOAD_KEY, '1'); location.reload(); return new Promise<never>(() => {}); }
+    } catch { /* storage blocked: the error page */ }
+  }
+  throw e;
+}));
 
 type IdleWindow = Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
 

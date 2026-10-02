@@ -394,3 +394,165 @@ test('W7-P5: the live catalog prefetch (≈ 125 KB gzip) waits for the world\'s 
   assert.doesNotMatch(src('ui/Overlay.tsx'), /^\s*const id = window\.setTimeout\(\(\) => \{ void loadCatalog\(\); \}, 1500\);/m, 'no blind timer from the boot');
   assert.match(src('game/GameRoot.tsx'), /done\.current = true; markFirstFrame\(\); onDrawn\(true\);/);
 });
+
+test('W8-P1: the city-only GLSL of the shared materials and the sky rides with the city data chunk; GameRoot\'s modules splice it in through world/cityShaderSlot.ts', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  // (measured on the production build, sf-w8-P.md: GameRoot 262.00 → 259.10 KB gzip with this move; the wave's target ≤ 255)
+  assert.ok(!graph.has('data/sf/cityShaders.ts'), `data/sf/cityShaders.ts in the main graph: ${graph.has('data/sf/cityShaders.ts') ? why('data/sf/cityShaders.ts') : ''}`);
+  assert.ok(graph.has('world/cityShaderSlot.ts'), 'the slot stays in the main graph');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/sf/cityDataChunk.ts'), /^export \{ CITY_SHADERS \} from '\.\/cityShaders';\r?$/m);
+  assert.doesNotMatch(src('data/sf/cityShaders.ts'), /^\s*import\s/m, 'the blocks import nothing (the data chunk shares no module with GameRoot\'s graph)');
+  for (const m of ['world/materials.ts', 'world/environment.ts']) assert.match(src(m), /^import \{ CITY_SHADERS \} from '\.\/cityShaderSlot';\r?$/m, m);
+  // no module of GameRoot's graph carries the moved GLSL again (a copy back would put the bytes back in its chunk)
+  const markers = ['vec2 obPuffs(vec3 d)', 'obFac == 9.0 || obFac == 10.0', '} else if (pat == 9.0) {', 'if (pat == 5.0 && vInfo.w > 1.05 && uNight > 0.01) {', 'if (uCityDay > 0.0 && y > 0.0) {'];
+  const back = [...graph.keys()].filter(m => m.endsWith('.ts') || m.endsWith('.tsx')).flatMap(m => markers.filter(k => src(m).includes(k)).map(k => `${m}: ${k}`));
+  assert.deepEqual(back, [], 'city-only GLSL in a main-graph module (put it in data/sf/cityShaders.ts)');
+});
+
+test('W8-P2: the landmark cards\' tables ride with the city data chunk; data/sf/cityPois.ts keeps every export name and hands out the chunk\'s own values', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(!graph.has('data/sf/cityPoisData.ts'), `data/sf/cityPoisData.ts in the main graph: ${graph.has('data/sf/cityPoisData.ts') ? why('data/sf/cityPoisData.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/sf/cityDataChunk.ts'), /^export \* as CITY_POI_TABLES from '\.\/cityPoisData';\r?$/m);
+  // the tables' code is not in the slot any more (a copy back would put the bytes back in GameRoot's chunk)
+  for (const k of ['export const ZH_GLOSSARY: readonly (readonly [from: string, to: string])[] = [', 'function cityPoi(info: SfLandmarkInfo)', "landmark: { zh: '地标', en: 'Landmark' }"]) assert.ok(!src('data/sf/cityPois.ts').includes(k), k);
+  const slot = await import('../src/opus-bay/data/sf/cityPois');
+  const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  const T = CITY_DATA!.CITY_POI_TABLES;
+  // every name the module exported before the move (sf-w8-P.md) is still exported
+  const before = ['CITY_POI_PREFIX', 'cityPoiId', 'ZH_GLOSSARY', 'glossZh', 'ZH_TEXT_NAMES', 'glossZhText', 'SF_GUIDE_SLUG', 'isMonthTagged', 'CITY_PHOTOS', 'CITY_POIS', 'CITY_DISTRICT_POI_NAMES', 'CITY_DISTRICT_TEXT_NAMES', 'cityDistrictZh', 'cityDistrictPoi', 'CITY_POI_ZONES', 'CITY_POI_OFFICIAL_URLS', 'cardOfficialUrl', 'CITY_POI_EXTRA_SOURCES', 'CITY_PHOTO_SOURCE_PAGES', 'CITY_SUBJECT_FACTS', 'PLACE_KIND_NAMES', 'setCardLookup', 'placeCardTarget', 'attractionCardId', 'placeCardName'];
+  assert.deepEqual(before.filter(k => !(k in slot)), []);
+  // node loads the chunk: the slot's tables are the chunk's own objects, its glossaries the chunk's functions
+  for (const k of ['ZH_GLOSSARY', 'ZH_TEXT_NAMES', 'CITY_POIS', 'CITY_POI_ZONES', 'CITY_POI_OFFICIAL_URLS', 'CITY_POI_EXTRA_SOURCES', 'CITY_PHOTO_SOURCE_PAGES', 'CITY_SUBJECT_FACTS', 'PLACE_KIND_NAMES'] as const) assert.equal(slot[k], T[k], k);
+  for (const s of ['双子峰 · 码头区 Marina 的缆车', '沿 Grant Avenue 一路走到 North Beach 的 Washington Square', 'Twin Peaks']) {
+    assert.equal(slot.glossZh(s), T.glossZh(s));
+    assert.equal(slot.glossZhText(s), T.glossZhText(s));
+  }
+  assert.deepEqual(slot.placeCardName({ zh: '中国城', en: 'Chinatown' }), { zh: '唐人街', en: 'Chinatown' });
+  // the data chunk's private copies of the slot's helpers agree (the chunk may not import the slot: W5-V3)
+  assert.ok(T.CITY_POIS.length >= 24 && T.CITY_POIS.every(p => p.id === slot.cityPoiId(p.id.slice(slot.CITY_POI_PREFIX.length))));
+  for (const slug of ['san-francisco-guide', 'sf-october-2026-payment-update', 'muni-2025', 'golden-gate-park', 'march-events', '']) assert.equal(T.isMonthTagged(slug), slot.isMonthTagged(slug), slug);
+  assert.equal(T.SF_GUIDE_SLUG, slot.SF_GUIDE_SLUG);
+  assert.equal(T.cityPoiId('coit-tower'), slot.cityPoiId('coit-tower'));
+});
+
+test('W8-P3: the cable-car network builder is a lazy chunk loadTransit fetches with transit.json; it imports types only (node binds it at data/transit.ts\'s top level without a wait on itself)', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(graph.has('data/transit.ts'), 'data/transit.ts stays in the main graph');
+  assert.ok(!graph.has('data/transitBuild.ts'), `data/transitBuild.ts in the main graph: ${graph.has('data/transitBuild.ts') ? why('data/transitBuild.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  const build = src('data/transitBuild.ts');
+  assert.deepEqual([...build.matchAll(/^import\s+(?!type\s)[^\n]*$/gm)].map(m => m[0]), [], 'type imports only (a runtime import of data/transit.ts would make the node-side await wait on itself)');
+  const transit = src('data/transit.ts');
+  assert.ok(!/^export function buildTransit\(/m.test(transit) && !transit.includes('function stubPoints('), 'the builder\'s code is not back in data/transit.ts');
+  assert.match(transit, /const builder = importRetry\(\(\) => import\('\.\/transitBuild'\)\);/);
+  // node: the export is bound at load and builds through the chunk with data/transit.ts's own helpers
+  const T = await import('../src/opus-bay/data/transit');
+  const B = await import('../src/opus-bay/data/transitBuild');
+  const file = { version: 't', source: 't', props: {}, lines: [{ id: 'powell-hyde', kind: 'cable-car', name: { zh: '鲍威尔-海德线缆车', en: 'Powell–Hyde' }, color: '#c33', sourceUrl: 'x', doubleEnded: false, length: 40, heroSpans: [], turntables: [], path: [0, 0, 0, 0, 0, 20, 0, 0, 40], stops: [{ id: 'a', name: { zh: 'A', en: 'Powell Street & Market Street' }, at: 0, x: 0, z: 0, osmId: null }, { id: 'b', name: { zh: 'B', en: 'Hyde Street & Beach Street' }, at: 40, x: 0, z: 40, osmId: null }] }] } as unknown as import('../src/opus-bay/data/transit').TransitFileJson;
+  const viaExport = T.buildTransit(file);
+  const direct = B.buildTransit(file, { CABLE: T.CABLE, CROSSING_STOP: T.CROSSING_STOP, pointAt: T.pointAt, stationSlug: T.stationSlug, shortStationName: T.shortStationName, stationZh: T.stationZh, turntableZh: T.turntableZh, glossName: T.glossName });
+  assert.deepEqual(viaExport, direct);
+  assert.deepEqual(viaExport.stations.map(s => [s.id, s.name.zh]), [['powell-market', '鲍威尔街 · 市场街'], ['hyde-beach', '海德街 · 海滩街']]);
+  assert.equal(viaExport.lines[0].name.zh, '鲍威尔-海德线叮当车');
+});
+
+test('W8-P4: the district postcards\' words come with the play layer (data/scriptLoad.ts) and are filled in place: the cards keep their objects, every word is there once filled', async () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  assert.ok(!graph.has('data/postcardTexts.ts'), `data/postcardTexts.ts in the main graph: ${graph.has('data/postcardTexts.ts') ? why('data/postcardTexts.ts') : ''}`);
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  assert.match(src('data/scriptLoad.ts'), /^fillPostcardTexts\(DISTRICT_POSTCARD_TEXTS\);\r?$/m);
+  assert.match(src('ui/playParts.tsx'), /^import '\.\.\/data\/scriptLoad';\r?$/m, 'the play layer loads it (GameRoot holds Start until that chunk is in)');
+  assert.ok(!src('data/postcards.ts').includes('清晨的渡轮大厦'), 'the words are not back in data/postcards.ts');
+  const P = await import('../src/opus-bay/data/postcards');
+  const { DISTRICT_POSTCARD_TEXTS } = await import('../src/opus-bay/data/postcardTexts');
+  assert.ok(P.postcardTextsFilled(), 'node fills them at load');
+  assert.equal(P.DISTRICT_POSTCARDS.length, 8);
+  for (const c of P.DISTRICT_POSTCARDS) {
+    const t = DISTRICT_POSTCARD_TEXTS[c.id as keyof typeof DISTRICT_POSTCARD_TEXTS];
+    assert.deepEqual({ title: c.title, fact: c.fact, hint: c.hint }, t, c.id);
+    assert.notEqual(c.title, t.title, `${c.id}: the card keeps its own object (filled in place, so a name taken before Start reads it)`);
+    assert.ok(c.title.zh && c.title.en && c.fact.zh && c.fact.en && c.hint?.zh && c.hint.en && c.sourceUrl.startsWith('https://'), c.id);
+  }
+  assert.deepEqual(P.DISTRICT_POSTCARDS[0].title, { zh: '清晨的渡轮大厦', en: 'Ferry Building at Dawn' });
+  // a second fill is a no-op (the play layer and node never fill twice)
+  P.fillPostcardTexts({ 'ferry-building-dawn': { title: { zh: 'x', en: 'x' }, fact: { zh: 'x', en: 'x' }, hint: { zh: 'x', en: 'x' } } });
+  assert.equal(P.DISTRICT_POSTCARDS[0].title.en, 'Ferry Building at Dawn');
+});
+
+test('W8-P7: the district POIs in the city\'s words (names, card-text names, cityDistrictZh / cityDistrictPoi) ride with the city data chunk; the slot hands them out by name', async () => {
+  const root = path.resolve('src/opus-bay');
+  const src = (m: string) => fs.readFileSync(path.join(root, m), 'utf8');
+  const slotSrc = src('data/sf/cityPois.ts');
+  for (const k of ["'coit-murals': '科伊特塔壁画'", 'export function cityDistrictPoi(', 'export function cityDistrictZh(']) assert.ok(!slotSrc.includes(k), `back in the slot: ${k}`);
+  assert.match(slotSrc, /export const cityDistrictPoi = \(poi: PoiDef\): PoiDef => \(T \? T\.cityDistrictPoi\(poi\) : \{ \.\.\.poi, \.\.\.\(poi\.realInfo \? \{ realInfo: \{ \.\.\.poi\.realInfo \} \} : \{\}\) \}\);/, 'district: the POI as written, with its own realInfo object (fillPoiTexts writes into it)');
+  const slot = await import('../src/opus-bay/data/sf/cityPois');
+  const { CITY_DATA } = await import('../src/opus-bay/data/sf/cityData');
+  const T = CITY_DATA!.CITY_POI_TABLES;
+  assert.equal(slot.CITY_DISTRICT_POI_NAMES, T.CITY_DISTRICT_POI_NAMES);
+  assert.equal(slot.CITY_DISTRICT_TEXT_NAMES, T.CITY_DISTRICT_TEXT_NAMES);
+  assert.equal(slot.CITY_DISTRICT_POI_NAMES['coit-murals'], '科伊特塔壁画');
+  assert.equal(slot.cityDistrictZh('Coit Tower 的壁画'), '科伊特塔的壁画');
+  const { DISTRICT_POIS, CITY_DISTRICT_POIS } = await import('../src/opus-bay/data/pois');
+  const coit = CITY_DISTRICT_POIS.find(p => p.id === 'coit-murals')!;
+  assert.equal(coit.name.zh, '科伊特塔壁画');
+  assert.notEqual(coit.realInfo, DISTRICT_POIS.find(p => p.id === 'coit-murals')!.realInfo, 'the city copy has its own card');
+});
+
+test('W8-P8: wave 8\'s new features land outside GameRoot\'s static graph (lazy chunks): the Alcatraz ferry and island, the grip / busker / foghorn games, Fleet Week, the Chinatown festival, the west sea and Blue Heron Lake, the new corners, BAYBAY\'s wave-8 voice', () => {
+  const root = path.resolve('src/opus-bay');
+  const graph = mainGraph(root);
+  const why = (m: string) => { const chain = [m]; let c = m; while (graph.get(c)) { c = graph.get(c)!; chain.push(c); } return chain.join(' <- '); };
+  // named as they appeared on origin (sf-w8-P.md part c); a file a lane renamed or dropped is skipped, not failed
+  const W8 = [
+    'world/sf/alcatrazFerry.ts', 'world/sf/alcatrazFerrySystem.ts', 'world/sf/alcatrazLines.ts', 'world/sf/alcatrazWalk.ts',
+    'play/grip.ts', 'play/GripPanel.tsx', 'play/GripPad.tsx', 'play/busk.ts', 'play/BuskPanel.tsx', 'play/buskSounds.ts',
+    'play/sfgames8.ts', 'play/sfgames8Lines.ts', 'play/sfgames8Sounds.ts',
+    'world/sf/fleetWeek.ts', 'world/sf/fleetWeekDay.ts', 'halloween/worldFestival.ts',
+    'world/sf/westSea.ts', 'world/sf/westSeaPose.ts', 'world/sf/westToy.ts', 'world/sf/westLines.ts', 'world/sf/westLake.ts', 'world/sf/westLakePose.ts', 'world/sf/westBoathouse.ts',
+    'world/sf/cornersChinatown.ts', 'world/sf/cornersSights.ts', 'data/sf/voiceW8.ts',
+  ].filter(m => fs.existsSync(path.join(root, m)));
+  assert.ok(W8.length >= 15, `the wave-8 files are where they were (${W8.length})`);
+  assert.deepEqual(W8.filter(m => graph.has(m)).map(why), [], 'a wave-8 feature module in GameRoot\'s static graph: load it lazily (game/importRetry.ts)');
+});
+
+// W8-P9 · GameRoot's first-load size as a static estimate: the esbuild-minified modules only GameRoot's static walk reaches
+// (what OpusBayPage also imports sits in the page's chunks), gzip -9, scaled by one calibration on a production build
+// (sf-w8-P.md part c: vite reported GameRoot 257.79 KB gzip on 8ba22115 + W8-P7, where this estimate read 277.909 KB).
+// The ratio drifts with tree-shaking (≈ ±1 KB): W8-Z's production build is the number of record.
+const GAMEROOT_CAL = 257.79 / 277.909;
+let estimateOnce: Promise<{ kb: number; mods: number }> | null = null;
+const gameRootEstimateKB = () => (estimateOnce ??= estimateGameRoot());
+async function estimateGameRoot(): Promise<{ kb: number; mods: number }> {
+  const { transformSync } = await import('esbuild');
+  const zlib = await import('node:zlib');
+  const root = path.resolve('src/opus-bay');
+  const game = mainGraph(root);
+  const page = mainGraph(root, 'OpusBayPage.tsx');
+  const mods = [...game.keys()].filter(m => !page.has(m)).sort();
+  let code = '';
+  for (const m of mods) {
+    const ext = path.extname(m).slice(1);
+    code += transformSync(fs.readFileSync(path.join(root, m), 'utf8'), { loader: ext === 'tsx' ? 'tsx' : ext === 'json' ? 'json' : 'ts', minify: true, jsx: 'automatic', format: 'esm', define: { 'import.meta.env': '{"DEV":false,"PROD":true}' } }).code;
+  }
+  return { kb: (zlib.gzipSync(code, { level: 9 }).length / 1000) * GAMEROOT_CAL, mods: mods.length };
+}
+
+test('W8-P9: GameRoot\'s chunk does not grow past 258.5 KB gzip (static estimate) — the wave-8 tree is at ≈ 257.8; the 255 KB target is the next test (todo)', async () => {
+  const { kb, mods } = await gameRootEstimateKB();
+  assert.ok(kb <= 258.5, `GameRoot ≈ ${kb.toFixed(1)} KB gzip (${mods} modules) — over the first-load guard. Code only the city or only play needs belongs behind the city chunk (world/cityLoader.ts, data/sf/cityDataChunk.ts) or a lazy import through game/importRetry.ts, not in GameRoot's static graph (sf-w8-P.md, sf-w7-P.md)`);
+});
+
+test('W8-P9: GameRoot ≤ 255 KB gzip (static estimate) — the wave-8 target, not met on the final wave-8 tree (sf-w8-P.md Requests)', { todo: 'GameRoot ≈ 257.8 KB on 8ba22115 + W8-P7: lanes added ≈ 1.9 KB and the reload card 0.9 KB after part a reached 255.87' }, async () => {
+  const { kb } = await gameRootEstimateKB();
+  assert.ok(kb <= 255, `GameRoot ≈ ${kb.toFixed(1)} KB gzip`);
+});

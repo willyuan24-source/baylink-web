@@ -1,6 +1,7 @@
 import { emit } from '../core/events';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
+import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { travelActive } from '../game/fastTravel';
 import { bubble, dialogueOpen } from '../game/flow';
@@ -37,7 +38,8 @@ export type ELineKey = keyof typeof E_LINES;
 export function quietNow(): boolean {
   const s = game.get(), f = flow.get();
   return s.phase === 'playing' && !s.paused && s.mode !== 'onboarding' && !dialogueOpen() && !cinemaActive() && !f.cinematic && !travelActive()
-    && s.move.mode !== 'travel' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing;
+    && s.move.mode !== 'travel' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing
+    && !baybayHeld(); // W8-K1 (lane K, surgical): a play panel, an egg card, the Halloween postcard… (not the shop)
 }
 
 const pending = new Map<ELineKey, ReturnType<typeof setTimeout>>();

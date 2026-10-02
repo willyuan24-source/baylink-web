@@ -220,3 +220,11 @@
 .mw-evpin-n { fill: #fffaf1; stroke: #e8705a; stroke-width: 1.4px; }
 .ob-citymap-overlay text.mw-evpin-nt { font: 800 8.5px/1 var(--ob-font); fill: #b8432f; stroke: none; text-anchor: middle; }
 @media (prefers-reduced-motion: reduce) { .mw-evpin-pulse { animation: none; opacity: .6; } }
+
+/* ---- W8-Q6 (lane Q) · touch: the map's tools and the compass at their full 44 px (they were 36 px circles with a 44 px
+   ::before, measured 36 × 36 by W7-I): on a coarse pointer the circle is the target; the column still wraps into a second
+   one on short frames (CityMap.tsx TALL_TOOLS_H_TOUCH, toolRight 56 / 106) — 3 rows of 44 + 2 gaps of 8 = 148 ≤ is-two's 160 */
+@media (pointer: coarse) {
+  .ob-overlay .ob-citymap-tools .ob-icon-btn, .ob-overlay .mw-compass { width: 44px; height: 44px; }
+  .ob-overlay .ob-citymap-tools .ob-icon-btn::before, .ob-overlay .mw-compass::before { inset: 0; }
+}

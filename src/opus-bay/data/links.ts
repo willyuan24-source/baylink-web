@@ -1,5 +1,6 @@
 import type { Locale } from '../../i18n/locale';
 import type { Catalog } from '../core/types';
+import { catalogText } from '../i18n';
 import { addDays, eventDaysInWindow, eventNextDate, isDay, nextSaturday, todayInBay } from './catalog';
 
 /**
@@ -117,11 +118,18 @@ export function pickPlanDate(stops: PlanStop[], catalog: Catalog | null, today =
   return { date: soonest, stops: keep(onDay.map(item => item.stop)), rest: [...others, ...ended] };
 }
 
-/** Human names for what a plan link actually carries ("PIER 39", an event title). */
-export function planStopTitles(stops: PlanStop[], catalog: Catalog | null): string[] {
-  return validPlanStops(stops, catalog).map(stop => (stop.kind === 'place'
-    ? catalog?.places.find(place => place.id === stop.id)?.title
-    : catalog?.events.find(event => event.id === stop.id)?.title) ?? stop.id);
+/**
+ * Human names for what a plan link actually carries ("PIER 39", an event title). The catalog's titles are Simplified
+ * Chinese: pass the reader's `locale` when the names go into a sentence (W8-Q1: the English Journal said "Take Ferry
+ * Plaza 农夫市集… to BAYLINK"); without it the catalog's own titles come back unchanged.
+ */
+export function planStopTitles(stops: PlanStop[], catalog: Catalog | null, locale?: Locale): string[] {
+  return validPlanStops(stops, catalog).map(stop => {
+    const title = (stop.kind === 'place'
+      ? catalog?.places.find(place => place.id === stop.id)?.title
+      : catalog?.events.find(event => event.id === stop.id)?.title) ?? stop.id;
+    return locale ? catalogText(title, locale) : title;
+  });
 }
 
 /**

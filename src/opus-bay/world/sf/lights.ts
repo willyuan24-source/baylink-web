@@ -14,6 +14,7 @@ import { type FarData, ROAD_CLASSES, ROAD_FLAG } from './format';
 import { GGB, goldenGateBridge } from './landmarks/golden-gate-bridge';
 import { LAMP_STEP, STREET_LAMP } from './look';
 import { inPoly } from './raster';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * The night light field (lane C2-9, city chunk; CS-12): ONE THREE.Points draw for the lights of the whole city, so it
@@ -88,10 +89,23 @@ export function ggbLights(): LightSpec[] {
   for (const sx of [-TOWER, TOWER]) for (const zs of [-1, 1]) {
     out.push(at(sx, TOP + 0.5, zs * 2.55, BLINK + (sx > 0 ? 0.5 : 0), RED));
     out.push(at(sx, TOP * 0.62, zs * 2.55, 0.55, RED));
+    // the floodlights at each leg's foot (GGB_TOWER_LIGHT_SOURCE: the towers are washed from below, the fittings unseen
+    // on the legs). (W8-X-review) W8-X6's rows of dots up every leg's edges read as strings of bulbs, not a wash: gone
     out.push(at(sx, 3.5, zs * 4.3, 1, FLOOD));
   }
   return out;
 }
+
+/**
+ * The towers have been lit at night since 22 June 1987, with less light at the top so they seem to soar beyond the range
+ * of illumination (the bridge district's Color & Art Deco Styling page; Irving Morrow's plan, Radiant History).
+ * Checked 2026-10-01 (W8-X-review: W8-X6 cited the anniversaries page, which does not mention the lighting).
+ */
+export const GGB_TOWER_LIGHT_SOURCE = {
+  sourceUrl: 'https://www.goldengate.org/bridge/history-research/bridge-features/color-art-deco-styling/',
+  design: 'https://radianthistory.com/lighting-the-golden-gate-bridge-scale-and-dignity/',
+  verifiedAt: '2026-10-01',
+} as const;
 
 /** Jim Campbell's LED crown ("Day for Night", 11,000 LEDs): a generic warm glow, no pictures (plan §2.4 row 32, W4-V8). */
 const CROWN = [1.0, 0.9, 0.74] as const;
@@ -423,7 +437,7 @@ export class LightField implements WorldSystem {
     if (this.opts.glints) return this.opts.glints();
     if (!this.coins && !this.coinsAsked) {
       this.coinsAsked = true;
-      import('../../economy/coins').then(m => { if (!this.disposed) this.coins = m as unknown as CoinsModule; }, () => { /* no economy: no glints */ });
+      importRetry(() => import('../../economy/coins')).then(m => { if (!this.disposed) this.coins = m as unknown as CoinsModule; }, () => { /* no economy: no glints */ });
     }
     return coinGlints(this.coins?.coinWorld ?? null);
   }

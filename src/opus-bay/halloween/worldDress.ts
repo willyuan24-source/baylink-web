@@ -219,8 +219,11 @@ const CYL_SKIRT = () => CONE_TRUNC();
 let truncGeo: THREE.BufferGeometry | null = null;
 const CONE_TRUNC = () => (truncGeo ??= new THREE.CylinderGeometry(0.72, 1, 1, 10, 1).translate(0, 0.5, 0));
 
-/** Everything on one stoop into `b` (its halos into `halos`). */
-export function addStoop(b: Batch, s: Stoop, halos: HaloSpot[], figures: boolean): void {
+/**
+ * Everything on one stoop into `b` (its halos into `halos`). W8-H: returns the vertex index where its trick-or-treater
+ * starts in `b` (the figure is the last thing added: its vertices run to the batch's end), or −1 without one.
+ */
+export function addStoop(b: Batch, s: Stoop, halos: HaloSpot[], figures: boolean): number {
   const h = stoopHash(s.i);
   const L = localFrame(s.x, s.y, s.z, s.f);
   const v = h % 20;
@@ -245,7 +248,23 @@ export function addStoop(b: Batch, s: Stoop, halos: HaloSpot[], figures: boolean
   if ((h >>> 11) % 2 === 0) addLantern(b, L.at(lampSide, 1.6, -0.36), s.f, halos);
   const fig = figures ? stoopFigure(s.i) : -1;
   // on the sidewalk beside the pumpkins, turned to the door (never out on the roadway)
-  if (fig >= 0) addFigure(b, L.at(s.fig === 2 ? 1.0 : -1.0, 0, 0.05), s.f + Math.PI * (s.fig === 2 ? 1.2 : 0.8), fig);
+  if (fig < 0) return -1;
+  const start = b.vertexCount;
+  addFigure(b, L.at(s.fig === 2 ? 1.0 : -1.0, 0, 0.05), s.f + Math.PI * (s.fig === 2 ? 1.2 : 0.8), fig);
+  return start;
+}
+
+/**
+ * (W8-H) The trick-or-treaters' hop: now and then each child does a small vertical hop (excited at the door) — HOP.h u
+ * high, HOP.dur s long, once every HOP.every[0] … HOP.every[1] s (its own period and phase from the stoop's hash). Done on
+ * the CPU in the stoops' merged mesh: only the hopping children's vertex ranges are rewritten and uploaded
+ * (BufferAttribute.addUpdateRange), so no new material, program or call; off with Settings' reduced motion.
+ */
+export const HOP = { h: 0.13, dur: 0.42, every: [2.6, 4.6] } as const;
+/** a child's hop offset (u) at time `t` (s) for its period / phase */
+export function hopAt(t: number, period: number, phase: number): number {
+  const u = (((t + phase) % period) + period) % period / HOP.dur;
+  return u < 1 ? HOP.h * Math.sin(Math.PI * u) : 0;
 }
 
 // --- the cells ------------------------------------------------------------------------------------------------------
@@ -309,7 +328,7 @@ export function nearestStoop(x: number, z: number, max: number, accept?: (i: num
   return best;
 }
 
-interface CellGeo { key: number; pos: Float32Array; nor: Float32Array; col: Float32Array; inf: Float32Array; idx: Uint32Array; verts: number; halos: HaloSpot[]; figures: number[]; figuresOn: boolean }
+interface CellGeo { key: number; pos: Float32Array; nor: Float32Array; col: Float32Array; inf: Float32Array; idx: Uint32Array; verts: number; halos: HaloSpot[]; figures: number[]; figuresOn: boolean; /** (W8-H) each figure's [first vertex, vertex count] in the cell, with its stoop */ figRanges: { i: number; start: number; count: number }[] }
 
 /** a Batch that keeps nothing (the halos of a cell without its geometry) */
 const NO_BATCH = { add() { return NO_BATCH; } } as unknown as Batch;
@@ -341,12 +360,59 @@ export function buildCell(key: number, figures: boolean): CellGeo {
   const b = new Batch();
   const halos: HaloSpot[] = [];
   const figs: number[] = [];
+  const figRanges: CellGeo['figRanges'] = [];
   for (const i of stoopIndex().get(key) ?? []) {
-    addStoop(b, stoopAt(i), halos, figures);
+    const start = addStoop(b, stoopAt(i), halos, figures);
     if (figures && stoopFigure(i) >= 0) figs.push(i);
+    if (start >= 0) figRanges.push({ i, start, count: b.vertexCount - start });
   }
-  return { key, pos: new Float32Array(b.pos), nor: new Float32Array(b.nor), col: new Float32Array(b.col), inf: new Float32Array(b.inf), idx: new Uint32Array(b.idx), verts: b.vertexCount, halos, figures: figs, figuresOn: figures };
+  return { key, pos: new Float32Array(b.pos), nor: new Float32Array(b.nor), col: new Float32Array(b.col), inf: new Float32Array(b.inf), idx: new Uint32Array(b.idx), verts: b.vertexCount, halos, figures: figs, figuresOn: figures, figRanges };
 }
+
+/** (W8-H) one hopping child in the assembled mesh: its vertex range, its rest heights, its period / phase, its last offset */
+export interface HopRange { start: number; count: number; base: Float32Array; period: number; phase: number; off: number }
+/** (W8-H) the hop ranges of the assembled cells (the same vertex order as assemble) */
+export function hopRanges(cells: readonly CellGeo[], pos: ArrayLike<number>): HopRange[] {
+  const out: HopRange[] = [];
+  let v = 0;
+  for (const c of cells) {
+    for (const r of c.figRanges) {
+      const start = v + r.start, base = new Float32Array(r.count);
+      for (let j = 0; j < r.count; j++) base[j] = pos[(start + j) * 3 + 1];
+      const h = stoopHash(r.i);
+      out.push({ start, count: r.count, base, period: HOP.every[0] + ((h >>> 5) % 1000) / 1000 * (HOP.every[1] - HOP.every[0]), phase: ((h >>> 15) % 997) / 997 * 5, off: 0 });
+    }
+    v += c.verts;
+  }
+  return out;
+}
+
+/** (W8-H) rewrite the hopping children's heights for time `t`; true when something changed (the ranges to upload are added) */
+export function stepHops(hops: readonly HopRange[], attr: THREE.BufferAttribute, t: number, still: boolean): boolean {
+  const arr = attr.array as Float32Array;
+  let changed = false;
+  for (const h of hops) {
+    const off = still ? 0 : hopAt(t, h.period, h.phase);
+    if (off === h.off) continue;
+    h.off = off;
+    for (let j = 0; j < h.count; j++) arr[(h.start + j) * 3 + 1] = h.base[j] + off;
+    attr.addUpdateRange(h.start * 3, h.count * 3);
+    changed = true;
+  }
+  if (!changed) return false;
+  // W8-H-review: the renderer clears the ranges only when it uploads — while the stoops' mesh is not drawn (culled, the
+  // group hidden) they piled up a frame at a time; past HOP_RANGES_MAX they collapse into one range over every child
+  if (attr.updateRanges.length > HOP_RANGES_MAX) {
+    let a = Infinity, b = 0;
+    for (const h of hops) { a = Math.min(a, h.start); b = Math.max(b, h.start + h.count); }
+    attr.clearUpdateRanges();
+    attr.addUpdateRange(a * 3, (b - a) * 3);
+  }
+  attr.needsUpdate = true;
+  return true;
+}
+/** (W8-H-review) at most this many pending update ranges on the stoops' positions (see stepHops) */
+export const HOP_RANGES_MAX = 64;
 
 function assemble(cells: readonly CellGeo[]): THREE.BufferGeometry | null {
   let nv = 0, ni = 0;
@@ -490,7 +556,7 @@ export interface Dress {
   /** per frame */
   step(dt: number, t: number, px: number, pz: number): void;
   halos(): readonly HaloSpot[];
-  stats(): { cells: number; stoops: number; tris: number; figures: number; bats: string | null };
+  stats(): { cells: number; stoops: number; tris: number; figures: number; bats: string | null; hops: number };
   /** the nearest drawn trick-or-treater within `max` (u) */
   nearFigure(x: number, z: number, max: number): boolean;
   dispose(): void;
@@ -508,8 +574,10 @@ export function createDress(): Dress {
   const bats = createBats();
   group.add(bats.mesh);
   let figures: number[] = [];
+  // W8-H: the children's hops in the current mesh
+  let hops: HopRange[] = [];
 
-  const drop = () => { if (!mesh) return; group.remove(mesh); mesh.geometry.dispose(); mesh = null; shown = []; figures = []; };
+  const drop = () => { if (!mesh) return; group.remove(mesh); mesh.geometry.dispose(); mesh = null; shown = []; figures = []; hops = []; };
 
   /** the cells holding stoops whose square comes within R of (px, pz), nearest first */
   const cellsWithin = (px: number, pz: number, R: number): number[] => {
@@ -586,6 +654,8 @@ export function createDress(): Dress {
     group.add(mesh);
     shown = keys;
     figures = ready.flatMap(c => c.figures);
+    hops = hopRanges(ready, geo.getAttribute('position').array);
+    (geo.getAttribute('position') as THREE.BufferAttribute).setUsage(THREE.DynamicDrawUsage);
   };
 
   return {
@@ -597,6 +667,8 @@ export function createDress(): Dress {
     },
     step: (dt, t, px, pz) => {
       if ((acc += dt) >= 1) { acc = 0; refresh(px, pz); }
+      // W8-H: the trick-or-treaters' hops (only the ranges that move are uploaded); still with reduced motion
+      if (mesh && hops.length) stepHops(hops, mesh.geometry.getAttribute('position') as THREE.BufferAttribute, t, game.get().settings.reducedMotion);
       // bats: the nearest colony within reach, from dusk
       let col: (typeof BAT_COLONIES)[number] | null = null;
       if (state.bats && U.uNight.value >= BATS_NIGHT) {
@@ -607,7 +679,7 @@ export function createDress(): Dress {
       if (col) bats.step(t);
     },
     halos: () => halos,
-    stats: () => ({ cells: shown.length, stoops: shown.reduce((s, k) => s + (stoopIndex().get(k)?.length ?? 0), 0), tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, figures: figures.length, bats: bats.colony() }),
+    stats: () => ({ cells: shown.length, stoops: shown.reduce((s, k) => s + (stoopIndex().get(k)?.length ?? 0), 0), tris: mesh ? (mesh.geometry.index?.count ?? 0) / 3 : 0, figures: figures.length, bats: bats.colony(), hops: hops.length }),
     nearFigure: (x, z, max) => figures.some(i => { const s = stoopAt(i); return Math.hypot(s.x - x, s.z - z) <= max; }),
     dispose: () => {
       drop();

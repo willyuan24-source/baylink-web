@@ -2,6 +2,7 @@ import { Binoculars, Wind } from 'lucide-react';
 import { game } from '../core/store';
 import { registerAskItem } from '../ui/slots';
 import { currentActivity } from './kit';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 7 · lane W2 · the ways into lane W2's games (play/index.ts registers them with the other ask items). Kept tiny: it
@@ -15,16 +16,16 @@ let zone: typeof import('./kiteZone') | null = null;
 
 export function registerKites(): () => void {
   let gone = false, offZone: (() => void) | null = null;
-  void import('./kiteZone').then(m => { if (gone) return; zone = m; offZone = m.startKiteZone(); }).catch(() => { /* the item stays hidden */ });
+  void importRetry(() => import('./kiteZone')).then(m => { if (gone) return; zone = m; offZone = m.startKiteZone(); }).catch(() => { /* the item stays hidden */ });
   const offKite = registerAskItem({
     id: 'play-kite', order: -6, label: { zh: '放风筝', en: 'Kite flying' }, icon: Wind,
     visible: () => !!zone && zone.kiteHere(),
-    onSelect: () => { void import('./kite').then(m => { m.startKite(); }); },
+    onSelect: () => { void importRetry(() => import('./kite')).then(m => { m.startKite(); }); },
   });
   const offSky = registerAskItem({
     id: 'play-skyline', order: -7, label: { zh: '那是什么？', en: 'What’s that?' }, icon: Binoculars,
     visible: () => !currentActivity() && game.get().mode === 'free' && game.get().phase === 'playing',
-    onSelect: () => { void import('./skyline').then(m => { m.startSkyline(); }); },
+    onSelect: () => { void importRetry(() => import('./skyline')).then(m => { m.startSkyline(); }); },
   });
   return () => { gone = true; offKite(); offSky(); offZone?.(); };
 }

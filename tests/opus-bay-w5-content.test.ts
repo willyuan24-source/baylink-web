@@ -383,7 +383,9 @@ test('W5-C3 a returning city player resumes: 欢迎回来 + the area they got to
   try {
     game.set({ mode: 'onboarding', phase: 'arrival' });
     flowMod.beginPlaying('local');
-    assert.equal(flow.get().bubble?.text.zh, '欢迎回来！上次我们走到唐人街了。');
+    // W8-K3 (on purpose): the recorded fixed line (voiced), the area on a toast (the templated 上次我们走到唐人街了 was never voiced)
+    assert.equal(flow.get().bubble?.text.zh, '欢迎回来！我们接着逛吧。');
+    assert.ok(game.get().toasts.some(t => (t.bi?.zh ?? t.text) === '上次走到 · 唐人街'), 'the area on a toast');
     assert.deepEqual(heard, ['returning']);
     assert.equal(flow.get().goalsCard, false, 'no card on a resume');
     // the listener's line waits for the welcome bubble (no pacer in this test: after it, never over it)
@@ -662,6 +664,7 @@ test('review: the goals step’s lead to the pelican walks on to the summit befo
     flowMod.startFreeLead('coit-tower');
     flow.set({ bubble: null });
     flowMod.freeLeadArrived();
-    assert.match(flow.get().bubble?.text.zh ?? '', /到啦！试试「眺望海湾」/);
+    // W8-K3 (on purpose): a fixed line lane X can voice in the city (the summit's prompt shows 眺望海湾 itself)
+    assert.equal(flow.get().bubble?.text.zh ?? '', '到啦！试试看吧～');
   } finally { flowMod.endTrip(); offTrips(); }
 });

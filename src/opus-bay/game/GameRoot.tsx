@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { lazyChunk } from './lazyChunk';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { game, useGame } from '../core/store';
 import { WorldScene } from '../world/WorldScene';
@@ -11,20 +12,22 @@ import { Systems } from './Systems';
 import { Overlay } from '../ui/Overlay';
 import { loadPlayParts, usePlayParts } from '../ui/playLayer';
 import { markFirstFrame } from './firstFrame';
+import { importRetry } from './importRetry';
+import { initChunkLostCard } from './chunkLost';
 
 const DPR: Record<string, number> = { high: 1.5, mid: 1.25, low: 1 };
 /** Camera far plane: the district fits in 1600 u; the whole city (Twin Peaks → Ferry Building + boards) needs 3000. */
 const FAR = { district: 1600, city: 3000 } as const;
 
 /** ?solo=<landmarkId> — landmark turntable for QA instead of the game (world/sf/landmarks/SoloView.tsx) */
-const SoloView = lazy(() => import('../world/sf/landmarks/SoloView'));
+const SoloView = lazyChunk(() => importRetry(() => import('../world/sf/landmarks/SoloView')));
 function readSolo(): string | null {
   try { const v = new URLSearchParams(location.search).get('solo'); return v && /^[a-z0-9-]{1,64}$/i.test(v) ? v : null; } catch { return null; }
 }
 
 // Audio (~60 kB min) is its own chunk, fetched as soon as the game chunk runs: it is normally in by the time
 // Start is pressed (the title shows meanwhile); if not, it boots on the next gesture (audio/audio.ts).
-const audio = typeof window !== 'undefined' ? import('../audio/audio') : null;
+const audio = typeof window !== 'undefined' ? importRetry(() => import('../audio/audio')) : null;
 
 // W6-P1 (MF9): the play layer's DOM parts (ui/playParts.tsx: the HUD, the dialogue box, the moments, the cards, the
 // touch stick) are their own chunk, fetched now in both world modes; a pressed Start waits for it (Game below).
@@ -65,9 +68,11 @@ function Game({ startRequested }: { startRequested: boolean }) {
   }, [partsIn]);
   useEffect(() => {
     let stop: (() => void) | null = null, gone = false;
-    void audio?.then(m => { if (!gone) stop = m.startAudio(); });
+    void audio?.then(m => { if (!gone) stop = m.startAudio(); }, () => { /* lost for good: the chunk-lost card */ });
     return () => { gone = true; stop?.(); };
   }, []);
+  // (W8-P5) a lazy chunk still lost after importRetry's retries: a 重新载入 card (game/chunkLost.ts, in this chunk)
+  useEffect(() => initChunkLostCard(), []);
   useEffect(() => {
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (reduced) game.set(s => ({ settings: { ...s.settings, reducedMotion: true } }));
@@ -81,7 +86,7 @@ function Game({ startRequested }: { startRequested: boolean }) {
         gl={{ antialias: quality !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
         camera={{ fov: 40, near: 0.5, far: FAR[worldMode], position: [0, 30, 40] }}
         // (W7-Q3, lane Q) a lost GL context (iOS): save, then a 重新载入 card — ui/glHealth.ts, its own small chunk
-        onCreated={({ gl }) => { gl.setClearColor('#f3ecdf'); void import('../ui/glHealth').then(m => m.watchGl(gl), () => {}); }}
+        onCreated={({ gl }) => { gl.setClearColor('#f3ecdf'); void importRetry(() => import('../ui/glHealth')).then(m => m.watchGl(gl), () => {}); }}
       >
         <Suspense fallback={null}>
           <WorldScene />

@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
@@ -45,7 +46,7 @@ type Monitor = typeof import('./perfMonitor').PerformanceMonitor;
 const noMonitor = (() => null) as unknown as Monitor;
 let monitorLoad: Promise<{ default: Monitor }> | null = null;
 const loadMonitor = () => (monitorLoad ??= importRetry(() => import('./perfMonitor')).then(m => ({ default: m.PerformanceMonitor }), () => ({ default: noMonitor })));
-const PerformanceMonitor = lazy(loadMonitor);
+const PerformanceMonitor = lazyChunk(loadMonitor);
 let timeApplied = false;
 const post$ = { focus: 0.3, warm: 0.25, vignette: 0.35, night: 0 } satisfies PostParams;
 /** seconds to the next material / shadow-depth sweep by object kind (materials.ts kindSweep; objects come and go with the city) */

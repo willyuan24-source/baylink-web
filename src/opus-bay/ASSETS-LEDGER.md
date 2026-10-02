@@ -995,3 +995,147 @@ Transactions 11:17:54.394 / 54.828 UTC (Nano Banana Pro −2 × 2); no other spe
 centre crop, WebP q80): 4 files, 268 KB.
 
 **Wave-6 lane X running total after batch 3: 15.70 credits.** Balance **2359.30** (cap 1000, floor 1375: far inside).
+
+## Wave 7 (local)
+
+Merged verbatim from `docs/opus-bay/ledger/w7-X.md` and `docs/opus-bay/ledger/w7-V.md` at the wave-7 hand-off (2026-09-30 ≈ 03:40 PDT). The owner's rules this wave: cap 800 for lane X with a floor of 1400 at day 0; from 20:35 PDT no cap (lanes X and V, a reserve of 200); from 23:15 PDT lanes X and V stop below a balance of 1900 (up to 1800 credits reserved for two BAYLINK promo videos after the go-live). Spent **33.63** (lane V 30.00: particle sprites + plush textures 24.00, the de Young tower 6.00; lane X 3.63: voice batch 1 1.99, batch 2 1.64); balance 2247.50 → **2213.87**. Lane R's three texture recolours (0 credits) are recorded in their rows W3-LM6 / LM7 / LM8 above. Whole-SF round: 389.18 (waves 1–6) + 33.63 = **422.81 credits**.
+
+### Wave 7 · lane X (from docs/opus-bay/ledger/w7-X.md)
+
+Cap **800** credits for wave 7, lane X only (lead note `sf-w7-lead.md` §1 / §3 / §6); **the balance never goes under
+1400**. A generated asset ships only if a side-by-side shot beats what is there. Rules as waves 5–6 (`ledger/w6-X.md`):
+reject any draw with text, logos, a base or clipped edges before paying for the next step; no image of a real person,
+real insignia, a real mural or artwork, or a brand. The account is shared: charges are attributed by job id and time from
+`transactions`, never by the balance difference alone.
+
+#### Preflight, 2026-09-30 04:31 UTC (2026-09-29 21:31 PDT)
+
+- `balance` **2223.5** (ultra). The lead's day-0 reading was 2247.5 (2026-09-29 20:10 PDT = 03:10 UTC).
+- `transactions` (newest 20 read): **12 × "Nano Banana Pro" −2 at 2026-09-30 03:50:45.50–03:50:46.62 UTC** (= 24.00
+  credits, 20:50 PDT) — **not lane X** (this lane had submitted nothing by then; its first job is below). Before them:
+  8 × "Kling v3.0" −8.75 at 00:05 UTC (before wave 7's day 0, already in the lead's 2247.5). Both are other work on the
+  shared account; they are listed here only so the balance reconciles.
+- Wave-7 lane X running total before its first batch: **0.00**. Floor 1400 → lane X may spend at most 800 (cap).
+
+**Correction (00:25 PDT):** the 12 × Nano Banana Pro at 03:50 UTC (24.00) are **lane V's** batch 1 (`ledger/w7-V.md`,
+"balance 2247.5 → 2223.5"), not other work outside the wave.
+
+#### Batch 1 · BAYBAY's voice, the lines no batch had (W7-X2), 2026-09-30 04:54–06:05 UTC
+
+Balance before: 2223.5 (04:31 UTC). Model `qwen_audio_tts` (Qwen Audio 3.0 TTS Flash), preset "Pixie"
+`0178ef57-ada4-43d9-992b-8d9221045bb4`, wav 48 kHz, W5-V7's instruction + a mood note, speech_rate 1.0 (retakes 1.0 / 1.1).
+Lines: `scripts/opus-sf/voice/w7/lines.ts` (50 lines × zh / en = 100 clips) + 22 retake takes of 11 wave-6 clips. Every
+take with its job id, text, measurements and the pick: `docs/opus-bay/qa/w7/X/voice/w7-voice-report.json`; job ids
+`C:/Users/willy/opus-qa/w7/x/voice/jobs1.txt`, `jobs2.txt`; raw wavs `…/voice/raw/<index>.wav`.
+
+| # | asset | model / settings | prompt summary | credits | job id | local raw file | status |
+|---|---|---|---|---|---|---|---|
+| W7X-VO1 | 100 clips (50 lines × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | the lanes' fixed bubble lines, verbatim | 0.01–0.05 each | w7-voice-report.json `takes[].job_id` | raw/0–99.wav | 100 used (93 pass the gates, 7 muted: W7_VOICE_CHECK) |
+| W7X-VO2 | 22 retake takes (11 wave-6 clips × 2) | same, rate 1.0 / 1.1 | the wave-6 texts, verbatim | 0.01–0.05 each | same | raw/100–121.wav | 3 replace wave 6 (zh-w6g-street-fair-oaks, zh-w6-h-hunt-all, en-w6-h-hunt-20), 8 rejected (wave 6 stays) |
+| — | 27 jobs the service failed ("failed", refunded) + 10 submissions answered 429 (nothing charged) | — | — | refunded | jobs1 / jobs2 | — | resubmitted (jobs2.txt) |
+
+#### Batch 2 · wave 7's new lines (W7-X3), 2026-09-30 06:47–06:56 UTC
+
+76 takes: 38 lines × zh / en — lane W2's hide & seek `被你找到啦！`, 放风筝 and 那是什么？ lines (play/), lane G's
+`W7_HALLOWEEN_LINES` (2), lane H's `W7_WORLD_LINES` (9), lane S's four own lines (`realsf-calendar-*`, `realsf-jets-blue`).
+Same model and voice; the Día de los Muertos / procession and the Alcatraz sunrise lines with "Soft, gentle and
+respectful." Job ids `…/voice/jobs3.txt`; 7 submissions answered 429 and were resubmitted; 0 failed jobs.
+
+**Reconciliation (00:25 PDT):** `balance` **2213.87**. `transactions` (newest 200 read) shows, after 03:50 UTC, only
+"Qwen Audio 3.0 TTS Flash" rows (spend 0.01–0.05, and refunds for the failed jobs) from 04:54 to 06:56 UTC — lane X's —
+plus whatever lane V spent after its batch 1 (its own ledger). Lane X's net TTS spend is ≈ 3–4 credits (≈ 235 charged
+takes at 0.01–0.05, minus the refunds); the exact row-by-row sum and the split against `ledger/w7-V.md` is left to the
+hand-off (Requests). **Wave-7 lane X running total ≈ 4 credits**, far under the cap; balance ≫ floor 1400.
+
+### Wave 7 · lane V (from docs/opus-bay/ledger/w7-V.md)
+
+Lane V (models, characters, vehicles, effects), worktree `C:/Users/willy/wt/w7-v`. The owner (2026-09-29 ≈ 20:30 PDT):
+"尽情用 higgsfield 上能用的工具，分数随便用" — no cap; a practical reserve of 200 credits stays. Lane X spends in parallel
+with its own ledger (`ledger/w7-X.md`), so the account balance below can drop by more than this lane's rows; the per-job
+credits are the authoritative tally for lane V. Raw downloads: `C:/Users/willy/opus-qa/w7/v/raw/`.
+Output base URL: `https://d8j0ntlcm91z4.cloudfront.net/user_3GeGz2pt6e7qQoBduIsGSY4Xu4Q/` + the file name.
+
+#### Balances
+
+| when (UTC) | balance | note |
+|---|---|---|
+| 2026-09-30 03:40 | 2247.50 | lane start (20:40 PDT) |
+| 2026-09-30 03:50 | 2247.50 | before batch 1 |
+
+#### Batch 1 · particle sprites and a plush texture (nano_banana_pro, 1:1 1k, 2 credits each; preflight 2)
+
+Prompt frame for the sprites: "A single hand-painted white gouache game-effect sprite, centered, on a pure flat black
+background (#000000): <subject>. Soft painterly brush texture with visible bristle strokes …, like a charming handcrafted
+toy-diorama video game. The shape fills about 70–80% of the frame with an even black margin all around. Monochrome white
+only on black. No text, no letters, no logos, no watermark, no border, no drop shadow."
+
+| # | UTC | job | subject | credits | output file | local | verdict |
+|---|---|---|---|---|---|---|---|
+| V1 | 03:50 | fee442c4 | four-pointed star glint | 2 | hf_20260930_035045_fee442c4-f305-48ac-9395-bb17ae013f54.png | raw/s0-star.png | kept: atlas cell star |
+| V2 | 03:50 | b284cf5a | billowing dust puff | 2 | hf_20260930_035045_b284cf5a-4f0c-48c4-8aed-4a292382c184.png | raw/s1-puff.png | kept: atlas cell cloud |
+| V3 | 03:50 | 3f75d704 | water droplet | 2 | hf_20260930_035045_3f75d704-083e-4ead-bc11-e2ea0b7ed8c1.png | raw/s2-drop.png | kept: atlas cell droplet |
+| V4 | 03:50 | ea84c459 | foam ring from above | 2 | hf_20260930_035045_ea84c459-d70b-4c5a-b953-243a0ad57581.png | raw/s3-foam.png | kept: atlas cell foam |
+| V5 | 03:50 | ea729d6d | fog wisp | 2 | hf_20260930_035045_ea729d6d-204c-4da5-aa24-96f69c97a857.png | raw/s4-wisp.png | kept: atlas cells puff + wisp (dark-grey ground levelled) |
+| V6 | 03:50 | da4924f6 | heart | 2 | hf_20260930_035045_da4924f6-8707-4985-ab6f-9c59fc792e9d.png | raw/s5-heart.png | kept: atlas cell heart |
+| V7 | 03:50 | 79aa08f9 | music note | 2 | hf_20260930_035045_79aa08f9-6015-43da-a9f6-3aa6f1319792.png | raw/s6-note.png | kept: atlas cell note |
+| V8 | 03:50 | cfafa074 | confetti curl | 2 | hf_20260930_035045_cfafa074-eb53-4a2f-b579-9cab03045ea0.png | raw/s7-confetti.png | kept: atlas cell confetti |
+| V9 | 03:50 | fcdecca9 | light glow / flare | 2 | hf_20260930_035045_fcdecca9-c6b2-483e-9889-976f88e7857b.png | raw/s8-flare.png | kept: atlas cell flare |
+| V10 | 03:50 | 3eb56fe8 | leaf | 2 | hf_20260930_035045_3eb56fe8-d62b-437f-9299-5e69315740ae.png | raw/s9-leaf.png | kept: atlas cell leaf |
+| V11 | 03:50 | b9a5fe99 | tileable felt (plush toy) | 2 | hf_20260930_035045_b9a5fe99-001a-47cf-a3e2-f173398de41e.png | raw/t0-felt.png | kept: `public/opus-bay/w7v/felt.webp` (W7-V3, `felt.py`: high-passed, seamless, 256²) — *verdict filled in by the W7-V-review* |
+| V12 | 03:50 | 3a81a0aa | tileable minky plush | 2 | hf_20260930_035046_3a81a0aa-9739-4a90-a84b-563828ec44f7.png | raw/t1-plush.png | not shipped: W7-V3 uses V11 alone (`felt.py` reads only `t0-felt.png`); no side-by-side of V12 was recorded — *verdict filled in by the W7-V-review* |
+
+Batch 1 subtotal: 24 credits.
+
+#### Batch 2 · the de Young's Hamon tower (W7-V4; lane R's scorecard #22)
+
+Balance before: 2223.50 (03:55 UTC, after batch 1). Concept prompts: the wave-4 landmark recipe
+(`scripts/opus-sf/assets/w4/prompts.py`: PRE_A + subject + ADDON + colours; refs K6 `3617006b` and the rotunda concept
+`fba12f36` for a, K6 only + the style contract for b). SAM 3 3D prompt: "the twisted copper tower" / "the brown tower".
+
+| # | UTC | job | tool / model | credits | output file | local | verdict |
+|---|---|---|---|---|---|---|---|
+| V13 | 04:44 | e684912e | nano_banana_pro 1:1 2k, refs K6 + rotunda | 2 | hf_20260930_044455_e684912e-e9a4-4df7-b084-7e228d6c734e.png | raw/dy-a.png | kept: the concept (twist, perforated + dimpled copper, glass top) |
+| V14 | 04:44 | 63b4fc5d | nano_banana_pro 1:1 2k, ref K6 | 2 | hf_20260930_044455_63b4fc5d-6f96-4dfc-8ce7-f67b5e3ebaae.png | raw/dy-b.png | rejected: a square shaft, not the slab |
+| V15 | 04:47 | 3b46e279 | sam_3_3d on V13 | 0 (failed: no object; −1 at 04:47:06, refunded +1 at 04:47:08) | — | — | failed |
+| V16 | 04:47 | f066422b | sam_3_3d on V14 | 1 | hf_20260930_044713_f066422b-4d0c-4265-8b74-565692cd3287.glb | ai/raw/dy-b-sam.glb | rejected with V14 |
+| V17 | 04:48 | d81df52a | sam_3_3d on V13 ("the brown tower") | 1 | hf_20260930_044801_d81df52a-f10c-4868-a6c5-c3cf9089f900.glb | ai/raw/dy-a-sam.glb | kept → `public/opus-bay/models/sf/w7v-de-young-tower.glb` (cleanup v2: box 4.3 × 11.15 × 2.6, 3,920 tris, 101,296 B; v1 at the mesh's own 3.45 depth read as a fat block and was not shipped) |
+
+Balance after: 2217.13 (05:02 UTC; lane X's voice jobs run in parallel, so the drop is not all this batch).
+
+Balance at 06:25 UTC (23:25 PDT): 2215.51 (lane X's voice jobs included).
+
+#### Reconciliation (`transactions`, read 2026-09-30 06:30 UTC)
+
+Lane V's charges are the only "Nano Banana Pro" and "3D Objects" rows since 03:40 UTC (lane X's are "Qwen Audio 3.0 TTS
+Flash"): 12 × Nano Banana Pro −2 at 03:50:45–46 (batch 1 = 24), 2 × Nano Banana Pro −2 at 04:44:56 (V13, V14 = 4), 3D
+Objects −1 04:47:06 / +1 refund 04:47:08 (V15) / −1 04:47:13 (V16) / −1 04:48:01 (V17) (= 2). **Lane V total: 30.00
+credits** (batch 1 24 + batch 2 6), every row above accounted for; no other lane-V job.
+
+#### Review check (W7-V-review, `transactions` read 2026-09-30 07:35 UTC)
+
+Re-read by the reviewer, three pages back to 2026-09-29 11:17 UTC: since 03:40 UTC the only non-TTS rows are the 14 ×
+Nano Banana Pro −2 (03:50:45–46 × 12, 04:44:56 × 2) and the four 3D Objects rows (−1 04:47:06, +1 refund 04:47:08, −1
+04:47:13, −1 04:48:01); everything after 04:48 is lane X's Qwen Audio 3.0 TTS Flash. **Lane V = 30.00 credits, as
+recorded.** The two V11 / V12 rows had "see part b" as their verdict; filled in above.
+
+### Balance trail and reconciliation (wave-7 merge, 2026-09-30 ≈ 10:35 UTC)
+
+| step | charges (`transactions`, UTC) | credits | balance after |
+|---|---|---|---|
+| wave 6 end (above) | — | — | 2359.30 (`balance` 2026-09-29 11:29) |
+| other work on the shared account between the waves (not Opus Bay) | Seed Audio 1.0 × 13 (2026-09-29 20:10:12.370–20:47:12.089, 25.80), Outpaint −2 × 8 (2026-09-30 00:00:42.753–00:00:57.465, 16.00), Kling v3.0 −8.75 × 8 (00:05:29.319–00:05:43.436, 70.00) | 111.80 | 2247.50 (`balance` 2026-09-30 03:10, the lead's day 0 = 20:10 PDT) |
+| wave 7 · V batch 1 (V1–V12) | Nano Banana Pro −2 × 12 (03:50:45.503–03:50:46.618) | 24.00 | 2223.50 (`balance` 04:31, lane X's preflight) |
+| wave 7 · V batch 2 (V13–V17) | Nano Banana Pro −2 × 2 (04:44:56.027, 04:44:56.176); 3D Objects −1 (04:47:06.035), +1 refund (04:47:08.546), −1 (04:47:13.571), −1 (04:48:01.417) | 6.00 | 2217.50 |
+| wave 7 · X batch 1 (W7X-VO1, VO2) | Qwen Audio 3.0 TTS Flash spends and the failed jobs' refunds (04:54:09.649–06:04:42.959) | 1.99 | 2215.51 (`balance` 06:25, lane V's reading) |
+| wave 7 · X batch 2 (W7-X3) | 76 Qwen Audio 3.0 TTS Flash spends, no refund (06:47:47.924–06:55:48.084), summed row by row | 1.64 | 2213.87 (`balance` 07:25, lane X's reconciliation; again ≈ 10:30, plan ultra) |
+
+Reconciliation: `transactions` read newest first at this merge (three pages of 100, back to 2026-09-29 11:17 UTC). The
+newest charge on the account is 2026-09-30 06:55:48.084774 UTC (lane X's last take): nothing was spent after the lanes.
+Since the day-0 reading the only rows that are not TTS are lane V's 14 Nano Banana Pro and 4 3D Objects rows (as the
+W7-V-review found at 07:35 UTC), and the first TTS row is lane X's first take at 04:54:09.649 — so every row of the wave
+is lane V's or lane X's. Lane X's ledger left its exact sum open ("≈ 3–4"): batch 2's 76 rows add up to 1.64 (= 2215.51 −
+2213.87), and batch 1 is 2217.50 − 2215.51 = 1.99 (spends minus the refunds of the 27 failed jobs; the 10 + 7 answers 429
+charged nothing). Sum check: 2247.50 − 2213.87 = **33.63** = 24.00 + 6.00 + 1.99 + 1.64.
+
+**Wave 7 total: 33.63 credits** (lane V 30.00, lane X 3.63) — far under every limit. Balance **2213.87**: the promo
+reserve (up to 1800) is untouched; the game lanes' floor stays 1900 until the promo videos are made.

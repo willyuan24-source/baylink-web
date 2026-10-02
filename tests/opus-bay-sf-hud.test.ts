@@ -144,10 +144,10 @@ test('W5-F3 · the routed wave-3 G items (sf-w4-lead.md §8.4) are in: FocusMark
   assert.match(srcOf('opus-bay.css'), /@media \(min-width: 601px\) and \(max-width: 720px\) and \(max-height: 500px\) \{\s*\.ob-hud-buttons \{ flex-direction: column-reverse; bottom: calc\(18px \+ var\(--ob-sb\)\); \}/);
   assert.match(srcOf('actors/camera.ts'), /const prefer = gs \|\| this\.twoSide;/);
   const settings = srcOf('ui/Settings.tsx');
-  assert.match(settings, /import\('\.\.\/game\/baybayLines'\)\.then\(m => m\.clearLineMemory\(\)/);
+  assert.match(settings, /import\('\.\.\/game\/baybayLines'\)\)?\.then\(m => m\.clearLineMemory\(\)/); // (W8-P5: through importRetry)
   assert.match(settings, /clearSave\(\); resetLineMemory\(\);/, 'the reset clears the save (the play block with it) and the line memory');
   assert.match(srcOf('economy/ledger.ts'), /onSaveCleared\(/, 'lane E\'s ledger forgets its coins when the save is cleared');
-  assert.match(srcOf('actors/system.ts'), /import\('\.\.\/world\/models'\)\.then\(m => m\.heroGltfLoader\(\)\.loadAsync\(MODELS\.baybay\.url\)\)/);
+  assert.match(srcOf('actors/system.ts'), /import\('\.\.\/world\/models'\)\)?\.then\(m => m\.heroGltfLoader\(\)\.loadAsync\(MODELS\.baybay\.url\)\)/); // (W8-P5: through importRetry)
 });
 
 // ---------------------------------------------------------------------------

@@ -205,7 +205,8 @@ test('W5-C5 the tour’s first bus ride has no lead line of its own (lane T’s 
   const ggb = tourStops(SF_GRAND).find(f => f.stop.id === 'bay-ride-ggb')!.stop;
   assert.equal(ggb.lines.lead, undefined);
   assert.equal(ggb.lines.arrive, 'loop-golden-gate-bridge-arrive');
-  assert.match(src('game/lineRides.ts'), /上车！坐到/, 'lane T’s auto-boarding line');
+  // W8-K3 (on purpose): the auto-boarding line is the fixed 上车！出发咯～ (game/fixedLines.ts allAboard: voiceable; the banner names the stop)
+  assert.match(src('game/lineRides.ts'), /W8K_LINES\.allAboard/, 'lane T’s auto-boarding line');
   assert.deepEqual(GRAND_TOUR.subtitle, SF_GRAND.subtitle, 'the main-graph copy follows the tour data');
 });
 

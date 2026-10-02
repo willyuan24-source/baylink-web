@@ -15,7 +15,7 @@ import { closePanel, navigateTo, openEvent, openPanel, startTour, tourStops, wis
 import { goalTargets } from '../game/cityContent';
 import { flow } from '../game/flowStore';
 import { poiById } from '../game/interactables';
-import { useT } from '../i18n';
+import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { useImageOk } from './hooks';
 import { formatDay, postcardImage } from './format';
@@ -311,13 +311,15 @@ function Wishes() {
   // what BAYLINK's planner can take: a day every selected event is really on (+ places), ≤ 3 stops
   const pick = pickPlanDate(wishStops(items), catalog, today);
   const carried = pick.stops;
-  const titles = planStopTitles(carried, catalog);
-  const later = pick.rest.filter(item => item.date).map(item => ({ title: eventById(catalog, item.id)?.title ?? item.id, date: item.date! }));
+  // (W8-Q1) the catalog's titles are Simplified Chinese: names in the reader's language (the English promo film showed
+  // "Take Ferry Plaza 农夫市集… to BAYLINK as a plan")
+  const titles = planStopTitles(carried, catalog, locale);
+  const later = pick.rest.filter(item => item.date).map(item => ({ title: catalogText(eventById(catalog, item.id)?.title ?? item.id, locale), date: item.date! }));
   // saves the planner cannot take (waterfront spots without a planner place, ended events…) — offered as a walking route
   const notPlannable = items.filter(item => !wishPlannable(item, catalog));
   const routeItems = items.filter(item => item.kind === 'poi' && !!wishPoint(item, catalog)).sort((a, b) => poiOrder(a.id) - poiOrder(b.id));
   const route = walkingRouteUrl(routeItems.map(item => wishPoint(item, catalog)!));
-  const nameOf = (item: WishItem) => { const poi = item.kind === 'poi' ? poiById(item.id) : undefined; return poi ? t(poi.name) : eventById(catalog, item.id)?.title ?? placeById(catalog, item.id)?.title ?? item.title; };
+  const nameOf = (item: WishItem) => { const poi = item.kind === 'poi' ? poiById(item.id) : undefined; return poi ? t(poi.name) : catalogText(eventById(catalog, item.id)?.title ?? placeById(catalog, item.id)?.title ?? item.title, locale); };
   return (
     <>
       <ul className="ob-wishes">

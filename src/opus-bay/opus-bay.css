@@ -343,6 +343,13 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
   .ob-overlay.has-sheet .ob-context { left: calc((100% - var(--ob-sheet-w, 452px)) / 2); }
   .ob-overlay.has-sheet .ob-toasts { left: calc((100% - var(--ob-sheet-w, 452px)) / 2); }
 }
+/* W8-Q-review (Q-PL-2) · a phone on its side with a side sheet open (the map at 844 × 340): the strip left of the sheet
+   (≈ 290 px) cannot hold the area pill, the objective pill and the HUD column (bottom-anchored, it reaches the top at 340 px):
+   the objective lay over the area pill, the gear over the objective, and BAYBAY's bubble ran off the left edge. Under
+   500 px tall the two pills, the waypoint and the bubble wait under the sheet, as phones' do (≤ 720 px, the bottom sheet). */
+@media (min-width: 721px) and (max-height: 500px) {
+  .ob-overlay.has-sheet :is(.ob-area, .ob-objective, .ob-waypoint, .ob-bubble-anchor) { visibility: hidden; }
+}
 .ob-overlay.is-modal .ob-context, .ob-overlay.is-modal .ob-hud-buttons, .ob-overlay.is-modal .ob-touch-action { display: none; }
 .ob-overlay.is-photo .ob-bubble-anchor, .ob-overlay.is-photo .ob-waypoint { display: none; }
 .ob-overlay.is-modal .ob-bubble-anchor, .ob-overlay.is-modal .ob-waypoint, .ob-overlay.is-modal .ob-coach, .ob-overlay.is-modal .ob-lead-chip { display: none; }
@@ -379,6 +386,8 @@ html.ob-lock, html.ob-lock body { overflow: hidden; overscroll-behavior: none; b
    Speech bubble, waypoint, goals card
    ========================================================================== */
 .ob-bubble-anchor { position: absolute; left: 0; top: 0; z-index: 8; will-change: transform; pointer-events: none; }
+/* W8-K-review (K-RP-1): no free spot beside the fixed HUD (a short / rotated phone under a play panel, z 43): drawn on top */
+.ob-bubble-anchor[data-over='1'] { z-index: 45; }
 .ob-bubble {
   position: absolute; left: 0; bottom: 10px; transform: translateX(-50%); width: max-content; max-width: 250px; padding: 9px 14px; border-radius: 16px;
   background: var(--ob-cream); border: 1px solid var(--ob-line); color: var(--ob-ink); font-size: 15px; font-weight: 700; line-height: 1.4; text-align: center;
@@ -1094,6 +1103,10 @@ button.ob-wish-title:hover, a.ob-wish-title:hover { color: var(--ob-teal-d); }
 .ob-ask-me::after { content: ''; position: absolute; left: 50%; bottom: -4px; width: 8px; height: 8px; background: var(--ob-teal); transform: translateX(-50%) rotate(45deg); }
 @keyframes ob-bob-y { 50% { transform: translate(-50%, -3px); } }
 .ob-overlay.has-sheet .ob-ask-me { display: none; }
+/* (W8-I, W8I-P-5) short landscape: the context action (Take the ferry …) sits on the tag ('…me' showed); the tag waits */
+@media (max-height: 460px) and (orientation: landscape) {
+  .ob-overlay:has(.ob-touch-action:not(.is-behind-sheet)) .ob-ask-me { display: none; }
+}
 
 /* F2 · coach mark (teaches moving once, after the screen is free) */
 .ob-coach {
@@ -1317,6 +1330,7 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
 .ob-gl-lost-card { max-width: 320px; padding: 20px 20px 18px; border-radius: var(--ob-r-l); background: var(--ob-cream); box-shadow: var(--ob-shadow); text-align: center; display: grid; gap: 10px; justify-items: center; }
 .ob-gl-lost-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--ob-ink); }
 .ob-gl-lost-body { margin: 0; font-size: 14px; line-height: 1.5; color: var(--ob-ink-2); }
+.ob-chunk-lost:focus { outline: none; } /* W8-P-review: the card itself takes focus (Space / Enter stay the game's) */
 .ob-gl-lost-btn { min-height: 44px; min-width: 140px; margin-top: 4px; }
 
 /* ---------- W7-Q5 · iPhone landscape with Safari's bars (667 × 320 on an SE, 844 × 340 on an iPhone 12–15) ---------- */
@@ -1345,4 +1359,27 @@ html[lang='en'] .ob-postcard-fact, html[lang='en'] .ob-title-h1 { font-family: v
    give it the height of the screen (its width still leaves the HUD column and BAYBAY in view) */
 @media (min-width: 721px) and (max-height: 500px) {
   .ob-overlay .ob-sheet.ob-shop { max-height: calc(100dvh - 32px - var(--ob-st) - var(--ob-sb)); }
+}
+
+/* ---- W8-Q9 (lane Q) · the skyline quiz on a phone: its three names (play/skyline.ts SkylineCard, 92vw wide, 96 px over the
+   bottom) lie over the right-hand touch column — 跳 / 飞 / the action button peeked out round the names and could not be
+   pressed. While the names are up the column steps aside (a hop or a step ends the quiz anyway: cancelOnMove). W8-Q11:
+   the arrival card too (the quiz started within its 6 s at a lookout: its photo and buttons showed between the names). */
+.ob-overlay:has(.ob-play-sky) :is(.ob-move-buttons, .ob-touch-action, .ob-arrival-card) { visibility: hidden; }
+/* W8-Q12 (lane Q) · the play chip between 601 and 1080 px wide (a phone in landscape, 667 × 320 / 844 × 340; a small tablet):
+   centred at the top (play/play.css .ob-play-flight, z 41) it lay over the area pill and the objective pill — the overlap
+   scan found 打开旅行本 under its 不玩了 during the skyline quiz at 667 × 320. There it drops under the pills, as phones'
+   chips do (top 118 px under 600 px). */
+@media (min-width: 601px) and (max-width: 1080px) {
+  .ob-overlay .ob-play-flight { top: calc(72px + var(--ob-st)); }
+  /* W8-Q-review (Q-RC-1): at 64 px the chip lay 3 px over the two-line objective pill (to 67 px) and in the top stack's band
+     (70 px, z 60): a toast covered its name, n/3 and hint. 72 px clears the pill; the top stack starts under the chip
+     (≈ 54 tall), as the phones' rule (185 px) does under 600 px */
+  .ob-overlay:has(.ob-play-flight) .ob-topstack { top: calc(134px + var(--ob-st)); }
+}
+/* … and in short landscape the skyline's names (three rows of 48 + gaps = 160 px, 96 px over the bottom: up to y 64 at
+   320 px) would reach the chip: there they sit 12 px over the bottom. !important: the names' box is an inline style
+   (play/skyline.ts SkylineCard). */
+@media (max-height: 460px) and (min-width: 560px) {
+  .ob-overlay .ob-play-sky { bottom: calc(12px + env(safe-area-inset-bottom, 0px)) !important; }
 }

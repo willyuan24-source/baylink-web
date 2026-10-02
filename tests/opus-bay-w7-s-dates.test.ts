@@ -33,7 +33,8 @@ test('W7-S2 calendar rows: DST ends 1 Nov, Día de los Muertos on 2 Nov (usually
   for (const id of W7) {
     const r = cal.CALENDAR.find(x => x.id === id);
     assert.ok(r, id);
-    assert.equal(r!.source.verifiedAt, '2026-09-29', id);
+    // (W8-S) the Parade of Ships was re-read on 2026-09-30 (its toy ships)
+    assert.ok(['2026-09-29', '2026-09-30'].includes(r!.source.verifiedAt), id);
     assert.match(r!.source.url, /^https:\/\//);
     assert.ok(!r!.hidden && !r!.later, `${id} is shown`);
     assert.ok(zhLen(r!.note.zh) <= 40 && (!r!.line || zhLen(r!.line.zh) <= 45), id);
@@ -44,7 +45,7 @@ test('W7-S2 calendar rows: DST ends 1 Nov, Día de los Muertos on 2 Nov (usually
   assert.deepEqual(cal.calendarOn('2026-11-02').map(r => r.id), ['dia-de-los-muertos-2026']);
   assert.deepEqual(cal.calendarOn('2026-10-31').map(r => r.id).sort(), ['chinatown-halloween-festival-2026', 'halloween-2026']);
   assert.deepEqual(cal.calendarOn('2026-10-12').map(r => r.id), ['alcatraz-sunrise-2026-10']);
-  assert.deepEqual(cal.calendarOn('2026-10-09').map(r => r.id), ['fleet-week-parade-of-ships-2026']);
+  assert.deepEqual(cal.calendarOn('2026-10-09').map(r => r.id), ['fleet-week-parade-of-ships-2026', 'fleet-week-blue-angels-2026'], 'W8-S: the Blue Angels row on the three air-show days');
   // 这周 a week ahead: on Oct 25 the Halloween rows and the DST change; on Oct 26 the muertos row too
   assert.deepEqual(cal.calendarAhead('2026-10-25', 7).map(r => r.id).sort(), ['chinatown-halloween-festival-2026', 'dst-end-2026', 'halloween-2026']);
   assert.ok(cal.calendarAhead('2026-10-26', 7).some(r => r.id === 'dia-de-los-muertos-2026'));

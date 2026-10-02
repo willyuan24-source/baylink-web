@@ -5,6 +5,7 @@ import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { isWater } from '../core/terrain';
+import { baybayHeld } from '../game/baybayHold';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { registerFrameSystem } from '../game/systemsRegistry';
@@ -110,10 +111,15 @@ export function startFloatWatch(rand: () => number = Math.random): () => void {
   let still = 0, lastFloat = -Infinity, checked = false;
   return registerFrameSystem('a-play-float', (dt, now) => {
     const s = game.get(), p = runtime.player;
-    const idle = s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && s.riding === null && runtime.move.mode === 'foot' && !p.moving && !p.locked && !flow.get().cinematic;
+    // (W8-I, W8I-WS-2) not with a panel up (a place card on the phone hid the bubble while its voice played): the
+    // pacer's rule, an open panel is quiet
+    const idle = s.phase === 'playing' && s.panel.kind === null && !s.dialogue.nodeId && !s.photoMode && s.riding === null && runtime.move.mode === 'foot' && !p.moving && !p.locked && !flow.get().cinematic;
     if (!idle) { still = 0; checked = false; return; }
     still += dt;
     if (still < FLOAT_IDLE || checked) return;
+    // (W8-K4, lane K surgical) never over another bubble (it cut the Wharf's crab-wheel bark after 0.6 s in W8-K1's live
+    // proof), nor under a play panel / card (game/baybayHold.ts): it waits for them
+    if (flow.get().bubble || baybayHeld()) return;
     checked = true;
     const t = now / 1000;
     if (t - lastFloat < FLOAT_EVERY || rand() > FLOAT_CHANCE) return;

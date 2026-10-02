@@ -3,11 +3,13 @@ import { emit } from '../core/events';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { travelActive } from '../game/fastTravel';
 import { bubble, dialogueOpen } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID } from '../game/interactables';
+import { bayTimeOfDay } from '../game/qa';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { createDayMemory, RealLineScheduler, type OfferedLine } from '../realsf/lines';
 import { cityStreamerLazy } from '../world/cityLoader';
@@ -20,6 +22,7 @@ import { halloweenPhase, type HalloweenPhase } from './season';
 import { BAT_COLONIES, createDress, nearestStoop } from './worldDress';
 import { createHaloPool } from './worldHalos';
 import { createHaunt } from './worldHaunt';
+import { createFestival } from './worldFestival';
 import { createVenuePatches, VENUE_LINE_NEAR } from './worldVenues';
 import { lineText, type WorldLineKey } from './worldLines';
 
@@ -48,8 +51,11 @@ const STREET_NEAR = 22;
 /**
  * (W7-H1) The Halloween dusk: while the season runs (any phase but 'off') Karl's golden-hour colour leans this much toward
  * pumpkin orange (world/sf/fog.ts KarlState.setGoldenTint — fog.ts never reads the calendar: this feature pushes it).
+ * (W8-H) `haze`: and at golden hour that colour lies thinly over the whole city, not only inside Karl's bank (the west):
+ * the camera's own ground counts as `haze` under the bank (uKarlCam's floor) — downtown gets a soft apricot dusk that
+ * deepens with distance (W7: the tint showed only where the bank is).
  */
-export const DUSK_TINT = { color: '#f2a65a', amount: 0.35 } as const;
+export const DUSK_TINT = { color: '#f2a65a', amount: 0.35, haze: 0.35 } as const;
 
 /** The golden-hour tint the phase wants (null: none). */
 export const duskTintFor = (phase: HalloweenPhase): typeof DUSK_TINT | null => (phase === 'off' ? null : DUSK_TINT);
@@ -76,9 +82,11 @@ export function initHalloweenWorld(): () => void {
   const muertos = createMuertos();
   const haunt = createHaunt();
   const venues = createVenuePatches();
+  // W8-H: the Chinatown Halloween Festival on Waverly Place (31 Oct 2026, 11:00–15:00; halloween/worldFestival.ts)
+  const festival = createFestival();
   const group = new THREE.Group();
   group.name = 'halloween-world';
-  group.add(dress.group, hunt.group, muertos.group, haunt.group, venues.group, pool.mesh);
+  group.add(dress.group, hunt.group, muertos.group, haunt.group, venues.group, festival.group, pool.mesh);
   let offSystem: (() => void) | null = null;
   const attach = () => {
     if (offSystem || !cityStreamerLazy()) return;
@@ -96,7 +104,7 @@ export function initHalloweenWorld(): () => void {
     const k = karl();
     if (!k) return;
     const t = duskTintFor(phase);
-    k.setGoldenTint(t?.color ?? null, t?.amount ?? 0, tinted !== k);
+    k.setGoldenTint(t?.color ?? null, t?.amount ?? 0, tinted !== k, t?.haze ?? 0);
     tinted = k;
   };
   pushTint();
@@ -128,6 +136,9 @@ export function initHalloweenWorld(): () => void {
       dress.want(wants);
       emit({ type: 'halloween', what: 'phase', id: phase });
     }
+    // (W8-I, W8I-P-3 / D-5) Halloween night is the promo night: a first visit then follows the Bay clock (the lit stoops,
+    // the bats, the night sky), not F11's golden hour — BAYBAY said 今晚是万圣节 and then 金色时刻 in sunlight
+    if (phase === 'night' && flow.get().goldenFirstVisit && bayTimeOfDay(now) === 'night') flow.set({ goldenFirstVisit: false, timeOffer: null });
     pushTint();
     pool.set('dress', dress.halos());
     pool.set('hunt', wants.hunt ? hunt.halos() : [], 2);
@@ -136,12 +147,15 @@ export function initHalloweenWorld(): () => void {
     // W7-H7: the pumpkin patches at the season's pumpkin events (the catalog's windows, lane S's kits)
     venues.step(p.x, p.z, !!offSystem && (phase === 'season' || phase === 'night'), now);
     pool.set('venues', venues.halos(), 1);
+    // W8-H: the festival's kit on its day and hours, near Waverly Place (any season phase but 'off': it is 31 October)
+    festival.step(p.x, p.z, !!offSystem && phase !== 'off', now);
     if (!offSystem || phase === 'off') return;
 
     const s = game.get(), f = flow.get();
     const gates = {
       silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
-        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null
+        || baybayHeld(), // W8-K1 (lane K, surgical): a play panel, an egg card, the Halloween postcard… (game/baybayHold.ts)
       bubble: !!f.bubble,
       quiet: performance.now() < f.quietUntil,
     };
@@ -156,6 +170,10 @@ export function initHalloweenWorld(): () => void {
     const street = !!nearestStoop(p.x, p.z, STREET_NEAR);
     if (wants.muertos) for (const m of muertos.near(p.x, p.z, now)) offer(m.key, m.line);
     if (venues.near(p.x, p.z, VENUE_LINE_NEAR)) offer('venue-pumpkins', 'venuePumpkins');
+    // W8-H: the Chinatown festival — the contest line by the stage, the lantern line in the alley
+    const fest = festival.near(p.x, p.z);
+    if (fest === 'contest') offer('chinatown-contest', 'chinatownContest');
+    if (fest) offer('chinatown-lanterns', 'chinatownLanterns');
     if (near && Math.hypot(near.x - p.x, near.z - p.z) < WISP_LINE_NEAR) offer('hunt-wisp', 'huntWisp');
     if (wants.hunt && hunt.nearUnfound(p.x, p.z, 30)) offer('hunt-hint', night > 0.5 ? 'huntNight' : 'huntSniff');
     if (wants.bats && dress.stats().bats && BAT_COLONIES.some(c => Math.hypot(c.x - p.x, c.z - p.z) < 70)) offer('bats', 'bats');
@@ -177,7 +195,7 @@ export function initHalloweenWorld(): () => void {
       ...(w.__opusBay ?? {}),
       halloween: {
         phase: () => phase,
-        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), venues: venues.stats(), halos: pool.count(), attached: !!offSystem }),
+        stats: () => ({ phase, dress: dress.stats(), hunt: hunt.stats(), muertos: muertos.stats(), haunt: haunt.shown(), venues: venues.stats(), festival: festival.stats(), halos: pool.count(), attached: !!offSystem }),
         pickPumpkin, huntList, pumpkinsFound, pumpkinTotal, visitMuertos,
       },
     };
@@ -195,6 +213,7 @@ export function initHalloweenWorld(): () => void {
     muertos.dispose();
     haunt.dispose();
     venues.dispose();
+    festival.dispose();
     pool.dispose();
   };
 }

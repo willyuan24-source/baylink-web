@@ -63,7 +63,16 @@ export const W7_HALLOWEEN_LINES: readonly HalloweenLine[] = [
   { id: 'w7g-costume-bat-wings', when: 'the pelican wears the bat wings (first time a session)', zh: '鹈鹕也扮成小蝙蝠啦，扑扇扑扇！', en: 'Our pelican’s a little bat now — flap, flap!' },
 ];
 
-const BY_ID = new Map([...HALLOWEEN_LINES, ...W7_HALLOWEEN_LINES].map(l => [l.id, l]));
+/**
+ * Wave 8 · lane H · the new fixed lines of wave 8 for the games' side (lane X records them into data/sf/voiceW8.ts).
+ * Same rules as above.
+ */
+export const W8_HALLOWEEN_LINES: readonly HalloweenLine[] = [
+  // --- the pelican's second costume (the 小铺's rides shelf: the pumpkin bow on its neck) -----------------------------
+  { id: 'w8h-costume-pumpkin-bow', when: 'the pelican wears the pumpkin bow (first time a session)', zh: '鹈鹕戴上南瓜领结啦，好神气！', en: 'Our pelican’s wearing a pumpkin bow tie — how dapper!' },
+];
+
+const BY_ID = new Map([...HALLOWEEN_LINES, ...W7_HALLOWEEN_LINES, ...W8_HALLOWEEN_LINES].map(l => [l.id, l]));
 
 /** A line by id as a bubble text ({ zh, en }); throws on an unknown id (a typo would be a silent bubble). */
 export function hLine(id: string): Bilingual {

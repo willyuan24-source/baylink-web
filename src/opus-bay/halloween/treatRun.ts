@@ -27,6 +27,7 @@ import { TREAT_DOORS, type TreatDoor } from './treatDoors';
 import { buildCandyGeometry, buildDoorsGeometry, buildSwingGeometry, doorMaterial, doorPoints, DOOR_PAINTS, trianglesOf, type DoorLook } from './treatMesh';
 import { KNOCK_OUT, TREAT_STREETS, type TreatStreetId } from './treatStreets';
 import { registerTreatSounds } from './treatSounds';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 6 · lane G (W6-G2) · trick-or-treat in the city: the decorated doors near the player, the 敲门 / Knock prompt,
@@ -257,7 +258,7 @@ export function initTreat(): TreatRun {
     if (on === skipWant) return;
     skipWant = on;
     if (!on) { skipOff?.(); skipOff = null; return; }
-    void import('../world/sf/kitSwap').then(k => { if (skipWant && !skipOff) skipOff = k.setKitSwapSkip(lotSkip); }).catch(() => { skipWant = false; });
+    void importRetry(() => import('../world/sf/kitSwap')).then(k => { if (skipWant && !skipOff) skipOff = k.setKitSwapSkip(lotSkip); }).catch(() => { skipWant = false; });
   };
 
   let acc = 1;

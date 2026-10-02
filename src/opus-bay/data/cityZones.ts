@@ -28,6 +28,13 @@ export const LANDMARK_AREAS: readonly LandmarkArea[] = [
   { id: 'alamo-square', name: bi('阿拉莫广场', 'Alamo Square'), x: -7.52, z: 586.51, r: 34 },      // Painted Ladies
   { id: 'twin-peaks', name: bi('双峰', 'Twin Peaks'), x: 73.19, z: 973.68, r: 40 },                // Sutro Tower
   { id: 'twin-peaks', name: bi('双峰', 'Twin Peaks'), x: 140.08, z: 946.9, r: 40 },                // the summits
+  // (W8-I, W8I-P-2 / D-4) wave 8 made the island walkable: its quay, stair and cellhouse said 旧金山 (water all round:
+  // the radius takes the dock's berth, AL(18.65, -21.31) ≈ 28 u from the anchor, and nothing else)
+  { id: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), x: -468.22, z: -58.53, r: 34 },          // places.json 'alcatraz'
+  // (W8-I, W8I-P-8, lane Q's open request) the Powell & Market turntable and the square said 金融区 (the DataSF zone
+  // grid) and BAYBAY greeted the Transamerica Pyramid 1 km away; after Chinatown, so the Dragon Gate stays Chinatown.
+  // The turntable (places.json cable-car-powell-market, 129.28, 257.51) is 49 u from the square's anchor
+  { id: 'union-square', name: bi('联合广场', 'Union Square'), x: 96.13, z: 221.34, r: 52 },        // places.json 'union-square'
 ];
 
 /**

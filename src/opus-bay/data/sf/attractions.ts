@@ -5,6 +5,7 @@ import {
   type AttractionStop,
 } from './attractionTypes';
 import { SITE_ARRIVALS } from './siteArrivals';
+import { ALCA_LINES } from '../../world/sf/alcatrazLines';
 
 /**
  * Wave 4 · the big attractions of San Francisco (lane P, W4-P2; plan sf-w4-plan.md §2.4 and §4.1, types in the frozen
@@ -182,7 +183,7 @@ const ROWS: Attraction[] = [
   { id: 'sentinel-building', placeId: 'osm-w288485994', name: bi('哨兵大厦（哥伦布塔）', 'Sentinel Building (Columbus Tower)'), short: bi('哨兵大厦', 'Columbus Tower'), cat: 'landmark', rank: 3, fame: 32, x: 21.3, z: 106.9, arrival: { x: 20.6, z: 106.9 }, area: 'north-downtown', aliases: ['Sentinel', 'Columbus Tower', '绿色大楼'], treatment: 'defer', priority: 4, hero: true },
   { id: 'ss-jeremiah-obrien', placeId: 'osm-w1280748838', name: bi('奥布莱恩号自由轮', 'SS Jeremiah O\'Brien'), short: bi('奥布莱恩号', 'SS O\'Brien'), cat: 'museum', glyph: 'Sailboat', rank: 3, fame: 28, x: -130.1, z: -8.3, area: 'north-downtown', aliases: ['自由轮', 'Liberty ship', 'O\'Brien'], treatment: 'defer', priority: 4, officialUrl: 'https://ssjeremiahobrien.org/visit-us/', hero: true },
   { id: 'golden-gate-bridge', placeId: 'ggb-deck-mid', name: bi('金门大桥', 'Golden Gate Bridge'), short: bi('金门大桥', 'Golden Gate'), cat: 'landmark', rank: 1, fame: 100, x: -796.1, z: 564.4, area: 'bridge-presidio', aliases: ['金门桥', 'GGB', 'Golden Gate', '大桥', 'bridge'], photoKey: 'bridge', landmarkId: 'golden-gate-bridge', treatment: 'stop', priority: 2 },
-  { id: 'alcatraz', placeId: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), short: bi('恶魔岛', 'Alcatraz'), cat: 'coast', glyph: 'Sailboat', rank: 1, fame: 95, x: -468.2, z: -58.5, arrival: { x: -97.68, z: -21.16 }, offWalk: 'island: the ferries leave from Pier 33 (ARRIVAL_PLACES: 恶魔岛渡轮码头 · 33 号码头, its telescope)', area: 'north-downtown', aliases: ['恶魔岛', '恶魔岛监狱', 'Alcatraz', '阿尔卡特拉斯', 'prison'], photoKey: 'alcatraz', treatment: 'card', priority: 2 },
+  { id: 'alcatraz', placeId: 'alcatraz', name: bi('恶魔岛', 'Alcatraz Island'), short: bi('恶魔岛', 'Alcatraz'), cat: 'coast', glyph: 'Sailboat', rank: 1, fame: 95, x: -468.2, z: -58.5, arrival: { x: -97.68, z: -21.16 }, offWalk: 'island: the ferries leave from Pier 33 (ARRIVAL_PLACES: 恶魔岛渡轮码头 · 33 号码头, its telescope)', area: 'north-downtown', aliases: ['恶魔岛', '恶魔岛监狱', 'Alcatraz', '阿尔卡特拉斯', 'prison'], photoKey: 'alcatraz', treatment: 'card', priority: 2, siteId: 'alcatraz' },
   { id: 'fishermans-wharf', placeId: 'fishermans-wharf', name: bi('渔人码头', 'Fisherman\'s Wharf'), short: bi('渔人码头', 'The Wharf'), cat: 'coast', rank: 1, fame: 90, x: -206.3, z: 84.6, area: 'north-downtown', aliases: ['渔人码头', 'Fisherman\'s Wharf', 'Wharf', '螃蟹'], landmarkId: 'fishermans-wharf', treatment: 'stop', priority: 2 },
   { id: 'coit-tower', placeId: 'coit-tower', name: bi('科伊特塔', 'Coit Tower'), short: bi('科伊特塔', 'Coit Tower'), cat: 'landmark', rank: 1, fame: 80, x: -50.2, z: 51.1, area: 'north-downtown', aliases: ['科伊特', 'Coit', '电报山', 'Telegraph Hill'], photoKey: 'coit', treatment: 'card', priority: 2, hero: true, panorama: true },
   { id: 'chinatown-dragon-gate', placeId: 'chinatown-dragon-gate', name: bi('唐人街龙门', 'Chinatown Dragon Gate'), short: bi('唐人街', 'Chinatown'), cat: 'landmark', rank: 1, fame: 86, x: 81.9, z: 174.7, area: 'north-downtown', aliases: ['唐人街', '中国城', '华埠', 'Chinatown', '龙门', 'Dragon Gate'], photoKey: 'chinatown', landmarkId: 'dragon-gate', treatment: 'stop', priority: 2 },
@@ -302,6 +303,19 @@ export const ARRIVAL_OVERRIDES: Readonly<Record<string, { x: number; z: number; 
   // district's own Kearny / Jackson corner (cornersNB.ts SENTINEL_RING): the old end was 0.6 u off its wall, in the
   // carriageway; the new one faces its rounded tip and dome.
   'sentinel-building': { x: 24.2, z: 109.4, heading: -2.88, why: 'the corner in front of the rounded tip and the dome (the toy stands in the corner the district draws)' },
+  // W8-W1 (lane W1's row): the Dragon Gate site draws the Chinese Telephone Exchange's three tiers on its lot
+  // (world/sf/cornersChinatown.ts); the old end (OSM's tiny footprint's middle) stood 0.1 u in front of the new front.
+  // Washington St's sidewalk in front of the red columns, 2.8 u from the walking graph's nearest node.
+  'chinese-telephone-exchange': { x: 27.11, z: 133.46, heading: 0.96, why: 'Washington St\'s sidewalk in front of the pagoda\'s red columns: the old end was 0.1 u from its new front wall' },
+  // W8-W1 (lane W1's row): the O'Brien now lies in the water along the toy Pier 35's west face (world/sf/wharfShips.ts
+  // OBRIEN), her stern at the seawall. W8-W1-review (W1-RC-1, W1-P1): her trip end and arrival anchor stand on the
+  // promenade apron by the stern, facing along the hull (heading toward OBRIEN_MID, 10.9 u). The apron is walked to:
+  // actors/nav routeTo snaps to the nearest USABLE graph node (graphNodeFilter: the Embarcadero roadway's hero nodes
+  // beside the apron are not) and the nav grid walks the rest; the static sweep judges with that same filter now. The
+  // wave-8 end (-148, 1) by Pier 39's gate was 20-27 u from the ship: walking up to her never counted as arriving, and a
+  // walk from the Embarcadero ended facing the PIER 39 arch with the ship behind. tests/opus-bay-sf-attractions waives
+  // the 3 u graph rule for this row (17 u: the nearest node runs under the roadway; recorded there).
+  'ss-jeremiah-obrien': { x: -126, z: -10, heading: -2.61, why: 'the promenade apron by the Liberty ship\'s stern, facing along her hull (the old end by the Pier 39 gate stood 26 u from her)' },
   'greenwich-steps': { x: -52.27, z: 43.6, heading: 2.78, why: 'the landing beside the top step: the old end was boxed between the stair rails (3 of 4 ways under 0.3 u)' },
   'hyde-street-pier': { x: -247.56, z: 115.74, heading: -1.52, why: 'the pier\'s gate on Jefferson St: the old end was 3.2 u beyond where the walk can reach' },
 };
@@ -362,6 +376,29 @@ export function tripDestination(a: Pick<Attraction, 'id' | 'name' | 'placeId' | 
   const at = a.arrival ?? a;
   return { placeId: a.placeId ?? a.id, x: at.x, z: at.z, name: a.name, attraction: a.id, ...(a.short ? { short: a.short } : {}) };
 }
+
+/**
+ * Wave 8 (lane A): an island you can land on by ferry now (Alcatraz: world/sf/alcatrazFerry.ts, the boat from Pier 33).
+ * Its row stays off the walkable city (`offWalk`: the trips still end at its pier, ARRIVAL_PLACES; standing at the pier
+ * is not arriving), but the island has an arrival moment of its own at `x, z` — the cellhouse front at the top of the
+ * island's walk (world/sf/alcatrazWalk.ts ALCA_ARRIVAL; tests/opus-bay-w8-a-island keeps them equal) — with BAYBAY's
+ * fixed `line` (game/arrival.ts arrivalAnchors / defaultArrivalLine). The row's `siteId` names the island's landmark,
+ * whose photo pose plays the reveal (world/sf/landmarks/context sitePhoto).
+ */
+export interface IslandLanding {
+  x: number;
+  z: number;
+  line: Bilingual;
+  /**
+   * the trigger radius (u), its own rather than game/arrival's 12 u floor (W8-A review, A-RC-2): Alcatraz's 12 u reached
+   * down to the dock road under Building 64, 8 u below the plateau — the moment ("This is Alcatraz's cellhouse") fired at
+   * the water's edge, before the stair's "the cellhouse is up the hill". 5 u: the top third of the stair and the plateau.
+   */
+  radius: number;
+}
+export const ISLAND_LANDINGS: Readonly<Record<string, IslandLanding>> = {
+  alcatraz: { x: -460.96, z: -62.95, line: ALCA_LINES.arrive, radius: 5 },
+};
 
 /**
  * Lane L's site arrivals not taken yet, with the reason: the ones lane F's sweep judges worse than the old end. (Part c:

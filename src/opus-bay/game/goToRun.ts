@@ -6,7 +6,8 @@ import { ATTRACTION_INDEX, tripDestination } from '../data/sf/attractions';
 import type { Attraction } from '../data/sf/attractionTypes';
 import { type CityPlace, loadPlaces, placeById } from '../data/sf/places';
 import { travelActive } from './fastTravel';
-import { bubble, closePanel, startTrip } from './flow';
+import { W8K_LINES } from './fixedLines';
+import { bubble, closePanel, say, startTrip } from './flow';
 import type { GoToOptions, GoToResult, GoToTarget } from './goTo';
 import { BAYBAY_ID, interactableById } from './interactables';
 import { GOAL_SLACK, HERE_R, optionPending, planTrips } from './tripPlan';
@@ -148,7 +149,9 @@ export async function runGoTo(target: GoToTarget, opts: GoToOptions = {}): Promi
   const dest = resolveGoToTarget(target, liveLookups());
   if (!dest) return { ok: false, why: 'unknown' };
   if (Math.hypot(dest.x - runtime.player.x, dest.z - runtime.player.z) < Math.max(HERE_R, HERE_SAY_R)) {
-    bubble({ zh: `${dest.name.zh}就在这里啦！`, en: `${dest.name.en} is right here!` }, 2600, BAYBAY_ID, 'call');
+    // (W8-K3) a fixed line lane X can voice, the place's name on a toast
+    bubble(W8K_LINES.goToHere, 2600, BAYBAY_ID, 'call');
+    say(`就在这里 · ${dest.name.zh}`, `Right here · ${dest.name.en}`, 'info', 2600);
     return { ok: false, why: 'here' };
   }
   initTripRun();

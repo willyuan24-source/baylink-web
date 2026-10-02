@@ -60,6 +60,8 @@ const CHECKED = '2026-09-28';
 const src = (label: string, url: string): SourceRef => ({ label, url, verifiedAt: CHECKED });
 /** (W7-S) the rows checked on the web on 2026-09-29 */
 const src29 = (label: string, url: string): SourceRef => ({ label, url, verifiedAt: '2026-09-29' });
+/** (W8-S) the rows checked on the web on 2026-09-30 */
+const src30 = (label: string, url: string): SourceRef => ({ label, url, verifiedAt: '2026-09-30' });
 
 /** (W7-S) 22nd & Bryant, where the Día de los Muertos procession gathers (lane H's ROUTE_CORNERS.bryant22, OSM) */
 export const BRYANT_22: Vec2 = { x: 434.95, z: 581.84 };
@@ -103,10 +105,23 @@ export const CALENDAR: readonly CalendarRow[] = [
   },
   // ---- W7-S: real dates of October – November 2026 (checked on the web on 2026-09-29) ----
   {
-    id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船游行', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
+    // W8-S: toy ships sail it (world/sf/fleetWeek.ts): in under the Golden Gate, along the shore to the Bay Bridge, the
+    // fireboat first. "Friday 10/9 11:00 am - 12:00 pm", "seen from the Golden Gate Bridge to the Bay Bridge", "a
+    // reviewing stand at the Marina Green", the SFFD fireboat leads "shooting jets of water into the air" (read 2026-09-30)
+    id: 'fleet-week-parade-of-ships-2026', title: { zh: '舰队周 · 舰船巡游', en: 'Fleet Week · Parade of Ships' }, from: '2026-10-09', to: '2026-10-09', at: 11 * 60,
     where: { zh: '码头绿地看台', en: 'the Marina Green reviewing stand' }, placeId: 'marina-green',
-    note: { zh: '11:00–12:00 舰船从金门大桥下开进湾里', en: '11:00–12:00 · ships sail in under the Golden Gate Bridge' },
-    grade: 'official', source: src29('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'),
+    note: { zh: '11:00–12:00 消防船领头，舰船从金门大桥开往海湾大桥', en: '11:00–12:00 · the fireboat leads the ships from the Golden Gate to the Bay Bridge' },
+    grade: 'official', source: src30('fleetweeksf.org', 'https://fleetweeksf.org/events/parade-of-ships/'),
+  },
+  {
+    // W8-S: the air show "October 9, 10, 11, 2026", "12:00 Noon - 4:00 PM", the Blue Angels the headliner with no slot
+    // posted (fleetweeksf.org/events/air-show/, read 2026-09-30); "often around 3 p.m.", "roughly 45 minutes" is
+    // navyweek.org's (secondary: 以官网为准). The air show itself is the catalog's event (no catalogId: a row never makes a card)
+    id: 'fleet-week-blue-angels-2026', title: { zh: '舰队周 · 蓝天使', en: 'Fleet Week · the Blue Angels' }, from: '2026-10-09', to: '2026-10-11', at: 15 * 60,
+    where: { zh: '码头绿地', en: 'Marina Green' }, placeId: 'marina-green',
+    note: { zh: '飞行表演 12:00–16:00 · 蓝天使通常下午三点左右上场', en: 'Air show 12:00–16:00 · the Blue Angels usually fly around 3 pm' },
+    grade: 'secondary',
+    source: src30('navyweek.org', 'https://www.navyweek.org/fleetweek/san-francisco/'),
   },
   {
     id: 'alcatraz-sunrise-2026-10', title: { zh: '原住民日 · 恶魔岛日出聚会', en: 'Indigenous Peoples’ Day · Sunrise Gathering' }, from: '2026-10-12', to: '2026-10-12', at: 4 * 60 + 15,

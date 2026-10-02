@@ -13,6 +13,8 @@ import { cityStreamerLazy } from './cityLoader';
 import { trackPoint } from './lineTrack';
 import { CABLE_PLATFORM, cableCarFarGeometry, cableCarGeometry, cableCarMidGeometry } from './cablecar';
 import { FerryLayer } from './ferry';
+import { AlcaFerryLayer } from './sf/alcatrazFerry';
+import { builtWorld } from './world';
 import { setTurntableSpinner } from './sf/landmarks/cable-car-turntable';
 import { FLINE_LIVERIES, carMidGeometry, type FLineLayer, createFLineLayer, flineRailTracks } from './flineLayer';
 import { carFarGeometry, carGeometry } from './streetcar';
@@ -94,6 +96,8 @@ export class TransitLayer {
   /** the city F-line (null without the published route) */
   readonly fline: FLineLayer | null;
   readonly ferry = new FerryLayer();
+  /** (wave 8, lane A) the toy Alcatraz ferry, Pier 33 ⇄ the island (world/sf/alcatrazFerry.ts): gives way to life's boats */
+  readonly alcaFerry = new AlcaFerryLayer({ wakes: () => builtWorld()?.life.wakes ?? null });
   /** the crowd and the toy traffic (built once the walking graph is in) */
   readonly life: CityLife;
   /** wave 4: the loop buses and the Metro trains (null without the wave-4 lines in transit.json) */
@@ -163,6 +167,7 @@ export class TransitLayer {
     // the crowd and the traffic: the transit streets are theirs to cross, not to drive along; the cars are road vehicles
     this.life = new CityLife({ visible: visibleFromCamera });
     this.group.add(this.life.group);
+    this.group.add(this.alcaFerry.group);
     for (const line of data.lines) this.offs.push(registerTransitStreet(line.xyz));
     if (this.fline) this.offs.push(registerTransitStreet(this.fline.line.cxyz));
     this.offs.push(registerRoadVehicles(out => this.roadVehicles(out)));
@@ -289,6 +294,7 @@ export class TransitLayer {
     this.drainEvents();
     this.fline?.update(dt);
     this.ferry.update(dt);
+    this.alcaFerry.update(dt);
     this.lines?.update(dt, cam, p);
     this.prefetch(dt);
     this.life.update(dt);
@@ -427,6 +433,7 @@ export class TransitLayer {
     this.rails.dispose();
     this.fline?.dispose();
     this.ferry.dispose();
+    this.alcaFerry.dispose();
     for (const off of this.offs) off();
     this.offs.length = 0;
     this.life.dispose();

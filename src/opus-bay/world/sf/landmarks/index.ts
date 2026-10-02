@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { SurfaceKind, Vec2 } from '../../../core/types';
 import { Batch, type BatchLike } from '../../builder';
 import { alcatraz } from './alcatraz';
+import { blueHeronBoathouse } from '../westBoathouse';
 import { cableCarTurntable } from './cable-car-turntable';
 import { castroTheatre } from './castro-theatre';
 import { chaseCenter } from './chase-center';
@@ -127,6 +128,7 @@ export interface SfLandmark {
   base: 'terrain' | number;         // 'terrain' = stand on the city ground (lowest point under the footprint), or explicit world y
   baseLift?: number;                // lane D2: a 'terrain' base this much above that lowest point (a flat plaza on a slope with a gutter in its footprint)
   exclude: { r: number } | { poly: Vec2[] };   // generated city buildings inside are dropped (poly in world coords)
+  excludeMore?: Vec2[][];           // W8-W1: more world polygons dropped like `exclude` (no sink, no say in the base) where the site models its neighbours' buildings (the Dragon Gate's pagoda cluster up Grant Ave); world/sf/sites.ts appends them after the sites' own rows
   sink?: number;                    // lane D2: the city ground sinks this much inside `exclude` (default 0.2, the bridge 0): 0 where the landmark's setting restores the city's streets at their own height
   build(b: BatchLike, lod: 0 | 2): void;       // LOCAL space: origin at ground centre, +y up, front faces +z; lod 2 = silhouette version ≤ 10 % triangles for far view
   buildKey?: () => number;          // lane D2: a lod 0 that depends on runtime state (the turntable under F's disc) changes this; sites.ts rebuilds it
@@ -142,9 +144,12 @@ export interface SfLandmark {
 /** Does the city draw landmark `l` with its AI parts (`swap.ship`), unless `ai` overrides it (SoloView ?ai=0|1)? */
 export const usesAi = (l: SfLandmark, ai?: boolean | null) => !!l.swap && (ai ?? l.swap.ship);
 
-/** Triangle budgets per tier (plan §7); the Golden Gate Bridge has its own. */
+/**
+ * Triangle budgets per tier (plan §7); the Golden Gate Bridge has its own, and the Dragon Gate carries Chinatown's
+ * pagoda cluster up Grant Ave in its lod 0 (W8-W1, world/sf/cornersChinatown.ts: ≈ 2.3k triangles, no new draw call).
+ */
 export const TIER_TRIANGLES: Record<LandmarkTier, number> = { 1: 6000, 2: 2500, 3: 800 };
-export const BUDGET_OVERRIDE: Record<string, number> = { 'golden-gate-bridge': 12000 };
+export const BUDGET_OVERRIDE: Record<string, number> = { 'golden-gate-bridge': 12000, 'dragon-gate': 4500 };
 export const triangleBudget = (l: SfLandmark) => BUDGET_OVERRIDE[l.id] ?? TIER_TRIANGLES[l.tier];
 
 export const SF_LANDMARKS: SfLandmark[] = [
@@ -182,6 +187,8 @@ export const SF_LANDMARKS: SfLandmark[] = [
  * from the shore; its card and the ferry trip live in data/sf/attractions).
  */
 export const W7_SITES: readonly SfLandmark[] = [alcatraz];
+/** Wave-8 sites (W8-W2), plain records like W7_SITES: the Blue Heron Lake Boathouse (world/sf/westBoathouse.ts). */
+export const W8_SITES: readonly SfLandmark[] = [blueHeronBoathouse];
 
 /**
  * Every site the city draws (lane L, wave-4 integration): the 24 landmarks above, then the wave-4 sites (w4list.ts: P1–P3
@@ -197,7 +204,7 @@ export const W7_SITES: readonly SfLandmark[] = [alcatraz];
  * runtime, and this file never imports w4sites.ts or context.ts (both read the registry): a cycle there throws at load
  * (tests/opus-bay-sf-sites-w4.test.ts "integration safety").
  */
-export const SF_SITES: readonly SfLandmark[] = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES];
+export const SF_SITES: readonly SfLandmark[] = [...SF_LANDMARKS, ...W4_SITES, ...W4_SITES_T3, ...W7_SITES, ...W8_SITES];
 
 const byId = new Map(SF_SITES.map(l => [l.id, l]));
 /** A landmark or a wave-4 site by id (SF_SITES). */

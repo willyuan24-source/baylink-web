@@ -32,7 +32,10 @@ import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
 import { rewardGoal, rewardPostcard } from './rewards';
+import { bubbleWaits } from './baybayHold';
+import { W8K_LINES } from './fixedLines';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
+import { importRetry } from './importRetry';
 
 // W6-P3 (lane P, MF9): the six city residents come with the city data chunk (data/sf/cityDataChunk.ts; none in district
 // mode, where no resident exists: residentByKey is undefined for every district NPC as before)
@@ -51,7 +54,8 @@ const taskState: CityData['taskState'] = (...a) => CITY_DATA!.taskState(...a);
  *
  *   bubble(text, ms = 3200, who = BAYBAY_ID, tone = 'bark')
  *       BAYBAY's (or a resident's, `who` = their id) speech bubble, right now. Dropped while a postcard reward is up and
- *       while the goals step is open; a later bubble replaces it. For a line that must not talk over BAYBAY's tour /
+ *       while the goals step is open, waits behind the Halloween postcard (W8-K1; returns false then); a later bubble
+ *       replaces it. An unprompted line also asks game/baybayHold.ts baybayHeld() first. For a line that must not talk over BAYBAY's tour /
  *       transit / arrival lines, use cityContent `baybayLine(text, { ttl })` (her pacer: it waits its turn, and is
  *       dropped after `ttl` s rather than said late). zh ≤ 45 characters.
  *   markGoalsDone(ids, { quiet }?)
@@ -75,13 +79,60 @@ export function announce(text: Bilingual | string) { flow.set({ announce: text }
 
 let bubbleKey = 0;
 let bubbleTimer: ReturnType<typeof setTimeout> | null = null;
-export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble['tone'] = 'bark') {
+/** W8-K1: a bubble said while the Halloween postcard is open waits this long at most (ms), then it is dropped */
+export const BUBBLE_WAIT_MAX = 15_000;
+/** W8-K1: after the card closes the waiting bubble shows once no bubble is up (the card's keep line goes first) */
+const BUBBLE_WAIT_TICK = 250;
+let waitingBubble: { text: Bilingual; ms: number; who: string; tone: Bubble['tone']; at: number } | null = null;
+let waitTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Show a speech bubble now. Returns whether it is on screen: false when it was dropped (a postcard reward, the goals
+ * step) or waits (W8-K1: behind the Halloween postcard, game/baybayHold.ts BUBBLE_WAIT_OVERLAYS — the last one said
+ * waits up to BUBBLE_WAIT_MAX and shows after the card closes). A caller that plays a voice line next to its bubble
+ * plays it only on true: a voice never plays with its bubble hidden.
+ */
+export function bubble(text: Bilingual, ms = 3200, who = BAYBAY_ID, tone: Bubble['tone'] = 'bark'): boolean {
   // nothing talks over a postcard reward, nor over the goals step (W5-C3: bubbles paused while it is open)
-  if (flow.get().postcardReward || flow.get().postcardFly || goalsStepOpen()) return;
+  if (flow.get().postcardReward || flow.get().postcardFly || goalsStepOpen()) return false;
+  if (bubbleWaits()) {
+    waitingBubble = { text, ms, who, tone, at: performance.now() };
+    waitTimer ??= setInterval(flushWaitingBubble, BUBBLE_WAIT_TICK);
+    return false;
+  }
   const key = ++bubbleKey;
-  flow.set({ bubble: { who, text, key, tone } });
+  // (W8-X-review) the timer first: the voice binder, called from inside flow.set, may hold this bubble longer
   if (bubbleTimer) clearTimeout(bubbleTimer);
   bubbleTimer = setTimeout(() => { if (flow.get().bubble?.key === key) flow.set({ bubble: null }); }, ms);
+  bubbleEnds = performance.now() + ms;
+  flow.set({ bubble: { who, text, key, tone } });
+  return true;
+}
+
+let bubbleEnds = 0;
+/**
+ * (W8-X-review, city voice) Keep bubble `key` up at least `ms` from now: its recorded line runs longer than the
+ * caller's ms (game/voiceW5.ts), so the words stay while BAYBAY says them and the lanes' `!!flow.bubble` checks keep
+ * the next line from starting over the clip. Never shortens; a no-op once that bubble is gone or replaced.
+ */
+export function holdBubble(key: number, ms: number): void {
+  if (flow.get().bubble?.key !== key) return;
+  const end = performance.now() + ms;
+  if (end <= bubbleEnds) return;
+  bubbleEnds = end;
+  if (bubbleTimer) clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => { if (flow.get().bubble?.key === key) flow.set({ bubble: null }); }, ms);
+}
+
+/** W8-K1: the bubble waiting behind the Halloween postcard (tests / QA). */
+export const waitingBubbleText = (): Bilingual | null => waitingBubble?.text ?? null;
+
+/** W8-K1: show the waiting bubble once the card is closed and no other bubble is up; drop it when it waited too long. */
+export function flushWaitingBubble(): void {
+  const w = waitingBubble;
+  if (w && performance.now() - w.at > BUBBLE_WAIT_MAX) waitingBubble = null;
+  else if (w && !bubbleWaits() && !flow.get().bubble) { waitingBubble = null; bubble(w.text, w.ms, w.who, w.tone); }
+  if (!waitingBubble && waitTimer) { clearInterval(waitTimer); waitTimer = null; }
 }
 
 // ---------------------------------------------------------------------------
@@ -451,8 +502,12 @@ export function welcomeBack(): void {
   const zone = readSave()?.lastSafe?.zone ?? game.get().area ?? null;
   const name = zoneName(zone);
   const known = name !== SF_NAME && !!zone;
-  bubble(known ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : WELCOME_BACK, 4400, BAYBAY_ID, 'call');
-  if (!known) speakRecorded(W5_LINE_IDS.welcomeBack);
+  // (W8-K3) the city: the recorded 欢迎回来！我们接着逛吧。 (voiced) and the area on a toast (上次我们走到<area>了 was
+  // templated: never voiced); elsewhere as before
+  const city = game.get().worldMode === 'city';
+  bubble(known && !city ? { zh: `欢迎回来！上次我们走到${name.zh}了。`, en: `Welcome back! Last time we got as far as ${name.en}.` } : WELCOME_BACK, 4400, BAYBAY_ID, 'call');
+  if (!known || city) speakRecorded(W5_LINE_IDS.welcomeBack);
+  if (known && city) say(`上次走到 · ${name.zh}`, `Last time · ${name.en}`, 'info', 4400);
   const extra = runWelcome({ kind: 'returning', zone, at: performance.now() });
   const next = extra ?? (goalDone(CITY_GOAL.pelican) ? null : PELICAN_NUDGE);
   if (next) baybayLine(next, { ttl: 60, ...(next === PELICAN_NUDGE ? { id: W5_LINE_IDS.nudge } : {}) });
@@ -608,7 +663,7 @@ export function setCityTourApi(api: CityTourApi | null) { cityTourApi = api; }
 export const cityTourActive = () => { const t = game.get().tour; return t.active && tourIdOf(t) !== DEFAULT_TOUR_ID; };
 function startCityTour(id: string) {
   if (cityTourApi) { cityTourApi.start(id); return; }
-  void import('./cityTour').then(m => { m.initCityTour(); cityTourApi?.start(id); }, (e: unknown) => {
+  void importRetry(() => import('./cityTour')).then(m => { m.initCityTour(); cityTourApi?.start(id); }, (e: unknown) => {
     if (import.meta.env?.DEV) console.error('[opus-bay city tour]', e);
     say('一日游还没准备好，稍后再试', 'The Grand Tour is not ready yet — try again in a moment');
   });
@@ -1604,7 +1659,8 @@ export function startFreeLead(id: string) {
   if (!it) return;
   flow.set({ freeLead: id, freeHint: null });
   leadCallAt = performance.now();
-  bubble({ zh: `跟我来！去${it.name.zh}`, en: `Follow me — to ${it.name.en}!` }, 3000, BAYBAY_ID, 'call');
+  // (W8-K3) the city: a fixed line lane X can voice (the lead chip and the waypoint name the place); the district as before
+  bubble(game.get().worldMode === 'city' ? W8K_LINES.leadGo : { zh: `跟我来！去${it.name.zh}`, en: `Follow me — to ${it.name.en}!` }, 3000, BAYBAY_ID, 'call');
   announce({ zh: `跟 BAYBAY 去${it.name.zh}`, en: `Follow BAYBAY to ${it.name.en}` });
   // wave 4 · city: the free lead is a one-leg walking trip (the trip pill, the map route and the LeadChip follow it)
   tripRunner?.freeLead(it);
@@ -1621,7 +1677,8 @@ export function freeLeadArrived() {
   // (review: the goals step's lead to the pelican ends at the summit with the pelican met on the steps just below — its
   // moment speaks next (game/pelicanFirst.ts), not 到啦！试试「眺望海湾」 over it)
   if (it.id === PELICAN_TARGET && goalDone(CITY_GOAL.pelican)) return;
-  bubble({ zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
+  // (W8-K3) the city: a fixed line lane X can voice (the prompt shows the verb); the district as before
+  bubble(game.get().worldMode === 'city' ? W8K_LINES.leadArrive : { zh: `到啦！试试「${it.verb.zh}」～`, en: `Here we are! Try: ${it.verb.en.toLowerCase()}` }, 3600, BAYBAY_ID, 'call');
 }
 
 // ---------------------------------------------------------------------------
@@ -1657,7 +1714,8 @@ export const tripRunnerReady = () => !!tripRunner;
 export function startTrip(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   if (tripRunner) { tripRunner.start(option, dest, source); return; }
   if (game.get().worldMode !== 'city') return;
-  void import('./tripRun').then(m => { m.initTripRun(); tripRunner?.start(option, dest, source); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay trips]', e); });
+  // (W8-P-review, P-RC-4) through importRetry like every lazy chunk: a lost tripRun request no longer makes the trip a no-op
+  void importRetry(() => import('./tripRun')).then(m => { m.initTripRun(); tripRunner?.start(option, dest, source); }, (e: unknown) => { if (import.meta.env?.DEV) console.error('[opus-bay trips]', e); });
 }
 /** The guide brain (on foot, free to lead): the running trip leads BAYBAY this tick (true), or nothing does. */
 export function tripGuide(now: number): boolean { return !!flow.get().trip && !!tripRunner?.guide(now); }

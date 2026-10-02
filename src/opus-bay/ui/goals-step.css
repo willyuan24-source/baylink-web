@@ -58,3 +58,20 @@
 @media (max-height: 600px) {
   .ob-gstep-note { display: none; }
 }
+/* W8-Q8 (lane Q) · short landscape (667 × 320, 844 × 340: Safari with its bars): the one-column card needed ≈ 408 px in a
+   340 px screen — 我自己逛 sat below the screen (y 358–404 at 844 × 340) and the gold button was cut. Two columns there:
+   BAYBAY's line and goal #1 on the left, the other goals (scrolling) above the two buttons on the right; all on screen. */
+@media (max-height: 460px) and (min-width: 560px) {
+  .ob-gstep {
+    width: min(720px, 100%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
+    column-gap: 14px; row-gap: 8px; padding: 12px 14px;
+  }
+  .ob-gstep-head { grid-column: 1; grid-row: 1; }
+  .ob-gstep-head p { font-size: 14px; line-height: 1.4; }
+  .ob-gstep-hero { grid-column: 1; grid-row: 2 / 4; align-self: start; }
+  .ob-gstep > .ob-gstep-list { grid-column: 2; grid-row: 1 / 3; grid-template-columns: 1fr; align-content: start; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+  .ob-gstep-actions { grid-column: 2; grid-row: 3; margin-top: 0; }
+  .ob-gstep-go { min-height: 48px; font-size: 15.5px; }
+  .ob-gstep-self { min-height: 44px; }
+  .ob-gstep-note { display: none; }
+}

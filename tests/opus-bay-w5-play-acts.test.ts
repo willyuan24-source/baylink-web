@@ -202,6 +202,8 @@ test('W5-A5 first flight elsewhere: a local course from every unlock viewpoint s
   assert.equal(flight.ringY(20, 500), 65);
 });
 
+/** (W8-P-review, P-RC-6) zones3's budget (KB gzip): 5.1 KB = 5222 B, zones3 at 5163 B on the review tree */
+const ZONES3_KB = 5.1;
 test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, nothing of play/ in GameRoot\'s static graph', async () => {
   const { build } = await import('esbuild');
   const dir = path.join(ROOT, 'src/opus-bay/play');
@@ -244,11 +246,16 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
     return zlib.gzipSync(r.outputFiles[0].contents).length;
   };
   const coreBytes = await size(path.join(dir, 'index.ts'), new Set());
-  assert.ok(coreBytes <= 6 * 1024, `core ${coreBytes} B`);
+  // (W8-P5, lane P: every lazy import in play/ loads through game/importRetry.ts — the core's wrappers cost ≈ 0.05 KB and took
+  // it to 6193 B on 7d416d42. W8-P-review P-RC-6: W8-P5 had raised the budget to 6.5 KB, ten times what it needed; 6.1 KB
+  // = 6246 B, the core at 6204 B with React.lazy → game/lazyChunk.ts)
+  assert.ok(coreBytes <= 6.1 * 1024, `core ${coreBytes} B`);
   if (process.env.OPUS_PLAY_SIZES) console.log(`core ${coreBytes} B`);
   for (const f of lazyOnes) {
     const bytes = await size(path.join(dir, f), core);
-    assert.ok(bytes <= 5 * 1024, `${f}: ${bytes} B`);
+    // (W8-P-review) zones.ts, the registration chunk: its two parts through game/lazyChunk.ts and zonePrefetch through
+    // `quietly` took it from 5104 B to 5131 B — 5.1 KB (5222 B) for it alone
+    assert.ok(bytes <= (f === 'zones.ts' ? 5.1 : 5) * 1024, `${f}: ${bytes} B`);
     if (process.env.OPUS_PLAY_SIZES) console.log(`${f} ${bytes} B`);
   }
   const zonesShared = new Set([...core, ...closure(path.join(dir, 'zones.ts'))]);
@@ -269,7 +276,9 @@ test('W5-A1 chunks: the play core ≤ 6 KB gzip, each activity chunk ≤ 5 KB, n
   }
   const zones3 = path.join(dir, 'zones3.ts');
   const z3 = await size(zones3, zonesShared);
-  assert.ok(z3 <= 5 * 1024, `zones3.ts: ${z3} B`);
+  // (W8-P5, lane P: zones3's 20 lazy imports load through game/importRetry.ts — 5153 B on 7d416d42; W8-P-review P-RC-6:
+  // W8-P5's 5.5 KB was ten times what it needed — ZONES3_KB, measured on the review tree plus ≈ 0.06 KB)
+  assert.ok(z3 <= ZONES3_KB * 1024, `zones3.ts: ${z3} B`);
   if (process.env.OPUS_PLAY_SIZES) console.log(`zones3.ts ${z3} B`);
   const partCShared = new Set([...zonesShared, ...closure(zones3), ...propsShared]);
   for (const f of partC) {
@@ -401,6 +410,8 @@ test('W5-A3 pet BAYBAY: in reach only, hearts + a line, her own line when petted
     assert.equal(pet.waterNear(0, 0, 10, (x, z) => x > 9 && Math.abs(z) < 1), true);
     // the float watcher: still for FLOAT_IDLE s, a coin flip, water by her
     runtime.guide.x = PLAZA.x; runtime.guide.z = PLAZA.z - 60;
+    // W8-K4 (on purpose): the float waits for the bubble on screen (the pet line above) instead of cutting it
+    flow.set({ bubble: null });
     const off = pet.startFloatWatch(() => 0);
     try {
       for (let i = 0; i < 12; i++) stepFrameSystems(1, 1000 * (i + 1));

@@ -86,6 +86,12 @@ export function lockHeld(): boolean {
   return holds.size > 0;
 }
 
+/** (W8-I) A hold of this source is on now (brain: no E prompt while a play activity holds the feet). */
+export function lockHeldBy(source: LockSource): boolean {
+  for (const h of holds.values()) if (h.source === source) return true;
+  return false;
+}
+
 /** Who holds it (oldest first), for the watchdog's DEV log, QA hooks and tests. `since` is performance.now() ms. */
 export function lockReport(): { source: LockSource; key?: string; since: number }[] {
   return [...holds.values()].map(h => ({ ...h }));

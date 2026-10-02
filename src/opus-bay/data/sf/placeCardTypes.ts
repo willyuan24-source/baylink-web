@@ -1,4 +1,5 @@
 import type { Bilingual, PoiDef, RealInfo } from '../../core/types';
+import { importRetry } from '../../game/importRetry';
 
 /**
  * Wave 4 · lane C · the place cards of the new attractions (plan sf-w4-plan.md §2.2 "Facts", §5.6 W4-C5).
@@ -267,7 +268,7 @@ export function createCardLoader(importChunks: () => Promise<PlaceCardSet>) {
   };
 }
 
-const LOADER = createCardLoader(() => Promise.all([import('./placeCards'), import('./placeCards2')])
+const LOADER = createCardLoader(() => Promise.all([importRetry(() => import('./placeCards')), importRetry(() => import('./placeCards2'))])
   .then(([a, b]) => indexPlaceCards([...a.PLACE_CARDS, ...b.PLACE_CARDS_2, ...b.CURATED_CARDS], a.CARD_REFRESHES)));
 
 /** Load both card chunks once (the city chunk calls it when city mode starts; later calls return the same set). */

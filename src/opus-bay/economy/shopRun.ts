@@ -91,7 +91,8 @@ function stallInteractable(): Interactable | null {
  */
 export function ticketGiftWaits(): boolean {
   const s = game.get(), f = flow.get();
-  return s.phase !== 'playing' || s.mode === 'onboarding' || !!s.dialogue.nodeId || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
+  // (W8-I, W8I-WS-2) nor under a panel (a place card: the voiced line played with its bubble off screen on the phone)
+  return s.phase !== 'playing' || s.mode === 'onboarding' || !!s.dialogue.nodeId || s.panel.kind !== null || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
 }
 /** the gift comes this long (ms) after goal #1's lead is over (the goals step's close → the lead start is not a gap) */
 export const TICKET_QUIET_MS = 4000;

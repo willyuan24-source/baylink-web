@@ -621,7 +621,7 @@ export class MoveSystem {
     // city racks and benches (E2-12): park the pooled bikes near the player, recycle the far ones
     this.frustum = env.frustum;
     if (s.worldMode === 'city') {
-      this.cityBikesLoad ??= import('./vehicles/cityBikes').then(mod => {
+      this.cityBikesLoad ??= importRetry(() => import('./vehicles/cityBikes')).then(mod => {
         // (a system disposed while the chunk loaded registers nothing: its interactables source would outlive it)
         if (this.disposed) return;
         this.cityBikes = new mod.CityBikePool(this.fleet);
@@ -894,7 +894,7 @@ export class MoveSystem {
     const auto = this.auto;
     const make = (m: typeof import('./vehicles/driveTalk')) => { if (this.auto === auto) this.driveTalk = new m.DriveTalk(points, m.DRIVE_TALK, thirds); };
     if (driveTalkMod) make(driveTalkMod);
-    else void import('./vehicles/driveTalk').then(m => { driveTalkMod = m; make(m); }, () => { /* offline: a quiet drive */ });
+    else void importRetry(() => import('./vehicles/driveTalk')).then(m => { driveTalkMod = m; make(m); }, () => { /* offline: a quiet drive */ });
   }
 
   /** Save v2 (G1): the last-ridden bike and the toy car, when they are away from their spots (or ridden). */

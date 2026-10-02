@@ -1,4 +1,4 @@
-import { lazy } from 'react';
+import { lazyChunk } from './lazyChunk';
 import { game } from '../core/store';
 import { CITY_GOAL, GOALS_STEP_ID, GOALS_STEP_SEEN } from '../data/sf/goals';
 import { registerOverlay } from '../ui/slots';
@@ -7,6 +7,7 @@ import { sayFreeLine, startFreeLead } from './flow';
 import { flow } from './flowStore';
 import { STREET_FACTOR, autoTravelSeconds } from './tripPlan';
 import { timeLabel } from './tripText';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 5 · lane C · W5-C3 (plan sf-w5-plan.md MF6 "goals once", MF3 "the pelican first"): the goals step.
@@ -22,7 +23,7 @@ import { timeLabel } from './tripText';
  * has not seen the step, so it never opens on an empty frame.
  */
 
-const load = () => import('../ui/GoalsStep');
+const load = () => importRetry(() => import('../ui/GoalsStep'));
 
 /**
  * The big button's time over a straight distance d (u). The button carries you (a free lead is one of lane N's
@@ -31,7 +32,7 @@ const load = () => import('../ui/GoalsStep');
  * Building while the trip it started showed the carried time).
  */
 export const goalsStepEta = (d: number) => timeLabel(autoTravelSeconds(d * STREET_FACTOR));
-const GoalsStep = lazy(load);
+const GoalsStep = lazyChunk(load);
 
 export function initGoalsStep(): () => void {
   if (!game.get().goalsDone.includes(GOALS_STEP_SEEN)) void load().catch(() => { /* offline: it loads when it opens */ });

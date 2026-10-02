@@ -3,7 +3,7 @@ import { WEAR_SLOTS, type WearSlot } from '../data/playSave';
 import { registerFrameDecorator } from '../game/photoFrames';
 import { registerWarmup } from '../world/warmup';
 import { drawFrame } from './frames';
-import { pelicanBatWingMesh, playerCostumeMesh } from '../halloween/costumeMesh';
+import { pelicanBatWingMesh, pelicanPumpkinBowMesh, playerCostumeMesh } from '../halloween/costumeMesh';
 import { hatMesh, hatWarmup } from './hats';
 import { itemById, type ItemDef } from './items';
 import { subscribeLedger } from './ledger';
@@ -17,6 +17,7 @@ import { wornItem } from './wallet';
  *   baybay-hat    charApi.attach('baybay', 'head', hat mesh)      player-pack  tint('player', 'pack', colour)
  *   bike · car · pelican   charApi.vehiclePaint(kind, PAINTS id)  frame        the photo decorator 'e-frame'
  *   pelican bat wings (W7-G2)  charApi.attach('pelican', 'wingL' | 'wingR', bat wing mesh), the ribbon off
+ *   pelican pumpkin bow (W8-H) charApi.attach('pelican', 'neck', the bow mesh), the ribbon off
  *
  * The worn state lives in the play save (`play.w`, the ledger writes it); a try-on in the 小铺 is a PREVIEW on top of
  * it (setPreview), dropped when the sheet closes. Only slots whose look changed are sent again (a tint repaints vertex
@@ -30,6 +31,8 @@ let sent: Partial<Record<WearSlot, Look>> = {};
 let sentTo: CharApi | null = null;
 /** W7-G2: the pelican's bat wings are on (sent to `sentTo`) */
 let batWingsOn = false;
+/** W8-H: the pelican's pumpkin bow is on */
+let bowOn = false;
 
 /** What a slot shows now: the try-on, else the worn item, else the default (null). */
 export function lookOf(slot: WearSlot): ItemDef | null {
@@ -55,7 +58,13 @@ function send(api: CharApi, slot: WearSlot, it: ItemDef | null) {
         api.attach('pelican', 'wingR', bat ? pelicanBatWingMesh('R') : null);
         batWingsOn = bat;
       }
-      api.vehiclePaint('pelican', bat ? null : it?.paint ?? null);
+      // W8-H: the pumpkin bow on the neck (put on / taken off only when it changes, like the wings)
+      const bow = it?.costume === 'pumpkin-bow';
+      if (bow || bowOn) {
+        api.attach('pelican', 'neck', bow ? pelicanPumpkinBowMesh() : null);
+        bowOn = bow;
+      }
+      api.vehiclePaint('pelican', bat || bow ? null : it?.paint ?? null);
       break;
     }
     case 'bike': case 'car': api.vehiclePaint(slot, it?.paint ?? null); break;
@@ -67,7 +76,7 @@ function send(api: CharApi, slot: WearSlot, it: ItemDef | null) {
 export function syncLooks(api: CharApi | null = charApi()): number {
   if (!api) return 0;
   // a new implementation starts at the default looks: send only what differs
-  if (api !== sentTo) { sent = Object.fromEntries(WEAR_SLOTS.map(s => [s, null])); sentTo = api; batWingsOn = false; }
+  if (api !== sentTo) { sent = Object.fromEntries(WEAR_SLOTS.map(s => [s, null])); sentTo = api; batWingsOn = false; bowOn = false; }
   let n = 0;
   for (const slot of WEAR_SLOTS) {
     const it = lookOf(slot);
@@ -118,4 +127,4 @@ export function initWear(): () => void {
 }
 
 /** tests */
-export function __resetWearForTests(): void { preview.clear(); sent = {}; sentTo = null; batWingsOn = false; }
+export function __resetWearForTests(): void { preview.clear(); sent = {}; sentTo = null; batWingsOn = false; bowOn = false; }

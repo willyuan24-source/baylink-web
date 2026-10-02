@@ -77,3 +77,8 @@
 .ob-howto-rows span { font-size: 13px; color: var(--ob-ink-2); }
 .ob-howto-rows small { font-size: 12px; color: var(--ob-ink-3); font-variant-numeric: tabular-nums; }
 .ob-howto .ob-source a { display: inline-flex; align-items: center; gap: 2px; color: var(--ob-teal-d); font-weight: 700; }
+/* (W8-I, W8I-P-6) a finger gets 44 px on the 32 px Go button: an invisible hit area round it, the row unchanged */
+@media (pointer: coarse) {
+  .ob-today-go { position: relative; }
+  .ob-today-go::before { content: ""; position: absolute; inset: -6px -2px; }
+}

@@ -23,13 +23,14 @@ export function todayLine(now: Date = bayNow(), catalog: Catalog | null = getCat
     const name = EVENT_SAY[w.event.id] ?? { zh: '活动', en: 'an event' };
     return {
       zh: cut(`今天${place.zh}有${name.zh}，旅行本「今天」里有～`, `今天${place.zh}有${name.zh}！`),
-      en: `${place.en} has ${name.en} today — it is in the journal's Today page.`,
+      // (W8-I, W8I-WS-1) a sentence never starts lowercase ('the Ferry Building has …'), and it is *on* a page
+      en: `${place.en.charAt(0).toUpperCase()}${place.en.slice(1)} has ${name.en} today — it is on the journal's Today page.`,
     };
   }
   const sun = sunTimes(now);
   if (now.getTime() < sun.sunset.getTime()) {
     const t = sunHm(sun.sunset);
-    return { zh: `今天旧金山日落 ${t}，旅行本「今天」里有三件小事～`, en: `Sunset in San Francisco today is at ${t}; three small things wait in the journal's Today page.` };
+    return { zh: `今天旧金山日落 ${t}，旅行本「今天」里有三件小事～`, en: `Sunset in San Francisco today is at ${t}; three small things wait on the journal's Today page.` };
   }
-  return { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait in the journal’s Today page — no rush.' };
+  return { zh: '旅行本「今天」里有今日三件小事，慢慢逛～', en: 'Three small things for today wait on the journal’s Today page — no rush.' };
 }

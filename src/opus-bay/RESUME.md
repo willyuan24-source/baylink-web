@@ -1,5 +1,104 @@
 # Opus Bay — resume notes (newest first; the first pause was 2026-09-25 ~17:05 PDT)
 
+## NEXT SESSION → WAVE 8 (written 2026-09-30 ≈ 18:45 PDT; the owner continues in a new window)
+
+- **Say "继续 Opus Bay，做第八波".** Read this section → the wave-7 section below → `docs/opus-bay/sf-w7-summary.md` §5 NEXT
+  (the wave-8 list, P0 / P1 / P2) → `docs/opus-bay/sf-w7-lead.md` (the process, §5 protocol, §7 the addendum lanes).
+- **The owner's decisions (2026-09-30 18:40 PDT):** go ahead with wave 8 the same way ("直接做"); **Higgsfield: all of the
+  remaining ≈ 363 credits may be used** (no floor; quality first, a ledger row per job). The account is shared: another
+  project spent ≈ 1,050 credits on 2026-09-30 (Seedance 2.5 / GPT Image / Seed Audio), so read `balance` before every
+  batch. The owner was offered: run wave 8 overnight with the machine on — confirm the timing at the start.
+- **Day 0 must merge `origin/main` again**: GPT pushed 3 site commits after the go-live (`f3fa187f` simple service booking
+  flows + "fix release checks", `11ffcf60` verified small-group outings + BayBay planning drafts, `f2f3f889` outing
+  discovery / waitlist / AI drafts; head `f2f3f889`, 16:34 PDT) — "fix release checks" may clear the 4 red site tests of
+  `b4f71de8`; re-run `npm run check`. Then re-sync the world with the site (the S lane: events / openings / offers /
+  live.json / links), and before the go-live merge `origin/main` once more if GPT pushed (sf-w7-lead.md §7.2).
+- **Proposed wave-8 shape** (from §5 + the promo films): P0 — BAYBAY silent under lazy overlays (cityMoments / baybayLines
+  gates), the game's English hand-off line still names stops in Chinese (seen in promo film B's English version),
+  `play.b` MAX_BESTS 32 cap before adding games, phone UI (Settings under the subway overlay, 36 px map buttons, 844 × 340
+  goals card), the Hyde St canopy dither; time-bound — Halloween polish (live from 1 Oct), Fleet Week toy Parade of Ships
+  (9 Oct 11:00–12:00), the Chinatown Halloween Festival venue (31 Oct, once in the site catalog); more SF — Chinatown's
+  pagoda cluster, SS Jeremiah O'Brien at Pier 35 (+ the sweep's last UNREACHABLE), a boardable Alcatraz ferry from Pier 33,
+  Ocean Beach surfers + Seal Rocks, the busker play-along, the cable-car grip game, Stow Lake pedal boats; looks — St
+  Ignatius, Haight Victorians / murals, vehicles, night glows; later — Thanksgiving / the Union Square tree and rink
+  (verify 2026 dates), daily challenges tied to the site's 这周去哪.
+- **Still owed by the owner:** confirm the wave-7 deploy (`?halloween=1`), the real-iPhone pass
+  (`docs/opus-bay/iphone-checklist.md`), the voice listening sheets (w6, w7), and relaying the site issues to GPT
+  (the planner's HTTP 400 on 「10月17日周六」, free admission read as an unknown price, the Safari 16.0–16.3 lookbehind).
+- **Promo videos are DONE** (separate local project `C:/Users/willy/baylink-promo`, not in this repo): `a/DELIVERY.md`,
+  `B/DELIVERY.md`, `PRODUCTION.md`; 766.43 credits of the owner's 1800.
+
+## WAVE 7 DONE · LIVE ON baylink.us — 2026-09-30 03:25 PDT
+
+- **State.** `main` was fast-forwarded by the lead to **`1d5d0d00`** (W7-Z, GO) at 03:25 PDT; `origin/opus-bay` = that +
+  this hand-off commit (docs only: `docs/opus-bay/sf-w7-summary.md`, the wave-7 ledgers merged into
+  `src/opus-bay/ASSETS-LEDGER.md` § "Wave 7 (local)", this section). `origin/main` had nothing new after day 0 (GPT's
+  head `b4f71de8` was merged by W7-0c), so no second merge was needed. **The deploy is not confirmed**: the lead's check
+  of baylink.us was refused by a permission check; the owner was asked to open
+  https://www.baylink.us/opus-bay?halloween=1 (the Halloween key art on the title = wave 7 is live). The Halloween season
+  starts by itself on 1 Oct (Bay date).
+- Read, in order: this section → `docs/opus-bay/sf-w7-summary.md` (给主人的摘要, the thirteen lanes, W7-Z's numbers,
+  Higgsfield, **§5 NEXT**) → `docs/opus-bay/sf-w7-final-verify.md` (W7-Z) → `docs/opus-bay/sf-w7-integration.md`
+  (W7-I) → the plan / lead note `docs/opus-bay/sf-w7-lead.md` (ownership §3, contracts §4, decisions §6, the addendum §7).
+- **What wave 7 added:** Halloween complete (the 4 postcards at their moments, the pelican's bat wings, the pumpkin
+  dusk, moving figures, readable bats, lantern wisps, the 2 Nov procession); iPhone readiness (the audio unlock inside
+  the Start tap, a voice-clip cap, the context-loss card, the album in WeChat, iOS viewport sizes,
+  `docs/opus-bay/iphone-checklist.md`); Alcatraz T1, the FiDi seam, the East Cut corner, USS Pampanito, Union Square T2;
+  five new games (放风筝, 那是什么？, the Musée claw machine + fortune teller, crabbing, sourdough); felt characters,
+  painted particles, Golden Gate fog wisps, the de Young tower (AI), pre-war / Chinatown façades, the city day sky; the
+  site sync (six venues, souvenir ids, 3 new-shop signs, real dates); GameRoot **261.96 KB** (≤ 265 for the first time).
+- **Checks at W7-Z** (`1d5d0d00`): eslint 0 errors · tsc 0 · opus-bay suite **1660 / 1660** · build + prerender 566 +
+  541 share cards green · `npm run check`'s test step **2551 / 2555**: the 4 failures are the site's own tests on GPT's
+  `b4f71de8` (red on `main` too; CI stays red until GPT fixes them — the summary's §5 P0 4 has the fixes). Perf: desktop
+  max 123 calls / 360k, 60 fps; phone 4× min 58.4 fps, 0 frames > 100 ms; sweep 694 targets 0 boxed / 0 snag / 1
+  unreachable (O'Brien); production CSP 0 / 0; district unchanged (71 / 225,070 / 262).
+- **Higgsfield:** wave 7 spent **33.63** (lane V 30.00, lane X 3.63); `balance` **2213.87** (read only, 2026-09-30 ≈ 10:30
+  UTC). The owner reserved **up to 1800 credits for two BAYLINK promo videos** after this go-live (the website; the 3D
+  world with the real world): game lanes stop below **1900** until those are made.
+- **Workflow runs:** `wf_24420585-505` (the ten lanes K Q B P H G S W1 W2 X → one reviewer per lane → W7-I → W7-Z) and
+  `wf_b9e6ab11-810` (the addendum: V M R → one reviewer per lane), scripts `opus-bay-wave7-wf_24420585-505.js` /
+  `opus-bay-wave7-addendum-wf_b9e6ab11-810.js` under the lead session's `workflows/scripts/`. Both finished; a run cannot
+  be resumed across sessions.
+- **Worktrees kept** `C:/Users/willy/wt/w7-{day0,k,q,b,p,h,g,s,w1,w2,x,v,m,r}` (branches `w7-*`, all pushed; every
+  `node_modules` is a **junction** — remove with `cmd //c rmdir C:\Users\willy\wt\<name>\node_modules` first, check it is
+  gone, then `git worktree remove <path>`, never `--force`). The review worktrees, `w7-int`, `w7-verify` and
+  `w7-handoff` are removed; `C:/Users/willy/wt/w7-p-rev` is an empty leftover folder. Scratch `C:/Users/willy/opus-qa/w7/`
+  (day-0 scouts `day0/`, lanes `<id>/`, reviews `<id>-rev/`, `int/`, `z/`). The lead's checkout
+  `C:/Users/willy/baylink-opus` is still at `83e88511`: `git pull --ff-only` before using 5174 or rebuilding 4174. The LAN
+  phone package `C:/Users/willy/opus-qa/dist-phone` was rebuilt by W7-Z from the final tree (start the `opus-bay-phone`
+  preview for http://10.0.0.85:4174/opus-bay).
+- **Rules learnt tonight** (add them to every brief, on top of "Rules learnt" below):
+  1. **A test that simulates the city must pin the Bay clock.** The W5 deadlock proof read the real clock through the
+     transit layer (cable cars run by their real service hours, `bayParts()`), so every run after ≈ 23:00 PDT met the
+     Market St convoy and went red for every lane (29.2 s at `box:f-line@5661:750`) until W7-B9 `fd2ff25b` pinned it to a
+     day clock (`__setBayNowForTests`); W7-B1 also resets the state the test before it leaves. A red test on clean origin
+     is the lead's / its owner's, not every lane's.
+  2. **13 lanes on this machine** ran it at CPU 100 % with ≈ 3 GB RAM free, and it held with Windows' automatic pagefile.
+     Run the touched tests while iterating and the full suite only before a push; wall-clock tests fail under that load
+     (rule 9 below): re-run alone.
+  3. **Push contention:** thirteen lanes rebasing onto one branch make a lane with a slow check (the ~10-minute suite)
+     lose the race again and again. After the rebase re-run `tsc` and the incoming lanes' test files, then push at once;
+     keep the last full-suite run's numbers in the report.
+  4. **The auto-mode classifier refuses a curl of the live site** as a production deploy check: after a go-live the owner
+     confirms the deploy (or grants that permission); do not retry the curl.
+  5. **The OneDrive lock leaves `.git/worktrees/*` admin folders** (`w7-*-rev`, `w7-int`, `w7-verify`, `w7-*-chk`,
+     `w7-h-origin`, `wt-origin`, `wt-origin1`, …) in `C:/Users/willy/OneDrive/Desktop/baylink-web/.git/worktrees/`:
+     `git worktree prune` later, with OneDrive paused.
+  6. **Dev servers share `node_modules/.vite` through the junction**: one worktree's server re-optimises the deps under
+     another's (mixed React, "Invalid hook call", "Failed to fetch dynamically imported module"). Give each dev server its
+     own `cacheDir` (a scratch vite config, as the H / G reviewers did).
+  7. **Never edit the site's files** (outside `src/opus-bay`, `tests/opus-bay-*`, `public/opus-bay`, `scripts/opus-sf`,
+     `docs/opus-bay`): W7-Z's start on GPT's red tests was backed out and the harness refused edits to the site's shared
+     data. Report site problems to the owner / GPT in the summary.
+  8. A lane once put the owner's e-mail in a Nominatim User-Agent (openstreetmap.org only, nothing in the repo): briefs say
+     to use a generic User-Agent, never the owner's address.
+- **How to continue:** say **"继续 Opus Bay"**. Read this section and `sf-w7-summary.md` §5 NEXT; do the owner-side P0
+  first (confirm the deploy, the real iPhone pass on the LAN package, the listening sheets, the site's 4 tests and the
+  Safari 16.0–16.3 regex go to GPT). Then launch wave 8 the same way as waves 6–7 (lead note §5 protocol, ports 57xx /
+  58xx, a plan with a default for every question, day 0 = merge `origin/main` once if GPT pushed, lanes in parts, one
+  adversarial reviewer per lane, W8-I integration, W8-Z final verify alone with PERF-LOCK, fast-forward `main` on GO, the
+  hand-off). Higgsfield: check `balance` first and keep the promo reserve (floor 1900) unless the promo videos are done.
+
 ## WAVE 6 DONE · LIVE ON baylink.us — 2026-09-29 06:50 PDT (`main` fast-forwarded to `5da5822c`, W6-Z GO)
 
 - Wave 6 ran 01:40–07:30 PDT on 2026-09-29 (the owner left at 07:45). Read, in order: this section →

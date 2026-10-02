@@ -11,6 +11,7 @@ import { useT } from '../i18n';
 import { useFar, usePlaceIndex } from './cityHooks';
 import { footprintsSummary } from './footprintsData';
 import './city-ui.css';
+import { importRetry } from '../game/importRetry';
 
 /**
  * 足迹 (lane G1, G1-11): the Journal tab with what you found in the city — landmarks, the curated places, every place
@@ -45,7 +46,7 @@ function useCityLists(): { attractions: readonly Attr[]; w4: W4Names } {
   const [v, setV] = useState<{ attractions: readonly Attr[]; w4: W4Names }>({ attractions: [], w4: {} });
   useEffect(() => {
     let live = true;
-    void Promise.all([import('../data/sf/attractions'), import('../data/sf/stationNames')]).then(([a, s]) => { if (live) setV({ attractions: a.ATTRACTIONS, w4: s.W4_LINES }); });
+    void Promise.all([importRetry(() => import('../data/sf/attractions')), importRetry(() => import('../data/sf/stationNames'))]).then(([a, s]) => { if (live) setV({ attractions: a.ATTRACTIONS, w4: s.W4_LINES }); });
     return () => { live = false; };
   }, []);
   return v;

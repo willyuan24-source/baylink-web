@@ -21,6 +21,10 @@ import { landmarkPlazaSpots } from './landmarks/context';
 import { type RoadVehicle, type StreetProbe, StreetNet, collectRoadVehicles, nearTransitLine, onTransitStreet, registerRoadVehicles } from './streetNet';
 import { setVehicle, vehiclePool } from './recordPool';
 import { type KeepClear, TRAFFIC, TrafficLayer, type TrafficEnv } from './traffic';
+import { onAlcatraz } from './alcatrazWalk';
+
+/** (wave 8, lane A) the crowd's size while the player is on Alcatraz (the island's walk is a dock, a stair and a terrace) */
+const ALCA_CROWD = 8;
 
 /**
  * City life host (lane F, wave 3 part b): the crowd (F11) and the toy traffic (F12) around the player, created by the
@@ -196,7 +200,9 @@ export class CityLife {
 
   private applyQuality() {
     const q = game.get().settings.quality;
-    if (this.crowd) { this.crowd.sim.target = CROWD.count[q]; this.crowd.setQuality(q); } // W7-X: the near figure per quality
+    // (wave 8, lane A, surgical) on Alcatraz a handful of visitors, not the city's whole crowd on one small plateau
+    const island = onAlcatraz(runtime.player.x, runtime.player.z);
+    if (this.crowd) { this.crowd.sim.target = island ? Math.min(ALCA_CROWD, CROWD.count[q]) : CROWD.count[q]; this.crowd.setQuality(q); } // W7-X: the near figure per quality
     if (this.traffic) this.traffic.sim.target = TRAFFIC.count[q];
   }
 

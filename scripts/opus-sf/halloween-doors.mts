@@ -12,6 +12,13 @@
  *
  * The rows are printed as TypeScript to paste into halloween/treatDoors.ts; tests/opus-bay-w6-g-doors.test.ts re-checks
  * every door on the published city.
+ *
+ *   npx tsx --tsconfig tsconfig.app.json scripts/opus-sf/halloween-doors.mts --fix   # W8-H: move the doors that fail
+ *
+ * W8-H `--fix`: the doors already in treatDoors.ts keep their numbers (the ledger's `halloween:door:<n>`); every live door
+ * that fails the door-to-street rule (tests/opus-bay-w8-h-doorcheck.ts doorProblem: its knock spot reaches its own street
+ * on foot, it faces that street, it does not front another one) moves to the nearest candidate face of the same street
+ * that passes the rule and stands ≥ 2.8 u from every other door; only the replacement rows are printed.
  */
 import { sfDisk } from '../../tests/opus-bay-sf-disk';
 
@@ -78,6 +85,13 @@ setCityTerrain(city, { heroDropLots: new Set(sf.manifest.heroDropLots) });
 
 const rows: string[] = [];
 let n = 0;
+const FIX = process.argv.includes('--fix');
+const { TREAT_DOORS } = await import('../../src/opus-bay/halloween/treatDoors');
+const { doorProblem, roadsOf } = await import('../../tests/opus-bay-w8-h-doorcheck');
+const fixRoads = FIX ? roadsOf((await Promise.all(sf.manifest.chunks.map(c => sf.chunk(c.cx, c.cz)))).filter(c => c !== null), names) : [];
+const moved = new Map<number, P & { f: number; y: number }>();
+/** a failing door moves at most this far along its street (u); with no candidate that near it goes (`gone: true`) */
+const MOVE_MAX = 30;
 for (const st of TREAT_STREETS) {
   const road = await roadsNamed(st.osm);
   if (!road.length) throw new Error(`no road ${st.osm}`);
@@ -139,6 +153,28 @@ for (const st of TREAT_STREETS) {
       const side = Math.sign(dir.x * nn.z - dir.z * nn.x);
       cands.push({ ...door, f: +Math.atan2(nn.x, nn.z).toFixed(3), y: +heightAt(foot.x, foot.z).toFixed(2), t: along(m), side, kx: knock.x, kz: knock.z });
     }
+  }
+  if (FIX) {
+    const ground = { canStand, surfaceAt };
+    const spot = (d: { n: number; x: number; z: number }) => moved.get(d.n) ?? d;
+    for (const d of TREAT_DOORS.filter(q => q.street === st.id && !q.gone)) {
+      const why = doorProblem(d, KNOCK_OUT, st.osm, fixRoads, ground);
+      if (!why) continue;
+      // ≥ 2.8 u from every other door, a gone one too (W7-G7's door 8 went for a reason); at most MOVE_MAX from the old spot
+      const free = (c: P) => TREAT_DOORS.every(o => o.n === d.n || Math.hypot(spot(o).x - c.x, spot(o).z - c.z) >= 2.8);
+      const pick = cands
+        .filter(c => Math.hypot(c.x - d.x, c.z - d.z) <= MOVE_MAX && free(c) && !doorProblem(c, KNOCK_OUT, st.osm, fixRoads, ground))
+        .sort((a, b) => Math.hypot(a.x - d.x, a.z - d.z) - Math.hypot(b.x - d.x, b.z - d.z))[0];
+      if (!pick) {
+        console.error(`door ${d.n} (${st.id}): ${why} — no candidate within ${MOVE_MAX} u: gone`);
+        rows.push(`  { n: ${d.n}, street: '${st.id}', x: ${d.x}, z: ${d.z}, y: ${d.y}, f: ${d.f}, gone: true }, // ${why}`);
+        continue;
+      }
+      moved.set(d.n, { x: pick.x, z: pick.z, f: pick.f, y: pick.y });
+      console.error(`door ${d.n} (${st.id}): ${why} → moves ${Math.hypot(pick.x - d.x, pick.z - d.z).toFixed(1)} u`);
+      rows.push(`  { n: ${d.n}, street: '${st.id}', x: ${pick.x}, z: ${pick.z}, y: ${pick.y}, f: ${pick.f} }, // was (${d.x}, ${d.z}, f ${d.f})`);
+    }
+    continue;
   }
   // inside the block first, then the nearest outside it; alternate the two sides; ≥ 2.8 u apart
   const outside = (t: number) => (t < 0 ? -t : t > len ? t - len : 0);

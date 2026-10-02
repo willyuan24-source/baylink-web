@@ -4,6 +4,7 @@ import { type BatchLike, CONE, ICO, M, mixColor, rng } from '../../builder';
 import { ALCA_PATHS, ALCA_X, ALCA_Z, alcaGround, alcaGroundSpan } from './alcatrazGround';
 import { NONE, WIN, box, cyl, gable, pyramid, rect, tube, worldPoly } from './kit';
 import type { SfLandmark, WalkBlocker } from './index';
+import { ALCA_STAIR, ALCA_WALK_BLOCKERS, ALCA_WALK_SURFACES } from '../alcatrazWalk';
 
 /**
  * Alcatraz (W7-W2, T1: fame 95, seen from Coit Tower, the first flight's rings, PIER 39, the bridge deck, Aquatic
@@ -247,6 +248,28 @@ function dock(b: BatchLike, lod: 0 | 2) {
   pyramid(b, GUARD.x, cab + 0.85, GUARD.z, 1.2, 1.2, 0.45, '#5f6664');
 }
 
+/**
+ * Wave 8 (lane A): the stairway up from the dock road to the cellhouse front (world/sf/alcatrazWalk.ts ALCA_STAIR, the
+ * walk's 'stairs' strip): concrete steps on the hill's own slope, a kerb each side and a pipe rail on the downhill posts.
+ */
+function stair(b: BatchLike) {
+  const { x, z0, z1, width, steps } = ALCA_STAIR, d = (z1 - z0) / steps;
+  for (let i = 0; i < steps; i++) {
+    const z = z0 + (i + 0.5) * d, y = alcaGround(x, z);
+    box(b, x, y - 0.9, z, width - 0.2, 0.92, Math.abs(d) + 0.02, i % 2 ? CONC : CONC_SH);
+  }
+  for (const s of [-1, 1]) {
+    const ex = x + s * (width / 2 - 0.05);
+    const a = new THREE.Vector3(ex, alcaGround(x, z0) + 0.12, z0), c = new THREE.Vector3(ex, alcaGround(x, z1) + 0.12, z1);
+    tube(b, a, c, 0.1, CONC_SH, NONE, 4);
+    tube(b, new THREE.Vector3(ex, a.y + 0.75, z0), new THREE.Vector3(ex, c.y + 0.75, z1), 0.035, STEEL, NONE, 4);
+    for (let k = 0; k <= 4; k++) {
+      const zz = z0 + ((z1 - z0) * k) / 4, yy = alcaGround(x, zz);
+      cyl(b, ex, yy, zz, 0.035, 0.85, STEEL, NONE, 4);
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // the rest of the island: the ruins, the chapel, the industries on the north-west shore
 // ---------------------------------------------------------------------------
@@ -359,6 +382,7 @@ function build(b: BatchLike, lod: 0 | 2) {
   }
   island(b);
   gardens(b);
+  stair(b);
 }
 
 const poly = (f: Foot): Vec2[] => rect(f.x, f.z, f.L, f.W, ry(f));
@@ -366,6 +390,8 @@ const BLOCKERS: WalkBlocker[] = [
   { poly: poly(CELL) }, { poly: poly(ADMIN) }, { poly: poly(HALL) },
   { x: TOWER.x, z: TOWER.z, r: 1.25 },
   { poly: poly(B64) }, { poly: poly(NEWIND) }, { poly: poly(POWER) }, { poly: poly(MODEL) },
+  // wave 8 (lane A): the plateau's lighthouse, small buildings and the Warden's House (the island is walkable now)
+  ...ALCA_WALK_BLOCKERS,
 ];
 
 export const alcatraz: SfLandmark = {
@@ -378,7 +404,8 @@ export const alcatraz: SfLandmark = {
   sink: 0,
   exclude: { poly: worldPoly(ALCA_X, ALCA_Z, 0, EXCLUDE) },
   build,
-  walk: { blockers: BLOCKERS },
+  // wave 8 (lane A): the dock, the dock road, the stair and the cellhouse front are walkable (world/sf/alcatrazWalk.ts)
+  walk: { blockers: BLOCKERS, surfaces: ALCA_WALK_SURFACES.map(s => ({ poly: s.poly, y: s.y, surface: s.surface })) },
   tall: [{ x: TOWER.x, z: TOWER.z, r: 1.3 }],
 };
 

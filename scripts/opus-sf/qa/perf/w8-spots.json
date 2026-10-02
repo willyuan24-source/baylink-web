@@ -1,0 +1,21 @@
+{
+ "version": 1,
+ "note": "Wave-8 perf spots (W8-Z final verify), on top of w5-spots.json, w6-halloween-spots.json and w7-spots.json: the places wave 8 touched most. Undated: Pier 33's quay (lane A's Alcatraz ferry, facing the slip), the island's quay and the cellhouse front looking back at the city (lane A's island walk), Grant Ave below the pagoda corner (lane W1's Sing Chong / Sing Fat, Old St. Mary's), the SS Jeremiah O'Brien's trip end at Pier 35 (lane W1), the Blue Heron (Stow) Lake pavilion (lane W2's pedal boats). Dated (run each with --spots and its --date): waverly-festival on 2026-10-31T12:00 (lane H's Chinatown Halloween Festival kit; run chinatown and chinatown-pagodas with it), aquatic-park with marina-green-fleet on 2026-10-09T11:20 (lane S's Fleet Week Parade of Ships). Rides that need the game's own transit (on board the Alcatraz ferry, a Powell-Hyde ride with lane M's grip game) are driven by the W8-Z scratch driver, not by w4-perf (sf-w8-final-verify.md section 3). Same gate as w5-spots.json.",
+ "gate": {
+  "desktop": { "size": [1440, 900], "quality": "high", "calls": 150, "triangles": 400000 },
+  "phone": { "size": [390, 844], "dpr": 3, "quality": "mid", "cpuThrottle": 4, "fps": 45 },
+  "programs": "equal at 1x idle and 4x walk (no drift)"
+ },
+ "spots": [
+  { "id": "pier33-quay", "since": "w8", "go": { "x": -94.0, "z": -21.8, "fx": -94.1, "fz": -40 }, "note": "Pier 33 · Alcatraz Landing (data/ferry.ts quay), facing the slip and the boat (lane A)" },
+  { "id": "alcatraz-quay", "since": "w8", "go": { "x": -452.26, "z": -74.85, "fx": -460.96, "fz": -62.95 }, "note": "Alcatraz's quay, facing the stair up past Building 64 (lane A)" },
+  { "id": "alcatraz-cellhouse", "since": "w8", "go": { "x": -460.96, "z": -62.95, "fx": -150, "fz": 40 }, "note": "the cellhouse front, looking back across the Bay at the city (lane A)" },
+  { "id": "chinatown-pagodas", "since": "w8", "go": { "x": 70.07, "z": 166.44, "fx": 57, "fz": 153 }, "note": "Grant Ave at the w8w1-pagodas-ahead line, looking up to the Sing Chong / Sing Fat corner and Old St. Mary's (lane W1)" },
+  { "id": "obrien-pier35", "since": "w8", "go": { "x": -126, "z": -10, "fx": -131.56, "fz": -19.42 }, "note": "the SS Jeremiah O'Brien's trip end on Pier 35's apron, facing along her hull (lane W1; the sweep's last UNREACHABLE in wave 7)" },
+  { "id": "stow-lake", "since": "w8", "go": { "x": -262.1, "z": 1045.1, "fx": -269.8, "fz": 1032.3, "arrival": true }, "note": "Blue Heron (Stow) Lake's arrival, facing the lake with the pedal boats (lane W2)" },
+  { "id": "waverly-festival", "since": "w8", "go": { "x": 29.5, "z": 153.5, "fx": 34, "fz": 148.5 }, "note": "Waverly Place, the Chinatown Halloween Festival kit (lane H); run with --date 2026-10-31T12:00" },
+  { "id": "aquatic-park", "since": "w8", "go": { "x": -250.9, "z": 166.1, "fx": -262, "fz": 80, "arrival": true }, "note": "Aquatic Park's bathhouse, looking out over the cove to the Bay (Fleet Week's Parade of Ships, lane S); run with --date 2026-10-09T11:20 together with marina-green-fleet" },
+  { "id": "marina-green-fleet", "since": "w8", "go": { "x": -364.1, "z": 302.1, "fx": -434.2, "fz": 234.4, "arrival": true }, "note": "w5-spots' marina-green, again on the Parade of Ships morning (lane S's toy grey ships); run with --date 2026-10-09T11:20" }
+ ],
+ "rides": []
+}

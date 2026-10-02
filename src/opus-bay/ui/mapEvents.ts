@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Bilingual } from '../core/types';
 import { addDays } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane N · the map's 这周 (plan §3.3 R2 "Map: a 这周 filter, on by default while an SF event is live (DOM
@@ -91,7 +92,7 @@ export function useWeekPins(): WeekPin[] {
   useEffect(() => {
     let live = true;
     const read = () => {
-      void import('../realsf/events').then(m => {
+      void importRetry(() => import('../realsf/events')).then(m => {
         if (!live) return;
         const now = bayNow();
         setPins(weekPins(m.weekEvents(now, 7), now.getTime()));

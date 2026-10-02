@@ -1,9 +1,11 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { useGame } from '../core/store';
 import { useFlow } from '../game/flowStore';
 import { registerAnchor } from '../game/projector';
 import { useDevice } from './hooks';
 import { coachSeen } from './coachSeen';
+import { importRetry } from '../game/importRetry';
 
 /**
  * F2 · Onboarding coach mark: teaches movement in context, once (ui/CoachMarkBody.tsx: it waits for a free screen, is
@@ -14,7 +16,7 @@ import { coachSeen } from './coachSeen';
  * device, so GameRoot does not carry it on every later visit (it keeps GameRoot within its size while the city
  * guidance glue comes in).
  */
-const CoachMarkBody = lazy(() => import('./CoachMarkBody'));
+const CoachMarkBody = lazyChunk(() => importRetry(() => import('./CoachMarkBody')));
 
 export function CoachMark() {
   const [due] = useState(() => !coachSeen());

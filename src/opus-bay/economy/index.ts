@@ -16,18 +16,20 @@
  *   economy/hints.ts   registerHintSource(kind, fn) · hintTarget(kind, from)
  * and emit `{ type: 'reward', source, coins }` (core/events) to be paid.
  */
-import { createElement, lazy } from 'react';
+import { createElement } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { NotebookPen } from 'lucide-react';
 import { registerJournalTab, registerOverlay, registerPillBadge } from '../ui/slots';
 import { CoinBadge } from './CoinBadge';
 import * as hints from './hints';
 import * as ledger from './ledger';
+import { importRetry } from '../game/importRetry';
 
 /** Lane A's PlayKit looks for this export (play/kit.ts writeBest): an activity best into save v2 `play.b`. */
 export const recordBest = (key: string, value: number): void => { ledger.recordBest(key, value); };
 
-const ShopSheet = lazy(() => import('./Shop').then(m => ({ default: m.ShopSheet })));
-const TicketPicker = lazy(() => import('./Shop').then(m => ({ default: m.TicketPicker })));
+const ShopSheet = lazyChunk(() => importRetry(() => import('./Shop')).then(m => ({ default: m.ShopSheet })));
+const TicketPicker = lazyChunk(() => importRetry(() => import('./Shop')).then(m => ({ default: m.TicketPicker })));
 const NotebookIcon = () => createElement(NotebookPen, { size: 16, 'aria-hidden': true });
 
 export function init(): () => void {
@@ -39,24 +41,24 @@ export function init(): () => void {
     registerOverlay({ id: 'e-shop', Component: ShopSheet }),
     registerOverlay({ id: 'e-ticket', Component: TicketPicker }),
     // the 手帐: after 今天 (lane R), before 明信片 (10)
-    registerJournalTab({ id: 'notebook', order: 7, label: { zh: '手帐', en: 'Notebook' }, icon: NotebookIcon, count: () => extras?.notebookCount(), load: () => import('./Notebook') }),
+    registerJournalTab({ id: 'notebook', order: 7, label: { zh: '手帐', en: 'Notebook' }, icon: NotebookIcon, count: () => extras?.notebookCount(), load: () => importRetry(() => import('./Notebook')) }),
   ];
   // the styles (a dynamic import: node — the contracts test loads this module — cannot load .css)
-  void import('./economy.css').catch(() => undefined);
+  void importRetry(() => import('./economy.css')).catch(() => undefined);
   const qa = import.meta.env?.DEV && typeof window !== 'undefined' ? (window as unknown as { __opusBay?: Record<string, unknown> }) : null;
   // DEV / QA: `__opusBay.e` (the ledger, the hints, the coins and the extras once loaded)
   const expose = (extra: Record<string, unknown> = {}) => { if (qa) qa.__opusBay = { ...(qa.__opusBay ?? {}), e: { ...((qa.__opusBay?.e as object) ?? {}), ledger, hints, ...extra } }; };
   expose();
-  void import('./coins').then(coins => {
+  void importRetry(() => import('./coins')).then(coins => {
     if (gone) return;
     offs.push(coins.initCoins());
     expose({ coins });
   }).catch(error => { if (import.meta.env?.DEV) console.error('[opus-bay economy] coins', error); });
-  void import('./extras').then(async x => {
+  void importRetry(() => import('./extras')).then(async x => {
     if (gone) return;
     extras = x;
     offs.push(x.initExtras());
-    if (qa) expose({ wallet: await import('./wallet'), shopRun: await import('./shopRun'), wear: await import('./wear'), notebook: await import('./notebookRun') });
+    if (qa) expose({ wallet: await importRetry(() => import('./wallet')), shopRun: await importRetry(() => import('./shopRun')), wear: await importRetry(() => import('./wear')), notebook: await importRetry(() => import('./notebookRun')) });
   }).catch(error => { if (import.meta.env?.DEV) console.error('[opus-bay economy] extras', error); });
   return () => { gone = true; for (const off of offs.splice(0).reverse()) off(); };
 }

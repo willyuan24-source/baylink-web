@@ -232,6 +232,9 @@ test('W5-R4 the SF Today line (welcome back, the notebook header) ≤ 45 zh char
       const l = todayLine(bay(`${addDays('2026-09-28', i)}T${hh}`), FIXTURE);
       assert.ok(zhLen(l.zh) <= 45, l.zh);
       assert.ok(!/undefined|NaN/.test(l.zh + l.en), l.en);
+      // (W8-I, W8I-WS-1) an English sentence starts with a capital ('the Ferry Building has …' did not), *on* the page
+      assert.match(l.en, /^[A-Z0-9]/, l.en);
+      assert.doesNotMatch(l.en, /in the journal's Today page/, l.en);
     }
   } finally { setCatalogForTests(null); }
 });

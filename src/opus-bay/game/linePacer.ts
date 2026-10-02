@@ -46,6 +46,13 @@ export interface PacedLine {
   key?: string;
   /** seconds after its last saying before this key may be said again (default REPEAT_GAP) */
   repeatGap?: number;
+  /**
+   * W8-W2-review (P1): while it waits, the line still fits where the player is (a place line: the player is still at the
+   * place); false drops it, like an expired ttl, so a line never plays somewhere else after a fast travel
+   */
+  valid?: () => boolean;
+  /** W8-W2-review (P3): called when the line is actually said (its bubble shown), not when it is queued */
+  onSay?: () => void;
 }
 
 export interface SaidLine extends PacedLine {
@@ -141,11 +148,11 @@ export class LinePacer {
     return true;
   }
 
-  /** The line to say now, or null (still speaking, blocked, or nothing waiting). Expired lines are dropped here. */
+  /** The line to say now, or null (still speaking, blocked, or nothing waiting). Expired (or no longer valid) lines are dropped here. */
   step(now: number, blocked = false): SaidLine | null {
     // drop the expired lines in place (no array per call: a city system steps this several times a second)
     let n = 0;
-    for (const w of this.queue) if (now <= w.deadline) this.queue[n++] = w;
+    for (const w of this.queue) if (now <= w.deadline && (!w.line.valid || w.line.valid())) this.queue[n++] = w;
     this.queue.length = n;
     if (blocked || now < this.until || !n) return null;
     const { line, key } = this.queue.shift()!;

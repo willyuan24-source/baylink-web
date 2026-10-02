@@ -56,7 +56,21 @@ const W7_LINES = {
   venuePumpkins: l('w7-h-venue-pumpkins', '今天这里有南瓜活动，摆了好多南瓜！时间以官网为准。', 'A pumpkin party here today — pumpkins everywhere! Check the official site for times.'),
 } as const satisfies Record<string, WorldLine>;
 
-export const HALLOWEEN_WORLD_LINES = { ...W6_LINES, ...W7_LINES } as const satisfies Record<string, WorldLine>;
+/**
+ * Wave 8 (lane H): new lines, ids `w8-h-*` — lane X records them into data/sf/voiceW8.ts (W8_WORLD_LINES below).
+ * The Chinatown Halloween Festival (31 Oct 2026, 11:00–15:00, Waverly Place — the Community Youth Center's page
+ * https://www.cycsf.org/chinatown-halloween-festival/, checked 2026-09-30: "arts & crafts, games, a pumpkin patch", a
+ * costume contest; the home page https://www.cycsf.org/ adds "cultural performances"): halloween/worldFestival.ts.
+ */
+const W8_LINES = {
+  // the festival's kit on Waverly Place (the costume contest's line-up by the little stage; the lanterns and pumpkins)
+  chinatownContest: l('w8-h-chinatown-contest', '小朋友们排队上台比变装啦！大家都好可爱～', 'The kids are lining up for the costume contest — everyone looks so cute!'),
+  chinatownLanterns: l('w8-h-chinatown-lanterns', '红灯笼配南瓜，这就是唐人街的万圣节！', 'Red lanterns and pumpkins — that’s Halloween in Chinatown!'),
+  // the procession walks round a player standing in its lane (halloween/muertosWalkers.ts: the walkers step aside)
+  processionAside: l('w8-h-procession-aside', '队伍从我们身边绕过去了。我们站到路边吧～', 'They’re walking around us — let’s step onto the sidewalk.'),
+} as const satisfies Record<string, WorldLine>;
+
+export const HALLOWEEN_WORLD_LINES = { ...W6_LINES, ...W7_LINES, ...W8_LINES } as const satisfies Record<string, WorldLine>;
 
 export type WorldLineKey = keyof typeof HALLOWEEN_WORLD_LINES;
 
@@ -67,5 +81,7 @@ export const lineText = (k: WorldLineKey): Bilingual => ({ zh: HALLOWEEN_WORLD_L
 export const ALL_WORLD_LINES: readonly WorldLine[] = Object.values(W6_LINES);
 /** The wave-7 lines (lane X's wave-7 recording list: data/sf/voiceW7.ts). */
 export const W7_WORLD_LINES: readonly WorldLine[] = Object.values(W7_LINES);
+/** The wave-8 lines (lane X's wave-8 recording list: data/sf/voiceW8.ts). */
+export const W8_WORLD_LINES: readonly WorldLine[] = Object.values(W8_LINES);
 /** Every line lane H shows. */
-export const EVERY_WORLD_LINE: readonly WorldLine[] = [...ALL_WORLD_LINES, ...W7_WORLD_LINES];
+export const EVERY_WORLD_LINE: readonly WorldLine[] = [...ALL_WORLD_LINES, ...W7_WORLD_LINES, ...W8_WORLD_LINES];

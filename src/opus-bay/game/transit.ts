@@ -11,13 +11,14 @@ import { DISTRICT } from '../data/district';
 import { POIS } from '../data/pois';
 import { noteRide } from '../data/save';
 import type { FLineStation } from '../data/fline';
-import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
+import { CABLE, FERRY_ROUTES, type CableLine, type TransitData, activeCableSystem, activeFerrySystem, activeLineFleet, activeStreetcarSystem, cableLine, ferrySystemsEpoch, ferryTerminal, loadTransit, onTransitData, rideSystemFor, stopPos, transitData, transitStation, w4Kind } from '../data/transit';
 import { hookFill, hookText, nodeText, npcLine } from './content';
 import { travelActive, travelEpoch } from './fastTravel';
 import { announce, bubble, completeGoal, defineNode, openPanel, playDialogue, refreshLock, say, teleportPlayer } from './flow';
 import { flow, type FlowRide } from './flowStore';
 import { interactableById, invalidateInteractables, registerInteractables, type Interactable } from './interactables';
 import { type RideState, beginLineRide, beginRide, currentRide, endRide, isLineRide, lineRideEta, lineRideTurning, nearestStopId, rideMinOdometer, rideSeconds, sortedStops, stepRide } from './ride';
+import { importRetry } from './importRetry';
 
 /**
  * Transit flow (lane F owns this file from wave 2; the day-0 commit moved the streetcar section of game/flow.ts here
@@ -377,6 +378,7 @@ let pollT = 0;
 let seenFLine: unknown = null;
 let seenFerry: unknown = null;
 let seenFleet: unknown = null;
+let seenFerryLines = -1;
 
 const isCity = () => game.get().worldMode === 'city';
 const lineName = (line: CableLine | undefined): Bilingual => line?.name ?? CABLE_CAR;
@@ -477,7 +479,8 @@ function lineTick(r: RideState, tick: NonNullable<ReturnType<typeof stepRide>>) 
     // (the wave-4 fleet emits its own board event, with the station and the direction)
     if (!w4Kind(r.line!)) emit({ type: 'transit', what: 'board', line: r.line!, kind: rideKind(r) });
     if (W4G && w4Kind(r.line!)) { const b = W4G.boardBubble(r); if (b) bubble(b, 3600); }
-    else if (r.kind === 'ferry') bubble(hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, 3200);
+    // (wave 8, lane A) another ferry line's own boarding line (the Alcatraz boat: world/sf/alcatrazLines.ts)
+    else if (r.kind === 'ferry') { const own = ferryHooksOf(r.line)?.boardLine?.(); bubble(own ?? hookText('ferryBoard') ?? { zh: '上船啦！上层甲板风最大，看海湾最清楚', en: 'All aboard! The top deck has the breeze and the best view of the Bay' }, own ? 4200 : 3200); }
     else if (r.kind === 'streetcar') bubble(hookText('streetcarBoard') ?? { zh: '上车啦！F 线的老电车，一路开过整条 Market 街', en: 'All aboard! A vintage F-line car, all the way up Market Street' }, 3200);
     else bubble(hookText('cablecarBoard') ?? { zh: '上车啦！抓紧扶杆，叮当车要爬坡咯', en: 'All aboard! Hold the pole, up the hill we go' }, 3200);
     announce({ zh: `上车：${name.zh}`, en: `Aboard the ${name.en}` });
@@ -624,7 +627,8 @@ function leaveLineRide(r: RideState, finishing: boolean, veiled = false, alightA
     const tipped = (r.counted || finishing) && W4G!.sayHopOffTip(at);
     if (!tipped && !r.counted && r.mode === 'follow') bubble({ zh: '坐过一站再下车，才算坐过哦', en: 'Ride at least one stop and it counts as a ride' }, 3000);
   } else if (r.kind === 'ferry') {
-    if (r.counted && !skip) bubble(hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, 2800);
+    // (wave 8, lane A) another ferry line's own line ashore (the Alcatraz boat: on the island, back at Pier 33)
+    if (r.counted && !skip) { const own = ferryHooksOf(r.line)?.offLine?.(r.to); bubble(own ?? hookText('ferryOff') ?? { zh: '到岸啦！海风吹得真舒服', en: 'Ashore! What a breeze out there' }, own ? 4600 : 2800); }
   } else if (r.kind === 'streetcar') {
     if (r.counted && !skip) bubble(hookText('streetcarOff') ?? { zh: '叮叮！F 线电车，下次再坐', en: 'Ding ding! Let’s take the F-line again' }, 2800);
     else if (r.mode === 'follow') bubble({ zh: '坐到下一站再下车，才算坐过 F 线电车哦', en: 'Ride to the next stop and it counts as a streetcar ride' }, 3200);
@@ -681,7 +685,9 @@ function pollTurntables(dt: number) {
   if ((pollT -= dt) > 0) return;
   pollT = 0.25;
   const fl = activeStreetcarSystem(), fe = activeFerrySystem(), lf = activeLineFleet();
-  if (fl !== seenFLine || fe !== seenFerry || lf !== seenFleet) { seenFLine = fl; seenFerry = fe; seenFleet = lf; invalidateInteractables(); }
+  // (wave 8, lane A) and when another ferry line's own boat comes or goes (the Alcatraz ferry: its quays' prompts)
+  const fx = ferrySystemsEpoch();
+  if (fl !== seenFLine || fe !== seenFerry || lf !== seenFleet || fx !== seenFerryLines) { seenFLine = fl; seenFerry = fe; seenFleet = lf; seenFerryLines = fx; invalidateInteractables(); }
   // (verify D3, lazy chunk) BAYBAY's step-aside ask; a station prompt near the player that can now stand at its kerb
   if (W4G?.pollCity(0.25)) invalidateInteractables();
   const sys = activeCableSystem(), data = transitData();
@@ -703,8 +709,30 @@ function pollTurntables(dt: number) {
 const FERRY_NAME: Bilingual = { zh: '渡轮', en: 'Ferry' };
 const FERRY_LINE = 'ferry';
 
+/**
+ * (wave 8, lane A) What a ferry line's own system may answer besides the rider protocol (the Alcatraz boat,
+ * world/sf/alcatrazFerrySystem.ts): its ride time, a timetable note instead of a ride, the quay's greeting.
+ */
+interface FerryLineHooks {
+  rideSeconds?(from: string, to: string): number;
+  serviceNote?(station: string): Bilingual | null;
+  greeting?(station: string): Bilingual | null;
+  /** BAYBAY on boarding (null: the ferry's usual line — W8-A review: the Alcatraz boat's only on the way out), and stepping ashore at `to` (fixed lines: lane X voices them) */
+  boardLine?(): Bilingual | null;
+  offLine?(to: string): Bilingual;
+}
+/** (wave 8, lane A) the system of a ferry line: the Ferry Building boat, or another line's own (data/transit setFerrySystemFor) */
+const ferrySystemOf = (line: string) => (line === FERRY_LINE ? activeFerrySystem() : rideSystemFor(line));
+/** (wave 8, lane A) a ferry line's own hooks (null for the Ferry Building boat) */
+const ferryHooksOf = (line: string | undefined): FerryLineHooks | null => (line && line !== FERRY_LINE ? (ferrySystemOf(line) as unknown as FerryLineHooks | null) : null);
+/** (wave 8, lane A) the ride line of a ferry terminal (= its route id) */
+const ferryLineOf = (station: string) => ferryTerminal(station)?.route.id ?? FERRY_LINE;
+
 /** Seconds from ferry terminal `from` to `to` (cruising at ≈ 7 u/s on average, berthing included). */
 export function ferryRideSeconds(from: string, to: string): number {
+  const route = ferryLineOf(from);
+  const own = route !== FERRY_LINE ? (ferrySystemOf(route) as unknown as FerryLineHooks | null) : null;
+  if (own?.rideSeconds) return own.rideSeconds(from, to);
   const sys = activeFerrySystem() as unknown as { line?: { stops: { terminal: string; u: number }[]; length: number } } | null;
   const line = sys?.line;
   const a = line?.stops.find(s => s.terminal === from), b = line?.stops.find(s => s.terminal === to);
@@ -715,7 +743,18 @@ export function ferryRideSeconds(from: string, to: string): number {
 /** E at a ferry terminal (city mode, once the ferry runs): the deckhand asks where to (the time counts the wait for the boat). */
 export function boardFerry(stationId: string) {
   const t = ferryTerminal(stationId);
-  if (!t || !activeFerrySystem()) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
+  const sys = t ? ferrySystemOf(t.route.id) : null;
+  if (!t || !sys) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
+  // (wave 8, lane A) a line with a timetable (the Alcatraz boat): out of hours the deckhand says so, and no ride starts
+  const hooks = sys as unknown as FerryLineHooks;
+  const note = hooks.serviceNote?.(stationId);
+  if (note) {
+    playDialogue(defineNode({
+      id: 'flow.ferry', speaker: 'npc', npcName: npcLine('deckhand').name ?? { zh: '水手', en: 'Deckhand' }, mood: 'thinking', text: note,
+      choices: [{ hotkey: '1', label: { zh: '好的', en: 'OK' }, action: { type: 'end' } }],
+    }));
+    return;
+  }
   const others = t.route.terminals.filter(x => x.id !== stationId);
   const wait = Math.round(W4G?.ferryWaitSeconds(stationId) ?? 0);
   const choices: NonNullable<DialogueNode['choices']> = others.map((o, i) => {
@@ -729,7 +768,7 @@ export function boardFerry(stationId: string) {
   const deckhand = npcLine('deckhand').name ?? { zh: '水手', en: 'Deckhand' };
   playDialogue(defineNode({
     id: 'flow.ferry', speaker: 'npc', npcName: deckhand, mood: 'happy',
-    text: { zh: `嘟——这里是${t.terminal.name.zh}。上层甲板是露天的，想去哪儿？`, en: `Toot! This is ${t.terminal.name.en}. The top deck is open air. Where to?` },
+    text: hooks.greeting?.(stationId) ?? { zh: `嘟——这里是${t.terminal.name.zh}。上层甲板是露天的，想去哪儿？`, en: `Toot! This is ${t.terminal.name.en}. The top deck is open air. Where to?` },
     choices,
   }));
 }
@@ -737,14 +776,16 @@ export function boardFerry(stationId: string) {
 /** Wait at ferry terminal `from` for the boat to `to`, then ride it (you stand on the open sun deck). */
 export function rideFerry(from: string, to: string) {
   if (!ferryTerminal(from) || !ferryTerminal(to) || from === to) { say('这里没有渡轮', 'No ferry from here'); return; }
-  const r = beginLineRide(FERRY_LINE, from, to, 1, travelEpoch(), 'ferry');
+  // (wave 8, lane A) the line (= the platform) is the terminal's route: 'ferry', or the Alcatraz boat's 'ferry-alcatraz'
+  const lineId = ferryLineOf(from);
+  const r = beginLineRide(lineId, from, to, 1, travelEpoch(), 'ferry');
   if (!r) { say('渡轮还没来，稍等一下', 'The ferry is not running yet, try again in a moment'); return; }
   r.quote = ferryRideSeconds(from, to);
   r.dist = Math.max(0, (r.quote - 8) * 7);
-  game.set({ move: { mode: 'transit', line: FERRY_LINE, spot: 'deck' }, panel: { kind: null } });
+  game.set({ move: { mode: 'transit', line: lineId, spot: 'deck' }, panel: { kind: null } });
   refreshLock();
   const eta = lineRideEta();
-  flow.set({ ride: { stage: 'waiting', from, to, line: FERRY_LINE, kind: 'ferry', eta: eta ? Math.max(1, Math.round(eta)) : undefined } });
+  flow.set({ ride: { stage: 'waiting', from, to, line: lineId, kind: 'ferry', eta: eta ? Math.max(1, Math.round(eta)) : undefined } });
   const dest = ferryTerminal(to)?.terminal;
   announce({ zh: `等渡轮：开往${dest?.name.zh ?? ''}`, en: `Waiting for the ferry to ${dest?.name.en ?? ''}` });
   seenInteract = input.interactCount;
@@ -752,10 +793,10 @@ export function rideFerry(from: string, to: string) {
 
 /** The ferry terminals as interactables (the running routes' quays). */
 function ferryInteractables(): Interactable[] {
-  if (!activeFerrySystem()) return [];
   const out: Interactable[] = [];
   for (const route of FERRY_ROUTES) {
-    if (!route.running) continue;
+    // (wave 8, lane A) each route's quays once its own boat runs (the Alcatraz boat comes with the transit layer)
+    if (!route.running || !ferrySystemOf(route.id)) continue;
     for (const t of route.terminals) {
       if (out.some(o => o.refId === t.id)) continue;
       out.push({ id: `transit-${t.id}`, source: 'transit', action: 'streetcar', verb: { zh: '坐渡轮', en: 'Take the ferry' }, name: t.name, x: t.quay.x, z: t.quay.z, radius: 6, refId: t.id });
@@ -912,7 +953,7 @@ const W4_NOT_READY: [string, string] = ['车还没开过来，稍等一下', 'No
 
 /** The lazy wave-4 game module (game/lineRides.ts), fetched once in city mode by initTransit. */
 export function loadLineRides(): Promise<LineRidesModule> {
-  w4Loading ??= import('./lineRides').then(m => { W4G = m; invalidateInteractables(); return m; }, (e: unknown) => { w4Loading = null; throw e; });
+  w4Loading ??= importRetry(() => import('./lineRides')).then(m => { W4G = m; invalidateInteractables(); return m; }, (e: unknown) => { w4Loading = null; throw e; });
   return w4Loading;
 }
 /** The wave-4 game module once loaded (null in district mode / before initTransit's fetch lands). */

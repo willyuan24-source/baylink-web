@@ -46,6 +46,7 @@ import { optionTitle, optionWay, tripSecondsLabel } from './tripRows';
 import { StationPanel } from './StationPanel';
 import './city-ui.css';
 import './map-w4.css';
+import { importRetry } from '../game/importRetry';
 
 /**
  * The whole-city map (lane G1 in wave 3; wave 4 lane P, plan sf-w4-plan.md §4.1): far.obc on a canvas
@@ -63,8 +64,15 @@ const MAX_CANVAS = 1800;
 const HIT_PX = 22;
 /** From this frame height the tool column is one button wide (below it: two columns, the 375 × 667 phone) */
 const TALL_TOOLS_H = 300;
+/**
+ * W8-Q6: on a touch screen the tools are 44 px circles (map-w4.css `pointer: coarse`; they were 36 px with a 44 px ::before):
+ * one column of six needs 6 × 44 + 5 × 8 + 30 = 334 px, and the column is 56 / 106 px wide (one / two columns)
+ */
+const TALL_TOOLS_H_TOUCH = 340;
 /** px the right-hand tool column takes (labels keep off it, framings keep you, BAYBAY and the target clear of it) */
-const toolColumn = (frameH: number) => (frameH >= TALL_TOOLS_H ? 48 : 90);
+/** W8-Q-review (Q-RC-3): `count` tool buttons (44 px on touch, 36 px otherwise, 8 px apart) fit one column `maxH` px tall */
+const toolsFitOneColumn = (count: number, touch: boolean, maxH: number) => count * (touch ? 44 : 36) + (count - 1) * 8 <= maxH;
+const toolColumn = (frameH: number, touch: boolean) => (frameH >= (touch ? TALL_TOOLS_H_TOUCH : TALL_TOOLS_H) ? (touch ? 56 : 48) : (touch ? 106 : 90));
 /** W5-N4: a map frame this narrow (px) is a phone's: the selection's card is pinned over the map, a "+n" opens the chooser */
 const COMPACT_W = 520;
 
@@ -156,6 +164,9 @@ export function CityMapPanel() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   const [view, setView] = useState<MapView | null>(null);
+  // W8-Q-review (Q-RC-3): a pinned card caps the tool column (toolsMaxHeight): when the tools no longer fit in one column
+  // there (five 44 px touch tools need 252 px; 248 at 390 × 844) they wrap to a second, and the reserved column follows
+  const [toolsWrapPinned, setToolsWrapPinned] = useState(false);
   // W5-N4 · the phone map (plan MF4): the selection's card pinned over the frame on narrow maps (phones), the "+n"
   // badge's chooser there, and a long-pressed spot (去这里, every device); ≤ 2 taps from the open map to moving
   const compact = !!size && size.w <= COMPACT_W;
@@ -185,7 +196,7 @@ export function CityMapPanel() {
   useEffect(() => {
     if (!tourId) { setTourNext(null); return; }
     let live = true;
-    void Promise.all([import('../game/cityTour'), import('../data/sf/tours')]).then(([ct, tours]) => {
+    void Promise.all([importRetry(() => import('../game/cityTour')), importRetry(() => import('../data/sf/tours'))]).then(([ct, tours]) => {
       const run = ct.cityTourRun(), def = tours.cityTour(tourId);
       const stop = run?.stop && def ? def.chapters.flatMap(c => c.stops).find(s => s.id === run.stop) : undefined;
       const a = stop?.attraction ? ATTRACTION_INDEX.resolve(stop.attraction) : undefined;
@@ -222,7 +233,7 @@ export function CityMapPanel() {
         focus: targetPoint ? [targetPoint] : [],
         t1: T1_LIST.map(a => ({ x: a.x, z: a.z, found: isDiscovered(a.placeId ?? a.id) })),
         // you, BAYBAY and the target clear of the tool column (the size's own: the column is one or two wide)
-        right: toolColumn(size.h),
+        right: toolColumn(size.h, coarse),
       });
     });
   }, [size?.w, size?.h]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -259,9 +270,9 @@ export function CityMapPanel() {
   }, [view, pos]);
   const guideAt = view ? toPx(view, runtime.guide.x, runtime.guide.z) : null;
   const youAt = view ? toPx(view, pos.x, pos.z) : null;
-  const tallTools = !!size && size.h >= TALL_TOOLS_H;
+  const tallTools = !!size && size.h >= (coarse ? TALL_TOOLS_H_TOUCH : TALL_TOOLS_H) && !toolsWrapPinned;
   // (a literal, not toolColumn(): the React compiler keeps the memos below only for values it knows are primitives)
-  const toolRight = tallTools ? 48 : 90;
+  const toolRight = tallTools ? (coarse ? 56 : 48) : (coarse ? 106 : 90);
   // --- pan / zoom / pinch / tap -----------------------------------------------------------------------------------------
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const drag = useRef<{ moved: number; pinch: number | null }>({ moved: 0, pinch: null });
@@ -673,6 +684,8 @@ export function CityMapPanel() {
     if (pts.length) setView(v => (v ? fitAbs(v, MAP_FRAME, pts, 36, 0.1, 1.2, toolRight) : v));
   };
   const pinned = cardSel || !!press || !!evPin;
+  const wrapPinned = pinned && !!size && !toolsFitOneColumn((plan?.route || trip) ? 6 : 5, coarse, toolsMaxHeight(size.h, true));
+  useEffect(() => { setToolsWrapPinned(wrapPinned); }, [wrapPinned]);
   const cardH = size ? goCardHeight(size.h) : 0;
   const showMore = () => {
     setMoreOpen(true);

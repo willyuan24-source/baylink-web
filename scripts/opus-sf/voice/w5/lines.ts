@@ -76,7 +76,7 @@ export const EXCLUDE: Record<string, string> = {
  * Part c: a literal under one of these keys is paper, not speech (lane D's city sounds' `riddle` / `how`, a card's
  * `fact`, a place's `name` …), wherever it sits.
  */
-const NOT_SPOKEN_KEYS = /(?:^|[\s,{(])(riddle|how|name|title|hint|teaser|label|verb|short|note|place|caption|alt)\s*:\s*$/;
+const NOT_SPOKEN_KEYS = /(?:^|[\s,{(])(riddle|how|name|title|hint|teaser|label|verb|note|place|caption|alt)\s*:\s*$/;
 
 const LIT = /(?:export\s+const\s+([A-Z0-9_]+)\s*(?::\s*[A-Za-z<>[\]]+)?\s*=\s*)?\{\s*zh:\s*'((?:[^'\\]|\\.)*)'\s*,\s*en:\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")\s*\}/g;
 const unesc = (s: string) => s.replace(/\\(.)/g, '$1');

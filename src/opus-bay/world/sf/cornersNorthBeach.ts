@@ -3,6 +3,7 @@ import type { Obstacle } from '../../actors/controller';
 import { registerObstacleSource } from '../../actors/view';
 import { heightAt } from '../../core/terrain';
 import type { Vec2 } from '../../core/types';
+import { DISTRICT } from '../../data/district';
 import { CONE, CYL, type BatchLike, ICO, M } from '../builder';
 import { TOY } from '../materials';
 import { TypedBatch } from '../typedBatch';
@@ -257,6 +258,76 @@ function flagPole(b: BatchLike, x: number, y: number, z: number) {
   b.add(CONE(6), M(x, y + 3.5, z, 0, 0.25, 0.25, 0.25), '#2f3d3a');
 }
 
+/**
+ * W8-W1: Columbus Ave's carriageway inside the hero slab. The district has no Columbus (its ground along the band is
+ * pavement, sf-w6-W.md Known gaps), so the street the café fronts line read as a plaza: a toy asphalt ribbon on
+ * NB_COLUMBUS, draped on the walked ground, with a dashed centre line, only inside the slab (outside it the city draws
+ * Columbus Ave itself) and never on Washington Square's lawn. Half-width 1.05 u: the café tables (≥ 1.15 u off the
+ * centreline at their nearest edge) and the poles (≥ 1.55 u) stay on the sidewalk. Paint only: walking and driving
+ * are unchanged (the district's own streets cross it).
+ */
+export const NB_ROAD = { half: 1.05, lift: 0.04, step: 1, color: '#a29d96', dash: '#ece6d8', dashEvery: 2.4, dashLen: 0.9 } as const;
+
+/** the hero slab's outline (data/district.ts DISTRICT.slab: the city draws Columbus Ave outside it) */
+const SLAB: readonly Vec2[] = DISTRICT.slab;
+
+/** One sample of the ribbon: the centreline point, its left normal (nx, nz) and the half-widths to the left (`l`, +n) and right (`r`). */
+export interface NbRoadSample { x: number; z: number; nx: number; nz: number; l: number; r: number }
+
+/**
+ * The ribbon's runs (consecutive samples every NB_ROAD.step u) inside the slab; where Columbus cuts Washington Square's
+ * corner the side by the lawn narrows (to ≥ 0.45 u) so the asphalt never covers the lawn, and where it runs along the
+ * slab's edge the outer side narrows to the edge (the city draws the rest of the street outside the slab).
+ */
+export function nbColumbusRoad(): NbRoadSample[][] {
+  const runs: NbRoadSample[][] = [];
+  let run: NbRoadSample[] = [];
+  const h = NB_ROAD.half;
+  for (let i = 1; i < NB_COLUMBUS.length; i++) {
+    const a = NB_COLUMBUS[i - 1], b = NB_COLUMBUS[i], L = Math.hypot(b.x - a.x, b.z - a.z), ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
+    const n = Math.max(1, Math.round(L / NB_ROAD.step));
+    for (let k = i === 1 ? 0 : 1; k <= n; k++) {
+      const x = a.x + ux * (L * k / n), z = a.z + uz * (L * k / n), nx = -uz, nz = ux;
+      const lawn = (px: number, pz: number) => inRing(px, pz, NB_SQUARE) || ringDist(px, pz, NB_SQUARE) <= 0.1;
+      // a side narrows by the lawn (to ≥ 0.45 u) and at the slab's edge (to ≥ 0: where Columbus runs along the edge the
+      // city draws its outer half, this ribbon the inner one)
+      const out = (px: number, pz: number) => !inRing(px, pz, SLAB);
+      const side = (s: number) => {
+        let w: number = h;
+        while (w > 0 && out(x + nx * w * s, z + nz * w * s)) w = Math.max(0, w - 0.05);
+        while (w >= 0.45 && lawn(x + nx * w * s, z + nz * w * s)) w -= 0.05;
+        return w;
+      };
+      const l = side(1), r = side(-1);
+      const ok = !out(x, z) && !lawn(x, z) && l + r >= 0.9 && !lawn(x + nx * l, z + nz * l) && !lawn(x - nx * r, z - nz * r);
+      if (ok) run.push({ x, z, nx, nz, l, r });
+      else if (run.length) { if (run.length > 1) runs.push(run); run = []; }
+    }
+  }
+  if (run.length > 1) runs.push(run);
+  return runs;
+}
+
+function columbusRoad(b: BatchLike) {
+  const { lift } = NB_ROAD, up = new THREE.Vector3(0, 1, 0);
+  const P = (s: NbRoadSample, off: number, y: number = lift) => { const x = s.x + s.nx * off, z = s.z + s.nz * off; return new THREE.Vector3(x, heightAt(x, z) + y, z); };
+  for (const run of nbColumbusRoad()) {
+    let along = 0;
+    for (let i = 1; i < run.length; i++) {
+      const a = run[i - 1], c = run[i], seg = Math.hypot(c.x - a.x, c.z - a.z);
+      b.quad(P(a, -a.r), P(c, -c.r), P(c, c.l), P(a, a.l), up, NB_ROAD.color, NONE);
+      // the dashed centre line: a dash wherever this segment covers the start of one
+      const s0 = along, s1 = along + seg;
+      for (let d = Math.ceil(s0 / NB_ROAD.dashEvery) * NB_ROAD.dashEvery; d < s1; d += NB_ROAD.dashEvery) {
+        const t0 = (d - s0) / seg, t1 = Math.min(1, (d + NB_ROAD.dashLen - s0) / seg);
+        const m0 = { ...a, x: a.x + (c.x - a.x) * t0, z: a.z + (c.z - a.z) * t0 }, m1 = { ...a, x: a.x + (c.x - a.x) * t1, z: a.z + (c.z - a.z) * t1 };
+        b.quad(P(m0, -0.05, lift + 0.01), P(m1, -0.05, lift + 0.01), P(m1, 0.05, lift + 0.01), P(m0, 0.05, lift + 0.01), up, NB_ROAD.dash, NONE);
+      }
+      along = s1;
+    }
+  }
+}
+
 /** the flag poles along Columbus: every 9 u on either side, 0.35 u off a fill front, never at a café */
 export function nbPoles(cafes: readonly NbCafe[]): Vec2[] {
   const out: Vec2[] = [];
@@ -316,6 +387,7 @@ export function buildNorthBeach(): { toy: THREE.Mesh; signs: THREE.Mesh | null; 
   lawn(b);
   square(b);
   church(b);
+  columbusRoad(b);
   columbus(b, sb, cafes);
   const a = b.toArrays();
   const toy = new THREE.Mesh(TypedBatch.toGeometry(a), TOY);

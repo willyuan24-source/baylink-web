@@ -21,21 +21,25 @@ export function freeOnFoot(): boolean {
 export interface HeldKeys { held(): boolean; isDown(code: string): boolean; off(): void }
 /**
  * While an activity runs, `codes` are its own (captured at the window, so the HUD never sees them: E does not open
- * BAYBAY's menu, Space is no hop): `held()` is true while one is down. `onPress` runs on each fresh press.
+ * BAYBAY's menu, Space is no hop): `held()` is true while one is down. `onPress` runs on each fresh press, `onRelease`
+ * (W8-M-review) on its let-go — at the keyup itself (or a lost focus), so a tap shorter than a frame is never missed.
  */
-export function holdKeys(codes: readonly string[], onPress?: (code: string) => void): HeldKeys {
+export function holdKeys(codes: readonly string[], onPress?: (code: string) => void, onRelease?: (code: string) => void): HeldKeys {
   const down = new Set<string>();
   if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return { held: () => false, isDown: () => false, off: () => {} };
   const keyDown = (e: KeyboardEvent) => {
     if (!codes.includes(e.code) || e.metaKey || e.ctrlKey || e.altKey) return;
+    // (W8-M-review) Settings pauses the game: Esc is the sheet's then (an activity's own Esc gave the game up under the
+    // sheet, which stayed open)
+    if (e.code === 'Escape' && game.get().paused) return;
     const el = e.target as HTMLElement | null;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'BUTTON' || el.isContentEditable)) return;
     e.preventDefault(); e.stopPropagation();
     if (!e.repeat && !down.has(e.code)) onPress?.(e.code);
     down.add(e.code);
   };
-  const keyUp = (e: KeyboardEvent) => { if (codes.includes(e.code)) { down.delete(e.code); e.stopPropagation(); } };
-  const blur = () => down.clear();
+  const keyUp = (e: KeyboardEvent) => { if (codes.includes(e.code)) { const was = down.delete(e.code); e.stopPropagation(); if (was) onRelease?.(e.code); } };
+  const blur = () => { if (!onRelease || down.size === 0) { down.clear(); return; } const was = [...down]; down.clear(); for (const c of was) onRelease(c); };
   window.addEventListener('keydown', keyDown, true);
   window.addEventListener('keyup', keyUp, true);
   window.addEventListener('blur', blur);

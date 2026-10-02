@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import * as THREE from 'three';
 import { runtime } from '../core/runtime';
 import { canStand, heightAt } from '../core/terrain';
@@ -12,6 +13,7 @@ import { meshWarmup, registerWarmup } from '../world/warmup';
 import { getWorld, type WorldSystem } from '../world/world';
 import { buildOpeningSignGeometry, makeKitMaterial } from './eventKit';
 import { FLAG_FAR, OPENING_GOLD, OPENING_SIGNS, OVERLAY_ID, PROMPT_R, SIGN_NEAR, signFront, type OpeningSign } from './openings';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 6 · lane S (W6-S3) · the new openings' signs in the city (data: realsf/openings.ts). Only the nearest sign within
@@ -20,7 +22,7 @@ import { FLAG_FAR, OPENING_GOLD, OPENING_SIGNS, OVERLAY_ID, PROMPT_R, SIGN_NEAR,
  */
 
 /** the card (and its CSS) loads on the first E at a sign, not with the realsf chunk */
-const LazyCard = lazy(() => import('./OpeningCard'));
+const LazyCard = lazyChunk(() => importRetry(() => import('./OpeningCard')));
 const OpeningCardSlot = (p: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(LazyCard, p));
 
 export interface Openings {

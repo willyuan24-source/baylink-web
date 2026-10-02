@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { CalendarPlus, MapPin, MapPinned, Navigation, Tag } from 'lucide-react';
 import { unprojectCity } from '../core/geo';
 import { eventsNear, guideTitle, placeById, todayInBay, useCatalog } from '../data/catalog';
@@ -13,9 +14,10 @@ import { cityStreamerLazy } from '../world/cityLoader';
 import { LinkButton, Sheet } from './common';
 import { useIsMobile } from './hooks';
 import { GuideRow, NearEvents } from './PoiCardBody';
+import { importRetry } from '../game/importRetry';
 
 /** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk; place cards are city-only): R's request 1a */
-const HowToGo = lazy(() => import('../realsf/HowToGo'));
+const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
 
 /**
  * A city place that is not a landmark (G1's place index, OpenStreetMap names; G1's request 3): what it is and where,

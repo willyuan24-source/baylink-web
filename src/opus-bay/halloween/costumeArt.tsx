@@ -41,6 +41,20 @@ export function CostumeArt({ kind }: { kind: CostumeKind }) {
       </svg>
     );
   }
+  if (kind === 'pumpkin-bow') {
+    // W8-H: the pelican's pumpkin bow (two ribbed orange loops, a little pumpkin knot with its stem and leaf)
+    return (
+      <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>
+        <path d="M24 24 L6 12 C3 18 3 30 6 36 Z" fill="#e8792b" />
+        <path d="M24 24 L42 12 C45 18 45 30 42 36 Z" fill="#e8792b" />
+        <path d="M24 24 L7 19 M24 24 L7 29 M24 24 L41 19 M24 24 L41 29" stroke="#d2641f" strokeWidth="1.6" fill="none" />
+        <path d="M21 26 L17 42 L21 40 Z M27 26 L31 42 L27 40 Z" fill="#d2641f" />
+        <circle cx="24" cy="24" r="6" fill="#f0913a" stroke="#d2641f" strokeWidth="1.4" />
+        <path d="M24 18 C24 15 25 13 27 12" stroke="#5e7a3a" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+        <path d="M26 15 C29 12 32 13 33 15 C30 17 28 16 26 15 Z" fill="#6f9a45" />
+      </svg>
+    );
+  }
   if (kind === 'cat-ears') {
     return (
       <svg viewBox="0 0 48 48" width="46" height="46" aria-hidden>

@@ -6,7 +6,7 @@
  *   isPaid(source)            already paid (or can no longer be paid: a past Bay day's trail / daily source)
  *   coinsTotal()              the balance
  *   spend(item, price)        a 小铺 purchase: false (nothing changes) when the balance is short
- *   recordBest(key, value)    lane A's activity bests into `play.b` (A decides what "better" is; ≤ 32 keys)
+ *   recordBest(key, value)    lane A's activity bests into `play.b` (A decides what "better" is; ≤ MAX_BESTS = 64 keys)
  *   registerRewardIds(p, ids) a lane's APPEND-ONLY id list for a prefix whose bits live in its own kind (below)
  *   subscribeLedger(fn)       the pill badge, the notebook, the coins in the world: called after every change
  *
@@ -166,7 +166,7 @@ export function pay(source: string, coins: number): number {
 const BEST_KEY = /^[a-z0-9:-]{1,40}$/;
 /**
  * Lane A's PlayKit (play/kit.ts writeBest, through economy/index.ts): store an activity best in `play.b`. The caller has
- * already decided it beats the old one. False (nothing written) for a bad key, a value that is not finite, or a 33rd key.
+ * already decided it beats the old one. False (nothing written) for a bad key, a value that is not finite, or a key past MAX_BESTS (64 since W8-0d).
  */
 export function recordBest(key: string, value: number): boolean {
   if (!BEST_KEY.test(key) || !Number.isFinite(value)) return false;

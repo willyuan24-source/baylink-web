@@ -445,6 +445,8 @@ export class World {
 }
 
 let WORLD: World | null = null;
+/** (wave 8, lane A) The world if it was built (never builds one: the city transit layer reads life's boats through it). */
+export function builtWorld(): World | null { return WORLD; }
 /** Build once per page (cached across remounts; three re-uploads buffers to a new renderer). */
 export function getWorld(): World {
   if (!WORLD) {

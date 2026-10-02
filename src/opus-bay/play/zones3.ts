@@ -1,5 +1,6 @@
 import { Disc, Volleyball } from 'lucide-react';
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { onEvent } from '../core/events';
 import { runtime } from '../core/runtime';
 import { canStand, heightAt, surfaceAt } from '../core/terrain';
@@ -21,6 +22,7 @@ import { CROOKED, crookedTop } from './crookedCourses';
 import { seatedNow } from './index';
 import { bestOf, currentActivity } from './kit';
 import { INVITE_GAP, INVITE_R, nearPlayer, PREFETCH_R, zoneInvite, zonePrefetch } from './zones';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · part c (W5-A9, the should list): the zones of the should activities, one small chunk play/zones.ts
@@ -80,7 +82,7 @@ export const fireIts: Interactable[] = FIRE_RINGS.map(r => ({
   x: r.x, z: r.z, radius: FIRE_PROMPT_R,
   act: () => {
     if (!fireLit()) { bubble(fireClosedLine(), 4200); return; }
-    void import('./marshmallow').then(m => { m.startMarshmallow(r.k); });
+    void importRetry(() => import('./marshmallow')).then(m => { m.startMarshmallow(r.k); });
   },
 }));
 
@@ -97,7 +99,7 @@ const FAR = 1e7;
 export const heaveIt: Interactable = {
   id: 'play:heave', source: 'activity', action: 'info', verb: { zh: '嘿咻，推！', en: 'Heave-ho!' }, name: HEAVE_NAME,
   x: FAR, z: FAR, radius: HEAVE_PROMPT_R,
-  act: () => { const id = heaveIt.refId; if (id) void import('./heave').then(m => { m.heavePush(id); }); },
+  act: () => { const id = heaveIt.refId; if (id) void importRetry(() => import('./heave')).then(m => { m.heavePush(id); }); },
 };
 /** A boarding prompt (a transit stop's, not lane T's 帮忙推) the player stands in reach of. */
 export function boardingInReach(): boolean {
@@ -119,7 +121,7 @@ export function placeHeave(tt: { id: string; x: number; z: number } | null): boo
 
 export const SNAP_OVERLAY = 'play-snap';
 export const CREST_HINT: Bilingual = { zh: '前面坡顶插着小旗，开快点冲过去能飞起来！', en: 'Pennants on the crest ahead — go fast and we’ll fly!' };
-const CrestSnap = lazy(() => import('./CrestSnap'));
+const CrestSnap = lazyChunk(() => importRetry(() => import('./CrestSnap')));
 const SnapSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(CrestSnap, { props, close }));
 /** A crest near the player for the pennants (u) and for BAYBAY's hint while riding (u). */
 export const CREST_NEAR = 160, CREST_HINT_R = 60;
@@ -140,9 +142,9 @@ export const LION_SPOT = { x: +(LION_VIEW.x - 4.24).toFixed(2), z: +(LION_VIEW.z
 export const lionIt: Interactable = {
   id: 'play:sealions', source: 'activity', action: 'info', verb: { zh: '数海狮', en: 'Count the sea lions' }, name: { zh: 'K 码头', en: 'K-Dock' },
   x: LION_SPOT.x, z: LION_SPOT.z, radius: LION_PROMPT_R,
-  act: () => { void import('./sealions').then(m => { m.startSeaLions(); }); },
+  act: () => { void importRetry(() => import('./sealions')).then(m => { m.startSeaLions(); }); },
 };
-const SeaLionBadges = lazy(() => import('./SeaLionBadges'));
+const SeaLionBadges = lazyChunk(() => importRetry(() => import('./SeaLionBadges')));
 const BadgeSlot = () => createElement(Suspense, { fallback: null }, createElement(SeaLionBadges));
 
 // --- frisbee with BAYBAY (W5-A9): 问 BAYBAY → 玩飞盘 on a lawn or a beach ---------------------------------------------
@@ -205,7 +207,7 @@ export function sledOffer(x: number, z: number): boolean {
 export const sledIt: Interactable = {
   id: 'play:sled', source: 'activity', action: 'info', verb: { zh: '滑草', en: 'Slide down' }, name: { zh: '坐纸板滑下去', en: 'On a sheet of cardboard' },
   x: 1e7, z: 1e7, radius: SLED_PROMPT_R,
-  act: () => { void import('./sled').then(m => { m.startSled(); }); },
+  act: () => { void importRetry(() => import('./sled')).then(m => { m.startSled(); }); },
 };
 
 /** On foot, the crooked blocks' ends (u): people walk the side steps, whose ends are 3–4 u off the lane's (Lombard: the
@@ -216,22 +218,26 @@ export function initZones3(): () => void {
   const offs: (() => void)[] = [];
   offs.push(registerInteractables('a-play-zones3', () => [...fireIts, heaveIt, lionIt, sledIt]));
   offs.push(registerOverlay({ id: BADGE_OVERLAY, Component: BadgeSlot }));
-  offs.push(registerAskItem({ id: 'play-ball', order: -4, label: { zh: '玩沙滩球', en: 'Beach ball' }, icon: Volleyball, visible: ballHere, onSelect: () => { void import('./ball').then(m => { m.startBall(); }); } }));
-  offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void import('./frisbee').then(m => { m.startFrisbee(); }); } }));
+  offs.push(registerAskItem({ id: 'play-ball', order: -4, label: { zh: '玩沙滩球', en: 'Beach ball' }, icon: Volleyball, visible: ballHere, onSelect: () => { void importRetry(() => import('./ball')).then(m => { m.startBall(); }); } }));
+  offs.push(registerAskItem({ id: 'play-frisbee', order: -5, label: { zh: '玩飞盘', en: 'Play frisbee' }, icon: Disc, visible: frisbeeHere, onSelect: () => { void importRetry(() => import('./frisbee')).then(m => { m.startFrisbee(); }); } }));
   offs.push(registerOverlay({ id: SNAP_OVERLAY, Component: SnapSlot }));
   // W7-M (lane M): the San Francisco mini-games' zones (play/sfgames.ts, its own chunk: the Musée's claw machine…)
   let offSf: (() => void) | null = null, sfGone = false;
-  void import('./sfgames').then(m => { if (!sfGone) offSf = m.initSfGames(); }).catch(() => { /* the games stay away */ });
+  void importRetry(() => import('./sfgames')).then(m => { if (!sfGone) offSf = m.initSfGames(); }).catch(() => { /* the games stay away */ });
   offs.push(() => { sfGone = true; offSf?.(); });
+  // W8-M (lane M): the second set (play/sfgames8.ts, its own chunk: the cable-car grip, the busker, the foghorns)
+  let offSf8: (() => void) | null = null;
+  void importRetry(() => import('./sfgames8')).then(m => { if (!sfGone) offSf8 = m.initSfGames8(); }).catch(() => { /* the games stay away */ });
+  offs.push(() => { offSf8?.(); });
   // a crest hop (lane F's vehicle:hop) at one of the 12 crests
   offs.push(onEvent(ev => {
     if (ev.type !== 'vehicle:hop' || !ev.crest) return;
     const i = crestAt(runtime.player.x, runtime.player.z);
-    if (i >= 0) void import('./crests').then(m => { m.crestHop(i); });
+    if (i >= 0) void importRetry(() => import('./crests')).then(m => { m.crestHop(i); });
   }));
   let crestsOn = false, crestHintAt = -Infinity;
   const walkFrom = new Map<string, number>();
-  offs.push(() => { if (crestsOn) void import('./crests').then(m => { m.setCrestsNear(false); }); });
+  offs.push(() => { if (crestsOn) void importRetry(() => import('./crests')).then(m => { m.setCrestsNear(false); }); });
   let acc = 0;
   offs.push(registerFrameSystem('a-play-zones3', dt => {
     if ((acc += dt) < 0.25) return;
@@ -241,15 +247,15 @@ export function initZones3(): () => void {
     const lit = fireLit();
     for (const it of fireIts) it.verb = lit ? TOAST_VERB : WHEN_VERB;
     if (lit && FIRE_RINGS.some(r => nearPlayer(r.x, r.z, PREFETCH_R))) {
-      zonePrefetch('marshmallow', () => import('./marshmallow'));
+      zonePrefetch('marshmallow', () => importRetry(() => import('./marshmallow')));
       if (FIRE_RINGS.some(r => nearPlayer(r.x, r.z, INVITE_R))) zoneInvite('fire', FIRE_INVITE_LINE);
     }
     // the turntables: the prompt follows a turn near the player; the heave-ho fetched near one; BAYBAY's invite as it starts
     const tt = turntableNear();
-    if ((transitData()?.turntables ?? []).some(t => nearPlayer(t.x, t.z, PREFETCH_R))) zonePrefetch('heave', () => import('./heave'));
+    if ((transitData()?.turntables ?? []).some(t => nearPlayer(t.x, t.z, PREFETCH_R))) zonePrefetch('heave', () => importRetry(() => import('./heave')));
     if (placeHeave(tt)) zoneInvite('heave', HEAVE_INVITE_LINE);
     // the sea lions: fetched near the rail, BAYBAY's invite there
-    if (nearPlayer(LION_VIEW.x, LION_VIEW.z, PREFETCH_R)) zonePrefetch('sealions', () => import('./sealions'));
+    if (nearPlayer(LION_VIEW.x, LION_VIEW.z, PREFETCH_R)) zonePrefetch('sealions', () => importRetry(() => import('./sealions')));
     if (nearPlayer(LION_SPOT.x, LION_SPOT.z, INVITE_R + 1)) zoneInvite('sealions', LION_INVITE_LINE);
     // the grass slide: offered where you stand on a steep lawn (on foot, playing, nothing else running)
     {
@@ -259,23 +265,23 @@ export function initZones3(): () => void {
       const on = runtime.move.mode === 'foot' && !p.moving && !currentActivity() && !seatedNow() && sledOffer(p.x, p.z)
         && !interactables().some(it => it !== sledIt && it.source !== 'baybay' && it.id !== 'play:sit' && Math.hypot(p.x - it.x, p.z - it.z) < it.radius + 0.5);
       sledIt.x = on ? p.x : 1e7; sledIt.z = on ? p.z : 1e7;
-      if (on) zonePrefetch('sled', () => import('./sled'));
+      if (on) zonePrefetch('sled', () => importRetry(() => import('./sled')));
     }
     // the crooked blocks: a rider coming into the top, going down, starts the gentle descent; on foot, top → bottom, the facts
     for (const c of CROOKED) {
       const t = crookedTop(c), b = c.line[c.line.length - 1];
       if (runtime.move.mode === 'foot' && nearPlayer(t.x, t.z, CROOKED_END_R)) walkFrom.set(c.id, runtime.time);
-      if (runtime.move.mode === 'foot' && nearPlayer(b.x, b.z, CROOKED_END_R) && runtime.time - (walkFrom.get(c.id) ?? -1e9) < 120) { walkFrom.delete(c.id); void import('./crooked').then(m => { m.walkedDown(c.id); }); }
+      if (runtime.move.mode === 'foot' && nearPlayer(b.x, b.z, CROOKED_END_R) && runtime.time - (walkFrom.get(c.id) ?? -1e9) < 120) { walkFrom.delete(c.id); void importRetry(() => import('./crooked')).then(m => { m.walkedDown(c.id); }); }
     }
     if (runtime.vehicle.occupied && !currentActivity()) for (const c of CROOKED) {
       const t = crookedTop(c), n = c.line[Math.min(3, c.line.length - 1)], v = runtime.vehicle;
-      if (Math.hypot(v.x - t.x, v.z - t.z) < PREFETCH_R) zonePrefetch('crooked', () => import('./crooked'));
+      if (Math.hypot(v.x - t.x, v.z - t.z) < PREFETCH_R) zonePrefetch('crooked', () => importRetry(() => import('./crooked')));
       const dx = n.x - t.x, dz = n.z - t.z, L = Math.hypot(dx, dz) || 1;
-      if (Math.hypot(v.x - t.x, v.z - t.z) < 3 && (Math.sin(v.heading) * dx + Math.cos(v.heading) * dz) / L > 0.3) void import('./crooked').then(m => { m.startDescent(c.id); });
+      if (Math.hypot(v.x - t.x, v.z - t.z) < 3 && (Math.sin(v.heading) * dx + Math.cos(v.heading) * dz) / L > 0.3) void importRetry(() => import('./crooked')).then(m => { m.startDescent(c.id); });
     }
     // the crests: the pennants while one is near (the crests chunk), BAYBAY's hint riding toward one not hopped yet
     const near = CREST_SPOTS.some(s => nearPlayer(s.x, s.z, CREST_NEAR));
-    if (near !== crestsOn) { crestsOn = near; void import('./crests').then(m => { m.setCrestsNear(crestsOn); }); }
+    if (near !== crestsOn) { crestsOn = near; void importRetry(() => import('./crests')).then(m => { m.setCrestsNear(crestsOn); }); }
     const riding = runtime.move.mode === 'bike' || runtime.move.mode === 'car', hopped = bestOf(CREST_KEY) ?? 0;
     if (riding && runtime.time - crestHintAt > INVITE_GAP && !flow.get().bubble && CREST_SPOTS.some((s, i) => !((hopped >> i) & 1) && nearPlayer(s.x, s.z, CREST_HINT_R))) {
       crestHintAt = runtime.time;

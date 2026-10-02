@@ -4,6 +4,7 @@ import type { Vec2 } from '../core/types';
 import { LEG_MAX, polylineLength, splitLegs } from '../core/polyline';
 // the walking graph and world/sf/format load with the graph itself (walkGraph(), HC-1): types only here
 import type { AsyncRouteOptions, WalkGraphIndex } from '../core/walkGraph';
+import { importRetry } from '../game/importRetry';
 
 /**
  * A* on the district nav grid (terrain.buildNavGrid, 0.75 u cells, a STAND_RADIUS disc fits in every open
@@ -429,7 +430,7 @@ export function setWalkGraph(g: WalkGraphIndex | Promise<WalkGraphIndex> | null)
 /** The walking graph, loaded on first use (current.json → manifest → graph.obc), with its code (a lazy chunk). */
 export function walkGraph(): Promise<WalkGraphIndex> {
   if (!GRAPH) {
-    const p = import('../core/walkGraph').then(m => m.loadWalkGraph());
+    const p = importRetry(() => import('../core/walkGraph')).then(m => m.loadWalkGraph());
     GRAPH = p;
     p.catch(() => { if (GRAPH === p) GRAPH = null; });
   }
@@ -492,7 +493,7 @@ export async function routeTo(from: Vec2, to: Vec2, opts: AsyncRouteOptions & { 
     a = ix.nearestNode(from.x, from.z, GRAPH_SNAP * 3, inMain); b = ix.nearestNode(to.x, to.z, GRAPH_SNAP * 3, inMain);
   }
   if (a < 0 || b < 0) return direct <= LOCAL_ROUTE ? localRoute(from, to) : null;
-  const { findGraphPathAsync } = await import('../core/walkGraph');
+  const { findGraphPathAsync } = await importRetry(() => import('../core/walkGraph'));
   const path = await findGraphPathAsync(ix, a, b, { nodeCost: graphNodeCost(ix), ...opts });
   if (!path) return null;
   const points: Vec2[] = [{ x: from.x, z: from.z }];

@@ -18,6 +18,7 @@ import {
 } from './logic';
 import { drain, type Job } from './slices';
 import * as sfx from './sfx';
+import { importRetry } from '../game/importRetry';
 
 const R = Math.random;
 
@@ -222,7 +223,7 @@ export class Ambience {
     const night = timeOfDay === 'night';
     if (worldMode === 'city' && !this.cityReady) {
       // the city's layers load with the first city tick (their own chunk: nothing of it in the district)
-      this.cityReady = import('./city').then(m => {
+      this.cityReady = importRetry(() => import('./city')).then(m => {
         if (this.disposed) return;
         this.cityMod = m;
         this.cityShore = new m.CityShore(f => this.setShore(f));

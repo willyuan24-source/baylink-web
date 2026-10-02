@@ -1,7 +1,8 @@
 /**
  * Wave 5 · lane V · W5-V7: BAYBAY says her recorded wave-5 lines (wave 6, lane X · W6-X4: and the Halloween lines of lanes
  * G and H, data/sf/voiceW6.ts; wave 7, lane X · W7-X2: data/sf/voiceW7.ts — every fixed line the earlier batches missed
- * and wave 7's new ones — matched the same way).
+ * and wave 7's new ones; wave 8, lane X · W8-X1: data/sf/voiceW8.ts — lane M's wave-7 game lines, lane K's plain bubbles,
+ * wave 8's new lines, and faster retakes of wave 7's muted clips — matched the same way).
  *
  * The lanes say their lines as speech bubbles (game/flow.ts `bubble`, eggs `say`, lane C's pacer…) and none of them has
  * to know about the voice: every new BAYBAY bubble whose text (zh + en, exactly) was recorded
@@ -16,13 +17,17 @@
  */
 import { getLocale } from '../../i18n/locale';
 import type { Bilingual } from '../core/types';
-import { emit } from '../core/events';
-// (W7-X2) wave 7's table first: its module registers the retakes of wave-6 clips under their wave-6 ids before
+import { emit, onEvent } from '../core/events';
+// (W8-X1) wave 8's table first: its module registers the retakes of wave 7's muted clips under their wave-7 ids
+// (data/sf/voiceW7.ts skips its muted clips, so the retake is the only file for that id) and wave 8's lines
+import { W8_RETAKE_CLIPS, W8_VOICE_CHECK, W8_VOICE_LINES } from '../data/sf/voiceW8';
+// (W7-X2) wave 7's table next: its module registers the retakes of wave-6 clips under their wave-6 ids before
 // data/sf/voiceW6.ts registers the old takes (registerVoiceClips keeps the first), so the retake plays
 import { W7_VOICE_CHECK, W7_VOICE_LINES } from '../data/sf/voiceW7';
 import { W5_VOICE_CHECK, W5_VOICE_LINES } from '../data/sf/voiceW5';
 import { W6_VOICE_CHECK, W6_VOICE_LINES } from '../data/sf/voiceW6';
 import { flow } from './flowStore';
+import { holdBubble } from './flow';
 import { BAYBAY_ID } from './interactables';
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
@@ -34,27 +39,62 @@ let byText: Map<string, string> | null = null;
  */
 export function w5VoiceFor(text: Bilingual): string | null {
   if (!byText) {
-    const owned = new Set([...W5_VOICE_LINES, ...W7_VOICE_LINES].filter(l => l.own).map(l => textKey(l.zh, l.en)));
+    const owned = new Set([...W5_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES].filter(l => l.own).map(l => textKey(l.zh, l.en)));
     byText = new Map(W5_VOICE_LINES.filter(l => !l.own && !owned.has(textKey(l.zh, l.en))).map(l => [textKey(l.zh, l.en), l.id]));
     // wave 6 (lane X, W6-X4): lanes G and H's Halloween lines (data/sf/voiceW6.ts) — a wave-5 recording of the same words wins
     for (const l of W6_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
     // wave 7 (lane X, W7-X2): the lines no earlier batch had (data/sf/voiceW7.ts) — an earlier recording still wins
     for (const l of W7_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
+    // wave 8 (lane X, W8-X1): the lines no earlier batch had (data/sf/voiceW8.ts) — an earlier recording still wins
+    for (const l of W8_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
   }
   return byText.get(textKey(text.zh ?? '', text.en ?? '')) ?? null;
+}
+
+/**
+ * A clip the owner has not approved yet stays text only: the CHECK lists of every wave, except a wave-7 clip whose wave-8
+ * retake passed every gate (W8_RETAKE_CLIPS: registered under the wave-7 id, so it plays unmuted).
+ */
+export function w5VoiceMuted(clip: string): boolean {
+  if (W7_VOICE_CHECK.includes(clip)) return !(clip in W8_RETAKE_CLIPS);
+  return W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip) || W8_VOICE_CHECK.includes(clip);
+}
+
+let seconds: Map<string, readonly [number, number]> | null = null;
+/** (W8-X-review) a recorded line's length in this locale (s), or 0 when unknown */
+export function w5VoiceSeconds(id: string): number {
+  seconds ??= new Map([...W5_VOICE_LINES, ...W6_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES].map(l => [l.id, l.s]));
+  const s = seconds.get(id);
+  return s ? s[getLocale() === 'en' ? 1 : 0] : 0;
+}
+/** (W8-X-review) the bubble stays this long after its clip ends; and never longer than VOICE_HOLD_MAX ms in all */
+export const VOICE_HOLD_TAIL = 400;
+export const VOICE_HOLD_MAX = 12000;
+
+/**
+ * (W8-X-review) BAYBAY's bubble stays up while her voice says it: several clips run longer than the bubble their lane
+ * gave (the Alcatraz landing ≈ 9 s in a 4.6 s bubble), so the words went while she still spoke, and with the bubble gone
+ * the next line could start over the clip. Both the lines matched here and a lane's own voice-line (lane S's parade).
+ */
+function holdForVoice(id: string): void {
+  const b = flow.get().bubble, s = w5VoiceSeconds(id);
+  if (!b || b.who !== BAYBAY_ID || !s || w5VoiceMuted(`${getLocale() === 'en' ? 'en' : 'zh'}-${id}`)) return;
+  holdBubble(b.key, Math.min(VOICE_HOLD_MAX, s * 1000 + VOICE_HOLD_TAIL));
 }
 
 /** Start voicing BAYBAY's recorded bubbles; returns the off. */
 export function initW5Voice(): () => void {
   let last = flow.get().bubble?.key ?? -1;
-  return flow.subscribe(() => {
+  const offOwn = onEvent(e => { if (e.type === 'voice-line') holdForVoice(e.id); });
+  const off = flow.subscribe(() => {
     const b = flow.get().bubble;
     if (!b || b.key === last) return;
     last = b.key;
     if (b.who !== BAYBAY_ID) return;
     const id = w5VoiceFor(b.text);
     const clip = `${getLocale() === 'en' ? 'en' : 'zh'}-${id}`;
-    if (!id || W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip) || W7_VOICE_CHECK.includes(clip)) return;
+    if (!id || w5VoiceMuted(clip)) return;
     emit({ type: 'voice-line', id });
   });
+  return () => { offOwn(); off(); };
 }

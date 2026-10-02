@@ -2,6 +2,7 @@ import type { GameEvent } from '../core/events';
 import type { Bilingual, Mood } from '../core/types';
 import { CITY_DISTRICT_POIS } from '../data/pois';
 import type { Attraction, AttractionRank } from '../data/sf/attractionTypes';
+import { ISLAND_LANDINGS } from '../data/sf/attractions';
 import { CITY_SUBJECT_FACTS } from '../data/sf/cityPois';
 import { placeCardNow } from '../data/sf/placeCardTypes';
 import { ARRIVAL_LINES, QUIET_LINES } from '../data/sf/tourLines';
@@ -30,7 +31,9 @@ import { arrivalToast } from './tripText';
  * cinematic) holds the arrival until it is free, as long as the player is still inside.
  *
  * Places you cannot walk to (`Attraction.offWalk`: Alcatraz, Treasure Island, whose "arrival" spot is a telescope on
- * the waterfront) get no anchor: standing at Pier 33 is not arriving at Alcatraz (no toast, no reveal, no fly unlock).
+ * the waterfront) get no anchor there: standing at Pier 33 is not arriving at Alcatraz (no toast, no reveal, no fly
+ * unlock). (Wave 8, lane A) Alcatraz can be landed on by ferry now: its anchor is its island landing (data/sf/attractions
+ * ISLAND_LANDINGS: the cellhouse front), with a fixed line of its own.
  *
  * Panorama spots (`PANORAMA_SPOTS`, part 2): the panorama plays where the VIEW is. When a viewpoint's arrival spot is
  * the view (Corona Heights since lane P's ARRIVAL_OVERRIDES put its arrival on the summit), the arrival anchor carries
@@ -68,6 +71,8 @@ export interface ArrivalAnchor {
   landmark?: string;
   /** a panorama spot (PANORAMA_SPOTS): fires the panorama on its own, never counts as a neighbour's visit */
   spot?: 'panorama';
+  /** (wave 8, lane A review) an island landing (data/sf/attractions ISLAND_LANDINGS): its own `radius`, no 12 u floor */
+  landing?: true;
   /** unique key of the anchor in the seen / inside sets (default: `attraction`; spots: `<attraction>@<spot>`) */
   key?: string;
 }
@@ -118,8 +123,10 @@ export const PANORAMA_SPOTS: Readonly<Record<string, { spot: string; x: number; 
  * off the walkable city (`offWalk`) are left out: their arrival spot is a viewpoint elsewhere, not the place.
  */
 export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAnchor[] {
-  return attractions.filter(a => !a.offWalk).flatMap(a => {
-    const x0 = a.arrival?.x ?? a.x, z0 = a.arrival?.z ?? a.z;
+  // (wave 8, lane A) an off-walk island with a landing of its own (Alcatraz by ferry) arrives there, never at its pier
+  return attractions.filter(a => !a.offWalk || ISLAND_LANDINGS[a.id]).flatMap(a => {
+    const land = a.offWalk ? ISLAND_LANDINGS[a.id] : undefined;
+    const x0 = land?.x ?? a.arrival?.x ?? a.x, z0 = land?.z ?? a.arrival?.z ?? a.z;
     // a spot of its own only when the arrival is not already at the view
     const def = a.panorama ? PANORAMA_SPOTS[a.id] : undefined;
     const spot = def && Math.hypot(def.x - x0, def.z - z0) > ARRIVAL_MIN_R ? def : undefined;
@@ -134,6 +141,8 @@ export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAncho
       // a viewpoint with a spot of its own: the panorama plays there, not at the door
       ...(a.panorama && !spot ? { panorama: true } : {}),
       ...(a.landmarkId ? { landmark: a.landmarkId } : {}),
+      // (W8-A review) the island landing's own radius: up on the plateau, not down at the dock
+      ...(land ? { landing: true as const, radius: land.radius } : {}),
     };
     if (!spot) return [anchor];
     const { x, z, radius } = spot;
@@ -141,8 +150,8 @@ export function arrivalAnchors(attractions: readonly Attraction[]): ArrivalAncho
   });
 }
 
-/** Trigger radius: max(12, radius) for arrival anchors; a panorama spot's own (small) radius. */
-const radiusOf = (a: ArrivalAnchor) => (a.spot ? a.radius ?? 7 : Math.max(ARRIVAL_MIN_R, a.radius ?? 0));
+/** Trigger radius: max(12, radius) for arrival anchors; a panorama spot's (and, W8-A review, an island landing's) own (small) radius. */
+const radiusOf = (a: ArrivalAnchor) => (a.spot || a.landing ? a.radius ?? 7 : Math.max(ARRIVAL_MIN_R, a.radius ?? 0));
 const keyOf = (a: ArrivalAnchor) => a.key ?? a.attraction;
 
 /** Save v2 `arrivals` (untrusted): well-formed seen keys only (attraction ids, `<attraction>@<spot>`), unique, ≤ 512. */
@@ -301,6 +310,9 @@ export const POSTCARD_HINT: Bilingual = { zh: '这附近藏着一张明信片哦
  * the few places with no card at all (text-free toast + peek).
  */
 export function defaultArrivalLine(attraction: string, anchor?: Pick<ArrivalAnchor, 'landmark' | 'place' | 'quiet'>): { text: Bilingual; voice?: string; mood?: Mood } | null {
+  // (wave 8, lane A) an island landing's own fixed line (its card's bark is about the pier)
+  const landing = ISLAND_LANDINGS[attraction];
+  if (landing) return { text: landing.line, mood: 'point' };
   const frozen = ARRIVAL_LINES[attraction] ?? QUIET_LINES[attraction];
   if (frozen) return { text: { zh: frozen.zh, en: frozen.en }, voice: frozen.id, mood: frozen.mood };
   const mood: Mood = anchor?.quiet ? 'thinking' : 'point';

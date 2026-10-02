@@ -1,7 +1,8 @@
 import { ArrowDownRight, Flame, Footprints, Sparkles } from 'lucide-react';
-import { useSyncExternalStore, type PointerEvent as ReactPointerEvent } from 'react';
+import { useSyncExternalStore, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent } from 'react';
 import { useT } from '../i18n';
 import { chipSeq, chipState, subscribeChip } from './chip';
+import { CHIP_HOLD_KEYS, chipHoldKey } from './chipKeys';
 import './play.css';
 
 /**
@@ -28,6 +29,16 @@ export default function PlayChip() {
       window.addEventListener('pointercancel', up, true);
     }
     hold?.set(down);
+    // (W8-K8) a mouse press leaves no focus on the button: Space / E reach the game's own keys again (W7-W2 review: after
+    // clicking 放线 the focused button swallowed Space — the games' holdKeys skip a focused BUTTON)
+    if (!down && e.pointerType === 'mouse') (e.currentTarget as HTMLElement).blur?.();
+  };
+  // (W8-K8) the hold button with the keyboard focus (tabbed to, or still focused): Space / Enter / E hold it
+  const key = (down: boolean) => (e: ReactKeyboardEvent) => {
+    const v = chipHoldKey(e.code, down, e.repeat);
+    if (v === null) { if (CHIP_HOLD_KEYS.includes(e.code)) e.preventDefault(); return; }
+    e.preventDefault();
+    hold?.set(v);
   };
   const m = s.meter;
   const pct = (v: number) => `${Math.round(Math.max(0, Math.min(1, v)) * 100)}%`;
@@ -45,7 +56,7 @@ export default function PlayChip() {
       {s.status && <span className="ob-play-chip-status">{t(s.status)}</span>}
       {s.line && <span className="ob-play-flight-hint">{t(s.line)}</span>}
       {hold && (
-        <button type="button" className="ob-play-btn is-go ob-play-hold" onPointerDown={press(true)} onPointerUp={press(false)} onPointerCancel={press(false)} onContextMenu={e => e.preventDefault()}>
+        <button type="button" className="ob-play-btn is-go ob-play-hold" onPointerDown={press(true)} onPointerUp={press(false)} onPointerCancel={press(false)} onKeyDown={key(true)} onKeyUp={key(false)} onBlur={() => hold?.set(false)} onContextMenu={e => e.preventDefault()}>
           {t(hold.label)}
         </button>
       )}

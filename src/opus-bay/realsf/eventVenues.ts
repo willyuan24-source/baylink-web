@@ -427,6 +427,8 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-main-halloween-costume-swap-oct15-2026', 'sf-halloween-broadside-printing-oct17-2026', 'sf-foodwise-latine-makers-oct3-2026',
   'sf-bay-beats-bandshell-oct24-2026', 'sf-marina-library-open-house-oct17-2026', 'sf-fall-show-oct15-18-2026',
   'sf-inner-sunset-flea-oct11-2026', 'sf-potrero-hill-festival-oct17-2026', 'sf-sunday-streets-excelsior-oct18-2026',
+  // W8-S: the Parade of Ships' photo (world/sf/fleetWeek.ts), not a catalog id
+  'fleet-week-2026-parade',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -478,6 +480,8 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-sunnydale-pumpkin-fest-2026': { zh: '南瓜节', en: 'the Pumpkin Fest' },
   'sf-family-connections-halloween-2026': { zh: '万圣节手工和游戏', en: 'Halloween crafts and games' },
   'fleet-week-2026-jets': { zh: '舰队周飞机编队', en: 'the Fleet Week jets' },
+  // W8-S
+  'fleet-week-2026-parade': { zh: '舰队周舰船巡游', en: 'the Parade of Ships' },
   // W6-S
   'sf-thrive-thrill-o-ween-2026': { zh: '万圣节亲子庆典', en: 'Thrill-O-Ween' },
   'sf-thrive-football-sunday-2026': { zh: '橄榄球观赛', en: 'a football watch party' },

@@ -150,6 +150,21 @@ export const GGB = { x: -865.81, z: 508.555, ax: -0.7806, az: -0.6251, half: 89.
 export const WISP = { near: 420, max: 16, every: 0.9 } as const;
 /** a coin that sparkles by itself where it is picked up (economy/coins.ts): no second pop at the player */
 const SELF_SPARKLING = /^(trail|cache|ring):/;
+/**
+ * (W8-X3) One burst per moment: a reward that already bursts at the player (a sparkle or confetti within POP_NEAR u of
+ * them: a postcard, a stamp, an egg, a crest, the hunt…) and pays coins in the same moment showed two bursts. A coin pop
+ * now starts POP_DELAY s late and is dropped when such a burst comes within that beat, and no pop starts within
+ * POP_MERGE s after one. Paid coins alone still pop.
+ */
+export const POP_MERGE = 0.6;
+export const POP_DELAY = 0.2;
+export const POP_NEAR = 4;
+/**
+ * (W8-X-review) only a reward-sized burst counts (a sparkle of ≥ this many glints, or confetti): the small glints the
+ * world makes on its own near the player (a pebble's or the hunt's glint every 2–3 s, a ball or frisbee catch: 5–6) took
+ * the coin pop of a goal or an arrival paid in the same beat, and those coins arrived with no burst at all
+ */
+export const POP_BURST_MIN = 8;
 
 export class FxPool {
   readonly mesh: THREE.InstancedMesh;
@@ -168,6 +183,13 @@ export class FxPool {
   /** 1 = an ambient wisp (counted, faded near the player) */
   private amb = new Uint8Array(MAX);
   private cr = new Float32Array(MAX); private cg = new Float32Array(MAX); private cb = new Float32Array(MAX);
+  /** (W8-X3) the coin pop a particle belongs to (0 = none) */
+  private tag = new Float32Array(MAX);
+  /** (W8-X3) the pool's clock, the last burst at the player, the pending coin pop (id, until) */
+  private clock = 0;
+  private lastBurst = -99;
+  private popId = 0;
+  private popUntil = -99;
   private alive = 0;
   private wisps = 0;
   private wispIn = 0;
@@ -221,7 +243,12 @@ export class FxPool {
       } else if (e.type === 'postcard' || e.type === 'goal' || e.type === 'stamp') {
         this.spawn('sparkle', p.x, p.y + 1.1, p.z);
         if (e.type === 'postcard') this.spawn('confetti', p.x, p.y + 1.4, p.z, { count: 18 });
-      } else if (e.type === 'coins' && e.delta > 0 && !SELF_SPARKLING.test(e.source)) this.spawn('coin', p.x, p.y + 1.7, p.z, { count: Math.min(10, 4 + Math.round(e.delta / 5)) });
+      } else if (e.type === 'coins' && e.delta > 0 && !SELF_SPARKLING.test(e.source)) {
+        // (W8-X-review) the merged pop is the city's; district mode never changes (its pop at once, as before)
+        const count = Math.min(10, 4 + Math.round(e.delta / 5));
+        if (game.get().worldMode === 'city') this.coinPop(count);
+        else this.spawn('coin', p.x, p.y + 1.7, p.z, { count });
+      }
       else if (e.type === 'play' && e.what === 'end' && e.tier === 3) this.spawn('confetti', p.x, p.y + 1.4, p.z);
       else if (e.type === 'play' && e.what === 'end' && e.tier === 2) this.spawn('sparkle', p.x, p.y + 1.2, p.z, { count: 16 });
       else if (e.type === 'arrival' && e.first && e.tier === 1) this.spawn('confetti', p.x, p.y + 1.4, p.z, { count: 14, scale: 0.9 });
@@ -258,13 +285,29 @@ export class FxPool {
     this.s0[i] = s0; this.s1[i] = s1; this.a0[i] = a0;
     this.grav[i] = grav; this.drag[i] = drag;
     this.rot[i] = rot; this.spin[i] = spin;
-    this.tw[i] = tw; this.fin[i] = fin; this.amb[i] = 0;
+    this.tw[i] = tw; this.fin[i] = fin; this.amb[i] = 0; this.tag[i] = 0;
     this.code[i] = shape + (additive ? ADD : 0) + (flat ? FLAT : 0);
     this.cr[i] = color.r; this.cg[i] = color.g; this.cb[i] = color.b;
     return i;
   }
 
+  /** (W8-X3) paid coins: a pop at the player's head, a beat late, unless the moment already has its burst */
+  private coinPop(count: number) {
+    if (this.clock - this.lastBurst < POP_MERGE) return;
+    const p = runtime.player, from = this.alive;
+    this.spawn('coin', p.x, p.y + 1.7, p.z, { count });
+    this.popId++;
+    for (let i = from; i < this.alive; i++) { this.age[i] -= POP_DELAY; this.tag[i] = this.popId; }
+    this.popUntil = this.clock + POP_DELAY;
+  }
+
   spawn(preset: FxPreset, x: number, y: number, z: number, opts: FxOpts = {}) {
+    if ((preset === 'confetti' || (preset === 'sparkle' && (opts.count ?? 12) >= POP_BURST_MIN)) && Math.hypot(x - runtime.player.x, z - runtime.player.z) < POP_NEAR) {
+      // (W8-X3) a burst at the player: a coin pop still waiting for its beat goes (it dies at the next update)
+      this.lastBurst = this.clock;
+      if (this.clock <= this.popUntil) for (let i = 0; i < this.alive; i++) if (this.tag[i] === this.popId) this.life[i] = -1;
+      this.popUntil = -99;
+    }
     const reduced = game.get().settings.reducedMotion;
     const k = opts.scale ?? 1;
     const n = (base: number) => Math.max(1, Math.round((opts.count ?? base) * (reduced ? 0.5 : 1)));
@@ -330,10 +373,14 @@ export class FxPool {
         break;
       }
       case 'wake': {
-        // flat foam behind a boat: foam puffs spreading on the water (y = the water)
+        // flat foam behind a boat: foam puffs spreading on the water (y = the water); (W8-X5) denser and a little longer
+        // so the trail reads on the bright day water (it was faint: W7-V's note), softer at night
+        // (W8-X-review: the city's; district mode never changes — its wake as before)
         _c.set(opts.color ?? (night ? '#9fb0b8' : '#f4fbf9'));
+        const city = game.get().worldMode === 'city';
         for (let j = 0, m = n(2); j < m; j++) {
-          this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 2.6 + R() * 0.8, 0.9 * k, 3.2 * k, 0.5, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.12);
+          if (city) this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 3.0 + R() * 0.9, 0.9 * k, 3.6 * k, night ? 0.55 : 0.75, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.1);
+          else this.add(x + (R() - 0.5) * 0.8 * k, y + 0.04, z + (R() - 0.5) * 0.8 * k, 0, 0, 0, 2.6 + R() * 0.8, 0.9 * k, 3.2 * k, 0.5, j ? SHAPE.foam : SHAPE.cloud, false, true, _c, 0, 0, 0, (R() - 0.5) * 0.3, 0, 0.12);
         }
         break;
       }
@@ -403,6 +450,7 @@ export class FxPool {
   }
 
   update(dt: number) {
+    this.clock += dt;
     this.ambient(dt);
     if (!this.alive) { if (this.mesh.visible) { this.mesh.visible = false; this.mesh.count = 0; } return; }
     const pos = this.aPos.array as Float32Array, fx = this.aFx.array as Float32Array, col = this.aCol.array as Float32Array;
@@ -419,7 +467,7 @@ export class FxPool {
         this.s0[w] = this.s0[i]; this.s1[w] = this.s1[i]; this.a0[w] = this.a0[i];
         this.grav[w] = this.grav[i]; this.drag[w] = this.drag[i];
         this.rot[w] = this.rot[i]; this.spin[w] = this.spin[i]; this.code[w] = this.code[i];
-        this.tw[w] = this.tw[i]; this.fin[w] = this.fin[i]; this.amb[w] = this.amb[i];
+        this.tw[w] = this.tw[i]; this.fin[w] = this.fin[i]; this.amb[w] = this.amb[i]; this.tag[w] = this.tag[i];
         this.cr[w] = this.cr[i]; this.cg[w] = this.cg[i]; this.cb[w] = this.cb[i];
       }
       const t = this.age[w];

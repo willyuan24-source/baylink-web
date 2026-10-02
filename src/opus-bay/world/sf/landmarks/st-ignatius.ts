@@ -25,7 +25,15 @@ const ID = 'st-ignatius-church';
 const X0 = -150.4, Z0 = 753.2, YAW = (55.1 * Math.PI) / 180;
 const g = siteGround(ID, 22.4);
 
-const BUFF = '#e6d3ae', BUFF_SHADE = '#d4bf97', TRIM = '#f3ead6', ROOF = '#8a7a6a', DOME = '#9aa39a', DOME_DARK = '#7f8a82', DARK = '#4f4a44';
+const BUFF = '#e6d3ae', BUFF_SHADE = '#d4bf97', TRIM = '#f3ead6', ROOF = '#8a7a6a', DARK = '#4f4a44';
+/**
+ * Wave 8 · lane W2 (sf-w7-R-realism.md #45): the towers' cupolas and the crossing dome are dark lead-grey metal on the
+ * real church, not cream — a photo from the de Young's Hamon tower shows both domed cupolas, their spirelets and the
+ * big dome dark grey over the cream stone (https://commons.wikimedia.org/wiki/File:Saint_Ignatius_Church_from_Hamon_Observation_Tower_01_(cropped).jpg ,
+ * viewed 2026-09-30). A mid-dark grey (a near-black read too dark in the game: W7-R-review's City Hall note).
+ */
+const LEAD = '#7b8186', LEAD_DARK = '#686e73';
+const DOME = LEAD, DOME_DARK = LEAD_DARK;
 
 const NAVE = { x0: -2.3, x1: 3.0, z0: -5.6, z1: 3.0 };
 const CROSS_Z = -2.7, CX = 0.35;
@@ -43,7 +51,8 @@ function church(b: BatchLike, lod: 0 | 2) {
   // the two front towers: square shafts, an open belfry stage, an octagonal lantern, a small cupola
   for (const tx of TOWERS) {
     box(b, tx, -1.2, TOWER_Z, TOWER_W, fy + 7.6 + 1.2, TOWER_W, BUFF, GLOW(0.15));
-    if (lod === 2) { pyramid(b, tx, fy + 7.6, TOWER_Z, 1.5, 1.5, 5.0, BUFF_SHADE); continue; }
+    // lod 2: the belfry stage, then the lead cupola on it (W8-W2-review C4: no lead cap balanced on a buff spike)
+    if (lod === 2) { box(b, tx, fy + 7.6, TOWER_Z, 1.55, 2.05, 1.55, BUFF_SHADE); pyramid(b, tx, fy + 9.65, TOWER_Z, 1.4, 1.4, 3.0, LEAD); continue; }
     box(b, tx, fy + 7.6, TOWER_Z, TOWER_W + 0.2, 0.25, TOWER_W + 0.2, TRIM);
     box(b, tx, fy + 7.85, TOWER_Z, 1.55, 1.6, 1.55, BUFF_SHADE, GLOW(0.15));
     for (let f = 0; f < 4; f++) {
@@ -51,14 +60,14 @@ function church(b: BatchLike, lod: 0 | 2) {
       arch(b, tx + Math.sin(a) * 0.79, fy + 8.0, TOWER_Z + Math.cos(a) * 0.79, 0.6, 1.2, a, DARK, LIT(fy + 8));
     }
     box(b, tx, fy + 9.45, TOWER_Z, 1.75, 0.2, 1.75, TRIM);
-    lathe(b, [[0.62, 0], [0.62, 1.2], [0.7, 1.3], [0.45, 1.75], [0.18, 2.2], [0.05, 2.9]], tx, fy + 9.65, TOWER_Z, BUFF, GLOW(0.2), 8);
+    lathe(b, [[0.62, 0], [0.62, 1.2], [0.7, 1.3], [0.45, 1.75], [0.18, 2.2], [0.05, 2.9]], tx, fy + 9.65, TOWER_Z, (ly: number) => new THREE.Color(ly < 1.25 ? BUFF : LEAD), GLOW(0.2), 8);
     cbox(b, tx, fy + 12.7, TOWER_Z, 0.06, 0.4, 0.06, SF.gold);
   }
   // the dome over the crossing: an octagonal drum, the dome, a lantern
   if (lod === 2) { lathe(b, [[1.6, 0], [1.6, 1.6], [0.2, 4.2]], CX, fy + 5.9, CROSS_Z, DOME, NONE, 5); return; }
   lathe(b, [[1.55, 0], [1.55, 1.6]], CX, fy + 5.9, CROSS_Z, BUFF_SHADE, GLOW(0.12), 8);
   lathe(b, [[1.62, 0], [1.5, 0.75], [1.15, 1.45], [0.6, 1.95], [0.25, 2.1]], CX, fy + 7.5, CROSS_Z, (ly: number) => new THREE.Color(ly < 0.8 ? DOME_DARK : DOME), NONE, 12);
-  lathe(b, [[0.3, 0], [0.3, 0.55], [0.08, 0.95]], CX, fy + 9.55, CROSS_Z, TRIM, GLOW(0.3), 6);
+  lathe(b, [[0.3, 0], [0.3, 0.55], [0.08, 0.95]], CX, fy + 9.55, CROSS_Z, LEAD_DARK, GLOW(0.3), 6);
   // the front: steps, four columns and their entablature, the pediment, the saint's niche, three doors
   const zf = 5.12;
   for (let k = 0; k < 2; k++) box(b, CX + 0.35, fy - 0.3 + k * 0.15, zf + 0.05 - k * 0.12, 2.3 - k * 0.3, 0.3, 0.45, '#d8ccb6');
@@ -120,11 +129,42 @@ const EXCLUDE: Vec2[] = [{ x: -3.6, z: -6.5 }, { x: 13.2, z: -6.5 }, { x: 13.2, 
  * the slot planned it (front on Fulton St at the steps' ground). The remainder is the campus lawn and a stone plinth
  * under the church where the slope falls toward Fulton St. Gate: see SWAP.note.
  */
+const AI_AT = { x: CX, y: +g.at(CX, 5.4).toFixed(2), z: -0.18 };
+/**
+ * W8-W2: lead shells over the AI church's cream cupolas and dome (the model's texture is cream there). Measured on
+ * the GLB (scripts: opus-qa/w8/w2/ign.mts, glbNode): each tower's domed cupola sits on its open lantern from model
+ * y 11.0 (r 0.71 at the cornice) to the cross's foot at 12.2 (centres (−2.39, 4.42) and (2.59, 4.41)); the crossing
+ * dome rises from its drum's cornice at 8.75 (r 1.61) to the lantern's foot at 10.5 (r 0.68), the lantern's cap from
+ * 11.75 (r 0.72) to 12.3; centre (0, −1.89). Each shell's radius clears the band maximum of the model's vertices above
+ * it by ≥ 4 % + 0.03 (a 12-sided lathe's faces sit at cos 15° of its radius), so the cream never shows through; the
+ * crosses and the lantern's columns stay the model's. 12 sides each: the swap's remainder stays ≤ 1200 triangles
+ * (tests/opus-bay-sf-models W4-IL5).
+ */
+export const IGN_SHELLS = {
+  cupola: { at: [[-2.39, 4.42], [2.59, 4.41]] as [number, number][], y0: 10.95, profile: [[0.8, 0], [0.66, 0.3], [0.62, 0.55], [0.52, 0.8], [0.33, 1.05], [0.14, 1.22], [0.05, 1.27]] as [number, number][] },
+  dome: { at: [0, -1.89] as [number, number], y0: 8.68, profile: [[1.77, 0], [1.72, 0.32], [1.66, 0.57], [1.58, 0.82], [1.42, 1.07], [1.26, 1.32], [1.08, 1.57], [0.8, 1.82], [0.72, 1.86]] as [number, number][] },
+  cap: { at: [0, -1.89] as [number, number], y0: 11.72, profile: [[0.82, 0], [0.64, 0.3], [0.42, 0.52], [0.2, 0.66], [0.06, 0.72]] as [number, number][] },
+  /**
+   * W8-W2-review (C5): the open lantern between the dome and its cap, cream in the model (r ≤ 0.723 over model y
+   * 10.54–11.72, scratch opus-qa/w8/w2-rev/lantern.mts), is the same dark grey metal as the dome on the restored church
+   * (https://commons.wikimedia.org/wiki/File:Dome,_Saint_Ignatius_Church_-_San_Francisco,_CA.jpg , taken 14 Jan 2024,
+   * viewed 2026-10-01): a lead drum over it (its arched openings read as a band at the distances the church is seen from)
+   */
+  lantern: { at: [0, -1.89] as [number, number], y0: 10.5, profile: [[0.79, 0], [0.79, 1.24]] as [number, number][] },
+} as const;
+function leadShells(b: BatchLike) {
+  const { cupola, dome, cap, lantern } = IGN_SHELLS;
+  for (const [mx, mz] of cupola.at) lathe(b, cupola.profile, AI_AT.x + mx, AI_AT.y + cupola.y0, AI_AT.z + mz, LEAD, NONE, 12);
+  lathe(b, dome.profile, AI_AT.x + dome.at[0], AI_AT.y + dome.y0, AI_AT.z + dome.at[1], (ly: number) => new THREE.Color(ly < 0.1 ? LEAD_DARK : LEAD), NONE, 12);
+  lathe(b, cap.profile, AI_AT.x + cap.at[0], AI_AT.y + cap.y0, AI_AT.z + cap.at[1], LEAD, NONE, 12);
+  lathe(b, lantern.profile, AI_AT.x + lantern.at[0], AI_AT.y + lantern.y0, AI_AT.z + lantern.at[1], LEAD, NONE, 12);
+}
 const SWAP: LandmarkSwap = {
-  parts: [{ model: 'sf-st-ignatius', x: CX, y: +g.at(CX, 5.4).toFixed(2), z: -0.18, yaw: 0, scale: [1, 1, 1], glow: 0.12, castShadow: true }],
+  parts: [{ model: 'sf-st-ignatius', x: AI_AT.x, y: AI_AT.y, z: AI_AT.z, yaw: 0, scale: [1, 1, 1], glow: 0.12, castShadow: true }],
   build(b) {
     const fy = g.at(CX, 5.4);
     box(b, CX, -1.2, (NAVE.z0 + 4.9) / 2, NAVE.x1 - NAVE.x0, fy + 1.2, 4.9 - NAVE.z0, BUFF_SHADE);
+    leadShells(b);
     lawn(b);
   },
   ship: true,

@@ -4,6 +4,7 @@ import { game, toast } from '../core/store';
 import { flow } from './flowStore';
 import { decorateFrame, photoTags } from './photoFrames';
 import { setShutterConsumer } from './shutterHook';
+import { importRetry } from './importRetry';
 
 /**
  * Photo mode capture. The WebGL canvas does not preserve its drawing buffer, so the shutter only raises a
@@ -99,7 +100,7 @@ function keepInAlbum(card: HTMLCanvasElement, caption: string, stamp: string) {
     const url = URL.createObjectURL(full);
     const previous = flow.get().lastPhoto;
     if (previous) URL.revokeObjectURL(previous.url);
-    const album = await import('./album').catch(() => null);
+    const album = await importRetry(() => import('./album')).catch(() => null);
     const id = album ? await album.addPhoto(full, thumb, { at, caption, stamp, w: card.width, h: card.height, x: p.x, z: p.z, area, tags }) : null;
     // (no album — the chunk failed to load, nothing could be kept —: the download, as before)
     if (!id) { const name = `opus-bay-${new Date(at).toISOString().slice(0, 19).replace(/[:T]/g, '-')}.jpg`; flow.set({ lastPhoto: { url, name } }); downloadUrl(url, name); return; }

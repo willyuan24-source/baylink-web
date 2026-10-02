@@ -15,6 +15,7 @@ import { bubble, markGoalsDone } from './flow';
 import { flow } from './flowStore';
 import { registerInteractables, type Interactable } from './interactables';
 import { initW5Features } from './w5Features';
+import { importRetry } from './importRetry';
 
 // W6-P3 (lane P, MF9): the six residents come with the city data chunk (data/sf/cityDataChunk.ts); every reader below
 // runs in city mode only (initCityContent and goalTargets return early in the district)
@@ -79,22 +80,22 @@ export function initCityContent(): () => void {
   let offTrips: (() => void) | null = null, offMoments: (() => void) | null = null, offCards: (() => void) | null = null;
   const fail = (what: string) => (e: unknown) => { if (import.meta.env?.DEV) console.error(`[opus-bay ${what}]`, e); };
   // the goal detectors and the SF landmark subjects (plan G2-5): their own chunk with the landmark library
-  void import('./cityLive').then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt, say: (text, id) => baybayLine(text, { ttl: 12, id }) }); }, fail('city goals'));
+  void importRetry(() => import('./cityLive')).then(m => { if (!disposed) offLive = m.initCityLive({ done: markGoalsDone, heightAt, say: (text, id) => baybayLine(text, { ttl: 12, id }) }); }, fail('city goals'));
   // BAYBAY's event and neighbourhood lines (plan G2-4): their own chunk, fetched only in city mode
-  void import('./baybayLines').then(m => { if (!disposed) offLines = m.initBaybayLines(); }, fail('lines'));
+  void importRetry(() => import('./baybayLines')).then(m => { if (!disposed) offLines = m.initBaybayLines(); }, fail('lines'));
   // the six residents (plan G2-6): talkable at once, their favours and words in their own chunk
   const offResidents = registerInteractables('g2-residents', () => residentInteractables(game.get().goalsDone));
-  void import('./residentTasks').then(m => { if (!disposed) offTasks = m.initResidentTasks(); }, fail('residents'));
+  void importRetry(() => import('./residentTasks')).then(m => { if (!disposed) offTasks = m.initResidentTasks(); }, fail('residents'));
   // wave 4 (lane C): trips (flow.trip), arrival moments + BAYBAY's paced lines + the ride goals, the place cards
-  void import('./tripRun').then(m => { if (!disposed) offTrips = m.initTripRun(); }, fail('trips'));
-  void import('./cityMoments').then(m => { if (!disposed) { moments = m; offMoments = m.initCityMoments(); } }, fail('moments'));
-  void import('./cityCards').then(m => { if (!disposed) offCards = m.initCityCards(); }, fail('cards'));
+  void importRetry(() => import('./tripRun')).then(m => { if (!disposed) offTrips = m.initTripRun(); }, fail('trips'));
+  void importRetry(() => import('./cityMoments')).then(m => { if (!disposed) { moments = m; offMoments = m.initCityMoments(); } }, fail('moments'));
+  void importRetry(() => import('./cityCards')).then(m => { if (!disposed) offCards = m.initCityCards(); }, fail('cards'));
   // wave 5 (lane C, W5-C3): the goals step (the overlay, once per player)
   let offStep: (() => void) | null = null;
-  void import('./goalsStep').then(m => { if (!disposed) offStep = m.initGoalsStep(); }, fail('goals step'));
+  void importRetry(() => import('./goalsStep')).then(m => { if (!disposed) offStep = m.initGoalsStep(); }, fail('goals step'));
   // wave 5 (lane C, W5-C7): the album (photos are kept on this device instead of downloaded; More → 相册)
   let offAlbum: (() => void) | null = null;
-  void import('./album').then(m => { if (!disposed) offAlbum = m.initAlbum(); }, fail('album'));
+  void importRetry(() => import('./album')).then(m => { if (!disposed) offAlbum = m.initAlbum(); }, fail('album'));
   // wave 5 (day 0, game/w5Features.ts): the economy (first), play, eggs and real-SF features, each a lazy city chunk
   const w5 = initW5Features();
   return () => { disposed = true; offLive?.(); offLines?.(); offResidents(); offTasks?.(); offTrips?.(); offMoments?.(); offCards?.(); offStep?.(); offAlbum?.(); w5.off(); moments = null; };
@@ -109,11 +110,15 @@ export const arrivalSeen = (attraction: string): boolean => moments?.arrivalSeen
  * few minutes. Before the city chunk lands (or in district mode) it is a plain bubble. zh ≤ 45 characters. Returns
  * false when the pacer refused it (a repeat).
  */
-export function baybayLine(text: Bilingual, opts: { ttl?: number; id?: string } = {}): boolean {
+export function baybayLine(text: Bilingual, opts: { ttl?: number; id?: string; valid?: () => boolean; onSay?: () => void } = {}): boolean {
   // (W5-C6: `id` = a frozen line of data/sf/linesW5.ts with the same text: the pacer plays its clip once recorded)
-  if (moments) return opts.id ? moments.offerLineOr(opts.id, text, opts.ttl ?? 30) : moments.offerLine(text, opts.ttl ?? 30);
+  // (W8-W2-review: `valid` drops a waiting place line once the player has left the place; `onSay` when it is said)
+  const hooks = opts.valid || opts.onSay ? { valid: opts.valid, onSay: opts.onSay } : undefined;
+  if (moments) return opts.id ? moments.offerLineOr(opts.id, text, opts.ttl ?? 30, undefined, hooks) : moments.offerLine(text, opts.ttl ?? 30, undefined, hooks);
   // (no pacer yet: after the bubble on screen, never over it)
+  if (opts.valid && !opts.valid()) return false;
   if (flow.get().bubble) setTimeout(() => bubble(text, 4200), 4600); else bubble(text, 4200);
+  opts.onSay?.();
   return true;
 }
 

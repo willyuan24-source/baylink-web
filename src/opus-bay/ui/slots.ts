@@ -33,7 +33,8 @@ export interface PillBadgeSlot { id: string; order: number; Component: Component
 export interface OverlayProps { props?: unknown; close: () => void }
 export interface OverlaySlot { id: string; Component: ComponentType<OverlayProps> }
 /** W7-G8 (lane G, surgical): a block in the journal's 目标 tab in the city, after the explorer goals (the Halloween goals in the season). */
-export interface GoalsRowSlot { id: string; order: number; Component: ComponentType }
+/** `Mini` (W8-H, optional): a one-line version for the city's fallback goals card (ui/Moments.tsx GoalsCard). */
+export interface GoalsRowSlot { id: string; order: number; Component: ComponentType; Mini?: ComponentType }
 export interface AskItemSlot { id: string; order: number; label: Bilingual; icon: ComponentType; onSelect: () => void; visible?: () => boolean }
 
 /** Built-in Journal tab ids and orders (ui/Journal.tsx). */

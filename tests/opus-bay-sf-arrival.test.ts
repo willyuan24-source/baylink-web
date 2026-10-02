@@ -14,7 +14,7 @@ const { defaultArrivalLine } = arrival;
 const { CITY_SUBJECT_FACTS } = await import('../src/opus-bay/data/sf/cityPois');
 const { loadPlaceCards } = await import('../src/opus-bay/data/sf/placeCardTypes');
 const fs = await import('node:fs');
-const { ATTRACTIONS } = await import('../src/opus-bay/data/sf/attractions');
+const { ATTRACTIONS, ISLAND_LANDINGS: ISLAND_LANDINGS_ } = await import('../src/opus-bay/data/sf/attractions');
 const { ARRIVAL_LINES } = await import('../src/opus-bay/data/sf/tourLines');
 const { SF_GRAND, targetAt, tourStops, TOUR_GEO } = await import('../src/opus-bay/data/sf/tours');
 const { tourRecapModel } = await import('../src/opus-bay/ui/tourRecapModel');
@@ -86,11 +86,18 @@ test('arrival: the higher tier wins over a nearer lower tier (a T3 neighbour nev
   assert.equal(w3.step(sample(mid.x, mid.z, 0))!.anchor.attraction, 'coit-tower');
 });
 
-test('arrival: islands you cannot walk to get no anchor (standing at the Pier 33 telescope is not arriving at Alcatraz)', () => {
+test('arrival: islands you cannot walk to get no anchor (standing at the Pier 33 telescope is not arriving at Alcatraz)', async () => {
   const anchors = arrivalAnchors(ATTRACTIONS);
   const off = ATTRACTIONS.filter(a => a.offWalk);
   assert.ok(off.some(a => a.id === 'alcatraz'), 'Alcatraz is off the walkable city');
-  for (const a of off) assert.equal(anchors.find(x => x.attraction === a.id), undefined, `${a.id} has no arrival anchor`);
+  // (wave 8, lane A) …except where the island has a landing of its own (Alcatraz by ferry): its anchor is on the island
+  const { ISLAND_LANDINGS } = await import('../src/opus-bay/data/sf/attractions');
+  for (const a of off) {
+    const land = ISLAND_LANDINGS[a.id], anchor = anchors.find(x => x.attraction === a.id);
+    if (!land) { assert.equal(anchor, undefined, `${a.id} has no arrival anchor`); continue; }
+    assert.ok(anchor && anchor.x === land.x && anchor.z === land.z, `${a.id}: its anchor is the island landing`);
+    assert.ok(Math.hypot(land.x - a.arrival!.x, land.z - a.arrival!.z) > 300, `${a.id}: the landing is on the island, far from the pier`);
+  }
   const alca = ATTRACTIONS.find(a => a.id === 'alcatraz')!;
   const w = new ArrivalWatcher(anchors);
   const hit = w.step(sample(alca.arrival!.x, alca.arrival!.z, 0));
@@ -232,7 +239,8 @@ test('arrival anchors from lane P\'s ATTRACTIONS: arrival spot, place id, tone',
   const anchors = arrivalAnchors(ATTRACTIONS);
   // one anchor per attraction you can walk to, plus a panorama spot where the arrival is away from the view (none
   // today: lane P put Corona Heights' arrival on its summit)
-  assert.equal(anchors.filter(a => !a.spot).length, ATTRACTIONS.filter(a => !a.offWalk).length);
+  // (wave 8, lane A: and one per island landing, data/sf/attractions ISLAND_LANDINGS)
+  assert.equal(anchors.filter(a => !a.spot).length, ATTRACTIONS.filter(a => !a.offWalk).length + ATTRACTIONS.filter(a => a.offWalk && ISLAND_LANDINGS_[a.id]).length);
   assert.equal(anchors.filter(a => a.spot).length, 0);
   assert.equal(anchors.filter(a => !a.spot).length, new Set(anchors.map(a => a.attraction)).size, 'one arrival anchor per attraction');
   assert.equal(anchors.find(a => a.attraction === 'painted-ladies' || a.attraction === 'alamo-square-painted-ladies')!.landmark, 'painted-ladies');

@@ -11,7 +11,7 @@ import { goalTargets } from '../game/cityContent';
 import { navigateTo, openEvent, openPanel } from '../game/flow';
 import { goTo, type GoToTarget } from '../game/goTo';
 import { runtime } from '../core/runtime';
-import { useT } from '../i18n';
+import { catalogText, useT } from '../i18n';
 import { LinkButton } from '../ui/common';
 import { formatDay } from '../ui/format';
 import { activeDaily, dailyThree, daySignals, nearestSunsetSpot, taskDone, taskWhen, DAILY_ALL_COINS, DAILY_COINS, type DailyKind, type DailyTask } from './daily';
@@ -61,6 +61,8 @@ function useBayClock(): Date {
 
 /** 'the Japanese Tea Garden' → 'The Japanese Tea Garden' (English row titles) */
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+/** (W8-I, W8I-WS-7) days that carry their own comma ('Sun, Oct 11') are listed with '; ': ', ' read 'Sat, Sun, Oct 11' as one date */
+const DAYS_JOIN_EN = '; ';
 const minuteOf = (d: Date) => { const p = bayParts(d); return p.hour * 60 + p.minute; };
 const go = (target: GoToTarget, fallback?: () => void) => {
   void goTo(target, { source: 'realsf:today' }).then(r => { if (!r.ok && (r.why === 'unknown' || r.why === 'no-way')) fallback?.(); });
@@ -378,7 +380,7 @@ export default function TodayTab() {
             {week.map(({ u, win }) => {
               const spot = eventSpot(u.event);
               const en = EVENT_SAY[u.event.id]?.en;
-              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${t(span(win))}` : u.event.venue ?? '';
+              const where = win ? `${t(VENUE_SAY[win.venue.id] ?? win.venue.name)} · ${t(span(win))}` : catalogText(u.event.venue ?? '', locale); // (W8-Q2, lane Q surgical) the catalog's venue is Simplified Chinese
               return (
                 <Row key={u.event.id} icon={<CalendarDays size={15} />}
                   title={<button type="button" className="ob-today-link" onClick={() => openEvent(u.event.id)}>{t(u.event.title, en ? cap(en) : u.event.title)}</button>}
@@ -398,7 +400,7 @@ export default function TodayTab() {
       </section>
 
       <section className="ob-block ob-today-weekend">
-        <h3 className="ob-h3"><Heart size={15} aria-hidden />{t('我的周末', 'My weekend')}<small className="ob-today-count">{weekend.map(d => formatDay(d, locale, day)).join(t('、', ', '))}</small></h3>
+        <h3 className="ob-h3"><Heart size={15} aria-hidden />{t('我的周末', 'My weekend')}<small className="ob-today-count">{weekend.map(d => formatDay(d, locale, day)).join(t('、', DAYS_JOIN_EN))}</small></h3>
         {wishEvents.length || wishPlaces.length ? (
           <ul className="ob-today-rows">
             {wishEvents.map(({ e, on }) => {
@@ -406,7 +408,7 @@ export default function TodayTab() {
               return (
                 <Row key={e.id} icon={<CalendarDays size={15} />}
                   title={<button type="button" className="ob-today-link" onClick={() => openEvent(e.id)}>{e.title}</button>}
-                  meta={on.map(d => formatDay(d, locale, day)).join(t('、', ', '))}
+                  meta={on.map(d => formatDay(d, locale, day)).join(t('、', DAYS_JOIN_EN))}
                   side={spot ? <GoButton label={spot.name} onClick={() => goToEvent(e)} /> : undefined} />
               );
             })}

@@ -32,7 +32,7 @@ const PHASE_LINE: Readonly<Record<HalloweenPhase, Bilingual>> = {
   off: { zh: '万圣节是每年 10 月。', en: 'Halloween comes every October.' },
 };
 
-const COSTUMES = ['hat-witch', 'hat-pumpkin', 'my-cat-ears', 'my-ghost', 'pelican-bat-wings'];
+const COSTUMES = ['hat-witch', 'hat-pumpkin', 'my-cat-ears', 'my-ghost', 'pelican-bat-wings', 'pelican-pumpkin-bow'];
 
 export default function HalloweenPage() {
   const { t } = useT();

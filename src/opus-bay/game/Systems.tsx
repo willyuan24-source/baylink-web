@@ -31,6 +31,7 @@ import { cityStreamerLazy } from '../world/cityLoader';
 import { qualityDecision } from '../world/quality';
 import { registerWarmup } from '../world/warmup';
 import { loadGuideLayer } from '../ui/lazyParts';
+import { importRetry } from './importRetry';
 
 /**
  * Canvas-side game systems: click/hover proxies, the gold focus marker, postcard glints, the objective
@@ -90,7 +91,7 @@ let guideLoading = false;
 function loadGuide() {
   if (guide || guideLoading || !cityMode()) return;
   guideLoading = true;
-  import('./guideCity').then(m => { guide = m; m.initGuideCity(); }, () => { guideLoading = false; });
+  importRetry(() => import('./guideCity')).then(m => { guide = m; m.initGuideCity(); }, () => { guideLoading = false; });
   // and its screen layer (the arrival toast / card of a moment in the first seconds of play must not wait for it)
   void loadGuideLayer().catch(() => { /* the Overlay asks again when it mounts it */ });
 }
@@ -696,8 +697,11 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
       y = rawY;
     }
     // (M1) never over the fixed HUD: below a top box, above a bottom one
-    const placed = placeBubble(x, y, bubbleBox.w, bubbleBox.h, boxes, h, minY, h - 60);
-    bubbleRect = { l: placed.x - bubbleBox.w / 2, r: placed.x + bubbleBox.w / 2, t: placed.y - 10 - bubbleBox.h, b: placed.y - 10 };
+    // (W8-K4b) and, when no row is free across its width, beside a box: x kept on screen ([half, w − half])
+    const placed = placeBubble(x, y, bubbleBox.w, bubbleBox.h, boxes, h, minY, h - 60, half, w - half);
+    // (W8-K-review K-RP-1) no free spot at all (a short / rotated phone under a play panel): drawn above the boxes
+    writeData(bubbleEl, 'over', placed.over ? '1' : '0');
+    bubbleRect ={ l: placed.x - bubbleBox.w / 2, r: placed.x + bubbleBox.w / 2, t: placed.y - 10 - bubbleBox.h, b: placed.y - 10 };
     writeTransform(bubbleEl, `translate3d(${placed.x.toFixed(offscreen ? 0 : 1)}px, ${placed.y.toFixed(offscreen ? 0 : 1)}px, 0)`);
   }
   // touch onboarding: tap marker on the ground between the player and BAYBAY
@@ -787,7 +791,7 @@ function project(camera: THREE.Camera, canvas: HTMLCanvasElement, fullW: number,
 async function exportCityMap(opts: { px?: number; fog?: boolean; paper?: boolean; download?: boolean } = {}) {
   const far = cityStreamerLazy()?.far;
   if (!far) return { error: 'far.obc not loaded yet (city mode only)' };
-  const [{ drawCityMap, fitScale }, { MAP_FRAME }, { transitData }, { zoneVisited }] = await Promise.all([import('../ui/cityMapDraw'), import('../data/mapPaper'), import('../data/transit'), import('./discovery')]);
+  const [{ drawCityMap, fitScale }, { MAP_FRAME }, { transitData }, { zoneVisited }] = await Promise.all([importRetry(() => import('../ui/cityMapDraw')), importRetry(() => import('../data/mapPaper')), importRetry(() => import('../data/transit')), importRetry(() => import('./discovery'))]);
   const w = Math.max(256, Math.min(8192, Math.round(opts.px ?? 4096)));
   const h = Math.round((w * (MAP_FRAME.maxZ - MAP_FRAME.minZ)) / (MAP_FRAME.maxX - MAP_FRAME.minX));
   const cv = document.createElement('canvas');

@@ -11,6 +11,7 @@ import { ATTRACTIONS } from '../data/sf/attractions';
 import { CITY_GOAL } from '../data/sf/goals';
 import { W5_PELICAN, w5Text } from '../data/sf/linesW5';
 import type { ArrivalHit } from './arrival';
+import { baybayHeld } from './baybayHold';
 import { cinemaActive } from './cinema';
 import { travelActive } from './fastTravel';
 import { bubble, defineNode, dialogueOpen, goalsStepOpen, markGoalsDone, playDialogue, say, setTalkMarkSource } from './flow';
@@ -19,6 +20,7 @@ import { isArrived } from './trips';
 import { PELICAN_TARGET } from './cityGoals';
 import { flow } from './flowStore';
 import { BAYBAY_ID } from './interactables';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 5 · lane C · W5-C2 (plan sf-w5-plan.md MF3 "the pelican first", §4.6): the pelican glide is unlocked early, and
@@ -214,7 +216,7 @@ function quiet(now: number, p: Pending): boolean {
   if (Math.hypot(g.x - pl.x, g.z - pl.z) > PAIR_NEAR && now - p.since < PAIR_WAIT_MS) return false;
   if (leadingToPelican() && now - p.since < LEAD_WAIT_MS) return false;
   return s.phase === 'playing' && !s.paused && !dialogueOpen() && s.panel.kind === null && !cinemaActive() && !f.cinematic && !f.arrival
-    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen();
+    && !travelActive() && s.move.mode === 'foot' && !s.photoMode && !f.postcardReward && !f.postcardFly && !f.fishing && !goalsStepOpen() && !baybayHeld();
 }
 
 /** City frame system (≈ 4 Hz, game/cityMoments.ts): play the moment once the screen is free. `offer` = BAYBAY's pacer. */
@@ -275,7 +277,7 @@ function takeOff() {
     try { void Promise.resolve(start()).then(ok => { if (ok === false) plain(); }, plain); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); plain(); }
   };
   if (flightStarter) { run(flightStarter); return; }
-  void import('../play/index').then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
+  void importRetry(() => import('../play/index')).then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
 }
 
 // 试试起飞 opens GO_NODE: remembered for the moment's end (module level: this module lives in the city chunk only)

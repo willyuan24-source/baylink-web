@@ -453,7 +453,7 @@ test('wave 5: data/playSave.ts — the frozen format, bitsets, decodePlay clamps
   const ps = await import('../src/opus-bay/data/playSave');
   assert.deepEqual([...ps.PLAY_BIT_KINDS], ['coin', 'cache', 'ring', 'egg', 'view', 'sound', 'pebble', 'stamp', 'own', 'souvenir', 'page', 'halloween'], 'wave 6 day 0 appended halloween');
   assert.deepEqual([...ps.WEAR_SLOTS], ['baybay-scarf', 'baybay-hat', 'player-hat', 'player-pack', 'bike', 'car', 'pelican', 'frame']);
-  assert.deepEqual([ps.MAX_COINS, ps.MAX_BITSET_CHARS, ps.MAX_PLAY_BITS, ps.MAX_BESTS, ps.MAX_ONE_OFFS, ps.MAX_ONE_OFF_CHARS], [999999, 256, 1536, 32, 128, 40]);
+  assert.deepEqual([ps.MAX_COINS, ps.MAX_BITSET_CHARS, ps.MAX_PLAY_BITS, ps.MAX_BESTS, ps.MAX_ONE_OFFS, ps.MAX_ONE_OFF_CHARS], [999999, 256, 1536, 64, 128, 40]);
   // bitsets: LSB first, standard base64 alphabet, no padding, trailing zero bytes trimmed
   assert.equal(ps.bitSet(undefined, 0), 'AQ');
   assert.equal(ps.bitSet('', 7), 'gA');

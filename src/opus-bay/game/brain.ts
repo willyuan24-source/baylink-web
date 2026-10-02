@@ -11,9 +11,11 @@ import {
   boardPosition, bubble, currentStop, freeLeadArrived, introPending, lastArrivalAt, lastLeadCall, nextFreeGoal, maybeStartIntro, openCallMenu, performInteraction, stageMark, talkMark, tourArrived,
   tripGuide, weekArrived, welcomeMark,
 } from './flow';
+import { baybayHeld } from './baybayHold';
 import { bark } from './content';
 import { flow } from './flowStore';
 import { BAYBAY_ID, interactableById, interactables, postcardIdOf, syncMoving } from './interactables';
+import { lockHeldBy } from './playerLock';
 
 /**
  * 10 Hz decision systems: focus detection, pending-interact trigger, area label, and the guide brain.
@@ -73,7 +75,9 @@ export function updateFocus() {
   if (mapTarget) { const it = interactableById(mapTarget); if (!it || dist(p, it) < it.radius + 2) flow.set({ mapTarget: null }); }
 
   const f = flow.get();
-  const blocked = s.phase !== 'playing' || s.photoMode || s.riding !== null || !!s.dialogue.nodeId || !!f.fishing || !!f.cinematic || !!f.postcardReward || !!f.postcardFly;
+  // (W8-I, W8I-D-3) nor while a play activity holds the feet: the busk / foghorn games showed 'E Talk to BAYBAY' for
+  // their whole run, and E does nothing then
+  const blocked = s.phase !== 'playing' || s.photoMode || s.riding !== null || !!s.dialogue.nodeId || !!f.fishing || !!f.cinematic || !!f.postcardReward || !!f.postcardFly || lockHeldBy('activity');
   if (blocked) { if (s.focus !== null) game.set({ focus: null }); return; }
 
   // pending click-to-interact
@@ -326,7 +330,12 @@ function follow(now: number) {
   const arrivedAt = lastArrivalAt();
   const settling = game.get().worldMode === 'city'
     && (now - lastCarriedAt < SMALL_TALK_QUIET_MS || (arrivedAt > 0 && performance.now() - arrivedAt < SMALL_TALK_QUIET_MS));
-  const quiet = performance.now() < flow.get().quietUntil || settling;
+  // (W8-K4, city) her small talk (the light line, the idle lines, the pass-by barks) waits under a play panel, an egg
+  // card, the Halloween postcard… like her other lines (game/baybayHold.ts): the claw's own 60 s quiet ran out with the
+  // panel still up and 金色时刻！ was said under it (the W8-K1 live proof). The district is unchanged.
+  // (W8-I, W8I-D-6, city) nor with a panel up (Settings paused the game and an idle line still came beside it): the
+  // pacer's rule, an open panel is quiet
+  const quiet = performance.now() < flow.get().quietUntil || settling || baybayHeld() || (game.get().worldMode === 'city' && game.get().panel.kind !== null);
   // once per visit, a line about the light right now (morning fog, golden hour, night lights)
   if (!quiet && !timeBarked && playingSince && now - playingSince > 20000 && !flow.get().bubble && gp < 10) {
     const line = bark(game.get().timeOfDay);

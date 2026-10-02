@@ -193,3 +193,8 @@
 .ob-found-chip svg { flex: none; color: var(--ob-gold-d); }
 @keyframes ob-found-in { from { opacity: 0; transform: translateY(-4px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .ob-found-chip { animation: none; } }
+
+/* ---- W8-Q6 (lane Q) · touch: the waypoint's 隐藏 × (opus-bay.css .ob-waypoint-dismiss, a 24 × 24 circle at the end of the
+   free-roam hint's label). W8-Q-review (Q-RC-2): its 44 × 44 touch area is wave 7's (opus-bay.css verify-phone m2: a rounded
+   rectangle reaching mostly into the label, every pointer); W8-Q6's 44 px circle here replaced it on touch and took about
+   16% of the area away (the diagonals and the label side missed). The rule is gone: wave 7's applies again. */

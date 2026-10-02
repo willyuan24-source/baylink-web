@@ -24,9 +24,9 @@ export function scanHudBoxes(canvas: HTMLElement, now: number, needed: boolean, 
   return m ? m.scanHudBoxes(canvas, now, needed, sizeKey) : NO_BOXES;
 }
 export function releaseHudLayout(): void { real()?.releaseHudLayout(); }
-export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number): { x: number; y: number } {
+export function placeBubble(x: number, y: number, w: number, h: number, boxes: readonly Box[], screenH: number, minY: number, maxY: number, minX?: number, maxX?: number): { x: number; y: number; over?: true } {
   const m = real();
-  return m ? m.placeBubble(x, y, w, h, boxes, screenH, minY, maxY) : { x, y: Math.min(maxY, Math.max(minY, y)) };
+  return m ? m.placeBubble(x, y, w, h, boxes, screenH, minY, maxY, minX, maxX) : { x, y: Math.min(maxY, Math.max(minY, y)) };
 }
 export function placeWaypoint(p: WaypointBox, boxes: readonly Box[], bubble: Box | null, screenH: number, minY: number, maxY: number): { y: number; hideLabel: boolean; hidden: boolean } {
   const m = real();

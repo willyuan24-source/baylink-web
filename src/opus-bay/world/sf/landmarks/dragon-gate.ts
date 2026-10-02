@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { BatchLike } from '../../builder';
+import { CT_BLOCKERS, CT_EXCLUDES, chinatownCluster } from '../cornersChinatown';
 import type { SiteHooks } from '../sites';
 import { type CornerDef, type CornerSign, NO_BATCH, awning, blade, cornerGroundWorld, cornerMount, dragonLamp, lanternWire } from './cornerKit';
 import { GLOW, NONE, SF, box, cbox, pyramid, rect, tube, worldPoly } from './kit';
@@ -34,6 +35,8 @@ function roof(b: BatchLike, x: number, y: number, w: number, d: number, lod: 0 |
 }
 
 function build(b: BatchLike, lod: 0 | 2) {
+  // W8-W1: Chinatown's pagoda cluster up Grant Ave (world/sf/cornersChinatown.ts), in this mesh at both lods
+  chinatownCluster(b, lod, G.base);
   // four stone pillars on plinths (far: one block per side)
   if (lod === 2) {
     for (const sx of [-1, 1]) box(b, (sx * (INNER + OUTER)) / 2, -1.2, 0, OUTER - INNER + 0.62, SIDE + 1.2, 0.72, STONE);
@@ -132,17 +135,17 @@ const CT_KERB = 1.52;
 /** blade signs on the fronts [along, side, plaque] and flat plaques over doors */
 const CT_BLADES: readonly [number, -1 | 1, string][] = [
   [30.9, -1, 'dim-sum'], [34.9, -1, 'tea'], [44.2, -1, 'noodles'], [49.6, -1, 'laundry'],
-  [32.3, 1, 'bakery'], [37.6, 1, 'grocery'], [45.2, 1, 'flowers'], [50.7, 1, 'books'],
+  [37.6, 1, 'grocery'], [45.2, 1, 'flowers'], [50.7, 1, 'books'],
 ];
-const CT_PLAQUES: readonly [number, -1 | 1, string][] = [[33.2, -1, 'grocery'], [46.4, -1, 'tea'], [30.9, 1, 'noodles'], [36.2, 1, 'dim-sum']];
+const CT_PLAQUES: readonly [number, -1 | 1, string][] = [[33.2, -1, 'grocery'], [46.4, -1, 'tea'], [36.2, 1, 'dim-sum']];
 /** shop awnings over the sidewalks [along, side, colour] */
-const CT_AWNINGS: readonly [number, -1 | 1, string][] = [[37.3, -1, SF.chinaRed], [33.9, 1, SF.chinaGreen], [51.0, -1, '#d9a441']];
+const CT_AWNINGS: readonly [number, -1 | 1, string][] = [[37.3, -1, SF.chinaRed], [38.0, 1, SF.chinaGreen], [51.0, -1, '#d9a441']];
 /**
  * window shoppers (10:00–20:00) at the east front's shop windows (along), on its sidewalk strip (the published city's
  * sidewalks along Grant Ave are 0.4–0.5 u wide); the clear lane (3 u, lane T's rule) runs up the street west of them,
  * so the way up Grant Ave stays open
  */
-const CT_SHOPPERS: readonly number[] = [30.9, 34.5, 37.0, 45.0, 52.5];
+const CT_SHOPPERS: readonly number[] = [35.9, 37.7, 43.6, 45.0, 52.5];
 const CT_SHOP_AT = 1.3, CT_LANE_AT = -0.3;
 
 export const CHINATOWN_CORNER: CornerDef = {
@@ -210,6 +213,7 @@ const AI_INNER = 1.6, AI_OUTER = 3.61, AI_SIDE_TOP = 2.05;
 
 function aiRemainder(b: BatchLike) {
   lanterns(b);
+  chinatownCluster(b, 0, G.base);
   for (const sx of [-1, 1]) {
     // guardian lion on its plinth (street side, +z), facing down Grant Ave
     box(b, sx * AI_INNER, -0.2, 0.86, 0.62, 0.55, 0.6, STONE_DARK);
@@ -230,12 +234,13 @@ const SWAP: LandmarkSwap = {
 
 /** the four pillars (AI: measured; procedural: the plinths), the lions' plinths in front of the inner pair */
 function blockers(ai: boolean): WalkBlocker[] {
-  if (!ai) return [INNER, OUTER].flatMap(px => [-1, 1].map(sx => ({ poly: rect(sx * px, 0, 0.8, 0.9) })));
-  return [-1, 1].flatMap(sx => [
+  // W8-W1: then the pagoda cluster's buildings (one blocker each, world/sf/cornersChinatown.ts CT_BLOCKERS)
+  if (!ai) return [...[INNER, OUTER].flatMap(px => [-1, 1].map(sx => ({ poly: rect(sx * px, 0, 0.8, 0.9) }))), ...CT_BLOCKERS];
+  return [...[-1, 1].flatMap(sx => [
     // inner pillar (z ±0.48) and the lion plinth in front of it (z 0.56…1.16)
     { poly: rect(sx * AI_INNER, 0.31, 0.94, 1.72) },
     { poly: rect(sx * AI_OUTER, 0, 0.84, 1.0) },
-  ]);
+  ]), ...CT_BLOCKERS];
 }
 
 export const dragonGate: SfLandmark & SiteHooks = {
@@ -246,6 +251,8 @@ export const dragonGate: SfLandmark & SiteHooks = {
   yaw: YAW,
   base: 'terrain',
   exclude: { poly: worldPoly(X0, Z0, YAW, rect(0, 0, 9.0, 2.2)) },
+  // W8-W1: the city boxes on the pagoda cluster's lots (Sing Chong, Sing Fat, Old St. Mary's, the Telephone Exchange)
+  excludeMore: CT_EXCLUDES,
   // Grant Ave's piece under the arch is restored at the street's own height (no sunk ground to step down to)
   sink: 0,
   build,
@@ -256,6 +263,8 @@ export const dragonGate: SfLandmark & SiteHooks = {
   mount: cornerMount(CHINATOWN_CORNER),
   walk: { blockers: blockers(SWAP.ship) },
   swap: SWAP,
-  // the whole gate thins as one while the player walks under it (no dither holes in the roofs)
-  fade: { r: 3.2, y1: 6.2, box: [4.8, 1.3] },
+  // the AI gate thins as one while the player walks under it (no dither holes in its roofs); W8-W1: the procedural
+  // mesh (lanterns, lions and the pagoda cluster up Grant Ave) keeps the city's per-fragment dither, so the cluster's
+  // buildings melt only where they stand between the camera and the player, like the city's
+  fade: { r: 3.2, y1: 6.2, box: [4.8, 1.3], procedural: false },
 };

@@ -33,6 +33,7 @@ import type { LineLoops } from './lines';
 import { platforms } from '../actors/platform';
 import { w4Kind } from '../data/transit';
 import { currentRide, lineRideUnderground } from '../game/ride';
+import { importRetry } from '../game/importRetry';
 
 type AudioCtor = typeof AudioContext;
 
@@ -56,7 +57,7 @@ let halloweenChunk: Promise<typeof import('./halloween')> | null = null;
 function halloweenSfx(e: AudioEngine, ev: Extract<GameEvent, { type: 'halloween' }>) {
   // a moment a lane sounds itself (lane H's own find chime, registered as 'halloween:pumpkin') is left to that lane
   if (ev.what === 'pumpkin' && soundRegistered('halloween:pumpkin')) return;
-  (halloweenChunk ??= import('./halloween')).then(m => { const s = m.halloweenSound(ev); if (s) m.playHalloween(e, s); })
+  (halloweenChunk ??= importRetry(() => import('./halloween'))).then(m => { const s = m.halloweenSound(ev); if (s) m.playHalloween(e, s); })
     .catch(error => { halloweenChunk = null; if (DEV) console.warn('[opus-bay audio] halloween sounds', error); });
 }
 
@@ -110,7 +111,7 @@ export function startAudio(): () => void {
   let linesLoading: Promise<void> | null = null;
   const loadCityLines = () => {
     if (game.get().worldMode !== 'city') return;
-    linesLoading ??= import('./lines').then(m => { cityLines = m; }, () => { linesLoading = null; });
+    linesLoading ??= importRetry(() => import('./lines')).then(m => { cityLines = m; }, () => { linesLoading = null; });
   };
   /** the tour clips that may play at this stop and the next (lane C's narration; lane V's recordings) */
   const preloadStopVoices = (line: string, station: string) => {

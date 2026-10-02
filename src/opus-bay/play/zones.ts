@@ -1,4 +1,5 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { autoGliding, glideUnlocked } from '../actors/moveApi';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
@@ -7,6 +8,7 @@ import type { Bilingual } from '../core/types';
 import { SEWARD_SLIDES_WORLD } from '../data/sf/sewardSlides';
 import { onSaveCleared } from '../data/save';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { bubble } from '../game/flow';
 import { flow } from '../game/flowStore';
 import { registerInteractables, type Interactable } from '../game/interactables';
@@ -19,6 +21,7 @@ import { GGB_ID, GGB_INVITE_R, GGB_LINES, GGB_MID, GGB_NEAR } from './ggbRings';
 import { bestOf, currentActivity, saveNumber } from './kit';
 import { ensurePlaySounds2 } from './sounds2';
 import { courseFoot, courseTop, STAIR_COURSES, STEPS_PER_U } from './stairCourses';
+import { importRetry, quietly } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · the activity zones (play/index.ts loads this chunk at init, city mode only): what is always there
@@ -68,7 +71,7 @@ export const slidesIt: Interactable = {
   x: WEST.start.x, z: WEST.start.z, radius: SLIDES_PROMPT_R,
   act: () => {
     if (!slidesOpen()) { bubble(SLIDES_CLOSED_LINE, 4200); return; }
-    void import('./slides').then(m => { m.startSlides(); });
+    void importRetry(() => import('./slides')).then(m => { m.startSlides(); });
   },
 };
 
@@ -80,7 +83,7 @@ export const stairsIts: Interactable[] = STAIR_COURSES.map(c => ({
   id: `play:stairs:${c.id}`, source: 'activity', action: 'info', verb: STAIRS_VERB,
   name: { zh: `和 BAYBAY 比爬${c.name.zh}`, en: `Race BAYBAY up the ${c.name.en}` },
   ...courseFoot(c), radius: 2.4,
-  act: () => { void import('./stairs').then(m => { m.startStairRace(c.id); }); },
+  act: () => { void importRetry(() => import('./stairs')).then(m => { m.startStairRace(c.id); }); },
 }));
 
 // --- the step counter ---------------------------------------------------------------------------------------------------
@@ -153,7 +156,8 @@ export function sayWhenQuiet(line: Bilingual, delay: number, ms = 3600) {
   let waited = 0;
   const tryIt = () => {
     const s = game.get(), f = flow.get();
-    const busy = s.phase !== 'playing' || !!s.dialogue.nodeId || s.photoMode || !!f.cinematic || !!f.bubble || !!currentActivity();
+    // (W8-K4, lane K surgical) not under a play panel / card either (an egg card, the album, the Halloween postcard…)
+    const busy = s.phase !== 'playing' || !!s.dialogue.nodeId || s.photoMode || !!f.cinematic || !!f.bubble || !!currentActivity() || baybayHeld();
     if (!busy) { bubble(line, ms); return; }
     if ((waited += 1500) <= 30000) setTimeout(tryIt, 1500);
   };
@@ -162,9 +166,9 @@ export function sayWhenQuiet(line: Bilingual, delay: number, ms = 3600) {
 
 // --- the chip and the pad -----------------------------------------------------------------------------------------------
 
-const PlayChip = lazy(() => import('./PlayChip'));
+const PlayChip = lazyChunk(() => importRetry(() => import('./PlayChip')));
 const ChipSlot = () => createElement(Suspense, { fallback: null }, createElement(PlayChip));
-const BellPad = lazy(() => import('./BellPad'));
+const BellPad = lazyChunk(() => importRetry(() => import('./BellPad')));
 type PadProps = { ride: import('../game/flowStore').FlowRide };
 const PadSlot = ({ ride }: PadProps) => createElement(Suspense, { fallback: null }, createElement(BellPad, { ride }));
 
@@ -179,7 +183,8 @@ const fetched = new Set<string>();
 export const nearPlayer = (x: number, z: number, r: number) => Math.hypot(runtime.player.x - x, runtime.player.z - z) <= r;
 function quiet() {
   const s = game.get(), f = flow.get();
-  return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity();
+  // (W8-K4, lane K surgical) not under a play panel / card either (an egg card, the album, the Halloween postcard…)
+  return s.phase === 'playing' && !s.dialogue.nodeId && !s.photoMode && runtime.move.mode === 'foot' && !f.cinematic && !f.bubble && !currentActivity() && !baybayHeld();
 }
 /** BAYBAY's invite at a zone: once per INVITE_GAP s per key, only when quiet and she is near. */
 export function zoneInvite(key: string, line: Bilingual) {
@@ -188,8 +193,8 @@ export function zoneInvite(key: string, line: Bilingual) {
   invited.set(key, runtime.time);
   bubble(line, 3600, undefined, 'call');
 }
-/** Fetch an activity chunk once (again after a failed fetch). */
-export function zonePrefetch(key: string, load: () => Promise<unknown>) { if (!fetched.has(key)) { fetched.add(key); void load().catch(() => fetched.delete(key)); } }
+/** Fetch an activity chunk once (again after a failed fetch). Quietly (W8-P-review P-RC-5): a walk past asked for nothing. */
+export function zonePrefetch(key: string, load: () => Promise<unknown>) { if (!fetched.has(key)) { fetched.add(key); void quietly(load).catch(() => fetched.delete(key)); } }
 
 export function initZones(): () => void {
   const offs: (() => void)[] = [];
@@ -204,7 +209,7 @@ export function initZones(): () => void {
   offs.push(() => { if (steps.unsaved > 0) saveSteps(); });
   // part c: the should activities' zones (the fire rings, the turntables…), their own chunk
   let off3: (() => void) | null = null, disposed = false;
-  void import('./zones3').then(m => { if (!disposed) off3 = m.initZones3(); });
+  void importRetry(() => import('./zones3')).then(m => { if (!disposed) off3 = m.initZones3(); });
   offs.push(() => { disposed = true; off3?.(); });
 
   let acc = 0, ggbTried = false;
@@ -217,12 +222,12 @@ export function initZones(): () => void {
     // the slides: the verb follows the hours; the invite on the deck
     const open = slidesOpen();
     slidesIt.verb = open ? SLIDE_VERB : HOURS_VERB;
-    if (nearPlayer(SLIDES.deck.x, SLIDES.deck.z, PREFETCH_R)) zonePrefetch('slides', () => import('./slides'));
+    if (nearPlayer(SLIDES.deck.x, SLIDES.deck.z, PREFETCH_R)) zonePrefetch('slides', () => importRetry(() => import('./slides')));
     if (nearPlayer(SLIDES.deck.x, SLIDES.deck.z, 3.2)) zoneInvite('slides', open ? SLIDES_INVITE_LINE : SLIDES_CLOSED_LINE);
     // the stair courses: fetch the race near either end; invite at the foot
     for (const c of STAIR_COURSES) {
       const foot = courseFoot(c), top = courseTop(c);
-      if (nearPlayer(foot.x, foot.z, PREFETCH_R) || nearPlayer(top.x, top.z, PREFETCH_R)) zonePrefetch('stairs', () => import('./stairs'));
+      if (nearPlayer(foot.x, foot.z, PREFETCH_R) || nearPlayer(top.x, top.z, PREFETCH_R)) zonePrefetch('stairs', () => importRetry(() => import('./stairs')));
       if (nearPlayer(foot.x, foot.z, INVITE_R)) zoneInvite(`stairs:${c.id}`, STAIRS_INVITE_LINE);
     }
     // the Golden Gate rings: gliding by the bridge, not all 8 flown yet — the course, once a visit; on foot, BAYBAY's invite.
@@ -233,7 +238,7 @@ export function initZones(): () => void {
       if (!nearPlayer(GGB_MID.x, GGB_MID.z, 2 * GGB_NEAR)) ggbTried = false;
       if (g.active && todo && !ggbTried && !currentActivity() && !autoGliding() && Math.hypot(g.x - GGB_MID.x, g.z - GGB_MID.z) < GGB_NEAR) {
         ggbTried = true;
-        void import('./firstFlight').then(m => { m.startFirstFlight({ course: 'ggb' }); });
+        void importRetry(() => import('./firstFlight')).then(m => { m.startFirstFlight({ course: 'ggb' }); });
       }
       if (todo && glideUnlocked() && nearPlayer(GGB_MID.x, GGB_MID.z, GGB_INVITE_R)) zoneInvite('ggb', GGB_LINES.invite);
     }

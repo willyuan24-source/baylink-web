@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Settings } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import { useT } from '../i18n';
 import { type StripStation, stripLayout } from './subwayStrip';
@@ -37,6 +38,11 @@ export interface SubwayOverlayProps {
   onSkip?: () => void;
   /** what BAYBAY just said (the speech bubble floats over her, and she is under the street with you) */
   say?: Bilingual | null;
+  /**
+   * W8-Q5: 设置 — this layer covers the HUD (its Settings button and the phone bar's 更多 → 设置), and a phone has no Esc:
+   * without it a phone rider under Market St could not reach Settings until the train surfaced
+   */
+  onSettings?: () => void;
 }
 
 const STRIP_PAD = 16;
@@ -78,6 +84,7 @@ export function SubwayOverlay(p: SubwayOverlayProps) {
         <div className="ob-subway-line">
           <b className="ob-subway-disc">{p.line.short}</b>
           <span>{t(p.line.name)} · {t('开往', 'to')} {t(p.destination)}</span>
+          {p.onSettings && <button type="button" className="ob-subway-settings" onClick={p.onSettings} aria-label={t('设置', 'Settings')} title={t('设置（Esc）', 'Settings (Esc)')}><Settings size={20} aria-hidden /></button>}
         </div>
         {/* the live region announces the station only (the seconds tick every frame and stay out of it) */}
         {stoppedAt

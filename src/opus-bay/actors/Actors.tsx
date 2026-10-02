@@ -8,6 +8,7 @@ import { game, useGame } from '../core/store';
 import { attachPointer } from './pointer';
 import { ActorSystem } from './system';
 import { setCharApi } from './charApi';
+import { importRetry } from '../game/importRetry';
 
 /** renderer.compileAsync for the render path the world uses (the tilt-shift post target or the screen). */
 function precompileFor(gl: THREE.WebGLRenderer, object: THREE.Object3D, camera: THREE.Camera, scene: THREE.Scene, offscreen: boolean) {
@@ -57,7 +58,7 @@ export function Actors() {
   useEffect(() => {
     if (game.get().worldMode !== 'city') return;
     let live = true;
-    void import('./charImpl').then(({ CharImpl }) => {
+    void importRetry(() => import('./charImpl')).then(({ CharImpl }) => {
       if (!live) return;
       system.char = new CharImpl(system.charHost());
       setCharApi(system.char);

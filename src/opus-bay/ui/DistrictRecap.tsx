@@ -38,7 +38,7 @@ export default function DistrictRecap() {
   const donePois = stops.filter(stop => completed.includes(stop.poiId)).map(stop => poiById(stop.poiId)).filter((poi): poi is NonNullable<typeof poi> => !!poi?.realInfo);
   const route = walkingRouteUrl(donePois.map(poi => ({ lat: poi.realInfo!.lat, lng: poi.realInfo!.lng })));
   const carried = validPlanStops(planStops, catalog);
-  const names = planStopTitles(carried, catalog);
+  const names = planStopTitles(carried, catalog, locale); // W8-Q1: in the reader's language (English joined the catalog's Chinese titles)
   const planLabel = names.length ? t(`把 ${names.join('、')} 排进 BAYLINK 计划`, `Put ${names.join(', ')} in a BAYLINK plan`) : null;
   const guideSlugs = [...new Set(donePois.map(poi => RECAP_GUIDES[poi.id]).filter((slug): slug is string => !!slug && !!guideTitle(catalog, slug)))];
   return (

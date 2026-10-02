@@ -33,3 +33,25 @@ export function HalloweenGoalsRow() {
     </section>
   );
 }
+
+/**
+ * W8-H · the one-line Halloween row of the city's fallback goals card (ui/Moments.tsx GoalsCard: shown when the goals
+ * step's chunk is missing): 🎃 万圣节目标 n/3 and the next goal not yet done (with its count), in the card's own look.
+ */
+export function HalloweenGoalsMini() {
+  const { t } = useT();
+  useSyncExternalStore(subscribeLedger, ledgerVersion, ledgerVersion);
+  const goals = halloweenGoals(isPaid);
+  const done = goals.filter(g => g.have >= g.need).length;
+  const next = goals.find(g => g.have < g.need);
+  return (
+    <>
+      <header style={{ marginTop: 8 }}><strong><span aria-hidden>🎃</span>{t('万圣节目标', 'Halloween goals')} · {done}/{goals.length}</strong></header>
+      {next && (
+        <ul>
+          <li><span className="ob-check" /><span>{t(next.text)}{next.need > 1 && ` · ${next.have}/${next.need}`}<small>{t('旅行本 · 万圣节页有讨糖街和南瓜灯', 'Your journal’s Halloween page has the streets and the lanterns')}</small></span></li>
+        </ul>
+      )}
+    </>
+  );
+}

@@ -25,6 +25,7 @@ import { registerWarmup } from '../world/warmup';
 import { COIN_CACHES, COIN_RINGS, COIN_TRAILS, SLOT_COINS, cacheIds, ringCoinIds, trailCoinIds } from './coinSpots';
 import { isPaid, registerRewardIds, subscribeLedger, todayKey } from './ledger';
 import { registerHintSource } from './hints';
+import { importRetry } from '../game/importRetry';
 
 /** Lane V publishes the downtown headroom (plan MF9): until then the downtown coins are not drawn or picked up. */
 export const DOWNTOWN_OPEN = false;
@@ -297,7 +298,7 @@ export function initCoins(): () => void {
   // the 寻宝罗盘 (shop, W5-E6) points at the nearest unfound cache
   offs.push(registerHintSource('cache', () => world.items.filter((c, i) => c.kind === 'cache' && !world.isTaken(i)).map(c => ({ id: c.entry, x: c.x, z: c.z }))));
   // the layer and its warm-up set (world/warmup recipe: registered here, before the first coin is drawn)
-  void Promise.all([import('./coinMesh'), import('./CoinLayer')]).then(([mesh, layer]) => {
+  void Promise.all([importRetry(() => import('./coinMesh')), importRetry(() => import('./CoinLayer'))]).then(([mesh, layer]) => {
     if (gone) return;
     offs.push(registerWarmup('e-coins', mesh.coinWarmup));
     offs.push(registerSceneSystem('e-coins', layer.CoinLayer));

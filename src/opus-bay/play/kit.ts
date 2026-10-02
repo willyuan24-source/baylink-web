@@ -1,12 +1,15 @@
-import { createElement, lazy, Suspense } from 'react';
+import { createElement, Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { audioNow, playSound } from '../audio/hooks';
 import { emit, onEvent, REWARD_SOURCE } from '../core/events';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { readSave } from '../data/save';
+import { noteHoldActivity } from '../game/baybayHold';
 import { holdLock } from '../game/playerLock';
 import { registerFrameSystem } from '../game/systemsRegistry';
 import { closeOverlay, openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane A · PlayKit (W5-A1, plan sf-w5-plan.md §3.2): the small core every activity stands on.
@@ -145,7 +148,7 @@ let bestWriter: BestWriter | null | undefined;
 async function writeBest(key: string, value: number) {
   if (bestWriter === undefined) {
     try {
-      const mod = (await import('../economy/index')) as unknown as { recordBest?: BestWriter };
+      const mod = (await importRetry(() => import('../economy/index'))) as unknown as { recordBest?: BestWriter };
       bestWriter = typeof mod.recordBest === 'function' ? mod.recordBest : null;
     } catch { bestWriter = null; }
   }
@@ -206,7 +209,7 @@ export function startActivity(spec: ActivitySpec, opts: ActivityOpts = {}): Acti
     active = false;
     offFrame();
     release();
-    if (current === run) current = null;
+    if (current === run) { current = null; noteHoldActivity(null); }
     try { opts.onStop?.(how); } catch (error) { if (import.meta.env?.DEV) console.error('[opus-bay play] onStop', spec.id, error); }
     return true;
   };
@@ -228,6 +231,8 @@ export function startActivity(spec: ActivitySpec, opts: ActivityOpts = {}): Acti
     });
   }
   current = run;
+  // W8-K1: BAYBAY's ambient lines hold during some activities (game/baybayHold.ts BAYBAY_HOLD_ACTIVITIES)
+  noteHoldActivity(spec.id);
   emit({ type: 'play', activity: spec.id, what: 'start' });
   return run;
 }
@@ -270,7 +275,7 @@ function finish(spec: ActivitySpec, result: ActivityResult) {
 export function forgetSession() { paidThisSession.clear(); sessionBests.clear(); }
 
 /** tests: forget the session state */
-export function __resetKit() { current?.cancel(); current = null; paidThisSession.clear(); sessionBests.clear(); }
+export function __resetKit() { current?.cancel(); current = null; noteHoldActivity(null); paidThisSession.clear(); sessionBests.clear(); }
 
 // --- the result card ----------------------------------------------------------------------------------------------------
 
@@ -290,7 +295,7 @@ export interface ResultProps {
 }
 
 export const RESULT_OVERLAY = 'play-result';
-const ResultCard = lazy(() => import('./ResultCard'));
+const ResultCard = lazyChunk(() => importRetry(() => import('./ResultCard')));
 const ResultSlot = ({ props, close }: OverlayProps) => createElement(Suspense, { fallback: null }, createElement(ResultCard, { props: props as ResultProps, close }));
 
 let resultOff: (() => void) | null = null;

@@ -5,6 +5,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { U } from '../world/materials';
 import { currentActivity } from './kit';
 import { freeOnFoot } from './partc';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 7 · lane W2 · where 放风筝 is offered and Marina Green's ambient kites (a small lazy chunk play/kiteEntry.ts loads
@@ -58,7 +59,7 @@ export function startKiteZone(): () => void {
     const p = runtime.player, d = Math.hypot(p.x - MARINA_MID.x, p.z - MARINA_MID.z), day = U.uNight.value <= 0.35;
     if (!mounted && !loading && day && d < KITES_NEAR) {
       loading = true;
-      void import('./kites').then(m => { loading = false; if (!gone && !mounted) mounted = m.mountKites(); }).catch(() => { loading = false; });
+      void importRetry(() => import('./kites')).then(m => { loading = false; if (!gone && !mounted) mounted = m.mountKites(); }).catch(() => { loading = false; });
     } else if (mounted && (!day || d > KITES_FAR)) { mounted(); mounted = null; }
   });
   return () => { gone = true; offFrame(); mounted?.(); mounted = null; };

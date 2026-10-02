@@ -1,0 +1,81 @@
+/* Wave 8 · lane M · the second set of mini-games' panels (on top of sfgames.css: the cable-car grip, the busker, the
+   foghorns). Tokens from opus-bay.css; every tap target ≥ 44 px (the main controls 56 px and more). */
+
+/* the grip: at the bottom of the screen on every size (the ride banner holds the top) */
+.ob-sfg-panel.is-grip { top: auto; bottom: calc(12px + var(--ob-sb, env(safe-area-inset-bottom, 0px))); width: min(440px, calc(100vw - 20px)); }
+/* desktop: at the right, above the HUD's round buttons and the ride's key hints */
+@media (min-width: 1000px) { .ob-sfg-panel.is-grip { top: auto; right: 28px; bottom: 108px; } }
+.ob-sfg-canvas.is-grip { aspect-ratio: 100 / 36; background: #cfe3ea; cursor: default; }
+.ob-sfg-hint.is-release { color: #c0392b; }
+.ob-sfg-hint.is-bell { color: var(--ob-gold-d); }
+.ob-sfg-btn.is-bell { flex: none; min-width: 92px; min-height: 64px; background: var(--ob-gold-l); border-color: var(--ob-gold); color: var(--ob-gold-d); }
+.ob-sfg-btn.is-bell:active { background: var(--ob-gold); color: #fff; }
+.ob-sfg-btn.is-grip { max-width: none; min-height: 64px; }
+.ob-sfg-key { display: inline-block; width: 10px; height: 10px; margin: 0 3px 0 2px; border-radius: 2px; vertical-align: -1px; }
+.ob-sfg-key.is-red { background: repeating-linear-gradient(90deg, #d8433a 0 3px, #f2b3a6 3px 6px); }
+.ob-sfg-key.is-bell { border-radius: 50% 50% 2px 2px; background: #e2a52a; }
+.ob-sfg-key.is-stop { background: linear-gradient(#c8452c 0 30%, #fffaf1 30%); border: 1px solid var(--ob-line-2); box-sizing: border-box; }
+
+@media (max-height: 560px) {
+  .ob-sfg-panel.is-grip { gap: 4px; padding: 6px 10px 8px; }
+  .ob-sfg-panel.is-grip .ob-sfg-foot { display: none; }
+  /* (W8-M-review) a short phone (375 × 553): a lower track picture, so BAYBAY's coaching bubble clears the panel */
+  .ob-sfg-canvas.is-grip { max-height: 16vh; width: auto; align-self: center; }
+  .ob-sfg-panel.is-grip .ob-sfg-btn.is-grip, .ob-sfg-panel.is-grip .ob-sfg-btn.is-bell { min-height: 56px; }
+}
+/* (W8-M-review) a phone on its side (844 × 340, 667 × 320): the track picture beside the hint and the two buttons, so the
+   panel stays under the ride banner (one column it reached the screen's top and the banner hid the whole picture) */
+@media (max-height: 560px) and (min-width: 600px) {
+  .ob-sfg-panel.is-grip {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: 'canvas head' 'canvas clock' 'canvas hint' 'canvas controls';
+    align-items: center; column-gap: 10px; width: min(640px, calc(100vw - 20px));
+  }
+  .ob-sfg-panel.is-grip > .ob-sfg-head { grid-area: head; }
+  .ob-sfg-panel.is-grip > .ob-sfg-clock { grid-area: clock; }
+  .ob-sfg-panel.is-grip > .ob-sfg-canvas { grid-area: canvas; max-height: none; width: 100%; }
+  .ob-sfg-panel.is-grip > .ob-sfg-hint { grid-area: hint; font-size: 13px; }
+  .ob-sfg-panel.is-grip > .ob-sfg-controls { grid-area: controls; }
+}
+/* (W8-M-review) the set's panels: opaque (the HUD row's labels showed through the legend on phones), and out of the way
+   while Settings pauses their game (the sheet opened under them, their buttons live over its rows) */
+.ob-sfg-panel:is(.is-grip, .is-busk, .is-fog) { background: #fffaf1; }
+.ob-sfg-panel.is-paused { visibility: hidden; }
+
+/* the busker jam: at the bottom on phones (the thumb's button), at the right on a wide screen (sfgames.css) */
+.ob-sfg-canvas.is-busk { aspect-ratio: 100 / 58; background: #d9ecf0; cursor: pointer; }
+.ob-sfg-run { min-width: 34px; text-align: right; font: 900 15px/1 'Noto Sans SC', var(--ob-font); color: var(--ob-terra); }
+.ob-sfg-btn.is-tap { max-width: none; min-height: 68px; font-size: 19px; }
+@media (max-width: 999px) {
+  .ob-sfg-panel.is-busk { top: auto; bottom: calc(12px + var(--ob-sb, env(safe-area-inset-bottom, 0px))); width: min(440px, calc(100vw - 20px)); }
+}
+@media (max-height: 560px) {
+  .ob-sfg-panel.is-busk { gap: 4px; padding: 6px 10px 8px; }
+  .ob-sfg-canvas.is-busk { max-height: 34vh; width: auto; align-self: center; }
+}
+
+/* the foghorns: at the bottom on phones, at the right on a wide screen; three horn buttons for the thumbs */
+.ob-sfg-canvas.is-fog { aspect-ratio: 100 / 60; background: #aebfc7; cursor: default; }
+.ob-sfg-hint.is-answer { color: var(--ob-terra); }
+.ob-sfg-controls.is-horns { gap: 8px; }
+.ob-sfg-controls.is-listening .ob-sfg-btn { opacity: .55; }
+.ob-sfg-btn.is-horn { flex: 1; min-width: 0; min-height: 64px; padding: 0 6px; flex-direction: column; gap: 3px; font-size: 14px; line-height: 1.15; }
+.ob-sfg-btn.is-horn i { width: 14px; height: 14px; border-radius: 50%; }
+.ob-sfg-btn.is-horn.is-S i { background: #2f6f8f; width: 22px; border-radius: 7px; }
+.ob-sfg-btn.is-horn.is-H i { background: #e2a52a; }
+.ob-sfg-btn.is-horn.is-L i { background: #3d9a6b; }
+.ob-sfg-btn.is-horn.is-held { background: var(--ob-cream-2); transform: scale(.95); }
+@media (max-width: 999px) {
+  .ob-sfg-panel.is-fog { top: auto; bottom: calc(12px + var(--ob-sb, env(safe-area-inset-bottom, 0px))); width: min(440px, calc(100vw - 20px)); }
+}
+@media (max-height: 560px) {
+  .ob-sfg-panel.is-fog { gap: 4px; padding: 6px 10px 8px; }
+  .ob-sfg-canvas.is-fog { max-height: 34vh; width: auto; align-self: center; }
+}
+/* (W8-M-review) a wide screen with a side sheet open (the journal, the map: the game runs on under them): the panel steps
+   left of the sheet and of the HUD's buttons, as the HUD does (opus-bay.css .has-sheet) — it lay over the sheet's rows */
+@media (min-width: 1000px) {
+  .ob-overlay.has-sheet .ob-sfg-panel:is(.is-grip, .is-busk, .is-fog) { right: calc(var(--ob-sheet-w, 452px) + 88px); }
+}
+/* (W8-M-review, M-RP-1) while the grip runs (GripPanel sets .ob-grip-on on the root), the ride banner's pad row steps out:
+   the bell riff's pad there started the riff and so ended the grip with nothing paid (play/zones.ts stays in its 5 KB) */
+.ob-grip-on .ob-ride-pads { display: none !important; } /* !important: the row's display is an inline style (ui/RideBanner.tsx PAD_ROW) */

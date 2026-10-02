@@ -16,6 +16,7 @@ import {
 } from './autoTravel';
 import { leadStep, leadTo } from './brain';
 import { startTravel, travelActive } from './fastTravel';
+import { W8K_LINES } from './fixedLines';
 import { isScenicLeg } from './scenicTrip';
 import {
   announce, bubble, closePanel, defineNode, dialogueOpen, freeLeadArrived, playDialogue, say, setTripRunner, type TripDest, type TripRunner,
@@ -27,6 +28,7 @@ import { boardLine, requestHopOff } from './transit';
 import { timeLabel } from './tripText';
 import { currentLeg, isArrived, legTarget, tripEvents, tripReducer, walkLeg, type TripAction } from './trips';
 import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './tripTypes';
+import { importRetry } from './importRetry';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -147,11 +149,16 @@ function start(option: TripOption, dest: TripDest, source: TripSource = 'map') {
   if (source !== 'tour' && source !== 'free-lead') {
     const first = t.legs[0];
     // (a scenic flight: lane F's take-off says 抓稳，飞咯！ and how to take the wings — no third line on top)
+    const ride = first.via === 'line' || t.legs.some(l => l.via === 'line');
+    // (W8-K10) the city: fixed lines lane X can voice (game/fixedLines.ts W8K_LINES; the trip pill and the announce name
+    // the place); the district keeps its named bubbles
     const line = isScenicLeg(first) ? null
-      : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
-      : first.via === 'line' || t.legs.some(l => l.via === 'line') ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
-        : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
-          : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
+      : game.get().worldMode === 'city'
+        ? first.via === 'fly' ? W8K_LINES.tripFly : ride ? W8K_LINES.tripToStop : first.via === 'bike' ? W8K_LINES.tripBike : first.via === 'car' ? W8K_LINES.tripCar : W8K_LINES.leadGo
+        : first.via === 'fly' ? { zh: `抓紧！我们飞去${name.zh}`, en: `Hold on — we fly to ${name.en}!` }
+          : ride ? { zh: `跟我来！坐车去${name.zh}`, en: `Follow me — we'll ride to ${name.en}!` }
+            : first.via === 'bike' || first.via === 'car' ? { zh: `先去${first.via === 'car' ? '坐上小车' : '骑上单车'}，再去${name.zh}！`, en: `First the ${first.via === 'car' ? 'toy car' : 'bike'}, then ${name.en}!` }
+              : { zh: `跟我来！去${name.zh}`, en: `Follow me — to ${name.en}!` };
     if (line) bubble(line, 3000, BAYBAY_ID, 'call');
   }
   announce({ zh: `出发：${name.zh}`, en: `Heading to ${name.en}` });
@@ -214,7 +221,10 @@ function arrived() {
   if (isArrived(next)) { onTripEnd(next); return; }
   onLegStart(next);
   const leg = currentLeg(next);
-  if (leg?.via === 'line' && next.source !== 'tour') bubble({ zh: `去车站，坐车到${leg.to.name?.zh ?? '下一站'}`, en: `To the stop — we ride to ${leg.to.name?.en ?? 'the next stop'}` }, 2800, BAYBAY_ID, 'call');
+  // (W8-K3) a fixed line lane X can voice: the trip pill names the stop
+  // (W8-K-review K-RC-1) not in the city: start() already said this very line there (W8-K10: a line on any leg), and
+  // the player now stands at the stop, where the boarding question (offerBoarding / lane T's boardLine) speaks
+  if (leg?.via === 'line' && next.source !== 'tour' && game.get().worldMode !== 'city') bubble(W8K_LINES.tripToStop, 2800, BAYBAY_ID, 'call');
 }
 
 function onTripEnd(t: TripState) {
@@ -223,7 +233,12 @@ function onTripEnd(t: TripState) {
   autoEnd();
   if (t.source === 'free-lead') { freeLeadArrived(); return; }
   // an attraction's own arrival moment speaks for it (game/cityArrivals.ts); a plain place gets a short line
-  if (t.source !== 'tour' && !t.attraction) bubble({ zh: `到啦！这里就是${destName(t).zh}`, en: `Here we are — ${destName(t).en}!` }, 3200, BAYBAY_ID, 'call');
+  // (W8-K3) a fixed line lane X can voice, the place's name on a toast
+  if (t.source !== 'tour' && !t.attraction) {
+    const name = destName(t);
+    bubble(W8K_LINES.tripHere, 3200, BAYBAY_ID, 'call');
+    say(`到达 · ${name.zh}`, `Arrived · ${name.en}`, 'info', 3200);
+  }
 }
 
 /** The rest of the trip as one walk from here (a hop-off before the stop, a line that is not running). */
@@ -239,7 +254,7 @@ function skip() {
   const t = flow.get().trip;
   if (!t || isArrived(t)) return;
   stopGlide();
-  if (t.source === 'tour') { void import('./cityTour').then(m => m.skipCityTourStop()); return; }
+  if (t.source === 'tour') { void importRetry(() => import('./cityTour')).then(m => m.skipCityTourStop()); return; }
   if (driving) { cancelDrive(); driving = false; }
   const next = dispatchTrip({ type: 'skip-leg' });
   if (!next) return;

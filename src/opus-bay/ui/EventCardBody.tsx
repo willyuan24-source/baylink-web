@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
+import { lazyChunk } from '../game/lazyChunk';
 import { ArrowLeft, CalendarPlus, Check, ExternalLink, Heart, MapPinned, Navigation, Newspaper, Ticket, Users } from 'lucide-react';
 import { game, useGame } from '../core/store';
 import { REGION_LABELS, categoryLabel, eventById, eventSpot, goToEvent, nextShowing, useCatalog } from '../data/catalog';
@@ -6,12 +7,13 @@ import './event-go.css';
 import { eventUrl, mapsUrl, planUrl, safeHref } from '../data/links';
 import { closePanel, openPanel, toggleWish } from '../game/flow';
 import { useFlow } from '../game/flowStore';
-import { useT } from '../i18n';
+import { catalogText, useT } from '../i18n';
 import { LinkButton, Sheet } from './common';
 import { formatDay, joinPlace } from './format';
+import { importRetry } from '../game/importRetry';
 
 /** Wave 5 (W5-R7, city mode): 现实中怎么去 — the nearest real Muni stops and their headways (lane R's lazy chunk). */
-const HowToGo = lazy(() => import('../realsf/HowToGo'));
+const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
 
 /** One live BAYLINK event (only ids from /planner-catalog.json). */
 export default function EventCardBody({ id }: { id?: string }) {
@@ -65,7 +67,7 @@ export default function EventCardBody({ id }: { id?: string }) {
         )}
       </div>
       <dl className="ob-facts">
-        {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue, event.city, region ? t(region) : null])}</dd></div>}
+        {(event.venue || event.city) && <div><dt><MapPinned size={15} aria-hidden />{t('地点', 'Where')}</dt><dd>{joinPlace([event.venue ? catalogText(event.venue, locale) : null, event.city, region ? t(region) : null])}</dd></div>}
         {(event.costLabel || event.cost) && <div><dt><Ticket size={15} aria-hidden />{t('费用', 'Cost')}</dt><dd>{event.costLabel ?? (event.cost === 'free' ? t('免费', 'Free') : event.cost)}</dd></div>}
         {event.audience?.length ? <div><dt><Users size={15} aria-hidden />{t('适合', 'For')}</dt><dd>{event.audience.slice(0, 4).join(' · ')}</dd></div> : null}
       </dl>

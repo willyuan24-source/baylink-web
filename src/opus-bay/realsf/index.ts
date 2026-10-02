@@ -7,6 +7,7 @@ import { game } from '../core/store';
 import type { Bilingual, CatalogEvent } from '../core/types';
 import { eventById, getCatalog, setEventVenueHooks, type EventSpot } from '../data/catalog';
 import { bayNow, bayParts } from '../game/bayNow';
+import { baybayHeld } from '../game/baybayHold';
 import { cinemaActive } from '../game/cinema';
 import { startTravel, travelActive } from '../game/fastTravel';
 import { bubble, closePanel, dialogueOpen, navigateTo, openEvent } from '../game/flow';
@@ -32,6 +33,9 @@ import { FIRE_SEASON_LAST_DAY } from './seasons';
 import { sunBandAt, sunTimes, sunsetLine } from './sun';
 import { loadTides, tideLoudness } from './tides';
 import { todayLine } from './todayLine';
+import { holdJetsForParade, isParadeDay } from '../world/sf/fleetWeekDay';
+import type { FleetWeek } from '../world/sf/fleetWeek';
+import { importRetry } from '../game/importRetry';
 
 /**
  * Wave 5 · lane R — the real San Francisco: the sun, events at their venues, 今天 · SF Today, 今日三件小事, Fleet Week.
@@ -134,7 +138,7 @@ export function init(): () => void {
   const offTab = registerJournalTab({
     id: 'today', order: 5, label: { zh: '今天', en: 'Today' }, icon: TodayIcon,
     count: () => { const list = daily.tasks(); return list ? `${list.filter(t => daily.done(t)).length}/${list.length}` : undefined; },
-    load: () => import('./TodayTab'),
+    load: () => importRetry(() => import('./TodayTab')),
   });
   const offAsk = registerAskItem({ id: 'realsf-today', order: 40, label: { zh: '今天旧金山有什么？', en: 'What’s on in SF today?' }, icon: AskIcon, onSelect: () => openJournal('today') });
   let welcomeSaid = false;
@@ -152,16 +156,28 @@ export function init(): () => void {
   const idle = setTimeout(() => {
     void loadTides();
     void loadLive();
-    void import('../eggs/marina').then(m => { if (!live) return; m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
+    void importRetry(() => import('../eggs/marina')).then(m => { if (!live) return; m.setOrganTide(() => tideLoudness()); organOff = () => m.setOrganTide(null); }, () => undefined);
   }, IDLE_FETCH_MS);
+  // W8-S: Fleet Week's Parade of Ships (9 Oct 11:00–12:00) — its own lazy chunk, loaded on the parade's Bay day only
+  let parade: FleetWeek | null = null;
+  let paradeLoading = false;
+  /** (W8-S review) failed loads: retried, and after PARADE_TRIES the jets' lines stop waiting for it */
+  let paradeFails = 0;
+  const PARADE_TRIES = 3;
+  const loadParade = () => {
+    if (parade || paradeLoading || paradeFails >= PARADE_TRIES) return;
+    paradeLoading = true;
+    void importRetry(() => import('../world/sf/fleetWeek')).then(m => { if (live) parade = m.initFleetWeek(); }, () => { paradeLoading = false; paradeFails++; });
+  };
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
     (window as unknown as { __opusRealSF?: unknown }).__opusRealSF = {
       presence: () => presence.stats(), jets: () => jets.stats(), dressing: () => dressing.stats(), organWired: () => organOff !== null,
       openings: () => openings.stats(),
+      parade: () => parade?.stats() ?? null,
       daily: () => daily.tasks()?.map(t => ({ n: t.n, kind: t.kind, source: t.source, done: daily.done(t), title: t.title.zh })) ?? null,
       complete: (kind: Parameters<typeof daily.complete>[0]) => daily.complete(kind),
       /** QA (review): the line keys on offer right now, by source */
-      offered: () => ({ presence: presence.offered().map(l => l.key), jets: jets.offered().map(l => l.key), daily: daily.offered().map(l => l.key), dressing: dressing.offered().map(l => l.key), calendar: calendarLines(bayNow(), runtime.player).map(l => l.key) }),
+      offered: () => ({ presence: presence.offered().map(l => l.key), jets: jets.offered().map(l => l.key), daily: daily.offered().map(l => l.key), dressing: dressing.offered().map(l => l.key), calendar: calendarLines(bayNow(), runtime.player).map(l => l.key), parade: parade?.offered().map(l => l.key) ?? [] }),
     };
   }
 
@@ -173,7 +189,11 @@ export function init(): () => void {
     acc = 0;
     const s = game.get(), f = flow.get();
     const now = bayNow(), day = bayParts(now).dateKey;
-    const offered: OfferedLine[] = [...presence.offered(), ...jets.offered(), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
+    if (!parade && isParadeDay(now)) loadParade();
+    // (W8-S) on 9 Oct the parade's lines (11:00) come before the jets' (12:00): the scheduler takes the first unsaid key;
+    // (W8-S review, S-P5) while the parade's chunk is still loading that day the jets' lines wait for it
+    const holdJets = holdJetsForParade(now, { ready: !!parade, failed: paradeFails >= PARADE_TRIES });
+    const offered: OfferedLine[] = [...presence.offered(), ...(parade?.offered() ?? []), ...(holdJets ? [] : jets.offered()), ...daily.offered(), ...dressing.offered(), ...calendarLines(now, runtime.player)];
     if (welcomeLate && !welcomeSaid) offered.unshift({ key: 'today-welcome', text: todayLine(now) });
     const sun = sunTimes(now), t = now.getTime();
     if (t >= sun.sunset.getTime() - SUNSET_LEAD && t < sun.sunset.getTime() - 5 * 60_000) offered.push({ key: 'sunset', text: sunsetLine(now) });
@@ -183,21 +203,22 @@ export function init(): () => void {
     if (!offered.length) return;
     const line = sched.step(performance.now() / 1000, day, {
       silent: s.phase !== 'playing' || s.paused || s.mode === 'onboarding' || dialogueOpen() || cinemaActive() || !!f.cinematic || travelActive()
-        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null,
+        || s.move.mode === 'travel' || s.photoMode || !!f.postcardReward || !!f.postcardFly || !!f.fishing || s.panel.kind !== null
+        || baybayHeld(), // W8-K1 (lane K, surgical): a play panel, an egg card, the Halloween postcard… (game/baybayHold.ts)
       bubble: !!f.bubble,
       quiet: performance.now() < f.quietUntil,
     }, offered);
     if (!line) return;
     if (line.key === 'today-welcome') welcomeLate = false;
     if (line.key.startsWith('jets-')) jets.said(line.key);
-    bubble(line.text, 4600, BAYBAY_ID, 'bark');
-    emit({ type: 'voice-line', id: `realsf-${line.key}` });
+    if (line.key.startsWith('parade-')) parade?.said(line.key);
+    if (bubble(line.text, 4600, BAYBAY_ID, 'bark')) emit({ type: 'voice-line', id: `realsf-${line.key}` });
   }, 5);
 
   return () => {
     live = false;
     clearTimeout(idle); organOff?.(); organOff = null; dressing.off(); openings.off();
-    offLines(); jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
+    offLines(); parade?.off(); parade = null; jets.off(); offWelcome(); offAsk(); offTab(); daily.off(); presence.off(); offResolver(); offVenues();
     if (import.meta.env?.DEV && typeof window !== 'undefined') delete (window as unknown as { __opusRealSF?: unknown }).__opusRealSF;
   };
 }

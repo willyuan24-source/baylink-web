@@ -243,6 +243,13 @@ export function visitMuertos(n: number): boolean {
 }
 
 const canVisit = () => { const m = runtime.move.mode; return (m === 'foot' || m === 'sit' || m === 'bike' || m === 'car') && !runtime.glide.active; };
+/**
+ * W8-H-review: the procession steps aside only for someone on the street — on foot, sitting, on a bike or in a toy car
+ * (canVisit), never for the pelican's shadow on a glide, a fast travel or a ride — and BAYBAY's "let's step onto the
+ * sidewalk" line only while the player is on foot (not from the air, the saddle or the driver's seat)
+ */
+export const processionParts = (): boolean => canVisit();
+export const asideLineFits = (): boolean => { const m = runtime.move.mode; return (m === 'foot' || m === 'sit') && !runtime.glide.active; };
 
 export interface Muertos {
   group: THREE.Group;
@@ -291,7 +298,12 @@ export function createMuertos(): Muertos {
     group,
     step: (dt, px, py, pz, on) => {
       clock += dt;
-      if (walkers && today.procession !== 'none') walkers.step(today.procession, walkBase.s + (clock - walkBase.at), clock);
+      // W8-H: the player's and BAYBAY's positions and the frame time: the walkers step aside for them (W8-H-review: only
+      // while the player is on the street — not gliding over the column; BAYBAY rides along then)
+      if (walkers && today.procession !== 'none') {
+        const ground = processionParts();
+        walkers.step(today.procession, walkBase.s + (clock - walkBase.at), clock, ground ? px : undefined, ground ? pz : undefined, dt, ground ? runtime.guide.x : undefined, ground ? runtime.guide.z : undefined);
+      }
       if ((acc += dt) < 0.15) return;
       acc = 0;
       today = muertosSchedule();
@@ -335,6 +347,8 @@ export function createMuertos(): Muertos {
       const c = ROUTE_CORNERS.bryant22;
       const atStart = Math.hypot(px - c.x, pz - c.z);
       if (d.procession === 'gather' && atStart < GATHER_NEAR) out.push({ key: 'procession-gather', line: 'processionGather' });
+      // W8-H: the walkers part round a player standing in their lane — BAYBAY suggests the sidewalk (before the watch line)
+      if (d.procession === 'walk' && walkers?.aside() && asideLineFits()) out.push({ key: 'procession-aside', line: 'processionAside' });
       if (d.procession === 'walk' && walkers?.near(px, pz, WALKERS_NEAR)) out.push({ key: 'procession-walk', line: 'processionWalk' });
       if (d.altars && atStart < PROCESSION_NEAR) out.push({ key: 'muertos-procession', line: 'muertosProcession' });
       if (Math.hypot(px - MUERTOS_AT.x, pz - MUERTOS_AT.z) < MUERTOS_HELLO_NEAR) {
