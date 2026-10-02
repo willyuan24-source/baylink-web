@@ -148,3 +148,49 @@ lead when it walks and taps 让 BAYBAY 带我过去 3 s later, as a cooperative 
 
 None in part b (the title greeting is title text, never voiced; the coach, the strip and the local card are UI).
 Part a reused voiced lines only (好嘞，你带路，我跟着！…, 以后想去哪都能飞啦！先试试起飞？, 跟着金圈飞！).
+
+## Review (Ultra)
+
+### 给主人的摘要
+
+- F 线复审修复员 06:07 才接手（上一轮被用量上限打断），06:18 建好工作树，45 分钟的截止前来不及安全地改代码并跑完全部检查，所以**这次没有推任何代码修改**，只推这份报告。
+- 两个阻断项属实：F 线的改动没有区分模式，**小区模式（?world=district）也被改了**（首访黄金时段被立刻切成真实时间、提示一次一条且面板打开时被吞掉、明信片不再自动翻面、教学条和标题页文字变了、闲聊不再重复）。按项目规则"小区模式永不改变"，这**挡住上线 main**。
+- 主要问题也属实：面板 / 对话打开时弹出的提示（想去、已保存、链接已复制、地图指南针）会被扣住，10 秒后直接丢掉；只点地面走路的手机玩家，走路教学条永远不消失；"我是本地人"安静 3 分钟里，捉迷藏邀请仍在 44 秒出现。
+- 建议下一位接手：每处 F 线改动加 `worldMode === 'city'` 判断（小区走旧代码），面板打开时提示直接显示，教学条 8 秒后真正收起并把点地走路算作学会，捉迷藏邀请问 `baybayHeld()`。
+
+### Verdicts
+
+Reviewed tree: origin/opus-bay e9c3c35c. Time: 06:07–06:45 PDT (the fixer started after the 06:15 cut-off and had no time to land and check code; every confirmed finding is left open). Verification was by reading the code on e9c3c35c (file:line below) plus the lenses' own runs; no new browser run of mine.
+
+| id | sev | verdict | evidence (mine) |
+|---|---|---|---|
+| F-RC-2 | blocker | confirmed-not-fixed | No worldMode gate in ui/Floating.tsx Toasts (always ui/titleHost.ts), ui/Moments.tsx PostcardReward's effect (`if (ok) return` — no auto-turn in any mode), ui/CoachMarkBody.tsx (new wording, ghost stick, title level in both modes), ui/TitleScreen.tsx link 先不玩 and touch hint (opus-bay.css:254 now shows the hint on every `.has-art` phone title), game/brain.ts lastIdleLine. Fix sketch: `worldMode !== 'city'` -> the pre-W9-F code paths (the old bodies are at b2f10b20~1 / 7a232652~1). |
+| F-RP-1 | blocker | confirmed-not-fixed | game/flow.ts:605-607 `offerRealTime()` ends goldenFirstVisit in every mode; the district's old F11 offer (flow.ts at 03784d32~1:595-611, with `bayTimeOfDay` from ./qa) is gone. |
+| F-RC-1 | major | confirmed-not-fixed | ui/titleHost.ts onModal(): a 'modal' holder at priority 5, maxWaitMs Infinity; toasts ask with TOAST_MAX_WAIT_MS 10 s and the ribbon too, so a toast raised inside a panel waits and is dropped. Fix sketch: while `modalUp()`, show the toast / ribbon at once (the top stack sits beside the sheet: opus-bay.css .has-sheet .ob-topstack). |
+| F-RP-2 | major | confirmed-not-fixed | Same cause as F-RC-1 (the map compass, the album / share hints). |
+| F-RC-3 | major | confirmed-not-fixed | ui/CoachMarkBody.tsx ownMove() reads only runtime.input.moveX/moveY; after COACH_SEEN_MS it only calls markCoachSeen() and keeps the bar up; tap-to-walk (runtime.player.pathTarget) never ends it. Fix sketch: after 8 s on screen close it for good; count a walk with `pathTarget` set by the player's tap as their own move. |
+| F-RP-3 | major | confirmed-not-fixed | play/hideSeek.ts:491-507 startHideCoach: `ok = hideSeekAllowed() && !panel && !bubble && !moving`; neither it nor hideSeekAllowed() (:295-298) asks baybayHeld(), so flow.hushUntil does not hold the invite. |
+| F-RP-4 | major | confirmed-not-fixed | Taken from the lens's run (fm/phone-zh-free.json: 南瓜灯 line at 18.9 s right after the 15 s hush); the three sources it names (play/pet.ts, halloween/worldLines.ts, data/script.ts) do not go through game/linePacer.ts. Not re-run by me. |
+| F-RP-5 | major | confirmed-not-fixed | ui/Moments.tsx TURN_HINT reuses `.ob-postcard-caption` (left:auto; right:10) on the caption's own row: a long English caption runs under it. Lens screenshot f-rp/postcard-en-front.jpg. |
+| F-RP-6 | major | confirmed-not-fixed | ui/CoachMarkBody.tsx ghostBase bottom 150 px + safe area, zIndex 6, while the touch coach bar sits at about the same height on 390x844 (lens eval [18, 592, 96], f-rp/coach-phone-b.jpg). |
+| F-RC-4 | minor | confirmed-not-fixed | ui/ArrivalCard.tsx: the Escape listener has [] deps and no `granted` guard; `if (!granted) return null` gates only the render. |
+| F-RC-5 | minor | confirmed-not-fixed | `requestSlot('line' …)` / `useAttention('action' …)`: no hits in src/opus-bay; only 'title' is used. The bubbles + voice and the E prompt are not routed through attention.ts. |
+| F-RP-9 | minor | confirmed-not-fixed | ui/titleToday.ts says so itself: on the title the catalog is not in yet, so a world event cannot be the line; in game 6 s later it can. |
+| F-RP-7 | minor | refuted | The card closing at 11.5 s is the W9-F2 rule "boarding a ride closes it" (ArrivalCard: move.mode === 'transit'); the tour boards the bus by itself 2.3 s after arriving — a tour pacing question (game/cityTour.ts), not a card timer. Not re-run. |
+| F-RP-8 | minor | refuted | halloween/worldLines.ts huntAhead is not a lane-F source and is not a first-minute change of wave 9; uncertain without a run of mine, so per the review rule it stays out of this lane's list (worth a line-repeat check by the Halloween owner). |
+| F-RP-10 | minor | refuted | By design (W9-F3/F4 commit message): only the welcome's 我自己逛逛 is the quiet wander; ?start=free (a QA deep link, `welcoming` false) and 自己逛 from the call menu later are the old free roam with the Coit nudge. |
+
+### Own findings
+
+None beyond the above (no time for an own pass over the W9-F commits).
+
+### Open items
+
+All twelve confirmed findings above. Order for the next agent: F-RC-2 / F-RP-1 (district gates; the hero regression test should then cover the district's toasts, postcard auto-turn and golden first visit), F-RC-1 / F-RP-2, F-RC-3, F-RP-3, F-RP-5, F-RP-6, F-RP-4, then the minors.
+
+### Blocking the go-live to main
+
+- **F-RC-2 / F-RP-1: district mode changed** (binding rule: district mode never changes). Either gate lane F's changes to the city or revert them for the district before main.
+- F-RC-1 / F-RP-2 (feedback toasts lost inside panels) and F-RC-3 (a permanent coach bar for tap-only phone players) are user-visible regressions in the city; I would hold the go-live on them too.
+
+Checks: this commit is docs only (one Markdown file); tsc / eslint / the opus-bay suite were not re-run for it.
