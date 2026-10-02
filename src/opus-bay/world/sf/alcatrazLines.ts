@@ -14,6 +14,7 @@ import type { Bilingual } from '../../core/types';
  *   https://www.nps.gov/goga/learn/historyculture/alcatraz-occupation.htm
  *
  *   board      BAYBAY on boarding the Alcatraz boat (game/transit.ts lineTick)
+ *   boardBack  (W9-X, w8 NEXT #10) boarding the boat back to Pier 33 at the island's dock (was the ferry's generic line)
  *   ashore     stepping off at the island's dock (game/transit.ts leaveLineRide)
  *   backAt33   stepping off back at Pier 33
  *   stair      at the foot of the stairway, the first time (world/sf/alcatrazFerry.ts island watcher)
@@ -24,6 +25,7 @@ import type { Bilingual } from '../../core/types';
 export const ALCA_LINES = {
   board: { zh: '开往恶魔岛！往西看是金门大桥，回头看是海湾大桥。', en: 'Off to Alcatraz! The Golden Gate is to the west, the Bay Bridge back east.' },
   ashore: { zh: '上岛啦。这里以前是联邦监狱，现在是国家公园，我们轻声走、慢慢看。', en: 'We’re on the island. It was a federal prison; now it’s a national park. Let’s walk quietly and take our time.' },
+  boardBack: { zh: '回城啦。回头再看一眼恶魔岛，前面就是旧金山。', en: 'Heading back to the city. One last look at Alcatraz — San Francisco is just ahead.' },
   backAt33: { zh: '回到 33 号码头啦。恶魔岛，去过咯！', en: 'Back at Pier 33. Alcatraz: been there!' },
   stair: { zh: '监狱楼在坡顶上。真的岛上，从码头走上去差不多等于爬 13 层楼！', en: 'The cellhouse is up the hill. On the real island, the walk up from the dock is like climbing 13 storeys!' },
   arrive: { zh: '这就是恶魔岛的监狱楼。1934 到 1963 年，这里是联邦监狱。', en: 'This is Alcatraz’s cellhouse. From 1934 to 1963 it was a federal prison.' },

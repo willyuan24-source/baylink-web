@@ -2,7 +2,8 @@
  * Wave 5 · lane V · W5-V7: BAYBAY says her recorded wave-5 lines (wave 6, lane X · W6-X4: and the Halloween lines of lanes
  * G and H, data/sf/voiceW6.ts; wave 7, lane X · W7-X2: data/sf/voiceW7.ts — every fixed line the earlier batches missed
  * and wave 7's new ones; wave 8, lane X · W8-X1: data/sf/voiceW8.ts — lane M's wave-7 game lines, lane K's plain bubbles,
- * wave 8's new lines, and faster retakes of wave 7's muted clips — matched the same way).
+ * wave 8's new lines, and faster retakes of wave 7's muted clips — matched the same way; wave 9, lane X · W9-X3:
+ * data/sf/voiceW9.ts — wave 8's two unrecorded lines and wave 9's new and reworded lines).
  *
  * The lanes say their lines as speech bubbles (game/flow.ts `bubble`, eggs `say`, lane C's pacer…) and none of them has
  * to know about the voice: every new BAYBAY bubble whose text (zh + en, exactly) was recorded
@@ -26,6 +27,8 @@ import { W8_RETAKE_CLIPS, W8_VOICE_CHECK, W8_VOICE_LINES } from '../data/sf/voic
 import { W7_VOICE_CHECK, W7_VOICE_LINES } from '../data/sf/voiceW7';
 import { W5_VOICE_CHECK, W5_VOICE_LINES } from '../data/sf/voiceW5';
 import { W6_VOICE_CHECK, W6_VOICE_LINES } from '../data/sf/voiceW6';
+// (W9-X3) wave 9's table: new ids only (no retakes), matched after the earlier tables
+import { W9_VOICE_CHECK, W9_VOICE_LINES } from '../data/sf/voiceW9';
 import { flow } from './flowStore';
 import { holdBubble } from './flow';
 import { BAYBAY_ID } from './interactables';
@@ -39,7 +42,7 @@ let byText: Map<string, string> | null = null;
  */
 export function w5VoiceFor(text: Bilingual): string | null {
   if (!byText) {
-    const owned = new Set([...W5_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES].filter(l => l.own).map(l => textKey(l.zh, l.en)));
+    const owned = new Set([...W5_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES, ...W9_VOICE_LINES].filter(l => l.own).map(l => textKey(l.zh, l.en)));
     byText = new Map(W5_VOICE_LINES.filter(l => !l.own && !owned.has(textKey(l.zh, l.en))).map(l => [textKey(l.zh, l.en), l.id]));
     // wave 6 (lane X, W6-X4): lanes G and H's Halloween lines (data/sf/voiceW6.ts) — a wave-5 recording of the same words wins
     for (const l of W6_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
@@ -47,6 +50,8 @@ export function w5VoiceFor(text: Bilingual): string | null {
     for (const l of W7_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
     // wave 8 (lane X, W8-X1): the lines no earlier batch had (data/sf/voiceW8.ts) — an earlier recording still wins
     for (const l of W8_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
+    // wave 9 (lane X, W9-X3): the lines no earlier batch had (data/sf/voiceW9.ts) — an earlier recording still wins
+    for (const l of W9_VOICE_LINES) if (!byText.has(textKey(l.zh, l.en)) && !owned.has(textKey(l.zh, l.en))) byText.set(textKey(l.zh, l.en), l.id);
   }
   return byText.get(textKey(text.zh ?? '', text.en ?? '')) ?? null;
 }
@@ -57,13 +62,13 @@ export function w5VoiceFor(text: Bilingual): string | null {
  */
 export function w5VoiceMuted(clip: string): boolean {
   if (W7_VOICE_CHECK.includes(clip)) return !(clip in W8_RETAKE_CLIPS);
-  return W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip) || W8_VOICE_CHECK.includes(clip);
+  return W5_VOICE_CHECK.includes(clip) || W6_VOICE_CHECK.includes(clip) || W8_VOICE_CHECK.includes(clip) || W9_VOICE_CHECK.includes(clip);
 }
 
 let seconds: Map<string, readonly [number, number]> | null = null;
 /** (W8-X-review) a recorded line's length in this locale (s), or 0 when unknown */
 export function w5VoiceSeconds(id: string): number {
-  seconds ??= new Map([...W5_VOICE_LINES, ...W6_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES].map(l => [l.id, l.s]));
+  seconds ??= new Map([...W5_VOICE_LINES, ...W6_VOICE_LINES, ...W7_VOICE_LINES, ...W8_VOICE_LINES, ...W9_VOICE_LINES].map(l => [l.id, l.s]));
   const s = seconds.get(id);
   return s ? s[getLocale() === 'en' ? 1 : 0] : 0;
 }

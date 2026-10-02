@@ -25,7 +25,7 @@ import { importRetry } from '../../game/importRetry';
  * https://cmsapi.theepochtimes.com/bright/defining-chinatown-architecture-and-cultural-identity-after-destruction-6055349);
  * Sing Fat's yellow roofs: NO source found — that article gives Sing Fat's palette only as "red, green, and yellow", and
  * Wikipedia, theclio.com/entry/186932, virtourist.com and the Commons file descriptions name no roof colour. The voiced
- * line keeps its text tonight (an edit would unvoice it); wave 9: source Sing Fat's roof colour or re-record the line.
+ * line kept its text in wave 8; (W9-X, WS-4) wave 9 re-words it without a colour for Sing Fat (re-recorded: voiceW9).
  * The fire after the 1906 quake "melted the church bells and marble altar", the walls and tower survived
  * (https://en.wikipedia.org/wiki/Old_St._Mary%27s_Cathedral); the O'Brien returned to Normandy in 1994 for the 50th
  * anniversary of D-Day (https://en.wikipedia.org/wiki/SS_Jeremiah_O%27Brien).
@@ -64,10 +64,10 @@ function grantWorld(along: number, across: number): Vec2 {
 export const W8_W1_LINES: readonly SightLine[] = [
   {
     id: 'w8w1-pagodas-ahead', ...grantWorld(13, 0), r: 3.5,
-    zh: '往上看！路口那两座宝塔楼，黄顶的是 Sing Fat，绿顶的是 Sing Chong。',
-    en: 'Look up the street! At the corner, the yellow roofs are Sing Fat and the green ones Sing Chong.',
-    // (W8-C) Sing Chong's green roof is sourced (2026-10-01); Sing Fat's yellow roofs are not (the header): wave 9
-    source: 'https://en.wikipedia.org/wiki/Look_Tin_Eli ; https://cmsapi.theepochtimes.com/bright/defining-chinatown-architecture-and-cultural-identity-after-destruction-6055349 (Sing Chong green roof, checked 2026-10-01; Sing Fat yellow: unsourced)',
+    zh: '往上看！路口两座宝塔楼：Sing Fat 和绿顶的 Sing Chong。',
+    en: 'Look up! The two pagoda towers at the corner: Sing Fat, and Sing Chong with the green roofs.',
+    // (W8-C) Sing Chong's green roof is sourced (2026-10-01); (W9-X, WS-4) the line names no colour for Sing Fat
+    source: 'https://en.wikipedia.org/wiki/Look_Tin_Eli ; https://cmsapi.theepochtimes.com/bright/defining-chinatown-architecture-and-cultural-identity-after-destruction-6055349 (Sing Chong green roof, checked 2026-10-01)',
   },
   {
     id: 'w8w1-st-marys-bells', ...grantWorld(27.9, 3.3), r: 2.2,

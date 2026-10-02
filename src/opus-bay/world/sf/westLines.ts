@@ -30,7 +30,9 @@ export const WEST_LINES: Record<'surf1' | 'surf2' | 'kelly' | 'seal1' | 'seal2',
 export const LAKE_LINES: Record<'boats' | 'heron' | 'since', WestLine> = {
   boats: { id: 'w8-w2-lake-boats', text: { zh: '湖上有人踩脚踏船、有人划船，好悠闲。', en: 'People are out on the lake in pedal boats and rowboats — so peaceful.' } },
   heron: { id: 'w8-w2-lake-heron', text: { zh: '这片湖叫蓝鹭湖。看，岸边就站着一只大蓝鹭！', en: "It's called Blue Heron Lake — look, there's a great blue heron on the shore!" } },
-  since: { id: 'w8-w2-lake-1893', text: { zh: '从1893年起，这座船屋就一直租船给游客。', en: 'This boathouse has been renting out boats since 1893.' } },
+  // (W9-X, w8 W2-C6) the business has rented boats since 1893; the present building is from 1946–49: the words no longer
+  // lean on "this building" (blueheronboathouse.com "In operation since 1893", re-read 2026-10-01). Re-recorded: voiceW9.
+  since: { id: 'w8-w2-lake-1893', text: { zh: '船屋从1893年起就租船给游客。', en: 'The boathouse has rented boats to visitors since 1893.' } },
 };
 
 /** a spot: where, how near (u), its lines in order, by day only */

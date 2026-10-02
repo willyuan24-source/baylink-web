@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ROOT, TABLES, w9Lines } from './lines';
 
-export interface LineRow { id: string; family: 'text' | 'id'; table: string; zh: string; en: string; status: 'voiced' | 'muted' | 'unvoiced'; source?: string }
+export interface LineRow { id: string; family: 'text' | 'id'; table: string; zh: string; en: string; status: 'voiced' | 'muted' | 'unvoiced'; source?: string; /** the muted clips (`zh-<id>` / `en-<id>`) */ mutedClips?: string[] }
 export interface Coverage {
   lines: number; voiced: number; muted: number; unvoiced: number; pct: number;
   byFamily: Record<'text' | 'id', { lines: number; voiced: number; muted: number; unvoiced: number }>;
@@ -79,8 +79,8 @@ export async function coverage(): Promise<Coverage> {
       if (seenText.has(k)) continue; // an earlier recording of the same words wins (the binder's rule)
       if (!l.own && !(said(l.zh) && said(l.en))) { dead.push({ id: l.id, table: t.name, zh: l.zh, en: l.en }); continue; }
       seenText.add(k);
-      const st = muted.has(`zh-${l.id}`) || muted.has(`en-${l.id}`) ? 'muted' : 'voiced';
-      rows.push({ id: l.id, family: 'text', table: t.name, zh: l.zh, en: l.en, status: st });
+      const m = [`zh-${l.id}`, `en-${l.id}`].filter(c => muted.has(c));
+      rows.push({ id: l.id, family: 'text', table: t.name, zh: l.zh, en: l.en, status: m.length ? 'muted' : 'voiced', ...(m.length ? { mutedClips: m } : {}) });
     }
   }
   const { fresh } = await w9Lines();
