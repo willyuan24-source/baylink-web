@@ -94,7 +94,8 @@ async function run(n) {
   });
   const send = (method, params = {}) => new Promise((resolve, reject) => { const id = ++mid; pending.set(id, { resolve, reject }); ws.send(JSON.stringify({ id, method, params })); });
   const ev = async expr => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); return r.result?.value; };
-  const shot = async name => { const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: 60 }); fs.writeFileSync(path.join(dir, name + '.jpg'), Buffer.from(r.data, 'base64')); };
+  // a screenshot never holds the run up (it waits for a compositor frame): at most 3 s, else skipped
+  const shot = async name => { const r = await Promise.race([send('Page.captureScreenshot', { format: 'jpeg', quality: 60 }), sleep(3000).then(() => null)]); if (r) fs.writeFileSync(path.join(dir, name + '.jpg'), Buffer.from(r.data, 'base64')); };
   const tap = async c => {
     if (MOBILE) { await send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: c[0], y: c[1], id: 0 }] }); await sleep(60); await send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); }
     else { await send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: c[0], y: c[1] }); await send('Input.dispatchMouseEvent', { type: 'mousePressed', x: c[0], y: c[1], button: 'left', clickCount: 1 }); await sleep(60); await send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: c[0], y: c[1], button: 'left', clickCount: 1 }); }
@@ -121,9 +122,10 @@ async function run(n) {
         if (titleAt == null) titleAt = Date.now();
         const due = MODE === 'wait10' ? 10000 : 300;
         if (Date.now() - titleAt >= due) {
-          if (!shotTitle) { shotTitle = true; await shot('title'); }
           if (firstTry == null) { firstTry = await ev('Math.round(performance.now())'); await tap(s.c); }
           else if (s.on) await tap(s.c);
+          // the title as the press found it (准备中… or Start), after the press: the shot never delays it
+          if (!shotTitle) { shotTitle = true; await shot('title'); }
           const mm = await ev('window.__cold.marks').catch(() => ({}));
           if (mm && mm.click != null) clicked = true;
         }
