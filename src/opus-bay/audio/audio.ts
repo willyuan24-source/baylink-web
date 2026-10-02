@@ -77,8 +77,11 @@ export const MUSIC_GESTURE_GAP = 1200;
 export const MUSIC_FADE_TAU = 3;
 /** (W9-X1, tests / QA) the music's start in the running startAudio: the player's gesture has come, the music has begun */
 export const musicProbe = { wanted: false, started: false };
-/** (W9-X3, tests / QA) voice-line events taken / skipped (a second one for the same bubble) */
-export const voiceLineProbe = { accepted: 0, skipped: 0 };
+/**
+ * (W9-X3, tests / QA) voice-line events taken / skipped (a second one for the same bubble); (W9-X6) the dialogue node the
+ * last taken line belongs to (null: a bubble's, or none) and how often a node's line was let go (the node moved on)
+ */
+export const voiceLineProbe = { accepted: 0, skipped: 0, node: null as string | null, nodeReleases: 0 };
 
 /**
  * (W6-X review) The big night's toll waits for the sound to be live: halloween/world.ts announces the phase once, when the
@@ -331,6 +334,8 @@ export function startAudio(): () => void {
 
   /** (W9-X3) the bubble the playing recorded line belongs to (undefined: none, or a line with no bubble) */
   let lineKey: number | undefined;
+  /** (W9-X6) the dialogue node a recorded line with no bubble belongs to (BAYBAY's dialogue box: game/voiceW5.ts) */
+  let lineNode: string | null = null;
   const night = nightTollGate();
   const handle = (ev: GameEvent) => {
     night.see(ev);
@@ -415,9 +420,12 @@ export function startAudio(): () => void {
       // recorded city lines (lane H2b data, lane G2 triggers): the clip, else the line's chirp
       // (W9-X3) the line belongs to the bubble on screen when it is emitted (every lane emits it right after its bubble():
       // game/voiceW5.ts, the pacer, baybayLines, realsf, economy): its clip starts only while that bubble is still up, and
-      // a newer bubble cuts it (offBubble below). No bubble (a card or a dialogue box carries the words): no gate.
+      // a newer bubble cuts it (offBubble below). (W9-X6) No bubble but a dialogue box open: the line belongs to that
+      // node (closed or moved on before the clip starts: it never plays; moved on while it plays: it stops, offStore).
+      // Neither (a card carries the words): no gate.
       case 'voice-line': {
         const key = flow.get().bubble?.key;
+        const node = key === undefined ? game.get().dialogue.nodeId : null;
         // one voice per bubble: the first voice-line of a bubble wins (the binder's text match comes first, inside
         // bubble(); a lane's own id for the same bubble after it — realsf's `realsf-<key>` — would chirp over the clip)
         if (key !== undefined && key === lineKey) { voiceLineProbe.skipped++; break; }
@@ -425,7 +433,9 @@ export function startAudio(): () => void {
         // a line of another bubble still playing stops now (not only once the new clip has loaded)
         if (key !== lineKey && voice.stopLine()) voice.lineStats.cut++;
         lineKey = key;
-        voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi', key === undefined ? null : () => flow.get().bubble?.key === key);
+        lineNode = node;
+        voiceLineProbe.node = node;
+        voice.line(ev.id, SF_VOICE_LINES[ev.id]?.fallback ?? 'hi', key !== undefined ? () => flow.get().bubble?.key === key : node ? () => game.get().dialogue.nodeId === node : null);
         break;
       }
     }
@@ -448,6 +458,8 @@ export function startAudio(): () => void {
       // music sits lower while a speech bubble is open (blips duck it further)
       rig.engine.buses.music.hold(s.dialogue.nodeId ? 0.65 : 1);
       if (s.dialogue.nodeId === null) rig.voice.cancel();
+      // (W9-X6) the dialogue line's node closed or moved on: its words are gone, so is its voice
+      if (lineNode !== null && s.dialogue.nodeId !== lineNode) { lineNode = null; voiceLineProbe.nodeReleases++; if (rig.voice.stopLine()) rig.voice.lineStats.cut++; }
     }
   });
 

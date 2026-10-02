@@ -21,6 +21,11 @@ Each batch's picks play in this order in `w9-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 7 | 2 | R 真实 | `zh-w5-r-a13d0aed` | 今天城里有活动！旅行本「今天」里写着呢～ | 4.02 | pass | ✓ (0.93) | |
 | 8 | 2 | R 真实 | `zh-w5-r-abd86c7b` | 今天的日落时间和三件小事，都在旅行本「今天」里～ | 4.65 | pass | ✓ (0.99) | |
 | 9 | 2 | R 真实 | `zh-w5-r-7d16e184` | 旅行本「今天」里有今日三件小事，慢慢逛～ | 3.99 | pass | ✓ (0.90) | |
+| 10 | 3 | M/A 小游戏 | `zh-w5-a-311ad20d` | 马路这里过不去，从斑马线过去吧！ | 3.18 | pass | ✓ (0.99) | |
+| 11 | 3 | H 万圣 | `zh-w9-h-today-festival` | 万圣节快乐！今天唐人街的 Waverly 巷有万圣节庆典，下午三点结束～ | 7.24 | pass | ✓ (0.83) | |
+| 12 | 3 | H 万圣 | `zh-w9-h-today-big-night` | 万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～ | 8.66 | pass | ✓ (0.99) | |
+| 13 | 3 | H 万圣 | `zh-w9-h-today-procession` | 今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。 | 5.89 | pass | ✓ (0.93) | |
+| 14 | 3 | N 去哪 | `zh-w5-n-645daeca` | 这段路被挡住了，我们怎么走？ | 2.69 | pass | ✓ (0.99) | |
 
 ## en
 
@@ -35,6 +40,11 @@ Each batch's picks play in this order in `w9-voice-preview-b<n>-{zh,en}.m4a` (0.
 | 7 | 2 | R 真实 | `en-w5-r-a13d0aed` | Something’s on in the city today — it’s on the journal’s Today page! | 4.57 | pass | ✓ (0.88) | |
 | 8 | 2 | R 真实 | `en-w5-r-abd86c7b` | Today’s sunset time and three small things are on the journal’s Today page. | 5.06 | pass | ✓ (0.95) | |
 | 9 | 2 | R 真实 | `en-w5-r-7d16e184` | Three small things for today wait on the journal’s Today page — no rush. | 5.03 | pass | ✓ (0.89) | |
+| 10 | 3 | M/A 小游戏 | `en-w5-a-311ad20d` | You can’t cross here. Use the zebra crossing! | 4.04 | pass | ✓ (0.91) | |
+| 11 | 3 | H 万圣 | `en-w9-h-today-festival` | Happy Halloween! Chinatown’s Halloween Festival is on Waverly Place today, until three o’clock. | 6.35 | pass | ✓ (0.95) | |
+| 12 | 3 | H 万圣 | `en-w9-h-today-big-night` | Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there. | 6.46 | pass | ✓ (0.95) | |
+| 13 | 3 | H 万圣 | `en-w9-h-today-procession` | The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site. | 7.76 | pass | ✓ (0.92) | |
+| 14 | 3 | N 去哪 | `en-w5-n-645daeca` | This way is blocked. How shall we go? | 3.60 | pass | ✓ (0.80) | |
 
 ## 重录 · retakes of wave-7 muted clips
 

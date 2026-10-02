@@ -20,6 +20,11 @@ export const W9_VOICE_LINES: readonly W9VoiceLine[] = [
   { id: "w5-r-a13d0aed", lane: "r", zh: "今天城里有活动！旅行本「今天」里写着呢～", en: "Something’s on in the city today — it’s on the journal’s Today page!", s: [4.02, 4.57] },
   { id: "w5-r-abd86c7b", lane: "r", zh: "今天的日落时间和三件小事，都在旅行本「今天」里～", en: "Today’s sunset time and three small things are on the journal’s Today page.", s: [4.65, 5.06] },
   { id: "w5-r-7d16e184", lane: "r", zh: "旅行本「今天」里有今日三件小事，慢慢逛～", en: "Three small things for today wait on the journal’s Today page — no rush.", s: [3.99, 5.03] },
+  { id: "w5-a-311ad20d", lane: "a", zh: "马路这里过不去，从斑马线过去吧！", en: "You can’t cross here. Use the zebra crossing!", s: [3.18, 4.04] },
+  { id: "w9-h-today-festival", lane: "h", zh: "万圣节快乐！今天唐人街的 Waverly 巷有万圣节庆典，下午三点结束～", en: "Happy Halloween! Chinatown’s Halloween Festival is on Waverly Place today, until three o’clock.", s: [7.24, 6.35] },
+  { id: "w9-h-today-big-night", lane: "h", zh: "万圣节快乐！今天讨糖街家家都开门，糖果加倍，旅行本「万圣节」页能带你去～", en: "Happy Halloween! Every treat-street door answers today, treats doubled — the Halloween page takes us there.", s: [8.66, 6.46] },
+  { id: "w9-h-today-procession", lane: "h", zh: "今晚教会区有亡灵节游行，通常七点从 22 街和布莱恩特街口出发，以官网为准。", en: "The Día de los Muertos procession usually leaves 22nd & Bryant at seven tonight — check the official site.", s: [5.89, 7.76] },
+  { id: "w5-n-645daeca", lane: "n", zh: "这段路被挡住了，我们怎么走？", en: "This way is blocked. How shall we go?", s: [2.69, 3.6] },
 ];
 
 /** clips whose pick missed a gate (the listening sheet says "check"): muted until the owner approves them */

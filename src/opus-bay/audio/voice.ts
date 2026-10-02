@@ -221,8 +221,10 @@ export class VoicePlayer {
       const now = this.e.now;
       if (now - (this.lastById[clipId] ?? -Infinity) < SAME_CLIP_GAP) { chirp(); return; }
       if (gone()) return;
-      // (W9-X3) one voice at a time: a line still playing fades out under the new one
+      // (W9-X3) one voice at a time: a line still playing fades out under the new one; (W9-X6) so do a dialogue node's
+      // blips (BAYBAY's dialogue box with recorded words: game/voiceW5.ts)
       if (this.stopLine()) this.lineStats.cut++;
+      this.cancel();
       const v = this.e.voice({ bus: 'voice', at: now, dur: buffer.duration, gain: 0.95, priority: 3, reverb: 0.06, name: `voice-clip:${clipId}` });
       if (!v) return;
       this.e.buffer(v, buffer);
@@ -295,8 +297,9 @@ export class VoicePlayer {
     const node = NODES[nodeId];
     const speaker = (node?.speaker ?? speakerRaw) as Speaker | string;
     this.cancel();
-    // (W9-X1) 只关语音: the voice bus is silent; no blips, no bark, no duck
-    if (speaker === 'narrator' || getAudioLevels().voiceMuted) return;
+    // (W9-X1) 只关语音: the voice bus is silent; no blips, no bark, no duck. (W9-X6) One voice at a time: no blips over a
+    // recorded line (the node's own clip may have started first: game/voiceW5.ts emits it from the same event)
+    if (speaker === 'narrator' || getAudioLevels().voiceMuted || this.lineSpeaking()) return;
     const lang = VoicePlayer.lang();
     const text = node ? (lang === 'en' ? node.text.en : node.text.zh) : '';
     const voicing: Voicing = speaker === 'baybay' ? 'baybay' : speaker === 'player' ? 'player' : 'npc';

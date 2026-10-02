@@ -30,7 +30,7 @@ import { W6_VOICE_CHECK, W6_VOICE_LINES } from '../data/sf/voiceW6';
 // (W9-X3) wave 9's table: new ids only (no retakes), matched after the earlier tables
 import { W9_VOICE_CHECK, W9_VOICE_LINES } from '../data/sf/voiceW9';
 import { flow } from './flowStore';
-import { holdBubble } from './flow';
+import { holdBubble, nodeById } from './flow';
 import { BAYBAY_ID } from './interactables';
 
 const textKey = (zh: string, en: string) => `${zh.trim()}\n${en.trim()}`;
@@ -87,10 +87,26 @@ function holdForVoice(id: string): void {
   holdBubble(b.key, Math.min(VOICE_HOLD_MAX, s * 1000 + VOICE_HOLD_TAIL));
 }
 
-/** Start voicing BAYBAY's recorded bubbles; returns the off. */
+/**
+ * (W9-X6) BAYBAY's dialogue box says a recorded line too: a node of hers whose words (zh + en, exactly) were recorded —
+ * lane N's 这段路被挡住了，我们怎么走？ card (game/tripRun.ts STUCK_LINE) — plays its clip (audio/audio.ts ties the clip
+ * to that node: closed or moved on before it starts, it never plays; moved on while it plays, it stops). None of the 103
+ * static nodes (data/script.ts) has recorded words today, so nothing else starts talking. Returns the line id, or null.
+ */
+export function w5VoiceForNode(speaker: string, nodeId: string): string | null {
+  const node = nodeById(nodeId);
+  if (!node || (node.speaker ?? speaker) !== 'baybay') return null;
+  const id = w5VoiceFor(node.text);
+  return id && !w5VoiceMuted(`${getLocale() === 'en' ? 'en' : 'zh'}-${id}`) ? id : null;
+}
+
+/** Start voicing BAYBAY's recorded bubbles (and her dialogue nodes, W9-X6); returns the off. */
 export function initW5Voice(): () => void {
   let last = flow.get().bubble?.key ?? -1;
-  const offOwn = onEvent(e => { if (e.type === 'voice-line') holdForVoice(e.id); });
+  const offOwn = onEvent(e => {
+    if (e.type === 'voice-line') holdForVoice(e.id);
+    else if (e.type === 'dialogue') { const id = w5VoiceForNode(e.speaker, e.nodeId); if (id) emit({ type: 'voice-line', id }); }
+  });
   const off = flow.subscribe(() => {
     const b = flow.get().bubble;
     if (!b || b.key === last) return;

@@ -104,3 +104,45 @@ test('W9-X4 · the today line and the pelican\'s later line are fixed (voiceable
     assert.ok(P.PELICAN_LINES.laterToast(P.takeOffKey(d)).zh.includes(P.takeOffKey(d).zh), `${d}: the control on the toast`);
   }
 });
+
+test('W9-X6 · BAYBAY\'s dialogue box says its recorded words: her node with recorded text emits its line; an NPC\'s node, unrecorded words, an unknown node do not; no static node has recorded words', async () => {
+  const { defineNode } = await import('../src/opus-bay/game/flow');
+  const V = await import('../src/opus-bay/game/voiceW5');
+  const { emit, onEvent } = await import('../src/opus-bay/core/events');
+  const T = await import('../src/opus-bay/realsf/todayLine');
+  defineNode({ id: 'w9x6.rec', speaker: 'baybay', text: T.TODAY_PLAIN_LINE });
+  defineNode({ id: 'w9x6.npc', speaker: 'npc', text: T.TODAY_PLAIN_LINE });
+  defineNode({ id: 'w9x6.new', speaker: 'baybay', text: { zh: '没录过的话', en: 'Never recorded.' } });
+  const want = V.w5VoiceFor(T.TODAY_PLAIN_LINE);
+  assert.ok(want, 'the plain today line is recorded (W9-X4)');
+  assert.equal(V.w5VoiceForNode('baybay', 'w9x6.rec'), want);
+  assert.equal(V.w5VoiceForNode('npc', 'w9x6.npc'), null);
+  assert.equal(V.w5VoiceForNode('baybay', 'w9x6.new'), null);
+  assert.equal(V.w5VoiceForNode('baybay', 'no-such-node'), null);
+  const got: string[] = [];
+  const offE = onEvent(e => { if (e.type === 'voice-line') got.push(e.id); });
+  const off = V.initW5Voice();
+  try {
+    emit({ type: 'dialogue', speaker: 'baybay', nodeId: 'w9x6.rec' });
+    emit({ type: 'dialogue', speaker: 'npc', nodeId: 'w9x6.npc' });
+    emit({ type: 'dialogue', speaker: 'baybay', nodeId: 'w9x6.new' });
+  } finally { off(); offE(); }
+  assert.deepEqual(got, [want], 'one line, for her recorded node only');
+  // the script's static nodes (103 of BAYBAY's): none has recorded words today, so no other dialogue starts talking
+  const { NODES } = await import('../src/opus-bay/data/script');
+  const talking = Object.values(NODES).filter(n => n.speaker === 'baybay' && V.w5VoiceFor(n.text));
+  assert.deepEqual(talking.map(n => n.id), []);
+});
+
+test('W9-X7 · batch 3: lane H\'s big-day greetings, lane G\'s crossing line and lane N\'s stuck question are voiced (the stuck card is BAYBAY\'s dialogue node: W9-X6 says it)', async () => {
+  const fs = await import('node:fs');
+  const { w5VoiceFor } = await import('../src/opus-bay/game/voiceW5');
+  const { W9_WORLD_LINES } = await import('../src/opus-bay/halloween/worldLines');
+  for (const l of W9_WORLD_LINES) assert.equal(w5VoiceFor(l), l.id, `${l.id} voiced under its own id`);
+  // lane G (play/hideSeek.ts HIDE_LINES.crosswalk) and lane N (game/tripRun.ts STUCK_LINE): the words as the files say them
+  const g = { zh: '马路这里过不去，从斑马线过去吧！', en: 'You can’t cross here. Use the zebra crossing!' };
+  const n = { zh: '这段路被挡住了，我们怎么走？', en: 'This way is blocked. How shall we go?' };
+  assert.ok(fs.readFileSync('src/opus-bay/play/hideSeek.ts', 'utf8').includes(`zh: '${g.zh}', en: '${g.en}'`), 'hideSeek says the recorded words');
+  assert.ok(fs.readFileSync('src/opus-bay/game/tripRun.ts', 'utf8').includes(`STUCK_LINE: Bilingual = { zh: '${n.zh}', en: '${n.en}' }`), 'tripRun says the recorded words');
+  for (const l of [g, n]) assert.ok(w5VoiceFor(l), `${l.zh} voiced`);
+});

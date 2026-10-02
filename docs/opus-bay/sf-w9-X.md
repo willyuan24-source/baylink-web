@@ -111,3 +111,32 @@ Pushed 23:34 PDT: `de263e3b` (W9-X3).
   inventory: the today line's plain branch was a literal no scan read).
 - Tests of the touched files (w5-calendar, w5-content, w5-favours, w5-r-review, w5-today, w5-tours, w6-k2-review,
   w8-k1-hold, w8-s-fleet, w9-r-today, w9-x-voice) 95 / 95.
+
+Pushed ≈ 00:47 PDT: `877d330c` (W9-X4). The first agent of the lane was stopped at ≈ 00:35–01:35 PDT by an account usage
+limit (not by a fault); its last local work was three real-game probes of the sound (`C:/Users/willy/opus-qa/w9/x/probe-d*`,
+01:23–01:32 PDT) whose numbers it did not write down — nothing local was left uncommitted, nothing was discarded.
+
+## Part d · resumed: the Halloween welcome restored, BAYBAY's dialogue box voiced, batch 3 (2026-10-02 02:14 → PDT)
+
+### What was built
+
+| commit | file | change |
+|---|---|---|
+| W9-X5 | `realsf/todayLine.ts` (R's file, surgical) | **a regression of W9-X4 fixed**: W9-H2 (22:44) put the big Halloween days into `todayLine()`; W9-X4 (00:35) switched both welcome paths of `realsf/index.ts` to `todaySpoken()`, which did not have them, so a player back at 19:30 on Halloween night heard the generic 「旅行本「今天」里有今日三件小事」 again — the very thing W9-H2 fixed (review R§6 growth row). `todaySpoken()` now returns `halloween/today.ts`' fixed line first (no toast: the line names its own place and time) |
+| W9-X5 | `tests/opus-bay-w9-x-today.test.ts` (new) | 31 Oct 19:30 / 12:30, 1 Nov 18:00, 2 Nov 19:10: the spoken line = lane H's line = `todayLine()`; other days the W9-X4 lines. **Red before** (31 Oct 19:30 → `TODAY_PLAIN_LINE`) |
+| W9-X6 | `game/voiceW5.ts` (the binder) | **BAYBAY's dialogue box says its recorded words**: `w5VoiceForNode(speaker, nodeId)`; on a `dialogue` event of a node of hers whose exact zh + en were recorded, the binder emits its `voice-line`. Needed for lane N's stuck card (`game/tripRun.ts` `STUCK_LINE`, a dialogue node, not a bubble: the binder matched bubbles only, so the line N listed could never have been heard). None of the 103 static nodes of `data/script.ts` has recorded words (a test), so no other dialogue starts talking |
+| W9-X6 | `audio/audio.ts` | a `voice-line` with no bubble while a dialogue node is open **belongs to that node**: closed or moved on before its clip starts, it never plays (the gate); moved on while it plays (a choice, the next node, closed), it stops (`voiceLineProbe.node / nodeReleases`). With neither bubble nor dialogue (a card): no gate, as before. The pelican's ask (emitted before its dialogue opens, never while another is open: `pelicanFirst` requires `!dialogueOpen()`) and the goals step are unaffected |
+| W9-X6 | `audio/voice.ts` | one voice at a time in a dialogue: a recorded clip starting cuts the node's blips (`cancel()`), and no blips start over a playing recorded line |
+| W9-X6 | `scripts/opus-sf/voice/w9/lines.ts` | `W9_SOURCES` + lane H's `W9_WORLD_LINES` (ids kept), lane N's `STUCK_LINE` (text pick: no import of tripRun); lane G's crossing line is found by wave 5's scan of `play/hideSeek.ts` |
+| W9-X6 | batch 3 → `data/sf/voiceW9.ts`, `public/opus-bay/w9/voice/` | 5 lines × zh / en = 10 clips: `w9-h-today-festival`, `w9-h-today-big-night`, `w9-h-today-procession`, `HIDE_LINES.crosswalk` (`w5-a-311ad20d`), `STUCK_LINE` (`w5-n-645daeca`) |
+| W9-X6 | `listening.py` → `docs/opus-bay/qa/w9/X/voice/listening.md` | the five lines with where to hear them (`?date=2026-10-31T19:30` on the dev server for the big night) |
+| W9-X6 | tests | `opus-bay-w9-x-voice` + W9-X6 (her node with recorded words emits its line; an NPC's node, unrecorded words, an unknown node do not; no static node is affected) + W9-X7 (batch 3 voiced, the words as the files say them); `opus-bay-w9-x-audio` + W9-X6 × 2 (a dialogue line belongs to its node and is let go when the node moves on; the clip cuts the blips, no blips over a line). **The three W9-X6 tests fail on the code before** (the three files copied back from `25c2847a`) |
+
+### Evidence
+
+- Batch 3 (10:05–10:06 UTC): 10 takes (2 submissions refused with a 429, 2 jobs failed and were refunded; all resubmitted),
+  **10 / 10 pass every gate, 10 / 10 heard right**; zh 2.69–8.66 s (the big night's greeting is the longest), en
+  3.60–7.76 s. Previews `docs/opus-bay/qa/w9/X/voice/w9-voice-preview-b3-{zh,en}.m4a`. Credits **0.27** (lane X total
+  **0.68**; ledger reconciled with `transactions`: nobody else spent in between).
+- **Coverage now: 607 fixed lines, 602 voiced (99.2 %), 5 muted (the owner's ear), 0 unvoiced**; 6 dead recordings (wave
+  5's three, wave 8's old 1893 / pagodas words, and wave 8's 这段路有点难走，你来带路吧！ which lane N replaced by the stuck card).

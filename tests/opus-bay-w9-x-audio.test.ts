@@ -270,3 +270,47 @@ test('W9-X3 one voice per bubble: the first voice-line of a bubble is taken (the
   });
   game.set({ phase: 'title' } as never);
 });
+
+test('W9-X6 a recorded line said in BAYBAY\'s dialogue box (no bubble) belongs to that node: moved on or closed, it is let go', async () => {
+  const { game } = await import('../src/opus-bay/core/store');
+  const { emit } = await import('../src/opus-bay/core/events');
+  const { flow } = await import('../src/opus-bay/game/flowStore');
+  const { voiceLineProbe } = await import('../src/opus-bay/audio/audio');
+  await withAudio(async ({ fire }) => {
+    game.set({ phase: 'playing' } as never);
+    fire('keydown');
+    await new Promise(r => setTimeout(r, 30));
+    flow.set({ bubble: null } as never);
+    game.set({ dialogue: { nodeId: 'w9x6.stuck' } } as never);
+    const r0 = voiceLineProbe.nodeReleases;
+    emit({ type: 'voice-line', id: 'w9-test-dialogue' });
+    assert.equal(voiceLineProbe.node, 'w9x6.stuck', 'the line belongs to the open node');
+    game.set({ dialogue: { nodeId: 'w9x6.next' } } as never); // a choice: the next node
+    assert.equal(voiceLineProbe.nodeReleases - r0, 1, 'moved on: the line is let go (stopped if it plays)');
+    game.set({ dialogue: { nodeId: null } } as never);
+    assert.equal(voiceLineProbe.nodeReleases - r0, 1, 'once');
+    // a line with a bubble is the bubble's, not a node's
+    flow.set({ bubble: { who: 'baybay', text: { zh: '丙', en: 'C' }, key: 9101, tone: 'bark' } } as never);
+    emit({ type: 'voice-line', id: 'w9-test-bubble' });
+    assert.equal(voiceLineProbe.node, null);
+    flow.set({ bubble: null } as never);
+  });
+  game.set({ phase: 'title', dialogue: { nodeId: null } } as never);
+});
+
+test('W9-X6 one voice at a time in a dialogue: the recorded clip silences the node\'s blips; no blips start over a playing line', async () => {
+  const L = await import('../src/opus-bay/audio/levels');
+  L.setAudioLevelsStorageForTests(null); L.resetAudioLevels();
+  const { p, e, made } = await playerWith({ 'zh-w9-a': 3 });
+  // the node's blips are playing (its utterance) when its clip starts
+  const blips = e.voice({ name: 'blips:baybay', at: 10, dur: 2 });
+  e.buffer(blips);
+  (p as unknown as { utterance: unknown }).utterance = blips;
+  p.line('w9-a', 'hi', () => true);
+  assert.ok(blips.stopped !== null, 'the blips were cut when the clip started');
+  assert.ok(p.lineSpeaking());
+  // a dialogue node opened while the line speaks: no blips over it
+  const before = made.length;
+  p.speak('baybay', 'no-such-node');
+  assert.equal(made.length, before, 'no blips over a recorded line');
+});

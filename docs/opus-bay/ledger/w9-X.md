@@ -67,3 +67,36 @@ Balance before: **357.05** (06:45 UTC). 4 lines × zh / en = 8 takes (indices 10
 06:46:31–32 (0.04 + 0.04 + 0.03 + 0.01 + 0.03 + 0.01 + 0.02 + 0.01 = 0.19), 2 refunds of the failed jobs (+0.02, +0.01,
 06:46:38–39), 2 resubmissions (−0.01, −0.02, 06:46:54–55); the row before is batch 1's resubmission (05:42:38). **Wave-9
 lane X running total: 0.41.**
+
+## Batch 3 · lanes H, G and N's new lines on origin at 02:50 PDT (W9-X6), 2026-10-02 10:05–10:06 UTC
+
+Balance before: **356.86** (10:04 UTC, unchanged since batch 2). 5 lines × zh / en = 10 takes (indices 200–209), scratch
+`C:/Users/willy/opus-qa/w9/x/voice3/`: lane H's three big-day greetings (`halloween/worldLines.ts` `W9_WORLD_LINES`), lane
+G's hide & seek crossing line (`play/hideSeek.ts` `HIDE_LINES.crosswalk`), lane N's stuck card question (`game/tripRun.ts`
+`STUCK_LINE`), verbatim as committed on origin.
+
+| # | asset | model / settings | prompt summary | credits | job ids | output | status |
+|---|---|---|---|---|---|---|---|
+| W9X-VO3 | 10 clips (5 lines × zh / en) | qwen_audio_tts, Pixie, rate 1.0 | `w9-h-today-festival`, `w9-h-today-big-night`, `w9-h-today-procession`, `HIDE_LINES.crosswalk`, `STUCK_LINE`, verbatim | 0.01–0.05 a take | below | `public/opus-bay/w9/voice/` | 10 used: **10 pass every gate, 10 heard right** |
+
+| take | clip | job id | created (UTC) | output | status |
+|---|---|---|---|---|---|
+| 200 | `zh-w5-a-311ad20d` | `e2b64235-03ed-4974-8e4d-001c3e0d5f62` | 10:05:44 | raw/200.wav | picked |
+| 201 | `en-w5-a-311ad20d` | — | — | — | submission refused (429 rate limit, no job, no charge), resubmitted |
+| 201 | `en-w5-a-311ad20d` | `01ddf360-cda5-43b0-b57c-6d018220a288` | 10:06:27 | raw/201.wav | picked |
+| 202 | `zh-w9-h-today-festival` | `dce145bc-2f75-4d79-83af-f0ae522ae480` | 10:05:44 | raw/202.wav | picked |
+| 203 | `en-w9-h-today-festival` | `5eb24948-a3f4-456b-8408-4c89b0ecff8d` | 10:05:44 | raw/203.wav | picked |
+| 204 | `zh-w9-h-today-big-night` | `bd111804-e323-4530-9397-44cd0d05c5d6` | 10:05:44 | raw/204.wav | picked |
+| 205 | `en-w9-h-today-big-night` | `5d6e9da1-1533-44c1-89e3-6445a75ea5ca` | 10:05:44 | raw/205.wav | picked |
+| 206 | `zh-w9-h-today-procession` | `43919865-4a34-4a05-8f80-5bd35632e910` | 10:05:44 | raw/206.wav | picked |
+| 207 | `en-w9-h-today-procession` | — | — | — | submission refused (429, no job, no charge), resubmitted |
+| 207 | `en-w9-h-today-procession` | `f14ff8e2-bbc3-45f3-9278-bf5d60bfcd66` | 10:06:27 | raw/207.wav | picked |
+| 208 | `zh-w5-n-645daeca` | `4294b56e-4ca5-49b3-be37-a674f9cd3ef3` | — | — | failed (refunded 10:05:51–52), resubmitted |
+| 208 | `zh-w5-n-645daeca` | `3e0b823c-d3b8-4529-9422-0c5d19d33d27` | 10:06:28 | raw/208.wav | picked |
+| 209 | `en-w5-n-645daeca` | `812b23c2-dc1e-44f9-964f-0392bddbb0f4` | — | — | failed (refunded 10:05:51–52), resubmitted |
+| 209 | `en-w5-n-645daeca` | `9fe8e650-8101-4f8b-a94a-9fb52037b076` | 10:06:27 | raw/209.wav | picked |
+
+**Credits:** `balance` 356.86 → **356.59** = **0.27**. `transactions` (newest 20 read at 10:08 UTC): 8 spends at 10:05:44–45
+(0.05 + 0.02 + 0.02 + 0.02 + 0.05 + 0.01 + 0.01 + 0.02 = 0.20), 2 refunds of the failed jobs (+0.01, +0.02, 10:05:51–52),
+4 resubmissions at 10:06:27–28 (0.05 + 0.02 + 0.02 + 0.01 = 0.10): 0.20 − 0.03 + 0.10 = 0.27; the row before is batch 2's
+resubmission (06:46:55): nobody else spent on the account in between. **Wave-9 lane X running total: 0.68.**
