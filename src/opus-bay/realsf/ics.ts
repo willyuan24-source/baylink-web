@@ -104,7 +104,8 @@ export function eventIcs(event: CatalogEvent, day: string, stamp?: number, local
     ...(h ? { start: h[0], end: h[1] } : {}),
     location: icsLocation(venue, event.city),
     description: [
-      '日期提醒 · 以官网为准 / Date reminder — check the official site before you go.',
+      // (W9-I, W9I-D8: an English file started with the Chinese line) English alone in English; 繁體 through catalogText
+      en ? 'Date reminder — check the official site before you go.' : catalogText('日期提醒 · 以官网为准 / Date reminder — check the official site before you go.', locale),
       locale === 'zh-Hant' ? catalogText(cost, locale) : cost,
       event.officialUrl ? `${en ? 'Official' : '官网 / Official'}: ${event.officialUrl}` : '',
       `BAYLINK: https://www.baylink.us/events/${encodeURIComponent(event.id)}`,

@@ -70,3 +70,18 @@ test('W9-I / W9I-P-1: 带我去 from an event card — on a first visit the even
     assert.equal(arrivalGone, 'preempted');
   } finally { mock.timers.reset(); A.clearAttention(); flow.set({ trip: null }); game.set({ worldMode: 'district' }); }
 });
+
+test('W9-I / W9I-D8: an English .ics DESCRIPTION has no Chinese reminder line (zh keeps its bilingual line)', async () => {
+  const fs = await import('node:fs');
+  const path = await import('node:path');
+  const C = await import('../src/opus-bay/data/catalog');
+  const ics = await import('../src/opus-bay/realsf/ics');
+  const CATALOG = C.sanitizeCatalog(JSON.parse(fs.readFileSync(path.resolve('public/planner-catalog.json'), 'utf8')));
+  const ev = CATALOG.events.find(x => x.id === 'sf-african-arts-festival-2026');
+  assert.ok(ev);
+  const desc = (text: string) => (text.replace(/\r\n /g, '').split('\r\n').find(l => l.startsWith('DESCRIPTION:')) ?? '');
+  const en = desc(ics.eventIcs(ev, ev.startDate, 0, 'en'));
+  assert.match(en, /^DESCRIPTION:Date reminder — check the official site before you go\./);
+  assert.doesNotMatch(en, /日期提醒/);
+  assert.match(desc(ics.eventIcs(ev, ev.startDate, 0, 'zh-Hans')), /^DESCRIPTION:日期提醒 · 以官网为准/);
+});
