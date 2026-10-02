@@ -12,7 +12,7 @@ usage limit at ≈ 00:35 with W9-E4 … E7 committed but not pushed; a second ag
 3. /opus-bay 有了自己的页面：打开时先显示和游戏标题页一样的静态首屏（不再先闪 BAYLINK 首页，限速 4G 实测从未出现首页内容），分享到微信/iMessage 时显示游戏自己的标题和主视觉卡片，sitemap 已收录。旧手机如果连脚本都跑不起来，会看到一条友好提示和「直接看攻略」链接，而不是点不动的页面。
 4. **/play 已切换到 3D 旧金山（单独一个提交 W9-E-switch1，最终验收不通过时可单独撤回）**：首页卡片改为「逛一圈 3D 旧金山」，侧栏「小小湾区」也进入游戏；/play 自动跳到游戏（保留简体/繁體/English）；以前分享出去的周末车票链接会打开 /plan 里的同一份计划。旧的 /play 页面代码保留在仓库里，没有删除。
 5. 顺手避免了一个副作用：/play 下线后，3D 引擎库会被打进游戏主包（主包变大将近一倍、每次更新都要重新下载），已让它保持独立缓存，体积和之前一致。
-6. 还需要别人做的：标题页左上角眉标仍是「Opus Bay · BAYLINK」（F 线的文件，计划写明由 F 改为「小小湾区 · BAYLINK」）；旧 iPhone 真机和微信里的分享卡片预览需要主人或最终验收用真机确认。
+6. 用户能看到的「Opus Bay」已全部去掉：标题页左上角眉标改为「小小湾区 · BAYLINK」（英文 Little Bay · BAYLINK，繁體 小小灣區），和首屏一致。还需要主人或最终验收确认的：旧 iPhone 真机、微信里的分享卡片预览。
 
 ## Part a — the look-behind P0 (review R§5 #2) · 21:35 → 22:10 PDT
 
@@ -221,8 +221,8 @@ Screens: `docs/opus-bay/qa/w9/E/switch-home-card-phone.jpg`, `switch-play-hant-p
   (`vercel.json` with a query condition) would avoid both but cannot be tested here; left as is.
 - `src/app/AppLayout.tsx` still tests `/^\/play\/?$/` (`playingLittleBay`: skip the feed fetch on /play) — dead now (the
   layout no longer renders on /play), harmless, not my file; it is live again if the switch is reverted.
-- The game's title eyebrow still says 「Opus Bay · BAYLINK」 (`ui/TitleScreen.tsx:95`, lane F's file; §6 names: 「小小湾区 ·
-  BAYLINK」) — see Requests.
+- The game's title eyebrow still said 「Opus Bay · BAYLINK」 (`ui/TitleScreen.tsx:95`, lane F's file; §6 names: 「小小湾区 ·
+  BAYLINK」) — done surgically in W9-E9 (below).
 - Not verified: a real iPhone (iOS 15 / 16.2), WeChat's in-app browser and link card, Vercel's own routing of `/play` and
   `/opus-bay` (vite preview resolves `/x` → `x.html` like the `vercel.json` rule; the rules are pinned by `tests/seo.test.ts`
   and `tests/opus-bay-w9-e-shell.test.ts`).
@@ -236,10 +236,31 @@ Screens: `docs/opus-bay/qa/w9/E/switch-home-card-phone.jpg`, `switch-play-hant-p
 - Old tickets go to `/plan` (it reads the same parameters), not to the game.
 - The three.js chunk rule went into the switch commit (it only matters because of the switch; a revert removes both).
 
+## W9-E9 — no user-visible "Opus Bay" (sf-w9-lead.md §3 E (5), §6 names; review §10.1) · 04:05 → 04:35 PDT
+
+The title's eyebrow was the last user-visible "Opus Bay" in `src/` (grep outside comments). Lane F owns
+`ui/TitleScreen.tsx`; F's branch and report had not touched it by 04:05 and the switch gate wants no "Opus Bay", so a
+surgical one-line fix (named in the commit): `Opus Bay · BAYLINK` → `{t('小小湾区 · BAYLINK', 'Little Bay · BAYLINK')}` — the
+same words as the static first paint, so the swap from the shell to the title keeps them. Red-then-green: a new check in
+`tests/opus-bay-w9-e-shell.test.ts` (5 / 6 before, 6 / 6 after); the title's other tests (w5-lang-review, w5-lang, w5-nav,
+w9-a-settings, w9-p) 98 / 98. In Chrome on the dev server (`probe/mark-shot.mjs`, `?world=city&save=off`): desktop zh
+「小小湾区 · BAYLINK | 湾区小旅」, phone `?lang=en` "LITTLE BAY · BAYLINK | Little Bay Trip" (the CSS upper-cases it), desktop
+`?lang=zh-Hant` 「小小灣區 · BAYLINK | 灣區小旅」 (`C:/Users/willy/opus-qa/w9/e/switch/title-mark-*.jpg`). Static text, not voiced.
+
+## Final checks (04:35 PDT, the tree of W9-E9 `17442508`)
+
+- `npm test` once (the whole site + game suite, `--test-concurrency=4`, 38.7 min on the shared machine): 3168 tests, 3166
+  pass, 1 todo (W8-P9), 1 fail = `opus-bay-sf-move2` "E2-5 view field in the city … a cached cell is cheap" (a wall-clock
+  check; it failed the same way in the first agent's run under load) → re-run alone: pass. (A rebase onto other lanes' docs /
+  game files happened while it ran; no lane-E file changed under it.)
+- The build the way `npm run build` does it, to scratch (`vite build --outDir …/build-e/dist` + `PRERENDER_OUT_DIR=… tsx
+  scripts/prerender.tsx`; the export scripts write tracked data and were not re-run): exit 0, 589 pages, `dist-syntax` PASS
+  (look-behind 0), no tracked file churned. Built from the switch tree; W9-E9 (one string in the title chunk) came after.
+- `tsc -p tsconfig.app.json` 0 and `-p tsconfig.node.json` 0; `npx eslint .` 0 errors, 53 warnings (50 before part c; the 3
+  new ones are in `src/opus-bay/ui/CityTourRecap.tsx`, lane N's, rebased in; none in lane-E files).
+
 ## Requests
 
-- **Lane F** (or W9-I / W9-C if F has ended): `src/opus-bay/ui/TitleScreen.tsx:95` `Opus Bay · BAYLINK` → `小小湾区 · BAYLINK`
-  (sf-w9-lead.md §6 names; the switch gate wants no user-visible "Opus Bay"; static page text, not voiced).
 - **W9-Z**: run `node scripts/opus-sf/qa/dist-syntax.mjs --dist <dist>` on the go-live build; read GameRoot **and**
   `three-vendor` from the build output (the old `react-three-fiber.esm` chunk's successor); the switch rows above at zh /
   zh-Hant / en; if the switch gate fails, `git revert d57e8a1c` alone.
