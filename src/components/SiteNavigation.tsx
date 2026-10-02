@@ -20,6 +20,8 @@ type Props = {
 
 export function SiteNavigation({ active, category, homeActive, user, notification, notificationCount, onCreate, onAsk, onAccount }: Props) {
   // W9-E-switch: 小小湾区 · Little Bay is the 3D San Francisco game now (/play redirects there)
+  // (W9-E-review, E-RC-3) entered with a full page load like every other entry: a client-side entry left the game's
+  // store (phase 'playing') and window listeners behind after Back, and the next entry skipped the title and Start
   const littleBayActive = /^\/(?:opus-bay|play)\/?$/.test(useLocation().pathname);
   const links = [
     { href: '/', label: '发现湾区', sub: 'Discover', icon: Home, current: homeActive },
@@ -36,7 +38,7 @@ export function SiteNavigation({ active, category, homeActive, user, notificatio
       <Link to="/" className="site-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="180" height="48" /><span>湾区生活，从这里连接</span></Link>
       <div className="site-nav-label">YOUR BAY AREA, CONNECTED</div>
       <nav className="site-nav" aria-label="主要导航">
-        {links.map(({ href, label, sub, icon: Icon, current }) => <Link key={href} to={href} aria-current={current ? 'page' : undefined} className={`site-nav-link ${current ? 'is-active' : ''}`}><Icon size={20} strokeWidth={current ? 2 : 1.7} /><span>{label}<small>{sub}</small></span>{href === '/messages' && notification && <b className="site-unread">{notificationCount || '•'}</b>}{current && <span className="site-nav-dot" />}</Link>)}
+        {links.map(({ href, label, sub, icon: Icon, current }) => <Link key={href} to={href} reloadDocument={href.startsWith('/opus-bay')} aria-current={current ? 'page' : undefined} className={`site-nav-link ${current ? 'is-active' : ''}`}><Icon size={20} strokeWidth={current ? 2 : 1.7} /><span>{label}<small>{sub}</small></span>{href === '/messages' && notification && <b className="site-unread">{notificationCount || '•'}</b>}{current && <span className="site-nav-dot" />}</Link>)}
       </nav>
       <div className="site-legal"><Link to="/calendar">活动日历</Link><Link to="/plan">智能出游计划</Link><Link to="/my-week">我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动</Link></div>
       <button type="button" onClick={onCreate} className="site-publish"><Plus size={19} /> 发布信息<ArrowUpRight size={16} /></button>
