@@ -5,6 +5,7 @@ import { emit, onEvent, REWARD_SOURCE } from '../core/events';
 import { runtime } from '../core/runtime';
 import type { Bilingual } from '../core/types';
 import { readSave } from '../data/save';
+import { bayParts } from '../game/bayNow';
 import { noteHoldActivity } from '../game/baybayHold';
 import { holdLock } from '../game/playerLock';
 import { registerFrameSystem } from '../game/systemsRegistry';
@@ -38,6 +39,15 @@ export const TIER_WORDS: Record<0 | Tier, Bilingual> = {
   2: { zh: '很好', en: 'Great' },
   3: { zh: '太棒了', en: 'Brilliant' },
 };
+/**
+ * W9-G4 · 今日小游戏 (review 2026-10-01 R§6: a replay paid nothing): the first mini-game finished each Bay day — any medal,
+ * 再试试 too — pays TODAY_COINS through the ledger's existing daily kind (`daily:<Bay date>:4`, sf-w9-lead §4: date-keyed,
+ * inside the `daily` cap of 20, no new cap and no save bit; lane R's 今日三件小事 use :1–:3 and :all). Renewable, no streak.
+ * play/dexEntry.ts pays it on the `play` end event (the ledger pays a date's source once); the card below counts it.
+ */
+export const TODAY_N = 4;
+export const TODAY_COINS = 10;
+export const todaySource = (dateKey: string = bayParts().dateKey) => `daily:${dateKey}:${TODAY_N}`;
 /** Coins per medal tier, paid once per tier (plan §3.4: activity medal 5 / 10 / 15). */
 export const MEDAL_COINS: Record<Tier, number> = { 1: 5, 2: 10, 3: 15 };
 /** The window a tap may miss its beat by (s) and the offset learning (plan §3.2). */
@@ -241,8 +251,15 @@ export function startActivity(spec: ActivitySpec, opts: ActivityOpts = {}): Acti
 function finish(spec: ActivitySpec, result: ActivityResult) {
   const tier = result.tier;
   // what the ledger actually paid for this run (lane E emits `coins` right after each reward it pays)
-  let paid = 0;
-  const offCoins = onEvent(e => { if (e.type === 'coins' && e.delta > 0 && e.source.startsWith(`medal:${spec.id}:`)) paid += e.delta; });
+  let paid = 0, today = 0;
+  const day = todaySource();
+  const offCoins = onEvent(e => {
+    if (e.type !== 'coins' || e.delta <= 0) return;
+    if (e.source.startsWith(`medal:${spec.id}:`)) paid += e.delta;
+    else if (e.source === day) today += e.delta;
+  });
+  let best: Bilingual | undefined;
+  let fresh = false;
   try {
     for (const t of TIERS) {
       if (t > tier) break;
@@ -251,20 +268,19 @@ function finish(spec: ActivitySpec, result: ActivityResult) {
       paidThisSession.add(source);
       emit({ type: 'reward', source, coins: MEDAL_COINS[t], stamp: source });
     }
+    // the best: 新纪录！ when this run beat an earlier one, else the earlier best in the activity's words (上次你 18 秒！)
+    if (result.score !== undefined && Number.isFinite(result.score)) {
+      const old = bestOf(spec.id);
+      const beat = recordBest(spec.id, result.score, spec.better ?? 'higher');
+      fresh = beat && old !== undefined;
+      if (old !== undefined && !beat && result.bestText) best = result.bestText(old);
+    }
+    // (W9-G4) the end event pays the day's first game (play/dexEntry.ts): counted for the card too
+    emit({ type: 'play', activity: spec.id, what: 'end', ...(tier ? { tier } : {}) });
   } finally { offCoins(); }
-  // the best: 新纪录！ when this run beat an earlier one, else the earlier best in the activity's words (上次你 18 秒！)
-  let best: Bilingual | undefined;
-  let fresh = false;
-  if (result.score !== undefined && Number.isFinite(result.score)) {
-    const old = bestOf(spec.id);
-    const beat = recordBest(spec.id, result.score, spec.better ?? 'higher');
-    fresh = beat && old !== undefined;
-    if (old !== undefined && !beat && result.bestText) best = result.bestText(old);
-  }
-  emit({ type: 'play', activity: spec.id, what: 'end', ...(tier ? { tier } : {}) });
   if (result.card === false) return;
   playSound('play-medal', { gain: tier / 3 });
-  showResult({ activity: spec.id, name: spec.name, tier, detail: result.detail, best, fresh, coins: paid, again: result.again, photo: result.photo });
+  showResult({ activity: spec.id, name: spec.name, tier, detail: result.detail, best, fresh, coins: paid + today, ...(today ? { today } : {}), again: result.again, photo: result.photo });
 }
 
 /**
@@ -288,8 +304,10 @@ export interface ResultProps {
   best?: Bilingual;
   /** this run beat an earlier best */
   fresh?: boolean;
-  /** coins the ledger paid for this run's medals */
+  /** coins the ledger paid for this run's medals (and today's game, W9-G4) */
   coins?: number;
+  /** W9-G4: this run paid the day's 今日小游戏 coins */
+  today?: number;
   again?: () => void;
   photo?: { url: string; save: () => void };
 }

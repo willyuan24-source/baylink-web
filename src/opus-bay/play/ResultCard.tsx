@@ -35,7 +35,7 @@ export default function ResultCard({ props, close }: { props: ResultProps } & Pi
     return () => window.clearInterval(id);
   }, [props]);
   if (!props) return null;
-  const { tier, name, detail, best, fresh, coins, again, photo } = props;
+  const { tier, name, detail, best, fresh, coins, today, again, photo } = props;
   return (
     <div className={`ob-play-result tier-${tier}${riding ? ' is-ride' : ''}${photo ? ' has-photo' : ''}`} role="status" aria-live="polite" onPointerEnter={() => { hover.current = true; }} onPointerLeave={() => { hover.current = false; }}>
       <div className="ob-play-medal"><Medal tier={tier} /></div>
@@ -45,6 +45,8 @@ export default function ResultCard({ props, close }: { props: ResultProps } & Pi
         {detail && <span>{t(detail)}</span>}
         {fresh ? <span className="ob-play-best is-new">{t('新纪录！', 'A new best!')}</span> : best ? <span className="ob-play-best">{t(best)}</span> : null}
         {!!coins && coins > 0 && <span className="ob-play-coins">+{coins} {t('金币', coins === 1 ? 'coin' : 'coins')}</span>}
+        {/* W9-G4: the day's first finished game */}
+        {!!today && <span className="ob-play-best">{t(`今日小游戏奖励 +${today}，明天再来`, `Today’s game bonus +${today} — again tomorrow`)}</span>}
       </div>
       {photo && <img className="ob-play-result-photo" src={photo.url} alt="" />}
       <div className="ob-play-result-actions">
