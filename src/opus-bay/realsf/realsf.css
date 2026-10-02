@@ -82,3 +82,39 @@
   .ob-today-go { position: relative; }
   .ob-today-go::before { content: ""; position: absolute; inset: -6px -2px; }
 }
+
+/* W9-R3: 这周免费 — the 7-day strip (ui/WeekPanel.tsx, realsf/FreeWeekStrip.tsx) and a place card's free days */
+.ob-free { margin: 0 0 12px; padding: 10px 12px 8px; border-radius: var(--ob-r-m); background: var(--ob-cream-3); box-shadow: inset 0 0 0 1px rgba(168, 116, 31, .12); }
+.ob-free .ob-h3 { margin-bottom: 8px; }
+.ob-free .ob-h3 svg { color: var(--ob-gold-d); }
+.ob-free-sub { margin-left: auto; font-size: 11.5px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-free-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.ob-free-day {
+  display: flex; flex-direction: column; align-items: center; gap: 1px; min-height: 52px; padding: 4px 0; border: 0; border-radius: 10px;
+  background: rgba(255, 255, 255, .78); color: var(--ob-ink-2); font: inherit; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.ob-free-day small { font-size: 11px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-free-day strong { font-size: 13px; font-weight: 800; line-height: 1.1; }
+.ob-free-day em { font-style: normal; font-size: 11.5px; font-weight: 800; color: var(--ob-gold-d); }
+.ob-free-day.is-empty em { color: var(--ob-ink-3); }
+.ob-free-day.is-on { background: var(--ob-teal); color: #fff; }
+.ob-free-day.is-on small, .ob-free-day.is-on em { color: #fff; }
+.ob-free-day:focus-visible { outline: 2px solid var(--ob-teal-d); outline-offset: 2px; }
+.ob-free-items { margin-top: 6px !important; }
+.ob-free-row .ob-today-side { flex-direction: column; }
+.ob-free-cal { min-height: 32px; padding: 0 9px; gap: 4px; font-size: 12.5px; }
+.ob-free-none, .ob-free-more { margin: 8px 0 2px !important; font-size: 12.5px; }
+@media (max-width: 420px) {
+  .ob-free { padding: 9px 9px 7px; }
+  .ob-free-days { gap: 3px; }
+  .ob-free-day { min-height: 48px; }
+  .ob-free-cal span { display: none; }
+}
+@media (pointer: coarse) {
+  .ob-free-day { min-height: 48px; }
+  .ob-free-cal { position: relative; }
+  .ob-free-cal::before { content: ""; position: absolute; inset: -6px -2px; }
+}
+/* W9-R4: 这周去哪 · 用上次的 (the travel profile's last answers) */
+.ob-week-last { align-self: flex-start; max-width: 100%; margin: 8px 0 4px; white-space: normal; text-align: left; line-height: 1.35; }
+.ob-week-last svg { flex: none; }

@@ -22,6 +22,8 @@ import { importRetry } from '../game/importRetry';
 
 /** lane R's 现实中怎么去 (realsf/HowToGo.tsx, its own chunk): the nearest real Muni stops, city mode only (R's request 1a) */
 const HowToGo = lazyChunk(() => importRetry(() => import('../realsf/HowToGo')));
+/** W9-R3 (review R§5 #10): BAYLINK's free days at this place in the next 7 days (lane R's chunk, city mode only) */
+const FreeDays = lazyChunk(() => importRetry(() => import('../realsf/FreeDays')));
 
 // W7-P2 (lane P): the district cards' texts come with this chunk (data/poiTexts.ts): in before any card body renders
 fillPoiTexts(DISTRICT_POI_TEXTS);
@@ -121,6 +123,7 @@ export default function PoiCardBody({ poi }: { poi: PoiDef }) {
               <ul className="ob-tips">{info.tips.map((tip, i) => <li key={i}>{t(tip)}</li>)}</ul>
             </section>
           )}
+          {city && <Suspense fallback={null}><FreeDays point={poi.position} ids={[poi.id.replace(/^sf:/, ''), ...(poi.plannerPlaceId ? [poi.plannerPlaceId] : [])]} /></Suspense>}
           {city && <Suspense fallback={null}><HowToGo point={poi.position} /></Suspense>}
           <div className="ob-link-grid">
             {official && <LinkButton href={official} icon={<ExternalLink size={17} aria-hidden />} tone="soft" external>{t('官网', 'Official site')}</LinkButton>}
