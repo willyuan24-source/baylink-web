@@ -130,3 +130,31 @@ export function startFloatWatch(rand: () => number = Math.random): () => void {
     bubble(FLOAT_LINE, 3600);
   });
 }
+
+// ---------------------------------------------------------------------------
+// the one emote coach line (moved here from play/index.ts by W9-G1: the play core sits at its 6.1 KB guard)
+// ---------------------------------------------------------------------------
+
+const COACH_KEY = 'opus-bay:play:emote-coach:v1';
+/** Seconds of settled, quiet free roam before the one emote coach line. */
+export const COACH_AFTER = 50;
+
+/** Once per device, when the player has settled in and stands still: how to wave, dance, take a selfie. Returns the off. */
+export function startEmoteCoach(): () => void {
+  const seen = () => { try { return localStorage.getItem(COACH_KEY) === '1'; } catch { return true; } };
+  if (seen()) return () => {};
+  let coach = 0;
+  const offCoach = registerFrameSystem('a-play-coach', dt => {
+    const s = game.get(), f = flow.get(), p = runtime.player;
+    // (W8-K4, lane K surgical) not under a play panel / card: the W8-K1 live proof heard this voiced under the claw panel
+    const quiet = s.phase === 'playing' && s.mode === 'free' && !s.dialogue.nodeId && !s.panel.kind && !f.bubble && !f.cinematic && !p.moving && runtime.move.mode === 'foot' && !baybayHeld();
+    coach = quiet ? coach + dt : Math.max(0, coach - dt);
+    if (coach < COACH_AFTER || !charApi()) return;
+    offCoach();
+    try { localStorage.setItem(COACH_KEY, '1'); } catch { /* storage blocked: once per visit */ }
+    bubble(runtime.input.device === 'touch'
+      ? { zh: '点一下你自己，可以挥手、跳舞、和我自拍！', en: 'Tap yourself to wave, dance or take a selfie with me!' }
+      : { zh: '按 T 可以挥手、跳舞、和我自拍！', en: 'Press T to wave, dance or take a selfie with me!' }, 5200);
+  });
+  return offCoach;
+}

@@ -1,0 +1,43 @@
+/* Wave 9 · lane G · the journal's 游乐 tab (ui/PlayDex.tsx): a list of every mini-game. Phones first: one column, the
+   go button ≥ 44 px tall, body text ≥ 13 px. */
+.ob-dex { display: flex; flex-direction: column; gap: 6px; }
+.ob-dex-head { background: linear-gradient(135deg, var(--ob-teal-l), var(--ob-gold-l)); border-radius: 14px; padding: 10px 12px; }
+.ob-dex-head strong { font-size: 15px; font-weight: 800; color: var(--ob-ink); }
+.ob-dex-head .ob-muted { margin: 4px 0 0; font-size: 13px; }
+.ob-dex-today { margin: 6px 0 0; font-size: 13px; font-weight: 800; color: var(--ob-gold-d); }
+.ob-dex-today.is-done { color: var(--ob-teal-d); }
+.ob-dex-count { float: right; font-size: 13px; font-weight: 800; color: var(--ob-teal-d); font-variant-numeric: tabular-nums; }
+.ob-dex-h { display: flex; align-items: center; gap: 8px; margin: 10px 0 2px; font-size: 14px; font-weight: 800; color: var(--ob-ink-2); }
+.ob-dex-h-count { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--ob-ink-3); font-variant-numeric: tabular-nums; }
+.ob-dex-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ob-dex-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--ob-line); }
+.ob-dex-row.is-near { border-color: var(--ob-teal-2); background: #f7fbfa; }
+.ob-dex-ico { position: relative; flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ob-teal-l); color: var(--ob-teal-d); }
+.ob-dex-row.is-new .ob-dex-ico { background: var(--ob-cream-3); color: #3a3530; }
+.ob-dex-row.is-new .ob-dex-ico svg { opacity: .55; }
+.ob-dex-q { position: absolute; right: -3px; bottom: -3px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--ob-ink-2); color: #fff; font-size: 11px; font-weight: 800; }
+.ob-dex-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ob-dex-name { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.ob-dex-name strong { font-size: 14px; font-weight: 800; color: var(--ob-ink); }
+.ob-dex-medal { display: inline-flex; align-items: center; gap: 3px; padding: 1px 7px; border-radius: 999px; background: var(--ob-cream-2); font-size: 12px; font-weight: 800; color: var(--ob-ink-2); }
+.ob-dex-medal svg { fill: var(--ob-ink-3); }
+.ob-dex-medal.tier-1 { background: var(--ob-teal-l); color: var(--ob-teal-d); }
+.ob-dex-medal.tier-1 svg { fill: var(--ob-teal); }
+.ob-dex-medal.tier-2, .ob-dex-medal.tier-3 { background: var(--ob-gold-l); color: var(--ob-gold-d); }
+.ob-dex-medal.tier-2 svg, .ob-dex-medal.tier-3 svg { fill: var(--ob-gold); }
+.ob-dex-where { font-size: 12.5px; font-weight: 700; color: var(--ob-ink-3); }
+.ob-dex-rule { font-size: 13px; line-height: 1.4; color: var(--ob-ink-2); }
+.ob-dex-row.is-new .ob-dex-rule { font-style: italic; }
+.ob-dex-best, .ob-dex-needs { font-size: 12.5px; font-weight: 700; color: var(--ob-teal-d); }
+.ob-dex-needs { color: var(--ob-gold-d); }
+.ob-dex-here { font-size: 12.5px; font-weight: 800; color: #5b3fa8; }
+.ob-dex-go { flex: none; align-self: center; display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; padding: 4px 12px;
+  border-radius: 999px; border: 1px solid var(--ob-teal-2); background: #fff; font: inherit; font-size: 13px; font-weight: 800; color: var(--ob-teal-d); cursor: pointer; }
+.ob-dex-go.is-play { background: var(--ob-teal); border-color: var(--ob-teal); color: #fff; }
+.ob-dex-go:disabled { opacity: .55; cursor: default; }
+.ob-dex-go:focus-visible { outline: 2px solid var(--ob-teal-d); outline-offset: 2px; }
+@media (max-width: 359px) {
+  .ob-dex-row { gap: 8px; padding: 9px 8px 9px 10px; }
+  .ob-dex-go span { display: none; }
+  .ob-dex-go { padding: 4px; width: 44px; }
+}

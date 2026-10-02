@@ -93,7 +93,8 @@ test('W8-K4 a zone invite waits under a card (the activity was already gated); s
   assert.equal(said(), '测试邀请', 'the invite once the card is closed');
   assert.match(src('play/zones.ts'), /!!f\.bubble \|\| !!currentActivity\(\) \|\| baybayHeld\(\);/, 'sayWhenQuiet');
   assert.match(src('game/brain.ts'), /settling \|\| baybayHeld\(\)/, 'the brain');
-  assert.match(src('play/index.ts'), /runtime\.move\.mode === 'foot' && !baybayHeld\(\);/, 'the emote coach (heard voiced under the claw panel in the live proof)');
+  // (W9-G1) the emote coach moved from play/index.ts into the pet chunk (the play core sits at its 6.1 KB guard)
+  assert.match(src('play/pet.ts'), /runtime\.move\.mode === 'foot' && !baybayHeld\(\);/, 'the emote coach (heard voiced under the claw panel in the live proof)');
   assert.match(src('play/pet.ts'), /if \(flow\.get\(\)\.bubble \|\| baybayHeld\(\)\) return;/, 'the sea-otter float waits for a bubble / a panel');
 });
 

@@ -9,8 +9,7 @@ import type { Bilingual } from '../core/types';
 import { game } from '../core/store';
 import { surfaceAt } from '../core/terrain';
 import { onSaveCleared } from '../data/save';
-import { baybayHeld } from '../game/baybayHold';
-import { bubble, runAction } from '../game/flow';
+import { runAction } from '../game/flow';
 import { registerRewardIds } from '../economy/ledger';
 import { flow } from '../game/flowStore';
 import { BAYBAY_ID, interactables, postcardIdOf, registerInteractables, syncMoving, type Interactable } from '../game/interactables';
@@ -56,9 +55,6 @@ const SIT_PLACE: Record<string, Bilingual> = {
 const FAR = 1e7;
 /** E, E within this many ms at BAYBAY's side: 摸摸 instead of her menu. */
 export const DOUBLE_E_MS = 450;
-const COACH_KEY = 'opus-bay:play:emote-coach:v1';
-/** Seconds of settled, quiet free roam before the one emote coach line. */
-export const COACH_AFTER = 50;
 
 const wheelOpen = () => openOverlays().some(o => o.id === WHEEL_OVERLAY);
 
@@ -205,12 +201,15 @@ export function init(): () => void {
   }));
 
   // BAYBAY's shoreline float (idle) — the pet chunk
-  let offFloat: (() => void) | null = null;
-  void importRetry(() => import('./pet')).then(m => { if (!disposed) offFloat = m.startFloatWatch(); });
+  // (W9-G1) and the one emote coach line (moved into the pet chunk: the core sits at its 6.1 KB guard)
+  let offFloat: (() => void) | null = null, offCoach: (() => void) | null = null, offDex: (() => void) | null = null;
+  void importRetry(() => import('./pet')).then(m => { if (!disposed) { offFloat = m.startFloatWatch(); offCoach = m.startEmoteCoach(); } });
+  // W9-G1: the journal's 游乐 tab and BAYBAY's 附近能玩什么？ (play/dexEntry.ts, its own chunk)
+  void importRetry(() => import('./dexEntry')).then(m => { if (!disposed) offDex = m.initDex(); });
   // part b: the zones (the slides, the stair courses, the cable car's bell pad, the step counter) — their own chunk
   let offZones: (() => void) | null = null;
   void importRetry(() => import('./zones')).then(m => { if (!disposed) offZones = m.initZones(); });
-  offs.push(() => { disposed = true; offFloat?.(); offZones?.(); sitModule?.resetSit(); });
+  offs.push(() => { disposed = true; offFloat?.(); offCoach?.(); offDex?.(); offZones?.(); sitModule?.resetSit(); });
   // Settings → reset progress: the session's bests, medals and view finds go with the save (zones.ts forgets the steps,
   // crests.ts its set)
   offs.push(onSaveCleared(() => { forgetSession(); sitModule?.forgetFinds(); }));
@@ -218,25 +217,6 @@ export function init(): () => void {
   // activity hold is one the lock watchdog never drops (game/lockWatchdog SELF_EXPLAINED), so a run left behind would
   // hold the player still on the next visit (review 2026-09-28)
   offs.push(() => { currentActivity()?.cancel(); });
-
-  // one coach line for the emotes, once per device, when the player has settled in and stands still
-  const seen = () => { try { return localStorage.getItem(COACH_KEY) === '1'; } catch { return true; } };
-  if (!seen()) {
-    let coach = 0;
-    const offCoach = registerFrameSystem('a-play-coach', dt => {
-      const s = game.get(), f = flow.get(), p = runtime.player;
-      // (W8-K4, lane K surgical) not under a play panel / card: the W8-K1 live proof heard this voiced under the claw panel
-      const quiet = s.phase === 'playing' && s.mode === 'free' && !s.dialogue.nodeId && !s.panel.kind && !f.bubble && !f.cinematic && !p.moving && runtime.move.mode === 'foot' && !baybayHeld();
-      coach = quiet ? coach + dt : Math.max(0, coach - dt);
-      if (coach < COACH_AFTER || !charApi()) return;
-      offCoach();
-      try { localStorage.setItem(COACH_KEY, '1'); } catch { /* storage blocked: once per visit */ }
-      bubble(runtime.input.device === 'touch'
-        ? { zh: '点一下你自己，可以挥手、跳舞、和我自拍！', en: 'Tap yourself to wave, dance or take a selfie with me!' }
-        : { zh: '按 T 可以挥手、跳舞、和我自拍！', en: 'Press T to wave, dance or take a selfie with me!' }, 5200);
-    });
-    offs.push(offCoach);
-  }
 
   // DEV / QA: __opusBay.play
   if (import.meta.env?.DEV && typeof window !== 'undefined') {
