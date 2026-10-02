@@ -15,6 +15,10 @@ import { LangPills } from './LangPills';
 import { useGlSupport, useWarmReady } from '../game/warmReady';
 import { TitleGlNote } from './TitleGl';
 import { SILENT_HINT, isIOS } from './shareFile';
+import { importRetry } from '../game/importRetry';
+
+/** (W9-F9) the 今天在旧金山 strip: one line, cut with … when long (inline: the stylesheet is lane Q's). */
+const TODAY_STYLE = { margin: 0, fontSize: 13.5, lineHeight: 1.45, color: 'var(--ob-ink-2)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' } as const;
 
 const typing = (el: HTMLElement | null) => !!el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable);
 const onControl = (el: HTMLElement | null) => !!el && (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute?.('role') === 'button' || el.getAttribute?.('role') === 'tab');
@@ -52,6 +56,15 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
   const clickedAtRef = useRef<number | null>(null);
   usePillsInPlace(cardRef, clickedAtRef, locale);
   const beforeSwitch = useCallback(() => { clickedAtRef.current = pillsY(cardRef.current); }, []);
+  // (W9-F9) city mode: one line about San Francisco today (lane R's todayHeadline through ui/titleToday.ts, a lazy chunk);
+  // nothing worth a line: no strip. It lands while Start still says 准备中… (the card's small shift is harmless then).
+  const [today, setToday] = useState<Bilingual | null>(null);
+  useEffect(() => {
+    if (!city) return;
+    let live = true;
+    importRetry(() => import('./titleToday')).then(m => m.titleToday()).then(h => { if (live) setToday(h); }, () => { /* no strip */ });
+    return () => { live = false; };
+  }, [city]);
 
   useEffect(() => { startRef.current?.focus({ preventScroll: true }); }, []);
   // Enter / Space start from anywhere on the title (not while on another control)
@@ -94,6 +107,7 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
       <div className="ob-title-card" ref={cardRef}>
         <span className="ob-title-mark">{t('小小湾区 · BAYLINK', 'Little Bay · BAYLINK')}</span>
         <h1 className="ob-title-h1">{t('湾区小旅', 'Little Bay Trip')}</h1>
+        {today && <p className="ob-title-today" role="status" style={TODAY_STYLE}><b style={{ color: 'var(--ob-teal)' }}>{t('今天在旧金山', 'Today in SF')}</b> · {t(today)}</p>}
         <p className="ob-title-sub">{citySub ? t(citySub) : t('跟 BAYBAY 从渡轮大厦走到 PIER 39：真实景点、这周活动，边玩边查。', 'Walk the Embarcadero with BAYBAY, from the Ferry Building to Pier 39 — real places, this week’s events, all playable.')}</p>
         <div className="ob-title-greet">
           <BaybayFace mood="wave" size={52} />
@@ -118,9 +132,10 @@ export function TitleScreen({ onStart, waiting = false }: { onStart: () => void;
         {gl === 'software' && <TitleGlNote kind="software" />}
         {silentHint && sound && <p className="ob-title-silent" role="status">{t(SILENT_HINT)}</p>}
         <a className="ob-title-link" href={guidesUrl(locale)}>
-          <BookOpen size={16} aria-hidden />{t('不玩了，直接看攻略', 'Skip the game — read the guides')}<ArrowRight size={15} aria-hidden />
+          <BookOpen size={16} aria-hidden />{t('先不玩，直接看攻略', 'Not now — read the guides')}<ArrowRight size={15} aria-hidden />
         </a>
-        <p className="ob-title-hint">{device === 'touch' ? t('点地面走路 · 点发光的东西互动', 'Tap the ground to walk · tap glowing things to use them') : t('WASD 移动 · E 互动 · Q 问 BAYBAY · M 地图', 'WASD move · E interact · Q ask BAYBAY · M map')}</p>
+        {/* (W9-F9, review R§5 #14) one wording for walking and turning on touch: the coach, this line and Settings */}
+        <p className="ob-title-hint">{device === 'touch' ? t('左边拖动走路 · 右边拖动转视角 · 点发光的东西互动', 'Drag left to walk · drag right to look · tap glowing things') : t('WASD 移动 · E 互动 · Q 问 BAYBAY · M 地图', 'WASD move · E interact · Q ask BAYBAY · M map')}</p>
       </div>
     </div>
   );

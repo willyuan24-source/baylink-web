@@ -20,7 +20,8 @@ export const CITY_COPY: CityCopy = {
     zh: '跟 BAYBAY 逛整座旧金山：金门大桥、叮当车、双峰，真实景点和这周活动，边玩边查。',
     en: 'Roam all of San Francisco with BAYBAY — the Golden Gate, cable cars, Twin Peaks: real places and this week’s events, all playable.',
   },
-  greet: { zh: '嗨～这次我们逛整座旧金山！', en: 'Hi! This time we explore all of San Francisco!' },
+  // (W9-F9, lane F surgical — review R§6 语言 row: 这次… read like a sequel) not voiced: the title card's text
+  greet: { zh: '我是 BAYBAY，带你逛整座旧金山！', en: 'I’m BAYBAY — let me show you all of San Francisco!' },
 };
 
 /**

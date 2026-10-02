@@ -1,11 +1,13 @@
 import { onEvent } from '../core/events';
-import { game, type Toast } from '../core/store';
+import { game, toast, type Toast } from '../core/store';
 import type { Bilingual } from '../core/types';
 import { ATTENTION_PRIORITY, RIBBON_MERGE_MS, attentionLog, attentionSnapshot, requestSlot, ribbon, ribbonNote, subscribeAttention, titleAbsorbs, type RibbonItem, type SlotTicket } from '../game/attention';
 import { flow } from '../game/flowStore';
 import { BAYBAY_HOLD_OVERLAYS } from '../game/baybayHold';
 import { GOALS_STEP_ID } from '../data/sf/goals';
 import { openOverlays, subscribeOverlays } from './slots';
+import { importRetry } from '../game/importRetry';
+import { lastWelcome, onWelcome, type WelcomeInfo } from '../game/welcome';
 
 /**
  * Wave 9 · lane F · W9-F2 — the title level on screen (review R§5 #5: the arrival banner, the unlock toast, 今日小事 1/3
@@ -160,6 +162,33 @@ function onModal() {
   else if (!up && modalTicket) { modalTicket.release(); modalTicket = null; }
 }
 
+// --- 我是本地人's one 今天 card ------------------------------------------------------------------------------------
+
+/** W9-F11: after a new player's 我是本地人 (city), this long after the choice (ms): her one line has gone by. */
+export const LOCAL_TODAY_AFTER_MS = 6000;
+/**
+ * W9-F11 (sf-w9-lead §3 F (2): 我是本地人 → quiet for 3 min for real + one 今天 card; review §4 item 1: a local wants the
+ * real-SF value first) · ONE gold title message, 今天在旧金山 · <lane R's headline, else the sunset time>
+ * (ui/titleToday.ts), a toast through the title level (it waits for her dialogue); nothing when the day has no line
+ * (after sunset with nothing on). Not a BAYBAY line: the 3 quiet minutes stay quiet. Never in district mode.
+ */
+function localToday(): () => void {
+  let timer: ReturnType<typeof setTimeout> | undefined, done = false, live = true;
+  const go = (info: WelcomeInfo) => {
+    if (done || info.kind !== 'new' || info.choice !== 'local' || game.get().worldMode !== 'city') return;
+    done = true;
+    timer = setTimeout(() => {
+      importRetry(() => import('./titleToday')).then(m => m.titleToday()).then(line => {
+        if (live && line) toast({ zh: `今天在旧金山 · ${line.zh}`, en: `Today in SF · ${line.en}` }, 'gold', 9000);
+      }, () => { /* no card */ });
+    }, Math.max(0, LOCAL_TODAY_AFTER_MS - (performance.now() - info.at)));
+  };
+  const seen = lastWelcome();
+  if (seen) go(seen);
+  const off = onWelcome((_kind, info) => { go(info); });
+  return () => { live = false; off(); if (timer) clearTimeout(timer); };
+}
+
 // --- boot ---------------------------------------------------------------------------------------------------------
 
 let booted = false;
@@ -179,6 +208,7 @@ export function initTitleHost(): () => void {
   const offOverlays = subscribeOverlays(onModal);
   const offAttention = subscribeAttention(onAttention);
   const offEvents = onEvent(e => { if (e.type === 'coins') onCoins(e.delta); });
+  const offLocal = localToday();
   onModal();
   // DEV / QA (scripts/opus-sf/qa/first-minute.mjs): who holds what; other modules re-publish __opusBay on their own
   let devId = 0;
@@ -190,7 +220,7 @@ export function initTitleHost(): () => void {
     devId = window.setInterval(put, 500);
   }
   return () => {
-    offGame(); offFlow(); offOverlays(); offAttention(); offEvents(); if (devId) window.clearInterval(devId);
+    offGame(); offFlow(); offOverlays(); offAttention(); offEvents(); offLocal(); if (devId) window.clearInterval(devId);
     for (const key of [...timers.keys()]) endToast(key);
     endRibbon();
     modalTicket?.release(); modalTicket = null;

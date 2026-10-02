@@ -79,6 +79,9 @@ export function FishGame() {
 // Postcard reward (card flip) — also used to view a collected card from the journal
 // ---------------------------------------------------------------------------
 
+/** W9-F10: the front's 点一下翻面 tag, bottom right (the caption's look; inline: the stylesheet is lane Q's) */
+const TURN_HINT: CSSProperties = { left: 'auto', right: 10, fontWeight: 700, fontSize: 13, color: 'var(--ob-ink-2)' };
+
 export function PostcardReward() {
   const { t } = useT();
   const id = useFlow(s => s.postcardReward);
@@ -89,16 +92,20 @@ export function PostcardReward() {
   const reduced = useGame(s => s.settings.reducedMotion);
   const [flipped, setFlipped] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    setFlipped(false);
-    if (!id) return;
-    const timer = window.setTimeout(() => setFlipped(true), reduced ? 50 : 1100);
-    closeRef.current?.focus({ preventScroll: true });
-    return () => window.clearTimeout(timer);
-  }, [id, reduced]);
   const card = postcardById(id);
   const art = card ? postcardArt(card.id) : undefined;
   const ok = useImageState(art?.src) !== 'error' && !!art;
+  // W9-F10 (review R§6: the illustration showed for 1.1 s, then the card turned to its words by itself): a card with
+  // its illustration stays on the picture until the player taps it (翻面看背面); one without (the art failed) turns
+  // to its words as before — its front is only an envelope
+  useEffect(() => {
+    setFlipped(false);
+    if (!id) return;
+    closeRef.current?.focus({ preventScroll: true });
+    if (ok) return;
+    const timer = window.setTimeout(() => setFlipped(true), reduced ? 50 : 1100);
+    return () => window.clearTimeout(timer);
+  }, [id, reduced, ok]);
   if (!id || !card) return null;
   return (
     <div className="ob-reward" role="dialog" aria-modal="true" aria-label={t(card.title)} onClick={e => { if (e.target === e.currentTarget) closePostcardReward(); }}>
@@ -109,6 +116,7 @@ export function PostcardReward() {
           {ok && art ? <img className="ob-postcard-img" src={art.src} srcSet={art.srcSet} sizes="(max-width: 720px) 86vw, 460px" alt="" draggable={false} decoding="async" />
             : <span className="ob-postcard-art"><Mail size={40} aria-hidden /><em>{card.title.en}</em></span>}
           <span className="ob-postcard-caption">{t(card.title)}</span>
+          {!flipped && ok && <span className="ob-postcard-caption" style={TURN_HINT}>{t('点一下翻面', 'Tap to turn over')}</span>}
         </span>
         <span className="ob-postcard-face back">
           <span className="ob-postcard-message">
@@ -174,7 +182,7 @@ export function PhotoMode() {
     <div className="ob-photo">
       <div className="ob-photo-frame" aria-hidden><i className="c tl" /><i className="c tr" /><i className="c bl" /><i className="c br" /><i className="g v1" /><i className="g v2" /><i className="g h1" /><i className="g h2" /></div>
       {flashing && <div className="ob-photo-flash" aria-hidden />}
-      <p className="ob-photo-hint">{device === 'touch' ? t('双指旋转缩放取景', 'Two fingers to turn & zoom') : t('右键拖动转视角 · 滚轮缩放 · 空格拍照', 'Right-drag to turn · wheel to zoom · Space to shoot')}</p>
+      <p className="ob-photo-hint">{device === 'touch' ? t('拖动转视角 · 双指缩放 · 点快门拍照', 'Drag to look · pinch to zoom · tap the shutter') : t('右键拖动转视角 · 滚轮缩放 · 空格拍照', 'Right-drag to turn · wheel to zoom · Space to shoot')}</p>
       <div className="ob-photo-bar">
         <button type="button" className="ob-icon-btn ob-photo-exit" onClick={exitPhotoMode} aria-label={t('退出拍照', 'Exit photo mode')}><X size={22} aria-hidden /></button>
         <button type="button" className="ob-shutter" onClick={shoot} aria-label={t('拍照', 'Take photo')}><Aperture size={30} aria-hidden /></button>
