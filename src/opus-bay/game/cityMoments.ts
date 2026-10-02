@@ -30,6 +30,7 @@ import { timeLabel } from './tripText';
 import { registerTripGoals } from './tripProviders';
 import { bayNow } from './bayNow';
 import { initPelicanFirst, stepPelican, unlockPelican, unlocksAt } from './pelicanFirst';
+import { autoOn } from './autoTravel';
 import { rewardArrival } from './rewards';
 import { frameRumour, pickRumour, rumourDue, rumourSourceCount } from './rumours';
 import { importRetry } from './importRetry';
@@ -367,6 +368,8 @@ export function initCityMoments(): () => void {
       trips: () => importRetry(() => import('./tripRun')), tour: () => importRetry(() => import('./cityTour')),
       // wave 5 (W5-C1 / C2): the pelican moment and the rumour teller, for QA scripts
       pelican: { unlock: unlockPelican }, rumours: { state: rumours, step: stepRumours },
+      // (W9-F, scripts/opus-sf/qa/first-minute.mjs) BAYBAY is carrying the player (auto-travel): not the player's own move
+      auto: autoOn,
     };
     const put = () => { if (w.__opusBay && w.__opusBay.c !== api) w.__opusBay.c = api; else if (!w.__opusBay) w.__opusBay = { c: api }; };
     put();
