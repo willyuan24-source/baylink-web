@@ -130,7 +130,20 @@ export type GameEvent =
    * answered a trick-or-treat knock (id = the door id), `costume` = a costume put on / taken off (id = the shop item id,
    * '' = none), `phase` = the season's phase changed (id = HalloweenPhase: off / season / night / muertos).
    */
-  | { type: 'halloween'; what: 'pumpkin' | 'treat' | 'costume' | 'phase'; id: string };
+  | { type: 'halloween'; what: 'pumpkin' | 'treat' | 'costume' | 'phase'; id: string }
+  // --- Wave 9 · lane S (appended; docs/opus-bay/sf-w9-lead.md §4 "Metrics") ---
+  /**
+   * A product-metrics step (game/metrics.ts `track(what, bucket)`; a GameRoot-static module may emit it directly: it
+   * costs no bytes). game/metricsRun.ts turns it into one fixed counter name of game/metricNames.ts (an unknown bucket
+   * is dropped): nothing personal, no ids, no free text, no coordinates.
+   *   real   a real-world action: plan · official · maps · guide · offer · ics · event · wish
+   *   share  photo · card (the 约家人 card)
+   *   tour   ch1 … ch5 (that chapter of the Grand Tour finished) · done
+   *   card   a real card seen (the first one within 60 s of the first control counts, once)
+   * Steps the runner sees by itself (the title, Start, the welcome choice, arrivals, wishes, panels, links opened inside
+   * the game page) need no emit.
+   */
+  | { type: 'metric'; what: 'real' | 'share' | 'tour' | 'card'; bucket?: string };
 
 /** Wave 5 (frozen): what a `find` event can be. The notebook's pages and the ledger's bitsets are keyed by these. */
 export const FIND_KINDS = ['egg', 'view', 'sound', 'pebble', 'cache', 'souvenir', 'nature'] as const;
