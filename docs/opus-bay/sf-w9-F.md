@@ -13,6 +13,9 @@ Lane F of wave 9 (`docs/opus-bay/sf-w9-lead.md` §3 F; the review `docs/opus-bay
 4. 选「我自己逛逛」：不再弹 10 个目标、不再叫你去科伊特塔找鹈鹕；约 40 秒时鹈鹕落在你身边，点「试试起飞」直接起飞飞一小段（4 个金圈），落地后才提示"随时飞 · G"。
    选「我是本地人」：真正安静 3 分钟（飞行券、捉迷藏邀请、南瓜灯提示都等着）。一日游第一站：鹈鹕真的落在身边，BAYBAY 才说"送你一位鹈鹕朋友"。
 5. 第一分钟自动检查脚本 `scripts/opus-sf/qa/first-minute.mjs`（四个入口 × 中英 × 桌面/手机），W9-I / W9-Z 可以复跑。
+6. 第二段（凌晨 2:14 接手后）：操作教学只在玩家自己动手时才算学会（BAYBAY 带着走不算），手机上第一次能自由走动时有 3 秒"幽灵摇杆"示范；
+   标题页改成"先不玩，直接看攻略"、问候"我是 BAYBAY，带你逛整座旧金山！"、手机保留一行操作说明、多了一行"今天在旧金山 · …"；
+   明信片停在插画面，点一下才翻；选"我是本地人"约 6 秒后只给一张"今天在旧金山"卡，其余安静 3 分钟。
 
 ## Part a (21:35 → 00:40)
 
@@ -86,3 +89,62 @@ Max messages at once in any second of the first 60 s after the welcome choice (�
 "First own move" (the bot walks 1 s after it is free): 1.8–2.1 s after the choice in every entry before and after
 (the tour lets the player steer from the start; the week board opens at once). The tour run's bot takes over BAYBAY's
 lead when it walks and taps 让 BAYBAY 带我过去 3 s later, as a cooperative player would.
+
+## Part b (02:14 → 05:00; a second agent after the usage-limit stop at ≈ 00:35)
+
+### Recovery
+
+- State found at 02:14: W9-F1 on origin; W9-F2 … W9-F7 committed, not pushed, already rebased on the then origin
+  (`3446c7b2`); working tree clean. Kept all of it. Checks: tsc 0, eslint 0 errors, the opus-bay suite 2012 tests with
+  2 failures — both `tests/opus-bay-w9-l-hant.test.ts` (lane L's 繁體 scan): a comment in `game/flow.ts` quoted
+  "首访被强制成黄金时段" in double quotes, which the scan reads as a literal (制 → 製 a second time). Reworded the comment
+  (no quotes), squashed into W9-F3 / F4, pushed at 02:38 (`b85eaea6 … 02b1f6c8`, on top of lane S's S2 / S3 that the
+  shared remote-tracking ref had brought in; their tests + mine re-run after: 75 / 75).
+- Nothing discarded. The scratch drafts `CoachMarkBody.next.tsx` (the first agent's touch coach) and
+  `ArrivalCard.next.tsx` were read; the coach draft became W9-F8 (with the changes below); the ArrivalCard draft was
+  already in W9-F2.
+
+### What was built (one commit, `W9-F8–F11`)
+
+| id | what | files |
+|---|---|---|
+| W9-F8 | **The touch coach** (R§5 #14): only the player's own push (keys / stick / pad — `runtime.input.moveX / moveY`, what `core/input.ts pollInput` composes) marks it learnt; BAYBAY carrying the player (a tour leg, 带我去) never does; 8 s on screen also counts as seen; a bubble no longer hides it; **a 3 s ghost stick** on touch the first time it is up (a dashed ring at the lower left with the knob drawing the drag; Web Animations, no stylesheet change); a title-level message of priority −1 through `game/attention.ts` — it waits for a toast / card, and after 2.5 s on screen any other title message takes over, the coach asks again under a new id and comes back after it (a toast no longer waits behind a hint). One wording for turning on touch: 右边拖动转视角 (the coach, the phone title, photo mode 拖动转视角 · 双指缩放 · 点快门拍照). | `ui/CoachMarkBody.tsx`, `ui/Moments.tsx` (photo hint) |
+| W9-F9 | **The title** (R§6 语言 rows, §6 names, review §4 item 3): 先不玩，直接看攻略 / Not now — read the guides; the city greeting 我是 BAYBAY，带你逛整座旧金山！ (`data/sf/copy.ts`, lane L's text, surgical; title text, not voiced); the phone keeps one controls line 左边拖动走路 · 右边拖动转视角 · 点发光的东西互动 (`opus-bay.css`, lane Q's, surgical: the portrait rule hides only the greeting now); **a one-line 今天在旧金山 · … strip** (city): lane R's `todayHeadline()` on the Bay clock after `live.json` (≤ 2 s), else before sunset 日落 HH:MM, else none — `ui/titleToday.ts`, a lazy chunk through `importRetry` (nothing added to GameRoot). The eyebrow 小小湾区 · BAYLINK came from lane E (W9-E9) on origin. | `ui/TitleScreen.tsx`, new `ui/titleToday.ts`, `data/sf/copy.ts`, `opus-bay.css` |
+| W9-F10 | **The postcard stays on its picture** (R§6: it turned to its words after 1.1 s by itself): a card with its illustration waits for a tap (a 点一下翻面 tag on the front); a card whose art failed still turns (its front is only an envelope). | `ui/Moments.tsx` PostcardReward |
+| W9-F11 | **我是本地人's one 今天 card** (sf-w9-lead §3 F (2)): 6 s after a new player's 我是本地人 (city) ONE gold toast 今天在旧金山 · <the same line> through the title level (it waits for her dialogue); not a BAYBAY line — the 3 quiet minutes stay quiet. | `ui/titleHost.ts` |
+
+### Evidence
+
+- `tests/opus-bay-w9-f-partb.test.ts` (5, jsdom). Red on the old code (the old `CoachMarkBody.tsx` / `Moments.tsx` put back
+  for one run at 03:45): a carried walk marked the coach seen (`coachSeen() === true` after 2.2 s); the postcard was
+  flipped by 1.6 s. Green on the new code, 3 / 3 runs after a fix of the coach's re-ask (a want toggle could be batched
+  into no change: now a new id). The title test reads the eyebrow, no "Opus Bay", the greeting, the link, one controls
+  line and the strip on 9 Oct 11:20 (Fleet Week's line); the local card on 2 Oct 14:00 (今天在旧金山 · 日落 18:xx, gold,
+  exactly one).
+- Also green before the push: opus-bay-w5-lang, w5-lang-review, w9-p, w9-l*, sf-budget, sf-guide-ui, w9-f-*, w5-nav;
+  tsc 0; eslint 0 errors (53 warnings, none in lane F's files); the full opus-bay suite on the rebased tree (on
+  `3dc72f5e`, 04:44–04:51): 2130 tests, 2129 pass, 0 fail, 1 todo (W8-P9's 255 KB target).
+
+### Rebase notes (files of other lanes)
+
+- `ui/Settings.tsx` (lane A): their W9-A line 点地面走过去 · 左边拖动摇杆 · 右边拖动转视角 · 双指缩放 already says the
+  same camera words; kept theirs, my edit dropped.
+- `ui/TitleScreen.tsx` (mine): lane E's W9-E9 changed the eyebrow the same way; kept theirs, my duplicate comment dropped.
+
+### Not done (part b)
+
+- **The first-minute gate after part b** was not re-run (time; the full suite ran at 04:44 and a Chrome + dev server on
+  top of it would have slowed every lane): W9-I / W9-Z — `node scripts/opus-sf/qa/first-minute.mjs` (its header) on the
+  final tree. Expected effect of part b on it: the coach is a title message now (it never stacks on a toast / card; it
+  may be the one title message in a quiet second), the local entry gains one gold toast at ≈ 6 s.
+- The desktop zh 我是本地人 gate run that timed out in part a was not repeated.
+- No screenshots of part b (the ghost stick on a phone, the title strip, the postcard tag): the DOM tests stand in.
+- The E prompt and the lead / go chips are still not arbitrated against each other (part a's gap: `ui/Hud.tsx`
+  ContextAction, `ui/GuideLayer.tsx` GuideLeadChip).
+- Tap-to-walk does not count as "the player's own move" for the coach (only the 8 s on screen): a player who only taps
+  sees the coach up to 8 s.
+
+### New / changed BAYBAY lines
+
+None in part b (the title greeting is title text, never voiced; the coach, the strip and the local card are UI).
+Part a reused voiced lines only (好嘞，你带路，我跟着！…, 以后想去哪都能飞啦！先试试起飞？, 跟着金圈飞！).
