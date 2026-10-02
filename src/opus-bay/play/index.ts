@@ -70,7 +70,7 @@ export function toggleWheel() { if (wheelOpen()) closeOverlay(WHEEL_OVERLAY); el
 export const petNow = () => importRetry(() => import('./pet')).then(m => m.pet());
 const sitNow = () => { void importRetry(() => import('./sit')).then(m => { if (!m.sitHere()) emit({ type: 'ui', action: 'error' }); }); };
 const sitSpot = (s: ViewSpot) => { void importRetry(() => import('./sit')).then(m => { m.sitAtSpot(s); }); };
-type StartFlight = (opts?: { course?: 'coit' | 'local' }) => Promise<boolean>;
+type StartFlight = (opts?: { course?: 'coit' | 'local'; short?: boolean; takeOff?: boolean }) => Promise<boolean>;
 const startFlight: StartFlight = opts => importRetry(() => import('./firstFlight')).then(m => m.startFirstFlight(opts));
 /**
  * The first-flight entry lane C's pelican moment calls (game/pelicanFirst.ts: 试试起飞 → `startFirstFlight()`); set

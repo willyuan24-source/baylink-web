@@ -84,10 +84,10 @@ export function ringY(floor: number, flyY: number): number {
  * A course ahead of the player where Coit is far: 8 rings LOCAL_STEP u apart on a gentle S-curve from `heading`, each
  * kept inside the model (a ring that would leave it turns the rest of the course back in, 30° at a time).
  */
-export function localCourse(from: Vec2, heading: number, world: { inWorld(x: number, z: number): boolean } = { inWorld }): Vec2[] {
+export function localCourse(from: Vec2, heading: number, world: { inWorld(x: number, z: number): boolean } = { inWorld }, count = 8): Vec2[] {
   const out: Vec2[] = [];
   let x = from.x, z = from.z, h = heading;
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < count; i++) {
     let step: Vec2 | null = null;
     for (let turn = 0; turn <= 6 && !step; turn++) {
       for (const sign of turn ? [1, -1] : [1]) {
@@ -150,14 +150,16 @@ export const RINGS_SCENE = 'a-play-rings';
  * Start the first flight (lane C's unlock moment, 再来一次, QA). Needs the pelican unlocked and the player playing on
  * foot (or already gliding). Returns false when it cannot start (nothing changes then).
  */
-export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean } = {}): boolean {
+/** (W9-F5, lane F surgical) the first minute's short glide: this many rings ahead of the player (≈ 20 s of flying) */
+export const SHORT_RINGS = 4;
+export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean; short?: boolean; takeOff?: boolean } = {}): boolean {
   const s = game.get();
   if (state || s.phase !== 'playing' || s.dialogue.nodeId || !glideUnlocked() || autoGliding()) return false;
   const mode = runtime.move.mode;
   if (mode !== 'foot' && mode !== 'glide') return false;
   const p = runtime.player;
   const nearCoit = Math.hypot(p.x - COIT_COURSE[0].x, p.z - COIT_COURSE[0].z) <= COIT_NEAR;
-  const course = opts.course ?? (nearCoit ? 'coit' : 'local');
+  const course = opts.course ?? (nearCoit && !opts.short ? 'coit' : 'local');
   const ggb = course === 'ggb';
   // the Golden Gate figure-eight: flown from whichever end is nearer
   const from = mode === 'glide' ? runtime.glide : p, far = (r: Vec2) => Math.hypot(from.x - r.x, from.z - r.z);
@@ -165,8 +167,8 @@ export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean 
     ? (far(GGB_COURSE[0]) <= far(GGB_COURSE[GGB_COURSE.length - 1]) ? [...GGB_COURSE] : [...GGB_COURSE].reverse()).map(r => ({ ...r }))
     : course === 'coit'
       ? COIT_COURSE.map(r => ({ ...r }))
-      : localCourse(p, runtime.camera.yaw + Math.PI).map(q => ({ ...q, floor: floorOf(q.x, q.z) }));
-  if (pts.length < 4) return false;
+      : localCourse(p, runtime.camera.yaw + Math.PI, { inWorld }, opts.short ? SHORT_RINGS : 8).map(q => ({ ...q, floor: floorOf(q.x, q.z) }));
+  if (pts.length < (opts.short ? 3 : 4)) return false;
   const startY = (mode === 'glide' ? runtime.glide.y : heightAt(p.x, p.z) + 24);
   state = {
     phase: mode === 'glide' ? 'flying' : 'intro',
@@ -199,6 +201,8 @@ export function startFirstFlight(opts: { course?: FlightCourse; rings?: boolean 
     offs.push(registerSceneSystem(RINGS_SCENE, m.RingsLayer));
   }, error => { if (import.meta.env?.DEV) console.error('[opus-bay play] rings', error); });
   const first = state.rings[0];
+  // (W9-F5, lane F surgical — review R§6: "点 Let's fly 之后还要再按 G") 试试起飞 takes off at once
+  if (opts.takeOff && state.phase === 'intro') { takeOffNow(); bubble({ zh: '跟着金圈飞！', en: 'Follow the gold rings!' }, 2600); changed(); return true; }
   if (state.phase === 'intro') {
     faceCameraToward(first.x, first.z, { uncapped: true, seconds: 0.9 });
     // (lane C's moment asked 先试试起飞？ already: here only which button, and what the rings are)

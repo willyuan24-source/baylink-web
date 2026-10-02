@@ -26,7 +26,7 @@ const tick = (ms: number) => { clock += ms; };
 
 const store = await import('../src/opus-bay/core/store');
 const { game } = store;
-const { onEvent, REWARD_SOURCE } = await import('../src/opus-bay/core/events');
+const { emit, onEvent, REWARD_SOURCE } = await import('../src/opus-bay/core/events');
 const { runtime } = await import('../src/opus-bay/core/runtime');
 const flowMod = await import('../src/opus-bay/game/flow');
 const { flow, initialFlowState } = await import('../src/opus-bay/game/flowStore');
@@ -297,7 +297,9 @@ test('W5-C2 arriving at Coit or any panorama viewpoint unlocks the glide, ticks 
   flow.set({ arrival: null });
   pelican.stepPelican(clock, offer);
   assert.equal(pelican.pelicanPending(), null);
-  assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！') || t.text.startsWith('Unlocked: fly anytime!')), 'the gold toast with the take-off key');
+  // (W9-F5, review R§6 flight row: "落地后再解锁 G") no 解锁 toast before the flight: it comes after the landing
+  const unlockToast = () => game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！') || t.text.startsWith('Unlocked: fly anytime!'));
+  assert.ok(!unlockToast(), 'not yet: the bird first');
   assert.equal(game.get().dialogue.nodeId, 'pelican.moment');
   const node = flowMod.nodeById('pelican.moment')!;
   assert.equal(node.text.zh, '以后想去哪都能飞啦！先试试起飞？');
@@ -311,6 +313,8 @@ test('W5-C2 arriving at Coit or any panorama viewpoint unlocks the glide, ticks 
   assert.equal(game.get().dialogue.nodeId, null);
   assert.equal(flights, 1, 'handed to startFirstFlight()');
   assert.equal(runtime.player.locked, false, 'free to fly: nothing holds the feet');
+  emit({ type: 'glide:land', x: 0, z: 0 });
+  assert.ok(unlockToast(), 'the gold toast with the take-off key, once the first flight is down (W9-F5)');
 });
 
 test('W5-C2 以后再说 leaves a take-off hint; without lane A the take-off itself is pressed; the tour gets a line, not a dialogue', async () => {
@@ -321,6 +325,7 @@ test('W5-C2 以后再说 leaves a take-off hint; without lane A the take-off its
   flowMod.chooseDialogue(1);
   assert.equal(game.get().dialogue.nodeId, null);
   assert.match(flow.get().bubble?.text.zh ?? '', /^想飞的时候.+就行～$/);
+  assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')), '(W9-F5) 以后再说: the 解锁 toast now');
   // no lane-A export (the day-0 stub): 试试起飞 presses 起飞
   reset();
   const { input } = await import('../src/opus-bay/core/input');
@@ -338,22 +343,41 @@ test('W5-C2 以后再说 leaves a take-off hint; without lane A the take-off its
   const offered: string[] = [];
   const said = (line: string | Bilingual) => { offered.push(typeof line === 'string' ? line : line.zh); return true; };
   pelican.resetPelicanForTests(null, said);
-  pelican.unlockPelican('tour', clock);
-  // at once, queued right behind the stop's own line on BAYBAY's pacer (the QA run lost a line that waited behind
-  // the tour's next lead line and the bus boarding), with the toast; by its frozen id (W5-C6: the voice once recorded)
-  assert.deepEqual(offered, ['w5c-pelican-tour']);
-  assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')));
-  assert.equal(pelican.pelicanPending(), null, 'nothing waits');
+  // (W9-F5, review R§5 #6: 送你一位鹈鹕朋友！ with no pelican in the picture) the tour's moment waits for a quiet frame
+  // too, then the pelican lands beside you (lane F's greet), BAYBAY's line by its frozen id (W5-C6), and the 解锁 toast
+  // only once the bird stands there
+  const { bindMoveApi } = await import('../src/opus-bay/actors/moveApi');
+  let greets = 0;
+  bindMoveApi({ glideUnlocked: false, pelicanGreet: () => { greets++; return true; } } as unknown as Parameters<typeof bindMoveApi>[0]);
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    pelican.unlockPelican('tour', clock);
+    assert.deepEqual(offered, [], 'not over the stop\'s own arrival');
+    assert.ok(pelican.pelicanPending(), 'the moment waits');
+    tick(pelican.MOMENT_MIN_MS + 1);
+    pelican.stepPelican(clock, said);
+    assert.equal(greets, 1, 'the pelican lands beside you');
+    assert.deepEqual(offered, ['w5c-pelican-tour']);
+    assert.ok(!game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')), 'no 解锁 toast before the bird is down');
+    mock.timers.tick(pelican.GREET_LANDED_MS);
+    assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')));
+    assert.equal(pelican.pelicanPending(), null, 'nothing waits');
+  } finally { mock.timers.reset(); bindMoveApi(null); }
   tick(pelican.MOMENT_MIN_MS + 1);
   pelican.stepPelican(clock, said);
   assert.equal(offered.length, 1, 'said once');
   assert.equal(game.get().dialogue.nodeId, null, 'the tour goes on');
-  // a viewpoint unlock that happens while a tour runs is the tour's kind of moment too
+  // a viewpoint unlock that happens while a tour runs is the tour's kind of moment too; (W9-F5) where the bird cannot
+  // land (no move system here: the greet fails) no 送你 line — the 解锁 toast and 想飞的时候…就行～
   reset();
   game.set({ tour: { active: true, id: 'sf-grand', stop: 0, completed: [] } });
   pelican.unlockPelican('viewpoint', clock);
+  assert.equal(pelican.pelicanPending()?.reason, 'tour');
+  tick(pelican.MOMENT_MIN_MS + 1);
+  pelican.stepPelican(clock, () => false);
   assert.equal(pelican.pelicanPending(), null);
-  assert.equal(flow.get().bubble?.text.zh, '送你一位鹈鹕朋友！以后想去哪都能飞～', 'no pacer yet: a bubble');
+  assert.match(flow.get().bubble?.text.zh ?? '', /^想飞的时候.+就行～$/, 'no 送你一位鹈鹕朋友！ without a pelican');
+  assert.ok(game.get().toasts.some(t => t.text.startsWith('解锁：随时飞！')));
 });
 
 test('W5-C2 a save that already had the glide: goal #1 ticked quietly on load, no reward, no moment; district mode never unlocks', () => {

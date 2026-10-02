@@ -1,6 +1,7 @@
 import { glideUnlocked, pelicanGreet, pulseGlideButton, setGlideUnlocked } from '../actors/moveApi';
 import { greetSpot } from '../actors/vehicles/pelican';
 import { onEvent } from '../core/events';
+import { lastWelcome } from './welcome';
 import { input } from '../core/input';
 import { runtime } from '../core/runtime';
 import { game } from '../core/store';
@@ -45,7 +46,16 @@ import { importRetry } from './importRetry';
  * lane C does not say it here.
  */
 
-export type UnlockReason = 'viewpoint' | 'sweep' | 'tour';
+export type UnlockReason = 'viewpoint' | 'sweep' | 'tour' | 'first-minute';
+
+/**
+ * W9-F5 (review R§6 flight row, §8 idea 4 "45–60 秒一次短滑翔"): a new player who chose 我自己逛逛 meets the pelican this
+ * long after the welcome choice (ms) — it lands beside you, BAYBAY asks, 试试起飞 takes off at once on a short course
+ * (play/firstFlight.ts `short`); the 解锁：随时飞 toast comes after the landing (or with 以后再说), never before the bird.
+ */
+export const FIRST_MINUTE_PELICAN_MS = 36_000;
+/** the 解锁：随时飞 toast waits this long after the tour's greet starts (ms): the bird stands beside you by then */
+export const GREET_LANDED_MS = 3200;
 
 /** The six panorama viewpoints (Coit among them): arriving at any unlocks the pelican. */
 export const PELICAN_VIEWPOINTS: ReadonlySet<string> = new Set(ATTRACTIONS.filter(a => a.panorama).map(a => a.id));
@@ -161,7 +171,9 @@ interface Pending { reason: UnlockReason; since: number }
 let pending: Pending | null = null;
 let wantFlight = false;
 /** lane A's first flight, when its chunk exports it (plan §4.3: `startFirstFlight()` from play/) */
-let flightStarter: (() => unknown) | null = null;
+/** lane A's starter; W9-F5: `short` = the first minute's short course, `takeOff` = in the air at once (no second G) */
+type FlightStarter = (opts?: { short?: boolean; takeOff?: boolean }) => unknown;
+let flightStarter: FlightStarter | null = null;
 
 /** Tests / QA: the moment waiting, if any. */
 export const pelicanPending = (): Readonly<Pending> | null => pending;
@@ -177,10 +189,25 @@ export function unlockPelican(reason: UnlockReason, now = performance.now()): bo
   setGlideUnlocked(true);
   // quiet: the moment is the toast (the goal event still plays its sound and lane E pays `goal:pelican`)
   markGoalsDone([CITY_GOAL.pelican], { quiet: true });
-  // the Grand Tour: at once, right after the stop's own line (the tour goes on: no dialogue, no waiting)
-  if (reason === 'tour' || game.get().tour.active) { tourMoment(); return true; }
-  pending = { reason, since: now };
+  // (W9-F5) the Grand Tour too waits for a quiet screen (the stop's arrival card and line first): then the bird lands
+  pending = { reason: game.get().tour.active ? 'tour' : reason, since: now };
   return true;
+}
+
+let firstMinuteDone = false;
+/**
+ * (W9-F5) 我自己逛逛 on a first visit: FIRST_MINUTE_PELICAN_MS after the welcome choice, still in free roam with the glide
+ * locked, the pelican is unlocked (reason 'first-minute'): its moment follows on a quiet frame (the bird lands beside
+ * you, 先试试起飞？). Once per page.
+ */
+function stepFirstMinute(now: number) {
+  if (firstMinuteDone) return;
+  const w = lastWelcome();
+  if (!w || w.kind !== 'new' || w.choice !== 'free' || now - w.at < FIRST_MINUTE_PELICAN_MS) return;
+  firstMinuteDone = true;
+  const s = game.get();
+  if (s.mode !== 'free' || s.tour.active || glideUnlocked()) return;
+  unlockPelican('first-minute', now);
 }
 
 /** BAYBAY's pacer (game/cityMoments.ts registers it at boot): a frozen line id (its voice once recorded) or a text. */
@@ -189,11 +216,24 @@ let offerFn: Offer | null = null;
 /** Plays a recorded clip of a frozen line with a dialogue that shows its text (game/cityMoments.ts; none: text only). */
 let voiceFn: ((id: string) => void) | null = null;
 
-/** The tour's version of the moment: the toast and one paced line, queued behind the stop's arrive line. */
-function tourMoment() {
+/** The 解锁：随时飞 toast (with this device's take-off key). */
+function unlockToast() {
   const key = takeOffKey();
   say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
-  if (!offerFn?.(W5_PELICAN.tour.id, 60)) bubble(PELICAN_LINES.tour, 4200);
+}
+/** (W9-F5) the toast waits for the first flight's landing (review: "落地后再解锁 G") */
+let toastOnLanding = false;
+
+/**
+ * The tour's version of the moment (W9-F5, review R§5 #6: 送你一位鹈鹕朋友！ with no pelican in the picture): the pelican
+ * lands beside you (lane F's greet), BAYBAY's line through her pacer, the 解锁 toast once the bird stands there. When it
+ * cannot land (`late`: on the bus already, not on foot) no 送你 line: the toast and 想飞的时候按 G 就行～.
+ */
+function tourMoment(late: boolean, offer: Offer | null = offerFn) {
+  const greeted = !late && pelicanGreet(undefined, undefined, { seconds: 2.6 });
+  if (!greeted) { unlockToast(); bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200); return; }
+  if (!offer?.(W5_PELICAN.tour.id, 60)) bubble(PELICAN_LINES.tour, 4200);
+  setTimeout(unlockToast, GREET_LANDED_MS);
 }
 
 /** A save that had the glide before wave 5 (or ?debug=1): tick goal #1 quietly — no reward, no moment. */
@@ -230,6 +270,7 @@ function quiet(now: number, p: Pending): boolean {
 
 /** City frame system (≈ 4 Hz, game/cityMoments.ts): play the moment once the screen is free. `offer` = BAYBAY's pacer. */
 export function stepPelican(now: number, offer: Offer) {
+  stepFirstMinute(now);
   const p = pending;
   if (!p) return;
   const inTour = game.get().tour.active || p.reason === 'tour';
@@ -237,10 +278,10 @@ export function stepPelican(now: number, offer: Offer) {
   if (!quiet(now, p) && !late) return;
   pending = null;
   const key = takeOffKey();
-  say(PELICAN_LINES.toast(key).zh, PELICAN_LINES.toast(key).en, 'gold', 4600);
-  if (inTour) { if (!offer(W5_PELICAN.tour.id, 60)) bubble(PELICAN_LINES.tour, 4200); return; }
+  const busy = late && !quiet(now, { ...p, since: -Infinity });
+  if (inTour) { tourMoment(busy, offer); return; }
   // waited too long for a quiet screen (a trip, a ride): a bubble, never a dialogue over something else
-  if (late && !quiet(now, { ...p, since: -Infinity })) { bubble(PELICAN_LINES.laterBubble(key), 4200); return; }
+  if (busy) { unlockToast(); bubble(PELICAN_LINES.laterBubble(key), 4200); return; }
   wantFlight = false;
   const ask = defineNode({
     id: ASK_NODE, speaker: 'baybay', mood: 'excited', text: PELICAN_LINES.ask,
@@ -268,9 +309,12 @@ export function stepPelican(now: number, offer: Offer) {
   // has turned (it waits while the dialogue is open; 试试起飞 hands the bird to the glide)
   setTimeout(() => { if (game.get().dialogue.nodeId === ASK_NODE && greetBehind()) pelicanGreet(undefined, undefined, { seconds: 2.6 }); }, GREET_AFTER_MS);
   playDialogue(ask, () => {
-    if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); takeOff(); return; }
-    const key = takeOffKey();
-    if (bubble(PELICAN_LINES.laterBubble(key), 4200, BAYBAY_ID, 'call')) say(PELICAN_LINES.laterToast(key).zh, PELICAN_LINES.laterToast(key).en, 'info', 4200);
+    // (W9-F5) 试试起飞 takes off at once (no second G); the first minute's moment flies the short course; 解锁 after the landing
+    if (wantFlight) { wantFlight = false; voiceFn?.(W5_PELICAN.go.id); toastOnLanding = true; takeOff(p.reason === 'first-minute'); return; }
+    // (W9-X) her fixed, voiced later line; (W9-F5) its toast is the 解锁：随时飞 one — it carries this device's control (the
+    // laterToast's 随时飞 · <key>) and it comes now, no longer before the question: one toast, not two
+    bubble(PELICAN_LINES.laterBubble(takeOffKey()), 4200, BAYBAY_ID, 'call');
+    unlockToast();
     // (phones: lane F's 起飞 pulses once more, where the line points)
     pulseGlideButton();
   }, { kind: 'two-shot', subject: null });
@@ -280,18 +324,22 @@ export function stepPelican(now: number, offer: Offer) {
  * 试试起飞: lane A's first flight (play/index.ts `startFirstFlight`, a live export while the play feature runs; it
  * resolves false when it cannot start), else — or when it refuses — a plain take-off (the 起飞 press).
  */
-function takeOff() {
+function takeOff(short = false) {
   const plain = () => { input.glideCount++; };
-  const run = (start: (() => unknown) | undefined) => {
+  const run = (start: FlightStarter | undefined) => {
     if (typeof start !== 'function') { plain(); return; }
-    try { void Promise.resolve(start()).then(ok => { if (ok === false) plain(); }, plain); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); plain(); }
+    try { void Promise.resolve(start({ short, takeOff: true })).then(ok => { if (ok === false) plain(); }, plain); } catch (error) { if (import.meta.env?.DEV) console.warn('[opus-bay pelican] first flight', error); plain(); }
   };
   if (flightStarter) { run(flightStarter); return; }
-  void importRetry(() => import('../play/index')).then(m => run((m as { startFirstFlight?: () => unknown }).startFirstFlight), plain);
+  void importRetry(() => import('../play/index')).then(m => run((m as { startFirstFlight?: FlightStarter }).startFirstFlight), plain);
 }
 
 // 试试起飞 opens GO_NODE: remembered for the moment's end (module level: this module lives in the city chunk only)
-onEvent(e => { if (e.type === 'dialogue' && (e.nodeId === GO_NODE || e.nodeId === ASK_NODE)) wantFlight = e.nodeId === GO_NODE; });
+onEvent(e => {
+  if (e.type === 'dialogue' && (e.nodeId === GO_NODE || e.nodeId === ASK_NODE)) wantFlight = e.nodeId === GO_NODE;
+  // (W9-F5) the first flight is down: now 解锁：随时飞 (the pelican was under you the whole way)
+  else if (e.type === 'glide:land' && toastOnLanding) { toastOnLanding = false; unlockToast(); }
+});
 
 /** The city chunk's boot: BAYBAY's pacer for the tour's line; tick an old save's goal #1. Returns the disposer. */
 export function initPelicanFirst(offer: Offer | null = null, voice: ((id: string) => void) | null = null): () => void {
@@ -303,7 +351,7 @@ export function initPelicanFirst(offer: Offer | null = null, voice: ((id: string
 }
 
 /** Tests: forget the moment and lane A's starter; `offer` stands in for BAYBAY's pacer. */
-export function resetPelicanForTests(starter: (() => unknown) | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; flightStarter = starter; offerFn = offer; voiceFn = voice; mark = null; }
+export function resetPelicanForTests(starter: FlightStarter | null = null, offer: Offer | null = null, voice: ((id: string) => void) | null = null) { pending = null; wantFlight = false; toastOnLanding = false; firstMinuteDone = false; flightStarter = starter; offerFn = offer; voiceFn = voice; mark = null; }
 
 /**
  * Will lane F's pelican land BEHIND the pair as the camera sees them? (the same greetSpot moveSystem.pelicanGreet asks,
