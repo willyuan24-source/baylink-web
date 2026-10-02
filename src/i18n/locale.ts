@@ -121,6 +121,8 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/october-refresh-community-en.json'),
     import('../data/october-refresh-bulletins-en.json'),
     import('./social-profile-en.json'), import('./profile-space-en.json'),
+    import('../data/guides-persona-visitor-en.json'), import('../data/guides-persona-newresident-en.json'),
+    import('../data/guides-persona-resident-en.json'), import('../data/reader-paths-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }

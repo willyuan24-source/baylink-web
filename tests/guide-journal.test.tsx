@@ -177,6 +177,15 @@ test('all published guides and the complete media registry have usable local ima
 });
 
 const firstVisitCoverReuse = new Set([
+  'bay-area-visitor-coast-redwoods-return-plan-2026',
+  'sf-visitor-luggage-restrooms-lost-property-2026',
+  'sf-visitor-meals-markets-dietary-booking-2026',
+  'bay-area-first-doctor-insurance-network-guide',
+  'bay-area-k12-midyear-enrollment-guide',
+  'bay-area-phone-bank-first-bill-guide',
+  'bay-area-household-bills-annual-review-2026',
+  'bay-area-build-recurring-community-routine-2026',
+  'bay-area-borrow-tools-repair-before-buying-2026',
   'sf-first-72-hours-car-free-october-2026', 'bay-area-airport-first-night-decision-october-2026',
   'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-cross-bay-commute-home-base-october-2026',
   'sf-first-visit-tickets-waterfront-october-2026', 'sf-free-culture-eligibility-october-2026',

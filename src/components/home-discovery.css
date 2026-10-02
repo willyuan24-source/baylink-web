@@ -233,3 +233,4 @@
   .home-start-continue { gap: 2px 15px; margin-bottom: 12px; }
   .home-start-continue a, .home-start-continue button { min-height: 44px; }
 }
+.home-reader-entry{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 24px}.home-reader-entry>a{display:inline-flex;align-items:center;justify-content:space-between;gap:18px;min-height:44px;padding:10px 16px;border:1px solid #cadbd3;border-radius:10px;color:#18563f;background:#f5f8f2;font-size:13px;font-weight:600}.home-reader-entry>a:hover{background:#e9f1e5}.home-reader-entry>a:focus-visible{outline:2px solid #176b52;outline-offset:3px}@media(max-width:639px){.home-reader-entry{gap:7px}.home-reader-entry>a{flex:1;gap:6px;padding:9px 10px;font-size:12px}}

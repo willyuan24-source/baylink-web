@@ -195,6 +195,47 @@ export const FIRST_VISIT_GUIDE_MEDIA: Record<string, [string, string]> = {
 };
 Object.assign(bySlug, FIRST_VISIT_GUIDE_MEDIA);
 
+// These process guides reuse credited context images, never evidence of a current appointment, class or inventory.
+export const READER_GUIDE_MEDIA: Record<string, [string, string]> = {
+  "bay-area-visitor-coast-redwoods-return-plan-2026": [
+    "region-muir-boardwalk",
+    "coast"
+  ],
+  "sf-visitor-luggage-restrooms-lost-property-2026": [
+    "sfo",
+    "bart"
+  ],
+  "sf-visitor-meals-markets-dietary-booking-2026": [
+    "ferry-market",
+    "produce"
+  ],
+  "bay-area-first-doctor-insurance-network-guide": [
+    "settling",
+    "coverage-laptop"
+  ],
+  "bay-area-k12-midyear-enrollment-guide": [
+    "school-east",
+    "school-south"
+  ],
+  "bay-area-phone-bank-first-bill-guide": [
+    "digital-safety",
+    "coverage-laptop"
+  ],
+  "bay-area-household-bills-annual-review-2026": [
+    "coverage-laptop",
+    "utilities-setup"
+  ],
+  "bay-area-build-recurring-community-routine-2026": [
+    "library",
+    "redwoods"
+  ],
+  "bay-area-borrow-tools-repair-before-buying-2026": [
+    "repair",
+    "secondhand-check"
+  ]
+};
+Object.assign(bySlug, READER_GUIDE_MEDIA);
+
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {

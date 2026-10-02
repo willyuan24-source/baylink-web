@@ -122,6 +122,11 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
       <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides?category=education">学校与学区 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link></div>
     </header>
 
+    <nav className="home-reader-entry" aria-label={locale === 'en' ? 'Guides for your next step' : '按生活阶段找攻略'}>
+      <Link to="/guides?audience=visitor#reader-paths">{locale === 'en' ? 'Visiting the Bay Area' : '来湾区玩'}<ArrowUpRight size={15} /></Link>
+      <Link to="/guides?audience=new-resident#reader-paths">{locale === 'en' ? 'New to the Bay Area' : '刚搬来湾区'}<ArrowUpRight size={15} /></Link>
+      <Link to="/guides?audience=resident#reader-paths">{locale === 'en' ? 'Living here for years' : '已经住了很久'}<ArrowUpRight size={15} /></Link>
+    </nav>
     <section className="home-baybay-intro" aria-labelledby="home-baybay-title">
       <img src={BRAND.baybayAvatar} alt="" width={56} height={56} />
       <div className="home-baybay-intro-copy">
