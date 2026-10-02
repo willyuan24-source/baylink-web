@@ -119,18 +119,16 @@ test('W9-E-review (E-RC-3): the homepage card and the sidebar enter the game wit
   // a client-side entry left the game's store (phase 'playing') and its window / document listeners behind after Back, and
   // the next entry remounted straight into the paused world: no title, no Start, the sound never unlocked
   const { fireEvent } = await import('@testing-library/react');
-  let where = '';
-  function Where() { where = useLocation().pathname; return null; }
   const view = render(<MemoryRouter initialEntries={['/']}><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-10-02" /><SiteNavigation active="home" category="全部" homeActive user={null} notification={false} notificationCount={0} onCreate={() => {}} onAsk={() => {}} onAccount={() => {}} /><Where /></MemoryRouter>);
   for (const href of ['/opus-bay?from=home', '/opus-bay?from=nav']) {
     const a = view.container.querySelector(`a[href="${href}"]`);
     assert.ok(a, href);
     assert.equal(fireEvent.click(a!), true, `${href}: the browser's own navigation (not prevented)`);
-    assert.equal(where, '/', `${href}: the router did not move`);
+    assert.equal(view.getByTestId('where').textContent, '/', `${href}: the router did not move`);
   }
   // the other links stay client-side (the control: this test sees a router move)
   fireEvent.click(view.container.querySelector('a[href="/calendar"]')!);
-  assert.equal(where, '/calendar');
+  assert.equal(view.getByTestId('where').textContent, '/calendar');
 });
 
 test('W9-E-review (E-RP-1 / E-RC-4): an old ticket is served the planner\'s page (first paint, link preview), and no game head tags reach /plan', async () => {
