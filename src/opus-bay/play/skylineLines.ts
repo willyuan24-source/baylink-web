@@ -25,11 +25,12 @@ import type { Bilingual } from '../core/types';
 export const SKYLINE_ID = 'skyline';
 export const SKYLINE_NAME: Bilingual = { zh: '那是什么？', en: 'What’s that?' };
 
-export interface SkylineSpot { id: string; name: Bilingual; x: number; z: number; y: number; top: number; r: number; fact: Bilingual }
+/** (W9-G6) `long`: a bridge — a long, low span that reads at half the height a tower needs (play/skyline.ts minAngleOf) */
+export interface SkylineSpot { id: string; name: Bilingual; x: number; z: number; y: number; top: number; r: number; fact: Bilingual; long?: boolean }
 
 export const SKYLINE_SPOTS: readonly SkylineSpot[] = [
   {
-    id: 'golden-gate-bridge', name: { zh: '金门大桥', en: 'Golden Gate Bridge' }, x: -797.7, z: 566.4, y: 38, top: 43, r: 3,
+    id: 'golden-gate-bridge', name: { zh: '金门大桥', en: 'Golden Gate Bridge' }, x: -797.7, z: 566.4, y: 38, top: 43, r: 3, long: true,
     fact: { zh: '那是金门大桥！1937 年通车，桥塔高出水面 227 米。', en: 'That’s the Golden Gate Bridge! It opened in 1937; its towers rise 746 feet above the water.' },
   },
   {
@@ -57,7 +58,7 @@ export const SKYLINE_SPOTS: readonly SkylineSpot[] = [
     fact: { zh: '那是渡轮大厦！1898 年建成，钟楼高 75 米。', en: 'That’s the Ferry Building! Built in 1898, with a 245-foot clock tower.' },
   },
   {
-    id: 'bay-bridge', name: { zh: '海湾大桥', en: 'Bay Bridge' }, x: 232.27, z: -0.24, y: 28, top: 31.5, r: 5,
+    id: 'bay-bridge', name: { zh: '海湾大桥', en: 'Bay Bridge' }, x: 232.27, z: -0.24, y: 28, top: 31.5, r: 5, long: true,
     fact: { zh: '那是海湾大桥！1936 年通车，比金门大桥还早半年。', en: 'That’s the Bay Bridge! It opened in 1936, six months before the Golden Gate.' },
   },
   {

@@ -13,7 +13,7 @@ import { registerFrameSystem } from '../game/systemsRegistry';
 import { useT } from '../i18n';
 import { closeOverlay, openOverlay, registerOverlay, type OverlayProps } from '../ui/slots';
 import { hideChip, patchChip, showChip } from './chip';
-import { currentActivity, startActivity, tierFor, type ActivityRun } from './kit';
+import { currentActivity, startActivity, type ActivityRun } from './kit';
 import { freeOnFoot } from './partc';
 import { SKYLINE_ID, SKYLINE_LINES, SKYLINE_NAME, SKYLINE_SPOTS, type SkylineSpot } from './skylineLines';
 import { VIEW_SPOTS } from './viewSpots';
@@ -23,7 +23,8 @@ import { VIEW_SPOTS } from './viewSpots';
  * (play/kiteEntry.ts). BAYBAY points, the camera turns to a landmark that is really in line of sight from where you
  * stand (the ground's height field and every roof / tall part the glide knows, sampled along the ray), and you pick its
  * name from three; each answer adds the landmark's one-line fact. Three rounds (≈ 40 s; fewer when fewer landmarks are in
- * sight, each asked once): ● one right · ◆ two · ★ three →
+ * sight, each asked once): ● one right · ◆ two · ★ three (W9-G6: by the share — ★ all right of two or more, ◆ ≥ 2/3 or one of
+ * one, ● one; the landmarks asked show at least SKY_MIN_ANGLE on screen from the round's camera) →
  * `medal:skyline:n` through the kit (points = right answers; the notebook keeps the best). With nothing in view she says
  * so and names the nearest 看风景 spot. Its own lazy chunk; the camera shot is released at the end.
  */
@@ -41,7 +42,8 @@ const CARD = 'w2-skyline';
 export type Occluder = (x: number, z: number) => number;
 let glideWorld: GlideWorld | null = null;
 const live = new LiveTall();
-function liveOccluder(): Occluder {
+/** the live occluder (exported for QA probes: the old / new askable counts) */
+export function liveOccluder(): Occluder {
   glideWorld ??= terrainGlideWorld(() => live.get());
   const w = glideWorld;
   return (x, z) => Math.max(w.heightAt(x, z), w.roofAt(x, z, 0.3));
@@ -52,22 +54,60 @@ function liveOccluder(): Occluder {
  * above it, except inside the landmark's own radius at the end.
  */
 export function inSight(from: { x: number; y: number; z: number }, s: SkylineSpot, occ: Occluder): boolean {
-  const dx = s.x - from.x, dz = s.z - from.z, D = Math.hypot(dx, dz);
-  if (D < SKY_MIN || D > SKY_MAX) return false;
-  const end = D - s.r - 4;
-  let d = 3;
-  while (d < end) {
-    const k = d / D, x = from.x + dx * k, z = from.z + dz * k, y = from.y + (s.y - from.y) * k;
-    if (occ(x, z) > y - 0.3) return false;
-    d += Math.min(12, Math.max(1.5, d * 0.04));
-  }
-  return true;
+  return scan(from, s, occ) > -9;
 }
 
-/** The landmarks in sight from `from`, nearest first. */
-export function spotsInSight(from: { x: number; y: number; z: number }, occ: Occluder, list: readonly SkylineSpot[] = SKYLINE_SPOTS): SkylineSpot[] {
-  return list.filter(s => inSight(from, s, occ)).sort((a, b) => Math.hypot(a.x - from.x, a.z - from.z) - Math.hypot(b.x - from.x, b.z - from.z));
+/**
+ * (W9-G6) One walk along the ray to `s` (the samples above): -10 when something rises over the line to its aim point (or
+ * it is too near / too far: inSight), else how tall it shows as an angle — from its top down to the highest thing in
+ * front of it (the ground, roofs, tall parts; its own footprint excluded) or sea level (visibleAngle).
+ */
+function scan(from: { x: number; y: number; z: number }, s: SkylineSpot, occ: Occluder): number {
+  const dx = s.x - from.x, dz = s.z - from.z, D = Math.hypot(dx, dz);
+  if (D < SKY_MIN || D > SKY_MAX) return -10;
+  const end = D - s.r - 4;
+  let d = 3, block = Math.atan2(-from.y, D);
+  while (d < end) {
+    const k = d / D, h = occ(from.x + dx * k, from.z + dz * k);
+    if (h > from.y + (s.y - from.y) * k - 0.3) return -10;
+    block = Math.max(block, Math.atan2(h - from.y, d));
+    d += Math.min(12, Math.max(1.5, d * 0.04));
+  }
+  return Math.max(0, Math.atan2(s.top - from.y, D) - block);
 }
+
+/**
+ * (W9-G6) the least visible height (radians) a landmark must show to be asked: ≈ 1.7°, ≈ 28 px on a 900 px tall screen
+ * (review 2026-10-01 R§6 玩法: the third question's Alcatraz, 600 u off and 14 u high, was a sliver behind the Embarcadero —
+ * "Alcatraz NOT visible")
+ */
+export const SKY_MIN_ANGLE = 0.03;
+/** (W9-G6) a bridge's long span reads at half that (from a hill the Bay Bridge is a low line, but a long one) */
+export const minAngleOf = (s: SkylineSpot): number => (s.long ? SKY_MIN_ANGLE / 2 : SKY_MIN_ANGLE);
+
+/** (W9-G6) How tall `s` shows from `from`, as an angle (0 when hidden or out of range): scan above. */
+export const visibleAngle = (from: { x: number; y: number; z: number }, s: SkylineSpot, occ: Occluder): number => Math.max(0, scan(from, s, occ));
+
+/** (W9-G6) where the camera stands for a round on `s` (behind the player, a little to the side and up: nextRound's shot) */
+export function shotFrom(p: { x: number; z: number }, eyeY: number, s: { x: number; z: number }): { x: number; y: number; z: number } {
+  const h = Math.atan2(s.x - p.x, s.z - p.z), dx = Math.sin(h), dz = Math.cos(h);
+  return { x: p.x - dx * 3.8 - dz * 0.9, y: eyeY + 1.1, z: p.z - dz * 3.8 + dx * 0.9 };
+}
+
+/**
+ * The landmarks in sight from `from`, nearest first: on a clear line from the eye and (W9-G6) from the round's camera,
+ * showing at least SKY_MIN_ANGLE of their height on screen (a bridge half that).
+ */
+export function spotsInSight(from: { x: number; y: number; z: number }, occ: Occluder, list: readonly SkylineSpot[] = SKYLINE_SPOTS): SkylineSpot[] {
+  return list.filter(s => inSight(from, s, occ) && scan(shotFrom(from, from.y, s), s, occ) >= minAngleOf(s)).sort((a, b) => Math.hypot(a.x - from.x, a.z - from.z) - Math.hypot(b.x - from.x, b.z - from.z));
+}
+
+/**
+ * (W9-G6) The medal by the share named right (review 2026-10-01 R§6 玩法: with one landmark in sight all right was only
+ * ●): all right ★ once two or more were asked (one question alone is ◆: not a free ★, W7-W2-review), ≥ 2/3 ◆, one ●.
+ */
+export const skylineTier = (right: number, asked: number): 0 | 1 | 2 | 3 =>
+  right <= 0 ? 0 : right >= asked ? (asked > 1 ? 3 : 2) : right * 3 >= asked * 2 ? 2 : 1;
 
 /** Three names for a round: the right one and two others, in a shuffled order. */
 export function choicesFor(right: SkylineSpot, rand: () => number, list: readonly SkylineSpot[] = SKYLINE_SPOTS): SkylineSpot[] {
@@ -152,8 +192,8 @@ function nextRound(g: Live) {
   b.heading = h;
   p.heading = h;
   charApi()?.emote('baybay', 'point', { seconds: 2.4 });
-  const eyeY = heightAt(p.x, p.z) + EYE, dx = Math.sin(h), dz = Math.cos(h);
-  runtime.camera.shot = { position: [p.x - dx * 3.8 - dz * 0.9, eyeY + 1.1, p.z - dz * 3.8 + dx * 0.9], target: [s.x, s.y, s.z], duration: 1.1 };
+  const cam = shotFrom(p, heightAt(p.x, p.z) + EYE, s);
+  runtime.camera.shot = { position: [cam.x, cam.y, cam.z], target: [s.x, s.y, s.z], duration: 1.1 };
   patchChip(SKYLINE_ID, { big: `${g.round + 1} / ${g.order.length}` });
   openOverlay(CARD, cardProps(g));
 }
@@ -188,7 +228,7 @@ function step(dt: number) {
 function finish(g: Live) {
   const r = g.right;
   g.run.end({
-    tier: tierFor(r, [1, 2, 3]), score: r,
+    tier: skylineTier(r, g.order.length), score: r,
     detail: { zh: `认对 ${r} / ${g.order.length} 个地标`, en: `${r} / ${g.order.length} landmarks named` },
     bestText: v => ({ zh: `最多认对 ${v} 个`, en: `Best ${v} named` }),
     again: () => { startSkyline(); },
