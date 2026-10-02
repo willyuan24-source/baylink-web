@@ -10,7 +10,8 @@ Worktree `C:/Users/willy/wt/w9-q` (branch `w9-q`), dev port 5911, scratch `C:/Us
 2. **旅行本标签不再被截断**：七八个标签（今天、手帐、万圣节、明信片、目标、想去、足迹，再加上这一波的「游乐」）改成两行排好，手机英文版也全部看得见。
 3. **手机上的小按钮和小字**：这周传单上的「带我去」从 51×25 变成 56×44 的真按钮；手机上描述性的小字（目标说明、明信片提示、今天页说明、设置说明、传单地点等）统一不小于 13 像素；小铺里「国际橙」等长名字可以换行，不再被截。
 4. **手机横过来（带地址栏的 844×340 / 667×320）**：问 BAYBAY 的菜单以前会长出屏幕顶端（前两项点不到），现在框住在屏幕里、选项在框内滚动；小手机横屏打开地点卡，以前底部两个大按钮占掉三分之二，现在并成一行，卡片内容能看到。
-5. 坐车时横幅上的三个小按钮（铃声对答 / 探出身 / 拉闸）在窄屏会自动换行；地铁（地下）时不再弹出“看看此刻”的时间提示盖住地铁卡。
+5. **放大字和放大网页也不乱**：电脑浏览器放大到 175% 时，提示条不再压住 BAYBAY 按钮、顶部两个胶囊不再叠在一起；手机把字调大（150%）时，标题页的「English」和声音按钮不再被切掉，搜索结果的名字不再一两个字一断行；手机上点地图搜索框，键盘弹出时搜索框和前几条结果会自动移到键盘上方；iPhone 横放时，指路的「转过去」箭头不再藏在刘海里。
+6. **这一波其他组新加的界面都查过一遍**（6 种屏幕尺寸 + 英文 + 游戏内 130% 大字）：标题「准备中」、开场一分钟的提示、这周免费、游乐图鉴、地图「玩」、地点卡的近 7 天免费、设置——没有按钮被盖住或跑出屏幕。另：坐车横幅的三个小按钮会换行，地铁里不再弹时间提示。
 
 ## Part a (21:36–23:05 PDT): w8 NEXT #9 and the review's UI rows
 
@@ -82,3 +83,86 @@ Tests: new `tests/opus-bay-w9-q.test.ts` (11: a small CSS rule reader + one test
   family as wave 8's request to lane K (`game/waypoint.ts waypointSafeArea`, now lane N's file).
 - At 390 × 844 the move column's 坐下 / Sit down label is wider than its round button (actors/TouchControls) — cosmetic.
 - BAYBAY says 金色时刻 at 11:00 by day (lane F's golden-hour item).
+
+## Part b (23:05–01:25 by the first agent; recovered, re-verified and pushed 02:14–03:17 PDT): zoom, large text, keyboard, rotation, safe areas
+
+The first agent of this lane was stopped by the account's usage limit with part b in a local WIP commit and five uncommitted
+files. The second agent rebased both onto origin (clean), re-ran every probe on a fresh dev server, corrected what the probes
+did not bear out (below), split the work into one commit per fix (commit numbers from here on equal the row numbers, so
+there is no W9-Q9 / W9-Q10 commit) and pushed it. Nothing of the WIP was discarded; two things were changed: the W9-Q14
+comment claimed "≈ 120 px → two rows of 44 px" (measured: 107 → 100 px) and the W9-Q12 comment said "two lines (one …)"
+where the rule clamps three (two …). The W9-Q5 test now reads the tab rule outside `@media` (W9-Q14 added one inside it
+and turned the W9-Q5 test red after the rebase — caught before any push).
+
+| # | what | files |
+|---|---|---|
+| Q11 | **175 % zoom on a desktop** (1440 × 900 → 823 × 514 CSS px; any 721–1180 px window) with a side sheet: the prompt / move chip centre in the strip left of the HUD column; the objective pill keeps 12 px from the left edge (its line ends in …); the area pill waits under the sheet while the strip cannot hold both pills; a docked BAYBAY bubble (BAYBAY off-screen) is clamped on screen like an anchored one. | `opus-bay.css`, `game/Systems.tsx` (not lane Q's: one line moved, named) |
+| Q12 | **Large text on a phone** (a 390 px iPhone at 150 % lays out at 260 CSS px): the title card has no fixed floors under 360 px; a search result's 带我去 goes under its row; the place card footer's guide link is clamped to three lines (two under 600 px tall). | `opus-bay.css`, `ui/map-w4.css` |
+| Q13 | **The soft keyboard over the map search** (390 × 844): while the field has focus the map sheet takes the screen's height and the field scrolls to the top of the sheet body (touch only). | `opus-bay.css`, `ui/CityMap.tsx` |
+| Q16 | **iOS safe areas**: on an iPhone on its side (47 px notch insets) the waypoint's edge arrow 转过去 sat at x 12–50, inside the notch; its safe area now starts after the left inset and ends before the right one. Everything else (title, goals step, HUD, journal, map, Settings, Ask menu; landscape and portrait) was already clear of the bands. | `game/waypoint.ts`, `game/guideCity.ts` (lane N's: surgical, named) |
+| Q14 | **Rotation**: a turn mid-flow (goals step, journal, map, Ask menu, bare HUD; 390 × 844 ⇄ 844 × 390) put nothing off-screen and covered no control; in landscape the journal's tabs put the icon beside the words (all tabs 44 px). | `ui/content-ui.css` |
+
+### Evidence (dev 5911, `?world=city&start=free&save=off&quality=mid&date=2026-10-02T11:00`, one headless Chrome)
+
+| where | before | after |
+|---|---|---|
+| 823 × 514, Coit Tower card | area pill under 这周去哪; the prompt 坐渡轮 over 问 BAYBAY at the foot of the column (`b-zoom175-place-before.jpg`) | prompt [21, 436, 274, 488], column x 301–355, objective [109 … 355], area hidden; 0 covered / 0 off (`b-zoom175-place-after.jpg`) |
+| 823 × 514, the map open | objective (stats pill, 246 px) at x −11 … 235 | [12, 16, 235, 67] |
+| 823 × 514, title / 这周去哪 / board / map / search / place / Settings | — | 0 covered, 0 off, 0 clipped text (scratch `p-zoom.mjs`) |
+| 260 × 563 title | the card needed 294 px: English and the sound button cut (`b-text150-title-before.jpg`) | card 260 px, language pills 16–244, Start 16–180, sound 192–244 (`b-text150-title-after.jpg`) |
+| 260 × 563 Coit Tower card | footer 192 px of the 394 px sheet (guide title on four lines), body 123 px | footer 131 px, body 184 px |
+| 260 × 563 map search 金门 | names broken after two characters beside 约 3 分钟 | names whole, 约 3 分钟 under each row |
+| 390 × 844, search focused (336 px keyboard, top at 508) | field [721, 765], results below it — under the keyboard | sheet [0, 844], field [88, 132], 3 results end by 282 (`b-keyboard-map-search-after.jpg`); blurred: sheet back at 186 |
+| 844 × 390 journal (8 tabs) | tab grid 107 px (first row 51 px) | 100 px (all 44 px) |
+| rotation 390 × 844 ⇄ 844 × 390 | — | outside-the-screen boxes 0; covered: only the phone bar under a portrait sheet / the Ask box (by design: the bar is under a modal) |
+| 844 × 390, insets 47 / 47 / 21 (scratch `p-safe.mjs`) | 转过去 at [12, 142, 50, 180] in the left notch band | [59, 142, 97, 180]; 0 controls in a band on the 7 surfaces |
+| 390 × 844, insets 47 top / 34 bottom | — | 0 in a band (the phone bar reads 769–817 while the Ask box is up: faded and inert there) |
+
+### Decisions (part b)
+
+- **Zoom = a narrower CSS viewport.** 175 % on a 1440 × 900 desktop was probed as 823 × 514 CSS px at dpr 1.75 (what the
+  browser's zoom gives the page); "large text on a phone" as iOS Safari's page zoom (150 % on a 390 px iPhone = 260 CSS px).
+  The game's own text size (lane A's Settings › 文字大小, 115 / 130 % `zoom` on the reading surfaces) was scanned in part c.
+- At 721–1180 px with a sheet the **area pill gives way, the objective stays** (the next thing to do; the place's name is in
+  the sheet or on the map). The objective's line ends in … rather than wrapping the pill taller.
+- **The keyboard fix is touch-only** (a mouse user's focus in the search must not move the sheet) and portrait-only (≤ 720
+  px wide); a landscape phone keeps its side sheet as it is.
+- W9-Q14 is small (7 px) and kept because it costs nothing; its numbers are the measured ones, not the WIP's guess.
+
+## Part c (03:20–04:05 PDT): the overlap scans on wave 9's new surfaces
+
+Scratch `p-c.mjs` (the lane's CDP daemon; one Chrome) at **390 × 664, 375 × 553, 667 × 320, 844 × 340, 390 × 844, 1440 ×
+900**, plus **English** at 390 × 664 and **lane A's text size 130 %** at 390 × 664 and 844 × 340 (results:
+`C:/Users/willy/opus-qa/w9/q/c/c-*.json`, `run-c.log`; shots `shots/c-*`). Surfaces: **lane P's title** at 准备中 and when
+ready; **the first 30 s** after the goals step's first choice, every title-level message sampled each second (lane F's coach,
+ribbon and toasts; the arrival card and the trip card when they come); **这周去哪** (the questions step with lane R's 这周免费
+strip, then 免费就好 → the board with the six-row strip, top and end); **the journal's 游乐 tab** (lane G, top and end); **the map's
+玩 chip and a game's go card** (lane G); **SF Zoo's card** with lane R's 近 7 天免费 (top and end); **Settings** (lane A, top and
+end).
+
+| result | where |
+|---|---|
+| **0 controls off-screen, 0 covered** | every surface at every size, both languages, both text sizes |
+| the map canvas's centre under the go card / the map credit | 375 × 553, 667 × 320, 844 × 340 with a game's go card: the canvas pans anywhere; not a defect |
+| boxes under 44 px (all with a larger hit area or fine print) | lane R's 加到日历 35 × 32 and 带我去 77 × 32 (`::before` 44 px tall), the source links 16–17 px tall; the waypoint's 转过去 38 × 38 (`::before` hit area); the trip pill 142–166 × 42; the map chips 32 px (wave 8) |
+| not scanned | the arrival card (it did not come within the 30 s at any size: lane F holds it behind the attention arbiter), lane N's stuck / chapter-end / resume cards (they need a walk stuck for 20 s or a finished chapter — not reached by a scripted run tonight), lane S's photo card (a drawn image, game/photoCard.ts; the album's share sheet was not opened) |
+
+`scripts/opus-sf/qa/overlap-scan.mjs` now opens the four new surfaces itself (`--only week,games,mapplay,freedays`, W9-Q15)
+so W9-Z can re-run them on the go-live tree.
+
+Not changed: at 844 × 340 with the text at 130 % the free strip's head (免费就好 · 这几天的免费福利和活动 / 未来 7 天 · 以官网为准)
+wraps to two lines each — it scrolls with the sheet and covers nothing.
+
+## Not done / notes for other lanes
+
+- **A story dialogue over a place card on a phone**: in the first minute (goals step → 带我去 Coit Tower) the pelican's
+  「以后想去哪都能飞啦！先试试起飞？」 choice box opened over a place card the probe had opened (390 × 664,
+  `shots/c-390x664-zoo-card.jpg`, the scratch run before the fresh-start split) — the place card's footer (攻略 · 加入想去) was
+  under the box. One modal at a time is lane A's W9-A2 (it keeps the call menu off panels); a goal's dialogue still comes over
+  a panel. Lane A / F to decide (hold the dialogue while a sheet is open on a phone, or close the sheet).
+- At 823 × 514 (175 %) with the week board open, BAYBAY's bubble (找到啦！这几张最合你口味…) lay over the top of the HUD column
+  (the gear, `shots/z175d-zh-Hans-823x514-week-board.jpg`) for its few seconds: placeBubble finds no free row in the 251 px
+  strip. Transient; left.
+- From part a: the waypoint's edge arrow under a desktop side sheet during a ride; the move column's 坐下 label wider than
+  its button at 390 × 844.
+- No new or changed BAYBAY lines from this lane (nothing for `new-lines.md`).
