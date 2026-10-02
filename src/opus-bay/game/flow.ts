@@ -31,7 +31,7 @@ import { gameTimeLabel } from './travel';
 import type { TripOption, TripSource } from './tripTypes';
 import { bindJournalOpener, openOverlay, openOverlays, overlays, runAskItem, visibleAskItems } from '../ui/slots';
 import { rewardGoal, rewardPostcard } from './rewards';
-import { bubbleWaits } from './baybayHold';
+import { bubbleWaits, holdingOverlay } from './baybayHold';
 import { W8K_LINES } from './fixedLines';
 import { resetWelcome, runWelcome, type WelcomeInfo, type WelcomeKind } from './welcome';
 import { importRetry } from './importRetry';
@@ -511,7 +511,30 @@ export function welcomeBack(): void {
   if (known && city) say(`上次走到 · ${name.zh}`, `Last time · ${name.en}`, 'info', 4400);
   const extra = runWelcome({ kind: 'returning', zone, at: performance.now() });
   const next = extra ?? (goalDone(CITY_GOAL.pelican) ? null : PELICAN_NUDGE);
-  if (next) baybayLine(next, { ttl: 60, ...(next === PELICAN_NUDGE ? { id: W5_LINE_IDS.nudge } : {}) });
+  if (!next) return;
+  const id = next === PELICAN_NUDGE ? W5_LINE_IDS.nudge : undefined;
+  // W9-H-review (H-RV-1): the title's 继续 starts 'local', so W9-F4's 3-min hush runs, and the hush holds BAYBAY's pacer:
+  // the welcome's own second line (the day's line — lane H's big Halloween days, lane R's SF today — or goal #1) waited
+  // there and expired unsaid. It is part of the greeting the player pressed 继续 for: said after 欢迎回来, the hush stays.
+  if (performance.now() < flow.get().hushUntil) sayAfterWelcome(next, id);
+  else baybayLine(next, { ttl: 60, ...(id ? { id } : {}) });
+}
+
+let welcomeEpoch = 0;
+/**
+ * H-RV-1: welcomeBack's second line while the hush runs — a bubble of the welcome (voiced by its text, or by `id`), once
+ * 欢迎回来 (or any other bubble) is off the screen and play is free of a dialogue, a panel, a holding overlay or a
+ * cinematic; dropped after 60 s like the pacer's ttl, or when another welcome back has begun since.
+ */
+function sayAfterWelcome(text: Bilingual, id?: string) {
+  const epoch = ++welcomeEpoch, until = performance.now() + 60_000;
+  const go = () => {
+    const s = game.get(), f = flow.get();
+    if (epoch !== welcomeEpoch || performance.now() > until || s.worldMode !== 'city') return;
+    if (s.phase !== 'playing' || s.mode !== 'free' || s.paused || !!s.dialogue.nodeId || s.panel.kind !== null || cinemaActive() || !!f.bubble || holdingOverlay() !== null) { setTimeout(go, 500); return; }
+    if (bubble(text, 4600, BAYBAY_ID, 'call') && id) speakRecorded(id);
+  };
+  setTimeout(go, 500);
 }
 
 /**

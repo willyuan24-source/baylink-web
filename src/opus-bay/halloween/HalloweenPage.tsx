@@ -35,8 +35,9 @@ export default function HalloweenPage() {
   const phase = halloweenPhase();
   const goals = halloweenGoals(isPaid);
   const bag = candyCount(isPaid);
-  const knocked = doorsKnocked(isPaid);
   const doors = TREAT_DOORS.filter(d => !d.gone);
+  // (H-RV-2) x / 42: of the live doors (a gone door's treat stays in the bag and the goal: halloween/treat.ts)
+  const knocked = doorsKnocked(isPaid, doors);
   // lane H's hunt (halloween/hunt.ts): found this save, and how many there are
   const pumpkins = pumpkinsFound();
   const go = (id: string, x: number, z: number, name: Bilingual) => {

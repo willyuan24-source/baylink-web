@@ -81,15 +81,20 @@ export function knockResult(n: number, phase: HalloweenPhase, dateKey: string, t
 
 const live = (doors: readonly TreatDoor[]) => doors.filter(d => !d.gone);
 
-/** Doors knocked (a first treat paid) this save. */
-export const doorsKnocked = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): number => live(doors).filter(d => paid(doorSource(d.n))).length;
+// W9-H-review (H-RV-2): a treat once given stays given — doors 10 / 43 went `gone` in W9-H3 (2 Oct) after the season
+// had opened (1 Oct), so a save may hold their treats: the goal's door count and the candy bag count every paid door,
+// gone or not (before: live doors only — a bag of 5 fell to 3 and 敲开 5 户 from done to 3/5). "Every door" asks the
+// live doors only; the page's x / 42 passes the live doors (HalloweenPage.tsx).
 
-/** The candy bag: one per door treat, two per big-night treat. */
+/** Doors knocked (a first treat paid) this save, of `doors` (default: every door, gone ones too). */
+export const doorsKnocked = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): number => doors.filter(d => paid(doorSource(d.n))).length;
+
+/** The candy bag: one per door treat, two per big-night treat (gone doors' treats stay in the bag). */
 export const candyCount = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): number =>
-  live(doors).reduce((s, d) => s + (paid(doorSource(d.n)) ? 1 : 0) + (paid(nightSource(d.n)) ? 2 : 0), 0);
+  doors.reduce((s, d) => s + (paid(doorSource(d.n)) ? 1 : 0) + (paid(nightSource(d.n)) ? 2 : 0), 0);
 
-/** Every door of the season has given its first treat. */
-export const allDoorsKnocked = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): boolean => doorsKnocked(paid, doors) >= live(doors).length;
+/** Every door of the season (the live ones) has given its first treat. */
+export const allDoorsKnocked = (paid: (source: string) => boolean, doors: readonly TreatDoor[] = TREAT_DOORS): boolean => live(doors).every(d => paid(doorSource(d.n)));
 
 /** What the bag and the doors stood at (before / after a treat). */
 export interface BagState { doors: number; bag: number; all: boolean }
