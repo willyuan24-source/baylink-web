@@ -2,14 +2,18 @@
 
 Lane N of wave 9 (plan `docs/opus-bay/sf-w9-lead.md` §3 N), worktree `C:/Users/willy/wt/w9-n` (branch `w9-n`), dev port
 5903, scratch `C:/Users/willy/opus-qa/w9/n/`. Review refs: R§5 #n = the first-use review's Top-15 item n
-(`docs/opus-bay/review-2026-10-01-first-use.md`), R§6 = its other-issues tables. Times PDT.
+(`docs/opus-bay/review-2026-10-01-first-use.md`), R§6 = its other-issues tables. Times PDT. Two agents: the first worked
+21:36 → ≈ 00:35 (stopped by the account's usage limit; W9-N1 pushed, W9-N2 committed, the tour part uncommitted), the
+second (this resume) 02:14 → 05:00: recovered, split, checked and pushed that work, then W9-N2b, W9-N6 and the
+unattended Grand Tour run.
 
 ## 给主人的摘要
 
-1. 带路不会再"卡死不动"：BAYBAY 带你走路时，20 秒没有进展就会出手——近的路（60 米内）直接黑屏一下把你送到，远的路弹出卡片「这段路被挡住了」让你选［飞过去］［换条路］［我自己走］。
-2. 一日游第 1 章金门大桥那段（下车后要绕悬崖 259 米才能到 30 米外的游客中心）现在直接送达；自己推摇杆脱困不再被当成"不要带路"，后面每一段照样自动带。
-3. 一日游不再先问「完整版 / 快速版」，直接出发；中途回来时「继续一日游 · 第 n 章」的章节号修好了（以前每到章节交界都少 1）。
-4. （part b / c 的结果写在下面各节。）
+1. 带路不会再"卡死不动"：BAYBAY 带你走时 20 秒没进展就出手——60 米内直接黑屏送到，远的弹卡片「这段路被挡住了」［飞过去］［换条路］［我自己走］；金门大桥下车那段（绕悬崖 259 米）现在 8 秒内送到游客中心。自己推摇杆脱困不再被当成"不要带路"。
+2. 时间只有一个说法：等车时写「车 9 秒后到 · 车程约 4 分钟」；站在渡轮大厦不再写「下一站：渡轮大厦」；走路的时间只减不增（真绕路才说「绕一下」）；在恶魔岛上不再给"走路 2 分钟到科伊特塔"，改说「先坐船回城」。
+3. 一日游：不再问完整版 / 快速版，直接出发；每章结束一张结算卡（明信片、金币、下一章几分钟、加到想去、先逛逛）；回来时 6 秒后问「继续一日游 · 第 n 章（约 m 分钟）」，章节号修好了；回顾卡数的是一日游的站点明信片，并加了「带回现实 · 这周这些站附近」的活动；坐车菜单第一项就是一日游的下一站。
+4. 活动卡的「带我去」：渡轮大厦农夫市集现在送到大厦前的摊位，不再是马路对面的 F 线站台；到了以后活动卡会再打开。走路结束会转身面对目的地。地图上走路写「和 BAYBAY 走 · 约 85 秒」。
+5. 无人值守跑完一次完整一日游（开发服，10/3 周六 10:00）：五章实测 4.1 / 5.0 / 9.2 / 5.1 / 9.3 分钟（全程 32.9 分钟，标称约 36），卡片上的标称 5 / 6 / 8 / 7 / 10（第 3 章多出的时间是 N 线在 Judah & La Playa 终点站一直显示「车 9 秒后到」、实际等了约 4 分钟——评测里那个"约 24 秒等了 3.5 分钟"，根子在轻轨模拟（world/lightRail.ts，不是本组的文件），已写进 Requests）。全程没有卡住，「让 BAYBAY 带我过去」一次都不用点，页面无报错；跑完发现最后一章的明信片没领（回顾卡 7/9），已修（W9-N3b）。
 
 ## Part a — stuck (R§5 #7), the tour's first fixes (21:35 → )
 
@@ -62,3 +66,161 @@ the windmill 20 u / 20 u.
   now gives up at 20 s into the card (the watchdog test); the leg itself did not reproduce (verify-phone: 68 s from YBG).
 - Updated (never deleted): `opus-bay-w5-nav` (the give-up says why), `opus-bay-w5-tours` (a give-up keeps the tour
   carrying; a takeover still turns it off), `opus-bay-sf-tripflow` (no version question).
+
+## Part b — one time source (R§5 #6) — W9-N2 (first agent), W9-N2b
+
+**W9-N2** (`ad0a5118`): waiting at a stop the pill says 「车 9 秒后到 · 车程约 4 分钟」 from the ride banner's own live ETA
+(`tripProviders.liveWaitLeft`, lane T's rideStatus eta) instead of the trip total from the boarding quote; a walk to a
+stop is 「去车站 X」 and within 25 u of a walk's end 「就在前面 X」 (no 「下一站：渡轮大厦」 at the Ferry Building); the
+walking ETA counts the A*'s remaining path once it answers (`trips.ts` 'refine', `tripRun.refineWalk`) and is smoothed
+per slot (pill, card, waypoint: `guideCity.shownEta`) — it only goes down, and a rise is accepted only after 3 s above
+1.15 × + 3 s, said once 「绕一下」. **Surgical edit in lane F's file:** `ui/guideText.ts` (waitRideLabel, detourLabel,
+tripPillText's wait / near / detour options) — the pill's words live there; F's other text untouched.
+
+**W9-N2b** (this agent; w8 W8I-D-4, open since wave 8): on Alcatraz the waypoint chip offered a walking time to a city
+target (「科伊特塔 · 约 2 分钟」 across the bay). `game/waypoint.ts acrossWaterLabel`: with the island on one side only the
+chip's time reads 「先坐船回城」 / 「要坐船上岛」 (no number); a planned trip keeps the plan's seconds (ferry and waits
+included). Test: `tests/opus-bay-w9-n-wp.test.ts`.
+
+**Ride quotes vs measured boardings** (the review: "报价 240 秒，实际不到 30 秒就上车"; 「约 24 秒」 waited ≈ 3.5 min). Measured
+in the unattended run below (the trip's quote = wait + ride; "took" = the trip's age when the ride's stop was reached):
+
+| Ride (tour leg) | Quote | Took | Note |
+|---|---|---|---|
+| Sightseeing bus Ferry Building → Golden Gate | 240 s | 219 s | pill while waiting: 「车已到站 · 车程约 4 分钟」 |
+| Sightseeing bus Golden Gate → Lands End | 193 s | 145 s | 「车 11 秒后到 …」 |
+| N line Judah & La Playa → 9th & Irving | 146 s | 314 s | **the pill said 「车 9 秒后到」 for ≈ 230 s** (see below) |
+| N line 9th & Irving → Duboce & Church (walk + ride) | 152 s | 113 s | 「车 89 秒后到」 |
+
+So the bus and the inner N legs are within the quote; the one bad case is the N line's western terminus. The pill's
+number there is the rail model's own (`world/lightRail.ts eta()`: a train standing short of the terminus keeps its
+profile ETA, 9 s, while it waits for the terminus to clear); the review's tour2/peek3 「约 24 秒」 is the same stop. Not fixed
+here — `world/lightRail.ts` is not lane N's file and the fix is in the train model (see Requests).
+
+## Part c — the Grand Tour (plan §3 N (3)) — W9-N3
+
+- **No 完整版 / 快速版 question** (W9-N1): `start` begins the full tour (「全城 5 章 · 约 36 分钟 · 随时下车」 on the four-way
+  choice); a saved express run still resumes as one.
+- **Chapter card** (`cityTour.ts chapterCard`): after a chapter's outro line, through F's arbiter (title slot):
+  「第 2 章 · 海岸 完成！ · 明信片 3/3（新 +3） · 金币 +92」 [下一章：N 线穿越日落区（约 8 分钟）] [这一章的地方加到想去]
+  [先在这儿逛逛]. The chapter's stop postcards of the stops reached are claimed then (review: the recap said 0/24).
+- **Resume card** (`tripRun.ts`): a save with the tour half done → after 6 s of free play one card 「上次的一日游还没走完，
+  接着走吗？」 [继续一日游 · 第 3 章（约 22 分钟）] [先自己逛逛]; the chapter number is the first open stop's (was one less).
+- **The tour bus menu** (`lineRides.boardLine`): E at a pole where the tour boards a later ride pre-fills that ride.
+- **The recap**: 「n/m 站点明信片」 (the tour's stop postcards, not the city's 24) and 「带回现实 · 这周这些站附近」 (≤ 3 of
+  this week's events within 300 u of a stop, each opens its card; else a line to 这周) + 看这周去哪.
+- Tests: `tests/opus-bay-w9-n-tour.test.ts` (5 for N3).
+
+## Part d — arrivals (plan §3 N (4)) — W9-N4, W9-N6
+
+- **W9-N4** trips on foot end facing `arrival.heading` (the place row's, else the landmark's; the camera turns too
+  outside the tour and without an attraction's own arrival moment); `GoToOptions.onArrive` runs once when THAT trip
+  arrives (never after a cancel / another trip), in F's title slot; **surgical in lane R's `realsf/index.ts`**: goToVenue
+  reopens the event card on arrival.
+- **W9-N6** 带我去 for the Ferry Building's events ends at the farmers-market stalls on the front plaza (122.6, −4.1) =
+  `data/district.ts` anchors['farmers-market'], not at the attraction point (131.5, 15.1) 3.4 u from the F-line stop:
+  `GoToTarget.at` (the end spot; the place, name and arrival moment stay the place's); **surgical in lane R's
+  `realsf/eventVenues.ts`** (`EventVenue.door`, set for ferry-building only) and `realsf/index.ts` (passes it). Test:
+  `tests/opus-bay-w9-n-venue.test.ts`.
+
+## Part e — the map's time words (plan §3 N (5)) — W9-N5
+
+The go button of a walk says 「和 BAYBAY 走 · 约 85 秒」 / "Walk with BAYBAY · ~85s" (60–119 s in 5-second steps; was
+「BAYBAY 带路 · 约 1 分钟」); the ride / fly ways stay one tap away under the card's 其他方式和详情 chevron (not new: no
+extra chips were added, the card already lists them).
+
+## Part f — the whole Grand Tour, unattended (dev 5903, `?world=city&date=2026-10-03T10:00`, a fresh profile, zh-CN)
+
+Script `C:/Users/willy/opus-qa/w9/n/tour.mjs` (the reviewer's `gapfill/tour2.mjs` pointed at port 5903 + the card shots
+and page / console error logging): Start → 刚来湾区 → the tour runs; dialogue choices are taken after 3 s (the first
+one: 下一章), panels closed after 5 s, a shot every 30 s; a leg with no movement for 45 s is logged STUCK; the lead
+chip 「让 BAYBAY 带我过去」 would be tapped after 15 s. Log `C:/Users/willy/opus-qa/w9/n/tour3/log.jsonl`, 70 shots there.
+The server ran without HMR / watching (`vite.tour.config.ts`) so the worktree could be edited meanwhile.
+
+| Chapter | Start → end (s, run clock) | Took | Quoted on the cards | Notes |
+|---|---|---|---|---|
+| 1 海湾 | 155.9 (刚来湾区) → 402.5 (card) | 4.1 min | 5 min (scaled 5.0) | GGB drop-off → Welcome Center delivered in 8 s (W9-N1) |
+| 2 海岸 | 406.9 → 704.3 | 5.0 min | 约 6 分钟 (5.6) | |
+| 3 N 线穿越日落区 | 708.9 → 1258.3 | 9.2 min | 约 8 分钟 (7.8) | ≈ 4 min at Judah & La Playa: 「车 9 秒后到」 for ≈ 230 s (Part b) |
+| 4 M 线去石镇和州大 | 1262.6 → 1567.2 | 5.1 min | 约 7 分钟 (7.2) | |
+| 5 双峰与市中心 | 1571.5 → 2129.3 (recap) | 9.3 min | 约 10 分钟 (10.5) | |
+| **All** | 155.9 → 2129.3 | **32.9 min** | 约 36 分钟 | 23/23 stops, coins 70 → 375 |
+
+Lead-chip taps 0, page errors 0, console errors 0; STUCK only at the La Playa wait (5 entries, t 749 → 931, a train wait,
+not a walk). The chapter cards read 「第 1 章 · 海湾 完成！ · 明信片 1/1（新 +1） · 金币 +80」, 「第 2 章 · 海岸 完成！ ·
+明信片 3/3（新 +3） · 金币 +92」, 「第 3 章 … 2/2（新 +2） · 金币 +42」, 「第 4 章 … 1/1（新 +1） · 金币 +50」. The recap:
+「7/9 站点明信片 · 9/10 盖章 · 23/23 站」 and 带回现实 with the Ferry Plaza market, Hardly Strictly Bluegrass (Hellman
+Hollow) and Foodwise Latine Makers (all Sat 10/3). The 7/9 was the last chapter's two cards never claimed (no card after
+the last chapter) → **W9-N3b** claims them at the last stop (a new test, red → green). The run started from a cold dev
+server; a first attempt at 03:2x hit the app's error page right after Start on a cold compile (no error was captured;
+two probes and this run started clean) — noted, not reproduced.
+
+**The farmers market's 带我去** (W9-N6, `C:/Users/willy/opus-qa/w9/n/market.mjs`, from Pier 7 (60, −2), Sat 10:00): the
+event card → 带我去 → a walk of ≈ 15 s ending at (122.4, −4.0) between the stalls with 「E 尝一口 · 渡轮大厦农夫市集」, and
+the event card open again on arrival (`docs/opus-bay/qa/w9/N/market-take-me-there-arrived.jpg`); errors 0.
+
+QA images (`docs/opus-bay/qa/w9/N/`): `tour-chapter2-card.jpg` (the card typing in), `tour-recap-before-n3b.jpg` (the
+recap with 带回现实, 7/9 before W9-N3b), `market-take-me-there-arrived.jpg`, `n-line-la-playa-9s.jpg` (the terminus wait).
+
+## Checks (last push)
+
+`npx tsc -p tsconfig.app.json --noEmit` 0 · `npx eslint .` 0 errors (53 warnings, none in lane N's files beyond the
+three react-refresh notes of `ui/CityTourRecap.tsx`'s helpers) · `npx tsx --tsconfig tsconfig.app.json --test
+"tests/opus-bay-*.test.ts"` 2124 tests, fail 0 (1 todo: W8-P9's GameRoot ≤ 255 KB target), on the tree before the last rebase; after it tsc 0 and lane N's / Q's / S's touched tests re-run green. Lane N's tests: `opus-bay-w9-n-stuck` (9), `-time` (5), `-tour` (7),
+`-wp` (1), `-venue` (1).
+
+## Commits (lane N, wave 9)
+
+| Commit | Part | What |
+|---|---|---|
+| `d17a2b76` | a | W9-N1 the 20 s watchdog, escape ≠ takeover, the rescue (deliver ≤ 60 u / the stuck card), no version question, resume chapter (first agent, pushed 23:2x) |
+| `ad0a5118` | b | W9-N2 one time source: 车 9 秒后到 · 车程约 4 分钟, 去车站 / 就在前面, the walking ETA only falls (first agent; pushed by this agent 03:06) |
+| `2193fbef` | e | W9-N5 和 BAYBAY 走 · 约 85 秒 (recovered) |
+| `ef312910` | c | W9-N3 chapter card, resume card, the tour bus menu, the recap's stop postcards + 带回现实 (recovered; lint + "reached stops only" fixed) |
+| `3e65cc9f` | d | W9-N4 trips end facing the place; onArrive → the event card again (recovered) |
+| `e2cffd8e` | b | W9-N2b Alcatraz: 先坐船回城 instead of a walking time across the bay |
+| `13b0e73f` | d | W9-N6 the farmers market's 带我去 ends at the stalls (GoToTarget.at, EventVenue.door) |
+| `ad657523` | c | W9-N3b the last chapter's stop postcards claimed (the run's recap 7/9) |
+
+Nothing of the first agent's work was discarded.
+
+## Decisions (defaults, recorded)
+
+- The resumed work was kept whole (it passed its own tests and the suite) and split into three commits by part (N5,
+  N3, N4) instead of one, so the reviewers can read each; two lint errors and one rule were fixed on the way: the
+  chapter card claims the postcards of the stops this run **reached** (the first agent's version claimed every stop of
+  the chapter, skipped or optional ones too).
+- The stuck / chapter / resume cards are dialogue nodes shown in F's title slot (`attention.ts requestSlot`, released
+  when the dialogue closes) — not new UI components.
+- The 带回现实 box links this week's events near the stops and 这周; lane S's share card was not wired into the recap
+  (S's share lives in the photo flow; adding a second share entry here was left for the reviewers / S).
+- Alcatraz: the honest words (先坐船回城) rather than a ferry-timetable ETA in the chip; a planned trip already carries the
+  ferry's real seconds.
+- The market's 带我去 ends at the district's farmers-market anchor (the market's own E spot) for all three Ferry Building
+  venue events; the venue's pennant / kit point stays (131.5, 15.1).
+- The unattended tour ran on a dev server without HMR / file watching (`opus-qa/w9/n/vite.tour.config.ts`) so that
+  editing the worktree during the 36-minute run could not reload the page.
+
+## Not done
+
+- **The N line at its western terminus** (Judah & La Playa): the pill shows the rail model's 「车 9 秒后到」 for ≈ 4 min
+  while the train stands short of the terminus (`world/lightRail.ts`; not lane N's file) — see Requests.
+- "Bus drop-offs snapped to the nearest walkable nav node with clearance round each loop stop's shelter": done for the
+  loop / Metro surface stops as `lineRides.roomySpot` (0.9 u of room, 2.3 u off the line) — not a nav-node snap.
+- Lane S's share card in the recap (「发给家人」) — not wired (above).
+- The ride quotes were measured (Part b), not re-tuned: the bus quotes held (219 / 240 s, 145 / 193 s); only the
+  terminus case is off, and that is the train model.
+- No phone run of the new cards (desktop dev only); the chapter card's text is templated (not voiced, as the voice
+  rule requires: the numbers are in it).
+
+## Requests
+
+1. **World / transit owner (wave 10, `world/lightRail.ts`)**: at the N's La Playa terminus the rider's train waits
+   short of the terminus while another train stands there, and `eta()` keeps returning its profile time (9 s) — the pill
+   said 「车 9 秒后到」 for ≈ 230 s (evidence `C:/Users/willy/opus-qa/w9/n/tour3/stuck-749…931.jpg`, log t 704 → 940;
+   the review's `gapfill/tour2/peek3.jpg` 「约 24 秒」 is the same stop). Either let the standing train take the rider
+   (reassign to the train at the terminus after its reversal) or make `eta()` count the hold.
+2. **W9-Z / reviewers**: look at the chapter card (`docs/opus-bay/qa/w9/N/`), the resume card (reload with a half-done
+   tour, wait 6 s), and the farmers market's 带我去 (the event card → 带我去 → the stalls, the card again).
+3. **Lane X**: the two lines in `C:/Users/willy/opus-qa/w9/new-lines.md` from lane N (w9-n-stuck, w9-n-tour-resume)
+   — no further lines from N after 01:45.
