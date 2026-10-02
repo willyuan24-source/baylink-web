@@ -31,7 +31,8 @@ const RIDE_ICONS: Readonly<Record<string, LucideIcon>> = { ferry: Ship, 'cable-c
 // (W5-T1 / T2) inline: the banner's own chunk carries no stylesheet (node tests import this module)
 /** with pads the banner wraps: the pads take a row of their own under the line and the buttons */
 const PADS_ON: CSSProperties = { flexWrap: 'wrap', justifyContent: 'center', rowGap: 6, borderRadius: 22, whiteSpace: 'normal' };
-const PAD_ROW: CSSProperties = { flex: '1 0 100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, minWidth: 0 };
+/** (W9-Q4, lane M's wave-8 request) the pads wrap: three on a Powell car (铃声对答 · 探出身 · 拉闸当司机) ran into each other on a 390 px phone */
+const PAD_ROW: CSSProperties = { flex: '1 0 100%', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: 8, rowGap: 6, minWidth: 0 };
 const HELD_NOTE: CSSProperties = { fontStyle: 'normal', fontWeight: 700, color: 'var(--ob-terra)' };
 /** 直接到站 as the big button (the ride has not moved for STALL_BIG s) */
 const BIG_SKIP: CSSProperties = { minHeight: 40, padding: '0 18px', fontSize: 15, fontWeight: 800, animation: 'ob-pop .4s var(--ob-spring)' };
