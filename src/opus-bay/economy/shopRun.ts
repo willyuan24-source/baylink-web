@@ -12,6 +12,7 @@ import { startTravel, travelActive } from '../game/fastTravel';
 import { PELICAN_TARGET } from '../game/cityGoals';
 import { closePanel, goalsStepOpen } from '../game/flow';
 import { flow } from '../game/flowStore';
+import { lastWelcome } from '../game/welcome';
 import { FLAG_RULES, registerFlagSource } from '../game/flags';
 import { invalidateInteractables, registerInteractables, type Interactable } from '../game/interactables';
 import { isDiscovered } from '../game/discovery';
@@ -92,7 +93,12 @@ function stallInteractable(): Interactable | null {
 export function ticketGiftWaits(): boolean {
   const s = game.get(), f = flow.get();
   // (W8-I, W8I-WS-2) nor under a panel (a place card: the voiced line played with its bubble off screen on the phone)
-  return s.phase !== 'playing' || s.mode === 'onboarding' || !!s.dialogue.nodeId || s.panel.kind !== null || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active;
+  // (W9-F4 / F5, lane F surgical) nor in 我是本地人's quiet minutes (review R§6: 送你一张飞行券！ at 8 s of a local's first
+  // minute), nor in a new 我自己逛逛 player's first 90 s: the pelican lands at 36 s (game/pelicanFirst.ts) — a gift then
+  // was refunded 26 s later (W9-F's first run: 送你一张飞行券！ at 9.9 s, 还你 10 金币 at 36 s)
+  const w = lastWelcome();
+  return s.phase !== 'playing' || s.mode === 'onboarding' || !!s.dialogue.nodeId || s.panel.kind !== null || goalsStepOpen() || f.freeLead === PELICAN_TARGET || s.tour.active || performance.now() < f.hushUntil
+    || (!!w && w.kind === 'new' && w.choice === 'free' && performance.now() - w.at < 90_000);
 }
 /** the gift comes this long (ms) after goal #1's lead is over (the goals step's close → the lead start is not a gap) */
 export const TICKET_QUIET_MS = 4000;

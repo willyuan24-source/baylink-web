@@ -1,6 +1,7 @@
 import { game } from '../core/store';
 import { openOverlays } from '../ui/slots';
 import { chunkLostCard } from './chunkLost';
+import { flow } from './flowStore';
 
 /**
  * Wave 8 · lane K · W8-K1 — what holds BAYBAY's ambient lines (sf-w8-lead §4 "Overlay gate").
@@ -80,7 +81,9 @@ export function baybayHeld(): boolean {
   // (W8-K4) a city rule: the district's lines never change (game/brain.ts small talk and play/zones.ts invites speak
   // there too)
   // (W8-P-review) and while the chunk-lost card (game/chunkLost.ts, not an overlay slot: plain DOM) is up
-  return game.get().worldMode === 'city' && (holdingOverlay() !== null || chunkLostCard() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity)));
+  // (W9-F4) and while the welcome's hush runs (flow.hushUntil): 我是本地人's 3 quiet minutes held only some sources (review
+  // R§6: 4 lines and a toast in 35 s — the 飞行券 gift, the 捉迷藏 invite, the pumpkin glow) — every source that asks this waits now
+  return game.get().worldMode === 'city' && (holdingOverlay() !== null || chunkLostCard() !== null || (activity !== null && BAYBAY_HOLD_ACTIVITIES.includes(activity)) || performance.now() < flow.get().hushUntil);
 }
 
 /** A speech bubble must wait now (game/flow.ts bubble). */

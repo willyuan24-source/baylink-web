@@ -76,6 +76,12 @@ export interface FlowState {
   freeHintOffUntil: number;
   /** F9: "I'm a local" start — no ambient barks until this time (performance.now ms) */
   quietUntil: number;
+  /**
+   * W9-F4: the welcome's hush (performance.now() ms) — 我是本地人's 3 minutes, 我自己逛逛's first 15 s. Every unprompted
+   * line source that asks game/baybayHold.ts baybayHeld() waits until then, and the 飞行券 gift (quietUntil is also the
+   * games' own quiet, which keeps only some sources quiet: unchanged).
+   */
+  hushUntil: number;
   /** F11: first visit — the world opens at golden hour (like the key art) whatever the Bay clock says */
   goldenFirstVisit: boolean;
   /** F11: the one-tap offer to switch to the real Bay time right now (this visit only) */
@@ -120,6 +126,7 @@ export const initialFlowState = (): FlowState => ({
   freeHint: null,
   freeHintOffUntil: 0,
   quietUntil: 0,
+  hushUntil: 0,
   goldenFirstVisit: false,
   timeOffer: null,
   trip: null,

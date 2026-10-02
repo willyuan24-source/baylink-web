@@ -25,7 +25,6 @@ import { endRide } from './ride';
 import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, speakRecorded, unlockPelican } from './cityContent';
 import { CITY_DATA } from '../data/sf/cityData';
 import { boardFrom, initTransit, openRideNode } from './transit';
-import { bayTimeOfDay } from './qa';
 import { bayNow } from './bayNow';
 import { PELICAN_TARGET } from './cityGoals';
 import { gameTimeLabel } from './travel';
@@ -278,7 +277,7 @@ export function runAction(action: DialogueAction) {
   switch (action.type) {
     case 'start-tour': closeQuiet(); startTour(action.tourId); offerRealTime(); if (welcoming) welcomed('tour'); break;
     case 'start-week': closeQuiet(); startWeek(); offerRealTime(); if (welcoming) welcomed('week'); break;
-    case 'free-roam': closeQuiet(); startFree(); facePlaza(); offerRealTime(); if (welcoming) welcomed('free'); break;
+    case 'free-roam': closeQuiet(); startFree({ wander: welcoming }); facePlaza(); offerRealTime(); if (welcoming) welcomed('free'); break;
     case 'skip-intro': closeQuiet(); startFree({ local: true }); facePlaza(); offerRealTime(); if (welcoming) welcomed('local'); break;
     case 'set-week-pref': setWeekPref(action.key, action.value); break;
     case 'show-week-results': closeQuiet(); void showWeekResults(); break;
@@ -568,45 +567,43 @@ export function maybeStartIntro(guideDistance: number, atMark = true) {
   }
 }
 
-export function startFree(opts: { local?: boolean; quiet?: boolean; back?: boolean } = {}) {
+export function startFree(opts: { local?: boolean; quiet?: boolean; back?: boolean; wander?: boolean } = {}) {
   introPendingSince = 0;
   game.set(s => ({ mode: 'free', tour: { ...s.tour, active: false } }));
   const city = game.get().worldMode === 'city';
   const talk = !opts.local && !opts.quiet;
+  // W9-F4 (review R§6 "选了「我自己逛」仍被派鹈鹕任务，10 个目标一次全摊开"): the welcome's 我自己逛逛 in the city opens no
+  // goals step and points nowhere — the goals wait in the journal (marked shown), BAYBAY follows, no soft hint for 3 min
+  const wander = city && !!opts.wander;
+  if (wander) markGoalsDone([GOALS_STEP_SEEN]);
   // wave 5 (W5-C3, plan MF6): the city shows its goals ONCE, as a step (game/goalsStep.ts); after it, free roam starts
   // without a card (the pill opens the journal). If the step's chunk is not there, the old card stands in.
-  const step = city && talk && openGoalsStep();
+  const step = city && talk && !wander && openGoalsStep();
   const card = talk && (!city || (!step && !goalDone(GOALS_STEP_SEEN)));
-  // "I'm a local": no goals card and no ambient chatter for a minute (F9)
-  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: card, quietUntil: opts.local ? performance.now() + 60000 : 0 });
+  // "I'm a local": no goals card and no ambient chatter — W9-F4: for 3 min, for real (game/baybayHold.ts holds every
+  // unprompted line source while quietUntil runs, the 飞行券 gift too)
+  const now = performance.now(), hush = opts.local || wander;
+  // (我自己逛逛: her "you lead" line, then 15 s for the player's own first steps — W9-F's first run heard 4 lines in 20 s)
+  const until = opts.local ? now + QUIET_MS : wander ? now + 15_000 : 0;
+  flow.set({ tourPhase: 'idle', weekStage: 'idle', awaitingPoi: null, goalsCard: card, quietUntil: until, hushUntil: until, ...(hush ? { freeHint: null, freeHintOffUntil: now + QUIET_MS } : {}) });
   if (opts.back) welcomeBack();
   else if (opts.local) bubble(hookText('localIntro') ?? { zh: '欢迎回来！M 看地图，Q 随时叫我。', en: 'Welcome back! M opens the map, Q calls me anytime.' }, 4200);
   else if (step) return; // (the step carries BAYBAY's intro; her pelican line follows when it closes)
-  else if (!opts.quiet && city && !card) sayFreeLine(!goalDone(CITY_GOAL.pelican), 4600);
+  else if (!opts.quiet && city && !card) sayFreeLine(!wander && !goalDone(CITY_GOAL.pelican), 4600);
   else if (!opts.quiet) bubble(hookText('freeIntro') ?? { zh: '我就跟在你后面～想问什么按 Q 叫我！', en: "I'll tag along — press Q whenever you need me!" }, 4200);
 }
+/** W9-F4: 我是本地人 is quiet this long (ms; the review heard 4 lines and a toast in its first 35 s); 我自己逛 gets no soft hint as long. */
+export const QUIET_MS = 180_000;
 /** City free roam once the goals were shown (W5-C3): no "here are some goals" again. */
 export const FREE_AGAIN: Bilingual = { zh: '好嘞，你带路，我跟着！想去哪儿就叫我～', en: "Okay — you lead, I'll follow! Call me when you want to go somewhere." };
 
 // ---------------------------------------------------------------------------
-// F11 · first visit at golden hour, the real Bay time one tap away
+// F11 · first visit at golden hour — W9-F3 (review R§6 row 首访被强制成黄金时段 / 看此刻的早晨): for the intro only
 // ---------------------------------------------------------------------------
 
-let timeOffered = false;
-/** After the welcome choice on a first visit: offer the real Bay time (e.g. tonight's view) — this visit only. */
-export function offerRealTime(now = bayNow()) {
-  const f = flow.get();
-  if (timeOffered || !f.goldenFirstVisit) return;
-  timeOffered = true;
-  const real = bayTimeOfDay(now);
-  if (real === 'golden') { flow.set({ goldenFirstVisit: false }); return; } // it really is golden hour
-  // (wave 5, W5-C3: after the goals step, never over it; its 10 s start when it shows)
-  const show = () => {
-    if (goalsStepOpen()) { setTimeout(show, 500); return; }
-    if (flow.get().goldenFirstVisit) flow.set({ timeOffer: real });
-    setTimeout(() => { if (flow.get().timeOffer === real) flow.set({ timeOffer: null }); }, 10000);
-  };
-  setTimeout(show, 1800);
+/** After the welcome choice on a first visit: the real Bay time from now on (no 看此刻 toast; nothing is saved). */
+export function offerRealTime() {
+  if (flow.get().goldenFirstVisit) flow.set({ goldenFirstVisit: false, timeOffer: null });
 }
 
 /** [看夜景]: follow the real Bay clock for the rest of this visit (nothing is saved). */

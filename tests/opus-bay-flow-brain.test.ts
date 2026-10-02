@@ -320,15 +320,16 @@ test('real assets: portraits by mood, postcard art with srcset, place cards borr
   assert.equal(postcardForPoi('not-a-poi'), undefined);
 });
 
-test('F11: a first visit opens at golden hour; after the welcome choice the real Bay time is one tap away (not saved)', () => {
+test('F11 / W9-F3: a first visit opens at golden hour for the intro only; the welcome choice hands over to the real Bay time at once, no 看此刻 toast (review R§6; not saved)', () => {
   reset();
   mock.timers.enable({ apis: ['setTimeout'] });
   try {
     flow.set({ goldenFirstVisit: true, timeOffer: null });
-    flowMod.offerRealTime(new Date('2026-09-26T04:50:00Z')); // 21:50 in San Francisco
-    mock.timers.tick(2000);
-    assert.equal(flow.get().timeOffer, 'night');
-    flowMod.offerRealTime(new Date('2026-09-26T04:50:00Z'));
+    flowMod.offerRealTime();
+    assert.equal(flow.get().goldenFirstVisit, false, 'the real Bay time from the choice on');
+    mock.timers.tick(12000);
+    assert.equal(flow.get().timeOffer, null, 'no 现在湾区是晚上 · 看看此刻的样子？ toast (before W9-F3: \'night\' 1.8 s after the choice at 21:50)');
+    flowMod.offerRealTime();
     flowMod.acceptRealTime();
     assert.equal(flow.get().goldenFirstVisit, false);
     assert.equal(flow.get().timeOffer, null);
