@@ -10,7 +10,7 @@ import { game, useGame } from '../core/store';
 import { faceCameraToward } from '../game/cinema';
 import { dismissArrival, endTrip, enterPhotoMode, objectiveTarget, openPanel, skipTripLeg, tourNext, tourPill, walkTo } from '../game/flow';
 import { flow, useFlow } from '../game/flowStore';
-import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripNames, tripSecondsLeft } from '../game/guideCity';
+import { type GuideUiState, TOAST_MS, foundChipText, guideUi, registerPanoramaRoot, rideNow, setGuideLocalePick, setPanoramaWriter, setPhotoLookup, tripEtaShown, tripNames } from '../game/guideCity';
 import { tripProviders } from '../game/tripProviders';
 import { type TripLineInfo, tripTimeLabel } from '../game/tripPlan';
 import type { TripState } from '../game/tripTypes';
@@ -24,7 +24,7 @@ import { GoChip } from './GoChip';
 import { autoOn, subscribeAuto } from '../game/autoTravel';
 import { autoGliding } from '../actors/moveApi';
 import { isScenicLeg, scenicResumeOffered } from '../game/scenicTrip';
-import { tripPillText } from './guideText';
+import { NEAR_R, tripPillText } from './guideText';
 import { useDevice, useMedia } from './hooks';
 import { importRetry } from '../game/importRetry';
 import { ribbonNote } from '../game/attention';
@@ -76,7 +76,14 @@ export function TripPillSlot() {
   // the pill replaces the postcards pill that opened the goals card: fold it (it does not pop back when the trip ends)
   useEffect(() => { if (flow.get().goalsCard) flow.set({ goalsCard: false }); }, []);
   if (!trip || trip.leg >= trip.legs.length) return null;
-  const text = tripPillText(trip, tripSecondsLeft(trip, runtime.player), { lines, phase: stage, compact: narrow, ...tripNames(trip) });
+  // (W9-N2, review R§5 #6) one source: the smoothed trip ETA; waiting, the banner's live wait + the ride
+  const eta = tripEtaShown('pill', trip, runtime.player);
+  const cur = trip.legs[trip.leg];
+  const r = cur.via === 'line' && stage === 'waiting' ? rideNow() : null;
+  const wait = r && r.waitLeft !== undefined && cur.via === 'line' ? { wait: r.waitLeft, ride: Math.max(0, cur.seconds - cur.wait) } : null;
+  const end = trip.legs[trip.legs.length - 1].to;
+  const near = Math.hypot(end.x - runtime.player.x, end.z - runtime.player.z) <= NEAR_R;
+  const text = tripPillText(trip, eta.seconds, { lines, phase: stage, compact: narrow, ...tripNames(trip), wait, near, detour: eta.detour });
   // a tour's leg: lane C's tourPill progress (the first lesson's stops, the Grand Tour's chapters)
   const tp = trip.source === 'tour' ? tourPill() : null;
   const dots = tp ? { done: tp.done, now: tp.step - 1, total: tp.total } : null;
@@ -281,7 +288,7 @@ function TripCardSlot({ trip }: { trip: TripState }) {
   const lines = useTripLines(trip);
   useSecondTick();
   const names = tripNames(trip);
-  const left = tripTimeLabel(tripSecondsLeft(trip, runtime.player));
+  const left = tripTimeLabel(tripEtaShown('card', trip, runtime.player).seconds);
   const title = names.destination ?? trip.legs[trip.legs.length - 1]?.to.name ?? { zh: '行程', en: 'Trip' };
   const close = () => guideUi.set({ tripCard: false });
   return (

@@ -33,6 +33,8 @@ export type TripAction =
   | { type: 'leg-arrived' }
   | { type: 'skip-leg' }
   | { type: 'replan'; option: TripOption }
+  /** (W9-N2) the A* answered for a leg: its route, length and seconds in place (no event; the leg index unchanged) */
+  | { type: 'refine'; leg: number; patch: Pick<TripLeg, 'length' | 'seconds'> & { path?: number[] } }
   | { type: 'cancel' }
   | { type: 'clear' };
 
@@ -66,6 +68,11 @@ export function tripReducer(state: TripState | null, action: TripAction): TripSt
     case 'replan':
       if (!state || !action.option.legs.length) return state;
       return { ...state, option: action.option, legs: action.option.legs, leg: 0 };
+    case 'refine': {
+      if (!state || action.leg !== state.leg || isArrived(state)) return state;
+      const legs = state.legs.map((l, i) => (i === action.leg ? ({ ...l, ...action.patch, estimate: false } as TripLeg) : l));
+      return { ...state, legs, option: { ...state.option, legs, seconds: legs.reduce((s, l) => s + l.seconds, 0) } };
+    }
     case 'cancel':
     case 'clear':
       return state ? null : state;
@@ -91,6 +98,7 @@ export function tripEvents(prev: TripState | null, next: TripState | null, actio
     case 'cancel':
       return prev && !isArrived(prev) ? [ev('cancel', prev)] : [];
     case 'clear':
+    case 'refine':
       return [];
   }
 }

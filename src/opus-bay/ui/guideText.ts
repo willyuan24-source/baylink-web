@@ -71,6 +71,37 @@ export function pillName(name: Bilingual): Bilingual {
   return { zh: strip(name.zh), en: strip(name.en) };
 }
 
+/**
+ * (W9-N2, review R§5 #6 "人在渡轮大厦，右上角却写「下一站：渡轮大厦 约 10 秒」") the player this close (u, straight) to a
+ * walk's end that is not a stop is "just ahead" of it, not on the way to a "next stop" of the same name.
+ */
+export const NEAR_R = 25;
+
+/**
+ * (W9-N2, review R§5 #6: three different times on one screen while waiting) the pill while waiting at a stop, from ONE
+ * source — the vehicle's live ETA (the banner's number) and the ride's own time: "车 9 秒后到 · 车程约 4 分钟" /
+ * "Bus in 9s · ride ~4 min"; the ferry "船 … · 船程…" / "Ferry in … · crossing …". 0 s: the vehicle is at the stop.
+ */
+export function waitRideLabel(wait: number, ride: number, kind: string | undefined): Bilingual {
+  const ferry = kind === 'ferry';
+  const noun = ferry ? 'Ferry' : kind === 'light-rail' ? 'Train' : kind === 'cable-car' ? 'Cable car' : kind === 'streetcar' ? 'Streetcar' : 'Bus';
+  // the wait in the ride banner's own words, so the two say the same number: the bus / Metro rows' rule (lane T's
+  // lineChoices: under 90 s in seconds, else minutes), the cable car / ferry / F-line banner's whole seconds
+  const n = Math.max(1, Math.round(wait)), m = Math.max(1, Math.round(wait / 60));
+  const w: Bilingual = (kind === 'bus' || kind === 'light-rail' || !kind) && wait >= 90 ? { zh: `${m} 分钟`, en: `${m} min` } : { zh: `${n} 秒`, en: `${n}s` };
+  const r = tripTimeLabel(Math.max(0, ride));
+  const here = wait < 0.5;
+  return {
+    zh: `${here ? (ferry ? '船已靠岸' : '车已到站') : `${ferry ? '船' : '车'} ${w.zh}后到`} · ${ferry ? '船程' : '车程'}${r.zh}`,
+    en: `${here ? `${noun} here` : `${noun} in ${w.en}`} · ${ferry ? 'crossing' : 'ride'} ${r.en}`,
+  };
+}
+
+/** (W9-N2) a walk's time said after the way turned out longer than first said: "绕一下 · 约 40 秒" / "Detour · ~40s". */
+export function detourLabel(time: Bilingual): Bilingual {
+  return { zh: `绕一下 · ${time.zh}`, en: `Detour · ${time.en}` };
+}
+
 /** The ride stage (game/flowStore RideStage): waiting at the stop, or on board ('riding' / 'braking' / 'turning'). */
 export type PillPhase = 'waiting' | 'riding' | 'braking' | 'turning';
 
@@ -81,10 +112,13 @@ export type PillPhase = 'waiting' | 'riding' | 'braking' | 'turning';
  * On board a line the pill says "坐到 名称" (the stop to get off at), not "下一站": the RideBanner right under it already
  * says "下一站 …" for the vehicle's next stop, and two different 下一站 on one screen read as a contradiction (review).
  */
-export function tripPillText(trip: Pick<TripState, 'legs' | 'leg'> & { option?: { legs: TripLeg[] } }, secondsLeft: number, o: { lines?: ReadonlyMap<string, TripLineInfo>; phase?: PillPhase | null; compact?: boolean; destination?: Bilingual; short?: Bilingual | null } = {}): PillText {
+export function tripPillText(trip: Pick<TripState, 'legs' | 'leg'> & { option?: { legs: TripLeg[] } }, secondsLeft: number, o: { lines?: ReadonlyMap<string, TripLineInfo>; phase?: PillPhase | null; compact?: boolean; destination?: Bilingual; short?: Bilingual | null; wait?: { wait: number; ride: number } | null; near?: boolean; detour?: boolean } = {}): PillText {
   const legs = trip.legs;
   const cur = legs[Math.min(trip.leg, legs.length - 1)];
-  const time = tripTimeLabel(secondsLeft);
+  // (W9-N2) waiting at the stop: the vehicle's live wait and the ride (one source); a walk that turned longer says so
+  const waiting = !!cur && cur.via === 'line' && o.phase === 'waiting' && !!o.wait;
+  const time = waiting ? waitRideLabel(o.wait!.wait, o.wait!.ride, o.lines?.get((cur as TripLeg & { line: string }).line)?.kind)
+    : o.detour ? detourLabel(tripTimeLabel(secondsLeft)) : tripTimeLabel(secondsLeft);
   const max = o.compact ? PILL_UNITS.phone : PILL_UNITS.desktop;
   if (!cur) return { icon: 'walk', title: { zh: '到了', en: 'Arrived' }, time, step: null };
   const icon = legIcon(cur as TripLeg & { line?: string }, o.lines);
@@ -99,12 +133,19 @@ export function tripPillText(trip: Pick<TripState, 'legs' | 'leg'> & { option?: 
   } else if (cur.via === 'line') {
     zh = `坐到 ${to.zh}`;
     en = `Ride to ${to.en}`;
+  } else if ((cur.via === 'walk' || cur.via === 'run') && cur.to.station) {
+    // (W9-N2) a walk to a stop is the way to the stop, not a "next stop" named like the place you stand in
+    zh = `去车站 ${to.zh}`;
+    en = `To the stop: ${to.en}`;
+  } else if (o.near) {
+    zh = `就在前面 ${to.zh}`;
+    en = `Just ahead: ${to.en}`;
   } else {
     zh = `下一站 ${to.zh}`;
     en = `Next: ${to.en}`;
   }
-  // the time takes its own units + the " · " separator
-  const room = Math.max(4, max - textUnits(time.zh) - 1.5);
+  // the time takes its own units + the " · " separator (the wait / ride words sit on their own line)
+  const room = Math.max(4, max - (waiting ? 0 : textUnits(time.zh)) - 1.5);
   return { icon, title: { zh: fitText(zh, room), en }, time, step: legs.length > 1 ? `${Math.min(trip.leg + 1, legs.length)}/${legs.length}` : null };
 }
 

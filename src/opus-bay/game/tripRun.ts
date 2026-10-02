@@ -31,6 +31,7 @@ import { currentLeg, isArrived, legTarget, tripEvents, tripReducer, walkLeg, typ
 import type { TripLeg, TripLineLeg, TripOption, TripSource, TripState } from './tripTypes';
 import { importRetry } from './importRetry';
 import { tripRouteCache } from './tripProviders';
+import { TRIP_SPEED, autoTravelSeconds } from './tripPlan';
 
 /**
  * Wave 4 · lane C · W4-C1: the trip runner. `flow.trip` (game/trips.ts reducer on the frozen TripState) is the state;
@@ -174,7 +175,7 @@ function withDestName(legs: TripLeg[], name: Bilingual): TripLeg[] {
   return [...legs.slice(0, -1), { ...last, to: { ...last.to, name } } as TripLeg];
 }
 
-function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; detour = null; shortChecked = ''; shortSince = 0; stopGlide(); }
+function resetLeg() { legKey = ''; stage = 'lead'; boardOffered = ''; rideSeen = false; travelSeen = false; driving = false; detour = null; shortChecked = ''; shortSince = 0; refined = ''; stopGlide(); }
 
 /** A leg just became current: fly legs take off at once. */
 function onLegStart(t: TripState) {
@@ -370,6 +371,26 @@ export function rideNodeFor(leg: Pick<TripLineLeg, 'line' | 'board' | 'alight'>,
   return W4_LINE.test(line) ? `flow.ride.ln:${line}:${board}:${alight}` : `flow.ride.cc:${line}:${board}:${alight}`;
 }
 
+/** the leg (key) whose walking route was asked for and answered */
+let refined = '';
+/**
+ * (W9-N2, review R§5 #6: "步行带路时 ETA 从 9 秒涨到 25 秒") a walk leg planned on the straight-line estimate gets the A*'s
+ * route once it answers (the planner's route cache): its path, length and seconds, so the pill / card / waypoint count
+ * the remaining PATH (guideCity legSecondsLeft → routeRemaining), smoothed (a longer way is said once: 绕一下).
+ */
+function refineWalk(t: TripState, leg: TripLeg, p: Vec2) {
+  const key = keyOf(t);
+  if (refined === key || (leg.path && leg.path.length >= 4 && !leg.estimate)) return;
+  let a: ReturnType<ReturnType<typeof tripRouteCache>['walk']>;
+  try { a = tripRouteCache().walk(p, leg.to); } catch { refined = key; return; }
+  if (a === undefined) return;
+  refined = key;
+  if (!a || !(a.length > 0) || !a.path || a.path.length < 4) return;
+  const length = Math.max(a.length, Math.hypot(leg.to.x - p.x, leg.to.z - p.z));
+  const seconds = autoOn() && leg.via === 'walk' ? autoTravelSeconds(length) : length / (leg.via === 'run' ? TRIP_SPEED.run : TRIP_SPEED.walk);
+  dispatchTrip({ type: 'refine', leg: t.leg, patch: { path: a.path, length, seconds } });
+}
+
 /** 10 Hz: the leg's progress that does not need BAYBAY to lead (rides, drives, flights, a carried arrival). */
 function tick(now: number) {
   const t = flow.get().trip;
@@ -386,7 +407,8 @@ function tick(now: number) {
   switch (leg.via) {
     case 'walk': case 'run':
       // carried there (a bike, a cable car): the brain does not lead then, so the leg ends by position
-      if (game.get().move.mode !== 'foot' && game.get().move.mode !== 'photo' && dist(p, leg.to) < END_R + 2) arrived();
+      if (game.get().move.mode !== 'foot' && game.get().move.mode !== 'photo' && dist(p, leg.to) < END_R + 2) { arrived(); return; }
+      refineWalk(t, leg, p);
       return;
     case 'line': {
       if (onLine(leg)) { rideSeen = true; stage = 'ride'; return; }

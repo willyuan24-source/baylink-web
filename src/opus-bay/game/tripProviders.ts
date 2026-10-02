@@ -138,6 +138,17 @@ export function peekTripProviders(): TripProviders {
  * Aboard, the pill, the waypoint and the trip card count its `rideLeft` (else the share of the planned ride left); while
  * waiting they already take the vehicle's live ETA (flow.ride.eta). Undefined: not riding / unknown.
  */
+/**
+ * (W9-N2, review R§5 #6: the pill said 约 7 分钟, the banner 约 3 分钟, the beacon a third number) waiting at the stop: the
+ * vehicle's live ETA — the very number the ride banner shows (lane T's rideStatus), not the boarding quote frozen in
+ * flow.ride.eta when the wait began. Undefined: not waiting / unknown.
+ */
+export function liveWaitLeft(src: () => Pick<RideEta, 'stage' | 'waitLeft'> | null = rideEta): number | undefined {
+  let e: Pick<RideEta, 'stage' | 'waitLeft'> | null;
+  try { e = src(); } catch { e = null; }
+  return e && e.stage === 'waiting' && Number.isFinite(e.waitLeft) && e.waitLeft >= 0 ? e.waitLeft : undefined;
+}
+
 export function liveRideEta(src: () => Pick<RideEta, 'stage' | 'rideLeft'> | null = rideEta): number | undefined {
   let e: Pick<RideEta, 'stage' | 'rideLeft'> | null;
   try { e = src(); } catch { e = null; }

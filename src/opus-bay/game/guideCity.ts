@@ -29,7 +29,7 @@ import { registerSceneSystem } from './systemsRegistry';
 import { timeLabel } from './tripText';
 import { ALIGHT_S, TRIP_SPEED, autoTravelSeconds, tripRemainingSeconds, STREET_FACTOR } from './tripPlan';
 import { isScenicLeg, scenicSecondsLeft } from './scenicTrip';
-import { liveRideEta } from './tripProviders';
+import { liveRideEta, liveWaitLeft } from './tripProviders';
 import { autoOn } from './autoTravel';
 import type { TripLeg, TripState } from './tripTypes';
 import { CHEVRONS, WAYPOINT, chevronPoses, layoutWaypoint, occludedByTerrain, routeRemaining, waypointSafeArea } from './waypoint';
@@ -231,7 +231,8 @@ export interface RideNow { aboard: boolean; waitLeft?: number; eta?: number }
 export function rideNow(): RideNow {
   const r = flow.get().ride;
   if (!r) return { aboard: false };
-  if (r.stage === 'waiting') return { aboard: false, waitLeft: r.eta };
+  // (W9-N2) the number the ride banner shows: the bus / Metro's live ETA (lane T's rideStatus), the other lines' quote
+  if (r.stage === 'waiting') return { aboard: false, waitLeft: (r.kind === 'bus' || r.kind === 'light-rail' ? liveWaitLeft() : undefined) ?? r.eta };
   // W5-N2: lane T's live ETA to the alighting stop, when it gives one
   const eta = liveRideEta();
   return eta === undefined ? { aboard: true } : { aboard: true, eta };
@@ -245,6 +246,37 @@ export function tripSecondsLeft(trip: TripState, pos: Vec2, ride: boolean | Ride
   if (trip.leg >= trip.legs.length) return 0;
   const r = typeof ride === 'boolean' ? { aboard: ride } : ride;
   return tripRemainingSeconds(trip, legSecondsLeft(trip.legs[trip.leg], pos, r.aboard, r.waitLeft, { auto, ...(r.eta !== undefined ? { rideEta: r.eta } : {}) }));
+}
+
+/**
+ * (W9-N2, review R§5 #6: the walking ETA rose 9 → 25 s) the ETA a reader sees, per slot (the pill, the card, the
+ * waypoint): it only goes down — a raw value up to ETA_RISE_K × + ETA_RISE_S above holds the shown one — and rises only
+ * when the way really turned longer (above that band for ETA_RISE_HOLD_MS), then says so for ETA_DETOUR_MS (绕一下).
+ * A new trip / leg starts afresh.
+ */
+export const ETA_RISE_K = 1.15;
+export const ETA_RISE_S = 3;
+export const ETA_RISE_HOLD_MS = 3000;
+export const ETA_DETOUR_MS = 5000;
+export interface EtaSmooth { key: string; shown: number; riseSince: number; detourAt: number }
+export function smoothEta(prev: EtaSmooth | null, key: string, raw: number, now: number): EtaSmooth {
+  if (!Number.isFinite(raw) || !prev || prev.key !== key || !Number.isFinite(prev.shown)) return { key, shown: raw, riseSince: 0, detourAt: 0 };
+  if (raw <= prev.shown) return { ...prev, shown: raw, riseSince: 0 };
+  if (raw <= prev.shown * ETA_RISE_K + ETA_RISE_S) return prev.riseSince ? { ...prev, riseSince: 0 } : prev;
+  const since = prev.riseSince || now;
+  if (now - since < ETA_RISE_HOLD_MS) return prev.riseSince === since ? prev : { ...prev, riseSince: since };
+  return { key, shown: raw, riseSince: 0, detourAt: now };
+}
+const etaSlots = new Map<string, EtaSmooth>();
+/** The smoothed seconds for `slot` (key = the trip and its leg) and whether a detour is being said. */
+export function shownEta(slot: string, key: string, raw: number, now: number = performance.now()): { seconds: number; detour: boolean } {
+  const s = smoothEta(etaSlots.get(slot) ?? null, key, raw, now);
+  etaSlots.set(slot, s);
+  return { seconds: s.shown, detour: s.detourAt > 0 && now - s.detourAt < ETA_DETOUR_MS };
+}
+/** The trip's seconds left as the pill / the card show them (smoothed per slot). */
+export function tripEtaShown(slot: string, trip: TripState, pos: Vec2): { seconds: number; detour: boolean } {
+  return shownEta(slot, `${trip.startedAt}:${trip.leg}:${trip.legs.length}`, tripSecondsLeft(trip, pos));
 }
 
 /** The pill's destination words for a trip: lane P's `tripDestination` name and, on foot, the attraction's short name. */
@@ -326,7 +358,8 @@ function tripTargetSeconds(target: Vec2, pos: Vec2): number | null {
   const leg = trip.legs[trip.leg];
   if (Math.hypot(leg.to.x - target.x, leg.to.z - target.z) > 3) return null;
   const r = rideNow();
-  return legSecondsLeft(leg, pos, r.aboard, r.waitLeft, { auto: autoOn(), ...(r.eta !== undefined ? { rideEta: r.eta } : {}) });
+  // (W9-N2) the waypoint's own smoothed slot: never rising without a detour, like the pill
+  return shownEta('wp', `${trip.startedAt}:${trip.leg}:${trip.legs.length}`, legSecondsLeft(leg, pos, r.aboard, r.waitLeft, { auto: autoOn(), ...(r.eta !== undefined ? { rideEta: r.eta } : {}) })).seconds;
 }
 
 /**
