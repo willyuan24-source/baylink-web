@@ -102,3 +102,83 @@ test('withGameFrom: from=opus-bay on the site\'s links only (relative stays rela
   assert.equal(M.withGameFrom('https://www.google.com/maps/search/?api=1&query=1,2', ORIGIN), 'https://www.google.com/maps/search/?api=1&query=1,2');
   assert.equal(M.withGameFrom('mailto:a@b.c', ORIGIN), 'mailto:a@b.c');
 });
+
+// --- the runner's counting core (game/metricsRun.ts) ---------------------------------------------------------------
+
+const R = await import('../src/opus-bay/game/metricsRun');
+
+const funnel = (o: { live?: boolean; privacy?: boolean } = {}) => {
+  let t = 0; const sent: string[] = [];
+  const f = R.createFunnel({ now: () => t, send: n => { sent.push(n); }, live: o.live ?? false, privacy: o.privacy ?? false });
+  return { f, sent, at: (ms: number) => { t = ms; } };
+};
+
+test('createFunnel: OPUS_METRICS_LIVE off = opus_* counted in memory only; official_source_click goes out today', () => {
+  const { f, sent } = funnel();
+  f.count('opus_title');
+  f.started(1000, 'home');
+  f.controls(9000);
+  f.official();
+  assert.deepEqual(sent, ['official_source_click']);
+  const log = Object.fromEntries(f.log().map(r => [r.name, r]));
+  assert.deepEqual(log.opus_title, { name: 'opus_title', n: 1, sent: 0 });
+  assert.equal(log.opus_start_home.n, 1);
+  assert.equal(log.opus_cold_start_lt10.n, 1, 'Start → play in 8 s');
+  assert.equal(log.official_source_click.sent, 1);
+});
+
+test('createFunnel live: steps once a page, actions ≤ 5 each, ≤ 40 sends a page; DNT / GPC sends nothing', () => {
+  const { f, sent } = funnel({ live: true });
+  for (let i = 0; i < 3; i++) f.count('opus_title');
+  for (let i = 0; i < 9; i++) f.count('opus_real_action_maps');
+  f.count('nope' as never);
+  assert.deepEqual(sent.filter(n => n === 'opus_title').length, 1);
+  assert.deepEqual(sent.filter(n => n === 'opus_real_action_maps').length, 5);
+  assert.ok(!sent.includes('nope'));
+  for (const a of ['plan', 'official', 'guide', 'offer', 'ics', 'event', 'wish']) for (let i = 0; i < 6; i++) f.count(`opus_real_action_${a}` as never);
+  assert.equal(sent.length, 40, 'the page cap');
+  const quiet = funnel({ live: true, privacy: true });
+  quiet.f.count('opus_title'); quiet.f.official(); quiet.f.started(0, 'nav');
+  assert.deepEqual(quiet.sent, []);
+  assert.equal(quiet.f.log().find(r => r.name === 'opus_title')?.n, 1, 'still counted in memory (QA)');
+});
+
+test('createFunnel: cold-start buckets; the first card only within 60 s of the first control, once; Start once', () => {
+  const a = funnel(); a.f.started(0, 'photo'); a.f.controls(15_000);
+  assert.ok(a.f.log().some(r => r.name === 'opus_cold_start_10to30'));
+  const b = funnel(); b.f.started(0, 'family'); b.f.started(5, 'home'); b.f.controls(31_000);
+  assert.ok(b.f.log().some(r => r.name === 'opus_cold_start_gt30'));
+  assert.ok(!b.f.log().some(r => r.name === 'opus_start_home'), 'Start counts once');
+  const c = funnel(); c.f.card(1); assert.ok(!c.f.log().some(r => r.name === 'opus_first_card'), 'no card before play');
+  c.f.started(0, 'direct'); c.f.controls(5000); c.f.card(5000 + 61_000);
+  assert.ok(!c.f.log().some(r => r.name === 'opus_first_card'), 'too late');
+  const d = funnel(); d.f.started(0, 'direct'); d.f.controls(5000); d.f.card(30_000); d.f.card(31_000);
+  assert.equal(d.f.log().find(r => r.name === 'opus_first_card')?.n, 1);
+  const e = funnel(); e.f.controls(5000); assert.ok(!e.f.log().length, 'no control without a Start (a ?start= deep link)');
+});
+
+test('eventStep: metric steps by name (unknown dropped), a wish added (not removed), a first arrival as the first card', () => {
+  const { f, at } = funnel();
+  f.started(0, 'direct'); f.controls(1000); at(2000);
+  R.eventStep(f, { type: 'metric', what: 'real', bucket: 'ics' }, 2000);
+  R.eventStep(f, { type: 'metric', what: 'share', bucket: 'card' }, 2000);
+  R.eventStep(f, { type: 'metric', what: 'tour', bucket: 'ch9' }, 2000);
+  R.eventStep(f, { type: 'wish', added: true }, 2000);
+  R.eventStep(f, { type: 'wish', added: false }, 2000);
+  R.eventStep(f, { type: 'arrival', place: 'coit-tower', tier: 1, first: true }, 2000);
+  const names = f.log().map(r => `${r.name}:${r.n}`).sort();
+  assert.deepEqual(names, ['opus_cold_start_lt10:1', 'opus_first_card:1', 'opus_real_action_ics:1', 'opus_real_action_wish:1', 'opus_share_card:1', 'opus_start_direct:1']);
+});
+
+test('chaptersDone: the Grand Tour\'s chapters by their non-optional stops; not a city tour = null', async () => {
+  const { SF_GRAND, tourStops } = await import('../src/opus-bay/data/sf/tours');
+  assert.equal(R.chaptersDone('nope', []), null);
+  assert.equal(R.chaptersDone(undefined, []), null);
+  const flat = tourStops(SF_GRAND);
+  const ch0 = flat.filter(x => x.chapter === 0).map(x => x.stop.id);
+  const none = R.chaptersDone(SF_GRAND.id, []);
+  assert.equal(none!.total, SF_GRAND.chapters.length);
+  assert.ok(none!.done.every(d => !d));
+  assert.deepEqual(R.chaptersDone(SF_GRAND.id, ch0)!.done.map(Boolean), SF_GRAND.chapters.map((_, i) => i === 0));
+  assert.ok(R.chaptersDone(SF_GRAND.id, flat.map(x => x.stop.id))!.done.every(Boolean));
+});

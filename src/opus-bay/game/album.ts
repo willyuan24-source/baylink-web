@@ -4,6 +4,7 @@ import { Images } from 'lucide-react';
 import type { Bilingual } from '../core/types';
 import { registerMoreItem, registerOverlay, openOverlay } from '../ui/slots';
 import { importRetry } from './importRetry';
+import { bootMetrics } from './metricsBoot';
 
 /**
  * Wave 5 · lane C · W5-C7 (plan sf-w5-plan.md §3.5 "Photo album"): every shutter in the city goes into an album on
@@ -268,9 +269,14 @@ export function resetAlbumForTests(opts: { idb?: boolean; openTimeoutMs?: number
 const Album = lazyChunk(() => importRetry(() => import('../ui/Album')));
 const AlbumIcon = () => createElement(Images, { size: 18, 'aria-hidden': true });
 
-/** The city chunk's boot: the 相册 More item and the overlay. Returns the disposer. */
+/**
+ * The city chunk's boot: the 相册 More item and the overlay. Returns the disposer.
+ * W9-S3: it also boots the metrics (game/metricsBoot.ts: the runner loads after the first frame) — this chunk is the
+ * city's lazy boot already (game/cityContent.ts), so the metrics cost GameRoot nothing.
+ */
 export function initAlbum(): () => void {
   const offOverlay = registerOverlay({ id: ALBUM_ID, Component: Album });
   const offMore = registerMoreItem({ id: ALBUM_ID, order: 20, label: ALBUM_LABEL, icon: AlbumIcon, onSelect: () => openAlbum() });
-  return () => { offOverlay(); offMore(); };
+  const offMetrics = bootMetrics();
+  return () => { offOverlay(); offMore(); offMetrics(); };
 }

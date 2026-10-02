@@ -1,0 +1,98 @@
+W9-S · the API side of the 3D game's metrics (docs/opus-bay/sf-w9-S.md "Metrics"; review 2026-10-01 §9, R§5 #9).
+
+For the owner (or the backend's agent) to apply in the baylink-backend checkout, then deploy the API, then flip
+OPUS_METRICS_LIVE to true in src/opus-bay/game/metricNames.ts:
+
+    cd <baylink-backend> && git checkout main && git pull && git apply <baylink-web>/docs/opus-bay/w9-backend-metrics.patch
+    node --test tests/productMetrics.test.js
+
+Written against the backend's origin/main fef792c (2026-10-01): lib/productMetrics.js accepts 9 names; the game's 39
+opus_* names are added to PRODUCT_EVENTS (still day × event × locale counts only: no id, no URL, no text). The first
+test now posts the site's 9 names twice (the 39 game names twice would pass the 60 / min limit) and a new test posts
+every game name once and checks extra fields are refused. Verified on an export of fef792c (git archive, scratch):
+node --test tests/productMetrics.test.js → 10 / 10 pass. The admin page (src/features/source-monitor/ProductMetrics.tsx)
+still shows the site's 9 counters; the game's appear in /api/admin/product-metrics `counts` / `daily`.
+
+--- a/lib/productMetrics.js
++++ b/lib/productMetrics.js
+@@ -1,9 +1,23 @@
+ const { bayAreaDate } = require('./eventEngagement');
+ 
++// The 3D game at /opus-bay (the site's src/opus-bay/game/metricNames.ts OPUS_EVENTS, review 2026-10-01 §9): one
++// name per funnel step — where a visit came from, the cold-start bucket, the welcome's choice, real-world actions,
++// shares, returning-visit buckets, Grand Tour chapters. Still only day × event × locale counts: no id, no URL, no text.
++const OPUS_EVENTS = Object.freeze([
++  'opus_title', 'opus_start_home', 'opus_start_nav', 'opus_start_play', 'opus_start_photo', 'opus_start_family',
++  'opus_start_share', 'opus_start_guide', 'opus_start_promo', 'opus_start_direct', 'opus_cold_start_lt10',
++  'opus_cold_start_10to30', 'opus_cold_start_gt30', 'opus_mode_tour', 'opus_mode_week', 'opus_mode_free',
++  'opus_mode_local', 'opus_mode_resume', 'opus_first_card', 'opus_real_action_plan', 'opus_real_action_official',
++  'opus_real_action_maps', 'opus_real_action_guide', 'opus_real_action_offer', 'opus_real_action_ics',
++  'opus_real_action_event', 'opus_real_action_wish', 'opus_share_photo', 'opus_share_card', 'opus_visit_new',
++  'opus_returning_1d', 'opus_returning_7d', 'opus_returning_30d', 'opus_tour_ch1', 'opus_tour_ch2', 'opus_tour_ch3',
++  'opus_tour_ch4', 'opus_tour_ch5', 'opus_tour_done',
++]);
+ const PRODUCT_EVENTS = Object.freeze([
+   'planner_recommendation', 'plan_saved', 'plan_shared',
+   'planner_outing_adopted', 'planner_edit_applied', 'planner_web_search',
+   'official_source_click', 'favorite_saved', 'planner_map_opened',
++  ...OPUS_EVENTS,
+ ]);
+ const PRODUCT_LOCALES = Object.freeze(['zh-Hans', 'zh-Hant', 'en']);
+ const RETENTION_DAYS = 180;
+@@ -78,4 +92,4 @@
+   });
+ }
+ 
+-module.exports = { PRODUCT_EVENTS, PRODUCT_LOCALES, RETENTION_DAYS, createProductMetricModel, registerProductMetrics };
++module.exports = { PRODUCT_EVENTS, OPUS_EVENTS, PRODUCT_LOCALES, RETENTION_DAYS, createProductMetricModel, registerProductMetrics };
+--- a/tests/productMetrics.test.js
++++ b/tests/productMetrics.test.js
+@@ -4,7 +4,9 @@
+ const mongoose = require('mongoose');
+ const { createApplication } = require('../server');
+ const { createMemoryModels } = require('./support/memory-models');
+-const { PRODUCT_EVENTS, createProductMetricModel } = require('../lib/productMetrics');
++const { PRODUCT_EVENTS, OPUS_EVENTS, createProductMetricModel } = require('../lib/productMetrics');
++// The site's own counters (the 3D game's opus_* names have their own test: 2 posts × every name would pass the 60 / min limit).
++const SITE_EVENTS = PRODUCT_EVENTS.filter(event => !OPUS_EVENTS.includes(event));
+ 
+ const SECRET = 'isolated-product-metrics-test-secret';
+ const NOW = Date.parse('2026-09-23T19:00:00Z');
+@@ -54,13 +56,13 @@
+ 
+ test('public product events persist only daily event/locale buckets with no identity or action timestamps', async t => {
+   const { post, ProductMetric } = await fixture(t);
+-  for (const event of PRODUCT_EVENTS) {
++  for (const event of SITE_EVENTS) {
+     assert.equal((await post({ event })).status, 200);
+     assert.equal((await post({ event, locale: 'en' }, { as: 'member' })).status, 200);
+   }
+   // Public ingestion has no authentication dependency, including expired UI sessions.
+   assert.deepEqual((await post({ event: 'plan_saved', locale: 'zh-Hant' }, { auth: 'Bearer invalid' })).data, { ok: true });
+-  assert.equal(ProductMetric.rows.length, PRODUCT_EVENTS.length * 2 + 1);
++  assert.equal(ProductMetric.rows.length, SITE_EVENTS.length * 2 + 1);
+   for (const row of ProductMetric.rows) {
+     assert.deepEqual(Object.keys(row).sort(), ['_id', 'count', 'day', 'event', 'expiresAt', 'locale']);
+     assert.equal(row._id, `${row.day}:${row.event}:${row.locale}`);
+@@ -93,6 +95,21 @@
+   assert.ok(!JSON.stringify(ProductMetric.writes).includes('private'));
+ });
+ 
++test("the 3D game's opus_* counters persist as anonymous day buckets and refuse any payload beyond event and locale", async t => {
++  const { post, ProductMetric } = await fixture(t);
++  assert.equal(OPUS_EVENTS.length, 39);
++  for (const event of OPUS_EVENTS) {
++    assert.match(event, /^opus_[a-z0-9_]{2,40}$/);
++    assert.ok(PRODUCT_EVENTS.includes(event));
++    assert.equal((await post({ event, locale: 'zh-Hans' })).status, 200);
++  }
++  for (const field of ['from', 'spot', 'at', 'x', 'url', 'placeId', 'query', 'userId']) assert.equal((await post({ event: 'opus_share_photo', locale: 'en', [field]: 'private' })).status, 400);
++  assert.equal((await post({ event: 'opus_start_somewhere' })).status, 400, 'only the listed sources');
++  assert.equal(ProductMetric.rows.length, OPUS_EVENTS.length);
++  assert.ok(ProductMetric.rows.every(row => row.count === 1 && row.locale === 'zh-Hans'));
++  assert.ok(!JSON.stringify(ProductMetric.writes).includes('private'));
++});
++
+ test('atomic increments preserve concurrent actions and recover a unique-key insertion race once', async t => {
+   const { post, ProductMetric } = await fixture(t);
+   const responses = await Promise.all(Array.from({ length: 20 }, () => post({ event: 'planner_recommendation', locale: 'en' })));
