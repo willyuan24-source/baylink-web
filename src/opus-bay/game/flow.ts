@@ -20,7 +20,7 @@ import { CHAR_SCALE } from '../actors/dims';
 import { bark, hook, hookText, nodeText, npcLine, subjectFact } from './content';
 import { flow, initialFlowState, type Bubble } from './flowStore';
 import { deriveLock, setLockRefresher } from './playerLock';
-import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
+import { BAYBAY_ID, NPC_POSTS, interactableById, interactables, justClosedDialog, noteDialogClosed, poiById, postcardById, registerPrefixResolver, subjectPosition, type Interactable, type InteractableSource } from './interactables';
 import { endRide } from './ride';
 import { baybayLine, carriedTimeLabel, goalTargets, initCityContent, settleArrivals, speakRecorded, unlockPelican } from './cityContent';
 import { CITY_DATA } from '../data/sf/cityData';
@@ -264,6 +264,7 @@ export function closeDialogue() {
   releaseDialogueFraming();
   game.set({ dialogue: { nodeId: null } });
   refreshLock();
+  noteDialogClosed(); // W9-A: E is not a new interaction for 400 ms (interactables.ts)
   lastDialogueEmote = 'none';
   if (runtime.guide.emote !== 'none') runtime.guide.emote = 'none';
   const then = afterDialogue;
@@ -318,6 +319,7 @@ export function closePanel() {
   if (!panel.kind) return;
   game.set({ panel: { kind: null }, paused: false });
   flow.set({ eventId: null });
+  noteDialogClosed();
   emit({ type: 'ui', action: 'close' });
   if (panel.kind === 'poi' && flow.get().tourPhase === 'card') continueTour();
   // (the first lesson's "finished" flag: a city tour's recap is not the first lesson's)
@@ -1045,6 +1047,7 @@ export function revealPostcard() {
 export function closePostcardReward() {
   if (!flow.get().postcardReward) return;
   flow.set({ postcardReward: null, rewardFresh: false });
+  noteDialogClosed();
   emit({ type: 'ui', action: 'close' });
   if (!freshPostcard) return;
   freshPostcard = false;
@@ -1100,6 +1103,8 @@ export function requestInteract(source: 'key' | 'runtime' | 'button' = 'button')
   if (f.postcardReward) { closePostcardReward(); return true; }
   if (f.postcardFly) { revealPostcard(); return true; }
   if (cinemaActive()) { if (f.cinematic === 'arrival') skipCinema(); return true; }
+  // W9-A (lane A, surgical): Settings (the pause) holds the world; the E that closed a line / card is not a new one
+  if (s.paused || justClosedDialog(now)) return false;
   if (source !== 'button' && !s.focus) return false;
   if (s.focus) { performInteraction(s.focus); return true; }
   return false;
@@ -1265,6 +1270,9 @@ export function callBaybay() {
   const now = performance.now();
   if (now - lastCallAt < 400) return;
   lastCallAt = now;
+  // W9-A (lane A, surgical; review R§6 "Esc 再按 Q 叠出两个面板"): one modal at a time — Q closes the open panel (Settings'
+  // pause too, so a game picked from the menu never starts paused) and opens BAYBAY's menu in its place
+  if (s.panel.kind) closePanel();
   emit({ type: 'guide-call' });
   const d = Math.hypot(runtime.guide.x - runtime.player.x, runtime.guide.z - runtime.player.z);
   if (d < 3.6) { openCallMenu(); return; }
@@ -1278,6 +1286,8 @@ export function openCallMenu() {
   flow.set({ callPending: false });
   if (callTimer) { clearTimeout(callTimer); callTimer = null; }
   const s = game.get();
+  // W9-A: never over a panel (a call answered late, E on BAYBAY under a card: callBaybay closes the panel first)
+  if (s.panel.kind) return;
   const choices: DialogueNode['choices'] = [];
   const cur = currentStop();
   const city = s.worldMode === 'city';

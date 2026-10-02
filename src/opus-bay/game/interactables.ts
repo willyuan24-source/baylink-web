@@ -65,6 +65,22 @@ export function syncMoving(it: Interactable): boolean {
   return true;
 }
 
+/**
+ * W9-A · the city's E priority, added to game/brain.ts' focus score (ui/interactPriority.ts: activity / pickup > place card >
+ * BAYBAY / bench; installed by the play layer — the rule's code stays out of GameRoot). null: the old weights alone.
+ */
+export let focusWeight: ((it: Interactable, tourTarget?: string) => number) | null = null;
+export const setFocusWeight = (fn: typeof focusWeight) => { focusWeight = fn; };
+
+/**
+ * W9-A · E right after a dialogue / card closed is not a new interaction (review R§6: the E that closed the line also
+ * talked to BAYBAY again or boarded the ferry behind it): game/flow.ts notes the close, requestInteract ignores the world
+ * for 400 ms.
+ */
+let closedAt = -1e9;
+export const noteDialogClosed = () => { closedAt = performance.now(); };
+export const justClosedDialog = (now: number) => now - closedAt < 400;
+
 export const NPC_POSTS: { key: string; anchor: string; name: Bilingual; line: Bilingual }[] = [
   {
     key: 'vendor', anchor: 'npc-vendor', name: { zh: '市集摊主', en: 'Market vendor' },

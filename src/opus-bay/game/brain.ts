@@ -14,7 +14,7 @@ import {
 import { baybayHeld } from './baybayHold';
 import { bark } from './content';
 import { flow } from './flowStore';
-import { BAYBAY_ID, interactableById, interactables, postcardIdOf, syncMoving } from './interactables';
+import { BAYBAY_ID, focusWeight, interactableById, interactables, postcardIdOf, syncMoving } from './interactables';
 import { lockHeldBy } from './playerLock';
 
 /**
@@ -116,6 +116,8 @@ export function updateFocus() {
     if (city && it.source === 'vehicle') score += PARKED_RIDE_PUSH;
     if (it.id === tourTarget) score -= 0.35;
     if (it.source === 'baybay') score += 0.2;
+    // W9-A (lane A, surgical): activity / pickup > place card > BAYBAY / bench in the city (ui/interactPriority.ts)
+    if (city && focusWeight) score += focusWeight(it, tourTarget);
     if (score < bestScore) { bestScore = score; best = it.id; }
   }
   if (best !== s.focus) game.set({ focus: best });
