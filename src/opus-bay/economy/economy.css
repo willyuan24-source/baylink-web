@@ -202,3 +202,8 @@
 @media (pointer: coarse) {
   .ob-shop-shelves button, .ob-nb-pages button { min-height: 44px; }
 }
+
+/* W9-Q6 (w8 NEXT #9, lane H's note) · on a phone the Rides shelf's 'Int’l Orange' tile label was 3 px wider than its tile (72 of
+   75 px, ellipsed on one line, the only one of nine): a tile's name may take two lines (the tiles of a row keep one height) */
+.ob-shop-name { white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+@media (max-width: 720px) { .ob-shop-price { font-size: 13px; } }
