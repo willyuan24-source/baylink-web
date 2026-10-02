@@ -21,7 +21,7 @@ import { getWorld, type WorldSystem } from '../world/world';
 import { hLine } from './lines';
 import { halloweenPhase, isTreatHour, type HalloweenPhase } from './season';
 import { GOAL_DOORS } from './progress';
-import { allDoorsKnocked, candyCount, doorAnswers, doorOnLot, doorsDressed, doorsKnocked, knockResult, treatMilestone, treatToast, type BagState, type Knock, type LotBox } from './treat';
+import { allDoorsKnocked, candyCount, doorAnswers, knockRadius, doorOnLot, doorsDressed, doorsKnocked, knockResult, treatMilestone, treatToast, type BagState, type Knock, type LotBox } from './treat';
 import { setTreatNear } from './treatNear';
 import { TREAT_DOORS, type TreatDoor } from './treatDoors';
 import { buildCandyGeometry, buildDoorsGeometry, buildSwingGeometry, doorMaterial, doorPoints, DOOR_PAINTS, trianglesOf, type DoorLook } from './treatMesh';
@@ -46,7 +46,6 @@ export const BUILD_NEAR = 170;
 export const DROP_FAR = 210;
 /** a street's line when the player comes this near one of its doors */
 const LINE_NEAR = 22;
-const KNOCK_RADIUS = 1.3;
 /** the knock's beats (s) */
 /** (in step with lane X's treat sound, audio/halloween.ts: knocks 0–0.34 s, the creak at 0.62, the candies at 1.08–1.3, the chime at 1.5) */
 const T_OPEN = 0.6, T_CANDY = 0.8, T_LAND = 1.32, T_THANKS = 1.9, T_CLOSE = 4.6, SWING_S = 0.45, OPEN_RAD = 1.85;
@@ -137,7 +136,7 @@ export function initTreat(): TreatRun {
         const k = doorPoints(d, KNOCK_OUT).knock;
         out.push({
           id: `treat:door:${d.n}`, source: 'find', action: 'info', verb: { zh: '敲门', en: 'Knock' },
-          name: { zh: `${st.name.zh}的人家`, en: `A house on ${st.name.en}` }, x: k.x, z: k.z, radius: KNOCK_RADIUS,
+          name: { zh: `${st.name.zh}的人家`, en: `A house on ${st.name.en}` }, x: k.x, z: k.z, radius: knockRadius(d),
           act: () => { knock(d.n); },
         });
       }
@@ -164,7 +163,7 @@ export function initTreat(): TreatRun {
     if (result.kind === 'closed') return result.kind;
     if (result.kind === 'again') { sayLine('w6g-again'); return result.kind; }
     // face the door (the 'info' prompt already plays the reaching "knock" gesture)
-    if (Math.hypot(runtime.player.x - pts.knock.x, runtime.player.z - pts.knock.z) < KNOCK_RADIUS + 0.5) runtime.player.heading = d.f + Math.PI;
+    if (Math.hypot(runtime.player.x - pts.knock.x, runtime.player.z - pts.knock.z) < knockRadius(d) + 0.5) runtime.player.heading = d.f + Math.PI;
     sayLine('w6g-knock');
     // nobody home: our own knock (the frozen `halloween` event means a door answered: lane X's treat sound is the whole
     // vignette — knock, creak, candies, chime — played by audio/audio.ts for it)

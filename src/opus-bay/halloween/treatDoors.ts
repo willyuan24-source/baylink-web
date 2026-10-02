@@ -11,7 +11,15 @@ import type { TreatStreetId } from './treatStreets';
  * changes its number; a door that has to go stays with `gone: true`. W8-H: a door may MOVE along its own street (same
  * number, its old spot in a comment) when it fails the door-to-street rule (tests/opus-bay-w8-h-doorcheck.ts).
  */
-export interface TreatDoor { n: number; street: TreatStreetId; x: number; z: number; y: number; f: number; gone?: true }
+export interface TreatDoor {
+  n: number; street: TreatStreetId; x: number; z: number; y: number; f: number; gone?: true;
+  /**
+   * W9-H: the 敲门 prompt's radius round the knock spot (u) when the default (treat.ts KNOCK_RADIUS 1.3) is out of the
+   * player's reach: the knock spot sits behind a porch corner the player's body (PLAYER_RADIUS 0.45) stops short of
+   * (measured in the game, docs/opus-bay/sf-w9-H.md part a: the joystick walk-up from the street)
+   */
+  reach?: number;
+}
 
 export const TREAT_DOORS: readonly TreatDoor[] = [
   // Belvedere Street (17th Street → Parnassus Avenue)
@@ -21,7 +29,8 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   // by a 10.8 u walk round that house for 1.5 u straight (tests/opus-bay-w8-h-doorcheck.ts DETOUR_MAX) — gone; every
   // other Belvedere face within 80 u is a door already or within 2.8 u of one)
   { n: 3, street: 'belvedere', x: 49.63, z: 857.6, y: 27.94, f: -0.625, gone: true },
-  { n: 4, street: 'belvedere', x: 25.55, z: 854.16, y: 24.3, f: 2.555 },
+  // (W9-H: in the game a player walking up from Belvedere St stops 1.33 u from the knock spot, behind the porch's corner)
+  { n: 4, street: 'belvedere', x: 25.55, z: 854.16, y: 24.3, f: 2.555, reach: 1.8 },
   { n: 5, street: 'belvedere', x: 21.45, z: 851.19, y: 23.59, f: 2.531 },
   { n: 6, street: 'belvedere', x: 16.91, z: 848.04, y: 23.31, f: 2.559 },
   { n: 7, street: 'belvedere', x: 10.64, z: 843.73, y: 22.46, f: 2.471 },
@@ -32,7 +41,9 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   // from it on foot within 18 u (tests/opus-bay-w8-h-doors.test.ts) — gone; no face within 30 u passes the rule)
   { n: 9, street: 'belvedere', x: 1.18, z: 838.3, y: 22.33, f: 2.53, gone: true },
   // Chenery Street (Elk Street → Diamond Street)
-  { n: 10, street: 'chenery', x: 419.46, z: 1051.29, y: 16.54, f: 0.678 },
+  // (W9-H: in the game the knock spot is a back-yard pocket — a player walking up from Chenery St stops 2.56 u from it,
+  // and the player's own disc (0.45 u) reaches a roadway from it only by a 39.5 u walk round the block — gone)
+  { n: 10, street: 'chenery', x: 419.46, z: 1051.29, y: 16.54, f: 0.678, gone: true },
   { n: 11, street: 'chenery', x: 427.37, z: 1048.99, y: 15.93, f: 0.4 },
   { n: 12, street: 'chenery', x: 443.39, z: 1049.92, y: 13.45, f: -2.643 },
   { n: 13, street: 'chenery', x: 441.95, z: 1039.96, y: 14.8, f: 0.677 },
@@ -78,7 +89,9 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 40, street: 'sea-cliff', x: -603.13, z: 925.46, y: 5.97, f: 1.052 },
   { n: 41, street: 'sea-cliff', x: -608.77, z: 931.74, y: 6, f: 0.851 },
   { n: 42, street: 'sea-cliff', x: -610.64, z: 934.65, y: 6.18, f: 0.853 },
-  { n: 43, street: 'sea-cliff', x: -613.43, z: 934.98, y: 5.92, f: 0.859 },
+  // (W9-H: in the game the knock spot is a pocket between two houses — a player walking up from Sea Cliff Ave stops
+  // 2.33 u from it, and the player's disc reaches no roadway from it — gone)
+  { n: 43, street: 'sea-cliff', x: -613.43, z: 934.98, y: 5.92, f: 0.859, gone: true },
   { n: 44, street: 'sea-cliff', x: -615.62, z: 937.13, y: 5.93, f: 0.857 },
   { n: 45, street: 'sea-cliff', x: -612.33, z: 943.11, y: 6.45, f: 2.477 },
   // (W8-H: door 46 was a 29th Avenue face — 2.1 u from 29th Ave's centreline, 3.6 from Sea Cliff Ave's, facing 29th —
@@ -92,7 +105,10 @@ export const TREAT_DOORS: readonly TreatDoor[] = [
   { n: 49, street: 'hearst', x: 362.75, z: 1217.27, y: 23.02, f: 1.334 },
   { n: 50, street: 'hearst', x: 391.83, z: 1193.83, y: 20.42, f: -2.386 },
   { n: 51, street: 'hearst', x: 395.04, z: 1192.93, y: 20.14, f: -2.333 },
-  { n: 52, street: 'hearst', x: 408, z: 1163.76, y: 16.94, f: 0.785 },
+  // (W9-H: a click-to-walk from Hearst Ave ends 4.56 u from the knock spot — the walk grid misses the gap a joystick
+  // player takes — past the click's reach of radius + 3)
+  { n: 52, street: 'hearst', x: 408, z: 1163.76, y: 16.94, f: 0.785, reach: 1.8 },
   { n: 53, street: 'hearst', x: 437.33, z: 1146.31, y: 14.78, f: -2.414 },
-  { n: 54, street: 'hearst', x: 457.21, z: 1130.79, y: 13.05, f: -2.338 },
+  // (W9-H: in the game a player walking up from the street stops 2.18 u from the knock spot, behind the porch's corner)
+  { n: 54, street: 'hearst', x: 457.21, z: 1130.79, y: 13.05, f: -2.338, reach: 2.6 },
 ];

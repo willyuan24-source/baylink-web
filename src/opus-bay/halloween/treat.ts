@@ -38,6 +38,11 @@ export function roll(n: number, dateKey: string, salt = 0): number {
   return (h >>> 0) / 4294967296;
 }
 
+/** The 敲门 prompt's radius round a door's knock spot (u). */
+export const KNOCK_RADIUS = 1.3;
+/** W9-H: a door's prompt radius — its own `reach` where the player's body stops short of the knock spot (treatDoors.ts). */
+export const knockRadius = (d: Pick<TreatDoor, 'reach'>): number => d.reach ?? KNOCK_RADIUS;
+
 /** The doors on offer now: the season and the big night dress them. */
 export const doorsDressed = (phase: HalloweenPhase): boolean => phase === 'season' || phase === 'night';
 

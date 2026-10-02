@@ -163,7 +163,8 @@ test('W7-G7 Belvedere: door 8 (a Clayton Street face at the Parnassus end) is go
   // (tests/opus-bay-w8-h-doors.test.ts, the door-to-street rule)
   // W8-H-review: door 3 too (behind a neighbour's house on the 17th St corner) and five on the other streets
   assert.deepEqual(belv.filter(d => !d.gone).map(d => d.n), [1, 2, 4, 5, 6, 7]);
-  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 44, '44 doors to knock');
+  // W9-H: doors 10 (Chenery) and 43 (Sea Cliff) too — pockets the player's body cannot enter in the game (tests/opus-bay-w9-h-doors.test.ts)
+  assert.equal(TREAT_DOORS.filter(d => !d.gone).length, 42, '42 doors to knock');
   assert.equal(Math.max(...TREAT_DOORS.map(d => d.n)), 54, 'no new number');
   assert.equal(new Set(TREAT_DOORS.map(d => d.n)).size, TREAT_DOORS.length);
 });
