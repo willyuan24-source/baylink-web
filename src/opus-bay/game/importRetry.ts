@@ -133,6 +133,27 @@ export function onChunkLost(fn: (e: unknown) => void): () => void {
 /** chunks lost for good on this page (QA, ?debug=1) */
 export const chunksLost = (): number => lostCount;
 
+/**
+ * (W9-P4, w8 NEXT #11 / P-RP-5) the chains retrying right now that somebody waits for (not `quiet`): a part the player
+ * asked for (M, a game panel, a card) whose first load failed — game/chunkPending.ts shows 还在加载… while > 0, so the
+ * 1 + 3 + 8 s of retries are not 12 s of nothing. `onRetrying(fn)`: told the count on every change; returns the unsubscribe.
+ */
+const retrying = new Set<{ loud: boolean }>();
+const retryListeners = new Set<(n: number) => void>();
+export const retryingLoud = (): number => { let n = 0; for (const r of retrying) if (r.loud) n++; return n; };
+export function onRetrying(fn: (n: number) => void): () => void {
+  retryListeners.add(fn);
+  return () => { retryListeners.delete(fn); };
+}
+function retryChanged(): void { const n = retryingLoud(); for (const fn of [...retryListeners]) { try { fn(n); } catch { /* a listener's own error */ } } }
+function track<T>(p: Promise<T>, r: { loud: boolean }): Promise<T> {
+  retrying.add(r);
+  retryChanged();
+  const done = () => { retrying.delete(r); retryChanged(); };
+  p.then(done, done);
+  return p;
+}
+
 function lost(e: unknown, quiet: boolean | undefined): void {
   lostCount++;
   if (!quiet) for (const fn of [...lostListeners]) { try { fn(e); } catch { /* a listener's own error never hides the load's */ } }
@@ -171,14 +192,15 @@ export async function importRetry<T>(load: () => Promise<T>, opts: RetryOptions<
   const key = failedCssUrl(first) ? null : failedModuleUrl(first);
   if (key) {
     const known = memo.get(key);
-    if (known) { known.loud ||= !quiet; return known.p as Promise<T>; }
-    const entry: LostChunk = { p: retry(), loud: !quiet };
+    if (known) { const was = known.loud; known.loud ||= !quiet; if (!was && known.loud) retryChanged(); return known.p as Promise<T>; }
+    const entry: LostChunk = { p: Promise.resolve(), loud: !quiet };
+    entry.p = track(retry(), entry);
     memo.set(key, entry);
     entry.p.catch((e: unknown) => { if (memo.get(key) === entry) memo.delete(key); if (isLoadFailure(e)) lost(e, !entry.loud); });
     return entry.p as Promise<T>;
   }
   try {
-    return await retry();
+    return await track(retry(), { loud: !quiet });
   } catch (e) {
     if (isLoadFailure(e)) lost(e, quiet);
     throw e;

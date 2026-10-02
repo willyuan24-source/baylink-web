@@ -14,6 +14,8 @@
  * but initialised only after it (or after it failed: one feature's failure never stops another).
  */
 
+import { importRetry } from './importRetry';
+
 export interface W5Feature { init(): () => void }
 export type W5Loader = () => Promise<W5Feature>;
 
@@ -21,12 +23,15 @@ export type W5Loader = () => Promise<W5Feature>;
 export const W5_FEATURES = ['economy', 'play', 'eggs', 'realsf', 'halloween'] as const;
 export type W5FeatureId = (typeof W5_FEATURES)[number];
 
+// (W9-P4, w8 NEXT #11 / sf-w8-P.md Request 1; the file is unfrozen for this wrap only) a lost feature chunk retries like
+// every other lazy chunk, and when lost for good the reload card says so (game/chunkLost.ts) instead of the feature
+// silently missing for the visit
 export const W5_LOADERS: Readonly<Record<W5FeatureId, W5Loader>> = {
-  economy: () => import('../economy/index'),
-  play: () => import('../play/index'),
-  eggs: () => import('../eggs/index'),
-  realsf: () => import('../realsf/index'),
-  halloween: () => import('../halloween/index'),
+  economy: () => importRetry(() => import('../economy/index')),
+  play: () => importRetry(() => import('../play/index')),
+  eggs: () => importRetry(() => import('../eggs/index')),
+  realsf: () => importRetry(() => import('../realsf/index')),
+  halloween: () => importRetry(() => import('../halloween/index')),
 };
 
 /**

@@ -11,6 +11,7 @@ import { entrySource } from './ui/entrySource';
 import './opus-bay.css';
 import { isLoadFailure } from './game/importRetry';
 import { glSupport, probeGl, setGlSupport, useGlSupport } from './game/warmReady';
+import { initChunkPending } from './game/chunkPending';
 
 /** (W9-P2, lane P) the WebGL probe once per page, before the game chunk mounts (game/warmReady.ts): false = no WebGL 2. */
 function glOk(): boolean {
@@ -73,7 +74,9 @@ export default function OpusBayPage() {
     html.classList.add('ob-lock');
     // (W7-Q6) no pinch-zoom of the whole game from inside a scroller; no page left shifted after the keyboard closes
     const offTouch = installIosTouchGuards();
-    return () => { html.classList.remove('ob-lock'); offTouch(); };
+    // (W9-P4) a part being loaded again after a failed load: 还在加载… (game/chunkPending.ts)
+    const offPending = initChunkPending();
+    return () => { html.classList.remove('ob-lock'); offTouch(); offPending(); };
   }, []);
   // after the title's first paint, when the main thread is idle (≤ 1.2 s)
   useEffect(() => {

@@ -274,3 +274,89 @@ test('W9-P GameRoot: the rideable ferry\'s sun deck and the city gull ride with 
   const deck = L.ferryGeometry('#2f8f88', true), closed = L.ferryGeometry('#2f8f88', false);
   assert.notEqual(tris(deck), tris(closed), 'the open-deck ferry differs from the enclosed one again');
 });
+
+// --- W9-P4 (w8 NEXT #11): a part being loaded again, a lost panel closes, the feature loaders retry ---
+
+const CHROME = (url: string) => new TypeError(`Failed to fetch dynamically imported module: ${url}`);
+
+test('W9-P4 importRetry: a loud retry in flight counts (onRetrying 1 → 0), a quiet prefetch never does, a loud caller joining a quiet retry does', async () => {
+  const R = await import('../src/opus-bay/game/importRetry');
+  const seen: number[] = [];
+  const off = R.onRetrying(n => seen.push(n));
+  const memo = new Map();
+  const sleep = () => new Promise<void>(r => setTimeout(r, 5));
+  let ok = false;
+  const url = 'https://www.baylink.us/assets/MapPanel-A.js';
+  const p = R.importRetry(() => Promise.reject(CHROME(url)), { memo, sleep, importUrl: () => (ok ? Promise.resolve('map') : Promise.reject(CHROME(`${url}?retry=1`))), waits: [5, 5, 5] });
+  await new Promise(r => setTimeout(r, 1));
+  assert.equal(R.retryingLoud(), 1, 'the press waits: the pill shows');
+  ok = true;
+  assert.equal(await p, 'map');
+  assert.equal(R.retryingLoud(), 0, 'landed: the pill goes');
+  assert.deepEqual(seen, [1, 0]);
+  // a quiet prefetch retrying: nobody waits, nothing shows — until a press of the same chunk joins it
+  seen.length = 0;
+  ok = false;
+  const url2 = 'https://www.baylink.us/assets/Journal-B.js';
+  const q = R.quietly(() => R.importRetry(() => Promise.reject(CHROME(url2)), { memo, sleep, importUrl: () => (ok ? Promise.resolve('j') : Promise.reject(CHROME(`${url2}?retry=1`))), waits: [5, 5, 5] }));
+  await new Promise(r => setTimeout(r, 1));
+  assert.equal(R.retryingLoud(), 0, 'a quiet prefetch: no pill');
+  const loud = R.importRetry(() => Promise.reject(CHROME(url2)), { memo, sleep });
+  await new Promise(r => setTimeout(r, 1));
+  assert.equal(R.retryingLoud(), 1, 'the press joined it: the pill');
+  ok = true;
+  assert.equal(await loud, 'j');
+  assert.equal(await q, 'j');
+  assert.equal(R.retryingLoud(), 0);
+  off();
+});
+
+test('W9-P4 chunkPending: 还在加载… while a loud retry runs (the reader\'s language), gone when it settles; uninstall removes it', async () => {
+  const { initChunkPending } = await import('../src/opus-bay/game/chunkPending');
+  const R = await import('../src/opus-bay/game/importRetry');
+  const made: Record<string, unknown>[] = [];
+  const page = { children: [] as unknown[], append(c: unknown) { this.children.push(c); } };
+  const doc = {
+    createElement: () => { const el: Record<string, unknown> = { style: {}, attrs: {} as Record<string, string>, removed: false, textContent: '', className: '' }; el.setAttribute = (k: string, v: string) => { (el.attrs as Record<string, string>)[k] = v; }; el.remove = () => { el.removed = true; }; made.push(el); return el; },
+    querySelector: (s: string) => (s === '.ob-page' ? page : null),
+    body: page,
+  };
+  const off = initChunkPending(doc as never);
+  const memo = new Map();
+  let ok = false;
+  const url = 'https://www.baylink.us/assets/WeekPanel-C.js';
+  const p = R.importRetry(() => Promise.reject(CHROME(url)), { memo, sleep: () => new Promise(r => setTimeout(r, 5)), importUrl: () => (ok ? Promise.resolve(1) : Promise.reject(CHROME(`${url}?retry=1`))), waits: [5, 5, 5] });
+  await new Promise(r => setTimeout(r, 1));
+  assert.equal(made.length, 1);
+  assert.equal((made[0].attrs as Record<string, string>).role, 'status');
+  assert.match(String(made[0].textContent), /还在加载/);
+  assert.equal(made[0].removed, false);
+  ok = true;
+  await p;
+  assert.equal(made[0].removed, true, 'gone once the part landed');
+  off();
+});
+
+test('W9-P4 lazyChunk { onLost }: told once when the part is lost for good (the four panels close themselves), never for the module\'s own error; tests\' makeLazy still works', async () => {
+  const { lazyChunk } = await import('../src/opus-bay/game/lazyChunk');
+  const factories: (() => Promise<{ default: unknown }>)[] = [];
+  const fakeLazy = (f: () => Promise<{ default: unknown }>) => { factories.push(f); return (() => null) as never; };
+  let lostCalls = 0;
+  lazyChunk(() => Promise.reject(CHROME('https://www.baylink.us/assets/MapPanel-A.js?retry=3')), { onLost: () => { lostCalls++; }, makeLazy: fakeLazy });
+  await factories[0]();
+  assert.equal(lostCalls, 1);
+  lazyChunk(() => Promise.reject(new TypeError("Cannot read properties of undefined (reading 'x')")), { onLost: () => { lostCalls++; }, makeLazy: fakeLazy });
+  await assert.rejects(factories[2](), /Cannot read/);
+  assert.equal(lostCalls, 1, 'a bug in the module is not a lost chunk');
+  const o = src('ui/Overlay.tsx');
+  for (const [p, k] of [['MapPanel', 'map'], ['Journal', 'journal'], ['WeekPanel', 'week'], ['SettingsPanel', 'settings']]) assert.ok(o.split(/\r?\n/).some(l => l.startsWith(`const ${p} = lazyChunk(`) && l.trimEnd().endsWith(`{ onLost: closeLost('${k}') });`)), p);
+  // a lost Map closes the Map only — never the Journal the player opened while it retried
+  assert.ok(o.includes("function closeLost(kind: 'map' | 'journal' | 'week' | 'settings'): () => void { return () => { if (game.get().panel.kind === kind) closePanel(); }; }"));
+  assert.match(src('OpusBayPage.tsx'), /const offPending = initChunkPending\(\);/, 'the page installs the pill');
+});
+
+test('W9-P4 w5Features: the five feature chunks load through importRetry (a lost one retries, then the reload card) — not exempt from the W8-P5 scan any more', () => {
+  const w = src('game/w5Features.ts');
+  for (const id of ['economy', 'play', 'eggs', 'realsf', 'halloween']) assert.ok(w.includes(`${id}: () => importRetry(() => import('../${id}/index')),`), id);
+  assert.doesNotMatch(fs.readFileSync('tests/opus-bay-w8-p-retry.test.ts', 'utf8'), /'game\/w5Features\.ts', 'game\/goTo\.ts'/);
+});

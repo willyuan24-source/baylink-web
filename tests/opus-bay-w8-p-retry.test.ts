@@ -122,11 +122,11 @@ test('W8-P6: a resume no longer waits on a lost discovery chunk — play begins 
 
 test('W8-P5: every relative dynamic import() in src/opus-bay loads through importRetry — wrap a new one as importRetry(() => import(\'./x\'))', () => {
   const root = path.resolve('src/opus-bay');
-  // not wrapped on purpose: the helper itself; the frozen feature index (game/w5Features.ts, the lead's: sf-w8-P.md
-  // Requests); the tiny goTo hook (type imports only, tests/opus-bay-w5-nav.test.ts W5-N1)
+  // not wrapped on purpose: the helper itself; the tiny goTo hook (type imports only, tests/opus-bay-w5-nav.test.ts W5-N1)
+  // (W9-P4: game/w5Features.ts's five feature loaders are wrapped now — no longer exempt)
   // (W8-P-review, P-RC-1) and OpusBayPage's GameRoot: the chunk the others import their shared modules from — a retried
   // GameRoot is a second instance they never see (tests/opus-bay-w8-p-review.test.ts)
-  const EXEMPT = new Set(['game/importRetry.ts', 'game/w5Features.ts', 'game/goTo.ts', 'OpusBayPage.tsx']);
+  const EXEMPT = new Set(['game/importRetry.ts', 'game/goTo.ts', 'OpusBayPage.tsx']);
   const files: string[] = [];
   (function walk(d: string) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (/\.tsx?$/.test(e.name)) files.push(p); } })(root);
   const bare: string[] = [];

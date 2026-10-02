@@ -21,15 +21,24 @@ const Nothing = (): null => null;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.lazy's own constraint
 type AnyComponent = ComponentType<any>;
 
-/** React.lazy(load), but a chunk lost for good renders nothing and the next mount retries. `makeLazy`: tests. */
+type MakeLazy = (factory: () => Promise<{ default: AnyComponent }>) => AnyComponent;
+
+/**
+ * React.lazy(load), but a chunk lost for good renders nothing and the next mount retries. The second argument: tests'
+ * `makeLazy`, or (W9-P4, w8 NEXT #11) `{ onLost }` — called once the part is lost for good (a panel closes itself: the
+ * HUD rail no longer stays shifted for an empty panel, and the next press opens it again on a fresh URL).
+ */
 export function lazyChunk<C extends AnyComponent>(
   load: () => Promise<{ default: C }>,
-  makeLazy: (factory: () => Promise<{ default: AnyComponent }>) => AnyComponent = lazy,
+  opts: MakeLazy | { onLost?: () => void; makeLazy?: MakeLazy } = lazy,
 ): C {
+  const makeLazy: MakeLazy = typeof opts === 'function' ? opts : opts.makeLazy ?? lazy;
+  const onLost = typeof opts === 'function' ? undefined : opts.onLost;
   let current: AnyComponent;
   const make = (): AnyComponent => makeLazy(() => load().catch((e: unknown) => {
     if (!isLoadFailure(e)) throw e;
     current = make(); // the next mount asks again
+    onLost?.();
     return { default: Nothing };
   }));
   current = make();

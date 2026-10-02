@@ -51,10 +51,13 @@ const loadMap = () => importRetry(() => import('./MapPanel'));
 const loadJournal = () => importRetry(() => import('./Journal'));
 const loadWeek = () => importRetry(() => import('./WeekPanel'));
 const loadSettings = () => importRetry(() => import('./Settings'));
-const MapPanel = lazyChunk(() => loadMap().then(m => ({ default: m.MapPanel })));
-const Journal = lazyChunk(() => loadJournal().then(m => ({ default: m.Journal })));
-const WeekPanel = lazyChunk(() => loadWeek().then(m => ({ default: m.WeekPanel })));
-const SettingsPanel = lazyChunk(() => loadSettings().then(m => ({ default: m.SettingsPanel })));
+// (W9-P4, lane P, surgical) a panel whose chunk is lost for good closes itself — only if it is still the open one (the
+// reload card says why; M opens it again)
+function closeLost(kind: 'map' | 'journal' | 'week' | 'settings'): () => void { return () => { if (game.get().panel.kind === kind) closePanel(); }; }
+const MapPanel = lazyChunk(() => loadMap().then(m => ({ default: m.MapPanel })), { onLost: closeLost('map') });
+const Journal = lazyChunk(() => loadJournal().then(m => ({ default: m.Journal })), { onLost: closeLost('journal') });
+const WeekPanel = lazyChunk(() => loadWeek().then(m => ({ default: m.WeekPanel })), { onLost: closeLost('week') });
+const SettingsPanel = lazyChunk(() => loadSettings().then(m => ({ default: m.SettingsPanel })), { onLost: closeLost('settings') });
 // wave 4 · lane T: the subway overlay, only during a Muni Metro ride (its own chunk)
 const LineRideLayer = lazyChunk(() => importRetry(() => import('./LineRideLayer')));
 // Wave 4 · lane G's city guidance on screen (arrival toast and card, panorama tags, trip card): city mode only
