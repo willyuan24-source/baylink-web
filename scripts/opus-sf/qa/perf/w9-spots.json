@@ -1,0 +1,17 @@
+{
+ "version": 1,
+ "note": "Wave-9 perf spots (W9-Z final verify), on top of w5-spots.json, w6-halloween-spots.json, w7-spots.json and w8-spots.json: the views wave 9 touched. Day (the default golden run): Coit Tower's plaza looking east over the Bay to the Bay Bridge (lane C's W9-C3 Coit reveal looks this way, the tower against the Bay), the Alamo Square lawn looking at the Painted Ladies by day (W9-C3's reveal that steps round the cone tree), the Twin Peaks overlook's arrival facing downtown and Salesforce Tower (W9-C3's vista, actors/reveal.ts DOWNTOWN). Night (run with --time night): Grant Ave at the pagoda corner and the Dragon Gate looking up Grant Ave (lane C's W9-C6 lantern glow and neon, 0 new calls by the lane's count). Same gate as w5-spots.json.",
+ "gate": {
+  "desktop": { "size": [1440, 900], "quality": "high", "calls": 150, "triangles": 400000 },
+  "phone": { "size": [390, 844], "dpr": 3, "quality": "mid", "cpuThrottle": 4, "fps": 45 },
+  "programs": "equal at 1x idle and 4x walk (no drift)"
+ },
+ "spots": [
+  { "id": "coit-reveal-east", "since": "w9", "go": { "x": -50.2, "z": 51.1, "fx": 300, "fz": 51.1, "arrival": true }, "note": "Coit Tower's plaza, facing east over the Bay to the Bay Bridge (lane C's W9-C3 Coit reveal)" },
+  { "id": "painted-ladies-day", "since": "w9", "go": { "x": -13.5, "z": 590.5, "fx": 30, "fz": 590 }, "note": "the Alamo Square lawn looking east at the Painted Ladies by day (W9-C3)" },
+  { "id": "twin-peaks-vista", "since": "w9", "go": { "x": 125.7, "z": 937.8, "fx": 166, "fz": 108, "arrival": true }, "note": "the Twin Peaks overlook's arrival facing downtown and Salesforce Tower (W9-C3's vista)" },
+  { "id": "chinatown-pagodas-night", "since": "w9", "time": "night", "go": { "x": 70.07, "z": 166.44, "fx": 57, "fz": 153 }, "note": "Grant Ave below the pagoda corner at night: lane C's W9-C6 lantern glow and neon" },
+  { "id": "chinatown-gate-night", "since": "w9", "time": "night", "go": { "x": 86.3, "z": 178.1, "fx": 81.9, "fz": 174.7 }, "note": "the Dragon Gate looking up Grant Ave at night (W9-C6)" }
+ ],
+ "rides": []
+}

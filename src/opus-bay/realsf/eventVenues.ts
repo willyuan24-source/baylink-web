@@ -432,11 +432,14 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     // "Presentation: Ocean View, Merced Heights, and Ingleside History Day", Saturday 10/17/2026 3:00 - 5:00, Ingleside
     // Meeting Room, free (https://sfpl.org/events/2026/10/17/presentation-ocean-view-merced-heights-and-ingleside-history-day,
     // read 2026-10-01)
-    x: 389.0, z: 1336.3,
+    // (W9-Z) 3.5 u north and 0.5 u west of the first spot (389.0, 1336.3), which stood in the building's recess: the
+    // static walk sweep found it BOXED (only the way out to the street moved ≥ 3 u); here it stands, ok, still on the
+    // pavement facing the street.
+    x: 388.5, z: 1332.8,
     match: /Ingleside Library|1298 Ocean Ave/i,
     events: ['sfpl-omi-history-day-oct17-2026'],
     kit: 'board',
-    kitAt: { x: 389.0, z: 1336.3, yaw: deg(180) },
+    kitAt: { x: 388.5, z: 1332.8, yaw: deg(180) },
     sourceUrl: 'https://www.openstreetmap.org/way/159024969',
     verifiedAt: '2026-10-01',
   },
