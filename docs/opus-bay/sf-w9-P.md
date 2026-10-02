@@ -8,7 +8,7 @@ until ready, `scripts/opus-sf/qa/perf/cold-start.mjs`; no WebGL / software GL; G
 
 ## 给主人的摘要
 
-1. **一看到标题就点"开始"不会再冻屏了。** 以前画面第一次出来时要当场编译几十个着色器，主线程卡住 8–14 秒（就是评测里"以为卡死了"）。现在先在后台分批把着色器全部编好，期间标题页照常能点语言、点"直接看攻略"；按钮显示「准备中…」，好了才变成「开始」。正式版实测（电脑）：按下开始后冻住的时间从最多 19 秒降到 0，从按开始到出现四选一 = 6.5 秒（就是开场动画本身）；手机（4 倍降速模拟）按下后的卡顿从最长 14 秒降到 0.8 秒。
+1. **一看到标题就点"开始"不会再冻屏了。** 以前画面第一次出来时要当场编译几十个着色器，主线程卡住 8–14 秒（就是评测里"以为卡死了"）。现在先在后台分批把着色器全部编好；按钮显示「准备中…」，好了才变成「开始」。正式版实测（电脑）：按下开始后冻住的时间从最多 19 秒降到 0，从被接受的那一下「开始」到出现四选一 = 6.5 秒（就是开场动画本身）；手机（4 倍降速模拟）按下后的卡顿从最长 14 秒降到 0.8 秒。**（评审更正，见文末 Review：标题页上「搭建城市」那一下仍会卡住约 1 秒（电脑）/ 约 7 秒（慢手机），这期间语言和"直接看攻略"点不动；准备中时按的那一下原来会被丢掉，评审已改成记住、好了自动开始；手机按下后虽然最长只卡 0.8 秒，但开场里超过 0.25 秒的停顿加起来仍有约 4 秒。）**
 2. **打不开 3D 的电脑/浏览器不再看到网站的错误页**：标题页直接说"这台设备打不开 3D 画面"，并给出"这个月湾区有什么"、"活动日历"和"直接看攻略"三个入口。只能用软件模式显示 3D 的电脑会自动用「省电」画质，并有一行说明。
 3. 画面丢失（图形内存被收回）的提示卡，电脑上不再说"手机把……"，改成"浏览器暂停了游戏的 3D 画面"。
 4. 游戏主包（GameRoot）没有变大：先把渡轮露天甲板和城市海鸥、再把渡轮航线的计算代码挪进分包（共腾出约 1.1 KB），装下冷启动改动后还比今晚最高时小 0.7 KB；并加了检查——这一波任何一条线把新代码放进主包，测试都会报出来（到现在没有）。
@@ -233,3 +233,74 @@ did not exist), green now; the module guard W9-P3. Full opus-bay suite before th
   subject facts (≈ 0.4), `game/transit.ts`'s ride-UI helpers.
 - Software GL at Low still shows frame gaps up to 2.7 s on this machine: a lower render scale for software GL would help;
   not done.
+
+## Review (Ultra)
+
+Fixer of the adversarial review (lenses: code `C:/Users/willy/opus-qa/w9/p-rc/findings.json`, player
+`C:/Users/willy/opus-qa/w9/p-rp/findings.json`). Worktree `C:/Users/willy/wt/w9-p-rev` (branch `w9-p-rev`, from
+origin/opus-bay e9c3c35c), port 5949, scratch `C:/Users/willy/opus-qa/w9/p-rev/`. 05:43 – 06:45 PDT, 2 October.
+
+### 给主人的摘要
+
+1. 「准备中…」时按「开始」（或按回车）原来会被丢掉，要等它变成「开始」再按一次。现在这一下会被记住：按钮变成「好了就自动开始…」，准备好后游戏自己开始。实测（电脑）：标题出现 2.7 秒时按回车，22 秒时直接进入开场，没有再按。
+2. 老玩家的「从头开始 · 渡轮大厦」在准备中时看起来能按、其实按不动；现在和「开始」一样变暗，按下也会被记住。
+3. 打不开 3D 的设备：那句原因说明（"可能是浏览器关掉了硬件加速……"）在矮窗口和横屏手机上会被藏起来，现在一直显示。`?world=district` 旧场景保持原样：软件模式不再改画质，太早按开始也不会再跳到网站错误页。
+4. 还没解决（报告里的说法已改正）：标题页上「搭建城市」那一下仍会卡住约 1 秒（电脑）/ 约 7 秒（慢手机），这期间语言按钮和"直接看攻略"点不动；「准备中」本身要 11–25 秒（电脑）/ 约 32 秒（慢手机），没有进度显示；软件模式（无显卡）按下后还有几个着色器在现编。都留给下一波，不影响上线。
+5. 不阻塞上线到 main。
+
+### The findings
+
+| id | sev | verdict | evidence / what was done |
+|---|---|---|---|
+| P-RP-1 | major | **fixed** (W9-P-review d5133520) | Reproduced from `TitleScreen.tsx` (`primary = preparing ? () => {} : …`) and the lane's own batch (`coldprod2/summary.jsonl`: deadClicks 1 in every after-eager run). Red: `tests/opus-bay-w9-p-review.test.ts` 0 / 6 on the old code. Fix: `game/warmReady.ts` `queueStart()`. A press during 准备中… (Start, 继续旅程, Enter / Space, 从头开始) is kept (the first press wins) and the audio is primed inside the tap. The button reads 好了就自动开始… / Starting when ready… (still aria-busy + aria-disabled), and the kept action runs one task after `setWarmReady()`. No WebGL never queues. Live run (dev, 1440×900, en, save=off, busy machine): the title showed Getting ready… at 2652 ms. After Enter it read "Starting when ready…" with aria-busy at 3481 ms, and the 4-way choice came at 22014 ms with no second press (`p-rev/dk-1-kept.jpg`, `p-rev/dk-2-choice.jpg`, both read). |
+| P-RC-2 | minor | **fixed** (d5133520) | Confirmed by code: only `.ob-title-start` had the inline dim, and no CSS targets `[aria-disabled]` on `.ob-btn`. 从头开始 now gets the same `WAIT_STYLE` (opacity .72, cursor progress), and its press is kept (it starts over, not resumes). Source test in the review file. |
+| P-RP-6 | minor | **fixed** (d5133520) | Same defect as P-RC-2. |
+| P-RC-3 | minor | **fixed** (d5133520) | Confirmed by code: `start()` set `load` without `glOk()`, and `startQuality` put software GL ahead of everything in both worlds. Now `start()` probes first (`if (!glOk()) return;`): no WebGL keeps the title's note, never the site's error page. Software GL → Low + the note now apply to the city only (`world/quality.ts`, `TitleScreen.tsx`). **Decision:** the district takes the no-WebGL title, because a crash page is not "the district as before". It does not take the software-GL path (Low / note): on a software rasteriser the district runs as before wave 9. Tests: a source check and a district render without the note. Not run in a real no-WebGL Chrome (no time). |
+| P-RP-5 | minor | **fixed** (d5133520) | Partly stale. Lane F's W9-F9 (7a232652, after the lens's tree) changed the portrait-phone rule to hide only the greeting, so at 375×553 portrait the line now shows. `.ob-title-hint { display: none }` still hid it on windows ≥ 821 px wide and ≤ 620 px tall, and on landscape phones ≤ 460 px tall. The explanation now has its own class, `ob-title-nogl-why` (inline 13 px, ink-2), which no rule hides. DOM test in the review file. |
+| P-RP-7 | minor | **fixed** (docs) | Confirmed from `coldprod2/summary.jsonl` (after-desk-eager firstTryToChoice 10632 / 18519; after-phone4x 47319 / 22904, freeze 3829 / 4746, titleFreeze 7494 / 7044). Line 1 of 给主人的摘要 above is corrected in place: the 标题页照常能点 claim is removed, the 6.5 s is now "from the accepted press", and the phone stutter total is added. The lane's final answer (summary_zh) cannot be changed, so this section supersedes it. With P-RP-1 fixed, an eager player's first press is now the press that counts. |
+| P-RC-1 | major | **confirmed-not-fixed** | Confirmed from the lane's own production table: the longest title freeze is 7494 / 7044 ms on phone 4× and ≈ 1.0 s on desktop. The CPU attribution shows halloween init → `getWorld()` → `new World` (`addChunks` / `splitGeometryCells`) running synchronously on the GameRoot mount while Start reads 准备中…. The fix is a phased World build in `world/world.ts` (`prebuildWorld` in tasks, or a chunked `splitGeometryCells`), too large and too risky for this window. Desktop is still better than before (worst title freeze 8.3 → 1.0 s). On phone 4× the ≈ 7 s freeze moved from after the press onto the title. The claim is corrected (P-RP-7). Wave 10, P0 for lane P. |
+| P-RP-2 | major | **confirmed-not-fixed** | Same root cause as P-RC-1 (the lens's own run: a rAF gap of 5678 ms on the title, a longTask of 5705 ms before the press, GL waits of only 231 ms). Not fixed, for the same reason. |
+| P-RP-3 | major | **confirmed-not-fixed** | Confirmed from the lane's numbers: title → ready takes 11.1–14.1 s on desktop and 31.7 / 33.4 s on phone 4×. P-RP-1 removes the eager player's half: no second press is needed, and the label says the game will start by itself. The wait itself and the lack of progress remain. PRE_MAX_MS (30 s): when it trips, frames start while programs are still linking. On a slower phone that brings back the old freeze; it is not a softlock. Next: fewer program variants, a measured PRE_BATCH, a progress fraction from `prewarmPrograms` to the title. |
+| P-RP-4 | major | **confirmed-not-fixed** | Confirmed in the lane's SwiftShader run (`p/prof/swiftshader-desk-wait10-1/result.json`). The pre-pass did not hit the cap (title 1603 → ready 19301 ms). After the press (22645 ms) there were 7 slow first uses (getProgramInfoLog / getShaderInfoLog, 215–2187 ms each, ≈ 6.8 s in total). These programs were first used after the press, so they were not in the warm set (most likely objects the intro shows that were hidden at the title). Most of the 57.5 s freeze after the press is software rendering at Low. Software GL is the degraded path with a note. Finding the missing programs needs a SwiftShader run that names the programs created after the press (not done). |
+
+### Own pass (W9-P0 … P7, P4b / P4c)
+
+- **OWN-1 (fixed, e1896a7b):** the P-RP-1 fix would have broken `scripts/opus-sf/qa/perf/cold-start.mjs --mode eager`.
+  The script waited for an enabled Start to press again, but the title never shows one once the kept press starts the
+  game, so a run would have hung to its 180 s limit and reported no choice. A kept press (好了就自[动動][开開]始… /
+  Starting when ready…) is now marked `kept`, not counted as a dead click, and it counts as the press
+  (`click = click ?? kept`). `clickToChoice` therefore includes the wait on the title, which is what the eager player
+  waits. **For W9-Z:** measured from a kept press, "no freeze over 1 s after Start" now includes the title's World build
+  (≈ 1 s desktop, ≈ 7 s phone 4×, P-RC-1). Measure the gate with `--mode wait10` (an accepted press on an enabled
+  Start), as the lane did.
+- Checked and fine:
+  - The frame gate cannot deadlock. Warmup sits in the same Suspense as WorldScene, and its effect runs with
+    `frameloop="never"`. `finally(onPre)` runs after the race with PRE_MAX_MS, an error or a lost context.
+  - The district renders from the mount.
+  - Neither the lane nor this review touched a frozen file.
+  - With this review's changes the GameRoot static estimate is 257.9 KB (guard 258.5); warmReady.ts lives in the page's
+    chunk.
+
+### Open items (wave 10)
+
+1. The World's synchronous build on the title (P-RC-1 / P-RP-2): ≈ 7 s on phone 4×, ≈ 1 s on desktop.
+2. How long 准备中… lasts, with no progress shown (P-RP-3), and the PRE_MAX_MS cap on slow phones.
+3. Software GL: some programs are first used after the press (P-RP-4); a lower render scale for software GL would help.
+4. Not re-run by this review (no time, busy machine): production before / after cold-start numbers with the kept press.
+   Also not run in a real Chrome: the no-WebGL and district press timing.
+
+### Blocking the go-live to main
+
+None. Nothing softlocks, and the open items are about speed, not breakage. The district is as before, except that a
+no-WebGL device now gets the title's note instead of the site's error page.
+
+### Commits and checks
+
+- d5133520 W9-P-review: the kept press, 从头开始 dimmed, the probe in the press + the district's software path, the
+  no-WebGL reason line (+ `tests/opus-bay-w9-p-review.test.ts`, lane P's regex tests updated)
+- e1896a7b W9-P-review: cold-start.mjs understands a kept press
+- `npx tsc -p tsconfig.app.json --noEmit`: 0 errors.
+- `npx eslint .`: 0 errors (53 warnings, none in touched files).
+- The title's other tests (w5-nav, w5-lang, w5-lang-review, w9-f-partb, w9-a-settings, w9-e-shell, sf-budget): 116 pass,
+  0 fail, 1 todo.
+- Full suite `tests/opus-bay-*.test.ts` on d5133520 + e1896a7b: 2144 tests, 2142 pass, 1 fail, 1 todo (the 255 KB target). The one fail is the wall-clock test `opus-bay-audio` "P1: preparation runs in slices…" (9.4 s under load); re-run alone: 18 / 18 pass.
