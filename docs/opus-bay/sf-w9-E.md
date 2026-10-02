@@ -1,13 +1,18 @@
 # Wave 9 · lane E — entry, site shell, the /play switch
 
 Lane E of wave 9 (sf-w9-lead.md §3 E), worktree `C:/Users/willy/wt/w9-e`, branch `w9-e` → `origin/opus-bay`, port 5901,
-scratch `C:/Users/willy/opus-qa/w9/e/`. Started 2026-10-01 21:35 PDT from `f1460b0c`.
+scratch `C:/Users/willy/opus-qa/w9/e/`. Started 2026-10-01 21:35 PDT from `f1460b0c`. The first agent was stopped by an account
+usage limit at ≈ 00:35 with W9-E4 … E7 committed but not pushed; a second agent resumed at 02:14 PDT (2026-10-02), checked them
+(below), pushed them unchanged at 02:44 and did part c (the /play switch).
 
 ## 给主人的摘要
 
 1. 旧 iPhone（iOS 15、16.0–16.3，以及这些手机里的微信）整站打不开的风险已修：站点代码里仅有的两处 lookbehind 正则改写成等价写法（3 万条随机查询逐条对照旧正则，结果完全一致），构建目标加上 Safari 15；打包产物里 lookbehind 从 2 处变为 0 处，体积几乎不变（+0.18 KB gzip）。用 Chrome 模拟旧引擎：修之前 /opus-bay 白屏报错，修之后标题页和首页都正常。
 2. 加了一个守护测试：以后谁再在 src/ 里写 lookbehind，测试直接失败；另有 `dist-syntax.mjs` 给最终验收扫描构建产物。
-3. （进行中）/opus-bay 自己的首屏与分享卡、/play 切换到小小湾区游戏，见下文各部分。
+3. /opus-bay 有了自己的页面：打开时先显示和游戏标题页一样的静态首屏（不再先闪 BAYLINK 首页，限速 4G 实测从未出现首页内容），分享到微信/iMessage 时显示游戏自己的标题和主视觉卡片，sitemap 已收录。旧手机如果连脚本都跑不起来，会看到一条友好提示和「直接看攻略」链接，而不是点不动的页面。
+4. **/play 已切换到 3D 旧金山（单独一个提交 W9-E-switch1，最终验收不通过时可单独撤回）**：首页卡片改为「逛一圈 3D 旧金山」，侧栏「小小湾区」也进入游戏；/play 自动跳到游戏（保留简体/繁體/English）；以前分享出去的周末车票链接会打开 /plan 里的同一份计划。旧的 /play 页面代码保留在仓库里，没有删除。
+5. 顺手避免了一个副作用：/play 下线后，3D 引擎库会被打进游戏主包（主包变大将近一倍、每次更新都要重新下载），已让它保持独立缓存，体积和之前一致。
+6. 还需要别人做的：标题页左上角眉标仍是「Opus Bay · BAYLINK」（F 线的文件，计划写明由 F 改为「小小湾区 · BAYLINK」）；旧 iPhone 真机和微信里的分享卡片预览需要主人或最终验收用真机确认。
 
 ## Part a — the look-behind P0 (review R§5 #2) · 21:35 → 22:10 PDT
 
@@ -125,3 +130,118 @@ Screens to look at first: `docs/opus-bay/qa/w9/E/shell-desktop.jpg`, `shell-phon
 navigation to another page leaves them in the head: harmless for crawlers, which load each URL fresh). No fixed BAYBAY
 line is new or changed in this lane (the shell and the notice are static page text, not voiced) — nothing for
 `new-lines.md`.
+
+## Resume check of the first agent's commits · 02:14 → 02:44 PDT
+
+W9-E4 (the page), E5 (boot-check.js), E6 (the eslint fix), E7 (report b) were committed, not pushed, on top of `3446c7b2`
+(already the latest origin then). Checked before pushing: `tsc -p tsconfig.app.json` 0; `npx eslint .` 0 errors / 50 warnings
+(the first agent's last run: 51; none in lane-E files); `tests/opus-bay-w9-e*.test.ts` + `seo`, `named-event-search`,
+`guide-search` 34 / 34; the opus-bay suite 2008 tests: 2007 pass, 0 fail, 1 todo (the known W8-P9 todo "GameRoot ≤ 255 KB").
+Rebased twice (W9-S2 / S3, W9-F2 … F7, W9-L: no file in common), tsc again 0, the S tests the rebase brought in green; pushed
+unchanged: E4 `3c43ad3e`, E5 `6c673dee`, E6 `6ce479ba`, E7 `72d7cf95`. Nothing was discarded. The first agent's scratch had
+the switch prepared but not applied (`switch/apply.py`, `switch/PlayRedirect.tsx`, `switch.test.tsx.hold`): part c started
+from it, fixed two bugs in its test (several renders without unmount; `renderToStaticMarkup` always reads the server locale
+snapshot, so the English card was never really rendered) and moved `playRedirectTarget` out of the component file (the
+react-refresh lint rule).
+
+## Part c — the /play switch (sf-w9-lead.md §3 E (3), §6; review R§5 #1) · 02:45 → 03:45 PDT
+
+One commit, **`W9-E-switch1`** (`d57e8a1c`), so W9-Z can revert it alone if the switch gate fails (§6); nothing else in the
+wave depends on it.
+
+**What was wrong.** No link on the site reached the game (review R§5 #1): the homepage card 逛一圈 3D 湾区 and the sidebar's
+小小湾区 · Little Bay opened `/play` (GPT's other 3D world). The owner (2026-10-01): "当OPUS-BAY没问题的时候，就可以替代PLAY了".
+
+**What changed.**
+- Homepage card (`src/components/HomeDiscovery.tsx`) → `/opus-bay?from=home`, label 「逛一圈 3D 旧金山」 / "Explore 3D San
+  Francisco" (the game is San Francisco, not the Bay; the subline kept).
+- Sidebar (`src/components/SiteNavigation.tsx`) 小小湾区 · Little Bay → `/opus-bay?from=nav`; current on `/opus-bay` and
+  `/play` (the sidebar is not drawn on either — both are full-screen — but the state is right if that changes).
+- `/play` (`src/App.tsx` + new `src/components/PlayRedirect.tsx`, outside the site layout like `/opus-bay`): a replace
+  redirect (no history entry) to `/opus-bay?from=play`, keeping `?lang` and the hash, with the game's static first paint
+  meanwhile. An old shared weekend ticket (`/play?date=&stops=&places=`, LittleBayPage's 分享车票) → `/plan` with the same
+  `date` / `stops` / `places` (+ `lang`): the planner reads exactly those (`lib/planner.ts parseSharedPlan`; the test checks
+  the parsed plan is equal). Other parameters of the old page (`view=`) are dropped. Where it sends whom:
+  `src/lib/opus-bay-metadata.ts playRedirectTarget()` (pure).
+- `scripts/prerender.tsx`: `dist/play.html` is the game's page (the same document as `opus-bay.html`: canonical
+  `https://www.baylink.us/opus-bay`, the game's title / share card / static shell) instead of LittleBayPage's text; `/play`
+  leaves the sitemap (and `public/sitemap.xml`); `vercel.json` keeps `/play → /play.html`.
+- `LittleBayPage` is no longer imported: its route chunk, `LittleBayScene` and the `sf-landmark-events` chunk leave the
+  build. `src/pages/LittleBayPage.tsx` and `src/features/little-bay/**` stay in the repo, unrouted; `tests/little-bay-ui`
+  renders the page directly and stays green.
+- `vite.config.ts` manualChunks (outside "build.target only" — named here; needed because of the switch, so inside its
+  commit): three.js + react-three-fiber (+ react-reconciler, its-fine, suspend-react, react-use-measure) → `three-vendor`.
+  They had been the chunk the game shared with LittleBayScene; with LittleBay gone Rollup inlined them into GameRoot.
+
+| scratch build | GameRoot raw / gzip | the three.js + r3f chunk |
+|---|---|---|
+| build-c (before the switch, 00:00) | 682.94 / 258.05 KB | `react-three-fiber.esm` 874.40 / 233.63 KB |
+| build-d (the switch, no rule) | **1,564.76 / 493.77 KB** | — (inside GameRoot) |
+| build-e (the switch + the rule) | 687.56 / 259.30 KB ¹ | `three-vendor` 874.36 / 233.60 KB |
+
+¹ The +1.25 KB gzip against build-c comes from the other lanes' commits rebased in between (F / S / L), not from the switch:
+build-d's GameRoot = build-e's GameRoot + three-vendor + ≈ 2.8 KB of chunk glue. The site's entry and the game's title
+chunk (`OpusBayPage-*.js`: copy, the site index, locale, react-vendor, `import(GameRoot)`) do not import `three-vendor`
+(checked in build-e: the same imports as build-c). `dist-syntax` on build-e: look-behind 0, class static blocks 0 (406
+chunks); vite build exit 0, prerender 589 pages, no tracked file churned.
+
+**Tests.** New `tests/opus-bay-w9-e-switch.test.tsx` (7): the targets (lang kept, `view=` dropped, tickets → `/plan` with an
+equal parsed plan, a date-only ticket), the route in a MemoryRouter (zh / zh-Hant / en / hash / ticket), the shell meanwhile
+and nothing for a ticket, the homepage card (server HTML + client render, zh and en), the sidebar link and its current
+state, the wiring (App / prerender / sitemap; `LittleBayPage.tsx` kept), the manualChunks rule. Site tests whose expectation
+changed (none deleted): `tests/home-discovery.test.tsx` (the card's href is `/opus-bay?from=home`; its message "Little Bay is
+discoverable from the homepage" still holds — 小小湾区 is the game now), `tests/seo.test.ts` (`/play` must NOT be in the
+sitemap: it only redirects). Unchanged and green: `routing` (`/play` stays a known path), `unified-bay-navigation`,
+`little-bay-ui`, `seo` (`/play → /play.html`).
+
+**Verified in Chrome** (production build + prerender `C:/Users/willy/opus-qa/w9/e/build-e/dist`, `vite preview` :5901,
+`probe/switch-probe.mjs`: a MutationObserver before any page script records homepage / site-shell DOM (`.home-discovery`,
+`.site-sidebar`, `.home-start-paths`, `.site-mobile-nav`), LittleBayPage DOM (`.lb-page`), the shell and the title; results
+`C:/Users/willy/opus-qa/w9/e/switch/*.json|jpg`):
+
+| start | desktop 1440 × 900, Fast 4G | phone 390 × 844 |
+|---|---|---|
+| `/play` | `/opus-bay`, 湾区小旅, from = play | same |
+| `/play?lang=zh-Hant` | `/opus-bay?lang=zh-Hant`, 灣區小旅 | same |
+| `/play?lang=en` | `/opus-bay?lang=en`, Little Bay Trip | same |
+| `/play?date=2026-10-10&stops=place:golden-gate,place:coit-tower&lang=en` | `/plan?…` in English with the Golden Gate stop | same |
+| the homepage card (click / tap) | `/opus-bay`, from = home | same |
+| the sidebar's 小小湾区 from `/guides` (click) | `/opus-bay`, from = nav | (no sidebar on phones) |
+
+On every `/play` run no homepage, site-shell or LittleBayPage DOM ever appeared; the game's shell came first (38–564 ms),
+canonical `/opus-bay`, `from=` gone from the address bar and kept in sessionStorage. `/play`, desktop, Fast 4G
+(`probe/shell-probe.mjs`): shell 215 ms, title 2.65 s, no blank gap, Start → the game's canvas in 1.3 s (the intro at the
+Ferry Building; `shell/e-d-play-fast4g-*.jpg`). The homepage card read in the browser: 「逛一圈 3D 旧金山」 (phone, zh),
+"Explore 3D San Francisco" (desktop, `?lang=en`).
+Screens: `docs/opus-bay/qa/w9/E/switch-home-card-phone.jpg`, `switch-play-hant-phone.jpg`, `switch-old-ticket-plan.jpg`.
+
+**Notes / not done.**
+- An old ticket link paints the game's shell (`play.html`) for a moment before `/plan` (the static page cannot read the
+  query and the CSP allows no inline script); its link preview is the game's card, not the ticket. A server-side redirect
+  (`vercel.json` with a query condition) would avoid both but cannot be tested here; left as is.
+- `src/app/AppLayout.tsx` still tests `/^\/play\/?$/` (`playingLittleBay`: skip the feed fetch on /play) — dead now (the
+  layout no longer renders on /play), harmless, not my file; it is live again if the switch is reverted.
+- The game's title eyebrow still says 「Opus Bay · BAYLINK」 (`ui/TitleScreen.tsx:95`, lane F's file; §6 names: 「小小湾区 ·
+  BAYLINK」) — see Requests.
+- Not verified: a real iPhone (iOS 15 / 16.2), WeChat's in-app browser and link card, Vercel's own routing of `/play` and
+  `/opus-bay` (vite preview resolves `/x` → `x.html` like the `vercel.json` rule; the rules are pinned by `tests/seo.test.ts`
+  and `tests/opus-bay-w9-e-shell.test.ts`).
+- No fixed BAYBAY line is new or changed in lane E: nothing for `new-lines.md`.
+
+## Decisions (no one asked)
+
+- The switch is one commit (simplest to revert). `/play` redirects on the client (a tested `<Navigate replace>`), not with a
+  Vercel 308: the client path handles `?lang`, the hash and the ticket rule and is proven here; a server redirect is not
+  testable locally.
+- Old tickets go to `/plan` (it reads the same parameters), not to the game.
+- The three.js chunk rule went into the switch commit (it only matters because of the switch; a revert removes both).
+
+## Requests
+
+- **Lane F** (or W9-I / W9-C if F has ended): `src/opus-bay/ui/TitleScreen.tsx:95` `Opus Bay · BAYLINK` → `小小湾区 · BAYLINK`
+  (sf-w9-lead.md §6 names; the switch gate wants no user-visible "Opus Bay"; static page text, not voiced).
+- **W9-Z**: run `node scripts/opus-sf/qa/dist-syntax.mjs --dist <dist>` on the go-live build; read GameRoot **and**
+  `three-vendor` from the build output (the old `react-three-fiber.esm` chunk's successor); the switch rows above at zh /
+  zh-Hant / en; if the switch gate fails, `git revert d57e8a1c` alone.
+- **The owner**: open https://www.baylink.us/opus-bay and /play on an iPhone with iOS 15 or 16.0–16.3 if one is at hand, and
+  paste https://www.baylink.us/opus-bay into a WeChat chat to see the card (the key art, 湾区小旅).
