@@ -165,3 +165,15 @@ test('W9-Q11: narrow desktop windows with a sheet (175 % zoom): the prompt / mov
   assert.equal(sys.split('x = Math.min(w - half, Math.max(half, x));').length - 1, 1);
 });
 
+test('W9-Q12: large text on a phone (260 px wide): the title has no fixed floors, results put 带我去 under the row, the guide title is clamped', () => {
+  const css = read('opus-bay.css');
+  const narrow = ['(max-width: 359px)'];
+  assert.match(decl(css, '.ob-title .ob-title-actions .ob-btn-primary', narrow).join(), /min-width: 0/);
+  assert.match(decl(css, '.ob-lang.is-title .ob-lang-pills button', narrow).join(), /min-width: 0/);
+  assert.match(decl(css, '.ob-title.has-art .ob-title-card', narrow).join(), /max-width: 100%/);
+  assert.match(decl(css, '.ob-sheet-foot > .ob-poi-foot-guide .ob-guide-row > span', ['(max-width: 720px)']).join(), /-webkit-line-clamp: 3/);
+  assert.match(decl(css, '.ob-sheet-foot > .ob-poi-foot-guide .ob-guide-row > span', ['(max-width: 720px) and (max-height: 600px)']).join(), /-webkit-line-clamp: 2/);
+  const map = read('ui/map-w4.css');
+  assert.match(decl(map, '.mw-list li.has-go', narrow).join(), /flex-wrap: wrap/);
+  assert.match(decl(map, '.mw-list li.has-go > .mw-rowgo', narrow).join(), /flex: 1 1 100%/);
+});

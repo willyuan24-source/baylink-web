@@ -1477,3 +1477,22 @@ html[lang='en'] .ob-sfg-run { font-family: var(--ob-font); }
 }
 @media (min-width: 721px) and (max-width: 1080px) { .ob-overlay.has-sheet:has(.ob-sheet.is-wide) .ob-area { visibility: hidden; } }
 @media (min-width: 721px) and (max-width: 960px) { .ob-overlay.has-sheet .ob-area { visibility: hidden; } }
+/* W9-Q12 (part b: a phone with large text — iOS Safari's page zoom at 150 % on a 390 px iPhone lays the page out at 260 CSS px,
+   125 % at 312; Android's font scale likewise) · at 260 × 563 the title card needed 294 px (Start's 180 px floor + the sound
+   button; the language pills' 64 px floors) and ran off the right edge — English and the sound button cut; a place card's
+   footer (the guide link wrapped to four lines over 加入想去) took half of the sheet. Under 360 px wide the title's floors go
+   and its card pads 16 px; on phones the footer's guide link (its label + the title) keeps to three lines (two when the screen is under 600 px tall). */
+@media (max-width: 359px) {
+  .ob-title .ob-title-card, .ob-title.has-art .ob-title-card { min-width: 0; max-width: 100%; padding-left: calc(16px + var(--ob-sl)); padding-right: calc(16px + var(--ob-sr)); }
+  .ob-title .ob-title-actions .ob-btn-primary { min-width: 0; }
+  .ob-lang.is-title .ob-lang-pills { max-width: 100%; }
+  .ob-lang.is-title .ob-lang-pills button { min-width: 0; padding: 0 6px; }
+  .ob-lang.is-title .ob-lang-icon { width: 26px; }
+}
+@media (max-width: 720px) {
+  .ob-sheet-foot > .ob-poi-foot-guide .ob-guide-row > span { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
+  .ob-sheet-foot > .ob-poi-foot-guide .ob-guide-row > span > small { display: block; }
+}
+@media (max-width: 720px) and (max-height: 600px) {
+  .ob-sheet-foot > .ob-poi-foot-guide .ob-guide-row > span { -webkit-line-clamp: 2; }
+}

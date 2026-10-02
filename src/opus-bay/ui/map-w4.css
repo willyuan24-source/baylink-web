@@ -228,3 +228,10 @@
   .ob-overlay .ob-citymap-tools .ob-icon-btn, .ob-overlay .mw-compass { width: 44px; height: 44px; }
   .ob-overlay .ob-citymap-tools .ob-icon-btn::before, .ob-overlay .mw-compass::before { inset: 0; }
 }
+
+/* W9-Q12 (lane Q, part b) · under 360 px wide (a 390 px iPhone at 150 % text) a search result's 带我去 (约 3 分钟, ≈ 140 px) left
+   the row ≈ 120 px and its name broke after every second character (金门大 / 桥): there the button goes under its row */
+@media (max-width: 359px) {
+  .mw-list li.has-go { flex-wrap: wrap; }
+  .mw-list li.has-go > .mw-rowgo { flex: 1 1 100%; }
+}
