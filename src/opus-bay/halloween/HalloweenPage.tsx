@@ -12,7 +12,8 @@ import { CostumeArt } from './costumeArt';
 import { pumpkinsFound, pumpkinTotal } from './hunt';
 import { HalloweenPostcardGrid } from './playPostcardGrid';
 import { halloweenGoals } from './progress';
-import { halloweenPhase, type HalloweenPhase } from './season';
+import { phaseLine } from './pageText';
+import { halloweenPhase } from './season';
 import { candyCount, doorsKnocked, pageSourceOf, streetGoOffered } from './treat';
 import { TREAT_DOORS } from './treatDoors';
 import { KNOCK_OUT, TREAT_SOURCES, TREAT_STREETS } from './treatStreets';
@@ -24,13 +25,6 @@ import './halloween.css';
  * trick-or-treat streets (how many doors knocked, 带我去 the next one), the pumpkins found, the four costumes (worn /
  * owned / in the 小铺). Everything is read from the ledger (a Settings reset empties it).
  */
-
-const PHASE_LINE: Readonly<Record<HalloweenPhase, Bilingual>> = {
-  season: { zh: '10 月 1–30 日：敲门讨糖、找南瓜灯；天黑后门廊灯更亮。', en: '1–30 October: trick-or-treat and hunt for jack-o’-lanterns; the porch lights glow brighter after dark.' },
-  night: { zh: '今晚是万圣节大夜晚：每家都开门，糖果加倍！', en: 'Tonight is Halloween: every door answers, and the treats are doubled!' },
-  muertos: { zh: '11 月 1–2 日是亡灵节：万圣节讨糖结束啦。', en: '1–2 November is Día de los Muertos: trick-or-treating is over for the year.' },
-  off: { zh: '万圣节是每年 10 月。', en: 'Halloween comes every October.' },
-};
 
 const COSTUMES = ['hat-witch', 'hat-pumpkin', 'my-cat-ears', 'my-ghost', 'pelican-bat-wings', 'pelican-pumpkin-bow'];
 
@@ -52,7 +46,7 @@ export default function HalloweenPage() {
   return (
     <div className="ob-hw">
       <div className="ob-nb-head ob-hw-head">
-        <p className="ob-nb-today">🎃 {t(PHASE_LINE[phase])}</p>
+        <p className="ob-nb-today">🎃 {t(phaseLine(phase))}</p>
       </div>
 
       <h3 className="ob-hw-h">{t('万圣节目标', 'Halloween goals')}</h3>
