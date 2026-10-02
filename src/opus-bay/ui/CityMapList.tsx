@@ -6,7 +6,7 @@ import { ATTRACTIONS, coveredPlaceIds, tripDestination } from '../data/sf/attrac
 import type { CityPlace, PlaceIndex } from '../data/sf/places';
 import { SF_ROUTES, type SfRoute, type SfRouteId, routePath } from '../data/sf/routes';
 import { SEARCH_GROUP_NAMES, SEARCH_SUGGESTIONS, type SearchEntry, attractionEntries, groupHits, lineEntries, placeEntries, prepareSearch, rankSearch, spotEntries, stationEntries } from '../data/sf/placeSearch';
-import { searchSpots } from '../data/sf/searchSpots';
+import { searchSpots, spotTap } from '../data/sf/searchSpots';
 import { landmarkAreaAt, zoneName } from '../data/cityZones';
 import { discoveredIds, isDiscovered } from '../game/discovery';
 import { closePanel } from '../game/flow';
@@ -227,11 +227,12 @@ export function CityMapList(p: CityMapListProps) {
     if (!q || !o) return null;
     return <RowGo option={o} busy={going === key} onGo={() => { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }} />;
   };
-  // (W9-L) a game / event row: its 问 BAYBAY item at once when it is offered here, else go there (the go button's way)
+  // (W9-L) a game / event row: its 问 BAYBAY item at once when it is offered here, else go there (the go button's way);
+  // W9-L-review (L-RV-3): an item with nowhere to go runs anyway and says why it cannot start (捉迷藏 on a trip)
   const spotAct = (key: string, e: SearchEntry) => {
-    if (e.ask && visibleAskItems().some(a => a.id === e.ask)) { closePanel(); runAskItem(e.ask); return; }
-    const q = quickBy.get(key);
-    if (q) { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }
+    const q = quickBy.get(key), act = spotTap(e, !!e.ask && visibleAskItems().some(a => a.id === e.ask), !!q);
+    if (act === 'ask' && e.ask) { closePanel(); runAskItem(e.ask); return; }
+    if (act === 'go' && q) { setGoing(key); void goQuick(q).then(ok => { if (!ok) setGoing(null); }); }
   };
   const sel = p.selected;
   const area = (x: number, z: number, zone: string | null) => t(landmarkAreaAt(x, z)?.name ?? zoneName(zone));

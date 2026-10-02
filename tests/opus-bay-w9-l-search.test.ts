@@ -17,6 +17,7 @@ const { prepareSearch, rankSearch, groupHits, attractionEntries, lineEntries, st
 const { PLAY_SPOTS, TREAT_SPOTS, searchSpots, calendarSpots, dateWords } = await import('../src/opus-bay/data/sf/searchSpots');
 const { LINE_STYLES, mapStations } = await import('../src/opus-bay/ui/mapLines');
 const { setLocale, translateText } = await import('../src/i18n/locale');
+const { CALENDAR } = await import('../src/opus-bay/realsf/calendar');
 
 const sf = sfDisk();
 const places = JSON.parse(fs.readFileSync(path.join(sf.base, 'places.json'), 'utf8')) as import('../src/opus-bay/world/sf/format').PlacesFile;
@@ -191,4 +192,53 @@ test('W9-L the 小游戏 chip and the words for "a game" / "a festival" list eve
   // a word that is a name keeps its name: "playland" is not every game, 金门大桥 is still the bridge
   assert.notEqual(groupHits(rankSearch(ix, 'playland', 30))[0]?.hits.length, games.length);
   assert.equal(ids('金门大桥', 1)[0], 'golden-gate-bridge');
+});
+
+test('W9-L-review L-RV-1: a street or neighbourhood name answers the sight or the place first, the game / treat street after it', async () => {
+  const OCT_2 = new Date('2026-10-02T15:00:00Z');
+  const ix2 = index(OCT_2);
+  const first = (q: string) => { const g = groupHits(rankSearch(ix2, q, 30)); return { group: g[0]?.group, top: g[0]?.hits[0]?.entry, all: g.flatMap(x => x.hits.map(h => h.entry.id)) }; };
+  // the sight first (an attraction id), the game / event still found further down
+  for (const [q, sight, spot] of [['haight', 'haight-ashbury', 'busk-haight'], ['lyon', 'lyon-street-steps', 'stairs-lyon'], ['马赛克', 'tiled-steps-16th-avenue', 'stairs-tiled'], ['ball', 'oracle-park', 'beachball'], ['waverly', 'tin-how-temple', 'cal:chinatown-halloween-festival-2026']] as const) {
+    const f = first(q);
+    assert.equal(f.group, 'attraction', `${q}: the sights first (got ${f.group} ${f.top?.id})`);
+    assert.equal(f.top?.id, sight, q);
+    assert.ok(f.all.includes(spot), `${q} still finds ${spot}`);
+  }
+  // the place of that name first (a place-index row), then the game / the treat street
+  for (const [q, place, spot] of [['filbert', 'Filbert Steps', 'stairs-filbert'], ['jordan', 'Jordan Park', 'treat-jordan'], ['sea cliff', 'Seacliff', 'treat-sea-cliff']] as const) {
+    const f = first(q);
+    assert.notEqual(f.group, 'play', q); assert.notEqual(f.group, 'event', q);
+    assert.equal(f.top?.name.en, place, q);
+    assert.ok(f.all.includes(spot), `${q} still finds ${spot}`);
+  }
+  // mission: the sights of that name, never the busker first
+  assert.notEqual(first('mission').group, 'play');
+  // a street with no place of its own still finds its treat street; a game's own words still put the game first
+  for (const [q, id] of [['hearst', 'treat-hearst'], ['belvedere', 'treat-belvedere'], ['busker', 'busk-haight'], ['crab', 'crab'], ['fire', 'marshmallow']] as const) assert.ok(first(q).all.slice(0, 2).includes(id), q);
+});
+
+test('W9-L-review L-RV-2: 节日 / festival lists the calendar\'s events ahead in date order (2 Oct: Fleet Week before King tides)', () => {
+  const ix2 = index(new Date('2026-10-02T15:00:00Z'));
+  const cal = new Set(calendarSpots('2026-10-02').map(s => s.id));
+  const dates = new Map(CALENDAR.map(r => [`cal:${r.id}`, r.from]));
+  for (const q of ['节日', '節日', 'festivals', 'events']) {
+    const ev = groupHits(rankSearch(ix2, q, 60)).find(g => g.group === 'event')!.hits.map(h => h.entry.id).filter(id => cal.has(id));
+    const d = ev.map(id => dates.get(id)!);
+    assert.deepEqual(d, [...d].sort(), `${q}: ${ev.join(', ')}`);
+    assert.ok(ev.indexOf('cal:fleet-week-parade-of-ships-2026') < ev.indexOf('cal:king-tides-2026-11'), q);
+  }
+});
+
+test('W9-L-review L-RV-3 / L-RV-4: the 捉迷藏 row always answers a tap; no row names a keyboard key (phones have none)', async () => {
+  const { spotTap } = await import('../src/opus-bay/data/sf/searchSpots');
+  const hide = PLAY_SPOTS.find(s => s.id === 'hide-seek')!;
+  assert.ok(!hide.at && !hide.go && hide.ask, 'hide & seek: only its 问 BAYBAY item');
+  // on a trip the item is hidden and there is nowhere to go: the item runs anyway (it bubbles 等一下再玩捉迷藏吧～)
+  assert.equal(spotTap(hide, false, false), 'ask');
+  assert.equal(spotTap(hide, true, false), 'ask');
+  assert.equal(spotTap({ ask: 'play-kite' }, false, true), 'go');
+  assert.equal(spotTap({}, false, true), 'go');
+  assert.equal(spotTap({}, false, false), null);
+  for (const s of [...PLAY_SPOTS, ...TREAT_SPOTS]) for (const w of [s.where.zh, s.where.en]) assert.doesNotMatch(w, /[（(][A-Z][）)]/, `${s.id}: ${w}`);
 });

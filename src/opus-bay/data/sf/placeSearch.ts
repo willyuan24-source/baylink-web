@@ -19,6 +19,12 @@ import type { SearchSpot } from './searchSpots';
  * (金門大橋, 博物館, 漁人碼頭, N 線 …) finds what its Simplified spelling finds; a Latin substring may not span two words
  * ("claw" is not "UC Law"); the games and the season's events are their own groups (data/sf/searchSpots.ts), shown
  * before the sights when one of them answers the query better ("螃蟹" → 捞螃蟹 at Pier 7 first, the Wharf after).
+ *
+ * W9-L-review (L-RV-1): the games' −1.5 is for their own words (exact, category, prefix); a word inside a game's or an
+ * event's name ("Trick-or-treat · Jordan Ave") gets −0.6 like a curated place, and the street or neighbourhood it sits
+ * in (`near`: haight, mission, filbert, sea cliff …) scores 1.5 with no bonus, so the sight or the place of that name
+ * answers first ("haight" → Haight-Ashbury, then the busker). groupHits puts a games / events group before the first
+ * other group whose best hit it beats, never before a better one ("jordan": Jordan Park, then the treat street).
  */
 
 export type SearchGroup = 'attraction' | 'station' | 'line' | 'place' | 'play' | 'event';
@@ -57,6 +63,8 @@ export interface SearchEntry {
   at?: Vec2;
   go?: string;
   ask?: string;
+  /** a game's / an event's place words (its street, its neighbourhood): found by them, after the place itself */
+  near?: readonly string[];
 }
 
 export type SearchMatch = 'exact' | 'category' | 'prefix' | 'word' | 'substring';
@@ -95,7 +103,7 @@ export const SEARCH_SUGGESTIONS: readonly Bilingual[] = [
   { zh: '金门大桥', en: 'Golden Gate' }, { zh: '小游戏', en: 'games' }, { zh: '大学', en: 'university' }, { zh: '石镇', en: 'Stonestown' }, { zh: 'N 线', en: 'N Judah' },
 ];
 
-interface Prepared { e: SearchEntry; keys: string[]; aliases: string[]; words: string[]; phrases: string[][]; spaced: string[] }
+interface Prepared { e: SearchEntry; keys: string[]; aliases: string[]; words: string[]; phrases: string[][]; spaced: string[]; near: string[] }
 export interface SearchIndex { readonly entries: readonly Prepared[] }
 
 const wordsOf = (s: string) => fold(s).split(/[\s·/(),&\-–—'’]+/).filter(Boolean);
@@ -114,7 +122,7 @@ export function prepareSearch(entries: readonly SearchEntry[]): SearchIndex {
       const names = [e.name.zh, e.name.en, ...(e.short ? [e.short.zh, e.short.en] : [])];
       const phrases = [...names, ...(e.aliases ?? [])].map(wordsOf).filter(ws => ws.length > 1);
       const spaced = [...new Set([...names, ...(e.aliases ?? [])].map(spacedSearch).filter(Boolean))];
-      return { e, keys: [...new Set(names.map(normalizeSearch).filter(Boolean))], aliases: [...new Set((e.aliases ?? []).map(normalizeSearch).filter(Boolean))], words: [...new Set(names.flatMap(wordsOf))], phrases, spaced };
+      return { e, keys: [...new Set(names.map(normalizeSearch).filter(Boolean))], aliases: [...new Set((e.aliases ?? []).map(normalizeSearch).filter(Boolean))], words: [...new Set(names.flatMap(wordsOf))], phrases, spaced, near: [...new Set((e.near ?? []).map(normalizeSearch).filter(Boolean))] };
     }),
   };
 }
@@ -126,8 +134,14 @@ function categoryHit(e: SearchEntry, c: CategoryWords): boolean {
   return false;
 }
 
-/** The tier bonus; a game or an event that answers at all is what the player asked for (−1.5: before a T1 sight). */
-const bonus = (e: SearchEntry) => (e.group === 'play' || e.group === 'event' ? -1.5 : e.group === 'line' ? -1 : e.rank === 1 ? -1 : e.rank === 2 ? -0.7 : e.rank === 3 || e.curated ? -0.6 : 0);
+const isSpot = (g: SearchGroup) => g === 'play' || g === 'event';
+/**
+ * The tier bonus; a game or an event found by its own words is what the player asked for (−1.5: before a T1 sight),
+ * by a word inside its name like a curated place (−0.6: "jordan" is Jordan Park before Trick-or-treat · Jordan Ave).
+ */
+const bonus = (e: SearchEntry, m: SearchMatch) => (isSpot(e.group) ? (m === 'word' || m === 'substring' ? -0.6 : -1.5) : e.group === 'line' ? -1 : e.rank === 1 ? -1 : e.rank === 2 ? -0.7 : e.rank === 3 || e.curated ? -0.6 : 0);
+/** A game's / an event's place word (`near`), with no bonus: after a sight or a place of that name (W9-L-review). */
+const NEAR_EXACT = 1.5, NEAR_PREFIX = 2.5;
 
 /** Rank the entries for `query` (pure). */
 export function rankSearch(ix: SearchIndex, query: string, limit = 30): SearchHit[] {
@@ -146,22 +160,30 @@ export function rankSearch(ix: SearchIndex, query: string, limit = 30): SearchHi
     if (p.keys.some(k => k.startsWith(q)) || p.aliases.some(a => a.startsWith(q))) take(1, 'prefix');
     if (qWords.length === 1 ? p.words.some(w => w.startsWith(qWords[0])) : qWords.length > 1 && p.phrases.some(ph => startsInOrder(ph, qWords))) take(2, 'word');
     if (qSpaced !== null ? p.spaced.some(k => k.includes(qSpaced)) : p.keys.some(k => k.includes(q)) || p.aliases.some(a => a.includes(q))) take(3, 'substring');
+    if (score !== Infinity) score += bonus(p.e, match);
+    if (p.near.length) {
+      const n = p.near.includes(q) ? NEAR_EXACT : p.near.some(w => w.startsWith(q)) ? NEAR_PREFIX : Infinity;
+      if (n < score) { score = n; match = n === NEAR_EXACT ? 'exact' : 'prefix'; }
+    }
     if (score === Infinity) continue;
-    hits.push({ entry: p.e, score: score + bonus(p.e), match });
+    hits.push({ entry: p.e, score, match });
   }
   return hits.sort((a, b) => a.score - b.score || (b.entry.fame ?? 0) - (a.entry.fame ?? 0) || a.entry.name.en.length - b.entry.name.en.length || (a.entry.id < b.entry.id ? -1 : 1)).slice(0, limit);
 }
 
 /**
- * Hits grouped 景点 / 小游戏 / 节日活动 / 车站 / 线路 / 地点 (empty groups dropped), each group in rank order; the games
- * and the events move before the sights when their best hit beats the sights' best ("螃蟹": 捞螃蟹 first).
+ * Hits grouped 景点 / 车站 / 线路 / 地点 (empty groups dropped), each group in rank order, with 小游戏 and 节日活动 placed
+ * before the first of those groups whose best hit they beat ("螃蟹": 捞螃蟹 first; W9-L-review: "haight" →
+ * Haight-Ashbury, its station, then the busker; "jordan" → Jordan Park, then the treat street), else last.
  */
 export function groupHits(hits: readonly SearchHit[]): { group: SearchGroup; hits: SearchHit[] }[] {
   const groups = SEARCH_GROUPS.map(group => ({ group, hits: hits.filter(h => h.entry.group === group) })).filter(g => g.hits.length > 0);
-  const best = (g: SearchGroup) => groups.find(x => x.group === g)?.hits[0]?.score ?? Infinity;
-  const sights = best('attraction');
-  const ahead = groups.filter(g => (g.group === 'play' || g.group === 'event') && best(g.group) < sights).sort((a, b) => a.hits[0].score - b.hits[0].score);
-  return [...ahead, ...groups.filter(g => !ahead.includes(g))];
+  const out = groups.filter(g => !isSpot(g.group));
+  for (const s of groups.filter(g => isSpot(g.group)).sort((a, b) => a.hits[0].score - b.hits[0].score)) {
+    const i = out.findIndex(g => !isSpot(g.group) && g.hits[0].score > s.hits[0].score);
+    if (i < 0) out.push(s); else out.splice(i, 0, s);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -189,7 +211,7 @@ export const stationEntries = (stations: readonly { id: string; name: Bilingual;
 
 /** The games and the season's events (data/sf/searchSpots.ts searchSpots()). */
 export const spotEntries = (spots: readonly SearchSpot[]): SearchEntry[] => spots.map(s => ({
-  id: s.id, group: s.group, name: s.name, aliases: s.aliases, where: s.where, fame: s.fame ?? 60,
+  id: s.id, group: s.group, name: s.name, aliases: s.aliases, where: s.where, fame: s.fame ?? 60, ...(s.near?.length ? { near: s.near } : {}),
   ...(s.at ? { at: s.at } : {}), ...(s.go ? { go: s.go } : {}), ...(s.ask ? { ask: s.ask } : {}),
 }));
 
