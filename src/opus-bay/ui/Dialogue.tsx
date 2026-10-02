@@ -145,8 +145,10 @@ function DialogueBox({ node }: { node: DialogueNode }) {
   useWindowKey(e => {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const code = e.code;
-      if (code === 'Tab' || code.startsWith('Arrow')) navigated.current = true;
       if (e.repeat) return;
+      // W9-A-review (A-RV-2): only a Tab once the rows are shown moves the focus (an arrow below); one pressed while the
+      // line typed, or a held arrow's repeats, moved nothing — Space must still cancel on the row the menu focused
+      if (code === 'Tab' && done && choices.length) navigated.current = true;
       const target = e.target as HTMLElement | null;
       const onButton = !!target?.closest?.('.ob-dialogue button');
       const viaBack = !!(e as KeyboardEvent & { obBack?: boolean }).obBack;
@@ -157,7 +159,7 @@ function DialogueBox({ node }: { node: DialogueNode }) {
           if (k >= 0) { e.preventDefault(); act(rows[k]); }
           return;
         }
-        if (done && (code === 'ArrowDown' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowLeft')) { e.preventDefault(); moveFocus(code === 'ArrowDown' || code === 'ArrowRight' ? 1 : -1); return; }
+        if (done && (code === 'ArrowDown' || code === 'ArrowRight' || code === 'ArrowUp' || code === 'ArrowLeft')) { e.preventDefault(); navigated.current = true; moveFocus(code === 'ArrowDown' || code === 'ArrowRight' ? 1 : -1); return; }
         // Space never picks the row the menu focused for you: like Esc it cancels (a row you moved to yourself it presses)
         if (code === 'Escape' || (code === 'Space' && !(onButton && navigated.current))) {
           e.preventDefault(); e.stopPropagation();

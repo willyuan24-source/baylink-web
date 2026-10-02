@@ -82,7 +82,11 @@ export function installBackGuard(win: Window = window): () => void {
   const escape = () => {
     const at = doc.activeElement instanceof HTMLElement && doc.activeElement !== doc.body ? doc.activeElement : win;
     const init = { key: 'Escape', code: 'Escape', bubbles: true, cancelable: true };
-    at.dispatchEvent(new KeyboardEvent('keydown', init));
+    const down = new KeyboardEvent('keydown', init);
+    // W9-A-review (A-RV-1): marked as the back button's, so a line still typing closes at once (ui/Dialogue.tsx; the Esc
+    // key only finishes it). Unmarked, back only finished the text, used up this entry, and the next back left the game.
+    (down as KeyboardEvent & { obBack?: boolean }).obBack = true;
+    at.dispatchEvent(down);
     at.dispatchEvent(new KeyboardEvent('keyup', init));
   };
   const onPop = () => {
