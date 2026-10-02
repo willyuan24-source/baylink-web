@@ -6,9 +6,9 @@ Ultra workflow.
 
 ## 给主人的摘要
 
-1. **公共场合不再突然放音乐**：点「开始」后音乐不自己响，等你自己第一次操作才从无声慢慢淡入，默认音量是以前的 60%。设置里的音乐、音效、语音三个音量和「只关语音」已经接好（A 线的设置页在用）。
+1. **公共场合不再突然放音乐**（只管音乐：点「开始」时雾笛、海鸥、环境声和 BAYBAY 的声音照常外放，见文末 Review X-RV-4）：点「开始」后音乐不自己响，等你自己第一次操作才从无声慢慢淡入，默认音量是以前的 60%；去点设置、按 Esc 调声音那一下不算（Review X-RV-5）。设置里的音乐、音效、语音三个音量和「只关语音」已经接好（A 线的设置页在用）。
 2. **一次只说一句**：BAYBAY 新的一句开始，上一句立刻淡出；气泡没出现或被换掉，录音就不播；她的对话框现在也能说录好的话（比如「这段路被挡住了，我们怎么走？」「上次的一日游还没走完，接着走吗？」），翻到下一页就停，不和"嘀嘀"声叠在一起。
-3. **配音覆盖率 99.2%**：BAYBAY 的固定台词共 608 句，603 句有中英文录音，5 句等你试听批准，0 句没录音。这一波新录了 15 句（30 个音频），全部通过音量、断句、音高检查，花了 0.72 积分（上限 60）。
+3. **配音覆盖率 84.8%**（审核更正：原写 99.2%，漏算了 BAYBAY 的对话框，见文末 Review X-RV-3）：BAYBAY 的固定台词共 711 句，603 句有中英文录音，5 句等你试听批准，103 句对话框还没录音（包括新玩家见到的第一句「嗨！欢迎来到旧金山～」）；只算气泡和按编号播放的 608 句是 99.2%。这一波新录了 15 句（30 个音频），全部通过音量、断句、音高检查，花了 0.72 积分（上限 60）。
 4. **修了一个我自己引起的问题**：万圣节当天回来时，BAYBAY 又说回了普通的「今日三件小事」（H 线修好的又被我的改动盖掉了），现在她会说万圣节当天的那句。
 5. **请你试听**：docs/opus-bay/qa/w9/X/voice/listening.md 列了每一句在游戏里哪儿能听到，以及要用耳朵确认的声音设置。
 
@@ -190,3 +190,59 @@ limit (not by a fault); its last local work was three real-game probes of the so
 Lane X wave 9: **0.72 credits** of 60 (batch 1 0.22, batch 2 0.19, batch 3 0.27, batch 4 0.04), balance 357.27 → 356.55,
 every spend matched in `transactions` by time (ledger `docs/opus-bay/ledger/w9-X.md`); no other spend on the account between
 lane X's batches.
+
+## Review (Ultra)
+
+Fixer of the adversarial review (lens findings `C:/Users/willy/opus-qa/w9/x-rv/findings.json`, reviewed tree origin
+`516d44d1`), 2026-10-02 05:38–06:40 PDT, worktree `C:/Users/willy/wt/w9-x-rev`, dev port 5953, scratch
+`C:/Users/willy/opus-qa/w9/x-rev/`. Commits `W9-X-review: …`.
+
+### 给主人的摘要
+
+1. **老玩家点「继续旅程」现在有声音了**：以前点「继续」后整个游戏没有声音，要等再点一下屏幕才响，BAYBAY 的「欢迎回来」录音也被丢掉；现在和点「开始」一样立即有声音，实测欢迎回来的录音播了。
+2. **回来时不再三条消息一起弹**：「今天日落时间」那条提示现在跟着 BAYBAY 说的那句话一起出现，不再和「欢迎回来」「上次走到」同时冒出来。
+3. **配音覆盖率改成实数 84.8%**：之前写的 99.2% 没算 BAYBAY 对话框里的 103 句（新玩家听到的第一句也在里面，目前只有"嘀嘀"声）；统计脚本已改，对话框录音留给下一波。
+4. **去设置里调小声音那一下，不再把音乐打开**：点齿轮、按 Esc、在设置里点开关都不算"第一次操作"，关掉设置后的下一次操作才开始放音乐。
+5. 点「开始」时雾笛、海鸥、环境声和 BAYBAY 的声音仍会外放（只有音乐等第一次操作），摘要第 1 条已写清楚；要不要把这些也压低，请主人决定。
+
+### The findings
+
+| id | sev | verdict | what was done / evidence |
+|---|---|---|---|
+| X-RV-1 | major | **fixed** | Confirmed by code read (`resume.ts` set `phase: 'arrival'` with no `start` event; `audio.ts` activates only on `start` or a later gesture; the Continue tap's own pointerdown lands in the title phase and only primes) and by the lens log `x-rv/rb2.log`. Fix `48a99c30`: `startOrResume` emits `{type:'start'}` before the arrival phase (the one consumer of `start` is `audio.ts`; no foghorn / gull: the cinematic is skipped). Test `tests/opus-bay-w9-x-review.test.ts` red on the old source, green now. Live (dev, `?world=city&date=2026-10-02T14:00`, a returning save, Continue, nothing touched): `ev start` at +132 ms, audio `running` / `activated: true`, `lines.played 1`, `voice-clip:en-w5c-welcome-back 1` (`x-rev/rb-fix.log`; before: `suspended`, `activated: false`, 0 played). |
+| X-RV-2 | major | **fixed** | Confirmed (code: `realsf/index.ts` called `sayTodayToast(s.toast)` inside the `onWelcome` listener; lens log: the sunset toast in the same 1 ms as the welcome bubble and the 上次走到 toast). Fix `48a99c30`: `realsf/todayLine.ts toastWithLine` — the toast waits for BAYBAY's bubble with the today line's exact words, ≤ 60 s (the line's ttl), once; the late path already showed it with its bubble. Test in `tests/opus-bay-w9-x-today.test.ts` (red / green). Live: at most 2 messages (welcome bubble + 上次走到), no sunset toast with them (`x-rev/rb-fix.log`). **Why the line itself never came (both lens runs and mine):** lane F's W9-F4 hush — `flow.hushUntil`, ≈ 3 min from the `'local'` start that a resume uses — makes `baybayHeld()` true, so the pacer holds the welcome's follow-up line past its 60 s ttl (`x-rev/diag.log`: `held: true`, quiet ≈ 172 s left at +7 s). So on a return the today line (and the pelican nudge) is never said, and now neither is its toast. Open item below (lane F / C). |
+| X-RV-3 | major | **fixed** (the claim) / recording open | Confirmed: `coverage.ts` never counted the 103 static BAYBAY nodes of `data/script.ts`; `intro.hello.city` plays blips only (lens `d1.log`). Fix `d8414c8d`: a third family "dialogue" (the static nodes + the code-built nodes with fixed literal words: `flow.tour.*.full / .express`, `flow.tour.skip`; a node whose words are a recorded table line is counted once with it). Result: **711 fixed lines, 603 voiced (84.8 %), 5 muted, 103 unvoiced** (all dialogue); the bubbles + by-id number stays 608 / 99.2 % as `bubbles`. The 95 % floor of the test now applies to `bubbles`; a new test pins the dialogue family (red on the old script). The owner's summary line 3 corrected. Recording the 103 boxes (≈ 206 clips, ≈ 5–6 credits at wave 9's 0.027 / clip) did not fit the review's hour: wave 10, `intro.hello.city` first. |
+| X-RV-4 | minor | **fixed** (the claim) / residual open | Confirmed (code: `startGame` emits `foghorn` and `gull` with `start`; `goLive` brings sfx / ambience / voice in at full level). The brief (sf-w9-lead §3 X: "R§10 risk: music in public: music starts lower / after the first gesture") scoped it to the music, which is done; the owner's summary line 1 read as if all of the public-place risk were gone: corrected to say the effects, the soundscape and BAYBAY still sound from the Start tap. Holding those too is a product change (the arrival foghorn is the opening) — the owner's call, listed under open items. |
+| X-RV-5 | minor | **fixed** | Confirmed by code read (any `pointerdown` / `keydown` / `touchend` > 1.2 s after activation set `musicWanted` and started the music in the same handler). Fix `48a99c30`: the cue waits `MUSIC_SETTINGS_GRACE` (300 ms) and counts only if Settings (`panel.kind === 'settings'`) is closed both at the gesture and after it — the ⚙ tap / the More menu's 设置 / Esc (their click opens Settings in between), a tap inside Settings and the close tap do not start the music; the next gesture with Settings closed does (at the level just chosen). Test in `tests/opus-bay-w9-x-audio.test.ts` (red / green); the two W9-X1 music tests now wait the grace. |
+
+### Own pass (`git log origin/opus-bay --grep "W9-X[0-9:-]"`: X1–X8)
+
+- **XR-1 (minor, open, lane F / C):** the W9-F4 hush holds the returning welcome's own follow-up (above, X-RV-2). Since
+  wave 9 a returning player hears 欢迎回来！我们接着逛吧。 and then nothing for ≈ 3 minutes; the today line / the pelican
+  nudge offered with ttl 60 s expire unsaid. Either the welcome's follow-up skips the hush (`baybayLine` from
+  `flow.ts welcomeBack` is the welcome itself, not ambient chatter) or the ttl outlives the hush — a decision for F / C.
+- **XR-2 (note):** the music gate (W9-X1) is shared by `?world=district` (one `audio.ts`): the district's music also
+  waits for the first own gesture. District gameplay / visuals unchanged; the hero regression test is in the suite run.
+- Checked, no defect: the Continue tap's iPhone path is the Start tap's (`OpusBayPage.start` primes inside the tap; the
+  `start` event now resumes that context on both paths); the dialogue tie (W9-X6) releases on a node change; the X5
+  Halloween welcome is still lane H's line; nothing else listens for `{type:'start'}` (`trips.ts`' `'start'` is its own
+  reducer action).
+
+### Checks (on `d8414c8d` + this report)
+
+- `npx tsc -p tsconfig.app.json --noEmit`: 0. `npx eslint .`: 0 errors (53 warnings, none new in the touched files).
+- Lane X tests + `opus-bay-w5-nav` (the resume tests): 85 / 85; after the rebase onto origin `0469a291` (lanes P, S, Q, N, F, R, H reviews in): lane X tests 24 / 24, tsc 0. Pushed 06:47 PDT (code), the report just after. The new tests: 5 red on the old sources (one per finding
+  plus the coverage floor), green now.
+- The opus-bay suite (one run on `d8414c8d`, under load; stopped by the background time limit at 06:35 before its last files): 1988 pass, 1 fail — `opus-bay-actors` "A* reaches the hill…" (a load-timing test; alone: 20 / 20 pass); the W8-P9 GameRoot guard (≤ 258.5 KB) and the hero tests passed in it. Not a full green run: the files after `opus-bay-w9-l*` were not reached.
+
+### Open items
+
+1. Record BAYBAY's dialogue boxes (103 lines; `coverage.ts --list` lists them), `intro.hello.city` first (X-RV-3).
+2. The W9-F4 hush vs the returning welcome's follow-up line (XR-1, lane F / C).
+3. The owner: should the effects / soundscape / BAYBAY also wait or start lower in public (X-RV-4)?
+4. A real-device listen of the Continue path on an iPhone (the unlock inside the tap is the same code as Start; not heard
+   on a device here).
+
+### Blocking the go-live to main
+
+None from lane X. X-RV-1 (no sound on Continue) would have been the one to block; it is fixed and verified live.
