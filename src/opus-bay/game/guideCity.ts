@@ -32,7 +32,7 @@ import { isScenicLeg, scenicSecondsLeft } from './scenicTrip';
 import { liveRideEta, liveWaitLeft } from './tripProviders';
 import { autoOn } from './autoTravel';
 import type { TripLeg, TripState } from './tripTypes';
-import { CHEVRONS, WAYPOINT, chevronPoses, layoutWaypoint, occludedByTerrain, routeRemaining, waypointSafeArea } from './waypoint';
+import { CHEVRONS, WAYPOINT, acrossWaterLabel, chevronPoses, layoutWaypoint, occludedByTerrain, routeRemaining, waypointSafeArea } from './waypoint';
 // the waypoint's label / notch / arrow rules (data-label, --ob-label-dy …) come with the layout that writes them
 import '../ui/guide-ui.css';
 import { importRetry } from './importRetry';
@@ -425,7 +425,7 @@ export function cityWaypoint(fr: WaypointFrame): { recheck: boolean } {
     if (now - wpState.textAt > 250) {
       wpState.textAt = now;
       const trip = tripTargetSeconds(target, p);
-      const time = trip === null ? fr.plainTime(target, d) : timeLabel(trip);
+      const time = trip === null ? acrossWaterLabel(p, target) ?? fr.plainTime(target, d) : timeLabel(trip);
       const full = `${fr.pick(target.name)} · ${fr.pick(time)}`;
       if (full !== wpState.full) { wpState.full = full; wpState.name = fr.pick(target.name); wpState.measured = false; }
       wpState.short = fr.pick(time);

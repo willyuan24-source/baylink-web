@@ -1,4 +1,5 @@
-import type { Vec2 } from '../core/types';
+import type { Bilingual, Vec2 } from '../core/types';
+import { onAlcatraz } from '../world/sf/alcatrazWalk';
 import { STREET_FACTOR, TRIP_SPEED } from './tripPlan';
 
 /**
@@ -94,6 +95,17 @@ export function waypointSeconds(o: { pos: Vec2; target: Vec2; path?: readonly nu
     return (r.length + r.off) / v;
   }
   return (Math.hypot(o.target.x - o.pos.x, o.target.z - o.pos.z) * STREET_FACTOR) / v;
+}
+
+/**
+ * (W9-N2b, w8 W8I-D-4: on Alcatraz the chip offered "科伊特塔 · 约 2 分钟" on foot across the bay) the waypoint's words
+ * when the water lies between the player and the target and no trip is planned: the ferry first, no walking time.
+ */
+export const FERRY_BACK: Bilingual = { zh: '先坐船回城', en: 'ferry back first' };
+export const FERRY_OVER: Bilingual = { zh: '要坐船上岛', en: 'by ferry' };
+export function acrossWaterLabel(pos: Vec2, target: Vec2, island: (x: number, z: number) => boolean = onAlcatraz): Bilingual | null {
+  const here = island(pos.x, pos.z), there = island(target.x, target.z);
+  return here === there ? null : here ? FERRY_BACK : FERRY_OVER;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
