@@ -5,6 +5,11 @@ const contactText = (contact: UtilityContact) => [contact.name, contact.phone, c
 
 /** Keep search and BayBay exports consistent with the complete readable block. */
 export const guideBlockText = (block: GuideBlock): string => {
+  if (block.type === 'useful-platforms') return [block.title, block.text, ...block.platforms.map(platform => [
+    `Platform: ${platform.name} | ${platform.id}`, platform.summary,
+    `For: ${platform.bestFor}`, `How: ${platform.howTo}`, `Coverage: ${platform.coverage}`, `Check: ${platform.watchFor}`,
+    platform.url, ...platform.sources.map(source => `${source.title}: ${source.description}\n${source.url}`), platform.verifiedAt,
+  ].join('\n'))].join('\n\n');
   if (block.type === 'city-exploration') return [block.title, block.text, ...block.cities.map(city => [
     `City guide: ${city.city} | ${city.county}`, city.summary,
     ...city.places.map(place => `${place.name} [${place.scope}]\n${place.description}\n${place.url}\nMap: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.mapQuery)}`),

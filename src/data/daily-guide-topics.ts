@@ -1,4 +1,5 @@
 export const DAILY_GUIDE_TOPICS = [
+  { slug: 'bay-area-useful-apps-platforms-guide', label: '常用 App 与平台', text: '出行、外卖、找房、省钱与本地资讯，一篇查入口和用法。' },
   { slug: 'bay-area-101-city-exploration-living-guide', label: '101 城景点与生活', text: '找本城去处、半日路线、官方活动和居民资源。' },
   { slug: 'bay-area-outlets-malls-shopping-guide', label: 'Outlet 与购物中心', text: '按地区和购物目的选地方，核对品牌、停车与退货。' },
   { slug: 'bay-area-city-utilities-internet-phone-directory', label: '按城市查水电垃圾', text: '找到负责的公司、电话和搬家办理入口。' },

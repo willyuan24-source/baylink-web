@@ -31,6 +31,7 @@ import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { CityExplorationDirectory } from './CityExplorationDirectory';
+import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 
 type GuideDetailProps = {
   slug: string;
@@ -403,6 +404,8 @@ const BlockRenderer = ({
   onCta: (b: Extract<GuideBlock, { type: "cta" }>) => void;
 }) => {
   switch (block.type) {
+    case 'useful-platforms':
+      return <UsefulPlatformsDirectory platforms={block.platforms} title={block.title} text={block.text} />;
     case 'city-exploration':
       return <CityExplorationDirectory cities={block.cities} title={block.title} text={block.text} />;
     case 'shopping-directory':

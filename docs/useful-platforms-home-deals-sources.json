@@ -1,0 +1,449 @@
+{
+  "verifiedAt": "2026-10-02",
+  "scope": "BAYLINK 住房、二手互助与省钱平台，14 项；美国/湾区适用入口说明，不提供房地产投资建议。",
+  "methodology": {
+    "verification": "逐项检索官方站及官方帮助文档。access 为 full-page 表示 web open 返回正文；official-index 表示读取了官方搜索索引正文。二者均不代表登录后的全部服务测试。",
+    "editorial": "适合谁、先筛选再核对、比较总价、安排搬运等为编辑使用建议。价格、库存、账户可用功能和活动条件以服务当时界面为准。",
+    "coverage": "本地房源页证明平台提供湾区检索；社区平台按地址或位置使用，不保证每个城市、街区都有充足活跃帖子。全国零售优惠也须核对配送、门店及邮编。",
+    "privacy": "未创建账户、登录私人社区、发送消息、提交申请、订阅会员或下单。"
+  },
+  "platforms": [
+    {
+      "id": "zillow",
+      "name": "Zillow",
+      "entryUrl": "https://www.zillow.com/",
+      "reviewNotes": "旧金山房源页阅读全文，算法估值页及租金帮助页读取官方索引；不转载实时房价、库存数或投资结论。额外官方 App 帮助支持 app-web 分类。",
+      "sources": [
+        {
+          "title": "San Francisco homes",
+          "url": "https://www.zillow.com/san-francisco-ca/",
+          "description": "官方本地房源页提供地图相关筛选、房型和保存搜索。",
+          "access": "full-page",
+          "support": "官方本地房源页提供地图相关筛选、房型和保存搜索。"
+        },
+        {
+          "title": "What is a Zestimate?",
+          "url": "https://www.zillow.com/zestimate/",
+          "description": "官方说明 Zestimate 不能替代专业评估。",
+          "access": "official-index",
+          "support": "官方说明 Zestimate 不能替代专业评估。"
+        },
+        {
+          "title": "What is a Rent Zestimate?",
+          "url": "https://zillow.zendesk.com/hc/en-us/articles/203340274-What-is-a-Rent-Zestimate",
+          "description": "租金估算仅为起点，需要结合房屋与本地市场核对。",
+          "access": "official-index",
+          "support": "租金估算仅为起点，需要结合房屋与本地市场核对。"
+        }
+      ]
+    },
+    {
+      "id": "redfin",
+      "name": "Redfin",
+      "entryUrl": "https://www.redfin.com/",
+      "reviewNotes": "旧金山房源页阅读全文，Feed 与 Rentals FAQ 为官方索引正文；正文不将请求看房视为已预约。估值局限另有官方 Redfin Estimate 页支持。",
+      "sources": [
+        {
+          "title": "Redfin Feed",
+          "url": "https://support.redfin.com/hc/en-us/articles/8362408851867-Feed",
+          "description": "官网及 iOS、Android 的 Feed 支持保存搜索和推荐更新。",
+          "access": "official-index",
+          "support": "官网及 iOS、Android 的 Feed 支持保存搜索和推荐更新。"
+        },
+        {
+          "title": "Finding rentals FAQ",
+          "url": "https://support.redfin.com/hc/en-us/articles/4517160657563-Finding-Rentals-on-Redfin-FAQ",
+          "description": "官方说明出租房搜索、联系管理方与跟进看房请求。",
+          "access": "official-index",
+          "support": "官方说明出租房搜索、联系管理方与跟进看房请求。"
+        },
+        {
+          "title": "San Francisco homes",
+          "url": "https://www.redfin.com/city/17151/CA/San-Francisco",
+          "description": "确认本地房源入口；不据动态页面承诺数量。",
+          "access": "full-page",
+          "support": "确认本地房源入口；不据动态页面承诺数量。"
+        }
+      ]
+    },
+    {
+      "id": "apartments-com",
+      "name": "Apartments.com",
+      "entryUrl": "https://www.apartments.com/",
+      "reviewNotes": "旧金山搜索页阅读全文；费用及申请流程读取官方帮助索引。2026-06-05 的免费搜索帮助页写 $32，另一个申请帮助页写 $29 加税，故不把任一数字作为统一现价。参与房源的申请共享不是全站所有房东通用。",
+      "sources": [
+        {
+          "title": "San Francisco rentals",
+          "url": "https://www.apartments.com/san-francisco-ca/",
+          "description": "确认旧金山出租房源与筛选入口。",
+          "access": "full-page",
+          "support": "确认旧金山出租房源与筛选入口。"
+        },
+        {
+          "title": "Is Apartments.com free for renters?",
+          "url": "https://renterhelp.apartments.com/article/256-is-apartments-com-free-for-renters",
+          "description": "搜索免费，平台申请及银行卡付款存在费用条件。",
+          "access": "official-index",
+          "support": "搜索免费，平台申请及银行卡付款存在费用条件。"
+        },
+        {
+          "title": "Applying through Apartments.com",
+          "url": "https://renterhelp.apartments.com/article/136-how-to-apply-to-rentals-on-apartments-com",
+          "description": "只有参与房源可使用申请共享，页面金额与另一帮助页不一致。",
+          "access": "official-index",
+          "support": "只有参与房源可使用申请共享，页面金额与另一帮助页不一致。"
+        }
+      ]
+    },
+    {
+      "id": "realtor-com",
+      "name": "Realtor.com",
+      "entryUrl": "https://www.realtor.com/",
+      "reviewNotes": "首页阅读全文，已显示旧金山入口和移动 App；防诈骗文章为官方索引正文。主页原生 HTTP 后续 429 属限流，不是死链接。未核查每一条房源身份。",
+      "sources": [
+        {
+          "title": "Realtor.com property search",
+          "url": "https://www.realtor.com/",
+          "description": "官网提供买房、租房、旧金山房源及移动 App 入口。",
+          "access": "full-page",
+          "support": "官网提供买房、租房、旧金山房源及移动 App 入口。"
+        },
+        {
+          "title": "Common rental scams",
+          "url": "https://www.realtor.com/advice/rent/rental-scams-and-how-to-avoid/",
+          "description": "官方提醒房源可被复制到多站，应核对照片、地址和联系人。",
+          "access": "official-index",
+          "support": "官方提醒房源可被复制到多站，应核对照片、地址和联系人。"
+        }
+      ]
+    },
+    {
+      "id": "craigslist",
+      "name": "Craigslist",
+      "entryUrl": "https://www.craigslist.org/area/sfbay",
+      "reviewNotes": "sfbay.craigslist.org 实际重定向到 www.craigslist.org/area/sfbay，发布使用最终入口；安全说明读取官方索引。此平台可用于住房，但此卡按二手/邻里主要用途归 community，不重复创建卡片。",
+      "sources": [
+        {
+          "title": "Craigslist SF bay area",
+          "url": "https://www.craigslist.org/area/sfbay",
+          "description": "官方湾区站有分区、免费物品、二手和合租分类。",
+          "access": "full-page",
+          "support": "官方湾区站有分区、免费物品、二手和合租分类。"
+        },
+        {
+          "title": "Avoiding scams",
+          "url": "https://www.craigslist.org/about/help/safety/scams/avoiding",
+          "description": "官方说明本地面交、邮件转发和预付款、验证码风险。",
+          "access": "official-index",
+          "support": "官方说明本地面交、邮件转发和预付款、验证码风险。"
+        }
+      ]
+    },
+    {
+      "id": "nextdoor",
+      "name": "Nextdoor",
+      "entryUrl": "https://nextdoor.com/",
+      "reviewNotes": "首页返回空的动态壳，不能称完整体验已核验；功能和交易责任来自 Nextdoor 官方团队 Resource Hub 及 2026 Member Agreement 的索引正文。没有登录私人邻里或承诺湾区各社区物品数量。",
+      "sources": [
+        {
+          "title": "For Sale & Free guidelines",
+          "url": "https://www.nextdoorneighborhoodteams.com/public/resources/moderator-academy-for-sale-and-free",
+          "description": "官方说明个人物品出售赠送，以及发布时应选正确类别。",
+          "access": "official-index",
+          "support": "官方说明个人物品出售赠送，以及发布时应选正确类别。"
+        },
+        {
+          "title": "US Member Agreement",
+          "url": "https://nextdoorcrm.my.site.com/s/article/Member-Agreement-US-2026?language=en_US",
+          "description": "平台不作为用户交易当事方，也不保证物品质量或交易完成。",
+          "access": "official-index",
+          "support": "平台不作为用户交易当事方，也不保证物品质量或交易完成。"
+        }
+      ]
+    },
+    {
+      "id": "facebook-marketplace",
+      "name": "Facebook Marketplace",
+      "entryUrl": "https://www.facebook.com/marketplace/",
+      "reviewNotes": "Marketplace 入口实际转到登录页，未登录查看任何个人帖子。功能与限制使用 Meta 官方新闻及官方数字素养资料的索引正文；2026 验证徽章只证真人，不保证可信。旧教育页仅使用稳定的本地自取保障排除条款，不采用其中疫情建议。未把 Seller 独立 App 的部分推出功能写成所有账户已可用。",
+      "sources": [
+        {
+          "title": "Marketplace updates",
+          "url": "https://about.fb.com/news/2025/11/facebook-marketplace-gets-a-glow-up/",
+          "description": "官方说明合作平台商品可能跳转其网站结账。",
+          "access": "official-index",
+          "support": "官方说明合作平台商品可能跳转其网站结账。"
+        },
+        {
+          "title": "Marketplace scam guidance",
+          "url": "https://mydigitalworld.fb.com/ssa/lesson/strategies-for-avoiding-scams/",
+          "description": "Meta 教育页明确本地自取与个人转账不在购物保障内。",
+          "access": "official-index",
+          "support": "Meta 教育页明确本地自取与个人转账不在购物保障内。"
+        },
+        {
+          "title": "Facebook Verified",
+          "url": "https://about.fb.com/news/2026/07/introducing-facebook-verified/",
+          "description": "2026 官方说明验证真实人物不等于认可其信誉。",
+          "access": "official-index",
+          "support": "2026 官方说明验证真实人物不等于认可其信誉。"
+        }
+      ]
+    },
+    {
+      "id": "offerup",
+      "name": "OfferUp",
+      "entryUrl": "https://offerup.com/",
+      "reviewNotes": "首页及 Nationwide shipping ending 全文已打开。2026-09-22 更新明确当前仅本地面交，2025 年结束全国邮寄是历史过程；不再刊登旧邮寄费教程。刊登上限读取官方帮助索引，仅写按类别收费条件而不固定数字。",
+      "sources": [
+        {
+          "title": "Local marketplace",
+          "url": "https://offerup.com/",
+          "description": "官方首页提供附近买卖和 App 入口。",
+          "access": "full-page",
+          "support": "官方首页提供附近买卖和 App 入口。"
+        },
+        {
+          "title": "Nationwide shipping ending",
+          "url": "https://help.offerup.com/hc/en-us/articles/41043186552980-Nationwide-shipping-ending",
+          "description": "2026 年 9 月更新明确只支持本地面交，邮寄已停用。",
+          "access": "full-page",
+          "support": "2026 年 9 月更新明确只支持本地面交，邮寄已停用。"
+        },
+        {
+          "title": "Free listing limits",
+          "url": "https://help.offerup.com/hc/en-us/articles/13072929390228-About-free-listing-limits",
+          "description": "每月免费额度依类别不同，额外刊登可单买或订阅。",
+          "access": "official-index",
+          "support": "每月免费额度依类别不同，额外刊登可单买或订阅。"
+        }
+      ]
+    },
+    {
+      "id": "buy-nothing",
+      "name": "Buy Nothing",
+      "entryUrl": "https://buynothingproject.org/",
+      "reviewNotes": "主页与 Quick Start 全文已打开，其余官方帮助/指南索引已读。2026 帮助页和已推出更新证明存在网页版；未采用旧 Press Kit 的网页版 coming soon 表述。免费赠送和可选订阅功能区分；平台地址隐私不等于建议公开交接住址。",
+      "sources": [
+        {
+          "title": "Quick Start Guide",
+          "url": "https://buynothingproject.org/quickstart",
+          "description": "官方说明位置、半径、Give/Ask、交接完成标记与订阅功能。",
+          "access": "full-page",
+          "support": "官方说明位置、半径、Give/Ask、交接完成标记与订阅功能。"
+        },
+        {
+          "title": "Community Guidelines",
+          "url": "https://buynothingproject.org/guidelines",
+          "description": "赠送不附交换条件，禁止买卖和以物易物。",
+          "access": "official-index",
+          "support": "赠送不附交换条件，禁止买卖和以物易物。"
+        },
+        {
+          "title": "Using Buy Nothing on a computer",
+          "url": "https://help.buynothingproject.org/article/112-how-can-i-participate-on-buy-nothing-using-my-computer-not-a-mobile-app",
+          "description": "2026 帮助页确认可用网页版参与赠送和求赠。",
+          "access": "official-index",
+          "support": "2026 帮助页确认可用网页版参与赠送和求赠。"
+        }
+      ]
+    },
+    {
+      "id": "dealmoon",
+      "name": "Dealmoon 北美省钱快报",
+      "entryUrl": "https://www.dealmoon.com/",
+      "reviewNotes": "美国 About 与 2026-02-05 Advertising Disclosure 全文已读。首页一次超时、原生 HTTP 403；不把访问限制误写成平台停用。网站由使用者在商家结账，联盟/赞助关系明确，不保证最低价。",
+      "sources": [
+        {
+          "title": "Dealmoon About Us",
+          "url": "https://www.dealmoon.com/en/about",
+          "description": "官方说明网站、移动 App 及美国和其他国家版本。",
+          "access": "full-page",
+          "support": "官方说明网站、移动 App 及美国和其他国家版本。"
+        },
+        {
+          "title": "Advertising disclosure",
+          "url": "https://www.dealmoon.com/disclaimer.html",
+          "description": "2026 声明披露联盟与赞助关系，并要求核对商家最终价格。",
+          "access": "full-page",
+          "support": "2026 声明披露联盟与赞助关系，并要求核对商家最终价格。"
+        }
+      ]
+    },
+    {
+      "id": "slickdeals",
+      "name": "Slickdeals",
+      "entryUrl": "https://slickdeals.net/",
+      "reviewNotes": "首页与当前 Deal Alerts 表单均阅读全文，含关键词、商店、类别、通知方式与推广披露。未实作账号提醒或代用户订阅，不宣称任何具体优惠仍有库存。",
+      "sources": [
+        {
+          "title": "Slickdeals",
+          "url": "https://slickdeals.net/",
+          "description": "当前首页有讨论与优惠分类，并披露可能获品牌付费推广。",
+          "access": "full-page",
+          "support": "当前首页有讨论与优惠分类，并披露可能获品牌付费推广。"
+        },
+        {
+          "title": "Deal Alerts",
+          "url": "https://slickdeals.net/deal-alerts/",
+          "description": "官方可按关键词、商店、品牌和类别设置邮件或移动提醒。",
+          "access": "full-page",
+          "support": "官方可按关键词、商店、品牌和类别设置邮件或移动提醒。"
+        }
+      ]
+    },
+    {
+      "id": "rakuten",
+      "name": "Rakuten",
+      "entryUrl": "https://www.rakuten.com/",
+      "reviewNotes": "当前 When Will I Get Paid 全文已读；Exclusions 官方索引正文已读，直接工具打开受限。按季度支付指一般现金支付流程；官网同时有符合条件的礼品卡兑换，故正文使用一般而非所有奖励只能季度领取。",
+      "sources": [
+        {
+          "title": "When will I get paid?",
+          "url": "https://www.rakuten.com/help/article/when-will-i-get-paid-360002117667",
+          "description": "官方区分待确认与已确认返现，说明季度支付、门槛和其他兑换条件。",
+          "access": "full-page",
+          "support": "官方区分待确认与已确认返现，说明季度支付、门槛和其他兑换条件。"
+        },
+        {
+          "title": "Exclusions and limitations",
+          "url": "https://www.rakuten.com/help/exclusions.htm",
+          "description": "未列出的优惠码等可能影响返现，商家有各自排除条件。",
+          "access": "official-index",
+          "support": "未列出的优惠码等可能影响返现，商家有各自排除条件。"
+        }
+      ]
+    },
+    {
+      "id": "flipp",
+      "name": "Flipp",
+      "entryUrl": "https://flipp.com/en-us",
+      "reviewNotes": "美国首页阅读全文，变更地区帮助页读取官方索引；帮助路径 en-ca 也明确 ZIP/postal code，平台美国适用性由 en-us 首页支持。不把购物清单当购物车、数字券当全部商家通用。",
+      "sources": [
+        {
+          "title": "Flipp US",
+          "url": "https://flipp.com/en-us",
+          "description": "官方美国站提供周刊、商品搜索、购物清单和部分会员卡数字券。",
+          "access": "full-page",
+          "support": "官方美国站提供周刊、商品搜索、购物清单和部分会员卡数字券。"
+        },
+        {
+          "title": "Change your location",
+          "url": "https://help.flipp.com/hc/en-ca/articles/24402819409172-How-to-Change-My-Location-on-Flipp-com",
+          "description": "官方说明通过邮编更换所查看的商店与广告地区。",
+          "access": "official-index",
+          "support": "官方说明通过邮编更换所查看的商店与广告地区。"
+        }
+      ]
+    },
+    {
+      "id": "gasbuddy",
+      "name": "GasBuddy",
+      "entryUrl": "https://www.gasbuddy.com/",
+      "reviewNotes": "2026-09-09 Reporting Prices 全文已读，2026-06-22 条款和帮助目录读取官方索引。主页 web 工具抓取受限但原生 HTTP 200；旧金山价格列表直接 403，未宣称逐站验证或引用实时油价。现金、会员/促销折扣与泵价分开；仅安全停车时操作。",
+      "sources": [
+        {
+          "title": "Reporting Prices",
+          "url": "https://help.gasbuddy.com/hc/en-us/articles/17437148399511-Reporting-Prices",
+          "description": "2026 帮助页说明用户上报、网页与 App 使用，以及现金和促销价格区别。",
+          "access": "full-page",
+          "support": "2026 帮助页说明用户上报、网页与 App 使用，以及现金和促销价格区别。"
+        },
+        {
+          "title": "GasBuddy Help Center",
+          "url": "https://help.gasbuddy.com/hc/en-us",
+          "description": "官方帮助中心区分查价、付款产品和付费会员服务。",
+          "access": "official-index",
+          "support": "官方帮助中心区分查价、付款产品和付费会员服务。"
+        },
+        {
+          "title": "Updated terms, June 2026",
+          "url": "https://help.gasbuddy.com/hc/en-us/articles/40439396627991-Updated-Terms-of-Service-Effective-June-22nd-2026",
+          "description": "官方要求车辆不在行驶中时才提交价格或与网站互动。",
+          "access": "official-index",
+          "support": "官方要求车辆不在行驶中时才提交价格或与网站互动。"
+        }
+      ]
+    }
+  ],
+  "additionalOfficialReferences": [
+    {
+      "url": "https://zillow.zendesk.com/hc/en-us/articles/360000808587-How-do-I-search-for-homes-on-the-Zillow-mobile-app-iPhone",
+      "access": "official-index",
+      "claim": "官方 App 搜索帮助，辅助验证移动端支持。"
+    },
+    {
+      "url": "https://www.redfin.com/redfin-estimate",
+      "access": "official-index",
+      "claim": "Redfin Estimate 是模型估值，不是正式评估。"
+    },
+    {
+      "url": "https://renterhelp.apartments.com/article/254-does-apartments-com-have-a-mobile-app",
+      "access": "official-index",
+      "claim": "官方确认租房移动 App。"
+    },
+    {
+      "url": "https://geo.craigslist.org/about/terms.of.use/en",
+      "access": "official-index",
+      "claim": "官方条款覆盖网站及官方移动 App。"
+    },
+    {
+      "url": "https://developer.nextdoor.com/docs/overview-copy-1",
+      "access": "official-index",
+      "claim": "官方文档提及网页/App 的当地搜索、公开帖子和 For Sale & Free；未调用 API 或访问私人内容。"
+    },
+    {
+      "url": "https://buynothingproject.org/announcements",
+      "access": "official-index",
+      "claim": "2026 已上线网页版与 iOS/Android 更新，排除旧 coming soon 信息。"
+    },
+    {
+      "url": "https://about.fb.com/news/2026/07/connecting-real-people-on-facebook/",
+      "access": "official-index",
+      "claim": "2026 官方美国 Marketplace 使用与本地买卖说明；未引用规模统计或把测试功能写成全面开放。"
+    }
+  ],
+  "accessLimitations": [
+    {
+      "url": "https://nextdoor.com/",
+      "result": "dynamic-shell",
+      "note": "网页工具仅返回动态壳，使用官方帮助和成员协议核对。"
+    },
+    {
+      "url": "https://www.facebook.com/marketplace/",
+      "result": "login-redirect",
+      "note": "实际重定向 Facebook 登录，账号与本地搜索内容未登录核验。"
+    },
+    {
+      "url": "https://www.gasbuddy.com/gasprices/california/san-francisco",
+      "result": "403",
+      "note": "本地油价列表被拒绝，未引用任何站点价格或覆盖数量。"
+    },
+    {
+      "url": "https://www.rakuten.com/help/exclusions.htm",
+      "result": "web-open-limited",
+      "note": "官方索引可读，直接 web open 不可用；原生 HTTP 可访问。"
+    },
+    {
+      "url": "https://www.dealmoon.com/",
+      "result": "web-timeout/native-403",
+      "note": "美国版本由官方 About 和 2026 披露页面核对。"
+    }
+  ],
+  "validation": {
+    "items": 14,
+    "categories": {
+      "housing": 4,
+      "community": 5,
+      "deals": 5
+    },
+    "translations": 106,
+    "missingTranslations": 0,
+    "chineseBodyRange": [
+      127,
+      154
+    ],
+    "checks": "JSON 解析、ASCII 唯一 id、分类/格式枚举、核验日期、每项正文 100–180 汉字、完整中文映射及 HTTPS 均通过。",
+    "httpCheck": "44 个发布链接原生请求：24 个 200、19 个 403、1 个 429；无 404/410。403 和 429 属访问限制，不表述为已完整测试。"
+  }
+}

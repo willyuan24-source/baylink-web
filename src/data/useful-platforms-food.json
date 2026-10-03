@@ -1,0 +1,327 @@
+[
+  {
+    "id": "uber-eats",
+    "name": "Uber Eats",
+    "category": "food",
+    "format": "app-web",
+    "summary": "按送餐地址找附近餐馆，也可切换到店自取。",
+    "bestFor": "刚落地、加班，或想比较多种菜系的人。",
+    "howTo": "先填住址与门牌，选择配送或自取，再核对商家、预计时间和交接说明；酒店订单写清交餐位置。",
+    "watchFor": "Uber One 只对合资格且达门槛的订单生效，免配送费不等于免服务费、税与小费。",
+    "coverage": "官网设旧金山及湾区邻城入口，具体可送商户和时段由地址决定。",
+    "url": "https://www.ubereats.com/city/san-francisco-ca",
+    "sources": [
+      {
+        "title": "Uber Eats — San Francisco",
+        "url": "https://www.ubereats.com/city/san-francisco-ca",
+        "description": "核实旧金山送餐、自取及按地址找店入口。"
+      },
+      {
+        "title": "Uber One — US membership",
+        "url": "https://www.uber.com/us/en/uber-one/",
+        "description": "会员优惠须符合订单门槛，服务费仅可能减免。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "doordash",
+    "name": "DoorDash",
+    "category": "food",
+    "format": "app-web",
+    "summary": "集合餐馆外送、自取及部分杂货便利品配送。",
+    "bestFor": "想在同一平台比较餐馆与日常补给的人。",
+    "howTo": "先设置收货地址，确认配送或自取模式；选商户后看营业、备餐时间与购物车明细，再填写楼号和交接位置。",
+    "watchFor": "DashPass 要看合资格商户标志与餐费小计门槛；达到免配送费条件，仍可能有其他费用。",
+    "coverage": "有旧金山官方城市页；湾区每个地址显示的店、距离与时段不同。",
+    "url": "https://www.doordash.com/food-delivery/san-francisco-ca-restaurants/",
+    "sources": [
+      {
+        "title": "DoorDash — San Francisco",
+        "url": "https://www.doordash.com/food-delivery/san-francisco-ca-restaurants/",
+        "description": "核实旧金山送餐与自取服务入口。"
+      },
+      {
+        "title": "What is DashPass?",
+        "url": "https://help.doordash.com/en-us/consumers/article/what-is-dashpass",
+        "description": "核实合资格商户、最低小计与会员优惠条件。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "grubhub",
+    "name": "Grubhub",
+    "category": "food",
+    "format": "app-web",
+    "summary": "查找餐馆菜单并选择外送或到店取餐。",
+    "bestFor": "想与其他外卖平台比较同店选择和总价的人。",
+    "howTo": "输入准确地址后选餐馆，确认是配送还是自取；下单前核对日期、取餐点与完整费用，订单问题从原订单进入客服。",
+    "watchFor": "优惠和会员有适用条件，别把宣传中的免某项费理解为全部免费；餐馆配送边界也可能不同。",
+    "coverage": "美国官网列旧金山和圣何塞，具体门店与服务范围按地址查询。",
+    "url": "https://www.grubhub.com/",
+    "sources": [
+      {
+        "title": "Grubhub — food delivery and pickup",
+        "url": "https://www.grubhub.com/",
+        "description": "官方索引列美国餐饮服务及旧金山、圣何塞城市入口。"
+      },
+      {
+        "title": "Grubhub delivery and pickup FAQ",
+        "url": "https://get.grubhub.com/help-center/grubhub-delivery-faq/",
+        "description": "餐馆可管理自身配送边界及不同区域配送费用。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "hungrypanda",
+    "name": "HungryPanda 熊猫外卖",
+    "category": "food",
+    "format": "app-web",
+    "summary": "面向华人饮食需求查找中餐、饮品和相关配送。",
+    "bestFor": "偏好中文菜单、地方菜和亚洲口味的人。",
+    "howTo": "从官方入口下载应用或进入美国站，先设收货地址，再选外送或自取；核对门店分店、营业与订单交接说明。",
+    "watchFor": "优惠券须看门店、门槛与有效期，结账再确认是否抵扣；不要沿用别国页面的价格和活动。",
+    "coverage": "官网列美国服务，美国站索引可见 Fremont 商户；湾区其他地址须实际查询。",
+    "url": "https://www.hungrypanda.co/",
+    "sources": [
+      {
+        "title": "HungryPanda — official website",
+        "url": "https://www.hungrypanda.co/",
+        "description": "核实官方拼法、中文餐饮定位、美国服务和应用入口。"
+      },
+      {
+        "title": "HungryPanda — US ordering site",
+        "url": "https://usa.hungrypanda.co/",
+        "description": "美国站提供账户、地址、订单与帮助入口；湾区商户仅作存在证据。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "fantuan",
+    "name": "Fantuan 饭团",
+    "category": "food",
+    "format": "app-web",
+    "summary": "以亚洲餐饮为主，提供外送、到店自取等选择。",
+    "bestFor": "想找中餐、奶茶、甜品或熟悉亚洲菜系的人。",
+    "howTo": "先填收货地址并切换外送或自取，再确认具体分店；查看备餐、送达和自取信息，优惠应用后仍核对总额。",
+    "watchFor": "美国和加拿大页面不能混用；同一城市列表不代表所有店都送到家，活动优惠也不等于免全部费用。",
+    "coverage": "已核旧金山官方城市页，其他湾区地址以平台实际显示为准。",
+    "url": "https://order.fantuan.ca/delivery/city/san-francisco/us",
+    "sources": [
+      {
+        "title": "Fantuan — San Francisco delivery",
+        "url": "https://order.fantuan.ca/delivery/city/san-francisco/us",
+        "description": "核实旧金山餐饮页面、地址输入和中英文入口。"
+      },
+      {
+        "title": "Fantuan — ordering",
+        "url": "https://order.fantuan.ca/",
+        "description": "官方订餐界面提供配送、自取及不同商户选项。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "weee",
+    "name": "Weee!",
+    "category": "food",
+    "format": "app-web",
+    "summary": "购买亚洲食材、零食、生鲜与冷冻食品的线上超市。",
+    "bestFor": "刚搬来需要补齐调料，或想集中采购家乡食材的人。",
+    "howTo": "先输入邮编和收货地址，看可售商品与送达日期；再区分本地配送、包裹寄送及冷冻订单，按订单核对收货安排。",
+    "watchFor": "免运门槛与冷链费用因订单类型和地区不同；不要把干货配送规则套用到冷冻或其他商家订单。",
+    "coverage": "官方有旧金山亚洲杂货入口；实际商品、日期与费用仍按地址展示。",
+    "url": "https://www.sayweee.com/",
+    "sources": [
+      {
+        "title": "Weee! — online Asian groceries",
+        "url": "https://www.sayweee.com/",
+        "description": "官方购物入口，部分页面会转向 weee.com。"
+      },
+      {
+        "title": "Weee! — delivery service update",
+        "url": "https://www.weee.com/en/help/detail/2717",
+        "description": "官方帮助索引区分干货与冷冻订单及冷链费用。"
+      },
+      {
+        "title": "Weee! — San Francisco Asian groceries",
+        "url": "https://www.weee.com/en/groceries/ca/san%20francisco/asian",
+        "description": "官方城市杂货页用于核实旧金山入口，不保证具体地址可送。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "instacart",
+    "name": "Instacart",
+    "category": "food",
+    "format": "app-web",
+    "summary": "从合作超市选购杂货并预约配送或可用的自取服务。",
+    "bestFor": "没有车、需要大件补给，或想从熟悉超市采购的人。",
+    "howTo": "设地址后先选超市，再选时段；为缺货商品填替代或退款偏好，下单后留意采购沟通与称重商品的最终金额。",
+    "watchFor": "线上价格可与店内不同，服务费及小费另看；Instacart+ 不等于所有店、所有订单免全部费用。",
+    "coverage": "已核旧金山官方买菜页，湾区各地址的超市、自取点和时段不同。",
+    "url": "https://www.instacart.com/grocery-delivery/ca/near-me-in-san-francisco-ca",
+    "sources": [
+      {
+        "title": "Instacart — San Francisco grocery delivery",
+        "url": "https://www.instacart.com/grocery-delivery/ca/near-me-in-san-francisco-ca",
+        "description": "核实旧金山按地址选店、配送与自取入口。"
+      },
+      {
+        "title": "Instacart fees and taxes",
+        "url": "https://www.instacart.com/help/section/1289447635",
+        "description": "核实服务费、会员条件及订单费用的区别。"
+      },
+      {
+        "title": "Instacart — item pricing",
+        "url": "https://www.instacart.com/help/section/866017999/1586544648",
+        "description": "零售商决定线上商品价格，称重商品会按最终重量调整金额。"
+      },
+      {
+        "title": "Instacart — replacement instructions",
+        "url": "https://www.instacart.com/help/section/%40%4077qPo/360039162252",
+        "description": "支持选择替代商品或退款偏好，并查看采购变更通知。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "amazon-fresh",
+    "name": "Amazon Fresh",
+    "category": "food",
+    "format": "app-web",
+    "summary": "通过亚马逊买菜入口按地址查看 Fresh 等杂货配送选项。",
+    "bestFor": "已用亚马逊账户、想集中安排日常食材配送的人。",
+    "howTo": "先设收货地址，查看实际出现的 Fresh、Whole Foods 或其他选项；核对商店、时间窗和购物车，再决定是否需要额外订阅。",
+    "watchFor": "Prime 与买菜配送订阅不同，未达门槛仍可能收费；线上 Fresh 服务不能当作同名实体店仍营业的证明。",
+    "coverage": "官方确认美国线上服务，湾区是否显示 Fresh 及可送时段须输入地址核实。",
+    "url": "https://www.amazon.com/fmc/learn-more",
+    "sources": [
+      {
+        "title": "Amazon — five grocery delivery options",
+        "url": "https://www.aboutamazon.com/news/retail/how-to-order-groceries-amazon",
+        "description": "核实 Fresh 线上配送、不同买菜模式及会员与订阅区别。"
+      },
+      {
+        "title": "Amazon Fresh — physical store update",
+        "url": "https://www.aboutamazon.com/news/retail/introducing-the-first-amazon-fresh-grocery-store",
+        "description": "官方二〇二六年更新说明同名实体店调整，不能用旧店址判断营业。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "too-good-to-go",
+    "name": "Too Good To Go",
+    "category": "food",
+    "format": "app",
+    "summary": "购买附近商家剩余食品惊喜袋，并按指定时段到店领取。",
+    "bestFor": "时间灵活、能接受随机内容且愿意到店自取的人。",
+    "howTo": "在应用地图选附近商户，先看取货窗口与袋子说明，再预订付款；到店后按应用提示向店员确认领取。",
+    "watchFor": "内容和数量不能按普通菜单点选，库存随剩余食品变化；过敏或饮食要求需先与商家核对。",
+    "coverage": "官方列有旧金山商户，其他湾区城市和当天库存以应用地图为准。",
+    "url": "https://www.toogoodtogo.com/en-us/how-does-the-app-work",
+    "sources": [
+      {
+        "title": "Too Good To Go — how the app works",
+        "url": "https://www.toogoodtogo.com/en-us/how-does-the-app-work",
+        "description": "核实应用预订付款、指定窗口和到店领取步骤。"
+      },
+      {
+        "title": "Too Good To Go — Jane on Third, San Francisco",
+        "url": "https://www.toogoodtogo.com/en-us/find/sanfrancisco/janeonthird/bakedgoods/surprisebag-165874700786098881",
+        "description": "核实旧金山商户存在及惊喜袋不保证具体食品内容。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "yelp",
+    "name": "Yelp",
+    "category": "food",
+    "format": "app-web",
+    "summary": "查餐馆评价、照片、营业资料，部分店可排队或订位。",
+    "bestFor": "刚到陌生街区，想先看菜单环境与近期体验的人。",
+    "howTo": "输入城市或街区，按菜系、距离和营业筛选；比较近期评论与菜单，再从有对应按钮的店页加入候位或订位。",
+    "watchFor": "候位不是已订到桌，预计等待会变；照片与营业资料可能滞后，重要安排再向餐馆核对。",
+    "coverage": "美国多地可查，已核旧金山页面；订位与远程排队取决于餐馆是否参加。",
+    "url": "https://www.yelp.com/search?find_desc=Restaurants&find_loc=San+Francisco%2C+CA",
+    "sources": [
+      {
+        "title": "Yelp — San Francisco restaurants",
+        "url": "https://www.yelp.com/search?find_desc=Restaurants+Open+Now&find_loc=San+Francisco%2C+CA%2F",
+        "description": "官方搜索页提供营业、预订、候位和外送筛选。"
+      },
+      {
+        "title": "Yelp — joining a waitlist remotely",
+        "url": "https://www.yelp-support.com/article/How-can-I-use-Yelp-Waitlist-to-get-in-line-remotely?l=en_US",
+        "description": "官方帮助索引说明可经应用或网页远程加入参与餐馆候位。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "opentable",
+    "name": "OpenTable",
+    "category": "food",
+    "format": "app-web",
+    "summary": "按日期、人数和时间搜索餐馆桌位及餐饮体验。",
+    "bestFor": "安排聚餐、纪念日，或需要提前确定用餐时间的人。",
+    "howTo": "先选城市、人数和日期，再读座位类型与菜单条件；确认后保存预约通知，改期或取消从原预约操作。",
+    "watchFor": "部分餐馆要求信用卡、押金或预付，迟取消与未到店可能收费；以该次预约条款为准。",
+    "coverage": "官方有旧金山湾区入口，但只显示参与餐馆提供的桌位，不代表所有餐厅。",
+    "url": "https://www.opentable.com/san-francisco-restaurants",
+    "sources": [
+      {
+        "title": "OpenTable — San Francisco Bay Area",
+        "url": "https://www.opentable.com/san-francisco-restaurants",
+        "description": "核实湾区餐馆与桌位搜索、预订入口。"
+      },
+      {
+        "title": "OpenTable Terms of Use",
+        "url": "https://www.opentable.com/c/legal/terms-and-conditions/",
+        "description": "餐馆可设信用卡及取消规则，未按规则取消可能收费。"
+      },
+      {
+        "title": "OpenTable Experiences Terms",
+        "url": "https://www.opentable.com/c/legal/experiences-v2/",
+        "description": "餐饮体验可要求全额、部分预付或押金。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "resy",
+    "name": "Resy",
+    "category": "food",
+    "format": "app-web",
+    "summary": "搜索参与餐馆的预约桌位，也可设置空位通知。",
+    "bestFor": "追踪热门餐馆，或愿意灵活调整日期与人数的人。",
+    "howTo": "选城市、日期、人数与座位类型；没有合适时段时设置 Notify，收到提示后返回确认，预约成功再保存通知。",
+    "watchFor": "Notify 只是空位提醒，不会自动订到桌；信用卡、预付与取消要求按餐馆和该次预约显示。",
+    "coverage": "已核旧金山城市目录及湾区餐馆，平台只覆盖参与店家，热门时段可能无位。",
+    "url": "https://resy.com/cities/san-francisco-ca",
+    "sources": [
+      {
+        "title": "Resy — San Francisco restaurants",
+        "url": "https://resy.com/cities/san-francisco-ca/list/top-rated",
+        "description": "核实旧金山参与餐馆、人数、日期及座位选项。"
+      },
+      {
+        "title": "Resy — how Notify works",
+        "url": "https://blog.resy.com/2021/09/notify/",
+        "description": "官方说明空位通知不保证预约，仍须主动领取桌位。"
+      },
+      {
+        "title": "Resy — credit cards and reservation policies",
+        "url": "https://helpdesk.resy.com/how-do-i-add-payment-to-a-reservation-H1GXfv78u",
+        "description": "官方帮助索引说明取消、未到店或预付预约可能要求信用卡。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]

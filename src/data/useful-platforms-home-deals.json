@@ -1,0 +1,387 @@
+[
+  {
+    "id": "zillow",
+    "name": "Zillow",
+    "category": "housing",
+    "format": "app-web",
+    "summary": "按地图比较待售与出租房源，建立看房候选清单。",
+    "bestFor": "适合刚选居住城市、想并排比较户型和位置的人。",
+    "howTo": "输入城市或邮编，设预算、卧室和房型后保存搜索；联系发布方确认空房与看房，再另查通勤。",
+    "watchFor": "Zestimate 与 Rent Zestimate 都是算法估算，并非评估报告、实际成交价或房东承诺租金。",
+    "coverage": "美国房源平台，已核到旧金山页面；湾区各城库存依发布方更新。",
+    "url": "https://www.zillow.com/",
+    "sources": [
+      {
+        "title": "San Francisco homes",
+        "url": "https://www.zillow.com/san-francisco-ca/",
+        "description": "官方本地房源页提供地图相关筛选、房型和保存搜索。"
+      },
+      {
+        "title": "What is a Zestimate?",
+        "url": "https://www.zillow.com/zestimate/",
+        "description": "官方说明 Zestimate 不能替代专业评估。"
+      },
+      {
+        "title": "What is a Rent Zestimate?",
+        "url": "https://zillow.zendesk.com/hc/en-us/articles/203340274-What-is-a-Rent-Zestimate",
+        "description": "租金估算仅为起点，需要结合房屋与本地市场核对。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "redfin",
+    "name": "Redfin",
+    "category": "housing",
+    "format": "app-web",
+    "summary": "跟进待售房屋动态，也能搜索出租房并联系管理方。",
+    "bestFor": "适合持续观察几个街区、安排开放看房的人。",
+    "howTo": "按城市筛选并保存搜索，用 Feed 查看候选更新；租房页点联系物业，出门前再次确认预约。",
+    "watchFor": "估值不是成交价；发送租房看房请求不代表已获预约，房源状态仍需向管理方确认。",
+    "coverage": "已核到旧金山房源；湾区可按城市检索，具体房源与经纪服务另看地区。",
+    "url": "https://www.redfin.com/",
+    "sources": [
+      {
+        "title": "Redfin Feed",
+        "url": "https://support.redfin.com/hc/en-us/articles/8362408851867-Feed",
+        "description": "官网及 iOS、Android 的 Feed 支持保存搜索和推荐更新。"
+      },
+      {
+        "title": "Finding rentals FAQ",
+        "url": "https://support.redfin.com/hc/en-us/articles/4517160657563-Finding-Rentals-on-Redfin-FAQ",
+        "description": "官方说明出租房搜索、联系管理方与跟进看房请求。"
+      },
+      {
+        "title": "San Francisco homes",
+        "url": "https://www.redfin.com/city/17151/CA/San-Francisco",
+        "description": "确认本地房源入口；不据动态页面承诺数量。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "apartments-com",
+    "name": "Apartments.com",
+    "category": "housing",
+    "format": "app-web",
+    "summary": "集中比较公寓出租、设施和联系物业的方式。",
+    "bestFor": "适合找整套公寓、希望统一整理多处申请的人。",
+    "howTo": "先按城市、预算和设施筛选，再向物业确认实际月费；只有带 Apply 入口的参与房源才用站内申请。",
+    "watchFor": "搜索免费，申请筛查和部分付款方式收费；申请费官方页面有金额差异，以提交前结账为准。",
+    "coverage": "已核到旧金山出租页；湾区房源可按城市查，统一申请并非每个房东都接受。",
+    "url": "https://www.apartments.com/",
+    "sources": [
+      {
+        "title": "San Francisco rentals",
+        "url": "https://www.apartments.com/san-francisco-ca/",
+        "description": "确认旧金山出租房源与筛选入口。"
+      },
+      {
+        "title": "Is Apartments.com free for renters?",
+        "url": "https://renterhelp.apartments.com/article/256-is-apartments-com-free-for-renters",
+        "description": "搜索免费，平台申请及银行卡付款存在费用条件。"
+      },
+      {
+        "title": "Applying through Apartments.com",
+        "url": "https://renterhelp.apartments.com/article/136-how-to-apply-to-rentals-on-apartments-com",
+        "description": "只有参与房源可使用申请共享，页面金额与另一帮助页不一致。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "realtor-com",
+    "name": "Realtor.com",
+    "category": "housing",
+    "format": "app-web",
+    "summary": "交叉核对待售、出租和开放看房信息。",
+    "bestFor": "适合想用另一房源入口比较地址、照片与联系信息的人。",
+    "howTo": "在 Buy 或 Rent 中输入城市，保存合适房源；同一地址若跨站信息不同，先联系真实物业核实再申请。",
+    "watchFor": "多站出现同一房源不等于独立核验；复制照片、联系人差异和不让看屋就催付款需留意。",
+    "coverage": "官方首页提供旧金山房源入口，也支持其他湾区城市搜索。",
+    "url": "https://www.realtor.com/",
+    "sources": [
+      {
+        "title": "Realtor.com property search",
+        "url": "https://www.realtor.com/",
+        "description": "官网提供买房、租房、旧金山房源及移动 App 入口。"
+      },
+      {
+        "title": "Common rental scams",
+        "url": "https://www.realtor.com/advice/rent/rental-scams-and-how-to-avoid/",
+        "description": "官方提醒房源可被复制到多站，应核对照片、地址和联系人。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "craigslist",
+    "name": "Craigslist",
+    "category": "community",
+    "format": "app-web",
+    "summary": "查湾区分区的二手、免费物品、合租与临时住房帖。",
+    "bestFor": "适合能自行核实卖家、安排面交和搬运的人。",
+    "howTo": "先选东湾、半岛、南湾或北湾等分区，再选家具、free 或 rooms/shared；通过邮件转发沟通尺寸与时间。",
+    "watchFor": "官方建议本地面交，未见面不预付；不要向对方提供验证码，也别信所谓平台托管担保。",
+    "coverage": "SF bay area 入口覆盖多个分区，帖子实际地点和距离仍须逐条看。",
+    "url": "https://www.craigslist.org/area/sfbay",
+    "sources": [
+      {
+        "title": "Craigslist SF bay area",
+        "url": "https://www.craigslist.org/area/sfbay",
+        "description": "官方湾区站有分区、免费物品、二手和合租分类。"
+      },
+      {
+        "title": "Avoiding scams",
+        "url": "https://www.craigslist.org/about/help/safety/scams/avoiding",
+        "description": "官方说明本地面交、邮件转发和预付款、验证码风险。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "nextdoor",
+    "name": "Nextdoor",
+    "category": "community",
+    "format": "app-web",
+    "summary": "在邻里网络找免费物品、二手家具及社区推荐。",
+    "bestFor": "适合已定居、希望把取货范围控制在附近的住户。",
+    "howTo": "设置居住地区，在 For Sale & Free 找物品；发布时选出售或赠送入口，并私下确认取货点、搬运和时间。",
+    "watchFor": "邻居身份不等于物品质量保证；交易由双方处理，推荐帖也需核实，勿在公开帖暴露完整住址。",
+    "coverage": "美国邻里平台，湾区按居住地区使用；附近帖子密度与活跃度会不同。",
+    "url": "https://nextdoor.com/",
+    "sources": [
+      {
+        "title": "For Sale & Free guidelines",
+        "url": "https://www.nextdoorneighborhoodteams.com/public/resources/moderator-academy-for-sale-and-free",
+        "description": "官方说明个人物品出售赠送，以及发布时应选正确类别。"
+      },
+      {
+        "title": "US Member Agreement",
+        "url": "https://nextdoorcrm.my.site.com/s/article/Member-Agreement-US-2026?language=en_US",
+        "description": "平台不作为用户交易当事方，也不保证物品质量或交易完成。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "facebook-marketplace",
+    "name": "Facebook Marketplace",
+    "category": "community",
+    "format": "app-web",
+    "summary": "寻找附近二手家具、家用品，也能发布搬家清理物品。",
+    "bestFor": "适合已有 Facebook 账号、能安排本地取货的人。",
+    "howTo": "进入 Marketplace 后核对地点和交付方式，问清尺寸、瑕疵与搬运；约好见面后验货，不只发是否还在。",
+    "watchFor": "本地自取与个人转账不享购物保障；验证徽章不保证可信，合作商家商品可能跳转外站结账。",
+    "coverage": "美国可用，湾区按位置找物品；入口可能要求登录，账号可用功能不同。",
+    "url": "https://www.facebook.com/marketplace/",
+    "sources": [
+      {
+        "title": "Marketplace updates",
+        "url": "https://about.fb.com/news/2025/11/facebook-marketplace-gets-a-glow-up/",
+        "description": "官方说明合作平台商品可能跳转其网站结账。"
+      },
+      {
+        "title": "Marketplace scam guidance",
+        "url": "https://mydigitalworld.fb.com/ssa/lesson/strategies-for-avoiding-scams/",
+        "description": "Meta 教育页明确本地自取与个人转账不在购物保障内。"
+      },
+      {
+        "title": "Facebook Verified",
+        "url": "https://about.fb.com/news/2026/07/introducing-facebook-verified/",
+        "description": "2026 官方说明验证真实人物不等于认可其信誉。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "offerup",
+    "name": "OfferUp",
+    "category": "community",
+    "format": "app-web",
+    "summary": "以图片刊登和浏览附近二手物品，约定本地面交。",
+    "bestFor": "适合清理家具电器，或愿意自己取货的买家。",
+    "howTo": "先设位置与距离，在 App 写清型号、尺寸和缺陷；用站内聊天谈价，再选明亮公共取货点现场查看。",
+    "watchFor": "全国邮寄已停用，当前只支持本地面交；免费刊登按类别有月上限，超额刊登需付费。",
+    "coverage": "美国本地交易平台，湾区以当前位置检索，不能照旧教程安排跨州邮寄。",
+    "url": "https://offerup.com/",
+    "sources": [
+      {
+        "title": "Local marketplace",
+        "url": "https://offerup.com/",
+        "description": "官方首页提供附近买卖和 App 入口。"
+      },
+      {
+        "title": "Nationwide shipping ending",
+        "url": "https://help.offerup.com/hc/en-us/articles/41043186552980-Nationwide-shipping-ending",
+        "description": "2026 年 9 月更新明确只支持本地面交，邮寄已停用。"
+      },
+      {
+        "title": "Free listing limits",
+        "url": "https://help.offerup.com/hc/en-us/articles/13072929390228-About-free-listing-limits",
+        "description": "每月免费额度依类别不同，额外刊登可单买或订阅。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "buy-nothing",
+    "name": "Buy Nothing",
+    "category": "community",
+    "format": "app-web",
+    "summary": "通过邻里赠送和求赠，让闲置物品继续被使用。",
+    "bestFor": "适合搬家添置小物、分享多余用品或借用物品的人。",
+    "howTo": "设置位置与浏览半径，用 Give 或 Ask 发照片和需求；确认接收者后私信约交接，完成后标记已满足。",
+    "watchFor": "赠送不要求回赠，不能买卖或以物易物；基本参与免费，创建私人社区等订阅功能另计。",
+    "coverage": "湾区可按附近位置使用 App、网页版或当地 Facebook 群，群边界和规则分别看。",
+    "url": "https://buynothingproject.org/",
+    "sources": [
+      {
+        "title": "Quick Start Guide",
+        "url": "https://buynothingproject.org/quickstart",
+        "description": "官方说明位置、半径、Give/Ask、交接完成标记与订阅功能。"
+      },
+      {
+        "title": "Community Guidelines",
+        "url": "https://buynothingproject.org/guidelines",
+        "description": "赠送不附交换条件，禁止买卖和以物易物。"
+      },
+      {
+        "title": "Using Buy Nothing on a computer",
+        "url": "https://help.buynothingproject.org/article/112-how-can-i-participate-on-buy-nothing-using-my-computer-not-a-mobile-app",
+        "description": "2026 帮助页确认可用网页版参与赠送和求赠。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "dealmoon",
+    "name": "Dealmoon 北美省钱快报",
+    "category": "deals",
+    "format": "app-web",
+    "summary": "用中文浏览美国商家的折扣线索、优惠码和购物经验。",
+    "bestFor": "适合习惯中文、希望比较美妆家居等日常采购的人。",
+    "howTo": "确认在美国站，按商品型号或商家搜索；查看发帖时间和使用条件，再到商家结账页核对税费运费后的总价。",
+    "watchFor": "含联盟链接及合作广告，不保证最低价或优惠有效；售后由实际商家处理，别只看折扣百分比。",
+    "coverage": "美国站适用于湾区购物，门店促销及邮寄范围仍取决于商家。",
+    "url": "https://www.dealmoon.com/",
+    "sources": [
+      {
+        "title": "Dealmoon About Us",
+        "url": "https://www.dealmoon.com/en/about",
+        "description": "官方说明网站、移动 App 及美国和其他国家版本。"
+      },
+      {
+        "title": "Advertising disclosure",
+        "url": "https://www.dealmoon.com/disclaimer.html",
+        "description": "2026 声明披露联盟与赞助关系，并要求核对商家最终价格。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "slickdeals",
+    "name": "Slickdeals",
+    "category": "deals",
+    "format": "app-web",
+    "summary": "通过社区讨论和关键词提醒，跟进想买商品的优惠。",
+    "bestFor": "适合不急买、愿意比较具体型号和历史帖的人。",
+    "howTo": "为型号、品牌或商店建 Deal Alert，选邮件或手机推送；收到后读最新评论，核对库存、会员条件和商家总价。",
+    "watchFor": "社区热度不等于最低价或质量保证；平台可能收取品牌推广报酬，限时帖也可能已失效。",
+    "coverage": "主要面向美国零售优惠；湾区能否店取或配送要在商家端输入邮编确认。",
+    "url": "https://slickdeals.net/",
+    "sources": [
+      {
+        "title": "Slickdeals",
+        "url": "https://slickdeals.net/",
+        "description": "当前首页有讨论与优惠分类，并披露可能获品牌付费推广。"
+      },
+      {
+        "title": "Deal Alerts",
+        "url": "https://slickdeals.net/deal-alerts/",
+        "description": "官方可按关键词、商店、品牌和类别设置邮件或移动提醒。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "rakuten",
+    "name": "Rakuten",
+    "category": "deals",
+    "format": "app-web",
+    "summary": "从平台跳转参与商家购物，按合资格订单累计返现。",
+    "bestFor": "适合已有明确购物计划、愿意核对追踪与排除条件的人。",
+    "howTo": "先看商家返现条件，从 Rakuten 激活后进入商店完成购物；保存订单和购物记录，留意 Pending 与 Confirmed 状态。",
+    "watchFor": "返现并非立减或立即到账；一般按季度支付已确认余额，外部优惠码、退货或排除商品可能失去资格。",
+    "coverage": "使用美国 Rakuten 站，湾区用户仍须满足账户及各商家条款。",
+    "url": "https://www.rakuten.com/",
+    "sources": [
+      {
+        "title": "When will I get paid?",
+        "url": "https://www.rakuten.com/help/article/when-will-i-get-paid-360002117667",
+        "description": "官方区分待确认与已确认返现，说明季度支付、门槛和其他兑换条件。"
+      },
+      {
+        "title": "Exclusions and limitations",
+        "url": "https://www.rakuten.com/help/exclusions.htm",
+        "description": "未列出的优惠码等可能影响返现，商家有各自排除条件。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "flipp",
+    "name": "Flipp",
+    "category": "deals",
+    "format": "app-web",
+    "summary": "按邮编集中看附近商店周刊广告，整理买菜购物清单。",
+    "bestFor": "适合每周去几家超市、想先比单价再出门的家庭。",
+    "howTo": "设为实际购物邮编，搜索商品并加入清单；读广告有效期、包装重量和会员要求，可用优惠券再按支持方式领取。",
+    "watchFor": "周刊不是实时库存，加入清单不等于下单；数字券只在支持的商家和账户条件下生效。",
+    "coverage": "美国版按邮编显示湾区附近广告，不保证每家独立杂货店都收录。",
+    "url": "https://flipp.com/en-us",
+    "sources": [
+      {
+        "title": "Flipp US",
+        "url": "https://flipp.com/en-us",
+        "description": "官方美国站提供周刊、商品搜索、购物清单和部分会员卡数字券。"
+      },
+      {
+        "title": "Change your location",
+        "url": "https://help.flipp.com/hc/en-ca/articles/24402819409172-How-to-Change-My-Location-on-Flipp-com",
+        "description": "官方说明通过邮编更换所查看的商店与广告地区。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "gasbuddy",
+    "name": "GasBuddy",
+    "category": "deals",
+    "format": "app-web",
+    "summary": "比较附近加油站油价，把绕路成本也算进加油选择。",
+    "bestFor": "适合开车通勤或自驾、愿意核对现场油价的人。",
+    "howTo": "按当前位置和车辆油号找站，比较更新时间、支付条件与路线；到站看泵上价格，安全停车后才查价或上报。",
+    "watchFor": "价格主要由用户上报，可能滞后；现金价与折扣条件要分开看，支付卡和付费会员另有费用及使用条款。",
+    "coverage": "美国油价平台可查湾区周边；具体站点是否有新价格取决于上报资料。",
+    "url": "https://www.gasbuddy.com/",
+    "sources": [
+      {
+        "title": "Reporting Prices",
+        "url": "https://help.gasbuddy.com/hc/en-us/articles/17437148399511-Reporting-Prices",
+        "description": "2026 帮助页说明用户上报、网页与 App 使用，以及现金和促销价格区别。"
+      },
+      {
+        "title": "GasBuddy Help Center",
+        "url": "https://help.gasbuddy.com/hc/en-us",
+        "description": "官方帮助中心区分查价、付款产品和付费会员服务。"
+      },
+      {
+        "title": "Updated terms, June 2026",
+        "url": "https://help.gasbuddy.com/hc/en-us/articles/40439396627991-Updated-Terms-of-Service-Effective-June-22nd-2026",
+        "description": "官方要求车辆不在行驶中时才提交价格或与网站互动。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]

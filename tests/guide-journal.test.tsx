@@ -177,6 +177,7 @@ test('all published guides and the complete media registry have usable local ima
 });
 
 const firstVisitCoverReuse = new Set([
+  'bay-area-useful-apps-platforms-guide',
   'bay-area-101-city-exploration-living-guide',
   'bay-area-city-utilities-internet-phone-directory',
   'bay-area-visitor-coast-redwoods-return-plan-2026',

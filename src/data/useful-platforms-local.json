@@ -1,0 +1,232 @@
+[
+  {
+    "id": "funcheap",
+    "name": "Funcheap",
+    "category": "events",
+    "format": "web",
+    "url": "https://sf.funcheap.com/",
+    "summary": "找湾区免费或低价活动，适合先看当天和本周末有什么。",
+    "bestFor": "想控制周末预算、临时找去处的人。",
+    "howTo": "按日期挑活动，再打开主办方页面核对地点、入场方式和 RSVP；把感兴趣的活动与站内日历一起比较。",
+    "coverage": "以旧金山及湾区活动资讯为主，收录密度因地区而异。",
+    "watchFor": "“免费”可能有登记、时段或消费条件；这是资讯网站，实际举办与入场规则由主办方决定。",
+    "sources": [
+      {
+        "title": "Funcheap: About",
+        "url": "https://sf.funcheap.com/about/",
+        "description": "平台定位与湾区范围。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "dothebay",
+    "name": "DoTheBay",
+    "category": "events",
+    "format": "web",
+    "url": "https://dothebay.com/",
+    "summary": "找演出、音乐、喜剧、艺术与城市夜生活的本地资讯入口。",
+    "bestFor": "想持续关注场馆、演出和本地文化的人。",
+    "howTo": "按日期和兴趣筛选，关注常去场馆的列表，再跳转售票方核对年龄限制、开门与演出时间。",
+    "coverage": "面向旧金山湾区，主要用于活动发现与精选。",
+    "watchFor": "抽奖、活动推荐与付费会员是不同事项；看见 Win Tickets 不代表已取得门票。",
+    "sources": [
+      {
+        "title": "DoTheBay: About / FAQ",
+        "url": "https://dothebay.com/p/faq",
+        "description": "活动类别、列表来源与抽奖功能。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "eventbrite",
+    "name": "Eventbrite",
+    "category": "events",
+    "format": "app-web",
+    "url": "https://www.eventbrite.com/",
+    "summary": "发现活动、完成报名并集中保存电子票，常用于讲座、社区活动和演出。",
+    "bestFor": "需要按日期、地点、价格筛选并管理报名的人。",
+    "howTo": "选择实际城市与线下活动，检查主办方；报名后在 Tickets 找二维码、时间和地点，可加入日历。",
+    "coverage": "可搜索湾区城市；每场活动由各自主办方发布和管理。",
+    "watchFor": "收藏不等于报名，免费活动也可能需要票；付费票退款按活动政策申请，先看结账总额。",
+    "sources": [
+      {
+        "title": "Eventbrite: Using the app",
+        "url": "https://www.eventbrite.com/help/en-us/articles/783059/how-to-use-the-eventbrite-app/",
+        "description": "查找活动、Tickets 与退款入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "meetup",
+    "name": "Meetup",
+    "category": "events",
+    "format": "app-web",
+    "url": "https://www.meetup.com/",
+    "summary": "围绕徒步、语言、技术或兴趣加入本地小组，适合建立可重复参加的社交安排。",
+    "bestFor": "刚搬来想认识同好，或想培养固定兴趣的人。",
+    "howTo": "设定常活动的城市，先看小组最近几次活动与主办人说明，选择符合自己程度的一次并 RSVP。",
+    "coverage": "位置与兴趣影响推荐；湾区各城的小组活跃度不同。",
+    "watchFor": "注册账号免费不代表每场活动免费；核对报名费、取消规则、集合点与是否仍有名额。",
+    "sources": [
+      {
+        "title": "Meetup: Local groups and events",
+        "url": "https://help.meetup.com/hc/en-us/articles/39488979117837-How-Meetup-Shows-You-Local-Groups-and-Events",
+        "description": "按位置和兴趣发现小组。"
+      },
+      {
+        "title": "Meetup: Create an account",
+        "url": "https://help.meetup.com/hc/en-us/articles/39232700471181-How-do-I-sign-up-for-a-Meetup-account",
+        "description": "网页与移动 App 账号入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "libby",
+    "name": "Libby",
+    "category": "library",
+    "format": "app-web",
+    "url": "https://help.libbyapp.com/en-us/6289.htm",
+    "summary": "用所属图书馆借书证借电子书与有声书，也能查馆藏和排队预约。",
+    "bestFor": "通勤听书、读中文或英文书的居民与家庭。",
+    "howTo": "从官网进入应用商店，找到自己的图书馆并输入有效卡号；先筛可借书目，App 可下载已借内容离线读。",
+    "coverage": "湾区参与的图书馆各自采购馆藏；SFPL 已提供服务，其他馆需查自己的数字资源。",
+    "watchFor": "办卡资格、借阅额度和等待名单由图书馆决定；网页离线能力与 App 不相同。",
+    "sources": [
+      {
+        "title": "Libby: Quick-start guide",
+        "url": "https://help.libbyapp.com/en-us/6289.htm",
+        "description": "下载、借书证、借阅与离线阅读。"
+      },
+      {
+        "title": "SFPL: eBook collections",
+        "url": "https://sfpl.org/books-and-media/ebook-collections",
+        "description": "本地馆实际提供 Libby 与多语言馆藏。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "hoopla",
+    "name": "hoopla Digital",
+    "category": "library",
+    "format": "app-web",
+    "url": "https://sfpl.org/books-and-media/ebook-collections",
+    "summary": "通过参与图书馆借电子书、有声书和其他数字内容，可作为 Libby 以外的另一个馆藏入口。",
+    "bestFor": "已有借书证、想多找一套数字馆藏的人。",
+    "howTo": "先从自己的图书馆官网进入 hoopla，关联有效卡号，再查看可借内容与剩余额度；手机和网页均可使用。",
+    "coverage": "SFPL 提供该服务；其他湾区图书馆的订阅、内容种类与额度不一定相同。",
+    "watchFor": "并非所有内容都能立即借到；SFPL 也有 Flex 内容。Kindle Paperwhite 等电子墨水阅读器不能直接使用 hoopla。",
+    "sources": [
+      {
+        "title": "SFPL: hoopla access and formats",
+        "url": "https://sfpl.org/books-and-media/ebook-collections",
+        "description": "官方借阅入口、Flex 内容与设备限制。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "watch-duty",
+    "name": "Watch Duty",
+    "category": "alerts",
+    "format": "app-web",
+    "url": "https://www.watchduty.org/",
+    "summary": "查看山火事件、地图与更新，帮助了解住处和出游方向周边的火情。",
+    "bestFor": "住山麓、常去北湾或山地活动的人。",
+    "howTo": "安装后选择关心的县并检查通知权限；先查看事件更新时间，关注具体火情时再打开该事件通知。",
+    "coverage": "提供加州等服务区域资讯；通知按所选县发送，不按离火场的半径自动筛选。",
+    "watchFor": "免费账号可订阅最多四个县；网页不提供 App 推送。并非每条更新都会报警，仍需订阅本县官方紧急通知。",
+    "sources": [
+      {
+        "title": "Watch Duty: Notifications",
+        "url": "https://support.watchduty.org/hc/en-us/articles/49114357393677-How-Watch-Duty-Notifications-Work",
+        "description": "2026-09-30 更新的县级通知与免费额度。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "airnow",
+    "name": "AirNow",
+    "category": "alerts",
+    "format": "app-web",
+    "url": "https://www.airnow.gov/airnow-app/",
+    "summary": "查询空气质量、预报与烟雾地图，适合安排跑步、亲子户外和山地行程前查看。",
+    "bestFor": "需要根据当地空气情况调整户外活动的人。",
+    "howTo": "查看目的地当前 AQI 和数据时间，再对照预报；有烟霾时打开 Fire and Smoke Map，出门前重新检查。",
+    "coverage": "美国官方空气质量资讯可查询湾区；可见数据取决于监测点与预报区域。",
+    "watchFor": "预报与当前监测值是不同信息，不能仅凭一张早上的截图判断下午；个人健康安排按官方建议与自身情况决定。",
+    "sources": [
+      {
+        "title": "EPA: AirNow and smoke information",
+        "url": "https://www.epa.gov/newsreleases/epa-statement-cross-border-wildfire-smoke-and-air-quality-impact-us",
+        "description": "2026 年官方确认 App、网页与烟雾地图入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "myshake",
+    "name": "MyShake",
+    "category": "alerts",
+    "format": "app",
+    "url": "https://myshake.berkeley.edu/",
+    "summary": "接收基于 ShakeAlert 的地震预警，并查看地震资讯与使用设置。",
+    "bestFor": "长期住在湾区、希望提前设置预警的居民。",
+    "howTo": "从 UC Berkeley 官网下载，按系统说明配置通知、定位或 HomeBase，阅读预警与普通震后通知的区别。",
+    "coverage": "预警服务适用于加州、俄勒冈州和华盛顿州，包括湾区。",
+    "watchFor": "预警表示地震已经发生，不是预测；震中附近可能来不及提前收到，实际摇晃时不能等待手机提醒。",
+    "sources": [
+      {
+        "title": "UC Berkeley: MyShake FAQ",
+        "url": "https://myshake.berkeley.edu/faq.android.html",
+        "description": "预警覆盖、HomeBase 与预警时效限制。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "kqed",
+    "name": "KQED",
+    "category": "events",
+    "format": "app-web",
+    "url": "https://www.kqed.org/apps",
+    "summary": "读湾区新闻、听本地广播与播客，持续了解交通、住房、教育和文化议题。",
+    "bestFor": "想跟进本地公共议题，或利用通勤听新闻的人。",
+    "howTo": "在官网先选感兴趣的栏目；常听广播再装官方 App，收藏节目并按需要设置节目提醒。",
+    "coverage": "北加州公共媒体，重点覆盖湾区；提供 iOS、Android 与网页入口。",
+    "watchFor": "免费 App 与 Passport 等会员权益是不同服务；新闻报道时间和事件发生时间也要分别看。",
+    "sources": [
+      {
+        "title": "KQED: Official app",
+        "url": "https://www.kqed.org/apps",
+        "description": "免费应用、系统平台、广播及新闻功能。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "sf-standard",
+    "name": "The San Francisco Standard",
+    "category": "events",
+    "format": "app-web",
+    "url": "https://sfstandard.com/",
+    "summary": "查看旧金山城市新闻、商业、文化和餐饮报道，补充活动清单之外的本地背景。",
+    "bestFor": "住在或经常进入旧金山、想了解街区变化的人。",
+    "howTo": "按 News、Business 或 Culture 进入主题，检查报道日期与后续更新；手机用户可从官网进入其 App 链接。",
+    "coverage": "以旧金山为报道核心，不能用单篇报道代表湾区所有城市。",
+    "watchFor": "有付费订阅与登录入口；阅读前看清可访问范围和订阅条件，并区分新闻报道与 Opinion 评论栏目。",
+    "sources": [
+      {
+        "title": "The Standard: About",
+        "url": "https://sfstandard.com/about/",
+        "description": "本地报道定位、栏目及 App 与付费订阅入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]

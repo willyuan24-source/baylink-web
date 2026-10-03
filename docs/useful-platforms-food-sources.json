@@ -1,0 +1,448 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": "Twelve official food-delivery, grocery, food-surplus and restaurant-discovery/reservation services for BAYLINK. No purchases, accounts, address submissions or reservations were made.",
+  "methodology": [
+    "Official web pages and official search-index results were reviewed. Evidence type distinguishes directly readable page text, dynamic shells, index-only summaries, and a derived official query URL.",
+    "A separate native HTTP check covered the original 28 unique URLs. The four later-added official help/terms URLs were checked with the web reader; a null/absent native probe means no native request was made for that URL.",
+    "HTTP 403, 406, 429 and fetch errors were recorded as access limitations; they are not assumed to mean closure or a broken user-facing service.",
+    "City-directory presence establishes a local entry only. Exact address, participating merchant, delivery mode, checkout, inventory and time window determine actual availability.",
+    "Short-lived coupon codes, promotional thresholds, minimum-price claims, blanket Bay Area coverage and universal fee-free membership claims were omitted. The five main Chinese fields total 100–180 Han characters per platform."
+  ],
+  "editorialDecisions": [
+    {
+      "platformId": "hungrypanda",
+      "decision": "Use the official spelling HungryPanda. Fremont merchant index supports a limited Bay Area presence statement; do not claim the merchant is currently orderable."
+    },
+    {
+      "platformId": "amazon-fresh",
+      "decision": "Distinguish current online Amazon Fresh delivery from the January 2026 physical-store closure/conversion announcement."
+    },
+    {
+      "platformId": "too-good-to-go",
+      "decision": "Classify as app for this Surprise Bag reserve/pay/pickup workflow; the informational web page is still a valid official entry."
+    },
+    {
+      "platformId": "weee",
+      "decision": "Preserve the official sayweee.com entry with its observed weee.com redirect. Do not infer delivery dates or fees from an SEO city page."
+    },
+    {
+      "platformId": "yelp",
+      "decision": "Separate remote waitlist participation from a confirmed table reservation."
+    },
+    {
+      "platformId": "resy",
+      "decision": "Notify is an availability alert requiring subsequent action, not an automatic reservation."
+    }
+  ],
+  "sources": [
+    {
+      "platformId": "uber-eats",
+      "title": "Uber Eats",
+      "url": "https://www.ubereats.com/city/san-francisco-ca",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official San Francisco city page rendered a restaurant/category directory and nearby-city links. Delivery and pickup entry points were visible.",
+      "limitations": "City directory presence is not an address-level delivery guarantee. No restaurant count, fare or arrival-time promise copied.",
+      "nativeHttpProbe": {
+        "result": 403,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "uber-eats",
+      "title": "Uber One — US membership",
+      "url": "https://www.uber.com/us/en/uber-one/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "US membership page described eligible orders, minimum subtotal requirements and reduced service fees; delivery-fee benefits are conditional.",
+      "limitations": "Did not copy subscription prices or infer that tax, tips and every fee are waived.",
+      "nativeHttpProbe": {
+        "result": 406,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "doordash",
+      "title": "DoorDash",
+      "url": "https://www.doordash.com/food-delivery/san-francisco-ca-restaurants/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official San Francisco restaurant directory rendered delivery and pickup entry points.",
+      "limitations": "Availability, merchant hours and travel time require a customer's delivery address.",
+      "nativeHttpProbe": {
+        "result": 403,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "doordash",
+      "title": "What is DashPass?",
+      "url": "https://help.doordash.com/en-us/consumers/article/what-is-dashpass",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official help article described eligible merchant badges and minimum subtotal conditions for DashPass benefits.",
+      "limitations": "Used the current en-us help path reached from an older help URL. No promise that every fee is waived.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "grubhub",
+      "title": "Grubhub",
+      "url": "https://www.grubhub.com/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index-and-shell",
+      "observed": "Official search index listed food delivery/pickup and San Francisco and San Jose city links. Direct web read returned only a nine-line loading shell.",
+      "limitations": "Did not claim to read a live restaurant catalog or complete checkout. Promotional fee claims in the index were not copied.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "grubhub",
+      "title": "Grubhub delivery and pickup FAQ",
+      "url": "https://get.grubhub.com/help-center/grubhub-delivery-faq/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Restaurant help FAQ expressly allows self-delivery restaurants to change delivery boundaries, zone fees, order minimums and separate delivery/pickup hours.",
+      "limitations": "Merchant-side documentation supports variable coverage and hours, not a fixed consumer delivery promise.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "hungrypanda",
+      "title": "HungryPanda 熊猫外卖",
+      "url": "https://www.hungrypanda.co/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official corporate page confirmed the HungryPanda spelling, Chinese food/community focus, United States service and app download entry.",
+      "limitations": "Animated metric counters were not usable evidence and no global user/order counts were copied.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "hungrypanda",
+      "title": "HungryPanda — US ordering site",
+      "url": "https://usa.hungrypanda.co/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-shell-plus-official-merchant-index",
+      "observed": "US site exposed account, address, order and help navigation. Official merchant search result identified Steaking-Fremont, shopId 341968270, with pickup/delivery menu information.",
+      "limitations": "The merchant's direct rendered page had empty results and implausible distance/time placeholders; it proves an indexed local merchant entry only, not current orderability. Tracking-token URL was not retained in product data. Other Bay Area addresses must be searched in the service.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "fantuan",
+      "title": "Fantuan 饭团",
+      "url": "https://order.fantuan.ca/delivery/city/san-francisco/us",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official US San Francisco ordering page rendered address entry, Chinese/English interface and restaurant categories.",
+      "limitations": "The fantuan.ca domain also hosts US pages; the /us path was retained. A city list does not prove every listed merchant delivers to every neighborhood.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "fantuan",
+      "title": "Fantuan — ordering",
+      "url": "https://order.fantuan.ca/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official ordering-site search result displayed delivery and pickup navigation and merchant listings.",
+      "limitations": "Default city in the index differed from the Bay Area; it supports the ordering modes only. Local presence is supported by the separate San Francisco /us page.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "weee",
+      "title": "Weee!",
+      "url": "https://www.sayweee.com/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index-plus-http-redirect",
+      "observed": "Official search index described the Asian grocery shopping service. Native HTTP request returned 200 after redirecting to https://www.weee.com/en.",
+      "limitations": "Web reader timed out/returned an error; do not treat the full current storefront as directly inspected.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "weee",
+      "title": "Weee! — delivery service update",
+      "url": "https://www.weee.com/en/help/detail/2717",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official help search result distinguished dry-only orders and frozen delivery with a cold-chain fee and conditional threshold.",
+      "limitations": "Web reader could not retrieve the full dynamic help page. Exact dollar amounts and thresholds were deliberately omitted; applicability must be checked for the actual address and order.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "weee",
+      "title": "Weee! — San Francisco Asian groceries",
+      "url": "https://www.weee.com/en/groceries/ca/san%20francisco/asian",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index-plus-http-redirect",
+      "observed": "Official San Francisco Asian-groceries index existed. Native request returned 200 at https://www.weee.com/en/grocery-near-me/asian-supermarket-in-usa/california/city-san%20francisco.",
+      "limitations": "Web reader could not access the redirected dynamic page. The city landing page proves a local entry, not a delivery date, cold-chain route or every-address coverage.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "instacart",
+      "title": "Instacart",
+      "url": "https://www.instacart.com/grocery-delivery/ca/near-me-in-san-francisco-ca",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official San Francisco grocery-delivery page rendered local store selection and delivery/pickup entry points.",
+      "limitations": "Availability varies by store, address and selected time. Replacement and weight-price statements use separate help sources.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "instacart",
+      "title": "Instacart fees and taxes",
+      "url": "https://www.instacart.com/help/section/1289447635",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official fees and taxes help article distinguished delivery fees, service fees and membership conditions.",
+      "limitations": "Did not copy transient dollar fees or imply that Instacart+ removes all fees.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "instacart",
+      "title": "Instacart — item pricing",
+      "url": "https://www.instacart.com/help/section/866017999/1586544648",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official Item pricing article states that retailers set marketplace prices, some differ from in-store prices, and weighed items can change the final charged amount.",
+      "limitations": "No percentage markup or universal store-pricing rule inferred."
+    },
+    {
+      "platformId": "instacart",
+      "title": "Instacart — replacement instructions",
+      "url": "https://www.instacart.com/help/section/%40%4077qPo/360039162252",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official Adding item and replacement instructions article describes app/web instructions, specific replacements, best-match selection, refund preference and change notifications.",
+      "limitations": "Reader redirects encoded @@ to the same help route. Preferences do not guarantee stock; no claim that every special request can be honored."
+    },
+    {
+      "platformId": "amazon-fresh",
+      "title": "Amazon Fresh",
+      "url": "https://www.amazon.com/fmc/learn-more",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-link-plus-http",
+      "observed": "Official About Amazon grocery guide linked this grocery-shopping entry. Native HTTP request returned 200.",
+      "limitations": "Direct web-reader click returned 503; no logged-in address or checkout tested.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "amazon-fresh",
+      "title": "Amazon — five grocery delivery options",
+      "url": "https://www.aboutamazon.com/news/retail/how-to-order-groceries-amazon",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Current official 2026 guide lists online Amazon Fresh alongside Whole Foods Market and other grocery modes, with separate delivery subscription/member conditions.",
+      "limitations": "Only the stated online service and mode distinctions were used. No Bay Area postal-code coverage, delivery-speed guarantee or universal Prime benefit inferred.",
+      "nativeHttpProbe": {
+        "result": "fetch-failed",
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "amazon-fresh",
+      "title": "Amazon Fresh — physical store update",
+      "url": "https://www.aboutamazon.com/news/retail/introducing-the-first-amazon-fresh-grocery-store",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Prominent update dated January 27, 2026 states that Amazon is closing Amazon Go and Amazon Fresh physical stores and converting various locations to Whole Foods Market.",
+      "limitations": "The rest of the article contains older store-opening material; those historical addresses/prices were not used to recommend current stores. Online Fresh existence is a separate claim.",
+      "nativeHttpProbe": {
+        "result": "fetch-failed",
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "too-good-to-go",
+      "title": "Too Good To Go",
+      "url": "https://www.toogoodtogo.com/en-us/how-does-the-app-work",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official US instructions describe finding a Surprise Bag in the app, reserving/paying, arriving during the pickup window and confirming pickup with staff.",
+      "limitations": "This card covers local Surprise Bag pickup, not a blanket claim about every other company service. No discount percentage copied.",
+      "nativeHttpProbe": {
+        "result": 429,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "too-good-to-go",
+      "title": "Too Good To Go — Jane on Third, San Francisco",
+      "url": "https://www.toogoodtogo.com/en-us/find/sanfrancisco/janeonthird/bakedgoods/surprisebag-165874700786098881",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official Jane on Third merchant page in San Francisco described Surprise Bags and stated that specific foods are not guaranteed.",
+      "limitations": "Live stock counts, price, pickup times and time-zone formatting were not copied. Merchant page presence does not guarantee a bag today.",
+      "nativeHttpProbe": {
+        "result": 429,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "yelp",
+      "title": "Yelp",
+      "url": "https://www.yelp.com/search?find_desc=Restaurants&find_loc=San+Francisco%2C+CA",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "derived-official-search-entry",
+      "observed": "Clean San Francisco restaurant search entry using the same official search route and parameter names as the indexed Yelp source.",
+      "limitations": "Native HTTP returned 403. This exact cleaned query was not rendered by the web reader; functional search entry is derived from the observed official route, not claimed as a full direct-page read.",
+      "nativeHttpProbe": {
+        "result": 403,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "yelp",
+      "title": "Yelp — San Francisco restaurants",
+      "url": "https://www.yelp.com/search?find_desc=Restaurants+Open+Now&find_loc=San+Francisco%2C+CA%2F",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official San Francisco search result exposed open-now, reservation, waitlist, delivery and takeout filters.",
+      "limitations": "Index snapshot is not live restaurant-hours evidence. No rankings, business hours, ratings or current restaurant recommendations copied.",
+      "nativeHttpProbe": {
+        "result": 403,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "yelp",
+      "title": "Yelp — joining a waitlist remotely",
+      "url": "https://www.yelp-support.com/article/How-can-I-use-Yelp-Waitlist-to-get-in-line-remotely?l=en_US",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official help search result describes joining participating restaurants' waitlists via app or website.",
+      "limitations": "Direct web read failed and native HTTP fetch failed. Waitlist participation is conditional and is not a confirmed reservation.",
+      "nativeHttpProbe": {
+        "result": "fetch-failed",
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "opentable",
+      "title": "OpenTable",
+      "url": "https://www.opentable.com/san-francisco-restaurants",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official San Francisco Bay Area restaurant page rendered restaurant listings and reservation search controls, including Bay Area cities beyond San Francisco.",
+      "limitations": "Only participating restaurant inventory is represented; ratings, real-time table counts and future availability were not copied.",
+      "nativeHttpProbe": {
+        "result": 403,
+        "interpretation": "Access result differs from the web-reader/index evidence; not evidence of platform closure."
+      }
+    },
+    {
+      "platformId": "opentable",
+      "title": "OpenTable Terms of Use",
+      "url": "https://www.opentable.com/c/legal/terms-and-conditions/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official terms describe participating restaurant reservations/waitlists, confirmation messages, possible card requirements and restaurant-specific cancellation policies.",
+      "limitations": "Consumer navigation only; no universal cancellation deadline asserted and no legal interpretation offered.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "opentable",
+      "title": "OpenTable Experiences Terms",
+      "url": "https://www.opentable.com/c/legal/experiences-v2/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official Experiences Terms describe experiences that can be reserved or purchased in full, partially or with a deposit.",
+      "limitations": "Page displays April 1, 2021 update date. Used as a currently published feature description, corroborated by the current official experience-setup help result; not presented as newly issued terms."
+    },
+    {
+      "platformId": "resy",
+      "title": "Resy",
+      "url": "https://resy.com/cities/san-francisco-ca",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-shell",
+      "observed": "Official San Francisco city route loaded a short JavaScript shell; native HTTP returned 200.",
+      "limitations": "Restaurant inventory was not readable from this direct shell; local-directory facts rely on the official indexed top-rated page.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "resy",
+      "title": "Resy — San Francisco restaurants",
+      "url": "https://resy.com/cities/san-francisco-ca/list/top-rated",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official San Francisco restaurant directory search result listed local restaurants with party-size, date, time and seating controls.",
+      "limitations": "Index alone does not verify current table availability. No claim that all restaurants in a city use Resy.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "resy",
+      "title": "Resy — how Notify works",
+      "url": "https://blog.resy.com/2021/09/notify/",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "direct-page",
+      "observed": "Official Resy explanation describes Notify alerts and the need for the diner to claim/book an available reservation.",
+      "limitations": "Published in September 2021; used for the still-published feature workflow, not marketed as a new 2026 launch. Alerts do not secure a table.",
+      "nativeHttpProbe": {
+        "result": 200,
+        "interpretation": "Response succeeded; not a checkout/availability test."
+      }
+    },
+    {
+      "platformId": "resy",
+      "title": "Resy — credit cards and reservation policies",
+      "url": "https://helpdesk.resy.com/how-do-i-add-payment-to-a-reservation-H1GXfv78u",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index-and-shell",
+      "observed": "Official merchant-help index says online reservations with cancellation/no-show or prepaid-ticket policies prompt guests to enter credit-card information.",
+      "limitations": "Direct open returned a title-only page with no readable body. Payment/policy facts are attributed to the official indexed help summary, not a full direct read."
+    }
+  ],
+  "corroboratingResearch": [
+    {
+      "url": "https://support.opentable.com/s/article/create-experience?language=en_US",
+      "checkedAt": "2026-10-02",
+      "evidenceType": "official-index",
+      "observed": "Official help result displayed September 25, 2026 and described prepay-at-booking versus pay-at-restaurant experiences and restaurant-defined cancellation policies.",
+      "limitations": "Used only to corroborate that prepaid experiences remain supported; direct full article was not read. Conflicting crawler metadata was not treated as publication evidence beyond the date displayed in the official result."
+    }
+  ]
+}

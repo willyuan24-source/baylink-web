@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-10-02",
+  "note": "Usage combinations are editorial suggestions; no account creation, transaction or personalized availability was tested.",
+  "sources": [
+    {
+      "title": "Funcheap: About",
+      "url": "https://sf.funcheap.com/about/",
+      "description": "平台定位与湾区范围。",
+      "platform": "funcheap",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "DoTheBay: About / FAQ",
+      "url": "https://dothebay.com/p/faq",
+      "description": "活动类别、列表来源与抽奖功能。",
+      "platform": "dothebay",
+      "evidence": "Official indexed text read; direct web fetch restricted or returned internal error."
+    },
+    {
+      "title": "Eventbrite: Using the app",
+      "url": "https://www.eventbrite.com/help/en-us/articles/783059/how-to-use-the-eventbrite-app/",
+      "description": "查找活动、Tickets 与退款入口。",
+      "platform": "eventbrite",
+      "evidence": "Official indexed text read; direct web fetch restricted or returned internal error. Eventbrite article also readable on its official localized help host."
+    },
+    {
+      "title": "Meetup: Local groups and events",
+      "url": "https://help.meetup.com/hc/en-us/articles/39488979117837-How-Meetup-Shows-You-Local-Groups-and-Events",
+      "description": "按位置和兴趣发现小组。",
+      "platform": "meetup",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "Meetup: Create an account",
+      "url": "https://help.meetup.com/hc/en-us/articles/39232700471181-How-do-I-sign-up-for-a-Meetup-account",
+      "description": "网页与移动 App 账号入口。",
+      "platform": "meetup",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "Libby: Quick-start guide",
+      "url": "https://help.libbyapp.com/en-us/6289.htm",
+      "description": "下载、借书证、借阅与离线阅读。",
+      "platform": "libby",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "SFPL: eBook collections",
+      "url": "https://sfpl.org/books-and-media/ebook-collections",
+      "description": "本地馆实际提供 Libby 与多语言馆藏。",
+      "platform": "libby",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "SFPL: hoopla access and formats",
+      "url": "https://sfpl.org/books-and-media/ebook-collections",
+      "description": "官方借阅入口、Flex 内容与设备限制。",
+      "platform": "hoopla",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "Watch Duty: Notifications",
+      "url": "https://support.watchduty.org/hc/en-us/articles/49114357393677-How-Watch-Duty-Notifications-Work",
+      "description": "2026-09-30 更新的县级通知与免费额度。",
+      "platform": "watch-duty",
+      "evidence": "Official indexed text read; direct web fetch restricted or returned internal error. Eventbrite article also readable on its official localized help host."
+    },
+    {
+      "title": "EPA: AirNow and smoke information",
+      "url": "https://www.epa.gov/newsreleases/epa-statement-cross-border-wildfire-smoke-and-air-quality-impact-us",
+      "description": "2026 年官方确认 App、网页与烟雾地图入口。",
+      "platform": "airnow",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "UC Berkeley: MyShake FAQ",
+      "url": "https://myshake.berkeley.edu/faq.android.html",
+      "description": "预警覆盖、HomeBase 与预警时效限制。",
+      "platform": "myshake",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "KQED: Official app",
+      "url": "https://www.kqed.org/apps",
+      "description": "免费应用、系统平台、广播及新闻功能。",
+      "platform": "kqed",
+      "evidence": "Official page text read directly."
+    },
+    {
+      "title": "The Standard: About",
+      "url": "https://sfstandard.com/about/",
+      "description": "本地报道定位、栏目及 App 与付费订阅入口。",
+      "platform": "sf-standard",
+      "evidence": "Official page text read directly."
+    }
+  ]
+}

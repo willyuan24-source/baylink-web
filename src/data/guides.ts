@@ -2,6 +2,7 @@ import { visitorPersonaGuides } from './guides-persona-visitor';
 import { utilityGuides } from './guides-utilities';
 import { shoppingGuides } from './guides-shopping';
 import { cityExplorationGuides } from './guides-city-exploration';
+import { usefulPlatformGuides } from './guides-useful-platforms';
 import { newResidentPersonaGuides } from './guides-persona-newresident';
 import { establishedResidentPersonaGuides } from './guides-persona-resident';
 import { practicalGuides } from './guides-practical';
@@ -37,6 +38,7 @@ import type { FreebieOffer } from '../components/FreebieBoard';
 import type { UtilityCity, UtilityContact } from './utility-types';
 import type { ShoppingPlace } from './shopping-types';
 import type { CityExploration } from './city-exploration-types';
+import type { UsefulPlatform } from './useful-platform-types';
 
 export type GuideCategory =
   | 'rent'
@@ -53,6 +55,7 @@ export type GuideCategory =
 export type GuideSource = { title: string; url: string; description: string };
 
 export type GuideBlock =
+  | { type: 'useful-platforms'; title: string; text: string; platforms: UsefulPlatform[] }
   | { type: 'city-exploration'; title: string; text: string; cities: CityExploration[] }
   | { type: 'shopping-directory'; title: string; text: string; places: ShoppingPlace[] }
   | { type: 'utility-directory'; title: string; text: string; cities: UtilityCity[] }
@@ -1896,6 +1899,7 @@ export const guides: Guide[] = [
   ...utilityGuides,
   ...shoppingGuides,
   ...cityExplorationGuides,
+  ...usefulPlatformGuides,
   ...newResidentPersonaGuides,
   ...establishedResidentPersonaGuides,
   ...serviceGuides,

@@ -1,0 +1,462 @@
+[
+  {
+    "id": "google-maps",
+    "name": "Google Maps",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "比较开车、公交、步行与骑行路线，也方便保存酒店和景点入口。",
+    "bestFor": "适合第一次来湾区、一天跨几个街区或城市的游客。",
+    "howTo": "输入具体入口，设置出发或到达日期时间，再比较换乘与步行段；回程也单独查一次。",
+    "watchFor": "离线地图不能提供公交、步行或骑行导航；实时到站与临时停运仍需核对运营方公告。",
+    "coverage": "湾区各县可查地图和路线；公交信息完整度取决于当地运营方的数据。",
+    "url": "https://www.google.com/maps/about/",
+    "sources": [
+      {
+        "title": "Google Maps",
+        "url": "https://www.google.com/maps/about/",
+        "description": "官方地图产品入口，可进入地图服务并了解导航与地点保存功能。"
+      },
+      {
+        "title": "Google Maps Help — Get directions",
+        "url": "https://support.google.com/maps/answer/144339?hl=en",
+        "description": "支持多种交通方式，并可按出发或到达日期时间规划路线。"
+      },
+      {
+        "title": "Google Maps Help — Offline maps",
+        "url": "https://support.google.com/maps/answer/6291838?hl=en-in",
+        "description": "离线状态不提供公交、步行或骑行导航，也没有实时交通。"
+      },
+      {
+        "title": "511 Open Data",
+        "url": "https://511.org/open-data",
+        "description": "湾区交通数据向地图与出行应用提供，包括 Google、Apple 和 Transit。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "apple-maps",
+    "name": "Apple Maps",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "在苹果设备上查询路线、公交到站与地点，也有网页入口。",
+    "bestFor": "适合使用 iPhone 的游客和希望收藏日常目的地的新居民。",
+    "howTo": "先确认目的地入口，再选公交或驾车；把住宿和车站加入收藏，出发前查看路线提醒。",
+    "watchFor": "网页与原生应用的功能不完全相同；支持的浏览器、语言和地区功能要按官方说明核对。",
+    "coverage": "官方列有旧金山详细城市地图；湾区公交显示内容取决于线路与实时数据。",
+    "url": "https://www.apple.com/maps/",
+    "sources": [
+      {
+        "title": "Apple Maps",
+        "url": "https://www.apple.com/maps/",
+        "description": "官方入口介绍旧金山详细地图、路线及可用地区的实时公交信息。"
+      },
+      {
+        "title": "Apple Support — Maps on the web",
+        "url": "https://support.apple.com/en-us/120585",
+        "description": "网页地图支持多种桌面及移动浏览器，功能可能因平台而异。"
+      },
+      {
+        "title": "511 Open Data",
+        "url": "https://511.org/open-data",
+        "description": "区域交通数据提供给 Apple 等合作应用。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "transit-app",
+    "name": "Transit",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "集中查看附近公交、列车、渡轮到站信息，并给出换乘步骤。",
+    "bestFor": "适合经常跨运营方换乘、希望少切换几个应用的人。",
+    "howTo": "选好出行方向与日期，查看附近站点和服务提醒；复杂行程可跟随逐段导航。",
+    "watchFor": "到站时间是数据预测；部分完整时刻与扩展功能需要 Royale，先看免费或机构赞助范围。",
+    "coverage": "官方湾区目录包含 Muni、BART、Caltrain、AC Transit、VTA、SMART 与渡轮等。",
+    "url": "https://transitapp.com/en/region/sf-bay-area",
+    "sources": [
+      {
+        "title": "Transit — SF Bay Area",
+        "url": "https://transitapp.com/en/region/sf-bay-area",
+        "description": "列出湾区支持的运营方，并提供应用下载、路线规划、到站与服务提醒。"
+      },
+      {
+        "title": "Transit Help — Royale FAQ",
+        "url": "https://help.transitapp.com/article/362-royale-faq",
+        "description": "部分扩展功能通过 Royale 提供，可能有交通机构赞助。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "clipper",
+    "name": "Clipper",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "管理湾区交通卡余额与票种，并把交通卡加入手机钱包。",
+    "bestFor": "适合跨公交、轨道与渡轮出行，或需要管理优惠交通卡的人。",
+    "howTo": "注册卡片后按指引加入 Apple Wallet 或 Google Wallet；进站前确认设备上的卡可用并有余额。",
+    "watchFor": "仅注册实体卡不能直接刷手机；转入钱包后实体卡停用于乘车。MuniMobile 已停售单程票，部分通票仍保留。",
+    "coverage": "限参与 Clipper 的湾区运营方；具体优惠与进出站刷卡规则按线路确认。",
+    "url": "https://www.clippercard.com/clipper-on-your-phone.html",
+    "sources": [
+      {
+        "title": "Clipper — Clipper on Your Phone",
+        "url": "https://www.clippercard.com/clipper-on-your-phone.html",
+        "description": "说明应用管理、手机钱包、卡片转移与实体卡停用的区别。"
+      },
+      {
+        "title": "SFMTA — MuniMobile",
+        "url": "https://www.sfmta.com/getting-around/muni/fares/munimobile",
+        "description": "2026 年 9 月 1 日起停售单程票；部分其他票种在 2026 年继续销售，完整迁移尚未完成。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "bart-official",
+    "name": "BART Official",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "查询 BART 路线、实时列车、服务提醒，也能处理车站停车。",
+    "bestFor": "适合搭 BART 通勤、机场转乘或把车停在车站的乘客。",
+    "howTo": "先选起终点并查末班车与电梯提醒；停车另进停车功能，核对车牌、站点和所选停车产品。",
+    "watchFor": "停车支付与车费分开，Clipper 余额不能支付停车；预留车位与普通日停也有不同条件。",
+    "coverage": "覆盖 BART 系统；接续 Muni、Caltrain 或其他公交时要另查相应运营方。",
+    "url": "https://www.bart.gov/guide/apps",
+    "sources": [
+      {
+        "title": "BART — Official App",
+        "url": "https://www.bart.gov/guide/apps",
+        "description": "官方应用提供行程规划、实时到站、服务与电梯提醒和停车功能。"
+      },
+      {
+        "title": "BART — Parking Payment",
+        "url": "https://www.bart.gov/guide/parking/payment",
+        "description": "说明停车产品与付款，停车费不能由 Clipper 余额支付。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "caltrain-website",
+    "name": "Caltrain",
+    "category": "transport",
+    "format": "web",
+    "summary": "用官网查半岛铁路时刻、停站和服务变化，再选择现行购票方式。",
+    "bestFor": "适合旧金山、半岛与南湾之间通勤或安排一日游的人。",
+    "howTo": "按工作日或周末查出发站与列车停站；上车前购票或刷卡，使用 Clipper 时在目的站刷出。",
+    "watchFor": "旧 Caltrain Mobile 已于 2025 年 10 月 31 日停用；看到时刻表不代表已购票，快慢车停站不同。",
+    "coverage": "主线连接旧金山与圣何塞；Gilroy 方向南县接驳另查工作日服务安排。",
+    "url": "https://www.caltrain.com/rider-information/how-ride-caltrain",
+    "sources": [
+      {
+        "title": "Caltrain — How to Ride",
+        "url": "https://www.caltrain.com/rider-information/how-ride-caltrain",
+        "description": "介绍时刻查询、不同停站服务、南县接驳及上车前支付要求。"
+      },
+      {
+        "title": "Caltrain — Mobile App Retirement FAQ",
+        "url": "https://www.caltrain.com/caltrain-mobile-app-retirement-faq",
+        "description": "旧购票应用于 2025 年 10 月 31 日停止使用，转用 Clipper 或售票机等现行方式。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "511-sf-bay",
+    "name": "511 SF Bay",
+    "category": "transport",
+    "format": "web",
+    "summary": "汇总湾区道路、公交与骑行服务提醒，适合出门前查大范围变化。",
+    "bestFor": "适合跨县出行、赶大型活动，或需要道路与公共交通备选的人。",
+    "howTo": "打开地图与提醒，按行程区域查看事故或交通调整，再进入运营方链接确认当天安排。",
+    "watchFor": "它是区域资讯入口，不是通用购票钱包；逐步路线规划可接地图应用，具体班次以运营方为准。",
+    "coverage": "面向整个湾区，包含桥梁、快速车道和公共交通资源；也提供电话 511 查询入口。",
+    "url": "https://511.org/",
+    "sources": [
+      {
+        "title": "511 — Bay Area Transportation",
+        "url": "https://511.org/",
+        "description": "提供实时交通、公交及骑行提醒、区域地图、运营方资源和电话服务。"
+      },
+      {
+        "title": "511 — Frequently Asked Questions",
+        "url": "https://511.org/about/faq",
+        "description": "解释区域资讯服务及使用其他应用规划行程的入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "uber",
+    "name": "Uber",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "通过手机或网页申请网约车，适合行李多或公共交通接不上时使用。",
+    "bestFor": "适合机场接送、多人分摊行程和夜间最后一段接驳。",
+    "howTo": "输入准确上车点与目的地，比较车型和报价后确认；机场按订单显示的楼层与上车区集合。",
+    "watchFor": "报价会受需求、路线和过路费影响；预估到车时间及附近车辆不等于保证接单。",
+    "coverage": "旧金山、奥克兰、圣何塞等有官方服务页；远郊和具体机场行程按当时地址查询。",
+    "url": "https://www.uber.com/global/en/r/cities/san-francisco-ca-us/",
+    "sources": [
+      {
+        "title": "Uber — San Francisco",
+        "url": "https://www.uber.com/global/en/r/cities/san-francisco-ca-us/",
+        "description": "旧金山官方乘车入口，提供行程与可用车型查询。"
+      },
+      {
+        "title": "Uber — Oakland",
+        "url": "https://www.uber.com/global/en/r/cities/oakland-ca-us/",
+        "description": "确认奥克兰有官方乘车服务入口。"
+      },
+      {
+        "title": "Uber — San Jose",
+        "url": "https://www.uber.com/global/en/r/cities/san-jose-ca-us/",
+        "description": "确认圣何塞有官方乘车服务入口。"
+      },
+      {
+        "title": "Uber — SFO Pickup",
+        "url": "https://www.uber.com/global/en/r/airports/sfo/pickup/",
+        "description": "机场上车点按应用内指引确认，车辆接单与最终费用有条件限制。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "lyft",
+    "name": "Lyft",
+    "category": "transport",
+    "format": "app",
+    "summary": "用应用叫车并比较车型，是公交接驳和机场行程的另一选择。",
+    "bestFor": "适合希望与其他叫车平台对比等待时间和总价的人。",
+    "howTo": "设定实际路边上车位置、目的地与人数，查看车型报价；机场按照应用提示去指定上车区。",
+    "watchFor": "繁忙时段价格可能提高，过路费或附加费也会影响总价；下单前看当前报价，不套用旧优惠。",
+    "coverage": "官方城市与机场目录列有旧金山、奥克兰、圣何塞及其主要机场；具体地址以应用可叫车范围为准。",
+    "url": "https://www.lyft.com/rider/cities/san-francisco-ca",
+    "sources": [
+      {
+        "title": "Lyft — San Francisco",
+        "url": "https://www.lyft.com/rider/cities/san-francisco-ca",
+        "description": "介绍旧金山叫车服务、应用入口及需求和附加费对价格的影响。"
+      },
+      {
+        "title": "Lyft — Cities",
+        "url": "https://www.lyft.com/rider/cities",
+        "description": "官方服务城市目录包含旧金山、奥克兰与圣何塞。"
+      },
+      {
+        "title": "Lyft — Airports",
+        "url": "https://www.lyft.com/rider/airports",
+        "description": "官方机场目录包含 SFO、OAK 与 SJC，机场上车需按指定区域执行。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "waymo",
+    "name": "Waymo",
+    "category": "transport",
+    "format": "app",
+    "summary": "在开放服务范围内叫无人驾驶车，适合有明确起终点的市区行程。",
+    "bestFor": "适合想体验自动驾驶、且能接受指定上车位置的游客和居民。",
+    "howTo": "先在应用输入起点和终点，确认两端都能服务，再检查上车位置、等待时间与本次报价。",
+    "watchFor": "开放运营地图会更新，不能把测试范围当作载客范围；机场及跨区行程需逐单查询。",
+    "coverage": "覆盖旧金山及半岛、南湾部分区域，已扩展更多 San Jose 与 Campbell 地点；并非全湾区。",
+    "url": "https://www.waymo.com/rides/",
+    "sources": [
+      {
+        "title": "Waymo — Rides",
+        "url": "https://www.waymo.com/rides/",
+        "description": "官方乘车与应用入口，实际叫车在应用中进行。"
+      },
+      {
+        "title": "Waymo Help — Service Areas",
+        "url": "https://support.google.com/waymo/answer/9059119?hl=en",
+        "description": "官方服务区域页列有旧金山湾区，具体边界通过服务地图及应用确认。"
+      },
+      {
+        "title": "Waymo Help — Bay Area Expansion",
+        "url": "https://support.google.com/waymo/answer/17105528?hl=en",
+        "description": "2026 年 5 月公布更多 San Jose 与 Campbell 可服务地点。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "parkmobile",
+    "name": "ParkMobile",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "在参与地点用手机或网页支付停车费，旧金山路边停车表可使用。",
+    "bestFor": "适合经常路边短停、希望收到停车到期提醒的驾驶者。",
+    "howTo": "先读街边标志，再核对停车位置代码、车牌和时长；付款后查看确认记录，按允许范围续时。",
+    "watchFor": "手机付款可能另收便利费，也不能突破街道最长停留限制；不要仅凭地图定位选停车区。",
+    "coverage": "SFMTA 停车表接受；湾区其他城市或场库仅限现场明确标示支持的地点。",
+    "url": "https://www.parkmobile.io/",
+    "sources": [
+      {
+        "title": "ParkMobile",
+        "url": "https://www.parkmobile.io/",
+        "description": "官方停车支付与应用入口，按地点、车辆和时长发起支付。"
+      },
+      {
+        "title": "SFMTA — Mobile Parking Payment Update",
+        "url": "https://www.sfmta.com/blog/new-parking-payment-options-more-flexibility-and-helpful-reminders",
+        "description": "旧金山停车表采用 ParkMobile 与 HotSpot，支持应用、浏览器及访客支付。"
+      },
+      {
+        "title": "SFMTA — Use Your Phone to Pay for Parking",
+        "url": "https://www.sfmta.com/getting-around/drive-park/parking-meters/use-your-phone-pay-parking",
+        "description": "现行说明确认 PayByPhone 已不被 SFMTA 停车表接受；停车位置代码与街边限时仍须核对。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "hotspot-parking",
+    "name": "HotSpot Parking",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "可用应用或网页支付参与地点的停车费，也是旧金山停车表现役选项。",
+    "bestFor": "适合偶尔停车、希望使用网页访客流程而不常装应用的人。",
+    "howTo": "从官网进入付款页，按停车表上的代码输入位置、车牌和时长，确认费用后保留付款结果。",
+    "watchFor": "续时仍受现场最长停车限制；显示可付款不代表可以停在装卸区或临时禁停范围。",
+    "coverage": "覆盖 SFMTA 指定停车表及其他合作地点；跨城市时先看当地停车标志接受哪种平台。",
+    "url": "https://hotspotparking.io/",
+    "sources": [
+      {
+        "title": "HotSpot Parking",
+        "url": "https://hotspotparking.io/",
+        "description": "官方说明支持应用或浏览器、账户或访客付款，并提供美国付款入口。"
+      },
+      {
+        "title": "SFMTA — Mobile Parking Payment Update",
+        "url": "https://www.sfmta.com/blog/new-parking-payment-options-more-flexibility-and-helpful-reminders",
+        "description": "旧金山停车表采用 ParkMobile 与 HotSpot，支持应用、浏览器及访客支付。"
+      },
+      {
+        "title": "SFMTA — Use Your Phone to Pay for Parking",
+        "url": "https://www.sfmta.com/getting-around/drive-park/parking-meters/use-your-phone-pay-parking",
+        "description": "现行说明确认 PayByPhone 已不被 SFMTA 停车表接受；停车位置代码与街边限时仍须核对。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "paybyphone",
+    "name": "PayByPhone",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "为明确支持的平台地点支付停车费，在 Presidio 仍有实际用途。",
+    "bestFor": "适合去 Presidio 游玩，或已确认停车场接受该平台的驾驶者。",
+    "howTo": "到场查看停车牌与位置代码，输入正确车牌和所需时长，再核对付款成功；也可看现场售票机选项。",
+    "watchFor": "SFMTA 路边停车表已停止接受 PayByPhone，不能照旧攻略付款；各停车点费率与限制分别确认。",
+    "coverage": "Presidio 官方仍列 PayByPhone；不能据此推断旧金山所有停车表或其他湾区城市都接受。",
+    "url": "https://www.paybyphone.com/",
+    "sources": [
+      {
+        "title": "PayByPhone",
+        "url": "https://www.paybyphone.com/",
+        "description": "官方入口提供应用下载与网页停车付款。"
+      },
+      {
+        "title": "Presidio — Parking",
+        "url": "https://presidio.gov/visit/getting-to-and-around-the-park/parking-in-the-presidio",
+        "description": "Presidio 停车可使用 PayByPhone 或现场付费机，费率按位置与日期变化。"
+      },
+      {
+        "title": "SFMTA — Use Your Phone to Pay for Parking",
+        "url": "https://www.sfmta.com/getting-around/drive-park/parking-meters/use-your-phone-pay-parking",
+        "description": "现行说明确认 PayByPhone 已不被 SFMTA 停车表接受；停车位置代码与街边限时仍须核对。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "spothero",
+    "name": "SpotHero",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "按目的地与时间比较并预付合作车库、停车场的位置。",
+    "bestFor": "适合开车看演出、去市中心或想在出发前确定停车方案的人。",
+    "howTo": "输入到场与离场时间，查看入口地址、限高和车型要求；订好后按 Parking Pass 指示入场。",
+    "watchFor": "不是路边停车表付款；多数地点不能反复进出，超时与超大车辆费用、取消条件按订单确认。",
+    "coverage": "旧金山及湾区有合作库存，是否有合适场库取决于目标地址、日期和时段。",
+    "url": "https://www.spothero.com/city/san-francisco-parking",
+    "sources": [
+      {
+        "title": "SpotHero — San Francisco Parking",
+        "url": "https://www.spothero.com/city/san-francisco-parking",
+        "description": "提供旧金山合作停车场库的按时段搜索与预约入口。"
+      },
+      {
+        "title": "SpotHero — FAQ",
+        "url": "https://www.spothero.com/faq",
+        "description": "说明 Parking Pass 入场、车型限制、进出次数与订单取消等条件。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "bay-wheels",
+    "name": "Bay Wheels / Lyft Bike",
+    "category": "transport",
+    "format": "app-web",
+    "summary": "查询共享单车与车桩，解决车站到目的地的短途接驳。",
+    "bestFor": "适合能骑车、行李不多，并愿意按指定规则还车的人。",
+    "howTo": "先在应用查可用车辆和目的地车桩，选择骑行方案后解锁；还桩时等绿色确认灯并检查行程结束。",
+    "watchFor": "电助力车与普通车计费不同；旧金山部分电助力车可按规则锁车架，不能把此规则套到所有城市。",
+    "coverage": "服务旧金山、东湾部分城市和圣何塞；逐点查应用中的服务区、停车点及可能的还车附加费。",
+    "url": "https://www.lyft.com/bikes/bay-wheels/ride-experience",
+    "sources": [
+      {
+        "title": "Bay Wheels — Ride Experience",
+        "url": "https://www.lyft.com/bikes/bay-wheels/ride-experience",
+        "description": "官方骑行说明提供应用入口、解锁与还桩绿色确认灯步骤，也支持网上选择会员。"
+      },
+      {
+        "title": "Lyft Bike — E-bike Parking Upgrade",
+        "url": "https://lyftbikes.com/blog/ebike-parking-upgrade",
+        "description": "旧金山部分带锁电助力车可按指定规则停公共车架，其他列明城市仍须还桩。"
+      },
+      {
+        "title": "511 — Bay Area Transportation",
+        "url": "https://511.org/",
+        "description": "区域官网列出 Bay Wheels 在旧金山、东湾和圣何塞的服务及地图查询入口。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "id": "fastrak",
+    "name": "FasTrak",
+    "category": "transport",
+    "format": "web",
+    "summary": "管理湾区收费桥梁与快速车道账户，查询或支付相关通行费。",
+    "bestFor": "适合自驾跨桥、新购车，或需要安排租车过路费的游客。",
+    "howTo": "先分清桥梁与快速车道，再选账户和设备；租车使用自己的账户时添加车牌并设置使用起止日期。",
+    "watchFor": "短期车牌账户不能支付快速车道；快速车道需有效标签，租车公司方案还可能收服务费。",
+    "coverage": "适用于湾区收费桥梁和指定快速车道；不同道路、拼车优惠与标签条件须分别核对。",
+    "url": "https://www.bayareafastrak.org/en/home/index.shtml",
+    "sources": [
+      {
+        "title": "FasTrak",
+        "url": "https://www.bayareafastrak.org/en/home/index.shtml",
+        "description": "官方通行费账户、付款和收费地点入口。"
+      },
+      {
+        "title": "FasTrak — Ways to Pay",
+        "url": "https://www.bayareafastrak.org/en/home/ways-to-pay.shtml",
+        "description": "区分桥梁和快速车道可用的付款方式及标签要求。"
+      },
+      {
+        "title": "FasTrak — Rental Vehicles Guide",
+        "url": "https://www.bayareafastrak.org/en/help/rental-vehicles-guide.shtml",
+        "description": "租车可选不同付费方案；自有账户需车牌起止日期，短期车牌账户仅用于桥梁。"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]
