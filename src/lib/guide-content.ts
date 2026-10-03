@@ -5,6 +5,10 @@ const contactText = (contact: UtilityContact) => [contact.name, contact.phone, c
 
 /** Keep search and BayBay exports consistent with the complete readable block. */
 export const guideBlockText = (block: GuideBlock): string => {
+  if (block.type === 'shopping-directory') return [block.title, block.text, ...block.places.map(place => [
+    place.name, `${place.city} | ${place.region} | ${place.kind}`, place.address, place.description, place.bestFor,
+    place.plan, place.transport, place.caution, place.url, place.directoryUrl, place.visitUrl, place.verifiedAt,
+  ].join('\n'))].join('\n\n');
   if (block.type === 'utility-directory') return [block.title, block.text, ...block.cities.map(city => [city.county, city.city, city.notes,
     ...city.water.map(item => `Water: ${contactText(item)}`), ...city.electric.map(item => `Electricity: ${contactText(item)}`),
     ...city.waste.map(item => `Waste: ${contactText(item)}`), `Internet: ${BROADBAND_MAP_URL}`, city.municipalUrl, city.verifiedAt,

@@ -24,6 +24,7 @@ import dailyLifeMedia from './daily-life-media.json';
 import schoolMedia from './schools-media.json';
 import schoolCampusMedia from './schools-campus-media.json';
 import septemberRefreshMedia from './september-refresh-media.json';
+import shoppingMedia from './shopping-media.json';
 import { currentOpenings as septemberOpenings } from './local-discoveries';
 
 export type GuideImage = {
@@ -65,7 +66,7 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia]) {
+for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia, ...shoppingMedia]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
@@ -236,6 +237,7 @@ export const READER_GUIDE_MEDIA: Record<string, [string, string]> = {
 };
 Object.assign(bySlug, READER_GUIDE_MEDIA);
 bySlug['bay-area-city-utilities-internet-phone-directory'] = ['utilities-setup', 'coverage-laptop'];
+bySlug['bay-area-outlets-malls-shopping-guide'] = ['shopping-stonestown', 'region-japantown'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

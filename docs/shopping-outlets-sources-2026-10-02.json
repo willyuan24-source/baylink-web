@@ -1,0 +1,213 @@
+{
+  "verifiedAt": "2026-10-02",
+  "scope": "Six requested core Bay Area outlet centers; source checks completed with official center websites.",
+  "count": 6,
+  "editorialPolicy": [
+    "description uses verified format/location facts; bestFor and plan are editorial recommendations, not official visiting-duration guidance.",
+    "All plan durations exclude travel and do not guarantee completion or queue lengths.",
+    "No fixed discounts, opening hours, unverified store counts, free-parking claims or guaranteed driving times are published.",
+    "North Bay includes Napa, Petaluma and Vacaville for the site's five-region navigation; this is an editorial grouping, not a transit fare zone."
+  ],
+  "sources": [
+    {
+      "placeId": "san-francisco-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/san-francisco/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Official center is in Livermore, not San Francisco city; address 2774 Livermore Outlets Drive, CA 94551.",
+        "Outdoor outlet with designer and apparel retailers; access from I-580 El Charro/Fallon Road.",
+        "About page provides parking and transit information; current operator timetables were not independently verified."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "san-francisco-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/san-francisco/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "great-mall",
+      "url": "https://www.simon.com/mall/great-mall/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Officially described as an enclosed outlet and value-retail center with dining and entertainment.",
+        "Address 447 Great Mall Dr, Milpitas, CA 95035; driving approaches via I-880 and I-680.",
+        "About page identifies BART/VTA options; no listed route number, timetable or guaranteed travel time reproduced."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "great-mall",
+      "url": "https://www.simon.com/mall/great-mall/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "gilroy-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/gilroy/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Address 681 Leavesley Rd, Gilroy, CA 95020; official access directions use US-101.",
+        "Official printable directory groups stores by Building A/B/C; use this for route grouping rather than assuming one uninterrupted mall corridor."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "gilroy-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/gilroy/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "napa-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/napa/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Address 629 Factory Stores Dr, Napa, CA 94558; official access via Highway 29 First Street exit.",
+        "Center is in Napa's wine-country area; EV information identifies the Freeway Drive entrance."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "napa-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/napa/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "petaluma-village-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/petaluma-village/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Outdoor outlet in Petaluma, Sonoma County; address 2200 Petaluma Blvd N, Petaluma, CA 94952.",
+        "Official driving directions use US-101; public-transport stop is listed at the main entrance.",
+        "Published bus itineraries and driving-time claims were not reused; travelers are directed to current operator schedules."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "petaluma-village-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/petaluma-village/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "vacaville-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/vacaville/about",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; official_search_index_corroborration",
+      "claims": [
+        "Outdoor outlet in Vacaville, Solano County; address 321 Nut Tree Rd, Vacaville, CA 95687.",
+        "Official driving access is I-80/Nut Tree Road; bus stops listed on Nut Tree Road and Burton Drive; accessible parking information is provided."
+      ],
+      "limitations": [
+        "Marketing claims about discounts, store counts and driving times were not adopted.",
+        "Parking prices, EV availability, live inventory, individual opening hours and return policies were not verified."
+      ]
+    },
+    {
+      "placeId": "vacaville-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/vacaville/stores",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success",
+      "claims": [
+        "Verified the official center-specific store-directory entry point."
+      ],
+      "limitations": [
+        "Directory navigation is readable, but interactive store results may require JavaScript. No exhaustive current store count or inventory claim is made."
+      ]
+    },
+    {
+      "placeId": "gilroy-premium-outlets",
+      "url": "https://www.premiumoutlets.com/outlet/gilroy/stores/print",
+      "checkedAt": "2026-10-02",
+      "access": "direct_open_success; PDF_text_read",
+      "claims": [
+        "Six-page official printable directory labels store locations and entrance tips by Building, corroborating a grouped shopping route."
+      ],
+      "limitations": [
+        "No store-count total, opening-hours schedule or specific stock claim reproduced."
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Marina Square Center",
+      "city": "San Leandro",
+      "reason": "Not added as an outlet because the current official center-wide outlet classification could not be established from accessible material.",
+      "sources": [
+        {
+          "url": "https://www.marinasquarecenter.com/",
+          "checkedAt": "2026-10-02",
+          "access": "direct_open_internal_error",
+          "claims": [],
+          "limitations": [
+            "No current homepage or live directory content could be read."
+          ]
+        },
+        {
+          "url": "https://www.marinasquarecenter.com/media/v1/241/2024/03/MS240302-Printable-Directory-Update-v1.pdf",
+          "checkedAt": "2026-10-02",
+          "access": "official_search_index_only",
+          "claims": [
+            "Official 2024 directory identifies Marina Square shopping center and several factory/clearance retailers."
+          ],
+          "limitations": [
+            "Historical tenant composition is insufficient to classify the entire center as a current outlet or assert current store availability."
+          ]
+        }
+      ]
+    }
+  ]
+}

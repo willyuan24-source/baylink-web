@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": "Editorial framing for the 32-destination shopping guide; destination evidence is in three regional source ledgers.",
+  "editorialBoundaries": [
+    "Selected destinations are not a measured popularity or cheapest-price ranking.",
+    "Durations, itineraries, procurement lists and budget trade-offs are editorial suggestions.",
+    "No universal opening hours, parking rate, discount percentage, inventory or return window is promised.",
+    "Official directories can lag closures; Tanforan and Northgate are excluded as complete shopping-day recommendations.",
+    "Bay Street links use the CenterCal owner page because the local homepage returned unrelated injected content during research.",
+    "The Stonestown cover reuses the existing credited 2025 photograph without presenting it as a current storefront inventory."
+  ],
+  "sources": [
+    {
+      "url": "https://consumer.ftc.gov/consumer-alerts/2019/07/outlet-shopping-deal-details",
+      "claim": "Some merchandise is made for outlets; compare products and actual prices, and ask about outlet-specific return rules.",
+      "reviewMethod": "Official search index provided the article text; subsequent direct opens timed out.",
+      "published": "2019-07-10",
+      "limit": "Used for general shopping principles, not current promotions or retailer-specific terms."
+    },
+    {
+      "url": "https://oag.ca.gov/consumers/general/outlet-stores",
+      "claim": "Outlet-specific merchandise and Compare At pricing require careful comparison.",
+      "reviewMethod": "Directly opened via the California DOJ consumer index.",
+      "limit": "No individual retailer is accused of misleading pricing."
+    },
+    {
+      "url": "https://oag.ca.gov/consumers/general/refunds",
+      "claim": "Check store refund policies before buying.",
+      "reviewMethod": "Directly opened via the California DOJ consumer index.",
+      "limit": "The guide does not restate legal deadlines or promise a universal refund entitlement."
+    },
+    {
+      "url": "https://www.sfchronicle.com/realestate/article/san-francisco-centre-mall-buyers-selected-21943183.php/",
+      "claim": "San Francisco Centre had closed in 2026 and was described as shuttered.",
+      "reviewMethod": "Directly opened report by Laura Waxmann dated March 4, 2026.",
+      "limit": "Local reporting, not an operator announcement; no future reopening or redevelopment outcome is asserted."
+    },
+    {
+      "url": "https://tanforanforsanbruno.com/faq/",
+      "claim": "Redevelopment transition; no overall mall closure date announced in the FAQ.",
+      "reviewMethod": "Official indexed text verified by the regional research agent; root direct open failed.",
+      "limit": "Individual active stores do not establish normal operation of the whole mall; not listed as a complete browsing destination."
+    },
+    {
+      "url": "https://www.target.com/sl/tanforan-store/1054",
+      "claim": "An individual Tanforan Target location listed October 2, 2026 opening hours.",
+      "reviewMethod": "Regional researcher read the official store page.",
+      "limit": "This specific example supports avoiding an all-closed claim; its hours are not copied into the evergreen guide."
+    }
+  ]
+}

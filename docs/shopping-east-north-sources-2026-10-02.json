@@ -1,0 +1,364 @@
+{
+  "verifiedAt": "2026-10-02",
+  "scope": {
+    "included": 14,
+    "regions": {
+      "East Bay": 9,
+      "North Bay": 5
+    },
+    "outletsIncluded": false
+  },
+  "methodology": [
+    "优先直接读取购物中心、运营业主、实际商家及市政府官方入口；official-search-index-read 表示实际读取官方网址搜索索引，不声称成功抓取全文。",
+    "所有 plan 的顺序和停留时间均为编辑建议，未进行实地计时；bestFor 是基于店铺组合的编辑判断。",
+    "资料核验不等于实时店铺营业、库存、停车位、电影票或餐厅座位保证；出发前核对目标门店。",
+    "没有创造折扣、店铺总数、预算或未经支持的免费停车。只在当前官方页明确写明时记录免费停车，并保留范围。",
+    "网约车、公交和充电仅使用已查官方入口及必要事实；未从地图距离猜测分钟数。",
+    "本次没有致电商场、提交表单或操作第三方博彩外链。"
+  ],
+  "venues": [
+    {
+      "id": "broadway-plaza",
+      "sources": [
+        {
+          "url": "https://www.broadwayplaza.com/Visit",
+          "claim": "露天购物中心；百货与品牌店；Main Street 和 South Broadway 停车楼。当前前 3 小时免费、其后收费，付费交易另有附加费。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.broadwayplaza.com/Directory",
+          "claim": "当前目录有 Apple、Aritzia、美妆和家居类别；未把 Coming Soon 店铺列为已开店。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.broadwayplaza.com/contact",
+          "claim": "官方地址 1275 Broadway Plaza, Walnut Creek, CA 94596。",
+          "access": "official-search-index-read"
+        }
+      ],
+      "limits": "没有承诺实时货量、折扣或全天免费停车。建议时长、试穿优先顺序为编辑建议。"
+    },
+    {
+      "id": "stoneridge-shopping-center",
+      "sources": [
+        {
+          "url": "https://www.simon.com/mall/stoneridge-shopping-center/about",
+          "claim": "官方确认两层室内商场、1 Stoneridge Mall Rd 地址、West Dublin/Pleasanton BART 站对面、免费停车；简介列 UNIQLO、ZARA、LEGO、Apple。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.simon.com/mall/stoneridge-shopping-center/stores",
+          "claim": "当前官方店铺目录入口。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.simon.com/brands/center/stoneridge-shopping-center",
+          "claim": "区分 Stores 与 Brands Offered，只从实际商店列表确认门店。",
+          "access": "official-search-index-read"
+        }
+      ],
+      "limits": "About 页不同段落的店铺总数不一致，未引用数量。页面部分公交说明含旧锚店名称，未抄写这些细节或保证路线班次。"
+    },
+    {
+      "id": "sunvalley-shopping-center",
+      "sources": [
+        {
+          "url": "https://shopsunvalley.com/about-us/",
+          "claim": "百货、专卖、服务、简餐的综合商场；地址 1 Sunvalley Mall；Willow Pass Road 驾车说明和交通信息入口。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://shopsunvalley.com/directory/",
+          "claim": "当前官方搜索目录入口。",
+          "access": "official-page-partial",
+          "limitation": "目录商家以动态内容展示，本次文字抓取未完整返回店铺列表，因此描述不声称特定品牌当前营业。"
+        }
+      ],
+      "limits": "官网保留 1 月 25 日冬季风暴关闭通知，未将其解读为 2026-10-02 关闭；未照抄旧公交路线、车位数或商家数。专程前逐店确认营业。"
+    },
+    {
+      "id": "bay-street-emeryville",
+      "sources": [
+        {
+          "url": "https://centercal.com/portfolio/bay-street-emeryville",
+          "claim": "CenterCal 官方业主页确认 5616 Bay Street 地址、购物餐饮娱乐复合用途，并列 Apple、Barnes & Noble、UNIQLO、AMC 等主要租户与管理联系人。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://baystreetemeryville.com/",
+          "claim": "只用于识别网站质量问题，不作为读者推荐链接或内容依据。",
+          "access": "official-page-read-with-unrelated-spam",
+          "limitation": "页面正文夹杂与商场无关的博彩 SEO 文本；没有点击、采纳或复述这些外链内容。"
+        },
+        {
+          "url": "https://baystreetemeryville.com/directory/",
+          "claim": "只用于确认该域名目录同样受到无关内容污染，不作为发布的 directoryUrl。",
+          "access": "official-page-read-with-unrelated-spam",
+          "limitation": "动态目录周边可见博彩文本。"
+        },
+        {
+          "url": "https://baystreetemeryville.com/directions-parking/",
+          "claim": "发现停车专页入口，但不依赖此受污染域名给出当前免费时段或收费承诺。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "url、directoryUrl、visitUrl 全部回退为 CenterCal 干净官方项目页。公开文案仅提醒向商场确认营业和停车，不推广可疑入口。业主页不是完整逐店实时营业表。"
+    },
+    {
+      "id": "pacific-commons",
+      "sources": [
+        {
+          "url": "https://pacificcommons.com/center-information",
+          "claim": "官方描述为购物、餐饮、娱乐的 lifestyle center，地址 43440 Boscell Rd, Fremont。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://pacificcommons.com/stores/",
+          "claim": "当前目录列 Costco、Lowe's、Nordstrom Rack、Barnes & Noble、影院和餐饮。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://pacificcommons.com/pages/location/",
+          "claim": "官方明确户外购物区，靠近 I-880 与 Auto Mall Parkway，并提供驾车方向。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "官方页面的充电价格和历史供应商名称未用于文案。未声称全场免费停车或所有区域步行相连。是否挪车和购物顺序是编辑建议。"
+    },
+    {
+      "id": "city-center-bishop-ranch",
+      "sources": [
+        {
+          "url": "https://citycenterbishopranch.com/",
+          "claim": "官方当前开放商家展示包含 Madewell、Gorjana、Philz、THE LOT；未从历史开业报道推算租户。",
+          "access": "official-search-index-read"
+        },
+        {
+          "url": "https://citycenterbishopranch.com/directory/",
+          "claim": "官方目录入口可访问但重试时出现超时。",
+          "access": "official-page-read",
+          "limitation": "初次读到目录页面；后续局部检索超时，具体文案品牌取自官网首页当前名单。"
+        },
+        {
+          "url": "https://citycenterbishopranch.com/visit/visit-us/",
+          "claim": "官方地址 6000 Bollinger Canyon Road, San Ramon。",
+          "access": "official-page-read",
+          "limitation": "同页不同区块总营业时间冲突，未引用统一开放时刻。"
+        },
+        {
+          "url": "https://citycenterbishopranch.com/visit/parking-rideshare/",
+          "claim": "自助停车免费；车库南北两侧有坡道；网约车使用面向 Bollinger Canyon Road 的南侧代客泊车区。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "不把自助停车免费扩大成代客泊车免费；不引用未与公交运营方再次核对的路线。"
+    },
+    {
+      "id": "fourth-street-berkeley",
+      "sources": [
+        {
+          "url": "https://www.fourthstreet.com/",
+          "claim": "官方街区站描述店铺和户外餐饮。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.fourthstreet.com/specialty",
+          "claim": "特色店分类页列 Apple、Builders Booksource、Paper Source、Topdrawer；directoryUrl 明确使用这一官方商家分类入口。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.fourthstreet.com/contact",
+          "claim": "街区管理联络地址 1834 Fourth Street，办公室工作时间与商店营业时间不同。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.fourthstreet.com/events/",
+          "claim": "2026 活动在 Fourth 与 Delaware 一带，支持以此交叉口作为购物街区定位；没有将活动日当作每日营业项目。",
+          "access": "official-search-index-read"
+        },
+        {
+          "url": "https://www.visitberkeley.com/maps-neighborhoods/fourth-street/",
+          "claim": "官方目的地机构确认 Fourth Street 是特色零售、设计商品、餐饮组成的街区。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://berkeleyca.gov/city-services/parking",
+          "claim": "Berkeley 市政府停车规则与设施查询入口；不等同街区统一免费停车。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "目录链接是 Specialty 分类而非完整全街商户计数。街区范围、慢逛和礼物用途是编辑规划；未引用历史网页中已关闭餐馆。"
+    },
+    {
+      "id": "south-shore-center-alameda",
+      "sources": [
+        {
+          "url": "https://www.alamedasouthshorecenter.com/",
+          "claim": "官方购物中心首页与管理信息。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.alamedasouthshorecenter.com/directory",
+          "claim": "当前商家列表列 Trader Joe's、Safeway、Daiso Japan、Home Goods、Old Navy 等。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.alamedasouthshorecenter.com/directions",
+          "claim": "官方地址 523 South Shore Center West, Alameda；可输入出发地址规划路线。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "带尾斜杠的 directory/ 路径曾 403，无尾斜杠 directory 可直接读取，数据保留后者。没有把商场停车场当成海滩停车保障，也未声称免费或全天不限时。"
+    },
+    {
+      "id": "southland-mall-hayward",
+      "sources": [
+        {
+          "url": "https://www.southlandmall.com/stores",
+          "claim": "当前目录有 H&M、JD Sports、Foot Locker、儿童服装及 Century Theatres。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.southlandmall.com/contact",
+          "claim": "地址 One Southland Mall Drive, Hayward；官方写免费停车及入口附近无障碍车位。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.southlandmall.com/info",
+          "claim": "官方信息页标注更新日期 2026-07-22。",
+          "access": "official-search-index-read"
+        }
+      ],
+      "limits": "补入这一稳定可读地点以替代重建范围未明的 Northgate。未使用首页笼统营销数字或招商页楼层描述；不主张任何优惠。"
+    },
+    {
+      "id": "village-at-corte-madera",
+      "sources": [
+        {
+          "url": "https://www.villageatcortemadera.com/",
+          "claim": "官方介绍为露天中心，列 Nordstrom 与品牌购物、餐饮。",
+          "access": "official-search-index-read",
+          "limitation": "搜索缓存带旧优惠日期，未使用优惠或具体活动，仅以当前目录交叉核对品牌。"
+        },
+        {
+          "url": "https://www.villageatcortemadera.com/Directory",
+          "claim": "当前目录列 Apple、Aritzia、Nordstrom 等；Coming Soon 与营业中条目区分。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.villageatcortemadera.com/Contact",
+          "claim": "官方地址 1618 Redwood Highway, Corte Madera。",
+          "access": "official-search-index-read"
+        },
+        {
+          "url": "https://www.villageatcortemadera.com/Services",
+          "claim": "当前 Services 提供交通咨询、自行车架、充电位置等到访信息。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "未声称停车或充电免费。与 Town Center 为两处中心，提醒目标店核对项目名称。"
+    },
+    {
+      "id": "town-center-corte-madera",
+      "sources": [
+        {
+          "url": "https://www.shoptowncenter.com/directory/",
+          "claim": "当前目录列 Arhaus、Crate & Barrel、Barnes & Noble、Five Little Monkeys 及本地店，覆盖家居、书、玩具、服饰、餐饮。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.shoptowncenter.com/visit/",
+          "claim": "官方地址 100 Corte Madera Town Center；提供导航与 Uber/Lyft 链接，并明确要求逐店确认营业时间。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "未依据旧租赁图声称 REI、Safeway 等未在本次逐项核实的门店仍在营业；不提供停车价格。"
+    },
+    {
+      "id": "coddingtown",
+      "sources": [
+        {
+          "url": "https://codding.com/",
+          "claim": "Coddingtown 当前官方运营站；1300 Coddingtown Center 明列为管理办公室地址。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://codding.com/coddingtown-shops/",
+          "claim": "当前逐店目录列 Target、Whole Foods、服饰、美妆与餐饮。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://codding.com/directions/",
+          "claim": "官方给出 Highway 101 入口和 SMART Santa Rosa North 站至中心的步行线路。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://codding.com/parking/",
+          "claim": "官方确认顾客免费露天及无障碍停车；列儿童游乐区和洗手间位置。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "没有把 Coming Soon 洗手间视为已开放，未写列车频率、票价或充电价格。管理地址与实际目的店地址区别已提醒。"
+    },
+    {
+      "id": "santa-rosa-plaza",
+      "sources": [
+        {
+          "url": "https://www.simon.com/mall/santa-rosa-plaza/about",
+          "claim": "官方地址 1071 Santa Rosa Plaza；位于 Courthouse Square 与 Railroad Square 之间；列 Macy's、LUSH、Sephora；确认免费停车、邻近 SMART Downtown Santa Rosa 和 Transit Mall。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://www.simon.com/mall/santa-rosa-plaza/stores",
+          "claim": "当前官方店铺目录入口。",
+          "access": "official-page-read"
+        }
+      ],
+      "limits": "不引用官网营销排名、商家数或可能过时的 SMART 全线端点。停车楼与市政其他停车设施不混为一谈。"
+    },
+    {
+      "id": "solano-town-center",
+      "sources": [
+        {
+          "url": "https://solanotowncenter.com/about-us/",
+          "claim": "官方地址 1350 Travis Boulevard；I-80 东侧 Travis Boulevard 出口附近；列 Dick's Sporting Goods、Best Buy、百货、Dave & Buster's 和电影餐饮。",
+          "access": "official-page-read"
+        },
+        {
+          "url": "https://solanotowncenter.com/directory/",
+          "claim": "当前官方目录及 Directory Map 入口。",
+          "access": "official-page-partial",
+          "limitation": "部分店铺动态内容未在文本抓取显示；具体品牌以官方 About 页交叉核对，不推断完整营业名单。"
+        }
+      ],
+      "limits": "不引用总店数、停车免费或游戏价格；影院、娱乐与零售时长分开，年龄规则仅提醒读者核对。"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Northgate",
+      "city": "San Rafael",
+      "reason": "不作为本轮常规购物行程推荐。开发方较早公告称南端部分区域封闭、其余继续经营，但本次未核定 2026-10-02 的施工封闭边界、入口和逐店开放范围；当前目录还混列未来计划商家，不能以目录存在推断全场正常。",
+      "sources": [
+        {
+          "url": "https://futurenorthgatemall.com/northgate-town-square-update-3/",
+          "claim": "较早更新称原 Sears 建筑于 2026 年初进入拆除阶段，施工时南部部分区域封闭、其余营业。",
+          "access": "official-search-index-read",
+          "limitation": "直接抓取一次成功返回页面、复读超时；公告描述的是阶段计划，不是本次日期现场确认。"
+        },
+        {
+          "url": "https://www.shopatnorthgate.com/directory",
+          "claim": "当前目录包含零售、社区项目和 Good Earth Natural Foods 等条目。",
+          "access": "official-search-index-read",
+          "limitation": "没有把目录上每项均视为已经开放。"
+        },
+        {
+          "url": "https://futurenorthgatemall.com/retail/",
+          "claim": "开发方介绍新零售、改造影院等未来项目。",
+          "access": "official-search-index-read",
+          "limitation": "未来式规划不能写成当下购物设施。"
+        }
+      ]
+    }
+  ]
+}

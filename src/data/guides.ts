@@ -1,5 +1,6 @@
 import { visitorPersonaGuides } from './guides-persona-visitor';
 import { utilityGuides } from './guides-utilities';
+import { shoppingGuides } from './guides-shopping';
 import { newResidentPersonaGuides } from './guides-persona-newresident';
 import { establishedResidentPersonaGuides } from './guides-persona-resident';
 import { practicalGuides } from './guides-practical';
@@ -33,6 +34,7 @@ import { SCHOOL_REGIONS } from './school-regions';
 import { ATTRACTIONS } from './attractions';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { UtilityCity, UtilityContact } from './utility-types';
+import type { ShoppingPlace } from './shopping-types';
 
 export type GuideCategory =
   | 'rent'
@@ -49,6 +51,7 @@ export type GuideCategory =
 export type GuideSource = { title: string; url: string; description: string };
 
 export type GuideBlock =
+  | { type: 'shopping-directory'; title: string; text: string; places: ShoppingPlace[] }
   | { type: 'utility-directory'; title: string; text: string; cities: UtilityCity[] }
   | { type: 'contact-directory'; title: string; text: string; contacts: UtilityContact[]; anchor: string }
   | { type: 'freebies'; title: string; text: string; offers: FreebieOffer[] }
@@ -1888,6 +1891,7 @@ export const guides: Guide[] = [
   ...october2026VisitGuides,
   ...visitorPersonaGuides,
   ...utilityGuides,
+  ...shoppingGuides,
   ...newResidentPersonaGuides,
   ...establishedResidentPersonaGuides,
   ...serviceGuides,

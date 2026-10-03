@@ -29,6 +29,7 @@ import { GuideReaderActions } from './ReaderLibrary';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
 import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
+import { ShoppingDirectory } from './ShoppingDirectory';
 
 type GuideDetailProps = {
   slug: string;
@@ -401,6 +402,8 @@ const BlockRenderer = ({
   onCta: (b: Extract<GuideBlock, { type: "cta" }>) => void;
 }) => {
   switch (block.type) {
+    case 'shopping-directory':
+      return <ShoppingDirectory places={block.places} title={block.title} text={block.text} />;
     case 'utility-directory':
       return <UtilityDirectory cities={block.cities} title={block.title} text={block.text} />;
     case 'contact-directory':

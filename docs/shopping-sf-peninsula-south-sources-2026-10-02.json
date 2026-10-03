@@ -1,0 +1,448 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": "San Francisco / Peninsula / South Bay shopping destinations",
+  "publishedDestinationCount": 12,
+  "englishTranslationCount": 60,
+  "method": "由本子任务在 2026-10-02 实际搜索并读取官方运营商、商会、交通机构及市府网页；访问形式逐条记录。关闭状态遇官方资料缺口时明确标记二手新闻。",
+  "editorialBoundaries": [
+    "description 与 bestFor 为基于官方类别的编辑概括；plan 的时长和顺序为编辑估算，不是官方时限或实时交通预测。",
+    "不编造店铺数、当前折扣、最低价或库存；全体非 Outlet 地点不套用 Outlet 定义，Westgate 只说明混合业态。",
+    "停车有可靠现行公开规则才写免费；其他仅链接规则与导航，不将不同园区/市中心/校园规则混用。",
+    "verifiedAt 表示公开资料核验日，不表示实地访问、致电确认或所有门店实时开门。"
+  ],
+  "destinations": [
+    {
+      "id": "westfield-valley-fair",
+      "sources": [
+        {
+          "url": "https://www.westfield.com/en/united-states",
+          "checkedAt": "2026-10-02",
+          "claim": "运营商全国中心列表确认 2855 Stevens Creek Blvd, Santa Clara, CA 95050-6709。",
+          "access": "official_search_index_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.westfield.com/en/united-states/valleyfair",
+          "checkedAt": "2026-10-02",
+          "claim": "现行首页列出服饰、美妆、奢侈品及餐饮；页面有 2026 年 10 月活动，未据此编造促销。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.westfield.com/en/united-states/valleyfair/retailers",
+          "checkedAt": "2026-10-02",
+          "claim": "官网商店目录入口。",
+          "access": "official_page_read",
+          "limitations": "列表部分依赖脚本；不宣称完整店数或每店当日营业。"
+        },
+        {
+          "url": "https://www.westfield.com/en/united-states/valleyfair/parking",
+          "checkedAt": "2026-10-02",
+          "claim": "官方英文页列受控收费停车、独立 Dorsich Ave 收费停车场和代客泊车；数据只保留定性收费及入口。",
+          "access": "official_page_read",
+          "limitations": "本次英文页显示 0–1 小时免费、后续 $2/小时及每日上限，另有独立停车场条款；旧地区版本曾显示首 2 小时，不能混用。产品不固定费率，以现行页面与现场为准。"
+        }
+      ]
+    },
+    {
+      "id": "santana-row",
+      "sources": [
+        {
+          "url": "https://santanarow.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "中心地址 377 Santana Row, San Jose；购物、餐饮及酒店组成开放式生活方式目的地。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://santanarow.com/shop/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方当前购物目录。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://santanarow.com/visit/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方自助停车先免费后收费，Hotel Valencia 外代客泊车，门店及餐厅时间可能不同。",
+          "access": "official_page_read",
+          "limitations": "本次页列首 2 小时免费，之后 $3/小时、日上限 $15；产品不固定费率。"
+        }
+      ]
+    },
+    {
+      "id": "stanford-shopping-center",
+      "sources": [
+        {
+          "url": "https://www.simon.com/mall/stanford-shopping-center/about",
+          "checkedAt": "2026-10-02",
+          "claim": "官方地址 660 Stanford Shopping Ctr；露天庭院环境、百货、精品、餐饮；周边地面停车与 Quarry Road 停车楼、公共交通和网约车信息。",
+          "access": "official_page_read",
+          "limitations": "未找到明确现行停车价，未写免费；页内部分旧接驳与拼车应用可能过时，未复制路线号。商场与校园停车分开。"
+        },
+        {
+          "url": "https://www.simon.com/mall/stanford-shopping-center/stores",
+          "checkedAt": "2026-10-02",
+          "claim": "官方当前商店目录入口。",
+          "access": "official_page_read",
+          "limitations": "目录完整内容依赖 JavaScript；没有从全站 ShopSimon outlet 导航推断此中心是 Outlet。"
+        }
+      ]
+    },
+    {
+      "id": "hillsdale-shopping-center",
+      "sources": [
+        {
+          "url": "https://www.hillsdaleshoppingcenter.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "当前官方中心网站；旧 hillsdale.com 返回相同新站界面。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.hillsdaleshoppingcenter.com/stores/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方当前商店目录。",
+          "access": "official_page_read",
+          "limitations": "页面有动态组件；不固定门店数量。"
+        },
+        {
+          "url": "https://www.hillsdaleshoppingcenter.com/pages/faqs/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方 FAQ 确认免费自助停车、停车位置、室内餐饮区与 North Block、娱乐选项及独立营业时间；FAQ 当前给出的导航地址为 358 Hillsdale Mall。",
+          "access": "official_page_read",
+          "limitations": "60 31st Avenue 见旧规划资料；本数据采用当前 FAQ 地址。页面笼统列 BART 作为交通资源，不据此声称 BART 直达中心。"
+        }
+      ]
+    },
+    {
+      "id": "stonestown-galleria",
+      "sources": [
+        {
+          "url": "https://www.stonestowngalleria.com/en/directory/",
+          "checkedAt": "2026-10-02",
+          "claim": "当前官网目录及地址 3251 20th Ave；服饰、美妆、超市、餐饮、电影和游戏娱乐类型。",
+          "access": "official_search_index_read",
+          "limitations": "同一目录的 ?tab=map 版本也已读取；未固定总店数、场次及特定门店年龄限制。"
+        },
+        {
+          "url": "https://www.stonestowngalleria.com/en/visit/",
+          "checkedAt": "2026-10-02",
+          "claim": "官网明确免费停车但限顾客；离开物业或过夜停车可能拖车。",
+          "access": "official_page_read",
+          "limitations": "免费只适用于官网说明范围；未推荐将此处当全天外出停车点。"
+        }
+      ]
+    },
+    {
+      "id": "serramonte-center",
+      "sources": [
+        {
+          "url": "https://www.serramontecenter.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方地址 3 Serramonte Center, Daly City；官网现行活动覆盖 2026–2027，并有导航入口。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.serramontecenter.com/directory",
+          "checkedAt": "2026-10-02",
+          "claim": "现行目录含店铺位置、类别、营业状态和官方园区地图。",
+          "access": "official_page_read",
+          "limitations": "营业状态是抓取时点状态，不原样固化入产品；未查到明确当前停车费率，故不写免费。"
+        }
+      ]
+    },
+    {
+      "id": "westgate-center-san-jose",
+      "sources": [
+        {
+          "url": "https://shopwestgatecenter.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方首页明确 T&T Supermarket 已开业。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://shopwestgatecenter.com/shop-dine-and-more/",
+          "checkedAt": "2026-10-02",
+          "claim": "中心当前商店目录入口。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://shopwestgatecenter.com/get-here-contact/",
+          "checkedAt": "2026-10-02",
+          "claim": "地址 1600 Saratoga Ave, San Jose；官方列 Nike Factory Store、Nordstrom Rack、Target、T&T，提供路线入口。",
+          "access": "official_search_index_read",
+          "limitations": "官网营销语使用 outlets，但中心混合普通零售及超市，数据不称全部商户 Outlet。没有当前统一停车收费说明。"
+        }
+      ]
+    },
+    {
+      "id": "the-pruneyard",
+      "sources": [
+        {
+          "url": "https://www.thepruneyard.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方地址 1875 S Bascom Ave, Campbell；各店营业时间可能不同。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.thepruneyard.com/stores/",
+          "checkedAt": "2026-10-02",
+          "claim": "中心当前商店目录入口。",
+          "access": "official_page_read",
+          "limitations": "文本抓取只返回动态页面框架，具体商户类型用业主的实时物业页交叉核对。"
+        },
+        {
+          "url": "https://www.regencycenters.com/property/detail/60888/The-Pruneyard",
+          "checkedAt": "2026-10-02",
+          "claim": "业主当前物业页列 Pruneyard Cinemas、Sports Basement、Trader Joe's、Marshalls、Books Inc 等，支撑采购与影院搭配。",
+          "access": "official_search_index_read",
+          "limitations": "未复述物业营销人口、访问量或店数。"
+        },
+        {
+          "url": "https://www.thepruneyard.com/visit/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方到访导航入口。",
+          "access": "official_page_read",
+          "limitations": "到访页部分地图依赖脚本；不从空白框架推定停车费用。"
+        },
+        {
+          "url": "https://campbellca.gov/771/Pruneyard-MUP",
+          "checkedAt": "2026-10-02",
+          "claim": "市府将园区描述为露天购物、办公与酒店混合，管理文件包含共享停车、短停与停车楼。",
+          "access": "official_search_index_read",
+          "limitations": "这是管理与规划文件，不是实时停车价格公告；数据要求依现场时限，不声称某车位无限时或免费。"
+        },
+        {
+          "url": "https://www.campbellca.gov/ArchiveCenter/ViewFile/Item/1458",
+          "checkedAt": "2026-10-02",
+          "claim": "市府存档管理文本区分 short-term parking 与 garage 管理。",
+          "access": "official_search_index_read",
+          "limitations": "旧管理文件只用于解释停车类型，不据旧文件固定现行费率、车位数量或代客泊车安排。"
+        }
+      ]
+    },
+    {
+      "id": "town-country-village-palo-alto",
+      "sources": [
+        {
+          "url": "https://tandcvillage.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方地点为 El Camino Real 与 Embarcadero Road 交界，Palo Alto。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://tandcvillage.com/shops-restaurants/",
+          "checkedAt": "2026-10-02",
+          "claim": "当前目录列服饰、Books Inc.、Paper Source、家居、餐饮、Trader Joe's 等。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://tandcvillage.com/directions/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方路线查询入口。",
+          "access": "official_page_read",
+          "limitations": "交互地图部分依赖脚本；没有用市中心公共车库费率推定此物业停车规则。"
+        }
+      ]
+    },
+    {
+      "id": "sf-union-square-shopping",
+      "sources": [
+        {
+          "url": "https://visitunionsquaresf.com/directory",
+          "checkedAt": "2026-10-02",
+          "claim": "Union Square Alliance 官方街区目录，列购物、艺术、餐饮和停车，部分精品店提示预约。",
+          "access": "official_search_index_read",
+          "limitations": "目录不是所有店同时营业的保证，亦不能证明附近原 SF Centre 商场开放。"
+        },
+        {
+          "url": "https://www.sftravel.com/article/where-to-shop-luxury-retail-union-square",
+          "checkedAt": "2026-10-02",
+          "claim": "旅游局介绍 Union Square 周边精品购物分布。",
+          "access": "official_search_index_read",
+          "limitations": "只用于街区类型与购物范围，不沿用其未逐店复核的百货名单。"
+        },
+        {
+          "url": "https://www.bart.gov/stations/powl",
+          "checkedAt": "2026-10-02",
+          "claim": "官方站页明确 Powell Street 站邻近 Union Square。",
+          "access": "official_search_index_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.sfmta.com/garages-lots/union-square-garage",
+          "checkedAt": "2026-10-02",
+          "claim": "市交通局确认 Union Square Garage 地址 333 Post Street，收费、开放时段和下班后步行入口。",
+          "access": "official_page_read",
+          "limitations": "本次页为 5am–11pm，不能照旧攻略写 24 小时全部入口开放；产品链接现行规则而不固定费率。"
+        }
+      ]
+    },
+    {
+      "id": "sf-japantown-japan-center",
+      "sources": [
+        {
+          "url": "https://www.sfjapantown.org/",
+          "checkedAt": "2026-10-02",
+          "claim": "Japantown Community Benefit District 运营的官方街区站；当前 2026 活动与商家信息。",
+          "access": "official_page_read",
+          "limitations": "无 www 版本曾不可访问；产品采用可读取的 www 版本。"
+        },
+        {
+          "url": "https://www.sfjapantown.org/japan-center-malls/",
+          "checkedAt": "2026-10-02",
+          "claim": "Japan Center 官方街区目录及 1737 Post St 地址，明确公共区域与商户各自营业时间。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.sfjapantown.org/shopping/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方购物分类与周边商家入口。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.japancentergarage.org/",
+          "checkedAt": "2026-10-02",
+          "claim": "车库运营方确认主车库 1610 Geary Blvd 及 Post/Webster 出入口，Annex 1650 Fillmore St；列收费及车辆限制入口。",
+          "access": "official_search_index_read",
+          "limitations": "不复述未逐项核验的停车折扣或返券。"
+        },
+        {
+          "url": "https://www.sfjapantown.org/getting-here/",
+          "checkedAt": "2026-10-02",
+          "claim": "曾读取的官方到访页。",
+          "access": "official_page_read",
+          "limitations": "正文日期为 2021，含旧公交线号；未采用其 2/3/47 线或“六分钟”旅行时间，产品 visitUrl 改用车库运营方。"
+        }
+      ]
+    },
+    {
+      "id": "sf-fillmore-shopping",
+      "sources": [
+        {
+          "url": "https://fillmorestreetsf.com/",
+          "checkedAt": "2026-10-02",
+          "claim": "Fillmore Merchants Association 当前网站支持精品、二手、餐饮与坡地街道特色，新闻更新到 2026/10/2。",
+          "access": "official_page_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://fillmorestreetsf.com/shopping/",
+          "checkedAt": "2026-10-02",
+          "claim": "官方按类别的购物目录，可查书店、艺术、服饰等。",
+          "access": "official_page_read",
+          "limitations": "部分商户列表缺少逐项更新时间；产品提示专程前回品牌官网确认，未凭旧地图断言某店仍营业。"
+        },
+        {
+          "url": "https://fillmorestreetsf.com/wp-content/blogs.dir/1/files/2025/05/2025-Fillmore_Map.pdf",
+          "checkedAt": "2026-10-02",
+          "claim": "官方 2025 年街区地图支撑购物走廊和沿街商户布局。",
+          "access": "official_search_index_read",
+          "limitations": "地图不是 2026 实时营业清单；未将其全部商户复制入产品。"
+        },
+        {
+          "url": "https://www.sftravel.com/article/famous-san-francisco-streets-20-must-sees-your-visit",
+          "checkedAt": "2026-10-02",
+          "claim": "官方旅游机构将 Geary 至 Jackson 段列为 Upper Fillmore 购物范围。",
+          "access": "official_search_index_read",
+          "limitations": "核验公开网页，不代表实时库存、排队或当天临时营业变更。"
+        },
+        {
+          "url": "https://www.sfmta.com/routes/22-fillmore",
+          "checkedAt": "2026-10-02",
+          "claim": "SFMTA 22 Fillmore 官方路线和服务入口。",
+          "access": "official_page_read",
+          "limitations": "实时班次和改道需出发前查；未照旧商会交通页复制停运线路。"
+        }
+      ]
+    }
+  ],
+  "excludedOrTransitionDestinations": [
+    {
+      "id": "the-shops-at-tanforan",
+      "included": false,
+      "decision": "不推荐为完整逛街目的地；重建过渡、目录存在已证实过时商户。不能断言整个园区已关闭；只确认 Target 有核验日期的营业信息。",
+      "sources": [
+        {
+          "url": "https://tanforanforsanbruno.com/faq/",
+          "checkedAt": "2026-10-02",
+          "claim": "市府社区参与项目 FAQ 说明重建计划；页面仍称业主未正式公布整体商场关门日，拟保留 Target 和影院。",
+          "access": "official_search_index_read",
+          "limitations": "直接打开曾失败，但搜索索引正文可读。FAQ 还含旧的 2024 预计审批期限，故不将其当作实时工程进度，不据它保证所有店仍开。"
+        },
+        {
+          "url": "https://sanbruno.ca.gov/DocumentCenter/View/8561/March_2026_Development_Update",
+          "checkedAt": "2026-10-02",
+          "claim": "2026 年 3 月市府开发更新列出 Tanforan 项目与 tanforanforsanbruno.com 官方项目网站。",
+          "access": "official_search_index_read",
+          "limitations": "仅用于证明项目站官方关联；不把 3 月工程状态固化为 10 月状态。"
+        },
+        {
+          "url": "https://www.target.com/sl/tanforan-store/1054",
+          "checkedAt": "2026-10-02",
+          "claim": "Target 官方 Tanforan 店页列 1150 El Camino Real 及 2026/10/2 的 8am–10pm 营业安排。",
+          "access": "official_search_index_read",
+          "limitations": "仅证明这一家店安排，不能外推整个 Tanforan 商场；临时变化仍以门店为准。"
+        },
+        {
+          "url": "https://www.theshopsattanforan.com/directory",
+          "checkedAt": "2026-10-02",
+          "claim": "Tanforan 仍有官方目录，但仍列 JCPenney 和 Barnes & Noble。",
+          "access": "official_page_read",
+          "limitations": "目录与市府及后续报道发生冲突，故不能当作当前全店营业清单。center-information 页面返回 403。"
+        },
+        {
+          "url": "https://www.sanbruno.ca.gov/DocumentCenter/View/7602/Tanforan_Redevelopment_Project_DEIR_OCR_City_20250701",
+          "checkedAt": "2026-10-02",
+          "claim": "2025 年市府 EIR 明确原 JCPenney 主力店截至 2025/5 已空置，说明目录有过时条目。",
+          "access": "official_search_index_read",
+          "limitations": "历史事实只用于识别目录风险，不推断其他当前营业状态。"
+        },
+        {
+          "url": "https://www.sfchronicle.com/bayarea/article/barnes-noble-tanforan-mall-21950688.php",
+          "checkedAt": "2026-10-02",
+          "claim": "2026/3/2 报道转述 Barnes & Noble 确认最后营业日为 2026/5/2。",
+          "access": "secondary_news_search_index_read",
+          "limitations": "非官方，明确标为新闻交叉核验；不单凭计划关门报道断言整体商场关闭。"
+        },
+        {
+          "url": "https://www.sfgate.com/local/article/bay-area-bookstore-closure-22360910.php",
+          "checkedAt": "2026-10-02",
+          "claim": "2026/7/26 后续报道确认 San Bruno Barnes & Noble 已于 5 月关闭。",
+          "access": "secondary_news_search_index_read",
+          "limitations": "非官方，仅支持已关闭的具体书店，与仍营业 Target 分开。"
+        }
+      ]
+    },
+    {
+      "id": "san-francisco-centre",
+      "included": false,
+      "decision": "不作为营业中购物中心纳入。原 Westfield San Francisco Centre 与仍可逛的 Union Square 街区分开；不推荐从 BART 商场通道进入。",
+      "sources": [
+        {
+          "url": "https://www.sfchronicle.com/realestate/article/san-francisco-centre-mall-buyers-selected-21943183.php/",
+          "checkedAt": "2026-10-02",
+          "claim": "2026/3/4 后续报道明确称 San Francisco Centre 已关闭。",
+          "access": "secondary_news_page_read",
+          "limitations": "没有找到运营方可读取的现行关闭公告，故如实使用可信地方新闻，而不伪称官方确认。页面可能受订阅限制；本次正文可读。"
+        },
+        {
+          "url": "https://www.sfchronicle.com/bayarea/article/san-francisco-centre-closing-date-21305086.php/",
+          "checkedAt": "2026-10-02",
+          "claim": "2026/1/20 报道关闭安排，并转述 BART 确认封闭通向商场的入口。",
+          "access": "secondary_news_search_index_read",
+          "limitations": "该篇是预告，不单独作为已经关闭证据；页面有提前关闭后续链接。产品未固定最后开放日，以避免 1/24 与计划 1/26 差异。"
+        }
+      ]
+    }
+  ]
+}
