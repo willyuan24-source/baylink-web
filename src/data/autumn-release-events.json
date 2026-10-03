@@ -2691,7 +2691,7 @@
     "title": "AI 基础设施扩展问题交流晚餐",
     "startDate": "2026-10-07",
     "endDate": "2026-10-07",
-    "dateLabel": "10/7 · 18:00–21:00",
+    "dateLabel": "原列 10/7；报名页已下线，当前场次待确认",
     "region": "sf",
     "city": "San Francisco",
     "venue": "具体场所尚未公开",
@@ -2699,21 +2699,22 @@
     "kind": "meetup",
     "cost": "unknown",
     "costLabel": "票价未可靠显示，不能据报名页的数量选择器 0 判定免费",
-    "summary": "围绕 AI 系统扩大规模后的架构、成本和稳定性问题，进行问答及晚餐交流。",
+    "summary": "原活动介绍为 AI 基础设施交流晚餐。10/2 复核时原报名页返回 404，主办方当前日历未再列出这一场，暂不作为可参加的活动推荐；尚不能据此断定取消。",
     "plan": [
-      "时间安排：18:00–21:00。",
-      "费用与参加条件：票价未可靠显示，不能据报名页的数量选择器 0 判定免费 席位有限，需主办方审核；场所尚未公开。",
-      "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。"
+      "先向主办方确认这场活动是否仍举行、日期地点与报名方式。",
+      "原链接已不可访问；当前官方日历仅作联系和重新查找入口，不代表原场次恢复。",
+      "在获得新公告或确认之前，不按旧时间安排出行或付款。"
     ],
     "audience": [
       "AI 开发者",
       "创业者",
       "研究者"
     ],
-    "officialUrl": "https://luma.com/leverage-ph18",
-    "sourceLabel": "luma.com",
-    "verifiedAt": "2026-09-28",
-    "imageKey": "weekend"
+    "officialUrl": "https://luma.com/LeverageSF?k=c",
+    "sourceLabel": "Leverage SF 官方日历 · 原场次待确认",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "weekend",
+    "occurrenceDates": []
   },
   {
     "id": "sf-rod-wave-2026",
@@ -3275,19 +3276,19 @@
     "occurrenceDates": [
       "2026-10-10"
     ],
-    "dateLabel": "10/10 · 两场：11:00–12:00、12:00–13:00。",
+    "dateLabel": "10/10 · 11:00 上午场已满；另有 12:00 场次入口",
     "region": "east-bay",
     "city": "Richmond",
     "venue": "Richmond Art Center · 2540 Barrett Avenue, Richmond, CA 94804",
     "category": "family",
     "kind": "event",
     "cost": "free",
-    "costLabel": "免费；建议预先登记。",
+    "costLabel": "免费；11:00 场已满、可候补，12:00 场余位以报名系统为准。",
     "summary": "在90周年展览中体验木刻版画，用馆内作品获得创作灵感。",
     "plan": [
-      "时间安排：两场：11:00–12:00、12:00–13:00。",
-      "费用与参加条件：免费；建议预先登记。 通过官网分别选择场次；10岁以下儿童必须成人陪同。",
-      "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。"
+      "11:00–12:00 场官方已标满员并提供候补；不要直接按有位安排出行。",
+      "12:00–13:00 场有独立报名入口；需打开报名页确认即时余位。10 岁以下儿童必须成人陪同。",
+      "编辑建议：先确定场次与候补状态，再安排交通；候补并不代表已获席位。"
     ],
     "audience": [
       "艺术爱好者",
@@ -3295,7 +3296,7 @@
     ],
     "officialUrl": "https://richmondartcenter.org/events/making-history-block-printing-in-the-galleries-10-10-26-2/",
     "sourceLabel": "richmondartcenter.org",
-    "verifiedAt": "2026-09-29",
+    "verifiedAt": "2026-10-02",
     "imageKey": "weekend"
   },
   {

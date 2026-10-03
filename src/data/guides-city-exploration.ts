@@ -1,16 +1,27 @@
+import photoMapEast from './city-roundup-photo-map-east.json';
+import photoMapSouth from './city-roundup-photo-map-south.json';
+import photoMapNorth from './city-roundup-photo-map-north.json';
 import type { Guide } from './guides';
 import { CITY_COUNTIES, type CityExploration } from './city-exploration-types';
 import eastSf from './city-exploration-east-sf.json';
 import peninsulaSouth from './city-exploration-peninsula-south.json';
 import north from './city-exploration-north.json';
+import currentEast from './city-current-east-sf.json';
+import currentSouth from './city-current-peninsula-south.json';
+import currentNorth from './city-current-north.json';
+import type { CityCurrentUpdate } from './city-current-types';
 
-export const CITY_EXPLORATIONS: CityExploration[] = ([...eastSf, ...peninsulaSouth, ...north] as CityExploration[]).sort((a,b) => CITY_COUNTIES.indexOf(a.county as typeof CITY_COUNTIES[number]) - CITY_COUNTIES.indexOf(b.county as typeof CITY_COUNTIES[number]) || a.city.localeCompare(b.city));
+const photoMap: Record<string, string> = { ...photoMapEast, ...photoMapSouth, ...photoMapNorth };
+export const CITY_CURRENT_UPDATES = ([...currentEast, ...currentSouth, ...currentNorth] as CityCurrentUpdate[]).map(update => ({ ...update, imageKey: Object.hasOwn(photoMap, update.city) ? photoMap[update.city] : update.imageKey }));
+const currentByCity = new Map(CITY_CURRENT_UPDATES.map(update => [update.city, update]));
+
+export const CITY_EXPLORATIONS: CityExploration[] = ([...eastSf, ...peninsulaSouth, ...north] as CityExploration[]).map(city => ({ ...city, currentUpdate: currentByCity.get(city.city) })).sort((a,b) => CITY_COUNTIES.indexOf(a.county as typeof CITY_COUNTIES[number]) - CITY_COUNTIES.indexOf(b.county as typeof CITY_COUNTIES[number]) || a.city.localeCompare(b.city));
 
 export const cityExplorationGuides: Guide[] = [{
   "slug": "bay-area-101-city-exploration-living-guide",
   "title": "湾区 101 城探索与生活指南：每座城市都值得认识",
-  "subtitle": "从热门目的地到邻里小城，按县查景点、半日路线与居民资源",
-  "summary": "覆盖湾区九县 101 个城市和镇。每城精选具体去处，区分市内与附近景点，提供半日安排、交通停车、新居民上手建议、老居民资源和当地官方资讯入口。",
+  "subtitle": "逐城看近期资讯、活动、景点、半日路线与居民资源",
+  "summary": "覆盖湾区九县 101 个城市和镇，每城补充近期资讯或官方日历、配图与核对日期，并连接本市接下来的活动。另有景点、半日路线、交通停车、新居民建议与老居民资源。",
   "category": "city",
   "categoryLabel": "城市探索与在地生活",
   "emoji": "🧭",

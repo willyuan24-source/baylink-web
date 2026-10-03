@@ -43,7 +43,7 @@ export const october2026NewEvents: MonthlyEvent[] = [
     "imageKey": "family-workshop"
   },
   {
-    "id": "alameda-point-antiques-october-2026",
+    "id": "alameda-point-antiques-oct-2026",
     "title": "Alameda Point 古董市集：为新家找一件旧物",
     "startDate": "2026-10-04",
     "endDate": "2026-10-04",

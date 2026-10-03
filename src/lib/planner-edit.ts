@@ -1,6 +1,7 @@
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
 import { simplifySearch } from '../i18n/locale';
 import { eventOccursOn } from './event-calendar';
+import { canonicalEventId } from './event-id';
 import { parsePlanEditCommand } from './planner-edit-command';
 import { plannerNoticeText } from './planner-copy';
 import { clockMinutes, resolveStopTiming, resolveTimeEvidence } from './planner-hours';
@@ -30,7 +31,7 @@ export function proposePlanEdit({ current, message, lockedStops = [], asOf = tod
   const command = parsePlanEditCommand(message, asOf);
   if (!command) return unsupported('这句话未能完整识别。请一次提出一个明确修改，例如“晚一小时”“删除第2站”或“第二站换成餐厅”。', 'The whole request could not be understood. Ask for one clear change, such as “1 hour later”, “remove stop 2” or “replace stop 2 with a restaurant”.');
   const catalog = injected || { events: PLANNER_EVENTS, places: PLANNER_PLACES };
-  const factFor = (stop: Stop) => stop?.kind === 'event' ? catalog.events.find(fact => fact.id === stop.id) : stop?.kind === 'place' ? catalog.places.find(fact => fact.id === stop.id) : undefined;
+  const factFor = (stop: Stop) => stop?.kind === 'event' ? catalog.events.find(fact => fact.id === canonicalEventId(stop.id)) : stop?.kind === 'place' ? catalog.places.find(fact => fact.id === stop.id) : undefined;
   if (current.stops.some(stop => !factFor(stop)) || new Set(current.stops.map(stopKey)).size !== current.stops.length) return unsupported('计划包含已无法识别或重复的站点，请先在编辑器中确认。', 'The plan contains unrecognized or duplicate stops; review them in the editor first.');
   const locked = new Set(lockedStops.map(stopKey));
   const nextPlan = structuredClone(current);

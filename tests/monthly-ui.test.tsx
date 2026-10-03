@@ -343,9 +343,10 @@ test('September and October shortcuts persist in URLs and include events spannin
   view.unmount();
   const restored = render(edition('2026-09-15', saved));
   assert.equal(restored.getByRole('button', { name: '整个十月', exact: true }).getAttribute('aria-pressed'), 'true');
-  fireEvent.click(restored.getByRole('button', { name: '九月余下', exact: true }));
+  fireEvent.click(restored.getByRole('button', { name: '九月回顾', exact: true }));
   assert.equal(queryParams(restored).get('when'), 'september');
-  assertResultTitles(restored, eligibleIds('2026-09-15', { date: 'september' }));
+  assert.equal(queryParams(restored).get('includeEnded'), '1', 'the September archive includes completed events');
+  assertResultTitles(restored, eligibleIds('2026-09-15', { date: 'september', includeEnded: true }));
   assert.equal(restored.container.querySelector('#event-san-jose-cdm-mid-autumn-2026'), null, 'an empty confirmed schedule cannot be inferred from its September bounds');
   assert.equal(restored.queryByRole('article', { name: item('sf-halloween-hoopla-2026').title, exact: true }), null);
 });
@@ -399,7 +400,8 @@ test('November archives the edition while retaining confirmed cross-month activi
   assert.ok(view.getByText('往期月刊'));
   assert.equal(view.queryByText('秋季湾区精选'), null);
   assert.equal(view.queryByRole('link', { name: /挑一个秋季活动/ }), null);
-  const continuing = ['danville-scarecrow-stroll-2026', 'livermore-great-elephant-migration-2026'];
+  const continuing = eligibleIds('2026-11-01');
+  assert.ok(continuing.includes('danville-scarecrow-stroll-2026') && continuing.includes('sj-sharks-flames-nov2-2026'));
   assertResultTitles(view, continuing);
   assert.equal(view.container.querySelector('#event-pleasanton-pumpkins-after-dark-2026'), null, 'a broad season end does not extend confirmed October sessions');
   const toggle = view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement;
@@ -531,7 +533,7 @@ test('load more reveals twelve additional cards without changing totals and filt
   assert.equal(eventCards(view).length, 30);
   assert.ok(view.getByRole('status').textContent!.includes(`找到 ${eligibleEvents().length} 场活动`));
   fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'family' } });
-  const families = eligibleEvents().filter(event => event.category === 'family');
+  const families = eligibleEvents().filter(event => event.category === 'family' && !['sports', 'performance'].includes(event.kind || ''));
   assert.equal(eventCards(view).length, Math.min(6, families.length), 'changing type returns to the initial page');
   assert.equal(queryParams(view).get('category'), 'family');
   assertResultTitles(view, families.map(event => event.id));
@@ -550,7 +552,7 @@ test('unknown filter and sort values fall back safely while preserving unrelated
   assertResultTitles(view, eligibleIds());
   fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
   assert.equal(queryParams(view).get('lang'), 'zh-Hant');
-  assertResultTitles(view, eligibleEvents().filter(event => event.category === 'culture').map(event => event.id));
+  assertResultTitles(view, eligibleEvents().filter(event => event.category === 'culture' && event.kind !== 'sports' && event.kind !== 'performance').map(event => event.id));
 });
 
 test('without app context the browser does not fetch or manufacture zero interest counts', async t => {

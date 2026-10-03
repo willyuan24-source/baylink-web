@@ -1,13 +1,16 @@
 import { factsForStop } from './planner-itinerary';
 import { stopTitle, type PlanDetails, type Stop } from './planner';
+import { canonicalEventId } from './event-id';
 
 export type PlannerTravelEstimate = { ok: true; provider: 'google-maps'; from: Stop; to: Stop; travelMode: PlanDetails['travelMode']; durationMinutes: number; distanceMeters: number; warnings: string[]; departureAt: string; checkedAt: string };
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
+const matchesStop = (value: unknown, expected: Stop) => record(value) && value.kind === expected.kind && typeof value.id === 'string'
+  && (expected.kind === 'event' ? canonicalEventId(value.id) === canonicalEventId(expected.id) : value.id === expected.id);
 const pacific = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 export function isPlannerTravelEstimate(value: unknown, expected: { from: Stop; to: Stop; date: string; time: string; mode: PlanDetails['travelMode'] }): value is PlannerTravelEstimate {
   if (!record(value) || value.ok !== true || value.provider !== 'google-maps' || value.travelMode !== expected.mode
-    || !record(value.from) || value.from.kind !== expected.from.kind || value.from.id !== expected.from.id
-    || !record(value.to) || value.to.kind !== expected.to.kind || value.to.id !== expected.to.id
+    || !matchesStop(value.from, expected.from)
+    || !matchesStop(value.to, expected.to)
     || !Number.isInteger(value.durationMinutes) || Number(value.durationMinutes) < 1 || Number(value.durationMinutes) > 1440
     || typeof value.distanceMeters !== 'number' || !Number.isFinite(value.distanceMeters) || value.distanceMeters < 0 || value.distanceMeters > 1000000
     || !Array.isArray(value.warnings) || value.warnings.length > 5 || value.warnings.some(warning => typeof warning !== 'string' || warning.length > 1500)

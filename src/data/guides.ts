@@ -135,7 +135,7 @@ const OFFICIAL_SOURCES: Record<string, GuideSource> = {
   },
   "movers": {
     "title": "BHGS：加州搬家服务消费者指南",
-    "url": "https://www.bhgs.dca.ca.gov/consumers/movers.shtml",
+    "url": "https://bhgs.dca.ca.gov/consumers/hhm.html",
     "description": "查询搬家公司授权状态、报价文件和投诉方式。"
   },
   "contractors": {

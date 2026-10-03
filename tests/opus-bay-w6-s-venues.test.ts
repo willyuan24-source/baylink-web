@@ -99,7 +99,7 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 80, 'the autumn catalog including the five new October 2 SF website entries');
+    assert.equal(sf.length, 82, 'the autumn catalog including the October 2 SF entries and two November Chase Center events');
     for (const id of SEP30_WEBSITE_ONLY) {
       assert.ok(sf.some(event => event.id === id), `${id} remains available in the shared website catalog`);
       assert.match(WORLD_SKIP[id], /pending independent world import/, `${id} has an explicit compatibility boundary`);
@@ -121,7 +121,7 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
     for (const id of Object.keys(NOT_PLACED)) assert.equal(worldEvent(byId(id)), null, `${id} stays out`);
-    assert.equal(shown.length, 51, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 53, shown.map(e => e.id).join(' '));
     // (W7-S) the Sep 29 website refresh: the three the venue text already caught, and the six new venue rows
     for (const [id, venue] of [
       ['sf-foodwise-latine-makers-oct3-2026', 'ferry-building'],
@@ -175,7 +175,7 @@ test('W6-S1 windows on the owner’s dates with the autumn catalog: Halloween ev
     assert.deepEqual(eventHours(market, ferry, '2026-10-03'), [H(8), H(14)]);
     assert.deepEqual(eventHours(market, ferry, '2026-10-06'), [H(10), H(14)]);
     assert.equal(eventHours(market, ferry, '2026-10-05'), null, 'no market on Monday');
-    assert.deepEqual(on('2026-11-15T12:00'), [], 'no San Francisco event of the catalog runs in November');
+    assert.deepEqual(on('2026-11-15T12:00'), [], 'the November arena events do not run on November 15');
   } finally { setCatalogForTests(null); }
 });
 

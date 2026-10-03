@@ -10,6 +10,11 @@ type ContextPhotoUse = {
  * Captions and source links are checked by the media audit alongside this list.
  */
 export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
+  'roundup-south-existing-belmont': { purpose: 'venue', eventIds: ['belmont-centennial-fest-2026'] },
+  'roundup-chase-center': { purpose: 'venue', eventIds: ["sf-warriors-heat-november-2026","sf-journey-final-frontier-november-2026"] },
+  'roundup-sap-center': { purpose: 'venue', eventIds: ["sj-sharks-flames-nov2-2026","sj-don-omar-nov-2026","sj-mon-laferte-nov-2026","sj-smashing-pumpkins-nov-2026"] },
+  'roundup-oakland-arena': { purpose: 'venue', eventIds: ["oakland-xg-the-core-november-2026","oakland-jo-koy-november-2026"] },
+  'roundup-levis-stadium': { purpose: 'venue', eventIds: ["santa-clara-49ers-raiders-nov-2026","santa-clara-49ers-seahawks-nov-2026","santa-clara-bruno-mars-oct-2026"] },
   'water-lantern-festival-promo': { purpose: 'theme', eventIds: ['foster-city-water-lantern-festival-2026'] },
   'coverage-yerba-buena': { purpose: 'venue', eventIds: [
     'sf-african-arts-festival-2026', 'sf-quinteto-latino-lunchtime-2026',

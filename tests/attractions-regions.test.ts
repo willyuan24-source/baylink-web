@@ -11,7 +11,7 @@ test('regional attraction guides retain official evidence and actionable arrival
   for (const region of ['东湾', '半岛', '南湾', '北湾']) {
     assert.equal(regionalAttractionGuides.filter(guide => guide.tags.includes(region)).length, 2, region);
   }
-  const officialHosts = /(^|\.)(berkeley\.edu|museumca\.org|oaklandca\.gov|stanford\.edu|filoli\.org|thetech\.org|japantownsanjose\.org|hakone\.com|nps\.gov|gomuirwoods\.com|goldengate\.org|sausalito\.gov)$/;
+  const officialHosts = /(^|\.)(berkeley\.edu|museumca\.org|oaklandca\.gov|stanford\.edu|filoli\.org|thetech\.org|japantownsanjose\.org|hakone\.com|nps\.gov|gomuirwoods\.com|goldengate\.org|sausalito\.gov|sausalito\.recdesk\.com|us10\.campaign-archive\.com)$/;
   for (const guide of regionalAttractionGuides) {
     assert.equal(guide.updatedAt, '2026-09-09');
     assert.ok(guide.sources.length >= 3, guide.slug);

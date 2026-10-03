@@ -1,0 +1,21 @@
+{
+  "Sausalito": "region-sausalito",
+  "Petaluma": "coverage-petaluma-river",
+  "Sonoma": "autumn-sonoma",
+  "Rio Vista": "coverage-rio-vista",
+  "Calistoga": "roundup-north-calistoga",
+  "Tiburon": "roundup-north-tiburon",
+  "Fairfield": "roundup-north-fairfield",
+  "Benicia": "roundup-north-benicia",
+  "Cloverdale": "roundup-north-cloverdale",
+  "Larkspur": "roundup-north-larkspur",
+  "Mill Valley": "roundup-north-mill-valley",
+  "San Rafael": "roundup-north-san-rafael",
+  "Santa Rosa": "roundup-north-santa-rosa",
+  "Novato": "roundup-north-novato",
+  "Sebastopol": "roundup-north-sebastopol",
+  "Suisun City": "roundup-north-suisun-city",
+  "Napa": "roundup-north-napa",
+  "Corte Madera": "roundup-north-corte-madera",
+  "St. Helena": "roundup-north-st-helena"
+}

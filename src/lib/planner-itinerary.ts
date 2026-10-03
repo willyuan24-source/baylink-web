@@ -1,10 +1,12 @@
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
-import { distanceKm, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type PlanningFacts, type Stop, type StopSetting } from './planner';
+import { distanceKm, favoriteKey, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type PlanningFacts, type Stop, type StopSetting } from './planner';
+import { canonicalEventId } from './event-id';
 import { eventOccursOn } from './event-calendar';
 import { getBayAreaToday } from './monthly';
 import { resolveStopTiming, resolveTimeEvidence, timeEvidenceLabel, timeNotice, type TimeEvidence, type TimeNotice } from './planner-hours';
 
-export const stopKey = (stop: Stop) => `${stop.kind}:${stop.id}`;
+// Compare merged references without rewriting stored stop IDs or their settings.
+export const stopKey = (stop: Stop) => favoriteKey(stop);
 export const defaultPlanDetails = (): PlanDetails => ({ startTime: '10:00', finishBy: '18:00', partySize: 1, totalBudgetUsd: null, extraCostUsd: 0, travelMode: 'any', stopSettings: [] });
 export const validClock = (value: unknown): value is string => typeof value === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
 const minutes = (clock: string) => Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3));
@@ -58,7 +60,7 @@ export function normalizePlanDetails(input: unknown, stops: Stop[]): PlanDetails
   return { startTime, finishBy, partySize: bounded(raw.partySize, 1, 50, 1, true), totalBudgetUsd: raw.totalBudgetUsd == null ? null : bounded(raw.totalBudgetUsd, 0, 100000, 0), extraCostUsd: costBreakdown ? Math.round((costBreakdown.foodUsd + costBreakdown.transportUsd + costBreakdown.otherUsd) * 100) / 100 : legacyExtra, ...(costBreakdown ? { costBreakdown } : {}), travelMode: ['any', 'drive', 'transit', 'walk'].includes(raw.travelMode || '') ? raw.travelMode! : 'any', stopSettings, ...(raw.constraints && typeof raw.constraints === 'object' ? { constraints: cleanPlanFilters(raw.constraints) } : {}) };
 }
 export const settingForStop = (details: PlanDetails, stop: Stop, index: number): StopSetting => details.stopSettings.find(item => stopKey(item) === stopKey(stop)) || { ...stop, durationMinutes: 90, travelMinutes: index === 0 ? 0 : 30 };
-export const factsForStop = (stop: Stop) => stop.kind === 'event' ? PLANNER_EVENTS.find(item => item.id === stop.id) : PLANNER_PLACES.find(item => item.id === stop.id);
+export const factsForStop = (stop: Stop) => stop.kind === 'event' ? PLANNER_EVENTS.find(item => item.id === canonicalEventId(stop.id)) : PLANNER_PLACES.find(item => item.id === stop.id);
 export const timeEvidence = (stop: Stop, date: string, asOf?: string) => resolveTimeEvidence(factsForStop(stop)?.planning?.schedule, date, asOf);
 export const planCostBreakdown = (details: PlanDetails) => details.costBreakdown || { foodUsd: 0, transportUsd: 0, otherUsd: details.extraCostUsd };
 /** Only an explicit finite admission amount can establish a known price or free entry. */
@@ -89,7 +91,7 @@ export function buildItinerary(stops: Stop[], details: PlanDetails, date: string
     const arrival = cursor + breakMinutes + settings.travelMinutes;
     const evidence = timeEvidence(stop, date, asOf);
     const timing = resolveStopTiming(evidence, arrival, settings.durationMinutes, settings.fixedStartTime);
-    const event = stop.kind === 'event' ? PLANNER_EVENTS.find(item => item.id === stop.id) : undefined;
+    const event = stop.kind === 'event' ? PLANNER_EVENTS.find(item => item.id === canonicalEventId(stop.id)) : undefined;
     if (event && validDay(date) && !eventOccursOn(event, date)) timing.conflicts.push(timeNotice('event-date-mismatch', '所选日期没有收录的活动场次。', 'No recorded event session falls on the selected date.'));
     if (factsForStop(stop)?.planning?.reservation === 'required') timing.notices.push(timeNotice('reservation-required', '此站需预约或购票，尚未确认你的预约与余票。', 'This stop requires a reservation or ticket; your booking and availability are not confirmed.'));
     issueDetails.push(...timing.conflicts.map(issue => ({ ...issue, zh: `${stopTitle(stop)}：${issue.zh}`, en: `${stopTitle(stop)}: ${issue.en}` })));

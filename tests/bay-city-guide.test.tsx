@@ -32,7 +32,7 @@ test('city AI prompts keep source limits inside the existing 500-character assis
   const city=BAY_CITIES.find(c=>c.id==='san-mateo')!;
   const prompt=cityGuideAiPrompt(city,'2026-10',eventsForBayCity(PLANNER_EVENTS,city,'2026-10','2026-09-25'),'en');
   assert.match(prompt,/NOT chosen a date or event/);
-  assert.match(prompt,/san-mateo-boos-brews-2026/);
+  assert.match(prompt,/san-mateo-curiodyssey-spooky-science-2026/);
   assert.ok(!prompt.includes('2026-10-24'),'an optional event date is not passed as a user-selected travel day');
 });
 

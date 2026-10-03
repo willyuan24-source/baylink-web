@@ -1,3 +1,5 @@
+import type { CityCurrentUpdate } from './city-current-types';
+
 export type CityExploration = {
   city: string;
   county: string;
@@ -16,6 +18,7 @@ export type CityExploration = {
   checks: string;
   resources: { label: string; url: string; kind: 'city' | 'events' | 'library' | 'parks' }[];
   verifiedAt: string;
+  currentUpdate?: CityCurrentUpdate;
 };
 
 export const CITY_EXPLORATION_SLUG = 'bay-area-101-city-exploration-living-guide';

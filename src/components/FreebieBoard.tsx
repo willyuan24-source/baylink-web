@@ -17,6 +17,7 @@ export type FreebieOffer = {
   startDate?: string;
   endDate?: string;
   availability: 'dated' | 'ongoing' | 'check-local';
+  verificationStatus?: 'needs-confirmation';
   kind: 'no-purchase' | 'reservation' | 'purchase';
   requirement: string;
   description: string;
@@ -55,6 +56,7 @@ const nextMonth = (today: string) => {
   return first.toISOString().slice(0, 7);
 };
 function offerStatus(offer: FreebieOffer, today: string) {
+  if (offer.verificationStatus === 'needs-confirmation') return { key: 'unverified', label: '当前优惠待确认' };
   if (offer.availability === 'check-local' && offer.startDate && !offer.endDate) return { key: offer.startDate > today ? 'upcoming' : 'local', label: offer.startDate > today ? '即将开售' : '限量供应 · 查询余票' };
   if (offer.availability === 'check-local') return { key: 'local', label: '查本店场次' };
   if (offer.availability === 'ongoing') return { key: 'ongoing', label: '长期福利' };
@@ -72,7 +74,7 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
     if (!range) return [2, ''];
     return [range[1] < today ? 3 : 0, range[0]];
   };
-  return offers.filter(offer => offer.availability !== 'dated' || (dateRange(offer)?.[1] || '') >= today).sort((left, right) => {
+  return offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (offer.availability !== 'dated' || (dateRange(offer)?.[1] || '') >= today)).sort((left, right) => {
     const [leftGroup, leftDate] = position(left);
     const [rightGroup, rightDate] = position(right);
     return leftGroup - rightGroup || leftDate.localeCompare(rightDate);

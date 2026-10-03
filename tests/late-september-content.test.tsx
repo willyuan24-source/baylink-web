@@ -46,7 +46,7 @@ test('late September publishes all five regions with unique IDs and usable sourc
     assert.equal(new Set(published.map(item => item.id)).size, published.length, `${name}: duplicate published ID`);
     for (const item of added) {
       assert.equal(published.filter(candidate => candidate.id === item.id).length, 1, `${name}: ${item.id} must be published once`);
-      assert.equal(item.verifiedAt, '2026-09-27', `${item.id}: verification date`);
+      assert.equal(item.verifiedAt, item.id === 'history-smc-free-oct2' ? '2026-10-02' : '2026-09-27', `${item.id}: verification date`);
     }
   }
   assert.equal(new Set(additions.map(item => item.id)).size, additions.length, 'new content IDs must not collide across types');

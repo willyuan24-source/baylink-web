@@ -161,7 +161,7 @@ test('next seven days means today plus six calendar dates across DST, leap days 
   }
   assert.equal(getMonthlyDateRange('all', '2026-09-09'), null);
   for (const value of [null, undefined, '', 'unknown', 'WEEKEND']) assert.equal(resolveMonthlyDateFilter(value), 'all');
-  for (const value of ['today', 'weekend', 'next7', 'september', 'october'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
+  for (const value of ['today', 'weekend', 'next7', 'september', 'october', 'november'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
 });
 
 test('date filtering includes overlapping events and both endpoints, and combines all other choices', () => {
@@ -262,7 +262,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-10-31', `${item.id} overlaps the September–October edition`);
+    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     assert.ok(item.plan.length >= 3 && item.plan.length <= 4, `${item.id} keeps a concise three- or four-step preparation list`);
@@ -306,7 +306,26 @@ test('explicit month filters include October 31 and remove September events from
   assert.ok(!MONTHLY_EVENTS.some(item => item.endDate < '2026-09-15'));
 });
 
-test('late October dates retain verified community events and respect their final days', () => {
+test('November previews include both month boundaries without reviving October or unconfirmed dates', () => {
+  assert.deepEqual(getMonthlyDateRange('november', '2026-10-02'), { start: '2026-11-01', end: '2026-11-30' });
+  const base = event('mountain-view-art-wine-2026');
+  const make = (id: string, startDate: string, endDate = startDate, occurrenceDates?: string[]): MonthlyEvent => ({ ...base, id, startDate, endDate, occurrenceDates });
+  const selected = [
+    make('october-only', '2026-10-31'),
+    make('first-november-day', '2026-11-01'),
+    make('last-november-day', '2026-11-30'),
+    make('december-only', '2026-12-01'),
+    make('overlaps-november', '2026-10-31', '2026-11-02'),
+    make('confirmed-november-session', '2026-10-31', '2026-12-01', ['2026-10-31', '2026-11-28', '2026-12-01']),
+    make('no-november-session', '2026-10-31', '2026-12-01', ['2026-10-31', '2026-12-01']),
+  ];
+  const novemberIds = ['confirmed-november-session', 'first-november-day', 'last-november-day', 'overlaps-november'];
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'november' }, '2026-10-02')), novemberIds);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'november' }, '2026-11-30')), ['last-november-day']);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { date: 'november', includeEnded: true }, '2026-12-02')), novemberIds, 'archive access preserves the selected month and confirmed sessions');
+});
+
+test('late October dates retain community events while November previews respect each final day', () => {
   const lastWeek = filterMonthlyEvents(MONTHLY_EVENTS, { date: 'next7' }, '2026-10-25');
   for (const id of ['emeryville-art-exhibition-closing-2026', 'santa-rosa-pumpkins-parks-2026', 'benicia-farmers-market-final-2026', 'san-jose-avenida-altares-2026']) {
     assert.ok(lastWeek.some(item => item.id === id), id);
@@ -316,7 +335,13 @@ test('late October dates retain verified community events and respect their fina
   for (const id of [
     'palo-alto-addams-family-opening-2026', 'petaluma-pumpkin-patch-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026',
   ]) assert.ok(halloween.includes(id), id);
-  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01')), ['danville-scarecrow-stroll-2026', 'livermore-great-elephant-migration-2026']);
+  const november = ids(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-11-01'));
+  for (const id of ['danville-scarecrow-stroll-2026', 'livermore-great-elephant-migration-2026', 'sj-sharks-flames-nov2-2026', 'santa-clara-49ers-seahawks-nov-2026']) {
+    assert.ok(november.includes(id), `${id} remains available as a confirmed November activity`);
+  }
+  for (const id of ['emeryville-art-exhibition-closing-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026']) {
+    assert.ok(!november.includes(id), `${id} stays hidden after its final October date`);
+  }
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-07'), []);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));

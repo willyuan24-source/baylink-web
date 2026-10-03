@@ -12,9 +12,14 @@ import type { FreebieOffer } from '../components/FreebieBoard';
 import type { SeptemberOpening } from './september-openings';
 import { mergeReviewedOpenings } from './autumn-release';
 import { octoberRefreshOpenings } from './october-refresh-openings';
+import roundupOpenings0 from './city-roundup-east-sf-openings.json';
+import roundupOpenings1 from './city-roundup-peninsula-south-openings.json';
+import roundupOpenings2 from './city-roundup-north-openings.json';
+import { canonicalEventId } from '../lib/event-id';
 
-export const currentOpenings = mergeReviewedOpenings([...septemberOpenings, ...additionalOctoberOpenings, ...communityDiscoveryOpenings, ...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings, ...octoberRefreshOpenings]).sort((a, b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
+const previousOpenings = mergeReviewedOpenings([...septemberOpenings, ...additionalOctoberOpenings, ...communityDiscoveryOpenings, ...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings, ...octoberRefreshOpenings]).sort((a, b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
+export const currentOpenings: SeptemberOpening[] = [...new Map([...previousOpenings, ...([...roundupOpenings0, ...roundupOpenings1, ...roundupOpenings2] as SeptemberOpening[])].map(shop => [shop.id, shop])).values()].sort((a,b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
 export type LocalDiscovery = { kind: 'event'; event: MonthlyEvent } | { kind: 'offer'; offer: FreebieOffer } | { kind: 'opening'; shop: SeptemberOpening };
 export const localDiscoveries: LocalDiscovery[] = [...MONTHLY_EVENTS.map(event => ({ kind: 'event' as const, event })), ...currentFreebies.map(offer => ({ kind: 'offer' as const, offer })), ...currentOpenings.map(shop => ({ kind: 'opening' as const, shop }))];
 export const discoveryShare = (item: LocalDiscovery) => item.kind === 'event' ? eventShare(item.event) : item.kind === 'offer' ? offerShare(item.offer) : openingShare(item.shop);
-export const getLocalDiscovery = (kind: string, id: string) => localDiscoveries.find(item => item.kind === kind && discoveryShare(item).id === id);
+export const getLocalDiscovery = (kind: string, id: string) => localDiscoveries.find(item => item.kind === kind && discoveryShare(item).id === (kind === 'event' ? canonicalEventId(id) : id));

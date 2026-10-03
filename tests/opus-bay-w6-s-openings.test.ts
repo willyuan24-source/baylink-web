@@ -39,7 +39,7 @@ test('W6-S3 openings: a sign for every open San Francisco opening the site publi
   const open = sf.filter(o => o.status === 'open' || o.status === 'soft_open');
   assert.ok(open.length >= 6, `${open.length} open SF openings`);
   assert.deepEqual(OPENING_SIGNS.map(s => s.id).sort(), open.map(o => o.id).sort(), 'every open SF opening, and only those');
-  assert.ok(sf.filter(o => o.status === 'announced').length >= 3 && sf.filter(o => o.status === 'announced').every(o => !signById(o.id)), 'an announced opening gets no sign (Handroll Hawker, Florecita, Woods)');
+  assert.ok(sf.filter(o => o.status === 'announced').length >= 3 && sf.filter(o => o.status === 'announced').every(o => !signById(o.id)), 'an announced opening gets no sign (Florecita, Woods, Bruma)');
   const ids = new Set<string>();
   for (const s of OPENING_SIGNS) {
     assert.ok(!ids.has(s.id)); ids.add(s.id);
@@ -48,7 +48,7 @@ test('W6-S3 openings: a sign for every open San Francisco opening the site publi
     assert.equal(s.name, site.name);
     assert.equal(s.siteVerifiedAt, site.verifiedAt);
     assert.match(s.osmUrl, /^https:\/\/www\.openstreetmap\.org\/(way|node)\/\d+$/);
-    assert.match(s.verifiedAt, /^2026-09-\d{2}$/);
+    assert.match(s.verifiedAt, /^2026-(09|10)-\d{2}$/);
     // the sign stands next to the address's OSM point (never a guessed point): ≤ 5 u ≈ 35 m
     assert.ok(dist(projectCity(s.osm.lat, s.osm.lng), s) <= 5, `${s.id}: ${dist(projectCity(s.osm.lat, s.osm.lng), s).toFixed(1)} u from its OSM point`);
     assert.ok([...s.what.zh].length <= 20 && [...s.hours.zh].length <= 30, s.id);

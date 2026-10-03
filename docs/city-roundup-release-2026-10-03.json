@@ -1,0 +1,31 @@
+{
+  "releaseDate": "2026-10-03",
+  "researchDate": "2026-10-02",
+  "timezone": "America/Los_Angeles",
+  "scope": "Review existing editorial content, expand all nine counties and 101 incorporated cities, prefer attributable real photography, and check affected website functions.",
+  "added": { "cityUpdates": 101, "datedCityUpdates": 63, "officialCalendarEntries": 38, "events": 44, "openings": 10, "chainOffers": 9, "newRealPhotographs": 46 },
+  "publishedInventory": { "guides": 117, "events": 369, "offers": 117, "openings": 56, "regionalBulletins": 12, "plannerPlaces": 88 },
+  "media": { "cityUpdatesWithPhotos": 73, "cityUpdatesWithLabelledIllustrations": 28, "registeredImages": 249, "responsiveFilesChecked": 498, "missingImages": 0 },
+  "sourceLinkCheck": { "urls": 1827, "reachable": 1679, "http404Or410": 0, "restrictedOrUnavailable": 148, "limitation": "HTTP reachability is not a fact-check of every sentence. Restricted and unavailable pages were not claimed as successfully re-read; source-specific evidence and qualifications are in the three regional source ledgers." },
+  "corrections": [
+    "Merged the duplicate October 4 Alameda antiques event while retaining old URL, saved-plan, favorite, engagement and buddy-list compatibility.",
+    "Clarified Richmond workshop capacity, TAEMIN postponement, and uncertain AI dinner dates; uncertain schedules are excluded from upcoming recommendations.",
+    "Withheld the unconfirmed October 2 history-museum offer from live offers and planner suggestions without erasing its archive page.",
+    "Replaced broken mover-regulator, merchant, park and festival sources with verified official or city-linked replacements.",
+    "Added November filtering, explicit sports/performance categories and an archive shortcut that includes ended September events.",
+    "Added 17 Census-backed city reference points with area precision; these are not venue entrances or exact route origins.",
+    "Updated Handroll Hawker to officially open, added its pedestrian-accessible Little Bay sign, and corrected a small photograph's responsive-width metadata."
+  ],
+  "validation": {
+    "frontendFullSuite": { "tests": 3359, "passed": 3356, "initialFailures": 2, "existingTodo": 1, "failureResolution": "Both remaining failures were Little Bay mappings for the two new Chase Center events. Venue association, bilingual names and append-only souvenir IDs were fixed; all 22 affected game tests passed afterward. Final validation used that focused rerun." },
+    "backendFullSuite": { "passed": 472, "failed": 0 },
+    "frontendLint": { "errors": 0, "existingWarnings": 53 },
+    "productionBuild": { "passed": true, "prerenderedHtmlPages": 684 },
+    "shareCards": { "passed": true, "pngsAndIndependentlyDecodedQrCodes": 659 },
+    "editorialAudit": { "duplicateEvents": 0, "dateProblems": 0, "missingImages": 0 },
+    "browserChecks": ["Quick search navigation", "City search, expansion and official links", "Chinese and English city updates", "November Sharks search and sports filter", "390-pixel mobile layout without horizontal overflow", "Real photo loading and lightbox", "Tip calculator split rounding"],
+    "browserLimitations": "The local demo API does not implement saved-planner or engagement routes. Those flows were covered by API and component tests. Browser ICS download capture timed out; the calendar download and content tests passed.",
+    "existingNonblockingItem": "The Little Bay GameRoot compressed bundle remains above its existing TODO performance budget. This TODO also existed in the baseline; no new test exemptions were added."
+  },
+  "deployment": { "backendCommit": "25211aa8ca46cda5d72c58dfd7c723330963bf71", "backendHealthVerified": true, "canonicalAndLegacyEventApiVerified": true }
+}

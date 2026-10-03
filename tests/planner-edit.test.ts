@@ -20,6 +20,26 @@ const plan = (): EditablePlan => ({ title: 'Our outing', date, stops: [{ kind: '
 const proposal = (result: PlanEditResult) => { assert.equal(result.status, 'proposal', JSON.stringify(result)); return result as Extract<PlanEditResult, { status: 'proposal' }>; };
 const edit = (message: string, current = plan(), source = catalog()) => proposePlanEdit({ current, message, asOf }, source);
 
+test('merged event plans remain editable without changing IDs or settings, and aliases cannot evade duplicate or locked-stop checks', () => {
+  const legacy = { kind: 'event' as const, id: 'alameda-point-antiques-october-2026' };
+  const canonical = { kind: 'event' as const, id: 'alameda-point-antiques-oct-2026' };
+  const current: EditablePlan = { title: 'Saved fair visit', date: '2026-10-04', stops: [legacy], details: {
+    ...defaultPlanDetails(), stopSettings: [{ ...legacy, durationMinutes: 45, travelMinutes: 15, breakBeforeMinutes: 10, breakLabel: 'rest' }],
+  } };
+  const before = structuredClone(current);
+  const next = proposal(proposePlanEdit({ current, message: '1 hour later', asOf }));
+  assert.equal(next.canApply, true);
+  assert.equal(next.nextPlan.details.startTime, '11:00');
+  assert.deepEqual(next.nextPlan.stops, [legacy]);
+  assert.deepEqual(next.nextPlan.details.stopSettings, current.details.stopSettings);
+  assert.deepEqual(current, before);
+  const wrongDate = proposal(proposePlanEdit({ current, message: 'change date to 2026-10-05', asOf }));
+  assert.equal(wrongDate.canApply, false);
+  assert.match(wrongDate.issues.join(' '), /no recorded event/);
+  assert.equal(proposePlanEdit({ current: { ...current, stops: [legacy, canonical] }, message: '1 hour later', asOf }).status, 'unsupported');
+  assert.equal(proposePlanEdit({ current, lockedStops: [canonical], message: '1 hour later', asOf }).status, 'unsupported');
+});
+
 test('whole-message parser handles clear Chinese and English edits and rejects compound or ambiguous requests', () => {
   for (const [message, expected] of [
     ['晚一小时', { kind: 'shift', minutes: 60 }], ['提前半小时', { kind: 'shift', minutes: -30 }], ['start 1 hour later', { kind: 'shift', minutes: 60 }],

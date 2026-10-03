@@ -1,0 +1,334 @@
+[
+  {
+    "id": "roundup-dixon-lambtown-2026",
+    "title": "Dixon Lambtown 羊毛与牧羊文化节",
+    "kind": "event",
+    "startDate": "2026-10-03",
+    "endDate": "2026-10-04",
+    "dateLabel": "10/3 9:00–17:30；10/4 9:00–16:00",
+    "region": "north-bay",
+    "city": "Dixon",
+    "venue": "Dixon May Fairgrounds, 655 S First Street",
+    "category": "family",
+    "cost": "paid",
+    "costLabel": "节庆需购票；工作坊另查报名与费用",
+    "summary": "围绕羊毛、纤维工艺与牧羊文化的周末活动，可看示范、逛材料摊位。",
+    "plan": [
+      "先在官网选择节庆票；工作坊另行查看名额，不把入场票当课程票。",
+      "周日比周六早结束；主办方说明雨天照常，按天气准备。",
+      "工作坊和示范的时间可能重叠，先选最想看的项目再逛摊位。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "手作爱好者"
+    ],
+    "officialUrl": "https://www.lambtown.org/",
+    "sourceLabel": "Lambtown Festival 主办方",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-novato-halloween-magic-2026",
+    "title": "Novato 不太吓人的万圣节魔术",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "dateLabel": "10/17 · 10:00、11:30 两场",
+    "region": "north-bay",
+    "city": "Novato",
+    "venue": "Novato City Hall, 901 Sherman Avenue",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费，无需预约；座位以现场为准",
+    "summary": "市政府公布两场儿童友好的节日魔术，方便带孩子选择上午场次。",
+    "plan": [
+      "选择其中一场，提前到达 City Hall；两场不代表同一张座位保证。",
+      "活动在 City Hall，导航到 901 Sherman Avenue。",
+      "带幼儿可优先选与午睡时间不冲突的一场，现场按工作人员指引入座。"
+    ],
+    "audience": [
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.novato.gov/Home/Components/Calendar/Event/24487/",
+    "sourceLabel": "Novato 市官方魔术活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-novato-dia-muertos-2026",
+    "title": "Novato Día de los Muertos 社区庆典",
+    "kind": "event",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "dateLabel": "10/24 · 15:00–18:00",
+    "region": "north-bay",
+    "city": "Novato",
+    "venue": "Novato Civic Green, 901 Sherman Avenue",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "官方当前介绍未明确一般入场收费；餐饮另查",
+    "summary": "社区祭坛、游行、手作和音乐组成适合全龄参与的纪念活动。",
+    "plan": [
+      "到 Civic Green 参加公众活动；不要将汽车祭坛展示的免费申请条件当作全部费用说明。",
+      "汽车祭坛展示申请已于9/25截止，不再当作可报名项目推荐。",
+      "观看祭坛时尊重纪念物；如需餐饮，单独留出预算。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.novato.gov/Home/Components/Calendar/Event/24495/2527?selectview=1&toggle=all",
+    "sourceLabel": "Novato 市官方亡灵节活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-sausalito-halloween-2026",
+    "title": "Sausalito 万圣节游行与狗狗装扮赛",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "dateLabel": "10/31 · 17:45集合，18:00游行，18:30狗狗赛",
+    "region": "north-bay",
+    "city": "Sausalito",
+    "venue": "Station 1 Firehouse → Robin Sweeny Park",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "狗狗装扮赛免费，无需预登记；查看市府完整活动安排",
+    "summary": "Caledonia Street 游行接到公园讨糖区，是可步行串联的社区节日安排。",
+    "plan": [
+      "从 Johnson 与 Caledonia 街角消防站集合，勿直接到公园等待游行起点。",
+      "Caledonia 部分路段16:30起封闭至21:00，驾车先看市府封路范围。",
+      "参加狗狗装扮赛只选一个组别，按现场分类牌排队。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "携犬居民"
+    ],
+    "officialUrl": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/halloween_sausalito_october_31_2026.php",
+    "sourceLabel": "Sausalito 市 2026 Halloween 官方页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "region-sausalito"
+  },
+  {
+    "id": "roundup-healdsburg-crush-2026",
+    "title": "Healdsburg Crush 葡萄酒公益活动",
+    "kind": "event",
+    "startDate": "2026-10-11",
+    "endDate": "2026-10-11",
+    "dateLabel": "10/11 · 普通入场13:00–16:00；VIP提前1小时",
+    "region": "north-bay",
+    "city": "Healdsburg",
+    "venue": "Bacchus Landing",
+    "category": "food",
+    "cost": "paid",
+    "costLabel": "官方FAQ：普通票$150、VIP $200；21岁以上",
+    "summary": "支持 Boys & Girls Clubs of Sonoma-Marin 的葡萄酒公益活动，今年地点为 Bacchus Landing。",
+    "plan": [
+      "先核对余票和年龄要求；活动不允许宠物，勿沿用旧广场地址。",
+      "现场停车有限，官方FAQ列 City Hall 停车场接驳；查看当天上车点并安排不酒驾的返程。",
+      "需要无障碍安排或特别协助，可先通过主办方联系入口咨询。"
+    ],
+    "audience": [
+      "21岁以上葡萄酒爱好者"
+    ],
+    "officialUrl": "https://www.bgcsonoma-marin.org/healdsburgcrush",
+    "sourceLabel": "Boys & Girls Clubs of Sonoma-Marin 主办方",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-schulz-great-pumpkin-60-2026",
+    "title": "Schulz Museum《大南瓜》60周年活动",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "dateLabel": "10/17 · 13:00–17:00",
+    "region": "north-bay",
+    "city": "Santa Rosa",
+    "venue": "Charles M. Schulz Museum, 2301 Hardies Lane",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "包含在博物馆门票内；会员免费",
+    "summary": "围绕《It's the Great Pumpkin, Charlie Brown》的幕后故事、手作与音乐节目。",
+    "plan": [
+      "14:00安排幕后分享，音乐节目另有时段，先按官网节目表选重点。",
+      "会员带好资格凭证；其他观众先核对门票与当天开放情况。",
+      "这是馆内周年节目，未购买门票不要把活动时段当免费开放日。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "Peanuts 爱好者"
+    ],
+    "officialUrl": "https://schulzmuseum.org/its-the-great-pumpkin-60th-anniversary-event/",
+    "sourceLabel": "Charles M. Schulz Museum 官方活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-schulz-pearls-jubilee-2026",
+    "title": "Pearls Jubilee：Stephan Pastis 对谈与签书",
+    "kind": "event",
+    "startDate": "2026-11-10",
+    "endDate": "2026-11-10",
+    "dateLabel": "11/10 · 18:30对谈；20:00签书",
+    "region": "north-bay",
+    "city": "Santa Rosa",
+    "venue": "Charles M. Schulz Museum, 2301 Hardies Lane",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "对谈$20，会员享20%折扣；20:00签书入场免费，书另购",
+    "summary": "漫画家 Stephan Pastis 与 Chris Smith 对谈，晚间接续公开签书环节。",
+    "plan": [
+      "对谈需购票；不要把签书免费理解为整晚活动免票。",
+      "官方说明对谈票持有人可进入签书前100人的队列；到场仍按工作人员安排排队。",
+      "只参加20:00签书也可，但免费入场不包含书本，先确认现场购书规则。"
+    ],
+    "audience": [
+      "漫画与阅读爱好者"
+    ],
+    "officialUrl": "https://schulzmuseum.org/pearls-jubilee/",
+    "sourceLabel": "Charles M. Schulz Museum 官方签书活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-windsor-green-halloween-2026",
+    "title": "Windsor Green Halloween Party & Swap",
+    "kind": "event",
+    "startDate": "2026-10-16",
+    "endDate": "2026-10-16",
+    "dateLabel": "10/16 · 15:00–17:00",
+    "region": "north-bay",
+    "city": "Windsor",
+    "venue": "Huerta Gym",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "镇官网列免费登记入口",
+    "summary": "交换节日服装和装饰，参加旧物再利用手作。",
+    "plan": [
+      "先按官网入口登记；可带自备T恤参加印制活动，并自备水杯。",
+      "带去交换的物件先检查状态，现场收取范围以主办方说明为准。",
+      "想做手作可先参与再逛交换区；交换物品数量与款式取决于现场。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
+    "sourceLabel": "Windsor 镇可持续生活活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "refresh-makers"
+  },
+  {
+    "id": "roundup-windsor-fall-swap-2026",
+    "title": "Windsor 秋季装饰与衣物交换",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "dateLabel": "11/7 · 11:00–14:00",
+    "region": "north-bay",
+    "city": "Windsor",
+    "venue": "Huerta Gym",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "当前介绍未单列费用；查看该场详情",
+    "summary": "镇政府列出的秋季交换活动，可交换、捐出或领取季节装饰及衣物。",
+    "plan": [
+      "这是11/7独立场次，不要沿用10/16的时段或登记信息。",
+      "出发前确认物件要求与费用；不把其他月份的规则直接套用。",
+      "可按季节整理一小袋适用物件，避免携带大件后发现不在受理范围。"
+    ],
+    "audience": [
+      "本地居民"
+    ],
+    "officialUrl": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
+    "sourceLabel": "Windsor 镇可持续生活活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "refresh-makers"
+  },
+  {
+    "id": "roundup-suisun-dia-muertos-2026",
+    "title": "Suisun City 亡灵节文化晚会",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "dateLabel": "11/1 · 18:00–22:00",
+    "region": "north-bay",
+    "city": "Suisun City",
+    "venue": "Joseph Nelson Community Center, 611 Village Drive",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "入场免费；食物和饮品另付",
+    "summary": "社区祭坛、Ballet Folklórico、音乐与本地摊位组成的纪念晚会。",
+    "plan": [
+      "尊重祭坛与纪念物；活动场地不允许宠物或自带酒精饮料。",
+      "啤酒仅供21岁以上且持有效照片证件的宾客；带孩子可先看舞蹈与音乐。",
+      "导航到611 Village Drive的社区中心，别把水岸Harbor Plaza当作本场地址。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.suisun.com/Events-directory/D%C3%ADa-de-los-Muertos-Celebration",
+    "sourceLabel": "Suisun City 市官方活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-tiburon-asian-greens-2026",
+    "title": "Tiburon Master Gardeners 亚洲叶菜种植课",
+    "kind": "event",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "dateLabel": "10/8 · 14:30–16:00",
+    "region": "north-bay",
+    "city": "Tiburon",
+    "venue": "Belvedere Tiburon Library, Founders Room, 1501 Tiburon Boulevard",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "需登记；当前活动页未单列收费",
+    "summary": "向 Master Gardeners 了解亚洲叶菜与家庭种植的实用做法。",
+    "plan": [
+      "先查看报名是否仍有名额，再安排到 Founders Room。",
+      "可先整理阳光、容器和种植问题，方便现场提问。",
+      "本场是14:30的园艺课；同日傍晚另有维修咨询，报名不要选错。"
+    ],
+    "audience": [
+      "本地居民",
+      "家庭园艺爱好者"
+    ],
+    "officialUrl": "https://www.beltiblibrary.org/event?id=17243593",
+    "sourceLabel": "Belvedere Tiburon Library 官方园艺活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "culture-visit"
+  },
+  {
+    "id": "roundup-tiburon-repair-advice-2026",
+    "title": "Tiburon Makerspace 维修咨询晚间场",
+    "kind": "event",
+    "startDate": "2026-10-08",
+    "endDate": "2026-10-08",
+    "dateLabel": "10/8 · 17:30–19:00",
+    "region": "north-bay",
+    "city": "Tiburon",
+    "venue": "Belvedere Tiburon Library, Makerspace, 1501 Tiburon Boulevard",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "先登记待修物件；当前页未单列收费",
+    "summary": "带小电器、玩具、织物或自行车问题来咨询维修思路。",
+    "plan": [
+      "通过活动页链接登记物件，并描述故障，先确认受理范围。",
+      "这是咨询协助，不保证当晚修好，也不承诺备件供应。",
+      "记录型号与故障现象再出门，个人资料与贵重配件先自行妥善保管。"
+    ],
+    "audience": [
+      "本地居民",
+      "旧物修理爱好者"
+    ],
+    "officialUrl": "https://www.beltiblibrary.org/event?id=15458206",
+    "sourceLabel": "Belvedere Tiburon Library 官方活动页",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "refresh-makers"
+  }
+]

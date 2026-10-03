@@ -11,7 +11,10 @@ import { communityDiscoveryEvents } from './community-discovery-events';
 import { lateSeptemberSfEastEvents } from './late-september-sf-east';
 import { lateSeptemberPeninsulaSouthEvents } from './late-september-peninsula-south';
 import { lateSeptemberNorthEvents } from './late-september-north';
-import type { MonthlyPlace } from './monthly-types';
+import roundupEvents0 from './city-roundup-east-sf-events.json';
+import roundupEvents1 from './city-roundup-peninsula-south-events.json';
+import roundupEvents2 from './city-roundup-north-events.json';
+import type { MonthlyEvent, MonthlyPlace } from './monthly-types';
 import { mergeReviewedEvents } from './autumn-release';
 import { applyOctober2026Events } from './october-2026-events-refresh';
 
@@ -25,10 +28,12 @@ export const MONTHLY_EDITION = {
 };
 
 // Keep published URLs in the catalog; the UI hides expired events by local date.
-export const MONTHLY_EVENTS = applyOctober2026Events(mergeReviewedEvents([...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents, ...communityDiscoveryEvents, ...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents]
+const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfSeptemberEvents, ...regionalSeptemberEvents, ...freshSeptemberEvents, ...verifiedSeptemberEvents, ...verifiedOctoberEvents, ...additionalOctoberEvents, ...refreshedAutumnEvents, ...aiLocalEvents, ...communityDiscoveryEvents, ...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents]
   .filter(event => event.endDate >= '2026-09-23')
   .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) })))
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+
+export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2] as MonthlyEvent[])].map(event => [event.id, event])).values()].sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

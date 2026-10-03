@@ -1,0 +1,490 @@
+[
+  {
+    "id": "atherton-train-station-museum-opening-2026",
+    "title": "旧火车站博物馆 10 月 18 日揭幕",
+    "kind": "event",
+    "startDate": "2026-10-18",
+    "endDate": "2026-10-18",
+    "dateLabel": "10/18 · 14:00–16:00",
+    "region": "peninsula",
+    "city": "Atherton",
+    "venue": "Atherton Train Station Museum",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "费用未明确；先看官方报名",
+    "summary": "镇日历公布 14:00–16:00 举行博物馆开幕剪彩，地点为 Atherton Train Station Museum。先从活动页查看报名；博物馆启用不代表 Atherton 恢复 Caltrain 停站，日常参观时段还需另查。",
+    "plan": [
+      "从镇日历打开报名链接，确认是否仍可参加。",
+      "以火车站博物馆为目的地，另查最后一段交通。",
+      "剪彩日期不代表以后每日开放；普通参观另问馆方。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.athertonca.gov/Calendar.aspx?EID=4034&calType=0&day=30&month=9&year=2026",
+    "sourceLabel": "Town of Atherton",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "belmont-centennial-fest-2026",
+    "title": "百年庆典：游行、时光胶囊与无人机表演",
+    "kind": "event",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "dateLabel": "10/24 · 13:30 起",
+    "region": "peninsula",
+    "city": "Belmont",
+    "venue": "Twin Pines Park / Belmont City Hall",
+    "category": "family",
+    "cost": "mixed",
+    "costLabel": "庆典入场免费；餐饮商品另购",
+    "summary": "10 月 24 日 13:30 从车辆游行开始，15:30 在 Twin Pines Senior Center 前举行时光胶囊仪式，随后公园庆典，19:30 无人机表演。入场免费，餐饮另购；游行车辆仅限受邀参加，周边停车与通行会受影响。",
+    "plan": [
+      "按想看的游行、时光胶囊或晚间表演选择到达时间。",
+      "Twin Pines Park 和 Sixth Avenue 有车辆限制，先查停车方案。",
+      "自带折椅或毯子；车辆游行只接受受邀车辆。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.belmont.gov/departments/administrative-services/centennial-2026",
+    "sourceLabel": "City of Belmont",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-south-existing-belmont"
+  },
+  {
+    "id": "brisbane-dog-pawty-2026",
+    "title": "Dog Pawty 狗狗装扮聚会",
+    "kind": "event",
+    "startDate": "2026-10-29",
+    "endDate": "2026-10-29",
+    "dateLabel": "10/29 · 17:30–18:00",
+    "region": "peninsula",
+    "city": "Brisbane",
+    "venue": "Community Park Gazebo · 11 Old County Road",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "官方未列费用",
+    "summary": "Youth Advisory Committee 将于 10 月 29 日 17:30–18:00 在 Community Park Gazebo 举行狗狗装扮聚会，地址为 11 Old County Road。适合下班后短暂停留；带宠物前先读主办方参加说明，费用未在日历正文明确列出。",
+    "plan": [
+      "先阅读宠物参加与装扮说明。",
+      "17:30 前到 Community Park Gazebo，活动仅半小时。",
+      "宠物是否适合短时人群环境，由主人自行评估。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.brisbaneca.gov/Calendar.aspx?EID=1241&calType=0&day=2&month=10&year=2026",
+    "sourceLabel": "City of Brisbane",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "san-bruno-dia-de-los-muertos-2026",
+    "title": "免费 Día de los Muertos 家庭庆典",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "dateLabel": "10/17 · 11:00–14:00",
+    "region": "peninsula",
+    "city": "San Bruno",
+    "venue": "Centennial Plaza · 470 San Mateo Avenue",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费家庭活动",
+    "summary": "10 月 17 日 11:00–14:00 在 Centennial Plaza 举行免费家庭活动，有 mariachi、民俗舞蹈、糖骷髅手作与双语故事。下雨时移至 San Bruno Senior Center，出发前复核当日场地，别与月底 Halloween 混为同一活动。",
+    "plan": [
+      "先看天气及官网场地更新。",
+      "选择音乐、双语故事或手作项目安排停留。",
+      "遇雨转至 Senior Center，别仍导航到户外广场。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://sanbruno.ca.gov/Calendar.aspx?EID=5584&calType=0&day=17&month=10&year=2026",
+    "sourceLabel": "City of San Bruno",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "san-mateo-shred-ewaste-october-2026",
+    "title": "居民免费碎纸与电子垃圾回收日",
+    "kind": "event",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "dateLabel": "10/10 · 9:00–12:00，可能提前满额",
+    "region": "peninsula",
+    "city": "San Mateo",
+    "venue": "Beresford Park · 2720 Alameda de las Pulgas",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "San Mateo 居民免费；需住址证明",
+    "summary": "10 月 10 日 9:00–12:00 在 Beresford Park 举办，但卡车满载可能提前结束。带住址证明；碎纸限三箱标准 banker boxes，电子垃圾须按接受清单分类，大型家电和家庭危险废物不能混投。",
+    "plan": [
+      "出门前分好纸张和电子垃圾，并核对不收物品。",
+      "碎纸最多三箱标准 banker boxes；带住址证明。",
+      "卡车可能提前满载，别按中午最后一分钟到达。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.cityofsanmateo.org/2617/Free-Recycling-Events",
+    "sourceLabel": "City of San Mateo",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "sanmateo"
+  },
+  {
+    "id": "cupertino-baer-blacksmith-fall-2026",
+    "title": "免费观察 Baer Blacksmith Shop 锻造示范",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-11-28",
+    "dateLabel": "10/31、11/28 · 11:00–15:00",
+    "region": "south-bay",
+    "city": "Cupertino",
+    "venue": "Baer Blacksmith Shop · McClellan Ranch Preserve",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费示范",
+    "summary": "McClellan Ranch Preserve 的历史铁匠铺公布 10 月 31 日及 11 月 28 日 11:00–15:00 免费示范。可把看锻造与短程公园散步放在同一半日；这是特定日期的演示，不能假设铁匠铺每天开放或可自行操作工具。",
+    "plan": [
+      "仅选择 10/31 或 11/28 的已确认示范日。",
+      "导航至 22221 McClellan Road，结合短途公园散步。",
+      "围观时听从现场安排，不把示范当作个人操作课程。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+    "sourceLabel": "City of Cupertino",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday",
+    "occurrenceDates": [
+      "2026-10-31",
+      "2026-11-28"
+    ]
+  },
+  {
+    "id": "milpitas-map-workshops-fall-2026",
+    "title": "MAP 免费说明会：了解申请材料与市政折扣",
+    "kind": "event",
+    "startDate": "2026-10-20",
+    "endDate": "2026-11-07",
+    "dateLabel": "10/20、11/7 · 需选场报名",
+    "region": "south-bay",
+    "city": "Milpitas",
+    "venue": "Barbara Lee Senior Center · 40 N Milpitas Boulevard",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费说明会；需选场报名",
+    "summary": "市府公布 10 月 20 日 16:00–17:00、11 月 7 日 11:00–12:00 的免费 MAP 说明会，地点为 Barbara Lee Senior Center。通过官方页报名并了解收入、住址证明要求；参加说明会不等于自动获批，旧 ARPA 托育补贴已停止。",
+    "plan": [
+      "10/20 为 16:00–17:00，11/7 为 11:00–12:00，分别选场。",
+      "从 MAP 官方页进入报名，提前整理自己的材料问题。",
+      "资格与减免由市府审核，不凭参加说明会推断一定获批。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://milpitas.gov/MAP",
+    "sourceLabel": "City of Milpitas",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday",
+    "occurrenceDates": [
+      "2026-10-20",
+      "2026-11-07"
+    ]
+  },
+  {
+    "id": "monte-sereno-cpr-aed-october-2026",
+    "title": "10 月 22 日 CPR 与 AED 基础体验课",
+    "kind": "event",
+    "startDate": "2026-10-22",
+    "endDate": "2026-10-22",
+    "dateLabel": "10/22 · 10:00–11:30",
+    "region": "south-bay",
+    "city": "Monte Sereno",
+    "venue": "Monte Sereno City Hall",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "官方列 15 美元；13 岁以上",
+    "summary": "市府公告列出 10:00–11:30 在 City Hall 举行的课程，费用 15 美元，年龄 13 岁以上，未成年人须监护人签署文件。这是基础体验课，不提供 CPR 认证；需要工作或学校认可证书的人，应另向机构确认课程类型。",
+    "plan": [
+      "通过公告报名并确认名额。",
+      "未满 18 岁者按要求准备监护人签署文件。",
+      "需要正式 CPR 认证时，另找符合要求的认证课程。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.montesereno.org/m/newsflash/home/detail/703",
+    "sourceLabel": "City of Monte Sereno",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "santa-clara-49ers-raiders-nov-2026",
+    "title": "49ers 主场迎战 Raiders",
+    "kind": "sports",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "dateLabel": "11/8 · 13:05",
+    "region": "south-bay",
+    "city": "Santa Clara",
+    "venue": "Levi's Stadium",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "球场官方公布十一月 Raiders 对 49ers 主场比赛，开球时间为当地 13:05。适合提前规划的一次 NFL 现场体验；赛票与停车是不同项目，最终开球与入场安排出发前再核对。",
+    "plan": [
+      "先选座位并看结算总价，再确认停车或公共交通。",
+      "核对移动票、包袋规定及最新开场时间。",
+      "散场交通另留缓冲，别紧接不可更改的下一段行程。"
+    ],
+    "audience": [
+      "体育观众",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://levisstadium.com/event/raiders-vs-49ers-week-9-2026/",
+    "sourceLabel": "Levi's Stadium",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-levis-stadium"
+  },
+  {
+    "id": "santa-clara-49ers-seahawks-nov-2026",
+    "title": "49ers 主场迎战 Seahawks",
+    "kind": "sports",
+    "startDate": "2026-11-29",
+    "endDate": "2026-11-29",
+    "dateLabel": "11/29 · 13:25",
+    "region": "south-bay",
+    "city": "Santa Clara",
+    "venue": "Levi's Stadium",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "感恩节周末的 49ers 主场赛事，官方当前列 13:25 开球。计划跨城来看球时，先确认座位与交通再订整天行程；节庆周末与赛事散场可能同时影响出行，不能套用普通周日的时间预算。",
+    "plan": [
+      "先选座位并看结算总价，再确认停车或公共交通。",
+      "核对移动票、包袋规定及最新开场时间。",
+      "散场交通另留缓冲，别紧接不可更改的下一段行程。"
+    ],
+    "audience": [
+      "体育观众",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://levisstadium.com/event/seahawks-vs-49ers-week-12-2026/",
+    "sourceLabel": "Levi's Stadium",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-levis-stadium"
+  },
+  {
+    "id": "sj-sharks-flames-nov2-2026",
+    "title": "Sharks 主场迎战 Flames",
+    "kind": "sports",
+    "startDate": "2026-11-02",
+    "endDate": "2026-11-02",
+    "dateLabel": "11/2 · 18:00",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "SAP Center",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "SAP Center 确认 11 月 2 日 18:00 的 Sharks 对 Flames 比赛。适合想看冰球又希望较早开场的观众；官网链接路径虽然含 kings，当前页面标题、海报和日期对应 Flames，应以正文为准。",
+    "plan": [
+      "由 SAP Center 单场页进入官方售票。",
+      "核对包袋与移动票规则，并提前安排往返交通。",
+      "开场时间不等于开门时间，入场安排以场馆更新为准。"
+    ],
+    "audience": [
+      "体育观众",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://www.sapcenter.com/events/detail/sharks-vs-kings-18",
+    "sourceLabel": "SAP Center",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-sap-center"
+  },
+  {
+    "id": "sj-don-omar-nov-2026",
+    "title": "Don Omar：Back to Reggaeton",
+    "kind": "performance",
+    "startDate": "2026-11-05",
+    "endDate": "2026-11-05",
+    "dateLabel": "11/5 · 20:00",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "SAP Center",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "SAP Center 官方列出 Don Omar 十一月圣荷西演出，开始时间为 20:00。想把晚餐和演唱会排在同一天，可先在车站或场馆附近用餐，再按自己票区安排入场；不要把巡演其他城市票页当成本场。",
+    "plan": [
+      "由 SAP Center 单场页进入官方售票。",
+      "核对包袋与移动票规则，并提前安排往返交通。",
+      "开场时间不等于开门时间，入场安排以场馆更新为准。"
+    ],
+    "audience": [
+      "现场音乐爱好者",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://www.sapcenter.com/events/detail/don-omar",
+    "sourceLabel": "SAP Center",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-sap-center"
+  },
+  {
+    "id": "sj-mon-laferte-nov-2026",
+    "title": "Mon Laferte 圣荷西演唱会",
+    "kind": "performance",
+    "startDate": "2026-11-06",
+    "endDate": "2026-11-06",
+    "dateLabel": "11/6 · 20:00",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "SAP Center",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "Mon Laferte 的 SAP Center 场次已列入官方十一月日程，20:00 开始。适合提前选座的拉丁音乐之夜；票面楼层、视线说明与结算费用要一起看，附近聚餐和散场回程另留时间。",
+    "plan": [
+      "由 SAP Center 单场页进入官方售票。",
+      "核对包袋与移动票规则，并提前安排往返交通。",
+      "开场时间不等于开门时间，入场安排以场馆更新为准。"
+    ],
+    "audience": [
+      "现场音乐爱好者",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://www.sapcenter.com/events/detail/mon-laferte",
+    "sourceLabel": "SAP Center",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-sap-center"
+  },
+  {
+    "id": "sj-smashing-pumpkins-nov-2026",
+    "title": "The Smashing Pumpkins：The Rats In a Cage Tour",
+    "kind": "performance",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "dateLabel": "11/8 · 20:00",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "SAP Center",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "SAP Center 确认 The Smashing Pumpkins 于 11 月 8 日 20:00 演出。同日 Santa Clara 也有 NFL 比赛，若想串联两场应分别核对交通和进场安排，不要把下午比赛的预计结束当作保证。",
+    "plan": [
+      "由 SAP Center 单场页进入官方售票。",
+      "核对包袋与移动票规则，并提前安排往返交通。",
+      "开场时间不等于开门时间，入场安排以场馆更新为准。"
+    ],
+    "audience": [
+      "现场音乐爱好者",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://www.sapcenter.com/events/detail/the-smashing-pumpkins",
+    "sourceLabel": "SAP Center",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-sap-center"
+  },
+  {
+    "id": "stanford-smu-football-nov-2026",
+    "title": "Stanford 主场迎战 SMU",
+    "kind": "sports",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "dateLabel": "11/28 · 开球时间待定",
+    "region": "south-bay",
+    "city": "Stanford",
+    "venue": "Stanford Stadium",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "官方赛程确认感恩节周末在 Stanford Stadium 对阵 SMU，但开球时间仍为 TBA。可先选这一天作为大学橄榄球计划，等公布时间再锁定餐厅与交通；11 月 21 日 Big Game 在 Berkeley，不能混成 Stanford 主场。",
+    "plan": [
+      "先选座位并看结算总价，再确认停车或公共交通。",
+      "核对移动票、包袋规定及最新开场时间。",
+      "散场交通另留缓冲，别紧接不可更改的下一段行程。"
+    ],
+    "audience": [
+      "体育观众",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://gostanford.com/sports/football/schedule?stream=top",
+    "sourceLabel": "Stanford Athletics",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "region-stanford-quad"
+  },
+  {
+    "id": "sjsu-northern-illinois-nov-2026",
+    "title": "SJSU 对 Northern Illinois：家庭周末主场",
+    "kind": "sports",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "dateLabel": "11/7 · 13:00",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "CEFCU Stadium",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "SJSU 官方赛程列出 11 月 7 日 13:00 对 Northern Illinois，主题为 Family Weekend 与 Military Appreciation。比赛在 CEFCU Stadium，不在市中心主校园；学生票、一般票和停车入口分别查看，不假设所有家庭成员免费。",
+    "plan": [
+      "先选座位并看结算总价，再确认停车或公共交通。",
+      "核对移动票、包袋规定及最新开场时间。",
+      "散场交通另留缓冲，别紧接不可更改的下一段行程。"
+    ],
+    "audience": [
+      "体育观众",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://sjsuspartans.com/sports/football/schedule?print=true",
+    "sourceLabel": "SJSU Athletics",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "sanjose-city"
+  },
+  {
+    "id": "santa-clara-bruno-mars-oct-2026",
+    "title": "Bruno Mars：The Romantic Tour 两场",
+    "kind": "performance",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-11",
+    "dateLabel": "10/10、10/11 · 时间查所选场次",
+    "region": "south-bay",
+    "city": "Santa Clara",
+    "venue": "Levi's Stadium",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "付费；票价与费用以官方售票为准",
+    "summary": "Levi's Stadium 分别公布 10 月 10 日和 11 日的 Bruno Mars 巡演场次。两天是分开售票的演出，选票时核对日期；目前读取的场馆正文未明确开场时间，不沿用其他巡演城市或旧海报的时刻。",
+    "plan": [
+      "先选座位并看结算总价，再确认停车或公共交通。",
+      "核对移动票、包袋规定及最新开场时间。",
+      "散场交通另留缓冲，别紧接不可更改的下一段行程。"
+    ],
+    "audience": [
+      "现场音乐爱好者",
+      "第一次来湾区"
+    ],
+    "officialUrl": "https://levisstadium.com/event/bruno-mars-the-romantic-tour/",
+    "sourceLabel": "Levi's Stadium",
+    "verifiedAt": "2026-10-02",
+    "imageKey": "roundup-levis-stadium",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-11"
+    ]
+  }
+]

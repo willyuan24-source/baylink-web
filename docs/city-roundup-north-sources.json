@@ -1,0 +1,867 @@
+{
+  "checkedAt": "2026-10-02",
+  "timezone": "America/Los_Angeles",
+  "scope": "Marin 11 + Napa 5 + Sonoma 9 + Solano 7 incorporated cities; selected additional events, openings and nationwide-chain offers usable only at participating local stores",
+  "counts": {
+    "cities": 32,
+    "datedCityEntries": 13,
+    "calendarCityEntries": 19,
+    "events": 12,
+    "openings": 3,
+    "offers": 9
+  },
+  "methodology": [
+    "Official city, library, venue, organizer, tourism-board and merchant pages were searched and opened. Direct-access failures and differences between indexed and live text are recorded below.",
+    "checkedAt/verifiedAt is the research date, not a claim that the announcement was first published that day. Calendar entries are deliberately labeled calendar and do not assert newly announced news.",
+    "Specific event dates refer to 2026. Ticket inventory, account-specific coupons, store participation and same-day cancellations were not verified through private accounts or purchases.",
+    "An official tourism-board report of an opening is paired with the merchant's operating website. openedOn is omitted without a verified first public-service date.",
+    "Current datasets and source titles were searched for duplicates. Existing Mill Valley Film Festival, Rio Vista Bass Derby, A Toast to Sausalito, Napa library seasonal programs and numerous October events were not duplicated as new MonthlyEvent rows.",
+    "Editor suggestions (arrival timing, combining a walk, checking a venue before leaving) are planning advice, not measured travel times or promises of admission."
+  ],
+  "cityEvidence": [
+    {
+      "city": "Belvedere",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://www.beltiblibrary.org/event?id=15458206",
+      "access": "official-web-page-read",
+      "supports": "Belvedere Tiburon Library 的 Makerspace 举办维修咨询，可带小电器、玩具、织物或自行车问题。地点在 Tiburon；先通过活动页登记物件，咨询不等于保证修复。",
+      "limits": "Shared library event is physically in Tiburon, explicitly identified; not a Belvedere venue."
+    },
+    {
+      "city": "Corte Madera",
+      "county": "Marin",
+      "kind": "calendar",
+      "url": "https://www.cortemadera.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "镇日历将 Community Events、Parks and Recreation 与政府会议分栏。先选十月或十一月及对应类别，再打开详情核对地点和报名；会议日历有项目不代表当日有公众游园活动。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Fairfax",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://marinlibrary.bibliocommons.com/events/6a91832e29a7dd0d67474257",
+      "access": "official-web-page-read",
+      "supports": "Fairfax Library 展出 Mt. Tamalpais Florilegium 植物艺术，适合与借书合并成短停。展期不是每日开放承诺，出发前检查分馆营业时间及展览详情。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Larkspur",
+      "county": "Marin",
+      "kind": "calendar",
+      "url": "https://www.larkspur.ca.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "市日历分别列出 Library、Recreation 与公共会议。想找亲子或成人活动，先勾选图书馆及康乐类别，再核对年龄和预约条件；不要把办事会议当成旅游活动。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Mill Valley",
+      "county": "Marin",
+      "kind": "calendar",
+      "url": "https://www.cityofmillvalley.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "市日历是补查图书馆、康乐与社区安排的入口。请选择实际出行月份，再点开单场详情；电影节场次与门票应另到主办方核对，不能用市日历替代票务确认。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Novato",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://www.novato.gov/Home/Components/Calendar/Event/24487/",
+      "access": "official-indexed-full-text; direct open returned 403",
+      "supports": "Not-So-Scary Halloween Magic Show 在 City Hall 举行，官方列出 10:00 与 11:30 两场，免费且不需预约。适合先选一场，再安排 Old Town 短逛；座位情况仍以现场为准。",
+      "limits": "Direct tool returned 403; official search index supplied full event date, venue, two show times, free/no-reservation wording."
+    },
+    {
+      "city": "Ross",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://www.rossrecreation.org/",
+      "access": "official-web-page-read",
+      "supports": "Ross Recreation 公布 Fall 2 为 10/19–12/18；Fall 1 报名不会自动延续。老居民续课也要检查对应项目、年龄与剩余名额，具体上课日和费用以课程报名页为准。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "San Anselmo",
+      "county": "Marin",
+      "kind": "calendar",
+      "url": "https://www.sananselmo.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "镇官方日历适合查近期图书馆、康乐及公共会议。先切到出行月份并筛选类别，再查看活动地点、报名按钮和变更；同一天不同栏目不是同一场活动。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "San Rafael",
+      "county": "Marin",
+      "kind": "calendar",
+      "url": "https://marinlibrary.bibliocommons.com/v2/events",
+      "access": "official-web-page-read",
+      "supports": "Marin County Free Library 的活动系统可按分馆和年龄筛选。找 San Rafael 一带项目时先选 Civic Center，避免误跑其他镇；这是县立馆活动入口，不等于 San Rafael 市图书馆的完整日程。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Sausalito",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/halloween_sausalito_october_31_2026.php",
+      "access": "native-https-200-full-text; web tool could not access current PHP route",
+      "supports": "17:45 在 Station 1 Firehouse 集合，18:00 游行，随后到 Robin Sweeny Park 讨糖。狗狗装扮赛 18:30 开始且无需预登记；Caledonia 沿线傍晚封路，驾车先看官方范围。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Tiburon",
+      "county": "Marin",
+      "kind": "dated",
+      "url": "https://www.beltiblibrary.org/event?id=17243593",
+      "access": "official-web-page-read",
+      "supports": "Belvedere Tiburon Library 的 Founders Room 安排 Master Gardeners 讲解亚洲叶菜种植。活动页提供预约；适合想从盆栽或家庭菜园开始的居民，名额以登记页面为准。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "American Canyon",
+      "county": "Napa",
+      "kind": "calendar",
+      "url": "https://www.americancanyon.gov/Live/Community-Calendar",
+      "access": "official-web-page-read",
+      "supports": "市 Community Calendar 已列 Manila Munchies: Pasko Vibes 等十月项目。打开单场页确认时间、收费和 Shenandoah Park 等具体场地；日历也接收社区投稿，不能将所有项目视为市政府主办。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Calistoga",
+      "county": "Napa",
+      "kind": "calendar",
+      "url": "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
+      "access": "official-web-page-read",
+      "supports": "Napa County Library 已发布十月 Spooky Season 节目导览，包含各分馆入口。先进入 Calistoga 的活动列表，再检查适龄、预约和开场时间；县级文章也含 Napa 与 American Canyon 项目，不能混用地点。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Napa",
+      "county": "Napa",
+      "kind": "calendar",
+      "url": "https://www.cityofnapa.org/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "Napa 市日历可用于补查公共活动和政府会议。设定十月或十一月后再查看具体项目的场馆、开放时间与预约；图书馆节庆节目另在县图书馆系统，不能只看首页日期就出发。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "St. Helena",
+      "county": "Napa",
+      "kind": "calendar",
+      "url": "https://www.cityofsthelena.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "St. Helena 的官方日历是查公共项目与会议的入口。按日期筛选后读单场说明，确认是否需要登记及具体地址；酒庄品鉴和餐饮预约仍须到对应经营者页面办理。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Yountville",
+      "county": "Napa",
+      "kind": "calendar",
+      "url": "https://www.townofyountville.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "先在镇官方日历选择出行月份，再查看社区活动或会议分类。带孩子或长者参加前核对场地、时长和报名条件；镇日历不是餐厅或酒庄的可预约时段表。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Cloverdale",
+      "county": "Sonoma",
+      "kind": "calendar",
+      "url": "https://www.cloverdale.net/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "Cloverdale 日历包含公共会议及部分公园养护安排。想参加社区项目，应先打开详情确认是否对公众开放；维护排程适合出门前查影响，不能当成节庆或新活动推荐。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Cotati",
+      "county": "Sonoma",
+      "kind": "calendar",
+      "url": "https://www.cotaticity.gov/calendar.aspx",
+      "access": "official-web-page-read",
+      "supports": "Cotati 官方日历提供 Community Events 与政府会议分类。先切换当前月份，再查看对应活动详情；不要因页面默认停在旧月份，就判断全镇没有新安排。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Healdsburg",
+      "county": "Sonoma",
+      "kind": "dated",
+      "url": "https://www.bgcsonoma-marin.org/healdsburgcrush",
+      "access": "official-web-page-read",
+      "supports": "今年活动地点是 Bacchus Landing，不要沿用旧攻略中的广场地址。普通入场 13:00–16:00，仅限 21 岁以上；官方 FAQ 列普通票 $150、VIP $200，购票前确认余票和接驳。",
+      "limits": "Ticket prices, 21+ restriction and shuttle/parking conditions also checked in organizer FAQ. No remaining inventory claimed."
+    },
+    {
+      "city": "Petaluma",
+      "county": "Sonoma",
+      "kind": "calendar",
+      "url": "https://events.sonomalibrary.org/events/month",
+      "access": "official-web-page-read",
+      "supports": "Sonoma County Library 日历覆盖全县。先选择 Petaluma Regional Library，再按年龄或活动类型筛选，阅读报名状态；不要把其他分馆或线上项目当成 Petaluma 现场活动。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Rohnert Park",
+      "county": "Sonoma",
+      "kind": "calendar",
+      "url": "https://events.sonomalibrary.org/events/month",
+      "access": "official-web-page-read",
+      "supports": "县图书馆活动系统中选择 Rohnert Park–Cotati Regional Library，再核对活动日期和适龄。共用分馆名称同时含两城，不代表每个项目都在 Cotati 市内；现场地址以详情页为准。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Santa Rosa",
+      "county": "Sonoma",
+      "kind": "dated",
+      "url": "https://schulzmuseum.org/its-the-great-pumpkin-60th-anniversary-event/",
+      "access": "official-web-page-read",
+      "supports": "Schulz Museum 安排幕后讲述、手作与音乐等周年节目，13:00–17:00 举行并包含在博物馆门票内，会员免费。服装比赛与演出另有分时安排，先看节目表再决定到达时间。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Sebastopol",
+      "county": "Sonoma",
+      "kind": "dated",
+      "url": "https://www.bonniebagels.com/",
+      "access": "official-web-page-read",
+      "supports": "县旅游机构把 Bonnie Bagels & Co 列入初秋新店，店家确认地址为 280 S Main Street。当前公布周三至周日 7:00–13:00；适合作早餐短停，出发前再核对当天售卖和营业情况。",
+      "limits": "Opening status supported by merchant plus tourism-board early-fall article; first opening date unverified."
+    },
+    {
+      "city": "Sonoma",
+      "county": "Sonoma",
+      "kind": "calendar",
+      "url": "https://events.sonomalibrary.org/events/month",
+      "access": "official-web-page-read",
+      "supports": "县图书馆日历中的 Sonoma Valley Regional Library 是查本地读书会与文化项目的入口。选择分馆再查看单场地址和预约，勿把全县列表或 Sonoma Raceway 的赛程当成市中心活动。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Windsor",
+      "county": "Sonoma",
+      "kind": "dated",
+      "url": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
+      "access": "official-web-page-read",
+      "supports": "镇政府在 Huerta Gym 安排服装及装饰交换。10/16 为 15:00–17:00，可带旧服装、装饰和自备 T 恤参加再利用活动；11/7 的 Fall Swap 为 11:00–14:00，分别核对登记和物件要求。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Benicia",
+      "county": "Solano",
+      "kind": "calendar",
+      "url": "https://www.visitbenicia.org/events",
+      "access": "official-web-page-read",
+      "supports": "Visit Benicia 提供面向公众的节庆、商圈与文化活动入口。选择实际日期后打开主办方详情，核对是否购票及活动地址；这是找出游项目的入口，不保证所有条目仍有名额。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Dixon",
+      "county": "Solano",
+      "kind": "dated",
+      "url": "https://www.lambtown.org/",
+      "access": "official-web-page-read",
+      "supports": "Lambtown 在 Dixon May Fairgrounds 举行，周六 9:00–17:30、周日 9:00–16:00。节庆入场与工作坊分别核对购票，工作坊需预先安排；主办方说明雨天仍举行。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Fairfield",
+      "county": "Solano",
+      "kind": "calendar",
+      "url": "https://solanolibrary.libnet.info/events",
+      "access": "official-web-page-read",
+      "supports": "Solano County Library 的活动系统提供分馆、年龄及日期筛选。找 Fairfield 项目时分别查看 Civic Center 和 Cordelia，预约前再次核对场馆；两个分馆不是同一地点。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Rio Vista",
+      "county": "Solano",
+      "kind": "dated",
+      "url": "https://www.bassfestival.com/bass-festival",
+      "access": "official-web-page-read",
+      "supports": "主办方将 2026 节庆重点放在钓鱼比赛与 Main Street 周边音乐；10/3 另列车展。官网明确解释今年没有 carnival 游乐设施，带孩子出行可先看实际节目表，比赛报名另计。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Suisun City",
+      "county": "Solano",
+      "kind": "dated",
+      "url": "https://www.suisun.com/Events-directory/D%C3%ADa-de-los-Muertos-Celebration",
+      "access": "official-web-page-read",
+      "supports": "Joseph Nelson Community Center 举办 18:00–22:00 社区晚会，包含祭坛、民俗舞蹈及音乐。入场免费，食物需购买；啤酒仅供持有效证件的 21 岁以上宾客，主办方不允许携带宠物。",
+      "limits": "Date and public rules checked; no guarantee of remaining places or unchanged day-of operation."
+    },
+    {
+      "city": "Vacaville",
+      "county": "Solano",
+      "kind": "calendar",
+      "url": "https://solanolibrary.libnet.info/events",
+      "access": "official-web-page-read",
+      "supports": "使用 Solano County Library 活动日历时，按 Vacaville 的具体分馆筛选，再检查年龄、报名状态及地址。Town Square 与 Cultural Center 是不同馆址，活动标题相似也不应直接沿用旧导航。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    },
+    {
+      "city": "Vallejo",
+      "county": "Solano",
+      "kind": "calendar",
+      "url": "https://www.gvrd.org/upcoming-events",
+      "access": "official-web-page-read",
+      "supports": "Greater Vallejo Recreation District 的 Upcoming Events 汇总康乐项目。打开单项确认公园或场館、适龄、费用和报名方式；这是康乐区日历，不能据此推定 Vallejo 所有活动或场馆均免费。",
+      "limits": "Calendar controls/official entry were checked; individual unpublished or dynamically loaded occurrences were not asserted. Select the intended month, venue and registration details."
+    }
+  ],
+  "eventEvidence": [
+    {
+      "id": "roundup-dixon-lambtown-2026",
+      "url": "https://www.lambtown.org/",
+      "access": "official-web-page-read",
+      "date": "10/3 9:00–17:30；10/4 9:00–16:00",
+      "fee": "节庆需购票；工作坊另查报名与费用",
+      "additionalRules": [
+        "先在官网选择节庆票；工作坊另行查看名额，不把入场票当课程票。",
+        "周日比周六早结束；主办方说明雨天照常，按天气准备。",
+        "工作坊和示范的时间可能重叠，先选最想看的项目再逛摊位。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-novato-halloween-magic-2026",
+      "url": "https://www.novato.gov/Home/Components/Calendar/Event/24487/",
+      "access": "official-indexed-full-text; direct open returned 403",
+      "date": "10/17 · 10:00、11:30 两场",
+      "fee": "免费，无需预约；座位以现场为准",
+      "additionalRules": [
+        "选择其中一场，提前到达 City Hall；两场不代表同一张座位保证。",
+        "活动在 City Hall，导航到 901 Sherman Avenue。",
+        "带幼儿可优先选与午睡时间不冲突的一场，现场按工作人员指引入座。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-novato-dia-muertos-2026",
+      "url": "https://www.novato.gov/Home/Components/Calendar/Event/24495/2527?selectview=1&toggle=all",
+      "access": "official-indexed-full-text; direct open returned 403",
+      "date": "10/24 · 15:00–18:00",
+      "fee": "官方当前介绍未明确一般入场收费；餐饮另查",
+      "additionalRules": [
+        "到 Civic Green 参加公众活动；不要将汽车祭坛展示的免费申请条件当作全部费用说明。",
+        "汽车祭坛展示申请已于9/25截止，不再当作可报名项目推荐。",
+        "观看祭坛时尊重纪念物；如需餐饮，单独留出预算。"
+      ],
+      "limits": "General admission was not explicitly priced. The free vehicle-ofrenda application is not generalized to the whole event; September 25 display-application deadline has passed."
+    },
+    {
+      "id": "roundup-sausalito-halloween-2026",
+      "url": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/halloween_sausalito_october_31_2026.php",
+      "access": "native-https-200-full-text; web tool could not access current PHP route",
+      "date": "10/31 · 17:45集合，18:00游行，18:30狗狗赛",
+      "fee": "狗狗装扮赛免费，无需预登记；查看市府完整活动安排",
+      "additionalRules": [
+        "从 Johnson 与 Caledonia 街角消防站集合，勿直接到公园等待游行起点。",
+        "Caledonia 部分路段16:30起封闭至21:00，驾车先看市府封路范围。",
+        "参加狗狗装扮赛只选一个组别，按现场分类牌排队。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-healdsburg-crush-2026",
+      "url": "https://www.bgcsonoma-marin.org/healdsburgcrush",
+      "access": "official-web-page-read",
+      "date": "10/11 · 普通入场13:00–16:00；VIP提前1小时",
+      "fee": "官方FAQ：普通票$150、VIP $200；21岁以上",
+      "additionalRules": [
+        "先核对余票和年龄要求；活动不允许宠物，勿沿用旧广场地址。",
+        "现场停车有限，官方FAQ列 City Hall 停车场接驳；查看当天上车点并安排不酒驾的返程。",
+        "需要无障碍安排或特别协助，可先通过主办方联系入口咨询。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-schulz-great-pumpkin-60-2026",
+      "url": "https://schulzmuseum.org/its-the-great-pumpkin-60th-anniversary-event/",
+      "access": "official-web-page-read",
+      "date": "10/17 · 13:00–17:00",
+      "fee": "包含在博物馆门票内；会员免费",
+      "additionalRules": [
+        "14:00安排幕后分享，音乐节目另有时段，先按官网节目表选重点。",
+        "会员带好资格凭证；其他观众先核对门票与当天开放情况。",
+        "这是馆内周年节目，未购买门票不要把活动时段当免费开放日。"
+      ],
+      "limits": "The official page has inconsistent costume-contest timing in different passages; exact contest time omitted, overall 13:00–17:00 and 14:00 discussion retained."
+    },
+    {
+      "id": "roundup-schulz-pearls-jubilee-2026",
+      "url": "https://schulzmuseum.org/pearls-jubilee/",
+      "access": "official-web-page-read",
+      "date": "11/10 · 18:30对谈；20:00签书",
+      "fee": "对谈$20，会员享20%折扣；20:00签书入场免费，书另购",
+      "additionalRules": [
+        "对谈需购票；不要把签书免费理解为整晚活动免票。",
+        "官方说明对谈票持有人可进入签书前100人的队列；到场仍按工作人员安排排队。",
+        "只参加20:00签书也可，但免费入场不包含书本，先确认现场购书规则。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-windsor-green-halloween-2026",
+      "url": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
+      "access": "official-web-page-read",
+      "date": "10/16 · 15:00–17:00",
+      "fee": "镇官网列免费登记入口",
+      "additionalRules": [
+        "先按官网入口登记；可带自备T恤参加印制活动，并自备水杯。",
+        "带去交换的物件先检查状态，现场收取范围以主办方说明为准。",
+        "想做手作可先参与再逛交换区；交换物品数量与款式取决于现场。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-windsor-fall-swap-2026",
+      "url": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
+      "access": "official-web-page-read",
+      "date": "11/7 · 11:00–14:00",
+      "fee": "当前介绍未单列费用；查看该场详情",
+      "additionalRules": [
+        "这是11/7独立场次，不要沿用10/16的时段或登记信息。",
+        "出发前确认物件要求与费用；不把其他月份的规则直接套用。",
+        "可按季节整理一小袋适用物件，避免携带大件后发现不在受理范围。"
+      ],
+      "limits": "November 7 paragraph does not separately state price or all donation conditions. Do not borrow the October free-registration or December no-item-required wording."
+    },
+    {
+      "id": "roundup-suisun-dia-muertos-2026",
+      "url": "https://www.suisun.com/Events-directory/D%C3%ADa-de-los-Muertos-Celebration",
+      "access": "official-web-page-read",
+      "date": "11/1 · 18:00–22:00",
+      "fee": "入场免费；食物和饮品另付",
+      "additionalRules": [
+        "尊重祭坛与纪念物；活动场地不允许宠物或自带酒精饮料。",
+        "啤酒仅供21岁以上且持有效照片证件的宾客；带孩子可先看舞蹈与音乐。",
+        "导航到611 Village Drive的社区中心，别把水岸Harbor Plaza当作本场地址。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-tiburon-asian-greens-2026",
+      "url": "https://www.beltiblibrary.org/event?id=17243593",
+      "access": "official-web-page-read",
+      "date": "10/8 · 14:30–16:00",
+      "fee": "需登记；当前活动页未单列收费",
+      "additionalRules": [
+        "先查看报名是否仍有名额，再安排到 Founders Room。",
+        "可先整理阳光、容器和种植问题，方便现场提问。",
+        "本场是14:30的园艺课；同日傍晚另有维修咨询，报名不要选错。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    },
+    {
+      "id": "roundup-tiburon-repair-advice-2026",
+      "url": "https://www.beltiblibrary.org/event?id=15458206",
+      "access": "official-web-page-read",
+      "date": "10/8 · 17:30–19:00",
+      "fee": "先登记待修物件；当前页未单列收费",
+      "additionalRules": [
+        "通过活动页链接登记物件，并描述故障，先确认受理范围。",
+        "这是咨询协助，不保证当晚修好，也不承诺备件供应。",
+        "记录型号与故障现象再出门，个人资料与贵重配件先自行妥善保管。"
+      ],
+      "limits": "No remaining ticket/registration inventory claimed. Descriptive timing checked against the organizer."
+    }
+  ],
+  "openingEvidence": [
+    {
+      "id": "roundup-bonnie-bagels-sebastopol-2026",
+      "tourismUrl": "https://www.sonomacounty.com/media/whats-new/whats-new-in-sonoma-county-late-summer-early-fall-2026/",
+      "merchantUrl": "https://www.bonniebagels.com/",
+      "access": "Both official tourism article and merchant page read",
+      "claims": {
+        "status": "open",
+        "address": "280 S Main Street, Sebastopol, CA",
+        "scope": "2026年初秋已开业 · 未核实首日日期"
+      },
+      "limits": "No first public-service day verified; no openedOn. Restaurant copy is an editorial description from official information, not a personal review. Hours may change."
+    },
+    {
+      "id": "roundup-capriciano-santarosa-2026",
+      "tourismUrl": "https://www.sonomacounty.com/media/whats-new/whats-new-in-sonoma-county-late-summer-early-fall-2026/",
+      "merchantUrl": "https://capriciano.com/",
+      "access": "Both official tourism article and merchant page read",
+      "claims": {
+        "status": "open",
+        "address": "505 Mendocino Avenue, Santa Rosa, CA 95401",
+        "scope": "2026年初秋已开业 · 非确认十月首日开张"
+      },
+      "limits": "No first public-service day verified; no openedOn. Restaurant copy is an editorial description from official information, not a personal review. Hours may change."
+    },
+    {
+      "id": "roundup-alesta-sebastopol-2026",
+      "tourismUrl": "https://www.sonomacounty.com/media/whats-new/whats-new-in-sonoma-county-summer-2026/",
+      "merchantUrl": "https://alestasoco.com/",
+      "access": "Both official tourism article and merchant page read",
+      "claims": {
+        "status": "open",
+        "address": "7233 Healdsburg Avenue, Sebastopol, CA 95472",
+        "scope": "2026年夏季已开业 · 首日日期未核实"
+      },
+      "limits": "No first public-service day verified; no openedOn. Restaurant copy is an editorial description from official information, not a personal review. Hours may change."
+    }
+  ],
+  "offerEvidence": [
+    {
+      "id": "roundup-starbucks-birthday-2026",
+      "url": "https://www.starbucks.com/terms/rewards/",
+      "access": "Official current page/terms read",
+      "qualification": "至少生日前7天入会、填写生日，且每年生日前有一次赚星交易；仅参与门店。",
+      "limits": "可兑换一份符合条件的饮品或食品；多人份、酒精、商品及包装咖啡等除外。先查看账户生日券，不能把所有会员都写成生日月任意天可领。",
+      "storeCheck": "https://www.starbucks.com/store-locator"
+    },
+    {
+      "id": "roundup-starbucks-free-mod-2026",
+      "url": "https://www.starbucks.com/terms/rewards/",
+      "access": "Official current page/terms read",
+      "qualification": "Rewards会员购买饮品，使用当次券；一次加料税前价值上限$2，不与其他Rewards叠加。",
+      "limits": "这是加料优惠，不是整杯免费。品牌自行指定每月周一日期，结账选券或先告知店员；未看到有效券时不要假定每个周一可用。",
+      "storeCheck": "https://www.starbucks.com/store-locator"
+    },
+    {
+      "id": "roundup-mcdonalds-medium-fries-oct4-2026",
+      "url": "https://www.mcdonalds.com/us/en-us/deals.html",
+      "access": "Official current page/terms read",
+      "qualification": "App加入Rewards、参与门店税前消费至少$1；不适用McDelivery。",
+      "limits": "先选门店，在App中确认免费中薯券并应用到订单。截止日后的延长没有官方确认，不把它写成全年每周固定福利。",
+      "expires": "2026-10-04",
+      "storeCheck": "https://www.mcdonalds.com/us/en-us/restaurant-locator.html"
+    },
+    {
+      "id": "roundup-krispy-kreme-welcome-2026",
+      "url": "https://www.krispykreme.com/rewards",
+      "access": "Official current page/terms read",
+      "qualification": "注册Rewards后，在参与门店下一次购买时使用欢迎礼；不是无购买门槛。",
+      "limits": "官方Rewards页写一只喜爱的甜甜圈随下一次购买赠送。先确认券已到帐、可选产品与当地门店，不套用旧版免费整盒或即时领取说法。",
+      "storeCheck": "Select a participating restaurant/store in the official app or site; no assertion that every Bay Area branch accepts the offer."
+    },
+    {
+      "id": "roundup-jersey-mikes-birthday-points-2026",
+      "url": "https://www.jerseymikes.com/rewards/terms-conditions",
+      "access": "Official current page/terms read",
+      "qualification": "MyMike账户填写生日并同意邮件；过去12个月用账户购买过regular/giant sub、wrap或sub bowl，积分兑换不算。",
+      "limits": "符合条件才在生日获72 Shore Points，可按官方兑换档位换regular sub、wrap或sub bowl。不是刚注册即送套餐，也不包含已过时的免费饮料承诺。",
+      "storeCheck": "Select a participating restaurant/store in the official app or site; no assertion that every Bay Area branch accepts the offer."
+    },
+    {
+      "id": "roundup-wendys-weekly-app-offers-2026",
+      "url": "https://www.wendys.com/offers-coupons",
+      "access": "Official current page/terms read",
+      "qualification": "使用App优惠并购买满$5；周三赠6块鸡块，周五赠任意尺寸薯条；优惠不可叠加。",
+      "limits": "官网没有公布统一结束日，选湾区具体门店后先检查账户券、税费与订单条件。两种优惠在不同星期使用，不是同一单同时领取。",
+      "storeCheck": "https://locations.wendys.com/united-states/ca"
+    },
+    {
+      "id": "roundup-ulta-birthday-gift-2026",
+      "url": "https://www.ulta.com/rewards/birthday-gift",
+      "access": "Official current page/terms read",
+      "qualification": "免费Rewards会员，生日月前填写生日并同意接收营销信息；店内出示生日券。美国居民13岁以上，未成年按条款需监护人同意。",
+      "limits": "店内兑换无需购买；在线或取货订单须购买税前商品金额大于$0的非UB Marketplace商品，礼卡不算，寄送可能另收运费。每年一次、限库存，无需开信用卡。",
+      "storeCheck": "Select a participating restaurant/store in the official app or site; no assertion that every Bay Area branch accepts the offer."
+    },
+    {
+      "id": "roundup-ihop-birthday-pancoins-2026",
+      "url": "https://www.ihop.com/en/rewards/free-birthday-pancake",
+      "access": "Official birthday-page search index provides full offer FAQ; direct renderer lacks that body. Official loyalty terms also read; timing differences recorded below.",
+      "qualification": "加入International Bank of Pancakes并填生日；须在生日月1日前入会，条款另要求至少生日前7天。",
+      "limits": "官方生日页说明月初发5 PanCoins，可兑换一份Original Buttermilk全份煎饼。建议提前一个月办理；实际到账、有效期和可兑换门店以账户为准，不把饮料或其他餐点算免费。",
+      "storeCheck": "Select a participating restaurant/store in the official app or site; no assertion that every Bay Area branch accepts the offer."
+    },
+    {
+      "id": "roundup-red-robin-kids-birthday-2026",
+      "url": "https://www.redrobin.com/royalty/terms",
+      "access": "Official current page/terms read",
+      "qualification": "成年Royalty会员为17岁及以下孩子登记生日；生日月券减$7，须另有至少$4.99配套消费，只限堂食且孩子在场。",
+      "limits": "当前条款保留儿童生日优惠，月初发券、当月一次。成人原固定生日汉堡自2026/6/1改为个性化Surprise & Delight，十月不能保证获赠；具体门店及券面限制先查账户。",
+      "storeCheck": "Select a participating restaurant/store in the official app or site; no assertion that every Bay Area branch accepts the offer."
+    }
+  ],
+  "supplementarySources": [
+    {
+      "url": "https://www.bgcsonoma-marin.org/crushfaq",
+      "access": "official-full-text-read",
+      "supports": "Healdsburg Crush 21+, GA $150/VIP $200, no pets, limited venue parking and City Hall shuttle. Venue on primary organizer page is Bacchus Landing."
+    },
+    {
+      "url": "https://www.lambtown.org/product-category/tickets/",
+      "access": "official-ticket-category-read",
+      "supports": "Festival tickets and workshops are separate; no ticket-stock or numeric-price claim included."
+    },
+    {
+      "url": "https://www.ulta.com/rewards/terms-and-conditions",
+      "access": "official-full-text-read",
+      "supports": "August 16, 2026 terms: no purchase in store, eligible non-UB Marketplace merchandise subtotal >$0 for online/pickup, gift-card/tax/shipping exclusions, one annual birthday gift, inventory limits."
+    },
+    {
+      "url": "https://www.ihop.com/en/legal/loyalty/terms-and-conditions",
+      "access": "official-full-text-and-index-read",
+      "supports": "Birthday 5 PanCoins with birthday profile and enrollment >=7 days beforehand.",
+      "limit": "Terms say on the birthday; birthday marketing FAQ says first of birthday month and join before the first. Copy advises satisfying both lead-time conditions and checking account issuance; no guaranteed identical issuance date across every account."
+    },
+    {
+      "url": "https://www.jerseymikes.com/account/overview",
+      "access": "official-indexed-text-read",
+      "supports": "72-point redemption level; confirmed more directly in rewards terms, which is the published source."
+    },
+    {
+      "url": "https://solanolibrary.gov/",
+      "access": "official-full-text-read",
+      "supports": "Current Solano County Library identity, branch names and links to events portal; Fairfield Civic Center/Cordelia and Vacaville Town Square/Cultural Center are separate branches."
+    },
+    {
+      "url": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/index.php",
+      "access": "official-full-text-read",
+      "supports": "Current city event navigation links for October 17 Toast and October 31 Halloween."
+    }
+  ],
+  "auditCorrections": [
+    {
+      "topic": "Sausalito website migration: A Toast to Sausalito",
+      "oldUrl": "https://www.sausalito.gov/departments/parks-and-recreation/events/a-toast-to-sausalito-beer-wine-spirits-festival",
+      "replacementUrl": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/a_toast_to_sausalito_beer_wine_spirits_festival_october_17_2026.php",
+      "access": "Native HTTPS 200 and body read",
+      "action": "Root may replace old 404 in existing event; no duplicate event created.",
+      "supports": "October 17, 2026 event and current street-closure schedule."
+    },
+    {
+      "topic": "Gabrielson Park old facility URLs",
+      "oldUrls": [
+        "https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/2/394",
+        "https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/2/690"
+      ],
+      "replacementUrl": "https://sausalito.recdesk.com/Community/Facility/Detail?facilityId=31",
+      "secondaryUrl": "https://www.sausalito.org/parks-beaches",
+      "access": "Both current official recreation directory and chamber page read",
+      "action": "Recreation directory supports park identity; chamber page directly supports ferry adjacency, lawn, benches and picnic facilities. Use a source label appropriate to the selected source, rather than calling the chamber a city page."
+    },
+    {
+      "topic": "Tracy Way and ferry plaza completion article",
+      "oldUrl": "https://www.sausalito.gov/Home/Components/News/News/7574/16?arch=1&npage=4&seldept=5",
+      "replacementUrl": "https://us10.campaign-archive.com/?id=58418f5f07&u=ef48996d6f825fac32ec81b4b",
+      "provenanceUrl": "https://www.sausalito.gov/government/hot_topics/ferry_landing/index.php",
+      "access": "Current city project page links to August 22, 2025 official Currents archive; archive full text read",
+      "supports": "Tracy Way promenade between Parking Lot 1 and Viña del Mar Park; publication and completion context belong to 2025, not a new 2026 announcement."
+    },
+    {
+      "topic": "Rio Vista Bass Derby 2026",
+      "url": "https://www.bassfestival.com/bass-festival",
+      "action": "Any previous expectation of carnival/amusement rides should be corrected: organizer explicitly says no carnival this year. Existing event should remain, with current schedule and street-closure links checked."
+    },
+    {
+      "topic": "Expired September offers",
+      "files": [
+        "src/data/september-freebies.ts",
+        "src/data/guides-deals.ts",
+        "src/data/autumn-refresh-offers.ts"
+      ],
+      "action": "Keep historical September entries as dated/archive content. Do not present Peet's September 25/29, Target September 26, September-only 85°C offer or past grand-opening giveaways as currently claimable. A Peet's pass purchased by September 30 may still have its own 30-day use period; purchase deadline and redemption deadline differ."
+    },
+    {
+      "topic": "Starbucks / Red Robin duplicate review",
+      "method": "Imported currentFreebies from src/data/october-offers.ts through node --import tsx and searched full src case-insensitively.",
+      "finding": "Only starbucks-cafe-refills existed before this batch; no old Starbucks birthday or Red Robin offer ID was present in this release worktree. No invented old ID used. New Red Robin kids offer includes adult-birthday-policy correction."
+    }
+  ],
+  "excludedOrUncertain": [
+    {
+      "topic": "McDonald's new-app 10-piece welcome nuggets",
+      "url": "https://www.mcdonalds.com/us/en-us/mymcdonalds.html",
+      "finding": "Official search index crawled three weeks ago still describes first $1 purchase, last-day-of-month expiry and up to 48 hours issuance. Current opened full page lacks the promotional block.",
+      "action": "Removed roundup-mcdonalds-first-app-nuggets-2026 from final offers rather than assert a current October coupon. The separately verified medium-fries offer through October 4 remains."
+    },
+    {
+      "topic": "Red Robin adult Birthday Burger",
+      "url": "https://www.redrobin.com/royalty/terms",
+      "finding": "June 1, 2026 terms replace the fixed adult birthday burger with targeted Surprise & Delight. Transitional final redemption only concerns qualifying birthday months beginning on/before July 1, 2026.",
+      "action": "Do not promise a free adult birthday burger in October. The separate kids offer is retained with its $7 discount, accompanying $4.99 purchase and child-present dine-in conditions."
+    },
+    {
+      "topic": "Suisun Dockside Dash 5K/2K",
+      "url": "https://www.suisun.com/Events-directory/Dockside-Dash-5K-2K-Fun-Run",
+      "finding": "Official indexed text described October 18, but direct page returned 404 and current events index omitted it.",
+      "action": "Excluded; do not publish stale early-bird prices or registration availability."
+    },
+    {
+      "topic": "Lily Tomlin October 8",
+      "url": "https://tickets.lutherburbankcenter.org/0/6035",
+      "finding": "Official ticket page says sold out with box-office waiting list.",
+      "action": "Not added as a newly available concert recommendation."
+    },
+    {
+      "topic": "Sonoma Raceway CSRG dates",
+      "url": "https://www.sonomaraceway.com/events/kids-tickets/",
+      "finding": "Current page lists October 9–11, while older official news posts differed; exact public spectator days were not reconciled.",
+      "action": "Excluded from new events rather than imply public spectator access every day; raceway is outside City of Sonoma center."
+    },
+    {
+      "topic": "Sam's General Store St. Helena / Spur Saloon Windsor",
+      "finding": "New-business leads lacked a sufficiently consistent current merchant address/opening confirmation in this pass.",
+      "action": "Excluded rather than fill the target count with uncertain launches."
+    }
+  ],
+  "imagePolicy": {
+    "reusedRealPhotos": [
+      {
+        "imageKey": "region-sausalito",
+        "usage": "Sausalito town setting; existing credited waterfront photograph. Not an October 2026 Halloween photograph."
+      },
+      {
+        "imageKey": "coverage-petaluma-river",
+        "usage": "Petaluma setting; existing historical river photograph with its original caption/credit. Not a library-event photograph."
+      },
+      {
+        "imageKey": "autumn-sonoma",
+        "usage": "Sonoma town/history setting; existing state-park Barracks photograph. Not a county-wide or raceway event photograph."
+      }
+    ],
+    "illustrationFallbacks": [
+      "culture-visit",
+      "refresh-makers",
+      "autumn-new-shops",
+      "september-freebies"
+    ],
+    "limits": "15 additional city-specific Commons photographs were licensed via the official Commons imageinfo API and visually inspected in a contact sheet. Four existing same-city photographs are reused, for 19 of 32 city cards. Historical dates are explicit; these are city-context images, not photographs of the listed 2026 events/new businesses. Unmapped cities keep illustration fallback. No unrelated city photo is used to meet a numeric target.",
+    "officialPhotoLeads": [
+      {
+        "url": "https://schulzmuseum.org/its-the-great-pumpkin-60th-anniversary-event/",
+        "scope": "Venue/organizer artwork and event imagery",
+        "permission": "Publisher copyright; seek explicit press-use permission or a separately licensed museum exterior before copying. No unverified rights claimed."
+      },
+      {
+        "url": "https://us10.campaign-archive.com/?id=58418f5f07&u=ef48996d6f825fac32ec81b4b",
+        "scope": "Official photos explicitly captioned Sausalito Ferry Landing in August 2025",
+        "permission": "Useful reference for accurate scene selection; city publication alone does not establish permission to republish. Existing licensed Sausalito photo used instead."
+      }
+    ],
+    "additionalPhotos": [
+      {
+        "key": "roundup-north-calistoga",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Calistoga_near_1277_Lincoln_Avenue_looking_north.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Calistoga_near_1277_Lincoln_Avenue_looking_north.JPG",
+        "captured": "2011-04-30 20:33:55",
+        "credit": "Emw · CC BY-SA 3.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-tiburon",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Central_Roundabout_in_Tiburon_-_2026.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8e/Central_Roundabout_in_Tiburon_-_2026.jpg",
+        "captured": "2026-07-31 09:57:49",
+        "credit": "Carter Lacey · CC BY 4.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-fairfield",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Fairfield_Arch_-_April_2023_-_Sarah_Stierch_01_(cropped).jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c9/Fairfield_Arch_-_April_2023_-_Sarah_Stierch_01_%28cropped%29.jpg",
+        "captured": "Taken on 15 April 2023",
+        "credit": "Missvain · CC BY 4.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-benicia",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:First_Street_in_Benicia_2022-04-17_1720_1.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/6/6f/First_Street_in_Benicia_2022-04-17_1720_1.jpg",
+        "captured": "2022-04-17 17:20:44",
+        "credit": "Lhimec · CC0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-cloverdale",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Gould_Shaw_Cloverdale_CA.JPG",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/bf/Gould_Shaw_Cloverdale_CA.JPG",
+        "captured": "Taken on 11 June 2012",
+        "credit": "Smallbones · CC0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-larkspur",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Larkspur_City_Hall_400_Magnolia_Ave_Larkspur_CA_3-21-2010_1-56-19_PM.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2d/Larkspur_City_Hall_400_Magnolia_Ave_Larkspur_CA_3-21-2010_1-56-19_PM.JPG",
+        "captured": "2010-03-21",
+        "credit": "Sanfranman59 · CC BY-SA 3.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-mill-valley",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Mill_Valley_Depot_Caf%C3%A9_%26_Bookstore_(2026)-L1000665.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/5/54/Mill_Valley_Depot_Caf%C3%A9_%26_Bookstore_%282026%29-L1000665.jpg",
+        "captured": "2026-06-14 16:09:43",
+        "credit": "Frank Schulenburg · CC BY-SA 4.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-san-rafael",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Mission_San_Rafael2_(cropped).jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Mission_San_Rafael2_%28cropped%29.jpg",
+        "captured": "2012-09-27 23:33:25",
+        "credit": "Rose Vekony · CC BY-SA 3.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-santa-rosa",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Old_Santa_Rosa_Post_Office,_Downtown_Santa_Rosa,2.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Old_Santa_Rosa_Post_Office%2C_Downtown_Santa_Rosa%2C2.jpg",
+        "captured": "2008-08-14",
+        "credit": "Wulfnoth  of  English Wikipedia · CC BY 3.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-novato",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Platform_at_Novato_Downtown_station,_December_2019.JPG",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7f/Platform_at_Novato_Downtown_station%2C_December_2019.JPG",
+        "captured": "Taken on 14 December 2019",
+        "credit": "Pi.1415926535 · CC BY-SA 3.0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-sebastopol",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:SebastopolMainStreetEdit2722.jpg",
+        "licenseUrl": "https://commons.wikimedia.org/wiki/File:SebastopolMainStreetEdit2722.jpg",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/2/2a/SebastopolMainStreetEdit2722.jpg",
+        "captured": "Taken on 7 December 2007",
+        "credit": "Stephen Gold · Public domain · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-suisun-city",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Suisun_City_Marina_and_City_Hall.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Suisun_City_Marina_and_City_Hall.jpg",
+        "captured": "2013-03-09 15:55:25",
+        "credit": "LPS.1 · CC0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-napa",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:The_Napa_City-County_public_library_in_downtown_Napa,_California_LCCN2013631249.tif",
+        "licenseUrl": "https://commons.wikimedia.org/wiki/File:The_Napa_City-County_public_library_in_downtown_Napa,_California_LCCN2013631249.tif",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d0/The_Napa_City-County_public_library_in_downtown_Napa%2C_California_LCCN2013631249.tif",
+        "captured": "2012",
+        "credit": "Carol M. Highsmith · Public domain · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-corte-madera",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:Town_Center_at_Corte_Madera_2.jpg",
+        "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d7/Town_Center_at_Corte_Madera_2.jpg",
+        "captured": "2014-07-28",
+        "credit": "Mx. Granger · CC0 · 已缩放压缩"
+      },
+      {
+        "key": "roundup-north-st-helena",
+        "creditUrl": "https://commons.wikimedia.org/wiki/File:USA-St._Helena-1299_Main_Street.jpg",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+        "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/b/b8/USA-St._Helena-1299_Main_Street.jpg",
+        "captured": "2011-07-09",
+        "credit": "Eugene Zelenko · CC BY-SA 4.0 · 已缩放压缩"
+      }
+    ],
+    "mappingFile": "src/data/city-roundup-photo-map-north.json",
+    "mediaFile": "src/data/city-roundup-extra-media-north.json",
+    "contactSheet": "public/guides/city-roundup-north/contact-sheet.jpg",
+    "accessLimit": "Cotati Photo-CA-cotati.jpg license metadata was readable, but thumbnail and original image downloads returned HTTP 429; excluded rather than repeatedly retrying. Commons bulk search briefly rate-limited; final metadata came from one batched imageinfo request.",
+    "review": "All 15 delivered photos visually checked in contact sheet on 2026-10-02; no accidental maps, seals, documents or unrelated cities retained."
+  }
+}

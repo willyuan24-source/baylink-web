@@ -49,6 +49,6 @@ export const verifiedSeptemberOffers: FreebieOffer[] = [
     description: '十月首个周六是 10 月 3 日；可在官方页面选择附近门店查看 Witch Candy Box 预约，实际时段和材料以门店为准。',
     imageKey: 'sep26-homedepot-preview', imageNote: '十月项目官方宣传照片，非九月正在领取',
     sourceUrl: 'https://www.homedepot.com/c/kids-workshop', sourceLabel: 'Home Depot 下一期预约',
-    storeUrl: 'https://www.homedepot.com/l',
+    storeUrl: 'https://www.homedepot.com/l/store-locator/',
   },
 ];

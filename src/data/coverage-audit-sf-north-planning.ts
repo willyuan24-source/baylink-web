@@ -52,7 +52,7 @@ export const COVERAGE_AUDIT_SF_NORTH_SCHEDULES: Record<string, PlanningSchedule>
     "note": "11:00–16:00 为免费街区活动窗口；具体设备、轮候与现场项目另核，餐饮和购物另付。"
   },
   "sausalito-toast-street-fair-oct17-2026": {
-    "sourceUrl": "https://www.sausalito.gov/departments/parks-and-recreation/events/a-toast-to-sausalito-beer-wine-spirits-festival",
+    "sourceUrl": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/a_toast_to_sausalito_beer_wine_spirits_festival_october_17_2026.php",
     "verifiedAt": "2026-09-29",
     "validFrom": "2026-10-17",
     "validThrough": "2026-10-17",

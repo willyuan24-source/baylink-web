@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import { getStoredUser } from './session';
-import { cleanStops, EMPTY_LIBRARY, errorText, eventFor, placeFor, validDay, type Favorite, type Library, type Preferences, type SavedPlan } from './planner';
+import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, placeFor, validDay, type Favorite, type Library, type Preferences, type SavedPlan } from './planner';
 import { guides } from '../data/guides';
 import { recordProductEvent } from './product-events';
 import { normalizePlanDetails } from './planner-itinerary';
@@ -15,7 +15,7 @@ export const loadGuestLibrary = (): Library => {
     const regions = Array.isArray(prefs?.regions) ? [...new Set<string>(prefs.regions.filter((r: string) => ['sf', 'east-bay', 'south-bay', 'peninsula', 'north-bay'].includes(r)))] : [];
     const interests = Array.isArray(prefs?.interests) ? [...new Set<string>(prefs.interests.filter((i: unknown) => typeof i === 'string' && i.length <= 40))].slice(0, 12) : [];
     const travelMode = ['any', 'drive', 'transit', 'walk'].includes(prefs?.travelMode) ? prefs.travelMode : 'any';
-    const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => other.kind === f.kind && other.id === f.id) === i).slice(0, 150);
+    const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(f)) === i).slice(0, 150);
     const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops), ...(p.details ? { details: normalizePlanDetails(p.details, cleanStops(p.stops)) } : {}) }));
     const admissionBudgetUsd = prefs?.admissionBudgetUsd === null || (typeof prefs?.admissionBudgetUsd === 'number' && Number.isFinite(prefs.admissionBudgetUsd) && prefs.admissionBudgetUsd >= 0 && prefs.admissionBudgetUsd <= 10000) ? prefs.admissionBudgetUsd : undefined;
     const setting = ['any', 'indoor', 'outdoor', 'mixed'].includes(prefs?.setting) ? prefs.setting : undefined;
@@ -91,8 +91,8 @@ export function usePlannerLibrary(userId?: string) {
     return true;
   });
   const toggleFavorite = (favorite: Favorite) => run(async sequence => {
-    const found = dataRef.current.favorites.some(f => f.kind === favorite.kind && f.id === favorite.id);
-    let favorites = found ? dataRef.current.favorites.filter(f => f.kind !== favorite.kind || f.id !== favorite.id) : [...dataRef.current.favorites, favorite];
+    const found = dataRef.current.favorites.some(f => favoriteKey(f) === favoriteKey(favorite));
+    let favorites = found ? dataRef.current.favorites.filter(f => favoriteKey(f) !== favoriteKey(favorite)) : [...dataRef.current.favorites, favorite];
     if (userId) ({ favorites } = await api.request(`/planner/favorites/${favorite.kind}/${encodeURIComponent(favorite.id)}`, { method: found ? 'DELETE' : 'PUT' }));
     if (!isCurrent(userId, sequence)) return;
     const next = { ...dataRef.current, favorites };

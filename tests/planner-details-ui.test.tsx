@@ -53,6 +53,29 @@ beforeEach(context => {
 });
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
 
+test('an old saved event cannot be added twice through its merged catalog card and retains its settings when saved', async () => {
+  const legacy: Stop = { kind: 'event', id: 'alameda-point-antiques-october-2026' };
+  const canonical = 'alameda-point-antiques-oct-2026';
+  const original = savedPlan();
+  original.date = '2026-10-04';
+  original.stops = [legacy];
+  original.details = { ...defaultPlanDetails(), constraints: { region: 'east-bay' }, stopSettings: [
+    { ...legacy, durationMinutes: 45, travelMinutes: 15, breakBeforeMinutes: 10, breakLabel: 'rest' },
+  ] };
+  seed(original);
+  const view = await openPlanner();
+  assert.equal(timingInputs(view, '停留（分钟）')[0].value, '45');
+  const card = view.container.querySelector(`[id="catalog-event:${canonical}"]`) as HTMLElement;
+  assert.ok(card, 'the canonical catalog event is available alongside the old saved reference');
+  fireEvent.click(within(card).getByRole('button', { name: '加入计划' }));
+  assert.deepEqual(selectedLinks(view), [`/events/${legacy.id}`]);
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  const saved: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
+  assert.equal(saved.version, 2);
+  assert.deepEqual(saved.stops, [legacy]);
+  assert.deepEqual(saved.details!.stopSettings, original.details.stopSettings);
+});
+
 test('edited schedule and costs save locally, reopen faithfully and retain all query constraints on another request', async () => {
   seed();
   let view = await openPlanner();

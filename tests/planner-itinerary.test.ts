@@ -2,9 +2,28 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PLANNER_PLACES } from '../src/data/planner-catalog';
 import { cleanStops, parseSharedPlan, sharePlanUrl, type PlanDetails, type PlannerPlace, type Stop } from '../src/lib/planner';
-import { buildItinerary, defaultPlanDetails, itineraryIcs, nearbyPlaces, normalizePlanDetails, planBudget, planDetailsError, placeMatchesFilters, timeEvidence } from '../src/lib/planner-itinerary';
+import { buildItinerary, defaultPlanDetails, factsForStop, itineraryIcs, nearbyPlaces, normalizePlanDetails, planBudget, planDetailsError, placeMatchesFilters, timeEvidence } from '../src/lib/planner-itinerary';
 
 const stops: Stop[] = PLANNER_PLACES.slice(0, 6).map(place => ({ kind: 'place', id: place.id }));
+test('a merged event keeps its saved settings, public facts and date conflicts under the original ID', () => {
+  const legacy: Stop = { kind: 'event', id: 'alameda-point-antiques-october-2026' };
+  const canonical: Stop = { kind: 'event', id: 'alameda-point-antiques-oct-2026' };
+  const setting = { ...legacy, durationMinutes: 45, travelMinutes: 15, fixedStartTime: '11:00', breakBeforeMinutes: 10, breakLabel: 'rest' as const };
+  const details = { ...defaultPlanDetails(), stopSettings: [setting] };
+  assert.deepEqual(cleanStops([legacy, canonical]), [legacy]);
+  assert.equal(factsForStop(legacy), factsForStop(canonical));
+  assert.ok(factsForStop(legacy));
+  const normalized = normalizePlanDetails(details, [legacy]);
+  assert.deepEqual(normalized.stopSettings, [setting]);
+  assert.deepEqual(normalizePlanDetails(details, [canonical]).stopSettings, [{ ...setting, ...canonical }]);
+  const scheduled = buildItinerary([legacy], normalized, '2026-10-04', '2026-10-02');
+  assert.deepEqual(scheduled.rows[0].settings, setting);
+  assert.equal(scheduled.rows[0].stop.id, legacy.id);
+  assert.ok(!scheduled.rows[0].conflicts.some(item => item.code === 'event-date-mismatch'));
+  const wrongDay = buildItinerary([legacy], normalized, '2026-10-05', '2026-10-02');
+  assert.ok(wrongDay.rows[0].conflicts.some(item => item.code === 'event-date-mismatch'));
+  assert.throws(() => itineraryIcs('Old saved plan', '2026-10-05', [legacy], normalized, new Date('2026-10-02T19:00:00Z')), /冲突/);
+});
 test('an empty editor does not show a date conflict before the user has chosen any stops', () => {
   assert.deepEqual(buildItinerary([], defaultPlanDetails(), '').issues, []);
   assert.ok(buildItinerary(stops.slice(0, 1), defaultPlanDetails(), '').issues.some(issue => issue.includes('日期')));

@@ -17,10 +17,10 @@ export const communityDiscoveryOffers: FreebieOffer[] = [
     title: '9/26–27 Onigilly 四周年 $10 便当',
     dateLabel: '9/26–27 · Valley Fair 二楼', startDate: '2026-09-26', endDate: '2026-09-27', availability: 'dated', kind: 'purchase',
     requirement: '仅 Valley Fair 周年活动，$10 便当含两枚预先指定饭团、日式炸鸡和毛豆；不是任意口味自由搭配。',
-    description: '商场官方确认两天周年活动。适合在 Santa Clara 逛街时安排简餐；现场转盘赠品与会员抽奖另有安排，不计入便当必得内容。税费及现场供应以门店结账为准。',
+    description: '9/26–27 周年优惠已结束，原活动页现已下线。保留旧活动记录供回顾；此处改连官方门店页，不表示现在仍有 $10 便当或赠品。',
     imageKey: 'neighborhood-table', imageNote: '简餐主题插图，非本次便当实拍',
-    sourceUrl: 'https://www.westfield.com/en/united-states/valleyfair/events/onigilly-valley-fair-or-4th-anniversary-celebration/138770',
-    sourceLabel: 'Westfield 官方 Onigilly 四周年活动', storeUrl: 'https://www.westfield.com/en/united-states/valleyfair',
+    sourceUrl: 'https://www.westfield.com/en/united-states/valleyfair/restaurants/onigilly-japanese-kitchen/78646',
+    sourceLabel: 'Westfield 官方门店页 · 原周年活动已结束', storeUrl: 'https://www.westfield.com/en/united-states/valleyfair',
   },
   {
     id: 'chicha-norcal-birthday-bogo', brand: 'CHICHA SAN CHEN · NORCAL',

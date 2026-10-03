@@ -113,8 +113,8 @@ export const localLifeGuides: Guide[] = [
     sourceNote: LOCAL_LIFE_NOTE,
     sources: [
       { title: 'Golden Gate Ferry：时刻表与码头地图', url: 'https://www.goldengate.org/ferry/schedules-maps/', description: '核对 Sausalito 往返方向、适用日期和服务提醒。' },
-      { title: 'Sausalito 市：Gabrielson Park', url: 'https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/2/394', description: '确认公园邻接渡轮码头及休息设施。' },
-      { title: 'Sausalito 市：渡轮广场与 Tracy Way 步行空间', url: 'https://www.sausalito.gov/Home/Components/News/News/7574/16?arch=1&npage=4&seldept=5', description: '了解码头广场与 Viña del Mar Park 之间的步行动线。' },
+      { title: 'Sausalito 市：Gabrielson Park', url: 'https://sausalito.recdesk.com/Community/Facility/Detail?facilityId=31', description: '确认公园邻接渡轮码头及休息设施。' },
+      { title: 'Sausalito 市：渡轮广场与 Tracy Way 步行空间', url: 'https://us10.campaign-archive.com/?id=58418f5f07&u=ef48996d6f825fac32ec81b4b', description: '了解码头广场与 Viña del Mar Park 之间的步行动线。' },
       { title: '美国国家公园管理局：Muir Woods 交通说明', url: 'https://www.nps.gov/muwo/planyourvisit/directions.htm', description: '核对季节接驳、预约入口及山地步行限制。' },
     ],
     blocks: [

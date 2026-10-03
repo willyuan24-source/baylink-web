@@ -1,3 +1,4 @@
+import cityRoundupLocations from './city-roundup-map-locations.json';
 const CENSUS_PLACES = 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt';
 const CENSUS_COUNTIES = 'https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_counties_06.txt';
 
@@ -13,6 +14,7 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   precision: 'city' | 'area';
   sourceUrl: string;
 }> = {
+  ...cityRoundupLocations as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   ...autumnCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   ...refreshCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.

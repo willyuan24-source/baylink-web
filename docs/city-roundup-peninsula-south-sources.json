@@ -1,0 +1,741 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": {
+    "counties": [
+      "San Mateo",
+      "Santa Clara"
+    ],
+    "cities": 35,
+    "eventCards": 17,
+    "openings": 4
+  },
+  "method": "Official venue, organizer, municipal and library pages were opened during this task. Where the web reader was blocked, a native HTTPS request was used only if it returned readable page text. Search snippets alone were not used to create dated events. Calendar cards do not promise a particular activity, availability or price.",
+  "cityEvidence": [
+    {
+      "city": "Atherton",
+      "county": "San Mateo",
+      "url": "https://www.athertonca.gov/Calendar.aspx?EID=4034&calType=0&day=30&month=9&year=2026",
+      "access": "Official page opened in web reader.",
+      "fact": "The town lists a museum opening and ribbon cutting from 2–4 p.m. at Atherton Train Station Museum. Check registration through the event page. The museum opening does not restore Caltrain service at Atherton; regular visiting hours need separate confirmation.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Belmont",
+      "county": "San Mateo",
+      "url": "https://www.belmont.gov/departments/administrative-services/centennial-2026",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "October 24 starts with a car parade at 1:30 p.m., followed by a time capsule ceremony outside Twin Pines Senior Center at 3:30 p.m., a park festival and a 7:30 p.m. drone show. Admission is free; food and drinks cost extra. Parade vehicles are invitation-only, with parking and street restrictions nearby.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Brisbane",
+      "county": "San Mateo",
+      "url": "https://www.brisbaneca.gov/Calendar.aspx?EID=1241&calType=0&day=2&month=10&year=2026",
+      "access": "Official page opened in web reader.",
+      "fact": "The Youth Advisory Committee lists a dog costume gathering on October 29, 5:30–6 p.m., at Community Park Gazebo, 11 Old County Road. It suits a short after-work visit. Read participation instructions before bringing a pet; the calendar does not specify a fee.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Burlingame",
+      "county": "San Mateo",
+      "url": "https://www.burlingame.org/356/Events",
+      "access": "Official page opened in web reader.",
+      "fact": "The library page collects programs for children, teens and adults, with separate registration for some crafts. Choose a future date, then open its LibCal page to check age, venue and availability. Past programs remain visible, so a displayed poster does not guarantee registration is open.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Colma",
+      "county": "San Mateo",
+      "url": "https://www.colma.ca.gov/",
+      "access": "Web reader and native request returned 403; official homepage retained only as an explicitly unconfirmed calendar entry point.",
+      "fact": "Use the town website and Recreation notices for Colma's small community programs. Current event text could not be retrieved in this check, so no unconfirmed October dates or giveaways are listed. Verify residency, age and fees before attending; Daly City programs are separate.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Daly City",
+      "county": "San Mateo",
+      "url": "https://www.dalycity.org/calendar.aspx",
+      "access": "Official page opened in web reader.",
+      "fact": "Browse the city calendar by department, date and category. For family outings, start with Library or Recreation and open the event details for the actual day. Some announcements span a date range; that is not a promise of daily festivals or giveaways.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "East Palo Alto",
+      "county": "San Mateo",
+      "url": "https://www.cityofepa.org/calendar",
+      "access": "Official page opened in web reader.",
+      "fact": "The city calendar combines community programs and commission meetings with department filters. The retrieved page still displayed September, so switch to October or November before checking venue, registration and cancellation notes. New residents can also subscribe to the city newsletter.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Foster City",
+      "county": "San Mateo",
+      "url": "https://www.fostercity.org/245/Parks-Recreation",
+      "access": "Official page opened in web reader.",
+      "fact": "Parks & Recreation links to the current activity guide, online registration and Community Special Events. Choose a class or celebration and check ages and availability. Picnic reservations are a separate process; an open park does not mean a group has reserved a space.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Half Moon Bay",
+      "county": "San Mateo",
+      "url": "https://www.hmbpumpkinfest.com/event-details/about-the-event",
+      "access": "Official page opened in web reader.",
+      "fact": "The organizer confirms October 17–18, 9 a.m.–5 p.m., on Main Street with free festival admission. Food, merchandise and some experiences cost extra. Choose a main activity and a parking or transit plan before adding a beach stop. Archival photos are not live views of this year's event.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Hillsborough",
+      "county": "San Mateo",
+      "url": "https://www.hillsborough.net/m/calendar?cat=14",
+      "access": "Official page opened in web reader.",
+      "fact": "The town calendar offers notifications and currently lists design review and Tobin Clark-related meetings. Read the agenda to decide whether to attend and check the room and remote-access details. A midnight end time may be a calendar field, not a reliable meeting duration.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Menlo Park",
+      "county": "San Mateo",
+      "url": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival",
+      "access": "Official page opened in web reader.",
+      "fact": "The free October 24 parade and carnival run 11 a.m.–2 p.m. Parade participants should gather at the Maloney Street parking lot at 10:45 a.m.; it ends at Fremont Park. The next day's Pumpkin Splash is a separate paid pool activity requiring reservations.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Millbrae",
+      "county": "San Mateo",
+      "url": "https://www.ci.millbrae.ca.us/",
+      "access": "Official page opened in web reader.",
+      "fact": "Open the events calendar from Millbrae's city homepage and check the year and registration link for movie nights, community programs and resident notices. Convenient access at Millbrae Transit Center does not put every event beside the station; plan the final walk using the event address.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Pacifica",
+      "county": "San Mateo",
+      "url": "https://www.cityofpacifica.org/departments/parks-beaches-recreation/aquatics",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The city's Aquatics page lists full-day swim-meet closures on October 24–25 and November 14–15, plus a November 11 closure. Check the closure list before buying a pass or taking children. Regular weekend schedules do not override meets, holidays or temporary closures.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Portola Valley",
+      "county": "San Mateo",
+      "url": "https://www.portolavalley.net/community/town-calendar/-curm-10/-cury-2026",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The town calendar combines science talks, community programs and committee meetings with category filters. For evening plans, open the individual venue and cancellation details and arrange the return trip. A committee meeting is not automatically a recreational class open for registration.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Redwood City",
+      "county": "San Mateo",
+      "url": "https://www.redwoodcity.org/departments/library/events/library-events/-curdate-6-5-2026/-curm-10/-cury-2026",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The official October calendar marks October 19 as ALL LIBRARIES CLOSED. Do not rely on normal hours for borrowing, printing or makerspace access that day. For other programs, check whether the venue is Downtown, Redwood Shores or Schaberg rather than relying on the title alone.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "San Bruno",
+      "county": "San Mateo",
+      "url": "https://sanbruno.ca.gov/Calendar.aspx?EID=5584&calType=0&day=17&month=10&year=2026",
+      "access": "Official page opened in web reader.",
+      "fact": "The free family celebration takes place October 17, 11 a.m.–2 p.m., at Centennial Plaza, with mariachi, folkloric dance, sugar-skull crafts and bilingual storytime. Rain moves it to San Bruno Senior Center. Recheck the venue and distinguish it from late-October Halloween programs.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "San Carlos",
+      "county": "San Mateo",
+      "url": "https://pacificfinearts.com/festival/san-carlos-art-wine-faire/",
+      "access": "Official page opened in web reader.",
+      "fact": "The organizer confirms the Art & Wine Faire for October 10–11, 10 a.m.–6 p.m. Its page lists free parking and shuttles from 310 Industrial Road. Read this year's parking details before browsing Laurel Street. Free shuttles do not make drinks, meals or merchandise free.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "San Mateo",
+      "county": "San Mateo",
+      "url": "https://www.cityofsanmateo.org/2617/Free-Recycling-Events",
+      "access": "Official page opened in web reader.",
+      "fact": "The October 10 event runs 9 a.m.–noon at Beresford Park but may close earlier if trucks fill. Bring proof of residency. Shredding is limited to three standard banker boxes; sort electronics according to the accepted list. Appliances and household hazardous waste are excluded.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "South San Francisco",
+      "county": "San Mateo",
+      "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Events",
+      "access": "Official page opened in web reader.",
+      "fact": "Parks & Recreation lists October's Halloween Extravaganza and November's Senior Holiday Boutique & Maker's Faire and Thanksgiving 5K. Open each listing to distinguish browsing a market from registering for a run. Treat the annual brochure as a preview; individual pages control current venues and availability.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Woodside",
+      "county": "San Mateo",
+      "url": "https://woodsideca.gov/AlertCenter.aspx?AID=58",
+      "access": "Official page opened in web reader.",
+      "fact": "The town expects guardrail and clearing work on the upper road from September 28 to December 11, with periodic closures announced in advance. Check Alert Center before cycling or driving into the hills. This does not announce a continuous full-period closure or guarantee access at every hour.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Campbell",
+      "county": "Santa Clara",
+      "url": "https://www.campbellca.gov/396/Events-Initiatives-Projects",
+      "access": "Official page opened in web reader.",
+      "fact": "The city recreation department confirms the Oktoberfest Fun Run on October 17. Runners should follow the official registration link for divisions, bib collection and fees. Plans for the downtown Oktoberfest and registration for the run are separate.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Cupertino",
+      "county": "Santa Clara",
+      "url": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+      "access": "Official page opened in web reader.",
+      "fact": "The historic shop at McClellan Ranch Preserve lists free demonstrations on October 31 and November 28, 11 a.m.–3 p.m. Combine a demonstration and a short park walk for a half day. These are scheduled demonstrations, not daily shop access or permission to operate tools.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Gilroy",
+      "county": "Santa Clara",
+      "url": "https://www.cityofgilroy.org/m/newsflash/home/detail/1334",
+      "access": "Official page opened in web reader.",
+      "fact": "The city lists public input sessions for its Recreation Needs Assessment and Parks and Trails Master Plan: October 8 at Wheeler Center at 9 a.m. and 6 p.m., and an October 9 Spanish-language Cafecito at San Ysidro Park. Choose the session and language that suit you to discuss facilities and programs.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Los Altos",
+      "county": "Santa Clara",
+      "url": "https://www.losaltosca.gov/Calendar.aspx",
+      "access": "Official page opened in web reader.",
+      "fact": "The calendar has Downtown Park Events, Parks & Recreation and City Council Office Hours categories. Choose recreation or civic engagement, then inspect venue and registration details. Joint meetings may take place in Los Altos Hills; the publishing city's name does not determine the venue.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Los Altos Hills",
+      "county": "Santa Clara",
+      "url": "https://losaltoshills.ca.gov/DocumentCenter/View/7636/LAH-Fire-Prevention-Flyer_2026-85x11-2?bidId=",
+      "access": "Official page opened in web reader.",
+      "fact": "The official 2026 schedule lists October 17 and November 21, 9 a.m.–2 p.m., at Foothill College Lot 1. Bring photo ID showing an address or a current garbage bill. Residents must accompany hired haulers on every trip. Garbage, soil, rocks and palm fronds are excluded.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Los Gatos",
+      "county": "Santa Clara",
+      "url": "https://losgatosca.gov/calendar.aspx?day=14&month=10&view=list&year=2026",
+      "access": "Official page opened in web reader.",
+      "fact": "The town calendar separates Library and Town Government. Storytimes, children's crafts and adult book clubs serve different ages. Select the date and check Children's Room, Teen Room or Conference Room details; several programs on one day do not make them interchangeable across age groups.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Milpitas",
+      "county": "Santa Clara",
+      "url": "https://milpitas.gov/MAP",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The city lists free MAP workshops on October 20, 4–5 p.m., and November 7, 11 a.m.–noon, at Barbara Lee Senior Center. Register through the official page and learn about income and residency documentation. Attendance does not guarantee approval; the former ARPA childcare subsidy has ended.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Monte Sereno",
+      "county": "Santa Clara",
+      "url": "https://www.montesereno.org/m/newsflash/home/detail/703",
+      "access": "Official page opened in web reader.",
+      "fact": "The city lists a 10–11:30 a.m. class at City Hall costing $15, for ages 13 and older; minors require a guardian-signed form. This introductory class does not provide CPR certification. Anyone needing a work or school credential should confirm the required course separately.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Morgan Hill",
+      "county": "Santa Clara",
+      "url": "https://www.morganhill.ca.gov/2406/City-Events",
+      "access": "Official page opened in web reader.",
+      "fact": "The city lists Centennial Recreation Center's twentieth-anniversary celebration on October 10, including a free 5K/10K walk/run at 8 a.m., followed by shooting contests and dance programs. Check CRC details for registration and meeting points; the afternoon Magical Bridge program is a separate arrangement.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Mountain View",
+      "county": "Santa Clara",
+      "url": "https://www.mountainview.gov/",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The city homepage calendar lists performances, community markets, Repair Café and housing-service sessions. Distinguish entertainment, repairs and civic services, then inspect addresses, booking and accepted items. For multi-date theater runs, choose the ticket for your specific performance.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Palo Alto",
+      "county": "Santa Clara",
+      "url": "https://library.cityofpaloalto.org/locations/R/",
+      "access": "Official page opened in web reader.",
+      "fact": "The Rinconada branch page combines address, regular hours, closures and event links. Confirm branch and date before planning reading, printing or a talk. One branch's program does not run at every library, and normal Monday hours do not establish holiday opening.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "url": "https://www.sapcenter.com/events/detail/taemin",
+      "access": "Official page opened in web reader.",
+      "fact": "SAP Center's event page explicitly says POSTPONED and lists the start time as TBA. October 12 in older listings is no longer a confirmed performance date. Ticket holders should check the venue and original seller for rescheduling and ticket arrangements before making nonrefundable plans.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "url": "https://www.westfield.com/en/united-states/valleyfair/events/celebrate-with-vivaia/138918",
+      "access": "Official page opened in web reader.",
+      "fact": "Valley Fair confirms VIVAIA is open. On October 9–10, joining the membership enables a complimentary matcha or coffee offer; the lunch-bag gift separately requires a $199 purchase. Supplies and terms apply. Confirm hours and stock with the store; this is not a storewide discount.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    },
+    {
+      "city": "Saratoga",
+      "county": "Santa Clara",
+      "url": "https://www.saratoga.ca.us/calendar.aspx?CID=35&month=10&view=list&year=2026",
+      "access": "Official page opened in web reader.",
+      "fact": "The Community Events calendar includes market conversations, cultural festivals and community-group programs. After choosing a date, check the organizer, venue and fees. A city-calendar listing does not mean the city hosts it or that admission is free; avoid relying on expired early-month sessions.",
+      "kind": "calendar",
+      "boundary": "Directory/navigation advice only; no event time, free admission or current registration availability is inferred."
+    },
+    {
+      "city": "Sunnyvale",
+      "county": "Santa Clara",
+      "url": "https://www.sunnyvale.ca.gov/recreation-and-community/special-events",
+      "access": "Official HTML read through native HTTPS; web reader was blocked or omitted updated content.",
+      "fact": "The city lists Pop Rocks on October 8 at 6 p.m. at Community Center Amphitheater, with free admission and blankets or lawn chairs welcome. The venue is 550 E. Remington Drive. Food-truck purchases are separate; this is not a downtown music venue.",
+      "kind": "dated",
+      "boundary": "Dated information only as stated on the official page; attendance capacity, final operating details and later changes remain with the organizer."
+    }
+  ],
+  "eventEvidence": [
+    {
+      "id": "atherton-train-station-museum-opening-2026",
+      "url": "https://www.athertonca.gov/Calendar.aspx?EID=4034&calType=0&day=30&month=9&year=2026",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Historic train station museum opens October 18",
+        "date": "2026-10-18",
+        "endDate": "2026-10-18",
+        "dateLabel": "Oct 18 · 2–4 p.m.",
+        "venue": "Atherton Train Station Museum",
+        "cost": "Fee not specified; check official registration"
+      },
+      "limits": "Organizer did not state a price in the body; no free claim made."
+    },
+    {
+      "id": "belmont-centennial-fest-2026",
+      "url": "https://www.belmont.gov/departments/administrative-services/centennial-2026",
+      "checkedAt": "2026-10-02",
+      "access": "Readable official HTML retrieved with native HTTPS.",
+      "fact": {
+        "title": "Centennial celebration: parade, time capsule and drone show",
+        "date": "2026-10-24",
+        "endDate": "2026-10-24",
+        "dateLabel": "Oct 24 · from 1:30 p.m.",
+        "venue": "Twin Pines Park / Belmont City Hall",
+        "cost": "Free festival admission; food, drinks and merchandise extra"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "brisbane-dog-pawty-2026",
+      "url": "https://www.brisbaneca.gov/Calendar.aspx?EID=1241&calType=0&day=2&month=10&year=2026",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Dog Pawty costume gathering",
+        "date": "2026-10-29",
+        "endDate": "2026-10-29",
+        "dateLabel": "Oct 29 · 5:30–6 p.m.",
+        "venue": "Community Park Gazebo · 11 Old County Road",
+        "cost": "No fee specified by the organizer"
+      },
+      "limits": "Organizer did not state a price in the body; no free claim made."
+    },
+    {
+      "id": "san-bruno-dia-de-los-muertos-2026",
+      "url": "https://sanbruno.ca.gov/Calendar.aspx?EID=5584&calType=0&day=17&month=10&year=2026",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Free family Día de los Muertos celebration",
+        "date": "2026-10-17",
+        "endDate": "2026-10-17",
+        "dateLabel": "Oct 17 · 11 a.m.–2 p.m.",
+        "venue": "Centennial Plaza · 470 San Mateo Avenue",
+        "cost": "Free family event"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "san-mateo-shred-ewaste-october-2026",
+      "url": "https://www.cityofsanmateo.org/2617/Free-Recycling-Events",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Free resident shredding and e-waste collection",
+        "date": "2026-10-10",
+        "endDate": "2026-10-10",
+        "dateLabel": "Oct 10 · 9 a.m.–noon, subject to earlier capacity cutoff",
+        "venue": "Beresford Park · 2720 Alameda de las Pulgas",
+        "cost": "Free for San Mateo residents with proof of residency"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "cupertino-baer-blacksmith-fall-2026",
+      "url": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Free Baer Blacksmith Shop demonstrations",
+        "date": "2026-10-31",
+        "endDate": "2026-11-28",
+        "occurrenceDates": [
+          "2026-10-31",
+          "2026-11-28"
+        ],
+        "dateLabel": "Oct 31 and Nov 28 · 11 a.m.–3 p.m.",
+        "venue": "Baer Blacksmith Shop · McClellan Ranch Preserve",
+        "cost": "Free demonstrations"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "milpitas-map-workshops-fall-2026",
+      "url": "https://milpitas.gov/MAP",
+      "checkedAt": "2026-10-02",
+      "access": "Readable official HTML retrieved with native HTTPS.",
+      "fact": {
+        "title": "Free MAP workshops explain applications and city discounts",
+        "date": "2026-10-20",
+        "endDate": "2026-11-07",
+        "occurrenceDates": [
+          "2026-10-20",
+          "2026-11-07"
+        ],
+        "dateLabel": "Oct 20 and Nov 7 · register for a session",
+        "venue": "Barbara Lee Senior Center · 40 N Milpitas Boulevard",
+        "cost": "Free workshops; register for a session"
+      },
+      "limits": "Native HTML included workshops that the reader's cached rendering omitted. Assistance eligibility is separately assessed by the city; ARPA childcare subsidies ended April 2025."
+    },
+    {
+      "id": "monte-sereno-cpr-aed-october-2026",
+      "url": "https://www.montesereno.org/m/newsflash/home/detail/703",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "October 22 introductory CPR and AED class",
+        "date": "2026-10-22",
+        "endDate": "2026-10-22",
+        "dateLabel": "Oct 22 · 10–11:30 a.m.",
+        "venue": "Monte Sereno City Hall",
+        "cost": "Listed fee $15; ages 13 and older"
+      },
+      "limits": "Non-certification introductory class; ages 13+, guardian waiver for under-18s. No clinical advice or formal certification claim."
+    },
+    {
+      "id": "santa-clara-49ers-raiders-nov-2026",
+      "url": "https://levisstadium.com/event/raiders-vs-49ers-week-9-2026/",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "49ers host the Raiders",
+        "date": "2026-11-08",
+        "endDate": "2026-11-08",
+        "dateLabel": "Nov 8 · 1:05 p.m.",
+        "venue": "Levi's Stadium",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "santa-clara-49ers-seahawks-nov-2026",
+      "url": "https://levisstadium.com/event/seahawks-vs-49ers-week-12-2026/",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "49ers host the Seahawks",
+        "date": "2026-11-29",
+        "endDate": "2026-11-29",
+        "dateLabel": "Nov 29 · 1:25 p.m.",
+        "venue": "Levi's Stadium",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "sj-sharks-flames-nov2-2026",
+      "url": "https://www.sapcenter.com/events/detail/sharks-vs-kings-18",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Sharks host the Flames",
+        "date": "2026-11-02",
+        "endDate": "2026-11-02",
+        "dateLabel": "Nov 2 · 6 p.m.",
+        "venue": "SAP Center",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "The venue URL slug says kings, but the current title, image and body explicitly say Flames on November 2 at 6 p.m. Retain the verified official URL."
+    },
+    {
+      "id": "sj-don-omar-nov-2026",
+      "url": "https://www.sapcenter.com/events/detail/don-omar",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Don Omar: Back to Reggaeton",
+        "date": "2026-11-05",
+        "endDate": "2026-11-05",
+        "dateLabel": "Nov 5 · 8 p.m.",
+        "venue": "SAP Center",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "sj-mon-laferte-nov-2026",
+      "url": "https://www.sapcenter.com/events/detail/mon-laferte",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Mon Laferte in San Jose",
+        "date": "2026-11-06",
+        "endDate": "2026-11-06",
+        "dateLabel": "Nov 6 · 8 p.m.",
+        "venue": "SAP Center",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "sj-smashing-pumpkins-nov-2026",
+      "url": "https://www.sapcenter.com/events/detail/the-smashing-pumpkins",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "The Smashing Pumpkins: The Rats In a Cage Tour",
+        "date": "2026-11-08",
+        "endDate": "2026-11-08",
+        "dateLabel": "Nov 8 · 8 p.m.",
+        "venue": "SAP Center",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "stanford-smu-football-nov-2026",
+      "url": "https://gostanford.com/sports/football/schedule?stream=top",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Stanford hosts SMU",
+        "date": "2026-11-28",
+        "endDate": "2026-11-28",
+        "dateLabel": "Nov 28 · kickoff TBA",
+        "venue": "Stanford Stadium",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "Kickoff is TBA; Stanford is an unincorporated CDP, not a Palo Alto city venue. November 21 Big Game is an away game in Berkeley."
+    },
+    {
+      "id": "sjsu-northern-illinois-nov-2026",
+      "url": "https://sjsuspartans.com/sports/football/schedule?print=true",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "SJSU vs Northern Illinois: Family Weekend home game",
+        "date": "2026-11-07",
+        "endDate": "2026-11-07",
+        "dateLabel": "Nov 7 · 1 p.m.",
+        "venue": "CEFCU Stadium",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "No inventory, ticket availability, final checkout price or private purchase verification."
+    },
+    {
+      "id": "santa-clara-bruno-mars-oct-2026",
+      "url": "https://levisstadium.com/event/bruno-mars-the-romantic-tour/",
+      "checkedAt": "2026-10-02",
+      "access": "Official individual event page or athletics schedule opened and read.",
+      "fact": {
+        "title": "Bruno Mars: two nights of The Romantic Tour",
+        "date": "2026-10-10",
+        "endDate": "2026-10-11",
+        "occurrenceDates": [
+          "2026-10-10",
+          "2026-10-11"
+        ],
+        "dateLabel": "Oct 10 and 11 · check your chosen show's time",
+        "venue": "Levi's Stadium",
+        "cost": "Paid; prices and fees depend on official ticketing"
+      },
+      "limits": "Two separately ticketed performances. October 11 independently verified at https://levisstadium.com/event/bruno-mars-the-romantic-tour-october-11th/ . No start time was stated in the retrieved venue text."
+    }
+  ],
+  "openingEvidence": [
+    {
+      "ids": [
+        "plur-cafe-san-mateo-library"
+      ],
+      "urls": [
+        "https://www.cityofsanmateo.org/m/newsflash/Home/Detail/1923"
+      ],
+      "access": "Official September 1 municipal/library announcement opened and read.",
+      "facts": "PLUR Café is operating on Main Library third floor; August 29 was the grand-opening celebration. Cafe hours were listed separately from library hours.",
+      "limits": "No first public service date verified. August 29 is not written into openedOn; no firsthand food review."
+    },
+    {
+      "ids": [
+        "vivaia-valley-fair",
+        "thirdlove-valley-fair",
+        "jean-dousset-valley-fair"
+      ],
+      "urls": [
+        "https://www.westfield.com/en/united-states/valleyfair",
+        "https://www.westfield.com/en/united-states/valleyfair/retailers/vivaia/85774",
+        "https://www.westfield.com/en/united-states/valleyfair/retailers/thirdlove/85644",
+        "https://www.westfield.com/en/united-states/valleyfair/retailers/jean-dousset/85301"
+      ],
+      "access": "Official mall homepage and each retailer page opened and read.",
+      "facts": "Homepage says Now Open; individual directories label stores New and identify merchandise categories.",
+      "limits": "No first public opening date stated. Santa Clara is the mall's official mailing address and existing BAYLINK destination label; the mall spans the San Jose/Santa Clara boundary. No individual-store municipal boundary claim or exact store unit inferred."
+    },
+    {
+      "ids": [
+        "vivaia-valley-fair"
+      ],
+      "urls": [
+        "https://www.westfield.com/en/united-states/valleyfair/events/celebrate-with-vivaia/138918"
+      ],
+      "access": "Official mall event body opened and read.",
+      "facts": "October 2–3 membership selfie station; $149 purchase gift condition. October 9–10 membership matcha/coffee offer; $199 purchase lunch-bag gift is separate. Supplies and conditions apply.",
+      "limits": "No event hours or remaining stock verified. No claim of a storewide discount, guaranteed giveaway or first opening date."
+    }
+  ],
+  "correctionsAndFindings": [
+    {
+      "item": "TAEMIN October 12",
+      "url": "https://www.sapcenter.com/events/detail/taemin",
+      "finding": "Current official body says POSTPONED and Event Starts TBA; older listing times must not be used for trip planning.",
+      "existingCatalog": "No TAEMIN/taemin/泰民/太民 entry found in the 326-entry public catalog or src data scan. Added San Jose city notice, not a bookable event."
+    },
+    {
+      "item": "history-smc-free-oct2",
+      "url": "https://historysmc.org/free-first-fridays/",
+      "finding": "Requested source failed. Search indexes still return /discounts/ and /monthly-programs/, but both returned real HTTP 404 and generic incomplete WordPress template on direct checking.",
+      "recommendation": "Use https://historysmc.org/ only as the official contact/homepage, explicitly mark former event source offline and date needing reconfirmation. Do not substitute stale indexed pages or infer cancellation.",
+      "access": "Homepage HTTP 200 but no usable program body retrieved. No new official date-specific replacement found."
+    },
+    {
+      "item": "Onigilly past anniversary",
+      "url": "https://www.westfield.com/en/united-states/valleyfair/events/onigilly-valley-fair-or-4th-anniversary-celebration/138770",
+      "finding": "Native HTTP 404 on an already-ended September 26–27 offer. Third-party social mirrors retain old copy but were not treated as newly verified official evidence.",
+      "replacement": "https://www.westfield.com/en/united-states/valleyfair/restaurants/onigilly-japanese-kitchen/78646",
+      "recommendation": "Keep historical ended status and explicitly note event source offline; current official retailer page is a contact/store entry only. Its Closed widget appears simultaneously on many restaurants and is not evidence of permanent closure."
+    },
+    {
+      "item": "Morgan Hill road-closure listing",
+      "url": "https://www.morganhill.ca.gov/1685/Upcoming-Events-with-Road-Closures",
+      "finding": "Search index contained 'Friday October 31, 2026', while October 31, 2026 is Saturday.",
+      "recommendation": "Do not copy the indexed weekday; not used for a dated card. Use current City Events page for the verified October 10 CRC anniversary.",
+      "access": "Index-only inconsistency; not asserted as a confirmed current full-page error."
+    },
+    {
+      "item": "Existing city exploration scope",
+      "finding": "No additional conclusive factual error was established in the 35 existing city-exploration entries during this current-news audit. Avoided treating a mailing city as a facility boundary and avoided treating committee meetings as leisure activities."
+    }
+  ],
+  "notAdded": [
+    {
+      "item": "Mountain View Makers Market",
+      "reason": "Specific event page reader returned 403 and initial native result was a protection page. Homepage later verified October 23 listing, but no full event detail/fee was confirmed; included only calendar navigation."
+    },
+    {
+      "item": "Colma dated event",
+      "reason": "Official site access blocked; no recent official event body verified. Retained honest calendar fallback, no invented October event."
+    },
+    {
+      "item": "VIVAIA / ThirdLove / Jean Dousset openedOn",
+      "reason": "Now Open and New labels establish current operation, not exact first service dates."
+    },
+    {
+      "item": "Repeated October highlights",
+      "reason": "Compared existing 326 catalog and did not add duplicate 49ers Broncos/Commanders, October Sharks, Stanford Elon/NC State, HMB Pumpkin Festival, San Carlos Art & Wine Faire, or Menlo Park Halloween Hoopla."
+    }
+  ],
+  "images": {
+    "policy": "Only existing GUIDE_IMAGES keys used; original captions, author credit, license and source links remain in their media definitions. Photographs are location context or dated archival images, never represented as this year's event.",
+    "realPhotoKeys": [
+      "burlingame",
+      "fresh-pumpkin-parade",
+      "coverage-redwood-port",
+      "sanmateo",
+      "expanded-south-bay-shoreline",
+      "baylands-marsh",
+      "sanjose-city",
+      "region-hakone",
+      "train",
+      "region-stanford-quad"
+    ],
+    "fallbackKeys": [
+      "everyday",
+      "autumn-new-shops"
+    ],
+    "limitations": "Small-city event venues and the four new storefronts did not have verified matching existing photographs. Explicit editorial illustrations were selected rather than another city's photo. train is a Santa Clara station image, not Levi's Stadium. region-stanford-quad is campus context, not a football-game image. Library notices with city scenery retain their original location captions.",
+    "recommendedAcquisition": "If replacing fallbacks, acquire a correctly identified photograph through Wikimedia Commons with a specific file-page author/license review or obtain explicit reuse permission for official press photographs. No unverified press image or logo is treated as freely reusable."
+  },
+  "validation": {
+    "checkedAt": "2026-10-02",
+    "cityCount": 35,
+    "dated": 21,
+    "calendar": 14,
+    "eventCount": 17,
+    "openingCount": 4,
+    "translationCount": 183,
+    "checks": [
+      "All five files parse as JSON",
+      "All 35 city names match the existing peninsula/south city-exploration data exactly and are unique",
+      "17 new event IDs are unique and absent from the existing 326 public catalog",
+      "All event start/end dates lie in October–November 2026; explicit occurrence dates are within their ranges",
+      "All Chinese product strings have normalized full-string English dictionary entries",
+      "All product URLs use HTTPS",
+      "All image keys exist in current media data"
+    ],
+    "nativeHttpAudit": {
+      "uniqueProductUrls": 49,
+      "http200": 48,
+      "exceptions": [
+        {
+          "url": "https://www.colma.ca.gov/",
+          "status": 403,
+          "disposition": "Known access limitation explicitly disclosed in Colma calendar card and evidence log; no dated Colma claim made."
+        }
+      ],
+      "note": "Actual responses checked with native HTTPS. No remaining product URL returned 404 or a 404 title in this audit. This is a point-in-time check, not a future uptime guarantee."
+    }
+  }
+}

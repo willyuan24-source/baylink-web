@@ -2,11 +2,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { guides } from '../src/data/guides';
+import { CITY_CURRENT_UPDATES } from '../src/data/guides-city-exploration';
 import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-media';
 import { MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
-import { regionalBulletins } from '../src/data/late-september-local';
+import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 
 type CoverageRow = { id: string; image?: GuideImage };
@@ -15,11 +16,12 @@ const publicDirectory = fileURLToPath(new URL('../public/', import.meta.url));
 /** Audits the published editorial catalog and every registered responsive image. */
 export function auditMediaCoverage() {
   const catalogs: Record<string, CoverageRow[]> = {
+    cityUpdates: CITY_CURRENT_UPDATES.map(update => ({ id: update.city, image: GUIDE_IMAGES[update.imageKey] })),
     guides: guides.map(guide => ({ id: guide.slug, image: getGuideMedia(guide).cover })),
     events: MONTHLY_EVENTS.map(event => ({ id: event.id, image: GUIDE_IMAGES[event.imageKey] })),
     offers: currentFreebies.map(offer => ({ id: offer.id, image: GUIDE_IMAGES[offer.imageKey] })),
     openings: currentOpenings.map(shop => ({ id: shop.id, image: GUIDE_IMAGES[shop.imageKey] })),
-    bulletins: regionalBulletins.map(item => ({ id: item.id, image: GUIDE_IMAGES[item.imageKey] })),
+    bulletins: currentRegionalBulletins.map(item => ({ id: item.id, image: GUIDE_IMAGES[item.imageKey] })),
     places: MONTHLY_PLACES.map(place => ({ id: place.id, image: GUIDE_IMAGES[place.imageKey] })),
   };
   const issues: string[] = [];

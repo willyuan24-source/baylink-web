@@ -15,6 +15,7 @@ export const guideBlockText = (block: GuideBlock): string => {
     ...city.places.map(place => `${place.name} [${place.scope}]\n${place.description}\n${place.url}\nMap: https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.mapQuery)}`),
     `Visit: ${city.halfDay}`, `New resident: ${city.arrival}`, `Resident: ${city.residentTip}`,
     `Transport: ${city.transport}`, `Check before going: ${city.checks}`,
+    ...(city.currentUpdate ? [`City update [${city.currentUpdate.kind}]: ${city.currentUpdate.headline}`, city.currentUpdate.dateLabel, city.currentUpdate.summary, `${city.currentUpdate.sourceLabel}: ${city.currentUpdate.sourceUrl}`, `Update checked: ${city.currentUpdate.checkedAt}`] : []),
     ...city.resources.map(resource => `${resource.label}: ${resource.url}`), city.verifiedAt,
   ].join('\n'))].join('\n\n');
   if (block.type === 'shopping-directory') return [block.title, block.text, ...block.places.map(place => [

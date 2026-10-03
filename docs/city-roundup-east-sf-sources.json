@@ -1,0 +1,905 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": {
+    "cities": 34,
+    "datedCityCards": 29,
+    "calendarCityCards": 5,
+    "newEvents": 15,
+    "newOpenings": 3,
+    "baselineEventsCompared": 326,
+    "statement": "Targeted official-source review of current city listings and selected existing events/openings. This is not certification of every pre-existing guide or city fact. Editorial plans are recommendations, not measured travel times."
+  },
+  "citySources": [
+    {
+      "city": "Alameda",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://alamedapointantiquesfaire.com/",
+      "publisher": "Alameda Point Antiques Faire",
+      "access": "official-page-body-read",
+      "facts": "Alameda Point Antiques Faire lists its October 4 event. Admission decreases by entry time; purchases cost extra. Check weather and postponement notices before choosing early shopping or a later browse.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Albany",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.albanyca.gov/City-Calendar/2026/Albany-Fire-Department-Pancake-Breakfast-2026",
+      "publisher": "City of Albany",
+      "access": "official-page-body-read",
+      "facts": "Visit 1000 San Pablo Avenue on October 10, 8 am–noon, for firefighters, fire engines and safety demonstrations. Tickets at the door cost $8 for adults and $5 for ages 12 and under; proceeds support a burn foundation.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Berkeley",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.crowden.org/community-music-day/",
+      "publisher": "Crowden School",
+      "access": "official-page-body-read",
+      "facts": "On October 4, explore instruments, children’s concerts and music-making at Crowden. Register through the school and check separate reservations for small-group instrument activities; free admission does not guarantee a place in every limited-capacity session.",
+      "limitations": "School body verifies activities; October 4 is corroborated by participating Philharmonia and Crowden’s Eventbrite listing. Do not use Philharmonia’s shorter performance slot as the whole event.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Dublin",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.dublin.ca.gov/1560/Harvest-Fair",
+      "publisher": "City of Dublin",
+      "access": "official-page-body-read",
+      "facts": "Heritage Park and Museums hosts its Harvest Fair on October 10, 10 am–2 pm. Admission is free, while some activities and pumpkins require a wristband or package. Compare advance and on-site options against the activities your children want.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Emeryville",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.emeryarts.org/",
+      "publisher": "Emeryville Celebration of the Arts",
+      "access": "official-page-body-read",
+      "facts": "Emeryville Celebration of the Arts exhibits at 5905 Shellmound Street in Public Market. Free hours are Wednesday–Sunday, 11 am–6 pm, October 3–25, with an opening event October 2, 6–9 pm. The date range does not mean Monday or Tuesday opening.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Fremont",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.namiwalks.org/events/2163",
+      "publisher": "NAMIWalks Alameda County South",
+      "access": "official-page-body-read",
+      "facts": "NAMIWalks Alameda County South takes place at Central Park October 3: registration starts at 9 am, the ceremony at 10 am and the walk at 10:35 am. Choose individual or team participation on the organizer’s site; its advertised route is two miles.",
+      "limitations": "City GovDelivery index included NAMI but its direct text omitted that section. Final card instead uses directly readable organizer page.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Hayward",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.acscienceinthepark.org/eventinfo",
+      "publisher": "Science in the Park",
+      "access": "official-page-body-read",
+      "facts": "Free science activities take over Cal State East Bay’s Music Lawn on October 3, 9 am–3 pm, with BikeMobile bicycle tune-ups. Bring water and a layer and wear closed-toe shoes. Food trucks cost extra; bicycle service depends on the on-site queue and arrangements.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Livermore",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://livermorearts.org/events/artwalk/",
+      "publisher": "Livermore Valley Arts",
+      "access": "official-search-index; direct access limited",
+      "facts": "ArtWalk brings artists to downtown streets, plazas and galleries from 11 am on October 10, adding CHALK the WALK this year. Viewing is free and purchases cost extra. Editorial suggestion: choose a walking segment around the Bankhead rather than covering every stop.",
+      "limitations": "Official index exposed October 10, 11 am, free entry and CHALK the WALK. Direct parsing later failed. No third-party closing time used.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Newark",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.newarkca.gov/departments/police/document-shredding-event",
+      "publisher": "City of Newark",
+      "access": "official-search-index; direct access limited",
+      "facts": "Newark Service Center offers resident document shredding October 3, 9 am–noon, limited to two banker-sized boxes per household. No appointment; first come, first served. Bring ID and a utility bill; businesses need a current Newark business license.",
+      "limitations": "Direct page fetch failed. Official index exposed date, hours, venue, two-box limit, ID/utility bill and first-come service.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Oakland",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.theoaklandarena.com/events/detail/xg-1",
+      "publisher": "Oakland Arena",
+      "access": "official-page-body-read",
+      "facts": "Oakland Arena lists XG at 7 pm on November 3 and Jo Koy at 8 pm on November 13. Follow the venue’s links to each ticket seller, compare total prices with fees, and check bag rules and your trip home before buying.",
+      "limitations": "XG and Jo Koy full official event bodies read. No live prices, inventory or show ending times checked.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Piedmont",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://piedmont.ca.gov/cms/One.aspx?pageId=21392954&portalId=13659823",
+      "publisher": "City of Piedmont",
+      "access": "official-page-body-read",
+      "facts": "The city lists a free Wonka screening on Piedmont Park’s main lawn October 16, starting around sunset at 6:40 pm. Bring blankets or low chairs. Editorial suggestion: settle in early and check weather and city updates before leaving.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Pleasanton",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+      "publisher": "Alameda County Fairgrounds",
+      "access": "official-page-body-read",
+      "facts": "Pumpkins After Dark opens on selected October evenings, not every day. The Fairgrounds specifies Gate 8 from Valley Avenue; the Pleasanton Avenue entrance is closed. Select an actual ticket date and include parking in your budget.",
+      "limitations": "Body lists selected open dates. Calendar navigation contains an inconsistent October 5 repeat; no continuous daily event asserted.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "San Leandro",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.sanleandro.org/Calendar.aspx?EID=7568&calType=0&day=24&month=10&year=2026",
+      "publisher": "City of San Leandro",
+      "access": "official-page-body-read",
+      "facts": "The city calendar lists free board games October 6, 5:30–7:30 pm, aimed at teens and adults; children ages 8 and older need an adult. The entry does not clearly identify the branch address, so confirm the venue with the library before traveling.",
+      "limitations": "Official event lists date/hours/free/ages but does not clearly expose branch address; card tells readers to confirm the location.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Union City",
+      "county": "Alameda",
+      "kind": "dated",
+      "url": "https://www.unioncityca.gov/Calendar.aspx?EID=2466",
+      "publisher": "City of Union City",
+      "access": "official-page-body-read",
+      "facts": "Union City CERT hosts a free ShakeAlert talk at 33555 Central Avenue on October 14, 7:30–9 pm. Use the official event’s registration link and confirm the venue. It is useful for newcomers learning about local preparedness tools.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Antioch",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.antiochca.gov/216/Kids-Fishing-Derby",
+      "publisher": "City of Antioch",
+      "access": "official-page-body-read",
+      "facts": "The children’s fishing derby runs October 10, 9 am–1 pm, around Waldie Plaza and the public fishing pier, with registration on the day. Bringing your own rod is the safest plan; loan rods are offered, but their quantity is unconfirmed.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Brentwood",
+      "county": "Contra Costa",
+      "kind": "calendar",
+      "url": "https://www.brentwoodca.gov/government/parks-recreation/special-events-and-programs/special-events-calendar",
+      "publisher": "City of Brentwood",
+      "access": "official-search-index; direct access limited",
+      "facts": "This is an official calendar entry point, not a new-event announcement. Select your travel month and open each listing to check its year, registration and location. Older summer programs may remain; past dates and performer application windows are not upcoming event dates.",
+      "limitations": "Direct page returned 403; official index verified the calendar resource only. No dated event claimed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Clayton",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://claytonoktoberfest.com/info/",
+      "publisher": "Clayton Oktoberfest",
+      "access": "official-page-body-read",
+      "facts": "Clayton Oktoberfest runs October 3, 11 am–8 pm, and October 4, 11 am–6 pm. Organizers explicitly say drink tickets are not sold online. Check library and Diablo View Middle School parking and shuttle arrangements before heading to Main Street.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Concord",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://cityofconcord.org/1130/Trick-or-Treat-Trail",
+      "publisher": "City of Concord",
+      "access": "official-page-body-read",
+      "facts": "Trick-or-Treat Trail takes place at Baldwin Park October 16, 4:30–6:30 pm. Advance registration is required. Confirm your booking and eligible ages before bringing children to 2790A Parkside Circle; ordinary park access does not guarantee event entry.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Danville",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.danville.ca.gov/Calendar.aspx?EID=4147&calType=0&day=2&month=10&year=2026",
+      "publisher": "Town of Danville",
+      "access": "official-page-body-read",
+      "facts": "A volunteer fair takes place at Veterans Memorial Building October 14, 6:30–8 pm, with the town and local organizations explaining opportunities. No registration is required. Editorial suggestion: know your weekly availability and ask about age, training and ongoing commitments.",
+      "limitations": "No registration required and ages 12+ opportunities explicit. No separate admission price; external booking application had no readable content.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "El Cerrito",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.elcerrito.gov/943/Citywide-Garage-Sale",
+      "publisher": "City of El Cerrito",
+      "access": "official-page-body-read",
+      "facts": "The fall garage sale runs October 17, 9 am–3 pm. Seller registration closed September 27; printed maps are planned from October 9 at the recycling center, community center and City Hall. Choose stops from the final map; individual sellers decide whether to proceed in poor weather or air quality.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Hercules",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.herculesca.gov/Home/Components/Calendar/Event/9876/18?backlist=%2Fgovernment%2Fparks-recreation",
+      "publisher": "City of Hercules",
+      "access": "official-search-index; direct access limited",
+      "facts": "The Senior Center Event Hall hosts a Hawaiian-themed pizza gathering and senior class performances October 12, 12:30–2:30 pm. Admission is $7 for members and $10 for nonmembers; registration is required and seats are limited. Confirm a place before traveling to 111 Civic Drive.",
+      "limitations": "Direct page 403. Official-domain index exposed date, hours, venue, required registration and $7/$10 prices. No live seats checked.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Lafayette",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://lafayettechamber.org/resrun/",
+      "publisher": "Lafayette Chamber of Commerce",
+      "access": "official-page-body-read",
+      "facts": "On October 18, the in-person 5K starts at 8 am, 10K at 8:15 am and two-mile event at 8:45 am. The separately listed Reservoir Challenge runs October 11–17; the main race is not a week-long event. Fees vary by distance, with a credit-card convenience fee added at payment.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Martinez",
+      "county": "Contra Costa",
+      "kind": "calendar",
+      "url": "https://www.cityofmartinez.org/government/calendar-month-view/-curm-10/-cury-2026",
+      "publisher": "City of Martinez",
+      "access": "official-search-index; direct access limited",
+      "facts": "This is Martinez’s official monthly calendar. Choose October or November 2026, then open a listing to distinguish marina events, community venues and civic meetings. Listings with only a calendar title have not been treated here as verified free events.",
+      "limitations": "Direct calendar fetch failed. Official index verified the October calendar, but not enough detail to publish a new dated event.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Moraga",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://moraga.ca.us/605/not-so-Haunted-Hacienda",
+      "publisher": "Town of Moraga",
+      "access": "official-page-body-read",
+      "facts": "Hacienda de las Flores hosts a gently spooky evening October 30, 5–8:30 pm, with Freaky Friday at 6:30 pm. Pumpkin decorating and goodies are limited to the first 100 children under 11. Bring a blanket and check food costs and admission arrangements separately.",
+      "limitations": "Free-to-participate statement is in vendor section, not audience admission. Cost deliberately unknown.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Oakley",
+      "county": "Contra Costa",
+      "kind": "calendar",
+      "url": "https://www.oakleyca.gov/369/Special-Events",
+      "publisher": "City of Oakley",
+      "access": "official-page-body-read",
+      "facts": "The city groups celebrations and community programs on its Special Events page. Find the 2026 listing, then check its exact date, eligible ages and registration link. This is a rolling resource; not every item is still upcoming or open daily.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Orinda",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.cityoforinda.gov/m/newsflash/home/detail/310",
+      "publisher": "City of Orinda",
+      "access": "official-page-body-read",
+      "facts": "The October 22 event for ages 1–11 uses Library Parking Garage and Plaza, with 45-minute sessions starting at 4:30, 5:15 and 6 pm. Register participating children only. Check the session actually shown before payment; parents do not register separately.",
+      "limitations": "Official page’s third-session link appeared duplicated from second. Displayed sessions read directly; readers told to verify selected session before payment. Price unconfirmed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Pinole",
+      "county": "Contra Costa",
+      "kind": "calendar",
+      "url": "https://www.pinole.gov/calendar/",
+      "publisher": "City of Pinole",
+      "access": "official-page-body-read",
+      "facts": "Pinole’s official calendar offers search and category filters and currently lists Saturday farmers markets and civic meetings. Open the detail page to verify date and location, and watch for CANCELLED labels. This is a lookup resource, not a claim that repeated calendar entries offer special programs daily.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Pittsburg",
+      "county": "Contra Costa",
+      "kind": "calendar",
+      "url": "https://www.pittsburgca.gov/government/calendar/-recordid-1893/-curm-10/-cury-2026",
+      "publisher": "City of Pittsburg",
+      "access": "official-page-body-read",
+      "facts": "The city calendar switches between months and mixes farmers markets, civic meetings and community events. Select October or November 2026, then open an item for its venue, ages and tickets. This entry supplies the official resource without expanding short titles into unverified event claims.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Pleasant Hill",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://pleasanthillrec.com/653/Haunted-Trail-1023",
+      "publisher": "Pleasant Hill Recreation & Park District",
+      "access": "official-page-body-read",
+      "facts": "Halloween activities take place along the path behind Pleasant Hill Park’s Teen Center October 23, 5–7 pm. Visitor admission is free with no registration; candy is available while supplies last. Parking is limited, so check arrangements around 147 Gregory Lane.",
+      "limitations": "Stated facts read in official body; live availability, weather and same-day changes not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Richmond",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://richmondartcenter.org/events/making-history-block-printing-in-the-galleries-10-10-26-2/",
+      "publisher": "Richmond Art Center",
+      "access": "official-page-body-read",
+      "facts": "Richmond Art Center’s October 10 block-printing activity is free. Its site currently marks 11 am–noon full with a waitlist, and provides a noon–1 pm registration link. Children under 10 need an adult. The noon link does not guarantee remaining spaces.",
+      "limitations": "11 am session explicitly full with waitlist. Noon registration link exists but live spaces not checked.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "San Pablo",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://sanpabloca.gov/1457/City-Hall-o-ween",
+      "publisher": "City of San Pablo",
+      "access": "official-page-body-read",
+      "facts": "City Hall-o-Ween takes place at 1000 Gateway Avenue October 29, 4–7 pm, with trunk-or-treating, dancing, pumpkin activities and face painting. The official page does not specify admission charges or reservation requirements; check with Community Services before going.",
+      "limitations": "Date/hours/address/activities explicit. Audience price and reservation requirement not published in readable body.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "San Ramon",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/nature_programs/upcoming_nature_events",
+      "publisher": "City of San Ramon",
+      "access": "official-page-body-read",
+      "facts": "Nature Storytime at Crow Canyon Gardens runs October 30, 10:15–11 am, with stories, crafts and sensory activities. It is designed mainly for ages 2–5, though all ages are welcome. Single-session registration is available; check activity 37098 and its fee.",
+      "limitations": "Storytime fee/seats not exposed in registration application. Separate November 28 workshop has explicit $55 resident/$63 nonresident prices.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "Walnut Creek",
+      "county": "Contra Costa",
+      "kind": "dated",
+      "url": "https://diabloimprovfestival.org/",
+      "publisher": "Diablo Improv Festival",
+      "access": "official-page-body-read",
+      "facts": "The 2026 Diablo Improv Festival is listed for October 16–18 at Lesher Center for the Arts, with improv performances and workshops. Use Schedule for individual sessions and audiences. The page retains a 2025 section, so avoid mixing old and current dates.",
+      "limitations": "Current 2026 dates appear at top; obsolete October 24–26, 2025 section remains below. Only current header used.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "city": "San Francisco",
+      "county": "San Francisco",
+      "kind": "dated",
+      "url": "https://chasecenter.com/events/20261105-gsw-vs-mia/",
+      "publisher": "Chase Center",
+      "access": "official-search-index; direct access limited",
+      "facts": "Chase Center lists Warriors vs. Miami Heat on November 5 at 7 pm, with doors at 5:30 pm. Start from the venue’s ticket link; prices vary by seat and sale stage. Editorial suggestion: compare totals including fees and plan your trip home around that evening’s transit.",
+      "limitations": "Direct Chase Center extraction was title/iframe only. Official index supplied November 5, 7 pm game and 5:30 pm doors.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "supplementarySources": [
+    {
+      "url": "https://philharmonia.org/event/community-music-day-at-crowden-school/",
+      "publisher": "Philharmonia Baroque Orchestra & Chorale",
+      "access": "official-search-index",
+      "facts": "Participating ensemble lists October 4, 2026 at Crowden, 1475 Rose Street, free. Its program is 10 am–noon.",
+      "limitations": "Ensemble program is not the full school event duration.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.eventbrite.com/e/community-music-day-2026-tickets-1999724855875?aff=ebdssbdestsearch",
+      "publisher": "Crowden School on Eventbrite",
+      "access": "organizer-listing-search-index",
+      "facts": "October 4, 2026, 10 am–2 pm, free musical activities.",
+      "limitations": "Registration inventory not checked. School page used as primary entry.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.antiochca.gov/231/Recreation-Special-Events",
+      "publisher": "City of Antioch",
+      "access": "official-search-index",
+      "facts": "2026 list gives October 10, 9 am–1 pm Kids Fishing Derby.",
+      "limitations": "Individual derby page supplies ages 15 and under, free, same-day registration, pier/plaza and loan rods. Rod supply not guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.chasecenter.com/events/journey-20261128/",
+      "publisher": "Chase Center",
+      "access": "official-search-index; direct-title-iframe-shell",
+      "facts": "Journey November 28, 2026, 7:30 pm; doors 6 pm.",
+      "limitations": "No checkout, set list or ending time verified.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.theoaklandarena.com/events/detail/jo-koy-1",
+      "publisher": "Oakland Arena",
+      "access": "official-page-body-read",
+      "facts": "November 13 Jo Koy 8 pm, doors 7 pm, official Ticketmaster link, 7000 Coliseum Way.",
+      "limitations": "No ticket inventory, age guarantee or ending time.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://secure.rec1.com/CA/san-ramon-ca/catalog?filter=c2VhcmNoPTQzNTQ5Njc%3D",
+      "publisher": "City of San Ramon registration",
+      "access": "application-shell-read",
+      "facts": "Reached from official Halloween Storytime link.",
+      "limitations": "Activity fee and seats not readable; cost unknown.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://anc.apm.activecommunities.com/danvilleca/activity/search/detail/33284?from_original_cui=true&onlineSiteId=0&locale=en-US",
+      "publisher": "Town of Danville registration",
+      "access": "empty-application-extraction",
+      "facts": "Linked from official Volunteer Fair detail.",
+      "limitations": "No fee verified. Municipal calendar explicitly says registration not required.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://content.govdelivery.com/accounts/CAFREMONT/bulletins/429d29d",
+      "publisher": "City of Fremont",
+      "access": "official-index; incomplete-direct-extraction",
+      "facts": "Index shows October 3 NAMIWalks schedule and Central Park.",
+      "limitations": "Direct extraction omitted NAMI section. Final card uses the organizer’s directly readable page.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/nature_programs/upcoming_nature_events",
+      "publisher": "City of San Ramon",
+      "access": "official-page-body-read",
+      "facts": "Activity 37466: November 28, 10 am–noon, Alcosta Senior and Community Center, $55 resident/$63 nonresident, two lip-balm tubes and take-home guide, optional supply kit extra.",
+      "limitations": "Children’s eligibility not explicit; no live registration spaces checked.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "eventSources": [
+    {
+      "id": "sf-warriors-heat-november-2026",
+      "city": "San Francisco",
+      "date": "2026-11-05",
+      "url": "https://chasecenter.com/events/20261105-gsw-vs-mia/",
+      "verifiedFacts": {
+        "venue": "Chase Center",
+        "dateLabel": "November 5, 7 pm; doors 5:30 pm",
+        "cost": "paid",
+        "costLabel": "Ticketed by seat; check the official seller’s total including fees"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "sf-journey-final-frontier-november-2026",
+      "city": "San Francisco",
+      "date": "2026-11-28",
+      "url": "https://www.chasecenter.com/events/journey-20261128/",
+      "verifiedFacts": {
+        "venue": "Chase Center",
+        "dateLabel": "November 28, 7:30 pm; doors 6 pm",
+        "cost": "paid",
+        "costLabel": "Ticketed by seat; check availability and fees through the official link"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "oakland-xg-the-core-november-2026",
+      "city": "Oakland",
+      "date": "2026-11-03",
+      "url": "https://www.theoaklandarena.com/events/detail/xg-1",
+      "verifiedFacts": {
+        "venue": "Oakland Arena, 7000 Coliseum Way",
+        "dateLabel": "November 3, 7 pm; doors 5:30 pm",
+        "cost": "paid",
+        "costLabel": "Ticketed show; check AXS total prices through the venue link"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "oakland-jo-koy-november-2026",
+      "city": "Oakland",
+      "date": "2026-11-13",
+      "url": "https://www.theoaklandarena.com/events/detail/jo-koy-1",
+      "verifiedFacts": {
+        "venue": "Oakland Arena, 7000 Coliseum Way",
+        "dateLabel": "November 13, 8 pm; doors 7 pm",
+        "cost": "paid",
+        "costLabel": "Ticketed show; access Ticketmaster from the arena’s website"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "albany-fire-pancake-breakfast-2026",
+      "city": "Albany",
+      "date": "2026-10-10",
+      "url": "https://www.albanyca.gov/City-Calendar/2026/Albany-Fire-Department-Pancake-Breakfast-2026",
+      "verifiedFacts": {
+        "venue": "Albany Fire Station, 1000 San Pablo Avenue",
+        "dateLabel": "October 10, 8 am–noon",
+        "cost": "paid",
+        "costLabel": "Adults $8; ages 12 and under $5, tickets at the door"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "newark-resident-shredding-october-2026",
+      "city": "Newark",
+      "date": "2026-10-03",
+      "url": "https://www.newarkca.gov/departments/police/document-shredding-event",
+      "verifiedFacts": {
+        "venue": "Newark Service Center, 37440 Filbert Street",
+        "dateLabel": "October 3, 9 am–noon",
+        "cost": "free",
+        "costLabel": "Free for eligible Newark residents; maximum two boxes per household"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "hercules-ohana-day-2026",
+      "city": "Hercules",
+      "date": "2026-10-12",
+      "url": "https://www.herculesca.gov/Home/Components/Calendar/Event/9876/18?backlist=%2Fgovernment%2Fparks-recreation",
+      "verifiedFacts": {
+        "venue": "Senior Center Event Hall, 111 Civic Drive",
+        "dateLabel": "October 12, 12:30–2:30 pm",
+        "cost": "paid",
+        "costLabel": "Members $7; nonmembers $10; registration required"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "moraga-not-so-haunted-hacienda-2026",
+      "city": "Moraga",
+      "date": "2026-10-30",
+      "url": "https://moraga.ca.us/605/not-so-Haunted-Hacienda",
+      "verifiedFacts": {
+        "venue": "Hacienda de las Flores, 2100 Donald Drive",
+        "dateLabel": "October 30, 5–8:30 pm",
+        "cost": "unknown",
+        "costLabel": "Visitor admission charges are not specified; food trucks cost extra"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "Fee explicitly unknown because official body/application did not reliably provide it.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "san-pablo-city-hall-o-ween-2026",
+      "city": "San Pablo",
+      "date": "2026-10-29",
+      "url": "https://sanpabloca.gov/1457/City-Hall-o-ween",
+      "verifiedFacts": {
+        "venue": "San Pablo City Hall, 1000 Gateway Avenue",
+        "dateLabel": "October 29, 4–7 pm",
+        "cost": "unknown",
+        "costLabel": "The official page does not specify admission charges or booking requirements"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "Fee explicitly unknown because official body/application did not reliably provide it.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "union-city-cert-shakealert-october-2026",
+      "city": "Union City",
+      "date": "2026-10-14",
+      "url": "https://www.unioncityca.gov/Calendar.aspx?EID=2466",
+      "verifiedFacts": {
+        "venue": "Union City CERT Building, 33555 Central Avenue",
+        "dateLabel": "October 14, 7:30–9 pm",
+        "cost": "free",
+        "costLabel": "Free; a registration link is provided on the official event page"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "antioch-kids-fishing-derby-2026",
+      "city": "Antioch",
+      "date": "2026-10-10",
+      "url": "https://www.antiochca.gov/216/Kids-Fishing-Derby",
+      "verifiedFacts": {
+        "venue": "Waldie Plaza / Antioch Public Fishing Pier",
+        "dateLabel": "October 10, 9 am–1 pm",
+        "cost": "free",
+        "costLabel": "Free for children ages 15 and under; register on the day"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "danville-volunteer-fair-october-2026",
+      "city": "Danville",
+      "date": "2026-10-14",
+      "url": "https://www.danville.ca.gov/Calendar.aspx?EID=4147&calType=0&day=2&month=10&year=2026",
+      "verifiedFacts": {
+        "venue": "Veterans Memorial Building, 400 Hartz Avenue",
+        "dateLabel": "October 14, 6:30–8 pm",
+        "cost": "unknown",
+        "costLabel": "No registration required; the event page does not separately specify admission charges"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "Fee explicitly unknown because official body/application did not reliably provide it.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "orinda-trunk-and-treat-october-2026",
+      "city": "Orinda",
+      "date": "2026-10-22",
+      "url": "https://www.cityoforinda.gov/m/newsflash/home/detail/310",
+      "verifiedFacts": {
+        "venue": "Orinda Library Parking Garage and Plaza",
+        "dateLabel": "October 22, three sessions",
+        "cost": "unknown",
+        "costLabel": "Check the registration price; the city states registrations are nonrefundable"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "Fee explicitly unknown because official body/application did not reliably provide it.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "san-ramon-nature-halloween-storytime-2026",
+      "city": "San Ramon",
+      "date": "2026-10-30",
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/nature_programs/upcoming_nature_events",
+      "verifiedFacts": {
+        "venue": "Crow Canyon Gardens",
+        "dateLabel": "October 30, 10:15–11 am",
+        "cost": "unknown",
+        "costLabel": "Check fees and availability in the city’s registration system"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "Fee explicitly unknown because official body/application did not reliably provide it.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "san-ramon-lip-balm-workshop-november-2026",
+      "city": "San Ramon",
+      "date": "2026-11-28",
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/nature_programs/upcoming_nature_events",
+      "verifiedFacts": {
+        "venue": "Alcosta Senior and Community Center",
+        "dateLabel": "November 28, 10 am–noon",
+        "cost": "paid",
+        "costLabel": "Residents $55; nonresidents $63; optional extra supply kits cost more"
+      },
+      "evidence": "Primary page or official search index as identified in citySources/supplementarySources. Single-day entry; no implied daily recurrence.",
+      "limitations": "No live ticket or seat availability guaranteed.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "openingSources": [
+    {
+      "id": "bruma-ritz-carlton-sf",
+      "name": "Bruma",
+      "urls": [
+        "https://www.ritzcarlton.com/en/hotels/sforz-the-ritz-carlton-san-francisco/overview/",
+        "https://www.prnewswire.com/news-releases/the-ritz-carlton-san-francisco-unveils-bruma-an-elevated-cocktail-lounge-and-modern-san-francisco-salon-atop-nob-hill-302873332.html"
+      ],
+      "access": "official-page-body-read",
+      "status": "announced",
+      "facts": "The Ritz-Carlton, San Francisco announced Bruma, a new cocktail lounge and social space planned to open October 12 inside its Nob Hill hotel. The brand release states a future plan; the hotel website still says Coming Soon at the time of checking.",
+      "limitations": "Announcement is not evidence of first public service. No openedOn assigned.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "lucania-ferry-building-announced",
+      "name": "Lucania",
+      "urls": [
+        "https://www.a16pizza.com/lucania"
+      ],
+      "access": "official-page-body-read",
+      "status": "announced",
+      "facts": "A16’s project page introduces Lucania as an all-day Southern Italian destination at San Francisco Ferry Building, with a signup for opening updates. The brand and location are confirmed, but no verifiable opening date, menu prices or hours are stated.",
+      "limitations": "Announcement is not evidence of first public service. No openedOn assigned.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "id": "eriks-delicafe-san-ramon-relocation",
+      "name": "Erik’s DeliCafé — San Ramon",
+      "urls": [
+        "https://www.eriksdelicafe.com/location/san-ramon-california-deli-cafe"
+      ],
+      "access": "official-page-body-read",
+      "status": "open",
+      "facts": "Erik’s official store page welcomes customers to its new San Ramon home at The Marketplace Shopping Center and lists 159 Market Place, hours and online ordering. This is a relocation update; neither the former location’s history nor a news date is used as the new opening date.",
+      "limitations": "Operating merchant page establishes relocation/open, not exact first day. No openedOn assigned.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "auditFindings": [
+    {
+      "severity": "correction",
+      "existingIds": [
+        "alameda-point-antiques-oct-2026",
+        "alameda-point-antiques-october-2026"
+      ],
+      "sourceUrl": "https://alamedapointantiquesfaire.com/",
+      "finding": "Both existing records refer to October 4 and same source.",
+      "suggestion": "Keep canonical previously published ID and merge latest information; avoid duplicate calendar entries."
+    },
+    {
+      "severity": "correction",
+      "existingIds": [
+        "handroll-hawker"
+      ],
+      "sourceUrl": "https://www.handrollhawker.com/",
+      "finding": "Current merchant website states VISIT US at 2360 Polk Street and OPEN 11:30 AM–7:30 PM; existing status remains announced.",
+      "suggestion": "Update status to open. Do not promote earlier planned September 29 date to verified first service without further evidence."
+    },
+    {
+      "severity": "availability-update",
+      "sourceUrl": "https://richmondartcenter.org/events/making-history-block-printing-in-the-galleries-10-10-26-2/",
+      "finding": "Morning session full with waitlist. Noon session has a link, not a confirmed seat count.",
+      "suggestion": "Add morning waitlist notice and require checking noon availability."
+    },
+    {
+      "severity": "broken-link-unconfirmed-event",
+      "existingIds": [
+        "sf-ai-infra-scale-dinner-2026"
+      ],
+      "sourceUrl": "https://luma.com/leverage-ph18",
+      "finding": "Live Node fetch and repeat web open returned 404. Initial web result was stale cache. Current organizer https://luma.com/LeverageSF?k=c returns 200 but no original title. No verified replacement found.",
+      "suggestion": "Remove from upcoming recommendations or mark no confirmed occurrences. Do not claim canceled or substitute the organizer’s different ElevenLabs dinner."
+    },
+    {
+      "severity": "venue-uncertainty",
+      "sourceUrl": "https://www.sanleandro.org/Calendar.aspx?EID=7568&calType=0&day=24&month=10&year=2026",
+      "finding": "Event extraction does not clearly give branch address.",
+      "suggestion": "Do not infer a verified branch location; ask library before travel."
+    },
+    {
+      "severity": "calendar-scope",
+      "sourceUrl": "https://www.emeryarts.org/",
+      "finding": "Exhibition October 3–25 is Wednesday–Sunday 11 am–6 pm, plus October 2 opening 6–9 pm. Existing closing-weekend record covers only part.",
+      "suggestion": "If extending existing entry, list actual occurrence dates rather than adding a duplicate or asserting daily opening."
+    }
+  ],
+  "excludedOrUnconfirmed": [
+    {
+      "url": "https://www.pinole.gov/event_list/floating-pumpkin-patch/?event-date=2026-10-17+12%3A00%3A00",
+      "publisher": "City of Pinole",
+      "access": "official-search-index",
+      "facts": "Heading October 17, 2026 conflicts with body Saturday October 18.",
+      "limitations": "No dated event created. Organizer clarification needed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.oakleyca.gov/369/Special-Events",
+      "publisher": "City of Oakley",
+      "access": "official-page-body-read",
+      "facts": "Veterans Day section says Tuesday November 11, 2026, but that date is Wednesday.",
+      "limitations": "No dated event generated from conflict.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://diabloimprovfestival.org/",
+      "publisher": "Diablo Improv Festival",
+      "access": "official-page-body-read",
+      "facts": "2025 dates remain below explicit 2026 header.",
+      "limitations": "Only 2026 header used.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.cityofmartinez.org/government/calendar-month-view/-curm-10/-cury-2026",
+      "publisher": "City of Martinez",
+      "access": "official-index; direct-fetch-failed",
+      "facts": "Family Fun at Marina October 10 title/hours visible in index.",
+      "limitations": "Full activities, venue and price insufficiently verified; calendar card only.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.shinkasf.com/",
+      "publisher": "Shinka",
+      "access": "fetch-failed",
+      "facts": "New restaurant candidate.",
+      "limitations": "Excluded: current official content not readable.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.jayhotelsf.com/eat-drink/shinka/",
+      "publisher": "The Jay hotel",
+      "access": "fetch-failed",
+      "facts": "Shinka hotel restaurant candidate.",
+      "limitations": "Excluded: previews and reservation snippets alone not used to assert open.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.eatolivejuice.com/",
+      "publisher": "Olive Juice",
+      "access": "fetch-failed",
+      "facts": "Opening candidate.",
+      "limitations": "Excluded: official verification failed; secondary reports had conflicting opening dates.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://richmondside.org/2026/09/08/five-and-dime-game-parlour-xula-eriks-takorea-open/",
+      "publisher": "Richmondside / Nosh",
+      "access": "secondary-search-index",
+      "facts": "Discovery leads for Five & Dime, Xula, Erik’s.",
+      "limitations": "Five & Dime and Xula excluded without readable merchant proof. Erik’s independently verified on official operating location page.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://luma.com/LeverageSF?k=c",
+      "publisher": "Leverage organizer calendar",
+      "access": "official-body-read; live-http-200",
+      "facts": "Current calendar shows a different ElevenLabs dinner.",
+      "limitations": "Not a replacement for previous AI-infrastructure event.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "imagePolicy": {
+    "statement": "Existing local photographs retain GUIDE_IMAGES source, credit, date and captions and show city context, not the listed event. Existing illustrations retain explicit non-documentary captions. Root is separately adding verified arena photos and owns final imageKey substitutions.",
+    "contextPhotoKeys": [
+      "expanded-east-bay-alameda-beach",
+      "region-berkeley-campus",
+      "expanded-coyote-hills",
+      "lake",
+      "autumn-pleasanton",
+      "autumn-martinez",
+      "autumn-rosie",
+      "daily-bridge"
+    ],
+    "proposedPhotos": [
+      {
+        "for": "Chase Center",
+        "url": "https://commons.wikimedia.org/wiki/File:Chase_Center_-_Warriors.jpg",
+        "access": "file-page-body-read",
+        "author": "Christopher Michel",
+        "date": "2020-10-16",
+        "license": "CC BY 2.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+        "caption": "2020 aerial venue photograph, not a 2026 game or concert. Attribute author and source, link license, indicate changes."
+      },
+      {
+        "for": "Oakland Arena",
+        "url": "https://commons.wikimedia.org/wiki/File:Oracle_Arena_exterior_1.JPG",
+        "access": "file-page-body-read",
+        "author": "BrokenSphere",
+        "date": "2009-03-15",
+        "license": "CC BY-SA 3.0",
+        "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+        "caption": "Historical exterior under former Oracle Arena name, not current performance. Attribute, link source/license and retain share-alike for adaptations."
+      },
+      {
+        "for": "Bruma",
+        "url": "https://www.prnewswire.com/news-releases/the-ritz-carlton-san-francisco-unveils-bruma-an-elevated-cocktail-lounge-and-modern-san-francisco-salon-atop-nob-hill-302873332.html",
+        "access": "brand-release-body-read",
+        "license": "No open reuse license confirmed",
+        "caption": "Release interiors are renderings. Obtain press reuse permission and label as renderings, not operating venue photos."
+      }
+    ],
+    "restrictedSources": [
+      {
+        "url": "https://www.emeryarts.org/",
+        "reason": "Artwork reproduction explicitly requires the artist’s written permission. No artwork reused."
+      }
+    ]
+  },
+  "validation": {
+    "cities": "34 canonical names unique and present; no missing city.",
+    "events": "15 single-day records; no duplicate ID or officialURL+startDate against pre-integration 326 records.",
+    "translations": "201 normalized Chinese-to-English mappings; no untranslated Chinese in the three new content JSONs.",
+    "urls": "Content URL fields all HTTPS. Limitations disclosed, not misrepresented as full-page reads.",
+    "images": "Every key exists in GUIDE_IMAGES. Root owns later real-photo substitutions."
+  }
+}

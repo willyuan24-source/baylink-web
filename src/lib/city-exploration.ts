@@ -9,7 +9,8 @@ export function cityExplorationMatches(city: CityExploration, query: string, loc
   if (!terms.length) return true;
   const values = [city.city, city.county, ...(cityAliases[city.city as keyof typeof cityAliases] || []), city.summary,
     city.halfDay, city.arrival, city.residentTip, city.transport, city.checks,
-    ...city.places.flatMap(place => [place.name, place.description]), ...city.resources.map(resource => resource.label)];
+    ...city.places.flatMap(place => [place.name, place.description]), ...city.resources.map(resource => resource.label),
+    ...(city.currentUpdate ? [city.currentUpdate.headline, city.currentUpdate.summary, city.currentUpdate.dateLabel, city.currentUpdate.sourceLabel] : [])];
   const haystack = normalize([...values, ...values.map(value => translateText(value, locale))].join(' '));
   return terms.every(term => haystack.includes(term));
 }

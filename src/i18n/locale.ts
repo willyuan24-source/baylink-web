@@ -131,6 +131,7 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/city-exploration-peninsula-south-en.json'), import('../data/city-exploration-north-en.json'),
     import('../data/useful-platforms-guide-en.json'), import('../data/useful-platforms-transport-en.json'),
     import('../data/useful-platforms-food-en.json'), import('../data/useful-platforms-home-deals-en.json'), import('../data/useful-platforms-local-en.json'),
+    import('../data/city-roundup-east-sf-en.json'), import('../data/city-roundup-peninsula-south-en.json'), import('../data/city-roundup-north-en.json'), import('../data/city-roundup-ui-en.json'), import('../data/city-roundup-media-en.json'), import('../data/city-roundup-extra-media-east-en.json'), import('../data/city-roundup-extra-media-south-en.json'), import('../data/city-roundup-extra-media-north-en.json'),
   ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }

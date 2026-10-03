@@ -62,6 +62,17 @@ export const OPENING_SIGNS: readonly OpeningSign[] = [
     osmUrl: 'https://www.openstreetmap.org/node/693507981', verifiedAt: '2026-09-29', siteVerifiedAt: '2026-09-29',
   },
   {
+    id: 'handroll-hawker', name: 'Handroll Hawker',
+    what: { zh: '澳式寿司手卷 · 可外带', en: 'Australian-style sushi rolls · takeaway' },
+    address: '2360 Polk Street, San Francisco, CA',
+    hours: { zh: '官网：11:30–19:30，出发前再确认', en: 'Its site: 11:30–19:30; recheck before visiting' },
+    // OSM Nominatim resolves 2360 Polk to node 412087372, still labelled as former tenant Tonic.
+    // Address coordinates only; the merchant's own site confirms Handroll Hawker and its hours.
+    // The sign and its front interaction point are on pavement in the published walking network.
+    x: -149.0, z: 235.5, yaw: deg(145), osm: { lat: 37.7986951, lng: -122.4221753 },
+    osmUrl: 'https://www.openstreetmap.org/node/412087372', verifiedAt: '2026-10-03', siteVerifiedAt: '2026-10-02',
+  },
+  {
     id: 'sf-athanor-new-restaurant-2026', name: 'Athanor',
     what: { zh: '十道式晚餐餐厅（需预订）', en: 'Ten-course dinner restaurant (booking)' },
     address: '2600 Sutter Street, San Francisco, CA',

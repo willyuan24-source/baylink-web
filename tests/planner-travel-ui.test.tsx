@@ -31,6 +31,23 @@ test('route estimates must match both stops, selected mode and exact Pacific dep
   assert.equal(isPlannerTravelEstimate({ ...estimate, departureAt: '2026-11-08T20:00:00.000Z' }, { ...expected, date: '2026-11-08' }), true, 'winter Pacific offset is not hard-coded');
 });
 
+test('route validation accepts a merged event reference but still rejects mismatched identities and unsafe response fields', () => {
+  const legacy: Stop = { kind: 'event', id: 'alameda-point-antiques-october-2026' };
+  const canonical: Stop = { kind: 'event', id: 'alameda-point-antiques-oct-2026' };
+  const expected = { from: legacy, to: stops[0], date: '2026-10-04', time: '12:00', mode: 'drive' as const };
+  const estimate = { ok: true, provider: 'google-maps', from: canonical, to: stops[0], travelMode: 'drive', durationMinutes: 25, distanceMeters: 12000, warnings: [], departureAt: '2026-10-04T19:00:00.000Z', checkedAt: '2026-10-02T19:00:00.000Z' };
+  assert.equal(isPlannerTravelEstimate(estimate, expected), true);
+  assert.equal(isPlannerTravelEstimate({ ...estimate, from: legacy }, { ...expected, from: canonical }), true);
+  assert.equal(isPlannerTravelEstimate({ ...estimate, from: stops[0], to: canonical }, { ...expected, from: stops[0], to: legacy }), true);
+  for (const patch of [
+    { from: { ...canonical, kind: 'place' } }, { from: { ...canonical, id: 'another-event' } },
+    { from: { ...canonical, id: { toString: () => canonical.id } } }, { to: stops[1] },
+    { travelMode: 'walk' }, { departureAt: '2026-10-05T19:00:00.000Z' },
+    { distanceMeters: Infinity }, { durationMinutes: -1 }, { warnings: ['x'.repeat(1501)] },
+  ]) assert.equal(isPlannerTravelEstimate({ ...estimate, ...patch }, expected), false);
+  assert.equal(isPlannerTravelEstimate({ ...estimate, from: { ...canonical, kind: 'place' } }, { ...expected, from: { ...legacy, kind: 'place' } }), false, 'event aliases never merge place IDs');
+});
+
 test('disabled or failed route capability hides paid actions and retains working map links', async t => {
   const paths: string[] = [];
   t.mock.method(api, 'request', async (path: string) => { paths.push(path); return { available: false }; });

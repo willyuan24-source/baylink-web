@@ -17,9 +17,9 @@ export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 
     :
   event.endDate < today ? 'ended' : event.startDate > today ? 'upcoming' : 'ongoing';
 
-export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october';
+export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october' | 'november';
 export const resolveMonthlyDateFilter = (value: string | null | undefined): MonthlyDateFilter =>
-  value === 'today' || value === 'weekend' || value === 'next7' || value === 'september' || value === 'october' ? value : 'all';
+  value === 'today' || value === 'weekend' || value === 'next7' || value === 'september' || value === 'october' || value === 'november' ? value : 'all';
 
 // Treat the Bay Area date as a calendar day, never as a browser-local timestamp.
 // UTC arithmetic keeps consecutive dates stable across DST and month/year changes.
@@ -33,6 +33,7 @@ export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAre
   if (filter === 'all') return null;
   if (filter === 'september') return { start: '2026-09-01', end: '2026-09-30' };
   if (filter === 'october') return { start: '2026-10-01', end: '2026-10-31' };
+  if (filter === 'november') return { start: '2026-11-01', end: '2026-11-30' };
   if (filter === 'today') return { start: today, end: today };
   if (filter === 'next7') return { start: today, end: addCalendarDays(today, 6) };
   const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();

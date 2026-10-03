@@ -5,6 +5,7 @@ import { CITY_COUNTIES, cityExplorationKey, cityExplorationUrl, type CityExplora
 import { useLocale, translateText } from '../i18n/locale';
 import { cityExplorationMatches } from '../lib/city-exploration';
 import { ATTRACTIONS } from '../data/attractions';
+import { CityCurrentCard } from './CityCurrentCard';
 
 export function CityExplorationDirectory({ cities, title, text }: { cities: CityExploration[]; title: string; text: string }) {
   const locale = useLocale(), id = useId();
@@ -42,6 +43,7 @@ export function CityExplorationDirectory({ cities, title, text }: { cities: City
         {rows.map(city => <details className="city-exploration-card" key={city.city} id={`city-${cityExplorationKey(city.city)}`} open={results.length === 1 || selectedCity === city ? true : undefined}>
           <summary><span><strong>{city.city}</strong><span>{t(city.summary)}</span><small>{city.places.map(place => t(place.name)).join(' · ')}</small></span><ChevronDown size={19} aria-hidden="true" /></summary>
           <div className="city-exploration-body">
+            {city.currentUpdate && <CityCurrentCard update={city.currentUpdate} />}
             <h4>{t('值得去的地方')}</h4>
             <div className="city-exploration-places">{city.places.map(place => <article key={place.name}>
               <span className="city-place-scope">{t(place.scope === 'city' ? '市内去处' : place.scope === 'cross-boundary' ? '跨市界延伸' : '附近延伸 · 不在本市')}</span>

@@ -1,0 +1,104 @@
+{
+  "Newark": {
+    "lat": 37.504,
+    "lng": -122.032,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Dixon": {
+    "lat": 38.448,
+    "lng": -121.824,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Albany": {
+    "lat": 37.891,
+    "lng": -122.318,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Antioch": {
+    "lat": 37.978,
+    "lng": -121.798,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Healdsburg": {
+    "lat": 38.623,
+    "lng": -122.865,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Hercules": {
+    "lat": 38.021,
+    "lng": -122.289,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Union City": {
+    "lat": 37.603,
+    "lng": -122.019,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "San Bruno": {
+    "lat": 37.626,
+    "lng": -122.431,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Atherton": {
+    "lat": 37.456,
+    "lng": -122.201,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Milpitas": {
+    "lat": 37.433,
+    "lng": -121.891,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Monte Sereno": {
+    "lat": 37.24,
+    "lng": -121.988,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Orinda": {
+    "lat": 37.882,
+    "lng": -122.168,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Belmont": {
+    "lat": 37.514,
+    "lng": -122.294,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Brisbane": {
+    "lat": 37.676,
+    "lng": -122.383,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "San Pablo": {
+    "lat": 37.963,
+    "lng": -122.343,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Moraga": {
+    "lat": 37.846,
+    "lng": -122.123,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  },
+  "Suisun City": {
+    "lat": 38.248,
+    "lng": -122.01,
+    "precision": "city",
+    "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt"
+  }
+}

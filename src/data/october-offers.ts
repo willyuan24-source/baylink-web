@@ -1,3 +1,4 @@
+import chainOffers from './city-roundup-chain-offers.json';
 import { october2026NewOffers, october2026OfferUpdates } from './october-2026-verified-offers';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
@@ -126,7 +127,7 @@ export const octoberOffers: FreebieOffer[] = [
 const previousFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers, ...octoberRefreshOffers].map(offer => [offer.id, offer])).values()]
   .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23'));
 
-export const currentFreebies: FreebieOffer[] = [...new Map([...previousFreebies, ...october2026NewOffers].map(offer => [offer.id, offer])).values()].map(offer => ({ ...offer, ...october2026OfferUpdates[offer.id] }));
+export const currentFreebies: FreebieOffer[] = [...new Map([...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[])].map(offer => [offer.id, offer])).values()].map(offer => ({ ...offer, ...october2026OfferUpdates[offer.id] }));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),

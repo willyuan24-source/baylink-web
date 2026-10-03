@@ -1,0 +1,109 @@
+{
+  "checkedAt": "2026-10-02",
+  "sourceUrl": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt",
+  "note": "Census internal reference points rounded to three decimals. City-level grouping only, never venue entrances.",
+  "cities": [
+    {
+      "city": "Newark",
+      "geoid": "0650916",
+      "lat": "37.503867",
+      "lng": "-122.032309"
+    },
+    {
+      "city": "Dixon",
+      "geoid": "0619402",
+      "lat": "38.447512",
+      "lng": "-121.824223"
+    },
+    {
+      "city": "Albany",
+      "geoid": "0600674",
+      "lat": "37.89065",
+      "lng": "-122.318116"
+    },
+    {
+      "city": "Antioch",
+      "geoid": "0602252",
+      "lat": "37.978418",
+      "lng": "-121.798345"
+    },
+    {
+      "city": "Healdsburg",
+      "geoid": "0633056",
+      "lat": "38.622526",
+      "lng": "-122.865133"
+    },
+    {
+      "city": "Hercules",
+      "geoid": "0633308",
+      "lat": "38.021427",
+      "lng": "-122.288929"
+    },
+    {
+      "city": "Union City",
+      "geoid": "0681204",
+      "lat": "37.602759",
+      "lng": "-122.01884"
+    },
+    {
+      "city": "San Bruno",
+      "geoid": "0665028",
+      "lat": "37.62556",
+      "lng": "-122.431397"
+    },
+    {
+      "city": "Atherton",
+      "geoid": "0603092",
+      "lat": "37.456287",
+      "lng": "-122.201465"
+    },
+    {
+      "city": "Milpitas",
+      "geoid": "0647766",
+      "lat": "37.433136",
+      "lng": "-121.890934"
+    },
+    {
+      "city": "Monte Sereno",
+      "geoid": "0648956",
+      "lat": "37.24041",
+      "lng": "-121.988235"
+    },
+    {
+      "city": "Orinda",
+      "geoid": "0654232",
+      "lat": "37.88171",
+      "lng": "-122.168423"
+    },
+    {
+      "city": "Belmont",
+      "geoid": "0605108",
+      "lat": "37.514398",
+      "lng": "-122.294475"
+    },
+    {
+      "city": "Brisbane",
+      "geoid": "0608310",
+      "lat": "37.675842",
+      "lng": "-122.383321"
+    },
+    {
+      "city": "San Pablo",
+      "geoid": "0668294",
+      "lat": "37.962861",
+      "lng": "-122.342581"
+    },
+    {
+      "city": "Moraga",
+      "geoid": "0649187",
+      "lat": "37.845693",
+      "lng": "-122.123217"
+    },
+    {
+      "city": "Suisun City",
+      "geoid": "0675630",
+      "lat": "38.248334",
+      "lng": "-122.010066"
+    }
+  ]
+}

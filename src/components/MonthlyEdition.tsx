@@ -29,7 +29,8 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'east-bay', label: '东湾' }, { value: 'south-bay', label: '南湾' },
   { value: 'peninsula', label: '半岛' }, { value: 'north-bay', label: '北湾' },
 ];
-const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游' };
+const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游', sports: '体育比赛', performance: '演唱会与演出' };
+const eventCategory = (event: MonthlyEvent) => event.kind === 'sports' || event.kind === 'performance' ? event.kind : event.category;
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
 const autumnGuides = [...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
 const autumnCoverSources = new Set(autumnGuides.map(guide => getGuideMedia(guide).cover.src));
@@ -37,7 +38,7 @@ const autumnImageKeys = Object.keys(GUIDE_IMAGES).filter(key => autumnCoverSourc
 const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
   { value: 'all', label: '全部日期' }, { value: 'today', label: '今天' },
   { value: 'weekend', label: '这个周末' }, { value: 'next7', label: '未来 7 天' },
-  { value: 'september', label: '九月余下' }, { value: 'october', label: '整个十月' },
+  { value: 'september', label: '九月回顾' }, { value: 'october', label: '整个十月' }, { value: 'november', label: '十一月预告' },
 ];
 
 type EditionPictureProps = { imageKey: string; className?: string; eager?: boolean };
@@ -70,7 +71,7 @@ function EventCard({ event, today }: { event: MonthlyEvent; today: string }) {
       <h3 id={`event-${event.id}`}><Link to={`/events/${event.id}`}>{translateText(event.title)}</Link></h3>
       <p className="bl-monthly-location"><MapPin size={14} aria-hidden="true" />{event.city} · {event.venue}</p>
       <p className="bl-monthly-event-summary">{event.summary}</p>
-      <div className="bl-monthly-event-tags"><span>{CATEGORIES[event.category]}</span><span className={event.cost === 'free' ? 'bl-monthly-free' : ''}>{event.costLabel}</span></div>
+      <div className="bl-monthly-event-tags"><span>{CATEGORIES[eventCategory(event)]}</span><span className={event.cost === 'free' ? 'bl-monthly-free' : ''}>{event.costLabel}</span></div>
       <p className="bl-monthly-audience">{`${translateText('适合：')} ${event.audience.map(item => translateText(item)).join(' / ')}`}</p>
       <EventParticipationActions event={event} today={today} />
       <EditorialShareActions item={eventShare(event)} />
@@ -119,13 +120,13 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
   const view = ['interested', 'buddies'].includes(searchParams.get('view') || '') ? searchParams.get('view')! : 'all';
   const sort = searchParams.get('sort') === 'popular' ? 'popular' : 'soon';
   const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event =>
-    (category === 'all' || event.category === category) &&
+    (category === 'all' || eventCategory(event) === category) &&
     (view === 'all' || (!participation.failed && (view === 'interested' ? participation.entries[event.id]?.me?.interested : (participation.entries[event.id]?.buddyCount || 0) > 0))) &&
     (!normalizedQuery || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(normalizedQuery))
   ).sort((a, b) => (sort === 'popular' && !participation.failed ? (participation.entries[b.id]?.interestedCount || 0) - (participation.entries[a.id]?.interestedCount || 0) : 0) || a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
   const displayed = filtered.slice(0, visibleCount);
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
-  const liveOffers = currentFreebies.filter(offer => !offer.endDate || offer.endDate >= today);
+  const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!offer.endDate || offer.endDate >= today));
   const perkPreviews = liveOffers.filter(offer => offer.availability === 'dated')
     .sort((a, b) => (a.endDate || '').localeCompare(b.endDate || '') || (a.startDate || '').localeCompare(b.startDate || '')).slice(0, 3);
   const changeFilter = (name: string, value: string) => {
@@ -133,6 +134,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     setSearchParams(previous => {
       const next = new URLSearchParams(previous);
       if (!value || value === 'all') next.delete(name); else next.set(name, value);
+      if (name === 'when' && value === 'september') next.set('includeEnded', '1');
       return next;
     }, { replace: true, preventScrollReset: true });
   };
@@ -157,7 +159,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     </nav>
     <RegionalBulletins today={today} />
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
-      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '一直到十月底，值得出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '秋季活动与后续预告，找到出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
       <div className="bl-monthly-filters">
         <div className="bl-monthly-date-filter" role="group" aria-label="按活动日期筛选">
           <span className="bl-monthly-date-label"><CalendarDays size={16} aria-hidden="true" />什么时候出门？</span>

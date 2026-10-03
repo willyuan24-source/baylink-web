@@ -926,7 +926,7 @@ export const regionalAttractionGuides: Guide[] = [
       },
       {
         "title": "Sausalito 市府：Gabrielson Park",
-        "url": "https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/2/690",
+        "url": "https://sausalito.recdesk.com/Community/Facility/Detail?facilityId=31",
         "description": "码头旁有草地、长椅与海湾视野，活动会影响现场使用。"
       }
     ],

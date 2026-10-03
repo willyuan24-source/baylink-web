@@ -243,7 +243,10 @@ export const EVENT_VENUES: readonly EventVenue[] = [
       'sf-disney-worlds-collide-2026', 'sf-warriors-lakers-preseason-2026', 'sf-rod-wave-2026', 'sf-warriors-kings-preseason-2026',
       'sf-chayanne-2026', 'sf-young-miko-2026', 'sf-warriors-blazers-preseason-2026', 'sf-doja-cat-2026', 'sf-warriors-grizzlies-2026',
       'sf-phoebe-bridgers-2026',
+      'sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026',
     ],
+    // November additions use the catalog's official doors/start labels (Chase event pages,
+    // rechecked 2026-10-03). No hours override: neither organiser supplied an end time.
     kit: 'board',
     kitAt: { x: 479.3, z: 264.0, yaw: deg(294) },
     sourceUrl: 'https://www.openstreetmap.org/way/579646390',
@@ -511,6 +514,8 @@ export const SOUVENIR_IDS: readonly string[] = [
   // W9-R: the four branch-library events (realsf/eventVenues.ts rows above)
   'sfpl-richmond-lego-oct7-2026', 'sfpl-ocean-view-stem-oct8-2026', 'sfpl-omi-history-day-oct17-2026',
   'sfpl-western-addition-open-house-oct24-2026',
+  // October 2 catalog refresh: append after every existing souvenir bit to preserve saves.
+  'sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -606,6 +611,8 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sfpl-ocean-view-stem-oct8-2026': { zh: '儿童科学游戏', en: 'STEM free play for kids' },
   'sfpl-omi-history-day-oct17-2026': { zh: '社区历史日', en: 'a neighbourhood history day' },
   'sfpl-western-addition-open-house-oct24-2026': { zh: '图书馆开放日', en: 'a library open house' },
+  'sf-warriors-heat-november-2026': { zh: '勇士对热火', en: 'Warriors vs Heat' },
+  'sf-journey-final-frontier-november-2026': { zh: 'Journey 演唱会', en: 'Journey’s concert' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

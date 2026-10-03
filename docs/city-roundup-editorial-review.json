@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-10-02",
+  "reviewType": "Independent pre-release read-only editorial review",
+  "counts": {
+    "events": 369,
+    "openings": 56,
+    "offers": 117,
+    "cityUpdates": 101,
+    "newRoundupEvents": 44,
+    "chineseStringsCheckedAtRuntime": 4759
+  },
+  "blockingFindings": [],
+  "checks": [
+    {
+      "area": "New versus old event duplication",
+      "result": "Passed",
+      "method": "Compared all 44 new event records against existing aggregate by canonical city and actual overlapping occurrence days, then manually reviewed six candidate pairs. The overlaps are distinct programs. Also checked same-date same-title/source-path pairs; Tiburon events have different event IDs and times, San Leandro events have different calendar EIDs, venues and times."
+    },
+    {
+      "area": "Opening status and date semantics",
+      "result": "No new material conflict found",
+      "method": "Reviewed all new opening records and names across the 56 aggregate openings. Bruma/Lucania remain announced, Erik’s is relocation, celebration dates are not placed into openedOn. Handroll status is now open."
+    },
+    {
+      "area": "Runtime English coverage",
+      "result": "Passed",
+      "method": "Loaded the actual English locale and translated every Chinese string in MONTHLY_EVENTS, currentOpenings, currentFreebies, CITY_CURRENT_UPDATES and all referenced image metadata. 4759 Chinese-bearing strings checked; no Chinese remained in translated output."
+    },
+    {
+      "area": "City image geography",
+      "result": "No wrong-city photograph found",
+      "method": "Reviewed all 19 actual-photo city cards against their captions. Photos are in the stated city or an explicitly named city context. All other city cards use labeled illustrations. Some photos depict another place within the city, not the event venue; captions identify the actual place."
+    },
+    {
+      "area": "Previously identified uncertain event",
+      "result": "Correctly handled",
+      "method": "sf-ai-infra-scale-dinner-2026 now has occurrenceDates:[], a current organizer-calendar source and explicit unconfirmed status without claiming cancellation. CityCurrentCard uses nextConfirmedEventDate and excludes the empty occurrence list."
+    },
+    {
+      "area": "Historical offers retained in aggregate",
+      "result": "Not treated as a duplicate/content bug",
+      "method": "Expired offers remain as historical records; FreebieBoard uses date-aware status. Retention alone is not evidence they are promoted as current."
+    }
+  ],
+  "nonBlockingSuggestions": [
+    {
+      "area": "Image relevance",
+      "recommendation": "The Oakland and San Francisco city-current cards still show Lake Merritt and Bay Bridge city context. Now that roundup-oakland-arena and roundup-chase-center exist, using these for the corresponding arena headlines would improve relevance. Current captions are accurate; this is not a wrong-city or false event-photo claim."
+    }
+  ],
+  "limitations": [
+    "This was a roughly five-minute integration/content audit, not fresh re-verification of every official source or every older offer.",
+    "No live ticket inventory or merchant stock was checked.",
+    "No product files or data were changed."
+  ]
+}

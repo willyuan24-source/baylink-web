@@ -3,6 +3,7 @@ import { PLANNER_PLACES } from '../data/planner-catalog';
 import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
+import { canonicalEventId } from './event-id';
 
 export type GeoPoint = { lat: number; lng: number; label: string; sourceUrl: string; precision: 'venue' | 'area' };
 export type TimeWindow = { open: string; close: string; lastEntry?: string; lastOrder?: string };
@@ -27,15 +28,16 @@ export const WEEK_METADATA: PageMetadata = { title: '我的这周｜BAYLINK', de
 export const EMPTY_LIBRARY: Library = { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } };
 export const todayInBay = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);
 export const validDay = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value;
-export const eventFor = (id: string) => MONTHLY_EVENTS.find(item => item.id === id);
+export const eventFor = (id: string) => MONTHLY_EVENTS.find(item => item.id === canonicalEventId(id));
 export const placeFor = (id: string) => PLANNER_PLACES.find(item => item.id === id);
 export const validStop = (stop: Stop) => stop?.kind === 'event' ? !!eventFor(stop.id) : stop?.kind === 'place' && !!placeFor(stop.id);
 export const stopTitle = (stop: Stop) => (stop.kind === 'event' ? eventFor(stop.id) : placeFor(stop.id))?.title || stop.id;
 export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : placeFor(stop.id)?.path || `/guides/${encodeURIComponent(placeFor(stop.id)?.guideSlug || '')}`;
 export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
 export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
+export const favoriteKey = (item: Favorite) => `${item.kind}:${item.kind === 'event' ? canonicalEventId(item.id) : item.id}`;
 export const MAX_PLAN_STOPS = 6;
-export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => other.kind === stop.kind && other.id === stop.id) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
+export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(stop)) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
 /** Shared URLs contain public catalog references only, never account IDs or private notes. */
 export function sharePlanUrl(plan: Pick<SavedPlan, 'date' | 'stops'>, origin = 'https://www.baylink.us') {
   const url = new URL('/plan', origin);

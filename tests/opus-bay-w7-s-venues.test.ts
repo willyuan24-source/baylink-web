@@ -83,6 +83,46 @@ test('W7-S1 the souvenir of an event with a long id is stored: pay() pays 15 onc
   } finally { off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); }
 });
 
+test('November Chase additions have explicit venue mappings, append-only saved souvenirs, and official starts without an invented end time', () => {
+  setCatalogForTests(CATALOG);
+  save.resetSaveCache();
+  save.clearSave();
+  L.__resetLedgerForTests();
+  __setBayNowForTests('2026-11-05T18:00');
+  const ids = ['sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026'];
+  const off = L.registerRewardIds('event', SOUVENIR_IDS);
+  try {
+    assert.deepEqual(SOUVENIR_IDS.slice(-2), ids, 'new bits follow all existing souvenirs');
+    for (const [id, day, doors, start, before] of [
+      [ids[0], '2026-11-05', '17:30', '19:00', '18:59'],
+      [ids[1], '2026-11-28', '18:00', '19:30', '19:29'],
+    ]) {
+      const event = byId(id), venue = worldEvent(event)!;
+      assert.equal(venue.id, 'chase-center');
+      assert.ok(venue.events.includes(id));
+      assert.ok(EVENT_SAY[id].zh && EVENT_SAY[id].en);
+      assert.ok(event.dateLabel?.includes(start), 'the verified performance/tipoff time remains in the catalog');
+      assert.ok(event.dateLabel?.includes(`${doors}开门`), 'the separate doors time remains available in the event details');
+      const window = eventWindow(event, venue, day)!;
+      // The named-date label resolves to its start; its unscoped doors clause
+      // remains event detail, rather than an invented verified hours override.
+      assert.equal(window.open, bay(`${day}T${start}`).getTime(), 'the world activates at the verified performance/tipoff time');
+      assert.equal(windowEndKnown(window), false, 'no official end time was published');
+      assert.equal(venue.hours?.[id], undefined, 'do not turn the game close into official venue hours');
+      assert.ok(!/21:00/.test(eventLine(window).zh + eventLine(window).en));
+      assert.ok(!activeEventsAt(bay(`${day}T${before}`), CATALOG).some(row => row.event.id === id));
+      assert.ok(activeEventsAt(bay(`${day}T${start}`), CATALOG).some(row => row.event.id === id));
+      assert.equal(eventWindow(event, venue, '2026-11-15'), null, 'the event does not spill onto another date');
+      const source = `event:${id}`;
+      assert.equal(L.pay(source, 15), 15);
+      assert.equal(L.isPaid(source), true);
+      assert.equal(L.pay(source, 15), 0, 'the new souvenir is saved and paid only once');
+    }
+  } finally {
+    off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); setCatalogForTests(null);
+  }
+});
+
 test('W7-S1 the new rows on their days: the Fall Show by the organiser, the flea, the festival’s start only, Sunday Streets, Bay Beats, the library', () => {
   setCatalogForTests(CATALOG);
   try {
