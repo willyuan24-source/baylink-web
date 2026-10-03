@@ -1,0 +1,1401 @@
+[
+  {
+    "city": "Atherton",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bear Gulch",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-561-9709",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "GreenWaste Recovery",
+        "url": "https://www.athertonca.gov/241/Garbage-Recycling",
+        "phone": "650-798-5999",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "municipalUrl": "https://www.athertonca.gov/705/Utilities",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Belmont",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "Mid-Peninsula Water District",
+        "url": "https://www.midpeninsulawater.org/contact",
+        "phone": "650-591-8941",
+        "note": "服务 Belmont 大部分地区；少数地址属于 Cal Water。"
+      },
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.belmont.gov/",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Brisbane",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of Brisbane Water",
+        "url": "https://www.brisbaneca.gov/518/Online-Services",
+        "phone": "415-508-2154",
+        "note": "市营供水；使用本市开户入口。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "South San Francisco Scavenger Company",
+        "url": "https://ssfscavenger.com/",
+        "phone": "650-589-4020"
+      }
+    ],
+    "municipalUrl": "https://www.brisbaneca.gov/518/Online-Services",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Burlingame",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of Burlingame Water",
+        "url": "https://burlingame.org/1140/FAQs",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.burlingame.org/680/Utilities",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Colma",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.colma.ca.gov/question/how-do-i-find-my-trash-and-recycling-pickup-day/",
+        "note": "通过镇政府页面进入 Republic，按地址查询收运服务和联系入口。"
+      }
+    ],
+    "municipalUrl": "https://www.colma.ca.gov/",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Daly City",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of Daly City Water",
+        "url": "https://www.dalycity.org/m/faq?cat=38",
+        "phone": "650-991-8082",
+        "note": "市营供水；使用本市开户入口。"
+      },
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://dalycity.org/1139/Republic-Services",
+        "phone": "650-756-1130",
+        "note": "现行市政府专页将住宅垃圾开户、停用及账单咨询导向 Republic。"
+      }
+    ],
+    "municipalUrl": "https://dalycity.org/631/Residents",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "East Palo Alto",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of East Palo Alto Water System",
+        "url": "https://www.cityofepa.org/publicworks/page/utilities",
+        "phone": "650-322-2083",
+        "note": "市政府现行目录列 Veolia 为运营方；先查页面的供水区地图。"
+      },
+      {
+        "name": "Palo Alto Park Mutual Water Company",
+        "url": "https://www.cityofepa.org/publicworks/page/utilities",
+        "note": "仅服务其互助水公司范围；市政府目录提供服务区地图和联系入口。"
+      },
+      {
+        "name": "O’Connor Tract Co-operative Water Company",
+        "url": "https://www.cityofepa.org/publicworks/page/utilities",
+        "note": "仅服务其互助水公司范围；市政府目录提供服务区地图和联系入口。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.cityofepa.org/publicworks/page/utilities",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Foster City",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "Estero Municipal Improvement District / City of Foster City",
+        "url": "https://www.fostercity.org/470/Water-Wastewater",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.fostercity.org/470/Water-Wastewater",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Half Moon Bay",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "Coastside County Water District",
+        "url": "https://coastsidewater.org/customer-services/opening-account/",
+        "phone": "650-726-4405",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.republicservices.com/municipality/half-moon-bay-ca",
+        "note": "市政府列为本市垃圾、回收和堆肥收运商；新账户和迁移按地址向 Republic 确认。"
+      }
+    ],
+    "municipalUrl": "https://www.halfmoonbay.gov/527/Recycling-Organics-and-Garbage",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hillsborough",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "Town of Hillsborough Water",
+        "url": "https://www.hillsborough.net/187/Starting-Stopping-Water-Service",
+        "phone": "650-375-7402",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.hillsborough.net/187/Starting-Stopping-Water-Service",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Menlo Park",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "Menlo Park Municipal Water",
+        "url": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-billing-and-assistance",
+        "phone": "844-360-7733",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "California Water Service — Bear Gulch",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-561-9709",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "O’Connor Tract Co-operative Water Company",
+        "url": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+        "note": "服务 Willows 的一小部分；通过市政府地图确认地址。"
+      },
+      {
+        "name": "Palo Alto Park Mutual Water Company",
+        "url": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+        "note": "仅涉及 Menalto Avenue 的少量地址；通过市政府地图确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Millbrae",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of Millbrae Water",
+        "url": "https://www.ci.millbrae.ca.us/400/Water-Sewer-Service",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "South San Francisco Scavenger Company",
+        "url": "https://ssfscavenger.com/",
+        "phone": "650-589-4020"
+      }
+    ],
+    "municipalUrl": "https://www.ci.millbrae.ca.us/396/Utility-Services",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pacifica",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "North Coast County Water District",
+        "url": "https://www.nccwd.com/start-or-stop-service",
+        "phone": "650-355-3462",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology of the Coast",
+        "url": "https://www.recology.com/recology-of-the-coast/pacifica/",
+        "phone": "650-355-9000"
+      }
+    ],
+    "municipalUrl": "https://www.cityofpacifica.org/departments/public-works",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Portola Valley",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bear Gulch",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-561-9709",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "GreenWaste Recovery",
+        "url": "https://www.greenwaste.com/service-areas/portola-valley/",
+        "phone": "650-568-9900"
+      }
+    ],
+    "municipalUrl": "https://www.portolavalley.net/community/important-contact-information",
+    "notes": "本行适用于建制镇内；邻近非建制地区的收运方案需另按地址确认。Los Trancos 供水现属 Cal Water Bear Gulch。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Redwood City",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of Redwood City Water",
+        "url": "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+        "phone": "650-780-7210",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      },
+      {
+        "name": "California Water Service — Bear Gulch",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-561-9709",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "Mid-Peninsula Water District",
+        "url": "https://www.midpeninsulawater.org/contact",
+        "phone": "650-591-8941",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900",
+        "note": "2026 年 1 月 1 日起垃圾服务由 Recology 直接出账；水费仍向市政府办理。"
+      }
+    ],
+    "municipalUrl": "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Bruno",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "City of San Bruno Water",
+        "url": "https://sanbruno.ca.gov/270/Utility-Billing",
+        "phone": "650-616-7086",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Bruno",
+        "url": "https://www.recology.com/recology-san-bruno/",
+        "phone": "650-583-8536"
+      }
+    ],
+    "municipalUrl": "https://sanbruno.ca.gov/270/Utility-Billing",
+    "notes": "市政府办理住宅水务；垃圾另向 Recology San Bruno 开户。Crystal Springs Terrace 的上游供水安排不代表住户应另向 NCCWD 开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Carlos",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      },
+      {
+        "name": "Mid-Peninsula Water District",
+        "url": "https://www.midpeninsulawater.org/contact",
+        "phone": "650-591-8941",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.cityofsancarlos.org/",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Mateo",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      },
+      {
+        "name": "Estero Municipal Improvement District / City of Foster City",
+        "url": "https://www.fostercity.org/470/Water-Wastewater",
+        "note": "Seal Slough 以东部分区域由 EMID 供水；先核对地址，不是全市。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology San Mateo County",
+        "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+        "phone": "650-595-3900"
+      }
+    ],
+    "municipalUrl": "https://www.cityofsanmateo.org/2177/External-Agency-Assistance",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "South San Francisco",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bayshore",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-558-7800",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      },
+      {
+        "name": "Westborough Water District",
+        "url": "https://www.westboroughwater.org/contact",
+        "phone": "650-589-1435",
+        "note": "服务 Westborough 水区；通过水区地图或客服核对。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "South San Francisco Scavenger Company",
+        "url": "https://ssfscavenger.com/",
+        "phone": "650-589-4020"
+      }
+    ],
+    "municipalUrl": "https://www.ssfca.gov/Departments/Public-Works",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Woodside",
+    "county": "San Mateo",
+    "water": [
+      {
+        "name": "California Water Service — Bear Gulch",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-561-9709",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      },
+      {
+        "name": "City of Redwood City Water",
+        "url": "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+        "phone": "650-780-7210",
+        "note": "部分 Emerald Lake Hills 邻近地址由 Redwood City 供水；先按地块确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "WestLight Energy (formerly Peninsula Clean Energy)",
+        "url": "https://www.westlightenergy.org/support/residential-support/",
+        "phone": "1-866-966-0110",
+        "note": "原名 Peninsula Clean Energy，2026 年 7 月改名；负责发电采购，PG&E 负责线路与开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "GreenWaste Recovery",
+        "url": "https://www.woodsideca.gov/223/Recycling-Composting-Garbage-Collection-",
+        "phone": "650-568-9900"
+      }
+    ],
+    "municipalUrl": "https://woodsideca.gov/234/Utility-Cable-Water-Services",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Campbell",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "West Valley Collection & Recycling",
+        "url": "https://www.campbellca.gov/508/Garbage-Recycling-Services",
+        "phone": "408-283-9250"
+      }
+    ],
+    "municipalUrl": "https://campbellca.gov/1133/Water-Sewer",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cupertino",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "California Water Service — Los Altos Suburban",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-917-0152",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology South Bay — Cupertino",
+        "url": "https://www.recology.com/recology-south-bay/cupertino/contact/",
+        "phone": "408-725-4020"
+      }
+    ],
+    "municipalUrl": "https://gis.cupertino.org/servicefinder/",
+    "notes": "先用市政府 Service Finder 输入地址，区分 San Jose Water 与 Cal Water；公寓垃圾账户先问物业。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Gilroy",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Gilroy Water",
+        "url": "https://www.cityofgilroy.org/380/Water-Sewer",
+        "phone": "408-846-0420",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology South Valley",
+        "url": "https://www.cityofgilroy.org/314/Recology-South-Valley",
+        "phone": "408-842-3358"
+      }
+    ],
+    "municipalUrl": "https://cityofgilroy.org/739/Welcome-New-Residents",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Altos",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "California Water Service — Los Altos Suburban",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-917-0152",
+        "note": "开户入口先选择服务区；客服确认地址后办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mission Trail Waste Systems — Los Altos",
+        "url": "https://www.losaltosca.gov/m/faq",
+        "phone": "650-473-1400"
+      }
+    ],
+    "municipalUrl": "https://www.losaltosca.gov/m/faq",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Altos Hills",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "Purissima Hills Water District",
+        "url": "https://www.purissimawater.org/",
+        "phone": "650-948-1217",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "California Water Service — Los Altos Suburban",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-917-0152",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "GreenWaste Recovery",
+        "url": "https://www.greenwaste.com/service-areas/los-altos-hills/",
+        "phone": "650-947-4994"
+      }
+    ],
+    "municipalUrl": "https://www.losaltoshills.ca.gov/479/GARBAGE-RECYCLING-COMPOST",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Gatos",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "West Valley Collection & Recycling",
+        "url": "https://www.losgatosca.gov/1083/Utility-Information",
+        "phone": "408-283-9250"
+      }
+    ],
+    "municipalUrl": "https://www.losgatosca.gov/1083/Utility-Information",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Milpitas",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Milpitas Water",
+        "url": "https://www.milpitas.gov/270/Utility-Payment-Services",
+        "phone": "408-586-3100",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Milpitas Sanitation",
+        "url": "https://www.milpitassanitation.com/services/single-family/faqs",
+        "phone": "408-988-4500",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "municipalUrl": "https://www.milpitas.gov/750/Water-Services",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Monte Sereno",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "West Valley Collection & Recycling",
+        "url": "https://www.campbellca.gov/508/Garbage-Recycling-Services",
+        "phone": "408-283-9250"
+      }
+    ],
+    "municipalUrl": "https://www.montesereno.org/2289/San-Jose-Water-Consumer-Information",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Morgan Hill",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Morgan Hill Water",
+        "url": "https://www.morganhill.ca.gov/2555/Start-Water-Service",
+        "phone": "408-779-7221",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology South Valley",
+        "url": "https://www.cityofgilroy.org/314/Recology-South-Valley",
+        "phone": "408-842-3358"
+      }
+    ],
+    "municipalUrl": "https://www.morganhill.ca.gov/586/Utility-Services",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Mountain View",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Mountain View Water",
+        "url": "https://www.mountainview.gov/services/utilities",
+        "phone": "650-903-6317",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      },
+      {
+        "name": "California Water Service — Los Altos Suburban",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-917-0152",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Mountain View",
+        "url": "https://www.recology.com/recology-mountain-view/contact/",
+        "phone": "650-967-3034",
+        "note": "收运问题找 Recology；垃圾账户及账单联系市 Utility Billing：650-903-6317。"
+      }
+    ],
+    "municipalUrl": "https://www.mountainview.gov/services/utilities",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Palo Alto",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Palo Alto Utilities",
+        "url": "https://www.paloalto.gov/Departments/Utilities/Customer-Service/Start-Stop-or-Change-Utilities-Service",
+        "phone": "650-329-2161",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "City of Palo Alto Utilities",
+        "url": "https://www.paloalto.gov/Departments/Utilities/Customer-Service/Start-Stop-or-Change-Utilities-Service",
+        "phone": "650-329-2161",
+        "note": "市营电力，开户和迁移直接找 CPAU。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "GreenWaste of Palo Alto",
+        "url": "https://www.paloalto.gov/Departments/Public-Works/Zero-Waste/What-Goes-Where/FAQ",
+        "phone": "650-493-4894",
+        "note": "垃圾收运与容器问题联系 GreenWaste；搬家时同时向市公用事业确认垃圾账单。"
+      }
+    ],
+    "municipalUrl": "https://www.paloalto.gov/Departments/Utilities/Customer-Service/Start-Stop-or-Change-Utilities-Service",
+    "notes": "Palo Alto 市营公用事业提供电、水及天然气；不要把 East Palo Alto 或 Stanford 的地址套入本行。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Jose",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San José Municipal Water System",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/water-utilities/drinking-water/customer-service",
+        "phone": "408-535-3500",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      },
+      {
+        "name": "Great Oaks Water Company",
+        "url": "https://greatoakswater.com/contact.htm",
+        "phone": "408-227-9540",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "San José Clean Energy",
+        "url": "https://sanjosecleanenergy.org/understanding-your-bill/",
+        "phone": "833-432-2454",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "City of San José Recycle Plus / San José 311",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents",
+        "phone": "408-535-3500",
+        "note": "新住宅垃圾服务及账户问题先从市政府入口办理；再按地址、住宅类型和垃圾类别确定承包商。"
+      },
+      {
+        "name": "Garden City Sanitation",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts",
+        "phone": "408-988-4500",
+        "note": "Downtown、North、East、South 区的垃圾收运；具体地址以市政府查询为准。"
+      },
+      {
+        "name": "California Waste Solutions",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts",
+        "phone": "408-213-7800",
+        "note": "Downtown、North、East、South 区的回收收运；不能当作全市垃圾开户商。"
+      },
+      {
+        "name": "GreenTeam of San José",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts",
+        "phone": "408-282-4400",
+        "note": "West San José 的垃圾与回收，以及公寓和共管公寓的垃圾与回收；按地址确认。"
+      },
+      {
+        "name": "GreenWaste Recovery",
+        "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts",
+        "phone": "408-283-4800",
+        "note": "庭院修剪物收运与扫街；新服务按市政府指引申请。"
+      }
+    ],
+    "municipalUrl": "https://gis.sanjoseca.gov/maps/serviceslookuptool/",
+    "notes": "用市政府地址查询工具确认三家供水商及垃圾分区；邮寄城市名或 ZIP code 不能代替服务边界。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Santa Clara",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Santa Clara Water",
+        "url": "https://www.santaclaraca.gov/services/utilities/",
+        "phone": "408-615-2300",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Silicon Valley Power",
+        "url": "https://www.santaclaraca.gov/services/utilities/",
+        "phone": "408-615-2300",
+        "note": "Santa Clara 市营电力；通过市公用事业申请开户、停用和迁移。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "City of Santa Clara Municipal Utilities",
+        "url": "https://www.santaclaraca.gov/services/utilities/",
+        "phone": "408-615-2300",
+        "note": "住宅垃圾账户、账单和容器容量变更先联系市公用事业。"
+      },
+      {
+        "name": "Mission Trail Waste Systems — Santa Clara",
+        "url": "https://www.santaclaraca.gov/our-city/departments-g-z/public-works/environmental-programs/residential-garbage-recycling",
+        "phone": "408-727-5365",
+        "note": "负责住宅垃圾和庭院修剪物收运。"
+      },
+      {
+        "name": "Recology South Bay — Santa Clara",
+        "url": "https://www.santaclaraca.gov/our-city/departments-g-z/public-works/environmental-programs/residential-garbage-recycling",
+        "phone": "408-970-5100",
+        "note": "负责住宅回收收运。"
+      }
+    ],
+    "municipalUrl": "https://www.santaclaraca.gov/services/utilities/",
+    "notes": "本市电力由 Silicon Valley Power 提供；PG&E 在此承担天然气服务，不能代替市电开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Saratoga",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "San Jose Water",
+        "url": "https://www.sjwater.com/start-or-stop-water-service/",
+        "phone": "408-279-7900",
+        "note": "开户、停用和搬家请从此官方入口办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "West Valley Collection & Recycling",
+        "url": "https://www.saratoga.ca.us/685/Utilities",
+        "phone": "408-283-9250"
+      }
+    ],
+    "municipalUrl": "https://www.saratoga.ca.us/685/Utilities",
+    "notes": "租住公寓或共用垃圾桶的住宅，先问物业谁负责账户及费用。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sunnyvale",
+    "county": "Santa Clara",
+    "water": [
+      {
+        "name": "City of Sunnyvale Water",
+        "url": "https://www.sunnyvale.ca.gov/homes-streets-and-property/utility-billing",
+        "phone": "408-730-7400",
+        "note": "开户、停用及账单由市政府公用事业客服办理。"
+      },
+      {
+        "name": "California Water Service — Los Altos Suburban",
+        "url": "https://www.calwater.com/start/",
+        "phone": "650-917-0152",
+        "note": "仅服务部分地址；请按服务区地图或客服确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "1-877-660-6789",
+        "note": "电力开户、迁移、停用及线路服务找 PG&E；发电供应方另列。"
+      },
+      {
+        "name": "Silicon Valley Clean Energy",
+        "url": "https://www.svcleanenergy.org/faqs/",
+        "phone": "1-844-474-7823",
+        "note": "负责发电采购；PG&E 继续负责线路、开户和合并账单。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Specialty Solid Waste & Recycling",
+        "url": "https://www.sunnyvale.ca.gov/homes-streets-and-property/utility-billing",
+        "phone": "408-565-9900",
+        "note": "收运问题联系承包商；开户、停用和账单找市 Utility Billing：408-730-7400。"
+      }
+    ],
+    "municipalUrl": "https://www.sunnyvale.ca.gov/homes-streets-and-property/utility-billing",
+    "notes": "同一城市可能有多个供水区；开户前用完整街道地址核对服务商，公寓先问物业是否统一开户。",
+    "verifiedAt": "2026-10-02"
+  }
+]

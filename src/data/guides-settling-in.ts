@@ -22,6 +22,7 @@ export const settlingInGuides: Guide[] = [
       { title: 'California DMV：更新驾照或 ID 信息', url: 'https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/updating-information-on-your-driver-license-or-identification-dl-id-card/', description: '核对搬家后的地址通知期限、线上与其他提交方式。' },
     ],
     blocks: [
+      { type: 'link', title: '按城市查水电垃圾', text: '找到负责的公司、电话和搬家办理入口。', url: '/guides/bay-area-city-utilities-internet-phone-directory' },
       { type: 'paragraph', text: '拿到钥匙后，最容易漏掉的不是买家具，而是新家已经有灯亮、有水流，却还没有确认账单算谁的。把“能不能用”和“账户是否办好”分开检查，再处理网络、邮件和旧地址，能减少搬完家后补手续的来回。' },
       { type: 'heading', text: '先做一张责任表：哪些自己开，哪些由房东管理' },
       { type: 'paragraph', text: '从租约和物业的书面说明开始，逐项写下电、燃气、水、垃圾、网络的负责方、计费方法和供应商。合租可能由一位室友持有账户再分摊；公寓也可能统一计费。不要仅凭城市名默认所有项目都找同一家公司，也不要因为租金写了“包水电”就跳过使用范围和上限的确认。' },

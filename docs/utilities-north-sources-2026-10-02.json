@@ -1,0 +1,1766 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": {
+    "description": "Residential water, electricity, and waste contacts for 32 incorporated North Bay cities and towns",
+    "total": 32,
+    "countyCounts": {
+      "Marin County": 11,
+      "Napa County": 5,
+      "Sonoma County": 9,
+      "Solano County": 7
+    }
+  },
+  "methodology": [
+    "仅用市政府、公用事业、官方区域机构及实际服务商公开资料；未将第三方销售或代付网页作为联系方式来源。",
+    "official-page-read 表示直接读到网页正文；official-search-index-read 表示读到官方网址的搜索索引内容；抓取日期不等于政策发布日期。",
+    "电话为公开资料核对，未拨号测试；未输入个人资料、提交开户或付款。",
+    "verifiedAt 是本次资料核验日期，不表示每个地址已获受理、价格固定或服务门户已做端到端测试。",
+    "建制市镇与邮寄地址不等同；共用总表、私人水井、独立卫生区、非建制地区和特殊园区须按完整地址继续确认。",
+    "租客先问物业、缴费登录不等于开户属于编辑办事提示，不主张为各服务商统一法规。"
+  ],
+  "limitations": [
+    "Sonoma 市官网持续 403，现行开户电话未核定；保留可访问的 Sonoma Water 官方零售商转介目录，并明确应找 City of Sonoma 办理。",
+    "Petaluma 市主站 403；采用市自有域名门户的官方索引联系资料。",
+    "部分市政站点直接访问受限，已明确标记官方索引核验，不把访问受限伪称为完整表单验证。",
+    "Sonoma Water 汇总 PDF 标注 2022-04-28，旧号码仅作交叉核对，不自动作为现行电话。",
+    "PG&E 输配电和搬家账户与 MCE / SCP 发电选择分列；Healdsburg 独立市营电力。",
+    "本数据不提供实时费率、押金、补贴资格、停供法律程序或任何地址的保证覆盖。"
+  ],
+  "sources": [
+    {
+      "id": "contact-01",
+      "url": "https://marinwater.org/customer-services/start-stop-service/",
+      "authority": "Marin Water (Marin Municipal Water District)",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Belvedere",
+        "Corte Madera",
+        "Fairfax",
+        "Larkspur",
+        "Mill Valley",
+        "Ross",
+        "San Anselmo",
+        "San Rafael",
+        "Sausalito",
+        "Tiburon"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "phone": "415-945-1400"
+      },
+      "findings": [
+        "提供 Start / Stop Service 表格；建议提前 1–2 个工作日。",
+        "页面另指示 Novato 用户联系 North Marin Water District。"
+      ]
+    },
+    {
+      "id": "contact-02",
+      "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+      "authority": "PG&E",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Belvedere",
+        "Corte Madera",
+        "Fairfax",
+        "Larkspur",
+        "Mill Valley",
+        "Novato",
+        "Ross",
+        "San Anselmo",
+        "San Rafael",
+        "Sausalito",
+        "Tiburon",
+        "American Canyon",
+        "Calistoga",
+        "Napa",
+        "St. Helena",
+        "Yountville",
+        "Cloverdale",
+        "Cotati",
+        "Petaluma",
+        "Rohnert Park",
+        "Santa Rosa",
+        "Sebastopol",
+        "Sonoma",
+        "Windsor",
+        "Benicia",
+        "Dixon",
+        "Fairfield",
+        "Rio Vista",
+        "Suisun City",
+        "Vacaville",
+        "Vallejo"
+      ],
+      "services": [
+        "electric"
+      ],
+      "verifiedContactFields": {
+        "name": "PG&E",
+        "phone": "877-660-6789"
+      },
+      "findings": [
+        "官方 Start / Stop / Transfer 页面：新客户与现有账户分别进入开户、停用或转移。",
+        "页面当前显示 1-877-660-6789；依主目录口径统一作为搬家开户联络号码，未拨号测试。"
+      ]
+    },
+    {
+      "id": "contact-03",
+      "url": "https://mcecleanenergy.org/faq/",
+      "authority": "MCE",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Belvedere",
+        "Corte Madera",
+        "Fairfax",
+        "Larkspur",
+        "Mill Valley",
+        "Novato",
+        "Ross",
+        "San Anselmo",
+        "San Rafael",
+        "Sausalito",
+        "Tiburon",
+        "American Canyon",
+        "Calistoga",
+        "Napa",
+        "St. Helena",
+        "Yountville",
+        "Benicia",
+        "Fairfield",
+        "Vallejo"
+      ],
+      "services": [
+        "electric"
+      ],
+      "verifiedContactFields": {
+        "name": "MCE",
+        "phone": "888-632-3674"
+      },
+      "findings": [
+        "MCE 服务区包括 Marin、Napa 全县与 Solano 的 Benicia、Fairfield、Vallejo 及指定非建制区域；不推断其余 Solano 城市已加入。",
+        "发电与 PG&E 输配电、账单职责分开。"
+      ]
+    },
+    {
+      "id": "contact-04",
+      "url": "https://www.millvalleyrefuse.com/support/",
+      "authority": "Mill Valley Refuse Service",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Belvedere",
+        "Corte Madera",
+        "Mill Valley",
+        "Tiburon"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Mill Valley Refuse Service",
+        "phone": "415-457-9760"
+      },
+      "findings": [
+        "新服务先致电建立账户，之后才能注册网上缴费。"
+      ]
+    },
+    {
+      "id": "contact-05",
+      "url": "https://marinsanitaryservice.com/support/contact-us/",
+      "authority": "Marin Sanitary Service",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Fairfax",
+        "Larkspur",
+        "Ross",
+        "San Anselmo",
+        "San Rafael"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Marin Sanitary Service",
+        "phone": "415-456-2601"
+      },
+      "findings": [
+        "客户表格列住宅 Start / Change / Stop Service 类别。"
+      ]
+    },
+    {
+      "id": "contact-06",
+      "url": "https://nmwd.com/account/start-service/",
+      "authority": "North Marin Water District",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Novato"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "North Marin Water District",
+        "phone": "415-897-4133"
+      },
+      "findings": [],
+      "supportingSourceIds": [
+        "nmwd-contact"
+      ]
+    },
+    {
+      "id": "contact-07",
+      "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+      "authority": "Recology Sonoma Marin",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Novato",
+        "Cloverdale",
+        "Cotati",
+        "Healdsburg",
+        "Petaluma",
+        "Rohnert Park",
+        "Santa Rosa"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Recology Sonoma Marin",
+        "phone": "800-243-0291"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-08",
+      "url": "https://www.baycitiesrefuse.com/",
+      "authority": "Bay Cities Refuse",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Sausalito"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Bay Cities Refuse",
+        "phone": "415-332-3646"
+      },
+      "findings": [
+        "当前服务地区包括 Sausalito 与指定周边地区；首页有联系和服务请求。"
+      ]
+    },
+    {
+      "id": "contact-09",
+      "url": "https://www.americancanyon.gov/Live/Utilities-Services/Utility-Payment-and-Accounts",
+      "authority": "City of American Canyon",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "American Canyon"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of American Canyon",
+        "phone": "707-647-4364"
+      },
+      "findings": [
+        "提供住宅启停服务表，要求产权或租约与身份证明。"
+      ],
+      "limitations": "直接抓取失败；已读取官方搜索索引中的办事正文。"
+    },
+    {
+      "id": "contact-10",
+      "url": "https://www.recology.com/recology-american-canyon/contact/",
+      "authority": "Recology American Canyon",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "American Canyon"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Recology American Canyon",
+        "phone": "707-552-3110"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-11",
+      "url": "https://www.calistogaca.gov/Services/Utility-Billing",
+      "authority": "City of Calistoga",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Calistoga"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Calistoga",
+        "phone": "707-942-2801"
+      },
+      "findings": [
+        "水与污水启停通过 Utility Billing。"
+      ],
+      "limitations": "直接抓取失败；已读取新 .gov 官网的搜索索引正文，不沿用旧域名。"
+    },
+    {
+      "id": "contact-12",
+      "url": "https://uvds.com/support/",
+      "authority": "Upper Valley Disposal & Recycling",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Calistoga",
+        "St. Helena",
+        "Yountville"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Upper Valley Disposal & Recycling",
+        "phone": "707-963-7988"
+      },
+      "findings": [],
+      "supportingSourceIds": [
+        "upper-valley-home"
+      ]
+    },
+    {
+      "id": "contact-13",
+      "url": "https://www.cityofnapa.org/FormCenter/Finance-8/Water-Application-Start-or-Stop-Water-Se-224",
+      "authority": "City of Napa",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Napa"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Napa",
+        "phone": "707-257-9508"
+      },
+      "findings": [
+        "表格可选 Start / Stop Water Service；新装水表与现有账户启停不同。"
+      ],
+      "supportingSourceIds": [
+        "napa-utility-faq"
+      ]
+    },
+    {
+      "id": "contact-14",
+      "url": "https://naparecycling.com/contact-us/",
+      "authority": "Napa Recycling & Waste Services",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Napa"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Napa Recycling & Waste Services",
+        "phone": "707-255-5200"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-15",
+      "url": "https://cityofsthelena.gov/349/Utility-Billing-Services-Division",
+      "authority": "City of St. Helena",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "St. Helena"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of St. Helena",
+        "phone": "707-968-2745"
+      },
+      "findings": [
+        "水与污水服务启停要求提前 3 个工作日联系。"
+      ]
+    },
+    {
+      "id": "contact-16",
+      "url": "https://www.townofyountville.gov/m/faq?cat=17",
+      "authority": "Town of Yountville",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Yountville"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "Town of Yountville",
+        "phone": "707-944-8851"
+      },
+      "findings": [
+        "Water Utilities FAQ 明确开通、停用和账单均联系 Finance。"
+      ]
+    },
+    {
+      "id": "contact-17",
+      "url": "https://www.cloverdale.net/586/Water-Sewer-Services",
+      "authority": "City of Cloverdale",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Cloverdale"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Cloverdale"
+      },
+      "findings": [
+        "水与污水启停须提交书面表格，不能只打电话提出启停请求。"
+      ]
+    },
+    {
+      "id": "contact-18",
+      "url": "https://sonomacleanpower.org/frequently-asked-questions",
+      "authority": "Sonoma Clean Power",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Cloverdale",
+        "Cotati",
+        "Petaluma",
+        "Rohnert Park",
+        "Santa Rosa",
+        "Sebastopol",
+        "Sonoma",
+        "Windsor"
+      ],
+      "services": [
+        "electric"
+      ],
+      "verifiedContactFields": {
+        "name": "Sonoma Clean Power",
+        "phone": "855-202-2139"
+      },
+      "findings": [
+        "SCP 在 Sonoma County 的服务范围排除市营电力的 Healdsburg。",
+        "SCP 发电，PG&E 仍负责线路、停电响应和账单。"
+      ]
+    },
+    {
+      "id": "contact-19",
+      "url": "https://www.cotaticity.gov/345/Water-Sewer-Services",
+      "authority": "City of Cotati",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Cotati"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Cotati",
+        "phone": "707-665-3631"
+      },
+      "findings": [
+        "开通至少提前 2 个工作日，租客另需业主同意表。"
+      ]
+    },
+    {
+      "id": "contact-20",
+      "url": "https://www.healdsburg.gov/172/Utility-Billing-Customer-Service",
+      "authority": "City of Healdsburg Utilities",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Healdsburg"
+      ],
+      "services": [
+        "water",
+        "electric"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Healdsburg Utilities",
+        "phone": "707-431-3307"
+      },
+      "findings": [
+        "市 Utility Billing 办理水、电、污水账户；Healdsburg 电力不是 PG&E / SCP 开户。"
+      ]
+    },
+    {
+      "id": "contact-21",
+      "url": "https://xeweb.cityofpetaluma.net/Default.aspx?Build=SY.CSHome",
+      "authority": "City of Petaluma",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Petaluma"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Petaluma",
+        "phone": "707-778-4350"
+      },
+      "findings": [],
+      "limitations": "市主站 cityofpetaluma.org 多次返回 403。当前电话号码从市自有域名的客户门户官方索引读取；未声称该缴费门户能直接完成首次开户。"
+    },
+    {
+      "id": "contact-22",
+      "url": "https://www.rpcity.ca.gov/564/Utility-Billing",
+      "authority": "City of Rohnert Park",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Rohnert Park"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Rohnert Park",
+        "phone": "707-585-6750"
+      },
+      "findings": [
+        "当前市水与污水页有 Forms、Information、Pay Your Bill 入口，电话亦由当前员工目录交叉核对。"
+      ]
+    },
+    {
+      "id": "contact-23",
+      "url": "https://www.srcity.org/814/Starting-or-Stopping-Service",
+      "authority": "City of Santa Rosa",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Santa Rosa"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Santa Rosa",
+        "phone": "707-543-3150"
+      },
+      "findings": [
+        "水务启停要求至少提前 1 个工作日。"
+      ]
+    },
+    {
+      "id": "contact-24",
+      "url": "https://www.cityofsebastopol.gov/our-community/utilities/",
+      "authority": "City of Sebastopol",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Sebastopol"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Sebastopol",
+        "phone": "707-823-7863"
+      },
+      "findings": [
+        "市水务启停联络及表格；垃圾自 2025-07-01 改 SCRR。"
+      ]
+    },
+    {
+      "id": "contact-25",
+      "url": "https://www.sonomacorr.com/sebastopol-support/",
+      "authority": "Sonoma County Resource Recovery (SCRR)",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Sebastopol"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Sonoma County Resource Recovery (SCRR)",
+        "phone": "707-795-7470"
+      },
+      "findings": [
+        "Sebastopol 客户表含开户与关闭账户，客服电话与 SCRR Contact Us 一致。"
+      ],
+      "supportingSourceIds": [
+        "sebastopol-transition"
+      ],
+      "limitations": "直接抓取间歇超时；官方索引列电话及 New Service / Closing an Account，另与当前可读取的 SCRR Contact Us 页核对。"
+    },
+    {
+      "id": "contact-26",
+      "url": "https://www.sonomawater.org/faq",
+      "authority": "City of Sonoma",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Sonoma"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Sonoma"
+      },
+      "findings": [
+        "页面明确住宅开户、停用应找各地零售供水商，并链接供水商名单；Sonoma Water 是批发机构。"
+      ],
+      "supportingSourceIds": [
+        "sonoma-provider-identity",
+        "sonoma-water-old-directory",
+        "sonoma-city-blocked"
+      ],
+      "limitations": "备用官方零售供水商目录。Sonoma 市主站 403，不能据此声称已经读取现行 City of Sonoma 开户表或核对其电话。"
+    },
+    {
+      "id": "contact-27",
+      "url": "https://sonomagarbage.com/contact-us/",
+      "authority": "Sonoma Garbage Collectors",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Sonoma"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Sonoma Garbage Collectors",
+        "phone": "707-996-7555"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-28",
+      "url": "https://www.townofwindsor.ca.gov/139/Starting-Stopping-Service",
+      "authority": "Town of Windsor",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Windsor"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "Town of Windsor",
+        "phone": "707-838-1004"
+      },
+      "findings": [
+        "现行启停电话 707-838-1004；至少提前 1 个工作日。采用此页，不沿用 2022 汇总表的 707-838-1006。"
+      ]
+    },
+    {
+      "id": "contact-29",
+      "url": "https://www.sonomacorr.com/contact-us-2/",
+      "authority": "Sonoma County Resource Recovery (SCRR)",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Windsor"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Sonoma County Resource Recovery (SCRR)",
+        "phone": "707-795-7470"
+      },
+      "findings": [
+        "当前可直接读取的联系表有 New Service、Closing an Account。"
+      ]
+    },
+    {
+      "id": "contact-30",
+      "url": "https://www.ci.benicia.ca.us/index.asp?DE=F5C74958-C9B6-4C26-A69E-68A5C1E2844C&SEC=801B53CB-FFE2-4AC7-AD22-6B3E43FF3011",
+      "authority": "City of Benicia",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Benicia"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Benicia",
+        "phone": "707-746-4225"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-31",
+      "url": "https://www.ci.benicia.ca.us/faq",
+      "authority": "Republic Services",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Benicia"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Republic Services",
+        "phone": "707-747-0608"
+      },
+      "findings": [],
+      "limitations": "Republic 的 Benicia 专页仅返回壳层，无法取得当前电话内容；采用市官方 FAQ 所列 707-747-0608。"
+    },
+    {
+      "id": "contact-32",
+      "url": "https://www.cityofdixonca.gov/departments/utilities/Water",
+      "authority": "City of Dixon",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Dixon"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Dixon",
+        "phone": "707-678-7008"
+      },
+      "findings": [
+        "Dixon 有市营水和 Cal Water 两家供水单位；页面提供供水区地图。"
+      ]
+    },
+    {
+      "id": "contact-33",
+      "url": "https://www.calwater.com/district/dixon/",
+      "authority": "California Water Service - Dixon District",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Dixon"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "California Water Service - Dixon District",
+        "phone": "707-678-5928"
+      },
+      "findings": [
+        "Dixon District 官方联系页；不将其与市营水服务区混用。"
+      ]
+    },
+    {
+      "id": "contact-34",
+      "url": "https://www.recology.com/recology-dixon/contact/",
+      "authority": "Recology Dixon",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Dixon"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Recology Dixon",
+        "phone": "707-678-4026"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-35",
+      "url": "https://www.fairfield.ca.gov/services/city-resources/water-connection",
+      "authority": "City of Fairfield",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Fairfield"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Fairfield",
+        "phone": "707-428-7346"
+      },
+      "findings": [],
+      "supportingSourceIds": [
+        "sid-billing-referral"
+      ],
+      "limitations": "直接访问 403；官方搜索索引可见 Water and Sewer Services 与 Start Utility Service Application。电话另取现行 SID 官方转介页面。"
+    },
+    {
+      "id": "contact-36",
+      "url": "https://www.republicservices.com/municipality/fairfield-ca",
+      "authority": "Republic Services",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Fairfield"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Republic Services",
+        "phone": "707-437-8900"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-37",
+      "url": "https://www.riovistacity.com/finance/page/i-am-owner-0",
+      "authority": "City of Rio Vista",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Rio Vista"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Rio Vista",
+        "phone": "707-374-6451"
+      },
+      "findings": [
+        "网页含 Start / End Service 和 Own / Rent 选项，客服为 707-374-6451 Option 1。"
+      ]
+    },
+    {
+      "id": "contact-38",
+      "url": "https://mdrr.com/rio-vista/",
+      "authority": "Mt. Diablo Resource Recovery",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Rio Vista"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Mt. Diablo Resource Recovery",
+        "phone": "707-374-5644"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-39",
+      "url": "https://www.suisun.com/Departments/Finance-Department/Start-water-service",
+      "authority": "Suisun City Finance / Suisun-Solano Water Authority",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Suisun City"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "Suisun City Finance / Suisun-Solano Water Authority",
+        "phone": "707-421-7320"
+      },
+      "findings": [
+        "市 Finance 负责账户与账单，SSWA 为市和 Solano Irrigation District 合作单位。",
+        "页面列 PG&E 电力和 Republic 垃圾。"
+      ],
+      "supportingSourceIds": [
+        "suisun-application",
+        "sid-billing-referral"
+      ]
+    },
+    {
+      "id": "contact-40",
+      "url": "https://www.suisun.com/Departments/Public-Works/Recycling-Solid-Waste-Information",
+      "authority": "Republic Services / Solano Garbage",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Suisun City"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Republic Services / Solano Garbage",
+        "phone": "707-437-8900"
+      },
+      "findings": [],
+      "limitations": "页面保留 2023 年活动日期；本表只采用持续服务商与客服信息，不采用旧免费收取日期。"
+    },
+    {
+      "id": "contact-41",
+      "url": "https://www.cityofvacaville.gov/government/utilities/water",
+      "authority": "City of Vacaville",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Vacaville"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Vacaville",
+        "phone": "707-449-5128"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-42",
+      "url": "https://www.recology.com/recology-vacaville-solano/contact/",
+      "authority": "Recology Vacaville Solano",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Vacaville"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Recology Vacaville Solano",
+        "phone": "707-448-2945"
+      },
+      "findings": []
+    },
+    {
+      "id": "contact-43",
+      "url": "https://www.vallejo.gov/our_city/departments_divisions/water_department",
+      "authority": "City of Vallejo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Vallejo"
+      ],
+      "services": [
+        "water"
+      ],
+      "verifiedContactFields": {
+        "name": "City of Vallejo",
+        "phone": "707-648-4345"
+      },
+      "findings": [
+        "页面含 Start / Stop Water Service；工程接管不是普通搬家开户。"
+      ]
+    },
+    {
+      "id": "contact-44",
+      "url": "https://www.recology.com/recology-vallejo/contact/",
+      "authority": "Recology Vallejo",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "cities": [
+        "Vallejo"
+      ],
+      "services": [
+        "waste"
+      ],
+      "verifiedContactFields": {
+        "name": "Recology Vallejo",
+        "phone": "707-552-3110"
+      },
+      "findings": []
+    },
+    {
+      "id": "nmwd-contact",
+      "url": "https://nmwd.com/contact/",
+      "authority": "North Marin Water District",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Novato 客户服务电话 415-897-4133。"
+      ]
+    },
+    {
+      "id": "marin-lafco-cities",
+      "url": "https://www.marinlafco.org/cities-and-towns",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "列出 Marin County 的 11 个建制市镇。"
+      ]
+    },
+    {
+      "id": "marin-lafco-belvedere",
+      "url": "https://www.marinlafco.org/belvedere",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Belvedere 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-corte-madera",
+      "url": "https://www.marinlafco.org/corte-madera",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Corte Madera 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-fairfax",
+      "url": "https://www.marinlafco.org/fairfax",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Fairfax 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-larkspur",
+      "url": "https://www.marinlafco.org/larkspur",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Larkspur 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-mill-valley",
+      "url": "https://www.marinlafco.org/mill-valley",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Mill Valley 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-novato",
+      "url": "https://www.marinlafco.org/novato",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Novato 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-ross",
+      "url": "https://www.marinlafco.org/ross",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Ross 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-san-anselmo",
+      "url": "https://www.marinlafco.org/san-anselmo",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "San Anselmo 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-san-rafael",
+      "url": "https://www.marinlafco.org/san-rafael",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "San Rafael 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-sausalito",
+      "url": "https://www.marinlafco.org/sausalito",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Sausalito 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-lafco-tiburon",
+      "url": "https://www.marinlafco.org/tiburon",
+      "authority": "Marin LAFCo",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Tiburon 市政官网与供水单位交叉核对。"
+      ],
+      "limitations": "只用行政区和公共服务机构资料，不引用可能陈旧的任职资料。"
+    },
+    {
+      "id": "marin-hauler-areas",
+      "url": "https://zerowastemarin.org/who-is-my-hauler/",
+      "authority": "Zero Waste Marin",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Mill Valley Refuse：Belvedere、Corte Madera、Mill Valley、Tiburon。",
+        "Marin Sanitary Service：Fairfax、Larkspur、Ross、San Anselmo、San Rafael。",
+        "Sausalito：Bay Cities Refuse；Novato 另以 Recology 城市页核对。"
+      ]
+    },
+    {
+      "id": "recology-novato-area",
+      "url": "https://www.recology.com/recology-sonoma-marin/novato/",
+      "authority": "Recology",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Novato 的 Recology Sonoma Marin 官方城市服务页。"
+      ]
+    },
+    {
+      "id": "napa-hauler-areas",
+      "url": "https://www.napacounty.gov/1536/Recycling-Composting-and-Waste-Reduction",
+      "authority": "Napa County",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "American Canyon 为 Recology；Napa 市为 Napa Recycling；Calistoga、St. Helena、Yountville 为 Upper Valley。",
+        "县内非建制服务区另列，不按邮寄城市名合并。"
+      ]
+    },
+    {
+      "id": "napa-utility-faq",
+      "url": "https://www.cityofnapa.org/m/faq",
+      "authority": "City of Napa",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "现有住宅水务新户或转户客服 707-257-9508；新装水表另走工程流程。"
+      ]
+    },
+    {
+      "id": "upper-valley-home",
+      "url": "https://uvds.com/",
+      "authority": "Upper Valley Disposal & Recycling",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "官网首页列 707-963-7988。"
+      ]
+    },
+    {
+      "id": "yountville-platform",
+      "url": "https://townofyountville.gov/AlertCenter.aspx?AID=New-Online-Water-and-Wastewater-Utility--18",
+      "authority": "Town of Yountville",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "2026-09-08 公告：2026-10-01 起网上缴费改用 Xpress Bill Pay。"
+      ],
+      "limitations": "未创建账户或验证历史账户迁移；平台注册与水务开户是不同步骤。"
+    },
+    {
+      "id": "sonoma-hauler-areas",
+      "url": "https://zerowastesonoma.gov/disposal-options/whos-my-waste-hauler",
+      "authority": "Zero Waste Sonoma",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Recology：Cloverdale、Cotati、Healdsburg、Petaluma、Rohnert Park、Santa Rosa。",
+        "SCRR：Sebastopol 与 Windsor；Sonoma Garbage Collectors：Sonoma 市及指定周边地区。"
+      ]
+    },
+    {
+      "id": "healdsburg-electric",
+      "url": "https://www.healdsburg.gov/464/Utility-Services",
+      "authority": "City of Healdsburg",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "市营电力与其他市公用事业说明，与 SCP FAQ 的 Healdsburg 排除条款交叉核对。"
+      ]
+    },
+    {
+      "id": "cotati-start-form",
+      "url": "https://www.cotaticity.gov/FormCenter/Water-Sewer-Services-10/Starting-Water-Service-61",
+      "authority": "City of Cotati",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "新服务申请表说明提前量和租客所需业主同意。"
+      ]
+    },
+    {
+      "id": "scrr-windsor-area",
+      "url": "https://www.sonomacorr.com/windsor-residential/",
+      "authority": "Sonoma County Resource Recovery",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Windsor 住宅页要求联系 SCRR 开通服务。"
+      ]
+    },
+    {
+      "id": "sebastopol-transition",
+      "url": "https://www.sonomacorr.com/wp-content/uploads/2025/05/SCRR-Letter-Announcement-SFD.pdf",
+      "authority": "Sonoma County Resource Recovery",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "官方住户通知确认 2025-07-01 开始收集，客服 707-795-7470。"
+      ],
+      "limitations": "只提取承包商切换事实，不把 2025 投放容器或假日安排写成当前日程。"
+    },
+    {
+      "id": "sonoma-provider-identity",
+      "url": "https://www.savingwaterpartnership.org/programs-rebates/find-your-provider/",
+      "authority": "Sonoma-Marin Saving Water Partnership",
+      "access": "official-page-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "当前公共机构合作目录分别列出 City of Sonoma 与 Valley of the Moon Water District。"
+      ],
+      "limitations": "本页主要是节水项目联系人；不把这些项目电话当作开户电话。"
+    },
+    {
+      "id": "sonoma-water-old-directory",
+      "url": "https://www.sonomawater.org/?action=media.media.read&id=159592",
+      "authority": "Sonoma Water",
+      "access": "official-pdf-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "目录列 City of Sonoma、Petaluma 等零售供水商。"
+      ],
+      "limitations": "PDF 自标更新日期为 2022-04-28，只作机构识别旁证。未将其中 Sonoma 电话填入当前字段，未采用与当前水务页不同的 Windsor 电话。"
+    },
+    {
+      "id": "sonoma-city-blocked",
+      "url": "https://www.sonomacity.org/start-or-stop-water-service/",
+      "authority": "City of Sonoma",
+      "access": "access-blocked-403",
+      "checkedAt": "2026-10-02",
+      "facts": [],
+      "limitations": "直接访问 403，搜索未能读到该页面正文。未声称核对现行表格、电话、资格或处理时限；采用可读的官方转介入口。"
+    },
+    {
+      "id": "sid-billing-referral",
+      "url": "https://sidwater.org/114/Billing-Payment-Information",
+      "authority": "Solano Irrigation District",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Fairfield 水务账单 707-428-7346；Suisun City 账单 707-421-7320。",
+        "明确 Benicia、Fairfield、Vacaville、Dixon、Vallejo 城市住宅水务不在 SID 国内供水区；不把 SID 列作这些城市住宅直接开户商。"
+      ]
+    },
+    {
+      "id": "suisun-application",
+      "url": "https://www.suisun.com/files/sharedassets/suisuncity/departments/administrative-services/documents/application_for_municipal_utilities_pg_1.pdf",
+      "authority": "Suisun City",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "公用事业申请表电话 707-421-7320；与 SID 当前转介页一致。"
+      ]
+    },
+    {
+      "id": "benicia-republic-partial",
+      "url": "https://www.republicservices.com/municipality/benicia-ca",
+      "authority": "Republic Services",
+      "access": "official-page-partial",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "Benicia 专属服务页存在。"
+      ],
+      "limitations": "抓取只返回页面壳层，未提供客服电话；采用市官方 FAQ。"
+    },
+    {
+      "id": "dixon-pge-crosscheck",
+      "url": "https://www.cityofdixonca.gov/media/CommunityDevelopment/Environmental%20Review/The%20Campus/11.2_PC%20Staff%20Report_The%20Campus_Complete_03.12.24.pdf",
+      "authority": "City of Dixon",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "2024-03-12 市规划公用事业表列电与气为 Pacific Gas & Electric。"
+      ],
+      "limitations": "历史材料只作服务商旁证，不用于主张 2026 项目状态或全市每处特殊物业覆盖；当前流程取 PG&E 官方页。"
+    },
+    {
+      "id": "rio-vista-pge-crosscheck",
+      "url": "https://www.riovistacity.com/media/3571",
+      "authority": "City of Rio Vista",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "市规划公用事业章节列电和天然气由 PG&E 提供。"
+      ],
+      "limitations": "历史规划只作服务商旁证；不采用旧通讯公司、费率或项目预测。"
+    },
+    {
+      "id": "vacaville-pge-crosscheck",
+      "url": "https://www.cityofvacaville.gov/home/showpublisheddocument/19459/637877026433700000",
+      "authority": "City of Vacaville",
+      "access": "official-search-index-read",
+      "checkedAt": "2026-10-02",
+      "facts": [
+        "2022 Downtown Specific Plan 列 PG&E 为 Vacaville 电与气服务商。"
+      ],
+      "limitations": "历史规划只作服务商旁证；当前开户流程取 PG&E 现行页面。"
+    }
+  ],
+  "cityEvidence": [
+    {
+      "city": "Belvedere",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-04"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-belvedere",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Corte Madera",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-04"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-corte-madera",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Fairfax",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-05"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-fairfax",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Larkspur",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-05"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-larkspur",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Mill Valley",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-04"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-mill-valley",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Novato",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-06",
+        "contact-02",
+        "contact-03",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-novato",
+        "marin-hauler-areas",
+        "recology-novato-area"
+      ]
+    },
+    {
+      "city": "Ross",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-05"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-ross",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "San Anselmo",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-05"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-san-anselmo",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "San Rafael",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-05"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-san-rafael",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Sausalito",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-08"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-sausalito",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "Tiburon",
+      "county": "Marin County",
+      "contactSourceIds": [
+        "contact-01",
+        "contact-02",
+        "contact-03",
+        "contact-04"
+      ],
+      "areaSourceIds": [
+        "marin-lafco-tiburon",
+        "marin-hauler-areas"
+      ]
+    },
+    {
+      "city": "American Canyon",
+      "county": "Napa County",
+      "contactSourceIds": [
+        "contact-09",
+        "contact-02",
+        "contact-03",
+        "contact-10"
+      ],
+      "areaSourceIds": [
+        "napa-hauler-areas"
+      ]
+    },
+    {
+      "city": "Calistoga",
+      "county": "Napa County",
+      "contactSourceIds": [
+        "contact-11",
+        "contact-02",
+        "contact-03",
+        "contact-12"
+      ],
+      "areaSourceIds": [
+        "napa-hauler-areas"
+      ]
+    },
+    {
+      "city": "Napa",
+      "county": "Napa County",
+      "contactSourceIds": [
+        "contact-13",
+        "contact-02",
+        "contact-03",
+        "contact-14"
+      ],
+      "areaSourceIds": [
+        "napa-hauler-areas"
+      ]
+    },
+    {
+      "city": "St. Helena",
+      "county": "Napa County",
+      "contactSourceIds": [
+        "contact-15",
+        "contact-02",
+        "contact-03",
+        "contact-12"
+      ],
+      "areaSourceIds": [
+        "napa-hauler-areas"
+      ]
+    },
+    {
+      "city": "Yountville",
+      "county": "Napa County",
+      "contactSourceIds": [
+        "contact-16",
+        "contact-02",
+        "contact-03",
+        "contact-12"
+      ],
+      "areaSourceIds": [
+        "napa-hauler-areas",
+        "yountville-platform"
+      ]
+    },
+    {
+      "city": "Cloverdale",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-17",
+        "contact-02",
+        "contact-18",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Cotati",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-19",
+        "contact-02",
+        "contact-18",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Healdsburg",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-20",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas",
+        "healdsburg-electric"
+      ]
+    },
+    {
+      "city": "Petaluma",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-21",
+        "contact-02",
+        "contact-18",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Rohnert Park",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-22",
+        "contact-02",
+        "contact-18",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Santa Rosa",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-23",
+        "contact-02",
+        "contact-18",
+        "contact-07"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Sebastopol",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-24",
+        "contact-02",
+        "contact-18",
+        "contact-25"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas"
+      ]
+    },
+    {
+      "city": "Sonoma",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-26",
+        "contact-02",
+        "contact-18",
+        "contact-27"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas",
+        "sonoma-provider-identity"
+      ]
+    },
+    {
+      "city": "Windsor",
+      "county": "Sonoma County",
+      "contactSourceIds": [
+        "contact-28",
+        "contact-02",
+        "contact-18",
+        "contact-29"
+      ],
+      "areaSourceIds": [
+        "sonoma-hauler-areas",
+        "scrr-windsor-area"
+      ]
+    },
+    {
+      "city": "Benicia",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-30",
+        "contact-02",
+        "contact-03",
+        "contact-31"
+      ],
+      "areaSourceIds": []
+    },
+    {
+      "city": "Dixon",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-32",
+        "contact-33",
+        "contact-02",
+        "contact-34"
+      ],
+      "areaSourceIds": [
+        "dixon-pge-crosscheck"
+      ]
+    },
+    {
+      "city": "Fairfield",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-35",
+        "contact-02",
+        "contact-03",
+        "contact-36"
+      ],
+      "areaSourceIds": []
+    },
+    {
+      "city": "Rio Vista",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-37",
+        "contact-02",
+        "contact-38"
+      ],
+      "areaSourceIds": [
+        "rio-vista-pge-crosscheck"
+      ]
+    },
+    {
+      "city": "Suisun City",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-39",
+        "contact-02",
+        "contact-40"
+      ],
+      "areaSourceIds": []
+    },
+    {
+      "city": "Vacaville",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-41",
+        "contact-02",
+        "contact-42"
+      ],
+      "areaSourceIds": [
+        "vacaville-pge-crosscheck"
+      ]
+    },
+    {
+      "city": "Vallejo",
+      "county": "Solano County",
+      "contactSourceIds": [
+        "contact-43",
+        "contact-02",
+        "contact-03",
+        "contact-44"
+      ],
+      "areaSourceIds": []
+    }
+  ]
+}

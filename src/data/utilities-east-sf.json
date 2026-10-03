@@ -1,0 +1,1315 @@
+[
+  {
+    "city": "Alameda",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Alameda Municipal Power (AMP)",
+        "url": "https://www.alamedamp.com/239/Start-Stop-Service",
+        "phone": "510-748-3900",
+        "note": "市营电力；搬家开户和停用直接联系 AMP，不使用 PG&E 电力开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Alameda County Industries (ACI)",
+        "url": "https://www.alamedaca.gov/Departments/Public-Works-Department/Zero-Waste-Program-and-Services",
+        "phone": "510-483-1400",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.alamedaca.gov/RESIDENTS/Information-for-Residents/New-Resident-Guide",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Albany",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "WM of Alameda County",
+        "url": "https://www.albanyca.gov/Departments/Community-Development/Solid-Waste-Recycling",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.albanyca.gov/Departments/Community-Development/Solid-Waste-Recycling",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Berkeley",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "City of Berkeley Zero Waste",
+        "url": "https://berkeleyca.gov/city-services/trash-recycling/residential-waste-services",
+        "phone": "510-981-7270",
+        "note": "垃圾和厨余服务；市官网有住宅开户或服务变更入口。"
+      },
+      {
+        "name": "Ecology Center",
+        "url": "https://berkeleyca.gov/city-services/trash-recycling/residential-waste-services",
+        "phone": "510-527-5555",
+        "note": "负责 1–4 户住宅的路边回收；较大公寓楼按物业及市政府多户住宅流程办理。"
+      }
+    ],
+    "municipalUrl": "https://berkeleyca.gov/city-services/trash-recycling/residential-waste-services",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Dublin",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "Dublin San Ramon Services District (DSRSD)",
+        "url": "https://www.dsrsd.com/Residents/My-Account-Residential/Start-or-Stop-Service",
+        "phone": "925-828-8524",
+        "note": "网上申请新水账户；停用联系客服。先核实地址属于 DSRSD 供水区。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Amador Valley Industries (AVI)",
+        "url": "https://www.amadorvalleyindustries.com/contact-us",
+        "phone": "925-479-9545",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://dublin.ca.gov/1214/New-Resident-Information",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Emeryville",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "WM of Alameda County",
+        "url": "https://www.emeryville.org/Services/Residents/New-Resident-Information",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.emeryville.org/Services/Residents/New-Resident-Information",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fremont",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "Alameda County Water District (ACWD)",
+        "url": "https://acwd.org/117/Starting-Stopping-Service",
+        "phone": "510-668-4200",
+        "note": "供水服务覆盖 Fremont、Newark、Union City；使用官方开户／停用入口确认具体地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.fremont.gov/government/departments/environmental-services/recycling-compost-garbage",
+        "note": "市官网的 Republic Services 链接用于开户、停用、漏收和垃圾桶问题。"
+      }
+    ],
+    "municipalUrl": "https://www.fremont.gov/government/departments/environmental-services/recycling-compost-garbage",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hayward",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "City of Hayward Water",
+        "url": "https://www.hayward-ca.gov/services/city-services/water-sewer-customer-service",
+        "phone": "510-583-4600",
+        "note": "服务市内多数地址；部分地址由 EBMUD 供水，开户前先核对。"
+      },
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "WM of Alameda County",
+        "url": "https://www.hayward-ca.gov/residents/utilities",
+        "phone": "510-537-5500",
+        "note": "垃圾开户统一先联系 WM；市官网另提示部分地址属于 Oro Loma 服务安排。"
+      },
+      {
+        "name": "Tri-CED Community Recycling",
+        "url": "https://hayward-ca.gov/services/city-services/solid-waste-and-recycling-customer-support",
+        "phone": "510-537-9963",
+        "note": "住宅回收服务联系；新开垃圾账户仍先联系 WM。"
+      }
+    ],
+    "municipalUrl": "https://www.hayward-ca.gov/residents/utilities",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Livermore",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "Livermore Municipal Water",
+        "url": "https://www.livermoreca.gov/departments/administrative-services/finance/utility-billing/start-or-stop-service",
+        "phone": "925-960-4320",
+        "note": "先用市政府 Find My Provider 地图确认，再使用市营供水开户／停用表格。"
+      },
+      {
+        "name": "California Water Service (Cal Water)",
+        "url": "https://www.calwater.com/start-stop/",
+        "note": "适用于 Cal Water 的 Livermore 服务区；选择对应供水区办理，不向市营供水重复开户。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Livermore Sanitation",
+        "url": "https://www.livermoresanitation.com/",
+        "phone": "925-449-7300",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.livermoreca.gov/our-community/community-resources/utilities",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Newark",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "Alameda County Water District (ACWD)",
+        "url": "https://acwd.org/117/Starting-Stopping-Service",
+        "phone": "510-668-4200",
+        "note": "供水服务覆盖 Fremont、Newark、Union City；使用官方开户／停用入口确认具体地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.newarkca.gov/residents/utilities",
+        "phone": "510-657-3500",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.newarkca.gov/residents/utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Oakland",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "WM of Alameda County",
+        "url": "https://www.oaklandrecycles.com/services/service-rates/",
+        "phone": "510-613-8710",
+        "note": "负责垃圾、厨余和大件服务；通过开户页面或电话开始服务。"
+      },
+      {
+        "name": "California Waste Solutions (CWS)",
+        "url": "https://www.oaklandrecycles.com/contact/",
+        "phone": "510-625-5263",
+        "note": "负责住宅回收；回收桶、漏收等问题联系 CWS。垃圾与厨余由 WM 负责。"
+      }
+    ],
+    "municipalUrl": "https://www.oaklandca.gov/My-Household/Waste-and-Recycling",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Piedmont",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://piedmont.ca.gov/about_piedmont/utilities",
+        "phone": "800-320-8077",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://piedmont.ca.gov/about_piedmont/utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pleasanton",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "City of Pleasanton Water",
+        "url": "https://www.cityofpleasantonca.gov/our-government/pleasanton-water/utility-billing/",
+        "phone": "925-931-5500",
+        "note": "市政府供水开户、停用和账单入口；按住宅地址核对账户责任人。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Pleasanton Garbage Service (PGS)",
+        "url": "https://www.cityofpleasantonca.gov/your-community/garbage-recycling/",
+        "phone": "925-846-2042",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofpleasantonca.gov/your-community/garbage-recycling/",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Leandro",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Alameda County Industries (ACI)",
+        "url": "https://www.sanleandro.org/634/Residential-Garbage-Recycling-Service",
+        "phone": "510-357-7282",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "WM of Alameda County",
+        "url": "https://www.sanleandro.org/634/Residential-Garbage-Recycling-Service",
+        "phone": "510-613-8710",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      }
+    ],
+    "municipalUrl": "https://www.sanleandro.org/634/Residential-Garbage-Recycling-Service",
+    "notes": "垃圾服务分为 ACI 与 WM／Oro Loma 区域；用市官网服务区地图查地址，不能按邮寄城市名任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Union City",
+    "county": "Alameda County",
+    "water": [
+      {
+        "name": "Alameda County Water District (ACWD)",
+        "url": "https://acwd.org/117/Starting-Stopping-Service",
+        "phone": "510-668-4200",
+        "note": "供水服务覆盖 Fremont、Newark、Union City；使用官方开户／停用入口确认具体地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "Ava Community Energy",
+        "url": "https://avaenergy.org/terms/",
+        "phone": "833-699-3223",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.unioncityca.gov/157/Waste-Collection-Programs-Services",
+        "phone": "510-657-3500",
+        "note": "负责垃圾服务及直接账单；搬家开户、停用先联系 Republic Services。"
+      },
+      {
+        "name": "Tri-CED Community Recycling",
+        "url": "https://www.unioncityca.gov/157/Waste-Collection-Programs-Services",
+        "phone": "510-429-8030",
+        "note": "负责回收和厨余／园林垃圾桶服务；与 Republic 的垃圾服务分工不同。"
+      }
+    ],
+    "municipalUrl": "https://www.unioncityca.gov/157/Waste-Collection-Programs-Services",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Antioch",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "City of Antioch Water",
+        "url": "https://www.antiochca.gov/207/Water-Services",
+        "phone": "925-779-7060",
+        "note": "市政府水账户开户入口；按业主或租客身份准备官网要求的材料。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "通过 PG&E 官方搬家入口核对地址并办理电力开户、停用或迁移。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.antiochca.gov/1074/SB-1383-Implementation",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.antiochca.gov/207/Water-Services",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Brentwood",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "City of Brentwood Water",
+        "url": "https://www.brentwoodca.gov/government/finance-information-systems/utility-billing",
+        "phone": "925-516-5415",
+        "note": "市政府 Utility Billing 办理水、污水及垃圾账户；开户前核实新址是否属于市营服务区。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "通过 PG&E 官方搬家入口核对地址并办理电力开户、停用或迁移。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "City of Brentwood Solid Waste",
+        "url": "https://www.brentwoodca.gov/government/finance-information-systems/utility-billing",
+        "phone": "925-516-5415",
+        "note": "市营垃圾服务，开户和搬家通过市政府公用事业账单窗口办理。"
+      }
+    ],
+    "municipalUrl": "https://www.brentwoodca.gov/government/finance-information-systems/utility-billing",
+    "notes": "同城可能有不同服务区；先用完整街道地址及单元号确认，再办理开户。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Clayton",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "Contra Costa Water District (CCWD)",
+        "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+        "phone": "925-688-8000",
+        "note": "供水零售账户通过官网所列电话办理开户或停用；先确认地址由 CCWD 直接出水费账单。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "通过 PG&E 官方搬家入口核对地址并办理电力开户、停用或迁移。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.claytonca.gov/179/Code-Enforcement",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.claytonca.gov/179/Code-Enforcement",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Concord",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "Contra Costa Water District (CCWD)",
+        "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+        "phone": "925-688-8000",
+        "note": "供水零售账户通过官网所列电话办理开户或停用；先确认地址由 CCWD 直接出水费账单。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mt. Diablo Resource Recovery (MDRR)",
+        "url": "https://www.cityofconcord.org/483/Moving-to-Concord",
+        "phone": "925-682-9113",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofconcord.org/483/Moving-to-Concord",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Danville",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.danville.ca.gov/306/Utilities",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.danville.ca.gov/306/Utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "El Cerrito",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "East Bay Sanitary Company",
+        "url": "https://elcerrito.gov/193/Curbside-Solid-Waste-Recycling",
+        "phone": "510-237-4321",
+        "note": "负责垃圾和厨余／园林垃圾；开户、停用和垃圾桶变更直接联系公司。"
+      },
+      {
+        "name": "City of El Cerrito Recycling",
+        "url": "https://elcerrito.gov/193/Curbside-Solid-Waste-Recycling",
+        "phone": "510-215-4350",
+        "note": "负责市营回收服务；蓝色回收桶问题或回收漏收联系市政府。"
+      }
+    ],
+    "municipalUrl": "https://elcerrito.gov/193/Curbside-Solid-Waste-Recycling",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hercules",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.herculesca.gov/our-city/moving-to-hercules",
+        "phone": "510-262-7100",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.herculesca.gov/our-city/moving-to-hercules",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Lafayette",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.lovelafayette.org/services/utilities",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.lovelafayette.org/services/utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Martinez",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "City of Martinez Water System",
+        "url": "https://www.cityofmartinez.org/departments/finance/water-billing",
+        "phone": "925-372-3575",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "Contra Costa Water District (CCWD)",
+        "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+        "phone": "925-688-8000",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.cityofmartinez.org/government/sustainability-resources/garbage-and-recycling-services/curbside-collection-services",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofmartinez.org/departments/water-system",
+    "notes": "市内饮用水由 City of Martinez 或 CCWD 按区域提供；先凭地址确认水费账单机构。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Moraga",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.moraga.ca.us/299/Utilities",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.moraga.ca.us/299/Utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Oakley",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "Diablo Water District",
+        "url": "https://www.diablowater.gov/start-and-stop-service",
+        "phone": "925-625-3798",
+        "note": "居民供水开户／停用表格入口；先按完整地址确认是否属于供水区。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mt. Diablo Resource Recovery (MDRR)",
+        "url": "https://www.oakleyca.gov/219/Important-Phone-Numbers-Links",
+        "phone": "925-682-9113",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.oakleyca.gov/219/Important-Phone-Numbers-Links",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Orinda",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "通过 PG&E 官方搬家入口核对地址并办理电力开户、停用或迁移。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.cityoforinda.gov/325/Utility-Service-Providers",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.cityoforinda.gov/325/Utility-Service-Providers",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pinole",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.pinole.gov/our-community/utilities/",
+        "phone": "510-262-7100",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.pinole.gov/our-community/utilities/",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pittsburg",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "City of Pittsburg Water",
+        "url": "https://www.pittsburgca.gov/services/pittsburg-water/start-or-stop-service",
+        "phone": "925-252-4940",
+        "note": "市政府供水开户／停用入口；租客办理时有业主签署或陪同等材料要求，出发前按官网确认。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mt. Diablo Resource Recovery (MDRR)",
+        "url": "https://www.pittsburgca.gov/our-city/living/environmental-services/solid-waste",
+        "phone": "925-682-9113",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.pittsburgca.gov/services/pittsburg-water/start-or-stop-service",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pleasant Hill",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "Contra Costa Water District (CCWD)",
+        "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+        "phone": "925-688-8000",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "City of Martinez Water System",
+        "url": "https://www.cityofmartinez.org/departments/finance/water-billing",
+        "phone": "925-372-3575",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.phillca.gov/1167/Utilities",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.phillca.gov/1167/Utilities",
+    "notes": "有 CCWD、EBMUD 和 City of Martinez 三个饮用水服务区，必须按地址查。Diablo Vista 的未处理灌溉水不作为住宅饮用水开户选项。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Richmond",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.ci.richmond.ca.us/m/faq?cat=38",
+        "phone": "510-262-7100",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.ci.richmond.ca.us/250/Utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Pablo",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "供水开户、停用或迁移入口；网上流程适用于独立住宅，多户住宅请联系客服。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services / Richmond Sanitary Service",
+        "url": "https://www.sanpabloca.gov/679/Public-Utilities",
+        "note": "市政府目录列 Richmond Sanitary Service；从该官方目录进入服务商，按住宅地址确认开户联系方式。"
+      }
+    ],
+    "municipalUrl": "https://www.sanpabloca.gov/679/Public-Utilities",
+    "notes": "租房先问房东或物业：水费、垃圾费可能由楼宇统一开户，再通过租金或账单分摊。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Ramon",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "Dublin San Ramon Services District (DSRSD)",
+        "url": "https://www.dsrsd.com/Residents/My-Account-Residential/Start-or-Stop-Service",
+        "phone": "925-828-8524",
+        "note": "网上申请新水账户；停用联系客服。先核实地址属于 DSRSD 供水区。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Alameda County Industries of San Ramon (ACI)",
+        "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/public_works/garbage_and_recycling",
+        "phone": "925-380-9480",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/public_works/storm_drainage_water/water_conservation",
+    "notes": "供水分 EBMUD 与 DSRSD 区域；垃圾服务由 ACI San Ramon 提供，勿按 Contra Costa 县名推断为其他公司的线路。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Walnut Creek",
+    "county": "Contra Costa County",
+    "water": [
+      {
+        "name": "East Bay Municipal Utility District (EBMUD)",
+        "url": "https://www.ebmud.com/customers/start-or-stop-service",
+        "phone": "866-403-2683",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      },
+      {
+        "name": "Contra Costa Water District (CCWD)",
+        "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+        "phone": "925-688-8000",
+        "note": "仅适用于该机构覆盖的地址；先查服务区或向客服报完整地址。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "负责 PG&E 服务地址的电力配送、开户及搬家通断电；发电供应商另见下项。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "社区选择能源（CCA）发电服务；PG&E 继续配送和出账单。开户时按地址及账户确认发电方案，搬家通断电仍联系 PG&E。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.walnutcreekca.gov/government/departments/e-c-o-sustainability/reduce-waste",
+        "phone": "925-685-4711",
+        "note": "市政府列明的住宅垃圾服务联系入口；开户时确认回收、厨余和垃圾桶安排。"
+      }
+    ],
+    "municipalUrl": "https://www.walnutcreekca.gov/i-want-to/learn-about/water-power",
+    "notes": "供水由 EBMUD 或 CCWD 分区负责；RecycleSmart 是垃圾项目管理机构，居民收运开户联系 Republic Services。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Francisco",
+    "county": "San Francisco County",
+    "water": [
+      {
+        "name": "San Francisco Public Utilities Commission (SFPUC)",
+        "url": "https://www.sfpuc.gov/accounts-services/account-services/start-or-stop-service",
+        "phone": "415-551-3000",
+        "note": "水与污水服务的开户／停用入口；与电力账户分别办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Pacific Gas and Electric Company (PG&E)",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "适用于 PG&E 配送地址；办理电力开户、停用和搬家。先向物业确认楼宇是否改由 Hetch Hetchy Power 服务。"
+      },
+      {
+        "name": "CleanPowerSF",
+        "url": "https://cleanpowersf.org/faq",
+        "phone": "415-554-0773",
+        "note": "PG&E 配送区域的社区选择发电服务；PG&E 仍负责账单、电线及搬家通断电。"
+      },
+      {
+        "name": "SFPUC Hetch Hetchy Power",
+        "url": "https://www.sfpuc.gov/accounts-services/account-services/start-or-stop-service",
+        "phone": "415-551-4720",
+        "note": "仅适用于已接入的楼宇或符合条件的开发项目；先向物业或 SFPUC 核对地址，不是全市居民均可直接选择的供电选项。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sunset Scavenger",
+        "url": "https://www.recology.com/recology-san-francisco/contact/",
+        "phone": "415-330-1300",
+        "note": "按地址分区；不知道所属公司时可用此号码查询，再办理开户或停用。"
+      },
+      {
+        "name": "Recology Golden Gate",
+        "url": "https://www.recology.com/recology-san-francisco/contact/",
+        "phone": "415-626-4000",
+        "note": "适用于该公司覆盖的地址；先查账单上的公司名或向 Recology 确认。"
+      }
+    ],
+    "municipalUrl": "https://www.sfpuc.gov/accounts-services/account-services/start-or-stop-service",
+    "notes": "列出多家机构表示服务区或职责不同，并非每个地址都可任选。",
+    "verifiedAt": "2026-10-02"
+  }
+]

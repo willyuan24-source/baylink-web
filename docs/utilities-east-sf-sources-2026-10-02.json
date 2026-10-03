@@ -1,0 +1,1088 @@
+{
+  "title": "Alameda, Contra Costa and San Francisco residential utilities evidence",
+  "verifiedAt": "2026-10-02",
+  "scope": {
+    "incorporatedCities": 34,
+    "counties": {
+      "Alameda County": 14,
+      "Contra Costa County": 19,
+      "San Francisco County": 1
+    },
+    "unincorporatedRowsIncluded": false,
+    "services": [
+      "drinking-water account contact",
+      "electricity delivery and CCA generation",
+      "residential trash, recycling and organics"
+    ]
+  },
+  "method": [
+    "Only municipal, public utility or current contracted utility/provider websites were used. Oakland Recycles is the official City of Oakland/WM/CWS partnership linked by the city.",
+    "Each source records access honestly: opened, official search-index text, or both. Failed direct opens are not treated as successful live form or account tests.",
+    "Provider names and contacts are city-level routing guidance. No private residential address was submitted and no eligibility, installation, account creation or booking was tested.",
+    "Where local-directory telephone numbers differed, the utility's current account page took priority. PG&E 877-660-6789 and CCWD 925-688-8000 are account-service choices.",
+    "Water wholesalers, wastewater agencies and untreated irrigation suppliers were not presented as interchangeable household drinking-water account providers.",
+    "CCA providers are listed separately from distribution utilities. No claim is made that a particular account is enrolled, that a product is cheaper, or that city boundaries match postal addresses.",
+    "Chinese notes in utilities-east-sf.json have normalized flat-dictionary translations in utilities-east-sf-en.json; source ledger prose is English.",
+    "No prices, deposits, service-day schedules, appointment availability or 2025 promotions were carried into the city directory."
+  ],
+  "keyExceptions": [
+    "Alameda electricity is Alameda Municipal Power; PG&E is not listed as its electricity account provider.",
+    "Hayward: municipal water versus EBMUD by address; WM opens garbage accounts while Tri-CED handles residential recycling.",
+    "Livermore: municipal water versus Cal Water; use Find My Provider before applying.",
+    "San Leandro: ACI versus WM/Oro Loma geographic waste areas.",
+    "Oakland, Berkeley, Union City and El Cerrito split waste/recycling responsibilities between providers.",
+    "Martinez, Pleasant Hill, San Ramon and Walnut Creek have multiple drinking-water service areas.",
+    "Pleasant Hill explicitly has CCWD, EBMUD and Martinez municipal drinking-water areas. Diablo Vista untreated irrigation water is excluded.",
+    "Concord, Oakley and Pittsburg use MDRR collection; Walnut Creek/RecycleSmart areas use Republic collection rather than confusing MDRR processing with collection.",
+    "Hercules is an MCE member; Antioch, Brentwood, Clayton and Orinda are not on the checked MCE member list.",
+    "San Francisco: PG&E delivery/CleanPowerSF generation differs from limited Hetch Hetchy Power service; Recology company assignment depends on address."
+  ],
+  "sources": [
+    {
+      "url": "https://www.alamedaca.gov/RESIDENTS/Information-for-Residents/New-Resident-Guide",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Alameda"
+      ],
+      "facts": [
+        "City new-resident guide names EBMUD for water, AMP for electricity, PG&E for gas, and ACI for waste. AMP is a municipal electricity exception."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.albanyca.gov/Departments/Community-Development/Solid-Waste-Recycling",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Albany"
+      ],
+      "facts": [
+        "City solid-waste page identifies WM of Alameda County and the collection franchise beginning in May 2024. This source supports waste, not drinking-water boundaries."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://berkeleyca.gov/city-services/trash-recycling/residential-waste-services",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Berkeley"
+      ],
+      "facts": [
+        "City residential waste page separates city trash/compost customer service (510-981-7270) from Ecology Center recycling for 1–4-unit properties (510-527-5555)."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://dublin.ca.gov/1214/New-Resident-Information",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Dublin"
+      ],
+      "facts": [
+        "City new-resident directory identifies DSRSD water, AVI waste, PG&E and Ava electricity roles."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.emeryville.org/Services/Residents/New-Resident-Information",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Emeryville"
+      ],
+      "facts": [
+        "City new-resident directory lists EBMUD, PG&E, Ava and WM, with mandatory waste service."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.fremont.gov/government/departments/environmental-services/recycling-compost-garbage",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Fremont"
+      ],
+      "facts": [
+        "City waste page directs residents to Republic Services for starting/stopping collection, missed pickups and cart issues. No residential provider phone copied from the city switchboard."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.hayward-ca.gov/residents/utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Hayward"
+      ],
+      "facts": [
+        "City utilities directory explicitly distinguishes City of Hayward water from EBMUD at some addresses; directs all new garbage accounts to WM and notes Tri-CED residential recycling and some Oro Loma arrangements. WM 510-537-5500; city water 510-583-4600."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.livermoreca.gov/our-community/community-resources/utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Livermore"
+      ],
+      "facts": [
+        "City utilities directory lists Livermore Municipal Water and Cal Water as separate providers, Livermore Sanitation for waste, and PG&E/Ava electricity."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.newarkca.gov/residents/utilities",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Newark"
+      ],
+      "facts": [
+        "City directory identifies ACWD, PG&E/Ava and Republic Services; its residential garbage signup contact is 510-657-3500."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.oaklandca.gov/My-Household/Waste-and-Recycling",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Oakland"
+      ],
+      "facts": [
+        "City waste page confirms CWS is the residential recycling provider and links the official Oakland Recycles partnership site for complete collection information."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://piedmont.ca.gov/about_piedmont/utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Piedmont"
+      ],
+      "facts": [
+        "City utilities directory lists EBMUD, PG&E/Ava and Republic Services; waste customer service is 800-320-8077."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityofpleasantonca.gov/your-community/garbage-recycling/",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Pleasanton"
+      ],
+      "facts": [
+        "City waste page directs new residents to Pleasanton Garbage Service at 925-846-2042 to start collection."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.sanleandro.org/634/Residential-Garbage-Recycling-Service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Leandro"
+      ],
+      "facts": [
+        "Residential waste page identifies geographically separate ACI and WM service areas, provides a service-area map, and lists ACI 510-357-7282 and WM 510-613-8710. Oro Loma franchise is separately administered."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.unioncityca.gov/157/Waste-Collection-Programs-Services",
+      "checkedAt": "2026-10-02",
+      "access": "opened; redirected_to_unioncityca.gov",
+      "cities": [
+        "Union City"
+      ],
+      "facts": [
+        "City waste page distinguishes Republic Services garbage/billing (510-657-3500) from Tri-CED recycling and organics (510-429-8030); Republic direct billing began July 2025."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.antiochca.gov/207/Water-Services",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Antioch"
+      ],
+      "facts": [
+        "City water-service page supplies start/stop instructions and customer-service telephone 925-779-7060. Owner and renter documentation differs."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.brentwoodca.gov/government/finance-information-systems/utility-billing",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Brentwood"
+      ],
+      "facts": [
+        "City Utility Billing page covers municipal water, sewer and garbage accounts, including new service, with 925-516-5415. Address eligibility still needs confirmation."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.claytonca.gov/179/Code-Enforcement",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Clayton"
+      ],
+      "facts": [
+        "City code-enforcement utility section identifies CCWD for water and Republic Services for waste (925-685-4711). CCWD's own account page supplies the preferred account-opening phone."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityofconcord.org/483/Moving-to-Concord",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Concord"
+      ],
+      "facts": [
+        "City moving directory identifies CCWD water, MDRR waste (925-682-9113), PG&E delivery and MCE generation."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.danville.ca.gov/306/Utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Danville"
+      ],
+      "facts": [
+        "Town utilities page is the official directory linking EBMUD water and garbage/recycling service information; linked official department directory supplies Republic Services contact."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://elcerrito.gov/193/Curbside-Solid-Waste-Recycling",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "El Cerrito"
+      ],
+      "facts": [
+        "City page confirms East Bay Sanitary handles trash/green waste (510-237-4321) and city recycling uses 510-215-4350. The two have separate responsibilities."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.herculesca.gov/our-city/moving-to-hercules",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Hercules"
+      ],
+      "facts": [
+        "City moving directory names EBMUD and Republic Services (510-262-7100). Current MCE membership is independently confirmed from MCE's official service-area and 2025 enrollment pages."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.lovelafayette.org/services/utilities",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Lafayette"
+      ],
+      "facts": [
+        "City utilities directory names EBMUD water and Republic Services waste (925-685-4711). MCE membership independently checked."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.cityofmartinez.org/departments/water-system",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Martinez"
+      ],
+      "facts": [
+        "City water-system page confirms the municipal water service does not cover every Martinez address; some are served by CCWD. City billing and CCWD account pages provide account contacts."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.moraga.ca.us/299/Utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Moraga"
+      ],
+      "facts": [
+        "Town utilities directory identifies EBMUD, Republic Services, PG&E and MCE. Republic phone also cross-checked against official RecycleSmart member collection guidance."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.oakleyca.gov/219/Important-Phone-Numbers-Links",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Oakley"
+      ],
+      "facts": [
+        "City official phone/link directory lists Diablo Water District at 925-625-3798 and MDRR at 925-682-9113."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityoforinda.gov/325/Utility-Service-Providers",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Orinda"
+      ],
+      "facts": [
+        "City utility-provider directory identifies EBMUD, PG&E and Republic Services at 925-685-4711. Orinda is absent from MCE's current member-community list; no MCE provider row added."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.pinole.gov/our-community/utilities/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Pinole"
+      ],
+      "facts": [
+        "City utilities directory identifies EBMUD, PG&E and Republic/Richmond Sanitary, with waste service phone 510-262-7100."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.pittsburgca.gov/services/pittsburg-water/start-or-stop-service",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Pittsburg"
+      ],
+      "facts": [
+        "City water start/stop page gives 925-252-4940 and tenant owner-authorization/attendance requirements. Forms were not submitted and applicant eligibility was not tested."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.phillca.gov/1167/Utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Pleasant Hill"
+      ],
+      "facts": [
+        "City utilities page lists three potable-water providers: CCWD, EBMUD and Martinez municipal water; distinguishes Diablo Vista untreated irrigation water. It also identifies Republic (925-685-4711), PG&E and MCE."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.ci.richmond.ca.us/250/Utilities",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Richmond"
+      ],
+      "facts": [
+        "City utilities directory identifies EBMUD, PG&E and Richmond Sanitary/Republic. Current waste phone selected from the separate city engineering FAQ rather than older directory numbers."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.sanpabloca.gov/679/Public-Utilities",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Pablo"
+      ],
+      "facts": [
+        "City utilities directory lists EBMUD, PG&E and Richmond Sanitary Service. Waste phone omitted because city/provider references returned different numbers; residents receive the official directory link."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/public_works/storm_drainage_water/water_conservation",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "San Ramon"
+      ],
+      "facts": [
+        "City water-conservation page identifies two water providers, EBMUD and DSRSD; do not infer which provider serves a parcel from the city name."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.walnutcreekca.gov/i-want-to/learn-about/water-power",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Walnut Creek"
+      ],
+      "facts": [
+        "City water/power directory identifies EBMUD and CCWD serving different areas; exact water provider requires an address check."
+      ],
+      "limitations": [
+        "Facts were checked in official indexed text where noted; a failed direct fetch is not recorded as a successful form or account test."
+      ]
+    },
+    {
+      "url": "https://www.sfpuc.gov/accounts-services/account-services/start-or-stop-service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Francisco"
+      ],
+      "facts": [
+        "SFPUC start/stop page separates water/sewer accounts (415-551-3000) and Hetch Hetchy electricity accounts (415-551-4720), with distinct application processes."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Albany",
+        "Berkeley",
+        "Dublin",
+        "Emeryville",
+        "Fremont",
+        "Hayward",
+        "Livermore",
+        "Newark",
+        "Oakland",
+        "Piedmont",
+        "Pleasanton",
+        "San Leandro",
+        "Union City",
+        "Antioch",
+        "Brentwood",
+        "Clayton",
+        "Concord",
+        "Danville",
+        "El Cerrito",
+        "Hercules",
+        "Lafayette",
+        "Martinez",
+        "Moraga",
+        "Oakley",
+        "Orinda",
+        "Pinole",
+        "Pittsburg",
+        "Pleasant Hill",
+        "Richmond",
+        "San Pablo",
+        "San Ramon",
+        "Walnut Creek",
+        "San Francisco"
+      ],
+      "facts": [
+        "Residential start/stop/transfer workflow requests the service address and identification. The current page gives 877-660-6789 for assisted service; solar accounts have separate instructions. PG&E delivery is distinct from a CCA generation plan."
+      ],
+      "limitations": [
+        "No account created; no exact-address eligibility or appointment availability tested."
+      ]
+    },
+    {
+      "url": "https://avaenergy.org/terms/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Albany",
+        "Berkeley",
+        "Dublin",
+        "Emeryville",
+        "Fremont",
+        "Hayward",
+        "Livermore",
+        "Newark",
+        "Oakland",
+        "Piedmont",
+        "Pleasanton",
+        "San Leandro",
+        "Union City"
+      ],
+      "facts": [
+        "Terms enumerate Alameda County member cities excluding the City of Alameda. Ava supplies generation while PG&E supplies delivery and billing; support phone 833-699-3223."
+      ],
+      "limitations": [
+        "Member-city presence does not establish a particular customer's enrollment or rate."
+      ]
+    },
+    {
+      "url": "https://mcecleanenergy.org/faq/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Concord",
+        "Danville",
+        "El Cerrito",
+        "Hercules",
+        "Lafayette",
+        "Martinez",
+        "Moraga",
+        "Oakley",
+        "Pinole",
+        "Pittsburg",
+        "Pleasant Hill",
+        "Richmond",
+        "San Pablo",
+        "San Ramon",
+        "Walnut Creek"
+      ],
+      "facts": [
+        "MCE generation and PG&E distribution/billing are separate roles; moving customers establish the underlying PG&E service. MCE contact is 888-632-3674."
+      ],
+      "limitations": [
+        "No rate-savings claim or specific account-enrollment claim copied."
+      ]
+    },
+    {
+      "url": "https://mcecleanenergy.org/areas-we-serve/",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Antioch",
+        "Brentwood",
+        "Clayton",
+        "Concord",
+        "Danville",
+        "El Cerrito",
+        "Hercules",
+        "Lafayette",
+        "Martinez",
+        "Moraga",
+        "Oakley",
+        "Orinda",
+        "Pinole",
+        "Pittsburg",
+        "Pleasant Hill",
+        "Richmond",
+        "San Pablo",
+        "San Ramon",
+        "Walnut Creek"
+      ],
+      "facts": [
+        "Current Contra Costa member list includes Concord, Danville, El Cerrito, Hercules, Lafayette, Martinez, Moraga, Oakley, Pinole, Pittsburg, Pleasant Hill, Richmond, San Pablo, San Ramon and Walnut Creek, plus unincorporated areas. It does not list Antioch, Brentwood, Clayton or Orinda."
+      ],
+      "limitations": [
+        "Postal city names are not sufficient to determine city limits or service eligibility."
+      ]
+    },
+    {
+      "url": "https://mcecleanenergy.org/hercules-welcomes-mce-more-renewable-local-electricity-service-starting-april-2025/",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Hercules"
+      ],
+      "facts": [
+        "Official February 24, 2025 release describes Hercules enrollment from April 2025 with PG&E continuing infrastructure and billing."
+      ],
+      "limitations": [
+        "Historical enrollment announcement used only to corroborate present membership; historical prices and savings not reused."
+      ]
+    },
+    {
+      "url": "https://www.ebmud.com/customers/start-or-stop-service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Alameda",
+        "Albany",
+        "Berkeley",
+        "Emeryville",
+        "Hayward",
+        "Oakland",
+        "Piedmont",
+        "San Leandro",
+        "Danville",
+        "El Cerrito",
+        "Hercules",
+        "Lafayette",
+        "Moraga",
+        "Orinda",
+        "Pinole",
+        "Pleasant Hill",
+        "Richmond",
+        "San Pablo",
+        "San Ramon",
+        "Walnut Creek"
+      ],
+      "facts": [
+        "Water start/stop/transfer customer service is 866-403-2683. Online service is for single-family residential accounts; multifamily applicants contact customer service."
+      ],
+      "limitations": [
+        "The account page is not proof of universal coverage within every named city."
+      ]
+    },
+    {
+      "url": "https://www.ebmud.com/water/about-your-water/water-quality/water-treatment",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Alameda",
+        "Albany",
+        "Berkeley",
+        "El Cerrito",
+        "Emeryville",
+        "Moraga",
+        "Oakland",
+        "Orinda",
+        "Piedmont",
+        "Richmond",
+        "San Leandro"
+      ],
+      "facts": [
+        "Orinda drinking-water treatment plant serves all or parts of Alameda, Albany, Berkeley, El Cerrito, Emeryville, Moraga, Oakland, Orinda, Piedmont, Richmond and San Leandro."
+      ],
+      "limitations": [
+        "Treatment-plant coverage is corroborating city-level evidence, not a parcel-level service map."
+      ]
+    },
+    {
+      "url": "https://www.ebmud.com/about-us/construction-and-maintenance/construction-my-neighborhood/west-hills-northern-pipelines",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Oakland",
+        "Berkeley",
+        "Albany",
+        "El Cerrito",
+        "Richmond",
+        "San Pablo",
+        "Pinole",
+        "Hercules"
+      ],
+      "facts": [
+        "Current EBMUD water-pipeline project description identifies service communities including north Oakland, Berkeley, Albany, El Cerrito, Richmond, San Pablo, Pinole and Hercules."
+      ],
+      "limitations": [
+        "Construction timing is outside this directory; no project dates reproduced."
+      ]
+    },
+    {
+      "url": "https://acwd.org/117/Starting-Stopping-Service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Fremont",
+        "Newark",
+        "Union City"
+      ],
+      "facts": [
+        "ACWD official start/stop page serves Fremont, Newark and Union City and gives 510-668-4200."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.dsrsd.com/Residents/My-Account-Residential/Start-or-Stop-Service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Dublin",
+        "San Ramon"
+      ],
+      "facts": [
+        "New water accounts can use an online application or PDF; stopping service requires customer service at 925-828-8524."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.ccwater.com/572/Open-or-Close-an-Account",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Clayton",
+        "Concord",
+        "Martinez",
+        "Pleasant Hill",
+        "Walnut Creek"
+      ],
+      "facts": [
+        "The current account-opening and closing page directs customers to 925-688-8000 and requires advance notice. This number takes precedence over older city-directory customer-service numbers."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://ccwater.com/289/Service-Area-Map",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Clayton",
+        "Concord",
+        "Martinez",
+        "Pleasant Hill",
+        "Walnut Creek"
+      ],
+      "facts": [
+        "CCWD's retail treated-water area includes Clayton, Concord and portions of Martinez, Pleasant Hill and Walnut Creek, plus other unincorporated communities. Municipal systems supplied wholesale are not automatically CCWD retail account customers."
+      ],
+      "limitations": [
+        "The map was not used to assign individual addresses."
+      ]
+    },
+    {
+      "url": "https://www.alamedamp.com/239/Start-Stop-Service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Alameda"
+      ],
+      "facts": [
+        "AMP is Alameda's municipal electricity provider and lists 510-748-3900 for starting/stopping service."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.alamedaca.gov/Departments/Public-Works-Department/Zero-Waste-Program-and-Services",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Alameda"
+      ],
+      "facts": [
+        "ACI is the city's franchised residential hauler; 510-483-1400."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.amadorvalleyindustries.com/contact-us",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Dublin"
+      ],
+      "facts": [
+        "AVI customer service/start-service entry lists 925-479-9545; its official home page identifies Dublin's waste franchise."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.amadorvalleyindustries.com/",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Dublin"
+      ],
+      "facts": [
+        "AVI identifies itself as Dublin's franchised compost, recycling and garbage collector and invites new residents to contact it to start service."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.hayward-ca.gov/services/city-services/water-sewer-customer-service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Hayward"
+      ],
+      "facts": [
+        "Hayward municipal water customer service is 510-583-4600; page supplies start/stop instructions."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://hayward-ca.gov/services/city-services/solid-waste-and-recycling-customer-support",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Hayward"
+      ],
+      "facts": [
+        "WM customer service is 510-537-5500; residential recycling contacts Tri-CED at 510-537-9963."
+      ],
+      "limitations": [
+        "Page contains older pandemic-office text; office-hours and in-person availability were not republished."
+      ]
+    },
+    {
+      "url": "https://www.livermoreca.gov/departments/administrative-services/finance/utility-billing/start-or-stop-service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Livermore"
+      ],
+      "facts": [
+        "The city explicitly lists Livermore Municipal Water and Cal Water, links Find My Provider, and gives 925-960-4320 for municipal water billing."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.calwater.com/start-stop/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Livermore"
+      ],
+      "facts": [
+        "Cal Water provides district-based start/stop/transfer service options; users select the applicable district."
+      ],
+      "limitations": [
+        "No district phone or address-specific coverage inferred."
+      ]
+    },
+    {
+      "url": "https://www.livermoresanitation.com/",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Livermore"
+      ],
+      "facts": [
+        "Official service provider site lists customer support at 925-449-7300; city utilities directory confirms the municipal waste-provider assignment."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.oaklandrecycles.com/services/service-rates/",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Oakland"
+      ],
+      "facts": [
+        "Official city/provider partnership directs new service to WM at 510-613-8710, distinguishes trash/compost from CWS residential recycling."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.oaklandrecycles.com/contact/",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "Oakland"
+      ],
+      "facts": [
+        "Official partnership contact information distinguishes WM residential trash/compost customer service from CWS residential recycling at 510-625-5263."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityofpleasantonca.gov/our-government/pleasanton-water/utility-billing/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Pleasanton"
+      ],
+      "facts": [
+        "Pleasanton Water portal allows start/stop requests; city customer service is 925-931-5500."
+      ],
+      "limitations": [
+        "Fees, deposits and processing times were not copied into the directory."
+      ]
+    },
+    {
+      "url": "https://www.sanleandro.org/BusinessDirectoryII.aspx?BID=61",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "San Leandro"
+      ],
+      "facts": [
+        "City resource directory identifies EBMUD as the start/stop-water-service contact."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.antiochca.gov/1074/SB-1383-Implementation",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Antioch"
+      ],
+      "facts": [
+        "City identifies Republic Services as its franchised waste hauler and describes residential organics service."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.republicservices.com/sites/default/files/legacy_documents/Muni/California/Antioch/Antioch-Residential-Newsletter-November-2025.pdf",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Antioch"
+      ],
+      "facts": [
+        "Official Republic residential newsletter confirms Antioch customer-service phone 925-685-4711."
+      ],
+      "limitations": [
+        "Only the contact number corroborates the directory; no 2025 holiday schedule or dated offer reused."
+      ]
+    },
+    {
+      "url": "https://danville.ca.gov/m/directory/department?did=73",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index",
+      "cities": [
+        "Danville"
+      ],
+      "facts": [
+        "Official town department directory lists Republic Services at 925-685-4711."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityofmartinez.org/departments/finance/water-billing",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Martinez",
+        "Pleasant Hill"
+      ],
+      "facts": [
+        "City water billing provides account application/termination forms, 925-372-3575, and owner/tenant documentation instructions."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.cityofmartinez.org/government/sustainability-resources/garbage-and-recycling-services/curbside-collection-services",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_error",
+      "cities": [
+        "Martinez"
+      ],
+      "facts": [
+        "City curbside collection page identifies Republic Services and 925-685-4711 for residential collection/service changes."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.diablowater.gov/start-and-stop-service",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "Oakley"
+      ],
+      "facts": [
+        "District provides residential start/stop forms and customer service 925-625-3798."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.pittsburgca.gov/our-city/living/environmental-services/solid-waste",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Pittsburg"
+      ],
+      "facts": [
+        "City solid-waste page identifies MDRR for garbage/recycling service, with 925-682-9113."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.ci.richmond.ca.us/m/faq?cat=38",
+      "checkedAt": "2026-10-02",
+      "access": "opened_via_redirect",
+      "cities": [
+        "Richmond"
+      ],
+      "facts": [
+        "Engineering FAQ gives EBMUD 866-403-2683 and Republic Services 510-262-7100."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/public_works/garbage_and_recycling",
+      "checkedAt": "2026-10-02",
+      "access": "opened_and_official_search_index",
+      "cities": [
+        "San Ramon"
+      ],
+      "facts": [
+        "City garbage/recycling page identifies Alameda County Industries of San Ramon at 925-380-9480."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.walnutcreekca.gov/government/departments/e-c-o-sustainability/reduce-waste",
+      "checkedAt": "2026-10-02",
+      "access": "official_search_index; direct_open_403",
+      "cities": [
+        "Walnut Creek",
+        "Danville",
+        "Lafayette",
+        "Moraga",
+        "Orinda"
+      ],
+      "facts": [
+        "City explains RecycleSmart member communities and Republic Services collection at 925-685-4711; MDRR processing is a different role."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://cleanpowersf.org/faq",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Francisco"
+      ],
+      "facts": [
+        "CleanPowerSF provides generation; PG&E continues billing, delivery and move-in/move-out service. Program customer service is 415-554-0773."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.sfpuc.gov/programs/clean-energy/hetch-hetchy-power",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Francisco"
+      ],
+      "facts": [
+        "Hetch Hetchy Power serves municipal facilities, redevelopment areas and eligible large developments. This is a limited service footprint, not universal household enrollment across San Francisco."
+      ],
+      "limitations": []
+    },
+    {
+      "url": "https://www.recology.com/recology-san-francisco/contact/",
+      "checkedAt": "2026-10-02",
+      "access": "opened",
+      "cities": [
+        "San Francisco"
+      ],
+      "facts": [
+        "Recology provides a provider-identification contact at 415-330-1300. Sunset Scavenger lists 415-330-1300 and Golden Gate lists 415-626-4000; both collect residential waste in their respective areas."
+      ],
+      "limitations": [
+        "No street-by-street boundary or building-account holder inferred."
+      ]
+    }
+  ]
+}

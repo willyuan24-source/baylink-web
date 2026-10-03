@@ -25,7 +25,7 @@ export const READER_PATHS = [
       { slug: 'bay-area-first-doctor-insurance-network-guide', label: '第一次找医生', text: '核对具体保险网络、新患者名额和转诊流程。' },
       { slug: 'bay-area-k12-midyear-enrollment-guide', label: '孩子中途转学', text: '找对学区、交接记录、核对入学确认与首日安排。' },
       { slug: 'bay-area-phone-bank-first-bill-guide', label: '手机、银行和首张账单', text: '先打通联系与付款，再核对费用和自动续费。' },
-      { slug: 'bay-area-311-211-local-help-guide', label: '遇到问题去哪里求助', text: '分清市政报修、资源转介与紧急求助入口。' },
+      { slug: 'bay-area-city-utilities-internet-phone-directory', label: '按城市查水电垃圾', text: '找到负责的公司、电话和搬家办理入口。' },
     ],
   },
   {

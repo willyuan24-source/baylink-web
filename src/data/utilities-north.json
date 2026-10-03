@@ -1,0 +1,1102 @@
+[
+  {
+    "city": "Belvedere",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mill Valley Refuse Service",
+        "url": "https://www.millvalleyrefuse.com/support/",
+        "phone": "415-457-9760",
+        "note": "新开户先致电；建立账户后再注册网上缴费。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofbelvedere.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Corte Madera",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mill Valley Refuse Service",
+        "url": "https://www.millvalleyrefuse.com/support/",
+        "phone": "415-457-9760",
+        "note": "新开户先致电；建立账户后再注册网上缴费。"
+      }
+    ],
+    "municipalUrl": "https://www.townofcortemadera.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fairfax",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Marin Sanitary Service",
+        "url": "https://marinsanitaryservice.com/support/contact-us/",
+        "phone": "415-456-2601"
+      }
+    ],
+    "municipalUrl": "https://www.townoffairfax.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Larkspur",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Marin Sanitary Service",
+        "url": "https://marinsanitaryservice.com/support/contact-us/",
+        "phone": "415-456-2601"
+      }
+    ],
+    "municipalUrl": "https://www.cityoflarkspur.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Mill Valley",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mill Valley Refuse Service",
+        "url": "https://www.millvalleyrefuse.com/support/",
+        "phone": "415-457-9760",
+        "note": "新开户先致电；建立账户后再注册网上缴费。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofmillvalley.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Novato",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "North Marin Water District",
+        "url": "https://nmwd.com/account/start-service/",
+        "phone": "415-897-4133",
+        "note": "Novato 水务开户；搬出时另办理 Stop Service。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.novato.gov/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Ross",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Marin Sanitary Service",
+        "url": "https://marinsanitaryservice.com/support/contact-us/",
+        "phone": "415-456-2601"
+      }
+    ],
+    "municipalUrl": "https://www.townofross.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Anselmo",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Marin Sanitary Service",
+        "url": "https://marinsanitaryservice.com/support/contact-us/",
+        "phone": "415-456-2601"
+      }
+    ],
+    "municipalUrl": "https://www.townofsananselmo.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Rafael",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Marin Sanitary Service",
+        "url": "https://marinsanitaryservice.com/support/contact-us/",
+        "phone": "415-456-2601"
+      }
+    ],
+    "municipalUrl": "https://www.cityofsanrafael.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sausalito",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Bay Cities Refuse",
+        "url": "https://www.baycitiesrefuse.com/",
+        "phone": "415-332-3646"
+      }
+    ],
+    "municipalUrl": "https://www.sausalito.gov/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Tiburon",
+    "county": "Marin County",
+    "water": [
+      {
+        "name": "Marin Water (Marin Municipal Water District)",
+        "url": "https://marinwater.org/customer-services/start-stop-service/",
+        "phone": "415-945-1400",
+        "note": "在线提交开通或停用表格；建议提前 1–2 个工作日。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mill Valley Refuse Service",
+        "url": "https://www.millvalleyrefuse.com/support/",
+        "phone": "415-457-9760",
+        "note": "新开户先致电；建立账户后再注册网上缴费。"
+      }
+    ],
+    "municipalUrl": "https://www.townoftiburon.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "American Canyon",
+    "county": "Napa County",
+    "water": [
+      {
+        "name": "City of American Canyon",
+        "url": "https://www.americancanyon.gov/Live/Utilities-Services/Utility-Payment-and-Accounts",
+        "phone": "707-647-4364",
+        "note": "住宅水务开通或停用；按页面准备租约或产权及身份证明。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology American Canyon",
+        "url": "https://www.recology.com/recology-american-canyon/contact/",
+        "phone": "707-552-3110"
+      }
+    ],
+    "municipalUrl": "https://www.americancanyon.gov/Live/Utilities-Services/Utility-Payment-and-Accounts",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Calistoga",
+    "county": "Napa County",
+    "water": [
+      {
+        "name": "City of Calistoga",
+        "url": "https://www.calistogaca.gov/Services/Utility-Billing",
+        "phone": "707-942-2801",
+        "note": "开通或停用水与污水账户，请联系市 Utility Billing。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Upper Valley Disposal & Recycling",
+        "url": "https://uvds.com/support/",
+        "phone": "707-963-7988"
+      }
+    ],
+    "municipalUrl": "https://www.calistogaca.gov/Services/Utility-Billing",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Napa",
+    "county": "Napa County",
+    "water": [
+      {
+        "name": "City of Napa",
+        "url": "https://www.cityofnapa.org/FormCenter/Finance-8/Water-Application-Start-or-Stop-Water-Se-224",
+        "phone": "707-257-9508",
+        "note": "用于已有住宅水表的开户或停用；新装水表另走工程申请。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Napa Recycling & Waste Services",
+        "url": "https://naparecycling.com/contact-us/",
+        "phone": "707-255-5200"
+      }
+    ],
+    "municipalUrl": "https://www.cityofnapa.org/809/Utilities-Department",
+    "notes": "本行为 Napa 市；Napa County 非建制地址须另查水务和垃圾服务区。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "St. Helena",
+    "county": "Napa County",
+    "water": [
+      {
+        "name": "City of St. Helena",
+        "url": "https://cityofsthelena.gov/349/Utility-Billing-Services-Division",
+        "phone": "707-968-2745",
+        "note": "水与污水开户或停用，官网要求提前 3 个工作日联系。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Upper Valley Disposal & Recycling",
+        "url": "https://uvds.com/support/",
+        "phone": "707-963-7988"
+      }
+    ],
+    "municipalUrl": "https://cityofsthelena.gov/349/Utility-Billing-Services-Division",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Yountville",
+    "county": "Napa County",
+    "water": [
+      {
+        "name": "Town of Yountville",
+        "url": "https://www.townofyountville.gov/m/faq?cat=17",
+        "phone": "707-944-8851",
+        "note": "开户或停用先联系 Finance；网上缴费注册不等于开通水务。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Upper Valley Disposal & Recycling",
+        "url": "https://uvds.com/support/",
+        "phone": "707-963-7988"
+      }
+    ],
+    "municipalUrl": "https://www.townofyountville.gov/226/Water-Wastewater-Utilities",
+    "notes": "2026 年 10 月 1 日起，水与污水网上缴费改用 Xpress Bill Pay。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cloverdale",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Cloverdale",
+        "url": "https://www.cloverdale.net/586/Water-Sewer-Services",
+        "note": "开通和停用须提交书面表格；市官网说明不接受电话直接办理。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.cloverdale.net/586/Water-Sewer-Services",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cotati",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Cotati",
+        "url": "https://www.cotaticity.gov/345/Water-Sewer-Services",
+        "phone": "707-665-3631",
+        "note": "开户至少提前 2 个工作日；租客还需业主提交同意表。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.cotaticity.gov/345/Water-Sewer-Services",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Healdsburg",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Healdsburg Utilities",
+        "url": "https://www.healdsburg.gov/172/Utility-Billing-Customer-Service",
+        "phone": "707-431-3307",
+        "note": "水、电、污水通过市 Utility Billing 联系。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "Healdsburg Electric",
+        "url": "https://www.healdsburg.gov/172/Utility-Billing-Customer-Service",
+        "phone": "707-431-3307",
+        "note": "市营电力开户与水务共用此入口；不套用 PG&E／SCP 电力开户。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.healdsburg.gov/172/Utility-Billing-Customer-Service",
+    "notes": "本行电力安排适用于市营服务范围；仅有 Healdsburg 邮寄地址仍应先核对实际地址。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Petaluma",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Petaluma",
+        "url": "https://xeweb.cityofpetaluma.net/Default.aspx?Build=SY.CSHome",
+        "phone": "707-778-4350",
+        "note": "此为市水务客户门户；首次开户或搬家先联系 Utility Billing，缴费登录不等于已开户。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://cityofpetaluma.org/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Rohnert Park",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Rohnert Park",
+        "url": "https://www.rpcity.ca.gov/564/Utility-Billing",
+        "phone": "707-585-6750"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.rpcity.ca.gov/564/Utility-Billing",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Santa Rosa",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Santa Rosa",
+        "url": "https://www.srcity.org/814/Starting-or-Stopping-Service",
+        "phone": "707-543-3150",
+        "note": "水务开通或停用至少提前 1 个工作日联系。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Sonoma Marin",
+        "url": "https://www.recology.com/recology-sonoma-marin/contact/",
+        "phone": "800-243-0291"
+      }
+    ],
+    "municipalUrl": "https://www.srcity.org/814/Starting-or-Stopping-Service",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sebastopol",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Sebastopol",
+        "url": "https://www.cityofsebastopol.gov/our-community/utilities/",
+        "phone": "707-823-7863"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Sonoma County Resource Recovery (SCRR)",
+        "url": "https://www.sonomacorr.com/sebastopol-support/",
+        "phone": "707-795-7470",
+        "note": "2025 年 7 月 1 日起接替 Recology；表格可选 New Service 或 Closing an Account。"
+      }
+    ],
+    "municipalUrl": "https://www.cityofsebastopol.gov/our-community/utilities/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sonoma",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "City of Sonoma",
+        "url": "https://www.sonomawater.org/faq",
+        "note": "此链接是官方零售供水商转介目录；请找 City of Sonoma 办理，Sonoma Water 本身不是市内住宅开户窗口。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Sonoma Garbage Collectors",
+        "url": "https://sonomagarbage.com/contact-us/",
+        "phone": "707-996-7555"
+      }
+    ],
+    "municipalUrl": "https://www.sonomacity.org/",
+    "notes": "Sonoma 市与 Sonoma County 不是同一服务范围；市外 Sonoma Valley 地址须另查供水区和垃圾承包商。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Windsor",
+    "county": "Sonoma County",
+    "water": [
+      {
+        "name": "Town of Windsor",
+        "url": "https://www.townofwindsor.ca.gov/139/Starting-Stopping-Service",
+        "phone": "707-838-1004",
+        "note": "水务开通或停用至少提前 1 个工作日联系。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "Sonoma Clean Power",
+        "url": "https://sonomacleanpower.org/frequently-asked-questions",
+        "phone": "855-202-2139",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Sonoma County Resource Recovery (SCRR)",
+        "url": "https://www.sonomacorr.com/contact-us-2/",
+        "phone": "707-795-7470"
+      }
+    ],
+    "municipalUrl": "https://www.townofwindsor.ca.gov/139/Starting-Stopping-Service",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Benicia",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Benicia",
+        "url": "https://www.ci.benicia.ca.us/index.asp?DE=F5C74958-C9B6-4C26-A69E-68A5C1E2844C&SEC=801B53CB-FFE2-4AC7-AD22-6B3E43FF3011",
+        "phone": "707-746-4225"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.ci.benicia.ca.us/faq",
+        "phone": "707-747-0608",
+        "note": "市官方 FAQ 列有垃圾服务商与电话；开户、转户或停用联系 Republic Services。"
+      }
+    ],
+    "municipalUrl": "https://www.ci.benicia.ca.us/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Dixon",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Dixon",
+        "url": "https://www.cityofdixonca.gov/departments/utilities/Water",
+        "phone": "707-678-7008",
+        "note": "先查本页供水区地图；此入口仅办理市营供水地址。"
+      },
+      {
+        "name": "California Water Service - Dixon District",
+        "url": "https://www.calwater.com/district/dixon/",
+        "phone": "707-678-5928",
+        "note": "仅限 Cal Water 服务区；不能只按 Dixon 城市名选供水商。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Dixon",
+        "url": "https://www.recology.com/recology-dixon/contact/",
+        "phone": "707-678-4026"
+      }
+    ],
+    "municipalUrl": "https://www.cityofdixonca.gov/departments/utilities/Water",
+    "notes": "Dixon 有两家住宅供水单位，先用完整地址核对服务区。",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fairfield",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Fairfield",
+        "url": "https://www.fairfield.ca.gov/services/city-resources/water-connection",
+        "phone": "707-428-7346"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services",
+        "url": "https://www.republicservices.com/municipality/fairfield-ca",
+        "phone": "707-437-8900"
+      }
+    ],
+    "municipalUrl": "https://www.fairfield.ca.gov/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Rio Vista",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Rio Vista",
+        "url": "https://www.riovistacity.com/finance/page/i-am-owner-0",
+        "phone": "707-374-6451",
+        "note": "市网页可选 Start／End Service；致电选项 1，租客先确认账户持有人安排。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Mt. Diablo Resource Recovery",
+        "url": "https://mdrr.com/rio-vista/",
+        "phone": "707-374-5644"
+      }
+    ],
+    "municipalUrl": "https://www.riovistacity.com/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Suisun City",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "Suisun City Finance / Suisun-Solano Water Authority",
+        "url": "https://www.suisun.com/Departments/Finance-Department/Start-water-service",
+        "phone": "707-421-7320",
+        "note": "开通、停用和账单联系市 Finance；供水由 SSWA／Solano Irrigation District 协作提供。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Republic Services / Solano Garbage",
+        "url": "https://www.suisun.com/Departments/Public-Works/Recycling-Solid-Waste-Information",
+        "phone": "707-437-8900"
+      }
+    ],
+    "municipalUrl": "https://www.suisun.com/Departments/Finance-Department/Start-water-service",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Vacaville",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Vacaville",
+        "url": "https://www.cityofvacaville.gov/government/utilities/water",
+        "phone": "707-449-5128"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Vacaville Solano",
+        "url": "https://www.recology.com/recology-vacaville-solano/contact/",
+        "phone": "707-448-2945"
+      }
+    ],
+    "municipalUrl": "https://www.cityofvacaville.gov/",
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Vallejo",
+    "county": "Solano County",
+    "water": [
+      {
+        "name": "City of Vallejo",
+        "url": "https://www.vallejo.gov/our_city/departments_divisions/water_department",
+        "phone": "707-648-4345",
+        "note": "选择 Start／Stop Water Service；工程接管申请不是搬家开户。"
+      }
+    ],
+    "electric": [
+      {
+        "name": "PG&E",
+        "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "phone": "877-660-6789",
+        "note": "电力开户、停用和搬家转户入口；先核对完整服务地址。"
+      },
+      {
+        "name": "MCE",
+        "url": "https://mcecleanenergy.org/faq/",
+        "phone": "888-632-3674",
+        "note": "这是发电服务选择；线路、搬家开户和账单仍由 PG&E 处理。"
+      }
+    ],
+    "waste": [
+      {
+        "name": "Recology Vallejo",
+        "url": "https://www.recology.com/recology-vallejo/contact/",
+        "phone": "707-552-3110"
+      }
+    ],
+    "municipalUrl": "https://www.vallejo.gov/",
+    "verifiedAt": "2026-10-02"
+  }
+]

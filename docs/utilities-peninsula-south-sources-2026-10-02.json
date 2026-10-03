@@ -1,0 +1,1539 @@
+{
+  "verifiedAt": "2026-10-02",
+  "scope": {
+    "counties": {
+      "San Mateo": 20,
+      "Santa Clara": 15
+    },
+    "incorporatedCities": 35,
+    "additionalUnincorporatedRows": 0,
+    "services": [
+      "residential water",
+      "electric account/distribution and generation distinction",
+      "residential waste collection/account contact"
+    ]
+  },
+  "method": "Reviewed official municipal, county, water district, utility and contracted hauler pages using live web search and direct opens. Current indexed official page text was used where direct opens returned 403. This is a contact and routing directory, not an address-level eligibility determination. No account was created, no customer details entered, and no fee or processing-time promise made.",
+  "sharedSources": [
+    {
+      "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+      "facts": [
+        "Official residential start, stop and transfer route. PG&E is the distribution/account provider in the listed non-municipal electric cities.",
+        "Preferred account-start/stop/transfer phone on PG&E's current service page: 1-877-660-6789. The general 1-800-743-5000 number is not used as the primary signup phone."
+      ],
+      "access": "Official indexed page text reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://sanjosecleanenergy.org/understanding-your-bill/",
+      "facts": [
+        "PG&E handles delivery and the combined bill; San José Clean Energy handles generation. Customer service: 833-432-2454; PG&E billing questions: 1-800-743-5000."
+      ],
+      "access": "Official indexed full page text reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.westlightenergy.org/news-releases/peninsula-clean-energy-rebrands-as-westlight-energy-name-change-will-appear-on-utility-bills-starting-july-17/",
+      "facts": [
+        "Official release dated July 1, 2026: Peninsula Clean Energy began operating as WestLight Energy that day; bill naming changed from July 17. Covers San Mateo County and Los Banos. Customer service: 1-866-966-0110."
+      ],
+      "access": "Official indexed full release reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.westlightenergy.org/support/residential-support/",
+      "facts": [
+        "Current residential contact and PG&E account-management link. Old Peninsula Clean Energy URL redirects here."
+      ],
+      "access": "Opened current page and reviewed page body.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.svcleanenergy.org/faqs/",
+      "facts": [
+        "Lists 12 incorporated Santa Clara County members plus unincorporated county. Explains generation vs PG&E delivery, billing and new service requests."
+      ],
+      "access": "Official indexed full page reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.svcleanenergy.org/about-2/communities/",
+      "facts": [
+        "Member list explicitly includes Milpitas and all 12 cities/towns represented with SVCE in this dataset."
+      ],
+      "access": "Official indexed full page reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.calwater.com/start/",
+      "facts": [
+        "Current start-service route asks customers to choose their district."
+      ],
+      "access": "Official indexed page text reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.calwater.com/district/bayshore/",
+      "facts": [
+        "Current Bayshore district coverage includes Colma, Daly City, San Carlos, San Mateo and South San Francisco; phone 650-558-7800."
+      ],
+      "access": "Official indexed full district page reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.calwater.com/district/bear-gulch/",
+      "facts": [
+        "Current district lists Atherton, Portola Valley, Woodside, Los Trancos and portions of Menlo Park and Redwood City. Phone 650-561-9709 replaces older 650-367-6800 directories."
+      ],
+      "access": "Official indexed full district page reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.calwater.com/district/los-altos-suburban/",
+      "facts": [
+        "Current district serves Los Altos and parts of Cupertino, Los Altos Hills, Mountain View and Sunnyvale. Phone 650-917-0152."
+      ],
+      "access": "Opened page; district description and current contact reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.midpeninsulawater.org/about",
+      "facts": [
+        "District covers most of Belmont and small portions of San Carlos, Redwood City and unincorporated San Mateo County."
+      ],
+      "access": "Official indexed page text reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.midpeninsulawater.org/contact",
+      "facts": [
+        "Contact form accepts start/stop requests with a service address and phone; 650-591-8941."
+      ],
+      "access": "Opened and reviewed full contact page.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.recology.com/recology-san-mateo-county/contact/",
+      "facts": [
+        "Lists Belmont, Burlingame, East Palo Alto, Foster City, Menlo Park, Redwood City, San Carlos, San Mateo and Hillsborough. Phone 650-595-3900."
+      ],
+      "access": "Official indexed full contact page reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://ssfscavenger.com/about-us/awards/",
+      "facts": [
+        "Operator's current footer lists South San Francisco, Millbrae and Brisbane service; customer service 650-589-4020."
+      ],
+      "access": "Official operator indexed page text reviewed.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.smcenergywatch.com/waste-reduction/collection-services/",
+      "facts": [
+        "San Mateo County Sustainability Department hauler directory and address map; verifies Recology of the Coast, Recology San Mateo County, Republic and South San Francisco Scavenger contact routes."
+      ],
+      "access": "Opened and reviewed county page and outbound links.",
+      "checkedAt": "2026-10-02"
+    },
+    {
+      "url": "https://www.sjwater.com/start-or-stop-water-service/",
+      "facts": [
+        "Official start/stop route, 408-279-7900. Automated receipt is not completed-service confirmation."
+      ],
+      "access": "Official indexed full page reviewed.",
+      "checkedAt": "2026-10-02"
+    }
+  ],
+  "cities": [
+    {
+      "city": "Atherton",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bear Gulch"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "GreenWaste Recovery"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.athertonca.gov/705/Utilities",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.athertonca.gov/241/Garbage-Recycling"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.athertonca.gov/254/Water",
+          "fact": "Current town directory identifies Cal Water and phone 650-561-9709; old ci.atherton.ca.us redirected to athertonca.gov.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.athertonca.gov/241/Garbage-Recycling",
+          "fact": "Current town page identifies GreenWaste Recovery and 650-798-5999, with operator service-area links.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Belmont",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "Mid-Peninsula Water District",
+          "California Water Service — Bayshore"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.belmont.gov/",
+        "https://www.midpeninsulawater.org/contact",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.belmont.gov/home/showdocument?id=20487&t=638591622715204128",
+          "fact": "Official resident handbook lists MPWD as primary and Cal Water for a portion; Recology waste.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Brisbane",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Brisbane Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "South San Francisco Scavenger Company"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.brisbaneca.gov/518/Online-Services",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://ssfscavenger.com/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.brisbaneca.gov/m/faq",
+          "fact": "Current city FAQ has new water account setup and Utility Billing 415-508-2154.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.brisbaneca.gov/CivicAlerts.aspx?AID=308&ARC=557",
+          "fact": "2026 city notice confirms South San Francisco Scavenger.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Burlingame",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Burlingame Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.burlingame.org/680/Utilities",
+        "https://burlingame.org/1140/FAQs",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.burlingame.org/680/Utilities",
+          "fact": "City water, Recology San Mateo County and electricity utility directory.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://burlingame.org/1140/FAQs",
+          "fact": "City FAQ provides water setup form, email and in-person route.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Colma",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bayshore"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Republic Services"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.colma.ca.gov/",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.colma.ca.gov/question/how-do-i-find-my-trash-and-recycling-pickup-day/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.colma.ca.gov/question/how-do-i-find-my-trash-and-recycling-pickup-day/",
+          "fact": "Town directs residents to Republic's address-based service schedule.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Daly City",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Daly City Water",
+          "California Water Service — Bayshore"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Republic Services"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://dalycity.org/631/Residents",
+        "https://www.dalycity.org/m/faq?cat=38",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://dalycity.org/1139/Republic-Services"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.dalycity.org/m/faq?cat=38",
+          "fact": "Water account FAQ lists city Utility Billing 650-991-8082. Older wording also refers to garbage billing.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://dalycity.org/1139/Republic-Services",
+          "fact": "More specific current city page directs residential garbage start/stop, billing and address changes to Republic; 650-756-1130.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "East Palo Alto",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of East Palo Alto Water System",
+          "Palo Alto Park Mutual Water Company",
+          "O’Connor Tract Co-operative Water Company"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.cityofepa.org/publicworks/page/utilities",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.cityofepa.org/publicworks/page/utilities",
+          "fact": "City currently lists its water system operated by Veolia at 650-322-2083, plus Palo Alto Park Mutual and O'Connor Tract, with map; Recology San Mateo County for waste.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Foster City",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "Estero Municipal Improvement District / City of Foster City"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.fostercity.org/470/Water-Wastewater",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.fostercity.org/470/Water-Wastewater",
+          "fact": "City page includes start/restart application and stop-service form. Current form/fee schedules should be used rather than legacy form prices.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Half Moon Bay",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "Coastside County Water District"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Republic Services"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.halfmoonbay.gov/527/Recycling-Organics-and-Garbage",
+        "https://coastsidewater.org/customer-services/opening-account/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.republicservices.com/municipality/half-moon-bay-ca"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://coastsidewater.org/customer-services/opening-account/",
+          "fact": "CCWD account-opening route reached via current official Customer Services page.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.halfmoonbay.gov/527/Recycling-Organics-and-Garbage",
+          "fact": "City confirms Republic franchise. City page's 650-592-2411 is described for bulky pickups, so not presented as the generic new-account number.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Hillsborough",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "Town of Hillsborough Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.hillsborough.net/187/Starting-Stopping-Water-Service",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.hillsborough.net/187/Starting-Stopping-Water-Service",
+          "fact": "Current start/stop page and water billing line 650-375-7402.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Menlo Park",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "Menlo Park Municipal Water",
+          "California Water Service — Bear Gulch",
+          "O’Connor Tract Co-operative Water Company",
+          "Palo Alto Park Mutual Water Company"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+        "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-billing-and-assistance",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+          "fact": "Four retailers: municipal, Cal Water, O'Connor Tract (small Willows area), Palo Alto Park Mutual (few Menalto Avenue addresses).",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-billing-and-assistance",
+          "fact": "Current municipal move-in and billing guidance; 844-360-7733.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Millbrae",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Millbrae Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "South San Francisco Scavenger Company"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.ci.millbrae.ca.us/396/Utility-Services",
+        "https://www.ci.millbrae.ca.us/400/Water-Sewer-Service",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://ssfscavenger.com/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.ci.millbrae.ca.us/396/Utility-Services",
+          "fact": "City utility service portal and water account links.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.ci.millbrae.ca.us/400/Water-Sewer-Service",
+          "fact": "Municipal water/sewer account services.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Pacifica",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "North Coast County Water District"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology of the Coast"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.cityofpacifica.org/departments/public-works",
+        "https://www.nccwd.com/start-or-stop-service",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-of-the-coast/pacifica/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://bawsca.org/members/profiles/north-coast-county-wd",
+          "fact": "Water-agency profile explains NCCWD boundaries approximately match Pacifica and distinguishes water conveyed to San Bruno as a public customer.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.nccwd.com/start-or-stop-service",
+          "fact": "Current district start/stop route reached from official home page, 650-355-3462.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Portola Valley",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bear Gulch"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "GreenWaste Recovery"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.portolavalley.net/community/important-contact-information",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.greenwaste.com/service-areas/portola-valley/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.portolavalley.net/community/important-contact-information",
+          "fact": "Town directory identifies water/waste contacts but retains an outdated separate Los Trancos water entry; current Cal Water district page takes precedence.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.greenwaste.com/service-areas/portola-valley/",
+          "fact": "Incorporated-town service page and 650-568-9900. Do not substitute nearby unincorporated service plan.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Redwood City",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Redwood City Water",
+          "California Water Service — Bear Gulch",
+          "Mid-Peninsula Water District"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+        "https://www.calwater.com/start/",
+        "https://www.midpeninsulawater.org/contact",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+          "fact": "Current city page: water 650-780-7210; garbage billing moved directly to Recology effective January 1, 2026.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.redwoodcity.org/departments/public-works/environmental-initiatives/energy/peninsula-clean-energy",
+          "fact": "City corroborates July 1, 2026 WestLight name change.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "San Bruno",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "City of San Bruno Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Bruno"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://sanbruno.ca.gov/270/Utility-Billing",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-bruno/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://sanbruno.ca.gov/270/Utility-Billing",
+          "fact": "Water account setup and separation from Recology San Bruno waste account.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.sanbruno.ca.gov/250/Finance",
+          "fact": "Current Utility Billing contact 650-616-7086.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://sanbruno.ca.gov/DocumentCenter/View/4078/Water-System-Master-Plan",
+          "fact": "December 2023 master plan: NCCWD water serves Crystal Springs Terrace through water purchased by the City. It is not evidence of a separate retail signup for the residents.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.recology.com/recology-san-bruno/",
+          "fact": "Current official operator landing page opened; city FAQ confirms 650-583-8536.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "San Carlos",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bayshore",
+          "Mid-Peninsula Water District"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.cityofsancarlos.org/",
+        "https://www.calwater.com/start/",
+        "https://www.midpeninsulawater.org/contact",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.midpeninsulawater.org/CCR",
+          "fact": "2025 UWMP page and current district coverage identify small San Carlos service portion; Cal Water Bayshore covers other addresses.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "San Mateo",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bayshore",
+          "Estero Municipal Improvement District / City of Foster City"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "Recology San Mateo County"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.cityofsanmateo.org/2177/External-Agency-Assistance",
+        "https://www.calwater.com/start/",
+        "https://www.fostercity.org/470/Water-Wastewater",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.recology.com/recology-san-mateo-county/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.cityofsanmateo.org/2177/External-Agency-Assistance",
+          "fact": "City directs utility setup to external retailers.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.cityofsanmateo.org/2714/Water-Conservation",
+          "fact": "Current city Cal Water contact 650-558-7800.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.cityofsanmateo.org/DocumentCenter/View/91419/2023---2031-City-of-San-Mateo-Housing-Element?bidId=",
+          "fact": "Adopted housing planning document identifies Cal Water and EMID supply east of Seal Slough.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "South San Francisco",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bayshore",
+          "Westborough Water District"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "South San Francisco Scavenger Company"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.ssfca.gov/Departments/Public-Works",
+        "https://www.calwater.com/start/",
+        "https://www.westboroughwater.org/contact",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://ssfscavenger.com/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.westboroughwater.org/contact",
+          "fact": "Current district contact/start-stop links.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.smcgov.org/lafco/westborough-water-district",
+          "fact": "County confirms district coverage and 650-589-1435.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.ssfca.gov/Departments/Public-Works",
+          "fact": "Opened via ssf.net redirect to current ssfca.gov domain.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Woodside",
+      "county": "San Mateo",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Bear Gulch",
+          "City of Redwood City Water"
+        ],
+        "electric": [
+          "PG&E",
+          "WestLight Energy (formerly Peninsula Clean Energy)"
+        ],
+        "waste": [
+          "GreenWaste Recovery"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://woodsideca.gov/234/Utility-Cable-Water-Services",
+        "https://www.calwater.com/start/",
+        "https://www.redwoodcity.org/departments/administrative-services/finance/utility-services",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.westlightenergy.org/support/residential-support/",
+        "https://www.woodsideca.gov/223/Recycling-Composting-Garbage-Collection-"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.woodsideca.gov/DocumentCenter/View/410/Public-Utilities-Element-PDF",
+          "fact": "Town general-plan utilities element identifies Cal Water and Redwood City water in Emerald Lake Hills area; used for boundary context, not current rates or service standards.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.smcgov.org/lafco/water-extensions",
+          "fact": "County water-extension record independently identifies Redwood City service within Woodside (999 Godetia).",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.woodsideca.gov/223/Recycling-Composting-Garbage-Collection-",
+          "fact": "Current town garbage page identifies GreenWaste and 650-568-9900.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Campbell",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San Jose Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "West Valley Collection & Recycling"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://campbellca.gov/1133/Water-Sewer",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.campbellca.gov/508/Garbage-Recycling-Services"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://campbellca.gov/1133/Water-Sewer",
+          "fact": "City identifies SJW and directs start/stop questions there.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.campbellca.gov/508/Garbage-Recycling-Services",
+          "fact": "Current West Valley Collection & Recycling service/phone and shared four-city arrangement.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Cupertino",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San Jose Water",
+          "California Water Service — Los Altos Suburban"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Recology South Bay — Cupertino"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://gis.cupertino.org/servicefinder/",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.recology.com/recology-south-bay/cupertino/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://gis.cupertino.org/servicefinder/",
+          "fact": "Official address lookup includes Cal Water and San Jose Water service layers; no user's address entered.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.cupertino.gov/Your-City/Divisions/Environment-Sustainability/Environmental-and-Sustainability-FAQ",
+          "fact": "City FAQ confirms Recology Cupertino 408-725-4020 and property-management route for shared apartment service.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Gilroy",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Gilroy Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Recology South Valley"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://cityofgilroy.org/739/Welcome-New-Residents",
+        "https://www.cityofgilroy.org/380/Water-Sewer",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.cityofgilroy.org/314/Recology-South-Valley"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.cityofgilroy.org/380/Water-Sewer",
+          "fact": "City residential water application and stop form; 408-846-0420.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://cityofgilroy.org/739/Welcome-New-Residents",
+          "fact": "Municipal water, Recology South Valley and PG&E/SVCE directory.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.cityofgilroy.org/314/Recology-South-Valley",
+          "fact": "Operator serves Gilroy and Morgan Hill; 408-842-3358.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Los Altos",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "California Water Service — Los Altos Suburban"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Mission Trail Waste Systems — Los Altos"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.losaltosca.gov/m/faq",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.losaltosca.gov/m/faq",
+          "fact": "Current city FAQ identifies Mission Trail Waste Systems and 650-473-1400. Cal Water current district page supplies water evidence.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Los Altos Hills",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "Purissima Hills Water District",
+          "California Water Service — Los Altos Suburban"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "GreenWaste Recovery"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.losaltoshills.ca.gov/479/GARBAGE-RECYCLING-COMPOST",
+        "https://www.purissimawater.org/",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.greenwaste.com/service-areas/los-altos-hills/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.purissimawater.org/emergencyfaqs",
+          "fact": "District identifies service to about two-thirds of town; Cal Water covers other addresses.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.purissimawater.org/",
+          "fact": "Current district customer-service number 650-948-1217.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.greenwaste.com/service-areas/los-altos-hills/",
+          "fact": "Current operator service page lists 650-947-4994, with 2026 service information.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Los Gatos",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San Jose Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "West Valley Collection & Recycling"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.losgatosca.gov/1083/Utility-Information",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.losgatosca.gov/1083/Utility-Information",
+          "fact": "Current town directory lists SJW, West Valley Collection & Recycling, PG&E and SVCE with phones.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Milpitas",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Milpitas Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Milpitas Sanitation"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.milpitas.gov/750/Water-Services",
+        "https://www.milpitas.gov/270/Utility-Payment-Services",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.milpitassanitation.com/services/single-family/faqs"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.milpitas.gov/750/Water-Services",
+          "fact": "Municipal water account start/stop route; SFPUC and Valley Water are upstream suppliers, not household signup alternatives.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.milpitas.gov/272/Utility-Rate-Information",
+          "fact": "Current city utility contacts: city water 408-586-3100, Milpitas Sanitation 408-988-4500.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Monte Sereno",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San Jose Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "West Valley Collection & Recycling"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.montesereno.org/2289/San-Jose-Water-Consumer-Information",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.campbellca.gov/508/Garbage-Recycling-Services"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.montesereno.org/2289/San-Jose-Water-Consumer-Information",
+          "fact": "City identifies San Jose Water; West Valley Collection & Recycling coverage corroborated by Campbell/Saratoga municipal service pages.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Morgan Hill",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Morgan Hill Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Recology South Valley"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.morganhill.ca.gov/586/Utility-Services",
+        "https://www.morganhill.ca.gov/2555/Start-Water-Service",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.cityofgilroy.org/314/Recology-South-Valley"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.morganhill.ca.gov/2555/Start-Water-Service",
+          "fact": "Official city water startup form.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.morganhill.ca.gov/Directory/Home/DepartmentListing?DID=15",
+          "fact": "Utility Billing number 408-779-7221 (distinct from city main number).",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Mountain View",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Mountain View Water",
+          "California Water Service — Los Altos Suburban"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Recology Mountain View"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.mountainview.gov/services/utilities",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/",
+        "https://www.recology.com/recology-mountain-view/contact/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.mountainview.gov/services/utilities",
+          "fact": "City utility account start/stop portal.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.mountainview.gov/our-city/departments/public-works/contact-us",
+          "fact": "Separates city water/waste billing 650-903-6317 from Recology collection 650-967-3034.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.recology.com/recology-mountain-view/contact/",
+          "fact": "Current residential collection company and customer-service phone. Cal Water current district page confirms some Mountain View addresses use Cal Water.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Palo Alto",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Palo Alto Utilities"
+        ],
+        "electric": [
+          "City of Palo Alto Utilities"
+        ],
+        "waste": [
+          "GreenWaste of Palo Alto"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.paloalto.gov/Departments/Utilities/Customer-Service/Start-Stop-or-Change-Utilities-Service",
+        "https://www.paloalto.gov/Departments/Public-Works/Zero-Waste/What-Goes-Where/FAQ"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.paloalto.gov/Departments/Utilities/Customer-Service/Start-Stop-or-Change-Utilities-Service",
+          "fact": "Current municipal account start/stop/change route, 650-329-2161.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.paloalto.gov/Departments/Utilities/Customer-Service/New-Customers",
+          "fact": "City operates electricity, water and natural gas utilities.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.paloalto.gov/Departments/Public-Works/Zero-Waste/About-Us",
+          "fact": "Identifies GreenWaste of Palo Alto as contracted collection operator.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.paloalto.gov/Departments/Public-Works/Zero-Waste/What-Goes-Where/FAQ",
+          "fact": "GreenWaste customer contact 650-493-4894.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San José Municipal Water System",
+          "San Jose Water",
+          "Great Oaks Water Company"
+        ],
+        "electric": [
+          "PG&E",
+          "San José Clean Energy"
+        ],
+        "waste": [
+          "City of San José Recycle Plus / San José 311",
+          "Garden City Sanitation",
+          "California Waste Solutions",
+          "GreenTeam of San José",
+          "GreenWaste Recovery"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://gis.sanjoseca.gov/maps/serviceslookuptool/",
+        "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/water-utilities/drinking-water/customer-service",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://greatoakswater.com/contact.htm",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://sanjosecleanenergy.org/understanding-your-bill/",
+        "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents",
+        "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/water-utilities/drinking-water/customer-service",
+          "fact": "Identifies three water retailers; municipal account requests at 408-535-3500.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://gis.sanjoseca.gov/maps/serviceslookuptool/",
+          "fact": "Official service address lookup; no address query submitted.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts",
+          "fact": "Current city contractor table distinguishes Downtown/North/East/South garbage and recycling from West San José and multifamily; GreenWaste yard/street service.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.gardencitysanitation.com/services",
+          "fact": "Official operator directs new service to San José 311.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://greatoakswater.com/contact.htm",
+          "fact": "Official customer-service page: 408-227-9540; old maintenance notice not reused as current event.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Santa Clara Water"
+        ],
+        "electric": [
+          "Silicon Valley Power"
+        ],
+        "waste": [
+          "City of Santa Clara Municipal Utilities",
+          "Mission Trail Waste Systems — Santa Clara",
+          "Recology South Bay — Santa Clara"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.santaclaraca.gov/services/utilities/",
+        "https://www.santaclaraca.gov/our-city/departments-g-z/public-works/environmental-programs/residential-garbage-recycling"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.santaclaraca.gov/services/utilities/",
+          "fact": "City water and Silicon Valley Power electricity, account services 408-615-2300.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.santaclaraca.gov/our-city/departments-a-f/finance/finance-faq",
+          "fact": "Current FAQ explicitly differentiates city electric/water/refuse from PG&E natural gas.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        },
+        {
+          "url": "https://www.santaclaraca.gov/our-city/departments-g-z/public-works/environmental-programs/residential-garbage-recycling",
+          "fact": "Current page separates city account/container changes, Mission Trail garbage/yard waste and Recology residential recycling; confirms each contact.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Saratoga",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "San Jose Water"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "West Valley Collection & Recycling"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.saratoga.ca.us/685/Utilities",
+        "https://www.sjwater.com/start-or-stop-water-service/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.saratoga.ca.us/685/Utilities",
+          "fact": "Current city utility directory identifies SJW, West Valley Collection & Recycling, PG&E and SVCE.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    },
+    {
+      "city": "Sunnyvale",
+      "county": "Santa Clara",
+      "verifiedProviderNames": {
+        "water": [
+          "City of Sunnyvale Water",
+          "California Water Service — Los Altos Suburban"
+        ],
+        "electric": [
+          "PG&E",
+          "Silicon Valley Clean Energy"
+        ],
+        "waste": [
+          "Specialty Solid Waste & Recycling"
+        ]
+      },
+      "publishedEntryUrls": [
+        "https://www.sunnyvale.ca.gov/homes-streets-and-property/utility-billing",
+        "https://www.calwater.com/start/",
+        "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+        "https://www.svcleanenergy.org/faqs/"
+      ],
+      "supportingSources": [
+        {
+          "url": "https://www.sunnyvale.ca.gov/homes-streets-and-property/utility-billing",
+          "fact": "City water/waste account phone 408-730-7400; Specialty collection issues 408-565-9900. Cal Water current district confirms part of city is Cal Water retail.",
+          "checkedAt": "2026-10-02",
+          "access": "Official page text reviewed through search index and/or direct open; explicit fetch restrictions are recorded below."
+        }
+      ]
+    }
+  ],
+  "accessLimitations": [
+    {
+      "urls": [
+        "https://www.menlopark.gov/Government/Departments/Public-Works/Water-stormwater-and-solid-waste/Menlo-Park-Municipal-Water/Water-providers",
+        "https://www.colma.ca.gov/question/how-do-i-find-my-trash-and-recycling-pickup-day/",
+        "https://www.santaclaraca.gov/our-city/departments-g-z/public-works/environmental-programs/residential-garbage-recycling",
+        "https://www.sanjoseca.gov/your-government/departments-offices/environmental-services/recycling-garbage/residents/apartments-condos-collection-setouts"
+      ],
+      "limitation": "Direct open returned 403. Their indexed official page text was reviewed instead; no protection bypass attempted."
+    },
+    {
+      "urls": [
+        "https://gis.cupertino.org/servicefinder/",
+        "https://gis.sanjoseca.gov/maps/serviceslookuptool/"
+      ],
+      "limitation": "Address tools located and service-layer purpose verified; no household address was entered and parcel-level boundaries were not exhaustively tested."
+    },
+    {
+      "urls": [
+        "https://www.ssf.net/"
+      ],
+      "limitation": "Root fetch failed; the Public Works URL opened and redirected to the current ssfca.gov domain used in the directory."
+    },
+    {
+      "urls": [
+        "https://www.peninsulacleanenergy.com/support/residential-support/"
+      ],
+      "limitation": "Old hostname redirected to westlightenergy.org. New name separately corroborated by official July 1, 2026 release and Redwood City page."
+    },
+    {
+      "urls": [
+        "https://greatoakswater.com/contact.htm"
+      ],
+      "limitation": "Contact page is indexed with an older crawl. Phone also appears on current operator home/customer pages; no old seasonal flush notice or office-hour promise is reproduced."
+    }
+  ],
+  "editorialResolutions": [
+    "Use WestLight Energy (formerly Peninsula Clean Energy), not only the former PCE name, as of the requested date.",
+    "Use current Cal Water district phone numbers. Some town directories still show older Bear Gulch and Los Altos Suburban numbers.",
+    "Do not list Los Trancos County Water District as an independent current household water signup provider; current Cal Water Bear Gulch coverage explicitly includes Los Trancos.",
+    "Daly City legacy water FAQ and newer Republic page differ on garbage account wording. Publish separate city water and Republic residential waste contacts, without claiming unified city garbage billing.",
+    "East Palo Alto's current live utility directory still lists Veolia. Older planning/lease materials mention an April 2026 contract endpoint, but a replacement operator was not established by reviewed evidence. Publish the city system and current city contact, attribute Veolia to that directory, and link the live municipal page.",
+    "NCCWD delivery to Crystal Springs Terrace is water purchased by the City of San Bruno; do not create a misleading second household retail provider for San Bruno.",
+    "Woodside boundary detail relies on town planning material and county water-extension records in addition to current Cal Water coverage. Exact parcels require confirmation.",
+    "Half Moon Bay's county directory and city bulky-pickup page show different purpose-specific Republic numbers; omit a generic phone and retain the official municipality contact URL.",
+    "Keep Palo Alto CPAU and Santa Clara Silicon Valley Power separate from PG&E electric signup. CCA agencies are generation suppliers, not line-connection providers.",
+    "San José waste companies differ by region, dwelling type and material stream. Lead with the city account/311 route and preserve the contractor roles.",
+    "Apartment/condominium accounts, shared meters, master-meter billing, private wells, new construction connections, sewer/septic service and unincorporated mailing addresses require separate property/address confirmation."
+  ],
+  "omissions": [
+    "No incorporated city omitted from the two-county scope.",
+    "No unverified phone was inferred for a provider.",
+    "No broadband/telecommunications research included; handled by parent task.",
+    "No rates, deposits, identity-document requirements, enrollment guarantees or legal obligations asserted in this contact dataset."
+  ]
+}

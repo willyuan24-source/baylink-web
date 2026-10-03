@@ -1673,6 +1673,24 @@
   margin: 8px 0 3px;
 }
 .reader-paths{scroll-margin-top:24px}
+.utility-directory,.utility-carriers{margin:24px 0;scroll-margin-top:24px;min-width:0}
+.utility-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px;padding:18px;background:#f1f5ed;border:1px solid var(--guide-line);border-radius:12px}
+.utility-filters label{display:flex;flex:1 1 180px;flex-direction:column;gap:7px;font-size:13px;font-weight:650;color:var(--guide-ink)}
+.utility-filters input,.utility-filters select{width:100%;min-height:44px;border:1px solid #aabbab;border-radius:7px;padding:10px 12px;background:white;color:var(--guide-ink);font:inherit;font-weight:400}
+.utility-filters button{min-height:44px;border:1px solid #aabbab;border-radius:7px;background:#fff;padding:8px 12px;font:inherit;font-size:13px;cursor:pointer}
+.utility-filters :focus-visible,.utility-city summary:focus-visible,.utility-directory a:focus-visible,.utility-carriers a:focus-visible{outline:3px solid #429c79;outline-offset:3px}
+.utility-directory .utility-result-count{font-size:12px;color:var(--guide-muted);margin:10px 0 24px}
+.utility-county{margin:25px 0}.utility-county>h3{font-size:19px}.utility-county>h3 span{display:inline-block;padding:3px 8px;border-radius:15px;background:#edf3e9;font-size:11px;vertical-align:middle}
+.utility-city{margin:9px 0;border:1px solid var(--guide-line);border-radius:10px;overflow:hidden;background:#fff}
+.utility-city summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;cursor:pointer;list-style:none}.utility-city summary::-webkit-details-marker{display:none}.utility-city summary svg{flex-shrink:0}.utility-city[open] summary svg{transform:rotate(180deg)}
+.utility-city summary strong{display:block;font-size:17px;line-height:1.5}.utility-city summary small{display:block;font-size:11px;line-height:1.7;color:var(--guide-muted);margin-top:5px;overflow-wrap:anywhere}
+.utility-city-body{padding:0 16px 16px}.utility-city-body .utility-city-note{padding:12px;background:#f8f9f3;border-left:3px solid #b2c79f;font-size:13px;line-height:1.75;margin:0 0 14px}
+.utility-services{margin:0}.utility-services>div{display:grid;grid-template-columns:94px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--guide-line)}.utility-services dt{font-size:12px;font-weight:700;padding-top:3px}.utility-services dd{margin:0;min-width:0}.utility-services dd>a{display:block;margin-top:7px;font-size:13px}
+.utility-contact+.utility-contact{margin-top:16px}.utility-contact>a:first-child{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:650;overflow-wrap:anywhere}.utility-contact svg{flex-shrink:0}.utility-contact .utility-phone,.utility-contact .utility-email{display:flex;align-items:center;gap:5px;margin:5px 0;font-size:13px;font-weight:500;overflow-wrap:anywhere}.utility-contact p,.utility-services dd>p{font-size:12px;line-height:1.8;margin:5px 0;color:var(--guide-muted)}
+.utility-contact-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px}.utility-city footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;border-top:1px solid var(--guide-line);padding-top:13px;font-size:11px;color:var(--guide-muted)}
+.utility-carrier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.utility-carrier-grid>.utility-contact{margin:0;border:1px solid var(--guide-line);border-radius:10px;padding:17px;background:#fff}.utility-empty{padding:20px;background:#f8f9f3}
+@media(max-width:639px){.utility-filters{padding:14px}.utility-filters label{flex-basis:100%}.utility-services>div{grid-template-columns:1fr;gap:5px}.utility-city summary{padding:14px}.utility-city-body{padding:0 14px 14px}.utility-carrier-grid{grid-template-columns:1fr}}
+@media print{.utility-filters{display:none}.utility-city::details-content{content-visibility:visible}.utility-city-body{display:block}}
 .reader-path-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
 .reader-path-tabs button{min-height:44px;padding:10px 17px;border:1px solid #bccdba;border-radius:9px;background:#fff;color:#2d4d40;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
 .reader-path-tabs button[aria-pressed=true]{background:#176b52;border-color:#176b52;color:#fff}

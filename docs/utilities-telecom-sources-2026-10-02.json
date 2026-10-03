@@ -1,0 +1,677 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": {
+    "internetEntries": 10,
+    "mobileEntries": 12,
+    "productFilesReviewed": [
+      "src/data/utilities-telecom.json",
+      "src/data/guides-utilities.ts",
+      "src/components/UtilityDirectory.tsx"
+    ]
+  },
+  "provenance": {
+    "reviewer": "newcomer_guides subagent",
+    "parent": "root task",
+    "directReviewDefinition": "The documenting agent opened the official page with the web tool and read the returned page text.",
+    "indexedReviewDefinition": "The documenting agent read official-domain text returned by web search; this is not a claim that every interactive element or underlying live page loaded.",
+    "parentReviewDefinition": "The documenting agent read the current root-authored dataset/article and parent verification instructions. Items so marked were not independently reopened in this review.",
+    "noCustomerActions": "No account, order, cancellation, move request, address lookup with customer data, or phone call was performed."
+  },
+  "sources": [
+    {
+      "id": "cpuc-cca",
+      "title": "CPUC: Consumer Information on CCAs",
+      "url": "https://www.cpuc.ca.gov/consumer-support/consumer-programs-and-services/electrical-energy-and-energy-efficiency/community-choice-aggregation-and-direct-access-/consumer-information-on-ccas---frequently-asked-questions",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "The parent task cites this official page for CCA generation procurement versus the utility's transmission/distribution, metering, billing and outage responsibilities."
+      ],
+      "limitations": [
+        "This documenting agent read the source reference and supporting description in guides-utilities.ts, not the page body in this review."
+      ]
+    },
+    {
+      "id": "abag-scope",
+      "title": "ABAG: How We Govern",
+      "url": "https://www.abag.ca.gov/about-abag/what-we-do/how-we-govern",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "The parent task cites this page for the nine-county Bay Area scope and 101 incorporated cities and towns."
+      ],
+      "limitations": [
+        "The count is the directory's jurisdiction scope, not a claim that a utility serves every address in each city."
+      ]
+    },
+    {
+      "id": "cpuc-broadband-map",
+      "title": "California Interactive Broadband Map",
+      "url": "https://www.broadbandmap.ca.gov/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "The parent task recorded that the map displayed coverage data as of 2024-12-31 when checked on 2026-10-02.",
+        "The guide uses it as an initial address lookup and requires confirmation with the provider for the full address and unit."
+      ],
+      "limitations": [
+        "2024-12-31 is the dataset vintage reported by the parent, not the verification date.",
+        "A provider-reported map does not guarantee an available port, in-building wiring, capacity, installation permission or appointment.",
+        "This agent did not submit an address or inspect the live map layers."
+      ]
+    },
+    {
+      "id": "pge-service",
+      "title": "PG&E: Start, Stop or Transfer Service",
+      "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_text_and_parent_confirmation",
+      "facts": [
+        "Official residential start/stop/transfer route.",
+        "The parent independently confirmed 1-877-660-6789 as the preferred current residential account-service contact.",
+        "The parent cites the page for changing account holders via old-holder closure and new-holder setup rather than simply renaming the account."
+      ],
+      "limitations": [
+        "The account-holder-change detail was reviewed in the parent's article/source description; this agent's prior own page review focused on the account-service route.",
+        "No account application was submitted and no identity, fee or processing-time guarantee was inferred."
+      ]
+    },
+    {
+      "id": "pge-contact",
+      "title": "PG&E: Contact Us",
+      "url": "https://www.pge.com/en/contact-us.html",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_with_prior_reviewer_contact_lookup",
+      "facts": [
+        "The official contact entry separates service requests and emergency/customer-support routes.",
+        "The directory intentionally uses the residential start/stop/transfer number instead of treating the general 1-800-743-5000 as the primary signup line."
+      ],
+      "limitations": [
+        "No emergency number or response-time claim is added by this record."
+      ]
+    },
+    {
+      "id": "westlight-city",
+      "title": "Redwood City: Peninsula Clean Energy is now WestLight Energy",
+      "url": "https://www.redwoodcity.org/departments/public-works/environmental-initiatives/energy/peninsula-clean-energy",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_text",
+      "facts": [
+        "City page corroborates the July 1, 2026 name change to WestLight Energy and lists 866-966-0110.",
+        "The former Peninsula Clean Energy name is retained for recognizing older bills and directories."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "westlight-release",
+      "title": "WestLight Energy: July 1, 2026 name-change release",
+      "url": "https://www.westlightenergy.org/news-releases/peninsula-clean-energy-rebrands-as-westlight-energy-name-change-will-appear-on-utility-bills-starting-july-17/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Release is dated July 1, 2026; bills begin showing the WestLight name from July 17.",
+        "This is a name change, not evidence that residents must open a second distribution account."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "mint-port",
+      "title": "Mint: Keep Existing Service Active Before Number Transfer",
+      "url": "https://www.mintmobile.com/help/should-i-cancel-existing-service-before-i-transfer-number-to-mint-mobile/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent cites Mint's instruction to keep the old service active until transferring the number."
+      ],
+      "limitations": [
+        "This source is a number-porting instruction; it should not be substituted for a universal home-internet cancellation policy."
+      ]
+    },
+    {
+      "id": "etheric-support",
+      "title": "Etheric Networks Support",
+      "url": "https://ethericnetworks.com/support/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent's current data records support@ethericnetworks.com and the official support route.",
+        "Fixed-wireless service and installation need address/site evaluation."
+      ],
+      "limitations": [
+        "This agent read the dataset/source reference only.",
+        "No phone is supplied or guessed in the dataset."
+      ]
+    },
+    {
+      "id": "starlink-support",
+      "title": "Starlink Support",
+      "url": "https://starlink.com/support",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent's current data routes support through the official website or app and asks users to confirm the US region, residential address and installation view."
+      ],
+      "limitations": [
+        "No customer-service phone was independently verified here, so none is added.",
+        "Omitting a number does not assert that Starlink never offers phone or callback support.",
+        "Support options may depend on country, account and product; no signed-in flow was tested."
+      ]
+    },
+    {
+      "id": "xfinity-contact",
+      "title": "Xfinity Contact Us",
+      "url": "https://www.xfinity.com/support/contact-us",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open_limited",
+      "facts": [
+        "Official support landing page retained in the directory."
+      ],
+      "limitations": [
+        "Direct web extraction returned only a JavaScript-required message.",
+        "Phone classifications were independently corroborated using the official rights/contact article below."
+      ]
+    },
+    {
+      "id": "xfinity-rights",
+      "title": "Xfinity: Rights and How to Contact Xfinity",
+      "url": "https://www.xfinity.com/support/articles/rights",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Residential Xfinity service: 1-800-934-6489.",
+        "Xfinity Mobile service: 1-888-936-4968.",
+        "The official article explicitly lists the residential and mobile routes separately."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "xfinity-moving",
+      "title": "Xfinity Moving",
+      "url": "https://www.xfinity.com/learn/moving",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied this official address-transfer link for residential service."
+      ],
+      "limitations": [
+        "This agent did not inspect its address form or submit a move request."
+      ]
+    },
+    {
+      "id": "xfinity-cancel",
+      "title": "Xfinity: Cancel, Pause or Move Services",
+      "url": "https://www.xfinity.com/cancel",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Current page confirms 1-800-934-6489 for cancellation and links moving assistance.",
+        "It separately instructs mobile customers to transfer their number before canceling Xfinity Mobile."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "att-support",
+      "title": "AT&T Customer Support",
+      "url": "https://www.att.com/support/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "The page lists wireless support as 800-331-0500 or 611 from the mobile device.",
+        "Internet or home-phone support is listed separately as 800-288-2020."
+      ],
+      "limitations": [
+        "The general support page alone is not enough to distinguish postpaid from AT&T Prepaid; the prepaid source below supplies that distinction."
+      ]
+    },
+    {
+      "id": "att-moving",
+      "title": "AT&T: Transfer, Set Up or Move Services",
+      "url": "https://www.att.com/help/moving/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "Official moving page is a valid service-transfer entry point."
+      ],
+      "limitations": [
+        "No exact product eligibility, new-address availability, installation appointment or account flow was tested."
+      ]
+    },
+    {
+      "id": "att-prepaid",
+      "title": "AT&T Prepaid Support",
+      "url": "https://www.att.com/support/prepaid/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "AT&T Prepaid account support: 800-901-9878 from any phone or 611 from an AT&T Prepaid phone.",
+        "Prepaid is a separate customer-service route from the displayed AT&T postpaid number."
+      ],
+      "limitations": [
+        "The search result included tracking parameters; this record stores the canonical official support path.",
+        "No call-center hours or payment fee is generalized into the directory."
+      ]
+    },
+    {
+      "id": "att-wireless-terms",
+      "title": "AT&T Wireless Service Terms",
+      "url": "https://lsreg.att.com/legal/terms.wirelessCustomerAgreement.html",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_text",
+      "facts": [
+        "Section 2 explicitly differentiates 800-331-0500 for postpaid and 800-901-9878 for prepaid service."
+      ],
+      "limitations": [
+        "Only the support-number distinction was used; no legal interpretation of the agreement is provided."
+      ]
+    },
+    {
+      "id": "sonic-support",
+      "title": "Sonic Technical Help and Billing Support",
+      "url": "https://www.sonic.com/support",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "Billing: 888-766-4233 and billing@sonic.com.",
+        "Technical support: 855-394-0100.",
+        "The directory's primary number is explicitly labeled Billing, rather than described as a universal technical-support line."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "sonic-availability",
+      "title": "Sonic Availability",
+      "url": "https://www.sonic.com/availability",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied the official address-availability link."
+      ],
+      "limitations": [
+        "No address or unit was submitted by this agent."
+      ]
+    },
+    {
+      "id": "sonic-moving",
+      "title": "Sonic: Change, Cancel or Move Service",
+      "url": "https://help.sonic.com/hc/en-us/articles/236066907-Change-Cancel-or-Move-Service",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied the service-change/moving knowledge-base link."
+      ],
+      "limitations": [
+        "Phone numbers from older help articles were not substituted for the current support-page Billing and Technical Help numbers."
+      ]
+    },
+    {
+      "id": "astound-contact",
+      "title": "Astound Customer Support",
+      "url": "https://www.astound.com/contact-us/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "1-800-427-8686 is identified as primary customer service/technical support, with billing, troubleshooting and service-transfer functions.",
+        "Page distinguishes the business support route from residential support."
+      ],
+      "limitations": [
+        "The directory does not reproduce the page's contact-hour promise."
+      ]
+    },
+    {
+      "id": "astound-billing",
+      "title": "Astound Billing Help",
+      "url": "https://www.astound.com/support/billing/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Official page confirms 800-427-8686 for disconnecting service and for billing assistance."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "tmobile-contact",
+      "title": "T-Mobile Contact Us",
+      "url": "https://www.t-mobile.com/contact-us",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open_limited_and_official_locale_corroboration",
+      "facts": [
+        "Directory distinguishes mobile customer care from 5G Home Internet technical support."
+      ],
+      "limitations": [
+        "English page extraction was limited to navigation/session text; the numbers were verified in the official Spanish version below."
+      ]
+    },
+    {
+      "id": "tmobile-contact-es",
+      "title": "T-Mobile Official Spanish Contact Page",
+      "url": "https://es.t-mobile.com/contact-us",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_text",
+      "facts": [
+        "Mobile customer service: 1-800-937-8997 or 611 from a T-Mobile phone.",
+        "T-Mobile 5G Home Internet technical support: 1-844-275-9310.",
+        "The page separately lists a T-Mobile Fiber technical line, which was not conflated with the 5G Home line."
+      ],
+      "limitations": [
+        "Search result carried an INTNAV parameter; the canonical locale URL is recorded."
+      ]
+    },
+    {
+      "id": "tmobile-home-eligibility",
+      "title": "T-Mobile 5G Home Internet Eligibility",
+      "url": "https://www.t-mobile.com/home-internet/eligibility",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied the address-eligibility route for Home Internet."
+      ],
+      "limitations": [
+        "Mobile radio coverage alone is not treated as Home Internet order eligibility; no address query was submitted."
+      ]
+    },
+    {
+      "id": "tmobile-home-moving",
+      "title": "T-Mobile: Transfer Internet Service",
+      "url": "https://www.t-mobile.com/home-internet/transfer-internet-service",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied the Home Internet moving route; current text asks readers to confirm eligibility at the new address."
+      ],
+      "limitations": [
+        "No automatic entitlement to move the same equipment or retain a plan is claimed."
+      ]
+    },
+    {
+      "id": "verizon-contact",
+      "title": "Verizon Contact Us",
+      "url": "https://www.verizon.com/support/contact-us/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_with_reviewer_official_contact_subpage_corroboration",
+      "facts": [
+        "Official shared contact landing page is retained for product selection.",
+        "No generic phone is assigned to all Verizon Home Internet products."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "verizon-wireless-call",
+      "title": "Verizon Wireless: Call or Schedule Callback",
+      "url": "https://www.verizon.com/digital/nsa/nos/ui/contactus/callus-schedulecallback",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "General wireless phone: 800-922-0204.",
+        "The same official page separately lists Prepaid customer service as 1-888-294-6804."
+      ],
+      "limitations": [
+        "A search-result tracking parameter was removed from the recorded canonical URL."
+      ]
+    },
+    {
+      "id": "verizon-prepaid",
+      "title": "Verizon Prepaid Billing and Payments FAQs",
+      "url": "https://www.verizon.com/support/prepaid-billing-payment-faqs/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Prepaid account/balance support is available at 888-294-6804.",
+        "The page explicitly identifies that number as Prepaid Customer Service."
+      ],
+      "limitations": [
+        "The source also describes payments; the directory uses only its customer-contact distinction."
+      ]
+    },
+    {
+      "id": "verizon-coverage",
+      "title": "Verizon Home Internet and Mobile Coverage Map",
+      "url": "https://www.verizon.com/coverage-map/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "Current page covers both home-internet and mobile availability and offers an address lookup.",
+        "It explains that neighboring homes can have different 5G Home eligibility because of line-of-sight and local connection conditions.",
+        "The directory therefore does not equate city coverage, phone signal or the map's outdoor coverage with a guaranteed installable home connection."
+      ],
+      "limitations": [
+        "No user address entered; no product-specific availability result obtained."
+      ]
+    },
+    {
+      "id": "verizon-moving",
+      "title": "Verizon Moving Home Internet FAQs",
+      "url": "https://www.verizon.com/home/internet/moving/faq/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "Official home-internet moving route.",
+        "Page distinguishes changing internet technology and equipment from simply moving an existing connection."
+      ],
+      "limitations": [
+        "The directory does not claim all Verizon products or Fios are offered at Bay Area addresses."
+      ]
+    },
+    {
+      "id": "sail-support",
+      "title": "Sail Internet Residential Support",
+      "url": "https://sailinternet.com/res-support/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "844-438-8484 extension 1 is technical support and billing; extension 2 is sales.",
+        "support@sailinternet.com is the listed technical-support/billing email."
+      ],
+      "limitations": [
+        "Generic placeholder FAQ content on the page was not used as evidence."
+      ]
+    },
+    {
+      "id": "sail-areas",
+      "title": "Sail Internet Service Areas",
+      "url": "https://sailinternet.com/service-areas/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent supplied the provider's service-area entry point."
+      ],
+      "limitations": [
+        "A listed city is not presented as a guarantee for every building; no site survey was requested."
+      ]
+    },
+    {
+      "id": "monkeybrains",
+      "title": "Monkeybrains Official Home Page",
+      "url": "https://www.monkeybrains.net/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "Official contact number 415-974-1313.",
+        "Page includes building-address availability input and links to support and moving.",
+        "It states installation inquiries need representative review to assess eligibility."
+      ],
+      "limitations": [
+        "No address was entered. Displayed form states were not treated as results for a real address."
+      ]
+    },
+    {
+      "id": "metro-contact",
+      "title": "Metro by T-Mobile Contact Us",
+      "url": "https://www.metrobyt-mobile.com/contact-us",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Official customer service is 888-8-METRO-8, corresponding to 888-863-8768.",
+        "The page lists *611 from the customer's Metro phone; payment shortcut *99 is a different function."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "cricket-contact",
+      "title": "Cricket Contact Us",
+      "url": "https://www.cricketwireless.com/contactus",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "1-800-CRICKET corresponds to 800-274-2538; 611 is available from a Cricket phone.",
+        "The page provides chat, store and account-help routes."
+      ],
+      "limitations": [
+        "Call-center hours were not copied into the dataset."
+      ]
+    },
+    {
+      "id": "mint-contact",
+      "title": "Mint Mobile Contact Help",
+      "url": "https://www.mintmobile.com/help/how-do-i-contact-mint-mobile/",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_official_indexed_full_text",
+      "facts": [
+        "Mint support: 800-683-7392, 611 from the Mint phone, or the official chat route."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "visible-contact",
+      "title": "Visible: How to Contact Visible",
+      "url": "https://www.visible.com/m/help/contact-us.html",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open_and_official_indexed_full_text",
+      "facts": [
+        "The official contact article explicitly says Visible does not offer phone-based support.",
+        "The website or Visible app provides chat; the directory therefore omits a phone."
+      ],
+      "limitations": [
+        "This is an explicit official statement, distinct from merely failing to find a number.",
+        "The page displayed last updated June 9, 2025; it was read again for the requested October 2, 2026 verification date."
+      ]
+    },
+    {
+      "id": "google-fi-support",
+      "title": "Google Fi Wireless Support",
+      "url": "https://fi.google.com/about/support-simple",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "The official support page lists 1-844-825-5234 as the toll-free Fi support number."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "boost-support",
+      "title": "Boost Mobile Support Teams",
+      "url": "https://help.boostmobile.com/docs/contact-our-support-teams",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "reviewer_direct_open",
+      "facts": [
+        "General customer care: 833-502-6678.",
+        "Activation support is separately listed as 866-957-8278; the directory labels its primary number general customer service."
+      ],
+      "limitations": []
+    },
+    {
+      "id": "us-mobile-contact",
+      "title": "US Mobile Contact Help",
+      "url": "https://www.usmobile.com/help/docs/troubleshooting-and-setup/contact-us",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_not_independently_reopened",
+      "facts": [
+        "Parent's current data links official support and directs users to app/account/help chat."
+      ],
+      "limitations": [
+        "This agent did not independently extract the page body.",
+        "No phone was guessed. Omitting a phone does not claim the provider lacks telephone support."
+      ]
+    },
+    {
+      "id": "consumer-cellular-contact",
+      "title": "Consumer Cellular Contact",
+      "url": "https://www.consumercellular.com/contact",
+      "checkedAt": "2026-10-02",
+      "reviewMethod": "parent_verified_dynamic_page_limited",
+      "facts": [
+        "Parent selected the official contact page so users can choose current chat, phone or account help."
+      ],
+      "limitations": [
+        "Parent reported a dynamic contact page; this agent did not independently extract a reliable phone from it.",
+        "No third-party sales number is substituted.",
+        "No claim is made that the provider lacks phone support."
+      ]
+    }
+  ],
+  "generalRoutingDecisions": [
+    {
+      "decision": "Treat a city directory as a routing aid, not address-level availability.",
+      "basis": [
+        "cpuc-broadband-map",
+        "verizon-coverage",
+        "monkeybrains"
+      ],
+      "boundary": "City limits, mailing city, utility district boundaries, unit wiring, shared meters and provider installation conditions can differ."
+    },
+    {
+      "decision": "Ask renters/property managers who holds each account before requesting a change.",
+      "basis": "Editorial workflow synthesis informed by city utility directories and shared-account warnings; not a claim that every lease includes or excludes utilities.",
+      "boundary": "The source article correctly avoids saying every tenant can open or modify a water or waste account; sewer billing may be separate."
+    },
+    {
+      "decision": "Separate CCA generation from distribution/account setup.",
+      "basis": [
+        "cpuc-cca",
+        "pge-service",
+        "westlight-city"
+      ],
+      "boundary": "Palo Alto, Santa Clara, Alameda and Healdsburg municipal electricity should follow their city contacts. Gas arrangements require separate confirmation."
+    },
+    {
+      "decision": "Keep home-internet technical, billing, sales and mobile support functions labeled.",
+      "basis": [
+        "xfinity-rights",
+        "att-support",
+        "sonic-support",
+        "tmobile-contact-es",
+        "sail-support",
+        "boost-support"
+      ],
+      "boundary": "The same brand or underlying mobile network does not imply the same account-support team."
+    },
+    {
+      "decision": "Keep the existing mobile service active while transferring a number.",
+      "basis": [
+        "mint-port",
+        "xfinity-cancel"
+      ],
+      "boundary": "Do not apply that mobile-porting rule indiscriminately to all home-internet contract cancellations."
+    }
+  ],
+  "reviewCorrections": [
+    {
+      "affectedEntries": [
+        "AT&T Wireless",
+        "Verizon Wireless"
+      ],
+      "status": "Reported to parent; no product files changed by this documenting task.",
+      "finding": "Current dataset snapshot used brand-wide labels without noting prepaid contact routes.",
+      "minimumCorrection": "Keep 12 brand entries and add prepaid guidance to their notes and English translations.",
+      "verifiedPrepaidNumbers": {
+        "AT&T Prepaid": "800-901-9878",
+        "Verizon Prepaid": "888-294-6804"
+      },
+      "sources": [
+        "att-prepaid",
+        "att-wireless-terms",
+        "verizon-wireless-call",
+        "verizon-prepaid"
+      ]
+    }
+  ],
+  "accessLimits": [
+    "No program tests, deployment or live account flows were run as part of this source-record task.",
+    "Official Xfinity contact page required JavaScript in direct extraction; official alternate articles support the two phone categories.",
+    "T-Mobile English contact extraction was limited; its official Spanish contact page supplies phone classifications.",
+    "CPUC map data vintage 2024-12-31 is explicitly retained as parent-observed metadata, not silently presented as 2026 coverage data.",
+    "Consumer Cellular is documented as a dynamic-page limitation. Starlink and US Mobile have no verified number in this record, so no number is inferred.",
+    "Visible's no-phone statement is supported by an explicit official contact article, unlike cases where a phone simply was not verified.",
+    "Linked availability/moving pages marked parent-verified were not all independently reopened; no exhaustive link-health or address-coverage test is claimed.",
+    "Telecom URLs and labels reflect the current files read for this record; later parent edits may update the product text without changing this provenance."
+  ]
+}

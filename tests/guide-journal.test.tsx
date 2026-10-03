@@ -177,6 +177,7 @@ test('all published guides and the complete media registry have usable local ima
 });
 
 const firstVisitCoverReuse = new Set([
+  'bay-area-city-utilities-internet-phone-directory',
   'bay-area-visitor-coast-redwoods-return-plan-2026',
   'sf-visitor-luggage-restrooms-lost-property-2026',
   'sf-visitor-meals-markets-dietary-booking-2026',

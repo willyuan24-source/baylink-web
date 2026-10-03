@@ -28,6 +28,7 @@ import { FreebieBoard } from './FreebieBoard';
 import { GuideReaderActions } from './ReaderLibrary';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
 import { translateText } from '../i18n/locale';
+import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 
 type GuideDetailProps = {
   slug: string;
@@ -400,6 +401,10 @@ const BlockRenderer = ({
   onCta: (b: Extract<GuideBlock, { type: "cta" }>) => void;
 }) => {
   switch (block.type) {
+    case 'utility-directory':
+      return <UtilityDirectory cities={block.cities} title={block.title} text={block.text} />;
+    case 'contact-directory':
+      return <UtilityContactDirectory contacts={block.contacts} title={block.title} text={block.text} anchor={block.anchor} />;
     case "freebies":
       return null;
     case "heading":

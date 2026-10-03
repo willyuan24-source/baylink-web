@@ -1,0 +1,145 @@
+{
+  "internet": [
+    {
+      "name": "Etheric Networks",
+      "url": "https://ethericnetworks.com/support/",
+      "email": "support@ethericnetworks.com",
+      "note": "湾区固定无线服务可先联系官方支持或销售评估地址及现场安装条件；搬家前确认新址能否服务。"
+    },
+    {
+      "name": "Starlink",
+      "url": "https://starlink.com/support",
+      "note": "卫星宽带通过官网或 App 联系支持；选择美国地区并核对住宅地址、设备安装视野与方案条件。"
+    },
+    {
+      "name": "Xfinity / Comcast",
+      "url": "https://www.xfinity.com/support/contact-us",
+      "phone": "800-934-6489",
+      "movingUrl": "https://www.xfinity.com/learn/moving",
+      "note": "住宅宽带客服；搬家页面可查新地址并安排旧址停用、新址启用。"
+    },
+    {
+      "name": "AT&T Internet / Fiber / Internet Air",
+      "url": "https://www.att.com/support/",
+      "phone": "800-288-2020",
+      "movingUrl": "https://www.att.com/help/moving/",
+      "note": "家庭宽带／家用电话；先查具体地址可装的产品，再预约迁移或安装。"
+    },
+    {
+      "name": "Sonic",
+      "url": "https://www.sonic.com/support",
+      "phone": "888-766-4233",
+      "availabilityUrl": "https://www.sonic.com/availability",
+      "movingUrl": "https://help.sonic.com/hc/en-us/articles/236066907-Change-Cancel-or-Move-Service",
+      "email": "billing@sonic.com",
+      "note": "此号码为官网当前 Billing 入口；技术支持另列 855-394-0100。旧帮助文章号码可能不同，办理前以当前 Support 页为准。"
+    },
+    {
+      "name": "Astound Broadband",
+      "url": "https://www.astound.com/contact-us/",
+      "phone": "800-427-8686",
+      "note": "住宅客服可处理开户、账单、转移与停用；官网按地址核验，公寓整栋协议另有条件。"
+    },
+    {
+      "name": "T-Mobile 5G Home Internet",
+      "url": "https://www.t-mobile.com/contact-us",
+      "phone": "844-275-9310",
+      "availabilityUrl": "https://www.t-mobile.com/home-internet/eligibility",
+      "movingUrl": "https://www.t-mobile.com/home-internet/transfer-internet-service",
+      "note": "这是家庭宽带技术支持号码；先确认新地址符合条件，再迁移设备。手机有信号不代表该地址可以办理家庭宽带。"
+    },
+    {
+      "name": "Verizon Home Internet",
+      "url": "https://www.verizon.com/support/contact-us/",
+      "availabilityUrl": "https://www.verizon.com/coverage-map/",
+      "movingUrl": "https://www.verizon.com/home/internet/moving/faq/",
+      "note": "从官方联系页选择当前家庭宽带产品；新地址、设备和现有套餐需重新确认。"
+    },
+    {
+      "name": "Sail Internet",
+      "url": "https://sailinternet.com/res-support/",
+      "phone": "844-438-8484",
+      "email": "support@sailinternet.com",
+      "availabilityUrl": "https://sailinternet.com/service-areas/",
+      "note": "客服／账单按分机 1，销售按分机 2；按楼宇和地址确认能否安装。"
+    },
+    {
+      "name": "Monkeybrains",
+      "url": "https://www.monkeybrains.net/",
+      "phone": "415-974-1313",
+      "availabilityUrl": "https://www.monkeybrains.net/",
+      "note": "官网提供楼宇地址查询、支持和搬家入口；申请需由工作人员评估安装条件。"
+    }
+  ],
+  "mobile": [
+    {
+      "name": "AT&T Wireless",
+      "url": "https://www.att.com/support/",
+      "phone": "800-331-0500",
+      "note": "此号码为后付费手机客服；Prepaid 预付费请拨 800-901-9878，本机可拨 611。家庭宽带使用上表另一条客服线。"
+    },
+    {
+      "name": "Verizon Wireless",
+      "url": "https://www.verizon.com/support/contact-us/",
+      "phone": "800-922-0204",
+      "note": "一般手机客服；Prepaid 预付费客服为 888-294-6804。也可从 My Verizon 进入帮助。"
+    },
+    {
+      "name": "T-Mobile",
+      "url": "https://www.t-mobile.com/contact-us",
+      "phone": "800-937-8997",
+      "note": "T-Mobile 手机可拨 611；T-Life 提供账号帮助和在线聊天。"
+    },
+    {
+      "name": "Xfinity Mobile",
+      "url": "https://www.xfinity.com/support/contact-us",
+      "phone": "888-936-4968",
+      "note": "手机服务专线；与 Xfinity 家庭宽带客服区分。"
+    },
+    {
+      "name": "Metro by T-Mobile",
+      "url": "https://www.metrobyt-mobile.com/contact-us",
+      "phone": "888-863-8768",
+      "note": "官网亦列本机 *611；可查询门店、账号和账单帮助。"
+    },
+    {
+      "name": "Cricket Wireless",
+      "url": "https://www.cricketwireless.com/contactus",
+      "phone": "800-274-2538",
+      "note": "Cricket 手机可拨 611；官网提供客服时段、在线聊天和门店入口。"
+    },
+    {
+      "name": "Mint Mobile",
+      "url": "https://www.mintmobile.com/help/how-do-i-contact-mint-mobile/",
+      "phone": "800-683-7392",
+      "note": "Mint 手机可拨 611；官网提供聊天入口。"
+    },
+    {
+      "name": "Visible",
+      "url": "https://www.visible.com/m/help/contact-us.html",
+      "note": "官方不提供电话客服；使用官网或 Visible App 在线聊天。"
+    },
+    {
+      "name": "Google Fi Wireless",
+      "url": "https://fi.google.com/about/support-simple",
+      "phone": "844-825-5234",
+      "note": "Fi 官方支持电话；也可使用 Google Fi 帮助中心或 App。"
+    },
+    {
+      "name": "Boost Mobile",
+      "url": "https://help.boostmobile.com/docs/contact-our-support-teams",
+      "phone": "833-502-6678",
+      "note": "一般客服；激活专线和在线聊天另列在官方支持页。"
+    },
+    {
+      "name": "US Mobile",
+      "url": "https://www.usmobile.com/help/docs/troubleshooting-and-setup/contact-us",
+      "note": "从官方帮助页、App 或账户控制台进入支持聊天。"
+    },
+    {
+      "name": "Consumer Cellular",
+      "url": "https://www.consumercellular.com/contact",
+      "note": "使用官方联系页选择在线聊天、电话或账户帮助；本目录不引用第三方销售号码。"
+    }
+  ]
+}
