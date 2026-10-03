@@ -7,6 +7,7 @@ import { getGuideMedia } from '../data/guide-media';
 import { attractionMapUrl, filterAttractions, loadOuting, MAX_OUTING_STOPS, outingShareUrl, outingText, parseSharedOuting, saveOuting } from '../lib/attraction-plan';
 import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
+import { CITY_EXPLORATION_SLUG } from '../data/city-exploration-types';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 
@@ -72,6 +73,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   };
 
   return <div className="attraction-page">
+    <nav className="city-exploration-launch" aria-label={translateText('城市攻略入口', locale)}><Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={17} aria-hidden="true" /><span>{translateText('按城市探索：九县 101 城景点与生活指南', locale)}</span><ArrowRight size={17} aria-hidden="true" /></Link></nav>
     <nav className="planner-launch-links"><Link to={`/plan?places=${plan.slice(0, 3).join(",")}`}><Sparkles size={16} />{plan.length ? "在地图里安排前三站" : "让 BayBay 帮我排一天"}</Link><Link to="/my-week">我的这周</Link></nav>
     <header className="attraction-intro">
       <span className="attraction-eyebrow"><Compass size={16} aria-hidden="true" /> YOUR NEXT BAY AREA DAY</span>

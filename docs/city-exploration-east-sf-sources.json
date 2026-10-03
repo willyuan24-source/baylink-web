@@ -1,0 +1,1159 @@
+{
+  "verifiedAt": "2026-10-02",
+  "scope": {
+    "cities": 34,
+    "Alameda": 14,
+    "Contra Costa": 19,
+    "San Francisco": 1
+  },
+  "methodology": [
+    "Read official city, park-district, NPS, public utility recreation and official venue sources through web browsing. Each source explicitly distinguishes a direct page read from official search-index text.",
+    "Resource links serve as official navigation entry points; a link alone is not evidence that its full contents or every current program was re-audited.",
+    "No unconfirmed exact fares, live spaces, transit headways, parking availability or projected facility opening dates are presented as certain.",
+    "Nearby identifies a visitor extension outside the compact city itinerary; place scope is not derived from a postal address. Unresolved park parcel boundaries are not asserted as proven.",
+    "Current-specific alerts are explicitly dated in visitor content. Source ledger is factual paraphrase, not copied page text."
+  ],
+  "cities": [
+    {
+      "city": "Alameda",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.ebparks.org/parks/crown-beach",
+          "access": "official_search_extract",
+          "facts": [
+            "Crown Beach has shoreline paths and the Elsie Roemer area is under restoration with no access."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.ebparks.org/parks/visitor-centers/crab-cove",
+          "access": "official_search_extract",
+          "facts": [
+            "Crab Cove has a staffed nature visitor center, exhibits and scheduled programs; center hours differ from outdoor grounds."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Albany",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.albanyca.gov/Parks/Albany-Bulb-Neck-Waterfront-Trail",
+          "access": "official_search_extract",
+          "facts": [
+            "The city lists the Bulb, Neck and Waterfront Trail; waterfront terrain is not uniformly paved."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.albanyca.gov/Parks/Memorial-Park",
+          "access": "official_search_extract",
+          "facts": [
+            "Memorial Park is a municipal recreation park with designated facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Berkeley",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://berkeleyca.gov/community-recreation/parks-recreation/parks/berkeley-rose-garden-park",
+          "access": "official_search_extract",
+          "facts": [
+            "The Rose Garden has terraced paths; accessibility and street parking are limited by its hillside layout."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://berkeleyca.gov/community-recreation/waterfront",
+          "access": "official_search_extract",
+          "facts": [
+            "Berkeley's waterfront includes the Marina and César Chávez Park, distinct from the hillside Rose Garden."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://berkeleyca.gov/your-government/about-us/departments/parks-recreation-waterfront",
+          "access": "official_search_extract",
+          "facts": [
+            "Department responsibilities include parks, recreation and waterfront services."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Dublin",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.dublin.ca.gov/facilities/facility/details/Dublin-Heritage-Park-Museums-25",
+          "access": "official_search_extract",
+          "facts": [
+            "Heritage Park contains historic buildings and museums whose interior hours differ from grounds access."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.dublin.ca.gov/2723/Emerald-Glen-Park",
+          "access": "official_search_extract",
+          "facts": [
+            "Emerald Glen includes outdoor recreation spaces; The Wave is a separate aquatic facility with its own operations."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://dublin.ca.gov/90/Parks-Community-Services",
+          "access": "official_search_extract",
+          "facts": [
+            "Department links Heritage Park, The Wave and registration services."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Emeryville",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.emeryville.org/Recreation/City-Parks/Marina-Park",
+          "access": "official_search_extract",
+          "facts": [
+            "Marina Park is at the west end of Powell Street with waterfront paths, picnic facilities and parking."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.emeryville.org/Recreation/City-Parks/Doyle-Hollis-Park",
+          "access": "official_search_extract",
+          "facts": [
+            "Doyle Hollis is an urban neighborhood park with play, sports and picnic amenities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.emeryville.org/Government/Departments/Community-Services",
+          "access": "official_search_extract",
+          "facts": [
+            "Official entry point for recreation registration, family services and rentals."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Fremont",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.fremont.gov/government/departments/parks-recreation/parks/central-park",
+          "access": "official_search_extract",
+          "facts": [
+            "Central Park surrounds Lake Elizabeth and includes paths and recreation amenities; boat rental is seasonal."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.ebparks.org/parks/ardenwood",
+          "access": "official_search_extract",
+          "facts": [
+            "Ardenwood is managed by EBRPD, with the city separately operating Patterson House tours; it has scheduled closure days."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.fremont.gov/Home/Components/FacilityDirectory/FacilityDirectory/116/525",
+          "access": "official_search_extract",
+          "facts": [
+            "Municipal directory expressly lists Ardenwood among parks located in Fremont."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.fremont.gov/government/departments/parks-recreation/parks/historic-parks-facilities/the-patterson-house-ardenwood-historic-farm?locale=zh_tw",
+          "access": "official_search_extract",
+          "facts": [
+            "The city explains the distinction between farm operations and Patterson House tours."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Central Park and Ardenwood are city locations; no Oakland Zoo or city-mailing-address-only attraction is used.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Hayward",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.haywardrec.org/Facilities/Facility/Details/Japanese-Gardens-100?mobile=ON",
+          "access": "official_search_extract",
+          "facts": [
+            "The Japanese Gardens adjoin the Hayward Senior Center; ordinary visits differ from private event rentals."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://haywardrec.org/1991/Nature-Centers",
+          "access": "official_search_extract",
+          "facts": [
+            "HARD operates Sulphur Creek as an environmental education and wildlife rehabilitation facility; its brochure identifies Fairview."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://haywardrec.org/DocumentCenter/View/11061",
+          "access": "official_search_extract",
+          "facts": [
+            "The district's 2026 recreation brochure captions Sulphur Creek Nature Center as Fairview; this supports nearby rather than treating the mailing address as city limits."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Sulphur Creek is classified nearby because HARD identifies the Fairview area; a Hayward mailing address does not establish municipal location.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Livermore",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.larpd.org/ravenswood-historic-site",
+          "access": "direct_official_page",
+          "facts": [
+            "Ravenswood is a historic estate with scheduled tours and events, not proof of daily interior access."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.larpd.org/may-nissen-park",
+          "access": "direct_official_page",
+          "facts": [
+            "LARPD identifies May Nissen Park at 685 Rincon Avenue, adjacent to Rincon Library and a separate swim center, with play, sports and reservable picnic areas."
+          ],
+          "limitations": "Pool/library hours and field availability are not implied by ordinary park access."
+        },
+        {
+          "url": "https://www.larpd.org/sycamore-grove-faq",
+          "access": "official_search_extract",
+          "facts": [
+            "LARPD expressly says EBRPD passes do not cover Sycamore Grove parking."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.larpd.org/picnic-rental-faq",
+          "access": "official_search_extract",
+          "facts": [
+            "Picnic permits are required for reserving a specified place/time or an organized event of 15 or more; multiple May Nissen picnic areas are listed."
+          ],
+          "limitations": "Current fees and available dates not asserted."
+        },
+        {
+          "url": "https://www.larpd.org/files/ac86b3051/Grazing%2BManagement%2BPlan%2B2010.pdf",
+          "access": "official_search_extract",
+          "facts": [
+            "The 2010 plan describes Sycamore Grove in unincorporated Alameda County. Read for boundary review, not to assert unchanged 2026 parcel boundaries."
+          ],
+          "limitations": "Historical document; no current boundary geometry supplied."
+        }
+      ],
+      "boundaryNote": "Selected places Ravenswood and May Nissen are city visitor sites. Sycamore Grove remains a resident extension tip only. A 2022 meeting request for a boundary map was insufficient to prove specific city/county portions, so no cross-boundary classification was published.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Newark",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
+          "access": "official_search_extract",
+          "facts": [
+            "The city directory identifies Lakeshore Park at Lake Boulevard/Parkshore Drive and Community Center Park at 35501 Cedar Boulevard. Ordinary parks are first come, first served, not rentable; the Community Center is rentable."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Oakland",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Parks/Lakeside-Park",
+          "access": "official_search_extract",
+          "facts": [
+            "Lakeside Park has multiple gardens, recreation and picnic facilities; ticketed Children's Fairyland is a distinct attraction."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Rent-a-Facility-or-Park/Morcom-Rose-Garden",
+          "access": "official_search_extract",
+          "facts": [
+            "Morcom Rose Garden is a terraced garden with volunteer opportunities and separate event rental conditions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Piedmont",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/list_of_parks__sports_fields____dog_parks",
+          "access": "official_search_extract",
+          "facts": [
+            "The city parks list includes Piedmont Park/Exedra and Dracena Quarry Park."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/park_amenities",
+          "access": "official_search_extract",
+          "facts": [
+            "Municipal amenity and dog rules distinguish designated off-leash locations from areas requiring a leash or permit."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/dogs_in_parks",
+          "access": "official_search_extract",
+          "facts": [
+            "Dogs need permits in applicable parks; off-leash permission is limited to designated areas."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.piedmont.ca.gov/services___departments/recreation",
+          "access": "official_search_extract",
+          "facts": [
+            "Current recreation and registration entry point."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Pleasanton",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.cityofpleasantonca.gov/your-community/recreation/alviso-adobe/",
+          "access": "official_search_extract",
+          "facts": [
+            "Alviso Adobe is at Old Foothill Road and offers local history interpretation and volunteer programs."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.museumonmain.org/visitcontact.html",
+          "access": "official_search_extract",
+          "facts": [
+            "Museum on Main is at 603 Main Street in downtown Pleasanton; visitor hours are published by the museum."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.cityofpleasantonca.gov/your-community/about-pleasanton/",
+          "access": "official_search_extract",
+          "facts": [
+            "The city describes the downtown Museum on Main and its former civic-building history."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "San Leandro",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.sanleandro.org/Facilities/Facility/Details/Marina-11",
+          "access": "official_search_extract",
+          "facts": [
+            "Marina Park is a city shoreline destination with recreation amenities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.sanleandro.org/1041/Hours-Location",
+          "access": "official_search_extract",
+          "facts": [
+            "History Museum Hours & Location lists visiting times, but a separate city facility listing says closed; the conflict is unresolved."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.sanleandro.org/facilities/facility/details/San-Leandro-History-Museum-40",
+          "access": "official_search_extract",
+          "facts": [
+            "Facility listing says museum closed, conflicting with the dedicated hours page; content advises checking before travel."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.sanleandro.org/Facilities/Facility/Details/Casa-Peralta-39",
+          "access": "official_search_extract",
+          "facts": [
+            "Top-of-page closure notice says Casa Peralta is closed until further notice; stale hours lower on the page are not used."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Union City",
+      "county": "Alameda",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.unioncityca.gov/560/Picnic-Reservations",
+          "access": "official_search_extract",
+          "facts": [
+            "The city's picnic reservation system identifies Old Alvarado/Cesar Chavez and Kennedy parks; reservations need an account and approval."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.unioncityca.gov/192/Community-Recreation-Services",
+          "access": "official_search_extract",
+          "facts": [
+            "City lists recreation facilities and teen/community programs."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.unioncityca.gov/DocumentCenter/View/12748/24-20-Union-City_Parks-and-Recreation-Master-Plan_RFP?bidId=",
+          "access": "official_search_extract",
+          "facts": [
+            "Official park inventory identifies Union City's Old Alvarado and Charles F. Kennedy Park, avoiding same-name facilities in other cities."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.ebparks.org/trails/interpark/alameda-creek",
+          "access": "official_search_extract",
+          "facts": [
+            "Current notice closes an unpaved downstream section for weekday work through October 5; it is not a closure of the entire trail."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.ebparks.org/parks/dry-creek-pioneer",
+          "access": "direct_official_page_or_pdf",
+          "facts": [
+            "The garden closure is listed separately from the preserve trails."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Antioch",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.ebparks.org/parks/contra-loma",
+          "access": "direct_official_page",
+          "facts": [
+            "Contra Loma has a separate reservoir and swim lagoon. The lagoon is closed; Lake View Trail at the cattle pond has an October 2 storm-damage closure. Boat inspections address invasive mussels."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.ebparks.org/parks/black-diamond",
+          "access": "direct_official_page",
+          "facts": [
+            "Black Diamond has underground visitor and mine experiences with separate conditions; the preserve extends beyond the compact city visitor area."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.antiochca.gov/1010/Parks-Spaces",
+          "access": "official_search_extract",
+          "facts": [
+            "The city identifies the two regional parks as EBRPD-operated, separate from municipal park operations."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.antiochca.gov/DocumentCenter/View/2448",
+          "access": "direct_official_page_or_pdf",
+          "facts": [
+            "Official parks and trails PDF shows city limits and Contra Loma; used for boundary context rather than a postal address."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Contra Loma is shown in the official city parks/boundary map. The much larger Black Diamond preserve is classified nearby; this does not label all its acreage outside Antioch.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Brentwood",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.brentwoodca.gov/home/showpublisheddocument/11611/638975265919970000",
+          "access": "official_search_extract",
+          "facts": [
+            "The current city picnic-area PDF locates City Park at 710 Second Street and describes reservable amenities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.brentwoodca.gov/home/showpublisheddocument/11625/638975274309970000",
+          "access": "official_search_extract",
+          "facts": [
+            "The city PDF locates Veterans Park at 3841 Balfour Road and lists play and sports amenities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.brentwoodca.gov/government/parks-recreation",
+          "access": "official_search_extract",
+          "facts": [
+            "Official current-season recreation guide, facilities and older-adult services."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Clayton",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.claytonca.gov/216/Rent-a-Picnic-Area",
+          "access": "official_search_extract",
+          "facts": [
+            "The city's picnic rental page describes The Grove and Clayton Community Park, including picnic/play areas and seasonal water play."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Concord",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.cityofconcord.org/facilities/facility/details/todossantosplaza-36",
+          "access": "official_search_extract",
+          "facts": [
+            "Todos Santos Plaza is a downtown public square with programmed events, not a daily guarantee of a market or concert."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.cityofconcord.org/facilities/facility/details/Markham-Nature-Park-and-Arboretum-30",
+          "access": "official_search_extract",
+          "facts": [
+            "Markham includes an arboretum, creek landscape and community garden facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Danville",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://danville.ca.gov/259/Community-Parks",
+          "access": "official_search_extract",
+          "facts": [
+            "The town lists Sycamore Valley among its community parks."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.nps.gov/euon/planyourvisit/index.htm",
+          "access": "direct_official_page",
+          "facts": [
+            "NPS requires reservations for ordinary Tao House visits and directs visitors to a Danville shuttle; private vehicles cannot drive to the house."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://danville.ca.gov/273/Picnic-Areas",
+          "access": "official_search_extract",
+          "facts": [
+            "Resident booking categories refer to incorporated town residency rather than the broader mailing address."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Tao House is treated as a nearby destination reached by the NPS shuttle from Danville, not an unrestricted downtown attraction.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "El Cerrito",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.elcerrito.gov/facilities/facility/details/Hillside-Natural-Area-17",
+          "access": "official_search_extract",
+          "facts": [
+            "Hillside Natural Area has trails and an access point near the recycling center on Schmidt Lane."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.elcerrito.gov/facilities/facility/details/Cerrito-Vista-Park-10",
+          "access": "official_search_extract",
+          "facts": [
+            "Cerrito Vista is a municipal park with play, sports and picnic amenities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Hercules",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/34/178",
+          "access": "official_search_extract",
+          "facts": [
+            "Refugio Valley Park has recreation and picnic facilities with use restrictions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/50/178",
+          "access": "official_search_extract",
+          "facts": [
+            "Shoreline Park is a separate waterfront destination; organized group uses have conditions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Lafayette",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.ebmud.com/recreation/east-bay/lafayette-reservoir",
+          "access": "direct_official_page",
+          "facts": [
+            "EBMUD operates Lafayette Reservoir with different lower paved and upper rim routes; swimming is prohibited."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.lovelafayette.org/city-hall/city-departments/parks-trails-recreation/parks/community-park",
+          "access": "official_search_extract",
+          "facts": [
+            "The city operates Lafayette Community Park on St. Mary's Road; its trail network is separate from reservoir management."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.lovelafayette.org/city-hall/maps",
+          "access": "official_search_extract",
+          "facts": [
+            "City map room provides municipal-boundary and park maps."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.lovelafayette.org/home/showpublisheddocument/3227/635630520508570000",
+          "access": "official_search_extract",
+          "facts": [
+            "Official general-plan map indexed with reservoir and city-limit layers; supplementary boundary context only, not a current closure map."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Martinez",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.nps.gov/jomu/planyourvisit/index.htm",
+          "access": "direct_official_page",
+          "facts": [
+            "The NPS visit page currently lists Tuesday–Saturday opening and Sunday/Monday closure; house access ends before the grounds."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.ebparks.org/parks/radke-martinez",
+          "access": "official_search_extract",
+          "facts": [
+            "Radke Martinez Regional Shoreline adjoins city waterfront recreation space but has a different manager."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Moraga",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.moraga.ca.us/249/Moraga-Commons-Park",
+          "access": "direct_official_page",
+          "facts": [
+            "Moraga Commons is a town park on St. Mary's Road with seasonal water play and recreation areas."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.moraga.ca.us/251/Rancho-Laguna-Park",
+          "access": "direct_official_page",
+          "facts": [
+            "Rancho Laguna has designated off-leash times; the current page lists October 3 afternoon, October 4 morning and October 16 afternoon exceptions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.moraga.ca.us/DocumentCenter/View/475/Commons--Rancho-Hourly-Area-Rental-Form-Application-PDF?bidId=",
+          "access": "official_search_extract",
+          "facts": [
+            "Park rental instructions prohibit using the library as overflow parking for Commons."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Oakley",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.ebparks.org/parks/big-break",
+          "access": "direct_official_page",
+          "facts": [
+            "Big Break has a Delta visitor center and waterfront paths. The live page carries a blue-green algae Danger advisory and prohibits swimming."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.oakleyca.gov/Facilities/Facility/Details/Creekside-Park-1",
+          "access": "official_search_extract",
+          "facts": [
+            "Creekside is a municipal park with recreation and picnic facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.oakleyca.gov/263/Maps",
+          "access": "direct_official_page_or_pdf",
+          "facts": [
+            "City map portal identifies official city-limit, parks and trail mapping; oversized PDF was not used as read evidence."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Orinda",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.cityoforinda.gov/233/Parks",
+          "access": "direct_official_page",
+          "facts": [
+            "The city parks page describes Community Center Park and disallows off-leash dogs."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.cityoforinda.gov/515/Picnics",
+          "access": "official_search_extract",
+          "facts": [
+            "The picnic page locates Wilder Picnic Area by Field 2 on Orinda Fields Lane, distinct from Community Center Park."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Pinole",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.pinole.gov/recreation/parks_facilities/fernandez-park/",
+          "access": "official_search_extract",
+          "facts": [
+            "Fernandez Park is a downtown city park with recreation and group-use facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.pinole.gov/recreation/parks_facilities/pinole-valley-park/",
+          "access": "official_search_extract",
+          "facts": [
+            "The current city directory locates Pinole Valley Park at 1270 Adobe Road; use the current entrance rather than older map addresses."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.pinole.gov/services/park-rentals/",
+          "access": "official_search_extract",
+          "facts": [
+            "The page contains an apparent reversed dawn/dusk hours statement; that ambiguous text was excluded from visitor content."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Pittsburg",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.pittsburgca.gov/Home/Components/News/News/3717/24",
+          "access": "direct_official_page",
+          "facts": [
+            "An August 2026 city update confirms Small World Park and a planning/public-input process; a proposed grant is not an awarded or completed project."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://dbw.parks.ca.gov/BoatingFacilities/f/454",
+          "access": "direct_official_page",
+          "facts": [
+            "California State Parks' boating directory identifies Pittsburg Marina at 51 E. Marina Boulevard, with marina and launch functions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.pittsburgrec.com/services/parks-and-recreation/swp",
+          "access": "official_search_extract",
+          "facts": [
+            "Official indexed operating-season and ride information was consulted; changing ride availability is not guaranteed."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Pleasant Hill",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.pleasanthillrec.com/Facilities/Facility/Details/Pleasant-Hill-Park-13",
+          "access": "direct_official_page",
+          "facts": [
+            "The recreation district describes Pleasant Hill Park at 147 Gregory Lane, with play, picnic and aquatic facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.pleasanthillrec.com/Facilities/Facility/Details/Paso-Nogal-Park-10",
+          "access": "direct_official_page",
+          "facts": [
+            "Paso Nogal's fenced dog area has Sunday, Wednesday maintenance and rain closures that do not apply identically to surrounding trails."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.pleasanthillrec.com/442/Parks",
+          "access": "direct_official_page_or_pdf",
+          "facts": [
+            "General district directory identifies facilities; specific closure notices take priority over generic all-open text."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://pleasanthillrec.com/Facilities/Facility/Details/RodgersSmith-Park-15",
+          "access": "official_search_extract",
+          "facts": [
+            "Specific park notice says playground and picnic area are closed during restroom/access improvements; not proposed as an open fallback."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Richmond",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.nps.gov/rori/planyourvisit/placestogo.htm",
+          "access": "direct_official_page",
+          "facts": [
+            "NPS identifies both the Visitor Education Center and Rosie Memorial/Marina Bay Park as separate publicly visitable locations; the historical park is dispersed."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "San Pablo",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.sanpabloca.gov/949/Outdoor-Destinations",
+          "access": "direct_official_page",
+          "facts": [
+            "The city identifies Alvarado Adobe as a replica at the former City Hall site and Davis Park at 17th/Folsom. Its regional destination list also includes places outside city limits."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "San Ramon",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/parks_facilities/parks/central_park",
+          "access": "official_search_extract",
+          "facts": [
+            "The city identifies Central Park on Alcosta Boulevard with community recreation facilities."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/forest_home_farms_historic_park",
+          "access": "official_search_extract",
+          "facts": [
+            "Forest Home Farms has scheduled Tuesday–Saturday access and holiday closures; Boone House planning/funding statements do not establish a completed opening."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.sanramon.ca.gov/cms/One.aspx?pageId=11692660&portalId=10826130",
+          "access": "official_search_extract",
+          "facts": [
+            "Official farm background and self-guided visit information; capital plans are not current access guarantees."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "Walnut Creek",
+      "county": "Contra Costa",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.walnutcreekca.gov/home/components/facilitydirectory/facilitydirectory/16/664",
+          "access": "official_search_extract",
+          "facts": [
+            "The city directory identifies Borges Ranch as a historic ranch/open-space destination on Castle Rock Road."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.walnutcreekca.gov/government/public-works/construction-roadwork-impacts",
+          "access": "official_search_extract",
+          "facts": [
+            "The official construction page, indexed as updated August 24, 2026, describes Heather Farm work and access impacts; planned project milestones are not opening guarantees."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://www.walnutcreekartsrec.org/Home/Components/FacilityDirectory/FacilityDirectory/51/1920",
+          "access": "official_search_extract",
+          "facts": [
+            "Official indexed Heather Farm facility listing used for park identity; direct read was blocked."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://www.walnutcreekca.gov/home/showpublisheddocument/30608/638876496226770000",
+          "access": "official_search_extract",
+          "facts": [
+            "Official FY2026/27 budget PDF indexed with planned Heather Farm capital work; planned dates are not evidence that a new facility opened."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    },
+    {
+      "city": "San Francisco",
+      "county": "San Francisco",
+      "verifiedAt": "2026-10-02",
+      "sources": [
+        {
+          "url": "https://www.sfrecpark.org/1116/Golden-Gate-Park-Points-of-Interest",
+          "access": "official_search_extract",
+          "facts": [
+            "SF Recreation and Parks distinguishes Golden Gate Park's outdoor points of interest from individually operated attractions."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://presidio.gov/explore/attractions/presidio-tunnel-tops",
+          "access": "official_search_extract",
+          "facts": [
+            "Presidio Tunnel Tops has outdoor recreation areas; Presidio GO is free while visitor parking has separate charges and rules."
+          ],
+          "limitations": "Visitor availability, bookings, weather, construction and service hours remain subject to the linked operator's current notices."
+        },
+        {
+          "url": "https://presidio.gov/visit/getting-to-and-around-the-park",
+          "access": "official_search_extract",
+          "facts": [
+            "Official transport page distinguishes free Presidio GO service and paid parking; individual routes/hours require current checking."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        },
+        {
+          "url": "https://presidio.gov/visit/frequently-asked-questions",
+          "access": "official_search_extract",
+          "facts": [
+            "FAQ confirms Presidio GO service; it does not make city Muni fares or private attraction tickets free."
+          ],
+          "limitations": "Used only for the described fact; plans and historical documents do not establish current completion."
+        }
+      ],
+      "boundaryNote": "Named visitor locations are municipal parks or identifiable city visitor sites. Region-wide services and postal addresses are not generalized into city-limit claims.",
+      "editorialNotes": "Half-day sequencing, route shortening, registration preparation and resident-use ideas are editorial suggestions, not official itineraries or measured travel times."
+    }
+  ],
+  "accessFailures": [
+    {
+      "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
+      "result": "Direct read returned HTTP 403; the official search index exposed the full relevant directory text.",
+      "handling": "Only indexed municipal facility facts are used. No claim of a successful live page read or live course availability."
+    },
+    {
+      "url": "https://www.newark.org/departments/parks/parks-and-sportsfields",
+      "result": "Alternative legacy-domain read also returned HTTP 403.",
+      "handling": "Not used as an independent successful fallback."
+    },
+    {
+      "url": "https://www.pittsburgmarina.com/",
+      "result": "Direct read returned HTTP 403; amenities subpage also blocked.",
+      "fallbackUrl": "https://dbw.parks.ca.gov/BoatingFacilities/f/454",
+      "handling": "Product link uses the successfully read California State Parks boating directory; no marina operational schedule is asserted."
+    },
+    {
+      "url": "https://www.pittsburgrec.com/",
+      "result": "Direct recreation-site reads returned HTTP 403.",
+      "fallbackUrl": "https://www.pittsburgca.gov/Home/Components/News/News/3717/24",
+      "handling": "Product links the successfully read 2026 municipal Small World Park update; seasonal facts also checked in official indexed SWP text, without fixed hours/prices."
+    },
+    {
+      "url": "https://www.walnutcreekca.gov/government/public-works/construction-roadwork-impacts",
+      "result": "Direct read returned HTTP 403; current official search extract was readable.",
+      "handling": "Use indexed construction notice and explicit pre-visit recheck. Do not assert any forecast opening as completed."
+    },
+    {
+      "url": "https://www.walnutcreekartsrec.org/Home/Components/FacilityDirectory/FacilityDirectory/51/1920",
+      "result": "Direct read returned HTTP 403; official indexed park identity was readable.",
+      "handling": "Park identity only; no current full-facility availability guarantee."
+    },
+    {
+      "url": "https://www.lovelafayette.org/home/showpublisheddocument/3227/635630520508570000",
+      "result": "Initial open returned PDF metadata; subsequent content read and screenshot were blocked HTTP 403. Official indexed map text was readable.",
+      "handling": "Only secondary boundary context, not represented as visually inspected map or live operational source."
+    },
+    {
+      "url": "https://ca-oakley.civicplus.com/DocumentCenter/View/667/City-of-Oakley-Parks-Bike-Routes-and-Trails-Map-PDF",
+      "result": "Tool rejected approximately 96 MB PDF as too large.",
+      "handling": "Not treated as read evidence; successful city maps portal and EBRPD place page used instead."
+    }
+  ],
+  "unresolved": [
+    "San Leandro History Museum has conflicting official open/closed pages; users are explicitly told to confirm before traveling.",
+    "Newark and Walnut Creek facts have official indexed evidence, but the direct pages were blocked; these are not marked as successful live reads.",
+    "Some city homepage/new-resident resource links are navigation references inherited from the official utilities research, not independent evidence for attraction hours.",
+    "No public transit service pattern or exact driving time was independently promised; transport copy directs users to actual entrances and a checked return plan.",
+    "Sycamore Grove boundary review: an older district management plan calls the park unincorporated; a 2022 board request asks staff to identify city-limit portions but does not supply the map. Replaced its featured place with May Nissen; do not treat the meeting request as completed geographic evidence."
+  ]
+}

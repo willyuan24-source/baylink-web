@@ -238,6 +238,8 @@ export const READER_GUIDE_MEDIA: Record<string, [string, string]> = {
 Object.assign(bySlug, READER_GUIDE_MEDIA);
 bySlug['bay-area-city-utilities-internet-phone-directory'] = ['utilities-setup', 'coverage-laptop'];
 bySlug['bay-area-outlets-malls-shopping-guide'] = ['shopping-stonestown', 'region-japantown'];
+// The region-wide directory uses the existing credited Bay panorama as context.
+bySlug['bay-area-101-city-exploration-living-guide'] = ['bay', 'train'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

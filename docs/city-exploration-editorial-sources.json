@@ -1,0 +1,30 @@
+{
+  "checkedAt": "2026-10-02",
+  "scope": "Nine counties, 101 incorporated cities and towns",
+  "sources": [
+    {
+      "title": "ABAG: How We Govern",
+      "url": "https://www.abag.ca.gov/about-abag/what-we-do/how-we-govern",
+      "description": "本文九县 101 个建制城市和镇的范围依据。"
+    },
+    {
+      "title": "511: Travel information and FAQ",
+      "url": "https://511.org/about/faq",
+      "description": "交通警报和区域出行入口；具体班次与路线规划需另查运营机构。"
+    },
+    {
+      "title": "California State Parks: Reservation Information",
+      "url": "https://www.parks.ca.gov/?page_id=31906",
+      "description": "从具体公园页面查公告、设施和预约，不能把公园名等同于已订好名额。"
+    },
+    {
+      "title": "National Park Service: Active Alerts",
+      "url": "https://www.nps.gov/planyourvisit/alerts.htm?v=1",
+      "description": "国家公园管理单位发布的关闭、限制和出行提醒。"
+    }
+  ],
+  "sourceAccess": {
+    "https://abag.ca.gov/about-abag/what-we-do/our-members": "403 on direct fetch; use official How We Govern indexed text instead"
+  },
+  "editorial": "Half-day sequences and resident suggestions are editorial synthesis, not observed journey times or guaranteed availability. Per-city factual sources appear in the three regional research ledgers. Existing credited bay and train photographs reused without modification."
+}

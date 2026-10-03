@@ -1,6 +1,6 @@
 import type { Guide } from './guides';
 
-/** Official sources checked 2026-09-23; route combinations and durations are editorial suggestions. */
+/** Original checks 2026-09-23; individual updatedAt/sourceNote fields record subsequent checks. Routes and durations are editorial suggestions. */
 export const autumnRefreshGuides: Guide[] = [
   {
     "slug": "bay-area-october-muni-clipper-payment-update-2026",
@@ -187,14 +187,19 @@ export const autumnRefreshGuides: Guide[] = [
       "ride"
     ],
     "readMinutes": 4,
-    "updatedAt": "2026-09-23",
+    "updatedAt": "2026-10-02",
     "editionMonth": "2026-10",
-    "sourceNote": "官方资料核对于 2026 年 9 月 23 日，适用于十月常规出行规划。文中的路线组合、停留时间与亲子任务是 BAYLINK 编辑建议；常规开放不代表特别活动已确认，出发前请复核官方公告。",
+    "sourceNote": "官方资料于 2026 年 10 月 2 日复核，并补入市府九月施工进度。文中的停留时间与路线是编辑建议；游乐场暂定重开时间不是已确认开放日，出发前请查项目最新公告。",
     "sources": [
       {
         "title": "San Mateo 市府：Central Park 与日本花园",
         "url": "https://cityofsanmateo.org/3319/Central-Park-Japanese-Garden",
-        "description": "核对工作日与周末花园时段，以及 2026 年 5 月更新的游乐场、野餐区关闭说明。"
+        "description": "核对日本花园现行时段、禁犬规定与公园关闭提醒。"
+      },
+      {
+        "title": "San Mateo 市府：游乐场改造进度",
+        "url": "https://www.cityofsanmateo.org/4142/Central-Park-Playground-Renovation",
+        "description": "九月更新称木栈道系统正在安装，游乐场暂定 2026 年十月较晚时候重开，具体日子仍待公布。"
       }
     ],
     "blocks": [
@@ -216,14 +221,20 @@ export const autumnRefreshGuides: Guide[] = [
       },
       {
         "type": "tip",
-        "title": "当前施工：游乐场和野餐区关闭",
-        "text": "市府 2026 年 5 月更新说明，游乐场和野餐区将在施工期间关闭，预计施工需 18–24 个月。不要按页面下方旧设施列表安排滑梯或野餐桌；若主要想玩游乐设施，先另选当天开放的公园。"
+        "title": "施工更新：游乐场暂定十月较晚时候重开",
+        "text": "市府九月项目更新表示，游乐场木栈道系统正在安装，其余主要改善已完成，暂定 2026 年十月较晚时候重开，具体日子尚未公布。公园总览仍提醒游乐场与野餐区在施工期间关闭；不要把暂定日期当成已开放，带孩子玩设施或使用野餐区前先查项目公告与现场围挡。"
       },
       {
         "type": "link",
         "title": "出发前查看官方参观信息",
         "text": "复核当天开放、临时调整和需要预约的项目，再确定集合时间。",
         "url": "https://cityofsanmateo.org/3319/Central-Park-Japanese-Garden"
+      },
+      {
+        "type": "link",
+        "title": "查看游乐场最新施工与重开公告",
+        "text": "以项目页后续公布的具体开放安排为准，不根据旧工期自行推算。",
+        "url": "https://www.cityofsanmateo.org/4142/Central-Park-Playground-Renovation"
       }
     ]
   },

@@ -1,0 +1,1137 @@
+{
+  "verifiedAt": "2026-10-02",
+  "coverage": {
+    "Marin": 11,
+    "Napa": 5,
+    "Sonoma": 9,
+    "Solano": 7,
+    "total": 32
+  },
+  "methodology": {
+    "purpose": "北湾 32 个建制城市的景点、居民资源与出行编辑补充；半日路线是编辑建议，不是实测时长或完整无障碍路线。",
+    "verification": "实际使用网页搜索及打开工具读取市政府、公共机构、场馆运营方或官方旅游机构内容。部分官网拒绝直接抓取时采用其官方搜索索引正文，并在具体条目说明。verifiedAt 表示本轮核对日期，不保证当日票务余量、施工状态或活动继续举办。",
+    "boundaries": "city 表示地点位于本城；nearby 表示本城外推荐；cross-boundary 表示所介绍路线同时包含市内与市外路段。邮寄城市名不单独用作行政边界证据。",
+    "currency": "保留 2026 年明确日期的关闭信息；无年份公告只提醒再核实，不推定属于 2026 年。旧计划、历史活动和工程预期完工日期只用于稳定地点事实或提醒，不当成当前活动或已建成设施。",
+    "resourceLinks": "市级综合首页仅作为办事入口，并非正文所有主张的独立证据。下面 resourceOnlyUrls 为官方入口引用，不代表本轮对其所有菜单或在线办事功能逐项测试。",
+    "editorial": "天气、带儿童、停车后步行、留返程时间等为编辑建议；未写无来源的停车免费承诺、实时班次或固定旅行时间。"
+  },
+  "sharedSources": [
+    {
+      "url": "https://marintransit.gov/",
+      "access": "官方线路目录正文已读取；旧 marintransit.org 重定向至 .gov。",
+      "claims": [
+        "确认 Marin Transit 各城市线路存在，包括 Tiburon 219、Fairfax 228、Mill Valley 17、Novato/Hamilton 49 等。"
+      ],
+      "limits": "未据此保证班次、运营日或某个景点门口直达；正文要求核对最后一段与返程。"
+    },
+    {
+      "url": "https://www.sonomamarintrain.org/stations",
+      "access": "官方当前站点页正文已读取。",
+      "claims": [
+        "当前站点包括 Windsor 至 Larkspur；Windsor 列明与 Sonoma County Transit 60/62 的接驳。",
+        "机场接驳服务对应 Sonoma County Airport 站，不能套用到 Windsor。"
+      ],
+      "limits": "Healdsburg 与 Cloverdale 不写为现有 SMART 车站；不开具当日发车时间或停车价格。"
+    },
+    {
+      "url": "https://www.goldengate.org/ferry/history-research/ferry-operations-today/",
+      "access": "官方搜索索引正文已读取。",
+      "claims": [
+        "当前运营介绍包含 Tiburon 等四条渡轮线路，工作日和周末服务。"
+      ],
+      "limits": "另一个旧 FAQ 的 Tiburon 仅工作日表述与当前运营页不一致，未用于正文；具体日期仍查时刻表。"
+    },
+    {
+      "url": "https://www.goldengate.org/ferry/ferry-fares-payment/transfers/",
+      "access": "官方搜索索引正文已读取。",
+      "claims": [
+        "存在渡轮接驳与当前时刻表入口。"
+      ],
+      "limits": "不把 SMART、公交与渡轮视为无等待衔接。"
+    },
+    {
+      "url": "https://vinetransit.com/first-last-mile-rides/",
+      "access": "官方索引内容已读取。",
+      "claims": [
+        "American Canyon、Calistoga、St. Helena、Yountville 社区接驳需各自核对范围及请求乘车方式。"
+      ],
+      "limits": "不承诺即时接载、服务边界或班次；未将全县所有景点描述为接驳覆盖。"
+    },
+    {
+      "url": "https://vinetransit.com/contact-us/",
+      "access": "官方索引内容已读取。",
+      "claims": [
+        "社区接驳和运营机构联系入口。"
+      ],
+      "limits": "正文不复用未经逐一核对的电话或固定运营时间。"
+    },
+    {
+      "url": "https://marinlibrary.org/refresh/",
+      "access": "官方索引内容已读取。",
+      "claims": [
+        "2026 年 Fairfax 6 月 16 日、Novato 8 月 19 日、Corte Madera 9 月 3 日已重新开放。"
+      ],
+      "limits": "这些是分馆更新日期，不代表所有活动已恢复到旧地点；活动仍查分馆日历。"
+    },
+    {
+      "url": "https://marinlibrary.org/seed-library/",
+      "access": "官方索引内容已读取。",
+      "claims": [
+        "Corte Madera、Fairfax、Novato 等分馆有种子图书馆。"
+      ],
+      "limits": "种类与库存不保证；不要求读者归还新种子。"
+    },
+    {
+      "url": "https://events.sonomalibrary.org/events/day/2026/09/01?language=en",
+      "access": "官方活动日历索引正文已读取。",
+      "claims": [
+        "Rohnert Park–Cotati Regional Library 于 2026 年 9 月 1 日起翻修关闭；9 月 8 日起在 6135 State Farm Drive 总部大厅提供 Library To Go。"
+      ],
+      "limits": "临时服务并非原分馆所有空间和服务；重开日期需查图书馆更新。"
+    },
+    {
+      "url": "https://www.beltiblibrary.org/",
+      "access": "官方首页索引正文已读取，含 2026 年 9 月更新和服务信息。",
+      "claims": [
+        "Belvedere Tiburon Library 的当前官方入口与社区服务。"
+      ],
+      "limits": "旧 thelibrary.info 本轮未能读取；已替换误标为图书馆的 Tiburon Heritage 页。"
+    },
+    {
+      "url": "https://www.beltiblibrary.org/plan-your-visit/hours-directions",
+      "access": "官方位置与开放时间页面索引已读取。",
+      "claims": [
+        "图书馆位于 1501 Tiburon Boulevard；可在此核对行前信息。"
+      ],
+      "limits": "未将全部活动视作随到随参加。"
+    }
+  ],
+  "cities": [
+    {
+      "city": "Belvedere",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://landmarkssociety.com/landmarks/china-cabin/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "China Cabin 是上岸保存的 PS China 船舱，地址 52 Beach Road；季节开放为 4–10 月周六、周日。",
+          "limits": "营业与活动可能调整，正文不承诺当天可入内。"
+        },
+        {
+          "url": "https://www.cityofbelvedere.org/government/",
+          "access": "官方索引正文已读取；复查直接打开返回 403。",
+          "claim": "市政、社区公园及服务目录入口。",
+          "limits": "该页为综合目录，非专门公园详情页；未找到可稳定读取的独立公园页。"
+        },
+        {
+          "url": "https://storage.googleapis.com/proudcity/belvedereca/uploads/2023/07/Belvedere-General-Plan-2030-compressed_2.pdf",
+          "access": "官方规划 PDF 索引内容已读取。",
+          "claim": "用于确认 Community Park 与 China Cabin 的本城市地理语境。",
+          "limits": "历史规划只支持地点与边界，不支持 2026 开放时段或新设施已完工。"
+        }
+      ],
+      "scopeNotes": "两个景点均在 Belvedere；共享图书馆在相邻 Tiburon，列作居民资源而非本城景点。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Corte Madera",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.cortemadera.gov/527/Maps-of-Town-Parks",
+          "access": "官方正文已打开。",
+          "claim": "Town Park 位于 498 Tamalpais Drive，Menke Park 位于 205 Redwood Avenue；页面提供各镇属公园地图。",
+          "limits": "未据地图保证停车位或指定设施当日开放。"
+        },
+        {
+          "url": "https://marinlibrary.org/refresh/",
+          "access": "官方索引已读取。",
+          "claim": "Corte Madera Library 于 2026 年 9 月 3 日重新开放。",
+          "limits": "历史翻修通知不可继续描述为正在关闭。"
+        },
+        {
+          "url": "https://marinlibrary.org/seed-library/",
+          "access": "官方索引已读取。",
+          "claim": "Corte Madera 分馆有种子图书馆。",
+          "limits": "实际库存及活动日期需另查。"
+        }
+      ],
+      "scopeNotes": "Town Park 与 Menke Park 均为镇内设施。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Fairfax",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://mmbhof.org/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Marin Museum of Bicycling 位于 1966 Sir Francis Drake Boulevard；目前常规开放周四至周日，提供骑行历史展览及志愿者入口。",
+          "limits": "临时展览、特别活动和票价不作长期承诺。"
+        },
+        {
+          "url": "https://marinlibrary.org/locations/MF/",
+          "access": "县图书馆官方索引正文已读取。",
+          "claim": "Fairfax Library 位于 2097 Sir Francis Drake Boulevard；常规周日关闭。",
+          "limits": "假日或活动日以分馆通知为准。"
+        },
+        {
+          "url": "https://marinlibrary.org/fairfax-garden/",
+          "access": "县图书馆官方索引正文已读取。",
+          "claim": "分馆有庭园和相关社区参与资源。",
+          "limits": "不保证任何一天都有园艺活动。"
+        },
+        {
+          "url": "https://marinlibrary.org/seed-library/",
+          "access": "官方索引已读取。",
+          "claim": "Fairfax 分馆提供种子图书馆。",
+          "limits": "不保证具体种类有货。"
+        }
+      ],
+      "scopeNotes": "博物馆与分馆均在 Fairfax；未把周围受保护山地全部列为市内。",
+      "resourceOnlyUrls": [
+        "https://townoffairfaxca.gov/"
+      ]
+    },
+    {
+      "city": "Larkspur",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.larkspur.ca.gov/645/Parks",
+          "access": "官方正文已打开。",
+          "claim": "Piper Park 及市公园使用规则；狗的使用区域需按指定区域规则执行。",
+          "limits": "页面个别面积数据未采纳；公园公共区不等于任何球场随到可独占。"
+        },
+        {
+          "url": "https://www.larkspur.ca.gov/912/Larkspur-Library",
+          "access": "官方正文已打开。",
+          "claim": "图书馆当前位于 10 Rose Lane，页面提供借书证和活动入口。",
+          "limits": "避免沿用旧 City Hall 地址；活动单独核对预约。"
+        }
+      ],
+      "scopeNotes": "Piper Park 与 10 Rose Lane 新图书馆均在 Larkspur。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Mill Valley",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.cityofmillvalley.gov/Facilities/Facility/Details/-18",
+          "access": "官方正文已打开。",
+          "claim": "Old Mill Park 红杉环境、Reed Mill 及野餐设施。",
+          "limits": "设施与通道当天可用性须按现场。"
+        },
+        {
+          "url": "https://www.cityofmillvalley.gov/889/Stop-1-Library",
+          "access": "官方索引正文已读取。",
+          "claim": "Mill Valley Public Library 与周围红杉、阅读空间和露台的关系。",
+          "limits": "不把建筑导览页当作活动预约。"
+        },
+        {
+          "url": "https://www.cityofmillvalley.gov/430/Library-Hours-and-Location",
+          "access": "官方索引正文已读取。",
+          "claim": "图书馆位于 375 Throckmorton Avenue，提供位置、时段与附近街边停车信息。",
+          "limits": "街边位置不保证有空位；Muir Woods 是另一次市外行程。"
+        }
+      ],
+      "scopeNotes": "两个地点在 Mill Valley；没有把 Muir Woods National Monument 错标为市内。",
+      "resourceOnlyUrls": [
+        "https://www.cityofmillvalley.gov/"
+      ]
+    },
+    {
+      "city": "Novato",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.novato.gov/our-town/hamilton-field",
+          "access": "官方索引正文已读取；直接请求 403，非旧错误路径的 404。",
+          "claim": "Hamilton 地区历史与城市资源入口。",
+          "limits": "社区历史介绍不等于全部旧空军基地建筑均开放。"
+        },
+        {
+          "url": "https://www.novatohistory.org/hamilton",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Hamilton Field History Museum 位于 555 Hangar Avenue，常规周三、周四、周六中午至下午开放；研究资料需预约。",
+          "limits": "区别于 815 De Long Avenue 的市中心博物馆，不能互换地址。"
+        },
+        {
+          "url": "https://parks.ca.gov/?page_id=465",
+          "access": "州立公园官方内容已读取。",
+          "claim": "Olompali State Historic Park 的访客入口与公园提醒。",
+          "limits": "不得由邮寄 Novato 地址推断位于建制市内。"
+        },
+        {
+          "url": "https://www.parks.ca.gov/?page_id=22728",
+          "access": "州立公园官方索引正文已读取。",
+          "claim": "官方明确 Olompali 在 Novato 以北约 2.5 英里。",
+          "limits": "据此标 nearby，而非市内景点。"
+        }
+      ],
+      "scopeNotes": "Hamilton 在市内；Olompali 为附近市外景点。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Ross",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://maringarden.org/visit-us/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Marin Art and Garden Center 位于 Ross 的 30 Sir Francis Drake Boulevard；园区与停车、厕所开放时段不同，公众花园通常免费。",
+          "limits": "同门牌街名在 San Anselmo 也可能被导航误选；私人活动与室内空间另查。"
+        },
+        {
+          "url": "https://www.townofross.org/recreation",
+          "access": "镇政府正文已打开。",
+          "claim": "官方导向 Ross Recreation 的课程与场地入口。",
+          "limits": "市政服务与课程运营入口分开。"
+        },
+        {
+          "url": "https://www.rossrecreation.org/rentalsandkeys",
+          "access": "公共休闲项目官方索引已读取。",
+          "claim": "Ross Common 场地租借及网球场钥匙规则；钥匙资格与 Ross 地址或 Ross School District 家庭有关。",
+          "limits": "不宣称湾区居民均有资格；每年的发放时点和资格仍需再确认。"
+        }
+      ],
+      "scopeNotes": "花园和 Ross Common 都位于 Ross；特意区分导航中的 Ross 与 San Anselmo 同名地址。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "San Anselmo",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.sananselmo.gov/1978/Robson-Harrington-Park",
+          "access": "官方索引正文已读取。",
+          "claim": "Robson-Harrington Park 的花园、社区菜圃与房屋/活动租用信息。",
+          "limits": "社区种植区不是公众随意采摘区。"
+        },
+        {
+          "url": "https://www.sananselmo.gov/Calendar.aspx?EID=9334",
+          "access": "官方活动日历正文已读取。",
+          "claim": "2026 年 10 月 5 日 Imagination Park 儿童故事活动确认场地与 541 San Anselmo Avenue；天气不佳移至 Council Chambers。",
+          "limits": "该具体日历项用于场地和天气替代规则，不将一次活动写成永久固定频率。"
+        }
+      ],
+      "scopeNotes": "Robson-Harrington 与 Imagination Park 均在本镇；半日安排为编辑建议。",
+      "resourceOnlyUrls": [
+        "https://www.sananselmo.gov/"
+      ]
+    },
+    {
+      "city": "San Rafael",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.marincounty.gov/departments/cultural-services/frank-lloyd-wright/frank-lloyd-wright-tours",
+          "access": "县政府官方索引正文已读取。",
+          "claim": "Marin Civic Center 建筑导览和预约入口。",
+          "limits": "县行政中心位于 San Rafael，不表示由市政府运营。"
+        },
+        {
+          "url": "https://www.marincounty.gov/departments/cultural-services/frank-lloyd-wright/frank-lloyd-wright-tours/frank-lloyd-wright-tour-faq",
+          "access": "县政府官方索引正文已读取。",
+          "claim": "导览需预订并涉及站立、步行。",
+          "limits": "无障碍需求应先询问，不承诺所有路线适合所有访客。"
+        },
+        {
+          "url": "https://www.visitmarin.org/things-to-do/attractions/arts-entertainment-cultural/falkirk-cultural-center/",
+          "access": "官方旅游机构正文已读取。",
+          "claim": "Falkirk 位于 1408 Mission Avenue，市运营文化中心有展览与花园。",
+          "limits": "市 Falkirk 页面直接请求 403，采用官方旅游机构替代；私人活动可影响入内。"
+        },
+        {
+          "url": "https://storage.googleapis.com/proudcity/sanrafaelca/2025/07/Falkirk-Art-Exhibition-Guidelines-2026.pdf",
+          "access": "官方城市 2026 指南索引已读取。",
+          "claim": "Falkirk 存在艺术家展览申请路径。",
+          "limits": "不能推定当前仍在收件或保证获选。"
+        },
+        {
+          "url": "https://www.marincounty.gov/departments/cultural-services/volunteer-us",
+          "access": "县政府官方索引正文已读取。",
+          "claim": "Cultural Services 志愿者及导览参与入口。",
+          "limits": "申请与培训条件需看当期招募。"
+        }
+      ],
+      "scopeNotes": "两地点均在 San Rafael；县服务与市服务在正文区分。",
+      "resourceOnlyUrls": [
+        "https://www.cityofsanrafael.org/",
+        "https://www.marincounty.gov/departments/cultural-services"
+      ]
+    },
+    {
+      "city": "Sausalito",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://www.spn.usace.army.mil/Missions/Recreation/Bay-Model-Visitor-Center/Teachers-Quest/",
+          "access": "USACE 官方索引正文已读取。",
+          "claim": "Bay Model 的水文模型、教育资源与参观内容。",
+          "limits": "Bay Model 根页面直接请求被拒；未因此编写当前票价或每天开放时间。"
+        },
+        {
+          "url": "https://www.sausalito.gov/city-government/hot-topics/park-improvement-projects/dunphy-park",
+          "access": "官方工程页索引正文已读取。",
+          "claim": "页面提到后续工程及计划至 2026 年春的工作。",
+          "limits": "预定时间已经过去但没有明确完工证据，正文要求核查，不宣称施工已结束。 旧工程路径原生请求 404，仅历史索引提醒；未作为发布链接。"
+        },
+        {
+          "url": "https://www.sausalito.gov/departments/parks_and_recreation/parks_playgrounds_and_facilities/index.php",
+          "access": "从当前城市首页导航发现新 Revize 站路径，web 正文与原生 HTTP 均读取成功（200）。",
+          "claim": "当前市公园设施、RecDesk 预订、25 人以上公园活动审批、Dunphy 亭子和球场入口。",
+          "limits": "旧 FacilityDirectory 两个地址原生请求均 404，已从发布数据替换；不复用旧页面价格。"
+        },
+        {
+          "url": "https://www.sausalito.org/parks-beaches",
+          "access": "当地官方商会旅游页正文与原生 HTTP 均读取成功。",
+          "claim": "Dunphy 位于 Bridgeway 与 Napa Street，滨水、草地、亭子及球场。",
+          "limits": "商会页仍引用旧市网页，其旧链接未沿用。"
+        }
+      ],
+      "scopeNotes": "Bay Model 与 Dunphy Park 为市内；没有把 Marin Headlands 的 Marine Mammal Center 写作市内景点。",
+      "resourceOnlyUrls": [
+        "https://www.sausalito.gov/"
+      ]
+    },
+    {
+      "city": "Tiburon",
+      "county": "Marin",
+      "sources": [
+        {
+          "url": "https://landmarkssociety.com/landmarks/railroad-ferry-museum/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Railroad & Ferry Depot Museum 的季节开放；页面明确 2026 年楼上展区关闭。",
+          "limits": "楼下开放不能推定楼上开放；正文保留 2026 限制。"
+        },
+        {
+          "url": "https://landmarkssociety.com/landmarks/st-hilarys/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Old St. Hilary's 位于 201 Esperanza，室内常规 4–10 月周日开放，周边有野花与山坡。",
+          "limits": "不是每天都能入内；野花不是全年保证可见。"
+        },
+        {
+          "url": "https://www.townoftiburon.gov/328/Heritage",
+          "access": "镇政府正文已打开。",
+          "claim": "镇的历史保护职责与 Depot、Old St. Hilary's 等遗产地点。",
+          "limits": "本页不是图书馆服务页；图书馆资源已改用 beltiblibrary.org。"
+        }
+      ],
+      "scopeNotes": "两个历史场馆为 Tiburon 市内地点；上坡行程与平坦海滨分开规划。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "American Canyon",
+      "county": "Napa",
+      "sources": [
+        {
+          "url": "https://www.americancanyon.gov/Play/Wetlands-Napa-River-Bay-Trail",
+          "access": "官方搜索索引正文已读取；直接请求 403。",
+          "claim": "Clarke Ranch 入口、河湾湿地步道、城市和州土地协作管理；日出至日落、牵绳、池塘禁钓鱼游泳划船及关闭告示规则。",
+          "limits": "不能据共同管理推断所有土地都在本市；市外段另看对应管理规则。"
+        },
+        {
+          "url": "https://www.americancanyon.gov/Play/Parks",
+          "access": "官方索引正文已读取。",
+          "claim": "城市公园目录、问题报告与租用入口。",
+          "limits": "普通使用和专属预留不同。"
+        },
+        {
+          "url": "https://www.mtc.ca.gov/operations/regional-trails-parks/san-francisco-bay-trail/map-numbers/map-18-northern-vallejo-napa",
+          "access": "区域政府官方索引正文已读取。",
+          "claim": "Wetlands Edge 位于 American Canyon；Napa Plant Site Restoration 的堤顶步道在市外，且 3 月 2 日至 6 月 30 日禁犬。",
+          "limits": "跨边界网络标 cross-boundary；不能把市管牵绳规则套给所有市外路段。"
+        },
+        {
+          "url": "https://napaoutdoors.org/parks/napa-river-bay-trail/",
+          "access": "公园区官方索引正文已读取。",
+          "claim": "河湾步道由若干段组成，仍有建设中的连接；Wetlands Edge 为区与城市合作入口。",
+          "limits": "未把未来连续路线写成已全线贯通。"
+        },
+        {
+          "url": "https://www.americancanyon.gov/files/assets/city/v/1/documents/play/american_canyon_wetlands-restoration_plan_final_may2024.pdf",
+          "access": "官方规划 PDF 索引正文已读取。",
+          "claim": "步道部分有潮水越顶与侵蚀风险；修复及亲水入口为概念/规划内容。",
+          "limits": "未把 2024 概念方案和后来拨款视为 2026 已建成新设施。"
+        }
+      ],
+      "scopeNotes": "Clarke Ranch 为 city；Wetlands & Napa River Bay Trail 为 cross-boundary，覆盖城内入口与延伸至市外的河湾网络。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Calistoga",
+      "county": "Napa",
+      "sources": [
+        {
+          "url": "https://www.sharpsteenmuseum.org/",
+          "access": "运营方官方索引正文已读取。",
+          "claim": "Sharpsteen Museum 展示 Calistoga 历史与模型；平日和周末营业安排不同。",
+          "limits": "已结束的夏季展览没有写成 10 月活动。"
+        },
+        {
+          "url": "https://www.calistogaca.gov/Government/Departments/Parks-and-Recreation/Park-and-Facility-Rentals/Pioneer-Park",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Pioneer Park 位于 1308 Cedar Street；公园设施与预订规则。",
+          "limits": "居民和非居民场地预订条件、费用需要按实际用途查看，不编固定价格。"
+        }
+      ],
+      "scopeNotes": "两个地点都在 Calistoga；酒庄不是本条唯一目的，也没有把周边地热设施误写为市营景点。",
+      "resourceOnlyUrls": [
+        "https://www.calistogaca.gov/"
+      ]
+    },
+    {
+      "city": "Napa",
+      "county": "Napa",
+      "sources": [
+        {
+          "url": "https://www.cityofnapa.org/facilities/facility/details/oxbowcommons-57",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Oxbow Commons 位于 1268 McKinstry，提供步行、草地及城市公共空间。",
+          "limits": "Commons 是公园，不是 Oxbow Public Market 商场。"
+        },
+        {
+          "url": "https://www.cityofnapa.org/366/Biking-Hiking-Trails",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Oxbow Preserve 的河岸生态及步行资源。",
+          "limits": "未来 Riverline 项目不等于今日已建成设施。"
+        },
+        {
+          "url": "https://www.cityofnapa.org/DocumentCenter/View/3066",
+          "access": "官方 PDF 索引正文已读取。",
+          "claim": "Oxbow Commons 兼具防洪用途，可能临时关闭。",
+          "limits": "不能将晴天景观当作涨水时可持续开放承诺。"
+        }
+      ],
+      "scopeNotes": "两个 Oxbow 地点均在 Napa 市；与 Napa County 其他城镇区分。",
+      "resourceOnlyUrls": [
+        "https://www.cityofnapa.org/"
+      ]
+    },
+    {
+      "city": "St. Helena",
+      "county": "Napa",
+      "sources": [
+        {
+          "url": "https://stevensonmuseum.org/",
+          "access": "场馆运营方官方正文已读取。",
+          "claim": "Robert Louis Stevenson Museum 位于 1490 Library Lane，常规周二至周六开放。",
+          "limits": "它是市内室内博物馆，不是市外同名州立公园。"
+        },
+        {
+          "url": "https://www.cityofsthelena.gov/Facilities/Facility/Details/Crane-Park-2",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Crane Park 的游乐、运动设施与季节农夫市场。",
+          "limits": "5–10 月市场季不等于每天举办，具体日期需查活动。"
+        },
+        {
+          "url": "https://www.cityofsthelena.gov/275/Parks-Facilities-Locations-Rental-Inform",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "场地租用依居民身份、人数、用途与保证金等条件处理。",
+          "limits": "不把公园自然开放理解为已拥有活动独占权。"
+        },
+        {
+          "url": "https://www.cityofsthelena.gov/204/Parks-Recreation-Division",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "成人、儿童课程及课程建议/参与入口。",
+          "limits": "课程是否开班和余位不保证。"
+        }
+      ],
+      "scopeNotes": "博物馆与 Crane Park 为市内；避免与山地 State Park 混淆。",
+      "resourceOnlyUrls": [
+        "https://www.cityofsthelena.gov/"
+      ]
+    },
+    {
+      "city": "Yountville",
+      "county": "Napa",
+      "sources": [
+        {
+          "url": "https://www.townofyountville.gov/238/Art-Walk",
+          "access": "镇政府官方索引正文已读取。",
+          "claim": "Art Walk 为公共艺术步行路线，免费音频与二维码地图；纸地图可到 Community Center 或 Welcome Center。",
+          "limits": "免费自行浏览与另有捐助安排的导览活动不是同一产品。"
+        },
+        {
+          "url": "https://www.townofyountville.gov/187/Parks-Facilities",
+          "access": "镇政府官方索引正文已读取。",
+          "claim": "Veterans Memorial Park 位于 6465 Washington Street，公园设施和在线预约入口。",
+          "limits": "当前在线流程优先，不沿用旧纸表作为唯一办理方式。"
+        }
+      ],
+      "scopeNotes": "Art Walk 城镇核心路段与 Veterans Memorial Park 均在 Yountville。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Cloverdale",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.sonomacounty.com/arts-culture/cloverdale-history-center/",
+          "access": "官方县旅游机构正文已读取。",
+          "claim": "Cloverdale History Center 的 Gould-Shaw House 与地方历史资料，位于 215 North Cloverdale Boulevard。",
+          "limits": "运营方 cloverdalehistory.org 直接请求失败；不承诺当天开馆时段。"
+        },
+        {
+          "url": "https://www.cloverdale.net/470/Neighborhood-Parks",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "City Park 位于 450 West Second Street，市公园目录介绍老橡树及休闲场地。",
+          "limits": "活动预订与设施维护需另查。"
+        },
+        {
+          "url": "https://www.cloverdalehistory.org/",
+          "access": "直接读取失败。",
+          "claim": "仅记录运营方站访问限制；实际参观事实采用官方旅游机构替代。",
+          "limits": "不可声称该站本轮已完整核实。"
+        }
+      ],
+      "scopeNotes": "两个景点在 Cloverdale；SMART 当前没有 Cloverdale 车站，交通引用共用站点页。",
+      "resourceOnlyUrls": [
+        "https://www.cloverdale.net/"
+      ]
+    },
+    {
+      "city": "Cotati",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.cotaticity.gov/299/City-Parks",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "市属公园列表与公共活动空间入口。",
+          "limits": "已避免把 Water Conservation 页标为公园目录。"
+        },
+        {
+          "url": "https://www.cotaticity.gov/Facilities/Facility/Details/La-Plaza-Park-1",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "La Plaza Park 的城镇核心位置与设施。",
+          "limits": "节庆、草坪和场地预留需按具体项目查看。"
+        },
+        {
+          "url": "https://ohp.parks.ca.gov/ListedResources/Detail/879",
+          "access": "州历史保护办公室索引正文已读取。",
+          "claim": "Cotati 核心六边形规划为历史特征。",
+          "limits": "历史认定不表示任何私人建筑随到可参观。"
+        },
+        {
+          "url": "https://cotatimuseum.org/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Cotati Historical Society and Museum 位于 201 West Sierra Avenue，有档案研究与志愿参与入口。",
+          "limits": "研究服务宜先联系；不把地址中的行政办公空间全写成展厅。"
+        },
+        {
+          "url": "https://www.cotaticity.gov/357/Water-Conservation",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "La Plaza 的节水示范园可作为居民认识本地景观的资源。",
+          "limits": "旧补贴金额未采用。"
+        }
+      ],
+      "scopeNotes": "两个地点在 Cotati；共享 Rohnert Park–Cotati 图书馆 2026 关闭信息列居民提醒。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Healdsburg",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://healdsburg.gov/facilities/facility/details/Healdsburg-Plaza-12",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Healdsburg Plaza 为中心公共广场与活动空间。",
+          "limits": "普通散步不等于活动预订许可。"
+        },
+        {
+          "url": "https://www.healdsburgmuseum.org/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Healdsburg Museum 提供地方历史展览、档案研究与相关参与资源。",
+          "limits": "主页有 10 月 26 日至 11 月 19 日换展关闭公告但未显示年份，因此正文只提醒核实年份和开馆日，不认定为 2026 闭馆。"
+        },
+        {
+          "url": "https://www.sonomamarintrain.org/stations",
+          "access": "交通运营方官方正文已打开。",
+          "claim": "当前北端为 Windsor；站点页列接往 Healdsburg/Cloverdale 的公交方向。",
+          "limits": "不得写成从 San Francisco 直接搭 SMART 到 Healdsburg；也不保证公交衔接等待时长。"
+        }
+      ],
+      "scopeNotes": "Plaza 与 Museum 均在本城；交通特别区分未来铁路延伸与现有服务。",
+      "resourceOnlyUrls": [
+        "https://healdsburg.gov/"
+      ]
+    },
+    {
+      "city": "Petaluma",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.petalumamuseum.com/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Petaluma Historical Library & Museum 位于 20 Fourth Street，常规周四至周日开放；研究需预约。",
+          "limits": "它是历史场馆，和正在运营的 Sonoma County Library History Room 不同。"
+        },
+        {
+          "url": "https://www.visitpetaluma.com/outdoor-recreation/",
+          "access": "城市官方旅游机构索引正文已读取。",
+          "claim": "Shollenberger Park 湿地与平坦步行资源。",
+          "limits": "原市公园详情页无法稳定读取，采用旅游机构替代；不使用其旧博客中的其他公园过时许可规则。"
+        },
+        {
+          "url": "https://sonomalibrary.org/visit/locations/petalumahistory",
+          "access": "县图书馆官方索引正文已读取。",
+          "claim": "Petaluma History Room 的地方历史研究入口。",
+          "limits": "开放、预约及资料调取与博物馆各自核对。"
+        }
+      ],
+      "scopeNotes": "博物馆与 Shollenberger 公园均在 Petaluma；不把周边 Tolay Lake 当作本条市内景点。",
+      "resourceOnlyUrls": [
+        "https://cityofpetaluma.org/"
+      ]
+    },
+    {
+      "city": "Rohnert Park",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://spreckelsonline.com/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Spreckels Performing Arts Center 有演出、课程与票务入口。",
+          "limits": "演出场馆不是每天随到随看的展馆；按实际演出日期订票。"
+        },
+        {
+          "url": "https://rpcity.ca.gov/213/League-Schedule-Field-Locations",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Dorotea Park 位于 895 Santa Dorotea Circle，列明城市运动设施。",
+          "limits": "赛事或预订可影响球场可用性。"
+        },
+        {
+          "url": "https://rpcity.ca.gov/192/Picnic-Rentals",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "野餐场地租用需到 Community Center 办理。",
+          "limits": "不能让读者把普通网上课程账户当作已完成野餐场地预订。"
+        },
+        {
+          "url": "https://www.rpcity.ca.gov/557/Recreation-Services",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "休闲课程、城市社区服务入口。",
+          "limits": "课程、演出与球场分别核对时间和报名。"
+        },
+        {
+          "url": "https://events.sonomalibrary.org/events/day/2026/09/01?language=en",
+          "access": "县图书馆官方日历索引正文已读取。",
+          "claim": "Rohnert Park–Cotati 分馆 2026 年 9 月 1 日翻修关闭，临时 Library To Go 有不同地点与服务范围。",
+          "limits": "不能继续推荐旧分馆室内自习、活动空间为正常开放。"
+        }
+      ],
+      "scopeNotes": "两景点均在 Rohnert Park；临时图书服务与原分馆区别明确。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Santa Rosa",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://schulzmuseum.org/?lang=en",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Charles M. Schulz Museum 位于 2301 Hardies Lane；常规周二关闭。",
+          "limits": "票价、特展及工作坊逐项查看，不推断室内所有活动都含在门票。"
+        },
+        {
+          "url": "https://lutherburbank.org/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Luther Burbank Home & Gardens：花园与小博物馆免费，住宅导览收费；常规导览季在 4–10 月，花园与室内时段不同。",
+          "limits": "不把户外开放等同于住宅入内；允许服务动物的规则不能写成普通宠物友好。"
+        }
+      ],
+      "scopeNotes": "两个场馆均在 Santa Rosa，但不是同一个步行核心；半日安排保留交通选择。",
+      "resourceOnlyUrls": [
+        "https://www.srcity.org/"
+      ]
+    },
+    {
+      "city": "Sebastopol",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.wschs.org/visit-us/",
+          "access": "两场馆运营方官方索引正文已读取。",
+          "claim": "West County Museum 位于 261 South Main Street，常规周末开放；Luther Burbank Experiment Farm 位于 7777 Bodega Avenue，户外日出至日落开放，公共入口经 Burbank Heights。",
+          "limits": "农场入口不是随意穿越住宅区；博物馆时段不能套用农场。"
+        },
+        {
+          "url": "https://www.cityofsebastopol.gov/public-notice-luther-burbank-experimental-farm-construction-of-new-restroom-trail-closures-january-february-2026/",
+          "access": "市政府 2026 年 1 月通知索引正文已读取。",
+          "claim": "农场厕所施工及局部步道关闭通知。",
+          "limits": "原预计 3 月完成不构成本轮已完工证据；正文不保证新厕所投用。"
+        }
+      ],
+      "scopeNotes": "West County Museum 与 Experiment Farm 在 Sebastopol；按官方公共入口进入农场。",
+      "resourceOnlyUrls": [
+        "https://www.cityofsebastopol.gov/"
+      ]
+    },
+    {
+      "city": "Sonoma",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.sonomaparks.org/location/the-sonoma-plaza/",
+          "access": "州立公园合作机构官方正文已读取。",
+          "claim": "Sonoma Plaza 的公共广场与历史空间。",
+          "limits": "合作机构历史介绍不替代城市活动场地申请。"
+        },
+        {
+          "url": "https://www.parks.ca.gov/?page_id=479",
+          "access": "州立公园官方索引正文已读取。",
+          "claim": "Sonoma State Historic Park 是多个历史建筑组成的分散园区，建筑开放和宠物规则需要逐项核对。",
+          "limits": "一处开放不能推断所有馆舍开放；不将宠物可走户外理解为可入展厅。"
+        },
+        {
+          "url": "https://www.sonomacity.org/",
+          "access": "直接请求 403；保留已确认的城市官方办事首页。",
+          "claim": "仅作 Sonoma 市居民办事入口，具体景点事实由州立公园和合作机构支持。",
+          "limits": "Sonoma 市与 Sonoma County 不可混为一个管辖单位。"
+        }
+      ],
+      "scopeNotes": "Plaza 与州立历史公园的城镇建筑在 Sonoma 市内；整县酒乡不作市内范围。",
+      "resourceOnlyUrls": []
+    },
+    {
+      "city": "Windsor",
+      "county": "Sonoma",
+      "sources": [
+        {
+          "url": "https://www.townofwindsor.ca.gov/index.asp?nid=597",
+          "access": "镇政府官方索引正文已读取。",
+          "claim": "Town Green 位于 701 McClelland Drive，镇中心公园与活动空间。",
+          "limits": "夏季活动并非 10 月仍按相同频率举办。"
+        },
+        {
+          "url": "https://www.windsorhistory.org/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Windsor Museum 位于 9225 Foxwood Drive，另有历史步行资料。",
+          "limits": "场馆与 Town Green 不在同一地址，需单独规划到访。"
+        },
+        {
+          "url": "https://townofwindsor.ca.gov/332/Park-Rentals",
+          "access": "镇政府官方索引正文已读取。",
+          "claim": "公园场地租用、居民优先安排及特定大型/组织活动许可入口。",
+          "limits": "不把普通经过公园写为必须许可；预约条件按规模用途。"
+        },
+        {
+          "url": "https://www.townofwindsor.ca.gov/1666/Insider-Edition-106---July-14-2026",
+          "access": "镇政府 2026 年 7 月刊索引正文已读取。",
+          "claim": "夏季 Town Green 音乐活动延续至 8 月底。",
+          "limits": "未将夏季音乐系列推荐成 10 月固定活动。"
+        },
+        {
+          "url": "https://www.sonomamarintrain.org/stations",
+          "access": "交通运营方正文已打开。",
+          "claim": "当前存在 Windsor 站；机场接驳要用 Sonoma County Airport 站，不到 Windsor。",
+          "limits": "停车专用标识、商业车位与换乘规则现场核对。"
+        }
+      ],
+      "scopeNotes": "Town Green 和 Museum 均在 Windsor；并已按现有 SMART Windsor 服务纠正旧出行印象。",
+      "resourceOnlyUrls": [
+        "https://www.townofwindsor.ca.gov/"
+      ]
+    },
+    {
+      "city": "Benicia",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://www.parks.ca.gov/?page_id=475",
+          "access": "州立公园官方索引正文已读取。",
+          "claim": "Benicia Capitol State Historic Park 的历史州议会建筑与当前访客入口，常规周五至周日开放。",
+          "limits": "临时调整需看州立公园通知，不能把广场可走等同于建筑开门。"
+        },
+        {
+          "url": "https://mohbenicia.org/visit/",
+          "access": "博物馆运营方官方索引正文已读取。",
+          "claim": "Arsenal Gallery 访客入口为 2024 Camel Road，周五、周六下午开放；Downtown Gallery 当前关闭；Powder Magazine 不含于自行参观。",
+          "limits": "2060 Camel Road 是办公室地址；另一个页面的 2600 文字未采用。导览和研究应预约。"
+        },
+        {
+          "url": "https://mohbenicia.org/",
+          "access": "博物馆运营方官方索引正文已读取。",
+          "claim": "地方档案研究与志愿者入口，基本研究和复印等费用不同。",
+          "limits": "未承诺所有研究、复制、私人导览完全免费。"
+        }
+      ],
+      "scopeNotes": "Capitol 和 Arsenal 均在 Benicia，但分处不同片区；没有把关闭的 Downtown Gallery 作为开放景点。",
+      "resourceOnlyUrls": [
+        "https://www.ci.benicia.ca.us/"
+      ]
+    },
+    {
+      "city": "Dixon",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://www.dixonhistoricalsociety.org/",
+          "access": "场馆运营方正文已打开。",
+          "claim": "Dixon History Museum 位于 125 West A Street；周四与周五、六开放时段不同，展示本地农业与社区史。",
+          "limits": "不是旧 Carnegie Library 地址；不承诺每次都有档案人员现场接待。"
+        },
+        {
+          "url": "https://www.cityofdixonca.gov/parks",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "城市公园目录；公园与厕所开放时段不同。",
+          "limits": "不把公园开放时间套到厕所或预订设施。"
+        },
+        {
+          "url": "https://www.cityofdixonca.gov/facilityreservations",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "市设施预订入口与办理方式；Pardi Plaza 不能当作私人票务活动通用租赁场地。",
+          "limits": "不延用所有公园一套相同租用条件。"
+        },
+        {
+          "url": "https://www.cityofdixonca.gov/media/Parks%20Masterplan/Dixon%20Parks%20Recreation%20Master%20Plan.pdf",
+          "access": "官方公园规划 PDF 索引正文已读取。",
+          "claim": "Hall Memorial Park 的稳定地点与现有公园布局背景。",
+          "limits": "规划中的未来设施不当作已建成；当前使用规则用城市网页。"
+        }
+      ],
+      "scopeNotes": "Museum 与 Hall Memorial Park 都在 Dixon。",
+      "resourceOnlyUrls": [
+        "https://www.cityofdixonca.gov/"
+      ]
+    },
+    {
+      "city": "Fairfield",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://www.jellybelly.com/factory",
+          "access": "工厂运营方官方正文已读取。",
+          "claim": "Jelly Belly 自行参观与需提前预约的导览不同；周末可能没有生产线运作但仍安排访客参观。",
+          "limits": "正文不写已过时的免费工厂参观说法，也不保证参观时正在生产；当日门票与票额以运营方为准。"
+        },
+        {
+          "url": "https://www.fairfield.ca.gov/government/city-departments/parks-and-recreation/facility-park-picnic-rentals/city-parks",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Allan Witt Park 位于 1741 West Texas Street，公园、运动与水上设施分属不同使用安排。",
+          "limits": "水上设施不是公园整日开放即能使用。"
+        },
+        {
+          "url": "https://www.fairfield.ca.gov/government/city-departments/parks-and-recreation/facility-park-picnic-rentals/reserve-a-park",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "野餐、公园及设施租用入口。",
+          "limits": "普通到访不表示取得独占预订。"
+        },
+        {
+          "url": "https://www.fairfield.ca.gov/Home/Components/FacilityDirectory/FacilityDirectory/62/32?locale=en&sortn=FCPhone",
+          "access": "市政府设施页索引正文已读取。",
+          "claim": "专门设施页标示无公共厕所，与容易从大型公园推断有厕所的印象不同。",
+          "limits": "正文要求亲子到访前确认厕所；未保证厕所或水上中心任何时段开放。"
+        }
+      ],
+      "scopeNotes": "Jelly Belly 与 Allan Witt Park 都在 Fairfield，需分别到达；未将邻市 Suisun City 资源归到 Fairfield 市内。",
+      "resourceOnlyUrls": [
+        "https://www.fairfield.ca.gov/"
+      ]
+    },
+    {
+      "city": "Rio Vista",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://www.riovistacity.com/parksrec",
+          "access": "市政府官方索引完整内容已读取；直接请求 403。",
+          "claim": "Waterfront Promenade 在 North Front Street，Bruning Park 在 300 California Street；官方列明社区公园。",
+          "limits": "不能因直接抓取受限声称没有这些设施；也不承诺季节泳池当前开放。"
+        },
+        {
+          "url": "https://www.riovistacity.com/parksrec/page/recreational-opportunities",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "社区活动、Val de Flores 与其他运动/休闲资源入口。",
+          "limits": "不同机构运营项目、年龄条件与报名方式要分别查看。"
+        },
+        {
+          "url": "https://discoverriovista.com/city-parks/",
+          "access": "当地目的地旅游页索引正文已读取，作为补充。",
+          "claim": "Bruning Park 与 Rio Vista 公园环境补充信息。",
+          "limits": "仅作辅助，不用其泳池介绍保证 10 月开放。"
+        }
+      ],
+      "scopeNotes": "Waterfront Promenade 和 Bruning Park 都为 Rio Vista 市内设施；未混入名称相近的其他 Delta 地区公园。",
+      "resourceOnlyUrls": [
+        "https://www.riovistacity.com/"
+      ]
+    },
+    {
+      "city": "Suisun City",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://www.suisun.com/Events-directory/Suisun-Pride-2026",
+          "access": "市政府官方活动页索引正文已读取。",
+          "claim": "Harbor Plaza 地址为 520 Solano Street。",
+          "limits": "活动日期为 2026 年 5 月 31 日，已过去；正文明确这不是 10 月待举办活动。该页仅作地点地址证据与入口。"
+        },
+        {
+          "url": "https://www.suisun.com/files/sharedassets/suisuncity/v/1/departments/development-services/documents/waterfront-district-specific-plan/city-of-suisun-city-waterfront-district-specific-plan-2023.pdf",
+          "access": "市政府规划 PDF 索引正文已读取。",
+          "claim": "现有 Harbor Plaza 在 Main/Solano，包含舞台和凉亭；滨水核心与交通节点关系。",
+          "limits": "未来改造项目不写成已完成设施。"
+        },
+        {
+          "url": "https://solanolandtrust.org/protected-lands/rush-ranch/",
+          "access": "保护地运营方官方索引正文已读取。",
+          "claim": "Rush Ranch 的湿地、草地与历史牧场参观。",
+          "limits": "运营方不是 Suisun City 市政府，保护地访客规则单独核对。"
+        },
+        {
+          "url": "https://solanolandtrust.org/events-news/recurring-events/get-the-rush.html",
+          "access": "保护地运营方官方索引正文已读取。",
+          "claim": "Get the Rush 为定期自然与历史体验，具体活动可建议报名；马车等项目有季节性。",
+          "limits": "不保证每次包含所有活动，也不把报名建议表述成所有户外参观必需预约。"
+        },
+        {
+          "url": "https://solanolandtrust.org/events-news/recurring-events/open-house.html",
+          "access": "运营方历史活动页索引正文已读取。",
+          "claim": "页面明确 Rush Ranch 位于 Suisun City 以南约两英里。",
+          "limits": "2026 年 4 月 18 日开放日已结束；只用于稳定位置核实，不作为当前活动推荐。"
+        }
+      ],
+      "scopeNotes": "Harbor Plaza 为 city；Rush Ranch 位于市外，标 nearby。",
+      "resourceOnlyUrls": [
+        "https://www.suisun.com/"
+      ]
+    },
+    {
+      "city": "Vacaville",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://vacavillemuseum.org/visit/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Vacaville Museum 位于 213 Buck Avenue；周四、五与周六时段不同；普通入场免费，自愿捐助；团体提前至少两周联系；前后有停车入口。",
+          "limits": "捐款不是强制门票，团体安排不等于临时当天可接待；未保证停车有空位。"
+        },
+        {
+          "url": "https://www.cityofvacaville.gov/Home/Components/FacilityDirectory/FacilityDirectory/310/128",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "Andrews Park/CreekWalk 位于 720 East Monte Vista Avenue，提供溪边公共空间与活动设施。",
+          "limits": "演出日程不能从设施存在推断每天举办。"
+        },
+        {
+          "url": "https://www.cityofvacaville.gov/government/parks-and-recreation/facilities/facility-rentals",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "CreekWalk amphitheater 需现场处理租用，部分其他野餐场地可网上办理。",
+          "limits": "不同场地申请流程不同，未写成统一线上即时确认。"
+        }
+      ],
+      "scopeNotes": "Museum 与 Andrews Park 均在 Vacaville；半日顺序并非量测步行时间。",
+      "resourceOnlyUrls": [
+        "https://www.cityofvacaville.gov/"
+      ]
+    },
+    {
+      "city": "Vallejo",
+      "county": "Solano",
+      "sources": [
+        {
+          "url": "https://vallejomuseum.net/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "Vallejo Naval and Historical Museum 位于 734 Marin Street，常规周二至周五及周六时段不同，周日、一关闭；当前有 2026 年内容。",
+          "limits": "不将它与 Mare Island Museum 混为同一场馆。"
+        },
+        {
+          "url": "https://vallejomuseum.net/contact/",
+          "access": "场馆运营方官方索引正文已读取。",
+          "claim": "研究资料服务有指定时段或预约方式。",
+          "limits": "日常展厅开放不代表研究员随时可接待。"
+        },
+        {
+          "url": "https://www.gvrd.org/glen-cove-waterfront-park",
+          "access": "公共公园区官方正文已打开。",
+          "claim": "Glen Cove Waterfront Park 位于 Whitesides Drive，面向 Carquinez Strait，连接 Bay Trail。",
+          "limits": "未据此保证整条 Bay Trail 连续或无障碍；风与坡道按现场选择路线。"
+        },
+        {
+          "url": "https://www.gvrd.org/about-the-district",
+          "access": "公共公园区官方索引正文已读取。",
+          "claim": "GVRD 是独立公共特别区，并非 Vallejo 市政府的单一部门。",
+          "limits": "报修与课程报名按实际管理机构进入。"
+        },
+        {
+          "url": "https://www.gvrd.org/parks",
+          "access": "公共公园区官方正文已打开。",
+          "claim": "辖区公园目录、设施与活动入口。",
+          "limits": "不同场地预订、开放条件分别核实。"
+        },
+        {
+          "url": "https://www.vallejo.gov/our_city/park_vallejo/waterfront",
+          "access": "市政府官方索引正文已读取。",
+          "claim": "滨水渡轮停车场收费，停车规则按具体区域执行。",
+          "limits": "未编写免费停车承诺或实时费率。"
+        },
+        {
+          "url": "https://www.visitvallejo.com/listing/mare-island-museum",
+          "access": "官方旅游机构索引正文已读取。",
+          "claim": "Mare Island Museum 当前显示临时关闭，部分行程需预先安排。",
+          "limits": "其旧运营方网站出现无关博彩内容，已排除，不向游客提供。"
+        }
+      ],
+      "scopeNotes": "Museum 与 Glen Cove Waterfront Park 均在 Vallejo；两个片区需分别安排到达。",
+      "resourceOnlyUrls": [
+        "https://www.vallejo.gov/our_city/about_vallejo/history/museums"
+      ]
+    }
+  ],
+  "excludedOrLimitedSources": [
+    {
+      "url": "https://www.mareislandhpf.org/",
+      "status": "excluded",
+      "reason": "实际打开时出现与博物馆无关的博彩内容；未作为游客资源或地点链接发布。Mare Island Museum 当前关闭提醒改以 Visit Vallejo 官方旅游页为依据。"
+    },
+    {
+      "url": "https://thelibrary.info",
+      "status": "unavailable",
+      "reason": "本轮直接读取失败；替换为可读的 Belvedere Tiburon Library 当前官网 beltiblibrary.org。"
+    },
+    {
+      "url": "https://www.goldengate.org/ferry/general-information/",
+      "status": "not-used-for-service-days",
+      "reason": "旧 FAQ 中 Tiburon 仅工作日表述不能覆盖当前线路时刻表，正文未使用该限制。"
+    },
+    {
+      "url": "https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/24/449",
+      "status": "replaced-404",
+      "reason": "原生 HTTP 确认 404，改为当前 Revize 公园设施页面。"
+    },
+    {
+      "url": "https://www.sausalito.gov/Home/Components/FacilityDirectory/FacilityDirectory/24/690",
+      "status": "replaced-404",
+      "reason": "原生 HTTP 确认 404，改为当前 Revize 公园设施页面。"
+    },
+    {
+      "url": "https://www.novato.gov/our-town/hamilton?locale=en",
+      "status": "replaced-404",
+      "reason": "原路径缺 -field，发布入口改为官方索引核实的 /our-town/hamilton-field。"
+    }
+  ],
+  "validation": {
+    "cities": 32,
+    "places": 64,
+    "translationKeys": 259,
+    "missingTranslations": 0,
+    "countyCounts": {
+      "Marin": 11,
+      "Napa": 5,
+      "Sonoma": 9,
+      "Solano": 7
+    },
+    "scopeCounts": {
+      "city": 61,
+      "nearby": 2,
+      "cross-boundary": 1
+    },
+    "chineseCharacterRange": [
+      422,
+      497
+    ],
+    "checks": "通过：三份 JSON 可解析；32 城与 utilities-north.json 城市名单一致且唯一；县覆盖为 11/5/9/7；每城两个景点且至少一个 city；scope 和资源类型合法；发布 URL 全为 https；259 条规范化中文均有纯英文译文。",
+    "httpAudit": "根代理完成全部城市发布链接巡检，替换本文件内 3 个错误旧路径后报告零 404/410；403 或网络访问限制在来源项保留说明。"
+  }
+}

@@ -1,0 +1,1250 @@
+[
+  {
+    "city": "Belvedere",
+    "county": "Marin",
+    "summary": "紧邻 Tiburon 的滨水住宅小城，适合看一处保存下来的轮船沙龙，再到社区公园慢下来。来这里重在海湾生活与航运遗产，不宜把私人码头、住宅步道和潟湖都视为公共游乐设施。",
+    "places": [
+      {
+        "name": "China Cabin",
+        "url": "https://landmarkssociety.com/landmarks/china-cabin/",
+        "description": "位于 Beach Road 的建筑原是远洋轮船的社交沙龙，保留木作与装饰细节；这是上岸保存的船舱，不是可以登船出海的游船。",
+        "scope": "city",
+        "mapQuery": "China Cabin 52 Beach Road Belvedere"
+      },
+      {
+        "name": "Belvedere Community Park",
+        "url": "https://www.cityofbelvedere.org/government/",
+        "description": "市政厅旁的社区公园适合短暂停留、带孩子休息，也能从城市活动入口查公园里的社区聚会；活动是否举行须看当期日期。",
+        "scope": "city",
+        "mapQuery": "Belvedere Community Park California"
+      }
+    ],
+    "halfDay": "编辑建议：在 China Cabin 开放的周末下午参观，再沿公共道路转到社区公园，预留喝咖啡与看海时间；不开馆时把行程缩成户外散步，不安排强行补齐的邻城绕路。",
+    "arrival": "搬来后先用市政府部门目录找 Public Works、Planning 与公用事业入口，地址带 Tiburon 邮寄名称时仍应核对实际管辖城市；家居工程先向所属城市咨询。",
+    "residentTip": "把市新闻订阅与图书馆、联合休闲服务入口存下来；想参加社区活动，先找有明确日期的市活动页，比仅保存每年夏季音乐会旧海报更可靠。",
+    "transport": "如从 Tiburon 码头接步行行程，先核对回程船班再安排参观；住宅街停车遵从现场限时与禁停牌，不要把海边空地当成游客停车场。",
+    "checks": "China Cabin 官网列季节性周末开放，冬季不能照搬夏季时段；私人活动可能影响参观，同行者需要无台阶路线时提前联系馆方。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofbelvedere.org/government/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://www.beltiblibrary.org/",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Corte Madera",
+    "county": "Marin",
+    "summary": "除了购物中心，Corte Madera 也适合安排一段围绕镇公园的日常生活体验。把较大的 Town Park 与老街附近的小公园搭配，适合带孩子、散步和了解社区课程，行程不必依赖消费。",
+    "places": [
+      {
+        "name": "Corte Madera Town Park",
+        "url": "https://www.cortemadera.gov/527/Maps-of-Town-Parks",
+        "description": "镇官网将入口定位在 Tamalpais Drive 的社区中心附近，是安排家庭休息与查看文娱活动的实用起点；具体球场、场地按官方园区图寻找。",
+        "scope": "city",
+        "mapQuery": "Corte Madera Town Park 498 Tamalpais Drive"
+      },
+      {
+        "name": "Menke Park",
+        "url": "https://www.cortemadera.gov/527/Maps-of-Town-Parks",
+        "description": "位于 Redwood Avenue 的镇属小公园，可与周边街道散步组合；规模与用途不同于大型运动公园，适合作为短停而非半天主项目。",
+        "scope": "city",
+        "mapQuery": "Menke Park 205 Redwood Avenue Corte Madera"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Town Park 散步、让孩子活动，再到 Menke Park 附近慢走与用餐；如果是雨天，缩短户外部分，按开放时间把县图书馆作为替代。",
+    "arrival": "新居民可从镇 Parks & Recreation 页面建立课程报名习惯，先核对年龄组、上课地点与候补状态；镇政府办公地址和社区中心不是同一处，办事前看清部门。",
+    "residentTip": "Corte Madera 县图书馆的整修公告已注明 2026 年 9 月 3 日重开；也可使用该馆种子交换服务，把借书与小花园种植学习放在同一次出门。",
+    "transport": "两个公园按官方地图分别定位，购物停车位不能自动延伸为公园长期停车许可。乘公交先在 Marin Transit 路线图核对下车点与最后一段步行。",
+    "checks": "聚会、球场和普通散步的使用规则不同；预订前问清是否需租场。县图书馆旧停馆信息仍可能出现在搜索结果，应以最新整修状态与分馆时间为准。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cortemadera.gov/527/Maps-of-Town-Parks",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://marinlibrary.org/refresh/",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fairfax",
+    "county": "Marin",
+    "summary": "Fairfax 的自行车文化值得专程了解，但不需要先完成山地骑行才能参与。用自行车博物馆与带花园的县图书馆搭配，能看到交通技术、地方兴趣社群与小镇日常，也适合不喝酒的半日。",
+    "places": [
+      {
+        "name": "Marin Museum of Bicycling",
+        "url": "https://mmbhof.org/",
+        "description": "收藏早期自行车和山地车发展资料，并设 Mountain Bike Hall of Fame。室内看车与真正上山骑行是两种体验，馆内停留可独立成行。",
+        "scope": "city",
+        "mapQuery": "Marin Museum of Bicycling Fairfax"
+      },
+      {
+        "name": "Fairfax Library",
+        "url": "https://marinlibrary.org/locations/MF/",
+        "description": "位于 Sir Francis Drake Boulevard，有花园座椅、展览空间与种子交换；既是居民借阅点，也适合安静阅读与认识当地植物主题活动。",
+        "scope": "city",
+        "mapQuery": "Fairfax Library 2097 Sir Francis Drake Boulevard"
+      }
+    ],
+    "halfDay": "编辑建议：选择博物馆开放日，先看自行车展，再午餐，最后到图书馆花园放慢节奏；周日图书馆常规关闭，届时把第二站换成镇中心公共街道散步。",
+    "arrival": "搬来先保存镇官网与县图书馆分馆页面，办理借阅、查看公共电脑预约和打印方法；查 Fairfax 信息时确认是 Marin 的加州小镇，不是弗吉尼亚同名县。",
+    "residentTip": "图书馆 Community Seed Exchange 可取种子学习种植；博物馆也公开招募前台、档案与活动志愿者，可按兴趣选择持续参与，而非只等一年一次大节庆。",
+    "transport": "博物馆与图书馆都在 Sir Francis Drake Boulevard 一带，步行接驳先查看交叉路口。公交可查 Marin Transit 服务 Fairfax 的线路；骑车来的读者另备锁具与返程安排。",
+    "checks": "博物馆现列周四至周日开放；图书馆已于 2026 年 6 月整修后重开，但节假日另有安排。展览与社区活动应点击具体日期，不能把首页旧卡片视为今日活动。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://townoffairfaxca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://marinlibrary.org/locations/MF/",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Larkspur",
+    "county": "Marin",
+    "summary": "Larkspur 的渡轮码头、旧城街区和居民公园并不集中在同一处。第一次来可围绕 Piper Park 与图书馆安排低强度半日；住下来后，则把交通换乘与社区活动分别建立自己的常用路线。",
+    "places": [
+      {
+        "name": "Piper Park",
+        "url": "https://www.larkspur.ca.gov/645/Parks",
+        "description": "市属主要休闲公园，设运动与儿童活动设施，指定狗公园位于网球场之后、游乐区旁；不要把整个园区都当成可以放开狗绳的区域。",
+        "scope": "city",
+        "mapQuery": "Piper Park Larkspur"
+      },
+      {
+        "name": "Larkspur Library",
+        "url": "https://www.larkspur.ca.gov/912/Larkspur-Library",
+        "description": "现行市页面给出的地址为 10 Rose Lane，可用于阅读、查看本地图书馆项目与社区资讯；导航时不要仅沿用旧市政厅附近的图书馆印象。",
+        "scope": "city",
+        "mapQuery": "Larkspur Library 10 Rose Lane"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Piper Park 散步或陪孩子活动，再按图书馆开放时间转去阅读；需要午餐时另选旧城街区。搭船来的人先预留码头到两站的接驳，别把码头下船当成已到公园。",
+    "arrival": "新居民从市官网分别保存 Library、Recreation 与 Report an Issue，日常借阅、课程和公园维修不是同一窗口；申请场地先问 Recreation 可用日期与流程。",
+    "residentTip": "经常遛狗可先熟悉 Piper Park 指定狗区，其他市公园按牵绳规则使用；想组织野餐或社团聚会，查看市休闲服务的场地地图与租用要求。",
+    "transport": "Golden Gate Ferry 和 SMART 都服务 Larkspur，但火车站、码头与图书馆并非同一点。先用官方站点图核对步行或公交接驳，停车也按具体设施规则处理。",
+    "checks": "图书馆搬迁后的地址、开放日及活动场地须再次确认；公园租用区可能被预订。带狗家庭同时核对牵绳区域，赶船则以当天返程班次倒推离园时间。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.larkspur.ca.gov/645/Parks",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://www.larkspur.ca.gov/912/Larkspur-Library",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Mill Valley",
+    "county": "Marin",
+    "summary": "想体验红杉而不把整天交给山路，可先选 Mill Valley 镇中心的公园与图书馆。这里兼顾林下休息、历史磨坊与阅读空间；Muir Woods 属于另一处需要单独规划的周边国家公园目的地。",
+    "places": [
+      {
+        "name": "Old Mill Park",
+        "url": "https://www.cityofmillvalley.gov/Facilities/Facility/Details/-18",
+        "description": "红杉林内有历史 Reed Mill、儿童活动设施、野餐区与露天剧场。市设施页列无障碍条件，但具体租用区与林间路面仍应按同行者需求选择。",
+        "scope": "city",
+        "mapQuery": "Old Mill Park Mill Valley"
+      },
+      {
+        "name": "Mill Valley Public Library",
+        "url": "https://www.cityofmillvalley.gov/889/Stop-1-Library",
+        "description": "临近公园的现代图书馆以落地窗和朝向红杉的露台形成阅读景观；适合安排安静的一站，入内请尊重读者和活动空间。",
+        "scope": "city",
+        "mapQuery": "Mill Valley Public Library 375 Throckmorton Avenue"
+      }
+    ],
+    "halfDay": "编辑建议：先看磨坊与林下小路，午前后进入图书馆阅读，再回镇中心用餐；带幼儿只选短程，不把 Cascade 山路或 Muir Woods 临时塞入同一半天。",
+    "arrival": "刚搬来可先确认城市图书馆的办卡与活动入口，并保存 Recreation 的设施预订页面；家庭聚会要用哪个野餐区，应先按官方地图确定名称再询价。",
+    "residentTip": "图书馆的地方历史音频与 Library Legacy 页面能帮助认识所住街区；常用 Old Mill Park 的家庭，可先查看租用区规则，避免把已预订的桌区当成随到随用。",
+    "transport": "图书馆官方到达说明引导至 Throckmorton Avenue 并使用街边停车；公交可查 Marin Transit 经 Mill Valley 的路线。镇中心之后还要走到林间设施，别只导航到城市名称。",
+    "checks": "图书馆与公园开放时间不同；雨后林下路面与落枝情况需要现场判断。若实际目的地是 Muir Woods，另查其预约与交通规定，不能沿用本条的市公园安排。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofmillvalley.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://www.cityofmillvalley.gov/430/Library-Hours-and-Location",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Novato",
+    "county": "Marin",
+    "summary": "Novato 适合从航空史认识北 Marin，再延伸到周边保存的早期聚落景观。城市范围较大，Hamilton 与北侧州立公园并非相邻街区；半日宜择一重点，留出换乘或驾驶时间。",
+    "places": [
+      {
+        "name": "Hamilton Field History Museum",
+        "url": "https://www.novatohistory.org/hamilton",
+        "description": "设在旧消防站，展示 Hamilton 空军基地的照片、飞行模型与训练资料；地址为 555 Hangar Avenue，别和市中心 Novato History Museum 混淆。",
+        "scope": "city",
+        "mapQuery": "Hamilton Field History Museum Novato"
+      },
+      {
+        "name": "Olompali State Historic Park",
+        "url": "https://parks.ca.gov/?page_id=465",
+        "description": "位于 Novato 北侧的周边州立历史公园，可了解长期的人类居住与土地使用变迁；园地参观、展馆和步道的开放范围须分开核对。",
+        "scope": "nearby",
+        "mapQuery": "Olompali State Historic Park"
+      }
+    ],
+    "halfDay": "编辑建议：航空爱好者以 Hamilton 博物馆为主，留时间听音频与看模型；更偏户外则单独选 Olompali。只有两处当日均开放且自驾衔接顺畅时，才合并为较紧凑的半日。",
+    "arrival": "新居民先在市官网确认住处所属社区与 Recreation 办事入口；查历史馆时保存准确馆名和地址，报名课程或现场办事也不要只填写 Novato 这个大范围名称。",
+    "residentTip": "Hamilton 馆的地方报纸数据库与研究档案适合查房屋、街区或家族故事；需要档案协助时，馆方建议预约讲解员，普通看展开放时间不等于研究服务随到随办。",
+    "transport": "SMART 服务 Novato 的不同车站，去 Hamilton 要按站点与末段公交选路线；Olompali 是城北独立目的地，不能假设下火车后轻松走到入口。",
+    "checks": "Hamilton 当前常规开放为周三、周四与周六；Olompali 出发前查州公园公告、步道与停车要求。夏秋炎热时把户外路段缩短，并以现场关闭标志为准。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.novato.gov/our-town/hamilton-field",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://parks.ca.gov/?page_id=465",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Ross",
+    "county": "Marin",
+    "summary": "Ross 的游览重点是花园与小镇公共空间，适合在繁忙行程中留一个安静半日。Marin Art and Garden Center 的庭园和 Ross Common 各有用途，前者是艺术花园，后者连接学校与社区活动。",
+    "places": [
+      {
+        "name": "Marin Art and Garden Center",
+        "url": "https://maringarden.org/visit-us/",
+        "description": "庭园可自行散步，另有展览、课程及园艺项目。导航务必选 Ross 的 30 Sir Francis Drake Boulevard；馆方特别提醒 San Anselmo 有同号地址。",
+        "scope": "city",
+        "mapQuery": "Marin Art and Garden Center Ross"
+      },
+      {
+        "name": "Ross Common",
+        "url": "https://www.rossrecreation.org/rentalsandkeys",
+        "description": "镇中心公共绿地与运动活动场所，由 Ross Recreation 处理场地使用；参观时让出学校、课程和已预订运动区域，不把整片草地视为无人管理的野餐地。",
+        "scope": "city",
+        "mapQuery": "Ross Common Ross California"
+      }
+    ],
+    "halfDay": "编辑建议：先慢逛花园并按开放情况看展，之后到 Ross Common 周边短走；不登山也能完成一段轻松出门。若想加 Phoenix Lake，另作周边山地路线，别默认与花园同一入口。",
+    "arrival": "刚搬来可从镇 Recreation 页面找成人、青少年和课后项目；网球场钥匙有 Ross 地址或 Ross School District 家庭条件，购买前先确认适用资格和当年规则。",
+    "residentTip": "花园中心有明确志愿者入口，适合持续参与园艺与文化活动；组织社区聚会时区分花园私人活动区与镇属场地，分别向对应管理方询问，不用一张预约覆盖两处。",
+    "transport": "花园停车场与公共厕所现列 9 点至 17 点开放，早晚庭园可步行进入不代表停车场仍开。公交可用馆方链接的 Marin Trip Planner 查询。",
+    "checks": "花园场地可能因私人活动局部关闭，商业拍摄和大团体另有要求；Ross Common 的场地、狗与临时设施规则要单独询问，别套用普通邻里公园惯例。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.townofross.org/recreation",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.rossrecreation.org/rentalsandkeys",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Anselmo",
+    "county": "Marin",
+    "summary": "San Anselmo 适合喜欢小镇步行、花园与亲子停留的人。这里的看点可围绕镇中心串联，不必把 Mount Tam 山地行程算进来；一个带历史宅邸的公园加一个小型广场，就能看见不同社区面貌。",
+    "places": [
+      {
+        "name": "Robson-Harrington Park",
+        "url": "https://www.sananselmo.gov/1978/Robson-Harrington-Park",
+        "description": "历史宅邸周围有花园、休息与野餐空间，并设社区菜园。宅内设施可用于租赁活动，园地开放不等于当天能入屋参观。",
+        "scope": "city",
+        "mapQuery": "Robson Harrington Park San Anselmo"
+      },
+      {
+        "name": "Imagination Park",
+        "url": "https://www.sananselmo.gov/Calendar.aspx?EID=9334",
+        "description": "位于 541 San Anselmo Avenue 的镇中心小公园，也是图书馆户外故事活动场地；更适合短停与亲子阅读，不应按大型游乐场期待。",
+        "scope": "city",
+        "mapQuery": "Imagination Park San Anselmo"
+      }
+    ],
+    "halfDay": "编辑建议：先看 Robson-Harrington 的园地，再回镇中心吃午餐、停留 Imagination Park；若带幼儿，把图书馆具体故事会时段作为路线锚点，下雨则先核对活动是否移到室内。",
+    "arrival": "新居民先收藏镇图书馆日历与 Recreation 入口，活动地点可能在公园、馆内或 Council Chambers；报名或临时改场地前，核对活动日期和通知。",
+    "residentTip": "Robson-Harrington 的社区菜园与历史资料可作为长期认识邻里的切入点；对种植或宅邸历史有兴趣，向镇公园管理与 Historical Museum 分别咨询参与和研究方式。",
+    "transport": "公交可查 Marin Transit 经 San Anselmo 的线路，市中心下车后再连接两处。开车建议集中停一次后步行，并逐块看限时牌，别把短停位当成全天停车。",
+    "checks": "宅内不保证随到随看；社区菜园是正在使用的地块，不采摘。图书馆已公告户外故事活动遇坏天气改至 Council Chambers，但仍需以所选日期的活动页为准。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.sananselmo.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.sananselmo.gov/1978/Robson-Harrington-Park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Rafael",
+    "county": "Marin",
+    "summary": "San Rafael 可以把建筑、艺术与县城办事放在同一张生活地图上。县 Civic Center 与市中心的 Falkirk 代表不同年代，适合对建筑和地方文化有兴趣的人；两处并非一条短街，不宜紧贴着排时间。",
+    "places": [
+      {
+        "name": "Marin County Civic Center",
+        "url": "https://www.marincounty.gov/departments/cultural-services/frank-lloyd-wright/frank-lloyd-wright-tours",
+        "description": "Frank Lloyd Wright 设计的县政中心，官方提供讲解、自导与线上参观选项。它仍是办公建筑，体验重点是建筑空间，不是随意进入各部门办公区。",
+        "scope": "city",
+        "mapQuery": "Marin County Civic Center San Rafael"
+      },
+      {
+        "name": "Falkirk Cultural Center",
+        "url": "https://www.visitmarin.org/things-to-do/attractions/arts-entertainment-cultural/falkirk-cultural-center/",
+        "description": "历史维多利亚宅邸兼艺术展览与活动场地，位于 Mission Avenue。园地、楼上画廊和私人租用活动的开放条件不同，先确认当日可看部分。",
+        "scope": "city",
+        "mapQuery": "Falkirk Cultural Center San Rafael"
+      }
+    ],
+    "halfDay": "编辑建议：先按已预约的 Civic Center 导览时间出发，之后转去市中心午餐与 Falkirk；不想长时间站立的读者，可改用官方自导资料，只选部分建筑节点。",
+    "arrival": "搬来后区分 City of San Rafael 与 Marin County 两套办事入口；城市设施问题找市政府，县政中心所在建筑不意味着所有居民业务都能在同一柜台完成。",
+    "residentTip": "长期居民可关注县 Cultural Services 的建筑讲解志愿者招募，以及 Falkirk 的展览和艺术征集；参与前看申请条件，比只浏览一次景点介绍更能接触本地文化。",
+    "transport": "SMART 的 San Rafael 与 Marin Civic Center 站服务不同片区；公交也有经县政中心路线。县导览页提供专用停车图，市中心停车则另看街区标志。",
+    "checks": "县建筑讲解须提前购票，并包含较长步行和站立；Falkirk 可能因私人活动不开放画廊。预约时分别问无障碍路线和室内开放情况，别以外观可见代替入内确认。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofsanrafael.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.marincounty.gov/departments/cultural-services",
+        "kind": "events"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sausalito",
+    "county": "Marin",
+    "summary": "Sausalito 不只有渡轮口拍照和海景餐厅，往北走可以把海湾水文模型与居民滨水公园连起来。适合想理解旧金山湾、又不想整天购物的人；Marin Headlands 的海洋哺乳动物中心则需另安排交通。",
+    "places": [
+      {
+        "name": "Bay Model Visitor Center",
+        "url": "https://www.spn.usace.army.mil/Missions/Recreation/Bay-Model-Visitor-Center/Teachers-Quest/",
+        "description": "美国陆军工程兵团的教育设施，用实体模型展示旧金山湾与三角洲水系；适合带问题去看水流和地形，不是海洋动物展馆。",
+        "scope": "city",
+        "mapQuery": "Bay Model Visitor Center Sausalito"
+      },
+      {
+        "name": "Dunphy Park",
+        "url": "https://www.sausalito.gov/departments/parks_and_recreation/parks_playgrounds_and_facilities/index.php",
+        "description": "Bridgeway 与 Napa Street 附近的滨水草地，设长椅、凉亭和球类设施；适合看完室内展览后短走休息，水边活动需另查条件。",
+        "scope": "city",
+        "mapQuery": "Dunphy Park Sausalito"
+      }
+    ],
+    "halfDay": "编辑建议：先确认 Bay Model 开门，再参观模型、午餐，最后停 Dunphy Park；乘船来的读者可把返回码头作为终点，体力有限就缩短北段，不追求整条海岸都走完。",
+    "arrival": "新居民从市 Parks & Recreation 建立 RecDesk 报名账户，球场预订与公园大聚会审批不同；先按活动类型选择入口，避免把已付款球场理解成获准举办大型活动。",
+    "residentTip": "市设施页面提供网球、匹克球、排球和地掷球预订，适合固定约朋友活动；Dunphy 公园大团体使用先询问市休闲部门，按具体规模安排。",
+    "transport": "Golden Gate Ferry 服务 Sausalito，但 Bay Model 在码头以北，需另留步行或公交时间。Marin Transit 有经 Sausalito 的线路，返程同时核对船班和上车位置。",
+    "checks": "Bay Model 的教育页不代表实时开门保证；出发前核对中心公告。Dunphy 南侧工程页仍有阶段性施工信息，走现有开放通道，不把计划中的设施当成已完工。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.sausalito.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.sausalito.gov/departments/parks_and_recreation/parks_playgrounds_and_facilities/index.php",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Tiburon",
+    "county": "Marin",
+    "summary": "Tiburon 的铁路与渡轮历史比海景餐饮更值得多留一会。滨水小馆可与山坡上的历史教堂组合，兼顾模型、建筑和海湾视野；上坡站不是平地海滨散步的自然延长，体力有限可只选岸边。",
+    "places": [
+      {
+        "name": "Railroad & Ferry Depot Museum",
+        "url": "https://landmarkssociety.com/landmarks/railroad-ferry-museum/",
+        "description": "Shoreline Park 旁的旧车站展示 Tiburon 铁路与轮渡模型。馆方已说明 2026 季楼上展厅临时关闭，楼下按季节日程开放，不能承诺参观完整旧居。",
+        "scope": "city",
+        "mapQuery": "Railroad Ferry Depot Museum 1920 Paradise Drive Tiburon"
+      },
+      {
+        "name": "Old St. Hilary's Landmark",
+        "url": "https://landmarkssociety.com/landmarks/st-hilarys/",
+        "description": "山坡上的木构历史教堂与相邻野花保护地，适合看建筑和植物生境；花期随季节变化，不应把春季野花照片当作十月现场保证。",
+        "scope": "city",
+        "mapQuery": "Old St Hilarys 201 Esperanza Street Tiburon"
+      }
+    ],
+    "halfDay": "编辑建议：按车站博物馆开馆时间安排滨水段，午餐后再决定是否上坡到 Old St. Hilary's；两馆室内开放日不同，想都入内时先找两者同时开放的日期。",
+    "arrival": "刚搬来可从镇 Heritage 页找到联合图书馆与 The Ranch 休闲服务，再按具体项目办卡或报名；Tiburon 与 Belvedere 相邻，涉及住址资格时向机构说明完整地址。",
+    "residentTip": "Landmarks Society 的讲解、历史收藏与志愿者参与适合长期居民；想查家族或社区历史，先联系收藏管理人员，普通周末开馆并不代表档案有人随时协助。",
+    "transport": "到 Tiburon 的船班须在官方当日时刻表查询，不能套用旧攻略的周末规则；上坡教堂另有步行爬升，团体大巴不能直接按普通旅游景点处理。",
+    "checks": "车站博物馆楼上关闭须保留在行程预期；Old St. Hilary's 当前列四月至十月周日下午开放。私人活动、雨天山坡与回程船班都需出发前再核对。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.townoftiburon.gov/328/Heritage",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://www.beltiblibrary.org/",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "American Canyon",
+    "county": "Napa",
+    "summary": "Napa Valley 南端的 American Canyon 更适合湿地观察和社区户外活动，而非把每站都排成酒庄。城内公园可接河湾步道，风、日照与鸟类活动会影响体验；观景重点是生态环境，不承诺看到特定动物。",
+    "places": [
+      {
+        "name": "Clarke Ranch",
+        "url": "https://www.americancanyon.gov/Play/Wetlands-Napa-River-Bay-Trail",
+        "description": "位于 Eucalyptus Drive 与 Wetlands Edge Drive 西北角，是城内公园和湿地步道入口，有户外健身与野餐休息空间；适合先停下来辨认路线。",
+        "scope": "city",
+        "mapQuery": "Clarke Ranch American Canyon"
+      },
+      {
+        "name": "Wetlands & Napa River Bay Trail",
+        "url": "https://www.americancanyon.gov/Play/Wetlands-Napa-River-Bay-Trail",
+        "description": "从市内 Wetlands Edge 入口延伸到市界外湿地的河湾步道网络，城市与州、县机构协作管理。按选定路段查看地图，勿把整条 Bay Trail 当成连续通行的市内环线。",
+        "scope": "cross-boundary",
+        "mapQuery": "Wetlands Edge Trail American Canyon"
+      }
+    ],
+    "halfDay": "编辑建议：从 Clarke Ranch 查看地图，挑一段湿地步道往返，再回公园休息；第一次不要以走完所有环线为目标。风大、炎热或带幼儿时，把路线缩到容易回头的短段。",
+    "arrival": "新居民可在城市 Parks 目录按地址找最近公园，保存 Report a Park Issue 与场地租用入口；课程和市活动要看实际场馆，不能把所有项目都理解为在湿地集合。",
+    "residentTip": "想长期参加户外活动，可先观察湿地季节变化并使用市提供的步道图；组织多人野餐应走 Park & Facility Rentals，普通公园使用与预留专属场地不同。",
+    "transport": "Vine 的 American Canyon 社区接驳需核对服务范围和预约方式；湿地入口属于最后一段出行问题。开车只使用指定停车区，步道与入口停车场均按日出至日落规则使用。",
+    "checks": "市管步道禁止在池塘钓鱼、划船和游泳，狗须牵绳；市外 Napa Plant Site 段另有季节禁犬规则。维修、潮汐及天气可影响通行，先看对应路段告示，不绕过围栏进入保育区。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.americancanyon.gov/Play/Parks",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.americancanyon.gov/Play/Wetlands-Napa-River-Bay-Trail",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Calistoga",
+    "county": "Napa",
+    "summary": "Calistoga 位于谷地北端，除了温泉与酒庄，也能用地方历史馆和社区公园过一个不饮酒的半日。把小镇作为目的地本身，适合家庭、同行者兴趣不同或只想慢下来的人。",
+    "places": [
+      {
+        "name": "Sharpsteen Museum",
+        "url": "https://www.sharpsteenmuseum.org/",
+        "description": "通过模型、场景与历史资料介绍 Calistoga 和 Upper Napa Valley。小型博物馆适合先建立地方背景，再走周边街道；旧临展结束日不能当作新展期。",
+        "scope": "city",
+        "mapQuery": "Sharpsteen Museum Calistoga"
+      },
+      {
+        "name": "Pioneer Park",
+        "url": "https://www.calistogaca.gov/Government/Departments/Parks-and-Recreation/Park-and-Facility-Rentals/Pioneer-Park",
+        "description": "Cedar Street 的休闲公园有儿童设施、凉亭与野餐区，适合看馆后的户外休息。凉亭与野餐区域可以租用，现场是否空闲需看预订情况。",
+        "scope": "city",
+        "mapQuery": "Pioneer Park 1308 Cedar Street Calistoga"
+      }
+    ],
+    "halfDay": "编辑建议：按博物馆当天开门时段看展，接镇中心午餐，再到 Pioneer Park 放松；若另外预约温泉，把它单独留出完整时段，不在半日中叠加远处山径和多家酒庄。",
+    "arrival": "搬来先熟悉市 Parks & Recreation 的项目和公园租用规则；Pioneer Park 的居民与非居民租用费用类别不同，先问需要什么住址材料，再提交聚会申请。",
+    "residentTip": "想邀请亲友深入了解小镇，Sharpsteen 提供预约团体参观入口；居民组织小型户外聚会则找市公园部门。把文化项目与场地申请分开联系，沟通更直接。",
+    "transport": "Vine 提供 Calistoga Shuttle 入口，出发前查预约、服务范围与当日运行；两处镇内地点可以按步行能力组合，但去谷地其他城市要另算交通时间。",
+    "checks": "博物馆平日与周末开放窗口不同；公园整园租用有额外限制，不代表普通游客可包下全园。炎热天气优先室内看馆，私人温泉或酒庄是否接待另向经营者确认。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.calistogaca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.calistogaca.gov/Government/Departments/Parks-and-Recreation/Park-and-Facility-Rentals/Pioneer-Park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Napa",
+    "county": "Napa",
+    "summary": "Napa 市的河边公共空间提供了不依赖品酒的游览方式。Oxbow 一带可把城市景观与河岸生态接在一起，也能看见防洪设施如何融入日常；不要把 Napa 市和整个 Napa Valley 的距离混为一谈。",
+    "places": [
+      {
+        "name": "Oxbow Commons",
+        "url": "https://www.cityofnapa.org/facilities/facility/details/oxbowcommons-57",
+        "description": "McKinstry Street 的公共空间设步道与露天广场，兼有城市防洪功能。适合在镇内散步与休息，雨季高水位时可能关闭，不能按全天候草地安排。",
+        "scope": "city",
+        "mapQuery": "Oxbow Commons Napa"
+      },
+      {
+        "name": "Oxbow Preserve",
+        "url": "https://www.cityofnapa.org/366/Biking-Hiking-Trails",
+        "description": "河岸保留地提供观察植被与河流环境的另一面，市官网附自导资料。与 Commons 名称相似但入口、步行方向不同，出发前分别定位。",
+        "scope": "city",
+        "mapQuery": "Oxbow Preserve Napa"
+      }
+    ],
+    "halfDay": "编辑建议：从 Oxbow Commons 熟悉河道与公共空间，安排午餐，再按体力前往 Preserve 选短段观察；雨天若出现高水位或封闭，把生态段取消，不穿过关闭闸口凑行程。",
+    "arrival": "新居民可先看市 Biking & Hiking Trails 页面，选择住处附近能重复使用的路线，再从市政府找设施、办事与活动信息；地图上的未来步道连接不等于已建成开放。",
+    "residentTip": "市提供 Oxbow Preserve 自导材料，可作为带朋友散步或观察季节变化的底稿；社区活动若使用 Commons，先看场地租用与高水位取消条款，再决定是否需要室内备选。",
+    "transport": "Vine 在 Napa 提供公交服务，按具体河岸入口核对停靠与步行路线。停车看所在街区与场馆规则，Commons 和 Preserve 不应只输入同一个 Oxbow 名称导航。",
+    "checks": "Commons 是防洪体系的一部分，官方说明高水位可短时通知关闭；河岸路段雨后检查积水。活动现场、市场店铺与公园开放时间不同，不能互相代用。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofnapa.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cityofnapa.org/366/Biking-Hiking-Trails",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "St. Helena",
+    "county": "Napa",
+    "summary": "St. Helena 可用文学与社区运动打开，而不只是一串酒庄预约。Robert Louis Stevenson 的小型博物馆与 Crane Park 展现两种节奏，适合不饮酒的同行者，也给新居民一个认识日常活动的起点。",
+    "places": [
+      {
+        "name": "Robert Louis Stevenson Museum",
+        "url": "https://stevensonmuseum.org/",
+        "description": "位于 Library Lane 的文学博物馆，适合对《金银岛》等作品及作者生平感兴趣的人。它不是远处同名州立公园，导航时务必选博物馆全名。",
+        "scope": "city",
+        "mapQuery": "Robert Louis Stevenson Museum St Helena"
+      },
+      {
+        "name": "Crane Park",
+        "url": "https://www.cityofsthelena.gov/Facilities/Facility/Details/Crane-Park-2",
+        "description": "设儿童游乐、野餐与网球、地掷球等活动设施，体现居民日常休闲。团体野餐区和球场预订有各自流程，随意散步不等于取得专用场地。",
+        "scope": "city",
+        "mapQuery": "Crane Park 360 Crane Avenue St Helena"
+      }
+    ],
+    "halfDay": "编辑建议：先按博物馆开馆日看展，再午餐，下午选 Crane Park 一项轻活动；对文学兴趣一般的家庭可缩短看馆时间，把余裕留给公园而不是额外塞入山地路线。",
+    "arrival": "新居民从市 Parks & Recreation 页面查看成人与青少年课程，先建立报名账户；公园租费按住址类别、地点和人数计算，办聚会前准备这些信息再询问。",
+    "residentTip": "长期居民可关注市地掷球项目或向休闲部门提出授课申请，把已有兴趣变成固定社区联系；文学馆另有预约参观入口，接待来访亲友前先协调团体需求。",
+    "transport": "Vine 的 St. Helena Shuttle 提供本地接驳信息；镇内短游与跨谷地出行分开安排。Crane Park 的具体球场入口按设施图查，不把全部设施都视作紧贴 Main Street。",
+    "checks": "博物馆现列周二至周六开放；Crane 的部分设施需预订且押金、居民类别不同。市公园页的农夫市场具有季节性，十月以后不能直接沿用同一时间表。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofsthelena.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cityofsthelena.gov/275/Parks-Facilities-Locations-Rental-Inform",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Yountville",
+    "county": "Napa",
+    "summary": "Yountville 除了餐厅预约，也适合用公共雕塑和公园安排预算可控的步行半日。艺术步道沿镇内街道分布，作品会轮换；重点在慢看与听导览，不必为了某张旧照片寻找已搬走的雕塑。",
+    "places": [
+      {
+        "name": "Yountville Art Walk",
+        "url": "https://www.townofyountville.gov/238/Art-Walk",
+        "description": "镇公共艺术步道提供免费自导音频，雕塑说明牌有二维码；纸本地图可在 Community Center 或 Welcome Center 领取，适合按兴趣挑选少量作品。",
+        "scope": "city",
+        "mapQuery": "Yountville Art Walk Washington Street"
+      },
+      {
+        "name": "Veterans Memorial Park",
+        "url": "https://www.townofyountville.gov/187/Parks-Facilities",
+        "description": "位于 Washington Street，设公共雕塑、休息空间、地掷球场和露天活动设施。适合作为艺术散步的休息点，活动举办时空间安排会不同。",
+        "scope": "city",
+        "mapQuery": "Veterans Memorial Park 6465 Washington Street Yountville"
+      }
+    ],
+    "halfDay": "编辑建议：先领取或下载艺术地图，选择镇中心一段听音频，午餐后在 Veterans Memorial Park 休息，再沿原路看漏掉的作品；不需要一次走遍全部雕塑点位。",
+    "arrival": "新居民可先到 Community Center 认识课程与活动入口，保存镇 Parks & Facilities 页面；办野餐或约球时用现行在线预约系统，旧下载表格的流程可能已不同。",
+    "residentTip": "长期居民可关注 Yountville Arts 的导览与作品轮换，带朋友每次选不同主题；有创作兴趣者查看官方艺术征集条件，不把常设公共艺术误读为人人可自行摆放作品。",
+    "transport": "镇内有 Vine 的 Yountville Trolley 服务入口，使用前查服务范围与叫车方式；雕塑按步行地图串联更直观，驾车到达后停车依所在设施与现场规则处理。",
+    "checks": "音频自导和付费或捐款制讲解不是同一服务；作品位置会变，使用当前地图。公园音乐会等多为指定日期，夏季活动页面不能作为十月仍有现场演出的保证。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.townofyountville.gov/238/Art-Walk",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.townofyountville.gov/187/Parks-Facilities",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cloverdale",
+    "county": "Sonoma",
+    "summary": "Cloverdale 在 Sonoma 县北端，适合把开车路过变成一段小城历史与树荫公园的停留。它与北湾南部铁路城市的交通条件不同，安排轻松半日比假定能随时乘火车返程更实际。",
+    "places": [
+      {
+        "name": "Cloverdale History Center",
+        "url": "https://www.sonomacounty.com/arts-culture/cloverdale-history-center/",
+        "description": "市中心历史中心包含展览、研究资料及 Gould-Shaw House，适合了解社区家庭与地方变化。这里不是大型全天候博物馆，先联系确认开放与所需参观部分。",
+        "scope": "city",
+        "mapQuery": "Cloverdale History Center 215 North Cloverdale Boulevard"
+      },
+      {
+        "name": "Cloverdale City Park",
+        "url": "https://www.cloverdale.net/470/Neighborhood-Parks",
+        "description": "West 2nd Street 的市公园有老橡树、儿童设施和运动空间；适合野餐与短暂休息。具体球场使用和团体活动另查城市安排。",
+        "scope": "city",
+        "mapQuery": "Cloverdale City Park 450 West 2nd Street"
+      }
+    ],
+    "halfDay": "编辑建议：先按历史中心确认后的时段参观，再在市中心午餐，最后去 City Park 树荫下休息；若馆方不开门，就缩成街区与公园游，不绕去私人住宅寻找内部参观。",
+    "arrival": "刚搬来可用市 Neighborhood Parks 页面比较住处附近的 City Park、Furber 和 Vintage Meadows，按儿童、运动或散步需求选择；设施问题向城市窗口报告，别只在社交平台留言。",
+    "residentTip": "历史中心的研究收藏与讲座是了解本地故事的持续入口；整理家族照片或查询街区历史前，先问工作人员材料接收、查阅与预约方式，避免带着原件直接上门。",
+    "transport": "SMART 当前站点列表止于 Windsor；官方站点页指向 Sonoma County Transit 连接 Cloverdale。公共交通来回须分别查时刻，不把未来铁路延伸计划当成现有服务。",
+    "checks": "历史中心运营方网站本次无法直接读取，参观以电话或官方旅游目录的最新联系为准；不据旧网页承诺票价。公园炎热时避开曝晒球场，先确认饮水与厕所现场状态。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cloverdale.net/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cloverdale.net/470/Neighborhood-Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cotati",
+    "county": "Sonoma",
+    "summary": "Cotati 的六角形镇中心和地方历史馆很适合短程步行，不必借邻城的大场馆来充当本城特色。这里的尺度适合边看街区边了解社区，也适合把公共花园与长期居民的兴趣活动连接起来。",
+    "places": [
+      {
+        "name": "La Plaza Park",
+        "url": "https://www.cotaticity.gov/Facilities/Facility/Details/La-Plaza-Park-1",
+        "description": "位于六角形街道格局中心的公共公园，是理解 Cotati 城镇布局的起点；音乐活动与市集按各自日期举办，平日以公园和街区本身为主。",
+        "scope": "city",
+        "mapQuery": "La Plaza Park Cotati"
+      },
+      {
+        "name": "Cotati Historical Society Museum",
+        "url": "https://cotatimuseum.org/",
+        "description": "位于 West Sierra Avenue 的历史机构保存照片、档案与物件。适合先问开放安排，再从展览理解街名、镇中心和周围社区的变化。",
+        "scope": "city",
+        "mapQuery": "Cotati Historical Society 201 West Sierra Avenue"
+      }
+    ],
+    "halfDay": "编辑建议：先在 La Plaza 看六角街区，再在已确认开放的时段访历史馆，最后用餐；若博物馆没开，改看历史学会线上资料，把参观变成一段带背景的短街区散步。",
+    "arrival": "新居民可以从市 City Parks 页面找场地租用与 Civic Center 教室信息；报名活动前确认是 Cotati 市项目还是邻近 Rohnert Park 项目，地址相近不代表资格和费用相同。",
+    "residentTip": "La Plaza 的节水示范花园可作为庭院改造的观察起点，再向市 Water Conservation 询问适用项目；任何返款先确认现行条件与申请顺序，不按旧网页金额先施工。",
+    "transport": "Cotati 有 SMART 站，但车站与 La Plaza 并非同一地点，末段步行或公交要另查。驾车到镇中心后按实际限时停车，别把市政办公位当作活动长停位。",
+    "checks": "Rohnert Park–Cotati Regional Library 自 2026 年 9 月起临时关闭，取书改用 Library To Go 指定点；去邻城借书前查县图书馆通知。音乐节旧日历与历史馆当期开门日也须区分。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cotaticity.gov/299/City-Parks",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cotaticity.gov/299/City-Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Healdsburg",
+    "county": "Sonoma",
+    "summary": "Healdsburg 可围绕市中心广场与地方历史馆安排半日，适合同行者不都想品酒的组合。广场周围停留与认真看一个展，比赶多家预约更从容；城市名字也不代表已开通直达 SMART 火车。",
+    "places": [
+      {
+        "name": "Healdsburg Plaza",
+        "url": "https://healdsburg.gov/facilities/facility/details/Healdsburg-Plaza-12",
+        "description": "市中心公共广场提供街区散步的方向感，可在这里休息后再逛周边。音乐和节庆是否举行看市活动日历，不将广场长期存在与每天有演出混为一谈。",
+        "scope": "city",
+        "mapQuery": "Healdsburg Plaza California"
+      },
+      {
+        "name": "Healdsburg Museum",
+        "url": "https://www.healdsburgmuseum.org/",
+        "description": "通过地方物件、照片和档案展示 Healdsburg 与周边地区的历史，常设研究资源与更换展览的节奏不同；看展前留意布展期间闭馆公告。",
+        "scope": "city",
+        "mapQuery": "Healdsburg Museum California"
+      }
+    ],
+    "halfDay": "编辑建议：先看博物馆当期展览，再回 Plaza 用餐和短走；如果处于换展期，改为广场街区与线上历史收藏，不承诺另有展厅可替代。带孩子可把一处看馆作为全程主项目。",
+    "arrival": "新居民可先从市设施页面找到常用公园，再保存市政服务与活动入口；给外地朋友安排路线时明确哪些地点在城区，哪些酒庄或自然保护地需要另开车。",
+    "residentTip": "博物馆的线上资料库和研究档案可用于深入认识居住地；查家族或房屋资料时先描述主题、年代和所需材料，再预约协助，别把普通展览票理解成研究人员全天待命。",
+    "transport": "SMART 官方仍以 Windsor 为北端站点，转往 Healdsburg 可查询其列出的 Sonoma County Transit 接驳。到广场后可集中步行，但返回车站的末班连接要提前确认。",
+    "checks": "博物馆首页有换展关闭提示，日期与年份需向馆方确认后再安排行程；活动与餐厅预约分开处理。市中心停车看现场限制，不凭旧游记推定全天免费。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://healdsburg.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://healdsburg.gov/facilities/facility/details/Healdsburg-Plaza-12",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Petaluma",
+    "county": "Sonoma",
+    "summary": "Petaluma 适合把河港城镇历史与湿地观察组合成一天中的一段，不必只看餐厅和古董店。市中心历史馆与 Shollenberger Park 分属不同片区，合理半日需要明确移动方式，不能写成出门即到的同一街区。",
+    "places": [
+      {
+        "name": "Petaluma Historical Library & Museum",
+        "url": "https://www.petalumamuseum.com/",
+        "description": "位于 20 Fourth Street 的历史馆通过展览、历史点位地图与研究资料讲述城市故事。名称含 Library，但它不同于日常借书的县图书馆分馆。",
+        "scope": "city",
+        "mapQuery": "Petaluma Historical Library Museum"
+      },
+      {
+        "name": "Shollenberger Park",
+        "url": "https://www.visitpetaluma.com/outdoor-recreation/",
+        "description": "市内湿地公园提供平缓步道与观鸟环境，适合慢走和观察不同水域生境；鸟类出现受季节与天气影响，不保证见到某种鸟或每次都有讲解活动。",
+        "scope": "city",
+        "mapQuery": "Shollenberger Park Petaluma"
+      }
+    ],
+    "halfDay": "编辑建议：凉爽时先去湿地选一段短走，再转市中心午餐与历史馆；若博物馆当天不开，使用历史点位地图改成街区散步。怕风或行动不便者可只保留市中心部分。",
+    "arrival": "刚搬来可分别保存市政府办事入口、县图书馆和历史馆，不把三者当成同一机构；查询房屋或街区往事时，先向 History Room 或历史馆确认资料范围和预约方式。",
+    "residentTip": "县图书馆 Petaluma History Room 保存地方记录，历史馆也提供研究资料；可先查线上线索再约现场，带上已知日期、地址和名称，通常比无目标翻阅更有效。",
+    "transport": "SMART 服务 Petaluma，去市中心与湿地需分别查末段路线，火车站并非湿地入口。自驾先定位 Shollenberger 的游客入口，避免把码头办公地址当成步道起点。",
+    "checks": "历史馆常规开放集中在周四至周日，研究服务另约；湿地路段查雨后积水、风与现场告示。市公园原页本次无法读取，具体维护状态应向市管理方再次确认。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://cityofpetaluma.org/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与社区服务",
+        "url": "https://sonomalibrary.org/visit/locations/petalumahistory",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Rohnert Park",
+    "county": "Sonoma",
+    "summary": "Rohnert Park 更适合按一场演出或一项社区活动来认识，而非为了打卡勉强寻找观光街。市营表演艺术中心与邻里公园能组成实用的家庭半日，也能帮助长期居民建立固定兴趣安排。",
+    "places": [
+      {
+        "name": "Spreckels Performing Arts Center",
+        "url": "https://spreckelsonline.com/",
+        "description": "位于 Snyder Lane，提供戏剧、音乐剧与青少年戏剧教育。这里应按演出或课程预约前往，不是白天随时能进观众厅参观的建筑景点。",
+        "scope": "city",
+        "mapQuery": "Spreckels Performing Arts Center Rohnert Park"
+      },
+      {
+        "name": "Dorotea Park",
+        "url": "https://rpcity.ca.gov/213/League-Schedule-Field-Locations",
+        "description": "Santa Dorotea Circle 的市公园设球场，另有可预约野餐区。适合与家庭休息或运动组合；联赛、课程与已预订区域需要让出。",
+        "scope": "city",
+        "mapQuery": "Dorotea Park 895 Santa Dorotea Circle"
+      }
+    ],
+    "halfDay": "编辑建议：选有下午场的日期，先在 Dorotea Park 轻活动、午餐，再去 Spreckels 看戏；只有晚场时把它改成下午至晚间行程。无演出日不把售票处开放当成完整参观。",
+    "arrival": "新居民可从 Recreation Services 找课程、运动健身、泳池与设施租赁；市图书馆临时关闭期间，先查县图书馆替代服务，再决定到哪里取预约书。",
+    "residentTip": "有戏剧兴趣的家庭可关注 Spreckels 青少年课程与试镜公告；居民想办野餐，市页面要求到 Community Center 完成预约，别只在网上查看空档就认定预订成功。",
+    "transport": "SMART 的 Rohnert Park 站与剧院不在同一位置，先规划末段公交或接送。市剧院页面列场地停车信息；散场后返程班次仍应单独核对，不能只查抵达路线。",
+    "checks": "截至核验日，Rohnert Park–Cotati Regional Library 自 9 月 1 日起临时关闭，Library To Go 位于县图书馆总部大厅；演出和课程另看年龄、售票、取消与入场规则。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.rpcity.ca.gov/557/Recreation-Services",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://rpcity.ca.gov/192/Picnic-Rentals",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Santa Rosa",
+    "county": "Sonoma",
+    "summary": "Santa Rosa 可以把漫画艺术与园艺史放在同一个半日选择里，适合孩子、插画爱好者和不以酒庄为目标的旅行者。Schulz 博物馆与 Burbank 故居相距不近，安排交通后再决定是否两处都看。",
+    "places": [
+      {
+        "name": "Charles M. Schulz Museum",
+        "url": "https://schulzmuseum.org/?lang=en",
+        "description": "以《花生漫画》作者的作品与创作历程为核心，位于 Hardies Lane。把看展、阅读漫画和可能的活动留出时间，不把附近其他设施自动视为同一张门票范围。",
+        "scope": "city",
+        "mapQuery": "Charles M Schulz Museum Santa Rosa"
+      },
+      {
+        "name": "Luther Burbank Home & Gardens",
+        "url": "https://lutherburbank.org/",
+        "description": "市中心附近的园林与故居介绍植物育种者 Burbank。庭园、博物馆与带领参观的时间和收费不同，花园开放不意味着室内导览全年随到随看。",
+        "scope": "city",
+        "mapQuery": "Luther Burbank Home Gardens Santa Rosa"
+      }
+    ],
+    "halfDay": "编辑建议：先按兴趣把 Schulz 馆或 Burbank 导览作为主站，午餐后再转另一处；需要慢读展览的漫画迷可只保留第一站。十一月以后的园艺行程应重新核对室内季节安排。",
+    "arrival": "刚搬来先区分市政府服务、城市公园和独立博物馆，课程报名、志愿者申请与公用事业办事不是同一账户；把住处附近服务和周末景点分别存成常用入口。",
+    "residentTip": "Burbank 园林公开提供志愿者入口，适合喜欢植物或讲解的居民持续参与；漫画爱好者可按 Schulz 的活动日历挑工作坊，再比较会员方案是否符合自己的实际来访次数。",
+    "transport": "SMART 在 Santa Rosa 有不同站点，去市中心与 Hardies Lane 需分别安排末段交通。Burbank 官网注明街边停车，不能把庭园当作有游客大停车场的郊外景区。",
+    "checks": "Schulz 当前常规周二闭馆；Burbank 室内参观主要按四月至十月季节安排，庭园另有时间。携宠物也须核对园林规则，不把户外开放理解成宠物可随意进入。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.srcity.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://lutherburbank.org/",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sebastopol",
+    "county": "Sonoma",
+    "summary": "Sebastopol 适合从苹果与育种历史、地方档案和小镇街道慢慢认识。这里推荐的 Burbank 实验农场与 Santa Rosa 的故居是不同地点；两处同名人物遗产不能合并成一个导航点或一套开放时间。",
+    "places": [
+      {
+        "name": "West County Museum",
+        "url": "https://www.wschs.org/visit-us/",
+        "description": "South Main Street 的地方博物馆由 Western Sonoma County Historical Society 运营，展示西 Sonoma 县的历史物件与故事；适合在短街区游前建立背景。",
+        "scope": "city",
+        "mapQuery": "West County Museum Sebastopol"
+      },
+      {
+        "name": "Luther Burbank Experiment Farm",
+        "url": "https://www.wschs.org/visit-us/",
+        "description": "Bodega Avenue 的历史实验农场可自导看植物与育种遗产；官方要求从 Burbank Heights 入口进入，使用山坡上谷仓附近的公共停车区，别占居民专用空间。",
+        "scope": "city",
+        "mapQuery": "Luther Burbank Experiment Farm 7777 Bodega Avenue"
+      }
+    ],
+    "halfDay": "编辑建议：选择博物馆开门的周末，先看地方展览，午餐后到实验农场按导览单慢走；若只来平日，可把农场作为主站，并利用历史学会线上资料替代室内展览。",
+    "arrival": "新居民可先保存市官网与历史学会两个入口，前者用于办事和工程公告，后者用于文化设施开放；同一设施的市工程通知与运营方访问信息需要一起看。",
+    "residentTip": "实验农场的自导材料适合反复观察植物季节变化，也可向历史学会询问讲解或园地志愿服务；不要自行采果、剪枝或把历史植物当作免费交换苗木。",
+    "transport": "农场和市中心需要另走一段路或驾车衔接，先按同行者坡路能力选择。农场入口经过住宅环境，只用指定公共停车区，别依据商业地图图钉进入住户车道。",
+    "checks": "博物馆现列周末短时开放；农场市公告曾有 2026 年初厕所施工，不以计划完工日期保证设施已可用。到访前核对最新工程、厕所、路径与导览安排。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofsebastopol.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.wschs.org/visit-us/",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Sonoma",
+    "county": "Sonoma",
+    "summary": "Sonoma 市中心适合认真看加州早期历史，再在广场停留。它只是 Sonoma 县的一座城市，不代表海岸、红杉林和县内酒庄都在旁边；半日围绕 Plaza 与州立历史园最容易安排得从容。",
+    "places": [
+      {
+        "name": "Sonoma Plaza",
+        "url": "https://www.sonomaparks.org/location/the-sonoma-plaza/",
+        "description": "市中心历史广场与周围建筑共同构成地方景观，适合休息、辨认街区并串联历史地点；公共草地与周边博物馆的入场范围须分开理解。",
+        "scope": "city",
+        "mapQuery": "Sonoma Plaza California"
+      },
+      {
+        "name": "Sonoma State Historic Park",
+        "url": "https://www.parks.ca.gov/?page_id=479",
+        "description": "州立历史园由多个分散地点组成，包括 Mission San Francisco Solano、Barracks 与 Vallejo 故居。重点是不同历史视角，不是同一入口内的一座大馆。",
+        "scope": "city",
+        "mapQuery": "Sonoma State Historic Park"
+      }
+    ],
+    "halfDay": "编辑建议：从 Plaza 周边选 Mission 与 Barracks 两处先看，午餐后按体力决定是否再去 Vallejo 故居；想细读展览就少选地点，别为了集齐地图把每站压成拍照。",
+    "arrival": "新居民先确认住址属于 Sonoma 市还是县非建制地区，再选择市政府办事入口；公园名称带 Sonoma 不一定由市管理，州立历史园的门票与活动需找 State Parks。",
+    "residentTip": "长期居民可关注州立园与合作协会的历史活动，按具体主题反复看不同建筑；带亲友来时先查看通票当日适用地点，别凭旧照片或旧票根推定所有馆舍都包含。",
+    "transport": "广场附近各历史点可分段步行，Vallejo 故居仍需按地图单独定位；自驾停车遵从现场区域与限时说明。需要公交时先确认返程，跨县城市转移另留余裕。",
+    "checks": "州立园的历史建筑、花园与步道有不同宠物限制，不能因部分区域允许狗就进入所有室内。节假日闭馆与单点维护另查官方公告；市官网暂不可读时可直接联系对应部门。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.sonomacity.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.parks.ca.gov/?page_id=479",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Windsor",
+    "county": "Sonoma",
+    "summary": "Windsor 的 Town Green 是认识这座北 Sonoma 小镇的自然起点，再加一处地方博物馆，适合轻松半日。这里已有 SMART 站，但夏季广场音乐会有自己的季节，不能全年期待下车就遇到演出。",
+    "places": [
+      {
+        "name": "Windsor Town Green",
+        "url": "https://www.townofwindsor.ca.gov/index.asp?nid=597",
+        "description": "McClelland Drive 一带的社区中心绿地，可连接周边街道与休闲活动。大型活动时座位、临时设施和交通有专门规定，普通散步日与演出日体验不同。",
+        "scope": "city",
+        "mapQuery": "Windsor Town Green California"
+      },
+      {
+        "name": "Windsor Museum",
+        "url": "https://www.windsorhistory.org/",
+        "description": "位于 Foxwood Drive 的地方历史机构，介绍农牧、铁路与社区故事，并提供市中心自导历史步行线索；展馆开放与导览须先向历史学会确认。",
+        "scope": "city",
+        "mapQuery": "Windsor Museum 9225 Foxwood Drive"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Town Green 和相邻街区短走、用餐，再按博物馆确认的时间转过去；若不想换地点，改用历史学会的市中心自导路线，把博物馆留给下次。",
+    "arrival": "新居民可从镇 Parks 页面比较邻里公园与县属公园，场地预约、维修和收费入口不同；需要办生日会或社团聚会时，先按人数与临时设施询问是否需许可。",
+    "residentTip": "Windsor 公园租用页面列出居民优先与活动许可条件，可帮助长期组织邻里活动；喜欢地方故事的人则关注历史学会的步行与讲座，先核对当期安排再邀朋友。",
+    "transport": "SMART Windsor 站已列入官方站点，机场接驳却从 Sonoma County Airport 站出发，不服务 Windsor 站。去 Healdsburg、Cloverdale 则按官方列出的县公交衔接。",
+    "checks": "Town Green 的 Summer Nights 属夏季项目，十月另查日历；活动停车不能占邻近商家的限制车位。博物馆先确认开放，车站停车与活动停车规则也不要互相套用。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.townofwindsor.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://townofwindsor.ca.gov/332/Park-Rentals",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Benicia",
+    "county": "Solano",
+    "summary": "Benicia 适合用旧州议会大楼与兵工厂历史了解加州，而不只在海边吃一顿饭。市中心与 Arsenal 两片区各有看点，适合愿意读展览的人；两馆的开放窗口不同，先选对日期比赶路更重要。",
+    "places": [
+      {
+        "name": "Benicia Capitol State Historic Park",
+        "url": "https://www.parks.ca.gov/?page_id=475",
+        "description": "保存早期州议会空间，邻近 Fischer-Hanlon House。议会大楼、住宅导览与团体预约不同，普通入场不代表随时可以进入每栋建筑。",
+        "scope": "city",
+        "mapQuery": "Benicia Capitol State Historic Park"
+      },
+      {
+        "name": "Museum of History Benicia — Arsenal Gallery",
+        "url": "https://mohbenicia.org/visit/",
+        "description": "目前参观重点是 Camel Road 的 Arsenal Gallery，馆方把访客地址列为 2024 Camel Road；办公室地址不同，Downtown Gallery 当前关闭，别按旧馆名直接找过去。",
+        "scope": "city",
+        "mapQuery": "Museum of History Benicia Arsenal Gallery 2024 Camel Road"
+      }
+    ],
+    "halfDay": "编辑建议：挑两馆都开门的周五或周六，先看州议会，市中心午餐后转 Arsenal Gallery；若只在周日来，保留州立园与街区散步，不把另一馆常规关闭当成临时意外。",
+    "arrival": "新居民先分别保存市政府、State Parks 与 Museum of History 的入口；街区设施、州立景点和研究档案各有管理方，咨询时说明要办理的事务和具体场所。",
+    "residentTip": "Museum of History 保存城市档案，基础研究与深入复制服务的费用安排不同，公众查阅需预约；长期居民可先用明确地址和年代咨询，再安排档案访问或志愿参与。",
+    "transport": "州议会与 Arsenal 分属两片区，地图上分别定位，不写成一段紧凑无缝步行。驾车按目的地停车；乘公交先核对两个地点及返程的实际接驳，别只查到 Benicia 市中心。",
+    "checks": "州议会当前列周五至周日，Arsenal Gallery 列周五、周六下午；馆方自导不包含 Powder Magazine。Downtown Gallery 关闭、特殊导览和节假日安排均应出发前复核。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.ci.benicia.ca.us/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.parks.ca.gov/?page_id=475",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Dixon",
+    "county": "Solano",
+    "summary": "Dixon 的农业与铁路小城历史，适合在普通周末用历史馆和市公园慢慢了解。不要把五月集市或季节性农场当作全年每日营业景点；本条选常设地点，再根据实际开放日安排。",
+    "places": [
+      {
+        "name": "Dixon Historical Society & Museum",
+        "url": "https://www.dixonhistoricalsociety.org/",
+        "description": "位于 125 West A Street，保存农业、社区与不同文化群体的地方故事，另有历史壁画和线上资料。地址不是 Carnegie Library，搜索时要分清两处。",
+        "scope": "city",
+        "mapQuery": "Dixon Historical Society Museum 125 West A Street"
+      },
+      {
+        "name": "Hall Memorial Park",
+        "url": "https://www.cityofdixonca.gov/parks",
+        "description": "East A Street 一带的大型市公园，与市政和社区设施相邻，设运动与休闲空间。泳池、球场和公园本体有不同安排，不以公园开放推定都可使用。",
+        "scope": "city",
+        "mapQuery": "Hall Memorial Park Dixon California"
+      }
+    ],
+    "halfDay": "编辑建议：先看历史馆，午餐后到 Hall Park 休息或选一项运动；若带孩子，让看馆与户外时间交替。只有确认当日有活动时，才另外加入 May Fair 场地，不以场地存在当成正在办展。",
+    "arrival": "刚搬来可在市 Parks 目录定位最近设施，并从 Facility Reservations 看预约流程；需要场地的家庭活动先准备人数、设备和日期，部分用途可能有额外保险要求。",
+    "residentTip": "历史学会有口述历史、农业和街区资料，可先在线浏览再询问志愿或资料捐赠；组织社区活动要区分普通野餐、运动场租赁与 Pardi Plaza 的公共活动规定。",
+    "transport": "博物馆在老城街道，Hall Park 则按 East A Street 入口查路线；建议先完成停车与过街规划，再决定是否全程步行。大型集市日的人车动线不能套用普通周末经验。",
+    "checks": "历史馆现列周四至周六且各日时长不同；市公园厕所开放窗口短于公园本体。泳池、球场比赛和租赁区须另查，不能因为绿地能进入就承诺相应设施一定可用。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofdixonca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cityofdixonca.gov/facilityreservations",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fairfield",
+    "county": "Solano",
+    "summary": "Fairfield 可把糖果工厂与城市休闲公园组合成亲子半日，比只把它当作高速公路服务站更有内容。厂区参观不是免费试吃的同义词，也不保证任何日期都看到完整生产线，选工作日或周末的体验会不同。",
+    "places": [
+      {
+        "name": "Jelly Belly Factory",
+        "url": "https://www.jellybelly.com/factory",
+        "description": "游客沿高架参观线看糖果制作解说，普通自导与预约专人导览是不同产品。周末通常通过影片了解停工生产线，想看实际制作先核对当日生产安排。",
+        "scope": "city",
+        "mapQuery": "Jelly Belly Factory Fairfield"
+      },
+      {
+        "name": "Allan Witt Community Park",
+        "url": "https://www.fairfield.ca.gov/government/city-departments/parks-and-recreation/facility-park-picnic-rentals/city-parks",
+        "description": "West Texas Street 的市公园集合游乐、运动和野餐设施，适合工厂参观后活动身体；Sports Center 与 Aquatics Complex 的场次和收费须独立查询。",
+        "scope": "city",
+        "mapQuery": "Allan Witt Community Park Fairfield"
+      }
+    ],
+    "halfDay": "编辑建议：希望看生产可优先核对工作日上午的厂区安排，之后午餐，再到 Allan Witt 选普通户外设施。周末接受以影片为主的参观时，同样可以成行，不把停机误写为整馆关闭。",
+    "arrival": "新居民从市 Parks & Recreation 查课程、泳池和运动中心，再选适合家庭的固定项目；场地租用可联系市 picnic 窗口，先说明人数与是否携带额外设施。",
+    "residentTip": "长期居民可把城市运动项目与公园野餐分开安排，免得以为入园就包括课程；邀请外地亲友来工厂时，按普通自导或小团体导览需求提前决定，不临时混淆两套规则。",
+    "transport": "Jelly Belly 官方说明设游客停车，不能由此推定其他市内景点也免费停车。厂区与 Allan Witt 是两个独立目的地，公交或自驾都要分别规划末段入口与返程。",
+    "checks": "厂区生产安排可随时调整，导览票、年龄和预约条件看当前官网；公园设施目录对厕所提示需留意，带幼儿先确认可用厕所。泳池开放不随普通公园时间自动延长。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.fairfield.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.fairfield.ca.gov/government/city-departments/parks-and-recreation/facility-park-picnic-rentals/reserve-a-park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Rio Vista",
+    "county": "Solano",
+    "summary": "Rio Vista 是认识 Sacramento River 三角洲城镇生活的入口，适合看河、短走和家庭休息。半日可以留在市内公共空间，不必把渡船、垂钓或水上运动都排进去；水边观景与真正下水有不同准备要求。",
+    "places": [
+      {
+        "name": "Waterfront Promenade",
+        "url": "https://www.riovistacity.com/parksrec",
+        "description": "市公园目录列在 North Front Street 的滨水步道，适合看河与辨认城镇水岸关系。它是公共陆上散步点，不代表相邻码头、船坡与水域都可随意使用。",
+        "scope": "city",
+        "mapQuery": "Waterfront Promenade North Front Street Rio Vista"
+      },
+      {
+        "name": "Bruning Park",
+        "url": "https://www.riovistacity.com/parksrec",
+        "description": "市目录地址为 300 California Street，是可与河边停留搭配的社区公园；适合让半日行程从看景切换到家庭休息，泳池等季节设施另查开放。",
+        "scope": "city",
+        "mapQuery": "Bruning Park 300 California Street Rio Vista"
+      }
+    ],
+    "halfDay": "编辑建议：先沿 Promenade 看河，回镇中心用餐，再到 Bruning Park 短停；天气炎热或河风强时缩短沿水路段。第一次只做陆地行程，不在临时起意下加入租船或涉水。",
+    "arrival": "新居民可从市 Public Works 下的 Parks 入口报设施问题，再用 Recreational Opportunities 查询运动、艺术与社区服务；以实际机构和地址联系，不把所有项目都当作市政府直接办班。",
+    "residentTip": "长期居民可查看 Val de Flores Park 的滑板场与分区狗公园等资源，再按自身兴趣联系市列出的社区组织；儿童运动项目是否有资助应向对应组织询问，不假定人人自动享有。",
+    "transport": "Rio Vista 的出入城道路与河桥会影响行程，出发前核对导航和道路公告；跨河渡船不是本条路线必需环节。停车选标示的公共区域，拖船车位与普通车位分开看。",
+    "checks": "市公园目录能确认地点，但不能保证当天所有设施可用；出发前问泳池、厕所和临时维护。遇高水位、强风或滨水封闭，改在镇内活动，不翻越围栏接近河岸。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.riovistacity.com/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.riovistacity.com/parksrec/page/recreational-opportunities",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Suisun City",
+    "county": "Solano",
+    "summary": "Suisun City 可以把小城水岸和城外湿地放在同一张地图上，但必须区分两者。Harbor Plaza 是市内公共空间，Rush Ranch 则是周边保护地；适合喜欢观鸟、河港景观和慢步行的人。",
+    "places": [
+      {
+        "name": "Harbor Plaza",
+        "url": "https://www.suisun.com/Events-directory/Suisun-Pride-2026",
+        "description": "Main 与 Solano Street 一带的滨水广场，是市公共活动的场地之一，可接滨水步行段。本链接用于确认场所位置，五月活动已经过去，不是当前待参加活动。",
+        "scope": "city",
+        "mapQuery": "Harbor Plaza 520 Solano Street Suisun City"
+      },
+      {
+        "name": "Rush Ranch Open Space",
+        "url": "https://solanolandtrust.org/protected-lands/rush-ranch/",
+        "description": "位于市南侧周边的 Suisun Marsh 边缘，由 Solano Land Trust 管理，结合湿地、草地、牧场历史与教育。邮寄地址写 Suisun City，不等于就在市中心或可一路海滨步行到达。",
+        "scope": "nearby",
+        "mapQuery": "Rush Ranch 3521 Grizzly Island Road"
+      }
+    ],
+    "halfDay": "编辑建议：凉爽时先到 Rush Ranch 选短段自导步行，再回城在 Harbor Plaza 附近用餐看水；无车或不想另作接驳，就把半日留在市内水岸，不强行合并湿地段。",
+    "arrival": "新居民保存市 Recreation, Parks and Marina 与市公园入口，先分清休闲课程、码头服务和场地管理；涉及保护地活动则直接找土地信托，市办公室不代办所有野外项目。",
+    "residentTip": "Rush Ranch 的 Get the Rush 系列提供自然步行与传统技艺等活动，适合反复参与；查看当月登记与项目表，马车、铁匠示范和普通自导步行不能保证每天同时存在。",
+    "transport": "市中心交通点与 Harbor Plaza 可按街区地图安排步行；Rush Ranch 在 Grizzly Island Road，须独立安排往返。停车和保护地关门时间先核对，不把城市滨水时间套用到牧场。",
+    "checks": "湿地遇热、风或临时维护可能调整访问，留在开放步道，不进入私人猎鸭地或围栏区；土地信托活动可能建议提前登记。市旧节庆页面只供定位，不用其日期推定下次举办。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.suisun.com/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://solanolandtrust.org/events-news/recurring-events/get-the-rush.html",
+        "kind": "events"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Vacaville",
+    "county": "Solano",
+    "summary": "Vacaville 不只是 Outlet 停靠点，市中心的地方博物馆和 Andrews Park 可以组成一段不购物的半日。适合家庭或想认识 Solano 地方文化的人；展馆和公园相互补充，但仍要按开放日期安排。",
+    "places": [
+      {
+        "name": "Vacaville Museum",
+        "url": "https://vacavillemuseum.org/visit/",
+        "description": "位于 Buck Avenue，展示地方文化与历史，普通参观免费、捐款自愿；办公室营业时段与展厅开放不同，不能只看办公日就出发。",
+        "scope": "city",
+        "mapQuery": "Vacaville Museum 213 Buck Avenue"
+      },
+      {
+        "name": "Andrews Park",
+        "url": "https://www.cityofvacaville.gov/Home/Components/FacilityDirectory/FacilityDirectory/310/128",
+        "description": "市中心 CreekWalk 所在公园，设儿童设施、步行路径、野餐区和露天舞台。舞台存在不代表当天有演出，部分活动和场地预订会改变使用范围。",
+        "scope": "city",
+        "mapQuery": "Andrews Park Vacaville California"
+      }
+    ],
+    "halfDay": "编辑建议：周四至周六按展厅开放时间安排博物馆，再到镇中心午餐和 Andrews Park；孩子耐心有限时缩短读展时间，把公园作为放松段，不另加长距离郊外徒步。",
+    "arrival": "新居民可以在市 Park Map 和 Facility Rentals 查询野餐与运动场地；Andrews 的部分野餐区可在线预约，但露天剧场需线下办理，不要误用同一申请方式。",
+    "residentTip": "长期居民可关注博物馆展览与公共教育活动，团体参观需提前联系，馆方建议至少两周；组织邻里节目或聚会则向市社区中心询问舞台与场地的可用安排。",
+    "transport": "博物馆官网指向 City Coach 公交，并说明馆前街边与馆后有停车位置；班次和可用车位不作保证。Park 的活动日停车状况另查，别把工作日经验照搬周末节庆。",
+    "checks": "展厅现列周四、周五下午和周六较长时段，周日不能默认开放；大团体须先安排。溪边、儿童区与舞台若有临时封闭，以市公告和现场标识为准。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.cityofvacaville.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.cityofvacaville.gov/government/parks-and-recreation/facilities/facility-rentals",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Vallejo",
+    "county": "Solano",
+    "summary": "Vallejo 的城市与海军历史、Carquinez Strait 水岸能组成与主题乐园不同的半日。这里推荐市中心历史馆和 Glen Cove 公共自然公园；Mare Island Museum 的旧开放信息不宜作为临时上门依据。",
+    "places": [
+      {
+        "name": "Vallejo Naval & Historical Museum",
+        "url": "https://vallejomuseum.net/",
+        "description": "Marin Street 的博物馆介绍城市、多元社区与 Mare Island 海军基地历史，研究图书馆另有开放与预约安排；不是位于岛上的那家博物馆。",
+        "scope": "city",
+        "mapQuery": "Vallejo Naval Historical Museum 734 Marin Street"
+      },
+      {
+        "name": "Glen Cove Waterfront Park",
+        "url": "https://www.gvrd.org/glen-cove-waterfront-park",
+        "description": "GVRD 管理的自然公园，可看 Carquinez Strait 并接 Bay Trail，入口在 Glen Cove 的 Whitesides Drive 一带。与市中心渡轮水岸不同，需单独定位。",
+        "scope": "city",
+        "mapQuery": "Glen Cove Waterfront Park Vallejo"
+      }
+    ],
+    "halfDay": "编辑建议：先在博物馆了解城市历史，午餐后按天气转 Glen Cove 短走；无车或不想再接驳的人，可把博物馆与市中心活动组合。水岸风大时不必坚持完成长段步道。",
+    "arrival": "新居民要区分市政府和 GVRD：许多公园、课程及社区中心由独立休闲区提供服务，不能只在市官网找报名。先按实际住址和项目查询适用的居民类别与费用。",
+    "residentTip": "长期居民可从 GVRD Activity Guide 找运动、兴趣班和志愿参与，也可向历史馆预约研究。先试一项能长期参加的项目，再决定报名频率，避免被单次节庆清单取代日常联系。",
+    "transport": "市中心渡轮停车设施实行收费管理，不能把它当作任何景点的免费停车点；Glen Cove 又是不同片区。乘船来时先规划最后一段交通，再决定是否加入自然公园。",
+    "checks": "历史馆当前常规周日、周一闭馆；Mare Island Museum 的官方旅游目录写临时关闭，勿直接套用旧游记。Glen Cove 走开放步道，日落、风和公园现场通知分别核对。",
+    "resources": [
+      {
+        "label": "市政与居民服务",
+        "url": "https://www.vallejo.gov/our_city/about_vallejo/history/museums",
+        "kind": "city"
+      },
+      {
+        "label": "公园与活动",
+        "url": "https://www.gvrd.org/parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]

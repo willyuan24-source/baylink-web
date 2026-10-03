@@ -1,0 +1,1333 @@
+[
+  {
+    "city": "Alameda",
+    "county": "Alameda",
+    "summary": "适合把海湾生态、沙滩散步和岛上生活放在同一天认识。这里的海岸行程重在慢走、看鸟和自然教育，带孩子可先选有展览的 Crab Cove，再决定是否沿沙滩继续，不必把整条海岸走完。",
+    "places": [
+      {
+        "name": "Robert W. Crown Memorial State Beach",
+        "description": "沙滩旁有自行车道，东端是鸟类栖地。适合散步、观察海湾和短时野餐；游泳另查水质，不能把所有岸段都当开放游乐区。",
+        "url": "https://www.ebparks.org/parks/crown-beach",
+        "mapQuery": "Crown Memorial State Beach Alameda",
+        "scope": "city"
+      },
+      {
+        "name": "Doug Siden Visitor Center at Crab Cove",
+        "description": "通过水族展示和自然教育了解海湾生物；场馆在 McKay Avenue 端，展馆开放日与海滩开放时间不同。",
+        "url": "https://www.ebparks.org/parks/visitor-centers/crab-cove",
+        "mapQuery": "Doug Siden Visitor Center Crab Cove Alameda",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议留半天：先按展馆开放时间参观 Crab Cove，再走一小段 Crown Beach；带幼儿可在附近休息后返回，沙滩活动和跨岛用餐另留机动时间。",
+    "arrival": "新居民先收藏市政府 New Resident Guide，分清市级办事与区域公园服务；海滩活动报名查 EBRPD，岛上社区课程再查城市休闲项目。",
+    "residentTip": "常住居民可查看 Crab Cove 当月自然教育日历，把看鸟、故事时间或自然讲解换着安排；团体活动与学校参访需按各项目预约条件办理。",
+    "transport": "按计划选择 McKay Avenue 或 Otis Drive 入口；停车场有收费规则，徒步入口也不等于可以任意路边停车。公交路线应按具体入口查回程。",
+    "checks": "出门核对水质、展馆闭馆日、停车及闸门时间。官方当前注明 Elsie Roemer 鸟类保护区因修复不得进入；不要穿过围挡或带狗进入禁犬沙滩。",
+    "resources": [
+      {
+        "label": "城市新居民指南",
+        "url": "https://www.alamedaca.gov/RESIDENTS/Information-for-Residents/New-Resident-Guide",
+        "kind": "city"
+      },
+      {
+        "label": "海滩与自然活动",
+        "url": "https://www.ebparks.org/parks/crown-beach",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Albany",
+    "county": "Alameda",
+    "summary": "小城的亮点是社区公园与海湾边缘的强烈对比：一边是适合日常活动的草地和球场，一边是开阔、风大的滨水步道。适合不赶景点的亲子半日，也适合新居民认识附近公共空间。",
+    "places": [
+      {
+        "name": "Albany Bulb, Neck & Waterfront Trail",
+        "description": "城市官方介绍的滨水地带，包含 Neck、Bulb 和步道。适合观察海湾及地形，但不是全部铺装的城市广场，推车应先核对路线。",
+        "url": "https://www.albanyca.gov/Parks/Albany-Bulb-Neck-Waterfront-Trail",
+        "mapQuery": "Albany Bulb Albany California",
+        "scope": "city"
+      },
+      {
+        "name": "Memorial Park",
+        "description": "城市社区公园，可把儿童活动与短时休息安排在这里；与滨水地带是两个目的地，适合天气较差时缩短户外行程。",
+        "url": "https://www.albanyca.gov/Parks/Memorial-Park",
+        "mapQuery": "Memorial Park Albany California",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在 Memorial Park 轻松活动，再视风力前往 Albany Waterfront；带长辈或推车时可只选一处，不把往返两地当连续平坦步道。",
+    "arrival": "搬来后从城市官网查社区课程、公园预约和服务部门；先确认住址属于 Albany，再看项目的居民费率，邮寄地址或附近学校名称不能代替市界判断。",
+    "residentTip": "把 Memorial Park 的运动或亲子活动与城市休闲项目结合；若想在海边办聚会，先向管理方确认场地使用条件，别将公众步道当成可独占的活动场地。",
+    "transport": "滨水入口与内陆社区分开导航，出发前看步行跨越道路的位置；驾车按入口附近标牌停车，海边补给不应按商业街条件预期。",
+    "checks": "查看风况、步道路面和现场封闭提示；Bulb 与相邻海岸可能由不同机构管理，活动、犬只和骑车规定应按所到区域核对。",
+    "resources": [
+      {
+        "label": "城市官网与服务",
+        "url": "https://www.albanyca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "Memorial Park 设施",
+        "url": "https://www.albanyca.gov/Parks/Memorial-Park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Berkeley",
+    "county": "Alameda",
+    "summary": "除了校园，Berkeley 还有山坡花园与 Marina 海湾空间两种截然不同的散步体验。适合想看城市地形和海湾景观的人；花季、坡度和风力会影响体验，应先选山上或海边作为半日重点。",
+    "places": [
+      {
+        "name": "Berkeley Rose Garden",
+        "description": "阶梯式玫瑰园有海湾与金门大桥方向的视野，花期并非全年一致。上方观景区与多层台阶体验不同，无障碍使用应按官方入口说明。",
+        "url": "https://berkeleyca.gov/community-recreation/parks-recreation/parks/berkeley-rose-garden-park",
+        "mapQuery": "Berkeley Rose Garden 1201 Euclid Avenue",
+        "scope": "city"
+      },
+      {
+        "name": "Berkeley Marina / César Chávez Park",
+        "description": "城市滨水页面列有 César Chávez Park、Bay Trail 和 Marina 活动，可选择看海湾、骑行或草地停留；水上活动须另查运营方。",
+        "url": "https://berkeleyca.gov/community-recreation/waterfront",
+        "mapQuery": "Cesar Chavez Park Berkeley Marina",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议晴天选玫瑰园及相邻 Codornices 一带，或单独安排 Marina 海边半日；两片区间需额外移动，不建议带孩子赶完后再硬塞完整校园游。",
+    "arrival": "新居民可从 Parks, Recreation & Waterfront 页面查泳池、课程及设施预约，建立自己的常用办事清单；公园普通到访与婚礼、球场预订是不同流程。",
+    "residentTip": "喜欢园艺可查看玫瑰园志愿服务；常去 Marina 的居民可按城市滨水设施清单探索 Bay Trail 与活动点，避免每次只停在同一个停车入口。",
+    "transport": "玫瑰园街边停车有限且坡地明显；Marina 与山坡景点分开规划公交或驾车接驳。骑车前检查所选路段坡度，别把海边平路条件套用到山上。",
+    "checks": "玫瑰园上层可达不代表所有台阶可达；核对花况、场地租用和施工提示。海边出发前看风况，Adventure Playground 等设施另查开放及参与规则。",
+    "resources": [
+      {
+        "label": "城市公园与休闲部门",
+        "url": "https://berkeleyca.gov/your-government/about-us/departments/parks-recreation-waterfront",
+        "kind": "city"
+      },
+      {
+        "label": "滨水活动与设施",
+        "url": "https://berkeleyca.gov/community-recreation/waterfront",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Dublin",
+    "county": "Alameda",
+    "summary": "适合把早期聚落历史与现代家庭公园放在一起看。Dublin Heritage Park 保留学校、住宅和墓园等历史线索，Emerald Glen 则偏运动与儿童活动；游客可选一处慢逛，新居民能顺便认识城市课程体系。",
+    "places": [
+      {
+        "name": "Dublin Heritage Park & Museums",
+        "description": "历史建筑、草地与墓园组成的园区，含 Murray Schoolhouse 和 Kolb House。园地开放与博物馆入内时段不同，先看参观安排再决定行程。",
+        "url": "https://www.dublin.ca.gov/facilities/facility/details/Dublin-Heritage-Park-Museums-25",
+        "mapQuery": "Dublin Heritage Park 6600 Donlon Way",
+        "scope": "city"
+      },
+      {
+        "name": "Emerald Glen Park",
+        "description": "有运动场、游乐设施、步道及 The Wave 水上设施的综合公园；普通公园活动和水上项目需分别查开放、购票或报名条件。",
+        "url": "https://www.dublin.ca.gov/2723/Emerald-Glen-Park",
+        "mapQuery": "Emerald Glen Park Dublin",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先按博物馆时段逛 Heritage Park，再选 Emerald Glen 休息或活动；若参加 The Wave 项目，就将半天留给水上安排，不必再赶历史馆。",
+    "arrival": "先读城市 New Resident Information，再从 Parks & Community Services 查课程与设施；建立家庭报名账户时核对年龄、居民资格及取消规则，避免只看公园名称就直接到场。",
+    "residentTip": "历史园不只适合一次打卡，可跟进季节手作、营队和导览；Emerald Glen 的球场与野餐区可按城市设施目录选择，团体聚会需核对预约。",
+    "transport": "Heritage Park 在 Donlon Way，Emerald Glen 在 Central Parkway，两地分别导航。BART 站与目标公园不是同一地点，公交或步行最后一段应按入口查。",
+    "checks": "公园白天可进不等于展馆全天开放；水景和 The Wave 有独立季节安排。检查活动日期、室内开放、野餐区预订及高温天气再出发。",
+    "resources": [
+      {
+        "label": "新居民资料",
+        "url": "https://dublin.ca.gov/1214/New-Resident-Information",
+        "kind": "city"
+      },
+      {
+        "label": "公园与社区活动",
+        "url": "https://dublin.ca.gov/90/Parks-Community-Services",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Emeryville",
+    "county": "Alameda",
+    "summary": "这座小城适合把湾边散步与社区空间组合起来，避免只把它当成购物中转站。Marina Park 面向海湾，Doyle Hollis 更适合日常活动；行程可以短而松，重点是确认滨水和内陆两段的衔接。",
+    "places": [
+      {
+        "name": "Marina Park",
+        "description": "Powell Street 尽头的滨水公园，官方列有步道、码头通道、野餐区和洗手间，可看旧金山与金门大桥方向的景色。",
+        "url": "https://www.emeryville.org/Recreation/City-Parks/Marina-Park",
+        "mapQuery": "Marina Park 3300 Powell Street Emeryville",
+        "scope": "city"
+      },
+      {
+        "name": "Doyle Hollis Park",
+        "description": "62nd Street 的社区公园，有游乐场、半场篮球、步道和可租野餐空间，适合带孩子在城市街区内短暂停留。",
+        "url": "https://www.emeryville.org/Recreation/City-Parks/Doyle-Hollis-Park",
+        "mapQuery": "Doyle Hollis Park Emeryville",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先逛 Doyle Hollis，再前往 Marina Park 看海湾；海边风大时缩短后半段。若以轮椅或推车出行，先按官方设施地图挑入口，不默认两园全程轻松步行。",
+    "arrival": "新居民先查城市 Community Services，认识社区中心、泳池、长者服务及课程报名；家庭活动可先放入报名清单，再在开放注册后核对名额与候补。",
+    "residentTip": "常住居民可把野餐聚会从商业空间移到城市正式可租场地；Marina 和 Doyle Hollis 都有预约入口，先确认活动人数、设施与取消条件再邀请朋友。",
+    "transport": "Marina Park 官方列有停车场入口，但不能据此推断所有停车均免费或可过夜。去内陆公园与滨水分别选导航点，回程预留穿越主干道的时间。",
+    "checks": "核对湾边风况、码头通道和场地预订；草地散步不等于获准举办大型活动。儿童游乐设施与野餐空间可能因维护或预约而受限。",
+    "resources": [
+      {
+        "label": "城市社区服务",
+        "url": "https://www.emeryville.org/Government/Departments/Community-Services",
+        "kind": "city"
+      },
+      {
+        "label": "城市公园目录",
+        "url": "https://www.emeryville.org/Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Fremont",
+    "county": "Alameda",
+    "summary": "适合用湖边活动与历史农场认识这座范围较大的城市。Central Park 是休闲运动重点，Ardenwood 展示农场生活；两者各有独立入口和活动时段，不应再把登 Mission Peak 塞成同一个轻松半日。",
+    "places": [
+      {
+        "name": "Central Park / Lake Elizabeth",
+        "description": "围绕 Lake Elizabeth 的大型城市公园，可沿湖步道散步、使用游乐及野餐空间，并远望 Mission Peak 山地；水上租赁属于另查项目。",
+        "url": "https://www.fremont.gov/government/departments/parks-recreation/parks/central-park",
+        "mapQuery": "Central Park Lake Elizabeth Fremont",
+        "scope": "city"
+      },
+      {
+        "name": "Ardenwood Historic Farm",
+        "description": "区域公园系统运营的历史农场，结合农事、动物与历史建筑。入园、特别活动及 Patterson House 参观条件应分别确认。",
+        "url": "https://www.ebparks.org/parks/ardenwood",
+        "mapQuery": "Ardenwood Historic Farm Fremont",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议优先选一处：想运动就在 Lake Elizabeth 走一段后野餐；想亲子学习就围绕 Ardenwood 当天活动安排。两处都去时，压缩散步长度并另留交通时间。",
+    "arrival": "新居民从市政府 Parks & Recreation 查不同片区公园和设施租赁；城市公园与 Ardenwood 分属不同管理体系，课程账户、费用和预约不能通用。",
+    "residentTip": "多次到访可换成农场自然教育或城市运动课程；大型野餐、家庭聚会先查 Central Park 可订区域，不把路过看到的空桌当作全天独占。",
+    "transport": "城市尺度较大，先确认停车入口或公交终点再选线路。Central Park 和 Ardenwood 不在同一街区，BART 到站后仍需规划最后一段。",
+    "checks": "Ardenwood 有常规闭园日且特别活动票务可能不同；Central Park 的季节租船和场地施工须查当日公告，不把夏季页面当全年承诺。",
+    "resources": [
+      {
+        "label": "城市公园服务",
+        "url": "https://www.fremont.gov/government/departments/parks-recreation/parks/central-park",
+        "kind": "city"
+      },
+      {
+        "label": "Ardenwood 官方活动",
+        "url": "https://www.ebparks.org/parks/ardenwood",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hayward",
+    "county": "Alameda",
+    "summary": "适合从安静的园林与本地自然教育开始认识 Hayward 一带。日本庭园偏静态观景，Sulphur Creek 提供山地环境与动物教育，但后者位于邻近 Fairview 一带；不要将邮寄地址都视为 Hayward 市界内。",
+    "places": [
+      {
+        "name": "Japanese Gardens",
+        "description": "位于 Hayward Senior Center 旁的日式园林，适合短时散步和安静观景；私人婚礼租用与普通参观条件不同。",
+        "url": "https://www.haywardrec.org/Facilities/Facility/Details/Japanese-Gardens-100?mobile=ON",
+        "mapQuery": "Hayward Japanese Gardens North Third Street",
+        "scope": "city"
+      },
+      {
+        "name": "Sulphur Creek Nature Center",
+        "description": "邻近 Fairview 的自然教育地点，可认识本地动物与橡树林环境；属于 HARD 服务范围，不是随时可接触或喂食动物的宠物场所。",
+        "url": "https://haywardrec.org/1991/Nature-Centers",
+        "mapQuery": "Sulphur Creek Nature Center 1801 D Street",
+        "scope": "nearby"
+      }
+    ],
+    "halfDay": "编辑建议先在日本庭园慢逛，再按 Nature Center 开放或预约安排第二站；没有合适活动时，仅选庭园加市区用餐，不把展馆或动物展示保证为全天开放。",
+    "arrival": "从市政府 Parks & Recreation 页面区分城市服务与 HARD 休闲项目；新居民选课前查服务区、年龄及报名办法，Hayward 邮寄地址也可能属于县非建制区。",
+    "residentTip": "可跟进 HARD 的自然教育、家庭活动或志愿项目，将一次看园林变成持续学习；团体自然课程有独立申请表，应先定人数和需求再联系。",
+    "transport": "庭园入口在 North Third Street 一带，Nature Center 在 D Street，分别导航。涉及山坡的步行不要按市中心平路估算；公交来回应同时查。",
+    "checks": "核对庭园开门、租用和 Nature Center 现场活动；动物展示及教学不是随到随有。若有步道、设施维护提示，按管理方路线调整，不进入动物工作区。",
+    "resources": [
+      {
+        "label": "城市公园与休闲入口",
+        "url": "https://www.hayward-ca.gov/residents/arts-leisure/parks-recreation",
+        "kind": "city"
+      },
+      {
+        "label": "HARD 自然教育中心",
+        "url": "https://haywardrec.org/1991/Nature-Centers",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Livermore",
+    "county": "Alameda",
+    "summary": "除了酒庄和 Outlet，Livermore 也适合从历史庄园与社区公园认识谷地生活。Ravenswood 偏历史建筑，May Nissen 兼有亲子和运动空间；两处不在同一街区，半日先围绕预约与家庭兴趣选主线。",
+    "places": [
+      {
+        "name": "Ravenswood Historic Site",
+        "description": "历史庄园是了解谷地过去的另一种入口，部分参观依导览或活动时段进行；不要把活动租赁页面当成住宅每日开放的证明。",
+        "url": "https://www.larpd.org/ravenswood-historic-site",
+        "mapQuery": "Ravenswood Historic Site Livermore",
+        "scope": "city"
+      },
+      {
+        "name": "May Nissen Park",
+        "description": "Rincon Avenue 上的社区公园，邻近 Rincon 图书馆分馆和独立运营的游泳设施，有儿童活动、球场及可预约野餐区；泳池并非公园随到随用项目。",
+        "url": "https://www.larpd.org/may-nissen-park",
+        "mapQuery": "May Nissen Park 685 Rincon Avenue Livermore",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先确认 Ravenswood 是否有合适导览，再到 May Nissen 放松；带幼儿可只选公园加图书馆。炎热天缩短户外段，导览未开放时不把历史建筑内部当作必看项目。",
+    "arrival": "新居民除了市政府办事入口，也应认识 LARPD：公园课程、开放空间与活动报名由该机构提供，不能把 EBRPD 年票或账户自动套用。",
+    "residentTip": "常去 Sycamore Grove 可比较单次停车与本机构停车证，并订阅 Valley Wilds 或 ranger 活动；是否需报名、材料费和儿童陪同逐项看说明。",
+    "transport": "Ravenswood 在 Arroyo Road，May Nissen 在 Rincon Avenue，分别选入口并留交通时间；图书馆、泳池与野餐区使用条件不同，地图上的同一园区不能代替具体场地确认。",
+    "checks": "核对 Ravenswood 导览、May Nissen 球场状态和野餐预约；泳池开放另查当季项目。官网要求指定日期、时段或地点以及 15 人以上的有组织聚会先办野餐许可，不以空桌代替预约。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.livermoreca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "LARPD 公园与自然项目",
+        "url": "https://www.larpd.org/open-space",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Newark",
+    "county": "Alameda",
+    "summary": "Newark 的实用玩法是把社区湖边和日常公园放在一起，适合亲子散步、轻量活动及新居民踩点。这里不是必须奔向邻城景区的中转地；先熟悉市内公园，也能判断自己更需要室内课程还是户外空间。",
+    "places": [
+      {
+        "name": "Lakeshore Park",
+        "description": "城市目录列出的湖边公园，在 Lake Boulevard 与 Parkshore Drive 一带，有草地、水面及健身活动空间；适合短线散步，不将湖水视为泳池。",
+        "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
+        "mapQuery": "Lakeshore Park Newark California",
+        "scope": "city"
+      },
+      {
+        "name": "Community Center Park",
+        "description": "社区公园与 Newark Community Center 结合，可将休息、儿童活动和了解场地服务放在一起；室内租用与户外普通到访需分开确认。",
+        "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
+        "mapQuery": "Community Center Park 35501 Cedar Boulevard Newark California",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议以 Lakeshore Park 短走为主，再按兴趣前往 Community Center Park；带幼儿可只选一园加附近用餐，参加室内项目时先报名，不以随到随玩安排半天。",
+    "arrival": "新居民先收藏城市公园及运动场目录，再查社区课程。官网说明普通公园先到先用、不提供出租；社区中心室内租用及运动场申请需另查，办理时核对居民证明及账户资料。",
+    "residentTip": "常住居民可按设施清单轮换不同公园；小型户外聚会先了解先到先用规则，需要社区中心活动空间时，先询问容量、设备与使用条件，再确定活动规模。",
+    "transport": "湖边与 Community Center Park 分别导航；城市公园名称相似，地图查询务必加 Newark, California。公交来访先确认停靠点到入口的步行，再核对返程。",
+    "checks": "先查湖边步道维护和场地占用；水边带儿童保持照看，钓鱼与其他水上用途另核规则。城市设施目录不代表所有室内房间或课程当天都开放。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.newarkca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "城市公园与运动场",
+        "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Oakland",
+    "county": "Alameda",
+    "summary": "以 Lake Merritt 与玫瑰园为起点，可以同时看到湖边公共生活和安静园艺空间。适合无须买整日景点票的慢逛，但 Oakland 范围大，不建议把湖区、山地公园和港区全部排在一个半天。",
+    "places": [
+      {
+        "name": "Lakeside Park / Lake Merritt",
+        "description": "可看湖边步道、鸟岛与 Edoff Memorial Bandstand；公园内还有不同花园及儿童设施，各自的开放和票务不能用湖边通行条件代替。",
+        "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Parks/Lakeside-Park",
+        "mapQuery": "Lakeside Park Lake Merritt Oakland",
+        "scope": "city"
+      },
+      {
+        "name": "Morcom Rose Garden",
+        "description": "有蜿蜒步道、阶梯、倒影池和玫瑰花坛的城市花园，适合安静散步与摄影；花况及婚礼租用可能改变当天可用区域。",
+        "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Rent-a-Facility-or-Park/Morcom-Rose-Garden",
+        "mapQuery": "Morcom Rose Garden Oakland",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先选 Lake Merritt 一段岸线和花园，体力允许再单独移动到 Morcom；不必完成整湖一圈。带孩子若加 Fairyland，应将其票务和停留独立安排。",
+    "arrival": "新居民可从城市 Parks & Facilities 查附近设施、预约和维护联系方式；先分清城市公园、独立场馆及区域公园，投诉或报名才能找到正确管理方。",
+    "residentTip": "Morcom 官方提供志愿者参与入口，适合喜欢园艺的人持续加入；湖边活动则可从各花园、划船中心或城市项目查起，避免依赖去年的活动海报。",
+    "transport": "Lakeside Park 的 Bellevue Avenue 停车有收费及营业条件；Morcom 另按周边道路标牌停车。公共交通行程应锁定所选岸段，不把所有湖边入口视为同一站。",
+    "checks": "查花园开放、花况和私人租用；湖边花园、儿童设施、划船服务分别确认。大活动日另查道路与停车公告，原路返回的入口也要留意关门时间。",
+    "resources": [
+      {
+        "label": "城市湖区公园信息",
+        "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Parks/Lakeside-Park",
+        "kind": "city"
+      },
+      {
+        "label": "玫瑰园与志愿参与",
+        "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Rent-a-Facility-or-Park/Morcom-Rose-Garden",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Piedmont",
+    "county": "Alameda",
+    "summary": "Piedmont 是独立城市，适合以社区公园、树林和坡地散步认识，不能与 Oakland 的 Piedmont Avenue 商业街混为一谈。这里的半日重点是公共空间与安静邻里，团体活动和遛狗尤其要看城市自己的规则。",
+    "places": [
+      {
+        "name": "Piedmont Park & Exedra Plaza",
+        "description": "Exedra 广场、草地和溪谷步道呈现不同层次的社区景观；草坪与 Creek 区的犬只规则不同，坡地路线应按体力选择。",
+        "url": "https://piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/list_of_parks__sports_fields____dog_parks",
+        "mapQuery": "Piedmont Park Exedra Plaza Piedmont",
+        "scope": "city"
+      },
+      {
+        "name": "Dracena Quarry Park",
+        "description": "旧采石场改成的社区公园，有草地、儿童游乐和林间步道；地形保留高差，推车和行动不便者应先选合适入口。",
+        "url": "https://piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/park_amenities",
+        "mapQuery": "Dracena Quarry Park Piedmont",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先从 Exedra 与 Piedmont Park 走一段，再视体力移动到 Dracena；带幼儿可把一座公园作为主要停留，不把两园串联描述成无坡平路。",
+    "arrival": "新居民先从城市 Recreation 建立课程报名账户、添加家庭成员；社区公园和城市课程用 Piedmont 的规则，不用邻城项目的居民费率推算。",
+    "residentTip": "遛狗居民应查看 Dogs in Parks：部分非牵绳区域需要城市许可，草地与溪谷边界也不同；喜欢社区参与可留意公园维护与休闲部门公告。",
+    "transport": "使用 Piedmont Park 的 Highland 或 Wildwood 入口信息，Dracena 则核对 Artuna/Dracena 侧；街边停车按住宅区标牌，勿挡车道或为找入口横穿私人地块。",
+    "checks": "查预约场地、活动和犬只许可；两个公园都有坡地，不因设施表写有洗手间或游乐场就推断所有连接路段无障碍。雨后泥地与林间路况另看现场。",
+    "resources": [
+      {
+        "label": "城市休闲课程",
+        "url": "https://www.piedmont.ca.gov/services___departments/recreation",
+        "kind": "city"
+      },
+      {
+        "label": "公园犬只规则",
+        "url": "https://www.piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/dogs_in_parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pleasanton",
+    "county": "Alameda",
+    "summary": "适合从 Main Street 历史街区与 Alviso Adobe 理解谷地如何从原住民土地、牧场和农业走向现代城市。两处可以组成历史主题半日，但一个在市区、一个靠山脚，宜先查开放再选交通。",
+    "places": [
+      {
+        "name": "Alviso Adobe Community Park",
+        "description": "城市运营的历史公园介绍 Amador Valley 不同时期的生活，可看历史建筑、自然环境并参加季节项目；学校课程与公众活动另行报名。",
+        "url": "https://www.cityofpleasantonca.gov/your-community/recreation/alviso-adobe/",
+        "mapQuery": "Alviso Adobe Community Park Pleasanton",
+        "scope": "city"
+      },
+      {
+        "name": "Museum on Main",
+        "description": "位于 Main Street 的历史博物馆，旧建筑曾承担市政、警察及图书馆用途；先查当前展览与开放，街区散步也可借城市历史地图了解。",
+        "url": "https://www.museumonmain.org/visitcontact.html",
+        "mapQuery": "Museum on Main Pleasanton",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先预约或确认 Alviso Adobe 项目，再回 Main Street 参观博物馆和用餐；若室内未开放，可使用城市历史互动地图做街区观察，不擅自进入历史建筑。",
+    "arrival": "新居民可收藏城市文化与活动入口，区分市办项目和 Museum on Main 自行安排的展览；报名儿童课程、活动或场地时，先看年龄和材料要求。",
+    "residentTip": "Alviso Adobe 有志愿与讲解参与入口；喜欢地方史可反复使用城市互动地图，比较旧照片与今日街景，而不只将市中心作为一次用餐地点。",
+    "transport": "Alviso Adobe 使用 Old Foothill Road 地址，Museum on Main 在 Main Street，别导航到同名圣何塞 Alviso。BART 到站后仍要规划往市中心或山脚的接驳。",
+    "checks": "历史建筑导览、自然课程及摄影可能有不同要求；查看季节活动和室内开放。雨后户外区域、炎热天山脚行程和大型活动期间停车均需重新评估。",
+    "resources": [
+      {
+        "label": "城市文化与活动",
+        "url": "https://www.cityofpleasantonca.gov/your-community/arts-theaters-events/",
+        "kind": "city"
+      },
+      {
+        "label": "Alviso Adobe 活动与志愿",
+        "url": "https://www.cityofpleasantonca.gov/your-community/recreation/alviso-adobe/",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Leandro",
+    "county": "Alameda",
+    "summary": "海湾边的 Marina Park 与市中心地方史可组成两种不同节奏。想轻松户外活动可把海岸当主线，想了解城市则先确认历史馆实际开放；官方不同页面目前有开放信息冲突，不应无条件推荐入馆。",
+    "places": [
+      {
+        "name": "Marina Park",
+        "description": "城市海岸公园，有草地和野餐活动空间，可沿岸散步；预约野餐区、运动场或活动空间需要走城市休闲入口。",
+        "url": "https://www.sanleandro.org/Facilities/Facility/Details/Marina-11",
+        "mapQuery": "Marina Park San Leandro",
+        "scope": "city"
+      },
+      {
+        "name": "San Leandro History Museum",
+        "description": "展览讲述原住民、移民、农业与工业等城市历史。Hours & Location 列有参观时段，但设施目录仍写暂闭，专程前必须确认，未确认则只安排外观。",
+        "url": "https://www.sanleandro.org/1041/Hours-Location",
+        "mapQuery": "San Leandro History Museum 320 W Estudillo Avenue",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先走 Marina Park，再在已确认开放的日子安排历史馆；若馆方未能确认，改成市中心用餐或直接缩短行程。邻旁 Casa Peralta 也不要当作必能进入的补位。",
+    "arrival": "新居民从城市官网与公园租赁入口建立办事清单；城市历史馆与一般图书馆借阅服务是不同用途，办理借书证或报名课程应进入相应服务页。",
+    "residentTip": "常住居民可利用历史馆了解海岸产业变化，再回 Marina 看现实环境；家庭聚会提前核对正式可租场地，避免把海边开放草地误作无需申请的活动场。",
+    "transport": "历史馆官方注明附近可由 San Leandro BART 与 AC Transit 接近；Marina 在另一片区，需另查最后一段。市中心与海岸停车条件分开核对。",
+    "checks": "截至核验日，Casa Peralta 页面明确暂闭，历史馆各页说法不一致。先向馆方核实再出门；海岸段另看风况、步道和现场活动限制。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.sanleandro.org/",
+        "kind": "city"
+      },
+      {
+        "label": "Marina Park 官方信息",
+        "url": "https://www.sanleandro.org/Facilities/Facility/Details/Marina-11",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Union City",
+    "county": "Alameda",
+    "summary": "Union City 的半日探索可从 Old Alvarado 与 Decoto 一带的公共空间开始，认识不同社区，而非只在高速或 BART 换乘。市内公园适合日常休闲，附近溪谷路线则需另看关闭与施工，不能简单合成一条不断线步道。",
+    "places": [
+      {
+        "name": "Old Alvarado / Cesar Chavez Park",
+        "description": "城市列出的社区公园，有可申请的 gazebo 等聚会空间，适合在 Alvarado 一带散步时休息；勿与 Richmond 的 Alvarado Park 混淆。",
+        "url": "https://www.unioncityca.gov/560/Picnic-Reservations",
+        "mapQuery": "Old Alvarado Cesar Chavez Park Union City",
+        "scope": "city"
+      },
+      {
+        "name": "Charles F. Kennedy Park",
+        "description": "Decoto Road 一带的城市公园与青年活动设施相邻，有正式可租野餐及活动空间；与 Hayward 同名公园不同。",
+        "url": "https://www.unioncityca.gov/560/Picnic-Reservations",
+        "mapQuery": "Charles F Kennedy Park 1333 Decoto Road Union City",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先选 Old Alvarado 周边慢逛，再按儿童活动需求去 Kennedy Park；两处分别移动。想加溪谷徒步时应减掉一站，并先查 Dry Creek 花园与 Alameda Creek 施工公告。",
+    "arrival": "新居民从 Community & Recreation Services 认识青年、长者、社区中心与课程体系；野餐预约需账户且有审批步骤，提交申请不代表已获准使用。",
+    "residentTip": "常住居民可查 Larry Orozco Teen Workshop、自行车或青年项目，也可按年龄选择运动与社区活动；这些服务与普通进公园不同，要核对报名及参与资格。",
+    "transport": "导航写全 Union City 与公园名；Alvarado 和 Decoto 不同片区，BART 到站不等于已经抵达活动现场。公共交通与驾车都按具体公园入口确认。",
+    "checks": "查场地确认函与扩音许可。当前 Alameda Creek 未铺装段部分工作日施工至 10 月 5 日，Dry Creek Garden 另有关闭提示；临时加步道前查区域公园公告。",
+    "resources": [
+      {
+        "label": "城市社区休闲服务",
+        "url": "https://www.unioncityca.gov/192/Community-Recreation-Services",
+        "kind": "city"
+      },
+      {
+        "label": "野餐与公园预约",
+        "url": "https://www.unioncityca.gov/560/Picnic-Reservations",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Antioch",
+    "county": "Contra Costa",
+    "summary": "Antioch 适合从水库步道和矿业历史认识东部 Contra Costa。Contra Loma 偏户外休闲，Black Diamond 位于城市南侧近郊，地下参观需专门安排；气温、日晒与交通会影响半日能做多少。",
+    "places": [
+      {
+        "name": "Contra Loma Regional Park",
+        "description": "水库周边可散步、野餐与观察自然，地址在 Frederickson Lane；游泳区与水库用途不同，不能看见水就自行下水。",
+        "url": "https://www.ebparks.org/parks/contra-loma",
+        "mapQuery": "Contra Loma Regional Park Antioch",
+        "scope": "city"
+      },
+      {
+        "name": "Black Diamond Mines Regional Preserve",
+        "description": "城市南侧近郊的矿业历史与山地步道目的地，有 Greathouse 地下访客中心及矿坑体验；保护区横跨较大区域，导航应选实际入口。",
+        "url": "https://www.ebparks.org/parks/black-diamond",
+        "mapQuery": "Black Diamond Mines Regional Preserve Somersville Road",
+        "scope": "nearby"
+      }
+    ],
+    "halfDay": "编辑建议二选一作为主线：轻松走水库就以 Contra Loma 为主；想进矿坑则围绕已订时段安排 Black Diamond。不要把长途爬坡、地下导览与完整水库行程全塞进半天。",
+    "arrival": "新居民将城市办事与 EBRPD 公园服务分别收藏；自然活动、野餐及矿坑项目查公园机构，城市日常服务仍走 Antioch 官网，避免找错报名或咨询单位。",
+    "residentTip": "常住居民可跟进矿业历史自然讲解与季节步道活动；同一公园反复走短线比每次追求最长路线更方便带家人，活动日历中的预约标签要逐项看。",
+    "transport": "两处公园各有具体道路入口；BART 到站后仍需接驳，不保证门到门公共交通。自驾看停车、收费和关闸信息，避免天黑后才回到停车区。",
+    "checks": "10 月 2 日官网显示 Contra Loma 游泳池关闭、Lake View Trail 牛塘处因风暴损坏封闭；船艇还须查入侵贻贝检查。矿坑体验另核年龄、预约与地下环境要求，高温或火险时缩短或改期。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.antiochca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "矿业公园与活动",
+        "url": "https://www.ebparks.org/parks/black-diamond",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Brentwood",
+    "county": "Contra Costa",
+    "summary": "Brentwood 不只有季节采果，也有适合日常活动的市区公园。City Park 方便认识中心街区，Veterans Park 适合运动与家庭聚会；果园在不同位置且有季节限制，不宜把城市半日安排建立在未经确认的采摘上。",
+    "places": [
+      {
+        "name": "City Park",
+        "description": "位于 Second Street 的市区公园，有可租野餐、草地及 gazebo 空间，可作为中心街区散步的停留点；活动占用时按公告调整。",
+        "url": "https://www.brentwoodca.gov/home/showpublisheddocument/11611/638975265919970000",
+        "mapQuery": "City Park 710 Second Street Brentwood",
+        "scope": "city"
+      },
+      {
+        "name": "Veterans Park",
+        "description": "Balfour Road 的公园，官方设施介绍列有野餐遮棚、儿童活动及多种运动空间；适合把亲子休息与运动结合，不必专程追某场活动。",
+        "url": "https://www.brentwoodca.gov/home/showpublisheddocument/11625/638975274309970000",
+        "mapQuery": "Veterans Park 3841 Balfour Road Brentwood",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议上午在 City Park 周边认识市中心，再按兴趣去 Veterans Park 玩耍或野餐；高温时选较凉时段，若已预约农场活动，则保留一座公园作短停即可。",
+    "arrival": "从城市 Parks & Recreation 看当季活动指南、成人与长者项目及问题报修；新居民预约野餐时应先核对居民类别、人数与可用设施，不沿用旧版价目。",
+    "residentTip": "常住居民可将社区运动、野餐与城市步道结合，并用当季指南挑选持续课程；需要 BBQ 或遮棚的聚会应明确订对应区域，不能只填写一个公园名称。",
+    "transport": "City Park 与 Veterans Park 分处 Second Street、Balfour Road，分开导航。若搭公交，先核对两园之间和返程的接驳；带大量野餐装备时另评估搬运距离。",
+    "checks": "核对活动占场、野餐审批、气温及喷泉等季节设施状态。市内公园不代表可随意烧烤或办大型聚会；采果信息另向具体农场确认当天开放与预约。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.brentwoodca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "当季休闲与公园指南",
+        "url": "https://www.brentwoodca.gov/government/parks-recreation",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Clayton",
+    "county": "Contra Costa",
+    "summary": "Clayton 适合以小城公园和 Diablo 山麓视野安排轻松半日。The Grove 靠近市区生活，Community Park 提供更完整的运动与聚会空间；真正进入 Mount Diablo 山地是另一种行程，不能当作饭后随便加的一站。",
+    "places": [
+      {
+        "name": "The Grove Park",
+        "description": "市区公园有草地、儿童活动和季节性水景等设施，适合在小城中心短停；水景是否开放必须看当季安排。",
+        "url": "https://www.claytonca.gov/216/Rent-a-Picnic-Area",
+        "mapQuery": "The Grove Park Clayton California",
+        "scope": "city"
+      },
+      {
+        "name": "Clayton Community Park",
+        "description": "城市正式列出的野餐与运动公园，有遮阴桌椅、草地和球场等不同区域；家庭聚会可按人数选择可租空间。",
+        "url": "https://www.claytonca.gov/216/Rent-a-Picnic-Area",
+        "mapQuery": "Clayton Community Park Clayton California",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在 The Grove 及市区慢逛，再去 Community Park 活动；若孩子只想玩一座公园，就留时间休息和用餐，不为了凑点位增加移动。",
+    "arrival": "新居民先从市政府确认公共服务与场地申请入口；公园可日常使用与正式预留野餐区不同，想确保聚会位置应提前提交租用申请并看确认条件。",
+    "residentTip": "常住居民可以轮换草地活动、球场和社区聚会，按当季城市公告找项目；预约表上的设备、人数和清理责任要提前谈妥，减少临场改动。",
+    "transport": "两个公园分别导航，入山道路与市区公园线路不能混用。街边及公园停车依标牌，若无车需先确认最后一段与回程，不把山麓位置理解为直接轨道可达。",
+    "checks": "水景、球场和野餐区可能有维护或预约占用；高温和山麓火险时缩短户外安排。官方可租并不代表普通访客能够使用正在办活动的区域。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.claytonca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "城市公园与野餐预约",
+        "url": "https://www.claytonca.gov/216/Rent-a-Picnic-Area",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Concord",
+    "county": "Contra Costa",
+    "summary": "Concord 可以用市中心广场与溪边植物园组合成有层次的半日。Todos Santos 更偏公共生活和社区聚会，Markham 偏植物与自然观察；不需要每次都以购物中心或远郊山地为目的地。",
+    "places": [
+      {
+        "name": "Todos Santos Plaza",
+        "description": "市中心广场有草地、树荫、长椅及儿童游乐区，适合短时休息和街区探索；活动与集市日期另查，不保证天天有节目。",
+        "url": "https://www.cityofconcord.org/facilities/facility/details/todossantosplaza-36",
+        "mapQuery": "Todos Santos Plaza Concord",
+        "scope": "city"
+      },
+      {
+        "name": "Markham Nature Park and Arboretum",
+        "description": "Galindo Creek 穿过的自然公园，有植物、社区花园及凉棚空间，适合对园艺和溪流环境感兴趣的人；园艺区不等于可自由采摘。",
+        "url": "https://www.cityofconcord.org/facilities/facility/details/Markham-Nature-Park-and-Arboretum-30",
+        "mapQuery": "Markham Nature Park Concord",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在 Todos Santos 周边散步用餐，再去 Markham 看植物；两处间另留交通时间。若有已确认的广场活动，可反过来先公园后广场，不必硬走固定顺序。",
+    "arrival": "新居民可先读城市 Moving to Concord，再查 Outdoor Spaces 的公园与预约；不同社区的泳池、球场和自然空间使用方式不同，先选离家近的设施建立日常路线。",
+    "residentTip": "喜欢园艺可关注 Markham 的社区参与信息，家庭聚会则从城市野餐场地目录找适合区域；广场活动要查当前日历，别按往年节庆时间直接到场。",
+    "transport": "Todos Santos 在市中心，Markham 在 La Vista 一带，分别选择目的地。使用 BART 时先查到广场或公园的最后一段，停车也不能把商业区与公园规则互用。",
+    "checks": "核对广场活动封路、凉棚或野餐预约、溪边路况；雨后或高温时调整步行量。社区花园与私人租用区域须尊重管理规则，别离开公共通道。",
+    "resources": [
+      {
+        "label": "搬到 Concord",
+        "url": "https://www.cityofconcord.org/483/Moving-to-Concord",
+        "kind": "city"
+      },
+      {
+        "label": "户外空间与预约",
+        "url": "https://www.cityofconcord.org/parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Danville",
+    "county": "Contra Costa",
+    "summary": "Danville 适合用社区公园和文学历史形成两种深度不同的行程。想轻松活动可选 Sycamore Valley，想看 Eugene O’Neill 故居则须提前预约接驳；Tao House 位于镇外近郊，不能自行驾车闯入私人社区。",
+    "places": [
+      {
+        "name": "Sycamore Valley Park",
+        "description": "镇政府列出的社区公园，有运动、儿童活动、步行与季节性水景，适合作为家庭日常半日的主场，不以喷泉必开作安排前提。",
+        "url": "https://danville.ca.gov/259/Community-Parks",
+        "mapQuery": "Sycamore Valley Park Danville",
+        "scope": "city"
+      },
+      {
+        "name": "Eugene O'Neill National Historic Site",
+        "description": "近郊 Tao House 与故居园地由 NPS 管理，展示作家生活背景；官方要求预约，并从 Danville 指定地点搭乘接驳。",
+        "url": "https://www.nps.gov/euon/planyourvisit/index.htm",
+        "mapQuery": "Eugene O Neill National Historic Site shuttle Danville",
+        "scope": "nearby"
+      }
+    ],
+    "halfDay": "编辑建议有预约就以 Tao House 接驳时段为核心，返镇后散步用餐；没有预约则安排 Sycamore Valley 的运动和休息，不把故居当随时可开的备用景点。",
+    "arrival": "新居民先通过镇政府查社区公园和课程，核对居民资格是否要求住在建制镇范围；Danville 邮寄地址可能覆盖更广地区，别单凭邮编判断收费类别。",
+    "residentTip": "镇内公园可换着安排球类、遛狗或亲子活动，但要看各园功能和场地状态；想深入文化历史的居民可关注 NPS 项目，而不只参观一次故居。",
+    "transport": "Tao House 普通私家车不能直达，按预约指示到镇内接驳点；公园用具体地址另行导航。不要用地图显示的故居地址代替官方集合地点。",
+    "checks": "故居先查预约、集合与取消条件；水景有季节安排，运动场雨后状态独立更新。未确认接驳名额时，只保留镇内公园和用餐计划。",
+    "resources": [
+      {
+        "label": "镇内游玩与文化资源",
+        "url": "https://danville.ca.gov/1067/Play-in-Danville",
+        "kind": "city"
+      },
+      {
+        "label": "社区公园",
+        "url": "https://danville.ca.gov/259/Community-Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "El Cerrito",
+    "county": "Contra Costa",
+    "summary": "这里适合把社区运动公园与山坡自然空间对照着看。Cerrito Vista 偏草地和设施，Hillside Natural Area 偏坡地、草原与树林；两种活动强度不同，特别适合新居民挑选适合自己体力的日常路线。",
+    "places": [
+      {
+        "name": "Hillside Natural Area",
+        "description": "围绕旧采石场的开放空间，有多处步道入口。官方指引以 Schmidt Lane 回收中心附近定位，但公园入口与回收作业区不是同一处。",
+        "url": "https://www.elcerrito.gov/facilities/facility/details/Hillside-Natural-Area-17",
+        "mapQuery": "Hillside Natural Area Schmidt Lane El Cerrito",
+        "scope": "city"
+      },
+      {
+        "name": "Cerrito Vista Park",
+        "description": "城市社区公园和运动设施集中点，可安排儿童活动、球类或野餐；参加有组织活动与普通使用场地的规则不同。",
+        "url": "https://www.elcerrito.gov/facilities/facility/details/Cerrito-Vista-Park-10",
+        "mapQuery": "Cerrito Vista Park El Cerrito",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先按体力选 Hillside 的短线，再到 Cerrito Vista 休息；带推车或不想爬坡时只选社区公园，不能把自然区入口附近停车当作无障碍全线证明。",
+    "arrival": "新居民从 Parks & Facilities 找社区中心、课程报名和公园预约；先熟悉 Moeser Lane 的休闲服务入口，室内课程与开放步道分开规划。",
+    "residentTip": "喜欢自然观察可查看 Natural El Cerrito 的生态与社区维护资源；带狗进 Hillside 按牵绳要求，不能因为是开放空间就当成非牵绳犬公园。",
+    "transport": "山坡入口分布在 Schmidt Lane、Potrero 等位置，选择同一入口进出更易安排接送。由 BART 出发也要核对上坡最后一段，不仅看地图直线距离。",
+    "checks": "核对日出日落开放、雨后泥地和步道维护；Cerrito Vista 的运动或野餐预订另查。自然区路线可能有明显高差，首次到访先走短线再决定延伸。",
+    "resources": [
+      {
+        "label": "城市公园与设施",
+        "url": "https://www.elcerrito.gov/1052/Parks-Facilities",
+        "kind": "city"
+      },
+      {
+        "label": "城市自然空间",
+        "url": "https://www.elcerrito.gov/204/Natural-El-Cerrito",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hercules",
+    "county": "Contra Costa",
+    "summary": "Hercules 的亮点是内陆山谷公园与海湾岸边两种休闲景观。Refugio Valley 适合社区活动，Shoreline 偏看水与散步；用它们认识小城，比只沿高速经过更具体，也方便居民安排不跨城的周末。",
+    "places": [
+      {
+        "name": "Refugio Valley Park",
+        "description": "城市主要社区公园之一，有可预订的野餐空间，适合家庭聚会和户外活动；较大聚会有单独许可条件。",
+        "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/34/178",
+        "mapQuery": "Refugio Valley Park Hercules",
+        "scope": "city"
+      },
+      {
+        "name": "Shoreline Park",
+        "description": "城市海岸公园，适合在水边短走和休息，也列入市府野餐预约体系；开放散步与占用野餐空间并非相同许可。",
+        "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/50/178",
+        "mapQuery": "Shoreline Park Hercules California",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在 Refugio Valley 进行儿童活动，再视风况到 Shoreline 看水；带餐食时只预订实际需要的野餐区，两处间安排独立移动，避免临近关园才赶海边。",
+    "arrival": "新居民从市府 Moving to Hercules 与公园目录查常用服务；活动报名、场地预约和大型聚会许可要分清，家庭组织活动先确认人数及场地限制。",
+    "residentTip": "常住居民可以把不同公园作为日常步行与家庭聚会据点；市府明确有扩音、酒精和充气游具限制，邀请亲友前先按当前规定调整活动内容。",
+    "transport": "Refugio Valley 与海岸分别导航，公交到站后仍需确认步行入口。沿湾行程考虑风与返程时间；停车依各园标牌，不推定所有海岸地块都可停。",
+    "checks": "市府公园页按日出至日落管理，具体活动还需预约或许可；出发前查看维护、风况和已订区域，别把大型聚会门槛套到所有公园都相同。",
+    "resources": [
+      {
+        "label": "搬到 Hercules",
+        "url": "https://www.herculesca.gov/our-city/moving-to-hercules",
+        "kind": "city"
+      },
+      {
+        "label": "海岸公园与预约",
+        "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/50/178",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Lafayette",
+    "county": "Contra Costa",
+    "summary": "Lafayette 适合从水库与社区溪谷认识丘陵城市的户外生活。水库由 EBMUD 管理，Community Park 属市府，两套入口、收费和活动规则不能混用；先选轻松步道还是更有起伏的路线，再安排半天。",
+    "places": [
+      {
+        "name": "Lafayette Reservoir",
+        "description": "日间休闲区可步行、野餐并按规则参与钓鱼或船艇活动；湖边路线与外侧较高路线难度不同，先查 EBMUD 地图及现行限制。",
+        "url": "https://www.ebmud.com/recreation/east-bay/lafayette-reservoir",
+        "mapQuery": "Lafayette Reservoir Recreation Area",
+        "scope": "city"
+      },
+      {
+        "name": "Lafayette Community Park",
+        "description": "St. Mary's Road 的社区公园兼有运动场、儿童空间与自然地形；南侧活动设施与其他步道区域适合不同强度的停留。",
+        "url": "https://www.lovelafayette.org/city-hall/city-departments/parks-trails-recreation/parks/community-park",
+        "mapQuery": "Lafayette Community Park 480 St Marys Road",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议以水库短线为主，结束后在市区休息；若主要陪儿童玩耍，就改以 Community Park 为主。两园都去需另留移动，不必把完整环线当半日最低要求。",
+    "arrival": "新居民收藏市府 Parks, Trails & Recreation 与 EBMUD 两个入口，查课程、社区中心和水库条件；水库虽在城内，其停车与船艇规则不等于城市公园规则。",
+    "residentTip": "常住居民可利用市府更新的 Community Park 步道图选择短线，也可关注社区中心课程；常去水库时再比较停车方案，不能默认其他公园年票通用。",
+    "transport": "水库与 Community Park 分别使用 EBMUD 入口和 St. Mary's Road 地址。Lafayette BART 与具体步道口有距离，需规划公交或步行接驳，别只按站名判断可达。",
+    "checks": "水库开放、停车、船艇与钓鱼规定以 EBMUD 当天公告为准；不游泳、不将高处路线当平坦湖边步道。雨后、炎热天及维修期间重新选择长度。",
+    "resources": [
+      {
+        "label": "城市公园与步道服务",
+        "url": "https://www.lovelafayette.org/city-hall/city-departments/parks-trails-recreation",
+        "kind": "city"
+      },
+      {
+        "label": "EBMUD 水库到访信息",
+        "url": "https://www.ebmud.com/recreation/east-bay/lafayette-reservoir",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Martinez",
+    "county": "Contra Costa",
+    "summary": "Martinez 适合把保护运动历史与海岸湿地放在同一天体验。John Muir 故居是文化重点，Radke Martinez Shoreline 偏观鸟和步行；两者并非相邻入口，安排上应以场馆开放而不是地图直线距离为先。",
+    "places": [
+      {
+        "name": "John Muir National Historic Site",
+        "description": "NPS 管理的故居与园地，介绍 John Muir 的生活和保护历史。宅邸与园区关闭时间可能不同，周末也不代表每天开门。",
+        "url": "https://www.nps.gov/jomu/planyourvisit/index.htm",
+        "mapQuery": "John Muir National Historic Site Martinez",
+        "scope": "city"
+      },
+      {
+        "name": "Ted and Kathy Radke Martinez Regional Shoreline",
+        "description": "海岸步道与湿地适合观察水鸟，附近另有城市 Waterfront Park；两个管理方的野餐预约与设施不能混为一套。",
+        "url": "https://www.ebparks.org/parks/radke-martinez",
+        "mapQuery": "Radke Martinez Regional Shoreline",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在开放日参观 Muir 故居，再到海岸走短线并用餐；若故居闭馆就专注湿地与市区。虽有步道连接城市不同片区，也不应把完整穿行默认成轻松半日。",
+    "arrival": "新居民分别收藏市政府、NPS 与 EBRPD 入口；市政问题走城市部门，故居与海岸活动向对应管理方咨询，可避免把所有 Martinez 公共空间都当作城市公园。",
+    "residentTip": "常住居民可跟进 NPS 教育活动与海岸自然观察；家庭野餐若选 Waterfront Park，要按城市预约说明办理，不使用区域公园名称代替预订场地。",
+    "transport": "故居与海岸分别导航；NPS 说明故居停车场较小，满位时不要堵塞出入口。无车来访先确认各站点间接驳，不以抵达 Martinez 市区等同到达两处景点。",
+    "checks": "核验页当前列故居周二至周六开放、周日及周一关闭，出发前复查；房屋通常早于园区停止进入。湿地段另看潮位、风和封闭提示，不离开正式步道。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.cityofmartinez.org/",
+        "kind": "city"
+      },
+      {
+        "label": "海岸公园信息",
+        "url": "https://www.ebparks.org/parks/radke-martinez",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Moraga",
+    "county": "Contra Costa",
+    "summary": "Moraga 适合社区公园、亲子活动和缓慢认识丘陵生活。Moraga Commons 功能较集中，Rancho Laguna 位于镇边山丘之间；两者都能短停，但带狗、野餐和季节水景各有规则，不能以同一套时间安排。",
+    "places": [
+      {
+        "name": "Moraga Commons Park",
+        "description": "有音乐台、飞盘高尔夫、儿童设施及运动空间的社区公园，可按兴趣选择一项慢玩；活动举办时草地与停车可能更紧张。",
+        "url": "https://www.moraga.ca.us/249/Moraga-Commons-Park",
+        "mapQuery": "Moraga Commons Park",
+        "scope": "city"
+      },
+      {
+        "name": "Rancho Laguna Park",
+        "description": "镇边公园有草地、儿童设施、野餐区和传粉昆虫示范花园，适合自然观察；犬只非牵绳仅限指定时段，不能全天照搬。",
+        "url": "https://www.moraga.ca.us/251/Rancho-Laguna-Park",
+        "mapQuery": "Rancho Laguna Park Moraga",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先选 Commons 玩耍或休息，再按体力去 Rancho Laguna 看示范花园；若带狗，优先围绕合法开放时段安排，不让遛狗计划挤占儿童活动区。",
+    "arrival": "新居民从镇政府 Parks & Recreation 查课程与预订，并确认账户中的居民信息；公园位于镇内不意味着所有空间随到随用，已预订区域应留给许可持有人。",
+    "residentTip": "常住居民可关注 Rancho Laguna 的植物解说与犬区通知，或换着体验 Commons 的运动设施；组织野餐时先查可用日历，避免多人到场后才发现区域已租出。",
+    "transport": "两园停车均需按容量与现场标牌安排；官方明确 Commons 的溢出停车不能占用 Moraga Library 停车场，Rancho Laguna 停车也有限。",
+    "checks": "核对犬只时段与临时取消：当前页面列 10 月 3 日晚段、4 日早段及16日晚段暂停非牵绳时段。水景、活动与野餐预约另查，不以公园开门代替全部设施可用。",
+    "resources": [
+      {
+        "label": "镇政府官网",
+        "url": "https://www.moraga.ca.us/",
+        "kind": "city"
+      },
+      {
+        "label": "Rancho Laguna 规则与通知",
+        "url": "https://www.moraga.ca.us/251/Rancho-Laguna-Park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Oakley",
+    "county": "Contra Costa",
+    "summary": "Oakley 是认识 Delta 水域与社区公园生活的好起点。Big Break 适合自然教育、看水鸟和河口景观，Creekside 更偏日常玩耍；这里的亲水行程应区分岸上观察与真正划船，不将码头当作随意下水地点。",
+    "places": [
+      {
+        "name": "Big Break Regional Shoreline",
+        "description": "有 Delta 自然教育访客中心、观景或钓鱼码头以及水上出入口；岸上步行和访客中心展览可以分开安排，划船须另查规则。",
+        "url": "https://www.ebparks.org/parks/big-break",
+        "mapQuery": "Big Break Regional Shoreline Oakley",
+        "scope": "city"
+      },
+      {
+        "name": "Creekside Park",
+        "description": "城市公园列有步行跑道、儿童设施、运动场和野餐区域，适合在海岸观察之后安排轻量活动；团体场地需按设施页预约。",
+        "url": "https://www.oakleyca.gov/Facilities/Facility/Details/Creekside-Park-1",
+        "mapQuery": "Creekside Park 3900 Creekside Way Oakley",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先按访客中心开放时间到 Big Break，再选一段岸上步道；有余力才去 Creekside。带孩子或初次来访不必把长距离区域骑行也放进同一半天。",
+    "arrival": "新居民从市府公园设施页查最近的活动空间，并把 EBRPD 作为 Delta 自然活动的另一个入口；城市租场与区域公园自然教育采用不同预订流程。",
+    "residentTip": "常住居民可重复参加 Big Break 的自然项目，观察不同季节水鸟；社区运动或聚会则看 Creekside 的指定设施，别把自然保护岸线当作大型集体活动场。",
+    "transport": "Big Break Road 与 Creekside Way 是不同目的地，按活动选择入口。区域步道虽然连接其他片区，首次到访仍应确定折返点与回程，不默认环线。",
+    "checks": "10 月 2 日 Big Break 官网仍有蓝绿藻 Danger 警示，且园内禁止游泳；水上活动另查水质、风、潮汐和下水规则。访客中心开放日与园区时段不同，Creekside 聚会则先查预约及使用限制。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.oakleyca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "Big Break 自然活动",
+        "url": "https://www.ebparks.org/parks/big-break",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Orinda",
+    "county": "Contra Costa",
+    "summary": "Orinda 适合社区公园与丘陵生活的轻量探索，不需要把每次到访都变成高强度徒步。Community Center Park 方便家庭活动，Wilder 的公共设施是另一处目的地；地形和入口不同，宜先按兴趣选主站。",
+    "places": [
+      {
+        "name": "Orinda Community Center Park",
+        "description": "社区中心旁有草地、两处儿童活动区、网球及野餐空间，适合亲子停留或了解城市课程；正式活动租用需另行办理。",
+        "url": "https://www.cityoforinda.gov/233/Parks",
+        "mapQuery": "Orinda Community Center Park",
+        "scope": "city"
+      },
+      {
+        "name": "Wilder Picnic Area",
+        "description": "位于 Wilder Field 2 附近的公共野餐区域，城市列有桌椅和烧烤设施；可以围绕已确认的场地安排休息，不等于整个球场可随意使用。",
+        "url": "https://www.cityoforinda.gov/515/Picnics",
+        "mapQuery": "Wilder Field 2 Orinda Fields Lane",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议以 Community Center Park 为主，先玩耍或参加已报名课程；Wilder 适合有明确球场或野餐安排再加，不把两个分散地点硬连成步行环线。",
+    "arrival": "新居民从市府公园页进入注册与租赁系统，核对儿童年龄、课程安排及场地申请；普通公园活动与学校共享设施可能不同，先看管理方说明。",
+    "residentTip": "常住居民可将网球、儿童活动及社区课程组合成固定节奏；市府明确城市公园没有指定非牵绳犬区，遛狗不能凭草地开阔就松绳。",
+    "transport": "Community Park 在 Orinda Way，Wilder 使用 Orinda Fields Lane，导航需分开。BART 适合抵达市区，但前往 Wilder 仍需规划独立接驳与返程。",
+    "checks": "查球场比赛、野餐预订与开放时段；天气变化后重新确认场地。Wilder 的指定野餐区、周边住宅和球场不是一套任意通行范围，按标牌使用。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.cityoforinda.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "社区公园与规则",
+        "url": "https://www.cityoforinda.gov/233/Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pinole",
+    "county": "Contra Costa",
+    "summary": "Pinole 的社区探索可以从 Old Town 的 Fernandez Park 开始，再认识谷地里的运动与自然空间。适合短程亲子活动和居民聚会；不同公园入口差异大，不能只输入 Pinole Valley 就假定导航到野餐区。",
+    "places": [
+      {
+        "name": "Fernandez Park",
+        "description": "Old Town 的社区公园，有 gazebo、野餐与球场等可租区域，适合把街区散步和儿童活动结合；正式租用有优先使用规则。",
+        "url": "https://www.pinole.gov/recreation/parks_facilities/fernandez-park/",
+        "mapQuery": "Fernandez Park Pinole",
+        "scope": "city"
+      },
+      {
+        "name": "Pinole Valley Park & Picnic Grove",
+        "description": "谷地公园兼有运动、开放空间和野餐区域，官方页面以 Adobe Road 一侧列入口；想走步道或聚会应选择相应设施。",
+        "url": "https://www.pinole.gov/recreation/parks_facilities/pinole-valley-park/",
+        "mapQuery": "Pinole Valley Park Picnic Grove 1270 Adobe Road",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在 Fernandez Park 周边慢逛，再按运动或野餐需要去 Valley Park；如果只想休息，一处公园足够。带大型餐具或儿童用品时，先确认停车到预订区的路径。",
+    "arrival": "新居民从城市 Parks & Facilities 熟悉邻里公园和场地申请；预订时分清居民与非居民类别，并核对押金、使用范围和确认邮件，而不是只保存付款截图。",
+    "residentTip": "常住居民可用公园目录轮换谷地与 Old Town 活动，组织球类需检查球场预约；任何扩音、商业或特别设备安排先问城市部门，避免临场撤除。",
+    "transport": "Fernandez 与 Valley Park 分别导航到具体入口；同名公园不同区域可能不相邻。街边和场内停车看现场标牌，公交行程同时确认返程与最后步行段。",
+    "checks": "按各园公告核对关门、场地占用和步道路况；不要照搬个别旧页面的异常时段文字。租用野餐区不自动涵盖球场或所有草地，确认许可范围。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.pinole.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与设施目录",
+        "url": "https://www.pinole.gov/recreation/parks-facilities/",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pittsburg",
+    "county": "Contra Costa",
+    "summary": "Pittsburg 可以从儿童游乐与 Marina 水岸两条线认识。Small World Park 适合按季节安排家庭活动，水岸则适合短走和看码头；网站列出的游乐设施不代表当天全部运行，先确认再带孩子专程来。",
+    "places": [
+      {
+        "name": "Small World Park",
+        "description": "以儿童游乐、野餐与小型游乐设施为特色的城市公园；市府2026年正征集改善意见，规划项目不等于已经建成的新设施。",
+        "url": "https://www.pittsburgca.gov/Home/Components/News/News/3717/24",
+        "mapQuery": "Small World Park 2551 Harbor Street Pittsburg",
+        "scope": "city"
+      },
+      {
+        "name": "Pittsburg Marina",
+        "description": "城市 Marina 是认识 Delta 水岸的另一处起点，可围绕公共岸边选择短时停留；泊位、下水和租赁服务需另向管理方确认。",
+        "url": "https://dbw.parks.ca.gov/BoatingFacilities/f/454",
+        "mapQuery": "Pittsburg Marina 51 E Marina Boulevard",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先确认 Small World Park 当季开门与运行设施，再决定是否把 Marina 作为结束前短停；若游乐园未开，就将行程改为水岸与市区，不承诺孩子一定能坐小火车。",
+    "arrival": "新居民从城市官网查 Recreation 与公共服务，报名和场地预约应走官方链接；网页出现改善征询时，可先读提案范围再提交自己的使用需求。",
+    "residentTip": "常住居民可关注 Small World Park 的设施改善征询，以及城市当季运动和社区课程；提出改进建议与已经获得拨款、施工完成是不同阶段。",
+    "transport": "Small World Park 在 Harbor Street，Marina 在 Marina Boulevard，两个地点分别安排接驳。BART 站并不在这两处入口，先查公交或接送回程。",
+    "checks": "游乐园核对季节、年龄、实际运行项目和包场；Marina 另向管理方确认公共通道、下水和泊位服务，设施名录不能证明当天每项服务均开放。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.pittsburgca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "Small World Park 官方更新",
+        "url": "https://www.pittsburgca.gov/Home/Components/News/News/3717/24",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pleasant Hill",
+    "county": "Contra Costa",
+    "summary": "Pleasant Hill 适合社区公园、短线开放空间和居民课程组合。Pleasant Hill Park 偏设施齐全的家庭活动，Paso Nogal 偏步道与犬区；管理方是 Recreation & Park District，服务与市政办事要分别找入口。",
+    "places": [
+      {
+        "name": "Pleasant Hill Park",
+        "description": "Gregory Lane 的综合公园，有儿童设施、球场、野餐区及泳池；泳池、水景和普通公园开放不是同一时刻表。",
+        "url": "https://www.pleasanthillrec.com/Facilities/Facility/Details/Pleasant-Hill-Park-13",
+        "mapQuery": "Pleasant Hill Park 147 Gregory Lane",
+        "scope": "city"
+      },
+      {
+        "name": "Paso Nogal Park",
+        "description": "有开放空间步道与围栏犬只活动区，主入口在 Paso Nogal Road；围栏外步道要求牵绳，不能把整片山坡当非牵绳区。",
+        "url": "https://www.pleasanthillrec.com/Facilities/Facility/Details/Paso-Nogal-Park-10",
+        "mapQuery": "Paso Nogal Park Pleasant Hill",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议家庭先在 Pleasant Hill Park 玩耍，想走自然路再选 Paso Nogal 短线；带狗时按犬区实际开放决定顺序，不因步道开放就认定犬区也开放。",
+    "arrival": "新居民分别保存市政府与休闲公园区官网，课程、泳池和租场查后者；新家庭选课时注意年龄、报名和居民类别，不把市界与特殊区服务边界自动等同。",
+    "residentTip": "遛狗居民可订阅 Paso Nogal 犬区状态通知，减少雨后白跑；社区课程和野餐也能通过当季活动指南选择，球场与游乐区预订按具体设施看。",
+    "transport": "Paso Nogal 有多个入口，首次使用主入口更便于统一接送；Pleasant Hill Park 用 Gregory Lane 地址。BART 站名含 Pleasant Hill 不表示公园就在站旁，仍需接驳。",
+    "checks": "犬区有周日关闭、周三维护及雨后关闭条件，步道规则另看；Rodgers-Smith 的游乐与野餐区目前有施工关闭提示，不把它作为无条件替代点。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.phillca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "休闲公园区目录",
+        "url": "https://www.pleasanthillrec.com/442/Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Richmond",
+    "county": "Contra Costa",
+    "summary": "Richmond 的海岸不只是看海，也能认识二战工业、移民劳动与女性工作历史。以 Rosie the Riveter 相关地点为线索，游客能把室内展示与滨水纪念空间结合；这些地点分散，不能当成单一围墙内景区。",
+    "places": [
+      {
+        "name": "Rosie the Riveter Visitor Education Center",
+        "description": "NPS 的访客教育中心是了解二战后方生活与劳动史的起点，适合先看展示再到海岸观察；活动与讲解需另查当天安排。",
+        "url": "https://www.nps.gov/rori/planyourvisit/placestogo.htm",
+        "mapQuery": "Rosie the Riveter Visitor Education Center Richmond",
+        "scope": "city"
+      },
+      {
+        "name": "Rosie the Riveter Memorial / Marina Bay Park",
+        "description": "滨水纪念空间通过文字与设计讲述女工经历，适合结合海湾步行；纪念碑与访客中心是不同地点，地图应写全名称。",
+        "url": "https://www.nps.gov/rori/planyourvisit/placestogo.htm",
+        "mapQuery": "Rosie the Riveter Memorial Marina Bay Park Richmond",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先参观教育中心，再按体力选择纪念碑附近的一段海湾步道；两地间另留移动。若带长辈或儿童，可只做一个室内点加一次短走，不必把全部历史地点走完。",
+    "arrival": "新居民从城市服务和 NPS 地点地图分别认识社区；遇到市政问题联系城市，历史场馆开放或导览向 NPS 查，工业海岸周边仍有非公共作业区域。",
+    "residentTip": "常住居民可通过 NPS 项目反复了解不同社区的二战经历，再逐步探索其他公开历史点；不要把一次展示内容当作整个 Richmond 的完整历史。",
+    "transport": "选择教育中心与 Memorial 的各自入口，预先查看从公共交通到海岸的最后一段。不要把 Richmond BART、渡轮码头和所有历史点视为同一位置，停车以各点标牌为准。",
+    "checks": "核对中心开放、讲解场次及海岸天气；个别船舶、厂房或学校历史点未必开放内部。按 NPS 地点说明选择公众可到区域，不跨入船厂或私人设施。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.ci.richmond.ca.us/",
+        "kind": "city"
+      },
+      {
+        "label": "NPS 历史地点与到访",
+        "url": "https://www.nps.gov/rori/planyourvisit/placestogo.htm",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Pablo",
+    "county": "Contra Costa",
+    "summary": "San Pablo 可以从本市历史展示和社区公园入手，不必借用同名水库来代表城市。Alvarado Adobe 是复建的历史住宅展示，Davis Park 更适合日常活动；San Pablo Reservoir 在另一片区，不能因名字相同就标作市内。",
+    "places": [
+      {
+        "name": "Alvarado Adobe",
+        "description": "位于旧市政厅地块的历史展示建筑，是 Governor Alvarado 故居的复制重建，并非完整保留的原宅；室内参观先向城市确认。",
+        "url": "https://www.sanpabloca.gov/949/Outdoor-Destinations",
+        "mapQuery": "Alvarado Adobe 13831 San Pablo Avenue",
+        "scope": "city"
+      },
+      {
+        "name": "Davis Park",
+        "description": "17th 与 Folsom 一带的城市公园，可散步、野餐或进行球类活动，并与长者服务地点关联，适合认识本地社区生活。",
+        "url": "https://www.sanpabloca.gov/949/Outdoor-Destinations",
+        "mapQuery": "Davis Park San Pablo California",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先确认 Adobe 展示开放，再安排 Davis Park 休息或活动；若室内不开放，可仅看允许进入的公共外部空间，不擅自闯入建筑或租用大厅。",
+    "arrival": "新居民从城市官网找服务部门和公共柜台时段；旧 City Hall 的历史展示地点与现今办理市政事务的办公地址不同，办事前核对具体部门。",
+    "residentTip": "常住居民可关注城市艺术展示、社区活动和长者服务；需要租大厅或组织公园活动时，先明确场地和人数，历史展示楼不能自动当公共聚会空间使用。",
+    "transport": "历史展示与 Davis Park 是两站，分别导航；使用 San Pablo Avenue 地址时仍要核对城市名，避免去 Richmond 或同名水库。公交行程应查最后一段和返程。",
+    "checks": "官网未给每个历史展示稳定的每日参观保证，专程前联系确认；公园球场与长者中心有独立安排。不能把旧市政厅、现市政厅或水库的开放信息互相替代。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.sanpabloca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "历史与户外地点",
+        "url": "https://www.sanpabloca.gov/949/Outdoor-Destinations",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Ramon",
+    "county": "Contra Costa",
+    "summary": "San Ramon 可以把现代社区公园与农业历史结合，适合亲子与刚搬来的家庭。Central Park 偏运动和日常聚会，Forest Home Farms 讲述谷地农场过去；历史建筑施工与园地参观要区分，不能把未来修复当已开放。",
+    "places": [
+      {
+        "name": "Central Park",
+        "description": "Alcosta Boulevard 的综合公园，有儿童设施、运动场、野餐区及步道连接；参与式喷泉有独立开放状态，不以看到设施就保证喷水。",
+        "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/parks_facilities/parks/central_park",
+        "mapQuery": "Central Park San Ramon 12501 Alcosta",
+        "scope": "city"
+      },
+      {
+        "name": "Forest Home Farms Historic Park",
+        "description": "城市历史农场展示谷地农业生活，有自助导览及农场项目；Boone House 修复仍属项目推进，不能默认住宅内部开放。",
+        "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/forest_home_farms_historic_park",
+        "mapQuery": "Forest Home Farms Historic Park San Ramon",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在农场开放日看展示，再到 Central Park 玩耍或休息；若参加 Saturday 农场活动就按其时段展开。两地之间另留移动，不把建筑导览排成未经确认的必选。",
+    "arrival": "新居民从城市 Parks & Community Services 找公园、课程和家庭报名入口；需要野餐场地时选择具体区域，普通公园通行、课程和活动租赁分别办理。",
+    "residentTip": "常住居民可用农场的自助导览与周六项目继续认识本地历史，也可把 Central Park 当日常运动点；参与志愿或社区活动前核对实际招募与年龄条件。",
+    "transport": "Central Park 与农场分别在 Alcosta Boulevard 和 San Ramon Valley Boulevard，导航不要只输同名 Central Park。无车来访先查两站间接驳，别按城市名称推断有直达轨道。",
+    "checks": "农场当前列周二至周六开放并有节假日关闭，项目日可能不同；Boone House 施工信息不代表开放公告。喷泉、球场及野餐区域状态出门前分别检查。",
+    "resources": [
+      {
+        "label": "城市官网",
+        "url": "https://www.sanramon.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "历史农场与活动",
+        "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/forest_home_farms_historic_park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Walnut Creek",
+    "county": "Contra Costa",
+    "summary": "Walnut Creek 不只有购物，山麓历史牧场与城市公园也适合深入认识。Borges Ranch 偏农业遗产和开放空间，Heather Farm 偏社区休闲；后者正在推进新水上与社区中心工程，行程应把施工避让考虑进去。",
+    "places": [
+      {
+        "name": "Borges Ranch",
+        "description": "位于 Shell Ridge 一带的历史牧场，城市页面介绍牧场建筑与农场动物，可结合短线开放空间步行；动物互动以现场规定为准。",
+        "url": "https://www.walnutcreekca.gov/home/components/facilitydirectory/facilitydirectory/16/664",
+        "mapQuery": "Borges Ranch 1035 Castle Rock Road Walnut Creek",
+        "scope": "city"
+      },
+      {
+        "name": "Heather Farm Park",
+        "description": "城市大型休闲公园，但水上和社区中心工程可能影响入口与局部步行；到访以官方工程公告为准，不把旧泳池或社区中心资料当成当前可用设施。",
+        "url": "https://www.walnutcreekca.gov/government/public-works/construction-roadwork-impacts",
+        "mapQuery": "Heather Farm Park Walnut Creek",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先在较凉时段走 Borges Ranch 周边短线，再视施工公告决定是否去 Heather Farm 休息；若入口绕行明显，就把半天留给牧场与市区，不为凑点位穿越工地。",
+    "arrival": "新居民从城市公共工程公告与公园资源同步了解周边环境；报名课程、运动和场地预约时确认最新地址，不能使用施工前的设施入口和服务地点。",
+    "residentTip": "常住居民可逐步探索城市开放空间并关注维护志愿项目；带孩子看牧场动物时尊重饲养边界，不自行喂食。Heather Farm 常去者应先看工程更新再改变日常路线。",
+    "transport": "Borges Ranch 用 Castle Rock Road 具体入口，Heather Farm 另查施工后的通行安排。BART 抵达市区后两处仍需接驳，停车与步道起点应分别确认。",
+    "checks": "核对开放空间火险、高温、牧场活动和 Heather Farm 施工绕行；工程预计完成或资金安排不是当日开放证明。若需要无障碍路线，向管理方确认当前连续通道。",
+    "resources": [
+      {
+        "label": "城市施工与通行公告",
+        "url": "https://www.walnutcreekca.gov/government/public-works/construction-roadwork-impacts",
+        "kind": "city"
+      },
+      {
+        "label": "Borges Ranch 与开放空间",
+        "url": "https://www.walnutcreekca.gov/home/components/facilitydirectory/facilitydirectory/16/664",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Francisco",
+    "county": "San Francisco",
+    "summary": "第一次到旧金山，不必把所有城市地标挤在一天。Golden Gate Park 适合花园、湖区与文化设施，Presidio Tunnel Tops 适合海湾景观和自然游戏；它们是两大片区，选一处为半日主线更容易照顾同行者体力。",
+    "places": [
+      {
+        "name": "Golden Gate Park",
+        "description": "园内有花园、湖区、文化设施与 JFK Promenade 等不同目的地；普通公园空间与各收费场馆分开规划，不能用一个园区名字替代实际入口。",
+        "url": "https://www.sfrecpark.org/1116/Golden-Gate-Park-Points-of-Interest",
+        "mapQuery": "Golden Gate Park Music Concourse San Francisco",
+        "scope": "city"
+      },
+      {
+        "name": "Presidio Tunnel Tops",
+        "description": "连接 Presidio 与海岸体验的公共空间，有海湾视野、自然游戏和野餐选择；与其他名为 Tunnel Top 的城市小公园不同。",
+        "url": "https://presidio.gov/explore/attractions/presidio-tunnel-tops",
+        "mapQuery": "Presidio Tunnel Tops San Francisco",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议花园文化线以 Golden Gate Park 一片区域为主；带孩子看海湾则选 Tunnel Tops 与附近短走。若两个都去，明确减少场馆数量，另留城市交通与用餐时间。",
+    "arrival": "新居民从城市官网查居住相关服务，再分别收藏 SF Recreation & Parks 与 Presidio；两类园区管理不同，居民优惠、活动预约和停车规则不能互相套用。",
+    "residentTip": "常住居民可按兴趣轮换 Golden Gate Park 不同花园和自然空间，或关注 Presidio 的家庭活动；会员、居民资格及免费时段须按具体场馆核对，不认全市通用。",
+    "transport": "Presidio 官方提供公共交通与免费 Presidio GO 接驳信息，附近停车场有收费；Golden Gate Park 则按具体入口查 Muni、停车和道路限制，不默认可以开车穿过全部园路。",
+    "checks": "海湾大风、雾与大型活动会影响体验；室内场馆、儿童设施和野餐预约各自核对。十月热门活动可能带来道路调整，出门前查看公园及交通部门当日公告。",
+    "resources": [
+      {
+        "label": "旧金山市政府服务",
+        "url": "https://www.sf.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "城市公园目的地",
+        "url": "https://www.sfrecpark.org/684/Points-of-Interest",
+        "kind": "parks"
+      },
+      {
+        "label": "Presidio 到访与接驳",
+        "url": "https://presidio.gov/visit/getting-to-and-around-the-park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  }
+]

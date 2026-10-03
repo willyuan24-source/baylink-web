@@ -1,0 +1,1367 @@
+[
+  {
+    "city": "Atherton",
+    "county": "San Mateo",
+    "summary": "以低密度住宅、林荫路和社区设施为主的小镇，适合安静散步、带书去图书馆或参加活动。公共去处集中，第一次来不必把私人宅邸当景点，也不适合安排密集购物路线。",
+    "places": [
+      {
+        "name": "Holbrook-Palmer Park",
+        "description": "本镇主要公共公园，可沿花园和步道散步；球场、场地租用和儿童游乐设施各有使用条件。",
+        "url": "https://www.athertonca.gov/180/Holbrook---Palmer-Park",
+        "mapQuery": "Holbrook-Palmer Park Atherton CA",
+        "scope": "city"
+      },
+      {
+        "name": "Atherton Library",
+        "description": "市政中心旁的县图书馆，提供阅读、儿童空间及创作活动；室内休息可作为下雨或公园施工时的替代。",
+        "url": "https://athertonca.gov/268/Library",
+        "mapQuery": "Atherton Library Atherton CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在公园选一段短步道，再到图书馆阅读或参加已预约活动，预留两至三小时。带幼儿时以图书馆为主，途中用餐可另选邻近 Menlo Park，别把两镇餐饮区当成同一园区。",
+    "arrival": "搬来先从镇官网确认住址对应的垃圾、水务与建筑办事入口；需要修树、围栏或改造房屋时，先联系镇规划部门，不把房东口头同意当作市政许可。",
+    "residentTip": "把图书馆活动与镇会议日历分开订阅，创客活动、儿童项目和场地租赁分别查看报名条件；举办多人聚会，先核对公园人数门槛和申请程序。",
+    "transport": "公园入口与图书馆是不同目的地，导航分别设置；住宅道路不要挡车道或私家出入口。依赖公共交通时先查跨镇接驳与最后一段步行，不能把铁路经过等同于镇内有停站。",
+    "checks": "核验时公园官网仍提示游乐场自五月四日起改造关闭，未据此确认重新开放。出发前重查工程公告；图书馆开放、活动报名和公园团体许可也应分别确认。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://athertonca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与活动",
+        "url": "https://athertonca.gov/268/Library",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Belmont",
+    "county": "San Mateo",
+    "summary": "一边是靠近市政设施的溪边公园，一边是上坡后的林地步道。适合想在半岛安排短徒步、又希望保留室内社区活动选择的人；平地与山坡不能用同一种步行难度理解。",
+    "places": [
+      {
+        "name": "Twin Pines Park",
+        "description": "市中心附近的溪谷公园，周边聚集历史、长者和社区活动设施，可把散步与办事串在一起。",
+        "url": "https://www.belmont.gov/Home/Components/FacilityDirectory/FacilityDirectory/208/509",
+        "mapQuery": "Twin Pines Park Belmont CA",
+        "scope": "city"
+      },
+      {
+        "name": "Waterdog Lake & Open Space",
+        "description": "本城山坡上的开放空间，步道有坡度且部分为多人共用；选择一个正式入口和短折返，比临时拼长环线更稳妥。",
+        "url": "https://www.belmont.gov/Home/Components/FacilityDirectory/FacilityDirectory/10/702",
+        "mapQuery": "Waterdog Lake Open Space Lyall Way Belmont CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：天气干燥时先走 Waterdog 的一段步道，再到 Twin Pines 休息，留三至四小时并计入转场；雨后或同行者怕坡，就只走溪边公园，再按日历选社区活动。",
+    "arrival": "新居民先确认实际市界与住房地址，再从市官网办理与本城有关的服务；有孩子或长者，直接查 Parks and Recreation 的年龄、居民资格和报名日，不只收藏宣传海报。",
+    "residentTip": "Twin Pines 周边的社区与长者设施适合持续参加课程、讲座和邻里活动。想租野餐区或室内空间，使用市府设施目录联系管理员，公园可散步不等于场地随到随占。",
+    "transport": "Waterdog 的 Lyall Way、Hallmark 与 Carlmont 等入口服务不同步道；先选路线再选停车点。山坡住宅街的路边位置有限，别把通勤车站到步道的距离当成平坦散步。",
+    "checks": "开放空间按日出至日落使用；出发前看天气、泥泞与入口告示，带狗须牵绳，并在共用路段礼让。历史建筑、社区室内设施和球场的开放或预约规则另查。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.belmont.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与设施",
+        "url": "https://www.belmont.gov/Home/Components/FacilityDirectory/FacilityDirectory/208/509",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Brisbane",
+    "county": "San Mateo",
+    "summary": "夹在山脚与海湾之间的小城，镇中心尺度紧凑，适合公园、短步道和社区活动组成轻松半日。这里的工业园与住宅区相邻，路线应选正式步道，不把所有山坡或厂区道路当观景捷径。",
+    "places": [
+      {
+        "name": "Brisbane Community Park",
+        "description": "城中心的公共聚会绿地，设游乐与休息空间；可结合市府日历中的集市或社区活动，但活动不保证每天举行。",
+        "url": "https://www.brisbaneca.gov/430/Parks-Trails",
+        "mapQuery": "Brisbane Community Park Brisbane CA",
+        "scope": "city"
+      },
+      {
+        "name": "Crocker Park Recreational Trail",
+        "description": "绕工业园的相对平缓休闲步道，可选短段步行或跑步；经过道路交叉口时仍须按交通设施通行。",
+        "url": "https://www.brisbaneca.gov/430/Parks-Trails",
+        "mapQuery": "Crocker Park Recreational Trail Brisbane CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Community Park 和附近街区停留，再从正式入口走 Crocker 的一段，预留两至三小时。若恰逢活动，可缩短步道，把时间留给市集；没有活动时也不必绕完整圈。",
+    "arrival": "刚搬来先从本城官网的公园、会议与城市服务入口建立常用收藏，报修或询问设施归属时附具体地址与照片。湾边办公区和山坡住处的日常通勤方式应分别试走。",
+    "residentTip": "把公园活动当作认识邻里的入口，常用球场或组织聚会则向 Parks and Recreation 查登记与场地条件。关注 Crocker 步道改善项目的公示，可参与意见征集但不要把方案图当完工设施。",
+    "transport": "中心公园与 Crocker 环线可分段安排，步道穿越道路处要减速观察；靠近工业园时注意工作车辆。停车和公共交通以具体入口查询，避免导航只落在同名大片区域中央。",
+    "checks": "核验时市府仍发布 Crocker 项目的设计和环境审查信息，不能据此认定新设施已开放。出发前查施工、步道标识和社区活动日期；遇大风或天色变暗，缩短山脚与湾边行程。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.brisbaneca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与步道",
+        "url": "https://www.brisbaneca.gov/430/Parks-Trails",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Burlingame",
+    "county": "San Mateo",
+    "summary": "适合把市中心餐饮、社区公园与海湾散步分成两段体验。铁路附近的街区便于集中停留，机场方向的湾边则更开阔；两种空间被交通干道分隔，别把地图上的接近当成随手可走到。",
+    "places": [
+      {
+        "name": "Washington Park",
+        "description": "靠近 Burlingame Avenue 的老公园，游乐、球场与社区中心集中，适合作为家庭休息或参加课程的落脚点。",
+        "url": "https://www.burlingame.org/Facilities/Facility/Details/Washington-Park-19",
+        "mapQuery": "Washington Park Burlingame CA",
+        "scope": "city"
+      },
+      {
+        "name": "Bayside Fields",
+        "description": "Airport Boulevard 一带的运动与步行空间，步道连接海湾步道网络；观景散步和预订球场是两种不同用法。",
+        "url": "https://www.burlingame.org/facilities/facility/details/Bayside-Fields-3",
+        "mapQuery": "Bayside Fields Burlingame CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先到 Washington Park，再在 Burlingame Avenue 用餐；天气舒适才转往 Bayside 走短段湾边，合计留三至四小时。带推车或不想过干道，可只留在市中心这一组。",
+    "arrival": "搬来先把住宅服务与通勤停车分开核对：市官网查办事入口，实际走一次从家到车站或接送点的路线。社区中心课程按年龄、居民条件和场次报名，不能只凭住在半岛就套用本城待遇。",
+    "residentTip": "Washington Park 的社区中心适合持续查课程和活动；湾边运动则从市府公园目录选场地。养狗者可查专设犬区及维护时间，不把邻近球场或整条海湾步道都当成放绳区域。",
+    "transport": "市中心与 Airport Boulevard 之间需预留转场，步行或骑车先确认合法跨越干道的路线。导航用具体球场或公园入口，停车看现场时限；比赛或活动时另留找位时间。",
+    "checks": "海湾风力、球场比赛和犬区维护可能改变体验；图书馆与社区中心也有各自日程。城市规划中的新海湾公园不能当成现成景点，出发前以现有设施目录和施工公告为准。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.burlingame.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与游乐场",
+        "url": "https://burlingame.org/380/Parks-Playgrounds",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Colma",
+    "county": "San Mateo",
+    "summary": "面积不大的住宅与历史小镇，值得从铁路、墓园行业和社区生活了解其独特来历。它不是大型观光中心，适合博物馆加社区设施的短行程；墓园有悼念功能，拍照或参观须尊重运营方与家属。",
+    "places": [
+      {
+        "name": "Colma Historical Museum",
+        "description": "历史协会运营的博物馆保存小镇、铁路与墓园相关资料，园内有车站及历史建筑；参观以协会当前开放说明为准。",
+        "url": "https://www.colmahistory.com/museum/",
+        "mapQuery": "Colma Historical Museum 1500 Hillside Boulevard Colma CA",
+        "scope": "city"
+      },
+      {
+        "name": "Sterling Park Recreation Center",
+        "description": "F Street 的本镇休闲与活动场所，适合从社区课程或亲子活动认识小镇；室内项目须按镇活动安排参加。",
+        "url": "https://stories.opengov.com/colmaca/published/K--PHScww",
+        "mapQuery": "Sterling Park Recreation Center 427 F Street Colma CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先确认博物馆开放再安排参观，随后到 Sterling Park 周边短暂停留；若没有开放或活动，缩成一站即可，不必为了凑行程闯入墓园。建议两小时左右，课程时间另计。",
+    "arrival": "刚搬来先确认地址确在 Colma 镇内，再向镇政府问居民活动登记所需证明、垃圾与住房服务归属。同名 BART 站或邮寄城市名称，都不能单独证明你的住所属于哪个市政府。",
+    "residentTip": "镇的休闲项目包括不同年龄活动、课程与外出项目，按当季活动册逐项查居民价格和报名窗口。想了解家乡历史可联系历史协会，旧活动网页只适合查地点，不能当作今年仍有同一场次。",
+    "transport": "Hillside Boulevard 的博物馆与 F Street 活动点分开导航，步行先看过街位置；公园停车、墓园车道和商业停车场不是同一权限，进入前读现场标识，别占用送葬或服务通道。",
+    "checks": "历史协会现行网站写周六下午开放并建议先联系，旧网站时间可能不同。Sterling 的具体开放与活动需向镇确认；本条不沿用历史活动的日期、收费或报名承诺。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.colma.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "镇休闲服务说明",
+        "url": "https://stories.opengov.com/colmaca/published/K--PHScww",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Daly City",
+    "county": "San Mateo",
+    "summary": "旧金山南侧的生活型城市，适合把图书馆、社区公园和购物补给放在一起。海雾与坡度会影响体感；住宅区、商场区和靠海一侧并不集中，第一次来应选一个片区慢慢熟悉。",
+    "places": [
+      {
+        "name": "Gellert Park",
+        "description": "Wembley 一带的社区公园与活动空间，可和邻近主图书馆一起安排，适合短散步和按日历参加项目。",
+        "url": "https://www.dalycity.org/1227/Recreation",
+        "mapQuery": "Gellert Park Daly City CA",
+        "scope": "city"
+      },
+      {
+        "name": "Serramonte Main Library",
+        "description": "位于 Wembley Drive 的市图书馆，适合阅读、查询本地资源与儿童活动；各分馆开放日不同，周末尤其要选对。",
+        "url": "https://www.dalycity.org/283/Locations-Hours",
+        "mapQuery": "Serramonte Main Library 40 Wembley Drive Daly City CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：在主图书馆开放的日子先查活动再入馆，之后到 Gellert Park 走一小段，预留两至三小时。图书馆休馆时改选已确认开放的 Westlake 分馆，不临时把施工中的公园当替代。",
+    "arrival": "新居民先确认住址是否在市界内，尤其不要仅凭 Daly City 邮寄地址判断；在市官网收藏水费、问题上报与图书馆入口，办卡时询问所需证件和住址材料，避免把全部证件原件留在车内。",
+    "residentTip": "四个图书馆分馆各有不同开放时段，按下班、接送或周六需要选馆更实用。儿童阅读和休闲项目须查当前报名与场所；市府活动日历也可筛选社区服务，减少错过本城项目。",
+    "transport": "BART 站、商场和 Gellert 片区之间仍有接驳与步行距离；带购物袋或推车时先查具体公交站和坡度。雾中驾车降低车速，公园和商业停车场分别看开放时段与停放限制。",
+    "checks": "Marchbank Park 市府页面仍有改造工程资料，不能按效果图承诺新设施开放。本行选择其他设施；出发前再查主图书馆休馆日、社区项目报名及公园局部施工通知。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.dalycity.org/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆地点与时间",
+        "url": "https://www.dalycity.org/283/Locations-Hours",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "East Palo Alto",
+    "county": "San Mateo",
+    "summary": "以海湾湿地、社区公园和多元居民生活为特色，适合认识半岛东侧不同于科技园区的一面。它是 San Mateo 县的独立城市，办事与公园服务不能直接照搬邻近 Palo Alto 的体系。",
+    "places": [
+      {
+        "name": "Cooley Landing",
+        "description": "Bay Road 尽头的湾边公园连接海湾步道，适合看湿地与短程散步；教育中心室内活动和租赁另有安排。",
+        "url": "https://www.ci.east-palo-alto.ca.us/parksites",
+        "mapQuery": "Cooley Landing 2100 Bay Road East Palo Alto CA",
+        "scope": "city"
+      },
+      {
+        "name": "Jack Farrell Park",
+        "description": "Fordham Street 社区绿地，设运动、游乐与健身设施，适合家庭休息；组织聚会和日常个人使用的规则不同。",
+        "url": "https://www.cityofepa.org/parksrec/page/jack-farrell-park",
+        "mapQuery": "Jack Farrell Park East Palo Alto CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：上午或风较小时先去 Cooley Landing，选择明确的折返点，随后到 Jack Farrell 休息，留三小时左右。若有已报名的教育中心活动，以活动时段为主，不再硬塞长程湾边骑行。",
+    "arrival": "搬家后先用本城官网确认住址的水务、垃圾及社区服务联系人；同一城市可能涉及不同供水服务范围。需要课程或场地时联系本城 Parks and Recreation，不因名称相近就向 Palo Alto 申请。",
+    "residentTip": "Cooley Landing Education Center 的社区项目值得长期查阅，公园步行可与自然教育结合。Jack Farrell 聚会要预留申请时间，官网要求预约提前办理，临时到场不能保证保留区域可用。",
+    "transport": "Bay Road 的最东端和内陆社区公园分属两段行程，先核对步道入口、停车与返程方式。湾边曝晒和风力明显，骑车或步行带水，并在共用步道上给儿童和慢行者留空间。",
+    "checks": "公园通常按日出至日落使用，教育中心并非随公园全天开放；查活动、团体预约及临时关闭。湿地不要离开步道追鸟，潮位与风向影响观景体验，不能承诺到访就看见特定鸟类。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cityofepa.org/",
+        "kind": "city"
+      },
+      {
+        "label": "城市公园",
+        "url": "https://www.ci.east-palo-alto.ca.us/publicworks/page/city-parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Foster City",
+    "county": "San Mateo",
+    "summary": "围绕人工潟湖、海堤和运动公园展开的水边城市，适合家庭散步、骑行与参加社区课程。内湖水上活动和外侧海湾不是同一种环境；第一次来选一个岸段，比沿地图想象全城都能临水直达更实际。",
+    "places": [
+      {
+        "name": "Leo J. Ryan Park",
+        "description": "中央潟湖旁的草地、步行空间与活动场所，适合观水、休息及参加市府项目；船艇租赁有独立营业安排。",
+        "url": "https://www.fostercity.org/Facilities/Facility/Details/Leo-J-Ryan-Park-25",
+        "mapQuery": "Leo J Ryan Park Foster City CA",
+        "scope": "city"
+      },
+      {
+        "name": "Sea Cloud Park",
+        "description": "以棒球、足球等运动场为主的社区公园，连接海堤步行网络；规划中的邻接用地和改建设施不能当成现有开放项目。",
+        "url": "https://www.fostercity.org/245/Parks-Recreation",
+        "mapQuery": "Sea Cloud Park Foster City CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Ryan Park 选一小段潟湖岸线，再按体力转往 Sea Cloud 与海堤入口，留三小时左右。带小孩可只选前者并参加活动；有比赛或大风时，不必为了走满路线跨城绕圈。",
+    "arrival": "新居民从市官网建立市政服务、休闲报名及水费办事入口；住在临水公寓也先向物业确认公共步道与私人空间边界。了解住所出口、积水通知和社区应急信息，比只记住风景地点更有用。",
+    "residentTip": "市府活动册覆盖儿童、青少年、成人和长者项目，按年龄与季度逐项报名。经常使用运动场者可查每日场地状态与预约；野餐或多人聚会也应先问人数门槛，而非到了再圈占草地。",
+    "transport": "内湖公园与外湾海堤分别设置导航点，步行和骑行注意桥口与共用路径的交汇。活动或联赛时停车需求集中，按现场规定停放，不能把沿水私家住宅入口当作公共停车或下水点。",
+    "checks": "Ryan Park 网页含旧季节活动资料，不沿用其中小火车日期；船艇租赁、游泳条件和团体活动以当期公告为准。Sea Cloud 总体规划中的新增项目仅是规划，遇施工围挡按现场路线绕行。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.fostercity.org/",
+        "kind": "city"
+      },
+      {
+        "label": "休闲活动与场地",
+        "url": "https://www.fostercity.org/245/Parks-Recreation",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Half Moon Bay",
+    "county": "San Mateo",
+    "summary": "适合把海岸散步与 Main Street 小镇生活放在同一天，既能看海，也有街区休息点。海边天气、崖边地形和一号公路交通会决定节奏；不要把附近所有海岸社区都当成本城市界内。",
+    "places": [
+      {
+        "name": "Poplar Beach",
+        "description": "Poplar Street 西端的市属海滩入口，可看海并连接海岸散步路线；停车收费，崖边与下滩路径要留意现场条件。",
+        "url": "https://www.halfmoonbay.gov/1115/Beaches",
+        "mapQuery": "Poplar Beach Half Moon Bay CA",
+        "scope": "city"
+      },
+      {
+        "name": "Mac Dutra Plaza",
+        "description": "Main Street 的小广场，适合作为老城步行与找餐饮的集合点；活动须查城市日历，不把广场本身当大型公园。",
+        "url": "https://www.halfmoonbay.gov/facilities/facility/details/Mac-Dutra-Plaza-8",
+        "mapQuery": "Mac Dutra Plaza Half Moon Bay CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：上午先在 Poplar 看海，选不需下崖的短段，再到 Main Street 用餐和逛街，留三至四小时。海雾、强风或同行者怕坡时，缩短海岸段，把时间留给老城；不把赶日落作为必须完成的项目。",
+    "arrival": "刚搬来先核对住处属于 Half Moon Bay 还是周边非建制海岸社区，再确认水务、垃圾和办事机关。实际试走一号公路与九十二号公路的常用路线，并从市官网获取本地通知与应急信息。",
+    "residentTip": "把 Main Street 周边的小型公共空间、城市活动和海岸步行分开使用，平日短走也能形成固定休闲习惯。组织沙滩活动、带狗或聚会前查市府海滩规则，不能套用邻近州立海滩的规定。",
+    "transport": "Poplar 停车场与老城是两个目的地，导航分别设置；市府明确海滩停车收费，本条不固定费率。周末和秋季大型活动可能影响进城交通，给返程留余量，别在公路肩或私家农场临停。",
+    "checks": "海浪、潮位与崖边条件会变化，观海不等于适合游泳；下滩前确认返程路线和天色。出发前复查停车时段、宠物限制及市中心活动封路，过期南瓜季海报不能当今年通行安排。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.halfmoonbay.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "市属海滩与规定",
+        "url": "https://www.halfmoonbay.gov/1115/Beaches",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Hillsborough",
+    "county": "San Mateo",
+    "summary": "以山坡住宅和安静道路为主，没有适合连续逛店的商业市中心。来访宜围绕公共公园，或已经确认的历史宅邸导览安排；私人花园、车道和建筑外观不能因有名就视作开放景点。",
+    "places": [
+      {
+        "name": "Vista Park",
+        "description": "本镇公共休闲公园，有儿童游乐、草地和野餐空间，适合家庭短暂停留；团体使用另查预约。",
+        "url": "https://www.hillsborough.net/210/Parks",
+        "mapQuery": "Vista Park 1030 Vista Road Hillsborough CA",
+        "scope": "city"
+      },
+      {
+        "name": "Carolands",
+        "description": "历史宅邸通过运营基金会安排限额导览，必须预约并收到确认；有年龄及实名要求，不适合作为随到随进的亲子备选。",
+        "url": "https://www.carolands.org/tours/",
+        "mapQuery": "Carolands Hillsborough CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：普通家庭选 Vista Park 的一段轻松停留，再到邻近 Burlingame 用餐；持确认导览者则围绕 Carolands 的指定报到时间安排半日。两种行程二选一，不把临时去门口碰碰运气列为步骤。",
+    "arrival": "搬来先与镇政府核对水费、垃圾、树木及房屋工程的负责入口；山坡住宅尤其应了解门牌识别、访客停车和应急路线。需要到柜台办事，先查部门接待时间，不只看镇政府大楼地址。",
+    "residentTip": "Vista Park 的设施预约和镇社区通知比旅游打卡清单更适合长期使用。关注镇会议与公共工程信息，若带亲友参观 Carolands，应由每位实际参加者按运营方规则确认资格与预约名额。",
+    "transport": "住宅坡路适合按目的地直接到访，不宜临时停在狭窄弯道拍照。Carolands 要按确认信指定方式入场与停车，Vista Park 则按现场标识；别假设两处之间有适合推车的连续平路。",
+    "checks": "Carolands 目前常规导览要求年满十六岁，未成年人另需成人陪同，并要求实名确认与身份证明；以预约页最终说明为准。Vista Park 的场地占用、天气和维护也应出发前确认。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.hillsborough.net/",
+        "kind": "city"
+      },
+      {
+        "label": "公共公园",
+        "url": "https://www.hillsborough.net/210/Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Menlo Park",
+    "county": "San Mateo",
+    "summary": "有市中心社区设施，也有开阔海湾步道，适合把日常生活与自然散步结合。两端距离明显，科技公司地址并不等于公共景点；第一次来先选市中心或湾边，再决定是否转场。",
+    "places": [
+      {
+        "name": "Burgess Park",
+        "description": "Laurel Street 的社区公园，周边有图书馆、泳池与休闲设施，适合家庭活动和熟悉城市服务。",
+        "url": "https://www.menlopark.gov/Parks",
+        "mapQuery": "Burgess Park Menlo Park CA",
+        "scope": "city"
+      },
+      {
+        "name": "Bedwell Bayfront Park",
+        "description": "Marsh Road 尽头的湾边开放空间，外围较平缓、内部有坡；可按体力选短折返观察湿地。",
+        "url": "https://www.menlopark.gov/Parks/Bedwell-Bayfront-Park",
+        "mapQuery": "Bedwell Bayfront Park Menlo Park CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Burgess 周边散步与阅读，再转往 Bedwell 选一段步道，留三至四小时。不想开车转场就只做社区公园与市中心；观鸟者可把整个半日留给湾边，不必同时赶两处。",
+    "arrival": "搬来先确认住址对应水务服务商与市界，再查市府办事入口；泳池、课程和图书馆服务分别看申请条件。家庭报名休闲项目时准备实际居住证明，别凭附近公司工作地址推定居民资格。",
+    "residentTip": "Burgess 一带适合持续参加城市课程与图书馆活动，湾边则适合短走和自然观察。团体运动、野餐与个人散步使用规则不同，组织活动前通过公园目录找到负责单位。",
+    "transport": "Bedwell 的入口、停车与洗手间在 Marsh Road 端，不能从地图任意湾边点进入。市中心与湾边跨越干道，骑行先核对连续通行路线；湾边停车场按公园关闭时间离开。",
+    "checks": "Bedwell 日间开放，风、泥泞和坡度影响路线选择，狗须牵绳。Burgess 的泳池和室内设施另有场次与维护安排；出发前分别查公园告示、预约和活动日历。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://menlopark.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园目录",
+        "url": "https://www.menlopark.gov/Parks",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Millbrae",
+    "county": "San Mateo",
+    "summary": "以轨道换乘和生活街区见长，适合刚到半岛的人熟悉交通，也能安排公园与图书馆的轻松半日。交通枢纽不是整座城市的缩影，离站后的住宅街和社区设施值得单独走一趟。",
+    "places": [
+      {
+        "name": "Central Park",
+        "description": "Lincoln Circle 的城市公园，设游乐、草地、球场与野餐空间，邻近 Recreation Center，适合家庭休息。",
+        "url": "https://www.ci.millbrae.ca.us/Facilities/Facility/Details/Central-Park-2",
+        "mapQuery": "Central Park Millbrae CA",
+        "scope": "city"
+      },
+      {
+        "name": "Millbrae Library",
+        "description": "Library Avenue 的县图书馆，可查询本地活动与阅读资源；会议室预订与普通入馆不同，按对应入口办理。",
+        "url": "https://www.ci.millbrae.ca.us/BusinessDirectoryII.aspx?lngBusinessCategoryID=22",
+        "mapQuery": "Millbrae Library 1 Library Avenue Millbrae CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在图书馆查看活动或短读，再到 Central Park 休息，留两至三小时；想顺便熟悉通勤，就把车站与实际公交站列为单独一段。不为赶景点拖行李绕远，先解决寄放与返程。",
+    "arrival": "新居民可从市官网的 Utility Portal 与 Millbrae Works 开始建立账户和问题上报入口；办理住宅相关服务前确认地址。把家到车站、学校接送点及社区中心的路线各试走一次。",
+    "residentTip": "图书馆活动与 Recreation Center 课程是持续使用的两类资源，分别关注年龄、报名和候补规则。需要会议室或公园聚会空间时，提前核对容量与用途，别把设施日历空白理解为已经获准使用。",
+    "transport": "换乘列车要核对当天班次、站台与末班安排，市内目的地仍需步行或公交接驳。机场、通勤与社区停车规则不同；短时逛公园不要占用指定接送、居民或私有车位。",
+    "checks": "先查图书馆当日休馆与活动报名，再确认公园或社区中心的维护安排。市官网会发布道路施工与街段关闭；途经 Center Street 等街道时以当天通知为准，不沿用旧导航路线。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.ci.millbrae.ca.us/",
+        "kind": "city"
+      },
+      {
+        "label": "中央公园与设施",
+        "url": "https://www.ci.millbrae.ca.us/Facilities/Facility/Details/Central-Park-2",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Pacifica",
+    "county": "San Mateo",
+    "summary": "以海岸步道、岬角和小片餐饮街区为特色，适合半日看海，不必一次串完所有海滩。气候、坡度和海况变化明显；愿意根据风雾缩短路线，往往比照着长距离打卡表更舒服。",
+    "places": [
+      {
+        "name": "Mori Point",
+        "description": "国家公园系统管理的海岸岬角与湿地步道，有坡路与海景；留在标示路线，不踏入恢复中的栖地。",
+        "url": "https://www.nps.gov/goga/planyourvisit/moripoint.htm",
+        "mapQuery": "Mori Point Pacifica CA",
+        "scope": "city"
+      },
+      {
+        "name": "Rockaway Beach",
+        "description": "海岸街区旁的沙滩与步行空间，可作为休息和用餐落脚点；看海、下沙滩与海水活动的风险不同。",
+        "url": "https://www.cityofpacifica.org/departments/parks-beaches-recreation/parks-and-beaches-locations-maps-safety-guides",
+        "mapQuery": "Rockaway Beach Pacifica CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：天气稳定时先走 Mori Point 短线，再转往 Rockaway 用餐，留三至四小时。同行者怕坡或有推车时，改为海岸较平缓路段；不默认两处之间的全程山路适合所有人。",
+    "arrival": "搬来先查住所对应的市政服务，并熟悉沿海路段和山坡住宅的常用出入口；从市官网关注道路、海滩与应急通知。申请活动或场地时确认由城市还是国家公园负责，不能混用许可。",
+    "residentTip": "市府步道与海滩地图适合逐段探索，先选离家近的短路线。参加清洁、休闲课程或使用场地时查看当前活动入口；带狗则按各海滩和保护区的具体规则，不从一个地点推断全城相同。",
+    "transport": "一号公路把不同海岸片区串起，步行应走指定步道与过街设施，不能沿车道边拼路线。海滩停车与街区餐饮停车分别读标识；回程留出雾天、周末或活动交通余量。",
+    "checks": "出发前查国家公园临时关闭、湿滑步道和海况；崖边保持距离，不能因有人下水就判断安全。潮位会影响沙滩宽度，长线途中预留折返点，天色转暗或风雾变大就缩短。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cityofpacifica.org/",
+        "kind": "city"
+      },
+      {
+        "label": "步道与步行路线",
+        "url": "https://www.cityofpacifica.org/departments/public-works/field-services/trails-walkways",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Portola Valley",
+    "county": "San Mateo",
+    "summary": "山麓小镇以步道、开放空间和社区中心见长，适合轻徒步与安静阅读。公共通行权、私人土地和马道交织，来访应使用镇提供的路线图，不能看到一条土路就认定可以穿越。",
+    "places": [
+      {
+        "name": "Portola Valley Town Center",
+        "description": "Portola Road 的公共校园集中图书馆、社区厅、运动与儿童活动空间，适合先认识镇的日常生活。",
+        "url": "https://www.portolavalley.net/about/town-center",
+        "mapQuery": "Portola Valley Town Center 765 Portola Road CA",
+        "scope": "city"
+      },
+      {
+        "name": "Coal Mine Ridge",
+        "description": "镇步道地图列出的林地与开放空间，线路穿过不同地块；出发前按地图选择入口、用途与可走路段。",
+        "url": "https://www.portolavalley.net/about/open-space-in-portola-valley/portola-valley-trails",
+        "mapQuery": "Coal Mine Ridge Nature Preserve Portola Valley CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先到 Town Center 查地图与图书馆活动，再选择 Coal Mine Ridge 的短折返，留三至四小时。带幼儿或雨后不想走泥地，可全程留在镇中心，图书馆与户外草地搭配即可。",
+    "arrival": "新居民优先了解住所的消防、应急通知与主要进出路线，再向镇办事部门确认房屋工程和树木相关程序。Town Hall 柜台与图书馆时间不同，办事前查部门接待时段并准备地址资料。",
+    "residentTip": "镇中心社区厅、图书馆与运动空间可持续使用；步道爱好者可从镇地图查看路权与用途。组织活动、租场或遇步道问题，应把地点与路段说明清楚，便于找到负责单位。",
+    "transport": "镇中心和山坡步道入口分开导航，住宅路边只在合法位置停放；不要挡闸门或私人车道。骑行、步行和骑马可能共用部分路段，遇马匹减速并给对方留出空间。",
+    "checks": "Coal Mine Ridge 各路段的步行、骑马及其他用途限制以镇地图和现场牌为准，雨后可能关闭。镇中心图书馆、柜台、租赁空间分别查时间；山地行程另看火险与天气公告。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.portolavalley.net/",
+        "kind": "city"
+      },
+      {
+        "label": "镇步道地图",
+        "url": "https://www.portolavalley.net/about/open-space-in-portola-valley/portola-valley-trails",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Redwood City",
+    "county": "San Mateo",
+    "summary": "市中心的历史法院与街区活动适合第一次来，山坡公园则提供较安静的自然路线。Redwood Shores 与主市中心相距一段路，规划办事、用餐和看展时先分清片区，别把全市视作一条步行街。",
+    "places": [
+      {
+        "name": "San Mateo County History Museum",
+        "description": "位于 Broadway 的历史法院建筑内，适合了解整个县的迁徙、交通与生活史；看展与广场活动分别查日程。",
+        "url": "https://historysmc.org/",
+        "mapQuery": "San Mateo County History Museum Redwood City CA",
+        "scope": "city"
+      },
+      {
+        "name": "Stulsaft Park",
+        "description": "Farm Hill Boulevard 的山坡公园，有自然步道与家庭休闲空间；上下区域入口不同，适合按体力选短段。",
+        "url": "https://www.redwoodcity.org/Home/Components/FacilityDirectory/FacilityDirectory/47/36?selamenityid=10",
+        "mapQuery": "Stulsaft Park Redwood City CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先参观历史博物馆并在市中心用餐，再转往 Stulsaft 短走，留三至四小时。不开车时以市中心为主，把博物馆与街区活动连起来；有幼儿则减少展览或山坡路段，避免两头赶。",
+    "arrival": "新居民先按住址确认服务归属，Redwood City 邮寄地址不必然代表市界内；再收藏市府服务与所在片区的图书馆入口。需要水务、垃圾或工程许可时向负责机构核对，不只按邮编选择。",
+    "residentTip": "历史博物馆可作为了解本地的长期资源，市府公园目录则帮助选野餐、运动和山坡散步地点。带狗到 Stulsaft 时查具体区域与时段，不能因为某段允许放绳就推断整个公园都允许。",
+    "transport": "市中心和 Farm Hill 山坡需要转场，驾车分别设置入口；步行先看爬升与返程。市中心路边、停车楼和公园车位各有规则，活动日多留时间，别依靠旧照片判断停车免费。",
+    "checks": "Stulsaft 二〇二六年戏水季已在九月底结束，不把戏水列为十月保证项目；另查闸门、狗绳规定与维护。历史协会官网正在更新，当前首页保留电话与开放时间，专程看展或活动先联系馆方确认。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.redwoodcity.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园设施与规则",
+        "url": "https://www.redwoodcity.org/Home/Components/FacilityDirectory/FacilityDirectory/47/36?selamenityid=10",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Bruno",
+    "county": "San Mateo",
+    "summary": "机场附近的生活型城市，公共公园与新休闲设施比临时购物绕行更适合认识本地。平地商业区与西侧住宅山坡分开规划；想游泳、运动或找家庭活动，应优先查城市项目的实际场次。",
+    "places": [
+      {
+        "name": "San Bruno City Park",
+        "description": "Crystal Springs 与 Oak 一带的城市公园，提供游乐、野餐、球场与步行空间，适合家庭短停。",
+        "url": "https://sanbruno.ca.gov/1076/San-Bruno-City-Park",
+        "mapQuery": "San Bruno City Park San Bruno CA",
+        "scope": "city"
+      },
+      {
+        "name": "Recreation and Aquatic Center",
+        "description": "City Park Way 的市营休闲与水上活动中心，室内课程及泳池须按开放项目、年龄和预约要求使用。",
+        "url": "https://www.sanbruno.ca.gov/431/Recreation-and-Aquatic-Center-RAC",
+        "mapQuery": "San Bruno Recreation and Aquatic Center CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先按已确认的泳池或课程时段到中心，再到 City Park 休息，留两至三小时。没有合适场次就只做公园散步，不把中心营业理解为泳池随时可用；家庭聚会另办场地预约。",
+    "arrival": "搬来先核对市政水费、垃圾及通信服务的具体住址资格，再从市官网建立办事收藏。申请休闲账户时确认居民证明要求，儿童参加水上项目还应逐项核对年龄、技能与陪同条件。",
+    "residentTip": "休闲中心适合建立固定课程与运动习惯，城市活动和独立体育社团则要分开查报名。想组织野餐，通过市府公园租赁渠道申请，不把设施展示页的日历当成最终预订确认。",
+    "transport": "中心与 City Park 可作为一组目的地，导航到实际入口而非整片公园中央。机场、铁路与商场停车都有各自规则，不能把通勤停车位当作公园长停位；步行跨主要道路走正式过街点。",
+    "checks": "出发前查泳池维护、课程名额、家庭开放与节假日安排；公园开放不代表馆内设施全部开放。旧 Tanforan 商场目录可能过时，购物或补给应逐店确认，不把整座旧商场当固定雨天备选。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.sanbruno.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "休闲与水上中心",
+        "url": "https://www.sanbruno.ca.gov/431/Recreation-and-Aquatic-Center-RAC",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Carlos",
+    "county": "San Mateo",
+    "summary": "Laurel Street 周边适合小镇散步、用餐和了解本地历史，社区公园提供运动与家庭空间。城内山坡步道、平地街区和机场周边景点应分别规划，不能只根据邮寄地址归入同一条短步行线。",
+    "places": [
+      {
+        "name": "Museum of San Carlos History",
+        "description": "Laurel Street 的本地历史馆，可了解城市工业、陶艺与社区发展；开放时段较集中，适合先确认再专程前往。",
+        "url": "https://sancarloshistorymuseum.org/",
+        "mapQuery": "Museum of San Carlos History 533 Laurel Street CA",
+        "scope": "city"
+      },
+      {
+        "name": "Burton Park",
+        "description": "Chestnut Street 的社区公园，市府公园目录列有运动与家庭休闲设施；使用球场或组织聚会需查相应安排。",
+        "url": "https://www.sancarlosparksmp.com/",
+        "mapQuery": "Burton Park 900 Chestnut Street San Carlos CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：博物馆开放日先看展，再沿 Laurel 街区用餐，最后到 Burton Park 休息，留三小时左右。博物馆休馆就改为街区与公园两站，不把隔窗看建筑当成完成参观。",
+    "arrival": "新居民先确认住宅在市界内，再从官网查城市服务与休闲报名。计划修房、改树或占用街道搬家时，向对应部门说明地址和具体工作；不能只凭邻居以前的做法判断是否需要许可。",
+    "residentTip": "城市活动册可查青少年、成人与长者课程，历史馆则有地方资料可咨询。公园改造意见征集值得关注，但规划中的泳池或新设施应等正式开放公告后再安排，不能用效果图推定已建成。",
+    "transport": "市中心、Burton 与山坡路线分开选停车点，沿商业街留意时限与装卸空间。若从铁路到访，先核对步行终点和返程班次；机场区域另算转场，不默认车站出来即可步行串完。",
+    "checks": "历史馆目前写周六下午开放、十二月休馆，平日需联系；仍以预约与临时通知为准。Burton 的旧活动册仅用于核实地点与设施，不沿用旧课程日期，现场维护和场地预约另查。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cityofsancarlos.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园规划与居民参与",
+        "url": "https://www.sancarlosparksmp.com/",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "San Mateo",
+    "county": "San Mateo",
+    "summary": "市中心餐饮、日本庭园与海湾公园各有风格，适合第一次认识半岛中段。老城与湾边隔着交通干道，应拆成两组目的地；看庭园、带孩子玩游乐场和湾边观鸟，也需要分别核对条件。",
+    "places": [
+      {
+        "name": "Central Park Japanese Garden",
+        "description": "Central Park 内的日式庭园，适合安静看池塘与园林；庭园有自己的开放时间，邻近游乐场工程不等于整个庭园关闭。",
+        "url": "https://cityofsanmateo.org/3319/Central-Park-Japanese-Garden",
+        "mapQuery": "Central Park Japanese Garden San Mateo CA",
+        "scope": "city"
+      },
+      {
+        "name": "Seal Point Park",
+        "description": "J. Hart Clinton Drive 的湾边公园，有步行、骑行与湿地观察路线及指定犬区，适合按风力选择短段。",
+        "url": "https://www.cityofsanmateo.org/3384/Seal-Point-Park",
+        "mapQuery": "Seal Point Park San Mateo CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先按庭园开放时间到 Central Park，再在市中心用餐；天气好才转往 Seal Point 短走，留三至四小时。需要少走路时只做庭园与用餐，湾边留作另一次，不硬拼跨城步行。",
+    "arrival": "新居民从市官网确认住址服务与办事入口，别把同名县政府和市政府混用。家庭选择休闲项目时确认课程地点、居民资格与接送条件，搬家地址对应的学校也应由实际学区核对。",
+    "residentTip": "Seal Point 的步道与指定犬区适合经常短访，带狗仍要查看区域规则；市中心公园和室内课程则可作为天气不佳时的选择。计划聚会或球场活动，先问场地是否受工程或预约影响。",
+    "transport": "市中心与 Seal Point 分别导航，海湾步道入口不要误设到湿地或高速路另一侧。停车楼、路边与公园各按现场规定，骑行跨干道先看连续路线，带孩子时宁可减少转场。",
+    "checks": "九月工程更新称游乐场木栈道仍施工，暂拟十月较晚时候重开，尚无确定开放日，不能承诺已可玩。日本庭园时间另查；湾边还要核对风况、步道告示与湿地保护边界。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cityofsanmateo.org/",
+        "kind": "city"
+      },
+      {
+        "label": "中央公园工程更新",
+        "url": "https://www.cityofsanmateo.org/4142/Central-Park-Playground-Renovation",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "South San Francisco",
+    "county": "San Mateo",
+    "summary": "这是一座独立于旧金山的城市，适合从社区公园、新图书馆与休闲中心认识本地生活。工业、生物科技园区与住宅片区相邻，初访不必只盯山坡大字，实际可用的公共空间更值得安排。",
+    "places": [
+      {
+        "name": "Orange Memorial Park",
+        "description": "本城综合公园，有运动、社区休闲与雕塑景观；公共艺术可作为短散步线索，球场活动另按场地安排。",
+        "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Divisions/Parks-Division/Interactive-Parks-Maps/Obelisk",
+        "mapQuery": "Orange Memorial Park South San Francisco CA",
+        "scope": "city"
+      },
+      {
+        "name": "Library | Parks and Recreation Center",
+        "description": "Civic Campus Way 的公共中心集合图书馆与休闲项目，外侧公园接 Centennial Way Trail，可把阅读和步行组合。",
+        "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Library-Parks-and-Recreation-Center",
+        "mapQuery": "Library Parks and Recreation Center 901 Civic Campus Way South San Francisco CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先看中心的当日活动与图书馆，再在外侧步道短走；体力允许才转去 Orange Memorial，留三小时左右。下雨时以室内为主，活动需报名就先完成，不把整栋楼视为无需预约的游乐馆。",
+    "arrival": "搬来先确认市政府是 South San Francisco，再从本城官网办理与住址相关服务。家庭可直接熟悉新中心的图书馆和休闲接待入口，办卡、课程和场地租用分别问材料与资格。",
+    "residentTip": "中心把阅读、课程和户外公共空间放在一起，适合长期参加活动并结识邻居。公共艺术散步可从 Orange Memorial 开始；预约运动、聚会或房间仍通过各自负责部门，不以大楼开放时间代替活动时段。",
+    "transport": "Centennial Way 是步行与骑行连接线，但去两处设施仍应核对入口与过街位置。铁路、BART 和东侧办公园区不是同一个到达点；公共交通导航填具体中心地址，再查最后一段。",
+    "checks": "图书馆、休闲课程及室外运动设施各自查休馆、预约和维护信息。Orange Memorial 可能有活动占场，先看当天通知；不要误把旧图书馆地址或过去工程期间的临时入口当成现行目的地。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.ssfca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与休闲中心",
+        "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Library-Parks-and-Recreation-Center",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Woodside",
+    "county": "San Mateo",
+    "summary": "林地、马道与小镇生活是主要特色，适合短程徒步加图书馆休息。山路、住宅与保护区边界需要认真看图，不能仅凭 Woodside 邮寄地址就把周边庄园或所有山地景点算作镇内。",
+    "places": [
+      {
+        "name": "Wunderlich Park",
+        "description": "县运营的红杉、橡树林与草地公园，保存 Folger 历史马厩；园地跨出镇界至非建制区域，步道供徒步及指定骑马使用。",
+        "url": "https://www.smcgov.org/parks/wunderlich-park",
+        "mapQuery": "Wunderlich Park 4040 Woodside Road CA",
+        "scope": "cross-boundary"
+      },
+      {
+        "name": "Woodside Library",
+        "description": "Woodside Road 的县图书馆提供阅读和儿童、成人活动，适合作为山地行程前后的室内休息点。",
+        "url": "https://smcl.org/locations/1w/",
+        "mapQuery": "Woodside Library 3140 Woodside Road CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Wunderlich 选择低处短线或折返，再到图书馆休息，留三至四小时。喜欢历史者另查马厩展览开放；带幼儿或天气不佳可缩为图书馆活动，不把长爬升线当必选。",
+    "arrival": "新居民先了解应急通知、常用山路与备用出入口，再向镇政府核对房屋工程、树木和道路问题的负责单位。住址可能涉及不同服务范围，建立账户前用实际门牌确认，不只依靠邮寄城市。",
+    "residentTip": "县图书馆的阅读与手作项目可长期关注，镇通讯也会发布步道、环境及社区活动。经常徒步者可查县公园志愿者入口；公园散步与马厩室内参观有不同时间，不要让后者限制每次短走。",
+    "transport": "Woodside Road 两处分别导航，公园停车只用正式区域；山路骑行、车辆和马匹可能相遇，应留足空间。镇官网当前有山路工程提醒，出发前核对 Four Corners 与 Old La Honda 一带路线。",
+    "checks": "Wunderlich 土路不允许自行车，徒步需礼让马匹并查湿滑或临时关闭；马厩展览另核时间。图书馆有培训与节假日休馆，山路工程也可能改变到达方式，不能只看正常地图预计时间。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.woodsideca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "图书馆与活动",
+        "url": "https://smcl.org/locations/1w/",
+        "kind": "library"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Campbell",
+    "county": "Santa Clara",
+    "summary": "市中心适合步行串联小型博物馆、历史住宅和餐饮，不需要一开始就开车绕多个商圈。想了解硅谷成为科技中心之前的果园、罐头产业与日常生活，这里的两处市营博物馆提供具体入口。",
+    "places": [
+      {
+        "name": "Campbell Historical Museum",
+        "description": "位于旧消防站的历史馆，以展览和互动内容介绍本地生活，适合家庭了解山谷过去的产业与社区。",
+        "url": "https://www.campbellmuseums.com/campbell-historical-museum",
+        "mapQuery": "Campbell Historical Museum 51 North Central Avenue CA",
+        "scope": "city"
+      },
+      {
+        "name": "Ainsley House",
+        "description": "Grant Street 的历史住宅博物馆，展示罐头产业家庭的住宅生活；导览涉及楼层与站立，行动需求应提前说明。",
+        "url": "https://www.campbellmuseums.com/ainsley-house",
+        "mapQuery": "Ainsley House 300 Grant Street Campbell CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先按 Ainsley 导览时间订好顺序，再逛历史馆与市中心，留三至四小时。只想轻松走走可选一馆加用餐；组合票不必同日用完，购买前核对当天说明，不为凑票赶场。",
+    "arrival": "搬来先从市官网确认城市服务与休闲报名，社区活动和博物馆票务分别办理。实际试走住宅到市中心轻轨站或公交站的路线，办事与购物的停车条件也应分开记录。",
+    "residentTip": "博物馆有地方史资料、讲座与志愿服务入口，适合长期居民继续认识社区；城市休闲课程也可作为邻里交往机会。免费日或特别展览只按当前日历安排，不默认每个周末都有优惠。",
+    "transport": "馆方说明两处博物馆可从 Downtown Campbell 轻轨站步行抵达，现场与图书馆后方有公共停车位置，仍按标识停放。节庆或市中心活动时留出步行与找位余量。",
+    "checks": "两馆常规开放集中在周五至周日；Ainsley 每年一、二月维护休馆，临时活动另查。历史住宅并非全楼无障碍，需提前联系；导览、单馆和组合票的价格与资格以购票说明为准。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.campbellca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "博物馆活动",
+        "url": "https://www.campbellmuseums.com/",
+        "kind": "events"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Cupertino",
+    "county": "Santa Clara",
+    "summary": "除了科技公司周边，城市也有溪边自然保护地与社区公园，适合认识西谷日常生活。参观公司访客设施和逛公共公园是不同计划；想带孩子轻松半日，优先看自然中心与城市活动安排。",
+    "places": [
+      {
+        "name": "McClellan Ranch Preserve",
+        "description": "由旧牧场转成的自然保护地，有历史农场建筑和环境教育设施；自然土路与铺装溪边路线使用规则不同。",
+        "url": "https://www.cupertino.gov/Parks-Recreation/McClellan-Ranch-Preserve",
+        "mapQuery": "McClellan Ranch Preserve Cupertino CA",
+        "scope": "city"
+      },
+      {
+        "name": "Memorial Park",
+        "description": "城市活动与休闲的重要公园，邻近社区、长者与运动设施；草地、纪念景观和公共活动可按当天安排体验。",
+        "url": "https://www.cupertino.gov/Your-City/Departments/Public-Works/Capital-Improvement-Programs-Projects/Memorial-Park-Specific-Plan",
+        "mapQuery": "Memorial Park Cupertino CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先走 McClellan 的短程自然路线，若教育中心开放便入内，再到 Memorial Park 休息，留三至四小时。雨后泥泞时改走允许通行的铺装路线，或只选已确认的室内项目。",
+    "arrival": "新居民先按住址核对市政服务与学区，Cupertino 邮寄名称不能替代学校归属查询。城市课程、社区场地和长者项目分别看年龄、居民要求及报名日期，需要改房或修树则先问负责部门。",
+    "residentTip": "自然教育与市府休闲课程适合长期参与，想种植可查城市社区花园的申请和候补入口，不保证有空位。Memorial Park 改善计划可供居民提出意见，方案中的设施不能视作已投入使用。",
+    "transport": "牧场与 Memorial Park 不是同一片园区，分别选入口和停车点；骑车沿溪行进也要确认允许路段。公园、社区中心及校园车位权限不同，现场看时限与活动停车安排。",
+    "checks": "McClellan 自然环线不允许狗和自行车，铺装路线另查标识；教育中心并非全天开放。Memorial 的旧水池照片不代表当前仍有水池，工程、活动占场与新设施进度以市府更新为准。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cupertino.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "自然保护地与教育",
+        "url": "https://www.cupertino.gov/Parks-Recreation/McClellan-Ranch-Preserve",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Gilroy",
+    "county": "Santa Clara",
+    "summary": "除了购物，南县这座城市还有历史馆、老街与溪边公园，适合慢一点认识农业和城镇发展。地点之间留出转场，夏秋白天较热时把室内展览与户外活动错开，不把全天行程都放在曝晒下。",
+    "places": [
+      {
+        "name": "Gilroy Museum",
+        "description": "设在历史 Carnegie Library 建筑内的城市博物馆，介绍地方人物与发展；参观时间应向馆方核实。",
+        "url": "https://www.cityofgilroy.org/386/Gilroy-Museum",
+        "mapQuery": "Gilroy Museum Gilroy CA",
+        "scope": "city"
+      },
+      {
+        "name": "Christmas Hill Park",
+        "description": "Miller Avenue 的综合公园，有步道、游乐、运动和野餐空间，适合家庭短走与休息。",
+        "url": "https://cityofgilroy.org/facilities/facility/details/christmas-hill-park-7",
+        "mapQuery": "Christmas Hill Park Gilroy CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先看博物馆并在老城用餐，再去 Christmas Hill 选短线，留三至四小时；天热时把公园改到较凉时段。若只为购物顺路来，选一处即可，不把购物中心和公园之间当步行捷径。",
+    "arrival": "搬来先从市官网核对水费、垃圾与住房服务联系方式，按实际住址确认城市或县负责。通勤到北侧城市的人应亲自核对出发日的公共交通与返程安排，不能假设每天都有同样的班次。",
+    "residentTip": "博物馆与历史协会可作为了解街区、地方资料与志愿活动的入口；公园活动和运动场则从市府休闲服务查报名。组织野餐要确认场地预约，老节庆举办地点不能推定今年仍相同。",
+    "transport": "城市公园停车入口与步行入口可能有不同关闭时间，返程前看闸门说明。博物馆、老城与公园分别导航，驾车不要把贵重物品留在可见处；依赖公共交通时先确认末段距离。",
+    "checks": "博物馆网页确认正常接待但具体时段仍应联系；公园体育赛程、预约区与热天条件会影响体验。不要把历史大蒜节照片当当前开放活动，先查主办方日期、地点与门票。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.cityofgilroy.org/",
+        "kind": "city"
+      },
+      {
+        "label": "公园与场地预约",
+        "url": "https://cityofgilroy.org/538/Park-Facility-Rentals",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Altos",
+    "county": "Santa Clara",
+    "summary": "小尺度市中心、地方历史馆与溪边公园适合低强度半日，不必围着科技公司地址打卡。这里与 Los Altos Hills 是不同城市，学校、物业和居民项目归属都应按具体住址确认。",
+    "places": [
+      {
+        "name": "Los Altos History Museum",
+        "description": "San Antonio Road 的历史馆结合常设展、历史住宅和花园，适合了解土地、农业与社区变化。",
+        "url": "https://www.losaltoshistory.org/visit/",
+        "mapQuery": "Los Altos History Museum 51 South San Antonio Road CA",
+        "scope": "city"
+      },
+      {
+        "name": "Shoup Park",
+        "description": "Adobe Creek 旁的社区公园，设游乐、草地与社区活动空间，并可按开放路线接续附近林地散步。",
+        "url": "https://www.losaltosca.gov/Facilities/Facility/Details/Shoup-Park-16",
+        "mapQuery": "Shoup Park Los Altos CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在博物馆看展，再到市中心用餐，最后在 Shoup Park 短走，留三至四小时。孩子注意力有限时选展览或公园其一作为主站；需要团队导览应提前联系，不现场临时凑团。",
+    "arrival": "搬来先确认归属 Los Altos，再通过市官网核对城市服务与休闲项目；社区课程的居民条件和住址证明单独查。涉及房屋改造或树木问题，先向本城负责部门描述工作与地址，不套用邻城手续。",
+    "residentTip": "历史馆有地方资料、讲座与志愿入口，公园社区设施则适合固定参加活动。Shoup 的聚会、室内空间和青少年项目各有安排，先查年龄与预订规则，避免把所有区域当作随到随用。",
+    "transport": "博物馆与公园可分两段步行或短程转场，先看实际过街位置及同行者体力。市中心车位按标识与时限停放；从外城轨道站到访仍需最后一段接驳，不把城市名称相近当作车站就在旁边。",
+    "checks": "博物馆常规开放集中在周四至周日中午至下午，节假日与团队导览另查；历史住宅参观不必与展厅完全同步。溪边路径雨后可能湿滑，公园活动占用与设施维护也应看当天通知。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.losaltosca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "溪边公园与设施",
+        "url": "https://www.losaltosca.gov/Facilities/Facility/Details/Shoup-Park-16",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Altos Hills",
+    "county": "Santa Clara",
+    "summary": "以乡村式住宅、公共路径和马术传统见长，适合在山麓短走，而非寻找连续商业街。镇内道路与路径的性质不同，访客应按官方开放空间地图选入口；附近 Los Altos 的商店与博物馆属于另一城市。",
+    "places": [
+      {
+        "name": "Byrne Preserve",
+        "description": "镇内开放空间提供山麓自然与草地景观，可在正式步道短走；靠近马匹活动区域时保持距离。",
+        "url": "https://www.losaltoshills.ca.gov/204/Open-Space",
+        "mapQuery": "Byrne Preserve Los Altos Hills CA",
+        "scope": "city"
+      },
+      {
+        "name": "Westwind Community Barn",
+        "description": "镇拥有的社区马厩毗邻保护地，马术与社区项目按运营安排参加；不是可以随意进马房或喂马的动物园。",
+        "url": "https://www.losaltoshills.ca.gov/204/Open-Space",
+        "mapQuery": "Westwind Community Barn Los Altos Hills CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先选 Byrne 的短段步道，若已确认马厩公开活动再衔接参加，留两至三小时。没有活动时只在允许区域看景；需要用餐可另去邻近 Los Altos，不把找餐厅加入山路临时绕行。",
+    "arrival": "新居民优先熟悉道路、公共路径与应急出口，向镇确认门牌和住址服务归属。涉及树木、围栏或建设先查镇办事程序；沿宅地经过的公共路径不等于整块私人土地都可进入。",
+    "residentTip": "镇的开放空间与路径是日常步行资源，按地图逐段探索更容易形成固定路线。对马术或社区项目有兴趣可联系 Westwind 运营方，核对经验要求、年龄及报名，不凭公开土地性质推定课程免费。",
+    "transport": "部分住宅道路狭窄且没有连续人行道，路线应优先使用正式路径；停车不得挡门、马车通道或消防通行。带孩子不临时在弯道上下车，公共交通到达后还要预先解决末段距离。",
+    "checks": "出发前查路径维护、雨后泥泞、火险与活动安排，马厩仅按公开项目进入。遇骑马者减速礼让，不喂食或惊扰动物；保护地开放不能代替马术活动的预约和安全要求。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.losaltoshills.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "开放空间与马术资源",
+        "url": "https://www.losaltoshills.ca.gov/204/Open-Space",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Los Gatos",
+    "county": "Santa Clara",
+    "summary": "历史街区、艺术馆和湖边公园可以组成节奏舒缓的一天，适合想兼顾文化与户外的人。镇中心和 Vasona 湖区有一定距离，山路景点还需另算交通；半日先选两站，不把长程徒步全部塞进去。",
+    "places": [
+      {
+        "name": "New Museum Los Gatos (NUMU)",
+        "description": "East Main Street 的艺术与历史博物馆，展览随季节轮换，适合在市中心散步前后看展。",
+        "url": "https://www.numulosgatos.org/visit",
+        "mapQuery": "NUMU New Museum Los Gatos 106 East Main Street CA",
+        "scope": "city"
+      },
+      {
+        "name": "Vasona Lake County Park",
+        "description": "县运营的湖区公园，提供草地、步道和季节性租船；个人船艇与公共租赁有不同限制，不能自行下水代替预约。",
+        "url": "https://parks.santaclaracounty.gov/locations/vasona-lake-county-park",
+        "mapQuery": "Vasona Lake County Park 333 Blossom Hill Road Los Gatos CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先按 NUMU 开放时间看展，在镇中心用餐，再到 Vasona 走短段湖边，留三至四小时。带小孩可减少展厅时间；若要租船，把运营时段和天气作为主条件，不临到现场再决定整套行程。",
+    "arrival": "搬来先确认住址在镇内还是周边非建制地区，再查对应服务。博物馆居民待遇、城市课程及县公园停车是三套规则，申请或买票时分别核对所需住址证明与资格，不能互相替代。",
+    "residentTip": "NUMU 当前列有镇居民入馆待遇，可带住址信息向馆方确认；博物馆活动与县公园自然教育适合持续参加。常去县公园的人可以比较官方通行证条件，但不要假设同一证覆盖邻接镇营设施。",
+    "transport": "Vasona 主入口在 Blossom Hill Road，车辆入园收费，步道连接不代表所有邻接停车场权限相同。镇中心和湖区分开导航；从 Los Gatos Creek Trail 骑行到访也要留意人车共用及回程时间。",
+    "checks": "湖区租船是季节项目，十月不能默认仍营业；私人船艇、场地预约和步道关闭以县公园说明为准。NUMU 展览与休馆另查，邻近旋转木马、小火车也有独立运营日程。",
+    "resources": [
+      {
+        "label": "镇政府服务",
+        "url": "https://www.losgatosca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "湖区公园与活动",
+        "url": "https://parks.santaclaracounty.gov/locations/vasona-lake-county-park",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Milpitas",
+    "county": "Santa Clara",
+    "summary": "除了大型购物区，城内的历史土坯建筑、公园和运动设施也值得半日停留。住宅片区、轨道站与山脚公园并非集中在一起；想认识城市生活，可从两个社区公园开始，减少商场之间的来回。",
+    "places": [
+      {
+        "name": "Jose Higuera Adobe Park",
+        "description": "围绕历史土坯建筑的社区公园，有草地、步行和游乐空间；建筑室内使用与公园日常开放分别安排。",
+        "url": "https://www.milpitas.gov/Facilities/Facility/Details/Jose-Higuera-Adobe-Park-17",
+        "mapQuery": "Jose Higuera Adobe Park Milpitas CA",
+        "scope": "city"
+      },
+      {
+        "name": "Cardoza Park",
+        "description": "邻近 Sports Center 的综合公园，设运动、游乐和公共艺术，可按当天场地安排选择散步或活动。",
+        "url": "https://www.milpitas.gov/Facilities/Facility/Details/Cardoza-Park-10",
+        "mapQuery": "Cardoza Park Milpitas CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先在 Adobe Park 看历史建筑外观与短走，再到 Cardoza 休息或参加已报名项目，留两至三小时。没有建筑开放信息时按公园游览安排，不向孩子保证一定能进去参观。",
+    "arrival": "新居民从市官网建立城市服务和休闲账户，先确认实际住址，再查课程、球场与场地条件。计划带孩子参加运动项目时，核对城市项目与独立联赛的报名入口，年龄和接送要求各自确认。",
+    "residentTip": "Cardoza 与 Sports Center 周边适合形成固定运动习惯，Adobe Park 则适合较短的邻里休闲。组织家庭聚会可从市府设施目录查预约与容量，历史建筑的室内租用不能用普通公园到访替代。",
+    "transport": "两处都在城市东侧生活片区，轨道站到公园仍需接驳；不要把 Milpitas 站或购物中心当步道入口。Adobe 停车空间有限，按现场规定停车，不占路口、居民车道或指定活动区域。",
+    "checks": "市府设施页列公园按黎明至黄昏使用，场地赛事与活动可能占用部分区域。历史土坯建筑内部是否开放、Sports Center 课程和泳池安排都要另查，热天带水并选择较凉时段。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.milpitas.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "社区公园与设施",
+        "url": "https://www.milpitas.gov/Facilities/Facility/Details/Cardoza-Park-10",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Monte Sereno",
+    "county": "Santa Clara",
+    "summary": "以安静住宅为主的小城，没有适合游客连续打卡的商业中心。认识本城更适合从市政与邻里生活入手，户外行程放在附近保护区；不要把 Los Gatos 邮寄地址或山名相近的地点直接认作城内景点。",
+    "places": [
+      {
+        "name": "Monte Sereno City Hall",
+        "description": "本城的办事与社区信息入口，适合新居民确认服务，不作为必须观光的建筑；现场访问按柜台时间安排。",
+        "url": "https://www.montesereno.org/",
+        "mapQuery": "Monte Sereno City Hall 18041 Saratoga Los Gatos Road CA",
+        "scope": "city"
+      },
+      {
+        "name": "El Sereno Preserve",
+        "description": "附近山地保护区，由 Midpen 管理，提供灌丛山脊与开阔视野；位于本城之外，路线有曝晒和爬升。",
+        "url": "https://www.openspace.org/preserves/el-sereno",
+        "mapQuery": "El Sereno Open Space Preserve CA",
+        "scope": "nearby"
+      }
+    ],
+    "halfDay": "编辑建议：新居民可在接待时段先完成市政咨询，再按 Midpen 地图选一个短折返，留三至四小时并计入山路转场。普通游客可直接去保护区；天气热或体力不足就改到邻近 Los Gatos 室内活动。",
+    "arrival": "先确认门牌归属 Monte Sereno，再收藏电子许可、Fix It 上报与 AlertSCC 通知入口。市政柜台并非每天全天接待，规划、建筑及工程咨询要先核对时段，有地址和具体问题再预约更有效。",
+    "residentTip": "市政府社区通知、议会与总体规划更新适合长期关注；借用邻城图书馆或参加邻城课程时，分别确认资格。小城没有自己的完整旅游设施体系，不应据此误以为周边县公园由本城管理。",
+    "transport": "保护区各入口条件不同，先选路线再导航；Overlook 入口停车需预先申请许可，不能到现场才假设有公共空位。山路狭窄，不挡住宅车道，依赖网约车也先安排可靠返程。",
+    "checks": "El Sereno 多段曝晒且没有洗手间，先查天气、封闭路段与停车许可；带狗要牵绳。市政府现场办事与山地开放时间完全不同，不把其中一处开放等同于两站都可随时到访。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.montesereno.org/",
+        "kind": "city"
+      },
+      {
+        "label": "附近保护区与规则",
+        "url": "https://www.openspace.org/preserves/el-sereno",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Morgan Hill",
+    "county": "Santa Clara",
+    "summary": "兼具历史宅邸、老城与家庭运动空间，适合在南湾以南安排不赶场的半日。山景、湖区和农业景点遍布周边，但并非都在市界内；初访先选城内公共设施，减少天气和山路的不确定性。",
+    "places": [
+      {
+        "name": "Villa Mira Monte",
+        "description": "历史协会管理的住宅、博物馆与历史步行场地，展示城市名称与地方发展故事，室内访问需按运营日程。",
+        "url": "https://www.morganhillhistoricalsociety.org/",
+        "mapQuery": "Villa Mira Monte 17860 Monterey Road Morgan Hill CA",
+        "scope": "city"
+      },
+      {
+        "name": "Community Park",
+        "description": "Edmundson Avenue 的大型社区休闲公园，设运动场与 Magical Bridge 包容性游乐空间，适合不同年龄家庭选择活动。",
+        "url": "https://www.morganhill.ca.gov/2635/Healthy-Active-Parks-Trails-Facilities",
+        "mapQuery": "Community Park Magical Bridge Playground Morgan Hill CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先确认 Villa Mira Monte 是否接待，再看历史场地与市中心，随后去 Community Park，留三至四小时。同行有幼儿时把游乐场作为主站；天热则缩短曝晒段，预留饮水与休息。",
+    "arrival": "新居民先从市官网确认水费、垃圾与城市服务联系人，再按住址核对学区和应急通知。接送孩子与北向通勤是两套路线，应分别试走；不凭某一天的顺畅车程承诺长期通勤时间。",
+    "residentTip": "社区公园及邻近休闲设施适合日常运动，历史协会可提供地方史活动与志愿机会。常用球场者应查预订与联赛安排，儿童游乐空间则看维护公告，公共开放不代表所有运动场都无需申请。",
+    "transport": "Monterey Road 历史场地与 Edmundson 公园分开导航，城内路线也要考虑干道过街。公共交通须查实际到访日与末班，不能把车站存在等同于任何时间都能搭车往返。",
+    "checks": "历史住宅、博物馆及户外场地可能采用不同开放安排，先看协会公告；球场赛程、热天及维护可能影响公园体验。附近湖区若有工程或限制，应另查县公园通知，不自动加入本条半日路线。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.morganhill.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园步道与设施",
+        "url": "https://www.morganhill.ca.gov/2635/Healthy-Active-Parks-Trails-Facilities",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Mountain View",
+    "county": "Santa Clara",
+    "summary": "科技历史博物馆与海湾开放空间构成清晰的半日组合，市中心餐饮则是另一组停留点。企业园区、演出场馆与公共公园名称容易混淆，导航应填完整设施名，别把公司地址当作自由参观路线。",
+    "places": [
+      {
+        "name": "Computer History Museum",
+        "description": "Shoreline Boulevard 的计算机历史博物馆，适合看技术、人物和产业变化，展览与现场演示依当天安排。",
+        "url": "https://computerhistory.org/plan-your-visit/",
+        "mapQuery": "Computer History Museum Mountain View CA",
+        "scope": "city"
+      },
+      {
+        "name": "Shoreline at Mountain View",
+        "description": "城市海湾公园与开放空间，适合步行、自然观察和湖边休息；与同名演出场馆不是同一个入口或使用规则。",
+        "url": "https://www.mountainview.gov/our-city/departments/community-services/shoreline-at-mountain-view",
+        "mapQuery": "Shoreline at Mountain View Park CA",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议：先用较完整的一段时间看博物馆，再到 Shoreline 选短步道，留三至四小时。科技爱好者可只做博物馆；想观鸟则把大部分时间留在公园，避免展厅与长距离绕湖同时赶。",
+    "arrival": "搬来先按住址确认城市服务、住房与休闲资源的办事入口，市中心和 North Bayshore 的通勤路线分开实测。租客遇物业或住房问题时从市府正式服务页面找负责单位，不只问公司同事的个别经验。",
+    "residentTip": "Shoreline 适合经常短访和自然观察，博物馆则可查新展、讲座与会员条件。市府休闲项目与场地使用另办报名；养狗者要注意专设犬区在公园入口外，不能据此把狗带进整个自然区域。",
+    "transport": "博物馆、Shoreline 公园和 Amphitheatre 分别设导航点，演出日应特别核对交通与停车安排。市中心来回要留转场时间；步行和骑行只走允许路径，不能穿企业停车场当公共捷径。",
+    "checks": "博物馆常规开放日与临时演示另查，周一、周二通常不开放；公园的动物、放风筝和自然栖地规则不可照搬普通城市草坪。出发前查看风、日落、步道关闭与具体设施营业安排。",
+    "resources": [
+      {
+        "label": "市政府服务",
+        "url": "https://www.mountainview.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "海湾公园与规则",
+        "url": "https://www.mountainview.gov/our-city/departments/community-services/shoreline-at-mountain-view",
+        "kind": "parks"
+      }
+    ],
+    "verifiedAt": "2026-10-02"
+  },
+  {
+    "city": "Palo Alto",
+    "county": "Santa Clara",
+    "verifiedAt": "2026-10-02",
+    "summary": "从湾边湿地到林荫社区，Palo Alto 适合观察自然，也适合用公园与图书馆认识日常生活。不要把 Stanford 校园直接算成本城市区；初次来先选海湾或社区一个方向，避免只按地图直线距离排满。",
+    "places": [
+      {
+        "name": "Baylands Nature Preserve",
+        "url": "https://www.paloalto.gov/Departments/Community-Services/Parks-Open-Space-Golf-Division/Neighborhood-Parks/Baylands-Nature-Preserve",
+        "mapQuery": "Lucy Evans Baylands Nature Interpretive Center 2775 Embarcadero Road Palo Alto",
+        "description": "以 Lucy Evans 自然解说中心附近为起点认识潮汐湿地与水鸟；可挑短段步道，观察中心与户外开放安排分别确认。",
+        "scope": "city"
+      },
+      {
+        "name": "Rinconada Park",
+        "url": "https://www.paloalto.gov/About/Visiting",
+        "mapQuery": "Rinconada Park 777 Embarcadero Road Palo Alto",
+        "description": "林荫社区公园适合休息与家庭短程活动，可再查附近图书馆和文化设施；泳池、课程及场馆不能按公园一般开放推定可入场。",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议把 Baylands 短程观鸟留作一段独立行程，再按体力转往 Rinconada 休息，或只围绕公园及附近公共文化设施慢逛。两区之间安排交通，不把两处理解成连续步行路线；留半天并随风力缩短户外段。",
+    "arrival": "新居民先核对实际市界，尤其分清 Palo Alto、East Palo Alto 与 Stanford 的不同服务入口。收藏市政府服务、图书馆和公用事业页面，再用站内水电目录核对住址；不要直接套用朋友在邻城的开户经验。",
+    "residentTip": "可从市府 Visiting 页面继续查图书馆、艺术与历史资源，再把自然解说活动或社区课程安排成固定节奏。反复走同一小段湿地观察潮位与鸟类变化，比每次追求走完全部步道更适合短时出门。",
+    "transport": "Caltrain 到站并不等于抵达湿地，前往 Baylands 要另安排最后一段交通，并按解说中心或所选入口导航。社区公园与湾边停车条件分别核对；骑车时确认当天允许通行的路径与回程。",
+    "checks": "先打开保护区页面的 Alerts、Conditions、Closures，确认步道是否临时封闭及当天关门时间；不根据旧照片判断木栈道可走。户外携犬需遵守牵绳规则，湿地与相邻保护地也可能采用不同管理要求。",
+    "resources": [
+      {
+        "label": "市政府与办事入口",
+        "url": "https://www.paloalto.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "城市文化、公园与图书馆",
+        "url": "https://www.paloalto.gov/About/Visiting",
+        "kind": "parks"
+      }
+    ]
+  },
+  {
+    "city": "San Jose",
+    "county": "Santa Clara",
+    "verifiedAt": "2026-10-02",
+    "summary": "San Jose 面积大，适合按主题与片区认识，而不是把每个景点连成步行路线。第一次可选玫瑰花园的安静绿地，或 History Park 的历史建筑街景；市中心博物馆、日本城等可另读站内深度攻略。",
+    "places": [
+      {
+        "name": "Municipal Rose Garden",
+        "url": "https://www.sanjoseca.gov/Home/Components/FacilityDirectory/FacilityDirectory/2295/2028",
+        "mapQuery": "San Jose Municipal Rose Garden Dana Avenue Naglee Avenue",
+        "description": "市属玫瑰花园适合观花、树荫休息与轻松散步。花况随季节和养护变化，十月不承诺盛花；拍摄、团体活动和场地使用另查规则。",
+        "scope": "city"
+      },
+      {
+        "name": "History Park",
+        "url": "https://historysanjose.org/plan-your-visit/history-park/",
+        "mapQuery": "History Park 635 Phelan Avenue San Jose",
+        "description": "通过历史及复建建筑了解 Santa Clara Valley 的生活与产业变迁。园区、单栋博物馆与电车的开放安排不同，入园不等于每栋建筑都能进入。",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议只选一个主要片区：花园散步配附近用餐，或围绕 History Park 留半天看展与街景。如果想两处都去，先确认 History Park 场馆开放再安排跨区交通；不要让预约参观被临时加的远端景点挤掉。",
+    "arrival": "新居民先确认租约地址对应的市政、学区和垃圾服务范围，San Jose 邮寄城市名不能替代所有服务边界。通过市官网查社区中心与办事目录，再实际试走上下班的去程和晚间返程。",
+    "residentTip": "History San José 的讲座、文化活动与导览可作为重新认识本地历史的入口；先读 Programs & Events 的具体日期与票务。社区公园和文化场馆可以轮换使用，带孩子不必每次都安排收费的大型景点。",
+    "transport": "两处位于不同片区，需要单独安排公交、自行车或驾车衔接。History Park 馆方指定 Phelan Avenue 停车入口；费用及开放按现场与当日活动确认。大园区的地图中心点不能代替访客入口。",
+    "checks": "History Park 同页顶部时段与“2026 Hours”区块对周日开放存在冲突，专程入馆前请按页面电话 408-287-2290 确认；不要保证周日每栋建筑或电车开放。另核特殊活动票务、花园养护及当天高温。",
+    "resources": [
+      {
+        "label": "城市服务与社区资讯",
+        "url": "https://www.sanjoseca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "History San José 活动与导览",
+        "url": "https://historysanjose.org/programs-events/",
+        "kind": "events"
+      }
+    ]
+  },
+  {
+    "city": "Santa Clara",
+    "county": "Santa Clara",
+    "verifiedAt": "2026-10-02",
+    "summary": "Santa Clara 不只适合去球场或购物，也可以围绕本地艺术与市属公园过一个轻松半日。Triton 的展览与 Central Park 的户外空间属于不同片区；初次来先安排一处重点，再根据时间加另一站。",
+    "places": [
+      {
+        "name": "Triton Museum of Art",
+        "url": "https://www.tritonmuseum.org/visit",
+        "mapQuery": "Triton Museum of Art 1505 Warburton Avenue Santa Clara",
+        "description": "独立非营利美术馆，官网列展览免门票、停车免费。展览会轮换，部分活动或课堂有独立要求；不能把展览免费理解成所有课程免费。",
+        "scope": "city"
+      },
+      {
+        "name": "Central Park",
+        "url": "https://www.santaclaraca.gov/Home/Components/FacilityDirectory/FacilityDirectory/150/15258",
+        "mapQuery": "Central Park 909 Kiely Boulevard Santa Clara",
+        "description": "市属公园适合散步与认识周边康乐设施；游泳、球场、野餐预订和儿童设施分开核对。施工可能影响部分区域，不把整座公园视为同一开放状态。",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议按 Triton 当天展厅安排先看展，留时间安静观察，再选择是否转往 Central Park 散步；只想少移动可只做艺术半日。带孩子先核实想用的具体游乐区，别到场才发现预约或施工限制。",
+    "arrival": "新居民收藏市府公用事业、图书馆及 Parks & Recreation 入口，核对自己住址的服务商和课程居民资格。不要因为城市在 Santa Clara County 就套用全县统一水电或同名其他城市的 Central Park 信息。",
+    "residentTip": "可定期回 Triton 看轮换展览，或查看其艺术课、读书会与社区活动；报名和名额逐项确认。市属康乐课程可与公园散步分开安排，建立无需每次远行的本地休闲选择。",
+    "transport": "Triton 在 Warburton Avenue，Central Park 在 Kiely Boulevard，应分别导航和安排交通。馆方当前列免费停车，不代表公园、球场活动日或整个城市停车免费；公共交通看实际入口与返程停站。",
+    "checks": "Triton 有周一及假日闭馆安排，也会公布个别展厅临时关闭；专程看某展前查 Visit 页面。市府预约页目前提示 Central Park 的 Arbor/Pavilion 因改造暂停预约；想野餐聚会请另核可订区域，不默认其他设施也关闭。",
+    "resources": [
+      {
+        "label": "城市办事与资讯",
+        "url": "https://www.santaclaraca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "公园预约与施工限制",
+        "url": "https://www.santaclaraca.gov/our-city/departments-g-z/parks-recreation/reservations-and-permits",
+        "kind": "parks"
+      }
+    ]
+  },
+  {
+    "city": "Saratoga",
+    "county": "Santa Clara",
+    "verifiedAt": "2026-10-02",
+    "summary": "山脚庭园、艺术与慢节奏街区是 Saratoga 的看点。Hakone 与 Montalvo 适合有明确主次的半日，带长辈或推车先看坡度、台阶和入口；不要把两个场地加山路徒步都排成同一段轻松散步。",
+    "places": [
+      {
+        "name": "Hakone Estate and Gardens",
+        "url": "https://www.hakone.com/visitor-info",
+        "mapQuery": "Hakone Estate and Gardens 21000 Big Basin Way Saratoga",
+        "description": "收费日本庭园，适合慢看园林与历史建筑外观。自然地面和石阶需要合适鞋子；参观、茶会、课程与特别活动各有安排。",
+        "scope": "city"
+      },
+      {
+        "name": "Montalvo Arts Center",
+        "url": "https://montalvoarts.org/experience/plan-visit/",
+        "mapQuery": "Montalvo Arts Center 15400 Montalvo Road Saratoga",
+        "description": "以艺术中心周边公共花园与户外艺术为轻松起点，再决定是否走更费体力的山坡步道。Villa 室内与演出不能仅凭到达园区就自由进入。",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先订好或确认主场地：喜欢日式庭园选 Hakone，偏艺术与林间环境选 Montalvo。留半天慢逛，再到村落街区吃饭；若加第二站，重新核对剩余开放时间与停车，不赶最后入园。",
+    "arrival": "搬来先通过城市官网确认社区服务、规划许可与公园资料；地址在山脚时，实际走一遍日常道路并订阅本地通告。图书馆、县属服务和城市事务各有入口，办事前确认负责单位。",
+    "residentTip": "Hakone 当前保留 Saratoga 居民每月首个周二免费入园，需出示显示 Saratoga 地址的有效政府照片证件；2026 年起不再对整个 Santa Clara County 居民普遍免费。先核资格与当天开放，再安排重复参访。",
+    "transport": "两个场地入口都有坡路，分别设置导航；Hakone 对大巴尺寸有限制，团队应先联系场地方。Montalvo 演出日停车可能有特别安排，预约活动与普通花园参观应分别查到访说明。",
+    "checks": "核对 Hakone 的季节时段、最后入园与池塘改造公告，不承诺旧照片里的水景原样可见。Montalvo 查看临时关闭、活动占用和步道条件；山坡路线与公共花园的难度不同，按同行者能力选段。",
+    "resources": [
+      {
+        "label": "市政府与居民服务",
+        "url": "https://www.saratoga.ca.us/",
+        "kind": "city"
+      },
+      {
+        "label": "Montalvo 到访、花园与艺术活动",
+        "url": "https://montalvoarts.org/experience/plan-visit/",
+        "kind": "parks"
+      }
+    ]
+  },
+  {
+    "city": "Sunnyvale",
+    "county": "Santa Clara",
+    "verifiedAt": "2026-10-02",
+    "summary": "Sunnyvale 的本地故事从果园与农场延伸到科技产业，适合用历史博物馆认识过去，再到湾边看开阔草地与湿地环境。Heritage Park 与 Baylands 是不同片区，不要把名字相近的 Palo Alto Baylands 当成同一个公园。",
+    "places": [
+      {
+        "name": "Sunnyvale Heritage Park Museum",
+        "url": "https://heritageparkmuseum.org/visit-us",
+        "mapQuery": "Sunnyvale Heritage Park Museum 570 East Remington Drive",
+        "description": "博物馆位于仿早期 Murphy 家宅的建筑中，介绍本地发展与农业记忆。按馆方开放日安排入内，户外经过不等于展厅有人接待。",
+        "scope": "city"
+      },
+      {
+        "name": "Sunnyvale Baylands Park",
+        "url": "https://www.sunnyvale.ca.gov/recreation-and-community/parks-and-trails/baylands-park",
+        "mapQuery": "Sunnyvale Baylands Park 999 East Caribbean Drive",
+        "description": "城市运营的湾边公园，适合短程步行、草地休息及按规则使用野餐场地；公共活动区与生态湿地并非所有地方都可进入。",
+        "scope": "city"
+      }
+    ],
+    "halfDay": "编辑建议先按博物馆开放安排历史一站，再视天气与体力转往 Baylands 短走，或把两处拆成两个半日。带孩子可缩短讲解后留户外时间；出发前预留城市南北移动和回程，不把通勤高峰当普通周末车程。",
+    "arrival": "刚搬来从市官网找图书馆、康乐报名与实际地址对应的公用事业；社区课的居民资格与付款条件先查清。试走住处到车站、购物和日常办事地点的路线，先建立能重复使用的生活半径。",
+    "residentTip": "可以关注博物馆更换的专题展示与本地历史活动，带亲友来时从熟悉的街区历史讲起；想在 Baylands 组织聚会则先查市府预约规则与场地容量，不把普通入园和预留野餐桌混为一谈。",
+    "transport": "博物馆按 Remington Drive 导航，Baylands 按 East Caribbean Drive 入口导航，两处停车分别安排。Baylands 停车收费与有效通票请以城市运营方当期说明为准，不能假设县公园年票适用或套用别处的收费季节。",
+    "checks": "查博物馆具体开馆日、团体访问与活动安排；公园出发前核对收费、宠物限制、湿地保护区边界和大风天气。不要把场地预订页的可选时段当作全部设施当天都开放。",
+    "resources": [
+      {
+        "label": "城市居民服务",
+        "url": "https://www.sunnyvale.ca.gov/",
+        "kind": "city"
+      },
+      {
+        "label": "Baylands 公园与预约资料",
+        "url": "https://www.sunnyvale.ca.gov/recreation-and-community/parks-and-trails/baylands-park",
+        "kind": "parks"
+      }
+    ]
+  }
+]
