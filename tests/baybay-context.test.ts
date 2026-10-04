@@ -72,3 +72,29 @@ test('handoff retains public city and date beyond four raw turns without carryin
   assert.match(brief, /San Mateo/); assert.match(brief, /2026-10-04/); assert.doesNotMatch(brief, /private@example/);
   assert.equal(bayBayTaskBrief([...turns, { id: 6, question: '重新开始，去 Berkeley', state: 'complete' }]), '重新开始，去 Berkeley');
 });
+
+test('explicit unrestricted dates and locations clear prior requirements in both memory and planner handoff', () => {
+  for (const message of ['日期不限', '哪天都行', 'Any day is fine', 'No date restriction']) {
+    assert.deepEqual(resolveBayBaySearchContext(message, { city: 'Oakland', date: today }, {}, today), { city: 'Oakland' }, message);
+  }
+  for (const message of ['不限定城市都可以', '城市不限', 'Any city is fine']) {
+    assert.deepEqual(resolveBayBaySearchContext(message, { city: 'Oakland', date: today }, {}, today), { date: today }, message);
+  }
+  const brief = bayBayTaskBrief([{ id: 1, question: '今天在 San Francisco 看活动', state: 'complete' }, { id: 2, question: '城市不限，日期不限', state: 'complete' }]);
+  assert.doesNotMatch(brief, /San Francisco|今天/);
+  assert.match(brief, /城市不限，日期不限/);
+});
+
+test('negated destinations cannot become positive memory or remain positive handoff constraints', () => {
+  for (const message of ['不想去旧金山', '别在 San Francisco', "I don't want to go to San Francisco"]) {
+    assert.deepEqual(resolveBayBaySearchContext(message, { city: 'San Francisco', date: today }, {}, today), { date: today }, message);
+  }
+  assert.deepEqual(resolveBayBaySearchContext('不想去 Oakland，只去 San Jose', { city: 'Berkeley' }, {}, today), { city: 'San Jose' });
+  const brief = bayBayTaskBrief([{ id: 1, question: '从 Oakland 去 San Francisco', state: 'complete' }, { id: 2, question: '不想去 San Francisco', state: 'complete' }]);
+  assert.equal((brief.match(/San Francisco/g) || []).length, 1, 'only the latest exclusion should mention the rejected destination');
+  assert.match(brief, /Oakland/);
+});
+
+test('repeating one destination in multiple languages is not treated as ambiguous cities', () => {
+  assert.deepEqual(resolveBayBaySearchContext('San Jose，圣荷西，今天有什么活动', {}, {}, today), { city: 'San Jose', date: today });
+});

@@ -6,6 +6,8 @@ import { validCalendarDay } from './event-calendar';
 import { getBayAreaToday } from './monthly';
 
 export type BayBaySearchContext = { city?: string; region?: string; date?: string };
+/** In-memory precedence only. These flags are never sent as search filters. */
+export type BayBaySearchOverrides = { location?: boolean; date?: boolean };
 type Location = { city?: string; region?: string; broad?: boolean };
 export type BayBayLocationMention = Location & { at: number; end: number; origin: boolean; excluded: boolean };
 export const BAYBAY_CITIES = Object.keys(cityAliases);
@@ -31,13 +33,40 @@ export function bayBayLocationMentions(message: string): BayBayLocationMention[]
     const origin = /(?:从|住在|居住在|家在|(?:出发(?:城市|地点|地)?|起点)(?:\s*(?:改成|改为|换成|变成|是|在|到))?|\b(?:from|leaving|departing(?:\s+from)?|live in|based in|starting(?:\s+from)?|(?:origin|departure city)(?:\s+(?:is|to|changed? to|instead))?))\s*$/i.test(before)
       || /^\s*(?:出发|to\b|[-=]?>|→)/i.test(after);
     return { ...locations.get(normalized(match[0]))!, at: match.index!, end: match.index! + match[0].length, origin,
-      excluded: /(?:不去|不要(?:去)?|别去|排除|避免|\bnot|\binstead of)\s*$/i.test(before) };
+      excluded: /(?:不(?:想去|想在|去|在|是)|不要(?:去|在)?|别(?:去|在)?|排除|避免|\bnot(?:\s+(?:in|going to))?|\binstead of|\b(?:do not|don't|don’t)\s+(?:want\s+to\s+)?(?:go\s+to|visit|be\s+in))\s*$/i.test(before) };
   });
 }
 
 /** Explicit reset commands only; quoted or negated mentions are not commands. */
 export const isBayBayResetRequest = (message: string): boolean =>
   /^(?:(?:请|麻烦|好的|好|让我们)[，,、\s]*)?(?:重新开始|重开对话|清空对话|换个(?:话题|计划))(?:吧)?(?=$|[，,。.!！?？:：\s]|今天|明天|我)|^(?:(?:please|let['’]s)\s+)?(?:start over|start a new (?:chat|conversation)|new (?:topic|plan)|reset (?:the )?(?:chat|conversation))(?=$|[,.!?:\s])/i.test(simplifySearch(message.trim()));
+
+export function bayBayClearedSearchFields(message: string): BayBaySearchOverrides {
+  const text = simplifySearch(message);
+  return {
+    location: /(?:城市|地区|区域|地点)(?:不限|不限制|随便|都(?:可以|行))|(?:不限定|不限制|不限)(?:城市|地区|区域|地点)|\bany (?:city|location|region)\b|\bno (?:city|location|region) (?:restriction|preference|limit)s?\b/i.test(text),
+    date: /(?:日期|日子)(?:不限|不限制|随便|都(?:可以|行))|(?:不限定|不限制|不限)(?:日期|日子)|哪天都(?:可以|行)|任何一天|\bany (?:day|date)\b|\bno (?:date|day) (?:restriction|preference|limit)s?\b/i.test(text),
+  };
+}
+
+function conditionChanges(message: string, today: string) {
+  const mentions = bayBayLocationMentions(message), cleared = bayBayClearedSearchFields(message);
+  const parsed = parseDiscoveryQuery(/出生|生日|\b(?:date of birth|dob|birthday)\b/i.test(message) ? '' : message, today, BAYBAY_CITIES);
+  return { mentions, cleared, parsed, location: cleared.location || mentions.some(item => !item.origin), date: cleared.date || parsed.invalidDate || parsed.unsupported.includes('multiple-dates') || !!parsed.dateRange };
+}
+
+/** Explicitly cleared dimensions stay cleared across follow-ups, even on a filtered page. */
+export function resolveBayBaySearchState(message: string, previous: { searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides } = {}, page: BayBaySearchContext = {}, today = getBayAreaToday()) {
+  const changes = conditionChanges(message, today);
+  const searchOverrides = { ...(isBayBayResetRequest(message) ? {} : previous.searchOverrides) };
+  if (changes.location) searchOverrides.location = true;
+  if (changes.date) searchOverrides.date = true;
+  const effectivePage = { ...page };
+  if (searchOverrides.location) { delete effectivePage.city; delete effectivePage.region; }
+  if (searchOverrides.date) delete effectivePage.date;
+  return { searchOverrides, searchContext: resolveBayBaySearchContext(message, previous.searchContext, {}, today),
+    requestContext: resolveBayBaySearchContext(message, previous.searchContext, effectivePage, today) };
+}
 
 /** Only recognized public route parameters become context; arbitrary URL text never does. */
 export function bayBayPageSearchContext(path: string, today = getBayAreaToday()): BayBaySearchContext {
@@ -65,8 +94,9 @@ export function resolveBayBaySearchContext(message: string, previous: BayBaySear
   // City and region are one location dimension; do not mix an old city with a new page region.
   if (retained.city || retained.region) { delete result.city; delete result.region; }
   Object.assign(result, retained);
-  const mentions = bayBayLocationMentions(message);
-  const destinations = mentions.filter(item => !item.origin && !item.excluded);
+  const { mentions, cleared, parsed } = conditionChanges(message, today);
+  if (cleared.location) { delete result.city; delete result.region; }
+  const destinations = [...new Map(mentions.filter(item => !item.origin && !item.excluded).map(item => [item.city ? `city:${item.city}` : item.region ? `region:${item.region}` : 'bay-area', item])).values()];
   if (destinations.length) {
     delete result.city; delete result.region;
     // Multiple destinations need server interpretation, never silently choose the first.
@@ -77,8 +107,7 @@ export function resolveBayBaySearchContext(message: string, previous: BayBaySear
   } else if (mentions.some(item => item.excluded && ((item.city && item.city === result.city) || (item.region && item.region === result.region)))) {
     delete result.city; delete result.region;
   }
-  const parsed = parseDiscoveryQuery(/出生|生日|\b(?:date of birth|dob|birthday)\b/i.test(message) ? '' : message, today, BAYBAY_CITIES);
-  if (parsed.invalidDate || parsed.unsupported.includes('multiple-dates') || parsed.dateRange) {
+  if (cleared.date || parsed.invalidDate || parsed.unsupported.includes('multiple-dates') || parsed.dateRange) {
     delete result.date;
     if (!parsed.invalidDate && parsed.dateRange && parsed.dateRange.start === parsed.dateRange.end) result.date = parsed.dateRange.start;
   }

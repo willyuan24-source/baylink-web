@@ -18,6 +18,13 @@ test('English and traditional Chinese date corrections replace ISO, named and re
   }
 });
 
+test('replacing an American slash date removes its complete old year from the planner handoff', () => {
+  const brief = bayBayTaskBrief(turns('10/5/2027 Oakland museums', 'Change to 2028/10/06'));
+  assert.doesNotMatch(brief, /2027/);
+  assert.match(brief, /2028\/10\/06/);
+  assert.match(brief, /Oakland museums/);
+});
+
 test('budget and transportation corrections remove old conflicting constraints across multiple turns', () => {
   const brief = bayBayTaskBrief(turns('Fremont，周六开车，每人门票预算 $80，带孩子', '改成公共交通，预算40', '时间改成周日，还是亲子活动'));
   assert.doesNotMatch(brief, /周六|开车|\$80/); assert.match(brief, /公共交通/); assert.match(brief, /预算40/); assert.match(brief, /周日/); assert.match(brief, /带孩子/);

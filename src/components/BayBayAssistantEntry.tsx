@@ -15,7 +15,7 @@ import {
   type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode,
 } from '../lib/baybay-conversation';
 import { translateText, useLocale } from '../i18n/locale';
-import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchContext } from '../lib/baybay-context';
+import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 type BayBayAssistantEntryProps = {
@@ -97,11 +97,10 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     const history = conversationHistory(turnsRef.current);
     const previousTurn = [...turnsRef.current].reverse().find(turn => turn.state === 'complete');
     const previousReply = previousTurn?.response;
-    const userContext = resolveBayBaySearchContext(message, previousTurn?.searchContext);
-    const searchContext = resolveBayBaySearchContext(message, previousTurn?.searchContext, bayBayPageSearchContext(requestPath));
+    const { searchContext: userContext, requestContext: searchContext, searchOverrides } = resolveBayBaySearchState(message, previousTurn, bayBayPageSearchContext(requestPath));
     const outingSearchToken = previousReply?.outingSearch?.continuationToken;
     activeRequest.current = { id, controller };
-    updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext }]);
+    updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
     void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
       .then((response) => {

@@ -110,6 +110,63 @@ test('recognized page filters enter search context but raw URL text is not sent 
   assert.ok(!JSON.stringify(bodies).includes('private@example.com'));
 });
 
+test('cleared city and date constraints stay cleared on follow-ups instead of being restored from page filters', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
+  const bodies: { searchContext?: { city?: string; region?: string; date?: string }; message: string }[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer(`Reply ${bodies.length}`); });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} currentPath="/calendar?city=San%20Francisco&date=2026-10-04" />);
+  const ask = async (message: string) => {
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
+    await act(async () => fireEvent.click(view.getByRole('button', { name: '问一下' })));
+  };
+  await ask('今天在 San Jose 有哪些活动');
+  await ask('整个湾区都可以');
+  await ask('再推荐两条');
+  assert.deepEqual(bodies[2].searchContext, { date: '2026-10-04' });
+  await ask('改成10月10日到10月11日');
+  await ask('按这个范围推荐');
+  assert.equal(bodies[4].searchContext, undefined);
+  await ask('日期不限');
+  for (const message of ['安静一点', '人少一点', '还有哪些', '再推荐两条']) await ask(message);
+  assert.equal(bodies.at(-1)!.searchContext, undefined);
+  assert.ok(bodies.every(body => Object.keys(body.searchContext || {}).every(key => ['city', 'region', 'date'].includes(key))), 'internal clear-state metadata never enters API filters');
+  await ask('重新开始');
+  assert.deepEqual(bodies.at(-1)!.searchContext, { city: 'San Francisco', date: '2026-10-04' }, 'a deliberate new conversation may use the current page again');
+});
+
+test('mode switching and cancellation keep the selected request scope and ignore cancelled geographic corrections', async t => {
+  const pending: { body: { searchMode: string; searchContext?: { city?: string; date?: string }; history: unknown[] }; signal: AbortSignal; resolve: (response: Response) => void }[] = [];
+  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const ask = (message: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
+  ask('San Jose 10/05/2027 有什么活动');
+  assert.equal(pending[0].body.searchMode, 'smart');
+  for (const name of ['智能检索', '联网查', '仅站内']) assert.equal((view.getByRole('button', { name, exact: true }) as HTMLButtonElement).disabled, true);
+  fireEvent.click(view.getByRole('button', { name: '停止', exact: true }));
+  assert.equal(pending[0].signal.aborted, true);
+  fireEvent.click(view.getByRole('button', { name: '仅站内', exact: true }));
+  ask('Berkeley 2027/10/06 有什么活动');
+  assert.equal(pending[1].body.searchMode, 'site');
+  assert.deepEqual(pending[1].body.searchContext, { city: 'Berkeley', date: '2027-10-06' });
+  assert.deepEqual(pending[1].body.history, []);
+  await act(async () => pending[0].resolve(answer('Cancelled San Jose answer')));
+  assert.equal(view.queryByText('Cancelled San Jose answer'), null);
+  assert.ok(view.getByRole('button', { name: '停止', exact: true }), 'a late cancelled answer must not finish the newer request');
+  await act(async () => pending[1].resolve(answer('Berkeley site answer')));
+  fireEvent.click(view.getByRole('button', { name: '联网查', exact: true }));
+  ask('请核实这一天的安排');
+  assert.equal(pending[2].body.searchMode, 'web');
+  assert.deepEqual(pending[2].body.searchContext, { city: 'Berkeley', date: '2027-10-06' });
+  assert.equal(pending[2].body.history.length, 2);
+  await act(async () => pending[2].resolve(answer('Checked Berkeley answer')));
+  fireEvent.click(view.getByRole('button', { name: '智能检索', exact: true }));
+  ask('还有其他选择吗');
+  assert.equal(pending[3].body.searchMode, 'smart');
+  assert.deepEqual(pending[3].body.searchContext, { city: 'Berkeley', date: '2027-10-06' });
+  await act(async () => pending[3].resolve(answer('Other Berkeley choices')));
+  assert.equal(view.queryByText('Cancelled San Jose answer'), null);
+});
+
 test('follow-up chips preserve supplied travel facts instead of inventing age, origin, or transport', async t => {
   const bodies: { message: string; history: { role: string; content: string }[] }[] = [];
   t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {

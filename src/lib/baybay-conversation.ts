@@ -6,7 +6,7 @@ import { SLUG_TO_CATEGORY } from '../routing';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 import type { OutingFilters } from './outings';
 import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
-import { bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext } from './baybay-context';
+import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext, type BayBaySearchOverrides } from './baybay-context';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed'; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -59,7 +59,7 @@ export function bayBayTaskBrief(turns: BayBayTurn[]): string {
   const retained = completed.length > 4 ? completed.at(-5)?.searchContext : undefined;
   if (retained && !questions.some(isBayBayResetRequest)) questions.unshift([retained.city, retained.region?.replace(/-/g, ' '), retained.date].filter(Boolean).join(', '));
   // Remove superseded dimensions; never use model answers as user facts.
-  const dates = /\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|(?:20\d{2}\s*年\s*)?\d{1,2}\s*(?:月|\/)\s*\d{1,2}(?:\s*(?:日|号|號))?|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+20\d{2})?\b|(?:(?:这|這|本|下下?|上上?)\s*)?(?:周|週|星期)[一二三四五六日天末]|今天|明天|后天|後天|\b(?:(?:this|next|following|coming|last)\s+)?(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|weekend)\b|\b(?:day after tomorrow|tomorrow|today)\b/giu;
+  const dates = /\b\d{1,2}\/\d{1,2}\/20\d{2}\b|\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|(?:20\d{2}\s*年\s*)?\d{1,2}\s*(?:月|\/)\s*\d{1,2}(?:\s*(?:日|号|號))?|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+20\d{2})?\b|(?:(?:这|這|本|下下?|上上?)\s*)?(?:周|週|星期)[一二三四五六日天末]|今天|明天|后天|後天|\b(?:(?:this|next|following|coming|last)\s+)?(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|weekend)\b|\b(?:day after tomorrow|tomorrow|today)\b/giu;
   const budget = /(?:(?:每人|每位|人均|总共|總共|总|總|全程|per person|total)\s*)?(?:(?:门票|門票|入场|入場|admission)\s*)?(?:(?:预算|預算|budget|under|below|up to|at most|within|不超过|不超過|最多)\s*)?(?:[$＄]\s*\d[\d,.]*|USD\s*\d[\d,.]*|\d[\d,.]*\s*(?:美元|美金|USD|刀))(?:\s*(?:以内|以內|以下|封顶|封頂|per person|each|total))?|(?:门票|門票|admission)?\s*(?:预算|預算|budget)\s*(?:改为|改為|改成|最多|不超过|不超過|to|is|of)?\s*\d[\d,.]*(?:\s*(?:以内|以內|以下))?|(?:只(?:要|看|找)|仅|僅)?\s*(?:免费|免費)(?!停车|停車|餐)|\b(?:only\s+)?free(?:\s+(?:admission|entry|only))?\b(?!\s+parking)|(?:预算|預算|budget)\s*(?:不限|无限制|無限制|unlimited)|\bno budget limit\b/giu;
   const transport = /(?:(?:不|没|沒)(?:想|要)?|只(?:想|要))?\s*(?:开车|開車|驾车|駕車)|(?:公共交通|公交|地铁|地鐵|步行)(?:出行)?|\bwithout\s+(?:(?:a|my|our)\s+)?car\b|\b(?:(?:do not|don't|don’t|not|no)\s+)?(?:driv(?:e|ing)|cars?)\b|\b(?:public (?:transit|transport(?:ation)?)|transit|BART|Muni|walk(?:ing)?)\b/giu;
   const setting = /(?:(?:不|只)(?:想|要|看)?)?\s*(?:室内|室內|户外|戶外|室外)|\b(?:(?:not|no|only)\s+)?(?:indoors?|outdoors?)\b/giu;
@@ -69,12 +69,16 @@ export function bayBayTaskBrief(turns: BayBayTurn[]): string {
   let carried: string[] = [];
   for (const question of questions) {
     if (isBayBayResetRequest(question)) carried = [];
+    const cleared = bayBayClearedSearchFields(question);
     const overrides = [dates, budget, transport, setting].filter(pattern => has(pattern, question));
+    if (cleared.date && !overrides.includes(dates)) overrides.push(dates);
     const newCities = cities(question);
+    const exclusions = bayBayLocationMentions(question).filter(item => item.excluded);
     carried = carried.map(previous => {
       for (const pattern of overrides) previous = previous.replace(pattern, ' ');
       // A destination change keeps a separately stated departure city.
-      const replacements = cities(previous).filter(old => newCities.some(next => next.origin === old.origin));
+      const replacements = cities(previous).filter(old => newCities.some(next => next.origin === old.origin)
+        || !old.origin && (cleared.location || exclusions.some(next => next.city && next.city === old.city || next.region && next.region === old.region)));
       for (const old of replacements.reverse()) previous = previous.slice(0, old.at) + ' ' + previous.slice(old.end);
       return cleaned(previous);
     }).filter(Boolean);
@@ -118,7 +122,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
-  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; searchContext?: BayBaySearchContext;
+  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
 
 class BayBayServiceError extends Error {}

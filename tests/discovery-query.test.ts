@@ -4,6 +4,16 @@ import { parseDiscoveryQuery } from '../src/lib/discovery-query';
 
 const today = '2026-09-29';
 
+test('explicit slash-date years remain the requested year and invalid leap dates stay invalid', () => {
+  for (const text of ['events 10/05/2027', 'events 2027/10/05', 'events 10/5/2027 Tuesday', 'events 2027/10/05 Tuesday']) {
+    const query = parseDiscoveryQuery(text, today);
+    assert.deepEqual(query.dateRange, { start: '2027-10-05', end: '2027-10-05' }, text);
+    assert.deepEqual(query.tokens, [], text);
+  }
+  for (const text of ['events 02/29/2027', 'events 2027/02/29']) assert.equal(parseDiscoveryQuery(text, today).invalidDate, true, text);
+  assert.equal(parseDiscoveryQuery('events 10/5/2027 Thursday', today).invalidDate, true);
+});
+
 test('ordinary Chinese and English questions do not turn requests for events and places into mandatory keywords', () => {
   for (const text of ['今天有什麼活動，地方好去？', '今天有什么活动，好玩的地方？', 'What events and places can I visit today?']) {
     const query = parseDiscoveryQuery(text, today);
