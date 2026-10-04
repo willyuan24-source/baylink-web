@@ -13,6 +13,7 @@ const { render, fireEvent, cleanup, act } = await import('@testing-library/react
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
 const { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates } = await import('../src/lib/planner-web-search');
+const { guides } = await import('../src/data/guides');
 const noop = () => {};
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
 const login = (id: string) => localStorage.setItem('currentUser', JSON.stringify({ id, token: `token-${id}` }));
@@ -23,6 +24,58 @@ const discovery = (): GuideChatResponse => ({ ok: true, answer: '实际来源介
   webCandidates: [{ id: 'web-museum', name: 'Museum candidate', city: 'Oakland', summary: null, timeSummary: null, priceSummary: null, sourceUrls: ['https://museumca.org/visit/'] }],
 });
 afterEach(() => { cleanup(); localStorage.clear(); });
+
+test('catalog replies show only validated explicit API guides and never automatically append the currently read guide', async t => {
+  const reading = guides.find(guide => guide.slug === 'sf-free-culture-eligibility-october-2026')!;
+  const suggested = guides.find(guide => guide.slug !== reading.slug)!;
+  let suggestedGuides: GuideChatResponse['suggestedGuides'];
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, responseMode: 'catalog', answer: 'San Jose 当天的两个活动。', suggestedGuides }));
+  for (const supplied of [undefined, [], [
+    { title: 'Untrusted display title', slug: suggested.slug, url: `/guides/${suggested.slug}` },
+    { title: 'Wrong URL', slug: reading.slug, url: 'https://example.com/' },
+  ]]) {
+    suggestedGuides = supplied;
+    const opened: string[] = [];
+    const view = render(<BayBayAssistantEntry {...props} currentPath={`/guides/${reading.slug}`} onNavigate={path => opened.push(path)} pendingQuestion="San Jose 10月4日活动" pendingQuestionId={1} />);
+    await view.findByText('San Jose 当天的两个活动。');
+    const references = view.baseElement.querySelector('.baybay-references');
+    const guideButtons = references?.querySelectorAll(':scope > div > button');
+    assert.equal(guideButtons?.length || 0, supplied?.length ? 1 : 0);
+    assert.ok(!references?.textContent?.includes(reading.title), 'the open San Francisco guide must not become a San Jose recommendation');
+    assert.equal(view.queryByText('提问时阅读的指南'), null);
+    if (supplied?.length) {
+      assert.equal(guideButtons?.[0].textContent, suggested.title);
+      assert.doesNotMatch(references!.textContent!, /Untrusted display title|Wrong URL/);
+      fireEvent.click(guideButtons![0]);
+      assert.deepEqual(opened, [`/guides/${suggested.slug}`]);
+    }
+    view.unmount();
+  }
+});
+
+test('catalog notes cannot create an empty post section while actual posts and ordinary guide references stay intact', async t => {
+  const reading = guides[0];
+  let response: GuideChatResponse;
+  t.mock.method(globalThis, 'fetch', async () => Response.json(response));
+  for (const [responseMode, matchingPosts] of [
+    ['catalog', []], ['catalog', [{ id: 'actual-post', title: '真实帖子', city: 'San Jose', createdAt: 1 }]], [undefined, []],
+  ] as const) {
+    response = { ok: true, answer: '已整理资料。', responseMode, matchNote: '按当前城市和日期核对了资料。', matchingPosts: [...matchingPosts] };
+    const view = render(<BayBayAssistantEntry {...props} currentPath={`/guides/${reading.slug}`} pendingQuestion="今天有什么活动" pendingQuestionId={1} />);
+    await view.findByText('已整理资料。');
+    const posts = view.queryByRole('region', { name: '站内真实帖子' });
+    if (responseMode === 'catalog') {
+      assert.equal(view.queryByText(response.matchNote!), null);
+      assert.equal(Boolean(posts), matchingPosts.length > 0);
+      if (posts) assert.equal(posts.querySelector('a')?.getAttribute('href'), '/posts/actual-post');
+    } else {
+      assert.ok(posts?.textContent?.includes(response.matchNote!));
+      assert.ok(view.getByText('提问时阅读的指南'));
+      assert.ok(view.baseElement.querySelector('.baybay-references')?.textContent?.includes(reading.title));
+    }
+    view.unmount();
+  }
+});
 
 test('global BayBay outside the router outlet saves with explicitly supplied account identity', async t => {
   login('member');

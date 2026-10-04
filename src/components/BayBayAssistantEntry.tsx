@@ -197,7 +197,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
                 {turn.response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={turn.response} />}
                 {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} answer={turn.response.answer} blockedUserIds={blockedUserIds} onNavigate={navigate}
                   onAnswer={turn.id === turns[turns.length - 1]?.id && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) askBayBay(answer, turn.currentPath, true); } : undefined}/>}
-                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={['completed', 'unavailable', 'verification_failed'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
+                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.responseMode === 'catalog' || ['completed', 'unavailable', 'verification_failed'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
                 <BayBayDiscoveryResults response={turn.response} ownerId={ownerId} sessionKey={sessionKey} />
                 <BayBayReferences response={turn.response} currentPath={turn.currentPath} onNavigate={navigate} />
@@ -231,7 +231,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
 };
 
 function BayBayReferences({ response, currentPath, onNavigate }: { response: GuideChatResponse; currentPath?: string; onNavigate: (path: string) => void }) {
-  const reading = currentBayBayGuide(currentPath || '');
+  const reading = response.responseMode === 'catalog' ? undefined : currentBayBayGuide(currentPath || '');
   const references = bayBayReferenceGuides(response);
   const items = reading ? [reading, ...references.filter(guide => guide.slug !== reading.slug)] : references;
   if (!items.length) return null;
