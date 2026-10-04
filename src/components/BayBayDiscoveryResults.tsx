@@ -37,10 +37,14 @@ export function BayBayDiscoveryResults({ response, ownerId, sessionKey, onNaviga
 
 function AssistantSources({ response, onNavigate }: { response: GuideChatResponse; onNavigate?: (path: string) => void }) {
   const t = useCopy(), result = bayBayAssistantResult(response);
-  if (!result && !response.research?.warnings.length) return null;
+  const notices = [...new Set((response.research?.warnings || []).flatMap(warning => warning === 'additional_web_lookup_unavailable'
+    ? [t('部分补充查询未完成，已保留取得的资料。', 'Some additional lookups could not finish. The information already found is retained.')]
+    : warning === 'task_memory_unavailable' ? [t('本次未能保留完整安排条件，继续提问时请再次注明关键需求。', 'The full planning context could not be retained. Please repeat your key requirements in the next question.')]
+      : []))];
+  if (!result && !notices.length) return null;
   return <section className="baybay-discovery" aria-label={t('本次回答来源', 'Sources for this answer')} translate="no">
     {result && <details className="baybay-web-sources"><summary>{t('本次回答来源', 'Sources for this answer')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={source.number} value={source.number}><a href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" onClick={event => { if (source.url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(source.url); } }}>{source.title}<small>{source.url.startsWith('/') ? t('站内攻略', 'Site guide') : new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>}
-    {!!response.research?.warnings.length && <ul className="baybay-plan-notes">{response.research.warnings.map((warning, index) => <li key={index}>{t(warning, warning)}</li>)}</ul>}
+    {!!notices.length && <ul className="baybay-plan-notes">{notices.map((notice, index) => <li key={index}>{notice}</li>)}</ul>}
   </section>;
 }
 
