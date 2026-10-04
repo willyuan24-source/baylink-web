@@ -7,6 +7,7 @@ import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 import type { OutingFilters } from './outings';
 import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
 import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext, type BayBaySearchOverrides } from './baybay-context';
+import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssistantFields } from './baybay-assistant';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed'; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -16,7 +17,7 @@ export type GuideChatAction = {
   label: string; type: 'category' | 'guide' | 'post' | 'postAssist';
   url?: string; postType?: 'client' | 'provider'; category?: string;
 };
-export type GuideChatResponse = {
+export type GuideChatResponse = BayBayAssistantFields & {
   ok: boolean; answer?: string; error?: string; code?: string;
   suggestedGuides?: { title: string; slug: string; url: string }[];
   suggestedActions?: GuideChatAction[]; safetyNote?: string;
@@ -32,7 +33,7 @@ export type GuideChatResponse = {
 
 /** Only validated response citations can become clickable references or saved candidates. */
 export function bayBayWebResult(response: GuideChatResponse): PlannerWebResult | null {
-  if (response.responseMode === 'catalog' || response.retrieval?.webStatus !== 'completed' || !['web', 'site+web'].includes(response.retrieval.scope)) return null;
+  if (['catalog', 'assistant'].includes(response.responseMode || '') || response.retrieval?.webStatus !== 'completed' || !['web', 'site+web'].includes(response.retrieval.scope)) return null;
   return parsePlannerWebResult({ ok: true, responseMode: 'web', answer: response.answer, sources: response.sources,
     candidates: response.webCandidates, checkedAt: response.retrieval.checkedAt, cached: response.retrieval.cached });
 }
@@ -122,12 +123,14 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
-  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
+  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
 
 class BayBayServiceError extends Error {}
 class BayBaySearchContextExpiredError extends BayBayServiceError {}
+class BayBayAssistantContextExpiredError extends BayBaySearchContextExpiredError {}
 export const isBayBaySearchContextExpired = (error: unknown): boolean => error instanceof BayBaySearchContextExpiredError;
+export const isBayBayAssistantContextExpired = (error: unknown): boolean => error instanceof BayBayAssistantContextExpiredError;
 
 export function bayBayErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message.trim() : '';
@@ -254,13 +257,14 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
 
 export async function fetchBayBayReply(
   message: string,
-  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; searchMode?: BayBaySearchMode; searchContext?: BayBaySearchContext },
+  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; assistantSessionToken?: string; searchMode?: BayBaySearchMode; searchContext?: BayBaySearchContext },
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
-  timeoutMs = 55_000,
+  timeoutMs = 100_000,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
-  const { outingSearchToken, searchMode = 'smart', searchContext, ...pageContext } = context;
+  const { outingSearchToken, assistantSessionToken: rawAssistantToken, searchMode = 'smart', searchContext, ...pageContext } = context;
+  const assistantSessionToken = safeAssistantSessionToken(rawAssistantToken);
   const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath.split(/[?#]/, 1)[0] };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -278,16 +282,19 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
         const data = await response.json() as GuideChatResponse;
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
+          if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(typeof data.error === 'string' ? data.error : '对话条件已过期，请开启新对话并重新说明安排。');
           if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(typeof data.error === 'string' ? data.error : '搜索条件已过期，请开启新对话并重新说明城市和日期。');
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
-        if (data.outingSearch !== undefined) return { ...data, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
+        // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
+        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, ...parseBayBayAssistantFields(data) };
+        if (data.outingSearch !== undefined) return { ...safe, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
         if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');
-        return data;
+        return safe;
       })(),
     ]);
   } finally {
