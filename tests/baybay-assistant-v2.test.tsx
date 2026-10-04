@@ -184,6 +184,46 @@ test('degraded v2 guidance describes collected sources without claiming they are
   assert.equal(view.queryByText('AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。'), null);
 });
 
+test('matching Google route legs display approximate inbound travel and the actual estimated return time', async () => {
+  const raw = fixture(), firstId = raw.assistantPlan.stops[0].entityId;
+  const parsed = parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan,
+    stops: raw.assistantPlan.stops.map((stop, index) => ({ ...stop, travelMinutes: index ? 12 : 5 })), returnTime: '12:35',
+    travelLegs: [
+      { from: 'origin', to: firstId, durationMinutes: 5, provider: 'google-maps', status: 'estimate' },
+      { from: firstId, to: 'invented-place', durationMinutes: 12, provider: 'google-maps', status: 'estimate' },
+      { from: 'invented-place', to: 'origin', durationMinutes: 8, provider: 'google-maps', status: 'estimate' },
+    ],
+  } });
+  assert.deepEqual(parsed.assistantPlan!.stops.map(stop => stop.travelMinutes), [5, 12]);
+  assert.equal(parsed.assistantPlan!.travelLegs?.length, 3);
+  const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.ok(view.getByText('前往本站约 5 分钟 · Google Maps 估算'));
+  assert.ok(view.getByText('前往本站约 12 分钟 · Google Maps 估算'));
+  assert.ok(view.getByText('预计 12:35 返回出发地 · Google Maps 估算，实际路况可能变化。'));
+  await act(async () => { await setLocale('en', false); });
+  assert.ok(view.getByText('About 5 min to this stop · Google Maps estimate'));
+  assert.ok(view.getByText('Estimated return to your starting point at 12:35 · Google Maps estimate; actual travel conditions may change.'));
+});
+
+test('unknown, mismatched or malformed travel data never becomes a Google estimate or a confirmed return', () => {
+  const raw = fixture(), firstId = raw.assistantPlan.stops[0].entityId;
+  const cases = [
+    { stops: raw.assistantPlan.stops, returnTime: '12:35', travelLegs: [] },
+    { stops: raw.assistantPlan.stops.map(stop => ({ ...stop, travelMinutes: 5 })), returnTime: '12:35', travelLegs: [{ from: 'other-place', to: firstId, durationMinutes: 5, provider: 'google-maps', status: 'estimate' }] },
+    { stops: raw.assistantPlan.stops.map(stop => ({ ...stop, travelMinutes: 5 })), returnTime: '12:35', travelLegs: [{ from: 'origin', to: firstId, durationMinutes: 9, provider: 'google-maps', status: 'estimate' }, { from: firstId, to: 'origin', durationMinutes: 5, provider: 'google-maps', status: 'estimate' }] },
+    { stops: raw.assistantPlan.stops.map(stop => ({ ...stop, travelMinutes: 900 })), returnTime: '25:01', travelLegs: [{ from: 'origin', to: firstId, durationMinutes: 900, provider: 'google-maps', status: 'estimate' }, { from: 'invented-place', to: 'origin', durationMinutes: -1, provider: 'google-maps', status: 'estimate' }] },
+    { stops: raw.assistantPlan.stops.map(stop => ({ ...stop, travelMinutes: 5 })), returnTime: '12:35', travelLegs: [{ from: 'origin', to: firstId, durationMinutes: 5, provider: 'model-guess', status: 'estimate' }, { from: 'invented-place', to: 'origin', durationMinutes: 5, provider: 'google-maps', status: 'unverified' }] },
+  ];
+  const view = render(<></>);
+  for (const routeData of cases) {
+    const parsed = parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, ...routeData } });
+    view.rerender(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+    assert.equal(view.getAllByText('前往本站交通时间待核实').length, 2);
+    assert.doesNotMatch(view.container.textContent || '', /Google Maps 估算|预计 12:35 返回|25:01/);
+  }
+  assert.equal(parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, ...cases[3] } }).assistantPlan?.stops[0].travelMinutes, undefined);
+});
+
 test('assistant answer ordinals bind only to evidence-backed sources and known local guides, preserving browser modified clicks', () => {
   const guidePath = `/guides/${guides[0].slug}`, paths: string[] = [];
   const raw = { ...fixture(), responseMode: 'assistant', answer: 'Read [1], [2], [3], [4] and [5].',

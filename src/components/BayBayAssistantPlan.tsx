@@ -47,17 +47,23 @@ export function BayBayAssistantPlanCard({ plan, evidence, disabled, onAsk, onNav
   const t = useCopy(), imported = bayBayAssistantPlanImport(plan);
   const status = plan.status === 'ready' ? t('安排草案', 'Plan draft') : plan.status === 'needs_details' ? t('还需补充条件', 'More details needed') : t('部分信息待核实', 'Some details need checking');
   const sources = new Map(evidence.map(item => [item.id, item]));
+  const stopIds = plan.stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
+  const inbound = plan.stops.map((stop, index) => plan.travelLegs?.find(leg => leg.provider === 'google-maps' && leg.status === 'estimate'
+    && leg.from === (index ? stopIds[index - 1] : 'origin') && leg.to === stopIds[index] && leg.durationMinutes === stop.travelMinutes));
+  const returnLeg = plan.travelLegs?.find(leg => leg.provider === 'google-maps' && leg.status === 'estimate' && leg.from === stopIds[stopIds.length - 1] && leg.to === 'origin');
   return <section className="baybay-assistant-plan" aria-label={t('BayBay 安排草案', 'BayBay plan draft')} translate="no">
     <header><div><small>{plan.date || t('日期待确认', 'Date unconfirmed')}</small><h3>{t(plan.title, plan.title)}</h3></div><span className={`baybay-plan-status baybay-plan-status--${plan.status}`}>{status}</span></header>
     {plan.summary && <p className="baybay-plan-summary">{t(plan.summary, plan.summary)}</p>}
     <ol className="baybay-plan-stops">{plan.stops.map((stop, index) => <li key={stop.id}>
       <div className="baybay-plan-stop-heading"><span className="baybay-plan-stop-number">{index + 1}</span><div><h4>{t(stop.title, stop.title)}</h4><small>{stop.city}{stop.date && stop.date !== plan.date ? ` · ${stop.date}` : ''}</small></div></div>
       <dl><div><dt>{t('时间', 'Time')}</dt><dd>{stop.startTime ? `${stop.startTime}${stop.endTime ? `–${stop.endTime}` : ''}` : t('待安排', 'Unscheduled')}{stop.durationMinutes !== undefined && ` · ${stop.durationMinutes} ${t('分钟', 'min')}`}<small>{stop.timeStatus === 'verified' ? t('来源已核对的时段', 'Source-checked time') : stop.timeStatus === 'suggested' ? t('建议时段，开放与预约待核实', 'Suggested time; verify hours and booking') : t('时段待核实', 'Time unverified')}</small></dd></div>
+        <div><dt>{t('交通', 'Travel')}</dt><dd>{inbound[index] ? t(`前往本站约 ${inbound[index]!.durationMinutes} 分钟 · Google Maps 估算`, `About ${inbound[index]!.durationMinutes} min to this stop · Google Maps estimate`) : t('前往本站交通时间待核实', 'Travel time to this stop is unverified')}</dd></div>
         <div><dt>{t('门票参考', 'Admission reference')}</dt><dd>{stop.admissionUsd === undefined ? t('费用未知', 'Cost unknown') : `$${stop.admissionUsd}`}</dd></div></dl>
       {stop.notes.length > 0 && <ul className="baybay-plan-notes">{stop.notes.map((note, i) => <li key={i}>{t(note, note)}</li>)}</ul>}
       <div className="baybay-plan-citations">{stop.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={12} />{t(source.title, source.title)}{source.checkedAt && <small>{t(`核对 ${source.checkedAt}`, `Checked ${source.checkedAt}`)}</small>}</a>] : []; })}{!stop.sourceIds.some(id => sources.has(id)) && <small>{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</small>}</div>
       <button type="button" className="baybay-plan-swap" disabled={disabled} onClick={() => onAsk(t(`换掉第${index + 1}站，保留其他条件。`, `Replace stop ${index + 1}, keeping my other requirements.`))}><RefreshCw size={12} />{t(`换掉第${index + 1}站`, `Replace stop ${index + 1}`)}</button>
     </li>)}</ol>
+    {plan.returnTime && returnLeg && <p className="baybay-plan-summary">{t(`预计 ${plan.returnTime} 返回出发地 · Google Maps 估算，实际路况可能变化。`, `Estimated return to your starting point at ${plan.returnTime} · Google Maps estimate; actual travel conditions may change.`)}</p>}
     <section className="baybay-plan-budget"><h4>{t('费用核对', 'Budget check')}</h4><p>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>{plan.budget.knownTotalUsd === undefined ? t('未知', 'Unknown') : `$${plan.budget.knownTotalUsd}`}</strong></p>
       {plan.budget.limitUsd !== undefined && <p>{t('预算上限', 'Budget limit')} <strong>${plan.budget.limitUsd}</strong>{` · ${plan.budget.scope === 'person' ? t('每人', 'per person') : plan.budget.scope === 'total' ? t('全组', 'whole group') : t('范围待确认', 'scope unconfirmed')}`}</p>}
       <small>{t('小计不代表完整出行总价；未知费用未按零元计算。', 'The subtotal is not the full trip cost; unknown costs are not counted as zero.')}</small>

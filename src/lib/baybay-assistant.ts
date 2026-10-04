@@ -12,12 +12,14 @@ export type BayBayTaskState = {
 export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; text?: string };
 export type BayBayPlanStop = {
   id: string; kind: string; entityId?: string; title: string; city?: string; date?: string; startTime?: string; endTime?: string;
-  durationMinutes?: number; timeStatus?: string; admissionUsd?: number; sourceIds: string[]; notes: string[];
+  durationMinutes?: number; travelMinutes?: number; timeStatus?: string; admissionUsd?: number; sourceIds: string[]; notes: string[];
 };
+export type BayBayPlanTravelLeg = { from: string; to: string; durationMinutes: number; provider: 'google-maps'; status: 'estimate' };
 export type BayBayAssistantPlan = {
   id: string; date?: string; title: string; status: 'ready' | 'needs_verification' | 'needs_details'; stops: BayBayPlanStop[];
   budget: { knownTotalUsd?: number; unknownItems: string[]; limitUsd?: number; scope?: 'person' | 'total' };
   checks: { code: string; status: 'pass' | 'unknown' | 'fail'; message: string }[]; unknowns: string[]; summary?: string;
+  travelLegs?: BayBayPlanTravelLeg[]; returnTime?: string;
 };
 export type BayBayAssistantFields = {
   assistantSessionToken?: string; taskState?: BayBayTaskState; assistantPlan?: BayBayAssistantPlan; evidence?: BayBayEvidence[];
@@ -27,6 +29,7 @@ const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v ===
 const guidePaths = new Set(guides.map(guide => `/guides/${guide.slug}`));
 const text = (v: unknown, max = 500): string | undefined => typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : undefined;
 const number = (v: unknown, max = 1_000_000): number | undefined => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? v : undefined;
+const travelMinutes = (v: unknown): number | undefined => Number.isInteger(v) ? number(v, 720) : undefined;
 const clock = (v: unknown): string | undefined => typeof v === 'string' && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(v) ? v : undefined;
 const strings = (v: unknown, max = 20, length = 600): string[] => Array.isArray(v) ? v.slice(0, max).flatMap(item => text(item, length) || []) : [];
 const option = <const T extends string>(v: unknown, options: readonly T[]): T | undefined => options.includes(v as T) ? v as T : undefined;
@@ -83,10 +86,18 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     for (const stop of plan.stops) {
       if (!record(stop) || !text(stop.id, 160) || !text(stop.title) || !text(stop.kind, 40) || stops.some(item => item.id === text(stop.id, 160))) return result;
       stops.push({ id: text(stop.id, 160)!, title: text(stop.title)!, kind: text(stop.kind, 40)!, entityId: text(stop.entityId, 160), city: text(stop.city, 120), date: validPlannerWebDate(stop.date) || undefined,
-        startTime: clock(stop.startTime), endTime: clock(stop.endTime), durationMinutes: number(stop.durationMinutes, 1440), timeStatus: option(stop.timeStatus, ['verified', 'suggested', 'unknown']) || 'unknown', admissionUsd: number(stop.admissionUsd),
+        startTime: clock(stop.startTime), endTime: clock(stop.endTime), durationMinutes: number(stop.durationMinutes, 1440), travelMinutes: travelMinutes(stop.travelMinutes), timeStatus: option(stop.timeStatus, ['verified', 'suggested', 'unknown']) || 'unknown', admissionUsd: number(stop.admissionUsd),
         sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes) });
     }
-    result.assistantPlan = { id: text(plan.id, 160)!, title: text(plan.title)!, date: validPlannerWebDate(plan.date) || undefined, status: option(plan.status, ['ready', 'needs_verification', 'needs_details'])!, stops,
+    const stopIds = stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
+    const pairs = new Set(stopIds.map((id, index) => `${index ? stopIds[index - 1] : 'origin'}:${id}`));
+    if (stopIds.length) pairs.add(`${stopIds[stopIds.length - 1]}:origin`);
+    const travelLegs: BayBayPlanTravelLeg[] = Array.isArray(plan.travelLegs) ? plan.travelLegs.slice(0, 13).flatMap(leg => {
+      if (!record(leg) || leg.provider !== 'google-maps' || leg.status !== 'estimate') return [];
+      const from = text(record(leg.from) ? leg.from.id : leg.from, 160), to = text(record(leg.to) ? leg.to.id : leg.to, 160), minutes = travelMinutes(leg.durationMinutes);
+      return from && to && from !== to && minutes !== undefined && pairs.has(`${from}:${to}`) ? [{ from, to, durationMinutes: minutes, provider: 'google-maps' as const, status: 'estimate' as const }] : [];
+    }) : [];
+    result.assistantPlan = { id: text(plan.id, 160)!, title: text(plan.title)!, date: validPlannerWebDate(plan.date) || undefined, status: option(plan.status, ['ready', 'needs_verification', 'needs_details'])!, stops, travelLegs, returnTime: clock(plan.returnTime),
       budget: { knownTotalUsd: number(plan.budget.knownTotalUsd), unknownItems: strings(plan.budget.unknownItems), limitUsd: number(plan.budget.limitUsd), scope: option(plan.budget.scope, ['person', 'total']) },
       checks: Array.isArray(plan.checks) ? plan.checks.slice(0, 30).flatMap(check => record(check) && text(check.code, 100) && text(check.message, 1000) && option(check.status, ['pass', 'unknown', 'fail']) ? [{ code: text(check.code, 100)!, status: option(check.status, ['pass', 'unknown', 'fail'])!, message: text(check.message, 1000)! }] : []) : [],
       unknowns: strings(plan.unknowns), summary: text(plan.summary, 2500) };
