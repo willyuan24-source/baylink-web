@@ -873,7 +873,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           pendingQuestion={baybayPendingQuestion?.scope === baybaySessionScope ? baybayPendingQuestion.text : null}
           pendingQuestionId={baybayPendingQuestionId}
           onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
-          currentPath={location.pathname}
+          currentPath={location.pathname + location.search}
           categoryHint={baybayCategoryHint}
           blockedUserIds={blockedUserIds}
           onNavigate={navigate}

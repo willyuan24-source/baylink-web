@@ -14,7 +14,21 @@ const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { currentFreebies } = await import('../src/data/october-offers');
 const { currentOpenings } = await import('../src/data/local-discoveries');
 const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
+const { eventOccursOn } = await import('../src/lib/event-calendar');
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
+
+test('ordinary multilingual outing questions retain useful dated events and separately unverified places', async () => {
+  for (const [locale, query] of [['zh-Hant', '今天有什麼活動，地方好去？'], ['zh-Hans', '今天有什么活动，好玩的地方？'], ['en', 'What events and places can I visit today?'], ['en', 'things to do today']] as const) {
+    await setLocale(locale, false);
+    const results = searchQuickDestinations(query, locale, '2026-10-04');
+    assert.ok(results.events.length > 0, query);
+    assert.ok(results.events.every(event => eventOccursOn(event, '2026-10-04')), 'events must actually occur on the requested day');
+    assert.equal(results.attractions.length, 0, 'place hours are not confirmed availability');
+    assert.ok(results.unverified.attractions.length > 0, 'general outings keep places as separately unverified references');
+    assert.deepEqual(results.queryInfo.tokens, [], query);
+    assert.deepEqual(results.queryInfo.dateRange, { start: '2026-10-04', end: '2026-10-04' });
+  }
+});
 
 test('quick discovery finds tools, upcoming events and attractions with multilingual queries', async () => {
   assert.equal(searchQuickDestinations('房贷', 'zh-Hans').tools[0].id, 'loan');

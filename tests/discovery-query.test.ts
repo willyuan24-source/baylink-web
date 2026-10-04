@@ -4,6 +4,22 @@ import { parseDiscoveryQuery } from '../src/lib/discovery-query';
 
 const today = '2026-09-29';
 
+test('ordinary Chinese and English questions do not turn requests for events and places into mandatory keywords', () => {
+  for (const text of ['今天有什麼活動，地方好去？', '今天有什么活动，好玩的地方？', 'What events and places can I visit today?']) {
+    const query = parseDiscoveryQuery(text, today);
+    assert.deepEqual(query.tokens, [], text);
+    assert.equal(query.intent, 'mixed');
+    assert.deepEqual(query.dateRange, { start: today, end: today });
+  }
+  assert.equal(parseDiscoveryQuery('places to visit in Oakland', today).intent, 'places');
+  for (const text of ['things to do today', '今天去哪玩', '哪里好玩']) {
+    assert.equal(parseDiscoveryQuery(text, today).intent, 'mixed', 'broad outing questions keep both events and places');
+    assert.deepEqual(parseDiscoveryQuery(text, today).tokens, []);
+  }
+  assert.deepEqual(parseDiscoveryQuery('San Francisco Bay Area events today', today).cities, [], 'a Bay Area request is not limited to San Francisco city');
+  assert.deepEqual(parseDiscoveryQuery('What dragon sculpture events can I visit today?', today).tokens, ['dragon', 'sculpture'], 'meaningful topic terms stay mandatory');
+});
+
 test('whole Chinese, traditional and English requests produce the same factual filters', () => {
   for (const text of ['帮我找这个周末旧金山免费活动', '請推薦這個週末舊金山免費活動', 'Please show me free events in San Francisco this weekend']) {
     const query = parseDiscoveryQuery(text, today);

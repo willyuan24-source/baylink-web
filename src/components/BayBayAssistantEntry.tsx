@@ -15,6 +15,7 @@ import {
   type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode,
 } from '../lib/baybay-conversation';
 import { translateText, useLocale } from '../i18n/locale';
+import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchContext } from '../lib/baybay-context';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 type BayBayAssistantEntryProps = {
@@ -42,7 +43,7 @@ const resolveCategoryLabel = (category?: string) => {
 export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBayAssistantSession key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} />;
 
 const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, categoryHint,
-  currentPath = typeof window === 'undefined' ? '/' : window.location.pathname,
+  currentPath = typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search,
   panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
@@ -91,13 +92,18 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     void keepConversation;
     const id = ++sequence.current;
     const controller = new AbortController();
+    const reset = isBayBayResetRequest(message);
+    if (reset) updateTurns(() => []);
     const history = conversationHistory(turnsRef.current);
-    const previousReply = [...turnsRef.current].reverse().find(turn => turn.state === 'complete')?.response;
+    const previousTurn = [...turnsRef.current].reverse().find(turn => turn.state === 'complete');
+    const previousReply = previousTurn?.response;
+    const userContext = resolveBayBaySearchContext(message, previousTurn?.searchContext);
+    const searchContext = resolveBayBaySearchContext(message, previousTurn?.searchContext, bayBayPageSearchContext(requestPath));
     const outingSearchToken = previousReply?.outingSearch?.continuationToken;
     activeRequest.current = { id, controller };
-    updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath }]);
+    updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
+    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
@@ -191,7 +197,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
                 {turn.response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={turn.response} />}
                 {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} answer={turn.response.answer} blockedUserIds={blockedUserIds} onNavigate={navigate}
                   onAnswer={turn.id === turns[turns.length - 1]?.id && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) askBayBay(answer, turn.currentPath, true); } : undefined}/>}
-                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={['completed', 'unavailable'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
+                <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={['completed', 'unavailable', 'verification_failed'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
                 <BayBayDiscoveryResults response={turn.response} ownerId={ownerId} sessionKey={sessionKey} />
                 <BayBayReferences response={turn.response} currentPath={turn.currentPath} onNavigate={navigate} />
@@ -217,7 +223,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
               if (!composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) askBayBay(question);
             }} placeholder={schoolContext ? '例如：东湾 Fremont，准备入读三年级' : turns.length ? '继续补充城市、预算或你的想法…' : '例如：周末带 6 岁孩子，东湾有什么免费去处？'} className="member-baybay-question-input" />
             {loading ? <button type="button" onClick={stop} className="member-baybay-ask"><Square size={13} />停止</button> : <button type="submit" disabled={question.trim().length < 2} className="member-baybay-ask"><span>问一下</span><ArrowUp size={15} /></button>}
-          </div><p className="baybay-composer-note" translate="no">{copy('对话仅保留在当前标签页，刷新即清除。小队搜索沿用已确认条件；其他问答参考最近 4 轮。小队以详情最新状态为准，活动日期与票价请向主办方核实。', 'This conversation clears on refresh. Outing searches retain confirmed conditions; other replies use the last 4 turns. Check outing details for current status and organizers for event dates and prices.')}</p>
+          </div><p className="baybay-composer-note" translate="no">{copy('对话仅保留在当前标签页，刷新即清除。小队搜索沿用已确认条件；其他问答参考最近 4 轮，并保留你明确的城市与日期条件。小队以详情最新状态为准，活动日期与票价请向主办方核实。', 'This conversation clears on refresh. Outing searches retain confirmed conditions; other replies use the last 4 turns and retain your stated city and date. Check outing details for current status and organizers for event dates and prices.')}</p>
         </form>
       </div>
     </ModalShell>}

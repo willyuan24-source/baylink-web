@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Bookmark, Check, Globe2, MapPin } from 'lucide-react';
 import { useLocale, translateText } from '../i18n/locale';
-import { bayBayPlanPath, bayBayWebResult, type GuideChatResponse } from '../lib/baybay-conversation';
+import { bayBayCatalogResult, bayBayCatalogWebReferences, bayBayPlanPath, bayBayWebResult, type GuideChatResponse } from '../lib/baybay-conversation';
 import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type SavedWebCandidate } from '../lib/planner-web-search';
 import { getStoredUser } from '../lib/session';
 
@@ -12,17 +12,33 @@ function useCopy() {
 
 export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse }) {
   const t = useCopy(), web = bayBayWebResult(response), retrieval = response.retrieval;
-  const checked = web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
-  return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
+  const catalog = response.responseMode === 'catalog' && retrieval && ['site', 'site+web'].includes(retrieval.scope);
+  const catalogDay = catalog ? validPlannerWebDate(retrieval.catalogCheckedAt) : null;
+  const checked = catalogDay ? t(`资料核对 ${catalogDay}`, `Catalog checked ${catalogDay}`) : web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
+  const failed = retrieval?.webStatus === 'verification_failed';
+  return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
 }
 
 export function BayBayAnswer({ response }: { response: GuideChatResponse }) {
-  const result = bayBayWebResult(response);
+  const result = bayBayCatalogResult(response) || bayBayWebResult(response);
   return <p className="member-baybay-answer-text">{result ? plannerWebAnswerParts(result).map((part, index) => part.source ? <a key={index} href={part.source.url} target="_blank" rel="noopener noreferrer" title={part.source.title} className="baybay-inline-citation">{part.text}</a> : <span key={index}>{part.text}</span>) : response.answer}</p>;
 }
 
 export function BayBayDiscoveryResults({ response, ownerId, sessionKey }: { response: GuideChatResponse; ownerId?: string; sessionKey?: string }) {
+  if (response.responseMode === 'catalog') return <CatalogSources response={response} />;
   return <DiscoverySession key={JSON.stringify([ownerId || 'guest', sessionKey])} response={response} ownerId={ownerId} />;
+}
+
+function CatalogSources({ response }: { response: GuideChatResponse }) {
+  const t = useCopy(), result = bayBayCatalogResult(response), supplements = bayBayCatalogWebReferences(response);
+  const webDate = supplements.length ? plannerWebCheckedDate(response.retrieval?.checkedAt) : null;
+  if (!result && !supplements.length) return null;
+  return <>{result && <section className="baybay-discovery" aria-label={t('站内收录官方来源', 'Official sources in the site catalog')} translate="no">
+    <details className="baybay-web-sources" open><summary>{t('站内收录官方来源', 'Official sources in the site catalog')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={`${source.number}:${source.url}`} value={source.number}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>
+  </section>}{supplements.length > 0 && <section className="baybay-discovery" aria-label={t('联网补充来源', 'Supplementary web sources')} translate="no">
+    <details className="baybay-web-sources" open><summary>{t('联网补充来源 · 日期、场次及票价待核实', 'Supplementary web sources · Dates, sessions and prices unverified')}</summary><ul>{supplements.map(source => <li key={`${source.number}:${source.url}`}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ul></details>
+    {webDate && <p className="baybay-discovery-note">{t(`联网查询日期 ${webDate}（湾区时间）`, `Web lookup date ${webDate} (Bay Area time)`)}</p>}
+  </section>}</>;
 }
 
 function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; ownerId?: string }) {

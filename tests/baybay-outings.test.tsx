@@ -244,7 +244,7 @@ test('English and Traditional Chinese choices are explicit user replies, not tra
 
 test('search continuation follows only the latest completed outing reply and clears with a new topic or conversation', async t => {
   const token = 'fixture-signed-public-search-token.fixture-signature';
-  const bodies:{ message:string;outingSearchToken?:string;context:Record<string,unknown> }[] = [];
+  const bodies:{ message:string;outingSearchToken?:string;context:Record<string,unknown>;history:unknown[] }[] = [];
   t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
     const body = JSON.parse(String(options.body)); bodies.push(body);
     const social = body.message === '我想找搭子';
@@ -252,12 +252,16 @@ test('search continuation follows only the latest completed outing reply and cle
   });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
   const ask = async (message:string) => { fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:message } }); fireEvent.click(view.getByRole('button',{ name:'问一下' })); await view.findByText(message === '我想找搭子' ? '想在哪个城市一起去？' : `已回答：${message}`); };
-  await ask('我想找搭子'); await ask('换个话题，学校入学'); await ask('继续学校话题');
+  await ask('我想找搭子'); await ask('关于学校入学'); await ask('继续学校话题');
   assert.equal(bodies[0].outingSearchToken,undefined); assert.equal(bodies[1].outingSearchToken,token); assert.equal(bodies[1].context.outingSearchToken,undefined,'the token must not enter model context');
   assert.equal(bodies[2].outingSearchToken,undefined,'a non-outing completed answer cuts off the older token');
   fireEvent.click(view.getByRole('button',{ name:'新对话' })); await ask('我想找搭子');
+  await ask('换个话题，学校入学');
+  assert.equal(bodies[4].outingSearchToken,undefined,'an explicit topic reset clears the token before the request');
+  assert.deepEqual(bodies[4].history,[],'an explicit reset also clears raw conversation history');
+  fireEvent.click(view.getByRole('button',{ name:'新对话' })); await ask('我想找搭子');
   fireEvent.click(view.getByRole('button',{ name:'新对话' })); await ask('一个新的生活问题');
-  assert.equal(bodies[4].outingSearchToken,undefined,'new conversations do not reuse the previous search token');
+  assert.equal(bodies[6].outingSearchToken,undefined,'new conversations do not reuse the previous search token');
 });
 
 test('expired search memory offers a fresh editable search instead of retrying the invalid token', async t => {

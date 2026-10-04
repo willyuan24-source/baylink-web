@@ -1,4 +1,5 @@
 import type { MonthlyRegion } from '../data/monthly-types';
+import sharedCityAliases from '../data/city-search-aliases.json';
 import { simplifySearch } from '../i18n/locale';
 import { validCalendarDay } from './event-calendar';
 import { getBayAreaToday, getMonthlyDateRange } from './monthly';
@@ -74,6 +75,7 @@ export const shiftDiscoveryDay = (day: string, amount: number): string => {
 export function parseDiscoveryQuery(query: string, today = getBayAreaToday(), knownCities: string[] = []): DiscoveryQuery {
   let text = discoveryText(query.trim().slice(0, 300));
   text = text.replace(/\b(?:show me|help me|i am looking for|i'm looking for|can you|could you)\b/g, ' ');
+  text = text.replace(/\b(?:can|could|should)\s+(?:i|we)\s+(?:visit|go|do|find)\b/g, ' ');
   text = text.replace(/\bnew (coffee shops?|cafes?|restaurants?)\b/g, 'new openings $1').replace(/新(?:开的?)?(咖啡[店馆]|餐厅|甜品店|书店)/g, '新店 $1');
   const result: DiscoveryQuery = { original: query.trim(), tokens: [], intent: 'mixed', cities: [], regions: [], invalidDate: false, freeOnly: false, admissionBudget: false, family: false, childAges: [], evening: false, distanceRequested: false, structured: false, unsupported: [] };
   const take = (pattern: RegExp): boolean => {
@@ -85,8 +87,9 @@ export function parseDiscoveryQuery(query: string, today = getBayAreaToday(), kn
   // Negated preferences are not positive filters. Ask for a rewrite instead of guessing their inverse.
   if (take(/(?:不要|不想(?:要)?|不需要|不想去|排除|避免|别推荐|非)\s*(?:室内|户外|室外|免费|亲子|儿童)|\b(?:not|no|avoid|exclude|without|don't want|do not want)\s+(?:indoor(?:s)?|outdoor(?:s)?|free|family(?:[ -]friendly)?|kids|children)\b/g)) result.unsupported.push('negative-preference');
   if (take(/免费停车|免停车费|免费餐饮|免费食物|\bfree (?:parking|food|drinks?)\b/g)) result.unsupported.push('free-extras');
-  const aliases = [...new Set([...Object.keys(cityAliases), ...knownCities.flatMap(city => city.split(/\s*(?:\/|、|;|；)\s*/))])].flatMap(city =>
-    [city, ...(cityAliases[city] || [])].map(alias => ({ city, alias: discoveryText(alias) })),
+  take(/\b(?:san francisco|sf) bay area\b/g);
+  const aliases = [...new Set([...Object.keys(cityAliases), ...Object.keys(sharedCityAliases), ...knownCities.flatMap(city => city.split(/\s*(?:\/|、|;|；)\s*/))])].flatMap(city =>
+    [city, ...(cityAliases[city] || []), ...(sharedCityAliases[city as keyof typeof sharedCityAliases] || [])].map(alias => ({ city, alias: discoveryText(alias) })),
   ).sort((a, b) => b.alias.length - a.alias.length);
   for (const { city, alias } of aliases) if (take(aliasPattern(alias))) {
     const canonical = Object.keys(cityAliases).find(name => discoveryText(name) === discoveryText(city)) || city;
@@ -172,7 +175,12 @@ export function parseDiscoveryQuery(query: string, today = getBayAreaToday(), kn
   const sports = take(/球赛|体育赛事|\b(?:sports?|games?|matches)\b/g);
   const meetup = take(/聚会|见面会|\bmeetups?\b/g);
   const events = take(/活动|\b(?:events?|activities)\b/g);
-  if (result.intent === 'mixed' && (events || performance || sports || meetup)) result.intent = 'events';
+  const generalPlaces = take(/地方好去|好去的地方|好玩的地方|好去处|\bplaces(?:\s+to\s+(?:go|visit))?\b/g);
+  const generalOuting = take(/哪里好玩|去哪(?:里|儿)?(?:玩)?|去哪里|\bthings\s+to\s+do\b/g);
+  if (result.intent === 'mixed') {
+    if ((events || performance || sports || meetup) && !generalPlaces && !generalOuting) result.intent = 'events';
+    else if (generalPlaces && !(events || performance || sports || meetup)) result.intent = 'places';
+  }
   // A coffee request concerns a place or drink budget, not admission to an
   // unrelated event whose description happens to mention refreshments.
   // Explicit event intent above still allows coffee tastings and meetups.

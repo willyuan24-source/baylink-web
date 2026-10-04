@@ -69,6 +69,47 @@ test('completed conversations send bounded history and retain earlier answers', 
   assert.equal(view.queryByText('这是第 1 条根据上下文整理的回答。'), null);
 });
 
+test('city and date survive beyond four turns while a typed restart clears history, retained conditions and outing tokens', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
+  const bodies: { message: string; history: { content: string }[]; searchContext?: { city?: string; date?: string }; outingSearchToken?: string }[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    return Response.json({ ok: true, answer: `Reply ${bodies.length}: invented Shanghai`, ...(bodies.length === 6 ? { outingSearch: {
+      source: 'site-search', state: 'needs_clarification', filters: { sort: 'soonest' }, missing: ['date'], question: '请再确认日期', continuationToken: 'previous.signature',
+    } } : {}) });
+  });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const ask = async (message: string) => {
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  };
+  for (const message of ['今天在 San Mateo 有哪些活动？', '想轻松一点', '最好室内', '坐公共交通', '再推荐两个', '有哪些免费项目']) await ask(message);
+  assert.equal(bodies[5].history.length, 8);
+  assert.ok(bodies[5].history.every(row => !row.content.includes('San Mateo')));
+  assert.deepEqual(bodies[5].searchContext, { city: 'San Mateo', date: '2026-10-04' });
+  await ask('重新開始，明天去 Berkeley');
+  assert.deepEqual(bodies[6].history, []);
+  assert.equal(bodies[6].outingSearchToken, undefined);
+  assert.deepEqual(bodies[6].searchContext, { city: 'Berkeley', date: '2026-10-05' });
+  assert.equal(view.queryByText('今天在 San Mateo 有哪些活动？'), null);
+});
+
+test('recognized page filters enter search context but raw URL text is not sent and explicit user conditions win', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
+  const bodies: { context: { currentPath: string }; searchContext?: { city?: string; date?: string }; message: string }[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer('已接收'); });
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}
+    currentPath="/calendar?city=Oakland&date=2026-10-05&q=private@example.com" />);
+  for (const message of ['这一天有什么活动？', '今天改去 Berkeley']) {
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  }
+  assert.deepEqual(bodies[0].context, { currentPath: '/calendar' });
+  assert.deepEqual(bodies[0].searchContext, { city: 'Oakland', date: '2026-10-05' });
+  assert.deepEqual(bodies[1].searchContext, { city: 'Berkeley', date: '2026-10-04' });
+  assert.ok(!JSON.stringify(bodies).includes('private@example.com'));
+});
+
 test('follow-up chips preserve supplied travel facts instead of inventing age, origin, or transport', async t => {
   const bodies: { message: string; history: { role: string; content: string }[] }[] = [];
   t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {

@@ -5,10 +5,11 @@ import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
 import type { BayBayInteractiveCard } from '../components/BayBaySmartCard';
 import type { OutingFilters } from './outings';
-import { parsePlannerWebResult, type PlannerWebResult } from './planner-web-search';
+import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
+import { bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext } from './baybay-context';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
-export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable'; checkedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
+export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed'; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
 
 export type BayBayHistoryMessage = { role: 'user' | 'assistant'; content: string };
 export type GuideChatAction = {
@@ -24,34 +25,50 @@ export type GuideChatResponse = {
   responseMode?: string; outingSearch?: BayBayOutingSearch;
   retrieval?: BayBayRetrieval;
   sources?: { title: string; url: string }[];
+  catalogSources?: { title: string; url: string }[];
+  webSearchReferences?: { title: string; url: string }[];
   webCandidates?: PlannerWebResult['candidates'];
 };
 
 /** Only validated response citations can become clickable references or saved candidates. */
 export function bayBayWebResult(response: GuideChatResponse): PlannerWebResult | null {
-  if (response.retrieval?.webStatus !== 'completed' || !['web', 'site+web'].includes(response.retrieval.scope)) return null;
+  if (response.responseMode === 'catalog' || response.retrieval?.webStatus !== 'completed' || !['web', 'site+web'].includes(response.retrieval.scope)) return null;
   return parsePlannerWebResult({ ok: true, responseMode: 'web', answer: response.answer, sources: response.sources,
     candidates: response.webCandidates, checkedAt: response.retrieval.checkedAt, cached: response.retrieval.cached });
 }
 
+/** Site catalog citations use the same URL and numbering checks, never web candidates. */
+export function bayBayCatalogResult(response: GuideChatResponse): PlannerWebResult | null {
+  if (response.responseMode !== 'catalog' || !response.retrieval || !['site', 'site+web'].includes(response.retrieval.scope)) return null;
+  return parsePlannerWebResult({ ok: true, responseMode: 'web', answer: response.answer, sources: response.catalogSources,
+    candidates: [], checkedAt: validPlannerWebDate(response.retrieval.catalogCheckedAt) });
+}
+
+/** Supplementary web links are unverified leads, not citations for the catalog answer. */
+export function bayBayCatalogWebReferences(response: GuideChatResponse): PlannerWebResult['sources'] {
+  if (response.responseMode !== 'catalog' || response.retrieval?.scope !== 'site+web' || response.retrieval.webStatus !== 'completed') return [];
+  return parsePlannerWebResult({ ok: true, responseMode: 'web', answer: response.answer, sources: response.webSearchReferences,
+    candidates: [] })?.sources || [];
+}
+
 /** Carry the user's own requirements forward; model recommendations are never treated as user facts. */
 export function bayBayTaskBrief(turns: BayBayTurn[]): string {
-  const questions = turns.filter(turn => turn.state === 'complete').slice(-4).map(turn => turn.question.trim().slice(0, 500)).filter(Boolean);
+  const completed = turns.filter(turn => turn.state === 'complete');
+  const questions = completed.slice(-4).map(turn => turn.question.trim().slice(0, 500)).filter(Boolean);
+  // Older raw messages stay outside the four-turn window. Retain only confirmed public search conditions.
+  const retained = completed.length > 4 ? completed.at(-5)?.searchContext : undefined;
+  if (retained && !questions.some(isBayBayResetRequest)) questions.unshift([retained.city, retained.region?.replace(/-/g, ' '), retained.date].filter(Boolean).join(', '));
   // Remove superseded dimensions; never use model answers as user facts.
   const dates = /\b20\d{2}[-/]\d{1,2}[-/]\d{1,2}\b|(?:20\d{2}\s*年\s*)?\d{1,2}\s*(?:月|\/)\s*\d{1,2}(?:\s*(?:日|号|號))?|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+20\d{2})?\b|(?:(?:这|這|本|下下?|上上?)\s*)?(?:周|週|星期)[一二三四五六日天末]|今天|明天|后天|後天|\b(?:(?:this|next|following|coming|last)\s+)?(?:sun(?:day)?|mon(?:day)?|tue(?:sday)?|wed(?:nesday)?|thu(?:rsday)?|fri(?:day)?|sat(?:urday)?|weekend)\b|\b(?:day after tomorrow|tomorrow|today)\b/giu;
   const budget = /(?:(?:每人|每位|人均|总共|總共|总|總|全程|per person|total)\s*)?(?:(?:门票|門票|入场|入場|admission)\s*)?(?:(?:预算|預算|budget|under|below|up to|at most|within|不超过|不超過|最多)\s*)?(?:[$＄]\s*\d[\d,.]*|USD\s*\d[\d,.]*|\d[\d,.]*\s*(?:美元|美金|USD|刀))(?:\s*(?:以内|以內|以下|封顶|封頂|per person|each|total))?|(?:门票|門票|admission)?\s*(?:预算|預算|budget)\s*(?:改为|改為|改成|最多|不超过|不超過|to|is|of)?\s*\d[\d,.]*(?:\s*(?:以内|以內|以下))?|(?:只(?:要|看|找)|仅|僅)?\s*(?:免费|免費)(?!停车|停車|餐)|\b(?:only\s+)?free(?:\s+(?:admission|entry|only))?\b(?!\s+parking)|(?:预算|預算|budget)\s*(?:不限|无限制|無限制|unlimited)|\bno budget limit\b/giu;
   const transport = /(?:(?:不|没|沒)(?:想|要)?|只(?:想|要))?\s*(?:开车|開車|驾车|駕車)|(?:公共交通|公交|地铁|地鐵|步行)(?:出行)?|\bwithout\s+(?:(?:a|my|our)\s+)?car\b|\b(?:(?:do not|don't|don’t|not|no)\s+)?(?:driv(?:e|ing)|cars?)\b|\b(?:public (?:transit|transport(?:ation)?)|transit|BART|Muni|walk(?:ing)?)\b/giu;
   const setting = /(?:(?:不|只)(?:想|要|看)?)?\s*(?:室内|室內|户外|戶外|室外)|\b(?:(?:not|no|only)\s+)?(?:indoors?|outdoors?)\b/giu;
-  const cityPattern = /\b(?:South San Francisco|San Francisco|San Jos[eé]|San Mateo|Palo Alto|Mountain View|Redwood City|San Rafael|Santa Clara|Santa Cruz|Walnut Creek|Union City|Half Moon Bay|East Bay|South Bay|North Bay|Peninsula|Fremont|Oakland|Berkeley|Sunnyvale|Cupertino|Burlingame|Millbrae|San Bruno|Daly City|Hayward|Alameda|Concord|Pleasanton|Dublin|Livermore|Pacifica|Sausalito|Tiburon|Napa|Sonoma|SF Bay Area|Bay Area|SF)\b|旧金山|舊金山|三藩市|奥克兰|奧克蘭|屋崙|伯克利|柏克萊|圣何塞|聖荷西|弗里蒙特|佛利蒙|費利蒙|东湾|東灣|南湾|南灣|北湾|北灣|半岛|半島|湾区|灣區/giu;
   const has = (pattern: RegExp, value: string) => { pattern.lastIndex = 0; return pattern.test(value); };
-  const cities = (value: string) => [...value.matchAll(new RegExp(cityPattern.source, 'giu'))].map(match => ({
-    at: match.index!, end: match.index! + match[0].length,
-    origin: /(?:从|從|住在|居住在|家在|\bfrom|\bleaving|\bdeparting|\blive in|\bbased in)\s*$/i.test(value.slice(0, match.index)) || /^\s*(?:出发|出發|to\b|[-=]?>|→)/i.test(value.slice(match.index! + match[0].length)),
-  }));
+  const cities = (value: string) => bayBayLocationMentions(value).filter(item => !item.excluded);
   const cleaned = (value: string) => value.replace(/[ \t]+/g, ' ').replace(/^[\s,，;；。]+|[\s,，;；。]+$/g, '').replace(/[,，;；]\s*[,，;；]+/g, '，');
   let carried: string[] = [];
   for (const question of questions) {
-    if (/重新开始|重新開始|换个(?:话题|話題|计划|計畫)|\b(?:start over|new topic|new plan)\b/i.test(question)) carried = [];
+    if (isBayBayResetRequest(question)) carried = [];
     const overrides = [dates, budget, transport, setting].filter(pattern => has(pattern, question));
     const newCities = cities(question);
     carried = carried.map(previous => {
@@ -101,7 +118,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
-  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean;
+  response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; searchContext?: BayBaySearchContext;
 };
 
 class BayBayServiceError extends Error {}
@@ -233,14 +250,14 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
 
 export async function fetchBayBayReply(
   message: string,
-  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; searchMode?: BayBaySearchMode; searchContext?: { date?: string; region?: string; city?: string } },
+  context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; searchMode?: BayBaySearchMode; searchContext?: BayBaySearchContext },
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
   timeoutMs = 55_000,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
   const { outingSearchToken, searchMode = 'smart', searchContext, ...pageContext } = context;
-  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath };
+  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath.split(/[?#]/, 1)[0] };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort: (() => void) | undefined;
