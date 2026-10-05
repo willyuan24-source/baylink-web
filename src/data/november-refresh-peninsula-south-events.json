@@ -1,0 +1,322 @@
+[
+  {
+    "id": "midpen-hiking-highlights-nov2-2026",
+    "city": "Woodside",
+    "region": "peninsula",
+    "startDate": "2026-11-02",
+    "endDate": "2026-11-02",
+    "category": "outdoors",
+    "cost": "free",
+    "imageKey": "weekend",
+    "officialUrl": "https://www.openspace.org/events/guided-activities/hiking-highlights",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "verifiedAt": "2026-10-05",
+    "title": "林地看古树与砂岩：El Corte de Madera 导览",
+    "dateLabel": "11/2 周一 · 10:00–13:30",
+    "venue": "El Corte de Madera Creek Preserve；集合：Skyline Blvd 的 Skeggs Point 停车区（Woodside 附近山区）",
+    "costLabel": "免费导览；须签参加声明",
+    "summary": "中等节奏、约 4 英里环线，官方路线涵盖 Methuselah 古红杉、Resolution 飞机纪念点及 tafoni 砂岩。适合能连续步行数小时的人，不按平地亲子短步道宣传。",
+    "plan": [
+      "导航 Skeggs Point，而不是保护区任何一个停车场；从 Skyline 北侧驶来不能左转进入该停车区。",
+      "提前到集合点签署参加声明；官网如新增预约要求须按其办理，出发前再查取消与封路公告。",
+      "自备饮水、分层衣物和合适步行鞋；大雨可能取消，不把预定结束时间当作精确返程保证。",
+      "这不是带狗活动；Midpen 导览仅在明确标注时允许狗参加。"
+    ],
+    "audience": [
+      "能走四英里的徒步者",
+      "自然与地方历史爱好者"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-november-nature-walks-2026"
+  },
+  {
+    "id": "midpen-sentinel-sky-nov8-2026",
+    "city": "Los Gatos",
+    "region": "south-bay",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "category": "outdoors",
+    "cost": "free",
+    "imageKey": "weekend",
+    "officialUrl": "https://www.openspace.org/events/guided-activities/sentinel-sky-20",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "verifiedAt": "2026-10-05",
+    "title": "Mount Umunhum 冷战历史：Sentinel in the Sky",
+    "dateLabel": "11/8 周日 · 13:00–15:00",
+    "venue": "Sierra Azul Preserve；Mount Umunhum 山顶停车区（Los Gatos 附近山区）",
+    "costLabel": "免费导览；路线含 159 级台阶",
+    "summary": "跟随导览了解 Almaden Air Force Station 的生活与历史。全程约四分之一英里但须上下 159 级台阶，距离短不等于无障碍；集合点已在山顶，开车上山时间另算。",
+    "plan": [
+      "按官网导航至山顶停车场，不要停在 Bald Mountain 后把上山徒步时间漏掉。",
+      "提前到集合点签署参加声明；官网如新增预约要求须按其办理，出发前再查取消与封路公告。",
+      "自备饮水、分层衣物和合适步行鞋；大雨可能取消，不把预定结束时间当作精确返程保证。",
+      "这不是带狗活动；Midpen 导览仅在明确标注时允许狗参加。"
+    ],
+    "audience": [
+      "能上下台阶的历史爱好者",
+      "想了解南湾山地的人"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-november-nature-walks-2026"
+  },
+  {
+    "id": "ravenswood-tidal-marsh-nov15-2026",
+    "city": "East Palo Alto",
+    "region": "peninsula",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "category": "outdoors",
+    "cost": "free",
+    "imageKey": "weekend",
+    "officialUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "verifiedAt": "2026-10-05",
+    "title": "Ravenswood 潮汐湿地慢走与观鸟",
+    "dateLabel": "11/15 周日 · 9:30–12:00",
+    "venue": "Ravenswood Preserve；East Palo Alto Bay Road 尽头停车区",
+    "costLabel": "免费；约 3 英里家庭友好导览",
+    "summary": "官方安排沿 Bay Trail 以轻松节奏认识盐沼植物、鸟类与湿地环境。虽然适合家庭，仍是约三英里、两个半小时的活动；带孩子先按实际步行能力决定，不承诺一定看到某种鸟。",
+    "plan": [
+      "使用 Bay Road 尽头的 Ravenswood 集合点，不要导航到保护区北侧的另一个区段。",
+      "提前到集合点签署参加声明；官网如新增预约要求须按其办理，出发前再查取消与封路公告。",
+      "自备饮水、分层衣物和合适步行鞋；大雨可能取消，不把预定结束时间当作精确返程保证。",
+      "保护区没有洗手间，出发前先安排；带望远镜并留在步道上。"
+    ],
+    "audience": [
+      "能完成三英里步行的家庭",
+      "观鸟入门者"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-november-nature-walks-2026"
+  },
+  {
+    "id": "ssf-senior-holiday-boutique-nov7-2026",
+    "city": "South San Francisco",
+    "region": "peninsula",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "category": "culture",
+    "cost": "mixed",
+    "imageKey": "autumn-neighbors",
+    "officialUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+    "sourceLabel": "City of South San Francisco",
+    "verifiedAt": "2026-10-05",
+    "title": "South San Francisco 节日手作市集",
+    "dateLabel": "11/7 周六 · 10:00–16:00",
+    "venue": "Library | Parks and Recreation Center 宴会及社交厅，901 Civic Campus Way",
+    "costLabel": "入场免费；摊位商品另购",
+    "summary": "由市府 Senior Services 团队举办，展示珠宝、陶艺及节日手作。官方欢迎公众入场，并列有免费饮料与拐杖糖；商品购物仍需付费，不能把市集当成免费礼品派发。",
+    "plan": [
+      "前往 901 Civic Campus Way 的室内活动厅，不是 Orange Memorial Park。",
+      "活动页未列普通访客预约要求；团体或无障碍问题可先向 Senior Services 询问。",
+      "先定购物预算，商品、库存与付款方式向各摊位确认。"
+    ],
+    "audience": [
+      "想买本地手作的人",
+      "安排室内社区活动的家庭"
+    ]
+  },
+  {
+    "id": "san-mateo-downtown-market-nov5-2026",
+    "city": "San Mateo",
+    "region": "peninsula",
+    "startDate": "2026-11-05",
+    "endDate": "2026-11-05",
+    "category": "food",
+    "cost": "mixed",
+    "imageKey": "everyday",
+    "officialUrl": "https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/",
+    "sourceLabel": "Downtown San Mateo Association / West Coast Farmers Market Association",
+    "verifiedAt": "2026-10-05",
+    "title": "San Mateo 周四傍晚农贸市场",
+    "dateLabel": "11/5 周四 · 15:00–19:00",
+    "venue": "原 Draeger’s 停车场，222 East 4th Avenue",
+    "costLabel": "蔬果与餐车食物自费；官网未列入场售票",
+    "summary": "市中心协会日历明确列出 2026 年 11 月 5 日场次，包含蔬果与少量餐车，适合下班后采购。目的地是原超市停车场，不是 College of San Mateo 的周六市场。",
+    "plan": [
+      "先查当日主办方更新，带购物袋并按需要购买；天气、摊位及品项可能调整。",
+      "停车依现场标志付费或限时；不要因活动在停车场就假定可以停在摊位区。",
+      "有食物过敏或饮食要求时，直接向摊商核对配料。"
+    ],
+    "audience": [
+      "下班后买菜的人",
+      "想认识本地食物的人"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-autumn-farmers-markets-2026"
+  },
+  {
+    "id": "mountain-view-market-hope-st-nov8-2026",
+    "city": "Mountain View",
+    "region": "south-bay",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "category": "food",
+    "cost": "mixed",
+    "imageKey": "everyday",
+    "officialUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+    "sourceLabel": "California Farmers’ Markets Association",
+    "verifiedAt": "2026-10-05",
+    "title": "Mountain View 农贸市场：11 月 8 日改到 Hope Street",
+    "dateLabel": "11/8 周日 · 9:00–13:00",
+    "venue": "Hope Street 4 号及 8 号停车场，190 Hope Street",
+    "costLabel": "食品自费；本条是换址通知，不是消费优惠",
+    "summary": "49ers 周日主场赛当天，市场将从 Caltrain 停车场移至 Hope Street。官方已明确列出 11 月 8 日及 9:00–13:00 时段；喜欢固定周日买菜的人应更新导航，别在旧地点等摊位。",
+    "plan": [
+      "导航 190 Hope Street，市场位于 West Evelyn Avenue 与 Villa Avenue 之间。",
+      "当天不能把市场摊位所在的 4、8 号场当普通可用停车位；另查周边市营停车。",
+      "普通营业周日与换址日分开核对，餐饮、商品及交通费按实际支付。"
+    ],
+    "audience": [
+      "Mountain View 周日买菜居民",
+      "坐 Caltrain 逛市集的人"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-autumn-farmers-markets-2026"
+  },
+  {
+    "id": "san-carlos-gifts-kitchen-nov14-2026",
+    "city": "San Carlos",
+    "region": "peninsula",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "category": "food",
+    "cost": "paid",
+    "imageKey": "neighborhood-table",
+    "officialUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+    "sourceLabel": "UC Agriculture and Natural Resources — Master Food Preservers",
+    "verifiedAt": "2026-10-05",
+    "title": "San Carlos 食物保存实作：Gifts from the Kitchen",
+    "dateLabel": "11/14 周六 · 9:00–12:00",
+    "venue": "Church of the Epiphany，1839 Arroyo Avenue",
+    "costLabel": "9/30 后报名费每人 $115；须预约，名额有限",
+    "summary": "UC Master Food Preservers 志愿者带领制作可送人的食物，讲解安全保存技巧、经验证的配方及常见问题。官方另一个页面仍显示 $95 早鸟标题，但正文明确 9 月 30 日后为 $115；结账前按报名页确认。",
+    "plan": [
+      "通过 UC 官方页面的 Register here 进入报名；不要把页面中 11 月 7 日的附加报名标记当上课日期。",
+      "先向主办方核对年龄、食物过敏、无障碍及取消规则，报名成功后再安排出行。",
+      "这是一场收费实作课，不是免费食品领取或节日餐会。"
+    ],
+    "audience": [
+      "想学习食物保存的成人",
+      "想制作食物礼物的人"
+    ],
+    "relatedGuideSlug": "peninsula-south-bay-autumn-farmers-markets-2026"
+  },
+  {
+    "id": "filoli-holidays-from-nov14-2026",
+    "city": "Woodside",
+    "region": "peninsula",
+    "startDate": "2026-11-14",
+    "endDate": "2027-01-10",
+    "category": "family",
+    "cost": "paid",
+    "imageKey": "region-filoli-house",
+    "officialUrl": "https://filoli.org/holidays",
+    "sourceLabel": "Filoli Historic House & Garden",
+    "verifiedAt": "2026-10-05",
+    "title": "Filoli 节日季开幕：日间花园与夜间灯饰分开选",
+    "dateLabel": "本轮收录 11/14、11/15 · 后续节日季场次查官方票务",
+    "venue": "Filoli Historic House & Garden，86 Cañada Road",
+    "costLabel": "付费；按日期、时段及票种计价，会员规则另查",
+    "summary": "官网确认节日季为 2026 年 11 月 14 日至 2027 年 1 月 10 日；本轮仅收录 11 月 14、15 日，后续场次与闭馆例外须查官方票务。日间可看装饰宅邸、花园和 Thistlewyck Village；晚间为 Holiday Lights，普通日间票不能直接当夜间票，村落项目到 1 月 3 日。",
+    "plan": [
+      "日间 10:00–15:30，最晚入场 13:30；晚间 16:00–22:00，最晚入场 20:00，按已购票入场时段到达。",
+      "先确认余票、年龄票档及退款改期条款；官方写明票不退款，改期另收费。",
+      "此图仅展示 Filoli 建筑，不代表 2026 灯饰布置；餐饮、礼物及附加体验按各产品另算。"
+    ],
+    "audience": [
+      "想提前订节日行程的家庭",
+      "喜欢花园与夜间灯饰的人"
+    ],
+    "occurrenceDates": [
+      "2026-11-14",
+      "2026-11-15"
+    ]
+  },
+  {
+    "id": "numu-community-ignition-oct17-2026",
+    "city": "Los Gatos",
+    "region": "south-bay",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "category": "culture",
+    "cost": "free",
+    "imageKey": "culture-visit",
+    "officialUrl": "https://www.numulosgatos.org/events/community-ignition",
+    "sourceLabel": "NUMU — New Museum Los Gatos",
+    "verifiedAt": "2026-10-05",
+    "title": "NUMU Community Ignition 展览开幕招待会",
+    "dateLabel": "10/17 周六 · 12:00–16:00",
+    "venue": "NUMU，106 East Main Street",
+    "costLabel": "免费，须提前登记",
+    "summary": "这场开幕活动关注残障艺术社群中的协作、支持与创作，设现场艺术示范及参与活动。免费资格对应 10 月 17 日招待会，不能扩展成整个展期每天免费。",
+    "plan": [
+      "从官方活动页进入报名，确认名额；当天博物馆直到中午才开放。",
+      "未满 13 岁须成人陪同，特别无障碍需求可提前联系博物馆。",
+      "普通展览从 10 月 16 日持续至 2027 年 3 月 21 日，另按开放日及门票规则参观。"
+    ],
+    "audience": [
+      "艺术与社区文化爱好者",
+      "关注无障碍创作的人"
+    ]
+  },
+  {
+    "id": "hiller-starlight-nights-nov13-2026",
+    "city": "San Carlos",
+    "region": "peninsula",
+    "startDate": "2026-11-13",
+    "endDate": "2026-11-13",
+    "category": "family",
+    "cost": "paid",
+    "imageKey": "expanded-peninsula-hiller",
+    "officialUrl": "https://www.hiller.org/event/starlight-nights/2026-11-13/",
+    "sourceLabel": "Hiller Aviation Museum",
+    "verifiedAt": "2026-10-05",
+    "title": "Hiller Starlight Nights：晚间航空馆与星空",
+    "dateLabel": "11/13 周五 · 17:00 起，博物馆至 19:00",
+    "venue": "Hiller Aviation Museum，601 Skyway Road",
+    "costLabel": "含于普通博物馆门票；会员凭会员资格入场",
+    "summary": "博物馆与礼品店延长开放，馆内安排 Starlab 星空演示，天气允许时在室外用望远镜观测月球和行星。普通入馆政策适用，不是面向所有人的免费晚场；无法保证晴天或指定天体可见。",
+    "plan": [
+      "通过馆方链接购普通入馆票或携带会员凭证，出发前确认晚场是否有更新。",
+      "户外观测带外套；如果阴雨，将室内星空展示与展厅作为主要内容。",
+      "场馆照片仅代表航空馆，不是当天夜空、演示内容或现场照片。"
+    ],
+    "audience": [
+      "对航空与星空好奇的家庭",
+      "周五下班后出门的人"
+    ],
+    "relatedGuideSlug": "san-carlos-hiller-aviation-half-day-guide"
+  },
+  {
+    "id": "san-jose-matilda-nov2026",
+    "city": "San Jose",
+    "region": "south-bay",
+    "startDate": "2026-11-13",
+    "endDate": "2026-11-22",
+    "category": "culture",
+    "cost": "paid",
+    "imageKey": "november-theater",
+    "officialUrl": "https://sanjosetheaters.org/event/matilda-the-musical/",
+    "sourceLabel": "San Jose Theaters / CMT San Jose",
+    "verifiedAt": "2026-10-05",
+    "kind": "performance",
+    "occurrenceDates": [
+      "2026-11-13",
+      "2026-11-14",
+      "2026-11-15",
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22"
+    ],
+    "title": "CMT San Jose《Matilda》音乐剧",
+    "dateLabel": "11/13–15、11/20–22 · 按场次选票",
+    "venue": "Montgomery Theater，271 South Market Street",
+    "costLabel": "付费；10/16 开售，金额以正式售票页为准",
+    "summary": "CMT Rising Stars 以 Roald Dahl 的故事改编音乐剧，描写 Matilda 用想象力与勇气改变生活。官网列明六个演出日，并非 11 月 13–22 日天天演出；10 月 5 日核验时尚未到官方开售日期。",
+    "plan": [
+      "11/13 19:00；11/14 14:00、19:00；11/15 13:00、18:00。11/20–22 另有场次，购票时逐场确认。",
+      "从剧场官方 Buy Tickets 进入，不把开售预告理解成余票或特价保证。",
+      "年龄适宜度、儿童购票和无障碍座位先问票房；附近餐饮与停车另计。"
+    ],
+    "audience": [
+      "喜欢家庭题材音乐剧的人",
+      "关注青少年舞台表演的人"
+    ]
+  }
+]

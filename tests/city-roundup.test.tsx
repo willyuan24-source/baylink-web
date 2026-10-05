@@ -24,7 +24,7 @@ test('all 101 cities have one matching dated update or clearly identified offici
     assert.equal(update.city, city.city);
     assert.equal(update.county, city.county);
     assert.ok(['dated', 'calendar'].includes(update.kind));
-    assert.equal(update.checkedAt, '2026-10-02');
+    assert.match(update.checkedAt, /^2026-10-(02|05)$/);
     assert.equal(new URL(update.sourceUrl).protocol, 'https:');
     const image = GUIDE_IMAGES[update.imageKey];
     assert.ok(image?.caption && image.credit && image.srcSet, city.city);

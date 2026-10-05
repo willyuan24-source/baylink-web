@@ -10,6 +10,11 @@ type ContextPhotoUse = {
  * Captions and source links are checked by the media audit alongside this list.
  */
 export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
+  'ferry-market': { purpose: 'venue', eventIds: ['oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'] },
+  'presidio': { purpose: 'venue', eventIds: ['nov2026-presidio-dia-muertos-diwali'] },
+  'expanded-peninsula-hiller': { purpose: 'venue', eventIds: ['hiller-starlight-nights-nov13-2026'] },
+  'region-filoli-house': { purpose: 'venue', eventIds: ['filoli-holidays-from-nov14-2026'] },
+  'expanded-coyote-hills': { purpose: 'venue', eventIds: ['nov2026-coyote-hills-kids-birding'] },
   'roundup-south-existing-belmont': { purpose: 'venue', eventIds: ['belmont-centennial-fest-2026'] },
   'roundup-chase-center': { purpose: 'venue', eventIds: ["sf-warriors-heat-november-2026","sf-journey-final-frontier-november-2026"] },
   'roundup-sap-center': { purpose: 'venue', eventIds: ["sj-sharks-flames-nov2-2026","sj-don-omar-nov-2026","sj-mon-laferte-nov-2026","sj-smashing-pumpkins-nov-2026"] },

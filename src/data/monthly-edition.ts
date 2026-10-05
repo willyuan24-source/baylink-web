@@ -12,6 +12,9 @@ import { lateSeptemberSfEastEvents } from './late-september-sf-east';
 import { lateSeptemberPeninsulaSouthEvents } from './late-september-peninsula-south';
 import { lateSeptemberNorthEvents } from './late-september-north';
 import roundupEvents0 from './city-roundup-east-sf-events.json';
+import novemberNorthEvents from './november-refresh-north-events.json';
+import novemberSouthEvents from './november-refresh-peninsula-south-events.json';
+import novemberEastEvents from './november-refresh-east-sf-events.json';
 import roundupEvents1 from './city-roundup-peninsula-south-events.json';
 import roundupEvents2 from './city-roundup-north-events.json';
 import type { MonthlyEvent, MonthlyPlace } from './monthly-types';
@@ -19,12 +22,13 @@ import { mergeReviewedEvents } from './autumn-release';
 import { applyOctober2026Events } from './october-2026-events-refresh';
 
 export const MONTHLY_EDITION = {
-  month: '2026-10',
+  month: '2026-11',
   startMonth: '2026-09',
-  label: '2026 年 9–10 月',
-  checkedAt: '2026-10-02',
+  throughDate: '2026-11-15',
+  label: '2026 年秋季 · 收录至 11/15',
+  checkedAt: '2026-10-05',
   title: '这个秋天，把周末留给湾区。',
-  intro: '从十月音乐节、舰队周到社区活动，补上交通变动、免费资格与第一次来的出行提醒。每条信息保留自己的核对日期，出发前再查官方安排。',
+  intro: '查十月到 11 月 15 日已公布的活动、优惠与生活资讯，按地区和类别挑选。每条保留来源、核对日期及适用条件；未公布的促销不写成确定安排。',
 };
 
 // Keep published URLs in the catalog; the UI hides expired events by local date.
@@ -33,7 +37,7 @@ const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfS
   .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) })))
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
-export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2] as MonthlyEvent[])].map(event => [event.id, event])).values()].sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

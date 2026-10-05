@@ -1,0 +1,502 @@
+{
+  "nov2026-big-break-nature-walk": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 5,
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/big-break-nature-walk-29",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-15",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "14:00",
+              "close": "15:00"
+            }
+          ],
+          "2026-11-08": [
+            {
+              "open": "14:00",
+              "close": "15:00"
+            }
+          ],
+          "2026-11-14": [
+            {
+              "open": "14:00",
+              "close": "15:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "14:00",
+              "close": "15:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "14:00",
+            "end": "15:00"
+          }
+        ],
+        "note": "5岁起且成人参与；0.5–2英里。"
+      }
+    }
+  },
+  "nov2026-black-diamond-trails-challenge": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 12,
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "09:00",
+            "end": "13:00"
+          }
+        ],
+        "note": "5.2英里、1,300英尺爬升；活动免费，停车另付；报名10月6日9:00–10月28日16:00。"
+      }
+    }
+  },
+  "nov2026-brushy-peak-heritage-hike": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 7,
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "09:00",
+            "end": "13:00"
+          }
+        ],
+        "note": "成人参与；4.5英里、501–1,000英尺爬升；报名10月6日9:00–10月28日16:00。"
+      }
+    }
+  },
+  "nov2026-hayward-monday-birding": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 0,
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-02",
+        "validThrough": "2026-11-02",
+        "dates": {
+          "2026-11-02": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-02",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "全年龄；2–5英里，不代表幼童适合全程。West Winton 入口。"
+      }
+    }
+  },
+  "nov2026-martinez-monday-birding": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 0,
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-09",
+        "validThrough": "2026-11-09",
+        "dates": {
+          "2026-11-09": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-09",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "全年龄；2–5英里。N. Court Street 尽头停车场集合。"
+      }
+    }
+  },
+  "nov2026-coyote-hills-kids-birding": {
+    "planning": {
+      "minAge": 5,
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/birding-basics-kids",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "11:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "正文要求5岁起并由家长参与；活动免费，普通车停车$5。"
+      }
+    }
+  },
+  "nov2026-hayward-bay-bird-morning": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 6,
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "dates": {
+          "2026-11-15": [
+            {
+              "open": "08:00",
+              "close": "10:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "08:00",
+            "end": "10:00"
+          }
+        ],
+        "note": "Grant Avenue 入口，大雨取消；报名10月6日9:00–11月14日16:00。"
+      }
+    }
+  },
+  "oct2026-foodwise-flour-craft-demo": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-10-10",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "11:00",
+              "close": "11:45"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-10-10",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ],
+        "note": "固定11:00演示；免费演示不含购书或购物。"
+      }
+    }
+  },
+  "oct2026-mission-dia-muertos-market": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-29",
+        "validThrough": "2026-10-29",
+        "dates": {
+          "2026-10-29": [
+            {
+              "open": "15:00",
+              "close": "19:00"
+            }
+          ]
+        },
+        "note": "活动窗口；餐饮购物另付，17:00–19:00音乐。"
+      }
+    }
+  },
+  "oct2026-foodwise-fall-fruit": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://foodwise.org/events/fall-fruit-celebration/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "dates": {
+          "2026-10-31": [
+            {
+              "open": "11:00",
+              "close": "13:00"
+            }
+          ]
+        },
+        "note": "秋果活动窗口；另一绿色帐篷11:00–11:45演示，商品另付。"
+      }
+    }
+  },
+  "nov2026-mission-market-season-final": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-12",
+        "validThrough": "2026-11-12",
+        "dates": {
+          "2026-11-12": [
+            {
+              "open": "15:00",
+              "close": "19:00"
+            }
+          ]
+        },
+        "note": "市场窗口，所有食材与商品按摊位付费。2026最后一场。"
+      }
+    }
+  },
+  "nov2026-presidio-dia-muertos-diwali": {
+    "planning": {
+      "setting": "outdoor",
+      "minAge": 0,
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "dates": {
+          "2026-11-07": [
+            {
+              "open": "12:00",
+              "close": "15:00"
+            }
+          ]
+        },
+        "note": "全年龄活动免费，停车和餐饮另付；官网有Register入口但未明确是否必须。"
+      }
+    }
+  },
+  "nov2026-fruitvale-dia-muertos": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "免费入场，食品、购物和个别游乐价格未核实。"
+      }
+    }
+  },
+  "nov2026-botanical-one-day-choir": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "required",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "dates": {
+          "2026-11-08": [
+            {
+              "open": "12:00",
+              "close": "15:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "12:00",
+            "end": "15:00"
+          }
+        ],
+        "note": "11:30签到，大雨取消。官网Free–$75的票档资格须在RSVP页确认；园区免门票不等于项目免费。"
+      }
+    }
+  },
+  "oct2026-red-oak-fleet-breakfast": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "optional",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://redoakvictory.us/events/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-11",
+        "validThrough": "2026-10-11",
+        "dates": {
+          "2026-10-11": [
+            {
+              "open": "09:00",
+              "close": "12:30"
+            }
+          ]
+        },
+        "note": "9:00–12:30是新入场窗口，供餐至13:00。成人$20+$3.18费，8岁及以下$5+$2.18费；不可用统一人均价。"
+      }
+    }
+  },
+  "oct2026-red-oak-movie": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "optional",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://redoakvictory.us/events/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-15",
+        "validThrough": "2026-10-15",
+        "dates": {
+          "2026-10-15": [
+            {
+              "open": "18:00",
+              "close": "22:00"
+            }
+          ]
+        },
+        "note": "18:00开门，正式开映时刻未公布；无需票或预约，建议捐$10，餐饮另付。"
+      },
+      "programTimeUnconfirmed": true
+    }
+  },
+  "nov2026-red-oak-fall-swing": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "optional",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://redoakvictory.us/events/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "18:00",
+              "close": "22:00"
+            }
+          ]
+        },
+        "note": "18:00开门，19:00首轮，22:00离船。年龄票档及11月7日预售截止有差异，不填统一人均价。"
+      }
+    }
+  },
+  "oct2026-martinez-history-open-house": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.cocohistory.org/event/open-house-at-the-history-center-in-celebration-of-american-archives-month-2",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-17",
+        "dates": {
+          "2026-10-17": [
+            {
+              "open": "11:30",
+              "close": "14:30"
+            }
+          ]
+        },
+        "note": "10:30仅会员；普通公众11:30起。每轮约60分钟，必须预选RSVP时段。此窗口不保证任意时刻有导览。"
+      }
+    }
+  }
+}

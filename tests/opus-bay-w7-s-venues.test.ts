@@ -92,7 +92,8 @@ test('November Chase additions have explicit venue mappings, append-only saved s
   const ids = ['sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026'];
   const off = L.registerRewardIds('event', SOUVENIR_IDS);
   try {
-    assert.deepEqual(SOUVENIR_IDS.slice(-2), ids, 'new bits follow all existing souvenirs');
+    const afterBranchImports = SOUVENIR_IDS.indexOf('sfpl-western-addition-open-house-oct24-2026') + 1;
+    assert.deepEqual(SOUVENIR_IDS.slice(afterBranchImports, afterBranchImports + 2), ids, 'Chase bits retain their original positions after the branch-library imports');
     for (const [id, day, doors, start, before] of [
       [ids[0], '2026-11-05', '17:30', '19:00', '18:59'],
       [ids[1], '2026-11-28', '18:00', '19:30', '19:29'],
@@ -117,6 +118,49 @@ test('November Chase additions have explicit venue mappings, append-only saved s
       assert.equal(L.pay(source, 15), 15);
       assert.equal(L.isPaid(source), true);
       assert.equal(L.pay(source, 15), 0, 'the new souvenir is saved and paid only once');
+    }
+  } finally {
+    off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); setCatalogForTests(null);
+  }
+});
+
+test('October 5 Foodwise imports reuse the front-plaza venue, keep official programme windows, and save appended souvenirs once', () => {
+  setCatalogForTests(CATALOG);
+  save.resetSaveCache();
+  save.clearSave();
+  L.__resetLedgerForTests();
+  __setBayNowForTests('2026-10-10T11:00');
+  const ids = ['oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'];
+  const off = L.registerRewardIds('event', SOUVENIR_IDS);
+  try {
+    assert.deepEqual(SOUVENIR_IDS.slice(-4), ['sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026', ...ids]);
+    for (const [id, day, close, cost] of [
+      [ids[0], '2026-10-10', '11:45', 'free'],
+      [ids[1], '2026-10-31', '13:00', 'mixed'],
+    ]) {
+      const event = byId(id), venue = worldEvent(event)!;
+      assert.equal(venue.id, 'ferry-building');
+      assert.ok(venue.events.includes(id), 'reviewed registration, not accidental text matching');
+      assert.match(event.venue!, /in front of 1 Ferry Building/);
+      const window = eventWindow(event, venue, day)!;
+      assert.equal(window.open, bay(`${day}T11:00`).getTime());
+      assert.equal(window.close, bay(`${day}T${close}`).getTime(), 'the short demo does not truncate the wider fruit celebration');
+      assert.equal(windowEndKnown(window), true);
+      assert.equal(event.cost, cost, 'shopping at the celebration is not labelled free');
+      assert.ok(!activeEventsAt(bay(`${day}T10:59`), CATALOG).some(row => row.event.id === id));
+      assert.ok(activeEventsAt(bay(`${day}T11:00`), CATALOG).some(row => row.event.id === id));
+      assert.ok(!activeEventsAt(bay(`${day}T${close}`), CATALOG).some(row => row.event.id === id));
+      assert.equal(eventWindow(event, venue, '2026-11-01'), null);
+      assert.equal(L.pay(`event:${id}`, 15), 15);
+      assert.equal(L.isPaid(`event:${id}`), true);
+      assert.equal(L.pay(`event:${id}`, 15), 0);
+    }
+    for (const id of ['oct2026-mission-dia-muertos-market', 'nov2026-mission-market-season-final', 'nov2026-presidio-dia-muertos-diwali', 'nov2026-botanical-one-day-choir']) {
+      assert.ok(byId(id), 'the public website event is retained');
+      assert.match(WORLD_SKIP[id], /no independently verified world venue point/);
+      assert.equal(worldEvent(byId(id)), null, 'no invented programme pin or unrelated Mission Street venue');
+      assert.ok(!EVENT_VENUES.some(venue => venue.events.includes(id)));
+      assert.ok(!SOUVENIR_IDS.includes(id));
     }
   } finally {
     off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); setCatalogForTests(null);

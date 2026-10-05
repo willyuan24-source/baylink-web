@@ -1,0 +1,556 @@
+[
+  {
+    "id": "nov2026-big-break-nature-walk",
+    "title": "Big Break 湿地散步：11月四个场次",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-01",
+      "2026-11-08",
+      "2026-11-14",
+      "2026-11-15"
+    ],
+    "dateLabel": "11月1、8、14、15日 14:00–15:00",
+    "region": "east-bay",
+    "city": "Oakley",
+    "venue": "Big Break Visitor Center · 69 Big Break Road",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "活动和停车免费；无需报名",
+    "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+    "plan": [
+      "14:00在游客中心集合；穿步行鞋、带水。",
+      "四天是独立场次，不是11月每天开办。",
+      "查看公园水质和路径公告；自然散步不等于允许下水。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/big-break-nature-walk-29",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-black-diamond-trails-challenge",
+    "title": "Black Diamond 山径挑战：5.2英里爬升路线",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "dateLabel": "11月1日 9:00–13:00",
+    "region": "east-bay",
+    "city": "Antioch",
+    "venue": "Black Diamond Mines · Upper Parking Lot, Somersville Road",
+    "category": "outdoors",
+    "cost": "mixed",
+    "costLabel": "活动免费；岗亭有人值守时停车$5；须报名",
+    "summary": "12岁起的环线，爬升约1,300英尺，含陡坡和不平整土路。适合能完成中长距离山路的人，不按轻松亲子散步推荐。",
+    "plan": [
+      "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+      "在 Somersville Road 尽头上停车场集合，岗亭往内约1英里。",
+      "带午餐、零食和饮水，穿防滑鞋；大雨等变化以主办方通知为准。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "weekend",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-brushy-peak-heritage-hike",
+    "title": "Brushy Peak：原住民历史与山地徒步",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "dateLabel": "11月1日 9:00–13:00",
+    "region": "east-bay",
+    "city": "Livermore",
+    "venue": "Brushy Peak · Laughlin Ranch Staging Area (near Livermore)",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "活动免费；须提前报名",
+    "summary": "在 Livermore 以北的保护地走约4.5英里环线，认识原住民历史与自然。7岁起并须成人参与；爬升501–1,000英尺、有陡坡。",
+    "plan": [
+      "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+      "集合点是 Laughlin Ranch Staging Area，按官网地图确认入口。",
+      "穿徒步鞋、带饮水，可带登山杖；不按幼童平路活动安排。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "weekend",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-hayward-monday-birding",
+    "title": "Hayward 周一观鸟：West Winton 入口",
+    "kind": "event",
+    "startDate": "2026-11-02",
+    "endDate": "2026-11-02",
+    "occurrenceDates": [
+      "2026-11-02"
+    ],
+    "dateLabel": "11月2日 9:00–12:00",
+    "region": "east-bay",
+    "city": "Hayward",
+    "venue": "Hayward Regional Shoreline · West Winton Avenue Staging Area",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "免费；无需报名",
+    "summary": "观察海岸秋冬鸟类，官方路线范围2–5英里，以碎石路为主。这场从 West Winton Avenue 集合，与11月15日的 Grant Avenue 晨间场次入口不同。",
+    "plan": [
+      "9:00集合，带望远镜、饮水和防风外套。",
+      "官网列全年龄，但距离不等于适合每位幼童。",
+      "出发前检查公园公告和天气。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-martinez-monday-birding",
+    "title": "Martinez 滨水周一观鸟",
+    "kind": "event",
+    "startDate": "2026-11-09",
+    "endDate": "2026-11-09",
+    "occurrenceDates": [
+      "2026-11-09"
+    ],
+    "dateLabel": "11月9日 9:00–12:00",
+    "region": "east-bay",
+    "city": "Martinez",
+    "venue": "Radke Martinez Regional Shoreline · N. Court Street parking lot near Marina",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "免费；无需报名",
+    "summary": "在码头附近海岸观察秋冬鸟类。官网列全年龄，路线约2–5英里，碎石路、0–500英尺高差，带孩子先衡量体力。",
+    "plan": [
+      "在 N. Court Street 尽头、靠近 Marina 的停车场集合。",
+      "带望远镜、饮水和防风外套。",
+      "本条仅确认11月9日，其他周一活动去各自地点。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-coyote-hills-kids-birding",
+    "title": "Coyote Hills 儿童识鸟游戏",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "dateLabel": "11月14日 11:00–12:00",
+    "region": "east-bay",
+    "city": "Fremont",
+    "venue": "Coyote Hills Visitor Center · 8000 Patterson Ranch Road",
+    "category": "family",
+    "cost": "mixed",
+    "costLabel": "活动免费、无需报名；普通车辆停车$5",
+    "summary": "用游戏和观察认识鸟类，活动正文要求5岁起并由家长参与。可先参加一小时节目，再按孩子体力决定是否继续走公园。",
+    "plan": [
+      "在游客中心集合，另留停车步行时间。",
+      "穿户外鞋、带水和适合天气的衣物。",
+      "停车费与免费活动分开计算。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/birding-basics-kids",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "expanded-coyote-hills",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "nov2026-hayward-bay-bird-morning",
+    "title": "Hayward 海湾晨间观鸟：6岁起报名",
+    "kind": "event",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-15"
+    ],
+    "dateLabel": "11月15日 8:00–10:00",
+    "region": "east-bay",
+    "city": "Hayward",
+    "venue": "Hayward Regional Shoreline · Grant Avenue entrance",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "免费；须报名，余位以官网为准",
+    "summary": "欢迎初学者，可借双筒望远镜。6岁起，从 Grant Avenue 入口出发；大雨取消，晨间注意保暖。",
+    "plan": [
+      "报名从10月6日9:00开放，至11月14日16:00结束。",
+      "不要导航到11月2日场次使用的 West Winton 入口。",
+      "先查看确认邮件、天气和公园公告。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+    "sourceLabel": "East Bay Regional Park District",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "east-bay-november-nature-programs-2026"
+  },
+  {
+    "id": "oct2026-foodwise-flour-craft-demo",
+    "title": "Flour Craft 季节烘焙演示",
+    "kind": "event",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-10",
+    "occurrenceDates": [
+      "2026-10-10"
+    ],
+    "dateLabel": "10月10日 11:00–11:45",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Foodwise Classroom · green tent in front of 1 Ferry Building",
+    "category": "food",
+    "cost": "free",
+    "costLabel": "演示免费；购书和市集购物另付",
+    "summary": "Heather Hardcastle 在渡轮大厦前分享烘焙与季节食材，演示后有食谱书签售。品尝属于演示安排，不代表提供免费正餐。",
+    "plan": [
+      "找渡轮大厦正前方绿色 Classroom 帐篷。",
+      "官网未列必需报名；出发前复查更新。",
+      "购书与逛摊位另留预算和时间。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
+    "sourceLabel": "Foodwise",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "ferry-market",
+    "relatedGuideSlug": "san-francisco-autumn-food-markets-2026"
+  },
+  {
+    "id": "oct2026-mission-dia-muertos-market",
+    "title": "Mission 市集：亡灵节与万圣节下午",
+    "kind": "event",
+    "startDate": "2026-10-29",
+    "endDate": "2026-10-29",
+    "occurrenceDates": [
+      "2026-10-29"
+    ],
+    "dateLabel": "10月29日 15:00–19:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Mission Community Market · 22nd Street between Mission and Valencia",
+    "category": "food",
+    "cost": "mixed",
+    "costLabel": "免费社区活动；摊位餐饮与购物另付",
+    "summary": "放学后参加手作、服装活动与季节食材体验；DJ Lamont 的音乐时段为17:00–19:00。传统面包、mole 等摊位食品需另购。",
+    "plan": [
+      "按官方正文到22nd Street 的 Mission 与 Valencia 之间。",
+      "橙色 Seasonal Spotlight 帐篷提供当季试吃、食谱与技巧。",
+      "官网未列必需预约；天气和节目变动出发前再查。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
+    "sourceLabel": "Foodwise",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "san-francisco-autumn-food-markets-2026"
+  },
+  {
+    "id": "oct2026-foodwise-fall-fruit",
+    "title": "Ferry Plaza 秋果品尝与墨西哥烘焙演示",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "dateLabel": "10月31日 11:00–13:00；演示11:00–11:45",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Ferry Plaza Farmers Market · in front of 1 Ferry Building",
+    "category": "food",
+    "cost": "mixed",
+    "costLabel": "活动与试吃免费；市场购物另付",
+    "summary": "橙色帐篷可品尝秋果、取食谱、投票选喜欢的品种；同日11:00绿色 Classroom 帐篷有 Tutuli 的 Sofía Jiménez 烘焙演示。",
+    "plan": [
+      "果品活动至13:00；烘焙演示11:45结束，两个帐篷分别找。",
+      "免费的是列明活动与试吃，不是所有摊位食品。",
+      "想看完整演示，先按11:00到绿色帐篷，再去秋果活动。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://foodwise.org/events/fall-fruit-celebration/",
+    "sourceLabel": "Foodwise",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "ferry-market",
+    "relatedGuideSlug": "san-francisco-autumn-food-markets-2026"
+  },
+  {
+    "id": "nov2026-mission-market-season-final",
+    "title": "Mission Community Market：2026收季最后一天",
+    "kind": "event",
+    "startDate": "2026-11-12",
+    "endDate": "2026-11-12",
+    "occurrenceDates": [
+      "2026-11-12"
+    ],
+    "dateLabel": "11月12日 15:00–19:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Mission Community Market · 22nd Street between Mission and Valencia",
+    "category": "food",
+    "cost": "mixed",
+    "costLabel": "逛市集；食材、餐饮和商品按摊位付费",
+    "summary": "Foodwise 明确11月12日是2026年最后一场，之后休季、计划2027年3月回归。适合补买季节食材，不额外承诺尚未公布的免费餐食或表演。",
+    "plan": [
+      "按市场访客说明到22nd Street，Mission 与 Valencia 之间。",
+      "页脚仍列84 Bartlett；具体街段以当前访客说明和现场指示为准。",
+      "这不是11月每天开市；本条仅确认11月12日收季场次。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
+    "sourceLabel": "Foodwise",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community",
+    "relatedGuideSlug": "san-francisco-autumn-food-markets-2026"
+  },
+  {
+    "id": "nov2026-presidio-dia-muertos-diwali",
+    "title": "Presidio：亡灵节与排灯节文化庆典",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "dateLabel": "11月7日 12:00–15:00",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "Presidio Tunnel Tops · 210 Lincoln Boulevard",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "活动免费；停车另付",
+    "summary": "在 Tunnel Tops 通过故事、演出、文化仪式与手作认识两个节庆，官网标明全年龄。餐饮和停车按各自收费，不是全园消费免费。",
+    "plan": [
+      "官网提供 Register 登记入口，先查看参与与到达安排。",
+      "按12:00–15:00节目时段安排，不把公园开放时间当活动时间。",
+      "出发前确认天气、交通和停车规则。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+    "sourceLabel": "Presidio Trust",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "presidio"
+  },
+  {
+    "id": "nov2026-fruitvale-dia-muertos",
+    "title": "Fruitvale 亡灵节：社区祭坛与街头庆典",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "dateLabel": "11月1日 10:00–17:00",
+    "region": "east-bay",
+    "city": "Oakland",
+    "venue": "Fruitvale Village",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "免费入场；餐饮、购物及个别游乐项目另查价格",
+    "summary": "Oakland 官方旅游活动页确认2026年场次，包括社区祭坛、音乐、手工艺摊位与家庭活动。参观时尊重祭坛和纪念传统。",
+    "plan": [
+      "地点为 Fruitvale Village；按当天交通与封街信息安排。",
+      "免费入场不表示所有食品、商品或游乐设备免费。",
+      "具体舞台时刻表另查主办方。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+    "sourceLabel": "Visit Oakland",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community"
+  },
+  {
+    "id": "nov2026-botanical-one-day-choir",
+    "title": "植物园 One Day Choir：一起学唱一首歌",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "dateLabel": "11月8日 12:00–15:00；11:30起签到",
+    "region": "sf",
+    "city": "San Francisco",
+    "venue": "San Francisco Botanical Garden · Redwood Grove",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "官网列Free–$75；须RSVP，票档以报名页为准",
+    "summary": "The Marmalade Project 邀请不同经验的歌唱爱好者在红杉林地一起学歌，由 Shams Ahmed 带领。大雨取消；园区免门票资格不能直接当作本项目免费票。",
+    "plan": [
+      "先RSVP，确认票价、资格和余位。",
+      "11:30起签到、12:00开始，另留园门到林地步行时间。",
+      "官网说明会摄影录像；有顾虑先联系主办方。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+    "sourceLabel": "Gardens of Golden Gate Park",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "garden-walk"
+  },
+  {
+    "id": "oct2026-red-oak-fleet-breakfast",
+    "title": "Red Oak Victory 船上煎饼早餐",
+    "kind": "event",
+    "startDate": "2026-10-11",
+    "endDate": "2026-10-11",
+    "occurrenceDates": [
+      "2026-10-11"
+    ],
+    "dateLabel": "10月11日 9:00–12:30入场；供餐至13:00",
+    "region": "east-bay",
+    "city": "Richmond",
+    "venue": "SS Red Oak Victory · Point Richmond",
+    "category": "food",
+    "cost": "paid",
+    "costLabel": "成人$20+$3.18手续费；8岁及以下$5+$2.18手续费",
+    "summary": "在历史船舶上吃早餐、听现场音乐，作为 Fleet Week 周末选择。主办方鼓励提前买票；空中表演依天气和实际安排，不能保证在此清楚看到全部飞行。",
+    "plan": [
+      "12:30停止新入场，不要按13:00才到。",
+      "语音或讲解导览只包含在对应票档，另查购票选项。",
+      "葡萄酒品尝/销售限21岁以上、另付；通行需求先查船上楼梯。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://redoakvictory.us/events/",
+    "sourceLabel": "SS Red Oak Victory",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "everyday"
+  },
+  {
+    "id": "oct2026-red-oak-movie",
+    "title": "Red Oak Victory 船上电影：Drums Along the Mohawk",
+    "kind": "event",
+    "startDate": "2026-10-15",
+    "endDate": "2026-10-15",
+    "occurrenceDates": [
+      "2026-10-15"
+    ],
+    "dateLabel": "10月15日 18:00–22:00；18:00开门",
+    "region": "east-bay",
+    "city": "Richmond",
+    "venue": "SS Red Oak Victory · Point Richmond",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "无需票或预约；建议捐$10，零食饮品另付",
+    "summary": "10月场放映1939年作品 Drums Along the Mohawk。主办方明确写不要订票、直接到场；18:00是开门时间，未单列正式开映时刻。",
+    "plan": [
+      "按现场入场说明参加，不必点页面通用售票按钮。",
+      "捐款是建议金额；零食饮品另售。",
+      "夜间上船先查阶梯和停车到船舶的路线。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://redoakvictory.us/events/",
+    "sourceLabel": "SS Red Oak Victory",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "cinema-night"
+  },
+  {
+    "id": "nov2026-red-oak-fall-swing",
+    "title": "Red Oak Victory 秋日摇摆舞会",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "dateLabel": "11月14日 18:00–22:00；19:00起乐队演出",
+    "region": "east-bay",
+    "city": "Richmond",
+    "venue": "SS Red Oak Victory · Point Richmond",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "至11月7日成人$25、12岁及以下$10；之后$30/$15，手续费另查",
+    "summary": "Alpha Rhythm Kings 在船上演出，可以跳舞或坐着听。票含船舶入场和自助参观，餐饮另售，含酒精饮品限21岁以上。",
+    "plan": [
+      "18:00开门；演出19:00、20:10、21:20开始，22:00离船。",
+      "11月7日后涨价；现场票仅在未售罄时供应。",
+      "历史船舶有阶梯，通行需求先询问场馆。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://redoakvictory.us/events/",
+    "sourceLabel": "SS Red Oak Victory",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "november-community"
+  },
+  {
+    "id": "oct2026-martinez-history-open-house",
+    "title": "Contra Costa 历史中心档案开放日",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "dateLabel": "10月17日 10:30–14:30；非会员导览11:30起",
+    "region": "east-bay",
+    "city": "Martinez",
+    "venue": "Contra Costa County History Center · 724 Escobar Street",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；须提前RSVP",
+    "summary": "档案月期间认识本地档案与展示。10:30首轮留给会员，非会员导览11:30开始，每轮约60分钟。",
+    "plan": [
+      "在官网登记，选择会员或非会员对应时段。",
+      "到724 Escobar Street，不是 Martinez 其他历史建筑。",
+      "官网列饮品和简单点心，不按免费午餐安排。"
+    ],
+    "audience": [
+      "湾区居民与访客"
+    ],
+    "officialUrl": "https://www.cocohistory.org/event/open-house-at-the-history-center-in-celebration-of-american-archives-month-2",
+    "sourceLabel": "Contra Costa County Historical Society",
+    "verifiedAt": "2026-10-05",
+    "imageKey": "culture-visit"
+  }
+]

@@ -395,15 +395,15 @@ test('November archives the edition while retaining confirmed cross-month activi
   assertResultTitles(october, eligibleIds('2026-10-01'));
   october.unmount();
 
-  const view = render(edition('2026-11-01'));
+  const view = render(edition('2026-11-16'));
   const notice = view.getByRole('complementary', { name: '往期内容提示' });
   assert.ok(notice.textContent!.includes(MONTHLY_EDITION.label));
   assert.match(notice.textContent!, /不是当前月份的最新活动/);
   assert.ok(view.getByText('往期月刊'));
   assert.equal(view.queryByText('秋季湾区精选'), null);
   assert.equal(view.queryByRole('link', { name: /挑一个秋季活动/ }), null);
-  const continuing = eligibleIds('2026-11-01');
-  assert.ok(continuing.includes('danville-scarecrow-stroll-2026') && continuing.includes('sj-sharks-flames-nov2-2026'));
+  const continuing = eligibleIds('2026-11-16');
+  assert.ok(continuing.every(id => getEventStatus(MONTHLY_EVENTS.find(event => event.id === id)!, '2026-11-16') !== 'ended'));
   assertResultTitles(view, continuing);
   assert.equal(view.container.querySelector('#event-pleasanton-pumpkins-after-dark-2026'), null, 'a broad season end does not extend confirmed October sessions');
   const toggle = view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement;
@@ -413,7 +413,7 @@ test('November archives the edition while retaining confirmed cross-month activi
   assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
   for (const event of MONTHLY_EVENTS) {
     const card = within(eventArticle(view, event.id));
-    if (getEventStatus(event, '2026-11-01') === 'ended') {
+    if (getEventStatus(event, '2026-11-16') === 'ended') {
       assert.ok(card.getByText('已结束', { exact: true }));
       assert.equal(card.queryByRole('button', { name: `下载${event.title}日期提醒` }), null);
     } else {
@@ -476,7 +476,7 @@ test('monthly spotlight changes current-month language to archive language in bo
     assert.ok(link.textContent!.includes(`${activeCount} 场可赴的活动`));
     view.rerender(<MemoryRouter><MonthlySpotlight today="2026-10-01" compact={compact} /></MemoryRouter>);
     assert.match(view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` }).textContent!, /本月精选/);
-    view.rerender(<MemoryRouter><MonthlySpotlight today="2026-11-01" compact={compact} /></MemoryRouter>);
+    view.rerender(<MemoryRouter><MonthlySpotlight today="2026-11-16" compact={compact} /></MemoryRouter>);
     link = view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` });
     assert.match(link.textContent!, /往期精选/);
     assert.ok(link.textContent!.includes(`${MONTHLY_EDITION.label} 的活动记录`));

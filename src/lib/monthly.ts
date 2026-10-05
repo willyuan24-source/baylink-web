@@ -9,7 +9,7 @@ export const getBayAreaToday = (now = new Date()): string => {
   return ['year', 'month', 'day'].map(type => parts.find(part => part.type === type)!.value).join('-');
 };
 
-export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.slice(0, 7) >= MONTHLY_EDITION.startMonth && today.slice(0, 7) <= MONTHLY_EDITION.month;
+export const isEditionCurrent = (today = getBayAreaToday()): boolean => today.slice(0, 7) >= MONTHLY_EDITION.startMonth && today <= MONTHLY_EDITION.throughDate;
 export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 'upcoming' | 'ongoing' | 'ended' =>
   event.occurrenceDates !== undefined
     ? event.occurrenceDates.some(day => day >= today && day >= event.startDate && day <= event.endDate)

@@ -215,7 +215,7 @@ const GuideDetailSession = ({
               {guide.readMinutes} 分钟阅读
             </span>
           </div>
-          {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} checkedAt={guide.updatedAt} today={today} />}
+          {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} throughDate={guide.editionThroughDate} checkedAt={guide.updatedAt} today={today} />}
           <GuideReaderActions guide={guide} onAsk={onAsk} />
           <SaveToWeek favorite={{ kind: 'guide', id: guide.slug }} />
           {(guide.category === 'city' || guide.category === 'events') && <OutingInspirationLink kind="guide" id={guide.slug} />}

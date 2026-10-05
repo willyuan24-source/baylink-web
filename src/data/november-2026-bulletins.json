@@ -1,0 +1,28 @@
+[
+  {
+    "id": "caltrain-veterans-day-nov11-2026",
+    "region": "peninsula",
+    "label": "半岛与南湾",
+    "imageKey": "train",
+    "title": "11/11 Caltrain 按工作日时刻表运行",
+    "dateLabel": "11/11 周三 · Veterans Day",
+    "summary": "Caltrain 官方 2026 假日表列工作日服务。假日不自动等于周日班次；临行前查对应车站时刻及实时警报。",
+    "sourceUrl": "https://www.caltrain.com/schedules/holiday-service-schedules",
+    "sourceLabel": "Caltrain 2026 假日服务表",
+    "verifiedAt": "2026-10-05",
+    "expiresAt": "2026-11-11"
+  },
+  {
+    "id": "east-bay-yellow-rail-oct2026",
+    "region": "east-bay",
+    "label": "东湾",
+    "imageKey": "bart",
+    "title": "黄线夜间钢轨维护：已公布到十一月的日期",
+    "dateLabel": "10/15–17、19、22–24、26；11/12–14 · 午夜起",
+    "summary": "官方计划午夜至次晨开行前单线运行，预计延误 20–30 分钟；10/15–17 区间为 Lafayette 至 Pleasant Hill。十一月日期已列入持续更新公告，届时具体区间和末班连接仍需再查。",
+    "sourceUrl": "https://www.bart.gov/news/articles/2025/news20250326-1",
+    "sourceLabel": "BART 黄线钢轨维护公告",
+    "verifiedAt": "2026-10-05",
+    "expiresAt": "2026-11-15"
+  }
+]

@@ -17,6 +17,14 @@
         "url": "https://www.ebparks.org/parks/visitor-centers/crab-cove",
         "mapQuery": "Doug Siden Visitor Center Crab Cove Alameda",
         "scope": "city"
+      },
+      {
+        "name": "USS Hornet Sea, Air & Space Museum",
+        "description": "停泊在 Alameda Point 的航空母舰博物馆，适合看舰载机、航天回收与海军历史。一般门票、特殊导览与夜间活动分开售卖；船上部分路线含陡梯。",
+        "url": "https://uss-hornet.org/",
+        "mapQuery": "USS Hornet Museum 707 W Hornet Ave Alameda",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议留半天：先按展馆开放时间参观 Crab Cove，再走一小段 Crown Beach；带幼儿可在附近休息后返回，沙滩活动和跨岛用餐另留机动时间。",
@@ -56,6 +64,14 @@
         "url": "https://www.albanyca.gov/Parks/Memorial-Park",
         "mapQuery": "Memorial Park Albany California",
         "scope": "city"
+      },
+      {
+        "name": "Albany Hill & Creekside Park",
+        "description": "市内辨识度很高的小山与溪流绿地，可从 Taft Street 一侧找入口。土路有坡度，留意毒橡树及栖地修复公告；看见蝴蝶不作季节保证。",
+        "url": "https://www.albanyca.gov/Parks/Albany-Hill-Creekside-Park",
+        "mapQuery": "Albany Hill Creekside Park Taft Street Albany",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在 Memorial Park 轻松活动，再视风力前往 Albany Waterfront；带长辈或推车时可只选一处，不把往返两地当连续平坦步道。",
@@ -95,6 +111,22 @@
         "url": "https://berkeleyca.gov/community-recreation/waterfront",
         "mapQuery": "Cesar Chavez Park Berkeley Marina",
         "scope": "city"
+      },
+      {
+        "name": "UC Berkeley / Sather Tower",
+        "description": "钟楼、Memorial Glade 和校园建筑是认识 Berkeley 的经典起点。户外自助步行与钟楼登高、展馆参观分开安排，另查各建筑开放和收费。",
+        "url": "https://visit.berkeley.edu/campus-attractions",
+        "mapQuery": "Sather Tower UC Berkeley",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "UC Botanical Garden",
+        "description": "位于校园山坡上的植物园，适合对植物感兴趣的人专程慢游。地形并非全平坦；先看门票、入园时段及无障碍路线，不能把校园免费等同于植物园免费。",
+        "url": "https://botanicalgarden.berkeley.edu/",
+        "mapQuery": "UC Botanical Garden Berkeley",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议晴天选玫瑰园及相邻 Codornices 一带，或单独安排 Marina 海边半日；两片区间需额外移动，不建议带孩子赶完后再硬塞完整校园游。",
@@ -134,6 +166,14 @@
         "url": "https://www.dublin.ca.gov/2723/Emerald-Glen-Park",
         "mapQuery": "Emerald Glen Park Dublin",
         "scope": "city"
+      },
+      {
+        "name": "Dublin Hills Regional Open Space Preserve",
+        "description": "从 Dublin Boulevard 的 Donlon Point 入口走进草地山脊，看 Tri-Valley 景观。坡度和曝晒比市区公园明显，先按地图挑短程，再查当日公告与关门时间。",
+        "url": "https://www.ebparks.org/parks/dublin-hills",
+        "mapQuery": "Donlon Point Staging Area Dublin",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先按博物馆时段逛 Heritage Park，再选 Emerald Glen 休息或活动；若参加 The Wave 项目，就将半天留给水上安排，不必再赶历史馆。",
@@ -173,6 +213,14 @@
         "url": "https://www.emeryville.org/Recreation/City-Parks/Doyle-Hollis-Park",
         "mapQuery": "Doyle Hollis Park Emeryville",
         "scope": "city"
+      },
+      {
+        "name": "Public Market Emeryville",
+        "description": "5959 Shellmound Street 的室内美食广场，可把海湾散步后的用餐安排在这里。各摊位菜单和营业时间分别核对，餐饮需付费，不把整座食阁当作统一套餐。",
+        "url": "https://publicmarketemeryville.com/",
+        "mapQuery": "Public Market Emeryville 5959 Shellmound Street",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先逛 Doyle Hollis，再前往 Marina Park 看海湾；海边风大时缩短后半段。若以轮椅或推车出行，先按官方设施地图挑入口，不默认两园全程轻松步行。",
@@ -212,6 +260,22 @@
         "url": "https://www.ebparks.org/parks/ardenwood",
         "mapQuery": "Ardenwood Historic Farm Fremont",
         "scope": "city"
+      },
+      {
+        "name": "Mission Peak Regional Preserve",
+        "description": "Fremont 的代表性登山地。登顶是有爬升、曝晒的徒步，不宜写成轻松湖边散步；Ohlone College 与 Stanford Avenue 入口的停车和时段须分别核对。",
+        "url": "https://www.ebparks.org/parks/mission-peak",
+        "mapQuery": "Mission Peak Ohlone College Staging Area Fremont",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Coyote Hills Regional Park",
+        "description": "湿地、低丘和海湾步道适合观鸟与自然观察，可按体力只走一小段。先查步道、游客中心及停车规则；与 Central Park／Lake Elizabeth 是不同地点。",
+        "url": "https://www.ebparks.org/parks/coyote-hills",
+        "mapQuery": "Coyote Hills Regional Park Fremont",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议优先选一处：想运动就在 Lake Elizabeth 走一段后野餐；想亲子学习就围绕 Ardenwood 当天活动安排。两处都去时，压缩散步长度并另留交通时间。",
@@ -251,6 +315,14 @@
         "url": "https://haywardrec.org/1991/Nature-Centers",
         "mapQuery": "Sulphur Creek Nature Center 1801 D Street",
         "scope": "nearby"
+      },
+      {
+        "name": "Garin Regional Park",
+        "description": "由旧牧场发展而来的丘陵公园，适合看草坡、池塘与地方农业历史。红谷仓开放并非全年每天都有，户外路线、室内项目与停车费用分开核对。",
+        "url": "https://www.ebparks.org/parks/garin",
+        "mapQuery": "Garin Regional Park Hayward",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在日本庭园慢逛，再按 Nature Center 开放或预约安排第二站；没有合适活动时，仅选庭园加市区用餐，不把展馆或动物展示保证为全天开放。",
@@ -290,6 +362,22 @@
         "url": "https://www.larpd.org/may-nissen-park",
         "mapQuery": "May Nissen Park 685 Rincon Avenue Livermore",
         "scope": "city"
+      },
+      {
+        "name": "Bankhead Theater",
+        "description": "市中心 2400 First Street 的表演艺术场馆，可把演出与附近晚餐连在一起。剧院参观按节目和门票安排，广场散步不等于可自由进入剧场。",
+        "url": "https://livermorearts.org/our-venues/about-bankhead/",
+        "mapQuery": "Bankhead Theater Livermore",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Del Valle Regional Park",
+        "description": "Livermore 以南的县属山谷水库公园，属于附近延伸，不是市中心湖泊。散步、露营和水上活动规则不同；另查水质、下水限制、预约与停车费用。",
+        "url": "https://www.ebparks.org/parks/del-valle",
+        "mapQuery": "Del Valle Regional Park Livermore",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先确认 Ravenswood 是否有合适导览，再到 May Nissen 放松；带幼儿可只选公园加图书馆。炎热天缩短户外段，导览未开放时不把历史建筑内部当作必看项目。",
@@ -329,6 +417,14 @@
         "url": "https://www.newarkca.gov/departments/parks/parks-and-sportsfields",
         "mapQuery": "Community Center Park 35501 Cedar Boulevard Newark California",
         "scope": "city"
+      },
+      {
+        "name": "Silliman Activity & Family Aquatic Center",
+        "description": "6800 Mowry Avenue 的室内泳池设施。官网秋季公告列明漂流河与滑梯仍因维修关闭；入场者即使不游泳也需付费，先确认当天开放项目和亲子规则。",
+        "url": "https://www.newarkca.gov/departments/recreation-and-community-services/aquatic-center-hours",
+        "mapQuery": "Silliman Activity Family Aquatic Center Newark",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议以 Lakeshore Park 短走为主，再按兴趣前往 Community Center Park；带幼儿可只选一园加附近用餐，参加室内项目时先报名，不以随到随玩安排半天。",
@@ -368,6 +464,30 @@
         "url": "https://www.oaklandca.gov/Community/Parks-Facilities/Rent-a-Facility-or-Park/Morcom-Rose-Garden",
         "mapQuery": "Morcom Rose Garden Oakland",
         "scope": "city"
+      },
+      {
+        "name": "Jack London Square",
+        "description": "Oakland 滨水餐饮和散步地标，可看码头、历史街角与店铺。餐厅、游船和活动各自收费／预约；若搭渡轮，先查实际码头及返程班次。",
+        "url": "https://jacklondonsquare.com/",
+        "mapQuery": "Jack London Square Oakland",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Dr. Aurelia Reinhardt Redwood Regional Park",
+        "description": "Oakland 山区的海岸红杉林，适合按入口挑选林间步道。10月5日核对时 Stream Trail 部分路段维修，Golden Spike 一小段公告10月5–16日关闭；出发前再查最新绕行图。",
+        "url": "https://www.ebparks.org/parks/reinhardt-redwood",
+        "mapQuery": "Redwood Gate Staging Area Oakland",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Oakland Zoo",
+        "description": "位于 Oakland 南部 Knowland Park 一带的动物园，适合预留主要半天或更久。按日期核对入场票、停车和开放区域；特别夜间活动可能需要另外购票。",
+        "url": "https://www.oaklandzoo.org/hours-and-pricing",
+        "mapQuery": "Oakland Zoo 9777 Golf Links Road",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先选 Lake Merritt 一段岸线和花园，体力允许再单独移动到 Morcom；不必完成整湖一圈。带孩子若加 Fairyland，应将其票务和停留独立安排。",
@@ -407,6 +527,14 @@
         "url": "https://piedmont.ca.gov/services___departments/public_works/about_piedmont_s_parks/park_amenities",
         "mapQuery": "Dracena Quarry Park Piedmont",
         "scope": "city"
+      },
+      {
+        "name": "Crocker Park",
+        "description": "小城里适合安静停留的花园公园，有草地、杜鹃与山茶等种植，以及 Benny Bufano 的母熊与幼熊雕塑。适合作为短停，不夸大成大型景区；牵绳遛狗并留意现场规则。",
+        "url": "https://www.ci.piedmont.ca.us/cms/one.aspx?pageId=14126034",
+        "mapQuery": "Crocker Park Piedmont",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先从 Exedra 与 Piedmont Park 走一段，再视体力移动到 Dracena；带幼儿可把一座公园作为主要停留，不把两园串联描述成无坡平路。",
@@ -446,6 +574,14 @@
         "url": "https://www.museumonmain.org/visitcontact.html",
         "mapQuery": "Museum on Main Pleasanton",
         "scope": "city"
+      },
+      {
+        "name": "Augustin Bernal Park",
+        "description": "市属山地公园，入口在 8200 Golden Eagle Way 一带。通行规则自2024年起有变动，访客应先查当前进入条件；路线有坡度，不把入园资格与停车便利混为一谈。",
+        "url": "https://www.cityofpleasantonca.gov/your-community/parks-trails/",
+        "mapQuery": "Augustin Bernal Park Pleasanton",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先预约或确认 Alviso Adobe 项目，再回 Main Street 参观博物馆和用餐；若室内未开放，可使用城市历史互动地图做街区观察，不擅自进入历史建筑。",
@@ -485,6 +621,14 @@
         "url": "https://www.sanleandro.org/1041/Hours-Location",
         "mapQuery": "San Leandro History Museum 320 W Estudillo Avenue",
         "scope": "city"
+      },
+      {
+        "name": "Oyster Bay Regional Shoreline",
+        "description": "机场旁的滨水开放空间，有海湾景观、多用途步道与公共艺术。按入口挑短程，注意骑行者与海风；不要把这里与 Marina Park 当成同一停车场。",
+        "url": "https://www.ebparks.org/parks/oyster-bay",
+        "mapQuery": "Oyster Bay Regional Shoreline San Leandro",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先走 Marina Park，再在已确认开放的日子安排历史馆；若馆方未能确认，改成市中心用餐或直接缩短行程。邻旁 Casa Peralta 也不要当作必能进入的补位。",
@@ -524,6 +668,14 @@
         "url": "https://www.unioncityca.gov/560/Picnic-Reservations",
         "mapQuery": "Charles F Kennedy Park 1333 Decoto Road Union City",
         "scope": "city"
+      },
+      {
+        "name": "Dry Creek Pioneer Regional Park",
+        "description": "从 Union City 的 550 May Road 入口进入相连的牧场丘陵与步道，公园向 Hayward 一侧延伸。10月5日官网仍注明 Dry Creek Garden 因风暴损坏关闭，花园不能作为已开放主目的地。",
+        "url": "https://www.ebparks.org/parks/dry-creek-pioneer",
+        "mapQuery": "Dry Creek Pioneer Regional Park 550 May Road Union City",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先选 Old Alvarado 周边慢逛，再按儿童活动需求去 Kennedy Park；两处分别移动。想加溪谷徒步时应减掉一站，并先查 Dry Creek 花园与 Alameda Creek 施工公告。",
@@ -563,6 +715,14 @@
         "url": "https://www.ebparks.org/parks/black-diamond",
         "mapQuery": "Black Diamond Mines Regional Preserve Somersville Road",
         "scope": "nearby"
+      },
+      {
+        "name": "El Campanil Theatre",
+        "description": "Rivertown 的历史剧院，位于 602 W 2nd Street。可从官方节目单挑电影、音乐或舞台演出，再安排河边和市中心散步；室内进入以具体场次门票为准。",
+        "url": "https://www.elcampaniltheatre.com/",
+        "mapQuery": "El Campanil Theatre Antioch",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议二选一作为主线：轻松走水库就以 Contra Loma 为主；想进矿坑则围绕已订时段安排 Black Diamond。不要把长途爬坡、地下导览与完整水库行程全塞进半天。",
@@ -602,6 +762,14 @@
         "url": "https://www.brentwoodca.gov/home/showpublisheddocument/11625/638975274309970000",
         "mapQuery": "Veterans Park 3841 Balfour Road Brentwood",
         "scope": "city"
+      },
+      {
+        "name": "Marsh Creek Regional Trail",
+        "description": "沿 Marsh Creek 连接 Brentwood 与 Oakley 的多用途步道，可从本市 Creekside Park 选短段骑行或步行。它跨越城市边界；先查路面施工和街道路口，不必一次走到 Delta。",
+        "url": "https://www.ebparks.org/trails/interpark/marsh-creek",
+        "mapQuery": "Marsh Creek Trail Creekside Park Brentwood",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议上午在 City Park 周边认识市中心，再按兴趣去 Veterans Park 玩耍或野餐；高温时选较凉时段，若已预约农场活动，则保留一座公园作短停即可。",
@@ -641,6 +809,14 @@
         "url": "https://www.claytonca.gov/216/Rent-a-Picnic-Area",
         "mapQuery": "Clayton Community Park Clayton California",
         "scope": "city"
+      },
+      {
+        "name": "Mount Diablo State Park / Mitchell Canyon",
+        "description": "从 Clayton 附近的 Mitchell Canyon 进入 Mount Diablo 山地，是小城的代表性自然延伸。州立公园并非整个都在 Clayton；谷地散步与长距离登顶难度不同，先查入口、用水与闭园公告。",
+        "url": "https://www.parks.ca.gov/?page_id=517",
+        "mapQuery": "Mitchell Canyon Visitor Center Clayton",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在 The Grove 及市区慢逛，再去 Community Park 活动；若孩子只想玩一座公园，就留时间休息和用餐，不为了凑点位增加移动。",
@@ -680,6 +856,14 @@
         "url": "https://www.cityofconcord.org/facilities/facility/details/Markham-Nature-Park-and-Arboretum-30",
         "mapQuery": "Markham Nature Park Concord",
         "scope": "city"
+      },
+      {
+        "name": "Contra Costa Canal Regional Trail",
+        "description": "利用运河沿线的铺装步道做短途步行或骑行，可联系 Concord 与 Pleasant Hill、Walnut Creek 等地。属于跨市路线，出发前选清楚入口、距离与过街点。",
+        "url": "https://www.ebparks.org/trails/interpark/contra-costa-canal",
+        "mapQuery": "Contra Costa Canal Trail Concord",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在 Todos Santos 周边散步用餐，再去 Markham 看植物；两处间另留交通时间。若有已确认的广场活动，可反过来先公园后广场，不必硬走固定顺序。",
@@ -719,6 +903,14 @@
         "url": "https://www.nps.gov/euon/planyourvisit/index.htm",
         "mapQuery": "Eugene O Neill National Historic Site shuttle Danville",
         "scope": "nearby"
+      },
+      {
+        "name": "Blackhawk Museum",
+        "description": "以汽车与多主题展厅著称的博物馆，位于 Blackhawk 一带，虽用 Danville 邮寄地址，本卡按附近延伸标注。需核对当日门票、开放展厅和预约，不能当作 Danville 市中心免费馆。",
+        "url": "https://blackhawkmuseum.org/admission/",
+        "mapQuery": "Blackhawk Museum 3700 Blackhawk Plaza Circle",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议有预约就以 Tao House 接驳时段为核心，返镇后散步用餐；没有预约则安排 Sycamore Valley 的运动和休息，不把故居当随时可开的备用景点。",
@@ -758,6 +950,14 @@
         "url": "https://www.elcerrito.gov/facilities/facility/details/Cerrito-Vista-Park-10",
         "mapQuery": "Cerrito Vista Park El Cerrito",
         "scope": "city"
+      },
+      {
+        "name": "Ohlone Greenway",
+        "description": "沿高架 BART 下方贯穿 El Cerrito 的线形绿道，适合从车站选一小段散步或骑行。经过多个街道路口，须让行并查现场施工；向邻城延伸的全程另作计划。",
+        "url": "https://www.elcerrito.gov/Facilities/Facility/Details/Ohlone-Greenway-16",
+        "mapQuery": "Ohlone Greenway El Cerrito Plaza",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先按体力选 Hillside 的短线，再到 Cerrito Vista 休息；带推车或不想爬坡时只选社区公园，不能把自然区入口附近停车当作无障碍全线证明。",
@@ -797,6 +997,14 @@
         "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/50/178",
         "mapQuery": "Shoreline Park Hercules California",
         "scope": "city"
+      },
+      {
+        "name": "Hanna Ranch Park",
+        "description": "2480 Refugio Valley Road 的本地休闲公园，可作为居民散步和短暂停留的补充选择。不是大型旅游景点；聚会场地、开放设施和预订要求以市府设施页为准。",
+        "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/52/178",
+        "mapQuery": "Hanna Ranch Park Hercules",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在 Refugio Valley 进行儿童活动，再视风况到 Shoreline 看水；带餐食时只预订实际需要的野餐区，两处间安排独立移动，避免临近关园才赶海边。",
@@ -836,6 +1044,14 @@
         "url": "https://www.lovelafayette.org/city-hall/city-departments/parks-trails-recreation/parks/community-park",
         "mapQuery": "Lafayette Community Park 480 St Marys Road",
         "scope": "city"
+      },
+      {
+        "name": "Lafayette-Moraga Regional Trail",
+        "description": "沿旧铁路走廊连接 Lafayette 与 Moraga 的铺装路线，可从 Olympic Boulevard 入口分段走。路线本身与接入的 EBMUD 水源保护地规则不同，后者可能需要许可。",
+        "url": "https://www.ebparks.org/trails/interpark/lafayette-moraga",
+        "mapQuery": "Lafayette Moraga Trail Olympic Boulevard Staging Area",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议以水库短线为主，结束后在市区休息；若主要陪儿童玩耍，就改以 Community Park 为主。两园都去需另留移动，不必把完整环线当半日最低要求。",
@@ -875,6 +1091,14 @@
         "url": "https://www.ebparks.org/parks/radke-martinez",
         "mapQuery": "Radke Martinez Regional Shoreline",
         "scope": "city"
+      },
+      {
+        "name": "Contra Costa County History Center",
+        "description": "724 Escobar Street 的县历史档案中心，可了解旧地图、照片与地方故事。这里以档案研究为主，想查具体资料先预约，不把它写成每天开放的大型互动博物馆。",
+        "url": "https://www.cocohistory.org/visit",
+        "mapQuery": "Contra Costa County History Center Martinez",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在开放日参观 Muir 故居，再到海岸走短线并用餐；若故居闭馆就专注湿地与市区。虽有步道连接城市不同片区，也不应把完整穿行默认成轻松半日。",
@@ -914,6 +1138,14 @@
         "url": "https://www.moraga.ca.us/251/Rancho-Laguna-Park",
         "mapQuery": "Rancho Laguna Park Moraga",
         "scope": "city"
+      },
+      {
+        "name": "Saint Mary's College Museum of Art",
+        "description": "Saint Mary’s 校园内的艺术馆，提供轮换展览和部分公众活动。2026秋展在9月16日至12月13日期间展出，通常周三至周日；先核对具体展览和校园停车，非上课区自由参观承诺。",
+        "url": "https://www.stmarys-ca.edu/museum-art",
+        "mapQuery": "Saint Mary's College Museum of Art Moraga",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先选 Commons 玩耍或休息，再按体力去 Rancho Laguna 看示范花园；若带狗，优先围绕合法开放时段安排，不让遛狗计划挤占儿童活动区。",
@@ -953,6 +1185,14 @@
         "url": "https://www.oakleyca.gov/Facilities/Facility/Details/Creekside-Park-1",
         "mapQuery": "Creekside Park 3900 Creekside Way Oakley",
         "scope": "city"
+      },
+      {
+        "name": "Marsh Creek Regional Trail / Cypress access",
+        "description": "从 Oakley 一侧沿 Marsh Creek 选择短程步行或骑行，可向 Big Break 与 Brentwood 延伸。路线跨市，先查看官方地图及路面施工，不把整条路当成 Big Break 园内短环线。",
+        "url": "https://www.ebparks.org/trails/interpark/marsh-creek",
+        "mapQuery": "Marsh Creek Trail Cypress Staging Area Oakley",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先按访客中心开放时间到 Big Break，再选一段岸上步道；有余力才去 Creekside。带孩子或初次来访不必把长距离区域骑行也放进同一半天。",
@@ -992,6 +1232,14 @@
         "url": "https://www.cityoforinda.gov/515/Picnics",
         "mapQuery": "Wilder Field 2 Orinda Fields Lane",
         "scope": "city"
+      },
+      {
+        "name": "Sibley Volcanic Regional Preserve",
+        "description": "可从 Quarry Road 的 Old Tunnel Road 入口探索古火山地形；保护地连接 Orinda 与 Oakland 一侧。各入口到地质点的距离不同，有坡度，先按官方地图决定短程。",
+        "url": "https://www.ebparks.org/parks/sibley-volcanic",
+        "mapQuery": "Sibley Old Tunnel Road Staging Area Orinda",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议以 Community Center Park 为主，先玩耍或参加已报名课程；Wilder 适合有明确球场或野餐安排再加，不把两个分散地点硬连成步行环线。",
@@ -1031,6 +1279,14 @@
         "url": "https://www.pinole.gov/recreation/parks_facilities/pinole-valley-park/",
         "mapQuery": "Pinole Valley Park Picnic Grove 1270 Adobe Road",
         "scope": "city"
+      },
+      {
+        "name": "Bayfront Park",
+        "description": "Tennent Avenue 尽头的滨湾公园，可看 San Pablo Bay，适合短走、坐下休息和连接周边海湾步道。留意风势、日落闭园规则与停车，不许诺能见度。",
+        "url": "https://www.pinole.gov/recreation/parks_facilities/park-detail-with-map/",
+        "mapQuery": "Bayfront Park 1 Tennent Avenue Pinole",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在 Fernandez Park 周边慢逛，再按运动或野餐需要去 Valley Park；如果只想休息，一处公园足够。带大型餐具或儿童用品时，先确认停车到预订区的路径。",
@@ -1070,6 +1326,14 @@
         "url": "https://dbw.parks.ca.gov/BoatingFacilities/f/454",
         "mapQuery": "Pittsburg Marina 51 E Marina Boulevard",
         "scope": "city"
+      },
+      {
+        "name": "Pittsburg Historical Museum",
+        "description": "515 Railroad Avenue 的地方历史馆，适合与 Old Town 短走组合。官网列周三和周六开放、其他时段预约；出发前复核，别把历史馆当作每日开放景点。",
+        "url": "https://pittsburgmuseum.org/contact-us",
+        "mapQuery": "Pittsburg Historical Museum 515 Railroad Avenue",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先确认 Small World Park 当季开门与运行设施，再决定是否把 Marina 作为结束前短停；若游乐园未开，就将行程改为水岸与市区，不承诺孩子一定能坐小火车。",
@@ -1109,6 +1373,14 @@
         "url": "https://www.pleasanthillrec.com/Facilities/Facility/Details/Paso-Nogal-Park-10",
         "mapQuery": "Paso Nogal Park Pleasant Hill",
         "scope": "city"
+      },
+      {
+        "name": "Rodgers Ranch Heritage Center",
+        "description": "1867年前后农舍与花园组成的社区历史教育空间，可关注园艺课和开放活动。建筑内部及课程按公布安排进入，适合慢慢认识本地生活，不保证随时有导览。",
+        "url": "https://www.rodgersranch.org/",
+        "mapQuery": "Rodgers Ranch Heritage Center Pleasant Hill",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议家庭先在 Pleasant Hill Park 玩耍，想走自然路再选 Paso Nogal 短线；带狗时按犬区实际开放决定顺序，不因步道开放就认定犬区也开放。",
@@ -1148,6 +1420,14 @@
         "url": "https://www.nps.gov/rori/planyourvisit/placestogo.htm",
         "mapQuery": "Rosie the Riveter Memorial Marina Bay Park Richmond",
         "scope": "city"
+      },
+      {
+        "name": "SS Red Oak Victory",
+        "description": "停泊在 Richmond Shipyard 3 的二战货船博物馆，可与 Rosie the Riveter 历史主题衔接。船舱、导览和特别活动规则分别查；不把另一处游客中心的免费政策套到登船门票。",
+        "url": "https://redoakvictory.us/",
+        "mapQuery": "SS Red Oak Victory Richmond Shipyard 3",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先参观教育中心，再按体力选择纪念碑附近的一段海湾步道；两地间另留移动。若带长辈或儿童，可只做一个室内点加一次短走，不必把全部历史地点走完。",
@@ -1187,6 +1467,14 @@
         "url": "https://www.sanpabloca.gov/949/Outdoor-Destinations",
         "mapQuery": "Davis Park San Pablo California",
         "scope": "city"
+      },
+      {
+        "name": "Blume House & Bunk House",
+        "description": "13831 San Pablo Avenue 的历史农舍建筑群，展示本地农业时代生活。官网开放日信息并不完全一致，按最新市府 eNews 或联系博物馆确认；不要直接照旧 FAQ 排日期。",
+        "url": "https://www.sanpabloca.gov/965/Blume-House",
+        "mapQuery": "Blume House Museum San Pablo",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先确认 Adobe 展示开放，再安排 Davis Park 休息或活动；若室内不开放，可仅看允许进入的公共外部空间，不擅自闯入建筑或租用大厅。",
@@ -1226,6 +1514,14 @@
         "url": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/forest_home_farms_historic_park",
         "mapQuery": "Forest Home Farms Historic Park San Ramon",
         "scope": "city"
+      },
+      {
+        "name": "Bishop Ranch Open Space Regional Preserve",
+        "description": "城市西侧的山脊与草地开放空间，适合看 San Ramon Valley。它是步道保护地，不是 Bishop Ranch 商业中心；先查入口和坡度，炎热时减少曝晒。",
+        "url": "https://www.ebparks.org/parks/bishop-ranch",
+        "mapQuery": "Bishop Ranch Regional Preserve San Ramon",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在农场开放日看展示，再到 Central Park 玩耍或休息；若参加 Saturday 农场活动就按其时段展开。两地之间另留移动，不把建筑导览排成未经确认的必选。",
@@ -1265,6 +1561,14 @@
         "url": "https://www.walnutcreekca.gov/government/public-works/construction-roadwork-impacts",
         "mapQuery": "Heather Farm Park Walnut Creek",
         "scope": "city"
+      },
+      {
+        "name": "Ruth Bancroft Garden",
+        "description": "以多肉植物和耐旱景观著称的花园与苗圃。花园参观、苗圃购物、课程和季节活动分开看票务，提前核对最后入园时间；不把苗圃可进入等同于花园免费。",
+        "url": "https://www.ruthbancroftgarden.org/visit/",
+        "mapQuery": "Ruth Bancroft Garden Walnut Creek",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先在较凉时段走 Borges Ranch 周边短线，再视施工公告决定是否去 Heather Farm 休息；若入口绕行明显，就把半天留给牧场与市区，不为凑点位穿越工地。",
@@ -1304,6 +1608,46 @@
         "url": "https://presidio.gov/explore/attractions/presidio-tunnel-tops",
         "mapQuery": "Presidio Tunnel Tops San Francisco",
         "scope": "city"
+      },
+      {
+        "name": "Alcatraz Island",
+        "description": "湾中的经典历史岛屿，正规上岛需经官方授权船运售票渠道预约。仅绕岛的观光船不等于登陆票；渡轮、时段、坡路与无障碍接驳都要事先看清。",
+        "url": "https://www.nps.gov/alca/planyourvisit/index.htm",
+        "mapQuery": "Alcatraz City Cruises Pier 33 San Francisco",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Ferry Building Marketplace",
+        "description": "Embarcadero 的钟楼、食品商铺和滨水公共空间，可按兴趣结合农夫市集。市场日与室内商户时间不同，食物购物自费；以具体日期查看主办方节目。",
+        "url": "https://www.ferrybuildingmarketplace.com/",
+        "mapQuery": "Ferry Building San Francisco",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "PIER 39",
+        "description": "海狮、海湾景观和商业步行区是经典游客路线。公共区域进入免费，水族馆、游乐项目、餐饮与停车另计；海狮数量和出现时段不保证。",
+        "url": "https://www.pier39.com/frequently-asked-questions/",
+        "mapQuery": "PIER 39 San Francisco",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Golden Gate Bridge / Welcome Center",
+        "description": "金门大桥南端的访客中心与观景区域，是初访旧金山的代表性地点。看桥、步行上桥与骑行规则不同，先查侧道开放和风况；跨完整座桥会进入 Marin County。",
+        "url": "https://www.goldengate.org/bridge/visiting-the-bridge/",
+        "mapQuery": "Golden Gate Bridge Welcome Center San Francisco",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Historic Cable Cars",
+        "description": "Powell 与 California Street 线连接多处旧金山坡地街区，既是交通也是经典体验。乘坐需按现行票务购票，热门总站可能排队；不能把叮当车线路等同于 F 线历史电车。",
+        "url": "https://www.sfmta.com/getting-around/muni/cable-cars",
+        "mapQuery": "Powell Street Cable Car Turnaround San Francisco",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议花园文化线以 Golden Gate Park 一片区域为主；带孩子看海湾则选 Tunnel Tops 与附近短走。若两个都去，明确减少场馆数量，另留城市交通与用餐时间。",

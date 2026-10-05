@@ -1,0 +1,498 @@
+{
+  "november-north-art-trails-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "reservation": "optional",
+      "schedule": {
+        "sourceUrl": "https://www.sonomacountyarttrails.org/resource",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-10-18",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-11": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-17": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-18": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "开放工作室参观免费；购买作品另计"
+      }
+    }
+  },
+  "november-north-healdsburg-market-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "admissionUsd": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://healdsburgfarmersmarket.org/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-17": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-24": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-31": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-07": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-14": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ]
+        },
+        "note": "农产与餐饮按摊位收费；官网未单列入场费"
+      }
+    }
+  },
+  "november-north-sonoma-harvest-market-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "admissionUsd": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ],
+          "2026-10-17": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ],
+          "2026-10-24": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ],
+          "2026-10-31": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ],
+          "2026-11-07": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ],
+          "2026-11-14": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ]
+        },
+        "note": "蔬果、鸡蛋与其他商品按摊位购买；未列单独入场费"
+      }
+    }
+  },
+  "november-north-sugarloaf-public-star-party-2026": {
+    "planning": {
+      "setting": "mixed",
+      "admissionUsd": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://sugarloafpark.org/event/public-star-party-46/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "note": "成人$15；62岁以上/学生$10；6–12岁$5；5岁及以下免费；另加$10/车停车",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "19:00",
+            "end": "22:00"
+          }
+        ]
+      }
+    }
+  },
+  "november-north-sugarloaf-nature-talk-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "admissionUsd": 0,
+      "reservation": "optional",
+      "schedule": {
+        "sourceUrl": "https://sugarloafpark.org/event/tabletop-nature-talk-colors-patterns-signals/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "dates": {
+          "2026-11-08": [
+            {
+              "open": "12:30",
+              "close": "15:30"
+            }
+          ]
+        },
+        "note": "讲解免费且无需预约；公园停车另收费"
+      }
+    }
+  },
+  "november-north-sips-stars-2026": {
+    "planning": {
+      "setting": "mixed",
+      "minAge": 21,
+      "admissionUsd": null,
+      "reservation": "required",
+      "schedule": {
+        "sourceUrl": "https://sugarloafpark.org/event/sips-and-stars-4/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-13",
+        "validThrough": "2026-11-13",
+        "note": "仅21岁以上；需登记，票价及停车费到票务页核对；含2张饮品券",
+        "sessions": [
+          {
+            "date": "2026-11-13",
+            "start": "17:00",
+            "end": "19:00"
+          }
+        ]
+      }
+    }
+  },
+  "november-north-jack-london-author-2026": {
+    "planning": {
+      "setting": "indoor",
+      "admissionUsd": null,
+      "reservation": "required",
+      "schedule": {
+        "sourceUrl": "https://jacklondonpark.com/events/the-second-mrs-london-2026/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "note": "讲座不另收费；公园入场$15/车，座位有限须预约",
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "14:00",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "november-north-fairfax-bilingual-storytime-2026": {
+    "planning": {
+      "setting": "indoor",
+      "minAge": 0,
+      "maxAge": 5,
+      "admissionUsd": 0,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-06",
+        "validThrough": "2026-11-10",
+        "note": "图书馆活动免费；适合0–5岁及陪同者。10:15开场，单场结束时间待确认；日历11:45不是任意到场截止时间。",
+        "sessions": [
+          {
+            "date": "2026-10-06",
+            "start": "10:15"
+          },
+          {
+            "date": "2026-10-13",
+            "start": "10:15"
+          },
+          {
+            "date": "2026-10-20",
+            "start": "10:15"
+          },
+          {
+            "date": "2026-10-27",
+            "start": "10:15"
+          },
+          {
+            "date": "2026-11-03",
+            "start": "10:15"
+          },
+          {
+            "date": "2026-11-10",
+            "start": "10:15"
+          }
+        ]
+      },
+      "programTimeUnconfirmed": true
+    }
+  },
+  "november-north-eames-exhibition-2026": {
+    "planning": {
+      "setting": "indoor",
+      "admissionUsd": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://napavalleymuseum.org/pages/plan-your-visit-to-napa-valley-museum-of-art-and-culture",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-11-15",
+        "dates": {
+          "2026-10-17": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-18": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-19": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-20": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-21": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-22": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-23": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-24": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-25": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-26": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-27": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-28": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-29": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-30": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-10-31": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-01": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-02": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-03": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-04": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-05": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-06": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-07": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-08": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-09": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-10": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-11": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-12": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-13": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-14": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "普通成人$25；6–17岁$15；5岁及以下免费，特别活动另核"
+      }
+    }
+  },
+  "november-north-bale-old-mill-days-2026": {
+    "planning": {
+      "setting": "mixed",
+      "admissionUsd": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://napaoutdoors.org/events/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-10-11",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "10:00",
+              "close": "14:00"
+            }
+          ],
+          "2026-10-11": [
+            {
+              "open": "10:00",
+              "close": "14:00"
+            }
+          ]
+        },
+        "note": "一般入场$5/人；幼儿减免年龄边界请向主办方确认"
+      }
+    }
+  }
+}

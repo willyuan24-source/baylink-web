@@ -1,0 +1,1219 @@
+{
+  "checkedAt": "2026-10-05",
+  "scope": "San Mateo and Santa Clara counties; official-source review for October 5–November 15, 2026",
+  "method": "New place records carry their own verifiedAt. Existing city-level verification dates are preserved; nearby and cross-boundary places are explicitly labeled. Event dates are accepted only from dated 2026 official pages.",
+  "placeAdditions": [
+    {
+      "city": "Atherton",
+      "county": "San Mateo",
+      "name": "Allied Arts Guild",
+      "description": "附近 Menlo Park 的西班牙殖民风格花园与工艺工作室，适合把安静散步和小店浏览放在同一站。常规周一至周六 10:00–17:00，周日及国定假日关闭；餐饮、购物、团体及摄影安排另查，不是 Atherton 镇内景点。",
+      "url": "https://alliedartsguild.org/visit/",
+      "mapQuery": "Allied Arts Guild 75 Arbor Road Menlo Park CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Belmont",
+      "county": "San Mateo",
+      "name": "Hiller Aviation Museum",
+      "description": "邻近 San Carlos 机场的航空博物馆，陈列飞机与航空技术，是半岛适合雨天的付费室内选择。导航 601 Skyway Road；先核对当天开放及年龄票档，飞行体验或特别活动不能默认包含在普通门票中。",
+      "url": "https://www.hiller.org/visit/",
+      "mapQuery": "Hiller Aviation Museum 601 Skyway Road San Carlos CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Brisbane",
+      "county": "San Mateo",
+      "name": "San Bruno Mountain State & County Park",
+      "description": "横跨北半岛山地的州立及县公园，Brisbane 的 555 Guadalupe Canyon Parkway 是正式公园地址。可选较平缓的 Bog Trail 或爬升观景路线，难度不同；停车费用与关门时间另查，公园不允许带狗。",
+      "url": "https://www.smcgov.org/parks/san-bruno-mountain-state-county-park",
+      "mapQuery": "San Bruno Mountain State & County Park Brisbane CA",
+      "scope": "cross-boundary",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Burlingame",
+      "county": "San Mateo",
+      "name": "Mills Canyon Wildlife Area",
+      "description": "市内安静的自然峡谷，入口在 Adeline Drive 与 Arguello Drive 一带，可沿环线认识本地植物和溪谷环境。这里以保护栖地和低强度活动为主，穿适合土路的鞋，带狗须牵绳，不把它当有全套设施的大型游乐公园。",
+      "url": "https://www.burlingame.org/Facilities/Facility/Details/Mills-Canyon-Wildlife-Area-8",
+      "mapQuery": "Mills Canyon Wildlife Area Burlingame CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Colma",
+      "county": "San Mateo",
+      "name": "Cypress Lawn Arboretum",
+      "description": "历史纪念园中的认证植物园，以古树、树种收藏和园林景观见长。这里仍是运作中的墓园，参观应安静尊重纪念活动；可从官方植物园页取得自助导览资料，博物馆或电车导览另查预约，不能随意进入私人仪式。",
+      "url": "https://cypresslawn.com/arboretum/",
+      "mapQuery": "Cypress Lawn Arboretum Colma CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Daly City",
+      "county": "San Mateo",
+      "name": "San Bruno Mountain State & County Park",
+      "description": "附近 Brisbane 入口可到达的北半岛山地公园，适合看海湾与城市景观。正式入口在 Guadalupe Canyon Parkway，山脊可能多风；先按地图选短线并查停车收费，不把 Daly City 的 Thornton State Beach 当成可直接下沙滩的替代入口。",
+      "url": "https://www.smcgov.org/parks/san-bruno-mountain-state-county-park",
+      "mapQuery": "San Bruno Mountain State County Park 555 Guadalupe Canyon Parkway Brisbane CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "East Palo Alto",
+      "county": "San Mateo",
+      "name": "Ravenswood Preserve",
+      "description": "海湾潮汐湿地与较平坦的 Bay Trail，是本地观鸟和短距离步行的代表去处。Bay Road 尽头入口与北侧区段要分清；大部分路线铺装，但园内没有洗手间，也不允许带狗。看鸟用望远镜，留在步道上，不进入滩涂。",
+      "url": "https://www.openspace.org/preserves/ravenswood-preserve",
+      "mapQuery": "Ravenswood Preserve East Palo Alto CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Foster City",
+      "county": "San Mateo",
+      "name": "CuriOdyssey at Coyote Point",
+      "description": "附近 San Mateo 的科学探索馆与本地动物展示，可作为海湾散步的付费室内外替代。地址 1651 Coyote Point Drive；馆票、县公园车辆入园费和特别活动分开核对，不能把 Foster City 泻湖与 Coyote Point 当成同一公园。",
+      "url": "https://curiodyssey.org/visit/visitor-maps/",
+      "mapQuery": "CuriOdyssey 1651 Coyote Point Drive San Mateo CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Half Moon Bay",
+      "county": "San Mateo",
+      "name": "Half Moon Bay State Beach",
+      "description": "州立海滩由多个海滩和入口组成，Francis Beach 的地址为 95 Kelly Avenue；可看海、散步和野餐。普通车辆日间入园费官网列为 10 美元，露营须另订；沙滩、海边步道和下水活动风险不同，不把停车付费当成安全游泳保证。",
+      "url": "https://www.parks.ca.gov/?page_id=531",
+      "mapQuery": "Half Moon Bay State Beach Half Moon Bay CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Hillsborough",
+      "county": "San Mateo",
+      "name": "CuriOdyssey at Coyote Point",
+      "description": "附近 San Mateo 的科学馆与动物展示，适合需要明确公众开放场所的家庭。该馆不在 Hillsborough，必须单独导航至 Coyote Point；门票及公园停车另算，先选参观日期再检查开放和票额。",
+      "url": "https://curiodyssey.org/visit/visitor-maps/",
+      "mapQuery": "CuriOdyssey San Mateo CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Menlo Park",
+      "county": "San Mateo",
+      "name": "Allied Arts Guild",
+      "description": "75 Arbor Road 的历史花园、工艺工作室和小店群，适合慢走与看手工艺。常规周一至周六 10:00–17:00，周日及国定假日关闭；各商店、餐饮及正式摄影安排分别确认，不能默认办公和工作室内部都开放。",
+      "url": "https://alliedartsguild.org/visit/",
+      "mapQuery": "Allied Arts Guild Menlo Park CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Millbrae",
+      "county": "San Mateo",
+      "name": "Junipero Serra Park",
+      "description": "邻近 San Bruno 的山坡县公园，可看机场与海湾景观，适合想找林地而非商圈的人。正式地址是 1801 Crystal Springs Road，地点不在 Millbrae；先看县公园地图、封闭公告及停车收费，再决定短线或野餐。",
+      "url": "https://www.smcgov.org/parks/junipero-serra-park",
+      "mapQuery": "Junipero Serra Park 1801 Crystal Springs Road San Bruno CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Pacifica",
+      "county": "San Mateo",
+      "name": "San Pedro Valley Park",
+      "description": "600 Oddstad Boulevard 的溪谷县公园，设自然步道、徒步路线和野餐区。可按体力选平缓谷地或山坡线路；瀑布属于季节性景观，不能保证十月或十一月一定有水，停车收费和团体野餐预约另查。",
+      "url": "https://www.smcgov.org/parks/san-pedro-valley-park",
+      "mapQuery": "San Pedro Valley Park Pacifica CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Portola Valley",
+      "county": "San Mateo",
+      "name": "Windy Hill Preserve",
+      "description": "从镇边草坡一路连接山脊与林地的开放空间，是当地典型登高去处。下部 Portola Road 入口与 Skyline 一侧入口不是同一点，先看路线爬升；停车位有限，不在路边随意加停，带狗只能走允许的指定路线。",
+      "url": "https://www.openspace.org/preserves/windy-hill",
+      "mapQuery": "Windy Hill Preserve Portola Valley CA",
+      "scope": "cross-boundary",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Redwood City",
+      "county": "San Mateo",
+      "name": "Pulgas Water Temple",
+      "description": "附近 Cañada Road 水源保护区内的古典水神庙与水池，适合短停了解半岛供水史，不在 Redwood City 市中心。停车场通常周一至周五 9:00–17:00；周末与联邦假日不开放车辆停车，步行骑车入口另有安排，婚礼等活动可能封闭场地。",
+      "url": "https://www.sfpuc.gov/learning/come-visit/pulgas-water-temple",
+      "mapQuery": "Pulgas Water Temple Canada Road Redwood City CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Bruno",
+      "county": "San Mateo",
+      "name": "Junipero Serra Park",
+      "description": "1801 Crystal Springs Road 的山坡县公园，以林地、海湾及机场观景见长。短线步行与团体野餐适合不同安排；出发前查县公园封闭公告和车辆入园费，不把远景照片当作无坡度路线的承诺。",
+      "url": "https://www.smcgov.org/parks/junipero-serra-park",
+      "mapQuery": "Junipero Serra Park San Bruno CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Carlos",
+      "county": "San Mateo",
+      "name": "Hiller Aviation Museum",
+      "description": "位于 601 Skyway Road，航空器收藏与互动展示适合安排半天。官网常规开放为 10:00–17:00，节假日或包场可例外；普通门票、模拟飞行和活动项目分开看，Caltrain 到馆仍有约一英里步行。",
+      "url": "https://www.hiller.org/visit/",
+      "mapQuery": "Hiller Aviation Museum San Carlos CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Mateo",
+      "county": "San Mateo",
+      "name": "CuriOdyssey at Coyote Point",
+      "description": "科学互动展示与本地动物相结合的亲子去处，地址 1651 Coyote Point Drive。核验时官网提示 10 月 19 日维护闭馆、10 月 31 日 15:00 提早关闭；门票按日期查，馆外县公园费用不能默认包含。",
+      "url": "https://curiodyssey.org/visit/visitor-maps/",
+      "mapQuery": "CuriOdyssey at Coyote Point San Mateo CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "South San Francisco",
+      "county": "San Mateo",
+      "name": "Sign Hill",
+      "description": "城名白色大字所在的山坡公园，设近两英里步道，开放为日出至日落。它是有坡度的短徒步，不是平坦观景平台；园内没有饮水点，不允许自行车，狗须用不超过六英尺的牵绳。",
+      "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Divisions/Parks-Division/Sign-Hill",
+      "mapQuery": "Sign Hill South San Francisco CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Woodside",
+      "county": "San Mateo",
+      "name": "Filoli Historic House & Garden",
+      "description": "历史宅邸、正式花园与自然步道，是 Woodside 一带的重要付费景点。先选日期及日间或夜间产品再购票；2026 节日季从 11 月 14 日开始，夜间灯饰和日间参观不是可以随意互换的同一张票。",
+      "url": "https://filoli.org/holidays",
+      "mapQuery": "Filoli Historic House & Garden Woodside CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Campbell",
+      "county": "Santa Clara",
+      "name": "Los Gatos Creek Trail",
+      "description": "穿过 Campbell 的铺装溪边步道，可从 Campbell Avenue 与 Gilman Avenue 一带进入。适合短距离步行或骑车，路上行人与自行车共用；整条区域步道跨多个城市，别把从 San Jose 到 Los Gatos 的全线当作轻松一小圈。",
+      "url": "https://www.campbellca.gov/Facilities/Facility/Details/Los-Gatos-Creek-Trail-29",
+      "mapQuery": "Los Gatos Creek Trail Campbell CA",
+      "scope": "cross-boundary",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Cupertino",
+      "county": "Santa Clara",
+      "name": "Apple Park Visitor Center",
+      "description": "10600 North Tantau Avenue 的公众访客中心，可逛 Apple Store，并按官网选择 Today at Apple 课程。这里与 Apple 员工办公园区有明确边界，访问中心不代表可以进入总部办公楼；课程报名和商业服务另查。",
+      "url": "https://www.apple.com/retail/appleparkvisitorcenter/",
+      "mapQuery": "Apple Park Visitor Center Cupertino CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Gilroy",
+      "county": "Santa Clara",
+      "name": "Gilroy Gardens",
+      "description": "以花园、Circus Trees 和家庭游乐设施结合的季节性主题公园。须按具体日期看营业日历及购票，停车与部分体验另有条件；不要把线上销售次年会员卡理解成每天都开放或当天所有活动已包含。",
+      "url": "https://www.gilroygardens.org/",
+      "mapQuery": "Gilroy Gardens Gilroy CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Los Altos",
+      "county": "Santa Clara",
+      "name": "Redwood Grove Nature Preserve",
+      "description": "482 University Avenue 的小型红杉自然保护区，以沿 Adobe Creek 的木栈道和林间步道为特色。车辆不能开入，附近按路牌停车；官网仍把儿童游乐场写作筹备项目，不能把它列为已开放设施。",
+      "url": "https://www.losaltosca.gov/709/Los-Altos-Parks",
+      "mapQuery": "Redwood Grove Nature Preserve Los Altos CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Los Altos Hills",
+      "county": "Santa Clara",
+      "name": "Hidden Villa",
+      "description": "26870 Moody Road 的教育农场与山地步道，官网请求每车支付 10 美元停车费；无力支付可联系机构。先查开放及预约安排，停主停车场而非 Moody Road；动物栏和多数建筑不能自行进入，也不要喂动物。",
+      "url": "https://www.hiddenvilla.org/visit/plan-your-trip/",
+      "mapQuery": "Hidden Villa Los Altos Hills CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Los Gatos",
+      "county": "Santa Clara",
+      "name": "Oak Meadow Park",
+      "description": "233 Blossom Hill Road 的社区公园，可与邻近 Vasona 及 Los Gatos Creek Trail 分开串联。草地、儿童游乐区适合短停；Billy Jones 小火车和旋转木马由运营方另定时段及票价，不代表每次到公园都能乘坐。",
+      "url": "https://parks.losgatosca.gov/docs/park%20details.pdf",
+      "mapQuery": "Oak Meadow Park Los Gatos CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Milpitas",
+      "county": "Santa Clara",
+      "name": "Ed R. Levin County Park",
+      "description": "Calaveras 山麓的县公园，有草坪、湖边、儿童游乐区和向高处延伸的步道。公园通常 8:00 至日落，车辆入园收费；Sandy Wool 与 Spring Valley 是不同入口，湖泊禁止游泳，不能把山顶长线当普通亲子散步。",
+      "url": "https://parks.santaclaracounty.gov/locations/ed-r-levin-county-park",
+      "mapQuery": "Ed R. Levin County Park Milpitas CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Monte Sereno",
+      "county": "Santa Clara",
+      "name": "NUMU — New Museum Los Gatos",
+      "description": "附近 Los Gatos 的艺术与地方历史博物馆，地址 106 East Main Street，常规周四至周日 10:00–16:00。普通成人票与优惠资格分别确认，未满 13 岁须成人陪同；Monte Sereno 居民不能自动套用仅供 Los Gatos 居民的免费资格。",
+      "url": "https://www.numulosgatos.org/visit",
+      "mapQuery": "NUMU New Museum Los Gatos 106 East Main Street CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Morgan Hill",
+      "county": "Santa Clara",
+      "name": "Henry W. Coe State Park — Coe Ranch",
+      "description": "Morgan Hill 以东约 13 英里的山地州立公园入口，导航 9000 East Dunne Avenue。这里是大范围荒野徒步目的地，不是市内平坦公园；Coe Ranch 普通车辆日间费官网列为 8 美元，其他入口、露营及线路难度要另查。",
+      "url": "https://www.parks.ca.gov/?page_id=561",
+      "mapQuery": "Henry W Coe State Park Coe Ranch 9000 East Dunne Avenue Morgan Hill CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Mountain View",
+      "county": "Santa Clara",
+      "name": "Google Visitor Experience",
+      "description": "Gradient Canopy 的公众访客空间包括广场艺术、咖啡馆、Google Store 和活动空间。适合对科技园区设计感兴趣的人短停；商店营业、工作坊名额及咖啡消费分别确认，不能把访客区当作可自由进入的员工办公区。",
+      "url": "https://visit.withgoogle.com/",
+      "mapQuery": "Google Visitor Experience Mountain View CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Palo Alto",
+      "county": "Santa Clara",
+      "name": "Cantor Arts Center at Stanford",
+      "description": "附近 Stanford 校园的重要艺术馆，普通入场免费，校园停车可能另收费。核验时常规周二、周三闭馆，其余日期开放但周四时段不同；先看当天日历，不把 Stanford 直接写成 Palo Alto 市内街区。",
+      "url": "https://museum.stanford.edu/visit",
+      "mapQuery": "Cantor Arts Center Stanford CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "name": "The Tech Interactive",
+      "description": "201 South Market Street 的互动科学中心，适合给动手展项留半天。官网普通票列成人 38 美元、3–17 岁儿童及学生和长者 28 美元，并含一场教育类 IMAX；特殊电影、活动和当天开放另查，不等于所有 IMAX 放映都包含。",
+      "url": "https://www.thetech.org/visit/",
+      "mapQuery": "The Tech Interactive San Jose CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "name": "Rosicrucian Egyptian Museum",
+      "description": "1660 Park Avenue 的古埃及艺术与考古收藏，是 Rose Garden 一带的重要室内景点。先查博物馆当天开放及票档，再安排花园散步；同一园区的其他建筑或活动并不自动包含在普通参观内。",
+      "url": "https://egyptianmuseum.org/plan-your-visit",
+      "mapQuery": "Rosicrucian Egyptian Museum San Jose CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "name": "Winchester Mystery House",
+      "description": "Sarah Winchester 的大型维多利亚式宅邸，以复杂房间和建筑布局闻名，主要通过付费导览参观。选具体日期和导览产品，另查体力、楼梯及无障碍条件；历史宅邸导览与季节夜间活动不是同一种票。",
+      "url": "https://winchestermysteryhouse.com/",
+      "mapQuery": "Winchester Mystery House San Jose CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "name": "Mission Santa Clara de Asís",
+      "description": "Santa Clara University 内的历史教堂，也是仍在使用的宗教场所。官网常规每天 7:00–19:00，活动可能临时关闭；参观尊重礼拜安排，校园停车规定另查，围墙内玫瑰园墓地不对公众开放。",
+      "url": "https://www.scu.edu/missionchurch/visit-the-mission/",
+      "mapQuery": "Mission Santa Clara de Asís Santa Clara CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "name": "Intel Museum",
+      "description": "2200 Mission College Boulevard 的芯片与计算历史展示，个人参观免费且无需预约，停车也免费。常规周一至周五 9:00–17:00，2026 年 11 月 11 日闭馆；团体与导览另行预约，不能把展厅访问当成工厂或办公区参观。",
+      "url": "https://www.intel.com/content/www/us/en/company-overview/intel-museum.html?iid=community-museum",
+      "mapQuery": "Intel Museum Santa Clara CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Saratoga",
+      "county": "Santa Clara",
+      "name": "Sanborn County Park",
+      "description": "Saratoga 附近山地县公园，以红杉林、野餐区和徒步路线为特色，地址 16055 Sanborn Road。通常 8:00 至日落，车辆入园收费；露营、团体野餐及长距离山路分别安排，不把红杉照片当作无障碍线路说明。",
+      "url": "https://parks.santaclaracounty.gov/santa-clara-county-parks/sanborn-county-park",
+      "mapQuery": "Sanborn County Park 16055 Sanborn Road Saratoga CA",
+      "scope": "nearby",
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "city": "Sunnyvale",
+      "county": "Santa Clara",
+      "name": "Las Palmas Park",
+      "description": "850 Russet Drive 的城市公园，适合把绿地散步与野餐安排在同一站。团体野餐区按市府各场地容量与预约规则使用，不能把公园开放等同于当天一定有可用的保留桌位。",
+      "url": "https://www.sunnyvale.ca.gov/Home/Components/FacilityDirectory/FacilityDirectory/51/456",
+      "mapQuery": "Las Palmas Park Sunnyvale CA",
+      "scope": "city",
+      "verifiedAt": "2026-10-05"
+    }
+  ],
+  "events": [
+    {
+      "id": "midpen-hiking-highlights-nov2-2026",
+      "city": "Woodside",
+      "startDate": "2026-11-02",
+      "endDate": "2026-11-02",
+      "officialUrl": "https://www.openspace.org/events/guided-activities/hiking-highlights",
+      "dateLabel": "11/2 周一 · 10:00–13:30",
+      "costLabel": "免费导览；须签参加声明",
+      "venue": "El Corte de Madera Creek Preserve；集合：Skyline Blvd 的 Skeggs Point 停车区（Woodside 附近山区）",
+      "booking": "导航 Skeggs Point，而不是保护区任何一个停车场；从 Skyline 北侧驶来不能左转进入该停车区。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "weekend"
+    },
+    {
+      "id": "midpen-sentinel-sky-nov8-2026",
+      "city": "Los Gatos",
+      "startDate": "2026-11-08",
+      "endDate": "2026-11-08",
+      "officialUrl": "https://www.openspace.org/events/guided-activities/sentinel-sky-20",
+      "dateLabel": "11/8 周日 · 13:00–15:00",
+      "costLabel": "免费导览；路线含 159 级台阶",
+      "venue": "Sierra Azul Preserve；Mount Umunhum 山顶停车区（Los Gatos 附近山区）",
+      "booking": "按官网导航至山顶停车场，不要停在 Bald Mountain 后把上山徒步时间漏掉。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "weekend"
+    },
+    {
+      "id": "ravenswood-tidal-marsh-nov15-2026",
+      "city": "East Palo Alto",
+      "startDate": "2026-11-15",
+      "endDate": "2026-11-15",
+      "officialUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+      "dateLabel": "11/15 周日 · 9:30–12:00",
+      "costLabel": "免费；约 3 英里家庭友好导览",
+      "venue": "Ravenswood Preserve；East Palo Alto Bay Road 尽头停车区",
+      "booking": "使用 Bay Road 尽头的 Ravenswood 集合点，不要导航到保护区北侧的另一个区段。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "weekend"
+    },
+    {
+      "id": "ssf-senior-holiday-boutique-nov7-2026",
+      "city": "South San Francisco",
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-07",
+      "officialUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+      "dateLabel": "11/7 周六 · 10:00–16:00",
+      "costLabel": "入场免费；摊位商品另购",
+      "venue": "Library | Parks and Recreation Center 宴会及社交厅，901 Civic Campus Way",
+      "booking": "前往 901 Civic Campus Way 的室内活动厅，不是 Orange Memorial Park。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "autumn-neighbors"
+    },
+    {
+      "id": "san-mateo-downtown-market-nov5-2026",
+      "city": "San Mateo",
+      "startDate": "2026-11-05",
+      "endDate": "2026-11-05",
+      "officialUrl": "https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/",
+      "dateLabel": "11/5 周四 · 15:00–19:00",
+      "costLabel": "蔬果与餐车食物自费；官网未列入场售票",
+      "venue": "原 Draeger’s 停车场，222 East 4th Avenue",
+      "booking": "先查当日主办方更新，带购物袋并按需要购买；天气、摊位及品项可能调整。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "everyday"
+    },
+    {
+      "id": "mountain-view-market-hope-st-nov8-2026",
+      "city": "Mountain View",
+      "startDate": "2026-11-08",
+      "endDate": "2026-11-08",
+      "officialUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+      "dateLabel": "11/8 周日 · 9:00–13:00",
+      "costLabel": "食品自费；本条是换址通知，不是消费优惠",
+      "venue": "Hope Street 4 号及 8 号停车场，190 Hope Street",
+      "booking": "导航 190 Hope Street，市场位于 West Evelyn Avenue 与 Villa Avenue 之间。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "everyday"
+    },
+    {
+      "id": "san-carlos-gifts-kitchen-nov14-2026",
+      "city": "San Carlos",
+      "startDate": "2026-11-14",
+      "endDate": "2026-11-14",
+      "officialUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+      "dateLabel": "11/14 周六 · 9:00–12:00",
+      "costLabel": "9/30 后报名费每人 $115；须预约，名额有限",
+      "venue": "Church of the Epiphany，1839 Arroyo Avenue",
+      "booking": "通过 UC 官方页面的 Register here 进入报名；不要把页面中 11 月 7 日的附加报名标记当上课日期。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "neighborhood-table"
+    },
+    {
+      "id": "filoli-holidays-from-nov14-2026",
+      "city": "Woodside",
+      "startDate": "2026-11-14",
+      "endDate": "2027-01-10",
+      "officialUrl": "https://filoli.org/holidays",
+      "dateLabel": "11/14 起至 2027/1/10 · 须选日期及场次",
+      "costLabel": "付费；按日期、时段及票种计价，会员规则另查",
+      "venue": "Filoli Historic House & Garden，86 Cañada Road",
+      "booking": "日间 10:00–15:30，最晚入场 13:30；晚间 16:00–22:00，最晚入场 20:00，按已购票入场时段到达。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "region-filoli-house"
+    },
+    {
+      "id": "numu-community-ignition-oct17-2026",
+      "city": "Los Gatos",
+      "startDate": "2026-10-17",
+      "endDate": "2026-10-17",
+      "officialUrl": "https://www.numulosgatos.org/events/community-ignition",
+      "dateLabel": "10/17 周六 · 12:00–16:00",
+      "costLabel": "免费，须提前登记",
+      "venue": "NUMU，106 East Main Street",
+      "booking": "从官方活动页进入报名，确认名额；当天博物馆直到中午才开放。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "culture-visit"
+    },
+    {
+      "id": "hiller-starlight-nights-nov13-2026",
+      "city": "San Carlos",
+      "startDate": "2026-11-13",
+      "endDate": "2026-11-13",
+      "officialUrl": "https://www.hiller.org/event/starlight-nights/2026-11-13/",
+      "dateLabel": "11/13 周五 · 17:00 起，博物馆至 19:00",
+      "costLabel": "含于普通博物馆门票；会员凭会员资格入场",
+      "venue": "Hiller Aviation Museum，601 Skyway Road",
+      "booking": "通过馆方链接购普通入馆票或携带会员凭证，出发前确认晚场是否有更新。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "expanded-peninsula-hiller"
+    },
+    {
+      "id": "san-jose-matilda-nov2026",
+      "city": "San Jose",
+      "startDate": "2026-11-13",
+      "endDate": "2026-11-22",
+      "occurrenceDates": [
+        "2026-11-13",
+        "2026-11-14",
+        "2026-11-15",
+        "2026-11-20",
+        "2026-11-21",
+        "2026-11-22"
+      ],
+      "officialUrl": "https://sanjosetheaters.org/event/matilda-the-musical/",
+      "dateLabel": "11/13–15、11/20–22 · 按场次选票",
+      "costLabel": "付费；10/16 开售，金额以正式售票页为准",
+      "venue": "Montgomery Theater，271 South Market Street",
+      "booking": "11/13 19:00；11/14 14:00、19:00；11/15 13:00、18:00。11/20–22 另有场次，购票时逐场确认。",
+      "verifiedAt": "2026-10-05",
+      "imageKey": "november-theater"
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Thornton State Beach as a public beach-access destination",
+      "url": "https://parks.ca.gov/?page_id=530",
+      "reason": "The detailed official page says it is not open to the public and there is no beach access; directory status alone is insufficient."
+    },
+    {
+      "name": "2026 Raptor Fest",
+      "url": "https://parks.santaclaracounty.gov/things-do/park-events/raptor-fest",
+      "reason": "The official page records a 2025 cancellation and no upcoming 2026 event. No annual-date inference."
+    },
+    {
+      "name": "Harvest Festival San Mateo / San Jose",
+      "url": "https://harvestfestival.com/san-mateo",
+      "reason": "The fetched official page describes November 8–10, 2024 in San Jose. Not accepted as a 2026 event."
+    }
+  ],
+  "photoGaps": [
+    "New place records have no required image field in current UI; root handles per-place media. Use exact venue photos only; otherwise a clearly labeled matching illustration.",
+    "Midpen guided programs: use weekend illustration unless an exact preserve photo is available.",
+    "Food-preserving workshop: no licensed exact workshop photograph; neighborhood-table is an explicitly labeled food illustration.",
+    "Filoli holiday decorations: an estate photo is not a photograph of the 2026 holiday display.",
+    "Matilda uses root-owned new november-theater original illustration, not coverage-stage (a Detroit theater photo). Guide covers need topic-appropriate root mapping; nature=weekend, food=everyday, or distinct new labeled originals."
+  ],
+  "supportingSources": [
+    {
+      "url": "https://www.openspace.org/events/guided-activities/guidelines",
+      "facts": "Guided outings are free; sign a waiver at the meeting point. Some activities require reservations; heavy rain cancels hikes. Dogs only on explicitly labeled dog activities."
+    },
+    {
+      "url": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/san-mateo-county-gifts-kitchen",
+      "facts": "Parallel UC page retains a $95 headline but body sets $115 after September 30. Accepted November 14 date and current $115 fee, did not treat November 7 registration marker as class date."
+    },
+    {
+      "url": "https://www.cafarmersmkts.com/mountain-view-farmers-market",
+      "facts": "Usual Sunday market at Caltrain; exact 2026-11-08 relocation is separately confirmed."
+    }
+  ],
+  "currentUpdates": [
+    {
+      "city": "East Palo Alto",
+      "county": "San Mateo",
+      "kind": "dated",
+      "headline": "11 月 15 日 Ravenswood 免费湿地导览",
+      "summary": "Midpen 已列出 9:30–12:00、约三英里的家庭友好盐沼导览，集合在 Bay Road 尽头的 Ravenswood 停车区。提前到场签参加声明，带水并安排好洗手间；天气或步道状况可能改变行程，出发前查官方页。",
+      "dateLabel": "11/15 周日 · 9:30–12:00",
+      "sourceUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+      "sourceLabel": "Midpeninsula Regional Open Space District",
+      "checkedAt": "2026-10-05",
+      "imageKey": "weekend",
+      "expiresAt": "2026-11-15"
+    },
+    {
+      "city": "South San Francisco",
+      "county": "San Mateo",
+      "kind": "dated",
+      "headline": "11 月 7 日室内节日手作市集",
+      "summary": "Senior Holiday Boutique & Maker’s Faire 将于 10:00–16:00 在 901 Civic Campus Way 的 Library | Parks and Recreation Center 举行。入场免费，珠宝、陶艺及手作商品自费；这是面向公众的市集，不是仅凭到场就能领取免费商品的活动。",
+      "dateLabel": "11/7 周六 · 10:00–16:00",
+      "sourceUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+      "sourceLabel": "City of South San Francisco",
+      "checkedAt": "2026-10-05",
+      "imageKey": "autumn-neighbors",
+      "expiresAt": "2026-11-07"
+    },
+    {
+      "city": "Mountain View",
+      "county": "Santa Clara",
+      "kind": "dated",
+      "headline": "11 月 8 日农贸市场换址至 Hope Street",
+      "summary": "官方确认因 49ers 主场赛，9:00–13:00 的市场转到 Hope Street 4、8 号停车场，导航 190 Hope Street。当天别去通常的 Caltrain 停车场等摊位；摊位占用的停车区也不能当普通停车位，买菜与交通费用另算。",
+      "dateLabel": "11/8 周日 · 9:00–13:00",
+      "sourceUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+      "sourceLabel": "California Farmers’ Markets Association",
+      "checkedAt": "2026-10-05",
+      "imageKey": "everyday",
+      "expiresAt": "2026-11-08"
+    },
+    {
+      "city": "San Carlos",
+      "county": "San Mateo",
+      "kind": "dated",
+      "headline": "11 月 14 日食物保存课：早鸟价已结束",
+      "summary": "UC Master Food Preservers 在 1839 Arroyo Avenue 举办 9:00–12:00 的食物礼物实作课，须报名且名额有限。9 月 30 日后费用为每人 115 美元；不要沿用另一页面仍显示的 95 美元早鸟标题，也别将报名标记当成上课日期。",
+      "dateLabel": "11/14 周六 · 9:00–12:00",
+      "sourceUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+      "sourceLabel": "UC Agriculture and Natural Resources — Master Food Preservers",
+      "checkedAt": "2026-10-05",
+      "imageKey": "neighborhood-table",
+      "expiresAt": "2026-11-14"
+    },
+    {
+      "city": "Los Gatos",
+      "county": "Santa Clara",
+      "kind": "dated",
+      "headline": "NUMU 10 月 17 日开幕活动免费预约",
+      "summary": "Community Ignition 开幕招待会为 12:00–16:00，关注残障艺术社群的协作与创作。须从官方活动页登记，当天博物馆中午才开放；招待会免费不等于整个展期每天免费，未满 13 岁仍须成人陪同。",
+      "dateLabel": "10/17 周六 · 12:00–16:00",
+      "sourceUrl": "https://www.numulosgatos.org/events/community-ignition",
+      "sourceLabel": "NUMU — New Museum Los Gatos",
+      "checkedAt": "2026-10-05",
+      "imageKey": "culture-visit",
+      "expiresAt": "2026-10-17"
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "kind": "dated",
+      "headline": "Intel Museum 11 月 11 日闭馆",
+      "summary": "博物馆常规周一至周五 9:00–17:00，个人参观与停车免费，但 2026 年 11 月 11 日是假日闭馆日。导航 2200 Mission College Boulevard；团体及导览另约，Intel 员工办公区不属于公众参观范围。",
+      "dateLabel": "11/11 闭馆 · 常规周一至周五开放",
+      "sourceUrl": "https://www.intel.com/content/www/us/en/company-overview/intel-museum.html?iid=community-museum",
+      "sourceLabel": "Intel Museum",
+      "checkedAt": "2026-10-05",
+      "imageKey": "culture-visit",
+      "expiresAt": "2026-11-11"
+    }
+  ],
+  "currentExpiry": {
+    "policy": "Expire dated records at their explicitly published last date; preserve prior checkedAt where only expiry metadata was added.",
+    "entries": [
+      {
+        "city": "Atherton",
+        "expiresAt": "2026-10-18"
+      },
+      {
+        "city": "Belmont",
+        "expiresAt": "2026-10-24"
+      },
+      {
+        "city": "Brisbane",
+        "expiresAt": "2026-10-29"
+      },
+      {
+        "city": "East Palo Alto",
+        "expiresAt": "2026-11-15"
+      },
+      {
+        "city": "Half Moon Bay",
+        "expiresAt": "2026-10-18"
+      },
+      {
+        "city": "Menlo Park",
+        "expiresAt": "2026-10-24"
+      },
+      {
+        "city": "Pacifica",
+        "expiresAt": "2026-11-15"
+      },
+      {
+        "city": "Redwood City",
+        "expiresAt": "2026-10-19"
+      },
+      {
+        "city": "San Bruno",
+        "expiresAt": "2026-10-17"
+      },
+      {
+        "city": "San Carlos",
+        "expiresAt": "2026-11-14"
+      },
+      {
+        "city": "San Mateo",
+        "expiresAt": "2026-10-10"
+      },
+      {
+        "city": "South San Francisco",
+        "expiresAt": "2026-11-07"
+      },
+      {
+        "city": "Woodside",
+        "expiresAt": "2026-12-11"
+      },
+      {
+        "city": "Campbell",
+        "expiresAt": "2026-10-17"
+      },
+      {
+        "city": "Cupertino",
+        "expiresAt": "2026-11-28"
+      },
+      {
+        "city": "Gilroy",
+        "expiresAt": "2026-10-10"
+      },
+      {
+        "city": "Los Altos Hills",
+        "expiresAt": "2026-11-21"
+      },
+      {
+        "city": "Los Gatos",
+        "expiresAt": "2026-10-17"
+      },
+      {
+        "city": "Milpitas",
+        "expiresAt": "2026-11-07"
+      },
+      {
+        "city": "Monte Sereno",
+        "expiresAt": "2026-10-22"
+      },
+      {
+        "city": "Morgan Hill",
+        "expiresAt": "2026-10-10"
+      },
+      {
+        "city": "Mountain View",
+        "expiresAt": "2026-11-08"
+      },
+      {
+        "city": "Santa Clara",
+        "expiresAt": "2026-11-11"
+      },
+      {
+        "city": "Sunnyvale",
+        "expiresAt": "2026-10-08"
+      }
+    ],
+    "unresolved": [
+      {
+        "city": "San Jose",
+        "reason": "TAEMIN is postponed with no replacement date. No invented expiry/new performance date."
+      }
+    ]
+  },
+  "currentImageCorrections": [
+    {
+      "city": "Burlingame",
+      "from": "burlingame",
+      "to": "october-library-culture",
+      "reason": "Replace unrelated city scenery with an explicitly labeled illustration matching the update topic."
+    },
+    {
+      "city": "Redwood City",
+      "from": "coverage-redwood-port",
+      "to": "october-library-culture",
+      "reason": "Replace unrelated city scenery with an explicitly labeled illustration matching the update topic."
+    },
+    {
+      "city": "San Mateo",
+      "from": "sanmateo",
+      "to": "everyday",
+      "reason": "Replace unrelated city scenery with an explicitly labeled illustration matching the update topic."
+    },
+    {
+      "city": "Palo Alto",
+      "from": "baylands-marsh",
+      "to": "october-library-culture",
+      "reason": "Replace unrelated city scenery with an explicitly labeled illustration matching the update topic."
+    },
+    {
+      "city": "Saratoga",
+      "from": "region-hakone",
+      "to": "autumn-neighbors",
+      "reason": "Replace unrelated city scenery with an explicitly labeled illustration matching the update topic."
+    }
+  ],
+  "guides": [
+    {
+      "slug": "peninsula-south-bay-november-nature-walks-2026",
+      "title": "半岛与南湾十一月户外：湿地、红杉和山顶历史，按体力选一条",
+      "sources": [
+        {
+          "title": "Midpen — Hiking the Highlights",
+          "url": "https://www.openspace.org/events/guided-activities/hiking-highlights",
+          "description": "核对 11 月 2 日场次、四英里路线及 Skeggs Point 集合点。"
+        },
+        {
+          "title": "Midpen — Sentinel in the Sky",
+          "url": "https://www.openspace.org/events/guided-activities/sentinel-sky-20",
+          "description": "核对 11 月 8 日山顶导览及 159 级台阶。"
+        },
+        {
+          "title": "Midpen — Tidal Marsh Appreciation",
+          "url": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+          "description": "核对 11 月 15 日 Ravenswood 导览和 Bay Road 入口。"
+        },
+        {
+          "title": "Midpen — Guided Activity Guidelines",
+          "url": "https://www.openspace.org/events/guided-activities/guidelines",
+          "description": "核对免费、现场声明、天气取消、狗与团体规则。"
+        },
+        {
+          "title": "Midpen — Ravenswood Preserve",
+          "url": "https://www.openspace.org/preserves/ravenswood-preserve",
+          "description": "核对保护区步道、入口及无洗手间限制。"
+        },
+        {
+          "title": "Midpen — Sierra Azul Preserve",
+          "url": "https://www.openspace.org/preserves/sierra-azul",
+          "description": "核对山地区域边界、开放时段及到达方式。"
+        }
+      ],
+      "verifiedAt": "2026-10-05"
+    },
+    {
+      "slug": "peninsula-south-bay-autumn-farmers-markets-2026",
+      "title": "半岛与南湾秋季买菜：先查市场有没有换址或停开",
+      "sources": [
+        {
+          "title": "Downtown San Mateo — November 5 Market",
+          "url": "https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/",
+          "description": "核对周四场次、15:00–19:00 与原 Draeger’s 停车场。"
+        },
+        {
+          "title": "CFMA — Mountain View Farmers’ Market",
+          "url": "https://www.cafarmersmkts.com/mountain-view-farmers-market",
+          "description": "核对常规周日时间、Caltrain 位置与 11 月 8 日换址。"
+        },
+        {
+          "title": "UVFM — Campbell",
+          "url": "https://uvfm.org/campbell-sundays",
+          "description": "核对 Campbell 周日营业地点与食品补助入口。"
+        },
+        {
+          "title": "UVFM — San Carlos",
+          "url": "https://uvfm.org/san-carlos-sundays",
+          "description": "核对 San Carlos 周日市场和艺术美酒节停开提醒。"
+        },
+        {
+          "title": "UVFM — 2026 Market Calendar",
+          "url": "https://uvfm.org/updates",
+          "description": "核对 10 月 11 日 San Carlos、10 月 18 日 Campbell 停开。"
+        },
+        {
+          "title": "UC Master Food Preservers — Gifts from the Kitchen",
+          "url": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+          "description": "核对 11 月 14 日食物保存课与早鸟截止后费用。"
+        }
+      ],
+      "verifiedAt": "2026-10-05"
+    }
+  ],
+  "planning": {
+    "file": "src/data/november-refresh-peninsula-south-planning.json",
+    "count": 11,
+    "policy": "Only official dates, window times, sessions and explicit fees. No invented coordinates, child ages or minimum ages. NUMU under-13 adult accompaniment is not a minimum age. Matilda has known starts but unknown ends and programTimeUnconfirmed=true. Filoli dates enumerated only through November 15; daytime/evening separate tickets.",
+    "records": {
+      "midpen-hiking-highlights-nov2-2026": {
+        "planning": {
+          "setting": "outdoor",
+          "reservation": "unknown",
+          "admissionUsd": 0,
+          "schedule": {
+            "sourceUrl": "https://www.openspace.org/events/guided-activities/hiking-highlights",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-02",
+            "validThrough": "2026-11-02",
+            "dates": {
+              "2026-11-02": [
+                {
+                  "open": "10:00",
+                  "close": "13:30"
+                }
+              ]
+            },
+            "sessions": [
+              {
+                "date": "2026-11-02",
+                "start": "10:00",
+                "end": "13:30"
+              }
+            ],
+            "note": "固定导览，需按 10:00 开始参加约四英里山林环线；不是窗口内任意到达的散步。集合 Skeggs Point，须签声明；主办方未列最低年龄，不据此保证幼童或行动不便者适合。大雨可能取消，结束为预计时刻。"
+          }
+        }
+      },
+      "midpen-sentinel-sky-nov8-2026": {
+        "planning": {
+          "setting": "outdoor",
+          "reservation": "unknown",
+          "admissionUsd": 0,
+          "schedule": {
+            "sourceUrl": "https://www.openspace.org/events/guided-activities/sentinel-sky-20",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-08",
+            "validThrough": "2026-11-08",
+            "dates": {
+              "2026-11-08": [
+                {
+                  "open": "13:00",
+                  "close": "15:00"
+                }
+              ]
+            },
+            "sessions": [
+              {
+                "date": "2026-11-08",
+                "start": "13:00",
+                "end": "15:00"
+              }
+            ],
+            "note": "固定 13:00 山顶集合导览，四分之一英里包含上下 159 级台阶。上山交通不包含在两小时导览内；年龄门槛未公布，不可由短距离推断无障碍。须签声明，恶劣天气可能取消。"
+          }
+        }
+      },
+      "ravenswood-tidal-marsh-nov15-2026": {
+        "planning": {
+          "setting": "outdoor",
+          "reservation": "unknown",
+          "admissionUsd": 0,
+          "schedule": {
+            "sourceUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-15",
+            "validThrough": "2026-11-15",
+            "dates": {
+              "2026-11-15": [
+                {
+                  "open": "09:30",
+                  "close": "12:00"
+                }
+              ]
+            },
+            "sessions": [
+              {
+                "date": "2026-11-15",
+                "start": "09:30",
+                "end": "12:00"
+              }
+            ],
+            "note": "固定 9:30 集合的约三英里导览，官方称家庭友好但未设年龄数字门槛。保护区没有洗手间；须签参加声明，先核对当天天气与取消信息。不要把 9:30–12:00 当任意随到窗口。"
+          }
+        }
+      },
+      "ssf-senior-holiday-boutique-nov7-2026": {
+        "planning": {
+          "setting": "indoor",
+          "reservation": "unknown",
+          "admissionUsd": 0,
+          "schedule": {
+            "sourceUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-07",
+            "validThrough": "2026-11-07",
+            "dates": {
+              "2026-11-07": [
+                {
+                  "open": "10:00",
+                  "close": "16:00"
+                }
+              ]
+            },
+            "note": "这是市集开放窗口，普通入场免费，商品自费。主办方为 Senior Services，但官方欢迎公众参加，没有将访客限制为长者；不推断最低年龄，也未见普通访客强制预约。"
+          }
+        }
+      },
+      "san-mateo-downtown-market-nov5-2026": {
+        "planning": {
+          "setting": "outdoor",
+          "reservation": "unknown",
+          "admissionUsd": null,
+          "schedule": {
+            "sourceUrl": "https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-05",
+            "validThrough": "2026-11-05",
+            "dates": {
+              "2026-11-05": [
+                {
+                  "open": "15:00",
+                  "close": "19:00"
+                }
+              ]
+            },
+            "note": "这是农贸市场营业窗口，可自行选择停留时长。食品及餐车自费；官方未列入场售票，但未将缺少票价信息转换成结构化免费承诺。"
+          }
+        }
+      },
+      "mountain-view-market-hope-st-nov8-2026": {
+        "planning": {
+          "setting": "outdoor",
+          "reservation": "unknown",
+          "admissionUsd": null,
+          "schedule": {
+            "sourceUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-08",
+            "validThrough": "2026-11-08",
+            "dates": {
+              "2026-11-08": [
+                {
+                  "open": "09:00",
+                  "close": "13:00"
+                }
+              ]
+            },
+            "note": "仅为 11 月 8 日换址后营业窗口；地点是 190 Hope Street，而非通常的 Caltrain 停车场。购买食品与交通另计，不能根据搬迁公告推断免费商品或停车。"
+          }
+        }
+      },
+      "san-carlos-gifts-kitchen-nov14-2026": {
+        "planning": {
+          "setting": "indoor",
+          "reservation": "required",
+          "admissionUsd": 115,
+          "schedule": {
+            "sourceUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-14",
+            "validThrough": "2026-11-14",
+            "dates": {
+              "2026-11-14": [
+                {
+                  "open": "09:00",
+                  "close": "12:00"
+                }
+              ]
+            },
+            "sessions": [
+              {
+                "date": "2026-11-14",
+                "start": "09:00",
+                "end": "12:00"
+              }
+            ],
+            "note": "固定 9:00–12:00 实作课，须报名。每人 115 美元是 9 月 30 日后费用，不沿用 95 美元早鸟标题；年龄适宜度及过敏条件须联系主办方，未公布数字门槛。"
+          }
+        }
+      },
+      "filoli-holidays-from-nov14-2026": {
+        "planning": {
+          "setting": "mixed",
+          "reservation": "required",
+          "admissionUsd": null,
+          "schedule": {
+            "sourceUrl": "https://filoli.org/holidays",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-14",
+            "validThrough": "2027-01-10",
+            "dates": {
+              "2026-11-14": [
+                {
+                  "open": "10:00",
+                  "close": "15:30",
+                  "lastEntry": "13:30"
+                },
+                {
+                  "open": "16:00",
+                  "close": "22:00",
+                  "lastEntry": "20:00"
+                }
+              ],
+              "2026-11-15": [
+                {
+                  "open": "10:00",
+                  "close": "15:30",
+                  "lastEntry": "13:30"
+                },
+                {
+                  "open": "16:00",
+                  "close": "22:00",
+                  "lastEntry": "20:00"
+                }
+              ]
+            },
+            "note": "此处仅列本轮覆盖到 11 月 15 日的两个开放日；整个官方季节到 2027 年 1 月 10 日，其他日期须查余票。日间与夜间是不同票种、按选定入场时段预约，不能在两个窗口间沿用同一张普通票。夜间末次入场 20:00，日间 13:30；金额与儿童票档未固定。特定会员免预约资格须另证实。"
+          }
+        }
+      },
+      "numu-community-ignition-oct17-2026": {
+        "planning": {
+          "setting": "indoor",
+          "reservation": "required",
+          "admissionUsd": 0,
+          "schedule": {
+            "sourceUrl": "https://www.numulosgatos.org/events/community-ignition",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-10-17",
+            "validThrough": "2026-10-17",
+            "dates": {
+              "2026-10-17": [
+                {
+                  "open": "12:00",
+                  "close": "16:00"
+                }
+              ]
+            },
+            "note": "免费预约招待会窗口，不是整个展期免费。未满 13 岁须成人陪同是陪同要求，不是最低入场年龄；当天博物馆 12:00 才开放。"
+          }
+        }
+      },
+      "hiller-starlight-nights-nov13-2026": {
+        "planning": {
+          "setting": "mixed",
+          "reservation": "unknown",
+          "admissionUsd": null,
+          "schedule": {
+            "sourceUrl": "https://www.hiller.org/event/starlight-nights/2026-11-13/",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-13",
+            "validThrough": "2026-11-13",
+            "dates": {
+              "2026-11-13": [
+                {
+                  "open": "17:00",
+                  "close": "19:00"
+                }
+              ]
+            },
+            "note": "晚场从 17:00 开始，博物馆及商店至 19:00；包含在普通入馆票内，会员凭资格免费。户外观星取决于天气，未公布每轮 Starlab 演示时间；不填人人统一票价或保证天气。"
+          }
+        }
+      },
+      "san-jose-matilda-nov2026": {
+        "planning": {
+          "setting": "indoor",
+          "reservation": "required",
+          "admissionUsd": null,
+          "programTimeUnconfirmed": true,
+          "schedule": {
+            "sourceUrl": "https://sanjosetheaters.org/event/matilda-the-musical/",
+            "verifiedAt": "2026-10-05",
+            "validFrom": "2026-11-13",
+            "validThrough": "2026-11-22",
+            "sessions": [
+              {
+                "date": "2026-11-13",
+                "start": "19:00"
+              },
+              {
+                "date": "2026-11-14",
+                "start": "14:00"
+              },
+              {
+                "date": "2026-11-14",
+                "start": "19:00"
+              },
+              {
+                "date": "2026-11-15",
+                "start": "13:00"
+              },
+              {
+                "date": "2026-11-15",
+                "start": "18:00"
+              },
+              {
+                "date": "2026-11-20",
+                "start": "19:00"
+              },
+              {
+                "date": "2026-11-21",
+                "start": "14:00"
+              },
+              {
+                "date": "2026-11-21",
+                "start": "19:00"
+              },
+              {
+                "date": "2026-11-22",
+                "start": "13:00"
+              }
+            ],
+            "note": "官方确认开演时刻但没有公布每场结束时间，因此只列 sessions.start，不编造结束时间或把全天日历占位当营业窗口。10 月 16 日开售；票价、适龄建议和儿童规则待正式售票页确认。"
+          }
+        }
+      }
+    }
+  },
+  "validation": {
+    "checkedAt": "2026-10-05",
+    "result": "passed",
+    "newPlaces": 38,
+    "cities": 35,
+    "events": 11,
+    "novemberStarts": 10,
+    "guides": 2,
+    "planningRecords": 11,
+    "newChineseStrings": 237,
+    "untranslated": 0,
+    "missingImages": [],
+    "checks": [
+      "35 cities retain at least three places; 38 official-source additions each have local verification date.",
+      "All 11 events have required metadata, valid date windows, unique IDs and official URLs.",
+      "All new Chinese copy, guide sources, planning notes and current updates have exact English keys.",
+      "Published planning windows and sessions are bounded to event dates; $115 post-early-bird price retained; accompaniment does not become minimum age; unknown Matilda end times remain absent.",
+      "Existing city-level verification dates preserved. No full build, deploy or API calls performed by this slice."
+    ]
+  }
+}

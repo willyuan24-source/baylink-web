@@ -33,10 +33,10 @@ test('every incorporated city has a distinct, sourced profile and practical advi
   assert.equal(new Set(CITY_EXPLORATIONS.map(city=>city.summary)).size,101);
   assert.equal(new Set(CITY_EXPLORATIONS.map(city=>city.halfDay)).size,101);
   for(const city of CITY_EXPLORATIONS){
-    assert.ok(city.places.length>=2 && city.places.length<=3,city.city);
+    assert.ok(city.places.length>=3,city.city);
     assert.ok(city.places.some(place=>place.scope==='city'),`${city.city}: include a genuine in-city place`);
     for(const field of ['summary','halfDay','arrival','residentTip','transport','checks'] as const) assert.ok(city[field].length>=15,`${city.city}: ${field}`);
-    assert.equal(city.verifiedAt,'2026-10-02');
+    assert.match(city.verifiedAt,/^2026-10-(02|05)$/);
     assert.ok(city.resources.some(resource=>resource.kind==='city'),city.city);
     assert.ok(city.resources.some(resource=>resource.kind!=='city'),city.city);
     for(const place of city.places){

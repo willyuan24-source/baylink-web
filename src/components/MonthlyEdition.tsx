@@ -1,3 +1,4 @@
+import { november2026Guides } from '../data/november-2026-guides';
 import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
@@ -33,13 +34,13 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
 const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游', sports: '体育比赛', performance: '演唱会与演出' };
 const eventCategory = (event: MonthlyEvent) => event.kind === 'sports' || event.kind === 'performance' ? event.kind : event.category;
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
-const autumnGuides = [...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
+const autumnGuides = [...november2026Guides, ...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
 const autumnCoverSources = new Set(autumnGuides.map(guide => getGuideMedia(guide).cover.src));
 const autumnImageKeys = Object.keys(GUIDE_IMAGES).filter(key => autumnCoverSources.has(GUIDE_IMAGES[key].src));
 const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
   { value: 'all', label: '全部日期' }, { value: 'today', label: '今天' },
   { value: 'weekend', label: '这个周末' }, { value: 'next7', label: '未来 7 天' },
-  { value: 'september', label: '九月回顾' }, { value: 'october', label: '整个十月' }, { value: 'november', label: '十一月预告' },
+  { value: 'september', label: '九月回顾' }, { value: 'october', label: '整个十月' }, { value: 'november', label: '十一月已公布' },
 ];
 
 type EditionPictureProps = { imageKey: string; className?: string; eager?: boolean };
@@ -149,7 +150,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
     <header className="bl-monthly-hero">
       <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow"><span className="bl-monthly-edition-dot" />BAYLINK · THE MONTHLY EDIT</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '秋季湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><Link to="/calendar">打开活动日历与地图 <CalendarDays size={17} aria-hidden="true" /></Link><a href="#monthly-events">{current ? '挑一个秋季活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a>{current && <a href="#monthly-news">生活快讯 <ArrowRight size={16} aria-hidden="true" /></a>}<a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />最近更新 {MONTHLY_EDITION.checkedAt}</span></div></div>
-      <div className="bl-monthly-hero-art"><EditionPicture imageKey="september-edition" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
+      <div className="bl-monthly-hero-art"><EditionPicture imageKey="november-community" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
     </header>
 
     <nav className="bl-monthly-jump" aria-label="月刊分区导航">
@@ -192,7 +193,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     <MonthlyOpenings today={today} />
 
     <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
-      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">十月出门，先读一篇本地攻略</h2></div><p>南瓜季交通、亲子半日游与免费文化资源，按自己的节奏安排。</p></div>
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">秋季出门，先读一篇本地攻略</h2></div><p>市集、自然活动、亲子出游与免费文化资源，按自己的节奏安排。</p></div>
       <div className="bl-monthly-place-grid">{autumnGuides.map(guide => { const image = getGuideMedia(guide).cover; return <article className="bl-monthly-place bl-monthly-guide-card" key={guide.slug}>
         <Link className={`bl-monthly-guide-photo${image.fullFrame || image.kind === 'poster' ? ' bl-monthly-guide-photo--full' : ''}`} to={`/guides/${guide.slug}`} aria-label={`阅读攻略：${guide.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 112px, (max-width: 1023px) 30vw, 360px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{image.kind === 'illustration' ? 'AI 主题插图' : image.kind === 'poster' ? '官方宣传图' : '实景照片'}</span></Link>
         <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
@@ -204,6 +205,6 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 2026-09-08；实际开放、预约与费用以各场所官网为准。</p></section>
 
     <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow">BEFORE YOU HEAD OUT</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
-    <GuideImageCredits imageKeys={['september-edition', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey), ...autumnImageKeys]} />
+    <GuideImageCredits imageKeys={['november-community', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey), ...autumnImageKeys]} />
   </div>;
 }

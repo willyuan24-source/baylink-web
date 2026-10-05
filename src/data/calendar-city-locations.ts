@@ -17,6 +17,15 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   ...cityRoundupLocations as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   ...autumnCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
   ...refreshCities as Record<string, { lat: number; lng: number; precision: 'city'; sourceUrl: string }>,
+  // Checked 2026-10-05 against Census 2026 places. City/CDP reference points,
+  // never trail meeting points, observatory entrances or museum addresses.
+  // GEOIDs: 0620956, 0630028, 0638156, 0646114, 0653070, 0664140.
+  'East Palo Alto': { lat: 37.468, lng: -122.133, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Glen Ellen': { lat: 38.355, lng: -122.543, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Kenwood': { lat: 38.415, lng: -122.539, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Martinez': { lat: 37.998, lng: -122.114, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Oakley': { lat: 37.996, lng: -121.682, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'St. Helena': { lat: 38.513, lng: -122.468, precision: 'city', sourceUrl: CENSUS_PLACES },
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   // Census 2026 GEOID 0600562; city reference only, never a venue entrance.
   'Alameda': { lat: 37.742, lng: -122.261, precision: 'city', sourceUrl: CENSUS_PLACES },

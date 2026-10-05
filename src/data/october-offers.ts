@@ -1,4 +1,5 @@
 import chainOffers from './city-roundup-chain-offers.json';
+import novemberOffers from './november-2026-offers.json';
 import { october2026NewOffers, october2026OfferUpdates } from './october-2026-verified-offers';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
@@ -132,7 +133,7 @@ const updatesByDate = [october2026OfferUpdates, Object.fromEntries(refreshedOffe
 export const currentOfferUpdates: Record<string, Partial<FreebieOffer>> = {};
 for (const batch of updatesByDate) for (const [id, update] of Object.entries(batch)) currentOfferUpdates[id] = { ...currentOfferUpdates[id], ...update };
 const mergedOffers = new Map<string, FreebieOffer>();
-for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers]) {
+for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[])]) {
   mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
 }
 export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id] }));

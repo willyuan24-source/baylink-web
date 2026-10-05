@@ -9,7 +9,8 @@
     "sourceUrl": "https://www.beltiblibrary.org/event?id=15458206",
     "sourceLabel": "Belvedere Tiburon Library 官方活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "refresh-makers",
+    "expiresAt": "2026-10-08"
   },
   {
     "city": "Corte Madera",
@@ -21,19 +22,20 @@
     "sourceUrl": "https://www.cortemadera.gov/calendar.aspx",
     "sourceLabel": "Corte Madera 镇日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Fairfax",
     "county": "Marin",
     "kind": "dated",
-    "headline": "植物绘画展延续至 10/24",
-    "summary": "Fairfax Library 展出 Mt. Tamalpais Florilegium 植物艺术，适合与借书合并成短停。展期不是每日开放承诺，出发前检查分馆营业时间及展览详情。",
-    "dateLabel": "2026/9/1–10/24 · 按图书馆开放时间",
-    "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6a91832e29a7dd0d67474257",
-    "sourceLabel": "Marin County Free Library 官方展览页",
-    "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "headline": "双语故事会已列到十一月，0–5岁每次选一场",
+    "summary": "Fairfax Library 的西英双语音乐故事会已确认11/3与11/10。10:15系列日历列至11:45，说明另有9:30场且每次只参加一场；先核对当天安排。",
+    "dateLabel": "2026/10/6–11/10 · 每周二，详见系列",
+    "sourceUrl": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+    "sourceLabel": "Marin County Free Library 官方系列日历",
+    "checkedAt": "2026-10-05",
+    "imageKey": "community-library-card",
+    "expiresAt": "2026-11-10"
   },
   {
     "city": "Larkspur",
@@ -45,7 +47,7 @@
     "sourceUrl": "https://www.larkspur.ca.gov/calendar.aspx",
     "sourceLabel": "Larkspur 市日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Mill Valley",
@@ -57,7 +59,7 @@
     "sourceUrl": "https://www.cityofmillvalley.gov/calendar.aspx",
     "sourceLabel": "Mill Valley 市日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Novato",
@@ -69,7 +71,8 @@
     "sourceUrl": "https://www.novato.gov/Home/Components/Calendar/Event/24487/",
     "sourceLabel": "Novato 市官方魔术活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "autumn-neighbors",
+    "expiresAt": "2026-10-17"
   },
   {
     "city": "Ross",
@@ -81,7 +84,8 @@
     "sourceUrl": "https://www.rossrecreation.org/",
     "sourceLabel": "Ross Recreation 官方秋季课程公告",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "autumn-neighbors",
+    "expiresAt": "2026-12-18"
   },
   {
     "city": "San Anselmo",
@@ -93,7 +97,7 @@
     "sourceUrl": "https://www.sananselmo.gov/calendar.aspx",
     "sourceLabel": "San Anselmo 镇日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "San Rafael",
@@ -105,7 +109,7 @@
     "sourceUrl": "https://marinlibrary.bibliocommons.com/v2/events",
     "sourceLabel": "Marin County Free Library 官方日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Sausalito",
@@ -117,7 +121,8 @@
     "sourceUrl": "https://www.sausalito.gov/departments/parks_and_recreation/city_special_events/halloween_sausalito_october_31_2026.php",
     "sourceLabel": "Sausalito 市 2026 Halloween 官方页",
     "checkedAt": "2026-10-02",
-    "imageKey": "region-sausalito"
+    "imageKey": "refresh-pets",
+    "expiresAt": "2026-10-31"
   },
   {
     "city": "Tiburon",
@@ -129,7 +134,8 @@
     "sourceUrl": "https://www.beltiblibrary.org/event?id=17243593",
     "sourceLabel": "Belvedere Tiburon Library 官方园艺活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "garden-walk",
+    "expiresAt": "2026-10-08"
   },
   {
     "city": "American Canyon",
@@ -141,7 +147,7 @@
     "sourceUrl": "https://www.americancanyon.gov/Live/Community-Calendar",
     "sourceLabel": "American Canyon 市社区日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Calistoga",
@@ -153,7 +159,7 @@
     "sourceUrl": "https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/",
     "sourceLabel": "Napa County Library 十月官方节目导览",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Napa",
@@ -165,19 +171,20 @@
     "sourceUrl": "https://www.cityofnapa.org/calendar.aspx",
     "sourceLabel": "Napa 市官方日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "St. Helena",
     "county": "Napa",
-    "kind": "calendar",
-    "headline": "看市日历安排图书馆与社区短活动",
-    "summary": "St. Helena 的官方日历是查公共项目与会议的入口。按日期筛选后读单场说明，确认是否需要登记及具体地址；酒庄品鉴和餐饮预约仍须到对应经营者页面办理。",
-    "dateLabel": "官方日历 · 按出行日期筛选",
-    "sourceUrl": "https://www.cityofsthelena.gov/calendar.aspx",
-    "sourceLabel": "St. Helena 市日历",
-    "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "kind": "dated",
+    "headline": "10/17起 The MAC 新展：别跑到 Yountville",
+    "summary": "Eames & Eames 在607 St Helena Highway展出，完整展期至2027/4/18，普通开放为每日10:00–17:00。它不是 Yountville 的 NVMY；成人普通票$25、6–17岁$15，特殊活动另核。",
+    "dateLabel": "2026/10/17–2027/4/18 · 每日10:00–17:00，节假日另核",
+    "sourceUrl": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+    "sourceLabel": "Napa Valley Museum 官方展览及参观页",
+    "checkedAt": "2026-10-05",
+    "imageKey": "culture-visit",
+    "expiresAt": "2027-04-18"
   },
   {
     "city": "Yountville",
@@ -189,7 +196,7 @@
     "sourceUrl": "https://www.townofyountville.gov/calendar.aspx",
     "sourceLabel": "Yountville 镇官方日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Cloverdale",
@@ -201,7 +208,7 @@
     "sourceUrl": "https://www.cloverdale.net/calendar.aspx",
     "sourceLabel": "Cloverdale 市日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Cotati",
@@ -213,19 +220,20 @@
     "sourceUrl": "https://www.cotaticity.gov/calendar.aspx",
     "sourceLabel": "Cotati 市官方日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Healdsburg",
     "county": "Sonoma",
     "kind": "dated",
-    "headline": "10/11 Healdsburg Crush 在 Bacchus Landing 举办",
-    "summary": "今年活动地点是 Bacchus Landing，不要沿用旧攻略中的广场地址。普通入场 13:00–16:00，仅限 21 岁以上；官方 FAQ 列普通票 $150、VIP $200，购票前确认余票和接驳。",
-    "dateLabel": "2026/10/11 · 普通入场13:00–16:00",
-    "sourceUrl": "https://www.bgcsonoma-marin.org/healdsburgcrush",
-    "sourceLabel": "Boys & Girls Clubs of Sonoma-Marin 主办方",
-    "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "headline": "周六农夫市集已迁入3 North Street新棚亭",
+    "summary": "2026周六市集在 Foley Family Community Pavilion 举行，8:30–12:00，季节至12/19。十月至11/14的周六已收录；周二季节9/29已结束，别沿用旧地点或旧星期。",
+    "dateLabel": "2026周六季节至12/19 · 8:30–12:00",
+    "sourceUrl": "https://healdsburgfarmersmarket.org/",
+    "sourceLabel": "Healdsburg Farmers’ Market 官方排程",
+    "checkedAt": "2026-10-05",
+    "imageKey": "everyday",
+    "expiresAt": "2026-12-19"
   },
   {
     "city": "Petaluma",
@@ -237,7 +245,7 @@
     "sourceUrl": "https://events.sonomalibrary.org/events/month",
     "sourceLabel": "Sonoma County Library 官方月历",
     "checkedAt": "2026-10-02",
-    "imageKey": "coverage-petaluma-river"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Rohnert Park",
@@ -249,7 +257,7 @@
     "sourceUrl": "https://events.sonomalibrary.org/events/month",
     "sourceLabel": "Sonoma County Library 官方月历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Santa Rosa",
@@ -261,31 +269,34 @@
     "sourceUrl": "https://schulzmuseum.org/its-the-great-pumpkin-60th-anniversary-event/",
     "sourceLabel": "Charles M. Schulz Museum 官方活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "culture-visit",
+    "expiresAt": "2026-10-17"
   },
   {
     "city": "Sebastopol",
     "county": "Sonoma",
     "kind": "dated",
-    "headline": "初秋新店 Bonnie Bagels：周一、周二休息",
-    "summary": "县旅游机构把 Bonnie Bagels & Co 列入初秋新店，店家确认地址为 280 S Main Street。当前公布周三至周日 7:00–13:00；适合作早餐短停，出发前再核对当天售卖和营业情况。",
-    "dateLabel": "2026年初秋已开业 · 未核实首日日期",
-    "sourceUrl": "https://www.bonniebagels.com/",
-    "sourceLabel": "Bonnie Bagels & Co 店家官网",
-    "checkedAt": "2026-10-02",
-    "imageKey": "autumn-new-shops"
+    "headline": "10/10–11、17–18 Art Trails：先选工作室地图",
+    "summary": "Sonoma County Art Trails 免费开放工作室，2026有160位入选艺术家。活动跨全县，不是 Sebastopol 单一场馆；先选邻近的两三站，艺术品购买另计。",
+    "dateLabel": "2026/10/10、11、17、18 · 10:00–17:00",
+    "sourceUrl": "https://www.sonomacountyarttrails.org/",
+    "sourceLabel": "Sonoma County Art Trails 主办方",
+    "checkedAt": "2026-10-05",
+    "imageKey": "culture-visit",
+    "expiresAt": "2026-10-18"
   },
   {
     "city": "Sonoma",
     "county": "Sonoma",
-    "kind": "calendar",
-    "headline": "Sonoma Valley 分馆：按地点找市内活动",
-    "summary": "县图书馆日历中的 Sonoma Valley Regional Library 是查本地读书会与文化项目的入口。选择分馆再查看单场地址和预约，勿把全县列表或 Sonoma Raceway 的赛程当成市中心活动。",
-    "dateLabel": "官方日历 · 按出行日期筛选",
-    "sourceUrl": "https://events.sonomalibrary.org/events/month",
-    "sourceLabel": "Sonoma County Library 官方月历",
-    "checkedAt": "2026-10-02",
-    "imageKey": "autumn-sonoma"
+    "kind": "dated",
+    "headline": "花园丰收市集：11/7、11/14仍有周六安排",
+    "summary": "Sonoma Garden Park 在19996 7th Street East，周六9:00–13:00购买当季农产。这里不在 Sonoma Plaza；采购按摊位收费，供应依当天采收而变，自带购物袋。",
+    "dateLabel": "本期至2026/11/14 · 每周六9:00–13:00",
+    "sourceUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+    "sourceLabel": "Sonoma Ecology Center / Sugarloaf 官方市集页",
+    "checkedAt": "2026-10-05",
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-14"
   },
   {
     "city": "Windsor",
@@ -297,7 +308,8 @@
     "sourceUrl": "https://www.townofwindsor.ca.gov/1577/Sustainability-Events",
     "sourceLabel": "Windsor 镇可持续生活活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "refresh-makers"
+    "imageKey": "refresh-community-swap",
+    "expiresAt": "2026-11-07"
   },
   {
     "city": "Benicia",
@@ -309,19 +321,19 @@
     "sourceUrl": "https://www.visitbenicia.org/events",
     "sourceLabel": "Visit Benicia 官方活动日历",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Dixon",
     "county": "Solano",
-    "kind": "dated",
-    "headline": "10/3–4 Lambtown：羊毛工艺与牧羊文化周末",
-    "summary": "Lambtown 在 Dixon May Fairgrounds 举行，周六 9:00–17:30、周日 9:00–16:00。节庆入场与工作坊分别核对购票，工作坊需预先安排；主办方说明雨天仍举行。",
-    "dateLabel": "2026/10/3–4 · 周六与周日结束时间不同",
-    "sourceUrl": "https://www.lambtown.org/",
-    "sourceLabel": "Lambtown Festival 主办方",
-    "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "kind": "calendar",
+    "headline": "Lambtown已结束，秋日可查 Jepson Prairie 访客区",
+    "summary": "Dixon以南的 Jepson Prairie 有指定自导览环线，公众区域通常9:00–17:00开放。春季花期与导览不等于秋季节目；禁止宠物、现场无饮水，先读保护区规则再出门。",
+    "dateLabel": "常设自然资讯 · 2026/10/5核对",
+    "sourceUrl": "https://solanolandtrust.org/get-involved/hike-our-lands.html",
+    "sourceLabel": "Solano Land Trust 官方访问说明",
+    "checkedAt": "2026-10-05",
+    "imageKey": "weekend"
   },
   {
     "city": "Fairfield",
@@ -333,19 +345,19 @@
     "sourceUrl": "https://solanolibrary.libnet.info/events",
     "sourceLabel": "Solano County Library 官方活动系统",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   },
   {
     "city": "Rio Vista",
     "county": "Solano",
-    "kind": "dated",
-    "headline": "10/2–4 Bass Derby：今年不要期待游乐园设施",
-    "summary": "主办方将 2026 节庆重点放在钓鱼比赛与 Main Street 周边音乐；10/3 另列车展。官网明确解释今年没有 carnival 游乐设施，带孩子出行可先看实际节目表，比赛报名另计。",
-    "dateLabel": "2026/10/2–4 · 分项目查看时间",
-    "sourceUrl": "https://www.bassfestival.com/bass-festival",
-    "sourceLabel": "Rio Vista Bass Derby & Festival 主办方",
-    "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "kind": "calendar",
+    "headline": "Sandy Beach 工程与河岸使用提醒：禁止游泳",
+    "summary": "县公园日用区第二阶段工程仍有围栏保护区域，工作日船坡可能受工程影响。县方明确禁止游泳；这里适合按开放条件野餐、露营或下水船只，不能当作可游泳海滩。",
+    "dateLabel": "公园状态资讯 · 2026/10/5核对，出发前重查",
+    "sourceUrl": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/parks-status-updates",
+    "sourceLabel": "Solano County Parks 官方状态公告",
+    "checkedAt": "2026-10-05",
+    "imageKey": "weekend"
   },
   {
     "city": "Suisun City",
@@ -357,7 +369,8 @@
     "sourceUrl": "https://www.suisun.com/Events-directory/D%C3%ADa-de-los-Muertos-Celebration",
     "sourceLabel": "Suisun City 市官方活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "autumn-neighbors",
+    "expiresAt": "2026-11-01"
   },
   {
     "city": "Vacaville",
@@ -369,7 +382,7 @@
     "sourceUrl": "https://solanolibrary.libnet.info/events",
     "sourceLabel": "Solano County Library 官方活动系统",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "community-library-card"
   },
   {
     "city": "Vallejo",
@@ -381,6 +394,6 @@
     "sourceUrl": "https://www.gvrd.org/upcoming-events",
     "sourceLabel": "Greater Vallejo Recreation District 官方活动页",
     "checkedAt": "2026-10-02",
-    "imageKey": "culture-visit"
+    "imageKey": "everyday"
   }
 ]

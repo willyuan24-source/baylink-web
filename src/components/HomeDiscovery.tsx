@@ -94,21 +94,22 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const pickSlugs = intent === 'weekend' ? [
     selection.picks[0],
     pumpkinSeason ? ['half-moon-bay-pumpkin-season-2026-guide'] : selection.picks[1],
-    today <= '2026-10-31' ? ['bay-area-october-weekend-planner-2026'] : selection.picks[2],
+    today <= '2026-11-15' ? ['bay-area-november-first-half-planner-2026'] : selection.picks[2],
   ] : selection.picks;
   const picks = pickSlugs.map(findGuide).filter((guide): guide is Guide => !!guide);
   const currentEdition = isEditionCurrent(today);
-  const editionPast = today.slice(0, 7) > MONTHLY_EDITION.month;
+  const editionPast = today > MONTHLY_EDITION.throughDate;
   const events = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended');
-  const editionImage = GUIDE_IMAGES['september-edition'];
+  const editionImage = GUIDE_IMAGES['november-community'];
   const deals = getGuideBySlug(DEALS_SLUG);
   const dealsCurrent = !!deals?.editionMonth && isEditionCurrent(today);
-  const dealsPast = !!deals?.editionMonth && deals.editionMonth < today.slice(0, 7);
+  const dealsPast = !!deals?.editionMonth && (deals.editionThroughDate ? today > deals.editionThroughDate : deals.editionMonth < today.slice(0, 7));
   const dealsMonthLabel = deals?.editionMonth ? `${deals.editionMonth.slice(0, 4)} 年 ${Number(deals.editionMonth.slice(5, 7))} 月` : '';
   const freebieBlock = deals?.blocks.find(block => block.type === 'freebies');
   const offers = freebieBlock?.type === 'freebies' ? freebieBlock.offers : [];
   const datedOffers = offers.filter(item => item.availability === 'dated' && item.startDate && (item.endDate || item.startDate) >= today);
-  const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo') || datedOffers[0] || offers.find(item => !item.endDate || item.endDate >= today);
+  const usedImages = new Set([editionImage?.src, hero && getGuideMedia(hero).cover.src, ...picks.map(guide => getGuideMedia(guide).cover.src)]);
+  const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo' && !usedImages.has(GUIDE_IMAGES[item.imageKey].src)) || datedOffers.find(item => !usedImages.has(GUIDE_IMAGES[item.imageKey]?.src)) || datedOffers[0] || offers.find(item => !item.endDate || item.endDate >= today);
   const offerImage = offer ? GUIDE_IMAGES[offer.imageKey] : deals ? getGuideMedia(deals).cover : undefined;
   const heroImage = hero ? getGuideMedia(hero).cover : undefined;
   const images = [editionImage, heroImage, offerImage, ...picks.map(guide => getGuideMedia(guide).cover)].filter((image): image is GuideImage => !!image);

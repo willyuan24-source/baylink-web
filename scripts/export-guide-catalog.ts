@@ -20,6 +20,7 @@ const makeCatalog = (items: Guide[]) => items.map((guide) => {
     content: guide.blocks.map(guideBlockText).join('\n\n'),
     sources: guide.sources.map(({ title, url }) => ({ title, url })), updatedAt: guide.updatedAt,
     ...(guide.editionMonth ? { editionMonth: guide.editionMonth } : {}),
+    ...(guide.editionThroughDate ? { editionThroughDate: guide.editionThroughDate } : {}),
   };
 });
 const catalog = makeCatalog(guides);

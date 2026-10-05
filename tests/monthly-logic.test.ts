@@ -84,14 +84,16 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current across September and October, then archives', () => {
-  assert.equal(MONTHLY_EDITION.month, '2026-10');
+test('fall edition stays current through November 15, then archives', () => {
+  assert.equal(MONTHLY_EDITION.throughDate, '2026-11-15');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
   assert.equal(isEditionCurrent('2026-10-01'), true);
   assert.equal(isEditionCurrent('2026-10-31'), true);
-  assert.equal(isEditionCurrent('2026-11-01'), false);
+  assert.equal(isEditionCurrent('2026-11-01'), true);
+  assert.equal(isEditionCurrent('2026-11-15'), true);
+  assert.equal(isEditionCurrent('2026-11-16'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
@@ -251,7 +253,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
   for (const item of MONTHLY_EVENTS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     for (const date of [item.startDate, item.endDate]) {
-      assert.match(date, /^2026-(09|10|11|12)-\d{2}$/);
+      assert.match(date, /^(2026-(09|10|11|12)|2027-01)-\d{2}$/);
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);

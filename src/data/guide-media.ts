@@ -50,6 +50,9 @@ const illustration = (name: string, alt: string, caption: string): GuideImage =>
 });
 
 export const GUIDE_IMAGES: Record<string, GuideImage> = {
+  'november-theater': { src: '/guides/november/theater.webp', width: 1536, height: 1024, kind: 'illustration', alt: '暖光舞台上大人与儿童演唱，台下家庭观看音乐剧的原创插画', caption: '舞台表演主题原创插图，不代表任何具体演出、角色造型、官方海报或剧院实景。', credit: 'BAYLINK · AI 原创插图' },
+  'november-community': { src: '/guides/november/autumn-community.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日市集、亲子手作与湿地观鸟交织的原创插画', caption: '秋季社区活动主题原创插图，不代表所列活动现场、场馆位置或实际天气。', credit: 'BAYLINK · AI 原创插图' },
+  'november-stargazing': { src: '/guides/november/stargazing.webp', width: 1536, height: 1024, kind: 'illustration', alt: '成年人和亲子家庭在橡树林山坡用望远镜观察星空的插画', caption: '观星主题原创插图，不代表 Sugarloaf 或其他天文台实景；实际能见度与节目依天气及主办方安排。', credit: 'BAYLINK · AI 原创插图' },
   'autumn-new-shops': { src: '/guides/editorial/autumn-new-shops.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日湾区街角的咖啡店、烘焙店与行人插画', caption: '新店探索情境插画，不代表所列门店的实景、位置或商品。', credit: 'BAYLINK · AI 原创插图' },
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
   weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
@@ -59,7 +62,7 @@ export const GUIDE_IMAGES: Record<string, GuideImage> = {
 const photoCaptions: Record<string, [string, string]> = {
   coast: ['Half Moon Bay 海滩、沙岸与海岸植被', 'Half Moon Bay State Beach，2014 年实景。海滩入口与当天开放情况以公园公告为准。'],
   redwoods: ['Reinhardt Redwood 区域公园内绿荫覆盖的步道', 'Reinhardt Redwood Regional Park，2026 年实景。此图不表示某段步道当前开放。'],
-  presidio: ['Presidio Tunnel Tops 的草坡、步道与远处海湾', 'Presidio Tunnel Tops，2023 年实景。不同草坪、餐桌和游乐区的使用规则不同。'],
+  presidio: ['Presidio Tunnel Tops 的草坡、步道与远处海湾', 'Presidio Tunnel Tops，2023 年资料照片；不代表 2026 年庆典现场或当天场地布置。'],
   neighborhood: ['旧金山 Alamo Square 旁色彩各异的维多利亚式住宅', '旧金山 Alamo Square 街景，2022 年摄。展示街区风貌，不是本站在租房源。'],
   lake: ['Lake Merritt 水面与 Oakland 城市天际线', '从 Lake Merritt 看 Oakland，2008 年资料照片；用于呈现湖区环境，不代表最新城市景观。'],
   train: ['停靠 Santa Clara 车站的 Caltrain 电力列车', 'Caltrain 电力列车在 Santa Clara，2024 年摄。乘车前另查现行班次与停站。'],
@@ -82,6 +85,14 @@ for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, 
 }
 
 const bySlug: Record<string, [string, string]> = {
+  'east-bay-november-nature-programs-2026': ['november-community', 'expanded-coyote-hills'],
+  'san-francisco-autumn-food-markets-2026': ['ferry-market', 'november-community'],
+  'peninsula-south-bay-november-nature-walks-2026': ['garden-walk', 'weekend'],
+  'peninsula-south-bay-autumn-farmers-markets-2026': ['november-community', 'neighborhood-table'],
+  'north-bay-markets-nature-culture-through-november-15-2026': ['november-community', 'november-stargazing'],
+  'bay-area-freebies-deals-2026-11': ['november-community', 'weekend'],
+  'bay-area-november-first-half-planner-2026': ['weekend', 'november-community'],
+  'bay-area-november-resident-dates-2026': ['everyday', 'train'],
   'bay-area-birthday-perks': ['september-freebies', 'neighborhood-table'],
   'bay-area-retail-freebies-family-deals': ['september-freebies', 'october-library-culture'],
   'bay-area-everyday-free-perks': ['october-library-culture', 'library'],

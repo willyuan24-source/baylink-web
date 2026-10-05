@@ -1,0 +1,165 @@
+{
+  "checkedAt": "2026-10-05",
+  "throughDate": "2026-11-15",
+  "scope": "Primary-source review of announced retail offers, admission days and practical notices. Not a guarantee of all future announcements or remaining inventory.",
+  "accepted": [
+    {
+      "id": "bampfa-free-nov5-2026",
+      "url": "https://bampfa.org/visit/calendar/2026-11",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "所有访客免费参观展厅；电影放映需另行购票。"
+    },
+    {
+      "id": "omca-free-nov1-2026",
+      "url": "https://museumca.org/first-sundays/",
+      "dateBasis": "derived from current official recurring rule",
+      "conditions": "所有访客免费，现行规则包含特别展览。建议预订；现场票先到先得。"
+    },
+    {
+      "id": "asian-art-free-nov1-2026",
+      "url": "https://about.asianart.org/ticketing/",
+      "dateBasis": "derived from current official recurring rule",
+      "conditions": "首个周日普通入场免费；特展另付 $10，建议提前选时段。"
+    },
+    {
+      "id": "conservatory-free-nov3-2026",
+      "url": "https://gggp.org/event/free-day-conservatory-of-flowers-13/",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "普通入场对所有人免费，不限旧金山居民；特别活动另查票务。"
+    },
+    {
+      "id": "sjma-free-nov6-2026",
+      "url": "https://sjmusart.org/event/first-fridays-november-2026",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "当晚入馆免费，可提前登记加快入场；餐饮与购物另付。"
+    },
+    {
+      "id": "chm-museums-on-us-nov7-8-2026",
+      "url": "https://computerhistory.org/plan-your-visit/discounts/",
+      "dateBasis": "derived from current official recurring rule",
+      "conditions": "有效 Bank of America 或 Merrill 银行卡及本人照片证件，仅限持卡人一张普通票；同伴、特展和售票活动不包含。"
+    },
+    {
+      "id": "botanical-free-nov10-2026",
+      "url": "https://gggp.org/event/free-day-san-francisco-botanical-garden-17/",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "当天普通入场对所有人免费；收费课程和特别活动不包含。"
+    },
+    {
+      "id": "moad-free-nov14-2026",
+      "url": "https://www.moadsf.org/visit",
+      "dateBasis": "derived from current official recurring rule",
+      "conditions": "每月第二个周六 THRIVE @ MoAD 普通入馆免费；具体节目和预约要求另查当天公告。"
+    },
+    {
+      "id": "muir-woods-veterans-day-nov11-2026",
+      "url": "https://www.nps.gov/muwo/planyourvisit/fees.htm",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "2026 免入口费日仅适用于美国公民及居民；停车或接驳车仍需预约并付费，不能直接无预约开车到场。"
+    },
+    {
+      "id": "chilis-veterans-day-nov11-2026",
+      "url": "https://www.chilis.com/restaurant-events/veterans-day",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "仅现役军人与退伍军人适用；限指定菜单、参与门店堂食，不含饮料和小费，不可替换菜品或叠加优惠。"
+    },
+    {
+      "id": "winchester-santa-clara-locals-2026",
+      "url": "https://winchestermysteryhouse.com/locals-discount/",
+      "dateBasis": "limited quota; availability unconfirmed",
+      "conditions": "县内居民使用 LOCALSFIRST；仅日间 Mansion Tour，每笔最多 4 张。到场须出示有合资格住址的本人照片证件，不叠加优惠。"
+    },
+    {
+      "id": "lakeshore-halloween-craft-oct25-31-2026",
+      "url": "https://img.lakeshorelearning.com/is/content/OCProduction/pdf/8597056_LE%20Year%20Calendar_2026_No%20Crop.pdf",
+      "dateBasis": "official dated 2026 announcement",
+      "conditions": "官方 2026 门店日历列出 Trick-or-Treat 手作周；先查附近门店的材料、年龄与到店安排。"
+    }
+  ],
+  "additionalSources": [
+    {
+      "title": "NIST：2026 调时日期",
+      "url": "https://www.nist.gov/pml/time-and-frequency-division/popular-links/daylight-saving-time-dst",
+      "description": "11/1 凌晨 2 点拨回 1 点，出行按当地时间。"
+    },
+    {
+      "title": "Lowe’s：儿童工作坊",
+      "url": "https://www.lowes.com/diy-projects-and-ideas/workshops",
+      "description": "11/14 Holiday Engine 的报名及门店安排。"
+    },
+    {
+      "title": "加州州务卿：选举日期与资源",
+      "url": "https://www.sos.ca.gov/elections/voting-resources/voting-california/election-dates-and-resources",
+      "description": "核对登记、收票及投票日时间。"
+    },
+    {
+      "title": "加州州务卿：当日有条件登记",
+      "url": "https://www.sos.ca.gov/elections/voter-registration/same-day-reg",
+      "description": "错过常规登记日期后，查合资格选民的办理方式。"
+    },
+    {
+      "title": "加州各县选举办公室",
+      "url": "https://www.sos.ca.gov/elections/voting-resources/county-elections-offices",
+      "description": "按所在县查询官方办公室和语言服务。"
+    },
+    {
+      "title": "Caltrain：2026 假日服务",
+      "url": "https://www.caltrain.com/schedules/holiday-service-schedules",
+      "description": "11/11 按工作日时刻表运行，仍需查临时警报。"
+    },
+    {
+      "title": "BART：黄线夜间钢轨维护",
+      "url": "https://www.bart.gov/news/articles/2025/news20250326-1",
+      "description": "持续更新的公告列出 11/12–14 施工日期。"
+    }
+  ],
+  "recheckedExisting": [
+    {
+      "url": "https://www.lowes.com/diy-projects-and-ideas/workshops",
+      "finding": "2026-10-17 Firefighting Plane; 2026-11-14 Holiday Engine, registration opens October 10; no promise of local stock or unannounced giveaways."
+    },
+    {
+      "url": "https://corporate.target.com/press/release/2026/09/target-circle-deal-days-returns-with-major-savings-on-stylish-fall-and-holiday-finds",
+      "finding": "Confirmed October 6–7 Circle event; no verified November Black Friday prices."
+    },
+    {
+      "url": "https://www.homedepot.com/c/kids",
+      "finding": "Official monthly first-Saturday kids workshop rule retained. No verified November project name added."
+    }
+  ],
+  "excludedOrUnconfirmed": [
+    {
+      "brand": "Applebee’s",
+      "url": "https://www.applebees.com/en/veterans-day-free-meals",
+      "reason": "Page still describes 2025; not confirmation of 2026 offer."
+    },
+    {
+      "brand": "Red Robin",
+      "url": "https://www.redrobin.com/veterans-day",
+      "reason": "Page still identifies Tuesday November 11, 2025."
+    },
+    {
+      "brand": "Winchester military discount",
+      "url": "https://winchestermysteryhouse.com/discounts-promotions/",
+      "reason": "Military promotion on page expires December 31, 2025; not reused for 2026."
+    },
+    {
+      "brand": "Chipotle Boorito",
+      "url": "https://newsroom.chipotle.com/2026-09-28-CHIPOTLE-SUMMONS-THE-RETURN-OF-MARGARITAS-IN-THE-COUNTDOWN-TO-BOORITO",
+      "reason": "2026 return preview does not establish the full 2026 Bay Area redemption price and terms; do not copy 2025 $6 offer."
+    },
+    {
+      "brand": "SFMOMA November First Thursday",
+      "url": "https://www.sfmoma.org/free-days/",
+      "reason": "Current page did not confirm November 5 First Thursday; older press announcements insufficient."
+    },
+    {
+      "brand": "Michaels November",
+      "reason": "No confirmed November event specifics found in reviewed official results; no inferred kit or date added."
+    },
+    {
+      "brand": "IKEA November",
+      "reason": "Search results for Canada/Malaysia excluded from US catalog."
+    }
+  ]
+}

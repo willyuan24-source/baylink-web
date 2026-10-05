@@ -88,12 +88,17 @@ test('October advisories are hidden before review and after expiry, without impl
   assert.ok(getActiveRegionalBulletins('2026-10-01').every(item => !october2026Bulletins.some(added => added.id === item.id)));
   for (const item of october2026Bulletins) {
     assert.ok(getActiveRegionalBulletins(item.expiresAt).some(candidate => candidate.id === item.id));
-    assert.ok(!getActiveRegionalBulletins('2026-11-01').some(candidate => candidate.id === item.id));
+    assert.ok(!getActiveRegionalBulletins('2026-11-01').some(candidate => candidate.id === item.id && candidate.verifiedAt === item.verifiedAt), 'the October version expires even when the same source has a newer November advisory');
   }
   assert.ok(!getActiveRegionalBulletins('2026-10-05').some(item => item.id === 'sf-hsb-extra-muni-oct2026'));
   assert.ok(!getActiveRegionalBulletins('2026-10-19').some(item => item.id === 'east-bay-no-green-oct18-2026'));
   assert.ok(getActiveRegionalBulletins('2026-10-22').some(item => item.id === 'east-bay-yellow-digital-oct2026'), 'last scheduled night remains visible after midnight');
   assert.ok(getActiveRegionalBulletins('2026-10-27').some(item => item.id === 'east-bay-yellow-rail-oct2026'), 'rail advisory covers the final overnight period');
+  const novemberRail = getActiveRegionalBulletins('2026-11-01').filter(item => item.id === 'east-bay-yellow-rail-oct2026');
+  assert.equal(novemberRail.length, 1, 'only the newest notice for the shared source is displayed');
+  assert.equal(novemberRail[0].verifiedAt, '2026-10-05');
+  assert.equal(novemberRail[0].expiresAt, '2026-11-15');
+  assert.ok(!getActiveRegionalBulletins('2026-11-16').some(item => item.id === 'east-bay-yellow-rail-oct2026'));
 });
 
 test('all new editorial content and navigation have complete English translations', async () => {

@@ -9,4 +9,6 @@ export type CityCurrentUpdate = {
   sourceLabel: string;
   checkedAt: string;
   imageKey: string;
+  /** Last local calendar day this dated notice is current; calendars have no expiry. */
+  expiresAt?: string;
 };

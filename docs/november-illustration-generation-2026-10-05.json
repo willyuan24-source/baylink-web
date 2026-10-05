@@ -1,0 +1,11 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: illustration-story. Asset type: BAYLINK local-life editorial cover for verified Bay Area October–November community calendar. Create a polished original 1536x1024 landscape editorial gouache and cut-paper illustration: an inviting Northern California autumn community afternoon, a small farmers market with seasonal persimmons and squash in foreground, parents and children at a modest craft table on one side, a few people with walking jackets and binoculars near a gently curving bay wetland boardwalk in the distance. Warm ochre, muted jade, soft blue bay water, cream paper grain. Clear, spacious composition readable at mobile-card size, no central headline area needed. A human-scale scene, not a map, no famous identifiable landmark or invented real venue. No text, no numbers, no brand logos, no tickets, no price badges, no photorealistic event claims. Adults and children have anatomically plausible hands. This is explicitly an original thematic illustration, not a depiction of any particular real event.",
+  "source": "C:/Users/willy/.codex/generated_images/01a109bb-ad98-7b50-b9a7-850cf7ff3768/exec-cfdd666c-d48f-458e-8802-f3cdb5651aee.png",
+  "assets": [
+    "/guides/november/autumn-community.webp",
+    "/guides/november/autumn-community-small.webp"
+  ],
+  "visualReview": "Viewed generated image. Market, supervised child crafts and wetland birdwatching match seasonal editorial theme; no text/logos/identifiable venue. Not evidence of a real event.",
+  "transform": "WebP encoding and proportional responsive downscale only; original retained."
+}

@@ -1,0 +1,2705 @@
+{
+  "checkedAt": "2026-10-05",
+  "window": {
+    "start": "2026-10-05",
+    "end": "2026-11-15"
+  },
+  "scope": "San Francisco, Alameda County, Contra Costa County",
+  "verificationScope": "New places have their own October 5 verifiedAt; unchanged city-level advice retains October 2. Only rechecked city-current rows use October 5. Historical photos identify location and archival date; illustrations are labeled and do not depict the actual events.",
+  "places": [
+    {
+      "city": "Alameda",
+      "name": "USS Hornet Sea, Air & Space Museum",
+      "url": "https://uss-hornet.org/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "停泊在 Alameda Point 的航空母舰博物馆，适合看舰载机、航天回收与海军历史。一般门票、特殊导览与夜间活动分开售卖；船上部分路线含陡梯。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Albany",
+      "name": "Albany Hill & Creekside Park",
+      "url": "https://www.albanyca.gov/Parks/Albany-Hill-Creekside-Park",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "市内辨识度很高的小山与溪流绿地，可从 Taft Street 一侧找入口。土路有坡度，留意毒橡树及栖地修复公告；看见蝴蝶不作季节保证。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Berkeley",
+      "name": "UC Berkeley / Sather Tower",
+      "url": "https://visit.berkeley.edu/campus-attractions",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "钟楼、Memorial Glade 和校园建筑是认识 Berkeley 的经典起点。户外自助步行与钟楼登高、展馆参观分开安排，另查各建筑开放和收费。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Berkeley",
+      "name": "UC Botanical Garden",
+      "url": "https://botanicalgarden.berkeley.edu/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "位于校园山坡上的植物园，适合对植物感兴趣的人专程慢游。地形并非全平坦；先看门票、入园时段及无障碍路线，不能把校园免费等同于植物园免费。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Dublin",
+      "name": "Dublin Hills Regional Open Space Preserve",
+      "url": "https://www.ebparks.org/parks/dublin-hills",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "从 Dublin Boulevard 的 Donlon Point 入口走进草地山脊，看 Tri-Valley 景观。坡度和曝晒比市区公园明显，先按地图挑短程，再查当日公告与关门时间。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Emeryville",
+      "name": "Public Market Emeryville",
+      "url": "https://publicmarketemeryville.com/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "5959 Shellmound Street 的室内美食广场，可把海湾散步后的用餐安排在这里。各摊位菜单和营业时间分别核对，餐饮需付费，不把整座食阁当作统一套餐。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Fremont",
+      "name": "Mission Peak Regional Preserve",
+      "url": "https://www.ebparks.org/parks/mission-peak",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Fremont 的代表性登山地。登顶是有爬升、曝晒的徒步，不宜写成轻松湖边散步；Ohlone College 与 Stanford Avenue 入口的停车和时段须分别核对。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Fremont",
+      "name": "Coyote Hills Regional Park",
+      "url": "https://www.ebparks.org/parks/coyote-hills",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "湿地、低丘和海湾步道适合观鸟与自然观察，可按体力只走一小段。先查步道、游客中心及停车规则；与 Central Park／Lake Elizabeth 是不同地点。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Hayward",
+      "name": "Garin Regional Park",
+      "url": "https://www.ebparks.org/parks/garin",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "由旧牧场发展而来的丘陵公园，适合看草坡、池塘与地方农业历史。红谷仓开放并非全年每天都有，户外路线、室内项目与停车费用分开核对。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Livermore",
+      "name": "Bankhead Theater",
+      "url": "https://livermorearts.org/our-venues/about-bankhead/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "市中心 2400 First Street 的表演艺术场馆，可把演出与附近晚餐连在一起。剧院参观按节目和门票安排，广场散步不等于可自由进入剧场。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Livermore",
+      "name": "Del Valle Regional Park",
+      "url": "https://www.ebparks.org/parks/del-valle",
+      "scope": "nearby",
+      "checkedAt": "2026-10-05",
+      "claims": "Livermore 以南的县属山谷水库公园，属于附近延伸，不是市中心湖泊。散步、露营和水上活动规则不同；另查水质、下水限制、预约与停车费用。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Newark",
+      "name": "Silliman Activity & Family Aquatic Center",
+      "url": "https://www.newarkca.gov/departments/recreation-and-community-services/aquatic-center-hours",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "6800 Mowry Avenue 的室内泳池设施。官网秋季公告列明漂流河与滑梯仍因维修关闭；入场者即使不游泳也需付费，先确认当天开放项目和亲子规则。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Oakland",
+      "name": "Jack London Square",
+      "url": "https://jacklondonsquare.com/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Oakland 滨水餐饮和散步地标，可看码头、历史街角与店铺。餐厅、游船和活动各自收费／预约；若搭渡轮，先查实际码头及返程班次。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Oakland",
+      "name": "Dr. Aurelia Reinhardt Redwood Regional Park",
+      "url": "https://www.ebparks.org/parks/reinhardt-redwood",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Oakland 山区的海岸红杉林，适合按入口挑选林间步道。10月5日核对时 Stream Trail 部分路段维修，Golden Spike 一小段公告10月5–16日关闭；出发前再查最新绕行图。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Piedmont",
+      "name": "Crocker Park",
+      "url": "https://www.ci.piedmont.ca.us/cms/one.aspx?pageId=14126034",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "小城里适合安静停留的花园公园，有草地、杜鹃与山茶等种植，以及 Benny Bufano 的母熊与幼熊雕塑。适合作为短停，不夸大成大型景区；牵绳遛狗并留意现场规则。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Pleasanton",
+      "name": "Augustin Bernal Park",
+      "url": "https://www.cityofpleasantonca.gov/your-community/parks-trails/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "市属山地公园，入口在 8200 Golden Eagle Way 一带。通行规则自2024年起有变动，访客应先查当前进入条件；路线有坡度，不把入园资格与停车便利混为一谈。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Leandro",
+      "name": "Oyster Bay Regional Shoreline",
+      "url": "https://www.ebparks.org/parks/oyster-bay",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "机场旁的滨水开放空间，有海湾景观、多用途步道与公共艺术。按入口挑短程，注意骑行者与海风；不要把这里与 Marina Park 当成同一停车场。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Union City",
+      "name": "Dry Creek Pioneer Regional Park",
+      "url": "https://www.ebparks.org/parks/dry-creek-pioneer",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "从 Union City 的 550 May Road 入口进入相连的牧场丘陵与步道，公园向 Hayward 一侧延伸。10月5日官网仍注明 Dry Creek Garden 因风暴损坏关闭，花园不能作为已开放主目的地。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Antioch",
+      "name": "El Campanil Theatre",
+      "url": "https://www.elcampaniltheatre.com/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Rivertown 的历史剧院，位于 602 W 2nd Street。可从官方节目单挑电影、音乐或舞台演出，再安排河边和市中心散步；室内进入以具体场次门票为准。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Brentwood",
+      "name": "Marsh Creek Regional Trail",
+      "url": "https://www.ebparks.org/trails/interpark/marsh-creek",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "沿 Marsh Creek 连接 Brentwood 与 Oakley 的多用途步道，可从本市 Creekside Park 选短段骑行或步行。它跨越城市边界；先查路面施工和街道路口，不必一次走到 Delta。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Clayton",
+      "name": "Mount Diablo State Park / Mitchell Canyon",
+      "url": "https://www.parks.ca.gov/?page_id=517",
+      "scope": "nearby",
+      "checkedAt": "2026-10-05",
+      "claims": "从 Clayton 附近的 Mitchell Canyon 进入 Mount Diablo 山地，是小城的代表性自然延伸。州立公园并非整个都在 Clayton；谷地散步与长距离登顶难度不同，先查入口、用水与闭园公告。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Concord",
+      "name": "Contra Costa Canal Regional Trail",
+      "url": "https://www.ebparks.org/trails/interpark/contra-costa-canal",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "利用运河沿线的铺装步道做短途步行或骑行，可联系 Concord 与 Pleasant Hill、Walnut Creek 等地。属于跨市路线，出发前选清楚入口、距离与过街点。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Danville",
+      "name": "Blackhawk Museum",
+      "url": "https://blackhawkmuseum.org/admission/",
+      "scope": "nearby",
+      "checkedAt": "2026-10-05",
+      "claims": "以汽车与多主题展厅著称的博物馆，位于 Blackhawk 一带，虽用 Danville 邮寄地址，本卡按附近延伸标注。需核对当日门票、开放展厅和预约，不能当作 Danville 市中心免费馆。",
+      "decision": "accepted"
+    },
+    {
+      "city": "El Cerrito",
+      "name": "Ohlone Greenway",
+      "url": "https://www.elcerrito.gov/Facilities/Facility/Details/Ohlone-Greenway-16",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "沿高架 BART 下方贯穿 El Cerrito 的线形绿道，适合从车站选一小段散步或骑行。经过多个街道路口，须让行并查现场施工；向邻城延伸的全程另作计划。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Hercules",
+      "name": "Hanna Ranch Park",
+      "url": "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/52/178",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "2480 Refugio Valley Road 的本地休闲公园，可作为居民散步和短暂停留的补充选择。不是大型旅游景点；聚会场地、开放设施和预订要求以市府设施页为准。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Lafayette",
+      "name": "Lafayette-Moraga Regional Trail",
+      "url": "https://www.ebparks.org/trails/interpark/lafayette-moraga",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "沿旧铁路走廊连接 Lafayette 与 Moraga 的铺装路线，可从 Olympic Boulevard 入口分段走。路线本身与接入的 EBMUD 水源保护地规则不同，后者可能需要许可。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Martinez",
+      "name": "Contra Costa County History Center",
+      "url": "https://www.cocohistory.org/visit",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "724 Escobar Street 的县历史档案中心，可了解旧地图、照片与地方故事。这里以档案研究为主，想查具体资料先预约，不把它写成每天开放的大型互动博物馆。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Moraga",
+      "name": "Saint Mary's College Museum of Art",
+      "url": "https://www.stmarys-ca.edu/museum-art",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Saint Mary’s 校园内的艺术馆，提供轮换展览和部分公众活动。2026秋展在9月16日至12月13日期间展出，通常周三至周日；先核对具体展览和校园停车，非上课区自由参观承诺。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Oakley",
+      "name": "Marsh Creek Regional Trail / Cypress access",
+      "url": "https://www.ebparks.org/trails/interpark/marsh-creek",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "从 Oakley 一侧沿 Marsh Creek 选择短程步行或骑行，可向 Big Break 与 Brentwood 延伸。路线跨市，先查看官方地图及路面施工，不把整条路当成 Big Break 园内短环线。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Orinda",
+      "name": "Sibley Volcanic Regional Preserve",
+      "url": "https://www.ebparks.org/parks/sibley-volcanic",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "可从 Quarry Road 的 Old Tunnel Road 入口探索古火山地形；保护地连接 Orinda 与 Oakland 一侧。各入口到地质点的距离不同，有坡度，先按官方地图决定短程。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Pinole",
+      "name": "Bayfront Park",
+      "url": "https://www.pinole.gov/recreation/parks_facilities/park-detail-with-map/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Tennent Avenue 尽头的滨湾公园，可看 San Pablo Bay，适合短走、坐下休息和连接周边海湾步道。留意风势、日落闭园规则与停车，不许诺能见度。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Pittsburg",
+      "name": "Pittsburg Historical Museum",
+      "url": "https://pittsburgmuseum.org/contact-us",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "515 Railroad Avenue 的地方历史馆，适合与 Old Town 短走组合。官网列周三和周六开放、其他时段预约；出发前复核，别把历史馆当作每日开放景点。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Pleasant Hill",
+      "name": "Rodgers Ranch Heritage Center",
+      "url": "https://www.rodgersranch.org/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "1867年前后农舍与花园组成的社区历史教育空间，可关注园艺课和开放活动。建筑内部及课程按公布安排进入，适合慢慢认识本地生活，不保证随时有导览。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Richmond",
+      "name": "SS Red Oak Victory",
+      "url": "https://redoakvictory.us/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "停泊在 Richmond Shipyard 3 的二战货船博物馆，可与 Rosie the Riveter 历史主题衔接。船舱、导览和特别活动规则分别查；不把另一处游客中心的免费政策套到登船门票。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Pablo",
+      "name": "Blume House & Bunk House",
+      "url": "https://www.sanpabloca.gov/965/Blume-House",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "13831 San Pablo Avenue 的历史农舍建筑群，展示本地农业时代生活。官网开放日信息并不完全一致，按最新市府 eNews 或联系博物馆确认；不要直接照旧 FAQ 排日期。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Ramon",
+      "name": "Bishop Ranch Open Space Regional Preserve",
+      "url": "https://www.ebparks.org/parks/bishop-ranch",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "城市西侧的山脊与草地开放空间，适合看 San Ramon Valley。它是步道保护地，不是 Bishop Ranch 商业中心；先查入口和坡度，炎热时减少曝晒。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Walnut Creek",
+      "name": "Ruth Bancroft Garden",
+      "url": "https://www.ruthbancroftgarden.org/visit/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "以多肉植物和耐旱景观著称的花园与苗圃。花园参观、苗圃购物、课程和季节活动分开看票务，提前核对最后入园时间；不把苗圃可进入等同于花园免费。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Francisco",
+      "name": "Alcatraz Island",
+      "url": "https://www.nps.gov/alca/planyourvisit/index.htm",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "湾中的经典历史岛屿，正规上岛需经官方授权船运售票渠道预约。仅绕岛的观光船不等于登陆票；渡轮、时段、坡路与无障碍接驳都要事先看清。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Francisco",
+      "name": "Ferry Building Marketplace",
+      "url": "https://www.ferrybuildingmarketplace.com/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Embarcadero 的钟楼、食品商铺和滨水公共空间，可按兴趣结合农夫市集。市场日与室内商户时间不同，食物购物自费；以具体日期查看主办方节目。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Francisco",
+      "name": "PIER 39",
+      "url": "https://www.pier39.com/frequently-asked-questions/",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "海狮、海湾景观和商业步行区是经典游客路线。公共区域进入免费，水族馆、游乐项目、餐饮与停车另计；海狮数量和出现时段不保证。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Francisco",
+      "name": "Golden Gate Bridge / Welcome Center",
+      "url": "https://www.goldengate.org/bridge/visiting-the-bridge/",
+      "scope": "cross-boundary",
+      "checkedAt": "2026-10-05",
+      "claims": "金门大桥南端的访客中心与观景区域，是初访旧金山的代表性地点。看桥、步行上桥与骑行规则不同，先查侧道开放和风况；跨完整座桥会进入 Marin County。",
+      "decision": "accepted"
+    },
+    {
+      "city": "San Francisco",
+      "name": "Historic Cable Cars",
+      "url": "https://www.sfmta.com/getting-around/muni/cable-cars",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "Powell 与 California Street 线连接多处旧金山坡地街区，既是交通也是经典体验。乘坐需按现行票务购票，热门总站可能排队；不能把叮当车线路等同于 F 线历史电车。",
+      "decision": "accepted"
+    },
+    {
+      "city": "Oakland",
+      "name": "Oakland Zoo",
+      "url": "https://www.oaklandzoo.org/hours-and-pricing",
+      "scope": "city",
+      "checkedAt": "2026-10-05",
+      "claims": "位于 Oakland 南部 Knowland Park 一带的动物园，适合预留主要半天或更久。按日期核对入场票、停车和开放区域；特别夜间活动可能需要另外购票。",
+      "decision": "accepted"
+    }
+  ],
+  "cityCoverage": [
+    {
+      "city": "Alameda",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://alamedapointantiquesfaire.com/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Albany",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.albanyca.gov/City-Calendar/2026/Albany-Fire-Department-Pancake-Breakfast-2026",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Berkeley",
+      "placeCount": 4,
+      "newPlaceCount": 2,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://botanicalgarden.berkeley.edu/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Dublin",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.dublin.ca.gov/1560/Harvest-Fair",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Emeryville",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.emeryarts.org/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Fremont",
+      "placeCount": 4,
+      "newPlaceCount": 2,
+      "newEventCount": 1,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.ebparks.org/events/birding-basics-kids",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Hayward",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 2,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Livermore",
+      "placeCount": 4,
+      "newPlaceCount": 2,
+      "newEventCount": 1,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://livermorearts.org/events/artwalk/",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Newark",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.newarkca.gov/departments/recreation-and-community-services/aquatic-center-hours",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Oakland",
+      "placeCount": 5,
+      "newPlaceCount": 3,
+      "newEventCount": 1,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Piedmont",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://piedmont.ca.gov/cms/One.aspx?pageId=21392954&portalId=13659823",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Pleasanton",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "San Leandro",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.sanleandro.org/Calendar.aspx?EID=7568&calType=0&day=24&month=10&year=2026",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Union City",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.unioncityca.gov/Calendar.aspx?EID=2466",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Antioch",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 1,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.antiochca.gov/216/Kids-Fishing-Derby",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Brentwood",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.brentwoodca.gov/government/parks-recreation/special-events-and-programs/special-events-calendar",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Clayton",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://claytonca.gov/calendar/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Concord",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://cityofconcord.org/1130/Trick-or-Treat-Trail",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Danville",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.danville.ca.gov/Calendar.aspx?EID=4147&calType=0&day=2&month=10&year=2026",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "El Cerrito",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.elcerrito.gov/943/Citywide-Garage-Sale",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Hercules",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.herculesca.gov/Home/Components/Calendar/Event/9876/18?backlist=%2Fgovernment%2Fparks-recreation",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Lafayette",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://lafayettechamber.org/resrun/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Martinez",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 2,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Moraga",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://moraga.ca.us/605/not-so-Haunted-Hacienda",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Oakley",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 1,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://www.ebparks.org/events/big-break-nature-walk-29",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "Orinda",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.cityoforinda.gov/m/newsflash/home/detail/310",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Pinole",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.pinole.gov/calendar/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Pittsburg",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "calendar",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.pittsburgca.gov/government/calendar/-recordid-1893/-curm-10/-cury-2026",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Pleasant Hill",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://pleasanthillrec.com/653/Haunted-Trail-1023",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Richmond",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 3,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://richmondartcenter.org/events/making-history-block-printing-in-the-galleries-10-10-26-2/",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    },
+    {
+      "city": "San Pablo",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://sanpabloca.gov/1457/City-Hall-o-ween",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "San Ramon",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://www.sanramon.ca.gov/our_city/departments_and_divisions/parks_community_services/nature_programs/upcoming_nature_events",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "Walnut Creek",
+      "placeCount": 3,
+      "newPlaceCount": 1,
+      "newEventCount": 0,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-02",
+      "currentOfficialUrl": "https://diabloimprovfestival.org/",
+      "eventCoverageNote": "No additional dated event accepted in this pass; existing dated/calendar entry is not a claim of exhaustive November coverage."
+    },
+    {
+      "city": "San Francisco",
+      "placeCount": 7,
+      "newPlaceCount": 5,
+      "newEventCount": 6,
+      "cityAdviceVerifiedAt": "2026-10-02",
+      "currentKind": "dated",
+      "currentCheckedAt": "2026-10-05",
+      "currentOfficialUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+      "eventCoverageNote": "New dated program(s) verified in this pass."
+    }
+  ],
+  "events": [
+    {
+      "id": "nov2026-big-break-nature-walk",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Oakley",
+      "venue": "Big Break Visitor Center · 69 Big Break Road",
+      "dates": [
+        "2026-11-01",
+        "2026-11-08",
+        "2026-11-14",
+        "2026-11-15"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/big-break-nature-walk-29",
+      "claims": {
+        "dateLabel": "11月1、8、14、15日 14:00–15:00",
+        "cost": "活动和停车免费；无需报名",
+        "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+        "requirements": [
+          "14:00在游客中心集合；穿步行鞋、带水。",
+          "四天是独立场次，不是11月每天开办。",
+          "查看公园水质和路径公告；自然散步不等于允许下水。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 5,
+        "reservation": "optional",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/big-break-nature-walk-29",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-15",
+          "dates": {
+            "2026-11-01": [
+              {
+                "open": "14:00",
+                "close": "15:00"
+              }
+            ],
+            "2026-11-08": [
+              {
+                "open": "14:00",
+                "close": "15:00"
+              }
+            ],
+            "2026-11-14": [
+              {
+                "open": "14:00",
+                "close": "15:00"
+              }
+            ],
+            "2026-11-15": [
+              {
+                "open": "14:00",
+                "close": "15:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-01",
+              "start": "14:00",
+              "end": "15:00"
+            },
+            {
+              "date": "2026-11-08",
+              "start": "14:00",
+              "end": "15:00"
+            },
+            {
+              "date": "2026-11-14",
+              "start": "14:00",
+              "end": "15:00"
+            },
+            {
+              "date": "2026-11-15",
+              "start": "14:00",
+              "end": "15:00"
+            }
+          ],
+          "note": "5岁起且成人参与；0.5–2英里。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60919,
+        60921,
+        60922,
+        60923
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-black-diamond-trails-challenge",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Antioch",
+      "venue": "Black Diamond Mines · Upper Parking Lot, Somersville Road",
+      "dates": [
+        "2026-11-01"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
+      "claims": {
+        "dateLabel": "11月1日 9:00–13:00",
+        "cost": "活动免费；岗亭有人值守时停车$5；须报名",
+        "summary": "12岁起的环线，爬升约1,300英尺，含陡坡和不平整土路。适合能完成中长距离山路的人，不按轻松亲子散步推荐。",
+        "requirements": [
+          "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+          "在 Somersville Road 尽头上停车场集合，岗亭往内约1英里。",
+          "带午餐、零食和饮水，穿防滑鞋；大雨等变化以主办方通知为准。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 12,
+        "reservation": "required",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-01",
+          "dates": {
+            "2026-11-01": [
+              {
+                "open": "09:00",
+                "close": "13:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-01",
+              "start": "09:00",
+              "end": "13:00"
+            }
+          ],
+          "note": "5.2英里、1,300英尺爬升；活动免费，停车另付；报名10月6日9:00–10月28日16:00。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60479
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-brushy-peak-heritage-hike",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Livermore",
+      "venue": "Brushy Peak · Laughlin Ranch Staging Area (near Livermore)",
+      "dates": [
+        "2026-11-01"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
+      "claims": {
+        "dateLabel": "11月1日 9:00–13:00",
+        "cost": "活动免费；须提前报名",
+        "summary": "在 Livermore 以北的保护地走约4.5英里环线，认识原住民历史与自然。7岁起并须成人参与；爬升501–1,000英尺、有陡坡。",
+        "requirements": [
+          "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+          "集合点是 Laughlin Ranch Staging Area，按官网地图确认入口。",
+          "穿徒步鞋、带饮水，可带登山杖；不按幼童平路活动安排。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 7,
+        "reservation": "required",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-01",
+          "dates": {
+            "2026-11-01": [
+              {
+                "open": "09:00",
+                "close": "13:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-01",
+              "start": "09:00",
+              "end": "13:00"
+            }
+          ],
+          "note": "成人参与；4.5英里、501–1,000英尺爬升；报名10月6日9:00–10月28日16:00。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60830
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-hayward-monday-birding",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Hayward",
+      "venue": "Hayward Regional Shoreline · West Winton Avenue Staging Area",
+      "dates": [
+        "2026-11-02"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
+      "claims": {
+        "dateLabel": "11月2日 9:00–12:00",
+        "cost": "免费；无需报名",
+        "summary": "观察海岸秋冬鸟类，官方路线范围2–5英里，以碎石路为主。这场从 West Winton Avenue 集合，与11月15日的 Grant Avenue 晨间场次入口不同。",
+        "requirements": [
+          "9:00集合，带望远镜、饮水和防风外套。",
+          "官网列全年龄，但距离不等于适合每位幼童。",
+          "出发前检查公园公告和天气。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 0,
+        "reservation": "optional",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-02",
+          "validThrough": "2026-11-02",
+          "dates": {
+            "2026-11-02": [
+              {
+                "open": "09:00",
+                "close": "12:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-02",
+              "start": "09:00",
+              "end": "12:00"
+            }
+          ],
+          "note": "全年龄；2–5英里，不代表幼童适合全程。West Winton 入口。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60591
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-martinez-monday-birding",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Martinez",
+      "venue": "Radke Martinez Regional Shoreline · N. Court Street parking lot near Marina",
+      "dates": [
+        "2026-11-09"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+      "claims": {
+        "dateLabel": "11月9日 9:00–12:00",
+        "cost": "免费；无需报名",
+        "summary": "在码头附近海岸观察秋冬鸟类。官网列全年龄，路线约2–5英里，碎石路、0–500英尺高差，带孩子先衡量体力。",
+        "requirements": [
+          "在 N. Court Street 尽头、靠近 Marina 的停车场集合。",
+          "带望远镜、饮水和防风外套。",
+          "本条仅确认11月9日，其他周一活动去各自地点。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 0,
+        "reservation": "optional",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-09",
+          "validThrough": "2026-11-09",
+          "dates": {
+            "2026-11-09": [
+              {
+                "open": "09:00",
+                "close": "12:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-09",
+              "start": "09:00",
+              "end": "12:00"
+            }
+          ],
+          "note": "全年龄；2–5英里。N. Court Street 尽头停车场集合。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60600
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-coyote-hills-kids-birding",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Fremont",
+      "venue": "Coyote Hills Visitor Center · 8000 Patterson Ranch Road",
+      "dates": [
+        "2026-11-14"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/birding-basics-kids",
+      "claims": {
+        "dateLabel": "11月14日 11:00–12:00",
+        "cost": "活动免费、无需报名；普通车辆停车$5",
+        "summary": "用游戏和观察认识鸟类，活动正文要求5岁起并由家长参与。可先参加一小时节目，再按孩子体力决定是否继续走公园。",
+        "requirements": [
+          "在游客中心集合，另留停车步行时间。",
+          "穿户外鞋、带水和适合天气的衣物。",
+          "停车费与免费活动分开计算。"
+        ]
+      },
+      "planning": {
+        "minAge": 5,
+        "reservation": "optional",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/birding-basics-kids",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-14",
+          "validThrough": "2026-11-14",
+          "dates": {
+            "2026-11-14": [
+              {
+                "open": "11:00",
+                "close": "12:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-14",
+              "start": "11:00",
+              "end": "12:00"
+            }
+          ],
+          "note": "正文要求5岁起并由家长参与；活动免费，普通车停车$5。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60496
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "nov2026-hayward-bay-bird-morning",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Hayward",
+      "venue": "Hayward Regional Shoreline · Grant Avenue entrance",
+      "dates": [
+        "2026-11-15"
+      ],
+      "officialUrl": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+      "claims": {
+        "dateLabel": "11月15日 8:00–10:00",
+        "cost": "免费；须报名，余位以官网为准",
+        "summary": "欢迎初学者，可借双筒望远镜。6岁起，从 Grant Avenue 入口出发；大雨取消，晨间注意保暖。",
+        "requirements": [
+          "报名从10月6日9:00开放，至11月14日16:00结束。",
+          "不要导航到11月2日场次使用的 West Winton 入口。",
+          "先查看确认邮件、天气和公园公告。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 6,
+        "reservation": "required",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-15",
+          "validThrough": "2026-11-15",
+          "dates": {
+            "2026-11-15": [
+              {
+                "open": "08:00",
+                "close": "10:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-15",
+              "start": "08:00",
+              "end": "10:00"
+            }
+          ],
+          "note": "Grant Avenue 入口，大雨取消；报名10月6日9:00–11月14日16:00。"
+        }
+      },
+      "officialRegistrationDetailIds": [
+        60893
+      ],
+      "detailMethod": "Public unauthenticated JSON endpoints linked by the official EBRPD ACTIVE registration application; detail, meetingandregistrationdates and estimateprice read separately."
+    },
+    {
+      "id": "oct2026-foodwise-flour-craft-demo",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "Foodwise Classroom · green tent in front of 1 Ferry Building",
+      "dates": [
+        "2026-10-10"
+      ],
+      "officialUrl": "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
+      "claims": {
+        "dateLabel": "10月10日 11:00–11:45",
+        "cost": "演示免费；购书和市集购物另付",
+        "summary": "Heather Hardcastle 在渡轮大厦前分享烘焙与季节食材，演示后有食谱书签售。品尝属于演示安排，不代表提供免费正餐。",
+        "requirements": [
+          "找渡轮大厦正前方绿色 Classroom 帐篷。",
+          "官网未列必需报名；出发前复查更新。",
+          "购书与逛摊位另留预算和时间。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "unknown",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-10",
+          "validThrough": "2026-10-10",
+          "dates": {
+            "2026-10-10": [
+              {
+                "open": "11:00",
+                "close": "11:45"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-10-10",
+              "start": "11:00",
+              "end": "11:45"
+            }
+          ],
+          "note": "固定11:00演示；免费演示不含购书或购物。"
+        }
+      }
+    },
+    {
+      "id": "oct2026-mission-dia-muertos-market",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "Mission Community Market · 22nd Street between Mission and Valencia",
+      "dates": [
+        "2026-10-29"
+      ],
+      "officialUrl": "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
+      "claims": {
+        "dateLabel": "10月29日 15:00–19:00",
+        "cost": "免费社区活动；摊位餐饮与购物另付",
+        "summary": "放学后参加手作、服装活动与季节食材体验；DJ Lamont 的音乐时段为17:00–19:00。传统面包、mole 等摊位食品需另购。",
+        "requirements": [
+          "按官方正文到22nd Street 的 Mission 与 Valencia 之间。",
+          "橙色 Seasonal Spotlight 帐篷提供当季试吃、食谱与技巧。",
+          "官网未列必需预约；天气和节目变动出发前再查。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "unknown",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-29",
+          "validThrough": "2026-10-29",
+          "dates": {
+            "2026-10-29": [
+              {
+                "open": "15:00",
+                "close": "19:00"
+              }
+            ]
+          },
+          "note": "活动窗口；餐饮购物另付，17:00–19:00音乐。"
+        }
+      }
+    },
+    {
+      "id": "oct2026-foodwise-fall-fruit",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "Ferry Plaza Farmers Market · in front of 1 Ferry Building",
+      "dates": [
+        "2026-10-31"
+      ],
+      "officialUrl": "https://foodwise.org/events/fall-fruit-celebration/",
+      "claims": {
+        "dateLabel": "10月31日 11:00–13:00；演示11:00–11:45",
+        "cost": "活动与试吃免费；市场购物另付",
+        "summary": "橙色帐篷可品尝秋果、取食谱、投票选喜欢的品种；同日11:00绿色 Classroom 帐篷有 Tutuli 的 Sofía Jiménez 烘焙演示。",
+        "requirements": [
+          "果品活动至13:00；烘焙演示11:45结束，两个帐篷分别找。",
+          "免费的是列明活动与试吃，不是所有摊位食品。",
+          "想看完整演示，先按11:00到绿色帐篷，再去秋果活动。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "unknown",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://foodwise.org/events/fall-fruit-celebration/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-31",
+          "validThrough": "2026-10-31",
+          "dates": {
+            "2026-10-31": [
+              {
+                "open": "11:00",
+                "close": "13:00"
+              }
+            ]
+          },
+          "note": "秋果活动窗口；另一绿色帐篷11:00–11:45演示，商品另付。"
+        }
+      }
+    },
+    {
+      "id": "nov2026-mission-market-season-final",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "Mission Community Market · 22nd Street between Mission and Valencia",
+      "dates": [
+        "2026-11-12"
+      ],
+      "officialUrl": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
+      "claims": {
+        "dateLabel": "11月12日 15:00–19:00",
+        "cost": "逛市集；食材、餐饮和商品按摊位付费",
+        "summary": "Foodwise 明确11月12日是2026年最后一场，之后休季、计划2027年3月回归。适合补买季节食材，不额外承诺尚未公布的免费餐食或表演。",
+        "requirements": [
+          "按市场访客说明到22nd Street，Mission 与 Valencia 之间。",
+          "页脚仍列84 Bartlett；具体街段以当前访客说明和现场指示为准。",
+          "这不是11月每天开市；本条仅确认11月12日收季场次。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "unknown",
+        "admissionUsd": null,
+        "schedule": {
+          "sourceUrl": "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-12",
+          "validThrough": "2026-11-12",
+          "dates": {
+            "2026-11-12": [
+              {
+                "open": "15:00",
+                "close": "19:00"
+              }
+            ]
+          },
+          "note": "市场窗口，所有食材与商品按摊位付费。2026最后一场。"
+        }
+      }
+    },
+    {
+      "id": "nov2026-presidio-dia-muertos-diwali",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "Presidio Tunnel Tops · 210 Lincoln Boulevard",
+      "dates": [
+        "2026-11-07"
+      ],
+      "officialUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+      "claims": {
+        "dateLabel": "11月7日 12:00–15:00",
+        "cost": "活动免费；停车另付",
+        "summary": "在 Tunnel Tops 通过故事、演出、文化仪式与手作认识两个节庆，官网标明全年龄。餐饮和停车按各自收费，不是全园消费免费。",
+        "requirements": [
+          "官网提供 Register 登记入口，先查看参与与到达安排。",
+          "按12:00–15:00节目时段安排，不把公园开放时间当活动时间。",
+          "出发前确认天气、交通和停车规则。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "minAge": 0,
+        "reservation": "unknown",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-07",
+          "validThrough": "2026-11-07",
+          "dates": {
+            "2026-11-07": [
+              {
+                "open": "12:00",
+                "close": "15:00"
+              }
+            ]
+          },
+          "note": "全年龄活动免费，停车和餐饮另付；官网有Register入口但未明确是否必须。"
+        }
+      }
+    },
+    {
+      "id": "nov2026-fruitvale-dia-muertos",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Oakland",
+      "venue": "Fruitvale Village",
+      "dates": [
+        "2026-11-01"
+      ],
+      "officialUrl": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+      "claims": {
+        "dateLabel": "11月1日 10:00–17:00",
+        "cost": "免费入场；餐饮、购物及个别游乐项目另查价格",
+        "summary": "Oakland 官方旅游活动页确认2026年场次，包括社区祭坛、音乐、手工艺摊位与家庭活动。参观时尊重祭坛和纪念传统。",
+        "requirements": [
+          "地点为 Fruitvale Village；按当天交通与封街信息安排。",
+          "免费入场不表示所有食品、商品或游乐设备免费。",
+          "具体舞台时刻表另查主办方。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "unknown",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-01",
+          "dates": {
+            "2026-11-01": [
+              {
+                "open": "10:00",
+                "close": "17:00"
+              }
+            ]
+          },
+          "note": "免费入场，食品、购物和个别游乐价格未核实。"
+        }
+      }
+    },
+    {
+      "id": "nov2026-botanical-one-day-choir",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "San Francisco",
+      "venue": "San Francisco Botanical Garden · Redwood Grove",
+      "dates": [
+        "2026-11-08"
+      ],
+      "officialUrl": "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+      "claims": {
+        "dateLabel": "11月8日 12:00–15:00；11:30起签到",
+        "cost": "官网列Free–$75；须RSVP，票档以报名页为准",
+        "summary": "The Marmalade Project 邀请不同经验的歌唱爱好者在红杉林地一起学歌，由 Shams Ahmed 带领。大雨取消；园区免门票资格不能直接当作本项目免费票。",
+        "requirements": [
+          "先RSVP，确认票价、资格和余位。",
+          "11:30起签到、12:00开始，另留园门到林地步行时间。",
+          "官网说明会摄影录像；有顾虑先联系主办方。"
+        ]
+      },
+      "planning": {
+        "setting": "outdoor",
+        "reservation": "required",
+        "admissionUsd": null,
+        "schedule": {
+          "sourceUrl": "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-08",
+          "validThrough": "2026-11-08",
+          "dates": {
+            "2026-11-08": [
+              {
+                "open": "12:00",
+                "close": "15:00"
+              }
+            ]
+          },
+          "sessions": [
+            {
+              "date": "2026-11-08",
+              "start": "12:00",
+              "end": "15:00"
+            }
+          ],
+          "note": "11:30签到，大雨取消。官网Free–$75的票档资格须在RSVP页确认；园区免门票不等于项目免费。"
+        }
+      }
+    },
+    {
+      "id": "oct2026-red-oak-fleet-breakfast",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Richmond",
+      "venue": "SS Red Oak Victory · Point Richmond",
+      "dates": [
+        "2026-10-11"
+      ],
+      "officialUrl": "https://redoakvictory.us/events/",
+      "claims": {
+        "dateLabel": "10月11日 9:00–12:30入场；供餐至13:00",
+        "cost": "成人$20+$3.18手续费；8岁及以下$5+$2.18手续费",
+        "summary": "在历史船舶上吃早餐、听现场音乐，作为 Fleet Week 周末选择。主办方鼓励提前买票；空中表演依天气和实际安排，不能保证在此清楚看到全部飞行。",
+        "requirements": [
+          "12:30停止新入场，不要按13:00才到。",
+          "语音或讲解导览只包含在对应票档，另查购票选项。",
+          "葡萄酒品尝/销售限21岁以上、另付；通行需求先查船上楼梯。"
+        ]
+      },
+      "planning": {
+        "setting": "mixed",
+        "reservation": "optional",
+        "admissionUsd": null,
+        "schedule": {
+          "sourceUrl": "https://redoakvictory.us/events/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-11",
+          "validThrough": "2026-10-11",
+          "dates": {
+            "2026-10-11": [
+              {
+                "open": "09:00",
+                "close": "12:30"
+              }
+            ]
+          },
+          "note": "9:00–12:30是新入场窗口，供餐至13:00。成人$20+$3.18费，8岁及以下$5+$2.18费；不可用统一人均价。"
+        }
+      }
+    },
+    {
+      "id": "oct2026-red-oak-movie",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Richmond",
+      "venue": "SS Red Oak Victory · Point Richmond",
+      "dates": [
+        "2026-10-15"
+      ],
+      "officialUrl": "https://redoakvictory.us/events/",
+      "claims": {
+        "dateLabel": "10月15日 18:00–22:00；18:00开门",
+        "cost": "无需票或预约；建议捐$10，零食饮品另付",
+        "summary": "10月场放映1939年作品 Drums Along the Mohawk。主办方明确写不要订票、直接到场；18:00是开门时间，未单列正式开映时刻。",
+        "requirements": [
+          "按现场入场说明参加，不必点页面通用售票按钮。",
+          "捐款是建议金额；零食饮品另售。",
+          "夜间上船先查阶梯和停车到船舶的路线。"
+        ]
+      },
+      "planning": {
+        "setting": "mixed",
+        "reservation": "optional",
+        "admissionUsd": null,
+        "schedule": {
+          "sourceUrl": "https://redoakvictory.us/events/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-15",
+          "validThrough": "2026-10-15",
+          "dates": {
+            "2026-10-15": [
+              {
+                "open": "18:00",
+                "close": "22:00"
+              }
+            ]
+          },
+          "note": "18:00开门，正式开映时刻未公布；无需票或预约，建议捐$10，餐饮另付。"
+        },
+        "programTimeUnconfirmed": true
+      }
+    },
+    {
+      "id": "nov2026-red-oak-fall-swing",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Richmond",
+      "venue": "SS Red Oak Victory · Point Richmond",
+      "dates": [
+        "2026-11-14"
+      ],
+      "officialUrl": "https://redoakvictory.us/events/",
+      "claims": {
+        "dateLabel": "11月14日 18:00–22:00；19:00起乐队演出",
+        "cost": "至11月7日成人$25、12岁及以下$10；之后$30/$15，手续费另查",
+        "summary": "Alpha Rhythm Kings 在船上演出，可以跳舞或坐着听。票含船舶入场和自助参观，餐饮另售，含酒精饮品限21岁以上。",
+        "requirements": [
+          "18:00开门；演出19:00、20:10、21:20开始，22:00离船。",
+          "11月7日后涨价；现场票仅在未售罄时供应。",
+          "历史船舶有阶梯，通行需求先询问场馆。"
+        ]
+      },
+      "planning": {
+        "setting": "mixed",
+        "reservation": "optional",
+        "admissionUsd": null,
+        "schedule": {
+          "sourceUrl": "https://redoakvictory.us/events/",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-11-14",
+          "validThrough": "2026-11-14",
+          "dates": {
+            "2026-11-14": [
+              {
+                "open": "18:00",
+                "close": "22:00"
+              }
+            ]
+          },
+          "note": "18:00开门，19:00首轮，22:00离船。年龄票档及11月7日预售截止有差异，不填统一人均价。"
+        }
+      }
+    },
+    {
+      "id": "oct2026-martinez-history-open-house",
+      "checkedAt": "2026-10-05",
+      "decision": "accepted",
+      "city": "Martinez",
+      "venue": "Contra Costa County History Center · 724 Escobar Street",
+      "dates": [
+        "2026-10-17"
+      ],
+      "officialUrl": "https://www.cocohistory.org/event/open-house-at-the-history-center-in-celebration-of-american-archives-month-2",
+      "claims": {
+        "dateLabel": "10月17日 10:30–14:30；非会员导览11:30起",
+        "cost": "免费；须提前RSVP",
+        "summary": "档案月期间认识本地档案与展示。10:30首轮留给会员，非会员导览11:30开始，每轮约60分钟。",
+        "requirements": [
+          "在官网登记，选择会员或非会员对应时段。",
+          "到724 Escobar Street，不是 Martinez 其他历史建筑。",
+          "官网列饮品和简单点心，不按免费午餐安排。"
+        ]
+      },
+      "planning": {
+        "setting": "indoor",
+        "reservation": "required",
+        "admissionUsd": 0,
+        "schedule": {
+          "sourceUrl": "https://www.cocohistory.org/event/open-house-at-the-history-center-in-celebration-of-american-archives-month-2",
+          "verifiedAt": "2026-10-05",
+          "validFrom": "2026-10-17",
+          "validThrough": "2026-10-17",
+          "dates": {
+            "2026-10-17": [
+              {
+                "open": "11:30",
+                "close": "14:30"
+              }
+            ]
+          },
+          "note": "10:30仅会员；普通公众11:30起。每轮约60分钟，必须预选RSVP时段。此窗口不保证任意时刻有导览。"
+        }
+      }
+    }
+  ],
+  "currentUpdates": [
+    {
+      "city": "Alameda",
+      "kind": "calendar",
+      "headline": "古董集市下一场先等官方日期更新",
+      "url": "https://alamedapointantiquesfaire.com/",
+      "checkedAt": "2026-10-05",
+      "expiresAt": null,
+      "claim": "10月4日场次已经结束。10月5日核对时官网首页仍显示10月4日，暂不把“每月第一个星期日”推算成已确认的11月1日活动；待主办方更新具体日期、售票与天气延期信息后再安排。",
+      "imageKey": "secondhand-check"
+    },
+    {
+      "city": "Berkeley",
+      "kind": "calendar",
+      "headline": "秋日植物园：先按日期查开放与项目",
+      "url": "https://botanicalgarden.berkeley.edu/",
+      "checkedAt": "2026-10-05",
+      "expiresAt": null,
+      "claim": "Crowden 10月4日开放日已结束。想继续找本地自然与文化活动，可查 UC Botanical Garden 的参观与活动入口；园内课程、普通门票和限额项目分别核对，不保证当天能现场加入。",
+      "imageKey": "region-berkeley-garden"
+    },
+    {
+      "city": "Fremont",
+      "kind": "dated",
+      "headline": "11月亲子识鸟：在 Coyote Hills 玩着学",
+      "url": "https://www.ebparks.org/events/birding-basics-kids",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-14",
+      "claim": "11月14日11:00–12:00在 Coyote Hills 游客中心参加儿童识鸟游戏。活动免费、无需报名，正文要求5岁起并由家长参与；停车另收，普通车辆官网列$5。",
+      "imageKey": "expanded-coyote-hills"
+    },
+    {
+      "city": "Hayward",
+      "kind": "dated",
+      "headline": "11月海湾晨间观鸟：6岁起，须报名",
+      "url": "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-15",
+      "claim": "11月15日8:00–10:00从 Hayward Shoreline 的 Grant Avenue 入口参加免费观鸟。欢迎初学者，可借双筒望远镜；大雨取消。官方报名窗口为10月6日9:00至11月14日16:00，余位以页面为准。",
+      "imageKey": "weekend"
+    },
+    {
+      "city": "Newark",
+      "kind": "dated",
+      "headline": "Silliman 秋季泳池：滑梯与漂流河仍维修",
+      "url": "https://www.newarkca.gov/departments/recreation-and-community-services/aquatic-center-hours",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2027-01-03",
+      "claim": "官方2026年8月3日至2027年1月3日秋季表列活动池与泳道池用于休闲泳，漂流河和滑梯仍因维修关闭，spa不在休闲泳开放项目内。所有进场者即使不游泳也收费：0–2岁$4，3岁起$13；先致电确认当天项目。",
+      "imageKey": "everyday"
+    },
+    {
+      "city": "Oakland",
+      "kind": "dated",
+      "headline": "11月1日 Fruitvale 免费亡灵节庆典",
+      "url": "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-01",
+      "claim": "Oakland 官方旅游机构列明11月1日10:00–17:00在 Fruitvale Village 举行户外家庭节庆，包含音乐、社区祭坛与传统手作。入场免费，餐饮、商品及具体游乐收费另核对；先查交通与街道安排。",
+      "imageKey": "autumn-neighbors"
+    },
+    {
+      "city": "Clayton",
+      "kind": "calendar",
+      "headline": "Oktoberfest 已结束，改查下一场城市活动",
+      "url": "https://claytonca.gov/calendar/",
+      "checkedAt": "2026-10-05",
+      "expiresAt": null,
+      "claim": "10月3–4日 Oktoberfest 已结束。接下来从 Clayton 官方日历确认新的社区活动，并区分公开活动和市政会议；本次未核实到可直接发布的11月15日前下一场节庆，不沿用往年日期。",
+      "imageKey": "autumn-neighbors"
+    },
+    {
+      "city": "Martinez",
+      "kind": "dated",
+      "headline": "11月9日：在码头附近观鸟",
+      "url": "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-09",
+      "claim": "11月9日9:00–12:00在 Radke Martinez Regional Shoreline 的 N. Court Street 尽头停车场集合。免费、无需报名，官网列全年龄；路线约2–5英里，带孩子先衡量体力。",
+      "imageKey": "november-community"
+    },
+    {
+      "city": "Oakley",
+      "kind": "dated",
+      "headline": "11月湿地散步：5岁起、成人参与",
+      "url": "https://www.ebparks.org/events/big-break-nature-walk-29",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-15",
+      "claim": "Big Break 游客中心11月1、8、14、15日14:00–15:00有自然散步，约0.5–2英里。活动与停车免费，无需报名；5岁起且成人参与，出门复查公园公告。",
+      "imageKey": "november-community"
+    },
+    {
+      "city": "San Francisco",
+      "kind": "dated",
+      "headline": "Presidio：亡灵节与排灯节相遇",
+      "url": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+      "checkedAt": "2026-10-05",
+      "expiresAt": "2026-11-07",
+      "claim": "11月7日12:00–15:00，Presidio Tunnel Tops 举办免费、全年龄文化活动，有表演、故事、手作和仪式。官网提供 Register 入口，先确认参与安排；停车并不随活动免费。",
+      "imageKey": "presidio"
+    }
+  ],
+  "excluded": [
+    {
+      "topic": "Alameda Point Antiques Faire next date",
+      "url": "https://alamedapointantiquesfaire.com/",
+      "checkedAt": "2026-10-05",
+      "decision": "calendar-only",
+      "reason": "Homepage still displayed October 4. Did not infer November 1 from a first-Sunday recurrence."
+    },
+    {
+      "topic": "Crab Cove Native Plant Gardening November 7",
+      "url": "https://www.ebparks.org/events/native-plant-gardening-3",
+      "officialDetailId": 60901,
+      "checkedAt": "2026-10-05",
+      "decision": "not-added-as-available",
+      "reason": "Official body says full and registration required, conflicting with drop-in metadata. Body restriction retained as authoritative."
+    },
+    {
+      "topic": "Clayton Oktoberfest",
+      "url": "https://www.claytonca.gov/",
+      "checkedAt": "2026-10-05",
+      "decision": "expired-current-replaced",
+      "reason": "October 3–4 has ended. No next festival before November 15 was confirmed; official calendar retained."
+    },
+    {
+      "topic": "Bay Street Emeryville homepage",
+      "url": "https://baystreetemeryville.com/",
+      "checkedAt": "2026-10-05",
+      "decision": "source-rejected",
+      "reason": "Homepage contained unrelated gambling spam during review. Used the independent official Public Market site for an additional Emeryville place; did not follow unrelated links."
+    },
+    {
+      "topic": "Red Oak Victory November movie",
+      "url": "https://redoakvictory.us/events/",
+      "checkedAt": "2026-10-05",
+      "decision": "outside-window",
+      "reason": "November movie is November 19, after the requested November 15 cutoff; October 15 included instead."
+    },
+    {
+      "topic": "General museum free days",
+      "decision": "owned-by-root",
+      "reason": "Not duplicated in this geographic slice; root owns retail and admission offers."
+    },
+    {
+      "topic": "Garden admission and One Day Choir",
+      "url": "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+      "decision": "eligibility-not-inferred",
+      "reason": "Official page lists Free–$75 and free garden-admission groups separately. Event ticket tier eligibility remains subject to RSVP page; not labeled universally free."
+    }
+  ],
+  "imageReview": [
+    {
+      "city": "Alameda",
+      "imageKey": "secondhand-check",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Albany",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Berkeley",
+      "imageKey": "region-berkeley-garden",
+      "checkedAt": "2026-10-05",
+      "decision": "Exact venue archival photo; no promise of present conditions.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Dublin",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Emeryville",
+      "imageKey": "culture-visit",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Fremont",
+      "imageKey": "expanded-coyote-hills",
+      "checkedAt": "2026-10-05",
+      "decision": "Exact venue archival photo; no promise of present conditions.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Hayward",
+      "imageKey": "weekend",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Livermore",
+      "imageKey": "culture-visit",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Newark",
+      "imageKey": "everyday",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Oakland",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Piedmont",
+      "imageKey": "outdoor-cinema",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Pleasanton",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "San Leandro",
+      "imageKey": "october-library-culture",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Union City",
+      "imageKey": "everyday",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Antioch",
+      "imageKey": "weekend",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Brentwood",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Clayton",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Concord",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Danville",
+      "imageKey": "everyday",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "El Cerrito",
+      "imageKey": "secondhand-check",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Hercules",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Lafayette",
+      "imageKey": "weekend",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Martinez",
+      "imageKey": "november-community",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Moraga",
+      "imageKey": "outdoor-cinema",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Oakley",
+      "imageKey": "november-community",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-05"
+    },
+    {
+      "city": "Orinda",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Pinole",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Pittsburg",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Pleasant Hill",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Richmond",
+      "imageKey": "culture-visit",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "San Pablo",
+      "imageKey": "autumn-neighbors",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "San Ramon",
+      "imageKey": "garden-walk",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "Walnut Creek",
+      "imageKey": "november-theater",
+      "checkedAt": "2026-10-05",
+      "decision": "Labeled original illustration; not an actual-event photograph.",
+      "contentSourceCheckedAt": "2026-10-02"
+    },
+    {
+      "city": "San Francisco",
+      "imageKey": "presidio",
+      "checkedAt": "2026-10-05",
+      "decision": "Exact venue archival photo; no promise of present conditions.",
+      "contentSourceCheckedAt": "2026-10-05"
+    }
+  ],
+  "activePublicSnapshots": [
+    {
+      "id": 60919,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60919",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60919",
+      "checkedAt": "2026-10-05",
+      "name": "Big Break Nature Walk",
+      "start": "2026-11-01",
+      "end": "2026-11-01",
+      "age": "5 yrs +,",
+      "location": "Big Break (Oakley): Big Break Visitor Center at the Delta",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-01",
+          "ending_date": "2026-11-01",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "14:00:00",
+              "ending_time": "15:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+        "requirements": [
+          "14:00在游客中心集合；穿步行鞋、带水。",
+          "四天是独立场次，不是11月每天开办。",
+          "查看公园水质和路径公告；自然散步不等于允许下水。"
+        ]
+      }
+    },
+    {
+      "id": 60921,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60921",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60921",
+      "checkedAt": "2026-10-05",
+      "name": "Big Break Nature Walk",
+      "start": "2026-11-08",
+      "end": "2026-11-08",
+      "age": "5 yrs +,",
+      "location": "Big Break (Oakley): Big Break Visitor Center at the Delta",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-08",
+          "ending_date": "2026-11-08",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "14:00:00",
+              "ending_time": "15:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+        "requirements": [
+          "14:00在游客中心集合；穿步行鞋、带水。",
+          "四天是独立场次，不是11月每天开办。",
+          "查看公园水质和路径公告；自然散步不等于允许下水。"
+        ]
+      }
+    },
+    {
+      "id": 60922,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60922",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60922",
+      "checkedAt": "2026-10-05",
+      "name": "Big Break Nature Walk",
+      "start": "2026-11-14",
+      "end": "2026-11-14",
+      "age": "5 yrs +,",
+      "location": "Big Break (Oakley): Big Break Visitor Center at the Delta",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-14",
+          "ending_date": "2026-11-14",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sat",
+              "starting_time": "14:00:00",
+              "ending_time": "15:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+        "requirements": [
+          "14:00在游客中心集合；穿步行鞋、带水。",
+          "四天是独立场次，不是11月每天开办。",
+          "查看公园水质和路径公告；自然散步不等于允许下水。"
+        ]
+      }
+    },
+    {
+      "id": 60923,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60923",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60923",
+      "checkedAt": "2026-10-05",
+      "name": "Big Break Nature Walk",
+      "start": "2026-11-15",
+      "end": "2026-11-15",
+      "age": "5 yrs +,",
+      "location": "Big Break (Oakley): Big Break Visitor Center at the Delta",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-15",
+          "ending_date": "2026-11-15",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "14:00:00",
+              "ending_time": "15:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "跟随自然教育员认识 Delta 湿地。5岁起，儿童须有成人参与；路线约0.5–2英里，以铺装、较平缓路段为主。",
+        "requirements": [
+          "14:00在游客中心集合；穿步行鞋、带水。",
+          "四天是独立场次，不是11月每天开办。",
+          "查看公园水质和路径公告；自然散步不等于允许下水。"
+        ]
+      }
+    },
+    {
+      "id": 60479,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60479",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60479",
+      "checkedAt": "2026-10-05",
+      "name": "Black Diamond Trails Challenge Hike!",
+      "start": "2026-11-01",
+      "end": "2026-11-01",
+      "age": "12 yrs +,",
+      "location": "Black Diamond Mines (Antioch): Upper Parking Lot",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-01",
+          "ending_date": "2026-11-01",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "09:00:00",
+              "ending_time": "13:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [
+        {
+          "first_daytime_internet": "2026-10-06 09:00:00",
+          "first_daytime_internet_nonresidents": null,
+          "first_daytime_internet_members": null,
+          "last_daytime_internet": "2026-10-28 16:00:00",
+          "drop_in_first_daytime_internet": null,
+          "drop_in_first_daytime_internet_nonresidents": null,
+          "drop_in_first_daytime_internet_members": null,
+          "drop_in_last_daytime_internet": null,
+          "for_drop_in_activity": false
+        }
+      ],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "12岁起的环线，爬升约1,300英尺，含陡坡和不平整土路。适合能完成中长距离山路的人，不按轻松亲子散步推荐。",
+        "requirements": [
+          "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+          "在 Somersville Road 尽头上停车场集合，岗亭往内约1英里。",
+          "带午餐、零食和饮水，穿防滑鞋；大雨等变化以主办方通知为准。"
+        ]
+      }
+    },
+    {
+      "id": 60893,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60893",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60893",
+      "checkedAt": "2026-10-05",
+      "name": "Bay Bird Mornings: Hayward",
+      "start": "2026-11-15",
+      "end": "2026-11-15",
+      "age": "6 yrs +,",
+      "location": "Hayward Shoreline (Hayward): Grant Avenue Entrance",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-15",
+          "ending_date": "2026-11-15",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "08:00:00",
+              "ending_time": "10:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [
+        {
+          "first_daytime_internet": "2026-10-06 09:00:00",
+          "first_daytime_internet_nonresidents": null,
+          "first_daytime_internet_members": null,
+          "last_daytime_internet": "2026-11-14 16:00:00",
+          "drop_in_first_daytime_internet": null,
+          "drop_in_first_daytime_internet_nonresidents": null,
+          "drop_in_first_daytime_internet_members": null,
+          "drop_in_last_daytime_internet": null,
+          "for_drop_in_activity": false
+        }
+      ],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "欢迎初学者，可借双筒望远镜。6岁起，从 Grant Avenue 入口出发；大雨取消，晨间注意保暖。",
+        "requirements": [
+          "报名从10月6日9:00开放，至11月14日16:00结束。",
+          "不要导航到11月2日场次使用的 West Winton 入口。",
+          "先查看确认邮件、天气和公园公告。"
+        ]
+      }
+    },
+    {
+      "id": 60591,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60591",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60591",
+      "checkedAt": "2026-10-05",
+      "name": "Monday Birding - Hayward Regional Shoreline",
+      "start": "2026-11-02",
+      "end": "2026-11-02",
+      "age": "All ages,",
+      "location": "Hayward Shoreline (Hayward): West Winton Avenue Staging Area",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-02",
+          "ending_date": "2026-11-02",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Mon",
+              "starting_time": "09:00:00",
+              "ending_time": "12:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "观察海岸秋冬鸟类，官方路线范围2–5英里，以碎石路为主。这场从 West Winton Avenue 集合，与11月15日的 Grant Avenue 晨间场次入口不同。",
+        "requirements": [
+          "9:00集合，带望远镜、饮水和防风外套。",
+          "官网列全年龄，但距离不等于适合每位幼童。",
+          "出发前检查公园公告和天气。"
+        ]
+      }
+    },
+    {
+      "id": 60830,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60830",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60830",
+      "checkedAt": "2026-10-05",
+      "name": "Native American Heritage Month: Brushy Peak Hike",
+      "start": "2026-11-01",
+      "end": "2026-11-01",
+      "age": "7 yrs +,",
+      "location": "Brushy Peak (Livermore): Laughlin Ranch Staging Area",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-01",
+          "ending_date": "2026-11-01",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sun",
+              "starting_time": "09:00:00",
+              "ending_time": "13:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [
+        {
+          "first_daytime_internet": "2026-10-06 09:00:00",
+          "first_daytime_internet_nonresidents": null,
+          "first_daytime_internet_members": null,
+          "last_daytime_internet": "2026-10-28 16:00:00",
+          "drop_in_first_daytime_internet": null,
+          "drop_in_first_daytime_internet_nonresidents": null,
+          "drop_in_first_daytime_internet_members": null,
+          "drop_in_last_daytime_internet": null,
+          "for_drop_in_activity": false
+        }
+      ],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "在 Livermore 以北的保护地走约4.5英里环线，认识原住民历史与自然。7岁起并须成人参与；爬升501–1,000英尺、有陡坡。",
+        "requirements": [
+          "报名窗口：10月6日9:00至10月28日16:00，余位另查。",
+          "集合点是 Laughlin Ranch Staging Area，按官网地图确认入口。",
+          "穿徒步鞋、带饮水，可带登山杖；不按幼童平路活动安排。"
+        ]
+      }
+    },
+    {
+      "id": 60496,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60496",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60496",
+      "checkedAt": "2026-10-05",
+      "name": "Birding Basics for Kids",
+      "start": "2026-11-14",
+      "end": "2026-11-14",
+      "age": "All ages,",
+      "location": "Coyote Hills (Fremont): Visitors Center",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-14",
+          "ending_date": "2026-11-14",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sat",
+              "starting_time": "11:00:00",
+              "ending_time": "12:00:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": {
+        "summary": "用游戏和观察认识鸟类，活动正文要求5岁起并由家长参与。可先参加一小时节目，再按孩子体力决定是否继续走公园。",
+        "requirements": [
+          "在游客中心集合，另留停车步行时间。",
+          "穿户外鞋、带水和适合天气的衣物。",
+          "停车费与免费活动分开计算。"
+        ]
+      }
+    },
+    {
+      "id": 60901,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60901",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60901",
+      "checkedAt": "2026-10-05",
+      "name": "Native Plant Gardening",
+      "start": "2026-11-07",
+      "end": "2026-11-07",
+      "age": "8 yrs +,",
+      "location": "Crown Memorial State Beach (Alameda): Doug Siden Visitor Center at Crab Cove",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-07",
+          "ending_date": "2026-11-07",
+          "weeks_of_month": "",
+          "exception_dates": [],
+          "pattern_dates": [
+            {
+              "weekdays": "Sat",
+              "starting_time": "09:30:00",
+              "ending_time": "12:30:00"
+            }
+          ]
+        }
+      ],
+      "registrationWindows": [
+        {
+          "first_daytime_internet": null,
+          "first_daytime_internet_nonresidents": null,
+          "first_daytime_internet_members": null,
+          "last_daytime_internet": null,
+          "drop_in_first_daytime_internet": null,
+          "drop_in_first_daytime_internet_nonresidents": null,
+          "drop_in_first_daytime_internet_members": null,
+          "drop_in_last_daytime_internet": null,
+          "for_drop_in_activity": false
+        }
+      ],
+      "freeFlag": true,
+      "decision": "excluded-full",
+      "paraphrase": "November 7 native-plant gardening at Crab Cove: description explicitly says FULL despite a drop-in metadata label. Not published as an available event."
+    },
+    {
+      "id": 60600,
+      "url": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60600",
+      "detailUrl": "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60600",
+      "checkedAt": "2026-10-05",
+      "name": "Monday Birding - Radke Martinez Shoreline",
+      "start": "2026-11-09",
+      "end": "2026-11-09",
+      "age": "All ages",
+      "location": "Parking lot at end of N. Court Street near Marina",
+      "meetingPatterns": [
+        {
+          "beginning_date": "2026-11-09",
+          "ending_date": "2026-11-09",
+          "pattern_dates": [
+            {
+              "starting_time": "09:00:00",
+              "ending_time": "12:00:00"
+            }
+          ]
+        }
+      ],
+      "freeFlag": true,
+      "decision": "accepted",
+      "paraphrase": "Free drop-in birding, no registration; gravel route 2–5 miles, 0–500 ft elevation change."
+    }
+  ],
+  "additionalEvidence": [
+    {
+      "url": "https://foodwise.org/markets/mission-community-market/",
+      "checkedAt": "2026-10-05",
+      "claim": "Current visitor section places market on 22nd between Mission and Valencia; footer retains 84 Bartlett. Content uses the specific visitor street and explains discrepancy."
+    },
+    {
+      "url": "https://foodwise.org/events/sofia-jimenez-tutuli-mexican-bakery/",
+      "checkedAt": "2026-10-05",
+      "claim": "October 31 11:00–11:45 demonstration combined with same-day Fall Fruit Celebration rather than counted as a second outing."
+    },
+    {
+      "url": "https://www.ebparks.org/parks/big-break",
+      "checkedAt": "2026-10-05",
+      "claim": "Parking free; algae advisory means shoreline walking does not imply safe water recreation."
+    },
+    {
+      "url": "https://www.ebparks.org/parks/coyote-hills",
+      "checkedAt": "2026-10-05",
+      "claim": "Standard vehicle parking $5, separate from free program."
+    },
+    {
+      "url": "https://www.ebparks.org/parks/black-diamond",
+      "checkedAt": "2026-10-05",
+      "claim": "Vehicle parking $5 when kiosk staffed, separate from program."
+    }
+  ],
+  "checkedUrls": [
+    "https://uss-hornet.org/",
+    "https://www.albanyca.gov/Parks/Albany-Hill-Creekside-Park",
+    "https://visit.berkeley.edu/campus-attractions",
+    "https://botanicalgarden.berkeley.edu/",
+    "https://www.ebparks.org/parks/dublin-hills",
+    "https://publicmarketemeryville.com/",
+    "https://www.ebparks.org/parks/mission-peak",
+    "https://www.ebparks.org/parks/coyote-hills",
+    "https://www.ebparks.org/parks/garin",
+    "https://livermorearts.org/our-venues/about-bankhead/",
+    "https://www.ebparks.org/parks/del-valle",
+    "https://www.newarkca.gov/departments/recreation-and-community-services/aquatic-center-hours",
+    "https://jacklondonsquare.com/",
+    "https://www.ebparks.org/parks/reinhardt-redwood",
+    "https://www.ci.piedmont.ca.us/cms/one.aspx?pageId=14126034",
+    "https://www.cityofpleasantonca.gov/your-community/parks-trails/",
+    "https://www.ebparks.org/parks/oyster-bay",
+    "https://www.ebparks.org/parks/dry-creek-pioneer",
+    "https://www.elcampaniltheatre.com/",
+    "https://www.ebparks.org/trails/interpark/marsh-creek",
+    "https://www.parks.ca.gov/?page_id=517",
+    "https://www.ebparks.org/trails/interpark/contra-costa-canal",
+    "https://blackhawkmuseum.org/admission/",
+    "https://www.elcerrito.gov/Facilities/Facility/Details/Ohlone-Greenway-16",
+    "https://www.herculesca.gov/Home/Components/FacilityDirectory/FacilityDirectory/52/178",
+    "https://www.ebparks.org/trails/interpark/lafayette-moraga",
+    "https://www.cocohistory.org/visit",
+    "https://www.stmarys-ca.edu/museum-art",
+    "https://www.ebparks.org/parks/sibley-volcanic",
+    "https://www.pinole.gov/recreation/parks_facilities/park-detail-with-map/",
+    "https://pittsburgmuseum.org/contact-us",
+    "https://www.rodgersranch.org/",
+    "https://redoakvictory.us/",
+    "https://www.sanpabloca.gov/965/Blume-House",
+    "https://www.ebparks.org/parks/bishop-ranch",
+    "https://www.ruthbancroftgarden.org/visit/",
+    "https://www.nps.gov/alca/planyourvisit/index.htm",
+    "https://www.ferrybuildingmarketplace.com/",
+    "https://www.pier39.com/frequently-asked-questions/",
+    "https://www.goldengate.org/bridge/visiting-the-bridge/",
+    "https://www.sfmta.com/getting-around/muni/cable-cars",
+    "https://www.oaklandzoo.org/hours-and-pricing",
+    "https://www.ebparks.org/events/big-break-nature-walk-29",
+    "https://www.ebparks.org/events/black-diamond-trails-challenge-hike",
+    "https://www.ebparks.org/events/native-american-heritage-month-brushy-peak-hike-1",
+    "https://www.ebparks.org/events/monday-birding-hayward-regional-shoreline",
+    "https://www.ebparks.org/events/monday-birding-radke-martinez-shoreline",
+    "https://www.ebparks.org/events/birding-basics-kids",
+    "https://www.ebparks.org/events/bay-bird-mornings-hayward-0",
+    "https://foodwise.org/events/heather-hardcastle-the-flour-craft-bakery-cafe-cookbook/",
+    "https://foodwise.org/events/dia-de-los-muertos-and-halloween-at-mission-community-market/",
+    "https://foodwise.org/events/fall-fruit-celebration/",
+    "https://foodwise.org/events/mission-community-market-last-day-of-the-season/",
+    "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
+    "https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/",
+    "https://gggp.org/event/one-day-choir-by-the-marmalade-project-2/",
+    "https://redoakvictory.us/events/",
+    "https://www.cocohistory.org/event/open-house-at-the-history-center-in-celebration-of-american-archives-month-2",
+    "https://alamedapointantiquesfaire.com/",
+    "https://claytonca.gov/calendar/",
+    "https://foodwise.org/markets/mission-community-market/",
+    "https://foodwise.org/events/sofia-jimenez-tutuli-mexican-bakery/",
+    "https://www.ebparks.org/parks/big-break",
+    "https://www.ebparks.org/parks/black-diamond",
+    "https://www.ebparks.org/events/native-plant-gardening-3",
+    "https://www.claytonca.gov/",
+    "https://baystreetemeryville.com/",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60919",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60919",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60919",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60919",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60921",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60921",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60921",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60921",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60922",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60922",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60922",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60922",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60923",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60923",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60923",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60923",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60479",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60479",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60479",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60479",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60893",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60893",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60893",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60893",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60591",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60591",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60591",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60591",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60830",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60830",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60830",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60830",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60496",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60496",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60496",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60496",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60901",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60901",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60901",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60901",
+    "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60600",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/60600",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/meetingandregistrationdates/60600",
+    "https://anc.apm.activecommunities.com/ebparks/rest/activity/detail/estimateprice/60600"
+  ],
+  "assets": {
+    "exactVenuePhotos": [
+      "ferry-market",
+      "presidio",
+      "expanded-coyote-hills",
+      "region-berkeley-garden"
+    ],
+    "newLabeledIllustrationsUsed": [
+      "november-community",
+      "november-theater"
+    ],
+    "noAssetDownloaded": true,
+    "remainingNeeds": [
+      {
+        "city": "Newark",
+        "topic": "Silliman Aquatic Center",
+        "current": "everyday",
+        "note": "Generic labeled community-life illustration; a verified pool photograph or pool illustration would be more specific."
+      },
+      {
+        "city": "Richmond",
+        "topic": "Red Oak Victory",
+        "current": "everyday / cinema-night / november-community",
+        "note": "Generic labeled illustrations; never substituted Rosie visitor-center photo. A licensed ship photograph would improve specificity."
+      }
+    ],
+    "guideMap": {
+      "east-bay-november-nature-programs-2026": [
+        "november-community",
+        "expanded-coyote-hills"
+      ],
+      "san-francisco-autumn-food-markets-2026": [
+        "ferry-market",
+        "november-community"
+      ]
+    }
+  },
+  "counts": {
+    "cities": 34,
+    "places": 111,
+    "newPlaces": 43,
+    "events": 18,
+    "novemberEvents": 12,
+    "food": 5,
+    "outdoors": 6,
+    "guides": 2,
+    "refreshedCurrent": 10,
+    "planning": 18
+  },
+  "validation": {
+    "cityTests": {
+      "command": "npx tsx --tsconfig tsconfig.app.json --test tests/city-exploration.test.tsx tests/city-roundup.test.tsx",
+      "pass": 9,
+      "fail": 0,
+      "note": "Existing React useLayoutEffect SSR warnings; no failing tests."
+    },
+    "contentAssertions": {
+      "status": "pass",
+      "chineseStringsWithEnglish": 230,
+      "events": 18,
+      "planning": 18,
+      "cities": 34,
+      "newPlaces": 43,
+      "refreshedCurrent": 10,
+      "checks": [
+        "Unique event IDs",
+        "All occurrences within October 5–November 15",
+        "Official schedule URLs equal event sources",
+        "Schedule dates exactly equal event occurrenceDates",
+        "Every city at least three places",
+        "Old city-level verification remains October 2",
+        "New places verified October 5",
+        "Dated current rows have expiry dates",
+        "Updated current text has English mappings"
+      ]
+    },
+    "diffWhitespace": "pass",
+    "typecheck": {
+      "command": "npx tsc --noEmit --project tsconfig.app.json --pretty false",
+      "status": "pass",
+      "exitCode": 0
+    }
+  }
+}

@@ -3130,6 +3130,230 @@
       "sourceLabel": "Auntie Anne's 官方生日礼条件"
     },
     {
+      "kind": "offer",
+      "id": "bampfa-free-nov5-2026",
+      "title": "11/5 BAMPFA 展厅免费日",
+      "path": "/offers/bampfa-free-nov5-2026",
+      "summary": "官网十一月日历已列出 11/5 免费首个周四。可先看展，再去 Berkeley 市中心散步；当天开馆时间以馆方页面为准。",
+      "details": [
+        "所有访客免费参观展厅；电影放映需另行购票。"
+      ],
+      "region": "east-bay",
+      "startDate": "2026-11-05",
+      "endDate": "2026-11-05",
+      "dateLabel": "11/5 周四 · 展厅开放时段",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://bampfa.org/visit/calendar/2026-11",
+      "sourceLabel": "BAMPFA 2026 年十一月日历"
+    },
+    {
+      "kind": "offer",
+      "id": "omca-free-nov1-2026",
+      "title": "11/1 OMCA 普通展与特展免费",
+      "path": "/offers/omca-free-nov1-2026",
+      "summary": "十一月首个周日是 11/1，这是按馆方每月规则换算的日期。餐饮、购物和停车另计；不用购买会员。",
+      "details": [
+        "所有访客免费，现行规则包含特别展览。建议预订；现场票先到先得。"
+      ],
+      "region": "east-bay",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-01",
+      "dateLabel": "11/1 周日 · 按首个周日规则换算",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://museumca.org/first-sundays/",
+      "sourceLabel": "OMCA 免费首个周日与预约"
+    },
+    {
+      "kind": "offer",
+      "id": "asian-art-free-nov1-2026",
+      "title": "11/1 亚洲艺术博物馆普通入场免费",
+      "path": "/offers/asian-art-free-nov1-2026",
+      "summary": "按现行每月规则，十一月对应 11/1。地点是旧金山 Civic Center 的 200 Larkin Street，免费普通票不等于所有展览都免费。",
+      "details": [
+        "首个周日普通入场免费；特展另付 $10，建议提前选时段。"
+      ],
+      "region": "sf",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-01",
+      "dateLabel": "11/1 周日 · 10:00–17:00",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://about.asianart.org/ticketing/",
+      "sourceLabel": "亚洲艺术博物馆票务规则"
+    },
+    {
+      "kind": "offer",
+      "id": "conservatory-free-nov3-2026",
+      "title": "11/3 金门公园温室免费开放",
+      "path": "/offers/conservatory-free-nov3-2026",
+      "summary": "官网已公布 2026/11/3 免费日。温室与植物园是不同园区，别把 11/10 植物园免费日混成同一天。",
+      "details": [
+        "普通入场对所有人免费，不限旧金山居民；特别活动另查票务。"
+      ],
+      "region": "sf",
+      "startDate": "2026-11-03",
+      "endDate": "2026-11-03",
+      "dateLabel": "11/3 周二 · 10:00–16:30，16:00 最后入场",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://gggp.org/event/free-day-conservatory-of-flowers-13/",
+      "sourceLabel": "温室 11/3 官方免费日"
+    },
+    {
+      "kind": "offer",
+      "id": "sjma-free-nov6-2026",
+      "title": "11/6 San José 美术馆免费夜场",
+      "path": "/offers/sjma-free-nov6-2026",
+      "summary": "馆方已发布十一月 First Fridays 页面。适合下班后在市中心看展，当晚娱乐安排以活动页更新为准。",
+      "details": [
+        "当晚入馆免费，可提前登记加快入场；餐饮与购物另付。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-11-06",
+      "endDate": "2026-11-06",
+      "dateLabel": "11/6 周五 · 18:00–21:00",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://sjmusart.org/event/first-fridays-november-2026",
+      "sourceLabel": "SJMA 十一月首个周五"
+    },
+    {
+      "kind": "offer",
+      "id": "chm-museums-on-us-nov7-8-2026",
+      "title": "11/7–8 已有指定银行卡，可免费入 CHM",
+      "path": "/offers/chm-museums-on-us-nov7-8-2026",
+      "summary": "Mountain View 的电脑历史博物馆现行规则适用于每月首个完整周末，十一月为 11/7–8。已有卡再使用这项福利，不必为参观新开卡。",
+      "details": [
+        "有效 Bank of America 或 Merrill 银行卡及本人照片证件，仅限持卡人一张普通票；同伴、特展和售票活动不包含。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-08",
+      "dateLabel": "11/7–8 · 按每月首个完整周末规则换算",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://computerhistory.org/plan-your-visit/discounts/",
+      "sourceLabel": "CHM 免费与折扣入场条款"
+    },
+    {
+      "kind": "offer",
+      "id": "botanical-free-nov10-2026",
+      "title": "11/10 旧金山植物园普通入场免费",
+      "path": "/offers/botanical-free-nov10-2026",
+      "summary": "官网已公布 11/10。十一月最后入园时间比十月早，建议下午 16:00 前到入口；不要照搬十月的 17:00 最后入场时间。",
+      "details": [
+        "当天普通入场对所有人免费；收费课程和特别活动不包含。"
+      ],
+      "region": "sf",
+      "startDate": "2026-11-10",
+      "endDate": "2026-11-10",
+      "dateLabel": "11/10 周二 · 07:30–17:00，16:00 最后入场",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://gggp.org/event/free-day-san-francisco-botanical-garden-17/",
+      "sourceLabel": "植物园 11/10 官方免费日"
+    },
+    {
+      "kind": "offer",
+      "id": "moad-free-nov14-2026",
+      "title": "11/14 MoAD 第二个周六免费入馆",
+      "path": "/offers/moad-free-nov14-2026",
+      "summary": "十一月第二个周六为 11/14。这里确认的是现行免费入场规则，不代表尚未公布的讲座或演出已安排。",
+      "details": [
+        "每月第二个周六 THRIVE @ MoAD 普通入馆免费；具体节目和预约要求另查当天公告。"
+      ],
+      "region": "sf",
+      "startDate": "2026-11-14",
+      "endDate": "2026-11-14",
+      "dateLabel": "11/14 周六 · 11:00–17:00，按每月规则换算",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.moadsf.org/visit",
+      "sourceLabel": "MoAD 参观与 THRIVE 免费规则"
+    },
+    {
+      "kind": "offer",
+      "id": "muir-woods-veterans-day-nov11-2026",
+      "title": "11/11 Muir Woods 指定资格免入口费",
+      "path": "/offers/muir-woods-veterans-day-nov11-2026",
+      "summary": "NPS 的 Muir Woods 官方 2026 列表明确包含 Veterans Day 11/11。先查资格、停车或接驳名额，再安排红杉林散步。",
+      "details": [
+        "2026 免入口费日仅适用于美国公民及居民；停车或接驳车仍需预约并付费，不能直接无预约开车到场。"
+      ],
+      "region": "north-bay",
+      "startDate": "2026-11-11",
+      "endDate": "2026-11-11",
+      "dateLabel": "11/11 周三 · 以公园当日开放时间为准",
+      "costLabel": "需预约",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.nps.gov/muwo/planyourvisit/fees.htm",
+      "sourceLabel": "Muir Woods 2026 免入口费日与限制"
+    },
+    {
+      "kind": "offer",
+      "id": "chilis-veterans-day-nov11-2026",
+      "title": "11/11 Chili’s 向军人与退伍军人送指定主餐",
+      "path": "/offers/chilis-veterans-day-nov11-2026",
+      "summary": "官方页面明确标注 2026/11/11。出门前向湾区门店确认参与情况与认可的资格凭证；同行家人的餐费不自动免费。",
+      "details": [
+        "仅现役军人与退伍军人适用；限指定菜单、参与门店堂食，不含饮料和小费，不可替换菜品或叠加优惠。"
+      ],
+      "startDate": "2026-11-11",
+      "endDate": "2026-11-11",
+      "dateLabel": "11/11 周三 · 参与门店堂食",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.chilis.com/restaurant-events/veterans-day",
+      "sourceLabel": "Chili’s 2026 Veterans Day 条款"
+    },
+    {
+      "kind": "offer",
+      "id": "winchester-santa-clara-locals-2026",
+      "title": "Santa Clara 县居民：Winchester 日间导览七五折",
+      "path": "/offers/winchester-santa-clara-locals-2026",
+      "summary": "官方居民优惠有订单数量上限，没有保证持续到十一月的截止日。先查结账是否仍接受优惠码，再决定购票；夜间或特别活动不适用。",
+      "details": [
+        "县内居民使用 LOCALSFIRST；仅日间 Mansion Tour，每笔最多 4 张。到场须出示有合资格住址的本人照片证件，不叠加优惠。"
+      ],
+      "region": "south-bay",
+      "dateLabel": "限前 1,000 笔合资格订单 · 先查剩余额度",
+      "costLabel": "需消费",
+      "status": "check-local",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://winchestermysteryhouse.com/locals-discount/",
+      "sourceLabel": "Winchester 县居民优惠限制"
+    },
+    {
+      "kind": "offer",
+      "id": "lakeshore-halloween-craft-oct25-31-2026",
+      "title": "10/25–31 Lakeshore 万圣节手作桌",
+      "path": "/offers/lakeshore-halloween-craft-oct25-31-2026",
+      "summary": "活动为万圣节小怪物主题手作。不要把周六常规活动的时间直接套到整周，也不要将同期商品促销当作免费礼品。",
+      "details": [
+        "官方 2026 门店日历列出 Trick-or-Treat 手作周；先查附近门店的材料、年龄与到店安排。"
+      ],
+      "startDate": "2026-10-25",
+      "endDate": "2026-10-31",
+      "dateLabel": "10/25–31 · 先向门店确认当天手作时间",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://img.lakeshorelearning.com/is/content/OCProduction/pdf/8597056_LE%20Year%20Calendar_2026_No%20Crop.pdf",
+      "sourceLabel": "Lakeshore 2026 门店活动日历"
+    },
+    {
       "kind": "opening",
       "id": "roundup-alesta-sebastopol-2026",
       "title": "Alesta Modern Mediterranean",

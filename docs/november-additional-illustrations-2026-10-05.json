@@ -1,0 +1,25 @@
+{
+  "tool": "image_gen",
+  "checkedAt": "2026-10-05",
+  "postprocessing": "WebP encoding and proportional thumbnail resize only; original files retained.",
+  "generations": [
+    {
+      "key": "november-stargazing",
+      "prompt": "Original editorial illustration for a San Francisco Bay Area local community guide about autumn stargazing. Landscape 3:2 composition, tactile gouache and cut paper, sophisticated warm cream, deep indigo, muted sage and amber palette. On a gently rolling oak woodland ridge at night, a few adult visitors and one family quietly look through two astronomical telescopes under a naturally dark starry sky with a subtle Milky Way. Calm, approachable educational outing, realistic telescope shapes, uncluttered visual hierarchy, generous calm space, no text, no letters, no logos, no identifiable real observatory or real venue, no alcohol. Must visibly read as an illustration rather than a photograph; evocative but not a depiction or promise of actual sky visibility.",
+      "original": "C:/Users/willy/.codex/generated_images/01a109bb-ad98-7b50-b9a7-850cf7ff3768/exec-f746933b-66a7-4b20-806d-681cf889c099.png",
+      "outputs": [
+        "public/guides/november/stargazing.webp",
+        "public/guides/november/stargazing-small.webp"
+      ]
+    },
+    {
+      "key": "november-theater",
+      "prompt": "Original editorial illustration, landscape 3:2, for a local community guide to a family musical theater outing. View from rear of an intimate theater toward a small stage with warm amber spotlights, deep red curtains, colorful abstract schoolroom scenery and a modest ensemble of adult and child stage performers gesturing while singing; audience heads only as simple foreground silhouettes. Soft gouache and cut paper, rich sage, cream, ochre, burgundy, sophisticated approachable editorial design. No words, titles, lettering, logos or identifiable copyrighted character costume, no exact real production or venue. Clearly an illustration, not a photo or official show poster. Scene should communicate live musical storytelling and a family audience.",
+      "original": "C:/Users/willy/.codex/generated_images/01a109bb-ad98-7b50-b9a7-850cf7ff3768/exec-89902e70-15e5-4a75-9208-49a82c4bb838.png",
+      "outputs": [
+        "public/guides/november/theater.webp",
+        "public/guides/november/theater-small.webp"
+      ]
+    }
+  ]
+}

@@ -151,7 +151,9 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     placeId: 'ferry-building',
     match: /Ferry Building/i,
     // W6-S: the autumn catalog lists the Ferry Plaza market as an event (its Tue / Thu / Sat hours from the label)
-    events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn', 'sf-foodwise-latine-makers-oct3-2026'],
+    // Oct 5: both Foodwise programmes are on the same verified front plaza, not a new venue point.
+    events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn', 'sf-foodwise-latine-makers-oct3-2026',
+      'oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'],
     kit: 'board',
     kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
@@ -469,6 +471,12 @@ export const EVENT_VENUES: readonly EventVenue[] = [
  * not an outing for the toy city — no pennant, crowd, souvenir or BAYBAY line.
  */
 export const WORLD_SKIP: Readonly<Record<string, string>> = {
+  // Oct 5 website additions: preserve the real programme locations without inventing world pins.
+  // Mission Community Market is on 22nd between Mission and Valencia, not the existing Excelsior venue.
+  'oct2026-mission-dia-muertos-market': '22nd Street between Mission and Valencia: no independently verified world venue point',
+  'nov2026-mission-market-season-final': '22nd Street between Mission and Valencia: no independently verified world venue point',
+  'nov2026-presidio-dia-muertos-diwali': 'Presidio Tunnel Tops: no independently verified world venue point',
+  'nov2026-botanical-one-day-choir': 'Botanical Garden Redwood Grove programme site: no independently verified world venue point',
   // October website entries need an independently reviewed venue, name and save bit before world import.
   'sf-mandarin-conversation-oct6-2026': 'October 2 website event: pending independent world import',
   'sf-chinatown-calligraphy-oct8-2026': 'October 2 website event: pending independent world import',
@@ -516,6 +524,8 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sfpl-western-addition-open-house-oct24-2026',
   // October 2 catalog refresh: append after every existing souvenir bit to preserve saves.
   'sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026',
+  // October 5 catalog refresh: append after the November Chase bits; never move earlier saved souvenirs.
+  'oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -613,6 +623,8 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sfpl-western-addition-open-house-oct24-2026': { zh: '图书馆开放日', en: 'a library open house' },
   'sf-warriors-heat-november-2026': { zh: '勇士对热火', en: 'Warriors vs Heat' },
   'sf-journey-final-frontier-november-2026': { zh: 'Journey 演唱会', en: 'Journey’s concert' },
+  'oct2026-foodwise-flour-craft-demo': { zh: '烘焙示范', en: 'the Flour Craft baking demo' },
+  'oct2026-foodwise-fall-fruit': { zh: '秋果庆典', en: 'the Fall Fruit Celebration' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

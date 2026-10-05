@@ -1,0 +1,3457 @@
+{
+  "start": "2026-10-05",
+  "through": "2026-11-15",
+  "inventory": {
+    "cities": 101,
+    "places": 315,
+    "guides": 128,
+    "events": 408,
+    "offers": 194,
+    "openings": 56,
+    "bulletins": 13
+  },
+  "cityCoverage": [
+    {
+      "city": "San Francisco",
+      "county": "San Francisco",
+      "places": [
+        "Golden Gate Park",
+        "Presidio Tunnel Tops",
+        "Alcatraz Island",
+        "Ferry Building Marketplace",
+        "PIER 39",
+        "Golden Gate Bridge / Welcome Center",
+        "Historic Cable Cars"
+      ],
+      "checked": "2026-10-02",
+      "current": "Presidio：亡灵节与排灯节相遇"
+    },
+    {
+      "city": "Atherton",
+      "county": "San Mateo",
+      "places": [
+        "Holbrook-Palmer Park",
+        "Atherton Library",
+        "Allied Arts Guild"
+      ],
+      "checked": "2026-10-02",
+      "current": "旧火车站博物馆 10 月 18 日揭幕"
+    },
+    {
+      "city": "Belmont",
+      "county": "San Mateo",
+      "places": [
+        "Twin Pines Park",
+        "Waterdog Lake & Open Space",
+        "Hiller Aviation Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "百年庆典：游行、时光胶囊与无人机表演"
+    },
+    {
+      "city": "Brisbane",
+      "county": "San Mateo",
+      "places": [
+        "Brisbane Community Park",
+        "Crocker Park Recreational Trail",
+        "San Bruno Mountain State & County Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Dog Pawty 狗狗装扮聚会"
+    },
+    {
+      "city": "Burlingame",
+      "county": "San Mateo",
+      "places": [
+        "Washington Park",
+        "Bayside Fields",
+        "Mills Canyon Wildlife Area"
+      ],
+      "checked": "2026-10-02",
+      "current": "图书馆秋季活动：按年龄和报名状态挑选"
+    },
+    {
+      "city": "Colma",
+      "county": "San Mateo",
+      "places": [
+        "Colma Historical Museum",
+        "Sterling Park Recreation Center",
+        "Cypress Lawn Arboretum"
+      ],
+      "checked": "2026-10-02",
+      "current": "小镇活动从官方入口查起"
+    },
+    {
+      "city": "Daly City",
+      "county": "San Mateo",
+      "places": [
+        "Gellert Park",
+        "Serramonte Main Library",
+        "San Bruno Mountain State & County Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "市府与图书馆日历分开筛选"
+    },
+    {
+      "city": "East Palo Alto",
+      "county": "San Mateo",
+      "places": [
+        "Cooley Landing",
+        "Jack Farrell Park",
+        "Ravenswood Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "11 月 15 日 Ravenswood 免费湿地导览"
+    },
+    {
+      "city": "Foster City",
+      "county": "San Mateo",
+      "places": [
+        "Leo J. Ryan Park",
+        "Sea Cloud Park",
+        "CuriOdyssey at Coyote Point"
+      ],
+      "checked": "2026-10-02",
+      "current": "秋季课程、社区活动与场地预约各有入口"
+    },
+    {
+      "city": "Half Moon Bay",
+      "county": "San Mateo",
+      "places": [
+        "Poplar Beach",
+        "Mac Dutra Plaza",
+        "Half Moon Bay State Beach"
+      ],
+      "checked": "2026-10-02",
+      "current": "南瓜节周末：先安排海岸交通"
+    },
+    {
+      "city": "Hillsborough",
+      "county": "San Mateo",
+      "places": [
+        "Vista Park",
+        "Carolands",
+        "CuriOdyssey at Coyote Point"
+      ],
+      "checked": "2026-10-02",
+      "current": "关注镇议题：从会议日历与议程入手"
+    },
+    {
+      "city": "Menlo Park",
+      "county": "San Mateo",
+      "places": [
+        "Burgess Park",
+        "Bedwell Bayfront Park",
+        "Allied Arts Guild"
+      ],
+      "checked": "2026-10-02",
+      "current": "Halloween Hoopla：游行和泳池活动别混订"
+    },
+    {
+      "city": "Millbrae",
+      "county": "San Mateo",
+      "places": [
+        "Central Park",
+        "Millbrae Library",
+        "Junipero Serra Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "社区活动先看市府最新日历"
+    },
+    {
+      "city": "Pacifica",
+      "county": "San Mateo",
+      "places": [
+        "Mori Point",
+        "Rockaway Beach",
+        "San Pedro Valley Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Jean E. Brink Pool 比赛周末暂停日常游泳"
+    },
+    {
+      "city": "Portola Valley",
+      "county": "San Mateo",
+      "places": [
+        "Portola Valley Town Center",
+        "Coal Mine Ridge",
+        "Windy Hill Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "科学、社区与镇会议，按类别查看"
+    },
+    {
+      "city": "Redwood City",
+      "county": "San Mateo",
+      "places": [
+        "San Mateo County History Museum",
+        "Stulsaft Park",
+        "Pulgas Water Temple"
+      ],
+      "checked": "2026-10-02",
+      "current": "10 月 19 日图书馆全系统关闭"
+    },
+    {
+      "city": "San Bruno",
+      "county": "San Mateo",
+      "places": [
+        "San Bruno City Park",
+        "Recreation and Aquatic Center",
+        "Junipero Serra Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "免费 Día de los Muertos 家庭庆典"
+    },
+    {
+      "city": "San Carlos",
+      "county": "San Mateo",
+      "places": [
+        "Museum of San Carlos History",
+        "Burton Park",
+        "Hiller Aviation Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "11 月 14 日食物保存课：早鸟价已结束"
+    },
+    {
+      "city": "San Mateo",
+      "county": "San Mateo",
+      "places": [
+        "Central Park Japanese Garden",
+        "Seal Point Park",
+        "CuriOdyssey at Coyote Point"
+      ],
+      "checked": "2026-10-02",
+      "current": "居民免费碎纸与电子垃圾回收日"
+    },
+    {
+      "city": "South San Francisco",
+      "county": "San Mateo",
+      "places": [
+        "Orange Memorial Park",
+        "Library | Parks and Recreation Center",
+        "Sign Hill"
+      ],
+      "checked": "2026-10-02",
+      "current": "11 月 7 日室内节日手作市集"
+    },
+    {
+      "city": "Woodside",
+      "county": "San Mateo",
+      "places": [
+        "Wunderlich Park",
+        "Woodside Library",
+        "Filoli Historic House & Garden"
+      ],
+      "checked": "2026-10-02",
+      "current": "Old La Honda 上段施工，骑行前查封路"
+    },
+    {
+      "city": "Campbell",
+      "county": "Santa Clara",
+      "places": [
+        "Campbell Historical Museum",
+        "Ainsley House",
+        "Los Gatos Creek Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "Oktoberfest Fun Run 与市中心节庆分开规划"
+    },
+    {
+      "city": "Cupertino",
+      "county": "Santa Clara",
+      "places": [
+        "McClellan Ranch Preserve",
+        "Memorial Park",
+        "Apple Park Visitor Center"
+      ],
+      "checked": "2026-10-02",
+      "current": "免费观察 Baer Blacksmith Shop 锻造示范"
+    },
+    {
+      "city": "Gilroy",
+      "county": "Santa Clara",
+      "places": [
+        "Gilroy Museum",
+        "Christmas Hill Park",
+        "Gilroy Gardens"
+      ],
+      "checked": "2026-10-02",
+      "current": "公园与步道规划正在征求居民意见"
+    },
+    {
+      "city": "Los Altos",
+      "county": "Santa Clara",
+      "places": [
+        "Los Altos History Museum",
+        "Shoup Park",
+        "Redwood Grove Nature Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "用不同日历找休闲活动和居民沟通"
+    },
+    {
+      "city": "Los Altos Hills",
+      "county": "Santa Clara",
+      "places": [
+        "Byrne Preserve",
+        "Westwind Community Barn",
+        "Hidden Villa"
+      ],
+      "checked": "2026-10-02",
+      "current": "枝叶免费回收：带居民凭证并自行卸料"
+    },
+    {
+      "city": "Los Gatos",
+      "county": "Santa Clara",
+      "places": [
+        "New Museum Los Gatos (NUMU)",
+        "Vasona Lake County Park",
+        "Oak Meadow Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "NUMU 10 月 17 日开幕活动免费预约"
+    },
+    {
+      "city": "Milpitas",
+      "county": "Santa Clara",
+      "places": [
+        "Jose Higuera Adobe Park",
+        "Cardoza Park",
+        "Ed R. Levin County Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "MAP 免费说明会：了解申请材料与市政折扣"
+    },
+    {
+      "city": "Monte Sereno",
+      "county": "Santa Clara",
+      "places": [
+        "Monte Sereno City Hall",
+        "El Sereno Preserve",
+        "NUMU — New Museum Los Gatos"
+      ],
+      "checked": "2026-10-02",
+      "current": "10 月 22 日 CPR 与 AED 基础体验课"
+    },
+    {
+      "city": "Morgan Hill",
+      "county": "Santa Clara",
+      "places": [
+        "Villa Mira Monte",
+        "Community Park",
+        "Henry W. Coe State Park — Coe Ranch"
+      ],
+      "checked": "2026-10-02",
+      "current": "CRC 二十周年：免费晨跑与家庭活动"
+    },
+    {
+      "city": "Mountain View",
+      "county": "Santa Clara",
+      "places": [
+        "Computer History Museum",
+        "Shoreline at Mountain View",
+        "Google Visitor Experience"
+      ],
+      "checked": "2026-10-02",
+      "current": "11 月 8 日农贸市场换址至 Hope Street"
+    },
+    {
+      "city": "Palo Alto",
+      "county": "Santa Clara",
+      "places": [
+        "Baylands Nature Preserve",
+        "Rinconada Park",
+        "Cantor Arts Center at Stanford"
+      ],
+      "checked": "2026-10-02",
+      "current": "分馆活动与假日开放时间一起查"
+    },
+    {
+      "city": "San Jose",
+      "county": "Santa Clara",
+      "places": [
+        "Municipal Rose Garden",
+        "History Park",
+        "The Tech Interactive",
+        "Rosicrucian Egyptian Museum",
+        "Winchester Mystery House"
+      ],
+      "checked": "2026-10-02",
+      "current": "TAEMIN 原定 10 月 12 日演出已延期"
+    },
+    {
+      "city": "Santa Clara",
+      "county": "Santa Clara",
+      "places": [
+        "Triton Museum of Art",
+        "Central Park",
+        "Mission Santa Clara de Asís",
+        "Intel Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "Intel Museum 11 月 11 日闭馆"
+    },
+    {
+      "city": "Saratoga",
+      "county": "Santa Clara",
+      "places": [
+        "Hakone Estate and Gardens",
+        "Montalvo Arts Center",
+        "Sanborn County Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "社区活动日历也收录独立主办方"
+    },
+    {
+      "city": "Sunnyvale",
+      "county": "Santa Clara",
+      "places": [
+        "Sunnyvale Heritage Park Museum",
+        "Sunnyvale Baylands Park",
+        "Las Palmas Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Orchard Music Series 最后一场：Pop Rocks"
+    },
+    {
+      "city": "Alameda",
+      "county": "Alameda",
+      "places": [
+        "Robert W. Crown Memorial State Beach",
+        "Doug Siden Visitor Center at Crab Cove",
+        "USS Hornet Sea, Air & Space Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "古董集市下一场先等官方日期更新"
+    },
+    {
+      "city": "Albany",
+      "county": "Alameda",
+      "places": [
+        "Albany Bulb, Neck & Waterfront Trail",
+        "Memorial Park",
+        "Albany Hill & Creekside Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "消防站煎饼早餐回归"
+    },
+    {
+      "city": "Berkeley",
+      "county": "Alameda",
+      "places": [
+        "Berkeley Rose Garden",
+        "Berkeley Marina / César Chávez Park",
+        "UC Berkeley / Sather Tower",
+        "UC Botanical Garden"
+      ],
+      "checked": "2026-10-02",
+      "current": "秋日植物园：先按日期查开放与项目"
+    },
+    {
+      "city": "Dublin",
+      "county": "Alameda",
+      "places": [
+        "Dublin Heritage Park & Museums",
+        "Emerald Glen Park",
+        "Dublin Hills Regional Open Space Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "Harvest Fair：免费入场与付费活动分开看"
+    },
+    {
+      "city": "Emeryville",
+      "county": "Alameda",
+      "places": [
+        "Marina Park",
+        "Doyle Hollis Park",
+        "Public Market Emeryville"
+      ],
+      "checked": "2026-10-02",
+      "current": "年度艺术展：周三至周日开放"
+    },
+    {
+      "city": "Fremont",
+      "county": "Alameda",
+      "places": [
+        "Central Park / Lake Elizabeth",
+        "Ardenwood Historic Farm",
+        "Mission Peak Regional Preserve",
+        "Coyote Hills Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "11月亲子识鸟：在 Coyote Hills 玩着学"
+    },
+    {
+      "city": "Hayward",
+      "county": "Alameda",
+      "places": [
+        "Japanese Gardens",
+        "Sulphur Creek Nature Center",
+        "Garin Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "11月海湾晨间观鸟：6岁起，须报名"
+    },
+    {
+      "city": "Livermore",
+      "county": "Alameda",
+      "places": [
+        "Ravenswood Historic Site",
+        "May Nissen Park",
+        "Bankhead Theater",
+        "Del Valle Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "ArtWalk 加入粉笔艺术路线"
+    },
+    {
+      "city": "Newark",
+      "county": "Alameda",
+      "places": [
+        "Lakeshore Park",
+        "Community Center Park",
+        "Silliman Activity & Family Aquatic Center"
+      ],
+      "checked": "2026-10-02",
+      "current": "Silliman 秋季泳池：滑梯与漂流河仍维修"
+    },
+    {
+      "city": "Oakland",
+      "county": "Alameda",
+      "places": [
+        "Lakeside Park / Lake Merritt",
+        "Morcom Rose Garden",
+        "Jack London Square",
+        "Dr. Aurelia Reinhardt Redwood Regional Park",
+        "Oakland Zoo"
+      ],
+      "checked": "2026-10-02",
+      "current": "11月1日 Fruitvale 免费亡灵节庆典"
+    },
+    {
+      "city": "Piedmont",
+      "county": "Alameda",
+      "places": [
+        "Piedmont Park & Exedra Plaza",
+        "Dracena Quarry Park",
+        "Crocker Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Piedmont Park 免费放映 Wonka"
+    },
+    {
+      "city": "Pleasanton",
+      "county": "Alameda",
+      "places": [
+        "Alviso Adobe Community Park",
+        "Museum on Main",
+        "Augustin Bernal Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "南瓜夜游先看开放日与 Gate 8"
+    },
+    {
+      "city": "San Leandro",
+      "county": "Alameda",
+      "places": [
+        "Marina Park",
+        "San Leandro History Museum",
+        "Oyster Bay Regional Shoreline"
+      ],
+      "checked": "2026-10-02",
+      "current": "图书馆免费桌游夜"
+    },
+    {
+      "city": "Union City",
+      "county": "Alameda",
+      "places": [
+        "Old Alvarado / Cesar Chavez Park",
+        "Charles F. Kennedy Park",
+        "Dry Creek Pioneer Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "免费了解 ShakeAlert 地震预警"
+    },
+    {
+      "city": "Antioch",
+      "county": "Contra Costa",
+      "places": [
+        "Contra Loma Regional Park",
+        "Black Diamond Mines Regional Preserve",
+        "El Campanil Theatre"
+      ],
+      "checked": "2026-10-02",
+      "current": "15岁及以下免费钓鱼比赛"
+    },
+    {
+      "city": "Brentwood",
+      "county": "Contra Costa",
+      "places": [
+        "City Park",
+        "Veterans Park",
+        "Marsh Creek Regional Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "从官方特别活动日历找下一场"
+    },
+    {
+      "city": "Clayton",
+      "county": "Contra Costa",
+      "places": [
+        "The Grove Park",
+        "Clayton Community Park",
+        "Mount Diablo State Park / Mitchell Canyon"
+      ],
+      "checked": "2026-10-02",
+      "current": "Oktoberfest 已结束，改查下一场城市活动"
+    },
+    {
+      "city": "Concord",
+      "county": "Contra Costa",
+      "places": [
+        "Todos Santos Plaza",
+        "Markham Nature Park and Arboretum",
+        "Contra Costa Canal Regional Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "Baldwin Park 糖果路线必须预先报名"
+    },
+    {
+      "city": "Danville",
+      "county": "Contra Costa",
+      "places": [
+        "Sycamore Valley Park",
+        "Eugene O'Neill National Historic Site",
+        "Blackhawk Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "12岁起可了解本地志愿服务机会"
+    },
+    {
+      "city": "El Cerrito",
+      "county": "Contra Costa",
+      "places": [
+        "Hillside Natural Area",
+        "Cerrito Vista Park",
+        "Ohlone Greenway"
+      ],
+      "checked": "2026-10-02",
+      "current": "全城车库甩卖：10月9日起取地图"
+    },
+    {
+      "city": "Hercules",
+      "county": "Contra Costa",
+      "places": [
+        "Refugio Valley Park",
+        "Shoreline Park",
+        "Hanna Ranch Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Ohana Day 长者午间聚会需报名"
+    },
+    {
+      "city": "Lafayette",
+      "county": "Contra Costa",
+      "places": [
+        "Lafayette Reservoir",
+        "Lafayette Community Park",
+        "Lafayette-Moraga Regional Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "Res Run 按距离选组，别混淆虚拟挑战"
+    },
+    {
+      "city": "Martinez",
+      "county": "Contra Costa",
+      "places": [
+        "John Muir National Historic Site",
+        "Ted and Kathy Radke Martinez Regional Shoreline",
+        "Contra Costa County History Center"
+      ],
+      "checked": "2026-10-02",
+      "current": "11月9日：在码头附近观鸟"
+    },
+    {
+      "city": "Moraga",
+      "county": "Contra Costa",
+      "places": [
+        "Moraga Commons Park",
+        "Rancho Laguna Park",
+        "Saint Mary's College Museum of Art"
+      ],
+      "checked": "2026-10-02",
+      "current": "Hacienda 傍晚万圣节与草地电影"
+    },
+    {
+      "city": "Oakley",
+      "county": "Contra Costa",
+      "places": [
+        "Big Break Regional Shoreline",
+        "Creekside Park",
+        "Marsh Creek Regional Trail / Cypress access"
+      ],
+      "checked": "2026-10-02",
+      "current": "11月湿地散步：5岁起、成人参与"
+    },
+    {
+      "city": "Orinda",
+      "county": "Contra Costa",
+      "places": [
+        "Orinda Community Center Park",
+        "Wilder Picnic Area",
+        "Sibley Volcanic Regional Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "Trunk & Treat 分三场，只给儿童登记"
+    },
+    {
+      "city": "Pinole",
+      "county": "Contra Costa",
+      "places": [
+        "Fernandez Park",
+        "Pinole Valley Park & Picnic Grove",
+        "Bayfront Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "从官方列表分清市集、社区活动与会议"
+    },
+    {
+      "city": "Pittsburg",
+      "county": "Contra Costa",
+      "places": [
+        "Small World Park",
+        "Pittsburg Marina",
+        "Pittsburg Historical Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "在城市月历中选择出行月份"
+    },
+    {
+      "city": "Pleasant Hill",
+      "county": "Contra Costa",
+      "places": [
+        "Pleasant Hill Park",
+        "Paso Nogal Park",
+        "Rodgers Ranch Heritage Center"
+      ],
+      "checked": "2026-10-02",
+      "current": "Haunted Trail 免费开放，无需观众报名"
+    },
+    {
+      "city": "Richmond",
+      "county": "Contra Costa",
+      "places": [
+        "Rosie the Riveter Visitor Education Center",
+        "Rosie the Riveter Memorial / Marina Bay Park",
+        "SS Red Oak Victory"
+      ],
+      "checked": "2026-10-02",
+      "current": "免费版画体验：上午场已转候补"
+    },
+    {
+      "city": "San Pablo",
+      "county": "Contra Costa",
+      "places": [
+        "Alvarado Adobe",
+        "Davis Park",
+        "Blume House & Bunk House"
+      ],
+      "checked": "2026-10-02",
+      "current": "City Hall-o-Ween 已公布日期"
+    },
+    {
+      "city": "San Ramon",
+      "county": "Contra Costa",
+      "places": [
+        "Central Park",
+        "Forest Home Farms Historic Park",
+        "Bishop Ranch Open Space Regional Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "自然故事时间有万圣节专场"
+    },
+    {
+      "city": "Walnut Creek",
+      "county": "Contra Costa",
+      "places": [
+        "Borges Ranch",
+        "Heather Farm Park",
+        "Ruth Bancroft Garden"
+      ],
+      "checked": "2026-10-02",
+      "current": "Diablo Improv Festival 按节目分别选票"
+    },
+    {
+      "city": "Belvedere",
+      "county": "Marin",
+      "places": [
+        "China Cabin",
+        "Belvedere Community Park",
+        "Angel Island State Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/8 共享图书馆维修咨询：先登记物件"
+    },
+    {
+      "city": "Corte Madera",
+      "county": "Marin",
+      "places": [
+        "Corte Madera Town Park",
+        "Menke Park",
+        "Ring Mountain Open Space Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "社区活动与康乐项目分开找"
+    },
+    {
+      "city": "Fairfax",
+      "county": "Marin",
+      "places": [
+        "Marin Museum of Bicycling",
+        "Fairfax Library",
+        "Cascade Canyon Open Space Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "双语故事会已列到十一月，0–5岁每次选一场"
+    },
+    {
+      "city": "Larkspur",
+      "county": "Marin",
+      "places": [
+        "Piper Park",
+        "Larkspur Library",
+        "Baltimore Canyon Open Space Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "图书馆与康乐日历：先选类别再安排周末"
+    },
+    {
+      "city": "Mill Valley",
+      "county": "Marin",
+      "places": [
+        "Old Mill Park",
+        "Mill Valley Public Library",
+        "Muir Woods National Monument"
+      ],
+      "checked": "2026-10-02",
+      "current": "电影节期间也可按市日历找日常活动"
+    },
+    {
+      "city": "Novato",
+      "county": "Marin",
+      "places": [
+        "Hamilton Field History Museum",
+        "Olompali State Historic Park",
+        "Novato History Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/17 两场儿童友好万圣节魔术"
+    },
+    {
+      "city": "Ross",
+      "county": "Marin",
+      "places": [
+        "Marin Art and Garden Center",
+        "Ross Common",
+        "Natalie Coffin Greene Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Fall 2 康乐课程：需要重新报名"
+    },
+    {
+      "city": "San Anselmo",
+      "county": "Marin",
+      "places": [
+        "Robson-Harrington Park",
+        "Imagination Park",
+        "Memorial Park / Millennium Playground"
+      ],
+      "checked": "2026-10-02",
+      "current": "按图书馆与康乐栏目找本镇活动"
+    },
+    {
+      "city": "San Rafael",
+      "county": "Marin",
+      "places": [
+        "Marin County Civic Center",
+        "Falkirk Cultural Center",
+        "Mission San Rafael Arcángel"
+      ],
+      "checked": "2026-10-02",
+      "current": "县立图书馆活动：筛选 Civic Center 分馆"
+    },
+    {
+      "city": "Sausalito",
+      "county": "Marin",
+      "places": [
+        "Bay Model Visitor Center",
+        "Dunphy Park",
+        "Bay Area Discovery Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/31 游行与狗狗装扮赛，注意 Caledonia 封路"
+    },
+    {
+      "city": "Tiburon",
+      "county": "Marin",
+      "places": [
+        "Railroad & Ferry Depot Museum",
+        "Old St. Hilary's Landmark",
+        "Blackie’s Pasture / Old Rail Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/8 亚洲叶菜种植课，先登记"
+    },
+    {
+      "city": "American Canyon",
+      "county": "Napa",
+      "places": [
+        "Clarke Ranch",
+        "Wetlands & Napa River Bay Trail",
+        "Newell Open Space Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "社区日历已列十月项目，按场地查看"
+    },
+    {
+      "city": "Calistoga",
+      "county": "Napa",
+      "places": [
+        "Sharpsteen Museum",
+        "Pioneer Park",
+        "Old Faithful Geyser of California"
+      ],
+      "checked": "2026-10-02",
+      "current": "十月图书馆节目：先定位 Calistoga 分馆"
+    },
+    {
+      "city": "Napa",
+      "county": "Napa",
+      "places": [
+        "Oxbow Commons",
+        "Oxbow Preserve",
+        "Oxbow Public Market"
+      ],
+      "checked": "2026-10-02",
+      "current": "城市活动与会议分开筛选"
+    },
+    {
+      "city": "St. Helena",
+      "county": "Napa",
+      "places": [
+        "Robert Louis Stevenson Museum",
+        "Crane Park",
+        "Bale Grist Mill State Historic Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/17起 The MAC 新展：别跑到 Yountville"
+    },
+    {
+      "city": "Yountville",
+      "county": "Napa",
+      "places": [
+        "Yountville Art Walk",
+        "Veterans Memorial Park",
+        "Napa Valley Museum Yountville"
+      ],
+      "checked": "2026-10-02",
+      "current": "镇日历补查康乐安排与公共会议"
+    },
+    {
+      "city": "Cloverdale",
+      "county": "Sonoma",
+      "places": [
+        "Cloverdale History Center",
+        "Cloverdale City Park",
+        "Cloverdale River Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "官方日历也列养护排程，先认清活动类型"
+    },
+    {
+      "city": "Cotati",
+      "county": "Sonoma",
+      "places": [
+        "La Plaza Park",
+        "Cotati Historical Society Museum",
+        "Helen Putnam Park (Cotati)"
+      ],
+      "checked": "2026-10-02",
+      "current": "Community Events 栏目与会议栏目分开看"
+    },
+    {
+      "city": "Healdsburg",
+      "county": "Sonoma",
+      "places": [
+        "Healdsburg Plaza",
+        "Healdsburg Museum",
+        "Foley Family Community Pavilion"
+      ],
+      "checked": "2026-10-02",
+      "current": "周六农夫市集已迁入3 North Street新棚亭"
+    },
+    {
+      "city": "Petaluma",
+      "county": "Sonoma",
+      "places": [
+        "Petaluma Historical Library & Museum",
+        "Shollenberger Park",
+        "Petaluma Adobe State Historic Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "图书馆日历按 Petaluma 分馆筛选"
+    },
+    {
+      "city": "Rohnert Park",
+      "county": "Sonoma",
+      "places": [
+        "Spreckels Performing Arts Center",
+        "Dorotea Park",
+        "Crane Creek Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "找 Rohnert Park–Cotati 分馆的当前活动"
+    },
+    {
+      "city": "Santa Rosa",
+      "county": "Sonoma",
+      "places": [
+        "Charles M. Schulz Museum",
+        "Luther Burbank Home & Gardens",
+        "Historic Railroad Square"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/17《大南瓜》60周年馆内活动"
+    },
+    {
+      "city": "Sebastopol",
+      "county": "Sonoma",
+      "places": [
+        "West County Museum",
+        "Luther Burbank Experiment Farm",
+        "Laguna Wetlands Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/10–11、17–18 Art Trails：先选工作室地图"
+    },
+    {
+      "city": "Sonoma",
+      "county": "Sonoma",
+      "places": [
+        "Sonoma Plaza",
+        "Sonoma State Historic Park",
+        "Bartholomew Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "花园丰收市集：11/7、11/14仍有周六安排"
+    },
+    {
+      "city": "Windsor",
+      "county": "Sonoma",
+      "places": [
+        "Windsor Town Green",
+        "Windsor Museum",
+        "Foothill Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "10/16 绿色万圣节交换会，11/7 还有秋季交换"
+    },
+    {
+      "city": "Benicia",
+      "county": "Solano",
+      "places": [
+        "Benicia Capitol State Historic Park",
+        "Museum of History Benicia — Arsenal Gallery",
+        "Benicia State Recreation Area"
+      ],
+      "checked": "2026-10-02",
+      "current": "旅游活动日历与市政会议日历分开使用"
+    },
+    {
+      "city": "Dixon",
+      "county": "Solano",
+      "places": [
+        "Dixon Historical Society & Museum",
+        "Hall Memorial Park",
+        "Jepson Prairie Preserve"
+      ],
+      "checked": "2026-10-02",
+      "current": "Lambtown已结束，秋日可查 Jepson Prairie 访客区"
+    },
+    {
+      "city": "Fairfield",
+      "county": "Solano",
+      "places": [
+        "Jelly Belly Factory",
+        "Allan Witt Community Park",
+        "Rockville Hills Regional Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "先分清 Civic Center 与 Cordelia 两个馆址"
+    },
+    {
+      "city": "Rio Vista",
+      "county": "Solano",
+      "places": [
+        "Waterfront Promenade",
+        "Bruning Park",
+        "Sandy Beach County Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "Sandy Beach 工程与河岸使用提醒：禁止游泳"
+    },
+    {
+      "city": "Suisun City",
+      "county": "Solano",
+      "places": [
+        "Harbor Plaza",
+        "Rush Ranch Open Space",
+        "Western Railway Museum"
+      ],
+      "checked": "2026-10-02",
+      "current": "11/1 亡灵节文化晚会：入场免费，餐饮另付"
+    },
+    {
+      "city": "Vacaville",
+      "county": "Solano",
+      "places": [
+        "Vacaville Museum",
+        "Andrews Park",
+        "Lagoon Valley Park"
+      ],
+      "checked": "2026-10-02",
+      "current": "图书馆活动别跑错 Town Square 与 Cultural Center"
+    },
+    {
+      "city": "Vallejo",
+      "county": "Solano",
+      "places": [
+        "Vallejo Naval & Historical Museum",
+        "Glen Cove Waterfront Park",
+        "Mare Island San Pablo Bay Trail"
+      ],
+      "checked": "2026-10-02",
+      "current": "GVRD 新活动入口：按项目看地点和年龄"
+    }
+  ],
+  "activeEvents": {
+    "total": 323,
+    "byRegion": {
+      "east-bay": 79,
+      "north-bay": 85,
+      "peninsula": 43,
+      "sf": 71,
+      "south-bay": 45
+    },
+    "byCategory": {
+      "culture": 156,
+      "family": 117,
+      "food": 27,
+      "outdoors": 23
+    },
+    "novemberThrough15": [
+      {
+        "id": "danville-scarecrow-stroll-2026",
+        "title": "Danville 稻草人商圈漫步",
+        "city": "Danville",
+        "start": "2026-10-01",
+        "end": "2026-11-01"
+      },
+      {
+        "id": "november-north-fairfax-bilingual-storytime-2026",
+        "title": "Fairfax 幼儿西英双语故事会",
+        "city": "Fairfax",
+        "start": "2026-10-06",
+        "end": "2026-11-10",
+        "days": [
+          "2026-10-06",
+          "2026-10-13",
+          "2026-10-20",
+          "2026-10-27",
+          "2026-11-03",
+          "2026-11-10"
+        ]
+      },
+      {
+        "id": "livermore-great-elephant-migration-2026",
+        "title": "Livermore 大象迁徙公共艺术展",
+        "city": "Livermore",
+        "start": "2026-10-10",
+        "end": "2026-12-06"
+      },
+      {
+        "id": "november-north-healdsburg-market-2026",
+        "title": "Healdsburg 周六农夫市集：新棚亭地址",
+        "city": "Healdsburg",
+        "start": "2026-10-10",
+        "end": "2026-11-14",
+        "days": [
+          "2026-10-10",
+          "2026-10-17",
+          "2026-10-24",
+          "2026-10-31",
+          "2026-11-07",
+          "2026-11-14"
+        ]
+      },
+      {
+        "id": "november-north-sonoma-harvest-market-2026",
+        "title": "Sonoma Garden Park 丰收市集",
+        "city": "Sonoma",
+        "start": "2026-10-10",
+        "end": "2026-11-14",
+        "days": [
+          "2026-10-10",
+          "2026-10-17",
+          "2026-10-24",
+          "2026-10-31",
+          "2026-11-07",
+          "2026-11-14"
+        ]
+      },
+      {
+        "id": "november-north-eames-exhibition-2026",
+        "title": "The MAC：Eames & Eames 现代设计展",
+        "city": "St. Helena",
+        "start": "2026-10-17",
+        "end": "2026-11-15"
+      },
+      {
+        "id": "milpitas-map-workshops-fall-2026",
+        "title": "MAP 免费说明会：了解申请材料与市政折扣",
+        "city": "Milpitas",
+        "start": "2026-10-20",
+        "end": "2026-11-07",
+        "days": [
+          "2026-10-20",
+          "2026-11-07"
+        ]
+      },
+      {
+        "id": "nov2026-big-break-nature-walk",
+        "title": "Big Break 湿地散步：11月四个场次",
+        "city": "Oakley",
+        "start": "2026-11-01",
+        "end": "2026-11-15",
+        "days": [
+          "2026-11-01",
+          "2026-11-08",
+          "2026-11-14",
+          "2026-11-15"
+        ]
+      },
+      {
+        "id": "nov2026-black-diamond-trails-challenge",
+        "title": "Black Diamond 山径挑战：5.2英里爬升路线",
+        "city": "Antioch",
+        "start": "2026-11-01",
+        "end": "2026-11-01",
+        "days": [
+          "2026-11-01"
+        ]
+      },
+      {
+        "id": "nov2026-brushy-peak-heritage-hike",
+        "title": "Brushy Peak：原住民历史与山地徒步",
+        "city": "Livermore",
+        "start": "2026-11-01",
+        "end": "2026-11-01",
+        "days": [
+          "2026-11-01"
+        ]
+      },
+      {
+        "id": "nov2026-fruitvale-dia-muertos",
+        "title": "Fruitvale 亡灵节：社区祭坛与街头庆典",
+        "city": "Oakland",
+        "start": "2026-11-01",
+        "end": "2026-11-01",
+        "days": [
+          "2026-11-01"
+        ]
+      },
+      {
+        "id": "roundup-suisun-dia-muertos-2026",
+        "title": "Suisun City 亡灵节文化晚会",
+        "city": "Suisun City",
+        "start": "2026-11-01",
+        "end": "2026-11-01"
+      },
+      {
+        "id": "midpen-hiking-highlights-nov2-2026",
+        "title": "林地看古树与砂岩：El Corte de Madera 导览",
+        "city": "Woodside",
+        "start": "2026-11-02",
+        "end": "2026-11-02"
+      },
+      {
+        "id": "nov2026-hayward-monday-birding",
+        "title": "Hayward 周一观鸟：West Winton 入口",
+        "city": "Hayward",
+        "start": "2026-11-02",
+        "end": "2026-11-02",
+        "days": [
+          "2026-11-02"
+        ]
+      },
+      {
+        "id": "sj-sharks-flames-nov2-2026",
+        "title": "Sharks 主场迎战 Flames",
+        "city": "San Jose",
+        "start": "2026-11-02",
+        "end": "2026-11-02"
+      },
+      {
+        "id": "oakland-xg-the-core-november-2026",
+        "title": "XG WORLD TOUR: THE CORE Oakland 站",
+        "city": "Oakland",
+        "start": "2026-11-03",
+        "end": "2026-11-03"
+      },
+      {
+        "id": "san-mateo-downtown-market-nov5-2026",
+        "title": "San Mateo 周四傍晚农贸市场",
+        "city": "San Mateo",
+        "start": "2026-11-05",
+        "end": "2026-11-05"
+      },
+      {
+        "id": "sf-warriors-heat-november-2026",
+        "title": "Warriors 主场对 Miami Heat",
+        "city": "San Francisco",
+        "start": "2026-11-05",
+        "end": "2026-11-05"
+      },
+      {
+        "id": "sj-don-omar-nov-2026",
+        "title": "Don Omar：Back to Reggaeton",
+        "city": "San Jose",
+        "start": "2026-11-05",
+        "end": "2026-11-05"
+      },
+      {
+        "id": "sj-mon-laferte-nov-2026",
+        "title": "Mon Laferte 圣荷西演唱会",
+        "city": "San Jose",
+        "start": "2026-11-06",
+        "end": "2026-11-06"
+      },
+      {
+        "id": "nov2026-presidio-dia-muertos-diwali",
+        "title": "Presidio：亡灵节与排灯节文化庆典",
+        "city": "San Francisco",
+        "start": "2026-11-07",
+        "end": "2026-11-07",
+        "days": [
+          "2026-11-07"
+        ]
+      },
+      {
+        "id": "november-north-sugarloaf-public-star-party-2026",
+        "title": "Sugarloaf 公众观星夜",
+        "city": "Kenwood",
+        "start": "2026-11-07",
+        "end": "2026-11-07"
+      },
+      {
+        "id": "roundup-windsor-fall-swap-2026",
+        "title": "Windsor 秋季装饰与衣物交换",
+        "city": "Windsor",
+        "start": "2026-11-07",
+        "end": "2026-11-07"
+      },
+      {
+        "id": "sjsu-northern-illinois-nov-2026",
+        "title": "SJSU 对 Northern Illinois：家庭周末主场",
+        "city": "San Jose",
+        "start": "2026-11-07",
+        "end": "2026-11-07"
+      },
+      {
+        "id": "ssf-senior-holiday-boutique-nov7-2026",
+        "title": "South San Francisco 节日手作市集",
+        "city": "South San Francisco",
+        "start": "2026-11-07",
+        "end": "2026-11-07"
+      },
+      {
+        "id": "midpen-sentinel-sky-nov8-2026",
+        "title": "Mount Umunhum 冷战历史：Sentinel in the Sky",
+        "city": "Los Gatos",
+        "start": "2026-11-08",
+        "end": "2026-11-08"
+      },
+      {
+        "id": "mountain-view-market-hope-st-nov8-2026",
+        "title": "Mountain View 农贸市场：11 月 8 日改到 Hope Street",
+        "city": "Mountain View",
+        "start": "2026-11-08",
+        "end": "2026-11-08"
+      },
+      {
+        "id": "nov2026-botanical-one-day-choir",
+        "title": "植物园 One Day Choir：一起学唱一首歌",
+        "city": "San Francisco",
+        "start": "2026-11-08",
+        "end": "2026-11-08",
+        "days": [
+          "2026-11-08"
+        ]
+      },
+      {
+        "id": "november-north-sugarloaf-nature-talk-2026",
+        "title": "Sugarloaf 自然桌边讲解：颜色、图案与信号",
+        "city": "Kenwood",
+        "start": "2026-11-08",
+        "end": "2026-11-08"
+      },
+      {
+        "id": "santa-clara-49ers-raiders-nov-2026",
+        "title": "49ers 主场迎战 Raiders",
+        "city": "Santa Clara",
+        "start": "2026-11-08",
+        "end": "2026-11-08"
+      },
+      {
+        "id": "sj-smashing-pumpkins-nov-2026",
+        "title": "The Smashing Pumpkins：The Rats In a Cage Tour",
+        "city": "San Jose",
+        "start": "2026-11-08",
+        "end": "2026-11-08"
+      },
+      {
+        "id": "nov2026-martinez-monday-birding",
+        "title": "Martinez 滨水周一观鸟",
+        "city": "Martinez",
+        "start": "2026-11-09",
+        "end": "2026-11-09",
+        "days": [
+          "2026-11-09"
+        ]
+      },
+      {
+        "id": "roundup-schulz-pearls-jubilee-2026",
+        "title": "Pearls Jubilee：Stephan Pastis 对谈与签书",
+        "city": "Santa Rosa",
+        "start": "2026-11-10",
+        "end": "2026-11-10"
+      },
+      {
+        "id": "nov2026-mission-market-season-final",
+        "title": "Mission Community Market：2026收季最后一天",
+        "city": "San Francisco",
+        "start": "2026-11-12",
+        "end": "2026-11-12",
+        "days": [
+          "2026-11-12"
+        ]
+      },
+      {
+        "id": "hiller-starlight-nights-nov13-2026",
+        "title": "Hiller Starlight Nights：晚间航空馆与星空",
+        "city": "San Carlos",
+        "start": "2026-11-13",
+        "end": "2026-11-13"
+      },
+      {
+        "id": "november-north-sips-stars-2026",
+        "title": "Sips and Stars：21岁以上酒与星空之夜",
+        "city": "Kenwood",
+        "start": "2026-11-13",
+        "end": "2026-11-13"
+      },
+      {
+        "id": "oakland-jo-koy-november-2026",
+        "title": "Jo Koy: Koy Meets World 喜剧专场",
+        "city": "Oakland",
+        "start": "2026-11-13",
+        "end": "2026-11-13"
+      },
+      {
+        "id": "san-jose-matilda-nov2026",
+        "title": "CMT San Jose《Matilda》音乐剧",
+        "city": "San Jose",
+        "start": "2026-11-13",
+        "end": "2026-11-22",
+        "days": [
+          "2026-11-13",
+          "2026-11-14",
+          "2026-11-15",
+          "2026-11-20",
+          "2026-11-21",
+          "2026-11-22"
+        ]
+      },
+      {
+        "id": "filoli-holidays-from-nov14-2026",
+        "title": "Filoli 节日季开幕：日间花园与夜间灯饰分开选",
+        "city": "Woodside",
+        "start": "2026-11-14",
+        "end": "2027-01-10",
+        "days": [
+          "2026-11-14",
+          "2026-11-15"
+        ]
+      },
+      {
+        "id": "nov2026-coyote-hills-kids-birding",
+        "title": "Coyote Hills 儿童识鸟游戏",
+        "city": "Fremont",
+        "start": "2026-11-14",
+        "end": "2026-11-14",
+        "days": [
+          "2026-11-14"
+        ]
+      },
+      {
+        "id": "nov2026-red-oak-fall-swing",
+        "title": "Red Oak Victory 秋日摇摆舞会",
+        "city": "Richmond",
+        "start": "2026-11-14",
+        "end": "2026-11-14",
+        "days": [
+          "2026-11-14"
+        ]
+      },
+      {
+        "id": "san-carlos-gifts-kitchen-nov14-2026",
+        "title": "San Carlos 食物保存实作：Gifts from the Kitchen",
+        "city": "San Carlos",
+        "start": "2026-11-14",
+        "end": "2026-11-14"
+      },
+      {
+        "id": "nov2026-hayward-bay-bird-morning",
+        "title": "Hayward 海湾晨间观鸟：6岁起报名",
+        "city": "Hayward",
+        "start": "2026-11-15",
+        "end": "2026-11-15",
+        "days": [
+          "2026-11-15"
+        ]
+      },
+      {
+        "id": "november-north-jack-london-author-2026",
+        "title": "Jack London 公园作家下午会：The Second Mrs. London",
+        "city": "Glen Ellen",
+        "start": "2026-11-15",
+        "end": "2026-11-15"
+      },
+      {
+        "id": "ravenswood-tidal-marsh-nov15-2026",
+        "title": "Ravenswood 潮汐湿地慢走与观鸟",
+        "city": "East Palo Alto",
+        "start": "2026-11-15",
+        "end": "2026-11-15"
+      }
+    ]
+  },
+  "activeOffers": [
+    {
+      "id": "lowes-kids-lollipop",
+      "title": "顺路领一根儿童棒棒糖",
+      "date": "长期福利 · 每次到店可询问",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "ikea-family-hot-drink",
+      "title": "会员普通咖啡或茶",
+      "date": "长期福利 · 按餐厅时段",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sephora-birthday",
+      "title": "生日月到店领取美妆小样礼",
+      "date": "生日月 · 每年一次 · 店内免购物",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "starbucks-cafe-refills",
+      "title": "坐下来喝，指定咖啡和茶可免费续杯",
+      "date": "日常福利 · 同一次堂食期间",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "conservatory-free-oct6",
+      "title": "10/6 免费逛金门公园温室",
+      "date": "10/6 · 10:00–16:30；16:00停止入场",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "botanical-free-oct13",
+      "title": "10/13 植物园全天普通入场免费",
+      "date": "10/13 · 07:30–18:00；十月17:00停止入场",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "lowes-firefighting-plane-oct17",
+      "title": "10/17 免费做消防飞机",
+      "date": "10/17 周六 · 10:00–13:00",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "yogurtland-anniversary-oct20",
+      "title": "10/20 会员到店冰酸奶八折",
+      "date": "10/20 周二 · 参与门店营业时间",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "svma-free-wednesdays-october",
+      "title": "Sonoma 周三免费美术馆时光",
+      "date": "每周三 · 11:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "japanese-tea-garden-free-hour",
+      "title": "周一三五，早一小时免费进茶园",
+      "date": "周一、三、五09:00–10:00免费入场",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sfpl-discover-go",
+      "title": "SF 居民用图书证预约免费场馆票",
+      "date": "长期福利 · 最多同时两项预约",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "smcl-discover-go",
+      "title": "半岛图书证，先核对卡号再借门票",
+      "date": "长期福利 · 最多同时两项预约",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "alameda-county-discover-go",
+      "title": "东湾居民先查图书馆免费或低价门票",
+      "date": "长期福利 · 以登录后可用票为准",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "santa-clara-library-parks-pass",
+      "title": "借一张县公园车票，周末少付入园费",
+      "date": "长期福利 · 每次可借三周",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "sonoma-county-museum-family-oct10",
+      "title": "10/10 Santa Rosa 博物馆免费家庭日",
+      "date": "10/10 周六 · 活动 11:00–13:00",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sfmoma-family-oct25",
+      "title": "10/25 带孩子逛 SFMOMA，最多两位成人免费",
+      "date": "10/25 周日 · 10:00–17:00 · 门票提前两周开放",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "cantor-stanford-free",
+      "title": "Stanford 的 Cantor 美术馆常年免费",
+      "date": "常设福利 · 周二、周三闭馆",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sfpl-radon-detector-loan",
+      "title": "SFPL 图书证可免费借氡探测器",
+      "date": "常设借用 · 最长 21 天",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "berkeley-tool-lending",
+      "title": "Berkeley 居民可免费借工具和厨房设备",
+      "date": "常设服务 · 须完成工具馆登记",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "ikea-emeryville-as-is-wednesdays",
+      "title": "Emeryville IKEA 周三 As-is 区额外九折",
+      "date": "每周三 · 仅 Emeryville 实体店",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "poppy-claro-doggie-dinners-fall",
+      "title": "周五带狗出门：$6 三道宠物晚餐延长至秋季",
+      "date": "秋季每周五 · 17:00–20:00 露台",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "happy-hollow-senior-safari-oct22",
+      "title": "10/22 满 50 岁，可免费逛 Happy Hollow",
+      "date": "10/22 周四 · 09:00–10:00 入园",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "muir-woods-fee-free-oct27",
+      "title": "10/27 Muir Woods：符合身份条件免入园费",
+      "date": "10/27 周二 · 仍需停车或接驳预约",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "chabot-free-telescopes",
+      "title": "周五周六到 Oakland 山上免费观星",
+      "date": "周五、周六 · 19:30–22:30，视天气",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "randall-museum-free",
+      "title": "Randall Museum 常年免费，亲子科学半日游",
+      "date": "周二至周六 · 10:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "triton-museum-free",
+      "title": "Santa Clara Triton：展览和停车都免费",
+      "date": "周二至周日 · 11:00–16:30",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "anderson-stanford-free",
+      "title": "Stanford 再加一站：Anderson 现代艺术免费",
+      "date": "周四至周一 · 11:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "curiodyssey-museums-for-all",
+      "title": "指定福利卡家庭，CuriOdyssey 最多四人免费",
+      "date": "开放日适用；10/19闭馆维护，10/31提前15:00闭馆。",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "exploratorium-for-all-five",
+      "title": "Exploratorium 指定福利卡入馆 $5",
+      "date": "白天开放时段及18+ After Dark；按当天安排",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "lawrence-museums-for-all",
+      "title": "持 EBT 到 Lawrence 科学馆，最多六人免费",
+      "date": "周三至周日 · 10:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sonoma-library-regional-parks",
+      "title": "Sonoma 图书馆借停车证，去县公园走走",
+      "date": "常设借用 · 先查馆藏",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "sonoma-library-discover-go",
+      "title": "北湾图书证也能借免费或折扣场馆票",
+      "date": "常设福利 · 同时最多两项预约",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "muni-youth-free",
+      "title": "18 岁及以下乘 Muni 常规公交和轻轨免费",
+      "date": "常设福利 · 不限居住地或家庭收入",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "clipper-start-half-fares",
+      "title": "符合收入资格，Clipper START 单程交通费五折",
+      "date": "常设计划 · 先申请并获批",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "sfmoma-museums-for-all",
+      "title": "SF 居民持指定福利卡，SFMOMA 最多四位成人免费",
+      "date": "适用开放时段；周三休馆",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "cable-car-museum-free",
+      "title": "免费进 Cable Car Museum，看缆车动力系统",
+      "date": "周二至周日 · 周一闭馆",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "oakland-tool-library",
+      "title": "Oakland、Emeryville、Piedmont 居民可借工具",
+      "date": "常设借用 · 工具借期七天",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "rosie-riveter-richmond-free",
+      "title": "Richmond 免费看二战后方与湾区劳动史",
+      "date": "常设免费 · 出发前查访客中心时间",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "chicha-norcal-birthday-bogo",
+      "title": "生日当天，北加州六店茶饮买一送一",
+      "date": "长期福利 · 仅本人生日当天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "chicha-cupertino-free-tea-tasting",
+      "title": "Cupertino 免费预约梨山乌龙品茶",
+      "date": "常设预约项目 · 日期与余位看日历",
+      "availability": "check-local",
+      "kind": "reservation"
+    },
+    {
+      "id": "amc-stubs-tuesday-wednesday-base-ticket",
+      "title": "周二、周三电影成人基础票价半价",
+      "date": "长期福利 · 周二、周三放映场次",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "museo-italo-free-days",
+      "title": "Fort Mason：周四与首个周日免费普通入馆",
+      "date": "常设福利 · 特别节目另查票价",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sjpl-booktacular-oct24-31",
+      "title": "10/24–31：0–18 岁到馆免费选一本书",
+      "date": "10/24–31 · 各分馆开放时段，送完为止",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "oakland-zoo-resident-discount",
+      "title": "Oakland 居民预约动物园日间优惠票",
+      "date": "常设居民优惠 · 票价随日期变化",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "marin-transit-clean-air-oct7-2026",
+      "title": "10/7 Marin Transit 本地公交免票",
+      "date": "10/7 · 当日班次按各线路时刻表",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sf-zoo-resident-free-oct7-2026",
+      "title": "10/7 SF 居民凭证免费进动物园",
+      "date": "10/7 周三 · 官方免费日窗口 10:00–16:00",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "hayward-compost-giveaway-oct24-2026",
+      "title": "10/24 Hayward 住户免费领 4 袋堆肥",
+      "date": "10/24 周六 · 07:30–10:30，发完即止",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "woodside-compost-workshop-gift-oct12-2026",
+      "title": "10/12 参加 Woodside 堆肥讲座，限量赠一袋堆肥",
+      "date": "10/12 周一 · 18:00 开门，18:30 开讲",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "ikea-family-heritage-meal-oct15-2026",
+      "title": "至 10/15：会员鸡肉餐 $7.99、蛋糕切片 $1.99",
+      "date": "9/15–10/15 · Swedish Restaurant 营业时段",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "ikea-kustfyr-halloween-oct12-2026",
+      "title": "至 10/12：指定 KUSTFYR 万圣节用品八折",
+      "date": "9/8–10/12 · 指定商品，数量有限",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "smart-youth-senior-fare-free",
+      "title": "18 岁及以下、65 岁及以上乘 SMART 免票",
+      "date": "现行年龄优惠 · 不是十月全体乘客免费日",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "tech-teachers-tacos-oct23-2026",
+      "title": "10/23 教育工作者免费报名 Teachers & Tacos",
+      "date": "10/23 周五 · 16:00–18:00，先报名",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "concord-taco-trail-challenge-2026",
+      "title": "Concord Taco Trail 集章挑战",
+      "date": "9/15–10/15 · 按各参与餐厅营业时间；不是统一聚会时段。",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "sf-opera-dolby-figaro-offer-2026",
+      "title": "湾区新观众 $10 歌剧票开售",
+      "date": "9/30 · 9 月 30 日中午 12:00 开售；供应有限、结束日未公布",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "emeryville-restaurant-week-2026",
+      "title": "Emeryville 首届餐厅周：限定菜单与餐饮优惠",
+      "date": "10/1–10/11 · 各餐厅营业时间和优惠时段不同。",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "pacific-catch-aloha-corte-madera-20261005",
+      "title": "Pacific Catch Corte Madera：Aloha Hour",
+      "date": "10/5 · 15:00–18:00",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "berkeley-cal-golden-bear-oct-sale-2026",
+      "title": "UC Berkeley 学生 $10 演出票：10 月 8 日开售",
+      "date": "10/8 · 12:00 开售；这是优惠发售时间，不是演出开始时间。",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "sf-moad-thrive-second-saturday-oct2026",
+      "title": "MoAD THRIVE：十月第二周六免费参观",
+      "date": "10/10 · 11:00–17:00（常规周六馆时）",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "san-leandro-costume-swap-2026",
+      "title": "San Leandro 万圣节服装交换",
+      "date": "10/20 · 交换会 17:30–19:00；收集旧装扮 9/17–10/19。",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "sf-greyhound-trivia-happy-hour-2026",
+      "title": "The Crossing 问答夜与第二杯半价优惠",
+      "date": "10/21 · 优惠时段 15:00–18:00；问答活动 16:30–18:00",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "union-city-kennedy-youth-free-dropin",
+      "title": "Kennedy Youth Center 免费课后活动",
+      "date": "常规上学日：周一、二、四、五 15:00–18:00；周三 14:00–18:00；minimum day 13:00–18:00。假期关闭另查官网。",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "el-cerrito-rialto-monday-offer",
+      "title": "Rialto Cerrito 周一会员电影价",
+      "date": "每周一适用电影；具体放映时间见影院日程。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "r2-santarosa-capriciano-corkage-policy-2026",
+      "title": "Capriciano 买店内葡萄酒抵开瓶费",
+      "date": "周二休息；周日/一/三/四17:00–21:30，周五六17:00–22:00",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "r2-kenwood-stella-weekly-offers-2026",
+      "title": "Kenwood Stella 每周餐饮优惠",
+      "date": "按每项每周规则；午餐优惠11:30–14:00，晚餐自16:30起",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "san-mateo-curiodyssey-teacher-military-ongoing",
+      "title": "CuriOdyssey：教师免费与军人家庭半价",
+      "date": "开放日柜台10:00–16:00兑换；停车费不包含。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "san-mateo-jacks-happy-hour-ongoing",
+      "title": "Jack’s San Mateo：工作日饮品 Happy Hour",
+      "date": "周一至周五15:00–18:00；限官网列出的饮品。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "cupertino-eureka-wednesday-burger-ongoing",
+      "title": "Eureka Cupertino：周三汉堡薯条半价",
+      "date": "每周三营业时间内；限指定套餐。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "mountain-view-pacific-catch-aloha-hour-ongoing",
+      "title": "Pacific Catch Mountain View：Aloha Hour与周二半价瓶装酒",
+      "date": "Aloha Hour周一至周五15:00–18:00、周六日15:00–17:00；瓶装葡萄酒优惠每周二。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "sunnyvale-st-johns-happy-hour-ongoing",
+      "title": "St. John’s Sunnyvale：周二至周五饮品 Happy Hour",
+      "date": "周二至周五15:00–18:00；非所有啤酒/鸡尾酒通用。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "san-jose-tech-military-admission-ongoing",
+      "title": "The Tech：军人及退伍军人展厅入场福利",
+      "date": "开放日现场兑换；身份条件适用。",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "san-jose-tech-second-half-off-ongoing",
+      "title": "The Tech：第二张普通门票半价",
+      "date": "开放日；线上结账兑换。",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "noahs-rewards-order-ahead-coffee",
+      "title": "会员线上买早餐，普通咖啡随单免费",
+      "date": "常设会员福利 · 官网或 App 提前点单",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "ikes-love-welcome-sandwich",
+      "title": "新会员消费满 $10，解锁欢迎三明治",
+      "date": "常设欢迎奖励 · 到账后查个人券期限",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "nothing-bundt-cakes-birthday-bundtlet",
+      "title": "生日到店领一只个人装 Bundtlet",
+      "date": "收到生日券起 · 至生日后 7 天",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "jamba-welcome-half-price",
+      "title": "新会员冰沙半价，第二次指定食物半价",
+      "date": "新会员欢迎优惠 · 各用一次，查账户期限",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "caltrain-youth-dollar-fare",
+      "title": "5–18 岁乘 Caltrain，全线单程 $1、日票 $2",
+      "date": "常设青少年票价 · 上车前购票或有效刷卡",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "sfmta-free-muni-seniors",
+      "title": "合资格 SF 65+ 居民可申请免费 Muni，含缆车",
+      "date": "常设申请福利 · 获批后使用 Senior Clipper",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "chase-center-ticket-muni-included",
+      "title": "Chase Center 活动票，包含当天 Muni 乘车",
+      "date": "常设持票福利 · 至活动后次日 02:00",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "south-novato-the-shop-free-makerspace",
+      "title": "South Novato 免费手作空间，缝纫修车自己动手",
+      "date": "常设免费开放 · 按设备级别选择时段",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "marin-city-the-lab-free-makerspace",
+      "title": "Marin City 免费创作空间，学习 3D 打印与播客",
+      "date": "周二 16:00–20:00 · 周三／四 14:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "ybca-free-wednesdays",
+      "title": "每周三免费逛 YBCA，展厅开放至晚上八点",
+      "date": "每周三 · 11:00–20:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "presidio-field-station-free",
+      "title": "免费进自然探索站，周末带孩子随到随玩",
+      "date": "周三至周五 11:00–16:00；周末 10:00–17:00",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sf-city-guides-free-walks",
+      "title": "跟志愿导览认识 SF 街区，常规散步免费",
+      "date": "长期项目 · 日期与路线以官方排期为准",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "sfmoma-free-public-art-spaces",
+      "title": "不买门票，也能看 SFMOMA 公共艺术区",
+      "date": "开馆时适用 · 周三闭馆",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "gggp-sf-resident-free-admission",
+      "title": "SF 居民凭住址证明，三座花园普通入场免费",
+      "date": "长期福利 · 按各园开放时间",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "famsf-bay-area-free-saturdays",
+      "title": "湾区九县居民，周六普通美术馆门票免费",
+      "date": "每周六 · 先查当日票务与例外",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "roundup-starbucks-birthday-2026",
+      "title": "生日饮品或食物，需已有赚星交易",
+      "date": "Green 当天 · Gold 7 天 · Reserve 30 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "roundup-starbucks-free-mod-2026",
+      "title": "Starbucks 指定周一一次免费加料",
+      "date": "每月指定周一一次 · 具体日期看账户",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "roundup-krispy-kreme-welcome-2026",
+      "title": "Krispy Kreme 新会员甜甜圈：需下一次购买",
+      "date": "新会员欢迎礼 · 看账户券到期日",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "roundup-jersey-mikes-birthday-points-2026",
+      "title": "生日获 72 积分，过去一年须买过指定主食",
+      "date": "生日到账 · 积分兑换按账户规则",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "roundup-wendys-weekly-app-offers-2026",
+      "title": "Wendy's 周三鸡块、周五薯条：都需满$5",
+      "date": "官网当前周三／周五券 · 以App当地门店为准",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "roundup-ulta-birthday-gift-2026",
+      "title": "生日月持券到店领美妆礼",
+      "date": "生日月 · 到店凭生日券",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "roundup-ihop-birthday-pancoins-2026",
+      "title": "IHOP 生日煎饼：别等生日月才注册",
+      "date": "生日月发放5 PanCoins · 提前满足入会期限",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "roundup-red-robin-kids-birthday-2026",
+      "title": "儿童生日月减 $7，需另购至少 $4.99",
+      "date": "孩子生日月 · 每年一次 · 仅堂食",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "dutch-bros-birthday-2026",
+      "title": "生日领一杯饮品，券可用 30 天",
+      "date": "生日发券 · 有效 30 天",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "chick-fil-a-birthday-2026",
+      "title": "基础会员生日选 Cookie 或 Brownie",
+      "date": "生日发券 · 有效 30 天 · 周日休息",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "panera-birthday-2026",
+      "title": "基础 MyPanera 会员生日烘焙点心",
+      "date": "奖励到账起 7 天 · 以账户日期为准",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "amc-birthday-popcorn-2026",
+      "title": "免费 Insider 会员生日月领大桶爆米花",
+      "date": "生日月 · 须在该月开始前提前注册",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sfpl-kanopy-streaming",
+      "title": "用 SFPL 图书证，在家免费看片",
+      "date": "长期资源 · 片库与观看额度依账户显示",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sfpl-linkedin-learning",
+      "title": "持图书证免费学 Excel、设计和职场技能",
+      "date": "长期资源 · 在线自定进度",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "ac-library-free-printing",
+      "title": "AC Library 持卡人每天免费打印 10 页黑白文件",
+      "date": "长期服务 · 每日额度以馆方现行说明为准",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "tilden-little-farm-free",
+      "title": "免费逛 Little Farm，停车也免费",
+      "date": "长期开放 · 出发前查公园与农场公告",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "richmond-art-center-free",
+      "title": "免费逛 Richmond 画廊，再坐下画一会儿",
+      "date": "周三至周六 · 10:00–16:00，节假日例外",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "smcl-free-printing",
+      "title": "每天最多 25 页，图书馆免费打印",
+      "date": "长期服务 · 在所选分馆开放时间取件",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "palo-alto-art-center-free",
+      "title": "免费进 Palo Alto Art Center 看轮换展览",
+      "date": "长期福利 · 依当前展厅开放时间",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sjpl-free-seed-library",
+      "title": "不用图书证，免费领一小份种子回家种",
+      "date": "长期服务 · 依分馆开门时间与当季库存",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "intel-museum-free",
+      "title": "免费走进芯片世界，Intel 博物馆停车也免",
+      "date": "周一至周五 · 9:00–17:00，临时闭馆例外",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "marin-library-parking-passes",
+      "title": "先借停车证，再去 Mount Tam 或水库散步",
+      "date": "长期借用 · 每次一周，名额依馆藏",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "marine-mammal-center-free",
+      "title": "免费预约海洋哺乳动物救护中心参观",
+      "date": "长期项目 · 必须先取得可预约时段",
+      "availability": "ongoing",
+      "kind": "reservation"
+    },
+    {
+      "id": "target-eos-pouch-oct10-2026",
+      "title": "10/10 购买 eos，可领绒毛拉链包",
+      "date": "10/10 周六 · 12:00–16:00 · 16 岁及以上",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "target-acotar-keychain-oct26-2026",
+      "title": "10/26 午夜新书活动，前 100 名领钥匙扣",
+      "date": "10/26 周一 · 21:00 至午夜",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "target-circle-deal-days-oct6-7-2026",
+      "title": "10/6–7 会员促销：指定衣物六折、美妆七折",
+      "date": "10/6–7 · 免费 Circle 会员",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "target-circle-new-member-oct5-2026",
+      "title": "10/5 前首次加入 Circle，获首单八五折",
+      "date": "9/27–10/5 新会员注册窗口",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "target-baby-welcome-kit-2026",
+      "title": "婴儿清单欢迎礼盒：满足条件后线上申领",
+      "date": "长期项目 · 购物达标后 24–48 小时",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "target-circle-birthday-discount-2026",
+      "title": "生日获一次购物九五折券",
+      "date": "生日发券 · 有效 30 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "target-registry-completion-discount-2026",
+      "title": "宝宝／婚礼清单八五折，最多用两次",
+      "date": "清单至少有效 14 天 · 券有效 6 个月",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "lowes-mrbeast-swarms-oct24-2026",
+      "title": "10/24 首 100 名会员领两只限定 Swarms",
+      "date": "10/24 周六 · 开始时间须问门店",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "lowes-holiday-engine-nov14-2026",
+      "title": "11/14 免费做 Holiday Engine 小火车",
+      "date": "11/14 周六 · 10:00–13:00 · 10/10 开放报名",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "lowes-senior-builder-toolbag-2026",
+      "title": "已集齐 12 枚实体徽章，可申请儿童工具包",
+      "date": "2026/12/31 前完成本期资格与申领",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "lowes-member-gifts-check-local-2026",
+      "title": "免费会员赠品入口：先查本期活动和门店",
+      "date": "不定期 · 先看本人会员活动页",
+      "availability": "check-local",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "michaels-yarn-frame-oct10-2026",
+      "title": "10/10：免费做毛线绕线相框",
+      "date": "2026 年 10/10 · 10:00–12:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "michaels-ghost-jar-oct11-2026",
+      "title": "10/11：买玻璃罐，参加幽灵罐手作",
+      "date": "2026 年 10/11 · 13:00–15:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "michaels-halloween-fest-oct17-2026",
+      "title": "10/17：免费 Halloween Fest 手作与游戏",
+      "date": "2026 年 10/17 · 10:00–12:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "michaels-halloween-lantern-oct18-2026",
+      "title": "10/18：买玻璃罐，做万圣节灯笼",
+      "date": "2026 年 10/18 · 13:00–15:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "michaels-chenille-ghost-oct24-2026",
+      "title": "10/24：免费做扭扭棒幽灵或蜘蛛",
+      "date": "2026 年 10/24 · 10:00–12:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "michaels-costume-demo-oct25-2026",
+      "title": "10/25：免费学临时万圣节服装做法",
+      "date": "2026 年 10/25 · 13:00–15:00，按本店当地时间",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "lakeshore-castle-oct10-2026",
+      "title": "10/10：免费做 Castle Creation 城堡",
+      "date": "10/10 · 11:00–15:00，本店确认后前往",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "lakeshore-stained-glass-oct24-2026",
+      "title": "10/24：免费 Stained Glass Art 彩窗手作",
+      "date": "10/24 · 11:00–15:00，本店确认后前往",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "lakeshore-mosaic-nov7-2026",
+      "title": "11/7：免费 Mosaic Masterpiece 拼贴手作",
+      "date": "11/7 · 11:00–15:00，本店确认后前往",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "ikea-kids-eat-free-wednesdays-oct2026",
+      "title": "10 月周三：买成人主餐，送最多两份儿童餐",
+      "date": "10/7–10/28 · 仅周三，餐厅营业时段",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "ikea-cinnamon-buns-oct9-2026",
+      "title": "至 10/9：会员肉桂卷八折",
+      "date": "截至 2026 年 10/9 · Bistro／Food Market",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "ikea-soup-addon-nov11-2026",
+      "title": "10/7 起：买主餐可加 $1 汤",
+      "date": "10/7–11/11 · Swedish Restaurant",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "ikea-kids-beds-oct12-2026",
+      "title": "至 10/12：指定婴儿床、儿童床和床垫八折",
+      "date": "9/17–10/12 · 指定儿童睡眠商品",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "lego-hillsdale-little-builders",
+      "title": "2–5 岁免费 Little Builder 拼搭课",
+      "date": "长期项目 · 日期与空位查 Hillsdale 店",
+      "availability": "check-local",
+      "kind": "reservation"
+    },
+    {
+      "id": "lego-free-kids-magazine",
+      "title": "5–9 岁儿童免费收 LEGO 杂志，邮费也免",
+      "date": "长期订阅 · 每年 4 期，首期时间看确认邮件",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "apple-kids-earth-comics",
+      "title": "免费亲子课：用 iPad 做地球主题漫画",
+      "date": "免费预约 · 选择湾区门店与可用场次",
+      "availability": "check-local",
+      "kind": "reservation"
+    },
+    {
+      "id": "apple-kids-kindness-story",
+      "title": "6–10 岁免费课：做一本互动故事书",
+      "date": "免费预约 · 日期与余位依本店显示",
+      "availability": "check-local",
+      "kind": "reservation"
+    },
+    {
+      "id": "homedepot-monthly-kids-workshops",
+      "title": "免费儿童木工：查下一场本店预约",
+      "date": "长期项目 · 通常每月首个周六 09:00，先查名额",
+      "availability": "check-local",
+      "kind": "reservation"
+    },
+    {
+      "id": "world-market-zombie-reward-oct31-2026",
+      "title": "已有 Zombie 券减 $5／$10，10 月底截止",
+      "date": "仅已收到此券的会员 · 截至 2026/10/31",
+      "availability": "dated",
+      "kind": "purchase"
+    },
+    {
+      "id": "taco-bell-welcome-reward-2026",
+      "title": "新会员 App 欢迎礼，14 天内领取",
+      "date": "新会员一次 · 发券后 14 天",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "mcdonalds-new-app-nuggets-2026",
+      "title": "首次使用 App 满 $1，赠 10 块麦乐鸡",
+      "date": "首次 App 用户 · 当月月底前使用",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "peets-welcome-125-points-2026",
+      "title": "新会员首笔扫码订单获 125 积分",
+      "date": "新会员一次 · 首笔合资格订单",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "peets-birthday-drink-2026",
+      "title": "生日饮品券：需过去 180 天有记录",
+      "date": "生日券有效 14 天 · 需历史交易",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "habit-charclub-welcome-burger-2026",
+      "title": "新会员买指定饮品，赠一只汉堡",
+      "date": "CharClub 新会员 · 发券后 14 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "habit-charclub-registration-sundae-2026",
+      "title": "注册当天，到柜台领巧克力圣代",
+      "date": "仅 CharClub 注册当天 · 柜台领取",
+      "availability": "ongoing",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "chipotle-welcome-chips-guac-2026",
+      "title": "新会员满 $5，赠薯片与牛油果酱",
+      "date": "Rewards 新会员 · 券期看账户",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "crumbl-silver-birthday-2026",
+      "title": "Silver 及以上会员才有生日甜点券",
+      "date": "生日福利 · 当年先达 Silver 等级",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "dunkin-survey-donut-2026",
+      "title": "顾客问卷券：买中杯饮品赠甜甜圈",
+      "date": "完成顾客问卷获券 · 发券后 14 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "world-market-welcome-15-percent-2026",
+      "title": "新会员首单 85 折，7 天内使用",
+      "date": "首次 Rewards 入会 · 欢迎券 7 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "petsmart-first-autoship-2026",
+      "title": "首次 Autoship 省 35%，最多减 $20",
+      "date": "首次自动订购 · 后续订单会收费",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "petco-first-autoship-2026",
+      "title": "首次自动配送省 35%，最多减 $20",
+      "date": "首次 Autoship · 后续自动配送收费",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "cold-stone-welcome-bogo-2026",
+      "title": "新会员 Creation 冰淇淋买一赠一",
+      "date": "My Cold Stone Club 欢迎券 · 看账户券期",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "cinnabon-welcome-bonbites-2026",
+      "title": "新会员随单赠 4 粒 Original BonBites",
+      "date": "新会员欢迎券 · 发券后 14 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "auntie-annes-welcome-pretzel-2026",
+      "title": "先消费解锁，再随单赠一只椒盐卷饼",
+      "date": "新会员先解锁 · 收券后 45 天",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "auntie-annes-birthday-pretzel-2026",
+      "title": "有年度消费记录，生日赠指定 Pretzel",
+      "date": "生日券 30 天 · 过去一年须消费 $1",
+      "availability": "ongoing",
+      "kind": "purchase"
+    },
+    {
+      "id": "bampfa-free-nov5-2026",
+      "title": "11/5 BAMPFA 展厅免费日",
+      "date": "11/5 周四 · 展厅开放时段",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "omca-free-nov1-2026",
+      "title": "11/1 OMCA 普通展与特展免费",
+      "date": "11/1 周日 · 按首个周日规则换算",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "asian-art-free-nov1-2026",
+      "title": "11/1 亚洲艺术博物馆普通入场免费",
+      "date": "11/1 周日 · 10:00–17:00",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "conservatory-free-nov3-2026",
+      "title": "11/3 金门公园温室免费开放",
+      "date": "11/3 周二 · 10:00–16:30，16:00 最后入场",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "sjma-free-nov6-2026",
+      "title": "11/6 San José 美术馆免费夜场",
+      "date": "11/6 周五 · 18:00–21:00",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "chm-museums-on-us-nov7-8-2026",
+      "title": "11/7–8 已有指定银行卡，可免费入 CHM",
+      "date": "11/7–8 · 按每月首个完整周末规则换算",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "botanical-free-nov10-2026",
+      "title": "11/10 旧金山植物园普通入场免费",
+      "date": "11/10 周二 · 07:30–17:00，16:00 最后入场",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "moad-free-nov14-2026",
+      "title": "11/14 MoAD 第二个周六免费入馆",
+      "date": "11/14 周六 · 11:00–17:00，按每月规则换算",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "muir-woods-veterans-day-nov11-2026",
+      "title": "11/11 Muir Woods 指定资格免入口费",
+      "date": "11/11 周三 · 以公园当日开放时间为准",
+      "availability": "dated",
+      "kind": "reservation"
+    },
+    {
+      "id": "chilis-veterans-day-nov11-2026",
+      "title": "11/11 Chili’s 向军人与退伍军人送指定主餐",
+      "date": "11/11 周三 · 参与门店堂食",
+      "availability": "dated",
+      "kind": "no-purchase"
+    },
+    {
+      "id": "winchester-santa-clara-locals-2026",
+      "title": "Santa Clara 县居民：Winchester 日间导览七五折",
+      "date": "限前 1,000 笔合资格订单 · 先查剩余额度",
+      "availability": "check-local",
+      "kind": "purchase"
+    },
+    {
+      "id": "lakeshore-halloween-craft-oct25-31-2026",
+      "title": "10/25–31 Lakeshore 万圣节手作桌",
+      "date": "10/25–31 · 先向门店确认当天手作时间",
+      "availability": "dated",
+      "kind": "no-purchase"
+    }
+  ],
+  "cityUpdates": [
+    {
+      "city": "Alameda",
+      "title": "古董集市下一场先等官方日期更新",
+      "date": "官方下期日期待更新；10月5日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Albany",
+      "title": "消防站煎饼早餐回归",
+      "date": "10月10日 8:00–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Berkeley",
+      "title": "秋日植物园：先按日期查开放与项目",
+      "date": "植物园参观与活动入口；10月5日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Dublin",
+      "title": "Harvest Fair：免费入场与付费活动分开看",
+      "date": "10月10日 10:00–14:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Emeryville",
+      "title": "年度艺术展：周三至周日开放",
+      "date": "10月2日开幕；10月3–25日指定开放日",
+      "kind": "dated"
+    },
+    {
+      "city": "Fremont",
+      "title": "11月亲子识鸟：在 Coyote Hills 玩着学",
+      "date": "11月14日 11:00–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Hayward",
+      "title": "11月海湾晨间观鸟：6岁起，须报名",
+      "date": "11月15日 8:00–10:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Livermore",
+      "title": "ArtWalk 加入粉笔艺术路线",
+      "date": "10月10日，11:00开始",
+      "kind": "dated"
+    },
+    {
+      "city": "Newark",
+      "title": "Silliman 秋季泳池：滑梯与漂流河仍维修",
+      "date": "秋季表：2026年8月3日至2027年1月3日",
+      "kind": "dated"
+    },
+    {
+      "city": "Oakland",
+      "title": "11月1日 Fruitvale 免费亡灵节庆典",
+      "date": "11月1日 10:00–17:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Piedmont",
+      "title": "Piedmont Park 免费放映 Wonka",
+      "date": "10月16日，日落约18:40",
+      "kind": "dated"
+    },
+    {
+      "city": "Pleasanton",
+      "title": "南瓜夜游先看开放日与 Gate 8",
+      "date": "10月2–31日中的指定夜晚",
+      "kind": "dated"
+    },
+    {
+      "city": "San Leandro",
+      "title": "图书馆免费桌游夜",
+      "date": "10月6日 17:30–19:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Union City",
+      "title": "免费了解 ShakeAlert 地震预警",
+      "date": "10月14日 19:30–21:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Antioch",
+      "title": "15岁及以下免费钓鱼比赛",
+      "date": "10月10日 9:00–13:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Brentwood",
+      "title": "从官方特别活动日历找下一场",
+      "date": "滚动日历入口；10月2日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Clayton",
+      "title": "Oktoberfest 已结束，改查下一场城市活动",
+      "date": "官方滚动日历；10月5日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Concord",
+      "title": "Baldwin Park 糖果路线必须预先报名",
+      "date": "10月16日 16:30–18:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Danville",
+      "title": "12岁起可了解本地志愿服务机会",
+      "date": "10月14日 18:30–20:00",
+      "kind": "dated"
+    },
+    {
+      "city": "El Cerrito",
+      "title": "全城车库甩卖：10月9日起取地图",
+      "date": "10月17日；地图计划10月9日提供",
+      "kind": "dated"
+    },
+    {
+      "city": "Hercules",
+      "title": "Ohana Day 长者午间聚会需报名",
+      "date": "10月12日 12:30–14:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Lafayette",
+      "title": "Res Run 按距离选组，别混淆虚拟挑战",
+      "date": "10月18日现场赛",
+      "kind": "dated"
+    },
+    {
+      "city": "Martinez",
+      "title": "11月9日：在码头附近观鸟",
+      "date": "11月9日 9:00–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Moraga",
+      "title": "Hacienda 傍晚万圣节与草地电影",
+      "date": "10月30日 17:00–20:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Oakley",
+      "title": "11月湿地散步：5岁起、成人参与",
+      "date": "11月1、8、14、15日 14:00–15:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Orinda",
+      "title": "Trunk & Treat 分三场，只给儿童登记",
+      "date": "10月22日，分三场",
+      "kind": "dated"
+    },
+    {
+      "city": "Pinole",
+      "title": "从官方列表分清市集、社区活动与会议",
+      "date": "滚动日历入口；10月2日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Pittsburg",
+      "title": "在城市月历中选择出行月份",
+      "date": "滚动日历入口；10月2日检查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Pleasant Hill",
+      "title": "Haunted Trail 免费开放，无需观众报名",
+      "date": "10月23日 17:00–19:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Richmond",
+      "title": "免费版画体验：上午场已转候补",
+      "date": "10月10日；10月2日看到上午场满额提示",
+      "kind": "dated"
+    },
+    {
+      "city": "San Pablo",
+      "title": "City Hall-o-Ween 已公布日期",
+      "date": "10月29日 16:00–19:00",
+      "kind": "dated"
+    },
+    {
+      "city": "San Ramon",
+      "title": "自然故事时间有万圣节专场",
+      "date": "10月30日 10:15–11:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Walnut Creek",
+      "title": "Diablo Improv Festival 按节目分别选票",
+      "date": "10月16–18日，按具体节目",
+      "kind": "dated"
+    },
+    {
+      "city": "San Francisco",
+      "title": "Presidio：亡灵节与排灯节相遇",
+      "date": "11月7日 12:00–15:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Atherton",
+      "title": "旧火车站博物馆 10 月 18 日揭幕",
+      "date": "10/18 · 14:00–16:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Belmont",
+      "title": "百年庆典：游行、时光胶囊与无人机表演",
+      "date": "10/24 · 13:30 起",
+      "kind": "dated"
+    },
+    {
+      "city": "Brisbane",
+      "title": "Dog Pawty 狗狗装扮聚会",
+      "date": "10/29 · 17:30–18:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Burlingame",
+      "title": "图书馆秋季活动：按年龄和报名状态挑选",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Colma",
+      "title": "小镇活动从官方入口查起",
+      "date": "日历入口 · 场次待官网确认",
+      "kind": "calendar"
+    },
+    {
+      "city": "Daly City",
+      "title": "市府与图书馆日历分开筛选",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "East Palo Alto",
+      "title": "11 月 15 日 Ravenswood 免费湿地导览",
+      "date": "11/15 周日 · 9:30–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Foster City",
+      "title": "秋季课程、社区活动与场地预约各有入口",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Half Moon Bay",
+      "title": "南瓜节周末：先安排海岸交通",
+      "date": "10/17–18 · 9:00–17:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Hillsborough",
+      "title": "关注镇议题：从会议日历与议程入手",
+      "date": "持续更新 · 居民议题入口",
+      "kind": "calendar"
+    },
+    {
+      "city": "Menlo Park",
+      "title": "Halloween Hoopla：游行和泳池活动别混订",
+      "date": "10/24 · 11:00–14:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Millbrae",
+      "title": "社区活动先看市府最新日历",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Pacifica",
+      "title": "Jean E. Brink Pool 比赛周末暂停日常游泳",
+      "date": "10/24–25、11/11、11/14–15",
+      "kind": "dated"
+    },
+    {
+      "city": "Portola Valley",
+      "title": "科学、社区与镇会议，按类别查看",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Redwood City",
+      "title": "10 月 19 日图书馆全系统关闭",
+      "date": "10/19 · 图书馆关闭",
+      "kind": "dated"
+    },
+    {
+      "city": "San Bruno",
+      "title": "免费 Día de los Muertos 家庭庆典",
+      "date": "10/17 · 11:00–14:00",
+      "kind": "dated"
+    },
+    {
+      "city": "San Carlos",
+      "title": "11 月 14 日食物保存课：早鸟价已结束",
+      "date": "11/14 周六 · 9:00–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "San Mateo",
+      "title": "居民免费碎纸与电子垃圾回收日",
+      "date": "10/10 · 9:00–12:00，可能提前满额",
+      "kind": "dated"
+    },
+    {
+      "city": "South San Francisco",
+      "title": "11 月 7 日室内节日手作市集",
+      "date": "11/7 周六 · 10:00–16:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Woodside",
+      "title": "Old La Honda 上段施工，骑行前查封路",
+      "date": "9/28–12/11 · 间歇封路",
+      "kind": "dated"
+    },
+    {
+      "city": "Campbell",
+      "title": "Oktoberfest Fun Run 与市中心节庆分开规划",
+      "date": "10/17 · 跑步详情见报名页",
+      "kind": "dated"
+    },
+    {
+      "city": "Cupertino",
+      "title": "免费观察 Baer Blacksmith Shop 锻造示范",
+      "date": "10/31、11/28 · 11:00–15:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Gilroy",
+      "title": "公园与步道规划正在征求居民意见",
+      "date": "10/8–10 · 多场居民交流",
+      "kind": "dated"
+    },
+    {
+      "city": "Los Altos",
+      "title": "用不同日历找休闲活动和居民沟通",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Los Altos Hills",
+      "title": "枝叶免费回收：带居民凭证并自行卸料",
+      "date": "10/17、11/21 · 9:00–14:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Los Gatos",
+      "title": "NUMU 10 月 17 日开幕活动免费预约",
+      "date": "10/17 周六 · 12:00–16:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Milpitas",
+      "title": "MAP 免费说明会：了解申请材料与市政折扣",
+      "date": "10/20、11/7 · 需选场报名",
+      "kind": "dated"
+    },
+    {
+      "city": "Monte Sereno",
+      "title": "10 月 22 日 CPR 与 AED 基础体验课",
+      "date": "10/22 · 10:00–11:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Morgan Hill",
+      "title": "CRC 二十周年：免费晨跑与家庭活动",
+      "date": "10/10 · 8:00 起",
+      "kind": "dated"
+    },
+    {
+      "city": "Mountain View",
+      "title": "11 月 8 日农贸市场换址至 Hope Street",
+      "date": "11/8 周日 · 9:00–13:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Palo Alto",
+      "title": "分馆活动与假日开放时间一起查",
+      "date": "持续更新 · 逐分馆确认",
+      "kind": "calendar"
+    },
+    {
+      "city": "San Jose",
+      "title": "TAEMIN 原定 10 月 12 日演出已延期",
+      "date": "原 10/12 · 新日期待官方确认",
+      "kind": "dated"
+    },
+    {
+      "city": "Santa Clara",
+      "title": "Intel Museum 11 月 11 日闭馆",
+      "date": "11/11 闭馆 · 常规周一至周五开放",
+      "kind": "dated"
+    },
+    {
+      "city": "Saratoga",
+      "title": "社区活动日历也收录独立主办方",
+      "date": "持续更新 · 非单场活动",
+      "kind": "calendar"
+    },
+    {
+      "city": "Sunnyvale",
+      "title": "Orchard Music Series 最后一场：Pop Rocks",
+      "date": "10/8 · 18:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Belvedere",
+      "title": "10/8 共享图书馆维修咨询：先登记物件",
+      "date": "2026/10/8 · 17:30–19:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Corte Madera",
+      "title": "社区活动与康乐项目分开找",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Fairfax",
+      "title": "双语故事会已列到十一月，0–5岁每次选一场",
+      "date": "2026/10/6–11/10 · 每周二，详见系列",
+      "kind": "dated"
+    },
+    {
+      "city": "Larkspur",
+      "title": "图书馆与康乐日历：先选类别再安排周末",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Mill Valley",
+      "title": "电影节期间也可按市日历找日常活动",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Novato",
+      "title": "10/17 两场儿童友好万圣节魔术",
+      "date": "2026/10/17 · 10:00、11:30",
+      "kind": "dated"
+    },
+    {
+      "city": "Ross",
+      "title": "Fall 2 康乐课程：需要重新报名",
+      "date": "2026/10/19–12/18 · 各课程日期不同",
+      "kind": "dated"
+    },
+    {
+      "city": "San Anselmo",
+      "title": "按图书馆与康乐栏目找本镇活动",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "San Rafael",
+      "title": "县立图书馆活动：筛选 Civic Center 分馆",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Sausalito",
+      "title": "10/31 游行与狗狗装扮赛，注意 Caledonia 封路",
+      "date": "2026/10/31 · 17:45 起",
+      "kind": "dated"
+    },
+    {
+      "city": "Tiburon",
+      "title": "10/8 亚洲叶菜种植课，先登记",
+      "date": "2026/10/8 · 14:30–16:00",
+      "kind": "dated"
+    },
+    {
+      "city": "American Canyon",
+      "title": "社区日历已列十月项目，按场地查看",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Calistoga",
+      "title": "十月图书馆节目：先定位 Calistoga 分馆",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Napa",
+      "title": "城市活动与会议分开筛选",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "St. Helena",
+      "title": "10/17起 The MAC 新展：别跑到 Yountville",
+      "date": "2026/10/17–2027/4/18 · 每日10:00–17:00，节假日另核",
+      "kind": "dated"
+    },
+    {
+      "city": "Yountville",
+      "title": "镇日历补查康乐安排与公共会议",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Cloverdale",
+      "title": "官方日历也列养护排程，先认清活动类型",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Cotati",
+      "title": "Community Events 栏目与会议栏目分开看",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Healdsburg",
+      "title": "周六农夫市集已迁入3 North Street新棚亭",
+      "date": "2026周六季节至12/19 · 8:30–12:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Petaluma",
+      "title": "图书馆日历按 Petaluma 分馆筛选",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Rohnert Park",
+      "title": "找 Rohnert Park–Cotati 分馆的当前活动",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Santa Rosa",
+      "title": "10/17《大南瓜》60周年馆内活动",
+      "date": "2026/10/17 · 13:00–17:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Sebastopol",
+      "title": "10/10–11、17–18 Art Trails：先选工作室地图",
+      "date": "2026/10/10、11、17、18 · 10:00–17:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Sonoma",
+      "title": "花园丰收市集：11/7、11/14仍有周六安排",
+      "date": "本期至2026/11/14 · 每周六9:00–13:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Windsor",
+      "title": "10/16 绿色万圣节交换会，11/7 还有秋季交换",
+      "date": "2026/10/16、11/7 · 两个独立日期",
+      "kind": "dated"
+    },
+    {
+      "city": "Benicia",
+      "title": "旅游活动日历与市政会议日历分开使用",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Dixon",
+      "title": "Lambtown已结束，秋日可查 Jepson Prairie 访客区",
+      "date": "常设自然资讯 · 2026/10/5核对",
+      "kind": "calendar"
+    },
+    {
+      "city": "Fairfield",
+      "title": "先分清 Civic Center 与 Cordelia 两个馆址",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Rio Vista",
+      "title": "Sandy Beach 工程与河岸使用提醒：禁止游泳",
+      "date": "公园状态资讯 · 2026/10/5核对，出发前重查",
+      "kind": "calendar"
+    },
+    {
+      "city": "Suisun City",
+      "title": "11/1 亡灵节文化晚会：入场免费，餐饮另付",
+      "date": "2026/11/1 · 18:00–22:00",
+      "kind": "dated"
+    },
+    {
+      "city": "Vacaville",
+      "title": "图书馆活动别跑错 Town Square 与 Cultural Center",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    },
+    {
+      "city": "Vallejo",
+      "title": "GVRD 新活动入口：按项目看地点和年龄",
+      "date": "官方日历 · 按出行日期筛选",
+      "kind": "calendar"
+    }
+  ],
+  "media": {
+    "summary": {
+      "cityUpdates": {
+        "total": 101,
+        "missing": 0,
+        "photos": 5,
+        "illustrations": 96,
+        "posters": 0
+      },
+      "guides": {
+        "total": 128,
+        "missing": 0,
+        "photos": 82,
+        "illustrations": 46,
+        "posters": 0
+      },
+      "events": {
+        "total": 408,
+        "missing": 0,
+        "photos": 53,
+        "illustrations": 352,
+        "posters": 3
+      },
+      "offers": {
+        "total": 194,
+        "missing": 0,
+        "photos": 33,
+        "illustrations": 156,
+        "posters": 5
+      },
+      "openings": {
+        "total": 56,
+        "missing": 0,
+        "photos": 6,
+        "illustrations": 48,
+        "posters": 2
+      },
+      "bulletins": {
+        "total": 13,
+        "missing": 0,
+        "photos": 5,
+        "illustrations": 8,
+        "posters": 0
+      },
+      "places": {
+        "total": 3,
+        "missing": 0,
+        "photos": 3,
+        "illustrations": 0,
+        "posters": 0
+      }
+    },
+    "registeredImages": 252,
+    "verifiedFiles": 504,
+    "issues": []
+  },
+  "finalReadOnlyReview": {
+    "checkedAt": "2026-10-05",
+    "reviewScope": "Changed city places/current updates, new events/offers/guides/planning, image registration and archival/illustration disclosures; checked local source evidence, not a fresh link crawl of every historical record.",
+    "blockingP1P2": [],
+    "audits": {
+      "media": {
+        "status": "pass",
+        "registeredImages": 252,
+        "verifiedFiles": 504,
+        "issues": []
+      },
+      "editorial": {
+        "status": "pass",
+        "duplicateEvents": [],
+        "dateProblems": [],
+        "missingPhotos": []
+      },
+      "photoUse": {
+        "status": "pass",
+        "newEventPhotoKeys": [
+          "ferry-market",
+          "presidio",
+          "expanded-peninsula-hiller",
+          "region-filoli-house",
+          "expanded-coyote-hills"
+        ],
+        "note": "Each is the stated venue and carries archival/non-event disclosure."
+      }
+    },
+    "cityMinimum": {
+      "cities": 101,
+      "totalPlaces": 315,
+      "minimum": 3,
+      "belowMinimum": []
+    },
+    "dateBoundary": {
+      "count": 45,
+      "range": "2026-11-01 through 2026-11-15 inclusive",
+      "interpretation": "Count is the first-half-November window, not all November. Independently confirmed later Matilda sessions remain intentionally available; Filoli has only November 14–15 explicit occurrences because later days were not individually verified.",
+      "rejectedFinding": "Matilda November 20–22 is not a date error or scope defect given confirmed official sessions and user-requested coverage expansion."
+    }
+  },
+  "mediaRegressionRepair": {
+    "checkedAt": "2026-10-05",
+    "failuresFound": [
+      "Runtime caption overrides diverged from original photo asset records.",
+      "Eight intentional November cover reuses lacked per-guide review approval.",
+      "Three November guides had no heading anchor for inline images.",
+      "Stargazing caption disclosure did not match the existing explicit non-real-scene wording contract."
+    ],
+    "repairs": [
+      "Moved reviewed archival captions into original asset registrations; preserved original files, credits, license and source URLs. Removed runtime overrides.",
+      "Approved only eight exact guide-slug-to-cover-path pairs; retained path and SHA-256 uniqueness checks for all other covers. No renamed duplicate assets.",
+      "Root added meaningful headings and English translations to the three guides.",
+      "Changed stargazing disclosure to 不代表 and synchronized its English mapping."
+    ],
+    "targetedTests": {
+      "guideJournalMedia": 2,
+      "editorialMedia": 4,
+      "monthlyUiMedia": 1,
+      "passed": 7,
+      "failed": 0
+    },
+    "lint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 53,
+      "note": "Warnings are in existing unrelated files; repaired media registry and test files have no reported warnings."
+    },
+    "contentFrozen": true
+  }
+}

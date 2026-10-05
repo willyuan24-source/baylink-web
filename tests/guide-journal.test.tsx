@@ -199,13 +199,32 @@ const firstVisitCoverReuse = new Set([
   'bay-area-everyday-free-perks',
   'bay-area-retail-freebies-family-deals',
 ]);
-test('guide covers remain distinct except reviewed first-visit reference photographs and illustrations', () => {
+// Reviewed October 5: these dated roundups deliberately use labeled context art.
+// Pin each exact source path; a new guide or an unrelated replacement still fails.
+// The Ferry Building photograph is the actual market venue, not the 2026 event.
+const novemberCoverReuse: Record<string, string> = {
+  'east-bay-november-nature-programs-2026': '/guides/november/autumn-community.webp',
+  'san-francisco-autumn-food-markets-2026': '/guides/distinct/ferry-market.webp',
+  'peninsula-south-bay-november-nature-walks-2026': '/guides/community-2026/garden-walk.webp',
+  'peninsula-south-bay-autumn-farmers-markets-2026': '/guides/november/autumn-community.webp',
+  'north-bay-markets-nature-culture-through-november-15-2026': '/guides/november/autumn-community.webp',
+  'bay-area-freebies-deals-2026-11': '/guides/november/autumn-community.webp',
+  'bay-area-november-first-half-planner-2026': '/guides/editorial/weekend-illustration.webp',
+  'bay-area-november-resident-dates-2026': '/guides/editorial/everyday-illustration.webp',
+};
+
+test('guide covers remain distinct except specifically reviewed reference photographs and illustrations', () => {
   assert.ok(guides.length >= 37);
   const paths = new Set<string>();
   const fingerprints = new Map<string, string>();
   for (const guide of guides) {
     const { cover } = getGuideMedia(guide);
     assert.ok(cover, guide.slug);
+    if (Object.hasOwn(novemberCoverReuse, guide.slug)) {
+      assert.equal(cover.src, novemberCoverReuse[guide.slug], `${guide.slug} must keep its reviewed context image`);
+      assert.match(cover.caption, /不代表|不是/, `${guide.slug} must disclose that the image is not the event`);
+      continue;
+    }
     if (firstVisitCoverReuse.has(guide.slug)) continue;
     assert.equal(paths.has(cover.src), false, `${guide.slug} reuses a previous guide cover path`);
     paths.add(cover.src);
@@ -213,7 +232,7 @@ test('guide covers remain distinct except reviewed first-visit reference photogr
     assert.equal(fingerprints.has(fingerprint), false, `${guide.slug} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
     fingerprints.set(fingerprint, guide.slug);
   }
-  const distinctCount = guides.filter(guide => !firstVisitCoverReuse.has(guide.slug)).length;
+  const distinctCount = guides.filter(guide => !firstVisitCoverReuse.has(guide.slug) && !Object.hasOwn(novemberCoverReuse, guide.slug)).length;
   assert.equal(paths.size, distinctCount);
   assert.equal(fingerprints.size, distinctCount, 'renaming the same illustration must not satisfy the distinct-cover requirement');
 });

@@ -3130,6 +3130,230 @@
       "sourceLabel": "Auntie Anne's official birthday-offer conditions"
     },
     {
+      "kind": "offer",
+      "id": "bampfa-free-nov5-2026",
+      "title": "Nov 5: free gallery admission at BAMPFA",
+      "path": "/offers/bampfa-free-nov5-2026",
+      "summary": "BAMPFA’s November calendar lists Nov 5 as Free First Thursday. Pair the galleries with a downtown Berkeley walk; check gallery hours before leaving.",
+      "details": [
+        "Gallery admission is free for everyone; film screenings require separate tickets."
+      ],
+      "region": "east-bay",
+      "startDate": "2026-11-05",
+      "endDate": "2026-11-05",
+      "dateLabel": "Thu Nov 5 · gallery opening hours",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://bampfa.org/visit/calendar/2026-11",
+      "sourceLabel": "BAMPFA November 2026 calendar"
+    },
+    {
+      "kind": "offer",
+      "id": "omca-free-nov1-2026",
+      "title": "Nov 1: free galleries and special exhibitions at OMCA",
+      "path": "/offers/omca-free-nov1-2026",
+      "summary": "Nov 1 is November’s first Sunday, calculated from the museum’s monthly policy. Food, shopping and parking cost extra; no membership is required.",
+      "details": [
+        "Free for everyone, including special exhibitions under the current policy. Advance booking is recommended; walk-up tickets are first come, first served."
+      ],
+      "region": "east-bay",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-01",
+      "dateLabel": "Sun Nov 1 · derived from the first-Sunday rule",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://museumca.org/first-sundays/",
+      "sourceLabel": "OMCA free first Sundays and reservations"
+    },
+    {
+      "kind": "offer",
+      "id": "asian-art-free-nov1-2026",
+      "title": "Nov 1: free general admission at the Asian Art Museum",
+      "path": "/offers/asian-art-free-nov1-2026",
+      "summary": "The current monthly rule gives Nov 1. The museum is at 200 Larkin Street in San Francisco’s Civic Center; free general admission does not cover every exhibition.",
+      "details": [
+        "General admission is free on the first Sunday; special exhibitions cost an additional $10. Booking a time slot is recommended."
+      ],
+      "region": "sf",
+      "startDate": "2026-11-01",
+      "endDate": "2026-11-01",
+      "dateLabel": "Sun Nov 1 · 10 am–5 pm",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://about.asianart.org/ticketing/",
+      "sourceLabel": "Asian Art Museum ticketing"
+    },
+    {
+      "kind": "offer",
+      "id": "conservatory-free-nov3-2026",
+      "title": "Nov 3: free admission to the Conservatory of Flowers",
+      "path": "/offers/conservatory-free-nov3-2026",
+      "summary": "The official calendar confirms Nov 3, 2026. The Conservatory and Botanical Garden are separate venues; the Botanical Garden’s free day is Nov 10.",
+      "details": [
+        "General admission is free for everyone, regardless of residency. Check separate ticket requirements for special programs."
+      ],
+      "region": "sf",
+      "startDate": "2026-11-03",
+      "endDate": "2026-11-03",
+      "dateLabel": "Tue Nov 3 · 10 am–4:30 pm; last entry 4 pm",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://gggp.org/event/free-day-conservatory-of-flowers-13/",
+      "sourceLabel": "Official Conservatory free day on Nov 3"
+    },
+    {
+      "kind": "offer",
+      "id": "sjma-free-nov6-2026",
+      "title": "Nov 6: free evening at San José Museum of Art",
+      "path": "/offers/sjma-free-nov6-2026",
+      "summary": "The museum has published its November First Fridays page. Visit the downtown galleries after work and check the event page for entertainment updates.",
+      "details": [
+        "Admission is free that evening. Register ahead for faster check-in; food, drinks and shopping cost extra."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-11-06",
+      "endDate": "2026-11-06",
+      "dateLabel": "Fri Nov 6 · 6–9 pm",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://sjmusart.org/event/first-fridays-november-2026",
+      "sourceLabel": "SJMA November First Fridays"
+    },
+    {
+      "kind": "offer",
+      "id": "chm-museums-on-us-nov7-8-2026",
+      "title": "Nov 7–8: eligible existing cardholders get free CHM admission",
+      "path": "/offers/chm-museums-on-us-nov7-8-2026",
+      "summary": "The Mountain View museum’s current policy applies on each month’s first full weekend: Nov 7–8. Use an eligible card you already have.",
+      "details": [
+        "An active Bank of America or Merrill card and matching photo ID cover one general admission for the cardholder only. Guests, special exhibitions and ticketed events are excluded."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-08",
+      "dateLabel": "Nov 7–8 · derived from the first-full-weekend rule",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://computerhistory.org/plan-your-visit/discounts/",
+      "sourceLabel": "CHM admission discounts and free-entry terms"
+    },
+    {
+      "kind": "offer",
+      "id": "botanical-free-nov10-2026",
+      "title": "Nov 10: free general admission to SF Botanical Garden",
+      "path": "/offers/botanical-free-nov10-2026",
+      "summary": "The official calendar confirms Nov 10. November’s last-entry time is earlier than October’s: arrive before 4 pm instead of assuming the October 5 pm cutoff.",
+      "details": [
+        "General admission is free for everyone that day; paid classes and special events are excluded."
+      ],
+      "region": "sf",
+      "startDate": "2026-11-10",
+      "endDate": "2026-11-10",
+      "dateLabel": "Tue Nov 10 · 7:30 am–5 pm; last entry 4 pm",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://gggp.org/event/free-day-san-francisco-botanical-garden-17/",
+      "sourceLabel": "Official Botanical Garden free day on Nov 10"
+    },
+    {
+      "kind": "offer",
+      "id": "moad-free-nov14-2026",
+      "title": "Nov 14: free second-Saturday admission at MoAD",
+      "path": "/offers/moad-free-nov14-2026",
+      "summary": "Nov 14 is November’s second Saturday. This listing confirms the current free-admission policy; it does not promise unannounced talks or performances.",
+      "details": [
+        "THRIVE @ MoAD offers free museum admission on the second Saturday each month. Check the day’s notice for programs and reservation requirements."
+      ],
+      "region": "sf",
+      "startDate": "2026-11-14",
+      "endDate": "2026-11-14",
+      "dateLabel": "Sat Nov 14 · 11 am–5 pm, derived from the monthly rule",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.moadsf.org/visit",
+      "sourceLabel": "MoAD visitor information and THRIVE policy"
+    },
+    {
+      "kind": "offer",
+      "id": "muir-woods-veterans-day-nov11-2026",
+      "title": "Nov 11: Muir Woods entrance-fee waiver for eligible visitors",
+      "path": "/offers/muir-woods-veterans-day-nov11-2026",
+      "summary": "Muir Woods’ official 2026 NPS list includes Veterans Day, Nov 11. Check eligibility and parking or shuttle availability before planning your redwood walk.",
+      "details": [
+        "The 2026 entrance-fee waiver applies to U.S. citizens and residents only. Parking or shuttle reservations and their fees still apply."
+      ],
+      "region": "north-bay",
+      "startDate": "2026-11-11",
+      "endDate": "2026-11-11",
+      "dateLabel": "Wed Nov 11 · check park hours",
+      "costLabel": "Reservation required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.nps.gov/muwo/planyourvisit/fees.htm",
+      "sourceLabel": "Muir Woods 2026 fee-free days and restrictions"
+    },
+    {
+      "kind": "offer",
+      "id": "chilis-veterans-day-nov11-2026",
+      "title": "Nov 11: Chili’s free select entrées for military and veterans",
+      "path": "/offers/chilis-veterans-day-nov11-2026",
+      "summary": "The official page explicitly dates the offer Nov 11, 2026. Ask your Bay Area restaurant about participation and accepted eligibility evidence; accompanying family members do not automatically eat free.",
+      "details": [
+        "For active military and veterans only, from a select menu at participating restaurants, dine-in only. Beverages and gratuity are excluded; no substitutions or combining offers."
+      ],
+      "startDate": "2026-11-11",
+      "endDate": "2026-11-11",
+      "dateLabel": "Wed Nov 11 · dine-in at participating locations",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.chilis.com/restaurant-events/veterans-day",
+      "sourceLabel": "Chili’s 2026 Veterans Day terms"
+    },
+    {
+      "kind": "offer",
+      "id": "winchester-santa-clara-locals-2026",
+      "title": "Santa Clara County residents: 25% off Winchester daytime tours",
+      "path": "/offers/winchester-santa-clara-locals-2026",
+      "summary": "The official resident discount is capped by order count, with no promise that availability lasts into November. Confirm the code still works at checkout before buying. Evening and special events are excluded.",
+      "details": [
+        "County residents use LOCALSFIRST for daytime Mansion Tours only, up to four tickets per order. Present photo ID with an eligible address on arrival; discounts cannot be combined."
+      ],
+      "region": "south-bay",
+      "dateLabel": "First 1,000 qualifying orders · check remaining availability",
+      "costLabel": "Purchase required",
+      "status": "check-local",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://winchestermysteryhouse.com/locals-discount/",
+      "sourceLabel": "Winchester county resident discount restrictions"
+    },
+    {
+      "kind": "offer",
+      "id": "lakeshore-halloween-craft-oct25-31-2026",
+      "title": "Oct 25–31: Halloween craft table at Lakeshore",
+      "path": "/offers/lakeshore-halloween-craft-oct25-31-2026",
+      "summary": "The activity features a Halloween creature craft. Do not assume the regular Saturday event hours apply throughout the week or treat retail promotions as free gifts.",
+      "details": [
+        "The official 2026 store calendar lists a Trick-or-Treat craft week. Ask your nearby store about supplies, ages and attendance arrangements."
+      ],
+      "startDate": "2026-10-25",
+      "endDate": "2026-10-31",
+      "dateLabel": "Oct 25–31 · confirm daily craft hours with the store",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://img.lakeshorelearning.com/is/content/OCProduction/pdf/8597056_LE%20Year%20Calendar_2026_No%20Crop.pdf",
+      "sourceLabel": "Lakeshore 2026 in-store event calendar"
+    },
+    {
       "kind": "opening",
       "id": "roundup-alesta-sebastopol-2026",
       "title": "Alesta Modern Mediterranean",

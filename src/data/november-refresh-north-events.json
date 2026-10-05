@@ -1,0 +1,324 @@
+[
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-art-trails-2026",
+    "title": "Sonoma County Art Trails 开放工作室",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-18",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-11",
+      "2026-10-17",
+      "2026-10-18"
+    ],
+    "dateLabel": "10/10、11、17、18 · 每日10:00–17:00",
+    "city": "Sonoma County",
+    "venue": "全县参与艺术家工作室；具体地址见2026官方地图",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "开放工作室参观免费；购买作品另计",
+    "summary": "160位入选艺术家的工作空间对公众开放，可自选一小片区域看绘画、陶艺与手作。",
+    "plan": [
+      "先在2026地图选2–3个邻近工作室，不把全县名单当作 Sebastopol 单一会场。",
+      "只在四个确认日期参观；无障碍条件和个别工作室安排分别核对。",
+      "编辑建议：先选最感兴趣的绘画、陶艺或木作，再看距离，减少跨县来回开车。"
+    ],
+    "audience": [
+      "艺术爱好者",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.sonomacountyarttrails.org/",
+    "sourceLabel": "Sonoma County Art Trails 主办方",
+    "imageKey": "culture-visit"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-healdsburg-market-2026",
+    "title": "Healdsburg 周六农夫市集：新棚亭地址",
+    "startDate": "2026-10-10",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "dateLabel": "10/10–11/14 每周六 · 8:30–12:00",
+    "city": "Healdsburg",
+    "venue": "Foley Family Community Pavilion, 3 North Street",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "农产与餐饮按摊位收费；官网未单列入场费",
+    "summary": "2026周六市集已迁入 Foley Family Community Pavilion，适合买菜、选本地食品并短逛市中心。",
+    "plan": [
+      "导航到3 North Street，不沿用旧停车场地址。",
+      "本期列到11/14；官方周六季节至12/19，周二季节已结束。",
+      "编辑建议：带购物袋，易腐食品采购后安排保冷，再继续逛市中心。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://healdsburgfarmersmarket.org/",
+    "sourceLabel": "Healdsburg Farmers’ Market 官方排程",
+    "imageKey": "everyday"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-sonoma-harvest-market-2026",
+    "title": "Sonoma Garden Park 丰收市集",
+    "startDate": "2026-10-10",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "dateLabel": "10/10–11/14 每周六 · 9:00–13:00",
+    "city": "Sonoma",
+    "venue": "Sonoma Garden Park, 19996 7th Street East",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "蔬果、鸡蛋与其他商品按摊位购买；未列单独入场费",
+    "summary": "在花园旁买当季蔬果、花束与本地食物；本期保留官方2026周六季节中的六个日期。",
+    "plan": [
+      "自带购物袋，商品供应随采收而变，不保证每周都有同样品项。",
+      "市集在7th Street East的花园，不是 Sonoma Plaza 广场。",
+      "官方说明可使用信用卡及 Apple Pay；仍以当日摊位可用方式结账。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+    "sourceLabel": "Sonoma Ecology Center / Sugarloaf 官方市集页",
+    "imageKey": "everyday"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-sugarloaf-public-star-party-2026",
+    "title": "Sugarloaf 公众观星夜",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "dateLabel": "11/7 · 19:00–22:00",
+    "city": "Kenwood",
+    "venue": "Robert Ferguson Observatory, 2603 Adobe Canyon Road",
+    "category": "outdoors",
+    "cost": "paid",
+    "costLabel": "成人$15；62岁以上/学生$10；6–12岁$5；5岁及以下免费；另加$10/车停车",
+    "summary": "在天文台听讲解并通过望远镜观察夜空，适合愿意晚归的家庭和天文爱好者。",
+    "plan": [
+      "先从主办方链接购票，停车费与活动票分开计算。",
+      "山中夜间会冷，带保暖衣物；可见天体受天气影响，不能保证特定观测结果。",
+      "5岁及以下活动票免费，但家庭自驾仍须计入每车停车费。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "自然爱好者"
+    ],
+    "officialUrl": "https://sugarloafpark.org/event/public-star-party-46/",
+    "sourceLabel": "Sugarloaf / Robert Ferguson Observatory 官方活动页",
+    "imageKey": "november-stargazing"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-sugarloaf-nature-talk-2026",
+    "title": "Sugarloaf 自然桌边讲解：颜色、图案与信号",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "dateLabel": "11/8 · 12:30–15:30，时段内可随到随听",
+    "city": "Kenwood",
+    "venue": "Sugarloaf Visitor Center, 2605 Adobe Canyon Road",
+    "category": "outdoors",
+    "cost": "mixed",
+    "costLabel": "讲解免费且无需预约；公园停车另收费",
+    "summary": "在游客中心外了解动物如何用颜色和图案传递信号，适合把短讲解与公园停留搭配。",
+    "plan": [
+      "活动是游客中心外的桌边讲解，不是三小时必须全程跟队的徒步。",
+      "无需为听讲解预约，但停车与公园开放仍按当日规则。",
+      "编辑建议：带孩子先想一个关于动物颜色的问题，抵达后向自然讲解员提问。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "自然爱好者"
+    ],
+    "officialUrl": "https://sugarloafpark.org/event/tabletop-nature-talk-colors-patterns-signals/",
+    "sourceLabel": "Sugarloaf Ridge State Park 官方自然活动页",
+    "imageKey": "garden-walk"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-sips-stars-2026",
+    "title": "Sips and Stars：21岁以上酒与星空之夜",
+    "startDate": "2026-11-13",
+    "endDate": "2026-11-13",
+    "dateLabel": "11/13 · 17:00–19:00",
+    "city": "Kenwood",
+    "venue": "Robert Ferguson Observatory, Sugarloaf Ridge State Park",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "仅21岁以上；需登记，票价及停车费到票务页核对；含2张饮品券",
+    "summary": "Landmark Vineyards 品鉴与天文学讲解结合的晚间活动，名额有限，不能作为儿童观星场推荐。",
+    "plan": [
+      "通过天文台票务链接检查余票、价格与年龄凭证要求。",
+      "饮酒者另安排驾驶或接送，望远镜观测取决于天气。",
+      "登记包含两张饮品券，不应理解为无限畅饮或所有餐饮都包含。"
+    ],
+    "audience": [
+      "21岁以上成人"
+    ],
+    "officialUrl": "https://sugarloafpark.org/event/sips-and-stars-4/",
+    "sourceLabel": "Sugarloaf / Robert Ferguson Observatory 官方活动页",
+    "imageKey": "november-stargazing"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-jack-london-author-2026",
+    "title": "Jack London 公园作家下午会：The Second Mrs. London",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "dateLabel": "11/15 · 14:00–15:30",
+    "city": "Glen Ellen",
+    "venue": "House of Happy Walls Museum, 2400 London Ranch Road",
+    "category": "culture",
+    "cost": "mixed",
+    "costLabel": "讲座不另收费；公园入场$15/车，座位有限须预约",
+    "summary": "作家 Marlo Faulkner 介绍 The Second Mrs. London，并安排讨论与签书；场地在博物馆二楼。",
+    "plan": [
+      "先预约座位，再把车辆入园费计入预算。",
+      "官方注明二楼仅楼梯可达；需要无台阶通行者提前联系公园确认替代安排。",
+      "编辑建议：为停车后到博物馆留出时间，别把14:00当作抵达公园大门的时间。"
+    ],
+    "audience": [
+      "艺术爱好者",
+      "本地居民"
+    ],
+    "officialUrl": "https://jacklondonpark.com/events/the-second-mrs-london-2026/",
+    "sourceLabel": "Jack London Park Partners 官方活动页",
+    "imageKey": "community-library-card"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-fairfax-bilingual-storytime-2026",
+    "title": "Fairfax 幼儿西英双语故事会",
+    "startDate": "2026-10-06",
+    "endDate": "2026-11-10",
+    "occurrenceDates": [
+      "2026-10-06",
+      "2026-10-13",
+      "2026-10-20",
+      "2026-10-27",
+      "2026-11-03",
+      "2026-11-10"
+    ],
+    "dateLabel": "10/6–11/10 每周二 · 10:15场；日历时段至11:45",
+    "city": "Fairfax",
+    "venue": "Fairfax Library, 2097 Sir Francis Drake Boulevard",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；适合0–5岁及陪同者",
+    "summary": "通过西英双语故事、音乐与身体活动陪幼儿学习；官方要求每次只参加一场。",
+    "plan": [
+      "本卡采用10:15系列；另有9:30场，选其中一场，出发前核对当天页面。",
+      "日历列10:15–11:45，不代表整段都是连续讲故事；幼儿由照顾者陪同。",
+      "编辑建议：按孩子午睡时间选场，故事会后可先在分馆选书，不必紧接长途出游。"
+    ],
+    "audience": [
+      "亲子家庭"
+    ],
+    "officialUrl": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+    "sourceLabel": "Marin County Free Library 官方系列日历",
+    "imageKey": "community-library-card"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-eames-exhibition-2026",
+    "title": "The MAC：Eames & Eames 现代设计展",
+    "startDate": "2026-10-17",
+    "endDate": "2026-11-15",
+    "dateLabel": "本期10/17–11/15 · 每日10:00–17:00；完整展期至2027/4/18",
+    "city": "St. Helena",
+    "venue": "The MAC, 607 St Helena Highway",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "普通成人$25；6–17岁$15；5岁及以下免费，特别活动另核",
+    "summary": "以 Charles 与 Ray Eames 为主题认识现代设计，适合把酒乡行程加入室内文化停留。",
+    "plan": [
+      "导航到 St. Helena 的 The MAC，不是 Yountville 的55 Presidents Circle。",
+      "本期只列至11/15，展览本身仍延续；10/18开幕庆典的票务另核，普通票不作特别活动保证。",
+      "成人与儿童票价不同，先按同行年龄选票，不把成人票价直接乘所有人数。"
+    ],
+    "audience": [
+      "艺术爱好者",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+    "sourceLabel": "Napa Valley Museum 官方展览及参观页",
+    "imageKey": "culture-visit"
+  },
+  {
+    "kind": "event",
+    "region": "north-bay",
+    "verifiedAt": "2026-10-05",
+    "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
+    "id": "november-north-bale-old-mill-days-2026",
+    "title": "Bale Grist Mill Old Mill Days 收获历史体验",
+    "startDate": "2026-10-10",
+    "endDate": "2026-10-11",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-11"
+    ],
+    "dateLabel": "10/10、10/11 · 10:00–14:00",
+    "city": "St. Helena",
+    "venue": "Bale Grist Mill, 3369 St Helena Highway",
+    "category": "family",
+    "cost": "paid",
+    "costLabel": "一般入场$5/人；幼儿减免年龄边界请向主办方确认",
+    "summary": "收获季的历史体验把水力磨坊示范、旧式农务、纺织与音乐结合，让孩子认识葡萄种植之外的 Napa 农业。",
+    "plan": [
+      "活动在 St. Helena 城外磨坊；选一天10:00–14:00参加，不沿用普通周末闭馆时刻。",
+      "官方同页分别写未满2岁及2岁及以下免费，2岁儿童是否免票须先确认。",
+      "编辑建议：穿适合动手体验的衣物，留出洗手和孩子休息的时间。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://napaoutdoors.org/events/",
+    "sourceLabel": "Napa County Regional Park and Open Space District 官方排程",
+    "imageKey": "family-workshop"
+  }
+]

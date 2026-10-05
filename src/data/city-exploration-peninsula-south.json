@@ -17,6 +17,14 @@
         "url": "https://athertonca.gov/268/Library",
         "mapQuery": "Atherton Library Atherton CA",
         "scope": "city"
+      },
+      {
+        "name": "Allied Arts Guild",
+        "description": "附近 Menlo Park 的西班牙殖民风格花园与工艺工作室，适合把安静散步和小店浏览放在同一站。常规周一至周六 10:00–17:00，周日及国定假日关闭；餐饮、购物、团体及摄影安排另查，不是 Atherton 镇内景点。",
+        "url": "https://alliedartsguild.org/visit/",
+        "mapQuery": "Allied Arts Guild 75 Arbor Road Menlo Park CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在公园选一段短步道，再到图书馆阅读或参加已预约活动，预留两至三小时。带幼儿时以图书馆为主，途中用餐可另选邻近 Menlo Park，别把两镇餐饮区当成同一园区。",
@@ -56,6 +64,14 @@
         "url": "https://www.belmont.gov/Home/Components/FacilityDirectory/FacilityDirectory/10/702",
         "mapQuery": "Waterdog Lake Open Space Lyall Way Belmont CA",
         "scope": "city"
+      },
+      {
+        "name": "Hiller Aviation Museum",
+        "description": "邻近 San Carlos 机场的航空博物馆，陈列飞机与航空技术，是半岛适合雨天的付费室内选择。导航 601 Skyway Road；先核对当天开放及年龄票档，飞行体验或特别活动不能默认包含在普通门票中。",
+        "url": "https://www.hiller.org/visit/",
+        "mapQuery": "Hiller Aviation Museum 601 Skyway Road San Carlos CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：天气干燥时先走 Waterdog 的一段步道，再到 Twin Pines 休息，留三至四小时并计入转场；雨后或同行者怕坡，就只走溪边公园，再按日历选社区活动。",
@@ -95,6 +111,14 @@
         "url": "https://www.brisbaneca.gov/430/Parks-Trails",
         "mapQuery": "Crocker Park Recreational Trail Brisbane CA",
         "scope": "city"
+      },
+      {
+        "name": "San Bruno Mountain State & County Park",
+        "description": "横跨北半岛山地的州立及县公园，Brisbane 的 555 Guadalupe Canyon Parkway 是正式公园地址。可选较平缓的 Bog Trail 或爬升观景路线，难度不同；停车费用与关门时间另查，公园不允许带狗。",
+        "url": "https://www.smcgov.org/parks/san-bruno-mountain-state-county-park",
+        "mapQuery": "San Bruno Mountain State & County Park Brisbane CA",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Community Park 和附近街区停留，再从正式入口走 Crocker 的一段，预留两至三小时。若恰逢活动，可缩短步道，把时间留给市集；没有活动时也不必绕完整圈。",
@@ -134,6 +158,14 @@
         "url": "https://www.burlingame.org/facilities/facility/details/Bayside-Fields-3",
         "mapQuery": "Bayside Fields Burlingame CA",
         "scope": "city"
+      },
+      {
+        "name": "Mills Canyon Wildlife Area",
+        "description": "市内安静的自然峡谷，入口在 Adeline Drive 与 Arguello Drive 一带，可沿环线认识本地植物和溪谷环境。这里以保护栖地和低强度活动为主，穿适合土路的鞋，带狗须牵绳，不把它当有全套设施的大型游乐公园。",
+        "url": "https://www.burlingame.org/Facilities/Facility/Details/Mills-Canyon-Wildlife-Area-8",
+        "mapQuery": "Mills Canyon Wildlife Area Burlingame CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先到 Washington Park，再在 Burlingame Avenue 用餐；天气舒适才转往 Bayside 走短段湾边，合计留三至四小时。带推车或不想过干道，可只留在市中心这一组。",
@@ -173,6 +205,14 @@
         "url": "https://stories.opengov.com/colmaca/published/K--PHScww",
         "mapQuery": "Sterling Park Recreation Center 427 F Street Colma CA",
         "scope": "city"
+      },
+      {
+        "name": "Cypress Lawn Arboretum",
+        "description": "历史纪念园中的认证植物园，以古树、树种收藏和园林景观见长。这里仍是运作中的墓园，参观应安静尊重纪念活动；可从官方植物园页取得自助导览资料，博物馆或电车导览另查预约，不能随意进入私人仪式。",
+        "url": "https://cypresslawn.com/arboretum/",
+        "mapQuery": "Cypress Lawn Arboretum Colma CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先确认博物馆开放再安排参观，随后到 Sterling Park 周边短暂停留；若没有开放或活动，缩成一站即可，不必为了凑行程闯入墓园。建议两小时左右，课程时间另计。",
@@ -212,6 +252,14 @@
         "url": "https://www.dalycity.org/283/Locations-Hours",
         "mapQuery": "Serramonte Main Library 40 Wembley Drive Daly City CA",
         "scope": "city"
+      },
+      {
+        "name": "San Bruno Mountain State & County Park",
+        "description": "附近 Brisbane 入口可到达的北半岛山地公园，适合看海湾与城市景观。正式入口在 Guadalupe Canyon Parkway，山脊可能多风；先按地图选短线并查停车收费，不把 Daly City 的 Thornton State Beach 当成可直接下沙滩的替代入口。",
+        "url": "https://www.smcgov.org/parks/san-bruno-mountain-state-county-park",
+        "mapQuery": "San Bruno Mountain State County Park 555 Guadalupe Canyon Parkway Brisbane CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：在主图书馆开放的日子先查活动再入馆，之后到 Gellert Park 走一小段，预留两至三小时。图书馆休馆时改选已确认开放的 Westlake 分馆，不临时把施工中的公园当替代。",
@@ -251,6 +299,14 @@
         "url": "https://www.cityofepa.org/parksrec/page/jack-farrell-park",
         "mapQuery": "Jack Farrell Park East Palo Alto CA",
         "scope": "city"
+      },
+      {
+        "name": "Ravenswood Preserve",
+        "description": "海湾潮汐湿地与较平坦的 Bay Trail，是本地观鸟和短距离步行的代表去处。Bay Road 尽头入口与北侧区段要分清；大部分路线铺装，但园内没有洗手间，也不允许带狗。看鸟用望远镜，留在步道上，不进入滩涂。",
+        "url": "https://www.openspace.org/preserves/ravenswood-preserve",
+        "mapQuery": "Ravenswood Preserve East Palo Alto CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：上午或风较小时先去 Cooley Landing，选择明确的折返点，随后到 Jack Farrell 休息，留三小时左右。若有已报名的教育中心活动，以活动时段为主，不再硬塞长程湾边骑行。",
@@ -290,6 +346,14 @@
         "url": "https://www.fostercity.org/245/Parks-Recreation",
         "mapQuery": "Sea Cloud Park Foster City CA",
         "scope": "city"
+      },
+      {
+        "name": "CuriOdyssey at Coyote Point",
+        "description": "附近 San Mateo 的科学探索馆与本地动物展示，可作为海湾散步的付费室内外替代。地址 1651 Coyote Point Drive；馆票、县公园车辆入园费和特别活动分开核对，不能把 Foster City 泻湖与 Coyote Point 当成同一公园。",
+        "url": "https://curiodyssey.org/visit/visitor-maps/",
+        "mapQuery": "CuriOdyssey 1651 Coyote Point Drive San Mateo CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Ryan Park 选一小段潟湖岸线，再按体力转往 Sea Cloud 与海堤入口，留三小时左右。带小孩可只选前者并参加活动；有比赛或大风时，不必为了走满路线跨城绕圈。",
@@ -329,6 +393,14 @@
         "url": "https://www.halfmoonbay.gov/facilities/facility/details/Mac-Dutra-Plaza-8",
         "mapQuery": "Mac Dutra Plaza Half Moon Bay CA",
         "scope": "city"
+      },
+      {
+        "name": "Half Moon Bay State Beach",
+        "description": "州立海滩由多个海滩和入口组成，Francis Beach 的地址为 95 Kelly Avenue；可看海、散步和野餐。普通车辆日间入园费官网列为 10 美元，露营须另订；沙滩、海边步道和下水活动风险不同，不把停车付费当成安全游泳保证。",
+        "url": "https://www.parks.ca.gov/?page_id=531",
+        "mapQuery": "Half Moon Bay State Beach Half Moon Bay CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：上午先在 Poplar 看海，选不需下崖的短段，再到 Main Street 用餐和逛街，留三至四小时。海雾、强风或同行者怕坡时，缩短海岸段，把时间留给老城；不把赶日落作为必须完成的项目。",
@@ -368,6 +440,14 @@
         "url": "https://www.carolands.org/tours/",
         "mapQuery": "Carolands Hillsborough CA",
         "scope": "city"
+      },
+      {
+        "name": "CuriOdyssey at Coyote Point",
+        "description": "附近 San Mateo 的科学馆与动物展示，适合需要明确公众开放场所的家庭。该馆不在 Hillsborough，必须单独导航至 Coyote Point；门票及公园停车另算，先选参观日期再检查开放和票额。",
+        "url": "https://curiodyssey.org/visit/visitor-maps/",
+        "mapQuery": "CuriOdyssey San Mateo CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：普通家庭选 Vista Park 的一段轻松停留，再到邻近 Burlingame 用餐；持确认导览者则围绕 Carolands 的指定报到时间安排半日。两种行程二选一，不把临时去门口碰碰运气列为步骤。",
@@ -407,6 +487,14 @@
         "url": "https://www.menlopark.gov/Parks/Bedwell-Bayfront-Park",
         "mapQuery": "Bedwell Bayfront Park Menlo Park CA",
         "scope": "city"
+      },
+      {
+        "name": "Allied Arts Guild",
+        "description": "75 Arbor Road 的历史花园、工艺工作室和小店群，适合慢走与看手工艺。常规周一至周六 10:00–17:00，周日及国定假日关闭；各商店、餐饮及正式摄影安排分别确认，不能默认办公和工作室内部都开放。",
+        "url": "https://alliedartsguild.org/visit/",
+        "mapQuery": "Allied Arts Guild Menlo Park CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Burgess 周边散步与阅读，再转往 Bedwell 选一段步道，留三至四小时。不想开车转场就只做社区公园与市中心；观鸟者可把整个半日留给湾边，不必同时赶两处。",
@@ -446,6 +534,14 @@
         "url": "https://www.ci.millbrae.ca.us/BusinessDirectoryII.aspx?lngBusinessCategoryID=22",
         "mapQuery": "Millbrae Library 1 Library Avenue Millbrae CA",
         "scope": "city"
+      },
+      {
+        "name": "Junipero Serra Park",
+        "description": "邻近 San Bruno 的山坡县公园，可看机场与海湾景观，适合想找林地而非商圈的人。正式地址是 1801 Crystal Springs Road，地点不在 Millbrae；先看县公园地图、封闭公告及停车收费，再决定短线或野餐。",
+        "url": "https://www.smcgov.org/parks/junipero-serra-park",
+        "mapQuery": "Junipero Serra Park 1801 Crystal Springs Road San Bruno CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在图书馆查看活动或短读，再到 Central Park 休息，留两至三小时；想顺便熟悉通勤，就把车站与实际公交站列为单独一段。不为赶景点拖行李绕远，先解决寄放与返程。",
@@ -485,6 +581,14 @@
         "url": "https://www.cityofpacifica.org/departments/parks-beaches-recreation/parks-and-beaches-locations-maps-safety-guides",
         "mapQuery": "Rockaway Beach Pacifica CA",
         "scope": "city"
+      },
+      {
+        "name": "San Pedro Valley Park",
+        "description": "600 Oddstad Boulevard 的溪谷县公园，设自然步道、徒步路线和野餐区。可按体力选平缓谷地或山坡线路；瀑布属于季节性景观，不能保证十月或十一月一定有水，停车收费和团体野餐预约另查。",
+        "url": "https://www.smcgov.org/parks/san-pedro-valley-park",
+        "mapQuery": "San Pedro Valley Park Pacifica CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：天气稳定时先走 Mori Point 短线，再转往 Rockaway 用餐，留三至四小时。同行者怕坡或有推车时，改为海岸较平缓路段；不默认两处之间的全程山路适合所有人。",
@@ -524,6 +628,14 @@
         "url": "https://www.portolavalley.net/about/open-space-in-portola-valley/portola-valley-trails",
         "mapQuery": "Coal Mine Ridge Nature Preserve Portola Valley CA",
         "scope": "city"
+      },
+      {
+        "name": "Windy Hill Preserve",
+        "description": "从镇边草坡一路连接山脊与林地的开放空间，是当地典型登高去处。下部 Portola Road 入口与 Skyline 一侧入口不是同一点，先看路线爬升；停车位有限，不在路边随意加停，带狗只能走允许的指定路线。",
+        "url": "https://www.openspace.org/preserves/windy-hill",
+        "mapQuery": "Windy Hill Preserve Portola Valley CA",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先到 Town Center 查地图与图书馆活动，再选择 Coal Mine Ridge 的短折返，留三至四小时。带幼儿或雨后不想走泥地，可全程留在镇中心，图书馆与户外草地搭配即可。",
@@ -563,6 +675,14 @@
         "url": "https://www.redwoodcity.org/Home/Components/FacilityDirectory/FacilityDirectory/47/36?selamenityid=10",
         "mapQuery": "Stulsaft Park Redwood City CA",
         "scope": "city"
+      },
+      {
+        "name": "Pulgas Water Temple",
+        "description": "附近 Cañada Road 水源保护区内的古典水神庙与水池，适合短停了解半岛供水史，不在 Redwood City 市中心。停车场通常周一至周五 9:00–17:00；周末与联邦假日不开放车辆停车，步行骑车入口另有安排，婚礼等活动可能封闭场地。",
+        "url": "https://www.sfpuc.gov/learning/come-visit/pulgas-water-temple",
+        "mapQuery": "Pulgas Water Temple Canada Road Redwood City CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先参观历史博物馆并在市中心用餐，再转往 Stulsaft 短走，留三至四小时。不开车时以市中心为主，把博物馆与街区活动连起来；有幼儿则减少展览或山坡路段，避免两头赶。",
@@ -602,6 +722,14 @@
         "url": "https://www.sanbruno.ca.gov/431/Recreation-and-Aquatic-Center-RAC",
         "mapQuery": "San Bruno Recreation and Aquatic Center CA",
         "scope": "city"
+      },
+      {
+        "name": "Junipero Serra Park",
+        "description": "1801 Crystal Springs Road 的山坡县公园，以林地、海湾及机场观景见长。短线步行与团体野餐适合不同安排；出发前查县公园封闭公告和车辆入园费，不把远景照片当作无坡度路线的承诺。",
+        "url": "https://www.smcgov.org/parks/junipero-serra-park",
+        "mapQuery": "Junipero Serra Park San Bruno CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按已确认的泳池或课程时段到中心，再到 City Park 休息，留两至三小时。没有合适场次就只做公园散步，不把中心营业理解为泳池随时可用；家庭聚会另办场地预约。",
@@ -641,6 +769,14 @@
         "url": "https://www.sancarlosparksmp.com/",
         "mapQuery": "Burton Park 900 Chestnut Street San Carlos CA",
         "scope": "city"
+      },
+      {
+        "name": "Hiller Aviation Museum",
+        "description": "位于 601 Skyway Road，航空器收藏与互动展示适合安排半天。官网常规开放为 10:00–17:00，节假日或包场可例外；普通门票、模拟飞行和活动项目分开看，Caltrain 到馆仍有约一英里步行。",
+        "url": "https://www.hiller.org/visit/",
+        "mapQuery": "Hiller Aviation Museum San Carlos CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：博物馆开放日先看展，再沿 Laurel 街区用餐，最后到 Burton Park 休息，留三小时左右。博物馆休馆就改为街区与公园两站，不把隔窗看建筑当成完成参观。",
@@ -680,6 +816,14 @@
         "url": "https://www.cityofsanmateo.org/3384/Seal-Point-Park",
         "mapQuery": "Seal Point Park San Mateo CA",
         "scope": "city"
+      },
+      {
+        "name": "CuriOdyssey at Coyote Point",
+        "description": "科学互动展示与本地动物相结合的亲子去处，地址 1651 Coyote Point Drive。核验时官网提示 10 月 19 日维护闭馆、10 月 31 日 15:00 提早关闭；门票按日期查，馆外县公园费用不能默认包含。",
+        "url": "https://curiodyssey.org/visit/visitor-maps/",
+        "mapQuery": "CuriOdyssey at Coyote Point San Mateo CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按庭园开放时间到 Central Park，再在市中心用餐；天气好才转往 Seal Point 短走，留三至四小时。需要少走路时只做庭园与用餐，湾边留作另一次，不硬拼跨城步行。",
@@ -719,6 +863,14 @@
         "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Library-Parks-and-Recreation-Center",
         "mapQuery": "Library Parks and Recreation Center 901 Civic Campus Way South San Francisco CA",
         "scope": "city"
+      },
+      {
+        "name": "Sign Hill",
+        "description": "城名白色大字所在的山坡公园，设近两英里步道，开放为日出至日落。它是有坡度的短徒步，不是平坦观景平台；园内没有饮水点，不允许自行车，狗须用不超过六英尺的牵绳。",
+        "url": "https://www.ssfca.gov/Departments/Parks-Recreation/Divisions/Parks-Division/Sign-Hill",
+        "mapQuery": "Sign Hill South San Francisco CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看中心的当日活动与图书馆，再在外侧步道短走；体力允许才转去 Orange Memorial，留三小时左右。下雨时以室内为主，活动需报名就先完成，不把整栋楼视为无需预约的游乐馆。",
@@ -758,6 +910,14 @@
         "url": "https://smcl.org/locations/1w/",
         "mapQuery": "Woodside Library 3140 Woodside Road CA",
         "scope": "city"
+      },
+      {
+        "name": "Filoli Historic House & Garden",
+        "description": "历史宅邸、正式花园与自然步道，是 Woodside 一带的重要付费景点。先选日期及日间或夜间产品再购票；2026 节日季从 11 月 14 日开始，夜间灯饰和日间参观不是可以随意互换的同一张票。",
+        "url": "https://filoli.org/holidays",
+        "mapQuery": "Filoli Historic House & Garden Woodside CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Wunderlich 选择低处短线或折返，再到图书馆休息，留三至四小时。喜欢历史者另查马厩展览开放；带幼儿或天气不佳可缩为图书馆活动，不把长爬升线当必选。",
@@ -797,6 +957,14 @@
         "url": "https://www.campbellmuseums.com/ainsley-house",
         "mapQuery": "Ainsley House 300 Grant Street Campbell CA",
         "scope": "city"
+      },
+      {
+        "name": "Los Gatos Creek Trail",
+        "description": "穿过 Campbell 的铺装溪边步道，可从 Campbell Avenue 与 Gilman Avenue 一带进入。适合短距离步行或骑车，路上行人与自行车共用；整条区域步道跨多个城市，别把从 San Jose 到 Los Gatos 的全线当作轻松一小圈。",
+        "url": "https://www.campbellca.gov/Facilities/Facility/Details/Los-Gatos-Creek-Trail-29",
+        "mapQuery": "Los Gatos Creek Trail Campbell CA",
+        "scope": "cross-boundary",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按 Ainsley 导览时间订好顺序，再逛历史馆与市中心，留三至四小时。只想轻松走走可选一馆加用餐；组合票不必同日用完，购买前核对当天说明，不为凑票赶场。",
@@ -836,6 +1004,14 @@
         "url": "https://www.cupertino.gov/Your-City/Departments/Public-Works/Capital-Improvement-Programs-Projects/Memorial-Park-Specific-Plan",
         "mapQuery": "Memorial Park Cupertino CA",
         "scope": "city"
+      },
+      {
+        "name": "Apple Park Visitor Center",
+        "description": "10600 North Tantau Avenue 的公众访客中心，可逛 Apple Store，并按官网选择 Today at Apple 课程。这里与 Apple 员工办公园区有明确边界，访问中心不代表可以进入总部办公楼；课程报名和商业服务另查。",
+        "url": "https://www.apple.com/retail/appleparkvisitorcenter/",
+        "mapQuery": "Apple Park Visitor Center Cupertino CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先走 McClellan 的短程自然路线，若教育中心开放便入内，再到 Memorial Park 休息，留三至四小时。雨后泥泞时改走允许通行的铺装路线，或只选已确认的室内项目。",
@@ -875,6 +1051,14 @@
         "url": "https://cityofgilroy.org/facilities/facility/details/christmas-hill-park-7",
         "mapQuery": "Christmas Hill Park Gilroy CA",
         "scope": "city"
+      },
+      {
+        "name": "Gilroy Gardens",
+        "description": "以花园、Circus Trees 和家庭游乐设施结合的季节性主题公园。须按具体日期看营业日历及购票，停车与部分体验另有条件；不要把线上销售次年会员卡理解成每天都开放或当天所有活动已包含。",
+        "url": "https://www.gilroygardens.org/",
+        "mapQuery": "Gilroy Gardens Gilroy CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看博物馆并在老城用餐，再去 Christmas Hill 选短线，留三至四小时；天热时把公园改到较凉时段。若只为购物顺路来，选一处即可，不把购物中心和公园之间当步行捷径。",
@@ -914,6 +1098,14 @@
         "url": "https://www.losaltosca.gov/Facilities/Facility/Details/Shoup-Park-16",
         "mapQuery": "Shoup Park Los Altos CA",
         "scope": "city"
+      },
+      {
+        "name": "Redwood Grove Nature Preserve",
+        "description": "482 University Avenue 的小型红杉自然保护区，以沿 Adobe Creek 的木栈道和林间步道为特色。车辆不能开入，附近按路牌停车；官网仍把儿童游乐场写作筹备项目，不能把它列为已开放设施。",
+        "url": "https://www.losaltosca.gov/709/Los-Altos-Parks",
+        "mapQuery": "Redwood Grove Nature Preserve Los Altos CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在博物馆看展，再到市中心用餐，最后在 Shoup Park 短走，留三至四小时。孩子注意力有限时选展览或公园其一作为主站；需要团队导览应提前联系，不现场临时凑团。",
@@ -953,6 +1145,14 @@
         "url": "https://www.losaltoshills.ca.gov/204/Open-Space",
         "mapQuery": "Westwind Community Barn Los Altos Hills CA",
         "scope": "city"
+      },
+      {
+        "name": "Hidden Villa",
+        "description": "26870 Moody Road 的教育农场与山地步道，官网请求每车支付 10 美元停车费；无力支付可联系机构。先查开放及预约安排，停主停车场而非 Moody Road；动物栏和多数建筑不能自行进入，也不要喂动物。",
+        "url": "https://www.hiddenvilla.org/visit/plan-your-trip/",
+        "mapQuery": "Hidden Villa Los Altos Hills CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先选 Byrne 的短段步道，若已确认马厩公开活动再衔接参加，留两至三小时。没有活动时只在允许区域看景；需要用餐可另去邻近 Los Altos，不把找餐厅加入山路临时绕行。",
@@ -992,6 +1192,14 @@
         "url": "https://parks.santaclaracounty.gov/locations/vasona-lake-county-park",
         "mapQuery": "Vasona Lake County Park 333 Blossom Hill Road Los Gatos CA",
         "scope": "city"
+      },
+      {
+        "name": "Oak Meadow Park",
+        "description": "233 Blossom Hill Road 的社区公园，可与邻近 Vasona 及 Los Gatos Creek Trail 分开串联。草地、儿童游乐区适合短停；Billy Jones 小火车和旋转木马由运营方另定时段及票价，不代表每次到公园都能乘坐。",
+        "url": "https://parks.losgatosca.gov/docs/park%20details.pdf",
+        "mapQuery": "Oak Meadow Park Los Gatos CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按 NUMU 开放时间看展，在镇中心用餐，再到 Vasona 走短段湖边，留三至四小时。带小孩可减少展厅时间；若要租船，把运营时段和天气作为主条件，不临到现场再决定整套行程。",
@@ -1031,6 +1239,14 @@
         "url": "https://www.milpitas.gov/Facilities/Facility/Details/Cardoza-Park-10",
         "mapQuery": "Cardoza Park Milpitas CA",
         "scope": "city"
+      },
+      {
+        "name": "Ed R. Levin County Park",
+        "description": "Calaveras 山麓的县公园，有草坪、湖边、儿童游乐区和向高处延伸的步道。公园通常 8:00 至日落，车辆入园收费；Sandy Wool 与 Spring Valley 是不同入口，湖泊禁止游泳，不能把山顶长线当普通亲子散步。",
+        "url": "https://parks.santaclaracounty.gov/locations/ed-r-levin-county-park",
+        "mapQuery": "Ed R. Levin County Park Milpitas CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Adobe Park 看历史建筑外观与短走，再到 Cardoza 休息或参加已报名项目，留两至三小时。没有建筑开放信息时按公园游览安排，不向孩子保证一定能进去参观。",
@@ -1070,6 +1286,14 @@
         "url": "https://www.openspace.org/preserves/el-sereno",
         "mapQuery": "El Sereno Open Space Preserve CA",
         "scope": "nearby"
+      },
+      {
+        "name": "NUMU — New Museum Los Gatos",
+        "description": "附近 Los Gatos 的艺术与地方历史博物馆，地址 106 East Main Street，常规周四至周日 10:00–16:00。普通成人票与优惠资格分别确认，未满 13 岁须成人陪同；Monte Sereno 居民不能自动套用仅供 Los Gatos 居民的免费资格。",
+        "url": "https://www.numulosgatos.org/visit",
+        "mapQuery": "NUMU New Museum Los Gatos 106 East Main Street CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：新居民可在接待时段先完成市政咨询，再按 Midpen 地图选一个短折返，留三至四小时并计入山路转场。普通游客可直接去保护区；天气热或体力不足就改到邻近 Los Gatos 室内活动。",
@@ -1109,6 +1333,14 @@
         "url": "https://www.morganhill.ca.gov/2635/Healthy-Active-Parks-Trails-Facilities",
         "mapQuery": "Community Park Magical Bridge Playground Morgan Hill CA",
         "scope": "city"
+      },
+      {
+        "name": "Henry W. Coe State Park — Coe Ranch",
+        "description": "Morgan Hill 以东约 13 英里的山地州立公园入口，导航 9000 East Dunne Avenue。这里是大范围荒野徒步目的地，不是市内平坦公园；Coe Ranch 普通车辆日间费官网列为 8 美元，其他入口、露营及线路难度要另查。",
+        "url": "https://www.parks.ca.gov/?page_id=561",
+        "mapQuery": "Henry W Coe State Park Coe Ranch 9000 East Dunne Avenue Morgan Hill CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先确认 Villa Mira Monte 是否接待，再看历史场地与市中心，随后去 Community Park，留三至四小时。同行有幼儿时把游乐场作为主站；天热则缩短曝晒段，预留饮水与休息。",
@@ -1148,6 +1380,14 @@
         "url": "https://www.mountainview.gov/our-city/departments/community-services/shoreline-at-mountain-view",
         "mapQuery": "Shoreline at Mountain View Park CA",
         "scope": "city"
+      },
+      {
+        "name": "Google Visitor Experience",
+        "description": "Gradient Canopy 的公众访客空间包括广场艺术、咖啡馆、Google Store 和活动空间。适合对科技园区设计感兴趣的人短停；商店营业、工作坊名额及咖啡消费分别确认，不能把访客区当作可自由进入的员工办公区。",
+        "url": "https://visit.withgoogle.com/",
+        "mapQuery": "Google Visitor Experience Mountain View CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先用较完整的一段时间看博物馆，再到 Shoreline 选短步道，留三至四小时。科技爱好者可只做博物馆；想观鸟则把大部分时间留在公园，避免展厅与长距离绕湖同时赶。",
@@ -1188,6 +1428,14 @@
         "mapQuery": "Rinconada Park 777 Embarcadero Road Palo Alto",
         "description": "林荫社区公园适合休息与家庭短程活动，可再查附近图书馆和文化设施；泳池、课程及场馆不能按公园一般开放推定可入场。",
         "scope": "city"
+      },
+      {
+        "name": "Cantor Arts Center at Stanford",
+        "description": "附近 Stanford 校园的重要艺术馆，普通入场免费，校园停车可能另收费。核验时常规周二、周三闭馆，其余日期开放但周四时段不同；先看当天日历，不把 Stanford 直接写成 Palo Alto 市内街区。",
+        "url": "https://museum.stanford.edu/visit",
+        "mapQuery": "Cantor Arts Center Stanford CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议把 Baylands 短程观鸟留作一段独立行程，再按体力转往 Rinconada 休息，或只围绕公园及附近公共文化设施慢逛。两区之间安排交通，不把两处理解成连续步行路线；留半天并随风力缩短户外段。",
@@ -1227,6 +1475,30 @@
         "mapQuery": "History Park 635 Phelan Avenue San Jose",
         "description": "通过历史及复建建筑了解 Santa Clara Valley 的生活与产业变迁。园区、单栋博物馆与电车的开放安排不同，入园不等于每栋建筑都能进入。",
         "scope": "city"
+      },
+      {
+        "name": "The Tech Interactive",
+        "description": "201 South Market Street 的互动科学中心，适合给动手展项留半天。官网普通票列成人 38 美元、3–17 岁儿童及学生和长者 28 美元，并含一场教育类 IMAX；特殊电影、活动和当天开放另查，不等于所有 IMAX 放映都包含。",
+        "url": "https://www.thetech.org/visit/",
+        "mapQuery": "The Tech Interactive San Jose CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Rosicrucian Egyptian Museum",
+        "description": "1660 Park Avenue 的古埃及艺术与考古收藏，是 Rose Garden 一带的重要室内景点。先查博物馆当天开放及票档，再安排花园散步；同一园区的其他建筑或活动并不自动包含在普通参观内。",
+        "url": "https://egyptianmuseum.org/plan-your-visit",
+        "mapQuery": "Rosicrucian Egyptian Museum San Jose CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Winchester Mystery House",
+        "description": "Sarah Winchester 的大型维多利亚式宅邸，以复杂房间和建筑布局闻名，主要通过付费导览参观。选具体日期和导览产品，另查体力、楼梯及无障碍条件；历史宅邸导览与季节夜间活动不是同一种票。",
+        "url": "https://winchestermysteryhouse.com/",
+        "mapQuery": "Winchester Mystery House San Jose CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议只选一个主要片区：花园散步配附近用餐，或围绕 History Park 留半天看展与街景。如果想两处都去，先确认 History Park 场馆开放再安排跨区交通；不要让预约参观被临时加的远端景点挤掉。",
@@ -1266,6 +1538,22 @@
         "mapQuery": "Central Park 909 Kiely Boulevard Santa Clara",
         "description": "市属公园适合散步与认识周边康乐设施；游泳、球场、野餐预订和儿童设施分开核对。施工可能影响部分区域，不把整座公园视为同一开放状态。",
         "scope": "city"
+      },
+      {
+        "name": "Mission Santa Clara de Asís",
+        "description": "Santa Clara University 内的历史教堂，也是仍在使用的宗教场所。官网常规每天 7:00–19:00，活动可能临时关闭；参观尊重礼拜安排，校园停车规定另查，围墙内玫瑰园墓地不对公众开放。",
+        "url": "https://www.scu.edu/missionchurch/visit-the-mission/",
+        "mapQuery": "Mission Santa Clara de Asís Santa Clara CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
+      },
+      {
+        "name": "Intel Museum",
+        "description": "2200 Mission College Boulevard 的芯片与计算历史展示，个人参观免费且无需预约，停车也免费。常规周一至周五 9:00–17:00，2026 年 11 月 11 日闭馆；团体与导览另行预约，不能把展厅访问当成工厂或办公区参观。",
+        "url": "https://www.intel.com/content/www/us/en/company-overview/intel-museum.html?iid=community-museum",
+        "mapQuery": "Intel Museum Santa Clara CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议按 Triton 当天展厅安排先看展，留时间安静观察，再选择是否转往 Central Park 散步；只想少移动可只做艺术半日。带孩子先核实想用的具体游乐区，别到场才发现预约或施工限制。",
@@ -1305,6 +1593,14 @@
         "mapQuery": "Montalvo Arts Center 15400 Montalvo Road Saratoga",
         "description": "以艺术中心周边公共花园与户外艺术为轻松起点，再决定是否走更费体力的山坡步道。Villa 室内与演出不能仅凭到达园区就自由进入。",
         "scope": "city"
+      },
+      {
+        "name": "Sanborn County Park",
+        "description": "Saratoga 附近山地县公园，以红杉林、野餐区和徒步路线为特色，地址 16055 Sanborn Road。通常 8:00 至日落，车辆入园收费；露营、团体野餐及长距离山路分别安排，不把红杉照片当作无障碍线路说明。",
+        "url": "https://parks.santaclaracounty.gov/santa-clara-county-parks/sanborn-county-park",
+        "mapQuery": "Sanborn County Park 16055 Sanborn Road Saratoga CA",
+        "scope": "nearby",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先订好或确认主场地：喜欢日式庭园选 Hakone，偏艺术与林间环境选 Montalvo。留半天慢逛，再到村落街区吃饭；若加第二站，重新核对剩余开放时间与停车，不赶最后入园。",
@@ -1344,6 +1640,14 @@
         "mapQuery": "Sunnyvale Baylands Park 999 East Caribbean Drive",
         "description": "城市运营的湾边公园，适合短程步行、草地休息及按规则使用野餐场地；公共活动区与生态湿地并非所有地方都可进入。",
         "scope": "city"
+      },
+      {
+        "name": "Las Palmas Park",
+        "description": "850 Russet Drive 的城市公园，适合把绿地散步与野餐安排在同一站。团体野餐区按市府各场地容量与预约规则使用，不能把公园开放等同于当天一定有可用的保留桌位。",
+        "url": "https://www.sunnyvale.ca.gov/Home/Components/FacilityDirectory/FacilityDirectory/51/456",
+        "mapQuery": "Las Palmas Park Sunnyvale CA",
+        "scope": "city",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议先按博物馆开放安排历史一站，再视天气与体力转往 Baylands 短走，或把两处拆成两个半日。带孩子可缩短讲解后留户外时间；出发前预留城市南北移动和回程，不把通勤高峰当普通周末车程。",

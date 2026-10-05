@@ -1,6 +1,3 @@
-import photoMapEast from './city-roundup-photo-map-east.json';
-import photoMapSouth from './city-roundup-photo-map-south.json';
-import photoMapNorth from './city-roundup-photo-map-north.json';
 import type { Guide } from './guides';
 import { CITY_COUNTIES, type CityExploration } from './city-exploration-types';
 import eastSf from './city-exploration-east-sf.json';
@@ -11,8 +8,9 @@ import currentSouth from './city-current-peninsula-south.json';
 import currentNorth from './city-current-north.json';
 import type { CityCurrentUpdate } from './city-current-types';
 
-const photoMap: Record<string, string> = { ...photoMapEast, ...photoMapSouth, ...photoMapNorth };
-export const CITY_CURRENT_UPDATES = ([...currentEast, ...currentSouth, ...currentNorth] as CityCurrentUpdate[]).map(update => ({ ...update, imageKey: Object.hasOwn(photoMap, update.city) ? photoMap[update.city] : update.imageKey }));
+// Keep the editorial image chosen for the actual notice. A city landscape is
+// not evidence of a workshop, concert, recycling service or admission offer.
+export const CITY_CURRENT_UPDATES = [...currentEast, ...currentSouth, ...currentNorth] as CityCurrentUpdate[];
 const currentByCity = new Map(CITY_CURRENT_UPDATES.map(update => [update.city, update]));
 
 export const CITY_EXPLORATIONS: CityExploration[] = ([...eastSf, ...peninsulaSouth, ...north] as CityExploration[]).map(city => ({ ...city, currentUpdate: currentByCity.get(city.city) })).sort((a,b) => CITY_COUNTIES.indexOf(a.county as typeof CITY_COUNTIES[number]) - CITY_COUNTIES.indexOf(b.county as typeof CITY_COUNTIES[number]) || a.city.localeCompare(b.city));
@@ -56,8 +54,8 @@ export const cityExplorationGuides: Guide[] = [{
     "moving"
   ],
   "readMinutes": 20,
-  "updatedAt": "2026-10-02",
-  "sourceNote": "城市资料核验于 2026-10-02。景点和官方资源逐城列明；半日顺序、取舍与生活建议为编辑建议，不是交通耗时测量或实时开放保证。城市和镇按九县建制范围计数，非建制社区不额外算作城市。预约、施工、停车、馆舍时段与报名条件请出发前再查对应官方入口。",
+  "updatedAt": "2026-10-05",
+  "sourceNote": "城市资料于 2026/10/2 建立，本轮在 2026/10/5 补充各城景点与资讯；新条目另列核验日期，未重查的旧资料保留原日期。半日路线为编辑建议，不是实时导航或开放保证。市内、附近与跨市景点明确区分；出发前查预约、施工、停车及开放公告。",
   "sources": [
     {
       "title": "ABAG: How We Govern",

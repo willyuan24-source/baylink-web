@@ -10,6 +10,7 @@ export type CityExploration = {
     url: string;
     mapQuery: string;
     scope: 'city' | 'nearby' | 'cross-boundary';
+    verifiedAt?: string;
   }[];
   halfDay: string;
   arrival: string;

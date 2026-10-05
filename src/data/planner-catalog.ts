@@ -1,5 +1,8 @@
 import { MONTHLY_EVENTS, MONTHLY_EDITION } from './monthly-edition';
 import { ATTRACTIONS } from './attractions';
+import novemberNorthPlanning from './november-refresh-north-planning.json';
+import novemberSouthPlanning from './november-refresh-peninsula-south-planning.json';
+import novemberEastPlanning from './november-refresh-east-sf-planning.json';
 import { guides } from './guides';
 import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib/planner';
 import placeLocationData from './place-locations.json';
@@ -61,7 +64,8 @@ const eventLocations: Record<string, GeoPoint> = {
 
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
-export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(event.cost === 'unknown' ? { admissionUsd: null } : {}), ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}) } }));
+const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning } as Record<string, { planning: PlanningFacts }>;
+export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,
   guideSlug: place.slug, path: `/guides/${encodeURIComponent(place.slug)}`, category: 'attraction', cost: place.cost,

@@ -9,7 +9,8 @@
     "sourceUrl": "https://www.athertonca.gov/Calendar.aspx?EID=4034&calType=0&day=30&month=9&year=2026",
     "sourceLabel": "Town of Atherton",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-18"
   },
   {
     "city": "Belmont",
@@ -21,7 +22,8 @@
     "sourceUrl": "https://www.belmont.gov/departments/administrative-services/centennial-2026",
     "sourceLabel": "City of Belmont",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-24"
   },
   {
     "city": "Brisbane",
@@ -33,7 +35,8 @@
     "sourceUrl": "https://www.brisbaneca.gov/Calendar.aspx?EID=1241&calType=0&day=2&month=10&year=2026",
     "sourceLabel": "City of Brisbane",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-29"
   },
   {
     "city": "Burlingame",
@@ -45,7 +48,7 @@
     "sourceUrl": "https://www.burlingame.org/356/Events",
     "sourceLabel": "Burlingame Public Library",
     "checkedAt": "2026-10-02",
-    "imageKey": "burlingame"
+    "imageKey": "october-library-culture"
   },
   {
     "city": "Colma",
@@ -74,14 +77,15 @@
   {
     "city": "East Palo Alto",
     "county": "San Mateo",
-    "kind": "calendar",
-    "headline": "先切换月份，再查社区活动与会议",
-    "summary": "市府日历将社区项目与委员会会议放在同一入口，可按部门筛选。读取时页面仍显示九月，因此先切到十月或十一月，再查看具体地点、报名和取消标记；搬来后也可订阅市府 newsletter 获取更新。",
-    "dateLabel": "持续更新 · 请先选目标月份",
-    "sourceUrl": "https://www.cityofepa.org/calendar",
-    "sourceLabel": "City of East Palo Alto",
-    "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "kind": "dated",
+    "headline": "11 月 15 日 Ravenswood 免费湿地导览",
+    "summary": "Midpen 已列出 9:30–12:00、约三英里的家庭友好盐沼导览，集合在 Bay Road 尽头的 Ravenswood 停车区。提前到场签参加声明，带水并安排好洗手间；天气或步道状况可能改变行程，出发前查官方页。",
+    "dateLabel": "11/15 周日 · 9:30–12:00",
+    "sourceUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "checkedAt": "2026-10-05",
+    "imageKey": "weekend",
+    "expiresAt": "2026-11-15"
   },
   {
     "city": "Foster City",
@@ -105,7 +109,8 @@
     "sourceUrl": "https://www.hmbpumpkinfest.com/event-details/about-the-event",
     "sourceLabel": "Half Moon Bay Art & Pumpkin Festival",
     "checkedAt": "2026-10-02",
-    "imageKey": "fresh-pumpkin-parade"
+    "imageKey": "fresh-pumpkin-parade",
+    "expiresAt": "2026-10-18"
   },
   {
     "city": "Hillsborough",
@@ -129,7 +134,8 @@
     "sourceUrl": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival",
     "sourceLabel": "City of Menlo Park",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-24"
   },
   {
     "city": "Millbrae",
@@ -153,7 +159,8 @@
     "sourceUrl": "https://www.cityofpacifica.org/departments/parks-beaches-recreation/aquatics",
     "sourceLabel": "City of Pacifica Aquatics",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-15"
   },
   {
     "city": "Portola Valley",
@@ -177,7 +184,8 @@
     "sourceUrl": "https://www.redwoodcity.org/departments/library/events/library-events/-curdate-6-5-2026/-curm-10/-cury-2026",
     "sourceLabel": "Redwood City Public Library",
     "checkedAt": "2026-10-02",
-    "imageKey": "coverage-redwood-port"
+    "imageKey": "october-library-culture",
+    "expiresAt": "2026-10-19"
   },
   {
     "city": "San Bruno",
@@ -189,19 +197,21 @@
     "sourceUrl": "https://sanbruno.ca.gov/Calendar.aspx?EID=5584&calType=0&day=17&month=10&year=2026",
     "sourceLabel": "City of San Bruno",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-17"
   },
   {
     "city": "San Carlos",
     "county": "San Mateo",
     "kind": "dated",
-    "headline": "Art & Wine Faire 周末与官方接驳",
-    "summary": "主办方确认 10 月 10–11 日 10:00–18:00 的艺术美酒节。官方列出从 310 Industrial Road 出发的免费接驳及停车安排；先读当年停车页，再沿 Laurel Street 逛展。免费接驳不代表酒饮、餐食或商品免费。",
-    "dateLabel": "10/10–11 · 10:00–18:00",
-    "sourceUrl": "https://pacificfinearts.com/festival/san-carlos-art-wine-faire/",
-    "sourceLabel": "Pacific Fine Arts Festivals",
-    "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "headline": "11 月 14 日食物保存课：早鸟价已结束",
+    "summary": "UC Master Food Preservers 在 1839 Arroyo Avenue 举办 9:00–12:00 的食物礼物实作课，须报名且名额有限。9 月 30 日后费用为每人 115 美元；不要沿用另一页面仍显示的 95 美元早鸟标题，也别将报名标记当成上课日期。",
+    "dateLabel": "11/14 周六 · 9:00–12:00",
+    "sourceUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+    "sourceLabel": "UC Agriculture and Natural Resources — Master Food Preservers",
+    "checkedAt": "2026-10-05",
+    "imageKey": "neighborhood-table",
+    "expiresAt": "2026-11-14"
   },
   {
     "city": "San Mateo",
@@ -213,19 +223,21 @@
     "sourceUrl": "https://www.cityofsanmateo.org/2617/Free-Recycling-Events",
     "sourceLabel": "City of San Mateo",
     "checkedAt": "2026-10-02",
-    "imageKey": "sanmateo"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-10"
   },
   {
     "city": "South San Francisco",
     "county": "San Mateo",
-    "kind": "calendar",
-    "headline": "秋冬社区活动按单场详情安排",
-    "summary": "Parks & Recreation 当前列出十月 Halloween Extravaganza、十一月 Senior Holiday Boutique & Maker's Faire 与 Thanksgiving 5K。先从总表进入活动详情，区分购物市集与需报名的跑步项目；年度手册仅用于预告，最新场地和名额以单场页为准。",
-    "dateLabel": "持续更新 · 十月至十一月预告",
-    "sourceUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events",
-    "sourceLabel": "South San Francisco Parks & Recreation",
-    "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "kind": "dated",
+    "headline": "11 月 7 日室内节日手作市集",
+    "summary": "Senior Holiday Boutique & Maker’s Faire 将于 10:00–16:00 在 901 Civic Campus Way 的 Library | Parks and Recreation Center 举行。入场免费，珠宝、陶艺及手作商品自费；这是面向公众的市集，不是仅凭到场就能领取免费商品的活动。",
+    "dateLabel": "11/7 周六 · 10:00–16:00",
+    "sourceUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+    "sourceLabel": "City of South San Francisco",
+    "checkedAt": "2026-10-05",
+    "imageKey": "autumn-neighbors",
+    "expiresAt": "2026-11-07"
   },
   {
     "city": "Woodside",
@@ -237,7 +249,8 @@
     "sourceUrl": "https://woodsideca.gov/AlertCenter.aspx?AID=58",
     "sourceLabel": "Town of Woodside",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-12-11"
   },
   {
     "city": "Campbell",
@@ -249,7 +262,8 @@
     "sourceUrl": "https://www.campbellca.gov/396/Events-Initiatives-Projects",
     "sourceLabel": "Campbell Recreation & Community Services",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-17"
   },
   {
     "city": "Cupertino",
@@ -261,7 +275,8 @@
     "sourceUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
     "sourceLabel": "City of Cupertino",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-28"
   },
   {
     "city": "Gilroy",
@@ -273,7 +288,8 @@
     "sourceUrl": "https://www.cityofgilroy.org/m/newsflash/home/detail/1334",
     "sourceLabel": "City of Gilroy",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-10"
   },
   {
     "city": "Los Altos",
@@ -297,19 +313,21 @@
     "sourceUrl": "https://losaltoshills.ca.gov/DocumentCenter/View/7636/LAH-Fire-Prevention-Flyer_2026-85x11-2?bidId=",
     "sourceLabel": "Los Altos Hills County Fire District / GreenWaste",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-21"
   },
   {
     "city": "Los Gatos",
     "county": "Santa Clara",
-    "kind": "calendar",
-    "headline": "图书馆项目按年龄与房间查",
-    "summary": "镇日历把 Library 和 Town Government 分开，故事时间、儿童手作与成人读书会适合不同年龄。先切换所需日期，再看 Children's Room、Teen Room 或 Conference Room；同一天多个活动并不代表可以跨年龄自由参加。",
-    "dateLabel": "持续更新 · 非单场活动",
-    "sourceUrl": "https://losgatosca.gov/calendar.aspx?day=14&month=10&view=list&year=2026",
-    "sourceLabel": "Town of Los Gatos",
-    "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "kind": "dated",
+    "headline": "NUMU 10 月 17 日开幕活动免费预约",
+    "summary": "Community Ignition 开幕招待会为 12:00–16:00，关注残障艺术社群的协作与创作。须从官方活动页登记，当天博物馆中午才开放；招待会免费不等于整个展期每天免费，未满 13 岁仍须成人陪同。",
+    "dateLabel": "10/17 周六 · 12:00–16:00",
+    "sourceUrl": "https://www.numulosgatos.org/events/community-ignition",
+    "sourceLabel": "NUMU — New Museum Los Gatos",
+    "checkedAt": "2026-10-05",
+    "imageKey": "culture-visit",
+    "expiresAt": "2026-10-17"
   },
   {
     "city": "Milpitas",
@@ -321,7 +339,8 @@
     "sourceUrl": "https://milpitas.gov/MAP",
     "sourceLabel": "City of Milpitas",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-07"
   },
   {
     "city": "Monte Sereno",
@@ -333,7 +352,8 @@
     "sourceUrl": "https://www.montesereno.org/m/newsflash/home/detail/703",
     "sourceLabel": "City of Monte Sereno",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-22"
   },
   {
     "city": "Morgan Hill",
@@ -345,19 +365,21 @@
     "sourceUrl": "https://www.morganhill.ca.gov/2406/City-Events",
     "sourceLabel": "City of Morgan Hill",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-10"
   },
   {
     "city": "Mountain View",
     "county": "Santa Clara",
-    "kind": "calendar",
-    "headline": "十月安排从市府日历查到单场详情",
-    "summary": "市府首页日历列出表演、社区市集、Repair Café 与住房服务说明会。先区分娱乐、维修和办事项目，再打开详情核对地址、预约与可带物品；剧院连续上演的剧目，也要按自己的日期购买对应场次。",
-    "dateLabel": "持续更新 · 非单场活动",
-    "sourceUrl": "https://www.mountainview.gov/",
-    "sourceLabel": "City of Mountain View",
-    "checkedAt": "2026-10-02",
-    "imageKey": "expanded-south-bay-shoreline"
+    "kind": "dated",
+    "headline": "11 月 8 日农贸市场换址至 Hope Street",
+    "summary": "官方确认因 49ers 主场赛，9:00–13:00 的市场转到 Hope Street 4、8 号停车场，导航 190 Hope Street。当天别去通常的 Caltrain 停车场等摊位；摊位占用的停车区也不能当普通停车位，买菜与交通费用另算。",
+    "dateLabel": "11/8 周日 · 9:00–13:00",
+    "sourceUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+    "sourceLabel": "California Farmers’ Markets Association",
+    "checkedAt": "2026-10-05",
+    "imageKey": "everyday",
+    "expiresAt": "2026-11-08"
   },
   {
     "city": "Palo Alto",
@@ -369,7 +391,7 @@
     "sourceUrl": "https://library.cityofpaloalto.org/locations/R/",
     "sourceLabel": "Palo Alto City Library",
     "checkedAt": "2026-10-02",
-    "imageKey": "baylands-marsh"
+    "imageKey": "october-library-culture"
   },
   {
     "city": "San Jose",
@@ -387,13 +409,14 @@
     "city": "Santa Clara",
     "county": "Santa Clara",
     "kind": "dated",
-    "headline": "VIVAIA 开业庆典：饮品与购物赠礼条件不同",
-    "summary": "Valley Fair 官方确认 VIVAIA 已营业；10 月 9–10 日加入会员可参加免费抹茶或咖啡活动，购物满 199 美元的午餐包是另一项赠礼。数量有限且条款适用，先向门店核对活动时段与库存，别把饮品福利理解成全店折扣。",
-    "dateLabel": "10/9–10 · 条件及数量限制",
-    "sourceUrl": "https://www.westfield.com/en/united-states/valleyfair/events/celebrate-with-vivaia/138918",
-    "sourceLabel": "Westfield Valley Fair",
-    "checkedAt": "2026-10-02",
-    "imageKey": "autumn-new-shops"
+    "headline": "Intel Museum 11 月 11 日闭馆",
+    "summary": "博物馆常规周一至周五 9:00–17:00，个人参观与停车免费，但 2026 年 11 月 11 日是假日闭馆日。导航 2200 Mission College Boulevard；团体及导览另约，Intel 员工办公区不属于公众参观范围。",
+    "dateLabel": "11/11 闭馆 · 常规周一至周五开放",
+    "sourceUrl": "https://www.intel.com/content/www/us/en/company-overview/intel-museum.html?iid=community-museum",
+    "sourceLabel": "Intel Museum",
+    "checkedAt": "2026-10-05",
+    "imageKey": "culture-visit",
+    "expiresAt": "2026-11-11"
   },
   {
     "city": "Saratoga",
@@ -405,7 +428,7 @@
     "sourceUrl": "https://www.saratoga.ca.us/calendar.aspx?CID=35&month=10&view=list&year=2026",
     "sourceLabel": "City of Saratoga",
     "checkedAt": "2026-10-02",
-    "imageKey": "region-hakone"
+    "imageKey": "autumn-neighbors"
   },
   {
     "city": "Sunnyvale",
@@ -417,6 +440,7 @@
     "sourceUrl": "https://www.sunnyvale.ca.gov/recreation-and-community/special-events",
     "sourceLabel": "City of Sunnyvale",
     "checkedAt": "2026-10-02",
-    "imageKey": "everyday"
+    "imageKey": "everyday",
+    "expiresAt": "2026-10-08"
   }
 ]

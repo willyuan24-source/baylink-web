@@ -48,6 +48,7 @@ export function CityExplorationDirectory({ cities, title, text }: { cities: City
             <div className="city-exploration-places">{city.places.map(place => <article key={place.name}>
               <span className="city-place-scope">{t(place.scope === 'city' ? '市内去处' : place.scope === 'cross-boundary' ? '跨市界延伸' : '附近延伸 · 不在本市')}</span>
               <h5>{t(place.name)}</h5><p>{t(place.description)}</p>
+              {place.verifiedAt && <p className="city-current-date">{t('景点核验')}：<time dateTime={place.verifiedAt}>{place.verifiedAt}</time></p>}
               <div><a href={place.url} target="_blank" rel="noopener noreferrer">{t('官方参观信息')} <ArrowUpRight size={13} aria-hidden="true" /></a>
                 <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.mapQuery)}`} target="_blank" rel="noopener noreferrer"><MapPin size={13} aria-hidden="true" />{t('在地图查找')}</a></div>
             </article>)}</div>

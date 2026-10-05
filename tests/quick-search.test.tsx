@@ -146,8 +146,10 @@ test('indoor, family ages and budgets use known facts; unknown prices and chambe
   assert.ok(indoor.length > 0);
   assert.ok(indoor.every(event => PLANNER_EVENTS.find(item => item.id === event.id)?.planning?.setting === 'indoor'));
   assert.ok(!indoor.some(event => event.id === 'sf-quinteto-latino-lunchtime-2026'));
-  assert.ok(searchQuickDestinations('雨天室内带2岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
-  assert.ok(!searchQuickDestinations('雨天室内带8岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
+  // Scope the known storytime to its city so new valid earlier programs cannot
+  // displace it from the three-result preview and mask the age-boundary check.
+  assert.ok(searchQuickDestinations('Burlingame 雨天室内带2岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
+  assert.ok(!searchQuickDestinations('Burlingame 雨天室内带8岁孩子活动', 'zh-Hans', '2026-09-29').events.some(event => event.id === 'burlingame-mandarin-storytime-2026'));
   const count = MONTHLY_EVENTS.length;
   try {
     MONTHLY_EVENTS.push({ ...MONTHLY_EVENTS[0], id: 'unknown-search-budget', title: 'BudgetEvidenceFixture', cost: 'unknown', costLabel: '免费停车，门票未确认', startDate: '2026-10-01', endDate: '2026-10-01', occurrenceDates: undefined });

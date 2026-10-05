@@ -17,6 +17,14 @@
         "description": "市政厅旁的社区公园适合短暂停留、带孩子休息，也能从城市活动入口查公园里的社区聚会；活动是否举行须看当期日期。",
         "scope": "city",
         "mapQuery": "Belvedere Community Park California"
+      },
+      {
+        "name": "Angel Island State Park",
+        "url": "https://www.parks.ca.gov/?page_id=468",
+        "scope": "nearby",
+        "mapQuery": "Angel Island State Park Ayala Cove",
+        "description": "隔海的岛屿州立公园可安排步行、海湾眺望与移民历史参观。它不在 Belvedere 市内；从邻镇 Tiburon 转乘渡轮，先核对船班、返程和各馆开放，别把登岛当成普通沿岸散步。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：在 China Cabin 开放的周末下午参观，再沿公共道路转到社区公园，预留喝咖啡与看海时间；不开馆时把行程缩成户外散步，不安排强行补齐的邻城绕路。",
@@ -56,6 +64,14 @@
         "description": "位于 Redwood Avenue 的镇属小公园，可与周边街道散步组合；规模与用途不同于大型运动公园，适合作为短停而非半天主项目。",
         "scope": "city",
         "mapQuery": "Menke Park 205 Redwood Avenue Corte Madera"
+      },
+      {
+        "name": "Ring Mountain Open Space Preserve",
+        "url": "https://parks.marincounty.gov/parkspreserves/preserves/ring-mountain",
+        "scope": "cross-boundary",
+        "mapQuery": "Ring Mountain Preserve Phyllis Ellman Trail",
+        "description": "横跨半岛山坡的开放空间，以海湾视野、岩石和稀有植物著称；Phyllis Ellman 环线适合按体力选择。步道有爬升、现场无厕所，狗须牵绳；著名的 Tiburon mariposa lily 属春季花期，不是秋季花况承诺。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Town Park 散步、让孩子活动，再到 Menke Park 附近慢走与用餐；如果是雨天，缩短户外部分，按开放时间把县图书馆作为替代。",
@@ -95,6 +111,14 @@
         "description": "位于 Sir Francis Drake Boulevard，有花园座椅、展览空间与种子交换；既是居民借阅点，也适合安静阅读与认识当地植物主题活动。",
         "scope": "city",
         "mapQuery": "Fairfax Library 2097 Sir Francis Drake Boulevard"
+      },
+      {
+        "name": "Cascade Canyon Open Space Preserve",
+        "url": "https://parks.marincounty.gov/parkspreserves/preserves/cascade-canyon",
+        "scope": "nearby",
+        "mapQuery": "Cascade Canyon Preserve Cascade Drive Fairfax",
+        "description": "Fairfax 山边的林地与溪谷步道，Cascade Falls 是有水时的看点，秋季不能保证瀑布流量。入口在住宅街尽头，停车有限且无厕所；沿正式步道行走，狗全程牵绳。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：选择博物馆开放日，先看自行车展，再午餐，最后到图书馆花园放慢节奏；周日图书馆常规关闭，届时把第二站换成镇中心公共街道散步。",
@@ -134,6 +158,14 @@
         "description": "现行市页面给出的地址为 10 Rose Lane，可用于阅读、查看本地图书馆项目与社区资讯；导航时不要仅沿用旧市政厅附近的图书馆印象。",
         "scope": "city",
         "mapQuery": "Larkspur Library 10 Rose Lane"
+      },
+      {
+        "name": "Baltimore Canyon Open Space Preserve",
+        "url": "https://parks.marincounty.gov/parkspreserves/preserves/baltimore-canyon",
+        "scope": "nearby",
+        "mapQuery": "Baltimore Canyon Preserve Madrone Avenue Larkspur",
+        "description": "Larkspur 西侧的红木溪谷，沿林荫步道寻找 Dawn Falls；瀑布受雨量影响，不宜把夏秋照片当成当前水势。部分入口沿住宅街，无公共厕所，先看路线坡度与停车限制。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Piper Park 散步或陪孩子活动，再按图书馆开放时间转去阅读；需要午餐时另选旧城街区。搭船来的人先预留码头到两站的接驳，别把码头下船当成已到公园。",
@@ -173,6 +205,14 @@
         "description": "临近公园的现代图书馆以落地窗和朝向红杉的露台形成阅读景观；适合安排安静的一站，入内请尊重读者和活动空间。",
         "scope": "city",
         "mapQuery": "Mill Valley Public Library 375 Throckmorton Avenue"
+      },
+      {
+        "name": "Muir Woods National Monument",
+        "url": "https://www.nps.gov/muwo/planyourvisit/index.htm",
+        "scope": "nearby",
+        "mapQuery": "Muir Woods National Monument visitor center",
+        "description": "城外著名的老生海岸红木林，可按时间选择主步道短环线。自驾停车或接驳车均应提前安排预约；园区缺乏手机信号，先保存凭证和返程信息，不要到山谷后才临时订位。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看磨坊与林下小路，午前后进入图书馆阅读，再回镇中心用餐；带幼儿只选短程，不把 Cascade 山路或 Muir Woods 临时塞入同一半天。",
@@ -212,6 +252,14 @@
         "description": "位于 Novato 北侧的周边州立历史公园，可了解长期的人类居住与土地使用变迁；园地参观、展馆和步道的开放范围须分开核对。",
         "scope": "nearby",
         "mapQuery": "Olompali State Historic Park"
+      },
+      {
+        "name": "Novato History Museum",
+        "url": "https://visitnovato.com/see-and-do/places/novato-history-museum/",
+        "scope": "city",
+        "mapQuery": "Novato History Museum 815 DeLong Avenue",
+        "description": "DeLong Avenue 的历史住宅里收藏本地照片、服饰、工具与生活物件，适合与 Old Town 短逛搭配。官方旅游页列免费参观及每周三、四、六中午至16:00开放；临行核对馆方变更。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：航空爱好者以 Hamilton 博物馆为主，留时间听音频与看模型；更偏户外则单独选 Olompali。只有两处当日均开放且自驾衔接顺畅时，才合并为较紧凑的半日。",
@@ -251,6 +299,14 @@
         "description": "镇中心公共绿地与运动活动场所，由 Ross Recreation 处理场地使用；参观时让出学校、课程和已预订运动区域，不把整片草地视为无人管理的野餐地。",
         "scope": "city",
         "mapQuery": "Ross Common Ross California"
+      },
+      {
+        "name": "Natalie Coffin Greene Park",
+        "url": "https://www.townofross.org/sites/default/files/fileattachments/town_council/meeting/1027/16._-3_bear_hut.pdf",
+        "scope": "city",
+        "mapQuery": "Natalie Coffin Greene Park Ross",
+        "description": "镇边的林地公园也是通往 Phoenix Lake 的入口，适合把野餐与短步行分开安排。湖区继续延伸到 Marin Water 管理的山地，不能把镇公园规则套用整段路线；先查看流域开放与步道公告。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先慢逛花园并按开放情况看展，之后到 Ross Common 周边短走；不登山也能完成一段轻松出门。若想加 Phoenix Lake，另作周边山地路线，别默认与花园同一入口。",
@@ -290,6 +346,14 @@
         "description": "位于 541 San Anselmo Avenue 的镇中心小公园，也是图书馆户外故事活动场地；更适合短停与亲子阅读，不应按大型游乐场期待。",
         "scope": "city",
         "mapQuery": "Imagination Park San Anselmo"
+      },
+      {
+        "name": "Memorial Park / Millennium Playground",
+        "url": "https://www.sananselmo.gov/1977/Memorial-Park",
+        "scope": "city",
+        "mapQuery": "Memorial Park Millennium Playground San Anselmo",
+        "description": "Millennium Playground 把小火车、车站和本镇建筑意象做成儿童游乐空间，旁边有 Elders Garden 与球场。适合不想整天爬山的家庭短停；球场与野餐预订活动以镇方安排为准。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看 Robson-Harrington 的园地，再回镇中心吃午餐、停留 Imagination Park；若带幼儿，把图书馆具体故事会时段作为路线锚点，下雨则先核对活动是否移到室内。",
@@ -329,6 +393,14 @@
         "description": "历史维多利亚宅邸兼艺术展览与活动场地，位于 Mission Avenue。园地、楼上画廊和私人租用活动的开放条件不同，先确认当日可看部分。",
         "scope": "city",
         "mapQuery": "Falkirk Cultural Center San Rafael"
+      },
+      {
+        "name": "Mission San Rafael Arcángel",
+        "url": "https://www.saintraphael.com/landing-page",
+        "scope": "city",
+        "mapQuery": "Mission San Rafael Arcangel San Rafael",
+        "description": "市中心的传教站历史参观点与现役教堂相邻，可了解 San Rafael 城名背后的历史。参观空间和礼拜空间要分清，开放时间、导览与宗教活动以堂区当天安排为准。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按已预约的 Civic Center 导览时间出发，之后转去市中心午餐与 Falkirk；不想长时间站立的读者，可改用官方自导资料，只选部分建筑节点。",
@@ -368,6 +440,14 @@
         "description": "Bridgeway 与 Napa Street 附近的滨水草地，设长椅、凉亭和球类设施；适合看完室内展览后短走休息，水边活动需另查条件。",
         "scope": "city",
         "mapQuery": "Dunphy Park Sausalito"
+      },
+      {
+        "name": "Bay Area Discovery Museum",
+        "url": "https://bayareadiscoverymuseum.org/plan-your-visit/",
+        "scope": "nearby",
+        "mapQuery": "Bay Area Discovery Museum 557 McReynolds Road Fort Baker",
+        "description": "位于金门大桥北侧 Fort Baker，以0–8岁儿童的动手探索和户外游玩为主，适合带幼儿留出半天。它在 Sausalito 邻近的国家公园区域，普通参观需门票，陪同成人也要核对票种。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先确认 Bay Model 开门，再参观模型、午餐，最后停 Dunphy Park；乘船来的读者可把返回码头作为终点，体力有限就缩短北段，不追求整条海岸都走完。",
@@ -407,6 +487,14 @@
         "description": "山坡上的木构历史教堂与相邻野花保护地，适合看建筑和植物生境；花期随季节变化，不应把春季野花照片当作十月现场保证。",
         "scope": "city",
         "mapQuery": "Old St Hilarys 201 Esperanza Street Tiburon"
+      },
+      {
+        "name": "Blackie’s Pasture / Old Rail Trail",
+        "url": "https://www.townoftiburon.org/DocumentCenter/View/2207",
+        "scope": "city",
+        "mapQuery": "Blackies Pasture Tiburon",
+        "description": "黑马雕像、海湾边长椅与原铁路走廊构成轻松散步起点；可按体力沿 Old Rail Trail 走一小段再折返。适合看水面和休息，不等于有沙滩下水点或保证全线无障碍。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：按车站博物馆开馆时间安排滨水段，午餐后再决定是否上坡到 Old St. Hilary's；两馆室内开放日不同，想都入内时先找两者同时开放的日期。",
@@ -446,6 +534,14 @@
         "description": "从市内 Wetlands Edge 入口延伸到市界外湿地的河湾步道网络，城市与州、县机构协作管理。按选定路段查看地图，勿把整条 Bay Trail 当成连续通行的市内环线。",
         "scope": "cross-boundary",
         "mapQuery": "Wetlands Edge Trail American Canyon"
+      },
+      {
+        "name": "Newell Open Space Preserve",
+        "url": "https://www.americancanyon.gov/Play/Newell-Open-Space-Preserve",
+        "scope": "city",
+        "mapQuery": "Newell Open Space Preserve 7000 Newell Drive",
+        "description": "城东约620英亩的山地开放空间，以草坡、树林与未铺装步道为主，适合想从湿地换到山坡的人。通常日出至日落开放，但天气、火险或季节性保护可导致关闭，先看市公告。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：从 Clarke Ranch 查看地图，挑一段湿地步道往返，再回公园休息；第一次不要以走完所有环线为目标。风大、炎热或带幼儿时，把路线缩到容易回头的短段。",
@@ -485,6 +581,14 @@
         "description": "Cedar Street 的休闲公园有儿童设施、凉亭与野餐区，适合看馆后的户外休息。凉亭与野餐区域可以租用，现场是否空闲需看预订情况。",
         "scope": "city",
         "mapQuery": "Pioneer Park 1308 Cedar Street Calistoga"
+      },
+      {
+        "name": "Old Faithful Geyser of California",
+        "url": "https://oldfaithfulgeyser.com/",
+        "scope": "nearby",
+        "mapQuery": "Old Faithful Geyser 1299 Tubbs Lane Calistoga",
+        "description": "Tubbs Lane 上的地热喷泉园区，是 Calistoga 周边有辨识度的自然景点，可结合野餐短停。园区收费；喷发是自然过程，不承诺到达即喷或固定间隔，先看当日票务与开放说明。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：按博物馆当天开门时段看展，接镇中心午餐，再到 Pioneer Park 放松；若另外预约温泉，把它单独留出完整时段，不在半日中叠加远处山径和多家酒庄。",
@@ -524,6 +628,14 @@
         "description": "河岸保留地提供观察植被与河流环境的另一面，市官网附自导资料。与 Commons 名称相似但入口、步行方向不同，出发前分别定位。",
         "scope": "city",
         "mapQuery": "Oxbow Preserve Napa"
+      },
+      {
+        "name": "Oxbow Public Market",
+        "url": "https://oxbowpublicmarket.com/find-us/",
+        "scope": "city",
+        "mapQuery": "Oxbow Public Market 610 First Street Napa",
+        "description": "First Street 的室内市集把餐饮、食品和河岸街区短逛串在一起，适合分头选餐后再会合。各商家营业时段不同，食物与商品按店付费；不要把市集大门营业时间当成每家都开门。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：从 Oxbow Commons 熟悉河道与公共空间，安排午餐，再按体力前往 Preserve 选短段观察；雨天若出现高水位或封闭，把生态段取消，不穿过关闭闸口凑行程。",
@@ -563,6 +675,14 @@
         "description": "设儿童游乐、野餐与网球、地掷球等活动设施，体现居民日常休闲。团体野餐区和球场预订有各自流程，随意散步不等于取得专用场地。",
         "scope": "city",
         "mapQuery": "Crane Park 360 Crane Avenue St Helena"
+      },
+      {
+        "name": "Bale Grist Mill State Historic Park",
+        "url": "https://www.parks.ca.gov/?page_id=482",
+        "scope": "nearby",
+        "mapQuery": "Bale Grist Mill 3369 St Helena Highway",
+        "description": "位于 St. Helena 以北的历史水力磨坊，巨型水轮与制粉示范展现葡萄酒之外的谷物农业史。普通周末参观与特殊节庆分开购票或核对费用；山谷公路沿线，不能当成市中心步行点。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按博物馆开馆日看展，再午餐，下午选 Crane Park 一项轻活动；对文学兴趣一般的家庭可缩短看馆时间，把余裕留给公园而不是额外塞入山地路线。",
@@ -602,6 +722,14 @@
         "description": "位于 Washington Street，设公共雕塑、休息空间、地掷球场和露天活动设施。适合作为艺术散步的休息点，活动举办时空间安排会不同。",
         "scope": "city",
         "mapQuery": "Veterans Memorial Park 6465 Washington Street Yountville"
+      },
+      {
+        "name": "Napa Valley Museum Yountville",
+        "url": "https://napavalleymuseum.org/pages/plan-your-visit-to-napa-valley-museum-of-yountville",
+        "scope": "city",
+        "mapQuery": "Napa Valley Museum Yountville 55 Presidents Circle",
+        "description": "55 Presidents Circle 的博物馆适合把艺术与地方历史放进酒乡半日行程，当前通常周三至周日开放。它是 NVMY；别与 St. Helena 的 The MAC 混淆，展览和门票分别核对。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先领取或下载艺术地图，选择镇中心一段听音频，午餐后在 Veterans Memorial Park 休息，再沿原路看漏掉的作品；不需要一次走遍全部雕塑点位。",
@@ -641,6 +769,14 @@
         "description": "West 2nd Street 的市公园有老橡树、儿童设施和运动空间；适合野餐与短暂休息。具体球场使用和团体活动另查城市安排。",
         "scope": "city",
         "mapQuery": "Cloverdale City Park 450 West 2nd Street"
+      },
+      {
+        "name": "Cloverdale River Park",
+        "url": "https://www.sonomacounty.com/outdoor-activities/cloverdale-river-park/",
+        "scope": "cross-boundary",
+        "mapQuery": "Cloverdale River Park 31820 McCray Road",
+        "description": "沿 Russian River 西岸的步道串起城边河岸景观，铺装段适合短程来回步行。自带饮水；河岸没有救生员，不把看水与下水游泳混为一件事，狗须牵绳。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按历史中心确认后的时段参观，再在市中心午餐，最后去 City Park 树荫下休息；若馆方不开门，就缩成街区与公园游，不绕去私人住宅寻找内部参观。",
@@ -680,6 +816,14 @@
         "description": "位于 West Sierra Avenue 的历史机构保存照片、档案与物件。适合先问开放安排，再从展览理解街名、镇中心和周围社区的变化。",
         "scope": "city",
         "mapQuery": "Cotati Historical Society 201 West Sierra Avenue"
+      },
+      {
+        "name": "Helen Putnam Park (Cotati)",
+        "url": "https://www.cotaticity.gov/CivicAlerts.aspx?AID=60&ARC=103",
+        "scope": "city",
+        "mapQuery": "Helen Putnam Park Cotati Myrtle Avenue",
+        "description": "本镇的社区球场公园适合居民散步与运动，市府曾与本地棒球队合作整修球场。导航一定加 Cotati：它不是 Petaluma 附近同名的 Helen Putnam Regional Park，也不是大范围山地徒步入口。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 La Plaza 看六角街区，再在已确认开放的时段访历史馆，最后用餐；若博物馆没开，改看历史学会线上资料，把参观变成一段带背景的短街区散步。",
@@ -719,6 +863,14 @@
         "description": "通过地方物件、照片和档案展示 Healdsburg 与周边地区的历史，常设研究资源与更换展览的节奏不同；看展前留意布展期间闭馆公告。",
         "scope": "city",
         "mapQuery": "Healdsburg Museum California"
+      },
+      {
+        "name": "Foley Family Community Pavilion",
+        "url": "https://healdsburgfarmersmarket.org/",
+        "scope": "city",
+        "mapQuery": "Foley Family Community Pavilion 3 North Street Healdsburg",
+        "description": "3 North Street 的社区棚亭是2026年周六农夫市集的新址，可把本地农产采购与市中心散步组合。市集不是每天营业，周六8:30–12:00的季节排程应另查；周二市集已于9/29结束。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看博物馆当期展览，再回 Plaza 用餐和短走；如果处于换展期，改为广场街区与线上历史收藏，不承诺另有展厅可替代。带孩子可把一处看馆作为全程主项目。",
@@ -758,6 +910,14 @@
         "description": "市内湿地公园提供平缓步道与观鸟环境，适合慢走和观察不同水域生境；鸟类出现受季节与天气影响，不保证见到某种鸟或每次都有讲解活动。",
         "scope": "city",
         "mapQuery": "Shollenberger Park Petaluma"
+      },
+      {
+        "name": "Petaluma Adobe State Historic Park",
+        "url": "https://www.parks.ca.gov/?page_id=474",
+        "scope": "nearby",
+        "mapQuery": "Petaluma Adobe State Historic Park 3325 Adobe Road",
+        "description": "城外 Adobe Road 的土坯庄园遗址可了解19世纪牧场与农业历史，与市中心的维多利亚街景形成不同体验。参观需另查门票和建筑开放时段；它距离市中心有一段车程，不宜当作徒步街区下一站。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：凉爽时先去湿地选一段短走，再转市中心午餐与历史馆；若博物馆当天不开，使用历史点位地图改成街区散步。怕风或行动不便者可只保留市中心部分。",
@@ -797,6 +957,14 @@
         "description": "Santa Dorotea Circle 的市公园设球场，另有可预约野餐区。适合与家庭休息或运动组合；联赛、课程与已预订区域需要让出。",
         "scope": "city",
         "mapQuery": "Dorotea Park 895 Santa Dorotea Circle"
+      },
+      {
+        "name": "Crane Creek Regional Park",
+        "url": "https://www.sonomacounty.com/outdoor-activities/crane-creek-regional-park/",
+        "scope": "nearby",
+        "mapQuery": "Crane Creek Regional Park 5000 Pressley Road",
+        "description": "城东丘陵的草地、橡树与步道，另有18洞飞盘高尔夫场。适合在餐饮或城市活动之外留一段户外时间；自带水，按坡度选路，春季野花宣传不能视作十一月花况。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：选有下午场的日期，先在 Dorotea Park 轻活动、午餐，再去 Spreckels 看戏；只有晚场时把它改成下午至晚间行程。无演出日不把售票处开放当成完整参观。",
@@ -836,6 +1004,14 @@
         "description": "市中心附近的园林与故居介绍植物育种者 Burbank。庭园、博物馆与带领参观的时间和收费不同，花园开放不意味着室内导览全年随到随看。",
         "scope": "city",
         "mapQuery": "Luther Burbank Home Gardens Santa Rosa"
+      },
+      {
+        "name": "Historic Railroad Square",
+        "url": "https://www.railroadsquare.net/",
+        "scope": "city",
+        "mapQuery": "Railroad Square Santa Rosa Depot Park",
+        "description": "历史铁路街区保留石砌建筑与老城氛围，适合找咖啡、古董和餐饮，再在车站周边短走。这里是可逛的街区，不是包含火车体验的套票；商家开门时间各自不同。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先按兴趣把 Schulz 馆或 Burbank 导览作为主站，午餐后再转另一处；需要慢读展览的漫画迷可只保留第一站。十一月以后的园艺行程应重新核对室内季节安排。",
@@ -875,6 +1051,14 @@
         "description": "Bodega Avenue 的历史实验农场可自导看植物与育种遗产；官方要求从 Burbank Heights 入口进入，使用山坡上谷仓附近的公共停车区，别占居民专用空间。",
         "scope": "city",
         "mapQuery": "Luther Burbank Experiment Farm 7777 Bodega Avenue"
+      },
+      {
+        "name": "Laguna Wetlands Preserve",
+        "url": "https://www.cityofsebastopol.gov/our-community/parks-trails-open-space/",
+        "scope": "city",
+        "mapQuery": "Laguna Wetlands Preserve Sebastopol",
+        "description": "市府维护的 Laguna de Santa Rosa 湿地保护空间，可用短步行观察河岸与季节变化。先查看开放步道和积水情况；湿地、季节性连接与邻近私人土地边界要分清，不保证全年干燥通行。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：选择博物馆开门的周末，先看地方展览，午餐后到实验农场按导览单慢走；若只来平日，可把农场作为主站，并利用历史学会线上资料替代室内展览。",
@@ -914,6 +1098,14 @@
         "description": "州立历史园由多个分散地点组成，包括 Mission San Francisco Solano、Barracks 与 Vallejo 故居。重点是不同历史视角，不是同一入口内的一座大馆。",
         "scope": "city",
         "mapQuery": "Sonoma State Historic Park"
+      },
+      {
+        "name": "Bartholomew Park",
+        "url": "https://bartholomewpark.org/what-to-do/",
+        "scope": "nearby",
+        "mapQuery": "Bartholomew Park 1695 Castle Road Sonoma",
+        "description": "Sonoma 东侧的公园将葡萄园景观、林地步道与野餐空间放在一起，公众可免费进入公园。品酒、餐饮及私人活动不包含在免费范围；走山路前看当日开门和步道条件。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：从 Plaza 周边选 Mission 与 Barracks 两处先看，午餐后按体力决定是否再去 Vallejo 故居；想细读展览就少选地点，别为了集齐地图把每站压成拍照。",
@@ -953,6 +1145,14 @@
         "description": "位于 Foxwood Drive 的地方历史机构，介绍农牧、铁路与社区故事，并提供市中心自导历史步行线索；展馆开放与导览须先向历史学会确认。",
         "scope": "city",
         "mapQuery": "Windsor Museum 9225 Foxwood Drive"
+      },
+      {
+        "name": "Foothill Regional Park",
+        "url": "https://www.sonomacounty.com/outdoor-activities/foothill-regional-park/",
+        "scope": "city",
+        "mapQuery": "Foothill Regional Park 1351 Arata Lane Windsor",
+        "description": "Windsor 东侧有池塘、橡树林与多条山坡步道；Three Lakes 段较平缓，Alta Vista 等路线有爬升。适合按体力选短环线，狗须牵绳，停车费用与实际路况出发前再核对。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在 Town Green 和相邻街区短走、用餐，再按博物馆确认的时间转过去；若不想换地点，改用历史学会的市中心自导路线，把博物馆留给下次。",
@@ -992,6 +1192,14 @@
         "description": "目前参观重点是 Camel Road 的 Arsenal Gallery，馆方把访客地址列为 2024 Camel Road；办公室地址不同，Downtown Gallery 当前关闭，别按旧馆名直接找过去。",
         "scope": "city",
         "mapQuery": "Museum of History Benicia Arsenal Gallery 2024 Camel Road"
+      },
+      {
+        "name": "Benicia State Recreation Area",
+        "url": "https://parks.ca.gov/?page_id=476",
+        "scope": "nearby",
+        "mapQuery": "Benicia State Recreation Area 1 State Park Road",
+        "description": "市区西侧的盐沼、海岸与低丘，适合骑行、散步和观察水鸟，园内道路与步道可按距离折返。车辆入园收费，狗须牵绳；观鸟与海湾风景不等于可安全游泳。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：挑两馆都开门的周五或周六，先看州议会，市中心午餐后转 Arsenal Gallery；若只在周日来，保留州立园与街区散步，不把另一馆常规关闭当成临时意外。",
@@ -1031,6 +1239,14 @@
         "description": "East A Street 一带的大型市公园，与市政和社区设施相邻，设运动与休闲空间。泳池、球场和公园本体有不同安排，不以公园开放推定都可使用。",
         "scope": "city",
         "mapQuery": "Hall Memorial Park Dixon California"
+      },
+      {
+        "name": "Jepson Prairie Preserve",
+        "url": "https://solanolandtrust.org/get-involved/hike-our-lands.html",
+        "scope": "nearby",
+        "mapQuery": "Jepson Prairie Preserve 4845 Cook Lane Dixon",
+        "description": "Dixon 以南约10英里的季节性池塘草原保护区，可走指定自导览环线了解稀有栖地。公众区域通常9:00–17:00开放；春季导览与花期不能套用秋季，禁止宠物，现场无饮水。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先看历史馆，午餐后到 Hall Park 休息或选一项运动；若带孩子，让看馆与户外时间交替。只有确认当日有活动时，才另外加入 May Fair 场地，不以场地存在当成正在办展。",
@@ -1070,6 +1286,14 @@
         "description": "West Texas Street 的市公园集合游乐、运动和野餐设施，适合工厂参观后活动身体；Sports Center 与 Aquatics Complex 的场次和收费须独立查询。",
         "scope": "city",
         "mapQuery": "Allan Witt Community Park Fairfield"
+      },
+      {
+        "name": "Rockville Hills Regional Park",
+        "url": "https://www.fairfield.ca.gov/government/city-departments/public-works/rockville-hills-regional-park-open-space/rockville-hills-regional-park",
+        "scope": "city",
+        "mapQuery": "Rockville Hills Regional Park Fairfield",
+        "description": "Fairfield 管理的山地公园，适合把橡树林与丘陵步道作为半天户外活动。出发前从市府入口核对通行证、关闭公告和路线难度，不把市属公园理解为所有项目免票。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：希望看生产可优先核对工作日上午的厂区安排，之后午餐，再到 Allan Witt 选普通户外设施。周末接受以影片为主的参观时，同样可以成行，不把停机误写为整馆关闭。",
@@ -1109,6 +1333,14 @@
         "description": "市目录地址为 300 California Street，是可与河边停留搭配的社区公园；适合让半日行程从看景切换到家庭休息，泳池等季节设施另查开放。",
         "scope": "city",
         "mapQuery": "Bruning Park 300 California Street Rio Vista"
+      },
+      {
+        "name": "Sandy Beach County Park",
+        "url": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/sandy-beach-park-campground",
+        "scope": "nearby",
+        "mapQuery": "Sandy Beach County Park 2333 Beach Drive Rio Vista",
+        "description": "Rio Vista 南侧 Sacramento River 河岸的野餐、露营与船只下水地。县方明确禁止游泳，水流与骤降河床不是普通海滩条件；日用区工程及船坡使用可能变化，先读公园状态公告。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先沿 Promenade 看河，回镇中心用餐，再到 Bruning Park 短停；天气炎热或河风强时缩短沿水路段。第一次只做陆地行程，不在临时起意下加入租船或涉水。",
@@ -1148,6 +1380,14 @@
         "description": "位于市南侧周边的 Suisun Marsh 边缘，由 Solano Land Trust 管理，结合湿地、草地、牧场历史与教育。邮寄地址写 Suisun City，不等于就在市中心或可一路海滨步行到达。",
         "scope": "nearby",
         "mapQuery": "Rush Ranch 3521 Grizzly Island Road"
+      },
+      {
+        "name": "Western Railway Museum",
+        "url": "https://www.wrm.org/",
+        "scope": "nearby",
+        "mapQuery": "Western Railway Museum 5848 Highway 12 Suisun City",
+        "description": "Highway 12 沿线的历史电气铁路博物馆，可结合车辆展览与指定列车班次。虽使用 Suisun City 邮寄地址，实际在城外乡间；普通周末票、特别活动和发车时间分开核对，别直接去市区找入口。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：凉爽时先到 Rush Ranch 选短段自导步行，再回城在 Harbor Plaza 附近用餐看水；无车或不想另作接驳，就把半日留在市内水岸，不强行合并湿地段。",
@@ -1187,6 +1427,14 @@
         "description": "市中心 CreekWalk 所在公园，设儿童设施、步行路径、野餐区和露天舞台。舞台存在不代表当天有演出，部分活动和场地预订会改变使用范围。",
         "scope": "city",
         "mapQuery": "Andrews Park Vacaville California"
+      },
+      {
+        "name": "Lagoon Valley Park",
+        "url": "https://www.cityofvacaville.gov/government/parks-and-recreation/parks-fields/lagoon-valley-park?locale=en_us",
+        "scope": "city",
+        "mapQuery": "Lagoon Valley Park 100 Pena Adobe Road Vacaville",
+        "description": "Peña Adobe Road 的大型湖区公园，有湖畔步行和延伸到山坡的户外路线。可按体力选平缓短段或爬坡，把停车与开放时间另行核对；湖景介绍不代表湖水适合游泳。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：周四至周六按展厅开放时间安排博物馆，再到镇中心午餐和 Andrews Park；孩子耐心有限时缩短读展时间，把公园作为放松段，不另加长距离郊外徒步。",
@@ -1226,6 +1474,14 @@
         "description": "GVRD 管理的自然公园，可看 Carquinez Strait 并接 Bay Trail，入口在 Glen Cove 的 Whitesides Drive 一带。与市中心渡轮水岸不同，需单独定位。",
         "scope": "city",
         "mapQuery": "Glen Cove Waterfront Park Vallejo"
+      },
+      {
+        "name": "Mare Island San Pablo Bay Trail",
+        "url": "https://www.mareislandco.com/explore",
+        "scope": "city",
+        "mapQuery": "Mare Island San Pablo Bay Trail Vallejo",
+        "description": "Mare Island 西侧约4英里的滨湾步道，可看 San Pablo Bay 与远山，适合与岛上历史街区分开安排。先核对步道入口与当日限制；推荐的是公共户外路线，不意味着船厂建筑或博物馆全部开放。",
+        "verifiedAt": "2026-10-05"
       }
     ],
     "halfDay": "编辑建议：先在博物馆了解城市历史，午餐后按天气转 Glen Cove 短走；无车或不想再接驳的人，可把博物馆与市中心活动组合。水岸风大时不必坚持完成长段步道。",

@@ -23,7 +23,7 @@ const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 
-const slug = 'bay-area-freebies-deals-2026-10';
+const slug = 'bay-area-freebies-deals-2026-11';
 const fixture: Guide = {
   ...guides[0], slug, title: '九月咖啡与甜点优惠领取指南', editionMonth: '2026-09', updatedAt: '2026-09-08',
   cover: undefined, blocks: [
@@ -58,7 +58,7 @@ test('deals spotlight reads the published guide and becomes an archive after its
   assert.equal(link.getAttribute('href'), `/guides/${slug}`);
   assert.ok(view.getByRole('heading', { name: fixture.title }));
   assert.ok(view.getByText('2026 年 9 月 · 优惠领取指南'));
-  assert.ok(view.getByText('从九月剩余优惠到十月免费文化日、亲子工作坊与图书馆福利，按日期、地区和条件挑。'));
+  assert.ok(view.getByText('从十月零售活动到十一月免费日、亲子手作与长期福利，按日期、地区和条件挑。'));
   assert.equal(view.container.querySelector('img')?.getAttribute('src'), getGuideMedia(fixture).cover.src);
   assert.equal(view.container.querySelector('time')?.dateTime, fixture.updatedAt);
   fireEvent.click(link);
@@ -121,6 +121,8 @@ test('guide home and monthly edition both expose the new guide as an SSR-readabl
 });
 
 test('the actual October deals guide preserves its art, real local discovery entries and safe official sources', () => {
+  const slug = 'bay-area-freebies-deals-2026-10';
+  const previousGuide = guides.find(guide => guide.slug === slug);
   assert.ok(previousGuide, 'the published October guide must be registered');
   assert.equal(previousGuide.editionMonth, '2026-10');
   const media = getGuideMedia(previousGuide);

@@ -63,6 +63,10 @@ const NOT_PLACED: Readonly<Record<string, string>> = {
   'sf-nexus-party-oct1-2026': 'nightlife 20:00–23:30',
   // (W7-S) realsf/eventVenues.ts WORLD_SKIP: the adults' financial-planning day at the Main Library
   'sf-financial-planning-day-oct24-2026': 'adults’ financial-planning talks and CFP consultations',
+  'oct2026-mission-dia-muertos-market': '22nd Street market, not the Excelsior Mission Street venue',
+  'nov2026-mission-market-season-final': '22nd Street market, not the Excelsior Mission Street venue',
+  'nov2026-presidio-dia-muertos-diwali': 'Tunnel Tops has no independently reviewed world venue point',
+  'nov2026-botanical-one-day-choir': 'Redwood Grove programme site has no independently reviewed world venue point',
 };
 
 test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekdays, 其余, doors, several ranges joined; the old labels unchanged', () => {
@@ -95,11 +99,11 @@ test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekd
   }
 });
 
-test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (W7-S: 47 shown)', () => {
+test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (55 shown)', () => {
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 82, 'the autumn catalog including the October 2 SF entries and two November Chase Center events');
+    assert.equal(sf.length, 88, 'the autumn catalog including six October 5 SF additions');
     for (const id of SEP30_WEBSITE_ONLY) {
       assert.ok(sf.some(event => event.id === id), `${id} remains available in the shared website catalog`);
       assert.match(WORLD_SKIP[id], /pending independent world import/, `${id} has an explicit compatibility boundary`);
@@ -121,7 +125,7 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
     for (const id of Object.keys(NOT_PLACED)) assert.equal(worldEvent(byId(id)), null, `${id} stays out`);
-    assert.equal(shown.length, 53, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 55, shown.map(e => e.id).join(' '));
     // (W7-S) the Sep 29 website refresh: the three the venue text already caught, and the six new venue rows
     for (const [id, venue] of [
       ['sf-foodwise-latine-makers-oct3-2026', 'ferry-building'],

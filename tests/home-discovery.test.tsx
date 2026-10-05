@@ -27,11 +27,11 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(document.querySelectorAll('h1').length, 1);
   assert.ok(document.querySelector('.home-discovery-heading a[href="/guides"]'));
   assert.ok(document.querySelector('a[href="/guides/golden-gate-park-free-car-free-day-guide"]'));
-  assert.ok(document.querySelector('a[href="/guides/bay-area-october-weekend-planner-2026"]'));
+  assert.ok(document.querySelector('a[href="/guides/bay-area-november-first-half-planner-2026"]'));
   assert.ok(document.querySelector('a[href="/this-month"]'));
   // W9-E-switch: the card opens the 3D San Francisco game (小小湾区 now; /play redirects there), with its entry source
   assert.ok(document.querySelector('a[href="/opus-bay?from=home"]'), 'Little Bay is discoverable from the homepage without loading its scene');
-  assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-10#freebie-board-0"]'));
+  assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-11#freebie-board-0"]'));
   assert.match(document.querySelector('.home-discovery-count')!.textContent!, new RegExp(`${guides.length} 篇生活指南`));
   const photos = [...document.querySelectorAll<HTMLImageElement>('.home-discovery-panel img')];
   assert.equal(photos.length, 6);
@@ -52,13 +52,14 @@ test('homepage server HTML leads with readable guides, distinct actual images an
   assert.equal(hashes.size, 6, 'each editorial surface has a different actual image');
   const hero = document.querySelector('.home-discovery-feature img')!;
   assert.equal(document.querySelector('.home-discovery-feature-grid > a')?.getAttribute('href'), '/this-month');
-  assert.equal(hero.getAttribute('src'), GUIDE_IMAGES['september-edition'].src);
+  assert.equal(hero.getAttribute('src'), GUIDE_IMAGES['november-community'].src);
   assert.equal(document.querySelector('.home-discovery-feature .home-discovery-image-label')?.textContent, 'AI 原创插图');
   assert.equal(document.querySelector('.home-discovery-timely > a')?.getAttribute('href'), '/guides/golden-gate-park-free-car-free-day-guide');
   assert.equal(hero.getAttribute('loading'), 'eager');
   assert.equal(hero.getAttribute('fetchPriority')?.toLowerCase(), 'high');
-  assert.equal(document.querySelector('.home-discovery-deals img')?.getAttribute('src'), GUIDE_IMAGES['sep26-target-beauty'].src);
-  assert.equal(document.querySelector('.home-discovery-deals .home-discovery-image-label')?.textContent, '官方宣传照片');
+  const offerImage = document.querySelector('.home-discovery-deals img')?.getAttribute('src');
+  assert.ok(Object.values(GUIDE_IMAGES).some(image => image.src === offerImage && image.kind === 'photo'));
+  assert.notEqual(offerImage, document.querySelector('.home-discovery-timely img')?.getAttribute('src'), 'a deal and the nearby guide must not repeat the same venue image');
 });
 
 test('intent switches change the featured guide and all three reading paths without losing community or AI actions', () => {
@@ -100,10 +101,10 @@ test('month cards follow Bay Area date, end-of-month counts and archive language
   assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /本期福利/);
   assert.ok(view.container.querySelector('.home-discovery-deals img'));
   assert.doesNotMatch(view.container.querySelector('.home-discovery-deals')!.textContent!, /9\/12|免费小蛋糕/);
-  view.rerender(renderAt(getBayAreaToday(new Date('2026-11-01T07:01:00Z'))));
+  view.rerender(renderAt(getBayAreaToday(new Date('2026-11-16T08:01:00Z'))));
   const edition = view.container.querySelector('.home-discovery-edition')!;
   const deals = view.container.querySelector('.home-discovery-deals')!;
-  assert.match(edition.textContent!, /2026 年 9–10 月.*往期月刊/);
+  assert.match(edition.textContent!, /2026 年秋季.*往期月刊/);
   assert.equal(edition.getAttribute('href'), '/this-month');
   assert.doesNotMatch(edition.textContent!, /本月月刊|尚未结束/);
   assert.match(deals.textContent!, /往期福利/);

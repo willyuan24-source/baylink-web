@@ -1,0 +1,321 @@
+{
+  "midpen-hiking-highlights-nov2-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/hiking-highlights",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-02",
+        "validThrough": "2026-11-02",
+        "dates": {
+          "2026-11-02": [
+            {
+              "open": "10:00",
+              "close": "13:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-02",
+            "start": "10:00",
+            "end": "13:30"
+          }
+        ],
+        "note": "固定导览，需按 10:00 开始参加约四英里山林环线；不是窗口内任意到达的散步。集合 Skeggs Point，须签声明；主办方未列最低年龄，不据此保证幼童或行动不便者适合。大雨可能取消，结束为预计时刻。"
+      }
+    }
+  },
+  "midpen-sentinel-sky-nov8-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/sentinel-sky-20",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "dates": {
+          "2026-11-08": [
+            {
+              "open": "13:00",
+              "close": "15:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "13:00",
+            "end": "15:00"
+          }
+        ],
+        "note": "固定 13:00 山顶集合导览，四分之一英里包含上下 159 级台阶。上山交通不包含在两小时导览内；年龄门槛未公布，不可由短距离推断无障碍。须签声明，恶劣天气可能取消。"
+      }
+    }
+  },
+  "ravenswood-tidal-marsh-nov15-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/tidal-marsh-appreciation",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "dates": {
+          "2026-11-15": [
+            {
+              "open": "09:30",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "09:30",
+            "end": "12:00"
+          }
+        ],
+        "note": "固定 9:30 集合的约三英里导览，官方称家庭友好但未设年龄数字门槛。保护区没有洗手间；须签参加声明，先核对当天天气与取消信息。不要把 9:30–12:00 当任意随到窗口。"
+      }
+    }
+  },
+  "ssf-senior-holiday-boutique-nov7-2026": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.ssfca.gov/Departments/Parks-Recreation/Events/Senior-Holiday-Boutique-Makers-Faire",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "dates": {
+          "2026-11-07": [
+            {
+              "open": "10:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "note": "这是市集开放窗口，普通入场免费，商品自费。主办方为 Senior Services，但官方欢迎公众参加，没有将访客限制为长者；不推断最低年龄，也未见普通访客强制预约。"
+      }
+    }
+  },
+  "san-mateo-downtown-market-nov5-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-05",
+        "validThrough": "2026-11-05",
+        "dates": {
+          "2026-11-05": [
+            {
+              "open": "15:00",
+              "close": "19:00"
+            }
+          ]
+        },
+        "note": "这是农贸市场营业窗口，可自行选择停留时长。食品及餐车自费；官方未列入场售票，但未将缺少票价信息转换成结构化免费承诺。"
+      }
+    }
+  },
+  "mountain-view-market-hope-st-nov8-2026": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://www.cafarmersmkts.com/events/market-relocates-on-sunday-49er-home-game-days-tm2t8-xawdk-sbaac-fg7pa-pxrm7-7sdda-p9s6x-6h96r-frzld",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "dates": {
+          "2026-11-08": [
+            {
+              "open": "09:00",
+              "close": "13:00"
+            }
+          ]
+        },
+        "note": "仅为 11 月 8 日换址后营业窗口；地点是 190 Hope Street，而非通常的 Caltrain 停车场。购买食品与交通另计，不能根据搬迁公告推断免费商品或停车。"
+      }
+    }
+  },
+  "san-carlos-gifts-kitchen-nov14-2026": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "required",
+      "admissionUsd": 115,
+      "schedule": {
+        "sourceUrl": "https://ucanr.edu/site/master-food-preservers-san-mateo-san-francisco-counties/event/gifts-kitchen",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "固定 9:00–12:00 实作课，须报名。每人 115 美元是 9 月 30 日后费用，不沿用 95 美元早鸟标题；年龄适宜度及过敏条件须联系主办方，未公布数字门槛。"
+      }
+    }
+  },
+  "filoli-holidays-from-nov14-2026": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "required",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://filoli.org/holidays",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-14",
+        "validThrough": "2027-01-10",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ]
+        },
+        "note": "此处仅列本轮覆盖到 11 月 15 日的两个开放日；整个官方季节到 2027 年 1 月 10 日，其他日期须查余票。日间与夜间是不同票种、按选定入场时段预约，不能在两个窗口间沿用同一张普通票。夜间末次入场 20:00，日间 13:30；金额与儿童票档未固定。特定会员免预约资格须另证实。"
+      }
+    }
+  },
+  "numu-community-ignition-oct17-2026": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.numulosgatos.org/events/community-ignition",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-17",
+        "dates": {
+          "2026-10-17": [
+            {
+              "open": "12:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "note": "免费预约招待会窗口，不是整个展期免费。未满 13 岁须成人陪同是陪同要求，不是最低入场年龄；当天博物馆 12:00 才开放。"
+      }
+    }
+  },
+  "hiller-starlight-nights-nov13-2026": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "unknown",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://www.hiller.org/event/starlight-nights/2026-11-13/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-13",
+        "validThrough": "2026-11-13",
+        "dates": {
+          "2026-11-13": [
+            {
+              "open": "17:00",
+              "close": "19:00"
+            }
+          ]
+        },
+        "note": "晚场从 17:00 开始，博物馆及商店至 19:00；包含在普通入馆票内，会员凭资格免费。户外观星取决于天气，未公布每轮 Starlab 演示时间；不填人人统一票价或保证天气。"
+      }
+    }
+  },
+  "san-jose-matilda-nov2026": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "required",
+      "admissionUsd": null,
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://sanjosetheaters.org/event/matilda-the-musical/",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-13",
+        "validThrough": "2026-11-22",
+        "sessions": [
+          {
+            "date": "2026-11-13",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "18:00"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "13:00"
+          }
+        ],
+        "note": "官方确认开演时刻但没有公布每场结束时间，因此只列 sessions.start，不编造结束时间或把全天日历占位当营业窗口。10 月 16 日开售；票价、适龄建议和儿童规则待正式售票页确认。"
+      }
+    }
+  }
+}

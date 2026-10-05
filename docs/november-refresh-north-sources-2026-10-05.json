@@ -1,0 +1,904 @@
+{
+  "checkedAt": "2026-10-05",
+  "scope": "32 city-place additions; newly researched fields only. Original whole-city verification dates are retained.",
+  "places": [
+    {
+      "city": "Belvedere",
+      "name": "Angel Island State Park",
+      "url": "https://www.parks.ca.gov/?page_id=468",
+      "scope": "nearby",
+      "mapQuery": "Angel Island State Park Ayala Cove",
+      "description": "隔海的岛屿州立公园可安排步行、海湾眺望与移民历史参观。它不在 Belvedere 市内；从邻镇 Tiburon 转乘渡轮，先核对船班、返程和各馆开放，别把登岛当成普通沿岸散步。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Corte Madera",
+      "name": "Ring Mountain Open Space Preserve",
+      "url": "https://parks.marincounty.gov/parkspreserves/preserves/ring-mountain",
+      "scope": "cross-boundary",
+      "mapQuery": "Ring Mountain Preserve Phyllis Ellman Trail",
+      "description": "横跨半岛山坡的开放空间，以海湾视野、岩石和稀有植物著称；Phyllis Ellman 环线适合按体力选择。步道有爬升、现场无厕所，狗须牵绳；著名的 Tiburon mariposa lily 属春季花期，不是秋季花况承诺。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Fairfax",
+      "name": "Cascade Canyon Open Space Preserve",
+      "url": "https://parks.marincounty.gov/parkspreserves/preserves/cascade-canyon",
+      "scope": "nearby",
+      "mapQuery": "Cascade Canyon Preserve Cascade Drive Fairfax",
+      "description": "Fairfax 山边的林地与溪谷步道，Cascade Falls 是有水时的看点，秋季不能保证瀑布流量。入口在住宅街尽头，停车有限且无厕所；沿正式步道行走，狗全程牵绳。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Larkspur",
+      "name": "Baltimore Canyon Open Space Preserve",
+      "url": "https://parks.marincounty.gov/parkspreserves/preserves/baltimore-canyon",
+      "scope": "nearby",
+      "mapQuery": "Baltimore Canyon Preserve Madrone Avenue Larkspur",
+      "description": "Larkspur 西侧的红木溪谷，沿林荫步道寻找 Dawn Falls；瀑布受雨量影响，不宜把夏秋照片当成当前水势。部分入口沿住宅街，无公共厕所，先看路线坡度与停车限制。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Mill Valley",
+      "name": "Muir Woods National Monument",
+      "url": "https://www.nps.gov/muwo/planyourvisit/index.htm",
+      "scope": "nearby",
+      "mapQuery": "Muir Woods National Monument visitor center",
+      "description": "城外著名的老生海岸红木林，可按时间选择主步道短环线。自驾停车或接驳车均应提前安排预约；园区缺乏手机信号，先保存凭证和返程信息，不要到山谷后才临时订位。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Novato",
+      "name": "Novato History Museum",
+      "url": "https://visitnovato.com/see-and-do/places/novato-history-museum/",
+      "scope": "city",
+      "mapQuery": "Novato History Museum 815 DeLong Avenue",
+      "description": "DeLong Avenue 的历史住宅里收藏本地照片、服饰、工具与生活物件，适合与 Old Town 短逛搭配。官方旅游页列免费参观及每周三、四、六中午至16:00开放；临行核对馆方变更。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Ross",
+      "name": "Natalie Coffin Greene Park",
+      "url": "https://www.townofross.org/sites/default/files/fileattachments/town_council/meeting/1027/16._-3_bear_hut.pdf",
+      "scope": "city",
+      "mapQuery": "Natalie Coffin Greene Park Ross",
+      "description": "镇边的林地公园也是通往 Phoenix Lake 的入口，适合把野餐与短步行分开安排。湖区继续延伸到 Marin Water 管理的山地，不能把镇公园规则套用整段路线；先查看流域开放与步道公告。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "San Anselmo",
+      "name": "Memorial Park / Millennium Playground",
+      "url": "https://www.sananselmo.gov/1977/Memorial-Park",
+      "scope": "city",
+      "mapQuery": "Memorial Park Millennium Playground San Anselmo",
+      "description": "Millennium Playground 把小火车、车站和本镇建筑意象做成儿童游乐空间，旁边有 Elders Garden 与球场。适合不想整天爬山的家庭短停；球场与野餐预订活动以镇方安排为准。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "San Rafael",
+      "name": "Mission San Rafael Arcángel",
+      "url": "https://www.saintraphael.com/landing-page",
+      "scope": "city",
+      "mapQuery": "Mission San Rafael Arcangel San Rafael",
+      "description": "市中心的传教站历史参观点与现役教堂相邻，可了解 San Rafael 城名背后的历史。参观空间和礼拜空间要分清，开放时间、导览与宗教活动以堂区当天安排为准。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Sausalito",
+      "name": "Bay Area Discovery Museum",
+      "url": "https://bayareadiscoverymuseum.org/plan-your-visit/",
+      "scope": "nearby",
+      "mapQuery": "Bay Area Discovery Museum 557 McReynolds Road Fort Baker",
+      "description": "位于金门大桥北侧 Fort Baker，以0–8岁儿童的动手探索和户外游玩为主，适合带幼儿留出半天。它在 Sausalito 邻近的国家公园区域，普通参观需门票，陪同成人也要核对票种。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Tiburon",
+      "name": "Blackie’s Pasture / Old Rail Trail",
+      "url": "https://www.townoftiburon.org/DocumentCenter/View/2207",
+      "scope": "city",
+      "mapQuery": "Blackies Pasture Tiburon",
+      "description": "黑马雕像、海湾边长椅与原铁路走廊构成轻松散步起点；可按体力沿 Old Rail Trail 走一小段再折返。适合看水面和休息，不等于有沙滩下水点或保证全线无障碍。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "American Canyon",
+      "name": "Newell Open Space Preserve",
+      "url": "https://www.americancanyon.gov/Play/Newell-Open-Space-Preserve",
+      "scope": "city",
+      "mapQuery": "Newell Open Space Preserve 7000 Newell Drive",
+      "description": "城东约620英亩的山地开放空间，以草坡、树林与未铺装步道为主，适合想从湿地换到山坡的人。通常日出至日落开放，但天气、火险或季节性保护可导致关闭，先看市公告。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Calistoga",
+      "name": "Old Faithful Geyser of California",
+      "url": "https://oldfaithfulgeyser.com/",
+      "scope": "nearby",
+      "mapQuery": "Old Faithful Geyser 1299 Tubbs Lane Calistoga",
+      "description": "Tubbs Lane 上的地热喷泉园区，是 Calistoga 周边有辨识度的自然景点，可结合野餐短停。园区收费；喷发是自然过程，不承诺到达即喷或固定间隔，先看当日票务与开放说明。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Napa",
+      "name": "Oxbow Public Market",
+      "url": "https://oxbowpublicmarket.com/find-us/",
+      "scope": "city",
+      "mapQuery": "Oxbow Public Market 610 First Street Napa",
+      "description": "First Street 的室内市集把餐饮、食品和河岸街区短逛串在一起，适合分头选餐后再会合。各商家营业时段不同，食物与商品按店付费；不要把市集大门营业时间当成每家都开门。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "St. Helena",
+      "name": "Bale Grist Mill State Historic Park",
+      "url": "https://www.parks.ca.gov/?page_id=482",
+      "scope": "nearby",
+      "mapQuery": "Bale Grist Mill 3369 St Helena Highway",
+      "description": "位于 St. Helena 以北的历史水力磨坊，巨型水轮与制粉示范展现葡萄酒之外的谷物农业史。普通周末参观与特殊节庆分开购票或核对费用；山谷公路沿线，不能当成市中心步行点。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Yountville",
+      "name": "Napa Valley Museum Yountville",
+      "url": "https://napavalleymuseum.org/pages/plan-your-visit-to-napa-valley-museum-of-yountville",
+      "scope": "city",
+      "mapQuery": "Napa Valley Museum Yountville 55 Presidents Circle",
+      "description": "55 Presidents Circle 的博物馆适合把艺术与地方历史放进酒乡半日行程，当前通常周三至周日开放。它是 NVMY；别与 St. Helena 的 The MAC 混淆，展览和门票分别核对。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Cloverdale",
+      "name": "Cloverdale River Park",
+      "url": "https://www.sonomacounty.com/outdoor-activities/cloverdale-river-park/",
+      "scope": "cross-boundary",
+      "mapQuery": "Cloverdale River Park 31820 McCray Road",
+      "description": "沿 Russian River 西岸的步道串起城边河岸景观，铺装段适合短程来回步行。自带饮水；河岸没有救生员，不把看水与下水游泳混为一件事，狗须牵绳。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Cotati",
+      "name": "Helen Putnam Park (Cotati)",
+      "url": "https://www.cotaticity.gov/CivicAlerts.aspx?AID=60&ARC=103",
+      "scope": "city",
+      "mapQuery": "Helen Putnam Park Cotati Myrtle Avenue",
+      "description": "本镇的社区球场公园适合居民散步与运动，市府曾与本地棒球队合作整修球场。导航一定加 Cotati：它不是 Petaluma 附近同名的 Helen Putnam Regional Park，也不是大范围山地徒步入口。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Healdsburg",
+      "name": "Foley Family Community Pavilion",
+      "url": "https://healdsburgfarmersmarket.org/",
+      "scope": "city",
+      "mapQuery": "Foley Family Community Pavilion 3 North Street Healdsburg",
+      "description": "3 North Street 的社区棚亭是2026年周六农夫市集的新址，可把本地农产采购与市中心散步组合。市集不是每天营业，周六8:30–12:00的季节排程应另查；周二市集已于9/29结束。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Petaluma",
+      "name": "Petaluma Adobe State Historic Park",
+      "url": "https://www.parks.ca.gov/?page_id=474",
+      "scope": "nearby",
+      "mapQuery": "Petaluma Adobe State Historic Park 3325 Adobe Road",
+      "description": "城外 Adobe Road 的土坯庄园遗址可了解19世纪牧场与农业历史，与市中心的维多利亚街景形成不同体验。参观需另查门票和建筑开放时段；它距离市中心有一段车程，不宜当作徒步街区下一站。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Rohnert Park",
+      "name": "Crane Creek Regional Park",
+      "url": "https://www.sonomacounty.com/outdoor-activities/crane-creek-regional-park/",
+      "scope": "nearby",
+      "mapQuery": "Crane Creek Regional Park 5000 Pressley Road",
+      "description": "城东丘陵的草地、橡树与步道，另有18洞飞盘高尔夫场。适合在餐饮或城市活动之外留一段户外时间；自带水，按坡度选路，春季野花宣传不能视作十一月花况。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Santa Rosa",
+      "name": "Historic Railroad Square",
+      "url": "https://www.railroadsquare.net/",
+      "scope": "city",
+      "mapQuery": "Railroad Square Santa Rosa Depot Park",
+      "description": "历史铁路街区保留石砌建筑与老城氛围，适合找咖啡、古董和餐饮，再在车站周边短走。这里是可逛的街区，不是包含火车体验的套票；商家开门时间各自不同。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Sebastopol",
+      "name": "Laguna Wetlands Preserve",
+      "url": "https://www.cityofsebastopol.gov/our-community/parks-trails-open-space/",
+      "scope": "city",
+      "mapQuery": "Laguna Wetlands Preserve Sebastopol",
+      "description": "市府维护的 Laguna de Santa Rosa 湿地保护空间，可用短步行观察河岸与季节变化。先查看开放步道和积水情况；湿地、季节性连接与邻近私人土地边界要分清，不保证全年干燥通行。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Sonoma",
+      "name": "Bartholomew Park",
+      "url": "https://bartholomewpark.org/what-to-do/",
+      "scope": "nearby",
+      "mapQuery": "Bartholomew Park 1695 Castle Road Sonoma",
+      "description": "Sonoma 东侧的公园将葡萄园景观、林地步道与野餐空间放在一起，公众可免费进入公园。品酒、餐饮及私人活动不包含在免费范围；走山路前看当日开门和步道条件。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Windsor",
+      "name": "Foothill Regional Park",
+      "url": "https://www.sonomacounty.com/outdoor-activities/foothill-regional-park/",
+      "scope": "city",
+      "mapQuery": "Foothill Regional Park 1351 Arata Lane Windsor",
+      "description": "Windsor 东侧有池塘、橡树林与多条山坡步道；Three Lakes 段较平缓，Alta Vista 等路线有爬升。适合按体力选短环线，狗须牵绳，停车费用与实际路况出发前再核对。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Benicia",
+      "name": "Benicia State Recreation Area",
+      "url": "https://parks.ca.gov/?page_id=476",
+      "scope": "nearby",
+      "mapQuery": "Benicia State Recreation Area 1 State Park Road",
+      "description": "市区西侧的盐沼、海岸与低丘，适合骑行、散步和观察水鸟，园内道路与步道可按距离折返。车辆入园收费，狗须牵绳；观鸟与海湾风景不等于可安全游泳。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Dixon",
+      "name": "Jepson Prairie Preserve",
+      "url": "https://solanolandtrust.org/get-involved/hike-our-lands.html",
+      "scope": "nearby",
+      "mapQuery": "Jepson Prairie Preserve 4845 Cook Lane Dixon",
+      "description": "Dixon 以南约10英里的季节性池塘草原保护区，可走指定自导览环线了解稀有栖地。公众区域通常9:00–17:00开放；春季导览与花期不能套用秋季，禁止宠物，现场无饮水。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Fairfield",
+      "name": "Rockville Hills Regional Park",
+      "url": "https://www.fairfield.ca.gov/government/city-departments/public-works/rockville-hills-regional-park-open-space/rockville-hills-regional-park",
+      "scope": "city",
+      "mapQuery": "Rockville Hills Regional Park Fairfield",
+      "description": "Fairfield 管理的山地公园，适合把橡树林与丘陵步道作为半天户外活动。出发前从市府入口核对通行证、关闭公告和路线难度，不把市属公园理解为所有项目免票。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Rio Vista",
+      "name": "Sandy Beach County Park",
+      "url": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/sandy-beach-park-campground",
+      "scope": "nearby",
+      "mapQuery": "Sandy Beach County Park 2333 Beach Drive Rio Vista",
+      "description": "Rio Vista 南侧 Sacramento River 河岸的野餐、露营与船只下水地。县方明确禁止游泳，水流与骤降河床不是普通海滩条件；日用区工程及船坡使用可能变化，先读公园状态公告。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Suisun City",
+      "name": "Western Railway Museum",
+      "url": "https://www.wrm.org/",
+      "scope": "nearby",
+      "mapQuery": "Western Railway Museum 5848 Highway 12 Suisun City",
+      "description": "Highway 12 沿线的历史电气铁路博物馆，可结合车辆展览与指定列车班次。虽使用 Suisun City 邮寄地址，实际在城外乡间；普通周末票、特别活动和发车时间分开核对，别直接去市区找入口。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Vacaville",
+      "name": "Lagoon Valley Park",
+      "url": "https://www.cityofvacaville.gov/government/parks-and-recreation/parks-fields/lagoon-valley-park?locale=en_us",
+      "scope": "city",
+      "mapQuery": "Lagoon Valley Park 100 Pena Adobe Road Vacaville",
+      "description": "Peña Adobe Road 的大型湖区公园，有湖畔步行和延伸到山坡的户外路线。可按体力选平缓短段或爬坡，把停车与开放时间另行核对；湖景介绍不代表湖水适合游泳。",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Vallejo",
+      "name": "Mare Island San Pablo Bay Trail",
+      "url": "https://www.mareislandco.com/explore",
+      "scope": "city",
+      "mapQuery": "Mare Island San Pablo Bay Trail Vallejo",
+      "description": "Mare Island 西侧约4英里的滨湾步道，可看 San Pablo Bay 与远山，适合与岛上历史街区分开安排。先核对步道入口与当日限制；推荐的是公共户外路线，不意味着船厂建筑或博物馆全部开放。",
+      "checkedAt": "2026-10-05"
+    }
+  ],
+  "events": [
+    {
+      "id": "november-north-art-trails-2026",
+      "title": "Sonoma County Art Trails 开放工作室",
+      "officialUrl": "https://www.sonomacountyarttrails.org/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-10",
+        "2026-10-11",
+        "2026-10-17",
+        "2026-10-18"
+      ],
+      "venue": "全县参与艺术家工作室；具体地址见2026官方地图",
+      "cost": "开放工作室参观免费；购买作品另计",
+      "conditions": [
+        "先在2026地图选2–3个邻近工作室，不把全县名单当作 Sebastopol 单一会场。",
+        "只在四个确认日期参观；无障碍条件和个别工作室安排分别核对。",
+        "编辑建议：先选最感兴趣的绘画、陶艺或木作，再看距离，减少跨县来回开车。"
+      ],
+      "imageKey": "culture-visit"
+    },
+    {
+      "id": "november-north-healdsburg-market-2026",
+      "title": "Healdsburg 周六农夫市集：新棚亭地址",
+      "officialUrl": "https://healdsburgfarmersmarket.org/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-10",
+        "2026-10-17",
+        "2026-10-24",
+        "2026-10-31",
+        "2026-11-07",
+        "2026-11-14"
+      ],
+      "venue": "Foley Family Community Pavilion, 3 North Street",
+      "cost": "农产与餐饮按摊位收费；官网未单列入场费",
+      "conditions": [
+        "导航到3 North Street，不沿用旧停车场地址。",
+        "本期列到11/14；官方周六季节至12/19，周二季节已结束。",
+        "编辑建议：带购物袋，易腐食品采购后安排保冷，再继续逛市中心。"
+      ],
+      "imageKey": "everyday"
+    },
+    {
+      "id": "november-north-sonoma-harvest-market-2026",
+      "title": "Sonoma Garden Park 丰收市集",
+      "officialUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-10",
+        "2026-10-17",
+        "2026-10-24",
+        "2026-10-31",
+        "2026-11-07",
+        "2026-11-14"
+      ],
+      "venue": "Sonoma Garden Park, 19996 7th Street East",
+      "cost": "蔬果、鸡蛋与其他商品按摊位购买；未列单独入场费",
+      "conditions": [
+        "自带购物袋，商品供应随采收而变，不保证每周都有同样品项。",
+        "市集在7th Street East的花园，不是 Sonoma Plaza 广场。",
+        "官方说明可使用信用卡及 Apple Pay；仍以当日摊位可用方式结账。"
+      ],
+      "imageKey": "everyday"
+    },
+    {
+      "id": "november-north-sugarloaf-public-star-party-2026",
+      "title": "Sugarloaf 公众观星夜",
+      "officialUrl": "https://sugarloafpark.org/event/public-star-party-46/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-11-07",
+        "2026-11-07"
+      ],
+      "venue": "Robert Ferguson Observatory, 2603 Adobe Canyon Road",
+      "cost": "成人$15；62岁以上/学生$10；6–12岁$5；5岁及以下免费；另加$10/车停车",
+      "conditions": [
+        "先从主办方链接购票，停车费与活动票分开计算。",
+        "山中夜间会冷，带保暖衣物；可见天体受天气影响，不能保证特定观测结果。",
+        "5岁及以下活动票免费，但家庭自驾仍须计入每车停车费。"
+      ],
+      "imageKey": "november-stargazing"
+    },
+    {
+      "id": "november-north-sugarloaf-nature-talk-2026",
+      "title": "Sugarloaf 自然桌边讲解：颜色、图案与信号",
+      "officialUrl": "https://sugarloafpark.org/event/tabletop-nature-talk-colors-patterns-signals/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-11-08",
+        "2026-11-08"
+      ],
+      "venue": "Sugarloaf Visitor Center, 2605 Adobe Canyon Road",
+      "cost": "讲解免费且无需预约；公园停车另收费",
+      "conditions": [
+        "活动是游客中心外的桌边讲解，不是三小时必须全程跟队的徒步。",
+        "无需为听讲解预约，但停车与公园开放仍按当日规则。",
+        "编辑建议：带孩子先想一个关于动物颜色的问题，抵达后向自然讲解员提问。"
+      ],
+      "imageKey": "garden-walk"
+    },
+    {
+      "id": "november-north-sips-stars-2026",
+      "title": "Sips and Stars：21岁以上酒与星空之夜",
+      "officialUrl": "https://sugarloafpark.org/event/sips-and-stars-4/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-11-13",
+        "2026-11-13"
+      ],
+      "venue": "Robert Ferguson Observatory, Sugarloaf Ridge State Park",
+      "cost": "仅21岁以上；需登记，票价及停车费到票务页核对；含2张饮品券",
+      "conditions": [
+        "通过天文台票务链接检查余票、价格与年龄凭证要求。",
+        "饮酒者另安排驾驶或接送，望远镜观测取决于天气。",
+        "登记包含两张饮品券，不应理解为无限畅饮或所有餐饮都包含。"
+      ],
+      "imageKey": "november-stargazing"
+    },
+    {
+      "id": "november-north-jack-london-author-2026",
+      "title": "Jack London 公园作家下午会：The Second Mrs. London",
+      "officialUrl": "https://jacklondonpark.com/events/the-second-mrs-london-2026/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-11-15",
+        "2026-11-15"
+      ],
+      "venue": "House of Happy Walls Museum, 2400 London Ranch Road",
+      "cost": "讲座不另收费；公园入场$15/车，座位有限须预约",
+      "conditions": [
+        "先预约座位，再把车辆入园费计入预算。",
+        "官方注明二楼仅楼梯可达；需要无台阶通行者提前联系公园确认替代安排。",
+        "编辑建议：为停车后到博物馆留出时间，别把14:00当作抵达公园大门的时间。"
+      ],
+      "imageKey": "community-library-card"
+    },
+    {
+      "id": "november-north-fairfax-bilingual-storytime-2026",
+      "title": "Fairfax 幼儿西英双语故事会",
+      "officialUrl": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-06",
+        "2026-10-13",
+        "2026-10-20",
+        "2026-10-27",
+        "2026-11-03",
+        "2026-11-10"
+      ],
+      "venue": "Fairfax Library, 2097 Sir Francis Drake Boulevard",
+      "cost": "图书馆活动免费；适合0–5岁及陪同者",
+      "conditions": [
+        "本卡采用10:15系列；另有9:30场，选其中一场，出发前核对当天页面。",
+        "日历列10:15–11:45，不代表整段都是连续讲故事；幼儿由照顾者陪同。",
+        "编辑建议：按孩子午睡时间选场，故事会后可先在分馆选书，不必紧接长途出游。"
+      ],
+      "imageKey": "community-library-card"
+    },
+    {
+      "id": "november-north-eames-exhibition-2026",
+      "title": "The MAC：Eames & Eames 现代设计展",
+      "officialUrl": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-17",
+        "2026-11-15"
+      ],
+      "venue": "The MAC, 607 St Helena Highway",
+      "cost": "普通成人$25；6–17岁$15；5岁及以下免费，特别活动另核",
+      "conditions": [
+        "导航到 St. Helena 的 The MAC，不是 Yountville 的55 Presidents Circle。",
+        "本期只列至11/15，展览本身仍延续；10/18开幕庆典的票务另核，普通票不作特别活动保证。",
+        "成人与儿童票价不同，先按同行年龄选票，不把成人票价直接乘所有人数。"
+      ],
+      "imageKey": "culture-visit"
+    },
+    {
+      "id": "november-north-bale-old-mill-days-2026",
+      "title": "Bale Grist Mill Old Mill Days 收获历史体验",
+      "officialUrl": "https://napaoutdoors.org/events/",
+      "checkedAt": "2026-10-05",
+      "dates": [
+        "2026-10-10",
+        "2026-10-11"
+      ],
+      "venue": "Bale Grist Mill, 3369 St Helena Highway",
+      "cost": "一般入场$5/人；幼儿减免年龄边界请向主办方确认",
+      "conditions": [
+        "活动在 St. Helena 城外磨坊；选一天10:00–14:00参加，不沿用普通周末闭馆时刻。",
+        "官方同页分别写未满2岁及2岁及以下免费，2岁儿童是否免票须先确认。",
+        "编辑建议：穿适合动手体验的衣物，留出洗手和孩子休息的时间。"
+      ],
+      "imageKey": "family-workshop"
+    }
+  ],
+  "currentUpdates": [
+    {
+      "city": "Fairfax",
+      "kind": "dated",
+      "headline": "双语故事会已列到十一月，0–5岁每次选一场",
+      "summary": "Fairfax Library 的西英双语音乐故事会已确认11/3与11/10。10:15系列日历列至11:45，说明另有9:30场且每次只参加一场；先核对当天安排。",
+      "dateLabel": "2026/10/6–11/10 · 每周二，详见系列",
+      "sourceUrl": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+      "sourceLabel": "Marin County Free Library 官方系列日历",
+      "imageKey": "community-library-card",
+      "expiresAt": "2026-11-10",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "St. Helena",
+      "kind": "dated",
+      "headline": "10/17起 The MAC 新展：别跑到 Yountville",
+      "summary": "Eames & Eames 在607 St Helena Highway展出，完整展期至2027/4/18，普通开放为每日10:00–17:00。它不是 Yountville 的 NVMY；成人普通票$25、6–17岁$15，特殊活动另核。",
+      "dateLabel": "2026/10/17–2027/4/18 · 每日10:00–17:00，节假日另核",
+      "sourceUrl": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+      "sourceLabel": "Napa Valley Museum 官方展览及参观页",
+      "imageKey": "culture-visit",
+      "expiresAt": "2027-04-18",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Healdsburg",
+      "kind": "dated",
+      "headline": "周六农夫市集已迁入3 North Street新棚亭",
+      "summary": "2026周六市集在 Foley Family Community Pavilion 举行，8:30–12:00，季节至12/19。十月至11/14的周六已收录；周二季节9/29已结束，别沿用旧地点或旧星期。",
+      "dateLabel": "2026周六季节至12/19 · 8:30–12:00",
+      "sourceUrl": "https://healdsburgfarmersmarket.org/",
+      "sourceLabel": "Healdsburg Farmers’ Market 官方排程",
+      "imageKey": "everyday",
+      "expiresAt": "2026-12-19",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Sonoma",
+      "kind": "dated",
+      "headline": "花园丰收市集：11/7、11/14仍有周六安排",
+      "summary": "Sonoma Garden Park 在19996 7th Street East，周六9:00–13:00购买当季农产。这里不在 Sonoma Plaza；采购按摊位收费，供应依当天采收而变，自带购物袋。",
+      "dateLabel": "本期至2026/11/14 · 每周六9:00–13:00",
+      "sourceUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+      "sourceLabel": "Sonoma Ecology Center / Sugarloaf 官方市集页",
+      "imageKey": "everyday",
+      "expiresAt": "2026-11-14",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Sebastopol",
+      "kind": "dated",
+      "headline": "10/10–11、17–18 Art Trails：先选工作室地图",
+      "summary": "Sonoma County Art Trails 免费开放工作室，2026有160位入选艺术家。活动跨全县，不是 Sebastopol 单一场馆；先选邻近的两三站，艺术品购买另计。",
+      "dateLabel": "2026/10/10、11、17、18 · 10:00–17:00",
+      "sourceUrl": "https://www.sonomacountyarttrails.org/",
+      "sourceLabel": "Sonoma County Art Trails 主办方",
+      "imageKey": "culture-visit",
+      "expiresAt": "2026-10-18",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Dixon",
+      "kind": "calendar",
+      "headline": "Lambtown已结束，秋日可查 Jepson Prairie 访客区",
+      "summary": "Dixon以南的 Jepson Prairie 有指定自导览环线，公众区域通常9:00–17:00开放。春季花期与导览不等于秋季节目；禁止宠物、现场无饮水，先读保护区规则再出门。",
+      "dateLabel": "常设自然资讯 · 2026/10/5核对",
+      "sourceUrl": "https://solanolandtrust.org/get-involved/hike-our-lands.html",
+      "sourceLabel": "Solano Land Trust 官方访问说明",
+      "imageKey": "weekend",
+      "checkedAt": "2026-10-05"
+    },
+    {
+      "city": "Rio Vista",
+      "kind": "calendar",
+      "headline": "Sandy Beach 工程与河岸使用提醒：禁止游泳",
+      "summary": "县公园日用区第二阶段工程仍有围栏保护区域，工作日船坡可能受工程影响。县方明确禁止游泳；这里适合按开放条件野餐、露营或下水船只，不能当作可游泳海滩。",
+      "dateLabel": "公园状态资讯 · 2026/10/5核对，出发前重查",
+      "sourceUrl": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/parks-status-updates",
+      "sourceLabel": "Solano County Parks 官方状态公告",
+      "imageKey": "weekend",
+      "checkedAt": "2026-10-05"
+    }
+  ],
+  "exclusions": [
+    {
+      "item": "Dixon Lambtown / Rio Vista Bass Derby current highlights",
+      "reason": "2026 events ended Oct4; preserved historical events but replaced stale current-city highlights."
+    },
+    {
+      "item": "Cotati Sunflower Park 2026 opening",
+      "reason": "Search snippet mixed a 2024 archived survey with2026 related-news dates; no opening claim added."
+    },
+    {
+      "item": "Western Railway Museum pumpkin train",
+      "reason": "No verified2026 specific schedule found; included museum as an ongoing place only."
+    },
+    {
+      "item": "Cool Patch Pumpkins seasonal event",
+      "reason": "Could not verify official2026 event terms; no guessed annual dates."
+    },
+    {
+      "item": "NVMY All the President’s Men Nov6",
+      "reason": "Official ticket page showed sold out when researched; not added as available event."
+    },
+    {
+      "item": "Sugarloaf volunteer calendar with Saturday Nov8 2026",
+      "reason": "Weekday/date conflict; not used."
+    },
+    {
+      "item": "Bale Old Mill Days age2 free boundary",
+      "reason": "Official same-page conflict: under2 vs2andunder. General$5 stated; exact age2 exemption left for organizer confirmation."
+    }
+  ],
+  "supportingSources": [
+    {
+      "url": "https://www.sonomacountyarttrails.org/about",
+      "facts": "Free countywide 2026 tour, 160 juried artists."
+    },
+    {
+      "url": "https://www.sonomacountyarttrails.org/resource",
+      "facts": "2026 open-studio dates and 10am–5pm hours."
+    },
+    {
+      "url": "https://marinlibrary.org/esl/",
+      "facts": "All library services and events are free."
+    },
+    {
+      "url": "https://napavalleymuseum.org/pages/plan-your-visit-to-napa-valley-museum-of-art-and-culture",
+      "facts": "The MAC: 607 St Helena Hwy; daily10–17; $25 adults/$15 ages6–17/free5under; holiday closures."
+    },
+    {
+      "url": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/sandy-beach-park-campground",
+      "facts": "Swimming prohibited, strong currents and drop-offs; no lifeguard."
+    },
+    {
+      "url": "https://solanolandtrust.org/protected-lands/jepson-prairie.html",
+      "facts": "Vernal-pool habitat and location; spring docent tours are not fall programs."
+    }
+  ],
+  "currentImageReview": [
+    {
+      "city": "Belvedere",
+      "imageKey": "refresh-makers",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Corte Madera",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Fairfax",
+      "imageKey": "community-library-card",
+      "previousImageKey": "community-library-card",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Larkspur",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Mill Valley",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Novato",
+      "imageKey": "autumn-neighbors",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Ross",
+      "imageKey": "autumn-neighbors",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "San Anselmo",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "San Rafael",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Sausalito",
+      "imageKey": "refresh-pets",
+      "previousImageKey": "region-sausalito",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Tiburon",
+      "imageKey": "garden-walk",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "American Canyon",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Calistoga",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Napa",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "St. Helena",
+      "imageKey": "culture-visit",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Yountville",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Cloverdale",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Cotati",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Healdsburg",
+      "imageKey": "everyday",
+      "previousImageKey": "everyday",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Petaluma",
+      "imageKey": "community-library-card",
+      "previousImageKey": "coverage-petaluma-river",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Rohnert Park",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Santa Rosa",
+      "imageKey": "culture-visit",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Sebastopol",
+      "imageKey": "culture-visit",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Sonoma",
+      "imageKey": "everyday",
+      "previousImageKey": "everyday",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Windsor",
+      "imageKey": "refresh-community-swap",
+      "previousImageKey": "refresh-makers",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Benicia",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Dixon",
+      "imageKey": "weekend",
+      "previousImageKey": "weekend",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Fairfield",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Rio Vista",
+      "imageKey": "weekend",
+      "previousImageKey": "weekend",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Suisun City",
+      "imageKey": "autumn-neighbors",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Vacaville",
+      "imageKey": "community-library-card",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    },
+    {
+      "city": "Vallejo",
+      "imageKey": "everyday",
+      "previousImageKey": "culture-visit",
+      "assessment": "Labeled original topic illustration; not an event or venue photograph."
+    }
+  ],
+  "validationNotes": [
+    "No annual event dates inferred. Weekly occurrences are bounded to explicit2026 organizer seasons.",
+    "Original city-wide verifiedAt is retained; only new place rows carry2026-10-05.",
+    "Photos replaced with labeled relevant illustrations when they did not depict the activity.",
+    "Fairfield page body returned403 but official indexed page text confirmed city park/oak woodland; no exact fees asserted.",
+    "Fairfax individual event page rendered an empty shell; the official series page explicitly listed the included dates and times."
+  ],
+  "guides": [
+    {
+      "slug": "north-bay-markets-nature-culture-through-november-15-2026",
+      "title": "北湾秋日怎么选：市集、自然与文化，看到11月15日",
+      "sources": [
+        {
+          "title": "Healdsburg Farmers’ Market：2026地址与季节",
+          "url": "https://healdsburgfarmersmarket.org/",
+          "description": "核对周六新址、8:30–12:00与季节末日；周二季节已结束。"
+        },
+        {
+          "title": "Sonoma Garden Park：11/14丰收市集",
+          "url": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+          "description": "确认2026周六市集、花园地址与采购说明。"
+        },
+        {
+          "title": "Sugarloaf：11/7公众观星夜",
+          "url": "https://sugarloafpark.org/event/public-star-party-46/",
+          "description": "活动票年龄分级与每车停车费分开。"
+        },
+        {
+          "title": "Sugarloaf：11/8自然讲解",
+          "url": "https://sugarloafpark.org/event/tabletop-nature-talk-colors-patterns-signals/",
+          "description": "免费桌边讲解、无需预约及停车另收费。"
+        },
+        {
+          "title": "Fairfax Library：双语故事会系列",
+          "url": "https://marinlibrary.bibliocommons.com/v2/events?series=6a33170c2ea730c17ab7baeb",
+          "description": "确认0–5岁、两场择一及10月至11/10日期。"
+        },
+        {
+          "title": "The MAC：Eames & Eames",
+          "url": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+          "description": "确认展览在St. Helena，10/17开幕并延续到2027/4/18。"
+        },
+        {
+          "title": "The MAC：开放与普通票",
+          "url": "https://napavalleymuseum.org/pages/plan-your-visit-to-napa-valley-museum-of-art-and-culture",
+          "description": "核对607 St Helena Highway、日常开放和年龄票价。"
+        },
+        {
+          "title": "Jack London Park：11/15作家会",
+          "url": "https://jacklondonpark.com/events/the-second-mrs-london-2026/",
+          "description": "预约、每车入园费与二楼仅楼梯可达的限制。"
+        },
+        {
+          "title": "Solano County Parks：状态公告",
+          "url": "https://www.solanocounty.gov/government/resource-management/solano-county-parks/parks-status-updates",
+          "description": "Sandy Beach工程区域与船坡通行提醒。"
+        },
+        {
+          "title": "Solano Land Trust：步道访问",
+          "url": "https://solanolandtrust.org/get-involved/hike-our-lands.html",
+          "description": "Jepson Prairie指定访客区与自导览环线规则。"
+        }
+      ],
+      "checkedAt": "2026-10-05"
+    }
+  ],
+  "structuredPlanning": {
+    "file": "src/data/november-refresh-north-planning.json",
+    "eventCount": 10,
+    "notes": [
+      "Sips and Stars minimum age21 and registration required are structured, not merely prose.",
+      "Tiered adult/child prices and per-vehicle charges remain admissionUsd:null because the generic per-person scalar cannot represent them accurately; exact published prices stay in costLabel/schedule.note.",
+      "Nature talk admissionUsd0 describes the program only; separately charged parking remains explicit in its note.",
+      "Fairfax maxAge5 describes child participants, not a prohibition on accompanying adults.",
+      "Dates are explicit event days; the Eames daily museum schedule is bounded to the selectedOct17–Nov15 window.",
+      "Fixed programs now use sessions rather than arrival windows: author14:00–15:30, SipsandStars17:00–19:00, public star party19:00–22:00.",
+      "Fairfax is six fixed10:15 starts with no asserted end, programTimeUnconfirmed:true, and no dates arrival-window map; the calendar’s11:45 boundary is not treated as an individual90-minute session.",
+      "Art Trails has no uniform indoor/outdoor setting asserted for its many distinct studios."
+    ]
+  }
+}
