@@ -20,20 +20,36 @@ export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse
   const failed = retrieval?.webStatus === 'verification_failed';
   if (response.responseMode === 'assistant') {
     const sources = bayBayAssistantResult(response)?.sources || [];
-    const siteCount = sources.filter(source => source.url.startsWith('/')).length;
-    const webCount = sources.length - siteCount;
+    const methods = sources.map(source => response.evidence?.find(item => item.url === source.url)?.verification);
+    const sourceSummary = ([
+      ['catalog', t('站内快照', 'Site snapshots')],
+      ['page-read', t('本次网页读取', 'Pages read this turn')],
+      ['api', t('接口获取', 'API retrievals')],
+      ['search-result', t('搜索线索（未读正文）', 'Search leads (page not read)')],
+      [undefined, t('取得方式未记录', 'Retrieval method not recorded')],
+    ] as const).flatMap(([method, label]) => {
+      const count = methods.filter(value => value === method).length;
+      return count ? [t(`${label} ${count} 条`, `${label}: ${count}`)] : [];
+    }).join(' · ');
     const searched = retrieval?.webStatus === 'completed' && retrieval.scope === 'site+web' ? t('已检索站内与站外', 'Searched site and web')
       : retrieval?.webStatus === 'completed' && retrieval.scope === 'web' ? t('已检索站外公开资料', 'Searched public web information')
         : retrieval?.scope === 'site' ? t('已检索站内资料', 'Searched site information')
           : retrieval?.scope === 'none' ? t('本次未检索', 'No search this turn') : t('根据当前条件整理', 'Organized around your requirements');
-    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sources.length > 0 && t(` · 实际引用 ${siteCount} 条站内资料、${webCount} 条站外来源`, ` · Cites ${siteCount} site sources and ${webCount} web sources`)}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
+    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sourceSummary && t(` · 实际引用：${sourceSummary}`, ` · Cited evidence: ${sourceSummary}`)}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
   }
   return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
 }
 
 export function BayBayAnswer({ response, onNavigate }: { response: GuideChatResponse; onNavigate?: (path: string) => void }) {
   const result = bayBayAssistantResult(response) || bayBayCatalogResult(response) || bayBayWebResult(response);
-  return <p className="member-baybay-answer-text">{result ? plannerWebAnswerParts(result).map((part, index) => part.source ? <a key={index} href={part.source.url} target={part.source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" title={part.source.title} className="baybay-inline-citation" onClick={event => { if (part.source!.url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(part.source!.url); } }}>{part.text}</a> : <span key={index}>{part.text}</span>) : response.answer}</p>;
+  const parts = plannerWebAnswerParts(result || { answer: response.answer || '', sources: [] }, true);
+  return <p className="member-baybay-answer-text">{parts.map((part, index) => {
+    const href = part.source?.url || part.href;
+    return href ? <a key={index} href={href} target={href.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" title={part.source?.title || href}
+      className={part.source ? 'baybay-inline-citation' : 'underline underline-offset-2'} onClick={event => {
+        if (href.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(href); }
+      }}>{part.text}</a> : <span key={index}>{part.text}</span>;
+  })}</p>;
 }
 
 export function BayBayCoverageSummary({ response }: { response: GuideChatResponse }) {

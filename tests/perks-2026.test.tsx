@@ -25,7 +25,7 @@ test('new perks and existing Sephora correction resolve once in catalogs and ded
   assert.equal(new Set(currentFreebies.map(offer => offer.id)).size, currentFreebies.length);
   for (const offer of added) {
     assert.equal(currentFreebies.filter(item => item.id === offer.id).length, 1, offer.id);
-    assert.equal(offer.verifiedAt, '2026-10-04');
+    assert.equal(offer.verifiedAt, offer.id === 'ac-library-free-printing' ? '2026-10-05' : '2026-10-04', offer.id);
     assert.equal(new URL(offer.sourceUrl).protocol, 'https:');
     assert.ok(GUIDE_IMAGES[offer.imageKey] && existsSync(`public${GUIDE_IMAGES[offer.imageKey].src}`), offer.id);
   }
@@ -50,6 +50,13 @@ test('prior-purchase birthdays do not appear as no-purchase offers and local ben
   }
   assert.match(currentFreebies.find(offer => offer.id === 'amc-birthday-popcorn-2026')!.requirement, /首日前 30 天/);
   assert.match(currentFreebies.find(offer => offer.id === 'tilden-little-farm-free')!.requirement, /公众喂动物已停止/);
+  const printing = currentFreebies.find(offer => offer.id === 'ac-library-free-printing')!;
+  assert.equal(printing.sourceUrl, 'https://aclibrary.org/faq/print-scan-fax/');
+  assert.match(printing.requirement, /实体 Library Card/);
+  assert.match(printing.requirement, /eCard 或无卡访客不享免费额度/);
+  assert.match(printing.requirement, /10 页黑白打印.*不含复印/);
+  assert.match(printing.requirement, /彩印每页 \$0\.35.*超额黑白每页 \$0\.15/);
+
   assert.deepEqual([...new Set(everydayPerks2026.map(offer => offer.region))].sort(), ['east-bay', 'north-bay', 'peninsula', 'sf', 'south-bay']);
   const html = renderToStaticMarkup(<FreebieBoard offers={added} today="2026-10-04" />);
   assert.match(html, /datetime="2026-10-04"/i);

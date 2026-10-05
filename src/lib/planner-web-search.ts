@@ -130,12 +130,42 @@ export async function saveAccountWebCandidate(candidate: SavedWebCandidate, sign
   return webCandidateLibraryApi.replace(next, current.revision, signal);
 }
 
-export type PlannerWebAnswerPart = { text: string; citation?: number; source?: PlannerWebSource };
-export function plannerWebAnswerParts(result: PlannerWebResult): PlannerWebAnswerPart[] {
-  return result.answer.split(/(\[\d+\])/g).filter(Boolean).map(text => {
+export type PlannerWebAnswerPart = { text: string; citation?: number; source?: PlannerWebSource; href?: string };
+/** Limited links only: React still renders all other Markdown and HTML as text. */
+export function plannerWebAnswerParts(result: Pick<PlannerWebResult, 'answer' | 'sources'>, linkify = false): PlannerWebAnswerPart[] {
+  if (!linkify) return result.answer.split(/(\[\d+\])/g).filter(Boolean).map(text => {
     const match = /^\[(\d+)\]$/.exec(text);
     if (!match) return { text };
     const citation = Number(match[1]);
     return { text, citation, source: result.sources.find(source => source.number === citation) };
   });
+  // One level of parentheses is enough for ordinary public URLs. Images, code,
+  // executable schemes and unsupported markup stay inert, visible text.
+  const tokens = /`[^`]*`|!?\[[^[\]\r\n]+\]\((?:[^()\s<>]|\([^()\s<>]*\))+\)|https?:\/\/[^\s<>"'`[\]，。；：！？、）】》」』]+|\[\d+\]/gi;
+  const parts: PlannerWebAnswerPart[] = [];
+  let cursor = 0;
+  for (const match of result.answer.matchAll(tokens)) {
+    const token = match[0], index = match.index;
+    if (index > cursor) parts.push({ text: result.answer.slice(cursor, index) });
+    cursor = index + token.length;
+    const citation = /^\[(\d+)\]$/.exec(token);
+    const markdown = /^\[([^[\]\r\n]+)\]\((.+)\)$/.exec(token);
+    if (citation) {
+      const number = Number(citation[1]);
+      parts.push({ text: token, citation: number, source: result.sources.find(source => source.number === number) });
+    } else if (markdown) {
+      const href = safePlannerWebUrl(markdown[2]);
+      parts.push(href ? { text: markdown[1], href } : { text: token });
+    } else if (/^https?:\/\//i.test(token)) {
+      let text = token.replace(/[.,;:!?]+$/, '');
+      for (const [open, close] of [['(', ')'], ['[', ']'], ['{', '}']]) {
+        while (text.endsWith(close) && text.split(close).length > text.split(open).length) text = text.slice(0, -1);
+      }
+      const href = safePlannerWebUrl(text);
+      parts.push(href ? { text, href } : { text });
+      if (text.length < token.length) parts.push({ text: token.slice(text.length) });
+    } else parts.push({ text: token });
+  }
+  if (cursor < result.answer.length) parts.push({ text: result.answer.slice(cursor) });
+  return parts;
 }

@@ -249,9 +249,19 @@ export const BAYBAY_SCENARIOS = [
 ];
 
 export function bayBayFollowups(question: string, hasArticle: boolean, schoolContext = false, suggested: string[] = []): string[] {
-  if (schoolContext || isBayBaySchoolRequest(question)) return ['按已经提供的地区与年级，帮我列出需要向学区核实的事项', '帮我写一段不含孩子个人资料的入学咨询模板'];
   const normalized = simplifySearch(question);
   const localize = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh, getLocale());
+  if (schoolContext || isBayBaySchoolRequest(question)) {
+    const relevant = suggested.filter(item => {
+      const prompt = simplifySearch(item);
+      return prompt.trim() !== normalized.trim()
+        && !/出游|景点|会员|优惠|\b(?:outing|itinerary|sightseeing|membership|freebies|app)\b/i.test(prompt)
+        && (isBayBaySchoolRequest(prompt) || /咨询|邮件|模板|双语|中英|语气|缩短|改短|简短|官方|核实|\b(?:email|letter|message|template|bilingual|shorten|shorter|concise|polite|formal|translate|translation|official|verify)\b/i.test(prompt));
+    });
+    if (relevant.length) return [...new Set(relevant)].slice(0, 3);
+    return [localize('按已经提供的地区与年级，帮我列出需要向学区核实的事项', 'List what to verify with the district for the area and grade already provided'),
+      localize('帮我写一段不含孩子个人资料的入学咨询模板', 'Draft an enrollment inquiry without the child’s personal information')];
+  }
   if (/打印|复印|彩印|黑白|\b(?:print(?:ing)?|photocop(?:y|ies)|copying)\b/i.test(normalized)) {
     const relevant = suggested.filter(item => /打印|复印|彩印|黑白|额度|print|cop(?:y|ies)|allowance|pages/i.test(simplifySearch(item)) && !/会员|\bapp\b/i.test(item));
     return relevant.length ? relevant.slice(0, 3) : [localize('按我的页数和当天剩余额度，帮我核算打印费用', 'Calculate printing costs from my page count and remaining daily allowance'), localize('帮我列出打印前需要确认的文件格式、取件地点和收费', 'List file formats, pickup location and charges to confirm before printing')];

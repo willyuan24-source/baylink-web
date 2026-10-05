@@ -13,7 +13,6 @@
   "SFPL 官方在线学习与 App 登录方法": "SFPL official online learning and app login instructions",
   "AC Library 持卡人每天免费打印 10 页黑白文件": "AC Library cardholders can print 10 black-and-white pages free each day",
   "长期服务 · 每日额度以馆方现行说明为准": "Ongoing service · Daily allowance follows current library rules",
-  "需使用 AC Library 图书证；每天最多 10 页黑白打印，适用于馆内电脑或个人设备提交的文件。免费额度不含复印，也不适用于无卡访客；彩印每页 $0.35，超额黑白打印每页 $0.15。": "Use your AC Library card for up to 10 free black-and-white pages per day, sent from a library computer or your own device. Photocopies and guests without a card are excluded. Color printing costs $0.35 per page; additional black-and-white pages cost $0.15 each.",
   "在 Fremont、Dublin 等 AC Library 分馆，使用馆内电脑，或以图书证和 PIN 登录官方 SmartAlec 入口上传文件，再到馆内打印机取件。免费额度可能随成本调整；取件前确认分馆开放与当前收费。": "At AC Library branches such as Fremont or Dublin, use a library computer or upload files through the official SmartAlec link with your card and PIN, then collect them at a library print kiosk. The free allowance may change with costs. Check branch hours and current charges before collecting.",
   "AC Library 官方免费打印额度、收费与取件流程": "AC Library official free print allowance, charges and collection steps",
   "ALAMEDA COUNTY LIBRARY：AC Library 官方免费打印额度、收费与取件流程": "ALAMEDA COUNTY LIBRARY: AC Library official free print allowance, charges and collection steps",
@@ -74,5 +73,6 @@
   "SAN JOSÉ PUBLIC LIBRARY：SJPL 官方免费种子地点与领取步骤": "SAN JOSÉ PUBLIC LIBRARY: SJPL official free seed locations and pickup steps",
   "INTEL MUSEUM · SANTA CLARA：Intel 官方免费门票、停车与团体参观规则": "INTEL MUSEUM · SANTA CLARA: Intel official free admission, parking and group visit rules",
   "MARIN COUNTY FREE LIBRARY：Marin 图书馆三类公园停车证与借期": "MARIN COUNTY FREE LIBRARY: Marin library’s three park pass types and loan periods",
-  "THE MARINE MAMMAL CENTER · SAUSALITO：海洋哺乳动物中心免费门票与票务迁移公告": "THE MARINE MAMMAL CENTER · SAUSALITO: The Marine Mammal Center’s free tickets and ticket-system transition notice"
+  "THE MARINE MAMMAL CENTER · SAUSALITO：海洋哺乳动物中心免费门票与票务迁移公告": "THE MARINE MAMMAL CENTER · SAUSALITO: The Marine Mammal Center’s free tickets and ticket-system transition notice",
+  "需有 AC Library 实体 Library Card；eCard 或无卡访客不享免费额度。每天最多 10 页黑白打印，适用于馆内电脑或个人设备提交的文件，不含复印；彩印每页 $0.35，超额黑白每页 $0.15。": "Requires a physical AC Library Card; eCards and guest accounts do not receive the free allowance. Up to 10 black-and-white pages per day from library computers or your own device, excluding photocopies. Color pages cost $0.35 each; additional black-and-white pages cost $0.15 each."
 }

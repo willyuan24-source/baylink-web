@@ -42,13 +42,13 @@ export const everydayPerks2026: FreebieOffer[] = [
     "dateLabel": "长期服务 · 每日额度以馆方现行说明为准",
     "availability": "ongoing",
     "kind": "no-purchase",
-    "requirement": "需使用 AC Library 图书证；每天最多 10 页黑白打印，适用于馆内电脑或个人设备提交的文件。免费额度不含复印，也不适用于无卡访客；彩印每页 $0.35，超额黑白打印每页 $0.15。",
+    "requirement": "需有 AC Library 实体 Library Card；eCard 或无卡访客不享免费额度。每天最多 10 页黑白打印，适用于馆内电脑或个人设备提交的文件，不含复印；彩印每页 $0.35，超额黑白每页 $0.15。",
     "description": "在 Fremont、Dublin 等 AC Library 分馆，使用馆内电脑，或以图书证和 PIN 登录官方 SmartAlec 入口上传文件，再到馆内打印机取件。免费额度可能随成本调整；取件前确认分馆开放与当前收费。",
     "imageKey": "october-library-culture",
     "imageNote": "图书馆福利主题插图，非打印机实景",
     "sourceUrl": "https://aclibrary.org/faq/print-scan-fax/",
     "sourceLabel": "AC Library 官方免费打印额度、收费与取件流程",
-    "verifiedAt": "2026-10-04"
+    "verifiedAt": "2026-10-05"
   },
   {
     "id": "tilden-little-farm-free",

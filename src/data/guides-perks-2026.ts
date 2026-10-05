@@ -111,7 +111,7 @@ const drafts: Guide[] = [
     "recommendedForCategories": [
       "other"
     ],
-    "updatedAt": "2026-10-04",
+    "updatedAt": "2026-10-05",
     "slug": "bay-area-everyday-free-perks",
     "title": "湾区免费生活清单：从图书馆到周末小旅行",
     "subtitle": "五个片区，先选离自己近、资格也合适的一项",
@@ -158,6 +158,12 @@ const drafts: Guide[] = [
       {
         "type": "paragraph",
         "text": "从自己实际持有的发卡馆进入，核对居住地、卡种、年龄和 PIN。数字资源通常需要馆方登录；停车证和门票还可能要求实体卡、本人使用或额外预约。遇到问题先咨询馆员，不要为了试福利重复注册账户。"
+      },
+      {
+        "type": "link",
+        "title": "AC Library：网上申请后，按用途选择卡种",
+        "text": "2026-10-05 核对：线上申请先获得 eCard，设置 PIN 后可用 eLibrary；Fremont 属 Alameda County，居民 eCard 有效五年。需要免费打印时须转实体 Library Card：可带姓名及当前加州地址证明到分馆办理；无法到馆且住湾区九县，也可申请 Cards-by-Mail，收卡后在线或电话验证。卡号、PIN 和证件只在馆方入口处理，不发到聊天中。",
+        "url": "https://aclibrary.org/faq/library-cards-ecards/"
       },
       {
         "type": "link",

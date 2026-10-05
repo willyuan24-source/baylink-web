@@ -269,7 +269,7 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   const region = view.getByRole('region', { name: '本次回答来源' });
   assert.deepEqual(Array.from(region.querySelectorAll('li')).map(item => item.getAttribute('value')), ['1', '3']);
   assert.match(view.container.textContent || '', /已检索站内与站外/);
-  assert.match(view.container.textContent || '', /实际引用 1 条站内资料、1 条站外来源/);
+  assert.match(view.container.textContent || '', /实际引用：取得方式未记录 2 条/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
 });
 
@@ -492,14 +492,87 @@ test('a completed web search with only site citations does not claim the answer 
   const guidePath = `/guides/${guides[0].slug}`;
   const response = { ok: true, responseMode: 'assistant', answer: 'According to the guide [1].',
     sources: [{ title: 'Published guide', url: guidePath }],
-    evidence: [{ id: 'guide', kind: 'guide' as const, title: 'Published guide', url: guidePath }],
+    evidence: [{ id: 'guide', kind: 'guide' as const, title: 'Published guide', url: guidePath, verification: 'catalog' as const }],
     retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const },
   };
   const view = render(<BayBayRetrievalLabel response={response} />);
-  assert.match(view.container.textContent || '', /已检索站内与站外 · 实际引用 1 条站内资料、0 条站外来源/);
+  assert.match(view.container.textContent || '', /已检索站内与站外 · 实际引用：站内快照 1 条/);
   assert.doesNotMatch(view.container.textContent || '', /包含联网公开资料/);
   await act(async () => { await setLocale('en', false); });
-  assert.match(view.container.textContent || '', /Searched site and web · Cites 1 site sources and 0 web sources/);
+  assert.match(view.container.textContent || '', /Searched site and web · Cited evidence: Site snapshots: 1/);
   await act(async () => { await setLocale('zh-Hant', false); });
-  assert.match(view.container.textContent || '', /實際引用 1 條站內資料、0 條站外來源/);
+  assert.match(view.container.textContent || '', /實際引用：站內快照 1 條/);
+});
+
+
+test('official URLs in site snapshots are not presented as new web reads, including failed web fallbacks', async () => {
+  const rows = [
+    { id: 'catalog', title: 'Official district entry', url: 'https://www.fremont.k12.ca.us/enrollment', kind: 'web', verification: 'catalog' },
+    { id: 'read', title: 'Read page', url: 'https://www.example.org/current', kind: 'web', verification: 'page-read' },
+    { id: 'lead', title: 'Unread result', url: 'https://www.example.org/search-lead', kind: 'web', verification: 'search-result' },
+    { id: 'api', title: 'API reference', url: 'https://www.example.org/api', kind: 'web', verification: 'api' },
+    { id: 'unknown', title: 'Legacy source', url: 'https://www.example.org/legacy', kind: 'web' },
+  ];
+  const snapshot = { ok: true, responseMode: 'assistant', answer: 'Refer to this stored official entry [1].', sources: rows.slice(0, 1),
+    ...parseBayBayAssistantFields({ evidence: rows.slice(0, 1) }), retrieval: { requestedMode: 'site' as const, scope: 'site' as const, webStatus: 'not_requested' as const } };
+  const view = render(<BayBayRetrievalLabel response={snapshot} />);
+  assert.match(view.container.textContent || '', /已检索站内资料 · 实际引用：站内快照 1 条/);
+  assert.doesNotMatch(view.container.textContent || '', /本次网页读取|站外来源|已核验/);
+  view.rerender(<BayBayRetrievalLabel response={{ ...snapshot, retrieval: { requestedMode: 'web', scope: 'site', webStatus: 'unavailable' } }} />);
+  assert.match(view.container.textContent || '', /站内快照 1 条.*本次联网未成功/);
+  assert.doesNotMatch(view.container.textContent || '', /本次网页读取/);
+  const mixed = { ...snapshot, sources: rows, ...parseBayBayAssistantFields({ evidence: rows }), retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const } };
+  view.rerender(<BayBayRetrievalLabel response={mixed} />);
+  for (const text of ['站内快照 1 条', '本次网页读取 1 条', '接口获取 1 条', '搜索线索（未读正文） 1 条', '取得方式未记录 1 条']) assert.ok(view.container.textContent?.includes(text));
+  await act(async () => { await setLocale('en', false); });
+  for (const text of ['Site snapshots: 1', 'Pages read this turn: 1', 'API retrievals: 1', 'Search leads (page not read): 1', 'Retrieval method not recorded: 1']) assert.ok(view.container.textContent?.includes(text));
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.match(view.container.textContent || '', /站內快照 1 條.*本次網頁讀取 1 條/);
+});
+
+test('answer links work without citations while unsafe markup stays inert and citation ordinals stay evidence-bound', () => {
+  const url = 'https://www.example.org/enrollment?year=2026&grade=3';
+  const raw = { ok: true, responseMode: 'assistant',
+    answer: `Open ${url}。Then [district portal](https://www.example.org/entry_(school)) and https://www.example.org/faq[2].\n` +
+      'Known [2], missing [9]. [run](javascript:alert(1)) [data](data:text/html,bad) [private](http://127.0.0.1/admin) ' +
+      '[credentials](https://name:secret@example.org/) ![image](https://www.example.org/pixel.png) ' +
+      '<img src=x onerror=alert(1)> `https://www.example.org/code`',
+    sources: [{ title: 'Blocked ordinal', url: 'javascript:alert(1)' }, { title: 'Official source', url: 'https://www.example.org/source' }],
+    ...parseBayBayAssistantFields({ evidence: [{ id: 'source', title: 'Official source', kind: 'web', url: 'https://www.example.org/source', verification: 'page-read' }] }),
+  };
+  const view = render(<BayBayAnswer response={raw} />);
+  assert.equal(view.getByRole('link', { name: url }).getAttribute('href'), url);
+  assert.equal(view.getByRole('link', { name: 'district portal' }).getAttribute('href'), 'https://www.example.org/entry_(school)');
+  assert.equal(view.getByRole('link', { name: 'https://www.example.org/faq' }).getAttribute('href'), 'https://www.example.org/faq');
+  assert.equal(view.getAllByRole('link', { name: '[2]' }).length, 2);
+  assert.equal(view.queryByRole('link', { name: '[9]' }), null);
+  for (const link of view.getAllByRole('link')) { assert.equal(link.getAttribute('target'), '_blank'); assert.equal(link.getAttribute('rel'), 'noopener noreferrer'); }
+  for (const name of ['run', 'data', 'private', 'credentials', 'image', 'https://www.example.org/code']) assert.equal(view.queryByRole('link', { name }), null);
+  assert.equal(view.container.querySelector('img,script,iframe'), null);
+  assert.ok(view.container.textContent?.includes('<img src=x onerror=alert(1)>'));
+  view.rerender(<BayBayAnswer response={{ ok: true, answer: '咨询入口：[学校官网](https://www.example.org/enroll)。\nEnglish: Please see https://www.example.org/contact.' }} />);
+  assert.equal(view.getByRole('link', { name: '学校官网' }).getAttribute('href'), 'https://www.example.org/enroll');
+  assert.equal(view.getByRole('link', { name: 'https://www.example.org/contact' }).getAttribute('href'), 'https://www.example.org/contact');
+  assert.ok(view.container.textContent?.endsWith('.'));
+});
+
+test('school message followups preserve relevant server edits and submit them in the same conversation', async t => {
+  const bodies: { message: string; assistantSessionToken?: string }[] = [];
+  const question = '帮我写给学校的入学咨询模板', suggestion = '把这封邮件改成简短的中英双语消息';
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    bodies.push(JSON.parse(String(init.body)));
+    return Response.json({ ok: true, answer: '您好，请问三年级入学需要哪些材料？', assistantSessionToken: 'school.complete', followups: [suggestion, suggestion, question, '帮我安排周末出游行程'] });
+  });
+  const view = render(<BayBayAssistantEntry {...props} pendingQuestion={question} />);
+  await act(async () => {});
+  assert.equal(view.getAllByRole('button', { name: suggestion }).length, 1);
+  assert.equal(view.queryByRole('button', { name: '帮我写一段不含孩子个人资料的入学咨询模板' }), null);
+  assert.equal(view.queryByRole('button', { name: '帮我安排周末出游行程' }), null);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: suggestion })); });
+  assert.equal(bodies[1].message, suggestion); assert.equal(bodies[1].assistantSessionToken, 'school.complete');
+  await act(async () => { await setLocale('en', false); });
+  assert.deepEqual(bayBayFollowups('Draft a school inquiry', false, false, ['Make the email shorter and bilingual', 'Plan an outing']), ['Make the email shorter and bilingual']);
+  assert.match(bayBayFollowups('School enrollment for grade 3', false, false, ['Plan an outing'])[0], /verify with the district/);
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.deepEqual(bayBayFollowups('入學咨詢模板', false, false, ['縮短這封郵件，保留年級占位符']), ['縮短這封郵件，保留年級占位符']);
 });
