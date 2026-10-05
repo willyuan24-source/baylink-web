@@ -1,0 +1,130 @@
+{
+  "reviewedAt": "2026-10-04",
+  "frontendCommit": "1be340b15ec3340902f1011b18a6cbd4273cb225",
+  "apiCommit": "18229f5a64312f2c6bfb937e679ea1d3a956f723",
+  "summary": "本轮以实际答复和真实导入流程为验收对象，修正资格混用、自然语言行程识别、法律条件遗漏、费用不一致和导入丢条件问题。",
+  "validation": "后端全量 876/876；前端相关 166/166；lint 0 errors（53 条既有 warnings）；生产构建及 752 页预渲染通过。真实模型答复另逐项人工审核，结构测试不代替事实准确性。",
+  "limitations": [
+    "当天联网检索额度已用完，修复后的 Smart/Web 组合查询尚未重新验收；站内通过不代表联网已通过。",
+    "起点、返回要求、站数上限和排除城市在计划页作为原始条件供核对，尚未全部参与自动路线计算。",
+    "价格与完整原始条件只在同一标签页草稿中保留；保存、分享或刷新尚不保留全部原始条件与报价。",
+    "未来日期开放、税费、交通餐饮及预约名额等缺口继续标为待确认；部分官方链接标题和公共区的通用检查措辞仍可精简。"
+  ],
+  "ui": [
+    {
+      "case": "printing",
+      "mode": "site",
+      "result": "12页黑白=10页免费+2×$0.15，合计$0.30；明确当天未使用额度。给实际上传/取件步骤，按站内快照说明。",
+      "viewport": "390×844 and 1280×900",
+      "horizontalOverflow": false,
+      "followups": "页数/剩余额度核算；格式/取件/收费核对",
+      "release": "API25c1a5a / frontend5925b89f"
+    },
+    {
+      "case": "strict-family-handoff-initial",
+      "mode": "site",
+      "result": "初测发现：10/10、3人、5岁、120总预算、10:00–17:00及不返程引用条件保留，下方费用109.85但顶部总览0。已在1be340b1修复，见最终上线复验。",
+      "viewport": "390×844 and 1280×900",
+      "horizontalOverflow": false,
+      "progressObserved": "等待答复 → 答复整理处理中 → 有来源答复",
+      "release": "API b15f5b3 / frontend729bc751",
+      "status": "fixed_after_retest"
+    },
+    {
+      "case": "strict-family-handoff-final",
+      "mode": "site",
+      "status": "pass",
+      "result": "API18229f5 / frontend1be340b1 上线实测：原始问题完整发送，6条实际引用；答复概览4项保留待确认状态；PIER39门票依据为10/4、Exploratorium为10/2，均注明快照。正文、计划卡、导入计划的顶部和下方预算均为109.85。开始10:00、希望结束17:00、3人、预算120正确导入。将餐饮预留设为20，两处均变129.85并提示超预算9.85，再恢复0。计划时段10:00–13:30是可编辑草稿，非已核交通排程；原始约束仍按面板说明区分。未保存、分享或预订。",
+      "viewport": "390×844 and 1280×900",
+      "horizontalOverflow": false,
+      "measuredWidths": {
+        "mobileDialog": [
+          375,
+          375
+        ],
+        "mobilePlanner": [
+          375,
+          375
+        ],
+        "desktopPlanner": [
+          1043,
+          1043
+        ]
+      },
+      "progressObserved": "等待答复 → 答复整理处理中 → 有来源答复",
+      "frontendCommit": "1be340b15ec3340902f1011b18a6cbd4273cb225",
+      "apiCommit": "18229f5a64312f2c6bfb937e679ea1d3a956f723",
+      "urlFields": "仅日期、公开地点ID和随机草稿ID；原始条件未写入URL",
+      "screenshotReview": "手机聊天费用卡、手机计划概览、桌面下方预算、桌面顶部概览均截图检查；浏览器尺寸已恢复。"
+    }
+  ],
+  "cases": {
+    "library-comparison": {
+      "status": "pass_with_limitations",
+      "findings": [
+        "AC、SFPL、SMCL 的办卡、打印、Kanopy 与馆票资格分别说明，未复现跨机构或跨服务套用限制。",
+        "免费打印额度和收费正确；AC Kanopy 尚未确认，没有被写成绝对不可用。",
+        "10条实际引用覆盖三家机构，SMCL eVideos 已可点击；少数链接标题仍沿用站内指南名称。",
+        "39.0秒，主模型完成，未联网、未降级；结论限于站内快照。"
+      ],
+      "apiCommit": "b15f5b35eaa02276a0dc71abe54a7c31899c0fe6",
+      "rawReport": "baybay-capability-site-final-2026-10-04.json"
+    },
+    "strict-sf-family-plan": {
+      "status": "pass",
+      "findings": [
+        "主模型一次final完成，22.6秒；正文实际引用6条资料。",
+        "Ferry Building具体起点、Exploratorium→PIER39严格两站、3人/5岁儿童、120全家预算、17:00终点、不返程均保留。",
+        "成人2×39.95 + 儿童29.95 = 109.85；PIER39公共区域3×0，付费体验排除。正文、主卡和handoff口径一致。",
+        "开放常规记录与所选日期确认分开；交通、税费、餐饮和最终总价明确未知，不保证120足够。"
+      ],
+      "apiCommit": "b15f5b35eaa02276a0dc71abe54a7c31899c0fe6",
+      "rawReport": "baybay-capability-site-final-2026-10-04.json"
+    },
+    "strict-sf-child-followup": {
+      "status": "pass",
+      "findings": [
+        "15.9秒主模型完成，4条实际引用。",
+        "两站顺序及所有已确认条件保持不变，没有添加地点或备选。",
+        "5岁儿童29.95、全家109.85及账面余额10.15正确；明确尚未核实的交通、餐饮、税费。",
+        "PIER39公共区免费与可选付费项目清楚分开。"
+      ],
+      "apiCommit": "b15f5b35eaa02276a0dc71abe54a7c31899c0fe6",
+      "rawReport": "baybay-capability-site-final-2026-10-04.json"
+    },
+    "english-birthday": {
+      "status": "pass",
+      "findings": [
+        "24.7秒主模型完成，2条实际引用，英文回复保留完整资格条件。",
+        "区分提前7天加入并录入生日、赚星交易，以及Green/Gold/Reserve生日当天/7天/30天领取窗口。",
+        "对未给出具体生日、交易入账细则和现行等级条件保留条件性结论；不承诺注册即得奖励。",
+        "Coverage已回应代表主题已讨论，不等于个人资格或现行条款已经核实。"
+      ],
+      "apiCommit": "b15f5b35eaa02276a0dc71abe54a7c31899c0fe6",
+      "rawReport": "baybay-capability-site-final-2026-10-04.json"
+    },
+    "dmv-new-resident": {
+      "status": "pass",
+      "findings": [
+        "专项复测 API18229f5，32.2秒，gpt-6.1-sol 单次final，无降级；10条真实来源。",
+        "驾驶10天准确限定原本符合非居民驾驶豁免者；受雇驾驶先取加州证、申请或预约不延长豁免均保留。",
+        "新居民车辆登记20天与既有加州记录改址10天分开；个人触发日期未提供则不算个人截止日。",
+        "REG343/31、缺件仍按期申请缴费、无加州证时填外州证信息等执行步骤保留。",
+        "普通住址至少1份与REAL ID2份区分，线上改址资格与可用材料/车辆例外明确待核；这是站内官方资料快照，不是本次实时重读。"
+      ],
+      "apiCommit": "18229f5a64312f2c6bfb937e679ea1d3a956f723",
+      "rawReport": "baybay-capability-dmv-final-2026-10-04.json"
+    }
+  },
+  "provenance": {
+    "apiCommitMeaning": "Final deployed API version; per-case apiCommit identifies the actual tested version.",
+    "frontendCommitMeaning": "Final frontend functional release; UI entries record their own versions."
+  },
+  "deployment": {
+    "frontend": "success",
+    "frontendCommit": "1be340b15ec3340902f1011b18a6cbd4273cb225",
+    "apiHealth": "ok",
+    "apiCommit": "18229f5a64312f2c6bfb937e679ea1d3a956f723",
+    "verifiedAtUtc": "2026-10-05T06:39:32Z"
+  }
+}

@@ -1,0 +1,432 @@
+{
+  "version": 1,
+  "kind": "synthetic-baybay-quality-evaluation",
+  "verificationScope": "site-only-regression",
+  "expectedCommit": "18229f5a64312f2c6bfb937e679ea1d3a956f723",
+  "endpoint": "https://baylink-api.onrender.com",
+  "startedAt": "2026-10-05T06:23:26.421Z",
+  "spacingMs": 65000,
+  "status": "pending_manual_review",
+  "cases": [
+    {
+      "id": "dmv-new-resident",
+      "startedAt": "2026-10-05T06:23:26.558Z",
+      "httpStatus": 200,
+      "elapsedMs": 32224,
+      "serverTiming": "baybay_prepare;dur=72, baybay_assistant;dur=31994",
+      "request": {
+        "message": "假设我是刚从外州搬到 Fremont 的成年人，已有有效外州驾照和一辆外州登记的自用车。请分别说明加州驾照、车辆登记、地址更新的办理期限、所需材料和官方入口。只给已查到的规则，不确定的资格或例外要明确说明，不要把这三件事的期限混在一起。",
+        "searchMode": "site",
+        "locale": "zh-Hans",
+        "assistantVersion": 2,
+        "context": {
+          "currentPath": "/"
+        }
+      },
+      "response": {
+        "ok": true,
+        "answer": "以下按你问到的项目分别说明；每项条件仅适用于对应机构和服务。\n\n驾照办理：加州驾照：你应走“持有效美国外州驾照的成年人”申请分支，从 DMV Driver’s Licenses 外州章节进入 DL/ID 申请及预约。现场步骤包括缴费、指纹、拍照、视力和知识考试；具体测试由 DMV 确定，不能承诺你一定免路考，也不能套用外国驾照的要求。关于继续驾驶，站内快照所述 Vehicle Code 12505(c) 是：原本适用非居民驾照豁免者，建立加州居住地后依该豁免最多继续驾驶 10 天；成为居民后受雇从事驾驶，须先取得加州驾照。提交申请或预约不延长这项豁免。 [1] [2] [3]\n\n车辆登记：车辆登记：针对迁入加州定居并带入外州已登记自用车的新居民，快照记载须在成为居民或把车带入加州后的 20 天内登记；实际起算与例外须按居住、带入及使用情况核对，不能等加州驾照寄到再开始算。尚无加州 DL/ID 时，REG 343 可填外州证件号码及发证州。材料未齐仍应按期提交申请和应缴费用，不能因等待产权或尾气检查文件而拖延。尾气检查是否适用取决于燃料、车型及法定例外；贷款或租赁车辆的签字、产权处理须另核对。上路或停在加州道路上还须符合保险／财务责任要求，并随车保留证明。税费按个人车辆计算，当前记录没有你的具体金额。 [1] [4] [5] [6]\n\n地址更新：地址更新：这是已有加州 DMV 记录者在地址变化后 10 天内通知 DMV 的独立要求，不替代换州驾照或车辆首次迁入登记。若你尚无加州记录，应在首次申请中填写正确 Fremont 地址，不套用已有记录的改址流程。线上 Change of Address 有资格限制；尚无加州 DL/ID、没有 SSN 等情形不能直接使用该线上流程，应核对 DMV 14 邮寄等适用方式。准备旧、新地址；更新车辆地址前先把车辆加入 MyDMV Garage。只改驾照或车辆其中一项不会自动同步另一项，可在账户内选择同时更新；处理最多约 3 天，改址不会自动寄新证件。 [1] [7] [8]\n\n所需材料：材料分开准备：驾照需 SSN、可接受的身份原件或认证副本、首次申请加州 DL/ID 的住址文件；姓名不一致时需姓名衔接证明。普通非 REAL ID 至少一份合格住址文件，REAL ID 需两份，不可混用清单。车辆需登记车主签署的 REG 343、最近外州产权文件、登记证或符合要求的替代记录，以及获授权人员完成的 REG 31 车辆核验；尾气检查文件是否需要按车辆及例外确定。地址更新准备旧、新地址，车辆线上更新另需加入 MyDMV Garage。现有快照未列出所有可接受文件的逐项清单，也未确定你的 SSN、姓名衔接、贷款或尾气豁免资格；这些应按对应官方清单核对，不能据此保证材料齐全。 [1] [9] [10] [5]\n\n办理期限：三个时钟不能混用：①驾照相关的 10 天，是原本符合非居民驾驶豁免者建立加州居住地后继续使用该豁免驾驶的最长期间，不是“10 天内申请或预约即可继续开车”的宽限；已成为居民并受雇驾驶者须先取得加州驾照。②车辆登记为成为居民或车辆带入加州后 20 天内，实际触发日和例外需按情况核对，材料不齐仍须按期提交申请及费用。③已有加州 DMV 记录的地址变更，须在地址变化后 10 天内通知。居民认定看真实固定住所及定居行为，并非人人抵达当天自动起算；你没有提供相关日期，不能计算个人截止日。现有记录也不能把驾驶豁免期限另改写为单纯的驾照申请截止日。 [1] [3] [4] [7]\n\n官方办理与服务入口：California DMV：驾照申请的不同情况；California Vehicle Code 12505：新居民驾驶豁免；California DMV：新居民与车辆登记入口；California DMV：外州车辆登记材料 [2] [3] [4] [5]",
+        "sources": [
+          {
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide"
+          },
+          {
+            "title": "California DMV：驾照申请的不同情况",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/driver-licenses-dl"
+          },
+          {
+            "title": "California Vehicle Code 12505：新居民驾驶豁免",
+            "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505."
+          },
+          {
+            "title": "California DMV：新居民与车辆登记入口",
+            "url": "https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california"
+          },
+          {
+            "title": "California DMV：外州车辆登记材料",
+            "url": "https://www.dmv.ca.gov/portal/how-to-9-register-a-vehicle-from-out-of-state-nonresident-vehicle"
+          },
+          {
+            "title": "California DMV：车辆保险要求",
+            "url": "https://www.dmv.ca.gov/portal/vehicle-registration/insurance-requirements"
+          },
+          {
+            "title": "California DMV：线上地址更新资格",
+            "url": "https://www.dmv.ca.gov/portal/online-change-of-address-coa-system"
+          },
+          {
+            "title": "California DMV：驾照或 ID 信息更新",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/updating-information-on-your-driver-license-or-identification-dl-id-card"
+          },
+          {
+            "title": "California DMV：普通驾照住址材料清单",
+            "url": "https://www.dmv.ca.gov/portal/file/residency-documents-list-pdf"
+          },
+          {
+            "title": "California DMV：REAL ID 材料清单",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/real-id/real-id-checklist"
+          }
+        ],
+        "responseMode": "assistant",
+        "degraded": false,
+        "taskState": {
+          "version": 1,
+          "revision": 1,
+          "goal": "newcomer",
+          "city": "Fremont",
+          "region": "east-bay",
+          "date": null,
+          "origin": null,
+          "originCandidateId": null,
+          "travelMode": null,
+          "partySize": null,
+          "childAges": [],
+          "budget": null,
+          "budgetScope": null,
+          "freeOnly": null,
+          "setting": null,
+          "startTime": null,
+          "finishBy": null,
+          "topic": null,
+          "excludedCities": [],
+          "excludedCandidateIds": [],
+          "selectedCandidateIds": [],
+          "preferences": [],
+          "clearedFields": [
+            "origin",
+            "originCandidateId"
+          ]
+        },
+        "evidence": [
+          {
+            "id": "s-b5178b763c37bd18",
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide",
+            "kind": "guide",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-e9f7bc629700d4d2",
+            "title": "California DMV：新居民与车辆登记入口",
+            "url": "https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-dfcf46c650067b81",
+            "title": "California DMV：线上地址更新资格",
+            "url": "https://www.dmv.ca.gov/portal/online-change-of-address-coa-system",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-b751a44d70a79530",
+            "title": "California DMV：外州车辆登记材料",
+            "url": "https://www.dmv.ca.gov/portal/how-to-9-register-a-vehicle-from-out-of-state-nonresident-vehicle",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-3278a87e8e990eb5",
+            "title": "California DMV：驾照或 ID 信息更新",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/updating-information-on-your-driver-license-or-identification-dl-id-card",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-c53e8e39a452acd4",
+            "title": "California DMV：普通驾照住址材料清单",
+            "url": "https://www.dmv.ca.gov/portal/file/residency-documents-list-pdf",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-43352ef580aff730",
+            "title": "California DMV：REAL ID 材料清单",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/real-id/real-id-checklist",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-1e2c4a56828e5126",
+            "title": "California DMV：车辆保险要求",
+            "url": "https://www.dmv.ca.gov/portal/vehicle-registration/insurance-requirements",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-a467eb66ac44db73",
+            "title": "California Vehicle Code 12505：新居民驾驶豁免",
+            "url": "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505.",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-51e239f8d34f16de",
+            "title": "California DMV：驾照申请的不同情况",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/driver-licenses-dl",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-2b48a870cb1e1d3a",
+            "title": "California DMV：外州车辆基本登记要求",
+            "url": "https://www.dmv.ca.gov/portal/handbook/vehicle-industry-registration-procedures-manual-2/nonresident-vehicles/definitions",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          }
+        ],
+        "answerCoverage": {
+          "status": "complete",
+          "items": [
+            {
+              "id": "driving_license",
+              "label": "驾照办理",
+              "status": "answered",
+              "summary": "加州驾照：你应走“持有效美国外州驾照的成年人”申请分支，从 DMV Driver’s Licenses 外州章节进入 DL/ID 申请及预约。现场步骤包括缴费、指纹、拍照、视力和知识考试；具体测试由 DMV 确定，不能承诺你一定免路考，也不能套用外国驾照的要求。关于继续驾驶，站内快照所述 Vehicle Code 12505(c) 是：原本适用非居民驾照豁免者，建立加州居住地后依该豁免最多继续驾驶 10 天；成为居民后受雇从事驾驶，须先取得加州驾照。提交申请或预约不延长这项豁免。",
+              "sourceIds": [
+                "s-b5178b763c37bd18",
+                "s-51e239f8d34f16de",
+                "s-a467eb66ac44db73"
+              ]
+            },
+            {
+              "id": "vehicle_registration",
+              "label": "车辆登记",
+              "status": "answered",
+              "summary": "车辆登记：针对迁入加州定居并带入外州已登记自用车的新居民，快照记载须在成为居民或把车带入加州后的 20 天内登记；实际起算与例外须按居住、带入及使用情况核对，不能等加州驾照寄到再开始算。尚无加州 DL/ID 时，REG 343 可填外州证件号码及发证州。材料未齐仍应按期提交申请和应缴费用，不能因等待产权或尾气检查文件而拖延。尾气检查是否适用取决于燃料、车型及法定例外；贷款或租赁车辆的签字、产权处理须另核对。上路或停在加州道路上还须符合保险／财务责任要求，并随车保留证明。税费按个人车辆计算，当前记录没有你的具体金额。",
+              "sourceIds": [
+                "s-b5178b763c37bd18",
+                "s-e9f7bc629700d4d2",
+                "s-b751a44d70a79530",
+                "s-1e2c4a56828e5126"
+              ]
+            },
+            {
+              "id": "address_change",
+              "label": "地址更新",
+              "status": "answered",
+              "summary": "地址更新：这是已有加州 DMV 记录者在地址变化后 10 天内通知 DMV 的独立要求，不替代换州驾照或车辆首次迁入登记。若你尚无加州记录，应在首次申请中填写正确 Fremont 地址，不套用已有记录的改址流程。线上 Change of Address 有资格限制；尚无加州 DL/ID、没有 SSN 等情形不能直接使用该线上流程，应核对 DMV 14 邮寄等适用方式。准备旧、新地址；更新车辆地址前先把车辆加入 MyDMV Garage。只改驾照或车辆其中一项不会自动同步另一项，可在账户内选择同时更新；处理最多约 3 天，改址不会自动寄新证件。",
+              "sourceIds": [
+                "s-b5178b763c37bd18",
+                "s-dfcf46c650067b81",
+                "s-3278a87e8e990eb5"
+              ]
+            },
+            {
+              "id": "documents",
+              "label": "所需材料",
+              "status": "answered",
+              "summary": "材料分开准备：驾照需 SSN、可接受的身份原件或认证副本、首次申请加州 DL/ID 的住址文件；姓名不一致时需姓名衔接证明。普通非 REAL ID 至少一份合格住址文件，REAL ID 需两份，不可混用清单。车辆需登记车主签署的 REG 343、最近外州产权文件、登记证或符合要求的替代记录，以及获授权人员完成的 REG 31 车辆核验；尾气检查文件是否需要按车辆及例外确定。地址更新准备旧、新地址，车辆线上更新另需加入 MyDMV Garage。现有快照未列出所有可接受文件的逐项清单，也未确定你的 SSN、姓名衔接、贷款或尾气豁免资格；这些应按对应官方清单核对，不能据此保证材料齐全。",
+              "sourceIds": [
+                "s-b5178b763c37bd18",
+                "s-c53e8e39a452acd4",
+                "s-43352ef580aff730",
+                "s-b751a44d70a79530"
+              ]
+            },
+            {
+              "id": "deadlines",
+              "label": "办理期限",
+              "status": "answered",
+              "summary": "三个时钟不能混用：①驾照相关的 10 天，是原本符合非居民驾驶豁免者建立加州居住地后继续使用该豁免驾驶的最长期间，不是“10 天内申请或预约即可继续开车”的宽限；已成为居民并受雇驾驶者须先取得加州驾照。②车辆登记为成为居民或车辆带入加州后 20 天内，实际触发日和例外需按情况核对，材料不齐仍须按期提交申请及费用。③已有加州 DMV 记录的地址变更，须在地址变化后 10 天内通知。居民认定看真实固定住所及定居行为，并非人人抵达当天自动起算；你没有提供相关日期，不能计算个人截止日。现有记录也不能把驾驶豁免期限另改写为单纯的驾照申请截止日。",
+              "sourceIds": [
+                "s-b5178b763c37bd18",
+                "s-a467eb66ac44db73",
+                "s-e9f7bc629700d4d2",
+                "s-dfcf46c650067b81"
+              ]
+            },
+            {
+              "id": "official_entries",
+              "label": "官方办理与服务入口",
+              "status": "answered",
+              "summary": "California DMV：驾照申请的不同情况；California Vehicle Code 12505：新居民驾驶豁免；California DMV：新居民与车辆登记入口；California DMV：外州车辆登记材料",
+              "sourceIds": [
+                "s-51e239f8d34f16de",
+                "s-a467eb66ac44db73",
+                "s-e9f7bc629700d4d2",
+                "s-b751a44d70a79530"
+              ]
+            }
+          ]
+        },
+        "suggestedGuides": [
+          {
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide",
+            "slug": "california-driver-license-id-preparation-guide"
+          }
+        ],
+        "suggestedActions": [],
+        "matchingPosts": [],
+        "interactiveCards": [],
+        "followups": [],
+        "research": {
+          "steps": [
+            {
+              "tool": "search_site",
+              "status": "completed",
+              "label": "已检索站内攻略与候选地点"
+            }
+          ],
+          "model": "gpt-6.1-sol",
+          "warnings": [],
+          "modelResponses": [
+            {
+              "round": 1,
+              "phase": "final",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "message"
+              ],
+              "outputTextChars": 2757,
+              "elapsedMs": 27388
+            }
+          ],
+          "elapsedMs": 31906,
+          "timings": {
+            "stateMs": 1009,
+            "siteMs": 2495,
+            "monitorMs": 501,
+            "quotaMs": 10,
+            "searchMs": 0,
+            "readMs": 0,
+            "modelMs": 0,
+            "finalMs": 27388,
+            "routeMs": 0,
+            "weatherMs": 0,
+            "planMs": 0,
+            "otherMs": 503,
+            "totalMs": 31906,
+            "preparationMs": 72,
+            "assistantMs": 31994,
+            "requestMs": 32066
+          }
+        },
+        "retrieval": {
+          "requestedMode": "site",
+          "scope": "site",
+          "webStatus": "not_requested",
+          "requestedDate": null,
+          "city": "Fremont",
+          "area": "San Francisco Bay Area, California, United States",
+          "cached": false,
+          "model": "gpt-6.1-sol",
+          "configuredModel": "gpt-6.1-sol",
+          "sourceCount": 10
+        }
+      },
+      "automated": {
+        "status": "pass",
+        "checks": [
+          {
+            "id": "transport_success",
+            "status": "pass"
+          },
+          {
+            "id": "structured_assistant",
+            "status": "pass"
+          },
+          {
+            "id": "substantive_answer_present",
+            "status": "pass"
+          },
+          {
+            "id": "not_degraded",
+            "status": "pass"
+          },
+          {
+            "id": "citation_indices_resolve",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_contract",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_sources_resolve",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_driving_license",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_vehicle_registration",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_address_change",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_documents",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_deadlines",
+            "status": "pass"
+          },
+          {
+            "id": "coverage_official_entries",
+            "status": "pass"
+          },
+          {
+            "id": "numeric_stage_timings",
+            "status": "pass"
+          },
+          {
+            "id": "chosen_search_scope",
+            "status": "pass"
+          },
+          {
+            "id": "no_search_web",
+            "status": "pass"
+          },
+          {
+            "id": "no_read_source",
+            "status": "pass"
+          },
+          {
+            "id": "no_get_route",
+            "status": "pass"
+          },
+          {
+            "id": "no_get_weather",
+            "status": "pass"
+          }
+        ],
+        "note": "Structural checks do not establish factual accuracy; human review remains required."
+      },
+      "manualReview": {
+        "status": "pending",
+        "rubric": [
+          "驾照、车辆登记和地址更新各有明确结论/适用条件；不混淆10天、20天或其他时限。",
+          "规则必须适用于假设的外州搬入居民；有例外时保留，不把身份、车辆类型或REAL ID材料猜定。",
+          "官方DMV链接支持各项材料与期限；一般说明不能当个人法律资格保证。"
+        ],
+        "findings": []
+      }
+    }
+  ],
+  "factReview": "pending",
+  "finishedAt": "2026-10-05T06:23:58.785Z",
+  "automated": {
+    "passed": 1,
+    "failed": 0
+  }
+}
