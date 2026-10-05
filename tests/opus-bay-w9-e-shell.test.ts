@@ -13,6 +13,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { OPUS_BAY_ART, OPUS_BAY_OG, opusBayHeadExtras, opusBayInHalloween, opusBayMetadata, opusBayOgImage } from '../src/lib/opus-bay-metadata';
 import { renderMetadataHtml } from '../src/lib/seo';
+import { generateSitemap } from '../scripts/generate-sitemap';
 
 test('W9-E shell: the static first paint is the title (key art, 湾区小旅 · Little Bay Trip, 准备中, a guides link) and nothing of the homepage', () => {
   for (const halloween of [false, true]) {
@@ -87,7 +88,8 @@ test('W9-E shell: the wiring — vercel.json serves /opus-bay.html (not the home
   const prerender = fs.readFileSync('scripts/prerender.tsx', 'utf8');
   assert.match(prerender, /writeFile\(join\(outputDir, 'opus-bay\.html'\), opusBayDocument\(opusBayMetadata\(buildDate\)\)\)/);
   assert.match(prerender, /<OpusBayShell halloween=\{opusBayInHalloween\(buildDate\)\} \/>/);
-  assert.match(prerender, /'\/opus-bay'/, 'the sitemap lists it');
+  assert.match(prerender, /generateSitemap\(\)/, 'prerender uses the shared sitemap generator');
+  assert.ok(generateSitemap().paths.includes('/opus-bay'), 'the generated sitemap lists it');
   const app = fs.readFileSync('src/App.tsx', 'utf8');
   assert.match(app, /<Route path="\/opus-bay" element=\{<Suspense fallback=\{<OpusBayShell halloween=\{opusBayInHalloween\(new Date\(\), location\.search\)\} \/>\}><OpusBayPage \/><\/Suspense>\} \/>/);
   const page = fs.readFileSync('src/opus-bay/OpusBayPage.tsx', 'utf8');
