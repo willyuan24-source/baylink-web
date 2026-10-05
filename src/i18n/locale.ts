@@ -87,6 +87,10 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 
 export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await (englishLoad ||= Promise.all([
+    import('../data/birthday-perks-2026-en.json'), import('../data/everyday-perks-2026-en.json'),
+    import('../data/guides-perks-2026-en.json'), import('../data/perks-gallery-en.json'),
+    import('../data/retail-perks-ui-en.json'), import('../data/retail-target-lowes-2026-en.json'),
+    import('../data/retail-family-2026-en.json'), import('../data/retail-dining-2026-en.json'),
     import('../data/october-2026-refresh-ui-en.json'), import('../data/october-2026-events-refresh-en.json'),
     import('../data/guides-october-2026-visit-en.json'), import('../data/october-2026-verified-offers-en.json'), import('../data/october-2026-newcomer-en.json'),
     import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
@@ -171,11 +175,11 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   if (depth >= 3) return undefined;
-  for (const separator of ['｜', ' · ', ' / ', '\n']) {
+  for (const separator of ['｜', ' · ', ' / ', '\n', '：']) {
     const parts = text.split(separator);
     if (parts.length < 2) continue;
     const translated = parts.map(part => translateKnownComposition(part, depth + 1));
-    if (translated.every(part => part !== undefined)) return translated.join(separator);
+    if (translated.every(part => part !== undefined)) return translated.join(separator === '：' ? ': ' : separator);
   }
   return undefined;
 };

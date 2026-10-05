@@ -52,7 +52,9 @@ test('date reminder button downloads the selected event calendar and releases it
     assert.ok(captured);
     assert.equal(captured.type, 'text/calendar;charset=utf-8');
     assert.equal(await captured.text(), buildEventCalendar(selected));
-    assert.equal(document.querySelector('a[download]'), null);
+    // Persistent poster downloads are valid; only the temporary calendar link
+    // must be removed. Compare a primitive so a failure cannot deep-print DOM.
+    assert.equal(Boolean(document.querySelector(`a[href="${clickedHref}"][download="${downloaded}"]`)), false);
     await release;
     assert.equal(released, clickedHref);
   } finally {

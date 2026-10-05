@@ -1,3 +1,4 @@
+import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
@@ -178,6 +179,7 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
 
     <section id="monthly-perks" className="bl-monthly-perks" aria-label="本期优惠福利">
       <MonthlyDealsSpotlight today={today} />
+      <PerksGallery compact />
       {current && perkPreviews.length > 0 && <div className="bl-perks-preview">{perkPreviews.map(offer => {
         const image = GUIDE_IMAGES[offer.imageKey];
         return <Link key={offer.id} to={`/offers/${offer.id}`}>

@@ -127,7 +127,15 @@ export const octoberOffers: FreebieOffer[] = [
 const previousFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...septemberFreebies, ...octoberOffers, ...additionalOctoberOffers, ...autumnRefreshOffers, ...communityDiscoveryOffers, ...lateSeptemberLocalOffers, ...lateSeptemberNorthOffers, ...octoberRefreshOffers].map(offer => [offer.id, offer])).values()]
   .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23'));
 
-export const currentFreebies: FreebieOffer[] = [...new Map([...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[])].map(offer => [offer.id, offer])).values()].map(offer => ({ ...offer, ...october2026OfferUpdates[offer.id] }));
+const refreshedOffers = [...birthdayPerks2026, ...everydayPerks2026, ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026];
+const updatesByDate = [october2026OfferUpdates, Object.fromEntries(refreshedOffers.map(offer => [offer.id, offer])), birthdayPerkUpdates2026, targetLowesUpdates2026, familyRetailUpdates2026, diningRetailUpdates2026];
+export const currentOfferUpdates: Record<string, Partial<FreebieOffer>> = {};
+for (const batch of updatesByDate) for (const [id, update] of Object.entries(batch)) currentOfferUpdates[id] = { ...currentOfferUpdates[id], ...update };
+const mergedOffers = new Map<string, FreebieOffer>();
+for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers]) {
+  mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
+}
+export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id] }));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),
@@ -136,4 +144,9 @@ export const octoberOfferSources: GuideSource[] = [...new Map([
   { title: 'Lowe’s：工作坊日期与会员规则', url: 'https://www.lowes.com/diy-projects-and-ideas/workshops', description: '10/17 消防飞机为 10:00–13:00，需儿童资料及预约，建议 4–11 岁、家长陪同。' },
   { title: 'BAMPFA：开放时段与票种', url: 'https://bampfa.org/visit/hours', description: '展厅免费日不等于所有电影免费；留意季节性开放时段。' },
 ].map(source => [source.url, source])).values()];
+import { birthdayPerks2026, birthdayPerkUpdates2026 } from './birthday-perks-2026';
+import { everydayPerks2026 } from './everyday-perks-2026';
+import { targetLowesOffers2026, targetLowesUpdates2026 } from './retail-target-lowes-2026';
+import { familyRetailOffers2026, familyRetailUpdates2026 } from './retail-family-2026';
+import { diningRetailOffers2026, diningRetailUpdates2026 } from './retail-dining-2026';
 import { mergeReviewedOffers } from './autumn-release';

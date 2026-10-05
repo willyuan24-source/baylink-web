@@ -5,14 +5,13 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import { FreebieBoard } from '../src/components/FreebieBoard';
-import { currentFreebies, newOctoberOffers, octoberOfferSources } from '../src/data/october-offers';
+import { currentFreebies, currentOfferUpdates, newOctoberOffers, octoberOfferSources } from '../src/data/october-offers';
 import { octoberDealsGuides } from '../src/data/guides-october-deals';
 import { monthlyDealsGuides } from '../src/data/guides-deals';
 import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
 import { reviewedAutumnOffers } from '../src/data/autumn-release';
-import { october2026OfferUpdates } from '../src/data/october-2026-verified-offers';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
@@ -26,13 +25,13 @@ const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
 test('the unified guide preserves valid anchors and merges reviewed autumn benefits by canonical ID', () => {
-  assert.equal(currentFreebies.length, 117);
+  assert.ok(currentFreebies.length >= 117, 'Preserve the released catalog while adding reviewed offers');
   assert.equal(newOctoberOffers.length, 15);
   assert.equal(additionalOctoberOffers.length, 7);
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
   for (const reviewed of reviewedAutumnOffers) {
     assert.equal(currentFreebies.filter(item => item.id === reviewed.id).length, 1, `Reviewed offer must appear once: ${reviewed.id}`);
-    assert.deepEqual(offer(reviewed.id), { ...reviewed, ...october2026OfferUpdates[reviewed.id] }, `Published conditions use the latest dated review: ${reviewed.id}`);
+    assert.deepEqual(offer(reviewed.id), { ...reviewed, ...currentOfferUpdates[reviewed.id] }, `Published conditions use the latest dated review: ${reviewed.id}`);
   }
   const board = octoberDealsGuides[0].blocks.find(block => block.type === 'freebies');
   assert.ok(board?.type === 'freebies');
@@ -235,8 +234,9 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-10-02');
-  assert.match(guide.sourceNote || '', /其他条目保留各自原有核验日期/);
+  assert.equal(guide.updatedAt, '2026-10-04');
+  assert.match(guide.sourceNote || '', /各卡片保留自己的核对日期/);
+  assert.match(guide.sourceNote || '', /不代表旧条目全部重新确认/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);
   assert.ok(guide.sources.every(source => source.title && source.description && new URL(source.url).protocol === 'https:'));
 });

@@ -6,6 +6,7 @@ import { GuideImageLightbox } from './GuideVisuals';
 import { EditorialShareActions } from './EditorialShareActions';
 import { offerShare } from '../lib/editorial-share';
 import type { MonthlyRegion } from '../data/monthly-types';
+import { simplifySearch, translateText, useLocale } from '../i18n/locale';
 
 export type FreebieOffer = {
   id: string;
@@ -36,6 +37,7 @@ const FILTERS: { value: OfferFilter; label: string }[] = [
   { value: 'purchase', label: '消费优惠' },
 ];
 const KIND_LABELS = { 'no-purchase': '无需购物', reservation: '需预约', purchase: '需消费' };
+const searchText = (value: string) => simplifySearch(value).toLowerCase().replace(/[‘’']/g, '');
 const safeUrl = (value?: string): value is string => {
   if (!value) return false;
   try { return ['https:', 'http:'].includes(new URL(value).protocol); } catch { return false; }
@@ -82,6 +84,7 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
 }
 
 function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
+  const locale = useLocale();
   const [zoomed, setZoomed] = useState(false);
   const headingId = useId();
   const image = GUIDE_IMAGES[offer.imageKey];
@@ -102,9 +105,10 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
       <h3 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h3>
       <p className="bl-freebie-requirement"><strong>领取条件</strong>{offer.requirement}</p>
       <p className="bl-freebie-description">{offer.description}</p>
+      {validDate(offer.verifiedAt) && <p className="bl-freebie-verified">核对 <time dateTime={offer.verifiedAt}>{offer.verifiedAt}</time></p>}
       <EditorialShareActions item={offerShare(offer)} />
       <div className="bl-freebie-card-actions">
-        {safeUrl(offer.sourceUrl) && <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${offer.sourceLabel}`}>官方入口<ArrowUpRight size={15} aria-hidden="true" /></a>}
+        {safeUrl(offer.sourceUrl) && <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>官方入口<ArrowUpRight size={15} aria-hidden="true" /></a>}
         {safeUrl(offer.storeUrl) && <a href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}><MapPin size={13} aria-hidden="true" />本地门店</a>}
       </div>
       {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown size={12} aria-hidden="true" /></summary><p>{image.caption}</p>{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
@@ -115,6 +119,8 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
 
 export function FreebieBoard({ offers, today: suppliedToday, title = '先看条件，再挑一份小惊喜。', description = '一张卡看懂日期、门槛和官方入口。' }: { offers: FreebieOffer[]; today?: string; title?: string; description?: string }) {
   const [filter, setFilter] = useState<OfferFilter>('all');
+  const [query, setQuery] = useState('');
+  const locale = useLocale();
   const [localToday, setLocalToday] = useState(getBayAreaToday);
   const headingId = useId();
   useEffect(() => {
@@ -130,26 +136,34 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
   }, []);
   const today = suppliedToday || localToday;
   const month = today.slice(0, 7);
-  const confirmed = offers.filter(offer => {
+  const reviewed = offers.filter(offer => offer.verificationStatus !== 'needs-confirmation');
+  const confirmed = reviewed.filter(offer => {
     const range = dateRange(offer);
     return offer.availability === 'dated' && range && range[1] >= today && range[0].slice(0, 7) <= month && range[1].slice(0, 7) >= month;
   }).length;
-  const ongoing = offers.filter(offer => offer.availability === 'ongoing').length;
-  const local = offers.filter(offer => offer.availability === 'check-local').length;
-  const previews = offers.filter(offer => offer.availability === 'dated' && dateRange(offer)?.[0].slice(0, 7) === nextMonth(today)).length;
+  const ongoing = reviewed.filter(offer => offer.availability === 'ongoing').length;
+  const local = reviewed.filter(offer => offer.availability === 'check-local').length;
+  const previews = reviewed.filter(offer => offer.availability === 'dated' && dateRange(offer)?.[0].slice(0, 7) === nextMonth(today)).length;
   const stats = [
     { value: confirmed, label: '本月已确认' },
     ...ongoing ? [{ value: ongoing, label: '长期福利' }] : [],
     ...previews ? [{ value: previews, label: '下月预告' }] : [],
     ...local ? [{ value: local, label: '需查本店' }] : [],
   ];
-  const visible = orderedOffers(offers, today).filter(offer => filter === 'all' || offer.kind === filter);
+  const terms = searchText(query).split(/\s+/).filter(Boolean);
+  const visible = orderedOffers(offers, today).filter(offer => {
+    if (filter !== 'all' && offer.kind !== filter) return false;
+    const values = [offer.brand, offer.title, offer.dateLabel, offer.requirement, offer.description];
+    const haystack = searchText([...values, ...values.map(value => translateText(value, locale))].join(' '));
+    return terms.every(term => haystack.includes(term));
+  });
   return <section className="bl-freebie-board" aria-labelledby={headingId}>
     <header className="bl-freebie-board-heading"><span><Gift size={16} aria-hidden="true" />BAYLINK · LITTLE PERKS</span><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="bl-freebie-board-stats" aria-label="领取信息概况" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}>{stats.map(item => <span key={item.label}><strong>{item.value}</strong>{item.label}</span>)}</div>
     <p className="bl-freebie-board-count-note">本月已确认仅计入有效期明确、尚未结束的条目；下月预告与待查场次分列。</p>
     <div className="bl-freebie-filters" role="group" aria-label="按领取条件筛选">{FILTERS.map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}</div>
+    <label className="bl-freebie-search"><span>搜索品牌、城市或福利</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 Target、Lowe’s、手作、生日" /></label>
     <p className="bl-freebie-results" role="status" aria-live="polite">显示 {visible.length} 项 · 日期按湾区当地时间</p>
-    {visible.length ? <div className="bl-freebie-grid">{visible.map(offer => <FreebieCard key={`${offer.id}:${offer.imageKey}`} offer={offer} today={today} />)}</div> : <div className="bl-freebie-empty"><Gift size={24} aria-hidden="true" /><p>{offers.length ? '这个条件下暂时没有条目，换个条件看看。' : '这期领取信息正在整理。'}</p>{filter !== 'all' && <button type="button" onClick={() => setFilter('all')}>查看全部</button>}</div>}
+    {visible.length ? <div className="bl-freebie-grid">{visible.map(offer => <FreebieCard key={`${offer.id}:${offer.imageKey}`} offer={offer} today={today} />)}</div> : <div className="bl-freebie-empty"><Gift size={24} aria-hidden="true" /><p>{offers.length ? '这个条件下暂时没有条目，换个条件看看。' : '这期领取信息正在整理。'}</p>{(filter !== 'all' || query) && <button type="button" onClick={() => { setFilter('all'); setQuery(''); }}>查看全部</button>}</div>}
   </section>;
 }

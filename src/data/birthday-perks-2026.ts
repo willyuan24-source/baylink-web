@@ -1,0 +1,167 @@
+import type { FreebieOffer } from '../components/FreebieBoard';
+
+// Official-source review: 2026-10-04 (America/Los_Angeles).
+// Prior-purchase requirements are intentionally classified as purchase offers.
+export const birthdayPerks2026: FreebieOffer[] = [
+  {
+    "id": "roundup-ulta-birthday-gift-2026",
+    "brand": "ULTA BEAUTY",
+    "verifiedAt": "2026-10-04",
+    "title": "生日月持券到店领美妆礼",
+    "dateLabel": "生日月 · 到店凭生日券",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "生日月前加入 Ulta Beauty Rewards、填好生日并开启营销通知；店内持有效生日券领取，无需购物，每年一次，送完为止。",
+    "description": "San Jose、Sunnyvale、San Mateo 等可查官方门店。网上订单及线上下单自提均需购买合资格非 Marketplace 商品，商品小计须大于 $0；款式以当期券和门店库存为准。",
+    "imageKey": "september-freebies",
+    "imageNote": "福利主题原创插图，非 Ulta 当期生日礼",
+    "sourceUrl": "https://www.ulta.com/rewards/birthday-gift",
+    "sourceLabel": "Ulta 官方生日礼与线上／店内条件",
+    "storeUrl": "https://www.ulta.com/stores/directory"
+  },
+  {
+    "id": "dutch-bros-birthday-2026",
+    "brand": "DUTCH BROS",
+    "verifiedAt": "2026-10-04",
+    "title": "生日领一杯饮品，券可用 30 天",
+    "dateLabel": "生日发券 · 有效 30 天",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "在 Dutch Bros App 建立账户并填生日，收到生日饮品券后到店扫码兑换，无需另购。生日当天才下载 App，券会在次日发放。",
+    "description": "东湾可查 Concord、Brentwood 等店；到店扫描 Dutch Pass，并告知店员使用生日券。杯型与可选饮品按券面确认，不能把普通积分券的规则直接套过来。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.dutchbros.com/rewards/",
+    "sourceLabel": "Dutch Bros 官方生日饮品 FAQ",
+    "storeUrl": "https://www.dutchbros.com/locations/ca"
+  },
+  {
+    "id": "nothing-bundt-cakes-birthday-bundtlet",
+    "brand": "NOTHING BUNDT CAKES",
+    "verifiedAt": "2026-10-04",
+    "title": "生日到店领一只个人装 Bundtlet",
+    "dateLabel": "收到生日券起 · 至生日后 7 天",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "18 岁及以上，免费加入 Bundtastic Rewards，提供电话、有效邮箱和生日。凭生日邮件或 App 条码到店领取个人装 Bundtlet，无需另购。",
+    "description": "官方说明生日邮件通常约提前一周发出，可用至生日后 7 天；提前补全资料，并核对账户券的实际到期日。San Jose 等湾区门店可查，口味以库存及券面为准，网上下单可能另收服务费。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.nothingbundtcakes.com/faqs/",
+    "sourceLabel": "Nothing Bundt Cakes 官方生日 FAQ",
+    "storeUrl": "https://www.nothingbundtcakes.com/find-a-bakery/ca/sanjose/"
+  },
+  {
+    "id": "chick-fil-a-birthday-2026",
+    "brand": "CHICK-FIL-A",
+    "verifiedAt": "2026-10-04",
+    "title": "基础会员生日选 Cookie 或 Brownie",
+    "dateLabel": "生日发券 · 有效 30 天 · 周日休息",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "免费 Chick-fil-A One 基础会员，至少在生日前 24 小时填好生日；使用最新版 App。基础生日礼为 Chocolate Chunk Cookie 或 Chocolate Fudge Brownie 二选一，无需另购。",
+    "description": "生日券有效 30 天；生日逢周日会在前一天周六发券，门店周日不营业。Sunnyvale 等店可查；高等级的奶昔、三明治等奖励不等于每位新会员都能领取。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.chick-fil-a.com/customer-support/chick-fil-a-one-membership-program/creating-and-managing-your-account/what-is-the-birthday-reward-for-each-membership-tier",
+    "sourceLabel": "Chick-fil-A 官方各等级生日礼",
+    "storeUrl": "https://www.chick-fil-a.com/locations/ca/sunnyvale"
+  },
+  {
+    "id": "panera-birthday-2026",
+    "brand": "PANERA BREAD",
+    "verifiedAt": "2026-10-04",
+    "title": "基础 MyPanera 会员生日烘焙点心",
+    "dateLabel": "奖励到账起 7 天 · 以账户日期为准",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "免费 MyPanera 基础会员需提前在账户填写生日；生日奖励可换一份合资格烘焙点心，无需购物。到账起 7 天有效，需下单时主动选择奖励，最高抵扣价格看券。",
+    "description": "可选类别含 bagel、cookie、brownie、muffin 等，以实际券面为准；抹酱、整条面包、soufflé 与早餐主食不包含。先用官方查店页找附近参与门店；外送仍有最低订单及费用。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.panerabread.com/en-us/legal/terms-of-use.html",
+    "sourceLabel": "Panera 官方 MyPanera 生日奖励条款",
+    "storeUrl": "https://www.panerabread.com/en-us/cafe/locations"
+  },
+  {
+    "id": "amc-birthday-popcorn-2026",
+    "brand": "AMC STUBS",
+    "verifiedAt": "2026-10-04",
+    "title": "免费 Insider 会员生日月领大桶爆米花",
+    "dateLabel": "生日月 · 须在该月开始前提前注册",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "加入免费 AMC Stubs Insider，并至少在生日月首日前 30 天填好生日和完成注册。奖励于生日月 1 日入账，当月用完；兑换大桶普通爆米花无需另购。",
+    "description": "湾区可查 NewPark 12、Sunnyvale 12 等影院。扫码领取，电影票另购；免费大杯饮料属于 Premiere GO!、Premiere 或 A-List 等更高等级福利，不包含在普通 Insider 礼物里。",
+    "imageKey": "cinema-night",
+    "imageNote": "影院主题原创插图，非 AMC 场馆或奖品实拍",
+    "sourceUrl": "https://www.amctheatres.com/faqs/amc-stubs",
+    "sourceLabel": "AMC 官方生日礼与提前注册规则",
+    "storeUrl": "https://www.amctheatres.com/movie-theatres/san-francisco"
+  },
+  {
+    "id": "roundup-starbucks-birthday-2026",
+    "brand": "STARBUCKS",
+    "verifiedAt": "2026-10-04",
+    "title": "生日饮品或食物，需已有赚星交易",
+    "dateLabel": "Green 当天 · Gold 7 天 · Reserve 30 天",
+    "availability": "ongoing",
+    "kind": "purchase",
+    "requirement": "至少在生日前 7 天加入 Starbucks Rewards 并填写生日；每年生日前须有至少一次赚星交易。奖励可选一份合资格手调饮品、食物或瓶装饮品，非零消费新客福利。",
+    "description": "按 2026 年 3 月生效规则：Green 仅生日当天可用，Gold 从生日起 7 天，Reserve 从生日起 30 天。到参与门店扫会员码；多人份、酒精、周边与包装咖啡豆不含，先确认账户券已到账。",
+    "imageKey": "sep26-starbucks-refills",
+    "imageNote": "咖啡主题原创插图，非 Starbucks 实拍或生日券可选商品清单",
+    "sourceUrl": "https://www.starbucks.com/terms/rewards/",
+    "sourceLabel": "Starbucks 2026 会员等级与生日条款",
+    "storeUrl": "https://www.starbucks.com/store-locator"
+  },
+  {
+    "id": "roundup-jersey-mikes-birthday-points-2026",
+    "brand": "JERSEY MIKE’S",
+    "verifiedAt": "2026-10-04",
+    "title": "生日获 72 积分，过去一年须买过指定主食",
+    "dateLabel": "生日到账 · 积分兑换按账户规则",
+    "availability": "ongoing",
+    "kind": "purchase",
+    "requirement": "生日前建立 MyMike’s 账户、填生日并订阅邮件；过去 12 个月须用该账户购买过 Regular／Giant Sub、Wrap 或 Sub Bowl。积分兑换订单不算，每年都要重新满足消费条件。",
+    "description": "符合条件生日到账 72 Shore Points，可换基础 Regular Sub、Wrap 或 Sub Bowl；加料需付差价。可查 San Jose E. Brokaw 店等参与门店；这不是生日当天注册就送的三明治券。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.jerseymikes.com/rewards/terms-conditions",
+    "sourceLabel": "Jersey Mike’s 9/22/2026 积分与生日条款",
+    "storeUrl": "https://www.jerseymikes.com/20220/san-jose-ca"
+  },
+  {
+    "id": "roundup-red-robin-kids-birthday-2026",
+    "brand": "RED ROBIN",
+    "verifiedAt": "2026-10-04",
+    "title": "儿童生日月减 $7，需另购至少 $4.99",
+    "dateLabel": "孩子生日月 · 每年一次 · 仅堂食",
+    "availability": "ongoing",
+    "kind": "purchase",
+    "requirement": "家长在 Royalty 账户提前填写 17 岁及以下孩子生日；孩子须本人在场堂食，生日月可用一次 $7 折扣，需另有至少 $4.99 的配套消费。",
+    "description": "San Bruno 等门店可查。2026 年 6 月起，普遍成人生日汉堡福利已改为个性化 Surprise & Delight；十月不要再按旧图计划领免费汉堡。成人收到什么奖励、是否需消费，以个人账户券为准。",
+    "imageKey": "neighborhood-table",
+    "imageNote": "餐饮主题原创插图，非品牌门店或生日奖品实拍",
+    "sourceUrl": "https://www.redrobin.com/royalty/terms",
+    "sourceLabel": "Red Robin 6/1/2026 新规与儿童生日条件",
+    "storeUrl": "https://www.redrobin.com/locations/ca/sanbruno/san-bruno-193"
+  }
+];
+
+// Apply to the existing offer so the catalog keeps one Sephora birthday entry.
+export const birthdayPerkUpdates2026: Record<string, Partial<FreebieOffer>> = {
+  "sephora-birthday": {
+    "verifiedAt": "2026-10-04",
+    "title": "生日月到店领取美妆小样礼",
+    "dateLabel": "生日月 · 每年一次 · 店内免购物",
+    "availability": "ongoing",
+    "kind": "no-purchase",
+    "requirement": "领取前免费加入 Beauty Insider 并填写生日；现行官方 FAQ 按生日当月领取，每年一次。店内提供会员邮箱即可，无需购物，礼物送完为止。",
+    "description": "湾区可查 Emeryville 等 Sephora 门店。网上兑换需至少 $25 合资格商品消费；具体款式依会员等级与门店库存。旧图中的套装不代表十月可选礼物，不把生日月前后两周当作保证。",
+    "imageNote": "2026 年初官方示例，非当前门店库存保证",
+    "sourceUrl": "https://www.sephora.com/beauty/birthday-gift",
+    "sourceLabel": "Sephora 官方 2026 生日礼与兑换条件",
+    "storeUrl": "https://www.sephora.com/happening/stores/emeryville?storeId=0116"
+  }
+};

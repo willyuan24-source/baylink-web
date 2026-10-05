@@ -1,3 +1,4 @@
+import { PerksGallery } from './PerksGallery';
 import { useMemo } from "react";
 import {
   Search,
@@ -125,7 +126,7 @@ export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
       {!savedOnly && !query.trim() && tab === 'all' && <Link to="/explore" className="guide-attraction-entry"><span><strong>按地区，找一个值得出门的地方。</strong><small>景点实拍、游玩攻略与出游清单，旧金山到北湾慢慢发现。</small></span><ArrowUpRight size={23} aria-hidden="true" /></Link>}
       {!savedOnly && !query.trim() && tab === 'all' && <DailyGuideTopics onOpenGuide={onOpenGuide} />}
       {!query.trim() && (savedOnly || tab === 'all') && <ReadingShelf />}
-      {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /></>}
+      {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /><PerksGallery compact /></>}
       {!savedOnly && !query.trim() && tab === "all" && hero && (
         <section className="bl-guides-spotlights" aria-label="新来湾区先看">
           <Link

@@ -112,3 +112,7 @@
  .bl-freebie-card-actions a:first-child { padding:8px 12px; }
  .bl-freebie-image-source summary { font-size:10px; min-height:38px; }
 }
+.bl-freebie-verified { color:#666b63; font-size:12px; margin:12px 0; }
+.bl-freebie-search { display:grid; gap:8px; margin:16px 0; font-size:13px; font-weight:600; }
+.bl-freebie-search input { width:100%; min-height:46px; padding:12px 14px; border:1px solid #c6ccc0; border-radius:12px; background:#fff; color:#263526; font:inherit; font-weight:400; }
+.bl-freebie-search input:focus-visible { outline:3px solid #668167; outline-offset:3px; }

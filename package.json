@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run export:guides && npm run export:events && npm run export:planner && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
+    "build": "npm run export:guides && npm run export:events && npm run export:planner && npm run export:discovery && npm run generate:perks-posters && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=4 tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
@@ -14,7 +14,9 @@
     "export:planner": "tsx --tsconfig tsconfig.app.json scripts/export-planner-catalog.ts",
     "export:events": "tsx --tsconfig tsconfig.app.json scripts/export-event-catalog.ts",
     "generate:share-cards": "tsx --tsconfig tsconfig.app.json scripts/generate-share-cards.ts",
-    "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts"
+    "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts",
+    "export:discovery": "tsx --tsconfig tsconfig.app.json scripts/export-discovery-context.ts",
+    "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts"
   },
   "engines": {
     "node": "24.x"

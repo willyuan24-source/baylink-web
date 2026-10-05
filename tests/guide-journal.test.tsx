@@ -193,6 +193,11 @@ const firstVisitCoverReuse = new Set([
   'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-cross-bay-commute-home-base-october-2026',
   'sf-first-visit-tickets-waterfront-october-2026', 'sf-free-culture-eligibility-october-2026',
   'sf-family-rain-fog-car-free-october-2026',
+  // Perks roundups intentionally share clearly labeled thematic illustrations;
+  // their original, dated social posters are separate downloadable artwork.
+  'bay-area-birthday-perks',
+  'bay-area-everyday-free-perks',
+  'bay-area-retail-freebies-family-deals',
 ]);
 test('guide covers remain distinct except reviewed first-visit reference photographs and illustrations', () => {
   assert.ok(guides.length >= 37);

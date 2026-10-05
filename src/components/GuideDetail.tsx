@@ -1,3 +1,4 @@
+import { PerksGallery } from './PerksGallery';
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SaveToWeek } from './SaveToWeek';
 import {
@@ -232,6 +233,7 @@ const GuideDetailSession = ({
           </div>
         </header>
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
+        {['bay-area-birthday-perks', 'bay-area-everyday-free-perks', 'bay-area-retail-freebies-family-deals', 'bay-area-freebies-deals-2026-10'].includes(guide.slug) && <PerksGallery topic={guide.slug === 'bay-area-birthday-perks' ? 'birthday' : guide.slug === 'bay-area-everyday-free-perks' ? 'everyday' : guide.slug === 'bay-area-retail-freebies-family-deals' ? 'retail' : undefined} />}
         {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoard offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">

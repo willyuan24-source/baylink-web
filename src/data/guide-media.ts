@@ -82,6 +82,9 @@ for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, 
 }
 
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-birthday-perks': ['september-freebies', 'neighborhood-table'],
+  'bay-area-retail-freebies-family-deals': ['september-freebies', 'october-library-culture'],
+  'bay-area-everyday-free-perks': ['october-library-culture', 'library'],
   'bay-area-street-parking-first-time-guide': ['coverage-classic-car', 'neighborhood'],
   'bay-area-fastrak-bridge-express-lanes-guide': ['daily-bridge', 'digital-safety'],
   'bay-area-bulky-items-ewaste-hhw-guide': ['daily-recycling', 'settling'],

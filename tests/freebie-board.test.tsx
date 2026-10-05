@@ -95,6 +95,28 @@ test('condition filters select the matching offers without hiding requirements o
   assert.equal(filters.getByRole('button', { name: '全部', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
+test('brand search combines with conditions, handles apostrophes and traditional Chinese, and clears empty results', () => {
+  install();
+  const records: FreebieOffer[] = [
+    { ...base, id: 'lowes', brand: 'Lowe’s', title: '免费儿童手作', availability: 'ongoing', kind: 'reservation' },
+    { ...base, id: 'target', brand: 'TARGET', title: '会员购物优惠', availability: 'ongoing', kind: 'purchase' },
+    { ...base, id: 'past-target', brand: 'TARGET', title: '旧赠品', endDate: '2026-08-01', startDate: '2026-08-01' },
+  ];
+  const view = render(<FreebieBoard offers={records} today="2026-10-04" />);
+  const input = view.getByRole('searchbox', { name: '搜索品牌、城市或福利' });
+  fireEvent.change(input, { target: { value: "Lowe's" } });
+  assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-lowes']);
+  fireEvent.change(input, { target: { value: '兒童' } });
+  assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-lowes']);
+  fireEvent.change(input, { target: { value: 'target' } });
+  assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-target']);
+  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '需预约', exact: true }));
+  assert.equal(view.queryAllByRole('article').length, 0);
+  fireEvent.click(view.getByRole('button', { name: '查看全部' }));
+  assert.equal((input as HTMLInputElement).value, '');
+  assert.equal(view.getAllByRole('article').length, 2);
+});
+
 test('cards omit expired and invalid dated offers without mutating source order', () => {
   install();
   const input = [

@@ -2,6 +2,8 @@ import { visitorPersonaGuides } from './guides-persona-visitor';
 import { utilityGuides } from './guides-utilities';
 import { shoppingGuides } from './guides-shopping';
 import { cityExplorationGuides } from './guides-city-exploration';
+import { perksGuides2026 } from './guides-perks-2026';
+import { retailPerksGuides2026 } from './guides-retail-perks-2026';
 import { usefulPlatformGuides } from './guides-useful-platforms';
 import { newResidentPersonaGuides } from './guides-persona-newresident';
 import { establishedResidentPersonaGuides } from './guides-persona-resident';
@@ -1893,6 +1895,8 @@ export const guides: Guide[] = [
     ],
   },
   ...practicalGuides,
+  ...perksGuides2026,
+  ...retailPerksGuides2026,
   ...october2026NewcomerGuides,
   ...october2026VisitGuides,
   ...visitorPersonaGuides,

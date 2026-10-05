@@ -1,3 +1,4 @@
+import { PerksGallery } from './PerksGallery';
 import { useEffect, useId, useState } from 'react';
 import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket, TramFront, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -171,6 +172,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
       <div className="home-discovery-picks">{picks.map(guide => <Link to={`/guides/${guide.slug}`} className="home-discovery-pick" key={guide.slug} aria-label={`阅读：${guide.title}`}><DiscoveryImage image={getGuideMedia(guide).cover} /><div><span>{guide.categoryLabel} · {guide.readMinutes} 分钟</span><h3>{guide.title}</h3><ArrowUpRight size={17} aria-hidden="true" /></div></Link>)}</div>
     </div>
 
+    <PerksGallery compact />
     <form className="home-discovery-ai" onSubmit={event => { event.preventDefault(); onAskBayBay(question.trim() || selection.question); }}>
       <div className="home-discovery-ai-intro"><img src={BRAND.baybayAvatar} alt="" width={46} height={46} loading="lazy" /><div><strong>想法有了，怎么安排？</strong><span>AI 助手 BayBay 结合站内指南，帮你理一理。</span></div></div>
       <label><span className="sr-only">告诉 BayBay 你的生活问题</span><input value={question} onChange={event => setQuestion(event.target.value)} placeholder={selection.placeholder} maxLength={500} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /></label><button type="submit"><Sparkles size={15} aria-hidden="true" />帮我安排<ArrowRight size={15} aria-hidden="true" /></button>
