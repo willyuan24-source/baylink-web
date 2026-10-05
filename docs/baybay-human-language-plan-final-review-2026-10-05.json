@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-05",
+  "status": "manual_review_complete",
+  "rawReport": "baybay-human-language-plan-final-2026-10-05.json",
+  "apiCommit": "9cced85ffbd6a27e6634e0548e3c88aac6ae8013",
+  "verificationScope": "Read-only review of the three actual site-only plan-chain responses. No additional API calls or live web verification by the reviewer. The earlier 0cd9bf6 Q4 failure remains in its separate report.",
+  "supersedesCasesFrom": "baybay-human-language-retest-review-2026-10-05.json",
+  "criteria": [
+    "Main answer, selected/excluded state, main plan and main handoff must agree.",
+    "Marked optional alternatives are judged for relevance and not automatically treated as a changed main itinerary.",
+    "Suggested pace must be labelled as advice, while missing origin, transport times, party size and date-specific conditions remain unknown.",
+    "Check real citations and source applicability rather than accepting structural pass alone."
+  ],
+  "cases": [
+    {
+      "id": "sf-two-places",
+      "status": "pass_with_limitations",
+      "elapsedMs": 28121,
+      "actualModel": "gpt-6.1-sol",
+      "automatedStatus": "pass",
+      "degraded": false,
+      "positives": [
+        "直接回答轻松节奏：约2小时科学馆、45–60分钟用餐休息、45–60分钟PIER39短逛，均明确是建议而不是已核实的完整时刻表。",
+        "2–4小时科学馆编辑建议、K-Dock位置、海狮不保证数量及公共区免费范围，与被引站内指南和官方FAQ快照一致。",
+        "正文、state、主plan及主handoff保留Exploratorium→PIER39，没有猜成人数、交通方式或起点，末尾直接询问公共起点与出行方式。",
+        "正文没有把已知免费一站合并展示成整段行程0元，也没有原样输出英文内部费用说明。"
+      ],
+      "recovery": {
+        "attempts": 1,
+        "warnings": [
+          "answer_plan_citation_retry",
+          "final_synthesis_recovered"
+        ],
+        "explanation": "The first final response required citation recovery. One additional synthesis produced the accepted grounded answer; research shows no web or route calls. This is not a first-try success."
+      },
+      "findings": [
+        {
+          "severity": "P2",
+          "topic": "optional_alternative_fit",
+          "observation": "主计划正确，但标为备选的Exploratorium→Sergeant Ma仍没有展示更轻松的依据，且正文建议的备选是缩短PIER39，二者不一致于建议类型。用户未禁止所有替代，故不计主行程被擅改的硬失败。",
+          "expectedBehavior": "可选卡最好与文字给出的轻松取舍对应，或补足推荐该餐厅的相关理由。"
+        }
+      ],
+      "notes": [
+        "Backend suggestedDurationMinutes remains 60 per stop, while the current frontend parser consumes durationMinutes rather than that suggestion field. No UI duration conflict was established in this API-only review; the response's durations are explicitly advisory."
+      ]
+    },
+    {
+      "id": "sf-pronoun-can-we-make-it",
+      "status": "pass",
+      "elapsedMs": 13589,
+      "actualModel": "gpt-6.1-sol",
+      "automatedStatus": "pass",
+      "degraded": false,
+      "positives": [
+        "两站指代和顺序正确，15:00在state及主plan约束一致，未知开始时间、交通和人数不被猜定。",
+        "地理方向和实际路线耗时明确区分；2小时/休息45分钟/末站30–45分钟被标为建议，上午到且15点离开末站是条件，不是假装核验。",
+        "先后文5岁、日期、放松节奏保留；真正影响来不来得及的到馆时间、交通方式、15点离开/到达语义有明确追问。",
+        "无无关备选或改点，主plan与handoff仍两站；来源能支持常规开放和公共区域事实。"
+      ],
+      "findings": []
+    },
+    {
+      "id": "sf-transit-only-last-place",
+      "status": "pass",
+      "elapsedMs": 12896,
+      "actualModel": "gpt-6.1-sol",
+      "automatedStatus": "pass",
+      "degraded": false,
+      "positives": [
+        "改公交、只去最后一个、取消科学馆同时体现在正文、selected/excluded、唯一主站与handoff；15点仍保留。",
+        "约1小时被标成建议，公共区免费与付费项目/餐饮交通明确分开，未来开放未确认；Muni儿童免费不套用其他系统。",
+        "未知公共起点与班次时不保证赶得上，followups询问公共起点及15点离开/到达含义，没有要求私人地址。",
+        "没有新路线请求、恢复轮或降级；普通两轮工具/答复完成。"
+      ],
+      "findings": []
+    }
+  ],
+  "overallStatus": "pass_with_limitations",
+  "summary": {
+    "manual": {
+      "pass": 2,
+      "pass_with_limitations": 1,
+      "fail": 0
+    },
+    "originalAutomated": {
+      "passed": 3,
+      "failed": 0
+    },
+    "scope": "This outcome applies only to these three saved site-only requests on API 9cced85. The remaining seven cases were most recently reviewed on 0cd9bf6; do not attribute an all-ten live retest to this newer SHA. No live route, weather or web verification was performed.",
+    "hardFailureResolved": "Q4 now provides a grounded relaxed two-stop pace and useful clarification instead of a citation-repair unknown list; Q5/Q6 keep the time constraint and selected final venue consistent across the main output and state.",
+    "limitations": [
+      "The first response needed exactly one citation-recovery synthesis; it is a recovered success, not a first-attempt success.",
+      "The clearly marked optional restaurant alternative remains weakly related to the relaxed two-stop request; the main plan and handoff are unchanged.",
+      "Future-date access, actual transfer time, unspecified party size and unpriced expenses remain unverified. This is not a verified timed itinerary or a full price quotation.",
+      "This review does not establish frontend screenshot or imported scheduler duration behavior."
+    ],
+    "latencyMs": {
+      "min": 12896,
+      "max": 28121,
+      "median": 13589,
+      "mean": 18202
+    },
+    "historicalIntegrity": "The baseline and full retest raw/manual reports remain unchanged, including the 0cd9bf6 Q4 failure. Use this later report only as the newer evidence for these three case IDs."
+  }
+}

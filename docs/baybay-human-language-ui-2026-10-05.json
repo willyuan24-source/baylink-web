@@ -1,0 +1,190 @@
+{
+  "kind": "BAYBAY production browser acceptance",
+  "checkedAt": "2026-10-05",
+  "frontendCommit": "c7b6714c75f690975852d8d5d481346e3df2d9d6",
+  "backendCommit": "797ef05f5245cb6fe28d82bd0fb0cd11b7a4949d",
+  "scope": "Site-only; synthetic family/public departure point. No saving, sharing, booking, purchase, route API or current web verification.",
+  "production": {
+    "frontend": "Vercel success",
+    "backend": "Health returned exact 797ef05f5245cb6fe28d82bd0fb0cd11b7a4949d before the repeated original UI query."
+  },
+  "checks": [
+    {
+      "id": "relative_example",
+      "status": "pass",
+      "observed": "Production /plan now displays 明天在旧金山找家餐厅，再去附近逛逛 instead of the past October 3 example."
+    },
+    {
+      "id": "mobile_initial_layout",
+      "status": "pass",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "observed": {
+        "documentClientWidth": 375,
+        "documentScrollWidth": 375,
+        "dialogClientWidth": 375,
+        "dialogScrollWidth": 375
+      },
+      "note": "No horizontal overflow in the initial error/requirements view; screenshot inspected. Successful plan view still pending."
+    },
+    {
+      "id": "successful_assistant_mobile_desktop",
+      "status": "pass",
+      "viewports": [
+        {
+          "width": 390,
+          "height": 844,
+          "documentClientWidth": 375,
+          "documentScrollWidth": 375
+        },
+        {
+          "width": 1280,
+          "height": 900,
+          "documentClientWidth": 1265,
+          "documentScrollWidth": 1265
+        }
+      ],
+      "observed": "Requirements chips wrap within the screen. The plan cost block and verification status remain legible; screenshots inspected. No document horizontal overflow."
+    },
+    {
+      "id": "one_stop_handoff",
+      "status": "pass",
+      "observed": {
+        "date": "2026-10-10",
+        "stops": [
+          "place:pier39"
+        ],
+        "partySize": 3,
+        "childAges": [
+          5
+        ],
+        "travelMode": "transit",
+        "origin": "Ferry Building · One Ferry Building",
+        "startTime": "10:00",
+        "finishBy": "15:00",
+        "returnRequirement": "在最后一站结束，不返回起点",
+        "maxStops": 2
+      },
+      "note": "Verified actual browser navigation, selected-stop URL and rendered original requirements. Existing unrelated external candidate was left unchanged."
+    },
+    {
+      "id": "draft_time_and_conditions",
+      "status": "pass",
+      "observed": {
+        "overviewTitle": "时间草稿",
+        "displayedDraft": "10:00–11:30",
+        "target": "最晚结束目标：15:00。这只是目标，实际能否赶上仍需核对。",
+        "defaultDetailsCollapsed": true,
+        "originalConditionsExpandedAndChecked": true,
+        "formValues": {
+          "date": "2026-10-10",
+          "startTime": "10:00",
+          "finishBy": "15:00",
+          "travelMode": "transit",
+          "partySize": "3",
+          "totalBudget": ""
+        }
+      },
+      "note": "The 90-minute stop is a planner default allowance, not a verified arrival or real route. Unused budget remained blank; origin/return/maxStops limitations were visible."
+    },
+    {
+      "id": "planner_mobile_desktop",
+      "status": "pass",
+      "viewports": [
+        {
+          "width": 390,
+          "height": 844,
+          "documentClientWidth": 375,
+          "documentScrollWidth": 375,
+          "overviewClientWidth": 342,
+          "overviewScrollWidth": 342
+        },
+        {
+          "width": 1280,
+          "height": 900,
+          "documentClientWidth": 1265,
+          "documentScrollWidth": 1265
+        }
+      ],
+      "observed": "Draft label, 15:00 target, one-stop summary and original-conditions disclosure were visually inspected. No horizontal overflow. Viewport override reset afterward."
+    }
+  ],
+  "requests": [
+    {
+      "id": "natural-family-ui-initial",
+      "backendCommit": "9cced85ffbd6a27e6634e0548e3c88aac6ae8013",
+      "prompt": "这周六两个大人带5岁娃，上午10点从Ferry Building出发，先去Exploratorium再去Pier39。我们坐公交，下午3点要离开，别太赶，最多这两站。",
+      "status": "fail",
+      "answer": "同行总人数须为 1–50 人。",
+      "observations": [
+        "No itinerary card was generated.",
+        "The visible chips retained destination, date, origin, start and finish, but omitted party and child age.",
+        "No HTTP status or precise latency was collected through the browser."
+      ]
+    },
+    {
+      "id": "natural-family-ui-retest",
+      "backendCommit": "797ef05f5245cb6fe28d82bd0fb0cd11b7a4949d",
+      "prompt": "这周六两个大人带5岁娃，上午10点从Ferry Building出发，先去Exploratorium再去Pier39。我们坐公交，下午3点要离开，别太赶，最多这两站。",
+      "status": "pass",
+      "answer": "按这周六（2026年10月10日）安排：两位大人带5岁娃，10:00从 Ferry Building 出发，先 Exploratorium、再 PIER 39，只保留这两站，不加其他景点。当前是待核实方案，尚不能保证公交衔接后仍能从容地在15:00结束。\n\n节奏上建议把主要游玩时间留给 Exploratorium（日间互动科学馆），不追求看完所有展项；之后留出午餐和候车休息，PIER 39只逛公共步行区、看海狮，不加游船或馆内项目。站内记录显示这些公共区域无需门票，但不保证一定有海狮可看。[1][2]\n\n费用参考：科学馆两位普通成人各$39.95，5岁儿童$29.95，门票小计$109.85；这是站内价格快照，不是当天结账价，也不含未确认附加费、餐饮和交通。[1] 5岁娃乘常规 Muni 公交及轻轨免费，Cable Car不在该通用福利内。[3]\n\n目前缺少两段公交的线路、候车与乘车时间，以及当天开放和票务情况。可切换 Smart 或 Web 模式核实后再锁定时间。为避免赶路，可把PIER 39作为短停站，约14:30开始收尾。\n\n你说15:00离开，是从PIER 39离开，还是15:00前必须回到Ferry Building或其他地点？这会直接影响第二站能留多久。",
+      "observations": [
+        "The original prompt produced a two-stop plan in the requested order.",
+        "Visible requirements: 3 people, child 5, public transit, Ferry Building origin, 10:00 start, 15:00 finish, maximum 2 stops.",
+        "Visible source-based admission subtotal was $109.85 in both answer and card; free PIER39 was scoped separately. The amount was labelled an incomplete snapshot subtotal.",
+        "Time rows said 待安排 / 时段待核实 / 前往本站交通时间待核实 instead of fabricated route minutes."
+      ]
+    },
+    {
+      "id": "natural-family-ui-followup",
+      "backendCommit": "797ef05f5245cb6fe28d82bd0fb0cd11b7a4949d",
+      "prompt": "只去后面那个吧，还是3点走，不回起点了。",
+      "status": "pass",
+      "answer": "好，改成只去后面那个 PIER 39，取消 Exploratorium，也不加其他景点。仍是10月10日周六，两位大人带5岁娃，10:00从 Ferry Building 出发、坐公交，15:00从 PIER 39离开，不回起点。\n\n建议轻松逛滨水公共步行区、看海狮，中间留足午餐和休息时间；不用为了填满时间增加付费项目。站内快照记录：三人进入公共步行区及开放海狮观景区的普通入场小计为$0，游船、水族馆、餐饮和交通另计，也不保证当天能看到海狮。[1]\n\n可把14:30作为收尾提醒，按15:00离开来安排。单站草案已重新生成，但站内缺少当天公交班次、行程时长和开放确认，暂不能保证交通衔接；如需核实这些，可切换 Smart 或 Web 模式。",
+      "observations": [
+        "Exactly one current plan stop: PIER39. Exploratorium removed.",
+        "Visible chips retain 3 people, age 5, transit, origin Ferry Building, 10:00 start, 15:00 finish, max 2; return chip now 不回起点.",
+        "The CTA now reads 将 1 个地点带入计划页."
+      ]
+    }
+  ],
+  "validation": {
+    "backend": {
+      "passed": 907,
+      "failed": 0
+    },
+    "frontendRelated": {
+      "passed": 290,
+      "failed": 0
+    },
+    "frontendDateCopySubset": {
+      "passed": 14,
+      "failed": 0,
+      "includedInRelated": true
+    },
+    "build": {
+      "pages": 752,
+      "status": "pass"
+    }
+  },
+  "status": "pass_with_limitations",
+  "blockingFailureResolved": true,
+  "summary": "生产 UI 的人数解析硬失败已用同一句话修复重测；两轮自然对话、单站导入及手机/桌面显示通过。仍限站内资料与草稿，不代表实时交通或外部核验通过。",
+  "observations": [
+    "生产 API 健康检查确认 797ef05f5245cb6fe28d82bd0fb0cd11b7a4949d；生产前端 c7b6714c75f690975852d8d5d481346e3df2d9d6 部署成功，页面已显示相对日期示例。",
+    "原问不作规范化改写：同一句“这周六两个大人带5岁娃…”在修复后正确生成两站计划；人数3、孩子5岁、公交、10:00–15:00、最多两站显示正确，回答与卡片已知门票小计109.85一致。",
+    "追问“只去后面那个吧，还是3点走，不回起点了。”只留下PIER39，保留同行者、起点、公交与15点要求，并显示不回起点。",
+    "实际点击“将1个地点带入计划页”：页面只带入PIER39，表单为3人、10:00开始、15:00结束、公交；原条件展开后年龄5岁、Ferry Building起点、不返程、最多2站仍在。",
+    "原对话条件默认折叠；路线限制和刷新/保存/分享限制保持可见。10:00–11:30明确标作时间草稿，15:00单独标作最晚结束目标，未当作真实公交到达时间。",
+    "390×844和1280×900均检查了实际渲染；页面无横向溢出，手机条件标签可换行。截图用于目视检查，没有生成可下载截图文件。检查后已恢复浏览器默认尺寸。",
+    "没有保存、分享、预订或购买；原有外部候选未修改。三次UI请求中第一次为修复前失败，后两次为修复后真实模型回应，并非回放。"
+  ],
+  "limitations": [
+    "Site-only: no new live web, current transit/traffic, weather, stock or date-specific opening verification.",
+    "Planner origin, return, maximum-stop and excluded-city fields remain review-only and are not used in route computation; the UI states this.",
+    "Original conversation conditions and price snapshots are current-tab draft data; save/share/reload do not preserve them.",
+    "API case-level reviews still note two optional-recommendation relevance issues; different-version evidence is not presented as a single-version 10/10."
+  ]
+}
