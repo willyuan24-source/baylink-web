@@ -105,7 +105,7 @@ export function buildItinerary(stops: Stop[], details: PlanDetails, date: string
 }
 
 /** Published admission is a starting price, never a quote or an all-in total. */
-export function planBudget(stops: Stop[], details: PlanDetails, lookup: (stop: Stop) => { planning?: PlanningFacts } | undefined = factsForStop) {
+export function planBudget(stops: Stop[], details: PlanDetails, lookup: (stop: Stop) => { planning?: PlanningFacts } | undefined = factsForStop, admissionReference?: { knownTotalUsd: number; unknownStops: Stop[] }) {
   let admissionPerPerson = 0;
   const unknown: Stop[] = [];
   for (const stop of stops) {
@@ -113,8 +113,8 @@ export function planBudget(stops: Stop[], details: PlanDetails, lookup: (stop: S
     if (price !== null) admissionPerPerson += price;
     else unknown.push(stop);
   }
-  admissionPerPerson = roundPlanMoney(admissionPerPerson);
-  const admissionFloor = roundPlanMoney(admissionPerPerson * details.partySize);
+  admissionPerPerson = admissionReference ? admissionReference.knownTotalUsd / details.partySize : roundPlanMoney(admissionPerPerson);
+  const admissionFloor = admissionReference ? admissionReference.knownTotalUsd : roundPlanMoney(admissionPerPerson * details.partySize);
   const breakdown = planCostBreakdown(details);
   const extraCostUsd = roundPlanMoney(breakdown.foodUsd + breakdown.transportUsd + breakdown.otherUsd);
   const subtotal = roundPlanMoney(admissionFloor + extraCostUsd);
@@ -123,7 +123,7 @@ export function planBudget(stops: Stop[], details: PlanDetails, lookup: (stop: S
   const filters = details.constraints;
   const admissionCost = filters?.budgetScope === 'total' ? admissionFloor : admissionPerPerson;
   const admissionOverBy = filters?.budget == null ? 0 : Math.max(0, roundPlanMoney(admissionCost - filters.budget));
-  return { admissionFloor, admissionPerPerson, admissionOverBy, subtotal, unknown, breakdown, extraCostUsd, overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, roundPlanMoney(subtotal - details.totalBudgetUsd)) };
+  return { admissionFloor, admissionPerPerson, admissionOverBy, subtotal, unknown: admissionReference?.unknownStops || unknown, breakdown, extraCostUsd, overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, roundPlanMoney(subtotal - details.totalBudgetUsd)) };
 }
 
 export function placeMatchesFilters(place: PlannerPlace, filters: PlanFilters): boolean {

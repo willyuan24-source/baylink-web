@@ -39,11 +39,10 @@ export function BayBayAnswer({ response, onNavigate }: { response: GuideChatResp
 export function BayBayCoverageSummary({ response }: { response: GuideChatResponse }) {
   const t = useCopy(), coverage = response.answerCoverage;
   if (!coverage || coverage.status === 'unassessed' || !coverage.items.length) return null;
-  const answered = coverage.items.filter(item => item.status === 'answered').length;
   const unknown = coverage.items.filter(item => item.status === 'unknown').length;
   const needsInput = coverage.items.filter(item => item.status === 'needs_user_input').length;
   const sources = new Map((response.evidence || []).map(source => [source.id, source]));
-  return <details className="baybay-coverage" translate="no"><summary>{t(`已回应 ${answered} 项`, `${answered} addressed`)}{unknown > 0 && t(` · ${unknown} 项待确认`, ` · ${unknown} unconfirmed`)}{needsInput > 0 && t(` · ${needsInput} 项需你补充`, ` · ${needsInput} need your input`)}</summary>
+  return <details className="baybay-coverage" translate="no"><summary>{t(`答复概览 · ${coverage.items.length} 项`, `Response overview · ${coverage.items.length} ${coverage.items.length === 1 ? 'topic' : 'topics'}`)}{unknown > 0 && t(` · ${unknown} 项待确认`, ` · ${unknown} unconfirmed`)}{needsInput > 0 && t(` · ${needsInput} 项需你补充`, ` · ${needsInput} need your input`)}</summary>
     <p>{t('这里显示已识别需求的回应情况，不代表各项事实均已核实。', 'This tracks responses to identified needs, not verification of every fact.')}</p>
     <ul>{coverage.items.map(item => <li key={item.id} data-status={item.status}><strong>{t(item.label, item.label)}</strong><small>{item.status === 'answered' ? t('已回应', 'Addressed') : item.status === 'unknown' ? t('仍待确认', 'Unconfirmed') : t('需要补充条件', 'Needs your input')}</small>{item.summary && <p>{t(item.summary, item.summary)}</p>}{item.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer">{t(source.title, source.title)}<BayBayEvidenceStamp source={source} /></a>] : []; })}</li>)}</ul>
   </details>;

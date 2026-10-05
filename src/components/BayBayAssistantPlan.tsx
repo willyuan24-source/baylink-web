@@ -11,6 +11,11 @@ function useCopy() {
   return (zh: string, en: string) => locale === 'en' && zh !== en ? en : translateText(zh, locale);
 }
 type Requirement = { key: string; label: string; value: string; prompt: string; clear: string };
+const sameSourcePage = (left: string | undefined, right: string) => {
+  if (!left) return false;
+  try { const a = new URL(left), b = new URL(right); return a.origin === b.origin && a.pathname.replace(/\/+$/, '') === b.pathname.replace(/\/+$/, '') && a.search === b.search; }
+  catch { return false; }
+};
 
 export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTaskState; disabled: boolean; onAsk: (message: string) => void }) {
   const t = useCopy(), [editing, setEditing] = useState<Requirement | null>(null), [draft, setDraft] = useState('');
@@ -78,7 +83,13 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
         <div><dt>{t('交通', 'Travel')}</dt><dd>{inbound[index] ? t(`前往本站约 ${inbound[index]!.durationMinutes} 分钟 · Google Maps 估算`, `About ${inbound[index]!.durationMinutes} min to this stop · Google Maps estimate`) : t('前往本站交通时间待核实', 'Travel time to this stop is unverified')}</dd></div>
         <div><dt>{t('门票参考', 'Admission reference')}</dt><dd>{stop.admissionFacts ? <>{stop.admissionFacts.knownTotalUsd === undefined || stop.admissionFacts.status === 'unknown' ? t('费用未知', 'Cost unknown') : t(`全组已知门票小计 $${stop.admissionFacts.knownTotalUsd.toFixed(2)}`, `Known group admission subtotal $${stop.admissionFacts.knownTotalUsd.toFixed(2)}`)}<small>{stop.admissionFacts.basis === 'page-read' ? t('来源页面参考价', 'Source-page price reference') : t('资料快照参考价', 'Catalog snapshot price')}{stop.admissionFacts.checkedAt ? ` · ${plannerWebCheckedDate(stop.admissionFacts.checkedAt)}` : ''}</small>{stop.admissionFacts.breakdown.map((row, i) => <small key={i}>{row.category === 'adult' ? t('成人', 'Adult') : row.category === 'child' ? t(`儿童${row.age === undefined ? '' : ` ${row.age} 岁`}`, `Child${row.age === undefined ? '' : ` age ${row.age}`}`) : row.category === 'group' ? t('全组', 'Group') : t('通用票', 'All ages')} {row.quantity} × ${row.unitUsd.toFixed(2)} = ${row.subtotalUsd.toFixed(2)}</small>)}{stop.admissionFacts.applicability.dateStatus !== 'date-specific' && <small>{t('所选日期适用性待确认', 'Eligibility on your chosen date is unconfirmed')}</small>}{stop.admissionFacts.applicability.feesIncluded !== true && <small>{t('附加费是否包含仍需确认', 'Check whether additional fees are included')}</small>}</> : stop.admissionUsd === undefined ? t('费用未知', 'Cost unknown') : `$${stop.admissionUsd}`}</dd></div></dl>
       {unique(stop.notes).filter(note => !allConcerns.has(note)).length > 0 && <ul className="baybay-plan-notes">{unique(stop.notes).filter(note => !allConcerns.has(note)).map(note => <li key={note}>{t(note, note)}</li>)}</ul>}
-      <div className="baybay-plan-citations">{stop.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={12} />{t(source.title, source.title)}<BayBayEvidenceStamp source={source} /></a>] : []; })}{!stop.sourceIds.some(id => sources.has(id)) && <small>{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</small>}</div>
+      <div className="baybay-plan-citations">{stop.sourceIds.flatMap(id => {
+        const source = sources.get(id); if (!source) return [];
+        const facts = stop.admissionFacts;
+        const priceSource = facts?.sourceIds.includes(id) && sameSourcePage(facts.sourceUrl, source.url) && plannerWebCheckedDate(facts.checkedAt)
+          ? { ...source, checkedAt: facts.checkedAt, verification: facts.basis === 'page-read' ? 'page-read' as const : 'catalog' as const } : undefined;
+        return [<a key={id} href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={12} />{t(source.title, source.title)}<BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a>];
+      })}{!stop.sourceIds.some(id => sources.has(id)) && <small>{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</small>}</div>
       <button type="button" className="baybay-plan-swap" disabled={disabled} onClick={() => onAsk(t(`换掉第${index + 1}站，保留其他条件。`, `Replace stop ${index + 1}, keeping my other requirements.`))}><RefreshCw size={12} />{t(`换掉第${index + 1}站`, `Replace stop ${index + 1}`)}</button>
     </li>)}</ol>
     {plan.returnTime && returnLeg && <p className="baybay-plan-summary">{t(`预计 ${plan.returnTime} 返回出发地 · Google Maps 估算，实际路况可能变化。`, `Estimated return to your starting point at ${plan.returnTime} · Google Maps estimate; actual travel conditions may change.`)}</p>}

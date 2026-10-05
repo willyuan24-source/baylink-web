@@ -293,10 +293,46 @@ test('coverage is a response checklist, never an official verification claim, an
   await setLocale('en', false);
   const fields = parseBayBayAssistantFields({ ...fixture(), answerCoverage: { status: 'partial', items: [{ id: 'one', label: 'Printing', status: 'answered', sourceIds: ['official'] }, { id: 'two', label: 'Eligibility', status: 'unknown', summary: 'Confirm the library card.', sourceIds: [] }, { id: 'three', label: 'Pages', status: 'needs_user_input', sourceIds: [] }] } });
   const view = render(<BayBayCoverageSummary response={{ ok: true, ...fields }} />);
-  assert.match(view.container.textContent || '', /1 addressed · 1 unconfirmed · 1 need your input/);
+  assert.match(view.container.textContent || '', /Response overview · 3 topics · 1 unconfirmed · 1 need your input/);
   assert.match(view.container.textContent || '', /not verification of every fact/);
   assert.equal(view.getAllByRole('link', { hidden: true }).length, 1);
   view.rerender(<BayBayCoverageSummary response={{ ok: true }} />); assert.equal(view.container.textContent, '');
+});
+
+test('a substantive four-topic reply with uncertainties is summarized as an overview, not zero answered topics', async () => {
+  const fields = parseBayBayAssistantFields({ answerCoverage: { status: 'partial', items: ['hours', 'admission', 'budget', 'travel'].map(id => ({ id, label: id, status: 'unknown', summary: 'The current source explains the rule; date-specific conditions remain unconfirmed.', sourceIds: [] })) } });
+  for (const locale of ['zh-Hans', 'en', 'zh-Hant'] as const) {
+    await setLocale(locale, false);
+    const view = render(<BayBayCoverageSummary response={{ ok: true, ...fields }} />);
+    const summary = view.container.querySelector('summary')!.textContent || '';
+    if (locale === 'en') assert.equal(summary, 'Response overview · 4 topics · 4 unconfirmed');
+    else assert.match(summary, /答[复復覆]概[览覽] · 4 [项項] · 4 [项項]待[确確][认認]/);
+    assert.doesNotMatch(summary, /已回应 0|0 addressed/);
+    assert.equal(view.container.querySelectorAll('li[data-status="unknown"]').length, 4);
+    view.unmount();
+  }
+});
+
+test('only a matching admission source uses the newer price-fact date and basis, without updating other venue evidence', async () => {
+  await setLocale('en', false);
+  const raw = fixture();
+  const fields = parseBayBayAssistantFields({ ...raw, evidence: [
+    { id: 'pier', title: 'PIER FAQ', kind: 'place', url: 'https://www.pier39.com/frequently-asked-questions', checkedAt: '2026-10-02', verification: 'catalog' },
+    { id: 'hours', title: 'Other venue hours', kind: 'web', url: 'https://www.pier39.com/hours/', checkedAt: '2026-10-02', verification: 'page-read' },
+    { id: 'same-page', title: 'Other facts on the same page', kind: 'web', url: 'https://www.pier39.com/frequently-asked-questions/', checkedAt: '2026-10-02', verification: 'catalog' },
+  ], assistantPlan: { ...raw.assistantPlan, stops: [{ ...raw.assistantPlan.stops[0], title: 'PIER 39 public area', sourceIds: ['pier', 'hours', 'same-page'], admissionFacts: {
+    status: 'complete', basis: 'catalog-snapshot', knownTotalUsd: 0, sourceUrl: 'https://www.pier39.com/frequently-asked-questions/', checkedAt: '2026-10-04', sourceIds: ['pier', 'hours'],
+    breakdown: [{ category: 'group', quantity: 1, unitUsd: 0, subtotalUsd: 0 }], applicability: { date: '2026-10-10', dateStatus: 'regular-unconfirmed', feesIncluded: true }, unknowns: [],
+  } }] } });
+  const view = render(<BayBayAssistantPlanCard plan={fields.assistantPlan!} evidence={fields.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.match(view.getByRole('link', { name: /^PIER FAQ/ }).textContent || '', /Admission evidence: Catalog snapshot · 2026-10-04/);
+  assert.match(view.getByRole('link', { name: /^Other venue hours/ }).textContent || '', /Page read · 2026-10-02/);
+  assert.match(view.getByRole('link', { name: /^Other facts on the same page/ }).textContent || '', /Catalog snapshot · 2026-10-02/);
+  assert.ok(fields.evidence!.every(source => source.checkedAt === '2026-10-02'));
+  const plan = fields.assistantPlan!;
+  view.rerender(<BayBayAssistantPlanCard plan={{ ...plan, stops: [{ ...plan.stops[0], admissionFacts: { ...plan.stops[0].admissionFacts!, basis: 'page-read', checkedAt: '2026-10-05T03:00:00Z' } }] }} evidence={fields.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.match(view.getByRole('link', { name: /^PIER FAQ/ }).textContent || '', /Admission evidence: Page read · 2026-10-04 \(Bay Area date\)/);
+  assert.match(view.getByRole('link', { name: /^Other venue hours/ }).textContent || '', /Page read · 2026-10-02/);
 });
 
 test('coverage keeps trailing eligibility conditions beyond 600 characters and truncates only complete sentences within 1600', () => {

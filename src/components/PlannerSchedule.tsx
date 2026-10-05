@@ -18,12 +18,8 @@ export function PlannerSchedule({ stops, date, title, details, admissionOverride
     update({ stopSettings: [...details.stopSettings.filter(item => stopKey(item) !== stopKey(stop)), next] });
   };
   const timeline = buildItinerary(stops, details, date);
-  const baseBudget = planBudget(stops, details);
   const reference = admissionOverride?.active ? admissionOverride : undefined;
-  const admissionCost = reference ? details.constraints?.budgetScope === 'total' ? reference.knownTotalUsd : reference.knownTotalUsd / details.partySize : 0;
-  const budget = reference ? { ...baseBudget, admissionFloor: reference.knownTotalUsd, subtotal: roundPlanMoney(reference.knownTotalUsd + baseBudget.extraCostUsd), unknown: reference.unknownStops,
-    overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, roundPlanMoney(reference.knownTotalUsd + baseBudget.extraCostUsd - details.totalBudgetUsd)),
-    admissionOverBy: details.constraints?.budget == null ? 0 : Math.max(0, roundPlanMoney(admissionCost - details.constraints.budget)) } : baseBudget;
+  const budget = planBudget(stops, details, undefined, reference);
   const updateCost = (field: keyof typeof budget.breakdown, value: number) => {
     const raw = { ...budget.breakdown, [field]: value };
     const costBreakdown = { foodUsd: roundPlanMoney(raw.foodUsd), transportUsd: roundPlanMoney(raw.transportUsd), otherUsd: roundPlanMoney(raw.otherUsd) };

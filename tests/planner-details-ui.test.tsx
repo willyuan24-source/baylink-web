@@ -106,6 +106,35 @@ test('a transferred family price remains 109.85 until pricing inputs change and 
   assert.doesNotMatch(schedule.textContent || '', /原来源已知门票小计/);
 });
 
+test('the actual two-stop BayBay handoff keeps top overview and schedule costs synchronized through allowances and party changes', async () => {
+  const fields = parseBayBayAssistantFields({
+    evidence: [{ id: 'exploratorium', title: 'Exploratorium admission', kind: 'place', url: 'https://www.exploratorium.edu/visit', checkedAt: '2026-10-02', verification: 'catalog' }, { id: 'pier', title: 'PIER 39 FAQ', kind: 'place', url: 'https://www.pier39.com/frequently-asked-questions', checkedAt: '2026-10-02', verification: 'catalog' }],
+    taskState: { version: 1, revision: 1, date: '2026-10-10', origin: 'Ferry Building · One Ferry Building', startTime: '10:00', finishBy: '17:00', partySize: 3, childAges: [5], budget: 120, budgetScope: 'total', travelMode: 'transit', returnToOrigin: false },
+    assistantPlan: { id: 'strict-two-stops', title: 'San Francisco一日安排', date: '2026-10-10', status: 'needs_verification', stops: [
+      { id: 'place:venue-exploratorium-daytime', entityId: 'venue-exploratorium-daytime', kind: 'place', title: 'Exploratorium', sourceIds: ['exploratorium'], admissionFacts: { status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 109.85, sourceUrl: 'https://www.exploratorium.edu/visit', checkedAt: '2026-10-02', sourceIds: ['exploratorium'], breakdown: [{ category: 'adult', quantity: 2, unitUsd: 39.95, subtotalUsd: 79.90 }, { category: 'child', quantity: 1, age: 5, unitUsd: 29.95, subtotalUsd: 29.95 }], applicability: { date: '2026-10-10', dateStatus: 'regular-unconfirmed', feesIncluded: null }, unknowns: ['所选日期及必要附加费仍待确认。'] } },
+      { id: 'place:pier39', entityId: 'pier39', kind: 'place', title: 'PIER 39', sourceIds: ['pier'], admissionFacts: { status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 0, sourceUrl: 'https://www.pier39.com/frequently-asked-questions/', checkedAt: '2026-10-04', sourceIds: ['pier'], breakdown: [{ category: 'group', quantity: 1, unitUsd: 0, subtotalUsd: 0 }], applicability: { date: '2026-10-10', dateStatus: 'regular-unconfirmed', feesIncluded: true }, unknowns: ['仅公共区免费，当日开放仍待确认。'] } },
+    ], budget: { knownTotalUsd: 109.85, limitUsd: 120, scope: 'total', unknownItems: ['餐饮和交通未计入。'] } },
+  });
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!;
+  const view = await openPlanner(new URL(path, 'https://www.baylink.us').search);
+  const overview = view.getByRole('region', { name: '当前计划概览' }), schedule = view.getByRole('region', { name: '时间与预算' });
+  const subtotal = (section: HTMLElement, label: string) => within(section).getByText(label).nextElementSibling?.textContent?.replace(/^US/, '');
+  assert.equal(subtotal(overview, '已知金额与预留小计'), '$109.85');
+  assert.equal(subtotal(schedule, '目前可计入的小计'), '$109.85');
+  assert.match(overview.textContent || '', /门票沿用原 BayBay 来源快照/);
+  assert.equal(within(overview).getByText('费用待确认').nextElementSibling?.textContent, '2 站');
+  fireEvent.change(view.getByLabelText('餐饮预留（整组）$'), { target: { value: '20' } });
+  assert.equal(subtotal(overview, '已知金额与预留小计'), '$129.85');
+  assert.equal(subtotal(schedule, '目前可计入的小计'), '$129.85');
+  assert.match(overview.textContent || '', /超预算 \$9.85/);
+  assert.match(schedule.textContent || '', /已超预算 (?:US)?\$9.85/);
+  fireEvent.change(view.getByLabelText('同行总人数'), { target: { value: '4' } });
+  assert.equal(subtotal(overview, '已知金额与预留小计'), subtotal(schedule, '目前可计入的小计'));
+  assert.notEqual(subtotal(overview, '已知金额与预留小计'), '$129.85');
+  assert.doesNotMatch(overview.textContent || '', /门票沿用原 BayBay 来源快照/);
+  assert.match(schedule.textContent || '', /原 BayBay 票价快照已停用/);
+});
+
 test('an old saved event cannot be added twice through its merged catalog card and retains its settings when saved', async () => {
   const legacy: Stop = { kind: 'event', id: 'alameda-point-antiques-october-2026' };
   const canonical = 'alameda-point-antiques-oct-2026';
