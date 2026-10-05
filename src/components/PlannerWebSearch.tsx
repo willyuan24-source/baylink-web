@@ -11,11 +11,13 @@ type PlannerWebSearchProps = {
   city?: string;
   locale: 'zh-Hans' | 'zh-Hant' | 'en';
   ownerId?: string;
+  sessionKey?: string;
+  onLogin?: () => void;
 };
 
 /** Changing any search input discards the previous instance and aborts its request. */
 export function PlannerWebSearch(props: PlannerWebSearchProps) {
-  return <PlannerWebWorkspace key={props.ownerId || 'guest'} {...props} />;
+  return <PlannerWebWorkspace key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} />;
 }
 
 function PlannerWebWorkspace(props: PlannerWebSearchProps) {
@@ -90,16 +92,18 @@ function WebCandidateCard({ candidate, locale, children }: { candidate: PlannerW
   </article>;
 }
 
-function PlannerWebSearchRequest({ query, date, region, city, locale, saved, onSave, saveDisabled }: PlannerWebSearchProps & { saved: SavedWebCandidate[]; onSave: (candidate: PlannerWebCandidate, checkedAt: string | null) => void; saveDisabled: boolean }) {
+function PlannerWebSearchRequest({ query, date, region, city, locale, ownerId, onLogin, saved, onSave, saveDisabled }: PlannerWebSearchProps & { saved: SavedWebCandidate[]; onSave: (candidate: PlannerWebCandidate, checkedAt: string | null) => void; saveDisabled: boolean }) {
   const [result, setResult] = useState<PlannerWebResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authRequired, setAuthRequired] = useState(false);
   const request = useRef<{ sequence: number; controller: AbortController | null }>({ sequence: 0, controller: null });
   const mounted = useRef(false);
   const headingId = useId();
   const text = (zh: string, en: string, hant: string) => locale === 'en' ? en : locale === 'zh-Hant' ? hant : zh;
   const trimmedQuery = query.trim();
   const validQuery = trimmedQuery.length >= 2 && trimmedQuery.length <= 500;
+  const loginRequired = !ownerId || authRequired;
 
   useEffect(() => {
     mounted.current = true;
@@ -117,6 +121,7 @@ function PlannerWebSearchRequest({ query, date, region, city, locale, saved, onS
   }
 
   async function search() {
+    if (loginRequired) { onLogin?.(); return; }
     if (!validQuery || request.current.controller) return;
     const controller = new AbortController();
     const sequence = ++request.current.sequence;
@@ -139,7 +144,12 @@ function PlannerWebSearchRequest({ query, date, region, city, locale, saved, onS
     } catch (failure: unknown) {
       if (!current()) return;
       const status = failure && typeof failure === 'object' && 'status' in failure ? failure.status : undefined;
-      setError(status === 429
+      if (status === 401) setAuthRequired(true);
+      setError(status === 401
+        ? text('请登录后使用站外搜索；当前关键词和计划已保留。', 'Sign in to use web search. Your current query and plan are unchanged.', '請登入後使用站外搜尋；目前關鍵詞與計畫已保留。')
+        : status === 403
+          ? text('当前账号暂不能使用站外搜索；站内资料仍可浏览。', 'This account cannot currently use web search. Site information is still available.', '目前帳號暫不能使用站外搜尋；站內資料仍可瀏覽。')
+        : status === 429
         ? text('站外搜索次数暂时用完，请稍后再试；站内搜索仍可使用。', 'Web search is temporarily at its limit. Try again later; catalog search is still available.', '站外搜尋次數暫時用完，請稍後再試；站內搜尋仍可使用。')
         : status === 503
           ? text('站外搜索暂不可用，请稍后再试；你仍可使用站内已有资料。', 'Web search is temporarily unavailable. Try again later or use the existing catalog.', '站外搜尋暫不可用，請稍後再試；你仍可使用站內已有資料。')
@@ -155,10 +165,10 @@ function PlannerWebSearchRequest({ query, date, region, city, locale, saved, onS
 
   return <section className="planner-web-search" aria-labelledby={headingId} translate="no" lang={locale}>
     <h3 id={headingId}><Globe2 size={16} aria-hidden="true" />{text('再找找站外资料', 'Search beyond BAYLINK', '再找找站外資料')}</h3>
-    <p className="planner-web-intro">{text('点击后搜索当前关键词、日期与地区。网页资料供你进一步核对，不会自动加入计划。', 'Search the web using these keywords, date and area when you click. Results are references to check and are not added to your plan.', '點擊後搜尋目前關鍵詞、日期與地區。網頁資料供你進一步核對，不會自動加入計畫。')}</p>
-    {!validQuery && <p className="planner-web-hint">{text('请先输入 2–500 个字符的搜索内容。', 'Enter a search of 2–500 characters first.', '請先輸入 2–500 個字元的搜尋內容。')}</p>}
-    <div className="planner-web-actions"><button type="button" className="planner-web-button" disabled={loading || !validQuery} onClick={() => { void search(); }}>
-      {loading && <LoaderCircle size={15} aria-hidden="true" />}{loading ? text('正在搜索…', 'Searching…', '正在搜尋…') : text('搜索站外资料', 'Search the web', '搜尋站外資料')}
+    <p className="planner-web-intro">{loginRequired ? text('访客可继续浏览站内资料。注册并登录后，可查询最新站外资料；登录不会自动搜索或改变当前计划。', 'Guests can keep browsing site information. Register and sign in to look up current web sources; signing in does not start a search or change your plan.', '訪客可繼續瀏覽站內資料。註冊並登入後，可查詢最新站外資料；登入不會自動搜尋或改變目前計畫。') : text('点击后搜索当前关键词、日期与地区。网页资料供你进一步核对，不会自动加入计划。', 'Search the web using these keywords, date and area when you click. Results are references to check and are not added to your plan.', '點擊後搜尋目前關鍵詞、日期與地區。網頁資料供你進一步核對，不會自動加入計畫。')}</p>
+    {!loginRequired && !validQuery && <p className="planner-web-hint">{text('请先输入 2–500 个字符的搜索内容。', 'Enter a search of 2–500 characters first.', '請先輸入 2–500 個字元的搜尋內容。')}</p>}
+    <div className="planner-web-actions"><button type="button" className="planner-web-button" disabled={loading || (loginRequired ? !onLogin : !validQuery)} onClick={() => { void search(); }}>
+      {loading && <LoaderCircle size={15} aria-hidden="true" />}{loginRequired ? text('登录 / 注册后搜索', 'Sign in / register to search', '登入 / 註冊後搜尋') : loading ? text('正在搜索…', 'Searching…', '正在搜尋…') : text('搜索站外资料', 'Search the web', '搜尋站外資料')}
     </button>{loading && <button type="button" className="planner-web-cancel" onClick={cancel}>{text('取消', 'Cancel', '取消')}</button>}</div>
     {loading && <p className="planner-web-status" role="status">{text('正在查找网页与来源，可能需要一点时间。', 'Looking up web pages and sources. This may take a moment.', '正在查找網頁與來源，可能需要一點時間。')}</p>}
     {error && <p className="planner-web-error" role="alert">{error}</p>}

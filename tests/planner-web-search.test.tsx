@@ -13,7 +13,8 @@ const { PlannerWebSearch } = await import('../src/components/PlannerWebSearch');
 const { api } = await import('../src/lib/api');
 const originalRequest = api.request;
 type Props = Parameters<typeof PlannerWebSearch>[0];
-const props: Props = { query: '  Oakland live music  ', date: '2026-10-03', region: 'east-bay', city: 'Oakland', locale: 'en' };
+const props: Props = { query: '  Oakland live music  ', date: '2026-10-03', region: 'east-bay', city: 'Oakland', locale: 'en', ownerId: 'account-a' };
+const mockSearch = (handler: typeof api.request) => { api.request = (endpoint, options) => endpoint === '/planner/web-candidates' ? Promise.resolve({ candidates: [], revision: 0 }) : handler(endpoint, options); };
 const response = (answer = 'Check event details before going. [1]') => ({ ok: true, responseMode: 'web', checkedAt: '2026-09-29T19:00:00.000Z', answer, cached: false,
   sources: [{ title: 'Venue calendar', url: 'https://museumca.org/events/', snippet: 'Check admission and event conditions.' }] });
 const deferred = () => { let resolve!: (value: unknown) => void; const promise = new Promise<unknown>(done => { resolve = done; }); return { promise, resolve }; };
@@ -65,7 +66,7 @@ test('rejecting a source preserves original citation indices and validates retri
 test('search only runs after a click, uses the public search fields and guards repeated clicks while loading', async () => {
   const pending = deferred();
   const requests: { endpoint: string; options?: RequestInit }[] = [];
-  api.request = async (endpoint, options) => { requests.push({ endpoint, options }); return pending.promise; };
+  mockSearch(async (endpoint, options) => { requests.push({ endpoint, options }); return pending.promise; });
   localStorage.setItem('private-plan', JSON.stringify({ title: 'Private family plan', stops: ['home'] }));
   const view = render(<PlannerWebSearch {...props} />);
   assert.equal(requests.length, 0);
@@ -81,9 +82,52 @@ test('search only runs after a click, uses the public search fields and guards r
   assert.equal((view.getByRole('button', { name: 'Search the web' }) as HTMLButtonElement).disabled, false);
 });
 
+test('guests get a localized login action without any web request and signing in does not auto-search', async () => {
+  for (const [locale, label] of [['en', 'Sign in / register to search'], ['zh-Hans', '登录 / 注册后搜索'], ['zh-Hant', '登入 / 註冊後搜尋']] as const) {
+    let calls = 0, logins = 0;
+    mockSearch(async () => { calls++; return response(); });
+    const view = render(<PlannerWebSearch {...props} ownerId={undefined} locale={locale} onLogin={() => { logins++; }} />);
+    fireEvent.click(view.getByRole('button', { name: label }));
+    assert.equal(logins, 1); assert.equal(calls, 0);
+    await act(async () => { view.rerender(<PlannerWebSearch {...props} locale={locale} onLogin={() => { logins++; }} />); });
+    assert.equal(calls, 0);
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: locale === 'en' ? 'Search the web' : locale === 'zh-Hant' ? '搜尋站外資料' : '搜索站外资料' })); });
+    assert.equal(calls, 1);
+    view.unmount();
+  }
+});
+
+test('auth-required responses replace search retries with login while preserving the current query', async () => {
+  let calls = 0, logins = 0;
+  const bodies: unknown[] = [];
+  mockSearch(async (_path, options) => { calls++; bodies.push(JSON.parse(String(options?.body))); throw { status: 401, code: 'auth_required', error: 'Private auth diagnostic' }; });
+  const view = render(<PlannerWebSearch {...props} onLogin={() => { logins++; }} />);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+  assert.match(view.getByRole('alert').textContent!, /Sign in.*query and plan are unchanged/);
+  assert.doesNotMatch(view.container.textContent!, /Private auth diagnostic|temporarily unavailable/);
+  fireEvent.click(view.getByRole('button', { name: 'Sign in / register to search' }));
+  assert.equal(calls, 1); assert.equal(logins, 1);
+  assert.deepEqual(bodies, [{ query: 'Oakland live music', locale: 'en', date: props.date, region: props.region, city: props.city }]);
+});
+
+test('logout and same-account session renewal abort old searches and discard their late results', async () => {
+  for (const next of [{ ownerId: undefined, sessionKey: undefined }, { ownerId: props.ownerId, sessionKey: 'new-session' }]) {
+    const pending = deferred(); let signal!: AbortSignal;
+    mockSearch(async (_path, options) => { signal = options!.signal as AbortSignal; return pending.promise; });
+    const view = render(<PlannerWebSearch {...props} sessionKey="old-session" onLogin={() => {}} />);
+    act(() => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+    await act(async () => { view.rerender(<PlannerWebSearch {...props} {...next} onLogin={() => {}} />); });
+    assert.equal(signal.aborted, true);
+    await act(async () => { pending.resolve(response('Old member result [1]')); });
+    assert.doesNotMatch(view.container.textContent!, /Old member result/);
+    assert.equal(view.container.querySelector('.planner-web-results'), null);
+    view.unmount();
+  }
+});
+
 test('blank optional filters are omitted and the query limit is enforced without a request', async () => {
   const bodies: Record<string, unknown>[] = [];
-  api.request = async (_endpoint, options) => { bodies.push(JSON.parse(String(options?.body))); return response(); };
+  mockSearch(async (_endpoint, options) => { bodies.push(JSON.parse(String(options?.body))); return response(); });
   const view = render(<PlannerWebSearch {...props} query="x" date="" region="" city=" " />);
   assert.equal((view.getByRole('button', { name: 'Search the web' }) as HTMLButtonElement).disabled, true);
   view.rerender(<PlannerWebSearch {...props} query={'x'.repeat(501)} date="" region="" city=" " />);
@@ -95,10 +139,10 @@ test('blank optional filters are omitted and the query limit is enforced without
 });
 
 test('answer and source text cannot inject HTML and filtered citations never point to the wrong source', async () => {
-  api.request = async () => ({ ...response('<img src=x onerror=alert(1)> [1] Safe [2] Missing [9]'), cached: true, sources: [
+  mockSearch(async () => ({ ...response('<img src=x onerror=alert(1)> [1] Safe [2] Missing [9]'), cached: true, sources: [
     { title: 'Unsafe destination', url: 'javascript:alert(1)' },
     { title: '<script>unsafe title</script>', url: 'https://example.com/event', snippet: '<img src=x onerror=alert(2)>' },
-  ] });
+  ] }));
   const view = render(<PlannerWebSearch {...props} />);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
   assert.equal(view.container.querySelectorAll('script, img').length, 0);
@@ -122,7 +166,7 @@ test('answer and source text cannot inject HTML and filtered citations never poi
 test('every search prop change clears completed results without silently making another request', async () => {
   for (const changed of [{ query: 'San Jose shows' }, { date: '2026-10-04' }, { region: 'sf' }, { city: 'Berkeley' }, { locale: 'zh-Hant' as const }]) {
     let calls = 0;
-    api.request = async () => { calls++; return response('Previous result [1]'); };
+    mockSearch(async () => { calls++; return response('Previous result [1]'); });
     const view = render(<PlannerWebSearch {...props} />);
     await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
     assert.ok(view.container.querySelector('.planner-web-results'));
@@ -136,7 +180,7 @@ test('every search prop change clears completed results without silently making 
 test('changed props abort the old request and its late response cannot overwrite the new result', async () => {
   const first = deferred(); const second = deferred();
   const signals: AbortSignal[] = [];
-  api.request = async (_endpoint, options) => { signals.push(options!.signal as AbortSignal); return signals.length === 1 ? first.promise : second.promise; };
+  mockSearch(async (_endpoint, options) => { signals.push(options!.signal as AbortSignal); return signals.length === 1 ? first.promise : second.promise; });
   const view = render(<PlannerWebSearch {...props} />);
   act(() => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
   view.rerender(<PlannerWebSearch {...props} city="Berkeley" />);
@@ -153,7 +197,7 @@ test('cancel and unmount abort requests and never count or render late successfu
   const metrics = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
   for (const action of ['cancel', 'unmount']) {
     const pending = deferred(); let signal!: AbortSignal;
-    api.request = async (_endpoint, options) => { signal = options!.signal as AbortSignal; return pending.promise; };
+    mockSearch(async (_endpoint, options) => { signal = options!.signal as AbortSignal; return pending.promise; });
     const view = render(<PlannerWebSearch {...props} />);
     act(() => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
     if (action === 'cancel') fireEvent.click(view.getByRole('button', { name: 'Cancel' }));
@@ -168,7 +212,7 @@ test('cancel and unmount abort requests and never count or render late successfu
 
 test('503 and 429 have friendly English and Chinese messages without exposing server details', async () => {
   for (const [status, locale, message] of [[503, 'en', /temporarily unavailable/], [429, 'en', /temporarily at its limit/], [503, 'zh-Hant', /站外搜尋暫不可用/], [429, 'zh-Hans', /次数暂时用完/]] as const) {
-    api.request = async () => { throw { status, error: 'Private provider diagnostic' }; };
+    mockSearch(async () => { throw { status, error: 'Private provider diagnostic' }; });
     const view = render(<PlannerWebSearch {...props} locale={locale} />);
     await act(async () => { fireEvent.click(view.getByRole('button', { name: locale === 'en' ? 'Search the web' : locale === 'zh-Hant' ? '搜尋站外資料' : '搜索站外资料' })); });
     assert.match(view.getByRole('alert').textContent!, message);
@@ -180,7 +224,7 @@ test('503 and 429 have friendly English and Chinese messages without exposing se
 
 test('success is counted anonymously and a response without safe sources is not presented as sourced advice', async context => {
   const metrics = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
-  api.request = async () => response();
+  mockSearch(async () => response());
   const view = render(<PlannerWebSearch {...props} />);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
   assert.equal(metrics.mock.callCount(), 1);
@@ -188,7 +232,7 @@ test('success is counted anonymously and a response without safe sources is not 
   assert.equal(metricOptions.credentials, 'omit');
   assert.deepEqual(Object.keys(JSON.parse(String(metricOptions.body))).sort(), ['event', 'locale']);
   assert.equal(JSON.parse(String(metricOptions.body)).event, 'planner_web_search');
-  api.request = async () => ({ ...response('Unsourced claim'), sources: [{ title: 'Private', url: 'https://localhost/' }] });
+  mockSearch(async () => ({ ...response('Unsourced claim'), sources: [{ title: 'Private', url: 'https://localhost/' }] }));
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
   assert.match(view.getByRole('alert').textContent!, /No result with usable sources/);
   assert.equal(view.container.querySelector('.planner-web-results'), null);
@@ -208,22 +252,23 @@ test('candidate cards require a real cited source and preserve unknown price and
   assert.deepEqual(parsePlannerWebResult(response())?.candidates, []);
 });
 
-test('guest candidates survive a new search and reload, preserve date, and can be removed without changing a plan', async () => {
-  api.request = async () => candidateResponse();
-  const view = render(<PlannerWebSearch {...props} />);
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
+test('legacy guest candidates remain readable and removable without permitting another web search', () => {
+  localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([{ ...candidateResponse().candidates[0], checkedAt: response().checkedAt, requestedDate: props.date }]));
+  let calls = 0; api.request = async () => { calls++; return candidateResponse(); };
+  const view = render(<PlannerWebSearch {...props} ownerId={undefined} />);
   assert.match(view.container.textContent!, /Costs unconfirmed; cannot be treated as free/);
-  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  assert.equal(view.queryByRole('button', { name: 'Search the web' }), null);
   assert.equal(loadGuestWebCandidates().length, 1);
   assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-03');
-  view.rerender(<PlannerWebSearch {...props} query="Berkeley cafes" />);
+  view.rerender(<PlannerWebSearch {...props} ownerId={undefined} query="Berkeley cafes" />);
   assert.ok(view.getByRole('region', { name: 'My web candidates' }));
   assert.equal(view.container.querySelector('.planner-web-results'), null);
   view.unmount();
-  const reloaded = render(<PlannerWebSearch {...props} />);
+  const reloaded = render(<PlannerWebSearch {...props} ownerId={undefined} />);
   assert.ok(reloaded.getByText('Oakland Museum of California'));
   fireEvent.click(reloaded.getByRole('button', { name: 'Remove candidate' }));
   assert.deepEqual(loadGuestWebCandidates(), []);
+  assert.equal(calls, 0);
 });
 
 test('account candidates persist through reload, remain private and switching owners isolates responses', async () => {
@@ -250,7 +295,7 @@ test('account candidates persist through reload, remain private and switching ow
   await act(async () => {});
   assert.equal(again.queryByRole('region', { name: 'My web candidates' }), null);
   assert.equal(again.container.querySelector('.planner-web-results'), null);
-  again.rerender(<PlannerWebSearch {...props} />);
+  again.rerender(<PlannerWebSearch {...props} ownerId={undefined} />);
   assert.equal(again.queryByText('Oakland Museum of California'), null);
 });
 
@@ -282,31 +327,36 @@ test('an old account load finishing after account switch cannot expose its candi
 });
 
 test('a newer result for the same place requires an explicit update and replaces the saved date and details', async () => {
-  api.request = async () => candidateResponse();
+  let saved: unknown[] = [], revision = 0;
+  let result: unknown = candidateResponse();
+  api.request = async (endpoint, options) => {
+    if (endpoint === '/planner/web-search') return result;
+    if (options?.method === 'PUT') { saved = JSON.parse(String(options.body)).candidates; revision++; }
+    return { candidates: saved, revision };
+  };
   const view = render(<PlannerWebSearch {...props} />);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
-  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Keep candidate' })); });
   view.rerender(<PlannerWebSearch {...props} date="2026-10-10" />);
-  api.request = async () => ({ ...candidateResponse(), candidates: [{ ...candidateResponse().candidates[0], priceSummary: 'Check special event admission' }] });
+  result = { ...candidateResponse(), candidates: [{ ...candidateResponse().candidates[0], priceSummary: 'Check special event admission' }] };
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
   assert.equal(view.queryByRole('button', { name: 'Candidate kept' }), null);
-  assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-03');
-  fireEvent.click(view.getByRole('button', { name: 'Update kept candidate' }));
-  assert.equal(loadGuestWebCandidates().length, 1);
-  assert.equal(loadGuestWebCandidates()[0].requestedDate, '2026-10-10');
-  assert.equal(loadGuestWebCandidates()[0].priceSummary, 'Check special event admission');
+  assert.equal((saved[0] as { requestedDate: string }).requestedDate, '2026-10-03');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Update kept candidate' })); });
+  assert.equal(saved.length, 1);
+  assert.equal((saved[0] as { requestedDate: string }).requestedDate, '2026-10-10');
+  assert.equal((saved[0] as { priceSummary: string }).priceSummary, 'Check special event admission');
   assert.ok(view.getByRole('button', { name: 'Candidate kept' }));
 });
 
-test('a failed guest storage write never reports that a candidate was kept', async context => {
-  api.request = async () => candidateResponse();
+test('a failed legacy guest removal preserves its saved candidate without requesting web access', context => {
+  localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([{ ...candidateResponse().candidates[0], checkedAt: null, requestedDate: props.date }]));
   context.mock.method(dom.window.Storage.prototype, 'setItem', () => { throw new Error('Storage full'); });
-  const view = render(<PlannerWebSearch {...props} />);
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });
-  fireEvent.click(view.getByRole('button', { name: 'Keep candidate' }));
+  const view = render(<PlannerWebSearch {...props} ownerId={undefined} />);
+  fireEvent.click(view.getByRole('button', { name: 'Remove candidate' }));
   assert.match(view.getByRole('alert').textContent!, /could not save/);
   assert.equal(view.queryByRole('button', { name: 'Candidate kept' }), null);
-  assert.equal(view.queryByRole('region', { name: 'My web candidates' }), null);
+  assert.equal(loadGuestWebCandidates().length, 1);
 });
 
 test('stored candidate data is bounded and rejects unsafe URLs or malformed records', () => {
@@ -320,7 +370,7 @@ test('stored candidate data is bounded and rejects unsafe URLs or malformed reco
 test('saved candidate retrieval dates use Bay Area time without shifting date-only values', () => {
   for (const [checkedAt, expected] of [['2026-10-02T02:00:00Z', 'Retrieved: 2026-10-01 (Bay Area time)'], ['2026-10-01', 'Retrieved: 2026-10-01'], ['2026-02-30', 'Retrieved: Unknown']]) {
     localStorage.setItem(GUEST_WEB_CANDIDATES_KEY, JSON.stringify([{ ...candidateResponse().candidates[0], checkedAt, requestedDate: '2026-10-17' }]));
-    const view = render(<PlannerWebSearch {...props} />);
+    const view = render(<PlannerWebSearch {...props} ownerId={undefined} />);
     assert.ok(view.container.textContent!.includes(expected));
     assert.ok(view.container.textContent!.includes('Searched for: 2026-10-17'));
     view.unmount();

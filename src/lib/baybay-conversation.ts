@@ -11,7 +11,7 @@ import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest
 import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssistantFields } from './baybay-assistant';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
-export type BayBayRetrieval = { requestedMode: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed'; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
+export type BayBayRetrieval = { requestedMode: BayBaySearchMode; effectiveMode?: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed' | 'auth_required'; webAccess?: { authenticated: boolean; allowed: boolean; reason?: 'auth_required' }; failureCode?: string; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
 
 export type BayBayHistoryMessage = { role: 'user' | 'assistant'; content: string };
 export type GuideChatAction = {

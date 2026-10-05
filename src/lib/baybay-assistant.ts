@@ -35,7 +35,7 @@ export type BayBayAssistantFields = {
   assistantSessionToken?: string; taskState?: BayBayTaskState; assistantPlan?: BayBayAssistantPlan; evidence?: BayBayEvidence[];
   followups?: string[];
   answerCoverage?: BayBayAnswerCoverage;
-  research?: { steps: { tool: string; status: string; label: string }[]; warnings: string[]; timings?: Partial<Record<'siteMs' | 'searchMs' | 'readMs' | 'modelMs' | 'finalMs' | 'routeMs' | 'stateMs' | 'monitorMs' | 'quotaMs' | 'weatherMs' | 'planMs' | 'otherMs' | 'totalMs', number>> };
+  research?: { steps: { tool: string; status: string; label: string; code?: string }[]; warnings: string[]; timings?: Partial<Record<'siteMs' | 'searchMs' | 'readMs' | 'modelMs' | 'finalMs' | 'routeMs' | 'stateMs' | 'monitorMs' | 'quotaMs' | 'weatherMs' | 'planMs' | 'otherMs' | 'totalMs', number>> };
 };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const guidePaths = new Set(guides.map(guide => `/guides/${guide.slug}`));
@@ -165,7 +165,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       checks: Array.isArray(plan.checks) ? plan.checks.slice(0, 30).flatMap(check => record(check) && text(check.code, 100) && text(check.message, 1000) && option(check.status, ['pass', 'unknown', 'fail']) ? [{ code: text(check.code, 100)!, status: option(check.status, ['pass', 'unknown', 'fail'])!, message: text(check.message, 1000)! }] : []) : [],
       unknowns: strings(plan.unknowns), summary: text(plan.summary, 2500) };
   }
-  if (record(input.research)) result.research = { warnings: strings(input.research.warnings), steps: Array.isArray(input.research.steps) ? input.research.steps.slice(0, 15).flatMap(step => record(step) && text(step.tool, 80) && text(step.status, 40) && text(step.label) ? [{ tool: text(step.tool, 80)!, status: text(step.status, 40)!, label: text(step.label)! }] : []) : [] };
+  if (record(input.research)) result.research = { warnings: strings(input.research.warnings), steps: Array.isArray(input.research.steps) ? input.research.steps.slice(0, 15).flatMap(step => record(step) && text(step.tool, 80) && text(step.status, 40) && text(step.label) ? [{ tool: text(step.tool, 80)!, status: text(step.status, 40)!, label: text(step.label)!, ...(text(step.code, 80) ? { code: text(step.code, 80) } : {}) }] : []) : [] };
   if (result.research && record(input.research) && record(input.research.timings)) {
     const timings: NonNullable<BayBayAssistantFields['research']>['timings'] = {};
     for (const key of ['siteMs', 'searchMs', 'readMs', 'modelMs', 'finalMs', 'routeMs', 'stateMs', 'monitorMs', 'quotaMs', 'weatherMs', 'planMs', 'otherMs', 'totalMs'] as const) if (Number.isInteger(input.research.timings[key]) && number(input.research.timings[key], 600_000) !== undefined) timings[key] = Number(input.research.timings[key]);

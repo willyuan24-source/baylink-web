@@ -51,7 +51,7 @@ test('route validation accepts a merged event reference but still rejects mismat
 test('disabled or failed route capability hides paid actions and retains working map links', async t => {
   const paths: string[] = [];
   t.mock.method(api, 'request', async (path: string) => { paths.push(path); return { available: false }; });
-  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>);
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member"/>);
   assert.deepEqual(paths, [], 'collapsed travel checks perform no requests'); expand(view);
   await act(async () => {});
   assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
@@ -59,14 +59,14 @@ test('disabled or failed route capability hides paid actions and retains working
   assert.deepEqual(paths, ['/planner/travel-capabilities']);
   view.unmount();
   t.mock.method(api, 'request', async () => { throw Error('offline'); });
-  const failed = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>); expand(failed); await act(async () => {});
+  const failed = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member"/>); expand(failed); await act(async () => {});
   assert.equal(failed.queryByRole('button', { name: '核对这段路程' }), null); assert.ok(failed.getByRole('link', { name: /打开地图核对/ }));
 });
 
 test('routing only starts after available capability and explicit click; a mismatched leg response is not displayed', async t => {
   const paths: string[] = [];
   t.mock.method(api, 'request', async (path: string) => { paths.push(path); return path.endsWith('capabilities') ? { available: true } : { ok: true, provider: 'google-maps', from: stops[1], to: stops[0], travelMode: 'drive', durationMinutes: 25, distanceMeters: 12000, warnings: [], departureAt: '2026-10-17T19:00:00.000Z', checkedAt: '2026-10-01T19:00:00.000Z' }; });
-  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>);
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member"/>);
   expand(view);
   const button = await view.findByRole('button', { name: '核对这段路程' }); assert.deepEqual(paths, ['/planner/travel-capabilities']);
   fireEvent.click(button); await view.findByRole('status');
@@ -76,7 +76,7 @@ test('routing only starts after available capability and explicit click; a misma
 test('closing travel checks aborts pending availability and a late response cannot reopen the panel', async t => {
   let signal: AbortSignal | undefined, resolve!: (value: unknown) => void;
   t.mock.method(api, 'request', (_path: string, options: RequestInit) => { signal = options.signal as AbortSignal; return new Promise(yes => { resolve = yes; }); });
-  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>); expand(view);
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member"/>); expand(view);
   assert.ok(signal); assert.equal(signal.aborted, false);
   const panel = view.getByText('这几站来得及吗？核对交通').closest('details')!;
   panel.open = false; fireEvent(panel, new dom.window.Event('toggle'));
@@ -84,4 +84,63 @@ test('closing travel checks aborts pending availability and a late response cann
   await act(async () => resolve({ available: true }));
   assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
   assert.equal(view.queryByRole('link', { name: /打开地图核对/ }), null);
+});
+
+test('guest travel checks offer login and public map links without requesting capability or paid routes', async t => {
+  let logins = 0;
+  const request = t.mock.method(api, 'request', async () => assert.fail('guest does not request external lookup'));
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} onLogin={() => { logins++; }}/>);
+  expand(view);
+  assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
+  assert.match(view.getByRole('link', { name: /打开地图核对/ }).getAttribute('href')!, /^https:\/\/www.google.com\/maps\/dir\//);
+  fireEvent.click(view.getByRole('button', { name: '登录 / 注册' }));
+  assert.equal(logins, 1); assert.equal(request.mock.callCount(), 0);
+});
+
+test('auth transitions abort capability queries and recheck eligibility without closing the open panel', async t => {
+  let resolve!: (value: unknown) => void;
+  const signals: AbortSignal[] = [];
+  t.mock.method(api, 'request', (_path: string, options: RequestInit) => {
+    signals.push(options.signal as AbortSignal);
+    return signals.length === 1 ? new Promise(yes => { resolve = yes; }) : Promise.resolve({ available: true, webAccess: { allowed: true } });
+  });
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member" sessionKey="first"/>);
+  expand(view);
+  view.rerender(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>);
+  assert.equal(signals[0].aborted, true);
+  await act(async () => { resolve({ available: true }); });
+  assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
+  assert.equal(signals.length, 1);
+  await act(async () => { view.rerender(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member" sessionKey="second"/>); });
+  assert.ok(view.getByRole('button', { name: '核对这段路程' })); assert.equal(signals.length, 2);
+  await act(async () => { view.rerender(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member" sessionKey="third"/>); });
+  assert.equal(signals[1].aborted, true); assert.equal(signals.length, 3);
+});
+
+test('logout aborts a paid route request and cannot display its late estimate', async t => {
+  let resolve!: (value: unknown) => void, signal!: AbortSignal;
+  t.mock.method(api, 'request', (path: string, options: RequestInit) => path.endsWith('capabilities') ? Promise.resolve({ available: true }) : new Promise(yes => { signal = options.signal as AbortSignal; resolve = yes; }));
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member"/>); expand(view);
+  await act(async () => {});
+  fireEvent.click(view.getByRole('button', { name: '核对这段路程' }));
+  view.rerender(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details}/>);
+  assert.equal(signal.aborted, true);
+  await act(async () => { resolve({ ok: true, provider: 'google-maps', from: stops[0], to: stops[1], travelMode: 'drive', durationMinutes: 25, distanceMeters: 12000, warnings: [], departureAt: '2026-10-17T19:00:00.000Z', checkedAt: '2026-10-01T19:00:00.000Z' }); });
+  assert.equal(view.container.querySelector('.planner-travel-estimate'), null);
+  assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
+});
+
+test('server auth denial removes paid route actions and shows login instead of a network error', async t => {
+  let estimates = 0, logins = 0;
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path.endsWith('capabilities')) return { available: true };
+    estimates++; throw { status: 401, code: 'auth_required', error: 'Private auth diagnostic' };
+  });
+  const view = render(<PlannerTravelCheck stops={stops} date="2026-10-17" details={details} ownerId="member" onLogin={() => { logins++; }}/>); expand(view);
+  await act(async () => {});
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '核对这段路程' })); });
+  assert.equal(view.queryByRole('button', { name: '核对这段路程' }), null);
+  assert.doesNotMatch(view.container.textContent || '', /Private auth diagnostic|未能取得/);
+  fireEvent.click(view.getByRole('button', { name: '登录 / 注册' }));
+  assert.equal(estimates, 1); assert.equal(logins, 1);
 });

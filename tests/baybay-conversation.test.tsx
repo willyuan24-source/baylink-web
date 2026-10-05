@@ -180,7 +180,7 @@ test('cleared city and date constraints stay cleared on follow-ups instead of be
 test('mode switching and cancellation keep the selected request scope and ignore cancelled geographic corrections', async t => {
   const pending: { body: { searchMode: string; searchContext?: { city?: string; date?: string }; history: unknown[] }; signal: AbortSignal; resolve: (response: Response) => void }[] = [];
   t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
-  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const view = render(<BayBayAssistantEntry ownerId="member" variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   const ask = (message: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
   ask('San Jose 10/05/2027 有什么活动');
   assert.equal(pending[0].body.searchMode, 'smart');

@@ -39,7 +39,7 @@ import { ModalShell } from '../components/ui/Modal';
 import { Toast } from '../components/Toast';
 import { ImageViewer } from '../components/ImageViewer';
 import { PostNotFoundView } from '../components/PostNotFoundView';
-import { BayBayAssistantEntry } from '../components/BayBayAssistantEntry';
+import { BayBayAssistantEntry, type BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import { BayBayFloatingLauncher } from '../components/BayBayFloatingLauncher';
 import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { ResetPasswordModal } from '../components/ResetPasswordModal';
@@ -100,6 +100,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
+  const [baybaySessionRevision, setBaybaySessionRevision] = useState(0);
+  const baybayLoginDraft = useRef<BayBayConversationDraft | null>(null);
+  const baybayResumeOwner = useRef<string | null>(null);
+  const [baybayResumedConversation, setBaybayResumedConversation] = useState<{ ownerId: string; draft: BayBayConversationDraft } | null>(null);
   const baybaySessionScope = user?.id || 'guest';
   const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string } | null>(null);
   const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
@@ -114,10 +118,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setBaybayPanelOpen(true);
   }, [categorySlug, baybaySessionScope]);
   useEffect(() => {
-    setBaybayPanelOpen(false);
+    setBaybayPanelOpen(baybayResumeOwner.current === user?.id && !!user?.id);
+    baybayResumeOwner.current = null;
+    setBaybayResumedConversation(null);
+    baybayLoginDraft.current = null;
     setBaybayPendingQuestion(null);
     setBaybayCategoryHint(undefined);
-  }, [baybaySessionScope]);
+  }, [baybaySessionScope, baybaySessionRevision, user?.id]);
   const [showCreate, setShowCreate] = useState(false);
   const pendingCreateRef = useRef(false);
   const [editingPost, setEditingPost] = useState<PostData | null>(null);
@@ -426,6 +433,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const clearLocalSession = useCallback(() => {
     ++fetchSeqRef.current;
+    // Storage events can replace a token for the same account in one batched update.
+    // Rotate the assistant session even when the final user ID has not changed.
+    setBaybaySessionRevision(value => value + 1);
     clearFeedCache();
     setUser(null);
     setSocket((prev) => { prev?.disconnect(); return null; });
@@ -860,9 +870,11 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         <BayBayAssistantEntry
           key={baybaySessionScope}
           ownerId={user?.id}
-          sessionKey={baybaySessionScope}
+          sessionKey={`${baybaySessionScope}:${baybaySessionRevision}`}
+          initialConversation={baybayResumedConversation?.ownerId === user?.id ? baybayResumedConversation?.draft : undefined}
+          onLoginNeeded={(draft) => { baybayLoginDraft.current = user ? null : draft; pendingCreateRef.current = false; setShowLogin(true); }}
           variant="headless"
-          panelOpen={baybayPanelOpen}
+          panelOpen={baybayPanelOpen && !showLogin}
           onPanelOpenChange={(open) => {
             setBaybayPanelOpen(open);
             if (!open) {
@@ -903,8 +915,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
         {showLogin && (
           <LoginModal
-            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; cancelPendingContact(); }}
-            onLogin={(loggedInUser) => { clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); completeContactLogin(loggedInUser); }}
+            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; baybayLoginDraft.current = null; cancelPendingContact(); }}
+            onLogin={(loggedInUser) => { if (baybayLoginDraft.current) { baybayResumeOwner.current = loggedInUser.id; setBaybayResumedConversation({ ownerId: loggedInUser.id, draft: baybayLoginDraft.current }); } baybayLoginDraft.current = null; setBaybaySessionRevision(value => value + 1); clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); completeContactLogin(loggedInUser); }}
             showToast={showToast}
             onForgotPassword={handleOpenForgotPassword}
           />

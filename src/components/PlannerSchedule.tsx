@@ -8,7 +8,7 @@ import { PlannerStopOffers } from './PlannerStopOffers';
 import { PlannerTravelCheck } from './PlannerTravelCheck';
 import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
 
-export function PlannerSchedule({ stops, date, title, details, admissionOverride, onChange, onStatus }: { stops: Stop[]; date: string; title: string; details: PlanDetails; admissionOverride?: BayBayAdmissionOverride; onChange: (details: PlanDetails) => void; onStatus: (message: string) => void }) {
+export function PlannerSchedule({ stops, date, title, details, admissionOverride, ownerId, sessionKey, onLogin, onChange, onStatus }: { stops: Stop[]; date: string; title: string; details: PlanDetails; admissionOverride?: BayBayAdmissionOverride; ownerId?: string; sessionKey?: string; onLogin?: () => void; onChange: (details: PlanDetails) => void; onStatus: (message: string) => void }) {
   const locale = useLocale();
   const text = (zh: string, en: string) => locale === 'en' ? en : zh;
   const update = (patch: Partial<PlanDetails>) => onChange({ ...details, ...patch });
@@ -37,7 +37,7 @@ export function PlannerSchedule({ stops, date, title, details, admissionOverride
     } catch (error) { onStatus(error instanceof Error ? error.message : text('日历导出失败。', 'Calendar export failed.')); }
   };
   return <section className="planner-schedule" aria-label={text('时间与预算', 'Time and budget')}>
-    <PlannerTravelCheck stops={stops} date={date} details={details} />
+    <PlannerTravelCheck stops={stops} date={date} details={details} ownerId={ownerId} sessionKey={sessionKey} onLogin={onLogin} />
     <h3><Clock3 size={16} />{text('把时间排清楚', 'Make time for each stop')}</h3>
     <p className="planner-small-note">{text('官方时间逐站标明；未收录或需重新核对的时段仍是草稿。交通与餐休是你预留的时间，不代表实际路程或预订。', 'Each stop shows its time evidence; unknown or outdated hours remain a draft. Travel and meal/rest buffers are your allowances, not live travel times or reservations.')}</p>
     <div className="planner-detail-grid"><label>{text('开始时间', 'Start at')}<input type="time" required value={details.startTime} onChange={event => event.target.value && update({ startTime: event.target.value })} /></label><label>{text('希望几点结束', 'Finish by')}<input type="time" required value={details.finishBy} onChange={event => event.target.value && update({ finishBy: event.target.value })} /></label></div>

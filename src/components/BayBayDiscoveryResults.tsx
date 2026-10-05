@@ -18,6 +18,12 @@ export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse
   const catalogDay = catalog ? validPlannerWebDate(retrieval.catalogCheckedAt) : null;
   const checked = catalogDay ? t(`资料核对 ${catalogDay}`, `Catalog checked ${catalogDay}`) : web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
   const failed = retrieval?.webStatus === 'verification_failed';
+  const failureCodes = [retrieval?.failureCode, ...(response.research?.warnings || []), ...(response.research?.steps || []).map(step => step.code)];
+  const webNotice = retrieval?.webStatus === 'auth_required' || retrieval?.webAccess?.reason === 'auth_required'
+    ? t('本次仅使用站内资料（回答时未登录或登录已失效）', 'Site information only for this reply (not signed in or sign-in had expired)')
+    : failureCodes.includes('web_daily_limit') ? t('今日联网额度已用完，已保留站内资料', 'Today’s web lookup limit has been reached; site information remains available')
+      : failureCodes.some(code => ['web_rate_limit', 'web_provider_rate_limit'].includes(code || '')) ? t('联网查询暂时过于频繁，请稍后再试；站内资料仍可使用', 'Web lookups are temporarily rate-limited; retry later. Site information remains available')
+        : retrieval?.webStatus === 'unavailable' ? t('本次联网未成功，可稍后重试', 'Web lookup unavailable; retry later') : '';
   if (response.responseMode === 'assistant') {
     const sources = bayBayAssistantResult(response)?.sources || [];
     const methods = sources.map(source => response.evidence?.find(item => item.url === source.url)?.verification);
@@ -35,9 +41,9 @@ export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse
       : retrieval?.webStatus === 'completed' && retrieval.scope === 'web' ? t('已检索站外公开资料', 'Searched public web information')
         : retrieval?.scope === 'site' ? t('已检索站内资料', 'Searched site information')
           : retrieval?.scope === 'none' ? t('本次未检索', 'No search this turn') : t('根据当前条件整理', 'Organized around your requirements');
-    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sourceSummary && t(` · 实际引用：${sourceSummary}`, ` · Cited evidence: ${sourceSummary}`)}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
+    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sourceSummary && t(` · 实际引用：${sourceSummary}`, ` · Cited evidence: ${sourceSummary}`)}{webNotice && ` · ${webNotice}`}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
   }
-  return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
+  return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{webNotice && ` · ${webNotice}`}</span></div>;
 }
 
 export function BayBayAnswer({ response, onNavigate }: { response: GuideChatResponse; onNavigate?: (path: string) => void }) {

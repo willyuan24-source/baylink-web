@@ -19,6 +19,8 @@ import { translateText, useLocale } from '../i18n/locale';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
+/** An explicit guest sign-in carries only this tab's in-memory draft, never account history. */
+export type BayBayConversationDraft = { question: string; turns: BayBayTurn[] };
 type BayBayAssistantEntryProps = {
   variant: 'sidebar' | 'inline' | 'headless';
   onNavigate: (path: string) => void;
@@ -33,6 +35,8 @@ type BayBayAssistantEntryProps = {
   blockedUserIds?: string[];
   ownerId?: string;
   sessionKey?: string;
+  onLoginNeeded?: (draft: BayBayConversationDraft) => void;
+  initialConversation?: BayBayConversationDraft;
 };
 
 const resolveCategoryLabel = (category?: string) => {
@@ -45,7 +49,7 @@ export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBa
 
 const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, categoryHint,
   currentPath = typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search,
-  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey,
+  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -53,12 +57,12 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   const setOpen = useCallback((value: boolean) => {
     if (onPanelOpenChange) onPanelOpenChange(value); else setInternalOpen(value);
   }, [onPanelOpenChange]);
-  const [question, setQuestion] = useState('');
+  const [question, setQuestion] = useState(initialConversation?.question || '');
   const [searchMode, setSearchMode] = useState<BayBaySearchMode>('smart');
-  const [turns, setTurns] = useState<BayBayTurn[]>([]);
-  const turnsRef = useRef<BayBayTurn[]>([]);
+  const [turns, setTurns] = useState<BayBayTurn[]>(initialConversation?.turns || []);
+  const turnsRef = useRef<BayBayTurn[]>(initialConversation?.turns || []);
   const activeRequest = useRef<{ id: number; controller: AbortController } | null>(null);
-  const sequence = useRef(0);
+  const sequence = useRef(Math.max(0, ...(initialConversation?.turns || []).map(turn => turn.id)));
   const consumedPending = useRef<string | number | null>(null);
   const pendingContext = useRef<{ key: string | number; path: string } | null>(null);
   const composing = useRef(false);
@@ -68,6 +72,9 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   const followReply = useRef(true);
   const lastScrollTop = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [authRequired, setAuthRequired] = useState(false);
+  const memberWebAccess = !!ownerId && !authRequired;
+  const effectiveSearchMode = memberWebAccess ? searchMode : 'site';
   const loading = turns.some((turn) => turn.state === 'pending');
   const currentGuide = currentBayBayGuide(currentPath);
   const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
@@ -126,12 +133,13 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     activeRequest.current = { id, controller };
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
+    void fetchBayBayReply(message, { currentPath: requestPath, searchMode: effectiveSearchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
       if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, progress } : turn));
     })
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
+        if (response.retrieval?.webAccess?.reason === 'auth_required' || response.retrieval?.webStatus === 'auth_required') setAuthRequired(true);
         updateTurns((previous) => previous.map((turn) => {
           if (turn.id !== id) return turn;
           const nextContext = { ...turn.searchContext }, nextOverrides = { ...turn.searchOverrides }, state = response.taskState;
@@ -152,7 +160,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
         } : turn));
       });
     return true;
-  }, [categoryHint, currentPath, searchMode, updateTurns]);
+  }, [categoryHint, currentPath, effectiveSearchMode, updateTurns]);
 
   useEffect(() => {
     if (!pendingQuestion) { consumedPending.current = null; pendingContext.current = null; return; }
@@ -172,6 +180,10 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   }, [open, loading, currentPath, pendingQuestion, pendingQuestionId, askBayBay, onPendingQuestionConsumed]);
 
   const navigate = (path: string) => { onNavigate(path); close(); };
+  const signIn = () => {
+    stop();
+    onLoginNeeded?.({ question, turns: turnsRef.current });
+  };
   const handleAction = (action: GuideChatAction, intent: string) => {
     if (action.type === 'category' || action.type === 'guide') {
       if (safeBayBayPath(action.url)) navigate(action.url);
@@ -259,7 +271,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
           {turns.length === 0 && <div className="baybay-start-links"><button type="button" onClick={() => navigate('/guides')}><BookOpen size={14} />自己浏览攻略</button><button type="button" onClick={() => navigate('/tools')}>打开生活工具箱<ChevronRight size={14} /></button></div>}
         </div>
         <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>
-          <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={searchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}<span>{searchMode === 'site' ? copy('只参考站内资料', 'Site information only') : copy('联网时查询公开资料，结果会标明来源', 'Public web lookups include sources')}</span></div>
+          <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{memberWebAccess ? <>{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={effectiveSearchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}<span>{searchMode === 'site' ? copy('只参考站内资料', 'Site information only') : copy('已登录 · 可按需联网；额度或服务受限时会说明，并保留站内结果。', 'Signed in · Web lookups are available when needed, subject to limits and availability. Site results remain available.')}</span></> : <><strong className="baybay-access-label">{ownerId ? copy('登录需更新 · 仅站内', 'Sign-in needs updating · Site only') : copy('访客 · 仅站内', 'Guest · Site only')}</strong>{onLoginNeeded && <button type="button" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</button>}<span>{copy('当前只使用 BAYLINK 已收录资料。登录后可按需联网核实，受查询额度与服务可用性限制。', 'Uses information already collected by BAYLINK. Sign in for web verification, subject to lookup limits and availability.')}</span></>}</div>
           {schoolContext && <p className="baybay-composer-note" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
           <div className="member-baybay-composer"><input ref={inputRef} type="text" aria-label="向 BayBay 提问" value={question} maxLength={500}
             aria-describedby={schoolContext ? 'baybay-school-privacy' : undefined}
