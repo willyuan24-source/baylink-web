@@ -1,9 +1,10 @@
 import { bayBayAssistantPlanImport, parseBayBayAssistantFields, type BayBayAdmissionFacts, type BayBayAssistantPlan, type BayBayTaskState } from './baybay-assistant';
 import { parseSharedPlan, type PlanDetails, type PlanFilters, type Stop } from './planner';
 import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails } from './planner-itinerary';
+import { sourcedAdmissionSubtotal } from './baybay-admission-reference';
 
 export type BayBayPlanDraft = { version: 1; createdAt: number; ownerId?: string; title: string; date: string; stops: Stop[]; details: PlanDetails; requirements: BayBayTaskState; costReference: { knownTotalUsd?: number; unknownItems: string[] }; admissions: { stop: Stop; facts: BayBayAdmissionFacts }[] };
-export type BayBayAdmissionOverride = { active: boolean; knownTotalUsd: number; unknownStops: Stop[]; unknowns: string[] };
+export type BayBayAdmissionOverride = { active: boolean; knownTotalUsd: number; allAdmissionAmountsKnown?: boolean; unknownStops: Stop[]; unknowns: string[] };
 const drafts = new Map<string, BayBayPlanDraft>();
 const TTL = 30 * 60 * 1000;
 
@@ -58,5 +59,6 @@ export function bayBayAdmissionOverride(draft: BayBayPlanDraft | null, date: str
     if (!facts || facts.status !== 'complete' || facts.knownTotalUsd === undefined) unknownStops.push(stop);
     unknowns.push(...(facts?.unknowns || []));
   }
-  return { active, knownTotalUsd: Math.round(knownTotalUsd * 100) / 100, unknownStops, unknowns: [...new Set(unknowns)] };
+  const allAdmissionAmountsKnown = sourcedAdmissionSubtotal(draft.stops.map(stop => draft.admissions.find(item => item.stop.kind === stop.kind && item.stop.id === stop.id)?.facts), draft.requirements.partySize) !== undefined;
+  return { active, knownTotalUsd: Math.round(knownTotalUsd * 100) / 100, allAdmissionAmountsKnown, unknownStops, unknowns: [...new Set(unknowns)] };
 }

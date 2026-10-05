@@ -20,6 +20,7 @@ const { stageBayBayPlanDraft, readBayBayPlanDraft, bayBayAdmissionOverride } = a
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const { setLocale } = await import('../src/i18n/locale');
 const { PlannerSchedule } = await import('../src/components/PlannerSchedule');
+const { PlannerPlanOverview } = await import('../src/components/PlannerPlanOverview');
 const originalRequest = api.request;
 const date = '2026-09-30';
 const stops: Stop[] = [{ kind: 'place', id: 'golden-gate' }, { kind: 'place', id: 'chinatown' }];
@@ -175,6 +176,58 @@ test('the actual two-stop BayBay handoff keeps top overview and schedule costs s
   assert.notEqual(subtotal(overview, '已知金额与预留小计'), '$129.85');
   assert.doesNotMatch(overview.textContent || '', /门票沿用原 BayBay 来源快照/);
   assert.match(schedule.textContent || '', /原 BayBay 票价快照已停用/);
+});
+
+test('the PIER39 partial zero reference survives handoff in both cost summaries while date and trip costs remain uncertain', async () => {
+  const fields = parseBayBayAssistantFields({
+    evidence: [{ id: 'pier', title: 'PIER 39 FAQ', kind: 'place', url: 'https://www.pier39.com/frequently-asked-questions/', checkedAt: '2026-10-04', verification: 'catalog' }],
+    taskState: { version: 1, revision: 1, date: '2026-11-07', startTime: '10:00', finishBy: '15:00', partySize: 3, childAges: [5], budget: 120, budgetScope: 'total', travelMode: 'transit', returnToOrigin: false },
+    assistantPlan: { id: 'pier-only', title: '只看海狮', date: '2026-11-07', status: 'needs_verification', stops: [
+      { id: 'place:pier39', entityId: 'pier39', kind: 'place', title: 'PIER 39', sourceIds: ['pier'], admissionFacts: { status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 0, sourceUrl: 'https://www.pier39.com/frequently-asked-questions/', checkedAt: '2026-10-04', sourceIds: ['pier'], breakdown: [{ category: 'all-ages', quantity: 3, unitUsd: 0, subtotalUsd: 0 }], applicability: { date: '2026-11-07', dateStatus: 'regular-unconfirmed', feesIncluded: true }, unknowns: ['仅公共区和海狮观景免费，收费项目另算；所选日期开放仍待确认。'] } },
+    ], budget: { knownTotalUsd: 0, limitUsd: 120, scope: 'total', unknownItems: ['餐饮和交通未计入。'] } },
+  });
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!, url = new URL(path, 'https://www.baylink.us');
+  const draft = readBayBayPlanDraft(url.searchParams.get('baybayDraft'))!;
+  const reference = bayBayAdmissionOverride(draft, draft.date, draft.stops, draft.details)!;
+  assert.equal(reference.knownTotalUsd, 0); assert.equal(reference.allAdmissionAmountsKnown, true);
+  assert.equal(reference.unknownStops.length, 1, 'partial applicability remains a pending check');
+  const view = await openPlanner(url.search);
+  const overview = view.getByRole('region', { name: '当前计划概览' }), schedule = view.getByRole('region', { name: '时间与预算' });
+  const subtotal = (section: HTMLElement, label: string) => within(section).getByText(label).nextElementSibling?.textContent?.replace(/^US/, '');
+  assert.equal(subtotal(overview, '已知金额与预留小计'), '$0.00');
+  assert.equal(subtotal(schedule, 'BayBay 原来源已知门票小计（全组）'), '$0.00');
+  assert.equal(subtotal(schedule, '目前可计入的小计'), '$0.00');
+  assert.match(schedule.textContent || '', /仅公共区和海狮观景免费，收费项目另算/);
+  assert.match(schedule.textContent || '', /所选日期开放仍待确认/);
+  assert.match(schedule.textContent || '', /餐饮和交通未计入/);
+  assert.match(schedule.textContent || '', /不是完整出行总价/);
+  assert.match(overview.textContent || '', /费用不是完整报价/);
+  fireEvent.change(view.getByLabelText('餐饮预留（整组）$'), { target: { value: '20' } });
+  assert.equal(subtotal(overview, '已知金额与预留小计'), '$20.00');
+  assert.equal(subtotal(schedule, '目前可计入的小计'), '$20.00');
+  assert.equal(subtotal(schedule, 'BayBay 原来源已知门票小计（全组）'), '$0.00');
+  assert.equal(bayBayAdmissionOverride(draft, '2026-11-08', draft.stops, draft.details)?.active, false);
+  for (const sourceIds of [[], ['pier']]) {
+    const incomplete = structuredClone(draft);
+    incomplete.admissions[0].facts.sourceIds = sourceIds;
+    if (sourceIds.length) incomplete.admissions[0].facts.breakdown[0].quantity = 2;
+    assert.equal(bayBayAdmissionOverride(incomplete, incomplete.date, incomplete.stops, incomplete.details)?.allAdmissionAmountsKnown, false);
+  }
+});
+
+test('both planner cost summaries keep legacy or incomplete zero references pending in English', async () => {
+  await setLocale('en', false);
+  for (const allAdmissionAmountsKnown of [undefined, false]) {
+    const reference = { active: true, knownTotalUsd: 0, allAdmissionAmountsKnown, unknownStops: stops.slice(0, 1), unknowns: ['Child admission remains unknown.'] };
+    const view = render(<><PlannerPlanOverview stops={stops.slice(0, 1)} date="2026-11-07" details={defaultPlanDetails()} admissionOverride={reference} />
+      <PlannerSchedule stops={stops.slice(0, 1)} date="2026-11-07" title="Incomplete" details={defaultPlanDetails()} admissionOverride={reference} onChange={() => {}} onStatus={() => {}} /></>);
+    const overview = view.getByRole('region', { name: 'Current plan overview' }), schedule = view.getByRole('region', { name: 'Time and budget' });
+    for (const [section, label] of [[overview, 'Known costs + allowances'], [schedule, 'Original BayBay sourced admission subtotal (group)'], [schedule, 'Partial subtotal']] as const) {
+      assert.equal(within(section).getByText(label).nextElementSibling?.textContent, 'Cost not yet calculated');
+    }
+    assert.match(schedule.textContent || '', /Child admission remains unknown/);
+    view.unmount();
+  }
 });
 
 test('an old saved event cannot be added twice through its merged catalog card and retains its settings when saved', async () => {

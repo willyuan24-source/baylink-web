@@ -5,6 +5,7 @@ import { bayBayAssistantPlanImport, type BayBayAssistantPlan, type BayBayEvidenc
 import { BayBayEvidenceStamp } from './BayBayEvidenceStamp';
 import { stageBayBayPlanDraft } from '../lib/baybay-plan-handoff';
 import { plannerWebCheckedDate } from '../lib/planner-web-search';
+import { sourcedAdmissionSubtotal } from '../lib/baybay-admission-reference';
 
 function useCopy() {
   const locale = useLocale();
@@ -64,8 +65,9 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
 }) {
   const t = useCopy(), imported = bayBayAssistantPlanImport(plan);
   const [importError, setImportError] = useState(false);
+  const sourcedZeroAdmission = plan.budget.knownTotalUsd === 0 && sourcedAdmissionSubtotal(plan.stops.map(stop => stop.admissionFacts), taskState?.partySize, new Set(evidence.map(item => item.id))) === 0;
   const hasUnpricedCosts = plan.budget.unknownItems.length > 0 || !plan.stops.length || plan.stops.some(stop => stop.admissionFacts ? stop.admissionFacts.status !== 'complete' || stop.admissionFacts.knownTotalUsd === undefined : stop.admissionUsd === undefined);
-  const costNotCalculated = plan.budget.knownTotalUsd === undefined || (plan.budget.knownTotalUsd === 0 && hasUnpricedCosts);
+  const costNotCalculated = plan.budget.knownTotalUsd === undefined || (plan.budget.knownTotalUsd === 0 && hasUnpricedCosts && !sourcedZeroAdmission);
   const totalLimit = plan.budget.scope === 'total' ? plan.budget.limitUsd : plan.budget.scope === 'person' && taskState?.partySize && plan.budget.limitUsd !== undefined ? plan.budget.limitUsd * taskState.partySize : undefined;
   const overBudget = totalLimit !== undefined && plan.budget.knownTotalUsd !== undefined && plan.budget.knownTotalUsd > totalLimit;
   const unique = (items: string[]) => [...new Set(items.map(item => item.trim()).filter(Boolean))];
@@ -79,7 +81,7 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
   const returnLeg = plan.travelLegs?.find(leg => leg.provider === 'google-maps' && leg.status === 'estimate' && leg.from === stopIds[stopIds.length - 1] && leg.to === 'origin');
   return <section className="baybay-assistant-plan" aria-label={t('BayBay 安排草案', 'BayBay plan draft')} translate="no">
     <header><div><small>{plan.date || t('日期待确认', 'Date unconfirmed')}</small><h3>{t(plan.title, plan.title)}</h3></div><span className={`baybay-plan-status baybay-plan-status--${plan.status}`}>{status}</span></header>
-    <section className="baybay-plan-budget" aria-label={t('费用与关键待确认项', 'Costs and key uncertainties')}><h4>{t('费用核对', 'Budget check')}</h4><p>{costNotCalculated ? <strong>{t('费用待核算', 'Cost not yet calculated')}</strong> : <>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>${plan.budget.knownTotalUsd}</strong></>}</p>
+    <section className="baybay-plan-budget" aria-label={t('费用与关键待确认项', 'Costs and key uncertainties')}><h4>{t('费用核对', 'Budget check')}</h4><p>{costNotCalculated ? <strong>{t('费用待核算', 'Cost not yet calculated')}</strong> : sourcedZeroAdmission ? <>{t('全组已知门票小计', 'Known group admission subtotal')} <strong>$0.00</strong></> : <>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>${plan.budget.knownTotalUsd}</strong></>}</p>
       {plan.budget.limitUsd !== undefined && <p>{t('预算上限', 'Budget limit')} <strong>${plan.budget.limitUsd}</strong>{` · ${plan.budget.scope === 'person' ? t('每人', 'per person') : plan.budget.scope === 'total' ? t('全组', 'whole group') : t('范围待确认', 'scope unconfirmed')}`}</p>}
       {overBudget && <p className="baybay-plan-risk" role="status"><strong>{t(`已知费用已超出全组预算 $${(plan.budget.knownTotalUsd! - totalLimit!).toFixed(2)}，需要调整安排。`, `Known costs already exceed the group budget by $${(plan.budget.knownTotalUsd! - totalLimit!).toFixed(2)}. The plan needs a change.`)}</strong></p>}
       <small>{t('小计不代表完整出行总价；未知费用未按零元计算。', 'The subtotal is not the full trip cost; unknown costs are not counted as zero.')}{plan.stops.some(stop => stop.admissionFacts?.basis === 'catalog-snapshot') && t(' 含资料快照参考价，当日票价与适用条件仍需确认。', ' Includes catalog snapshot prices; confirm prices and eligibility for your date.')}</small>
