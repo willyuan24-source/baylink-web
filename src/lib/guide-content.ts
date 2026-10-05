@@ -30,5 +30,6 @@ export const guideBlockText = (block: GuideBlock): string => {
   if (block.type === 'freebies') return [block.title, block.text, ...block.offers.map(offer => `${offer.brand}：${offer.title}\n${offer.dateLabel}\n${offer.requirement}\n${offer.description}\n${offer.sourceLabel}：${offer.sourceUrl}`)].join('\n\n');
   if ('items' in block) return block.items.join('\n');
   const base = `${'title' in block && block.title ? `${block.title}\n` : ''}${block.text}`;
+  if (block.type === 'link') return `${base}\n${block.url}`;
   return block.type === 'route' ? [base, ...block.stops.map(stop => `${stop.title}\n${stop.text}`)].join('\n\n') : base;
 };

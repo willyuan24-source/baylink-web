@@ -1,5 +1,6 @@
 import { API_BASE_URL, authHeaders } from './api';
-import { getLocale, simplifySearch } from '../i18n/locale';
+import { getLocale, simplifySearch, translateText } from '../i18n/locale';
+import { readBayBayStream, type BayBayProgress } from './baybay-stream';
 import { guides, type Guide } from '../data/guides';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
@@ -122,6 +123,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
   return `/together?${params}`;
 }
 export type BayBayTurn = {
+  progress?: BayBayProgress;
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
   response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
@@ -248,6 +250,16 @@ export const BAYBAY_SCENARIOS = [
 
 export function bayBayFollowups(question: string, hasArticle: boolean, schoolContext = false, suggested: string[] = []): string[] {
   if (schoolContext || isBayBaySchoolRequest(question)) return ['按已经提供的地区与年级，帮我列出需要向学区核实的事项', '帮我写一段不含孩子个人资料的入学咨询模板'];
+  const normalized = simplifySearch(question);
+  const localize = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh, getLocale());
+  if (/打印|复印|彩印|黑白|\b(?:print(?:ing)?|photocop(?:y|ies)|copying)\b/i.test(normalized)) {
+    const relevant = suggested.filter(item => /打印|复印|彩印|黑白|额度|print|cop(?:y|ies)|allowance|pages/i.test(simplifySearch(item)) && !/会员|\bapp\b/i.test(item));
+    return relevant.length ? relevant.slice(0, 3) : [localize('按我的页数和当天剩余额度，帮我核算打印费用', 'Calculate printing costs from my page count and remaining daily allowance'), localize('帮我列出打印前需要确认的文件格式、取件地点和收费', 'List file formats, pickup location and charges to confirm before printing')];
+  }
+  if (/水管|漏水|维修|修理|师傅|家政|清洁|\b(?:plumb(?:er|ing)?|leak|repair|handyman|cleaning)\b/i.test(normalized)) {
+    const relevant = suggested.filter(item => !/出游|行程|景点|会员|\b(?:outing|itinerary|sightseeing|app)\b/i.test(simplifySearch(item)));
+    return relevant.length ? relevant.slice(0, 3) : [localize('帮我整理联系服务方前要问的上门时间、报价范围和资质问题', 'List availability, quote scope and credentials to ask a service provider about'), localize('帮我写一段不含私人地址和联系方式的服务需求', 'Draft a service request without my private address or contact details')];
+  }
   if (suggested.length) return suggested.slice(0, 3);
   if (/亲子|带娃|儿童|孩子|手工/.test(question)) return ['帮我按已经提供的条件，列出需要提前预约的项目', '帮我列出出门前要核实的年龄、名额和材料条件'];
   if (/优惠|免费|省钱|领取/.test(question)) return ['哪些不需要消费？哪些需要会员或 App？', '帮我按预约、会员和领取时间列一个行动清单'];
@@ -262,6 +274,7 @@ export async function fetchBayBayReply(
   history: BayBayHistoryMessage[],
   signal: AbortSignal,
   timeoutMs = 100_000,
+  onProgress?: (progress: BayBayProgress) => void,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
   const { outingSearchToken, assistantSessionToken: rawAssistantToken, searchMode = 'smart', searchContext, ...pageContext } = context;
@@ -283,16 +296,17 @@ export async function fetchBayBayReply(
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, stream: true, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
-        const data = await response.json() as GuideChatResponse;
+        const data = (response.headers?.get('content-type')?.includes('text/event-stream') ? await readBayBayStream(response, onProgress, controller.signal) : await response.json()) as GuideChatResponse;
+        if (!data || typeof data !== 'object' || Array.isArray(data)) throw new BayBayServiceError('BayBay 答复格式异常，请重试。');
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
           if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(typeof data.error === 'string' ? data.error : '对话条件已过期，请开启新对话并重新说明安排。');
           if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(typeof data.error === 'string' ? data.error : '搜索条件已过期，请开启新对话并重新说明城市和日期。');
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
-        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, ...parseBayBayAssistantFields(data) };
+        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, answerCoverage: undefined, ...parseBayBayAssistantFields(data) };
         if (data.outingSearch !== undefined) return { ...safe, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
         if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');
         return safe;

@@ -16,6 +16,8 @@ const { api } = await import('../src/lib/api');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { defaultPlanDetails } = await import('../src/lib/planner-itinerary');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
+const { stageBayBayPlanDraft, readBayBayPlanDraft, bayBayAdmissionOverride } = await import('../src/lib/baybay-plan-handoff');
+const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const originalRequest = api.request;
 const date = '2026-09-30';
 const stops: Stop[] = [{ kind: 'place', id: 'golden-gate' }, { kind: 'place', id: 'chinatown' }];
@@ -52,6 +54,57 @@ beforeEach(context => {
   api.request = async endpoint => { throw new Error(`Unexpected API call: ${endpoint}`); };
 });
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
+
+test('BayBay transfer applies supported requirements and explicitly retains unsupported ones only for current-tab review', async () => {
+  const fields = parseBayBayAssistantFields({ taskState: { version: 1, revision: 1, date: '2026-10-10', city: 'San Francisco', region: 'sf', partySize: 3, childAges: [5], budget: 40, budgetScope: 'person', origin: 'PRIVATE ORIGIN FOR REVIEW', startTime: '10:00', finishBy: '17:00', travelMode: 'transit', returnToOrigin: false, maxStops: 2, excludedCities: ['Oakland'], freeOnly: true, setting: 'outdoor' }, assistantPlan: { id: 'baybay-transfer', title: 'Original plan', date: '2026-10-10', status: 'needs_verification', stops: stops.map(stop => ({ id: stop.id, kind: stop.kind, entityId: stop.id, title: stop.id })), budget: { unknownItems: [] } } });
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!;
+  assert.doesNotMatch(path, /PRIVATE|origin|budget|childAges|partySize/);
+  const id = new URL(path, 'https://www.baylink.us').searchParams.get('baybayDraft');
+  const draft = readBayBayPlanDraft(id)!;
+  assert.equal(draft.details.totalBudgetUsd, 120); assert.equal(draft.details.partySize, 3);
+  assert.equal(draft.details.startTime, '10:00'); assert.equal(draft.details.finishBy, '17:00'); assert.equal(draft.details.travelMode, 'transit');
+  assert.deepEqual(draft.details.constraints?.childAges, [5]); assert.equal(draft.details.constraints?.freeOnly, true); assert.equal(draft.details.constraints?.setting, 'outdoor');
+  assert.equal(draft.details.constraints?.budget, undefined); assert.equal(draft.requirements.returnToOrigin, false); assert.equal(draft.requirements.maxStops, 2);
+  draft.requirements.origin = 'MUTATED'; assert.equal(readBayBayPlanDraft(id)!.requirements.origin, 'PRIVATE ORIGIN FOR REVIEW');
+  assert.equal(readBayBayPlanDraft(id, 'other-account'), null);
+  assert.equal(readBayBayPlanDraft(id, undefined, Date.now() + 30 * 60 * 1000 + 1), null);
+  const view = await openPlanner(new URL(path, 'https://www.baylink.us').search);
+  const summary = view.getByRole('region', { name: '已带入的 BayBay 条件' });
+  assert.match(summary.textContent || '', /PRIVATE ORIGIN FOR REVIEW/); assert.match(summary.textContent || '', /不返回起点/); assert.match(summary.textContent || '', /不参与计划页路线计算/); assert.match(summary.textContent || '', /尚未保存或预订/);
+  assert.match(summary.textContent || '', /5 岁/); assert.match(summary.textContent || '', /每人/); assert.match(summary.textContent || '', /Oakland/);
+  assert.equal(input(view, '日期').value, '2026-10-10'); assert.equal(input(view, '计划名称').value, 'Original plan');
+  assert.equal((view.getByLabelText('同行总人数') as HTMLInputElement).value, '3');
+  assert.equal((view.getByLabelText('整趟总预算 $') as HTMLInputElement).value, '120');
+  assert.equal((view.getByLabelText('开始时间') as HTMLInputElement).value, '10:00');
+  assert.equal((view.getByLabelText('希望几点结束') as HTMLInputElement).value, '17:00');
+  assert.equal((view.getByLabelText('这份计划的交通方式') as HTMLSelectElement).value, 'transit');
+  assert.equal(localStorage.getItem(GUEST_PLANNER_KEY), null);
+});
+
+test('missing or another-account BayBay draft clearly restores only public date and stops without private requirements', async () => {
+  const view = await openPlanner('?date=2026-10-10&places=golden-gate&baybayDraft=00000000-0000-0000-0000-000000000000');
+  assert.match(view.getByRole('status').textContent || '', /其他条件未恢复/);
+  assert.equal(view.queryByRole('region', { name: '已带入的 BayBay 条件' }), null);
+  assert.equal(input(view, '日期').value, '2026-10-10'); assert.deepEqual(selectedLinks(view), ['/guides/sf-golden-gate-bridge-fort-point-guide']);
+});
+
+test('a transferred family price remains 109.85 until pricing inputs change and never enters saved account details', async () => {
+  const fields = parseBayBayAssistantFields({ evidence: [{ id: 'official', title: 'Official ticket reference', kind: 'web', url: 'https://www.exploratorium.edu/visit' }],
+    taskState: { version: 1, revision: 1, date: '2026-10-10', partySize: 3, childAges: [5], budget: 120, budgetScope: 'total' },
+    assistantPlan: { id: 'group-price', title: 'Family reference', date: '2026-10-10', status: 'needs_verification', stops: [{ id: 'golden-gate', entityId: 'golden-gate', kind: 'place', title: 'Synthetic test location', admissionFacts: { status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 109.85, breakdown: [{ category: 'adult', quantity: 2, unitUsd: 39.95, subtotalUsd: 79.90 }, { category: 'child', quantity: 1, age: 5, unitUsd: 29.95, subtotalUsd: 29.95 }], sourceIds: ['official'], applicability: { date: '2026-10-10', dateStatus: 'regular-unconfirmed', feesIncluded: null }, unknowns: ['Date-specific prices and fees are unconfirmed.'] } }], budget: { knownTotalUsd: 109.85, unknownItems: ['Transit and food remain unknown.'] } } });
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!, url = new URL(path, 'https://www.baylink.us');
+  const draft = readBayBayPlanDraft(url.searchParams.get('baybayDraft'))!;
+  assert.equal(bayBayAdmissionOverride(draft, draft.date, draft.stops, draft.details)?.knownTotalUsd, 109.85);
+  for (const [nextDate, nextStops, nextDetails] of [[draft.date, draft.stops, { ...draft.details, partySize: 4 }], ['2026-10-11', draft.stops, draft.details], [draft.date, [], draft.details], [draft.date, draft.stops, { ...draft.details, constraints: { ...draft.details.constraints, childAges: [6], childAge: 6 } }]] as const) assert.equal(bayBayAdmissionOverride(draft, nextDate, [...nextStops], nextDetails)?.active, false);
+  const view = await openPlanner(url.search);
+  const schedule = view.getByRole('region', { name: '时间与预算' });
+  assert.match(schedule.textContent || '', /原来源已知门票小计（全组）(?:US)?\$109.85/);
+  assert.match(schedule.textContent || '', /保存与分享不会保留此报价/); assert.match(schedule.textContent || '', /Transit and food remain unknown/);
+  assert.doesNotMatch(JSON.stringify(draft.details), /admissionFacts|costReference|109.85/);
+  fireEvent.change(view.getByLabelText('同行总人数'), { target: { value: '4' } });
+  assert.match(schedule.textContent || '', /原 BayBay 票价快照已停用/);
+  assert.doesNotMatch(schedule.textContent || '', /原来源已知门票小计/);
+});
 
 test('an old saved event cannot be added twice through its merged catalog card and retains its settings when saved', async () => {
   const legacy: Stop = { kind: 'event', id: 'alameda-point-antiques-october-2026' };

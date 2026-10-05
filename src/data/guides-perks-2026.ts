@@ -160,6 +160,24 @@ const drafts: Guide[] = [
         "text": "从自己实际持有的发卡馆进入，核对居住地、卡种、年龄和 PIN。数字资源通常需要馆方登录；停车证和门票还可能要求实体卡、本人使用或额外预约。遇到问题先咨询馆员，不要为了试福利重复注册账户。"
       },
       {
+        "type": "link",
+        "title": "AC Library：先分清实体卡、eCard 与影音入口",
+        "text": "2026-10-04 核对：AC Library 当前官方影音页列出 hoopla 等服务；本次未找到 AC 卡适用的 Kanopy 官方入口，不能套用 SFPL 或 SMCL 的 Kanopy 权益。在加州居住、工作或就学者可申请免费实体卡；Alameda County 居民 eCard 有效期为五年，其他加州居民的临时 eCard 须在 30 天内转实体卡。eCard 不含 Discover & Go，馆票还要求服务区居民及年满 15 岁。",
+        "url": "https://aclibrary.org/movies-tv/"
+      },
+      {
+        "type": "link",
+        "title": "SFPL：Kanopy 与 Discover & Go 资格分别核对",
+        "text": "2026-10-04 核对：SFPL 官方 Movies & TV 页面提供 Kanopy 入口。加州居民可免费申请 SFPL 卡，线上申请后仍需持有效证件到馆完成办理；不能把可申请图书证理解成自动获得全部福利。Discover & Go 馆票要求旧金山居民，住 Fremont 的读者不能仅凭 SFPL 卡推定可领馆票。Kanopy 当前额度需在 SFPL 入口和账户中确认，不能套用 SMCL 的每月 30 tickets。",
+        "url": "https://sfpl.org/research-learn/elibrary/bay-beats-movies-tv"
+      },
+      {
+        "type": "link",
+        "title": "SMCL：Kanopy 每月额度与馆票是两套条件",
+        "text": "2026-10-04 核对：San Mateo County Libraries 的 Kanopy 用有效图书证号码和 PIN 登录，每月 30 tickets，月初重置、不累积，借阅期按影片为 3–7 天。非 San Mateo County 居民需到馆申请图书证，不能假定可在线办卡。Discover & Go 另要求年满 16 岁、服务区居民和有效实体卡，eCard 不适用；最多同时保留两笔预约。上述馆票限制不能直接套到影音或打印。",
+        "url": "https://smcl.org/resources-types/evideos/"
+      },
+      {
         "type": "heading",
         "text": "顺路安排，比把清单跑完更划算"
       },
@@ -203,7 +221,9 @@ export const perksGuides2026: Guide[] = drafts.map((guide, index) => {
   const offers = index === 0 ? birthdayOffers : everydayOffers;
   return {
     ...guide,
-    sources: offers.map(offer => ({ title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement })),
+    sources: [...offers.map(offer => ({ title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement })),
+      ...(index === 1 ? [{"title":"AC Library：图书证与 eCard 条件","url":"https://aclibrary.org/faq/library-cards-ecards/","description":"办卡资格不等于 Discover & Go 资格。"},{"title":"SFPL：申请图书证","url":"https://sfpl.org/welcome-new-cardholders/kiosk-application","description":"加州居民可申请，仍需到馆完成核验。"},{"title":"SMCL：非本县居民到馆申请","url":"https://www2.smcl.org/new-site/get-card.php","description":"网上办卡入口说明本县以外居民应到馆申请。"},{"title":"SMCL：Discover & Go 资格","url":"https://smcl.org/faq/museum-passes-discover-go/","description":"服务区、年龄、实体卡及预约数量条件。"}] : []),
+    ],
     blocks: guide.blocks.map(block => block.type === 'freebies' ? { ...block, offers } : block),
   };
 });

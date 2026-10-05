@@ -8,12 +8,22 @@ export type BayBayTaskState = {
   origin?: string | null; travelMode?: 'any' | 'drive' | 'transit' | 'walk' | null; partySize?: number | null;
   childAges?: number[]; budget?: number | null; budgetScope?: 'person' | 'total' | null; freeOnly?: boolean;
   setting?: 'any' | 'indoor' | 'outdoor' | 'mixed' | null; startTime?: string | null; finishBy?: string | null; excludedCities?: string[];
+  returnToOrigin?: boolean; maxStops?: number;
 };
 export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; verification?: 'catalog' | 'page-read' | 'api' | 'search-result'; text?: string };
 export type BayBayPlanStop = {
   id: string; kind: string; entityId?: string; title: string; city?: string; date?: string; startTime?: string; endTime?: string;
   durationMinutes?: number; travelMinutes?: number; timeStatus?: string; admissionUsd?: number; sourceIds: string[]; notes: string[];
+  admissionFacts?: BayBayAdmissionFacts;
 };
+export type BayBayAdmissionFacts = {
+  status: 'complete' | 'partial' | 'unknown'; basis: 'catalog-snapshot' | 'page-read' | 'catalog'; knownTotalUsd?: number;
+  breakdown: { category: 'adult' | 'child' | 'all-ages' | 'group'; quantity: number; unitUsd: number; subtotalUsd: number; age?: number }[];
+  sourceUrl?: string; sourceIds: string[]; checkedAt?: string;
+  applicability: { date?: string; dateStatus: 'date-specific' | 'regular-unconfirmed' | 'out-of-range' | 'unconfirmed'; feesIncluded?: boolean };
+  unknowns: string[];
+};
+export type BayBayAnswerCoverage = { status: 'complete' | 'partial' | 'unassessed'; items: { id: string; label: string; status: 'answered' | 'unknown' | 'needs_user_input'; summary?: string; sourceIds: string[] }[] };
 export type BayBayPlanTravelLeg = { from: string; to: string; durationMinutes: number; provider: 'google-maps'; status: 'estimate' };
 export type BayBayAssistantPlan = {
   id: string; date?: string; title: string; status: 'ready' | 'needs_verification' | 'needs_details'; stops: BayBayPlanStop[];
@@ -24,7 +34,8 @@ export type BayBayAssistantPlan = {
 export type BayBayAssistantFields = {
   assistantSessionToken?: string; taskState?: BayBayTaskState; assistantPlan?: BayBayAssistantPlan; evidence?: BayBayEvidence[];
   followups?: string[];
-  research?: { steps: { tool: string; status: string; label: string }[]; warnings: string[] };
+  answerCoverage?: BayBayAnswerCoverage;
+  research?: { steps: { tool: string; status: string; label: string }[]; warnings: string[]; timings?: Partial<Record<'siteMs' | 'searchMs' | 'readMs' | 'modelMs' | 'finalMs' | 'routeMs' | 'stateMs' | 'monitorMs' | 'quotaMs' | 'weatherMs' | 'planMs' | 'otherMs' | 'totalMs', number>> };
 };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const guidePaths = new Set(guides.map(guide => `/guides/${guide.slug}`));
@@ -41,6 +52,24 @@ const safeEvidenceUrl = (value: unknown) => typeof value === 'string' && guidePa
 // Keep the offset so display can use Bay Area time instead of slicing the UTC day.
 const evidenceCheckedAt = (value: unknown): string | undefined => typeof value === 'string' &&
   (validPlannerWebDate(value) || /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) && plannerWebCheckedDate(value)) ? value : undefined;
+
+function admissionFacts(input: unknown, ids: Set<string>): BayBayAdmissionFacts | undefined {
+  if (!record(input)) return;
+  const status = option(input.status, ['complete', 'partial', 'unknown']), basis = option(input.basis, ['catalog-snapshot', 'page-read', 'catalog']);
+  const sourceIds = strings(input.sourceIds, 10, 160).filter(id => ids.has(id));
+  if (!status || !basis || !sourceIds.length || !record(input.applicability)) return;
+  const breakdown: BayBayAdmissionFacts['breakdown'] = [];
+  if (Array.isArray(input.breakdown)) for (const row of input.breakdown.slice(0, 20)) {
+    if (!record(row)) return;
+    const category = option(row.category, ['adult', 'child', 'all-ages', 'group']), quantity = number(row.quantity, 100), unitUsd = number(row.unitUsd), subtotalUsd = number(row.subtotalUsd);
+    if (!category || !quantity || !Number.isInteger(quantity) || unitUsd === undefined || subtotalUsd === undefined || Math.abs(Math.round(quantity * unitUsd * 100) / 100 - subtotalUsd) > .011) return;
+    breakdown.push({ category, quantity, unitUsd, subtotalUsd, ...(Number.isInteger(row.age) && number(row.age, 17) !== undefined ? { age: Number(row.age) } : {}) });
+  }
+  const knownTotalUsd = number(input.knownTotalUsd);
+  if (knownTotalUsd !== undefined && breakdown.length && Math.abs(breakdown.reduce((sum, row) => sum + row.subtotalUsd, 0) - knownTotalUsd) > .011) return;
+  return { status, basis, knownTotalUsd, breakdown, sourceIds, sourceUrl: safePlannerWebUrl(input.sourceUrl) || undefined, checkedAt: evidenceCheckedAt(input.checkedAt),
+    applicability: { date: validPlannerWebDate(input.applicability.date) || undefined, dateStatus: option(input.applicability.dateStatus, ['date-specific', 'regular-unconfirmed', 'out-of-range', 'unconfirmed']) || 'unconfirmed', feesIncluded: typeof input.applicability.feesIncluded === 'boolean' ? input.applicability.feesIncluded : undefined }, unknowns: strings(input.unknowns) };
+}
 
 /** Citation ordinals belong to response.sources, not the larger evidence collection. */
 export function bayBayAssistantResult(input: unknown): PlannerWebResult | null {
@@ -73,6 +102,8 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     if (Array.isArray(value.childAges)) state.childAges = value.childAges.slice(0, 20).filter((age): age is number => Number.isInteger(age) && Number(age) >= 0 && Number(age) <= 17);
     if (Array.isArray(value.excludedCities)) state.excludedCities = strings(value.excludedCities, 101, 120);
     if (typeof value.freeOnly === 'boolean') state.freeOnly = value.freeOnly;
+    if (typeof value.returnToOrigin === 'boolean') state.returnToOrigin = value.returnToOrigin;
+    if (Number.isInteger(value.maxStops) && Number(value.maxStops) >= 1 && Number(value.maxStops) <= 6) state.maxStops = Number(value.maxStops);
     if (value.travelMode === null || option(value.travelMode, ['any', 'drive', 'transit', 'walk'])) state.travelMode = option(value.travelMode, ['any', 'drive', 'transit', 'walk']) || null;
     if (value.setting === null || option(value.setting, ['any', 'indoor', 'outdoor', 'mixed'])) state.setting = option(value.setting, ['any', 'indoor', 'outdoor', 'mixed']) || null;
     if (value.budgetScope === null || option(value.budgetScope, ['person', 'total'])) state.budgetScope = option(value.budgetScope, ['person', 'total']) || null;
@@ -86,6 +117,17 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     ids.add(id);
     return [{ id, title, url, kind, checkedAt: evidenceCheckedAt(item.checkedAt), verification: option(item.verification, ['catalog', 'page-read', 'api', 'search-result']), text: text(item.text, 1500) }];
   }) : [];
+  const coverage = input.answerCoverage;
+  if (record(coverage) && option(coverage.status, ['complete', 'partial', 'unassessed']) && Array.isArray(coverage.items)) {
+    const seen = new Set<string>();
+    const items: BayBayAnswerCoverage['items'] = coverage.items.slice(0, 8).flatMap(item => {
+      if (!record(item)) return [];
+      const id = text(item.id, 80), label = text(item.label, 160), status = option(item.status, ['answered', 'unknown', 'needs_user_input']);
+      if (!id || !label || !status || seen.has(id)) return [];
+      seen.add(id); return [{ id, label, status, summary: text(item.summary, 600), sourceIds: strings(item.sourceIds, 4, 160).filter(id => ids.has(id)) }];
+    });
+    result.answerCoverage = { status: !items.length ? 'unassessed' : items.some(item => item.status !== 'answered') ? 'partial' : option(coverage.status, ['complete', 'partial', 'unassessed'])!, items };
+  }
   const plan = input.assistantPlan;
   if (record(plan) && text(plan.id, 160) && text(plan.title) && option(plan.status, ['ready', 'needs_verification', 'needs_details']) && Array.isArray(plan.stops) && plan.stops.length <= 12 && record(plan.budget)) {
     const stops: BayBayPlanStop[] = [];
@@ -93,7 +135,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       if (!record(stop) || !text(stop.id, 160) || !text(stop.title) || !text(stop.kind, 40) || stops.some(item => item.id === text(stop.id, 160))) return result;
       stops.push({ id: text(stop.id, 160)!, title: text(stop.title)!, kind: text(stop.kind, 40)!, entityId: text(stop.entityId, 160), city: text(stop.city, 120), date: validPlannerWebDate(stop.date) || undefined,
         startTime: clock(stop.startTime), endTime: clock(stop.endTime), durationMinutes: number(stop.durationMinutes, 1440), travelMinutes: travelMinutes(stop.travelMinutes), timeStatus: option(stop.timeStatus, ['verified', 'suggested', 'unknown']) || 'unknown', admissionUsd: number(stop.admissionUsd),
-        sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes) });
+        sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes), admissionFacts: admissionFacts(stop.admissionFacts, ids) });
     }
     const stopIds = stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
     const pairs = new Set(stopIds.map((id, index) => `${index ? stopIds[index - 1] : 'origin'}:${id}`));
@@ -109,6 +151,11 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       unknowns: strings(plan.unknowns), summary: text(plan.summary, 2500) };
   }
   if (record(input.research)) result.research = { warnings: strings(input.research.warnings), steps: Array.isArray(input.research.steps) ? input.research.steps.slice(0, 15).flatMap(step => record(step) && text(step.tool, 80) && text(step.status, 40) && text(step.label) ? [{ tool: text(step.tool, 80)!, status: text(step.status, 40)!, label: text(step.label)! }] : []) : [] };
+  if (result.research && record(input.research) && record(input.research.timings)) {
+    const timings: NonNullable<BayBayAssistantFields['research']>['timings'] = {};
+    for (const key of ['siteMs', 'searchMs', 'readMs', 'modelMs', 'finalMs', 'routeMs', 'stateMs', 'monitorMs', 'quotaMs', 'weatherMs', 'planMs', 'otherMs', 'totalMs'] as const) if (Number.isInteger(input.research.timings[key]) && number(input.research.timings[key], 600_000) !== undefined) timings[key] = Number(input.research.timings[key]);
+    result.research.timings = timings;
+  }
   return result;
 }
 

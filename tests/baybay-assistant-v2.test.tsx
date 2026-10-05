@@ -11,9 +11,9 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { BayBayAssistantPlanCard, BayBayRequirements } = await import('../src/components/BayBayAssistantPlan');
-const { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
+const { BayBayAnswer, BayBayCoverageSummary, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
 const { parseBayBayAssistantFields, safeAssistantSessionToken, bayBayAssistantPlanImport } = await import('../src/lib/baybay-assistant');
-const { fetchBayBayReply } = await import('../src/lib/baybay-conversation');
+const { fetchBayBayReply, bayBayFollowups } = await import('../src/lib/baybay-conversation');
 const { parseSharedPlan } = await import('../src/lib/planner');
 const { PLANNER_PLACES, PLANNER_EVENTS } = await import('../src/data/planner-catalog');
 const { guides } = await import('../src/data/guides');
@@ -187,7 +187,7 @@ test('an unknown budget scope is never displayed as a per-person allowance', asy
   assert.equal((view.getByRole('textbox', { name: 'Edit budget' }) as HTMLInputElement).value, 'Budget set to $');
 });
 
-test('party totals and per-person limits have separate labels and plan checks start collapsed', async () => {
+test('party totals and per-person limits have separate labels and critical unknowns are visible before stops', async () => {
   await setLocale('en', false);
   const raw = fixture();
   const parsed = parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, budget: { knownTotalUsd: 60, knownPerPersonUsd: 20, limitUsd: 30, scope: 'person', unknownItems: ['Transit is still unpriced.'] } } });
@@ -197,15 +197,16 @@ test('party totals and per-person limits have separate labels and plan checks st
   assert.deepEqual(paragraphs, ['Known costs subtotal for the whole group $60', 'Budget limit $30 · per person']);
   assert.doesNotMatch(paragraphs[0] || '', /per person/);
   assert.match(budget.textContent || '', /unknown costs are not counted as zero/);
-  const checks = view.container.querySelector('details.baybay-plan-checks') as HTMLDetailsElement;
-  assert.equal(checks.open, false); assert.equal(checks.hasAttribute('open'), false);
-  assert.match(checks.textContent || '', /Opening hours need checking/);
+  assert.match(budget.textContent || '', /Opening hours need checking/);
+  assert.equal(budget.closest('details'), null);
+  assert.ok(budget.compareDocumentPosition(view.container.querySelector('.baybay-plan-stops')!) & Node.DOCUMENT_POSITION_FOLLOWING);
 });
 
 test('degraded v2 guidance describes collected sources without claiming they are all site-only', async t => {
   t.mock.method(globalThis, 'fetch', async () => Response.json({ ...fixture(), responseMode: 'assistant', degraded: true }));
   const view = render(<BayBayAssistantEntry {...props} pendingQuestion="安排一日行程" />);
-  await view.findByText('AI 服务暂时不可用，以下是已取得的来源资料与参考安排。请核对各项来源和未确认事项。');
+  await view.findByText('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。');
+  assert.doesNotMatch(view.container.textContent || '', /AI 服务暂时不可用/);
   assert.equal(view.queryByText('AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。'), null);
 });
 
@@ -270,6 +271,87 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   assert.match(view.container.textContent || '', /已检索站内与站外/);
   assert.match(view.container.textContent || '', /实际引用 1 条站内资料、1 条站外来源/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
+});
+
+const priceFacts = () => ({ status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 109.85,
+  breakdown: [{ category: 'adult', quantity: 2, unitUsd: 39.95, subtotalUsd: 79.90 }, { category: 'child', quantity: 1, age: 5, unitUsd: 29.95, subtotalUsd: 29.95 }],
+  sourceIds: ['official'], checkedAt: '2026-10-05T03:00:00Z', applicability: { date: '2026-10-05', dateStatus: 'regular-unconfirmed', feesIncluded: null }, unknowns: ['Date-specific admission and fees remain unconfirmed.'] });
+
+test('coverage and monetary facts reject fabricated references and arithmetic; diagnosis is bounded and private fields are stripped', () => {
+  const raw = fixture();
+  const parsed = parseBayBayAssistantFields({ ...raw, answerCoverage: { status: 'complete', items: [{ id: 'printing', label: 'Printing', status: 'answered', summary: '10-page allowance', sourceIds: ['official', 'unsafe'] }, { id: 'eligible', label: 'Eligibility', status: 'unknown', sourceIds: ['forged'] }] }, research: { timings: { totalMs: 12000, stateMs: 9, modelMs: -1, readMs: 0.5, secret: 'ignored', routeMs: 600001 } }, assistantPlan: { ...raw.assistantPlan, stops: [{ ...raw.assistantPlan.stops[0], admissionFacts: priceFacts() }] } });
+  assert.equal(parsed.answerCoverage?.status, 'partial'); assert.deepEqual(parsed.answerCoverage?.items.map(item => item.sourceIds), [['official'], []]);
+  assert.deepEqual(parsed.research?.timings, { stateMs: 9, totalMs: 12000 });
+  assert.equal(parsed.assistantPlan?.stops[0].admissionFacts?.knownTotalUsd, 109.85);
+  for (const facts of [{ ...priceFacts(), sourceIds: ['forged'] }, { ...priceFacts(), knownTotalUsd: 1 }, { ...priceFacts(), breakdown: [{ category: 'adult', quantity: 2, unitUsd: 39.95, subtotalUsd: 39.95 }] }]) {
+    assert.equal(parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, stops: [{ ...raw.assistantPlan.stops[0], admissionFacts: facts }] } }).assistantPlan?.stops[0].admissionFacts, undefined);
+  }
+  assert.equal(parseBayBayAssistantFields({ answerCoverage: { status: 'complete', items: [] } }).answerCoverage?.status, 'unassessed');
+});
+
+test('coverage is a response checklist, never an official verification claim, and missing coverage stays unobtrusive', async () => {
+  await setLocale('en', false);
+  const fields = parseBayBayAssistantFields({ ...fixture(), answerCoverage: { status: 'partial', items: [{ id: 'one', label: 'Printing', status: 'answered', sourceIds: ['official'] }, { id: 'two', label: 'Eligibility', status: 'unknown', summary: 'Confirm the library card.', sourceIds: [] }, { id: 'three', label: 'Pages', status: 'needs_user_input', sourceIds: [] }] } });
+  const view = render(<BayBayCoverageSummary response={{ ok: true, ...fields }} />);
+  assert.match(view.container.textContent || '', /1 addressed · 1 unconfirmed · 1 need your input/);
+  assert.match(view.container.textContent || '', /not verification of every fact/);
+  assert.equal(view.getAllByRole('link', { hidden: true }).length, 1);
+  view.rerender(<BayBayCoverageSummary response={{ ok: true }} />); assert.equal(view.container.textContent, '');
+});
+
+test('source-backed family subtotal and budget shortage lead the card; repeated unknowns appear only once', async () => {
+  await setLocale('en', false);
+  const raw = fixture(), unknown = priceFacts().unknowns[0];
+  const parsed = parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, budget: { knownTotalUsd: 109.85, limitUsd: 100, scope: 'total', unknownItems: [unknown] }, checks: [{ code: 'cost', status: 'unknown', message: unknown }], unknowns: [unknown], stops: [{ ...raw.assistantPlan.stops[0], admissionFacts: priceFacts(), notes: [unknown] }] } });
+  const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} taskState={parsed.taskState} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.match(view.getByRole('status').textContent || '', /exceed the group budget by \$9.85/);
+  assert.equal(view.getAllByText(unknown).length, 1);
+  assert.match(view.container.textContent || '', /Adult 2 × \$39.95 = \$79.90/);
+  assert.match(view.container.textContent || '', /Child age 5 1 × \$29.95 = \$29.95/);
+  assert.match(view.container.textContent || '', /Catalog snapshot price · 2026-10-04/);
+  assert.match(view.container.textContent || '', /Eligibility on your chosen date is unconfirmed/);
+  const budget = view.container.querySelector('.baybay-plan-budget')!;
+  assert.ok(budget.compareDocumentPosition(view.container.querySelector('.baybay-plan-stops')!) & Node.DOCUMENT_POSITION_FOLLOWING);
+  view.rerender(<BayBayAssistantPlanCard plan={{ ...parsed.assistantPlan!, budget: { ...parsed.assistantPlan!.budget, knownTotalUsd: 0 } }} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.match(view.container.textContent || '', /Cost not yet calculated/);
+});
+
+test('printing and service followups stay relevant in English and Traditional Chinese while useful server suggestions survive', async () => {
+  await setLocale('en', false);
+  assert.match(bayBayFollowups('12 pages of printing, and photocopies?', false, false, ['Which offers need a membership App?'])[0], /printing costs/);
+  assert.doesNotMatch(bayBayFollowups('Find a plumber to repair a leak', false, false, ['Plan an outing'])[0], /outing|itinerary/i);
+  await setLocale('zh-Hant', false);
+  assert.match(bayBayFollowups('免費列印和復印', false, false, ['哪些需要會員 App？']).join(' '), /打印|列印/);
+  assert.doesNotMatch(bayBayFollowups('黑白打印', false, false, ['哪些需要会员 App？']).join(' '), /App/);
+  assert.deepEqual(bayBayFollowups('printing charges?', false, false, ['Confirm the daily printing allowance']), ['Confirm the daily printing allowance']);
+});
+
+test('stream results pass the same response boundary and errors, and progress does not invent a reply', async t => {
+  const updates: unknown[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    assert.equal(JSON.parse(String(init.body)).stream, true);
+    return new Response(`event: progress\ndata: {"phase":"sources","status":"completed"}\n\nevent: result\ndata: ${JSON.stringify({ ...fixture(), answerCoverage: 'unsafe' })}\n\n`, { headers: { 'content-type': 'text/event-stream; charset=utf-8' } });
+  });
+  const reply = await fetchBayBayReply('Read the sources', { currentPath: '/' }, [], new AbortController().signal, 1000, item => updates.push(item));
+  assert.deepEqual(updates, [{ phase: 'sources', status: 'completed' }]); assert.equal(reply.answerCoverage, undefined); assert.equal(reply.evidence?.length, 1);
+  t.mock.method(globalThis, 'fetch', async () => new Response('event: error\ndata: {"ok":false,"code":"INVALID_ASSISTANT_SESSION","error":"Start again"}\n\n', { headers: { 'content-type': 'text/event-stream' } }));
+  await assert.rejects(fetchBayBayReply('Read sources', { currentPath: '/' }, [], new AbortController().signal), { name: 'Error', message: 'Start again' });
+});
+
+test('pending UI uses actual progress events without implying web access or a successful completed check', async t => {
+  let channel!: ReadableStreamDefaultController<Uint8Array>;
+  const encoder = new TextEncoder();
+  t.mock.method(globalThis, 'fetch', async () => new Response(new ReadableStream({ start(controller) { channel = controller; } }), { headers: { 'content-type': 'text/event-stream' } }));
+  const view = render(<BayBayAssistantEntry {...props} pendingQuestion="只用站内资料核对打印额度" />);
+  await act(async () => {});
+  assert.match(view.getByRole('status').textContent || '', /正在等待答复/);
+  await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"running"}\n\n')); });
+  assert.match(view.getByRole('status').textContent || '', /问题分析与检索处理中/);
+  assert.doesNotMatch(view.getByRole('status').textContent || '', /联网|已核实/);
+  await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"completed"}\n\n')); });
+  assert.match(view.getByRole('status').textContent || '', /阶段结束，正在等待结果/);
+  await act(async () => { channel.enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整打印答复"}\n\n')); });
+  assert.ok(view.getByText('完整打印答复')); assert.equal(view.queryByText(/阶段结束，正在等待结果/), null);
 });
 
 test('evidence retains valid timestamp offsets and rejects impossible dates, clocks and unknown verification claims', () => {

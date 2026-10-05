@@ -24,6 +24,8 @@ import { PlannerOutingOptions, PlannerPlaceOutingOptions } from '../components/P
 import { PlannerPlanEdit } from '../components/PlannerPlanEdit';
 import { PlannerPlanOverview } from '../components/PlannerPlanOverview';
 import { createOutingPlanHandoff } from '../lib/outing-plan-handoff';
+import { bayBayAdmissionOverride, readBayBayPlanDraft } from '../lib/baybay-plan-handoff';
+import { BayBayImportedRequirements } from '../components/BayBayImportedRequirements';
 import { PlannerWebSearch } from '../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommendations';
 import { PlannerStopOffers } from '../components/PlannerStopOffers';
@@ -43,10 +45,11 @@ function PlannerWorkspace() {
   const queryMessage = new URLSearchParams(location.search).get('q')?.trim().slice(0, 800) || '';
   const planSearch = useMemo(() => {
     const incoming = new URLSearchParams(location.search), plan = new URLSearchParams();
-    for (const key of ['date', 'stops', 'places', 'edit']) if (incoming.has(key)) plan.set(key, incoming.get(key)!);
+    for (const key of ['date', 'stops', 'places', 'edit', 'baybayDraft']) if (incoming.has(key)) plan.set(key, incoming.get(key)!);
     return plan.toString();
   }, [location.search]);
   const shared = useMemo(() => parseSharedPlan(planSearch), [planSearch]);
+  const importedDraft = useMemo(() => readBayBayPlanDraft(new URLSearchParams(planSearch).get('baybayDraft'), app?.user?.id), [planSearch, app?.user?.id]);
   const locale = useLocale();
   useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
   const library = usePlannerLibrary(app?.user?.id);
@@ -84,11 +87,16 @@ function PlannerWorkspace() {
   useEffect(() => () => request.current?.abort(), []);
   useEffect(() => { if (results) resultsHeading.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }, [results]);
   useEffect(() => { request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
-  useEffect(() => { setEditing(undefined); setSearchDate(undefined); setStops(parseSharedPlan(planSearch).stops); setDate(parseSharedPlan(planSearch).date); setTitle(translateText('我的湾区出游')); setDetails(defaultPlanDetails()); setPersistedFilters({}); setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; prefsLoaded.current = false; }, [app?.user?.id, planSearch]);
+  useEffect(() => {
+    setEditing(undefined); setSearchDate(undefined); setStops(importedDraft?.stops || shared.stops); setDate(importedDraft?.date || shared.date);
+    setTitle(importedDraft?.title || translateText('我的湾区出游')); setDetails(importedDraft?.details || defaultPlanDetails()); setPersistedFilters(importedDraft?.details.constraints || {});
+    setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; prefsLoaded.current = !!importedDraft;
+    if (importedDraft) { const filters = importedDraft.details.constraints || {}; setRegion(filters.region || 'all'); setBudget(''); setAge(String(filters.childAge ?? '')); setSetting(filters.setting || 'any'); setTravel(importedDraft.details.travelMode); }
+  }, [app?.user?.id, planSearch, importedDraft, shared]);
   useEffect(() => {
     if (new URLSearchParams(planSearch).has('edit')) return;
-    const next = parseSharedPlan(planSearch); setStops(next.stops); setDate(next.date); setEditing(undefined); editLoaded.current = '';
-  }, [planSearch]);
+    const next = importedDraft || parseSharedPlan(planSearch); setStops(next.stops); setDate(next.date); setEditing(undefined); editLoaded.current = '';
+  }, [planSearch, importedDraft]);
   useEffect(() => {
     if (!library.ready) return;
     if (!prefsLoaded.current) { prefsLoaded.current = true; setRegion(queryMessage ? 'all' : library.data.preferences.regions[0] || 'all'); setTravel(queryMessage ? 'any' : library.data.preferences.travelMode || 'any'); if (!queryMessage) { setBudget(String(library.data.preferences.admissionBudgetUsd ?? '')); setSetting(library.data.preferences.setting || 'any'); } }
@@ -244,7 +252,8 @@ function PlannerWorkspace() {
       {!stops.length && <div className="planner-empty">从建议或地点列表中<br />加入你的第一站。</div>}
       <ol className="planner-stops" aria-label={translateText('所选地点', locale)}>{stops.map((stop, index) => <li key={`${stop.kind}:${stop.id}`}><span>{index + 1}</span><Link to={stopPath(stop)}>{stopTitle(stop)}</Link><div>{index > 0 && <button aria-label={translateText('上移一站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(current => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; }); }}><ArrowUp size={14} /></button>}<button aria-label={translateText('替换此站', locale)} onClick={() => { setReplaceIndex(index); setStatus('从地点列表选择要换入的地点。'); }}>换</button><button aria-label={translateText('移除此站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(stops.filter((_, i) => i !== index)); setDetails(current => ({ ...current, stopSettings: current.stopSettings.filter(item => favoriteKey(item) !== favoriteKey(stop)) })); }}><X size={14} /></button></div></li>)}</ol>
       <PlannerPlanEdit key={`${app?.user?.id || 'guest'}:${editing?.id || 'draft'}:${planSearch}`} current={{ title, date, stops, details }} onApply={applyPlanEdit} />
-      <PlannerSchedule stops={stops} date={date} title={title} details={details} onChange={changePlanDetails} onStatus={setStatus} />
+      <BayBayImportedRequirements draft={importedDraft} requested={new URLSearchParams(planSearch).has('baybayDraft')} />
+      <PlannerSchedule stops={stops} date={date} title={title} details={details} admissionOverride={bayBayAdmissionOverride(importedDraft, date, stops, details, effectiveFilters)} onChange={changePlanDetails} onStatus={setStatus} />
       <button className="planner-primary" disabled={!library.ready || library.busy || !stops.length} onClick={() => void save()}>{library.busy ? '保存中…' : editing ? '更新这份计划' : '保存这份计划'}</button>
       <button type="button" className="planner-compose-outing" disabled={!stops.length || !date} onClick={() => { if (!app?.user?.id) { app?.setShowLogin(true); return; } const state = createOutingPlanHandoff({ ownerId: app.user.id, title, date, stops, details }); if (state) navigate('/together?draft=plan', { state }); else setStatus(locale === 'en' ? 'Check your date and selected places before creating an outing.' : '请先核对日期与所选地点，再发起小队。'); }}><Plus size={15} />{locale === 'en' ? 'Find company for this plan' : '带着这份计划，发起小队'}</button>
       <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />

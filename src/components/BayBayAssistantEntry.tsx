@@ -7,7 +7,7 @@ import { ModalShell } from './ui/Modal';
 import { BayBayMatchingPosts } from './BayBayMatchingPosts';
 import { BayBayOutingResults } from './BayBayOutingResults';
 import { BayBayAssistantPlanCard, BayBayRequirements } from './BayBayAssistantPlan';
-import { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel, BayBayTaskHandoff } from './BayBayDiscoveryResults';
+import { BayBayAnswer, BayBayCoverageSummary, BayBayDiscoveryResults, BayBayRetrievalLabel, BayBayTaskHandoff } from './BayBayDiscoveryResults';
 import { getGuideMedia } from '../data/guide-media';
 import { GuideFigure } from './GuideVisuals';
 import {
@@ -126,7 +126,9 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     activeRequest.current = { id, controller };
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal)
+    void fetchBayBayReply(message, { currentPath: requestPath, searchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
+      if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, progress } : turn));
+    })
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
@@ -231,14 +233,15 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
           <div ref={threadRef} className="baybay-thread" aria-label="本次对话">
             {turns.map((turn) => <section className="baybay-turn" key={turn.id} data-turn-id={turn.id} aria-label={`问题：${turn.question}`}>
               <div className="baybay-user-question"><span>你</span><p>{turn.question}</p></div>
-              {turn.state === 'pending' && <p role="status" className="baybay-thinking"><Loader2 size={15} className="animate-spin" />{searchMode === 'site' ? copy('正在整理站内资料和你的需求…', 'Checking site information and your needs…') : copy('正在查找资料并核对安排…', 'Finding information and checking the arrangements…')}</p>}
+              {turn.state === 'pending' && <p role="status" className="baybay-thinking" translate="no"><Loader2 size={15} className="animate-spin" />{turn.progress ? <span>{({ site: copy('站内资料', 'Site information'), research: copy('问题分析与检索', 'Analysis and research'), sources: copy('来源阅读', 'Source review'), routes: copy('路线估算', 'Route estimates'), answer: copy('答复整理', 'Answer preparation') })[turn.progress.phase]}{turn.progress.status === 'running' ? copy('处理中…', ' in progress…') : copy('阶段结束，正在等待结果…', ' stage ended; waiting for the result…')}</span> : copy('正在等待答复；完成后会显示本次来源。', 'Waiting for the answer; sources will appear when it is ready.')}</p>}
               {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { const draft = turn.restartAssistant ? (bayBayTaskBrief(turns) || turn.question).slice(0, 500) : copy('我想找搭子一起去。', 'I want to find people to go with.'); stop(); updateTurns(() => []); setQuestion(draft); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{turn.restartAssistant ? copy('重新开始对话', 'Start a new conversation') : copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
               {turn.response && <div className="member-baybay-answer">
                 <div className="member-baybay-answer-label"><Sparkles size={12} />{turn.response.outingSearch ? copy('小队搜索', 'Outing search') : turn.response.degraded ? '参考指引' : 'BayBay 建议'}</div>
                 <BayBayRetrievalLabel response={turn.response} />
-                {turn.response.degraded && <p role="status" className="baybay-degraded" translate="no">{turn.response.responseMode === 'assistant' || turn.response.assistantPlan ? copy('AI 服务暂时不可用，以下是已取得的来源资料与参考安排。请核对各项来源和未确认事项。', 'AI is temporarily unavailable. The collected source information and reference arrangements are shown below. Check each source and any unconfirmed details.') : copy('AI 服务暂时不可用，以下是站内资料与预设参考指引。站内帖子以实际查询结果为准。', 'AI is temporarily unavailable. Site information and preset reference guidance are shown below. Site posts reflect actual search results.')}</p>}
+                <BayBayCoverageSummary response={turn.response} />
+                {turn.response.degraded && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
                 {turn.response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={turn.response} onNavigate={navigate} />}
-                {turn.response.assistantPlan && <BayBayAssistantPlanCard plan={turn.response.assistantPlan} evidence={turn.response.evidence || []} disabled={loading || turn.id !== lastComplete?.id} onAsk={message => askBayBay(message, turn.currentPath, true)} onNavigate={navigate} />}
+                {turn.response.assistantPlan && <BayBayAssistantPlanCard plan={turn.response.assistantPlan} taskState={turn.response.taskState} ownerId={ownerId} evidence={turn.response.evidence || []} disabled={loading || turn.id !== lastComplete?.id} onAsk={message => askBayBay(message, turn.currentPath, true)} onNavigate={navigate} />}
                 {turn.response.outingSearch && <BayBayOutingResults search={turn.response.outingSearch} answer={turn.response.answer} blockedUserIds={blockedUserIds} onNavigate={navigate}
                   onAnswer={turn.id === turns[turns.length - 1]?.id && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) askBayBay(answer, turn.currentPath, true); } : undefined}/>}
                 <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.responseMode === 'catalog' || ['completed', 'unavailable', 'verification_failed'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />

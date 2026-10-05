@@ -6,8 +6,9 @@ import { timeEvidenceLabel } from '../lib/planner-hours';
 import { plannerNoticeText } from '../lib/planner-copy';
 import { PlannerStopOffers } from './PlannerStopOffers';
 import { PlannerTravelCheck } from './PlannerTravelCheck';
+import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
 
-export function PlannerSchedule({ stops, date, title, details, onChange, onStatus }: { stops: Stop[]; date: string; title: string; details: PlanDetails; onChange: (details: PlanDetails) => void; onStatus: (message: string) => void }) {
+export function PlannerSchedule({ stops, date, title, details, admissionOverride, onChange, onStatus }: { stops: Stop[]; date: string; title: string; details: PlanDetails; admissionOverride?: BayBayAdmissionOverride; onChange: (details: PlanDetails) => void; onStatus: (message: string) => void }) {
   const locale = useLocale();
   const text = (zh: string, en: string) => locale === 'en' ? en : zh;
   const update = (patch: Partial<PlanDetails>) => onChange({ ...details, ...patch });
@@ -17,7 +18,12 @@ export function PlannerSchedule({ stops, date, title, details, onChange, onStatu
     update({ stopSettings: [...details.stopSettings.filter(item => stopKey(item) !== stopKey(stop)), next] });
   };
   const timeline = buildItinerary(stops, details, date);
-  const budget = planBudget(stops, details);
+  const baseBudget = planBudget(stops, details);
+  const reference = admissionOverride?.active ? admissionOverride : undefined;
+  const admissionCost = reference ? details.constraints?.budgetScope === 'total' ? reference.knownTotalUsd : reference.knownTotalUsd / details.partySize : 0;
+  const budget = reference ? { ...baseBudget, admissionFloor: reference.knownTotalUsd, subtotal: roundPlanMoney(reference.knownTotalUsd + baseBudget.extraCostUsd), unknown: reference.unknownStops,
+    overBy: details.totalBudgetUsd == null ? 0 : Math.max(0, roundPlanMoney(reference.knownTotalUsd + baseBudget.extraCostUsd - details.totalBudgetUsd)),
+    admissionOverBy: details.constraints?.budget == null ? 0 : Math.max(0, roundPlanMoney(admissionCost - details.constraints.budget)) } : baseBudget;
   const updateCost = (field: keyof typeof budget.breakdown, value: number) => {
     const raw = { ...budget.breakdown, [field]: value };
     const costBreakdown = { foodUsd: roundPlanMoney(raw.foodUsd), transportUsd: roundPlanMoney(raw.transportUsd), otherUsd: roundPlanMoney(raw.otherUsd) };
@@ -66,8 +72,10 @@ export function PlannerSchedule({ stops, date, title, details, onChange, onStatu
       <label>{text('交通与停车预留（整组）$', 'Travel and parking (whole group) $')}<input type="number" min={0} max={100000} step="0.01" value={budget.breakdown.transportUsd} onChange={event => updateCost('transportUsd', Number(event.target.value))} /></label>
       <label>{text('其他预留（整组）$', 'Other allowance (whole group) $')}<input type="number" min={0} max={100000} step="0.01" value={budget.breakdown.otherUsd} onChange={event => updateCost('otherUsd', Number(event.target.value))} /></label>
     </div>
-    <dl className="planner-budget"><div><dt>{text('已知门票起价 × 人数', 'Published starting prices × people')}</dt><dd>{money(budget.admissionFloor)}</dd></div><div><dt>{text('自行预留餐饮、停车、交通等 $', 'Your allowance for food, parking and travel $')}</dt><dd>{money(budget.extraCostUsd)}</dd></div><div><dt>{text('目前可计入的小计', 'Partial subtotal')}</dt><dd>{money(budget.subtotal)}</dd></div></dl>
-    <p className="planner-small-note">{text('按所有人支付同一起价粗算，未计儿童优惠、税费和票档差异；不是完整报价。', 'Assumes the same starting price for each person. Child rates, fees and ticket tiers are unverified; this is not a full quote.')}</p>
+    <dl className="planner-budget"><div><dt>{reference ? text('BayBay 原来源已知门票小计（全组）', 'Original BayBay sourced admission subtotal (group)') : text('已知门票起价 × 人数', 'Published starting prices × people')}</dt><dd>{reference && !reference.knownTotalUsd && reference.unknownStops.length ? text('费用待核算', 'Cost not yet calculated') : money(budget.admissionFloor)}</dd></div><div><dt>{text('自行预留餐饮、停车、交通等 $', 'Your allowance for food, parking and travel $')}</dt><dd>{money(budget.extraCostUsd)}</dd></div><div><dt>{text('目前可计入的小计', 'Partial subtotal')}</dt><dd>{reference && !budget.subtotal && reference.unknownStops.length ? text('费用待核算', 'Cost not yet calculated') : money(budget.subtotal)}</dd></div></dl>
+    <p className="planner-small-note">{reference ? text('沿用原日期与同行条件的来源快照；未知项目未按免费计算。快照仅限本页，保存与分享不会保留此报价。', 'Uses the source snapshot for the original date and party. Unknown items are not treated as free. This price snapshot stays on this page and is not retained when saving or sharing.') : text('按所有人支付同一起价粗算，未计儿童优惠、税费和票档差异；不是完整报价。', 'Assumes the same starting price for each person. Child rates, fees and ticket tiers are unverified; this is not a full quote.')}</p>
+    {reference && <><p className="planner-small-note">{text('当日适用票价、税费、餐饮与交通仍需核实；不是完整出行总价。', 'Date-specific prices, fees, food and transport still need checking; this is not the full trip price.')}</p>{reference.unknowns.length > 0 && <ul className="planner-small-note">{reference.unknowns.map(item => <li key={item}>{item}</li>)}</ul>}</>}
+    {admissionOverride && !reference && <p className="planner-budget-warning" role="status">{text('日期、地点或同行条件已变化，原 BayBay 票价快照已停用。当前改用资料起价粗算，请重新核对分龄票价。', 'The date, stops or party details changed, so the original BayBay price snapshot is no longer applied. Current costs use published starting prices; recheck age-specific rates.')}</p>}
     {budget.unknown.length > 0 && <p className="planner-budget-warning">{text(`还有 ${budget.unknown.length} 站费用待确认：`, `${budget.unknown.length} unpriced stops: `)}{budget.unknown.map(stopTitle).join('、')}</p>}
     {budget.overBy > 0 && <p className="planner-budget-warning" role="status">{text(`已计入金额已超预算 ${money(budget.overBy)}。`, `Already over budget by ${money(budget.overBy)}.`)}</p>}
     {details.constraints?.budget != null && <p className="planner-small-note">{text(details.constraints.budgetScope === 'total' ? '同行门票预算：' : '每人门票预算：', details.constraints.budgetScope === 'total' ? 'Group admission budget: ' : 'Per-person admission budget: ')}{money(details.constraints.budget)} · {text('仅核对门票；餐饮和交通分别预留。', 'Admission only; allow separately for food and travel.')}</p>}
