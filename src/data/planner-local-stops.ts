@@ -72,6 +72,14 @@ const diningStops: PlannerPlace[] = [
 /** Separate museum entries keep their hours and ticket conditions off broad neighborhood guides. */
 const venueStops: PlannerPlace[] = [
   {
+    id: 'venue-sfmoma', title: 'SFMOMA · San Francisco Museum of Modern Art', aliases: ['San Francisco Museum of Modern Art'], region: 'sf', city: 'San Francisco', category: 'attraction',
+    summary: '旧金山市中心的现代与当代艺术博物馆，主要访客入口在 151 Third Street。普通展厅、免费公共空间与馆内商店的入场规则和时间需分别核对；门票按年龄及本人优惠资格计算，特展、余票与所选日期的临时调整以官网为准。',
+    address: '151 Third Street, San Francisco, CA 94103', officialUrl: 'https://www.sfmoma.org/visit/',
+    // Official visitor guide confirms both names and the entrance address.
+    // Its My Maps link exposes a viewport, not an individually verified venue pin.
+    guideSlug: '', cost: 'unknown', offerIds: [],
+  },
+  {
     id: 'venue-exploratorium-daytime', title: 'Exploratorium · 日间科学探索馆', region: 'sf', city: 'San Francisco', category: 'attraction',
     summary: 'Pier 15 的互动科学馆，可搭配 Ferry Plaza 市集与附近用餐。这里是日间参观；周四成人夜场、Tactile Dome 的门票与预约另计。实际票价取决于年龄和优惠资格。',
     address: 'Pier 15, Embarcadero at Green Street, San Francisco, CA 94111', officialUrl: 'https://www.exploratorium.edu/visit',
@@ -91,4 +99,27 @@ const venueStops: PlannerPlace[] = [
   },
 ].map(place => ({ ...place, path: place.officialUrl, planning: { setting: 'indoor', admissionUsd: null, schedule: VERIFIED_PLACE_SCHEDULES[place.id] } } as PlannerPlace));
 
-export const PLANNER_LOCAL_STOPS: PlannerPlace[] = [...openingStops, ...diningStops, ...venueStops, ...PLANNER_NEIGHBORHOOD_STOPS];
+// Identity and official directions checked 2026-10-04. This is the building,
+// not a merchant or a farmers-market session; their schedules remain separate.
+const publicVenueStops: PlannerPlace[] = [{
+  id: 'venue-ferry-building', title: 'Ferry Building · 公共大厅与外部会合点', region: 'sf', city: 'San Francisco', category: 'attraction',
+  summary: '位于 Embarcadero 与 Market Street 尽头的 Ferry Building，可作为公共会合与出发地点。大厅、各商家、农夫市集和轮渡采用不同开放或发班安排；在建筑外会合时请约定具体入口。餐饮、购物、停车及乘车费用另计，路线到站后仍需留出馆外步行与找入口时间。',
+  address: 'One Ferry Building, San Francisco, CA 94111', officialUrl: 'https://www.ferrybuildingmarketplace.com/visit/',
+  // The official page's named Ferry Building directions pin contains
+  // !1d-122.3936136!2d37.7954425; no shop or map viewport is substituted.
+  location: VERIFIED_VENUE_LOCATIONS['ferry-building'],
+  guideSlug: '', path: 'https://www.ferrybuildingmarketplace.com/visit/', cost: 'unknown',
+  planning: { setting: 'mixed', admissionUsd: null }, offerIds: [],
+}];
+
+// Official identity checked 2026-10-04. The brand's city name is not its location.
+const shoppingStops: PlannerPlace[] = [{
+  id: 'shop-san-francisco-premium-outlets', title: 'San Francisco Premium Outlets', city: 'Livermore', region: 'east-bay', category: 'shop',
+  address: '2774 Livermore Outlets Drive, Livermore, CA 94551',
+  officialUrl: 'https://www.premiumoutlets.com/outlet/san-francisco/about',
+  guideSlug: 'bay-area-outlets-malls-shopping-guide', path: 'https://www.premiumoutlets.com/outlet/san-francisco/about',
+  summary: '位于东湾 Livermore 的户外奥特莱斯，不在旧金山市区。商场官网列出 BART 接 Wheels 14 路的公共交通方式；出发前需核对当天班次、营业时间和回程，购物与交通费用另计。',
+  cost: 'unknown', planning: { setting: 'outdoor', admissionUsd: null }, offerIds: [],
+}];
+
+export const PLANNER_LOCAL_STOPS: PlannerPlace[] = [...openingStops, ...diningStops, ...venueStops, ...publicVenueStops, ...shoppingStops, ...PLANNER_NEIGHBORHOOD_STOPS];

@@ -45,6 +45,8 @@ export function BayBayAssistantPlanCard({ plan, evidence, disabled, onAsk, onNav
   plan: BayBayAssistantPlan; evidence: BayBayEvidence[]; disabled: boolean; onAsk: (message: string) => void; onNavigate: (path: string) => void;
 }) {
   const t = useCopy(), imported = bayBayAssistantPlanImport(plan);
+  const hasUnpricedCosts = plan.budget.unknownItems.length > 0 || !plan.stops.length || plan.stops.some(stop => stop.admissionUsd === undefined);
+  const costNotCalculated = plan.budget.knownTotalUsd === undefined || (plan.budget.knownTotalUsd === 0 && hasUnpricedCosts);
   const status = plan.status === 'ready' ? t('安排草案', 'Plan draft') : plan.status === 'needs_details' ? t('还需补充条件', 'More details needed') : t('部分信息待核实', 'Some details need checking');
   const sources = new Map(evidence.map(item => [item.id, item]));
   const stopIds = plan.stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
@@ -64,7 +66,7 @@ export function BayBayAssistantPlanCard({ plan, evidence, disabled, onAsk, onNav
       <button type="button" className="baybay-plan-swap" disabled={disabled} onClick={() => onAsk(t(`换掉第${index + 1}站，保留其他条件。`, `Replace stop ${index + 1}, keeping my other requirements.`))}><RefreshCw size={12} />{t(`换掉第${index + 1}站`, `Replace stop ${index + 1}`)}</button>
     </li>)}</ol>
     {plan.returnTime && returnLeg && <p className="baybay-plan-summary">{t(`预计 ${plan.returnTime} 返回出发地 · Google Maps 估算，实际路况可能变化。`, `Estimated return to your starting point at ${plan.returnTime} · Google Maps estimate; actual travel conditions may change.`)}</p>}
-    <section className="baybay-plan-budget"><h4>{t('费用核对', 'Budget check')}</h4><p>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>{plan.budget.knownTotalUsd === undefined ? t('未知', 'Unknown') : `$${plan.budget.knownTotalUsd}`}</strong></p>
+    <section className="baybay-plan-budget"><h4>{t('费用核对', 'Budget check')}</h4><p>{costNotCalculated ? <strong>{t('费用待核算', 'Cost not yet calculated')}</strong> : <>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>${plan.budget.knownTotalUsd}</strong></>}</p>
       {plan.budget.limitUsd !== undefined && <p>{t('预算上限', 'Budget limit')} <strong>${plan.budget.limitUsd}</strong>{` · ${plan.budget.scope === 'person' ? t('每人', 'per person') : plan.budget.scope === 'total' ? t('全组', 'whole group') : t('范围待确认', 'scope unconfirmed')}`}</p>}
       <small>{t('小计不代表完整出行总价；未知费用未按零元计算。', 'The subtotal is not the full trip cost; unknown costs are not counted as zero.')}</small>
       {!!plan.budget.unknownItems.length && <ul>{plan.budget.unknownItems.map((item, i) => <li key={i}>{t(item, item)}</li>)}</ul>}

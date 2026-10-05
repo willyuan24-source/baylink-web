@@ -46,6 +46,31 @@ test('v2 request keeps opaque token out of page context and sanitizes response f
   assert.equal(malformed.assistantPlan, undefined); assert.equal(malformed.taskState, undefined); assert.equal(malformed.assistantSessionToken, undefined);
 });
 
+test('contextual followups are validated, displayed and submitted with the completed conversation', async t => {
+  const bodies: { message: string; assistantSessionToken?: string }[] = [];
+  const suggestion = '保持8人同行，帮我整理 Muir Woods 停车预约步骤';
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+    bodies.push(JSON.parse(String(init.body)));
+    return Response.json({ ok: true, answer: '八人的费用超过当前预算；停车名额尚未确认。', assistantSessionToken: 'complete.followup',
+      followups: [null, suggestion, suggestion, 'x'.repeat(161), 'bad\ncontrol', 42] });
+  });
+  const view = render(<BayBayAssistantEntry {...props} />);
+  fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: 'Muir Woods 年票可以免费停车吗？' } });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  assert.equal(view.getAllByRole('button', { name: suggestion }).length, 1);
+  assert.equal(view.queryByRole('button', { name: '哪些不需要消费？哪些需要会员或 App？' }), null);
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: suggestion })); });
+  assert.equal(bodies[1].message, suggestion); assert.equal(bodies[1].assistantSessionToken, 'complete.followup');
+});
+
+test('malformed followup fields cannot escape the response boundary and break fallback prompts', async t => {
+  for (const followups of [null, 'invalid suggestion list', { text: 'not an array' }]) {
+    t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: 'A valid answer.', followups }));
+    const response = await fetchBayBayReply('A public question', { currentPath: '/' }, [], new AbortController().signal);
+    assert.equal(response.followups, undefined);
+  }
+});
+
 test('a stopped late response never replaces completed token; errors, new conversation, typed reset and account changes isolate state', async t => {
   const bodies: { message: string; assistantSessionToken?: string; history: unknown[] }[] = [];
   let late: ((response: Response) => void) | undefined;

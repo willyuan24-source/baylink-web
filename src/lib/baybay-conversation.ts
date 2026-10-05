@@ -246,8 +246,9 @@ export const BAYBAY_SCENARIOS = [
   { label: '刚来湾区', icon: '⌂', question: '我刚来湾区，想先安排第一个月的生活。请根据站内指南给我三个优先事项，再问我需要补充什么。' },
 ];
 
-export function bayBayFollowups(question: string, hasArticle: boolean, schoolContext = false): string[] {
+export function bayBayFollowups(question: string, hasArticle: boolean, schoolContext = false, suggested: string[] = []): string[] {
   if (schoolContext || isBayBaySchoolRequest(question)) return ['按已经提供的地区与年级，帮我列出需要向学区核实的事项', '帮我写一段不含孩子个人资料的入学咨询模板'];
+  if (suggested.length) return suggested.slice(0, 3);
   if (/亲子|带娃|儿童|孩子|手工/.test(question)) return ['帮我按已经提供的条件，列出需要提前预约的项目', '帮我列出出门前要核实的年龄、名额和材料条件'];
   if (/优惠|免费|省钱|领取/.test(question)) return ['哪些不需要消费？哪些需要会员或 App？', '帮我按预约、会员和领取时间列一个行动清单'];
   if (/周末|去处|哪里|玩|路线/.test(question)) return ['帮我按已经提供的条件，把推荐整理成出游安排', '帮我按已经提供的条件，比较这些去处的取舍'];
@@ -291,7 +292,7 @@ export async function fetchBayBayReply(
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
-        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, ...parseBayBayAssistantFields(data) };
+        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, ...parseBayBayAssistantFields(data) };
         if (data.outingSearch !== undefined) return { ...safe, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
         if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');
         return safe;

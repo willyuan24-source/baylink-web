@@ -23,6 +23,7 @@ export type BayBayAssistantPlan = {
 };
 export type BayBayAssistantFields = {
   assistantSessionToken?: string; taskState?: BayBayTaskState; assistantPlan?: BayBayAssistantPlan; evidence?: BayBayEvidence[];
+  followups?: string[];
   research?: { steps: { tool: string; status: string; label: string }[]; warnings: string[] };
 };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
@@ -54,6 +55,8 @@ export function bayBayAssistantResult(input: unknown): PlannerWebResult | null {
 export function parseBayBayAssistantFields(input: unknown): BayBayAssistantFields {
   if (!record(input)) return {};
   const result: BayBayAssistantFields = { assistantSessionToken: safeAssistantSessionToken(input.assistantSessionToken) };
+  if (Array.isArray(input.followups)) result.followups = [...new Set(input.followups.filter((item): item is string =>
+    typeof item === 'string' && item.trim().length >= 4 && item.trim().length <= 160 && [...item].every(char => char.charCodeAt(0) >= 32 && char.charCodeAt(0) !== 127)).map(item => item.trim()))].slice(0, 3);
   const value = input.taskState;
   if (record(value) && value.version === 1 && Number.isSafeInteger(value.revision) && Number(value.revision) >= 0) {
     const state: BayBayTaskState = { version: 1, revision: Number(value.revision) };
