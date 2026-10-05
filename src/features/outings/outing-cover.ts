@@ -1,5 +1,6 @@
+import { getListingImage } from '../../lib/offer-media';
 import { guides } from '../../data/guides';
-import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../../data/guide-media';
+import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { discoveryShare, localDiscoveries } from '../../data/local-discoveries';
 import { getLocale, simplifySearch, translateText, type Locale } from '../../i18n/locale';
 import type { OutingCoverSelection, OutingDraft } from '../../lib/outings';
@@ -15,7 +16,7 @@ function choices(): OutingCoverChoice[] {
   return catalog ||= [
     ...localDiscoveries.flatMap(item => {
       const content = item.kind === 'event' ? item.event : item.kind === 'offer' ? item.offer : item.shop;
-      const image = GUIDE_IMAGES[content.imageKey];
+      const image = getListingImage(content.imageKey);
       if (!image) return [];
       const source = discoveryShare(item);
       return [{ kind: item.kind, id: source.id, title: source.title, summary: source.summary, area: source.area, path: source.path, image }];

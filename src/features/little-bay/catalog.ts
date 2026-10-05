@@ -1,5 +1,6 @@
+import { getListingImage } from '../../lib/offer-media';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } from '../../data/attractions';
-import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../../data/guide-media';
+import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { guides } from '../../data/guides';
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../../data/planner-catalog';
 import { addCalendarDays, eventOccursOn, validCalendarDay } from '../../lib/event-calendar';
@@ -31,7 +32,7 @@ const placeAvailableOn = (place: PlannerPlace, date: string) => place.openingSta
 
 function eventStop(event: PlannerEvent): LittleBayStop {
   const stop: Stop = { kind: 'event', id: event.id };
-  const imageMeta = GUIDE_IMAGES[event.imageKey];
+  const imageMeta = getListingImage(event.imageKey);
   return {
     key: `event:${event.id}`, stop, kind: 'event', title: event.title,
     subtitle: event.summary, city: event.city, region: event.region, price: event.costLabel,
@@ -45,7 +46,8 @@ function placeStop(place: PlannerPlace): LittleBayStop {
   const stop: Stop = { kind: 'place', id: place.id };
   const attraction = attractionsById.get(place.id);
   const guide = guidesBySlug.get(place.guideSlug);
-  const imageMeta = (place.imageKey ? GUIDE_IMAGES[place.imageKey] : undefined) || (guide ? getGuideMedia(guide).cover : undefined);
+  const candidateImage = place.imageKey ? getListingImage(place.imageKey) : guide ? getGuideMedia(guide).cover : undefined;
+  const imageMeta = candidateImage?.kind === 'illustration' ? undefined : candidateImage;
   const unknownCost = place.category === 'restaurant' || place.category === 'cafe' ? '餐饮费用待确认' : place.category === 'shop' ? '消费费用待确认' : '入场费用待确认';
   return {
     key: `place:${place.id}`, stop, kind: 'place', title: place.title,

@@ -1,3 +1,4 @@
+import { verifiedOffers20261005 } from './verified-offers-2026-10-05';
 import type { Guide } from './guides';
 import { currentFreebies } from './october-offers';
 import { targetLowesOffers2026, targetLowesUpdates2026 } from './retail-target-lowes-2026';
@@ -5,7 +6,7 @@ import { familyRetailOffers2026, familyRetailUpdates2026 } from './retail-family
 import { diningRetailOffers2026, diningRetailUpdates2026 } from './retail-dining-2026';
 
 const ids = new Set([
-  ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026,
+  ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026, ...verifiedOffers20261005,
 ].map(offer => offer.id).concat(Object.keys({ ...targetLowesUpdates2026, ...familyRetailUpdates2026, ...diningRetailUpdates2026 })));
 // Include already-published chain perks so this brand directory is complete,
 // while keeping the existing canonical records and their original review dates.
@@ -25,8 +26,8 @@ export const retailPerksGuides2026: Guide[] = [{
   category: 'events', categoryLabel: '生活活动', emoji: '🛍️', priority: 'P0', featuredOnHome: true,
   audience: ['想找门店赠品的湾区居民', '安排免费亲子活动的家庭', '想少花冤枉钱的新会员'],
   tags: ['Freebies', 'Target', 'Lowe’s', 'Home Depot', 'Michaels', 'Lakeshore', 'IKEA', 'LEGO', '优惠', '亲子手作', '新会员礼'],
-  recommendedForCategories: ['other'], readMinutes: 9, updatedAt: '2026-10-04',
-  sourceNote: '2026-10-04 逐项查阅品牌官方活动、参与店名单及会员规则。每张卡保留来源；名额、赠品和账户券以品牌实时页面为准。只公布在官方资料中能确认的内容，不用往年日期推算今年活动。',
+  recommendedForCategories: ['other'], readMinutes: 9, updatedAt: '2026-10-05',
+  sourceNote: '2026-10-04–05 查阅品牌官方活动、参与店名单及会员规则；各项目的核验日期见卡片。每张卡保留来源，名额、赠品和账户券以品牌实时页面为准。只公布官方资料可确认的内容，不用往年日期推算今年活动。',
   sources: [...new Map(offers.map(offer => [offer.sourceUrl, { title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement }])).values()],
   blocks: [
     { type: 'heading', text: '先选领取方式，再找顺路门店' },

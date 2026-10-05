@@ -48,6 +48,7 @@
       "dateLabel": "长期福利 · 每次到店可询问",
       "costLabel": "无需购物",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.lowes.com/diy-projects-and-ideas/workshops",
       "sourceLabel": "Kids Club 棒棒糖福利"
     },
@@ -63,6 +64,7 @@
       "dateLabel": "长期福利 · 按餐厅时段",
       "costLabel": "无需购物",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.ikea.com/us/en/ikea-family/",
       "sourceLabel": "IKEA Family 热饮福利"
     },
@@ -166,6 +168,7 @@
       "dateLabel": "日常福利 · 同一次堂食期间",
       "costLabel": "需消费",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://about.starbucks.com/back-to-starbucks/",
       "sourceLabel": "堂食续杯范围与例外"
     },
@@ -310,6 +313,7 @@
       "dateLabel": "10/17 周六 · 10:00–13:00",
       "costLabel": "需预约",
       "status": "dated",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.lowes.com/events/register/firefighting-plane",
       "sourceLabel": "消防飞机官方日期与预约"
     },
@@ -327,6 +331,7 @@
       "dateLabel": "10/20 周二 · 参与门店营业时间",
       "costLabel": "需消费",
       "status": "dated",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.yogurtland.com/news_posts/view/86/celebrating-20-years-of-yogurtland-anniversary-promo-how-you-can-join-the-fun",
       "sourceLabel": "Yogurtland 全年每月 20 日规则"
     },
@@ -342,6 +347,7 @@
       "dateLabel": "每周三 · 11:00–17:00",
       "costLabel": "无需购物",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://svma.org/visit/",
       "sourceLabel": "Sonoma 美术馆免费周三与闭馆公告"
     },
@@ -382,15 +388,16 @@
     {
       "kind": "offer",
       "id": "smcl-discover-go",
-      "title": "半岛图书证，先核对卡号再借门票",
+      "title": "半岛图书证，先核对所属馆与服务范围",
       "path": "/offers/smcl-discover-go",
-      "summary": "卡号以 29041 或 29731 开头可进县图书馆入口；San Mateo 市、Redwood City 等卡请用所属馆入口。名额与同行人数依场馆，打印后不能取消。",
+      "summary": "先用所属图书馆的 Discover & Go 入口，并核对居住地是否在该馆服务范围内；San Mateo 市、Redwood City 等有各自入口。最多同时两项预约，入场人数依场馆，打印后不能取消。",
       "details": [
         "按现行 FAQ：须居住于 SMCL 服务范围内、持有效图书证且 16 岁及以上；eCard 和机构卡不适用。本人持有效证件在预约日使用。"
       ],
       "dateLabel": "长期福利 · 最多同时两项预约",
       "costLabel": "需预约",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://smcl.org/faq/museum-passes-discover-go/",
       "sourceLabel": "SMCL 门票资格与预约 FAQ"
     },
@@ -406,6 +413,7 @@
       "dateLabel": "长期福利 · 以登录后可用票为准",
       "costLabel": "需预约",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://aclibrary.org/faq/library-cards-ecards/",
       "sourceLabel": "AC Library Discover & Go 资格"
     },
@@ -421,6 +429,7 @@
       "dateLabel": "长期福利 · 每次可借三周",
       "costLabel": "需预约",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://parks.santaclaracounty.gov/library-parks-pass",
       "sourceLabel": "Santa Clara 县图书馆公园通行证"
     },
@@ -916,7 +925,8 @@
       "dateLabel": "长期福利 · 周二、周三放映场次",
       "costLabel": "需消费",
       "status": "ongoing",
-      "sourceUrl": "https://www.amctheatres.com/50pct-off-tuesdays-and-wednesdays?rel=discount-tuesdays_loy_alert_alert",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.amctheatres.com/50pct-off-tuesdays-and-wednesdays",
       "sourceLabel": "AMC 官方半价日会员规则"
     },
     {
@@ -3354,6 +3364,258 @@
       "sourceLabel": "Lakeshore 2026 门店活动日历"
     },
     {
+      "kind": "offer",
+      "id": "lowes-money-days-prizes-oct10-11-2026",
+      "title": "10/10–11 会员现场抽奖，非保证获赠",
+      "path": "/offers/lowes-money-days-prizes-oct10-11-2026",
+      "summary": "MyLowe’s Money Days 活动有机会获得奖励；并非每位到场者都能领到社媒图片中的礼物。带好会员账户，到店前确认活动柜台、规则和余量。",
+      "details": [
+        "官网已公布门店活动时间及 MyLowe’s Money／其他奖品。完整参与资格、购买条件与奖品数量尚未公开核实，请先问本店。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-10",
+      "endDate": "2026-10-11",
+      "dateLabel": "2026/10/10–11 · 10:00–13:00",
+      "costLabel": "条件待核对",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.lowes.com/l/shop/mylowes-money-days",
+      "sourceLabel": "Lowe’s 官方 Money Days 日期与奖品公告"
+    },
+    {
+      "kind": "offer",
+      "id": "shake-shack-scarygood-oct2026",
+      "title": "10 月满 $10，按日期赠鸡肉堡或牛肉堡",
+      "path": "/offers/shake-shack-scarygood-oct2026",
+      "summary": "10/1–11 送 Chicken Shack 或 West Coast Chicken；10/12–18 送 Single Cheeseburger；10/19–31 送 Single ShackBurger。税费、赠品本身及礼卡不计满额；加料另付，不叠加。得来速、第三方和机场等特殊门店除外，售完为止。Palo Alto 可查 Stanford 门店。",
+      "details": [
+        "另买至少 $10 食物／饮品，并把当期赠品放入购物车，输入大写 SCARYGOOD。用门店自助机或官方 App／网页；每单限一份。"
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-01",
+      "endDate": "2026-10-31",
+      "dateLabel": "2026/10/1–31 · 三个赠品阶段",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://shakeshack.com/blog/our-food/scary-good-deals-are-back-this-october-at-shake-shack",
+      "sourceLabel": "Shake Shack 官方 2026 年 10 月优惠及细则"
+    },
+    {
+      "kind": "offer",
+      "id": "wendys-boo-books-2026",
+      "title": "$1 买 Boo! Books，内含 5 张 Jr. Frosty 券",
+      "path": "/offers/wendys-boo-books-2026",
+      "summary": "在门店、官方 App 或网页的 Give Something Back 栏目找券册。纸券限到店出示，12/31 前兑换，不能用于手机订单或叠加。另附 $1.99 儿童餐券，但该券须额外消费；条件看券面。",
+      "details": [
+        "参与美国门店的券册售价 $1，售完为止；内含 5 张免费 Jr. Frosty 券。须先购券册，之后兑 Frosty 不必另买商品。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-08-31",
+      "endDate": "2026-11-01",
+      "dateLabel": "购书至 2026/11/1 · 兑换至 12/31",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.wendys.com/adoption/frosty-boo-books",
+      "sourceLabel": "Wendy’s 官方 2026 Boo! Books 价格、售期与兑换规则"
+    },
+    {
+      "kind": "offer",
+      "id": "smashburger-kids-wednesdays-2026",
+      "title": "周三买完整成人套餐，12 岁及以下儿童餐免费",
+      "path": "/offers/smashburger-kids-wednesdays-2026",
+      "summary": "官网明确列出 San Jose–Coleman：579 Coleman Ave, Suite 507。10 月可选 7、14、21、28 日；不适用网页、App 或第三方外送，不叠加，税另计、售完为止。",
+      "details": [
+        "购买包含主食、配餐和饮品的成人套餐，才可获儿童餐；儿童须 12 岁或以下。只限参与门店现场点单。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "weekdays": [
+        3
+      ],
+      "dateLabel": "2026 年每周三 · 至 12/31",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://smashburger.com/kids-eat-free-details",
+      "sourceLabel": "Smashburger 官方 2026 周三活动与参与店名单"
+    },
+    {
+      "kind": "offer",
+      "id": "mod-pizza-kids-sundays-2026",
+      "title": "周日买常规披萨或沙拉，送儿童套餐",
+      "path": "/offers/mod-pizza-kids-sundays-2026",
+      "summary": "可在店内、官网或 App 使用，不适用电话或第三方订单，不叠加；特殊饼底可能加价。San Jose Brokaw Plaza 有门店，出发前核对参与及结账优惠；活动可提前结束。",
+      "details": [
+        "每买一份 Regular-size 披萨或沙拉，可给 12 岁及以下儿童兑换一份 Kids Meal。官方页面列代码 KEF2026；限参与门店。"
+      ],
+      "region": "south-bay",
+      "weekdays": [
+        0
+      ],
+      "dateLabel": "每周日 · 10 月余下 11、18、25 日",
+      "costLabel": "需消费",
+      "status": "ongoing",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://modpizza.com/kids-eat-free-deal/",
+      "sourceLabel": "MOD 官方周日儿童餐活动与代码"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-tricks-treats-oct17-2026",
+      "title": "10/17 宠物领免费零食，前 50 位有主题袋",
+      "path": "/offers/petsmart-tricks-treats-oct17-2026",
+      "summary": "宠物可在店内站点领零食，家人可领涂色页、贴纸，并使用主题拍照背景。鼓励装扮但不强制；携宠须符合门店宠物政策。可先查 San Jose Almaden 门店。",
+      "details": [
+        "Tricks for Treats 免费门店活动；官方说明所有门店参加。前 50 位到场者可获万圣节 PetSmart 手提袋，赠品先到先得、送完为止。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-17",
+      "endDate": "2026-10-17",
+      "dateLabel": "2026/10/17 · 10:00–16:00",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart 官方 2026 万圣节门店活动公告"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-tricks-treats-oct25-2026",
+      "title": "10/25 宠物领免费零食，前 50 位有主题袋",
+      "path": "/offers/petsmart-tricks-treats-oct25-2026",
+      "summary": "宠物可在店内站点领零食，家人可领涂色页、贴纸，并使用主题拍照背景。鼓励装扮但不强制；携宠须符合门店宠物政策。可先查 San Jose Almaden 门店。",
+      "details": [
+        "Tricks for Treats 免费门店活动；官方说明所有门店参加。前 50 位到场者可获万圣节 PetSmart 手提袋，赠品先到先得、送完为止。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-25",
+      "endDate": "2026-10-25",
+      "dateLabel": "2026/10/25 · 10:00–16:00",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart 官方 2026 万圣节门店活动公告"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-spooky-pets-oct18-2026",
+      "title": "10/18 免费认识蛇、蜘蛛与甲虫",
+      "path": "/offers/petsmart-spooky-pets-oct18-2026",
+      "summary": "由店员介绍特色宠物的日常照护与活动，适合对爬宠和无脊椎动物好奇的家庭。此场不承诺免费领宠物或前 50 位手提袋；手提袋属于 10/17、25 的另一活动。",
+      "details": [
+        "Meet the Spooky Pets 免费门店体验；官方说明所有门店参加，无需为活动购买宠物或用品。各店展示物种可能不同。"
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-18",
+      "endDate": "2026-10-18",
+      "dateLabel": "2026/10/18 · 12:00–14:00",
+      "costLabel": "无需购物",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart 官方 2026 万圣节门店活动公告"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-monday-beverage-points-oct26-2026",
+      "title": "10 月周一 App 预点饮品，享 4X 积分活动",
+      "path": "/offers/dunkin-monday-beverage-points-oct26-2026",
+      "summary": "这是购买饮品后的积分奖励。普通柜台下单不满足本活动的预点要求；可先查 San Carlos 门店与账户优惠。",
+      "details": [
+        "Rewards 会员先在 App 激活优惠，再用 Dunkin’ App 提前下单合资格饮品；每人每周一限一次，限参与门店。"
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-05",
+      "endDate": "2026-10-26",
+      "weekdays": [
+        1
+      ],
+      "dateLabel": "2026/10/5、12、19、26 · 每周一",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ 官方 2026 年 10 月优惠及细则"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-food-triple-points-oct16-2026",
+      "title": "10/16 会员购买食品享 3X 积分",
+      "path": "/offers/dunkin-food-triple-points-oct16-2026",
+      "summary": "加倍按基础积分计算，不是食物免费或直接打折；不与其他优惠叠加。下单前核对账户活动和实际可获积分。",
+      "details": [
+        "Rewards 会员在参与门店购买食品，用 App 预点、结账扫码会员码，或使用已绑定的 Dunkin’ 卡；每人一次。"
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-16",
+      "endDate": "2026-10-16",
+      "dateLabel": "仅 2026/10/16",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ 官方 2026 年 10 月优惠及细则"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-donut-packs-triple-points-oct30-31-2026",
+      "title": "10/30–31 指定盒装甜甜圈享 3X 积分",
+      "path": "/offers/dunkin-donut-packs-triple-points-oct30-31-2026",
+      "summary": "可 App 预点、到店扫码会员码或用已绑定的卡付款；限参与门店，按基础积分加倍，不与其他促销叠加。",
+      "details": [
+        "Rewards 会员先在 App 激活，购买半打／一打甜甜圈，或 25／50 颗 MUNCHKINS；Fancies 除外，每人每天一次。"
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-30",
+      "endDate": "2026-10-31",
+      "dateLabel": "2026/10/30–31",
+      "costLabel": "需消费",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ 官方 2026 年 10 月优惠及细则"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-six-dollar-meal-fall-2026",
+      "title": "$6 早餐组合：三明治、薯饼、中杯咖啡",
+      "path": "/offers/dunkin-six-dollar-meal-fall-2026",
+      "summary": "这是付费套餐，税费另看结账。门店是否参加可能不同，不能与其他优惠同用；San Carlos 可先查询本店菜单。",
+      "details": [
+        "参与门店 $6 Meal Deal 含 Bacon, Egg and Cheese Sandwich、Hash Browns，以及中杯热咖啡或冰咖啡；不可替换餐品。"
+      ],
+      "region": "peninsula",
+      "dateLabel": "限时供应 · 官方未列统一结束日",
+      "costLabel": "需消费",
+      "status": "check-local",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ 官方 2026 年 10 月优惠及细则"
+    },
+    {
+      "kind": "opening",
+      "id": "passdoor-santa-rosa-opening-2026",
+      "title": "The Passdoor",
+      "path": "/openings/passdoor-santa-rosa-opening-2026",
+      "summary": "The Passdoor 官网已列出 Santa Rosa 新址、营业时段及后续活动。珠宝、艺术及家居精选品牌迁至 1160 4th Street；10/1–3 的开业庆典已结束。",
+      "details": [
+        "官网不同页面的营业时段不一致，出发前联系门店确认。开业庆典日期不等于首次接客日，也不代表当前仍有赠品或开业优惠。",
+        "1160 4th Street, Santa Rosa, CA",
+        "零售迁址"
+      ],
+      "region": "north-bay",
+      "city": "Santa Rosa",
+      "dateLabel": "Santa Rosa 新址已列营业信息 · 10/1–3 开业庆典已结束",
+      "status": "open",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.thepassdoor.net/new-page",
+      "sourceLabel": "The Passdoor · 官方入口"
+    },
+    {
       "kind": "opening",
       "id": "roundup-alesta-sebastopol-2026",
       "title": "Alesta Modern Mediterranean",
@@ -4313,25 +4575,6 @@
     },
     {
       "kind": "opening",
-      "id": "passdoor-santa-rosa-opening-2026",
-      "title": "The Passdoor",
-      "path": "/openings/passdoor-santa-rosa-opening-2026",
-      "summary": "老品牌搬至 Santa Rosa 新址，经营珠宝、艺术及家居精选，属于迁址开业。",
-      "details": [
-        "购物另付；未公布开业折扣。 以官方页面的报名与入场要求为准。",
-        "1160 4th Street, Santa Rosa, CA",
-        "零售迁址"
-      ],
-      "region": "north-bay",
-      "city": "Santa Rosa",
-      "dateLabel": "开业活动公告跨度10/1 11:00至10/3 18:00；每日时段待确认",
-      "status": "announced",
-      "verifiedAt": "2026-09-28",
-      "sourceUrl": "https://thepassdoor.squarespace.com/new-events-1/santarosagrandopening",
-      "sourceLabel": "The Passdoor · 官方入口"
-    },
-    {
-      "kind": "opening",
       "id": "mountain-view-tong-sui-announced-2026",
       "title": "Tong Sui",
       "path": "/openings/mountain-view-tong-sui-announced-2026",
@@ -4400,7 +4643,7 @@
       ],
       "region": "south-bay",
       "city": "San Jose",
-      "dateLabel": "计划 9 月重开 · 确切日待确认",
+      "dateLabel": "九月重开预告已过 · 实际营业状态仍待确认",
       "status": "announced",
       "verifiedAt": "2026-09-11",
       "sourceUrl": "https://www.hoteldeanza.com/",
@@ -4419,7 +4662,7 @@
       ],
       "region": "sf",
       "city": "San Francisco",
-      "dateLabel": "计划 9 月下旬 · 未公布确切日",
+      "dateLabel": "此前预告九月下旬 · 实际开门日期仍待确认",
       "status": "announced",
       "verifiedAt": "2026-09-11",
       "sourceUrl": "https://www.woodsbeer.com/",

@@ -48,6 +48,7 @@
       "dateLabel": "Ongoing benefit · Ask on each store visit",
       "costLabel": "No purchase required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.lowes.com/diy-projects-and-ideas/workshops",
       "sourceLabel": "Kids Club lollipop perk"
     },
@@ -63,6 +64,7 @@
       "dateLabel": "Ongoing benefit · During restaurant hours",
       "costLabel": "No purchase required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.ikea.com/us/en/ikea-family/",
       "sourceLabel": "IKEA Family hot drink perk"
     },
@@ -166,6 +168,7 @@
       "dateLabel": "Ongoing benefit · during the same café visit",
       "costLabel": "Purchase required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://about.starbucks.com/back-to-starbucks/",
       "sourceLabel": "Café refill choices and exclusions"
     },
@@ -310,6 +313,7 @@
       "dateLabel": "Sat 10/17 · 10 AM–1 PM",
       "costLabel": "Reservation required",
       "status": "dated",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.lowes.com/events/register/firefighting-plane",
       "sourceLabel": "Firefighting Plane official date and registration"
     },
@@ -327,6 +331,7 @@
       "dateLabel": "Tue 10/20 · Participating store hours",
       "costLabel": "Purchase required",
       "status": "dated",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://www.yogurtland.com/news_posts/view/86/celebrating-20-years-of-yogurtland-anniversary-promo-how-you-can-join-the-fun",
       "sourceLabel": "Yogurtland monthly anniversary terms"
     },
@@ -342,6 +347,7 @@
       "dateLabel": "Every Wednesday · 11 AM–5 PM",
       "costLabel": "No purchase required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://svma.org/visit/",
       "sourceLabel": "Sonoma museum free Wednesdays and closure notice"
     },
@@ -382,15 +388,16 @@
     {
       "kind": "offer",
       "id": "smcl-discover-go",
-      "title": "Peninsula museum passes: use the right library portal",
+      "title": "Peninsula museum passes: check your library and its service area first",
       "path": "/offers/smcl-discover-go",
-      "summary": "Cards beginning 29041 or 29731 use the county portal. San Mateo city, Redwood City and other cards use their own library portals. Capacity varies by venue; printed passes cannot be canceled.",
+      "summary": "Use your own library's Discover & Go portal and check whether your address is within its service area. San Mateo City, Redwood City and other libraries have separate portals. You may hold two active reservations; guest limits vary, and printed passes cannot be canceled.",
       "details": [
         "Current FAQ: live within the SMCL service area, hold a valid library card and be age 16 or older. eCards and institutional cards are excluded. The named holder needs valid ID on the reserved date."
       ],
       "dateLabel": "Ongoing benefit · Up to two active reservations",
       "costLabel": "Reservation required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://smcl.org/faq/museum-passes-discover-go/",
       "sourceLabel": "SMCL museum-pass eligibility and booking FAQ"
     },
@@ -406,6 +413,7 @@
       "dateLabel": "Ongoing benefit · Availability shown after login",
       "costLabel": "Reservation required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://aclibrary.org/faq/library-cards-ecards/",
       "sourceLabel": "AC Library Discover & Go eligibility"
     },
@@ -421,6 +429,7 @@
       "dateLabel": "Ongoing benefit · Three-week checkout",
       "costLabel": "Reservation required",
       "status": "ongoing",
+      "verifiedAt": "2026-10-05",
       "sourceUrl": "https://parks.santaclaracounty.gov/library-parks-pass",
       "sourceLabel": "Santa Clara County Library Parks Pass"
     },
@@ -916,7 +925,8 @@
       "dateLabel": "Ongoing benefit · Tuesday and Wednesday showtimes",
       "costLabel": "Purchase required",
       "status": "ongoing",
-      "sourceUrl": "https://www.amctheatres.com/50pct-off-tuesdays-and-wednesdays?rel=discount-tuesdays_loy_alert_alert",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.amctheatres.com/50pct-off-tuesdays-and-wednesdays",
       "sourceLabel": "AMC official member discount-day terms"
     },
     {
@@ -3354,6 +3364,258 @@
       "sourceLabel": "Lakeshore 2026 in-store event calendar"
     },
     {
+      "kind": "offer",
+      "id": "lowes-money-days-prizes-oct10-11-2026",
+      "title": "Oct 10–11: Member prize event, prizes not guaranteed",
+      "path": "/offers/lowes-money-days-prizes-oct10-11-2026",
+      "summary": "MyLowe’s Money Days offers a chance at rewards. Items pictured on social media are not guaranteed for every visitor. Have your member account ready and confirm the event desk, rules and availability.",
+      "details": [
+        "The official page confirms the in-store time and chances to win MyLowe’s Money or other prizes. Full eligibility, purchase requirements and quantities still need checking with your store."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-10",
+      "endDate": "2026-10-11",
+      "dateLabel": "2026/10/10–11 · 10:00–13:00",
+      "costLabel": "Check participation terms",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.lowes.com/l/shop/mylowes-money-days",
+      "sourceLabel": "Lowe’s official Money Days dates and prize announcement"
+    },
+    {
+      "kind": "offer",
+      "id": "shake-shack-scarygood-oct2026",
+      "title": "October: Spend $10 and get the current free sandwich",
+      "path": "/offers/shake-shack-scarygood-oct2026",
+      "summary": "Oct 1–11: Chicken Shack or West Coast Chicken. Oct 12–18: Single Cheeseburger. Oct 19–31: Single ShackBurger. Tax, fees, gift cards and the free sandwich do not count toward $10; add-ons cost extra. No stacking, drive-through, third-party or excluded venues such as airports. While supplies last. Check Stanford Shopping Center in Palo Alto.",
+      "details": [
+        "Spend $10 on other food or drinks, add the eligible sandwich and enter SCARYGOOD in capitals. Use an in-store kiosk, official app or website; one per order."
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-01",
+      "endDate": "2026-10-31",
+      "dateLabel": "Oct 1–31, 2026 · Three sandwich windows",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://shakeshack.com/blog/our-food/scary-good-deals-are-back-this-october-at-shake-shack",
+      "sourceLabel": "Shake Shack official October 2026 offer and terms"
+    },
+    {
+      "kind": "offer",
+      "id": "wendys-boo-books-2026",
+      "title": "$1 Boo! Books includes five Jr. Frosty coupons",
+      "path": "/offers/wendys-boo-books-2026",
+      "summary": "Find the booklet under Give Something Back in restaurants or on Wendy’s official app or website. Present paper coupons in person by Dec 31; no mobile redemption or stacking. The extra $1.99 Kids’ Meal coupon requires another purchase; check its printed conditions.",
+      "details": [
+        "Buy a $1 booklet at participating US restaurants while available. It contains five free Jr. Frosty coupons; no additional purchase is needed when redeeming a Frosty coupon."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-08-31",
+      "endDate": "2026-11-01",
+      "dateLabel": "Buy through Nov 1, 2026 · Redeem through Dec 31",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.wendys.com/adoption/frosty-boo-books",
+      "sourceLabel": "Wendy’s official 2026 Boo! Books price, sale dates and redemption rules"
+    },
+    {
+      "kind": "offer",
+      "id": "smashburger-kids-wednesdays-2026",
+      "title": "Wednesdays: A full adult meal unlocks a free kids meal",
+      "path": "/offers/smashburger-kids-wednesdays-2026",
+      "summary": "The official list includes San Jose–Coleman, 579 Coleman Ave, Suite 507. October dates are 7, 14, 21 and 28. No website, app, third-party orders or stacking. Tax extra; while supplies last.",
+      "details": [
+        "Purchase an adult entrée, side and drink to receive a kids meal for a child aged 12 or under. Order in person at a participating restaurant."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-01-01",
+      "endDate": "2026-12-31",
+      "weekdays": [
+        3
+      ],
+      "dateLabel": "Every Wednesday in 2026 · Through Dec 31",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://smashburger.com/kids-eat-free-details",
+      "sourceLabel": "Smashburger official 2026 Wednesday terms and participating stores"
+    },
+    {
+      "kind": "offer",
+      "id": "mod-pizza-kids-sundays-2026",
+      "title": "Sundays: Buy a regular pizza or salad, get a kids meal",
+      "path": "/offers/mod-pizza-kids-sundays-2026",
+      "summary": "Use in restaurants or on the official website or app. No phone orders, third-party orders or stacking; alternative crusts may cost extra. Check participation and the discount at San Jose’s Brokaw Plaza location. The promotion may end early.",
+      "details": [
+        "Each regular-size pizza or salad purchased qualifies a child aged 12 or under for one Kids Meal. The official page lists code KEF2026; participating locations only."
+      ],
+      "region": "south-bay",
+      "weekdays": [
+        0
+      ],
+      "dateLabel": "Every Sunday · October dates left: 11, 18 and 25",
+      "costLabel": "Purchase required",
+      "status": "ongoing",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://modpizza.com/kids-eat-free-deal/",
+      "sourceLabel": "MOD official Sunday kids meal promotion and code"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-tricks-treats-oct17-2026",
+      "title": "Oct 17: Free pet treats and totes for the first 50",
+      "path": "/offers/petsmart-tricks-treats-oct17-2026",
+      "summary": "Visit pet treat stations, collect coloring pages and stickers, and use the seasonal photo backdrop. Costumes are optional; pets must meet the store’s pet policy. Check San Jose Almaden before visiting.",
+      "details": [
+        "Free Tricks for Treats event; the announcement says all stores participate. The first 50 attendees can receive a Halloween PetSmart tote. Gifts are first come, first served, while supplies last."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-17",
+      "endDate": "2026-10-17",
+      "dateLabel": "2026/10/17 · 10:00–16:00",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart official 2026 in-store Halloween announcement"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-tricks-treats-oct25-2026",
+      "title": "Oct 25: Free pet treats and totes for the first 50",
+      "path": "/offers/petsmart-tricks-treats-oct25-2026",
+      "summary": "Visit pet treat stations, collect coloring pages and stickers, and use the seasonal photo backdrop. Costumes are optional; pets must meet the store’s pet policy. Check San Jose Almaden before visiting.",
+      "details": [
+        "Free Tricks for Treats event; the announcement says all stores participate. The first 50 attendees can receive a Halloween PetSmart tote. Gifts are first come, first served, while supplies last."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-25",
+      "endDate": "2026-10-25",
+      "dateLabel": "2026/10/25 · 10:00–16:00",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart official 2026 in-store Halloween announcement"
+    },
+    {
+      "kind": "offer",
+      "id": "petsmart-spooky-pets-oct18-2026",
+      "title": "Oct 18: Free introduction to snakes, spiders and beetles",
+      "path": "/offers/petsmart-spooky-pets-oct18-2026",
+      "summary": "Associates explain specialty pets’ care and activities. This session does not give away pets or promise the first-50 tote; those totes belong to the separate Oct 17 and 25 event.",
+      "details": [
+        "Free Meet the Spooky Pets experience. The announcement says all stores participate; no pet or supply purchase is required. Featured animals vary by store."
+      ],
+      "region": "south-bay",
+      "startDate": "2026-10-18",
+      "endDate": "2026-10-18",
+      "dateLabel": "2026/10/18 · 12:00–14:00",
+      "costLabel": "No purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
+      "sourceLabel": "PetSmart official 2026 in-store Halloween announcement"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-monday-beverage-points-oct26-2026",
+      "title": "October Mondays: 4X beverage points with app order-ahead",
+      "path": "/offers/dunkin-monday-beverage-points-oct26-2026",
+      "summary": "This rewards a drink purchase with points. A regular counter order does not meet the order-ahead condition. Check your account and San Carlos store.",
+      "details": [
+        "Rewards members must activate the offer, then order eligible drinks ahead in the Dunkin’ App. Once per member each Monday at participating stores."
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-05",
+      "endDate": "2026-10-26",
+      "weekdays": [
+        1
+      ],
+      "dateLabel": "Oct 5, 12, 19 and 26, 2026",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ official October 2026 offers and terms"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-food-triple-points-oct16-2026",
+      "title": "Oct 16: Members earn 3X points on food",
+      "path": "/offers/dunkin-food-triple-points-oct16-2026",
+      "summary": "The multiplier applies to base points; this is not free food or an immediate discount. No stacking. Check the account offer before ordering.",
+      "details": [
+        "Buy food at participating stores using app order-ahead, a Rewards ID scan or an enrolled Dunkin’ card. Once per member."
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-16",
+      "endDate": "2026-10-16",
+      "dateLabel": "Oct 16, 2026 only",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ official October 2026 offers and terms"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-donut-packs-triple-points-oct30-31-2026",
+      "title": "Oct 30–31: 3X points on selected donut packs",
+      "path": "/offers/dunkin-donut-packs-triple-points-oct30-31-2026",
+      "summary": "Use app order-ahead, a Rewards ID scan or an enrolled card at participating stores. Base points only; no stacking.",
+      "details": [
+        "Activate in the app, then buy 6 or 12 donuts, or 25 or 50 MUNCHKINS. Excludes Fancies; once per member per day."
+      ],
+      "region": "peninsula",
+      "startDate": "2026-10-30",
+      "endDate": "2026-10-31",
+      "dateLabel": "2026/10/30–31",
+      "costLabel": "Purchase required",
+      "status": "dated",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ official October 2026 offers and terms"
+    },
+    {
+      "kind": "offer",
+      "id": "dunkin-six-dollar-meal-fall-2026",
+      "title": "$6 meal: Sandwich, hash browns and a medium coffee",
+      "path": "/offers/dunkin-six-dollar-meal-fall-2026",
+      "summary": "A paid meal deal; check tax and participation before ordering. Cannot be combined with other offers. Check San Carlos’s menu.",
+      "details": [
+        "Participating stores offer a Bacon, Egg and Cheese Sandwich, Hash Browns and a medium hot or iced coffee for $6. No substitutions."
+      ],
+      "region": "peninsula",
+      "dateLabel": "Limited time · No common end date published",
+      "costLabel": "Purchase required",
+      "status": "check-local",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://news.dunkindonuts.com/news/dunkin-new-menu-september-2026",
+      "sourceLabel": "Dunkin’ official October 2026 offers and terms"
+    },
+    {
+      "kind": "opening",
+      "id": "passdoor-santa-rosa-opening-2026",
+      "title": "The Passdoor",
+      "path": "/openings/passdoor-santa-rosa-opening-2026",
+      "summary": "The Passdoor's website lists its Santa Rosa address, operating hours and later events. The jewelry, art and home-design business relocated to 1160 4th Street; its October 1–3 opening celebration has ended.",
+      "details": [
+        "Hours differ between pages on the official website; contact the store before visiting. The celebration dates do not establish the first day of public service or an ongoing giveaway or opening offer.",
+        "1160 4th Street, Santa Rosa, CA",
+        "Retail relocation"
+      ],
+      "region": "north-bay",
+      "city": "Santa Rosa",
+      "dateLabel": "Santa Rosa address now lists operating information · October 1–3 opening celebration has ended",
+      "status": "open",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.thepassdoor.net/new-page",
+      "sourceLabel": "The Passdoor · Official website"
+    },
+    {
       "kind": "opening",
       "id": "roundup-alesta-sebastopol-2026",
       "title": "Alesta Modern Mediterranean",
@@ -4313,25 +4575,6 @@
     },
     {
       "kind": "opening",
-      "id": "passdoor-santa-rosa-opening-2026",
-      "title": "The Passdoor",
-      "path": "/openings/passdoor-santa-rosa-opening-2026",
-      "summary": "An established brand has moved to a new Santa Rosa address, selling selected jewelry, art and home goods. This is a relocation opening.",
-      "details": [
-        "Purchases cost extra; no opening discount has been announced. Follow the registration and admission requirements on the official page.",
-        "1160 4th Street, Santa Rosa, CA",
-        "Retail relocation"
-      ],
-      "region": "north-bay",
-      "city": "Santa Rosa",
-      "dateLabel": "The opening-event announcement spans 10/1 at 11:00 to 10/3 at 18:00; daily hours are to be confirmed.",
-      "status": "announced",
-      "verifiedAt": "2026-09-28",
-      "sourceUrl": "https://thepassdoor.squarespace.com/new-events-1/santarosagrandopening",
-      "sourceLabel": "The Passdoor · Official website"
-    },
-    {
-      "kind": "opening",
       "id": "mountain-view-tong-sui-announced-2026",
       "title": "Tong Sui",
       "path": "/openings/mountain-view-tong-sui-announced-2026",
@@ -4400,7 +4643,7 @@
       ],
       "region": "south-bay",
       "city": "San Jose",
-      "dateLabel": "September reopening target · Exact date unconfirmed",
+      "dateLabel": "The September reopening forecast has passed · Current operating status remains unconfirmed",
       "status": "announced",
       "verifiedAt": "2026-09-11",
       "sourceUrl": "https://www.hoteldeanza.com/",
@@ -4419,7 +4662,7 @@
       ],
       "region": "sf",
       "city": "San Francisco",
-      "dateLabel": "Late September target · Exact date unannounced",
+      "dateLabel": "Previously forecast for late September · Actual opening date remains unconfirmed",
       "status": "announced",
       "verifiedAt": "2026-09-11",
       "sourceUrl": "https://www.woodsbeer.com/",

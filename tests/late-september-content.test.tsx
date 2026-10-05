@@ -3,6 +3,8 @@ import { registerHooks } from 'node:module';
 import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { JSDOM } from 'jsdom';
+import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { lateSeptemberSfEastEvents, lateSeptemberSfEastOpenings } from '../src/data/late-september-sf-east';
 import { lateSeptemberPeninsulaSouthEvents, lateSeptemberPeninsulaSouthOpenings } from '../src/data/late-september-peninsula-south';
 import { lateSeptemberNorthEvents, lateSeptemberNorthOpenings, lateSeptemberNorthOffers } from '../src/data/late-september-north';
@@ -94,6 +96,34 @@ test('regional bulletins disappear at their expiry boundary without leaving an e
   assert.ok(getActiveRegionalBulletins('2026-11-01').some(item => item.id === 'caltrain-veterans-day-nov11-2026'), 'the November advisory must survive the old edition boundary');
   const finalExpiry = currentRegionalBulletins.map(item => item.expiresAt).sort().at(-1)!;
   assert.equal(renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(finalExpiry, 1)} />), '');
+});
+
+test('factual regional news preserves official sources and real photos while AI-only notices become text cards', () => {
+  const active = getActiveRegionalBulletins('2026-10-05');
+  const document = new JSDOM(renderToStaticMarkup(<RegionalBulletins today="2026-10-05" />)).window.document;
+  const cards = [...document.querySelectorAll('article')];
+  assert.equal(cards.length, active.length);
+  let photos = 0;
+  let textCards = 0;
+  for (const bulletin of active) {
+    const card = cards.find(item => item.querySelector('h3')?.textContent === bulletin.title)!;
+    assert.ok(card, bulletin.id);
+    assert.ok(card.textContent?.includes(bulletin.summary));
+    assert.ok(card.textContent?.includes(bulletin.dateLabel));
+    assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === bulletin.sourceUrl));
+    assert.equal(card.querySelector('time')?.getAttribute('datetime'), bulletin.verifiedAt);
+    const image = GUIDE_IMAGES[bulletin.imageKey];
+    if (image && image.kind !== 'illustration') {
+      photos++;
+      assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
+      assert.ok(card.querySelector('figcaption')?.textContent?.includes(image.credit));
+    } else {
+      textCards++;
+      assert.equal(card.querySelector('figure'), null, bulletin.id);
+      assert.equal(card.querySelector('img'), null, bulletin.id);
+    }
+  }
+  assert.ok(photos > 0 && textCards > 0, 'exercise both original photos and notices that have no factual image');
 });
 
 test('published dates drive calendar filtering and export without filling gaps between Napa workshops', () => {

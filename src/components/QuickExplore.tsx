@@ -1,3 +1,4 @@
+import { getListingImage } from '../lib/offer-media';
 import { useMemo, useRef, useState } from 'react';
 import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Store, Ticket, Wrench, X, type LucideIcon } from 'lucide-react';
 import { CATEGORIES } from '../lib/constants';
@@ -7,7 +8,7 @@ import { getSlugFromCategory } from '../routing';
 import { ModalShell } from './ui/Modal';
 import { translateText, useLocale } from '../i18n/locale';
 import { searchQuickDestinations } from '../lib/quick-search';
-import { getGuideMedia, GUIDE_IMAGES } from '../data/guide-media';
+import { getGuideMedia } from '../data/guide-media';
 import { openingStatusLabel } from '../lib/opening-status';
 
 type QuickResult = { id: string; title: string; detail: string; icon: LucideIcon; group: string; run: () => void; image?: string };
@@ -67,17 +68,17 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
     })),
     ...destinations.events.map(event => ({
       id: `event-${event.id}`, title: event.title, detail: `${event.dateLabel} · ${event.city}`, icon: CalendarDays,
-      group: '近期活动', image: GUIDE_IMAGES[event.imageKey]?.src,
+      group: '近期活动', image: getListingImage(event.imageKey)?.src,
       run: () => onNavigate(`/events/${event.id}`),
     })),
     ...destinations.offers.map(offer => ({
       id: `offer-${offer.id}`, title: `${offer.brand} · ${offer.title}`, detail: `${offer.dateLabel} · ${offer.requirement}`, icon: Ticket,
-      group: '优惠与福利', image: GUIDE_IMAGES[offer.imageKey]?.src,
+      group: '优惠与福利', image: getListingImage(offer.imageKey)?.src,
       run: () => onNavigate(`/offers/${offer.id}`),
     })),
     ...destinations.openings.map(shop => ({
       id: `opening-${shop.id}`, title: shop.name, detail: `${openingStatusLabel(shop.status)} · ${shop.city} · ${shop.dateLabel}`, icon: Store,
-      group: '新店与预告', image: GUIDE_IMAGES[shop.imageKey]?.src,
+      group: '新店与预告', image: getListingImage(shop.imageKey)?.src,
       run: () => onNavigate(`/openings/${shop.id}`),
     })),
     ...destinations.attractions.map(place => {

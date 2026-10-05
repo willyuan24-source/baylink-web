@@ -12,7 +12,7 @@ const catalog = (locale: Locale) => {
   const t = (value: string) => translateText(value, locale);
   return { version: 1, checkedAt, items: [
     ...currentFreebies.map(offer => ({ kind: 'offer', id: offer.id, title: t(offer.title), path: `/offers/${offer.id}`, summary: t(offer.description), details: [t(offer.requirement)], region: offer.region,
-      startDate: offer.startDate, endDate: offer.endDate, dateLabel: t(offer.dateLabel), costLabel: t(offer.kind === 'purchase' ? '需消费' : offer.kind === 'reservation' ? '需预约' : '无需购物'), status: offer.availability,
+      startDate: offer.startDate, endDate: offer.endDate, weekdays: offer.weekdays, dateLabel: t(offer.dateLabel), costLabel: t(offer.kind === 'check-terms' ? '条件待核对' : offer.kind === 'purchase' ? '需消费' : offer.kind === 'reservation' ? '需预约' : '无需购物'), status: offer.availability,
       verifiedAt: offer.verifiedAt, verificationStatus: offer.verificationStatus, sourceUrl: offer.sourceUrl, sourceLabel: t(offer.sourceLabel) })),
     ...currentOpenings.map(shop => ({ kind: 'opening', id: shop.id, title: t(shop.name), path: `/openings/${shop.id}`, summary: t(shop.summary), details: [t(shop.editorTip), t(shop.address), t(shop.category)], region: shop.region, city: t(shop.city),
       startDate: shop.openedOn, dateLabel: t(shop.dateLabel), status: shop.status, verifiedAt: shop.verifiedAt, sourceUrl: shop.officialUrl, sourceLabel: `${shop.name} · ${locale === 'en' ? 'Official website' : '官方入口'}` })),

@@ -165,7 +165,7 @@ test('additional dated family benefits remain visible on their day and expire th
   assert.equal(hasCard(renderBoard('2026-10-26'), 'sfmoma-family-oct25'), false);
 });
 
-test('benefit cards show registered media with its context while retaining the conditions and genuine source', () => {
+test('benefit cards show sourced photos or posters and omit AI art while retaining conditions and the genuine source', () => {
   const document = renderBoard('2026-09-15');
   for (const original of [...newOctoberOffers, ...additionalOctoberOffers]) {
     const item = offer(original.id);
@@ -175,18 +175,25 @@ test('benefit cards show registered media with its context while retaining the c
     assert.ok(image.credit && image.caption);
     const card = document.getElementById(`offer-${item.id}`);
     assert.ok(card, item.id);
-    assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
-    assert.equal(card.querySelector('img')?.getAttribute('alt'), image.alt);
-    assert.ok(card.textContent?.includes(image.caption));
-    if (item.imageNote) assert.ok(card.textContent?.includes(item.imageNote));
-    if (image.kind !== 'illustration') assert.equal(new URL(image.creditUrl!).protocol, 'https:');
+    if (image.kind === 'illustration') {
+      assert.equal(card.querySelector('img'), null, `${item.id} must not display AI artwork as offer evidence`);
+      assert.equal(card.querySelector('.bl-freebie-picture-open'), null);
+      assert.equal(card.querySelector('figcaption'), null);
+    } else {
+      assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
+      assert.equal(card.querySelector('img')?.getAttribute('alt'), image.alt);
+      assert.ok(card.textContent?.includes(image.caption));
+      if (item.imageNote) assert.ok(card.textContent?.includes(item.imageNote));
+      assert.equal(new URL(image.creditUrl!).protocol, 'https:');
+      assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === image.creditUrl));
+    }
     assert.ok(card.textContent?.includes(item.title));
     assert.ok(card.textContent?.includes(item.requirement));
     assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === item.sourceUrl));
   }
 });
 
-test('offer media preserves verified places and labels generic tools, passes and product themes honestly', () => {
+test('offer media preserves verified places and official products without turning context photos into inventory claims', () => {
   for (const id of ['smcl-discover-go', 'alameda-county-discover-go', 'santa-clara-library-parks-pass']) {
     assert.equal(offer(id).imageKey, 'october-library-culture', `${id} must not use an unrelated SFPL building photo`);
     assert.match(offer(id).imageNote || '', /非真实/);
@@ -202,8 +209,17 @@ test('offer media preserves verified places and labels generic tools, passes and
   }
   assert.match(offer('sfpl-radon-detector-loan').imageNote || '', /非探测器或现有库存/);
   assert.match(offer('berkeley-tool-lending').imageNote || '', /非该馆现场或现有库存/);
-  assert.match(offer('ikea-emeryville-as-is-wednesdays').imageNote || '', /非 IKEA 门店或实际库存/);
-  assert.match(offer('lowes-firefighting-plane-oct17').imageNote || '', /非本次消防飞机成品/);
+  for (const [id, key, source, context] of [
+    ['ikea-emeryville-as-is-wednesdays', 'official-ikea-as-is-2026', 'https://www.ikea.com/us/en/stores/emeryville/', /IKEA Emeryville.*不保证图中家具仍有库存/],
+    ['lowes-firefighting-plane-oct17', 'official-lowes-firefighting-plane-2026', 'https://www.lowes.com/events/register/firefighting-plane', /2026 年 10 月 17 日.*本次项目成品.*不是活动当天/],
+  ] as const) {
+    assert.equal(offer(id).imageKey, key);
+    const image = GUIDE_IMAGES[key];
+    assert.equal(image.kind, 'photo');
+    assert.equal(image.creditUrl, source);
+    assert.match(image.caption, context);
+    assert.match(offer(id).imageNote || '', /官方/);
+  }
   assert.match(offer('poppy-claro-doggie-dinners-fall').imageNote || '', /非餐厅现场或实际套餐/);
 });
 
@@ -234,7 +250,7 @@ test('new offers have official source links, clear conditions and a dated guide 
   const guide = octoberDealsGuides[0];
   assert.equal(guide.slug, 'bay-area-freebies-deals-2026-10');
   assert.equal(guide.editionMonth, '2026-10');
-  assert.equal(guide.updatedAt, '2026-10-04');
+  assert.equal(guide.updatedAt, '2026-10-05');
   assert.match(guide.sourceNote || '', /各卡片保留自己的核对日期/);
   assert.match(guide.sourceNote || '', /不代表旧条目全部重新确认/);
   assert.ok(guide.blocks.filter(block => block.type === 'link').length >= 3);

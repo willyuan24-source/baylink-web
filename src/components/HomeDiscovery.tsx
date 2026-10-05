@@ -9,6 +9,7 @@ import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../data/monthly-edition';
 import { getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
 import { DEALS_SLUG } from './MonthlyDealsSpotlight';
 import { useLocale } from '../i18n/locale';
+import { getOfferImage } from '../lib/offer-media';
 
 const discoveries = [
   {
@@ -110,7 +111,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedT
   const datedOffers = offers.filter(item => item.availability === 'dated' && item.startDate && (item.endDate || item.startDate) >= today);
   const usedImages = new Set([editionImage?.src, hero && getGuideMedia(hero).cover.src, ...picks.map(guide => getGuideMedia(guide).cover.src)]);
   const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo' && !usedImages.has(GUIDE_IMAGES[item.imageKey].src)) || datedOffers.find(item => !usedImages.has(GUIDE_IMAGES[item.imageKey]?.src)) || datedOffers[0] || offers.find(item => !item.endDate || item.endDate >= today);
-  const offerImage = offer ? GUIDE_IMAGES[offer.imageKey] : deals ? getGuideMedia(deals).cover : undefined;
+  const offerImage = offer ? getOfferImage(offer) : deals ? getGuideMedia(deals).cover : undefined;
   const heroImage = hero ? getGuideMedia(hero).cover : undefined;
   const images = [editionImage, heroImage, offerImage, ...picks.map(guide => getGuideMedia(guide).cover)].filter((image): image is GuideImage => !!image);
   const month = Number(today.slice(5, 7));

@@ -7,6 +7,7 @@ import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
 import { getBayAreaToday, getEventStatus } from './monthly';
 import { validCalendarDay } from './event-calendar';
+import { offerMatchesDateRange } from './offer-calendar';
 import { translateText, type Locale } from '../i18n/locale';
 import { PLANNER_EVENTS } from '../data/planner-catalog';
 import { discoveryText, normalizeDiscoveryTopic, parseDiscoveryQuery } from './discovery-query';
@@ -77,11 +78,11 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     // Offers do not have a canonical city field. Never use eligibility/address prose as geography.
     const city = queryInfo.cities.length ? parseDiscoveryQuery(`${offer.brand} ${offer.title}`, today, queryInfo.cities).cities : [];
     const cityMatch = !queryInfo.cities.length || queryInfo.cities.some(value => city.some(candidate => discoveryText(candidate) === discoveryText(value)));
-    const explicitFree = offer.kind !== 'purchase' && /免费|\bfree\b/.test(discoveryText(`${offer.title} ${offer.requirement}`));
+    const explicitFree = (offer.kind === 'no-purchase' || offer.kind === 'reservation') && /免费|\bfree\b/.test(discoveryText(`${offer.title} ${offer.requirement}`));
     return isCurrentOffer(offer, today) && cityMatch && (!queryInfo.regions.length || !!offer.region && queryInfo.regions.includes(offer.region)) &&
       (!queryInfo.freeOnly && queryInfo.maxAdmissionUsd === undefined || explicitFree) &&
       !queryInfo.setting && !queryInfo.family && eveningMatches(offer.dateLabel) &&
-      (!dateRange || offer.availability !== 'dated' || (offer.startDate || offer.endDate || '') <= dateRange.end && (offer.endDate || offer.startDate || '') >= (dateRange.start > today ? dateRange.start : today)) &&
+      (!dateRange || offerMatchesDateRange(offer, dateRange.start > today ? dateRange.start : today, dateRange.end)) &&
       matches([offer.brand, offer.title, offer.requirement, offer.description]);
   };
   const requestedWeekendOnly = !!dateRange && new Date(`${dateRange.end}T12:00:00Z`).getTime() - new Date(`${dateRange.start}T12:00:00Z`).getTime() <= 86400000 &&

@@ -24,6 +24,7 @@ const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLan
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { getListingImage } = await import('../src/lib/offer-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
@@ -212,7 +213,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
 
     const content = doc.querySelector('.local-discovery-detail')!;
     const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-    const expectedMedia = GUIDE_IMAGES[imageKey];
+    const expectedMedia = getListingImage(imageKey);
     const figure = content.querySelector('.discovery-detail-media');
     if (expectedMedia) {
       assert.ok(figure, share.id + ' displays its registered editorial image');

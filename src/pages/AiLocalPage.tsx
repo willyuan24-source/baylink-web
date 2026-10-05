@@ -7,7 +7,7 @@ import { aiWeekGuideSlug } from '../data/guides-ai-week';
 import { translateText, useLocale } from '../i18n/locale';
 import { getBayAreaToday, getEventStatus } from '../lib/monthly';
 import { setPageMetadata } from '../lib/seo';
-import { GUIDE_IMAGES } from '../data/guide-media';
+import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 
 const goals = [
@@ -101,7 +101,7 @@ export default function AiLocalPage() {
       {events.length === 0 ? <div className="bl-ai-empty"><p>{t('这个筛选下暂时没有尚未结束的场次。')}</p><button type="button" onClick={reset}>{t('重置筛选')}</button></div>
         : <div className="bl-ai-event-grid">{events.map(event => {
           const status = getEventStatus(event, today);
-          const image = GUIDE_IMAGES[event.imageKey];
+          const image = getListingImage(event.imageKey);
           return <article key={event.id} className={`bl-ai-event bl-ai-event--${status}`}>
             {image && <div className="bl-ai-event-media"><GuideFigure image={image} variant="preview" /></div>}
             <div className="bl-ai-event-top"><span>{event.city}</span><span>{t(statusLabels[status])}</span></div>

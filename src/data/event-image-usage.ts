@@ -1,3 +1,4 @@
+import { VERIFIED_EVENT_CONTEXT_PHOTOS } from './verified-place-media-updates';
 type ContextPhotoUse = {
   purpose: 'venue' | 'theme';
   eventIds: readonly string[];
@@ -10,6 +11,7 @@ type ContextPhotoUse = {
  * Captions and source links are checked by the media audit alongside this list.
  */
 export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
+  ...VERIFIED_EVENT_CONTEXT_PHOTOS,
   'ferry-market': { purpose: 'venue', eventIds: ['oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'] },
   'presidio': { purpose: 'venue', eventIds: ['nov2026-presidio-dia-muertos-diwali'] },
   'expanded-peninsula-hiller': { purpose: 'venue', eventIds: ['hiller-starlight-nights-nov13-2026'] },

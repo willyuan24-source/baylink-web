@@ -2,7 +2,7 @@ import { recordProductEvent } from '../lib/product-events';
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, MapPin, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
-import { GUIDE_IMAGES } from '../data/guide-media';
+import { getListingImage } from '../lib/offer-media';
 import { getBayAreaToday, downloadEventCalendar } from '../lib/monthly';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
 import { EditorialShareActions } from './EditorialShareActions';
@@ -30,7 +30,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
   const sourceLabel = item.kind === 'event' ? item.event.sourceLabel : item.kind === 'offer' ? item.offer.sourceLabel : item.shop.sourceLabel;
   const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-  const image = Object.hasOwn(GUIDE_IMAGES, imageKey) ? GUIDE_IMAGES[imageKey] : undefined;
+  const image = getListingImage(imageKey);
   return <article className="local-discovery-detail">
     <Link className="discovery-back" to={`/this-month${item.kind === 'offer' ? '#monthly-perks' : item.kind === 'opening' ? '#monthly-openings' : '#monthly-events'}`}><ArrowLeft size={16} />发现更多湾区好去处</Link>
     <header className={`discovery-detail-header discovery-detail-${item.kind}`}>

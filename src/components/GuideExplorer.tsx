@@ -32,6 +32,13 @@ export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => 
 
 export function GuideImageCredits({ imageKeys }: { imageKeys?: readonly string[] } = {}) {
   const scope = imageKeys ? new Set(imageKeys) : null;
-  const images = Object.entries(GUIDE_IMAGES).filter(([key, image]) => (!scope || scope.has(key)) && (image.kind === 'photo' || image.kind === 'poster'));
+  const sources = new Set<string>();
+  const images = Object.entries(GUIDE_IMAGES).filter(([key, image]) => {
+    if ((scope && !scope.has(key)) || (image.kind !== 'photo' && image.kind !== 'poster')) return false;
+    const source = JSON.stringify([image.src, image.creditUrl, image.credit, image.licenseUrl]);
+    if (sources.has(source)) return false;
+    sources.add(source);
+    return true;
+  });
   return <details className="bl-guide-image-credits"><summary>关于图片与授权</summary><p>图片注明内容和来源；资料照片不代表实时景况。官方宣传图保持完整，点击可查看大图。BAYLINK 的 AI 主题插图用于表达生活情境。网页图片已缩放压缩，实景照片按卡片版面裁切。</p><ul>{images.map(([key, image]) => <li key={key}>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.alt}</a> : <span>{image.alt}</span>}<span>{image.credit}</span>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权 <ArrowUpRight size={12} /></a>}</li>)}</ul></details>;
 }

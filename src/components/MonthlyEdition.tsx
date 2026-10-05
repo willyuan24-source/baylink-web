@@ -16,6 +16,7 @@ import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
 import { MonthlyOpenings } from './MonthlyOpenings';
 import { currentOpenings } from '../data/local-discoveries';
 import { currentFreebies } from '../data/october-offers';
+import { getOfferImage, getListingImage } from '../lib/offer-media';
 import { translateText, useLocale } from '../i18n/locale';
 import { octoberLocalGuides } from '../data/guides-october-local';
 import { autumnRefreshGuides } from '../data/guides-autumn-refresh';
@@ -67,7 +68,7 @@ function EditionPictureSession({ imageKey, className = '', eager = false }: Edit
 function EventCard({ event, today }: { event: MonthlyEvent; today: string }) {
   const status = getEventStatus(event, today);
   return <article className={`bl-monthly-event bl-monthly-event-${status}`} aria-labelledby={`event-${event.id}`}>
-    <EditionPicture imageKey={event.imageKey} />
+    {getListingImage(event.imageKey) && <EditionPicture imageKey={event.imageKey} />}
     <div className="bl-monthly-event-body">
       <div className="bl-monthly-event-topline"><span><CalendarDays size={14} aria-hidden="true" />{event.dateLabel}</span><span className={`bl-monthly-status bl-monthly-status-${status}`}>{STATUS_LABELS[status]}</span></div>
       <h3 id={`event-${event.id}`}><Link to={`/events/${event.id}`}>{translateText(event.title)}</Link></h3>
@@ -182,10 +183,10 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
       <MonthlyDealsSpotlight today={today} />
       <PerksGallery compact />
       {current && perkPreviews.length > 0 && <div className="bl-perks-preview">{perkPreviews.map(offer => {
-        const image = GUIDE_IMAGES[offer.imageKey];
+        const image = getOfferImage(offer);
         return <Link key={offer.id} to={`/offers/${offer.id}`}>
           {image && <img src={image.src} alt="" width={image.width} height={image.height} loading="lazy" />}
-          <span><small>{offer.brand}</small><strong>{offer.title}</strong><em>{offer.dateLabel} · {offer.kind === 'no-purchase' ? '无需购物' : offer.kind === 'reservation' ? '需预约' : '需消费'}</em></span>
+          <span><small>{offer.brand}</small><strong>{offer.title}</strong><em>{offer.dateLabel} · {offer.kind === 'check-terms' ? '条件待核对' : offer.kind === 'no-purchase' ? '无需购物' : offer.kind === 'reservation' ? '需预约' : '需消费'}</em></span>
         </Link>;
       })}</div>}
     </section>

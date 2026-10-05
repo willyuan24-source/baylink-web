@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
-import { GUIDE_IMAGES } from '../data/guide-media';
+import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
 import { EditorialShareActions } from './EditorialShareActions';
@@ -17,9 +17,11 @@ export type FreebieOffer = {
   dateLabel: string;
   startDate?: string;
   endDate?: string;
+  /** Published recurring days, using 0 = Sunday through 6 = Saturday. */
+  weekdays?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
   availability: 'dated' | 'ongoing' | 'check-local';
   verificationStatus?: 'needs-confirmation';
-  kind: 'no-purchase' | 'reservation' | 'purchase';
+  kind: 'no-purchase' | 'reservation' | 'purchase' | 'check-terms';
   requirement: string;
   description: string;
   imageKey: string;
@@ -35,8 +37,9 @@ const FILTERS: { value: OfferFilter; label: string }[] = [
   { value: 'no-purchase', label: '无需购物' },
   { value: 'reservation', label: '需预约' },
   { value: 'purchase', label: '消费优惠' },
+  { value: 'check-terms', label: '条件待核对' },
 ];
-const KIND_LABELS = { 'no-purchase': '无需购物', reservation: '需预约', purchase: '需消费' };
+const KIND_LABELS = { 'no-purchase': '无需购物', reservation: '需预约', purchase: '需消费', 'check-terms': '条件待核对' };
 const searchText = (value: string) => simplifySearch(value).toLowerCase().replace(/[‘’']/g, '');
 const safeUrl = (value?: string): value is string => {
   if (!value) return false;
@@ -87,14 +90,15 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
   const locale = useLocale();
   const [zoomed, setZoomed] = useState(false);
   const headingId = useId();
-  const image = GUIDE_IMAGES[offer.imageKey];
+  const [imageFailed, setImageFailed] = useState(false);
+  const image = imageFailed ? undefined : getOfferImage(offer);
   const status = offerStatus(offer, today);
   const pictureLabel = image?.kind === 'poster' ? '官方宣传图' : image?.kind === 'illustration' ? 'AI 原创插图' : image?.credit.includes('官方') ? '官方宣传照片' : image?.caption.includes('资料') ? '资料照片' : '实景照片';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     <div className="bl-freebie-card-brand"><strong>{offer.brand}</strong><Ticket size={16} aria-hidden="true" /></div>
     {image ? <figure className="bl-freebie-picture">
-      <button type="button" className={`bl-freebie-picture-open${image.kind === 'poster' || image.fullFrame ? ' bl-freebie-picture-open--contain' : ''}`} onClick={() => setZoomed(true)} aria-label={`放大${offer.brand}配图：${image.alt}`} aria-haspopup="dialog">
-        <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 479px) calc(100vw - 40px), (max-width: 639px) calc((100vw - 54px) / 2), (min-width: 1280px) 260px, 360px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
+      <button type="button" className={`bl-freebie-picture-open${image.kind === 'poster' || image.fullFrame ? ' bl-freebie-picture-open--contain' : ''}${image.kind === 'photo' && image.fullFrame ? ' bl-freebie-picture-open--full-photo' : ''}`} style={image.kind === 'photo' && image.fullFrame ? { aspectRatio: `${image.width} / ${image.height}` } : undefined} onClick={() => setZoomed(true)} aria-label={`放大${offer.brand}配图：${image.alt}`} aria-haspopup="dialog">
+        <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 479px) calc(100vw - 40px), (max-width: 639px) calc((100vw - 54px) / 2), (min-width: 1280px) 260px, 360px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" onError={() => setImageFailed(true)} />
         <span className="bl-freebie-picture-zoom"><Expand size={13} aria-hidden="true" /><span className="sr-only">查看大图</span></span>
       </button>
       <figcaption>{pictureLabel}{offer.imageNote && <span> · {offer.imageNote}</span>}</figcaption>

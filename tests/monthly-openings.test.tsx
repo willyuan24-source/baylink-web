@@ -219,7 +219,7 @@ test('every opening exposes its merchant, encoded map destination and independen
   assert.equal(view.getByRole('link', { name: '收藏新店手册' }).getAttribute('href'), `/guides/${OPENINGS_GUIDE_SLUG}`);
 });
 
-test('new opening cards retain official evidence, attributable media and verified operating status', () => {
+test('new opening cards retain evidence and operating status, displaying only attributable photos or posters', () => {
   const view = render(edition());
   fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
   for (const previous of [...additionalOctoberOpenings, ...lateSeptemberOpenings]) {
@@ -231,25 +231,23 @@ test('new opening cards retain official evidence, attributable media and verifie
     assert.ok(shop.sourceLabel.trim());
     const article = view.getByRole('article', { name: shop.name, exact: true });
     const card = within(article);
-    const image = GUIDE_IMAGES[shop.imageKey];
-    if (shop.imageKey) {
-      assert.ok(image, `${shop.id} references registered media`);
+    const registered = GUIDE_IMAGES[shop.imageKey];
+    const image = registered?.kind === 'illustration' ? undefined : registered;
+    if (image) {
+      assert.ok(image.kind === 'photo' || image.kind === 'poster', `${shop.id} uses factual media`);
       assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0, `${shop.id} image file exists`);
       assert.equal(card.getByRole('img').getAttribute('src'), image.src);
       assert.equal(card.getByRole('img').getAttribute('alt'), image.alt);
       assert.ok(card.getByRole('button', { name: /^查看大图/ }));
       assert.ok(image.caption.trim() && image.credit.trim());
-      if (image.kind === 'illustration') {
-        assert.match(image.caption, /插图|插画/);
-        assert.match(image.caption, /非|不代表|虚构|示意/);
-      } else {
-        assert.equal(new URL(image.creditUrl!).hostname, new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
-        const brand = shop.id === 'kaiyo-handroll-union' ? /KAIY[ŌO]|Kaiy[ōo]/ : shop.id === 'mess-hall-presidio-breadwinner' ? /Mess Hall|Breadwinner/ : shop.id === 'broken-dreams-oakland' ? /Broken Dreams/ : shop.id === 'hijau-san-jose-storefront' ? /Hijau/ : /Marufuku.*Burlingame|Burlingame.*Marufuku/;
-        assert.match(`${image.alt} ${image.caption}`, brand, `${shop.id} media belongs to the named shop and location`);
-      }
+      assert.equal(new URL(image.creditUrl!).hostname, new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
+      const brand = shop.id === 'kaiyo-handroll-union' ? /KAIY[ŌO]|Kaiy[ōo]/ : shop.id === 'mess-hall-presidio-breadwinner' ? /Mess Hall|Breadwinner/ : shop.id === 'broken-dreams-oakland' ? /Broken Dreams/ : shop.id === 'hijau-san-jose-storefront' ? /Hijau/ : /Marufuku.*Burlingame|Burlingame.*Marufuku/;
+      assert.match(`${image.alt} ${image.caption}`, brand, `${shop.id} media belongs to the named shop and location`);
     } else {
       assert.equal(card.queryByRole('img'), null);
       assert.equal(card.queryByRole('button', { name: /^查看大图/ }), null);
+      assert.equal(article.querySelector('.bl-opening-photo'), null);
+      if (registered?.kind === 'illustration') assert.equal(card.queryByText(registered.caption), null, 'hidden synthetic artwork must not leave misleading picture captions');
     }
     assert.ok(card.getByText(shop.summary));
     assert.ok(card.getByText(shop.editorTip));
@@ -276,7 +274,7 @@ test('new opening cards retain official evidence, attributable media and verifie
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
 });
 
-test('opening posters and full-frame food photos remain uncropped while generic art keeps its labelled credit', () => {
+test('opening posters and full-frame food photos remain uncropped while synthetic shop artwork becomes readable text cards', () => {
   const view = render(edition());
   fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
   for (const id of ['kaiyo-handroll-union', 'marufuku-burlingame-announced', 'broken-dreams-oakland']) {
@@ -292,13 +290,16 @@ test('opening posters and full-frame food photos remain uncropped while generic 
     const image = GUIDE_IMAGES[shop.imageKey];
     const card = within(view.getByRole('article', { name: shop.name, exact: true }));
     assert.equal(image.kind, 'illustration');
-    assert.equal(dom.window.getComputedStyle(card.getByRole('img')).objectFit, 'cover');
-    assert.ok(card.getByText('AI 原创插图'));
+    assert.equal(card.queryByRole('img'), null);
+    assert.equal(card.queryByRole('button', { name: /^查看大图/ }), null);
+    assert.equal(card.queryByText('AI 原创插图'), null);
+    assert.ok(card.getByText(shop.summary));
+    assert.ok(card.getByText(shop.editorTip));
     fireEvent.click(card.getByText('开业消息与图片来源'));
-    assert.ok(card.getByText(image.credit));
-    assert.equal(card.queryByRole('link', { name: image.credit, exact: true }), null, 'an AI credit does not invent an external source URL');
-    assert.match(image.caption, /不代表.*店内环境或实际菜单/);
-    assert.ok(card.getByText(image.caption));
+    assert.equal(card.queryByText(image.credit), null);
+    assert.equal(card.queryByText(image.caption), null);
+    assert.equal(card.getByRole('link', { name: shop.sourceLabel, exact: true }).getAttribute('href'), shop.sourceUrl);
+    assert.ok(card.getByText(`核对 ${shop.verifiedAt}`));
   }
 });
 
@@ -306,7 +307,7 @@ test('unavailable and inherited opening image keys safely omit the picture and l
   const shop = currentOpenings[0];
   const originalKey = shop.imageKey;
   try {
-    for (const key of ['unregistered-opening-test-image', '__proto__', 'constructor']) {
+    for (const key of ['unregistered-opening-test-image', '__proto__', 'constructor', 'family-workshop']) {
       shop.imageKey = key;
       const view = render(edition());
       const card = within(view.getByRole('article', { name: shop.name, exact: true }));

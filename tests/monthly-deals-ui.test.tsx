@@ -120,14 +120,19 @@ test('guide home and monthly edition both expose the new guide as an SSR-readabl
   }
 });
 
-test('the actual October deals guide preserves its art, real local discovery entries and safe official sources', () => {
+test('the actual October deals guide uses official photography and preserves local discovery entries and safe sources', () => {
   const slug = 'bay-area-freebies-deals-2026-10';
   const previousGuide = guides.find(guide => guide.slug === slug);
   assert.ok(previousGuide, 'the published October guide must be registered');
   assert.equal(previousGuide.editionMonth, '2026-10');
   const media = getGuideMedia(previousGuide);
-  assert.equal(media.cover.src, GUIDE_IMAGES['culture-visit'].src);
-  assert.equal(media.inline[0].image.src, GUIDE_IMAGES['october-library-culture'].src);
+  assert.equal(media.cover.src, GUIDE_IMAGES['official-lowes-firefighting-plane-2026'].src);
+  assert.equal(media.cover.kind, 'photo');
+  assert.equal(media.cover.creditUrl, 'https://www.lowes.com/events/register/firefighting-plane');
+  assert.equal(media.inline[0].image.src, GUIDE_IMAGES['freebie-ikea-coffee'].src);
+  assert.equal(media.inline[0].image.kind, 'poster');
+  assert.equal(media.inline[0].image.fullFrame, true, 'the IKEA photo-based promotional artwork keeps its complete frame');
+  assert.equal(media.inline[0].image.creditUrl, 'https://www.ikea.com/us/en/ikea-family/');
   const sourceBlocks = previousGuide.blocks.filter(block => block.type === 'link');
   assert.ok(sourceBlocks.length >= 1, 'readers should find merchant sources beside the offer descriptions');
   assert.equal(sourceBlocks.filter(block => block.url.startsWith('/')).length, 4, 'the four new discovery entries must remain present');

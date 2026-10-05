@@ -8,6 +8,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
+import { VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
+import { getListingImage } from '../src/lib/offer-media';
 import { buildEventCalendar, filterMonthlyEvents, getEventStatus } from '../src/lib/monthly';
 import type { AppContextValue } from '../src/app/context';
 import { api } from '../src/lib/api';
@@ -140,33 +142,43 @@ test('monthly edition exposes every activity through pagination with named offic
     assert.ok(card.getByText(event.costLabel, { exact: true }));
     assert.ok(card.getByText(`已核对 ${event.verifiedAt} · ${event.sourceLabel}`));
     const image = GUIDE_IMAGES[event.imageKey];
-    if (!event.imageKey) {
+    if (event.imageKey) assert.ok(image, `${event.id} uses a registered image when provided`);
+    if (!event.imageKey || image.kind === 'illustration') {
       assert.equal(card.queryByRole('img'), null, `${event.id} must not substitute an unrelated image`);
+      assert.equal(card.queryByRole('button', { name: /^放大图片：/ }), null, 'text cards have no image lightbox');
       continue;
     }
-    assert.ok(image, `${event.id} uses a registered image when provided`);
     const img = card.getByRole('img', { name: image.alt });
     assert.equal(img.getAttribute('src'), image.src);
     assert.equal(img.getAttribute('srcset'), image.srcSet);
     assert.ok(card.getByText(image.caption));
     assert.ok(card.getByRole('button', { name: `放大图片：${image.alt}` }));
-    const kindLabel = image.kind === 'poster' ? '官方宣传图' : image.kind === 'illustration' ? 'BAYLINK 主题插图 · AI 创作' : image.caption.includes('资料') ? '资料照片' : '实景照片';
+    const kindLabel = image.kind === 'poster' ? '官方宣传图' : image.caption.includes('资料') ? '资料照片' : '实景照片';
     assert.ok(card.getByText(kindLabel, { exact: true }), `${event.id} must label the actual media kind`);
-    if (image.kind !== 'illustration') {
-      assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
-      const credit = card.getByRole('link', { name: new RegExp(image.credit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
-      assert.equal(credit.getAttribute('href'), image.creditUrl);
-      assert.equal(credit.getAttribute('target'), '_blank');
-      assert.equal(credit.getAttribute('rel'), 'noopener noreferrer');
-    }
+    assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
+    const credit = card.getByRole('link', { name: new RegExp(image.credit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
+    assert.equal(credit.getAttribute('href'), image.creditUrl);
+    assert.equal(credit.getAttribute('target'), '_blank');
+    assert.equal(credit.getAttribute('rel'), 'noopener noreferrer');
   }
 });
 
 test('monthly media files and credits are valid and only reviewed contextual media may be shared', () => {
   assert.ok(MONTHLY_EVENTS.length > 0);
+  const recycling = item('san-mateo-shred-ewaste-october-2026');
+  assert.equal(recycling.imageKey, '', 'Beresford Park must not be illustrated with a B Street photograph');
+  assert.equal(getListingImage(recycling.imageKey), undefined);
+  assert.equal(recycling.venue, 'Beresford Park · 2720 Alameda de las Pulgas');
+  const rendered = new JSDOM(renderToStaticMarkup(<StaticRouter location="/this-month?q=Beresford"><MonthlyEdition today="2026-10-05" /></StaticRouter>)).window.document;
+  const recyclingCard = rendered.getElementById(`event-${recycling.id}`)?.closest('article');
+  assert.ok(recyclingCard, 'the published recycling event is still discoverable');
+  assert.equal(recyclingCard.querySelector('img'), null, 'the actual recycling card renders no unrelated image');
+  assert.ok(recyclingCard.textContent?.includes(recycling.costLabel), 'resident eligibility remains visible');
   const keys = new Set<string>();
+  const sourceKeys = new Set<string>();
   const paths = new Set<string>();
   const fingerprints = new Map<string, { key: string; eventId: string }>();
+  const originalKey = (key: string) => VERIFIED_PLACE_PHOTO_ALIASES[key]?.sourceKey || key;
   const assertSharedContext = (key: string, eventId: string) => {
     const image = GUIDE_IMAGES[key];
     if (image.kind === 'illustration') {
@@ -184,10 +196,23 @@ test('monthly media files and credits are valid and only reviewed contextual med
     if (!event.imageKey) continue;
     const image = GUIDE_IMAGES[event.imageKey];
     assert.ok(image, event.id);
+    const alias = VERIFIED_PLACE_PHOTO_ALIASES[event.imageKey];
+    if (alias) {
+      const original = GUIDE_IMAGES[alias.sourceKey];
+      assert.ok(original, `${event.id}: declared source photograph exists`);
+      assert.equal(original.kind, 'photo', 'only a real photograph may receive a venue caption alias');
+      assertSharedContext(event.imageKey, event.id);
+      assert.equal(EVENT_CONTEXT_PHOTOS[event.imageKey].purpose, 'venue');
+      assert.equal(image.caption, alias.caption, 'alias must retain its reviewed venue disclosure');
+      for (const field of ['src', 'srcSet', 'credit', 'creditUrl', 'width', 'height'] as const) {
+        assert.equal(image[field], original[field], `${event.id}: alias preserves source ${field}`);
+      }
+    }
     if (keys.has(event.imageKey)) {
       assertSharedContext(event.imageKey, event.id);
     }
     keys.add(event.imageKey);
+    sourceKeys.add(originalKey(event.imageKey));
     assert.match(image.src, /^\/guides\/[a-z0-9/.-]+\.webp$/);
     assert.equal(image.src.includes('..'), false);
     paths.add(image.src);
@@ -203,7 +228,7 @@ test('monthly media files and credits are valid and only reviewed contextual med
     const fingerprint = createHash('sha256').update(bytes).digest('hex');
     const previous = fingerprints.get(fingerprint);
     if (previous) {
-      assert.equal(previous.key, event.imageKey, `${event.id} must not disguise ${previous.eventId}'s image as a different asset`);
+      assert.equal(originalKey(previous.key), originalKey(event.imageKey), `${event.id} must not disguise ${previous.eventId}'s image as a different asset`);
       assertSharedContext(event.imageKey, event.id);
       assertSharedContext(previous.key, previous.eventId);
     }
@@ -211,8 +236,8 @@ test('monthly media files and credits are valid and only reviewed contextual med
   }
   const illustratedCount = MONTHLY_EVENTS.filter(event => event.imageKey).length;
   assert.ok(illustratedCount > 0, 'retain source checks for the existing illustrated activities');
-  assert.equal(paths.size, keys.size, 'different keys must not alias the same file');
-  assert.equal(fingerprints.size, keys.size, 'different filenames must not disguise identical media');
+  assert.equal(paths.size, sourceKeys.size, 'only declared and reviewed venue aliases may share a file');
+  assert.equal(fingerprints.size, sourceKeys.size, 'different source filenames must not disguise identical media');
 });
 
 test('region, free admission and keyword filters combine and clearing a search restores regional matches', () => {

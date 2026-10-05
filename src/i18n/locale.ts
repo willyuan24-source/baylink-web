@@ -93,7 +93,7 @@ export async function loadLocale(locale: Locale): Promise<void> {
     import('../data/retail-family-2026-en.json'), import('../data/retail-dining-2026-en.json'),
     import('../data/october-2026-refresh-ui-en.json'), import('../data/october-2026-events-refresh-en.json'),
     import('../data/guides-october-2026-visit-en.json'), import('../data/october-2026-verified-offers-en.json'), import('../data/october-2026-newcomer-en.json'),
-    import('./en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
+    import('./en.json'), import('../data/verified-place-media-en.json'), import('../data/official-media-ui-en.json'), import('../data/verified-offers-2026-10-05-en.json'), import('../data/content-audit-oct5-en.json'), import('../data/official-offer-media-2026-10-en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
     import('../data/service-booking-entry-en.json'),
     import('../data/october-offers-en.json'), import('../data/october-local-en.json'),
     import('../data/october-events-extra-en.json'), import('../data/october-offers-extra-en.json'), import('../data/october-openings-extra-en.json'), import('../data/discovery-community-en.json'),

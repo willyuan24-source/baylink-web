@@ -1,3 +1,4 @@
+import { getListingImage } from '../src/lib/offer-media';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,18 +11,19 @@ import { currentOpenings } from '../src/data/local-discoveries';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 
-type CoverageRow = { id: string; image?: GuideImage };
+type CoverageRow = { id: string; image?: GuideImage; textOnly?: boolean };
+const listing = (id: string, imageKey: string): CoverageRow => ({ id, image: getListingImage(imageKey), textOnly: !imageKey || GUIDE_IMAGES[imageKey]?.kind === 'illustration' });
 const publicDirectory = fileURLToPath(new URL('../public/', import.meta.url));
 
 /** Audits the published editorial catalog and every registered responsive image. */
 export function auditMediaCoverage() {
   const catalogs: Record<string, CoverageRow[]> = {
-    cityUpdates: CITY_CURRENT_UPDATES.map(update => ({ id: update.city, image: GUIDE_IMAGES[update.imageKey] })),
+    cityUpdates: CITY_CURRENT_UPDATES.map(update => listing(update.city, update.imageKey)),
     guides: guides.map(guide => ({ id: guide.slug, image: getGuideMedia(guide).cover })),
-    events: MONTHLY_EVENTS.map(event => ({ id: event.id, image: GUIDE_IMAGES[event.imageKey] })),
-    offers: currentFreebies.map(offer => ({ id: offer.id, image: GUIDE_IMAGES[offer.imageKey] })),
-    openings: currentOpenings.map(shop => ({ id: shop.id, image: GUIDE_IMAGES[shop.imageKey] })),
-    bulletins: currentRegionalBulletins.map(item => ({ id: item.id, image: GUIDE_IMAGES[item.imageKey] })),
+    events: MONTHLY_EVENTS.map(event => listing(event.id, event.imageKey)),
+    offers: currentFreebies.map(offer => listing(offer.id, offer.imageKey)),
+    openings: currentOpenings.map(shop => listing(shop.id, shop.imageKey)),
+    bulletins: currentRegionalBulletins.map(item => listing(item.id, item.imageKey)),
     places: MONTHLY_PLACES.map(place => ({ id: place.id, image: GUIDE_IMAGES[place.imageKey] })),
   };
   const issues: string[] = [];
@@ -52,7 +54,7 @@ export function auditMediaCoverage() {
     for (const candidate of image.srcSet?.split(',') || []) checkFile(candidate.trim().split(/\s+/)[0], `${key} srcSet`);
   }
   for (const [kind, rows] of Object.entries(catalogs)) {
-    for (const row of rows) if (!row.image) issues.push(`${kind}/${row.id}: no registered image`);
+    for (const row of rows) if (!row.image && !row.textOnly) issues.push(`${kind}/${row.id}: no registered image`);
   }
   for (const [key, usage] of Object.entries(EVENT_CONTEXT_PHOTOS)) {
     const image = GUIDE_IMAGES[key];
@@ -72,7 +74,8 @@ export function auditMediaCoverage() {
   }
   const summary = Object.fromEntries(Object.entries(catalogs).map(([kind, rows]) => [kind, {
     total: rows.length,
-    missing: rows.filter(row => !row.image).length,
+    missing: rows.filter(row => !row.image && !row.textOnly).length,
+    textOnly: rows.filter(row => row.textOnly).length,
     photos: rows.filter(row => row.image?.kind === 'photo').length,
     illustrations: rows.filter(row => row.image?.kind === 'illustration').length,
     posters: rows.filter(row => row.image?.kind === 'poster').length,

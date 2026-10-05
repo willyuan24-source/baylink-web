@@ -1,3 +1,5 @@
+import officialOfferMedia from './official-offer-media-2026-10.json';
+import { VERIFIED_PLACE_PHOTO_ALIASES } from './verified-place-media-updates';
 import extraEast from './city-roundup-extra-media-east.json';
 import extraSouth from './city-roundup-extra-media-south.json';
 import extraNorth from './city-roundup-extra-media-north.json';
@@ -73,7 +75,7 @@ for (const photo of photoCredits) {
   const [alt, caption] = photoCaptions[photo.key];
   GUIDE_IMAGES[photo.key] = { src: photo.src, alt, caption, credit: `${photo.author} · ${photo.license} · 已缩放压缩，卡片裁切`, creditUrl: photo.sourceUrl, licenseUrl: photo.licenseUrl.replace(/^http:/, 'https:'), kind: 'photo', width: photo.width, height: photo.height };
 }
-for (const { key, ...asset } of [...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia, ...shoppingMedia, ...cityRoundupMedia, ...[extraEast, extraSouth, extraNorth].flatMap(collection => Array.isArray(collection) ? collection : Object.entries(collection).map(([key, asset]) => ({ key, ...asset })))]) {
+for (const { key, ...asset } of [...officialOfferMedia, ...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia, ...shoppingMedia, ...cityRoundupMedia, ...[extraEast, extraSouth, extraNorth].flatMap(collection => Array.isArray(collection) ? collection : Object.entries(collection).map(([key, asset]) => ({ key, ...asset })))]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
@@ -84,18 +86,26 @@ for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, 
   GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
 }
 
+for (const [key, { sourceKey, caption }] of Object.entries(VERIFIED_PLACE_PHOTO_ALIASES)) {
+  GUIDE_IMAGES[key] = { ...GUIDE_IMAGES[sourceKey], caption };
+}
+GUIDE_IMAGES['guide-bart-update-context'] = {
+  ...GUIDE_IMAGES.bart,
+  caption: 'Coliseum 站的 BART 新一代列车，2024 年资料照片；展示 BART 交通系统，不是 Mission 电梯、West Oakland 停车场或 Pleasant Hill 施工现场。',
+};
+
 const bySlug: Record<string, [string, string]> = {
   'east-bay-november-nature-programs-2026': ['november-community', 'expanded-coyote-hills'],
   'san-francisco-autumn-food-markets-2026': ['ferry-market', 'november-community'],
   'peninsula-south-bay-november-nature-walks-2026': ['garden-walk', 'weekend'],
   'peninsula-south-bay-autumn-farmers-markets-2026': ['november-community', 'neighborhood-table'],
   'north-bay-markets-nature-culture-through-november-15-2026': ['november-community', 'november-stargazing'],
-  'bay-area-freebies-deals-2026-11': ['november-community', 'weekend'],
+  'bay-area-freebies-deals-2026-11': ['official-lowes-firefighting-plane-2026', 'official-target-eos-2026'],
   'bay-area-november-first-half-planner-2026': ['weekend', 'november-community'],
   'bay-area-november-resident-dates-2026': ['everyday', 'train'],
-  'bay-area-birthday-perks': ['september-freebies', 'neighborhood-table'],
-  'bay-area-retail-freebies-family-deals': ['september-freebies', 'october-library-culture'],
-  'bay-area-everyday-free-perks': ['october-library-culture', 'library'],
+  'bay-area-birthday-perks': ['freebie-sephora-birthday', 'freebie-sephora-birthday'],
+  'bay-area-retail-freebies-family-deals': ['official-lowes-firefighting-plane-2026', 'freebie-ikea-coffee'],
+  'bay-area-everyday-free-perks': ['library', 'community-tilden-little-farm'],
   'bay-area-street-parking-first-time-guide': ['coverage-classic-car', 'neighborhood'],
   'bay-area-fastrak-bridge-express-lanes-guide': ['daily-bridge', 'digital-safety'],
   'bay-area-bulky-items-ewaste-hhw-guide': ['daily-recycling', 'settling'],
@@ -112,7 +122,7 @@ const bySlug: Record<string, [string, string]> = {
   'san-jose-egyptian-museum-rose-garden-guide': ['expanded-south-bay-rosicrucian', 'garden-walk'],
   'alameda-uss-hornet-shoreline-day-guide': ['expanded-east-bay-hornet', 'expanded-east-bay-alameda-beach'],
   'fremont-coyote-hills-short-walk-guide': ['expanded-coyote-hills', 'weekend'],
-  'bart-october-access-parking-update-2026': ['community-accessible-transit', 'bart'],
+  'bart-october-access-parking-update-2026': ['guide-bart-update-context', 'guide-bart-update-context'],
   'san-jose-digital-help-sj-access-update-2026': ['everyday', 'coverage-laptop'],
   'sccld-sharks-library-card-september-2026': ['community-library-card', 'library'],
   'bay-area-ai-week-tech-week-first-timer-guide-2026': ['coverage-laptop', 'digital-safety'],
@@ -132,8 +142,8 @@ const bySlug: Record<string, [string, string]> = {
   'san-jose-october-family-history-farm-guide-2026': ['community-history-park', 'october-family-nature'],
   'east-bay-tilden-october-family-guide-2026': ['community-tilden-little-farm', 'october-family-nature'],
   'north-bay-china-camp-october-culture-guide-2026': ['community-china-camp-village', 'october-north-bay-culture'],
-  'bay-area-october-library-museum-pass-guide-2026': ['october-library-culture', 'library'],
-  'bay-area-freebies-deals-2026-10': ['culture-visit', 'october-library-culture'],
+  'bay-area-october-library-museum-pass-guide-2026': ['library', 'library'],
+  'bay-area-freebies-deals-2026-10': ['official-lowes-firefighting-plane-2026', 'freebie-ikea-coffee'],
   'bay-area-coastal-cleanup-2026-guide': ['fresh-ocean-beach', 'fresh-treasure-island'],
   'half-moon-bay-pumpkin-season-2026-guide': ['fresh-pumpkin-parade', 'fresh-hmb-pumpkins'],
   'berkeley-campus-botanical-garden-half-day': ['region-berkeley-campus', 'region-berkeley-garden'],
@@ -151,7 +161,7 @@ const bySlug: Record<string, [string, string]> = {
   'sf-palace-fine-arts-marina-guide': ['sf-palace', 'sf-marina'],
   'golden-gate-park-free-car-free-day-guide': ['ggp-conservatory', 'jfk-promenade'],
   'palo-alto-baylands-family-walk-guide': ['baylands-marsh', 'baylands-gull'],
-  'bay-area-freebies-deals-2026-09': ['september-freebies', 'deal-85c-september'],
+  'bay-area-freebies-deals-2026-09': ['deal-85c-september', 'freebie-sephora-birthday'],
   'bay-area-rental-scam-guide': ['rental-scam', 'rental-viewing'],
   'rental-lease-checklist-before-signing': ['lease-review', 'moving-handover'],
   'bay-area-first-rental-process': ['rental-viewing', 'lease-review'],
@@ -209,7 +219,7 @@ export const FIRST_VISIT_GUIDE_MEDIA: Record<string, [string, string]> = {
   'bay-area-first-7-30-days-action-plan-october-2026': ['settling', 'utilities-setup'],
   'bay-area-cross-bay-commute-home-base-october-2026': ['train', 'bay'],
   'sf-first-visit-tickets-waterfront-october-2026': ['sf-alcatraz', 'sf-bridge'],
-  'sf-free-culture-eligibility-october-2026': ['culture-visit', 'ggp-conservatory'],
+  'sf-free-culture-eligibility-october-2026': ['ggp-conservatory', 'library'],
   'sf-family-rain-fog-car-free-october-2026': ['presidio', 'culture-visit'],
 };
 Object.assign(bySlug, FIRST_VISIT_GUIDE_MEDIA);
@@ -264,7 +274,7 @@ const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roomma
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
   if (guide.slug === 'bay-area-new-openings-2026-09') {
-    const images = septemberOpenings.map((shop, index) => ({ afterHeading: index + 1, image: GUIDE_IMAGES[shop.imageKey] })).filter(item => !!item.image);
+    const images = septemberOpenings.map((shop, index) => ({ afterHeading: index + 1, image: GUIDE_IMAGES[shop.imageKey] })).filter(item => !!item.image && item.image.kind !== 'illustration');
     return { cover: images[0]?.image || GUIDE_IMAGES.everyday, inline: images.slice(1) };
   }
   const mapped = bySlug[guide.slug];

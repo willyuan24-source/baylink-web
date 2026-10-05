@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -209,7 +208,7 @@ test('invalid source protocols and missing media do not create unsafe links or u
   assert.ok(view.getByText(base.requirement));
 });
 
-test('the cleaned September guide retains valid distinct cards and removes expired promotions', () => {
+test('the cleaned September guide retains valid cards and factual media while omitting AI artwork and expired promotions', () => {
   const slug = 'bay-area-freebies-deals-2026-09';
   const guide = getGuideBySlug(slug);
   assert.ok(guide);
@@ -217,15 +216,17 @@ test('the cleaned September guide retains valid distinct cards and removes expir
   assert.equal(blocks.length, 1);
   const block = blocks[0];
   assert.equal(block.offers.length, 11);
-  const imagePaths = block.offers.map(offer => GUIDE_IMAGES[offer.imageKey]?.src);
-  assert.ok(imagePaths.every(Boolean), 'every real offer must have its own registered image');
-  assert.equal(new Set(imagePaths).size, block.offers.length);
-  const imageHashes = imagePaths.map(path => {
-    assert.match(path!, /^\/guides\/[a-z0-9/._-]+\.webp$/);
-    assert.equal(path!.includes('..'), false);
-    return createHash('sha256').update(readFileSync(new URL(`../public${path}`, import.meta.url))).digest('hex');
+  const images = block.offers.map(offer => {
+    const registered = GUIDE_IMAGES[offer.imageKey];
+    return registered?.kind === 'illustration' ? undefined : registered;
   });
-  assert.equal(new Set(imageHashes).size, block.offers.length, 'distinct filenames must correspond to distinct actual artwork');
+  for (const image of images) if (image) {
+    assert.ok(image.kind === 'photo' || image.kind === 'poster');
+    assert.match(image.src, /^\/guides\/[a-z0-9/._-]+\.webp$/);
+    assert.equal(image.src.includes('..'), false);
+    assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0);
+    assert.ok(image.caption && image.credit && image.creditUrl, 'factual artwork retains traceable provenance');
+  }
 
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-09-11" onBack={() => {}} onOpenGuide={() => {}} onNavigate={() => {}} onOpenPost={() => {}} /></StaticRouter>);
   const document = new JSDOM(html).window.document;
@@ -243,7 +244,15 @@ test('the cleaned September guide retains valid distinct cards and removes expir
     assert.ok(card.textContent?.includes(offer.requirement));
     assert.ok(card.textContent?.includes(offer.dateLabel));
     assert.equal(card.querySelector('.bl-freebie-card-actions a')?.getAttribute('href'), offer.sourceUrl);
-    assert.equal(card.querySelector('img')?.getAttribute('src'), imagePaths[index]);
+    const image = images[index];
+    if (image) {
+      assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
+      assert.equal(card.querySelector('img')?.getAttribute('alt'), image.alt);
+    } else {
+      assert.equal(card.querySelector('img'), null, 'no synthetic substitute for missing factual media');
+      assert.equal(card.querySelector('.bl-freebie-picture-open'), null);
+    }
+    assert.doesNotMatch(card.textContent || '', /AI 原创插图/);
   }
   const targetOffers = block.offers.filter(offer => offer.brand === 'TARGET');
   assert.equal(targetOffers.length, 1);

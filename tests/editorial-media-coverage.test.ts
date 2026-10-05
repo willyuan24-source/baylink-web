@@ -11,7 +11,7 @@ test('every published guide, event, offer, opening and place has a valid local i
   for (const catalog of Object.values(report.summary)) {
     assert.ok(catalog.total > 0);
     assert.equal(catalog.missing, 0);
-    assert.equal(catalog.photos + catalog.illustrations + catalog.posters, catalog.total);
+    assert.equal(catalog.photos + catalog.illustrations + catalog.posters + catalog.textOnly, catalog.total);
   }
 });
 

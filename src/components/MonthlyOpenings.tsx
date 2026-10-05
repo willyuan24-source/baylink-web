@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUpRight, CalendarDays, MapPin, Store } from 'lucide-rea
 import { Link } from 'react-router-dom';
 import type { SeptemberOpening } from '../data/september-openings';
 import { currentOpenings } from '../data/local-discoveries';
-import { GUIDE_IMAGES } from '../data/guide-media';
+import { getListingImage } from '../lib/offer-media';
 import { GuideImageLightbox } from './GuideVisuals';
 import { translateText, useLocale } from '../i18n/locale';
 import { EditorialShareActions } from './EditorialShareActions';
@@ -17,7 +17,7 @@ const openingMap = (shop: SeptemberOpening) => `https://www.google.com/maps/sear
 
 function OpeningCard({ shop }: { shop: SeptemberOpening }) {
   const [zoomed, setZoomed] = useState(false);
-  const image = Object.hasOwn(GUIDE_IMAGES, shop.imageKey) ? GUIDE_IMAGES[shop.imageKey] : undefined;
+  const image = getListingImage(shop.imageKey);
   const label = shop.status === 'announced' && shop.openingType === 'opening-celebration' ? '开业庆典' : openingStatusLabel(shop.status);
   return <article className="bl-opening-card" aria-labelledby={`opening-${shop.id}`}>
     {image && <figure className={`bl-opening-photo${image.kind === 'poster' || image.fullFrame ? ' bl-opening-photo--contain' : ''}`}>

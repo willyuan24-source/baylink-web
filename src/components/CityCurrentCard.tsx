@@ -1,7 +1,7 @@
+import { getListingImage } from '../lib/offer-media';
 import { ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { CityCurrentUpdate } from '../data/city-current-types';
-import { GUIDE_IMAGES } from '../data/guide-media';
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
 import { translateText, useLocale } from '../i18n/locale';
 import { getBayAreaToday } from '../lib/monthly';
@@ -12,7 +12,7 @@ const cityKey = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, ''
 
 export function CityCurrentCard({ update, today = getBayAreaToday() }: { update: CityCurrentUpdate; today?: string }) {
   const locale = useLocale(), t = (value: string) => translateText(value, locale);
-  const image = Object.hasOwn(GUIDE_IMAGES, update.imageKey) ? GUIDE_IMAGES[update.imageKey] : undefined;
+  const image = getListingImage(update.imageKey);
   const expired = update.kind === 'dated' && !!update.expiresAt && update.expiresAt < today;
   const events = MONTHLY_EVENTS.filter(event => cityKey(event.city) === cityKey(update.city))
     .map(event => ({ event, date: nextConfirmedEventDate(event, today) }))

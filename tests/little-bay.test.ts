@@ -56,10 +56,13 @@ test('new stores and external dining places preserve canonical links, image cred
     assert.equal(card.sourceUrl, original.officialUrl);
     assert.equal(card.free, false);
     assert.match(card.price, /费用待确认/);
-    if (place.imageKey && GUIDE_IMAGES[place.imageKey]) {
+    if (place.imageKey && GUIDE_IMAGES[place.imageKey]?.kind !== 'illustration' && GUIDE_IMAGES[place.imageKey]) {
       imageCount++;
       assert.deepEqual(card.imageMeta, GUIDE_IMAGES[place.imageKey]);
       assert.equal(card.image, GUIDE_IMAGES[place.imageKey].src);
+    } else if (place.imageKey && GUIDE_IMAGES[place.imageKey]?.kind === 'illustration') {
+      assert.equal(card.imageMeta, undefined, `${place.title} must not show an AI image as a real new shop`);
+      assert.equal(card.image, undefined);
     }
   }
   assert.ok(imageCount > 0);

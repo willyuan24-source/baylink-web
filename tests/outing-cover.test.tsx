@@ -4,6 +4,7 @@ import React from 'react';
 import { JSDOM } from 'jsdom';
 import { guides as GUIDES } from '../src/data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../src/data/guide-media';
+import { getListingImage } from '../src/lib/offer-media';
 import { discoveryShare, localDiscoveries } from '../src/data/local-discoveries';
 import { coverFromSearchParams, getOutingCoverChoices, outingCoverHref, resolveOutingCover, type OutingCoverInput } from '../src/features/outings/outing-cover';
 import type { OutingCoverSelection } from '../src/lib/outings';
@@ -21,17 +22,20 @@ afterEach(() => cleanup());
 after(() => dom.window.close());
 
 test('automatic cover uses only the exact linked event and never infers from free text', () => {
-  const event = localDiscoveries.find(item => item.kind === 'event'); assert.ok(event?.kind === 'event');
+  const event = localDiscoveries.find(item => item.kind === 'event' && getListingImage(item.event.imageKey)); assert.ok(event?.kind === 'event');
   const found = resolveOutingCover({ eventId: event.event.id });
   assert.equal(found?.kind, 'event'); assert.equal(found?.image, GUIDE_IMAGES[event.event.imageKey]);
   assert.equal(resolveOutingCover({ eventId: null }), null);
   assert.equal(resolveOutingCover({ eventId: 'unknown-event' }), null);
   assert.equal(resolveOutingCover({ eventId: event.event.id, cover: { kind: 'card' } }), null);
+  const illustrated = localDiscoveries.find(item => item.kind === 'event' && GUIDE_IMAGES[item.event.imageKey]?.kind === 'illustration');
+  assert.ok(illustrated?.kind === 'event');
+  assert.equal(resolveOutingCover({ eventId: illustrated.event.id }), null, 'an AI theme is not used as the linked event photograph');
 });
 
 test('explicit cover references preserve exact catalog media and attribution for all source types', () => {
   for (const kind of ['event', 'offer', 'opening'] as const) {
-    const source = localDiscoveries.find(item => item.kind === kind); assert.ok(source);
+    const source = localDiscoveries.find(item => item.kind === kind && getListingImage(item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey)); assert.ok(source);
     const shared = discoveryShare(source);
     const item = source.kind === 'event' ? source.event : source.kind === 'offer' ? source.offer : source.shop;
     const resolved = resolveOutingCover({ eventId: null, cover: { kind, id: shared.id } });

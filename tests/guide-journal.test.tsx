@@ -17,7 +17,7 @@ Object.assign(globalThis, {
   Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { GuideExplorer, GuideImageCredits } = await import('../src/components/GuideExplorer');
 afterEach(() => cleanup());
@@ -31,12 +31,18 @@ const moods = [
   { label: '带狗一起走', slug: 'bay-area-dog-park-first-outing-guide', heading: '出门前，先读懂这片公园的规则。', kind: 'photo' },
 ] as const;
 
+const singleImageGuides: Record<string, string> = {
+  'bay-area-birthday-perks': 'freebie-sephora-birthday',
+  'bart-october-access-parking-update-2026': 'guide-bart-update-context',
+  'bay-area-october-library-museum-pass-guide-2026': 'library',
+};
+
 type PhotoCredit = {
   key: string; src: string; author: string; license: string; licenseUrl: string;
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north', 'official-offer-media-2026-10'].flatMap(name =>
   (() => { const records = JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')); return (Array.isArray(records) ? records : Object.entries(records).map(([key, value]) => ({ key, ...(value as object) }))) as (GuideImage & { key: string })[]; })());
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -165,7 +171,12 @@ test('all published guides and the complete media registry have usable local ima
   for (const guide of guides) {
     const media = getGuideMedia(guide);
     checkImage(media.cover);
-    assert.ok(media.inline.length > 0, guide.slug);
+    if (Object.hasOwn(singleImageGuides, guide.slug)) {
+      // These guides have one matching photograph/poster; do not repeat it as an inline filler.
+      assert.equal(media.cover, GUIDE_IMAGES[singleImageGuides[guide.slug]]);
+      assert.notEqual(media.cover.kind, 'illustration');
+      assert.deepEqual(media.inline, []);
+    } else assert.ok(media.inline.length > 0, guide.slug);
     for (const inline of media.inline) {
       assert.ok(inline.afterHeading >= 1 && inline.afterHeading <= guide.blocks.filter(block => block.type === 'heading').length, guide.slug);
       checkImage(inline.image);
@@ -193,12 +204,43 @@ const firstVisitCoverReuse = new Set([
   'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-cross-bay-commute-home-base-october-2026',
   'sf-first-visit-tickets-waterfront-october-2026', 'sf-free-culture-eligibility-october-2026',
   'sf-family-rain-fog-car-free-october-2026',
-  // Perks roundups intentionally share clearly labeled thematic illustrations;
-  // their original, dated social posters are separate downloadable artwork.
+  // These perks guides may share their specifically sourced product imagery.
+  // Their original, dated social posters are separate downloadable artwork.
   'bay-area-birthday-perks',
   'bay-area-everyday-free-perks',
-  'bay-area-retail-freebies-family-deals',
 ]);
+const officialPerksCoverReuse = new Set([
+  'bay-area-retail-freebies-family-deals',
+  'bay-area-freebies-deals-2026-10',
+  'bay-area-freebies-deals-2026-11',
+]);
+const factualReferenceCoverReuse: Record<string, { key: string; source: string; caption: RegExp }> = {
+  'bay-area-birthday-perks': {
+    key: 'freebie-sephora-birthday',
+    source: 'https://newsroom.sephora.com/sephora-unwraps-another-year-of-beauty-with-its-2026-beauty-insider-birthday-gift-offerings/',
+    caption: /2026.*生日礼.*不代表九月门店库存/,
+  },
+  'bay-area-everyday-free-perks': {
+    key: 'library',
+    source: 'https://commons.wikimedia.org/wiki/File:San_Francisco_Public_Library_-_Main_Branch,_6th_floor,_looking_straight.jpg',
+    caption: /旧金山公共图书馆总馆.*2013.*资料照片/,
+  },
+  'bay-area-october-library-museum-pass-guide-2026': {
+    key: 'library',
+    source: 'https://commons.wikimedia.org/wiki/File:San_Francisco_Public_Library_-_Main_Branch,_6th_floor,_looking_straight.jpg',
+    caption: /旧金山公共图书馆总馆.*2013.*资料照片/,
+  },
+  'sf-free-culture-eligibility-october-2026': {
+    key: 'ggp-conservatory',
+    source: 'https://commons.wikimedia.org/wiki/File:Exterior_of_the_Conservatory_of_Flowers_1_2016-11-13.jpg',
+    caption: /Conservatory of Flowers.*2016.*入场条件不同/,
+  },
+  'bart-october-access-parking-update-2026': {
+    key: 'guide-bart-update-context',
+    source: 'https://commons.wikimedia.org/wiki/File:Orange_Line_BART_Fleet_of_the_Future_Train_at_Coliseum_station.jpg',
+    caption: /Coliseum.*2024.*不是 Mission 电梯、West Oakland 停车场或 Pleasant Hill 施工现场/,
+  },
+};
 // Reviewed October 5: these dated roundups deliberately use labeled context art.
 // Pin each exact source path; a new guide or an unrelated replacement still fails.
 // The Ferry Building photograph is the actual market venue, not the 2026 event.
@@ -208,7 +250,6 @@ const novemberCoverReuse: Record<string, string> = {
   'peninsula-south-bay-november-nature-walks-2026': '/guides/community-2026/garden-walk.webp',
   'peninsula-south-bay-autumn-farmers-markets-2026': '/guides/november/autumn-community.webp',
   'north-bay-markets-nature-culture-through-november-15-2026': '/guides/november/autumn-community.webp',
-  'bay-area-freebies-deals-2026-11': '/guides/november/autumn-community.webp',
   'bay-area-november-first-half-planner-2026': '/guides/editorial/weekend-illustration.webp',
   'bay-area-november-resident-dates-2026': '/guides/editorial/everyday-illustration.webp',
 };
@@ -220,6 +261,23 @@ test('guide covers remain distinct except specifically reviewed reference photog
   for (const guide of guides) {
     const { cover } = getGuideMedia(guide);
     assert.ok(cover, guide.slug);
+    if (Object.hasOwn(factualReferenceCoverReuse, guide.slug)) {
+      const expected = factualReferenceCoverReuse[guide.slug];
+      assert.equal(cover, GUIDE_IMAGES[expected.key]);
+      assert.notEqual(cover.kind, 'illustration');
+      assert.equal(cover.creditUrl, expected.source);
+      assert.match(cover.caption, expected.caption);
+      continue;
+    }
+    if (officialPerksCoverReuse.has(guide.slug)) {
+      assert.equal(cover.src, '/guides/official-offers/lowes-firefighting-plane.webp');
+      assert.equal(cover, GUIDE_IMAGES['official-lowes-firefighting-plane-2026']);
+      assert.equal(cover.kind, 'photo');
+      assert.equal(cover.creditUrl, 'https://www.lowes.com/events/register/firefighting-plane');
+      assert.match(cover.caption, /2026 年 10 月 17 日/);
+      assert.match(cover.caption, /不是活动当天/);
+      continue;
+    }
     if (Object.hasOwn(novemberCoverReuse, guide.slug)) {
       assert.equal(cover.src, novemberCoverReuse[guide.slug], `${guide.slug} must keep its reviewed context image`);
       assert.match(cover.caption, /不代表|不是/, `${guide.slug} must disclose that the image is not the event`);
@@ -232,7 +290,7 @@ test('guide covers remain distinct except specifically reviewed reference photog
     assert.equal(fingerprints.has(fingerprint), false, `${guide.slug} duplicates the image bytes used by ${fingerprints.get(fingerprint)}`);
     fingerprints.set(fingerprint, guide.slug);
   }
-  const distinctCount = guides.filter(guide => !firstVisitCoverReuse.has(guide.slug) && !Object.hasOwn(novemberCoverReuse, guide.slug)).length;
+  const distinctCount = guides.filter(guide => !firstVisitCoverReuse.has(guide.slug) && !officialPerksCoverReuse.has(guide.slug) && !Object.hasOwn(factualReferenceCoverReuse, guide.slug) && !Object.hasOwn(novemberCoverReuse, guide.slug)).length;
   assert.equal(paths.size, distinctCount);
   assert.equal(fingerprints.size, distinctCount, 'renaming the same illustration must not satisfy the distinct-cover requirement');
 });
@@ -240,14 +298,17 @@ test('guide covers remain distinct except specifically reviewed reference photog
 test('the visible credits retain every photograph and poster source without inventing license links', () => {
   const view = render(<GuideImageCredits />);
   assert.ok(view.getByText('关于图片与授权'));
-  const images = Object.values(GUIDE_IMAGES).filter(image => image.kind === 'photo' || image.kind === 'poster');
+  const images = [...new Map(Object.values(GUIDE_IMAGES)
+    .filter(image => image.kind === 'photo' || image.kind === 'poster')
+    .map(image => [JSON.stringify([image.src, image.creditUrl, image.credit, image.licenseUrl]), image])).values()];
   const details = view.container.querySelector('details')!;
   details.open = true;
-  assert.equal(details.querySelectorAll('li').length, images.length);
-  for (const image of images) {
-    const source = view.getByRole('link', { name: image.alt, exact: true });
+  const rows = details.querySelectorAll('li');
+  assert.equal(rows.length, images.length);
+  for (const [index, image] of images.entries()) {
+    const row = rows[index];
+    const source = within(row).getByRole('link', { name: image.alt, exact: true });
     assert.equal(source.getAttribute('href'), image.creditUrl);
-    const row = source.closest('li')!;
     assert.ok(row.textContent!.includes(image.credit));
     const license = [...row.querySelectorAll('a')].find(link => link.textContent!.includes('查看图片授权'));
     if (image.licenseUrl) {
