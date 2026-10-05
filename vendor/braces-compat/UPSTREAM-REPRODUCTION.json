@@ -1,0 +1,241 @@
+{
+  "packageVersion": "3.0.3",
+  "node": "v24.18.0",
+  "readOnlySource": "<original-unmodified-install>/node_modules/braces/index.js",
+  "cases": [
+    {
+      "id": "compile-string-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": true,
+        "elapsedMs": 17,
+        "resultType": "string",
+        "resultLength": 7003
+      },
+      "timedOut": false
+    },
+    {
+      "id": "compile-string-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 9,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "compile-parsed-ast-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 10,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "compile-deep-ast-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 8,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "compile-cyclic-ast",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 3,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "expand-string-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": true,
+        "elapsedMs": 20,
+        "resultType": "object",
+        "resultLength": 2
+      },
+      "timedOut": false
+    },
+    {
+      "id": "expand-string-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 7,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "expand-parsed-ast-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 7,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "expand-deep-ast-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 5,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "expand-cyclic-ast",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 2,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "stringify-string-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": true,
+        "elapsedMs": 7,
+        "resultType": "string",
+        "resultLength": 7003
+      },
+      "timedOut": false
+    },
+    {
+      "id": "stringify-string-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 10,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "stringify-parsed-ast-reduced-stack",
+      "stackKiB": 512,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 12,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "stringify-deep-ast-default-stack",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 7,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    },
+    {
+      "id": "stringify-cyclic-ast",
+      "stackKiB": 984,
+      "exitStatus": 0,
+      "signal": null,
+      "result": {
+        "ok": false,
+        "elapsedMs": 4,
+        "error": "RangeError",
+        "message": "Maximum call stack size exceeded"
+      },
+      "timedOut": false
+    }
+  ],
+  "officialArchive": {
+    "resolved": "https://registry.npmjs.org/braces/-/braces-3.0.3.tgz",
+    "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+    "verified": true,
+    "files": [
+      {
+        "file": "LICENSE",
+        "matches": true
+      },
+      {
+        "file": "lib/compile.js",
+        "matches": true
+      },
+      {
+        "file": "lib/constants.js",
+        "matches": true
+      },
+      {
+        "file": "lib/expand.js",
+        "matches": true
+      },
+      {
+        "file": "index.js",
+        "matches": true
+      },
+      {
+        "file": "lib/parse.js",
+        "matches": true
+      },
+      {
+        "file": "lib/stringify.js",
+        "matches": true
+      },
+      {
+        "file": "lib/utils.js",
+        "matches": true
+      }
+    ]
+  }
+}

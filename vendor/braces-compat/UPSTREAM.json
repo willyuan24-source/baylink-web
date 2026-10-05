@@ -1,0 +1,47 @@
+{
+  "name": "braces",
+  "version": "3.0.3",
+  "license": "MIT",
+  "resolved": "https://registry.npmjs.org/braces/-/braces-3.0.3.tgz",
+  "integrity": "sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==",
+  "verified": true,
+  "files": [
+    {
+      "file": "LICENSE",
+      "matches": true
+    },
+    {
+      "file": "lib/compile.js",
+      "matches": true
+    },
+    {
+      "file": "lib/constants.js",
+      "matches": true
+    },
+    {
+      "file": "lib/expand.js",
+      "matches": true
+    },
+    {
+      "file": "index.js",
+      "matches": true
+    },
+    {
+      "file": "lib/parse.js",
+      "matches": true
+    },
+    {
+      "file": "lib/stringify.js",
+      "matches": true
+    },
+    {
+      "file": "lib/utils.js",
+      "matches": true
+    }
+  ],
+  "securityAdvisory": "GHSA-vfj7-8cjw-p6xm",
+  "derivative": {
+    "name": "@baylink/braces-compat",
+    "version": "3.0.3-baylink.1"
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "files": [
+    {
+      "file": "index.js",
+      "equal": true,
+      "sha256": "332ea07c7b006361aad12aa994ca75dc1db8e8382b884909e2f38f10b85c88a4"
+    },
+    {
+      "file": "LICENSE",
+      "equal": true,
+      "sha256": "35bdd8a44339719441900fb50fbefc5e2dca1ca662cbaed7a687de842c8b70f2"
+    },
+    {
+      "file": "lib/compile.js",
+      "equal": true,
+      "sha256": "29c8026186b794d2abe467e8664d2cdf024940af26ce06595e3b37fd8de2c3ec"
+    },
+    {
+      "file": "lib/constants.js",
+      "equal": true,
+      "sha256": "c18ac5adb57308f1ce42a28552da3a31f5d83709743ebd9a636336813a744d4b"
+    },
+    {
+      "file": "lib/expand.js",
+      "equal": true,
+      "sha256": "0897710bc93ee7aeb33f23f3625c811e9d258ffaa0c40b1b5f8c8bcfbd15f96a"
+    },
+    {
+      "file": "lib/parse.js",
+      "equal": true,
+      "sha256": "f29388d8a2723fc3e26e01e59bd3ca8a238a1c64a0cb166f8edadc8bba54c9fc"
+    },
+    {
+      "file": "lib/stringify.js",
+      "equal": true,
+      "sha256": "789db5433139ded29727cff5de7a8f24a648dce91d908e2bf2fabbb5d6f61b27"
+    },
+    {
+      "file": "lib/utils.js",
+      "equal": true,
+      "sha256": "3276edb1d99872fc50dc460ae425e90a3ce6d91082584a3ce20821d4153d21a7"
+    },
+    {
+      "file": "lib/traversal-limit.js",
+      "equal": true,
+      "sha256": "37cceb3361ec0f80fec799ea7e744612b7ce4a5ea6c9a21b5e7b86f0417b6a1a"
+    }
+  ],
+  "tarballSha256": "24f1e42c47d962f36fb4ff5dcb477d7a1769dc7bccd8f62600d3b1e9de77de2a",
+  "tarballIntegrity": "sha512-VvY7+ZPix8r23TKplT0WgPVOWnjXyK1NBmVc/oT2Ts8kNQwLORxuJr01ULYLG+WHAxlZMVS6iIkazq+goEBDUA==",
+  "installed": {
+    "lockChangedKeys": [
+      "",
+      "node_modules/braces"
+    ],
+    "absoluteLockPaths": false,
+    "resolution": {
+      "braces": {
+        "entry": "<relocated-clean-install>/node_modules/braces/index.js",
+        "name": "@baylink/braces-compat",
+        "version": "3.0.3-baylink.1",
+        "blocked": true
+      },
+      "chokidar": {
+        "entry": "<relocated-clean-install>/node_modules/braces/index.js",
+        "name": "@baylink/braces-compat",
+        "version": "3.0.3-baylink.1",
+        "blocked": true
+      },
+      "micromatch": {
+        "entry": "<relocated-clean-install>/node_modules/braces/index.js",
+        "name": "@baylink/braces-compat",
+        "version": "3.0.3-baylink.1",
+        "blocked": true
+      }
+    },
+    "testExit": 0,
+    "css": {
+      "bytes": 81504,
+      "sha256": "f480e20b345ca0a13ec0ee8c3b17303c27c545903cf9a95714ed1466dcda5840",
+      "equalsUpstream": true
+    },
+    "glob": {
+      "count": 1207,
+      "equalsUpstream": true
+    }
+  },
+  "audit": {
+    "auditReportVersion": 2,
+    "vulnerabilities": {},
+    "metadata": {
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      },
+      "dependencies": {
+        "prod": 125,
+        "dev": 368,
+        "optional": 65,
+        "peer": 9,
+        "peerOptional": 0,
+        "total": 492
+      }
+    }
+  },
+  "watch": [
+    [
+      "add",
+      "seed.js"
+    ],
+    [
+      "add",
+      "added.ts"
+    ],
+    [
+      "change",
+      "added.ts"
+    ],
+    [
+      "unlink",
+      "added.ts"
+    ]
+  ]
+}

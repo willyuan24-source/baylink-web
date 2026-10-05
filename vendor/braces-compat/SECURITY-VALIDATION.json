@@ -1,0 +1,710 @@
+{
+  "security": [
+    {
+      "id": "compile-string",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "compile-deep-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 3
+      }
+    },
+    {
+      "id": "compile-cycle",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "compile-wide-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_NODE_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum node count (20000)",
+        "elapsedMs": 3
+      }
+    },
+    {
+      "id": "compile-set-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "compile-arraylike-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "compile-deep-value",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST value",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "compile-deep-commas",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST commas",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "compile-deep-ranges",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST ranges",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-string",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "expand-deep-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 3
+      }
+    },
+    {
+      "id": "expand-cycle",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-wide-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_NODE_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum node count (20000)",
+        "elapsedMs": 2
+      }
+    },
+    {
+      "id": "expand-set-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "expand-arraylike-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-deep-value",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST value",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "expand-deep-commas",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST commas",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-deep-ranges",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST ranges",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-string",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "stringify-deep-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 2
+      }
+    },
+    {
+      "id": "stringify-cycle",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-wide-ast",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_NODE_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum node count (20000)",
+        "elapsedMs": 2
+      }
+    },
+    {
+      "id": "stringify-set-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-arraylike-nodes",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST nodes",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-deep-value",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST value",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-deep-commas",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST commas",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-deep-ranges",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_AST_INVALID",
+        "name": "TypeError",
+        "message": "Invalid brace AST ranges",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "parse-parens",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "parse-unclosed",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "parse-dollar",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "create-parens",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "create-unclosed",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "create-dollar",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "compile-parens",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "compile-unclosed",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "compile-dollar",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-parens",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-unclosed",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "expand-dollar",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "stringify-parens",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "stringify-unclosed",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "stringify-dollar",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 0
+      }
+    },
+    {
+      "id": "array-entry",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "deep-import-compile",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 4
+      }
+    },
+    {
+      "id": "deep-import-expand",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 2
+      }
+    },
+    {
+      "id": "deep-import-stringify",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 2
+      }
+    },
+    {
+      "id": "deep-flatten",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "parent-chain-cycle",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    },
+    {
+      "id": "options-cannot-disable-depth-limit",
+      "passed": true,
+      "exitStatus": 0,
+      "timedOut": false,
+      "detail": {
+        "ok": false,
+        "code": "BRACES_DEPTH_LIMIT",
+        "name": "RangeError",
+        "message": "Brace traversal exceeds maximum nesting depth (64)",
+        "elapsedMs": 1
+      }
+    }
+  ],
+  "normalComparisons": 4480,
+  "compilation": [
+    {
+      "name": "upstream",
+      "exitStatus": 0,
+      "elapsedMs": 4664,
+      "stderr": "",
+      "bytes": 81504,
+      "sha256": "f480e20b345ca0a13ec0ee8c3b17303c27c545903cf9a95714ed1466dcda5840",
+      "globCount": 1207
+    },
+    {
+      "name": "candidate",
+      "exitStatus": 0,
+      "elapsedMs": 4714,
+      "stderr": "",
+      "bytes": 81504,
+      "sha256": "f480e20b345ca0a13ec0ee8c3b17303c27c545903cf9a95714ed1466dcda5840",
+      "globCount": 1207
+    }
+  ],
+  "cssEqual": true,
+  "globEqual": true,
+  "errors": [],
+  "upstreamTests": {
+    "tests": 764,
+    "suites": 49,
+    "passed": 764,
+    "failed": 0,
+    "runner": "node:test shim for original mocha API"
+  },
+  "watch": {
+    "upstream": [
+      [
+        "add",
+        "seed.js"
+      ],
+      [
+        "add",
+        "added.ts"
+      ],
+      [
+        "change",
+        "added.ts"
+      ],
+      [
+        "unlink",
+        "added.ts"
+      ]
+    ],
+    "candidate": [
+      [
+        "add",
+        "seed.js"
+      ],
+      [
+        "add",
+        "added.ts"
+      ],
+      [
+        "change",
+        "added.ts"
+      ],
+      [
+        "unlink",
+        "added.ts"
+      ]
+    ]
+  }
+}

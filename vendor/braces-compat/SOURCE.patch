@@ -1,0 +1,208 @@
+diff --git a/upstream/lib/compile.js b/candidate/lib/compile.js
+index dce69be..15704a4 100644
+--- a/upstream/lib/compile.js
++++ b/candidate/lib/compile.js
+@@ -2,8 +2,10 @@
+ 
+ const fill = require('fill-range');
+ const utils = require('./utils');
++const { assertAst } = require('./traversal-limit');
+ 
+ const compile = (ast, options = {}) => {
++  assertAst(ast);
+   const walk = (node, parent = {}) => {
+     const invalidBlock = utils.isInvalidBrace(parent);
+     const invalidNode = node.invalid === true && options.escapeInvalid === true;
+diff --git a/upstream/lib/expand.js b/candidate/lib/expand.js
+index 35b2c41..b49f592 100644
+--- a/upstream/lib/expand.js
++++ b/candidate/lib/expand.js
+@@ -3,8 +3,10 @@
+ const fill = require('fill-range');
+ const stringify = require('./stringify');
+ const utils = require('./utils');
++const { assertAst, assertDepth } = require('./traversal-limit');
+ 
+-const append = (queue = '', stash = '', enclose = false) => {
++const append = (queue = '', stash = '', enclose = false, depth = 0) => {
++  assertDepth(depth);
+   const result = [];
+ 
+   queue = [].concat(queue);
+@@ -18,12 +20,12 @@ const append = (queue = '', stash = '', enclose = false) => {
+   for (const item of queue) {
+     if (Array.isArray(item)) {
+       for (const value of item) {
+-        result.push(append(value, stash, enclose));
++        result.push(append(value, stash, enclose, depth + 1));
+       }
+     } else {
+       for (let ele of stash) {
+         if (enclose === true && typeof ele === 'string') ele = `{${ele}}`;
+-        result.push(Array.isArray(ele) ? append(item, ele, enclose) : item + ele);
++        result.push(Array.isArray(ele) ? append(item, ele, enclose, depth + 1) : item + ele);
+       }
+     }
+   }
+@@ -31,6 +33,7 @@ const append = (queue = '', stash = '', enclose = false) => {
+ };
+ 
+ const expand = (ast, options = {}) => {
++  assertAst(ast);
+   const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;
+ 
+   const walk = (node, parent = {}) => {
+@@ -39,7 +42,9 @@ const expand = (ast, options = {}) => {
+     let p = parent;
+     let q = parent.queue;
+ 
++    let parentDepth = 0;
+     while (p.type !== 'brace' && p.type !== 'root' && p.parent) {
++      assertDepth(++parentDepth);
+       p = p.parent;
+       q = p.queue;
+     }
+@@ -75,7 +80,9 @@ const expand = (ast, options = {}) => {
+     let queue = node.queue;
+     let block = node;
+ 
++    let blockDepth = 0;
+     while (block.type !== 'brace' && block.type !== 'root' && block.parent) {
++      assertDepth(++blockDepth);
+       block = block.parent;
+       queue = block.queue;
+     }
+diff --git a/upstream/lib/parse.js b/candidate/lib/parse.js
+index 3a6988e..4fca3fe 100644
+--- a/upstream/lib/parse.js
++++ b/candidate/lib/parse.js
+@@ -1,6 +1,7 @@
+ 'use strict';
+ 
+ const stringify = require('./stringify');
++const { assertDepth } = require('./traversal-limit');
+ 
+ /**
+  * Constants
+@@ -143,6 +144,7 @@ const parse = (input, options = {}) => {
+      */
+ 
+     if (value === CHAR_LEFT_PARENTHESES) {
++      assertDepth(stack.length + 1);
+       block = push({ type: 'paren', nodes: [] });
+       stack.push(block);
+       push({ type: 'text', value });
+@@ -195,6 +197,7 @@ const parse = (input, options = {}) => {
+      */
+ 
+     if (value === CHAR_LEFT_CURLY_BRACE) {
++      assertDepth(stack.length + 1);
+       depth++;
+ 
+       const dollar = prev.value && prev.value.slice(-1) === '$' || block.dollar === true;
+diff --git a/upstream/lib/stringify.js b/candidate/lib/stringify.js
+index 8bcf872..a149a1b 100644
+--- a/upstream/lib/stringify.js
++++ b/candidate/lib/stringify.js
+@@ -1,8 +1,10 @@
+ 'use strict';
+ 
+ const utils = require('./utils');
++const { assertAst } = require('./traversal-limit');
+ 
+ module.exports = (ast, options = {}) => {
++  assertAst(ast);
+   const stringify = (node, parent = {}) => {
+     const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);
+     const invalidNode = node.invalid === true && options.escapeInvalid === true;
+diff --git a/candidate/lib/traversal-limit.js b/candidate/lib/traversal-limit.js
+new file mode 100644
+index 0000000..9b121a4
+--- /dev/null
++++ b/candidate/lib/traversal-limit.js
+@@ -0,0 +1,57 @@
++'use strict';
++
++// BAYLINK candidate patch for GHSA-vfj7-8cjw-p6xm, based on braces 3.0.3.
++// Hard limits apply to parsed strings and supplied ASTs, including deep imports.
++// They are deliberately not disabled by caller options. Parent/prev pointers
++// are not child edges: legitimate parser ASTs contain those back-references.
++const MAX_DEPTH = 64;
++const MAX_NODES = 20000;
++
++const assertDepth = depth => {
++  if (depth > MAX_DEPTH) {
++    const error = new RangeError('Brace traversal exceeds maximum nesting depth (64)');
++    error.code = 'BRACES_DEPTH_LIMIT';
++    throw error;
++  }
++};
++
++const invalidAst = field => {
++  const error = new TypeError(`Invalid brace AST ${field}`);
++  error.code = 'BRACES_AST_INVALID';
++  throw error;
++};
++
++const assertAst = ast => {
++  const pending = [[ast, 0]];
++  let visited = 0;
++  while (pending.length) {
++    const [node, depth] = pending.pop();
++    assertDepth(depth);
++    if (++visited > MAX_NODES || pending.length + visited > MAX_NODES) {
++      const error = new RangeError('Brace traversal exceeds maximum node count (20000)');
++      error.code = 'BRACES_NODE_LIMIT';
++      throw error;
++    }
++    if (!node) continue;
++    // These data fields are coerced by the upstream walkers. Objects/arrays
++    // could recurse through implicit toString even without any child edges.
++    for (const field of ['value', 'commas', 'ranges']) {
++      const value = node[field];
++      if (value !== null && (typeof value === 'object' || typeof value === 'function')) invalidAst(field);
++    }
++    if (node.nodes === undefined) continue;
++    // All parser-created child collections are arrays. Iterable and array-like
++    // substitutes must not skip validation and reach an unbounded walker.
++    if (!Array.isArray(node.nodes)) invalidAst('nodes');
++    if (node.nodes.length + pending.length + visited > MAX_NODES) {
++      const error = new RangeError('Brace traversal exceeds maximum node count (20000)');
++      error.code = 'BRACES_NODE_LIMIT';
++      throw error;
++    }
++    for (let index = node.nodes.length - 1; index >= 0; index--) {
++      pending.push([node.nodes[index], depth + 1]);
++    }
++  }
++};
++
++module.exports = { assertAst, assertDepth, MAX_DEPTH, MAX_NODES };
+diff --git a/upstream/lib/utils.js b/candidate/lib/utils.js
+index d19311f..371d449 100644
+--- a/upstream/lib/utils.js
++++ b/candidate/lib/utils.js
+@@ -1,5 +1,7 @@
+ 'use strict';
+ 
++const { assertDepth } = require('./traversal-limit');
++
+ exports.isInteger = num => {
+   if (typeof num === 'number') {
+     return Number.isInteger(num);
+@@ -101,12 +103,13 @@ exports.reduce = nodes => nodes.reduce((acc, node) => {
+ exports.flatten = (...args) => {
+   const result = [];
+ 
+-  const flat = arr => {
++  const flat = (arr, depth = 0) => {
++    assertDepth(depth);
+     for (let i = 0; i < arr.length; i++) {
+       const ele = arr[i];
+ 
+       if (Array.isArray(ele)) {
+-        flat(ele);
++        flat(ele, depth + 1);
+         continue;
+       }
+ 
