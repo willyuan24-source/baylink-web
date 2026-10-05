@@ -8,6 +8,7 @@ import { useOutingCopy } from '../features/outings/outing-copy';
 type Props = { search: BayBayOutingSearch; onNavigate: (path: string) => void; blockedUserIds?: string[]; answer?: string; onAnswer?: (answer: string) => void };
 type Result = { state: 'loading' | 'error' | 'ready' | 'expired'; items: Outing[]; more: boolean };
 const accountScope = () => { const user = getStoredUser(); return `${user?.id || 'guest'}:${user?.token || ''}`; };
+const isEnglishPractice = (query?: string) => query?.trim().toLowerCase() === 'english practice';
 
 export function BayBayOutingResults(props: Props) {
   const { t } = useOutingCopy();
@@ -19,7 +20,8 @@ export function BayBayOutingResults(props: Props) {
     const suggestions = props.search.missing.includes('city')
       ? [{ label:t('全湾区', 'Anywhere in the Bay Area'), reply:t('全湾区都可以。', 'Anywhere in the Bay Area is fine.') }]
       : props.search.missing.includes('date')
-        ? [{ label:t('本周末', 'This weekend'), reply:t('本周末。', 'This weekend.') }, { label:t('未来7天', 'Next 7 days'), reply:t('未来7天，包含今天。', 'The next 7 days, including today.') }]
+        ? [{ label:t('本周末', 'This weekend'), reply:t('本周末。', 'This weekend.') }, { label:t('未来7天', 'Next 7 days'), reply:t('未来7天，包含今天。', 'The next 7 days, including today.') },
+          ...(isEnglishPractice(props.search.filters.q) ? [{ label:t('不限日期', 'Any date'), reply:t('不限日期。', 'Any date.') }] : [])]
         : [];
     return <div className="baybay-outing-clarify" translate="no"><Users size={17} aria-hidden="true"/><div><strong>{t('先补充一点，就能查找小队', 'One more detail to find an outing')}</strong>{answer && <p>{answer}</p>}{!answeredPrompt && <p>{question}</p>}<small>{t('直接在下方回答即可，不必重写原来的问题。', 'Reply below; there is no need to repeat your original request.')}</small>
       {props.onAnswer && suggestions.length > 0 && <div className="baybay-outing-quick-replies" role="group" aria-label={t('快捷回答（点选即发送）', 'Quick replies (select to send)')}><span>{t('点选即发送，也可自己输入', 'Select to send, or type your own answer')}</span><div>{suggestions.map(suggestion => <button type="button" key={suggestion.reply} onClick={() => props.onAnswer?.(suggestion.reply)}>{suggestion.label}</button>)}</div></div>}
@@ -59,7 +61,7 @@ function ReadyOutingResults({ search, onNavigate, blockedUserIds = [] }: Props) 
   const follow = (event: React.MouseEvent<HTMLAnchorElement>, destination: string) => { if (!event.button && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(destination); } };
   return <section className="baybay-outing-results" aria-label={t('站内真实小队', 'Real BAYLINK outings')} translate="no">
     <header><div><span className="baybay-outing-eyebrow">{t('站内真实查询 · 一起去', 'SITE SEARCH · TOGETHER')}</span><h3>{t('看看谁也想一起去', 'Find people to go with')}</h3></div><Users size={20} aria-hidden="true"/></header>
-    <div className="baybay-outing-filters"><span>{search.filters.city || t('全湾区', 'Bay Area')}</span><span>{dateLabel}</span>{search.filters.q && <span>{search.filters.q}</span>}{search.filters.language && <span>{search.filters.language === 'zh' ? t('可用中文', 'Chinese welcome') : t('可用英文', 'English welcome')}</span>}{search.filters.seats && <span>{t('只看有空位', 'Open places only')}</span>}</div>
+    <div className="baybay-outing-filters"><span>{search.filters.city || t('全湾区', 'Bay Area')}</span><span>{dateLabel}</span>{search.filters.q && <span>{isEnglishPractice(search.filters.q) ? t('英语练习', 'English practice') : search.filters.q}</span>}{search.filters.language && <span>{search.filters.language === 'zh' ? t('可用中文', 'Chinese welcome') : t('可用英文', 'English welcome')}</span>}{search.filters.seats && <span>{t('只看有空位', 'Open places only')}</span>}</div>
     {state === 'loading' && <p className="baybay-outing-state" role="status"><Loader2 size={16} className="animate-spin"/>{t('正在查询站内小队…', 'Searching BAYLINK outings…')}</p>}
     {state === 'expired' && <p className="baybay-outing-state" role="status">{t('账号已变化。请在新对话中重新查询小队。', 'Your account changed. Search again in a new conversation.')}</p>}
     {state === 'error' && <div className="baybay-outing-state"><p role="alert">{t('暂时无法读取小队；这不代表没有匹配结果。', 'Outings could not be loaded. This does not mean there are no matches.')}</p><button type="button" onClick={() => setAttempt(value => value + 1)}><RotateCcw size={14}/>{t('重试查询', 'Retry search')}</button></div>}
