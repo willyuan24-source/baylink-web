@@ -37,14 +37,21 @@ export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTa
   add('setting', t('场景', 'Setting'), setting, t('场景改为 ', 'Setting set to '), t('室内外不限', 'Any setting'));
   add('start', t('开始', 'Start'), state.startTime, t('开始时间改为 ', 'Start time set to '), t('清除开始时间', 'Clear start time'));
   add('finish', t('最晚结束', 'Finish by'), state.finishBy, t('最晚结束时间改为 ', 'Finish by set to '), t('清除结束时间', 'Clear finish time'));
+  add('return', t('返程', 'Return'), state.returnToOrigin === true ? t('回到起点', 'Return to origin') : state.returnToOrigin === false ? t('不回起点', 'No return') : null, '', t('清除返回要求', 'Clear return requirement'));
+  add('maxStops', t('最多站数', 'Stop limit'), state.maxStops ? t(`${state.maxStops} 站`, `${state.maxStops} stops`) : null, '', t('清除站数限制', 'Clear stop limit'));
   add('excluded', t('避开城市', 'Excluded cities'), state.excludedCities?.join(', '), t('排除 ', 'Not in '), t('清除排除城市', 'Clear excluded cities'));
+  const editMessage = editing?.key === 'maxStops' ? t(`最多 ${draft.trim()} 站`, `At most ${draft.trim()} stops`) : draft.trim();
+  const canApply = editing?.key === 'maxStops' ? /^[1-6]$/.test(draft.trim()) : draft.trim().length >= 2 && draft.trim() !== editing?.prompt.trim();
+  const apply = () => { if (!disabled && canApply) { onAsk(editMessage); setEditing(null); } };
   if (!rows.length) return null;
   return <section className="baybay-requirements" aria-label={t('当前安排条件', 'Current requirements')} translate="no">
     <header><strong>{t('当前安排条件', 'Current requirements')}</strong><small>{t('点击修改', 'Select to edit')}</small></header>
-    <div className="baybay-requirement-chips">{rows.map(row => <button type="button" key={row.key} disabled={disabled} aria-label={`${row.label} ${row.value}`} onClick={() => { setEditing(row); setDraft(row.prompt); }}><span>{row.label}</span><strong>{row.value}</strong><Pencil size={11} /></button>)}</div>
-    {editing && <div className="baybay-requirement-editor"><label htmlFor={inputId}>{t(`修改${editing.label}`, `Edit ${editing.label.toLowerCase()}`)}</label>
-      <input id={inputId} value={draft} maxLength={500} disabled={disabled} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.nativeEvent.isComposing && draft.trim().length >= 2 && draft.trim() !== editing.prompt.trim()) { event.preventDefault(); onAsk(draft); setEditing(null); } }} />
-      <div><button type="button" disabled={disabled || draft.trim().length < 2 || draft.trim() === editing.prompt.trim()} onClick={() => { onAsk(draft); setEditing(null); }}>{t('应用修改', 'Apply change')}</button>
+    <div className="baybay-requirement-chips">{rows.map(row => <button type="button" key={row.key} disabled={disabled} aria-label={`${row.label} ${row.value}`} onClick={() => { setEditing(row); setDraft(row.key === 'maxStops' ? String(state.maxStops) : row.prompt); }}><span>{row.label}</span><strong>{row.value}</strong><Pencil size={11} /></button>)}</div>
+    {editing && <div className="baybay-requirement-editor">{editing.key === 'return' ? <div role="group" aria-label={t('修改返程', 'Edit return requirement')}>
+      {[[t('回到起点', 'Return to origin'), t('返回出发地', 'Return to the origin')], [t('不回起点', 'No return'), t('不返回起点', 'Do not return to the origin')]].map(([label, message]) => <button type="button" key={message} disabled={disabled} onClick={() => { onAsk(message); setEditing(null); }}>{label}</button>)}
+    </div> : <><label htmlFor={inputId}>{t(`修改${editing.label}`, `Edit ${editing.label.toLowerCase()}`)}{editing.key === 'maxStops' && t('（1–6）', ' (1–6)')}</label>
+      <input id={inputId} value={draft} inputMode={editing.key === 'maxStops' ? 'numeric' : undefined} maxLength={editing.key === 'maxStops' ? 3 : 500} disabled={disabled} onChange={event => setDraft(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && !event.nativeEvent.isComposing) { event.preventDefault(); apply(); } }} /></>}
+      <div>{editing.key !== 'return' && <button type="button" disabled={disabled || !canApply} onClick={apply}>{t('应用修改', 'Apply change')}</button>}
         <button type="button" disabled={disabled} onClick={() => { onAsk(editing.clear); setEditing(null); }}>{t('清除此条件', 'Clear this requirement')}</button><button type="button" onClick={() => setEditing(null)} aria-label={t('取消修改', 'Cancel edit')}><X size={14} /></button></div>
     </div>}
   </section>;

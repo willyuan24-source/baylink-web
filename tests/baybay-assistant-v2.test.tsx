@@ -273,6 +273,35 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
 });
 
+test('return and stop-limit chips send explicit changes and clear commands in both languages', async () => {
+  for (const locale of ['zh-Hans', 'en'] as const) {
+    await setLocale(locale, false);
+    const en = locale === 'en', asks: string[] = [];
+    const fields = parseBayBayAssistantFields({ taskState: { ...fixture().taskState, returnToOrigin: false, maxStops: 2 } });
+    const view = render(<BayBayRequirements state={fields.taskState!} disabled={false} onAsk={message => asks.push(message)} />);
+    const openReturn = () => fireEvent.click(view.getByRole('button', { name: en ? 'Return No return' : '返程 不回起点' }));
+    openReturn();
+    fireEvent.click(view.getByRole('button', { name: en ? 'Return to origin' : '回到起点', exact: true }));
+    openReturn();
+    fireEvent.click(view.getByRole('button', { name: en ? 'No return' : '不回起点', exact: true }));
+    openReturn();
+    fireEvent.click(view.getByRole('button', { name: en ? 'Clear this requirement' : '清除此条件' }));
+    const openStops = () => fireEvent.click(view.getByRole('button', { name: en ? 'Stop limit 2 stops' : '最多站数 2 站' }));
+    openStops();
+    const input = view.getByRole('textbox', { name: en ? 'Edit stop limit (1–6)' : '修改最多站数（1–6）' });
+    fireEvent.change(input, { target: { value: '7' } });
+    assert.equal(view.getByRole('button', { name: en ? 'Apply change' : '应用修改' }).hasAttribute('disabled'), true);
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    openStops();
+    fireEvent.click(view.getByRole('button', { name: en ? 'Clear this requirement' : '清除此条件' }));
+    assert.deepEqual(asks, en ? ['Return to the origin', 'Do not return to the origin', 'Clear return requirement', 'At most 3 stops', 'Clear stop limit'] : ['返回出发地', '不返回起点', '清除返回要求', '最多 3 站', '清除站数限制']);
+    view.rerender(<BayBayRequirements state={{ ...fields.taskState!, returnToOrigin: undefined, maxStops: undefined }} disabled={false} onAsk={message => asks.push(message)} />);
+    assert.equal(view.queryByRole('button', { name: /^(?:Return |返程 |Stop limit |最多站数 )/ }), null);
+    view.unmount();
+  }
+});
+
 const priceFacts = () => ({ status: 'partial', basis: 'catalog-snapshot', knownTotalUsd: 109.85,
   breakdown: [{ category: 'adult', quantity: 2, unitUsd: 39.95, subtotalUsd: 79.90 }, { category: 'child', quantity: 1, age: 5, unitUsd: 29.95, subtotalUsd: 29.95 }],
   sourceIds: ['official'], checkedAt: '2026-10-05T03:00:00Z', applicability: { date: '2026-10-05', dateStatus: 'regular-unconfirmed', feesIncluded: null }, unknowns: ['Date-specific admission and fees remain unconfirmed.'] });

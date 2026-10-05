@@ -18,6 +18,8 @@ const { defaultPlanDetails } = await import('../src/lib/planner-itinerary');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { stageBayBayPlanDraft, readBayBayPlanDraft, bayBayAdmissionOverride } = await import('../src/lib/baybay-plan-handoff');
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
+const { setLocale } = await import('../src/i18n/locale');
+const { PlannerSchedule } = await import('../src/components/PlannerSchedule');
 const originalRequest = api.request;
 const date = '2026-09-30';
 const stops: Stop[] = [{ kind: 'place', id: 'golden-gate' }, { kind: 'place', id: 'chinatown' }];
@@ -53,7 +55,7 @@ beforeEach(context => {
   localStorage.clear();
   api.request = async endpoint => { throw new Error(`Unexpected API call: ${endpoint}`); };
 });
-afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
+afterEach(async () => { cleanup(); api.request = originalRequest; localStorage.clear(); await setLocale('zh-Hans', false); });
 
 test('BayBay transfer applies supported requirements and explicitly retains unsupported ones only for current-tab review', async () => {
   const fields = parseBayBayAssistantFields({ taskState: { version: 1, revision: 1, date: '2026-10-10', city: 'San Francisco', region: 'sf', partySize: 3, childAges: [5], budget: 40, budgetScope: 'person', origin: 'PRIVATE ORIGIN FOR REVIEW', startTime: '10:00', finishBy: '17:00', travelMode: 'transit', returnToOrigin: false, maxStops: 2, excludedCities: ['Oakland'], freeOnly: true, setting: 'outdoor' }, assistantPlan: { id: 'baybay-transfer', title: 'Original plan', date: '2026-10-10', status: 'needs_verification', stops: stops.map(stop => ({ id: stop.id, kind: stop.kind, entityId: stop.id, title: stop.id })), budget: { unknownItems: [] } } });
@@ -69,23 +71,63 @@ test('BayBay transfer applies supported requirements and explicitly retains unsu
   assert.equal(readBayBayPlanDraft(id, 'other-account'), null);
   assert.equal(readBayBayPlanDraft(id, undefined, Date.now() + 30 * 60 * 1000 + 1), null);
   const view = await openPlanner(new URL(path, 'https://www.baylink.us').search);
-  const summary = view.getByRole('region', { name: '已带入的 BayBay 条件' });
+  const summary = view.getByRole('region', { name: 'BayBay 原对话条件' });
   assert.match(summary.textContent || '', /PRIVATE ORIGIN FOR REVIEW/); assert.match(summary.textContent || '', /不返回起点/); assert.match(summary.textContent || '', /不参与计划页路线计算/); assert.match(summary.textContent || '', /尚未保存或预订/);
   assert.match(summary.textContent || '', /5 岁/); assert.match(summary.textContent || '', /每人/); assert.match(summary.textContent || '', /Oakland/);
+  const disclosure = summary.querySelector('details')!;
+  assert.equal(disclosure.open, false);
+  assert.equal(within(summary).getByText(/起点、返程、站数上限和排除城市/).closest('details'), null);
+  assert.equal(within(summary).getByText(/仅供核对的条件及原票价参考/).closest('details'), null);
+  fireEvent.click(within(summary).getByText('查看全部原始条件'));
+  assert.equal(disclosure.open, true);
   assert.equal(input(view, '日期').value, '2026-10-10'); assert.equal(input(view, '计划名称').value, 'Original plan');
   assert.equal((view.getByLabelText('同行总人数') as HTMLInputElement).value, '3');
   assert.equal((view.getByLabelText('整趟总预算 $') as HTMLInputElement).value, '120');
   assert.equal((view.getByLabelText('开始时间') as HTMLInputElement).value, '10:00');
   assert.equal((view.getByLabelText('希望几点结束') as HTMLInputElement).value, '17:00');
   assert.equal((view.getByLabelText('这份计划的交通方式') as HTMLSelectElement).value, 'transit');
+  const overview = view.getByRole('region', { name: '当前计划概览' });
+  assert.ok(within(overview).getByText('时间草稿'));
+  assert.match(overview.textContent || '', /实际路程未核对/);
+  assert.match(overview.textContent || '', /最晚结束目标：17:00。这只是目标/);
+  fireEvent.change(view.getByLabelText('同行总人数'), { target: { value: '4' } });
+  assert.match(summary.textContent || '', /表单里的后续修改不会更新这里/);
+  assert.equal(within(summary).getByText('同行人数').nextElementSibling?.textContent, '3');
   assert.equal(localStorage.getItem(GUEST_PLANNER_KEY), null);
 });
 
 test('missing or another-account BayBay draft clearly restores only public date and stops without private requirements', async () => {
   const view = await openPlanner('?date=2026-10-10&places=golden-gate&baybayDraft=00000000-0000-0000-0000-000000000000');
   assert.match(view.getByRole('status').textContent || '', /其他条件未恢复/);
-  assert.equal(view.queryByRole('region', { name: '已带入的 BayBay 条件' }), null);
+  assert.equal(view.queryByRole('region', { name: 'BayBay 原对话条件' }), null);
   assert.equal(input(view, '日期').value, '2026-10-10'); assert.deepEqual(selectedLinks(view), ['/guides/sf-golden-gate-bridge-fort-point-guide']);
+});
+
+test('default timing remains an unverified draft and the finish-by target is separate in English', async () => {
+  await setLocale('en', false);
+  const fields = parseBayBayAssistantFields({ taskState: { version: 1, revision: 1, date: '2026-10-10', partySize: 3, origin: 'A long original starting point kept only for review', returnToOrigin: true }, assistantPlan: { id: 'defaults', title: 'Original outing', status: 'needs_verification', date: '2026-10-10', stops: stops.map(stop => ({ id: stop.id, kind: stop.kind, entityId: stop.id, title: stop.id })), budget: {} } });
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!;
+  const view = await openPlanner(new URL(path, 'https://www.baylink.us').search);
+  const overview = view.getByRole('region', { name: 'Current plan overview' });
+  assert.ok(within(overview).getByText('Draft schedule'));
+  assert.match(overview.textContent || '', /actual routes have not been checked/);
+  assert.match(overview.textContent || '', /Finish-by target: 18:00\. This is a target, not confirmation/);
+  fireEvent.change(view.getByLabelText('Finish by'), { target: { value: '17:00' } });
+  assert.match(overview.textContent || '', /Finish-by target: 17:00/);
+  const original = view.getByRole('region', { name: 'Original BayBay requirements' });
+  assert.equal(original.querySelector('details')!.open, false);
+  assert.equal(within(original).getByText(/The origin, return requirement/).closest('details'), null);
+  assert.match(original.textContent || '', /defaults are not confirmed requirements/);
+  assert.match(original.textContent || '', /Reloading or opening another tab loses the original draft/);
+});
+
+test('cost notes deduplicate only exact text and preserve a different eligibility condition', () => {
+  const generic = '当日适用票价、税费、餐饮与交通仍需核实；不是完整出行总价。';
+  const qualified = generic + '儿童必须由成人陪同。';
+  const view = render(<PlannerSchedule stops={stops.slice(0, 1)} date="2026-10-10" title="Cost notes" details={defaultPlanDetails()} admissionOverride={{ active: true, knownTotalUsd: 20, unknownStops: stops.slice(0, 1), unknowns: [generic, generic, qualified] }} onChange={() => {}} onStatus={() => {}} />);
+  assert.equal(view.getAllByText(generic, { exact: true }).length, 1);
+  assert.equal(view.getAllByText(qualified, { exact: true }).length, 1);
+  assert.match(view.container.textContent || '', /费用待确认/);
 });
 
 test('a transferred family price remains 109.85 until pricing inputs change and never enters saved account details', async () => {
