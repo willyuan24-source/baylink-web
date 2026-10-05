@@ -1,0 +1,37 @@
+{
+  "audit": "BAYBAY production UI observations, not raw API responses",
+  "datePacific": "2026-10-04",
+  "url": "https://www.baylink.us/",
+  "method": "Actual production browser submissions and DOM inspection through the in-app browser. No latency or internal model status was captured. Screenshots were viewed in the tool but no screenshot files were saved.",
+  "calls": [
+    {
+      "id": "repair-mobile",
+      "viewport": { "width": 390, "height": 844 },
+      "prompt": "请找Sunnyvale今天能上门修漏水水管的师傅，预算150美元。只列站内真实可联系的信息；如果没有，请直接说明，不要编造师傅、电话、执照或保证报价。",
+      "observations": ["A fresh answer was visible from its start (top approximately 172.49 pixels).", "No horizontal overflow.", "No matching service post or invented contact was provided.", "Only relevant repair guides and a service request action appeared; the outing planner handoff was absent."],
+      "quality": "UI and relevance improved; no actual contractor was found."
+    },
+    {
+      "id": "repair-desktop",
+      "viewport": { "width": 1280, "height": 900 },
+      "prompt": "请找Sunnyvale今天能上门修漏水水管的师傅，预算150美元。只列站内真实可联系的信息；如果没有，请直接说明，不要编造师傅、电话、执照或保证报价。",
+      "observations": ["After resizing, a fresh submitted answer started visibly (top approximately 190.4 pixels).", "No horizontal overflow.", "No invented contact or unrelated outing handoff."],
+      "quality": "Fresh response layout passed; resizing an existing scrolled response was not evidence of its initial reading position."
+    },
+    {
+      "id": "ac-library-printing",
+      "viewport": { "width": 390, "height": 844 },
+      "searchMode": "site",
+      "prompt": "我在 Fremont，有正式的 Alameda County Library 图书证，想打印 12 页黑白文件。每天免费几页，超出的两页多少钱？复印和彩色打印也免费吗？请用站内资料说明限制和官方入口。",
+      "answerObserved": "按站内攻略，你持有 AC Library 图书证，可享每天最多 10 页免费黑白打印。如果当天尚未使用额度，打印 12 页的费用为：前 10 页免费，超出的 2 页 × $0.15＝$0.30。[1]\n\n限制与收费：\n1. 免费额度仅限黑白打印，不含复印，也不适用于无卡访客。站内资料未列复印单价，不能据此计算复印费用。[1]\n2. 彩色打印不免费，站内列价为每页 $0.35。[1]\n3. 可从馆内电脑打印，或使用个人设备，以图书证和 PIN 登录官方 SmartAlec 入口上传文件，再到馆内打印机取件；Fremont 的 AC Library 分馆在攻略所列适用地点内。[1]\n\n官方入口：站内攻略附有“AC Library 官方免费打印额度、收费与取件流程”（Print / Scan / Fax FAQ），可由该来源入口查看馆方说明。[2]\n\n以上是站内编辑记录，不是本次实时核验的官方收费；额度可能调整，取件前应确认分馆开放和当前价格。如需核实最新官方条款，可切换到 Smart 或 Web 模式。[1]",
+      "sourceDisplayObserved": "已检索站内资料 · 实际引用 1 条站内资料、1 条站外来源",
+      "sourcesObserved": [
+        { "title": "湾区免费生活清单：从图书馆到周末小旅行", "type": "站内攻略", "stamp": "资料快照 · 2026-10-04" },
+        { "title": "AC Library 官方免费打印额度、收费与取件流程", "domain": "aclibrary.org", "stamp": "资料快照 · 2026-10-04" }
+      ],
+      "quality": "The concrete allowance, extra cost and exclusions were correctly answered and labeled as saved editorial information, not a new official page read.",
+      "remainingUIObservation": "The generic follow-up about membership or apps was less specific than the printing question."
+    }
+  ],
+  "cleanup": "The temporary viewport override was reset after responsive testing."
+}
