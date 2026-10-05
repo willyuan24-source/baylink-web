@@ -267,6 +267,75 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   assert.equal(view.getByRole('link', { name: '[3]' }).getAttribute('target'), '_blank');
   const region = view.getByRole('region', { name: '本次回答来源' });
   assert.deepEqual(Array.from(region.querySelectorAll('li')).map(item => item.getAttribute('value')), ['1', '3']);
-  assert.match(view.container.textContent || '', /包含联网公开资料/);
+  assert.match(view.container.textContent || '', /已检索站内与站外/);
+  assert.match(view.container.textContent || '', /实际引用 1 条站内资料、1 条站外来源/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
+});
+
+test('evidence retains valid timestamp offsets and rejects impossible dates, clocks and unknown verification claims', () => {
+  const valid = ['2026-10-04', '2026-10-05T03:00:00Z', '2026-10-05T12:00:00+09:00', '2026-01-05T07:30:00.123Z', '2024-02-29T23:59:59-08:00'];
+  const invalid: unknown[] = ['2026-02-29', '2026-02-30T03:00:00Z', '2026-13-01T00:00:00Z', '2026-10-05T24:00:00Z', '2026-10-05T03:60:00Z', '2026-10-05T03:00:60Z', '2026-10-05T03:00:00+24:00', '2026-10-05T03:00:00', '2026-10-05T03Z', 'yesterday', 1, {}, null];
+  for (const checkedAt of [...valid, ...invalid]) {
+    const parsed = parseBayBayAssistantFields({ evidence: [{ ...fixture().evidence[0], checkedAt, verification: 'page-read' }] });
+    assert.equal(parsed.evidence?.[0].checkedAt, valid.includes(checkedAt as string) ? checkedAt : undefined, String(checkedAt));
+    assert.equal(parsed.evidence?.[0].verification, 'page-read');
+  }
+  const forged = parseBayBayAssistantFields({ evidence: [{ ...fixture().evidence[0], verification: 'guaranteed-live' }] });
+  assert.equal(forged.evidence?.[0].verification, undefined);
+});
+
+test('source methods remain distinct and ISO dates display in Bay Area time across midnight and daylight saving seasons', async () => {
+  const rows = [
+    { id: 'read', title: 'Read page', url: 'https://www.example.org/page', kind: 'web', verification: 'page-read', checkedAt: '2026-10-05T03:00:00Z' },
+    { id: 'api', title: 'API data', url: 'https://www.example.org/api', kind: 'web', verification: 'api', checkedAt: '2026-10-05T12:00:00+09:00' },
+    { id: 'snapshot', title: 'Snapshot', url: `/guides/${guides[0].slug}`, kind: 'guide', verification: 'catalog', checkedAt: '2026-10-05' },
+    { id: 'lead', title: 'Search lead', url: 'https://www.example.org/lead', kind: 'web', verification: 'search-result', checkedAt: '2026-01-05T07:30:00Z' },
+  ];
+  const parsed = parseBayBayAssistantFields({ evidence: rows });
+  const response = { ok: true, responseMode: 'assistant', answer: 'Sources [1] [2] [3] [4].', sources: rows.map(({ title, url }) => ({ title, url })), ...parsed };
+  const view = render(<BayBayDiscoveryResults response={response} />);
+  assert.match(view.container.textContent || '', /网页读取 · 2026-10-04（湾区日期）/);
+  assert.match(view.container.textContent || '', /接口获取 · 2026-10-04（湾区日期）/);
+  assert.match(view.container.textContent || '', /资料快照 · 2026-10-05/);
+  assert.match(view.container.textContent || '', /搜索线索（未读正文） · 2026-01-04（湾区日期）/);
+  assert.doesNotMatch(view.container.textContent || '', /核对|实时|2026-10-05T/);
+  await act(async () => { await setLocale('en', false); });
+  for (const text of ['Page read · 2026-10-04 (Bay Area date)', 'API retrieved · 2026-10-04 (Bay Area date)', 'Catalog snapshot · 2026-10-05', 'Search lead (page not read) · 2026-01-04 (Bay Area date)']) assert.ok(view.container.textContent?.includes(text));
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.match(view.container.textContent || '', /網頁讀取 · 2026-10-04（灣區日期）/);
+  const plan = parseBayBayAssistantFields(fixture()).assistantPlan!;
+  view.rerender(<BayBayAssistantPlanCard plan={{ ...plan, stops: [{ ...plan.stops[0], sourceIds: ['read'] }] }} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  assert.match(view.container.textContent || '', /網頁讀取 · 2026-10-04（灣區日期）/);
+});
+
+test('free admission does not invent a zero whole-trip budget and child ages retain their units', async () => {
+  const state = { version: 1 as const, revision: 1, childAges: [5], freeOnly: true, budget: 0, budgetScope: null };
+  const view = render(<BayBayRequirements state={state} disabled={false} onAsk={noop} />);
+  assert.ok(view.getByRole('button', { name: '孩子年龄 5 岁' }));
+  assert.ok(view.getByRole('button', { name: '门票 只看免费' }));
+  assert.equal(view.queryByRole('button', { name: /预算/ }), null);
+  await act(async () => { await setLocale('en', false); });
+  assert.ok(view.getByRole('button', { name: 'Child ages 5 years' }));
+  assert.ok(view.getByRole('button', { name: 'Admission Free only' }));
+  assert.equal(view.queryByRole('button', { name: /Budget/ }), null);
+  view.rerender(<BayBayRequirements state={{ ...state, budgetScope: 'total' }} disabled={false} onAsk={noop} />);
+  assert.ok(view.getByRole('button', { name: 'Budget $0 total' }), 'An explicit zero-dollar total is still a real user constraint');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.ok(view.getByRole('button', { name: '孩子年齡 5 歲' }));
+});
+
+test('a completed web search with only site citations does not claim the answer cites web sources', async () => {
+  const guidePath = `/guides/${guides[0].slug}`;
+  const response = { ok: true, responseMode: 'assistant', answer: 'According to the guide [1].',
+    sources: [{ title: 'Published guide', url: guidePath }],
+    evidence: [{ id: 'guide', kind: 'guide' as const, title: 'Published guide', url: guidePath }],
+    retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const },
+  };
+  const view = render(<BayBayRetrievalLabel response={response} />);
+  assert.match(view.container.textContent || '', /已检索站内与站外 · 实际引用 1 条站内资料、0 条站外来源/);
+  assert.doesNotMatch(view.container.textContent || '', /包含联网公开资料/);
+  await act(async () => { await setLocale('en', false); });
+  assert.match(view.container.textContent || '', /Searched site and web · Cites 1 site sources and 0 web sources/);
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.match(view.container.textContent || '', /實際引用 1 條站內資料、0 條站外來源/);
 });

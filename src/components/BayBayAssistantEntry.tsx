@@ -11,7 +11,7 @@ import { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel, BayBayTaskH
 import { getGuideMedia } from '../data/guide-media';
 import { GuideFigure } from './GuideVisuals';
 import {
-  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBaySocialRequest, isBayBaySearchContextExpired, isBayBayAssistantContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath, bayBayTaskBrief,
+  bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBayPlanRequest, isBayBaySocialRequest, isBayBaySearchContextExpired, isBayBayAssistantContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath, bayBayTaskBrief,
   bayBayPageQuestions, bayBayReferenceGuides, bayBayGuideSources, isBayBaySchoolGuide, isBayBaySchoolRequest, BAYBAY_SCHOOL_NOTE, BAYBAY_SCHOOL_STARTER,
   type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode,
 } from '../lib/baybay-conversation';
@@ -62,7 +62,11 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   const consumedPending = useRef<string | number | null>(null);
   const pendingContext = useRef<{ key: string | number; path: string } | null>(null);
   const composing = useRef(false);
-  const endRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  const scrolledTurn = useRef<{ id: number; state: BayBayTurn['state'] } | null>(null);
+  const followReply = useRef(true);
+  const lastScrollTop = useRef(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const loading = turns.some((turn) => turn.state === 'pending');
   const currentGuide = currentBayBayGuide(currentPath);
@@ -83,7 +87,25 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   const close = useCallback(() => { stop(); setOpen(false); }, [stop, setOpen]);
   useEffect(() => { if (!open) stop(); }, [open, stop]);
   useEffect(() => () => { activeRequest.current?.controller.abort(); activeRequest.current = null; }, []);
-  useEffect(() => { if (open && turns.length) endRef.current?.scrollIntoView?.({ block: 'nearest' }); }, [open, turns]);
+  useEffect(() => {
+    if (!open) return;
+    const latest = turns.at(-1);
+    if (!latest) { scrolledTurn.current = null; return; }
+    const previous = scrolledTurn.current;
+    const element = threadRef.current?.querySelector(`[data-turn-id="${latest.id}"]`);
+    let target: Element | null | undefined;
+    if (previous?.id !== latest.id) {
+      followReply.current = true;
+      target = element?.querySelector('.baybay-user-question');
+    } else if (previous.state !== latest.state && followReply.current) {
+      target = element?.querySelector(latest.state === 'complete' ? '.member-baybay-answer-label' : '.baybay-request-error');
+    }
+    // Start at the answer, not the controls below it. A reader who scrolled
+    // upward while waiting keeps their position when the response arrives.
+    target?.scrollIntoView?.({ block: 'start' });
+    lastScrollTop.current = scrollRef.current?.scrollTop || 0;
+    scrolledTurn.current = { id: latest.id, state: latest.state };
+  }, [open, turns]);
 
   const askBayBay = useCallback((text: string, requestPath = currentPath, keepConversation = false): boolean => {
     const message = text.trim();
@@ -160,6 +182,11 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   const followupPath = lastComplete?.currentPath || currentPath;
   const schoolContext = isBayBaySchoolGuide(currentGuide) || isBayBaySchoolGuide(currentBayBayGuide(followupPath)) || isBayBaySchoolRequest(question) || isBayBaySchoolRequest(turns[turns.length - 1]?.question || '');
   const outingContext = !!lastComplete?.response?.outingSearch;
+  const lastResponse = lastComplete?.response;
+  const serviceWorkflow = lastResponse?.responseMode === 'search' || !!lastResponse?.matchingPosts?.length
+    || [...lastResponse?.suggestedActions || [], ...lastResponse?.interactiveCards?.flatMap(card => card.actions || []) || []].some(action => action.type === 'post' || action.type === 'postAssist');
+  const planHandoffContext = !serviceWorkflow && !!lastComplete && (['day-plan', 'discover', 'transit'].includes(lastResponse?.taskState?.goal || '')
+    || lastResponse?.responseMode === 'catalog' || isBayBayPlanRequest(bayBayTaskBrief(turns)));
 
   return <>
     {variant !== 'headless' && (variant === 'sidebar' ? <div className="member-baybay-entry member-baybay-entry--sidebar">
@@ -180,7 +207,11 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
               <p>BAYLINK 的 AI 助手，陪你安排湾区生活。</p></div></div>
           <button type="button" onClick={close} className="member-compose-close" aria-label="关闭"><X size={20} /></button>
         </div>
-        <div className="member-baybay-body baybay-scroll">
+        <div ref={scrollRef} className="member-baybay-body baybay-scroll" onScroll={event => {
+          const top = event.currentTarget.scrollTop;
+          if (top < lastScrollTop.current - 2) followReply.current = false;
+          lastScrollTop.current = top;
+        }}>
           <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
           {currentGuide && <div className="baybay-reading-context"><BookOpen size={16} /><div><small>正在结合你阅读的攻略</small><strong>{currentGuide.title}</strong></div>
             <button type="button" disabled={loading} onClick={() => askBayBay(translateText(bayBayPageQuestions(currentPath)[0].question, locale))}>帮我读</button></div>}
@@ -197,8 +228,8 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
             <div className="baybay-action-example"><span>试着这样说</span><button type="button" onClick={() => { setQuestion(translateText(example, locale)); inputRef.current?.focus(); }}>{example}</button></div>
             {!isBayBaySchoolGuide(currentGuide) && <div className="baybay-action-example" translate="no"><span>{copy('想认识同行的人', 'Find some company')}</span><button type="button" onClick={() => { setQuestion(copy('这个周末想在旧金山找人一起去，有哪些小队？', 'I want to find people to go with in San Francisco this weekend. Are there any outings?')); inputRef.current?.focus(); }}>{copy('这个周末想在旧金山找人一起去，有哪些小队？', 'I want to find people to go with in San Francisco this weekend. Are there any outings?')}</button></div>}
           </section>}
-          <div className="baybay-thread" aria-label="本次对话">
-            {turns.map((turn) => <section className="baybay-turn" key={turn.id} aria-label={`问题：${turn.question}`}>
+          <div ref={threadRef} className="baybay-thread" aria-label="本次对话">
+            {turns.map((turn) => <section className="baybay-turn" key={turn.id} data-turn-id={turn.id} aria-label={`问题：${turn.question}`}>
               <div className="baybay-user-question"><span>你</span><p>{turn.question}</p></div>
               {turn.state === 'pending' && <p role="status" className="baybay-thinking"><Loader2 size={15} className="animate-spin" />{searchMode === 'site' ? copy('正在整理站内资料和你的需求…', 'Checking site information and your needs…') : copy('正在查找资料并核对安排…', 'Finding information and checking the arrangements…')}</p>}
               {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { const draft = turn.restartAssistant ? (bayBayTaskBrief(turns) || turn.question).slice(0, 500) : copy('我想找搭子一起去。', 'I want to find people to go with.'); stop(); updateTurns(() => []); setQuestion(draft); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{turn.restartAssistant ? copy('重新开始对话', 'Start a new conversation') : copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
@@ -220,9 +251,8 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
             </section>)}
           </div>
           {lastComplete?.response?.taskState && !schoolContext && !outingContext && <BayBayRequirements key={`requirements:${lastComplete.id}`} state={lastComplete.response.taskState} disabled={loading} onAsk={message => askBayBay(message, followupPath, true)} />}
-          {lastComplete && !loading && !schoolContext && !outingContext && !lastComplete.response?.assistantPlan && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} onNavigate={navigate} />}
+          {lastComplete && planHandoffContext && !loading && !schoolContext && !outingContext && !lastComplete.response?.assistantPlan && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} onNavigate={navigate} />}
           {lastComplete && !loading && !lastComplete.response?.assistantPlan && !turns[turns.length - 1]?.restartRequired && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath)), lastComplete.response?.followups).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
-          <div ref={endRef} />
           {turns.length === 0 && <div className="baybay-start-links"><button type="button" onClick={() => navigate('/guides')}><BookOpen size={14} />自己浏览攻略</button><button type="button" onClick={() => navigate('/tools')}>打开生活工具箱<ChevronRight size={14} /></button></div>}
         </div>
         <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>

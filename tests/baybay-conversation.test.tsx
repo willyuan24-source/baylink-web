@@ -17,6 +17,49 @@ afterEach(cleanup);
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
 
+test('new replies scroll to their heading instead of skipping long answers to the footer', async t => {
+  const proto = dom.window.HTMLElement.prototype;
+  const original = Object.getOwnPropertyDescriptor(proto, 'scrollIntoView');
+  const scrolled: string[] = [];
+  Object.defineProperty(proto, 'scrollIntoView', { configurable: true, value: function (this: HTMLElement, options: ScrollIntoViewOptions) {
+    assert.equal(options.block, 'start'); scrolled.push(this.className);
+  } });
+  t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
+  let finish!: () => void;
+  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('第一步先看资格。\n'.repeat(80))); }));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '详细说明图书馆资格' } });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  assert.deepEqual(scrolled, ['baybay-user-question']);
+  await act(async () => { finish(); });
+  assert.deepEqual(scrolled, ['baybay-user-question', 'member-baybay-answer-label']);
+});
+
+test('scrolling upward while waiting preserves reading position until the next explicit question', async t => {
+  const proto = dom.window.HTMLElement.prototype;
+  const original = Object.getOwnPropertyDescriptor(proto, 'scrollIntoView');
+  const scrolled: string[] = [];
+  Object.defineProperty(proto, 'scrollIntoView', { configurable: true, value: function (this: HTMLElement) { scrolled.push(this.className); } });
+  t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
+  let finish!: () => void;
+  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('这是回答。')); }));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const ask = async (message: string) => {
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  };
+  await ask('先看看官方资格');
+  const body = view.baseElement.querySelector('.baybay-scroll') as HTMLElement;
+  body.scrollTop = 180; fireEvent.scroll(body);
+  body.scrollTop = 20; fireEvent.scroll(body);
+  await act(async () => { finish(); });
+  assert.equal(body.scrollTop, 20);
+  assert.deepEqual(scrolled, ['baybay-user-question'], 'A completed answer must not take over manual reading');
+  await ask('再查打印页数');
+  await act(async () => { finish(); });
+  assert.deepEqual(scrolled, ['baybay-user-question', 'baybay-user-question', 'member-baybay-answer-label']);
+});
+
 test('search continuation remains opaque and separate from model context and short history', async t => {
   const token = 'public-conditions.signature', history = [{ role:'user' as const,content:'只看有空位' },{ role:'assistant' as const,content:'已保留条件' }];
   let sent: Record<string, unknown> | undefined;
@@ -289,6 +332,27 @@ test('task handoff contains user facts only and preserves the latest correction 
   assert.match(brief, /Fremont/); assert.match(brief, /最新补充：改成公共交通，预算40/); assert.ok(!brief.includes('Invented')); assert.ok(!brief.includes('失败'));
   const long = bayBayTaskBrief(Array.from({ length: 4 }, (_, id) => ({ id, question: String(id).repeat(500), state: 'complete' as const })));
   assert.ok(long.length <= 800); assert.ok(long.endsWith('3'.repeat(500)));
+});
+
+test('service search and posting flows keep their actions without sending repair needs to the outing planner', async t => {
+  let payload: Record<string, unknown> = {};
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: '请确认具体维修需求。', ...payload }));
+  for (const response of [
+    { responseMode: 'search', matchingPosts: [], taskState: { version: 1, revision: 1, goal: 'discover' } },
+    { suggestedActions: [{ label: '发布维修需求', type: 'postAssist', postType: 'client', category: 'repair' }] },
+    { interactiveCards: [{ id: 'repair', type: 'checklist', title: '维修需求', items: [], actions: [{ label: '发布维修需求', type: 'postAssist', postType: 'client', category: 'repair' }] }] },
+  ]) {
+    payload = response;
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} pendingQuestion="周六预算 $150，帮我安排找水管师傅" />);
+    await view.findByText('请确认具体维修需求。');
+    assert.equal(view.baseElement.querySelector('.baybay-task-handoff'), null);
+    if ('suggestedActions' in response || 'interactiveCards' in response) assert.ok(view.getByRole('button', { name: '发布维修需求' }));
+    view.unmount();
+  }
+  payload = { responseMode: 'assistant', taskState: { version: 1, revision: 1, goal: 'transit' } };
+  const transit = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} pendingQuestion="从 Fremont 坐公交去博物馆怎么换乘" />);
+  await transit.findByText('请确认具体维修需求。');
+  assert.ok(transit.baseElement.querySelector('.baybay-task-handoff'), 'Transit planning still offers an explicit planner handoff');
 });
 
 test('search mode stays top-level and only citation-backed web cards are actionable', async t => {

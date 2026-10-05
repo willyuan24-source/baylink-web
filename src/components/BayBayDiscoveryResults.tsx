@@ -5,6 +5,7 @@ import { bayBayCatalogResult, bayBayCatalogWebReferences, bayBayPlanPath, bayBay
 import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type SavedWebCandidate } from '../lib/planner-web-search';
 import { getStoredUser } from '../lib/session';
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
+import { BayBayEvidenceStamp } from './BayBayEvidenceStamp';
 
 function useCopy() {
   const locale = useLocale();
@@ -18,8 +19,14 @@ export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse
   const checked = catalogDay ? t(`资料核对 ${catalogDay}`, `Catalog checked ${catalogDay}`) : web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
   const failed = retrieval?.webStatus === 'verification_failed';
   if (response.responseMode === 'assistant') {
-    const count = bayBayAssistantResult(response)?.sources.length || 0;
-    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{t('根据当前条件整理', 'Organized around your requirements')}{count > 0 && t(` · ${count} 条回答来源`, ` · ${count} answer sources`)}{retrieval?.webStatus === 'completed' && ['web', 'site+web'].includes(retrieval.scope) && t(' · 包含联网公开资料', ' · Includes public web information')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
+    const sources = bayBayAssistantResult(response)?.sources || [];
+    const siteCount = sources.filter(source => source.url.startsWith('/')).length;
+    const webCount = sources.length - siteCount;
+    const searched = retrieval?.webStatus === 'completed' && retrieval.scope === 'site+web' ? t('已检索站内与站外', 'Searched site and web')
+      : retrieval?.webStatus === 'completed' && retrieval.scope === 'web' ? t('已检索站外公开资料', 'Searched public web information')
+        : retrieval?.scope === 'site' ? t('已检索站内资料', 'Searched site information')
+          : retrieval?.scope === 'none' ? t('本次未检索', 'No search this turn') : t('根据当前条件整理', 'Organized around your requirements');
+    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sources.length > 0 && t(` · 实际引用 ${siteCount} 条站内资料、${webCount} 条站外来源`, ` · Cites ${siteCount} site sources and ${webCount} web sources`)}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
   }
   return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{retrieval?.webStatus === 'unavailable' && t(' · 本次联网未成功，可稍后重试', ' · Web lookup unavailable; retry later')}</span></div>;
 }
@@ -43,7 +50,7 @@ function AssistantSources({ response, onNavigate }: { response: GuideChatRespons
       : []))];
   if (!result && !notices.length) return null;
   return <section className="baybay-discovery" aria-label={t('本次回答来源', 'Sources for this answer')} translate="no">
-    {result && <details className="baybay-web-sources"><summary>{t('本次回答来源', 'Sources for this answer')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={source.number} value={source.number}><a href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" onClick={event => { if (source.url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(source.url); } }}>{source.title}<small>{source.url.startsWith('/') ? t('站内攻略', 'Site guide') : new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>}
+    {result && <details className="baybay-web-sources"><summary>{t('本次回答来源', 'Sources for this answer')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={source.number} value={source.number}><a href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" onClick={event => { if (source.url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(source.url); } }}>{source.title}<small>{source.url.startsWith('/') ? t('站内攻略', 'Site guide') : new URL(source.url).hostname.replace(/^www\./, '')}</small><BayBayEvidenceStamp source={response.evidence?.find(item => item.url === source.url)} /></a></li>)}</ol></details>}
     {!!notices.length && <ul className="baybay-plan-notes">{notices.map((notice, index) => <li key={index}>{notice}</li>)}</ul>}
   </section>;
 }

@@ -1,0 +1,983 @@
+{
+  "audit": "BayBay everyday services and UI clarity",
+  "reviewDatePacific": "2026-10-04",
+  "frontendCommit": "c0bd8473",
+  "endpoint": "https://baylink-api.onrender.com/api/ai/guide-chat",
+  "methodology": "Public synthetic prompts; real deployed responses. Session tokens and authentication-related fields removed. No claim made that mocks establish live quality.",
+  "calls": [
+    {
+      "scenario": "dmv-newcomer",
+      "startedAt": "2026-10-05T03:08:03.813Z",
+      "elapsedMs": 43523,
+      "status": 200,
+      "request": {
+        "message": "我刚搬到 Fremont，准备在加州开车。请根据加州 DMV 官方信息，给我办理驾照、车辆登记和地址变更的实际顺序，说明期限、预约和需要先准备什么；哪些取决于我原有驾照或车辆情况请明确，不要猜测。",
+        "assistantVersion": 2,
+        "searchMode": "smart",
+        "locale": "zh-Hans",
+        "context": {
+          "currentPath": "/"
+        }
+      },
+      "response": {
+        "ok": true,
+        "answer": "1．建议先确认成为加州居民的日期、原驾照类别及车辆来源，再按各自期限并行办理，不要等驾照办完才启动车辆登记；DMV 新居民页面要求打算成为居民并在加州驾驶的人申请加州驾照，并将就业、登记投票等列为居民意向的例子。[1]\n2．若你已有加州 DMV 的驾照／ID 记录，搬家后须在10天内通知 DMV，可免费通过 MyDMV、邮寄 DMV 14 或现场办理；这项地址更新不是首次申请驾照，只有外州或外国证件时不能拿它代替加州申请。[2][3]\n3．驾照先选无驾照、美国外州驾照、外国驾照或已有加州证件的对应流程，再在线开始申请、到 DMV 完成手续；站内指南指出外国驾照不能默认直接换证，而当前已读官方摘录不足以核实各类别的完整考试豁免、材料清单及新居民申请期限，因此不能把搜索摘要中的“10天申请驾照”当成已核实结论。[4][3]\n4．去之前先整理现有证件、身份与加州住址材料，并明确普通驾照还是 REAL ID、姓名是否一致，再向 DMV 确认可接受原件及对应到场预约；路考明确必须预约，可拨 1-800-777-0133，但尚未核实 Fremont 的可约时段，也不能凭已有外国／外州驾照判断你现阶段能否合法驾驶。[3][4]\n5．如果带来原在外州或外国登记的车辆，官方要求在成为居民或车辆进入加州后20天内登记；先整理现有登记、所有权或贷款资料供核对，但进口车、贷款／租赁车、加州新购车的具体表格、验车、排放检测、费用及预约要求尚未由已读官方正文核实，不能统一套用。[1]\n6．请补充你的原驾照属于哪一类，以及车辆是带入、当地购买还是尚未购车，并附成为居民／车辆入州日期，才能进一步核对具体期限与材料。",
+        "sources": [
+          {
+            "title": "New California Resident Portal - California DMV",
+            "url": "https://qr.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california"
+          },
+          {
+            "title": "California DMV：更新驾照或 ID 信息",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/updating-information-on-your-driver-license-or-identification-dl-id-card"
+          },
+          {
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide"
+          },
+          {
+            "title": "California DMV：驾照申请的不同情况",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/driver-licenses-dl"
+          }
+        ],
+        "responseMode": "assistant",
+        "degraded": false,
+        "taskState": {
+          "version": 1,
+          "revision": 1,
+          "goal": "newcomer",
+          "city": "Fremont",
+          "region": "east-bay",
+          "date": null,
+          "origin": null,
+          "originCandidateId": null,
+          "travelMode": "drive",
+          "partySize": null,
+          "childAges": [],
+          "budget": null,
+          "budgetScope": null,
+          "freeOnly": null,
+          "setting": null,
+          "startTime": null,
+          "finishBy": null,
+          "topic": null,
+          "excludedCities": [],
+          "excludedCandidateIds": [],
+          "selectedCandidateIds": [],
+          "preferences": [],
+          "clearedFields": []
+        },
+        "evidence": [
+          {
+            "id": "s-b5178b763c37bd18",
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide",
+            "kind": "guide",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-51e239f8d34f16de",
+            "title": "California DMV：驾照申请的不同情况",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/driver-licenses-dl",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:28.035Z",
+            "verification": "page-read"
+          },
+          {
+            "id": "s-3278a87e8e990eb5",
+            "title": "California DMV：更新驾照或 ID 信息",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/updating-information-on-your-driver-license-or-identification-dl-id-card",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:28.326Z",
+            "verification": "page-read"
+          },
+          {
+            "id": "s-bd3366b074deda5a",
+            "title": "New California Resident Portal - California DMV",
+            "url": "https://qr.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:36.963Z",
+            "verification": "page-read"
+          },
+          {
+            "id": "s-8ad6d1f25bf0daab",
+            "title": "湾区搬家后怎么开通水电网、更新地址：从交接到第一张账单",
+            "url": "/guides/bay-area-utilities-address-change-guide",
+            "kind": "guide",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-ea81994380774118",
+            "title": "刚搬来湾区：前 7 天与 30 天的办事顺序、材料和完成标准",
+            "url": "/guides/bay-area-first-7-30-days-action-plan-october-2026",
+            "kind": "guide",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-3ef836f83cad999c",
+            "title": "搬到湾区的第一天：把提醒、停电与家庭准备设好",
+            "url": "/guides/bay-area-alerts-outages-first-day-checklist",
+            "kind": "guide",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-e5fd647945bdf8f7",
+            "title": "California DMV：AB 60 驾照",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/assembly-bill-ab-60-driver-licenses",
+            "kind": "web",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-65aeea2154ddcd64",
+            "title": "California DMV：ID Cards",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/identification-id-cards",
+            "kind": "web",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-d4f328e3ceb20315",
+            "title": "California DMV：什么是 REAL ID",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/real-id/what-is-real-id",
+            "kind": "web",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-43352ef580aff730",
+            "title": "California DMV：REAL ID 材料清单",
+            "url": "https://www.dmv.ca.gov/portal/driver-licenses-identification-cards/real-id/real-id-checklist",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-8ea290640335ecd4",
+            "title": "USPS：邮件转寄与地址变更",
+            "url": "https://www.usps.com/manage/forward.htm",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-1b2a11c39704cb9a",
+            "title": "FCC：按地址查询宽带覆盖",
+            "url": "https://help.bdc.fcc.gov/hc/en-us/articles/10467446103579-How-to-Use-the-FCC-s-National-Broadband-Map",
+            "kind": "web",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-dd10287757ffe30d",
+            "title": "EBMUD：开通与停止供水服务",
+            "url": "https://www.ebmud.com/customers/start-or-stop-service",
+            "kind": "web",
+            "checkedAt": "2026-09-08",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-8196bb6a751d055e",
+            "title": "PG&E：开始、停止或转移服务",
+            "url": "https://www.pge.com/en/account/service-requests/start-stop-transfer-service.html",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-187083f1d80f715f",
+            "title": "211 Bay Area：服务范围与转介",
+            "url": "https://211bayarea.org/about-211-bay-area",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-ac9342577006cc66",
+            "title": "ReadySF：家庭应急联络计划",
+            "url": "https://media.api.sf.gov/documents/ReadySF_-_Make_a_plan.pdf",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-a64a9d8f98fe5089",
+            "title": "SFPL：免费图书馆卡",
+            "url": "https://sfpl.org/free",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-01d9d3a4a19e3c02",
+            "title": "Marin County Sheriff · AlertMarin",
+            "url": "https://marinsheriff.gov/emergency-services/emergency-alert-and-warning-tools",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-c8216221709cdd4b",
+            "title": "AlertSF",
+            "url": "https://www.alertsf.org",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-56360dc548fa3728",
+            "title": "Bay Area Air District · Current Air Quality",
+            "url": "https://www.baaqmd.gov/About-Air-Quality/Current-Air-Quality",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-1cae88df9723fc97",
+            "title": "Bay Area Air District · Spare the Air",
+            "url": "https://www.baaqmd.gov/about-air-quality/spare-the-air/?sc_lang=en",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-f149f06e140c7b54",
+            "title": "PG&E · Outages & Safety",
+            "url": "https://www.pge.com/en/outages-and-safety.html",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-da5a457363c59490",
+            "title": "Ready.gov · Build a Kit",
+            "url": "https://www.ready.gov/kit",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-990ddf4d89576d2e",
+            "title": "Silicon Valley Power · Outages and Alerts",
+            "url": "https://www.siliconvalleypower.com/svp-and-community/outages-and-alerts",
+            "kind": "web",
+            "checkedAt": "2026-09-27",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-033408e861e1ecc7",
+            "title": "Locations & Hours",
+            "url": "https://www.dmv.ca.gov/portal/locations",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-edcbdfd125ae014e",
+            "title": "regular business hours",
+            "url": "https://www.dmv.ca.gov/portal/contacting-dmv",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-c1ff37699d460472",
+            "title": "visit a field office",
+            "url": "https://www.dmv.ca.gov/portal/locations/field-offices",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-e90476e97561205f",
+            "title": "California DMV",
+            "url": "https://www.dmv.ca.gov",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:33.225Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-2d86b8c64336d526",
+            "title": "Fremont DMV",
+            "url": "https://www.dmv.ca.gov/portal/dmv/detail/fo/offices/fieldoffice?number=644",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:33.225Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-6eb5d0226d5fbd34",
+            "title": "Locations & Hours",
+            "url": "https://qr.dmv.ca.gov/portal/locations",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-e9f7bc629700d4d2",
+            "title": "New California Resident Portal - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-ad655643b235b9c3",
+            "title": "Registration for a Vehicle Purchased from a Dealer - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/vehicle-registration/new-registration/registering-a-vehicle-purchased-from-a-dealer",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-80368c178f31267d",
+            "title": "How to Register Vehicles Purchased in Private Sales - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/vehicle-registration/new-registration/registering-a-vehicle-purchased-from-a-private-party",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-2b48a870cb1e1d3a",
+            "title": "12.005 Basic Registration Requirements - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/handbook/vehicle-industry-registration-procedures-manual-2/nonresident-vehicles/definitions",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-2154a62bd365529e",
+            "title": "Section 11: Vehicle Registration Requirements - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/handbook/california-driver-handbook/vehicle-registration-requirements",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          },
+          {
+            "id": "s-ff02aedae36e7cf1",
+            "title": "Vehicle Registration - California DMV",
+            "url": "https://www.dmv.ca.gov/portal/vehicle-registration",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:08:45.832Z",
+            "verification": "search-result"
+          }
+        ],
+        "suggestedGuides": [
+          {
+            "title": "加州驾照与 ID 办理准备：先分清申请类型，再整理材料",
+            "url": "/guides/california-driver-license-id-preparation-guide",
+            "slug": "california-driver-license-id-preparation-guide"
+          }
+        ],
+        "suggestedActions": [],
+        "matchingPosts": [],
+        "interactiveCards": [],
+        "followups": [],
+        "research": {
+          "steps": [
+            {
+              "tool": "search_site",
+              "status": "completed",
+              "label": "已检索站内攻略与候选地点"
+            },
+            {
+              "tool": "read_source",
+              "status": "completed",
+              "label": "read_source"
+            },
+            {
+              "tool": "read_source",
+              "status": "completed",
+              "label": "read_source"
+            },
+            {
+              "tool": "search_web",
+              "status": "completed",
+              "label": "search_web"
+            },
+            {
+              "tool": "read_source",
+              "status": "completed",
+              "label": "read_source"
+            },
+            {
+              "tool": "search_web",
+              "status": "completed",
+              "label": "search_web"
+            }
+          ],
+          "model": "gpt-6.1-sol",
+          "warnings": [],
+          "modelResponses": [
+            {
+              "round": 1,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 2,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 3,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 4,
+              "phase": "final",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "message"
+              ],
+              "outputTextChars": 906
+            }
+          ],
+          "elapsedMs": 37821
+        },
+        "retrieval": {
+          "requestedMode": "smart",
+          "scope": "site+web",
+          "webStatus": "completed",
+          "requestedDate": null,
+          "city": "Fremont",
+          "area": "San Francisco Bay Area, California, United States",
+          "checkedAt": "2026-10-05T03:08:45.832Z",
+          "cached": false,
+          "model": "gpt-6.1-sol",
+          "configuredModel": "gpt-6.1-sol",
+          "sourceCount": 4
+        }
+      }
+    },
+    {
+      "scenario": "library-eligibility",
+      "startedAt": "2026-10-05T03:09:30.228Z",
+      "elapsedMs": 50991,
+      "status": 200,
+      "request": {
+        "message": "我住 Fremont，只有 Alameda County Library 图书证。想免费打印文件、用 Kanopy 看电影、借博物馆门票。请区分我现在能用的资源、需要另办 SFPL 或 San Mateo County Libraries 卡的资源，以及是否有居住地、年龄或 eCard 限制。给官方入口，不要把整个湾区的资格混在一起。",
+        "assistantVersion": 2,
+        "searchMode": "smart",
+        "locale": "zh-Hans",
+        "context": {
+          "currentPath": "/"
+        }
+      },
+      "response": {
+        "ok": true,
+        "answer": "先从以下站内资料开始；当前无法完成个性化综合分析。\n\n2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票\n图书馆门票：三个动作减少扑空\n先用自己的发卡馆入口：SFPL 需 SF 居民；SMCL 与 AC Library 均需居住在各自服务区域。卡号只识别入口，不代表有预约资格。\n看年龄和卡种：SMCL 现行 FAQ 写 16 岁及以上，AC Library 写 15 岁及以上；两者都不接受 eCard。不同场馆还可能有年龄限制。\n确认日期、同行人数、证件和打印要求后再出票；可用场馆与名额随登录账户变化，不保证全家所有人免费。\n\n九月剩余优惠与十月本地福利\nSFPL · KANOPY：用 SFPL 图书证，在家免费看片\n长期资源 · 片库与观看额度依账户显示\n须有有效 SFPL 图书证并完成 Kanopy 账户绑定；加州居民可免费办 SFPL 卡，首次领卡需到馆核验照片证件。不是无限次观看。\n从 SFPL 官网的 Kanopy 入口进入，选 San Francisco Public Library 并绑定卡号，再查看影片的观看期限与所需额度后播放。适合纪录片、经典电影和家庭片；每月额度以当前登 [1]\n\n湾区免费生活清单：从图书馆到周末小旅行\n五区日常福利，按条件慢慢挑\nSFPL · KANOPY：用 SFPL 图书证，在家免费看片\n长期资源 · 片库与观看额度依账户显示\n须有有效 SFPL 图书证并完成 Kanopy 账户绑定；加州居民可免费办 SFPL 卡，首次领卡需到馆核验照片证件。不是无限次观看。\n从 SFPL 官网的 Kanopy 入口进入，选 San Francisco Public Library 并绑定卡号，再查看影片的观看期限与所需额度后播放。适合纪录片、经典电影和家庭片；每月额度以当前登录页为准。\nSFPL 官方 Kanopy 免费观影入口： [2]",
+        "sources": [
+          {
+            "title": "2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票",
+            "url": "/guides/bay-area-freebies-deals-2026-10"
+          },
+          {
+            "title": "湾区免费生活清单：从图书馆到周末小旅行",
+            "url": "/guides/bay-area-everyday-free-perks"
+          }
+        ],
+        "responseMode": "assistant",
+        "degraded": false,
+        "taskState": {
+          "version": 1,
+          "revision": 1,
+          "goal": "information",
+          "city": "San Francisco",
+          "region": "sf",
+          "date": null,
+          "origin": "Fremont",
+          "originCandidateId": null,
+          "travelMode": null,
+          "partySize": null,
+          "childAges": [],
+          "budget": null,
+          "budgetScope": null,
+          "freeOnly": null,
+          "setting": null,
+          "startTime": null,
+          "finishBy": null,
+          "topic": "arts",
+          "excludedCities": [],
+          "excludedCandidateIds": [],
+          "selectedCandidateIds": [],
+          "preferences": [],
+          "clearedFields": [
+            "originCandidateId"
+          ]
+        },
+        "evidence": [
+          {
+            "id": "s-8e90c25584f25ce3",
+            "title": "2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票",
+            "url": "/guides/bay-area-freebies-deals-2026-10",
+            "kind": "guide",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-d2cc145002ac7965",
+            "title": "湾区免费生活清单：从图书馆到周末小旅行",
+            "url": "/guides/bay-area-everyday-free-perks",
+            "kind": "guide",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-4ded07c10315eddf",
+            "title": "十月文化出行怎么省：先用图书馆查馆票，再排半日路线",
+            "url": "/guides/bay-area-october-library-museum-pass-guide-2026",
+            "kind": "guide",
+            "checkedAt": "2026-09-15",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-22e75e8d609083e1",
+            "title": "第一次来旧金山：先订恶魔岛，再决定桥、海滨和博物馆怎么花钱",
+            "url": "/guides/sf-first-visit-tickets-waterfront-october-2026",
+            "kind": "guide",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-f5d342fb223b42af",
+            "title": "旧金山总图书馆中文对话：下班后认识新朋友",
+            "url": "https://sfpl.org/events/2026/10/06/dialogue-mandarin-bilingual-conversation-club",
+            "kind": "event",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-59f26f02d72aeeb4",
+            "title": "SFPL：Writing Hard Enough to Shift Gravity 写作工坊",
+            "url": "https://sfpl.org/events/2026/10/08/workshop-writing-hard-enough-shift-gravity",
+            "kind": "event",
+            "checkedAt": "2026-09-30",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-2693a6fa585fe985",
+            "title": "SFPL：免费一对一职业咨询",
+            "url": "https://sfpl.org/events/2026/10/08/workshop-career-coaching",
+            "kind": "event",
+            "checkedAt": "2026-09-30",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-cf8a3bd2d8d9001f",
+            "title": "SFPL · KANOPY：SFPL 官方 Kanopy 免费观影入口",
+            "url": "https://sfpl.org/research-learn/elibrary/bay-beats-movies-tv",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:09:56.588Z",
+            "verification": "page-read"
+          },
+          {
+            "id": "s-a7d30492953fc863",
+            "title": "MARIN COUNTY FREE LIBRARY：Marin 图书馆三类公园停车证与借期",
+            "url": "https://marinlibrary.org/parks",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-09dcbcae5a291e25",
+            "title": "ASIAN ART MUSEUM · SF：亚洲艺术博物馆 10/4 活动与票务规则",
+            "url": "https://calendar.asianart.org/event/sundays-at-the-asian-art-museum-october-4",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-99c848e0279074a4",
+            "title": "GARDENS OF GOLDEN GATE PARK：GGGP 官方免费资格与居住证明规则",
+            "url": "https://gggp.org/tickets",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-9c651883c055bfed",
+            "title": "COMPUTER HISTORY MUSEUM：CHM 持卡免费入场限制",
+            "url": "https://computerhistory.org/plan-your-visit/discounts",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-072c90e2a9902936",
+            "title": "LEGO MAGAZINE：LEGO 官方免费杂志 · 年龄、邮寄与订阅规则",
+            "url": "https://www.lego.com/en-us/magazine",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-446f44337e115d06",
+            "title": "LOWE’S REWARDS：Lowe’s 官方免费会员礼物入口",
+            "url": "https://www.lowes.com/l/savings/coupons",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-6e99cb192d5e6c36",
+            "title": "MUSEO ITALO AMERICANO · SF：Museo 官方入场规则",
+            "url": "https://sfmuseo.org",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-ca22929953d9e088",
+            "title": "SFMTA · SAN FRANCISCO：SFMTA 青少年免费乘车条件",
+            "url": "https://www.sfmta.com/fares/free-muni-all-youth-18-years-and-younger",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-bf7017234711d7f3",
+            "title": "SMCL 官方免费打印、页数及取件流程",
+            "url": "https://smcl.org/printanywhere",
+            "kind": "web",
+            "checkedAt": "2026-10-05T03:09:55.008Z",
+            "verification": "page-read"
+          },
+          {
+            "id": "s-6d2ef806d217fb19",
+            "title": "Intel 官方免费门票、停车与团体参观规则",
+            "url": "https://www.intel.com/content/www/us/en/company-overview/intel-museum.html",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-38efd8ce483f44a3",
+            "title": "SFPL 官方在线学习与 App 登录方法",
+            "url": "https://sfpl.org/research-learn/elearning",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-18ea11f535b7b64d",
+            "title": "海洋哺乳动物中心免费门票与票务迁移公告",
+            "url": "https://www.marinemammalcenter.org",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-801529ea4a60e475",
+            "title": "SJPL 官方免费种子地点与领取步骤",
+            "url": "https://www.sjpl.org/seed-libraries",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-bd064b62963b1a72",
+            "title": "EBRPD 官方农场、停车与停止投喂公告",
+            "url": "https://www.ebparks.org/parks/tilden-nature-area",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-cef99711e3b0604b",
+            "title": "Discover & Go：参与图书馆",
+            "url": "https://www.discoverandgo.org",
+            "kind": "web",
+            "checkedAt": "2026-09-15",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-97426e2627a24549",
+            "title": "SFPL：Discover & Go",
+            "url": "https://sfpl.org/discover-and-go",
+            "kind": "web",
+            "checkedAt": "2026-09-15",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-4c8d004cb215454e",
+            "title": "SJPL：通行证与活动常见问题",
+            "url": "https://www.sjpl.org/faq/programs-events-faqs",
+            "kind": "web",
+            "checkedAt": "2026-09-15",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-735b2fcdc02f4bd8",
+            "title": "Presidio：免费接驳车",
+            "url": "https://presidio.gov/visit/getting-to-and-around-the-park/presidio-go-shuttle",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-86413dd33ae34480",
+            "title": "金门大桥管理局：步行与骑行",
+            "url": "https://www.goldengate.org/bridge/visiting-the-bridge/bikes-pedestrians",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-749ad7b04ece305a",
+            "title": "NPS：恶魔岛无障碍设施",
+            "url": "https://www.nps.gov/alca/planyourvisit/accessibility.htm",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-8714aa1aebc52392",
+            "title": "NPS：恶魔岛基本信息",
+            "url": "https://www.nps.gov/alca/planyourvisit/basicinfo.htm",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-125966bb984d591e",
+            "title": "NPS：恶魔岛费用与通票",
+            "url": "https://www.nps.gov/alca/planyourvisit/fees.htm",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-45c81abc6e8f49d2",
+            "title": "NPS：Hyde Street Pier 与历史船项目",
+            "url": "https://www.nps.gov/safr/getinvolved/planning.htm",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-f937f897c7c9c468",
+            "title": "Library Locations & Hours",
+            "url": "https://sfpl.org/locations",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-208f507868bae8aa",
+            "title": "Visitacion Valley",
+            "url": "https://sfpl.org/locations/visitacion-valley",
+            "kind": "web",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-4cf5f35eaff222ea",
+            "title": "旧金山免费文化日：游客、新居民、湾区住户分别怎么安排",
+            "url": "/guides/sf-free-culture-eligibility-october-2026",
+            "kind": "guide",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-079ad6be3d1e052f",
+            "title": "艺术宫与 Marina 半日：绕湖看柱廊，再去海边坐下来",
+            "url": "/guides/sf-palace-fine-arts-marina-guide",
+            "kind": "guide",
+            "checkedAt": "2026-09-09",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-b095ee5c9e29abe2",
+            "title": "SAN FRANCISCO PUBLIC LIBRARY：SFPL 官方 Discover & Go 预约与取消规则",
+            "url": "https://sfpl.libanswers.com/faq/97385",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-797ddfcb8899234f",
+            "title": "Marin County Free Library：Civic Center 拼图交换",
+            "url": "https://marinlibrary.bibliocommons.com/events/6a0c9526c7d3cd58005a3480",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-be492f7291215ffa",
+            "title": "THE LAB · MARIN CITY：Marin County Free Library：The Lab 时段与设备规则",
+            "url": "https://marinlibrary.org/the-lab",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-7196f505d9691bc1",
+            "title": "SAN FRANCISCO PUBLIC LIBRARY：SFPL 免费设备借用公告",
+            "url": "https://sfpl.org/releases/2026/07/15/free-radon-detector-loan-program-promote-home-safety",
+            "kind": "web",
+            "checkedAt": "2026-10-04",
+            "verification": "catalog"
+          },
+          {
+            "id": "s-72c298c44bafe269",
+            "title": "DE YOUNG / LEGION OF HONOR：UCSF 2026 两馆 Free Saturdays 规则",
+            "url": "https://myfamilysandbox.ucsf.edu/news/free-saturdays-at-the-s-f-fine-arts-museums",
+            "kind": "web",
+            "checkedAt": "2026-10-02",
+            "verification": "catalog"
+          }
+        ],
+        "suggestedGuides": [
+          {
+            "title": "2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票",
+            "url": "/guides/bay-area-freebies-deals-2026-10",
+            "slug": "bay-area-freebies-deals-2026-10"
+          },
+          {
+            "title": "湾区免费生活清单：从图书馆到周末小旅行",
+            "url": "/guides/bay-area-everyday-free-perks",
+            "slug": "bay-area-everyday-free-perks"
+          }
+        ],
+        "suggestedActions": [],
+        "matchingPosts": [],
+        "interactiveCards": [],
+        "followups": [
+          "请问您是否考虑办理 San Francisco Public Library 或 San Mateo County Libraries 的图书证？",
+          "您需要我帮您查找 Fremont 附近 Alameda County Library 可预约的博物馆门票名单吗？"
+        ],
+        "research": {
+          "steps": [
+            {
+              "tool": "search_site",
+              "status": "completed",
+              "label": "已检索站内攻略与候选地点"
+            },
+            {
+              "tool": "search_web",
+              "status": "unavailable",
+              "label": "search_web",
+              "code": "web_verification_failed"
+            },
+            {
+              "tool": "read_source",
+              "status": "completed",
+              "label": "read_source"
+            },
+            {
+              "tool": "read_source",
+              "status": "completed",
+              "label": "read_source"
+            },
+            {
+              "tool": "read_source",
+              "status": "unavailable",
+              "label": "read_source",
+              "code": "source_unsafe_url"
+            },
+            {
+              "tool": "search_site",
+              "status": "completed",
+              "label": "search_site"
+            },
+            {
+              "tool": "search_web",
+              "status": "unavailable",
+              "label": "search_web",
+              "code": "web_no_cited_sources"
+            },
+            {
+              "tool": "read_source",
+              "status": "unavailable",
+              "label": "read_source",
+              "code": "source_tool_limit"
+            },
+            {
+              "tool": "search_web",
+              "status": "unavailable",
+              "label": "search_web",
+              "code": "web_tool_limit"
+            }
+          ],
+          "model": "gpt-4.1-mini-2025-04-14",
+          "warnings": [
+            "additional_web_lookup_unavailable",
+            "preferred_model_timeout",
+            "answer_scope_rejected"
+          ],
+          "modelResponses": [
+            {
+              "round": 1,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 2,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 3,
+              "phase": "research",
+              "model": "gpt-6.1-sol",
+              "status": "completed",
+              "outputTypes": [
+                "function_call"
+              ],
+              "outputTextChars": 0
+            },
+            {
+              "round": 4,
+              "phase": "final",
+              "model": "gpt-4.1-mini-2025-04-14",
+              "status": "completed",
+              "outputTypes": [
+                "message"
+              ],
+              "outputTextChars": 1067
+            }
+          ],
+          "elapsedMs": 50803
+        },
+        "retrieval": {
+          "requestedMode": "smart",
+          "scope": "site+web",
+          "webStatus": "completed",
+          "requestedDate": null,
+          "city": "San Francisco",
+          "area": "San Francisco Bay Area, California, United States",
+          "checkedAt": "2026-10-05T03:09:56.588Z",
+          "cached": false,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "configuredModel": "gpt-6.1-sol",
+          "sourceCount": 2
+        }
+      }
+    }
+  ]
+}

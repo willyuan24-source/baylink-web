@@ -1,4 +1,4 @@
-import { safePlannerWebUrl, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
+import { plannerWebCheckedDate, safePlannerWebUrl, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
 import { cleanStops, eventFor, sharePlanUrl } from './planner';
 import { eventOccursOn } from './event-calendar';
 import { guides } from '../data/guides';
@@ -9,7 +9,7 @@ export type BayBayTaskState = {
   childAges?: number[]; budget?: number | null; budgetScope?: 'person' | 'total' | null; freeOnly?: boolean;
   setting?: 'any' | 'indoor' | 'outdoor' | 'mixed' | null; startTime?: string | null; finishBy?: string | null; excludedCities?: string[];
 };
-export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; text?: string };
+export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; verification?: 'catalog' | 'page-read' | 'api' | 'search-result'; text?: string };
 export type BayBayPlanStop = {
   id: string; kind: string; entityId?: string; title: string; city?: string; date?: string; startTime?: string; endTime?: string;
   durationMinutes?: number; travelMinutes?: number; timeStatus?: string; admissionUsd?: number; sourceIds: string[]; notes: string[];
@@ -38,6 +38,9 @@ const option = <const T extends string>(v: unknown, options: readonly T[]): T | 
 /** Opaque server state stays in memory. Do not decode it or accept whitespace/control characters. */
 export const safeAssistantSessionToken = (value: unknown): string | undefined => typeof value === 'string' && value.length > 0 && value.length <= 16384 && /^[A-Za-z0-9._~-]+$/.test(value) ? value : undefined;
 const safeEvidenceUrl = (value: unknown) => typeof value === 'string' && guidePaths.has(value) ? value : safePlannerWebUrl(value);
+// Keep the offset so display can use Bay Area time instead of slicing the UTC day.
+const evidenceCheckedAt = (value: unknown): string | undefined => typeof value === 'string' &&
+  (validPlannerWebDate(value) || /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) && plannerWebCheckedDate(value)) ? value : undefined;
 
 /** Citation ordinals belong to response.sources, not the larger evidence collection. */
 export function bayBayAssistantResult(input: unknown): PlannerWebResult | null {
@@ -81,7 +84,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     const id = text(item.id, 160), title = text(item.title), url = safeEvidenceUrl(item.url), kind = option(item.kind, ['guide', 'event', 'place', 'web']);
     if (!id || !title || !url || !kind || ids.has(id)) return [];
     ids.add(id);
-    return [{ id, title, url, kind, checkedAt: validPlannerWebDate(item.checkedAt) || undefined, text: text(item.text, 1500) }];
+    return [{ id, title, url, kind, checkedAt: evidenceCheckedAt(item.checkedAt), verification: option(item.verification, ['catalog', 'page-read', 'api', 'search-result']), text: text(item.text, 1500) }];
   }) : [];
   const plan = input.assistantPlan;
   if (record(plan) && text(plan.id, 160) && text(plan.title) && option(plan.status, ['ready', 'needs_verification', 'needs_details']) && Array.isArray(plan.stops) && plan.stops.length <= 12 && record(plan.budget)) {

@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { ArrowRight, Check, CircleHelp, ExternalLink, Pencil, RefreshCw, X } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { bayBayAssistantPlanImport, type BayBayAssistantPlan, type BayBayEvidence, type BayBayTaskState } from '../lib/baybay-assistant';
+import { BayBayEvidenceStamp } from './BayBayEvidenceStamp';
 
 function useCopy() {
   const locale = useLocale();
@@ -21,8 +22,9 @@ export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTa
   add('origin', t('出发地', 'From'), state.origin, t('出发地改为 ', 'From '), t('清除出发地', 'Clear origin'));
   add('travel', t('交通', 'Travel'), travel, t('出行方式改为 ', 'Travel mode set to '), t('出行方式不限', 'Any travel mode'));
   add('party', t('同行人数', 'People'), state.partySize ? String(state.partySize) : null, t('同行总人数改为 ', 'Party size set to '), t('清除同行人数', 'Clear party size'));
-  add('ages', t('孩子年龄', 'Child ages'), state.childAges?.length ? state.childAges.join(', ') : null, t('孩子年龄改为 ', 'Child ages set to '), t('清除孩子年龄', 'Clear child ages'));
-  add('budget', t('预算', 'Budget'), state.budget != null ? `$${state.budget} ${state.budgetScope === 'total' ? t('总计', 'total') : state.budgetScope === 'person' ? t('每人', 'per person') : t('范围待确认', 'scope unconfirmed')}` : null,
+  add('ages', t('孩子年龄', 'Child ages'), state.childAges?.length ? state.childAges.map(age => t(`${age} 岁`, `${age} ${age === 1 ? 'year' : 'years'}`)).join(', ') : null, t('孩子年龄改为 ', 'Child ages set to '), t('清除孩子年龄', 'Clear child ages'));
+  const admissionOnlyBudget = state.freeOnly && state.budget === 0 && !state.budgetScope;
+  add('budget', t('预算', 'Budget'), state.budget != null && !admissionOnlyBudget ? `$${state.budget} ${state.budgetScope === 'total' ? t('总计', 'total') : state.budgetScope === 'person' ? t('每人', 'per person') : t('范围待确认', 'scope unconfirmed')}` : null,
     state.budgetScope === 'total' ? t('总预算改为 $', 'Total budget set to $') : state.budgetScope === 'person' ? t('每人预算改为 $', 'Per person budget set to $') : t('预算改为 $', 'Budget set to $'), t('预算不限', 'No budget limit'));
   add('free', t('门票', 'Admission'), state.freeOnly ? t('只看免费', 'Free only') : null, t('门票要求改为 ', 'Change admission preference to '), t('不限免费', 'Not limited to free admission'));
   add('setting', t('场景', 'Setting'), setting, t('场景改为 ', 'Setting set to '), t('室内外不限', 'Any setting'));
@@ -62,7 +64,7 @@ export function BayBayAssistantPlanCard({ plan, evidence, disabled, onAsk, onNav
         <div><dt>{t('交通', 'Travel')}</dt><dd>{inbound[index] ? t(`前往本站约 ${inbound[index]!.durationMinutes} 分钟 · Google Maps 估算`, `About ${inbound[index]!.durationMinutes} min to this stop · Google Maps estimate`) : t('前往本站交通时间待核实', 'Travel time to this stop is unverified')}</dd></div>
         <div><dt>{t('门票参考', 'Admission reference')}</dt><dd>{stop.admissionUsd === undefined ? t('费用未知', 'Cost unknown') : `$${stop.admissionUsd}`}</dd></div></dl>
       {stop.notes.length > 0 && <ul className="baybay-plan-notes">{stop.notes.map((note, i) => <li key={i}>{t(note, note)}</li>)}</ul>}
-      <div className="baybay-plan-citations">{stop.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={12} />{t(source.title, source.title)}{source.checkedAt && <small>{t(`核对 ${source.checkedAt}`, `Checked ${source.checkedAt}`)}</small>}</a>] : []; })}{!stop.sourceIds.some(id => sources.has(id)) && <small>{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</small>}</div>
+      <div className="baybay-plan-citations">{stop.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink size={12} />{t(source.title, source.title)}<BayBayEvidenceStamp source={source} /></a>] : []; })}{!stop.sourceIds.some(id => sources.has(id)) && <small>{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</small>}</div>
       <button type="button" className="baybay-plan-swap" disabled={disabled} onClick={() => onAsk(t(`换掉第${index + 1}站，保留其他条件。`, `Replace stop ${index + 1}, keeping my other requirements.`))}><RefreshCw size={12} />{t(`换掉第${index + 1}站`, `Replace stop ${index + 1}`)}</button>
     </li>)}</ol>
     {plan.returnTime && returnLeg && <p className="baybay-plan-summary">{t(`预计 ${plan.returnTime} 返回出发地 · Google Maps 估算，实际路况可能变化。`, `Estimated return to your starting point at ${plan.returnTime} · Google Maps estimate; actual travel conditions may change.`)}</p>}
