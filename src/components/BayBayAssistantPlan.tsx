@@ -20,11 +20,13 @@ const sameSourcePage = (left: string | undefined, right: string) => {
 export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTaskState; disabled: boolean; onAsk: (message: string) => void }) {
   const t = useCopy(), [editing, setEditing] = useState<Requirement | null>(null), [draft, setDraft] = useState('');
   const inputId = useId();
+  const questionDetails = state.goal === 'information' || state.goal === 'newcomer';
+  const title = questionDetails ? t('当前问题条件', 'Current question details') : t('当前安排条件', 'Current requirements');
   const rows: Requirement[] = [];
   const add = (key: string, label: string, value: string | undefined | null, prompt: string, clear: string) => { if (value) rows.push({ key, label, value, prompt, clear }); };
   const travel = state.travelMode === 'drive' ? t('开车', 'Driving') : state.travelMode === 'transit' ? t('公共交通', 'Public transit') : state.travelMode === 'walk' ? t('步行', 'Walking') : null;
   const setting = state.setting === 'indoor' ? t('室内', 'Indoors') : state.setting === 'outdoor' ? t('户外', 'Outdoors') : state.setting === 'mixed' ? t('室内与户外', 'Indoors and outdoors') : null;
-  add('city', t('目的地', 'Destination'), state.city || state.region, t('城市改为 ', 'Change destination to '), t('城市不限', 'Any city'));
+  add('city', questionDetails ? t('查询地区', 'Area') : t('目的地', 'Destination'), state.city || state.region, t('城市改为 ', questionDetails ? 'Change city to ' : 'Change destination to '), t('城市不限', 'Any city'));
   add('date', t('日期', 'Date'), state.date, t('日期改为 ', 'Change date to '), t('日期不限', 'Any day'));
   add('origin', t('出发地', 'From'), state.origin, t('出发地改为 ', 'From '), t('清除出发地', 'Clear origin'));
   add('travel', t('交通', 'Travel'), travel, t('出行方式改为 ', 'Travel mode set to '), t('出行方式不限', 'Any travel mode'));
@@ -44,8 +46,8 @@ export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTa
   const canApply = editing?.key === 'maxStops' ? /^[1-6]$/.test(draft.trim()) : draft.trim().length >= 2 && draft.trim() !== editing?.prompt.trim();
   const apply = () => { if (!disabled && canApply) { onAsk(editMessage); setEditing(null); } };
   if (!rows.length) return null;
-  return <section className="baybay-requirements" aria-label={t('当前安排条件', 'Current requirements')} translate="no">
-    <header><strong>{t('当前安排条件', 'Current requirements')}</strong><small>{t('点击修改', 'Select to edit')}</small></header>
+  return <section className="baybay-requirements" aria-label={title} translate="no">
+    <header><strong>{title}</strong><small>{t('点击修改', 'Select to edit')}</small></header>
     <div className="baybay-requirement-chips">{rows.map(row => <button type="button" key={row.key} disabled={disabled} aria-label={`${row.label} ${row.value}`} onClick={() => { setEditing(row); setDraft(row.key === 'maxStops' ? String(state.maxStops) : row.prompt); }}><span>{row.label}</span><strong>{row.value}</strong><Pencil size={11} /></button>)}</div>
     {editing && <div className="baybay-requirement-editor">{editing.key === 'return' ? <div role="group" aria-label={t('修改返程', 'Edit return requirement')}>
       {[[t('回到起点', 'Return to origin'), t('返回出发地', 'Return to the origin')], [t('不回起点', 'No return'), t('不返回起点', 'Do not return to the origin')]].map(([label, message]) => <button type="button" key={message} disabled={disabled} onClick={() => { onAsk(message); setEditing(null); }}>{label}</button>)}
