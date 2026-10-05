@@ -406,7 +406,7 @@
       "dateLabel": "长期福利 · 以登录后可用票为准",
       "costLabel": "需预约",
       "status": "ongoing",
-      "sourceUrl": "https://aclibrary.org/faqs/",
+      "sourceUrl": "https://aclibrary.org/faq/library-cards-ecards/",
       "sourceLabel": "AC Library Discover & Go 资格"
     },
     {
@@ -2107,6 +2107,23 @@
       "verifiedAt": "2026-10-04",
       "sourceUrl": "https://sfpl.org/research-learn/elearning",
       "sourceLabel": "SFPL 官方在线学习与 App 登录方法"
+    },
+    {
+      "kind": "offer",
+      "id": "ac-library-free-printing",
+      "title": "AC Library 持卡人每天免费打印 10 页黑白文件",
+      "path": "/offers/ac-library-free-printing",
+      "summary": "在 Fremont、Dublin 等 AC Library 分馆，使用馆内电脑，或以图书证和 PIN 登录官方 SmartAlec 入口上传文件，再到馆内打印机取件。免费额度可能随成本调整；取件前确认分馆开放与当前收费。",
+      "details": [
+        "需使用 AC Library 图书证；每天最多 10 页黑白打印，适用于馆内电脑或个人设备提交的文件。免费额度不含复印，也不适用于无卡访客；彩印每页 $0.35，超额黑白打印每页 $0.15。"
+      ],
+      "region": "east-bay",
+      "dateLabel": "长期服务 · 每日额度以馆方现行说明为准",
+      "costLabel": "无需购物",
+      "status": "ongoing",
+      "verifiedAt": "2026-10-04",
+      "sourceUrl": "https://aclibrary.org/faq/print-scan-fax/",
+      "sourceLabel": "AC Library 官方免费打印额度、收费与取件流程"
     },
     {
       "kind": "offer",

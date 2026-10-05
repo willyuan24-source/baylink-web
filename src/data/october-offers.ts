@@ -108,7 +108,7 @@ export const newOctoberOffers: FreebieOffer[] = [
     dateLabel: '长期福利 · 以登录后可用票为准', availability: 'ongoing', kind: 'reservation',
     requirement: '15 岁及以上、居住在 AC Library 服务区域并有正式图书证；eCard 不适用。免费或低价及人数依具体票券。',
     description: '适合 Fremont、Dublin 等读者从自己的图书馆入口找湾区场馆；Alameda County、Alameda 市与 Oakland 图书证不同，部分票券只有折扣。',
-    imageKey: 'october-library-culture', imageNote: '图书馆福利主题插图，非真实票证或馆舍', sourceUrl: 'https://aclibrary.org/faqs/', sourceLabel: 'AC Library Discover & Go 资格',
+    imageKey: 'october-library-culture', imageNote: '图书馆福利主题插图，非真实票证或馆舍', sourceUrl: 'https://aclibrary.org/faq/library-cards-ecards/', sourceLabel: 'AC Library Discover & Go 资格',
   },
   {
     id: 'santa-clara-library-parks-pass', brand: 'SANTA CLARA COUNTY PARKS', title: '借一张县公园车票，周末少付入园费',

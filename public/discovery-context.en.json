@@ -406,7 +406,7 @@
       "dateLabel": "Ongoing benefit · Availability shown after login",
       "costLabel": "Reservation required",
       "status": "ongoing",
-      "sourceUrl": "https://aclibrary.org/faqs/",
+      "sourceUrl": "https://aclibrary.org/faq/library-cards-ecards/",
       "sourceLabel": "AC Library Discover & Go eligibility"
     },
     {
@@ -2107,6 +2107,23 @@
       "verifiedAt": "2026-10-04",
       "sourceUrl": "https://sfpl.org/research-learn/elearning",
       "sourceLabel": "SFPL official online learning and app login instructions"
+    },
+    {
+      "kind": "offer",
+      "id": "ac-library-free-printing",
+      "title": "AC Library cardholders can print 10 black-and-white pages free each day",
+      "path": "/offers/ac-library-free-printing",
+      "summary": "At AC Library branches such as Fremont or Dublin, use a library computer or upload files through the official SmartAlec link with your card and PIN, then collect them at a library print kiosk. The free allowance may change with costs. Check branch hours and current charges before collecting.",
+      "details": [
+        "Use your AC Library card for up to 10 free black-and-white pages per day, sent from a library computer or your own device. Photocopies and guests without a card are excluded. Color printing costs $0.35 per page; additional black-and-white pages cost $0.15 each."
+      ],
+      "region": "east-bay",
+      "dateLabel": "Ongoing service · Daily allowance follows current library rules",
+      "costLabel": "No purchase required",
+      "status": "ongoing",
+      "verifiedAt": "2026-10-04",
+      "sourceUrl": "https://aclibrary.org/faq/print-scan-fax/",
+      "sourceLabel": "AC Library official free print allowance, charges and collection steps"
     },
     {
       "kind": "offer",
