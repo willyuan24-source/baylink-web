@@ -15,17 +15,17 @@ import { AboutContent } from '../src/components/AboutContent';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
 import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
-import { SITE_URL, escapeHtml, renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
+import { renderHtmlDocument, type PageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import { MonthlySpotlight } from '../src/components/MonthlySpotlight';
 import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
-import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
-import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
+import { localDiscoveries } from '../src/data/local-discoveries';
+import { generateSitemap } from './generate-sitemap';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 
@@ -114,10 +114,6 @@ await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
-const sitemapPaths = ['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/opus-bay', '/ai-in-the-bay', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map((slug) => `/category/${slug}`), ...guides.map((guide) => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
-const guideDates = new Map(guides.map((guide) => [`/guides/${guide.slug}`, guide.updatedAt]));
-for (const item of localDiscoveries) { const share = discoveryShare(item); if (share.checkedAt) guideDates.set(share.path, share.checkedAt); }
-guideDates.set('/this-month', MONTHLY_EDITION.checkedAt);
-const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemapPaths.map((path) => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${guideDates.has(path) ? `<lastmod>${escapeHtml(guideDates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
+const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

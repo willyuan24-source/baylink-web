@@ -13,8 +13,9 @@ import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../sr
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
-import { getLocalDiscovery } from '../src/data/local-discoveries';
+import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
+import { generateSitemap } from '../scripts/generate-sitemap';
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
@@ -178,5 +179,21 @@ test('hosting config has explicit public routes, a real missing-page status and 
   assert.ok(sitemap.includes('/ai-in-the-bay</loc>'));
   assert.ok(sitemap.includes('/opus-bay</loc>'), 'W9-E: the game is listed');
   assert.ok(!sitemap.includes('/my-week</loc>'), 'private account plans must not be promoted as public indexed content');
-  for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc><lastmod>${guide.updatedAt}</lastmod>`));
+  for (const guide of guides) assert.ok(sitemap.includes(`/guides/${guide.slug}</loc><lastmod>${guide.updatedAt}</lastmod>`), `${guide.slug} must retain its current modification date ${guide.updatedAt}`);
+});
+
+test('public and prerendered sitemaps share the complete current catalog and source dates', () => {
+  const { paths, xml } = generateSitemap();
+  assert.equal(readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8').replace(/\r\n/g, '\n'), xml);
+  const dom = new JSDOM(xml, { contentType: 'application/xml' });
+  const entries = [...dom.window.document.querySelectorAll('url')];
+  const urls = entries.map(entry => entry.querySelector('loc')!.textContent!);
+  assert.equal(new Set(urls).size, paths.length, 'every public route appears exactly once');
+  for (const item of localDiscoveries) {
+    const share = discoveryShare(item);
+    const entry = entries.find(row => row.querySelector('loc')!.textContent === `https://www.baylink.us${share.path}`);
+    assert.ok(entry, share.path);
+    assert.equal(entry.querySelector('lastmod')?.textContent || undefined, share.checkedAt || undefined, share.path);
+  }
+  dom.window.close();
 });
