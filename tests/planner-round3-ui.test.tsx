@@ -213,7 +213,7 @@ test('search examples, clearing saved filters and changing the search date leave
     const plan = savedPlan(); seed(plan);
     const view = await open(`?edit=${plan.id}`);
     const before = snapshot(view);
-    if (action === 'example') fireEvent.click(view.getByRole('button', { name: '10月3日旧金山找家餐厅，再去附近逛逛' }));
+    if (action === 'example') fireEvent.click(view.getByRole('button', { name: '明天在旧金山找家餐厅，再去附近逛逛' }));
     else if (action === 'clear') fireEvent.click(view.getByRole('button', { name: '清除沿用条件' }));
     else fireEvent.change(view.getByLabelText('出游日期'), { target: { value: '2026-10-04' } });
     assert.deepEqual(snapshot(view), before, `${action} only changes the search, not the plan date, stops, title or details`);
