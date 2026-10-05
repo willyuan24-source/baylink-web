@@ -299,6 +299,23 @@ test('coverage is a response checklist, never an official verification claim, an
   view.rerender(<BayBayCoverageSummary response={{ ok: true }} />); assert.equal(view.container.textContent, '');
 });
 
+test('coverage keeps trailing eligibility conditions beyond 600 characters and truncates only complete sentences within 1600', () => {
+  const summary = '本段说明各机构的资源，请分别核对适用条件。'.repeat(30) + '只有年满15岁、持正式实体卡且住在服务区者才能预约；eCard不适用，办到图书证不等于具备馆票资格。';
+  assert.ok(summary.length > 600 && summary.length < 1600);
+  const decode = (value: string) => parseBayBayAssistantFields({ ...fixture(), answerCoverage: { status: 'partial', items: Array.from({ length: 9 }, (_, i) => ({ id: `topic-${i}`, label: 'Eligibility', status: 'unknown', summary: value, sourceIds: ['official', 'official', 'official', 'official', 'official'] })) } }).answerCoverage!;
+  const parsed = decode(summary);
+  assert.equal(parsed.items[0].summary, summary);
+  assert.match(parsed.items[0].summary!, /eCard不适用，办到图书证不等于具备馆票资格。$/);
+  assert.equal(parsed.items.length, 8); assert.equal(parsed.items[0].sourceIds.length, 4);
+  const fullSentence = 'Eligible cardholders must also meet the separate residency requirement.';
+  const overlong = `${fullSentence} ${'x'.repeat(1700)}`;
+  assert.equal(decode(overlong).items[0].summary, `${fullSentence}…`);
+  assert.equal(decode('若申请人'.repeat(600)).items[0].summary, undefined);
+  assert.ok((decode(`${'This is a complete sentence. '.repeat(80)}`).items[0].summary?.length || 0) <= 1600);
+  const decimalAtLimit = `${'x'.repeat(1596)}39.95 USD ${'x'.repeat(100)}`;
+  assert.equal(decode(decimalAtLimit).items[0].summary, undefined);
+});
+
 test('source-backed family subtotal and budget shortage lead the card; repeated unknowns appear only once', async () => {
   await setLocale('en', false);
   const raw = fixture(), unknown = priceFacts().unknowns[0];

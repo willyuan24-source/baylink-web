@@ -130,8 +130,8 @@ export const sfAttractionGuides: Guide[] = [
       "other"
     ],
     "readMinutes": 5,
-    "updatedAt": "2026-09-09",
-    "sourceNote": "官方资料核验于 2026-09-09。路线、停留时长与取舍为 BAYLINK 编辑建议；开放、票价、班次和临时限制请在出发前再次核对。照片为注明拍摄年份的资料图片。",
+    "updatedAt": "2026-10-04",
+    "sourceNote": "PIER 39 FAQ 中的公共区入场与行李寄存规则复核于 2026-10-04；其余官方资料核验于 2026-09-09。路线、停留时长与取舍为 BAYLINK 编辑建议；开放、票价、班次和临时限制请在出发前再次核对。照片为注明拍摄年份的资料图片。",
     "slug": "sf-fishermans-wharf-pier39-guide",
     "emoji": "🦭",
     "title": "渔人码头与 PIER 39：看海狮、走海滨，把付费项目留作选择",
@@ -153,7 +153,7 @@ export const sfAttractionGuides: Guide[] = [
       {
         "title": "PIER 39：常见问题",
         "url": "https://www.pier39.com/frequently-asked-questions/",
-        "description": "确认无需入口门票、无行李寄存及宠物限制。"
+        "description": "确认公共区无需入口门票、付费行李储物柜位置与起价，以及宠物限制。"
       },
       {
         "title": "PIER 39：海狮与 K-Dock",
@@ -220,7 +220,7 @@ export const sfAttractionGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "无车可以查 F Market & Wharves 在 The Embarcadero、Stockton 一带的站点；去程和回程不一定在马路同一侧。自驾把停车费算进预算，停车优惠要看具体条件。PIER 39 不提供行李寄存，也不允许普通宠物入内，带旅行箱或狗的人应提前调整安排。"
+        "text": "无车可以查 F Market & Wharves 在 The Embarcadero、Stockton 一带的站点；去程和回程不一定在马路同一侧。自驾把停车费算进预算，停车优惠要看具体条件。PIER 39 在 Level 2、California Welcome Center 旁提供自助行李储物柜，有多种尺寸，全天寄存 $10 起，当天可不限次数存取；这项付费服务不包含在公共区免费入场内，使用前以现场尺寸、可用柜位和收费为准。普通宠物不能入内，服务性动物例外。"
       },
       {
         "type": "checklist",

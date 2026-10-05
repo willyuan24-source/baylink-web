@@ -46,6 +46,21 @@ const clock = (v: unknown): string | undefined => typeof v === 'string' && /^(?:
 const strings = (v: unknown, max = 20, length = 600): string[] => Array.isArray(v) ? v.slice(0, max).flatMap(item => text(item, length) || []) : [];
 const option = <const T extends string>(v: unknown, options: readonly T[]): T | undefined => options.includes(v as T) ? v as T : undefined;
 
+/** Keep eligibility qualifications intact; oversized summaries end at a full sentence, never mid-condition. */
+function coverageSummary(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return;
+  const summary = value.trim();
+  if (summary.length <= 1600) return summary;
+  let boundary = 0;
+  // Match against the original text so cutting at a decimal point cannot manufacture a sentence end.
+  for (const match of summary.matchAll(/[。！？](?:[”’」』）)\]]*)|[.!?](?:["'”’)\]]*)(?=\s|$)/g)) {
+    const end = match.index + match[0].length;
+    if (end > 1599) break;
+    boundary = end;
+  }
+  return boundary ? `${summary.slice(0, boundary).trim()}…` : undefined;
+}
+
 /** Opaque server state stays in memory. Do not decode it or accept whitespace/control characters. */
 export const safeAssistantSessionToken = (value: unknown): string | undefined => typeof value === 'string' && value.length > 0 && value.length <= 16384 && /^[A-Za-z0-9._~-]+$/.test(value) ? value : undefined;
 const safeEvidenceUrl = (value: unknown) => typeof value === 'string' && guidePaths.has(value) ? value : safePlannerWebUrl(value);
@@ -124,7 +139,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       if (!record(item)) return [];
       const id = text(item.id, 80), label = text(item.label, 160), status = option(item.status, ['answered', 'unknown', 'needs_user_input']);
       if (!id || !label || !status || seen.has(id)) return [];
-      seen.add(id); return [{ id, label, status, summary: text(item.summary, 600), sourceIds: strings(item.sourceIds, 4, 160).filter(id => ids.has(id)) }];
+      seen.add(id); return [{ id, label, status, summary: coverageSummary(item.summary), sourceIds: strings(item.sourceIds, 4, 160).filter(id => ids.has(id)) }];
     });
     result.answerCoverage = { status: !items.length ? 'unassessed' : items.some(item => item.status !== 'answered') ? 'partial' : option(coverage.status, ['complete', 'partial', 'unassessed'])!, items };
   }
