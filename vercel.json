@@ -5,7 +5,7 @@
       "opus-bay": false
     }
   },
-  "buildCommand": "npm run release:build",
+  "buildCommand": "npm run release:hosting",
   "outputDirectory": "dist",
   "functions": {
     "api/post-page.ts": {

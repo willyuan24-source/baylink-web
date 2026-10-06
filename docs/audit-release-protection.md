@@ -13,13 +13,19 @@
 
 实际 workflow 和 check-run 均确认任务名为 `check`，发布者为 GitHub Actions。前端 `Website checks` 执行 `npm ci`、`npm run check`、高危依赖审计；后端 `API checks` 还执行 `npm test`。
 
-| 当前 main 提交 | 实际 CI 状态 |
+| 保护建立时前端 / 当前后端提交 | 实际 CI 状态 |
 | --- | --- |
 | 前端 `9ccf6fe346316ff141ab9174a37c249b99bc14ef` | [`Website checks` 失败](https://github.com/willyuan24-source/baylink-web/actions/runs/37389181928) |
 | 后端 `1905bd44d494fe54d9c18ed0209c4302bf97b89e` | [`API checks` 成功](https://github.com/willyuan24-source/baylink-api/actions/runs/37462602251)；完整1130/1130，production health匹配 |
 
 GitHub deployment 元数据证实：前端旧提交 `9ccf6fe346316ff141ab9174a37c249b99bc14ef` 在 2026-10-05 23:38:26 UTC 已由 `vercel[bot]` 成功部署至 Production，deployment ID `6871891095`，对应 [Vercel 部署地址](https://baylink-8an9gslly-willyuans-projects.vercel.app)。这说明保护启用前，失败 CI 的提交曾被部署。新增保护阻止后续未满足检查的 main 更新；该元数据不能证明所有部署途径都受 CI 限制。
 
-本地没有发现 Vercel/Render 环境凭据或 Vercel CLI 项目关联，后端没有 GitHub deployment 记录，因此没有据此断言Render或Vercel dashboard的全部发布策略。后端PR7已合并且production health核验1905bd44，这不证明Render手动入口都受CI约束。当前前端 `vercel.json` 的 buildCommand 是 `npm run release:build`，仅 `opus-bay` 分支的 Git 部署被禁用；这些是仓库配置，不代替平台设置核验。
+本地没有发现 Vercel/Render 环境凭据或 Vercel CLI 项目关联，后端没有 GitHub deployment 记录，因此没有据此断言Render或Vercel dashboard的全部发布策略。后端PR7已合并且production health核验1905bd44，这不证明Render手动入口都受CI约束。仅 `opus-bay` 分支的 Git 部署被禁用；这些是仓库配置，不代替平台设置核验。
+
+前端PR3已合并为 `c401adf5cc3827ad106fc2d10d3d97511b039e1c`，合并代码树与通过PR CI的 `7a6ba791cd385dc92e29de700712843e605e09e4` 一致。其[合并后完整CI](https://github.com/willyuan24-source/baylink-web/actions/runs/37469324140)也已成功：3613项，3612通过、0失败、1历史TODO。Vercel预览部署随后返回失败，公开状态没有提供具体原因；不能由创建至失败的时间推断实际构建超时。
+
+原托管命令重复执行整套串行回归，GitHub实测完整检查约31–35分钟。现将 `vercel.json` 的 buildCommand 拆为 `npm run release:hosting`：保留lint、高危依赖审计、全部生成步骤、类型检查、构建、静态预渲染、814张二维码独立解码、周报/日历及静态链接和资源门禁。`check` / `release:build` 仍执行完整测试，workflow和main的严格必需检查、管理员适用保护均保留。该配置修改也必须先通过精确提交的完整CI再合并；预览成功不能代替生产验收，不手动提升未通过检查的预览部署。
+
+保护在合并前检验已通过检查的代码；合并后的main CI和正式HTTP/UI验收另行核对。没有据此声称已配置Vercel Deployment Checks、手动发布入口保护或CI预构建部署。
 
 接口依据：[GitHub 官方 branch protection API](https://docs.github.com/en/rest/branches/branch-protection)。保护配置子任务当时未运行构建或发布；后续后端PR7已通过完整测试、CI并上线。前端PR3的精确提交、CI、生产HTTP/UI证据由主代理另行记录在implementation目录。
