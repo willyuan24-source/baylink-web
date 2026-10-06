@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Flag, MapPin, RefreshCw, Users } from 'lucide-react';
 import type { AppContextValue } from '../../app/context';
@@ -24,7 +24,8 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
   const [waitlistConsent,setWaitlistConsent] = useState(false), [acknowledgedVersion,setAcknowledgedVersion] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<{ action: OutingAction; userId?: string } | null>(null);
   const now = useOutingNow(), serial = useRef(0), lock = useRef(false);
-  const readCopy = useRef(t); readCopy.current = t;
+  const readCopy = useRef(t);
+  useLayoutEffect(() => { readCopy.current = t; }, [t]);
   const load = useCallback(async () => {
     const version = ++serial.current, controller = session.controller(); setLoading(true);
     try {
