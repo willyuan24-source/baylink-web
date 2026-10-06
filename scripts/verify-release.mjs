@@ -24,7 +24,9 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of ['index','guides'
   if((html.match(/property="og:image:alt"/g)||[]).length!==1) throw new Error(`Ambiguous social image description: ${path}`);
   if(locale==='en/'&&/[\u3400-\u9fff]/.test(html.match(/property="og:image:alt" content="([^"]*)"/)?.[1]||'')) throw new Error(`Untranslated social image description: ${path}`);
   if (page !== 'opus-bay') {
-    const shell = [...html.matchAll(/<(header|footer)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => match[2]);
+    // Article heroes can have their own header/footer. Check the outer page
+    // navigation: the first header and the final footer surround the article.
+    const shell = [html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/)?.[1], [...html.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer>/g)].at(-1)?.[1]].filter(Boolean);
     if (shell.length !== 2) throw new Error(`Missing anonymous navigation shell: ${path}`);
     if (locale === 'en/' && shell.some(markup => /[\u3400-\u9fff]/.test(markup))) throw new Error(`Untranslated first-paint navigation: ${path}`);
     if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
