@@ -35,7 +35,7 @@ test('OPUS_EVENTS: 39 unique lower-case names, all opus_*, the review §9 funnel
   assert.equal(M.metricName('card', undefined), 'opus_first_card');
   // ids, free text and unknown words never become a name
   for (const [w, b] of [['real', 'golden-gate-bridge'], ['real', undefined], ['share', 'Hi Mom'], ['tour', 'ch6'], ['nope', 'ics'], ['real', 'ics?x=1']] as const) assert.equal(M.metricName(w, b), null, `${w} ${b}`);
-  assert.equal(M.OPUS_METRICS_LIVE, false, 'the opus_* names wait for the API (docs/opus-bay/w9-backend-metrics.patch)');
+  assert.equal(M.OPUS_METRICS_LIVE, true, 'the production API now accepts the exact 39 allowlisted names');
 });
 
 test('coldBucket: < 10 s, 10–30 s, > 30 s', () => {
@@ -87,6 +87,11 @@ test('linkAction: the site\'s plan / event / guide / offer pages, Maps, official
     ['blob:https://www.baylink.us/abc', 'ics', 'baylink-x.ics'],
   ];
   for (const [href, want, dl] of cases) assert.equal(M.linkAction(href, ORIGIN, dl), want, href);
+  for (const prefix of ['/en', '/zh-Hant']) for (const [path, want] of [
+    ['/plan?date=2026-10-03', 'plan'], ['/my-week', 'plan'], ['/events/fleet-week-2026', 'event'],
+    ['/calendar', 'event'], ['/guides', 'guide'], ['/guides/golden-gate-park', 'guide'],
+    ['/this-month', 'guide'], ['/offers/sf-zoo-resident-free-day', 'offer'], ['/opus-bay?at=x', null],
+  ] as const) assert.equal(M.linkAction(prefix + path, ORIGIN), want, prefix + path);
   // the dev server's own origin counts as the site
   assert.equal(M.linkAction('http://127.0.0.1:5905/plan', 'http://127.0.0.1:5905'), 'plan');
 });
@@ -97,6 +102,11 @@ test('withGameFrom: from=opus-bay on the site\'s links only (relative stays rela
   assert.equal(M.withGameFrom('https://www.baylink.us/guides/a', 'http://127.0.0.1:5905'), 'https://www.baylink.us/guides/a?from=opus-bay');
   assert.equal(M.withGameFrom('/plan?from=home', ORIGIN), '/plan?from=home', 'a link that says where it came from');
   assert.equal(M.withGameFrom('/opus-bay?at=x', ORIGIN), '/opus-bay?at=x');
+  for (const prefix of ['/en', '/zh-Hant']) {
+    assert.equal(M.withGameFrom(`${prefix}/plan#top`, ORIGIN), `${prefix}/plan?from=opus-bay#top`);
+    assert.equal(M.withGameFrom(`${prefix}/opus-bay?at=x`, ORIGIN), `${prefix}/opus-bay?at=x`);
+    assert.equal(M.withGameFrom(`${prefix}/opus-bay/`, ORIGIN), `${prefix}/opus-bay/`);
+  }
   const official = 'https://www.sfmta.com/fares/free-muni-seniors-ages-65';
   assert.equal(M.withGameFrom(official, ORIGIN), official);
   assert.equal(M.withGameFrom('https://www.google.com/maps/search/?api=1&query=1,2', ORIGIN), 'https://www.google.com/maps/search/?api=1&query=1,2');
