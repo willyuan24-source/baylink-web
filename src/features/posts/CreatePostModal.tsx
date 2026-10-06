@@ -299,11 +299,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             showToast(err.message, 'error');
             continue;
           }
-          console.warn('[CreatePost] image compress/read failed, using original', err);
-          try {
-            const dataUrl = await fileToDataUrl(file);
-            newImages.push(dataUrl);
-          } catch { /* skip broken file */ }
+          showToast('这张照片无法安全处理，请换一张照片；原文件未上传。', 'error');
         }
       }
 
