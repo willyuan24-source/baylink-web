@@ -9,6 +9,8 @@ const discoveries = [
   { icon: MessageCircle, number: '04', title: '找房源、闲置和服务', text: '浏览或发布本地信息，查看对方资料，再用私信联系。', href: '/#home-feed-section', action: '逛逛邻里信息' },
 ];
 
+const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, color: 'var(--color-ink, #16352b)', marginTop: 16 };
+
 /** Public introduction shared by the interactive route and static HTML. */
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   return <article className="about-baylink">
@@ -30,6 +32,15 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       <div className="about-discover-grid">{discoveries.map(({ icon: Icon, number, title, text, href, action }) => <section className="about-discover-item" key={number}>
         <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ArrowUpRight size={16} /></Link>
       </section>)}</div>
+    </section>
+
+    <section className="about-discover" aria-labelledby="about-sources-title">
+      <div className="about-section-heading"><h2 id="about-sources-title" style={{ fontSize: 'var(--text-section, 1.5rem)' }}>来源与核验方法</h2></div>
+      <p style={sourceTextStyle}>攻略和活动优先引用政府、主办方及服务机构等可核验来源，参考链接列在内容页。邻里帖子由用户发布，联系前请核对发布者资料与实际情况。</p>
+      <p style={sourceTextStyle}>指南的「更新」表示内容编辑日期；网页抓取只表示一次读取，不代表人工事实复核。人工核对的范围与日期，以文中的具体说明为准。</p>
+      <p style={sourceTextStyle}>阅读时留意「待复核」「需人工确认」和「往期内容」提示。来源读取失败或尚未读取时仍需确认；往期记录不表示现在仍可参加、领取或办理。</p>
+      <p style={sourceTextStyle}>行动前，请向对应机构核实个人资格、可用语言、价格与名额；有误的信息可通过下方邮箱告诉我们。</p>
+      <p style={sourceTextStyle}>AI 回答与草稿需要核对，生成结果不代表人工审稿。封面注明「AI 原创」或「AI 辅助原创」的，是主题插画，不是机构实景或服务、资格证明。</p>
     </section>
 
     <section className="about-baybay" aria-labelledby="about-baybay-title"><div className="about-baybay-mark"><Sparkles size={27} /></div><div>
