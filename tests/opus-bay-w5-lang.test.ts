@@ -8,7 +8,7 @@ import { JSDOM } from 'jsdom';
 /**
  * Wave 5 · the language switch (the owner, 2026-09-28: 在游戏里切换中英文，或者一开始选中英文来开始): 简体 · 繁體 · English
  * on the title (before Start) and in Settings, switching live through the site's setLocale (saved for all of BAYLINK).
- *   ui/langChoice   GAME_LANGS, langSearch (the site's ?lang rule), chooseGameLocale (setLocale + the address bar)
+ *   ui/langChoice   GAME_LANGS, langSearch (legacy ?lang), chooseGameLocale (setLocale + standard path prefix)
  *   ui/LangPills    the pills (title capsule, Settings row)
  *   core/store      toast({ zh, en }) keeps both languages; flow.announce too — they follow a switch
  */
@@ -69,10 +69,10 @@ test('lang: chooseGameLocale saves the choice (persist) and keeps the address ba
   assert.equal(await chooseGameLocale('zh-Hans', f.env), true);
   assert.deepEqual(f.calls.set, [['zh-Hans', true]], 'the site\'s setLocale, persisted');
   assert.deepEqual(f.calls.replaced, ['/opus-bay?world=city']);
-  // English from a plain link: named, like the site's own switcher does
+  // English from a plain link: the site's standard language prefix
   f = fakeEnv('?world=city');
   await chooseGameLocale('en', f.env);
-  assert.deepEqual(f.calls.replaced, ['/opus-bay?world=city&lang=en']);
+  assert.deepEqual(f.calls.replaced, ['/en/opus-bay?world=city']);
   // nothing to change in the address: no history write
   f = fakeEnv('');
   await chooseGameLocale('zh-Hans', f.env);

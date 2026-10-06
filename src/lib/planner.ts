@@ -4,6 +4,7 @@ import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
 import { canonicalEventId } from './event-id';
+import { MAX_PLAN_STOPS } from './plan-limits';
 
 export type GeoPoint = { lat: number; lng: number; label: string; sourceUrl: string; precision: 'venue' | 'area' };
 export type TimeWindow = { open: string; close: string; lastEntry?: string; lastOrder?: string };
@@ -36,7 +37,7 @@ export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encod
 export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
 export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
 export const favoriteKey = (item: Favorite) => `${item.kind}:${item.kind === 'event' ? canonicalEventId(item.id) : item.id}`;
-export const MAX_PLAN_STOPS = 6;
+export { MAX_PLAN_STOPS } from './plan-limits';
 export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(stop)) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
 /** Shared URLs contain public catalog references only, never account IDs or private notes. */
 export function sharePlanUrl(plan: Pick<SavedPlan, 'date' | 'stops'>, origin = 'https://www.baylink.us') {

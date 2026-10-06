@@ -1,11 +1,12 @@
 import type { Locale } from '../../i18n/locale';
 import type { Catalog } from '../core/types';
+import { MAX_PLAN_STOPS } from '../../lib/plan-limits';
 import { catalogText } from '../i18n';
 import { addDays, eventDaysInWindow, eventNextDate, isDay, nextSaturday, todayInBay } from './catalog';
 
 /**
  * Links into BAYLINK. Same-site paths keep the reader's language via `?lang=` for non zh-Hans locales,
- * exactly like the rest of the site. Only ids that exist in the published catalog become plan stops.
+ * for legacy link compatibility. Only ids that exist in the published catalog become plan stops.
  */
 
 export function withLang(path: string, locale: Locale): string {
@@ -33,8 +34,8 @@ export function calendarUrl(locale: Locale, opts: { date?: string; region?: stri
 
 export type PlanStop = { kind: 'place' | 'event'; id: string };
 
-/** The site's planner keeps at most 3 stops (see src/lib/planner.ts cleanStops). */
-export const PLAN_MAX_STOPS = 3;
+/** The same six-stop limit as the site, without loading the planner's full catalogs. */
+export const PLAN_MAX_STOPS = MAX_PLAN_STOPS;
 
 /** Only stops whose ids exist in the catalog, de-duplicated, capped to what /plan accepts. */
 export function validPlanStops(stops: PlanStop[], catalog: Catalog | null, cap = PLAN_MAX_STOPS): PlanStop[] {
@@ -83,7 +84,7 @@ export type PlanPick = {
 
 /**
  * A plan date BAYLINK will accept: the earliest day within 14 days on which every selected event occurs. If there
- * is none, keep the events that share the soonest day (plus places, ≤ 3 stops) and list the others separately.
+ * is none, keep the events that share the soonest day (plus places, within the shared limit) and list the others separately.
  * Ended events are dropped (they go to `rest` with date null).
  */
 export function pickPlanDate(stops: PlanStop[], catalog: Catalog | null, today = todayInBay()): PlanPick {
