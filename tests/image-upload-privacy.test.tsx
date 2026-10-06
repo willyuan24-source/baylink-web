@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test, { after, afterEach, beforeEach, type TestContext } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
-import type { UserData } from '../src/lib/types';
+import type { PostData, UserData } from '../src/lib/types';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 const globals = { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, File: dom.window.File, FileReader: dom.window.FileReader, IS_REACT_ACT_ENVIRONMENT: true };
@@ -15,6 +15,9 @@ const { compressImageFile, fileToDataUrl, UnsupportedImageError } = await import
 const { prepareProfileImage, MAX_PROFILE_IMAGE_BYTES } = await import('../src/features/profile/profile-images');
 const { CreatePostModal } = await import('../src/features/posts/CreatePostModal');
 const { setLocale } = await import('../src/i18n/locale');
+const { api } = await import('../src/lib/api');
+const { mapPostSaveError } = await import('../src/lib/format');
+const { readPostDraft } = await import('../src/lib/postDraft');
 
 const png = new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5FoAAAAASUVORK5CYII=', 'base64'));
 const jpeg = new Uint8Array([255, 216, 255, 224, 0, 16, 74, 70, 73, 70, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 255, 217]);
@@ -154,4 +157,49 @@ test('FileReader failures leave post uploads empty and never retry the original 
   assert.equal(mock.encoded.length, 1); assert.equal(read.length, 1); assert.notEqual(read[0], source);
   assert.equal(view.queryByRole('button', { name: '移除第 1 张照片' }), null);
   assert.equal(view.container.querySelector('img[src^="data:image/"]'), null);
+});
+
+
+test('a failed server image upload retains new and edited post text and photos without success callbacks', async t => {
+  encoder(t);
+  const failure = { status: 502, code: 'POST_IMAGE_UPLOAD_FAILED', error: '图片上传失败，帖子尚未保存。请重试或重新选择图片。' };
+  const user = { id: 'upload-failure-owner', nickname: 'Neighbor', token: 'isolated-test-token' } as UserData;
+  const payloads: { imageUrls: string[] }[] = [];
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit) => { payloads.push(JSON.parse(String(options.body))); throw failure; });
+  for (const mode of ['create', 'edit'] as const) {
+    const notices: string[] = [], callbacks: string[] = [];
+    const title = mode === 'edit' ? '编辑后仍保留的标题' : '尚未发布的照片测试';
+    const description = '这是隔离测试的详细内容，上传失败后应该完整保留。';
+    const oldPost = { id: 'old-photo-post', authorId: user.id, title: '原帖照片测试标题', description, city: '中半岛', category: '租屋', type: 'client', imageUrls: ['https://example.test/existing-photo.jpg'], createdAt: 1, status: 'active' } as PostData;
+    const beforeDraft = readPostDraft(user.id);
+    const view = render(<CreatePostModal user={user} mode={mode} editingPost={mode === 'edit' ? oldPost : undefined} defaultType="client" defaultCategory="租屋" onClose={() => callbacks.push('closed')} onCreated={() => callbacks.push('created')} onUpdated={() => callbacks.push('updated')} showToast={message => notices.push(message)} />);
+    fireEvent.change(view.getByRole('textbox', { name: '帖子标题' }), { target: { value: title } });
+    fireEvent.change(view.getByRole('textbox', { name: '详细内容' }), { target: { value: description } });
+    await act(async () => { fireEvent.change(view.baseElement.querySelector('input[type=file]')!, { target: { files: [photo(png, 'new-photo.png', 'image/png')] } }); });
+    await waitFor(() => assert.equal(view.baseElement.querySelectorAll('.member-compose-image').length, mode === 'edit' ? 2 : 1));
+    const images = [...view.baseElement.querySelectorAll<HTMLImageElement>('.member-compose-image')].map(image => image.src);
+    fireEvent.click(view.getByRole('button', { name: '下一步' }));
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: mode === 'edit' ? '保存修改' : '确认发布' })); });
+    assert.deepEqual(payloads.at(-1)?.imageUrls, images);
+    assert.deepEqual(callbacks, []);
+    assert.equal(notices.at(-1), mapPostSaveError(failure, mode === 'edit'));
+    assert.match(notices.at(-1)!, /本次提交尚未保存/);
+    assert.notEqual(notices.at(-1), '图片上传失败，请换一张图');
+    fireEvent.click(view.getByRole('button', { name: '上一步' }));
+    assert.equal((view.getByRole('textbox', { name: '帖子标题' }) as HTMLInputElement).value, title);
+    assert.equal((view.getByRole('textbox', { name: '详细内容' }) as HTMLTextAreaElement).value, description);
+    assert.deepEqual([...view.baseElement.querySelectorAll<HTMLImageElement>('.member-compose-image')].map(image => image.src), images);
+    if (mode === 'create') { assert.equal(readPostDraft(user.id)?.form.title, title); assert.equal(readPostDraft(user.id)?.hadPhotos, true); }
+    else { assert.deepEqual(readPostDraft(user.id), beforeDraft); assert.deepEqual(oldPost.imageUrls, ['https://example.test/existing-photo.jpg']); }
+    cleanup();
+  }
+});
+
+test('the exact server image failure has three-language recovery copy while other image errors keep their behavior', () => {
+  const failure = { status: 502, code: 'POST_IMAGE_UPLOAD_FAILED', error: '图片上传失败' };
+  assert.match(mapPostSaveError(failure, false, 'zh-Hans'), /尚未保存.*当前窗口.*重试/);
+  assert.match(mapPostSaveError(failure, true, 'zh-Hant'), /尚未儲存.*目前視窗.*重試/);
+  assert.match(mapPostSaveError(failure, false, 'en'), /not saved.*still in this window.*Retry/);
+  assert.equal(mapPostSaveError({ status: 400, error: 'image upload rejected' }), '图片上传失败，请换一张图');
+  assert.equal(mapPostSaveError({ status: 429, error: '今天发布次数已达到上限' }), '今天发布次数已达到上限');
 });

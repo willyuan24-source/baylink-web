@@ -15,7 +15,8 @@ const { getGuideBySlug } = await import('../src/data/guides');
 const { getGuideMedia } = await import('../src/data/guide-media');
 const { AttractionExplorer } = await import('../src/components/AttractionExplorer');
 const { OUTING_STORAGE_KEY, cleanOutingIds, filterAttractions, loadOuting, outingShareUrl, outingText, parseSharedOuting } = await import('../src/lib/attraction-plan');
-const { setLocale } = await import('../src/i18n/locale');
+const { setLocale, translateText } = await import('../src/i18n/locale');
+const { CITY_EXPLORATION_SLUG } = await import('../src/data/city-exploration-types');
 
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 
@@ -143,4 +144,25 @@ test('BayBay planning starts only on a click and receives a bounded localized li
   assert.ok(questions[0].includes('Alcatraz Island'));
   assert.ok(questions[0].includes('Golden Gate Park & JFK Promenade'));
   assert.ok(questions[0].includes('Do not assume they all fit in one day.'));
+});
+
+test('secondary destinations remain accessible in all languages and carry all six saved stops into planning', async () => {
+  const ids = ['golden-gate', 'pier39', 'alcatraz', 'chinatown', 'palace', 'golden-gate-park'];
+  localStorage.setItem(OUTING_STORAGE_KEY, JSON.stringify(ids));
+  for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
+    await setLocale(locale);
+    const view = render(<MemoryRouter initialEntries={['/explore']}><AttractionExplorer /></MemoryRouter>);
+    const summary = locale === 'en' ? 'More: city guides, plans and groups' : translateText('更多安排：城市攻略、计划与搭子', locale);
+    fireEvent.click(view.getByText(summary));
+    const nav = within(view.getByRole('navigation', { name: locale === 'en' ? 'Continue planning your outing' : translateText('继续安排出游', locale) }));
+    const links = nav.getAllByRole('link').map(link => new URL(link.getAttribute('href')!, 'https://www.baylink.us'));
+    const plan = links.find(link => link.pathname.endsWith('/plan'))!;
+    assert.equal(plan.searchParams.get('places'), ids.join(','));
+    assert.ok(links.some(link => link.pathname.endsWith(`/guides/${CITY_EXPLORATION_SLUG}`)));
+    assert.ok(links.some(link => link.pathname.endsWith('/my-week')));
+    assert.ok(links.some(link => link.pathname.endsWith('/together')));
+    assert.ok(links.every(link => !/[\u3400-\u9fff]/.test(link.pathname)));
+    assert.deepEqual(loadOuting(), ids, 'opening destinations must not modify saved stops');
+    cleanup();
+  }
 });

@@ -107,6 +107,9 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .baybay-followups button,.baybay-scenarios button { min-height:var(--control-height); font-size:var(--text-fact); }
 .baybay-conversation button { min-width:var(--control-height); }
 .baybay-conversation .member-compose-close { width:var(--control-height); height:var(--control-height); }
+/* The mobile input:not(...):not(...) floor has specificity 0,2,1, even in a portal. */
+.baybay-conversation .baybay-composer-footer .member-baybay-question-input { font-size:var(--text-body); min-height:max(48px,var(--control-height)); }
+.baybay-conversation .member-baybay-question-input::placeholder { font-size:inherit; }
 @media(max-width:639px), (max-height:600px) {
   .baybay-conversation .member-baybay-header { padding:12px 16px; }
   .baybay-conversation .member-baybay-avatar { width:40px; height:40px; border-radius:12px; }

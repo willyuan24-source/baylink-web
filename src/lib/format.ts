@@ -1,6 +1,7 @@
 // 共享格式化 / 校验 / 错误映射工具
 import { OFFICIAL_VERIFICATION_TYPE_LABELS } from './constants';
 import type { AdData, AdDetailItem, PostData, PostType, UserData } from './types';
+import type { Locale } from '../i18n/locale';
 
 export const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后再试。'): string => {
   const raw = err && typeof err === 'object'
@@ -153,7 +154,15 @@ export const validatePostForm = (form: { title: string; description: string; cat
   return null;
 };
 
-export const mapPostSaveError = (err: any, isEdit = false): string => {
+export const mapPostSaveError = (err: any, isEdit = false, locale: Locale = 'zh-Hans'): string => {
+  if (err?.code === 'POST_IMAGE_UPLOAD_FAILED') {
+    return locale === 'en'
+      ? 'Image upload failed. This submission was not saved. Your text and photos are still in this window. Retry or choose different images.'
+      : locale === 'zh-Hant'
+        ? '圖片上傳失敗，本次提交尚未儲存。內容和照片仍保留在目前視窗，請重試或重新選擇圖片。'
+        : '图片上传失败，本次提交尚未保存。内容和照片仍保留在当前窗口，请重试或重新选择图片。';
+  }
+  if (/image|upload|图片/i.test(err?.error || '')) return '图片上传失败，请换一张图';
   const msg = err?.error || err?.message || '';
   if (msg.includes('你的账号当前受到限制，暂时无法发布内容')) return msg;
   if (err?.status === 403 && msg.includes('账号当前受到限制')) return msg;

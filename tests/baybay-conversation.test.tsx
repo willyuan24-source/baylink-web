@@ -349,6 +349,39 @@ test('follow-up chips preserve supplied travel facts instead of inventing age, o
   }
 });
 
+test('a draft preset focuses editable input and sends only the user-edited text after explicit submit', async t => {
+  const bodies: { message: string; context: { currentPath: string }; searchContext?: { date?: string } }[] = [];
+  const requests = mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    return answer('已收到你确认的日历条件。');
+  });
+  const consumed: (number | undefined)[] = [];
+  const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop,
+    currentPath: '/calendar?date=2026-10-31&region=east-bay', pendingQuestion: '请帮我安排 2026-10-31 在东湾 · Livermore 的出游。', pendingQuestionId: 1,
+    pendingQuestionMode: 'draft' as const, onPendingQuestionConsumed: (id?: number) => consumed.push(id) };
+  const view = render(<BayBayAssistantEntry {...props} />, { wrapper: React.StrictMode });
+  await act(async () => {});
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement;
+  assert.equal(input.value, props.pendingQuestion);
+  assert.equal(document.activeElement, input);
+  assert.deepEqual(consumed, [1]);
+  assert.equal(requests.mock.callCount(), 0, 'opening the calendar draft cannot start an AI request');
+  const edited = `${props.pendingQuestion} 两位成人，坐公交。`;
+  fireEvent.change(input, { target: { value: edited } });
+  view.rerender(<BayBayAssistantEntry {...props} pendingQuestion={null} />);
+  assert.equal(input.value, edited, 'consuming the preset must not erase edits');
+  view.rerender(<BayBayAssistantEntry {...props} pendingQuestion={null} panelOpen={false} />);
+  view.rerender(<BayBayAssistantEntry {...props} pendingQuestion={null} />);
+  assert.equal(input.value, edited);
+  assert.equal(requests.mock.callCount(), 0, 'reopening a saved in-memory draft cannot auto-submit it');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
+  assert.equal(requests.mock.callCount(), 1);
+  assert.equal(bodies[0].message, edited);
+  assert.equal(bodies[0].context.currentPath, '/calendar', 'raw URL parameters stay private');
+  assert.equal(bodies[0].searchContext?.date, '2026-10-31');
+  assert.ok(view.getByText('已收到你确认的日历条件。'));
+});
+
 test('a preset arriving while busy waits, is consumed once when started, and can repeat under a new ID', async t => {
   const resolvers: ((response: Response) => void)[] = [];
   const bodies: { message: string }[] = [];
