@@ -22,12 +22,15 @@ import { Link } from 'react-router-dom';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
 import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
 import { ProfileActivityLinks, ProfilePersonalSpace } from './ProfilePersonalSpace';
+import { PrivacySecurity } from './PrivacySecurity';
+import { translateText, useLocale } from '../../i18n/locale';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
 type ProfileViewProps = {
   user: UserData | null;
   onLogout: () => void;
+  onSessionEnded?: () => void;
   onLogin: () => void;
   onOpenPost: (post: PostData) => void;
   onUpdateUser: (user: UserData) => void;
@@ -35,9 +38,10 @@ type ProfileViewProps = {
   onOpenBlockedUsers: () => void;
 };
 export const ProfileView = (props: ProfileViewProps) => <ProfileSession key={JSON.stringify([props.user?.id, props.user?.token])} {...props} />;
-const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
+const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
+  const locale = useLocale();
   const isCurrentSession = useProfileSessionGuard(user);
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official' | 'admin_sources'>('menu');
+  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official' | 'admin_sources' | 'privacy'>('menu');
   const [showOfficialModal, setShowOfficialModal] = useState(false);
   const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
   const joinDays = user ? getJoinDays(user) : null;
@@ -139,6 +143,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
           </div>
 
           <div className="member-profile-actions">
+            <button onClick={() => setSubView('privacy')} className="member-action-tile" translate="no"><span className="member-action-icon"><UserX size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>{locale === 'en' ? 'Privacy and security' : translateText('隐私与安全', locale)}</strong><span>{locale === 'en' ? 'Export data, manage sign-in and delete account' : translateText('导出资料、管理登录与注销账号', locale)}</span></button>
             <button onClick={() => setSubView('my_posts')} className="member-action-tile"><span className="member-action-icon"><Edit size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>我的发布</strong><span>管理帖子与发布状态</span></button>
             <button onClick={() => setSubView('support')} className="member-action-tile"><span className="member-action-icon member-action-icon--warm"><Phone size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>联系客服</strong><span>获取帮助与支持</span></button>
           </div>
@@ -193,6 +198,7 @@ const ProfileSession = ({ user, onLogout, onLogin, onOpenPost, onUpdateUser, sho
       {subView === 'admin_official' && <AdminOfficialVerificationsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'admin_reports' && <AdminReportsView onBack={() => setSubView('menu')} showToast={showToast} />}
       {subView === 'admin_sources' && user.role === 'admin' && <AdminSourceMonitor onBack={() => setSubView('menu')} />}
+      {subView === 'privacy' && <PrivacySecurity user={user} onBack={() => setSubView('menu')} onUpdateUser={onUpdateUser} onSessionEnded={onSessionEnded || onLogout} />}
       {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
       {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
       {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
