@@ -76,6 +76,7 @@
     "braces": "file:vendor/baylink-braces-compat-3.0.3-baylink.1.tgz"
   },
   "overrides": {
-    "braces": "$braces"
+    "braces": "$braces",
+    "postcss-selector-parser": "7.1.6"
   }
 }

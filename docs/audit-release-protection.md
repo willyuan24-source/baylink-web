@@ -1,6 +1,6 @@
 # 主分支 CI 发布保护核验
 
-记录时间：2026-10-06 08:29 UTC。此记录是本次 API 回读时的状态，后续发布仍需核对目标提交的 CI 与实际线上版本。
+保护配置GET快照：2026-10-06 08:29 UTC。下列旧前端main状态是保护启用时的历史记录；后端后续发布状态已经更新，最终前端发布须另核对目标CI和实际线上版本。
 
 使用现有 Git Credential Manager 身份 `willyuan24-source`，凭据仅在进程内存中用于 `api.github.com`，没有输出或写入文件。两个仓库均为 public，当前身份均有 admin 权限。
 
@@ -16,10 +16,10 @@
 | 当前 main 提交 | 实际 CI 状态 |
 | --- | --- |
 | 前端 `9ccf6fe346316ff141ab9174a37c249b99bc14ef` | [`Website checks` 失败](https://github.com/willyuan24-source/baylink-web/actions/runs/37389181928) |
-| 后端 `a50d9e53f75d744ed9e086dfd53d7a8a71224239` | [`API checks` 成功](https://github.com/willyuan24-source/baylink-api/actions/runs/37435232729) |
+| 后端 `f8bb77fb00edf88674f06b7a58ced7de1bf678c7` | [`API checks` 成功](https://github.com/willyuan24-source/baylink-api/actions/runs/37445540965)；完整1068/1068，production health匹配 |
 
 GitHub deployment 元数据证实：前端旧提交 `9ccf6fe346316ff141ab9174a37c249b99bc14ef` 在 2026-10-05 23:38:26 UTC 已由 `vercel[bot]` 成功部署至 Production，deployment ID `6871891095`，对应 [Vercel 部署地址](https://baylink-8an9gslly-willyuans-projects.vercel.app)。这说明保护启用前，失败 CI 的提交曾被部署。新增保护阻止后续未满足检查的 main 更新；该元数据不能证明所有部署途径都受 CI 限制。
 
-本地没有发现 Vercel/Render 环境凭据或 Vercel CLI 项目关联，后端没有 GitHub deployment 记录，因此没有据此断言 Render 或 Vercel dashboard 的实际自动发布策略。当前前端 `vercel.json` 的 buildCommand 是 `npm run release:build`，仅 `opus-bay` 分支的 Git 部署被禁用；这些是仓库配置，不代替平台设置核验。
+本地没有发现 Vercel/Render 环境凭据或 Vercel CLI 项目关联，后端没有 GitHub deployment 记录，因此没有据此断言Render或Vercel dashboard的全部发布策略。后端PR3已合并且production health核验f8bb77fb，这不证明Render手动入口都受CI约束。当前前端 `vercel.json` 的 buildCommand 是 `npm run release:build`，仅 `opus-bay` 分支的 Git 部署被禁用；这些是仓库配置，不代替平台设置核验。
 
-接口依据：[GitHub 官方 branch protection API](https://docs.github.com/en/rest/branches/branch-protection)。本轮没有运行 Node、构建、测试、生成器，也没有发布新应用版本。
+接口依据：[GitHub 官方 branch protection API](https://docs.github.com/en/rest/branches/branch-protection)。保护配置子任务当时未运行构建或发布；后续后端PR3已通过完整测试、CI并上线。前端PR3的精确提交、CI、生产HTTP/UI证据由主代理另行记录在implementation目录。
