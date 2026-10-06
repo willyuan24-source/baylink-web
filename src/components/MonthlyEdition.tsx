@@ -27,6 +27,7 @@ import { EditorialShareActions } from './EditorialShareActions';
 import { eventShare } from '../lib/editorial-share';
 import { RegionalBulletins } from './RegionalBulletins';
 import { getImageProvenance } from '../lib/image-provenance';
+import { unprefixedPath } from '../lib/language-path';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'all', label: '整个湾区' }, { value: 'sf', label: '旧金山' },
@@ -94,11 +95,11 @@ function PlaceCard({ place, index }: { place: MonthlyPlace; index: number }) {
   </article>;
 }
 
-export function MonthlyEdition({ today: suppliedToday }: { today?: string } = {}) {
-  return <EventParticipationProvider events={MONTHLY_EVENTS}><MonthlyEditionContent today={suppliedToday} /></EventParticipationProvider>;
+export function MonthlyEdition({ today: suppliedToday, defaultDateFilter }: { today?: string; defaultDateFilter?: MonthlyDateFilter } = {}) {
+  return <EventParticipationProvider events={MONTHLY_EVENTS}><MonthlyEditionContent today={suppliedToday} defaultDateFilter={defaultDateFilter} /></EventParticipationProvider>;
 }
 
-function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
+function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { today?: string; defaultDateFilter?: MonthlyDateFilter }) {
   const locale = useLocale();
   const participation = useEventParticipation()!;
   const [visibleCount, setVisibleCount] = useState(6);
@@ -116,7 +117,9 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const cost = searchParams.get('cost') === 'free' ? 'free' : 'all';
   const location = useLocation();
-  const date = resolveMonthlyDateFilter(searchParams.get('when') || (location.pathname === '/this-week' ? 'weekend' : 'all'));
+  const weekly = unprefixedPath(location.pathname).replace(/\/$/, '') === '/this-week';
+  const dateDefault = defaultDateFilter || (weekly ? 'weekend' : 'all');
+  const date = resolveMonthlyDateFilter(searchParams.get('when') || dateDefault);
   const dateRange = getMonthlyDateRange(date, today);
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);
@@ -139,7 +142,8 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
     setVisibleCount(6);
     setSearchParams(previous => {
       const next = new URLSearchParams(previous);
-      if (!value || value === 'all') next.delete(name); else next.set(name, value);
+      if (name === 'when' && value === 'all' && dateDefault !== 'all') next.set(name, 'all');
+      else if (!value || value === 'all') next.delete(name); else next.set(name, value);
       if (name === 'when' && value === 'september') next.set('includeEnded', '1');
       return next;
     }, { replace: true, preventScrollReset: true });
@@ -163,7 +167,6 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
       <a href="#monthly-openings"><Store size={18} aria-hidden="true" /><span>新店消息</span><strong>{currentOpenings.length}</strong></a>
       <a href="#monthly-places"><MapPin size={18} aria-hidden="true" /><span>慢游提案</span><strong>{MONTHLY_PLACES.length}</strong></a>
     </nav>
-    <RegionalBulletins today={today} />
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '秋季活动与后续预告，找到出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
       <div className="bl-monthly-filters">
@@ -181,6 +184,8 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
       {view === 'interested' && !participation.app?.user ? <div className="bl-monthly-empty"><CalendarDays size={30} /><h3>把想去的地方，留在这里。</h3><p>登录后可以记录想去的活动，下次回来继续安排。</p><button type="button" onClick={() => participation.app?.setShowLogin(true)}>登录查看我的想去</button></div> : view !== 'all' && (participation.loading || participation.failed) ? <div className="bl-monthly-empty"><p>{participation.failed ? '出行意向暂时无法加载，请重试。' : '正在读取大家的出行意向…'}</p>{participation.failed && <button type="button" onClick={participation.refresh}>重试</button>}</div> : filtered.length ? <><div className="bl-monthly-event-grid">{displayed.map(event => <EventCard key={event.id} event={event} today={today} />)}</div>{filtered.length > displayed.length && <div className="discovery-load-more"><span>{locale === 'en' ? `${displayed.length} of ${filtered.length} events` : `已显示 ${displayed.length} / ${filtered.length} 场活动`}</span><button type="button" onClick={() => setVisibleCount(count => count + 12)}>查看更多活动<ArrowRight size={17} /></button></div>}</> : <div className="bl-monthly-empty"><CalendarDays size={30} aria-hidden="true" /><h3>{view === 'interested' ? '还没有记录想去的活动' : view === 'buddies' ? '这组条件下，还没有人公开找搭子' : '这组条件下，暂时没有活动'}</h3><p>换个日期或地区，也可以看看下方的慢游提案。</p><button type="button" onClick={clearFilters}>清除筛选条件 <ArrowRight size={15} aria-hidden="true" /></button></div>}
       <p className="bl-monthly-calendar-note"><CalendarDays size={15} aria-hidden="true" /><span>“日期提醒”下载仅含活动日期的日历文件，不含具体场次与入场时间。票务、开放时段及临时变更，请在出发前查看官方详情。</span></p>
     </section>
+
+    <RegionalBulletins today={today} />
 
     <section id="monthly-perks" className="bl-monthly-perks" aria-label="本期优惠福利">
       <MonthlyDealsSpotlight today={today} />

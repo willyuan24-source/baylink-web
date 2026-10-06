@@ -79,7 +79,8 @@ await renderPage({ title: 'BAYLINK｜湾区周末灵感、生活攻略与邻里�
 ));
 
 await renderPage({ title: '湾区生活指南｜BAYLINK', description: '查看湾区租房、找室友、二手交易、本地服务、交通与城市生活指南，附官方参考资料和行动清单。', path: '/guides' }, <GuidesHome onOpenGuide={noop} />);
-await renderPage(MONTHLY_METADATA, <MonthlyEdition />);
+await renderPage(MONTHLY_METADATA, <MonthlyEdition defaultDateFilter="all" />);
+await renderPage({ ...MONTHLY_METADATA, path: '/this-week', title: '本周末湾区活动与官方来源｜BAYLINK', description: '按湾区当地日期查看本周末的真实活动，附日期、费用、主办方来源与出游入口。' }, <MonthlyEdition defaultDateFilter="weekend" />);
 await renderPage(CALENDAR_METADATA, <CalendarPage />);
 await renderPage(EXPLORE_METADATA, <AttractionExplorer />);
 await renderPage(PLAN_METADATA, <PlannerPage />);
