@@ -2,29 +2,52 @@ import { recordProductEvent } from '../lib/product-events';
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, MapPin, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
+import { MONTHLY_EVENTS } from '../data/monthly-edition';
+import type { MonthlyEvent } from '../data/monthly-types';
+import { EVENT_DATE_OVERRIDES } from '../data/event-calendar-dates';
 import { getListingImage } from '../lib/offer-media';
 import { getBayAreaToday, downloadEventCalendar } from '../lib/monthly';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
 import { EditorialShareActions } from './EditorialShareActions';
-import { translateText } from '../i18n/locale';
+import { translateText, useLocale } from '../i18n/locale';
 import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { SaveToWeek } from './SaveToWeek';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
+import { eventOccursOn } from '../lib/event-calendar';
 import { placeFor } from '../lib/planner';
+
+function confirmedEventDate(event: MonthlyEvent, today: string): string | null {
+  const occurrenceDates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
+  const date = nextConfirmedEventDate({ startDate: event.startDate, endDate: event.endDate, occurrenceDates }, today);
+  return date && eventOccursOn(event, date) ? date : null;
+}
+
+/** Nearby events of the same category, with confirmed sessions on or after the Pacific date. */
+export function getRelatedUpcomingEvents(event: MonthlyEvent, today = getBayAreaToday(), events: readonly MonthlyEvent[] = MONTHLY_EVENTS): { event: MonthlyEvent; date: string }[] {
+  const city = event.city.trim().toLocaleLowerCase('en-US');
+  const sameCity = (candidate: MonthlyEvent) => candidate.city.trim().toLocaleLowerCase('en-US') === city;
+  return [...new Map(events.map(candidate => [candidate.id, candidate])).values()]
+    .filter(candidate => candidate.id !== event.id && candidate.category === event.category && (sameCity(candidate) || candidate.region === event.region))
+    .flatMap(candidate => { const date = confirmedEventDate(candidate, today); return date ? [{ event: candidate, date }] : []; })
+    .sort((a, b) => Number(!sameCity(a.event)) - Number(!sameCity(b.event)) || a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id))
+    .slice(0, 3);
+}
 
 export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item: LocalDiscovery; today?: string }) {
   if (item.kind === 'event') return <EventParticipationProvider events={[item.event]}><DiscoveryArticle item={item} today={today} /></EventParticipationProvider>;
   return <DiscoveryArticle item={item} today={today} />;
 }
 function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string }) {
+  const english = useLocale() === 'en';
   const share = discoveryShare(item);
-  const planDate = item.kind === 'event' ? nextConfirmedEventDate(item.event, today) : null;
+  const planDate = item.kind === 'event' ? confirmedEventDate(item.event, today) : null;
+  const relatedEvents = item.kind === 'event' ? getRelatedUpcomingEvents(item.event, today) : [];
   const openingPlace = item.kind === 'opening' ? placeFor(`opening-${item.shop.id}`) : undefined;
   const ended = item.kind === 'event' ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
-  const unconfirmed = item.kind === 'event' && item.event.occurrenceDates?.length === 0;
+  const unconfirmed = item.kind === 'event' && (Object.hasOwn(EVENT_DATE_OVERRIDES, item.event.id) ? EVENT_DATE_OVERRIDES[item.event.id] : item.event.occurrenceDates)?.length === 0;
   const unconfirmedOffer = item.kind === 'offer' && item.offer.verificationStatus === 'needs-confirmation';
   const officialUrl = item.kind === 'event' ? item.event.officialUrl : item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl;
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
@@ -43,7 +66,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       {item.kind === 'event' ? <>
         <div className="discovery-detail-main-actions discovery-detail-links" role="group" aria-label="活动主要操作"><a className="discovery-primary" onClick={() => recordProductEvent('official_source_click')} href={officialUrl} target="_blank" rel="noopener noreferrer">查看主办方详情<ArrowUpRight size={17} /></a>{planDate && <Link className="discovery-secondary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}</div>
         <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={item.event} today={today} /></div>
-        <details className="discovery-detail-more-actions"><summary>收藏、日历与分享</summary><SaveToWeek favorite={{ kind: 'event', id: item.event.id }} />{!ended && <button type="button" className="discovery-secondary" onClick={() => downloadEventCalendar(item.event)}><CalendarDays size={17} />存入日历</button>}<EditorialShareActions item={share} /></details>
+        <details className="discovery-detail-more-actions"><summary>{ended ? (english ? 'Archive and sharing' : '历史资料与分享') : '收藏、日历与分享'}</summary>{!ended && <><SaveToWeek favorite={{ kind: 'event', id: item.event.id }} /><button type="button" className="discovery-secondary" onClick={() => downloadEventCalendar(item.event)}><CalendarDays size={17} />存入日历</button></>}<EditorialShareActions item={share} /></details>
       </> : <EditorialShareActions item={share} />}
       {openingPlace && <><SaveToWeek favorite={{ kind: 'place', id: openingPlace.id }} /><Link className="discovery-primary" to={`/plan?stops=place:${openingPlace.id}`}>用这家店开始出游计划<ArrowRight size={16} /></Link></>}
     </header>
@@ -55,7 +78,8 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <p className="discovery-source"><Check size={14} />{share.checkedAt && <time dateTime={share.checkedAt}>核对 {share.checkedAt} · </time>}<a href={sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabel}</a></p>
       <SourceFreshness contentId={item.kind === 'event' ? item.event.id : item.kind === 'offer' ? item.offer.id : item.shop.id} />
       {item.kind === 'event' && item.event.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${item.event.relatedGuideSlug}`}>搭配一篇本地攻略<ArrowRight size={17} /></Link>}
+      {item.kind === 'event' && <section className="discovery-next-events" aria-labelledby="discovery-next-events-title"><h2 id="discovery-next-events-title">{english ? 'More upcoming events nearby' : '附近同类活动的下一场'}</h2><p>{english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : '先看同城，再看同区域的已确认场次；出发前请核对主办方安排。'}</p>{relatedEvents.length > 0 ? <div className="discovery-next-event-grid">{relatedEvents.map(({ event, date }) => <article key={event.id} className="discovery-next-event"><h3><Link to={`/events/${event.id}`}>{event.title}<ArrowRight size={16} aria-hidden="true" /></Link></h3><p>{english ? 'Next session: ' : '下一场：'}<time dateTime={date}>{date}</time></p><p>{event.city} · {event.venue}</p><p>{english ? 'Cost: ' : '费用：'}{event.costLabel}</p><a href={event.officialUrl} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>{english ? 'Source: ' : '来源：'}{event.sourceLabel}<ArrowUpRight size={15} aria-hidden="true" /></a><small>{english ? 'Checked ' : '核对 '}<time dateTime={event.verifiedAt}>{event.verifiedAt}</time></small></article>)}</div> : <p className="discovery-inline-note">{english ? 'No further confirmed sessions in this city or region yet. Check this week’s events for other options.' : '同城或同区域暂未收录下一场已确认的同类活动，可以到本周活动看看其他选择。'}</p>}</section>}
     </div>
-    <footer className="discovery-return"><span className="discovery-eyebrow">KEEP EXPLORING THE BAY</span><h2>这只是湾区的一小部分。</h2><p>继续看看附近活动、免费福利和新店，把下一次出门也安排好。</p><div><Link to="/this-month?when=october">十月活动日历<ArrowRight size={17} /></Link><Link to="/this-month?view=interested#monthly-events">我的想去<ArrowRight size={17} /></Link><Link to="/guides/bay-area-freebies-deals-2026-10">优惠与 Freebies<ArrowRight size={17} /></Link></div></footer>
+    <footer className="discovery-return"><span className="discovery-eyebrow">KEEP EXPLORING THE BAY</span><h2>这只是湾区的一小部分。</h2><p>继续看看附近活动、免费福利和新店，把下一次出门也安排好。</p><div><Link to="/this-week">{english ? 'This week’s events' : '本周活动'}<ArrowRight size={17} /></Link><Link to="/this-month?view=interested#monthly-events">我的想去<ArrowRight size={17} /></Link><Link to="/this-month#monthly-perks">{english ? 'Current edition’s offers' : '当期月刊优惠'}<ArrowRight size={17} /></Link></div></footer>
   </article>;
 }

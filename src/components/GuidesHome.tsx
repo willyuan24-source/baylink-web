@@ -19,6 +19,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const savedOnly = searchParams.get('view') === 'saved';
   const resultKey = `${tab}:${query}`;
   const [page, setPage] = useState({ key: '', count: 24 });
+  const [directoryOpen, setDirectoryOpen] = useState(false);
   const visibleCount = page.key === resultKey ? page.count : 24;
   const updateSearch = (values: { q?: string; category?: 'all' | GuideCategory }) => setSearchParams(previous => {
     const next = new URLSearchParams(previous);
@@ -38,7 +39,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
           : <><div className="bl-guide-grid bl-guide-filter-results">{results.slice(0, visibleCount).map(({ guide, snippet, section }) => <GuideCard key={guide.slug} guide={guide} compact searchSnippet={snippet} searchSection={section} onClick={() => onOpenGuide(guide.slug)} />)}</div>{results.length > visibleCount && <button type="button" className="guide-load-more" onClick={() => setPage({ key: resultKey, count: visibleCount + 24 })}>{english ? `Show more (${visibleCount}/${results.length})` : `继续查看（${visibleCount}/${results.length}）`}</button>}</>}
     </section>}
     {!savedOnly && tab === 'all' && !query.trim() && <details className="guide-paths-details" open={!!searchParams.get('audience')}><summary>{english ? 'Choose a path for your life stage' : '按生活阶段找一条阅读路径'}</summary><ReaderPaths onOpenGuide={onOpenGuide} /></details>}
-    {!savedOnly && <details className="guide-complete-index"><summary>{english ? `Browse all ${guides.length} guide titles` : `查看全部 ${guides.length} 篇指南目录`}</summary><nav aria-label={english ? 'Complete guide directory' : '完整指南目录'}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav></details>}
+    {!savedOnly && <div className="guide-complete-index"><button type="button" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{english ? `Browse all ${guides.length} guide titles` : `查看全部 ${guides.length} 篇指南目录`}</button><nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={english ? 'Complete guide directory' : '完整指南目录'}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav></div>}
     <footer className="bl-guides-bottom"><p>{english ? 'Each guide keeps its official references and image credits.' : '每篇指南保留官方来源、核对日期与图片授权。'}</p><Link to="/about">{english ? 'How we check sources' : '了解核验方法'}</Link></footer>
   </div>;
 };
