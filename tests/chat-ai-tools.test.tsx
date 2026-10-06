@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
-import type { Conversation, Message, UserData } from '../src/lib/types';
+import type { Conversation, Message, ReportTarget, UserData } from '../src/lib/types';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 Object.assign(globalThis, {
@@ -235,4 +235,39 @@ test('invalid or failed AI responses show retryable feedback and cannot populate
   await act(async () => fireEvent.click(view.getByRole('button', { name: '生成回复草稿' })));
   assert.equal(calls.length, 2);
   assert.equal((view.getByRole('textbox', { name: '检查并修改草稿' }) as HTMLTextAreaElement).value, '确认后的新回复');
+});
+
+test('received text and contact cards remain reportable when blocked, with real message/conversation IDs only', async () => {
+  const targets: ReportTarget[] = [];
+  mockRequests(async () => ({}), [message('old-timestamp', 'PRIVATE_SELECTED_TEXT'),
+    message('contact-message', '', { type: 'contact_card', messageType: 'contact_card', contactCard: { methods: [{ type: 'phone', value: 'PRIVATE_CONTACT' }] } }),
+    message('own-message', 'Not reportable', { senderId: 'alice' }), message('system-message', 'System', { messageType: 'system' }),
+    message('local:unconfirmed', 'Unconfirmed local item')]);
+  const view = render(viewChat({ blockedUserIds: ['bob'], onReportMessage: target => targets.push(target) }));
+  await act(async () => {});
+  const controls = view.getAllByRole('button', { name: '举报这条私信' });
+  assert.equal(controls.length, 2);
+  controls.forEach(control => fireEvent.click(control));
+  assert.deepEqual(targets, [
+    { targetType: 'message', targetId: 'old-timestamp', conversationId: 'thread', authorId: 'bob' },
+    { targetType: 'message', targetId: 'contact-message', conversationId: 'thread', authorId: 'bob' },
+  ]);
+  assert.doesNotMatch(JSON.stringify(targets), /PRIVATE_|content|contactCard/);
+  assert.equal((view.getByRole('textbox', { name: '消息内容' }) as HTMLTextAreaElement).disabled, true);
+});
+
+test('chat safety links use the associated post category, and a failed lookup retains general guidance', async () => {
+  let unavailable = false;
+  api.request = async path => path.startsWith('/posts/') ? unavailable ? Promise.reject(new Error('Post unavailable')) : { id: 'used-post', category: '闲置' }
+    : path.endsWith('/read') ? {} : [message()];
+  const view = render(viewChat({ conversation: { ...conversation(), lastPostId: 'used-post', lastPostTitle: '公开二手帖' } }));
+  await act(async () => {});
+  assert.equal(view.getByRole('link', { name: '二手交易安全指南 ↗' }).getAttribute('href'), '/guides/bay-area-used-trading-safety-guide');
+  assert.equal(view.queryByRole('link', { name: '租房防骗指南 ↗' }) === null, true);
+  unavailable = true;
+  view.rerender(viewChat({ conversation: { ...conversation('next-thread'), lastPostId: 'unavailable-post' } }));
+  await act(async () => {});
+  assert.ok(view.getByRole('link', { name: '租房防骗指南 ↗' }));
+  assert.ok(view.getByRole('link', { name: '二手交易安全指南 ↗' }));
+  assert.ok(view.getByRole('link', { name: '本地服务安全指南 ↗' }));
 });

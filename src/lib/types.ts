@@ -122,7 +122,8 @@ export interface Message {
   createdAt: number;
 }
 
-export type ReportTarget = { targetType: 'post' | 'user'; targetId: string; authorId?: string };
+export type ReportTarget = { targetType: 'post' | 'user'; targetId: string; authorId?: string }
+  | { targetType: 'message'; targetId: string; conversationId: string; authorId: string };
 
 export type DefaultCover = {
   id: string;

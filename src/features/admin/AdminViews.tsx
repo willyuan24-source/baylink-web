@@ -30,9 +30,9 @@ type ModerationLogItem = {
 type AdminReportItem = {
   id: string;
   reporter: { id: string; nickname: string; avatar?: string; isPhoneVerified?: boolean; isOfficialVerified?: boolean; accountStatus?: string } | null;
-  targetType: 'post' | 'user' | 'outing' | 'outing_message';
+  targetType: 'post' | 'user' | 'message' | 'outing' | 'outing_message';
   outingId?: string;
-  evidence?: { title?: string; date?: string; startTime?: string; endTime?: string; city?: string; venue?: string; description?: string; message?: { text?: string; senderId?: string; createdAt?: number } };
+  evidence?: { messageId?: string; conversationId?: string; type?: string; text?: string; attachmentOmitted?: boolean; createdAt?: number; title?: string; date?: string; startTime?: string; endTime?: string; city?: string; venue?: string; description?: string; message?: { text?: string; senderId?: string; createdAt?: number } };
   targetId: string;
   reason: string;
   detail: string;
@@ -216,7 +216,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
   const [reports, setReports] = useState<AdminReportItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'open' | 'reviewed' | 'dismissed' | 'all'>('open');
-  const [typeFilter, setTypeFilter] = useState<'all' | 'post' | 'user'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'post' | 'user' | 'message'>('all');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [statusModal, setStatusModal] = useState<{ userId: string; nickname: string; status: 'active' | 'limited' | 'suspended' } | null>(null);
   const [statusReason, setStatusReason] = useState('');
@@ -367,9 +367,9 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
-          {(['all', 'post', 'user'] as const).map((t) => (
+          {(['all', 'post', 'user', 'message'] as const).map((t) => (
             <button key={t} type="button" onClick={() => setTypeFilter(t)} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-baylink-section text-baylink-muted'}`}>
-              {t === 'all' ? '全部类型' : t === 'post' ? '帖子' : '用户'}
+              {t === 'all' ? '全部类型' : t === 'post' ? '帖子' : t === 'message' ? '私信' : '用户'}
             </button>
           ))}
         </div>
@@ -393,7 +393,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     <div className="mt-1 text-sm font-semibold text-baylink-text">
                       {REPORT_REASON_LABELS[r.reason] || r.reason}
                       <span className="ml-2 text-xs font-normal text-baylink-muted">
-                        · {r.targetType === 'post' ? '帖子举报' : r.targetType === 'outing' ? '小队举报' : r.targetType === 'outing_message' ? '小队消息举报' : '用户举报'}
+                        · {r.targetType === 'post' ? '帖子举报' : r.targetType === 'message' ? '私信举报' : r.targetType === 'outing' ? '小队举报' : r.targetType === 'outing_message' ? '小队消息举报' : '用户举报'}
                       </span>
                     </div>
                     {r.detail && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
@@ -406,7 +406,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     )}
                     {r.targetUser && (
                       <div className="mt-2 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2 text-[11px]">
-                        <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : r.targetType === 'outing' ? '小队队长' : r.targetType === 'outing_message' ? '消息发送者' : '帖子作者'}：{r.targetUser.nickname}</p>
+                        <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : r.targetType === 'outing' ? '小队队长' : r.targetType === 'outing_message' || r.targetType === 'message' ? '消息发送者' : '帖子作者'}：{r.targetUser.nickname}</p>
                         <p className="mt-0.5 text-baylink-muted">账号状态：{ACCOUNT_STATUS_LABELS[r.targetUser.accountStatus || 'active'] || r.targetUser.accountStatus}</p>
                         {r.targetUser.accountStatusReason && (
                           <p className="mt-1 text-baylink-text-secondary line-clamp-2">限制原因：{r.targetUser.accountStatusReason}</p>
@@ -423,6 +423,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     {r.targetType === 'post' && !r.targetPost && (
                       <p className="mt-1 text-[11px] text-baylink-muted">关联帖子已不存在</p>
                     )}
+                    {r.targetType === 'message' && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-sm"><strong>选中私信的审核内容</strong>{r.evidence?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2" translate="no">{r.evidence.text}</blockquote>}{r.evidence?.attachmentOmitted && <p className="mt-2">联系方式与附件已省略；未上传整段会话。</p>}<p className="mt-2 text-baylink-muted">仅包含服务器核验的选中消息。</p></div>}
                     {r.outingId && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-xs"><a href={outingUrl(r.outingId)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{r.evidence?.title || '查看关联小队'} ↗</a><p>{r.evidence?.date} {r.evidence?.startTime}–{r.evidence?.endTime} · {r.evidence?.city} · {r.evidence?.venue}</p>{r.evidence?.description && <p className="mt-1 whitespace-pre-wrap break-words">{r.evidence.description}</p>}{r.evidence?.message?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2">{r.evidence.message.text}</blockquote>}<p className="mt-2 text-baylink-muted">举报提交时的内容快照</p></div>}
                     {r.adminNote && <p className="mt-1 text-[11px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>

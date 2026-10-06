@@ -147,6 +147,7 @@ test('FileReader failures leave post uploads empty and never retry the original 
   const notices: string[] = [];
   const user = { id: 'private-photo-owner', nickname: 'Neighbor', token: 'isolated-test-token' } as UserData;
   const view = render(<CreatePostModal user={user} onClose={() => {}} onCreated={() => {}} showToast={message => notices.push(message)} />);
+  fireEvent.click(view.getByRole('button', { name: /发布需求/ }));
   fireEvent.click(view.getByRole('button', { name: '下一步' }));
   await act(async () => { fireEvent.change(view.getByLabelText('添加图片'), { target: { files: [source] } }); });
   await waitFor(() => assert.ok(notices.some(message => message.includes('原文件未上传'))));

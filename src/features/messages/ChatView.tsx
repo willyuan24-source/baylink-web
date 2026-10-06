@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, UserX, FileText, Phone, Send, Loader2, SmilePlus, Reply, X, ArrowDown, CornerDownLeft, MessageCircle, Sparkles } from 'lucide-react';
+import { ChevronLeft, UserX, FileText, Flag, Phone, Send, Loader2, SmilePlus, Reply, X, ArrowDown, CornerDownLeft, MessageCircle, Sparkles } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { ModalShell } from '../../components/ui/Modal';
@@ -10,10 +10,11 @@ import { isPlatformAdmin } from '../../components/UserTrustBadges';
 import { ContactCardMessage } from '../../components/ContactCardMessage';
 import { friendlyErrorMessage } from '../../lib/format';
 import { translateText, useLocale } from '../../i18n/locale';
-import type { Message, Conversation, UserData } from '../../lib/types';
+import type { Message, Conversation, ReportTarget, UserData } from '../../lib/types';
 import type { Socket } from 'socket.io-client';
 import { mergeMessages, messageText, readServerMessage, readMessageDraft, saveMessageDraft, readPendingMessages, savePendingMessage, removePendingMessage, messageReadBatches, isReplyable, isNearMessageBottom, MESSAGE_REACTIONS, type MessageReaction, type DisplayMessage } from './messageState';
 import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
+import { CategorySafetyNotice } from '../../components/CategorySafetyNotice';
 
 type ChatViewProps = {
   currentUser: UserData;
@@ -24,12 +25,13 @@ type ChatViewProps = {
   onToggleBlockUser?: (userId: string) => void;
   blockedUserIds?: string[];
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
+  onReportMessage?: (target: ReportTarget) => void;
 };
 const COMPOSER_EMOJI = ['👋', '😊', '👍', '❤️', '🙏', '🎉', '😂', '👀', '☕', '🌉', '🌿', '✨'];
 
 export const ChatView = (props: ChatViewProps) => <ChatSession key={JSON.stringify([props.currentUser.id, props.currentUser.token, props.conversation.id])} {...props} />;
 
-const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast }: ChatViewProps) => {
+const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast, onReportMessage }: ChatViewProps) => {
   const locale = useLocale();
   const tr = (text: string) => translateText(text, locale);
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
@@ -47,6 +49,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const [reactionPending, setReactionPending] = useState<string | null>(null);
   const [newMessages, setNewMessages] = useState(0);
   const [atBottom, setAtBottom] = useState(true);
+  const [contextCategory, setContextCategory] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const aiToggleRef = useRef<HTMLButtonElement>(null);
@@ -66,6 +69,15 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const systemLabel = locale === 'en' ? 'System notification' : tr('系统通知');
 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
+  useEffect(() => {
+    setContextCategory(null);
+    if (!conversation.lastPostId) return;
+    const controller = new AbortController();
+    void api.request(`/posts/${encodeURIComponent(conversation.lastPostId)}`, { signal: controller.signal })
+      .then(post => { if (!controller.signal.aborted && active.current && post && !Array.isArray(post) && typeof post.category === 'string') setContextCategory(post.category); })
+      .catch(() => { /* Unavailable/blocked posts retain general safety links. */ });
+    return () => controller.abort();
+  }, [conversation.lastPostId]);
   useEffect(() => {
     const sync = () => { setPendingDrafts(readPendingMessages(currentUser.id, conversation.id)); };
     window.addEventListener('baylink:message-draft-updated', sync);
@@ -249,6 +261,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         </header>
         {isPlatformAdmin(other) && <p className="modern-chat-admin">BAYLINK 管理员不会主动索要密码、验证码或付款信息。</p>}
         {(conversation.lastPostId || conversation.lastPostTitle) && <div className="modern-chat-context"><FileText size={17} aria-hidden="true" /><span>正在沟通</span>{conversation.lastPostId ? <Link to={`/posts/${encodeURIComponent(conversation.lastPostId)}`} onClick={onClose}><span translate="no">{conversation.lastPostTitle || tr('查看关联帖子')}</span></Link> : <strong translate="no">{conversation.lastPostTitle}</strong>}</div>}
+        <CategorySafetyNotice category={contextCategory} onNavigate={onClose} />
         <div className="modern-chat-history" ref={scrollRef} onScroll={handleScroll} role="region" aria-label="聊天记录" tabIndex={0}>
           {loading && <p role="status" className="modern-chat-notice">正在加载消息…</p>}
           {loadError && <div role="alert" className="modern-chat-notice"><p>{loadError}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>重新加载</button></div>}
@@ -281,6 +294,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
                     {message.delivery === 'failed' && <div className="modern-chat-delivery is-failed"><p>发送未确认，请刷新后确认是否送达。</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button>{message.type === 'text' && !input && <button type="button" onClick={() => { draftRevision.current += 1; writeDraft(message.content); }}>放回输入框</button>}</div>}
                   </div>}
                   <div className="modern-chat-message-footer"><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time>{isReplyable(message) && !blocked && <div className="modern-chat-message-actions"><button type="button" aria-label="引用回复" title="引用回复" onClick={() => { draftRevision.current += 1; setReplyTo(message); setReactionFor(null); inputRef.current?.focus(); }}><Reply size={14} /></button><button type="button" aria-label="添加回应" title="添加回应" aria-expanded={reactionFor === message.id} disabled={!!reactionPending} onClick={() => setReactionFor(reactionFor === message.id ? null : message.id)}>{reactionPending === message.id ? <Loader2 size={14} className="animate-spin" /> : <SmilePlus size={14} />}</button></div>}</div>
+                  {!mine && message.senderId === other.id && !message.id.startsWith('local:') && !message.delivery && onReportMessage && <button type="button" className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-baylink-muted underline underline-offset-4" aria-label={tr('举报这条私信')} onClick={() => onReportMessage({ targetType: 'message', targetId: message.id, conversationId: conversation.id, authorId: message.senderId })}><Flag size={14}/>{tr('举报私信')}</button>}
                   {message.reactions?.some(reaction => reaction.userIds.length) && <div className="modern-chat-reactions" aria-label="消息回应">{message.reactions.filter(reaction => reaction.userIds.length).map(reaction => <button type="button" key={reaction.emoji} translate="no" aria-label={`${reaction.emoji} · ${reaction.userIds.length}`} aria-pressed={reaction.userIds.includes(currentUser.id)} disabled={!!reactionPending || blocked || !isReplyable(message)} onClick={() => void reactTo(message, reaction.emoji as MessageReaction)}><span>{reaction.emoji}</span><span>{reaction.userIds.length}</span></button>)}</div>}
                   {reactionFor === message.id && <div className="modern-chat-reaction-picker" role="group" aria-label="选择回应表情">{MESSAGE_REACTIONS.map(emoji => <button type="button" key={emoji} translate="no" aria-label={emoji} onClick={() => void reactTo(message, emoji)}>{emoji}</button>)}<button type="button" aria-label="关闭回应选择" onClick={() => setReactionFor(null)}><X size={14} /></button></div>}
                 </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, Flag, MapPin, RefreshCw, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Copy, Flag, MapPin, RefreshCw, Share2, Users } from 'lucide-react';
 import type { AppContextValue } from '../../app/context';
 import { outings, safeOutingUrl, type Outing, type OutingAction, type OutingDraft, type OutingMemberStatus } from '../../lib/outings';
 import { OutingForm } from './OutingForm';
@@ -12,6 +12,7 @@ import { outingError, useOutingSession } from './outing-session';
 import { canExportOutingCalendar, downloadOutingCalendar } from '../../lib/outing-calendar';
 import { publicOutingMetadata } from '../../lib/outing-metadata';
 import { setPageMetadata } from '../../lib/seo';
+import { languagePath } from '../../lib/language-path';
 
 export const outingEligible = (app: Pick<AppContextValue, 'user'>) => !!app.user && (app.user.isPhoneVerified || app.user.officialVerification?.status === 'approved' || (app.user.isOfficialVerified && (!app.user.officialVerification?.status || app.user.officialVerification.status === 'none')));
 export const memberLabel = (status: OutingMemberStatus, t: OutingTranslate, waitlisted = false) => status === 'requested' && waitlisted ? t('候补中，尚未加入','Waitlisted — not yet joined') : ({ requested:t('待发起人确认','Awaiting host'), confirmed:t('已加入','Confirmed'), declined:t('申请未通过','Declined'), left:t('已退出','Left'), removed:t('已移出','Removed') })[status];
@@ -23,6 +24,8 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
   const [edit, setEdit] = useState(false), [report, setReport] = useState(false), [busy, setBusy] = useState(false), [note, setNote] = useState(''), [adult, setAdult] = useState(false);
   const [waitlistConsent,setWaitlistConsent] = useState(false), [acknowledgedVersion,setAcknowledgedVersion] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<{ action: OutingAction; userId?: string } | null>(null);
+  const [shareFallback, setShareFallback] = useState(false);
+  const shareInput = useRef<HTMLInputElement>(null);
   const now = useOutingNow(), serial = useRef(0), lock = useRef(false);
   const readCopy = useRef(t);
   useLayoutEffect(() => { readCopy.current = t; }, [t]);
@@ -64,6 +67,25 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
     finally { session.release(controller); if (session.current()) { lock.current = false; setBusy(false); setLoading(false); } }
   };
   const login = () => app.setShowLogin(true);
+  const publicInviteUrl = `https://www.baylink.us${languagePath('/together', locale)}?outing=${encodeURIComponent(id)}`;
+  const shareInvite = async (native = false) => {
+    if (!outing || outing.id !== id || !session.current()) return;
+    setShareFallback(false);
+    try {
+      // Deliberately project just the public title and URL, never a member DTO.
+      if (native && typeof navigator.share === 'function') {
+        await navigator.share({ title: outing.title, url: publicInviteUrl });
+        return;
+      }
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable');
+      await navigator.clipboard.writeText(publicInviteUrl);
+      if (session.current()) setNotice(t('公开邀请链接已复制。','Public invitation link copied.'));
+    } catch (reason) {
+      if (!session.current() || (reason && typeof reason === 'object' && 'name' in reason && reason.name === 'AbortError')) return;
+      setShareFallback(true);
+      setNotice(t('无法自动分享或复制。请选择下方公开链接，再手动复制。','Sharing or copying is unavailable. Select the public link below and copy it manually.'));
+    }
+  };
   const exportCalendar = async () => {
     if (!outing || !app.user || lock.current || loading || !session.current() || !canExportOutingCalendar(outing, app.user.id, Date.now())) return;
     const previous = outing, controller = session.controller(), version = ++serial.current;
@@ -98,6 +120,7 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
     <div className="outing-detail-grid"><article className="outing-surface outing-detail-head"><OutingCover outing={outing} variant="detail" /><span className="outing-badge">{outingLabel(outing,t,now)}</span><h1 translate="no">{outing.title}</h1><p className="outing-detail-description" translate="no">{outing.description}</p>
       <dl className="outing-facts"><div><dt><CalendarDays size={15}/> {t('集合与结束','Meet and finish')}</dt><dd>{outing.date}<br/>{outing.startTime}–{outing.endTime}</dd><span className="outing-footnote">{t('湾区当地时间','Bay Area local time')}</span></div><div><dt><MapPin size={15}/> {t('公共集合地点','Public meeting place')}</dt><dd>{outing.city}<br/>{outing.venue}</dd></div><div><dt><Users size={15}/> {t('已确认人数','Confirmed members')}</dt><dd>{outing.confirmedCount} / {outing.capacity}</dd><span className="outing-footnote">{t('包含发起人，申请不占名额','Includes host; requests do not reserve a place')}</span></div><div><dt>{t('出行与语言','Transport and language')}</dt><dd>{outing.transport === 'own' ? t('各自到场','Arrive independently') : outing.transport === 'transit' ? t('公共交通同行','Public transit together') : t('步行同行','Walk together')}<br/>{outing.language === 'any' ? t('语言不限','Any language') : outing.language === 'zh' ? t('中文','Chinese') : t('英文','English')}</dd></div></dl>
       <h2>{t('费用与报名说明','Costs and registration')}</h2><p className="outing-detail-description">{outing.costNote}</p>
+      <div className="outing-associated"><div className="outing-inline-actions"><button type="button" className="outing-secondary" onClick={() => void shareInvite()}><Copy size={16}/>{t('复制邀请链接','Copy invitation link')}</button><button type="button" className="outing-secondary" onClick={() => void shareInvite(true)}><Share2 size={16}/>{t('分享公开邀请','Share public invitation')}</button></div><p className="outing-footnote">{t('分享的是公开小队入口；对方可先浏览，申请同行仍需登录和发起人确认。','This shares the public outing page. Recipients can browse first; joining still requires sign-in and host approval.')}</p>{shareFallback && <div><label htmlFor="outing-public-invite" className="block text-sm leading-relaxed">{t('公开邀请链接','Public invitation link')}</label><input id="outing-public-invite" ref={shareInput} type="text" className="mt-2 w-full rounded-lg border p-3 text-base" readOnly value={publicInviteUrl} translate="no" onFocus={event => event.currentTarget.select()} /><button type="button" className="outing-secondary mt-2" onClick={() => { shareInput.current?.focus(); shareInput.current?.select(); }}>{t('选择链接','Select link')}</button></div>}</div>
       {outing.eventId && <div className="outing-associated"><Link to={`/events/${encodeURIComponent(outing.eventId)}`}>{outing.eventTitle || t('查看关联活动','View linked event')}</Link><p>{t('小队由个人发起，与主办方报名和门票分开。','This is an independently organized team, separate from official registration and tickets.')}</p>{outing.officialUrl && safeOutingUrl(outing.officialUrl) && <a href={outing.officialUrl} target="_blank" rel="noopener noreferrer">{t('去主办方核对报名与购票 ↗','Check registration and tickets with the organizer ↗')}</a>}</div>}
       <div className="outing-inline-actions"><Link className="outing-secondary" to={`/plan?date=${outing.date}${outing.eventId ? `&stops=event:${encodeURIComponent(outing.eventId)}` : ''}`}>{t('安排这天的行程','Plan this day')}</Link><button className="outing-link-button" onClick={() => app.user ? setReport(!report) : login()}><Flag size={15}/>{t('举报小队','Report outing')}</button></div><p className="outing-footnote">{t('行程是你自己的出游草稿，不会替小队确认时间，也不自动更改成员安排。','The itinerary is your own draft. It does not confirm or change the team’s arrangements.')}</p>
       {canExportOutingCalendar(outing, app.user?.id, now) && <div className="outing-associated"><button type="button" className="outing-secondary" disabled={busy || loading} onClick={() => void exportCalendar()}><CalendarDays size={16}/>{t('将集合时间存入日历','Save meeting time to calendar')}</button><p className="outing-footnote">{t('仅导出这次已确认的同行安排。下载的日历文件不会自动同步取消或改期；出发前请回小队核对。','Exports this confirmed outing only. The downloaded file does not sync cancellations or changes; check the outing again before leaving.')}</p></div>}

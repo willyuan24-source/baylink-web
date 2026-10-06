@@ -47,7 +47,7 @@ export type AppContextValue = {
   handleChannelClick: (ch: typeof HOME_CHANNELS[number]) => void;
 
   // 操作
-  openCreate: (type?: PostType, category?: string) => void;
+  openCreate: (type?: PostType, category?: string, initialIntent?: string) => void;
   openEditPost: (post: PostData) => void;
   handleDeletePost: (post: PostData) => void;
   handleToggleFeature: (post: PostData) => void;

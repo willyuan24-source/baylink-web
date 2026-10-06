@@ -122,7 +122,7 @@ const mergeContactMethod = (
   };
 };
 
-export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailability, user, showToast, defaultType = 'client', defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
+export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailability, user, showToast, defaultType, defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
   onClose: () => void;
   onCreated: () => void;
   onUpdated?: () => void;
@@ -136,7 +136,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   editingPost?: PostData | null;
 }) => {
   const isEdit = mode === 'edit' && !!editingPost;
-  const [step, setStep] = useState(isEdit || initialIntent.trim() ? 2 : 1);
+  const [typeChosen, setTypeChosen] = useState(isEdit || !!defaultType);
+  const [step, setStep] = useState(isEdit || defaultType ? 2 : 1);
   const [createdPostId, setCreatedPostId] = useState('');
   const [savedDraft, setSavedDraft] = useState(() => isEdit ? null : readPostDraft(user.id));
   const [draftReady, setDraftReady] = useState(() => isEdit || !savedDraft);
@@ -190,15 +191,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   const [confirmAvailability, setConfirmAvailability] = useState(false);
 
   useEffect(() => {
-    if (isEdit || !draftReady || isSuccess || draftCompleted.current) return;
+    if (isEdit || !typeChosen || !draftReady || isSuccess || draftCompleted.current) return;
     const draft: PostDraft = { version: 1, updatedAt: Date.now(), form, contactPreference, aiIntent, step,
       defaultCoverUrl: selectedDefaultCover?.url || null, hadPhotos: uploadedImages.length > 0 || missingDraftPhotos };
     setDraftSaveState(savePostDraft(user.id, draft) ? (hasPostDraftContent(draft) ? 'saved' : 'empty') : 'failed');
-  }, [isEdit, draftReady, isSuccess, user.id, form, contactPreference, aiIntent, step, selectedDefaultCover, uploadedImages.length, missingDraftPhotos]);
+  }, [isEdit, typeChosen, draftReady, isSuccess, user.id, form, contactPreference, aiIntent, step, selectedDefaultCover, uploadedImages.length, missingDraftPhotos]);
 
   const restoreDraft = () => {
     if (!savedDraft) return;
     setForm(savedDraft.form);
+    setTypeChosen(true);
     setContactPreference(savedDraft.contactPreference);
     setAiIntent(savedDraft.aiIntent);
     setStep(savedDraft.step);
@@ -242,7 +244,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
         description = appendPostTags(description, draft.quickTags);
       }
       if (description) next.description = description;
-      if (draft.type === 'client' || draft.type === 'provider') next.type = draft.type;
+      // The user's supply/demand choice remains authoritative; AI may only fill content.
       const catLabel = getCategoryFromSlug(draft.category);
       if (catLabel && catLabel !== '全部' && CATEGORIES.includes(catLabel)) next.category = catLabel;
       if (draft.budget?.trim()) next.budget = draft.budget.trim();
@@ -321,6 +323,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
 
   const handleSubmit = async () => {
     if (submittingRef.current) return;
+    if (!typeChosen) return showToast('请先选择提供资源或发布需求。', 'info');
     if (imageProcessingRef.current) return showToast('照片还在处理中，请稍候再提交。', 'info');
     const err = validatePostForm(form);
     if (err) return showToast(err, 'error');
@@ -430,29 +433,29 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
           <div className="member-compose-step space-y-6">
             <div>
               <label className="block text-sm font-semibold text-baylink-text mb-0.5">你想发布什么？</label>
-              <p className="text-[11px] text-baylink-muted mb-3">选择后，我们会帮你匹配更合适的展示方式</p>
+              <p className="text-sm leading-relaxed text-baylink-muted mb-3">先明确你在提供资源，还是寻找资源；发布后会按这个类型展示。</p>
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setForm({...form, type: 'client'})}
-                  aria-pressed={form.type === 'client'}
-                  className={`member-compose-type ${typeCardClass(form.type==='client')}`}
+                  onClick={() => { setForm({...form, type: 'client'}); setTypeChosen(true); }}
+                  aria-pressed={typeChosen && form.type === 'client'}
+                  className={`member-compose-type ${typeCardClass(typeChosen && form.type==='client')}`}
                 >
                   <span className="member-compose-type-icon"><Search size={24} aria-hidden="true" /></span>
-                  {form.type === 'client' && <span className="member-compose-selected">当前选择</span>}
+                  {typeChosen && form.type === 'client' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">发布需求</div>
-                  <div className="text-[11px] mt-1 leading-snug">找房、找人帮忙、找服务</div>
+                  <div className="text-sm mt-1 leading-snug">求租、求购、求助、找服务</div>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({...form, type: 'provider'})}
-                  aria-pressed={form.type === 'provider'}
-                  className={`member-compose-type ${typeCardClass(form.type==='provider')}`}
+                  onClick={() => { setForm({...form, type: 'provider'}); setTypeChosen(true); }}
+                  aria-pressed={typeChosen && form.type === 'provider'}
+                  className={`member-compose-type ${typeCardClass(typeChosen && form.type==='provider')}`}
                 >
                   <span className="member-compose-type-icon"><Store size={24} aria-hidden="true" /></span>
-                  {form.type === 'provider' && <span className="member-compose-selected">当前选择</span>}
+                  {typeChosen && form.type === 'provider' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">提供资源</div>
-                  <div className="text-[11px] mt-1 leading-snug">房源、二手、服务、接送</div>
+                  <div className="text-sm mt-1 leading-snug">出租、出售、提供服务</div>
                 </button>
               </div>
             </div>
@@ -464,7 +467,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                 ))}
               </div>
             </div>
-            <div className="member-compose-actions"><button type="button" disabled={imageCompressing || submitting} onClick={() => { if (!imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
+            <div className="member-compose-actions"><button type="button" disabled={!typeChosen || imageCompressing || submitting} onClick={() => { if (typeChosen && !imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
           </div>
         )}
 
