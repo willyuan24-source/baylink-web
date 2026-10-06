@@ -58,6 +58,8 @@ export const GUIDE_IMAGES: Record<string, GuideImage> = {
   'november-community': { src: '/guides/november/autumn-community.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日市集、亲子手作与湿地观鸟交织的原创插画', caption: '秋季社区活动主题原创插图，不代表所列活动现场、场馆位置或实际天气。', credit: 'BAYLINK · AI 原创插图' },
   'november-stargazing': { src: '/guides/november/stargazing.webp', width: 1536, height: 1024, kind: 'illustration', alt: '成年人和亲子家庭在橡树林山坡用望远镜观察星空的插画', caption: '观星主题原创插图，不代表 Sugarloaf 或其他天文台实景；实际能见度与节目依天气及主办方安排。', credit: 'BAYLINK · AI 原创插图' },
   'autumn-new-shops': { src: '/guides/editorial/autumn-new-shops.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日湾区街角的咖啡店、烘焙店与行人插画', caption: '新店探索情境插画，不代表所列门店的实景、位置或商品。', credit: 'BAYLINK · AI 原创插图' },
+  'audit-social-security-preparation': { src: '/guides/editorial/audit-social-security-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '退休准备矢量示意图，工作收入记录旁连接一个待选择月份的日历', caption: 'BAYLINK AI 辅助原创矢量示意图；说明先核对工作记录、再比较领取月份，不是 SSA 官方表格、账户截图、福利金额或个人资格判断。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
+  'audit-naturalization-preparation': { src: '/guides/editorial/audit-naturalization-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '入籍准备矢量示意图，网站入口、放大镜下的材料清单与整理好的文件夹', caption: 'BAYLINK AI 辅助原创矢量示意图；说明从官方入口核对路径并整理材料，不是政府印章、USCIS 表格、公民证书或申请通过承诺。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
   weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
   everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。社区生活情境插图，不代表某场实际活动。'),
@@ -275,6 +277,8 @@ bySlug['bay-area-outlets-malls-shopping-guide'] = ['shopping-stonestown', 'regio
 // The region-wide directory uses the existing credited Bay panorama as context.
 bySlug['bay-area-101-city-exploration-living-guide'] = ['bay', 'train'];
 bySlug['bay-area-useful-apps-platforms-guide'] = ['coverage-laptop', 'train'];
+bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social-security-preparation', 'coverage-laptop'];
+bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

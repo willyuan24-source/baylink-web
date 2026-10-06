@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720" role="img" aria-labelledby="title description">
+  <title id="title">BAYLINK original retirement preparation illustration</title>
+  <desc id="description">An abstract earnings record and a calendar show reviewing records before choosing a benefit start month. No benefit amounts or government marks are depicted.</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#EFF7F2"/></linearGradient>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F6F3EB"/><stop offset="1" stop-color="#E8F0EA"/></linearGradient>
+  </defs>
+  <rect width="1080" height="720" fill="url(#background)"/>
+  <circle cx="909" cy="178" r="229" fill="#DAE8DC"/>
+  <circle cx="133" cy="655" r="174" fill="#E5DDCB" opacity=".55"/>
+  <path d="M95 621H985" stroke="#BED1C4" stroke-width="4" stroke-linecap="round"/>
+  <rect x="116" y="145" width="350" height="417" rx="28" fill="#BBCDC0" opacity=".34"/>
+  <rect x="102" y="129" width="350" height="417" rx="28" fill="url(#paper)" stroke="#BACFC0" stroke-width="3"/>
+  <rect x="159" y="110" width="132" height="48" rx="16" fill="#26745A"/>
+  <path d="M182 133H268" stroke="#E7F2EB" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="153" cy="190" r="13" fill="#D8E9DD"/>
+  <path d="M189 187H301M189 204H349" stroke="#6D8C7A" stroke-width="8" stroke-linecap="round"/>
+  <rect x="143" y="245" width="267" height="172" rx="17" fill="#EEF4EE"/>
+  <path d="M171 383V279M171 383H382" stroke="#92AD9C" stroke-width="4" stroke-linecap="round"/>
+  <rect x="198" y="337" width="33" height="46" rx="6" fill="#A7C8B6"/>
+  <rect x="246" y="294" width="33" height="89" rx="6" fill="#5F9A7E"/>
+  <rect x="294" y="318" width="33" height="65" rx="6" fill="#D4B16E"/>
+  <rect x="342" y="278" width="33" height="105" rx="6" fill="#26745A"/>
+  <path d="M152 451H387M152 481H341M152 511H370" stroke="#AAC0B1" stroke-width="9" stroke-linecap="round"/>
+  <path d="M476 343C515 343 520 285 565 285" fill="none" stroke="#648F79" stroke-width="6" stroke-linecap="round" stroke-dasharray="8 14"/>
+  <path d="M548 267L568 285L548 303" fill="none" stroke="#26745A" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="608" y="202" width="325" height="327" rx="27" fill="#BACBBF" opacity=".4"/>
+  <rect x="590" y="183" width="325" height="327" rx="27" fill="#FFFFFF" stroke="#AEC6B5" stroke-width="3"/>
+  <path d="M617 183H889Q915 183 915 210V260H590V210Q590 183 617 183Z" fill="#26745A"/>
+  <path d="M654 160V208M852 160V208" stroke="#D7B577" stroke-width="14" stroke-linecap="round"/>
+  <path d="M641 229H776" stroke="#E4EFE7" stroke-width="8" stroke-linecap="round"/>
+  <g fill="#DCE8DF">
+    <circle cx="637" cy="300" r="12"/><circle cx="695" cy="300" r="12"/><circle cx="753" cy="300" r="12"/><circle cx="811" cy="300" r="12"/><circle cx="869" cy="300" r="12"/>
+    <circle cx="637" cy="349" r="12"/><circle cx="695" cy="349" r="12"/><circle cx="753" cy="349" r="12"/><circle cx="811" cy="349" r="12"/><circle cx="869" cy="349" r="12"/>
+    <circle cx="637" cy="398" r="12"/><circle cx="695" cy="398" r="12"/><circle cx="753" cy="398" r="12"/><circle cx="811" cy="398" r="12"/><circle cx="869" cy="398" r="12"/>
+    <circle cx="637" cy="447" r="12"/><circle cx="695" cy="447" r="12"/><circle cx="753" cy="447" r="12"/><circle cx="811" cy="447" r="12"/><circle cx="869" cy="447" r="12"/>
+  </g>
+  <circle cx="753" cy="349" r="27" fill="#ECDBB2"/>
+  <circle cx="753" cy="349" r="11" fill="#A47B36"/>
+  <path d="M754 322V302" stroke="#A47B36" stroke-width="5" stroke-linecap="round"/>
+  <rect x="587" y="550" width="331" height="38" rx="19" fill="#C7DBCC"/>
+  <circle cx="611" cy="569" r="7" fill="#26745A"/>
+  <path d="M633 569H884" stroke="#779783" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#A9C4B1"><circle cx="980" cy="405" r="9"/><circle cx="538" cy="173" r="7"/><circle cx="519" cy="516" r="10"/></g>
+</svg>

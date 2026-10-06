@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720" viewBox="0 0 1080 720" role="img" aria-labelledby="title description">
+  <title id="title">BAYLINK original naturalization preparation illustration</title>
+  <desc id="description">An official-entry concept, document review and an organized folder illustrate application preparation. No government seal, citizenship certificate or approval is depicted.</desc>
+  <defs><linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F0F3F4"/><stop offset="1" stop-color="#E7EDED"/></linearGradient></defs>
+  <rect width="1080" height="720" fill="url(#background)"/>
+  <circle cx="202" cy="208" r="213" fill="#D6E5E5"/>
+  <circle cx="915" cy="629" r="240" fill="#E8DFCD" opacity=".8"/>
+  <path d="M72 612H1009" stroke="#B5CACA" stroke-width="4" stroke-linecap="round"/>
+  <rect x="88" y="164" width="307" height="271" rx="26" fill="#90AEB1" opacity=".28"/>
+  <rect x="74" y="147" width="307" height="271" rx="26" fill="#FFFFFF" stroke="#A7C0C3" stroke-width="3"/>
+  <path d="M100 147H355Q381 147 381 173V205H74V173Q74 147 100 147Z" fill="#315E6B"/>
+  <g fill="#B8D0D1"><circle cx="103" cy="177" r="6"/><circle cx="124" cy="177" r="6"/><circle cx="145" cy="177" r="6"/></g>
+  <rect x="172" y="165" width="173" height="22" rx="11" fill="#537E86"/>
+  <rect x="113" y="240" width="90" height="114" rx="15" fill="#E6EFF0"/>
+  <path d="M128 268H187M128 291H175M128 314H184" stroke="#4F7D86" stroke-width="6" stroke-linecap="round"/>
+  <path d="M229 252H339M229 280H314M229 308H334" stroke="#A9BFC3" stroke-width="8" stroke-linecap="round"/>
+  <rect x="227" y="337" width="112" height="35" rx="17" fill="#E3CF9F"/>
+  <path d="M263 354H305M291 345L305 354L291 363" fill="none" stroke="#8A6C34" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M248 451C278 500 340 525 414 523" fill="none" stroke="#729AA0" stroke-width="5" stroke-linecap="round" stroke-dasharray="7 13"/>
+  <rect x="443" y="220" width="247" height="344" rx="22" fill="#90AEB1" opacity=".3"/>
+  <path d="M432 198H612L676 262V539Q676 558 657 558H432Q413 558 413 539V217Q413 198 432 198Z" fill="#FFFFFF" stroke="#AAC3C6" stroke-width="3"/>
+  <path d="M612 198V244Q612 262 630 262H676" fill="#DFEBEC" stroke="#AAC3C6" stroke-width="3"/>
+  <path d="M447 249H560M447 278H590" stroke="#6F969D" stroke-width="8" stroke-linecap="round"/>
+  <g fill="none" stroke="#6D949A" stroke-width="4"><rect x="448" y="329" width="24" height="24" rx="5"/><rect x="448" y="380" width="24" height="24" rx="5"/><rect x="448" y="431" width="24" height="24" rx="5"/></g>
+  <path d="M494 341H626M494 392H607M494 443H619M448 502H620" stroke="#BACDD0" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="576" cy="420" r="72" fill="#EFF6F5" fill-opacity=".78" stroke="#315E6B" stroke-width="12"/>
+  <path d="M626 471L704 549" stroke="#315E6B" stroke-width="23" stroke-linecap="round"/>
+  <path d="M566 385H594M553 410H602M553 436H590" stroke="#87A8AB" stroke-width="6" stroke-linecap="round"/>
+  <path d="M711 278H806L833 305H955Q977 305 977 327V526Q977 548 955 548H731Q709 548 709 526V300Q709 278 731 278Z" fill="#CDB78D" stroke="#B69E72" stroke-width="3"/>
+  <rect x="766" y="247" width="153" height="149" rx="14" fill="#FDFBF6" stroke="#CFBE9F" stroke-width="3"/>
+  <path d="M791 275H891M791 302H875M791 329H887" stroke="#B7B5A3" stroke-width="7" stroke-linecap="round"/>
+  <path d="M724 352H964Q991 352 987 378L964 532Q961 551 941 551H747Q727 551 724 532L701 378Q697 352 724 352Z" fill="#DFCA9F" stroke="#C2A971" stroke-width="3"/>
+  <rect x="784" y="405" width="113" height="60" rx="13" fill="#F3E9D5"/>
+  <path d="M808 428H873M808 447H856" stroke="#B29665" stroke-width="6" stroke-linecap="round"/>
+  <path d="M747 580C803 597 865 597 918 579" fill="none" stroke="#B8A375" stroke-width="5" stroke-linecap="round" stroke-dasharray="7 13"/>
+  <g fill="#99B9BC"><circle cx="377" cy="104" r="9"/><circle cx="718" cy="175" r="7"/><circle cx="1022" cy="326" r="9"/></g>
+</svg>
