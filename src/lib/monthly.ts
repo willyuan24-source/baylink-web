@@ -1,5 +1,5 @@
 import type { MonthlyEvent } from '../data/monthly-types';
-import { MONTHLY_EDITION } from '../data/monthly-edition';
+import { MONTHLY_EDITION } from '../data/monthly-settings';
 import { translateText } from '../i18n/locale';
 import { eventOccursOn } from './event-calendar';
 

@@ -52,6 +52,8 @@ export interface PostData {
   createdAt: number; updatedAt?: number;
   status?: 'active' | 'closed';
   confirmedAt?: number | null;
+  expiresAt?: number | string | null;
+  availabilityState?: 'confirmed' | 'needs_confirmation' | 'closed';
   isFeatured?: boolean;
   featuredAt?: number | string;
   featuredBy?: string;

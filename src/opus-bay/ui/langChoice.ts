@@ -36,7 +36,7 @@ export interface LangEnv {
 }
 
 const browserEnv = (): LangEnv => ({
-  set: setLocale,
+  set: (locale, persist) => setLocale(locale, persist, typeof window === 'undefined' ? undefined : window.location.pathname),
   location: typeof window === 'undefined' ? null : window.location,
   replace: typeof window === 'undefined' ? null : (url: string) => {
     window.history.replaceState(window.history.state, '', url);

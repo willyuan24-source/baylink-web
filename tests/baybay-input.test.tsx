@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
@@ -24,7 +25,7 @@ afterEach(() => cleanup());
 
 test('BayBay waits for a deliberate Enter after Chinese composition before sending', async (t) => {
   const requests: RequestInit[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     requests.push(init);
     return Response.json({ ok: true, answer: '模拟建议，不调用真实服务。' });
   });
@@ -46,7 +47,7 @@ test('BayBay keeps the answered question as the post intent and renders at most 
   const original = '我想在中半岛找一间房，预算每月一千八';
   const opened: string[] = [];
   const creations: unknown[] = [];
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: '先确认入住时间和所需条件。', degraded: true,
+  mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '先确认入住时间和所需条件。', degraded: true,
     matchNote: '按租屋分类查找，尚未按价格筛选。',
     suggestedActions: [{ label: '整理成求租帖', type: 'postAssist', postType: 'client', category: 'rent' }],
     matchingPosts: [

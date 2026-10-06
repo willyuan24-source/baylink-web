@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
+import { LanguageRouter } from './components/LanguageRouter'
 import './index.css'
 import './design.css'
 import './features/member-ui.css'
@@ -33,16 +33,6 @@ import './features/source-monitor/source-monitor.css'
 import './styles/planner.css'
 import './styles/discovery-workflow.css'
 import './components/planner-web-library.css'
-import './styles/little-bay.css'
-import './features/little-bay/sf-exploration.css'
-import './features/little-bay/sf-landmark-photo.css'
-import './features/little-bay/bay-atlas.css'
-import './features/little-bay/regional-world.css'
-import './features/little-bay/unified-bay.css'
-import './features/little-bay/unified-bay-panels.css'
-import './features/little-bay/bay-immersion.css'
-import './features/little-bay/bay-discoveries.css'
-import './features/little-bay/bay-city-guide.css'
 import './features/baybay-actions.css'
 import './styles/event-import.css'
 import './components/ai-local.css'
@@ -52,16 +42,28 @@ import './i18n/languages.css'
 import { initializeLocale } from './i18n/locale'
 import './i18n/metadata'
 import App from './App.tsx'
+import { currentPageLoader } from './route-loaders'
+import { installChunkRecovery } from './lib/chunk-recovery'
+import './audit-integration.css'
+import './tokens.css'
+import { unprefixedPath } from './lib/language-path'
+installChunkRecovery()
+import { installProductObserver } from './lib/product-observer'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
+import { PageVisitObserver } from './components/PageVisitObserver'
 
 const renderApp = () => createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
+      <LanguageRouter>
+        <PageVisitObserver />
         <App />
-      </BrowserRouter>
+      </LanguageRouter>
     </ErrorBoundary>
   </StrictMode>,
 )
 
-void initializeLocale().catch(() => { /* The original language remains readable if a chunk fails. */ }).finally(renderApp)
+void Promise.all([initializeLocale(), currentPageLoader(unprefixedPath(window.location.pathname))()]).then(() => { installProductObserver(); renderApp() }).catch(() => {
+  // Keep useful prerendered content if an offline visitor cannot load the interactive page.
+  if (!document.getElementById('root')?.hasChildNodes()) renderApp()
+})

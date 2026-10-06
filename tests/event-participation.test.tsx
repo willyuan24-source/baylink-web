@@ -355,14 +355,14 @@ test('an ended public membership retains a pending-disabled exit and one cancell
   });
   const view = render(fixture(actions.app('owner'), '2026-10-19'));
   await view.findByText(getNote(7));
-  fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
+  fireEvent.click(view.getByRole('button', { name: '查看出行意向' }));
   const dialog = await view.findByRole('dialog');
   const exit = within(dialog).getByRole('button', { name: '退出已结束活动' }) as HTMLButtonElement;
   fireEvent.click(exit); fireEvent.click(exit);
   assert.equal(exit.disabled, true);
   assert.equal(writes, 1);
   await act(async () => save.resolve(state({ interested: false, lookingForBuddy: false }, 6)));
-  assert.equal(within(dialog).queryByRole('button', { name: '退出已结束活动' }), null);
+  assert.equal(within(dialog).queryByRole('button', { name: '退出已结束活动' }) === null, true);
   assert.ok(within(dialog).getByText('活动已结束，不再接受新的出行意向。'));
 });
 

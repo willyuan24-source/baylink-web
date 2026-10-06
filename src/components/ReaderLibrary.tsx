@@ -19,7 +19,7 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
   const save = () => {
     const result = toggleSavedGuide(guide.slug);
     setStatus(result.saved
-      ? result.persisted ? '已加入稍后读。在生活指南的「我的收藏」中找回。' : '浏览器未允许保存，刷新后可能丢失。'
+      ? result.persisted ? '已收藏。在「我的这周」的统一收藏中找回。' : '浏览器未允许保存，刷新后可能丢失。'
       : '已取消收藏。');
   };
   return <div className="reader-actions-wrap">
@@ -27,7 +27,7 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
       <button type="button" onClick={save} aria-pressed={isSaved}>{isSaved ? <Check size={16} /> : <Bookmark size={16} />}{isSaved ? '已收藏' : '收藏 · 稍后读'}</button>
       <EditorialShareActions item={guideShare(guide)} />
       {onAsk && <button type="button" onClick={() => onAsk(guide.category === 'education' ? bayBayPageQuestions(`/guides/${guide.slug}`)[1].question : `我正在读《${guide.title}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。`)}><Sparkles size={16} />{guide.category === 'education' ? '让 BayBay 整理入学步骤' : '让 BayBay 帮我整理'}</button>}
-      <Link to="/guides?view=saved">我的收藏<ChevronRight size={14} /></Link>
+      <Link to="/my-week#saved">我的收藏<ChevronRight size={14} /></Link>
     </div>
     {status && <p className="reader-status" role="status">{status}</p>}
   </div>;

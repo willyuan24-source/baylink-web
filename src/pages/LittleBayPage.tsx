@@ -27,6 +27,12 @@ class SceneBoundary extends Component<{ children: ReactNode; fallback: ReactNode
 }
 
 export default function LittleBayPage() {
+  useEffect(() => {
+    // Retain the complete rollback styles, loading them only with this legacy page.
+    if (import.meta.env?.PROD || import.meta.env?.DEV) {
+      void import('../styles/legacy-little-bay.css').catch(() => console.warn('Legacy exploration styles could not load.'));
+    }
+  }, []);
   const app = useApp();
   const locale = useLocale();
   const { search } = useLocation();

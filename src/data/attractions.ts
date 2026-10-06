@@ -1,13 +1,8 @@
-import type { PageMetadata } from '../lib/seo';
 import { sfEastExpandedAttractions } from './guides-attractions-sf-east-expanded';
 import { peninsulaSouthExpandedAttractions } from './guides-attractions-peninsula-south-expanded';
 import { northExpandedAttractions } from './guides-attractions-north-expanded';
 
-export const EXPLORE_METADATA: PageMetadata = {
-  title: '湾区景点探索与出游清单｜BAYLINK',
-  description: '从金门大桥到红杉森林，按旧金山、东湾、半岛、南湾和北湾发现景点攻略，筛选免费去处，保存并分享自己的出游清单。',
-  path: '/explore',
-};
+export { EXPLORE_METADATA } from '../lib/explore-metadata';
 export const ATTRACTION_REGIONS = [
   { id: 'all', label: '全部地区' }, { id: 'sf', label: '旧金山' },
   { id: 'east-bay', label: '东湾' }, { id: 'peninsula', label: '半岛' },

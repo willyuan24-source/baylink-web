@@ -290,7 +290,7 @@ function localizedServiceImage(image: GuideImage): GuideImage {
   const previous = cached[locale];
   if (previous) return previous;
   const suffix = locale === 'en' ? '-en' : '-hant';
-  const localized = { ...image, src: image.src.replace('.webp', `${suffix}.webp`), srcSet: image.srcSet?.replaceAll('-small.webp', `${suffix}-small.webp`).replace(/(?<!-small)\.webp(?=\s)/g, `${suffix}.webp`) };
+  const localized = { ...image, src: image.src.replace('.webp', `${suffix}.webp`), srcSet: image.srcSet?.replace(/(-small)?\.webp(?=\s)/g, (_match, small: string | undefined) => `${suffix}${small || ''}.webp`) };
   cached[locale] = localized;
   localizedServiceImages.set(image, cached);
   return localized;

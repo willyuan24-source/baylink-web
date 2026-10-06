@@ -1,13 +1,13 @@
 import type { EditorialShare } from './editorial-share';
 import { escapeHtml } from './seo';
 
-/** Character-width wrapping is independent of browser/OS fonts; never cuts UTF-16 pairs. */
+/** Keep ordinary Latin words and numbers together; CJK can wrap between full characters. */
 export function cardLines(text: string, width: number, fontSize: number, maxLines: number): string[] {
   const result: string[] = []; let line = ''; let used = 0;
-  const letters = Array.from(text.replace(/\s+/g, ' ').trim());
+  const letters = text.replace(/\s+/g, ' ').trim().match(/[\p{Script=Latin}\d][\p{Script=Latin}\d'’&./-]*|\s+|./gu) || [];
   for (let index = 0; index < letters.length; index++) {
     const char = letters[index];
-    const advance = /[\u2e80-\uffff]/u.test(char) ? fontSize : /[MW@]/.test(char) ? fontSize * .86 : /[il .,:|]/.test(char) ? fontSize * .32 : fontSize * .59;
+    const advance = Array.from(char).reduce((total, letter) => total + (/[\u2e80-\uffff]/u.test(letter) ? fontSize : /[MW@]/.test(letter) ? fontSize * .86 : /[il .,:|]/.test(letter) ? fontSize * .32 : fontSize * .59), 0);
     if (used + advance > width && line) {
       if (result.length === maxLines - 1) { result.push(`${line.trimEnd()}…`); return result; }
       result.push(line.trim()); line = ''; used = 0;

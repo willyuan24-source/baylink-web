@@ -42,8 +42,8 @@ test('shared lists accept only known IDs, deduplicate, cap stops, and never carr
   assert.equal(cleanOutingIds(ATTRACTIONS.map(item => item.id)).length, 6);
   const url = new URL(outingShareUrl(['filoli', 'muir-woods'], 'en'));
   assert.equal(url.origin, 'https://www.baylink.us');
-  assert.equal(url.pathname, '/explore');
-  assert.equal(url.searchParams.get('lang'), 'en');
+  assert.equal(url.pathname, '/en/explore');
+  assert.equal(url.searchParams.get('lang'), null);
   assert.deepEqual(parseSharedOuting(url.searchParams.get('plan')), ['filoli', 'muir-woods']);
   localStorage.setItem(OUTING_STORAGE_KEY, '{broken');
   assert.deepEqual(loadOuting(), []);
@@ -82,6 +82,7 @@ test('add, reorder and remove persist the exact user order; a shared link does n
   assert.deepEqual(loadOuting(), ['golden-gate-park', 'presidio']);
   assert.match(area.getAllByRole('listitem')[0].textContent!, /金门公园/);
   fireEvent.click(area.getByRole('button', { name: '移除：Presidio Tunnel Tops' }));
+  fireEvent.click(view.getByRole('button', { name: /继续发现更多/ }));
   fireEvent.click(view.getByRole('button', { name: '加入清单：Palo Alto Baylands 湿地' }));
   assert.deepEqual(loadOuting(), ['golden-gate-park', 'baylands']);
   fireEvent.click(view.getByRole('button', { name: '东湾', exact: true }));
@@ -109,7 +110,7 @@ test('English plan text contains localized guide links and copy failure exposes 
   await setLocale('en');
   const exported = outingText(['presidio', 'baylands'], 'en');
   assert.ok(!/[\u3400-\u9fff]/.test(exported), exported);
-  assert.ok(exported.includes('/guides/presidio-picnic-day-guide?lang=en'));
+  assert.ok(exported.includes('https://www.baylink.us/en/guides/presidio-picnic-day-guide'));
   assert.ok(exported.includes('maps/search/?api=1&query='));
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async () => { throw new Error('Clipboard unavailable'); } } });
   const view = render(<MemoryRouter initialEntries={['/explore?plan=presidio,baylands']}><AttractionExplorer /></MemoryRouter>);
@@ -125,6 +126,8 @@ test('English filters produce empty states without losing the outing or language
   assert.equal(view.queryAllByRole('article').length, 0);
   assert.ok(view.getByRole('button', { name: 'Remove: Presidio Tunnel Tops' }));
   fireEvent.click(view.getByRole('button', { name: 'Reset place filters' }));
+  assert.equal(view.getAllByRole('article').length, 12);
+  while (view.queryByRole('button', { name: /Show more places/ })) fireEvent.click(view.getByRole('button', { name: /Show more places/ }));
   assert.equal(view.getAllByRole('article').length, ATTRACTIONS.length);
 });
 

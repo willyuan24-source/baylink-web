@@ -69,7 +69,7 @@ test('compact error and login actions remain understandable in English and Tradi
   assert.ok(view.getByRole('button', { name: 'Sign in to choose sync' }));
   assert.ok(view.getByText(/Guest plans stay in this browser/));
   await act(async () => { await setLocale('zh-Hant'); });
-  assert.ok(view.getByRole('button', { name: '登錄後選擇同步' }));
+  assert.ok(view.getByRole('button', { name: '登入後選擇同步' }));
   assert.ok(view.getByText(/訪客計劃只保存在這個瀏覽器|訪客計畫只保存在這個瀏覽器/));
 });
 

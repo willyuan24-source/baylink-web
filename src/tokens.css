@@ -106,16 +106,18 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(16px,var(--text-body))!important; }
-  .site-topbar { padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px)); gap:8px; }
+  .site-topbar { padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px)); gap:4px!important; }
   .site-topbar .site-command-trigger { min-width:44px; width:44px; height:44px; padding:0; }
   .site-topbar .site-topbar-account>span { font-size:.8125rem; }
-  .site-mobile-brand img { max-width:100px; }
+  .site-topbar .site-mobile-brand { display:flex; align-items:center; min-height:44px; }
+  .site-topbar .site-mobile-brand img { width:88px!important; max-width:88px; }
   .site-language { margin-left:0; }
-  .site-language select { max-width:82px; padding-inline:8px; }
+  /* Header language names fit at every reading size; content controls still scale. */
+  .site-topbar .site-language select { font-size:16px!important; width:88px; min-width:88px; max-width:none; padding-inline:4px; }
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
   .bl-guides-page--compact .bl-guide-grid { grid-template-columns:1fr; }
 }
-@media(max-width:359px) { .site-topbar .site-mobile-brand img { width:74px; } .site-topbar { gap:4px; } .site-language select { max-width:66px; } }
+@media(max-width:359px) { .site-topbar .site-mobile-brand img { width:74px!important; max-width:74px; } .site-topbar .site-topbar-actions { display:none; } }
 @media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused * { transition:none!important; } }
 .discovery-detail-main-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
 .local-discovery-detail .discovery-detail-header h1 { font-size:calc(2rem * var(--reading-scale)); line-height:1.4; letter-spacing:0; }

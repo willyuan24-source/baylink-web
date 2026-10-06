@@ -17,8 +17,9 @@ afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); delete (na
 test('post sharing preserves the selected language and only localizes labels, never author content', async () => {
   await setLocale('en', false);
   const url = new URL(buildPostShareUrl(post));
-  assert.equal(url.searchParams.get('lang'), 'en');
-  assert.equal(url.pathname, '/posts/fixture');
+  assert.equal(url.searchParams.get('lang'), null);
+  assert.equal(url.origin, 'https://www.baylink.us');
+  assert.equal(url.pathname, '/en/posts/fixture');
   const text = buildPostShareText(post);
   assert.match(text, /I found a Bay Area housing post on BAYLINK:/);
   assert.match(text, /【图书馆】/);
@@ -30,7 +31,9 @@ test('post sharing preserves the selected language and only localizes labels, ne
   assert.match(view.baseElement.textContent!, /旧金山/);
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.equal(view.getByRole('heading', { level: 4 }).textContent, post.title);
-  assert.equal(new URL(buildPostShareUrl(post)).searchParams.get('lang'), 'zh-Hant');
+  const traditionalUrl = new URL(buildPostShareUrl(post));
+  assert.equal(traditionalUrl.pathname, '/zh-Hant/posts/fixture');
+  assert.equal(traditionalUrl.searchParams.get('lang'), null);
 });
 
 test('clipboard fallback cleans up its textarea even when legacy copying throws', async () => {

@@ -60,6 +60,15 @@ test('unknown region and type values safely fall back and oversized search value
   assert.equal(parseFeedFilters(`?q=${'x'.repeat(200)}`).keyword.length, 80);
 });
 
+test('category and search changes preserve the deliberate older-listings choice', () => {
+  const view = render(<MemoryRouter initialEntries={['/?q=old&older=1&from=card-sf']}><Filters /></MemoryRouter>);
+  fireEvent.click(view.getByRole('button', { name: 'category', exact: true }));
+  assert.equal(state(view).path, '/category/rent');
+  assert.equal(new URLSearchParams(state(view).search).get('older'), '1');
+  assert.equal(new URLSearchParams(state(view).search).get('from'), 'card-sf');
+  assert.equal(new URLSearchParams(state(view).search).has('q'), false);
+});
+
 test('a refreshed post overlay restores filters from its preserved category background', () => {
   const backgroundLocation = { pathname: '/category/rent', search: '?q=Studio&region=东湾&type=client', hash: '', key: 'background', state: null };
   const view = render(<MemoryRouter initialEntries={[{ pathname: '/posts/example', state: { backgroundLocation } }]}><Filters /></MemoryRouter>);

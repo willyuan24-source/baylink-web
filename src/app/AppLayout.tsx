@@ -3,7 +3,7 @@
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Outlet, useNavigate, type Location } from 'react-router-dom';
 import {
-  MessageCircle, Plus, User as UserIcon, Home, BookOpen, Search, MapPin, ArrowUpRight, Loader2,
+  Plus, Search, MapPin, ArrowUpRight, Loader2,
 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { BRAND } from '../brandAssets';
@@ -12,9 +12,10 @@ import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
 import { HOME_CHANNELS, matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
 import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
-import { setPageMetadata } from '../lib/seo';
+import { postAvailability } from '../lib/postAvailability';
+import { setPageMetadata, SITE_STRUCTURED_DATA } from '../lib/seo';
 import { TOOLS_METADATA } from '../data/tool-catalog';
-import { EXPLORE_METADATA } from '../data/attractions';
+import { EXPLORE_METADATA } from '../lib/explore-metadata';
 import { ABOUT_METADATA } from '../lib/about-metadata';
 import { Wrench } from 'lucide-react';
 import type {
@@ -39,8 +40,8 @@ import { ModalShell } from '../components/ui/Modal';
 import { Toast } from '../components/Toast';
 import { ImageViewer } from '../components/ImageViewer';
 import { PostNotFoundView } from '../components/PostNotFoundView';
-import { BayBayAssistantEntry, type BayBayConversationDraft } from '../components/BayBayAssistantEntry';
-import { BayBayFloatingLauncher } from '../components/BayBayFloatingLauncher';
+import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
+
 import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
 import { ResetPasswordModal } from '../components/ResetPasswordModal';
 import { BlockedUsersModal } from '../components/BlockedUsersModal';
@@ -48,13 +49,18 @@ import ReportModal, { type ReportReason } from '../components/ReportModal';
 import { PostShareSheet } from '../components/PostShareSheet';
 import { SiteNavigation } from '../components/SiteNavigation';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { QuickExplore } from '../components/QuickExplore';
+import { LocaleContentGate } from '../components/LocaleContentGate';
+import { SiteMobileNavigation } from '../components/SiteMobileNavigation';
+import { ReadingPreferencesButton } from '../components/ReadingPreferences';
 import { AdDetailModal } from '../features/ads/OfficialAds';
 import { LoginModal } from '../features/auth/LoginModal';
 
 // chunk 拉取失败重试一次，瞬时网络错误 / 发版换 hash 不至于直接炸到根级 ErrorBoundary
 const retryImport = <T,>(load: () => Promise<T>): Promise<T> =>
   load().catch(() => new Promise<void>((res) => setTimeout(res, 1000)).then(load));
+
+const QuickExplore = lazy(() => retryImport(() => import('../components/QuickExplore').then(m => ({ default: m.QuickExplore }))));
+const BayBayAssistantEntry = lazy(() => retryImport(() => import('../components/BayBayAssistantEntry').then(m => ({ default: m.BayBayAssistantEntry }))));
 
 // 大弹层懒加载：发帖（含图片压缩管线）/ 帖子详情 / 聊天 / 用户名片只在打开时才拉取代码
 const CreatePostModal = lazy(() => retryImport(() => import('../features/posts/CreatePostModal').then((m) => ({ default: m.CreatePostModal }))));
@@ -68,6 +74,15 @@ const overlayChunkFallback = (
     <Loader2 className="h-8 w-8 animate-spin text-baylink-green" />
   </div>
 );
+const DismissibleChunkFallback = ({ label, onClose }: { label: string; onClose: () => void }) => (
+  <ModalShell onClose={onClose} className="fixed inset-0 z-[110] flex items-center justify-center bg-white/90 p-5" label={label}>
+    <div className="rounded-2xl border border-baylink-border bg-white p-8 text-center">
+    <Loader2 aria-hidden="true" className="mx-auto h-8 w-8 animate-spin text-baylink-green" />
+    <p role="status" className="mt-4 text-base">{label}</p>
+    <button type="button" onClick={onClose} className="mt-5 min-h-11 rounded-xl border border-baylink-border px-6 text-base">关闭</button>
+    </div>
+  </ModalShell>
+);
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -80,6 +95,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
   const feedPage = feedPageLocation(location);
+  const includeUnconfirmed = new URLSearchParams(feedPage.search).get('older') === '1';
   const categorySlug = feedPage.pathname.startsWith('/category/')
     ? feedPage.pathname.split('/category/')[1]?.split('/')[0]
     : undefined;
@@ -87,10 +103,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [user, setUser] = useState<UserData | null>(getStoredUser);
   const [showLogin, setShowLogin] = useState(false);
   const [quickExploreOpen, setQuickExploreOpen] = useState(false);
+  const [quickQuery, setQuickQuery] = useState('');
+  const [baybayLoaded, setBaybayLoaded] = useState(false);
+  const openSearch = (query = '') => { setQuickQuery(query); setQuickExploreOpen(true); };
   useEffect(() => {
     const openSearch = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing && !document.getElementById('root')?.inert) {
         event.preventDefault();
+        setQuickQuery('');
         setQuickExploreOpen((open) => !open);
       }
     };
@@ -100,6 +120,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
+  useEffect(() => { if (baybayPanelOpen) setBaybayLoaded(true); }, [baybayPanelOpen]);
   const [baybaySessionRevision, setBaybaySessionRevision] = useState(0);
   const baybayLoginDraft = useRef<BayBayConversationDraft | null>(null);
   const baybayResumeOwner = useRef<string | null>(null);
@@ -135,7 +156,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [createInitialIntent, setCreateInitialIntent] = useState('');
   // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）。
   // 缓存只存「全部分类」默认视图：/category/:slug 冷启动不读缓存，避免首帧闪现错误分类的帖子
-  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' ? [] : readFeedCache(feedType)));
+  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' || includeUnconfirmed ? [] : readFeedCache(feedType).filter(post => postAvailability(post).tone === 'confirmed')));
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -159,7 +180,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   // 直接落在 /category/:slug 时按 URL 初始化，省掉一次按「全部」发出的无效首拉
   const [categoryFilter, setCategoryFilter] = useState<string>(() =>
     isHomePath(feedPage.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
-  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, user?.id || 'guest']);
+  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, user?.id || 'guest']);
   const feedQueryKeyRef = useRef(feedQueryKey);
 
   const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -281,11 +302,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   // 每次站内导航同步分享摘要与 canonical，避免沿用前一页的元数据。
   useEffect(() => {
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
-    if (postIdParam) return;
+    if (postIdParam || guideSlugParam || userIdParam) return;
     const path = location.pathname;
+    if (path === '/verify-email' || path === '/notifications/unsubscribe') return;
     if (/^\/(plan|play|calendar|my-week|ai-in-the-bay|together)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
-    if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
+    if (path === '/this-month' || path === '/this-month/' || path === '/this-week' || path === '/this-week/') return; // MonthlyPage owns its dated edition metadata.
+    if (path === '/guides' || path === '/guides/') { setPageMetadata({ title:'湾区生活指南｜BAYLINK', description:'按生活场景查湾区活动、交通、就医、租客权益与实用办事步骤，每篇保留官方来源与核对说明。', path:'/guides' }); return; }
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
     if (path === '/about' || path === '/about/') { setPageMetadata(ABOUT_METADATA); return; }
@@ -310,17 +333,16 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     } else if (path === '/sms-consent') {
       document.title = 'SMS Verification Consent｜BAYLINK';
     } else if (path === '/') {
-      document.title = 'BAYLINK｜湾区周末灵感、生活攻略与邻里社区';
+      document.title = 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案';
     } else {
-      document.title = 'BAYLINK｜湾区华人本地生活信息平台';
+      document.title = 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案';
     }
-    if (guideSlugParam) return; // 指南正文页拥有自己的完整元数据。
-    if (userIdParam) document.title = '邻居资料｜BAYLINK';
     setPageMetadata({
       title: document.title,
-      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : path === '/' ? '从当月活动、免费福利到周末路线和实用工具，在 BAYLINK 发现湾区生活灵感，收藏攻略、询问 BayBay，再与邻里分享。' : 'BAYLINK 湾区华人本地生活社区：查找房源、服务与二手资源，发布邻里需求，阅读湾区生活指南。',
+      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。',
       path,
-      noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/me/') || path.startsWith('/reset-password'),
+      structuredData: path === '/' ? SITE_STRUCTURED_DATA : undefined,
+      noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/me/') || path.startsWith('/reset-password') || path === '/verify-email' || path === '/notifications/unsubscribe',
     });
   }, [location.pathname, categorySlug, postIdParam, userIdParam, guideSlugParam]);
 
@@ -328,7 +350,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (!userIdParam) return;
     let cancelled = false;
     api.getUserPublicProfile(userIdParam).then((p: PublicUserProfile) => {
-      if (!cancelled) setPageMetadata({ title: `${p.nickname}｜BAYLINK`, description: '查看邻居资料与公开发布的信息。', path: `/users/${userIdParam}`, noindex: true });
+      if (!cancelled) setPageMetadata({ title: `${p.nickname}｜BAYLINK`, description: '查看邻居资料与公开发布的信息。', path: `/users/${userIdParam}`, noindex: true, preserveText: true });
     }).catch(() => {});
     return () => { cancelled = true; };
   }, [userIdParam]);
@@ -442,7 +464,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setPosts([]);
     setSelectedPost(null);
     setChatConv(null);
-    setBlockedUserIds([]);
+    setBlockedUserIds(previous => previous.length ? [] : previous);
     setReportTarget(null);
     setShowCreate(false);
     setShowBlockedUsersModal(false);
@@ -533,7 +555,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       let more = true;
       let pagesFetched = 0;
       while (true) {
-        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6`;
+        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6&availability=${includeUnconfirmed ? 'all' : 'current'}`;
         if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
         if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
         if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
@@ -558,7 +580,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       if (isRefresh) {
         setPosts(collected);
         // 只缓存默认视图（无搜索词、无筛选），供下次进入先渲染
-        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部') {
+        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部' && !includeUnconfirmed) {
           writeFeedCache(feedType, collected);
         }
       } else {
@@ -579,7 +601,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       // 只清理本次调用自己设置的加载标记（即使已被新请求取代也要清，避免标记卡死）
       if (fetchSeqRef.current === seq) { setIsLoadingMore(false); setIsInitialLoading(false); }
     }
-  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, user, blockedUserIds]);
+  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, user, blockedUserIds]);
 
   useEffect(() => {
     // The standalone 3D outing uses the editorial catalog, not the community feed.
@@ -624,6 +646,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   });
 
   const openConversation = (c: Conversation) => { setChatConv(c); navigate(`/messages/${c.id}`); };
+
+  const clearAccountSession = () => {
+    if (user) clearMessageDrafts(user.id);
+    removeStoredUser();
+    clearLocalSession();
+    navigate('/');
+  };
 
   const handleLogout = () => {
     const logout = api.request('/auth/logout', { method: 'POST' });
@@ -708,11 +737,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     else { pendingCreateRef.current = true; setShowLogin(true); }
   };
 
-  const openCreateFromSlug = (type: PostType, categorySlug?: string) => {
-    const label = categorySlug ? getCategoryFromSlug(categorySlug) : undefined;
-    openCreate(type, label && label !== '全部' ? label : undefined);
-  };
-
   const openEditPost = (post: PostData) => {
     if (!user) return setShowLogin(true);
     setEditingPost(post);
@@ -786,7 +810,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
 
   const ctx: AppContextValue = {
-    user, setUser, showToast, setShowLogin, handleLogout,
+    user, setUser, showToast, setShowLogin, handleLogout, clearAccountSession,
     chatRouteStatus, chatRouteError, retryChatRoute,
     posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
     regionFilter, setRegionFilter, categoryFilter,
@@ -797,7 +821,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     handleToggleBlockUser, openReportTarget, openChat, requestPostContact, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
-    setBaybayPanelOpen, openBayBay,
+    setBaybayPanelOpen, openBayBay, openSearch,
     adsRefreshKey, featuredRefreshKey,
     contactRequestRefreshKey, setContactRequestRefreshKey, setPendingContactRequestCount,
   };
@@ -823,12 +847,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         <header className="site-topbar">
           <Link to="/" className="site-mobile-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="150" height="38" /></Link>
           <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
-          <button type="button" className="site-command-trigger" onClick={() => setQuickExploreOpen(true)} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
+          <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
           <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
           <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate('client')}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
-          <LanguageSwitcher />
+          <ReadingPreferencesButton />
+          <LanguageSwitcher realLocation={realLocation} />
         </header>
-        {quickExploreOpen && <QuickExplore onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} />}
+        {quickExploreOpen && <Suspense fallback={<DismissibleChunkFallback label="正在打开搜索…" onClose={() => setQuickExploreOpen(false)} />}><LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={quickQuery} onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} /></LocaleContentGate></Suspense>}
 
         <main className="site-main" id="scroll-container" tabIndex={-1}>
            <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
@@ -836,38 +861,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
            </Suspense>
         </main>
 
-        <nav className="site-mobile-nav pb-safe-bar" aria-label="手机导航">
-          <div className="flex justify-around items-center px-0.5 pt-1.5 pb-0.5">
-           <Link to="/" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${isHomePath(location.pathname)?'tab-bar-active':'text-baylink-muted'}`}>
-             <Home size={20} strokeWidth={isHomePath(location.pathname)?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${isHomePath(location.pathname)?'font-medium':'font-normal'}`}>首页</span>
-           </Link>
-           <Link to="/guides" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='guides'||tab==='explore'?'tab-bar-active':'text-baylink-muted'}`}>
-             <BookOpen size={20} strokeWidth={tab==='guides'||tab==='explore'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='guides'||tab==='explore'?'font-medium':'font-normal'}`}>指南</span>
-           </Link>
-           <button onClick={()=>openCreate('client')} className="flex flex-col items-center -mt-3 active:scale-95 transition px-1">
-             <div className="w-10 h-10 bg-baylink-green rounded-[18px] shadow-rest flex items-center justify-center text-white ring-2 ring-baylink-bg/90"><Plus size={20} strokeWidth={2.5}/></div>
-             <span className="text-[11px] font-medium text-baylink-green mt-0.5">发布</span>
-           </button>
-           <Link to="/messages" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 relative ${tab==='messages'?'tab-bar-active':'text-baylink-muted'}`}>
-             <div className="relative">
-               <MessageCircle size={20} strokeWidth={tab==='messages'?2.5:1.75}/>
-               {showMessagesBadge && (
-                 messagesBadgeCount > 0 ? (
-                   <span className="absolute -top-1 -right-2 min-w-[14px] rounded-full bg-baylink-orange px-1 py-0.5 text-center text-[8px] font-bold leading-none text-white">{messagesBadgeCount}</span>
-                 ) : (
-                   <div className="absolute top-0 right-0 h-1.5 w-1.5 rounded-full bg-baylink-orange" />
-                 )
-               )}
-             </div>
-             <span className={`text-[11px] mt-0.5 ${tab==='messages'?'font-medium':'font-normal'}`}>消息</span>
-           </Link>
-           <Link to="/me" className={`flex flex-col items-center gap-0 py-1 min-w-[48px] transition active:scale-95 ${tab==='profile'?'tab-bar-active':'text-baylink-muted'}`}>
-             <UserIcon size={20} strokeWidth={tab==='profile'?2.5:1.75}/><span className={`text-[11px] mt-0.5 ${tab==='profile'?'font-medium':'font-normal'}`}>我的</span>
-           </Link>
-          </div>
-        </nav>
+        <SiteMobileNavigation pathname={location.pathname} notificationCount={messagesBadgeCount} hasNotification={showMessagesBadge} onAsk={() => openBayBay()} />
 
-        <BayBayAssistantEntry
+        {(baybayPanelOpen || baybayLoaded) && <Suspense fallback={baybayPanelOpen ? <DismissibleChunkFallback label="正在打开 BayBay…" onClose={() => setBaybayPanelOpen(false)} /> : null}><LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
           key={baybaySessionScope}
           ownerId={user?.id}
           sessionKey={`${baybaySessionScope}:${baybaySessionRevision}`}
@@ -891,26 +887,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           onNavigate={navigate}
           onCreatePostClick={(opts) => openCreate(opts?.postType || 'client', opts?.category, opts?.initialIntent)}
         />
-        <BayBayFloatingLauncher
-          baybayPanelOpen={baybayPanelOpen}
-          hidden={!!(
-            /^\/(play|together)\/?$/.test(location.pathname) ||
-            showCreate ||
-            postIdParam ||
-            threadIdParam ||
-            tab === 'messages' ||
-            showLogin ||
-            sharingPost ||
-            viewingImage ||
-            userIdParam ||
-            reportTarget ||
-            detailAd
-          )}
-          onWriteRent={() => openCreateFromSlug('client', 'rent')}
-          onLocalHelp={() => openCreateFromSlug('client', 'other')}
-          onAskBayBay={() => openBayBay()}
-          onPromoteService={() => openCreateFromSlug('provider', 'other')}
-        />
+        </LocaleContentGate>
+        </Suspense>}
+
 
         {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
         {showLogin && (

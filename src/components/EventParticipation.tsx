@@ -79,25 +79,26 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
   return <EventParticipationContext.Provider value={{ entries, loading, failed, busy, refresh, update, app }}>{children}</EventParticipationContext.Provider>;
 }
 
-export function EventParticipationActions({ event, today = getBayAreaToday() }: { event: MonthlyEvent; today?: string }) {
+export function EventParticipationActions({ event, today = getBayAreaToday(), available = true }: { event: MonthlyEvent; today?: string; available?: boolean }) {
   const participation = useEventParticipation();
   const locale = useLocale();
   const [buddiesOpen, setBuddiesOpen] = useState(false);
   if (!participation) return null;
   const entry = participation.entries[event.id];
   const ended = event.endDate < today;
+  const unavailable = ended || !available;
   const isInterested = !!entry?.me?.interested;
   const pending = participation.busy.includes(event.id);
   const count = !entry || participation.failed ? null : entry.interestedCount;
   return <div className="event-participation">
     <div className="event-participation-buttons">
-      <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (ended && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? translateText('取消想去') : translateText('我想去')}：${translateText(event.title)}`}>
-        {isInterested ? <Check size={17} /> : <Heart size={17} />}{ended && !isInterested ? '活动已结束' : isInterested ? '已想去' : '我想去'}{count !== null && count >= 3 && <span>{count}</span>}
+      <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (unavailable && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? translateText('取消想去') : translateText('我想去')}：${translateText(event.title)}`}>
+        {isInterested ? <Check size={17} /> : <Heart size={17} />}{unavailable && !isInterested ? ended ? '活动已结束' : '暂无已确认场次' : isInterested ? '已想去' : '我想去'}{count !== null && count >= 3 && <span>{count}</span>}
       </button>
-      <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />一起去{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</button>
+      <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />{unavailable ? '查看出行意向' : '一起去'}{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</button>
     </div>
     <p className="event-participation-note">{participation.failed ? <><span>人数暂时无法加载</span><button type="button" onClick={participation.refresh}><RefreshCw size={12} />重试</button></> : count === null ? '正在读取大家的出行意向…' : locale === 'en' ? `${count >= 3 ? `${count} interested · ` : ''}Interest is not a ticket or booking.` : `${count >= 3 ? `${count} 人想去 · ` : ''}意向不等于报名或购票。`}</p>
-    {buddiesOpen && <EventBuddies key={event.id} event={event} ended={ended} onClose={() => setBuddiesOpen(false)} />}
+    {buddiesOpen && <EventBuddies key={event.id} event={event} ended={unavailable} onClose={() => setBuddiesOpen(false)} />}
   </div>;
 }
 

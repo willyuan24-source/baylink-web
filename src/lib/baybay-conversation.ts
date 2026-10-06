@@ -1,6 +1,6 @@
 import { API_BASE_URL, authHeaders } from './api';
 import { getLocale, simplifySearch, translateText } from '../i18n/locale';
-import { readBayBayStream, type BayBayProgress } from './baybay-stream';
+import { readBayBayStream, parseBayBayQuickCards, type BayBayQuickCard, type BayBayStreamHandlers, type BayBayProgress } from './baybay-stream';
 import { guides, type Guide } from '../data/guides';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
@@ -25,6 +25,7 @@ export type GuideChatResponse = BayBayAssistantFields & {
   suggestedActions?: GuideChatAction[]; safetyNote?: string;
   interactiveCards?: BayBayInteractiveCard[]; matchingPosts?: unknown[];
   matchNote?: string; degraded?: boolean;
+  localMatches?: BayBayQuickCard[]; safetyRoute?: 'emergency' | 'professional';
   responseMode?: string; outingSearch?: BayBayOutingSearch;
   retrieval?: BayBayRetrieval;
   sources?: { title: string; url: string }[];
@@ -125,6 +126,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   progress?: BayBayProgress;
+  quickCards?: BayBayQuickCard[]; partialAnswer?: string;
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
   response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
@@ -210,9 +212,9 @@ export function safeBayBayPath(path?: string): path is string {
   const query = new URLSearchParams(search);
   if ([...query.keys()].some(key => query.getAll(key).length !== 1)) return false;
   if (pathname === '/plan') {
+    if (query.has('baybayBrief')) return [...query.keys()].length === 1 && validBayBayDraftId(query.get('baybayBrief'));
     if ([...query.keys()].some(key => !['q', 'auto', 'import'].includes(key))) return false;
     const question = query.get('q');
-    if (query.has('baybayBrief')) return [...query.keys()].length === 1 && validBayBayDraftId(query.get('baybayBrief'));
     if (question !== null && (question.trim().length < 2 || question.length > 800)) return false;
     if (query.has('auto') && (query.get('auto') !== '1' || !question)) return false;
     return !query.has('import') || (query.get('import') === 'event' && !question && !query.has('auto'));
@@ -280,6 +282,16 @@ export function bayBayFollowups(question: string, hasArticle: boolean, schoolCon
   return hasArticle ? ['根据这篇攻略，帮我列一个行动清单', '哪些内容需要出发前再到官方渠道核实？'] : ['帮我把建议整理成三步行动清单', '为了更适合我，你还需要哪些信息？'];
 }
 
+/** Keep only the selected public event occurrence; unrelated query values may be private. */
+export function bayBayRequestPath(path: string): string {
+  const [pathname, search = ''] = path.split('#', 1)[0].split('?');
+  const base = pathname.replace(/^\/(en|zh-Hant)(?=\/|$)/, '') || '/';
+  const query = new URLSearchParams(search);
+  const date = query.get('date');
+  return /^\/events\/[A-Za-z0-9_-]{1,120}\/?$/.test(base) && query.getAll('date').length === 1 && validPlannerWebDate(date)
+    ? `${base}?date=${date}` : base;
+}
+
 export async function fetchBayBayReply(
   message: string,
   context: { currentPath: string; categoryHint?: string; outingSearchToken?: string; assistantSessionToken?: string; searchMode?: BayBaySearchMode; searchContext?: BayBaySearchContext },
@@ -287,11 +299,12 @@ export async function fetchBayBayReply(
   signal: AbortSignal,
   timeoutMs = 100_000,
   onProgress?: (progress: BayBayProgress) => void,
+  streamHandlers?: BayBayStreamHandlers,
 ): Promise<GuideChatResponse> {
   const article = currentBayBayGuide(context.currentPath);
   const { outingSearchToken, assistantSessionToken: rawAssistantToken, searchMode = 'smart', searchContext, ...pageContext } = context;
   const assistantSessionToken = safeAssistantSessionToken(rawAssistantToken);
-  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : context.currentPath.split(/[?#]/, 1)[0] };
+  const requestContext = { ...pageContext, currentPath: article ? `/guides/${article.slug}` : bayBayRequestPath(context.currentPath) };
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let onAbort: (() => void) | undefined;
@@ -310,7 +323,7 @@ export async function fetchBayBayReply(
           method: 'POST', headers: authHeaders(), signal: controller.signal,
           body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, stream: true, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
-        const data = (response.headers?.get('content-type')?.includes('text/event-stream') ? await readBayBayStream(response, onProgress, controller.signal) : await response.json()) as GuideChatResponse;
+        const data = (response.headers?.get('content-type')?.includes('text/event-stream') ? await readBayBayStream(response, onProgress, controller.signal, streamHandlers) : await response.json()) as GuideChatResponse;
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new BayBayServiceError('BayBay 答复格式异常，请重试。');
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
           if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(typeof data.error === 'string' ? data.error : '对话条件已过期，请开启新对话并重新说明安排。');
@@ -318,7 +331,7 @@ export async function fetchBayBayReply(
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
-        const safe = { ...data, assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, answerCoverage: undefined, ...parseBayBayAssistantFields(data) };
+        const safe = { ...data, localMatches: parseBayBayQuickCards(data.localMatches), assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, answerCoverage: undefined, ...parseBayBayAssistantFields(data) };
         if (data.outingSearch !== undefined) return { ...safe, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
         if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');
         return safe;

@@ -26,7 +26,7 @@ export function useConversationOpener({ routeKey, onOpened, onError }: {
     };
     try {
       const result = await api.request('/conversations/open-or-create', {
-        method: 'POST', body: JSON.stringify({ targetUserId: intent.targetId }), signal: controller.signal,
+        method: 'POST', body: JSON.stringify({ targetUserId: intent.targetId, ...(intent.postId ? { postId: intent.postId } : {}) }), signal: controller.signal,
       });
       if (!isCurrent()) return;
       if (!result || typeof result.id !== 'string' || !result.id || (result.otherUser && result.otherUser.id !== intent.targetId)) {

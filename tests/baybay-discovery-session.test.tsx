@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
@@ -29,7 +30,7 @@ test('catalog replies show only validated explicit API guides and never automati
   const reading = guides.find(guide => guide.slug === 'sf-free-culture-eligibility-october-2026')!;
   const suggested = guides.find(guide => guide.slug !== reading.slug)!;
   let suggestedGuides: GuideChatResponse['suggestedGuides'];
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, responseMode: 'catalog', answer: 'San Jose 当天的两个活动。', suggestedGuides }));
+  mockBayBayFetch(t, async () => Response.json({ ok: true, responseMode: 'catalog', answer: 'San Jose 当天的两个活动。', suggestedGuides }));
   for (const supplied of [undefined, [], [
     { title: 'Untrusted display title', slug: suggested.slug, url: `/guides/${suggested.slug}` },
     { title: 'Wrong URL', slug: reading.slug, url: 'https://example.com/' },
@@ -56,7 +57,7 @@ test('catalog replies show only validated explicit API guides and never automati
 test('catalog notes cannot create an empty post section while actual posts and ordinary guide references stay intact', async t => {
   const reading = guides[0];
   let response: GuideChatResponse;
-  t.mock.method(globalThis, 'fetch', async () => Response.json(response));
+  mockBayBayFetch(t, async () => Response.json(response));
   for (const [responseMode, matchingPosts] of [
     ['catalog', []], ['catalog', [{ id: 'actual-post', title: '真实帖子', city: 'San Jose', createdAt: 1 }]], [undefined, []],
   ] as const) {
@@ -80,7 +81,7 @@ test('catalog notes cannot create an empty post section while actual posts and o
 test('global BayBay outside the router outlet saves with explicitly supplied account identity', async t => {
   login('member');
   const saved: { authorization: string | null; body: { candidates: unknown[]; revision: number } }[] = [];
-  t.mock.method(globalThis, 'fetch', async (url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (url: unknown, options: RequestInit) => {
     if (String(url).endsWith('/ai/guide-chat')) return Response.json(discovery());
     assert.ok(String(url).endsWith('/planner/web-candidates'));
     assert.equal(new Headers(options.headers).get('Authorization'), 'Bearer token-member');
@@ -225,7 +226,7 @@ test('account changes abort an old shortlist save and cannot mark another accoun
   let oldResolve!: (response: Response) => void;
   let oldSignal!: AbortSignal;
   const writes: string[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     const authorization = new Headers(options.headers).get('Authorization')!;
     if (authorization === 'Bearer token-a') {
       oldSignal = options.signal as AbortSignal;
@@ -253,7 +254,7 @@ test('account changes abort an old shortlist save and cannot mark another accoun
 
 test('account switch clears old conversation and a late reply cannot enter the new session', async t => {
   const pending: { resolve: (response: Response) => void; signal: AbortSignal; history: unknown[] }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
     pending.push({ resolve, signal: options.signal as AbortSignal, history: JSON.parse(String(options.body)).history });
   }));
   login('a');

@@ -1,3 +1,5 @@
+import { unprefixedPath } from '../../lib/language-path';
+
 /**
  * Wave 9 · lane S · the metrics' fixed words (review docs/opus-bay/review-2026-10-01-first-use.md §9; R§5 #9). Pure:
  * node-tested (tests/opus-bay-w9-s-metrics.test.ts); game/metricsRun.ts is the only reader at runtime.
@@ -13,7 +15,7 @@
  */
 
 /** Flip to true once the API accepts the opus_* names (docs/opus-bay/w9-backend-metrics.patch is deployed). */
-export const OPUS_METRICS_LIVE = false;
+export const OPUS_METRICS_LIVE = true;
 
 /** Where a visit came from (lane E's ui/entrySource.ts `entrySource()`; `from=` on the URL). */
 export const ENTRY_SOURCES = ['home', 'nav', 'play', 'photo', 'family', 'share', 'guide', 'promo', 'direct'] as const;
@@ -87,10 +89,10 @@ export function linkAction(href: string, origin: string, download?: string | nul
   const host = url.hostname.toLowerCase();
   const site = url.origin === origin || SITE_HOST.test(host);
   if (site) {
-    const p = url.pathname;
+    const p = unprefixedPath(url.pathname);
     if (p === '/plan' || p.startsWith('/plan/')) return 'plan';
     if (p.startsWith('/events/') || p === '/calendar' || p.startsWith('/calendar/')) return 'event';
-    if (p === '/guides' || p.startsWith('/guides/') || p === '/this-month') return 'guide';
+    if (p === '/guides' || p.startsWith('/guides/') || p === '/this-month' || p === '/this-week') return 'guide';
     if (p.startsWith('/offers/')) return 'offer';
     if (p === '/my-week') return 'plan';
     return null;
@@ -110,7 +112,8 @@ export function withGameFrom(href: string, origin: string): string {
   try { url = new URL(href, origin); } catch { return href; }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') return href;
   if (!(url.origin === origin || SITE_HOST.test(url.hostname.toLowerCase()))) return href;
-  if (url.pathname === '/opus-bay' || url.pathname.startsWith('/opus-bay/') || url.searchParams.has('from')) return href;
+  const path = unprefixedPath(url.pathname);
+  if (path === '/opus-bay' || path.startsWith('/opus-bay/') || path === '/play' || url.searchParams.has('from')) return href;
   url.searchParams.set('from', 'opus-bay');
   return url.origin === origin && !/^https?:/i.test(href) ? `${url.pathname}${url.search}${url.hash}` : url.href;
 }

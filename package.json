@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm run generate:sitemap && npm run sync:public-routes",
-    "build": "npm run export:guides && npm run export:events && npm run export:planner && npm run export:discovery && npm run generate:perks-posters && npm run generate:share-cards && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
+    "prebuild": "npm run generate:calendar && npm run generate:sitemap && npm run sync:public-routes && npm run generate:home && node scripts/generate-release.mjs",
+    "build": "npm run export:guides && npm run export:events && npm run export:planner && npm run export:discovery && npm run generate:perks-posters && npm run generate:share-cards && npm run generate:weekly && tsc -b && vite build && tsx --tsconfig tsconfig.app.json scripts/prerender.tsx",
     "lint": "eslint .",
     "preview": "vite preview",
-    "pretest": "npm run generate:sitemap && npm run sync:public-routes",
-    "test": "tsx --tsconfig tsconfig.app.json --test --test-concurrency=4 tests/*.test.ts tests/*.test.tsx tests/*.test.mjs",
-    "check": "npm run lint && npm test && npm run build && npm run verify:share-cards",
+    "pretest": "npm run generate:calendar && npm run generate:sitemap && npm run sync:public-routes && npm run generate:home",
+    "test": "node scripts/run-tests.mjs all",
+    "check": "npm run release:build",
     "generate:sitemap": "tsx --tsconfig tsconfig.app.json scripts/generate-sitemap.ts",
     "sync:public-routes": "tsx --tsconfig tsconfig.app.json scripts/sync-public-routes.ts",
     "export:guides": "tsx --tsconfig tsconfig.app.json scripts/export-guide-catalog.ts",
@@ -20,7 +20,15 @@
     "generate:share-cards": "tsx --tsconfig tsconfig.app.json scripts/generate-share-cards.ts",
     "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts",
     "export:discovery": "tsx --tsconfig tsconfig.app.json scripts/export-discovery-context.ts",
-    "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts"
+    "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts",
+    "generate:home": "tsx --tsconfig tsconfig.app.json scripts/generate-home-catalog.ts",
+    "release:build": "npm run lint && npm test && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
+    "verify:weekly": "tsx --tsconfig tsconfig.app.json scripts/verify-weekly.ts",
+    "verify:release": "node scripts/verify-release.mjs",
+    "test:site": "node scripts/run-tests.mjs site",
+    "test:opus": "node scripts/run-tests.mjs opus",
+    "generate:weekly": "tsx --tsconfig tsconfig.app.json scripts/generate-weekly.ts",
+    "generate:calendar": "tsx --tsconfig tsconfig.app.json scripts/generate-calendar-schedule.ts"
   },
   "engines": {
     "node": "24.x"

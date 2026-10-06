@@ -70,3 +70,21 @@ test('HEAD does not return a body and missing build output returns recoverable 5
   assert.equal(failed.status, 503);
   assert.match(failed.headers.get('x-robots-tag')!, /noindex/);
 });
+
+test('localized post routes retain original author text with request-scoped metadata and translated controls', async () => {
+  const [english, traditional] = await Promise.all([
+    renderPublicPostPage(new Request('https://www.baylink.us/en/posts/public-post'), { readTemplate, fetch: async () => Response.json(sample) }),
+    renderPublicPostPage(new Request('https://www.baylink.us/api/post-page?postId=public-post&siteLanguage=zh-Hant'), { readTemplate, fetch: async () => Response.json(sample) }),
+  ]);
+  const en = await english.text(), hant = await traditional.text();
+  assert.match(en, /<html lang="en"/);
+  assert.match(en, /content="en_US"/);
+  assert.match(en, /rel="canonical" href="https:\/\/www.baylink.us\/en\/posts\/public-post"/);
+  assert.match(en, /Confirm availability before contacting/);
+  assert.match(en, /公开房源介绍/);
+  assert.match(hant, /<html lang="zh-Hant"/);
+  assert.match(hant, /content="zh_TW"/);
+  assert.match(hant, /rel="canonical" href="https:\/\/www.baylink.us\/zh-Hant\/posts\/public-post"/);
+  assert.match(hant, /聯絡前請確認仍有效/);
+  assert.doesNotMatch(en + hant, /PRIVATE_/);
+});

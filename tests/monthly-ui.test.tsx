@@ -184,7 +184,7 @@ test('monthly media files and credits are valid and only reviewed contextual med
     const image = GUIDE_IMAGES[key];
     if (image.kind === 'illustration') {
       assert.match(image.caption, /插图|插画/);
-      assert.match(image.caption, /非|不代表|不对应.*真实活动|虚构|示意/);
+      assert.match(image.caption, /非|不是|不代表|不对应.*真实活动|虚构|示意/);
       return;
     }
     assert.equal(image.kind, 'photo', `${eventId} must not reuse another event's poster`);

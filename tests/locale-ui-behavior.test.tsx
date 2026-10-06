@@ -26,7 +26,7 @@ test('monthly search matches translated English and Traditional text while prese
   assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /Hardly Strictly Bluegrass/);
   assert.equal(view.getByRole('button', { name: 'San Francisco', exact: true }).getAttribute('aria-pressed'), 'true');
   await act(async () => { await setLocale('zh-Hant', false); });
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索當月活動' }), { target: { value: '免費音樂節' } });
+  fireEvent.change(view.getByRole('searchbox', { name: '搜尋當月活動' }), { target: { value: '免費音樂節' } });
   assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
   assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /免費音樂節/);
 });

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-10-05",
+  "checkedAt": "2026-10-06",
   "items": [
     {
       "kind": "offer",
@@ -1863,7 +1863,7 @@
       "id": "famsf-bay-area-free-saturdays",
       "title": "Free Saturday general admission for nine-county Bay Area residents",
       "path": "/offers/famsf-bay-area-free-saturdays",
-      "summary": "Cross-check the program rules in UCSF’s 2026 information and SF Ballet’s museum-partnership page. Date-specific availability has not been checked; confirm tickets and address evidence with the museum before visiting.",
+      "summary": "Check and reserve available free timed tickets on the museum website, and bring proof of residence. Current availability and rules are being rechecked; choose either de Young or the Legion of Honor, and check special-exhibition tickets separately.",
       "details": [
         "For residents of Alameda, Contra Costa, Marin, Napa, San Francisco, San Mateo, Santa Clara, Solano and Sonoma counties. Covers general admission; check special exhibitions separately."
       ],
@@ -1872,8 +1872,9 @@
       "costLabel": "No purchase required",
       "status": "ongoing",
       "verifiedAt": "2026-10-02",
-      "sourceUrl": "https://myfamilysandbox.ucsf.edu/news/free-saturdays-at-the-s-f-fine-arts-museums",
-      "sourceLabel": "UCSF 2026 Free Saturdays rules for both museums"
+      "verificationStatus": "needs-confirmation",
+      "sourceUrl": "https://www.famsf.org/events/free-saturdays-de-young",
+      "sourceLabel": "FAMSF official Free Saturdays page (current rules awaiting editorial review)"
     },
     {
       "kind": "offer",
@@ -4442,6 +4443,25 @@
     },
     {
       "kind": "opening",
+      "id": "marufuku-burlingame-announced",
+      "title": "Marufuku Ramen · Burlingame",
+      "path": "/openings/marufuku-burlingame-announced",
+      "summary": "Marufuku announces a Burlingame grand opening on October 11 at 11 AM, at 225 Lorton Ave. The store page lists lunch 11 AM–2 PM and dinner 5–9 PM; it remains an upcoming opening.",
+      "details": [
+        "Navigate to 225 Lorton Ave, Burlingame. Check the official schedule before visiting; an announced grand opening does not mean the shop is already operating or that there will be no queue.",
+        "225 Lorton Ave, Burlingame, CA 94010",
+        "Upcoming ramen restaurant"
+      ],
+      "region": "peninsula",
+      "city": "Burlingame",
+      "dateLabel": "Grand opening announced for October 11 at 11 AM · Still upcoming",
+      "status": "announced",
+      "verifiedAt": "2026-10-05",
+      "sourceUrl": "https://www.marufukuramen.com/burlingame",
+      "sourceLabel": "Marufuku Ramen · Burlingame · Official website"
+    },
+    {
+      "kind": "opening",
       "id": "bruma-ritz-carlton-sf",
       "title": "Bruma",
       "path": "/openings/bruma-ritz-carlton-sf",
@@ -4591,25 +4611,6 @@
       "verifiedAt": "2026-09-28",
       "sourceUrl": "https://itongsui.square.site/",
       "sourceLabel": "Tong Sui · Official website"
-    },
-    {
-      "kind": "opening",
-      "id": "marufuku-burlingame-announced",
-      "title": "Marufuku Ramen · Burlingame",
-      "path": "/openings/marufuku-burlingame-announced",
-      "summary": "Marufuku's homepage now announces a Burlingame grand opening on October 11 at 11 AM. At the September 27 check, the location page still said Coming Soon and had not published a street address, so the restaurant remains listed as upcoming.",
-      "details": [
-        "Bookmark the official location page and wait for the street address and event details before visiting. The homepage announcement does not print a year, and a celebration date does not establish the first day of service.",
-        "Burlingame, CA · Street address to be announced",
-        "Upcoming ramen restaurant"
-      ],
-      "region": "peninsula",
-      "city": "Burlingame",
-      "dateLabel": "Grand opening announced for October 11 at 11 AM · Still upcoming",
-      "status": "announced",
-      "verifiedAt": "2026-09-27",
-      "sourceUrl": "https://www.marufukuramen.com/burlingame",
-      "sourceLabel": "Marufuku Ramen · Burlingame · Official website"
     },
     {
       "kind": "opening",

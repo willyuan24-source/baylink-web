@@ -314,6 +314,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
                         const res = await api.requestPostContact(postId);
                         return { status: res.status, threadId: res.threadId };
                       } catch (error) {
+                        if (error && typeof error === 'object' && 'code' in error && error.code === 'VERIFIED_CONTACT_REQUIRED') throw error;
                         const detail = error as { requestStatus?: string; threadId?: string };
                         return { status: detail?.requestStatus || '', error: friendlyErrorMessage(error, '请求失败'), threadId: detail?.threadId };
                       }

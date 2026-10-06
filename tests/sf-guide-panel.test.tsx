@@ -75,7 +75,7 @@ test('English reader uses existing editorial translations and carries language i
   await waitFor(() => assert.ok(view.getByRole('link', { name: 'Read full guide' })));
   assert.ok(view.getByRole('heading', { name: translateText(guide.title, 'en') }));
   assert.doesNotMatch(view.container.querySelector('.sf-guide-summary')?.textContent || '', /[\u3400-\u9fff]/);
-  assert.equal(view.getByRole('link', { name: 'Read full guide' }).getAttribute('href'), `/guides/${bridge.guideSlug}?lang=en`);
+  assert.equal(view.getByRole('link', { name: 'Read full guide' }).getAttribute('href'), `/en/guides/${bridge.guideSlug}`);
 });
 
 test('places without a mapped article offer official information without a fabricated guide link', () => {

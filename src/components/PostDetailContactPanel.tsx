@@ -63,6 +63,7 @@ const ContactPanelSession = ({
   section = 'all',
 }: PostDetailContactPanelProps) => {
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
+  const [verificationNeeded, setVerificationNeeded] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
   const [pendingOwner, setPendingOwner] = useState<ContactRequestItem[]>([]);
   const [loadingPending, setLoadingPending] = useState(false);
@@ -128,7 +129,10 @@ const ContactPanelSession = ({
         showToast('请求已发送，等待帖主确认', 'success');
       }
     } catch (error) {
-      if (active.current) showToast(friendlyErrorMessage(error, '请求失败，请重试。'), 'error');
+      if (active.current) {
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'VERIFIED_CONTACT_REQUIRED') setVerificationNeeded(true);
+        showToast(friendlyErrorMessage(error, '请求失败，请重试。'), 'error');
+      }
     } finally {
       if (active.current) { requestInFlight.current = false; setLoadingRequest(false); }
     }
@@ -156,6 +160,7 @@ const ContactPanelSession = ({
 
   return (
     <div className={section === 'all' ? 'mb-5 space-y-3' : 'mb-5'}>
+      {verificationNeeded && <p role="status"><a href="/me">请到“我的”验证手机号后再请求自动发送的联系方式。你仍可使用站内私信。</a></p>}
       {showContact && (
         <div className="surface-card p-3.5">
           <p className="mb-2 text-[11px] leading-relaxed text-baylink-muted">{getCategorySafetyTip(post.category)}</p>

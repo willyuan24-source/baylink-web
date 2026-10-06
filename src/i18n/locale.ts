@@ -3,7 +3,8 @@ import { ConverterFactory } from 'opencc-js/core';
 import searchCharacters from 'opencc-js/dict/TSCharacters';
 import searchPhrases from 'opencc-js/dict/TSPhrases';
 import patterns from './en-patterns.json';
-import { browserLocale } from './browser-locale';
+import { pathLanguage, languagePath } from '../lib/language-path';
+import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath } from '../lib/english-loading';
 
 export type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
 export const LOCALE_KEY = 'baylink.reading-language.v1';
@@ -15,6 +16,15 @@ let simplified: ((text: string) => string) | undefined;
 let request = 0;
 let englishLoad: Promise<void> | undefined;
 let chineseLoad: Promise<void> | undefined;
+let englishFullyLoaded = false;
+let dictionaryRevision = 0;
+const notifyLocale = () => { dictionaryRevision++; listeners.forEach(listener => listener()); };
+let englishScopes: ReturnType<typeof createEnglishScopeLoader> | undefined;
+let englishScopeLoad: Promise<ReturnType<typeof createEnglishScopeLoader>> | undefined;
+// Registry is lazy too: generation can import media/locale before scoped files exist.
+const loadEnglishScopes = () => englishScopeLoad ||= import('../data/generated/english-scope-loaders').then(({ englishScopeLoaders }) => {
+  return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, dictionary); notifyLocale(); });
+}).catch(error => { englishScopeLoad = undefined; throw error; });
 const escapePattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const englishPatterns = Object.entries(patterns).sort(([a], [b]) => b.replace(/\{\d+\}/g, '').length - a.replace(/\{\d+\}/g, '').length).map(([source, target]) => ({
   pattern: new RegExp('^' + source.split(/\{\d+\}/).map(escapePattern).join('(.*?)') + '$', 's'), target,
@@ -24,7 +34,8 @@ export const normalizeText = (text: string) => text.trim().replace(/\s+/g, ' ');
 export const isLocale = (value: unknown): value is Locale => value === 'zh-Hans' || value === 'zh-Hant' || value === 'en';
 export const getLocale = (): Locale => current;
 export const subscribeLocale = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
-export const useLocale = () => useSyncExternalStore(subscribeLocale, getLocale, () => 'zh-Hans' as Locale);
+const readingSnapshot = () => `${current}:${dictionaryRevision}`;
+export const useLocale = () => { useSyncExternalStore(subscribeLocale, readingSnapshot, readingSnapshot); return current; };
 
 const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
   traditional = taiwanConverter(module);
@@ -53,7 +64,6 @@ export const TAIWAN_WORDS: readonly (readonly [string, string])[] = [
 const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '阿什伯里']];
 
 /** The game's own page (TAIWAN_WORDS apply there). */
-const gamePage = () => typeof location !== 'undefined' && /^\/opus-bay(?:[/?#]|$)/.test(location.pathname);
 
 /**
  * The site's cn → tw converter (opencc 'tw'), safe to run twice. opencc turns a phrase it knows into Traditional
@@ -86,88 +96,45 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 }
 
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await (englishLoad ||= Promise.all([
-    import('../data/birthday-perks-2026-en.json'), import('../data/everyday-perks-2026-en.json'),
-    import('../data/guides-perks-2026-en.json'), import('../data/perks-gallery-en.json'),
-    import('../data/retail-perks-ui-en.json'), import('../data/retail-target-lowes-2026-en.json'),
-    import('../data/retail-family-2026-en.json'), import('../data/retail-dining-2026-en.json'),
-    import('../data/october-2026-refresh-ui-en.json'), import('../data/october-2026-events-refresh-en.json'),
-    import('../data/guides-october-2026-visit-en.json'), import('../data/october-2026-verified-offers-en.json'), import('../data/october-2026-newcomer-en.json'),
-    import('./en.json'), import('../data/verified-place-media-en.json'), import('../data/official-media-ui-en.json'), import('../data/verified-offers-2026-10-05-en.json'), import('../data/content-audit-oct5-en.json'), import('../data/official-offer-media-2026-10-en.json'), import('../data/october-ui-en.json'), import('../data/october-events-en.json'),
-    import('../data/service-booking-entry-en.json'),
-    import('../data/october-offers-en.json'), import('../data/october-local-en.json'),
-    import('../data/october-events-extra-en.json'), import('../data/october-offers-extra-en.json'), import('../data/october-openings-extra-en.json'), import('../data/discovery-community-en.json'),
-    import('../data/autumn-refresh-offers-en.json'), import('../data/autumn-refresh-ui-en.json'),
-    import('../data/autumn-refresh-events-en.json'), import('../data/autumn-refresh-guides-en.json'),
-    import('../data/community-discovery-guides-en.json'),
-    import('../data/attractions-sf-east-expanded-en.json'), import('../data/attractions-peninsula-south-expanded-en.json'),
-    import('../data/attractions-north-expanded-en.json'), import('../data/attractions-expanded-media-en.json'),
-    import('../data/attractions-expanded-ui-en.json'),
-    import('../data/daily-transport-en.json'), import('../data/daily-home-en.json'), import('../data/daily-community-en.json'),
-    import('../data/daily-life-media-en.json'), import('../data/daily-life-ui-en.json'),
-    import('../data/late-september-local-en.json'), import('../data/late-september-north-en.json'),
-    import('../data/late-september-sf-east-en.json'), import('../data/late-september-peninsula-south-en.json'),
-    import('../data/late-september-ui-en.json'),
-    import('../data/schools-sf-east-en.json'), import('../data/schools-peninsula-south-north-en.json'),
-    import('../data/schools-media-en.json'), import('../data/schools-ui-en.json'), import('../data/schools-assistant-en.json'),
-    import('../data/schools-campus-media-en.json'),
-    import('../data/community-discovery-openings-en.json'), import('../data/community-discovery-offers-en.json'),
-    import('../data/community-discovery-events-en.json'),
-    import('../data/content-coverage-media-en.json'),
-    import('../data/calendar-en.json'), import('../data/planner-en.json'), import('../data/ai-local-en.json'), import('../features/source-monitor/source-monitor-en.json'),
-    import('../data/baybay-actions-en.json'), import('../features/messages/chat-ai-en.json'), import('../data/event-import-en.json'),
-    import('../data/autumn-release-en-1.json'), import('../data/autumn-release-en-2.json'), import('../data/autumn-release-en-3.json'), import('../data/autumn-release-ui-en.json'),
-    import('../data/september-refresh-regional-events-en.json'), import('../data/september-refresh-sf-east-events-en.json'),
-    import('../data/september-refresh-offers-en.json'), import('../data/september-refresh-media-en.json'),
-    import('../data/september-refresh-planning-en.json'), import('../data/september-refresh-guide-en.json'),
-    import('../data/coverage-audit-regional-en.json'), import('../data/coverage-audit-sf-north-en.json'),
-    import('../data/october-refresh-en.json'), import('../data/october-refresh-events-en.json'),
-    import('../data/october-refresh-community-en.json'),
-    import('../data/october-refresh-bulletins-en.json'),
-    import('./social-profile-en.json'), import('./profile-space-en.json'),
-    import('../data/guides-persona-visitor-en.json'), import('../data/guides-persona-newresident-en.json'),
-    import('../data/guides-persona-resident-en.json'), import('../data/reader-paths-en.json'),
-    import('../data/utilities-directory-en.json'), import('../data/utilities-east-sf-en.json'),
-    import('../data/utilities-peninsula-south-en.json'), import('../data/utilities-north-en.json'),
-    import('../data/shopping-guide-en.json'), import('../data/shopping-outlets-en.json'),
-    import('../data/shopping-sf-peninsula-south-en.json'), import('../data/shopping-east-north-en.json'),
-    import('../data/city-exploration-guide-en.json'), import('../data/city-exploration-east-sf-en.json'),
-    import('../data/city-exploration-peninsula-south-en.json'), import('../data/city-exploration-north-en.json'),
-    import('../data/useful-platforms-guide-en.json'), import('../data/useful-platforms-transport-en.json'),
-    import('../data/useful-platforms-food-en.json'), import('../data/useful-platforms-home-deals-en.json'), import('../data/useful-platforms-local-en.json'),
-    import('../data/city-roundup-east-sf-en.json'), import('../data/city-roundup-peninsula-south-en.json'), import('../data/city-roundup-north-en.json'), import('../data/city-roundup-ui-en.json'), import('../data/city-roundup-media-en.json'), import('../data/city-roundup-extra-media-east-en.json'), import('../data/city-roundup-extra-media-south-en.json'), import('../data/city-roundup-extra-media-north-en.json'),
-    import('../data/november-2026-en.json'), import('../data/november-2026-ui-en.json'),
-    import('../data/november-refresh-north-en.json'),
-    import('../data/november-refresh-peninsula-south-en.json'),
-    import('../data/november-refresh-east-sf-en.json'),
-  ]).then((modules) => { english = Object.assign({}, ...modules.map(module => module.default)); }).catch((error) => { englishLoad = undefined; throw error; }));
+  if (locale === 'en') await (englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }));
   else if (locale === 'zh-Hant') await loadChinese();
 }
 
+const scopesForPaths = (paths: string | readonly string[]) => [...new Set((typeof paths === 'string' ? [paths] : paths).flatMap(path => englishScopesForPath(path, englishScopes!.has)))];
+export function isLocaleReadyForPath(locale: Locale, paths: string | readonly string[]): boolean {
+  return locale === 'en' ? englishFullyLoaded || !!englishScopes && englishScopes.isReady(scopesForPaths(paths)) : locale === 'zh-Hant' ? !!traditional : true;
+}
+/** Browser routes wait for their complete displayed content; full loadLocale remains available to exports and SSR. */
+export async function loadLocaleForPath(locale: Locale, paths: string | readonly string[]): Promise<void> {
+  if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(scopesForPaths(paths)); } }
+  else await loadLocale(locale);
+}
+export async function loadLocaleForFeature(locale: Locale, feature: 'search'): Promise<void> {
+  if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
+  else await loadLocale(locale);
+}
+
 /** Preference changes never remount the app, rewrite form values, or touch account data. */
-export async function setLocale(locale: Locale, persist = true): Promise<boolean> {
+export async function setLocale(locale: Locale, persist = true, pathname?: string): Promise<boolean> {
   const sequence = ++request;
-  await loadLocale(locale);
+  if (pathname !== undefined) await loadLocaleForPath(locale, pathname);
+  else await loadLocale(locale);
   if (sequence !== request) return false;
   current = locale;
   if (typeof document !== 'undefined') document.documentElement.lang = locale;
   if (persist && typeof localStorage !== 'undefined') {
     try { localStorage.setItem(LOCALE_KEY, locale); } catch { /* Session preference remains usable. */ }
   }
-  listeners.forEach((listener) => listener());
+  notifyLocale();
   return true;
 }
 
 export async function initializeLocale(): Promise<void> {
   if (typeof window === 'undefined') return;
   const query = new URLSearchParams(window.location.search).get('lang');
-  let stored: string | null = null;
-  try { stored = localStorage.getItem(LOCALE_KEY); } catch { /* Optional browser storage. */ }
-  const { languages, language } = window.navigator;
-  const detected = browserLocale(languages?.length ? languages : [language]);
-  // Only an explicit choice is saved. Automatic detection follows this device's
-  // current preferences and leaves ordinary shared links language-neutral.
-  await setLocale(isLocale(query) ? query : isLocale(stored) ? stored : detected, isLocale(query));
+  // Stable Chinese-first content for every ordinary link and crawler. Explicit URLs choose translations.
+  const prefixed = /^\/(?:en|zh-Hant)(?:\/|$)/u.test(window.location.pathname);
+  await setLocale(prefixed ? pathLanguage(window.location.pathname) : isLocale(query) ? query : 'zh-Hans', isLocale(query) && !prefixed, window.location.pathname);
 }
 
 /** Keep complete editorial translations when a brand or label is appended.
@@ -191,9 +158,15 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
 export function translateText(text: string, locale: Locale = current, depth = 0): string {
   if (locale === 'zh-Hans' || !/[\u3400-\u9fff]/.test(text)) return text;
-  if (locale === 'zh-Hant') return (traditional?.(text, gamePage()) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
+  if (locale === 'zh-Hant') return (traditional?.(text, true) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
+  const numericDate = /^(?:(\d{4})\s*年\s*)?(\d{1,2})月\s*(\d{1,2})日$/.exec(text.trim());
+  if (numericDate && Number(numericDate[2]) >= 1 && Number(numericDate[2]) <= 12 && Number(numericDate[3]) >= 1 && Number(numericDate[3]) <= 31) {
+    const date = new Date(Date.UTC(Number(numericDate[1] || 2000), Number(numericDate[2]) - 1, Number(numericDate[3]), 12));
+    if (date.getUTCMonth() === Number(numericDate[2]) - 1 && date.getUTCDate() === Number(numericDate[3])) return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', ...(numericDate[1] ? { year: 'numeric' } : {}), timeZone: 'UTC' }).format(date);
+  }
+  if (/^\d{4}\s*年$/.test(text.trim()) && Number(text.trim().slice(0,4)) >= 1900 && Number(text.trim().slice(0,4)) <= 2100) return text.trim().slice(0,4);
   const composed = translateKnownComposition(text);
   if (composed !== undefined) return composed;
   if (depth < 3) for (const { pattern, target } of englishPatterns) {
@@ -216,7 +189,9 @@ export const simplifySearch = (text: string): string => {
 };
 export function localizedUrl(value: string, locale: Locale = current): string {
   const url = new URL(value, 'https://www.baylink.us');
-  if (locale === 'zh-Hans') url.searchParams.delete('lang'); else url.searchParams.set('lang', locale);
+  if (url.origin !== 'https://www.baylink.us') return url.href;
+  url.pathname = languagePath(url.pathname, locale);
+  url.searchParams.delete('lang');
   return url.href;
 }
 

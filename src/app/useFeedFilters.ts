@@ -44,6 +44,6 @@ export function useFeedFilters(location: Location, navigate: NavigateFunction) {
     setKeyword: (value: SetStateAction<string>) => update('keyword', value),
     setRegionFilter: (value: SetStateAction<string>) => update('regionFilter', value),
     setFeedType: (value: SetStateAction<PostType>) => update('feedType', value),
-    feedLocation: (pathname: string, overrides: Partial<FeedFilters> = {}) => ({ pathname, search: feedSearch({ ...latest.current, ...overrides }) }),
+    feedLocation: (pathname: string, overrides: Partial<FeedFilters> = {}) => ({ pathname, search: feedSearch({ ...latest.current, ...overrides }, onFeed ? source.search : '') }),
   };
 }

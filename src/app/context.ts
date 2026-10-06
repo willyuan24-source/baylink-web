@@ -14,6 +14,7 @@ export type AppContextValue = {
   showToast: ShowToast;
   setShowLogin: (v: boolean) => void;
   handleLogout: () => void;
+  clearAccountSession?: () => void;
   chatRouteStatus: 'idle' | 'loading' | 'ready' | 'not-found' | 'error';
   chatRouteError: string | null;
   retryChatRoute: () => void;
@@ -62,6 +63,7 @@ export type AppContextValue = {
   openBlockedUsersModal: () => void;
   setBaybayPanelOpen: (open: boolean) => void;
   openBayBay: (question?: string) => void;
+  openSearch: (query?: string) => void;
 
   adsRefreshKey: number;
   featuredRefreshKey: number;

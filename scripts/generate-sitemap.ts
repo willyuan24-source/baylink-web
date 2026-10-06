@@ -5,18 +5,20 @@ import { guides } from '../src/data/guides';
 import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { SLUG_TO_CATEGORY } from '../src/routing';
+import { languagePath, type SiteLanguage, unprefixedPath } from '../src/lib/language-path';
 import { SITE_URL, escapeHtml } from '../src/lib/seo';
 
 /** The dev/public file and the production prerender use the same current catalog. */
 export function generateSitemap() {
-  const paths = ['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/opus-bay', '/ai-in-the-bay', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map(slug => `/category/${slug}`), ...guides.map(guide => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
+  const basePaths = ['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/opus-bay', '/ai-in-the-bay', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map(slug => `/category/${slug}`), ...guides.map(guide => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
+  const paths = (['zh-Hans','zh-Hant','en'] as SiteLanguage[]).flatMap(locale => basePaths.map(path => languagePath(path,locale)));
   const dates = new Map(guides.map(guide => [`/guides/${guide.slug}`, guide.updatedAt]));
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
     if (share.checkedAt) dates.set(share.path, share.checkedAt);
   }
   dates.set('/this-month', MONTHLY_EDITION.checkedAt);
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${paths.map(path => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${dates.has(path) ? `<lastmod>${escapeHtml(dates.get(path)!)}</lastmod>` : ''}</url>`).join('\n')}\n</urlset>\n`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${paths.map(path => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${dates.has(unprefixedPath(path)) ? `<lastmod>${escapeHtml(dates.get(unprefixedPath(path))!)}</lastmod>` : ''}${(['zh-Hans','zh-Hant','en'] as SiteLanguage[]).map(locale => `<xhtml:link rel="alternate" hreflang="${locale}" href="${SITE_URL}${languagePath(path,locale)}"/>`).join('')}</url>`).join('\n')}\n</urlset>\n`;
   return { paths, xml };
 }
 

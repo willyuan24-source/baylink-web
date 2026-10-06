@@ -14,7 +14,7 @@ const request = api.request;
 const summary = { days: 30, from: '2026-08-25', through: '2026-09-23', counts: { planner_recommendation: 37, plan_saved: 12, plan_shared: 8, official_source_click: 16, favorite_saved: 4, planner_map_opened: 9, planner_outing_adopted: 7, planner_edit_applied: 3, planner_web_search: 5 } };
 afterEach(async () => { cleanup(); api.request = request; await setLocale('zh-Hans', false); });
 
-test('usage metrics never show invented zeroes while loading, then render nine labeled operation counts in English', async () => {
+test('usage metrics render known counts in English and keep newly unavailable metrics unknown', async () => {
   let resolve!: (value: unknown) => void;
   const pending = new Promise(yes => { resolve = yes; });
   api.request = async endpoint => { assert.equal(endpoint, '/admin/product-metrics'); return pending; };
@@ -24,8 +24,9 @@ test('usage metrics never show invented zeroes while loading, then render nine l
   assert.match(view.getByRole('status').textContent || '', /Loading/);
   assert.equal(view.container.querySelectorAll('dd').length, 0);
   await act(async () => { resolve(summary); });
-  assert.deepEqual([...view.container.querySelectorAll('dd')].map(cell => cell.textContent), ['37', '12', '8', '16', '4', '9', '7', '3', '5']);
-  assert.equal(view.container.querySelectorAll('dt').length, 9);
+  const cells = [...view.container.querySelectorAll('dd')].map(cell => cell.textContent);
+  assert.deepEqual(cells.slice(0, 9), ['37', '12', '8', '16', '4', '9', '7', '3', '5']);
+  assert.ok(cells.length > 9 && cells.slice(9).every(value => value === '—'));
   assert.match(view.container.textContent || '', /not user counts, conversion rates or return rates/);
   assert.ok(!/[\u3400-\u9fff]/.test(view.container.textContent || ''));
 });
@@ -46,6 +47,6 @@ test('failed and malformed metric responses remain errors until a successful ret
   assert.ok(view.getByRole('alert'));
   assert.equal(view.container.querySelectorAll('dd').length, 0);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '重试统计' })); });
-  assert.equal(view.queryByRole('alert'), null);
-  assert.equal(view.container.querySelectorAll('dd').length, 9);
+  assert.equal(view.queryByRole('alert') === null, true);
+  assert.ok(view.container.querySelectorAll('dd').length > 9);
 });

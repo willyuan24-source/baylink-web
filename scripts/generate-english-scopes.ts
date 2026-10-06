@@ -37,7 +37,7 @@ export function englishDictionaryForValues(dictionary: EnglishDictionary, values
   return selected;
 }
 
-async function uiStrings(): Promise<string[]> {
+async function uiStrings(directories = ['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils']): Promise<string[]> {
   const strings: string[] = [];
   const scan = async (directory: string) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -57,7 +57,7 @@ async function uiStrings(): Promise<string[]> {
     }
   };
   // The 3D world and editorial data have independent content packs.
-  await Promise.all(['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils'].map(directory => scan(`src/${directory}`)));
+  await Promise.all(directories.map(directory => scan(`src/${directory}`)));
   return strings;
 }
 
@@ -69,8 +69,9 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   // Keep final source precedence identical across full and scoped loads.
   for (const key of Object.keys(ui)) if (Object.hasOwn(dictionary, key)) ui[key] = dictionary[key];
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
-  const guideIndex = [guides.map(guide => { const { blocks: _blocks, ...summary } = guide; return { ...summary, media: getGuideMedia(guide).cover }; }), GUIDE_CATEGORY_TABS, READER_PATHS];
+  const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
   const scopeValues: Record<string, unknown> = {
+    game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
@@ -78,7 +79,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
     explore: [ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, ATTRACTION_REGION_INTROS, ATTRACTIONS.map(place => { const guide = guides.find(item => item.slug === place.slug); return guide ? getGuideMedia(guide) : undefined; })],
   };
-  const registry: Record<string, string> = { ui: 'ui.json', game: '../english.json' };
+  const registry: Record<string, string> = { ui: 'ui.json' };
   const sizes: Record<string, number> = { ui: gzipSync(JSON.stringify(ui)).length };
   await writeFile(`${directory}/ui.json`, JSON.stringify(ui));
   for (const [scope, values] of Object.entries(scopeValues)) {

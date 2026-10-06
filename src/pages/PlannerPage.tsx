@@ -46,7 +46,7 @@ function PlannerWorkspace() {
   const params = new URLSearchParams(location.search);
   const requirementsDraftId = params.get('baybayBrief');
   const requirementsOwnerId = app?.user?.id || undefined;
-  const requirementsDraft = useMemo(() => readBayBayRequirementsDraft(requirementsDraftId, requirementsOwnerId), [requirementsDraftId, requirementsOwnerId]);
+  const requirementsDraft = readBayBayRequirementsDraft(requirementsDraftId, requirementsOwnerId);
   // Locale/query cleanup cannot reload or erase edits to a successfully imported private draft.
   const queryMessage = requirementsDraftId !== null ? requirementsDraft?.message || '' : params.get('q')?.trim().slice(0, 800) || '';
   const planSearch = useMemo(() => {

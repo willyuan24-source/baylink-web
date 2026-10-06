@@ -81,7 +81,10 @@ test('W9-E shell: the share card — own title / description / canonical / hrefl
   }
   assert.doesNotMatch(head, /href="[^"]*\?lang=/, 'language alternates use their own canonical paths');
   for (const [locale, prefix, lang] of [['zh_CN', '', 'zh'], ['zh_TW', '/zh-Hant', 'zh'], ['en_US', '/en', 'en']] as const) {
-    const edition = renderMetadataHtml({ ...opusBayMetadata(new Date('2026-10-02T09:00:00-07:00'), lang), locale });
+    const edition = renderMetadataHtml({ ...opusBayMetadata(new Date('2026-10-02T09:00:00-07:00'), lang), locale }) + opusBayHeadExtras(locale);
+    assert.equal((edition.match(/property="og:image:alt"/g) || []).length, 1, 'one unambiguous image description');
+    assert.ok(!edition.includes(`<meta property="og:locale:alternate" content="${locale}"`), 'an edition does not list itself as an alternate');
+    if (lang === 'en') assert.ok(edition.includes(OPUS_BAY_OG.alt.en), 'English share cards use English image descriptions');
     assert.ok(edition.includes(`<link rel="canonical" href="https://www.baylink.us${prefix}/opus-bay" />`), locale);
     assert.ok(edition.includes(`<meta property="og:url" content="https://www.baylink.us${prefix}/opus-bay" />`), locale);
     assert.ok(edition.includes(`<meta property="og:locale" content="${locale}" />`), locale);

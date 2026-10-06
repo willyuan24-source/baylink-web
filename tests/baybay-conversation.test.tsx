@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -13,8 +14,8 @@ const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistant
 const { QuickExplore } = await import('../src/components/QuickExplore');
 const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired, bayBayTaskBrief, bayBayWebResult } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
-afterEach(cleanup);
 const { readBayBayRequirementsDraft } = await import('../src/lib/baybay-plan-handoff');
+afterEach(cleanup);
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
 
@@ -27,7 +28,7 @@ test('new replies scroll to their heading instead of skipping long answers to th
   } });
   t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
   let finish!: () => void;
-  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('第一步先看资格。\n'.repeat(80))); }));
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('第一步先看资格。\n'.repeat(80))); }));
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '详细说明图书馆资格' } });
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
@@ -43,7 +44,7 @@ test('scrolling upward while waiting preserves reading position until the next e
   Object.defineProperty(proto, 'scrollIntoView', { configurable: true, value: function (this: HTMLElement) { scrolled.push(this.className); } });
   t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
   let finish!: () => void;
-  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('这是回答。')); }));
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('这是回答。')); }));
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   const ask = async (message: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
@@ -94,7 +95,7 @@ test('expired search context is a recoverable new-search error, not an ordinary 
 
 test('completed conversations send bounded history and retain earlier answers', async t => {
   const bodies: { message: string; history: unknown[] }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     const body = JSON.parse(String(options.body)); bodies.push(body);
     return answer(`这是第 ${bodies.length} 条根据上下文整理的回答。`);
   });
@@ -116,7 +117,7 @@ test('completed conversations send bounded history and retain earlier answers', 
 test('city and date survive beyond four turns while a typed restart clears history, retained conditions and outing tokens', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { message: string; history: { content: string }[]; searchContext?: { city?: string; date?: string }; outingSearchToken?: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return Response.json({ ok: true, answer: `Reply ${bodies.length}: invented Shanghai`, ...(bodies.length === 6 ? { outingSearch: {
       source: 'site-search', state: 'needs_clarification', filters: { sort: 'soonest' }, missing: ['date'], question: '请再确认日期', continuationToken: 'previous.signature',
@@ -141,7 +142,7 @@ test('city and date survive beyond four turns while a typed restart clears histo
 test('recognized page filters enter search context but raw URL text is not sent and explicit user conditions win', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { context: { currentPath: string }; searchContext?: { city?: string; date?: string }; message: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer('已接收'); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer('已接收'); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}
     currentPath="/calendar?city=Oakland&date=2026-10-05&q=private@example.com" />);
   for (const message of ['这一天有什么活动？', '今天改去 Berkeley']) {
@@ -157,7 +158,7 @@ test('recognized page filters enter search context but raw URL text is not sent 
 test('cleared city and date constraints stay cleared on follow-ups instead of being restored from page filters', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { searchContext?: { city?: string; region?: string; date?: string }; message: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer(`Reply ${bodies.length}`); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer(`Reply ${bodies.length}`); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} currentPath="/calendar?city=San%20Francisco&date=2026-10-04" />);
   const ask = async (message: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
@@ -180,7 +181,7 @@ test('cleared city and date constraints stay cleared on follow-ups instead of be
 
 test('mode switching and cancellation keep the selected request scope and ignore cancelled geographic corrections', async t => {
   const pending: { body: { searchMode: string; searchContext?: { city?: string; date?: string }; history: unknown[] }; signal: AbortSignal; resolve: (response: Response) => void }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
   const view = render(<BayBayAssistantEntry ownerId="member" variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   const ask = (message: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
   ask('San Jose 10/05/2027 有什么活动');
@@ -213,7 +214,7 @@ test('mode switching and cancellation keep the selected request scope and ignore
 
 test('follow-up chips preserve supplied travel facts instead of inventing age, origin, or transport', async t => {
   const bodies: { message: string; history: { role: string; content: string }[] }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return answer(`这是第 ${bodies.length} 条保留原有条件的回答。`);
   });
@@ -241,7 +242,7 @@ test('a preset arriving while busy waits, is consumed once when started, and can
   const resolvers: ((response: Response) => void)[] = [];
   const bodies: { message: string }[] = [];
   const consumed: (number | undefined)[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return new Promise<Response>(resolve => resolvers.push(resolve));
   });
@@ -264,7 +265,7 @@ test('a preset arriving while busy waits, is consumed once when started, and can
 
 test('closing aborts, and late cancelled responses cannot overwrite a reopened conversation', async t => {
   const requests: { signal: AbortSignal; resolve: (response: Response) => void; body: { history: unknown[] } }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => requests.push({ signal: options.signal as AbortSignal, resolve, body: JSON.parse(String(options.body)) })));
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => requests.push({ signal: options.signal as AbortSignal, resolve, body: JSON.parse(String(options.body)) })));
   const props = { variant: 'headless' as const, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
   const view = render(<BayBayAssistantEntry {...props} panelOpen pendingQuestion="一个很慢的问题" pendingQuestionId={1} />);
   view.rerender(<BayBayAssistantEntry {...props} panelOpen={false} />);
@@ -279,7 +280,7 @@ test('closing aborts, and late cancelled responses cannot overwrite a reopened c
 
 test('stalled fetch and stalled response bodies have a bounded timeout', async t => {
   let signal: AbortSignal | undefined;
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     signal = options.signal as AbortSignal;
     return { ok: true, json: () => new Promise(() => {}) } as Response;
   });
@@ -303,7 +304,7 @@ test('AI action links only allow known planner queries and published tools', () 
 
 test('planning questions stay conversational until the user explicitly carries their requirements to the planner', async t => {
   const requests: unknown[] = [];
-  t.mock.method(globalThis, 'fetch', async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
+  mockBayBayFetch(t, async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
   for (const question of ['周六带五岁孩子，从 Fremont 出发，预算 $50', '週六帶五歲孩子，從 Fremont 出發，預算 $50', 'Plan Saturday with my 5-year-old, starting from Fremont, with a $50 admission budget per person.']) {
     const paths: string[] = [];
     const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop} />);
@@ -338,7 +339,7 @@ test('task handoff contains user facts only and preserves the latest correction 
 
 test('service search and posting flows keep their actions without sending repair needs to the outing planner', async t => {
   let payload: Record<string, unknown> = {};
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: '请确认具体维修需求。', ...payload }));
+  mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '请确认具体维修需求。', ...payload }));
   for (const response of [
     { responseMode: 'search', matchingPosts: [], taskState: { version: 1, revision: 1, goal: 'discover' } },
     { suggestedActions: [{ label: '发布维修需求', type: 'postAssist', postType: 'client', category: 'repair' }] },
@@ -359,7 +360,7 @@ test('service search and posting flows keep their actions without sending repair
 
 test('search mode stays top-level and only citation-backed web cards are actionable', async t => {
   let sent: Record<string, unknown> = {};
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { sent = JSON.parse(String(options.body)); return answer('站内答复'); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { sent = JSON.parse(String(options.body)); return answer('站内答复'); });
   await fetchBayBayReply('周末去哪', { currentPath: '/', searchMode: 'site' }, [], new AbortController().signal);
   assert.equal(sent.searchMode, 'site'); assert.deepEqual(sent.context, { currentPath: '/' });
   assert.equal(bayBayWebResult({ ok: true, answer: 'fake', sources: [{ title: 'x', url: 'https://example.com' }] }), null);

@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import assert from 'node:assert/strict';
 import test, { after, afterEach, before } from 'node:test';
 import { JSDOM } from 'jsdom';
@@ -30,7 +31,7 @@ afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
 test('shared guide URLs send the canonical article path through the real API contract', async t => {
   const requests: RequestBody[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     requests.push(JSON.parse(String(options.body)));
     return Response.json({ ok: true, answer: '请先到这篇指南列出的官方学区入口核验。' });
   });
@@ -50,7 +51,7 @@ test('shared guide URLs send the canonical article path through the real API con
 test('school page prompts use the current guide, explain privacy and expose only catalog sources', async t => {
   const requests: RequestBody[] = [];
   const navigated: string[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     requests.push(JSON.parse(String(options.body)));
     return Response.json({ ok: true, answer: '请告诉我地区与拟入读年级，再到官方学区入口自行核验。', suggestedGuides: [
       { slug: school.slug, title: '伪造的学校保证录取排名', url: path },
@@ -85,7 +86,7 @@ test('school page prompts use the current guide, explain privacy and expose only
 test('answers, follow-ups and retries retain their guide after navigation, while new input uses the new page', async t => {
   const requests: RequestBody[] = [];
   const resolves: ((response: Response) => void)[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => {
     requests.push(JSON.parse(String(options.body)));
     return new Promise<Response>(resolve => resolves.push(resolve));
   });
@@ -119,7 +120,7 @@ test('school questions stay in chat and the school starter is editable before an
     assert.deepEqual(bayBayFollowups(question, false), ['按已经提供的地区与年级，帮我列出需要向学区核实的事项', '帮我写一段不含孩子个人资料的入学咨询模板']);
   }
   const requests: RequestBody[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     requests.push(JSON.parse(String(options.body)));
     return Response.json({ ok: true, answer: '请用官方入口核对地区与年级对应的申请步骤。' });
   });
@@ -138,7 +139,7 @@ test('school questions stay in chat and the school starter is editable before an
 test('a question queued while busy keeps the guide that was open when it arrived', async t => {
   const requests: RequestBody[] = [];
   const resolves: ((response: Response) => void)[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => {
     requests.push(JSON.parse(String(options.body)));
     return new Promise<Response>(resolve => resolves.push(resolve));
   });

@@ -65,7 +65,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       {item.kind === 'opening' && <p className="discovery-inline-note">{openingStatusNote(item.shop.status)}</p>}
       {item.kind === 'event' ? <>
         <div className="discovery-detail-main-actions discovery-detail-links" role="group" aria-label="活动主要操作"><a className="discovery-primary" onClick={() => recordProductEvent('official_source_click')} href={officialUrl} target="_blank" rel="noopener noreferrer">查看主办方详情<ArrowUpRight size={17} /></a>{planDate && <Link className="discovery-secondary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}</div>
-        <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={item.event} today={today} /></div>
+        <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={item.event} today={today} available={!ended} /></div>
         <details className="discovery-detail-more-actions"><summary>{ended ? (english ? 'Archive and sharing' : '历史资料与分享') : '收藏、日历与分享'}</summary>{!ended && <><SaveToWeek favorite={{ kind: 'event', id: item.event.id }} /><button type="button" className="discovery-secondary" onClick={() => downloadEventCalendar(item.event)}><CalendarDays size={17} />存入日历</button></>}<EditorialShareActions item={share} /></details>
       </> : <EditorialShareActions item={share} />}
       {openingPlace && <><SaveToWeek favorite={{ kind: 'place', id: openingPlace.id }} /><Link className="discovery-primary" to={`/plan?stops=place:${openingPlace.id}`}>用这家店开始出游计划<ArrowRight size={16} /></Link></>}

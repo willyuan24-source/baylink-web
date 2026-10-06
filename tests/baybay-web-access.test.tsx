@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -20,7 +21,7 @@ afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Han
 
 test('guests send only site requests and the signed-in modes send the current bearer token', async t => {
   const calls: { mode: string; auth: string | null }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     calls.push({ mode: JSON.parse(String(init.body)).searchMode, auth: new Headers(init.headers).get('Authorization') });
     return Response.json({ ok: true, answer: `答复 ${calls.length}` });
   });
@@ -44,7 +45,7 @@ test('guests send only site requests and the signed-in modes send the current be
 
 test('a server authentication fallback changes the member UI to site-only without losing the answer', async t => {
   const modes: string[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     modes.push(JSON.parse(String(init.body)).searchMode);
     return Response.json({ ok: true, answer: `保留站内答复 ${modes.length}`, retrieval: { requestedMode: 'web', effectiveMode: 'site', scope: 'site', webStatus: 'auth_required', webAccess: { authenticated: false, allowed: false, reason: 'auth_required' } } });
   });
@@ -61,7 +62,7 @@ test('a server authentication fallback changes the member UI to site-only withou
 
 test('explicit guest sign-in carries the draft and plan, cancels pending work and discards late replies', async t => {
   const calls: { body: { message: string; assistantSessionToken?: string; history: unknown[] }; signal: AbortSignal; resolve: (r: Response) => void }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, init: RequestInit) => new Promise<Response>(resolve => calls.push({ body: JSON.parse(String(init.body)), signal: init.signal as AbortSignal, resolve })));
+  mockBayBayFetch(t, (_url: unknown, init: RequestInit) => new Promise<Response>(resolve => calls.push({ body: JSON.parse(String(init.body)), signal: init.signal as AbortSignal, resolve })));
   let handoff: BayBayConversationDraft | undefined;
   const onLoginNeeded = (draft: BayBayConversationDraft) => { handoff = draft; };
   const view = render(<BayBayAssistantEntry {...props} onLoginNeeded={onLoginNeeded} />);

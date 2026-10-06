@@ -1,5 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
+import { BayBayEntityCards } from './BayBayEntityCards';
+import { recordProductEvent } from '../lib/product-events';
+import { API_BASE_URL, authHeaders } from '../lib/api';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
 import { BayBaySmartCard } from './BayBaySmartCard';
@@ -52,8 +55,19 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
+  const [usage, setUsage] = useState<{remaining:number;limit:number;resetAt?:string}|null>(null);
+  const [usageRevision,setUsageRevision] = useState(0);
   const [internalOpen, setInternalOpen] = useState(false);
   const open = onPanelOpenChange ? !!panelOpen : internalOpen;
+  useEffect(() => {
+    if (!open) return; const controller = new AbortController();
+    void fetch(`${API_BASE_URL}/ai/usage`, { headers: authHeaders(), signal: controller.signal }).then(async response => response.ok ? response.json() : null).then(value => {
+      if (controller.signal.aborted) return;
+      if (value && Number.isInteger(value.remaining) && Number.isInteger(value.limit) && value.remaining >= 0 && value.remaining <= value.limit && value.limit <= 10000) setUsage({remaining:value.remaining,limit:value.limit,...(typeof value.resetAt==='string'?{resetAt:value.resetAt}: {})});
+      else setUsage(null);
+    }).catch(()=>{ if (!controller.signal.aborted) setUsage(null); });
+    return ()=>controller.abort();
+  },[open,ownerId,usageRevision]);
   const setOpen = useCallback((value: boolean) => {
     if (onPanelOpenChange) onPanelOpenChange(value); else setInternalOpen(value);
   }, [onPanelOpenChange]);
@@ -131,14 +145,22 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     const outingSearchToken = previousReply?.outingSearch?.continuationToken;
     const assistantSessionToken = previousReply?.assistantSessionToken;
     activeRequest.current = { id, controller };
+    const startedAt = performance.now();
+    recordProductEvent('baybay_ask');
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
     void fetchBayBayReply(message, { currentPath: requestPath, searchMode: effectiveSearchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
       if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, progress } : turn));
+    }, {
+      onCards: cards => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, quickCards: cards } : turn)); },
+      onText: text => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, partialAnswer: (turn.partialAnswer || '') + text } : turn)); },
     })
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
+        recordProductEvent(performance.now() - startedAt < 15_000 ? 'baybay_fast' : 'baybay_slow');
+        if (response.degraded) recordProductEvent('baybay_degraded');
         activeRequest.current = null;
+        setUsageRevision(previous=>previous+1);
         if (response.retrieval?.webAccess?.reason === 'auth_required' || response.retrieval?.webStatus === 'auth_required') setAuthRequired(true);
         updateTurns((previous) => previous.map((turn) => {
           if (turn.id !== id) return turn;
@@ -246,11 +268,13 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
             {turns.map((turn) => <section className="baybay-turn" key={turn.id} data-turn-id={turn.id} aria-label={`问题：${turn.question}`}>
               <div className="baybay-user-question"><span>你</span><p>{turn.question}</p></div>
               {turn.state === 'pending' && <p role="status" className="baybay-thinking" translate="no"><Loader2 size={15} className="animate-spin" />{turn.progress ? <span>{({ site: copy('站内资料', 'Site information'), research: copy('问题分析与检索', 'Analysis and research'), sources: copy('来源阅读', 'Source review'), routes: copy('路线估算', 'Route estimates'), answer: copy('答复整理', 'Answer preparation') })[turn.progress.phase]}{turn.progress.status === 'running' ? copy('处理中…', ' in progress…') : copy('阶段结束，正在等待结果…', ' stage ended; waiting for the result…')}</span> : copy('正在等待答复；完成后会显示本次来源。', 'Waiting for the answer; sources will appear when it is ready.')}</p>}
+              {turn.state === 'pending' && <><BayBayEntityCards cards={turn.quickCards || []} onNavigate={navigate} />{turn.partialAnswer && <p className="baybay-stream-answer">{turn.partialAnswer}</p>}</>}
               {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { const draft = turn.restartAssistant ? (bayBayTaskBrief(turns) || turn.question).slice(0, 500) : copy('我想找搭子一起去。', 'I want to find people to go with.'); stop(); updateTurns(() => []); setQuestion(draft); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{turn.restartAssistant ? copy('重新开始对话', 'Start a new conversation') : copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
               {turn.response && <div className="member-baybay-answer">
                 <div className="member-baybay-answer-label"><Sparkles size={12} />{turn.response.outingSearch ? copy('小队搜索', 'Outing search') : turn.response.degraded ? '参考指引' : 'BayBay 建议'}</div>
                 <BayBayRetrievalLabel response={turn.response} />
                 <BayBayCoverageSummary response={turn.response} />
+                <BayBayEntityCards cards={turn.response.localMatches || turn.quickCards || []} onNavigate={navigate} />
                 {turn.response.degraded && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
                 {turn.response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={turn.response} onNavigate={navigate} />}
                 {turn.response.assistantPlan && <BayBayAssistantPlanCard plan={turn.response.assistantPlan} taskState={turn.response.taskState} ownerId={ownerId} evidence={turn.response.evidence || []} disabled={loading || turn.id !== lastComplete?.id} onAsk={message => askBayBay(message, turn.currentPath, true)} onNavigate={navigate} />}
@@ -259,6 +283,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
                 <BayBayMatchingPosts posts={turn.response.matchingPosts || []} note={turn.response.responseMode === 'catalog' || ['completed', 'unavailable', 'verification_failed'].includes(turn.response.retrieval?.webStatus || '') ? undefined : turn.response.matchNote} onNavigate={navigate} />
                 {turn.response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={(action) => handleAction(action, turn.question)} />)}
                 <BayBayDiscoveryResults response={turn.response} ownerId={ownerId} sessionKey={sessionKey} onNavigate={navigate} />
+                <BayBayFeedback turnId={turn.id} />
                 <BayBayReferences response={turn.response} currentPath={turn.currentPath} onNavigate={navigate} />
                 {!!turn.response.suggestedActions?.length && <div className="mt-2.5 flex flex-wrap gap-1.5">{turn.response.suggestedActions.map((action, index) => <button type="button" key={`${action.label}-${index}`} onClick={() => handleAction(action, turn.question)} className="member-baybay-action border border-baylink-border/50 bg-white text-baylink-text">{action.label}</button>)}</div>}
                 {turn.response.safetyNote && <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">{turn.response.safetyNote}</p>}
@@ -272,6 +297,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
         </div>
         <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>
           <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{memberWebAccess ? <>{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={effectiveSearchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}<span>{searchMode === 'site' ? copy('只参考站内资料', 'Site information only') : copy('已登录 · 可按需联网；额度或服务受限时会说明，并保留站内结果。', 'Signed in · Web lookups are available when needed, subject to limits and availability. Site results remain available.')}</span></> : <><strong className="baybay-access-label">{ownerId ? copy('登录需更新 · 仅站内', 'Sign-in needs updating · Site only') : copy('访客 · 仅站内', 'Guest · Site only')}</strong>{onLoginNeeded && <button type="button" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</button>}<span>{copy('当前只使用 BAYLINK 已收录资料。登录后可按需联网核实，受查询额度与服务可用性限制。', 'Uses information already collected by BAYLINK. Sign in for web verification, subject to lookup limits and availability.')}</span></>}</div>
+          {usage && <p className="baybay-composer-note" translate="no">{copy(`今日模型查询剩余 ${usage.remaining} / ${usage.limit}；湾区午夜重置。紧急求助卡与站内资料仍可用。`, `Model queries remaining today: ${usage.remaining} / ${usage.limit}. Resets at Bay Area midnight. Emergency resources and site information remain available.`)}</p>}
           {schoolContext && <p className="baybay-composer-note" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
           <div className="member-baybay-composer"><input ref={inputRef} type="text" aria-label="向 BayBay 提问" value={question} maxLength={500}
             aria-describedby={schoolContext ? 'baybay-school-privacy' : undefined}
@@ -300,4 +326,10 @@ function BayBayReferences({ response, currentPath, onNavigate }: { response: Gui
     <button type="button" onClick={() => onNavigate(`/guides/${guide.slug}`)}><BookOpen size={13} /><span>{guide.title}</span><ChevronRight size={13} /></button>
     {bayBayGuideSources(guide).length > 0 && <details><summary className="cursor-pointer text-[11px] text-baylink-muted">查看原文来源</summary><ul className="mt-2 space-y-2 pl-4 text-[11px] leading-relaxed">{bayBayGuideSources(guide).map(source => <li key={source.url}><a className="break-words underline underline-offset-2" href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
   </div>)}</div>;
+}
+
+function BayBayFeedback({ turnId }: { turnId: number }) {
+  const [vote,setVote] = useState<'helpful' | 'unhelpful' | null>(null);
+  const english = useLocale() === 'en';
+  return <div className="baybay-feedback" aria-label={english ? 'Was this useful?' : '这次回答有帮助吗？'} data-feedback-turn={turnId}><span>{vote ? english ? 'Thanks for your feedback' : '已记录，谢谢反馈' : english ? 'Was this useful?' : '有帮助吗？'}</span><button type="button" aria-pressed={vote==='helpful'} disabled={!!vote} onClick={()=>{setVote('helpful');recordProductEvent('baybay_helpful');}}><ThumbsUp size={18} />{english?'Useful':'有帮助'}</button><button type="button" aria-pressed={vote==='unhelpful'} disabled={!!vote} onClick={()=>{setVote('unhelpful');recordProductEvent('baybay_unhelpful');}}><ThumbsDown size={18} />{english?'Not yet':'没解决'}</button></div>;
 }

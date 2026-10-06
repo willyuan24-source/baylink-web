@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import assert from 'node:assert/strict';
 import test, { afterEach, beforeEach } from 'node:test';
 import React from 'react';
@@ -46,7 +47,7 @@ test('clear social requests are never intercepted as first-turn personal plannin
 });
 
 test('malformed search response fails instead of silently presenting a successful empty search', async t => {
-  t.mock.method(globalThis,'fetch',async () => Response.json({ ok:true,answer:'Search ready',responseMode:'outing-search',outingSearch:{ ...search,filters:{ sort:'soonest',date:'wrong' } } }));
+  mockBayBayFetch(t,async () => Response.json({ ok:true,answer:'Search ready',responseMode:'outing-search',outingSearch:{ ...search,filters:{ sort:'soonest',date:'wrong' } } }));
   await assert.rejects(fetchBayBayReply('Find people',{ currentPath:'/' },[],new AbortController().signal),/小队搜索条件/);
 });
 
@@ -121,7 +122,7 @@ test('unmount aborts the outing read and late success cannot leak into another c
 
 test('welcome social action keeps the typed question and sends chat without a planner redirect', async t => {
   const messages:string[] = [], paths:string[] = [];
-  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => { messages.push(JSON.parse(String(options.body)).message); return Response.json({ ok:true,answer:'请告诉我想去的城市',responseMode:'outing-search',outingSearch:{ source:'site-search',state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？' } }); });
+  mockBayBayFetch(t,async (_url:unknown,options:RequestInit) => { messages.push(JSON.parse(String(options.body)).message); return Response.json({ ok:true,answer:'请告诉我想去的城市',responseMode:'outing-search',outingSearch:{ source:'site-search',state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？' } }); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop}/>);
   const original = '周六从 Fremont 出发预算50，想安排一天';
   fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:original } });
@@ -152,7 +153,7 @@ test('sign-out removes already loaded outing results when the shared storage ses
 
 test('a conversational date reply keeps prior social context and displays actual API results', async t => {
   const bodies:{ message:string; history:{ role:string;content:string }[] }[] = [], paths:string[] = [], reads:string[] = [];
-  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+  mockBayBayFetch(t,async (_url:unknown,options:RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return Response.json(bodies.length === 1 ? { ok:true,answer:'告诉我具体日期就能查询',responseMode:'outing-search',outingSearch:{ source:'site-search',state:'needs_clarification',filters:{ sort:'soonest',city:'Fremont' },missing:['date'],question:'想哪天一起去？' } } : { ok:true,answer:'我整理好了查询条件，下面查询真实小队。',responseMode:'outing-search',outingSearch:{ ...search,filters:{ sort:'soonest',city:'Fremont',date:'2026-10-03' } } });
   });
@@ -173,7 +174,7 @@ test('a conversational date reply keeps prior social context and displays actual
 test('clarification renders an identical question once and preserves additional constraints', async t => {
   const prompt = '想在哪个城市一起去？';
   let answer = prompt;
-  t.mock.method(globalThis,'fetch',async () => Response.json({ ok:true,answer,responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city'],question:prompt } }));
+  mockBayBayFetch(t,async () => Response.json({ ok:true,answer,responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city'],question:prompt } }));
   const props = { variant:'headless' as const,panelOpen:true,onPanelOpenChange:noop,onNavigate:noop,onCreatePostClick:noop };
   const view = render(<BayBayAssistantEntry {...props}/>);
   const ask = () => { fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:'我想找搭子' } }); fireEvent.click(view.getByRole('button',{ name:'问一下' })); };
@@ -188,7 +189,7 @@ test('clarification renders an identical question once and preserves additional 
 test('current clarification quick reply sends only after an explicit click, preserving history and known filters', async t => {
   const pending = deferred<Response>();
   const bodies:{ message:string;history:{ content:string }[] }[] = [];
-  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+  mockBayBayFetch(t,async (_url:unknown,options:RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return bodies.length === 1 ? Response.json({ ok:true,answer:'想哪一天一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest',city:'Fremont' },missing:['date'],question:'想哪一天一起去？' } }) : pending.promise;
   });
@@ -211,7 +212,7 @@ test('current clarification quick reply sends only after an explicit click, pres
 
 test('typing a draft hides quick replies and never overwrites an unfinished answer', async t => {
   let calls = 0;
-  t.mock.method(globalThis,'fetch',async () => { calls++; return Response.json({ ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？' } }); });
+  mockBayBayFetch(t,async () => { calls++; return Response.json({ ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？' } }); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
   const input = view.getByRole('textbox',{ name:'向 BayBay 提问' }) as HTMLInputElement;
   fireEvent.change(input,{ target:{ value:'我想找搭子' } }); fireEvent.click(view.getByRole('button',{ name:'问一下' }));
@@ -223,7 +224,7 @@ test('typing a draft hides quick replies and never overwrites an unfinished answ
 });
 
 test('school and service conversations keep ordinary answers without outing quick replies', async t => {
-  t.mock.method(globalThis,'fetch',async () => Response.json({ ok:true,answer:'请说明需要了解的事项。' }));
+  mockBayBayFetch(t,async () => Response.json({ ok:true,answer:'请说明需要了解的事项。' }));
   for (const message of ['学校入学需要什么材料','在Fremont找水管维修服务']) {
     const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}/>);
     fireEvent.change(view.getByRole('textbox',{ name:'向 BayBay 提问' }),{ target:{ value:message } }); fireEvent.click(view.getByRole('button',{ name:'问一下' }));
@@ -245,7 +246,7 @@ test('English and Traditional Chinese choices are explicit user replies, not tra
 test('search continuation follows only the latest completed outing reply and clears with a new topic or conversation', async t => {
   const token = 'fixture-signed-public-search-token.fixture-signature';
   const bodies:{ message:string;outingSearchToken?:string;context:Record<string,unknown>;history:unknown[] }[] = [];
-  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+  mockBayBayFetch(t,async (_url:unknown,options:RequestInit) => {
     const body = JSON.parse(String(options.body)); bodies.push(body);
     const social = body.message === '我想找搭子';
     return Response.json(social ? { ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？',continuationToken:token } } : { ok:true,answer:`已回答：${body.message}` });
@@ -266,7 +267,7 @@ test('search continuation follows only the latest completed outing reply and cle
 
 test('expired search memory offers a fresh editable search instead of retrying the invalid token', async t => {
   const bodies:{ message:string;history:unknown[];outingSearchToken?:string }[] = [];
-  t.mock.method(globalThis,'fetch',async (_url:unknown,options:RequestInit) => {
+  mockBayBayFetch(t,async (_url:unknown,options:RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     if (bodies.length === 2) return Response.json({ ok:false,code:'INVALID_OUTING_SEARCH_TOKEN',error:'搜索条件已过期，请开启新对话。' },{ status:400 });
     return Response.json({ ok:true,answer:'想在哪个城市一起去？',responseMode:'outing-search',outingSearch:{ ...search,state:'needs_clarification',filters:{ sort:'soonest' },missing:['city','date'],question:'想在哪个城市一起去？',continuationToken:'fixture.fixture-signature' } });
