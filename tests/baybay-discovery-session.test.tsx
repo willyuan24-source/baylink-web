@@ -15,6 +15,7 @@ const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistant
 const { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
 const { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates } = await import('../src/lib/planner-web-search');
 const { guides } = await import('../src/data/guides');
+const { setLocale } = await import('../src/i18n/locale');
 const noop = () => {};
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
 const login = (id: string) => localStorage.setItem('currentUser', JSON.stringify({ id, token: `token-${id}` }));
@@ -24,7 +25,51 @@ const discovery = (): GuideChatResponse => ({ ok: true, answer: '实际来源介
   sources: [{ title: 'Official museum', url: 'https://museumca.org/visit/' }],
   webCandidates: [{ id: 'web-museum', name: 'Museum candidate', city: 'Oakland', summary: null, timeSummary: null, priceSummary: null, sourceUrls: ['https://museumca.org/visit/'] }],
 });
-afterEach(() => { cleanup(); localStorage.clear(); });
+afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
+
+test('food evidence gaps never present page-context cards or invented plan followups as recommendations in any language', async t => {
+  const reading = guides.find(guide => guide.slug === 'bay-area-chinese-senior-services-referral-guide')!;
+  assert.ok(reading);
+  mockBayBayFetch(t, async () => { throw new Error('A restored completed answer must not send a conversation request'); });
+  const contextCard = { kind: 'guide' as const, id: reading.slug, title: reading.title, url: `/guides/${reading.slug}`, summary: reading.summary };
+  for (const [locale, label] of [['zh-Hans', '餐饮信息待确认'], ['en', 'Food information unconfirmed'], ['zh-Hant', '餐飲資訊待確認']] as const) {
+    await setLocale(locale, false);
+    for (const localMatches of [[], [contextCard]]) {
+      const answer = locale === 'en' ? 'No verified dim sum options yet. Confirm the city and check current restaurant menus.' : locale === 'zh-Hant' ? '尚無已核實的飲茶選項，請確認城市並查詢餐廳當前選單。' : '尚无已核实的饮茶选项，请确认城市并查询餐厅当前菜单。';
+      const response: GuideChatResponse = { ok: true, answer, responseMode: 'assistant', suggestedGuides: [], localMatches, followups: [], taskState: { version: 1, revision: 1, goal: 'discover' }, research: { steps: [], warnings: ['food_evidence_unconfirmed'] } };
+      const opened: string[] = [];
+      const view = render(<BayBayAssistantEntry {...props} onNavigate={path => opened.push(path)} currentPath={`/guides/${reading.slug}`} initialConversation={{ question: '', turns: [{ id: 1, question: '湾区哪里饮茶', currentPath: `/guides/${reading.slug}`, state: 'complete', response, quickCards: [contextCard] }] }} />);
+      const answerBlock = view.baseElement.querySelector('.member-baybay-answer')!;
+      assert.equal(answerBlock.querySelector('.member-baybay-answer-label')?.textContent, label);
+      assert.equal(answerBlock.querySelector('.baybay-entity-cards'), null, 'page context and stale quick cards are not food recommendations');
+      assert.equal(answerBlock.querySelector('.member-baybay-answer-text')?.textContent, answer, 'the full evidence-gap answer remains intact');
+      assert.equal(view.baseElement.querySelector('.baybay-followups:not([role])'), null, 'empty API followups must not invent recommended places or a plan');
+      assert.equal(view.baseElement.querySelector('.baybay-task-handoff'), null, 'a broad discovery goal cannot turn an evidence gap into a plan');
+      const readingButton = view.baseElement.querySelector<HTMLButtonElement>('.baybay-references > div > button');
+      assert.ok(readingButton?.textContent?.trim(), 'the guide remains separately available as reading context');
+      assert.ok(readingButton?.parentElement?.querySelector(':scope > small')?.textContent?.trim(), 'the reference retains its explicit reading-context label');
+      fireEvent.click(readingButton!);
+      assert.deepEqual(opened, [`/guides/${reading.slug}`]);
+      view.unmount();
+    }
+  }
+});
+
+test('ordinary guide replies retain entity cards and fallback followups while explicit food-gap followups remain available', async t => {
+  mockBayBayFetch(t, async () => { throw new Error('A restored completed answer must not send a conversation request'); });
+  const reading = guides[0];
+  const card = { kind: 'guide' as const, id: reading.slug, title: reading.title, url: `/guides/${reading.slug}`, summary: reading.summary };
+  for (const warnings of [[], ['food_evidence_unconfirmed']]) {
+    const explicit = '你想核实哪个城市的餐厅菜单？';
+    const response: GuideChatResponse = { ok: true, answer: '先核对当前资料。', localMatches: [card], followups: warnings.length ? [explicit] : [], research: { steps: [], warnings } };
+    const view = render(<BayBayAssistantEntry {...props} initialConversation={{ question: '', turns: [{ id: 1, question: '湾区哪里饮茶', state: 'complete', currentPath: `/guides/${reading.slug}`, response }] }} />);
+    assert.equal(Boolean(view.baseElement.querySelector('.baybay-entity-cards')), !warnings.length);
+    assert.ok(view.baseElement.querySelector('.baybay-followups:not([role])'));
+    if (warnings.length) assert.ok(view.getByRole('button', { name: explicit }));
+    else assert.ok(view.getByRole('button', { name: '帮我按已经提供的条件，把推荐整理成出游安排' }));
+    view.unmount();
+  }
+});
 
 test('catalog replies show only validated explicit API guides and never automatically append the currently read guide', async t => {
   const reading = guides.find(guide => guide.slug === 'sf-free-culture-eligibility-october-2026')!;
