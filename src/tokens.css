@@ -3,6 +3,7 @@
   --color-bg:#F8F9F6; --color-surface:#FFFFFF; --color-surface-2:#F1F4EC; --color-selected:#E7EFDC;
   --color-ink:#16352B; --color-ink-2:#3F5247; --color-ink-3:#5B6B61;
   --color-brand:#176B52; --color-brand-hover:#12523F; --color-brand-deep:#123C31; --color-brand-tint:#EAF2E6;
+  --color-on-brand-muted:#B6CBB9;
   --color-line:#E1E7DB; --color-line-strong:#C9D3C1; --color-danger:#B3261E;
   --font-sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
   --reading-scale:1; --control-height:2.75rem;
@@ -93,6 +94,8 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .guide-complete-index ul { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:8px 24px; padding-block:12px; }
 .guide-complete-index a { display:flex; align-items:center; min-height:var(--control-height); padding:8px 0; font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; text-decoration:underline; text-underline-offset:3px; }
 .baybay-conversation .member-baybay-answer-text,.member-baybay-answer-text { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
+/* Dark header copy must keep its light ink when the shared reading rule scales it. */
+.baybay-conversation .member-baybay-header p { color:var(--color-on-brand-muted); }
 .baybay-user-question>p,.baybay-welcome>p { font-size:var(--text-body); color:var(--color-ink-2); }
 .baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span,.baybay-reading-context small { font-size:var(--text-caption); color:var(--color-ink-3); }
 .baybay-followups button,.baybay-scenarios button { min-height:var(--control-height); font-size:var(--text-fact); }
