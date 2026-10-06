@@ -14,6 +14,7 @@ const { QuickExplore } = await import('../src/components/QuickExplore');
 const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired, bayBayTaskBrief, bayBayWebResult } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
 afterEach(cleanup);
+const { readBayBayRequirementsDraft } = await import('../src/lib/baybay-plan-handoff');
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
 
@@ -317,8 +318,9 @@ test('planning questions stay conversational until the user explicitly carries t
     assert.equal(paths.length, 1);
     const url = new URL(paths[0], 'https://www.baylink.us');
     assert.equal(url.pathname, '/plan');
-    assert.equal(url.searchParams.get('q'), question);
-    assert.equal(url.searchParams.get('auto'), '1');
+    assert.equal(url.searchParams.has('q'), false);
+    assert.equal(url.searchParams.has('auto'), false);
+    assert.equal(readBayBayRequirementsDraft(url.searchParams.get('baybayBrief'))?.message, question);
     assert.ok(requests.length > 0);
     view.unmount();
   }

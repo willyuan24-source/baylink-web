@@ -9,6 +9,7 @@ import type { OutingFilters } from './outings';
 import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
 import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext, type BayBaySearchOverrides } from './baybay-context';
 import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssistantFields } from './baybay-assistant';
+import { stageBayBayRequirementsDraft, validBayBayDraftId } from './baybay-plan-handoff';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; effectiveMode?: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed' | 'auth_required'; webAccess?: { authenticated: boolean; allowed: boolean; reason?: 'auth_required' }; failureCode?: string; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -211,6 +212,7 @@ export function safeBayBayPath(path?: string): path is string {
   if (pathname === '/plan') {
     if ([...query.keys()].some(key => !['q', 'auto', 'import'].includes(key))) return false;
     const question = query.get('q');
+    if (query.has('baybayBrief')) return [...query.keys()].length === 1 && validBayBayDraftId(query.get('baybayBrief'));
     if (question !== null && (question.trim().length < 2 || question.length > 800)) return false;
     if (query.has('auto') && (query.get('auto') !== '1' || !question)) return false;
     return !query.has('import') || (query.get('import') === 'event' && !question && !query.has('auto'));
@@ -222,7 +224,7 @@ export function safeBayBayPath(path?: string): path is string {
     guides.some((guide) => path === `/guides/${guide.slug}`);
 }
 
-export const bayBayPlanPath = (message: string) => `/plan?${new URLSearchParams({ q: message.trim().slice(0, 800), auto: '1' })}`;
+export const bayBayPlanPath = (message: string, ownerId?: string) => stageBayBayRequirementsDraft(message, ownerId) || '/plan';
 
 /** Social discovery must reach the server even when the same request mentions planning. */
 export function isBayBaySocialRequest(message: string): boolean {

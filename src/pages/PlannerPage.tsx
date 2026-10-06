@@ -25,7 +25,7 @@ import { PlannerOutingOptions, PlannerPlaceOutingOptions } from '../components/P
 import { PlannerPlanEdit } from '../components/PlannerPlanEdit';
 import { PlannerPlanOverview } from '../components/PlannerPlanOverview';
 import { createOutingPlanHandoff } from '../lib/outing-plan-handoff';
-import { bayBayAdmissionOverride, readBayBayPlanDraft } from '../lib/baybay-plan-handoff';
+import { bayBayAdmissionOverride, readBayBayPlanDraft, readBayBayRequirementsDraft } from '../lib/baybay-plan-handoff';
 import { BayBayImportedRequirements } from '../components/BayBayImportedRequirements';
 import { PlannerWebSearch } from '../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommendations';
@@ -43,7 +43,12 @@ function PlannerWorkspace() {
   const app = useApp();
   const location = useLocation();
   const navigate = useNavigate();
-  const queryMessage = new URLSearchParams(location.search).get('q')?.trim().slice(0, 800) || '';
+  const params = new URLSearchParams(location.search);
+  const requirementsDraftId = params.get('baybayBrief');
+  const requirementsOwnerId = app?.user?.id || undefined;
+  const requirementsDraft = useMemo(() => readBayBayRequirementsDraft(requirementsDraftId, requirementsOwnerId), [requirementsDraftId, requirementsOwnerId]);
+  // Locale/query cleanup cannot reload or erase edits to a successfully imported private draft.
+  const queryMessage = requirementsDraftId !== null ? requirementsDraft?.message || '' : params.get('q')?.trim().slice(0, 800) || '';
   const planSearch = useMemo(() => {
     const incoming = new URLSearchParams(location.search), plan = new URLSearchParams();
     for (const key of ['date', 'stops', 'places', 'edit', 'baybayDraft']) if (incoming.has(key)) plan.set(key, incoming.get(key)!);
@@ -189,7 +194,7 @@ function PlannerWorkspace() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const key = `${location.key}:${queryMessage}`;
-    if (params.get('auto') !== '1' || queryMessage.length < 2 || autoStarted.current.has(key)) return;
+    if (params.has('baybayBrief') || params.get('auto') !== '1' || queryMessage.length < 2 || autoStarted.current.has(key)) return;
     let cancelled = false;
     // Defer past StrictMode's setup/cleanup replay so it cannot start a second paid request.
     void Promise.resolve().then(() => {
@@ -230,6 +235,7 @@ function PlannerWorkspace() {
     <header className="planner-hero planner-hero--visual"><div className="planner-hero-copy"><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想吃什么、去哪里、想花多少。从活动、餐厅、新店或景点开始，把这一天安排好。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动 ↗</Link><Link to="/calendar">活动日历 ↗</Link></nav></div><div className="planner-hero-photo"><GuideFigure image={getGuideMedia(getGuideBySlug('sf-golden-gate-bridge-fort-point-guide')!).cover} variant="preview" /><button type="button" onClick={() => document.getElementById('planner-discoveries')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{locale === 'en' ? 'Find your next little escape' : '先看看，这次想去哪里'}<ArrowUp size={15} /></button></div></header>
     <form className="planner-form" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
       {Object.keys(persistedFilters).length > 0 && <p className="planner-note">{locale === 'en' ? 'Saved conditions are included: ' : '沿用这份计划的条件：'}{[persistedFilters.city, persistedFilters.partySize ? String(persistedFilters.partySize) + (locale === 'en' ? ' people' : '人') : '', persistedFilters.childAges?.length ? (locale === 'en' ? 'Child ages ' : '孩子年龄 ') + persistedFilters.childAges.join('、') : '', persistedFilters.budget != null ? (persistedFilters.budgetScope === 'total' ? (locale === 'en' ? 'Group admission budget ' : '门票总预算 ') : (locale === 'en' ? 'Per-person admission budget ' : '每人门票预算 ')) + '$' + persistedFilters.budget : '', persistedFilters.freeOnly ? (locale === 'en' ? 'Free only' : '仅免费') : ''].filter(Boolean).join(' · ')} <button type="button" onClick={() => { request.current?.abort(); request.current = undefined; setRequesting(false); setPersistedFilters({}); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setResults(null); }}>{locale === 'en' ? 'Clear saved conditions' : '清除沿用条件'}</button></p>}{queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
+      {requirementsDraftId !== null && !requirementsDraft && <p className="planner-handoff-note" role="status" translate="no">{locale === 'en' ? 'Your requirement draft is unavailable. Please enter your requirements again.' : translateText('需求草稿暂不可读取，请重新输入条件。', locale)}</p>}
       <div className="planner-examples"><span>试着这样问</span>{['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'].map(example => <button type="button" key={example} onClick={() => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); }}>{example}</button>)}</div><label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
       <details className="planner-refinements"><summary><SlidersHorizontal size={14} />日期、地区与预算（可选）<ChevronRight size={14} /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
       <div className="planner-form-actions"><button className="planner-primary" disabled={requesting}><Sparkles size={17} />{requesting ? '正在挑选…' : '帮我挑选方案'}</button>{requesting && <button type="button" className="planner-stop-request" onClick={stopRequest}><Square size={12} className="inline mr-1" />停止</button>}<span>门票预算不含餐饮、停车与交通。</span></div>

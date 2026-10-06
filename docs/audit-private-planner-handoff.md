@@ -1,0 +1,9 @@
+# Private BayBay requirement handoff
+
+The unstructured fallback in `BayBayTaskHandoff` and the assistant's weekend-planning button previously put the complete user requirement into `/plan?q=...&auto=1`. A requirement can include a home address, household details and a budget. Browser history, copied links and upstream request logs would consequently receive that text.
+
+Both generated links now use `/plan?baybayBrief=<random UUID>`. The requirement stays only in the current tab's JavaScript memory. This reuses the structured-plan handoff module with a separate brief type, an 800-character bound, a combined four-draft capacity and a 30-minute lifetime. Reads require the matching account owner. A private-brief read under a different owner clears drafts belonging to the prior owner; expired/future-dated drafts are removed. A missing, invalid, expired, copied-to-another-tab or other-owner ID produces no private text and asks the user to enter their requirements again.
+
+The planner pre-fills the editable question without starting a recommendation. An explicit click submits the current edited text. Imported draft identity depends on the ID and owner, so a language switch does not re-import and overwrite edits. Existing externally supplied `/plan?q=...` links retain their previous contract; an opaque brief cannot enable `auto` or use an additional `q` value as fallback. No private text is written to browser storage by this handoff.
+
+`tests/baybay-private-handoff.test.tsx` covers URL privacy, cloned reads, owner changes, expiry, the shared memory capacity, language switches, manual requests and planner account changes. The legacy conversation test now verifies the opaque handoff rather than the previous plaintext query. The content subagent did not run Node while the root test/release process was active; the root should run these tests plus existing planner-detail and assistant suites before release.
