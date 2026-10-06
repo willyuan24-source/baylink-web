@@ -68,6 +68,9 @@ test('actual scoped runtime leaves other articles unloaded, then supplies the co
   assert.equal(isLocaleReadyForPath('en', '/en'), false);
   await loadLocaleForPath('en', '/en');
   assert.equal(isLocaleReadyForPath('en', '/en'), true);
+  assert.equal(translateText('邻里信息', 'en'), 'Neighborhood board', 'the controlled board heading must be English before loading any article');
+  assert.equal(translateText('正在打开搜索…', 'en'), 'Opening search…');
+  assert.equal(translateText('正在打开 BayBay…', 'en'), 'Opening BayBay…');
   assert.equal(isLocaleReadyForPath('en', path), false, 'home readiness cannot unlock an untranslated article');
   await loadLocaleForPath('en', ['/en', path]);
   assert.equal(isLocaleReadyForPath('en', path), true);

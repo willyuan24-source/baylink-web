@@ -172,7 +172,7 @@
       "dest": "/plan.html"
     },
     {
-      "src": "^/(guides|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/$1.html"
     },
     {
@@ -263,7 +263,7 @@
       "dest": "/en/plan.html"
     },
     {
-      "src": "^/en/(guides|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/en/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/en/$1.html"
     },
     {
@@ -349,7 +349,7 @@
       "dest": "/zh-Hant/plan.html"
     },
     {
-      "src": "^/zh-Hant/(guides|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/zh-Hant/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
       "dest": "/zh-Hant/$1.html"
     },
     {

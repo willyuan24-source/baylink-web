@@ -427,12 +427,17 @@ test('pending UI uses actual progress events without implying web access or a su
   mockBayBayFetch(t, async () => new Response(new ReadableStream({ start(controller) { channel = controller; } }), { headers: { 'content-type': 'text/event-stream' } }));
   const view = render(<BayBayAssistantEntry {...props} pendingQuestion="只用站内资料核对打印额度" />);
   await act(async () => {});
-  assert.match(view.getByRole('status').textContent || '', /正在等待答复/);
+  const progressStatus = (message: RegExp) => {
+    const statuses = view.getAllByRole('status').filter(status => message.test(status.textContent || ''));
+    assert.equal(statuses.length, 1, 'the actual request progress must have one status announcement');
+    return statuses[0].textContent || '';
+  };
+  assert.match(progressStatus(/正在等待答复/), /正在等待答复/);
   await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"running"}\n\n')); });
-  assert.match(view.getByRole('status').textContent || '', /问题分析与检索处理中/);
-  assert.doesNotMatch(view.getByRole('status').textContent || '', /联网|已核实/);
+  assert.match(progressStatus(/问题分析与检索处理中/), /问题分析与检索处理中/);
+  assert.doesNotMatch(progressStatus(/问题分析与检索处理中/), /联网|已核实/);
   await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"completed"}\n\n')); });
-  assert.match(view.getByRole('status').textContent || '', /阶段结束，正在等待结果/);
+  assert.match(progressStatus(/阶段结束，正在等待结果/), /阶段结束，正在等待结果/);
   await act(async () => { channel.enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整打印答复"}\n\n')); });
   assert.ok(view.getByText('完整打印答复')); assert.equal(view.queryByText(/阶段结束，正在等待结果/), null);
 });

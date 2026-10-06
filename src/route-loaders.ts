@@ -21,6 +21,7 @@ export const pageLoaders = {
   bookings: cached(() => import('./pages/ServiceBookingsPage')),
   together: cached(() => import('./pages/TogetherPage')),
   about: cached(() => import('./pages/AboutPage')),
+  archive: cached(() => import('./pages/ArchivePage')),
   notFound: cached(() => import('./pages/NotFoundPage')),
   privacy: cached(() => import('./components/PrivacyPolicyView').then(m => ({ default: m.PrivacyPolicyView }))),
   terms: cached(() => import('./components/TermsView').then(m => ({ default: m.TermsView }))),
@@ -38,7 +39,7 @@ export function currentPageLoader(path: string) {
     '/guides': 'guides', '/this-month': 'monthly', '/this-week': 'monthly', '/calendar': 'calendar',
     '/tools': 'tools', '/explore': 'explore', '/plan': 'plan', '/my-week': 'myWeek',
     '/ai-in-the-bay': 'ai', '/recommend': 'recommend', '/me': 'profile', '/together': 'together',
-    '/about': 'about', '/privacy': 'privacy', '/terms': 'terms', '/sms-consent': 'sms', '/opus-bay': 'opus',
+    '/about': 'about', '/archive': 'archive', '/privacy': 'privacy', '/terms': 'terms', '/sms-consent': 'sms', '/opus-bay': 'opus',
     '/verify-email': 'notificationToken', '/notifications/unsubscribe': 'notificationToken',
   };
   return pageLoaders[route[path.replace(/\/$/, '')] || 'notFound'];

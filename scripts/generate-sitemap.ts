@@ -10,7 +10,7 @@ import { SITE_URL, escapeHtml } from '../src/lib/seo';
 
 /** The dev/public file and the production prerender use the same current catalog. */
 export function generateSitemap() {
-  const basePaths = ['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/opus-bay', '/ai-in-the-bay', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map(slug => `/category/${slug}`), ...guides.map(guide => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
+  const basePaths = ['/', '/guides', '/archive', '/this-month', '/calendar', '/explore', '/plan', '/opus-bay', '/ai-in-the-bay', '/tools', '/recommend', '/about', ...Object.keys(SLUG_TO_CATEGORY).map(slug => `/category/${slug}`), ...guides.map(guide => `/guides/${guide.slug}`), ...localDiscoveries.map(item => discoveryShare(item).path), '/terms', '/privacy', '/sms-consent'];
   const paths = (['zh-Hans','zh-Hant','en'] as SiteLanguage[]).flatMap(locale => basePaths.map(path => languagePath(path,locale)));
   const dates = new Map(guides.map(guide => [`/guides/${guide.slug}`, guide.updatedAt]));
   for (const item of localDiscoveries) {

@@ -8,6 +8,7 @@ import { attractionMapUrl, filterAttractions, loadOuting, MAX_OUTING_STOPS, outi
 import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
 import { CITY_EXPLORATION_SLUG } from '../data/city-exploration-types';
+import { opusBayAttractionEntry } from '../lib/opus-bay-attraction-entry';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 
@@ -119,11 +120,13 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       const guide = getGuideBySlug(item.slug)!;
       const image = getGuideMedia(guide).cover;
       const added = plan.includes(item.id);
+      const worldEntry = opusBayAttractionEntry(item.id, locale);
       return <article key={item.id} className="attraction-card">
         <Link className="attraction-photo" to={`/guides/${item.slug}`} aria-label={`阅读攻略：${item.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 95vw, (max-width: 1199px) 46vw, 330px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{ATTRACTION_REGIONS.find(region => region.id === item.region)!.label}</span></Link>
         <div className="attraction-card-body"><span className="attraction-city"><MapPin size={12} aria-hidden="true" />{item.city}</span><h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p>{item.note}</p>
           <div className="attraction-facts"><span><Clock3 size={14} aria-hidden="true" />{item.duration}</span><span><Ticket size={14} aria-hidden="true" />{ATTRACTION_COSTS.find(cost => cost.id === item.cost)!.label}</span></div>
           <div className="attraction-card-actions"><Link to={`/guides/${item.slug}`}>读完整攻略<ArrowRight size={14} aria-hidden="true" /></Link><button type="button" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)}>{added ? <Check size={15} aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}{added ? '已加入' : '加入清单'}</button></div>
+          {worldEntry && <div className="attraction-card-actions"><Link to={worldEntry.href} reloadDocument>{translateText(worldEntry.label, locale)}<ArrowRight size={14} aria-hidden="true" /></Link></div>}
           <details className="attraction-credit"><summary>照片来源</summary><p>{image.caption}</p><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>
         </div>
       </article>;

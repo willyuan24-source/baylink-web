@@ -18,6 +18,8 @@ import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { eventOccursOn } from '../lib/event-calendar';
 import { placeFor } from '../lib/planner';
+import { discoveryContentReviewRecord } from '../lib/content-review';
+import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
 
 function confirmedEventDate(event: MonthlyEvent, today: string): string | null {
   const occurrenceDates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
@@ -60,6 +62,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <div className="discovery-detail-brand"><span>BAYLINK</span><span>YOUR BAY. YOUR PEOPLE.</span></div>
       <span className="discovery-eyebrow">{share.label}</span><h1>{share.title}</h1><p className="discovery-detail-summary">{share.summary}</p>
       <div className="discovery-detail-facts"><span><CalendarDays size={17} />{share.date}</span><span><MapPin size={17} />{share.area}</span>{item.kind === 'event' && <span><Ticket size={17} />{item.event.costLabel}</span>}</div>
+      <ContentReviewNotice record={discoveryContentReviewRecord(item)} today={today} />
       {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
       {unconfirmedOffer && <p className="discovery-inline-note">当前优惠待确认；请先联系官方，确认后再安排行程。</p>}
       {item.kind === 'opening' && <p className="discovery-inline-note">{openingStatusNote(item.shop.status)}</p>}

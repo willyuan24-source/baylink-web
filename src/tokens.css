@@ -17,6 +17,12 @@
 html:lang(zh-Hant) { --font-sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif; }
 html[data-reading=large] { --reading-scale:1.125; --control-height:3rem; }
 html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
+.public-content-directory { font-size:var(--text-body); line-height:1.8; }
+.public-content-directory :is(p,time,.text-xs,.text-sm) { font-size:var(--text-fact); color:var(--color-ink-2); }
+.public-content-directory a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--text-fact); }
+.public-content-directory summary { min-height:var(--control-height); padding-block:.5rem; font-size:var(--text-fact); }
+.public-content-directory h1 { font-size:calc(2rem * var(--reading-scale)); line-height:1.4; overflow-wrap:anywhere; }
+.public-content-directory h2 { font-size:var(--text-section); line-height:1.5; }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); font-size:var(--text-fact); }

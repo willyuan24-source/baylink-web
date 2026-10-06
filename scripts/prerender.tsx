@@ -16,6 +16,8 @@ import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
 import { SmsConsentView } from '../src/components/SmsConsentView';
 import { AboutContent } from '../src/components/AboutContent';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
+import ArchivePage from '../src/pages/ArchivePage';
+import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
 import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../src/lib/seo';
@@ -46,7 +48,7 @@ const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
 const noop = () => {};
 const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'), 'utf8'));
-const routeModule = (path: string) => path.startsWith('/guides/') ? 'GuideDetailPage' : /^\/(events|offers|openings)\//.test(path) ? 'LocalDiscoveryPage' : ({ '/': 'HomePage', '/guides': 'GuidesPage', '/calendar': 'CalendarPage', '/plan': 'PlannerPage', '/this-month': 'MonthlyPage', '/this-week': 'MonthlyPage', '/explore': 'ExplorePage', '/tools': 'ToolsPage', '/about': 'AboutPage', '/ai-in-the-bay': 'AiLocalPage', '/recommend': 'RecommendPage' } as Record<string,string>)[path] || 'HomePage';
+const routeModule = (path: string) => path.startsWith('/guides/') ? 'GuideDetailPage' : /^\/(events|offers|openings)\//.test(path) ? 'LocalDiscoveryPage' : ({ '/': 'HomePage', '/guides': 'GuidesPage', '/archive': 'ArchivePage', '/calendar': 'CalendarPage', '/plan': 'PlannerPage', '/this-month': 'MonthlyPage', '/this-week': 'MonthlyPage', '/explore': 'ExplorePage', '/tools': 'ToolsPage', '/about': 'AboutPage', '/ai-in-the-bay': 'AiLocalPage', '/recommend': 'RecommendPage' } as Record<string,string>)[path] || 'HomePage';
 const modulePreloads = (path: string) => {
   const entry = manifest[`src/pages/${routeModule(path)}.tsx`]; const files = new Set<string>();
   const visit = (item: { file: string; imports?: string[] }) => { if (files.has(item.file)) return; files.add(item.file); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
@@ -56,10 +58,10 @@ const modulePreloads = (path: string) => {
 
 const Shell = ({ children, locale }: { children: ReactNode; locale: SiteLanguage }) => {
   const labels = locale === 'en'
-    ? ['Site navigation', 'Home', 'Events', 'Guides', 'Ask BayBay', 'Me', 'About', 'Terms', 'Privacy', 'SMS consent']
+    ? ['Site navigation', 'Home', 'Events', 'Guides', 'Ask BayBay', 'Me', 'About', 'Terms', 'Privacy', 'SMS consent', 'Published directory']
     : locale === 'zh-Hant'
-      ? ['網站導航', '首頁', '活動', '指南', '問 BayBay', '我的', '關於我們', '服務條款', '隱私政策', '簡訊驗證說明']
-      : ['网站导航', '首页', '活动', '指南', '问 BayBay', '我的', '关于我们', '服务条款', '隐私政策', '短信验证说明'];
+      ? ['網站導航', '首頁', '活動', '指南', '問 BayBay', '我的', '關於我們', '服務條款', '隱私政策', '簡訊驗證說明', '已發布內容目錄']
+      : ['网站导航', '首页', '活动', '指南', '问 BayBay', '我的', '关于我们', '服务条款', '隐私政策', '短信验证说明', '已发布内容目录'];
   return (
   <div className="min-h-screen bg-baylink-bg text-baylink-text">
     <header className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 border-b border-baylink-border px-5 py-4">
@@ -70,7 +72,7 @@ const Shell = ({ children, locale }: { children: ReactNode; locale: SiteLanguage
     </header>
     <main className="mx-auto max-w-4xl">{children}</main>
     <footer className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4 px-5 py-8 text-xs text-baylink-muted">
-      {['/about', '/terms', '/privacy', '/sms-consent'].map((path, index) => <a key={path} href={languagePath(path, locale)}>{labels[index + 6]}</a>)}
+      {['/about', '/terms', '/privacy', '/sms-consent', '/archive'].map((path, index) => <a key={path} href={languagePath(path, locale)}>{labels[index + 6]}</a>)}
     </footer>
   </div>
   );
@@ -125,6 +127,7 @@ await setLocale('zh-Hans', false);
 await writeFile(join(outputDir, 'play.html'), opusBayDocument(opusBayMetadata(buildDate)));
 await renderPage({title:'湾区 AI 现场｜BAYLINK',description:'AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。',path:'/ai-in-the-bay'}, <AiLocalPage />);
 await renderPage(ABOUT_METADATA, <AboutContent />);
+await renderPage(ARCHIVE_METADATA, <ArchivePage />);
 await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);

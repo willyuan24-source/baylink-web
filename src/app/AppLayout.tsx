@@ -305,7 +305,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (postIdParam || guideSlugParam || userIdParam) return;
     const path = location.pathname;
     if (path === '/verify-email' || path === '/notifications/unsubscribe') return;
-    if (/^\/(plan|play|calendar|my-week|ai-in-the-bay|together)\/?$/.test(path)) return; // These pages own their metadata.
+    if (/^\/(plan|play|calendar|my-week|ai-in-the-bay|together|archive)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
     if (path === '/this-month' || path === '/this-month/' || path === '/this-week' || path === '/this-week/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/guides' || path === '/guides/') { setPageMetadata({ title:'湾区生活指南｜BAYLINK', description:'按生活场景查湾区活动、交通、就医、租客权益与实用办事步骤，每篇保留官方来源与核对说明。', path:'/guides' }); return; }

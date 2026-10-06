@@ -19,7 +19,7 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
     // City directories also show the next actual events, independently of article text.
     if (slug === 'bay-area-101-city-exploration-living-guide') scopes.push('discovery', 'explore');
   } else if (path === '/guides') scopes.push('guide-index', 'guide-search');
-  else if (/^\/(?:this-month|this-week|calendar|ai-in-the-bay)$/u.test(path) || /^\/(?:events|offers|openings)\//u.test(path)) scopes.push('discovery', 'guide-index');
+  else if (/^\/(?:this-month|this-week|calendar|ai-in-the-bay|archive)$/u.test(path) || /^\/(?:events|offers|openings)\//u.test(path)) scopes.push('discovery', 'guide-index');
   else if (/^\/(?:plan|my-week|together|me)$/u.test(path)) scopes.push('planning', 'discovery', 'guide-index');
   else if (path === '/explore') scopes.push('explore', 'guide-index');
   else if (path === '/' || path === '/reset-password' || /^\/(?:posts|users)\//u.test(path)) scopes.push('home');

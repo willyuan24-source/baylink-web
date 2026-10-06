@@ -35,6 +35,7 @@ const ProfilePage = lazy(pageLoaders.profile);
 const ServiceBookingsPage = lazy(pageLoaders.bookings);
 const TogetherPage = lazy(pageLoaders.together);
 const AboutPage = lazy(pageLoaders.about);
+const ArchivePage = lazy(pageLoaders.archive);
 const NotFoundPage = lazy(pageLoaders.notFound);
 const PrivacyPolicyView = lazy(pageLoaders.privacy);
 const TermsView = lazy(pageLoaders.terms);
@@ -90,6 +91,7 @@ export default function App() {
         <Route path="/me/bookings" element={<ServiceBookingsPage />} />
         <Route path="/together" element={<TogetherPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/archive" element={<ArchivePage />} />
         <Route path="/privacy" element={<PrivacyPolicyView />} />
         <Route path="/terms" element={<TermsView />} />
         <Route path="/sms-consent" element={<SmsConsentView />} />

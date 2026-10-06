@@ -3,12 +3,15 @@ import { cleanStops, eventFor, sharePlanUrl } from './planner';
 import { eventOccursOn } from './event-calendar';
 import { guides } from '../data/guides';
 
+export type BayBayDurationPreference = 'outing-duration:half-day' | `outing-duration:${60 | 120 | 180 | 240 | 300 | 360 | 420 | 480 | 540}-minutes`;
 export type BayBayTaskState = {
   version: 1; revision: number; goal?: string | null; city?: string | null; region?: string | null; date?: string | null;
   origin?: string | null; travelMode?: 'any' | 'drive' | 'transit' | 'walk' | null; partySize?: number | null;
   childAges?: number[]; budget?: number | null; budgetScope?: 'person' | 'total' | null; freeOnly?: boolean;
   setting?: 'any' | 'indoor' | 'outdoor' | 'mixed' | null; startTime?: string | null; finishBy?: string | null; excludedCities?: string[];
   returnToOrigin?: boolean; maxStops?: number;
+  /** Review-only duration preferences never establish a confirmed departure or finish time. */
+  preferences?: BayBayDurationPreference[];
 };
 export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; verification?: 'catalog' | 'page-read' | 'api' | 'search-result'; text?: string };
 export type BayBayPlanStop = {
@@ -116,6 +119,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     if (value.budget === null || number(value.budget) !== undefined) state.budget = value.budget === null ? null : number(value.budget);
     if (Array.isArray(value.childAges)) state.childAges = value.childAges.slice(0, 20).filter((age): age is number => Number.isInteger(age) && Number(age) >= 0 && Number(age) <= 17);
     if (Array.isArray(value.excludedCities)) state.excludedCities = strings(value.excludedCities, 101, 120);
+    if (Array.isArray(value.preferences)) state.preferences = [...new Set(value.preferences.filter((item): item is BayBayDurationPreference => typeof item === 'string' && /^outing-duration:(?:half-day|(?:60|120|180|240|300|360|420|480|540)-minutes)$/u.test(item)))].slice(0, 8);
     if (typeof value.freeOnly === 'boolean') state.freeOnly = value.freeOnly;
     if (typeof value.returnToOrigin === 'boolean') state.returnToOrigin = value.returnToOrigin;
     if (Number.isInteger(value.maxStops) && Number(value.maxStops) >= 1 && Number(value.maxStops) <= 6) state.maxStops = Number(value.maxStops);

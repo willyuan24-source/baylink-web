@@ -64,7 +64,9 @@ test('BayBay keeps the answered question as the post intent and renders at most 
   fireEvent.click(view.getByRole('button', { name: '问一下' }));
   await view.findByText('先确认入住时间和所需条件。');
   assert.ok(view.getByText('参考指引'));
-  assert.match(view.getByRole('status').textContent!, /本次未能形成完整答复/);
+  const incompleteStatus = view.getAllByRole('status').filter(status => /本次未能形成完整答复/.test(status.textContent || ''));
+  assert.equal(incompleteStatus.length, 1, 'the incomplete response warning remains a status announcement');
+  assert.match(incompleteStatus[0].textContent!, /本次未能形成完整答复/);
   assert.ok(view.getByText('按租屋分类查找，尚未按价格筛选。'));
   const links = view.getAllByRole('link');
   assert.deepEqual(links.map(link => link.getAttribute('href')), ['/posts/actual-1', '/posts/actual-2', '/posts/actual-3']);

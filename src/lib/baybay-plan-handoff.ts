@@ -87,7 +87,10 @@ export function readBayBayPlanDraft(id: string | null, ownerId?: string, now = D
 /** Original group prices apply only to the exact imported party, ages, date and ordered stops. Never persisted. */
 export function bayBayAdmissionOverride(draft: BayBayPlanDraft | null, date: string, stops: Stop[], details: PlanDetails, filters: PlanFilters = details.constraints || {}): BayBayAdmissionOverride | undefined {
   if (!draft?.admissions.length) return;
-  const active = date === draft.date && !!draft.requirements.partySize && details.partySize === draft.requirements.partySize
+  // An unspecified party keeps the imported form's default until the user changes it.
+  // Explicit, unsupported party sizes must still invalidate a normalized fallback.
+  const originalPartySize = draft.requirements.partySize ?? draft.details.partySize;
+  const active = date === draft.date && details.partySize === originalPartySize
     && JSON.stringify(stops) === JSON.stringify(draft.stops)
     && JSON.stringify(filters.childAges || []) === JSON.stringify(draft.requirements.childAges || [])
     && filters.childAge === draft.details.constraints?.childAge;
