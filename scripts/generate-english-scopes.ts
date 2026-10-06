@@ -64,7 +64,8 @@ async function uiStrings(directories = ['app', 'components', 'features', 'lib', 
   };
   // The 3D world and editorial data have independent content packs.
   await Promise.all(directories.map(directory => scan(`src/${directory}`)));
-  return strings;
+  // Parallel file reads must not change dictionary order or asset hashes.
+  return strings.sort();
 }
 
 export async function generateEnglishScopes(dictionary: EnglishDictionary, dictionarySources: string[]) {
