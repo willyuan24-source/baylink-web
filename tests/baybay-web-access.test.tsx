@@ -110,3 +110,35 @@ test('authentication, daily quota, temporary rate limits and unavailable provide
     }
   }
 });
+
+test('conversation details open without submitting or losing the draft and search choice in each language', async t => {
+  const requests = mockBayBayFetch(t, async () => Response.json({ ok: true, answer: 'Answer' }));
+  for (const [locale, summaryLabel, webLabel, scopeCopy, retentionCopy] of [
+    ['zh-Hans', '检索、额度与对话说明', '联网查', /已登录 · 可按需联网/, /对话仅保留在当前标签页/],
+    ['zh-Hant', '檢索、額度與對話說明', '聯網查', /已登入 · 可按需聯網/, /對話僅保留在當前標籤頁/],
+    ['en', 'Search, limits and conversation details', 'Web', /Signed in · Web lookups are available/, /This conversation clears on refresh/],
+  ] as const) {
+    await setLocale(locale, false);
+    const view = render(<BayBayAssistantEntry {...props} ownerId="member" sessionKey="member" />);
+    const input = view.getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Keep this draft' } });
+    const web = view.getByRole('button', { name: webLabel, exact: true });
+    fireEvent.click(web);
+    const summary = view.getByText(summaryLabel);
+    const details = summary.closest('details')!;
+    assert.equal(details.open, false);
+    assert.equal(details.contains(input), false, 'the question field remains available when details are closed');
+    assert.equal(details.contains(web), false, 'the chosen scope remains available when details are closed');
+    await act(async () => { fireEvent.click(summary); });
+    assert.equal(details.open, true);
+    assert.match(details.textContent || '', scopeCopy);
+    assert.match(details.textContent || '', /20 \/ 20/);
+    assert.match(details.textContent || '', retentionCopy);
+    fireEvent.click(summary);
+    assert.equal(details.open, false);
+    assert.equal(input.value, 'Keep this draft');
+    assert.equal(web.getAttribute('aria-pressed'), 'true');
+    assert.equal(requests.mock.callCount(), 0, 'reading the explanation must not send the draft');
+    view.unmount();
+  }
+});

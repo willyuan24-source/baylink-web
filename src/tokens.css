@@ -95,12 +95,22 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .guide-complete-index a { display:flex; align-items:center; min-height:var(--control-height); padding:8px 0; font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; text-decoration:underline; text-underline-offset:3px; }
 .baybay-conversation .member-baybay-answer-text,.member-baybay-answer-text { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
 /* Dark header copy must keep its light ink when the shared reading rule scales it. */
-.baybay-conversation .member-baybay-header p { color:var(--color-on-brand-muted); }
+.baybay-conversation .member-baybay-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; }
+.baybay-conversation .member-baybay-header p { grid-column:1/-1; max-width:none; margin:0; color:var(--color-on-brand-muted); }
+.baybay-conversation-details { margin-bottom:16px; padding:0 12px 12px; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-surface); }
+.baybay-conversation-details:not([open]) { padding-bottom:0; }
+.baybay-conversation-details>summary { min-height:var(--control-height); padding-block:8px; cursor:pointer; overflow-wrap:anywhere; }
+.baybay-conversation .baybay-school-privacy { margin:0 0 16px; }
+.baybay-conversation .baybay-access-label { font-size:var(--text-fact); }
 .baybay-user-question>p,.baybay-welcome>p { font-size:var(--text-body); color:var(--color-ink-2); }
 .baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span,.baybay-reading-context small { font-size:var(--text-caption); color:var(--color-ink-3); }
 .baybay-followups button,.baybay-scenarios button { min-height:var(--control-height); font-size:var(--text-fact); }
 .baybay-conversation button { min-width:var(--control-height); }
 .baybay-conversation .member-compose-close { width:var(--control-height); height:var(--control-height); }
+@media(max-width:639px), (max-height:600px) {
+  .baybay-conversation .member-baybay-header { padding:12px 16px; }
+  .baybay-conversation .member-baybay-avatar { width:40px; height:40px; border-radius:12px; }
+}
 /* Extend the same reading preferences to practical tools and publishing. */
 .site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:1.8; }
 .site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:1.8; }
