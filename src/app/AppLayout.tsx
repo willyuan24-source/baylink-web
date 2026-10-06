@@ -131,14 +131,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const baybayResumeOwner = useRef<string | null>(null);
   const [baybayResumedConversation, setBaybayResumedConversation] = useState<{ ownerId: string; draft: BayBayConversationDraft } | null>(null);
   const baybaySessionScope = user?.id || 'guest';
-  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string } | null>(null);
+  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string; mode: 'send' | 'draft' } | null>(null);
   const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
   const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
   const baybayQuestionSequence = useRef(0);
-  const openBayBay = useCallback((question?: string) => {
+  const openBayBay = useCallback((question?: string, options?: { mode?: 'send' | 'draft' }) => {
     if (question?.trim()) {
       setBaybayPendingQuestionId(++baybayQuestionSequence.current);
-      setBaybayPendingQuestion({ text: question.trim().slice(0, 500), scope: baybaySessionScope });
+      setBaybayPendingQuestion({ text: question.trim().slice(0, 500), scope: baybaySessionScope, mode: options?.mode || 'send' });
     }
     setBaybayCategoryHint(categorySlug);
     setBaybayPanelOpen(true);
@@ -885,6 +885,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             }
           }}
           pendingQuestion={baybayPendingQuestion?.scope === baybaySessionScope ? baybayPendingQuestion.text : null}
+          pendingQuestionMode={baybayPendingQuestion?.mode}
           pendingQuestionId={baybayPendingQuestionId}
           onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
           currentPath={location.pathname + location.search}

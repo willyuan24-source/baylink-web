@@ -33,6 +33,7 @@ type BayBayAssistantEntryProps = {
   panelOpen?: boolean;
   onPanelOpenChange?: (open: boolean) => void;
   pendingQuestion?: string | null;
+  pendingQuestionMode?: 'send' | 'draft';
   pendingQuestionId?: number;
   onPendingQuestionConsumed?: (id?: number) => void;
   blockedUserIds?: string[];
@@ -54,7 +55,7 @@ export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBa
 
 const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, categoryHint,
   currentPath = typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search,
-  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
+  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionMode = 'send', pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
   const completionLocale = useRef(locale);
@@ -207,8 +208,9 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     const key = pendingQuestionId ?? pendingQuestion;
     if (pendingContext.current?.key !== key) pendingContext.current = { key, path: currentPath };
     if (!open || loading || consumedPending.current === key) return;
-    if (pendingQuestion.trim().length < 2 || pendingQuestion.trim().length > 500) {
+    if (pendingQuestionMode === 'draft' || pendingQuestion.trim().length < 2 || pendingQuestion.trim().length > 500) {
       setQuestion(pendingQuestion.slice(0, 500));
+      if (pendingQuestionMode === 'draft') inputRef.current?.focus();
       consumedPending.current = key;
       onPendingQuestionConsumed?.(pendingQuestionId);
       return;
@@ -217,7 +219,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
       consumedPending.current = key;
       onPendingQuestionConsumed?.(pendingQuestionId);
     }
-  }, [open, loading, currentPath, pendingQuestion, pendingQuestionId, askBayBay, onPendingQuestionConsumed]);
+  }, [open, loading, currentPath, pendingQuestion, pendingQuestionMode, pendingQuestionId, askBayBay, onPendingQuestionConsumed]);
 
   const navigate = (path: string) => { onNavigate(path); close(); };
   const signIn = () => {
@@ -252,7 +254,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
       <img src={BRAND.baybayAvatar} alt="BayBay" className="h-9 w-9 shrink-0 rounded-lg object-cover" width={36} height={36} />
       <span className="min-w-0 flex-1"><span className="block text-[12px] font-medium text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
     </button>)}
-    {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay">
+    {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined}>
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>
         <div className="member-baybay-header">
           <div className="flex min-w-0 gap-3"><img src={BRAND.baybayAvatar} alt="" className="member-baybay-avatar" width={48} height={48} />
