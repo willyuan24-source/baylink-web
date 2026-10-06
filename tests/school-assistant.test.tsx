@@ -62,6 +62,7 @@ test('school page prompts use the current guide, explain privacy and expose only
   const input = view.getByRole('textbox', { name: '向 BayBay 提问' });
   assert.equal(input.getAttribute('aria-describedby'), 'baybay-school-privacy');
   assert.equal(view.getByText(BAYBAY_SCHOOL_NOTE).id, 'baybay-school-privacy');
+  assert.equal(view.getByText(BAYBAY_SCHOOL_NOTE).closest('details'), null, 'school privacy must remain readable without opening conversation details');
   assert.match(input.getAttribute('placeholder') || '', /Fremont.*三年级/);
   fireEvent.click(view.getByRole('button', { name: '先核对学区' }));
   await view.findByText('请告诉我地区与拟入读年级，再到官方学区入口自行核验。');
