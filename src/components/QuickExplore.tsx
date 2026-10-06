@@ -14,10 +14,11 @@ import { openingStatusLabel } from '../lib/opening-status';
 
 type QuickResult = { id: string; title: string; detail: string; icon: LucideIcon; group: string; run: () => void; image?: string };
 
-export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuery = '' }: {
+export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuery = '', restoreFocusRef }: {
   initialQuery?: string;
   onClose: () => void; onSearch: (value: string) => void;
   onNavigate: (path: string) => void; onAsk: (question?: string) => void;
+  restoreFocusRef?: React.RefObject<HTMLElement>;
 }) {
   const [query, setQuery] = useState(initialQuery);
   const locale = useLocale();
@@ -118,12 +119,12 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuer
   ];
   const selected = Math.min(active, results.length - 1);
   return (
-    <ModalShell onClose={onClose} label="快速搜索与导航" className="quick-explore-overlay">
+    <ModalShell onClose={onClose} label="快速搜索与导航" className="quick-explore-overlay" initialFocusRef={inputRef} restoreFocusRef={restoreFocusRef}>
       <div className="quick-explore" onClick={(event) => event.stopPropagation()}>
         <form onSubmit={(event) => { event.preventDefault(); if (!composing.current) run(results[selected].run); }} className="quick-search-form">
           <Search size={22} />
           <input ref={inputRef} maxLength={200} aria-label="快速搜索" role="combobox" aria-expanded="true" aria-controls="quick-explore-results"
-            aria-autocomplete="list" aria-activedescendant={`quick-result-${selected}`} autoFocus placeholder="搜索活动、优惠、新店或生活问题…"
+            aria-autocomplete="list" aria-activedescendant={`quick-result-${selected}`} placeholder="搜索活动、优惠、新店或生活问题…"
             value={query} onChange={(event) => { setQuery(event.target.value); setActive(0); }}
             onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
             onKeyDown={(event) => {

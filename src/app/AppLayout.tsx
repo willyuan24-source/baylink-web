@@ -74,8 +74,8 @@ const overlayChunkFallback = (
     <Loader2 className="h-8 w-8 animate-spin text-baylink-green" />
   </div>
 );
-const DismissibleChunkFallback = ({ label, onClose }: { label: string; onClose: () => void }) => (
-  <ModalShell onClose={onClose} className="fixed inset-0 z-[110] flex items-center justify-center bg-white/90 p-5" label={label}>
+const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef }: { label: string; onClose: () => void; restoreFocusRef?: React.RefObject<HTMLElement> }) => (
+  <ModalShell onClose={onClose} className="fixed inset-0 z-[110] flex items-center justify-center bg-white/90 p-5" label={label} restoreFocusRef={restoreFocusRef}>
     <div className="rounded-2xl border border-baylink-border bg-white p-8 text-center">
     <Loader2 aria-hidden="true" className="mx-auto h-8 w-8 animate-spin text-baylink-green" />
     <p role="status" className="mt-4 text-base">{label}</p>
@@ -104,12 +104,17 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [showLogin, setShowLogin] = useState(false);
   const [quickExploreOpen, setQuickExploreOpen] = useState(false);
   const [quickQuery, setQuickQuery] = useState('');
+  const quickSearchOpenerRef = useRef<HTMLElement | null>(null);
   const [baybayLoaded, setBaybayLoaded] = useState(false);
-  const openSearch = (query = '') => { setQuickQuery(query); setQuickExploreOpen(true); };
+  const openSearch = (query = '') => {
+    if (!quickExploreOpen) quickSearchOpenerRef.current = document.activeElement as HTMLElement | null;
+    setQuickQuery(query); setQuickExploreOpen(true);
+  };
   useEffect(() => {
     const openSearch = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing && !document.getElementById('root')?.inert) {
         event.preventDefault();
+        quickSearchOpenerRef.current = document.activeElement as HTMLElement | null;
         setQuickQuery('');
         setQuickExploreOpen((open) => !open);
       }
@@ -854,7 +859,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <ReadingPreferencesButton />
           <LanguageSwitcher realLocation={realLocation} />
         </header>
-        {quickExploreOpen && <Suspense fallback={<DismissibleChunkFallback label="正在打开搜索…" onClose={() => setQuickExploreOpen(false)} />}><LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={quickQuery} onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} /></LocaleContentGate></Suspense>}
+        {quickExploreOpen && <Suspense fallback={<DismissibleChunkFallback label="正在打开搜索…" onClose={() => setQuickExploreOpen(false)} restoreFocusRef={quickSearchOpenerRef} />}><LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={quickQuery} restoreFocusRef={quickSearchOpenerRef} onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} /></LocaleContentGate></Suspense>}
 
         <main className="site-main" id="scroll-container" tabIndex={-1}>
            <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
