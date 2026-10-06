@@ -54,26 +54,33 @@ const modulePreloads = (path: string) => {
   return [...files].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
 };
 
-const Shell = ({ children }: { children: ReactNode }) => (
+const Shell = ({ children, locale }: { children: ReactNode; locale: SiteLanguage }) => {
+  const labels = locale === 'en'
+    ? ['Site navigation', 'Home', 'Events', 'Guides', 'Ask BayBay', 'Me', 'About', 'Terms', 'Privacy', 'SMS consent']
+    : locale === 'zh-Hant'
+      ? ['網站導航', '首頁', '活動', '指南', '問 BayBay', '我的', '關於我們', '服務條款', '隱私政策', '簡訊驗證說明']
+      : ['网站导航', '首页', '活动', '指南', '问 BayBay', '我的', '关于我们', '服务条款', '隐私政策', '短信验证说明'];
+  return (
   <div className="min-h-screen bg-baylink-bg text-baylink-text">
     <header className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 border-b border-baylink-border px-5 py-4">
-      <a href="/" className="text-lg font-bold text-baylink-green">BAYLINK</a>
-      <nav aria-label="网站导航" className="flex gap-4 text-sm">
-        <a href="/">首页</a><a href="/calendar">活动</a><a href="/guides">指南</a><a href="/plan">问 BayBay</a><a href="/me">我的</a>
+      <a href={languagePath('/', locale)} className="text-lg font-bold text-baylink-green">BAYLINK</a>
+      <nav aria-label={labels[0]} className="flex flex-wrap gap-4 text-sm">
+        {['/', '/calendar', '/guides', '/plan', '/me'].map((path, index) => <a key={path} href={languagePath(path, locale)}>{labels[index + 1]}</a>)}
       </nav>
     </header>
     <main className="mx-auto max-w-4xl">{children}</main>
     <footer className="mx-auto flex max-w-4xl flex-wrap justify-center gap-4 px-5 py-8 text-xs text-baylink-muted">
-      <a href="/about">关于我们</a><a href="/terms">服务条款</a><a href="/privacy">隐私政策</a><a href="/sms-consent">短信验证说明</a>
+      {['/about', '/terms', '/privacy', '/sms-consent'].map((path, index) => <a key={path} href={languagePath(path, locale)}>{labels[index + 6]}</a>)}
     </footer>
   </div>
-);
+  );
+};
 
 const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?: string) => {
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as SiteLanguage[]) {
     await setLocale(locale, false);
     const path = languagePath(metadata.path, locale);
-    const body = renderToStaticMarkup(<StaticRouter basename={languagePrefix(locale) || undefined} location={path}><Shell>{content}</Shell></StaticRouter>);
+    const body = renderToStaticMarkup(<StaticRouter basename={languagePrefix(locale) || undefined} location={path}><Shell locale={locale}>{content}</Shell></StaticRouter>);
     const relative = filename || (metadata.path === '/' ? 'index.html' : `${metadata.path.slice(1)}.html`);
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');

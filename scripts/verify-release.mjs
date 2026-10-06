@@ -23,6 +23,12 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of ['index','guides'
   if(locale==='en/'&&!html.includes('<html lang="en"')) throw new Error(`Wrong document language: ${path}`);
   if((html.match(/property="og:image:alt"/g)||[]).length!==1) throw new Error(`Ambiguous social image description: ${path}`);
   if(locale==='en/'&&/[\u3400-\u9fff]/.test(html.match(/property="og:image:alt" content="([^"]*)"/)?.[1]||'')) throw new Error(`Untranslated social image description: ${path}`);
+  if (page !== 'opus-bay') {
+    const shell = [...html.matchAll(/<(header|footer)\b[^>]*>([\s\S]*?)<\/\1>/g)].map(match => match[2]);
+    if (shell.length !== 2) throw new Error(`Missing anonymous navigation shell: ${path}`);
+    if (locale === 'en/' && shell.some(markup => /[\u3400-\u9fff]/.test(markup))) throw new Error(`Untranslated first-paint navigation: ${path}`);
+    if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
+  }
 }
 const release=JSON.parse(await readFile('dist/release.json','utf8'));if(!/^[a-f0-9]{40}$/.test(release.commit))throw new Error('Release commit missing');
 console.log(`Release verified: shell ${(shell/1024).toFixed(1)} KiB, homepage route graph ${(total/1024).toFixed(1)} KiB; English homepage with dictionaries ${(englishTotal/1024).toFixed(1)} KiB gzip; translated prerenders and Event schema present.`);
