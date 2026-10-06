@@ -50,8 +50,13 @@ test('selected outing keeps the server share card while loading, then uses the e
   assert.equal(document.title, '首页｜BAYLINK');
   assert.equal(meta('og:url'), canonical());
   assert.equal(reads, 1);
-  assert.doesNotMatch(document.head.innerHTML, /PRIVATE_|requestCount|members|timePoll|<script>bad\(\)/);
-  const event = JSON.parse(document.head.querySelector('script[data-baylink-structured-data]')!.textContent!)[0];
+  assert.doesNotMatch(document.head.innerHTML, /PRIVATE_|requestCount|members|timePoll/);
+  const scripts = document.head.querySelectorAll('script');
+  assert.equal(scripts.length, 1, 'user text never creates executable script elements');
+  assert.equal(scripts[0].type, 'application/ld+json');
+  assert.equal(scripts[0].hasAttribute('data-baylink-structured-data'), true);
+  assert.doesNotMatch(scripts[0].textContent!, /</, 'JSON-LD escapes every literal opening tag');
+  const event = JSON.parse(scripts[0].textContent!)[0];
   assert.equal(event.name, item.title);
   assert.equal(event.description, item.description);
   assert.equal(event.startDate, '2026-10-17T21:00:00.000Z');
