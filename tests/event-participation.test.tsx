@@ -49,7 +49,27 @@ function fixture(app?: AppContextValue, today = '2026-10-15') {
   return <MemoryRouter><Routes><Route element={<Outlet context={app} />}><Route index element={contents} /><Route path="together" element={<p>小队公开浏览页</p>} /></Route></Routes></MemoryRouter>;
 }
 const interestedButton = (view: ReturnType<typeof render>, selected = false) => view.getByRole('button', { name: `${selected ? '取消想去' : '我想去'}：${EVENT.title}`, exact: true });
-const getNote = (count: number) => `${count} 人想去 · 意向不等于报名或购票。`;
+const getNote = (count: number) => `${count >= 3 ? `${count} 人想去 · ` : ''}意向不等于报名或购票。`;
+
+test('small real counts stay private while three or more participants remain visible', async t => {
+  const actions = controls();
+  let current = 0;
+  t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => {
+    assert.equal(options.method, undefined, 'displaying counts must not write an interest');
+    return list(state(null, current, current));
+  });
+  for (const count of [0, 1, 2, 3]) {
+    current = count;
+    const view = render(fixture(actions.app(null)));
+    await view.findByText(getNote(count));
+    const interest = interestedButton(view), together = view.getByRole('button', { name: /^一起去/ });
+    assert.equal(interest.querySelector('span')?.textContent || null, count >= 3 ? String(count) : null);
+    assert.equal(together.querySelector('span')?.textContent || null, count >= 3 ? String(count) : null);
+    assert.equal(interest.getAttribute('aria-pressed'), 'false');
+    view.unmount();
+  }
+  assert.deepEqual(actions.logins, []);
+});
 
 test('renders server counts and makes one idempotent private-interest set while a click is pending', async t => {
   const actions = controls();
@@ -128,7 +148,7 @@ test('failed counts and malformed count payloads display unavailable rather than
   const view = render(fixture(actions.app(null)));
   await view.findByText('人数暂时无法加载');
   assert.equal(view.queryByText(getNote(0)), null);
-  assert.match(interestedButton(view).textContent || '', /—/);
+  assert.equal(interestedButton(view).querySelector('span'), null, 'an unavailable count is not represented as a number');
   fireEvent.click(view.getByRole('button', { name: '重试' }));
   await waitFor(() => assert.equal(count, 2));
   await view.findByText('人数暂时无法加载');

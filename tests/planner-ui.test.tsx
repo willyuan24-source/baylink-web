@@ -75,6 +75,26 @@ beforeEach(context => {
 });
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
 
+test('an empty plan starts with places and opens scheduling only after choosing a first stop, with undo preserving the draft', async () => {
+  const view = await openPlanner();
+  const empty = editor(view);
+  assert.equal(empty.queryByLabelText('计划名称'), null);
+  assert.equal(empty.queryByLabelText('开始时间'), null);
+  assert.equal(empty.queryByRole('button', { name: '保存这份计划' }), null);
+  assert.equal(empty.getByRole('link', { name: '先挑一个地点' }).getAttribute('href'), '#planner-discoveries');
+  fireEvent.click(view.getByRole('button', { name: '景点', exact: true }));
+  const firstPlace = view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement;
+  assert.ok(firstPlace, 'a real catalog location is available before the schedule');
+  fireEvent.click(within(firstPlace).getByRole('button', { name: /加入计划/ }));
+  fireEvent.change(editor(view).getByLabelText('计划名称'), { target: { value: '首站草稿' } });
+  fireEvent.change(editor(view).getByLabelText('开始时间'), { target: { value: '11:30' } });
+  fireEvent.click(editor(view).getByRole('button', { name: '移除此站' }));
+  assert.equal(editor(view).queryByLabelText('开始时间'), null);
+  fireEvent.click(editor(view).getByRole('button', { name: '撤销上次调整' }));
+  assert.equal((editor(view).getByLabelText('计划名称') as HTMLInputElement).value, '首站草稿');
+  assert.equal((editor(view).getByLabelText('开始时间') as HTMLInputElement).value, '11:30');
+});
+
 test('failed initial account reads keep favorites unknown and saving disabled, then restore real preferences on retry', async () => {
   let fail = true, writes = 0;
   api.request = async (path, options) => {
@@ -110,7 +130,7 @@ test('an edit link waits through a failed read and hydrates the saved plan after
     return { plans: [saved], favorites: [], preferences: { regions: ['sf'], interests: [], travelMode: 'walk' } };
   };
   const view = await openAccountPlanner('?edit=recover-plan');
-  assert.equal((editor(view).getByRole('button', { name: '保存这份计划' }) as HTMLButtonElement).disabled, true);
+  assert.equal(editor(view).queryByRole('button', { name: '保存这份计划' }), null, 'no empty plan is offered for saving before the account read recovers');
   assert.equal(view.queryByText(/找不到计划|未找到.*计划/), null, 'a failed read cannot establish that the plan is missing');
   fail = false; await act(async () => { fireEvent.click(view.getByRole('button', { name: '刷新账号资料' })); });
   assert.equal((editor(view).getByLabelText('计划名称') as HTMLInputElement).value, saved.title);

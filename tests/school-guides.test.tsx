@@ -146,7 +146,7 @@ function SchoolHomeHarness() {
   return <><output data-testid="location">{location.pathname}{location.search}</output><GuidesHome onOpenGuide={() => {}} /></>;
 }
 
-const unrelatedPromos = '.guide-attraction-entry, .daily-guide-topics, .bl-monthly-spotlight, .bl-monthly-deals, .bl-guides-spotlights, .bl-guide-explorer, .editorial-collections';
+const unrelatedPromos = '.guide-attraction-entry, .daily-guide-topics:not(.reader-paths), .bl-monthly-spotlight, .bl-monthly-deals, .bl-guides-spotlights, .bl-guide-explorer, .editorial-collections';
 
 function assertEducationView(view: ReturnType<typeof render>) {
   assert.equal(view.getByRole('button', { name: '学校与学区', exact: true }).getAttribute('aria-pressed'), 'true');
@@ -157,16 +157,13 @@ function assertEducationView(view: ReturnType<typeof render>) {
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'an education filter must not promote unrelated activities, deals or attractions');
 }
 
-test('the top category control and five school entries are visible, and choosing education removes unrelated promotions', () => {
+test('the guide overview previews four school guides and its category control opens the complete school library', () => {
   const view = render(<MemoryRouter initialEntries={['/guides']}><SchoolHomeHarness /></MemoryRouter>);
   const categories = view.getByRole('group', { name: '指南分类' });
-  const topics = view.getByRole('region', { name: '学校与学区，从所在地区开始。' });
-  assert.ok(categories.compareDocumentPosition(topics) & Node.DOCUMENT_POSITION_FOLLOWING, 'category controls must precede promotional sections');
-  const regionCards = topics.querySelectorAll('.school-guide-grid a');
-  assert.deepEqual(Array.from(regionCards, card => card.getAttribute('href')?.replace('/guides/', '')).sort(), schoolSlugs);
-  assert.equal(within(topics).getAllByRole('img').length, regions.length);
-  assert.match(topics.textContent || '', /AI.*不代表实际学校/);
-  assert.ok(view.container.querySelector(unrelatedPromos), 'all-guides view retains its discovery content');
+  const topics = view.getByRole('region', { name: '学校与学区', exact: true });
+  assert.ok(categories.compareDocumentPosition(topics) & Node.DOCUMENT_POSITION_FOLLOWING, 'category controls must precede the library');
+  assert.equal(within(topics).getAllByRole('link').length, 4);
+  assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'the compact overview has no unrelated promotional modules');
   fireEvent.click(within(categories).getByRole('button', { name: '学校与学区', exact: true }));
   assert.match(view.getByTestId('location').textContent || '', /category=education/);
   assertEducationView(view);
@@ -175,7 +172,7 @@ test('the top category control and five school entries are visible, and choosing
 test('a shared education URL restores the filter and supports school searches without reintroducing promotions', () => {
   const view = render(<MemoryRouter initialEntries={['/guides?category=education']}><SchoolHomeHarness /></MemoryRouter>);
   assertEducationView(view);
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索生活指南' }), { target: { value: '學區' } });
+  fireEvent.change(view.getByRole('searchbox', { name: /篇指南中搜索/ }), { target: { value: '學區' } });
   const url = new URL(view.getByTestId('location').textContent || '', 'http://localhost');
   assert.equal(url.searchParams.get('category'), 'education');
   assert.equal(url.searchParams.get('q'), '學區');

@@ -3,6 +3,7 @@ import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket }
 import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
+import { getImageProvenance } from '../lib/image-provenance';
 import { EditorialShareActions } from './EditorialShareActions';
 import { offerShare } from '../lib/editorial-share';
 import type { MonthlyRegion } from '../data/monthly-types';
@@ -93,7 +94,7 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
   const [imageFailed, setImageFailed] = useState(false);
   const image = imageFailed ? undefined : getOfferImage(offer);
   const status = offerStatus(offer, today);
-  const pictureLabel = image?.kind === 'poster' ? '官方宣传图' : image?.kind === 'illustration' ? 'AI 原创插图' : image?.credit.includes('官方') ? '官方宣传照片' : image?.caption.includes('资料') ? '资料照片' : '实景照片';
+  const pictureLabel = image ? getImageProvenance(image, locale === 'en') : '';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     <div className="bl-freebie-card-brand"><strong>{offer.brand}</strong><Ticket size={16} aria-hidden="true" /></div>
     {image ? <figure className="bl-freebie-picture">

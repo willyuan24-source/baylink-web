@@ -47,13 +47,13 @@ test('official posters retain their complete layout, responsive sources and sour
   assert.equal(getComputedStyle(img).objectFit, 'contain', 'official artwork must not crop away dates or event names');
   assert.equal(img.getAttribute('srcset'), poster.srcSet);
   assert.equal(img.getAttribute('height'), '1700');
-  assert.ok(view.getByText('官方宣传图'));
+  assert.ok(view.getByText('官方图'));
   assert.ok(view.getByText(poster.caption));
   assert.equal(view.getByRole('link', { name: /音乐会主办方/ }).getAttribute('href'), poster.creditUrl);
   assert.equal(view.queryByRole('link', { name: /图片授权/ }), null, 'a source link must not invent a reuse license');
   view.rerender(<EditionPicture imageKey="ui-test-photo" />);
   assert.equal(getComputedStyle(view.getByRole('img')).objectFit, 'cover');
-  assert.ok(view.getByText('资料照片'));
+  assert.ok(view.getByText('资料图'));
   assert.equal(view.getByRole('link', { name: /图片授权/ }).getAttribute('href'), photo.licenseUrl);
 });
 

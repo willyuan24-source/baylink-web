@@ -23,6 +23,7 @@ const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+const { BayBayEntityCards } = await import('../src/components/BayBayEntityCards');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getListingImage } = await import('../src/lib/offer-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
@@ -47,6 +48,25 @@ const nextDay = (value: string) => {
 };
 const detail = (item: LocalDiscovery, today = '2026-09-15') =>
   <MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>;
+
+test('BayBay event actions point to the real detail participation section, and expired cards retain only reference access', () => {
+  const event = eventItem.event;
+  const visited: string[] = [];
+  const card = { kind: 'event' as const, id: event.id, title: event.title, summary: event.summary, url: `/events/${event.id}`, date: event.startDate, temporalStatus: 'upcoming' };
+  const view = render(<BayBayEntityCards cards={[card]} onNavigate={path => visited.push(path)} />);
+  fireEvent.click(view.getByRole('button', { name: '想去、存日历或找同行' }));
+  const url = new URL(visited[0], SITE_URL);
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location={url.pathname}><LocalDiscoveryDetail item={eventItem} today="2026-09-15" /></StaticRouter>)).window.document;
+  assert.ok(doc.getElementById(url.hash.slice(1)), 'the action has a visible participation destination on the actual detail page');
+  doc.defaultView!.close();
+  for (const temporalStatus of ['past', 'inactive', 'ended']) {
+    view.rerender(<BayBayEntityCards cards={[{ ...card, date: undefined, temporalStatus }]} onNavigate={path => visited.push(path)} />);
+    assert.ok(view.getByText('已结束 · 仅供参考'));
+    assert.equal(view.queryByRole('button', { name: '加入计划' }), null);
+    assert.equal(view.queryByRole('button', { name: '想去、存日历或找同行' }), null);
+    assert.ok(view.getByRole('button', { name: event.title }));
+  }
+});
 
 test('soft opening details and share metadata preserve trial operation without claiming a grand opening', () => {
   const item: LocalDiscovery = { kind: 'opening', shop: { ...openShop.shop, status: 'soft_open', openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' } };
@@ -176,7 +196,7 @@ test('every public discovery has a unique same-site PNG share URL without requir
   assert.equal(urls.size, localDiscoveries.length);
 });
 
-test('all detail pages server-render full content with matching canonical, OG, Twitter and Article metadata', t => {
+test('all detail pages server-render full content with matching canonical, OG, Twitter and factual Event or Article metadata', async t => {
   const request = t.mock.method(api, 'request', async () => { throw new Error('Prerender cannot request engagement'); });
   const fetch = t.mock.method(globalThis, 'fetch', async () => { throw new Error('Prerender cannot use the network'); });
   for (const item of localDiscoveries) {
@@ -186,6 +206,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
     const expectedImage = SITE_URL + '/share-cards/' + item.kind + '-' + share.id + '.png';
     const body = renderToStaticMarkup(<StaticRouter location={share.path}><LocalDiscoveryDetail item={item} today="2026-09-15" /></StaticRouter>);
     const page = new JSDOM('<!doctype html><html><head>' + renderMetadataHtml(metadata) + '</head><body>' + body + '</body></html>');
+    try {
     const doc = page.window.document;
     assert.equal(doc.querySelectorAll('h1').length, 1, share.id);
     assert.equal(doc.querySelector('h1')?.textContent, share.title);
@@ -202,14 +223,31 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.ok(meta(doc, 'description')!.includes(share.summary));
     const jsonLd = doc.querySelectorAll('script[type="application/ld+json"]');
     assert.equal(jsonLd.length, 1);
-    const [article] = JSON.parse(jsonLd[0].textContent!);
-    assert.equal(article['@type'], 'Article');
-    assert.equal(article.headline, share.title);
-    assert.equal(article.mainEntityOfPage, expectedUrl);
-    assert.equal(article.publisher.name, 'BAYLINK');
-    assert.equal(article.publisher.url, SITE_URL);
-    if (share.checkedAt) assert.equal(article.dateModified, share.checkedAt);
-    else assert.equal(Object.hasOwn(article, 'dateModified'), false, 'offers without a checked date do not invent one');
+    const [entity, breadcrumb] = JSON.parse(jsonLd[0].textContent!);
+    if (item.kind === 'event') {
+      assert.equal(entity['@type'], 'Event');
+      assert.equal(entity.name, share.title);
+      assert.equal(entity.url, expectedUrl);
+      assert.equal(entity.startDate, item.event.startDate);
+      assert.equal(entity.endDate, item.event.endDate);
+      assert.equal(entity.location.name, item.event.venue);
+      assert.equal(entity.location.address.addressLocality, item.event.city);
+      assert.equal(entity.location.address.addressRegion, 'CA');
+      assert.equal(entity.location.address.addressCountry, 'US');
+      assert.equal(Object.hasOwn(entity, 'offers'), false, 'unconfirmed ticket prices are not invented');
+      assert.equal(entity.isAccessibleForFree, item.event.cost === 'free' ? true : undefined);
+      if (item.event.occurrenceDates) assert.deepEqual(entity.subEvent.map((event: { startDate: string }) => event.startDate), item.event.occurrenceDates);
+    } else {
+      assert.equal(entity['@type'], 'Article');
+      assert.equal(entity.headline, share.title);
+      assert.equal(entity.mainEntityOfPage, expectedUrl);
+      assert.equal(entity.publisher.name, 'BAYLINK');
+      assert.equal(entity.publisher.url, SITE_URL);
+      if (share.checkedAt) assert.equal(entity.dateModified, share.checkedAt);
+      else assert.equal(Object.hasOwn(entity, 'dateModified'), false, 'offers without a checked date do not invent one');
+    }
+    assert.equal(breadcrumb['@type'], 'BreadcrumbList');
+    assert.equal(breadcrumb.itemListElement.at(-1).item, expectedUrl);
 
     const content = doc.querySelector('.local-discovery-detail')!;
     const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
@@ -234,7 +272,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.ok(content.textContent!.includes(item.event.costLabel));
       assert.ok(typeof item.event.venue === 'string' && item.event.venue.trim(), share.id + ' has a venue or explicit location guidance');
       assert.ok(content.textContent!.includes(item.event.venue), share.id + ' preserves location guidance');
-      assert.equal(content.querySelector('.event-interest span')?.textContent, '—');
+      assert.equal(content.querySelector('.event-interest span'), null, 'server HTML does not invent a participant count');
     } else if (item.kind === 'offer') {
       assert.ok(content.textContent!.includes(item.offer.requirement), 'redemption conditions are visible before following the offer');
       assert.ok(content.textContent!.includes(item.offer.description));
@@ -246,7 +284,9 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(content.querySelector('.event-participation'), null);
     }
     assert.equal(doc.querySelector('link[rel="canonical"]')!.getAttribute('href')!.includes('?'), false);
-    page.window.close();
+    } finally { page.window.close(); }
+    // Let JSDOM finish detached-document cleanup between catalog entries.
+    await new Promise<void>(resolve => setImmediate(resolve));
   }
   assert.equal(request.mock.callCount(), 0);
   assert.equal(fetch.mock.callCount(), 0);
@@ -308,6 +348,10 @@ test('event recipients see all planning, cost, venue and audience details and re
   assert.ok(view.container.textContent!.includes(eventItem.event.audience.join(' / ')));
   assertExternal(view.getByRole('link', { name: '查看主办方详情' }), eventItem.event.officialUrl);
   assertExternal(view.getByRole('link', { name: eventItem.event.sourceLabel, exact: true }), eventItem.event.officialUrl);
+  const primaryActions = view.getByRole('group', { name: '活动主要操作' });
+  assert.equal(within(primaryActions).getAllByRole('link').length, 2, 'official facts and starting a plan are the two visible decisions');
+  assert.equal(view.queryByRole('button', { name: '存入日历', exact: true }), null, 'secondary tasks start collapsed');
+  fireEvent.click(view.getByText('收藏、日历与分享', { exact: true }));
   assert.ok(view.getByRole('button', { name: '存入日历', exact: true }), 'the final event day is still valid');
   assert.equal(view.getByRole('link', { name: '发现更多湾区好去处' }).getAttribute('href'), '/this-month#monthly-events');
   assert.equal(view.getByRole('link', { name: '十月活动日历' }).getAttribute('href'), '/this-month?when=october');
@@ -333,6 +377,8 @@ test('expired event links remain readable and shareable but cannot create new in
   const interest = view.getByRole('button', { name: '我想去：' + eventItem.event.title, exact: true }) as HTMLButtonElement;
   assert.equal(interest.disabled, true);
   assert.match(interest.textContent!, /活动已结束/);
+  fireEvent.click(view.getByText('收藏、日历与分享', { exact: true }));
+  assert.equal(view.queryByRole('button', { name: '存入日历', exact: true }), null, 'opening secondary tasks cannot restore an expired date');
   assert.ok(view.getByRole('button', { name: '分享：' + eventItem.event.title, exact: true }));
   assertExternal(view.getByRole('link', { name: '查看主办方详情' }), eventItem.event.officialUrl);
   assert.equal(view.getByRole('list').querySelectorAll('li').length, 3);
@@ -416,8 +462,9 @@ test('client recipient navigation replaces category content and metadata, and wr
     assert.equal(meta(document, 'twitter:card'), 'summary_large_image');
     assert.equal(meta(document, 'robots'), 'index, follow');
     assert.equal(document.querySelectorAll('script[data-baylink-structured-data]').length, 1);
-    const [article] = JSON.parse(document.querySelector('script[data-baylink-structured-data]')!.textContent!);
-    assert.equal(article.mainEntityOfPage, SITE_URL + share.path);
+    const [entity] = JSON.parse(document.querySelector('script[data-baylink-structured-data]')!.textContent!);
+    assert.equal(entity['@type'], item.kind === 'event' ? 'Event' : 'Article');
+    assert.equal(item.kind === 'event' ? entity.url : entity.mainEntityOfPage, SITE_URL + share.path);
   }
   fireEvent.click(view.getByRole('link', { name: 'fixture wrong kind', exact: true }));
   assert.ok(view.getByRole('heading', { name: '没有找到这个页面' }));

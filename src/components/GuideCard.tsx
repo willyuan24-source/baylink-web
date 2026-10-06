@@ -1,5 +1,7 @@
 import type { Guide } from "../data/guides";
 import { getGuideMedia } from '../data/guide-media';
+import { getImageProvenance } from '../lib/image-provenance';
+import { useLocale } from '../i18n/locale';
 import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -53,6 +55,7 @@ const categoryIcons = {
 
 export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSection }: GuideCardProps) => {
   const { cover } = getGuideMedia(guide);
+  const english = useLocale() === 'en';
   return (
     <Link
       to={`/guides/${guide.slug}`}
@@ -69,7 +72,7 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
           <span className="bl-guide-art-arrow">
             <ArrowUpRight size={17} />
           </span>
-          <span className="bl-guide-image-kind">{cover.kind === 'photo' ? '实景照片' : cover.kind === 'poster' ? '活动宣传图' : 'AI 原创插图'}</span>
+          <span className="bl-guide-image-kind">{getImageProvenance(cover, english)}</span>
         </div>
       )}
       <div className="bl-guide-card-body">
@@ -80,8 +83,8 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
           )}
         </div>
         <h3>{guide.title}</h3>
-        {!compact && searchSection && <span className="bl-guide-search-section">文内匹配 · {searchSection}</span>}
-        {!compact && <p className="bl-guide-card-summary">{searchSnippet || guide.summary}</p>}
+        {searchSection && <span className="bl-guide-search-section">文内匹配 · {searchSection}</span>}
+        {(!compact || searchSnippet) && <p className="bl-guide-card-summary">{searchSnippet || guide.summary}</p>}
         <div className="bl-guide-card-meta">
           <span>
             <Clock3 size={12} aria-hidden="true" /> {guide.readMinutes} 分钟

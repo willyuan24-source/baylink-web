@@ -1,257 +1,44 @@
-import { PerksGallery } from './PerksGallery';
-import { useMemo } from "react";
-import {
-  Search,
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Compass,
-  X,
-  Bookmark,
-} from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
-import {
-  guides,
-  GUIDE_CATEGORY_TABS,
-  getGuideBySlug,
-  type Guide,
-  type GuideCategory,
-} from "../data/guides";
-import { GuideCard, handleGuideLinkClick } from "./GuideCard";
-import { EditorialCollections } from "./EditorialCollections";
-import { searchGuides } from "../lib/guide-search";
-import { getGuideMedia } from '../data/guide-media';
-import { GuideExplorer, GuideImageCredits } from './GuideExplorer';
-import { MonthlySpotlight } from './MonthlySpotlight';
-import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
+import { useMemo, useState } from 'react';
+import { Search, ArrowRight, X, Bookmark } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { guides, GUIDE_CATEGORY_TABS, type Guide, type GuideCategory } from '../data/guides';
+import { GuideCard } from './GuideCard';
+import { searchGuides } from '../lib/guide-search';
 import { ReadingShelf } from './ReaderLibrary';
 import { ReaderPaths } from './ReaderPaths';
-import { DailyGuideTopics } from './DailyGuideTopics';
-import { SchoolGuideTopics } from './SchoolGuideTopics';
 import { useLocale } from '../i18n/locale';
 
-type GuidesHomeProps = { onOpenGuide: (slug: string) => void };
-const NEWCOMER_SPOTLIGHT_SLUGS = [
-  "bay-area-newcomer-first-month-checklist",
-  "bay-area-rental-scam-guide",
-  "bay-area-commute-guide",
-];
-
-export const GuidesHome = ({ onOpenGuide }: GuidesHomeProps) => {
+type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: (question: string) => void; onSearch?: (query: string) => void };
+export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) => {
   const locale = useLocale();
+  const english = locale === 'en';
   const [searchParams, setSearchParams] = useSearchParams();
-  const categoryParam = searchParams.get('category');
-  const tab = GUIDE_CATEGORY_TABS.some(({ id }) => id === categoryParam) ? categoryParam as 'all' | GuideCategory : 'all';
+  const category = searchParams.get('category');
+  const tab = GUIDE_CATEGORY_TABS.some(({ id }) => id === category) ? category as 'all' | GuideCategory : 'all';
   const query = (searchParams.get('q') || '').slice(0, 200);
   const savedOnly = searchParams.get('view') === 'saved';
-  const updateSearch = (values: { q?: string; category?: 'all' | GuideCategory }, replace = false) => {
-    setSearchParams((current) => {
-      const next = new URLSearchParams(current);
-      if (values.q !== undefined) {
-        if (values.q) { next.set('q', values.q); next.delete('view'); } else next.delete('q');
-      }
-      if (values.category !== undefined) {
-        if (values.category !== 'all') next.set('category', values.category); else next.delete('category');
-      }
-      return next;
-    }, { replace, preventScrollReset: true });
-  };
-  const spotlightGuides = NEWCOMER_SPOTLIGHT_SLUGS.map(getGuideBySlug).filter(
-    Boolean,
-  ) as Guide[];
+  const resultKey = `${tab}:${query}`;
+  const [page, setPage] = useState({ key: '', count: 24 });
+  const visibleCount = page.key === resultKey ? page.count : 24;
+  const updateSearch = (values: { q?: string; category?: 'all' | GuideCategory }) => setSearchParams(previous => {
+    const next = new URLSearchParams(previous);
+    if (values.q !== undefined) { if (values.q) next.set('q', values.q); else next.delete('q'); next.delete('view'); }
+    if (values.category !== undefined) { if (values.category === 'all') next.delete('category'); else next.set('category', values.category); }
+    return next;
+  }, { replace: true, preventScrollReset: true });
   const results = useMemo(() => searchGuides(guides, { query, category: tab, locale }), [tab, query, locale]);
-  const filtered = useMemo(() => results.map(({ guide }) => guide), [results]);
-  const grouped = useMemo(() => {
-    if (tab !== "all" || query.trim()) return null;
-    const byCat = new Map<string, Guide[]>();
-    for (const { id, label } of GUIDE_CATEGORY_TABS) {
-      if (id === 'all') continue;
-      const categoryGuides = filtered.filter((g) => g.category === id);
-      if (categoryGuides.length) byCat.set(label, categoryGuides);
-    }
-    return byCat;
-  }, [tab, query, filtered]);
-  const hero = spotlightGuides[0];
-
-  return (
-    <div className={`bl-guides-page${tab !== 'all' || query.trim() ? ' bl-guides-page--filtered' : ''}`}>
-      <header className="bl-guides-intro">
-        <span className="bl-guide-eyebrow">
-          <span /> THE BAYLINK JOURNAL
-        </span>
-        <div className="bl-guides-intro-row">
-          <div>
-            <h1>
-              {savedOnly ? '留住喜欢的，' : '把湾区，'}
-              <br />{' '}
-              <em>{savedOnly ? '下次接着看。' : '过成你的生活。'}</em>
-            </h1>
-            <p>
-              {savedOnly ? '想去的地方、实用的攻略，先为自己留一份。' : '从第一份租约，到周末的新去处。'}
-              <br className="bl-guides-mobile-break" />{" "}
-              {savedOnly ? '无需登录，也能慢慢收集生活灵感。' : '给每一步，一个更清晰的开始。'}
-            </p>
-          </div>
-          <div className="bl-guides-edition">
-            <BookOpen size={22} strokeWidth={1.3} aria-hidden="true" />
-            <strong>{guides.length} 篇</strong>
-            <span>湾区生活指南</span>
-            {savedOnly ? <Link to="/guides" className="bl-guide-library-jump">发现更多 <ArrowRight size={14} aria-hidden="true" /></Link> : <a href="#guide-library-title" className="bl-guide-library-jump">查找指南 <ArrowRight size={14} aria-hidden="true" /></a>}
-          </div>
-        </div>
-      </header>
-      <div className="reader-library-find">
-        <label><Search size={19} aria-hidden="true" /><input type="search" aria-label="搜索生活指南" placeholder="搜学区、入学、停车、英语课、海边…" value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value }, true)} />{query && <button type="button" aria-label="清除指南搜索" onClick={() => updateSearch({ q: '' }, true)}><X size={17} /></button>}</label>
-        <Link to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark size={16} />{savedOnly ? '继续发现攻略' : '我的收藏'}</Link>
-      </div>
-      {!savedOnly && <>
-        <div className="bl-guides-controls bl-guides-controls--top">
-          <div className="bl-guide-tabs" role="group" aria-label="指南分类">
-            {GUIDE_CATEGORY_TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => updateSearch({ category: t.id })}
-                aria-pressed={tab === t.id}
-                className={tab === t.id ? "is-active" : ""}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </>}
-      {!savedOnly && !query.trim() && (tab === 'all' || tab === 'newcomer') && <ReaderPaths onOpenGuide={onOpenGuide} />}
-      {!savedOnly && !query.trim() && tab === 'all' && <SchoolGuideTopics onOpenGuide={onOpenGuide} />}
-      {!savedOnly && !query.trim() && tab === 'all' && <Link to="/explore" className="guide-attraction-entry"><span><strong>按地区，找一个值得出门的地方。</strong><small>景点实拍、游玩攻略与出游清单，旧金山到北湾慢慢发现。</small></span><ArrowUpRight size={23} aria-hidden="true" /></Link>}
-      {!savedOnly && !query.trim() && tab === 'all' && <DailyGuideTopics onOpenGuide={onOpenGuide} />}
-      {!query.trim() && (savedOnly || tab === 'all') && <ReadingShelf />}
-      {!savedOnly && !query.trim() && tab === 'all' && <><MonthlySpotlight /><MonthlyDealsSpotlight onOpenGuide={onOpenGuide} /><PerksGallery compact /></>}
-      {!savedOnly && !query.trim() && tab === "all" && hero && (
-        <section className="bl-guides-spotlights" aria-label="新来湾区先看">
-          <Link
-            to={`/guides/${hero.slug}`}
-            onClick={(event) =>
-              handleGuideLinkClick(event, () => onOpenGuide(hero.slug))
-            }
-            className="bl-guides-feature"
-          >
-            <img className="bl-guides-feature-photo" src={getGuideMedia(hero).cover.src} srcSet={getGuideMedia(hero).cover.srcSet} sizes="(max-width:639px) 100vw, 720px" width={1536} height={1024} alt="" />
-            <div className="bl-guides-feature-top">
-              <span>
-                <Compass size={15} aria-hidden="true" /> 新来湾区先看
-              </span>
-              <span>START HERE</span>
-            </div>
-            <div className="bl-guides-feature-content">
-              <h2>
-                新的城市，
-                <br />
-                从容开始。
-              </h2>
-              <p>{hero.title}</p>
-              <span className="bl-guides-feature-link">
-                打开第一份生活清单 <ArrowRight size={17} aria-hidden="true" />
-              </span>
-            </div>
-            <span className="bl-guides-feature-photo-note">BAYLINK 原创 · AI 情境插图</span>
-          </Link>
-          <div className="bl-guides-starter-list">
-            {spotlightGuides.slice(1).map((g, index) => (
-              <Link
-                key={g.slug}
-                to={`/guides/${g.slug}`}
-                onClick={(event) =>
-                  handleGuideLinkClick(event, () => onOpenGuide(g.slug))
-                }
-                className="bl-guides-starter"
-              >
-                <img className="bl-guides-starter-photo" src={getGuideMedia(g).cover.src} srcSet={getGuideMedia(g).cover.srcSet} sizes="240px" width={480} height={320} alt="" loading="lazy" />
-                <div className="bl-guides-starter-top">
-                  <span>0{index + 2} / 必读指南</span>
-                  <ArrowUpRight size={19} aria-hidden="true" />
-                </div>
-                <h3>{g.title}</h3>
-                <p>
-                  {g.categoryLabel} <span>·</span> {g.readMinutes} 分钟阅读
-                </p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-      {!savedOnly && !query.trim() && tab === 'all' && <GuideExplorer onOpenGuide={onOpenGuide} />}
-      {!savedOnly && !query.trim() && tab === "all" && <EditorialCollections />}
-      {!savedOnly && <section
-        className="bl-guides-library"
-        aria-labelledby="guide-library-title"
-      >
-        <div className="bl-guides-library-heading">
-          <div>
-            <span className="bl-guide-eyebrow">YOUR LOCAL HANDBOOK</span>
-            <h2 id="guide-library-title">{tab === 'education' ? '五区学校与学区指南' : '生活的答案，在这里。'}</h2>
-          </div>
-          <span className="bl-guides-count" aria-live="polite">
-            {filtered.length} 篇指南
-          </span>
-        </div>
-        {tab === 'education' && <p className="school-guide-intro">先按所在地区找到负责学区，再核对年级、学年和申请入口。大学与社区学院的校区、招生资源在各篇单独列出；城市名称和房源广告不能替代官方学区查询。</p>}
-        {filtered.length === 0 ? (
-          <div className="bl-guide-empty">
-            <Search size={28} strokeWidth={1.3} aria-hidden="true" />
-            <h3>还没有找到相关指南</h3>
-            <p>试试更简短的关键词，或看看其他分类。</p>
-            <button
-              type="button"
-              onClick={() => {
-                updateSearch({ q: '', category: 'all' });
-              }}
-            >
-              查看全部指南 <ArrowRight size={15} aria-hidden="true" />
-            </button>
-          </div>
-        ) : grouped ? (
-          Array.from(grouped.entries()).map(([label, items]) => (
-            <section
-              className="bl-guide-category-group"
-              key={label}
-              aria-label={label}
-            >
-              <div className="bl-guide-group-title">
-                <h3>{label}</h3>
-                <span>{String(items.length).padStart(2, "0")}</span>
-              </div>
-              <div className="bl-guide-grid">
-                {items.map((g) => (
-                  <GuideCard
-                    key={g.slug}
-                    guide={g}
-                    onClick={() => onOpenGuide(g.slug)}
-                  />
-                ))}
-              </div>
-            </section>
-          ))
-        ) : (
-          <div className="bl-guide-grid bl-guide-filter-results">
-            {results.map(({ guide: g, snippet, section }) => (
-              <GuideCard
-                key={g.slug}
-                guide={g}
-                searchSnippet={snippet}
-                searchSection={section}
-                onClick={() => onOpenGuide(g.slug)}
-              />
-            ))}
-          </div>
-        )}
-      </section>}
-      <footer className="bl-guides-bottom">
-        <Compass size={20} strokeWidth={1.4} aria-hidden="true" />
-        <p>慢慢熟悉，也慢慢喜欢上这里。</p>
-        <span>BAYLINK · CONNECTED BY THE BAY</span>
-      </footer>
-      <GuideImageCredits />
-    </div>
-  );
+  const grouped = useMemo(() => tab === 'all' && !query.trim() ? GUIDE_CATEGORY_TABS.filter(item => item.id !== 'all').map(item => ({ ...item, items: results.map(result => result.guide).filter(guide => guide.category === item.id) })).filter(item => item.items.length) : null, [tab, query, results]);
+  return <div className="bl-guides-page bl-guides-page--compact">
+    <header className="bl-guides-intro"><div className="bl-guides-intro-row"><div><h1>{savedOnly ? english ? 'Your saved guides' : '我的指南收藏' : english ? 'Guides for Bay Area life' : '湾区生活指南'}</h1><p>{english ? 'Practical steps, eligibility and official sources. Start with what you need today.' : '办事步骤、适用条件与官方入口，从今天需要的一件事开始。'}</p></div><span className="bl-guides-count">{guides.length} {english ? 'guides' : '篇指南'}</span></div></header>
+    <div className="reader-library-find"><label><Search size={20} aria-hidden="true" /><input type="search" aria-label={english ? `Search ${guides.length} guides` : `在 ${guides.length} 篇指南中搜索`} placeholder={english ? 'Doctors, schools, driving, rental scams…' : '搜：看医生、学校、考驾照、租房防骗…'} value={query} maxLength={200} onChange={event => updateSearch({ q: event.target.value })} />{query && <button type="button" aria-label={english ? 'Clear search' : '清除指南搜索'} onClick={() => updateSearch({ q: '' })}><X size={20} /></button>}</label><Link to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark size={18} />{savedOnly ? english ? 'Discover guides' : '继续发现' : english ? 'Saved' : '我的收藏'}</Link></div>
+    {!savedOnly && <div className="bl-guides-controls bl-guides-controls--top"><div className="bl-guide-tabs" role="group" aria-label={english ? 'Guide topics' : '指南分类'}>{GUIDE_CATEGORY_TABS.map(item => <button type="button" key={item.id} aria-pressed={tab === item.id} className={tab === item.id ? 'is-active' : ''} onClick={() => updateSearch({ category: item.id })}>{item.label}</button>)}</div></div>}
+    {savedOnly ? <ReadingShelf /> : <section className="bl-guides-library" aria-labelledby="guide-library-title"><div className="bl-guides-library-heading"><h2 id="guide-library-title">{tab === 'education' ? english ? 'Schools across the five Bay Area regions' : '五区学校与学区指南' : query.trim() ? english ? 'Search results' : '搜索结果' : tab === 'all' ? english ? 'Find your next step' : '按主题，找到下一步' : GUIDE_CATEGORY_TABS.find(item => item.id === tab)?.label}</h2><span role="status" aria-live="polite">{results.length} {english ? 'guides' : '篇指南'}</span></div>
+      {results.length === 0 ? <div className="bl-guide-empty"><h3>{english ? 'No matching guides yet' : '还没有找到相关指南'}</h3><p>{english ? 'Try another keyword, search the whole site, or ask BayBay.' : '换个关键词，也可以搜全站或把问题交给 BayBay。'}</p><div className="guide-empty-actions"><button type="button" onClick={() => updateSearch({ q: '', category: 'all' })}>{english ? 'Browse all topics' : '查看全部主题'}</button>{onSearch ? <button type="button" onClick={() => onSearch(query)}>{english ? 'Search the whole site' : '搜全站'}</button> : <Link to={`/this-month?q=${encodeURIComponent(query)}`}>{english ? 'Search local events' : '查找本地活动'}</Link>}{onAsk ? <button type="button" onClick={() => onAsk(query)}>{english ? 'Ask BayBay' : '问 BayBay'}</button> : <Link to={`/plan?q=${encodeURIComponent(query)}`}>{english ? 'Ask BayBay' : '问 BayBay'}</Link>}</div></div>
+        : grouped ? grouped.map(({ id, label, items }) => <section className="bl-guide-category-group" key={id} aria-label={label}><div className="bl-guide-group-title"><h3>{label}</h3><button type="button" onClick={() => updateSearch({ category: id as GuideCategory })}>{english ? `All ${items.length}` : `看全部 ${items.length} 篇`}<ArrowRight size={16} aria-hidden="true" /></button></div><div className="bl-guide-grid">{items.slice(0, 4).map((guide: Guide) => <GuideCard key={guide.slug} guide={guide} compact onClick={() => onOpenGuide(guide.slug)} />)}</div></section>)
+          : <><div className="bl-guide-grid bl-guide-filter-results">{results.slice(0, visibleCount).map(({ guide, snippet, section }) => <GuideCard key={guide.slug} guide={guide} compact searchSnippet={snippet} searchSection={section} onClick={() => onOpenGuide(guide.slug)} />)}</div>{results.length > visibleCount && <button type="button" className="guide-load-more" onClick={() => setPage({ key: resultKey, count: visibleCount + 24 })}>{english ? `Show more (${visibleCount}/${results.length})` : `继续查看（${visibleCount}/${results.length}）`}</button>}</>}
+    </section>}
+    {!savedOnly && tab === 'all' && !query.trim() && <details className="guide-paths-details" open={!!searchParams.get('audience')}><summary>{english ? 'Choose a path for your life stage' : '按生活阶段找一条阅读路径'}</summary><ReaderPaths onOpenGuide={onOpenGuide} /></details>}
+    {!savedOnly && <details className="guide-complete-index"><summary>{english ? `Browse all ${guides.length} guide titles` : `查看全部 ${guides.length} 篇指南目录`}</summary><nav aria-label={english ? 'Complete guide directory' : '完整指南目录'}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav></details>}
+    <footer className="bl-guides-bottom"><p>{english ? 'Each guide keeps its official references and image credits.' : '每篇指南保留官方来源、核对日期与图片授权。'}</p><Link to="/about">{english ? 'How we check sources' : '了解核验方法'}</Link></footer>
+  </div>;
 };

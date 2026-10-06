@@ -1,4 +1,6 @@
 import officialOfferMedia from './official-offer-media-2026-10.json';
+import publicServiceMedia from './public-service-media.json';
+import { getLocale } from '../i18n/locale';
 import { VERIFIED_PLACE_PHOTO_ALIASES } from './verified-place-media-updates';
 import extraEast from './city-roundup-extra-media-east.json';
 import extraSouth from './city-roundup-extra-media-south.json';
@@ -78,6 +80,7 @@ for (const photo of photoCredits) {
 for (const { key, ...asset } of [...officialOfferMedia, ...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia, ...shoppingMedia, ...cityRoundupMedia, ...[extraEast, extraSouth, extraNorth].flatMap(collection => Array.isArray(collection) ? collection : Object.entries(collection).map(([key, asset]) => ({ key, ...asset })))]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
+for (const { key, ...asset } of publicServiceMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'illustration' };
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
@@ -95,6 +98,9 @@ GUIDE_IMAGES['guide-bart-update-context'] = {
 };
 
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-free-tax-help-vita-calfile-guide': ['public-service-tax', 'translation-documents'],
+  'bay-area-medicare-hicap-medi-cal-guide': ['public-service-medicare', 'coverage-laptop'],
+  'california-tenant-deposit-rights-help-guide': ['public-service-tenant', 'lease-review'],
   'east-bay-november-nature-programs-2026': ['november-community', 'expanded-coyote-hills'],
   'san-francisco-autumn-food-markets-2026': ['ferry-market', 'november-community'],
   'peninsula-south-bay-november-nature-walks-2026': ['garden-walk', 'weekend'],
@@ -272,13 +278,27 @@ bySlug['bay-area-useful-apps-platforms-guide'] = ['coverage-laptop', 'train'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 
+const localizedServiceImages = new WeakMap<GuideImage, Partial<Record<'en' | 'zh-Hant', GuideImage>>>();
+function localizedServiceImage(image: GuideImage): GuideImage {
+  const locale = getLocale();
+  if (!image.src.startsWith('/guides/public-services/') || locale === 'zh-Hans') return image;
+  const cached = localizedServiceImages.get(image) || {};
+  const previous = cached[locale];
+  if (previous) return previous;
+  const suffix = locale === 'en' ? '-en' : '-hant';
+  const localized = { ...image, src: image.src.replace('.webp', `${suffix}.webp`), srcSet: image.srcSet?.replaceAll('-small.webp', `${suffix}-small.webp`).replace(/(?<!-small)\.webp(?=\s)/g, `${suffix}.webp`) };
+  cached[locale] = localized;
+  localizedServiceImages.set(image, cached);
+  return localized;
+}
+
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
   if (guide.slug === 'bay-area-new-openings-2026-09') {
     const images = septemberOpenings.map((shop, index) => ({ afterHeading: index + 1, image: GUIDE_IMAGES[shop.imageKey] })).filter(item => !!item.image && item.image.kind !== 'illustration');
     return { cover: images[0]?.image || GUIDE_IMAGES.everyday, inline: images.slice(1) };
   }
   const mapped = bySlug[guide.slug];
-  const cover = GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]];
+  const cover = localizedServiceImage(GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]]);
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;
   const headingPosition = ['sf-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide'].includes(guide.slug) ? 3 : 2;
   return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };

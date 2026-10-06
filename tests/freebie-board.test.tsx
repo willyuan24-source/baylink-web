@@ -147,7 +147,7 @@ test('each card keeps official links separate from image zoom and complete poste
   const image = card.getByRole('img', { name: picture.alt });
   assert.equal(getComputedStyle(image).objectFit, 'contain');
   assert.equal(image.getAttribute('srcset'), picture.srcSet);
-  assert.ok(card.getByText('官方宣传图'));
+  assert.ok(card.getByText('官方图'));
   const official = card.getByRole('link', { name: `${base.brand}：${base.sourceLabel}` });
   assert.equal(official.getAttribute('href'), base.sourceUrl);
   assert.equal(official.getAttribute('target'), '_blank');

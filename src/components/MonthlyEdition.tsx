@@ -3,7 +3,7 @@ import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
 import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
@@ -26,6 +26,7 @@ import { useEventParticipation } from '../lib/event-participation-context';
 import { EditorialShareActions } from './EditorialShareActions';
 import { eventShare } from '../lib/editorial-share';
 import { RegionalBulletins } from './RegionalBulletins';
+import { getImageProvenance } from '../lib/image-provenance';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'all', label: '整个湾区' }, { value: 'sf', label: '旧金山' },
@@ -51,10 +52,11 @@ export function EditionPicture(props: EditionPictureProps) {
 }
 
 function EditionPictureSession({ imageKey, className = '', eager = false }: EditionPictureProps) {
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const image = GUIDE_IMAGES[imageKey];
   if (!image) return null;
-  const label = image.kind === 'poster' ? '官方宣传图' : image.kind === 'illustration' ? 'BAYLINK 主题插图 · AI 创作' : image.caption.includes('资料') ? '资料照片' : '实景照片';
+  const label = getImageProvenance(image, locale === 'en');
   return <><figure className={`bl-monthly-picture bl-monthly-picture--${image.kind}${image.fullFrame ? ' bl-monthly-picture--full-frame' : ''} ${className}`}>
     <button type="button" className="bl-monthly-picture-frame" aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
       <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 560px" width={image.width} height={image.height} alt={image.alt} loading={eager ? 'eager' : 'lazy'} decoding="async" />
@@ -113,7 +115,8 @@ function MonthlyEditionContent({ today: suppliedToday }: { today?: string }) {
   const selectedRegion = searchParams.get('region') || 'all';
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const cost = searchParams.get('cost') === 'free' ? 'free' : 'all';
-  const date = resolveMonthlyDateFilter(searchParams.get('when'));
+  const location = useLocation();
+  const date = resolveMonthlyDateFilter(searchParams.get('when') || (location.pathname === '/this-week' ? 'weekend' : 'all'));
   const dateRange = getMonthlyDateRange(date, today);
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);

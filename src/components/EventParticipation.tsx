@@ -92,11 +92,11 @@ export function EventParticipationActions({ event, today = getBayAreaToday() }: 
   return <div className="event-participation">
     <div className="event-participation-buttons">
       <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (ended && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? translateText('取消想去') : translateText('我想去')}：${translateText(event.title)}`}>
-        {isInterested ? <Check size={17} /> : <Heart size={17} />}{ended && !isInterested ? '活动已结束' : isInterested ? '已想去' : '我想去'}<span>{count === null ? '—' : count}</span>
+        {isInterested ? <Check size={17} /> : <Heart size={17} />}{ended && !isInterested ? '活动已结束' : isInterested ? '已想去' : '我想去'}{count !== null && count >= 3 && <span>{count}</span>}
       </button>
-      <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />一起去{entry && !participation.failed && <span>{entry.buddyCount}</span>}</button>
+      <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />一起去{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</button>
     </div>
-    <p className="event-participation-note">{participation.failed ? <><span>人数暂时无法加载</span><button type="button" onClick={participation.refresh}><RefreshCw size={12} />重试</button></> : count === null ? '正在读取大家的出行意向…' : locale === 'en' ? `${count} interested · Interest is not a ticket or booking.` : `${count} 人想去 · 意向不等于报名或购票。`}</p>
+    <p className="event-participation-note">{participation.failed ? <><span>人数暂时无法加载</span><button type="button" onClick={participation.refresh}><RefreshCw size={12} />重试</button></> : count === null ? '正在读取大家的出行意向…' : locale === 'en' ? `${count >= 3 ? `${count} interested · ` : ''}Interest is not a ticket or booking.` : `${count >= 3 ? `${count} 人想去 · ` : ''}意向不等于报名或购票。`}</p>
     {buddiesOpen && <EventBuddies key={event.id} event={event} ended={ended} onClose={() => setBuddiesOpen(false)} />}
   </div>;
 }
