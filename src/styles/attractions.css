@@ -1,13 +1,8 @@
 .attraction-page{max-width:1120px;margin:0 auto;padding:30px 28px 60px;color:#263d36}
-.attraction-intro{border:1px solid #d7e2dc;border-radius:26px;padding:30px 32px 0;background:linear-gradient(115deg,#f0f4e9,#e5eee8 65%,#e1ebe6);overflow:hidden}
+.attraction-intro{border:1px solid #d7e2dc;border-radius:26px;padding:24px 28px;background:linear-gradient(115deg,#f0f4e9,#e5eee8 65%,#e1ebe6)}
 .attraction-eyebrow{display:flex;align-items:center;gap:8px;font-size:10px;font-weight:750;letter-spacing:2px;color:#466b5e}
-.attraction-intro>div:first-of-type{display:flex;align-items:end;justify-content:space-between;gap:25px;margin:23px 0 30px}
-.attraction-intro h1{font-size:clamp(29px,3.2vw,43px);line-height:1.4;font-weight:750;letter-spacing:-1.5px;margin:0}
-.attraction-intro h1 em{font-style:normal;color:#537b63}
-.attraction-intro p{font-size:13px;line-height:1.9;color:#557065;margin:0 0 5px;max-width:270px}
-.attraction-intro-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #cddad0;padding:16px 0;font-size:12px;color:#527063}
-.attraction-intro-bottom a{display:flex;align-items:center;gap:8px;font-weight:650;color:#284e3e}
-.attraction-intro-bottom strong{display:grid;place-items:center;min-width:21px;height:21px;border-radius:50%;background:#fff}
+.attraction-intro h1{font-size:calc(2rem * var(--reading-scale));line-height:1.4;font-weight:750;letter-spacing:0;margin:0;text-wrap:balance;overflow-wrap:anywhere}
+.attraction-intro p{font-size:var(--text-body);line-height:1.8;color:var(--color-ink-2);margin:12px 0 0;max-width:640px}
 .attraction-filters{padding:24px 0 19px;border-bottom:1px solid #e1e6df}
 .attraction-regions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:15px}
 .attraction-regions button{padding:9px 17px;font-size:13px;border:1px solid #dce3dc;border-radius:99px;background:#fff;transition:background .15s,color .15s}
@@ -60,6 +55,16 @@
 .attraction-next{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:24px;font-size:11px;color:#62785d}.attraction-next>span{flex-basis:100%;color:#7d8d76}.attraction-next a{display:flex;align-items:center;gap:4px}
 .attraction-page a:focus-visible,.attraction-page button:focus-visible,.attraction-page select:focus-visible,.attraction-credit summary:focus-visible{outline:2px solid #659377;outline-offset:3px}
 .guide-attraction-entry{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:19px 22px;margin:17px 0;border:1px solid #d7e1cf;border-radius:15px;background:#eef3e7;color:#38593c}.guide-attraction-entry strong{display:block;font-size:16px}.guide-attraction-entry small{display:block;margin-top:6px;font-size:12px;color:#6a7e60;line-height:1.7}.guide-attraction-entry svg{flex-shrink:0}
-@media(max-width:1199px){.attraction-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.attraction-intro>div:first-of-type{align-items:start;flex-direction:column;gap:16px}.attraction-intro p{max-width:100%}}
-@media(max-width:639px){.attraction-page{padding:16px 16px 40px}.attraction-intro{padding:24px 20px 0;border-radius:20px}.attraction-intro h1{font-size:30px}.attraction-intro-bottom{align-items:start;flex-direction:column;gap:12px}.attraction-filter-row{flex-wrap:wrap}.attraction-search{flex-basis:100%}.attraction-filter-row>label:not(.attraction-search){flex:1}.attraction-regions{gap:6px}.attraction-regions button{font-size:12px;padding:8px 13px}.attraction-grid{grid-template-columns:1fr;gap:17px}.attraction-card-body{padding:19px}.attraction-card h3{font-size:20px}.attraction-card-body>p{font-size:13px}.attraction-facts,.attraction-card-actions{font-size:12px}.attraction-card-actions button{padding:9px 12px}.outing-plan{padding:21px 16px}.outing-stops>li{gap:9px;padding:12px 9px}.outing-number{min-width:24px;height:24px}.outing-stop-buttons{flex-direction:column;gap:4px}.outing-stop-buttons button{width:28px;height:28px}.outing-stop-text>a:first-child{font-size:13px}.outing-heading h2{font-size:21px}.guide-attraction-entry{padding:17px}}
+@media(max-width:1199px){.attraction-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.attraction-intro p{max-width:100%}}
+@media(max-width:639px){.attraction-page{padding:16px 16px 40px}.attraction-intro{padding:20px 16px;border-radius:20px}.attraction-filter-row{flex-wrap:wrap}.attraction-search{flex-basis:100%}.attraction-filter-row>label:not(.attraction-search){flex:1}.attraction-regions{gap:6px}.attraction-regions button{font-size:12px;padding:8px 13px}.attraction-grid{grid-template-columns:1fr;gap:17px}.attraction-card-body{padding:19px}.attraction-card h3{font-size:20px}.attraction-card-body>p{font-size:13px}.attraction-facts,.attraction-card-actions{font-size:12px}.attraction-card-actions button{padding:9px 12px}.outing-plan{padding:21px 16px}.outing-stops>li{gap:9px;padding:12px 9px}.outing-number{min-width:24px;height:24px}.outing-stop-buttons{flex-direction:column;gap:4px}.outing-stop-buttons button{width:28px;height:28px}.outing-stop-text>a:first-child{font-size:13px}.outing-heading h2{font-size:21px}.guide-attraction-entry{padding:17px}}
 @media(prefers-reduced-motion:reduce){.attraction-card,.attraction-photo img,.attraction-regions button{transition:none}}
+/* Secondary destinations stay available without preceding the heading and filters. */
+.attraction-filter-notes{margin-top:12px}
+.attraction-filter-notes>summary,.attraction-more>summary,.attraction-plan-disclosure>summary{min-height:var(--control-height);padding-block:8px;cursor:pointer;overflow-wrap:anywhere;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.8}
+.attraction-filter-notes p{margin:8px 0 0}
+.attraction-more{border-bottom:1px solid var(--color-line);padding-block:4px}
+.attraction-more .planner-launch-links{margin:8px 0 12px}
+.attraction-more .planner-launch-links a{min-height:var(--control-height);max-width:100%;font-size:var(--text-fact);line-height:1.6;overflow-wrap:anywhere}
+.attraction-more .planner-launch-links svg{flex-shrink:0}
+.attraction-search,.attraction-filter-row select{min-height:var(--control-height);height:auto}
+@media(max-width:639px){.attraction-results-heading{flex-wrap:wrap;gap:4px 12px}}

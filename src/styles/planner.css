@@ -73,11 +73,19 @@
 @media(max-width:650px){.planner-web-candidates{grid-template-columns:1fr}}
 /* My Week: storage notices stay actionable; activity actions name their exact day. */
 .week-page .planner-account-compact{padding:10px 14px;gap:8px 14px}
-.week-page .planner-account-compact>p{flex:1 1 200px;margin:0;font-size:13px;color:#50634f}
-.week-page .planner-account-compact button{min-height:44px;font-size:12px}
+.week-page .planner-account-compact>p{flex:1 1 200px;margin:0;font-size:var(--text-fact);color:var(--color-ink-2)}
+.week-page .planner-account-compact button{min-height:var(--control-height);font-size:var(--text-fact)}
 .week-page .planner-account-compact>.planner-error{flex-basis:100%;color:#a64232}
 .week-event-card>.week-event-date{display:flex;align-items:baseline;flex-wrap:wrap;gap:5px 10px;margin-top:0;font-size:13px;color:#365840}
 .week-event-date time{font-weight:700}
 .week-event-card>.week-event-range{display:block;font-size:12px;line-height:1.7;color:#69776a;margin-top:7px}
 .week-event-card>div:last-child{flex-wrap:wrap;font-size:13px}
 .week-event-card>div:last-child a,.week-event-card>div:last-child button{min-height:44px;display:inline-flex;align-items:center;text-underline-offset:3px}
+.week-secondary{margin-top:24px;padding-block:8px;border-top:1px solid var(--color-line-strong)}
+.week-secondary>summary{min-height:var(--control-height);padding-block:8px;cursor:pointer;font-size:var(--text-fact);line-height:1.8;color:var(--color-ink-2);overflow-wrap:anywhere}
+.week-account-features>p{margin:12px 0;font-size:var(--text-fact);line-height:1.8}
+.week-account-features>button{min-height:var(--control-height);max-width:100%;font-size:var(--text-fact);white-space:normal;text-align:left}
+.week-page .planner-hero h1{font-size:calc(2rem * var(--reading-scale));letter-spacing:0;line-height:1.4;overflow-wrap:anywhere}
+.week-page .planner-hero>p{font-size:var(--text-fact)}
+.week-secondary-links{margin-top:24px}
+.week-secondary-links>a{display:inline-flex;align-items:center;min-height:var(--control-height);font-size:var(--text-fact);overflow-wrap:anywhere}

@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
+import { useLocale } from '../../i18n/locale';
 import { clearPostDraft, hasPostDraftContent, readPostDraft, savePostDraft, type PostDraft } from '../../lib/postDraft';
 import {
   CATEGORIES, DEFAULT_COVERS, MAX_POST_IMAGES, REGIONS,
@@ -135,6 +136,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   mode?: 'create' | 'edit';
   editingPost?: PostData | null;
 }) => {
+  const locale = useLocale();
   const isEdit = mode === 'edit' && !!editingPost;
   const [typeChosen, setTypeChosen] = useState(isEdit || !!defaultType);
   const [step, setStep] = useState(isEdit || defaultType ? 2 : 1);
@@ -353,9 +355,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
         if (warning) showToast(warning, 'info');
       }
     } catch (err: any) {
-      const toastMsg = mapPostSaveError(err, isEdit);
-      if (/image|upload|图片/i.test(err?.error || '')) showToast('图片上传失败，请换一张图', 'error');
-      else showToast(toastMsg, 'error');
+      showToast(mapPostSaveError(err, isEdit, locale), 'error');
       setSubmitting(false);
       submittingRef.current = false;
     }

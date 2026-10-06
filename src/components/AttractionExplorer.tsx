@@ -14,6 +14,7 @@ const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 
 export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => void }) {
   const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [params, setParams] = useSearchParams();
   const [plan, setPlan] = useState(() => params.has('plan') ? parseSharedOuting(params.get('plan')) : loadOuting());
   const [shared, setShared] = useState(() => params.has('plan'));
@@ -92,14 +93,10 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   );
 
   return <div className="attraction-page">
-    <nav className="city-exploration-launch" aria-label={translateText('城市攻略入口', locale)}><Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={17} aria-hidden="true" /><span>{translateText('按城市探索：九县 101 城景点与生活指南', locale)}</span><ArrowRight size={17} aria-hidden="true" /></Link></nav>
-    <nav className="planner-launch-links"><Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={16} />{plan.length ? locale === 'en' ? 'Arrange all saved stops on the map' : '在地图里安排完整清单' : '让 BayBay 帮我排一天'}</Link><Link to="/my-week">我的这周</Link></nav>
     <header className="attraction-intro">
-      <span className="attraction-eyebrow"><Compass size={16} aria-hidden="true" /> YOUR NEXT BAY AREA DAY</span>
-      <div><h1>湾区很大，<br /><em>从喜欢的地方出发。</em></h1><p>看海、逛街、走进花园或博物馆。<br />先找到想去的，再慢慢安排这一天。</p></div>
-      <div className="attraction-intro-bottom"><span>{available.length} 个出游灵感 · 5 大地区</span><a href="#outing-plan"><MapPin size={16} aria-hidden="true" />我的出游清单 <strong>{plan.length}</strong><ArrowRight size={15} aria-hidden="true" /></a></div>
+      <h1>{t('湾区景点探索', 'Explore the Bay Area')}</h1>
+      <p>{t('按地区或兴趣筛选，收藏想去的地方。', 'Find places by area, interest or cost.')}</p>
     </header>
-    <details className="attraction-plan-disclosure" open={plan.length > 0 || shared}><summary>{locale === 'en' ? 'My saved outing stops' : '我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>
     <section className="attraction-filters" aria-label="筛选湾区景点">
       <div className="attraction-regions" role="group" aria-label="选择地区">{ATTRACTION_REGIONS.map(item => <button type="button" key={item.id} aria-pressed={region === item.id} onClick={() => updateFilter('region', item.id)}>{item.label}</button>)}</div>
       <div className="attraction-filter-row">
@@ -107,8 +104,18 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         <label><span className="sr-only">选择兴趣</span><select value={theme} onChange={event => updateFilter('theme', event.target.value)}>{ATTRACTION_THEMES.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
         <label><span className="sr-only">门票条件</span><select value={cost} onChange={event => updateFilter('cost', event.target.value)}>{ATTRACTION_COSTS.map(item => <option value={item.id} key={item.id}>{item.label}</option>)}</select></label>
       </div>
-      <p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p>
+      <details className="attraction-filter-notes"><summary>{t('费用与时长说明', 'About costs and visit times')}</summary><p>「主体免费」不含交通、停车、餐饮或额外项目。停留时长是编辑建议，不含往返交通。</p></details>
     </section>
+    <details className="attraction-plan-disclosure" open={plan.length > 0 || shared}><summary>{t('我的出游清单', 'My saved outing stops')} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>
+    <details className="attraction-more">
+      <summary>{t('更多安排：城市攻略、计划与搭子', 'More: city guides, plans and groups')}</summary>
+      <nav className="planner-launch-links" aria-label={t('继续安排出游', 'Continue planning your outing')}>
+        <Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={16} aria-hidden="true" />{plan.length ? t('在地图里安排完整清单', 'Arrange all saved stops on the map') : t('让 BayBay 帮我排一天', 'Plan a day with BayBay')}</Link>
+        <Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={17} aria-hidden="true" />{t('按城市探索：九县 101 城景点与生活指南', 'Explore 101 cities across the nine Bay Area counties')}</Link>
+        <Link to="/my-week">{t('我的这周', 'My Week')}</Link>
+        <Link to="/together">{t('找搭子，一起出门', 'Go together')}<ArrowRight size={16} aria-hidden="true" /></Link>
+      </nav>
+    </details>
     {regionIntro && <section className="attraction-region-intro" aria-labelledby="attraction-region-title">
       <h2 id="attraction-region-title">{regionIntro.title}</h2>
       <p>{regionIntro.text}</p>

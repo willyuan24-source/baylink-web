@@ -26,7 +26,7 @@ const library = (patch: Partial<ReturnType<typeof usePlannerLibrary>> = {}) => (
   refresh: async () => {}, importGuest: async () => true, ...patch,
 }) as ReturnType<typeof usePlannerLibrary>;
 const notice = (props: Partial<React.ComponentProps<typeof PlannerAccountNotice>> = {}) => <MemoryRouter><PlannerAccountNotice library={library()} signedIn variant="week" {...props}/></MemoryRouter>;
-const page = () => <MemoryRouter initialEntries={['/my-week']}><Routes><Route element={<Outlet context={{ user, setShowLogin: noop } as AppContextValue}/>}><Route path="/my-week" element={<MyWeekPage/>}/></Route></Routes></MemoryRouter>;
+const page = (account: UserData | null = user, login = noop) => <MemoryRouter initialEntries={['/my-week']}><Routes><Route element={<Outlet context={{ user: account, setShowLogin: login } as AppContextValue}/>}><Route path="/my-week" element={<MyWeekPage/>}/></Route></Routes></MemoryRouter>;
 beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); localStorage.clear(); await setLocale('zh-Hans'); });
 afterEach(() => cleanup());
 after(() => dom.window.close());
@@ -126,4 +126,66 @@ test('a real failed guest import keeps browser data and its visible import actio
   fail = false; fireEvent.click(view.getByRole('button', { name: '导入本机访客计划与收藏' }));
   await act(async () => {}); assert.equal(writes, 2); assert.equal(localStorage.getItem(GUEST_PLANNER_KEY), null);
   assert.equal(view.queryByRole('button', { name: '导入本机访客计划与收藏' }), null);
+});
+
+test('guests can use saved plans and favorites before optional account features without private requests', async t => {
+  const plan = { id: 'browser-plan', title: '本机周末计划', date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString(), version: 1 };
+  const data = { ...structuredClone(EMPTY_LIBRARY), plans: [plan], favorites: [{ kind: 'place', id: PLANNER_PLACES[0].id }] };
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify(data));
+  let requests = 0, logins = 0;
+  t.mock.method(api, 'request', async () => { requests++; throw new Error('Guest content must not request private account data'); });
+  const view = render(page(null, () => { logins++; }));
+  await view.findByRole('heading', { name: plan.title });
+  const optional = view.container.querySelector<HTMLDetailsElement>('.week-account-features')!;
+  assert.equal(optional.open, false);
+  for (const selector of ['.imported-events-panel', '.week-plans', '.week-events', '.week-favorites']) {
+    const section = view.container.querySelector(selector)!;
+    assert.ok(section, selector);
+    assert.ok(section.compareDocumentPosition(optional) & Node.DOCUMENT_POSITION_FOLLOWING, selector);
+  }
+  assert.ok(view.getByRole('link', { name: '继续编辑' }).getAttribute('href')?.includes(plan.id));
+  assert.ok(view.getByRole('link', { name: '公开分享版 ↗' }).getAttribute('href')?.includes('/plan'));
+  assert.equal(view.queryByRole('button', { name: '登录查看预约' }), null);
+  assert.equal(view.queryByRole('button', { name: '登录查看小队' }), null);
+  assert.equal(view.container.querySelectorAll('.week-chips').length, 2, 'guest preferences remain available below saved content');
+  assert.equal(requests, 0); assert.equal(logins, 0);
+  fireEvent.click(optional.querySelector('summary')!);
+  fireEvent.click(view.getByRole('button', { name: '登录查看预约与小队' }));
+  assert.equal(logins, 1); assert.equal(requests, 0);
+  assert.deepEqual(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!), data);
+});
+
+test('optional guest account features and preferences have English and Traditional Chinese labels', async () => {
+  for (const [locale, summary, action, preferences] of [
+    ['en', 'Account features: bookings and groups', 'Sign in for bookings and groups', 'Adjust areas, interests and outing preferences'],
+    ['zh-Hant', '帳號功能：預約與小隊', '登入查看預約與小隊', '調整地區、興趣和出遊偏好'],
+  ] as const) {
+    await setLocale(locale);
+    const view = render(page(null));
+    await act(async () => {});
+    fireEvent.click(view.getByText(summary));
+    assert.ok(view.getByRole('button', { name: action }));
+    assert.ok(view.getByText(preferences));
+    cleanup();
+  }
+});
+
+test('signed-in My Week keeps bookings, groups and imported events ahead of preferences and plans', async t => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const paths: string[] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    paths.push(path);
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    if (path === '/planner/me') return structuredClone(EMPTY_LIBRARY);
+    throw new Error(`Unexpected request: ${path}`);
+  });
+  const view = render(page());
+  await view.findByRole('heading', { name: '我常去的地方' });
+  const text = view.container.textContent!;
+  const titles = ['预约与待办', '小队安排 · 未来7天', '我导入的活动', '我常去的地方', '已经排好的期待'];
+  for (let index = 1; index < titles.length; index++) assert.ok(text.indexOf(titles[index - 1]) >= 0 && text.indexOf(titles[index]) > text.indexOf(titles[index - 1]), titles[index]);
+  assert.equal(view.container.querySelector('.week-account-features'), null);
+  assert.ok(paths.includes('/outings/me')); assert.ok(paths.includes('/service-bookings/me'));
 });
