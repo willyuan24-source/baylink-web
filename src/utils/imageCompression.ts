@@ -113,7 +113,8 @@ export async function compressImageFile(file: File, options: CompressImageOption
     if (!file.size || file.size > MAX_IMAGE_UPLOAD_BYTES) throw new UnsupportedImageError('请选择不超过 10MB 的照片。');
     const inputType = staticFormat(new Uint8Array(await readFile(file, false)));
     const maxWidth = options.maxWidth ?? 1800, maxHeight = options.maxHeight ?? 1800;
-    const quality = options.quality ?? .88, maxBytes = options.maxOutputBytes ?? 3 * 1024 * 1024;
+    // Five base64 photos plus the post fields must fit the API's 20 MiB body.
+    const quality = options.quality ?? .88, maxBytes = options.maxOutputBytes ?? 2.5 * 1024 * 1024;
     if (![maxWidth, maxHeight].every(value => Number.isFinite(value) && value >= 1 && value <= 4096)
       || !Number.isFinite(quality) || quality < .1 || quality > 1 || !Number.isFinite(maxBytes) || maxBytes < 1 || maxBytes > MAX_IMAGE_UPLOAD_BYTES) throw processingFailed();
     decoded = await decode(file);
