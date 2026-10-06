@@ -3,12 +3,28 @@ import test from 'node:test';
 import { dentalSeniorServiceGuides } from '../src/data/guides-dental-senior-services';
 import { guides, getGuideBySlug } from '../src/data/guides';
 import { searchGuides } from '../src/lib/guide-search';
+import { contentReviewQueue, guideContentReviewRecord } from '../src/lib/content-review';
 import english from '../src/i18n/dental-senior-services-en.json';
 
 const dentalSlug = 'bay-area-dental-care-insurance-low-cost-guide';
 const seniorSlug = 'bay-area-chinese-senior-services-referral-guide';
 const chinese = /[\u3400-\u9fff]/u;
 const dictionary: Record<string, string> = english;
+test('dental access failure remains manual and care eligibility is reviewed monthly without renewing source dates', () => {
+  const rows = contentReviewQueue(dentalSeniorServiceGuides.map(guideContentReviewRecord), '2026-10-06');
+  const dental = rows.find(row => row.id === dentalSlug)!;
+  const senior = rows.find(row => row.id === seniorSlug)!;
+  assert.equal(dental.status, 'manual-review');
+  assert.match(dental.manualReviewReason || '', /DHCS dentist directory could not be read directly/);
+  for (const row of [dental, senior]) {
+    assert.equal(row.risk, 'health-legal-financial');
+    assert.equal(row.cadenceDays, 30);
+    assert.equal(row.dateMeaning, 'content-updated');
+    assert.equal(row.verifiedAt, getGuideBySlug(row.id)!.updatedAt);
+  }
+  assert.equal(contentReviewQueue([senior], '2026-11-05')[0].status, 'due');
+  assert.equal(contentReviewQueue([dental], '2026-11-05')[0].status, 'manual-review');
+});
 const textValues = (value: unknown): string[] => {
   if (typeof value === 'string') return [value];
   if (Array.isArray(value)) return value.flatMap(textValues);
