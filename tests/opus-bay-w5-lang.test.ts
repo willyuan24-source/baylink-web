@@ -144,7 +144,7 @@ test('lang: a toast or an announcement given { zh, en } follows a switch while i
     await act(async () => { await L.setLocale('en', false); });
     assert.deepEqual(shown(), ['Saved to your album', 'Arrived at the Ferry Building']);
     await act(async () => { await L.setLocale('zh-Hant', false); });
-    assert.deepEqual(shown(), ['已存進相冊', '抵達渡輪大廈']);
+    assert.deepEqual(shown(), ['已存進相簿', '抵達渡輪大廈']);
   } finally {
     await act(async () => { await L.setLocale('zh-Hans', false); game.set({ ...initialGameState(), toasts: [] }); flow.set({ announce: '' }); });
   }
@@ -173,13 +173,15 @@ test('lang: the pills — on the title before Start and in Settings, the current
     await waitFor(() => assert.equal(c.querySelector('.ob-title-h1')!.textContent, 'Little Bay Trip'));
     assert.deepEqual(radios(c), expect('en'));
     assert.equal(stored.get(L.LOCALE_KEY), 'en');
-    assert.equal(dom.window.location.search, '?world=city&lang=en');
+    assert.equal(dom.window.location.pathname, '/en/opus-bay');
+    assert.equal(dom.window.location.search, '?world=city');
     assert.equal(c.querySelector('.ob-title-start span')!.textContent, 'Start');
     // 繁體: the site's conversion layer; the pills keep their own scripts (简体, never 簡體)
     fireEvent.click(c.querySelector('[role="radio"][lang="zh-Hant"]')!);
     await waitFor(() => assert.equal(c.querySelector('.ob-title-h1')!.textContent, '灣區小旅'));
     assert.deepEqual(radios(c), expect('zh-Hant'));
-    assert.equal(dom.window.location.search, '?world=city&lang=zh-Hant');
+    assert.equal(dom.window.location.pathname, '/zh-Hant/opus-bay');
+    assert.equal(dom.window.location.search, '?world=city');
     // Settings: the same three, first, with a legend in both words; switching live there too
     const settings = render(h(SettingsPanel));
     const sc = settings.container;
@@ -193,7 +195,8 @@ test('lang: the pills — on the title before Start and in Settings, the current
     assert.equal(c.querySelector('.ob-title-h1')!.textContent, 'Little Bay Trip', 'every mounted view follows');
     fireEvent.click(sc.querySelector('[role="radio"][lang="zh-Hans"]')!);
     await waitFor(() => assert.match(sc.textContent ?? '', /音效/));
-    assert.equal(dom.window.location.search, '?world=city', 'Simplified: no ?lang');
+    assert.equal(dom.window.location.pathname, '/opus-bay', 'Simplified uses the original page path');
+    assert.equal(dom.window.location.search, '?world=city', 'Simplified: no legacy ?lang');
     assert.equal(stored.get(L.LOCALE_KEY), 'zh-Hans');
     // the district's title has them too (only the new control: the rest as before)
     cleanup();
@@ -233,7 +236,7 @@ test('lang: the title chunk stays free of three and the game — the switch adds
   assert.deepEqual(graph('opus-bay/audio/unlock.ts').modules, ['opus-bay/audio/unlock.ts'], 'the unlock module stays dependency-free');
   assert.deepEqual(graph('opus-bay/audio/unlock.ts').bare, []);
   const pills = graph('opus-bay/ui/LangPills.tsx');
-  assert.deepEqual(pills.modules.sort(), ['i18n/browser-locale.ts', 'i18n/en-patterns.json', 'i18n/locale.ts', 'opus-bay/core/events.ts', 'opus-bay/i18n.ts', 'opus-bay/ui/LangPills.tsx', 'opus-bay/ui/langChoice.ts'].sort());
+  assert.deepEqual(pills.modules.sort(), ['i18n/en-patterns.json', 'i18n/locale.ts', 'lib/english-loading.ts', 'lib/language-path.ts', 'opus-bay/core/events.ts', 'opus-bay/i18n.ts', 'opus-bay/ui/LangPills.tsx', 'opus-bay/ui/langChoice.ts'].sort());
 });
 
 test('lang: the world\'s painted Chinese follows 简体 ↔ 繁體 — the shop signs and the district\'s 这周去哪 board, in their own cells', async () => {
