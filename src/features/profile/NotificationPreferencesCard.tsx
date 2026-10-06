@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, getStoredUser } from '../../lib/api';
 import { useLocale } from '../../i18n/locale';
 
@@ -14,51 +14,80 @@ export type NotificationSettings = {
 };
 const topics: Topic[] = ['message', 'contact_request', 'outing_request'];
 const channels: Channel[] = ['email', 'sms'];
-const normalize = (value: NotificationSettings): NotificationSettings => ({ ...value, preferences: Object.fromEntries(channels.map(channel => [channel,
-  Object.fromEntries(topics.map(topic => [topic, value.preferences?.[channel]?.[topic] === true])),
-])) as NotificationSettings['preferences'] });
+const record = (value: unknown): Record<string, unknown> => value && typeof value === 'object' ? value as Record<string, unknown> : {};
+const normalize = (value: unknown): NotificationSettings => {
+  const source = record(value), preferences = record(source.preferences);
+  return {
+    preferences: Object.fromEntries(channels.map(channel => [channel,
+      Object.fromEntries(topics.map(topic => [topic, record(preferences[channel])[topic] === true])),
+    ])) as NotificationSettings['preferences'],
+    emailVerified: source.emailVerified === true,
+    phoneVerified: source.phoneVerified === true,
+    deliveryEnabled: source.deliveryEnabled === true,
+    emailDeliveryAvailable: source.emailDeliveryAvailable === true,
+    smsDeliveryAvailable: source.smsDeliveryAvailable === true,
+  };
+};
+type RequestSession = { cancelled: boolean; request: AbortController | null; locked: boolean };
+type RequestError = { kind: 'load' | 'save'; message?: string };
+type Notice = '' | 'saved' | 'verified' | 'queued' | 'delivery_disabled';
+const serverError = (value: unknown): string | undefined => {
+  const message = record(value).error;
+  return typeof message === 'string' && message.length > 0 && message.length <= 512 ? message : undefined;
+};
 
 /** Opt-in is always an explicit authenticated save; legacy accounts start with all switches off. */
 export function NotificationPreferencesCard({ userId }: { userId: string }) {
   const locale = useLocale(), en = locale === 'en', hant = locale === 'zh-Hant';
   const text = (hans: string, english: string, traditional = hans) => en ? english : hant ? traditional : hans;
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
-  const [error, setError] = useState(''), [notice, setNotice] = useState(''), [busy, setBusy] = useState(false), [retry, setRetry] = useState(0);
-  const request = useRef<AbortController | null>(null), lock = useRef(false), generation = useRef(0);
+  const [error, setError] = useState<RequestError | null>(null), [notice, setNotice] = useState<Notice>(''), [busy, setBusy] = useState(false), [retry, setRetry] = useState(0);
+  const activeSession = useRef<RequestSession | null>(null);
   useEffect(() => {
-    const current = ++generation.current, controller = new AbortController();
-    request.current?.abort(); request.current = controller; lock.current = false;
-    setSettings(null); setError(''); setNotice(''); setBusy(false);
+    const controller = new AbortController();
+    const session: RequestSession = { cancelled: false, request: controller, locked: false };
+    activeSession.current?.request?.abort(); activeSession.current = session;
+    setSettings(null); setError(null); setNotice(''); setBusy(false);
     api.request('/notifications/preferences', { signal: controller.signal }).then(value => {
-      if (!controller.signal.aborted && current === generation.current && getStoredUser()?.id === userId) setSettings(normalize(value));
-    }).catch(err => { if (!controller.signal.aborted && current === generation.current) setError(err.error || text('通知设置暂不可用。', 'Notification settings are unavailable.', '通知設定暫不可用。')); });
-    return () => { controller.abort(); generation.current++; };
+      if (!session.cancelled && !controller.signal.aborted && activeSession.current === session && getStoredUser()?.id === userId) setSettings(normalize(value));
+    }).catch(err => {
+      if (!session.cancelled && !controller.signal.aborted && activeSession.current === session) setError({ kind: 'load', message: serverError(err) });
+    });
+    // Capture this account's session, including a later save request, so cleanup cannot abort a replacement account.
+    return () => { session.cancelled = true; session.request?.abort(); };
   }, [userId, retry]);
 
   const submit = async (verification = false) => {
-    if (lock.current || !settings || getStoredUser()?.id !== userId) return;
-    const current = generation.current, controller = new AbortController();
-    request.current?.abort(); request.current = controller; lock.current = true;
-    setBusy(true); setError(''); setNotice('');
+    const session = activeSession.current;
+    if (!session || session.cancelled || session.locked || !settings || getStoredUser()?.id !== userId) return;
+    const controller = new AbortController();
+    session.request?.abort(); session.request = controller; session.locked = true;
+    const isCurrent = () => !session.cancelled && activeSession.current === session && getStoredUser()?.id === userId;
+    setBusy(true); setError(null); setNotice('');
     try {
       const value = await api.request(verification ? '/notifications/email/start' : '/notifications/preferences', {
         method: verification ? 'POST' : 'PATCH', signal: controller.signal,
         body: JSON.stringify(verification ? {} : { preferences: settings.preferences, locale }),
       });
-      if (controller.signal.aborted || current !== generation.current || getStoredUser()?.id !== userId) return;
+      if (controller.signal.aborted || !isCurrent()) return;
       setSettings(normalize(value));
-      setNotice(verification ? value.alreadyVerified ? text('邮箱已验证。', 'Email already verified.', '信箱已驗證。')
-        : value.emailDeliveryAvailable ? text('验证请求已排队，请查收邮件并在30分钟内确认。', 'Verification is queued. Check your email and confirm within 30 minutes.', '驗證請求已排隊，請查收郵件並在30分鐘內確認。')
-          : text('验证请求已保存；邮件发送暂未启用，请稍后重新请求。', 'The request was saved. Email delivery is not enabled yet; request a new link later.', '驗證請求已儲存；郵件發送暫未啟用，請稍後重新請求。')
-        : text('通知偏好已保存。', 'Notification preferences saved.', '通知偏好已儲存。'));
-    } catch (err: any) { if (!controller.signal.aborted && current === generation.current) setError(err.error || text('保存失败，请重试。', 'Could not save. Try again.', '儲存失敗，請重試。')); }
-    finally { if (current === generation.current) { lock.current = false; setBusy(false); } }
+      const response = record(value);
+      setNotice(verification ? response.alreadyVerified === true ? 'verified' : response.emailDeliveryAvailable === true ? 'queued' : 'delivery_disabled' : 'saved');
+    } catch (err: unknown) { if (!controller.signal.aborted && isCurrent()) setError({ kind: 'save', message: serverError(err) }); }
+    finally { if (isCurrent()) { session.locked = false; setBusy(false); } }
   };
+  const errorText = error?.message || (error?.kind === 'load'
+    ? text('通知设置暂不可用。', 'Notification settings are unavailable.', '通知設定暫不可用。')
+    : text('保存失败，请重试。', 'Could not save. Try again.', '儲存失敗，請重試。'));
+  const noticeText = notice === 'verified' ? text('邮箱已验证。', 'Email already verified.', '信箱已驗證。')
+    : notice === 'queued' ? text('验证请求已排队，请查收邮件并在30分钟内确认。', 'Verification is queued. Check your email and confirm within 30 minutes.', '驗證請求已排隊，請查收郵件並在30分鐘內確認。')
+      : notice === 'delivery_disabled' ? text('验证请求已保存；邮件发送暂未启用，请稍后重新请求。', 'The request was saved. Email delivery is not enabled yet; request a new link later.', '驗證請求已儲存；郵件發送暫未啟用，請稍後重新請求。')
+        : text('通知偏好已保存。', 'Notification preferences saved.', '通知偏好已儲存。');
   return <section className="mx-auto my-6 max-w-3xl rounded-2xl border border-stone-200 bg-white p-5" aria-labelledby="notification-settings-title">
     <h2 id="notification-settings-title" className="text-lg font-semibold">{text('站外通知', 'Email and SMS notifications', '站外通知')}</h2>
     <p className="mt-2 text-sm text-stone-600">{text('由你主动选择接收。提醒只包含安全的站内链接，不包含私信正文或联系方式。同一会话每30分钟最多提醒一次。', 'Choose which reminders to receive. They contain a secure site link, without private message text or contact details. At most one reminder per conversation every 30 minutes.', '由你主動選擇接收。提醒只包含安全的站內連結，不包含私訊正文或聯絡資料。同一對話每30分鐘最多提醒一次。')}</p>
-    {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-    {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{notice}</p>}
+    {error && <p role="alert" className="mt-3 text-sm text-red-700">{errorText}</p>}
+    {notice && <p role="status" className="mt-3 text-sm text-emerald-700">{noticeText}</p>}
     {!settings ? <button type="button" onClick={() => setRetry(value => value + 1)} className="mt-3 underline">{error ? text('重试加载', 'Retry loading', '重試載入') : text('正在加载通知设置…', 'Loading notification settings…', '正在載入通知設定…')}</button> : <>
       {!settings.deliveryEnabled && <p className="mt-3 text-sm text-amber-800">{text('发送服务暂未启用；你仍可保存偏好。', 'Delivery is not enabled yet. You can still save your preferences.', '發送服務暫未啟用；你仍可儲存偏好。')}</p>}
       <div className="mt-4 grid gap-4 sm:grid-cols-2">{channels.map(channel => {

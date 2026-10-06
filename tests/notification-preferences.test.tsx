@@ -41,6 +41,39 @@ test('queued verification with delivery disabled never claims the email was sent
   assert.ok(view.getAllByRole('checkbox').every(item => (item as HTMLInputElement).disabled));
 });
 
+test('changing language preserves the unsaved draft without refetching preferences', async () => {
+  let reads = 0, writes = 0;
+  api.request = async (_path, options) => { if (options?.method) writes++; else reads++; return settings(); };
+  const view = render(<NotificationPreferencesCard userId="owner" />);
+  await view.findByRole('button', { name: 'Save notification preferences' });
+  const englishEmail = within(view.getByRole('group', { name: 'Email reminders' }));
+  fireEvent.click(englishEmail.getByRole('checkbox', { name: 'New private messages' }));
+  await act(async () => { await setLocale('zh-Hant', false); });
+  const traditionalEmail = within(view.getByRole('group', { name: '郵件提醒' }));
+  assert.equal((traditionalEmail.getByRole('checkbox', { name: '新的私訊' }) as HTMLInputElement).checked, true);
+  assert.equal((traditionalEmail.getByRole('checkbox', { name: '新的聯絡請求' }) as HTMLInputElement).checked, false);
+  assert.equal(reads, 1); assert.equal(writes, 0);
+});
+
+test('non-boolean verification and preference values cannot enable notification controls', async () => {
+  api.request = async () => ({ ...settings(), emailVerified: 'true', phoneVerified: 1, deliveryEnabled: 'true',
+    preferences: { email: { message: 'true' }, sms: { message: 1 } } });
+  const view = render(<NotificationPreferencesCard userId="owner" />);
+  await view.findByRole('button', { name: 'Save notification preferences' });
+  assert.ok(view.getAllByRole('checkbox').every(item => (item as HTMLInputElement).disabled && !(item as HTMLInputElement).checked));
+  assert.ok(view.getByText('Delivery is not enabled yet. You can still save your preferences.'));
+  assert.ok(view.getByRole('button', { name: 'Request verification email' }));
+});
+
+test('fallback errors follow the selected language without starting another read', async () => {
+  let reads = 0; api.request = async () => { reads++; throw new Error('offline'); };
+  const view = render(<NotificationPreferencesCard userId="owner" />);
+  assert.equal((await view.findByRole('alert')).textContent, 'Notification settings are unavailable.');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(view.getByRole('alert').textContent, '通知設定暫不可用。');
+  assert.equal(reads, 1);
+});
+
 test('late preference reads from a prior account cannot restore the old account choices', async () => {
   let finish!: (value: unknown) => void, reads = 0;
   api.request = async () => ++reads === 1 ? new Promise(resolve => { finish = resolve; }) : settings();

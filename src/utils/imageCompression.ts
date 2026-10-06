@@ -131,7 +131,7 @@ export async function compressImageFile(file: File, options: CompressImageOption
       context.drawImage(decoded.source, 0, 0, canvas.width, canvas.height);
       const blob = await canvasToBlob(canvas, type, quality);
       const actualType = blob.type as RasterType;
-      if (actualType !== type && !(type === 'image/webp' && actualType === 'image/png')) throw processingFailed();
+      if (!TYPES.includes(actualType) || (actualType !== type && !(type === 'image/webp' && actualType === 'image/png'))) throw processingFailed();
       if (staticFormat(new Uint8Array(await readFile(blob, false))) !== actualType) throw processingFailed();
       if (blob.size <= maxBytes) {
         const extension = actualType === 'image/jpeg' ? 'jpg' : actualType.slice(6);
