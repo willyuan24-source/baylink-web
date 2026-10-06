@@ -13,6 +13,7 @@ const { MemoryRouter, Link, Routes, Route, useLocation } = await import('react-r
 await import('../src/i18n/router');
 const { setLocale, getLocale, translateText, localizedUrl, initializeLocale, LOCALE_KEY } = await import('../src/i18n/locale');
 const { LanguageSwitcher } = await import('../src/components/LanguageSwitcher');
+const { LanguageRouter } = await import('../src/components/LanguageRouter');
 const { default: Avatar } = await import('../src/components/Avatar');
 const { guides } = await import('../src/data/guides');
 const { localDiscoveries } = await import('../src/data/local-discoveries');
@@ -127,58 +128,117 @@ test('avatar initials and accessible names remain the user’s original spelling
 });
 
 test('language selector keeps route filters and hash while saving preference', async () => {
+  window.history.replaceState(null, '', '/guides?q=park#reading');
   function RouteReceipt() { const location = useLocation(); return <output>{location.pathname + location.search + location.hash}</output>; }
-  const view = render(<MemoryRouter initialEntries={['/guides?q=park#reading']}><LanguageSwitcher /><RouteReceipt /></MemoryRouter>);
+  const draft = createRef<HTMLInputElement>();
+  const view = render(<LanguageRouter><LanguageSwitcher /><RouteReceipt /><input ref={draft} defaultValue="未发布草稿" /></LanguageRouter>);
+  const input = draft.current!;
+  input.focus();
   await act(async () => { fireEvent.change(view.getByRole('combobox'), { target: { value: 'zh-Hant' } }); });
   assert.equal(localStorage.getItem(LOCALE_KEY), 'zh-Hant');
   assert.equal(document.documentElement.lang, 'zh-Hant');
-  assert.equal(view.container.querySelector('output')!.textContent, '/guides?q=park&lang=zh-Hant#reading');
+  assert.equal(window.location.pathname + window.location.search + window.location.hash, '/zh-Hant/guides?q=park#reading');
+  assert.equal(view.container.querySelector('output')!.textContent, '/guides?q=park#reading');
+  assert.equal(draft.current, input);
+  assert.equal(input.value, '未发布草稿');
+  assert.equal(document.activeElement, input);
 });
 
 test('explicit shared language wins over browser preference and sharing preserves hash', async () => {
   localStorage.setItem(LOCALE_KEY, 'zh-Hant');
   window.history.replaceState(null, '', '/guides?lang=en');
   await initializeLocale(); assert.equal(getLocale(), 'en');
-  assert.equal(localizedUrl('/guides/example?q=free#board'), 'https://www.baylink.us/guides/example?q=free&lang=en#board');
+  assert.equal(localizedUrl('/guides/example?q=free#board'), 'https://www.baylink.us/en/guides/example?q=free#board');
   await setLocale('zh-Hans');
   assert.equal(localizedUrl('/guides/example?lang=en#board'), 'https://www.baylink.us/guides/example#board');
 });
 
-test('first visits follow browser preferences without saving or rewriting an automatic choice', async () => {
+test('native text sinks translate nested Fragment text while protected user text stays unchanged', async () => {
+  const draft = createRef<HTMLInputElement>();
+  const view = render(<div><p data-testid="fragment"><><Fragment>发现湾区</Fragment></></p><p translate="no"><>发现湾区</></p><input ref={draft} defaultValue="未发布草稿" /></div>);
+  const input = draft.current!;
+  await act(async () => { await setLocale('en', false); });
+  assert.ok(!han.test(view.getByTestId('fragment').textContent || ''));
+  assert.equal(view.container.querySelector('[translate=no]')!.textContent, '发现湾区');
+  assert.equal(draft.current, input);
+  assert.equal(input.value, '未发布草稿');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(view.getByTestId('fragment').textContent, '發現灣區');
+});
+
+test('Back synchronizes the language and keeps the mounted draft on the same route', async () => {
+  window.history.replaceState({ key: 'initial' }, '', '/guides');
+  function Receipt() { const location = useLocation(); return <output>{location.pathname}</output>; }
+  const draft = createRef<HTMLInputElement>();
+  const view = render(<LanguageRouter><LanguageSwitcher /><Receipt /><input ref={draft} defaultValue="未发布草稿" /></LanguageRouter>);
+  const input = draft.current!;
+  await act(async () => {
+    window.history.pushState({ key: 'translated' }, '', '/en/guides');
+    window.dispatchEvent(new window.PopStateEvent('popstate', { state: window.history.state }));
+  });
+  assert.equal(getLocale(), 'en');
+  assert.equal(view.container.querySelector('output')!.textContent, '/guides');
+  await act(async () => {
+    await new Promise<void>(resolve => {
+      window.addEventListener('popstate', () => resolve(), { once: true });
+      window.history.back();
+    });
+  });
+  assert.equal(window.location.pathname, '/guides');
+  assert.equal(getLocale(), 'zh-Hans');
+  assert.equal(draft.current, input);
+  assert.equal(input.value, '未发布草稿');
+});
+
+test('a language switch inside a background route keeps the open post URL and draft', async () => {
+  window.history.replaceState(null, '', '/posts/sample?older=1#contact');
+  const actualLocation = { pathname: '/posts/sample', search: '?older=1', hash: '#contact', state: null, key: 'post' };
+  const view = render(<MemoryRouter initialEntries={['/category/rent']}><LanguageSwitcher realLocation={actualLocation} /><input defaultValue="私信草稿" /></MemoryRouter>);
+  const input = view.container.querySelector('input');
+  await act(async () => { fireEvent.change(view.getByRole('combobox'), { target: { value: 'zh-Hant' } }); });
+  assert.equal(window.location.pathname + window.location.search + window.location.hash, '/zh-Hant/posts/sample?older=1#contact');
+  assert.equal(view.container.querySelector('input'), input);
+  assert.equal(input?.value, '私信草稿');
+});
+
+test('neutral URLs have a stable Chinese default without saving or rewriting browser preferences', async () => {
   const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
   const originalLanguage = Object.getOwnPropertyDescriptor(window.navigator, 'language');
   try {
     window.history.replaceState(null, '', '/?ref=friend#discover');
-    for (const [languages, expected] of [[['en-US', 'zh-CN'], 'en'], [['zh-HK', 'en'], 'zh-Hant'], [['zh-SG', 'en'], 'zh-Hans'], [['es-MX'], 'en']] as const) {
+    for (const languages of [['en-US', 'zh-CN'], ['zh-HK', 'en'], ['zh-SG', 'en'], ['es-MX']]) {
       Object.defineProperty(window.navigator, 'languages', { configurable: true, value: languages });
       await initializeLocale();
-      assert.equal(getLocale(), expected);
-      assert.equal(document.documentElement.lang, expected);
+      assert.equal(getLocale(), 'zh-Hans');
+      assert.equal(document.documentElement.lang, 'zh-Hans');
       assert.equal(localStorage.getItem(LOCALE_KEY), null);
       assert.equal(window.location.search + window.location.hash, '?ref=friend#discover');
     }
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: [] });
     Object.defineProperty(window.navigator, 'language', { configurable: true, value: 'zh-TW' });
     await initializeLocale();
-    assert.equal(getLocale(), 'zh-Hant');
+    assert.equal(getLocale(), 'zh-Hans');
   } finally {
     if (originalLanguages) Object.defineProperty(window.navigator, 'languages', originalLanguages); else Reflect.deleteProperty(window.navigator, 'languages');
     if (originalLanguage) Object.defineProperty(window.navigator, 'language', originalLanguage); else Reflect.deleteProperty(window.navigator, 'language');
   }
 });
 
-test('saved choices and explicit links override detection while invalid values do not block it', async () => {
+test('explicit language URLs win while saved choices do not change the language of neutral shared URLs', async () => {
   const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
   try {
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
     localStorage.setItem(LOCALE_KEY, 'zh-Hant');
     await initializeLocale();
-    assert.equal(getLocale(), 'zh-Hant');
+    assert.equal(getLocale(), 'zh-Hans');
     window.history.replaceState(null, '', '/?lang=zh-Hans');
     await initializeLocale();
     assert.equal(getLocale(), 'zh-Hans');
     window.history.replaceState(null, '', '/?lang=unsupported');
     localStorage.setItem(LOCALE_KEY, 'unsupported');
+    await initializeLocale();
+    assert.equal(getLocale(), 'zh-Hans');
+    window.history.replaceState(null, '', '/en/guides?lang=zh-Hant');
     await initializeLocale();
     assert.equal(getLocale(), 'en');
   } finally {
@@ -186,14 +246,14 @@ test('saved choices and explicit links override detection while invalid values d
   }
 });
 
-test('browser detection still works when preference storage is unavailable', async () => {
+test('stable default remains available when preference storage is unavailable', async () => {
   const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
   const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
   try {
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
     Object.defineProperty(globalThis, 'localStorage', { configurable: true, get: () => { throw new Error('Storage blocked'); } });
     await initializeLocale();
-    assert.equal(getLocale(), 'en');
+    assert.equal(getLocale(), 'zh-Hans');
   } finally {
     if (original) Object.defineProperty(globalThis, 'localStorage', original);
     if (originalLanguages) Object.defineProperty(window.navigator, 'languages', originalLanguages); else Reflect.deleteProperty(window.navigator, 'languages');
@@ -218,7 +278,7 @@ test('English guide catalog covers every Chinese editorial string and preserves 
   assert.ok(searchGuides(guides, { query: '圖書館' }).length > 0);
 });
 
-test('metadata follows reading language and retains original canonical URL', async () => {
+test('metadata follows reading language with its own canonical and all language alternates', async () => {
   setPageMetadata({ title: '生活指南', description: '发现湾区', path: '/guides' });
   await setLocale('zh-Hant');
   assert.equal(document.title, '生活指南');
@@ -226,7 +286,8 @@ test('metadata follows reading language and retains original canonical URL', asy
   await setLocale('en');
   assert.ok(!han.test(document.title));
   assert.equal(document.querySelector('meta[property="og:locale"]')!.getAttribute('content'), 'en_US');
-  assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), 'https://www.baylink.us/guides');
+  assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), 'https://www.baylink.us/en/guides');
+  assert.equal(document.querySelectorAll('link[data-baylink-language]').length, 4);
 });
 
 test('a dated guide title follows language changes in the browser and social metadata', async () => {
@@ -248,7 +309,8 @@ test('a dated guide title follows language changes in the browser and social met
     assert.equal(document.title, title, locale);
     assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), title, locale);
     assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), title, locale);
-    assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), `https://www.baylink.us${metadata.path}`);
+    const prefix = locale === 'en' ? '/en' : locale === 'zh-Hant' ? '/zh-Hant' : '';
+    assert.equal(document.querySelector('link[rel=canonical]')!.getAttribute('href'), `https://www.baylink.us${prefix}${metadata.path}`);
     assert.equal(window.location.pathname + window.location.search + window.location.hash, sharedPath);
   }
 });

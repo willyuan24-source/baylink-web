@@ -3,6 +3,7 @@ import test from 'node:test';
 import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { isApprovedEventContextPhoto } from '../src/data/event-image-usage';
+import { VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { additionalOctoberEvents } from '../src/data/october-events-extra';
 import { lateSeptemberSfEastEvents } from '../src/data/late-september-sf-east';
@@ -271,7 +272,8 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     assert.equal(new Set(item.plan).size, item.plan.length, `${item.id} does not repeat a preparation step`);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }
-  assert.ok(!publishedIds.has('treasure-island-coastal-cleanup-2026'), 'ended cleanup is no longer published');
+  assert.ok(publishedIds.has('treasure-island-coastal-cleanup-2026'), 'published ended events retain their archive URL');
+  assert.ok(!filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-10-05').some(item => item.id === 'treasure-island-coastal-cleanup-2026'), 'ended archive is excluded from current discovery');
 });
 
 test('published activities reference available guide images and existing related articles', () => {
@@ -386,7 +388,7 @@ test('new community listings retain complete English text and clearly identify a
 
 test('event photos keep their actual place and outdoor movies never borrow an indoor cinema image', () => {
   const realPlaces: [string, string, RegExp][] = [
-    ['san-francisco-fleet-week-2026', 'sf-wharf', /Fisherman|渔人码头/],
+    ['san-francisco-fleet-week-2026', 'verified-fishermans-wharf', /Fisherman|渔人码头/],
     ['oakland-autumn-lights-festival-2026', 'region-lake-merritt', /Lake Merritt/],
     ['half-moon-bay-pumpkin-festival-2026', 'fresh-pumpkin-parade', /Half Moon Bay|半月湾/],
   ];
@@ -396,6 +398,16 @@ test('event photos keep their actual place and outdoor movies never borrow an in
     assert.equal(image.kind, 'photo');
     assert.match(`${image.alt} ${image.caption}`, place);
     assert.equal(new URL(image.creditUrl!).protocol, 'https:');
+    assert.ok(image.credit.trim(), `${id} retains attribution`);
+    assert.equal(new URL(image.licenseUrl!).protocol, 'https:', `${id} retains a public license`);
+    const alias = VERIFIED_PLACE_PHOTO_ALIASES[key];
+    if (alias) {
+      const original = GUIDE_IMAGES[alias.sourceKey];
+      for (const field of ['src', 'credit', 'creditUrl', 'licenseUrl'] as const) assert.equal(image[field], original[field], `${id} keeps the original ${field}`);
+      assert.match(image.caption, /资料照片/);
+      assert.match(image.caption, /不是 2026 年/);
+      assert.ok(isApprovedEventContextPhoto(key, id), `${id} explicitly approves this venue photo`);
+    }
   }
   for (const id of ['fremont-finding-nemo-outdoor-movie-2026', 'piedmont-wonka-outdoor-movie-2026']) {
     const image = GUIDE_IMAGES[event(id).imageKey];

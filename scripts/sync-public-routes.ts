@@ -59,9 +59,38 @@ export function syncPublicRoutes(routes: HostingRoute[], catalog: PublicCatalog,
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const config = JSON.parse(await readFile('vercel.json', 'utf8')) as { routes: HostingRoute[] };
+  const functionConfig = config as typeof config & { functions: Record<string, { includeFiles: string; maxDuration: number }> };
+  functionConfig.functions ||= {};
+  for (const file of ['api/outing-page.ts', 'api/user-card-page.ts']) functionConfig.functions[file] = { includeFiles: 'dist/index.html', maxDuration: 15 };
   const catalog: PublicCatalog = { events: [], offers: [], openings: [], guides: guides.map(guide => guide.slug) };
   for (const item of localDiscoveries) catalog[item.kind === 'event' ? 'events' : item.kind === 'offer' ? 'offers' : 'openings'].push(discoveryShare(item).id);
-  config.routes = syncPublicRoutes(config.routes, catalog);
+  const baseRoutes = config.routes.filter(route => !route.src?.startsWith('^/en/') && !route.src?.startsWith('^/zh-Hant/') && !route.src?.startsWith('^/(en|zh-Hant)') && route.dest !== '/en/index.html' && route.dest !== '/zh-Hant/index.html' && route.dest !== '/this-week.html' && !route.src?.startsWith('^/n/') && !String(route.dest || '').startsWith('/api/outing-page') && !String(route.dest || '').startsWith('/api/user-card-page'));
+  config.routes = syncPublicRoutes(baseRoutes, catalog);
+  config.routes.splice(1, 0,
+    // Rewrites forward the original query. Do not interpolate an unnamed has capture.
+    { src: '^/together/?$', has: [{ type: 'query', key: 'outing', value: '[a-zA-Z0-9_-]{1,128}' }], dest: '/api/outing-page' },
+    { src: '^/(en|zh-Hant)/together/?$', has: [{ type: 'query', key: 'outing', value: '[a-zA-Z0-9_-]{1,128}' }], dest: '/api/outing-page?siteLanguage=$1' },
+    { src: '^/users/([a-zA-Z0-9_-]{1,128})/?$', dest: '/api/user-card-page?userId=$1' },
+    { src: '^/(en|zh-Hant)/users/([a-zA-Z0-9_-]{1,128})/?$', dest: '/api/user-card-page?userId=$2&siteLanguage=$1' });
+  // Privacy headers cover every language variant of authenticated pages.
+  for (const route of config.routes) {
+    if ((route.headers as Record<string, string> | undefined)?.['X-Robots-Tag'] === 'noindex, follow' && route.src?.startsWith('^/(?:me')) {
+      route.src = route.src.replace('^/', '^/(?:(?:en|zh-Hant)/)?');
+    }
+  }
+  config.routes = config.routes.filter(route => !route.src?.startsWith('^/(?:(?:en|zh-Hant)/)?(?:verify-email') && route.src !== '^/(verify-email|notifications/unsubscribe)/?$');
+  config.routes.splice(1, 0,
+    { src: '^/(?:(?:en|zh-Hant)/)?(?:verify-email|notifications/unsubscribe)/?$', headers: { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' }, continue: true },
+    { src: '^/(verify-email|notifications/unsubscribe)/?$', dest: '/$1.html' });
+  const localize = config.routes.filter(route => typeof route.dest === 'string' && route.dest.endsWith('.html') && route.src?.startsWith('^/') && route.status !== 404);
+  const translated = (['en', 'zh-Hant'] as const).flatMap(locale => localize.map(route => ({ ...route, src: (route.src || '').replace('^/', '^/' + locale + '/'), dest: '/' + locale + route.dest })));
+  const existing = config.routes.findIndex(route => route.handle === 'filesystem');
+  config.routes.splice(existing < 0 ? 1 : existing, 0, ...translated,
+    { src: '^/(en|zh-Hant)/posts/([a-zA-Z0-9_-]{1,128})/?$', dest: '/api/post-page?postId=$2&siteLanguage=$1' },
+    { src: '^/n/(all|sf|east-bay|peninsula|south-bay|north-bay)/?$', status: 302, headers: { Location: '/this-week?region=$1&from=card-$1', 'Cache-Control': 'no-store' } },
+    { src: '^/en/?$', dest: '/en/index.html' }, { src: '^/zh-Hant/?$', dest: '/zh-Hant/index.html' },
+    { src: '^/this-week/?$', dest: '/this-week.html' }, { src: '^/(en|zh-Hant)/this-week/?$', dest: '/$1/this-week.html' },
+    { src: '^/(en|zh-Hant)/(?:.*)$', dest: '/$1/404.html', status: 404 });
   await writeFile('vercel.json', `${JSON.stringify(config, null, 2)}\n`);
   console.log(`Hosting routes cover ${guides.length} guides and ${localDiscoveries.length} individual local discoveries; each public src is at most ${PUBLIC_ROUTE_SRC_LIMIT} characters.`);
 }

@@ -8,6 +8,7 @@ import { attractionMapUrl, filterAttractions, loadOuting, MAX_OUTING_STOPS, outi
 import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
 import { CITY_EXPLORATION_SLUG } from '../data/city-exploration-types';
+import { opusBayAttractionEntry } from '../lib/opus-bay-attraction-entry';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 
@@ -18,6 +19,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   const [shared, setShared] = useState(() => params.has('plan'));
   const [notice, setNotice] = useState('');
   const [fallback, setFallback] = useState('');
+  const [page, setPage] = useState({ key: '', count: 12 });
   const sharedParam = params.get('plan');
   useEffect(() => {
     setPlan(sharedParam !== null ? parseSharedOuting(sharedParam) : loadOuting());
@@ -29,6 +31,8 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
   const cost = ATTRACTION_COSTS.some(item => item.id === params.get('cost')) ? params.get('cost')! : 'all';
   const query = (params.get('q') || '').slice(0, 150);
   const filtered = filterAttractions(available, { region, theme, cost, query, locale });
+  const resultKey = JSON.stringify([region, theme, cost, query]);
+  const visibleCount = page.key === resultKey ? page.count : 12;
   const regionIntro = ATTRACTION_REGION_INTROS[region as keyof typeof ATTRACTION_REGION_INTROS];
   const selections = plan.map(id => ATTRACTIONS.find(item => item.id === id)!);
   const updateFilter = (key: string, value: string) => setParams(current => {
@@ -72,14 +76,30 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     await copy(url, '出游清单链接已复制，朋友打开就能看到你的顺序。');
   };
 
+  const outingPanel = (
+    <section id="outing-plan" className="outing-plan" aria-labelledby="outing-plan-title">
+      <div className="outing-heading"><div><span className="attraction-eyebrow">A LITTLE PLAN, A GOOD DAY</span><h2 id="outing-plan-title">我的出游清单</h2></div><span>{plan.length} / {MAX_OUTING_STOPS}</span></div>
+      <p>最多收藏 6 处，按自己的节奏排序。建议一天先选同一区域的 1–3 处。</p>
+      {shared && <div className="outing-shared"><p>正在查看分享的计划；修改后会保存到此浏览器。</p><button type="button" onClick={() => { setPlan(loadOuting()); setShared(false); updateFilter('plan', ''); setNotice('已恢复此浏览器原有的出游清单。'); setFallback(''); }}>恢复本机清单</button></div>}
+      {selections.length ? <><ol className="outing-stops">{selections.map((item, index) => <li key={item.id}><span className="outing-number">{index + 1}</span><div className="outing-stop-text"><Link to={`/guides/${item.slug}`}>{item.title}</Link><small>{item.city} · {item.duration}</small><a href={attractionMapUrl(item)} target="_blank" rel="noopener noreferrer"><MapPin size={13} aria-hidden="true" />起点地图</a></div><div className="outing-stop-buttons"><button type="button" disabled={index === 0} aria-label={`上移：${item.title}`} onClick={() => move(index, -1)}><ArrowUp size={16} /></button><button type="button" disabled={index === selections.length - 1} aria-label={`下移：${item.title}`} onClick={() => move(index, 1)}><ArrowDown size={16} /></button><button type="button" aria-label={`移除：${item.title}`} onClick={() => toggle(item.id)}><X size={16} /></button></div></li>)}</ol>
+        <div className="outing-actions"><button type="button" onClick={share}><Share2 size={17} aria-hidden="true" />分享出游清单</button><button type="button" onClick={() => copy(outingText(plan, locale), '计划文字、攻略和地图链接已复制。')}><Copy size={16} aria-hidden="true" />复制计划文字</button>{onAsk && <button type="button" onClick={() => onAsk((translateText('我想安排这些地方的出游：', locale) + selections.map(item => translateText(item.title, locale)).join(', ') + translateText('。请先问我出发地、日期、出行方式和同行人，再结合本站攻略帮我取舍、排序和确认预约事项。不要假定一天都能去完。', locale)).slice(0, 500))}><Sparkles size={16} aria-hidden="true" />让 BayBay 帮我取舍</button>}</div>
+        <p className="outing-note">按自己的时间取舍；停留时长不含往返交通，出发前查看预约和开放公告。</p>
+      </> : <div className="outing-empty"><MapPin size={24} aria-hidden="true" /><p>看到喜欢的地方，点「加入清单」。攻略、地图和分享入口会一起留在这里。</p></div>}
+      <p className="outing-local-note">无需登录，仅保存在当前浏览器；跨设备请分享清单链接。</p>
+      {notice && <p className="outing-status" role="status">{notice}</p>}
+      {fallback && <label className="outing-fallback">手动复制<textarea value={fallback} readOnly rows={4} onFocus={event => event.currentTarget.select()} /></label>}
+    </section>
+  );
+
   return <div className="attraction-page">
     <nav className="city-exploration-launch" aria-label={translateText('城市攻略入口', locale)}><Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={17} aria-hidden="true" /><span>{translateText('按城市探索：九县 101 城景点与生活指南', locale)}</span><ArrowRight size={17} aria-hidden="true" /></Link></nav>
-    <nav className="planner-launch-links"><Link to={`/plan?places=${plan.slice(0, 3).join(",")}`}><Sparkles size={16} />{plan.length ? "在地图里安排前三站" : "让 BayBay 帮我排一天"}</Link><Link to="/my-week">我的这周</Link></nav>
+    <nav className="planner-launch-links"><Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={16} />{plan.length ? locale === 'en' ? 'Arrange all saved stops on the map' : '在地图里安排完整清单' : '让 BayBay 帮我排一天'}</Link><Link to="/my-week">我的这周</Link></nav>
     <header className="attraction-intro">
       <span className="attraction-eyebrow"><Compass size={16} aria-hidden="true" /> YOUR NEXT BAY AREA DAY</span>
       <div><h1>湾区很大，<br /><em>从喜欢的地方出发。</em></h1><p>看海、逛街、走进花园或博物馆。<br />先找到想去的，再慢慢安排这一天。</p></div>
       <div className="attraction-intro-bottom"><span>{available.length} 个出游灵感 · 5 大地区</span><a href="#outing-plan"><MapPin size={16} aria-hidden="true" />我的出游清单 <strong>{plan.length}</strong><ArrowRight size={15} aria-hidden="true" /></a></div>
     </header>
+    <details className="attraction-plan-disclosure" open={plan.length > 0 || shared}><summary>{locale === 'en' ? 'My saved outing stops' : '我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>
     <section className="attraction-filters" aria-label="筛选湾区景点">
       <div className="attraction-regions" role="group" aria-label="选择地区">{ATTRACTION_REGIONS.map(item => <button type="button" key={item.id} aria-pressed={region === item.id} onClick={() => updateFilter('region', item.id)}>{item.label}</button>)}</div>
       <div className="attraction-filter-row">
@@ -96,31 +116,23 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     </section>}
     <div className="attraction-results-heading"><h2>选一个想去的地方</h2><span role="status">{locale === 'en' ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'} to explore` : `${filtered.length} ${translateText('处可探索', locale)}`}</span></div>
     {plan.length >= MAX_OUTING_STOPS && <p className="attraction-cap-note">清单最多放 6 处。先移除一处，或把剩下的留给下次。</p>}
-    {filtered.length ? <div className="attraction-grid">{filtered.map(item => {
+    {filtered.length ? <div className="attraction-grid">{filtered.slice(0, visibleCount).map(item => {
       const guide = getGuideBySlug(item.slug)!;
       const image = getGuideMedia(guide).cover;
       const added = plan.includes(item.id);
+      const worldEntry = opusBayAttractionEntry(item.id, locale);
       return <article key={item.id} className="attraction-card">
         <Link className="attraction-photo" to={`/guides/${item.slug}`} aria-label={`阅读攻略：${item.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 95vw, (max-width: 1199px) 46vw, 330px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{ATTRACTION_REGIONS.find(region => region.id === item.region)!.label}</span></Link>
         <div className="attraction-card-body"><span className="attraction-city"><MapPin size={12} aria-hidden="true" />{item.city}</span><h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p>{item.note}</p>
           <div className="attraction-facts"><span><Clock3 size={14} aria-hidden="true" />{item.duration}</span><span><Ticket size={14} aria-hidden="true" />{ATTRACTION_COSTS.find(cost => cost.id === item.cost)!.label}</span></div>
           <div className="attraction-card-actions"><Link to={`/guides/${item.slug}`}>读完整攻略<ArrowRight size={14} aria-hidden="true" /></Link><button type="button" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)}>{added ? <Check size={15} aria-hidden="true" /> : <Plus size={15} aria-hidden="true" />}{added ? '已加入' : '加入清单'}</button></div>
+          {worldEntry && <div className="attraction-card-actions"><Link to={worldEntry.href} reloadDocument>{translateText(worldEntry.label, locale)}<ArrowRight size={14} aria-hidden="true" /></Link></div>}
           <details className="attraction-credit"><summary>照片来源</summary><p>{image.caption}</p><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>
         </div>
       </article>;
     })}</div> : <div className="attraction-empty"><Compass size={30} aria-hidden="true" /><h3>换个范围，可能就有新发现。</h3><p>试试减少条件，或用城市、景点的中英文名称搜索。</p><button type="button" onClick={resetFilters}>重置景点筛选</button></div>}
-    <section id="outing-plan" className="outing-plan" aria-labelledby="outing-plan-title">
-      <div className="outing-heading"><div><span className="attraction-eyebrow">A LITTLE PLAN, A GOOD DAY</span><h2 id="outing-plan-title">我的出游清单</h2></div><span>{plan.length} / {MAX_OUTING_STOPS}</span></div>
-      <p>最多收藏 6 处，按自己的节奏排序。建议一天先选同一区域的 1–3 处。</p>
-      {shared && <div className="outing-shared"><p>正在查看分享的计划；修改后会保存到此浏览器。</p><button type="button" onClick={() => { setPlan(loadOuting()); setShared(false); updateFilter('plan', ''); setNotice('已恢复此浏览器原有的出游清单。'); setFallback(''); }}>恢复本机清单</button></div>}
-      {selections.length ? <><ol className="outing-stops">{selections.map((item, index) => <li key={item.id}><span className="outing-number">{index + 1}</span><div className="outing-stop-text"><Link to={`/guides/${item.slug}`}>{item.title}</Link><small>{item.city} · {item.duration}</small><a href={attractionMapUrl(item)} target="_blank" rel="noopener noreferrer"><MapPin size={13} aria-hidden="true" />起点地图</a></div><div className="outing-stop-buttons"><button type="button" disabled={index === 0} aria-label={`上移：${item.title}`} onClick={() => move(index, -1)}><ArrowUp size={16} /></button><button type="button" disabled={index === selections.length - 1} aria-label={`下移：${item.title}`} onClick={() => move(index, 1)}><ArrowDown size={16} /></button><button type="button" aria-label={`移除：${item.title}`} onClick={() => toggle(item.id)}><X size={16} /></button></div></li>)}</ol>
-        <div className="outing-actions"><button type="button" onClick={share}><Share2 size={17} aria-hidden="true" />分享出游清单</button><button type="button" onClick={() => copy(outingText(plan, locale), '计划文字、攻略和地图链接已复制。')}><Copy size={16} aria-hidden="true" />复制计划文字</button>{onAsk && <button type="button" onClick={() => onAsk((translateText('我想安排这些地方的出游：', locale) + selections.map(item => translateText(item.title, locale)).join(', ') + translateText('。请先问我出发地、日期、出行方式和同行人，再结合本站攻略帮我取舍、排序和确认预约事项。不要假定一天都能去完。', locale)).slice(0, 500))}><Sparkles size={16} aria-hidden="true" />让 BayBay 帮我取舍</button>}</div>
-        <p className="outing-note">按自己的时间取舍；停留时长不含往返交通，出发前查看预约和开放公告。</p>
-      </> : <div className="outing-empty"><MapPin size={24} aria-hidden="true" /><p>看到喜欢的地方，点「加入清单」。攻略、地图和分享入口会一起留在这里。</p></div>}
-      <p className="outing-local-note">无需登录，仅保存在当前浏览器；跨设备请分享清单链接。</p>
-      {notice && <p className="outing-status" role="status">{notice}</p>}
-      {fallback && <label className="outing-fallback">手动复制<textarea value={fallback} readOnly rows={4} onFocus={event => event.currentTarget.select()} /></label>}
-    </section>
+    {filtered.length > visibleCount && <button type="button" className="guide-load-more" onClick={() => setPage({ key: resultKey, count: visibleCount + 12 })}>{locale === 'en' ? `Show more places (${visibleCount}/${filtered.length})` : `继续发现更多（${visibleCount}/${filtered.length}）`}</button>}
+
     <div className="attraction-next"><span>还有一些生活灵感，值得顺路看看。</span><Link to="/this-month">当月活动<ArrowRight size={15} /></Link><Link to="/guides">全部生活指南<ArrowRight size={15} /></Link><Link to="/tools?tool=split">出游费用分账<ArrowRight size={15} /></Link></div>
   </div>;
 }

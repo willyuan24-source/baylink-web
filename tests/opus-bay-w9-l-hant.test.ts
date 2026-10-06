@@ -96,14 +96,14 @@ test('W9-L 繁體: translateText (the site\'s runtime) uses it — pick() then t
     assert.equal(L.translateText(once, 'zh-Hant'), once, zh);
   }
   assert.equal(L.translateText('马里纳区 · 梅森堡', 'zh-Hant'), '馬里納區 · 梅森堡');
-  // off the game's page (no location here) the site's words stay; on /opus-bay the Taiwan words apply
-  assert.equal(L.translateText('设置', 'zh-Hant'), '設置');
+  // Taiwan terminology is now consistent across the whole site, including every canonical game edition.
+  assert.equal(L.translateText('设置', 'zh-Hant'), '設定');
   const g = globalThis as { location?: { pathname: string } };
-  g.location = { pathname: '/opus-bay' };
   try {
-    assert.equal(L.translateText('设置', 'zh-Hant'), '設定');
-    assert.equal(L.translateText(L.translateText('七站都在你的旅行本里啦。', 'zh-Hant'), 'zh-Hant'), '七站都在你的旅行本裡啦。');
-    g.location = { pathname: '/opus-bayou' };
-    assert.equal(L.translateText('设置', 'zh-Hant'), '設置');
+    for (const pathname of ['/opus-bay', '/en/opus-bay', '/zh-Hant/opus-bay', '/guides', '/opus-bayou']) {
+      g.location = { pathname };
+      assert.equal(L.translateText('设置', 'zh-Hant'), '設定', pathname);
+      assert.equal(L.translateText(L.translateText('七站都在你的旅行本里啦。', 'zh-Hant'), 'zh-Hant'), '七站都在你的旅行本裡啦。', pathname);
+    }
   } finally { delete g.location; }
 });

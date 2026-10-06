@@ -1,4 +1,6 @@
 import officialOfferMedia from './official-offer-media-2026-10.json';
+import publicServiceMedia from './public-service-media.json';
+import { getLocale } from '../i18n/locale';
 import { VERIFIED_PLACE_PHOTO_ALIASES } from './verified-place-media-updates';
 import extraEast from './city-roundup-extra-media-east.json';
 import extraSouth from './city-roundup-extra-media-south.json';
@@ -56,6 +58,8 @@ export const GUIDE_IMAGES: Record<string, GuideImage> = {
   'november-community': { src: '/guides/november/autumn-community.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日市集、亲子手作与湿地观鸟交织的原创插画', caption: '秋季社区活动主题原创插图，不代表所列活动现场、场馆位置或实际天气。', credit: 'BAYLINK · AI 原创插图' },
   'november-stargazing': { src: '/guides/november/stargazing.webp', width: 1536, height: 1024, kind: 'illustration', alt: '成年人和亲子家庭在橡树林山坡用望远镜观察星空的插画', caption: '观星主题原创插图，不代表 Sugarloaf 或其他天文台实景；实际能见度与节目依天气及主办方安排。', credit: 'BAYLINK · AI 原创插图' },
   'autumn-new-shops': { src: '/guides/editorial/autumn-new-shops.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日湾区街角的咖啡店、烘焙店与行人插画', caption: '新店探索情境插画，不代表所列门店的实景、位置或商品。', credit: 'BAYLINK · AI 原创插图' },
+  'audit-social-security-preparation': { src: '/guides/editorial/audit-social-security-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '退休准备矢量示意图，工作收入记录旁连接一个待选择月份的日历', caption: 'BAYLINK AI 辅助原创矢量示意图；说明先核对工作记录、再比较领取月份，不是 SSA 官方表格、账户截图、福利金额或个人资格判断。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
+  'audit-naturalization-preparation': { src: '/guides/editorial/audit-naturalization-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '入籍准备矢量示意图，网站入口、放大镜下的材料清单与整理好的文件夹', caption: 'BAYLINK AI 辅助原创矢量示意图；说明从官方入口核对路径并整理材料，不是政府印章、USCIS 表格、公民证书或申请通过承诺。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
   weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
   everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。社区生活情境插图，不代表某场实际活动。'),
@@ -78,6 +82,7 @@ for (const photo of photoCredits) {
 for (const { key, ...asset } of [...officialOfferMedia, ...guidePhotos, ...eventMedia, ...originalArt, ...dealPromos, ...communityFreebies, ...everydayFreebies, ...targetFreebies, ...readingRouteMedia, ...sfAttractionMedia, ...regionalAttractionMedia, ...freshSeptemberMedia, ...septemberUpdateMedia, ...octoberMedia, ...communityEditorialMedia, ...communityOpeningMedia, ...communityPlaceMedia, ...autumnGuideMedia, ...contentCoverageMedia, ...schoolMedia, ...septemberRefreshMedia, ...shoppingMedia, ...cityRoundupMedia, ...[extraEast, extraSouth, extraNorth].flatMap(collection => Array.isArray(collection) ? collection : Object.entries(collection).map(([key, asset]) => ({ key, ...asset })))]) {
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
+for (const { key, ...asset } of publicServiceMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'illustration' };
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
@@ -95,6 +100,9 @@ GUIDE_IMAGES['guide-bart-update-context'] = {
 };
 
 const bySlug: Record<string, [string, string]> = {
+  'bay-area-free-tax-help-vita-calfile-guide': ['public-service-tax', 'translation-documents'],
+  'bay-area-medicare-hicap-medi-cal-guide': ['public-service-medicare', 'coverage-laptop'],
+  'california-tenant-deposit-rights-help-guide': ['public-service-tenant', 'lease-review'],
   'east-bay-november-nature-programs-2026': ['november-community', 'expanded-coyote-hills'],
   'san-francisco-autumn-food-markets-2026': ['ferry-market', 'november-community'],
   'peninsula-south-bay-november-nature-walks-2026': ['garden-walk', 'weekend'],
@@ -269,8 +277,24 @@ bySlug['bay-area-outlets-malls-shopping-guide'] = ['shopping-stonestown', 'regio
 // The region-wide directory uses the existing credited Bay panorama as context.
 bySlug['bay-area-101-city-exploration-living-guide'] = ['bay', 'train'];
 bySlug['bay-area-useful-apps-platforms-guide'] = ['coverage-laptop', 'train'];
+bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social-security-preparation', 'coverage-laptop'];
+bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
+
+const localizedServiceImages = new WeakMap<GuideImage, Partial<Record<'en' | 'zh-Hant', GuideImage>>>();
+function localizedServiceImage(image: GuideImage): GuideImage {
+  const locale = getLocale();
+  if (!image.src.startsWith('/guides/public-services/') || locale === 'zh-Hans') return image;
+  const cached = localizedServiceImages.get(image) || {};
+  const previous = cached[locale];
+  if (previous) return previous;
+  const suffix = locale === 'en' ? '-en' : '-hant';
+  const localized = { ...image, src: image.src.replace('.webp', `${suffix}.webp`), srcSet: image.srcSet?.replace(/(-small)?\.webp(?=\s)/g, (_match, small: string | undefined) => `${suffix}${small || ''}.webp`) };
+  cached[locale] = localized;
+  localizedServiceImages.set(image, cached);
+  return localized;
+}
 
 export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afterHeading: number; image: GuideImage }[] } => {
   if (guide.slug === 'bay-area-new-openings-2026-09') {
@@ -278,7 +302,7 @@ export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afte
     return { cover: images[0]?.image || GUIDE_IMAGES.everyday, inline: images.slice(1) };
   }
   const mapped = bySlug[guide.slug];
-  const cover = GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]];
+  const cover = localizedServiceImage(GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]]);
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;
   const headingPosition = ['sf-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide'].includes(guide.slug) ? 3 : 2;
   return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };

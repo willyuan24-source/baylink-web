@@ -2,6 +2,8 @@ export type MonthlyRegion = 'sf' | 'east-bay' | 'south-bay' | 'peninsula' | 'nor
 export type MonthlyEvent = {
   id: string;
   title: string;
+  /** Reviewed names used for discovery; aliases do not add dates or program guarantees. */
+  aliases?: string[];
   kind?: 'event' | 'performance' | 'meetup' | 'sports';
   startDate: string;
   endDate: string;

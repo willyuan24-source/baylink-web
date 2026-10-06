@@ -80,10 +80,10 @@ test('events, offers, openings and guides share their own public detail URL with
     for (const [item, expectedPath] of samples) {
       const url = new URL(editorialShareUrl(item));
       assert.equal(url.origin, 'https://www.baylink.us');
-      assert.equal(url.pathname, expectedPath);
+      assert.equal(url.pathname, `${locale === 'zh-Hans' ? '' : `/${locale}`}${expectedPath}`);
       assert.equal(url.searchParams.get('from'), 'share');
-      assert.equal(url.searchParams.get('lang'), locale === 'zh-Hans' ? null : locale);
-      assert.deepEqual([...url.searchParams.keys()].sort(), locale === 'zh-Hans' ? ['from'] : ['from', 'lang']);
+      assert.equal(url.searchParams.get('lang'), null);
+      assert.deepEqual([...url.searchParams.keys()], ['from']);
       assert.equal(url.hash, '');
       const text = editorialShareText(item);
       assert.match(text, /BAYLINK/);

@@ -29,7 +29,6 @@ export const october2026VisitGuides: Guide[] = [
     ],
     "readMinutes": 9,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "资料核验于 2026 年 10 月 2 日。开放规则与资格来自下列官方来源；路线组合、预算分配和停留时间为 BAYLINK 编辑建议。当天余票、施工和天气需在出发前再查。",
     "sources": [
       {
@@ -199,9 +198,9 @@ export const october2026VisitGuides: Guide[] = [
         "description": "馆方合作方的 2026 项目页确认 Legion of Honor 九县居民 Free Saturdays；不代表十月演出已排期。"
       },
       {
-        "title": "UCSF：2026 年两馆免费周六信息",
-        "url": "https://myfamilysandbox.ucsf.edu/news/free-saturdays-at-the-s-f-fine-arts-museums",
-        "description": "2026 年 4 月 21 日页面确认 de Young 与 Legion of Honor 九县普通入馆规则，具体限制仍需查馆方。"
+        "title": "FAMSF：两馆 Free Saturdays 官方入口",
+        "url": "https://www.famsf.org/events/free-saturdays-de-young",
+        "description": "馆方 Free Saturdays 官方页面；当前分时票与资格限制需向馆方复核。"
       },
       {
         "title": "SFMOMA：免费家庭日",
@@ -337,7 +336,6 @@ export const october2026VisitGuides: Guide[] = [
     ],
     "readMinutes": 9,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "资料核验于 2026 年 10 月 2 日。开放规则与资格来自下列官方来源；路线组合、预算分配和停留时间为 BAYLINK 编辑建议。当天余票、施工和天气需在出发前再查。",
     "sources": [
       {

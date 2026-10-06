@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -13,9 +14,121 @@ const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistant
 const { QuickExplore } = await import('../src/components/QuickExplore');
 const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired, bayBayTaskBrief, bayBayWebResult } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
-afterEach(cleanup);
+const { readBayBayRequirementsDraft } = await import('../src/lib/baybay-plan-handoff');
+const { setLocale } = await import('../src/i18n/locale');
+afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
+
+test('completion announces each turn once without streaming text, submitting a draft or moving focus', async t => {
+  const streams: ReadableStreamDefaultController<Uint8Array>[] = [];
+  const encoder = new TextEncoder();
+  const requests = mockBayBayFetch(t, async () => new Response(new ReadableStream<Uint8Array>({
+    start(controller) { streams.push(controller); },
+  }), { headers: { 'Content-Type': 'text/event-stream' } }));
+  const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
+  const view = render(<BayBayAssistantEntry {...props} />);
+  const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+  assert.equal(notice.getAttribute('role'), 'status');
+  assert.equal(notice.getAttribute('aria-live'), 'polite');
+  assert.equal(notice.getAttribute('aria-atomic'), 'true');
+  assert.equal(notice.textContent, '');
+  assert.equal(notice.closest('[role="dialog"]') !== null, true, 'the live region belongs to the accessible modal, outside the inert page');
+  assert.equal(notice.closest('.baybay-thread') === null, true);
+  const announcements: string[] = [];
+  const observer = new dom.window.MutationObserver(() => { if (notice.textContent) announcements.push(notice.textContent); });
+  observer.observe(notice, { subtree: true, childList: true, characterData: true });
+  t.after(() => observer.disconnect());
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement;
+  input.focus();
+  fireEvent.change(input, { target: { value: '请查官方图书馆资格' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  fireEvent.change(input, { target: { value: '下一条还没准备好发送的问题' } });
+  for (const text of ['先查资格。', '再核实费用。']) {
+    await act(async () => { streams[0].enqueue(encoder.encode(`event: delta\ndata: ${JSON.stringify({ validated: true, text })}\n\n`)); });
+    assert.equal(notice.textContent, '');
+    assert.equal(view.baseElement.querySelector('[data-baybay-completion]') === notice, true, 'the empty live region persists across stream updates');
+  }
+  const partial = view.getByText('先查资格。再核实费用。');
+  assert.equal(partial.closest('[aria-live]') === null, true, 'answer deltas never enter a live region');
+  await act(async () => { streams[0].enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整回答一。"}\n\n')); });
+  assert.deepEqual(announcements, ['BayBay 的第 1 条回答已完成。可以阅读回答，或继续在输入框提问。']);
+  assert.equal(input.value, '下一条还没准备好发送的问题');
+  assert.equal(document.activeElement === input, true);
+  assert.equal(requests.mock.callCount(), 1, 'completion must not submit the typed follow-up');
+  view.rerender(<BayBayAssistantEntry {...props} currentPath="/guides" />);
+  await act(async () => {});
+  assert.equal(announcements.length, 1, 'a completed render never announces the same turn again');
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  assert.equal(notice.textContent, '');
+  await act(async () => { streams[1].enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整回答二。"}\n\n')); });
+  assert.deepEqual(announcements, [
+    'BayBay 的第 1 条回答已完成。可以阅读回答，或继续在输入框提问。',
+    'BayBay 的第 2 条回答已完成。可以阅读回答，或继续在输入框提问。',
+  ]);
+  view.rerender(<BayBayAssistantEntry {...props} panelOpen={false} />);
+  view.rerender(<BayBayAssistantEntry {...props} />);
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+  assert.ok(view.getByText('完整回答一。'));
+  assert.ok(view.getByText('完整回答二。'));
+  assert.equal(requests.mock.callCount(), 2, 'reopening retains history without another request or announcement');
+});
+
+test('restored completed history stays silent until a new request finishes', async t => {
+  let finish!: () => void;
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('新回答。')); }));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}
+    initialConversation={{ question: '保留的草稿', turns: [{ id: 7, question: '之前的问题', state: 'complete', response: { ok: true, answer: '之前的回答。' } }] }} />);
+  const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+  assert.equal(notice.textContent, '');
+  assert.ok(view.getByText('之前的回答。'));
+  await act(async () => { fireEvent.keyDown(view.getByRole('textbox', { name: '向 BayBay 提问' }), { key: 'Enter' }); });
+  assert.equal(notice.textContent, '');
+  await act(async () => { finish(); });
+  assert.match(notice.textContent || '', /第 8 条回答已完成/);
+});
+
+test('completion uses the current English or Traditional locale without retranslating a completed announcement', async t => {
+  const finishes: (() => void)[] = [];
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finishes.push(() => resolve(answer('官方资料回答。'))); }));
+  for (const locale of ['en', 'zh-Hant'] as const) {
+    await act(async () => { await setLocale('en', false); });
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+    const input = view.getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '请查官方信息' } });
+    await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+    fireEvent.change(input, { target: { value: 'Keep my unfinished draft' } });
+    await act(async () => { await setLocale(locale, false); });
+    await act(async () => { finishes.at(-1)!(); });
+    const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+    const expected = locale === 'en'
+      ? 'BayBay reply 1 is ready. Read the answer or continue in the question field.'
+      : 'BayBay 的第 1 條回答已完成。可以閱讀回答，或繼續在輸入框提問。';
+    assert.equal(notice.textContent, expected);
+    assert.equal(input.value, 'Keep my unfinished draft');
+    assert.equal(notice.getAttribute('translate'), 'no');
+    await act(async () => { await setLocale('zh-Hans', false); });
+    assert.equal(notice.textContent, expected, 'changing language after completion must not replay the old turn');
+    view.unmount();
+  }
+});
+
+test('failed and stopped requests never announce a completed answer', async t => {
+  const finish: ((response: Response) => void)[] = [];
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => finish.push(resolve)));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' });
+  fireEvent.change(input, { target: { value: '测试失败的问题' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+  await act(async () => { finish[0](Response.json({ ok: false, error: '答复服务暂不可用' }, { status: 502 })); });
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+  assert.ok(view.getByRole('alert'));
+  fireEvent.change(input, { target: { value: '测试停止的问题' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+  fireEvent.click(view.getByRole('button', { name: '停止' }));
+  await act(async () => { finish[1](answer('停止后到达的回答不应提示完成。')); });
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+});
 
 test('new replies scroll to their heading instead of skipping long answers to the footer', async t => {
   const proto = dom.window.HTMLElement.prototype;
@@ -26,7 +139,7 @@ test('new replies scroll to their heading instead of skipping long answers to th
   } });
   t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
   let finish!: () => void;
-  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('第一步先看资格。\n'.repeat(80))); }));
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('第一步先看资格。\n'.repeat(80))); }));
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '详细说明图书馆资格' } });
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
@@ -42,7 +155,7 @@ test('scrolling upward while waiting preserves reading position until the next e
   Object.defineProperty(proto, 'scrollIntoView', { configurable: true, value: function (this: HTMLElement) { scrolled.push(this.className); } });
   t.after(() => { if (original) Object.defineProperty(proto, 'scrollIntoView', original); else Reflect.deleteProperty(proto, 'scrollIntoView'); });
   let finish!: () => void;
-  t.mock.method(globalThis, 'fetch', () => new Promise<Response>(resolve => { finish = () => resolve(answer('这是回答。')); }));
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('这是回答。')); }));
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   const ask = async (message: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
@@ -93,7 +206,7 @@ test('expired search context is a recoverable new-search error, not an ordinary 
 
 test('completed conversations send bounded history and retain earlier answers', async t => {
   const bodies: { message: string; history: unknown[] }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     const body = JSON.parse(String(options.body)); bodies.push(body);
     return answer(`这是第 ${bodies.length} 条根据上下文整理的回答。`);
   });
@@ -115,7 +228,7 @@ test('completed conversations send bounded history and retain earlier answers', 
 test('city and date survive beyond four turns while a typed restart clears history, retained conditions and outing tokens', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { message: string; history: { content: string }[]; searchContext?: { city?: string; date?: string }; outingSearchToken?: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return Response.json({ ok: true, answer: `Reply ${bodies.length}: invented Shanghai`, ...(bodies.length === 6 ? { outingSearch: {
       source: 'site-search', state: 'needs_clarification', filters: { sort: 'soonest' }, missing: ['date'], question: '请再确认日期', continuationToken: 'previous.signature',
@@ -140,7 +253,7 @@ test('city and date survive beyond four turns while a typed restart clears histo
 test('recognized page filters enter search context but raw URL text is not sent and explicit user conditions win', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { context: { currentPath: string }; searchContext?: { city?: string; date?: string }; message: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer('已接收'); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer('已接收'); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}
     currentPath="/calendar?city=Oakland&date=2026-10-05&q=private@example.com" />);
   for (const message of ['这一天有什么活动？', '今天改去 Berkeley']) {
@@ -156,7 +269,7 @@ test('recognized page filters enter search context but raw URL text is not sent 
 test('cleared city and date constraints stay cleared on follow-ups instead of being restored from page filters', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-04T19:00:00Z') });
   const bodies: { searchContext?: { city?: string; region?: string; date?: string }; message: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer(`Reply ${bodies.length}`); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { bodies.push(JSON.parse(String(options.body))); return answer(`Reply ${bodies.length}`); });
   const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} currentPath="/calendar?city=San%20Francisco&date=2026-10-04" />);
   const ask = async (message: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
@@ -179,7 +292,7 @@ test('cleared city and date constraints stay cleared on follow-ups instead of be
 
 test('mode switching and cancellation keep the selected request scope and ignore cancelled geographic corrections', async t => {
   const pending: { body: { searchMode: string; searchContext?: { city?: string; date?: string }; history: unknown[] }; signal: AbortSignal; resolve: (response: Response) => void }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => pending.push({ body: JSON.parse(String(options.body)), signal: options.signal as AbortSignal, resolve })));
   const view = render(<BayBayAssistantEntry ownerId="member" variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
   const ask = (message: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
   ask('San Jose 10/05/2027 有什么活动');
@@ -212,7 +325,7 @@ test('mode switching and cancellation keep the selected request scope and ignore
 
 test('follow-up chips preserve supplied travel facts instead of inventing age, origin, or transport', async t => {
   const bodies: { message: string; history: { role: string; content: string }[] }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return answer(`这是第 ${bodies.length} 条保留原有条件的回答。`);
   });
@@ -240,7 +353,7 @@ test('a preset arriving while busy waits, is consumed once when started, and can
   const resolvers: ((response: Response) => void)[] = [];
   const bodies: { message: string }[] = [];
   const consumed: (number | undefined)[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => {
     bodies.push(JSON.parse(String(options.body)));
     return new Promise<Response>(resolve => resolvers.push(resolve));
   });
@@ -263,7 +376,7 @@ test('a preset arriving while busy waits, is consumed once when started, and can
 
 test('closing aborts, and late cancelled responses cannot overwrite a reopened conversation', async t => {
   const requests: { signal: AbortSignal; resolve: (response: Response) => void; body: { history: unknown[] } }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => requests.push({ signal: options.signal as AbortSignal, resolve, body: JSON.parse(String(options.body)) })));
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => requests.push({ signal: options.signal as AbortSignal, resolve, body: JSON.parse(String(options.body)) })));
   const props = { variant: 'headless' as const, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
   const view = render(<BayBayAssistantEntry {...props} panelOpen pendingQuestion="一个很慢的问题" pendingQuestionId={1} />);
   view.rerender(<BayBayAssistantEntry {...props} panelOpen={false} />);
@@ -278,7 +391,7 @@ test('closing aborts, and late cancelled responses cannot overwrite a reopened c
 
 test('stalled fetch and stalled response bodies have a bounded timeout', async t => {
   let signal: AbortSignal | undefined;
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => {
     signal = options.signal as AbortSignal;
     return { ok: true, json: () => new Promise(() => {}) } as Response;
   });
@@ -302,7 +415,7 @@ test('AI action links only allow known planner queries and published tools', () 
 
 test('planning questions stay conversational until the user explicitly carries their requirements to the planner', async t => {
   const requests: unknown[] = [];
-  t.mock.method(globalThis, 'fetch', async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
+  mockBayBayFetch(t, async (...args: unknown[]) => { requests.push(args); return answer('普通问答'); });
   for (const question of ['周六带五岁孩子，从 Fremont 出发，预算 $50', '週六帶五歲孩子，從 Fremont 出發，預算 $50', 'Plan Saturday with my 5-year-old, starting from Fremont, with a $50 admission budget per person.']) {
     const paths: string[] = [];
     const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={path => paths.push(path)} onCreatePostClick={noop} />);
@@ -317,8 +430,9 @@ test('planning questions stay conversational until the user explicitly carries t
     assert.equal(paths.length, 1);
     const url = new URL(paths[0], 'https://www.baylink.us');
     assert.equal(url.pathname, '/plan');
-    assert.equal(url.searchParams.get('q'), question);
-    assert.equal(url.searchParams.get('auto'), '1');
+    assert.equal(url.searchParams.has('q'), false);
+    assert.equal(url.searchParams.has('auto'), false);
+    assert.equal(readBayBayRequirementsDraft(url.searchParams.get('baybayBrief'))?.message, question);
     assert.ok(requests.length > 0);
     view.unmount();
   }
@@ -336,7 +450,7 @@ test('task handoff contains user facts only and preserves the latest correction 
 
 test('service search and posting flows keep their actions without sending repair needs to the outing planner', async t => {
   let payload: Record<string, unknown> = {};
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: '请确认具体维修需求。', ...payload }));
+  mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '请确认具体维修需求。', ...payload }));
   for (const response of [
     { responseMode: 'search', matchingPosts: [], taskState: { version: 1, revision: 1, goal: 'discover' } },
     { suggestedActions: [{ label: '发布维修需求', type: 'postAssist', postType: 'client', category: 'repair' }] },
@@ -357,7 +471,7 @@ test('service search and posting flows keep their actions without sending repair
 
 test('search mode stays top-level and only citation-backed web cards are actionable', async t => {
   let sent: Record<string, unknown> = {};
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => { sent = JSON.parse(String(options.body)); return answer('站内答复'); });
+  mockBayBayFetch(t, async (_url: unknown, options: RequestInit) => { sent = JSON.parse(String(options.body)); return answer('站内答复'); });
   await fetchBayBayReply('周末去哪', { currentPath: '/', searchMode: 'site' }, [], new AbortController().signal);
   assert.equal(sent.searchMode, 'site'); assert.deepEqual(sent.context, { currentPath: '/' });
   assert.equal(bayBayWebResult({ ok: true, answer: 'fake', sources: [{ title: 'x', url: 'https://example.com' }] }), null);

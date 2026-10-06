@@ -26,11 +26,46 @@ const { ToolsHub } = await import('../src/components/tools/ToolsHub');
 cssHook.deregister();
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
+const { LIFE_TOOLS } = await import('../src/data/tool-catalog');
+const { translateText } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); dom.window.localStorage.clear(); dom.window.sessionStorage.clear(); await setLocale('zh-Hans', false); });
 const change = (element: HTMLElement, value: string) => fireEvent.change(element, { target: { value } });
 const disabled = (element: HTMLElement) => (element as HTMLButtonElement).disabled;
 const inputValue = (element: HTMLElement) => (element as HTMLInputElement).value;
+
+test('English tools navigation shows all eight reviewed labels and the full selected tool description', async () => {
+  await setLocale('en', false);
+  const view = render(<MemoryRouter initialEntries={['/tools?tool=units']}><ToolsHub storageScope="guest:english-tools" onToast={() => {}} /></MemoryRouter>);
+  const navigation = view.getByRole('navigation', { name: 'Choose an everyday tool' });
+  for (const tool of LIFE_TOOLS) {
+    const link = [...navigation.querySelectorAll('a')].find(item => item.getAttribute('href')?.includes(`tool=${tool.id}`))!;
+    assert.ok(link, tool.id);
+    for (const field of ['title', 'short', 'tag'] as const) assert.ok(link.textContent?.includes(translateText(tool[field], 'en')), `${tool.id}.${field}`);
+    assert.doesNotMatch(link.textContent || '', /[\u3400-\u9fff]/u);
+  }
+  const units = LIFE_TOOLS.find(tool => tool.id === 'units')!;
+  assert.ok(view.getByText(translateText(units.description, 'en')));
+});
+
+test('English split-bill defaults, additions and explicit reset use English while language changes preserve entered names and amounts', async () => {
+  await setLocale('en', false);
+  const view = render(<SharedBillTool onToast={() => {}} />);
+  const names = () => [...view.container.querySelectorAll<HTMLInputElement>('.tool-member-row input[maxlength="24"]')];
+  const amount = view.container.querySelector<HTMLInputElement>('.tool-money-input input')!;
+  assert.deepEqual(names().map(input => input.value), ['Member A', 'Member B', 'Member C']);
+  fireEvent.click(view.getByRole('button', { name: 'Add member (3/12)' }));
+  assert.equal(names().at(-1)?.value, 'Member 4');
+  change(names()[0], '成员 A — 朋友 王'); change(amount, '100.25');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(names()[0].value, '成员 A — 朋友 王'); assert.equal(amount.value, '100.25');
+  await act(async () => { await setLocale('en', false); });
+  assert.equal(names()[0].value, '成员 A — 朋友 王'); assert.equal(amount.value, '100.25');
+  assert.ok(view.getByText('成员 A — 朋友 王'), 'the displayed calculation preserves the actual name too');
+  fireEvent.click(view.getByRole('button', { name: 'Reset', exact: true }));
+  assert.deepEqual(names().map(input => input.value), ['Member A', 'Member B', 'Member C']); assert.equal(amount.value, '');
+  assert.ok(view.getByRole('button', { name: 'Add member (3/12)' }));
+});
 
 test('rental example separates monthly expenses from deposit and one-time cash, and copies exact totals', async t => {
   const writes: string[] = [];

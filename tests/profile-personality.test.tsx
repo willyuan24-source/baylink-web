@@ -188,21 +188,21 @@ test('profile sharing respects cancellation and offers manual fallback with loca
   assert.equal((view.getByRole('textbox') as HTMLInputElement).value, `https://www.baylink.us/users/${user.id}?lang=zh-Hant`);
 });
 
-test('small PNGs skipped by the general compressor are still resized to profile bounds', async t => {
-  const previousImage = Object.getOwnPropertyDescriptor(globalThis, 'Image');
+test('small PNGs are re-encoded with transparency and resized to profile bounds', async t => {
+  const previousBitmap = Object.getOwnPropertyDescriptor(globalThis, 'createImageBitmap');
   const previousFile = Object.getOwnPropertyDescriptor(globalThis, 'File');
   let outputWidth = 0; let outputHeight = 0;
-  class TestImage { naturalWidth = 4000; naturalHeight = 2000; onload?: () => void; set src(_value: string) { queueMicrotask(() => this.onload?.()); } }
-  Object.defineProperty(globalThis, 'Image', { configurable: true, value: TestImage });
+  const png = new Uint8Array(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5FoAAAAASUVORK5CYII=', 'base64'));
+  Object.defineProperty(globalThis, 'createImageBitmap', { configurable: true, value: async (_file: File, options: ImageBitmapOptions) => { assert.equal(options.imageOrientation, 'from-image'); return { width: 4000, height: 2000, close() {} }; } });
   Object.defineProperty(globalThis, 'File', { configurable: true, value: dom.window.File });
-  t.mock.method(dom.window.HTMLCanvasElement.prototype, 'getContext', function () { return { fillStyle: '', fillRect() {}, drawImage() {} }; });
-  t.mock.method(dom.window.HTMLCanvasElement.prototype, 'toBlob', function (this: HTMLCanvasElement, callback: BlobCallback) { outputWidth = this.width; outputHeight = this.height; callback(new dom.window.Blob(['compressed'], { type: 'image/jpeg' })); });
+  t.mock.method(dom.window.HTMLCanvasElement.prototype, 'getContext', function () { return { fillRect() { assert.fail('Transparent photos must not be flattened to white'); }, drawImage() {} }; });
+  t.mock.method(dom.window.HTMLCanvasElement.prototype, 'toBlob', function (this: HTMLCanvasElement, callback: BlobCallback, type: string) { assert.equal(type, 'image/png'); outputWidth = this.width; outputHeight = this.height; callback(new dom.window.Blob([png], { type: 'image/png' })); });
   try {
-    const result = await prepareProfileImage(new dom.window.File(['small-png'], 'wide.png', { type: 'image/png' }), 'coverImage');
+    const result = await prepareProfileImage(new dom.window.File([png], 'wide.png', { type: 'image/png' }), 'coverImage');
     assert.equal(outputWidth, 1400); assert.equal(outputHeight, 700);
-    assert.match(result, /^data:image\/jpeg;base64,/);
+    assert.match(result, /^data:image\/png;base64,/);
   } finally {
-    if (previousImage) Object.defineProperty(globalThis, 'Image', previousImage); else Reflect.deleteProperty(globalThis, 'Image');
+    if (previousBitmap) Object.defineProperty(globalThis, 'createImageBitmap', previousBitmap); else Reflect.deleteProperty(globalThis, 'createImageBitmap');
     if (previousFile) Object.defineProperty(globalThis, 'File', previousFile); else Reflect.deleteProperty(globalThis, 'File');
   }
 });

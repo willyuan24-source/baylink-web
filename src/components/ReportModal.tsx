@@ -22,13 +22,15 @@ export const REPORT_REASON_OPTIONS: { value: ReportReason; label: string }[] = [
 ];
 
 type ReportModalProps = {
-  targetType: 'post' | 'user';
+  targetType: 'post' | 'user' | 'message';
   targetId: string;
+  conversationId?: string;
   onClose: () => void;
   onSubmit: (reason: ReportReason, detail: string) => Promise<void>;
 };
 
 export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportModalProps) => {
+  const label = targetType === 'message' ? '举报私信' : targetType === 'user' ? '举报用户' : '举报帖子';
   const [reason, setReason] = useState<ReportReason | ''>('');
   const [detail, setDetail] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -58,7 +60,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
   return (
     <ModalShell
       onClose={onClose}
-      label={targetType === 'user' ? '举报用户' : '举报帖子'}
+      label={label}
       className="fixed inset-0 z-[120] flex items-end justify-center bg-black/40 px-4 pb-24 pt-6 backdrop-blur-sm sm:items-center sm:pb-6"
     >
       <div
@@ -67,7 +69,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
       >
         <div className="flex items-center justify-between border-b border-baylink-border/40 px-4 py-3">
           <h3 className="text-base font-bold text-baylink-text">
-            {targetType === 'user' ? '举报用户' : '举报帖子'}
+            {label}
           </h3>
           <button type="button" onClick={onClose} className="rounded-full p-1.5 text-baylink-muted hover:bg-baylink-section">
             <X size={18} />
@@ -75,7 +77,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
         </div>
         <div className="max-h-[min(60vh,420px)] overflow-y-auto px-4 py-4">
           <p className="mb-3 text-sm text-baylink-text-secondary">
-            {targetType === 'user'
+            {targetType === 'message' ? '选中消息交由管理员审核；不会上传整段会话或联系方式卡。' : targetType === 'user'
               ? '请选择举报该用户的原因，管理员会尽快查看。'
               : '请选择举报该帖子的原因，管理员会尽快查看。'}
           </p>

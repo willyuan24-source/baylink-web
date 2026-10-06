@@ -31,6 +31,7 @@ export const november2026Guides: Guide[] = [
     "readMinutes": 7,
     "updatedAt": "2026-10-05",
     "editionMonth": "2026-11",
+    "editionStartDate": "2026-10-05",
     "editionThroughDate": "2026-11-15",
     "sourceNote": "本轮于 2026/10/5 增补到十一月中旬的已公布安排。各卡片保留自己的核查日期，并非全部旧优惠重新认证；有数量上限、会员或居民资格的项目按具体条款领取。",
     "sources": currentFreebies.map(offer => ({ title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement })),

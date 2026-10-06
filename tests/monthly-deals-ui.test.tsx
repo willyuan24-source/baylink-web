@@ -25,7 +25,7 @@ const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 
 const slug = 'bay-area-freebies-deals-2026-11';
 const fixture: Guide = {
-  ...guides[0], slug, title: '九月咖啡与甜点优惠领取指南', editionMonth: '2026-09', updatedAt: '2026-09-08',
+  ...guides[0], slug, title: '九月咖啡与甜点优惠领取指南', editionMonth: '2026-09', editionStartDate: undefined, editionThroughDate: undefined, updatedAt: '2026-09-08',
   cover: undefined, blocks: [
     { type: 'heading', text: '先看领取条件' },
     { type: 'paragraph', text: '领取时间、门店范围和会员要求都需要先确认。' },
@@ -104,20 +104,16 @@ test('monthly guide includes its edition notice and safe inline official links i
   assert.equal(view.queryByRole('complementary', { name: '攻略期次与核对日期' }), null, 'evergreen guides must not receive a monthly-offer notice');
 });
 
-test('guide home and monthly edition both expose the new guide as an SSR-readable compact entry', () => {
+test('the compact guide library retains the published deal guide while its promotional card remains in the monthly edition', () => {
   installFixture();
-  const pages = [
-    <StaticRouter location="/guides"><GuidesHome onOpenGuide={() => {}} /></StaticRouter>,
-    <StaticRouter location="/this-month"><MonthlyEdition today="2026-10-01" /></StaticRouter>,
-  ];
-  for (const page of pages) {
-    const server = new JSDOM(renderToStaticMarkup(page)).window.document;
-    const cards = server.querySelectorAll('.bl-monthly-deals');
-    assert.equal(cards.length, 1);
-    assert.equal(cards[0].getAttribute('href'), `/guides/${slug}`);
-    assert.ok(cards[0].textContent?.includes(fixture.title));
-    assert.equal(cards[0].querySelector('time')?.getAttribute('datetime'), fixture.updatedAt);
-  }
+  const library = new JSDOM(renderToStaticMarkup(<StaticRouter location={`/guides?q=${encodeURIComponent(fixture.title)}`}><GuidesHome onOpenGuide={() => {}} /></StaticRouter>)).window.document;
+  assert.equal(library.querySelector('.bl-monthly-deals'), null);
+  assert.ok(library.querySelector(`a[href="/guides/${slug}"]`)?.textContent?.includes(fixture.title));
+  const monthly = new JSDOM(renderToStaticMarkup(<StaticRouter location="/this-month"><MonthlyEdition today="2026-10-01" /></StaticRouter>)).window.document;
+  const card = monthly.querySelector('.bl-monthly-deals')!;
+  assert.equal(card.getAttribute('href'), `/guides/${slug}`);
+  assert.ok(card.textContent?.includes(fixture.title));
+  assert.equal(card.querySelector('time')?.getAttribute('datetime'), fixture.updatedAt);
 });
 
 test('the actual October deals guide uses official photography and preserves local discovery entries and safe sources', () => {

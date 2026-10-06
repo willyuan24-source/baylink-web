@@ -1,4 +1,5 @@
 // Shared, responsive post cards. Business actions stay with their existing callers.
+import { postImageUrl } from '../../lib/post-image';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -83,7 +84,7 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
               aria-label={`查看 ${displayed.title} 的图片`}
               onClick={(event) => { event.stopPropagation(); if (onImageClick) onImageClick(coverUrl); else onClick?.(); }}
             >
-              <img src={coverUrl} alt={displayed.title} loading="lazy" decoding="async" className={isSystemCover ? 'post-card__image post-card__image--system' : 'post-card__image'} />
+              <img src={postImageUrl(coverUrl)} srcSet={`${postImageUrl(coverUrl,480)} 480w, ${postImageUrl(coverUrl,960)} 960w, ${postImageUrl(coverUrl,1600)} 1600w`} sizes="(max-width:639px) 100vw, 420px" alt={displayed.title} loading="lazy" decoding="async" className={isSystemCover ? 'post-card__image post-card__image--system' : 'post-card__image'} />
             </button>
           ) : (
             <Link

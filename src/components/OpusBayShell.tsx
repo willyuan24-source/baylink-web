@@ -1,4 +1,5 @@
 import { OPUS_BAY_ART } from '../lib/opus-bay-metadata';
+import { useLocale } from '../i18n/locale';
 
 /**
  * W9-E · /opus-bay's first paint (review 2026-10-01 R§5 #3: the page used to paint the BAYLINK homepage for 1–5 s first).
@@ -11,6 +12,8 @@ import { OPUS_BAY_ART } from '../lib/opus-bay-metadata';
  * prefers-reduced-motion. public/boot-check.js swaps the 准备中 line for an old-system notice when the site's script cannot run.
  */
 export function OpusBayShell({ halloween }: { halloween: boolean }) {
+  const locale = useLocale(), en = locale === 'en', hant = locale === 'zh-Hant';
+  const guidePath = en ? '/en/guides' : hant ? '/zh-Hant/guides' : '/guides';
   const art = halloween ? OPUS_BAY_ART.halloween : OPUS_BAY_ART.key;
   return (
     <div className="obs" id="opus-bay-shell" translate="no" aria-busy="true">
@@ -20,11 +23,11 @@ export function OpusBayShell({ halloween }: { halloween: boolean }) {
         <img src={art.wide} srcSet={art.wideSrcSet} sizes="100vw" alt="" draggable={false} />
       </picture>
       <div className="obs-card">
-        <span className="obs-mark">小小湾区 · BAYLINK</span>
-        <h1 className="obs-h1">湾区小旅</h1>
-        <p className="obs-en" lang="en">Little Bay Trip</p>
-        <p className="obs-wait" role="status"><span className="obs-dot" aria-hidden="true" /><span className="obs-wait-text">准备中… <span lang="en">Loading…</span></span></p>
-        <a className="obs-link" href="/guides">先不玩，直接看攻略 <span lang="en">· Read the guides</span> →</a>
+        <span className="obs-mark">{en ? 'BAYLINK' : hant ? '小小灣區 · BAYLINK' : '小小湾区 · BAYLINK'}</span>
+        <h1 className="obs-h1">{en ? 'Little Bay Trip' : hant ? '灣區小旅' : '湾区小旅'}</h1>
+        {!en && <p className="obs-en" lang="en">Little Bay Trip</p>}
+        <p className="obs-wait" role="status"><span className="obs-dot" aria-hidden="true" /><span className="obs-wait-text">{en ? 'Loading…' : hant ? '準備中… ' : '准备中… '}{!en && <span lang="en">Loading…</span>}</span></p>
+        <a className="obs-link" href={guidePath}>{en ? 'Read the guides' : hant ? '先不玩，直接看攻略' : '先不玩，直接看攻略'}{!en && <span lang="en">· Read the guides</span>} →</a>
       </div>
     </div>
   );

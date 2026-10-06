@@ -14,6 +14,7 @@ export type AppContextValue = {
   showToast: ShowToast;
   setShowLogin: (v: boolean) => void;
   handleLogout: () => void;
+  clearAccountSession?: () => void;
   chatRouteStatus: 'idle' | 'loading' | 'ready' | 'not-found' | 'error';
   chatRouteError: string | null;
   retryChatRoute: () => void;
@@ -46,7 +47,7 @@ export type AppContextValue = {
   handleChannelClick: (ch: typeof HOME_CHANNELS[number]) => void;
 
   // 操作
-  openCreate: (type?: PostType, category?: string) => void;
+  openCreate: (type?: PostType, category?: string, initialIntent?: string) => void;
   openEditPost: (post: PostData) => void;
   handleDeletePost: (post: PostData) => void;
   handleToggleFeature: (post: PostData) => void;
@@ -62,6 +63,7 @@ export type AppContextValue = {
   openBlockedUsersModal: () => void;
   setBaybayPanelOpen: (open: boolean) => void;
   openBayBay: (question?: string) => void;
+  openSearch: (query?: string) => void;
 
   adsRefreshKey: number;
   featuredRefreshKey: number;

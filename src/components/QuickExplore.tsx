@@ -1,3 +1,4 @@
+import { recordProductEvent } from '../lib/product-events';
 import { getListingImage } from '../lib/offer-media';
 import { useMemo, useRef, useState } from 'react';
 import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Store, Ticket, Wrench, X, type LucideIcon } from 'lucide-react';
@@ -13,11 +14,12 @@ import { openingStatusLabel } from '../lib/opening-status';
 
 type QuickResult = { id: string; title: string; detail: string; icon: LucideIcon; group: string; run: () => void; image?: string };
 
-export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
+export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuery = '' }: {
+  initialQuery?: string;
   onClose: () => void; onSearch: (value: string) => void;
   onNavigate: (path: string) => void; onAsk: (question?: string) => void;
 }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   const locale = useLocale();
   const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [active, setActive] = useState(0);
@@ -34,7 +36,7 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk }: {
     return related.filter(({ guide }) => ![...destinations.attractions, ...destinations.unverified.attractions].some(place => place.slug === guide.slug)).slice(0, 4);
   }, [term, locale, destinations, guideQuery]);
   const found = (info.structured ? 0 : matches.length) + destinations.tools.length + destinations.events.length + destinations.attractions.length + destinations.offers.length + destinations.openings.length;
-  const run = (action: () => void) => { onClose(); action(); };
+  const run = (action: () => void) => { if (term) { recordProductEvent('search_submitted'); if (!found) recordProductEvent('search_zero_result'); } onClose(); action(); };
   const referenceLabel = copy('适用日期 / 营业时间待核实', 'Date / opening hours unconfirmed');
   const regionNames = { 'sf': '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', 'north-bay': '北湾', 'peninsula': '半岛' };
   const conditions = [

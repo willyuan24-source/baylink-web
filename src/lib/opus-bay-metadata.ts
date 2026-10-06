@@ -68,26 +68,21 @@ export const opusBayMetadata = (date: Date = new Date(), lang: 'zh' | 'en' = 'zh
   description: OPUS_BAY_COPY.description[lang],
   path: OPUS_BAY_PATH,
   image: opusBayOgImage(date),
+  imageAlt: OPUS_BAY_OG.alt[lang],
   preserveText: true,
 });
 
-// (W9-E-review, E-RC-4) no hreflang links: W9-E pointed zh-Hant / en at /opus-bay?lang=…, but one prerendered file serves
-// every ?lang and both its static and the client canonical are /opus-bay, and Google ignores alternates that are not
-// their own canonical (an hreflang page should carry a canonical in its own language). Until each edition has its own
-// canonical URL the cluster only sent mixed signals.
-
-const attr = (value: string) => value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+// The site now provides canonical /en and /zh-Hant editions. seo.ts writes their
+// hreflang cluster; the legacy ?lang preference is never an alternate URL.
 
 /** The game shell's head tags seo.ts does not write (the share image's size and alt text, the other locales). */
 export const OPUS_BAY_HEAD_EXTRA_SELECTOR = 'meta[property="og:image:width"], meta[property="og:image:height"], meta[property="og:image:alt"], meta[property="og:locale:alternate"]';
 
 /** Head tags seo.ts does not write: the share image's size and alt text. */
-export const opusBayHeadExtras = (): string => [
+export const opusBayHeadExtras = (locale: 'zh_CN' | 'zh_TW' | 'en_US' = 'zh_CN'): string => [
   `<meta property="og:image:width" content="${OPUS_BAY_OG.width}" />`,
   `<meta property="og:image:height" content="${OPUS_BAY_OG.height}" />`,
-  `<meta property="og:image:alt" content="${attr(OPUS_BAY_OG.alt.zh)}" />`,
-  `<meta property="og:locale:alternate" content="zh_TW" />`,
-  `<meta property="og:locale:alternate" content="en_US" />`,
+  ...['zh_CN', 'zh_TW', 'en_US'].filter(value => value !== locale).map(value => `<meta property="og:locale:alternate" content="${value}" />`),
 ].join('\n    ');
 
 /**

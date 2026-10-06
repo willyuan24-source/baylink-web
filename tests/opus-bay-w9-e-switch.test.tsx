@@ -62,30 +62,31 @@ test('W9-E-switch: the homepage card says what it is and opens the game with fro
   // the prerendered homepage (server HTML: the Simplified edition)
   const html = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-10-02" /></StaticRouter>);
   const doc = new JSDOM(html).window.document;
-  assert.match(doc.querySelector('a[href="/opus-bay?from=home"]')!.textContent!, /逛一圈 3D 旧金山/);
-  assert.equal(doc.querySelector('a[href="/play"]'), null, 'server HTML: no link to /play');
+  assert.match(doc.querySelector('a[href="/opus-bay?from=home"]')!.textContent!, /3D 旧金山/);
+  assert.match(doc.querySelector('a[href="/opus-bay?from=home"]')!.textContent!, /独立 3D 体验/, 'the card explains that this opens a separate experience');
+  assert.equal(Boolean(doc.querySelector('a[href="/play"]')), false, 'server HTML: no link to /play');
   // in the browser, each edition (useLocale reads the server snapshot during renderToStaticMarkup, so render for real)
-  for (const [locale, label] of [['zh-Hans', /逛一圈 3D 旧金山/], ['en', /Explore 3D San Francisco/]] as const) {
+  for (const [locale, prefix, label] of [['zh-Hans', '', /3D 旧金山/], ['en', '/en', /3D San Francisco/]] as const) {
     await setLocale(locale, false);
-    const view = render(<MemoryRouter initialEntries={['/']}><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-10-02" /></MemoryRouter>);
-    const card = view.container.querySelector('a[href="/opus-bay?from=home"]');
+    const view = render(<MemoryRouter basename={prefix || '/'} initialEntries={[`${prefix}/`]}><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-10-02" /></MemoryRouter>);
+    const card = view.container.querySelector(`a[href="${prefix}/opus-bay?from=home"]`);
     assert.ok(card, `${locale}: the card links the game`);
     assert.match(card!.textContent!, label);
-    assert.equal(view.container.querySelector('a[href="/play"]'), null, `${locale}: no link to /play`);
+    assert.equal(Boolean(view.container.querySelector(`a[href="${prefix}/play"]`)), false, `${locale}: no link to /play`);
     view.unmount();
   }
   await setLocale('zh-Hans', false);
 });
 
-test('W9-E-switch: the sidebar\'s 小小湾区 · Little Bay opens /opus-bay?from=nav (active on /opus-bay and on the /play redirect)', () => {
+test('W9-E-switch: the sidebar\'s 3D San Francisco entry opens /opus-bay?from=nav (active on /opus-bay and on the /play redirect)', () => {
   const nav = (path: string) => new JSDOM(renderToStaticMarkup(<StaticRouter location={path}><SiteNavigation active="explore" category="全部" homeActive={false} user={null} notification={false} notificationCount={0} onCreate={() => {}} onAsk={() => {}} onAccount={() => {}} /></StaticRouter>)).window.document;
   for (const path of ['/opus-bay', '/play', '/explore']) {
     const link = nav(path).querySelector('a[href="/opus-bay?from=nav"]');
     assert.ok(link, path);
-    assert.match(link!.textContent!, /小小湾区/);
+    assert.match(link!.textContent!, /3D 旧金山/);
     assert.equal(link!.getAttribute('aria-current'), path === '/explore' ? null : 'page', path);
   }
-  assert.equal(nav('/').querySelector('a[href="/play"]'), null);
+  assert.equal(Boolean(nav('/').querySelector('a[href="/play"]')), false);
 });
 
 test('W9-E-switch: routes, prerender, sitemap — /play is the redirect (LittleBayPage unrouted, kept), play.html is the game shell with canonical /opus-bay, /play out of the sitemap', () => {

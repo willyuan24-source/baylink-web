@@ -4,16 +4,19 @@ import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
 import { ModalShell } from './ui/Modal';
 import { useLocale } from '../i18n/locale';
+import { getImageProvenance } from '../lib/image-provenance';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
 export function GuideImageCaption({ image, poster = false, showKind = true }: { image: GuideImage; poster?: boolean; showKind?: boolean }) {
+  const locale = useLocale();
+  const provenance = getImageProvenance(image, locale === 'en');
   return <figcaption className="guide-image-caption">
     <p>{image.caption}</p>
     <div className="guide-image-attribution">
-      {showKind && !poster && image.kind === 'illustration' && <span className="guide-image-kind">AI 插图 · 非实景照片</span>}
-      {showKind && image.kind === 'poster' && <span className="guide-image-kind">官方宣传图</span>}
+      {/* A legacy poster layout alone cannot establish that the old asset is official. */}
+      {showKind && (!poster || image.kind === 'poster') && <span className="guide-image-kind">{provenance}{image.kind === 'illustration' ? (locale === 'en' ? ' · not a location photo' : ' · 非实景照片') : ''}</span>}
       {isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}<span className="sr-only">（在新标签页打开）</span></a> : <span>{image.credit}</span>}
       {isWebLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">图片授权<span className="sr-only">（在新标签页打开）</span></a>}
       {image.kind === 'photo' && !image.credit.includes('缩放') && <span>{image.fullFrame ? '已缩放压缩；保留完整画面' : '已缩放压缩；卡片按版面裁切'}</span>}

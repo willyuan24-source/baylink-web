@@ -1,116 +1,74 @@
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
-import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { getGuideBySlug, guides } from '../src/data/guides';
-import { getGuideMedia, GUIDE_IMAGES } from '../src/data/guide-media';
-import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
-import { getBayAreaToday, getEventStatus } from '../src/lib/monthly';
-
-const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' });
-Object.assign(globalThis, {
-  window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement,
-  Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
-});
+import { getHomeWeekend } from '../src/lib/home-weekend';
+import { MONTHLY_EVENTS } from '../src/lib/home-catalog';
+import { eventOccursOn } from '../src/lib/event-calendar';
+import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
+import { guides as COMPLETE_GUIDES } from '../src/data/guides';
+const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
+Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { render, fireEvent, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
-afterEach(() => cleanup());
+afterEach(() => { cleanup(); dom.window.localStorage.clear(); });
 
-test('homepage server HTML leads with readable guides, distinct actual images and traceable credits', () => {
-  const html = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery onAskBayBay={() => {}} onBrowseCommunity={() => {}} today="2026-09-09" /></StaticRouter>);
-  const document = new JSDOM(html).window.document;
-  assert.equal(document.querySelectorAll('h1').length, 1);
-  assert.ok(document.querySelector('.home-discovery-heading a[href="/guides"]'));
-  assert.ok(document.querySelector('a[href="/guides/golden-gate-park-free-car-free-day-guide"]'));
-  assert.ok(document.querySelector('a[href="/guides/bay-area-november-first-half-planner-2026"]'));
-  assert.ok(document.querySelector('a[href="/this-month"]'));
-  // W9-E-switch: the card opens the 3D San Francisco game (小小湾区 now; /play redirects there), with its entry source
-  assert.ok(document.querySelector('a[href="/opus-bay?from=home"]'), 'Little Bay is discoverable from the homepage without loading its scene');
-  assert.ok(document.querySelector('a[href="/guides/bay-area-freebies-deals-2026-11#freebie-board-0"]'));
-  assert.match(document.querySelector('.home-discovery-count')!.textContent!, new RegExp(`${guides.length} 篇生活指南`));
-  const photos = [...document.querySelectorAll<HTMLImageElement>('.home-discovery-panel img')];
-  assert.equal(photos.length, 6);
-  const hashes = new Set<string>();
-  for (const photo of photos) {
-    const src = photo.getAttribute('src')!;
-    const image = Object.values(GUIDE_IMAGES).find(item => item.src === src);
-    assert.ok(image, `${src} is a registered image`);
-    assert.equal(photo.alt, image.alt);
-    assert.equal(photo.getAttribute('srcset'), image.srcSet);
-    if (image.kind === 'illustration') assert.match(image.credit, /AI/);
-    assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.caption));
-    if (image.creditUrl) assert.ok([...document.querySelectorAll('.home-discovery-credits a')].some(link => link.getAttribute('href') === image.creditUrl));
-    else assert.ok(document.querySelector('.home-discovery-credits')?.textContent?.includes(image.credit));
-    hashes.add(createHash('sha256').update(readFileSync(new URL(`../public${src}`, import.meta.url))).digest('hex'));
-    if (image.kind === 'poster' || image.fullFrame) assert.ok(photo.closest('.home-discovery-image--full'), 'official complete graphics must use the uncropped image frame');
+test('server home exposes three real weekend dates, costs, sources and actionable deep links', () => {
+  const today = '2026-10-05';
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
+  const cards = [...doc.querySelectorAll('.home-weekend-card')];
+  assert.equal(cards.length, 3);
+  for (const card of cards) {
+    const id = card.querySelector('h3 a')!.getAttribute('href')!.split('/').at(-1)!;
+    const event = MONTHLY_EVENTS.find(item => item.id === id)!;
+    const date = card.querySelector('time')!.getAttribute('datetime')!;
+    assert.ok(date >= today && eventOccursOn(event, date));
+    assert.ok(card.textContent!.includes(event.costLabel));
+    assert.ok(card.textContent!.includes(event.verifiedAt));
+    assert.equal(card.querySelector('[target=_blank]')!.getAttribute('href'), event.officialUrl);
+    const plan = new URL(card.querySelector('.home-tonal-button')!.getAttribute('href')!, 'https://www.baylink.us');
+    assert.equal(plan.searchParams.get('date'), date);
+    assert.equal(plan.searchParams.get('stops'), `event:${id}`);
   }
-  assert.equal(hashes.size, 6, 'each editorial surface has a different actual image');
-  const hero = document.querySelector('.home-discovery-feature img')!;
-  assert.equal(document.querySelector('.home-discovery-feature-grid > a')?.getAttribute('href'), '/this-month');
-  assert.equal(hero.getAttribute('src'), GUIDE_IMAGES['november-community'].src);
-  assert.equal(document.querySelector('.home-discovery-feature .home-discovery-image-label')?.textContent, 'AI 原创插图');
-  assert.equal(document.querySelector('.home-discovery-timely > a')?.getAttribute('href'), '/guides/golden-gate-park-free-car-free-day-guide');
-  assert.equal(hero.getAttribute('loading'), 'eager');
-  assert.equal(hero.getAttribute('fetchPriority')?.toLowerCase(), 'high');
-  const offerImage = document.querySelector('.home-discovery-deals img')?.getAttribute('src');
-  assert.ok(Object.values(GUIDE_IMAGES).some(image => image.src === offerImage && image.kind === 'photo'));
-  assert.notEqual(offerImage, document.querySelector('.home-discovery-timely img')?.getAttribute('src'), 'a deal and the nearby guide must not repeat the same venue image');
+  assert.equal(doc.querySelector('.perks-gallery'), null, 'operational posters no longer occupy home');
+  assert.ok(doc.querySelector('.home-world-link'), 'the separate 3D experience remains discoverable');
+  assert.ok(doc.querySelector('.home-guide-selection .home-section-heading a')!.textContent!.includes(String(COMPLETE_GUIDES.length)), 'home reports the entire guide library rather than its lightweight selection');
 });
 
-test('intent switches change the featured guide and all three reading paths without losing community or AI actions', () => {
+test('a compact home pool reports the entire weekend calendar count, including Sunday-only eligibility', () => {
+  for (const today of ['2026-10-05', '2026-10-10', '2026-10-11', '2026-11-09']) {
+    const weekend = getHomeWeekend(today);
+    const days = [weekend.start, weekend.end].filter(day => day >= today);
+    const actual = COMPLETE_EVENTS.filter(event => days.some(day => eventOccursOn(event, day))).length;
+    assert.equal(weekend.total, actual, `${today} counts every eligible event in the published catalog`);
+  }
+});
+
+test('one entry searches keywords, asks full questions, and preserves the visitor selection', () => {
+  const searched: string[] = [], asked: string[] = [];
   let browsed = 0;
-  const questions: string[] = [];
-  const view = render(<MemoryRouter><HomeDiscovery today="2026-09-09" onBrowseCommunity={() => { browsed += 1; }} onAskBayBay={question => questions.push(question || '')} /></MemoryRouter>);
-  for (const [label, slug, expected] of [
-    ['日常少麻烦', 'bay-area-library-starter-guide', '图书馆'],
-    ['新来先安顿', 'bay-area-airport-first-night-decision-october-2026', '第一个月'],
-    ['周末出门', 'golden-gate-park-free-car-free-day-guide', '半日出游'],
-  ]) {
-    fireEvent.click(view.getByRole('button', { name: label, exact: true }));
-    assert.equal(view.getByRole('button', { name: label, exact: true }).getAttribute('aria-pressed'), 'true');
-    assert.equal(view.container.querySelector('.home-discovery-feature')?.getAttribute('href'), '/this-month');
-    assert.equal(view.container.querySelector('.home-discovery-guide')?.getAttribute('href'), `/guides/${slug}`);
-    const guide = getGuideBySlug(slug)!;
-    assert.equal(view.container.querySelector('.home-discovery-guide img')?.getAttribute('src'), getGuideMedia(guide).cover.src);
-    const links = [...view.container.querySelectorAll('.home-discovery-pick')];
-    assert.equal(links.length, 3);
-    for (const link of links) assert.ok(getGuideBySlug(link.getAttribute('href')!.split('/').at(-1)!));
-    assert.equal(new Set([...view.container.querySelectorAll('.home-discovery-guide img, .home-discovery-pick img')].map(image => image.getAttribute('src'))).size, 4);
-    fireEvent.click(view.getByRole('button', { name: '帮我安排', exact: true }));
-    assert.ok(questions.at(-1)?.includes(expected));
-  }
-  fireEvent.click(view.getByRole('button', { name: '找本地信息', exact: true }));
-  assert.equal(browsed, 1);
-  fireEvent.change(view.getByRole('textbox', { name: '告诉 BayBay 你的生活问题' }), { target: { value: '  从 Fremont 出发，不开车，带孩子去公园。  ' } });
-  fireEvent.click(view.getByRole('button', { name: '帮我安排', exact: true }));
-  assert.equal(questions.at(-1), '从 Fremont 出发，不开车，带孩子去公园。');
+  const view = render(<MemoryRouter><HomeDiscovery today="2026-10-05" onSearch={query => searched.push(query)} onAskBayBay={query => asked.push(query || '')} onBrowseCommunity={() => browsed++} /></MemoryRouter>);
+  const input = view.getByRole('textbox', { name: '搜索活动、指南，或问 BayBay' });
+  fireEvent.change(input, { target: { value: '  免费博物馆  ' } });
+  fireEvent.submit(view.getByRole('search'));
+  assert.deepEqual(searched, ['免费博物馆']); assert.deepEqual(asked, []);
+  fireEvent.change(input, { target: { value: '带爸妈去哪？' } });
+  fireEvent.submit(view.getByRole('search'));
+  assert.deepEqual(asked, ['带爸妈去哪？']);
+  fireEvent.click(view.getByRole('button', { name: '日常少麻烦', exact: true }));
+  assert.equal(view.getByRole('button', { name: '日常少麻烦', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(dom.window.localStorage.getItem('baylink.home-intent.v1'), 'everyday');
+  fireEvent.click(view.getByRole('button', { name: '查看邻里信息' })); assert.equal(browsed, 1);
 });
 
-test('month cards follow Bay Area date, end-of-month counts and archive language across month boundaries', () => {
-  const renderAt = (today: string) => <MemoryRouter><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>;
-  const today = getBayAreaToday(new Date('2026-10-01T06:59:00Z'));
-  assert.equal(today, '2026-09-30');
-  const view = render(renderAt(today));
-  const remaining = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
-  assert.match(view.container.querySelector('.home-discovery-edition')!.textContent!, new RegExp(`${remaining} 场尚未结束的活动`));
-  assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /本期福利/);
-  assert.ok(view.container.querySelector('.home-discovery-deals img'));
-  assert.doesNotMatch(view.container.querySelector('.home-discovery-deals')!.textContent!, /9\/12|免费小蛋糕/);
-  view.rerender(renderAt(getBayAreaToday(new Date('2026-11-16T08:01:00Z'))));
-  const edition = view.container.querySelector('.home-discovery-edition')!;
-  const deals = view.container.querySelector('.home-discovery-deals')!;
-  assert.match(edition.textContent!, /2026 年秋季.*往期月刊/);
-  assert.equal(edition.getAttribute('href'), '/this-month');
-  assert.doesNotMatch(edition.textContent!, /本月月刊|尚未结束/);
-  assert.match(deals.textContent!, /往期福利/);
-  assert.match(deals.textContent!, /不能当作实时优惠/);
-  assert.doesNotMatch(deals.textContent!, /本期福利/);
-  view.rerender(renderAt('2026-08-31'));
-  assert.match(view.container.querySelector('.home-discovery-edition')!.textContent!, /月刊预告/);
-  assert.match(view.container.querySelector('.home-discovery-deals')!.textContent!, /福利预告/);
+test('a Sunday never recommends yesterday and an empty future weekend offers an honest next step', () => {
+  assert.ok(getHomeWeekend('2026-10-11').picks.every(pick => pick.date === '2026-10-11'));
+  const view = render(<MemoryRouter><HomeDiscovery today="2099-01-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
+  assert.equal(view.container.querySelectorAll('.home-weekend-card').length, 0);
+  assert.ok(view.getByText('这个周末暂没有已确认的活动，先看常设去处或换个日期。'));
+  assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
+  assert.equal(view.container.querySelectorAll('.home-offer-list article').length, 0, 'expired offers never look current');
 });

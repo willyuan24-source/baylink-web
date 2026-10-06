@@ -7,35 +7,40 @@ import { lazy, Suspense, useEffect } from 'react';
 import './i18n/router';
 import { Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
-import HomePage from './pages/HomePage';
+import { pageLoaders } from './route-loaders';
+const HomePage = lazy(pageLoaders.home);
 import { SLUG_TO_CATEGORY } from './routing';
 import { OpusBayShell } from './components/OpusBayShell';
 import { opusBayInHalloween } from './lib/opus-bay-metadata';
 import { PlayRedirect } from './components/PlayRedirect';
+import { LocaleContentGate } from './components/LocaleContentGate';
+import { useLocale } from './i18n/locale';
 
-const GuidesPage = lazy(() => import('./pages/GuidesPage'));
-const MonthlyPage = lazy(() => import('./pages/MonthlyPage'));
-const CalendarPage = lazy(() => import('./pages/CalendarPage'));
-const LocalDiscoveryPage = lazy(() => import('./pages/LocalDiscoveryPage'));
-const ToolsPage = lazy(() => import('./pages/ToolsPage'));
-const ExplorePage = lazy(() => import('./pages/ExplorePage'));
-const PlannerPage = lazy(() => import('./pages/PlannerPage'));
+const GuidesPage = lazy(pageLoaders.guides);
+const MonthlyPage = lazy(pageLoaders.monthly);
+const CalendarPage = lazy(pageLoaders.calendar);
+const LocalDiscoveryPage = lazy(pageLoaders.discovery);
+const ToolsPage = lazy(pageLoaders.tools);
+const ExplorePage = lazy(pageLoaders.explore);
+const PlannerPage = lazy(pageLoaders.plan);
 // W9-E-switch: /play redirects to the game (components/PlayRedirect.tsx); pages/LittleBayPage.tsx stays in the repo, unrouted —
 // revert the W9-E-switch commits to route it again
-const OpusBayPage = lazy(() => import('./opus-bay/OpusBayPage'));
-const MyWeekPage = lazy(() => import('./pages/MyWeekPage'));
-const AiLocalPage = lazy(() => import('./pages/AiLocalPage'));
-const GuideDetailPage = lazy(() => import('./pages/GuideDetailPage'));
-const MessagesPage = lazy(() => import('./pages/MessagesPage'));
-const RecommendPage = lazy(() => import('./pages/RecommendPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const ServiceBookingsPage = lazy(() => import('./pages/ServiceBookingsPage'));
-const TogetherPage = lazy(() => import('./pages/TogetherPage'));
-const AboutPage = lazy(() => import('./pages/AboutPage'));
-const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
-const PrivacyPolicyView = lazy(() => import('./components/PrivacyPolicyView').then((m) => ({ default: m.PrivacyPolicyView })));
-const TermsView = lazy(() => import('./components/TermsView').then((m) => ({ default: m.TermsView })));
-const SmsConsentView = lazy(() => import('./components/SmsConsentView').then((m) => ({ default: m.SmsConsentView })));
+const OpusBayPage = lazy(pageLoaders.opus);
+const MyWeekPage = lazy(pageLoaders.myWeek);
+const AiLocalPage = lazy(pageLoaders.ai);
+const GuideDetailPage = lazy(pageLoaders.guide);
+const MessagesPage = lazy(pageLoaders.messages);
+const RecommendPage = lazy(pageLoaders.recommend);
+const ProfilePage = lazy(pageLoaders.profile);
+const ServiceBookingsPage = lazy(pageLoaders.bookings);
+const TogetherPage = lazy(pageLoaders.together);
+const AboutPage = lazy(pageLoaders.about);
+const ArchivePage = lazy(pageLoaders.archive);
+const NotFoundPage = lazy(pageLoaders.notFound);
+const PrivacyPolicyView = lazy(pageLoaders.privacy);
+const TermsView = lazy(pageLoaders.terms);
+const SmsConsentView = lazy(pageLoaders.sms);
+const NotificationTokenPage = lazy(pageLoaders.notificationToken);
 
 const CategoryPage = () => {
   const { categorySlug } = useParams();
@@ -44,6 +49,7 @@ const CategoryPage = () => {
 
 export default function App() {
   const location = useLocation();
+  const locale = useLocale();
   // W9-E: the site's script runs — public/boot-check.js (the old-browser notice) stands down from here on
   useEffect(() => { document.documentElement.setAttribute('data-app', 'ready'); }, []);
   const backgroundLocation = (location.state as { backgroundLocation?: Location } | null)?.backgroundLocation;
@@ -51,6 +57,8 @@ export default function App() {
   return (
     // 注意：<Routes location> 会把内部的 LocationContext 一并替换成传入的位置，
     // 因此覆盖层所需的"真实位置"必须从这里（Router 层）作为 prop 传给 AppLayout。
+    <Suspense fallback={<div className="p-6" role="status">{locale === 'en' ? 'Loading this page…' : locale === 'zh-Hant' ? '正在載入頁面…' : '正在加载页面…'}</div>}>
+    <LocaleContentGate paths={[backgroundLocation?.pathname || location.pathname, location.pathname]}>
     <Routes location={backgroundLocation || location}>
       {/* Opus Bay：独立全屏 3D 世界，不套站点外框。W9-E：路由 chunk 加载时显示与预渲染 opus-bay.html 相同的首屏（不再空白、不闪首页） */}
       <Route path="/opus-bay" element={<Suspense fallback={<OpusBayShell halloween={opusBayInHalloween(new Date(), location.search)} />}><OpusBayPage /></Suspense>} />
@@ -65,6 +73,7 @@ export default function App() {
         <Route path="/reset-password" element={<HomePage />} />
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/this-month" element={<MonthlyPage />} />
+        <Route path="/this-week" element={<MonthlyPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} />
         <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
@@ -82,11 +91,16 @@ export default function App() {
         <Route path="/me/bookings" element={<ServiceBookingsPage />} />
         <Route path="/together" element={<TogetherPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/archive" element={<ArchivePage />} />
         <Route path="/privacy" element={<PrivacyPolicyView />} />
         <Route path="/terms" element={<TermsView />} />
         <Route path="/sms-consent" element={<SmsConsentView />} />
+        <Route path="/verify-email" element={<NotificationTokenPage key="verify" purpose="verify" />} />
+        <Route path="/notifications/unsubscribe" element={<NotificationTokenPage key="unsubscribe" purpose="unsubscribe" />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
+    </LocaleContentGate>
+    </Suspense>
   );
 }

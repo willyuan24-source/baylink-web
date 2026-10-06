@@ -137,8 +137,8 @@ function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; 
   </section>;
 }
 
-export function BayBayTaskHandoff({ brief, onNavigate }: { brief: string; onNavigate: (path: string) => void }) {
+export function BayBayTaskHandoff({ brief, ownerId, onNavigate }: { brief: string; ownerId?: string; onNavigate: (path: string) => void }) {
   const t = useCopy(), [draft, setDraft] = useState(brief);
   if (!brief) return null;
-  return <details className="baybay-task-handoff" translate="no"><summary>{t('带着这些需求，继续做计划', 'Continue to a plan with your needs')}<ArrowRight size={15} /></summary><label>{t('已经说过的条件，可以再修改', 'Your requirements — edit before continuing')}<textarea value={draft} maxLength={800} onChange={event => setDraft(event.target.value)} /></label><button type="button" disabled={draft.trim().length < 2} onClick={() => onNavigate(bayBayPlanPath(draft))}>{t('带入计划', 'Continue to planner')}<ArrowRight size={14} /></button></details>;
+  return <details className="baybay-task-handoff" translate="no"><summary>{t('带着这些需求，继续做计划', 'Continue to a plan with your needs')}<ArrowRight size={15} /></summary><label>{t('已经说过的条件，可以再修改', 'Your requirements — edit before continuing')}<textarea value={draft} maxLength={800} onChange={event => setDraft(event.target.value)} /></label><button type="button" disabled={draft.trim().length < 2} onClick={() => onNavigate(bayBayPlanPath(draft, ownerId))}>{t('带入计划', 'Continue to planner')}<ArrowRight size={14} /></button></details>;
 }

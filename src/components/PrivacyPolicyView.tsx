@@ -1,7 +1,11 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
+import { useLocale, translateText } from '../i18n/locale';
 
-export const PrivacyPolicyView = () => (
-  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="September 30, 2026">
+export const PrivacyPolicyView = () => {
+  const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  return (
+  <LegalPageLayout title="隐私政策 · Privacy Policy" updated="October 6, 2026">
     <LegalP>
       BAYLINK is a Bay Area local community and lifestyle information platform. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
     </LegalP>
@@ -15,9 +19,24 @@ export const PrivacyPolicyView = () => (
         '手机验证与预约短信同意分开。服务提供者可单独开启预约业务短信；当前不向顾客发送预约短信。短信开关不影响站内预约记录与通知。',
         '你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。',
         '使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。',
-        '如需了解、访问、更正或请求删除与账号有关的信息，可向页末邮箱提出申请。具体适用范围和必要核验将根据申请及适用规则确认；此页面不承诺自动删除或固定处理时限。',
+        t('登录后，可在「我的 → 隐私与安全」下载本人资料、退出所有登录或确认永久注销。每次敏感操作都须确认当前凭证。资料较多、账号无法登录或需人工核验时，可向页末邮箱提出隐私申请；不承诺固定处理时限或外部缓存即时清除。', 'After signing in, open My profile → Privacy and security to download your data, sign out all sessions, or confirm permanent account deletion. Each sensitive operation requires current credentials. For larger exports, inaccessible accounts or requests requiring manual verification, contact the email below. We do not promise a fixed processing deadline or immediate erasure of external caches.'),
       ]} />
     </LegalSection>
+
+    <div translate="no">
+      <LegalSection title={t('账号导出、注销与两步验证', 'Account export, deletion and two-step verification')}>
+        <LegalP>{t('账号资料导出使用明确的本人字段和记录范围，包括本人资料、发布、自己发送的文字消息与私密计划；不批量提供别人发来的私信、别人分享的联系方式、安全密钥、密码哈希或登录令牌。导出文件含私人信息，请自行安全保管。', 'Account export uses explicit ownership and field limits: your profile, posts, authored text messages and private plans. It excludes received private messages, other people’s shared contact details, security secrets, password hashes and login tokens. The downloaded file contains private information; store it safely.')}</LegalP>
+        <LegalP>{t('永久注销要求当前密码、已启用时的验证器代码或恢复码，以及明确输入注销确认语句。成功后，在线账号资料、本人联系方式、本人消息、私密计划、联系方式快照与令牌关联会删除或去标识；本人发布会移除，主持的小队会取消。共享记录中的其他人的内容按其记录用途保留。管理员必须先安全移交权限。注销不可恢复；仍在处理的相关写入或清理失败时，会拒绝确认成功。', 'Permanent deletion requires your current password, an authenticator or recovery code when enabled, and an explicit confirmation phrase. After success, online account data, your contacts, authored messages, private plans, stored contact snapshots and token associations are removed or anonymized; your posts are removed and hosted groups are cancelled. Other people’s content in shared records remains subject to its purpose. Administrators must safely hand over their role first. Deletion is irreversible; pending related writes or failed cleanup prevent a success confirmation.')}</LegalP>
+        <LegalP>{t('可选管理员验证器仅在服务器配置独立加密密钥后提供。密钥加密存储，恢复码只保存哈希；必须保存恢复码并验证首枚代码后才启用。登录需要密码及额外代码，停用和更换恢复码需要重新确认凭证。尚未启用的账号不会因缺少该配置被锁住。', 'Optional administrator authenticator setup is available only after a separate server encryption key is configured. Secrets are encrypted and recovery codes are stored as hashes. Activation requires saved recovery codes and confirmation of a first code. Sign-in requires a password and additional code; disabling it or replacing recovery codes requires fresh credential confirmation. Accounts that have not enabled it remain usable when this configuration is absent.')}</LegalP>
+        <LegalP>{t('已收到的联系人可能有自己的副本；注销或删帖无法撤回他人自行保存的内容。非私密安全审计保留去标识案例与操作时间。托管日志、备份、第三方图片存储及缓存有独立的保留与清理流程，不保证与在线账号同时消失；需要人工处理的请求可联系页末邮箱。未经可信上传归属验证，不会仅凭提交的图片网址删除第三方资源。', 'Recipients may retain their own copies; deletion cannot withdraw content they independently saved. Non-private safety audit records retain anonymized cases and action times. Hosting logs, backups, third-party image storage and caches have separate retention and cleanup processes and are not guaranteed to disappear with the online account. Contact the email below for requests needing manual handling. We do not delete third-party assets based solely on a submitted image URL without trusted upload ownership evidence.')}</LegalP>
+      </LegalSection>
+      <LegalSection title={t('实际服务提供方与通知选择', 'Service providers and notification choices')}>
+        <LegalP>{t('BAYLINK 使用 Vercel 托管网站、Render 运行 API、MongoDB Atlas 保存账号与业务记录、Cloudinary 保存上传的图片。这些服务会按其用途处理请求、相应记录或上传文件，并可能保留服务日志、备份或缓存。', 'BAYLINK uses Vercel for the website, Render for the API, MongoDB Atlas for account and service records, and Cloudinary for uploaded images. These services process requests, relevant records or uploads for those purposes and may retain service logs, backups or caches.')}</LegalP>
+        <LegalP>{t('选择 AI 功能时，OpenAI 处理该功能明确选取的输入；联网检索可能处理搜索词。启用路线估算时，Google Routes 处理公开地点、出行方式与请求的日期时间。交互地图使用 OpenFreeMap 图块；地图与路线请求不应填写私人家庭住址。站点不声称这些第三方会在账号注销时即时清除其日志。', 'When you choose AI features, OpenAI processes the input selected for that feature; web retrieval may process search terms. When route estimates are enabled, Google Routes processes public places, travel mode and requested date/time. Interactive maps load OpenFreeMap tiles. Avoid entering private home addresses in map or route requests. We do not claim these providers instantly erase their logs when your account is deleted.')}</LegalP>
+        <LegalP>{t('配置且需要发送邮件时，Resend 处理收件邮箱与邮件内容；配置且需要发送短信时，Twilio 处理电话号码与短信内容。邮箱验证、账号恢复和手机号验证依其独立流程处理。可选消息、联系请求或小队通知需主动选择渠道及主题；邮箱须先验证，短信须使用已验证的号码。通知默认关闭，并取决于服务器是否启用投递。撤回通知同意不会取消账号登录或站内私信。', 'When configured email delivery is needed, Resend processes the destination address and message. When configured SMS delivery is needed, Twilio processes the phone number and SMS. Email verification, account recovery and phone verification follow their separate flows. Optional message, contact-request or group notifications require explicit channel and topic choices; email requires verification and SMS requires a verified number. Notifications default to off and depend on server delivery being enabled. Withdrawing notification consent does not disable sign-in or in-site messages.')}</LegalP>
+        <LegalP>{t('为避免重复通知和核验真实首次请求的24小时回复，服务保存最少的账号、会话、帖子编号和相关时间，不复制私信正文到统计记录。通知队列保存目的、渠道、同意版本及投递状态；这些账号关联记录按模型到期或注销清理。产品统计只累加匿名每日计数，不识别活跃人数或个人留存。', 'To prevent duplicate notifications and verify responses within 24 hours of a real first request, the service stores minimal account, conversation and post references and timestamps, without copying private message text into metrics. Notification queues store purpose, channel, consent revision and delivery status; account-linked records expire under their model rules or are cleared on account deletion. Product reporting uses anonymous daily totals and does not identify active-user counts or individual retention.')}</LegalP>
+      </LegalSection>
+    </div>
 
     <LegalSection title="Small-group visibility / 小队信息可见范围">
       <LegalP>发布后，小队标题、介绍、日期时段、城市、公共集合点、费用说明、人数和队长公开昵称可被其他人看到。请勿填写家庭住址、电话或证件信息。申请备注提供给队长；确认成员可以查看成员名单和队内讨论。退出或被移除后，不能继续访问讨论。举报会将相关内容提供给管理员处理；退出小队不会撤回别人已经看到的信息，也不会自动删除举报记录。</LegalP>
@@ -40,8 +59,8 @@ export const PrivacyPolicyView = () => (
     </LegalSection>
 
     <LegalSection title="Anonymous product counters / 匿名功能统计">
-      <LegalP>We count successful recommendation requests, plan saves, share-link actions, favorites, map opens and official-link clicks by day and interface language. These first-party counters contain no account or session identifier, IP address, content ID, page URL, chat text or precise location. They do not measure unique visitors or individual return visits. We do not send authentication or referrer data with these requests, and we skip them when your browser enables Do Not Track or Global Privacy Control. Aggregate records expire after 180 days. Normal hosting and security logs are separate.</LegalP>
-      <LegalP>功能统计只按日期和界面语言累计推荐、保存、分享、收藏、地图与官方链接操作次数，不识别个人或跨次访问。统计请求不携带账号、问题正文或页面地址；浏览器开启 Do Not Track 或 Global Privacy Control 时不发送。聚合记录保留 180 天。</LegalP>
+      <LegalP>{t('客户端功能统计只按日期和界面语言累计浏览、粗略来源、推荐、保存、分享、收藏、地图与官方链接操作次数，不识别个人或跨次访问。来源只分直接访问、搜索、微信、社交、分享卡、Opus与其他，不发送来源网址。统计请求不携带账号、会话编号、IP、问题正文、页面网址或精确位置；浏览器开启 Do Not Track 或 Global Privacy Control 时不发送这些客户端统计请求。聚合记录保留180天，不代表活跃人数、个人留存或回复百分比。', 'Client feature counters count page views, coarse entry-source categories, recommendations, saves, shares, favorites, map opens and official-link clicks by day and interface language. Source categories are direct, search, WeChat, social, card, Opus or other; the source URL is not sent. These requests contain no account/session identifier, IP address, question text, page URL or precise location. Do Not Track and Global Privacy Control stop these client counter requests. Aggregate records expire after 180 days and do not represent active-user counts, individual retention or response percentages.')}</LegalP>
+      <LegalP>{t('服务端另累加已完成注册与真实消息请求及回复的匿名每日总数，不复制账号、联系方式或消息正文到匿名统计中。客户端统计开关不停止这些后台运营总数；为核验回复而保存的最少账号关联编号和时间遵循上文的清理范围。托管及安全日志也与客户端匿名计数分开。', 'The server separately counts completed registrations and real message requests/replies as anonymous daily totals, without copying account identifiers, contacts or message text into the aggregate. Client counter preferences do not stop these operational totals. Minimal account-linked references and timestamps needed to verify replies follow the cleanup boundaries above. Hosting and security logs are also separate from client anonymous counters.')}</LegalP>
     </LegalSection>
 
     <LegalSection title="2. How We Use Information">
@@ -155,9 +174,7 @@ export const PrivacyPolicyView = () => (
     </LegalSection>
 
     <LegalSection title="10. Data Retention">
-      <LegalP>
-        BAYLINK retains information for as long as needed to provide services, maintain account records, comply with legal obligations, resolve disputes, prevent abuse, and improve safety. Users may contact BAYLINK to request account-related assistance.
-      </LegalP>
+      <LegalP>{t('在线账号注销与上述去敏清理是独立可确认的操作。其余记录按提供服务、安全与必要核验的用途保留；我们尚未为每类托管日志、备份和历史第三方媒体公布统一固定期限，也不承诺即时清除。可通过页末联系方式申请人工核验、访问、更正或进一步清理。', 'Online account deletion and the anonymization described above are separate confirmable operations. Other records are retained for service, safety and necessary verification purposes. We have not published one fixed duration for every hosting-log, backup or historical third-party-media category and do not promise immediate erasure. Contact the address below for manually verified access, correction or further cleanup.')}</LegalP>
     </LegalSection>
 
     <LegalSection title="11. Children">
@@ -183,4 +200,5 @@ export const PrivacyPolicyView = () => (
       </LegalP>
     </LegalSection>
   </LegalPageLayout>
-);
+  );
+};

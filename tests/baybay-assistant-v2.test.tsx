@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -32,7 +33,7 @@ const fixture = () => ({ ok: true, answer: 'A sourced draft.', assistantSessionT
 
 test('v2 request keeps opaque token out of page context and sanitizes response fields and evidence', async t => {
   let body: Record<string, unknown> = {};
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => { body = JSON.parse(String(init.body)); return Response.json(fixture()); });
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { body = JSON.parse(String(init.body)); return Response.json(fixture()); });
   const response = await fetchBayBayReply('Plan my day', { currentPath: '/calendar?private=ignored', assistantSessionToken: 'a'.repeat(9000) }, [], new AbortController().signal);
   assert.equal(body.assistantVersion, 2);
   assert.equal(String(body.assistantSessionToken).length, 9000);
@@ -49,7 +50,7 @@ test('v2 request keeps opaque token out of page context and sanitizes response f
 test('contextual followups are validated, displayed and submitted with the completed conversation', async t => {
   const bodies: { message: string; assistantSessionToken?: string }[] = [];
   const suggestion = '保持8人同行，帮我整理 Muir Woods 停车预约步骤';
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     bodies.push(JSON.parse(String(init.body)));
     return Response.json({ ok: true, answer: '八人的费用超过当前预算；停车名额尚未确认。', assistantSessionToken: 'complete.followup',
       followups: [null, suggestion, suggestion, 'x'.repeat(161), 'bad\ncontrol', 42] });
@@ -65,7 +66,7 @@ test('contextual followups are validated, displayed and submitted with the compl
 
 test('malformed followup fields cannot escape the response boundary and break fallback prompts', async t => {
   for (const followups of [null, 'invalid suggestion list', { text: 'not an array' }]) {
-    t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: 'A valid answer.', followups }));
+    mockBayBayFetch(t, async () => Response.json({ ok: true, answer: 'A valid answer.', followups }));
     const response = await fetchBayBayReply('A public question', { currentPath: '/' }, [], new AbortController().signal);
     assert.equal(response.followups, undefined);
   }
@@ -74,7 +75,7 @@ test('malformed followup fields cannot escape the response boundary and break fa
 test('a stopped late response never replaces completed token; errors, new conversation, typed reset and account changes isolate state', async t => {
   const bodies: { message: string; assistantSessionToken?: string; history: unknown[] }[] = [];
   let late: ((response: Response) => void) | undefined;
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     const body = JSON.parse(String(init.body)); bodies.push(body);
     if (body.message === 'Cancelled change') return new Promise<Response>(resolve => { late = resolve; });
     if (body.message === 'Fail this request') return Response.json({ ok: false, error: '暂时失败' }, { status: 500 });
@@ -120,7 +121,7 @@ test('plan renders safe evidence, schedule and unknown costs; explicit import on
 
 test('a completed legacy reply ends the older assistant token chain rather than reviving a different task', async t => {
   const tokens: unknown[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => { tokens.push(JSON.parse(String(init.body)).assistantSessionToken); return Response.json({ ok: true, answer: `Reply ${tokens.length}`, ...(tokens.length === 1 ? { assistantSessionToken: 'old.plan' } : {}) }); });
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { tokens.push(JSON.parse(String(init.body)).assistantSessionToken); return Response.json({ ok: true, answer: `Reply ${tokens.length}`, ...(tokens.length === 1 ? { assistantSessionToken: 'old.plan' } : {}) }); });
   const view = render(<BayBayAssistantEntry {...props} />);
   for (const message of ['先安排周末', '再看看学校入学资料', '这个年级需要什么材料']) {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } });
@@ -131,7 +132,7 @@ test('a completed legacy reply ends the older assistant token chain rather than 
 
 test('expired assistant state starts a reviewed draft without changing the task into an outing search', async t => {
   const bodies: { message: string; assistantSessionToken?: string; history: unknown[] }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json(bodies.length === 2 ? { ok: false, code: 'INVALID_ASSISTANT_SESSION', error: '对话条件已过期' } : fixture(), { status: bodies.length === 2 ? 400 : 200 }); });
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json(bodies.length === 2 ? { ok: false, code: 'INVALID_ASSISTANT_SESSION', error: '对话条件已过期' } : fixture(), { status: bodies.length === 2 ? 400 : 200 }); });
   const view = render(<BayBayAssistantEntry {...props} />);
   const ask = async (message: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: message } }); await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); }); };
   await ask('帮我安排 San Jose 的亲子行程'); await ask('换掉第二站');
@@ -145,7 +146,7 @@ test('expired assistant state starts a reviewed draft without changing the task 
 
 test('requirements apply natural corrections, and server-cleared city/date do not return through page filters', async t => {
   const bodies: { message: string; searchContext?: unknown; assistantSessionToken?: string }[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json(bodies.length === 1 ? fixture() : { ok: true, answer: 'Conditions cleared', assistantSessionToken: 'cleared.2', taskState: { version: 1, revision: 2, city: null, region: null, date: null } }); });
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json(bodies.length === 1 ? fixture() : { ok: true, answer: 'Conditions cleared', assistantSessionToken: 'cleared.2', taskState: { version: 1, revision: 2, city: null, region: null, date: null } }); });
   const view = render(<BayBayAssistantEntry {...props} currentPath="/calendar?city=Oakland&date=2026-10-05" pendingQuestion="帮我安排一天" />);
   await view.findByRole('region', { name: '当前安排条件' });
   assert.equal(view.queryByRole('textbox', { name: /安排条件与最新补充/ }), null);
@@ -203,7 +204,7 @@ test('party totals and per-person limits have separate labels and critical unkno
 });
 
 test('degraded v2 guidance describes collected sources without claiming they are all site-only', async t => {
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ...fixture(), responseMode: 'assistant', degraded: true }));
+  mockBayBayFetch(t, async () => Response.json({ ...fixture(), responseMode: 'assistant', degraded: true }));
   const view = render(<BayBayAssistantEntry {...props} pendingQuestion="安排一日行程" />);
   await view.findByText('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。');
   assert.doesNotMatch(view.container.textContent || '', /AI 服务暂时不可用/);
@@ -410,28 +411,33 @@ test('printing and service followups stay relevant in English and Traditional Ch
 
 test('stream results pass the same response boundary and errors, and progress does not invent a reply', async t => {
   const updates: unknown[] = [];
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     assert.equal(JSON.parse(String(init.body)).stream, true);
     return new Response(`event: progress\ndata: {"phase":"sources","status":"completed"}\n\nevent: result\ndata: ${JSON.stringify({ ...fixture(), answerCoverage: 'unsafe' })}\n\n`, { headers: { 'content-type': 'text/event-stream; charset=utf-8' } });
   });
   const reply = await fetchBayBayReply('Read the sources', { currentPath: '/' }, [], new AbortController().signal, 1000, item => updates.push(item));
   assert.deepEqual(updates, [{ phase: 'sources', status: 'completed' }]); assert.equal(reply.answerCoverage, undefined); assert.equal(reply.evidence?.length, 1);
-  t.mock.method(globalThis, 'fetch', async () => new Response('event: error\ndata: {"ok":false,"code":"INVALID_ASSISTANT_SESSION","error":"Start again"}\n\n', { headers: { 'content-type': 'text/event-stream' } }));
+  mockBayBayFetch(t, async () => new Response('event: error\ndata: {"ok":false,"code":"INVALID_ASSISTANT_SESSION","error":"Start again"}\n\n', { headers: { 'content-type': 'text/event-stream' } }));
   await assert.rejects(fetchBayBayReply('Read sources', { currentPath: '/' }, [], new AbortController().signal), { name: 'Error', message: 'Start again' });
 });
 
 test('pending UI uses actual progress events without implying web access or a successful completed check', async t => {
   let channel!: ReadableStreamDefaultController<Uint8Array>;
   const encoder = new TextEncoder();
-  t.mock.method(globalThis, 'fetch', async () => new Response(new ReadableStream({ start(controller) { channel = controller; } }), { headers: { 'content-type': 'text/event-stream' } }));
+  mockBayBayFetch(t, async () => new Response(new ReadableStream({ start(controller) { channel = controller; } }), { headers: { 'content-type': 'text/event-stream' } }));
   const view = render(<BayBayAssistantEntry {...props} pendingQuestion="只用站内资料核对打印额度" />);
   await act(async () => {});
-  assert.match(view.getByRole('status').textContent || '', /正在等待答复/);
+  const progressStatus = (message: RegExp) => {
+    const statuses = view.getAllByRole('status').filter(status => message.test(status.textContent || ''));
+    assert.equal(statuses.length, 1, 'the actual request progress must have one status announcement');
+    return statuses[0].textContent || '';
+  };
+  assert.match(progressStatus(/正在等待答复/), /正在等待答复/);
   await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"running"}\n\n')); });
-  assert.match(view.getByRole('status').textContent || '', /问题分析与检索处理中/);
-  assert.doesNotMatch(view.getByRole('status').textContent || '', /联网|已核实/);
+  assert.match(progressStatus(/问题分析与检索处理中/), /问题分析与检索处理中/);
+  assert.doesNotMatch(progressStatus(/问题分析与检索处理中/), /联网|已核实/);
   await act(async () => { channel.enqueue(encoder.encode('event: progress\ndata: {"phase":"research","status":"completed"}\n\n')); });
-  assert.match(view.getByRole('status').textContent || '', /阶段结束，正在等待结果/);
+  assert.match(progressStatus(/阶段结束，正在等待结果/), /阶段结束，正在等待结果/);
   await act(async () => { channel.enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整打印答复"}\n\n')); });
   assert.ok(view.getByText('完整打印答复')); assert.equal(view.queryByText(/阶段结束，正在等待结果/), null);
 });
@@ -559,7 +565,7 @@ test('answer links work without citations while unsafe markup stays inert and ci
 test('school message followups preserve relevant server edits and submit them in the same conversation', async t => {
   const bodies: { message: string; assistantSessionToken?: string }[] = [];
   const question = '帮我写给学校的入学咨询模板', suggestion = '把这封邮件改成简短的中英双语消息';
-  t.mock.method(globalThis, 'fetch', async (_url: unknown, init: RequestInit) => {
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => {
     bodies.push(JSON.parse(String(init.body)));
     return Response.json({ ok: true, answer: '您好，请问三年级入学需要哪些材料？', assistantSessionToken: 'school.complete', followups: [suggestion, suggestion, question, '帮我安排周末出游行程'] });
   });

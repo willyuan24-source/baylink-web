@@ -10,12 +10,14 @@ import { translateText, useLocale } from '../i18n/locale';
 import { EditorialShareActions } from './EditorialShareActions';
 import { openingShare } from '../lib/editorial-share';
 import { openingStatusLabel } from '../lib/opening-status';
+import { getImageProvenance } from '../lib/image-provenance';
 
 export const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const regionLabels = { sf: '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', peninsula: '半岛', 'north-bay': '北湾' };
 const openingMap = (shop: SeptemberOpening) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${shop.name} ${shop.address} ${shop.city}`)}`;
 
 function OpeningCard({ shop }: { shop: SeptemberOpening }) {
+  const locale = useLocale();
   const [zoomed, setZoomed] = useState(false);
   const image = getListingImage(shop.imageKey);
   const label = shop.status === 'announced' && shop.openingType === 'opening-celebration' ? '开业庆典' : openingStatusLabel(shop.status);
@@ -23,7 +25,7 @@ function OpeningCard({ shop }: { shop: SeptemberOpening }) {
     {image && <figure className={`bl-opening-photo${image.kind === 'poster' || image.fullFrame ? ' bl-opening-photo--contain' : ''}`}>
       <button type="button" onClick={() => setZoomed(true)} aria-label={`${translateText('查看大图')}：${shop.name}`}>
         <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), (max-width: 1023px) 50vw, 430px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" />
-        <span>{image.kind === 'illustration' ? 'AI 原创插图' : image.kind === 'poster' ? '官方宣传图' : '资料照片'}</span>
+        <span>{getImageProvenance(image, locale === 'en')}</span>
       </button>
     </figure>}
     <div className="bl-opening-copy">

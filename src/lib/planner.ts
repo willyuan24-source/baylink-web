@@ -4,6 +4,7 @@ import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
 import { canonicalEventId } from './event-id';
+import { MAX_PLAN_STOPS } from './plan-limits';
 
 export type GeoPoint = { lat: number; lng: number; label: string; sourceUrl: string; precision: 'venue' | 'area' };
 export type TimeWindow = { open: string; close: string; lastEntry?: string; lastOrder?: string };
@@ -11,7 +12,7 @@ export type TimeWindow = { open: string; close: string; lastEntry?: string; last
 export type PlanningSchedule = { sourceUrl: string; verifiedAt: string; validFrom?: string; validThrough?: string; weekly?: Partial<Record<number, TimeWindow[]>>; dates?: Record<string, TimeWindow[]>; sessions?: Array<{ date: string; start: string; end?: string }>; note?: string };
 export type PlanningFacts = { setting?: 'indoor' | 'outdoor' | 'mixed'; admissionUsd?: number | null; minAge?: number | null; maxAge?: number | null; reservation?: 'required' | 'optional' | 'unknown'; schedule?: PlanningSchedule; programTimeUnconfirmed?: boolean };
 export type PlannerEvent = MonthlyEvent & { location?: GeoPoint; planning?: PlanningFacts };
-export type PlannerPlace = { id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts; path?: string; category?: 'attraction' | 'restaurant' | 'cafe' | 'shop'; address?: string; imageKey?: string; openingStatus?: 'open' | 'soft_open' | 'announced'; openedOn?: string; offerIds?: string[] };
+export type PlannerPlace = { aliases?: string[]; id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts; path?: string; category?: 'attraction' | 'restaurant' | 'cafe' | 'shop'; address?: string; imageKey?: string; openingStatus?: 'open' | 'soft_open' | 'announced'; openedOn?: string; offerIds?: string[] };
 export type Stop = { kind: 'event' | 'place'; id: string };
 export type Favorite = { kind: 'event' | 'place' | 'guide'; id: string };
 export type StopSetting = Stop & { durationMinutes: number; travelMinutes: number; fixedStartTime?: string; breakBeforeMinutes?: number; breakLabel?: 'meal' | 'rest' };
@@ -36,7 +37,7 @@ export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encod
 export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
 export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
 export const favoriteKey = (item: Favorite) => `${item.kind}:${item.kind === 'event' ? canonicalEventId(item.id) : item.id}`;
-export const MAX_PLAN_STOPS = 6;
+export { MAX_PLAN_STOPS } from './plan-limits';
 export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(stop)) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
 /** Shared URLs contain public catalog references only, never account IDs or private notes. */
 export function sharePlanUrl(plan: Pick<SavedPlan, 'date' | 'stops'>, origin = 'https://www.baylink.us') {

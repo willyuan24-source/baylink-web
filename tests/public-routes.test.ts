@@ -9,6 +9,21 @@ const catalog: PublicCatalog = { events: [], offers: [], openings: [], guides: g
 for (const item of localDiscoveries) catalog[item.kind === 'event' ? 'events' : item.kind === 'offer' ? 'offers' : 'openings'].push(discoveryShare(item).id);
 const publicDestinations = new Set(Object.keys(catalog).map(folder => `/${folder}/$1.html`));
 
+test('the complete content directory reaches its prerender before locale 404 routes without admitting nested paths', () => {
+  const { routes } = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8')) as { routes: HostingRoute[] };
+  for (const prefix of ['', '/en', '/zh-Hant']) {
+    for (const suffix of ['', '/']) {
+      const path = `${prefix}/archive${suffix}`;
+      const terminal = routes.find(route => route.dest && route.src && new RegExp(route.src).test(path));
+      assert.ok(terminal, path);
+      assert.notEqual(terminal.status, 404, path);
+      assert.equal(path.replace(new RegExp(terminal.src!), terminal.dest!), `${prefix}/archive.html`);
+    }
+    const missing = `${prefix}/archive/not-a-directory`;
+    assert.equal(routes.find(route => route.dest && route.src && new RegExp(route.src).test(missing))?.status, 404, missing);
+  }
+});
+
 test('public route groups enforce the source limit at the boundary and escape literal identifiers', () => {
   const exact = '^/events/(a)/?$'.length;
   assert.equal(publicRouteGroups('events', ['a'], exact)[0].src!.length, exact);

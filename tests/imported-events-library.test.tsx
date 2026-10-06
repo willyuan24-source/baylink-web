@@ -5,9 +5,9 @@ import React from 'react';
 import { EMPTY_EVENT, type ImportedEvent } from '../src/lib/imported-events';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/my-week' });
-Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, CustomEvent: dom.window.CustomEvent, FileReader: dom.window.FileReader, IS_REACT_ACT_ENVIRONMENT: true });
+Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, CustomEvent: dom.window.CustomEvent, File: dom.window.File, FileReader: dom.window.FileReader, createImageBitmap: async () => ({ width: 1, height: 1, close() {} }), IS_REACT_ACT_ENVIRONMENT: true });
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
-const { renderHook, render, fireEvent, cleanup, act } = await import('@testing-library/react');
+const { renderHook, render, fireEvent, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { EventImportDialog } = await import('../src/components/EventScreenshotImport');
 const { setLocale, translateText } = await import('../src/i18n/locale');
@@ -19,7 +19,19 @@ const draft = { ...EMPTY_EVENT, title: 'Private workshop', date: '2026-10-03', v
 const event = (id = 'private-test', title = draft.title): ImportedEvent => ({ id, ...draft, title });
 const snapshot = (events: ImportedEvent[] = [], revision = 0) => ({ events: structuredClone(events), revision });
 const defer = <T,>() => { let resolve!: (value: T) => void; let reject!: (reason: unknown) => void; const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
-beforeEach(async context => { localStorage.clear(); await setLocale('zh-Hans', false); context.mock.method(globalThis, 'fetch', async () => new Response('{}')); });
+const PNG_BYTES = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==', 'base64');
+beforeEach(async context => {
+  localStorage.clear(); await setLocale('zh-Hans', false); context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  context.mock.method(globalThis, 'createImageBitmap', async (_file: ImageBitmapSource, options?: ImageBitmapOptions) => {
+    assert.equal(options?.imageOrientation, 'from-image');
+    return { width: 1, height: 1, close() {} } as ImageBitmap;
+  });
+  context.mock.method(dom.window.HTMLCanvasElement.prototype, 'getContext', () => ({ drawImage() {} }) as unknown as CanvasRenderingContext2D);
+  context.mock.method(dom.window.HTMLCanvasElement.prototype, 'toBlob', function (callback: BlobCallback, type?: string) {
+    assert.equal(type, 'image/png', 'screenshots retain transparency during safe re-encoding');
+    callback(new dom.window.Blob([PNG_BYTES], { type: 'image/png' }));
+  });
+});
 afterEach(() => { cleanup(); api.request = originalRequest; localStorage.clear(); });
 
 test('guest events remain local; storage quota failure preserves records and allows a successful retry', async context => {
@@ -167,7 +179,7 @@ async function openDialog() {
   return view;
 }
 async function chooseScreenshot(view: ReturnType<typeof render>) {
-  const file = new dom.window.File(['tiny test image'], 'activity.png', { type: 'image/png' });
+  const file = new dom.window.File([PNG_BYTES], 'activity.png', { type: 'image/png' });
   fireEvent.change(view.getByLabelText('选择活动截图'), { target: { files: [file] } });
   await view.findByRole('img', { name: '已选活动截图' });
 }
@@ -239,16 +251,16 @@ test('a language change during image preparation releases the controls and ignor
   const readers: FileReader[] = [];
   context.mock.method(dom.window.FileReader.prototype, 'readAsDataURL', function (this: FileReader) { readers.push(this); });
   const view = await openDialog();
-  const file = new dom.window.File(['tiny test image'], 'activity.png', { type: 'image/png' });
+  const file = new dom.window.File([PNG_BYTES], 'activity.png', { type: 'image/png' });
   await act(async () => { fireEvent.change(view.getByLabelText('选择活动截图'), { target: { files: [file] } }); });
+  await waitFor(() => assert.ok(readers[0], 'the safely re-encoded image reached the delayed data URL read'));
   const reader = readers[0];
-  assert.ok(reader);
   assert.equal((view.getByRole('button', { name: '手动填写' }) as HTMLButtonElement).disabled, true);
   await act(async () => { await setLocale('en', false); });
   assert.equal((view.getByRole('button', { name: translateText('手动填写') }) as HTMLButtonElement).disabled, false);
   await act(async () => {
-    Object.defineProperty(reader, 'result', { configurable: true, value: 'data:image/png;base64,dGVzdA==' });
-    reader.dispatchEvent(new dom.window.ProgressEvent('loadend'));
+    Object.defineProperty(reader, 'result', { configurable: true, value: `data:image/png;base64,${PNG_BYTES.toString('base64')}` });
+    reader.dispatchEvent(new dom.window.ProgressEvent('load'));
   });
   assert.equal(view.queryByRole('img', { name: translateText('已选活动截图') }), null);
 });

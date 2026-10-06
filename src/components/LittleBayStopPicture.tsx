@@ -3,6 +3,7 @@ import { Compass, Expand, RotateCcw } from 'lucide-react';
 import type { LittleBayStop } from '../features/little-bay/catalog';
 import { translateText, useLocale } from '../i18n/locale';
 import { GuideImageLightbox } from './GuideVisuals';
+import { getImageProvenance } from '../lib/image-provenance';
 
 /** A new stop starts a new picture session, including its lightbox and retry state. */
 export function LittleBayStopPicture({ stop }: { stop: LittleBayStop }) {
@@ -27,7 +28,7 @@ function PictureSession({ stop }: { stop: LittleBayStop }) {
           width={image?.width} height={image?.height} alt={alt} loading="lazy" decoding="async"
           style={image?.fullFrame || image?.kind === 'poster' ? { objectFit: 'contain' } : undefined}
           onError={() => setFailed(true)} />
-        {image && <span className="lb-stop-photo-zoom"><Expand size={14} aria-hidden="true" />{t('查看大图', 'View photo')}</span>}
+        {image && <><span className="lb-stop-photo-provenance">{getImageProvenance(image, locale === 'en')}</span><span className="lb-stop-photo-zoom"><Expand size={14} aria-hidden="true" />{t('查看大图', 'View photo')}</span></>}
       </button> : <div className="lb-stop-photo-empty">
         <Compass size={48} strokeWidth={1} aria-hidden="true" />
         <span>{failed ? t('照片暂时无法加载', 'Photo could not load') : stop.city}</span>

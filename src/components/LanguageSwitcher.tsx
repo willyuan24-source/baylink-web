@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Globe2 } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { isLocale, setLocale, useLocale } from '../i18n/locale';
+import { useLocation, type Location } from 'react-router-dom';
+import { isLocale, setLocale, useLocale, localizedUrl } from '../i18n/locale';
+import { navigateSiteLanguage } from './LanguageRouter';
 
-export function LanguageSwitcher() {
+export function LanguageSwitcher({ realLocation }: { realLocation?: Location } = {}) {
   const locale = useLocale();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const routedLocation = useLocation();
+  const location = realLocation || routedLocation;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
   return <div className="site-language" translate="no">
@@ -17,10 +18,8 @@ export function LanguageSwitcher() {
       if (!isLocale(selected)) return;
       setBusy(true); setError(false);
       try {
-        if (await setLocale(selected)) {
-          const search = new URLSearchParams(location.search);
-          if (selected === 'zh-Hans') search.delete('lang'); else search.set('lang', selected);
-          navigate({ pathname: location.pathname, search: search.toString(), hash: location.hash }, { replace: true, state: location.state, preventScrollReset: true });
+        if (await setLocale(selected, true, location.pathname)) {
+          navigateSiteLanguage(localizedUrl(location.pathname + location.search + location.hash, selected));
         }
       } catch { setError(true); }
       finally { setBusy(false); }

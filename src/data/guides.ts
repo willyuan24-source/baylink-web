@@ -1,4 +1,7 @@
 import { visitorPersonaGuides } from './guides-persona-visitor';
+import { publicServiceGuides } from './guides-public-services';
+import { benefitsCitizenshipGuides } from './guides-benefits-citizenship';
+import { archivedGuides } from './guides-archives';
 import { november2026Guides } from './november-2026-guides';
 import { novemberNorthGuides } from './november-refresh-north-guides';
 import { novemberPeninsulaSouthGuides } from './november-refresh-peninsula-south-guides';
@@ -104,6 +107,7 @@ export type Guide = {
   readMinutes: number;
   updatedAt: string;
   editionMonth?: string;
+  editionStartDate?: string;
   editionThroughDate?: string;
   sourceNote?: string;
   sources: GuideSource[];
@@ -1900,6 +1904,9 @@ export const guides: Guide[] = [
     ],
   },
   ...practicalGuides,
+  ...publicServiceGuides,
+  ...benefitsCitizenshipGuides,
+  ...archivedGuides,
   ...perksGuides2026,
   ...retailPerksGuides2026,
   ...october2026NewcomerGuides,

@@ -3,6 +3,7 @@ import { ArrowLeft, Check, ExternalLink, RefreshCw, ShieldCheck } from 'lucide-r
 import { api } from '../../lib/api';
 import { translateText, useLocale } from '../../i18n/locale';
 import { ProductMetrics } from './ProductMetrics';
+import { EditorialReviewQueue } from './EditorialReviewQueue';
 
 type SourceRow = {
   id: string; title: string; url: string; kind: string; endDate?: string;
@@ -18,6 +19,7 @@ const STATUS: Record<string, string> = {
 export function AdminSourceMonitor({ onBack }: { onBack?: () => void }) {
   const locale = useLocale(); const t = (text: string) => translateText(text, locale);
   const [sources, setSources] = useState<SourceRow[]>([]);
+  const [batchLimit, setBatchLimit] = useState(40);
   const [running, setRunning] = useState(false); const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(''); const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<'attention' | 'all'>('attention');
@@ -29,6 +31,7 @@ export function AdminSourceMonitor({ onBack }: { onBack?: () => void }) {
       const result = await api.request('/admin/source-monitor');
       if (sequence !== requestId.current) return;
       setSources(result.sources); setRunning(result.running); setMessage('');
+      if (Number.isInteger(result.batchLimit) && result.batchLimit > 0 && result.batchLimit <= 200) setBatchLimit(result.batchLimit);
     } catch { if (sequence === requestId.current) setMessage('无法读取来源监测，请稍后重试。'); }
     finally { if (sequence === requestId.current) setLoading(false); }
   }, []);
@@ -57,12 +60,13 @@ export function AdminSourceMonitor({ onBack }: { onBack?: () => void }) {
       <div>{onBack && <button onClick={onBack} className="source-monitor-back"><ArrowLeft size={16} />{t('返回')}</button>}
         <p className="source-monitor-eyebrow"><ShieldCheck size={16} />{t('编辑工作台')}</p>
         <h1 id="source-monitor-title">{t('官方来源监测')}</h1>
-        <p>{t('每 6 小时检查已登记来源。抓取成功仅表示页面可读，事实与条款仍由编辑复核。')}</p>
+        <p>{locale === 'en' ? `Official sources are checked in rotating batches of at most ${batchLimit}. Each source is retried after at least six hours. A successful fetch only means the page is readable; editors must still check the facts and terms.` : translateText(`来源在后台分批轮转，每批最多 ${batchLimit} 个；同一来源至少间隔 6 小时重试。抓取成功仅表示页面可读，事实与条款仍由编辑复核。`, locale)}</p>
       </div>
       <div className="source-monitor-actions"><button onClick={() => void load()} disabled={loading || !!busy}><RefreshCw size={15} />{t('刷新')}</button>
         <button className="source-monitor-primary" disabled={running || !!busy || loading} onClick={() => void run()}>{running ? t('正在检查…') : t('现在检查')}</button></div>
     </header>
     <ProductMetrics />
+    <EditorialReviewQueue />
     <div className="source-monitor-summary"><span><strong>{sources.length}</strong> {t('个官方来源')}</span><span><strong>{attention.length}</strong> {t('项需处理')}</span><span>{running ? t('后台批次运行中，可稍后回来查看。') : t('首次抓取建立基线，不自动更新内容核查日期。')}</span></div>
     <div className="source-monitor-filters" aria-label={t('筛选来源')}><button aria-pressed={filter === 'attention'} onClick={() => setFilter('attention')}>{t('需要处理')}</button><button aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>{t('全部来源')}</button></div>
     {message && <p role="alert" className="source-monitor-error">{t(message)}</p>}

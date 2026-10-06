@@ -1,3 +1,4 @@
+import { mockBayBayFetch } from './baybay-test-transport';
 import assert from 'node:assert/strict';
 import test, { after, afterEach } from 'node:test';
 import { registerHooks } from 'node:module';
@@ -53,11 +54,12 @@ test('changing account clears completed history, aborts pending work and discard
     throw new Error(`Unexpected fixture API: ${path}`);
   });
   const requests: { signal: AbortSignal; body: { message: string; history: unknown[] }; resolve: (response: Response) => void }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
     requests.push({ signal: options.signal as AbortSignal, body: JSON.parse(String(options.body)), resolve });
   }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   const ask = (value: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value } });
     fireEvent.click(view.getByRole('button', { name: '问一下' }));
@@ -70,6 +72,7 @@ test('changing account clears completed history, aborts pending work and discard
   assert.equal(requests[1].signal.aborted, true);
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   assert.equal(requests.length, 2, 'the previous account queued question must not start under the new account');
   assert.equal(view.queryByText('前一个使用者的回答'), null);
   ask('新账号自己的问题');
@@ -89,18 +92,21 @@ test('the login modal can be cancelled or completed without losing an explicit g
     if (path === '/conversations') return [];
     throw new Error(`Unexpected fixture API: ${path}`);
   });
-  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, answer: '已保留访客的行程条件', assistantSessionToken: 'guest.public-context' }));
+  mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '已保留访客的行程条件', assistantSessionToken: 'guest.public-context' }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '11月7日两大一小去PIER39' } });
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '还没发送的追问' } });
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册，开启联网' }));
+  await view.findByLabelText('邮箱或用户名');
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.keyDown(document, { key: 'Escape' });
   assert.equal((view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement).value, '还没发送的追问');
   assert.ok(view.getByText('已保留访客的行程条件'));
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册，开启联网' }));
+  await view.findByLabelText('邮箱或用户名');
   fireEvent.change(view.getByLabelText('邮箱或用户名'), { target: { value: 'fixture@example.com' } });
   fireEvent.change(view.getByLabelText('密码', { exact: true }), { target: { value: 'fixture-password' } });
   await act(async () => { fireEvent.submit(view.getByLabelText('密码', { exact: true }).closest('form')!); });
@@ -109,6 +115,7 @@ test('the login modal can be cancelled or completed without losing an explicit g
   assert.ok(view.getByText('已保留访客的行程条件'));
   await act(async () => changeAccount());
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   assert.equal(view.queryByText('已保留访客的行程条件'), null);
   assert.equal((view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement).value, '');
 });
@@ -124,11 +131,12 @@ test('a cross-tab token replacement for the same account aborts stale work and r
   const session = (token: string) => JSON.stringify({ id: 'same-account', nickname: 'Fixture member', token });
   localStorage.setItem('currentUser', session('old-session'));
   const calls: { signal: AbortSignal; authorization: string | null; body: { searchMode: string; history: unknown[] }; resolve: (response: Response) => void }[] = [];
-  t.mock.method(globalThis, 'fetch', (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
+  mockBayBayFetch(t, (_url: unknown, options: RequestInit) => new Promise<Response>(resolve => {
     calls.push({ signal: options.signal as AbortSignal, authorization: new Headers(options.headers).get('Authorization'), body: JSON.parse(String(options.body)), resolve });
   }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   const ask = (value: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
   ask('请核实这周末的营业时间');
   await act(async () => calls[0].resolve(Response.json({ ok: true, answer: '这条旧会话未通过登录验证', retrieval: { requestedMode: 'smart', scope: 'site', webStatus: 'auth_required', webAccess: { authenticated: false, allowed: false, reason: 'auth_required' } } })));
@@ -140,6 +148,7 @@ test('a cross-tab token replacement for the same account aborts stale work and r
   assert.equal(calls[1].signal.aborted, true);
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
+  await view.findByRole('textbox', { name: '向 BayBay 提问' });
   assert.ok(view.getByRole('button', { name: '联网查', exact: true }));
   assert.equal(view.queryByText('登录需更新 · 仅站内'), null);
   assert.equal(view.queryByText('这条旧会话未通过登录验证'), null);

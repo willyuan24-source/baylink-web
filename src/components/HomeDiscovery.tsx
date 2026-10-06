@@ -1,184 +1,71 @@
-import { PerksGallery } from './PerksGallery';
+import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useId, useState } from 'react';
-import { ArrowDownRight, ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Compass, MapPin, Sparkles, Ticket, TramFront, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { BRAND } from '../brandAssets';
-import { getGuideBySlug, guides, type Guide } from '../data/guides';
-import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../data/guide-media';
-import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../data/monthly-edition';
-import { getBayAreaToday, getEventStatus, isEditionCurrent } from '../lib/monthly';
-import { DEALS_SLUG } from './MonthlyDealsSpotlight';
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, Search, ShieldCheck, Ticket, TramFront } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getGuideBySlug, guideCount, getGuideMedia, MONTHLY_EVENTS, currentFreebies } from '../lib/home-catalog';
+import { HOME_PATHWAYS as pathways } from '../data/home-pathways';
+import { getBayAreaToday } from '../lib/monthly';
+import { getHomeWeekend } from '../lib/home-weekend';
 import { useLocale } from '../i18n/locale';
-import { getOfferImage } from '../lib/offer-media';
+import { getImageProvenance } from '../lib/image-provenance';
+import { isHomeQuestion } from '../lib/home-query';
 
-const discoveries = [
-  {
-    id: 'first-visit', label: '第一次来玩', eyebrow: 'YOUR FIRST SAN FRANCISCO VISIT',
-    note: '三天无车路线、景点门票与免费文化去处，先选适合自己的一条。',
-    hero: ['sf-first-72-hours-car-free-october-2026'],
-    picks: [['sf-first-visit-tickets-waterfront-october-2026'], ['sf-free-culture-eligibility-october-2026'], ['sf-family-rain-fog-car-free-october-2026']],
-    question: '我是第一次来旧金山，想安排三天无车旅行。请先问我住宿区域、抵达日期、同行人和预算，再结合本站首次到访攻略安排路线、预约与天气备选。',
-    placeholder: '例如：住 Union Square，带父母玩三天，不租车',
-  },
+const INTENT_KEY = 'baylink.home-intent.v1';
+const getSavedIntent = () => {
+  try { const saved = window.localStorage.getItem(INTENT_KEY); return pathways.find(path => path.id === saved)?.id || 'weekend'; }
+  catch { return 'weekend' as const; }
+};
 
-  {
-    id: 'weekend', label: '周末出门', eyebrow: 'LEAVE A LITTLE ROOM FOR WANDERING',
-    note: '海岸、红杉和城市散步，挑一篇就能开始安排。',
-    hero: ['golden-gate-park-free-car-free-day-guide', 'half-moon-bay-coastal-half-day-guide'],
-    picks: [['reinhardt-redwood-first-walk-guide'], ['bay-area-farmers-market-shopping-guide'], ['palo-alto-baylands-family-walk-guide', 'presidio-picnic-day-guide']],
-    question: '我想在湾区安排一个轻松的半日出游。请先问我从哪里出发、是否开车和同行人，再推荐适合的散步、亲子或无车路线。',
-    placeholder: '例如：从 San Mateo 出发，带孩子玩半天',
-  },
-  {
-    id: 'everyday', label: '日常少麻烦', eyebrow: 'MAKE THE EVERYDAY A LITTLE EASIER',
-    note: '借书、出行、买菜和报修，把常用的事慢慢理顺。',
-    hero: ['bay-area-library-starter-guide'],
-    picks: [['bay-area-without-car-guide'], ['bay-area-repair-request-guide'], ['bay-area-farmers-market-shopping-guide']],
-    question: '我想把湾区日常生活安排得更方便。请先问我住在哪个城市、最想解决什么，再结合图书馆、公共交通和生活指南给出具体步骤。',
-    placeholder: '例如：刚搬到 Fremont，想办借书证',
-  },
-  {
-    id: 'newcomer', label: '新来先安顿', eyebrow: 'A NEW PLACE, ONE SMALL STEP AT A TIME',
-    note: '从落地到通勤，先找到与你的第一周有关的答案。',
-    hero: ['bay-area-airport-first-night-decision-october-2026', 'bay-area-airport-arrival-guide'],
-    picks: [['bay-area-first-7-30-days-action-plan-october-2026'], ['bay-area-cross-bay-commute-home-base-october-2026'], ['bay-area-library-starter-guide']],
-    question: '我刚来湾区，想安排好第一个月。请先问我工作或学校地点、预算和出行方式，再结合本站指南整理落地、住处与通勤的优先清单。',
-    placeholder: '例如：下周到 SFO，要去 Sunnyvale 安顿',
-  },
-] as const;
-
-const findGuide = (slugs: readonly string[]) => slugs.map(getGuideBySlug).find((guide): guide is Guide => !!guide);
-const imageLabel = (image: GuideImage) => image.kind === 'illustration' ? 'AI 原创插图'
-  : image.kind === 'poster' ? '官方宣传图'
-    : image.credit.includes('官方') ? '官方宣传照片'
-      : /资料|往届/.test(image.caption) ? '资料照片' : '实景照片';
-
-function DiscoveryImage({ image, hero = false }: { image: GuideImage; hero?: boolean }) {
-  return <div className={`home-discovery-image${image.kind === 'poster' || image.fullFrame ? ' home-discovery-image--full' : ''}`}>
-    <img src={image.src} srcSet={image.srcSet} sizes={hero ? '(max-width: 767px) 100vw, (max-width: 1279px) 64vw, 820px' : '(max-width: 639px) 180px, 300px'} alt={image.alt} width={image.width} height={image.height} loading={hero ? 'eager' : 'lazy'} decoding="async" {...(hero ? { fetchpriority: 'high' } : {})} />
-    <span className="home-discovery-image-label">{imageLabel(image)}</span>
-  </div>;
-}
-
-function DiscoveryCredits({ images }: { images: GuideImage[] }) {
-  const unique = [...new Map(images.map(image => [image.src, image])).values()];
-  return <details className="home-discovery-credits"><summary>本组图片与来源 <ArrowDownRight size={12} aria-hidden="true" /></summary>
-    <ul>{unique.map(image => <li key={image.src}><span>{image.caption}</span><small>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}<ArrowUpRight size={11} aria-hidden="true" /></a> : image.credit}{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</small></li>)}</ul>
-  </details>;
-}
-
-export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, today: suppliedToday }: {
-  onAskBayBay: (question?: string) => void;
-  onBrowseCommunity: () => void;
-  today?: string;
+export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today: suppliedToday }: {
+  onAskBayBay: (question?: string) => void; onBrowseCommunity: () => void;
+  onSearch?: (query: string) => void; today?: string;
 }) {
-  const locale = useLocale();
-  const [intent, setIntent] = useState<(typeof discoveries)[number]['id']>('weekend');
-  const [question, setQuestion] = useState('');
+  const english = useLocale() === 'en';
+  const navigate = useNavigate();
+  const [intent, setIntent] = useState<(typeof pathways)[number]['id']>(getSavedIntent);
+  const [query, setQuery] = useState('');
   const [localToday, setLocalToday] = useState(getBayAreaToday);
   const panelId = useId();
   useEffect(() => {
     const refresh = () => setLocalToday(getBayAreaToday());
     const timer = window.setInterval(refresh, 60_000);
-    window.addEventListener('focus', refresh);
-    document.addEventListener('visibilitychange', refresh);
-    return () => {
-      window.clearInterval(timer);
-      window.removeEventListener('focus', refresh);
-      document.removeEventListener('visibilitychange', refresh);
-    };
+    window.addEventListener('focus', refresh); document.addEventListener('visibilitychange', refresh);
+    return () => { window.clearInterval(timer); window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); };
   }, []);
   const today = suppliedToday || localToday;
-  const selection = discoveries.find(item => item.id === intent)!;
-  const hero = findGuide(selection.hero);
-  const pumpkinSeason = today >= '2026-09-09' && today <= '2026-11-15';
-  const pickSlugs = intent === 'weekend' ? [
-    selection.picks[0],
-    pumpkinSeason ? ['half-moon-bay-pumpkin-season-2026-guide'] : selection.picks[1],
-    today <= '2026-11-15' ? ['bay-area-november-first-half-planner-2026'] : selection.picks[2],
-  ] : selection.picks;
-  const picks = pickSlugs.map(findGuide).filter((guide): guide is Guide => !!guide);
-  const currentEdition = isEditionCurrent(today);
-  const editionPast = today > MONTHLY_EDITION.throughDate;
-  const events = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended');
-  const editionImage = GUIDE_IMAGES['november-community'];
-  const deals = getGuideBySlug(DEALS_SLUG);
-  const dealsCurrent = !!deals?.editionMonth && isEditionCurrent(today);
-  const dealsPast = !!deals?.editionMonth && (deals.editionThroughDate ? today > deals.editionThroughDate : deals.editionMonth < today.slice(0, 7));
-  const dealsMonthLabel = deals?.editionMonth ? `${deals.editionMonth.slice(0, 4)} 年 ${Number(deals.editionMonth.slice(5, 7))} 月` : '';
-  const freebieBlock = deals?.blocks.find(block => block.type === 'freebies');
-  const offers = freebieBlock?.type === 'freebies' ? freebieBlock.offers : [];
-  const datedOffers = offers.filter(item => item.availability === 'dated' && item.startDate && (item.endDate || item.startDate) >= today);
-  const usedImages = new Set([editionImage?.src, hero && getGuideMedia(hero).cover.src, ...picks.map(guide => getGuideMedia(guide).cover.src)]);
-  const offer = datedOffers.find(item => GUIDE_IMAGES[item.imageKey]?.kind === 'photo' && !usedImages.has(GUIDE_IMAGES[item.imageKey].src)) || datedOffers.find(item => !usedImages.has(GUIDE_IMAGES[item.imageKey]?.src)) || datedOffers[0] || offers.find(item => !item.endDate || item.endDate >= today);
-  const offerImage = offer ? getOfferImage(offer) : deals ? getGuideMedia(deals).cover : undefined;
-  const heroImage = hero ? getGuideMedia(hero).cover : undefined;
-  const images = [editionImage, heroImage, offerImage, ...picks.map(guide => getGuideMedia(guide).cover)].filter((image): image is GuideImage => !!image);
-  const month = Number(today.slice(5, 7));
-  const dateLabel = locale === 'en'
-    ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${today}T12:00:00Z`))
-    : `${month} 月 ${Number(today.slice(8, 10))} 日`;
+  const weekend = getHomeWeekend(today, MONTHLY_EVENTS);
+  const selection = pathways.find(path => path.id === intent)!;
+  const picks = selection.slugs.map(getGuideBySlug).filter(guide => !!guide);
+  const offers = currentFreebies.filter(offer => offer.availability === 'dated' && offer.verificationStatus !== 'needs-confirmation' && !!offer.startDate && (offer.endDate || offer.startDate!) >= today)
+    .sort((a, b) => (a.endDate || a.startDate!).localeCompare(b.endDate || b.startDate!)).slice(0, 3);
+  const dateLabel = (day: string) => new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { month: 'short', day: 'numeric', weekday: 'short', timeZone: 'UTC' }).format(new Date(`${day}T12:00:00Z`));
+  const choose = (next: typeof intent) => { setIntent(next); try { window.localStorage.setItem(INTENT_KEY, next); } catch { /* Session selection still works. */ } };
+  const submit = () => {
+    const value = query.trim(); if (!value) return;
+    if (isHomeQuestion(value)) onAskBayBay(value);
+    else if (onSearch) onSearch(value);
+    else navigate(`/guides?q=${encodeURIComponent(value)}`);
+  };
+  return <section className="home-discovery home-discovery--focused" aria-label={english ? 'Discover Bay Area life' : '湾区阅读与探索'}>
+    <header className="home-discovery-heading"><div><time className="home-discovery-eyebrow" dateTime={today}>{english ? 'Bay Area' : '湾区'} · {dateLabel(today)}</time><h1>{english ? 'Make room for a good weekend.' : '这个周末，'}{!english && <span>湾区去哪？</span>}</h1><p>{english ? 'Local events, practical guides and clear next steps, with official sources.' : '挑活动、读指南、理清下一步，每条都能查到官方来源。'}</p></div></header>
+    <form className="home-search" role="search" onSubmit={event => { event.preventDefault(); submit(); }}><label htmlFor={`${panelId}-search`} className="sr-only">{english ? 'Search events and guides, or ask BayBay' : '搜索活动、指南，或问 BayBay'}</label><Search size={22} aria-hidden="true" /><input id={`${panelId}-search`} value={query} maxLength={500} placeholder={english ? 'Try “free museums” or “Where can I take my parents?”' : '搜「免费博物馆」，或问「带爸妈去哪？」'} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /><button type="submit" disabled={!query.trim()}>{isHomeQuestion(query) ? english ? 'Ask BayBay' : '问 BayBay' : english ? 'Search' : '搜索'}</button></form>
+    <p className="home-search-help">{english ? 'Search with keywords; ask BayBay with a full question. AI answers are a reference.' : '关键词搜索全站，完整问题交给 BayBay。AI 回答供参考。'}</p>
+    <nav className="home-search-suggestions" aria-label={english ? 'Quick discoveries' : '快速发现'}><Link to="/this-month?when=today">{english ? 'Today' : '今天'}</Link><Link to="/this-month?when=weekend&cost=free">{english ? 'Free this weekend' : '本周末免费'}</Link><Link to="/guides?q=%E6%97%A0%E8%BD%A6">{english ? 'Without a car' : '不开车也能去'}</Link></nav>
+    <p className="home-trust"><ShieldCheck size={18} aria-hidden="true" />{english ? 'Official sources · Check dates and conditions before you go' : '官方来源 · 核对日期逐条标注 · 出发前再查条件'}</p>
 
-  return <section className="home-discovery" aria-label="湾区阅读与探索">
-    <header className="home-discovery-heading">
-      <div><span className="home-discovery-eyebrow"><Compass size={14} aria-hidden="true" /> THE BAY, A LITTLE CLOSER</span><h1>湾区的日常，{locale === 'en' ? ' ' : null}<span>也值得期待。</span></h1><p>从一段散步、一份攻略，开始发现这里的生活。</p></div>
-      <div className="home-discovery-heading-side"><time dateTime={today}><MapPin size={13} aria-hidden="true" />湾区 · {dateLabel}</time><Link to="/explore">按地区找景点 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides?category=education">学校与学区 <ArrowUpRight size={17} aria-hidden="true" /></Link><Link to="/guides">读一篇生活指南 <ArrowUpRight size={17} aria-hidden="true" /></Link></div>
-    </header>
-
-    <nav className="home-reader-entry" aria-label={locale === 'en' ? 'Guides for your next step' : '按生活阶段找攻略'}>
-      <Link to="/guides?audience=visitor#reader-paths">{locale === 'en' ? 'Visiting the Bay Area' : '来湾区玩'}<ArrowUpRight size={15} /></Link>
-      <Link to="/guides?audience=new-resident#reader-paths">{locale === 'en' ? 'New to the Bay Area' : '刚搬来湾区'}<ArrowUpRight size={15} /></Link>
-      <Link to="/guides?audience=resident#reader-paths">{locale === 'en' ? 'Living here for years' : '已经住了很久'}<ArrowUpRight size={15} /></Link>
-    </nav>
-    <section className="home-baybay-intro" aria-labelledby="home-baybay-title">
-      <img src={BRAND.baybayAvatar} alt="" width={56} height={56} />
-      <div className="home-baybay-intro-copy">
-        <div><h2 id="home-baybay-title">嗨，我是 BayBay</h2><span>BAYLINK 的 AI 湾区生活助手</span></div>
-        <p>找活动和福利、排出游计划、读懂生活攻略。</p>
-      </div>
-      <button type="button" onClick={() => onAskBayBay()}>和 BayBay 聊聊<ArrowUpRight size={16} aria-hidden="true" /></button>
+    <section className="home-weekend" aria-labelledby={`${panelId}-weekend`}><div className="home-section-heading"><div><span className="home-section-kicker">{dateLabel(weekend.start)} — {dateLabel(weekend.end)}</span><h2 id={`${panelId}-weekend`}>{english ? 'Three ideas for this weekend' : '本周末，先看这三件事'}</h2></div><Link to="/this-month?when=weekend">{english ? `All ${weekend.total} events` : `全部 ${weekend.total} 场`}<ArrowRight size={18} aria-hidden="true" /></Link></div>
+      {weekend.picks.length ? <div className="home-weekend-list">{weekend.picks.map(({ event, date }) => <article key={event.id} className="home-weekend-card"><time dateTime={date}><CalendarDays size={18} aria-hidden="true" />{dateLabel(date)}</time><h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="home-weekend-facts">{event.city} · {event.venue}</p><p className="home-weekend-facts"><Ticket size={18} aria-hidden="true" />{event.costLabel}</p><p>{event.dateLabel}</p><p className="home-source">{event.sourceLabel} · {english ? 'Checked' : '核对'} {event.verifiedAt}</p><div className="home-weekend-actions"><Link className="home-tonal-button" to={`/plan?date=${date}&stops=${encodeURIComponent(`event:${event.id}`)}`}>{english ? 'Plan this day' : '加入这天计划'}</Link><a href={event.officialUrl} target="_blank" rel="noopener noreferrer">{english ? 'Official details' : '官方详情'}<ArrowUpRight size={16} aria-hidden="true" /></a></div></article>)}</div> : <div className="home-empty"><p>{english ? 'No confirmed events for this weekend yet. Try a year-round place or check the calendar.' : '这个周末暂没有已确认的活动，先看常设去处或换个日期。'}</p><Link to="/explore">{english ? 'Explore places' : '按地区找景点'}</Link></div>}
     </section>
 
-    <nav className="home-start-paths" aria-label={locale==='en'?'Start your Bay Area day':'开始安排湾区生活'}>
-      <Link to="/opus-bay?from=home" reloadDocument><span><TramFront size={22}/></span><div><strong>{locale==='en'?'Explore 3D San Francisco':'逛一圈 3D 旧金山'}</strong><small>{locale==='en'?'Meet a city. Find a place worth visiting.':'认识一座城，找到想去的地方。'}</small></div><ArrowUpRight size={17}/></Link>
-      <Link to="/calendar"><span><CalendarDays size={22}/></span><div><strong>{locale==='en'?'Find an event':'挑一场本地活动'}</strong><small>{locale==='en'?'Dates, places and people to go with.':'看日期、地点，也能找一起去的人。'}</small></div><ArrowUpRight size={17}/></Link>
-      <Link to="/plan"><span><Sparkles size={22}/></span><div><strong>{locale==='en'?'Plan with BayBay':'让 BayBay 排一天'}</strong><small>{locale==='en'?'Turn your ideas into a sourced itinerary.':'把想法变成有来源的出游安排。'}</small></div><ArrowUpRight size={17}/></Link>
-      <Link to="/together"><span><Users size={22}/></span><div><strong>{locale==='en'?'Find people to go with':'找搭子一起去'}</strong><small>{locale==='en'?'Find a small group. Agree on the details.':'先看时间地点，再申请加入小队。'}</small></div><ArrowUpRight size={17}/></Link>
-    </nav>
-    <div className="home-start-continue"><Link to="/my-week"><Ticket size={14}/>{locale==='en'?'Continue my saved plans':'继续我的收藏与计划'}<ArrowRight size={13}/></Link><button type="button" onClick={onBrowseCommunity}>{locale==='en'?'Find local posts':'找本地信息'}<ArrowDownRight size={13}/></button><Link to="/ai-in-the-bay">{locale==='en'?'Local AI events':'湾区 AI 活动'}<ArrowUpRight size={13}/></Link></div>
+    <section className="home-guide-selection" aria-labelledby={`${panelId}-guides`}><div className="home-section-heading"><h2 id={`${panelId}-guides`}>{english ? 'A guide for your next step' : '为你的下一步，选一篇指南'}</h2><Link to="/guides">{english ? `${guideCount} guides` : `${guideCount} 篇指南`}<ArrowRight size={18} aria-hidden="true" /></Link></div><div className="home-discovery-intents" role="group" aria-label={english ? 'Your next step' : '你想怎么发现湾区'}>{pathways.map(path => <button type="button" key={path.id} aria-pressed={intent === path.id} aria-controls={panelId} onClick={() => choose(path.id)}>{intent === path.id && <Check size={16} aria-hidden="true" />}{english ? path.en : path.label}</button>)}</div><div id={panelId} className="home-discovery-picks">{picks.map(guide => {
+      const image = getGuideMedia(guide).cover;
+      const provenance = getImageProvenance(image, english);
+      return <article key={guide.slug} className="home-guide-card"><Link to={`/guides/${guide.slug}`} className="home-discovery-pick"><div className={`home-discovery-image${image.kind === 'poster' || image.fullFrame ? ' home-discovery-image--full' : ''}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width:639px) calc(100vw - 32px), 340px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" /><span className="home-discovery-image-label">{provenance}</span></div><div><span>{guide.categoryLabel} · {guide.readMinutes} {english ? 'min read' : '分钟'}</span><h3>{guide.title}</h3><p>{guide.summary}</p></div></Link><details className="home-discovery-credits"><summary>{english ? 'Image source' : '图片来源'}</summary><p>{image.caption}</p><p>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : image.credit}{image.licenseUrl && <> · <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{english ? 'License' : '授权说明'}</a></>}</p></details></article>;
+    })}</div></section>
 
-    <div className="home-discovery-intents" role="group" aria-label="你想怎么发现湾区">
-      <span>今天想…</span>{discoveries.map(item => <button key={item.id} type="button" aria-pressed={intent === item.id} aria-controls={panelId} onClick={() => setIntent(item.id)}>{intent === item.id && <Check size={14} aria-hidden="true" />}{item.label}</button>)}
-      <Link to="/guides" className="home-discovery-count">{guides.length} 篇生活指南<ArrowUpRight size={13} aria-hidden="true" /></Link>
-    </div>
-
-    <div id={panelId} className="home-discovery-panel">
-      <div className="home-discovery-feature-grid">
-        <Link to="/this-month" className="home-discovery-feature home-discovery-edition" aria-label={`阅读${MONTHLY_EDITION.label}湾区月刊`}>
-          <DiscoveryImage image={editionImage} hero />
-          <div className="home-discovery-feature-copy"><span>BAYLINK · THE MONTHLY EDIT</span><h2>{currentEdition ? '给这个月，找一个出门的理由。' : '翻一翻，留些出游灵感。'}</h2><p>{currentEdition ? `${events.length} 场尚未结束的活动，附日期、费用与出发前提醒。` : `${MONTHLY_EDITION.label} 活动与去处记录，最新安排请查主办方。`}</p><div><small><CalendarDays size={14} aria-hidden="true" />{MONTHLY_EDITION.label} · {currentEdition ? '本月月刊' : editionPast ? '往期月刊' : '月刊预告'}</small><strong>{currentEdition ? '打开湾区月刊' : '翻阅这期月刊'}<ArrowUpRight size={17} aria-hidden="true" /></strong></div></div>
-        </Link>
-        <div className="home-discovery-timely">
-          {hero && heroImage && <Link to={`/guides/${hero.slug}`} className="home-discovery-guide" aria-label={`阅读：${hero.title}`}>
-            <DiscoveryImage image={heroImage} />
-            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><BookOpen size={13} aria-hidden="true" />{hero.categoryLabel} · {hero.readMinutes} 分钟读完</span><h2>{hero.title}</h2><p>{hero.summary}</p><strong>打开这篇攻略 <ArrowUpRight size={15} aria-hidden="true" /></strong></div>
-          </Link>}
-          {deals && <Link to={`/guides/${deals.slug}#freebie-board-0`} className="home-discovery-deals" aria-label={`查看${deals.title}的领取图鉴`}>
-            {offerImage && <DiscoveryImage image={offerImage} />}
-            <div className="home-discovery-timely-copy"><span className="home-discovery-card-kicker"><Ticket size={13} aria-hidden="true" />{dealsMonthLabel} · {dealsCurrent ? '本期福利' : dealsPast ? '往期福利' : '福利预告'}</span><h2>顺路领一份，<br />日常的小惊喜。</h2><p>{dealsPast ? '往期领取条件供回顾，不能当作实时优惠。' : '免费文化日、亲子手工和图书馆福利，先看日期、名额与领取条件。'}</p><strong>{dealsPast ? '查看往期领取记录' : '打开免费领取图鉴'}<ArrowUpRight size={15} aria-hidden="true" /></strong></div>
-          </Link>}
-        </div>
-      </div>
-
-      <div className="home-discovery-picks-heading"><p aria-live="polite">{selection.note}</p><Link to="/guides">继续发现<ArrowRight size={14} aria-hidden="true" /></Link></div>
-      <div className="home-discovery-picks">{picks.map(guide => <Link to={`/guides/${guide.slug}`} className="home-discovery-pick" key={guide.slug} aria-label={`阅读：${guide.title}`}><DiscoveryImage image={getGuideMedia(guide).cover} /><div><span>{guide.categoryLabel} · {guide.readMinutes} 分钟</span><h3>{guide.title}</h3><ArrowUpRight size={17} aria-hidden="true" /></div></Link>)}</div>
-    </div>
-
-    <PerksGallery compact />
-    <form className="home-discovery-ai" onSubmit={event => { event.preventDefault(); onAskBayBay(question.trim() || selection.question); }}>
-      <div className="home-discovery-ai-intro"><img src={BRAND.baybayAvatar} alt="" width={46} height={46} loading="lazy" /><div><strong>想法有了，怎么安排？</strong><span>AI 助手 BayBay 结合站内指南，帮你理一理。</span></div></div>
-      <label><span className="sr-only">告诉 BayBay 你的生活问题</span><input value={question} onChange={event => setQuestion(event.target.value)} placeholder={selection.placeholder} maxLength={500} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /></label><button type="submit"><Sparkles size={15} aria-hidden="true" />帮我安排<ArrowRight size={15} aria-hidden="true" /></button>
-    </form>
-    <DiscoveryCredits images={images} />
+    {offers.length > 0 && <section className="home-offers" aria-labelledby={`${panelId}-offers`}><div className="home-section-heading"><h2 id={`${panelId}-offers`}>{english ? 'Offers with a date' : '免费与优惠，先看日期与条件'}</h2><Link to="/this-month#monthly-perks">{english ? 'All offers' : '查看全部'}<ArrowRight size={18} aria-hidden="true" /></Link></div><div className="home-offer-list">{offers.map(offer => <article key={offer.id}><span className="home-section-kicker">{offer.brand}</span><h3><Link to={`/offers/${offer.id}`}>{offer.title}</Link></h3><p className="home-weekend-facts">{offer.dateLabel}</p><p>{offer.requirement}</p><a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer">{english ? 'Official conditions' : '官方领取条件'}<ArrowUpRight size={16} aria-hidden="true" /></a></article>)}</div></section>}
+    <section className="home-weekly-share"><a href="/weekly/all.png" download onClick={() => recordProductEvent('share_card_download')}>{english ? 'Share three ideas for this weekend' : '分享本周三件事'}</a><a href="webcal://www.baylink.us/calendars/all.ics">{english ? 'Subscribe to Bay Area event dates' : '订阅区域活动日历'}</a><p>{english ? 'Calendars update with site releases. Listings without confirmed times use all-day reminders, not reservations. In WeChat, open the card and press and hold to save it.' : '日历随网站发布更新；没有确认时段的活动使用全天提醒，不代表预约。在微信中打开分享图后，可长按保存。'}</p></section>
+    <nav className="home-useful-links" aria-label={english ? 'Useful next steps' : '办事与下一步'}><Link to="/guides/bay-area-rental-scam-guide">{english ? 'Avoid rental scams' : '租房防骗'}</Link><Link to="/tools">{english ? 'Messages, costs and conversions' : '英文消息、算账与换算'}</Link><Link to="/my-week">{english ? 'My saved plans' : '我的收藏与计划'}</Link><button type="button" onClick={onBrowseCommunity}>{english ? 'Neighborhood board' : '查看邻里信息'}</button></nav>
+    <Link to="/opus-bay?from=home" reloadDocument className="home-world-link"><TramFront size={28} aria-hidden="true" /><span><strong>{english ? '3D San Francisco' : '3D 旧金山 · 湾区小旅'}</strong><small>{english ? 'Explore the city, then read local guides. Opens a separate 3D experience.' : '先逛一座城，再读当地攻略。打开独立 3D 体验。'}</small></span><ArrowRight size={20} aria-hidden="true" /></Link>
   </section>;
 }

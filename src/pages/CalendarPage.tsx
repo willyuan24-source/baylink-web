@@ -25,10 +25,21 @@ export default function CalendarPage({ today: suppliedToday }: { today?: string 
   const view: CalendarView = params.get('view') === 'week' ? 'week' : 'month';
   const region = ATTRACTION_REGIONS.some(item => item.id === params.get('region')) ? params.get('region')! : 'all';
   const [focus, setFocus] = useState({ scope: '', city: '', point: '' });
+  const [desktop, setDesktop] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+  const showMap = desktop || mapOpen;
   const scope = `${date}:${region}`;
   const city = focus.scope === scope ? focus.city : '';
   const selectedId = focus.scope === scope ? focus.point : '';
   useEffect(() => { setPageMetadata(CALENDAR_METADATA); }, [locale]);
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const media = window.matchMedia('(min-width: 781px)');
+    const sync = () => setDesktop(media.matches);
+    sync();
+    if (media.addEventListener) media.addEventListener('change', sync); else media.addListener(sync);
+    return () => { if (media.removeEventListener) media.removeEventListener('change', sync); else media.removeListener(sync); };
+  }, []);
   useEffect(() => {
     const refresh = () => setToday(getBayAreaToday());
     const timer = window.setInterval(refresh, 60000); window.addEventListener('focus', refresh);
@@ -60,6 +71,18 @@ export default function CalendarPage({ today: suppliedToday }: { today?: string 
     <header className="ec-hero"><div><p className="ec-eyebrow"><CalendarDays size={15} /> BAY AREA / DAY BY DAY</p><h1>{t('翻开日历，看看哪天出门。')}</h1><p>{t('从一个日期开始，发现当天的湾区活动与地点。')}</p></div><Link to="/plan" className="ec-plan-link">{t('让 BayBay 帮我安排')} <ArrowUpRight size={17} /></Link></header>
     <div className="ec-toolbar"><div className="ec-view-switch" aria-label={t('日历视图')}><button type="button" aria-pressed={view === 'month'} onClick={() => update({ view: 'month' })}>{t('月历')}</button><button type="button" aria-pressed={view === 'week'} onClick={() => update({ view: 'week' })}>{t('周历')}</button></div><button type="button" className="ec-today" onClick={() => update({ date: today })}>{t('回到今天')}</button><label>{t('地区')}<select value={region} onChange={event => update({ region: event.target.value })}>{ATTRACTION_REGIONS.map(item => <option key={item.id} value={item.id}>{t(item.label)}</option>)}</select></label><label className="ec-date-jump">{t('跳到日期')}<input type="date" min="1900-01-01" max="2100-12-31" value={date} onChange={event => { if (validCalendarDay(event.target.value)) update({ date: event.target.value }); }} /></label></div>
     <div className="ec-layout">
+      <section className="ec-day-panel" aria-labelledby="ec-selected-day">
+        <div className="ec-day-heading"><div><p className="ec-eyebrow">{date === today ? t('今天的湾区') : past ? t('往日活动记录') : t('这一天的湾区')}</p><h2 id="ec-selected-day">{dateText(date)}</h2></div><span className="ec-count-badge">{countText(dayEvents.length)}</span></div>
+        <div className="ec-city-filter" aria-label={t('当天的城市与区域')}><button type="button" aria-pressed={!city} onClick={() => setFocus({ scope, city: '', point: '' })}>{t('全部地点')} <span>{dayEvents.length}</span></button>{cities.map(name => <button type="button" key={name} aria-pressed={city === name} onClick={() => setFocus({ scope, city: name, point: '' })}>{t(name)} <span>{dayEvents.filter(event => event.city === name).length}</span></button>)}</div>
+        <button type="button" className="ec-map-toggle" aria-expanded={showMap} aria-controls="ec-day-map" onClick={() => setMapOpen(open => !open)}><MapPin size={17} aria-hidden="true" />{locale === 'en' ? (showMap ? 'Hide event map' : 'Show event map') : locale === 'zh-Hant' ? (showMap ? '收起活動地圖' : '展開活動地圖') : (showMap ? '收起活动地图' : '展开活动地图')}</button>
+        <div id="ec-day-map" hidden={!showMap}>{showMap && <><Suspense fallback={<div className="ec-map-loading" role="status">{t('正在载入当天活动地图…')}</div>}><EventMap points={mapped.points} selectedId={selectedId} onSelect={id => setFocus({ scope, city, point: id })} /></Suspense>{mapped.unmapped.length > 0 && <p className="ec-data-note">{t('部分活动暂无已核实坐标，仍在下方列表展示。')}</p>}</>}</div>
+        {selectedPoint && <div className="ec-selected-place"><MapPin size={15} /><span>{t(selectedPoint.title)} · {countText(selectedPoint.count)}</span><button type="button" aria-label={t('清除地图地点筛选')} onClick={() => setFocus({ scope, city, point: '' })}><X size={16} />{t('查看全部')}</button></div>}
+        <div className="ec-event-list" aria-live="polite">{!visibleEvents.length ? <div className="ec-empty"><CalendarDays size={30} /><h3>{t('这一天，暂未收录活动。')}</h3><p>{t('试试日历上带标记的日期，或切换到其他地区。')}</p>{nearest && <button type="button" onClick={() => update({ date: nearest })}>{t('查看最近有活动的一天')} <ArrowRight size={15} /></button>}</div> : visibleEvents.map(event => {
+          const point = mapped.points.find(item => item.eventIds.includes(event.id));
+          const image = getListingImage(event.imageKey);
+          return <article key={event.id} className={`ec-event-card ec-event-${event.category}`}>{image && <div className="ec-event-media"><GuideFigure image={image} variant="preview" /></div>}<div className="ec-event-top"><span><i className={`ec-dot ec-dot-${event.category}`} />{t(categories.find(category => category.id === event.category)?.label || '')}</span>{past && <span>{t('已结束')}</span>}</div><h3><Link to={`/events/${event.id}`}>{t(event.title)}</Link></h3><p className="ec-event-meta"><MapPin size={14} />{t(event.city)} · {t(event.venue)}</p><p className="ec-event-meta"><CalendarDays size={14} />{t(event.dateLabel)}</p><p className="ec-event-cost"><Ticket size={14} />{t(event.costLabel)}</p>{EVENT_SCHEDULE_NOTES[event.id] && <p className="ec-schedule-note">{t(EVENT_SCHEDULE_NOTES[event.id])}</p>}<div className="ec-event-actions">{point && <button type="button" onClick={() => { setFocus({ scope, city, point: point.id }); setMapOpen(true); }}><MapPin size={14} />{t(point.precision === 'venue' ? '定位场馆' : '定位城市 / 区域')}</button>}<Link to={`/events/${event.id}`}>{t('活动详情')} <ArrowUpRight size={14} /></Link>{!past && <Link className="ec-add-plan" to={`/plan?date=${date}&stops=event:${event.id}`}>{t('加入这天计划')} <ArrowRight size={14} /></Link>}{!past && <Link to={`/together?event=${encodeURIComponent(event.id)}&date=${date}`}>{locale === 'en' ? 'Find a group for this date' : locale === 'zh-Hant' ? '找這天的搭子' : '找这天的搭子'} <ArrowUpRight size={14} /></Link>}<a href={event.officialUrl} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>{t('主办方')} <ArrowUpRight size={14} /></a></div></article>;
+        })}</div>
+      </section>
       <section className="ec-calendar-panel" aria-label={t('活动日期日历')}>
         <div className="ec-period-nav"><button type="button" aria-label={t(view === 'month' ? '上个月' : '上一周')} disabled={!validCalendarDay(shiftCalendarPeriod(date, view, -1))} onClick={() => update({ date: shiftCalendarPeriod(date, view, -1) })}><ChevronLeft size={19} /></button><h2 aria-live="polite">{periodLabel}</h2><button type="button" aria-label={t(view === 'month' ? '下个月' : '下一周')} disabled={!validCalendarDay(shiftCalendarPeriod(date, view, 1))} onClick={() => update({ date: shiftCalendarPeriod(date, view, 1) })}><ChevronRight size={19} /></button></div>
         <p className="ec-period-summary">{t('已收录活动')} <strong>{periodEvents.length}</strong> · {t('按湾区当地日期')}</p>
@@ -72,18 +95,6 @@ export default function CalendarPage({ today: suppliedToday }: { today?: string 
         <p className="ec-calendar-note">{t('圆点表示活动类型，数字表示当天场数。多日活动按已公布的活动日期展示，具体时段仍以主办方为准。')}</p>
         <div className="ec-help"><CalendarDays size={22} /><div><h3>{t('看见空白，也别错过下一次。')}</h3><p>{t('没有标记表示本站暂未收录，不代表当地没有活动。')}</p>{nearest && <button type="button" onClick={() => update({ date: nearest })}>{t('查看最近有活动的一天')} <ArrowRight size={15} /></button>}</div></div>
         <Link className="ec-editorial-link" to="/this-month">{t('继续逛月刊、优惠与攻略')} <ArrowUpRight size={15} /></Link>
-      </section>
-      <section className="ec-day-panel" aria-labelledby="ec-selected-day">
-        <div className="ec-day-heading"><div><p className="ec-eyebrow">{date === today ? t('今天的湾区') : past ? t('往日活动记录') : t('这一天的湾区')}</p><h2 id="ec-selected-day">{dateText(date)}</h2></div><span className="ec-count-badge">{countText(dayEvents.length)}</span></div>
-        <div className="ec-city-filter" aria-label={t('当天的城市与区域')}><button type="button" aria-pressed={!city} onClick={() => setFocus({ scope, city: '', point: '' })}>{t('全部地点')} <span>{dayEvents.length}</span></button>{cities.map(name => <button type="button" key={name} aria-pressed={city === name} onClick={() => setFocus({ scope, city: name, point: '' })}>{t(name)} <span>{dayEvents.filter(event => event.city === name).length}</span></button>)}</div>
-        <Suspense fallback={<div className="ec-map-loading" role="status">{t('正在载入当天活动地图…')}</div>}><EventMap points={mapped.points} selectedId={selectedId} onSelect={id => setFocus({ scope, city, point: id })} /></Suspense>
-        {mapped.unmapped.length > 0 && <p className="ec-data-note">{t('部分活动暂无已核实坐标，仍在下方列表展示。')}</p>}
-        {selectedPoint && <div className="ec-selected-place"><MapPin size={15} /><span>{t(selectedPoint.title)} · {countText(selectedPoint.count)}</span><button type="button" aria-label={t('清除地图地点筛选')} onClick={() => setFocus({ scope, city, point: '' })}><X size={16} />{t('查看全部')}</button></div>}
-        <div className="ec-event-list" aria-live="polite">{!visibleEvents.length ? <div className="ec-empty"><CalendarDays size={30} /><h3>{t('这一天，暂未收录活动。')}</h3><p>{t('试试日历上带标记的日期，或切换到其他地区。')}</p>{nearest && <button type="button" onClick={() => update({ date: nearest })}>{t('查看最近有活动的一天')} <ArrowRight size={15} /></button>}</div> : visibleEvents.map(event => {
-          const point = mapped.points.find(item => item.eventIds.includes(event.id));
-          const image = getListingImage(event.imageKey);
-          return <article key={event.id} className={`ec-event-card ec-event-${event.category}`}>{image && <div className="ec-event-media"><GuideFigure image={image} variant="preview" /></div>}<div className="ec-event-top"><span><i className={`ec-dot ec-dot-${event.category}`} />{t(categories.find(category => category.id === event.category)?.label || '')}</span>{past && <span>{t('已结束')}</span>}</div><h3><Link to={`/events/${event.id}`}>{t(event.title)}</Link></h3><p className="ec-event-meta"><MapPin size={14} />{t(event.city)} · {t(event.venue)}</p><p className="ec-event-meta"><CalendarDays size={14} />{t(event.dateLabel)}</p><p className="ec-event-cost"><Ticket size={14} />{t(event.costLabel)}</p>{EVENT_SCHEDULE_NOTES[event.id] && <p className="ec-schedule-note">{t(EVENT_SCHEDULE_NOTES[event.id])}</p>}<div className="ec-event-actions">{point && <button type="button" onClick={() => setFocus({ scope, city, point: point.id })}><MapPin size={14} />{t(point.precision === 'venue' ? '定位场馆' : '定位城市 / 区域')}</button>}<Link to={`/events/${event.id}`}>{t('活动详情')} <ArrowUpRight size={14} /></Link>{!past && <Link className="ec-add-plan" to={`/plan?date=${date}&stops=event:${event.id}`}>{t('加入这天计划')} <ArrowRight size={14} /></Link>}{!past && <Link to={`/together?event=${encodeURIComponent(event.id)}&date=${date}`}>{locale === 'en' ? 'Find a group for this date' : locale === 'zh-Hant' ? '找這天的搭子' : '找这天的搭子'} <ArrowUpRight size={14} /></Link>}<a href={event.officialUrl} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>{t('主办方')} <ArrowUpRight size={14} /></a></div></article>;
-        })}</div>
       </section>
     </div>
   </div>;

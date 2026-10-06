@@ -107,7 +107,7 @@ test('private controls translate into English and Traditional Chinese', async t 
   fireEvent.click(view.getByRole('button', { name: 'Adjust preferences' }));
   await act(async () => { await setLocale('zh-Hant'); });
   assert.ok(view.getByRole('heading', { name: '我的探索路線' }));
-  assert.ok(view.getByRole('button', { name: '收起設置' }));
+  assert.ok(view.getByRole('button', { name: '收起設定' }));
 });
 
 test('activity links lead directly to saved plans, owned groups and both booking roles', () => {

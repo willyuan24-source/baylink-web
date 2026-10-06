@@ -4,9 +4,50 @@ import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails } from './pl
 import { sourcedAdmissionSubtotal } from './baybay-admission-reference';
 
 export type BayBayPlanDraft = { version: 1; createdAt: number; ownerId?: string; title: string; date: string; stops: Stop[]; details: PlanDetails; requirements: BayBayTaskState; costReference: { knownTotalUsd?: number; unknownItems: string[] }; admissions: { stop: Stop; facts: BayBayAdmissionFacts }[] };
+export type BayBayRequirementsDraft = { version: 1; createdAt: number; ownerId?: string; message: string };
 export type BayBayAdmissionOverride = { active: boolean; knownTotalUsd: number; allAdmissionAmountsKnown?: boolean; unknownStops: Stop[]; unknowns: string[] };
 const drafts = new Map<string, BayBayPlanDraft>();
+const requirementsDrafts = new Map<string, BayBayRequirementsDraft>();
 const TTL = 30 * 60 * 1000;
+const MAX_DRAFTS = 4;
+
+export const validBayBayDraftId = (id: string | null): id is string =>
+  typeof id === 'string' && /^[a-f\d]{8}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{4}-[a-f\d]{12}$/i.test(id);
+
+function pruneDrafts(ownerId: string | undefined, now: number) {
+  for (const store of [drafts, requirementsDrafts]) {
+    for (const [id, draft] of store) {
+      if (draft.ownerId !== ownerId || draft.createdAt > now || now - draft.createdAt >= TTL) store.delete(id);
+    }
+  }
+}
+
+function reserveDraftSlot(ownerId: string | undefined, now: number) {
+  pruneDrafts(ownerId, now);
+  while (drafts.size + requirementsDrafts.size >= MAX_DRAFTS) {
+    const oldest = [...drafts.entries(), ...requirementsDrafts.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt)[0];
+    drafts.delete(oldest[0]); requirementsDrafts.delete(oldest[0]);
+  }
+}
+
+/** An unstructured requirement draft is private too: no URL text, persistence or automatic paid lookup. */
+export function stageBayBayRequirementsDraft(message: string, ownerId?: string, now = Date.now()): string | null {
+  if (typeof message !== 'string' || !Number.isFinite(now) || now < 0) return null;
+  const text = message.trim().slice(0, 800);
+  if (text.length < 2) return null;
+  reserveDraftSlot(ownerId, now);
+  const id = crypto.randomUUID();
+  requirementsDrafts.set(id, { version: 1, createdAt: now, ownerId, message: text });
+  return `/plan?${new URLSearchParams({ baybayBrief: id })}`;
+}
+
+export function readBayBayRequirementsDraft(id: string | null, ownerId?: string, now = Date.now()): BayBayRequirementsDraft | null {
+  if (!Number.isFinite(now) || now < 0) return null;
+  pruneDrafts(ownerId, now);
+  if (!validBayBayDraftId(id)) return null;
+  const draft = requirementsDrafts.get(id);
+  return draft?.version === 1 ? structuredClone(draft) : null;
+}
 
 /** Same-tab, bounded, expiring memory only. Private requirements never enter a URL or storage. */
 export function stageBayBayPlanDraft(plan: BayBayAssistantPlan, state: BayBayTaskState | undefined, ownerId?: string, now = Date.now()): string | null {
@@ -26,8 +67,7 @@ export function stageBayBayPlanDraft(plan: BayBayAssistantPlan, state: BayBayTas
       childAge: requirements.childAges?.length === 1 ? requirements.childAges[0] : undefined, partySize: requirements.partySize,
       travelMode: requirements.travelMode, freeOnly: requirements.freeOnly, setting: requirements.setting }),
   }, stops);
-  for (const [id, draft] of drafts) if (now - draft.createdAt > TTL || draft.ownerId !== ownerId) drafts.delete(id);
-  while (drafts.size >= 4) drafts.delete(drafts.keys().next().value!);
+  reserveDraftSlot(ownerId, now);
   const id = crypto.randomUUID();
   const costReference = { knownTotalUsd: typeof plan.budget.knownTotalUsd === 'number' && Number.isFinite(plan.budget.knownTotalUsd) && plan.budget.knownTotalUsd >= 0 && plan.budget.knownTotalUsd <= 1_000_000 ? plan.budget.knownTotalUsd : undefined, unknownItems: plan.budget.unknownItems.slice(0, 8).map(item => item.slice(0, 600)) };
   const admissions = stops.flatMap(stop => { const source = plan.stops.find(item => item.kind === stop.kind && item.entityId === stop.id); return source?.admissionFacts ? [{ stop, facts: structuredClone(source.admissionFacts) }] : []; });
@@ -37,16 +77,20 @@ export function stageBayBayPlanDraft(plan: BayBayAssistantPlan, state: BayBayTas
 }
 
 export function readBayBayPlanDraft(id: string | null, ownerId?: string, now = Date.now()): BayBayPlanDraft | null {
-  if (!id || !/^[a-f\d-]{36}$/i.test(id)) return null;
+  if (!Number.isFinite(now) || now < 0) return null;
+  if (!validBayBayDraftId(id)) return null;
   const draft = drafts.get(id);
-  if (!draft || draft.version !== 1 || draft.ownerId !== ownerId || draft.createdAt > now || now - draft.createdAt > TTL) return null;
+  if (!draft || draft.version !== 1 || draft.ownerId !== ownerId || draft.createdAt > now || now - draft.createdAt >= TTL) return null;
   return structuredClone(draft);
 }
 
 /** Original group prices apply only to the exact imported party, ages, date and ordered stops. Never persisted. */
 export function bayBayAdmissionOverride(draft: BayBayPlanDraft | null, date: string, stops: Stop[], details: PlanDetails, filters: PlanFilters = details.constraints || {}): BayBayAdmissionOverride | undefined {
   if (!draft?.admissions.length) return;
-  const active = date === draft.date && !!draft.requirements.partySize && details.partySize === draft.requirements.partySize
+  // An unspecified party keeps the imported form's default until the user changes it.
+  // Explicit, unsupported party sizes must still invalidate a normalized fallback.
+  const originalPartySize = draft.requirements.partySize ?? draft.details.partySize;
+  const active = date === draft.date && details.partySize === originalPartySize
     && JSON.stringify(stops) === JSON.stringify(draft.stops)
     && JSON.stringify(filters.childAges || []) === JSON.stringify(draft.requirements.childAges || [])
     && filters.childAge === draft.details.constraints?.childAge;

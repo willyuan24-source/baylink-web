@@ -69,15 +69,26 @@ test('W9-E shell: the share card — own title / description / canonical / hrefl
     assert.deepEqual(jpegSize(buf), [1200, 630], f);
     assert.ok(buf.length < 150_000, `${f}: ${buf.length} B`);
   }
-  const head = renderMetadataHtml(opusBayMetadata(new Date('2026-10-02T09:00:00-07:00'))) + opusBayHeadExtras();
+  const head = renderMetadataHtml({ ...opusBayMetadata(new Date('2026-10-02T09:00:00-07:00')), locale: 'zh_CN' }) + opusBayHeadExtras();
   for (const s of ['<title>湾区小旅 · 跟 BAYBAY 逛旧金山｜BAYLINK</title>', '<link rel="canonical" href="https://www.baylink.us/opus-bay" />', 'content="https://www.baylink.us/opus-bay/og-halloween.jpg"',
     '<meta name="twitter:card" content="summary_large_image" />', '<meta property="og:url" content="https://www.baylink.us/opus-bay" />', '<meta property="og:image:width" content="1200" />',
     '<meta property="og:image:alt"']) assert.ok(head.includes(s), s);
   assert.ok(!head.includes('baylink-app-icon'), 'not the site icon');
   assert.ok(!head.includes('Opus Bay'), 'no user-visible "Opus Bay" (review §10.1)');
-  // (W9-E-review, E-RC-4) this expected four hreflang links (zh-Hant / en → /opus-bay?lang=…); they are gone: one file
-  // serves every ?lang with canonical /opus-bay, and alternates that are not their own canonical are ignored by Google
-  assert.ok(!head.includes('hreflang'), 'no hreflang cluster that contradicts the canonical');
+  // Each language now has its own prefixed page and canonical. The former ?lang alternates remain invalid.
+  for (const [language, url] of [['zh-Hans', '/opus-bay'], ['zh-Hant', '/zh-Hant/opus-bay'], ['en', '/en/opus-bay'], ['x-default', '/opus-bay']]) {
+    assert.ok(head.includes(`<link rel="alternate" hreflang="${language}" href="https://www.baylink.us${url}" data-baylink-language />`), language);
+  }
+  assert.doesNotMatch(head, /href="[^"]*\?lang=/, 'language alternates use their own canonical paths');
+  for (const [locale, prefix, lang] of [['zh_CN', '', 'zh'], ['zh_TW', '/zh-Hant', 'zh'], ['en_US', '/en', 'en']] as const) {
+    const edition = renderMetadataHtml({ ...opusBayMetadata(new Date('2026-10-02T09:00:00-07:00'), lang), locale }) + opusBayHeadExtras(locale);
+    assert.equal((edition.match(/property="og:image:alt"/g) || []).length, 1, 'one unambiguous image description');
+    assert.ok(!edition.includes(`<meta property="og:locale:alternate" content="${locale}"`), 'an edition does not list itself as an alternate');
+    if (lang === 'en') assert.ok(edition.includes(OPUS_BAY_OG.alt.en), 'English share cards use English image descriptions');
+    assert.ok(edition.includes(`<link rel="canonical" href="https://www.baylink.us${prefix}/opus-bay" />`), locale);
+    assert.ok(edition.includes(`<meta property="og:url" content="https://www.baylink.us${prefix}/opus-bay" />`), locale);
+    assert.ok(edition.includes(`<meta property="og:locale" content="${locale}" />`), locale);
+  }
 });
 
 test('W9-E shell: the wiring — vercel.json serves /opus-bay.html (not the homepage), prerender writes it, App shows the same shell while the route chunk loads, OpusBayPage keeps the share image', () => {

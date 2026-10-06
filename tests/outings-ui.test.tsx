@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { after, afterEach, beforeEach } from 'node:test';
+import test, { after, afterEach, beforeEach, type TestContext } from 'node:test';
 import { registerHooks } from 'node:module';
 import React from 'react';
 import { JSDOM } from 'jsdom';
@@ -61,6 +61,11 @@ const consent = (view: ReturnType<typeof render>) => {
   fireEvent.click(view.getByRole('checkbox', { name: /我已年满 18 岁/ }));
   fireEvent.click(view.getByRole('checkbox', { name: /我已自行核对集合地点/ }));
 };
+function navigatorFeature(t: TestContext, key: 'share' | 'clipboard', value: unknown) {
+  const descriptor = Object.getOwnPropertyDescriptor(navigator, key);
+  Object.defineProperty(navigator, key, { configurable: true, value });
+  t.after(() => { if (descriptor) Object.defineProperty(navigator, key, descriptor); else Reflect.deleteProperty(navigator, key); });
+}
 beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); localStorage.clear(); signIn(host); await setLocale('zh-Hans'); });
 afterEach(() => cleanup());
 after(() => { styles.deregister(); dom.window.close(); });
@@ -848,4 +853,49 @@ test('old outing list rows gain designed or linked-event covers while keeping fa
     assert.ok(within(card).getByText(`${initial.city} · ${initial.venue}`));
     assert.ok(within(card).getByText('还可接受 2 人 · 需发起人确认'));
   }
+});
+
+test('a guest can copy the locale-specific public invitation without signing in or sharing private fields', async t => {
+  signIn(null); await setLocale('en', false);
+  const current = outing({ description: 'PRIVATE_DESCRIPTION', venue: 'PRIVATE_VENUE' });
+  let copied = '', logins = 0;
+  navigatorFeature(t, 'clipboard', { writeText: async (value: string) => { copied = value; } });
+  t.mock.method(api, 'request', async () => ({ outing: current }));
+  const view = render(detail(null, { setShowLogin: () => { logins++; } }));
+  const copy = await view.findByRole('button', { name: 'Copy invitation link' });
+  await act(async () => fireEvent.click(copy));
+  assert.equal(copied, 'https://www.baylink.us/en/together?outing=outing-fixture');
+  assert.equal(logins, 0);
+  assert.doesNotMatch(copied, /PRIVATE_|member|note|contact/);
+  assert.ok(view.getByRole('status').textContent?.includes('Public invitation link copied.'));
+});
+
+test('native sharing projects only the original public title and invitation URL from a host DTO', async t => {
+  const current = outing({ me: { userId: host.id, role: 'host', status: 'confirmed', confirmedVersion: 2 }, description: 'PRIVATE_DESCRIPTION',
+    members: [{ userId: user.id, nickname: 'Member', role: 'member', status: 'requested', confirmedVersion: 0, note: 'PRIVATE_NOTE' }], requestCount: 1 });
+  let payload: ShareData | undefined;
+  navigatorFeature(t, 'share', async (value: ShareData) => { payload = value; });
+  t.mock.method(api, 'request', async path => path.endsWith('/messages') ? { messages: [], nextCursor: null } : { outing: current });
+  const view = render(detail(host));
+  const share = await view.findByRole('button', { name: '分享公开邀请' });
+  await act(async () => fireEvent.click(share));
+  assert.deepEqual(payload, { title: current.title, url: 'https://www.baylink.us/together?outing=outing-fixture' });
+  assert.doesNotMatch(JSON.stringify(payload), /PRIVATE_|members|contact|requestCount/);
+});
+
+test('clipboard failure exposes a selectable public URL and never claims copying succeeded', async t => {
+  signIn(null);
+  navigatorFeature(t, 'clipboard', { writeText: async () => { throw new Error('Clipboard permission denied'); } });
+  t.mock.method(api, 'request', async () => ({ outing: outing() }));
+  const view = render(detail(null));
+  const copy = await view.findByRole('button', { name: '复制邀请链接' });
+  await act(async () => fireEvent.click(copy));
+  const field = view.getByRole('textbox', { name: '公开邀请链接' }) as HTMLInputElement;
+  assert.equal(field.value, 'https://www.baylink.us/together?outing=outing-fixture');
+  assert.equal(field.readOnly, true);
+  fireEvent.click(view.getByRole('button', { name: '选择链接' }));
+  assert.equal(document.activeElement === field, true);
+  assert.equal(field.selectionStart, 0); assert.equal(field.selectionEnd, field.value.length);
+  assert.ok(view.getByRole('status').textContent?.includes('手动复制'));
+  assert.equal(view.queryByText('公开邀请链接已复制。') === null, true);
 });

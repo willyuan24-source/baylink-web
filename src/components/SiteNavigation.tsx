@@ -1,57 +1,30 @@
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowUpRight, BookOpen, Compass, Home, MapPin, MessageCircle, Plus, ShieldCheck, Sparkles, TramFront, UserRound, Wrench } from 'lucide-react';
+import { BookOpen, CalendarDays, Home, ShieldCheck, Sparkles, TramFront, UserRound, Users } from 'lucide-react';
 import { BRAND } from '../brandAssets';
-import { CATEGORIES } from '../lib/constants';
-import { getSlugFromCategory } from '../routing';
+import { primaryNavigationPath } from '../lib/ui-navigation';
+import { useLocale } from '../i18n/locale';
 import type { UserData } from '../lib/types';
 import Avatar from './Avatar';
+import { unprefixedPath } from '../lib/language-path';
 
 type Props = {
-  active: string;
-  category: string;
-  homeActive: boolean;
-  user: UserData | null;
-  notification: boolean;
-  notificationCount: number;
-  onCreate: () => void;
-  onAsk: () => void;
-  onAccount: () => void;
+  active: string; category: string; homeActive: boolean; user: UserData | null;
+  notification: boolean; notificationCount: number; onCreate: () => void;
+  onAsk: () => void; onAccount: () => void;
 };
 
-export function SiteNavigation({ active, category, homeActive, user, notification, notificationCount, onCreate, onAsk, onAccount }: Props) {
-  // W9-E-switch: 小小湾区 · Little Bay is the 3D San Francisco game now (/play redirects there)
-  // (W9-E-review, E-RC-3) entered with a full page load like every other entry: a client-side entry left the game's
-  // store (phase 'playing') and window listeners behind after Back, and the next entry skipped the title and Start
-  const littleBayActive = /^\/(?:opus-bay|play)\/?$/.test(useLocation().pathname);
+export function SiteNavigation({ user, notification, notificationCount, onAsk, onAccount }: Props) {
+  const pathname = unprefixedPath(useLocation().pathname).replace(/\/$/, '') || '/';
+  const current = primaryNavigationPath(pathname);
+  const locale = useLocale();
+  const english = locale === 'en';
+  const anonymousName = english ? 'Neighbor' : locale === 'zh-Hant' ? '鄰居' : '邻居';
   const links = [
-    { href: '/', label: '发现湾区', sub: 'Discover', icon: Home, current: homeActive },
-    { href: '/guides', label: '生活指南', sub: 'Local guides', icon: BookOpen, current: active === 'guides' },
-    { href: '/explore', label: '景点探索', sub: 'Places & day trips', icon: MapPin, current: active === 'explore' && !littleBayActive },
-    { href: '/opus-bay?from=nav', label: '小小湾区', sub: 'Little Bay', icon: TramFront, current: littleBayActive },
-    { href: '/tools', label: '生活工具箱', sub: 'Everyday tools', icon: Wrench, current: active === 'tools' },
-    { href: '/recommend', label: '编辑精选', sub: 'Our picks', icon: Compass, current: active === 'notifications' },
-    { href: '/messages', label: '消息', sub: 'Conversations', icon: MessageCircle, current: active === 'messages' },
-    { href: '/me', label: '我的空间', sub: 'My space', icon: UserRound, current: active === 'profile' },
+    { href: '/', label: english ? 'Home' : '首页', icon: Home },
+    { href: '/calendar', label: english ? 'Events' : '活动', icon: CalendarDays },
+    { href: '/guides', label: english ? 'Guides' : '指南', icon: BookOpen },
+    { href: '/me', label: english ? 'My space' : '我的', icon: UserRound },
   ];
-  return (
-    <aside className="site-sidebar">
-      <Link to="/" className="site-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="180" height="48" /><span>湾区生活，从这里连接</span></Link>
-      <div className="site-nav-label">YOUR BAY AREA, CONNECTED</div>
-      <nav className="site-nav" aria-label="主要导航">
-        {links.map(({ href, label, sub, icon: Icon, current }) => <Link key={href} to={href} reloadDocument={href.startsWith('/opus-bay')} aria-current={current ? 'page' : undefined} className={`site-nav-link ${current ? 'is-active' : ''}`}><Icon size={20} strokeWidth={current ? 2 : 1.7} /><span>{label}<small>{sub}</small></span>{href === '/messages' && notification && <b className="site-unread">{notificationCount || '•'}</b>}{current && <span className="site-nav-dot" />}</Link>)}
-      </nav>
-      <div className="site-legal"><Link to="/calendar">活动日历</Link><Link to="/plan">智能出游计划</Link><Link to="/my-week">我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动</Link></div>
-      <button type="button" onClick={onCreate} className="site-publish"><Plus size={19} /> 发布信息<ArrowUpRight size={16} /></button>
-      <div className="site-category-nav">
-        <div className="site-nav-label">探索生活分类</div>
-        <div>{CATEGORIES.map((label) => <Link key={label} to={`/category/${getSlugFromCategory(label)}`} aria-current={category === label && homeActive ? 'page' : undefined} className={category === label && homeActive ? 'is-active' : ''}>{label}</Link>)}</div>
-      </div>
-      <button type="button" className="site-baybay-note" onClick={onAsk}><Sparkles size={17} /><span>生活小事，问问 BayBay<small>你的 AI 湾区生活助手</small></span><ArrowUpRight size={15} /></button>
-      <div className="site-sidebar-bottom">
-        <Link to="/guides/baylink-safety-guide" className="site-safety-link"><ShieldCheck size={15} /> 安心连接，从了解开始</Link>
-        <button type="button" onClick={onAccount} className="site-account"><Avatar theme={user?.profileTheme} src={user?.avatar} name={user?.nickname || '邻居'} size={10} /><span><strong translate={user?.nickname ? 'no' : undefined}>{user?.nickname || '你好，新邻居'}</strong><small>{user ? '查看我的空间' : '登录，开启你的湾区生活'}</small></span><ArrowUpRight size={16} /></button>
-        <div className="site-legal"><Link to="/about">关于我们</Link><Link to="/terms">条款</Link><Link to="/privacy">隐私</Link><Link to="/sms-consent">短信说明</Link><span>© {new Date().getFullYear()} BAYLINK</span></div>
-      </div>
-    </aside>
-  );
+  const link = ({ href, label, icon: Icon }: typeof links[number]) => <Link key={href} to={href} aria-current={current === href ? 'page' : undefined} className={`site-nav-link${current === href ? ' is-active' : ''}`}><Icon size={20} aria-hidden="true" /><span>{label}</span>{href === '/me' && notification && <b className="site-unread" aria-label={english ? 'Unread messages' : '未读消息'}>{notificationCount || '•'}</b>}</Link>;
+  return <aside className="site-sidebar site-sidebar--focused"><Link to="/" className="site-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="180" height="48" /><span>{english ? 'Local life, with sources' : '湾区生活，有据可查'}</span></Link><nav className="site-nav" aria-label={english ? 'Main navigation' : '主要导航'}>{links.slice(0, 2).map(link)}<button type="button" className="site-nav-link site-nav-ask" onClick={onAsk}><Sparkles size={20} aria-hidden="true" /><span>{english ? 'Ask BayBay' : '问 BayBay'}</span></button>{links.slice(2).map(link)}</nav><nav className="site-secondary-nav" aria-label={english ? 'More discoveries' : '更多探索'}><Link to="/category/rent"><Users size={18} aria-hidden="true" />{english ? 'Neighborhood board' : '邻里信息'}</Link><Link to="/opus-bay?from=nav" aria-current={pathname === '/opus-bay' || pathname === '/play' ? 'page' : undefined} reloadDocument><TramFront size={18} aria-hidden="true" />{english ? '3D San Francisco' : '3D 旧金山'}</Link><Link to="/archive" aria-current={pathname === "/archive" ? "page" : undefined}><BookOpen size={18} aria-hidden="true" />{english ? "Published directory" : "已发布内容目录"}</Link><Link to="/about"><ShieldCheck size={18} aria-hidden="true" />{english ? 'About & sources' : '关于与核验方法'}</Link></nav><div className="site-sidebar-bottom"><button type="button" onClick={onAccount} className="site-account"><Avatar theme={user?.profileTheme} src={user?.avatar} name={user?.nickname || anonymousName} size={10} /><span><strong translate={user?.nickname ? 'no' : undefined}>{user?.nickname || (english ? 'Sign in' : '登录')}</strong><small>{user ? english ? 'Account settings' : '账号设置' : english ? 'Saved items work without signing in' : '不登录也能收藏与查指南'}</small></span></button><div className="site-legal"><Link to="/terms">{english ? 'Terms' : '条款'}</Link><Link to="/privacy">{english ? 'Privacy' : '隐私'}</Link><Link to="/sms-consent">{english ? 'SMS' : '短信说明'}</Link><span>© {new Date().getFullYear()} BAYLINK</span></div></div></aside>;
 }

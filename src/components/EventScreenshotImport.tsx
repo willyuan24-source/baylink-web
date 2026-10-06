@@ -51,7 +51,7 @@ export function EventImportDialog({ userId, event, onClose }: { userId?: string;
     setError(''); setImage(''); setFileName(''); setPreparing(true);
     try {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 10 * 1024 * 1024) throw new Error('请选择不超过 10 MB 的 JPG、PNG 或 WebP 图片。');
-      const compressed = await compressImageFile(file, { maxWidth: 1800, maxHeight: 1800, quality: .86, skipBelowBytes: 1024 * 1024 });
+      const compressed = await compressImageFile(file, { maxWidth: 1800, maxHeight: 1800, quality: .86, maxOutputBytes: 2 * 1024 * 1024 });
       if (compressed.file.size > 2 * 1024 * 1024) throw new Error('图片压缩后仍过大，请裁剪到活动信息区域后重试。');
       const data = await fileToDataUrl(compressed.file);
       if (sequence !== generation.current) return;

@@ -31,7 +31,6 @@ export const october2026NewcomerGuides: Guide[] = [
     ],
     "readMinutes": 8,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "官方交通、场馆与公园资料核验于 2026-10-02。下列时段、路线组合、步行量和预算为 BAYLINK 编辑估算；不代表导览团、实时班次或商家报价。场馆门票、活动封路与天气需按实际出行日复核。",
     "sources": [
       {
@@ -217,7 +216,6 @@ export const october2026NewcomerGuides: Guide[] = [
     ],
     "readMinutes": 8,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "机场和运营方资料核验于 2026-10-02；已单独检查 SJC Terminal A 临时站公告。路线选择与预留时间为编辑建议，不是当天末班车保证。票价、网约车上车区、酒店接驳和无障碍设施须在落地后再次核对。",
     "sources": [
       {
@@ -387,7 +385,6 @@ export const october2026NewcomerGuides: Guide[] = [
     ],
     "readMinutes": 9,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "官方办事入口核验于 2026-10-02。第 1、7、30 天是编辑安排任务的节奏，不是政府期限、资格结论或所有人必须完成的手续。身份、驾照、学校、保险及机构地址通知要求，应按个人情况向对应机构确认。",
     "sources": [
       {
@@ -572,7 +569,6 @@ export const october2026NewcomerGuides: Guide[] = [
     ],
     "readMinutes": 8,
     "updatedAt": "2026-10-02",
-    "editionMonth": "2026-10",
     "sourceNote": "交通网络与官方规划入口核验于 2026-10-02。居住匹配、测试方法和成本例子为编辑分析；不对城市作统一安全或租金排名，不承诺门到门时长。按实际门牌、上班日和回家时间重新查询。",
     "sources": [
       {

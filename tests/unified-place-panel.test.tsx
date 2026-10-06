@@ -56,7 +56,7 @@ test('regional reader connects existing guide and planner without offering dupli
   const view = render(<UnifiedPlacePanel place={place} locale="en" date="2026-09-25" addedPlaceIds={[]} onAddPlace={id => additions.push(id)} onClose={() => {}} onNavigate={() => {}} />);
   await act(async () => { await loadSfGuidePreview(place.guideSlug!, 'en'); });
   await waitFor(() => assert.ok(view.getByRole('link', { name: 'Read full guide' })));
-  assert.equal(view.getByRole('link', { name: 'Read full guide' }).getAttribute('href'), `/guides/${place.guideSlug}?lang=en`);
+  assert.equal(view.getByRole('link', { name: 'Read full guide' }).getAttribute('href'), `/en/guides/${place.guideSlug}`);
   fireEvent.click(view.getByRole('button', { name: 'Add to my day' })); assert.deepEqual(additions, ['stanford']);
   view.rerender(<UnifiedPlacePanel place={place} locale="en" date="2026-09-25" addedPlaceIds={['stanford']} onAddPlace={id => additions.push(id)} onClose={() => {}} onNavigate={() => {}} />);
   assert.equal((view.getByRole('button', { name: 'Added to my day' }) as HTMLButtonElement).disabled, true);

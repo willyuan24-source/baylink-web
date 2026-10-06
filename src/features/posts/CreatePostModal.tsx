@@ -18,6 +18,7 @@ import {
   type ContactMethodField, type ContactPreferenceValue,
 } from '../../components/ContactPreferenceForm';
 import { analyzeContactsInText } from '../../utils/contactDetection';
+import { appendPostTags, needsFairHousingReview, FAIR_HOUSING_SOURCE } from '../../lib/post-writing';
 import {
   compressImageFile, fileToDataUrl, isLikelyImageFile,
   MAX_IMAGE_UPLOAD_BYTES, UnsupportedImageError,
@@ -121,7 +122,7 @@ const mergeContactMethod = (
   };
 };
 
-export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailability, user, showToast, defaultType = 'client', defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
+export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailability, user, showToast, defaultType, defaultCategory, initialIntent = '', mode = 'create', editingPost }: {
   onClose: () => void;
   onCreated: () => void;
   onUpdated?: () => void;
@@ -135,7 +136,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   editingPost?: PostData | null;
 }) => {
   const isEdit = mode === 'edit' && !!editingPost;
-  const [step, setStep] = useState(isEdit || initialIntent.trim() ? 2 : 1);
+  const [typeChosen, setTypeChosen] = useState(isEdit || !!defaultType);
+  const [step, setStep] = useState(isEdit || defaultType ? 2 : 1);
   const [createdPostId, setCreatedPostId] = useState('');
   const [savedDraft, setSavedDraft] = useState(() => isEdit ? null : readPostDraft(user.id));
   const [draftReady, setDraftReady] = useState(() => isEdit || !savedDraft);
@@ -189,15 +191,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   const [confirmAvailability, setConfirmAvailability] = useState(false);
 
   useEffect(() => {
-    if (isEdit || !draftReady || isSuccess || draftCompleted.current) return;
+    if (isEdit || !typeChosen || !draftReady || isSuccess || draftCompleted.current) return;
     const draft: PostDraft = { version: 1, updatedAt: Date.now(), form, contactPreference, aiIntent, step,
       defaultCoverUrl: selectedDefaultCover?.url || null, hadPhotos: uploadedImages.length > 0 || missingDraftPhotos };
     setDraftSaveState(savePostDraft(user.id, draft) ? (hasPostDraftContent(draft) ? 'saved' : 'empty') : 'failed');
-  }, [isEdit, draftReady, isSuccess, user.id, form, contactPreference, aiIntent, step, selectedDefaultCover, uploadedImages.length, missingDraftPhotos]);
+  }, [isEdit, typeChosen, draftReady, isSuccess, user.id, form, contactPreference, aiIntent, step, selectedDefaultCover, uploadedImages.length, missingDraftPhotos]);
 
   const restoreDraft = () => {
     if (!savedDraft) return;
     setForm(savedDraft.form);
+    setTypeChosen(true);
     setContactPreference(savedDraft.contactPreference);
     setAiIntent(savedDraft.aiIntent);
     setStep(savedDraft.step);
@@ -229,20 +232,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   const categoryClass = (active: boolean) => `member-category-choice${active ? ' member-category-choice--active' : ''}`;
 
   const addTagToDesc = (tag: string) => {
-    setForm((prev) => ({ ...prev, description: prev.description ? `${prev.description} #${tag} ` : `#${tag} ` }));
-  };
-
-  const appendQuickTagsToDescription = (description: string, tags: string[]) => {
-    const normalized = tags
-      .map((t) => String(t).replace(/\s+/g, '').replace(/^#/, '').trim())
-      .filter(Boolean)
-      .slice(0, 5);
-    const desc = description.trim();
-    const existingTags = new Set((desc.match(/#[^\s#]+/g) || []).map((tag) => tag.slice(1).toLowerCase()));
-    const missing = normalized.filter((tag) => !existingTags.has(tag.toLowerCase()));
-    if (missing.length === 0) return desc;
-    const suffix = missing.map((t) => `#${t}`).join(' ');
-    return `${desc}\n\n${suffix}`.trim();
+    setForm((prev) => ({ ...prev, description: appendPostTags(prev.description, [tag]) }));
   };
 
   const applyAiDraft = (draft: AiPostDraft, options?: { appendQuickTags?: boolean }) => {
@@ -251,10 +241,10 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       if (draft.title?.trim()) next.title = draft.title.trim();
       let description = draft.description?.trim() || '';
       if (options?.appendQuickTags && draft.quickTags?.length) {
-        description = appendQuickTagsToDescription(description, draft.quickTags);
+        description = appendPostTags(description, draft.quickTags);
       }
       if (description) next.description = description;
-      if (draft.type === 'client' || draft.type === 'provider') next.type = draft.type;
+      // The user's supply/demand choice remains authoritative; AI may only fill content.
       const catLabel = getCategoryFromSlug(draft.category);
       if (catLabel && catLabel !== '全部' && CATEGORIES.includes(catLabel)) next.category = catLabel;
       if (draft.budget?.trim()) next.budget = draft.budget.trim();
@@ -311,11 +301,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             showToast(err.message, 'error');
             continue;
           }
-          console.warn('[CreatePost] image compress/read failed, using original', err);
-          try {
-            const dataUrl = await fileToDataUrl(file);
-            newImages.push(dataUrl);
-          } catch { /* skip broken file */ }
+          showToast('这张照片无法安全处理，请换一张照片；原文件未上传。', 'error');
         }
       }
 
@@ -337,6 +323,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
 
   const handleSubmit = async () => {
     if (submittingRef.current) return;
+    if (!typeChosen) return showToast('请先选择提供资源或发布需求。', 'info');
     if (imageProcessingRef.current) return showToast('照片还在处理中，请稍候再提交。', 'info');
     const err = validatePostForm(form);
     if (err) return showToast(err, 'error');
@@ -446,29 +433,29 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
           <div className="member-compose-step space-y-6">
             <div>
               <label className="block text-sm font-semibold text-baylink-text mb-0.5">你想发布什么？</label>
-              <p className="text-[11px] text-baylink-muted mb-3">选择后，我们会帮你匹配更合适的展示方式</p>
+              <p className="text-sm leading-relaxed text-baylink-muted mb-3">先明确你在提供资源，还是寻找资源；发布后会按这个类型展示。</p>
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => setForm({...form, type: 'client'})}
-                  aria-pressed={form.type === 'client'}
-                  className={`member-compose-type ${typeCardClass(form.type==='client')}`}
+                  onClick={() => { setForm({...form, type: 'client'}); setTypeChosen(true); }}
+                  aria-pressed={typeChosen && form.type === 'client'}
+                  className={`member-compose-type ${typeCardClass(typeChosen && form.type==='client')}`}
                 >
                   <span className="member-compose-type-icon"><Search size={24} aria-hidden="true" /></span>
-                  {form.type === 'client' && <span className="member-compose-selected">当前选择</span>}
+                  {typeChosen && form.type === 'client' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">发布需求</div>
-                  <div className="text-[11px] mt-1 leading-snug">找房、找人帮忙、找服务</div>
+                  <div className="text-sm mt-1 leading-snug">求租、求购、求助、找服务</div>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({...form, type: 'provider'})}
-                  aria-pressed={form.type === 'provider'}
-                  className={`member-compose-type ${typeCardClass(form.type==='provider')}`}
+                  onClick={() => { setForm({...form, type: 'provider'}); setTypeChosen(true); }}
+                  aria-pressed={typeChosen && form.type === 'provider'}
+                  className={`member-compose-type ${typeCardClass(typeChosen && form.type==='provider')}`}
                 >
                   <span className="member-compose-type-icon"><Store size={24} aria-hidden="true" /></span>
-                  {form.type === 'provider' && <span className="member-compose-selected">当前选择</span>}
+                  {typeChosen && form.type === 'provider' && <span className="member-compose-selected">当前选择</span>}
                   <div className="text-sm font-bold leading-tight">提供资源</div>
-                  <div className="text-[11px] mt-1 leading-snug">房源、二手、服务、接送</div>
+                  <div className="text-sm mt-1 leading-snug">出租、出售、提供服务</div>
                 </button>
               </div>
             </div>
@@ -480,7 +467,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                 ))}
               </div>
             </div>
-            <div className="member-compose-actions"><button type="button" disabled={imageCompressing || submitting} onClick={() => { if (!imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
+            <div className="member-compose-actions"><button type="button" disabled={!typeChosen || imageCompressing || submitting} onClick={() => { if (typeChosen && !imageProcessingRef.current && !submittingRef.current) setStep(2); }} className="member-primary w-full disabled:opacity-50">下一步<ArrowRight size={16} aria-hidden="true" /></button></div>
           </div>
         )}
 
@@ -520,10 +507,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             {hints.quickTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hints.quickTags.map((tag) => (
-                  <button key={tag} type="button" onClick={() => addTagToDesc(tag)} className="text-[11px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
+                  <button key={tag} type="button" aria-label={`确认并添加标签 ${tag}`} onClick={() => addTagToDesc(tag)} className="text-[11px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
                 ))}
               </div>
             )}
+            {hints.quickTags.length > 0 && <p className="px-0.5 text-[11px] text-baylink-muted">确认实际条件后再加标签，例如包水电、可养宠物；标签会公开显示。</p>}
             {hints.checklist.length > 0 && (
               <p className="text-[11px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
             )}
@@ -541,6 +529,13 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                 onChange={e => { setForm({ ...form, description: e.target.value }); setContactWarningDismissed(false); }}
               />
             </div>
+            {form.type === 'provider' && form.category === '租屋' && (
+              <div className={`rounded-xl border p-3 text-[11px] leading-relaxed ${needsFairHousingReview(`${form.title}\n${form.description}`) ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-baylink-border bg-baylink-section text-baylink-text-secondary'}`}>
+                <p>租房描述建议写房屋条件、租金、入住人数和生活习惯。涉及族裔、国籍、家庭或其他受保护身份的筛选条件，请先核对公平住房规则；共用生活空间等例外需结合实际情况确认。</p>
+                {needsFairHousingReview(`${form.title}\n${form.description}`) && <p className="mt-1 font-semibold">这段文字可能包含身份筛选条件，请在发布前检查上下文和适用规则。</p>}
+                <a href={FAIR_HOUSING_SOURCE} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-semibold underline">查看 California CRD 公平住房说明</a>
+              </div>
+            )}
             <p className="px-0.5 text-[11px] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
             {showContactWarning && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">

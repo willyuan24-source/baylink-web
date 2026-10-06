@@ -131,6 +131,67 @@ test('cost notes deduplicate only exact text and preserve a different eligibilit
   assert.match(view.container.textContent || '', /费用待确认/);
 });
 
+test('an unspecified BayBay party keeps its original default without a false change warning or a free-price claim', async () => {
+  for (const partySize of [undefined, null]) {
+    const fields = parseBayBayAssistantFields({
+      evidence: [{ id: 'official', title: 'Official ticket reference', kind: 'web', url: 'https://www.exploratorium.edu/visit' }],
+      taskState: { version: 1, revision: 1, date: '2026-10-10', partySize, childAges: [5], startTime: '10:00', finishBy: '14:00' },
+      assistantPlan: { id: 'default-party', title: 'Family half-day draft', date: '2026-10-10', status: 'needs_verification',
+        stops: [{ id: 'golden-gate', entityId: 'golden-gate', kind: 'place', title: 'Synthetic test location',
+          admissionFacts: { status: 'unknown', basis: 'catalog-snapshot', breakdown: [], sourceIds: ['official'],
+            applicability: { date: '2026-10-10', dateStatus: 'regular-unconfirmed', feesIncluded: null }, unknowns: ['Check the applicable family admission.'] } }],
+        budget: { unknownItems: ['Family admission remains unconfirmed.'] } },
+    });
+    const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!;
+    const url = new URL(path, 'https://www.baylink.us'), draft = readBayBayPlanDraft(url.searchParams.get('baybayDraft'))!;
+    assert.equal(draft.details.partySize, defaultPlanDetails().partySize);
+    assert.equal(draft.details.startTime, '10:00'); assert.equal(draft.details.finishBy, '14:00');
+    assert.deepEqual(draft.details.constraints?.childAges, [5]);
+    assert.equal(bayBayAdmissionOverride(draft, draft.date, draft.stops, draft.details)?.active, true);
+    assert.equal(bayBayAdmissionOverride(draft, draft.date, draft.stops, { ...draft.details, partySize: draft.details.partySize + 1 })?.active, false);
+    const view = await openPlanner(url.search);
+    const schedule = view.getByRole('region', { name: '时间与预算' });
+    assert.doesNotMatch(schedule.textContent || '', /同行条件已变化|原 BayBay 票价快照已停用/);
+    const costs = within(schedule).getByText('目前可计入的小计').nextElementSibling;
+    assert.equal(costs?.textContent, '费用待核算');
+    assert.equal((view.getByLabelText('开始时间') as HTMLInputElement).value, '10:00');
+    assert.equal((view.getByLabelText('希望几点结束') as HTMLInputElement).value, '14:00');
+    assert.match(view.getByRole('region', { name: 'BayBay 原对话条件' }).textContent || '', /5 岁/);
+    fireEvent.change(view.getByLabelText('同行总人数'), { target: { value: String(draft.details.partySize + 1) } });
+    assert.match(schedule.textContent || '', /原 BayBay 票价快照已停用/);
+    view.unmount();
+  }
+});
+
+test('half-day and explicit-hour preferences survive private handoff without inventing confirmed times', async () => {
+  const fields = parseBayBayAssistantFields({ taskState: { version: 1, revision: 1, date: '2026-10-10', childAges: [5],
+    preferences: ['outing-duration:half-day', 'outing-duration:240-minutes', 'outing-duration:half-day', 'arbitrary-private-text', 'outing-duration:999-minutes', 'outing-duration:61-minutes'] },
+    assistantPlan: { id: 'duration-review', title: 'Family draft', date: '2026-10-10', status: 'needs_verification',
+      stops: stops.map(stop => ({ id: stop.id, kind: stop.kind, entityId: stop.id, title: stop.id })), budget: { unknownItems: [] } } });
+  assert.deepEqual(fields.taskState?.preferences, ['outing-duration:half-day', 'outing-duration:240-minutes']);
+  const path = stageBayBayPlanDraft(fields.assistantPlan!, fields.taskState)!;
+  assert.doesNotMatch(path, /half-day|minutes|preferences|childAges/);
+  const url = new URL(path, 'https://www.baylink.us'), draft = readBayBayPlanDraft(url.searchParams.get('baybayDraft'))!;
+  assert.deepEqual(draft.requirements.preferences, fields.taskState?.preferences);
+  assert.equal(draft.requirements.startTime, undefined); assert.equal(draft.requirements.finishBy, undefined);
+  assert.equal(draft.details.startTime, defaultPlanDetails().startTime); assert.equal(draft.details.finishBy, defaultPlanDetails().finishBy);
+  assert.deepEqual(draft.details.constraints?.childAges, [5]);
+  draft.requirements.preferences?.pop();
+  assert.deepEqual(readBayBayPlanDraft(url.searchParams.get('baybayDraft'))?.requirements.preferences, fields.taskState?.preferences, 'private review preferences are cloned');
+  await setLocale('en', false);
+  const view = await openPlanner(url.search);
+  const original = view.getByRole('region', { name: 'Original BayBay requirements' });
+  assert.match(original.textContent || '', /Half a day \(exact start and finish unconfirmed\)/);
+  assert.match(original.textContent || '', /4 hours \(duration preference only\)/);
+  assert.equal(within(original).getByText(/The duration preference is retained for review/).closest('details'), null);
+  assert.doesNotMatch(original.textContent || '', /arbitrary-private-text|999|61|[\u3400-\u9fff]/u);
+  assert.equal((view.getByLabelText('Start at') as HTMLInputElement).value, defaultPlanDetails().startTime);
+  assert.equal((view.getByLabelText('Finish by') as HTMLInputElement).value, defaultPlanDetails().finishBy);
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.match(view.getByRole('region', { name: 'BayBay 原對話條件' }).textContent || '', /半天（具體起止時間未確認）/);
+  assert.equal(readBayBayPlanDraft(url.searchParams.get('baybayDraft'))?.requirements.startTime, undefined);
+});
+
 test('a transferred family price remains 109.85 until pricing inputs change and never enters saved account details', async () => {
   const fields = parseBayBayAssistantFields({ evidence: [{ id: 'official', title: 'Official ticket reference', kind: 'web', url: 'https://www.exploratorium.edu/visit' }],
     taskState: { version: 1, revision: 1, date: '2026-10-10', partySize: 3, childAges: [5], budget: 120, budgetScope: 'total' },

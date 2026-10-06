@@ -1,0 +1,19 @@
+@import './features/profile/privacy-security.css';
+.attraction-plan-disclosure { margin: 1rem 0; border: 1px solid var(--color-line, #e1e7db); border-radius: 1rem; }
+.attraction-plan-disclosure > summary { min-height: 44px; display: flex; align-items: center; padding: .75rem 1rem; cursor: pointer; font-weight: 600; }
+.attraction-plan-disclosure .outing-plan { margin: 0; border: 0; }
+.baybay-entity-cards { display:grid; gap:var(--space-3, .75rem); margin:1rem 0; }
+.baybay-entity-cards article { padding:1rem; border:1px solid var(--color-line,#E1E7DB); border-radius:var(--radius-card,1rem); background:var(--color-surface,#fff); }
+.baybay-entity-cards h3 { font-size:1.125rem; font-weight:600; }
+.baybay-entity-cards h3 button { display:flex; gap:.5rem; align-items:center; text-align:left; }
+.baybay-entity-cards p { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; margin:.5rem 0; color:var(--color-ink-2,#3F5247); }
+.baybay-entity-actions,.baybay-feedback { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
+.baybay-entity-actions button,.baybay-feedback button { min-height:2.75rem; padding:.5rem .75rem; border:1px solid var(--color-line-strong,#C9D3C1); border-radius:.625rem; display:flex; gap:.5rem; align-items:center; }
+.baybay-stream-answer { white-space:pre-line; overflow-wrap:anywhere; font-size:1.0625rem; line-height:1.85; }
+.home-weekly-share { margin-block:2rem; padding:1rem; border:1px solid var(--color-line-strong,#C9D3C1); border-radius:1rem; background:var(--color-surface-2,#F1F4EC); }
+.home-weekly-share a { display:inline-flex; min-height:2.75rem; align-items:center; margin-right:1rem; color:var(--color-brand,#176B52); font-weight:600; text-decoration:underline; }
+.home-weekly-share p { max-width:52em; margin-top:.75rem; font-size:.875rem; color:var(--color-ink-2,#3F5247); }
+/* Inventory confirmation stays visible with a readable, touch-sized control. */
+.bay-confirmation-filter { display:flex; align-items:center; gap:.65rem; min-height:44px; margin:.5rem 0; font-size:1rem; }
+.bay-confirmation-filter input { width:20px; height:20px; accent-color:var(--color-baylink-green,#254c3a); }
+.bay-confirmation-note { font-size:.875rem; line-height:1.65; color:#56635b; margin:0 0 .75rem; }

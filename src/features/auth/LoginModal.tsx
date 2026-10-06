@@ -6,6 +6,8 @@ import { api } from '../../lib/api';
 import { mapAuthError, showAccountStatusNotice, validateContactValue, validateEmail, validatePassword } from '../../lib/format';
 import type { UserData } from '../../lib/types';
 import { AuthBrandHeader } from '../../components/AuthBrandHeader';
+import { MfaLoginChallenge } from './MfaLoginChallenge';
+import { useLocale, translateText } from '../../i18n/locale';
 
 export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose: () => void; onLogin: (user: UserData) => void; showToast: (message: string, type?: 'success' | 'error' | 'info') => void; onForgotPassword: () => void }) => {
   const [mode, setMode] = useState<'login'|'register'>('login');
@@ -13,6 +15,8 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [challengeToken, setChallengeToken] = useState<string | null>(null);
+  const locale = useLocale();
   const activeRequest = useRef<AbortController | null>(null);
   const mounted = useRef(true);
 
@@ -67,9 +71,12 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
     const isCurrent = () => mounted.current && activeRequest.current === controller && !controller.signal.aborted;
     setLoading(true);
     try {
-      const payload = { email: form.email.trim(), password: form.password, nickname: form.nickname.trim(), contactType: form.contactType, contactValue: form.contactValue.trim() };
+      const payload = { email: form.email.trim(), password: form.password, nickname: form.nickname.trim(), contactType: form.contactType, contactValue: form.contactValue.trim(), ...(mode === 'register' ? { locale } : {}) };
       const user = await api.request(mode === 'register' ? '/auth/register' : '/auth/login', { method: 'POST', body: JSON.stringify(payload), signal: controller.signal });
       if (!isCurrent()) return;
+      if (user.mfaRequired === true && typeof user.challengeToken === 'string') {
+        setForm({ ...form, password: '' }); setChallengeToken(user.challengeToken); return;
+      }
       localStorage.setItem('currentUser', JSON.stringify(user));
       onLogin(user);
       onClose();
@@ -83,6 +90,14 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   };
 
   const inputClass = 'member-auth-input';
+
+  if (challengeToken) return <ModalShell onClose={close} closeOnBackdrop={false} label={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)} className="member-auth-overlay">
+    <MfaLoginChallenge challengeToken={challengeToken} onClose={close} onRestart={() => { setChallengeToken(null); setError(''); }} onComplete={user => {
+      localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose();
+      showToast(locale === 'en' ? 'Welcome back' : translateText('欢迎回来', locale), 'success');
+      showAccountStatusNotice(user, showToast);
+    }} />
+  </ModalShell>;
 
   return (
     // 注册模式有 5 个必填字段，误触遮罩不关闭（与旧版一致，仅 X / Esc 可关）

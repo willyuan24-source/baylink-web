@@ -125,7 +125,7 @@ const assertResultTitles = (view: ReturnType<typeof render>, ids: string[]) => {
 
 test('monthly edition exposes every activity through pagination with named official links and accurate source labels', () => {
   const view = render(edition());
-  assert.equal(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'), false);
+  assert.equal(MONTHLY_EVENTS.some(event => event.id === 'treasure-island-coastal-cleanup-2026'), true, 'the published historical activity remains readable');
   assertResultTitles(view, eligibleIds());
   assert.equal(view.container.querySelector('#event-san-jose-cdm-mid-autumn-2026'), null, 'an empty confirmed schedule does not become an upcoming outing');
   assert.ok(view.getByText('秋季湾区精选'));
@@ -153,7 +153,8 @@ test('monthly edition exposes every activity through pagination with named offic
     assert.equal(img.getAttribute('srcset'), image.srcSet);
     assert.ok(card.getByText(image.caption));
     assert.ok(card.getByRole('button', { name: `放大图片：${image.alt}` }));
-    const kindLabel = image.kind === 'poster' ? '官方宣传图' : image.caption.includes('资料') ? '资料照片' : '实景照片';
+    const year = image.caption.match(/(?:19|20)\d{2}/)?.[0];
+    const kindLabel = image.kind === 'poster' || /官方|official/i.test(image.credit) ? '官方图' : /资料|往届|archive|historical/i.test(image.caption) ? `资料图${year ? ` · ${year}` : ''}` : '实拍';
     assert.ok(card.getByText(kindLabel, { exact: true }), `${event.id} must label the actual media kind`);
     assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
     const credit = card.getByRole('link', { name: new RegExp(image.credit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
@@ -183,7 +184,7 @@ test('monthly media files and credits are valid and only reviewed contextual med
     const image = GUIDE_IMAGES[key];
     if (image.kind === 'illustration') {
       assert.match(image.caption, /插图|插画/);
-      assert.match(image.caption, /非|不代表|不对应.*真实活动|虚构|示意/);
+      assert.match(image.caption, /非|不是|不代表|不对应.*真实活动|虚构|示意/);
       return;
     }
     assert.equal(image.kind, 'photo', `${eventId} must not reuse another event's poster`);
@@ -534,7 +535,7 @@ test('server HTML limits the first page to six real activities and preserves ful
       assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === event.officialUrl));
       assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === '/events/' + event.id), 'each card links to its complete indexable detail page');
       for (const step of event.plan) assert.ok(card.textContent!.includes(step), 'native details retain crawlable planning content');
-      assert.equal(card.querySelector('.event-interest span')?.textContent, '—', 'unknown participation is never rendered as zero');
+      assert.equal(Boolean(card.querySelector('.event-interest span')), false, 'unknown participation does not expose a false count');
       assert.doesNotMatch(card.querySelector('.event-participation')!.textContent!, /0 人想去/);
       if (getEventStatus(event, today) === 'ended') assert.equal(card.querySelector('button[aria-label^="下载"]'), null);
     }
@@ -589,7 +590,7 @@ test('without app context the browser does not fetch or manufacture zero interes
   await act(async () => { view = render(edition()); });
   assert.equal(eventCards(view).length, 6);
   for (const card of eventCards(view)) {
-    assert.equal(card.querySelector('.event-interest span')?.textContent, '—');
+    assert.equal(Boolean(card.querySelector('.event-interest span')), false);
     assert.doesNotMatch(card.querySelector('.event-participation')!.textContent!, /0 人想去/);
   }
   assert.equal(request.mock.callCount(), 0);
@@ -664,7 +665,7 @@ test('failed engagement leaves counts unknown and offers retry instead of a fals
   fireEvent.click(view.getByRole('button', { name: '全部活动', exact: true }));
   assert.equal(eventCards(view).length, 6);
   for (const card of eventCards(view)) {
-    assert.equal(card.querySelector('.event-interest span')?.textContent, '—');
+    assert.equal(Boolean(card.querySelector('.event-interest span')), false);
     assert.ok(within(card).getByText('人数暂时无法加载'));
   }
 });

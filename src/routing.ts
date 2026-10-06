@@ -37,7 +37,7 @@ export const getSlugFromCategory = (category: string): string | null => {
 
 export const isKnownAppPath = (pathname: string): boolean => {
   const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-  if (path === '/me/bookings' || path === '/together') return true;
+  if (['/me/bookings', '/together', '/this-week', '/archive', '/verify-email', '/notifications/unsubscribe'].includes(path)) return true;
   if (['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/play', '/opus-bay', '/my-week', '/ai-in-the-bay', '/tools', '/recommend', '/messages', '/me', '/about', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
   if (/^\/(posts|users|messages|guides|events|offers|openings)\/[^/]+$/.test(path)) return true;
   const category = path.match(/^\/category\/([^/]+)$/)?.[1];
@@ -57,7 +57,7 @@ export const tabFromPathname = (pathname: string): AppTab => {
   if (pathname === '/this-month' || pathname === '/this-month/') return 'guides';
   if (/^\/(events|offers|openings)\//.test(pathname)) return 'guides';
   if (pathname === '/tools' || pathname === '/tools/') return 'tools';
-  if (pathname.startsWith('/guides')) return 'guides';
+  if (pathname.startsWith('/guides') || /^\/archive\/?$/.test(pathname)) return 'guides';
   if (pathname.startsWith('/recommend')) return 'notifications';
   if (pathname.startsWith('/messages')) return 'messages';
   if (pathname === '/me' || /^\/me\/bookings\/?$/.test(pathname)) return 'profile';

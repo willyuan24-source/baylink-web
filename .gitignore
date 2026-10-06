@@ -34,3 +34,10 @@ coverage
 
 # Opus Bay dev server cache (vite.opus.config.ts)
 /.vite-opus/
+
+/public/release.json
+
+/audit-*.log
+/public/weekly/
+/public/calendars/
+/public/content-review-manifest.json

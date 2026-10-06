@@ -5,7 +5,8 @@ import {
   addDays, eventDaysInWindow, eventNextDate, eventsNear, nextSaturday, placesByRegion, recommendEvents, sanitizeCatalog,
   scoreEvents, upcomingEvents, guideTitle, loadCatalog, getCatalog, setCatalogForTests,
 } from '../src/opus-bay/data/catalog';
-import { mapsUrl, planUrl, safeHref, validPlanStops, withLang, guideUrl, eventUrl } from '../src/opus-bay/data/links';
+import { mapsUrl, planUrl, safeHref, validPlanStops, withLang, guideUrl, eventUrl, PLAN_MAX_STOPS } from '../src/opus-bay/data/links';
+import { MAX_PLAN_STOPS } from '../src/lib/plan-limits';
 import { PROGRESS_KEY, WISHLIST_KEY, initPersistence, keepSetting, readProgress, readWishlist, setSessionSettings, setStorageForTests, wishlist } from '../src/opus-bay/data/wishlist';
 import { game, initialGameState } from '../src/opus-bay/core/store';
 
@@ -129,14 +130,22 @@ test('catalog sanitizing drops malformed rows; loading caches and survives error
   setCatalogForTests(null);
 });
 
-test('planUrl only emits ids that exist in the catalog, capped at 3, next Saturday by default', () => {
+test('planUrl only emits ids that exist in the catalog, capped at the shared six stops, next Saturday by default', () => {
   const url = new URL(planUrl({ stops: [{ kind: 'place', id: 'pier39' }, { kind: 'place', id: 'invented' }, { kind: 'event', id: 'pier-free' }, { kind: 'event', id: 'ghost' }, { kind: 'place', id: 'pier39' }] }, catalog, 'zh-Hans', TODAY), 'https://x.test');
   assert.equal(url.pathname, '/plan');
   assert.equal(url.searchParams.get('date'), '2026-09-26');
   assert.equal(url.searchParams.get('stops'), 'place:pier39,event:pier-free');
   assert.equal(url.searchParams.get('lang'), null);
-  const many = validPlanStops([{ kind: 'place', id: 'pier39' }, { kind: 'place', id: 'alcatraz' }, { kind: 'place', id: 'berkeley' }, { kind: 'place', id: 'muir-woods' }], catalog);
-  assert.equal(many.length, 3);
+  const morePlaces = { ...catalog, places: [...catalog.places, ...Array.from({ length: 4 }, (_, i) => ({ id: `extra-${i}`, title: `Extra ${i}`, region: 'sf' }))] };
+  const allStops = morePlaces.places.map(place => ({ kind: 'place' as const, id: place.id }));
+  const many = validPlanStops([allStops[0], allStops[0], { kind: 'place', id: 'invented' }, ...allStops.slice(1)], morePlaces);
+  assert.equal(MAX_PLAN_STOPS, 6);
+  assert.equal(PLAN_MAX_STOPS, MAX_PLAN_STOPS);
+  assert.equal(many.length, 6);
+  assert.deepEqual(many, allStops.slice(0, 6), 'valid source order is retained after validation and de-duplication');
+  const sixStopUrl = new URL(planUrl({ date: '2026-10-03', stops: allStops }, morePlaces, 'zh-Hans', TODAY), 'https://x.test');
+  assert.equal(sixStopUrl.searchParams.get('stops')?.split(',').length, 6);
+  assert.equal(sixStopUrl.searchParams.get('date'), '2026-10-03');
   assert.deepEqual(validPlanStops([{ kind: 'place', id: 'pier39' }], null), []);
   const en = new URL(planUrl({ date: '2026-10-03', stops: [{ kind: 'guide' as never, id: 'x' }] }, catalog, 'en', TODAY), 'https://x.test');
   assert.equal(en.searchParams.get('date'), '2026-10-03');

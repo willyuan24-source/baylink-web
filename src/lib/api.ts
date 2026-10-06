@@ -64,7 +64,7 @@ export const api = {
   getUserProfile: async (userId: string) => await api.request(`/users/${userId}`),
   getUserPublicProfile: async (userId: string) => await api.request(`/users/${userId}/public`),
   updateProfile: async (data: Partial<UserData>) => await api.request('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
-  submitReport: async (body: { targetType: 'post' | 'user'; targetId: string; reason: string; detail?: string }) =>
+  submitReport: async (body: { targetType: 'post' | 'user' | 'message'; targetId: string; conversationId?: string; reason: string; detail?: string }) =>
     await api.request('/reports', { method: 'POST', body: JSON.stringify(body) }),
   blockUser: async (userId: string) =>
     await api.request(`/users/${userId}/block`, { method: 'POST', body: JSON.stringify({}) }),

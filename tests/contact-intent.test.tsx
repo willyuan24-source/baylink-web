@@ -8,6 +8,7 @@ import { useContactIntent, type ContactIntent, type ContactPost } from '../src/a
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 const { render, fireEvent, cleanup } = await import('@testing-library/react');
+const { MemoryRouter } = await import('react-router-dom');
 const { PostDetailContactPanel } = await import('../src/components/PostDetailContactPanel');
 afterEach(() => cleanup());
 const user = { id: 'requester', token: 'test-token' } as UserData;
@@ -56,11 +57,11 @@ test('signed-in contact opens directly while own or closed posts never initiate 
 test('detail separates login for private chat from a contact-info request and never auto-submits either', () => {
   let contactLogins = 0;
   let ordinaryLogins = 0;
-  const view = render(<PostDetailContactPanel post={{ id: post.id, authorId: post.authorId, title: post.title, category: '搬家', contactPreference: { mode: 'manual_approve' } }}
+  const view = render(<MemoryRouter><PostDetailContactPanel post={{ id: post.id, authorId: post.authorId, title: post.title, category: '搬家', contactPreference: { mode: 'manual_approve' } }}
     section="contact" currentUser={null} isOwner={false} authorName="邻居" showToast={() => {}} onAskBayBay={() => {}}
     onLoginNeeded={() => { ordinaryLogins += 1; }} onContactLoginNeeded={() => { contactLogins += 1; }}
     onOpenChat={() => assert.fail('anonymous chat must wait for login')}
-    requestContact={async () => { assert.fail('contact sharing must wait for an explicit authenticated request'); }} />);
+    requestContact={async () => { assert.fail('contact sharing must wait for an explicit authenticated request'); }} /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: '私信联系' }));
   assert.equal(contactLogins, 1);
   assert.equal(ordinaryLogins, 0);

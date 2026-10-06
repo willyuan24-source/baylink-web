@@ -58,7 +58,7 @@ function GuideSearchHarness() {
 
 test('a shared search URL restores query/category, shows the body match and survives article navigation', () => {
   const view = render(<MemoryRouter initialEntries={['/guides?q=公证&category=service']}><GuideSearchHarness /></MemoryRouter>);
-  assert.equal((view.getByRole('searchbox', { name: '搜索生活指南' }) as HTMLInputElement).value, '公证');
+  assert.equal((view.getByRole('searchbox', { name: /在 \d+ 篇指南中搜索/ }) as HTMLInputElement).value, '公证');
   assert.equal(view.getByRole('button', { name: '本地服务' }).getAttribute('aria-pressed'), 'true');
   assert.match(view.getByText(/联系学校、法院或其他接收机构/).textContent || '', /公证/);
   const result = view.getByRole('link', { name: /在湾区找翻译：先确认用途/ });
