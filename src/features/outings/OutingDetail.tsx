@@ -10,6 +10,8 @@ import { OutingTimePoll } from './OutingTimePoll';
 import { useOutingCopy, useOutingNow, type OutingTranslate } from './outing-copy';
 import { outingError, useOutingSession } from './outing-session';
 import { canExportOutingCalendar, downloadOutingCalendar } from '../../lib/outing-calendar';
+import { publicOutingMetadata } from '../../lib/outing-metadata';
+import { setPageMetadata } from '../../lib/seo';
 
 export const outingEligible = (app: Pick<AppContextValue, 'user'>) => !!app.user && (app.user.isPhoneVerified || app.user.officialVerification?.status === 'approved' || (app.user.isOfficialVerified && (!app.user.officialVerification?.status || app.user.officialVerification.status === 'none')));
 export const memberLabel = (status: OutingMemberStatus, t: OutingTranslate, waitlisted = false) => status === 'requested' && waitlisted ? t('候补中，尚未加入','Waitlisted — not yet joined') : ({ requested:t('待发起人确认','Awaiting host'), confirmed:t('已加入','Confirmed'), declined:t('申请未通过','Declined'), left:t('已退出','Left'), removed:t('已移出','Removed') })[status];
@@ -22,17 +24,28 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
   const [waitlistConsent,setWaitlistConsent] = useState(false), [acknowledgedVersion,setAcknowledgedVersion] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<{ action: OutingAction; userId?: string } | null>(null);
   const now = useOutingNow(), serial = useRef(0), lock = useRef(false);
+  const readCopy = useRef(t); readCopy.current = t;
   const load = useCallback(async () => {
     const version = ++serial.current, controller = session.controller(); setLoading(true);
     try {
       const response = await outings.get(id, controller.signal);
       if (response.outing.me && response.outing.me.userId !== app.user?.id) throw new Error('Unexpected outing account');
       if (session.current() && !controller.signal.aborted && version === serial.current) { setOuting(response.outing); setError(''); return true; }
-    } catch (reason) { if (session.current() && !controller.signal.aborted && version === serial.current) setError(outingError(reason, t, true)); }
+    } catch (reason) {
+      if (session.current() && !controller.signal.aborted && version === serial.current) {
+        setError(outingError(reason, readCopy.current, true));
+        if (reason && typeof reason === 'object' && 'status' in reason && [404, 410].includes(Number(reason.status))) setOuting(null);
+      }
+    }
     finally { session.release(controller); if (session.current() && version === serial.current) setLoading(false); }
     return false;
-  }, [id, app.user, session, t]);
+  }, [id, app.user, session]);
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    if (!session.current()) return;
+    if (outing?.id === id) setPageMetadata(publicOutingMetadata(outing, locale));
+    else if (!loading && error) setPageMetadata({ title: t('这支小队暂不可访问｜BAYLINK', 'This outing is unavailable | BAYLINK'), description: t('请稍后重新读取小队，或返回列表浏览其他公开小队。', 'Try loading this outing again later, or browse other public outings.'), path: '/together', outingId: id, noindex: true, preserveText: true, locale: locale === 'en' ? 'en_US' : locale === 'zh-Hant' ? 'zh_TW' : 'zh_CN' });
+  }, [outing, id, locale, loading, error, session, t]);
   const action = async (kind: OutingAction, userId?: string) => {
     if (!outing || lock.current || !session.current()) return;
     const full = outing.confirmedCount >= outing.capacity, currentConsent = acknowledgedVersion === outing.planVersion;
@@ -81,7 +94,7 @@ export function OutingDetail({ id, app, onBack }: { id: string; app: AppContextV
   if (edit) return <OutingForm key={outing.id} initial={draftOf(outing)} outing={outing} session={session} onCancel={() => setEdit(false)} onRefresh={() => void load()} onSaved={result => { setOuting(result.outing); setEdit(false); setNotice(result.notificationWarning ? t('安排已保存，但通知暂未确认发送。请提醒成员查看最新安排。','The plan was saved, but notifications could not be confirmed. Ask members to review it.') : result.outing.planVersion > outing.planVersion ? t('安排已保存。涉及关键变更的成员需重新确认。','The plan was saved. Members affected by key changes need to reconfirm.') : t('小队已更新，成员无需重新确认。','Outing updated. Members do not need to reconfirm.')); }} />;
   return <><div className="outing-toolbar"><button className="outing-link-button" onClick={onBack}><ArrowLeft size={16}/>{t('返回小队','Back to outings')}</button><button className="outing-secondary" disabled={busy || loading} onClick={() => void load()}><RefreshCw size={15}/>{t('刷新小队','Refresh outing')}</button></div>
     {error && <div className="outing-error" role="alert">{error}</div>}{notice && <p className="outing-notice" role="status">{notice}</p>}
-    <div className="outing-detail-grid"><article className="outing-surface outing-detail-head"><OutingCover outing={outing} variant="detail" /><span className="outing-badge">{outingLabel(outing,t,now)}</span><h1>{outing.title}</h1><p className="outing-detail-description">{outing.description}</p>
+    <div className="outing-detail-grid"><article className="outing-surface outing-detail-head"><OutingCover outing={outing} variant="detail" /><span className="outing-badge">{outingLabel(outing,t,now)}</span><h1 translate="no">{outing.title}</h1><p className="outing-detail-description" translate="no">{outing.description}</p>
       <dl className="outing-facts"><div><dt><CalendarDays size={15}/> {t('集合与结束','Meet and finish')}</dt><dd>{outing.date}<br/>{outing.startTime}–{outing.endTime}</dd><span className="outing-footnote">{t('湾区当地时间','Bay Area local time')}</span></div><div><dt><MapPin size={15}/> {t('公共集合地点','Public meeting place')}</dt><dd>{outing.city}<br/>{outing.venue}</dd></div><div><dt><Users size={15}/> {t('已确认人数','Confirmed members')}</dt><dd>{outing.confirmedCount} / {outing.capacity}</dd><span className="outing-footnote">{t('包含发起人，申请不占名额','Includes host; requests do not reserve a place')}</span></div><div><dt>{t('出行与语言','Transport and language')}</dt><dd>{outing.transport === 'own' ? t('各自到场','Arrive independently') : outing.transport === 'transit' ? t('公共交通同行','Public transit together') : t('步行同行','Walk together')}<br/>{outing.language === 'any' ? t('语言不限','Any language') : outing.language === 'zh' ? t('中文','Chinese') : t('英文','English')}</dd></div></dl>
       <h2>{t('费用与报名说明','Costs and registration')}</h2><p className="outing-detail-description">{outing.costNote}</p>
       {outing.eventId && <div className="outing-associated"><Link to={`/events/${encodeURIComponent(outing.eventId)}`}>{outing.eventTitle || t('查看关联活动','View linked event')}</Link><p>{t('小队由个人发起，与主办方报名和门票分开。','This is an independently organized team, separate from official registration and tickets.')}</p>{outing.officialUrl && safeOutingUrl(outing.officialUrl) && <a href={outing.officialUrl} target="_blank" rel="noopener noreferrer">{t('去主办方核对报名与购票 ↗','Check registration and tickets with the organizer ↗')}</a>}</div>}

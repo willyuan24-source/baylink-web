@@ -26,4 +26,6 @@
 
 ## 验证边界
 
-新增 `tests/audit-calendar-monthly.test.tsx` 的五条实际 UI/SSR 行为测试与 `tests/public-share-pages.test.ts` 的五条匿名读取、隐私、XSS、语言隔离、错误响应测试。没有放宽原测试约束。遵主任务要求，本子任务没有运行 Node、测试或构建；由主任务串行执行最终检查、路由集成、部署及上线后的 URL/元数据核验。
+客户端小队详情复用已有成功读取的 DTO，逐字段投影公开安排的标题、说明、地点、费用和日期到分享元数据；不会额外请求公开接口。选定小队时列表页不覆盖服务器分享卡；切换语言只更新本地显示与对应 canonical，标题及 JSON-LD 中的用户文字保持原文。仅经过验证的 `outing` id 留在 canonical/OG URL，追踪参数不进入。返回列表清理旧 Event；刷新后接口确认记录不可访问时撤下旧详情与成功分享信息。始终保留 `noindex, follow`。
+
+新增 `tests/audit-calendar-monthly.test.tsx` 的五条实际 UI/SSR 行为测试、`tests/public-share-pages.test.ts` 的五条匿名读取/隐私/XSS/语言隔离/错误响应测试，以及 `tests/outing-metadata-ui.test.tsx` 的四条客户端选定小队/语言切换/撤下详情/公开字段与日期测试。没有放宽原测试约束。遵主任务要求，本子任务没有运行 Node、测试或构建；由主任务串行执行最终检查、路由集成、部署及上线后的 URL/元数据核验。

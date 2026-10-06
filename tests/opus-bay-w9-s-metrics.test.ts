@@ -90,7 +90,7 @@ test('linkAction: the site\'s plan / event / guide / offer pages, Maps, official
   for (const prefix of ['/en', '/zh-Hant']) for (const [path, want] of [
     ['/plan?date=2026-10-03', 'plan'], ['/my-week', 'plan'], ['/events/fleet-week-2026', 'event'],
     ['/calendar', 'event'], ['/guides', 'guide'], ['/guides/golden-gate-park', 'guide'],
-    ['/this-month', 'guide'], ['/offers/sf-zoo-resident-free-day', 'offer'], ['/opus-bay?at=x', null],
+    ['/this-month', 'guide'], ['/this-week', 'guide'], ['/offers/sf-zoo-resident-free-day', 'offer'], ['/opus-bay?at=x', null], ['/play', null],
   ] as const) assert.equal(M.linkAction(prefix + path, ORIGIN), want, prefix + path);
   // the dev server's own origin counts as the site
   assert.equal(M.linkAction('http://127.0.0.1:5905/plan', 'http://127.0.0.1:5905'), 'plan');
@@ -106,6 +106,7 @@ test('withGameFrom: from=opus-bay on the site\'s links only (relative stays rela
     assert.equal(M.withGameFrom(`${prefix}/plan#top`, ORIGIN), `${prefix}/plan?from=opus-bay#top`);
     assert.equal(M.withGameFrom(`${prefix}/opus-bay?at=x`, ORIGIN), `${prefix}/opus-bay?at=x`);
     assert.equal(M.withGameFrom(`${prefix}/opus-bay/`, ORIGIN), `${prefix}/opus-bay/`);
+    assert.equal(M.withGameFrom(`${prefix}/play`, ORIGIN), `${prefix}/play`);
   }
   const official = 'https://www.sfmta.com/fares/free-muni-seniors-ages-65';
   assert.equal(M.withGameFrom(official, ORIGIN), official);
