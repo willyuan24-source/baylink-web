@@ -35,7 +35,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
     <section className="about-baybay" aria-labelledby="about-baybay-title"><div className="about-baybay-mark"><Sparkles size={27} /></div><div>
       <h2 id="about-baybay-title">BayBay AI 助手</h2>
       <p>BayBay 可以根据站内攻略回答问题，帮你整理发帖内容或沟通草稿，由你确认后发布或发送。</p>
-      <p className="about-small">它不实时联网，日期、价格和预约信息请再查官方来源。</p>
+      <p className="about-small">访客模式使用站内资料；登录后可选择联网研究。回答会标明来源，日期、价格、余票和预约仍请向官方确认。</p>
       {onAskBayBay ? <button type="button" onClick={onAskBayBay}>和 BayBay 聊聊<ArrowRight size={16} /></button> : <Link to="/tools?tool=communication">试试 AI 沟通助手<ArrowRight size={16} /></Link>}
     </div></section>
 

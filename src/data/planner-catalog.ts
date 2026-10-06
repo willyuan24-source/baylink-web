@@ -16,6 +16,25 @@ import { OCTOBER_REFRESH_PLANNING, OCTOBER_REFRESH_SCHEDULES, OCTOBER_REFRESH_LO
 import { OCTOBER_REFRESH_COMMUNITY_PLANNING, OCTOBER_REFRESH_COMMUNITY_SCHEDULES, OCTOBER_REFRESH_COMMUNITY_LOCATIONS } from './october-refresh-community-planning';
 
 const placeLocations = placeLocationData as Record<string, GeoPoint>;
+const EVENT_ALIASES: Record<string, string[]> = {
+  'san-francisco-fleet-week-2026': ['San Francisco Fleet Week', 'Fleet Week', '舰队周', '艦隊週', '蓝天使', '藍天使', 'Blue Angels'],
+  'hardly-strictly-bluegrass-2026': ['Hardly Strictly Bluegrass', 'HSB', '蓝草音乐节', '藍草音樂節'],
+  'half-moon-bay-pumpkin-festival-2026': ['Half Moon Bay Art & Pumpkin Festival', 'Half Moon Bay Pumpkin Festival', '半月湾南瓜节', '半月灣南瓜節'],
+  'oakland-autumn-lights-festival-2026': ['Autumn Lights Festival', '秋灯节', '秋燈節'],
+  'ai-conference-sf-2026': ['The AI Conference', 'AI Conference SF'],
+  'n8n-sf-tech-week-workshop-2026': ['n8n workshop', 'n8n 工作坊'],
+};
+const PLACE_ALIASES: Record<string, string[]> = {
+  'golden-gate': ['Golden Gate Bridge', '金门大桥', '金門大橋'],
+  'chinatown': ['San Francisco Chinatown', '旧金山唐人街', '舊金山唐人街'],
+  'palace': ['Palace of Fine Arts', '艺术宫', '藝術宮'],
+  'presidio': ['Presidio', 'Presidio Tunnel Tops'],
+  'redwood': ['Reinhardt Redwood Regional Park', '红杉区域公园', '紅杉區域公園'],
+  'muir-woods': ['Muir Woods', '缪尔森林', '繆爾森林'],
+  'lake-merritt': ['Lake Merritt', '梅里特湖'],
+  'filoli': ['Filoli', '费罗丽', '費羅麗'],
+  'half-moon-bay': ['Half Moon Bay', '半月湾', '半月灣'],
+};
 
 const eventPlanning: Record<string, PlanningFacts> = {
   ...SEPTEMBER_REFRESH_PLANNING,
@@ -65,9 +84,9 @@ const eventLocations: Record<string, GeoPoint> = {
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
 const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning } as Record<string, { planning: PlanningFacts }>;
-export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
+export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, aliases: [...new Set([event.title, ...(event.aliases || []), ...(EVENT_ALIASES[event.id] || [])])], ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
-  id: place.id, title: place.title, region: place.region, city: place.city, summary: place.note,
+  id: place.id, title: place.title, aliases: [...new Set([place.title, ...(PLACE_ALIASES[place.id] || [])])], region: place.region, city: place.city, summary: place.note,
   guideSlug: place.slug, path: `/guides/${encodeURIComponent(place.slug)}`, category: 'attraction', cost: place.cost,
   location: placeLocations[place.id],
   officialUrl: place.officialUrl || guides.find(guide => guide.slug === place.slug)?.sources[0]?.url || '',

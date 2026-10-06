@@ -2,13 +2,14 @@ import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, CheckCircle2, MapPin, Sparkles, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { aiLocalEvents } from '../data/ai-local-events';
+import { selectAiLocalEvents, type AiLocalGoal } from '../lib/ai-local';
 import { aiWeekGuideSlug } from '../data/guides-ai-week';
 import { translateText, useLocale } from '../i18n/locale';
 import { getBayAreaToday, getEventStatus } from '../lib/monthly';
 import { setPageMetadata } from '../lib/seo';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
+import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 
 const goals = [
   { id: 'all', label: '所有场次' },
@@ -16,31 +17,17 @@ const goals = [
   { id: 'build', label: '开发与动手实践' },
   { id: 'community', label: '社区与公共议题' },
 ] as const;
-type Goal = typeof goals[number]['id'];
-const eventGoals: Record<string, Goal[]> = {
-  'ai-conference-sf-2026': ['learn', 'build'],
-  'pyladies-snowflake-ai-data-2026': ['learn', 'community'],
-  'runtime-modal-sf-2026': ['build'],
-  'llmday-san-francisco-q4-2026': ['build'],
-  'oakland-civic-ai-design-sprint-2026': ['learn', 'community'],
-  'surrealdb-mastra-shared-memory-2026': ['build'],
-  'n8n-sf-tech-week-workshop-2026': ['learn', 'build'],
-  'oss4ai-agent-day-menlo-park-2026': ['build', 'community'],
-};
 const statusLabels = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
 
-export default function AiLocalPage() {
+export default function AiLocalPage({ today: suppliedToday }: { today?: string } = {}) {
   const locale = useLocale();
   const t = (text: string) => translateText(text, locale);
-  const [goal, setGoal] = useState<Goal>('all');
+  const [goal, setGoal] = useState<AiLocalGoal>('all');
   const [week, setWeek] = useState('all');
   const [includeEnded, setIncludeEnded] = useState(false);
-  const today = getBayAreaToday();
-  const events = aiLocalEvents.filter(event =>
-    (includeEnded || event.endDate >= today)
-    && (goal === 'all' || eventGoals[event.id]?.includes(goal))
-    && (week === 'all' || (week === 'ai-week' ? event.startDate <= '2026-10-03' : event.startDate >= '2026-10-05'))
-  );
+  const today = suppliedToday || getBayAreaToday();
+  const events = selectAiLocalEvents({ today, goal, week, includeEnded });
+  const latestCheck = events.reduce((date, event) => event.verifiedAt > date ? event.verifiedAt : date, '');
   const reset = () => { setGoal('all'); setWeek('all'); };
   useEffect(() => {
     setPageMetadata({
@@ -56,15 +43,15 @@ export default function AiLocalPage() {
         <p className="bl-ai-kicker"><Sparkles size={17} aria-hidden="true" /> {t('湾区 AI 现场')}</p>
         <h1>{t('从一个晚上，走进 AI 社区。')}</h1>
         <p className="bl-ai-intro">{t('把公开活动变成能真正参加的一次体验：看清日期、地点、费用与报名条件，再挑适合自己的那一场。')}</p>
-        <p className="bl-ai-checked"><CheckCircle2 size={15} aria-hidden="true" /> {t('活动核对：2026-09-23')}</p>
+        {latestCheck && <p className="bl-ai-checked"><CheckCircle2 size={15} aria-hidden="true" /> {t('最近内容核对')} <time dateTime={latestCheck}>{latestCheck}</time> · {t('各场次保留自己的核对日期')}</p>}
       </div>
       <div className="bl-ai-weeks">
-        <a href="https://aiweeksf.com/calendar" target="_blank" rel="noopener noreferrer" aria-label={t('查看 AI Week SF 官方日历')}>
+        {today <= '2026-10-03' && <a href="https://aiweeksf.com/calendar" target="_blank" rel="noopener noreferrer" aria-label={t('查看 AI Week SF 官方日历')}>
           <span>{t('9 月 27 日—10 月 3 日')}</span><strong>AI Week SF <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
-        </a>
-        <a href="https://www.tech-week.com/calendar/sf" target="_blank" rel="noopener noreferrer" aria-label={t('查看 SF Tech Week 官方日历')}>
+        </a>}
+        {today <= '2026-10-11' && <a href="https://www.tech-week.com/calendar/sf" target="_blank" rel="noopener noreferrer" aria-label={t('查看 SF Tech Week 官方日历')}>
           <span>{t('10 月 5 日—11 日')}</span><strong>SF Tech Week <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
-        </a>
+        </a>}
       </div>
     </header>
 
@@ -114,6 +101,7 @@ export default function AiLocalPage() {
             <details><summary>{t('报名与行前提示')}</summary><ul>{event.plan.map(tip => <li key={tip}>{t(tip)}</li>)}</ul></details>
             <div className="bl-ai-card-actions"><Link to={`/events/${event.id}`}>{t('查看场次与安排')} <ArrowRight size={15} aria-hidden="true" /></Link><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noopener noreferrer">{t('主办方报名页')} <ArrowUpRight size={15} aria-hidden="true" /></a></div>
             <p className="bl-ai-source">{t('核对日期')} {event.verifiedAt} · {t(event.sourceLabel)}</p>
+            <SourceFreshness contentId={event.id} />
           </article>;
         })}</div>}
     </section>

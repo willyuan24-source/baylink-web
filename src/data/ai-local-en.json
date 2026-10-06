@@ -157,5 +157,7 @@
   "只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。": "We include sessions with a public organizer page, specific dates and a venue. Unconfirmed prices are never labelled free. We do not show live availability, admission chances or reserved places.",
   "返回本月活动": "Browse this month’s events",
   "继续探索湾区": "Explore more of the Bay Area",
-  "时间均为湾区当地时间。活动周不是连续开放的展会通票。": "All times are local to the Bay Area. These event weeks do not provide continuous opening hours or a universal admission pass."
+  "时间均为湾区当地时间。活动周不是连续开放的展会通票。": "All times are local to the Bay Area. These event weeks do not provide continuous opening hours or a universal admission pass.",
+  "最近内容核对": "Latest content check",
+  "各场次保留自己的核对日期": "Each event retains its own verification date"
 }

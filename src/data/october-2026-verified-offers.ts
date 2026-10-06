@@ -94,11 +94,12 @@ export const october2026NewOffers: FreebieOffer[] = [
     "availability": "ongoing",
     "kind": "no-purchase",
     "requirement": "限 Alameda、Contra Costa、Marin、Napa、San Francisco、San Mateo、Santa Clara、Solano、Sonoma 九县居民；只保证普通入馆，特展另核对。",
-    "description": "UCSF 2026 信息与 SF Ballet 馆方合作页可交叉核对项目规则。当天余票未核验，出发前查馆方票务及住址证明要求；选 de Young 或 Legion of Honor 一馆慢看即可。",
+    "description": "先到馆方页面查看并预约可用的免费分时票，带上住址证明。当天余票与最新规则正在重新核对；选 de Young 或 Legion of Honor 一馆慢看即可，特展票另查。",
     "imageKey": "culture-visit",
     "imageNote": "文化参观主题插图，非两馆展览实景",
-    "sourceUrl": "https://myfamilysandbox.ucsf.edu/news/free-saturdays-at-the-s-f-fine-arts-museums",
-    "sourceLabel": "UCSF 2026 两馆 Free Saturdays 规则",
+    "sourceUrl": "https://www.famsf.org/events/free-saturdays-de-young",
+    "sourceLabel": "FAMSF 官方 Free Saturdays 页面（最新规则待人工复核）",
+    "verificationStatus": "needs-confirmation",
     "storeUrl": "https://www.famsf.org/events/free-saturdays-de-young",
     "verifiedAt": "2026-10-02"
   }

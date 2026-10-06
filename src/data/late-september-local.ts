@@ -35,12 +35,12 @@ export const regionalBulletins: RegionalBulletin[] = [
     "imageKey": "community-accessible-transit",
     "region": "south-bay",
     "label": "南湾",
-    "title": "Wolfe Road：近 Marriott 的北向 I-280 上匝道将关闭",
-    "dateLabel": "预计 10/2 晚 20:00 起 · 约一年",
-    "summary": "VTA 公告关闭 Marriott 附近的北向 I-280 上匝道，施工预计约一年。请按现场指示使用现有环形上匝道并多留车程；施工安排可能调整，出门前查项目绕行图。",
+    "title": "Wolfe Road：近 Marriott 的北向 I-280 上匝道已关闭",
+    "dateLabel": "10/2 早 6:00 起 · 预计约一年",
+    "summary": "VTA 最新公告列明 10/2 早约 6:00 关闭 Marriott 附近的北向 I-280 上匝道，预计持续约一年。请按现场指示使用现有环形上匝道并多留车程；施工安排可能调整，出门前查项目绕行图。",
     "sourceLabel": "VTA",
-    "sourceUrl": "https://www.vta.org/projects/notices/upcoming-long-term-wolfe-road-northbound-i-280-ramp-closure-beginning-october-2",
-    "verifiedAt": "2026-09-27",
+    "sourceUrl": "https://www.vta.org/projects/notices/big-change-wolfe-road-northbound-i-280-ramp-closes-friday-morning-oct-2-2026-600",
+    "verifiedAt": "2026-10-05",
     "expiresAt": "2026-10-31"
   },
   {

@@ -6,17 +6,22 @@ const synonyms = [
   ['学区', 'school districts', 'school district', 'districts', 'district'], ['学校', 'schools', 'school'],
   ['校区', '校园', 'campuses', 'campus'], ['入学', 'enrollment', 'enrolment'],
   ['租房', '租屋', '租賃', '租赁'], ['二手', '闲置', '閒置'],
-  ['驾照', '驾驶证', '駕照'], ['宽带', '寬帶', '网络', '網路'],
+  ['驾照', '考驾照', '考駕照', '驾驶证', '駕照', 'driver license', "driver's license"], ['宽带', '寬帶', '网络', '網路'],
   ['打印', '列印'], ['公证', '公證'], ['维修', '維修', '修理'],
   ['图书馆', '圖書館'], ['兼职', '兼職'], ['机场', '機場'],
   ['旧金山', '舊金山', 'san francisco'], ['圣何塞', '聖荷西', '圣荷西', 'san jose'],
   ['净滩', '淨灘', '海岸清理', 'coastal cleanup'],
+  ['就医', '看病', '看醫生', '看医生', 'medical care'],
+  ['Medicare', 'medicare', '联邦医保', '聯邦醫保'],
+  ['Medi-Cal', 'medi-cal', '白卡'],
+  ['报税', '報稅', 'tax filing', 'tax return'],
+  ['押金', 'security deposit'],
 ];
 
 export const normalizeGuideQuery = (text: string): string => {
   let value = simplifySearch(text).normalize('NFKC').toLowerCase();
   for (const [canonical, ...aliases] of synonyms) {
-    for (const alias of aliases) value = value.replaceAll(alias, canonical);
+    for (const alias of [...aliases].sort((a, b) => b.length - a.length)) value = value.replaceAll(alias.toLowerCase(), canonical.toLowerCase());
   }
   return value.trim();
 };

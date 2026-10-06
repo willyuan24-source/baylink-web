@@ -1,6 +1,6 @@
 // 官方推荐（广告位）：侧栏轮播 / 推荐页列表 + 详情弹层 + 管理员编辑
 import { useState, useEffect } from 'react';
-import { X, Shield, BadgeCheck, Plus, Trash2, Copy, ExternalLink } from 'lucide-react';
+import { X, Megaphone, Plus, Trash2, Copy, ExternalLink } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { confirmDialog } from '../../components/ui/confirm';
 import { api } from '../../lib/api';
@@ -9,6 +9,7 @@ import {
   toAdDetailItem, validateAdImageUrl,
 } from '../../lib/format';
 import type { AdData, AdDetailItem } from '../../lib/types';
+import { adRelationshipDisclosure } from '../../lib/ad-disclosure';
 
 /** Existing ads only store title, content and image; use links actually supplied in that content. */
 const getContentLinks = (content: string): { url: string; host: string }[] => {
@@ -49,32 +50,33 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
   const copyInfo = async () => {
     try {
       await navigator.clipboard.writeText(`${getAdTitle(ad)}\n\n${content}`);
-      setCopyMessage('推荐信息已复制');
+      setCopyMessage('推广信息已复制');
     } catch {
       setCopyMessage('复制失败，请长按正文选择并复制');
     }
   };
   return (
-    <ModalShell onClose={onClose} label="推荐详情" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
+    <ModalShell onClose={onClose} label="推广详情" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4 py-6 backdrop-blur-sm">
       <div
         className="flex w-full max-w-[calc(100vw-32px)] max-h-[86vh] flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl sm:max-w-[520px]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative flex shrink-0 items-center justify-between border-b border-baylink-border/40 px-5 py-4">
-          <h3 className="text-lg font-bold text-baylink-text pr-8">推荐详情</h3>
+          <h3 className="text-lg font-bold text-baylink-text pr-8">推广详情</h3>
           <button type="button" onClick={onClose} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-2 text-baylink-muted hover:bg-baylink-section" aria-label="关闭"><X size={18} /></button>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {imageUrl ? <AdDetailImage src={imageUrl} /> : null}
           <div className="mt-3 flex flex-wrap gap-1.5">
             <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-2 py-0.5 text-[11px] font-semibold text-baylink-green">
-              <Shield size={10} /> 编辑推荐
+              <Megaphone size={10} /> 推广信息
             </span>
-            {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[11px] text-baylink-muted">示例推荐</span>}
+            {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[11px] text-baylink-muted">示例推广</span>}
           </div>
           <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{content}</p>
-          <p className="mt-3 text-[11px] leading-relaxed text-baylink-muted">编辑推荐仅表示平台选择展示。请自行确认信息是否仍有效、服务范围与交易条件。</p>
+          {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-xs font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
+          <p className="mt-3 text-[11px] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
           {links.length > 0 && (
             <div className="mt-4 space-y-2">
               {links.map((link) => (
@@ -84,7 +86,7 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
               ))}
             </div>
           )}
-          <button type="button" onClick={copyInfo} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-baylink-border px-3 py-2 text-xs font-semibold text-baylink-text"><Copy size={14} />复制推荐信息</button>
+          <button type="button" onClick={copyInfo} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-baylink-border px-3 py-2 text-xs font-semibold text-baylink-text"><Copy size={14} />复制推广信息</button>
           {copyMessage && <p role="status" className="mt-2 text-xs text-baylink-text-secondary">{copyMessage}</p>}
         </div>
         <div className="shrink-0 border-t border-baylink-border/40 px-5 py-4">
@@ -109,9 +111,9 @@ const AdFormModal = ({ editingAd, onClose, onChange, onSave }: {
   onSave: () => void;
 }) => (
   // 表单弹层，误触遮罩不关闭（关闭会丢弃草稿）
-  <ModalShell onClose={onClose} closeOnBackdrop={false} label="管理编辑推荐" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+  <ModalShell onClose={onClose} closeOnBackdrop={false} label="管理推广信息" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
     <div className="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-      <h3 className="mb-4 text-lg font-bold">管理编辑推荐</h3>
+      <h3 className="mb-4 text-lg font-bold">管理推广信息</h3>
       <div className="space-y-3">
         <input className="w-full rounded-xl border bg-gray-50 p-3 text-sm" placeholder="标题" value={editingAd.title || ''} onChange={(e) => onChange({ title: e.target.value })} />
         <textarea className="h-24 w-full resize-none rounded-xl border bg-gray-50 p-3 text-sm" placeholder="内容描述；可附相关帖子或商家提供的完整 https:// 链接" value={editingAd.content || ''} onChange={(e) => onChange({ content: e.target.value })} />
@@ -144,15 +146,16 @@ const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
         <AdThumb src={imageUrl} contain className="h-[88px] w-[88px] shrink-0 rounded-xl sm:h-24 sm:w-24" />
       ) : (
         <div className="flex h-[88px] w-[88px] shrink-0 items-center justify-center rounded-xl bg-baylink-section sm:h-24 sm:w-24">
-          <BadgeCheck size={22} className="text-baylink-muted/40" />
+          <Megaphone size={22} className="text-baylink-muted/40" />
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
         <span className="mb-1 inline-flex w-fit items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[11px] font-semibold text-baylink-green">
-          <Shield size={8} /> 编辑推荐
+          <Megaphone size={8} /> 推广信息
         </span>
         <div className="line-clamp-2 text-[14px] font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</div>
         <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-baylink-muted">{getAdContent(ad)}</div>
+        {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[11px] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
       </div>
       {isAdmin && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(ad.id); }} className="absolute right-2.5 top-2.5 rounded-full bg-white p-1.5 text-red-500 shadow-sm">
@@ -207,18 +210,18 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
       setEditingAd({});
       setIsFormOpen(false);
       fetchAds(true);
-      showToast('推荐已发布', 'success');
+      showToast('推广已发布', 'success');
     } catch (e: any) {
       showToast(mapAdSaveError(e), 'error');
     }
   };
-  const handleDeleteAd = async (id: string) => { if(!(await confirmDialog({ title: '删除推荐', message: '确定删除这条推荐？', confirmText: '删除', danger: true }))) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(true); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
+  const handleDeleteAd = async (id: string) => { if(!(await confirmDialog({ title: '删除推广', message: '确定删除这条推广信息？', confirmText: '删除', danger: true }))) return; try { await api.request(`/ads/${id}`, { method: 'DELETE' }); fetchAds(true); showToast('已删除', 'success'); } catch (e: any) { showToast(friendlyErrorMessage(e, '删除失败，请稍后再试'), 'error'); } };
   const visibleAds = isAdmin ? ads : ads.filter(isDisplayableAd);
   const emptyState = (
     <div className="w-full rounded-2xl border border-baylink-border/50 bg-white p-4">
       <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><BadgeCheck size={16} className="text-baylink-green" /></span>
-        <p className="text-xs font-semibold text-baylink-text">本地编辑推荐</p>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><Megaphone size={16} className="text-baylink-green" /></span>
+        <p className="text-xs font-semibold text-baylink-text">本地推广信息</p>
       </div>
       <p className="mt-2 text-[11px] leading-relaxed text-baylink-muted">平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
@@ -235,9 +238,9 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
     <div className={layout === 'list' ? 'w-full' : 'mb-6'}>
       <div className={`flex items-center justify-between px-1 ${layout === 'list' ? 'mb-4' : 'mb-3'}`}>
         {layout === 'carousel' ? (
-          <h3 className="flex items-center gap-1 text-sm font-bold text-baylink-text"><BadgeCheck size={14} className="text-baylink-green" /> 编辑推荐</h3>
+          <h3 className="flex items-center gap-1 text-sm font-bold text-baylink-text"><Megaphone size={14} className="text-baylink-green" /> 推广信息</h3>
         ) : (
-          <span className="sr-only">编辑推荐列表</span>
+          <span className="sr-only">推广信息列表</span>
         )}
         {isAdmin && (
           <button type="button" onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="flex items-center gap-1 rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-baylink-green-hover sm:text-xs">
@@ -267,13 +270,14 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
                 {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="z-10 h-14 w-14 shrink-0 rounded-xl" />}
                 <div className="z-10 flex min-w-0 flex-1 flex-col justify-center">
                   <div className="mb-1 flex items-center gap-1">
-                    <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[11px] font-semibold text-baylink-green"><Shield size={8} /> 编辑推荐</span>
+                    <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[11px] font-semibold text-baylink-green"><Megaphone size={8} /> 推广信息</span>
                     {isAdmin && !isDisplayableAd(ad) && (
                       <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">未配图 · 仅管理员可见</span>
                     )}
                   </div>
                   <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text">{getAdTitle(ad)}</div>
                   <div className="line-clamp-1 text-[11px] text-baylink-muted">{getAdContent(ad)}</div>
+                  {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[11px] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
                 </div>
                 {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute right-2 top-2 z-20 rounded-full bg-white p-1 text-red-500 shadow-sm"><Trash2 size={12} /></button>}
               </div>
