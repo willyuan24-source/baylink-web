@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import test, { afterEach, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
-import { ModalShell } from '../src/components/ui/Modal';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost' });
 Object.assign(globalThis, {
@@ -18,6 +17,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () {
   return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
 };
 const { render, fireEvent, cleanup } = await import('@testing-library/react');
+const { ModalShell } = await import('../src/components/ui/Modal');
 
 beforeEach(() => {
   document.body.innerHTML = '<div id="root"><button id="opener">Open</button><main id="scroll-container"></main></div>';
@@ -44,6 +44,52 @@ test('modal traps Tab, ignores IME Escape, and restores opener focus on close', 
   assert.equal(closed, 1);
   view.unmount();
   assert.ok(document.activeElement === opener, "focus remains on the expected control");
+});
+
+test('descendant autoFocus cannot replace the saved page opener', () => {
+  const opener = document.getElementById('opener')!;
+  opener.focus();
+  const view = render(<ModalShell label="Auto-focus dialog"><input autoFocus aria-label="Code" /></ModalShell>);
+  assert.ok(document.activeElement === view.getByRole('textbox', { name: 'Code' }));
+  view.unmount();
+  assert.ok(document.activeElement === opener, 'the original opener is saved before React commits child autoFocus');
+});
+
+test('explicit initial focus can select an input after a close button and restore the opener', () => {
+  const opener = document.getElementById('opener')!;
+  opener.focus();
+  function SearchDialog() {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    return <ModalShell label="Search" initialFocusRef={inputRef}><button>Close</button><input ref={inputRef} aria-label="Search query" /></ModalShell>;
+  }
+  const view = render(<SearchDialog />);
+  assert.ok(document.activeElement === view.getByRole('textbox', { name: 'Search query' }));
+  view.unmount();
+  assert.ok(document.activeElement === opener);
+});
+
+test('StrictMode effect replay preserves initial input focus and the page opener', () => {
+  const opener = document.getElementById('opener')!;
+  opener.focus();
+  function SearchDialog() {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    return <ModalShell label="Strict search" initialFocusRef={inputRef}><input ref={inputRef} aria-label="Query" /></ModalShell>;
+  }
+  const view = render(<React.StrictMode><SearchDialog /></React.StrictMode>);
+  assert.ok(document.activeElement === view.getByRole('textbox', { name: 'Query' }));
+  assert.equal(document.body.style.overflow, 'hidden');
+  view.unmount();
+  assert.ok(document.activeElement === opener);
+  assert.equal(document.body.style.overflow, '');
+});
+
+test('StrictMode keeps an existing child autoFocus target after an earlier close button', () => {
+  const opener = document.getElementById('opener')!;
+  opener.focus();
+  const view = render(<React.StrictMode><ModalShell label="Existing auto-focus dialog"><button>Close</button><input autoFocus aria-label="Password" /></ModalShell></React.StrictMode>);
+  assert.ok(document.activeElement === view.getByRole('textbox', { name: 'Password' }));
+  view.unmount();
+  assert.ok(document.activeElement === opener);
 });
 
 test('nested dialogs keep only the top interactive and return focus to the parent', () => {

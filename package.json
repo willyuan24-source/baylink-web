@@ -23,6 +23,7 @@
     "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts",
     "generate:home": "tsx --tsconfig tsconfig.app.json scripts/generate-home-catalog.ts",
     "release:build": "npm run lint && npm test && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
+    "release:hosting": "npm run lint && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
     "verify:weekly": "tsx --tsconfig tsconfig.app.json scripts/verify-weekly.ts",
     "verify:release": "node scripts/verify-release.mjs",
     "test:site": "node scripts/run-tests.mjs site",

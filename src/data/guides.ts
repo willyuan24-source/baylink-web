@@ -1,6 +1,7 @@
 import { visitorPersonaGuides } from './guides-persona-visitor';
 import { publicServiceGuides } from './guides-public-services';
 import { benefitsCitizenshipGuides } from './guides-benefits-citizenship';
+import { dentalSeniorServiceGuides } from './guides-dental-senior-services';
 import { archivedGuides } from './guides-archives';
 import { november2026Guides } from './november-2026-guides';
 import { novemberNorthGuides } from './november-refresh-north-guides';
@@ -1906,6 +1907,7 @@ export const guides: Guide[] = [
   ...practicalGuides,
   ...publicServiceGuides,
   ...benefitsCitizenshipGuides,
+  ...dentalSeniorServiceGuides,
   ...archivedGuides,
   ...perksGuides2026,
   ...retailPerksGuides2026,

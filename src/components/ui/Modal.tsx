@@ -24,14 +24,14 @@ let originalPageState: {
   appRoot: HTMLElement | null; appRootInert: boolean;
   focusedElement: HTMLElement | null;
 } | null = null;
-const lockScroll = () => {
+const lockScroll = (focusedElement: HTMLElement | null) => {
   if (++scrollLockCount !== 1) return;
   const body = document.body;
   const scroller = document.getElementById('scroll-container');
   const appRoot = document.getElementById('root');
   originalPageState = { body, bodyOverflow: body.style.overflow, scroller,
     scrollerOverflow: scroller?.style.overflow || '', appRoot, appRootInert: !!appRoot?.inert,
-    focusedElement: document.activeElement as HTMLElement | null };
+    focusedElement };
   body.style.overflow = 'hidden';
   if (scroller) scroller.style.overflow = 'hidden';
   if (appRoot) appRoot.inert = true;
@@ -58,8 +58,14 @@ const getFocusable = (container: HTMLElement): HTMLElement[] =>
     .filter((el) => el.getClientRects().length > 0);
 
 /** 弹层行为 hook：挂载期间锁滚动、陷住 Tab 焦点、Esc 触发 onClose、卸载时还原焦点。 */
-export function useModalBehavior(onClose?: () => void) {
+export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.RefObject<HTMLElement>, restoreFocusRef?: React.RefObject<HTMLElement>) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // React commits descendant autoFocus before a parent's effects or ref callback.
+  // Capture the opener during the initial render, before any portal child can focus.
+  const openerRef = useRef<HTMLElement | null>(typeof document === 'undefined' ? null : document.activeElement as HTMLElement | null);
+  const initialFocusRefAtMount = useRef(initialFocusRef);
+  const restoreFocusRefAtMount = useRef(restoreFocusRef);
+  const initialFocusTargetRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   useEffect(() => { onCloseRef.current = onClose; });
 
@@ -72,14 +78,19 @@ export function useModalBehavior(onClose?: () => void) {
     // Only registered dialogs belong to the stack. Querying every portal in the DOM
     // would disable siblings whose mount effects have not run yet.
     syncModalStack();
-    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const previouslyFocused = restoreFocusRefAtMount.current?.current || openerRef.current;
 
-    lockScroll();
+    lockScroll(previouslyFocused);
 
-    // 初始焦点进入弹层（若已有元素在弹层内聚焦则不动，避免打断自动聚焦的输入框）
-    if (!container.contains(document.activeElement)) {
+    // Prefer a declared initial target; otherwise preserve a child's existing focus.
+    // Remember a child's selected target across StrictMode's effect cleanup/replay.
+    const initialFocus = initialFocusRefAtMount.current?.current || initialFocusTargetRef.current;
+    if (initialFocus && getFocusable(container).includes(initialFocus)) {
+      initialFocus.focus();
+    } else if (!container.contains(document.activeElement)) {
       (getFocusable(container)[0] || container).focus?.();
     }
+    initialFocusTargetRef.current = container.contains(document.activeElement) ? document.activeElement as HTMLElement : null;
 
     const onKeyDown = (e: KeyboardEvent) => {
       // 输入法组合中（拼音候选等）按 Esc/Enter 是在操作输入法，不能当成弹层快捷键
@@ -141,11 +152,15 @@ export type ModalShellProps = {
   closeOnBackdrop?: boolean;
   label?: string;
   labelledBy?: string;
+  /** Initial focus is applied after the opener has been saved. */
+  initialFocusRef?: React.RefObject<HTMLElement>;
+  /** Share the original opener across a loading fallback and its resolved dialog. */
+  restoreFocusRef?: React.RefObject<HTMLElement>;
   children: React.ReactNode;
 };
 
-export const ModalShell = ({ onClose, className, closeOnBackdrop = true, label, labelledBy, children }: ModalShellProps) => {
-  const containerRef = useModalBehavior(onClose);
+export const ModalShell = ({ onClose, className, closeOnBackdrop = true, label, labelledBy, initialFocusRef, restoreFocusRef, children }: ModalShellProps) => {
+  const containerRef = useModalBehavior(onClose, initialFocusRef, restoreFocusRef);
   const handleBackdropClick = closeOnBackdrop && onClose
     ? (e: React.MouseEvent) => { if (e.target === e.currentTarget) onClose(); }
     : undefined;

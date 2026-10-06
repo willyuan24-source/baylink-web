@@ -119,6 +119,10 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .member-compose-dialog [class*="text-[11px]"] { font-size:var(--text-fact); }
 .member-compose-dialog .member-compose-close { width:var(--control-height); height:var(--control-height); }
 .member-compose-dialog .member-compose-type>div:last-of-type { font-size:var(--text-fact); line-height:1.8; }
+/* Authentication portals share the reading size, including utility-sized safety copy. */
+.member-auth-dialog :is(p,small,label,[role=alert]) { font-size:var(--text-fact); line-height:1.8; }
+.member-auth-dialog :is(button,a,select) { min-height:var(--control-height); font-size:var(--text-fact); }
+.member-auth-dialog :is(input:not([type=checkbox]):not([type=radio]),select) { font-size:var(--text-body); }
 @media(max-width:639px) {
   .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
 }
@@ -186,3 +190,5 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
   .discovery-detail-main-actions :is(a,button) { width:100%; }
   .discovery-next-event-grid { grid-template-columns:1fr; }
 }
+/* Search is portalled to body, outside the .site-app focus selector. */
+.quick-explore-overlay :is(input,button,a):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }

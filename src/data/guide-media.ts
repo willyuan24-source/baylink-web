@@ -60,6 +60,8 @@ export const GUIDE_IMAGES: Record<string, GuideImage> = {
   'autumn-new-shops': { src: '/guides/editorial/autumn-new-shops.webp', width: 1536, height: 1024, kind: 'illustration', alt: '秋日湾区街角的咖啡店、烘焙店与行人插画', caption: '新店探索情境插画，不代表所列门店的实景、位置或商品。', credit: 'BAYLINK · AI 原创插图' },
   'audit-social-security-preparation': { src: '/guides/editorial/audit-social-security-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '退休准备矢量示意图，工作收入记录旁连接一个待选择月份的日历', caption: 'BAYLINK AI 辅助原创矢量示意图；说明先核对工作记录、再比较领取月份，不是 SSA 官方表格、账户截图、福利金额或个人资格判断。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
   'audit-naturalization-preparation': { src: '/guides/editorial/audit-naturalization-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '入籍准备矢量示意图，网站入口、放大镜下的材料清单与整理好的文件夹', caption: 'BAYLINK AI 辅助原创矢量示意图；说明从官方入口核对路径并整理材料，不是政府印章、USCIS 表格、公民证书或申请通过承诺。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
+  'audit-dental-preparation': { src: '/guides/editorial/audit-dental-preparation.webp', width: 1080, height: 720, kind: 'illustration', alt: '牙科预约准备矢量示意图，牙齿图形连接保险核对清单与电话联系入口', caption: 'BAYLINK AI 辅助原创矢量示意图；说明先核对牙科保障、再联系诊所准备预约，不是机构实景、官方保险卡、诊疗建议或资格结果。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
+  'audit-senior-service-routes': { src: '/guides/editorial/audit-senior-service-routes.webp', width: 1080, height: 720, kind: 'illustration', alt: '长者服务矢量示意图，两位长者旁分别连接餐食、日间陪伴与县级转介图形', caption: 'BAYLINK AI 辅助原创矢量示意图；帮助分清长者餐食、日间服务与当地转介，不是具体机构、真实参加者、实际菜单或个人服务资格承诺。', credit: 'BAYLINK · AI 辅助原创矢量示意图' },
   settling: illustration('settling-in-illustration', '室友在阳光照进的新居里整理纸箱、钥匙和生活用品', '从把行李放下，到让一个地方像家。情境插图，不代表真实房源。'),
   weekend: illustration('weekend-illustration', '海湾、公园步道和野餐场景交织的周末插图', '给周末留一些散步和坐下来的时间。情境插图，不代表真实活动现场或导航地图。'),
   everyday: illustration('everyday-illustration', '社区市集、自行车、阅读角与日常维修的生活插图', '买菜、学习、照顾住处，慢慢建立自己的生活节奏。社区生活情境插图，不代表某场实际活动。'),
@@ -279,6 +281,8 @@ bySlug['bay-area-101-city-exploration-living-guide'] = ['bay', 'train'];
 bySlug['bay-area-useful-apps-platforms-guide'] = ['coverage-laptop', 'train'];
 bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social-security-preparation', 'coverage-laptop'];
 bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
+bySlug['bay-area-dental-care-insurance-low-cost-guide'] = ['audit-dental-preparation', 'translation-documents'];
+bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-service-routes', 'everyday'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

@@ -20,6 +20,7 @@ const validDate = (value?: string): value is string => {
 
 /** Internal reasons are evidence for editors, never renewed source-check dates. */
 const MANUAL_REVIEW: Record<string, string> = {
+  'bay-area-dental-care-insurance-low-cost-guide': 'The DHCS dentist directory could not be read directly on 2026-10-06. Official indexed directory text and readable agency/program pages informed the guide; manually confirm the directory before expanding provider or availability claims.',
   'bay-area-naturalization-official-path-guide': 'USCIS direct HTML/PDF reads returned 403 on 2026-10-06. Official indexed document content informed this draft; manually confirm current N-400, fees, exceptions and exam version before expanding legal claims.',
   'famsf-bay-area-free-saturdays': 'Official FAMSF program/ticket pages returned 403 on 2026-10-05. Confirm free timed-ticket steps manually; retain 2026-10-02 factual check.',
   'california-tenant-deposit-rights-help-guide': 'California Courts deposit page could not be read automatically on 2026-10-05. DOJ and CRD guidance was readable; manually confirm court procedure before expanding legal claims.',
@@ -32,7 +33,7 @@ export function contentReviewToday(now = new Date()): string {
 
 /** Shared per-item policy avoids importing the complete catalog into a reader notice. */
 export function guideContentReviewRecord(guide: Pick<Guide, 'slug' | 'title' | 'tags' | 'sources' | 'updatedAt' | 'editionMonth' | 'editionThroughDate'>): ContentReviewRecord {
-  const highRisk = /医保|Medicare|Medi-Cal|报税|税务|租客权益|合同|押金|法律|就医|找医生|驾照|公证|社安|社会保障|退休|入籍|naturalization|Social Security/iu.test([guide.title, ...guide.tags].join(' '));
+  const highRisk = /医保|Medicare|Medi-Cal|报税|税务|租客权益|合同|押金|法律|就医|找医生|牙科|看牙|日间照护|日間照護|dental|adult day care|驾照|公证|社安|社会保障|退休|入籍|naturalization|Social Security/iu.test([guide.title, ...guide.tags].join(' '));
   const editionEnd = guide.editionMonth && /^\d{4}-(?:0[1-9]|1[0-2])$/u.test(guide.editionMonth)
     ? new Date(Date.UTC(Number(guide.editionMonth.slice(0, 4)), Number(guide.editionMonth.slice(5)), 0)).toISOString().slice(0, 10) : undefined;
   return { kind: 'guide', id: guide.slug, title: guide.title, path: `/guides/${guide.slug}`, sourceUrls: [...new Set(guide.sources.map(source => source.url))], verifiedAt: guide.updatedAt, dateMeaning: 'content-updated',

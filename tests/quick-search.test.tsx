@@ -9,6 +9,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { searchQuickDestinations } = await import('../src/lib/quick-search');
 const { QuickExplore } = await import('../src/components/QuickExplore');
+const { ModalShell } = await import('../src/components/ui/Modal');
 const { setLocale } = await import('../src/i18n/locale');
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { currentFreebies } = await import('../src/data/october-offers');
@@ -64,6 +65,86 @@ test('keyboard opens the matching tool and IME enter never navigates', () => {
   fireEvent.keyDown(input, { key: 'ArrowUp' });
   assert.equal(input.getAttribute('aria-activedescendant'), `quick-result-${view.getAllByRole('option').length - 1}`);
 });
+
+test('cached search opens with input focus and Escape returns to the keyboard opener on every visit', () => {
+  // The module above is already loaded: no Suspense fallback delays portal mounting.
+  // jsdom has no layout, so expose connected controls to ModalShell's visibility check.
+  const previousRects = dom.window.HTMLElement.prototype.getClientRects;
+  dom.window.HTMLElement.prototype.getClientRects = function () {
+    return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
+  };
+  function CachedSearchHost() {
+    const [open, setOpen] = React.useState(false);
+    return <><button type="button" onClick={() => setOpen(true)}>Open cached search</button>
+      {open && <QuickExplore onClose={() => setOpen(false)} onSearch={() => {}} onNavigate={() => {}} onAsk={() => {}} />}</>;
+  }
+  const view = render(<CachedSearchHost />);
+  try {
+    const opener = view.getByRole('button', { name: 'Open cached search' });
+    for (let visit = 0; visit < 2; visit++) {
+      opener.focus();
+      fireEvent.click(opener, { detail: 0 });
+      const input = view.getByRole('combobox');
+      assert.ok(document.activeElement === input, 'search remains ready for immediate typing');
+      fireEvent.change(input, { target: { value: '小费' } });
+      assert.equal((input as HTMLInputElement).value, '小费');
+      fireEvent.keyDown(input, { key: 'Escape' });
+      assert.equal(view.queryByRole('dialog'), null);
+      assert.ok(document.activeElement === opener, 'Escape restores the same keyboard trigger');
+    }
+  } finally {
+    view.unmount();
+    dom.window.HTMLElement.prototype.getClientRects = previousRects;
+  }
+});
+
+for (const strict of [false, true]) {
+  test(`cold search fallback transfers focus to the input and back to its original opener${strict ? ' in StrictMode' : ''}`, async () => {
+    let resolveChunk!: (value: { default: typeof QuickExplore }) => void;
+    const chunk = new Promise<{ default: typeof QuickExplore }>(resolve => { resolveChunk = resolve; });
+    const DeferredSearch = React.lazy(() => chunk);
+    function ColdSearchHost() {
+      const [open, setOpen] = React.useState(false);
+      const openerRef = React.useRef<HTMLElement | null>(null);
+      const close = () => setOpen(false);
+      return <><button type="button" onClick={() => { openerRef.current = document.activeElement as HTMLElement | null; setOpen(true); }}>Open cold search</button>
+        {open && <React.Suspense fallback={<ModalShell label="Loading search" onClose={close} restoreFocusRef={openerRef}><p role="status">Loading search</p><button onClick={close}>Close loading search</button></ModalShell>}>
+          <DeferredSearch restoreFocusRef={openerRef} onClose={close} onSearch={() => {}} onNavigate={() => {}} onAsk={() => {}} />
+        </React.Suspense>}</>;
+    }
+    const previousRects = dom.window.HTMLElement.prototype.getClientRects;
+    dom.window.HTMLElement.prototype.getClientRects = function () {
+      return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
+    };
+    const pageRoot = document.createElement('div'); pageRoot.id = 'root'; document.body.append(pageRoot);
+    const view = render(strict ? <React.StrictMode><ColdSearchHost /></React.StrictMode> : <ColdSearchHost />, { container: pageRoot, baseElement: document.body });
+    try {
+      const opener = view.getByRole('button', { name: 'Open cold search' });
+      opener.focus(); fireEvent.click(opener, { detail: 0 });
+      const loadingClose = view.getByRole('button', { name: 'Close loading search' });
+      assert.ok(document.activeElement === loadingClose, 'the real modal fallback must first receive keyboard focus');
+      assert.equal(pageRoot.inert, true);
+      await act(async () => { resolveChunk({ default: QuickExplore }); await chunk; });
+      const input = view.getByRole('combobox');
+      assert.equal(view.queryByRole('dialog', { name: 'Loading search' }), null);
+      assert.ok(document.activeElement === input, 'resolved search is ready for typing');
+      assert.equal(pageRoot.inert, true);
+      fireEvent.change(input, { target: { value: '牙医' } });
+      fireEvent.keyDown(input, { key: 'Escape' });
+      assert.equal(view.queryByRole('dialog'), null);
+      assert.ok(document.activeElement === opener, 'the disconnected fallback button must never become the return target');
+      assert.equal(pageRoot.inert, false);
+      // Opening the same resolved lazy component now exercises the cached path.
+      fireEvent.click(opener, { detail: 0 });
+      const cachedInput = view.getByRole('combobox');
+      assert.ok(document.activeElement === cachedInput);
+      fireEvent.keyDown(cachedInput, { key: 'Escape' });
+      assert.ok(document.activeElement === opener);
+    } finally {
+      view.unmount(); pageRoot.remove(); dom.window.HTMLElement.prototype.getClientRects = previousRects;
+    }
+  });
+}
 
 test('quick search respects confirmed event days and offer validity while retaining ongoing benefits', () => {
   const eventCount = MONTHLY_EVENTS.length;
