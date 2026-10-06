@@ -270,7 +270,9 @@ test('new opening cards retain evidence and operating status, displaying only at
   assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
   assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/');
   assert.equal(marufuku.officialUrl, 'https://www.marufukuramen.com/burlingame');
-  assert.match(marufuku.address, /待官方公布/);
+  assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
+  assert.equal(marufuku.verifiedAt, '2026-10-05');
+  assert.match(marufuku.summary, /11:00.*14:00.*17:00.*21:00/u);
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
 });
 

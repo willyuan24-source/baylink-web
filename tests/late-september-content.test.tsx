@@ -48,10 +48,16 @@ test('late September publishes all five regions with unique IDs and usable sourc
     assert.equal(new Set(published.map(item => item.id)).size, published.length, `${name}: duplicate published ID`);
     for (const item of added) {
       assert.equal(published.filter(candidate => candidate.id === item.id).length, 1, `${name}: ${item.id} must be published once`);
-      assert.equal(item.verifiedAt, item.id === 'history-smc-free-oct2' ? '2026-10-02' : '2026-09-27', `${item.id}: verification date`);
+      const checkedDates: Record<string, string> = { 'history-smc-free-oct2': '2026-10-02', 'south-bay-wolfe-ramp-oct2': '2026-10-05' };
+      assert.equal(item.verifiedAt, checkedDates[item.id] || '2026-09-27', `${item.id}: preserves the actual batch or later source check`);
     }
   }
   assert.equal(new Set(additions.map(item => item.id)).size, additions.length, 'new content IDs must not collide across types');
+  const wolfe = regionalBulletins.find(item => item.id === 'south-bay-wolfe-ramp-oct2');
+  assert.ok(wolfe);
+  assert.match(wolfe.title, /已关闭/u);
+  assert.match(wolfe.summary, /10\/2.*6:00.*约一年/u);
+  assert.equal(wolfe.sourceUrl, 'https://www.vta.org/projects/notices/big-change-wolfe-road-northbound-i-280-ramp-closes-friday-morning-oct-2-2026-600');
   for (const item of additions) {
     const links = Object.entries(item).filter(([key]) => ['officialUrl', 'sourceUrl', 'storeUrl'].includes(key));
     assert.ok(links.length > 0, `${item.id}: missing supporting link`);
@@ -81,12 +87,14 @@ test('regional bulletins disappear at their expiry boundary without leaving an e
   const bart = regionalBulletins.find(item => item.id === 'east-bay-yellow-line-sep29');
   assert.ok(bart);
   const initial = renderToStaticMarkup(<RegionalBulletins today="2026-09-30" />);
-  assert.equal((initial.match(/<article>/g) || []).length, 8);
+  assert.equal((initial.match(/<article>/g) || []).length, getActiveRegionalBulletins('2026-09-30').length);
+  const wolfe = regionalBulletins.find(item => item.id === 'south-bay-wolfe-ramp-oct2')!;
+  assert.ok(!initial.includes(wolfe.sourceUrl), 'the October 5 closure update cannot appear in a September 30 snapshot');
   assert.ok(renderToStaticMarkup(<RegionalBulletins today="2026-10-01" />).includes(bart.sourceUrl), 'BART remains on its final listed day');
   const october = renderToStaticMarkup(<RegionalBulletins today="2026-10-02" />);
   assert.equal((october.match(/<article>/g) || []).length, getActiveRegionalBulletins('2026-10-02').length);
   assert.ok(!october.includes(bart.title), 'the September BART reminder expires even when an October reminder cites the same source');
-  for (const bulletin of regionalBulletins.filter(item => item.id !== bart.id)) {
+  for (const bulletin of regionalBulletins.filter(item => item.id !== bart.id && item.verifiedAt <= '2026-10-02')) {
     assert.ok(october.includes(bulletin.sourceUrl), `${bulletin.id}: still-current bulletin missing`);
   }
   for (const bulletin of currentRegionalBulletins) {

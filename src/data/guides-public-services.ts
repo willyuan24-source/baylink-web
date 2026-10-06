@@ -75,7 +75,7 @@ export const publicServiceGuides: Guide[] = [
     category: 'rent', categoryLabel: '租客权益', emoji: '🏠',
     audience: ['准备搬出的租客', '收到押金扣款的租客', '收到租房通知的人'],
     tags: ['租客权益', '押金', '21天', '维修', '驱逐', '公平住房'],
-    priority: 'P0', featuredOnHome: false, recommendedForCategories: ['rent', 'roommate', 'safety'], readMinutes: 5,
+    priority: 'P0', featuredOnHome: false, recommendedForCategories: ['rent', 'roommate'], readMinutes: 5,
     updatedAt: '2026-10-05',
     sourceNote: '2026-10-05 核对加州司法部与 CRD 官方说明。本文为求助路径，不判断个案合法性或替代法律意见；法律、房屋豁免及市县规则以当前官方资料为准。',
     sources: [
