@@ -90,6 +90,32 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .baybay-user-question>p,.baybay-welcome>p { font-size:var(--text-body); color:var(--color-ink-2); }
 .baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span,.baybay-reading-context small { font-size:var(--text-caption); color:var(--color-ink-3); }
 .baybay-followups button,.baybay-scenarios button { min-height:var(--control-height); font-size:var(--text-fact); }
+.baybay-conversation button { min-width:var(--control-height); }
+.baybay-conversation .member-compose-close { width:var(--control-height); height:var(--control-height); }
+/* Extend the same reading preferences to practical tools and publishing. */
+.site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:1.8; }
+.site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:1.8; }
+.site-app :is(.attraction-page,.life-tools) button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
+.site-app :is(.attraction-page,.life-tools) :is(input,select,textarea) { font-size:var(--text-body); }
+.attraction-page :is(.attraction-facts,.attraction-city,.attraction-results-heading>span,.outing-stop-text small,.outing-local-note) { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
+.attraction-page :is(.attraction-card-actions>a,.outing-stop-text>a,.attraction-next>a,.attraction-credit>summary) { min-height:var(--control-height); font-size:var(--text-fact); }
+.attraction-page .attraction-card-actions { flex-wrap:wrap; gap:8px; }
+.attraction-page .outing-stop-buttons button { width:var(--control-height); height:var(--control-height); }
+.life-tools :is(.tools-picker-card small,.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
+.life-tools .tools-picker-card strong { font-size:var(--text-fact); line-height:1.6; overflow-wrap:anywhere; hyphens:auto; }
+.life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
+.life-tools :is(.tool-swap,.tool-icon-button) { width:var(--control-height); height:var(--control-height); }
+.life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
+.life-tools .tool-converter-row { grid-template-columns:minmax(0,1fr) var(--control-height) minmax(0,1fr); }
+.member-compose-dialog :is(p,small,label) { font-size:var(--text-fact); line-height:1.8; }
+.member-compose-dialog button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
+.member-compose-dialog :is(input,select,textarea) { font-size:var(--text-body); }
+.member-compose-dialog [class*="text-[11px]"] { font-size:var(--text-fact); }
+.member-compose-dialog .member-compose-close { width:var(--control-height); height:var(--control-height); }
+.member-compose-dialog .member-compose-type>div:last-of-type { font-size:var(--text-fact); line-height:1.8; }
+@media(max-width:639px) {
+  .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
+}
 @media(max-width:1023px) {
   .site-main { padding-bottom:calc(var(--site-mobile-nav-height) + 24px); }
   .site-mobile-nav { height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; }

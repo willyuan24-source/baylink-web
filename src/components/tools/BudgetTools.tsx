@@ -53,8 +53,11 @@ const INITIAL_MEMBERS: Member[] = [{ id: '1', name: '成员 A', weight: '1' }, {
 export function SharedBillTool({ onToast }: { onToast: ShowToast }) {
   const locale = useLocale();
   const tr = (text: string) => translateText(text, locale);
+  // Initialize only the template names in the current language. Existing
+  // names remain untouched on language changes, including user-entered names.
+  const initialMembers = () => INITIAL_MEMBERS.map(member => ({ ...member, name: tr(member.name) }));
   const [total, setTotal] = useState('');
-  const [members, setMembers] = useState(INITIAL_MEMBERS);
+  const [members, setMembers] = useState(initialMembers);
   const [nextId, setNextId] = useState(4);
   let result: ReturnType<typeof splitSharedBill> | null = null;
   let error = '';
@@ -77,10 +80,10 @@ export function SharedBillTool({ onToast }: { onToast: ShowToast }) {
     <label className="tool-field"><span>需要分摊的总金额（USD）</span><div className="tool-money-input"><span aria-hidden="true">$</span><input aria-label="分摊总金额" inputMode="decimal" maxLength={12} placeholder="例如 100.00" value={total} onChange={event => setTotal(event.target.value)} /></div></label>
     <div className="tool-inline-heading"><p className="tool-note">权重都为 1 就是均分；2 和 1 表示承担比例为 2:1。</p><button type="button" className="tool-text-button" onClick={() => setMembers(previous => previous.map(member => ({ ...member, weight: '1' })))}>设为均分</button></div>
     <div className="tool-member-list">{members.map((member, index) => <div key={member.id} className="tool-member-row"><label className="tool-field"><span>成员 {index + 1}</span><input aria-label={`成员 ${index + 1} 名称`} maxLength={24} value={member.name} onChange={event => setMembers(previous => previous.map(item => item.id === member.id ? { ...item, name: event.target.value } : item))} /></label><label className="tool-field"><span>权重</span><input aria-label={`成员 ${index + 1} 权重`} inputMode="decimal" maxLength={10} value={member.weight} onChange={event => setMembers(previous => previous.map(item => item.id === member.id ? { ...item, weight: event.target.value } : item))} /></label><button type="button" className="tool-icon-button" aria-label={`移除成员 ${index + 1}`} disabled={members.length <= 2} onClick={() => setMembers(previous => previous.filter(item => item.id !== member.id))}><X size={17} /></button></div>)}</div>
-    <button type="button" className="tool-text-button" disabled={members.length >= 12} onClick={() => { setMembers(previous => [...previous, { id: String(nextId), name: `成员 ${nextId}`, weight: '1' }]); setNextId(nextId + 1); }}><Plus size={16} />添加成员（{members.length}/12）</button>
+    <button type="button" className="tool-text-button" disabled={members.length >= 12} onClick={() => { setMembers(previous => [...previous, { id: String(nextId), name: locale === 'en' ? `Member ${nextId}` : tr(`成员 ${nextId}`), weight: '1' }]); setNextId(nextId + 1); }}><Plus size={16} />{locale === 'en' ? `Add member (${members.length}/12)` : <>添加成员（{members.length}/12）</>}</button>
     {error && <p className="tool-error" role="alert">{error}</p>}
     {result ? <div className="tool-split-result" aria-live="polite"><p>每人应承担</p><ul>{result.shares.map(share => <li key={share.id}><span translate="no">{nameOf(share.id)}</span><strong>{usd(share.amountCents)}</strong></li>)}</ul><div><span>合计</span><strong>{usd(result.totalCents)}</strong></div></div> : <p className="tool-empty-result">填好总金额，就能看到每人的分摊金额。</p>}
     <p className="tool-note">按美分分配尾差，保证合计等于总额；这是一份分摊建议，不记录已付款状态，也不会发起收款。</p>
-    <div className="tool-actions"><button type="button" className="tool-button" disabled={!result} onClick={() => copyResult(summary, onToast)}><Copy size={16} />复制分摊结果</button><button type="button" className="tool-button-secondary" onClick={() => { setTotal(''); setMembers(INITIAL_MEMBERS); setNextId(4); }}>重置</button></div>
+    <div className="tool-actions"><button type="button" className="tool-button" disabled={!result} onClick={() => copyResult(summary, onToast)}><Copy size={16} />复制分摊结果</button><button type="button" className="tool-button-secondary" onClick={() => { setTotal(''); setMembers(initialMembers()); setNextId(4); }}>重置</button></div>
   </div>;
 }

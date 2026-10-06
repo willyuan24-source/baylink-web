@@ -15,9 +15,120 @@ const { QuickExplore } = await import('../src/components/QuickExplore');
 const { fetchBayBayReply, conversationHistory, safeBayBayPath, bayBayErrorMessage, isBayBayPlanRequest, bayBayPlanPath, parseBayBayOutingSearch, isBayBaySearchContextExpired, bayBayTaskBrief, bayBayWebResult } = await import('../src/lib/baybay-conversation');
 const { guides } = await import('../src/data/guides');
 const { readBayBayRequirementsDraft } = await import('../src/lib/baybay-plan-handoff');
-afterEach(cleanup);
+const { setLocale } = await import('../src/i18n/locale');
+afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 const answer = (text: string) => Response.json({ ok: true, answer: text });
+
+test('completion announces each turn once without streaming text, submitting a draft or moving focus', async t => {
+  const streams: ReadableStreamDefaultController<Uint8Array>[] = [];
+  const encoder = new TextEncoder();
+  const requests = mockBayBayFetch(t, async () => new Response(new ReadableStream<Uint8Array>({
+    start(controller) { streams.push(controller); },
+  }), { headers: { 'Content-Type': 'text/event-stream' } }));
+  const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
+  const view = render(<BayBayAssistantEntry {...props} />);
+  const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+  assert.equal(notice.getAttribute('role'), 'status');
+  assert.equal(notice.getAttribute('aria-live'), 'polite');
+  assert.equal(notice.getAttribute('aria-atomic'), 'true');
+  assert.equal(notice.textContent, '');
+  assert.equal(notice.closest('[role="dialog"]') !== null, true, 'the live region belongs to the accessible modal, outside the inert page');
+  assert.equal(notice.closest('.baybay-thread') === null, true);
+  const announcements: string[] = [];
+  const observer = new dom.window.MutationObserver(() => { if (notice.textContent) announcements.push(notice.textContent); });
+  observer.observe(notice, { subtree: true, childList: true, characterData: true });
+  t.after(() => observer.disconnect());
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement;
+  input.focus();
+  fireEvent.change(input, { target: { value: '请查官方图书馆资格' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  fireEvent.change(input, { target: { value: '下一条还没准备好发送的问题' } });
+  for (const text of ['先查资格。', '再核实费用。']) {
+    await act(async () => { streams[0].enqueue(encoder.encode(`event: delta\ndata: ${JSON.stringify({ validated: true, text })}\n\n`)); });
+    assert.equal(notice.textContent, '');
+    assert.equal(view.baseElement.querySelector('[data-baybay-completion]') === notice, true, 'the empty live region persists across stream updates');
+  }
+  const partial = view.getByText('先查资格。再核实费用。');
+  assert.equal(partial.closest('[aria-live]') === null, true, 'answer deltas never enter a live region');
+  await act(async () => { streams[0].enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整回答一。"}\n\n')); });
+  assert.deepEqual(announcements, ['BayBay 的第 1 条回答已完成。可以阅读回答，或继续在输入框提问。']);
+  assert.equal(input.value, '下一条还没准备好发送的问题');
+  assert.equal(document.activeElement === input, true);
+  assert.equal(requests.mock.callCount(), 1, 'completion must not submit the typed follow-up');
+  view.rerender(<BayBayAssistantEntry {...props} currentPath="/guides" />);
+  await act(async () => {});
+  assert.equal(announcements.length, 1, 'a completed render never announces the same turn again');
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  assert.equal(notice.textContent, '');
+  await act(async () => { streams[1].enqueue(encoder.encode('event: result\ndata: {"ok":true,"answer":"完整回答二。"}\n\n')); });
+  assert.deepEqual(announcements, [
+    'BayBay 的第 1 条回答已完成。可以阅读回答，或继续在输入框提问。',
+    'BayBay 的第 2 条回答已完成。可以阅读回答，或继续在输入框提问。',
+  ]);
+  view.rerender(<BayBayAssistantEntry {...props} panelOpen={false} />);
+  view.rerender(<BayBayAssistantEntry {...props} />);
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+  assert.ok(view.getByText('完整回答一。'));
+  assert.ok(view.getByText('完整回答二。'));
+  assert.equal(requests.mock.callCount(), 2, 'reopening retains history without another request or announcement');
+});
+
+test('restored completed history stays silent until a new request finishes', async t => {
+  let finish!: () => void;
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finish = () => resolve(answer('新回答。')); }));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop}
+    initialConversation={{ question: '保留的草稿', turns: [{ id: 7, question: '之前的问题', state: 'complete', response: { ok: true, answer: '之前的回答。' } }] }} />);
+  const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+  assert.equal(notice.textContent, '');
+  assert.ok(view.getByText('之前的回答。'));
+  await act(async () => { fireEvent.keyDown(view.getByRole('textbox', { name: '向 BayBay 提问' }), { key: 'Enter' }); });
+  assert.equal(notice.textContent, '');
+  await act(async () => { finish(); });
+  assert.match(notice.textContent || '', /第 8 条回答已完成/);
+});
+
+test('completion uses the current English or Traditional locale without retranslating a completed announcement', async t => {
+  const finishes: (() => void)[] = [];
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => { finishes.push(() => resolve(answer('官方资料回答。'))); }));
+  for (const locale of ['en', 'zh-Hant'] as const) {
+    await act(async () => { await setLocale('en', false); });
+    const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+    const input = view.getByRole('textbox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '请查官方信息' } });
+    await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+    fireEvent.change(input, { target: { value: 'Keep my unfinished draft' } });
+    await act(async () => { await setLocale(locale, false); });
+    await act(async () => { finishes.at(-1)!(); });
+    const notice = view.baseElement.querySelector('[data-baybay-completion]') as HTMLElement;
+    const expected = locale === 'en'
+      ? 'BayBay reply 1 is ready. Read the answer or continue in the question field.'
+      : 'BayBay 的第 1 條回答已完成。可以閱讀回答，或繼續在輸入框提問。';
+    assert.equal(notice.textContent, expected);
+    assert.equal(input.value, 'Keep my unfinished draft');
+    assert.equal(notice.getAttribute('translate'), 'no');
+    await act(async () => { await setLocale('zh-Hans', false); });
+    assert.equal(notice.textContent, expected, 'changing language after completion must not replay the old turn');
+    view.unmount();
+  }
+});
+
+test('failed and stopped requests never announce a completed answer', async t => {
+  const finish: ((response: Response) => void)[] = [];
+  mockBayBayFetch(t, () => new Promise<Response>(resolve => finish.push(resolve)));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const input = view.getByRole('textbox', { name: '向 BayBay 提问' });
+  fireEvent.change(input, { target: { value: '测试失败的问题' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+  await act(async () => { finish[0](Response.json({ ok: false, error: '答复服务暂不可用' }, { status: 502 })); });
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+  assert.ok(view.getByRole('alert'));
+  fireEvent.change(input, { target: { value: '测试停止的问题' } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter' }); });
+  fireEvent.click(view.getByRole('button', { name: '停止' }));
+  await act(async () => { finish[1](answer('停止后到达的回答不应提示完成。')); });
+  assert.equal(view.baseElement.querySelector('[data-baybay-completion]')?.textContent, '');
+});
 
 test('new replies scroll to their heading instead of skipping long answers to the footer', async t => {
   const proto = dom.window.HTMLElement.prototype;

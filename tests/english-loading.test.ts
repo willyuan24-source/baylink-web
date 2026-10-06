@@ -4,6 +4,23 @@ import { readFileSync } from 'node:fs';
 import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath } from '../src/lib/english-loading';
 import { getGuideBySlug } from '../src/data/guides';
 import { isLocaleReadyForPath, loadLocale, loadLocaleForPath, normalizeText, translateText } from '../src/i18n/locale';
+import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
+import { englishDictionaryForUiValues } from '../scripts/generate-english-scopes';
+
+test('the compact UI dictionary includes all eight tools catalog labels and page metadata without loading editorial bodies', () => {
+  const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;
+  const selected = englishDictionaryForUiValues(full, []);
+  assert.equal(LIFE_TOOLS.length, 8);
+  for (const tool of LIFE_TOOLS) for (const field of ['title', 'short', 'description', 'tag'] as const) {
+    const key = normalizeText(tool[field]);
+    assert.ok(full[key], `missing reviewed translation for ${tool.id}.${field}`);
+    assert.equal(selected[key], full[key], `${tool.id}.${field} must be in the tools route's UI pack`);
+    assert.doesNotMatch(selected[key], /[\u3400-\u9fff]/u);
+  }
+  for (const field of ['title', 'description'] as const) assert.equal(selected[normalizeText(TOOLS_METADATA[field])], full[normalizeText(TOOLS_METADATA[field])]);
+  assert.deepEqual(englishScopesForPath('/en/tools?tool=split'), ['ui'], 'the controlled catalog belongs in the small UI pack');
+  assert.ok(!Object.hasOwn(selected, normalizeText(getGuideBySlug('bay-area-medicare-hicap-medi-cal-guide')!.summary)), 'tools do not import unrelated guide text');
+});
 
 test('English home and article navigation request only their displayed content, including language prefixes', () => {
   assert.deepEqual(englishScopesForPath('/en/?lang=en#weekend'), ['ui', 'home']);

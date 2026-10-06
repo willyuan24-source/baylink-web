@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
 import { BayBayEntityCards } from './BayBayEntityCards';
 import { recordProductEvent } from '../lib/product-events';
@@ -55,6 +55,10 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
   panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
+  const completionLocale = useRef(locale);
+  useLayoutEffect(() => { completionLocale.current = locale; }, [locale]);
+  const [completionNotice, setCompletionNotice] = useState<{ id: number; text: string } | null>(null);
+  const announcedTurns = useRef(new Set((initialConversation?.turns || []).filter(turn => turn.state === 'complete').map(turn => turn.id)));
   const [usage, setUsage] = useState<{remaining:number;limit:number;resetAt?:string}|null>(null);
   const [usageRevision,setUsageRevision] = useState(0);
   const [internalOpen, setInternalOpen] = useState(false);
@@ -105,8 +109,8 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     request.controller.abort();
     updateTurns((previous) => previous.map((turn) => turn.id === request.id ? { ...turn, state: 'cancelled' } : turn));
   }, [updateTurns]);
-  const close = useCallback(() => { stop(); setOpen(false); }, [stop, setOpen]);
-  useEffect(() => { if (!open) stop(); }, [open, stop]);
+  const close = useCallback(() => { stop(); setCompletionNotice(null); setOpen(false); }, [stop, setOpen]);
+  useEffect(() => { if (!open) { stop(); setCompletionNotice(null); } }, [open, stop]);
   useEffect(() => () => { activeRequest.current?.controller.abort(); activeRequest.current = null; }, []);
   useEffect(() => {
     if (!open) return;
@@ -145,6 +149,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     const outingSearchToken = previousReply?.outingSearch?.continuationToken;
     const assistantSessionToken = previousReply?.assistantSessionToken;
     activeRequest.current = { id, controller };
+    setCompletionNotice(null);
     const startedAt = performance.now();
     recordProductEvent('baybay_ask');
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
@@ -174,6 +179,17 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
           if (state && 'date' in state) { delete nextContext.date; nextOverrides.date = true; if (state.date) nextContext.date = state.date; }
           return { ...turn, state: 'complete', response, searchContext: nextContext, searchOverrides: nextOverrides };
         }));
+        // Only a newly completed request announces. Streaming text and restored
+        // history stay readable without becoming live regions.
+        if (!announcedTurns.current.has(id)) {
+          announcedTurns.current.add(id);
+          const text = completionLocale.current === 'en'
+            ? `BayBay reply ${id} is ready. Read the answer or continue in the question field.`
+            : completionLocale.current === 'zh-Hant'
+              ? `BayBay 的第 ${id} 條回答已完成。可以閱讀回答，或繼續在輸入框提問。`
+              : `BayBay 的第 ${id} 条回答已完成。可以阅读回答，或继续在输入框提问。`;
+          setCompletionNotice({ id, text });
+        }
       }).catch((error: unknown) => {
         if (activeRequest.current?.id !== id) return;
         activeRequest.current = null;
@@ -243,12 +259,13 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
               <p>BAYLINK 的 AI 助手，陪你安排湾区生活。</p></div></div>
           <button type="button" onClick={close} className="member-compose-close" aria-label="关闭"><X size={20} /></button>
         </div>
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true" translate="no" data-baybay-completion data-baybay-completion-turn={completionNotice?.id}>{completionNotice?.text || ''}</p>
         <div ref={scrollRef} className="member-baybay-body baybay-scroll" onScroll={event => {
           const top = event.currentTarget.scrollTop;
           if (top < lastScrollTop.current - 2) followReply.current = false;
           lastScrollTop.current = top;
         }}>
-          <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
+          <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
           {currentGuide && <div className="baybay-reading-context"><BookOpen size={16} /><div><small>正在结合你阅读的攻略</small><strong>{currentGuide.title}</strong></div>
             <button type="button" disabled={loading} onClick={() => askBayBay(translateText(bayBayPageQuestions(currentPath)[0].question, locale))}>帮我读</button></div>}
           {currentGuide && <div className="baybay-followups" role="group" aria-label="围绕这篇指南提问"><span>围绕这篇指南提问</span>{bayBayPageQuestions(currentPath).map(prompt => <button type="button" key={prompt.label} disabled={loading} onClick={() => askBayBay(translateText(prompt.question, locale))}>{prompt.label}<ArrowUp size={12} /></button>)}</div>}

@@ -13,6 +13,7 @@ import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } 
 import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
 import { READER_PATHS } from '../src/data/reader-paths';
 import { perksPosters } from '../src/data/perks-posters';
+import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import type { EnglishDictionary } from '../src/lib/english-loading';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
@@ -35,6 +36,11 @@ export function englishDictionaryForValues(dictionary: EnglishDictionary, values
   };
   visit(values);
   return selected;
+}
+
+/** Catalog fields rendered as UI are controlled labels, not editorial bodies or user drafts. */
+export function englishDictionaryForUiValues(dictionary: EnglishDictionary, sourceStrings: unknown): EnglishDictionary {
+  return englishDictionaryForValues(dictionary, [sourceStrings, LIFE_TOOLS, TOOLS_METADATA]);
 }
 
 async function uiStrings(directories = ['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils']): Promise<string[]> {
@@ -65,7 +71,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const directory = 'src/data/generated/english-scopes';
   await mkdir(directory, { recursive: true });
   const uiDictionaries = await Promise.all(dictionarySources.filter(path => /(?:-ui-en|audit-runtime-en|public-service-media-en)\.json$/u.test(path)).map(async path => JSON.parse(await readFile(path, 'utf8')) as EnglishDictionary));
-  const ui = Object.assign({}, englishDictionaryForValues(dictionary, await uiStrings()), ...uiDictionaries) as EnglishDictionary;
+  const ui = Object.assign({}, englishDictionaryForUiValues(dictionary, await uiStrings()), ...uiDictionaries) as EnglishDictionary;
   // Keep final source precedence identical across full and scoped loads.
   for (const key of Object.keys(ui)) if (Object.hasOwn(dictionary, key)) ui[key] = dictionary[key];
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
