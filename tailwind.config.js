@@ -40,7 +40,7 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Noto Sans SC', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-sans)'],
       },
       borderRadius: {
         'card': '1.5rem',

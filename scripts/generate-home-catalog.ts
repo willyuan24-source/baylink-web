@@ -3,14 +3,14 @@ import { guides } from '../src/data/guides';
 import { getGuideMedia, GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
-import { HOME_PATHWAYS } from '../src/data/home-pathways';
+import { HOME_FEATURED_GUIDE, HOME_PATHWAYS } from '../src/data/home-pathways';
 import { getHomeWeekend } from '../src/lib/home-weekend';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
 
 // The first page needs summaries, not 128 articles, image galleries or planning instructions.
 // Generate from the same catalog as detail pages so titles, dates and source checks cannot drift.
-const homeSlugs = new Set<string>(HOME_PATHWAYS.flatMap(path => [...path.slugs]));
+const homeSlugs = new Set<string>([HOME_FEATURED_GUIDE, ...HOME_PATHWAYS.flatMap(path => [...path.slugs])]);
 const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide => ({
   slug: guide.slug, title: guide.title, summary: guide.summary, categoryLabel: guide.categoryLabel,
   readMinutes: guide.readMinutes, media: { cover: getGuideMedia(guide).cover },
