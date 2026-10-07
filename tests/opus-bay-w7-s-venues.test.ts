@@ -25,8 +25,8 @@ const ctx2d = new Proxy({}, {
 g.document ??= { createElement: () => ({ width: 0, height: 0, style: {}, getContext: () => ctx2d }) };
 
 const { parseBayDate, __setBayNowForTests } = await import('../src/opus-bay/game/bayNow');
-const { eventDaysInWindow, sanitizeCatalog, setCatalogForTests } = await import('../src/opus-bay/data/catalog');
-const { EVENT_VENUES, EVENT_SAY, SOUVENIR_IDS, VENUE_SAY, WORLD_SKIP } = await import('../src/opus-bay/realsf/eventVenues');
+const { eventDaysInWindow, sanitizeCatalog, setCatalogForTests, upcomingEvents } = await import('../src/opus-bay/data/catalog');
+const { EVENT_VENUES, EVENT_SAY, SOUVENIR_IDS, VENUE_SAY, WORLD_SKIP, venueForEvent } = await import('../src/opus-bay/realsf/eventVenues');
 const { activeEventsAt, eventWindow, windowEndKnown, worldEvent } = await import('../src/opus-bay/realsf/events');
 const { eventLine, souvenirLine } = await import('../src/opus-bay/realsf/presence');
 const save = await import('../src/opus-bay/data/save');
@@ -38,6 +38,21 @@ const sfWindow = (e: CatalogEvent) => e.region === 'sf' && (e.endDate ?? e.start
 const byId = (id: string) => { const e = CATALOG.events.find(x => x.id === id); assert.ok(e, id); return e!; };
 const bay = (spec: string) => { const d = parseBayDate(spec); assert.ok(d, spec); return d!; };
 const H = (h: number, m = 0) => h * 60 + m;
+
+test('new public events at a known venue remain discoverable without automatically creating an unregistered world experience', () => {
+  const event: CatalogEvent = { ...byId('nov2026-sf-renegade-craft-winter'), id: 'future-pavilion-family-fair' };
+  const catalog = { ...CATALOG, events: [event] };
+  assert.equal(venueForEvent(event)?.id, 'fort-mason-festival-pavilion', 'the venue can still be recognized');
+  assert.equal(worldEvent(event), null, 'a matching venue is not a reviewed world event registration');
+  assert.deepEqual(activeEventsAt(bay('2026-11-15T12:00'), catalog), [], 'no unregistered pennant or reward interaction');
+  assert.ok(upcomingEvents(catalog, '2026-11-15', 1).some(row => row.event.id === event.id), 'the confirmed public program is retained in the catalog list');
+  const venue = EVENT_VENUES.find(row => row.id === 'fort-mason-festival-pavilion')!;
+  const registeredIds = venue.events as string[];
+  registeredIds.push(event.id);
+  try {
+    assert.equal(worldEvent(event), null, 'venue registration alone cannot bypass missing reward and dialogue metadata');
+  } finally { registeredIds.pop(); }
+});
 
 test('W7-S1 guard: every event the world shows has a souvenir bit, a short name and a venue name; its lines fit on every day it is on', () => {
   setCatalogForTests(CATALOG);
@@ -133,7 +148,8 @@ test('October 5 Foodwise imports reuse the front-plaza venue, keep official prog
   const ids = ['oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'];
   const off = L.registerRewardIds('event', SOUVENIR_IDS);
   try {
-    assert.deepEqual(SOUVENIR_IDS.slice(-4), ['sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026', ...ids]);
+    const afterBranchImports = SOUVENIR_IDS.indexOf('sfpl-western-addition-open-house-oct24-2026') + 1;
+    assert.deepEqual(SOUVENIR_IDS.slice(afterBranchImports, afterBranchImports + 4), ['sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026', ...ids], 'existing Chase and Foodwise souvenir bits keep their original positions');
     for (const [id, day, close, cost] of [
       [ids[0], '2026-10-10', '11:45', 'free'],
       [ids[1], '2026-10-31', '13:00', 'mixed'],
@@ -161,6 +177,45 @@ test('October 5 Foodwise imports reuse the front-plaza venue, keep official prog
       assert.equal(worldEvent(byId(id)), null, 'no invented programme pin or unrelated Mission Street venue');
       assert.ok(!EVENT_VENUES.some(venue => venue.events.includes(id)));
       assert.ok(!SOUVENIR_IDS.includes(id));
+    }
+  } finally {
+    off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); setCatalogForTests(null);
+  }
+});
+
+test('October 7 existing-venue imports retain exact published windows and append souvenirs after the earlier Foodwise bits', () => {
+  setCatalogForTests(CATALOG);
+  save.resetSaveCache();
+  save.clearSave();
+  L.__resetLedgerForTests();
+  const ids = ['nov2026-sf-renegade-craft-winter', 'nov2026-foodwise-market-memories-demo'];
+  const off = L.registerRewardIds('event', SOUVENIR_IDS);
+  try {
+    const afterPriorImports = SOUVENIR_IDS.indexOf('oct2026-foodwise-fall-fruit') + 1;
+    assert.deepEqual(SOUVENIR_IDS.slice(afterPriorImports, afterPriorImports + 2), ids, 'append new bits without shifting any saved earlier reward');
+    for (const [id, venueId, days, close] of [
+      [ids[0], 'fort-mason-festival-pavilion', ['2026-11-14', '2026-11-15'], '17:00'],
+      [ids[1], 'ferry-building', ['2026-11-21'], '11:45'],
+    ] as const) {
+      const event = byId(id), venue = worldEvent(event)!;
+      assert.equal(venue.id, venueId);
+      assert.ok(venue.events.includes(id));
+      assert.deepEqual(eventDaysInWindow(event, '2026-11-01', '2026-11-30'), days, 'only published dates are admitted');
+      assert.equal(venue.hours?.[id], undefined, 'the new event reads its own date label, never a previous event override');
+      for (const day of days) {
+        const window = eventWindow(event, venue, day)!;
+        assert.equal(window.open, bay(`${day}T11:00`).getTime());
+        assert.equal(window.close, bay(`${day}T${close}`).getTime());
+        assert.equal(windowEndKnown(window), true, 'both close times are explicitly published');
+        assert.ok(!activeEventsAt(bay(`${day}T10:59`), CATALOG).some(row => row.event.id === id));
+        assert.ok(activeEventsAt(bay(`${day}T11:00`), CATALOG).some(row => row.event.id === id));
+        assert.ok(!activeEventsAt(bay(`${day}T${close}`), CATALOG).some(row => row.event.id === id));
+      }
+      assert.equal(eventWindow(event, venue, '2026-11-16'), null, 'a range label must not leak into an unlisted day');
+      __setBayNowForTests(`${days[0]}T11:00`);
+      assert.equal(L.pay(`event:${id}`, 15), 15);
+      assert.equal(L.isPaid(`event:${id}`), true);
+      assert.equal(L.pay(`event:${id}`, 15), 0, 'the registered souvenir pays only once');
     }
   } finally {
     off(); __setBayNowForTests(null); L.__resetLedgerForTests(); save.clearSave(); setCatalogForTests(null);

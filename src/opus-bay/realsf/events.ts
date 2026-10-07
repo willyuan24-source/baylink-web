@@ -1,7 +1,7 @@
 import type { Catalog, CatalogEvent } from '../core/types';
 import { eventDaysInWindow, getCatalog, isAdultOnly, isProfessional, upcomingEvents, addDays } from '../data/catalog';
 import { bayNow, bayParts, parseBayDate } from '../game/bayNow';
-import { venueForEvent, WORLD_SKIP, type EventVenue } from './eventVenues';
+import { EVENT_SAY, SOUVENIR_IDS, VENUE_SAY, venueForEvent, WORLD_SKIP, type EventVenue } from './eventVenues';
 
 /**
  * Wave 5 · lane R (W5-R2 / R3) · BAYLINK's San Francisco events in their real window (plan §3.3 items 1–2, §4.3 hook
@@ -34,11 +34,14 @@ export interface EventWindow {
 export const DEFAULT_HOURS: readonly [number, number] = [8 * 60, 21 * 60];
 const LATEST = 21 * 60;
 
-/** San Francisco, mapped, and for everyone (no 18+ / 21+, no professional or tech events in the world; W7-S: none of
- *  realsf/eventVenues.ts WORLD_SKIP). */
+/** World admission requires an explicit venue id, saved souvenir and bilingual names. A shared venue label alone
+ *  may locate a catalog entry, but must not create an incomplete pennant, reward or BAYBAY line. */
 export function worldEvent(event: CatalogEvent): EventVenue | null {
   if (event.region !== 'sf' || isAdultOnly(event) || isProfessional(event) || WORLD_SKIP[event.id]) return null;
-  return venueForEvent(event);
+  const venue = venueForEvent(event);
+  return venue && venue.events.includes(event.id) && SOUVENIR_IDS.includes(event.id)
+    && EVENT_SAY[event.id]?.zh && EVENT_SAY[event.id]?.en && VENUE_SAY[venue.id]?.zh && VENUE_SAY[venue.id]?.en
+    ? venue : null;
 }
 
 /** "11:00–16:00" → [660, 960]; "12:30 开始" → [750, 990]; nothing → null (minutes after Bay midnight). */

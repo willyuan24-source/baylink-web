@@ -15,7 +15,8 @@ export function getDiscoveryMetadata(item: LocalDiscovery): PageMetadata {
     ...(item.event.cost === 'free' ? { isAccessibleForFree: true } : {}),
     ...(item.event.occurrenceDates ? { subEvent: item.event.occurrenceDates.map(date => ({ '@type': 'Event', name: share.title, startDate: date, endDate: date })) } : {}),
   } : { '@context': 'https://schema.org', '@type': 'Article', headline: share.title, description: share.summary, mainEntityOfPage: `${SITE_URL}${share.path}`, ...(share.checkedAt ? { dateModified: share.checkedAt } : {}), publisher };
-  return { title: `${share.title}｜BAYLINK`, description: `${share.date} · ${share.area}。${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
+  // Keep each reviewed date/summary intact: date labels may already contain middle dots.
+  return { title: `${share.title}｜BAYLINK`, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
     structuredData: [entity, { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: '首页', item: SITE_URL },
       { '@type': 'ListItem', position: 2, name: item.kind === 'event' ? '活动日历' : '当期发现', item: `${SITE_URL}${item.kind === 'event' ? '/calendar' : '/this-month'}` },

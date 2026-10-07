@@ -53,9 +53,19 @@ const SEP30_IMPORTED = [
   ['sfpl-western-addition-open-house-oct24-2026', 'western-addition-library'],
 ] as const;
 
+const OCT07_IMPORTED = [
+  ['nov2026-sf-renegade-craft-winter', 'fort-mason-festival-pavilion'],
+  ['nov2026-foodwise-market-memories-demo', 'ferry-building'],
+] as const;
+const OCT07_WEBSITE_ONLY = [
+  'nov2026-fort-mason-farmers-market', 'nov2026-arion-press-public-tours', 'nov2026-presidio-free-yoga',
+  'nov2026-presidio-250-years-walk', 'nov2026-presidio-campfire-history-talks', 'nov2026-fort-point-history-talks',
+] as const;
+
 /** SF events of the window kept out of the world although they are for everyone (the reason is in the report). */
 const NOT_PLACED: Readonly<Record<string, string>> = {
   ...Object.fromEntries(SEP30_WEBSITE_ONLY.map(id => [id, 'Sep 30 website event: pending independent world import'])),
+  ...Object.fromEntries(OCT07_WEBSITE_ONLY.map(id => [id, 'October 7 programme site has no independently reviewed world venue point'])),
   // a street party along 2nd St between Market and Howard, 17:00–22:00, billed to adults; no single point to pin
   'sf-downtown-first-thursday-oct-2026': 'street segment, adults',
   // (W7-S) a YBCA dance party 20:00–23:30, 音乐与夜生活, age not published: nightlife stays out of the toy city (the lead's
@@ -99,11 +109,20 @@ test('W6-S1 labels: the autumn catalog’s hours per date — named dates, weekd
   }
 });
 
-test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (55 shown)', () => {
+test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the world, 18+ / professional, or not placed for a stated reason (57 shown)', () => {
   setCatalogForTests(CATALOG);
   try {
     const sf = CATALOG.events.filter(sfWindow);
-    assert.equal(sf.length, 88, 'the autumn catalog including six October 5 SF additions');
+    assert.equal(sf.length, 88 + OCT07_IMPORTED.length + OCT07_WEBSITE_ONLY.length, 'the October 5 baseline plus the eight individually reviewed October 7 SF additions');
+    const addedSf = JSON.parse(fs.readFileSync(path.resolve('src/data/octnov-2026-sf-east-events.json'), 'utf8')) as CatalogEvent[];
+    assert.deepEqual(addedSf.filter(event => event.region === 'sf').map(event => event.id).sort(), [...OCT07_IMPORTED.map(([id]) => id), ...OCT07_WEBSITE_ONLY].sort(), 'every added SF programme has an explicit placement decision');
+    for (const [id, venue] of OCT07_IMPORTED) assert.equal(worldEvent(byId(id))?.id, venue);
+    for (const id of OCT07_WEBSITE_ONLY) {
+      assert.ok(sf.some(event => event.id === id), `${id} remains in the shared public catalog`);
+      assert.match(WORLD_SKIP[id], /no independently verified world venue point/);
+      assert.equal(worldEvent(byId(id)), null);
+      assert.ok(!EVENT_VENUES.some(venue => venue.events.includes(id)), 'no unrelated venue point is borrowed');
+    }
     for (const id of SEP30_WEBSITE_ONLY) {
       assert.ok(sf.some(event => event.id === id), `${id} remains available in the shared website catalog`);
       assert.match(WORLD_SKIP[id], /pending independent world import/, `${id} has an explicit compatibility boundary`);
@@ -125,7 +144,7 @@ test('W6-S1 venues: every San Francisco event of 29 Sep – 30 Nov is in the wor
     const out = sf.filter(e => !worldEvent(e));
     for (const e of out) assert.ok(isAdultOnly(e) || isProfessional(e) || NOT_PLACED[e.id], `${e.id} (${e.venue}) is for everyone and has no venue row`);
     for (const id of Object.keys(NOT_PLACED)) assert.equal(worldEvent(byId(id)), null, `${id} stays out`);
-    assert.equal(shown.length, 55, shown.map(e => e.id).join(' '));
+    assert.equal(shown.length, 55 + OCT07_IMPORTED.length, shown.map(e => e.id).join(' '));
     // (W7-S) the Sep 29 website refresh: the three the venue text already caught, and the six new venue rows
     for (const [id, venue] of [
       ['sf-foodwise-latine-makers-oct3-2026', 'ferry-building'],
@@ -179,7 +198,9 @@ test('W6-S1 windows on the owner’s dates with the autumn catalog: Halloween ev
     assert.deepEqual(eventHours(market, ferry, '2026-10-03'), [H(8), H(14)]);
     assert.deepEqual(eventHours(market, ferry, '2026-10-06'), [H(10), H(14)]);
     assert.equal(eventHours(market, ferry, '2026-10-05'), null, 'no market on Monday');
-    assert.deepEqual(on('2026-11-15T12:00'), [], 'the November arena events do not run on November 15');
+    const novemberNoon = on('2026-11-15T12:00');
+    assert.deepEqual(novemberNoon.filter(id => worldEvent(byId(id))?.id === 'chase-center'), [], 'the November arena events do not run on November 15');
+    assert.ok(novemberNoon.includes('nov2026-sf-renegade-craft-winter'), 'the separately published craft fair runs at its own venue that day');
   } finally { setCatalogForTests(null); }
 });
 
