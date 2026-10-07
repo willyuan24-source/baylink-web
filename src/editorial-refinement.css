@@ -90,6 +90,7 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-topbar-inner { padding-inline:24px; }
   .site-header-primary.site-nav { display:none; }
   .site-navigation-more { margin-left:auto; }
+  .site-navigation-panel { max-height:calc(100vh - var(--site-mobile-nav-height) - 104px); max-height:calc(100dvh - var(--site-mobile-nav-height) - 104px); }
   .site-topbar .site-topbar-publish { display:none; }
   .site-mobile-nav { height:auto; min-height:calc(4.5rem + env(safe-area-inset-bottom,0px)); background:var(--color-surface); border-color:var(--color-line); box-shadow:0 -3px 18px #162e2905; }
   .site-mobile-nav .site-mobile-nav-items { min-height:calc(4.5rem - 1px); padding:4px 6px; align-items:stretch; }

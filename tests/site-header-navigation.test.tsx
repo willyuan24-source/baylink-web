@@ -60,3 +60,23 @@ test('mobile publishing and account actions close the disclosure and restore a v
   menu.open = true;
   assert.equal(view.getByLabelText('未读消息').textContent, '3');
 });
+
+test('keyboard selection of a current or new destination restores visible focus before hiding the menu', () => {
+  const view = render(<MemoryRouter initialEntries={['/tools']}><SiteNavigation {...base} /><Location /></MemoryRouter>);
+  const menu = view.container.querySelector('details')!;
+  const trigger = view.getByLabelText('更多导航');
+  const menuOpenWhenFocusReturns: boolean[] = [];
+  trigger.addEventListener('focus', () => menuOpenWhenFocusReturns.push(menu.open));
+  for (const [label, path] of [['生活工具箱', '/tools'], ['按地区找景点', '/explore']]) {
+    menu.open = true;
+    const link = view.getByRole('link', { name: label });
+    link.focus();
+    assert.equal(document.activeElement, link);
+    // Native keyboard activation emits a click with no pointer-click count.
+    fireEvent.click(link, { detail: 0 });
+    assert.equal(view.getByLabelText('current route').textContent, path);
+    assert.equal(menu.open, false);
+    assert.equal(document.activeElement, trigger, 'focus must not remain in the collapsed navigation');
+  }
+  assert.deepEqual(menuOpenWhenFocusReturns, [true, true]);
+});

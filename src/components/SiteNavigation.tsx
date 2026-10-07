@@ -66,7 +66,11 @@ export function SiteNavigation({ user, notification, notificationCount, onCreate
     </nav>
     <details className="site-navigation-more" ref={disclosure}>
       <summary ref={summary} aria-label={english ? 'More navigation' : '更多导航'}><span>{english ? 'More' : '更多'}</span><ChevronDown className="site-more-chevron" size={14} aria-hidden="true" /><Ellipsis className="site-more-icon" size={22} aria-hidden="true" />{notification && <i className="site-more-notification" aria-label={english ? 'Unread notifications' : '有未读通知'} />}</summary>
-      <div className="site-navigation-panel" onClick={event => { if ((event.target as Element).closest('a') && disclosure.current) disclosure.current.open = false; }}>
+      <div className="site-navigation-panel" onClick={event => {
+        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || !(event.target as Element).closest('a')) return;
+        summary.current?.focus({ preventScroll: true });
+        if (disclosure.current) disclosure.current.open = false;
+      }}>
         <nav className="site-secondary-nav" aria-label={english ? 'More discoveries' : '更多探索'}>
           <Link to="/explore" aria-current={pathname === '/explore' ? 'page' : undefined}><Compass size={18} aria-hidden="true" />{english ? 'Explore places' : '按地区找景点'}</Link>
           <Link to="/category/rent" aria-current={pathname.startsWith('/category/') ? 'page' : undefined}><Users size={18} aria-hidden="true" />{english ? 'Neighborhood board' : '邻里信息'}</Link>
