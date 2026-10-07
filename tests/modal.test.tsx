@@ -20,7 +20,7 @@ const { render, fireEvent, cleanup } = await import('@testing-library/react');
 const { ModalShell } = await import('../src/components/ui/Modal');
 
 beforeEach(() => {
-  document.body.innerHTML = '<div id="root"><button id="opener">Open</button><main id="scroll-container"></main></div>';
+  document.body.innerHTML = '<div id="root"><button id="opener">Open</button><main id="scroll-container" tabindex="-1"></main></div>';
   document.body.style.overflow = '';
 });
 afterEach(() => cleanup());
@@ -159,3 +159,16 @@ test('closing the last dialog restores pre-existing overflow and inert settings'
   assert.equal(scroller.style.overflow, 'scroll');
   assert.equal(root.inert, true);
 });
+
+for (const unavailable of ['removed', 'hidden', 'disabled'] as const) {
+  test(`closing the last dialog returns to main content when its opener is ${unavailable}`, () => {
+    const opener = document.getElementById('opener') as HTMLButtonElement;
+    opener.focus();
+    const view = render(<ModalShell label="Temporary"><button>Done</button></ModalShell>);
+    if (unavailable === 'removed') opener.remove();
+    else if (unavailable === 'hidden') opener.hidden = true;
+    else opener.disabled = true;
+    view.unmount();
+    assert.ok(document.activeElement === document.getElementById('scroll-container'));
+  });
+}

@@ -125,6 +125,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
+  const baybayOpenerRef = useRef<HTMLElement | null>(null);
   useEffect(() => { if (baybayPanelOpen) setBaybayLoaded(true); }, [baybayPanelOpen]);
   const [baybaySessionRevision, setBaybaySessionRevision] = useState(0);
   const baybayLoginDraft = useRef<BayBayConversationDraft | null>(null);
@@ -136,13 +137,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
   const baybayQuestionSequence = useRef(0);
   const openBayBay = useCallback((question?: string, options?: { mode?: 'send' | 'draft' }) => {
+    if (!baybayPanelOpen) baybayOpenerRef.current = document.activeElement as HTMLElement | null;
     if (question?.trim()) {
       setBaybayPendingQuestionId(++baybayQuestionSequence.current);
       setBaybayPendingQuestion({ text: question.trim().slice(0, 500), scope: baybaySessionScope, mode: options?.mode || 'send' });
     }
     setBaybayCategoryHint(categorySlug);
     setBaybayPanelOpen(true);
-  }, [categorySlug, baybaySessionScope]);
+  }, [categorySlug, baybaySessionScope, baybayPanelOpen]);
   useEffect(() => {
     setBaybayPanelOpen(baybayResumeOwner.current === user?.id && !!user?.id);
     baybayResumeOwner.current = null;
@@ -869,13 +871,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
         <SiteMobileNavigation pathname={location.pathname} notificationCount={messagesBadgeCount} hasNotification={showMessagesBadge} onAsk={() => openBayBay()} />
 
-        {(baybayPanelOpen || baybayLoaded) && <Suspense fallback={baybayPanelOpen ? <DismissibleChunkFallback label="正在打开 BayBay…" onClose={() => setBaybayPanelOpen(false)} /> : null}><LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
+        {(baybayPanelOpen || baybayLoaded) && <Suspense fallback={baybayPanelOpen ? <DismissibleChunkFallback label="正在打开 BayBay…" onClose={() => setBaybayPanelOpen(false)} restoreFocusRef={baybayOpenerRef} /> : null}><LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
           key={baybaySessionScope}
           ownerId={user?.id}
           sessionKey={`${baybaySessionScope}:${baybaySessionRevision}`}
           initialConversation={baybayResumedConversation?.ownerId === user?.id ? baybayResumedConversation?.draft : undefined}
           onLoginNeeded={(draft) => { baybayLoginDraft.current = user ? null : draft; pendingCreateRef.current = false; setShowLogin(true); }}
           variant="headless"
+          restoreFocusRef={baybayOpenerRef}
           panelOpen={baybayPanelOpen && !showLogin}
           onPanelOpenChange={(open) => {
             setBaybayPanelOpen(open);

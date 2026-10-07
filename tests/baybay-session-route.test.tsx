@@ -14,6 +14,9 @@ Object.assign(globalThis, {
   getComputedStyle: dom.window.getComputedStyle.bind(dom.window), IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+dom.window.HTMLElement.prototype.getClientRects = function () {
+  return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
+};
 dom.window.scrollTo = () => {};
 const styles = registerHooks({ load(url, context, next) {
   if (url.includes('/socket.io-client/')) return { format: 'module', shortCircuit: true, source: 'export const io = () => ({ on() { return this; }, off() { return this; }, emit() {}, disconnect() {} });' };
@@ -24,6 +27,7 @@ const { MemoryRouter, Routes, Route, useLocation } = await import('react-router-
 const { default: AppLayout } = await import('../src/app/AppLayout');
 const { useApp } = await import('../src/app/context');
 const { api } = await import('../src/lib/api');
+const { setLocale } = await import('../src/i18n/locale');
 // AppLayout can import lazy overlays while the interaction is running.
 after(() => { styles.deregister(); dom.window.close(); });
 
@@ -33,17 +37,51 @@ let changeAccount: () => void;
 let queueQuestion: () => void;
 function FixturePage() {
   const { setUser, openBayBay } = useApp();
+  const location = useLocation();
   React.useEffect(() => {
     // Empty token keeps this UI-only account transition disconnected from sockets.
     changeAccount = () => setUser({ id: 'next-account', nickname: 'Fixture neighbor', token: '', email: '', contactType: 'wechat', contactValue: '' });
     queueQuestion = () => openBayBay('前一个使用者排队的问题');
   }, [setUser, openBayBay]);
-  return <button onClick={() => openBayBay()}>fixture open assistant</button>;
+  return <><button onClick={() => openBayBay()}>fixture open assistant</button><output data-testid="fixture-location">{location.pathname + location.search}</output></>;
 }
 function Harness() {
   const location = useLocation();
   return <Routes><Route element={<AppLayout realLocation={location} />}><Route path="*" element={<FixturePage />} /></Route></Routes>;
 }
+
+test('cold BayBay restores its original trigger after the loading dialog and preserves the monthly query on Escape', async t => {
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path.startsWith('/posts?')) return { posts: [], hasMore: false };
+    throw new Error(`Unexpected fixture API: ${path}`);
+  });
+  let modelRequests = 0;
+  mockBayBayFetch(t, async () => { modelRequests++; return Response.json({ ok: true, answer: 'Unused fixture answer' }); });
+  await setLocale('zh-Hant', false);
+  const view = render(<MemoryRouter initialEntries={['/this-month?sort=popular']}><Harness /></MemoryRouter>);
+  try {
+    const opener = view.getByRole('button', { name: 'fixture open assistant' });
+    opener.focus(); fireEvent.click(opener, { detail: 0 });
+    const loadingDialog = view.getByRole('dialog');
+    assert.ok(loadingDialog.contains(document.activeElement), 'the actual lazy loading dialog receives focus first');
+    const input = await view.findByRole('textbox', { name: '向 BayBay 提問' });
+    assert.equal(loadingDialog.isConnected, false, 'the fallback was replaced by the actual assistant');
+    fireEvent.keyDown(input, { key: 'Escape' });
+    assert.equal(view.queryByRole('dialog'), null);
+    assert.ok(document.activeElement === opener, 'the disconnected loading button cannot replace the original opener');
+    assert.equal(view.getByTestId('fixture-location').textContent, '/this-month?sort=popular');
+
+    const mobileOpener = view.container.querySelector<HTMLButtonElement>('.site-mobile-ask')!;
+    mobileOpener.focus(); fireEvent.click(mobileOpener, { detail: 0 });
+    fireEvent.keyDown(await view.findByRole('textbox', { name: '向 BayBay 提問' }), { key: 'Escape' });
+    assert.ok(document.activeElement === mobileOpener, 'a warm reopening returns to its new trigger');
+    assert.equal(view.getByTestId('fixture-location').textContent, '/this-month?sort=popular');
+    assert.equal(modelRequests, 0);
+  } finally {
+    view.unmount();
+    await setLocale('zh-Hans', false);
+  }
+});
 
 test('changing account clears completed history, aborts pending work and discards queued questions', async t => {
   t.mock.method(api, 'request', async (path: string) => {

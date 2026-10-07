@@ -32,6 +32,7 @@ type BayBayAssistantEntryProps = {
   currentPath?: string;
   panelOpen?: boolean;
   onPanelOpenChange?: (open: boolean) => void;
+  restoreFocusRef?: React.RefObject<HTMLElement>;
   pendingQuestion?: string | null;
   pendingQuestionMode?: 'send' | 'draft';
   pendingQuestionId?: number;
@@ -55,7 +56,7 @@ export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBa
 
 const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, categoryHint,
   currentPath = typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search,
-  panelOpen, onPanelOpenChange, pendingQuestion, pendingQuestionMode = 'send', pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
+  panelOpen, onPanelOpenChange, restoreFocusRef, pendingQuestion, pendingQuestionMode = 'send', pendingQuestionId, onPendingQuestionConsumed, blockedUserIds, ownerId, sessionKey, onLoginNeeded, initialConversation,
 }: BayBayAssistantEntryProps) => {
   const locale = useLocale();
   const completionLocale = useRef(locale);
@@ -254,7 +255,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
       <img src={BRAND.baybayAvatar} alt="BayBay" className="h-9 w-9 shrink-0 rounded-lg object-cover" width={36} height={36} />
       <span className="min-w-0 flex-1"><span className="block text-[12px] font-medium text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
     </button>)}
-    {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined}>
+    {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined} restoreFocusRef={restoreFocusRef}>
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>
         <div className="member-baybay-header">
           <div className="flex min-w-0 gap-3"><img src={BRAND.baybayAvatar} alt="" className="member-baybay-avatar" width={48} height={48} />

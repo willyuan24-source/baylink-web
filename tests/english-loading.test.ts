@@ -71,6 +71,12 @@ test('actual scoped runtime leaves other articles unloaded, then supplies the co
   assert.equal(translateText('邻里信息', 'en'), 'Neighborhood board', 'the controlled board heading must be English before loading any article');
   assert.equal(translateText('正在打开搜索…', 'en'), 'Opening search…');
   assert.equal(translateText('正在打开 BayBay…', 'en'), 'Opening BayBay…');
+  assert.equal(translateText('新店 · 已开业', 'en'), 'New opening · Open now', 'composed opening labels belong in the UI pack');
+  assert.equal(translateText('用这家店开始出游计划', 'en'), 'Plan a day around this place');
+  assert.equal(translateText('当前筛选结果 1 条，近 30 天发布 0 条。', 'en'), 'Matching listings: 1; posted in the past 30 days: 0. ');
+  assert.equal(translateText('当前已加载 20 条，近 30 天发布 3 条。', 'en'), 'Listings loaded so far: 20; posted in the past 30 days: 3. ');
+  assert.equal(translateText('正在读取当前邻里信息…', 'en'), 'Loading current neighborhood listings…');
+  assert.doesNotMatch(translateText('这里还在起步，旧帖请先联系发布者确认有效。', 'en'), /[\u3400-\u9fff]/u);
   assert.equal(isLocaleReadyForPath('en', path), false, 'home readiness cannot unlock an untranslated article');
   await loadLocaleForPath('en', ['/en', path]);
   assert.equal(isLocaleReadyForPath('en', path), true);

@@ -46,11 +46,18 @@ const unlockScroll = () => {
 };
 
 const canRestoreFocus = (element: HTMLElement | null): element is HTMLElement => {
-  if (!element?.isConnected) return false;
+  if (!element?.isConnected || element.matches(':disabled') || element.getClientRects().length === 0) return false;
   for (let parent: HTMLElement | null = element; parent; parent = parent.parentElement) {
-    if (parent.inert) return false;
+    if (parent.inert || parent.hidden) return false;
   }
+  if (window.getComputedStyle(element).visibility === 'hidden') return false;
   return true;
+};
+
+const restoreFocus = (element: HTMLElement | null) => {
+  if (!canRestoreFocus(element)) return false;
+  element.focus({ preventScroll: true });
+  return document.activeElement === element;
 };
 
 const getFocusable = (container: HTMLElement): HTMLElement[] =>
@@ -129,12 +136,14 @@ export function useModalBehavior(onClose?: () => void, initialFocusRef?: React.R
       // focus from the still-open top dialog or reactivate a covered parent.
       if (wasTop) {
         const nextTop = modalStack[modalStack.length - 1]?.container;
-        if (canRestoreFocus(previouslyFocused) && (!nextTop || nextTop.contains(previouslyFocused))) {
-          previouslyFocused.focus();
-        } else if (nextTop) {
-          (getFocusable(nextTop)[0] || nextTop).focus();
-        } else if (canRestoreFocus(originalPageFocus)) {
-          originalPageFocus.focus();
+        if (nextTop) {
+          if (!nextTop.contains(previouslyFocused) || !restoreFocus(previouslyFocused)) {
+            (getFocusable(nextTop)[0] || nextTop).focus({ preventScroll: true });
+          }
+        } else if (!restoreFocus(previouslyFocused) && !restoreFocus(originalPageFocus)) {
+          // A route change can remove the opener. Return to the app's main
+          // content only after the final modal has released the background.
+          restoreFocus(document.getElementById('scroll-container'));
         }
       }
     };

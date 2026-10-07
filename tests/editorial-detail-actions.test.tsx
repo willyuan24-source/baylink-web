@@ -4,6 +4,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import { StaticRouter } from 'react-router-dom';
+import '../src/i18n/router';
 import { localDiscoveries } from '../src/data/local-discoveries';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
 import { setLocale } from '../src/i18n/locale';
@@ -84,4 +85,21 @@ test('expired or unconfirmed offers retain official reference access without inv
     assert.equal(doc.querySelector('.discovery-detail-main-actions .discovery-primary')?.getAttribute('href'), item.offer.sourceUrl);
     assert.equal(doc.querySelector('.discovery-important')?.textContent, item.offer.requirement);
   }
+});
+
+test('English opening status, plan action and related event controls have no untranslated interface labels', async () => {
+  await setLocale('en', false);
+  const shop = localDiscoveries.find(item => item.kind === 'opening' && item.shop.id === 'sergeant-ma');
+  assert.ok(shop?.kind === 'opening');
+  for (const [status, label] of [['open', 'Open'], ['soft_open', 'Soft opening'], ['announced', 'Announced']] as const) {
+    const doc = page({ ...shop, shop: { ...shop.shop, status } });
+    assert.equal(doc.querySelector('.discovery-eyebrow')?.textContent, `New opening · ${label}`);
+    assert.equal(doc.querySelector('.discovery-detail-header a.discovery-secondary')?.textContent, 'Plan a day around this place');
+  }
+  const event = localDiscoveries.find(item => item.kind === 'event' && item.event.relatedGuideSlug);
+  assert.ok(event?.kind === 'event');
+  const doc = page(event, event.event.startDate);
+  assert.equal(doc.querySelector('.discovery-detail-main-actions')?.getAttribute('aria-label'), 'Event actions');
+  assert.equal(doc.querySelector('.discovery-detail-more-actions summary')?.textContent, 'Save, calendar and sharing');
+  assert.equal(doc.querySelector('.discovery-related')?.textContent, 'Read a related local guide');
 });
