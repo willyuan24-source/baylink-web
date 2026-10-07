@@ -21,34 +21,39 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
   const [busy, setBusy] = useState<string[]>([]);
   const revisions = useRef<Record<string, number>>({});
   const locks = useRef(new Set<string>());
+  const loadedIds = useRef(new Set<string>());
   const alive = useRef(true);
   const ids = events.map(event => event.id).sort().join(',');
   const enabled = !!app;
   const requestSerial = useRef(0);
   const readController = useRef<AbortController | null>(null);
-  const refresh = useCallback(async () => {
-    if (!enabled || !ids) return;
+  const read = useCallback(async (force = false) => {
     readController.current?.abort();
     const controller = new AbortController();
     readController.current = controller;
     const serial = ++requestSerial.current;
+    const requested = ids ? ids.split(',').filter(id => force || !loadedIds.current.has(id)) : [];
+    if (!enabled || !requested.length) { setLoading(false); setFailed(false); return; }
     const before = { ...revisions.current };
     setLoading(true);
+    setFailed(false);
     try {
-      const response = await getEventEngagement(ids.split(','), controller.signal);
+      const response = await getEventEngagement(requested, controller.signal);
       if (!alive.current || controller.signal.aborted || serial !== requestSerial.current) return;
       setEntries(previous => {
         const next = { ...previous };
         for (const entry of response) if ((before[entry.eventId] || 0) === (revisions.current[entry.eventId] || 0)) next[entry.eventId] = entry;
         return next;
       });
+      for (const entry of response) loadedIds.current.add(entry.eventId);
       setFailed(false);
     } catch { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setFailed(true); }
     finally { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setLoading(false); }
   }, [enabled, ids]);
+  const refresh = useCallback(() => { void read(true); }, [read]);
   useEffect(() => {
-    alive.current = true; void refresh();
-    const focus = () => { void refresh(); };
+    alive.current = true; void read();
+    const focus = () => { void read(true); };
     window.addEventListener('focus', focus);
     return () => {
       alive.current = false;
@@ -58,7 +63,7 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       readController.current?.abort();
       window.removeEventListener('focus', focus);
     };
-  }, [refresh]);
+  }, [read]);
   const update = async (id: string, value: EventInterest) => {
     if (!app?.user) { app?.setShowLogin(true); return false; }
     if (locks.current.has(id)) return false;
@@ -68,6 +73,7 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       const entry = await setEventInterest(id, value);
       if (!alive.current) return false;
       revisions.current[id] = (revisions.current[id] || 0) + 1;
+      loadedIds.current.add(id);
       setEntries(previous => ({ ...previous, [id]: entry })); setFailed(false);
       app.showToast(value.lookingForBuddy ? '已公开找搭子意向，尚未加入具体小队。' : value.interested ? '已记下想去，在「我的想去」中找回。' : '已取消想去与搭子状态。', 'success');
       return true;
@@ -76,7 +82,10 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       return false;
     } finally { locks.current.delete(id); if (alive.current) setBusy([...locks.current]); }
   };
-  return <EventParticipationContext.Provider value={{ entries, loading, failed, busy, refresh, update, app }}>{children}</EventParticipationContext.Provider>;
+  // A newly expanded scope must not briefly look like a complete empty result
+  // before its effect starts. Cached counts belong only to this account session.
+  const awaitingScope = enabled && !!ids && ids.split(',').some(id => !entries[id]);
+  return <EventParticipationContext.Provider value={{ entries, loading: loading || (awaitingScope && !failed), failed, busy, refresh, update, app }}>{children}</EventParticipationContext.Provider>;
 }
 
 export function EventParticipationActions({ event, today = getBayAreaToday(), available = true }: { event: MonthlyEvent; today?: string; available?: boolean }) {

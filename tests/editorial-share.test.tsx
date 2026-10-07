@@ -278,8 +278,10 @@ test('recipient detail lookup rejects unknown kinds and IDs, and old offer links
   assert.equal(getLocalDiscovery('guide', guide.slug), undefined, 'Guide pages have their own route, not a discovery record');
   const item = getLocalDiscovery('offer', offer.id)!;
   assert.equal(discoveryShare(item).path, `/offers/${offer.id}`);
+  assert.equal(discoveryShare(item).title, `${offer.brand} · ${offer.title}`, 'Shared titles retain the brand');
   const view = render(<MemoryRouter><LocalDiscoveryDetail item={item} today="2027-01-01" /></MemoryRouter>);
-  assert.equal(view.getByRole('heading', { level: 1 }).textContent, card.title);
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, offer.title);
+  assert.equal(view.container.querySelector('.discovery-detail-header .discovery-eyebrow')?.textContent, `${card.label} · ${offer.brand}`, 'The visible eyebrow preserves the brand without repeating it in the H1');
   assert.ok(view.getAllByText(offer.requirement).length > 0);
   assert.match(view.baseElement.textContent!, /日期已过/);
   assert.equal(view.getByRole('link', { name: '查看领取入口' }).getAttribute('href'), offer.sourceUrl);

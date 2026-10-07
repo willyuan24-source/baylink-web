@@ -855,7 +855,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
           <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
           <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
-          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate()}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={9} /> : <><span>登录 / 注册</span><ArrowUpRight size={16} /></>}</button></div>
+          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate()}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={9} /> : <><span className="site-account-desktop-label">登录 / 注册</span><span className="site-account-mobile-label">登录</span><ArrowUpRight size={16} /></>}</button></div>
           <ReadingPreferencesButton />
           <LanguageSwitcher realLocation={realLocation} />
         </header>

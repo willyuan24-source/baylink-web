@@ -2,8 +2,11 @@
 import { OFFICIAL_VERIFICATION_TYPE_LABELS } from './constants';
 import type { AdData, AdDetailItem, PostData, PostType, UserData } from './types';
 import type { Locale } from '../i18n/locale';
+import { contactQuotaErrorMessage } from './contact-error-copy';
 
 export const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后再试。'): string => {
+  const contactQuotaMessage = contactQuotaErrorMessage(err);
+  if (contactQuotaMessage) return contactQuotaMessage;
   const raw = err && typeof err === 'object'
     ? String((err as { error?: string; message?: string }).error || (err as { message?: string }).message || '').trim()
     : typeof err === 'string' ? err.trim() : '';

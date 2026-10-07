@@ -122,7 +122,7 @@ test('offscreen cards wait until approaching the viewport before requesting a tr
   assert.equal(requests, 1);
 });
 
-test('Simplified and Traditional readers see untouched author content without translation requests', async () => {
+test('Traditional cards offer local script conversion and original text without changing the author or sending a request', async () => {
   const post = makePost('translation-chinese-card');
   let requests = 0;
   api.request = async () => { requests++; throw new Error('Chinese reading must not request an English translation'); };
@@ -130,9 +130,22 @@ test('Simplified and Traditional readers see untouched author content without tr
   const view = render(<MemoryRouter><PostCard post={post} /></MemoryRouter>);
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);
   await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(view.getByRole('heading', { level: 3 }).textContent, '週日幫鄰居修復藍色書架');
+  assert.equal(view.container.querySelector('.post-card__description')!.textContent, '帶上工具幫忙修理鬆動的書架。請先確認木板尺寸，再安排上門。');
+  assert.equal(view.container.querySelector('.post-card__price')!.textContent, source.budget);
+  assert.equal(view.container.querySelector('.post-card__author-name')!.textContent, post.author.nickname);
+  assert.ok(view.getByText('已轉為繁體顯示'));
+  fireEvent.click(view.getByRole('button', { name: '查看原文', exact: true }));
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, source.title);
   assert.equal(view.container.querySelector('.post-card__description')!.textContent, source.description);
-  assert.equal(view.container.querySelector('.post-card__author-name')!.textContent, post.author.nickname);
+  await act(async () => { await setLocale('zh-Hans', false); });
+  assert.equal(view.queryByRole('button', { name: '顯示繁體' }), null);
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(view.getByRole('heading', { level: 3 }).textContent, '週日幫鄰居修復藍色書架');
+  fireEvent.click(view.getByRole('button', { name: '查看原文', exact: true }));
+  fireEvent.click(view.getByRole('button', { name: '顯示繁體', exact: true }));
+  assert.equal(view.getByRole('heading', { level: 3 }).textContent, '週日幫鄰居修復藍色書架');
+  assert.deepEqual({ title: post.title, description: post.description, budget: post.budget, timeInfo: post.timeInfo }, source);
   assert.equal(requests, 0);
   assert.equal(view.queryByRole('button', { name: 'Show original' }), null);
 });
@@ -176,6 +189,34 @@ test('post details translate all reading fields and metadata together and can re
   assert.equal(requests, 1);
   assert.equal(post.title, source.title);
   assert.equal(post.description, source.description);
+});
+
+test('Traditional detail display and metadata share one original toggle while sharing receives the original post', async () => {
+  const post = makePost('traditional-detail');
+  post.type = 'client';
+  post.description += ' 网址 https://example.com/书架?价格=20，材料费 20美元。';
+  const saved = structuredClone(post);
+  let requests = 0;
+  const shares: PostData[] = [];
+  api.request = async () => { requests++; throw new Error('No network translation for Traditional display'); };
+  await setLocale('zh-Hant', false);
+  const view = render(<MemoryRouter><PostDetailModal {...detailProps} post={post} onShare={value => shares.push(value)} /></MemoryRouter>);
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '週日幫鄰居修復藍色書架');
+  assert.equal(document.title, '週日幫鄰居修復藍色書架｜BAYLINK');
+  assert.equal(document.querySelector('.post-detail__budget strong')!.textContent, source.budget);
+  assert.ok(document.querySelector('.post-detail__description')!.textContent!.includes('https://example.com/书架?价格=20'));
+  assert.ok(view.getByText(post.author.nickname, { exact: true }));
+  fireEvent.click(view.getByRole('button', { name: translateText('分享'), exact: true }));
+  assert.equal(shares[0], post);
+  fireEvent.click(view.getByRole('button', { name: '查看原文', exact: true }));
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, source.title);
+  assert.equal(document.querySelector('.post-detail__description')!.textContent, post.description);
+  assert.equal(document.title, `${source.title}｜BAYLINK`);
+  assert.equal(document.querySelector('meta[name="description"]')?.getAttribute('content'), post.description);
+  fireEvent.click(view.getByRole('button', { name: '顯示繁體', exact: true }));
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '週日幫鄰居修復藍色書架');
+  assert.equal(requests, 0);
+  assert.deepEqual(post, saved);
 });
 
 test('a translation outage leaves the original readable and an explicit retry can recover', async () => {

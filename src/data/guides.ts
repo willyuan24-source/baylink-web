@@ -1,3 +1,4 @@
+import { commuteGuide } from './guide-commute-refresh';
 import { visitorPersonaGuides } from './guides-persona-visitor';
 import { publicServiceGuides } from './guides-public-services';
 import { benefitsCitizenshipGuides } from './guides-benefits-citizenship';
@@ -462,88 +463,7 @@ export const guides: Guide[] = [
       },
     ],
   },
-  {
-    slug: 'bay-area-commute-guide',
-    title: '湾区通勤方式全对比：BART、Caltrain、开车、拼车怎么选',
-    subtitle: '按居住与工作地选交通',
-    summary: '半岛、南湾、东湾通勤差异大，先搞清时间与成本再决定住哪。',
-    category: 'commute',
-    categoryLabel: '通勤',
-    emoji: '🚆',
-    audience: ['上班族', '留学生'],
-    tags: ['BART', 'Caltrain', '拼车'],
-    priority: 'P0',
-    featuredOnHome: true,
-    recommendedForCategories: ['ride'],
-    readMinutes: 8,
-    updatedAt: '2026-05-22',
-    sources: [OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.vta],
-    sourceNote: SOURCE_NOTE,
-    blocks: [
-      {
-        type: 'paragraph',
-        text: '这篇文章是给每天要在湾区上班、上学、跨城跑的人看的。通勤方式没有标准答案，真正要比较的不是谁最快，而是谁更适合你的时间、停车条件、最后一公里和晚归安全。',
-      },
-      { type: 'heading', text: '先别只看地图距离' },
-      {
-        type: 'paragraph',
-        text: '湾区通勤最容易误判的地方，就是看着地图不远，实际却要换乘、找停车、走很长一段路，或者一旦错过一班车就会多等很久。所以比较通勤方式时，最好按完整一趟门到门时间来算，不要只看车上那一段。',
-      },
-      { type: 'heading', text: 'BART 更适合哪些情况' },
-      {
-        type: 'list',
-        items: [
-          '起点和终点都离站点不远，或者最后一公里容易解决。',
-          '你不想每天自己开车进城、找停车位、扛堵车压力。',
-          '通勤路线比较稳定，主要集中在东湾、旧金山、市中心连接段。',
-          '你可以接受高峰期人多，愿意用时间换掉停车和开车成本。',
-        ],
-      },
-      { type: 'heading', text: 'Caltrain 更适合哪些情况' },
-      {
-        type: 'paragraph',
-        text: '如果你的路线主要在 Peninsula 和 South Bay 之间，Caltrain 往往是很多通勤族会认真考虑的选项。坐车过程相对稳定，但你仍然要看站点离家和公司有多远，站点周边停车、接驳和下车后的最后一公里怎么解决。票价、班次和时刻表这类信息容易变化，建议以官方信息为准。',
-      },
-      { type: 'heading', text: '开车和拼车什么时候更现实' },
-      {
-        type: 'paragraph',
-        text: '如果你的起点终点都不靠轨道交通，或者需要接送孩子、带很多东西、下班时间不固定，开车通常更有弹性。但开车不只是油费问题，还要把停车、桥费、堵车、车辆维护和下雨天通勤一起算进去。拼车适合有固定同事或同学路线的人，但前提是时间真的能对得上。',
-      },
-      {
-        type: 'checklist',
-        items: [
-          '把完整门到门时间算进去，包括走到车站、等车、换乘和最后一段步行。',
-          '确认目的地附近停车是否稳定，是否需要额外费用或提前到。',
-          '想想你能不能接受晚归时还要再转一趟车或走一段夜路。',
-          '如果一周只去办公室两三天，混合通勤可能比全程开车更省心。',
-          '至少试跑一次真实路线，不要只靠导航预估。',
-        ],
-      },
-      { type: 'heading', text: '很多人最后会选混合通勤' },
-      {
-        type: 'paragraph',
-        text: '湾区很常见的做法不是全程只用一种方式，而是开车到站、坐车进城，或者平时坐车、需要加班时开车。你不一定非要选最省钱或最快的那个，能长期坚持、身体压力小、时间波动可控，通常更重要。',
-      },
-      {
-        type: 'tip',
-        title: '晚归安全别到最后才想',
-        text: '很多路线白天看起来都没问题，真正拉开差距的是晚上。如果你经常加班、上夜课或周末回家晚，最后一公里有没有人接、车站周边安不安全、打车是否方便，都值得提前考虑。',
-      },
-      { type: 'heading', text: '先找到适合你当前阶段的方案' },
-      {
-        type: 'paragraph',
-        text: '刚来湾区的人，先用能跑起来的方案就好，不一定一步到位。你住处、工作地点和生活习惯稳定后，再慢慢优化通勤方式，通常更现实。',
-      },
-      {
-        type: 'cta',
-        title: '继续找更顺手的通勤方案',
-        text: '如果你在找接送、拼车或更适合自己的生活区域，可以继续浏览 BAYLINK 的通勤相关分类，看看现在有哪些本地信息和需求。',
-        primaryLabel: '浏览通勤分类',
-        primaryAction: 'category',
-        categorySlug: 'ride',
-      },
-    ],
-  },
+  commuteGuide,
   {
     slug: 'bay-area-used-trading-safety-guide',
     title: '湾区二手交易安全指南：面交、转账、验货怎么做',

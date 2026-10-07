@@ -33,7 +33,7 @@ await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
   guides: homeGuides, guideCount: guides.length, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate, edition: MONTHLY_EDITION,
   offers: currentFreebies.filter(offer => offerIds.has(offer.id)).map(({ id,title,brand,startDate,endDate,dateLabel,availability,verificationStatus,requirement,sourceLabel,sourceUrl,verifiedAt }) => ({id,title,brand,startDate,endDate,dateLabel,availability,verificationStatus,requirement,sourceLabel,sourceUrl,verifiedAt})),
-  images: { culture: GUIDE_IMAGES.culture, everyday: GUIDE_IMAGES.everyday },
+  images: Object.fromEntries([...new Set(['culture', 'everyday', ...events.map(event => event.imageKey)])].filter(key => GUIDE_IMAGES[key]).map(key => [key, GUIDE_IMAGES[key]])),
 }));
 console.log(`Home catalog: ${homeGuides.length} summaries, ${events.length} event facts; no article bodies.`);
 

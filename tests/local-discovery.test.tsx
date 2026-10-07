@@ -210,7 +210,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
     try {
     const doc = page;
     assert.equal(doc.querySelectorAll('h1').length, 1, share.id);
-    assert.equal(doc.querySelector('h1')?.textContent, share.title);
+    assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : share.title);
     assert.equal(doc.querySelector('title')?.textContent, share.title + '｜BAYLINK');
     assert.equal(canonical(doc), expectedUrl);
     assert.equal(meta(doc, 'og:url'), expectedUrl);
@@ -301,7 +301,7 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
         : { ...item, shop: { ...item.shop, imageKey } };
       const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={fixture} today="2026-09-15" /></StaticRouter>);
       const page = new JSDOM(body);
-      assert.equal(page.window.document.querySelector('h1')?.textContent, discoveryShare(item).title);
+      assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : discoveryShare(item).title);
       assert.equal(Boolean(page.window.document.querySelector('.discovery-detail-media')), false);
       assert.ok(page.window.document.querySelector('.discovery-detail-links a'));
       page.window.close();
@@ -456,7 +456,7 @@ test('client recipient navigation replaces category content and metadata, and wr
   for (const [label, item] of [['fixture event', eventItem], ['fixture offer', offerItem], ['fixture opening', announcedShop]] as const) {
     fireEvent.click(view.getByRole('link', { name: label, exact: true }));
     const share = discoveryShare(item);
-    assert.equal(view.getByRole('heading', { level: 1 }).textContent, share.title);
+    assert.equal(view.getByRole('heading', { level: 1 }).textContent, item.kind === 'offer' ? item.offer.title : share.title);
     assert.equal(canonical(document), SITE_URL + share.path, 'attribution, locale query and fragments do not alter canonical URLs');
     assert.equal(meta(document, 'og:url'), SITE_URL + share.path);
     assert.equal(meta(document, 'og:image'), SITE_URL + shareCardPath(share));

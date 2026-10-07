@@ -3,7 +3,8 @@ on: [push, pull_request]
 permissions:
   contents: read
 jobs:
-  check:
+  site:
+    name: Site tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -12,5 +13,54 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run check
-      - run: npm audit --audit-level=high
+      - run: npm run pretest
+      - run: npm run test:site
+  opus:
+    name: 3D tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run pretest
+      - run: npm run test:opus
+  release:
+    name: Build and artifact checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Same lint, dependency audit, full build and generated-artifact checks as
+      # release:build; the complete test inventory runs in the two jobs above.
+      - run: npm run release:hosting
+      - name: Report upcoming editorial coverage (advisory)
+        run: npm run report:content-coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: content-coverage
+          path: artifacts/content-coverage/
+          if-no-files-found: error
+  check:
+    # Keep the existing required-check name. Never skip this aggregate when a
+    # prerequisite fails or is cancelled, and never skip lanes by changed paths.
+    if: ${{ always() }}
+    needs: [site, opus, release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every release check
+        env:
+          SITE_RESULT: ${{ needs.site.result }}
+          OPUS_RESULT: ${{ needs.opus.result }}
+          RELEASE_RESULT: ${{ needs.release.result }}
+        run: |
+          if [[ "$SITE_RESULT" != "success" || "$OPUS_RESULT" != "success" || "$RELEASE_RESULT" != "success" ]]; then
+            echo "Site tests, 3D tests and all build/artifact checks must succeed."
+            exit 1
+          fi

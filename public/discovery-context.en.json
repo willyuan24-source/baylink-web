@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-10-06",
+  "checkedAt": "2026-10-07",
   "items": [
     {
       "kind": "offer",
@@ -1007,7 +1007,7 @@
       "id": "marin-transit-clean-air-oct7-2026",
       "title": "10/7: Fare-Free Marin Transit Local Buses",
       "path": "/offers/marin-transit-clean-air-oct7-2026",
-      "summary": "Check your route, outbound and return departures, and stops first. The fare-free announcement does not extend service hours or automatically cover an entire cross-bay trip. Verify other operators' fares separately.",
+      "summary": "The official 2026/27 schedule lists October 7 as Clean Air Day, with local buses free for all riders. Check your outbound and return departures and stops. Fare-free travel does not extend service hours; check other operators' fares separately.",
       "details": [
         "Marin Transit local buses are fare-free for everyone that day, with no purchase required. This does not automatically include Golden Gate, SMART, ferries, or other operators' services."
       ],
@@ -1017,7 +1017,7 @@
       "dateLabel": "10/7 · Services run according to each route's schedule that day",
       "costLabel": "No purchase required",
       "status": "dated",
-      "verifiedAt": "2026-09-29",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://marintransit.gov/fare-free-promotions",
       "sourceLabel": "Marin Transit Official Fare-Free Days"
     },
@@ -1045,7 +1045,7 @@
       "id": "sf-zoo-resident-free-oct7-2026",
       "title": "October 7: free zoo admission for SF residents with proof",
       "path": "/offers/sf-zoo-resident-free-oct7-2026",
-      "summary": "This 2026 date is officially announced. Parking, food and other paid extras are excluded. Ask the zoo how accompanying children or relatives without their own address ID should prove eligibility.",
+      "summary": "The free-day event page lists October 7, 10 AM–4 PM; the site's general closing time does not define this offer's window. Parking, food and other paid extras are excluded. Ask the zoo how accompanying children or relatives without their own address ID should prove eligibility.",
       "details": [
         "San Francisco residents only. Show government-issued ID proving SF residency at ticket scanning; each qualifying ID admits one person free."
       ],
@@ -1055,7 +1055,7 @@
       "dateLabel": "Wed October 7 · Official free-day window 10 AM–4 PM",
       "costLabel": "No purchase required",
       "status": "dated",
-      "verifiedAt": "2026-09-30",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://www.sfzoo.org/calendar/sf-resident-free-day-5/",
       "sourceLabel": "SF Zoo official 2026 free-day calendar"
     },
@@ -2313,7 +2313,7 @@
       "id": "target-circle-deal-days-oct6-7-2026",
       "title": "October 6–7: 40% off select apparel and 30% off select beauty",
       "path": "/offers/target-circle-deal-days-oct6-7-2026",
-      "summary": "Target announced 40% off select family apparel, 30% off select skincare, haircare and cosmetics, plus selected toy, tech and home deals. Check Bay Area store stock, exclusions and the final member price before buying.",
+      "summary": "Target's company announcement specifies October 6–7: 40% off selected family clothing and 30% off selected skincare, haircare and cosmetics. Purchases and membership are required. Check local stock, exclusions and checkout totals for your chosen items.",
       "details": [
         "Join free Target Circle and buy eligible items in store, online or in the app. Discounts apply to selected products, not everything. Paid Circle 360 members get early access to some deals on October 5."
       ],
@@ -2322,7 +2322,7 @@
       "dateLabel": "Oct 6–7 · Free Circle membership",
       "costLabel": "Purchase required",
       "status": "dated",
-      "verifiedAt": "2026-10-04",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://www.prnewswire.com/news-releases/target-circle-deal-days-returns-with-major-savings-on-stylish-fall-and-holiday-finds-302878903.html",
       "sourceLabel": "Target Corporation’s official fall 2026 sale announcement"
     },

@@ -41,3 +41,4 @@ coverage
 /public/weekly/
 /public/calendars/
 /public/content-review-manifest.json
+/artifacts/content-coverage/

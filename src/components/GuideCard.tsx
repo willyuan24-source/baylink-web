@@ -62,19 +62,17 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
       onClick={(event) => handleGuideLinkClick(event, onClick)}
       className={`bl-guide-card bl-guide-tone-${guide.category}${compact ? " bl-guide-card-compact" : ""}`}
     >
-      {!compact && (
         <div
-          className="bl-guide-card-art bl-guide-card-art-photo"
+          className={`bl-guide-card-art bl-guide-card-art-photo${cover.kind === 'poster' || cover.fullFrame ? ' bl-guide-card-art--full' : ''}`}
           aria-hidden="true"
         >
-          <img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 42vw, 340px" width={cover.width} height={cover.height} alt="" loading="lazy" decoding="async" />
+          <img src={cover.src} srcSet={cover.srcSet} sizes={compact ? '(max-width:359px) 70px, (max-width:767px) 82px, 94px' : '(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 42vw, 340px'} width={cover.width} height={cover.height} alt="" loading="lazy" decoding="async" />
           <span className="bl-guide-art-label">{guide.categoryLabel}</span>
           <span className="bl-guide-art-arrow">
             <ArrowUpRight size={17} />
           </span>
-          <span className="bl-guide-image-kind">{getImageProvenance(cover, english)}</span>
+          {!compact && <span className="bl-guide-image-kind">{getImageProvenance(cover, english)}</span>}
         </div>
-      )}
       <div className="bl-guide-card-body">
         <div className="bl-guide-card-kicker">
           <span>{guide.categoryLabel}</span>
@@ -83,6 +81,7 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
           )}
         </div>
         <h3>{guide.title}</h3>
+        {compact && <span className="bl-guide-card-provenance">{getImageProvenance(cover, english)}</span>}
         {searchSection && <span className="bl-guide-search-section">文内匹配 · {searchSection}</span>}
         {(!compact || searchSnippet) && <p className="bl-guide-card-summary">{searchSnippet || guide.summary}</p>}
         <div className="bl-guide-card-meta">
