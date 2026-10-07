@@ -51,6 +51,14 @@
 .bl-guide-prose h2 { border-top:1px solid var(--color-line); padding-top:28px; }
 html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:Georgia,'Times New Roman',serif; font-weight:500; }
 @media(min-width:1024px) and (max-width:1279px) { .site-topbar .site-location { display:none; } .site-topbar .site-command-trigger { margin-right:auto; } }
+@media(max-width:1279px) {
+  /* Leave room for the full language control when translated header labels grow. */
+  .site-topbar .site-command-trigger { flex:0 0 44px; width:44px; min-width:44px; height:44px; padding:0; justify-content:center; }
+  .site-topbar .site-command-trigger>span,.site-topbar .site-command-trigger kbd { display:none; }
+  .site-topbar .site-topbar-account { justify-content:center; }
+  .site-topbar .site-topbar-account>.site-account-desktop-label,.site-topbar .site-topbar-account>svg { display:none; }
+  .site-topbar .site-topbar-account>.site-account-mobile-label { display:inline; font-size:var(--text-fact); }
+}
 @media(max-width:1023px) {
   /* A compact icon row and single-line labels fit the existing 72px reservation
      at 100–125% reading size, with safe-area space retained below. */
