@@ -10,7 +10,7 @@ import '../src/i18n/metadata';
 import { setLocale, type Locale } from '../src/i18n/locale';
 import { languagePath, languagePrefix } from '../src/lib/language-path';
 import { renderHtmlDocument } from '../src/lib/seo';
-import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { MONTHLY_METADATA, WEEKLY_METADATA } from '../src/lib/monthly-metadata';
 import { MONTHLY_EDITION } from '../src/data/monthly-settings';
 import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import PlannerPage from '../src/pages/PlannerPage';
@@ -27,7 +27,7 @@ import openings from '../src/data/octnov-2026-openings.json';
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const routes = [
   { metadata: MONTHLY_METADATA, content: <MonthlyEdition defaultDateFilter="all" /> },
-  { metadata: { ...MONTHLY_METADATA, path: '/this-week', title: '本周末湾区活动与官方来源｜BAYLINK', description: '按湾区当地日期查看本周末的真实活动，附日期、费用、主办方来源与出游入口。' }, content: <MonthlyEdition defaultDateFilter="weekend" /> },
+  { metadata: WEEKLY_METADATA, content: <MonthlyEdition defaultDateFilter="weekend" /> },
   { metadata: PLAN_METADATA, content: <PlannerPage /> },
   { metadata: EXPLORE_METADATA, content: <AttractionExplorer /> },
 ];

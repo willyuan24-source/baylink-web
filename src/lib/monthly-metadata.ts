@@ -12,3 +12,10 @@ export const MONTHLY_METADATA: PageMetadata = {
     mainEntity: { '@type': 'ItemList', itemListElement: MONTHLY_EVENTS.map((event, index) => ({ '@type': 'ListItem', position: index + 1, name: event.title, url: `${SITE_URL}/events/${event.id}` })) },
   }],
 };
+
+export const WEEKLY_METADATA: PageMetadata = {
+  ...MONTHLY_METADATA,
+  path: '/this-week',
+  title: '本周末湾区活动与官方来源｜BAYLINK',
+  description: '按湾区当地日期查看本周末的真实活动，附日期、费用、主办方来源与出游入口。',
+};
