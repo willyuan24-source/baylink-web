@@ -86,16 +86,30 @@ const eligibleEvents = (today = '2026-09-15', filters: Parameters<typeof filterM
 const eligibleIds = (today = '2026-09-15', filters: Parameters<typeof filterMonthlyEvents>[1] = {}) =>
   eligibleEvents(today, filters).map(event => event.id);
 const eventCards = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll<HTMLElement>('.bl-monthly-event')];
-// Locate a known card once rather than recomputing every article's accessible
-// name for each of the 260+ events. Keep the same named-article checks locally.
+// Exhaustive catalog checks use native semantics and explicit accessible-name
+// attributes. Interaction cases below still exercise named role queries. Avoid
+// recomputing visibility/style for thousands of nodes for every catalog row.
+const requiredElement = <T extends Element = HTMLElement>(root: Element, selector: string): T => {
+  const element = root.querySelector<T>(selector);
+  assert.ok(element, `Missing ${selector}`);
+  return element;
+};
+const filters = (view: ReturnType<typeof render>) => within(requiredElement(view.container, '.bl-monthly-filters'));
+const resultStatus = (view: ReturnType<typeof render>) => {
+  const status = requiredElement(view.container, '.bl-monthly-results [role="status"]');
+  assert.equal(status.getAttribute('aria-live'), 'polite');
+  return status;
+};
 const eventArticle = (view: ReturnType<typeof render>, id: string) => {
-  const heading = view.container.querySelector<HTMLElement>(`[id="event-${id}"]`);
+  const heading = view.container.querySelector<HTMLElement>(`#event-${id}`);
   assert.ok(heading, `Missing visible event heading: ${id}`);
   const article = heading.closest('article');
   assert.ok(article, `${id} has an article card`);
   assert.equal(article.getAttribute('role') || 'article', 'article');
   assert.equal(article.getAttribute('aria-labelledby'), heading.id);
-  assert.equal(within(article).getByRole('heading', { level: 3, name: item(id).title, exact: true }), heading);
+  assert.equal(heading.tagName, 'H3');
+  assert.equal(heading.textContent, item(id).title);
+  assert.equal(article.closest('[hidden], [aria-hidden="true"]'), null);
   return article;
 };
 const showAllResults = (view: ReturnType<typeof render>) => {
@@ -117,10 +131,9 @@ const assertResultTitles = (view: ReturnType<typeof render>, ids: string[]) => {
     return id;
   });
   assert.deepEqual(actual.sort(), [...ids].sort(), 'only the matching activities are rendered after all pages are revealed');
-  for (const event of MONTHLY_EVENTS.filter(event => !ids.includes(event.id))) {
-    assert.equal(view.container.querySelector('[id="event-' + event.id + '"]'), null, event.id);
-  }
-  assert.match(view.getByRole('status').textContent!, new RegExp(`找到\\s*${ids.length}\\s*场活动`));
+  const renderedIds = new Set(actual);
+  for (const event of MONTHLY_EVENTS.filter(event => !ids.includes(event.id))) assert.equal(renderedIds.has(event.id), false, event.id);
+  assert.match(resultStatus(view).textContent!, new RegExp(`找到\\s*${ids.length}\\s*场活动`));
 };
 
 test('monthly edition exposes every activity through pagination with named official links and accurate source labels', () => {
@@ -129,35 +142,40 @@ test('monthly edition exposes every activity through pagination with named offic
   assertResultTitles(view, eligibleIds());
   assert.equal(view.container.querySelector('#event-san-jose-cdm-mid-autumn-2026'), null, 'an empty confirmed schedule does not become an upcoming outing');
   assert.ok(view.getByText('秋季湾区精选'));
-  assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal((view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, false);
+  assert.equal(filters(view).getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(view).getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, false);
   for (const event of eligibleEvents()) {
-    const card = within(eventArticle(view, event.id));
-    assert.equal(card.getByRole('link', { name: event.title, exact: true }).getAttribute('href'), `/events/${event.id}`);
-    const official = card.getByRole('link', { name: `查看${event.title}官方详情` });
+    const card = eventArticle(view, event.id);
+    const title = requiredElement(card, 'h3 a');
+    assert.equal(title.textContent, event.title);
+    assert.equal(title.getAttribute('href'), `/events/${event.id}`);
+    const official = requiredElement(card, '.bl-monthly-event-actions a[aria-label]');
+    assert.equal(official.getAttribute('aria-label'), `查看${event.title}官方详情`);
     assert.equal(official.getAttribute('href'), event.officialUrl);
     assert.equal(official.getAttribute('target'), '_blank');
     assert.match(official.getAttribute('rel')!, /noopener/);
     assert.match(official.getAttribute('rel')!, /noreferrer/);
-    assert.ok(card.getByText(event.costLabel, { exact: true }));
-    assert.ok(card.getByText(`已核对 ${event.verifiedAt} · ${event.sourceLabel}`));
+    assert.equal(requiredElement(card, '.bl-monthly-event-tags span:last-child').textContent, event.costLabel);
+    assert.equal(requiredElement(card, '.bl-monthly-source span').textContent, `已核对 ${event.verifiedAt} · ${event.sourceLabel}`);
     const image = GUIDE_IMAGES[event.imageKey];
     if (event.imageKey) assert.ok(image, `${event.id} uses a registered image when provided`);
     if (!event.imageKey || image.kind === 'illustration') {
-      assert.equal(card.queryByRole('img'), null, `${event.id} must not substitute an unrelated image`);
-      assert.equal(card.queryByRole('button', { name: /^放大图片：/ }), null, 'text cards have no image lightbox');
+      assert.equal(card.querySelector('img'), null, `${event.id} must not substitute an unrelated image`);
+      assert.equal(card.querySelector('button[aria-label^="放大图片："]'), null, 'text cards have no image lightbox');
       continue;
     }
-    const img = card.getByRole('img', { name: image.alt });
+    const img = requiredElement(card, 'figure img');
+    assert.equal(img.getAttribute('alt'), image.alt);
     assert.equal(img.getAttribute('src'), image.src);
     assert.equal(img.getAttribute('srcset'), image.srcSet);
-    assert.ok(card.getByText(image.caption));
-    assert.ok(card.getByRole('button', { name: `放大图片：${image.alt}` }));
+    assert.ok(requiredElement(card, 'figcaption').textContent!.includes(image.caption));
+    assert.equal(requiredElement(card, 'button.bl-monthly-picture-frame').getAttribute('aria-label'), `放大图片：${image.alt}`);
     const year = image.caption.match(/(?:19|20)\d{2}/)?.[0];
     const kindLabel = image.kind === 'poster' || /官方|official/i.test(image.credit) ? '官方图' : /资料|往届|archive|historical/i.test(image.caption) ? `资料图${year ? ` · ${year}` : ''}` : '实拍';
-    assert.ok(card.getByText(kindLabel, { exact: true }), `${event.id} must label the actual media kind`);
+    assert.equal(requiredElement(card, '.bl-monthly-picture-kind').textContent, kindLabel, `${event.id} must label the actual media kind`);
     assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
-    const credit = card.getByRole('link', { name: new RegExp(image.credit.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) });
+    const credit = requiredElement(card, 'figcaption a');
+    assert.ok(credit.textContent!.includes(image.credit));
     assert.equal(credit.getAttribute('href'), image.creditUrl);
     assert.equal(credit.getAttribute('target'), '_blank');
     assert.equal(credit.getAttribute('rel'), 'noopener noreferrer');
@@ -243,48 +261,48 @@ test('monthly media files and credits are valid and only reviewed contextual med
 
 test('region, free admission and keyword filters combine and clearing a search restores regional matches', () => {
   const view = render(edition());
-  fireEvent.click(view.getByRole('button', { name: '南湾', exact: true }));
-  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.click(filters(view).getByRole('button', { name: '南湾', exact: true }));
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
   const southBayFree = eligibleIds('2026-09-15', { region: 'south-bay', cost: 'free' });
   assert.ok(southBayFree.includes('sunnyvale-diwali-2026'));
   assert.ok(!southBayFree.includes('mountain-view-art-wine-2026'));
   assertResultTitles(view, southBayFree);
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'DiWaLi' } });
+  fireEvent.change(filters(view).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'DiWaLi' } });
   assertResultTitles(view, ['sunnyvale-diwali-2026']);
   const params = queryParams(view);
   assert.equal(params.get('region'), 'south-bay');
   assert.equal(params.get('cost'), 'free');
   assert.equal(params.get('q'), 'DiWaLi');
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '' } });
+  fireEvent.change(filters(view).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '' } });
   assertResultTitles(view, southBayFree);
   assert.equal(queryParams(view).has('q'), false);
-  assert.equal(view.getByRole('button', { name: '南湾', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(view).getByRole('button', { name: '南湾', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
 test('URL filter choices survive unmounting and revisiting the resulting address', () => {
   const first = render(edition());
-  fireEvent.click(first.getByRole('button', { name: '东湾', exact: true }));
-  fireEvent.change(first.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  fireEvent.change(first.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Oaktoberfest' } });
-  fireEvent.click(first.getByRole('checkbox', { name: '也看已结束活动' }));
+  fireEvent.click(filters(first).getByRole('button', { name: '东湾', exact: true }));
+  fireEvent.change(filters(first).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.change(filters(first).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Oaktoberfest' } });
+  fireEvent.click(filters(first).getByRole('checkbox', { name: '也看已结束活动' }));
   const savedUrl = first.getByTestId('current-route').textContent!;
   assert.equal(new URL(savedUrl, 'http://localhost').searchParams.get('includeEnded'), '1');
   first.unmount();
 
   const revisited = render(edition('2026-09-15', savedUrl));
-  assert.equal(revisited.getByRole('button', { name: '东湾', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal((revisited.getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'free');
-  assert.equal((revisited.getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, 'Oaktoberfest');
-  assert.equal((revisited.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, true);
+  assert.equal(filters(revisited).getByRole('button', { name: '东湾', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(revisited).getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'free');
+  assert.equal((filters(revisited).getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, 'Oaktoberfest');
+  assert.equal((filters(revisited).getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, true);
   assertResultTitles(revisited, ['oakland-oaktoberfest-2026']);
 });
 
 test('date shortcuts combine with region, cost and search, and a shared weekend URL restores the selection', () => {
   const first = render(edition('2026-09-30', '/this-month?lang=zh-Hant'));
-  fireEvent.click(first.getByRole('button', { name: '这个周末', exact: true }));
-  fireEvent.click(first.getByRole('button', { name: '南湾', exact: true }));
-  fireEvent.change(first.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
-  fireEvent.change(first.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Sunnyvale' } });
+  fireEvent.click(filters(first).getByRole('button', { name: '这个周末', exact: true }));
+  fireEvent.click(filters(first).getByRole('button', { name: '南湾', exact: true }));
+  fireEvent.change(filters(first).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.change(filters(first).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'Sunnyvale' } });
   assertResultTitles(first, ['sunnyvale-diwali-2026']);
   assert.equal(queryParams(first).get('when'), 'weekend');
   assert.equal(queryParams(first).get('lang'), 'zh-Hant');
@@ -293,11 +311,11 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   first.unmount();
 
   const revisited = render(edition('2026-09-30', savedUrl));
-  assert.equal(revisited.getByRole('button', { name: '这个周末', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(revisited).getByRole('button', { name: '这个周末', exact: true }).getAttribute('aria-pressed'), 'true');
   assertResultTitles(revisited, ['sunnyvale-diwali-2026']);
-  fireEvent.change(revisited.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'San Jose' } });
+  fireEvent.change(filters(revisited).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'San Jose' } });
   assertResultTitles(revisited, []);
-  fireEvent.click(revisited.getByRole('button', { name: '全部日期', exact: true }));
+  fireEvent.click(filters(revisited).getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(queryParams(revisited).has('when'), false);
   assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026', 'san-jose-365-night-market-october-2026']);
   const addedConcert = item('san-jose-hellflowers-free-concert-oct2-2026');
@@ -308,7 +326,7 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assert.equal(addedNightMarket.city, 'San Jose');
   assert.equal(addedNightMarket.cost, 'free');
   assert.deepEqual(addedNightMarket.occurrenceDates, ['2026-10-30', '2026-10-31'], 'the new late-October night market appears only after clearing the October 3–4 weekend filter');
-  fireEvent.change(revisited.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
+  fireEvent.change(filters(revisited).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   showAllResults(revisited);
   assert.ok(revisited.getByRole('article', { name: item('san-jose-short-film-festival-2026').title, exact: true }));
 });
@@ -316,19 +334,19 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
 test('empty date filters reset without deleting language or automatically restoring ended events', () => {
   const view = render(edition('2026-10-01', '/this-month?when=today&region=sf&cost=free&q=Opera&includeEnded=0&lang=en'));
   assertResultTitles(view, []);
-  assert.equal(view.getByRole('button', { name: '今天', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(view).getByRole('button', { name: '今天', exact: true }).getAttribute('aria-pressed'), 'true');
   fireEvent.click(view.getByRole('button', { name: '清除筛选条件' }));
   assertResultTitles(view, eligibleIds('2026-10-01'));
   assert.equal(queryParams(view).toString(), 'lang=en');
-  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal((view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, false);
+  assert.equal(filters(view).getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(view).getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement).checked, false);
 });
 
 test('next seven days shows its inclusive date range and invalid date parameters safely default to all dates', () => {
   const view = render(edition('2026-10-25', '/this-month?when=invalid'));
-  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(view).getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
   assertResultTitles(view, eligibleIds('2026-10-25'));
-  fireEvent.click(view.getByRole('button', { name: '未来 7 天', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '未来 7 天', exact: true }));
   assert.ok(view.getByText('包含今天'));
   assert.equal(queryParams(view).get('when'), 'next7');
   assert.deepEqual([...view.container.querySelectorAll('.bl-monthly-date-range time')].map(time => time.getAttribute('datetime')), ['2026-10-25', '2026-10-31']);
@@ -339,29 +357,29 @@ test('next seven days shows its inclusive date range and invalid date parameters
 
 test('new regional activities keep mixed-cost registration and ticketed events out of free-admission results', () => {
   const view = render(edition('2026-09-15', '/this-month?when=september'));
-  fireEvent.click(view.getByRole('button', { name: '北湾', exact: true }));
-  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.click(filters(view).getByRole('button', { name: '北湾', exact: true }));
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
   assertResultTitles(view, eligibleIds('2026-09-15', { date: 'september', region: 'north-bay', cost: 'free' }));
   assert.ok(eventArticle(view, 'petaluma-pumpkin-patch-2026'), 'confirmed free basic entry remains discoverable despite paid extras');
   assert.equal(view.container.querySelector('#event-sonoma-farm-trails-fall-tour-2026'), null, 'free directory registration does not make every farm experience free');
   assert.equal(view.container.querySelector('#event-r2-santarosa-ross-street-sundays-2026'), null, 'unknown admission is not advertised as free');
-  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   assertResultTitles(view, eligibleIds('2026-09-15', { date: 'september', region: 'north-bay' }));
   const farm = within(view.getByRole('article', { name: item('sonoma-farm-trails-fall-tour-2026').title, exact: true }));
   assert.ok(farm.getByText(item('sonoma-farm-trails-fall-tour-2026').costLabel, { exact: true }));
   assert.match(farm.getByRole('list').textContent!, /无需出示Eventbrite票/);
-  fireEvent.click(view.getByRole('button', { name: '半岛', exact: true }));
-  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
+  fireEvent.click(filters(view).getByRole('button', { name: '半岛', exact: true }));
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'free' } });
   assertResultTitles(view, eligibleIds('2026-09-15', { date: 'september', region: 'peninsula', cost: 'free' }));
   assert.equal(view.container.querySelector('#event-redwood-oktoberfest-closing-weekend-2026'), null, 'ticketed admission is not free');
-  fireEvent.change(view.getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动入场费用' }), { target: { value: 'all' } });
   assertResultTitles(view, eligibleIds('2026-09-15', { date: 'september', region: 'peninsula' }));
   assert.ok(eventArticle(view, 'redwood-oktoberfest-closing-weekend-2026'));
 });
 
 test('September and October shortcuts persist in URLs and include events spanning the month boundary', () => {
   const view = render(edition('2026-09-15', '/this-month?lang=zh-Hant'));
-  fireEvent.click(view.getByRole('button', { name: '整个十月', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '整个十月', exact: true }));
   assert.equal(queryParams(view).get('when'), 'october');
   assert.equal(queryParams(view).get('lang'), 'zh-Hant');
   assertResultTitles(view, eligibleIds('2026-09-15', { date: 'october' }));
@@ -370,8 +388,8 @@ test('September and October shortcuts persist in URLs and include events spannin
   const saved = view.getByTestId('current-route').textContent!;
   view.unmount();
   const restored = render(edition('2026-09-15', saved));
-  assert.equal(restored.getByRole('button', { name: '整个十月', exact: true }).getAttribute('aria-pressed'), 'true');
-  fireEvent.click(restored.getByRole('button', { name: '九月回顾', exact: true }));
+  assert.equal(filters(restored).getByRole('button', { name: '整个十月', exact: true }).getAttribute('aria-pressed'), 'true');
+  fireEvent.click(filters(restored).getByRole('button', { name: '九月回顾', exact: true }));
   assert.equal(queryParams(restored).get('when'), 'september');
   assert.equal(queryParams(restored).get('includeEnded'), '1', 'the September archive includes completed events');
   assertResultTitles(restored, eligibleIds('2026-09-15', { date: 'september', includeEnded: true }));
@@ -408,9 +426,9 @@ test('empty filter results offer a working reset while keeping the three place r
   fireEvent.click(view.getByRole('button', { name: '清除筛选条件' }));
   assertResultTitles(view, eligibleIds());
   assert.equal(queryParams(view).toString(), '');
-  assert.equal((view.getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, '');
-  assert.equal((view.getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'all');
-  assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(view).getByRole('searchbox', { name: '搜索当月活动' }) as HTMLInputElement).value, '');
+  assert.equal((filters(view).getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'all');
+  assert.equal(filters(view).getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
 test('November archives the edition while retaining confirmed cross-month activities and hiding ended events until requested', () => {
@@ -432,22 +450,23 @@ test('November archives the edition while retaining confirmed cross-month activi
   assert.ok(continuing.every(id => getEventStatus(MONTHLY_EVENTS.find(event => event.id === id)!, '2026-11-16') !== 'ended'));
   assertResultTitles(view, continuing);
   assert.equal(view.container.querySelector('#event-pleasanton-pumpkins-after-dark-2026'), null, 'a broad season end does not extend confirmed October sessions');
-  const toggle = view.getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement;
+  const toggle = filters(view).getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement;
   assert.equal(toggle.checked, false);
   fireEvent.click(toggle);
   assert.equal(queryParams(view).get('includeEnded'), '1');
   assertResultTitles(view, MONTHLY_EVENTS.map(event => event.id));
   for (const event of MONTHLY_EVENTS) {
-    const card = within(eventArticle(view, event.id));
+    const card = eventArticle(view, event.id);
+    const dateReminder = card.querySelector('button[aria-label^="下载"]');
     if (getEventStatus(event, '2026-11-16') === 'ended') {
-      assert.ok(card.getByText('已结束', { exact: true }));
-      assert.equal(card.queryByRole('button', { name: `下载${event.title}日期提醒` }), null);
+      assert.equal(requiredElement(card, '.bl-monthly-status').textContent, '已结束');
+      assert.equal(dateReminder, null);
     } else {
       assert.ok(continuing.includes(event.id), 'only confirmed cross-month activities remain active');
-      assert.ok(card.getByRole('button', { name: `下载${event.title}日期提醒` }));
-      assert.equal(card.queryByText('已结束', { exact: true }), null);
+      assert.equal(dateReminder?.getAttribute('aria-label'), `下载${event.title}日期提醒`);
+      assert.notEqual(requiredElement(card, '.bl-monthly-status').textContent, '已结束');
     }
-    assert.ok(card.getByRole('link', { name: `查看${event.title}官方详情` }));
+    assert.equal(requiredElement(card, '.bl-monthly-event-actions a[aria-label]').getAttribute('aria-label'), `查看${event.title}官方详情`);
   }
   fireEvent.click(toggle);
   assertResultTitles(view, continuing);
@@ -554,13 +573,13 @@ test('load more reveals twelve additional cards without changing totals and filt
   const view = render(edition());
   assert.ok(MONTHLY_EVENTS.length >= 30, 'enough published activities to exercise three pages');
   assert.equal(eventCards(view).length, 6);
-  assert.ok(view.getByRole('status').textContent!.includes(`找到 ${eligibleEvents().length} 场活动`));
+  assert.ok(resultStatus(view).textContent!.includes(`找到 ${eligibleEvents().length} 场活动`));
   fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
   assert.equal(eventCards(view).length, 18);
   fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true }));
   assert.equal(eventCards(view).length, 30);
-  assert.ok(view.getByRole('status').textContent!.includes(`找到 ${eligibleEvents().length} 场活动`));
-  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'family' } });
+  assert.ok(resultStatus(view).textContent!.includes(`找到 ${eligibleEvents().length} 场活动`));
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动类型' }), { target: { value: 'family' } });
   const families = eligibleEvents().filter(event => event.category === 'family' && !['sports', 'performance'].includes(event.kind || ''));
   assert.equal(eventCards(view).length, Math.min(6, families.length), 'changing type returns to the initial page');
   assert.equal(queryParams(view).get('category'), 'family');
@@ -570,15 +589,15 @@ test('load more reveals twelve additional cards without changing totals and filt
 
 test('unknown filter and sort values fall back safely while preserving unrelated URL parameters', () => {
   const view = render(edition('2026-09-15', '/this-month?region=unknown&cost=unknown&when=unknown&category=unknown&view=unknown&sort=unknown&lang=zh-Hant'));
-  assert.equal(view.getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal(view.getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal(view.getByRole('button', { name: '全部活动', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.equal((view.getByRole('combobox', { name: '活动类型' }) as HTMLSelectElement).value, 'all');
-  assert.equal((view.getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'soon');
-  assert.equal((view.getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'all');
+  assert.equal(filters(view).getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(view).getByRole('button', { name: '全部日期', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters(view).getByRole('button', { name: '全部活动', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(view).getByRole('combobox', { name: '活动类型' }) as HTMLSelectElement).value, 'all');
+  assert.equal((filters(view).getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'soon');
+  assert.equal((filters(view).getByRole('combobox', { name: '活动入场费用' }) as HTMLSelectElement).value, 'all');
   assert.equal(eventCards(view).length, 6);
   assertResultTitles(view, eligibleIds());
-  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
   assert.equal(queryParams(view).get('lang'), 'zh-Hant');
   assertResultTitles(view, eligibleEvents().filter(event => event.category === 'culture' && event.kind !== 'sports' && event.kind !== 'performance').map(event => event.id));
 });
@@ -595,7 +614,7 @@ test('without app context the browser does not fetch or manufacture zero interes
   }
   assert.equal(request.mock.callCount(), 0);
   assert.equal(fetch.mock.callCount(), 0);
-  fireEvent.click(view.getByRole('button', { name: '我的想去', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '我的想去', exact: true }));
   assert.equal(queryParams(view).get('view'), 'interested');
   assert.ok(view.getByRole('button', { name: '登录查看我的想去', exact: true }));
   assert.equal(eventCards(view).length, 0);
@@ -631,14 +650,14 @@ test('real engagement drives popularity, my-interest and buddy filters together 
   assert.deepEqual(shownIds().slice(0, 3), [cultureId, earlierId, familyId], 'counts descend; equal counts use earlier dates');
   const first = within(view.getByRole('article', { name: item(cultureId).title, exact: true }));
   assert.match(first.getByText('20 人想去 · 意向不等于报名或购票。').textContent!, /^20 人想去/);
-  fireEvent.click(view.getByRole('button', { name: '我的想去', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '我的想去', exact: true }));
   assertResultTitles(view, [familyId, earlierId]);
   assert.equal(queryParams(view).get('view'), 'interested');
-  fireEvent.click(view.getByRole('button', { name: '整个十月', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '整个十月', exact: true }));
   assertResultTitles(view, [familyId]);
-  fireEvent.click(view.getByRole('button', { name: '正在找搭子', exact: true }));
+  fireEvent.click(filters(view).getByRole('button', { name: '正在找搭子', exact: true }));
   assertResultTitles(view, [familyId, cultureId]);
-  fireEvent.change(view.getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
+  fireEvent.change(filters(view).getByRole('combobox', { name: '活动类型' }), { target: { value: 'culture' } });
   assertResultTitles(view, [cultureId]);
   const savedUrl = view.getByTestId('current-route').textContent!;
   const savedParams = queryParams(view);
@@ -650,8 +669,8 @@ test('real engagement drives popularity, my-interest and buddy filters together 
   view.unmount();
   await act(async () => { view = render(withAppContext(app, savedUrl)); });
   assertResultTitles(view, [cultureId]);
-  assert.equal((view.getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'popular');
-  assert.equal(view.getByRole('button', { name: '正在找搭子', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal((filters(view).getByRole('combobox', { name: '活动排列方式' }) as HTMLSelectElement).value, 'popular');
+  assert.equal(filters(view).getByRole('button', { name: '正在找搭子', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
 test('failed engagement leaves counts unknown and offers retry instead of a false empty buddy list', async t => {
@@ -661,11 +680,87 @@ test('failed engagement leaves counts unknown and offers retry instead of a fals
   assert.ok(view.getByText('出行意向暂时无法加载，请重试。'));
   assert.ok(view.getByRole('button', { name: '重试', exact: true }));
   assert.equal(view.queryByRole('heading', { name: '这组条件下，还没有人公开找搭子' }), null);
+  assert.equal(Boolean(view.container.querySelector('.bl-monthly-results strong')), false, 'unavailable membership must not be announced as zero matches');
   assert.equal(eventCards(view).length, 0);
-  fireEvent.click(view.getByRole('button', { name: '全部活动', exact: true }));
+  await act(async () => { fireEvent.click(filters(view).getByRole('button', { name: '全部活动', exact: true })); });
   assert.equal(eventCards(view).length, 6);
   for (const card of eventCards(view)) {
     assert.equal(Boolean(card.querySelector('.event-interest span')), false);
     assert.ok(within(card).getByText('人数暂时无法加载'));
   }
+});
+
+test('ordinary browsing reads only displayed cards, expands incrementally and refreshes the active scope on focus', async t => {
+  const requests: string[][] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    const ids = new URL(path, 'http://localhost').searchParams.get('ids')!.split(',');
+    requests.push(ids);
+    return { events: ids.map(eventId => ({ eventId, interestedCount: 0, buddyCount: 0, me: null })) };
+  });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext({ user: null })); });
+  const visibleIds = () => eventCards(view).map(card => card.getAttribute('aria-labelledby')!.slice(6)).sort();
+  const first = visibleIds();
+  assert.equal(first.length, 6);
+  assert.deepEqual(requests, [first], 'initial request contains only the six visible cards');
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '查看更多活动', exact: true })); });
+  const expanded = visibleIds();
+  assert.equal(expanded.length, 18);
+  assert.deepEqual(requests[1], expanded.filter(id => !first.includes(id)), 'only twelve new cards are fetched');
+  assert.equal(new Set(requests.flat()).size, 18);
+  await act(async () => { window.dispatchEvent(new dom.window.Event('focus')); });
+  assert.deepEqual(requests[2], expanded, 'focus refreshes all visible counts rather than the whole catalog');
+});
+
+test('switching to popularity waits for unseen counts and can rank an event outside the first batch first', async t => {
+  const target = eligibleIds().at(-1)!;
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let hold = false;
+  const requests: string[][] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    const ids = new URL(path, 'http://localhost').searchParams.get('ids')!.split(',');
+    requests.push(ids);
+    if (hold) await pending;
+    return { events: ids.map(eventId => ({ eventId, interestedCount: eventId === target ? 90 : 0, buddyCount: 0, me: null })) };
+  });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext({ user: null })); });
+  assert.ok(!requests[0].includes(target));
+  hold = true;
+  await act(async () => { fireEvent.change(filters(view).getByRole('combobox', { name: '活动排列方式' }), { target: { value: 'popular' } }); });
+  assert.equal(eventCards(view).length, 0, 'incomplete counts must not produce a misleading popularity ranking');
+  assert.ok(view.getByText('正在读取大家的出行意向…'));
+  await act(async () => { release(); });
+  assert.equal(eventCards(view)[0].getAttribute('aria-labelledby'), `event-${target}`);
+  assert.deepEqual(requests.flat().sort(), MONTHLY_EVENTS.map(event => event.id).sort(), 'cached plus new requests cover every candidate exactly once');
+});
+
+test('buddy and private-interest filters include matching events beyond the ordinary visible batch', async t => {
+  const target = eligibleIds().at(-1)!;
+  const requested: string[] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    const ids = new URL(path, 'http://localhost').searchParams.get('ids')!.split(',');
+    requested.push(...ids);
+    return { events: ids.map(eventId => ({ eventId, interestedCount: eventId === target ? 1 : 0, buddyCount: eventId === target ? 1 : 0,
+      me: { interested: eventId === target, lookingForBuddy: eventId === target } })) };
+  });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext({ user: { id: 'reader' } } as Partial<AppContextValue>)); });
+  assert.ok(!requested.includes(target));
+  await act(async () => { fireEvent.click(filters(view).getByRole('button', { name: '正在找搭子', exact: true })); });
+  assertResultTitles(view, [target]);
+  assert.equal(new Set(requested).size, MONTHLY_EVENTS.length);
+  const count = requested.length;
+  await act(async () => { fireEvent.click(filters(view).getByRole('button', { name: '我的想去', exact: true })); });
+  assertResultTitles(view, [target]);
+  assert.equal(requested.length, count, 'changing full-catalog views reuses confirmed counts in the same session');
+});
+
+test('an ordinary empty search performs no engagement requests', async t => {
+  const request = t.mock.method(api, 'request', async () => { throw new Error('An empty candidate list has no counts to request'); });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(withAppContext({ user: null }, '/this-month?q=absent-test-only-candidate')); });
+  assert.equal(eventCards(view).length, 0);
+  assert.equal(request.mock.callCount(), 0);
 });

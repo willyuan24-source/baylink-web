@@ -7,6 +7,7 @@ import novemberOffers from './november-2026-offers.json';
 import { october2026NewOffers, october2026OfferUpdates } from './october-2026-verified-offers';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
+import { offerReviews20261007 } from './offers-reviewed-2026-10-07';
 import { septemberFreebies } from './september-freebies';
 import { additionalOctoberOffers } from './october-offers-extra';
 import { autumnRefreshOffers } from './autumn-refresh-offers';
@@ -140,7 +141,7 @@ const mergedOffers = new Map<string, FreebieOffer>();
 for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005]) {
   mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
 }
-export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id] }));
+export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id], ...offerReviews20261007[offer.id] }));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),

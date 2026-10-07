@@ -1,7 +1,7 @@
 import { november2026Guides } from '../data/november-2026-guides';
 import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
@@ -37,6 +37,11 @@ const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
 const CATEGORIES = { culture: '艺术与文化', outdoors: '户外时光', food: '吃逛市集', family: '亲子出游', sports: '体育比赛', performance: '演唱会与演出' };
 const eventCategory = (event: MonthlyEvent) => event.kind === 'sports' || event.kind === 'performance' ? event.kind : event.category;
 const STATUS_LABELS = { upcoming: '即将开始', ongoing: '活动日期内', ended: '已结束' };
+const EDITORIAL_LABELS = {
+  'zh-Hans': { edition: 'BAYLINK · 本地生活精选', events: '近期活动', guides: '出门前读一篇', places: '半日慢游', preparation: '行前准备' },
+  'zh-Hant': { edition: 'BAYLINK · 在地生活精選', events: '近期活動', guides: '出門前讀一篇', places: '半日慢遊', preparation: '行前準備' },
+  en: { edition: 'BAYLINK · Local picks', events: 'Upcoming events', guides: 'Guides for your day out', places: 'Half-day outings', preparation: 'Before you go' },
+};
 const autumnGuides = [...november2026Guides, ...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
 const autumnCoverSources = new Set(autumnGuides.map(guide => getGuideMedia(guide).cover.src));
 const autumnImageKeys = Object.keys(GUIDE_IMAGES).filter(key => autumnCoverSources.has(GUIDE_IMAGES[key].src));
@@ -96,23 +101,50 @@ function PlaceCard({ place, index }: { place: MonthlyPlace; index: number }) {
 }
 
 export function MonthlyEdition({ today: suppliedToday, defaultDateFilter }: { today?: string; defaultDateFilter?: MonthlyDateFilter } = {}) {
-  return <EventParticipationProvider events={MONTHLY_EVENTS}><MonthlyEditionContent today={suppliedToday} defaultDateFilter={defaultDateFilter} /></EventParticipationProvider>;
-}
-
-function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { today?: string; defaultDateFilter?: MonthlyDateFilter }) {
   const locale = useLocale();
-  const participation = useEventParticipation()!;
   const [visibleCount, setVisibleCount] = useState(6);
   const [localToday, setLocalToday] = useState(getBayAreaToday);
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const today = suppliedToday || localToday;
-  const current = isEditionCurrent(today);
   useEffect(() => {
     const refresh = () => setLocalToday(getBayAreaToday());
     window.addEventListener('focus', refresh);
     const interval = window.setInterval(refresh, 60_000);
     return () => { window.removeEventListener('focus', refresh); window.clearInterval(interval); };
   }, []);
+  const weekly = unprefixedPath(location.pathname).replace(/\/$/, '') === '/this-week';
+  const dateDefault = defaultDateFilter || (weekly ? 'weekend' : 'all');
+  const candidates = monthlyCandidates(searchParams, dateDefault, today, locale);
+  // These modes compare membership/counts across the full catalog. Ordinary
+  // chronological browsing only needs counts for cards currently on screen.
+  const needsAllCounts = searchParams.get('sort') === 'popular' || ['interested', 'buddies'].includes(searchParams.get('view') || '');
+  const countScope = needsAllCounts ? MONTHLY_EVENTS : candidates.slice(0, visibleCount);
+  return <EventParticipationProvider events={countScope}><MonthlyEditionContent today={today} defaultDateFilter={defaultDateFilter} candidates={candidates} visibleCount={visibleCount} setVisibleCount={setVisibleCount} /></EventParticipationProvider>;
+}
+
+function monthlyCandidates(params: URLSearchParams, defaultDate: MonthlyDateFilter, today: string, locale: ReturnType<typeof useLocale>): MonthlyEvent[] {
+  const selectedRegion = params.get('region') || 'all';
+  const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
+  const category = Object.hasOwn(CATEGORIES, params.get('category') || '') ? params.get('category')! : 'all';
+  const query = normalizeGuideQuery((params.get('q') || '').slice(0, 200));
+  return filterMonthlyEvents(MONTHLY_EVENTS, {
+    region, cost: params.get('cost') === 'free' ? 'free' : 'all',
+    date: resolveMonthlyDateFilter(params.get('when') || defaultDate), includeEnded: params.get('includeEnded') === '1',
+  }, today).filter(event => (category === 'all' || eventCategory(event) === category)
+    && (!query || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(query)))
+    .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
+}
+
+function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCount, setVisibleCount }: {
+  today: string; defaultDateFilter?: MonthlyDateFilter; candidates: MonthlyEvent[];
+  visibleCount: number; setVisibleCount: Dispatch<SetStateAction<number>>;
+}) {
+  const locale = useLocale();
+  const labels = EDITORIAL_LABELS[locale];
+  const participation = useEventParticipation()!;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const current = isEditionCurrent(today);
   const selectedRegion = searchParams.get('region') || 'all';
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const cost = searchParams.get('cost') === 'free' ? 'free' : 'all';
@@ -124,14 +156,12 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
   const query = (searchParams.get('q') || '').slice(0, 200);
   const includeEnded = searchParams.get('includeEnded') === '1';
-  const normalizedQuery = normalizeGuideQuery(query);
   const category = Object.hasOwn(CATEGORIES, searchParams.get('category') || '') ? searchParams.get('category')! : 'all';
   const view = ['interested', 'buddies'].includes(searchParams.get('view') || '') ? searchParams.get('view')! : 'all';
   const sort = searchParams.get('sort') === 'popular' ? 'popular' : 'soon';
-  const filtered = filterMonthlyEvents(MONTHLY_EVENTS, { region, cost, date, includeEnded }, today).filter(event =>
-    (category === 'all' || eventCategory(event) === category) &&
-    (view === 'all' || (!participation.failed && (view === 'interested' ? participation.entries[event.id]?.me?.interested : (participation.entries[event.id]?.buddyCount || 0) > 0))) &&
-    (!normalizedQuery || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(normalizedQuery))
+  const matchingCountUnknown = view !== 'all' && (participation.loading || participation.failed);
+  const filtered = candidates.filter(event =>
+    view === 'all' || (!participation.failed && (view === 'interested' ? participation.entries[event.id]?.me?.interested : (participation.entries[event.id]?.buddyCount || 0) > 0))
   ).sort((a, b) => (sort === 'popular' && !participation.failed ? (participation.entries[b.id]?.interestedCount || 0) - (participation.entries[a.id]?.interestedCount || 0) : 0) || a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
   const displayed = filtered.slice(0, visibleCount);
   const activeCount = MONTHLY_EVENTS.filter(event => getEventStatus(event, today) !== 'ended').length;
@@ -157,7 +187,7 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
   return <div className="bl-monthly">
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
     <header className="bl-monthly-hero">
-      <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow"><span className="bl-monthly-edition-dot" />BAYLINK · THE MONTHLY EDIT</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '秋季湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><Link to="/calendar">打开活动日历与地图 <CalendarDays size={17} aria-hidden="true" /></Link><a href="#monthly-events">{current ? '挑一个秋季活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a>{current && <a href="#monthly-news">生活快讯 <ArrowRight size={16} aria-hidden="true" /></a>}<a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />最近更新 {MONTHLY_EDITION.checkedAt}</span></div></div>
+      <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow" translate="no"><span className="bl-monthly-edition-dot" />{labels.edition}</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '秋季湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><Link to="/calendar">打开活动日历与地图 <CalendarDays size={17} aria-hidden="true" /></Link><a href="#monthly-events">{current ? '挑一个秋季活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a>{current && <a href="#monthly-news">生活快讯 <ArrowRight size={16} aria-hidden="true" /></a>}<a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />最近更新 {MONTHLY_EDITION.checkedAt}</span></div></div>
       <div className="bl-monthly-hero-art"><EditionPicture imageKey="november-community" eager /><span className="bl-monthly-hero-stamp">给日历<br />留一点期待</span></div>
     </header>
 
@@ -168,7 +198,7 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
       <a href="#monthly-places"><MapPin size={18} aria-hidden="true" /><span>慢游提案</span><strong>{MONTHLY_PLACES.length}</strong></a>
     </nav>
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
-      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">ON THE CALENDAR</span><h2 id="monthly-events-heading">{current ? '秋季活动与后续预告，找到出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow" translate="no">{labels.events}</span><h2 id="monthly-events-heading">{current ? '秋季活动与后续预告，找到出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
       <div className="bl-monthly-filters">
         <div className="bl-monthly-date-filter" role="group" aria-label="按活动日期筛选">
           <span className="bl-monthly-date-label"><CalendarDays size={16} aria-hidden="true" />什么时候出门？</span>
@@ -179,9 +209,9 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
         <div className="discovery-community-filter" role="group" aria-label="出行意向筛选">{[['all', '全部活动'], ['interested', '我的想去'], ['buddies', '正在找搭子']].map(([value, label]) => <button type="button" key={value} aria-pressed={view === value} onClick={() => changeFilter('view', value)}>{label}</button>)}</div>
         <div className="bl-monthly-region-filter" role="group" aria-label="按湾区地区筛选">{REGIONS.map(item => <button type="button" key={item.value} aria-pressed={region === item.value} onClick={() => changeFilter('region', item.value)}>{item.label}</button>)}</div><div className="bl-monthly-filter-row"><label className="bl-monthly-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="搜索当月活动" placeholder="搜活动、城市或关键词" maxLength={200} value={query} onChange={event => changeFilter('q', event.target.value)} /></label><label className="bl-monthly-cost"><SlidersHorizontal size={15} aria-hidden="true" /><span className="sr-only">活动入场费用</span><select aria-label="活动入场费用" value={cost} onChange={event => changeFilter('cost', event.target.value)}><option value="all">所有入场方式</option><option value="free">仅免费入场</option></select></label><label className="bl-monthly-ended"><input type="checkbox" checked={includeEnded} onChange={event => changeFilter('includeEnded', event.target.checked ? '1' : '0')} />也看已结束活动</label></div>
       </div>
-      <div className="bl-monthly-results"><span role="status" aria-live="polite">{locale === 'en' ? <>Found <strong>{filtered.length}</strong> {filtered.length === 1 ? 'event' : 'events'}</> : <>找到 <strong>{filtered.length}</strong> 场活动</>}</span><span>日期按湾区当地时间 · 免费入场不代表餐饮、游乐或停车免费</span></div>
+      <div className="bl-monthly-results"><span role="status" aria-live="polite">{matchingCountUnknown ? <span translate="no">{locale === 'en' ? 'Matching count is not available yet' : locale === 'zh-Hant' ? '符合條件的數量尚待確認' : '符合条件的数量尚待确认'}</span> : locale === 'en' ? <>Found <strong>{filtered.length}</strong> {filtered.length === 1 ? 'event' : 'events'}</> : <>找到 <strong>{filtered.length}</strong> 场活动</>}</span><span>日期按湾区当地时间 · 免费入场不代表餐饮、游乐或停车免费</span></div>
       {!filtered.length && view === 'all' && query.trim().length >= 2 && <p className="bl-monthly-search-help">{locale === 'en' ? 'Searching with dates or a budget? ' : '想按日期、预算或同行人查找？'}<Link to={`/plan?q=${encodeURIComponent(query.trim())}`}>{locale === 'en' ? 'Bring this request to BayBay →' : '把这句话交给 BayBay →'}</Link></p>}
-      {view === 'interested' && !participation.app?.user ? <div className="bl-monthly-empty"><CalendarDays size={30} /><h3>把想去的地方，留在这里。</h3><p>登录后可以记录想去的活动，下次回来继续安排。</p><button type="button" onClick={() => participation.app?.setShowLogin(true)}>登录查看我的想去</button></div> : view !== 'all' && (participation.loading || participation.failed) ? <div className="bl-monthly-empty"><p>{participation.failed ? '出行意向暂时无法加载，请重试。' : '正在读取大家的出行意向…'}</p>{participation.failed && <button type="button" onClick={participation.refresh}>重试</button>}</div> : filtered.length ? <><div className="bl-monthly-event-grid">{displayed.map(event => <EventCard key={event.id} event={event} today={today} />)}</div>{filtered.length > displayed.length && <div className="discovery-load-more"><span>{locale === 'en' ? `${displayed.length} of ${filtered.length} events` : `已显示 ${displayed.length} / ${filtered.length} 场活动`}</span><button type="button" onClick={() => setVisibleCount(count => count + 12)}>查看更多活动<ArrowRight size={17} /></button></div>}</> : <div className="bl-monthly-empty"><CalendarDays size={30} aria-hidden="true" /><h3>{view === 'interested' ? '还没有记录想去的活动' : view === 'buddies' ? '这组条件下，还没有人公开找搭子' : '这组条件下，暂时没有活动'}</h3><p>换个日期或地区，也可以看看下方的慢游提案。</p><button type="button" onClick={clearFilters}>清除筛选条件 <ArrowRight size={15} aria-hidden="true" /></button></div>}
+      {view === 'interested' && !participation.app?.user ? <div className="bl-monthly-empty"><CalendarDays size={30} /><h3>把想去的地方，留在这里。</h3><p>登录后可以记录想去的活动，下次回来继续安排。</p><button type="button" onClick={() => participation.app?.setShowLogin(true)}>登录查看我的想去</button></div> : (view !== 'all' || sort === 'popular') && (participation.loading || participation.failed) ? <div className="bl-monthly-empty"><p>{participation.failed ? '出行意向暂时无法加载，请重试。' : '正在读取大家的出行意向…'}</p>{participation.failed && <button type="button" onClick={participation.refresh}>重试</button>}</div> : filtered.length ? <><div className="bl-monthly-event-grid">{displayed.map(event => <EventCard key={event.id} event={event} today={today} />)}</div>{filtered.length > displayed.length && <div className="discovery-load-more"><span>{locale === 'en' ? `${displayed.length} of ${filtered.length} events` : `已显示 ${displayed.length} / ${filtered.length} 场活动`}</span><button type="button" onClick={() => setVisibleCount(count => count + 12)}>查看更多活动<ArrowRight size={17} /></button></div>}</> : <div className="bl-monthly-empty"><CalendarDays size={30} aria-hidden="true" /><h3>{view === 'interested' ? '还没有记录想去的活动' : view === 'buddies' ? '这组条件下，还没有人公开找搭子' : '这组条件下，暂时没有活动'}</h3><p>换个日期或地区，也可以看看下方的慢游提案。</p><button type="button" onClick={clearFilters}>清除筛选条件 <ArrowRight size={15} aria-hidden="true" /></button></div>}
       <p className="bl-monthly-calendar-note"><CalendarDays size={15} aria-hidden="true" /><span>“日期提醒”下载仅含活动日期的日历文件，不含具体场次与入场时间。票务、开放时段及临时变更，请在出发前查看官方详情。</span></p>
     </section>
 
@@ -202,7 +232,7 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
     <MonthlyOpenings today={today} />
 
     <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
-      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">PLAN A LOCAL AUTUMN</span><h2 id="autumn-guides-heading">秋季出门，先读一篇本地攻略</h2></div><p>市集、自然活动、亲子出游与免费文化资源，按自己的节奏安排。</p></div>
+      <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow" translate="no">{labels.guides}</span><h2 id="autumn-guides-heading">秋季出门，先读一篇本地攻略</h2></div><p>市集、自然活动、亲子出游与免费文化资源，按自己的节奏安排。</p></div>
       <div className="bl-monthly-place-grid">{autumnGuides.map(guide => { const image = getGuideMedia(guide).cover; return <article className="bl-monthly-place bl-monthly-guide-card" key={guide.slug}>
         <Link className={`bl-monthly-guide-photo${image.fullFrame || image.kind === 'poster' ? ' bl-monthly-guide-photo--full' : ''}`} to={`/guides/${guide.slug}`} aria-label={`阅读攻略：${guide.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 112px, (max-width: 1023px) 30vw, 360px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{image.kind === 'illustration' ? 'AI 主题插图' : image.kind === 'poster' ? '官方宣传图' : '实景照片'}</span></Link>
         <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
@@ -211,9 +241,9 @@ function MonthlyEditionContent({ today: suppliedToday, defaultDateFilter }: { to
 
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}
 
-    <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">A LITTLE LESS PLANNING</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 2026-09-08；实际开放、预约与费用以各场所官网为准。</p></section>
+    <section className="bl-monthly-places" id="monthly-places" aria-labelledby="monthly-places-heading"><div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow" translate="no">{labels.places}</span><h2 id="monthly-places-heading">{current ? '这个月的慢游提案' : '本期的慢游提案'}</h2></div><p>这些是编辑推荐的常规去处，不是限时活动。空出半天，也能有一次小出走。</p></div><div className="bl-monthly-place-grid">{MONTHLY_PLACES.map((place, index) => <PlaceCard key={place.id} place={place} index={index} />)}</div><p className="bl-monthly-place-note">去处的参观规则核对于 2026-09-08；实际开放、预约与费用以各场所官网为准。</p></section>
 
-    <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow">BEFORE YOU HEAD OUT</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
+    <aside className="bl-monthly-guide-link"><div><span className="bl-monthly-eyebrow" translate="no">{labels.preparation}</span><h2>目的地选好了，准备也可以简单一点。</h2><p>海边怎么走、市集怎么买、带孩子如何安排——把实用攻略一起装进口袋。</p></div><Link to="/guides">翻翻生活指南 <ArrowRight size={18} aria-hidden="true" /></Link></aside>
     <GuideImageCredits imageKeys={['november-community', ...filtered.map(event => event.imageKey), ...MONTHLY_PLACES.map(place => place.imageKey), ...autumnImageKeys]} />
   </div>;
 }

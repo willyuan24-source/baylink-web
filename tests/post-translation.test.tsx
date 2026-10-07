@@ -81,8 +81,9 @@ test('English readers automatically see translations and can read the original w
   act(() => hook.result.current.toggleOriginal());
   assert.deepEqual(hook.result.current.display, english);
   await act(async () => { await setLocale('zh-Hant', false); });
-  assert.equal(hook.result.current.status, 'original');
-  assert.deepEqual(hook.result.current.display, postTranslationText(item));
+  assert.equal(hook.result.current.status, 'converted');
+  assert.equal(hook.result.current.display.title, '週末一起爬山');
+  assert.equal(hook.result.current.display.description, '週六上午見，歡迎鄰居們。');
   await act(async () => { await setLocale('zh-Hans', false); });
   assert.deepEqual(hook.result.current.display, postTranslationText(item));
   assert.equal(request.mock.callCount(), 1);
@@ -99,6 +100,54 @@ test('disabled or non-Chinese posts do not request translations', async () => {
   assert.equal(first.result.current.status, 'original');
   assert.equal(second.result.current.status, 'original');
   assert.equal(request.mock.callCount(), 0);
+});
+
+test('Traditional display preserves prices, URLs, mentions and the author while original toggles reset on source or language changes', async () => {
+  await setLocale('zh-Hant', false);
+  const item = { ...post('traditional-protected'), title: '闲置书架转让',
+    description: '书架邻居甲 说欢迎联系 @陈小邻，定价 20美元 或 两百块，链接 https://example.com/闲置?q=书架。邮件 邻居@example.com。',
+    budget: '二十美元，运费面议', timeInfo: '本周六见', author: { nickname: '书架邻居甲' },
+  };
+  const saved = structuredClone(item);
+  const request = mock.method(api, 'request', async () => { throw new Error('Local script conversion must not request translation'); });
+  const hook = renderHook(({ value }) => usePostTranslation(value), { initialProps: { value: item } });
+  assert.equal(hook.result.current.status, 'converted');
+  assert.equal(hook.result.current.translated, false, 'script conversion is not machine translation');
+  assert.equal(hook.result.current.display.title, '閒置書架轉讓');
+  assert.equal(hook.result.current.display.description, '书架邻居甲 說歡迎聯繫 @陈小邻，定價 20美元 或 两百块，連結 https://example.com/闲置?q=书架。郵件 邻居@example.com。');
+  assert.equal(hook.result.current.display.budget, item.budget);
+  act(() => hook.result.current.toggleOriginal());
+  assert.deepEqual(hook.result.current.display, postTranslationText(item));
+  hook.rerender({ value: { ...item, title: '改为周日取书架' } });
+  assert.equal(hook.result.current.showOriginal, false);
+  assert.equal(hook.result.current.display.title, '改為週日取書架');
+  act(() => hook.result.current.toggleOriginal());
+  await act(async () => { await setLocale('zh-Hans', false); });
+  assert.equal(hook.result.current.status, 'original');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(hook.result.current.showOriginal, false);
+  assert.equal(hook.result.current.display.title, '改為週日取書架');
+  assert.equal(request.mock.callCount(), 0);
+  assert.deepEqual(item, saved);
+});
+
+test('Traditional display preserves mixed-case web addresses and email while nickname and budget matching stay exact', async () => {
+  await setLocale('zh-Hant', false);
+  const addresses = ['HTTPS://example.com/书架?城市=旧金山', 'hTtP://example.com/邻居', 'WWW.example.com/旧金山', 'wWw.example.com/书架', '陈小邻@EXAMPLE.COM', '陈小邻@Example.COM'];
+  const item = { ...post('traditional-case-protected'),
+    description: `请看 ${addresses.join('，')}。作者 Ming书架 / ming书架，报价 USD 面议 / usd 面议。`,
+    budget: 'USD 面议', author: { nickname: 'Ming书架' },
+  };
+  const saved = structuredClone(item);
+  const request = mock.method(api, 'request', async () => { throw new Error('Local script conversion must not request translation'); });
+  const hook = renderHook(() => usePostTranslation(item));
+  assert.equal(hook.result.current.status, 'converted');
+  for (const address of addresses) assert.ok(hook.result.current.display.description.includes(address), `${address} must remain unchanged`);
+  assert.ok(hook.result.current.display.description.includes('Ming书架 / ming書架'), 'only the exact nickname is protected');
+  assert.ok(hook.result.current.display.description.includes('USD 面议 / usd 面議'), 'only the exact budget text is protected');
+  assert.equal(hook.result.current.display.budget, item.budget);
+  assert.equal(request.mock.callCount(), 0);
+  assert.deepEqual(item, saved);
 });
 
 test('an old response cannot replace edited content or appear after switching to Chinese', async () => {

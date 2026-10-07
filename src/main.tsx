@@ -46,6 +46,8 @@ import { currentPageLoader } from './route-loaders'
 import { installChunkRecovery } from './lib/chunk-recovery'
 import './audit-integration.css'
 import './tokens.css'
+import './editorial-refinement.css'
+import './components/local-discovery-detail.css'
 import { unprefixedPath } from './lib/language-path'
 installChunkRecovery()
 import { installProductObserver } from './lib/product-observer'

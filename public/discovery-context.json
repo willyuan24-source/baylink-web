@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "checkedAt": "2026-10-06",
+  "checkedAt": "2026-10-07",
   "items": [
     {
       "kind": "offer",
@@ -1007,7 +1007,7 @@
       "id": "marin-transit-clean-air-oct7-2026",
       "title": "10/7 Marin Transit 本地公交免票",
       "path": "/offers/marin-transit-clean-air-oct7-2026",
-      "summary": "先查自己的线路、去回程班次和站点。免费公告不代表延长服务时间，也不自动涵盖整段跨湾行程；其他运营方票价须分别核对。",
+      "summary": "官网 2026/27 免票安排明确列出 10/7 Clean Air Day，本地公交当天对所有乘客免票。先查自己的去回程班次和站点；免票不延长服务时间，其他运营方票价另查。",
       "details": [
         "当天 Marin Transit 本地公交对所有乘客免票，无需购物；不自动包括 Golden Gate、SMART、渡轮或其他运营方的服务。"
       ],
@@ -1017,7 +1017,7 @@
       "dateLabel": "10/7 · 当日班次按各线路时刻表",
       "costLabel": "无需购物",
       "status": "dated",
-      "verifiedAt": "2026-09-29",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://marintransit.gov/fare-free-promotions",
       "sourceLabel": "Marin Transit 官方免票日"
     },
@@ -1045,7 +1045,7 @@
       "id": "sf-zoo-resident-free-oct7-2026",
       "title": "10/7 SF 居民凭证免费进动物园",
       "path": "/offers/sf-zoo-resident-free-oct7-2026",
-      "summary": "这是官网已公布的 2026 免费日，不是按往年月历推算。停车、餐饮及其他付费项目不包含；同行儿童或没有本人地址证件的家人，先向园方确认核验方式。",
+      "summary": "免费日活动页列 10/7 10:00–16:00；不要把网站通用的闭园时间当成免费日窗口。停车、餐饮及其他付费项目不包含；同行儿童或没有本人地址证件的家人，先向园方确认核验方式。",
       "details": [
         "仅 San Francisco 居民；在验票处出示能证明 SF 居住地址的政府签发证件，每份合格证件对应一人免费入场。"
       ],
@@ -1055,7 +1055,7 @@
       "dateLabel": "10/7 周三 · 官方免费日窗口 10:00–16:00",
       "costLabel": "无需购物",
       "status": "dated",
-      "verifiedAt": "2026-09-30",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://www.sfzoo.org/calendar/sf-resident-free-day-5/",
       "sourceLabel": "SF Zoo 官方 2026 免费日日历"
     },
@@ -2313,7 +2313,7 @@
       "id": "target-circle-deal-days-oct6-7-2026",
       "title": "10/6–7 会员促销：指定衣物六折、美妆七折",
       "path": "/offers/target-circle-deal-days-oct6-7-2026",
-      "summary": "Target 官方预告含指定家庭服饰减 40%、指定护肤／护发／彩妆减 30%，以及部分玩具、电子产品和家居优惠。湾区可按本店库存选自提或到店；结账核对会员价、排除商品及到手总价。",
+      "summary": "Target 公司公告明确列 10/6–7：指定家庭服饰减 40%、指定护肤／护发／彩妆减 30%。这是会员购物折扣，不是免费领取；本店库存、排除商品与结账总价须按所选商品确认。",
       "details": [
         "加入免费 Target Circle，在门店、官网或 App 购买指定商品。折扣限活动范围，并非全店统一降价；付费 Circle 360 会员可于 10/5 提前使用部分优惠。"
       ],
@@ -2322,7 +2322,7 @@
       "dateLabel": "10/6–7 · 免费 Circle 会员",
       "costLabel": "需消费",
       "status": "dated",
-      "verifiedAt": "2026-10-04",
+      "verifiedAt": "2026-10-07",
       "sourceUrl": "https://www.prnewswire.com/news-releases/target-circle-deal-days-returns-with-major-savings-on-stylish-fall-and-holiday-finds-302878903.html",
       "sourceLabel": "Target 公司发布的 2026 秋季促销预告"
     },

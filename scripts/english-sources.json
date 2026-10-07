@@ -121,5 +121,7 @@
   "src/data/audit-runtime-en.json",
   "src/data/public-service-media-en.json",
   "src/data/guides-benefits-citizenship-en.json",
-  "src/i18n/dental-senior-services-en.json"
+  "src/i18n/dental-senior-services-en.json",
+  "src/i18n/commute-guide-refresh-en.json",
+  "src/i18n/offers-reviewed-2026-10-07-en.json"
 ]

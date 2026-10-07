@@ -22,14 +22,16 @@
     "export:discovery": "tsx --tsconfig tsconfig.app.json scripts/export-discovery-context.ts",
     "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts",
     "generate:home": "tsx --tsconfig tsconfig.app.json scripts/generate-home-catalog.ts",
-    "release:build": "npm run lint && npm test && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
-    "release:hosting": "npm run lint && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
+    "release:build": "npm run lint && npm run verify:editorial-styles && npm test && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
+    "release:hosting": "npm run lint && npm run verify:editorial-styles && npm audit --audit-level=high && npm run build && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
+    "verify:editorial-styles": "node scripts/check-editorial-styles.mjs",
     "verify:weekly": "tsx --tsconfig tsconfig.app.json scripts/verify-weekly.ts",
     "verify:release": "node scripts/verify-release.mjs",
     "test:site": "node scripts/run-tests.mjs site",
     "test:opus": "node scripts/run-tests.mjs opus",
     "generate:weekly": "tsx --tsconfig tsconfig.app.json scripts/generate-weekly.ts",
-    "generate:calendar": "tsx --tsconfig tsconfig.app.json scripts/generate-calendar-schedule.ts"
+    "generate:calendar": "tsx --tsconfig tsconfig.app.json scripts/generate-calendar-schedule.ts",
+    "report:content-coverage": "tsx --tsconfig tsconfig.app.json scripts/report-content-coverage.ts"
   },
   "engines": {
     "node": "24.x"

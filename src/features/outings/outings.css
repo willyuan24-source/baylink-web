@@ -8,3 +8,104 @@
 @media(max-width:720px){.outing-detail-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:360px){.outing-facts{grid-template-columns:minmax(0,1fr)}.outing-surface{padding:15px}.outing-composer-footer{flex-wrap:wrap}}
 @media(max-width:900px){.outing-filter-main{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.outing-search-field{grid-column:1/-1}.outing-filter-main>.outing-primary{grid-column:1/-1}.outing-date-shortcuts>span{width:100%;margin:3px 0 0}}@media(max-width:720px){.outing-discovery-filter{padding:15px}.outing-filter-main{gap:12px}.outing-advanced-fields{grid-template-columns:1fr;gap:13px}.outing-filter-footer{align-items:flex-start}.outing-filter-footer>span{max-width:72%}.outing-draft-preview{padding:12px}.outing-draft-preview>div{grid-template-columns:1fr;gap:3px}.outing-ai-questions textarea{min-height:85px}.outing-date-range{font-size:12px}.outing-date-shortcuts>button{padding-inline:12px}}
+
+/* Editorial refinement and shared reading controls. These selectors also cover
+   the cover picker, whose component stylesheet is loaded separately. */
+.together-page{--outing-green:var(--color-brand);--outing-ink:var(--color-ink);--outing-muted:var(--color-ink-3);font-size:var(--text-body)}
+.together-page .outing-eyebrow{font-size:var(--text-caption);letter-spacing:0;text-transform:none;color:var(--color-brand)}
+.together-page .outing-hero{padding:18px 0 30px;border-bottom-color:var(--color-line-strong)}
+.together-page .outing-hero h1{font-size:calc(2.5rem * var(--reading-scale));font-weight:600;line-height:1.3}
+.together-page .outing-hero p{font-size:var(--text-body);line-height:1.85;color:var(--color-ink-2)}
+.together-page :is(.outing-primary,.outing-secondary,.outing-link-button,.outing-tabs>button,.outing-date-shortcuts>button,.outing-cover-modes>button){min-height:var(--control-height);font-size:var(--text-fact);line-height:1.5;border-radius:5px}
+.together-page .outing-primary{background:var(--color-brand-deep);border-color:var(--color-brand-deep)}
+.together-page .outing-primary:hover{background:var(--color-brand-hover)}
+.together-page .outing-secondary{background:transparent;border-color:var(--color-line-strong);color:var(--color-brand-deep)}
+.together-page :is(.outing-tabs>button,.outing-date-shortcuts>button,.outing-cover-modes>button){background:transparent;border-color:var(--color-line-strong);color:var(--color-ink-2)}
+.together-page :is(.outing-tabs>button,.outing-date-shortcuts>button,.outing-cover-modes>button)[aria-pressed=true]{background:var(--color-brand-deep);border-color:var(--color-brand-deep);color:var(--color-surface)}
+.together-page .outing-filter{padding:20px 0;border:0;border-block:1px solid var(--color-line);border-radius:0;background:transparent}
+.together-page label{font-size:var(--text-fact);color:var(--color-ink-2)}
+.together-page :is(input:not([type=checkbox]),textarea,select){min-height:var(--control-height);font-size:var(--text-body);border-radius:5px;border-color:var(--color-line-strong);background:var(--color-surface);color:var(--color-ink)}
+.together-page textarea{min-height:105px}
+.together-page :is(.outing-advanced-filter,.outing-form-section){border-color:var(--color-line)}
+.together-page :is(.outing-advanced-filter summary,.outing-answer-history summary,.outing-ai summary){min-height:var(--control-height);font-size:var(--text-fact);line-height:1.7}
+.together-page .outing-check{min-height:var(--control-height)}
+.together-page .outing-check input{accent-color:var(--color-brand)}
+.together-page :is(.outing-date-range,.outing-availability,.outing-read-status,.outing-rule-strip){font-size:var(--text-fact);color:var(--color-ink-2);line-height:1.8}
+.together-page .outing-grid{gap:28px}
+.together-page :is(.outing-card,.outing-surface){border-color:var(--color-line-strong);background:var(--color-surface);border-radius:5px;box-shadow:none}
+.together-page .outing-grid .outing-card{border-radius:5px}
+.together-page .outing-card-body{gap:14px;padding:24px}
+.together-page .outing-card-top{font-size:var(--text-fact);line-height:1.7}
+.together-page .outing-badge{font-size:var(--text-caption);line-height:1.6;border:1px solid var(--color-line-strong);border-radius:3px;background:transparent;color:var(--color-brand)}
+.together-page .outing-badge.is-muted{color:var(--color-ink-3);border-style:dashed}
+.together-page .outing-card h2{font-size:calc(1.375rem * var(--reading-scale));font-weight:600;line-height:1.5}
+.together-page .outing-card h2 a{display:inline-flex;align-items:center;min-height:var(--control-height)}
+.together-page .outing-meta{font-size:var(--text-fact);line-height:1.8;color:var(--color-ink-2)}
+.together-page .outing-card-summary{font-size:var(--text-body);line-height:1.85;color:var(--color-ink-2)}
+.together-page .outing-card-body .outing-card-summary{display:block;overflow:visible}
+.together-page .outing-card-footer{padding-top:18px;border-color:var(--color-line)}
+.together-page .outing-empty{background:transparent;border-color:var(--color-line-strong);border-radius:5px}
+.together-page .outing-empty h2{font-size:var(--text-section);font-weight:600;line-height:1.5}
+.together-page .outing-empty p{font-size:var(--text-body);color:var(--color-ink-2)}
+.together-page :is(.outing-error,.outing-notice){font-size:var(--text-fact);border-radius:5px}
+.together-page .outing-footnote{font-size:var(--text-caption)!important;color:var(--color-ink-3)}
+.together-page :is(.outing-toolbar h2,.outing-discussion h2){font-size:var(--text-section);font-weight:600;line-height:1.5}
+.together-page .outing-associated{font-size:var(--text-fact);border-color:var(--color-brand);background:transparent}
+.together-page .outing-associated a{display:inline-flex;align-items:center;min-height:var(--control-height)}
+.together-page .outing-detail-head h1{font-size:calc(2.125rem * var(--reading-scale));font-weight:600;line-height:1.4}
+.together-page .outing-detail-description{font-size:var(--text-reading);color:var(--color-ink-2)}
+.together-page .outing-facts{gap:12px 22px}
+.together-page .outing-facts div{padding:14px 0;border-bottom:1px solid var(--color-line);border-radius:0;background:transparent}
+.together-page .outing-facts dt{font-size:var(--text-fact);color:var(--color-ink-3)}
+.together-page .outing-facts dd{font-size:var(--text-body);line-height:1.8}
+.together-page .outing-person{min-height:var(--control-height);font-size:var(--text-fact)}
+.together-page .outing-member-actions button{min-height:var(--control-height);font-size:var(--text-fact)}
+.together-page .outing-message-header,.together-page .outing-message-header time{font-size:var(--text-caption);line-height:1.7}
+.together-page .outing-message p{font-size:var(--text-body);color:var(--color-ink-2)}
+.together-page .outing-message .outing-link-button{min-height:var(--control-height);font-size:var(--text-fact)}
+.together-page .outing-form-section h3{font-size:var(--text-card);line-height:1.5}
+.together-page .outing-step{font-size:var(--text-caption);min-width:32px;min-height:32px;background:transparent;border:1px solid var(--color-line-strong);color:var(--color-brand)}
+.together-page :is(.outing-ai,.outing-ai-result,.outing-answer-history,.outing-draft-preview,.outing-cover-picker,.outing-inspiration-context){border-color:var(--color-line-strong);border-radius:5px;background:var(--color-surface)}
+.together-page :is(.outing-ai p,.outing-ai-result ul,.outing-answer-history,.outing-draft-preview dd,.outing-preserved){font-size:var(--text-fact);line-height:1.85;color:var(--color-ink-2)}
+.together-page .outing-draft-preview dt{font-size:var(--text-fact);color:var(--color-ink-3)}
+.together-page .outing-form-footer{background:var(--color-surface);border-color:var(--color-line-strong);border-radius:5px}
+.together-page .outing-cover{border-color:var(--color-line-strong);border-radius:5px;background:var(--color-surface)}
+.together-page .outing-cover-caption{background:var(--color-surface)}
+.together-page .outing-cover-caption>a{min-height:var(--control-height);font-size:var(--text-fact);color:var(--color-brand)}
+.together-page .outing-cover-caption>a>span{white-space:normal;overflow:visible;text-overflow:clip}
+.together-page .outing-cover-credit{font-size:var(--text-caption);line-height:1.8;color:var(--color-ink-3)}
+.together-page .outing-cover-credit summary{min-height:var(--control-height);padding-block:10px;line-height:1.7}
+.together-page .outing-cover-credit a{display:inline-flex;align-items:center;min-height:var(--control-height)}
+.together-page .outing-cover-kind{font-size:var(--text-caption);color:var(--color-ink);border-radius:3px}
+.together-page .outing-cover-designed{height:auto;min-height:190px;background:var(--color-brand-deep);color:var(--color-surface)}
+.together-page .outing-cover-designed::before,.together-page .outing-cover-designed::after{display:none}
+.together-page .outing-cover-frame:has(.outing-cover-designed){height:auto}
+.together-page .outing-cover-designed-top{font-size:var(--text-caption);letter-spacing:0;color:var(--color-on-brand-muted)}
+.together-page .outing-cover-designed strong{font-size:calc(1.375rem * var(--reading-scale));display:block;overflow:visible;max-width:100%;line-height:1.5}
+.together-page .outing-cover-designed-meta{font-size:var(--text-fact);color:var(--color-on-brand-muted);line-height:1.7}
+.together-page .outing-cover--detail .outing-cover-designed{min-height:240px}
+.together-page .outing-cover--detail .outing-cover-designed strong{font-size:var(--text-section)}
+.together-page .outing-cover--card .outing-cover-calendar-date{font-size:calc(2.875rem * var(--reading-scale));line-height:1.2}
+.together-page .outing-cover-picker-heading h4{font-size:var(--text-card);line-height:1.5}
+.together-page .outing-cover-picker-heading p{font-size:var(--text-fact);color:var(--color-ink-2)}
+.together-page .outing-cover-picker-heading>span{font-size:var(--text-caption);color:var(--color-ink-3);background:transparent;border:1px solid var(--color-line-strong)}
+.together-page .outing-cover-catalog input{font-size:var(--text-body)!important}
+.together-page .outing-cover-options strong{font-size:var(--text-fact);display:block;overflow:visible;color:var(--color-ink)}
+.together-page .outing-cover-options small{font-size:var(--text-caption);color:var(--color-ink-3)}
+.together-page :is(.outing-cover-catalog>p,.outing-cover-picker-note,.outing-cover-preview-label>span){font-size:var(--text-caption);color:var(--color-ink-3)}
+.together-page .outing-cover-preview-label{font-size:var(--text-fact);color:var(--color-ink-2)}
+.together-page .outing-inspiration-context h2{font-size:var(--text-section);font-weight:600}
+.together-page .outing-inspiration-context p{font-size:var(--text-fact);color:var(--color-ink-2)}
+.together-page :is(.outing-time-poll,.outing-poll-option,.outing-poll-current,.outing-poll-confirm,.outing-poll-create-row){border-radius:5px;border-color:var(--color-line-strong)}
+.together-page .outing-time-poll{background:var(--color-surface)}
+.together-page .outing-poll-heading h2{font-size:var(--text-section);font-weight:600;line-height:1.5}
+.together-page :is(.outing-poll-current>span,.outing-poll-current small,.outing-poll-progress,.outing-poll-number,.outing-poll-counts,.outing-poll-votes legend,.outing-poll-create-row legend){font-size:var(--text-caption);line-height:1.7;color:var(--color-ink-3)}
+.together-page :is(.outing-poll-current strong,.outing-poll-option-title p,.outing-poll-create-row label,.outing-poll-confirm p){font-size:var(--text-fact);line-height:1.8;color:var(--color-ink-2)}
+.together-page :is(.outing-poll-option h3,.outing-poll-create h3){font-size:var(--text-card);line-height:1.5}
+.together-page .outing-poll-votes button{min-height:var(--control-height);font-size:var(--text-fact);border-radius:5px}
+.together-page .outing-poll-adopt{font-size:var(--text-fact)!important}
+.together-page .outing-poll-create-row input{min-height:var(--control-height);font-size:var(--text-body);border-radius:5px}
+.site-app .together-page :is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--color-brand);outline-offset:4px}
+.site-app .together-page .outing-cover-frame:focus-visible{outline-offset:-4px}
+@media(max-width:720px){.together-page{padding:23px 20px 65px}.together-page .outing-hero h1{font-size:calc(1.875rem * var(--reading-scale));line-height:1.4}.together-page .outing-detail-head h1{font-size:calc(1.75rem * var(--reading-scale))}.together-page .outing-card-body{padding:20px}.together-page .outing-filter{padding:18px 0}.together-page .outing-cover-picker-heading{flex-wrap:wrap}.together-page .outing-cover-designed{padding:22px}.together-page .outing-form-footer{flex-wrap:wrap}.together-page .outing-filter-footer{flex-wrap:wrap}.together-page .outing-filter-footer>span{max-width:100%}}
+@media(max-width:360px){.together-page .outing-filter-main{grid-template-columns:minmax(0,1fr)}}

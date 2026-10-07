@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useLocale } from '../../i18n/locale';
 import type { PostData } from '../../lib/types';
+import { traditionalPostText } from './post-script';
 import {
   postTranslationKey, postTranslationSession, postTranslationText, requestPostTranslation,
   type PostTranslationResult, type PostTranslationText,
@@ -19,7 +20,7 @@ const guestSession = () => '["",""]';
 export type PostTranslationState = {
   display: PostTranslationText;
   translated: boolean;
-  status: 'original' | 'loading' | 'translated' | 'unavailable';
+  status: 'original' | 'loading' | 'translated' | 'converted' | 'unavailable';
   showOriginal: boolean;
   toggleOriginal: () => void;
   retry: () => void;
@@ -32,10 +33,16 @@ export function usePostTranslation(post: PostData, enabled = true): PostTranslat
   const source = useMemo(() => postTranslationText({ title, description, budget, timeInfo }), [title, description, budget, timeInfo]);
   const key = postTranslationKey(post.id, source, session);
   const eligible = enabled && locale === 'en' && /\p{Script=Han}/u.test(title + description + budget + timeInfo);
+  const traditional = useMemo(() => enabled && locale === 'zh-Hant' ? traditionalPostText(source, post.author.nickname) : null, [enabled, locale, source, post.author.nickname]);
+  const scriptChanged = traditional !== null && (traditional.title !== title || traditional.description !== description || traditional.timeInfo !== timeInfo);
   const [resolved, setResolved] = useState<{ key: string; result: PostTranslationResult } | null>(null);
   const [originalKey, setOriginalKey] = useState<string | null>(null);
   const [retryVersion, setRetryVersion] = useState(0);
   const consumedRetry = useRef(0);
+
+  // Original-text preference belongs to the current reading language. Returning
+  // to a language restores its default display without altering saved content.
+  useEffect(() => { setOriginalKey(null); }, [locale]);
 
   useEffect(() => {
     if (!eligible) return;
@@ -50,7 +57,7 @@ export function usePostTranslation(post: PostData, enabled = true): PostTranslat
   }, [eligible, post.id, source, session, key, retryVersion]);
 
   const current = eligible && resolved?.key === key ? resolved.result : null;
-  const showOriginal = eligible && originalKey === key;
+  const showOriginal = (eligible || scriptChanged) && originalKey === key;
   const translated = current?.status === 'translated' && !showOriginal;
   const toggleOriginal = useCallback(() => { setOriginalKey(previous => previous === key ? null : key); }, [key]);
   // Explicit retries bypass the failure cache, while simultaneous callers still
@@ -58,9 +65,9 @@ export function usePostTranslation(post: PostData, enabled = true): PostTranslat
   const retry = useCallback(() => { setRetryVersion(previous => previous + 1); }, []);
 
   return {
-    display: translated ? current.text : source,
+    display: translated ? current.text : scriptChanged && !showOriginal ? traditional : source,
     translated,
-    status: !eligible ? 'original' : current?.status || 'loading',
+    status: scriptChanged ? 'converted' : !eligible ? 'original' : current?.status || 'loading',
     showOriginal,
     toggleOriginal,
     retry,

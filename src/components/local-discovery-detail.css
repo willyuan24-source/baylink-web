@@ -1,0 +1,47 @@
+/* Discovery articles share the site's reading controls without flattening the
+   editorial hierarchy into a stack of tinted cards. Loaded after tokens.css. */
+.local-discovery-detail{width:min(100%,1040px);margin-inline:auto;padding:38px 40px 72px;color:var(--color-ink)}
+.local-discovery-detail .discovery-back{display:inline-flex;align-items:center;gap:9px;min-height:var(--control-height);margin-bottom:24px;font-size:var(--text-fact);color:var(--color-ink-2)}
+.local-discovery-detail .discovery-detail-header{padding:0 0 24px;border:0;border-top:3px solid var(--color-brand-deep);border-radius:0;background:transparent;box-shadow:none}
+.local-discovery-detail .discovery-detail-brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0;margin-bottom:25px;border-bottom:1px solid var(--color-line-strong)}
+.local-discovery-detail .discovery-detail-brand>span:first-child{font-size:calc(1.125rem * var(--reading-scale));font-weight:700;letter-spacing:.08em;color:var(--color-brand-deep)}
+.local-discovery-detail .discovery-detail-brand>span:last-child{max-width:none;font-size:var(--text-caption);letter-spacing:0;text-transform:none;color:var(--color-ink-3)}
+.local-discovery-detail .discovery-eyebrow{font-size:var(--text-caption);font-weight:600;letter-spacing:0;text-transform:none;color:var(--color-brand)}
+.local-discovery-detail .discovery-detail-header h1{max-width:24ch;margin:15px 0 18px;font-size:calc(2.5rem * var(--reading-scale));font-weight:600;line-height:1.3;letter-spacing:-.025em;overflow-wrap:anywhere;text-wrap:balance}
+.local-discovery-detail .discovery-detail-summary{max-width:44em;margin:0;font-size:var(--text-reading);line-height:1.85;color:var(--color-ink-2)}
+.local-discovery-detail .discovery-detail-facts{display:grid;gap:12px;margin:22px 0;padding:18px 0;border-block:1px solid var(--color-line)}
+.local-discovery-detail .discovery-detail-facts>span{display:flex;align-items:flex-start;gap:10px;font-size:var(--text-fact);line-height:1.75;color:var(--color-ink-2)}
+.local-discovery-detail .discovery-detail-facts svg{flex:none;margin-top:3px;color:var(--color-brand)}
+.local-discovery-detail .discovery-detail-main-actions{align-items:stretch;gap:10px 14px;margin:22px 0 12px}
+.local-discovery-detail :is(.discovery-primary,.discovery-secondary){display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:var(--control-height);padding:12px 18px;border-radius:6px;font-size:var(--text-fact);line-height:1.5;text-align:center}
+.local-discovery-detail .discovery-primary{background:var(--color-brand-deep);border:1px solid var(--color-brand-deep);color:var(--color-surface)}
+.local-discovery-detail .discovery-primary:hover{background:var(--color-brand-hover);border-color:var(--color-brand-hover)}
+.local-discovery-detail .discovery-secondary{background:transparent;border:1px solid var(--color-line-strong);color:var(--color-brand-deep)}
+.local-discovery-detail :is(.discovery-primary,.discovery-secondary) svg{flex:none}
+.local-discovery-detail .discovery-detail-more-actions{margin-top:12px;padding-bottom:4px;border-top:0;border-bottom:1px solid var(--color-line)}
+.local-discovery-detail .discovery-detail-more-actions>summary{display:list-item;width:fit-content;list-style-position:inside;min-height:var(--control-height);padding:12px 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2);text-decoration:none;cursor:pointer}
+.local-discovery-detail .discovery-detail-more-actions .editorial-share-actions{margin:8px 0 16px}
+.local-discovery-detail .discovery-detail-more-actions .outing-inspiration-link{background:transparent;border-radius:6px}
+.local-discovery-detail .outing-inspiration-link strong{font-size:var(--text-fact)}
+.local-discovery-detail .outing-inspiration-link small{font-size:var(--text-caption);color:var(--color-ink-3)}
+.local-discovery-detail .discovery-offer-conditions{max-width:48em;padding:4px 0 26px}
+.local-discovery-detail .discovery-offer-conditions h2{margin:0 0 12px;font-size:var(--text-card);font-weight:600;line-height:1.5}
+.local-discovery-detail .discovery-offer-conditions .discovery-important{margin:0;font-size:var(--text-body);line-height:1.85;color:var(--color-ink-2)}
+.local-discovery-detail .discovery-detail-media{margin:8px 0 28px;border-radius:4px}
+.local-discovery-detail .discovery-detail-media .guide-figure{margin:0}
+.local-discovery-detail .guide-figure-open{border-radius:4px;border-color:var(--color-line-strong)}
+.local-discovery-detail .guide-figure-zoom{font-size:var(--text-caption);line-height:1.5;border-radius:4px}
+.local-discovery-detail .guide-image-kind{font-size:var(--text-caption);background:transparent;border:1px solid var(--color-line-strong);border-radius:3px;color:var(--color-ink-2)}
+.local-discovery-detail .discovery-detail-media img{max-height:560px;aspect-ratio:16/10;object-fit:cover}
+.local-discovery-detail .discovery-detail-media--full img{max-height:560px;aspect-ratio:auto;object-fit:contain}
+.local-discovery-detail .discovery-detail-media :is(figcaption,.guide-image-attribution){font-size:var(--text-caption);line-height:1.7}
+.local-discovery-detail .discovery-detail-body{padding:0 0 32px}
+.local-discovery-detail .discovery-detail-body h2{margin:28px 0 14px;font-size:var(--text-section);font-weight:600;line-height:1.5}
+.local-discovery-detail .discovery-plan li{gap:20px;padding:20px 0;border-color:var(--color-line)}
+.local-discovery-detail .discovery-plan li>span{font-size:var(--text-section);font-weight:400;color:var(--color-brand)}
+.local-discovery-detail .discovery-return{padding:28px 0 0;border:0;border-top:2px solid var(--color-brand-deep);border-radius:0;background:transparent}
+.local-discovery-detail .discovery-return h2{font-size:var(--text-section);font-weight:600;line-height:1.5}
+.local-discovery-detail .discovery-return a{min-height:var(--control-height);font-size:var(--text-fact)}
+.local-discovery-detail :is(a,button,summary):focus-visible{outline:2px solid var(--color-brand);outline-offset:4px}
+@media(max-width:760px){.local-discovery-detail{padding:22px 20px 48px}.local-discovery-detail .discovery-detail-brand{padding:15px 0;margin-bottom:20px}.local-discovery-detail .discovery-detail-header h1{font-size:calc(1.875rem * var(--reading-scale));line-height:1.4}.local-discovery-detail .discovery-detail-main-actions{flex-direction:column}.local-discovery-detail .discovery-detail-main-actions>a{width:100%}.local-discovery-detail .discovery-return>div{gap:4px}}
+@media(max-width:480px){.local-discovery-detail .discovery-detail-offer h1{font-size:calc(1.7rem * var(--reading-scale));line-height:1.35}}
