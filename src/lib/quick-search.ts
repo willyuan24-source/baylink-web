@@ -109,12 +109,12 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     queryInfo,
     tools: !queryInfo.structured ? LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])).slice(0, 3) : [],
     events: events.slice(0, 3),
-    offers: offers.filter(offer => !dateRange || offer.availability === 'dated').slice(0, 3),
+    offers: offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!dateRange || offer.availability === 'dated')).slice(0, 3),
     openings: !dateRange && !queryInfo.evening ? openings.slice(0, 3) : [],
     attractions: !dateRange && !queryInfo.evening ? attractions.slice(0, 3) : [],
     // A permanent place or ongoing policy is not evidence of availability on a requested day.
     unverified: {
-      offers: dateRange ? offers.filter(offer => offer.availability !== 'dated').slice(0, 3) : [],
+      offers: offers.filter(offer => offer.verificationStatus === 'needs-confirmation' || dateRange && offer.availability !== 'dated').slice(0, 3),
       openings: dateRange || queryInfo.evening ? openings.slice(0, 3) : [],
       attractions: dateRange || queryInfo.evening ? attractions.slice(0, 3) : [],
     },

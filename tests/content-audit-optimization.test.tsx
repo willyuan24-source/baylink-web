@@ -43,7 +43,8 @@ test('period labels use the actual coverage and evergreen landing guides have no
   const deal = guides.find(guide => guide.slug === 'bay-area-freebies-deals-2026-11')!;
   assert.equal(deal.editionStartDate, '2026-10-05');
   const label = editionCoverageLabel(deal, 'en');
-  assert.match(label, /Oct.*5.*Nov.*15.*2026/);
+  assert.equal(deal.editionThroughDate, '2026-11-30');
+  assert.match(label, /Oct.*5.*Nov.*30.*2026/);
   assert.equal(editionCoverageLabel({ editionMonth: '2026-09' }), '2026 年 9 月');
   assert.equal(editionCoverageLabel({ editionMonth: '2026-13', editionStartDate: '2026-02-30', editionThroughDate: '2026-03-01' }), '');
   for (const guide of guides.filter(item => /first-72|first-7|first-30|first-night|home-base|first-tickets|rain.*car|car.*rain/u.test(item.slug))) assert.equal(guide.editionMonth, undefined, guide.slug);
@@ -58,7 +59,10 @@ test('verified factual corrections survive the final merged catalogs without inv
   const restaurant = currentOpenings.find(item => item.id === 'marufuku-burlingame-announced')!;
   assert.equal(restaurant.status, 'announced');
   assert.match(restaurant.address, /225 Lorton/);
-  assert.match(restaurant.summary, /10\/11.*11:00/);
+  assert.match(restaurant.summary, /10\/11.*Grand Opening/);
+  assert.match(restaurant.dateLabel, /10\/11.*11:00–14:00.*17:00–21:00/);
+  assert.equal(restaurant.verifiedAt, '2026-10-07');
+  assert.equal(restaurant.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   const museum = currentFreebies.find(item => item.id === 'famsf-bay-area-free-saturdays')!;
   assert.equal(new URL(museum.sourceUrl).hostname, 'www.famsf.org');
   assert.equal(museum.verificationStatus, 'needs-confirmation');

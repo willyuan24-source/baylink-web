@@ -92,7 +92,7 @@ test('opening status and region use confirmed business status without reviving a
   assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, currentOpenings.length);
   for (const shop of lateSeptemberOpenings) assert.equal(currentOpenings.filter(item => item.id === shop.id).length, 1, `${shop.id} is registered once`);
   assert.equal(openShops.length + softOpenShops.length + announcedShops.length, currentOpenings.length);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).textContent, `全部新店${currentOpenings.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部记录/ }).textContent, `全部记录${currentOpenings.length}`);
   assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, `已开业${openShops.length}`);
   assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, `试营业${softOpenShops.length}`);
   assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, `预告与庆典${announcedShops.length}`);
@@ -128,7 +128,7 @@ test('an empty status-region combination offers a reset that restores both filte
   fireEvent.click(view.getByRole('button', { name: '查看全部新店', exact: true }));
   assert.deepEqual(names(view), firstSix);
   assert.equal((view.getByRole('combobox', { name: '新店所在地区' }) as HTMLSelectElement).value, 'all');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部新店/ }).getAttribute('aria-pressed'), 'true');
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部记录/ }).getAttribute('aria-pressed'), 'true');
   assert.ok(!view.queryByText('这个地区暂没有符合条件的已核实新店。'));
   assert.ok(view.getByRole('button', { name: '展开其余新店' }));
 });
@@ -159,7 +159,7 @@ test('six recently verified operating shops appear first, expanding reveals ever
   assert.ok(view.getByRole('button', { name: '展开其余新店' }));
 });
 
-test('passing an announced date and moving to the archive never silently promotes an opening forecast', () => {
+test('passing an announced date or month never silently promotes a forecast or archives every shop', () => {
   const originalStatuses = currentOpenings.map(shop => [shop.id, shop.status, shop.openedOn]);
   const view = render(edition());
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
@@ -167,14 +167,14 @@ test('passing an announced date and moving to the archive never silently promote
   view.rerender(edition('2026-09-30'));
   assert.deepEqual(names(view), firstSixOpen, 'Dates passing are not proof that service started');
   view.rerender(edition('2026-10-01'));
-  assert.ok(view.getByRole('heading', { name: '湾区新店，找个理由去尝鲜。' }));
+  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
   assert.ok(!view.queryByRole('heading', { name: '本期新店记录' }));
   view.rerender(edition('2026-10-31'));
-  assert.ok(view.getByRole('heading', { name: '湾区新店，找个理由去尝鲜。' }));
+  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
   assert.deepEqual(names(view), firstSixOpen);
   view.rerender(edition('2026-11-01'));
-  assert.ok(view.getByRole('heading', { name: '本期新店记录' }));
-  assert.ok(view.getByText('这是本期开业消息快照，当前营业情况请查商家公告。'));
+  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
+  assert.equal(view.queryByText('这是本期开业消息快照，当前营业情况请查商家公告。'), null);
   assert.ok(!view.queryByRole('heading', { name: '湾区新店，找个理由去尝鲜。' }));
   assert.deepEqual(names(view), firstSixOpen);
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
@@ -185,6 +185,37 @@ test('passing an announced date and moving to the archive never silently promote
     assert.ok(card.getByText(shop.dateLabel, { exact: true }));
   }
   assert.deepEqual(currentOpenings.map(shop => [shop.id, shop.status, shop.openedOn]), originalStatuses);
+});
+
+test('November records distinguish confirmed opening dates, recent operating checks and announcements in every locale', async () => {
+  const original = [...currentOpenings];
+  const base = { ...original[0], imageKey: '', verifiedAt: '2026-11-05', status: 'open' as const, openingType: 'new-store' as const };
+  const fixtures = [
+    { ...base, id: 'review-recent', name: 'Recent fixture', openedOn: '2026-11-02' },
+    { ...base, id: 'review-older', name: 'Older fixture', openedOn: '2026-07-01' },
+    { ...base, id: 'review-unknown', name: 'Unknown fixture', openedOn: undefined },
+    { ...base, id: 'review-announced', name: 'Announced fixture', openedOn: undefined, status: 'announced' as const },
+  ];
+  currentOpenings.splice(0, currentOpenings.length, ...fixtures);
+  try {
+    for (const [locale, expected] of [
+      ['zh-Hans', ['实际首日营业在近 90 天内。', '保留营业记录，已不属于近 90 天新开。', '营业情况近期核查；首日营业日期未确认。', '仍为预告，尚未确认开始营业。']],
+      ['zh-Hant', ['實際首日營業在近 90 天內。', '保留營業記錄，已不屬於近 90 天新開。', '營業情況近期核查；首日營業日期未確認。', '仍為預告，尚未確認開始營業。']],
+      ['en', ['The confirmed first service date is within the past 90 days.', 'An operating record, rather than an opening within the past 90 days.', 'Operating information was checked recently; the first service date is unconfirmed.', 'Still an announcement; the start of service is unconfirmed.']],
+    ] as const) {
+      await setLocale(locale, false);
+      const view = render(edition('2026-11-06'));
+      fixtures.forEach((shop, index) => {
+        const card = within(view.getByRole('article', { name: shop.name }));
+        assert.ok(card.getByText(expected[index]));
+        assert.equal(card.getByRole('link', { name: shop.name }).getAttribute('href'), `/openings/${shop.id}`, 'the standalone route fixture preserves the canonical detail link');
+      });
+      assert.equal(view.queryByText('本期新店记录'), null);
+      view.unmount();
+    }
+    assert.equal(fixtures[2].openedOn, undefined, 'a new review does not invent the first service date');
+    assert.equal(fixtures[3].status, 'announced', 'passing time never confirms operation');
+  } finally { currentOpenings.splice(0, currentOpenings.length, ...original); }
 });
 
 test('every opening exposes its merchant, encoded map destination and independently traceable news source', () => {
@@ -266,13 +297,13 @@ test('new opening cards retain evidence and operating status, displaying only at
   assert.match(brokenDreams.editorTip, /周末暂休/);
   const marufuku = canonicalOpening('marufuku-burlingame-announced');
   assert.equal(marufuku.status, 'announced');
-  assert.match(marufuku.dateLabel, /10\/11 11:00.*庆典.*预告/);
+  assert.match(marufuku.dateLabel, /预告.*10\/11.*Grand Opening.*11:00.*14:00.*17:00.*21:00/);
   assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
-  assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/');
+  assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.officialUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
-  assert.equal(marufuku.verifiedAt, '2026-10-05');
-  assert.match(marufuku.summary, /11:00.*14:00.*17:00.*21:00/u);
+  assert.equal(marufuku.verifiedAt, '2026-10-07');
+  assert.match(marufuku.summary, /尚未到开业日.*预告/);
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
 });
 

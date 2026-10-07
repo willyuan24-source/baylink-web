@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getHomeWeekend } from '../src/lib/home-weekend';
-import { MONTHLY_EVENTS } from '../src/lib/home-catalog';
+import { MONTHLY_EVENTS, HOME_WEEKENDS } from '../src/lib/home-catalog';
 import { eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
@@ -39,7 +39,13 @@ test('server home exposes three real weekend dates, costs, sources and actionabl
 });
 
 test('a compact home pool reports the entire weekend calendar count, including Sunday-only eligibility', () => {
-  for (const today of ['2026-10-05', '2026-10-10', '2026-10-11', '2026-11-09']) {
+  // Generation begins at the current edition's review date; historical days
+  // before that boundary have no full-catalog snapshot. Check every published
+  // snapshot, so advancing checkedAt cannot leave this regression on an old day.
+  const daysWithSnapshots = Object.keys(HOME_WEEKENDS).sort();
+  assert.ok(daysWithSnapshots.length > 0, 'the compact pool publishes calendar totals');
+  assert.ok(daysWithSnapshots.some(day => new Date(`${day}T12:00:00Z`).getUTCDay() === 0), 'Sunday-only coverage is exercised');
+  for (const today of daysWithSnapshots) {
     const weekend = getHomeWeekend(today);
     const days = [weekend.start, weekend.end].filter(day => day >= today);
     const actual = COMPLETE_EVENTS.filter(event => days.some(day => eventOccursOn(event, day))).length;

@@ -1,0 +1,869 @@
+{
+  "nov2026-foodwise-market-memories-demo": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://foodwise.org/events/ann-m-evans-and-georgeanne-brennan-market-memories-cookbook/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-21": [
+            {
+              "open": "11:00",
+              "close": "11:45"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ],
+        "note": "示范与试吃免费；购书另付"
+      }
+    }
+  },
+  "nov2026-arion-press-public-tours": {
+    "planning": {
+      "setting": "indoor",
+      "reservation": "required",
+      "admissionUsd": 15,
+      "schedule": {
+        "sourceUrl": "https://fortmason.org/event/arion-press-public-tours-2026/2026-11-21/1/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-12",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-12": [
+            {
+              "open": "15:00",
+              "close": "16:00"
+            },
+            {
+              "open": "17:30",
+              "close": "18:30"
+            }
+          ],
+          "2026-11-21": [
+            {
+              "open": "13:00",
+              "close": "14:00"
+            },
+            {
+              "open": "15:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-12",
+            "start": "15:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-12",
+            "start": "17:30",
+            "end": "18:30"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ],
+        "note": "门票$15；选择具体导览场次"
+      }
+    }
+  },
+  "nov2026-sf-renegade-craft-winter": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://www.renegadecraft.com/event/san-francisco-winter/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-15",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "11:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "11:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "建议自愿支持$5；手作与餐饮另付"
+      }
+    }
+  },
+  "nov2026-fort-mason-farmers-market": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://fortmason.org/event/sunday-farmers-market/2026-11-29/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-29",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "09:30",
+              "close": "13:30"
+            }
+          ],
+          "2026-11-08": [
+            {
+              "open": "09:30",
+              "close": "13:30"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "09:30",
+              "close": "13:30"
+            }
+          ],
+          "2026-11-22": [
+            {
+              "open": "09:30",
+              "close": "13:30"
+            }
+          ],
+          "2026-11-29": [
+            {
+              "open": "09:30",
+              "close": "13:30"
+            }
+          ]
+        },
+        "note": "入场免费；食材、熟食与停车另付"
+      }
+    }
+  },
+  "nov2026-presidio-free-yoga": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "required",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://presidio.gov/explore/events/free-yoga-in-the-park/2026-11-22/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-22",
+        "dates": {
+          "2026-11-01": [
+            {
+              "open": "10:00",
+              "close": "11:00"
+            }
+          ],
+          "2026-11-08": [
+            {
+              "open": "10:00",
+              "close": "11:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "10:00",
+              "close": "11:00"
+            }
+          ],
+          "2026-11-22": [
+            {
+              "open": "10:00",
+              "close": "11:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "10:00",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "10:00",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "10:00",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "10:00",
+            "end": "11:00"
+          }
+        ],
+        "note": "课程免费；须预约，限50人；停车另付"
+      }
+    }
+  },
+  "nov2026-presidio-250-years-walk": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://presidio.gov/explore/events/presidio-guided-walk-250-years-on-the-presidio/2026-11-22/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-22",
+        "dates": {
+          "2026-11-08": [
+            {
+              "open": "11:00",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-22": [
+            {
+              "open": "11:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "导览免费；停车另付"
+      }
+    }
+  },
+  "nov2026-fort-point-history-talks": {
+    "planning": {
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://presidio.gov/explore/events/fort-point-history-2-2/2026-11-29/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-20",
+        "validThrough": "2026-11-29",
+        "dates": {
+          "2026-11-20": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ],
+          "2026-11-21": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ],
+          "2026-11-22": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ],
+          "2026-11-27": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ],
+          "2026-11-28": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ],
+          "2026-11-29": [
+            {
+              "open": "11:30",
+              "close": "11:45"
+            },
+            {
+              "open": "13:30",
+              "close": "13:45"
+            },
+            {
+              "open": "14:30",
+              "close": "14:45"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-20",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "14:30",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "14:30",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "14:30",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "14:30",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:30",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "11:30",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "13:30",
+            "end": "13:45"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:30",
+            "end": "14:45"
+          }
+        ],
+        "note": "免费，无须预约"
+      }
+    }
+  },
+  "nov2026-presidio-campfire-history-talks": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "unknown",
+      "admissionUsd": 0,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://presidio.gov/explore/events/park-ranger-campfire-talks-2/2026-11-30/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-16",
+        "validThrough": "2026-11-30",
+        "dates": {
+          "2026-11-16": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-17": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-18": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-19": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-20": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-21": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-22": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-23": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-24": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-25": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-26": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-27": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-28": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-29": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ],
+          "2026-11-30": [
+            {
+              "open": "15:00",
+              "close": "15:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-16",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-17",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-18",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-19",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-23",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-24",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-25",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-26",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "15:00",
+            "end": "15:30"
+          },
+          {
+            "date": "2026-11-30",
+            "start": "15:00",
+            "end": "15:30"
+          }
+        ],
+        "note": "短讲免费；附近停车另付"
+      }
+    }
+  },
+  "nov2026-redwood-green-friday-hike": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60899",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-27",
+        "validThrough": "2026-11-27",
+        "dates": {
+          "2026-11-27": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-27",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "从 Trudeau Center 出发，穿过红木林、草原与橡树林的5.25英里起伏路线。适合能走山路的人，别把它当作平坦的感恩节后散步。"
+      }
+    }
+  },
+  "nov2026-redwood-saturday-stroll": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60894",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "dates": {
+          "2026-11-28": [
+            {
+              "open": "09:30",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "09:30",
+            "end": "12:00"
+          }
+        ],
+        "note": "在秋末林间走一条4英里中等强度环线。官方明确有约半英里陡上坡，之后下坡；这场与前一天 Trudeau Center 的路线、集合点不同。"
+      }
+    }
+  },
+  "nov2026-tilden-good-night-farm": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60543",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-20",
+        "validThrough": "2026-11-27",
+        "dates": {
+          "2026-11-20": [
+            {
+              "open": "15:30",
+              "close": "16:00"
+            }
+          ],
+          "2026-11-27": [
+            {
+              "open": "15:30",
+              "close": "16:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-20",
+            "start": "15:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "15:30",
+            "end": "16:00"
+          }
+        ],
+        "note": "免费，无须报名；儿童须家长参与"
+      }
+    }
+  },
+  "nov2026-big-break-accessible-winter-birding": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60936",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-19",
+        "validThrough": "2026-11-19",
+        "dates": {
+          "2026-11-19": [
+            {
+              "open": "09:00",
+              "close": "10:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-19",
+            "start": "09:00",
+            "end": "10:30"
+          }
+        ],
+        "note": "活动与停车免费，无须报名"
+      }
+    }
+  },
+  "nov2026-coyote-hills-tule-work-play": {
+    "planning": {
+      "reservation": "optional",
+      "admissionUsd": 0,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60474",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-21": [
+            {
+              "open": "10:00",
+              "close": "11:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:00",
+            "end": "11:30"
+          }
+        ],
+        "note": "活动免费，无须报名；停车每车$5"
+      }
+    }
+  },
+  "nov2026-ardenwood-chestnut-treats": {
+    "planning": {
+      "reservation": "optional",
+      "admissionUsd": null,
+      "minAge": 0,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60614",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-11-27",
+        "dates": {
+          "2026-11-22": [
+            {
+              "open": "11:30",
+              "close": "12:30"
+            }
+          ],
+          "2026-11-27": [
+            {
+              "open": "11:30",
+              "close": "12:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "11:30",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "11:30",
+            "end": "12:30"
+          }
+        ],
+        "note": "22日须付农场门票；27日Green Friday免入场费"
+      }
+    }
+  },
+  "nov2026-crab-cove-bay-bird-morning": {
+    "planning": {
+      "setting": "outdoor",
+      "reservation": "required",
+      "admissionUsd": 0,
+      "minAge": 6,
+      "schedule": {
+        "sourceUrl": "https://anc.apm.activecommunities.com/ebparks/activity/search/detail/60889",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-11-22",
+        "dates": {
+          "2026-11-22": [
+            {
+              "open": "08:00",
+              "close": "10:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "08:00",
+            "end": "10:00"
+          }
+        ],
+        "note": "活动免费但须报名；停车按所用入口另付"
+      }
+    }
+  }
+}

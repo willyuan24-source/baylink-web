@@ -1,0 +1,696 @@
+{
+  "octnov-midpen-return-to-green-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/return-green",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-18",
+        "validThrough": "2026-11-18",
+        "dates": {
+          "2026-11-18": [
+            {
+              "open": "09:00",
+              "close": "13:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-18",
+            "start": "09:00",
+            "end": "13:30"
+          }
+        ],
+        "note": "固定09:00集合的5.25英里中等强度山林徒步；需完成全程，含短程车辆接驳。预约11/4中午开放、11/17 14:00截止；集合点是Skyline Blvd的North Ridge停车场。主办方未列数字年龄门槛，不能据此保证幼童或行动不便者适合。结束时间为活动预计时刻，雨季先查关闭公告。"
+      }
+    }
+  },
+  "octnov-midpen-turkey-trot-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/explorer-hike-annual-turkey-trot-3",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-18",
+        "validThrough": "2026-11-18",
+        "dates": {
+          "2026-11-18": [
+            {
+              "open": "10:30",
+              "close": "14:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-18",
+            "start": "10:30",
+            "end": "14:30"
+          }
+        ],
+        "note": "固定10:30集合的5英里中等强度自然徒步，不是跑步比赛。Lot 6卫生间旁集合，自带午餐；未列强制预约和数字年龄门槛，不能按Turkey Trot名称认定适合幼童。此为完整导览时段，不是任意随到窗口，野火鸡出现不保证。"
+      }
+    }
+  },
+  "octnov-midpen-sawmills-seminary-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/sawmills-seminary-open-space",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-19",
+        "validThrough": "2026-11-19",
+        "dates": {
+          "2026-11-19": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-19",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "固定09:00在Alma停车场集合。全程3.5英里、官方标为leisurely；历史解说之后约3英里自然环线可选择参加。未列数字年龄门槛或强制预约，不能由leisurely推断婴儿车/轮椅可通行；需确认家庭成员能走所选路段。"
+      }
+    }
+  },
+  "octnov-midpen-banana-slugs-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/counting-banana-slugs-0",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-21": [
+            {
+              "open": "09:30",
+              "close": "12:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "09:30",
+            "end": "12:30"
+          }
+        ],
+        "note": "固定09:30集合，2英里轻松亲子导览，预约11/7中午开放、11/20 14:00截止。集合为海岸侧Purisima Creek Road入口，经Highway 1和Verde Road到达。官方家庭标签不等于公布最低年龄或保证婴儿车通行；蛞蝓是否出现取决于自然条件。"
+      }
+    }
+  },
+  "octnov-midpen-windy-hill-berries-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/fall-winter-berries",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-21": [
+            {
+              "open": "12:00",
+              "close": "14:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "12:00",
+            "end": "14:00"
+          }
+        ],
+        "note": "固定12:00在Portola Road下方停车场集合，2英里轻松亲子路线。保护区禁止采摘、禁止路边停车。官方未列数字年龄门槛或强制预约；不能由家庭标签推断所有幼童或婴儿车适用。"
+      }
+    }
+  },
+  "octnov-midpen-manzanita-morning-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/manzanita-morning-hike-0",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-11-22",
+        "dates": {
+          "2026-11-22": [
+            {
+              "open": "09:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "09:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "固定09:00在Lexington Reservoir县立下水坡道停车场集合；3.5英里爬坡至海拔1253英尺山顶。导览免费，但县立停车收费且本页未给金额，不能承诺出行总费用为零。未列数字年龄门槛，不认定幼童适合；官方Where to Meet优先于正文中的Jones Trail停车提法。"
+      }
+    }
+  },
+  "octnov-midpen-ferns-ancient-plants-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/ferns-other-ancient-plants-3",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "dates": {
+          "2026-11-28": [
+            {
+              "open": "10:00",
+              "close": "13:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "10:00",
+            "end": "13:30"
+          }
+        ],
+        "note": "固定10:00集合的3.5英里自然导览，官方标为leisurely；Monte Bello停车场在Page Mill Road、Los Trancos对面，从I-280建议预留约35分钟车程。未列数字年龄或强制预约，不推断婴儿车或轮椅可通行；自然观察与预计结束时间依现场条件。"
+      }
+    }
+  },
+  "octnov-midpen-take-a-hike-dog-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.openspace.org/events/guided-activities/national-take-hike-day-dog-hike",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-17",
+        "validThrough": "2026-11-17",
+        "dates": {
+          "2026-11-17": [
+            {
+              "open": "12:30",
+              "close": "17:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-17",
+            "start": "12:30",
+            "end": "17:00"
+          }
+        ],
+        "note": "固定12:30集合，7英里vigorous高强度徒步，经Hamms Gulch爬升后走Spring Ridge返回，不应作为幼童轻松散步推荐。预约11/3中午开放、11/16 14:00截止。官方未列数字年龄门槛；狗可同行但非必需，牵绳最长6英尺，需另带犬只饮水。"
+      }
+    }
+  },
+  "octnov-filoli-thanksgiving-flora-2026": {
+    "planning": {
+      "admissionUsd": 160,
+      "minAge": null,
+      "reservation": "required",
+      "schedule": {
+        "sourceUrl": "https://filoli.org/whats-on/events/flora-party-thanksgiving-centerpieces/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-23",
+        "validThrough": "2026-11-24",
+        "dates": {
+          "2026-11-23": [
+            {
+              "open": "14:00",
+              "close": "16:00"
+            }
+          ],
+          "2026-11-24": [
+            {
+              "open": "10:00",
+              "close": "12:00"
+            },
+            {
+              "open": "14:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-23",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-24",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-24",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ],
+        "note": "固定两小时花艺课程，须选场次购票。160美元含General Admission、材料与指导；会员九折是资格优惠，不作为人人适用票价。官方未列数字年龄或陪同规则，带儿童应先确认；此票不是独立节日夜游票。"
+      }
+    }
+  },
+  "november-north-healdsburg-market-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://healdsburgfarmersmarket.org/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-10-10",
+        "validThrough": "2026-11-28",
+        "dates": {
+          "2026-10-10": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-17": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-24": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-10-31": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-07": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-14": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-21": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ],
+          "2026-11-28": [
+            {
+              "open": "08:30",
+              "close": "12:00"
+            }
+          ]
+        },
+        "note": "周六市集开放窗口；2026季期4/11–12/19，本表只列10/7–11/30范围内的8个周六。已改到3 North Street新棚亭，周二季9/29结束。购买食品另计；未明确入场票价，费用保持未知，不推断停车免费。"
+      }
+    }
+  },
+  "octnov-marin-holiday-lights-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://www.marincounty.gov/departments/cultural-services/department-sponsored-events/holiday-light-spectacular",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-27",
+        "validThrough": "2026-11-30",
+        "dates": {
+          "2026-11-27": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "2026-11-28": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "2026-11-29": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "2026-11-30": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ]
+        },
+        "note": "每晚17:00–21:00为步行赏灯开放窗口，普通入场与停车免费，餐饮自费。这里只列11月四晚，完整季期延至2027/1/3；手作每晚开放，电影只在指定夜晚。未见预约要求，不承诺任何到达时刻都有相同节目；闪电/大风可能取消。"
+      }
+    }
+  },
+  "octnov-petaluma-ancestral-sounds-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/ancestral-sounds-mesoamerica-kids-117141",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "dates": {
+          "2026-11-28": [
+            {
+              "open": "11:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ],
+        "note": "固定11:00–12:00儿童音乐活动，官方年龄组为K–6年级；不把年级直接换算成数值最低/最高年龄。8岁及以下须成人陪同，这不是8岁最低年龄。地点为100 Fairgrounds Drive现馆；活动页未列费用或强制预约。"
+      }
+    }
+  },
+  "octnov-healdsburg-tech-help-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/one-one-tech-help-110761",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "dates": {
+          "2026-11-28": [
+            {
+              "open": "16:00",
+              "close": "16:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "16:00",
+            "end": "16:30"
+          }
+        ],
+        "note": "固定16:00–16:30成人一对一帮助，预约在11/28 15:00截止；名额以实时页面为准。官方标Adult但未给数字年龄，不凭此创造18岁入场门槛。报名需注明问题/设备；活动页未列费用。"
+      }
+    }
+  },
+  "octnov-point-reyes-open-studios-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://www.visitmarin.org/event-calendar/2026/november-2025/point-reyes-open-studios-thanksgiving-weekend-1/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-27",
+        "validThrough": "2026-11-29",
+        "dates": {
+          "2026-11-27": [
+            {
+              "open": "11:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-28": [
+            {
+              "open": "11:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-29": [
+            {
+              "open": "11:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "三天11:00–17:00为工作室开放窗口，可自行选点。2026日期由Marin官方旅游日历明确确认，尽管URL含旧年份。多地点分散于West Marin，逐间核对地址、无障碍与停车；没有统一入场票价或数字年龄的确认。"
+      }
+    }
+  },
+  "octnov-marin-arts-crafts-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.beadagio.com/attendee/shows.php?d=185",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-06",
+        "validThrough": "2026-11-08",
+        "dates": {
+          "2026-11-06": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-07": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-11-08": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "note": "每日10:00–17:00为展览开放窗口，入场免费，商品另购。成人需按主办方登记；17岁及以下无需登记，这不是最低入场年龄。会场是Marin Center Exhibit Hall，主办方地址20 Avenue of the Flags。"
+      }
+    }
+  },
+  "octnov-san-jose-tommy-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://broadwaysanjose.com/shows/the-whos-tommy/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-17",
+        "validThrough": "2026-11-22",
+        "sessions": [
+          {
+            "date": "2026-11-17",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-18",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-19",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "18:30"
+          }
+        ],
+        "note": "固定开演时刻；官方称约100分钟无中场休息，但没有逐场精确结束时间，故不填sessions.end。官方推荐16岁以上观看（适龄建议，不冒充硬性入场禁令）；有响亮音乐、枪声、频闪和暴力主题，不应推荐给幼童。票价随场次座位变化，admissionUsd未知。"
+      }
+    }
+  },
+  "octnov-opera-sj-fiddler-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://www.operasj.org/productions/fiddler",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-29",
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:00"
+          }
+        ],
+        "note": "五个指定日期开演，不是11/15–29每日营业窗口。11/20为19:30，其余四场14:00；未确认逐场结束时间，不编造sessions.end。购票必需，统一票价与数字适龄门槛未确认。"
+      }
+    }
+  },
+  "octnov-pyt-wizard-oz-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://pytnet.org/shows/the-wizard-of-oz/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-22",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "13:00"
+          }
+        ],
+        "note": "固定公众演出场次，11/19和20学校团体场不在此表。当前节目页约90分钟，未公布逐场精确结束时间，不编造sessions.end。需购票，费用及附加费以结算为准；未确认数字年龄门槛。会场是500 Castro Street的MVCPA，不是剧团办公室。"
+      }
+    }
+  },
+  "octnov-los-altos-lights-parade-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://www.losaltosparade.org/welcome",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-29",
+        "validThrough": "2026-11-29",
+        "note": "只确认2026年11月29日日期；2026开始/结束时间、票价、预约要求均未明确，不能套用2025的时间或队列。暂无可排入时间轴的已核实时段；如预报有雨，主办方当日中午前宣布是否举行，取消不设补办日。"
+      }
+    }
+  },
+  "octnov-hiller-weekend-aviation-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.hiller.org/event/weekend-events-2-2-2-2-2-2-2/2026-11-21/",
+        "verifiedAt": "2026-10-07",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-21",
+        "dates": {
+          "2026-11-21": [
+            {
+              "open": "10:30",
+              "close": "15:00"
+            }
+          ]
+        },
+        "note": "11/21 10:30–15:00为已确认周末体验窗口，不是每个项目连续开放或随到可参加的保证。需博物馆入场票，统一门票金额未知；Invention Lab随入场包含，Flight Sim Zone与FMX另收费。会员资格优惠不适用于所有人，具体模拟器年龄/身高条件未在本活动页确认。"
+      }
+    }
+  }
+}

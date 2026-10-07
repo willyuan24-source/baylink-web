@@ -3,6 +3,8 @@ import { ATTRACTIONS } from './attractions';
 import novemberNorthPlanning from './november-refresh-north-planning.json';
 import novemberSouthPlanning from './november-refresh-peninsula-south-planning.json';
 import novemberEastPlanning from './november-refresh-east-sf-planning.json';
+import octnovSfEastPlanning from './octnov-2026-sf-east-planning.json';
+import octnovRegionalPlanning from './octnov-2026-regional-planning.json';
 import { guides } from './guides';
 import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib/planner';
 import placeLocationData from './place-locations.json';
@@ -83,7 +85,7 @@ const eventLocations: Record<string, GeoPoint> = {
 
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
-const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning } as Record<string, { planning: PlanningFacts }>;
+const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning } as Record<string, { planning: PlanningFacts }>;
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, aliases: [...new Set([event.title, ...(event.aliases || []), ...(EVENT_ALIASES[event.id] || [])])], ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, aliases: [...new Set([place.title, ...(PLACE_ALIASES[place.id] || [])])], region: place.region, city: place.city, summary: place.note,

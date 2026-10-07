@@ -91,8 +91,8 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuer
         run: () => onNavigate(`/guides/${place.slug}`) };
     }),
     ...destinations.unverified.offers.map(offer => ({
-      id: `reference-offer-${offer.id}`, title: `${offer.brand} · ${offer.title}`, detail: `${referenceLabel} · ${offer.dateLabel} · ${offer.requirement}`, icon: Ticket,
-      group: copy('参考福利 · 适用日期待确认', 'Reference benefits · dates unconfirmed'), run: () => onNavigate(`/offers/${offer.id}`),
+      id: `reference-offer-${offer.id}`, title: `${offer.brand} · ${offer.title}`, detail: `${offer.verificationStatus === 'needs-confirmation' ? copy('当前优惠待确认', 'Current offer unconfirmed') : referenceLabel} · ${offer.dateLabel} · ${offer.requirement}`, icon: Ticket,
+      group: offer.verificationStatus === 'needs-confirmation' ? copy('参考福利 · 当前优惠待确认', 'Reference benefits · current offer unconfirmed') : copy('参考福利 · 适用日期待确认', 'Reference benefits · dates unconfirmed'), run: () => onNavigate(`/offers/${offer.id}`),
     })),
     ...destinations.unverified.openings.map(shop => ({
       id: `reference-opening-${shop.id}`, title: shop.name, detail: `${referenceLabel} · ${openingStatusLabel(shop.status)} · ${shop.city} · ${shop.dateLabel}`, icon: Store,

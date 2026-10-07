@@ -85,8 +85,8 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current through November 15, then archives', () => {
-  assert.equal(MONTHLY_EDITION.throughDate, '2026-11-15');
+test('fall edition stays current through November 30, then archives', () => {
+  assert.equal(MONTHLY_EDITION.throughDate, '2026-11-30');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
@@ -94,7 +94,9 @@ test('fall edition stays current through November 15, then archives', () => {
   assert.equal(isEditionCurrent('2026-10-31'), true);
   assert.equal(isEditionCurrent('2026-11-01'), true);
   assert.equal(isEditionCurrent('2026-11-15'), true);
-  assert.equal(isEditionCurrent('2026-11-16'), false);
+  assert.equal(isEditionCurrent('2026-11-16'), true);
+  assert.equal(isEditionCurrent('2026-11-30'), true);
+  assert.equal(isEditionCurrent('2026-12-01'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);

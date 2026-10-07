@@ -5,6 +5,7 @@ import { benefitsCitizenshipGuides } from './guides-benefits-citizenship';
 import { dentalSeniorServiceGuides } from './guides-dental-senior-services';
 import { archivedGuides } from './guides-archives';
 import { november2026Guides } from './november-2026-guides';
+import { octnov2026Guides } from './octnov-2026-refresh';
 import { novemberNorthGuides } from './november-refresh-north-guides';
 import { novemberPeninsulaSouthGuides } from './november-refresh-peninsula-south-guides';
 import { novemberRefreshEastSfGuides } from './november-refresh-east-sf-guides';
@@ -1838,6 +1839,7 @@ export const guides: Guide[] = [
   ...shoppingGuides,
   ...cityExplorationGuides,
   ...november2026Guides,
+  ...octnov2026Guides,
   ...novemberNorthGuides,
   ...novemberPeninsulaSouthGuides,
   ...novemberRefreshEastSfGuides,

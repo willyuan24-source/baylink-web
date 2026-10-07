@@ -1,5 +1,6 @@
 import { octoberRefreshBulletins } from './october-refresh-bulletins';
 import novemberBulletins from './november-2026-bulletins.json';
+import octnovBulletins from './octnov-2026-bulletins.json';
 import { regionalBulletins, type RegionalBulletin } from './late-september-local';
 
 // Dates are Pacific calendar dates. These are scheduled notices, not live service status.
@@ -54,6 +55,6 @@ export const october2026Bulletins: RegionalBulletin[] = [
   },
 ];
 
-export const currentRegionalBulletins = [...new Map([...regionalBulletins, ...octoberRefreshBulletins, ...october2026Bulletins, ...(novemberBulletins as RegionalBulletin[])].map(item => [item.sourceUrl, item])).values()];
+export const currentRegionalBulletins = [...new Map([...regionalBulletins, ...octoberRefreshBulletins, ...october2026Bulletins, ...(novemberBulletins as RegionalBulletin[]), ...(octnovBulletins as RegionalBulletin[])].map(item => [item.sourceUrl, item])).values()];
 export const getActiveRegionalBulletins = (today: string): RegionalBulletin[] =>
-  [...new Map([...regionalBulletins, ...octoberRefreshBulletins, ...october2026Bulletins, ...(novemberBulletins as RegionalBulletin[])].filter(item => item.verifiedAt <= today).map(item => [item.sourceUrl, item])).values()].filter(item => item.expiresAt >= today);
+  [...new Map([...regionalBulletins, ...octoberRefreshBulletins, ...october2026Bulletins, ...(novemberBulletins as RegionalBulletin[]), ...(octnovBulletins as RegionalBulletin[])].filter(item => item.verifiedAt <= today).map(item => [item.sourceUrl, item])).values()].filter(item => item.expiresAt >= today);

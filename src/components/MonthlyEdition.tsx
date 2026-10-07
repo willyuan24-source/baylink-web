@@ -1,3 +1,4 @@
+import { octnov2026Guides } from '../data/octnov-2026-refresh';
 import { november2026Guides } from '../data/november-2026-guides';
 import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
@@ -42,7 +43,7 @@ const EDITORIAL_LABELS = {
   'zh-Hant': { edition: 'BAYLINK · 在地生活精選', events: '近期活動', guides: '出門前讀一篇', places: '半日慢遊', preparation: '行前準備' },
   en: { edition: 'BAYLINK · Local picks', events: 'Upcoming events', guides: 'Guides for your day out', places: 'Half-day outings', preparation: 'Before you go' },
 };
-const autumnGuides = [...november2026Guides, ...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
+const autumnGuides = [...octnov2026Guides, ...november2026Guides, ...communityDiscoveryGuides, ...autumnRefreshGuides, ...octoberLocalGuides];
 const autumnCoverSources = new Set(autumnGuides.map(guide => getGuideMedia(guide).cover.src));
 const autumnImageKeys = Object.keys(GUIDE_IMAGES).filter(key => autumnCoverSources.has(GUIDE_IMAGES[key].src));
 const DATE_FILTERS: { value: MonthlyDateFilter; label: string }[] = [
@@ -142,6 +143,7 @@ function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCo
 }) {
   const locale = useLocale();
   const labels = EDITORIAL_LABELS[locale];
+  const [guideVisibleCount, setGuideVisibleCount] = useState(6);
   const participation = useEventParticipation()!;
   const [searchParams, setSearchParams] = useSearchParams();
   const current = isEditionCurrent(today);
@@ -233,10 +235,11 @@ function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCo
 
     <section className="bl-monthly-places" aria-labelledby="autumn-guides-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow" translate="no">{labels.guides}</span><h2 id="autumn-guides-heading">秋季出门，先读一篇本地攻略</h2></div><p>市集、自然活动、亲子出游与免费文化资源，按自己的节奏安排。</p></div>
-      <div className="bl-monthly-place-grid">{autumnGuides.map(guide => { const image = getGuideMedia(guide).cover; return <article className="bl-monthly-place bl-monthly-guide-card" key={guide.slug}>
+      <div className="bl-monthly-place-grid">{autumnGuides.slice(0, guideVisibleCount).map(guide => { const image = getGuideMedia(guide).cover; return <article className="bl-monthly-place bl-monthly-guide-card" key={guide.slug}>
         <Link className={`bl-monthly-guide-photo${image.fullFrame || image.kind === 'poster' ? ' bl-monthly-guide-photo--full' : ''}`} to={`/guides/${guide.slug}`} aria-label={`阅读攻略：${guide.title}`}><img src={image.src} srcSet={image.srcSet} sizes="(max-width: 639px) 112px, (max-width: 1023px) 30vw, 360px" width={image.width} height={image.height} alt={image.alt} loading="lazy" decoding="async" /><span>{image.kind === 'illustration' ? 'AI 主题插图' : image.kind === 'poster' ? '官方宣传图' : '实景照片'}</span></Link>
         <div className="bl-monthly-place-body"><h3><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></h3><p>{guide.summary}</p><Link to={`/guides/${guide.slug}`}>读实用攻略 <ArrowRight size={15} aria-hidden="true" /></Link></div>
       </article>; })}</div>
+      {guideVisibleCount < autumnGuides.length && <div className="discovery-load-more"><button type="button" onClick={() => setGuideVisibleCount(count => count + 6)}>查看更多秋季攻略 <ArrowRight size={17} aria-hidden="true" /></button></div>}
     </section>
 
     {!current && <aside className="bl-monthly-archive" aria-label="往期内容提示"><CalendarDays size={18} aria-hidden="true" /><div><strong>你正在阅读 {MONTHLY_EDITION.label} 月刊</strong><p>这是按出版时资料整理的往期精选，不是当前月份的最新活动。日期已过的活动仅供回顾，新的安排请查看主办方公告。</p></div></aside>}

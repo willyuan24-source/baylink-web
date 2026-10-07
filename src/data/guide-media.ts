@@ -1,4 +1,8 @@
 import officialOfferMedia from './official-offer-media-2026-10.json';
+import octnovMedia from './octnov-2026-media.json';
+import octnovExtraMedia from './octnov-2026-extra-media.json';
+import octnovEventMedia from './octnov-2026-event-media.json';
+import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
 import { getLocale } from '../i18n/locale';
 import { VERIFIED_PLACE_PHOTO_ALIASES } from './verified-place-media-updates';
@@ -85,6 +89,7 @@ for (const { key, ...asset } of [...officialOfferMedia, ...guidePhotos, ...event
   GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 for (const { key, ...asset } of publicServiceMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'illustration' };
+for (const { key, ...asset } of [...octnovMedia, ...octnovExtraMedia, ...octnovEventMedia]) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
@@ -93,7 +98,7 @@ for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, 
   GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
 }
 
-for (const [key, { sourceKey, caption }] of Object.entries(VERIFIED_PLACE_PHOTO_ALIASES)) {
+for (const [key, { sourceKey, caption }] of Object.entries({ ...VERIFIED_PLACE_PHOTO_ALIASES, ...OCTNOV_EVENT_PHOTO_ALIASES })) {
   GUIDE_IMAGES[key] = { ...GUIDE_IMAGES[sourceKey], caption };
 }
 GUIDE_IMAGES['guide-bart-update-context'] = {
@@ -283,6 +288,27 @@ bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social
 bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
 bySlug['bay-area-dental-care-insurance-low-cost-guide'] = ['audit-dental-preparation', 'translation-documents'];
 bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-service-routes', 'everyday'];
+
+Object.assign(bySlug, {
+  "sf-autumn-art-half-day-2026": [
+    "octnov-sfmoma-context",
+    "coverage-yerba-buena"
+  ],
+  "east-bay-redwoods-green-friday-2026": [
+    "redwoods",
+    "redwoods"
+  ],
+  "half-moon-bay-autumn-coast-2026": [
+    "coast",
+    "coast"
+  ],
+  "alviso-autumn-wetlands-2026": [
+    "autumn-alviso",
+    "autumn-alviso"
+  ]
+});
+
+bySlug['sonoma-autumn-art-plaza-2026'] = ['octnov-sonoma-plaza-context', 'octnov-sonoma-plaza-context'];
 
 const categoryImages: Record<GuideCategory, string> = { rent: 'settling', roommate: 'settling', used: 'everyday', service: 'everyday', commute: 'weekend', newcomer: 'settling', city: 'weekend', safety: 'everyday', events: 'weekend', education: 'school-sf' };
 

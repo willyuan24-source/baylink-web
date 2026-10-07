@@ -1,4 +1,9 @@
 import { VERIFIED_EVENT_PLACE_MEDIA_UPDATES } from './verified-place-media-updates';
+import octnovSfEastEvents from './octnov-2026-sf-east-events.json';
+import octnovRegionalEvents from './octnov-2026-regional-events.json';
+import octnovExtraImages from './octnov-2026-extra-image-updates.json';
+import { OCTNOV_EVENT_MEDIA_UPDATES } from './octnov-2026-event-photo-aliases';
+const extraImageUpdates: Record<string, { imageKey: string }> = octnovExtraImages;
 import { aiLocalEvents } from './ai-local-events';
 import { sfSeptemberEvents } from './monthly-sf-events';
 import { regionalSeptemberEvents } from './monthly-region-events';
@@ -29,7 +34,7 @@ const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfS
   .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) })))
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
-export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id] })).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] })).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

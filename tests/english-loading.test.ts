@@ -5,7 +5,49 @@ import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath
 import { getGuideBySlug } from '../src/data/guides';
 import { isLocaleReadyForPath, loadLocale, loadLocaleForPath, normalizeText, translateText } from '../src/i18n/locale';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
-import { englishDictionaryForUiValues } from '../scripts/generate-english-scopes';
+import { englishDictionaryForUiScope, englishDictionaryForUiValues, englishDictionaryForValues } from '../scripts/generate-english-scopes';
+import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
+import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+
+test('editorial prose in historical UI files stays in its content scope while shared UI and dynamic labels remain ready', () => {
+  const full = { '攻略正文': 'Reviewed article body', '共用说明': 'Shared guidance', '新店 · 已开业': 'New opening · Open now' };
+  const supplemental = { ...full, '攻略正文': 'Older article body', '共用说明': 'Older guidance' };
+  const ui = englishDictionaryForUiScope(full, ['共用说明'], [supplemental], ['攻略正文', '共用说明']);
+  assert.equal(Object.hasOwn(ui, '攻略正文'), false, 'the unrelated article is not part of every route');
+  assert.equal(ui['共用说明'], full['共用说明'], 'a real UI reference keeps the final reviewed translation');
+  assert.equal(ui['新店 · 已开业'], full['新店 · 已开业'], 'composed labels remain available without loading a catalog');
+  const article = englishDictionaryForValues(full, ['攻略正文', '共用说明']);
+  assert.deepEqual({ ...ui, ...article }, full, 'loading the owning content scope preserves every translation');
+});
+
+test('generated content scopes preserve prose moved out of global UI, including discovery and region planning', () => {
+  const scope = (name: string) => JSON.parse(readFileSync(new URL(`../src/data/generated/english-scopes/${name}.json`, import.meta.url), 'utf8')) as Record<string, string>;
+  const ui = scope('ui');
+  const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;
+  const intro = ATTRACTION_REGION_INTROS['east-bay'].text;
+  assert.ok(!Object.hasOwn(ui, normalizeText(intro)), 'regional editorial prose must not increase every page load');
+  for (const name of ['planning', 'explore']) assert.equal(scope(name)[normalizeText(intro)], full[normalizeText(intro)]);
+  const discovery = { ...ui, ...scope('discovery') };
+  for (const bulletin of currentRegionalBulletins) {
+    const key = normalizeText(bulletin.summary);
+    if (full[key]) assert.equal(discovery[key], full[key], bulletin.id);
+  }
+  for (const [id, note] of Object.entries(EVENT_SCHEDULE_NOTES)) {
+    const key = normalizeText(note);
+    assert.ok(full[key], `${id}: the calendar note needs a reviewed translation`);
+    assert.equal(discovery[key], full[key], `${id}: calendar notes belong in discovery, not global UI`);
+  }
+  const guide = getGuideBySlug('bay-area-retail-freebies-family-deals')!;
+  assert.ok(guide, 'the retailer article exercises prose formerly forced into UI');
+  const article = { ...ui, ...scope('guide-index'), ...scope(`guide-${guide.slug}`) };
+  const prose = [guide.summary, guide.sourceNote, ...guide.blocks.flatMap(block => block.type === 'paragraph' ? [block.text] : [])];
+  for (const value of prose) {
+    if (!value) continue;
+    const key = normalizeText(value);
+    if (full[key]) assert.equal(article[key], full[key], value);
+  }
+});
 
 test('the compact UI dictionary includes all eight tools catalog labels and page metadata without loading editorial bodies', () => {
   const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;

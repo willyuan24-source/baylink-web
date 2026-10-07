@@ -16,9 +16,8 @@ export const FilterTag = ({ label, active, onClick }: { label: string, active: b
 
 export const CategoryChip = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => {
   const emoji = CATEGORY_EMOJI[label];
-  const display = label === '全部' ? '全部' : emoji ? `${emoji} ${label}` : label;
   const slug = getSlugFromCategory(label);
-  return <Link to={slug ? `/category/${slug}` : '/'} aria-current={active ? 'page' : undefined} onClick={(event) => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{display}</Link>;
+  return <Link to={slug ? `/category/${slug}` : '/'} aria-current={active ? 'page' : undefined} onClick={(event) => { if (!event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onClick(); } }} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{emoji && <><span aria-hidden="true">{emoji}</span>{' '}</>}<span>{label}</span></Link>;
 };
 
 const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' | 'service'; isDemo?: boolean }) => (

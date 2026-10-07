@@ -1,0 +1,642 @@
+[
+  {
+    "id": "octnov-midpen-return-to-green-2026",
+    "kind": "event",
+    "startDate": "2026-11-18",
+    "endDate": "2026-11-18",
+    "occurrenceDates": [
+      "2026-11-18"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Purisima 红杉林返绿徒步",
+    "dateLabel": "11/18 · 09:00–13:30",
+    "city": "Woodside",
+    "venue": "Purisima Creek Redwoods · Skyline Blvd 的 North Ridge 停车场集合",
+    "summary": "5.25英里的中等强度红杉林徒步，从山脊下降后再爬升，感受雨季林下的变化。",
+    "plan": [
+      "11/4中午开放预约，11/17 14:00截止；按官网名额报名。",
+      "路线含短程车辆接驳，参加者须完成全程。",
+      "集合点在 Skyline Blvd 山区，不是海岸侧 Purisima Creek Road 入口。"
+    ],
+    "audience": [
+      "有徒步经验者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/return-green"
+  },
+  {
+    "id": "octnov-midpen-turkey-trot-2026",
+    "kind": "event",
+    "startDate": "2026-11-18",
+    "endDate": "2026-11-18",
+    "occurrenceDates": [
+      "2026-11-18"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Rancho San Antonio：寻找野火鸡的自然徒步",
+    "dateLabel": "11/18 · 10:30–14:30",
+    "city": "Cupertino",
+    "venue": "Rancho San Antonio · Lot 6 卫生间旁集合",
+    "summary": "这场 Turkey Trot 是5英里的中等强度自然导览；沿步道认识野火鸡及其栖地，不是跑步比赛。",
+    "plan": [
+      "自带午餐；野生动物是否出现无法保证。",
+      "从 Cristo Rey Drive 进入，提前到达或拼车应对热门停车场。",
+      "活动页未列强制预约，出发前重查导览与步道状态。"
+    ],
+    "audience": [
+      "自然观察爱好者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/explorer-hike-annual-turkey-trot-3"
+  },
+  {
+    "id": "octnov-midpen-sawmills-seminary-2026",
+    "kind": "event",
+    "startDate": "2026-11-19",
+    "endDate": "2026-11-19",
+    "occurrenceDates": [
+      "2026-11-19"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Bear Creek：从锯木厂、神学院走到开放空间",
+    "dateLabel": "11/19 · 09:00–12:00",
+    "city": "Los Gatos",
+    "venue": "Bear Creek Redwoods · Alma 停车场，Bear Creek Road",
+    "summary": "在 Alma 文化景观了解土地用途的变迁，再选择加入自然步道环线；全程约3.5英里。",
+    "plan": [
+      "集合点在 Los Gatos 附近山区，距 Highway 17 沿 Bear Creek Road 约1英里。",
+      "历史解说之后的约3英里自然环线可选择参加。",
+      "穿适合土路的鞋，自带水，并在出发前看关闭公告。"
+    ],
+    "audience": [
+      "地方历史爱好者",
+      "自然观察爱好者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/sawmills-seminary-open-space"
+  },
+  {
+    "id": "octnov-midpen-banana-slugs-2026",
+    "kind": "event",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-21",
+    "occurrenceDates": [
+      "2026-11-21"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Purisima 亲子自然观察：寻找香蕉蛞蝓",
+    "dateLabel": "11/21 · 09:30–12:30",
+    "city": "Half Moon Bay",
+    "venue": "Purisima Creek Redwoods · 海岸侧 Purisima Creek Road 入口",
+    "summary": "沿2英里的轻松路线观察红杉林里的香蕉蛞蝓与湿润生境，适合愿意慢慢看的家庭。",
+    "plan": [
+      "11/7中午开放预约，11/20 14:00截止；不保证能见到蛞蝓。",
+      "经 Highway 1、Verde Road 到海岸侧入口，不去 Skyline 山脊停车场。",
+      "带点心、饮水与适合湿滑步道的鞋。"
+    ],
+    "audience": [
+      "亲子家庭"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/counting-banana-slugs-0"
+  },
+  {
+    "id": "octnov-midpen-windy-hill-berries-2026",
+    "kind": "event",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-21",
+    "occurrenceDates": [
+      "2026-11-21"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Windy Hill 秋冬浆果观察",
+    "dateLabel": "11/21 · 12:00–14:00",
+    "city": "Portola Valley",
+    "venue": "Windy Hill · Portola Road 下方停车场集合",
+    "summary": "沿 Sausal Pond 一带的2英里轻松路线认识秋冬浆果与动物食物，适合家庭自然观察。",
+    "plan": [
+      "本活动只观察与学习，保护区禁止采摘。",
+      "使用 Portola Road 的正式停车场，不在路边停车。",
+      "活动页未列强制预约，出发前查看最新安排。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "植物爱好者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/fall-winter-berries"
+  },
+  {
+    "id": "octnov-midpen-manzanita-morning-2026",
+    "kind": "event",
+    "startDate": "2026-11-22",
+    "endDate": "2026-11-22",
+    "occurrenceDates": [
+      "2026-11-22"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "outdoors",
+    "cost": "mixed",
+    "costLabel": "导览免费；县立停车场收费",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "St. Joseph’s Hill：Manzanita 晨间登高",
+    "dateLabel": "11/22 · 09:00–12:00",
+    "city": "Los Gatos",
+    "venue": "Lexington Reservoir 水坝旁县立下水坡道停车场，Alma Bridge Road",
+    "summary": "3.5英里的登高路线经过 Manzanita 等步道，前往海拔1,253英尺的 St. Joseph’s Hill。",
+    "plan": [
+      "按官网 Where to Meet 到水库停车场集合，先查停车缴费办法。",
+      "路线包含爬坡，自带水并预留完整三小时。",
+      "停车场在 Los Gatos 附近的水库边，不是市中心活动会场。"
+    ],
+    "audience": [
+      "有徒步经验者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/manzanita-morning-hike-0"
+  },
+  {
+    "id": "octnov-midpen-ferns-ancient-plants-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Monte Bello：蕨类与古老植物导览",
+    "dateLabel": "11/28 · 10:00–13:30",
+    "city": "Palo Alto",
+    "venue": "Monte Bello · Page Mill Road 停车场，Los Trancos 对面",
+    "summary": "进入 Stevens Creek 峡谷，以3.5英里的轻松徒步观察蕨类及其他古老植物。",
+    "plan": [
+      "集合点在 Palo Alto 西侧山区；官网建议从 I-280 预留约35分钟车程。",
+      "可能观察到蝾螈，但当天能见到哪些动植物取决于自然条件。",
+      "自备饮水与雨季步道装备，出发前查看最新公告。"
+    ],
+    "audience": [
+      "植物爱好者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/ferns-other-ancient-plants-3"
+  },
+  {
+    "id": "octnov-midpen-take-a-hike-dog-2026",
+    "kind": "event",
+    "startDate": "2026-11-17",
+    "endDate": "2026-11-17",
+    "occurrenceDates": [
+      "2026-11-17"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "导览免费；需自备饮水",
+    "sourceLabel": "Midpeninsula Regional Open Space District",
+    "title": "Windy Hill 全国徒步日：可携犬的7英里登山",
+    "dateLabel": "11/17 · 12:30–17:00",
+    "city": "Portola Valley",
+    "venue": "Windy Hill · Portola Road 下方停车场集合",
+    "summary": "经 Hamms Gulch 上山、Spring Ridge 返回的高强度徒步；友善犬可同行，也欢迎不带狗的参加者。",
+    "plan": [
+      "11/3中午开放预约，11/16 14:00截止。",
+      "狗须使用不超过6英尺的牵绳，另带犬只饮水。",
+      "路线7英里且有持续爬升，按体力报名并预留全程时间。"
+    ],
+    "audience": [
+      "有徒步经验者",
+      "带狗出行者"
+    ],
+    "officialUrl": "https://www.openspace.org/events/guided-activities/national-take-hike-day-dog-hike"
+  },
+  {
+    "id": "octnov-filoli-thanksgiving-flora-2026",
+    "kind": "event",
+    "startDate": "2026-11-23",
+    "endDate": "2026-11-24",
+    "occurrenceDates": [
+      "2026-11-23",
+      "2026-11-24"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "region-filoli-house",
+    "title": "Filoli 感恩节餐桌花艺工作坊",
+    "dateLabel": "11/23 14:00；11/24 10:00、14:00 · 每场2小时",
+    "region": "peninsula",
+    "city": "Woodside",
+    "venue": "Filoli, 86 Cañada Road",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "$160，含普通入园、材料与指导；会员九折",
+    "summary": "在 Filoli 学做感恩节餐桌花艺，把两小时的动手课程与庭园参观安排在同一天。",
+    "plan": [
+      "三场分别售票，先在官方活动页选定日期与时段。",
+      "票含 General Admission；不要把它当作独立节日夜游票。",
+      "带儿童报名之前先向主办方确认年龄与陪同要求。"
+    ],
+    "audience": [
+      "花艺爱好者",
+      "朋友结伴"
+    ],
+    "officialUrl": "https://filoli.org/whats-on/events/flora-party-thanksgiving-centerpieces/",
+    "sourceLabel": "Filoli"
+  },
+  {
+    "id": "november-north-healdsburg-market-2026",
+    "kind": "event",
+    "startDate": "2026-10-10",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-10-10",
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14",
+      "2026-11-21",
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Healdsburg 周六农夫市集：新棚亭地址",
+    "dateLabel": "10/10–11/28 · 每周六08:30–12:00",
+    "region": "north-bay",
+    "city": "Healdsburg",
+    "venue": "Foley Family Community Pavilion, 3 North Street",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "农产品与餐饮另购；官网未单列入场费",
+    "summary": "周六市集已移到3 North Street 的新棚亭，11月底仍有两场，可安排感恩节前后的本地农产采购。",
+    "plan": [
+      "2026官方季期为4/11–12/19；本页只列10/7–11/30内的周六。",
+      "导航用新棚亭地址，勿沿用旧市场停车场。",
+      "周二季已在9/29结束，不能把周二也排进11月行程。"
+    ],
+    "audience": [
+      "本地居民",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://healdsburgfarmersmarket.org/",
+    "sourceLabel": "Healdsburg Farmers’ Market"
+  },
+  {
+    "id": "octnov-marin-holiday-lights-2026",
+    "kind": "event",
+    "startDate": "2026-11-27",
+    "endDate": "2026-11-30",
+    "occurrenceDates": [
+      "2026-11-27",
+      "2026-11-28",
+      "2026-11-29",
+      "2026-11-30"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Marin Center 免费节日灯光步道",
+    "dateLabel": "11/27–30 · 每晚17:00–21:00",
+    "region": "north-bay",
+    "city": "San Rafael",
+    "venue": "Marin Center, 20 Avenue of the Flags",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "入场与停车免费；餐饮另购",
+    "summary": "Marin County 的 Holiday Light Spectacular 于11/27开场，开放步行赏灯与晚间手作，完整季期延续至2027/1/3。",
+    "plan": [
+      "官方建议从 Exhibit Hall 入口开始，全园禁止车辆穿行赏灯。",
+      "本页明确列出11月四晚；电影只在指定夜晚放映。",
+      "遇闪电或大风可能取消，出发前查看县府当日公告。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "晚间散步"
+    ],
+    "officialUrl": "https://www.marincounty.gov/departments/cultural-services/department-sponsored-events/holiday-light-spectacular",
+    "sourceLabel": "Marin County Cultural Services"
+  },
+  {
+    "id": "octnov-petaluma-ancestral-sounds-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Petaluma 儿童音乐体验：中美洲古老乐器",
+    "dateLabel": "11/28 · 11:00–12:00",
+    "region": "north-bay",
+    "city": "Petaluma",
+    "venue": "Petaluma Regional Library 会议室，100 Fairgrounds Drive",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页未列费用或预约要求",
+    "summary": "Manos Mexicas 以手工制作的乐器介绍中美洲音乐传统；官网面向幼儿园至六年级儿童。",
+    "plan": [
+      "8岁及以下儿童须有成人陪同。",
+      "到 Fairgrounds Drive 当前馆址，不要使用旧馆地址。",
+      "出发前查看活动页更新与当天入场安排。"
+    ],
+    "audience": [
+      "K–6年级家庭"
+    ],
+    "officialUrl": "https://events.sonomalibrary.org/event/ancestral-sounds-mesoamerica-kids-117141",
+    "sourceLabel": "Sonoma County Library"
+  },
+  {
+    "id": "octnov-healdsburg-tech-help-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Healdsburg 一对一数字生活帮助",
+    "dateLabel": "11/28 · 16:00–16:30",
+    "region": "north-bay",
+    "city": "Healdsburg",
+    "venue": "Healdsburg Regional Library 主阅览室，139 Piper Street",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "需预约；活动页未列费用",
+    "summary": "预约馆员的半小时个别指导，处理电子书借阅、电子邮件设置或设备使用疑问。",
+    "plan": [
+      "此条对应11/28 16:00这一场，预约于当日15:00截止。",
+      "报名时写明问题与设备，名额以实时页面为准。",
+      "面向成人；需要其他时段时从官方系列页面另选场次。"
+    ],
+    "audience": [
+      "成人",
+      "数字工具初学者"
+    ],
+    "officialUrl": "https://events.sonomalibrary.org/event/one-one-tech-help-110761",
+    "sourceLabel": "Sonoma County Library"
+  },
+  {
+    "id": "octnov-point-reyes-open-studios-2026",
+    "kind": "event",
+    "startDate": "2026-11-27",
+    "endDate": "2026-11-29",
+    "occurrenceDates": [
+      "2026-11-27",
+      "2026-11-28",
+      "2026-11-29"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Point Reyes 感恩节开放工作室",
+    "dateLabel": "11/27–29 · 每日11:00–17:00",
+    "region": "north-bay",
+    "city": "West Marin",
+    "venue": "Point Reyes Station、Inverness 等地的参与艺术家工作室",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "官方日历未列入场费；购买作品另计",
+    "summary": "三天自助探访 West Marin 艺术家工作室，在沿海社区看绘画、摄影、陶艺等创作。",
+    "plan": [
+      "先在主办方地图选相邻工作室，逐个确认地址与开放安排。",
+      "这是多个分散地点，不以 Point Reyes 国家海岸游客中心为会场。",
+      "个别工作室的停车和无障碍条件分别核对。"
+    ],
+    "audience": [
+      "艺术爱好者",
+      "朋友结伴"
+    ],
+    "officialUrl": "https://www.visitmarin.org/event-calendar/2026/november-2025/point-reyes-open-studios-thanksgiving-weekend-1/",
+    "sourceLabel": "Marin Convention & Visitors Bureau / Point Reyes Open Studios"
+  },
+  {
+    "id": "octnov-marin-arts-crafts-2026",
+    "kind": "event",
+    "startDate": "2026-11-06",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-06",
+      "2026-11-07",
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Marin Arts & Crafts Show 手作展",
+    "dateLabel": "11/6–8 · 每日10:00–17:00",
+    "region": "north-bay",
+    "city": "San Rafael",
+    "venue": "Marin Center Exhibit Hall, 20 Avenue of the Flags",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "入场免费；作品与商品另购",
+    "summary": "集中看手工艺、首饰与装饰艺术，适合慢慢逛展、挑选节日前的小礼物。",
+    "plan": [
+      "成人先在主办方页面做免费登记；17岁及以下无需登记。",
+      "会场是 Marin Center Exhibit Hall，使用主办方给出的20号地址。",
+      "先查展商清单，再决定想看的工艺类别。"
+    ],
+    "audience": [
+      "手作爱好者",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.beadagio.com/attendee/shows.php?d=185",
+    "sourceLabel": "Marin Arts & Crafts Show / Beadagio"
+  },
+  {
+    "id": "octnov-san-jose-tommy-2026",
+    "kind": "performance",
+    "startDate": "2026-11-17",
+    "endDate": "2026-11-22",
+    "occurrenceDates": [
+      "2026-11-17",
+      "2026-11-18",
+      "2026-11-19",
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "San José 百老汇巡演：The Who’s Tommy",
+    "dateLabel": "11/17–22 · 周末含午场，详见官方场次",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "San Jose Center for the Performing Arts, 255 Almaden Boulevard",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "购票入场；按场次与座位定价",
+    "summary": "以 The Who 音乐改编的摇滚音乐剧巡演抵达市中心，演出约100分钟、无中场休息，官方建议16岁以上观看。",
+    "plan": [
+      "11/17–20为19:30；11/21为14:00、19:30；11/22为13:00、18:30。",
+      "节目含响亮音乐、枪声、频闪及暴力主题，购票前查看内容提示。",
+      "使用 Almaden Boulevard 剧院地址，不去票务办公室。"
+    ],
+    "audience": [
+      "16岁以上观众",
+      "音乐剧爱好者"
+    ],
+    "officialUrl": "https://broadwaysanjose.com/shows/the-whos-tommy/",
+    "sourceLabel": "Broadway San Jose"
+  },
+  {
+    "id": "octnov-opera-sj-fiddler-2026",
+    "kind": "performance",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-29",
+    "occurrenceDates": [
+      "2026-11-15",
+      "2026-11-20",
+      "2026-11-22",
+      "2026-11-28",
+      "2026-11-29"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Opera San José：屋顶上的提琴手",
+    "dateLabel": "11/15、20、22、28、29 · 指定场次",
+    "region": "south-bay",
+    "city": "San Jose",
+    "venue": "California Theatre, 345 South First Street",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "购票入场；票价与余票见官方售票页",
+    "summary": "在 California Theatre 看关于家庭、传统与改变的经典音乐剧，感恩节周末另有两场午场。",
+    "plan": [
+      "11/20为19:30，其余四个确认日期均14:00开演。",
+      "按指定日期订票，不把11/15–29理解为每日演出。",
+      "剧院入场与演前讲解时间以所选场次通知为准。"
+    ],
+    "audience": [
+      "音乐剧爱好者"
+    ],
+    "officialUrl": "https://www.operasj.org/productions/fiddler",
+    "sourceLabel": "Opera San José"
+  },
+  {
+    "id": "octnov-pyt-wizard-oz-2026",
+    "kind": "performance",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-22",
+    "occurrenceDates": [
+      "2026-11-14",
+      "2026-11-15",
+      "2026-11-21",
+      "2026-11-22"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Mountain View 亲子音乐剧：绿野仙踪",
+    "dateLabel": "11/14、15、21、22 · 周末公众场",
+    "region": "south-bay",
+    "city": "Mountain View",
+    "venue": "MVCPA MainStage, 500 Castro Street",
+    "category": "family",
+    "cost": "paid",
+    "costLabel": "购票入场；票价及附加费见官方结算",
+    "summary": "Peninsula Youth Theatre 演绎 Dorothy 的奥兹国冒险，当前节目页标示演出约90分钟。",
+    "plan": [
+      "两个周六均14:00、19:30；两个周日均13:00。",
+      "11/19、20为学校团体场；家庭请从周末公众场选票。",
+      "演出在 Castro Street 的 MVCPA，不是剧团办公地址。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "音乐剧爱好者"
+    ],
+    "officialUrl": "https://pytnet.org/shows/the-wizard-of-oz/",
+    "sourceLabel": "Peninsula Youth Theatre"
+  },
+  {
+    "id": "octnov-los-altos-lights-parade-2026",
+    "kind": "event",
+    "startDate": "2026-11-29",
+    "endDate": "2026-11-29",
+    "occurrenceDates": [
+      "2026-11-29"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "",
+    "title": "Los Altos 第50届节日灯光游行",
+    "dateLabel": "11/29 · 开始时间待主办方更新",
+    "region": "south-bay",
+    "city": "Los Altos",
+    "venue": "Downtown Los Altos · 具体观赏路段见主办方地图",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "已公布日期；官网未单列票价或预约要求",
+    "summary": "主办方已确认2026年11月29日的第50届灯光游行，社区花车与行进乐队将点亮市中心。",
+    "plan": [
+      "先收藏日期；出发前重查2026开始时间、路线与交通安排。",
+      "如预报有雨，主办方会在当日中午前公告是否举行；取消不设补办日。",
+      "主办方请观众把宠物留在家中。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "本地居民"
+    ],
+    "officialUrl": "https://www.losaltosparade.org/welcome",
+    "sourceLabel": "Los Altos Festival of Lights Association"
+  },
+  {
+    "id": "octnov-hiller-weekend-aviation-2026",
+    "kind": "event",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-21",
+    "occurrenceDates": [
+      "2026-11-21"
+    ],
+    "verifiedAt": "2026-10-07",
+    "imageKey": "expanded-peninsula-hiller",
+    "title": "Hiller 周末航空动手体验",
+    "dateLabel": "11/21 · 10:30–15:00",
+    "region": "peninsula",
+    "city": "San Carlos",
+    "venue": "Hiller Aviation Museum, 601 Skyway Road",
+    "category": "family",
+    "cost": "paid",
+    "costLabel": "需博物馆门票；飞行模拟器另收费",
+    "summary": "周末项目把 Invention Lab 动手科学、无人机体验与飞行模拟安排在同一馆内，适合按兴趣选择。",
+    "plan": [
+      "Invention Lab 包含在博物馆入场费内。",
+      "Flight Sim Zone 通票$5、最长30分钟；FMX为$10/10分钟，会员价另列。",
+      "按11/21活动页安排出行，出发前确认各体验开放时间。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "航空爱好者"
+    ],
+    "officialUrl": "https://www.hiller.org/event/weekend-events-2-2-2-2-2-2-2/2026-11-21/",
+    "sourceLabel": "Hiller Aviation Museum"
+  }
+]

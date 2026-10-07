@@ -21,7 +21,9 @@ test('dated city notices expire after their last Pacific day while calendars rem
   assert.match(render('2026-11-04'), /请查看下方新活动或官方最新安排/);
   assert.doesNotMatch(render('2026-11-04', 'calendar'), /已结束 · 历史资讯/);
   assert.equal(isEditionCurrent('2026-11-15'), true);
-  assert.equal(isEditionCurrent('2026-11-16'), false);
+  assert.equal(isEditionCurrent('2026-11-16'), true);
+  assert.equal(isEditionCurrent('2026-11-30'), true);
+  assert.equal(isEditionCurrent('2026-12-01'), false);
 });
 
 test('new adult programs, unknown fees and selected event dates retain planning constraints', () => {

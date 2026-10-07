@@ -123,5 +123,12 @@
   "src/data/guides-benefits-citizenship-en.json",
   "src/i18n/dental-senior-services-en.json",
   "src/i18n/commute-guide-refresh-en.json",
-  "src/i18n/offers-reviewed-2026-10-07-en.json"
+  "src/i18n/offers-reviewed-2026-10-07-en.json",
+  "src/data/octnov-2026-en.json",
+  "src/data/octnov-2026-ui-en.json",
+  "src/data/octnov-2026-sf-east-en.json",
+  "src/data/octnov-2026-regional-en.json",
+  "src/i18n/opening-review-en.json",
+  "src/data/octnov-2026-extra-media-en.json",
+  "src/data/octnov-2026-event-media-en.json"
 ]

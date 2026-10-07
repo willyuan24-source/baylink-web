@@ -153,7 +153,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     // W6-S: the autumn catalog lists the Ferry Plaza market as an event (its Tue / Thu / Sat hours from the label)
     // Oct 5: both Foodwise programmes are on the same verified front plaza, not a new venue point.
     events: ['sf-world-of-dumplings-2026', 'ferry-plaza-farmers-market-2026-autumn', 'sf-foodwise-latine-makers-oct3-2026',
-      'oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'],
+      'oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit', 'nov2026-foodwise-market-memories-demo'],
     kit: 'board',
     kitAt: { x: 131.5, z: 15.1, yaw: deg(165) },
     downtown: true,
@@ -345,7 +345,7 @@ export const EVENT_VENUES: readonly EventVenue[] = [
     // door on the Fort Mason Center apron (the pier itself is the building)
     x: -307.8, z: 219.5,
     match: /Festival Pavilion/i,
-    events: ['sf-fall-show-oct15-18-2026'],
+    events: ['sf-fall-show-oct15-18-2026', 'nov2026-sf-renegade-craft-winter'],
     kit: 'board',
     kitAt: { x: -307.8, z: 219.5, yaw: deg(135) },
     // the organiser's hours (the label's first '·' part hides the Oct 15–17 hours from the per-date reader)
@@ -471,6 +471,13 @@ export const EVENT_VENUES: readonly EventVenue[] = [
  * not an outing for the toy city — no pennant, crowd, souvenir or BAYBAY line.
  */
 export const WORLD_SKIP: Readonly<Record<string, string>> = {
+  // October 7: the precise programme sites remain in the public catalog; no borrowed nearby game pin.
+  'nov2026-fort-mason-farmers-market': 'Fort Mason parking lot, not the Festival Pavilion: no independently verified world venue point',
+  'nov2026-arion-press-public-tours': 'Arion Press in Building B, not the Festival Pavilion: no independently verified world venue point',
+  'nov2026-presidio-free-yoga': 'Presidio Outpost Meadow: no independently verified world venue point',
+  'nov2026-presidio-250-years-walk': 'Presidio Visitor Center tour start: no independently verified world venue point',
+  'nov2026-presidio-campfire-history-talks': 'Presidio Campfire Circle: no independently verified world venue point',
+  'nov2026-fort-point-history-talks': 'Fort Point talk location: no independently verified world venue point',
   // Oct 5 website additions: preserve the real programme locations without inventing world pins.
   // Mission Community Market is on 22nd between Mission and Valencia, not the existing Excelsior venue.
   'oct2026-mission-dia-muertos-market': '22nd Street between Mission and Valencia: no independently verified world venue point',
@@ -526,6 +533,8 @@ export const SOUVENIR_IDS: readonly string[] = [
   'sf-warriors-heat-november-2026', 'sf-journey-final-frontier-november-2026',
   // October 5 catalog refresh: append after the November Chase bits; never move earlier saved souvenirs.
   'oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit',
+  // October 7: the same reviewed pavilion / front plaza, appended after all existing save bits.
+  'nov2026-sf-renegade-craft-winter', 'nov2026-foodwise-market-memories-demo',
 ];
 
 /** How BAYBAY names a venue in a sentence (今天<place>有…). */
@@ -625,6 +634,8 @@ export const EVENT_SAY: Readonly<Record<string, { zh: string; en: string }>> = {
   'sf-journey-final-frontier-november-2026': { zh: 'Journey 演唱会', en: 'Journey’s concert' },
   'oct2026-foodwise-flour-craft-demo': { zh: '烘焙示范', en: 'the Flour Craft baking demo' },
   'oct2026-foodwise-fall-fruit': { zh: '秋果庆典', en: 'the Fall Fruit Celebration' },
+  'nov2026-sf-renegade-craft-winter': { zh: '冬季手作市集', en: 'the Renegade winter craft fair' },
+  'nov2026-foodwise-market-memories-demo': { zh: '烹饪示范', en: 'the Market Memories cooking demo' },
 };
 
 const byId = new Map(EVENT_VENUES.map(v => [v.id, v]));

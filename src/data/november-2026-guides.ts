@@ -4,8 +4,8 @@ import { currentFreebies } from './october-offers';
 export const november2026Guides: Guide[] = [
   {
     "slug": "bay-area-freebies-deals-2026-11",
-    "title": "秋季湾区优惠：十月到十一月中旬，哪些值得领",
-    "subtitle": "2026/10/5 更新 · 收录至 11/15，资格和花费写清楚",
+    "title": "秋季湾区优惠：十月到十一月底，哪些值得领",
+    "subtitle": "2026/10/7 增补 · 收录至 11/30，资格和花费写清楚",
     "summary": "集中查看已公布的品牌门店活动、场馆免费日、生日会员礼和长期资源。按免费领取、预约或需消费筛选，十一月新活动与十月仍有效的优惠一起查。",
     "category": "events",
     "categoryLabel": "生活活动",
@@ -29,11 +29,11 @@ export const november2026Guides: Guide[] = [
       "other"
     ],
     "readMinutes": 7,
-    "updatedAt": "2026-10-05",
+    "updatedAt": "2026-10-07",
     "editionMonth": "2026-11",
     "editionStartDate": "2026-10-05",
-    "editionThroughDate": "2026-11-15",
-    "sourceNote": "本轮于 2026/10/5 增补到十一月中旬的已公布安排。各卡片保留自己的核查日期，并非全部旧优惠重新认证；有数量上限、会员或居民资格的项目按具体条款领取。",
+    "editionThroughDate": "2026-11-30",
+    "sourceNote": "本轮于 2026/10/7 增补到十一月底的已公布安排，包括感恩节植物园免费入场、Green Friday 与 11/20 会员折扣。各卡片保留自己的核查日期，并非全部旧优惠重新认证；有数量上限、会员或居民资格的项目按具体条款领取。",
     "sources": currentFreebies.map(offer => ({ title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement })),
     "blocks": [
       { "type": "heading", "text": "先看资格，再安排领取" },
@@ -45,7 +45,7 @@ export const november2026Guides: Guide[] = [
         "type": "freebies",
         "title": "按日期、地区与领取条件筛选",
         "text": "已结束项目默认隐藏；「需消费」是折扣，「需预约」要先拿到名额。长期福利仍以账户、库存和门店规则为准。",
-        "offers": currentFreebies.filter(offer => (!offer.startDate || offer.startDate <= '2026-11-15') && (!offer.endDate || offer.endDate >= '2026-10-05'))
+        "offers": currentFreebies.filter(offer => (!offer.startDate || offer.startDate <= '2026-11-30') && (!offer.endDate || offer.endDate >= '2026-10-05'))
       },
       {
         "type": "link",
@@ -56,7 +56,7 @@ export const november2026Guides: Guide[] = [
       {
         "type": "tip",
         "title": "尚未公布，就先留空",
-        "text": "截至 10/5，部分网上 Veterans Day 与黑五内容仍指向 2025 或其他国家的页面。本站只按核实的年份、地区与资格写入；日后以商家新公告为准。"
+        "text": "感恩节与黑五不是所有商家都打折。只收录已核对年份、地区与资格的安排，未公布的促销不套用往年数字；日后以商家新公告为准。"
       }
     ]
   },
