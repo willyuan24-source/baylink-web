@@ -1,12 +1,11 @@
 // 应用布局层：共享状态容器 + 侧栏/底部导航 chrome + URL 驱动的覆盖层（帖子/用户/聊天）+ 全局弹层
 // 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
-import { Link, Outlet, useNavigate, type Location } from 'react-router-dom';
+import { Outlet, useNavigate, type Location } from 'react-router-dom';
 import {
-  Plus, Search, MapPin, ArrowUpRight, Loader2,
+  Plus, Search, UserRound, Loader2,
 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
-import { BRAND } from '../brandAssets';
 import { api, SOCKET_URL } from '../lib/api';
 import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
 import { HOME_CHANNELS, matchesCategory } from '../lib/constants';
@@ -18,7 +17,6 @@ import { TOOLS_METADATA } from '../data/tool-catalog';
 import { EXPLORE_METADATA } from '../lib/explore-metadata';
 import { ABOUT_METADATA } from '../lib/about-metadata';
 import { GUIDES_METADATA } from '../lib/guides-metadata';
-import { Wrench } from 'lucide-react';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
 } from '../lib/types';
@@ -851,16 +849,17 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       )}
 
       <a href="#scroll-container" className="site-skip-link">跳到主要内容</a>
-      <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate()} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
       <div className="site-workspace">
         <header className="site-topbar">
-          <Link to="/" className="site-mobile-brand" aria-label="BAYLINK 首页"><img src={BRAND.logoHorizontal} alt="BAYLINK" width="150" height="38" /></Link>
-          <div className="site-location"><MapPin size={16} /><span>San Francisco Bay Area<small>我们的湾区生活</small></span></div>
-          <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索"><Search size={17} /><span>搜索生活里的答案</span><kbd>⌘ / Ctrl K</kbd></button>
-          <Link to="/tools" className="site-topbar-tools" aria-label="打开生活工具箱" aria-current={tab === 'tools' ? 'page' : undefined}><Wrench size={18} /><span>工具箱</span></Link>
-          <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate()}><Plus size={17} /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={9} /> : <><span className="site-account-desktop-label">登录 / 注册</span><span className="site-account-mobile-label">登录</span><ArrowUpRight size={16} /></>}</button></div>
-          <ReadingPreferencesButton />
-          <LanguageSwitcher realLocation={realLocation} />
+          <div className="site-topbar-inner">
+            <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate()} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
+            <div className="site-header-utilities">
+              <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索" aria-keyshortcuts="Control+k Meta+k" title="Ctrl / ⌘ K"><Search size={21} aria-hidden="true" /></button>
+              <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate()} aria-label="发布信息"><Plus size={17} aria-hidden="true" /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={8} /> : <><UserRound size={20} aria-hidden="true" /><span className="site-account-desktop-label">登录</span></>}{showMessagesBadge && <b className="site-header-notification" aria-label="有未读通知">{messagesBadgeCount || '•'}</b>}</button></div>
+              <ReadingPreferencesButton />
+              <LanguageSwitcher realLocation={realLocation} />
+            </div>
+          </div>
         </header>
         {quickExploreOpen && <Suspense fallback={<DismissibleChunkFallback label="正在打开搜索…" onClose={() => setQuickExploreOpen(false)} restoreFocusRef={quickSearchOpenerRef} />}><LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={quickQuery} restoreFocusRef={quickSearchOpenerRef} onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} /></LocaleContentGate></Suspense>}
 

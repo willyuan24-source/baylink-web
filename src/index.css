@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  background-color: #F8F9F6;
+  background-color: var(--color-bg, #FFFFFF);
   --baylink-bg: #F8F9F6;
   --baylink-green: #176B52;
   --baylink-green-hover: #12523F;
@@ -17,8 +17,8 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: #F8F9F6;
-  font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
+  background-color: var(--color-bg, #FFFFFF);
+  font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif);
   -webkit-font-smoothing: antialiased;
   color: #1C3029;
   overflow-x: hidden;

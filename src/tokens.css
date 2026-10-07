@@ -1,11 +1,11 @@
 /* Shared values; older component variables remain aliases during migration. */
 :root {
-  --color-bg:#F8F9F6; --color-surface:#FFFFFF; --color-surface-2:#F1F4EC; --color-selected:#E7EFDC;
-  --color-ink:#16352B; --color-ink-2:#3F5247; --color-ink-3:#5B6B61;
-  --color-brand:#176B52; --color-brand-hover:#12523F; --color-brand-deep:#123C31; --color-brand-tint:#EAF2E6;
+  --color-bg:#FFFFFF; --color-surface:#FFFFFF; --color-surface-2:#F4F7F5; --color-selected:#EAF5EF;
+  --color-ink:#162E29; --color-ink-2:#3E554D; --color-ink-3:#54645E;
+  --color-brand:#096B54; --color-brand-hover:#075440; --color-brand-deep:#123C31; --color-brand-tint:#EAF5EF;
   --color-on-brand-muted:#B6CBB9;
-  --color-line:#E1E7DB; --color-line-strong:#C9D3C1; --color-danger:#B3261E;
-  --font-sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Noto Sans CJK SC',sans-serif;
+  --color-line:#E7EBE8; --color-line-strong:#CBD6D0; --color-danger:#B3261E;
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif;
   --reading-scale:1; --control-height:2.75rem;
   --text-caption:calc(.8125rem * var(--reading-scale)); --text-fact:calc(.875rem * var(--reading-scale));
   --text-body:calc(1rem * var(--reading-scale)); --text-reading:calc(1.0625rem * var(--reading-scale));
@@ -15,7 +15,7 @@
   --bay-paper:var(--color-bg); --bay-forest:var(--color-brand-deep); --bay-green:var(--color-brand); --bay-line:var(--color-line); --bay-muted:var(--color-ink-3);
   --site-mobile-nav-height:calc(4.5rem + env(safe-area-inset-bottom,0px));
 }
-html:lang(zh-Hant) { --font-sans:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif; }
+html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC','Noto Sans TC',sans-serif; }
 html[data-reading=large] { --reading-scale:1.125; --control-height:3rem; }
 html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .public-content-directory { font-size:var(--text-body); line-height:1.8; }
@@ -38,19 +38,6 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 .reading-preferences button small { display:block; flex-basis:100%; font-size:var(--text-caption); }
 .reading-preferences button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); font-weight:600; }
 .reading-preferences .reading-preview { padding:16px; background:var(--color-surface); border-radius:12px; }
-
-/* The five destinations use physical targets; no overlapping pseudo targets. */
-.site-sidebar--focused .site-nav { margin-top:24px; }
-.site-sidebar--focused .site-nav-link { width:100%; min-height:48px; color:var(--color-ink-2); font-size:var(--text-body); text-align:left; }
-.site-sidebar--focused .site-nav-link.is-active { color:var(--color-brand-deep); background:var(--color-selected); }
-.site-sidebar--focused .site-nav-ask { color:var(--color-brand); background:var(--color-brand-tint); }
-.site-secondary-nav { display:flex; flex-direction:column; gap:8px; margin-top:28px; padding-top:20px; border-top:1px solid var(--color-line); }
-.site-secondary-nav a { display:flex; align-items:center; gap:9px; min-height:44px; font-size:var(--text-fact); color:var(--color-ink-2); }
-.site-sidebar--focused .site-sidebar-bottom { margin-top:auto; padding-top:24px; }
-.site-sidebar--focused .site-account small,.site-sidebar--focused .site-legal { font-size:var(--text-caption); color:var(--color-ink-3); }
-.site-topbar .site-command-trigger,.site-topbar .site-mobile-brand { flex-shrink:0; }
-.site-topbar .site-topbar-account { min-width:44px; min-height:44px; }
-.site-topbar .site-topbar-account>span { display:inline; font-size:var(--text-fact); }
 
 /* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. */
 :is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
@@ -153,23 +140,13 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
   .site-mobile-icon { position:relative; }
   .site-mobile-icon b { position:absolute; top:-8px; right:-12px; min-width:18px; padding:2px 4px; border-radius:999px; background:var(--color-danger); color:white; font-size:.75rem; }
   .site-mobile-icon b.site-mobile-notification-dot { top:-3px; right:-5px; min-width:0; width:9px; height:9px; padding:0; }
-  .site-topbar .site-topbar-tools,.site-topbar .site-topbar-publish { display:none; }
 }
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(16px,var(--text-body))!important; }
-  .site-topbar { padding-inline:max(10px,env(safe-area-inset-left,0px)) max(10px,env(safe-area-inset-right,0px)); gap:4px!important; }
-  .site-topbar .site-command-trigger { min-width:44px; width:44px; height:44px; padding:0; }
-  .site-topbar .site-topbar-account>span { font-size:.8125rem; }
-  .site-topbar .site-mobile-brand { display:flex; align-items:center; min-height:44px; }
-  .site-topbar .site-mobile-brand img { width:88px!important; max-width:88px; }
-  .site-language { margin-left:0; }
-  /* Header language names fit at every reading size; content controls still scale. */
-  .site-topbar .site-language select { font-size:16px!important; width:88px; min-width:88px; max-width:none; padding-inline:4px; }
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
   .bl-guides-page--compact .bl-guide-grid { grid-template-columns:1fr; }
 }
-@media(max-width:359px) { .site-topbar .site-mobile-brand img { width:74px!important; max-width:74px; } .site-topbar .site-topbar-actions { display:none; } }
 @media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused * { transition:none!important; } }
 .discovery-detail-main-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
 .local-discovery-detail .discovery-detail-header h1 { font-size:calc(2rem * var(--reading-scale)); line-height:1.4; letter-spacing:0; }
