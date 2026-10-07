@@ -12,6 +12,7 @@ import { septemberFreebies } from '../src/data/september-freebies';
 import { verifiedSeptemberOffers } from '../src/data/september-offers-update';
 import { additionalOctoberOffers } from '../src/data/october-offers-extra';
 import { reviewedAutumnOffers } from '../src/data/autumn-release';
+import { offerReviews20261007 } from '../src/data/offers-reviewed-2026-10-07';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const offer = (id: string) => {
@@ -31,7 +32,12 @@ test('the unified guide preserves valid anchors and merges reviewed autumn benef
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
   for (const reviewed of reviewedAutumnOffers) {
     assert.equal(currentFreebies.filter(item => item.id === reviewed.id).length, 1, `Reviewed offer must appear once: ${reviewed.id}`);
-    assert.deepEqual(offer(reviewed.id), { ...reviewed, ...currentOfferUpdates[reviewed.id] }, `Published conditions use the latest dated review: ${reviewed.id}`);
+    assert.deepEqual(offer(reviewed.id), { ...reviewed, ...currentOfferUpdates[reviewed.id], ...offerReviews20261007[reviewed.id] }, `Published conditions use the latest dated review: ${reviewed.id}`);
+    if (offerReviews20261007[reviewed.id]) {
+      assert.equal(offer(reviewed.id).verifiedAt, '2026-10-07');
+      assert.equal(offer(reviewed.id).endDate, '2026-10-07', 'A source review does not extend the actual offer expiry');
+      assert.equal(offer(reviewed.id).sourceUrl, reviewed.sourceUrl, 'The review preserves the original official source');
+    }
   }
   const board = octoberDealsGuides[0].blocks.find(block => block.type === 'freebies');
   assert.ok(board?.type === 'freebies');

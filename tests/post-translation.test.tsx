@@ -13,6 +13,7 @@ const { renderHook, act, cleanup } = await import('@testing-library/react');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
 const { usePostTranslation } = await import('../src/features/posts/usePostTranslation');
+const { traditionalPostText } = await import('../src/features/posts/post-script');
 const { requestPostTranslation, postTranslationSession, postTranslationText } = await import('../src/features/posts/postTranslationStore');
 
 const post = (id: string, title = '周末一起爬山'): PostData => ({
@@ -168,6 +169,30 @@ test('an old response cannot replace edited content or appear after switching to
   assert.equal(hook.result.current.display.title, edited.title);
   await act(async () => { await setLocale('en', false); });
   assert.equal(hook.result.current.display.title, 'Sunday hiking instead');
+});
+
+test('overlapping nicknames and budgets cannot truncate protected URLs, email or mention identities', async () => {
+  await setLocale('zh-Hant', false);
+  for (const { nickname, budget = '20美元', protectedRun } of [
+    { nickname: 'https', protectedRun: 'https://example.com/书架?城市=旧金山' },
+    { nickname: 'www', protectedRun: 'www.example.com/邻居' },
+    { nickname: '来https', protectedRun: '来https://example.com/书架?城市=旧金山' },
+    { nickname: '来WWW', protectedRun: '来WWW.example.com/邻居' },
+    { nickname: '陈小', protectedRun: '陈小邻@Example.COM' },
+    { nickname: '联系 陈小', protectedRun: '联系 陈小邻@Example.COM' },
+    { nickname: '@陈小', protectedRun: '@陈小邻' },
+    { nickname: '联系 @陈小', protectedRun: '联系 @陈小邻' },
+    { nickname: '邻居甲', budget: '链接 https:', protectedRun: '链接 https://example.com/书架' },
+    { nickname: '书书', protectedRun: '书书书' },
+  ]) {
+    const source = { title: '闲置书架', description: `请看 ${protectedRun}，还有书架。`, budget, timeInfo: '周日' };
+    const saved = structuredClone(source);
+    const converted = traditionalPostText(source, nickname);
+    assert.equal(converted.description, `請看 ${protectedRun}，還有書架。`, `${nickname} / ${budget}`);
+    assert.equal(converted.title, '閒置書架');
+    assert.equal(converted.budget, budget);
+    assert.deepEqual(source, saved);
+  }
 });
 
 test('failure preserves the original, automatic calls back off, and an explicit retry can recover', async () => {
