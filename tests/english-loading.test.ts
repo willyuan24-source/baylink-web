@@ -8,6 +8,7 @@ import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { englishDictionaryForUiScope, englishDictionaryForUiValues, englishDictionaryForValues } from '../scripts/generate-english-scopes';
 import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
 
 test('editorial prose in historical UI files stays in its content scope while shared UI and dynamic labels remain ready', () => {
   const full = { '攻略正文': 'Reviewed article body', '共用说明': 'Shared guidance', '新店 · 已开业': 'New opening · Open now' };
@@ -31,6 +32,11 @@ test('generated content scopes preserve prose moved out of global UI, including 
   for (const bulletin of currentRegionalBulletins) {
     const key = normalizeText(bulletin.summary);
     if (full[key]) assert.equal(discovery[key], full[key], bulletin.id);
+  }
+  for (const [id, note] of Object.entries(EVENT_SCHEDULE_NOTES)) {
+    const key = normalizeText(note);
+    assert.ok(full[key], `${id}: the calendar note needs a reviewed translation`);
+    assert.equal(discovery[key], full[key], `${id}: calendar notes belong in discovery, not global UI`);
   }
   const guide = getGuideBySlug('bay-area-retail-freebies-family-deals')!;
   assert.ok(guide, 'the retailer article exercises prose formerly forced into UI');

@@ -17,6 +17,7 @@ import { setPageMetadata, SITE_STRUCTURED_DATA } from '../lib/seo';
 import { TOOLS_METADATA } from '../data/tool-catalog';
 import { EXPLORE_METADATA } from '../lib/explore-metadata';
 import { ABOUT_METADATA } from '../lib/about-metadata';
+import { GUIDES_METADATA } from '../lib/guides-metadata';
 import { Wrench } from 'lucide-react';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
@@ -315,7 +316,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (/^\/(plan|play|calendar|my-week|ai-in-the-bay|together|archive)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
     if (path === '/this-month' || path === '/this-month/' || path === '/this-week' || path === '/this-week/') return; // MonthlyPage owns its dated edition metadata.
-    if (path === '/guides' || path === '/guides/') { setPageMetadata({ title:'湾区生活指南｜BAYLINK', description:'按生活场景查湾区活动、交通、就医、租客权益与实用办事步骤，每篇保留官方来源与核对说明。', path:'/guides' }); return; }
+    if (path === '/guides' || path === '/guides/') { setPageMetadata(GUIDES_METADATA); return; }
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
     if (path === '/about' || path === '/about/') { setPageMetadata(ABOUT_METADATA); return; }

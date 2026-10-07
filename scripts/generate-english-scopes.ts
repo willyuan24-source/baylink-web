@@ -5,6 +5,7 @@ import ts from 'typescript';
 import { guides, GUIDE_CATEGORY_TABS } from '../src/data/guides';
 import { getGuideMedia, GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
@@ -104,7 +105,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
-    discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
+    discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
     explore: [ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, ATTRACTION_REGION_INTROS, ATTRACTIONS.map(place => { const guide = guides.find(item => item.slug === place.slug); return guide ? getGuideMedia(guide) : undefined; })],
   };
