@@ -29,7 +29,7 @@ export function GuideImageLightbox({ image, onClose, poster = false }: { image: 
     <div className="guide-image-dialog">
       <button type="button" className="guide-image-close" onClick={onClose} aria-label="关闭放大图片"><X size={23} aria-hidden="true" /><span>关闭</span></button>
       <figure>
-        <img src={image.src} alt={image.alt} width={image.width} height={image.height} decoding="async" />
+        <img src={image.src} alt={image.alt} width={image.width} height={image.height} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} decoding="async" />
         <GuideImageCaption image={image} poster={poster} />
       </figure>
     </div>
@@ -44,8 +44,8 @@ function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
   return <>
     <figure className={`guide-figure guide-figure--${variant}${image.kind === 'poster' ? ' guide-figure--official-poster' : ''}${image.fullFrame ? ' guide-figure--full-frame' : ''}`}>
-      <button type="button" className="guide-figure-open" aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
-        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? variant === 'preview' ? '(max-width: 600px) calc(100vw - 80px), 480px' : `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
+      <button type="button" className="guide-figure-open" style={image.width < 480 ? { maxWidth: Math.max(280, image.width + 44), marginInline: 'auto' } : undefined} aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
+        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? image.width < 480 ? `${image.width}px` : variant === 'preview' ? '(max-width: 600px) calc(100vw - 80px), 480px' : `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
         <span className="guide-figure-zoom"><Expand size={15} aria-hidden="true" /><span>查看大图</span></span>
       </button>
       <GuideImageCaption image={image} poster={variant === 'poster'} />
