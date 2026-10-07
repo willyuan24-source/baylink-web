@@ -54,6 +54,8 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Palo Alto': { lat: 37.397, lng: -122.143, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Petaluma': { lat: 38.242, lng: -122.629, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Piedmont': { lat: 37.823, lng: -122.230, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Checked 2026-10-07: Census town GEOID 0658380; not either Windy Hill trailhead.
+  'Portola Valley': { lat: 37.365, lng: -122.233, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Redwood City': { lat: 37.515, lng: -122.214, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Rio Vista': { lat: 38.177, lng: -121.703, precision: 'city', sourceUrl: CENSUS_PLACES },
   'San Carlos': { lat: 37.499, lng: -122.268, precision: 'city', sourceUrl: CENSUS_PLACES },
@@ -73,6 +75,10 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Vacaville': { lat: 38.359, lng: -121.969, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Walnut Creek': { lat: 37.903, lng: -122.040, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Windsor': { lat: 38.542, lng: -122.809, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Multi-location open studios: use Point Reyes Station CDP (0657960) only as
+  // a regional reference. Not a West Marin centroid, studio entrance or route target.
+  // See docs/octnov-2026-calendar-reference-sources.md.
+  'West Marin': { lat: 38.085, lng: -122.809, precision: 'area', sourceUrl: CENSUS_PLACES },
   // Census place GEOID 0686440; never use the town reference point as a hiking meet-up location.
   'Woodside': { lat: 37.422, lng: -122.259, precision: 'city', sourceUrl: CENSUS_PLACES },
 };

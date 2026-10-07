@@ -1,0 +1,41 @@
+[
+  {
+    "id": "caltrain-thanksgiving-nov2026",
+    "region": "peninsula",
+    "label": "半岛与南湾",
+    "imageKey": "train",
+    "title": "Caltrain 十一月假日：11/11 照常，感恩节另查班次",
+    "dateLabel": "11/11、11/26–27 · 三天服务不同",
+    "summary": "官方 2026 假日表列 11/11 为工作日服务，11/26 感恩节为周末服务，11/27 为调整后的服务。具体假日时刻表通常临近日期发布，不能把 11/27 当成普通周五；订餐和活动前先留好返程，出门再查车站时刻及实时警报。",
+    "sourceUrl": "https://www.caltrain.com/schedules/holiday-service-schedules",
+    "sourceLabel": "Caltrain 2026 假日服务表",
+    "verifiedAt": "2026-10-07",
+    "expiresAt": "2026-11-27"
+  },
+  {
+    "id": "sf-thanksgiving-parking-nov2026",
+    "region": "sf",
+    "label": "旧金山",
+    "imageKey": "sf-chinatown",
+    "title": "11/26 停车咪表暂停执法；11/27 恢复",
+    "dateLabel": "11/26–27 · SFMTA 停车执法日历",
+    "summary": "SFMTA 2026 表列感恩节咪表、夜间清扫及其他列示停车项目不执法；次日咪表和夜间清扫恢复。禁停、消防通道和安全限制仍须遵守，私人停车场也不因此免费。",
+    "sourceUrl": "https://www.sfmta.com/getting-around/drive-park/holiday-enforcement-schedule",
+    "sourceLabel": "SFMTA 2026 假日停车执法表",
+    "verifiedAt": "2026-10-07",
+    "expiresAt": "2026-11-27"
+  },
+  {
+    "id": "sfmoma-sarah-sze-nov21-2026",
+    "region": "sf",
+    "label": "旧金山",
+    "imageKey": "octnov-sfmoma-context",
+    "title": "11/21 起，SFMOMA 一楼可免费看 Sarah Sze 新装置",
+    "dateLabel": "11/21 起 · 周三及感恩节闭馆",
+    "summary": "馆方确认 Forever is Composed of Nows 在一楼 Evelyn and Walter Haas, Jr. Atrium 免费开放。普通参观入口为 151 Third Street；这不包括其余收费展厅，11/26 感恩节闭馆。",
+    "sourceUrl": "https://www.sfmoma.org/exhibition/sarah-sze/",
+    "sourceLabel": "SFMOMA 展览公告与参观时间",
+    "verifiedAt": "2026-10-07",
+    "expiresAt": "2026-11-30"
+  }
+]

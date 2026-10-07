@@ -18,6 +18,35 @@ const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
 const { eventOccursOn } = await import('../src/lib/event-calendar');
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
+test('explicitly unconfirmed offers remain labeled references in all languages, including a matching published date', async () => {
+  const count = currentFreebies.length;
+  const offer = { ...currentFreebies[0], id: 'unconfirmed-search-fixture', brand: 'ReviewFixture', title: 'ReviewFixture benefit', availability: 'dated' as const, startDate: '2026-10-07', endDate: '2026-11-30', verificationStatus: 'needs-confirmation' as const };
+  currentFreebies.push(offer);
+  try {
+    for (const [locale, label] of [['zh-Hans', '当前优惠待确认'], ['zh-Hant', '當前優惠待確認'], ['en', 'Current offer unconfirmed']] as const) {
+      await setLocale(locale, false);
+      for (const query of ['ReviewFixture', 'ReviewFixture 2026-11-10']) {
+        const result = searchQuickDestinations(query, locale, '2026-10-07');
+        assert.equal(result.offers.some(item => item.id === offer.id), false);
+        assert.equal(result.unverified.offers.filter(item => item.id === offer.id).length, 1);
+      }
+      const navigated: string[] = [];
+      const view = render(<QuickExplore initialQuery="ReviewFixture" onClose={() => {}} onSearch={() => {}} onNavigate={path => navigated.push(path)} onAsk={() => {}} />);
+      const option = view.getByRole('option', { name: new RegExp(`ReviewFixture.*${label}`) });
+      assert.ok(option.id.startsWith('quick-result-'));
+      fireEvent.click(option);
+      assert.deepEqual(navigated, [`/offers/${offer.id}`], 'the reviewed reference keeps its published detail URL');
+      view.unmount();
+    }
+    const famsf = currentFreebies.find(item => item.id === 'famsf-bay-area-free-saturdays');
+    if (famsf?.verificationStatus === 'needs-confirmation') {
+      const actual = searchQuickDestinations('de Young', 'zh-Hans', '2026-10-07');
+      assert.equal(actual.offers.some(item => item.id === famsf.id), false);
+      assert.ok(actual.unverified.offers.some(item => item.id === famsf.id));
+    }
+  } finally { currentFreebies.splice(count); }
+});
+
 test('ordinary multilingual outing questions retain useful dated events and separately unverified places', async () => {
   for (const [locale, query] of [['zh-Hant', '今天有什麼活動，地方好去？'], ['zh-Hans', '今天有什么活动，好玩的地方？'], ['en', 'What events and places can I visit today?'], ['en', 'things to do today']] as const) {
     await setLocale(locale, false);

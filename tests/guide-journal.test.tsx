@@ -35,6 +35,12 @@ const singleImageGuides: Record<string, string> = {
   'bay-area-birthday-perks': 'freebie-sephora-birthday',
   'bart-october-access-parking-update-2026': 'guide-bart-update-context',
   'bay-area-october-library-museum-pass-guide-2026': 'library',
+  // Each October 7 route has one verified photograph of its actual destination.
+  // Repeating the cover inside the same article would add no visual evidence.
+  'east-bay-redwoods-green-friday-2026': 'redwoods',
+  'half-moon-bay-autumn-coast-2026': 'coast',
+  'alviso-autumn-wetlands-2026': 'autumn-alviso',
+  'sonoma-autumn-art-plaza-2026': 'octnov-sonoma-plaza-context',
 };
 
 type PhotoCredit = {
@@ -42,7 +48,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north', 'official-offer-media-2026-10'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north', 'official-offer-media-2026-10', 'octnov-2026-media', 'octnov-2026-extra-media', 'octnov-2026-event-media'].flatMap(name =>
   (() => { const records = JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')); return (Array.isArray(records) ? records : Object.entries(records).map(([key, value]) => ({ key, ...(value as object) }))) as (GuideImage & { key: string })[]; })());
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -123,7 +129,7 @@ test('guide explorer keeps modifier and non-primary clicks native while ordinary
   assert.deepEqual(opened, [guide.slug]);
 });
 
-test('all published guides and the complete media registry have usable local images and real 480-pixel responsive assets', () => {
+test('all published guides and the complete media registry have usable local images and accurately sized responsive assets', () => {
   assert.ok(guides.length >= 37);
   const checked = new Set<string>();
   const checkImage = (image: GuideImage) => {
@@ -187,6 +193,26 @@ test('all published guides and the complete media registry have usable local ima
   assert.equal(checked.size, new Set(Object.values(GUIDE_IMAGES).map(image => image.src)).size);
 });
 
+test('reviewed small October-November source images retain their real pixels without fabricated 480w variants', () => {
+  // These are exact reviewed source files, not a blanket exception for new low-resolution media.
+  const reviewed = [
+    { key: 'octnov-petaluma-instruments', width: 180, height: 180, kind: 'poster', source: 'https://events.sonomalibrary.org/event/ancestral-sounds-mesoamerica-kids-117141' },
+    { key: 'octnov-healdsburg-tech', width: 220, height: 180, kind: 'poster', source: 'https://events.sonomalibrary.org/event/one-one-tech-help-110761' },
+    { key: 'octnov-los-altos-context', width: 330, height: 210, kind: 'photo', source: 'https://commons.wikimedia.org/wiki/File:Los_Altos_Main_Street_2.jpg' },
+  ] as const;
+  for (const expected of reviewed) {
+    const image = GUIDE_IMAGES[expected.key];
+    assert.ok(image, expected.key);
+    assert.deepEqual(dimensions(image.src), { width: expected.width, height: expected.height }, expected.key);
+    assert.equal(image.width, expected.width, expected.key);
+    assert.equal(image.height, expected.height, expected.key);
+    assert.equal(image.kind, expected.kind, expected.key);
+    assert.equal(image.creditUrl, expected.source, expected.key);
+    assert.equal(image.srcSet, `${image.src} ${expected.width}w`, expected.key);
+    if (expected.kind === 'poster') assert.equal(image.fullFrame, true, expected.key);
+  }
+});
+
 const firstVisitCoverReuse = new Set([
   'bay-area-useful-apps-platforms-guide',
   'bay-area-101-city-exploration-living-guide',
@@ -215,6 +241,23 @@ const officialPerksCoverReuse = new Set([
   'bay-area-freebies-deals-2026-11',
 ]);
 const factualReferenceCoverReuse: Record<string, { key: string; source: string; caption: RegExp }> = {
+  // Reviewed October 7: these follow-up routes revisit the exact same named places
+  // as the existing first-visit guides. Their dated photographs do not certify live conditions.
+  'east-bay-redwoods-green-friday-2026': {
+    key: 'redwoods',
+    source: 'https://commons.wikimedia.org/wiki/File:Reinhardt_Redwood_Regional_Park.jpg',
+    caption: /Reinhardt Redwood Regional Park.*2026.*不表示某段步道当前开放/,
+  },
+  'half-moon-bay-autumn-coast-2026': {
+    key: 'coast',
+    source: 'https://commons.wikimedia.org/wiki/File:Half_Moon_Bay_State_Beach_from_bluff.jpg',
+    caption: /Half Moon Bay State Beach.*2014.*当天开放情况以公园公告为准/,
+  },
+  'alviso-autumn-wetlands-2026': {
+    key: 'autumn-alviso',
+    source: 'https://commons.wikimedia.org/wiki/File:Alviso_Marina_County_Park_View_At_Sunset.jpg',
+    caption: /Alviso Marina County Park.*2013.*资料照片.*不代表当前步道畅通/,
+  },
   'bay-area-birthday-perks': {
     key: 'freebie-sephora-birthday',
     source: 'https://newsroom.sephora.com/sephora-unwraps-another-year-of-beauty-with-its-2026-beauty-insider-birthday-gift-offerings/',

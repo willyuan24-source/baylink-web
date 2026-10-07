@@ -43,6 +43,23 @@ export function englishDictionaryForUiValues(dictionary: EnglishDictionary, sour
   return englishDictionaryForValues(dictionary, [sourceStrings, LIFE_TOOLS, TOOLS_METADATA]);
 }
 
+/** Historical UI source files also contain editorial prose; its owning content packs supply it. */
+export function englishDictionaryForUiScope(dictionary: EnglishDictionary, sourceStrings: unknown, supplementalDictionaries: EnglishDictionary[], editorialValues: unknown): EnglishDictionary {
+  const requiredUi = englishDictionaryForUiValues(dictionary, sourceStrings);
+  const editorial = englishDictionaryForValues(dictionary, editorialValues);
+  const ui = { ...requiredUi };
+  for (const supplemental of supplementalDictionaries) {
+    for (const [key, value] of Object.entries(supplemental)) {
+      // Actual UI references take priority even when they share an editorial string.
+      // Keep supplemental dynamic labels that cannot be found as complete AST literals.
+      if (Object.hasOwn(requiredUi, key) || !Object.hasOwn(editorial, key)) ui[key] = value;
+    }
+  }
+  // Keep final source precedence identical across full and scoped loads.
+  for (const key of Object.keys(ui)) if (Object.hasOwn(dictionary, key)) ui[key] = dictionary[key];
+  return ui;
+}
+
 async function uiStrings(directories = ['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils']): Promise<string[]> {
   const strings: string[] = [];
   const scan = async (directory: string) => {
@@ -72,9 +89,14 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const directory = 'src/data/generated/english-scopes';
   await mkdir(directory, { recursive: true });
   const uiDictionaries = await Promise.all(dictionarySources.filter(path => /(?:-ui-en|audit-runtime-en|public-service-media-en)\.json$/u.test(path)).map(async path => JSON.parse(await readFile(path, 'utf8')) as EnglishDictionary));
-  const ui = Object.assign({}, englishDictionaryForUiValues(dictionary, await uiStrings()), ...uiDictionaries) as EnglishDictionary;
-  // Keep final source precedence identical across full and scoped loads.
-  for (const key of Object.keys(ui)) if (Object.hasOwn(dictionary, key)) ui[key] = dictionary[key];
+  // These fields are already covered by the guide, discovery, planning and explore packs below.
+  // Home selects any of them it actually displays from its own materialized catalog.
+  const editorialProse = [
+    guides.map(guide => [guide.summary, guide.sourceNote, guide.blocks.flatMap(block => block.type === 'paragraph' ? [block.text] : [])]),
+    currentRegionalBulletins.map(bulletin => bulletin.summary),
+    Object.values(ATTRACTION_REGION_INTROS).map(intro => [intro.text, intro.planning]),
+  ];
+  const ui = englishDictionaryForUiScope(dictionary, await uiStrings(), uiDictionaries, editorialProse);
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
   const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
   const scopeValues: Record<string, unknown> = {

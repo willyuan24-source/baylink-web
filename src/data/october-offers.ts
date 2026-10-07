@@ -4,6 +4,9 @@ import { CONTENT_AUDIT_OFFER_UPDATES } from './content-audit-updates';
 import { VERIFIED_OFFER_PLACE_MEDIA_UPDATES } from './verified-place-media-updates';
 import chainOffers from './city-roundup-chain-offers.json';
 import novemberOffers from './november-2026-offers.json';
+import octnovOffers from './octnov-2026-offers.json';
+import octnovOfferUpdates from './octnov-2026-offer-updates.json';
+const reviewedOctnovOffers = octnovOfferUpdates as Record<string, Partial<FreebieOffer>>;
 import { october2026NewOffers, october2026OfferUpdates } from './october-2026-verified-offers';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { GuideSource } from './guides';
@@ -138,10 +141,10 @@ const updatesByDate = [october2026OfferUpdates, Object.fromEntries(refreshedOffe
 export const currentOfferUpdates: Record<string, Partial<FreebieOffer>> = {};
 for (const batch of updatesByDate) for (const [id, update] of Object.entries(batch)) currentOfferUpdates[id] = { ...currentOfferUpdates[id], ...update };
 const mergedOffers = new Map<string, FreebieOffer>();
-for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005]) {
+for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005, ...(octnovOffers as FreebieOffer[])]) {
   mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
 }
-export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id], ...offerReviews20261007[offer.id] }));
+export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id], ...offerReviews20261007[offer.id], ...reviewedOctnovOffers[offer.id] }));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),

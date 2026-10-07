@@ -9,6 +9,7 @@ import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/mon
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { EVENT_CONTEXT_PHOTOS, isApprovedEventContextPhoto } from '../src/data/event-image-usage';
 import { VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
+import { OCTNOV_EVENT_PHOTO_ALIASES } from '../src/data/octnov-2026-event-photo-aliases';
 import { getListingImage } from '../src/lib/offer-media';
 import { buildEventCalendar, filterMonthlyEvents, getEventStatus } from '../src/lib/monthly';
 import type { AppContextValue } from '../src/app/context';
@@ -197,7 +198,8 @@ test('monthly media files and credits are valid and only reviewed contextual med
   const sourceKeys = new Set<string>();
   const paths = new Set<string>();
   const fingerprints = new Map<string, { key: string; eventId: string }>();
-  const originalKey = (key: string) => VERIFIED_PLACE_PHOTO_ALIASES[key]?.sourceKey || key;
+  const reviewedPhotoAliases = { ...VERIFIED_PLACE_PHOTO_ALIASES, ...OCTNOV_EVENT_PHOTO_ALIASES };
+  const originalKey = (key: string) => reviewedPhotoAliases[key]?.sourceKey || key;
   const assertSharedContext = (key: string, eventId: string) => {
     const image = GUIDE_IMAGES[key];
     if (image.kind === 'illustration') {
@@ -215,7 +217,7 @@ test('monthly media files and credits are valid and only reviewed contextual med
     if (!event.imageKey) continue;
     const image = GUIDE_IMAGES[event.imageKey];
     assert.ok(image, event.id);
-    const alias = VERIFIED_PLACE_PHOTO_ALIASES[event.imageKey];
+    const alias = reviewedPhotoAliases[event.imageKey];
     if (alias) {
       const original = GUIDE_IMAGES[alias.sourceKey];
       assert.ok(original, `${event.id}: declared source photograph exists`);
@@ -223,7 +225,7 @@ test('monthly media files and credits are valid and only reviewed contextual med
       assertSharedContext(event.imageKey, event.id);
       assert.equal(EVENT_CONTEXT_PHOTOS[event.imageKey].purpose, 'venue');
       assert.equal(image.caption, alias.caption, 'alias must retain its reviewed venue disclosure');
-      for (const field of ['src', 'srcSet', 'credit', 'creditUrl', 'width', 'height'] as const) {
+      for (const field of ['src', 'srcSet', 'kind', 'alt', 'credit', 'creditUrl', 'licenseUrl', 'width', 'height'] as const) {
         assert.equal(image[field], original[field], `${event.id}: alias preserves source ${field}`);
       }
     }
@@ -431,7 +433,7 @@ test('empty filter results offer a working reset while keeping the three place r
   assert.equal(filters(view).getByRole('button', { name: '整个湾区', exact: true }).getAttribute('aria-pressed'), 'true');
 });
 
-test('November archives the edition while retaining confirmed cross-month activities and hiding ended events until requested', () => {
+test('December archives the edition while retaining confirmed cross-month activities and hiding ended events until requested', () => {
   const october = render(edition('2026-10-01'));
   assert.equal(october.queryByRole('complementary', { name: '往期内容提示' }), null);
   assert.ok(october.getByText('秋季湾区精选'));
@@ -439,15 +441,15 @@ test('November archives the edition while retaining confirmed cross-month activi
   assertResultTitles(october, eligibleIds('2026-10-01'));
   october.unmount();
 
-  const view = render(edition('2026-11-16'));
+  const view = render(edition('2026-12-01'));
   const notice = view.getByRole('complementary', { name: '往期内容提示' });
   assert.ok(notice.textContent!.includes(MONTHLY_EDITION.label));
   assert.match(notice.textContent!, /不是当前月份的最新活动/);
   assert.ok(view.getByText('往期月刊'));
   assert.equal(view.queryByText('秋季湾区精选'), null);
   assert.equal(view.queryByRole('link', { name: /挑一个秋季活动/ }), null);
-  const continuing = eligibleIds('2026-11-16');
-  assert.ok(continuing.every(id => getEventStatus(MONTHLY_EVENTS.find(event => event.id === id)!, '2026-11-16') !== 'ended'));
+  const continuing = eligibleIds('2026-12-01');
+  assert.ok(continuing.every(id => getEventStatus(MONTHLY_EVENTS.find(event => event.id === id)!, '2026-12-01') !== 'ended'));
   assertResultTitles(view, continuing);
   assert.equal(view.container.querySelector('#event-pleasanton-pumpkins-after-dark-2026'), null, 'a broad season end does not extend confirmed October sessions');
   const toggle = filters(view).getByRole('checkbox', { name: '也看已结束活动' }) as HTMLInputElement;
@@ -458,7 +460,7 @@ test('November archives the edition while retaining confirmed cross-month activi
   for (const event of MONTHLY_EVENTS) {
     const card = eventArticle(view, event.id);
     const dateReminder = card.querySelector('button[aria-label^="下载"]');
-    if (getEventStatus(event, '2026-11-16') === 'ended') {
+    if (getEventStatus(event, '2026-12-01') === 'ended') {
       assert.equal(requiredElement(card, '.bl-monthly-status').textContent, '已结束');
       assert.equal(dateReminder, null);
     } else {
@@ -521,7 +523,7 @@ test('monthly spotlight changes current-month language to archive language in bo
     assert.ok(link.textContent!.includes(`${activeCount} 场可赴的活动`));
     view.rerender(<MemoryRouter><MonthlySpotlight today="2026-10-01" compact={compact} /></MemoryRouter>);
     assert.match(view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` }).textContent!, /本月精选/);
-    view.rerender(<MemoryRouter><MonthlySpotlight today="2026-11-16" compact={compact} /></MemoryRouter>);
+    view.rerender(<MemoryRouter><MonthlySpotlight today="2026-12-01" compact={compact} /></MemoryRouter>);
     link = view.getByRole('link', { name: `阅读${MONTHLY_EDITION.label}湾区月刊` });
     assert.match(link.textContent!, /往期精选/);
     assert.ok(link.textContent!.includes(`${MONTHLY_EDITION.label} 的活动记录`));

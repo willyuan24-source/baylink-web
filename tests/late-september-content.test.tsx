@@ -101,7 +101,10 @@ test('regional bulletins disappear at their expiry boundary without leaving an e
     assert.ok(renderToStaticMarkup(<RegionalBulletins today={bulletin.expiresAt} />).includes(bulletin.sourceUrl), `${bulletin.id}: visible through its expiry date`);
     assert.ok(!renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(bulletin.expiresAt, 1)} />).includes(bulletin.sourceUrl), `${bulletin.id}: removed after its expiry date`);
   }
-  assert.ok(getActiveRegionalBulletins('2026-11-01').some(item => item.id === 'caltrain-veterans-day-nov11-2026'), 'the November advisory must survive the old edition boundary');
+  const holidayService = getActiveRegionalBulletins('2026-11-01').find(item => item.id === 'caltrain-thanksgiving-nov2026');
+  assert.ok(holidayService, 'the consolidated November advisory must survive the old edition boundary');
+  assert.match(holidayService.summary, /11\/11/);
+  assert.equal(holidayService.expiresAt, '2026-11-27');
   const finalExpiry = currentRegionalBulletins.map(item => item.expiresAt).sort().at(-1)!;
   assert.equal(renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(finalExpiry, 1)} />), '');
 });
