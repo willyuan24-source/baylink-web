@@ -1,4 +1,6 @@
 {
+  "当前已加载 {0} 条，近 30 天发布 {1} 条。": "Listings loaded so far: {0}; posted in the past 30 days: {1}. ",
+  "当前筛选结果 {0} 条，近 30 天发布 {1} 条。": "Matching listings: {0}; posted in the past 30 days: {1}. ",
   "浏览湾区{0}信息，联系发布者确认详情与当前有效状态。": "Browse Bay Area {0} listings. Contact the author to confirm details and availability.",
   "问题：{0}": "Question: {0}",
   "复制{0}": "Copy {0}",
