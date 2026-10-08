@@ -31,7 +31,7 @@ test('BAYLINK 实拍 needs an own shot; 3D postcards and coded covers have their
   assert.equal(getImageProvenance({ kind: 'photo', credit: 'Organiser', caption: '2025 年活动现场', rights: { basis: 'press-kit' } }), '官方图');
   assert.equal(getImageProvenance({ kind: 'photo', credit: 'Organiser', caption: '2025 年', rights: 'CC BY 4.0 as stated' }), '照片 · 2025', 'prose rights never make an image official');
   assert.equal(typeCoverProvenance(), 'BAYLINK 信息卡');
-  assert.equal(typeCoverProvenance(true), 'BAYLINK info card');
+  assert.equal(typeCoverProvenance(true), 'Info card');
 });
 
 test('no registered image is labelled as BAYLINK’s own on-location shot', () => {

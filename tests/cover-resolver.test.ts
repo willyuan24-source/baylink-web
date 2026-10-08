@@ -87,7 +87,7 @@ test('labels come only from getImageProvenance, and posters are letterboxed, nev
   const postcard = getCover({ kind: 'place', id: 'p', postcardKey: 'postcard' }, ctx);
   assert.deepEqual(postcard.tier !== 'type' && postcard.label, { zh: '3D 场景插图', en: '3D scene illustration' });
   const type = getCover(event('e1'), ctx);
-  assert.deepEqual(type.label, { zh: 'BAYLINK 信息卡', en: 'BAYLINK info card' });
+  assert.deepEqual(type.label, { zh: 'BAYLINK 信息卡', en: 'Info card' });
   assert.deepEqual(getCover(event('e1', 'recent'), ctx).tier !== 'type' && getCover(event('e1', 'recent'), ctx).focal, [50, 40]);
 });
 

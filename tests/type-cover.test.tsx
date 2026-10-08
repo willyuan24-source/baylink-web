@@ -51,7 +51,7 @@ test('an event TypeCover is real DOM text with the honest label, category, big d
 test('the TypeCover translates: English label, weekday and title; zh-Hant converts the Chinese', async () => {
   await act(async () => { await setLocale('en', false); });
   const english = wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week', shortTitle: undefined }} today={today} />);
-  assert.equal(english.container.querySelector('[data-provenance]')?.textContent, 'BAYLINK info card');
+  assert.equal(english.container.querySelector('[data-provenance]')?.textContent, 'Info card');
   assert.equal(english.container.querySelector('.ui-type-cover__label')?.textContent, 'Family');
   assert.equal(english.container.querySelector('.ui-type-cover__date')?.textContent, '10/10–11Sat–Sun');
   assert.equal(english.container.querySelector('.ui-type-cover__title')?.getAttribute('lang'), 'en');
@@ -104,7 +104,7 @@ test('EventCover shows the resolved photo with its provenance and stickers, or f
   const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'weekend' }, { images: GUIDE_IMAGES, today })} />);
   assert.ok(typed.container.querySelector('[data-cover="type"]'), 'an AI illustration is replaced by the TypeCover');
   assert.equal(typed.container.querySelector('img'), null);
-  const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'BAYLINK info card' } }} />);
+  const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);
   assert.equal(offer.container.querySelector('.ui-type-cover__brand')?.textContent, 'IKEA');
 });
 

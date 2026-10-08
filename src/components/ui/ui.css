@@ -189,6 +189,10 @@
 .ui-row-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:calc(1.0625rem * var(--reading-scale)); line-height:1.412; font-weight:600; }
 .ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
+/* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
+.ui-row-card__thumb .ui-stickers { display:none; }
+.ui-row-card__thumb .ui-provenance { top:auto; bottom:4px; left:4px; max-width:calc(100% - 8px); padding:1px 4px; }
+:is(.ui-row-card__meta,.ui-feed-card__meta)>svg { display:inline-block; vertical-align:-2px; }
 
 /* Segmented tabs (column switch) and the segmented control (DayToggle). */
 .ui-tabs { display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--color-line); scrollbar-width:none; }
@@ -208,6 +212,7 @@
 .ui-sheet__header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 16px 8px 20px; }
 .ui-sheet__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.5; font-weight:600; }
 .ui-sheet__body { flex:1 1 auto; overflow-y:auto; padding:4px 20px 20px; overscroll-behavior:contain; }
+.ui-sheet .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
 .ui-sheet__body h3 { margin:16px 0 8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-weight:600; }
 .ui-sheet__footer { display:flex; gap:12px; align-items:center; padding:12px 20px calc(12px + env(safe-area-inset-bottom, 0px)); border-top:1px solid var(--color-line); }
 .ui-sheet__footer>.ui-button[data-variant=primary] { flex:1 1 auto; }

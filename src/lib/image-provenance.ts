@@ -47,5 +47,6 @@ export function getImageProvenance(image: ProvenanceInput, english = false, toda
   return withYear(english ? 'Photo' : '照片');
 }
 
-/** A coded cover (`<TypeCover>`) is an information card set from the listing's own facts, not a picture. */
-export const typeCoverProvenance = (english = false) => english ? 'BAYLINK info card' : 'BAYLINK 信息卡';
+/** A coded cover (`<TypeCover>`) is an information card set from the listing's own facts, not a picture. English is short
+ * ("Info card") so the badge fits a 173px card beside the ♡. */
+export const typeCoverProvenance = (english = false) => english ? 'Info card' : 'BAYLINK 信息卡';
