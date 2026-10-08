@@ -67,7 +67,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .reading-preferences .reading-simple-switch strong { font-size:var(--text-body); font-weight:600; }
 .reading-preferences .reading-simple-switch small { flex-basis:auto; color:var(--color-ink-2); line-height:1.5; }
 .reading-simple-track { position:relative; flex:none; width:2.75rem; height:1.625rem; border-radius:999px; background:var(--color-line-strong); transition:background .2s; }
-.reading-simple-track>span { position:absolute; top:.1875rem; left:.1875rem; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--color-surface); box-shadow:0 1px 2px rgb(22 46 41 / .25); transition:transform .2s; }
+.reading-simple-track>span { position:absolute; top:.1875rem; left:.1875rem; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--color-surface); box-shadow:0 1px 6px #163b3026; transition:transform .2s; }
 .reading-simple-switch[aria-checked=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
 .reading-simple-switch[aria-checked=true] .reading-simple-track { background:var(--color-brand); }
 .reading-simple-switch[aria-checked=true] .reading-simple-track>span { transform:translateX(1.125rem); }
