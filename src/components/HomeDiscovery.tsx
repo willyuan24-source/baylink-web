@@ -52,7 +52,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     <header className="home-discovery-heading">
       <div className="home-hero-copy">
         <p className="home-discovery-location"><MapPin size={16} aria-hidden="true" />San Francisco Bay Area</p>
-        <h1>{english ? 'Good days start' : '湾区的好去处，'}<span>{english ? 'closer to home.' : '从这里出发。'}</span></h1>
+        <h1>{english ? 'Good days start ' : '湾区的好去处，'}<span>{english ? 'closer to home.' : '从这里出发。'}</span></h1>
         <p>{english ? 'Discover a day out, a new favorite spot, or a useful answer to everyday life.' : '找一个周末好去处，发现一家新店，让湾区生活多一点灵感。'}</p>
         <form className="home-search" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
           <label htmlFor={`${panelId}-search`} className="sr-only">{english ? 'Search events and guides, or ask BayBay' : '搜索活动、指南，或问 BayBay'}</label>
@@ -69,7 +69,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       </div>
       {featuredGuide && featuredImage && <figure className="home-hero-feature">
         <Link to={`/guides/${featuredGuide.slug}`} className="home-hero-feature-image">
-          <img src={featuredImage.src} srcSet={featuredImage.srcSet} sizes="(max-width:767px) calc(100vw - 40px), (max-width:1279px) 48vw, 620px" width={featuredImage.width} height={featuredImage.height} alt={featuredImage.alt} loading="eager" decoding="async" />
+          <img src={featuredImage.src} srcSet={featuredImage.srcSet} sizes="(max-width:767px) calc(100vw - 40px), (max-width:1279px) 48vw, 620px" width={featuredImage.width} height={featuredImage.height} alt={featuredImage.alt} loading="eager" decoding="async" {...{ fetchpriority: 'high' }} />
         </Link>
         <figcaption>
           <Link to={`/guides/${featuredGuide.slug}`}><strong>{english ? 'A fresh view of the Golden Gate' : '换个角度，重新认识金门大桥'}</strong><ChevronRight size={22} aria-hidden="true" /></Link>
