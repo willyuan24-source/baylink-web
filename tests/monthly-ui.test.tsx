@@ -172,7 +172,7 @@ test('monthly edition exposes every activity through pagination with named offic
     assert.ok(requiredElement(card, 'figcaption').textContent!.includes(image.caption));
     assert.equal(requiredElement(card, 'button.bl-monthly-picture-frame').getAttribute('aria-label'), `放大图片：${image.alt}`);
     const year = image.caption.match(/(?:19|20)\d{2}/)?.[0];
-    const kindLabel = image.kind === 'poster' || /官方|official/i.test(image.credit) ? '官方图' : /资料|往届|archive|historical/i.test(image.caption) ? `资料图${year ? ` · ${year}` : ''}` : '实拍';
+    const kindLabel = image.kind === 'poster' || /官方|official/i.test(image.credit) ? '官方图' : /资料|往届|archive|historical/i.test(image.caption) ? `资料图${year ? ` · ${year}` : ''}` : `照片${year ? ` · ${year}` : ''}`;
     assert.equal(requiredElement(card, '.bl-monthly-picture-kind').textContent, kindLabel, `${event.id} must label the actual media kind`);
     assert.ok(image.creditUrl, `${event.id} needs a traceable image source`);
     const credit = requiredElement(card, 'figcaption a');
