@@ -34,12 +34,13 @@ html[data-simple] {
 /* The 3D world keeps its own HUD geometry at every text size (D26). reading-init.js already skips /opus-bay and /play;
    this covers a stale attribute. */
 html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-floor:0px; }
-/* Browse feeds go to one column at 大/特大 on a phone (D9). New feeds add .feed-auto-cols (or read --feed-cols); the
-   two-up legacy feeds are listed until their template migrates. */
+/* Browse feeds go to one column at 大/特大 and in 简洁显示 on a phone (D9). New feeds add .feed-auto-cols (or read
+   --feed-cols); the legacy grids that are still two-up at 390px (home destinations, offer posters, tool picker) are
+   listed until their templates migrate. */
 :root { --feed-cols:2; }
 @media(max-width:767px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) { --feed-cols:1; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols) { grid-template-columns:minmax(0,1fr)!important; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.home-destinations,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
 }
 .public-content-directory { font-size:var(--text-body); line-height:1.8; }
 .public-content-directory :is(p,time,.text-xs,.text-sm) { font-size:var(--text-fact); color:var(--color-ink-2); }
