@@ -35,7 +35,7 @@ export function ContentReviewNotice({ record, today, sourcesAnchor }: { record: 
     </aside>;
   }
   if (freshness.state !== 'hard') return null;
-  const [pageZh, pageEn] = pageNames[record.kind];
+  const { zh: pageZh, en: pageEn } = pageNames[record.kind];
   return <aside className="content-review-notice reader-freshness-hard" aria-label={t('官方页面变化提示', 'Official page change')} translate="no">
     <h2>{t(`${pageZh}显示可能改期或取消`, `${pageEn} suggests a date change or cancellation`)}</h2>
     <p>{t('出发前务必在官方页面确认日期和安排。', 'Confirm the date and arrangements on the official page before you go.')}</p>

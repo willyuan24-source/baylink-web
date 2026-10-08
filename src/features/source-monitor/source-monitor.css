@@ -10,7 +10,7 @@
 .reader-freshness-line p{margin:0}
 .reader-freshness-line a,.content-review-notice.reader-freshness-hard a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:underline;text-underline-offset:.1875rem}
 .reader-freshness-line.is-hard>svg{color:var(--color-danger)}
-.content-review-notice.reader-freshness-hard{margin:1.25rem 0;padding:1rem;border:.0625rem solid var(--color-danger);border-radius:.75rem;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
+.content-review-notice.reader-freshness-hard{margin:1.25rem 0;padding:1rem;border:.0625rem solid var(--color-danger);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
 .content-review-notice.reader-freshness-hard h2{margin:0 0 .25rem;font-size:var(--text-body);font-weight:700;color:var(--color-danger)}
 .content-review-notice.reader-freshness-hard p{margin:0}
 .guide-date-meta{display:flex;flex-wrap:wrap;align-items:center;column-gap:1.25rem;margin:.5rem 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2)}

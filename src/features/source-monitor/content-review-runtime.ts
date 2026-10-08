@@ -69,7 +69,13 @@ export function readerDate(value: string | number, locale: Locale, today: string
   return sameYear ? `${month}/${date}` : `${year}/${month}/${date}`;
 }
 
-export const pageNames = { event: ['主办方页面', 'The organizer’s page'], offer: ['官方页面', 'The official page'], opening: ['商家页面', 'The business’s page'], guide: ['官方页面', 'The official page'], bulletin: ['官方页面', 'The official page'] } as const;
+export const pageNames = {
+  event: { zh: '主办方页面', en: 'The organizer’s page' },
+  offer: { zh: '官方页面', en: 'The official page' },
+  opening: { zh: '商家页面', en: 'The business’s page' },
+  guide: { zh: '官方页面', en: 'The official page' },
+  bulletin: { zh: '官方页面', en: 'The official page' },
+} as const;
 
 /** Recalculate at midnight without fetching the full editorial inventory on a reader page. */
 export function useContentReviewToday(supplied?: string): string {
