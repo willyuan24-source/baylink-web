@@ -16,6 +16,13 @@ test('detail titles break between words: festival names, Chinese compounds and L
   assert.deepEqual(units('Marinwood 萬聖節收穫慶典', 'zh-Hant'), ['萬聖節', '收穫', '慶典']);
 });
 
+test('a unit over the cap is split without cutting a name off its first or last character', () => {
+  // Segmented 旧金山|总|图书|馆|中文 and 在|植物|园|里…: the split used to land on 总|图书 and 植物|园.
+  assert.deepEqual(units('旧金山总图书馆中文对话：下班后认识新朋友'), ['旧金山', '总图书馆中文', '对话', '下班后认识新朋友']);
+  assert.deepEqual(units('Flower Piano：在植物园里听一场钢琴'), ['Flower Piano', '在植物园里听一场', '钢琴']);
+  assert.deepEqual(units('生日月持券到店领美妆礼'), ['生日月持券', '到店领美妆礼']);
+});
+
 test('a long run of English words is grouped in linear time', () => {
   const words = Array.from({ length: 30 }, (_, index) => ['a', 'of', 'Bay', 'Art', 'the', 'Fair'][index % 6]).join(' ');
   titleBreakPieces('Marinwood 万圣节', 'zh-Hans');

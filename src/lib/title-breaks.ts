@@ -9,6 +9,12 @@ const LATIN_PART = /^[\p{Script=Latin}\p{M}\p{N}'’.&+!-]+$/u;
 /** Particles a Chinese line may end after (的) or break around (与, 和 …), even inside a run of single characters. */
 const BREAK_AFTER = new Set(['的', '与', '與', '和', '及', '或', '对', '對']);
 const BREAK_BEFORE = new Set(['与', '與', '和', '及', '或', '对', '對']);
+/**
+ * Word segmentation leaves the last character of many place and event names on its own (图书|馆, 植物|园, 到|店) and
+ * the first of a few (总|图书|馆, 新|会员). When a long unit has to be split, these stay with the name.
+ */
+const NAME_END = new Set([...'馆館园園店节節展厅廳场場院宫宮寺塔桥橋港楼樓坊会會日夜周週季月湾灣岛島街站']);
+const NAME_START = new Set([...'总總新']);
 /** Words that belong with the next one: a group does not end on them (South | San Francisco, Bark | in the Park). */
 const BINDS_NEXT = /^(?:a|an|the|of|in|on|at|by|to|for|and|or|&|x|×|de|del|la|las|los|el|san|santa|st\.|mt\.|palo)$/i;
 /**
@@ -34,13 +40,15 @@ function segmentsWords(Segmenter: Segmenter): boolean {
  * Split a run of Han segments into units. Word segmentation knows common words (万圣节, 南瓜) but cuts most names and
  * compounds into single characters (市|集, 亲|子, 嘉|年华), so a break is only offered between two dictionary words or
  * at a particle; single characters stay with their neighbours (不|吓|人的 stays 不吓人的). A unit over MAX_HAN is split
- * nearest its middle, preferring a boundary between a word and a run of single characters, then any boundary.
+ * nearest its middle, preferring a boundary between a word and a run of single characters, then any boundary that
+ * does not cut off a name's first or last character.
  */
 function hanUnits(segments: string[]): string[] {
   const single = (i: number) => segments[i]?.length === 1;
-  // Boundary i sits before segments[i]. 2 always breaks; 1 and 0 break only to keep a unit within MAX_HAN.
+  // Boundary i sits before segments[i]. 2 always breaks; 1, 0 and -1 break only to keep a unit within MAX_HAN.
   const rank = (i: number) => {
     if (BREAK_AFTER.has(segments[i - 1]) || BREAK_BEFORE.has(segments[i]) || !single(i - 1) && !single(i)) return 2;
+    if (single(i) && NAME_END.has(segments[i]) || single(i - 1) && NAME_START.has(segments[i - 1])) return -1;
     if (single(i - 1) && single(i)) return 0;
     // A word next to a run of two or more single characters (亲|子 · 游戏) rather than next to a lone one (演唱|会).
     return (single(i) ? single(i + 1) : single(i - 2)) ? 1 : 0;
@@ -49,7 +57,7 @@ function hanUnits(segments: string[]): string[] {
     for (let i = from + 1; i < to; i++) if (rank(i) === 2) return [...split(from, i), ...split(i, to)];
     const text = segments.slice(from, to).join('');
     if (text.length <= MAX_HAN) return [text];
-    for (const level of [1, 0]) {
+    for (const level of [1, 0, -1]) {
       let best = 0, bestDistance = Infinity, offset = 0;
       for (let i = from + 1; i < to; i++) {
         offset += segments[i - 1].length;
