@@ -71,7 +71,7 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
         ] as const).map(([mode, label]) => (
           <label key={mode} className={`flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2.5 text-xs ${value.mode === mode ? 'border-baylink-green bg-baylink-green-light/40' : 'border-baylink-border'}`}>
             <input type="radio" name={`${fieldPrefix}-contactMode`} className="mt-0.5 accent-baylink-green" checked={value.mode === mode} onChange={() => setMode(mode)} />
-            <span className="font-medium text-baylink-text">{label}</span>
+            <span className="font-normal text-baylink-text">{label}</span>
           </label>
         ))}
       </div>
@@ -81,7 +81,7 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
             const m = methods.find((x) => x.type === row.type)!;
             return (
               <div key={row.type}>
-                <label htmlFor={`${fieldPrefix}-${row.type}`} className="mb-1 block text-[11px] font-medium text-baylink-text-secondary">{row.label}</label>
+                <label htmlFor={`${fieldPrefix}-${row.type}`} className="mb-1 block text-[11px] font-normal text-baylink-text-secondary">{row.label}</label>
                 <input
                   id={`${fieldPrefix}-${row.type}`}
                   type={row.type === 'phone' ? 'tel' : row.type === 'email' ? 'email' : 'text'}

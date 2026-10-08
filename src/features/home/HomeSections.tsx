@@ -277,7 +277,7 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   if (keyword?.trim()) {
     return (
       <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-        <p className="text-sm font-medium text-baylink-text mb-0.5">没有找到相关内容</p>
+        <p className="text-sm font-normal text-baylink-text mb-0.5">没有找到相关内容</p>
         <p className="text-xs text-baylink-muted">换个关键词试试，或浏览其他分类</p>
       </div>
     );
@@ -285,12 +285,12 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   const secondaryActions = (onOpenGuides || onAskBayBay) && (
     <div className="mt-2.5 flex justify-center gap-2 text-[11px]">
       {onOpenGuides && (
-        <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-medium text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
+        <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-normal text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
           <BookOpen size={12} /> 先看湾区指南
         </button>
       )}
       {onAskBayBay && (
-        <button onClick={onAskBayBay} className="inline-flex items-center gap-1 rounded-lg border border-baylink-green/20 bg-baylink-green-light/60 px-3 py-1.5 font-medium text-baylink-green transition hover:bg-baylink-green-light">
+        <button onClick={onAskBayBay} className="inline-flex items-center gap-1 rounded-lg border border-baylink-green/20 bg-baylink-green-light/60 px-3 py-1.5 font-normal text-baylink-green transition hover:bg-baylink-green-light">
           <Sparkles size={12} /> 问问 BayBay
         </button>
       )}
@@ -298,14 +298,14 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   );
   return feedType === 'provider' ? (
     <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">这个分类还没有资源</p>
+      <p className="text-sm font-normal text-baylink-text mb-0.5">这个分类还没有资源</p>
       <p className="text-xs text-baylink-muted mb-3">提供你的服务、房源或二手资源，让附近的人找到你</p>
       <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 提供服务</button>
       {secondaryActions}
     </div>
   ) : (
     <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有新的需求</p>
+      <p className="text-sm font-normal text-baylink-text mb-0.5">还没有新的需求</p>
       <p className="text-xs text-baylink-muted mb-3">附近的需求会显示在这里，你也可以先把自己的需求发出来</p>
       <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
       {secondaryActions}

@@ -254,7 +254,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
           <button type="button" onClick={() => setOpen(true)} className="member-primary mt-3 w-full">问问 BayBay</button></div></div>
     </div> : <button type="button" onClick={() => setOpen(true)} className="member-baybay-entry member-baybay-entry--inline">
       <img src={BRAND.baybayAvatar} alt="BayBay" className="h-9 w-9 shrink-0 rounded-lg object-cover" width={36} height={36} />
-      <span className="min-w-0 flex-1"><span className="block text-[12px] font-medium text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
+      <span className="min-w-0 flex-1"><span className="block text-[12px] font-normal text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
     </button>)}
     {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined} restoreFocusRef={restoreFocusRef}>
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>

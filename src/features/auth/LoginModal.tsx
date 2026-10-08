@@ -108,24 +108,24 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
           <h2>{mode === 'register' ? '你的湾区生活，从这里开始。' : '欢迎回来，邻居。'}</h2>
           <p>{mode === 'register' ? '创建账号，发布信息，与附近的人建立联系。' : '登录后继续聊天、管理发布，发现身边的好生活。'}</p>
         </div>
-        {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600"><AlertCircle size={14} />{error}</div>}
+        {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="member-auth-form">
-            <label htmlFor="auth-email" className="block text-xs font-medium">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
+            <label htmlFor="auth-email" className="block text-xs font-normal">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
             <input id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
-            <label htmlFor="auth-password" className="block text-xs font-medium">密码</label>
+            <label htmlFor="auth-password" className="block text-xs font-normal">密码</label>
             <input id="auth-password" required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className={inputClass} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
               <>
-                <label htmlFor="auth-confirm-password" className="block text-xs font-medium">确认密码</label>
+                <label htmlFor="auth-confirm-password" className="block text-xs font-normal">确认密码</label>
                 <input id="auth-confirm-password" required type="password" autoComplete="new-password" className={inputClass} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="再次输入密码" />
-                <label htmlFor="auth-nickname" className="block text-xs font-medium">社区昵称</label>
+                <label htmlFor="auth-nickname" className="block text-xs font-normal">社区昵称</label>
                 <input id="auth-nickname" required autoComplete="nickname" className={inputClass} value={form.nickname} onChange={e => setForm({ ...form, nickname: e.target.value })} placeholder="社区昵称" />
                 <div>
-                  <label htmlFor="auth-contact-type" className="mb-2 block text-xs font-medium">联系方式类型</label>
+                  <label htmlFor="auth-contact-type" className="mb-2 block text-xs font-normal">联系方式类型</label>
                   <select id="auth-contact-type" className={`${inputClass} mb-2`} value={form.contactType} onChange={e => setForm({ ...form, contactType: e.target.value, contactValue: '' })}>
                     <option value="wechat">微信</option><option value="phone">电话</option><option value="email">邮箱</option>
                   </select>
-                  <label htmlFor="auth-contact-value" className="mb-2 block text-xs font-medium">{form.contactType === 'wechat' ? '微信号' : form.contactType === 'phone' ? '电话号码' : '联系邮箱'}</label>
+                  <label htmlFor="auth-contact-value" className="mb-2 block text-xs font-normal">{form.contactType === 'wechat' ? '微信号' : form.contactType === 'phone' ? '电话号码' : '联系邮箱'}</label>
                   <input id="auth-contact-value" required type={form.contactType === 'phone' ? 'tel' : form.contactType === 'email' ? 'email' : 'text'} className={inputClass} value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder={form.contactType === 'wechat' ? '微信号' : form.contactType === 'phone' ? '可包含国家代码，例如 +1 415 555 0123' : '联系邮箱'} />
                   <p className="mt-1 px-1.5 text-[11px] leading-relaxed text-baylink-muted">
                     仅用于账号信任与联系方式请求功能，不会公开显示。

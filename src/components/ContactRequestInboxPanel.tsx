@@ -159,7 +159,7 @@ export const ContactRequestInboxPanel = ({
                       type="button"
                       disabled={actingId !== null}
                       onClick={() => void handleAction(r.id, false)}
-                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary disabled:opacity-60"
+                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary disabled:opacity-60"
                     >
                       暂不发送
                     </button>
@@ -167,7 +167,7 @@ export const ContactRequestInboxPanel = ({
                       type="button"
                       disabled={!r.requester?.id}
                       onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, r.postTitle || '帖子')}
-                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary"
+                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary"
                     >
                       先私信聊聊
                     </button>

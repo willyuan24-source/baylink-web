@@ -48,7 +48,7 @@ const GuidePill = ({ guide, onClick }: { guide: Guide; onClick: () => void }) =>
     className="flex min-h-[40px] w-full cursor-pointer items-center gap-2 rounded-lg border border-baylink-border/50 bg-white px-2.5 py-2 text-left transition hover:border-baylink-green/30 sm:max-w-[calc(50%-4px)] sm:flex-1"
   >
     <span className="text-base">{guide.emoji}</span>
-    <span className="min-w-0 flex-1 line-clamp-1 text-xs font-medium text-baylink-text">{guide.title}</span>
+    <span className="min-w-0 flex-1 line-clamp-1 text-xs font-normal text-baylink-text">{guide.title}</span>
     <ChevronRight size={14} className="shrink-0 text-gray-300" />
   </Link>
 );

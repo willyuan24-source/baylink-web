@@ -109,7 +109,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
           <div className="member-profile-panel">
             <h2 className="member-panel-title">信任信息</h2>
             <div className="space-y-2 text-xs leading-relaxed text-baylink-text-secondary">
-              {joinDays != null && <p>已加入 BAYLINK <span className="font-medium text-gray-900">{joinDays}</span> 天</p>}
+              {joinDays != null && <p>已加入 BAYLINK <span className="font-normal text-gray-900">{joinDays}</span> 天</p>}
               <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
               <p>{getMyOfficialTrustLabel(user)}</p>
               {(officialStatus === 'approved' || user.isOfficialVerified) && user.officialVerification?.type && (

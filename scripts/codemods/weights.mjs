@@ -5,12 +5,13 @@
 //   node scripts/codemods/weights.mjs --check  exit 1 if any site file still uses another weight
 //
 // Re-runnable and idempotent: after a rebase, run it again instead of resolving weight conflicts by hand.
-// Scope: every CSS file under src/ plus inline `fontWeight` numbers in TSX, except the Opus Bay game
+// Scope: every CSS file under src/ plus inline `fontWeight` numbers and Tailwind weight classes in TSX, except the Opus Bay game
 // (src/opus-bay/**) and Little Bay (any path containing "little-bay"), which keep their own type.
 //
 // Mapping. Windows renders 650 as Bold and 750 as Black in Segoe UI (1005 VIS-03); on Apple and in the CJK
 // fonts the retired values already snap to the nearest real face, so most CJK text does not move.
 //   100–300 → 400   500 → 400   550 → 600   650 → 600   750 / 760 / 800 / 900 → 700
+// Tailwind: font-thin/extralight/light/medium → font-normal, font-extrabold/black → font-bold.
 // 500 becomes 400 because it renders as Regular on Windows today; a rule listed in EMPHASIS uses 500 to set
 // itself apart from a 400 sibling, so it becomes 600 instead.
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -66,7 +67,10 @@ export function rewriteCss(text) {
   return { text: changes.length ? tree.toString() : text, changes };
 }
 
-/** Rewrites inline React style weights: `fontWeight: 650` / `fontWeight: '650'`. */
+// Tailwind weight utilities follow the same mapping (font-medium is 500, font-black 900, …).
+const TAILWIND = { thin: 'normal', extralight: 'normal', light: 'normal', medium: 'normal', extrabold: 'bold', black: 'bold' };
+
+/** Rewrites inline React style weights (`fontWeight: 650`) and Tailwind weight classes (`font-medium`, `md:font-black`). */
 export function rewriteTsx(text) {
   const changes = [];
   const next = text.replace(/(fontWeight:\s*)(['"]?)(\d{3})\2/g, (whole, prefix, quote, value) => {
@@ -74,6 +78,9 @@ export function rewriteTsx(text) {
     if (mapped === Number(value)) return whole;
     changes.push(`fontWeight ${value}→${mapped}`);
     return `${prefix}${quote}${mapped}${quote}`;
+  }).replace(/(?<![\w-])font-(thin|extralight|light|medium|extrabold|black)(?![\w-])/g, (whole, weight) => {
+    changes.push(`${whole}→font-${TAILWIND[weight]}`);
+    return `font-${TAILWIND[weight]}`;
   });
   return { text: next, changes };
 }

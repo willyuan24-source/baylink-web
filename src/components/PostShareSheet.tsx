@@ -39,7 +39,7 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
           <span className="text-baylink-muted">地区</span> · <span translate="no">{post.city?.trim() || translateText(area)}</span>
         </p>
         {budget && (
-          <p className="text-[12px] font-medium text-baylink-green">
+          <p className="text-[12px] font-normal text-baylink-green">
             <span className="font-normal text-baylink-muted">预算/价格</span> · <span translate="no">{budget}</span>
           </p>
         )}
