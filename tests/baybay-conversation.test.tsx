@@ -562,3 +562,16 @@ test('quick search searches summary text, supports arrows, and passes a query to
   fireEvent.submit(input.closest('form')!);
   assert.deepEqual(asked, ['不存在的问句xyz']);
 });
+
+test('the reader\'s own question stays exactly as typed in the Traditional edition (BBLIVE-14: no 台→臺 or 来→來 rewrite)', async t => {
+  await setLocale('zh-Hant', false);
+  mockBayBayFetch(t, async () => answer('好的。'));
+  const view = render(<BayBayAssistantEntry variant="headless" panelOpen onPanelOpenChange={noop} onNavigate={noop} onCreatePostClick={noop} />);
+  const question = '台北来的朋友这个周末想去哪';
+  fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提問' }), { target: { value: question } });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '問一下' })); });
+  const bubble = view.baseElement.querySelector('.baybay-user-question p')!;
+  assert.equal(bubble.getAttribute('translate'), 'no');
+  assert.equal(bubble.textContent, question);
+  assert.equal(view.baseElement.querySelector('.baybay-user-question span')!.textContent, '你', 'the speaker label still follows the edition');
+});
