@@ -140,3 +140,13 @@ test('TypeCover text scales with Aa: every size is a text token, an em, or a cal
   const outsideTokens = css.replace(/:root\s*\{[^}]*\}/, '');
   assert.doesNotMatch(outsideTokens, /#[\da-f]{3,8}\b/i, 'colours outside the token block come from tokens');
 });
+
+test('a neighbour palette changes only the colour: the label stays the item’s own category', () => {
+  const view = wrap(<><EventTypeCover event={fleetWeek} today={today} /><EventTypeCover event={fleetWeek} today={today} tone="food" /></>);
+  const [first, second] = view.container.querySelectorAll('[data-cover="type"]');
+  assert.deepEqual([first.getAttribute('data-tone'), second.getAttribute('data-tone')], ['family', 'food']);
+  assert.equal(second.querySelector('.ui-type-cover__label')?.textContent, '亲子活动');
+  const bare = wrap(<TypeCover tone="culture" label="文化活动" title="社区讲座" ratio="16:9" />);
+  assert.equal(bare.container.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9');
+  assert.equal(bare.container.querySelector('.ui-type-cover__footer'), null, 'no empty footer');
+});
