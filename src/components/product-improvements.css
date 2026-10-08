@@ -5,7 +5,7 @@
 .saved-posts-toggle { display:flex; align-items:center; width:100%; gap:12px; padding:19px 20px; text-align:left; color:#204f3d; }
 .saved-posts-toggle>span { flex:1; }
 .saved-posts-toggle strong { display:block; font-size:16px; }
-.saved-posts-toggle b { display:inline-block; font-size:12px; background:#e9f0df; border-radius:20px; padding:2px 8px; margin-left:5px; }
+.saved-posts-toggle b { display:inline-block; font-size:12px; font-weight:700; background:#e9f0df; border-radius:20px; padding:2px 8px; margin-left:5px; }
 .saved-posts-toggle small { display:block; color:#60715e; font-size:12px; line-height:1.7; margin-top:3px; }
 .saved-posts-toggle .is-open { transform:rotate(180deg); }
 .saved-posts-list { padding:0 20px 16px; }

@@ -11,7 +11,8 @@
 // Mapping. Windows renders 650 as Bold and 750 as Black in Segoe UI (1005 VIS-03); on Apple and in the CJK
 // fonts the retired values already snap to the nearest real face, so most CJK text does not move.
 //   100–300 → 400   500 → 400   550 → 600   650 → 600   750 / 760 / 800 / 900 → 700
-// Tailwind: font-thin/extralight/light/medium → font-normal, font-extrabold/black → font-bold.
+// Tailwind: font-thin/extralight/light/medium → font-normal, font-extrabold/black → font-bold, in TSX class
+// names and in CSS `@apply` lists alike.
 // 500 becomes 400 because it renders as Regular on Windows today; a rule listed in EMPHASIS uses 500 to set
 // itself apart from a 400 sibling, so it becomes 600 instead.
 import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
@@ -42,10 +43,20 @@ const selectorOf = node => {
   return '';
 };
 
-/** Rewrites numeric weights in one stylesheet; formatting (including minified one-line files) is preserved. */
+// Tailwind weight utilities follow the same mapping (font-medium is 500, font-black 900, …).
+const TAILWIND = { thin: 'normal', extralight: 'normal', light: 'normal', medium: 'normal', extrabold: 'bold', black: 'bold' };
+const rewriteTailwind = (text, changes) => text.replace(/(?<![\w-])font-(thin|extralight|light|medium|extrabold|black)(?![\w-])/g, (whole, weight) => {
+  changes.push(`${whole}→font-${TAILWIND[weight]}`);
+  return `font-${TAILWIND[weight]}`;
+});
+
+/** Rewrites numeric weights and `@apply font-medium`-style utilities in one stylesheet; formatting (including minified one-line files) is preserved. */
 export function rewriteCss(text) {
   const tree = postcss.parse(text);
   const changes = [];
+  tree.walkAtRules('apply', rule => {
+    rule.params = rewriteTailwind(rule.params, changes);
+  });
   tree.walkDecls(declaration => {
     const selector = selectorOf(declaration);
     if (declaration.prop === 'font-weight') {
@@ -67,21 +78,15 @@ export function rewriteCss(text) {
   return { text: changes.length ? tree.toString() : text, changes };
 }
 
-// Tailwind weight utilities follow the same mapping (font-medium is 500, font-black 900, …).
-const TAILWIND = { thin: 'normal', extralight: 'normal', light: 'normal', medium: 'normal', extrabold: 'bold', black: 'bold' };
-
 /** Rewrites inline React style weights (`fontWeight: 650`) and Tailwind weight classes (`font-medium`, `md:font-black`). */
 export function rewriteTsx(text) {
   const changes = [];
-  const next = text.replace(/(fontWeight:\s*)(['"]?)(\d{3})\2/g, (whole, prefix, quote, value) => {
+  const next = rewriteTailwind(text.replace(/(fontWeight:\s*)(['"]?)(\d{3})\2/g, (whole, prefix, quote, value) => {
     const mapped = mapWeight(Number(value));
     if (mapped === Number(value)) return whole;
     changes.push(`fontWeight ${value}→${mapped}`);
     return `${prefix}${quote}${mapped}${quote}`;
-  }).replace(/(?<![\w-])font-(thin|extralight|light|medium|extrabold|black)(?![\w-])/g, (whole, weight) => {
-    changes.push(`${whole}→font-${TAILWIND[weight]}`);
-    return `font-${TAILWIND[weight]}`;
-  });
+  }), changes);
   return { text: next, changes };
 }
 

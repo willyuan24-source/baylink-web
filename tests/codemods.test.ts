@@ -17,6 +17,9 @@ test('weights codemod maps every retired weight onto 400/600/700 and keeps the s
   assert.equal(rewriteCss(text).changes.length, 0, 'idempotent');
   assert.equal(rewriteTsx("style={{ fontWeight: 650, fontSize: 12 }}").text, 'style={{ fontWeight: 600, fontSize: 12 }}');
   assert.equal(rewriteTsx('className="text-sm font-medium md:font-black font-semibold-ish"').text, 'className="text-sm font-normal md:font-bold font-semibold-ish"', 'Tailwind weight utilities follow the same scale');
+  const applied = rewriteCss('@layer components {\n  .chip {\n    @apply px-3 text-[11px] font-medium md:font-black;\n  }\n}');
+  assert.equal(applied.text, '@layer components {\n  .chip {\n    @apply px-3 text-[11px] font-normal md:font-bold;\n  }\n}', '@apply lists in site CSS follow the same scale');
+  assert.equal(applied.changes.length, 2);
 });
 
 test('arrows codemod: internal links and buttons lose ↗, links that leave the site keep it, English keeps translating', () => {
