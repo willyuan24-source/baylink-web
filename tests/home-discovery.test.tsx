@@ -3,7 +3,7 @@ import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { getHomeWeekend } from '../src/lib/home-weekend';
+import { getHomeWeekend, getWeeklyCardHref } from '../src/lib/home-weekend';
 import { MONTHLY_EVENTS, HOME_WEEKENDS } from '../src/lib/home-catalog';
 import { eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
@@ -36,6 +36,38 @@ test('server home exposes three real weekend dates, costs, sources and actionabl
   assert.equal(doc.querySelector('.perks-gallery'), null, 'operational posters no longer occupy home');
   assert.ok(doc.querySelector('.home-world-link'), 'the separate 3D experience remains discoverable');
   assert.ok(doc.querySelector('.home-guide-selection .home-section-heading a')!.textContent!.includes(String(COMPLETE_GUIDES.length)), 'home reports the entire guide library rather than its lightweight selection');
+});
+
+test('editor picks show their reason in each edition and the share link matches the day', async t => {
+  // Follow the published snapshots instead of a fixed date, so advancing the
+  // edition's review date cannot strand this check on a day without picks.
+  const today = Object.keys(HOME_WEEKENDS).sort().find(day => getHomeWeekend(day).picks.some(pick => pick.editorial));
+  if (!today) return t.skip('no editor-picked weekend inside the published snapshots');
+  const picks = getHomeWeekend(today).picks;
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
+  const cards = [...doc.querySelectorAll('.home-weekend-card')];
+  assert.deepEqual(cards.map(card => card.querySelector('h3 a')!.getAttribute('href')), picks.map(pick => `/events/${pick.event.id}`));
+  picks.forEach(({ editorial }, index) => {
+    const line = cards[index].querySelector('.home-weekend-pick');
+    if (!editorial) return assert.equal(line, null, 'automatic picks carry no editor label');
+    assert.equal(line!.querySelector('span')!.textContent, '编辑精选');
+    assert.ok(line!.textContent!.endsWith(editorial.reason.zh));
+  });
+  assert.equal(doc.querySelector('.home-weekly-share a[download]')!.getAttribute('href'), getWeeklyCardHref(today));
+  const { setLocale } = await import('../src/i18n/locale');
+  try {
+    for (const [locale, prefix, label] of [['en', '/en', "Editor's pick"], ['zh-Hant', '/zh-Hant', '編輯精選']] as const) {
+      await setLocale(locale, false);
+      const view = render(<MemoryRouter basename={prefix} initialEntries={[`${prefix}/`]}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
+      const lines = [...view.container.querySelectorAll('.home-weekend-pick')];
+      assert.equal(lines.length, picks.filter(pick => pick.editorial).length, locale);
+      for (const line of lines) assert.equal(line.querySelector('span')!.textContent, label);
+      if (locale === 'en') assert.ok(lines[0].textContent!.endsWith(picks.find(pick => pick.editorial)!.editorial!.reason.en));
+      view.unmount();
+    }
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
 });
 
 test('a compact home pool reports the entire weekend calendar count, including Sunday-only eligibility', () => {

@@ -4,7 +4,7 @@ import { getGuideMedia, GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { HOME_FEATURED_GUIDE, HOME_PATHWAYS } from '../src/data/home-pathways';
-import { getHomeWeekend } from '../src/lib/home-weekend';
+import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
 
@@ -20,7 +20,7 @@ const selectedIds = new Set<string>();
 const offerIds = new Set<string>();
 const weekends: Record<string, { ids: string[]; total: number }> = {};
 for (let day = MONTHLY_EDITION.checkedAt <= today ? MONTHLY_EDITION.checkedAt : today; day <= MONTHLY_EDITION.throughDate; day = addCalendarDays(day, 1)) {
-  const weekend = getHomeWeekend(day, MONTHLY_EVENTS);
+  const weekend = getBuildWeekend(day, MONTHLY_EVENTS);
   weekend.picks.forEach(({event}) => selectedIds.add(event.id));
   weekends[day] = { ids: weekend.picks.map(({event}) => event.id), total: weekend.events.length };
   currentFreebies.filter(offer => offer.availability === 'dated' && offer.verificationStatus !== 'needs-confirmation' && !!offer.startDate && (offer.endDate || offer.startDate) >= day)

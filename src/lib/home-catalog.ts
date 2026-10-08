@@ -12,5 +12,6 @@ export const getGuideMedia = (guide: HomeGuide) => guide.media;
 export const MONTHLY_EVENTS = catalog.events as MonthlyEvent[];
 export const MONTHLY_EDITION = catalog.edition;
 export const HOME_WEEKENDS = catalog.weekends;
+export const HOME_GENERATED_AT = catalog.generatedAt;
 export const currentFreebies = catalog.offers as FreebieOffer[];
 export const GUIDE_IMAGES = catalog.images as Record<string, GuideImage>;
