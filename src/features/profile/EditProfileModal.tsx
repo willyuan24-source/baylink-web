@@ -65,7 +65,7 @@ const ProfileTagField = ({
             type="button"
             aria-pressed={tags.includes(p)}
             onClick={() => toggle(p)}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+            className={`rounded-full px-2.5 py-1 text-[11px] font-normal transition ${
               tags.includes(p)
                 ? 'bg-baylink-green text-white'
                 : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
@@ -163,11 +163,11 @@ const PhoneVerificationSession = ({ user, onClose, onVerified, showToast }: Phon
             <div className="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl relative">
                 <button type="button" aria-label="关闭手机号验证" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
-                <h3 className="text-xl font-black text-center mb-1">手机号验证</h3>
+                <h3 className="text-xl font-bold text-center mb-1">手机号验证</h3>
                 <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <input type="tel" inputMode="tel" autoComplete="tel-national" aria-label="美国手机号" disabled={loading} className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-medium text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[11px] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <input type="tel" inputMode="tel" autoComplete="tel-national" aria-label="美国手机号" disabled={loading} className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-normal text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[11px] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
                         <p className="text-[11px] leading-relaxed text-gray-500">
                           By clicking &ldquo;发送验证码 / Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}

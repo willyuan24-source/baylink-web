@@ -34,7 +34,7 @@ after(() => dom.window.close());
 test('healthy signed-in My Week has no self-link notice while the planner still has its useful library link', () => {
   const view = render(notice()); assert.equal(view.container.textContent, '');
   view.rerender(notice({ variant: 'default' }));
-  assert.equal(view.getByRole('link', { name: '我的这周 ↗' }).getAttribute('href'), '/my-week');
+  assert.equal(view.getByRole('link', { name: '我的这周' }).getAttribute('href'), '/my-week');
 });
 
 test('the compact guest notice explains browser storage without triggering login or import', () => {

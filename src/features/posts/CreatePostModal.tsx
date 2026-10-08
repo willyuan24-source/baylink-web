@@ -1,5 +1,6 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useEffect, useRef, useState } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
@@ -79,7 +80,7 @@ const DefaultCoverPicker = ({
                   className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
                 >
                   <img src={cover.url} alt={cover.title} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
-                  <p className="mt-1 truncate px-0.5 text-center text-[11px] font-medium text-baylink-text-secondary">{cover.title}</p>
+                  <p className="mt-1 truncate px-0.5 text-center text-[11px] font-normal text-baylink-text-secondary">{cover.title}</p>
                   {isSelected && (
                     <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[8px] font-bold text-white">已选择</span>
                   )}
@@ -412,7 +413,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       <div className="member-compose-dialog">
         <div className="member-compose-header">
           <div>
-            <span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span>
+            <EnglishOnly><span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span></EnglishOnly>
             <h2>{isEdit ? '编辑信息' : '让你的信息，遇见需要的人。'}</h2>
             <p>{isEdit ? '更新内容，让邻居看到准确的信息。' : '发布需求或分享资源，与湾区邻里建立联系。'}</p>
           </div>
@@ -584,7 +585,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                   >
                     移到私密联系方式
                   </button>
-                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-amber-900">
+                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-normal text-amber-900">
                     我确认保留公开显示
                   </button>
                 </div>
@@ -660,7 +661,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
           <div className="member-compose-step space-y-4">
             <div className="member-compose-section-title"><span><MapPin size={18} aria-hidden="true" /></span><div><h3>补充发布设置</h3><p>确认地区、时间，以及你希望被联系的方式。</p></div></div>
             <div>
-              <label className="block text-xs font-medium text-baylink-text-secondary mb-2">选择地区</label>
+              <label className="block text-xs font-normal text-baylink-text-secondary mb-2">选择地区</label>
               <div className="grid grid-cols-2 gap-2">
                 {REGIONS.map(r => (
                   <button

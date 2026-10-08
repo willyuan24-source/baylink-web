@@ -112,14 +112,14 @@ export const TermsView = () => (
       <LegalP>Carriers are not liable for delayed or undelivered messages.</LegalP>
       <LegalP>
         For support, contact:{' '}
-        <a href="mailto:Baylink.us@gmail.com" className="font-medium text-baylink-green hover:underline">Baylink.us@gmail.com</a>
+        <a href="mailto:Baylink.us@gmail.com" className="font-normal text-baylink-green hover:underline">Baylink.us@gmail.com</a>
       </LegalP>
     </LegalSection>
 
     <LegalSection title="9. Privacy">
       <LegalP>
         BAYLINK&apos;s Privacy Policy explains how information is collected, used, and protected:{' '}
-        <a href="https://www.baylink.us/privacy" className="font-medium text-baylink-green hover:underline">https://www.baylink.us/privacy</a>
+        <a href="https://www.baylink.us/privacy" className="font-normal text-baylink-green hover:underline">https://www.baylink.us/privacy</a>
       </LegalP>
     </LegalSection>
 
@@ -156,7 +156,7 @@ export const TermsView = () => (
     <LegalSection title="15. Contact">
       <LegalP>
         For questions about these Terms, contact:{' '}
-        <a href="mailto:Baylink.us@gmail.com" className="font-medium text-baylink-green hover:underline">Baylink.us@gmail.com</a>
+        <a href="mailto:Baylink.us@gmail.com" className="font-normal text-baylink-green hover:underline">Baylink.us@gmail.com</a>
       </LegalP>
     </LegalSection>
   </LegalPageLayout>

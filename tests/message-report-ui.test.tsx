@@ -58,7 +58,7 @@ test('contact panels link the actual rental, secondhand and service categories t
     const view = render(<MemoryRouter><PostDetailContactPanel post={{ id: 'public', authorId: 'owner', category, title: 'Public listing' }}
       currentUser={null} isOwner={false} authorName="Owner" section="contact" onLoginNeeded={() => {}} onOpenChat={() => {}}
       requestContact={async () => ({ status: 'dm_first' })} onAskBayBay={() => {}} showToast={() => {}} /></MemoryRouter>);
-    assert.equal(view.getByRole('link', { name: `${label} ↗` }).getAttribute('href'), `/guides/${slug}`);
+    assert.equal(view.getByRole('link', { name: label }).getAttribute('href'), `/guides/${slug}`);
     assert.ok(view.getByRole('button', { name: '私信联系' }));
     cleanup();
   }

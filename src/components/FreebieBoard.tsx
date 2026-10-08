@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
 import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
@@ -163,7 +164,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
     return terms.every(term => haystack.includes(term));
   });
   return <section className="bl-freebie-board" aria-labelledby={headingId}>
-    <header className="bl-freebie-board-heading"><span><Gift size={16} aria-hidden="true" />BAYLINK · LITTLE PERKS</span><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
+    <header className="bl-freebie-board-heading"><EnglishOnly><span><Gift size={16} aria-hidden="true" />BAYLINK · LITTLE PERKS</span></EnglishOnly><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="bl-freebie-board-stats" aria-label="领取信息概况" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0, 1fr))` }}>{stats.map(item => <span key={item.label}><strong>{item.value}</strong>{item.label}</span>)}</div>
     <p className="bl-freebie-board-count-note">本月已确认仅计入有效期明确、尚未结束的条目；下月预告与待查场次分列。</p>
     <div className="bl-freebie-filters" role="group" aria-label="按领取条件筛选">{FILTERS.map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}</div>

@@ -196,7 +196,7 @@ export const PrivacyPolicyView = () => {
     <LegalSection title="14. Contact">
       <LegalP>
         For privacy questions, contact:{' '}
-        <a href="mailto:Baylink.us@gmail.com" className="font-medium text-baylink-green hover:underline">Baylink.us@gmail.com</a>
+        <a href="mailto:Baylink.us@gmail.com" className="font-normal text-baylink-green hover:underline">Baylink.us@gmail.com</a>
       </LegalP>
     </LegalSection>
   </LegalPageLayout>

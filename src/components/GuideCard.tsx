@@ -5,7 +5,7 @@ import { useLocale } from '../i18n/locale';
 import type { MouseEvent } from "react";
 import { Link } from "react-router-dom";
 import {
-  ArrowUpRight,
+  ChevronRight,
   Armchair,
   BookOpen,
   GraduationCap,
@@ -69,7 +69,7 @@ export const GuideCard = ({ guide, onClick, compact, searchSnippet, searchSectio
           <img src={cover.src} srcSet={cover.srcSet} sizes={compact ? '(max-width:359px) 70px, (max-width:767px) 82px, 94px' : '(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) 42vw, 340px'} width={cover.width} height={cover.height} alt="" loading="lazy" decoding="async" />
           <span className="bl-guide-art-label">{guide.categoryLabel}</span>
           <span className="bl-guide-art-arrow">
-            <ArrowUpRight size={17} />
+            <ChevronRight size={17} />
           </span>
           {!compact && <span className="bl-guide-image-kind">{getImageProvenance(cover, english)}</span>}
         </div>
@@ -109,7 +109,7 @@ export const GuideCardMini = ({ guide, onClick }: GuideCardProps) => {
         <span className="bl-guide-mini-icon">
           <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
         </span>
-        <ArrowUpRight size={15} aria-hidden="true" />
+        <ChevronRight size={15} aria-hidden="true" />
       </span>
       <span className="bl-guide-mini-title">{guide.title}</span>
       <span className="bl-guide-mini-meta">

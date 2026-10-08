@@ -1,4 +1,5 @@
 import { PerksGallery } from './PerksGallery';
+import { EnglishOnly } from './EnglishOnly';
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SaveToWeek } from './SaveToWeek';
 import {
@@ -9,6 +10,7 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  ChevronRight,
   Clock3,
   Copy,
   Lightbulb,
@@ -167,7 +169,7 @@ const GuideDetailSession = ({
       <li>
         <a href="#guide-sources">
           <span>
-            <ArrowUpRight size={13} aria-hidden="true" />
+            <ChevronRight size={13} aria-hidden="true" />
           </span>
           官方参考资料
         </a>
@@ -182,7 +184,7 @@ const GuideDetailSession = ({
           <ArrowLeft size={17} aria-hidden="true" />
           <span>湾区指南</span>
         </button>
-        <span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span>
+        <EnglishOnly><span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span></EnglishOnly>
         <span
           className="bl-guide-reader-progress"
           aria-label={`阅读进度 ${progress}%`}
@@ -302,7 +304,7 @@ const GuideDetailSession = ({
           <section className="bl-guide-related">
             <div className="bl-guide-related-heading">
               <div>
-                <span className="bl-guide-eyebrow">KEEP EXPLORING</span>
+                <EnglishOnly><span className="bl-guide-eyebrow">KEEP EXPLORING</span></EnglishOnly>
                 <h2>接下来，你可能想看</h2>
               </div>
               <Link to="/guides">
@@ -457,7 +459,7 @@ const BlockRenderer = ({
     case "cta":
       return (
         <section className="bl-guide-cta">
-          <span className="bl-guide-eyebrow">YOUR NEXT STEP</span>
+          <EnglishOnly><span className="bl-guide-eyebrow">YOUR NEXT STEP</span></EnglishOnly>
           <h3>{block.title}</h3>
           <p>{block.text}</p>
           {block.primaryAction === "post" ? (
@@ -475,7 +477,7 @@ const BlockRenderer = ({
                     }
                   >
                     {choice.label}
-                    <ArrowUpRight size={15} aria-hidden="true" />
+                    <ChevronRight size={15} aria-hidden="true" />
                   </button>
                 ))}
               </div>

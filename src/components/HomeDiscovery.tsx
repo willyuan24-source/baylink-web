@@ -1,6 +1,6 @@
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useId, useState } from 'react';
-import { ArrowRight, ArrowUpRight, CalendarDays, Check, MapPin, Search, ShieldCheck, Ticket, TramFront } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronRight, MapPin, Search, ShieldCheck, Ticket, TramFront } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getGuideBySlug, guideCount, getGuideMedia, GUIDE_IMAGES, MONTHLY_EVENTS, currentFreebies } from '../lib/home-catalog';
 import { HOME_FEATURED_GUIDE, HOME_PATHWAYS as pathways } from '../data/home-pathways';
@@ -52,7 +52,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     <header className="home-discovery-heading">
       <div className="home-hero-copy">
         <p className="home-discovery-location"><MapPin size={16} aria-hidden="true" />San Francisco Bay Area</p>
-        <h1>{english ? 'Good days start' : '湾区的好去处，'}<span>{english ? 'closer to home.' : '从这里出发。'}</span></h1>
+        <h1>{english ? 'Good days start ' : '湾区的好去处，'}<span>{english ? 'closer to home.' : '从这里出发。'}</span></h1>
         <p>{english ? 'Discover a day out, a new favorite spot, or a useful answer to everyday life.' : '找一个周末好去处，发现一家新店，让湾区生活多一点灵感。'}</p>
         <form className="home-search" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
           <label htmlFor={`${panelId}-search`} className="sr-only">{english ? 'Search events and guides, or ask BayBay' : '搜索活动、指南，或问 BayBay'}</label>
@@ -69,20 +69,20 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       </div>
       {featuredGuide && featuredImage && <figure className="home-hero-feature">
         <Link to={`/guides/${featuredGuide.slug}`} className="home-hero-feature-image">
-          <img src={featuredImage.src} srcSet={featuredImage.srcSet} sizes="(max-width:767px) calc(100vw - 40px), (max-width:1279px) 48vw, 620px" width={featuredImage.width} height={featuredImage.height} alt={featuredImage.alt} loading="eager" decoding="async" />
+          <img src={featuredImage.src} srcSet={featuredImage.srcSet} sizes="(max-width:767px) calc(100vw - 40px), (max-width:1279px) 48vw, 620px" width={featuredImage.width} height={featuredImage.height} alt={featuredImage.alt} loading="eager" decoding="async" {...{ fetchpriority: 'high' }} />
         </Link>
         <figcaption>
-          <Link to={`/guides/${featuredGuide.slug}`}><strong>{english ? 'A fresh view of the Golden Gate' : '换个角度，重新认识金门大桥'}</strong><ArrowUpRight size={22} aria-hidden="true" /></Link>
+          <Link to={`/guides/${featuredGuide.slug}`}><strong>{english ? 'A fresh view of the Golden Gate' : '换个角度，重新认识金门大桥'}</strong><ChevronRight size={22} aria-hidden="true" /></Link>
           <div className="home-feature-meta"><span className="home-feature-kicker">{english ? 'San Francisco · A coastal half-day' : 'San Francisco · 海岸半日游'}</span>
           <details className="home-image-credit"><summary>{getImageProvenance(featuredImage, english)} · {english ? 'Source' : '来源'}</summary><p>{featuredImage.caption}</p><p>{featuredImage.creditUrl ? <a href={featuredImage.creditUrl} target="_blank" rel="noopener noreferrer">{featuredImage.credit}</a> : featuredImage.credit}{featuredImage.licenseUrl && <> · <a href={featuredImage.licenseUrl} target="_blank" rel="noopener noreferrer">{english ? 'License' : '授权说明'}</a></>}</p></details></div>
         </figcaption>
       </figure>}
     </header>
     <nav className="home-destinations" aria-label={english ? 'Explore Bay Area life' : '发现湾区生活'}>
-      <Link to="/explore"><span>{english ? 'Places to explore' : '景点与路线'}</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
-      <Link to="/this-month#monthly-openings"><span>{english ? 'New around the corner' : '街角新店'}</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
-      <Link to="/this-month#monthly-perks"><span>{english ? 'Free & good-value finds' : '免费与优惠'}</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
-      <Link to="/guides"><span>{english ? 'Make everyday life easier' : '生活办事指南'}</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
+      <Link to="/explore"><span>{english ? 'Places to explore' : '景点与路线'}</span><ChevronRight size={18} aria-hidden="true" /></Link>
+      <Link to="/this-month#monthly-openings"><span>{english ? 'New around the corner' : '街角新店'}</span><ChevronRight size={18} aria-hidden="true" /></Link>
+      <Link to="/this-month#monthly-perks"><span>{english ? 'Free & good-value finds' : '免费与优惠'}</span><ChevronRight size={18} aria-hidden="true" /></Link>
+      <Link to="/guides"><span>{english ? 'Make everyday life easier' : '生活办事指南'}</span><ChevronRight size={18} aria-hidden="true" /></Link>
     </nav>
 
     <section className="home-weekend" aria-labelledby={`${panelId}-weekend`}><div className="home-section-heading"><div><span className="home-section-kicker">{dateLabel(weekend.start)} — {dateLabel(weekend.end)}</span><h2 id={`${panelId}-weekend`}>{english ? 'Three ideas for this weekend' : '本周末，先看这三件事'}</h2></div><Link to="/this-month?when=weekend">{english ? `All ${weekend.total} events` : `全部 ${weekend.total} 场`}<ArrowRight size={18} aria-hidden="true" /></Link></div>
@@ -92,7 +92,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       })}</div> : <div className="home-empty"><p>{english ? 'No confirmed events for this weekend yet. Try a year-round place or check the calendar.' : '这个周末暂没有已确认的活动，先看常设去处或换个日期。'}</p><Link to="/explore">{english ? 'Explore places' : '按地区找景点'}</Link></div>}
     </section>
 
-    <p className="home-trust"><ShieldCheck size={18} aria-hidden="true" /><span>{english ? 'Official sources. Dates checked individually. A starting point for your plans.' : '官方来源 · 逐条标注核对日期 · 出发前再确认'}</span><Link to="/about">{english ? 'Our approach' : '了解核验方法'}<ArrowUpRight size={15} aria-hidden="true" /></Link></p>
+    <p className="home-trust"><ShieldCheck size={18} aria-hidden="true" /><span>{english ? 'Official sources. Dates checked individually. A starting point for your plans.' : '官方来源 · 逐条标注核对日期 · 出发前再确认'}</span><Link to="/about">{english ? 'Our approach' : '了解核验方法'}<ChevronRight size={15} aria-hidden="true" /></Link></p>
     <section className="home-guide-selection" aria-labelledby={`${panelId}-guides`}><div className="home-section-heading"><h2 id={`${panelId}-guides`}>{english ? 'A guide for your next step' : '为你的下一步，选一篇指南'}</h2><Link to="/guides">{english ? `${guideCount} guides` : `${guideCount} 篇指南`}<ArrowRight size={18} aria-hidden="true" /></Link></div><div className="home-discovery-intents" role="group" aria-label={english ? 'Your next step' : '你想怎么发现湾区'}>{pathways.map(path => <button type="button" key={path.id} aria-pressed={intent === path.id} aria-controls={panelId} onClick={() => choose(path.id)}>{intent === path.id && <Check size={16} aria-hidden="true" />}{english ? path.en : path.label}</button>)}</div><div id={panelId} className="home-discovery-picks">{picks.map(guide => {
       const image = getGuideMedia(guide).cover;
       const provenance = getImageProvenance(image, english);

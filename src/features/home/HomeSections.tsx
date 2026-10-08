@@ -1,8 +1,9 @@
 // 首页区块组件：筛选 chips / Hero / 频道 / 编辑精选 / 精选帖 / feed 切换 / 空态
 import { useState, useEffect } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { Link } from 'react-router-dom';
 import { getSlugFromCategory } from '../../routing';
-import { ArrowDown, ArrowUpRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
+import { ArrowDown, ChevronRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CATEGORY_EMOJI, HOME_CHANNELS, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate } from '../../lib/format';
@@ -51,10 +52,10 @@ const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' |
 export const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: () => void; onBrowseResources: () => void }) => (
   <section className="bay-hero" aria-label="连接湾区生活">
     <div className="bay-hero-copy">
-      <span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span>
+      <EnglishOnly><span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span></EnglishOnly>
       <h1>在湾区，<br />找到生活的<span>更多可能。</span></h1>
       <p>一个家，一份好物，一位靠谱的邻居。<br className="hidden sm:block" />你需要的生活连接，都从这里开始。</p>
-      <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ArrowUpRight size={17} /></button></div>
+      <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ChevronRight size={17} /></button></div>
     </div>
     <div className="bay-hero-art"><img src="/brand/bay-area-diorama-v2.webp" alt="金门大桥、海湾与湾区街屋组成的微缩景观" width="1254" height="1254" {...{ fetchpriority: 'high' }} /><span className="bay-hero-coordinate">37.8199° N &nbsp; 122.4783° W</span></div>
     <div className="bay-hero-sticker"><span className="bay-hero-sticker-icon"><HeartHandshake size={19} /></span><span>让附近，变得更亲近<small>Good things happen locally.</small></span></div>
@@ -66,7 +67,7 @@ export const ChannelShortcuts = ({ onChannel, compact = false }: { onChannel: (c
   <section className={`bay-channels${compact ? ' bay-channels--compact' : ''}`} aria-label="探索生活分类">
     {HOME_CHANNELS.map((channel, index) => {
       const Icon = channelIcons[channel.id as keyof typeof channelIcons];
-      return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ArrowUpRight size={15} className="bay-channel-arrow" /></button>;
+      return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ChevronRight size={15} className="bay-channel-arrow" /></button>;
     })}
   </section>
 );
@@ -276,7 +277,7 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   if (keyword?.trim()) {
     return (
       <div className="py-5 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-        <p className="text-sm font-medium text-baylink-text mb-0.5">没有找到相关内容</p>
+        <p className="text-sm font-normal text-baylink-text mb-0.5">没有找到相关内容</p>
         <p className="text-xs text-baylink-muted">换个关键词试试，或浏览其他分类</p>
       </div>
     );
@@ -284,12 +285,12 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   const secondaryActions = (onOpenGuides || onAskBayBay) && (
     <div className="mt-2.5 flex justify-center gap-2 text-[11px]">
       {onOpenGuides && (
-        <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-medium text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
+        <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-normal text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
           <BookOpen size={12} /> 先看湾区指南
         </button>
       )}
       {onAskBayBay && (
-        <button onClick={onAskBayBay} className="inline-flex items-center gap-1 rounded-lg border border-baylink-green/20 bg-baylink-green-light/60 px-3 py-1.5 font-medium text-baylink-green transition hover:bg-baylink-green-light">
+        <button onClick={onAskBayBay} className="inline-flex items-center gap-1 rounded-lg border border-baylink-green/20 bg-baylink-green-light/60 px-3 py-1.5 font-normal text-baylink-green transition hover:bg-baylink-green-light">
           <Sparkles size={12} /> 问问 BayBay
         </button>
       )}
@@ -297,14 +298,14 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
   );
   return feedType === 'provider' ? (
     <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">这个分类还没有资源</p>
+      <p className="text-sm font-normal text-baylink-text mb-0.5">这个分类还没有资源</p>
       <p className="text-xs text-baylink-muted mb-3">提供你的服务、房源或二手资源，让附近的人找到你</p>
       <button onClick={onPublishService} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 提供服务</button>
       {secondaryActions}
     </div>
   ) : (
     <div className="py-6 px-4 text-center bg-white rounded-2xl border border-baylink-border/50 shadow-sm">
-      <p className="text-sm font-medium text-baylink-text mb-0.5">还没有新的需求</p>
+      <p className="text-sm font-normal text-baylink-text mb-0.5">还没有新的需求</p>
       <p className="text-xs text-baylink-muted mb-3">附近的需求会显示在这里，你也可以先把自己的需求发出来</p>
       <button onClick={onPublishInfo} className="btn-primary px-5 py-2 text-xs inline-flex items-center gap-1.5"><Plus size={14}/> 发布信息</button>
       {secondaryActions}

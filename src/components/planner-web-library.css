@@ -8,7 +8,7 @@
 .planner-web-candidate dt svg{flex-shrink:0;margin-top:3px}
 .planner-web-candidate dd{font-size:12px;line-height:1.7}
 .planner-web-candidate-links a{display:inline-flex;align-items:center;min-height:34px;gap:4px;max-width:100%;overflow-wrap:anywhere}
-.planner-web-candidate>button,.planner-web-error button{min-height:44px;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:650;border:1px solid #c9dacb;color:#315a3f;background:#eef5ec}
+.planner-web-candidate>button,.planner-web-error button{min-height:44px;padding:9px 14px;border-radius:9px;font-size:13px;font-weight:600;border:1px solid #c9dacb;color:#315a3f;background:#eef5ec}
 .planner-web-candidate>button:disabled{opacity:.55}
 .planner-web-coverage{font-size:12px;line-height:1.7;color:#52705c;margin:10px 0}
 .planner-web-save-notice{font-size:13px;color:#285b3d;padding:10px 14px;border-left:3px solid #63896d;background:#f1f7ee;border-radius:4px;margin:12px 0}

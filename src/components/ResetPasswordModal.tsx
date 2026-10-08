@@ -14,7 +14,7 @@ type ResetPasswordModalProps = {
 const validatePassword = (password: string) =>
   password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
 
-const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
+const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-normal text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
 
 export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit }: ResetPasswordModalProps) => {
   const [newPassword, setNewPassword] = useState('');
@@ -66,7 +66,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
         <p className="mb-5 text-center text-[11px] text-baylink-muted">设置您的新登录密码</p>
 
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600">
             <AlertCircle size={14} />
             {error}
           </div>

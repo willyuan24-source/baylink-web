@@ -11,7 +11,7 @@ type ForgotPasswordModalProps = {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-medium text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
+const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-normal text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
 
 export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswordModalProps) => {
   const [email, setEmail] = useState('');
@@ -55,7 +55,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswor
         <p className="mb-5 text-center text-[11px] text-baylink-muted">输入注册邮箱，我们会发送重设链接</p>
 
         {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-medium text-red-600">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600">
             <AlertCircle size={14} />
             {error}
           </div>
@@ -67,7 +67,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswor
             {devResetLink && (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
                 <p className="mb-2 text-[11px] font-semibold text-amber-700">开发模式测试链接</p>
-                <a href={devResetLink} className="break-all text-xs font-medium text-amber-900 underline">
+                <a href={devResetLink} className="break-all text-xs font-normal text-amber-900 underline">
                   {devResetLink}
                 </a>
               </div>

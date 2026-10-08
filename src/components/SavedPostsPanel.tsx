@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Bookmark, ChevronDown, Loader2, RotateCw } from 'lucide-react';
+import { ChevronRight, Bookmark, ChevronDown, Loader2, RotateCw } from 'lucide-react';
 import { useSavedPosts } from '../lib/savedPosts';
 import { api } from '../lib/api';
 import type { PostData } from '../lib/types';
@@ -61,12 +61,12 @@ export function SavedPostsPanel({ userId }: { userId?: string }) {
     <button type="button" className="saved-posts-toggle" aria-expanded={open} aria-controls="saved-posts-list" onClick={() => setOpen((value) => !value)}><Bookmark size={21} /><span><strong>我的收藏 <b>{saved.length}</b></strong><small>保存在此设备，方便下次回来继续看</small></span><ChevronDown size={19} className={open ? 'is-open' : ''} /></button>
     {open && <div id="saved-posts-list" className="saved-posts-list">
       <p className="saved-posts-note">{userId ? '当前账号在此浏览器的收藏。' : '当前访客在此浏览器的收藏。'}切换设备不会同步；打开时会重新检查信息状态。</p>
-      {!saved.length && <div className="saved-posts-empty"><p>看到感兴趣的房源、服务或好物，点一下“收藏”。</p><Link to="/">去发现本地信息 <ArrowUpRight size={15} /></Link></div>}
+      {!saved.length && <div className="saved-posts-empty"><p>看到感兴趣的房源、服务或好物，点一下“收藏”。</p><Link to="/">去发现本地信息 <ChevronRight size={15} /></Link></div>}
       {saved.slice(0, limit).map((item) => {
         const result = lookup[item.id];
         const current = result?.state === 'ready' ? result.post : null;
         return <article key={item.id} className="saved-post-item">
-          <div><span className="saved-post-meta">{current?.category || item.category} · {current?.city || item.city || '湾区'}</span><h3 translate="no">{current ? <Link to={`/posts/${encodeURIComponent(item.id)}`}>{current.title}<ArrowUpRight size={15} /></Link> : item.title}</h3>
+          <div><span className="saved-post-meta">{current?.category || item.category} · {current?.city || item.city || '湾区'}</span><h3 translate="no">{current ? <Link to={`/posts/${encodeURIComponent(item.id)}`}>{current.title}<ChevronRight size={15} /></Link> : item.title}</h3>
             {current ? <div className="saved-post-facts"><strong>{current.budget ? <span translate="no">{current.budget}</span> : '详情见介绍'}</strong><PostAvailabilityBadge post={current} /></div> : !result ? <p role="status"><Loader2 size={13} className="animate-spin" /> 正在检查信息…</p> : result.state === 'unavailable' ? <p>这条信息目前不可访问，可以移除收藏。</p> : <p>暂时无法检查，请稍后重试。</p>}
           </div><BookmarkButton post={current || item} userId={userId} />
         </article>;

@@ -262,12 +262,12 @@ test('chat safety links use the associated post category, and a failed lookup re
     : path.endsWith('/read') ? {} : [message()];
   const view = render(viewChat({ conversation: { ...conversation(), lastPostId: 'used-post', lastPostTitle: '公开二手帖' } }));
   await act(async () => {});
-  assert.equal(view.getByRole('link', { name: '二手交易安全指南 ↗' }).getAttribute('href'), '/guides/bay-area-used-trading-safety-guide');
-  assert.equal(view.queryByRole('link', { name: '租房防骗指南 ↗' }) === null, true);
+  assert.equal(view.getByRole('link', { name: '二手交易安全指南' }).getAttribute('href'), '/guides/bay-area-used-trading-safety-guide');
+  assert.equal(view.queryByRole('link', { name: '租房防骗指南' }) === null, true);
   unavailable = true;
   view.rerender(viewChat({ conversation: { ...conversation('next-thread'), lastPostId: 'unavailable-post' } }));
   await act(async () => {});
-  assert.ok(view.getByRole('link', { name: '租房防骗指南 ↗' }));
-  assert.ok(view.getByRole('link', { name: '二手交易安全指南 ↗' }));
-  assert.ok(view.getByRole('link', { name: '本地服务安全指南 ↗' }));
+  assert.ok(view.getByRole('link', { name: '租房防骗指南' }));
+  assert.ok(view.getByRole('link', { name: '二手交易安全指南' }));
+  assert.ok(view.getByRole('link', { name: '本地服务安全指南' }));
 });

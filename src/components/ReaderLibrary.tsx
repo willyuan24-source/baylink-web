@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Bookmark, Check, ChevronRight, Clock3, Sparkles, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide } from '../data/guides';
@@ -48,7 +49,7 @@ export function ReadingShelf({ compact = false }: { compact?: boolean }) {
     if (forcedSaved && next !== 'saved') setParams(current => { const values = new URLSearchParams(current); values.delete('view'); return values; }, { replace: true, preventScrollReset: true });
   };
   return <section className={`reader-shelf${compact ? ' reader-shelf--compact' : ''}`} aria-labelledby="reader-shelf-title">
-    <div className="reader-shelf-heading"><div><span className="reader-eyebrow">YOUR LITTLE CORNER</span><h2 id="reader-shelf-title">{compact ? '把喜欢的湾区，留给下次。' : '你的阅读角落'}</h2></div>{compact && <Link to="/guides?view=saved">我的收藏<ChevronRight size={15} /></Link>}</div>
+    <div className="reader-shelf-heading"><div><EnglishOnly><span className="reader-eyebrow">YOUR LITTLE CORNER</span></EnglishOnly><h2 id="reader-shelf-title">{compact ? '把喜欢的湾区，留给下次。' : '你的阅读角落'}</h2></div>{compact && <Link to="/guides?view=saved">我的收藏<ChevronRight size={15} /></Link>}</div>
     <div className="reader-shelf-tabs" role="group" aria-label="阅读记录">
       <button type="button" aria-pressed={active === 'saved'} onClick={() => switchTab('saved')}><Bookmark size={15} />我的收藏 {saved.length}</button>
       <button type="button" aria-pressed={active === 'recent'} onClick={() => switchTab('recent')}><Clock3 size={15} />最近读过</button>

@@ -187,7 +187,7 @@ const ContactPanelSession = ({
             <button
               type="button"
               onClick={onShare}
-              className="mt-2 inline-flex items-center gap-1 rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary transition hover:border-baylink-green/20 hover:text-baylink-green"
+              className="mt-2 inline-flex items-center gap-1 rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary transition hover:border-baylink-green/20 hover:text-baylink-green"
             >
               <Share2 size={12} /> 分享给朋友
             </button>
@@ -206,12 +206,12 @@ const ContactPanelSession = ({
           <p className="mt-1 text-[11px] text-baylink-muted">不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {['这类帖子联系前要问什么？', '这条信息有什么需要注意？', '帮我整理一段私信开场白'].map((q) => (
-              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-normal text-baylink-green hover:bg-baylink-green-light/60">
                 {q}
               </button>
             ))}
             {categoryPrompt && (
-              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-medium text-baylink-green hover:bg-baylink-green-light/60">
+              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[11px] font-normal text-baylink-green hover:bg-baylink-green-light/60">
                 {categoryPrompt}
               </button>
             )}
@@ -231,12 +231,12 @@ const ContactPanelSession = ({
             <div className="mt-2 space-y-2">
               {pendingOwner.map((r) => (
                 <div key={r.id} className="rounded-xl border border-black/[0.04] bg-white/80 p-3">
-                  <div className="text-sm font-medium text-baylink-text">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : '用户'}</div>
+                  <div className="text-sm font-normal text-baylink-text">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : '用户'}</div>
                   {r.requestMessage && <p className="mt-1 text-[11px] text-baylink-muted" translate="no">{r.requestMessage}</p>}
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button type="button" disabled={actingId !== null || !approveRequest} onClick={() => void handleOwnerAction(r.id, true)} className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60">{actingId === r.id ? '处理中…' : '同意并发送'}</button>
-                    <button type="button" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary disabled:opacity-60">暂不发送</button>
-                    <button type="button" onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, post.title)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-medium text-baylink-text-secondary">先私信聊聊</button>
+                    <button type="button" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary disabled:opacity-60">暂不发送</button>
+                    <button type="button" onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, post.title)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary">先私信聊聊</button>
                   </div>
                 </div>
               ))}

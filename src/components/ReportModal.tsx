@@ -99,7 +99,7 @@ export const ReportModal = ({ targetType, targetId, onClose, onSubmit }: ReportM
                   onChange={() => setReason(opt.value)}
                   className="accent-baylink-green"
                 />
-                <span className="font-medium">{opt.label}</span>
+                <span className="font-normal">{opt.label}</span>
               </label>
             ))}
           </div>

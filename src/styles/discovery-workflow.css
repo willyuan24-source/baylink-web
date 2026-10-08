@@ -7,7 +7,7 @@
 .baybay-retrieval svg { flex-shrink:0; margin-top:2px; }
 .baybay-inline-citation { color:#306248; text-decoration:underline; text-underline-offset:3px; padding:2px 4px; border-radius:4px; background:#f0f5e9; }
 .baybay-discovery { margin-top:20px; }
-.baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:#2e503e; font-size:14px; font-weight:650; }
+.baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:#2e503e; font-size:14px; font-weight:600; }
 .baybay-discovery-heading small { font-size:11px; font-weight:400; color:#73806a; }
 .baybay-discovery-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
 .baybay-discovery-cards article { min-width:0; overflow:hidden; border:1px solid #e0e6d8; border-radius:16px; background:#fffefa; }
@@ -15,7 +15,7 @@
 .baybay-discovery-cover span { font-size:32px; font-family:Georgia,serif; color:#849875; }
 .baybay-discovery-content { padding:14px; overflow-wrap:anywhere; }
 .baybay-discovery-content>small { font-size:11px; color:#6a7e67; }
-.baybay-discovery-content h4 { margin:5px 0 8px; font-size:15px; line-height:1.5; font-weight:650; }
+.baybay-discovery-content h4 { margin:5px 0 8px; font-size:15px; line-height:1.5; font-weight:600; }
 .baybay-discovery-content p,.baybay-discovery-content dd { font-size:12px; line-height:1.8; color:#5f6d59; margin:0; }
 .baybay-discovery-content dl { display:grid; gap:8px; margin:12px 0; }
 .baybay-discovery-content dt { font-size:10px; color:#78826f; }
@@ -62,7 +62,7 @@
 .planner-hero-photo .guide-image-caption { padding:7px 11px; }
 .planner-hero-photo .guide-image-caption>p { font-size:10px; line-height:1.6; }
 .planner-hero-photo .guide-image-attribution { font-size:9px; }
-.planner-hero-photo>button { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:46px; width:100%; padding:9px 14px; border-top:1px solid #e5e9df; font-size:12px; font-weight:550; color:#426442; }
+.planner-hero-photo>button { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:46px; width:100%; padding:9px 14px; border-top:1px solid #e5e9df; font-size:12px; font-weight:600; color:#426442; }
 .planner-hero-photo>button svg { transform:rotate(180deg); }
 .planner-preference-memory { padding:23px; border:1px solid #dfe6d7; background:#f5f7ef; border-radius:18px; margin:18px 0; }
 .planner-preference-memory h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:16px; font-weight:600; color:#385740; }

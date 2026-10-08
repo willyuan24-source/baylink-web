@@ -43,7 +43,7 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
           <div key={`${m.type}-${i}`} className="rounded-xl border border-black/[0.04] bg-white/80 px-3 py-2">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="text-[11px] font-medium text-baylink-muted">{typeLabel(m.type, m.label)}</div>
+                <div className="text-[11px] font-normal text-baylink-muted">{typeLabel(m.type, m.label)}</div>
                 <div className="mt-0.5 break-all text-sm font-semibold text-baylink-text">{m.value}</div>
                 {m.note && <div className="mt-0.5 text-[11px] text-baylink-muted">{m.note}</div>}
               </div>

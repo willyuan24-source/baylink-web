@@ -1,4 +1,5 @@
-import { ArrowRight, ArrowUpRight, BookOpen, Compass } from "lucide-react";
+import { ArrowRight, ChevronRight, BookOpen, Compass } from "lucide-react";
+import { EnglishOnly } from "./EnglishOnly";
 import { Link } from "react-router-dom";
 import { getFeaturedGuides, getGuideBySlug } from "../data/guides";
 import { GuideCardMini, handleGuideLinkClick } from "./GuideCard";
@@ -20,7 +21,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
     <section className="bl-home-guides" aria-labelledby="home-guides-title">
       <div className="bl-home-guides-heading">
         <div>
-          <span className="bl-guide-eyebrow">THE BAYLINK JOURNAL</span>
+          <EnglishOnly><span className="bl-guide-eyebrow">THE BAYLINK JOURNAL</span></EnglishOnly>
           <h2 id="home-guides-title">
             <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />{" "}
             湾区生活指南
@@ -49,7 +50,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
           <p>{spotlight.summary}</p>
           <span className="bl-home-guide-spotlight-bottom">
             {spotlight.readMinutes} 分钟阅读{" "}
-            <ArrowUpRight size={22} aria-hidden="true" />
+            <ChevronRight size={22} aria-hidden="true" />
           </span>
         </Link>
         <div className="bl-home-guide-list">

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
+import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, ChevronRight, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 
 const discoveries = [
@@ -15,22 +16,22 @@ const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, c
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   return <article className="about-baylink">
     <header className="about-hero">
-      <div className="about-hero-copy"><span className="about-eyebrow">BAY AREA LIFE</span>
+      <div className="about-hero-copy"><EnglishOnly><span className="about-eyebrow">BAY AREA LIFE</span></EnglishOnly>
         <p className="about-page-label">关于 BAYLINK</p>
         <h1>湾区生活，<br /><em>从这里开始。</em></h1>
         <p className="about-lead">BAYLINK 是一个湾区生活网站。这里有活动优惠、生活攻略、实用工具，也有房源、闲置和本地服务信息。</p>
         <Link to="/this-month" className="about-primary">去看活动<ArrowRight size={17} /></Link>
       </div>
-      <div className="about-hero-art"><span className="about-art-location"><MapPin size={14} />SAN FRANCISCO BAY AREA</span>
+      <div className="about-hero-art"><EnglishOnly><span className="about-art-location"><MapPin size={14} />SAN FRANCISCO BAY AREA</span></EnglishOnly>
         <img src={BRAND.baybayAvatar} alt="BayBay" width={280} height={280} />
-        <div><span>GOOD TO BE HERE</span><p>你的湾区生活助手</p></div>
+        <div><EnglishOnly><span>GOOD TO BE HERE</span></EnglishOnly><p>你的湾区生活助手</p></div>
       </div>
     </header>
 
     <section className="about-discover" aria-labelledby="about-discover-title">
       <div className="about-section-heading"><h2 id="about-discover-title">你可以在这里做什么？</h2></div>
       <div className="about-discover-grid">{discoveries.map(({ icon: Icon, number, title, text, href, action }) => <section className="about-discover-item" key={number}>
-        <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ArrowUpRight size={16} /></Link>
+        <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ChevronRight size={16} /></Link>
       </section>)}</div>
     </section>
 
@@ -52,7 +53,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
 
     <section className="about-basics" aria-label="使用说明">
       <p>浏览无需登录，发布信息和发私信请先登录。</p>
-      <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ArrowUpRight size={15} /></Link>
+      <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ChevronRight size={15} /></Link>
     </section>
 
     <footer className="about-contact"><div><h2>联系我们</h2><p>有问题、建议，或发现信息有误，欢迎发邮件告诉我们。</p></div>

@@ -86,7 +86,7 @@ export const CommentItem = ({
                   type="button"
                   disabled={disabled}
                   onClick={() => requireLogin(() => onReply!(comment))}
-                  className="text-[11px] font-medium text-baylink-green hover:underline"
+                  className="text-[11px] font-normal text-baylink-green hover:underline"
                 >
                   回复
                 </button>
@@ -97,7 +97,7 @@ export const CommentItem = ({
                     type="button"
                     disabled={disabled}
                     onClick={() => requireLogin(() => onEdit(comment))}
-                    className="text-[11px] font-medium text-baylink-text-secondary hover:text-baylink-text"
+                    className="text-[11px] font-normal text-baylink-text-secondary hover:text-baylink-text"
                   >
                     编辑
                   </button>
@@ -105,7 +105,7 @@ export const CommentItem = ({
                     type="button"
                     disabled={disabled}
                     onClick={() => requireLogin(() => onDelete(comment))}
-                    className="text-[11px] font-medium text-red-500/90 hover:text-red-600"
+                    className="text-[11px] font-normal text-red-500/90 hover:text-red-600"
                   >
                     删除
                   </button>

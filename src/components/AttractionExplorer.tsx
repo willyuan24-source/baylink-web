@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUp, Check, Clock3, Compass, Copy, MapPin, Plus, Search, Share2, Sparkles, Ticket, X } from 'lucide-react';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } from '../data/attractions';
@@ -79,7 +80,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
 
   const outingPanel = (
     <section id="outing-plan" className="outing-plan" aria-labelledby="outing-plan-title">
-      <div className="outing-heading"><div><span className="attraction-eyebrow">A LITTLE PLAN, A GOOD DAY</span><h2 id="outing-plan-title">我的出游清单</h2></div><span>{plan.length} / {MAX_OUTING_STOPS}</span></div>
+      <div className="outing-heading"><div><EnglishOnly><span className="attraction-eyebrow">A LITTLE PLAN, A GOOD DAY</span></EnglishOnly><h2 id="outing-plan-title">我的出游清单</h2></div><span>{plan.length} / {MAX_OUTING_STOPS}</span></div>
       <p>最多收藏 6 处，按自己的节奏排序。建议一天先选同一区域的 1–3 处。</p>
       {shared && <div className="outing-shared"><p>正在查看分享的计划；修改后会保存到此浏览器。</p><button type="button" onClick={() => { setPlan(loadOuting()); setShared(false); updateFilter('plan', ''); setNotice('已恢复此浏览器原有的出游清单。'); setFallback(''); }}>恢复本机清单</button></div>}
       {selections.length ? <><ol className="outing-stops">{selections.map((item, index) => <li key={item.id}><span className="outing-number">{index + 1}</span><div className="outing-stop-text"><Link to={`/guides/${item.slug}`}>{item.title}</Link><small>{item.city} · {item.duration}</small><a href={attractionMapUrl(item)} target="_blank" rel="noopener noreferrer"><MapPin size={13} aria-hidden="true" />起点地图</a></div><div className="outing-stop-buttons"><button type="button" disabled={index === 0} aria-label={`上移：${item.title}`} onClick={() => move(index, -1)}><ArrowUp size={16} /></button><button type="button" disabled={index === selections.length - 1} aria-label={`下移：${item.title}`} onClick={() => move(index, 1)}><ArrowDown size={16} /></button><button type="button" aria-label={`移除：${item.title}`} onClick={() => toggle(item.id)}><X size={16} /></button></div></li>)}</ol>

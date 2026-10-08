@@ -93,7 +93,7 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
       <div className="mt-4 grid gap-4 sm:grid-cols-2">{channels.map(channel => {
         const verified = channel === 'email' ? settings.emailVerified : settings.phoneVerified;
         return <fieldset key={channel} className="rounded-xl border border-stone-200 p-3" disabled={busy}>
-          <legend className="px-1 font-medium">{channel === 'email' ? text('邮件提醒', 'Email reminders', '郵件提醒') : text('短信提醒', 'SMS reminders', '簡訊提醒')}</legend>
+          <legend className="px-1 font-normal">{channel === 'email' ? text('邮件提醒', 'Email reminders', '郵件提醒') : text('短信提醒', 'SMS reminders', '簡訊提醒')}</legend>
           <p className="mb-2 text-xs text-stone-600">{verified ? text('已验证', 'Verified', '已驗證') : channel === 'email' ? text('请先验证当前邮箱', 'Verify your current email first', '請先驗證目前信箱') : text('请先在个人资料中验证当前手机号', 'Verify your current phone in your profile first', '請先在個人資料中驗證目前手機號碼')}</p>
           {topics.map(topic => <label key={topic} className="my-2 flex gap-2 text-sm"><input type="checkbox" disabled={!verified || busy} checked={settings.preferences[channel][topic]}
             onChange={event => setSettings(previous => previous ? { ...previous, preferences: { ...previous.preferences, [channel]: { ...previous.preferences[channel], [topic]: event.target.checked } } } : previous)} />

@@ -28,11 +28,11 @@ const OPT_IN_FLOW = [
 const SmsVerificationDisclosure = () => (
   <p className="text-sm leading-relaxed text-baylink-text-secondary">
     By clicking &ldquo;发送验证码 / Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
-    <a href="/privacy" className="font-medium text-baylink-green hover:underline">
+    <a href="/privacy" className="font-normal text-baylink-green hover:underline">
       Privacy Policy
     </a>
     {' '}and{' '}
-    <a href="/terms" className="font-medium text-baylink-green hover:underline">
+    <a href="/terms" className="font-normal text-baylink-green hover:underline">
       Terms of Service
     </a>
     .
@@ -107,7 +107,7 @@ export const SmsConsentView = () => (
       <LegalP>可在预约通知设置中关闭业务短信。对已收到的短信，可按发送方说明回复 STOP 退订或 HELP 求助；发送方的短信服务处理退订屏蔽。退订不会取消预约，重新打开站内开关也不会绕过发送方的退订状态。</LegalP>
       <LegalP>
         For support, contact:{' '}
-        <a href="mailto:Baylink.us@gmail.com" className="font-medium text-baylink-green hover:underline">
+        <a href="mailto:Baylink.us@gmail.com" className="font-normal text-baylink-green hover:underline">
           Baylink.us@gmail.com
         </a>
       </LegalP>
@@ -115,11 +115,11 @@ export const SmsConsentView = () => (
 
     <LegalSection title="Privacy and terms">
       <LegalP>
-        <a href="/privacy" className="font-medium text-baylink-green hover:underline">
+        <a href="/privacy" className="font-normal text-baylink-green hover:underline">
           Privacy Policy
         </a>
         {' · '}
-        <a href="/terms" className="font-medium text-baylink-green hover:underline">
+        <a href="/terms" className="font-normal text-baylink-green hover:underline">
           Terms of Service
         </a>
       </LegalP>

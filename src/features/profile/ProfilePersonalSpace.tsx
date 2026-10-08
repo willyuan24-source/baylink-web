@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal, Users } from 'lucide-react';
+import { ChevronRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal, Users } from 'lucide-react';
 import { usePlannerLibrary } from '../../lib/planner-library';
 import type { Preferences } from '../../lib/planner';
 import type { UserData } from '../../lib/types';
@@ -18,9 +18,9 @@ const STEPS = {
 
 export function ProfileActivityLinks() {
   return <section className="profile-life-links member-profile-wide" aria-label="我的生活安排">
-    <Link to="/my-week"><CalendarDays size={21} aria-hidden="true" /><strong>我的这周</strong><span>收藏与计划，放在一起</span><ArrowUpRight size={17} aria-hidden="true" /></Link>
-    <Link to="/together?view=mine"><Users size={21} aria-hidden="true" /><strong>我的小队</strong><span>申请、已确认与我发起的</span><ArrowUpRight size={17} aria-hidden="true" /></Link>
-    <Link to="/me/bookings"><Compass size={21} aria-hidden="true" /><strong>服务预约</strong><span>我预约的与我收到的</span><ArrowUpRight size={17} aria-hidden="true" /></Link>
+    <Link to="/my-week"><CalendarDays size={21} aria-hidden="true" /><strong>我的这周</strong><span>收藏与计划，放在一起</span><ChevronRight size={17} aria-hidden="true" /></Link>
+    <Link to="/together?view=mine"><Users size={21} aria-hidden="true" /><strong>我的小队</strong><span>申请、已确认与我发起的</span><ChevronRight size={17} aria-hidden="true" /></Link>
+    <Link to="/me/bookings"><Compass size={21} aria-hidden="true" /><strong>服务预约</strong><span>我预约的与我收到的</span><ChevronRight size={17} aria-hidden="true" /></Link>
   </section>;
 }
 
@@ -50,15 +50,15 @@ export function ProfilePersonalSpace({ user, onEdit }: { user: UserData; onEdit:
       <div className="profile-exploration-progress"><span>{t('已准备')}</span><strong>{library.ready ? `${complete} / 4` : '— / 4'}</strong><div className="profile-exploration-track" aria-hidden="true"><span style={{ width: library.ready ? `${complete * 25}%` : '0%' }} /></div></div>
       {library.loading && <p role="status" className="profile-space-notice">{t('正在读取你的收藏与计划…')}</p>}
       {!library.loading && !library.ready && <div role="alert" className="profile-space-notice"><p>{t('暂时无法读取探索进度，已保存的内容不会因此消失。')}</p><button type="button" onClick={() => void library.refresh()}>{t('重新读取')}</button></div>}
-      <button type="button" className="profile-exploration-toggle" aria-expanded={journeyOpen} aria-controls="profile-exploration-steps" onClick={() => setJourneyOpen(open => !open)}>{t(journeyOpen ? '收起探索步骤' : '查看探索步骤')}<ArrowUpRight size={15} aria-hidden="true" /></button>
+      <button type="button" className="profile-exploration-toggle" aria-expanded={journeyOpen} aria-controls="profile-exploration-steps" onClick={() => setJourneyOpen(open => !open)}>{t(journeyOpen ? '收起探索步骤' : '查看探索步骤')}<ChevronRight size={15} aria-hidden="true" /></button>
       {journeyOpen && <ol id="profile-exploration-steps" className="profile-exploration-steps">{steps.map(step => { const item = STEPS[step.id]; const Icon = item.icon;
-        return <li key={step.id} data-complete={step.complete === true}><span className="profile-step-icon" aria-hidden="true">{step.complete ? <Check size={18} /> : <Icon size={18} />}</span><div><h3>{t(item.title)}</h3><p>{t(item.description)}</p><small>{t(step.complete === true ? '已准备好' : step.complete === null ? '待读取' : '随时开始')}</small></div>{step.id === 'introduce' ? <button type="button" onClick={onEdit}>{t(item.action)}<ArrowUpRight size={14} aria-hidden="true" /></button> : step.id === 'preferences' ? <button type="button" onClick={() => { setPreferencesOpen(true); document.getElementById('profile-personal-preferences')?.scrollIntoView?.({ block: 'nearest', behavior: 'auto' }); }}>{t(item.action)}<ArrowUpRight size={14} aria-hidden="true" /></button> : <Link to={step.complete ? '/my-week' : '/plan'}>{t(step.complete ? '去看看' : item.action)}<ArrowUpRight size={14} aria-hidden="true" /></Link>}</li>;
+        return <li key={step.id} data-complete={step.complete === true}><span className="profile-step-icon" aria-hidden="true">{step.complete ? <Check size={18} /> : <Icon size={18} />}</span><div><h3>{t(item.title)}</h3><p>{t(item.description)}</p><small>{t(step.complete === true ? '已准备好' : step.complete === null ? '待读取' : '随时开始')}</small></div>{step.id === 'introduce' ? <button type="button" onClick={onEdit}>{t(item.action)}<ChevronRight size={14} aria-hidden="true" /></button> : step.id === 'preferences' ? <button type="button" onClick={() => { setPreferencesOpen(true); document.getElementById('profile-personal-preferences')?.scrollIntoView?.({ block: 'nearest', behavior: 'auto' }); }}>{t(item.action)}<ChevronRight size={14} aria-hidden="true" /></button> : <Link to={step.complete ? '/my-week' : '/plan'}>{t(step.complete ? '去看看' : item.action)}<ChevronRight size={14} aria-hidden="true" /></Link>}</li>;
       })}</ol>}
-      <footer><p>{t('根据当前名片、偏好、收藏与计划显示；不是到访记录或信用等级，也不需要连续打卡。')}</p><Link to="/together">{t('想有人同行？看看一起去')}<ArrowUpRight size={15} aria-hidden="true" /></Link></footer>
+      <footer><p>{t('根据当前名片、偏好、收藏与计划显示；不是到访记录或信用等级，也不需要连续打卡。')}</p><Link to="/together">{t('想有人同行？看看一起去')}<ChevronRight size={15} aria-hidden="true" /></Link></footer>
     </section>
     <section id="profile-personal-preferences" className="profile-private-preferences" aria-labelledby="profile-preferences-title">
       <header><div><span className="profile-private-label"><LockKeyhole size={13} aria-hidden="true" />{t('仅自己可见')}</span><h2 id="profile-preferences-title">{t('我的出行偏好')}</h2><p>{t('地区与兴趣用于“我的这周”；交通方式用于新建计划的默认选择。这些偏好不会公开。')}</p></div><button type="button" aria-expanded={preferencesOpen} aria-controls="profile-preferences-controls" onClick={() => setPreferencesOpen(open => !open)}>{t(preferencesOpen ? '收起设置' : '调整偏好')}<SlidersHorizontal size={16} aria-hidden="true" /></button></header>
-      {library.ready && !preferencesOpen && <div className="profile-preferences-summary"><MapPin size={14} aria-hidden="true" /><span>{preferences.regions.length ? preferences.regions.map(id => t(REGIONS.find(region => region.id === id)?.label || id)).join(' · ') : t('所有地区都可以')}</span><Link to="/my-week">{t('看看适合这周的活动')}<ArrowUpRight size={14} aria-hidden="true" /></Link></div>}
+      {library.ready && !preferencesOpen && <div className="profile-preferences-summary"><MapPin size={14} aria-hidden="true" /><span>{preferences.regions.length ? preferences.regions.map(id => t(REGIONS.find(region => region.id === id)?.label || id)).join(' · ') : t('所有地区都可以')}</span><Link to="/my-week">{t('看看适合这周的活动')}<ChevronRight size={14} aria-hidden="true" /></Link></div>}
       {preferencesOpen && <div id="profile-preferences-controls">
         {library.error && <p role="alert" className="profile-space-notice">{t(library.ready ? '偏好暂未保存，请重试。上次保存的选择仍然保留。' : '请先重新读取资料，再调整偏好。')}</p>}
         <fieldset disabled={disabled}><legend>{t('常去的地区')}</legend><div className="profile-preference-chips">{REGIONS.map(region => <button type="button" key={region.id} aria-pressed={preferences.regions.includes(region.id)} onClick={() => toggle('regions', region.id)}>{t(region.label)}</button>)}</div></fieldset>
@@ -66,7 +66,7 @@ export function ProfilePersonalSpace({ user, onEdit }: { user: UserData; onEdit:
         <label className="profile-preference-travel" htmlFor="profile-preference-travel">{t('常用出行方式')}<select id="profile-preference-travel" disabled={disabled} value={preferences.travelMode} onChange={event => void save({ ...preferences, travelMode: event.target.value })}><option value="any">{t('暂未决定')}</option><option value="drive">{t('开车')}</option><option value="transit">{t('公共交通')}</option><option value="walk">{t('步行')}</option></select></label>
         <p className="profile-space-hint">{t('不选地区或活动类型，表示不限。每次修改会自动保存到当前账号。')}</p>
         <p role="status" className="profile-space-status">{library.busy ? t('正在保存偏好…') : t(saveStatus)}</p>
-        <Link className="profile-preferences-next" to="/my-week">{t('看看适合这周的活动')}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+        <Link className="profile-preferences-next" to="/my-week">{t('看看适合这周的活动')}<ChevronRight size={16} aria-hidden="true" /></Link>
       </div>}
     </section>
   </div>;

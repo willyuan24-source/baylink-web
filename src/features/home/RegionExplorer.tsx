@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { ArrowUpRight, MapPin } from 'lucide-react';
 
 const areas = [
@@ -13,7 +14,7 @@ export function RegionExplorer({ selected, onSelect }: { selected: string; onSel
   const patternId = useId();
   const area = areas.find((item) => item.name === selected);
   return <section className="region-explorer">
-    <div className="bay-section-kicker"><MapPin size={14} /> FIND YOUR NEIGHBORHOOD</div>
+    <EnglishOnly><div className="bay-section-kicker"><MapPin size={14} /> FIND YOUR NEIGHBORHOOD</div></EnglishOnly>
     <div className="bay-section-heading"><h2>你的生活，在哪一湾？</h2><ArrowUpRight size={19} /></div>
     <p>点选地区，发现身边的信息。</p>
     <div className="region-map">

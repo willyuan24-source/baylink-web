@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, CalendarDays, Loader2, MapPin, RotateCcw, Users } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, ChevronRight, Loader2, MapPin, RotateCcw, Users } from 'lucide-react';
 import { outings, type Outing } from '../lib/outings';
 import { getStoredUser } from '../lib/session';
 import { bayBayOutingPath, type BayBayOutingSearch } from '../lib/baybay-conversation';
@@ -73,7 +73,7 @@ function ReadyOutingResults({ search, onNavigate, blockedUserIds = [] }: Props) 
         return <a key={item.id} href={itemPath} onClick={event => follow(event, itemPath)} className="baybay-outing-card"><div className="baybay-outing-card-top"><h4>{item.title}</h4><ArrowUpRight size={16} aria-hidden="true"/></div><p><CalendarDays size={14} aria-hidden="true"/><span>{day} · {item.startTime}–{item.endTime}</span></p><p><MapPin size={14} aria-hidden="true"/><span>{item.city} · {item.venue}</span></p><div className="baybay-outing-card-bottom"><strong>{remaining > 0 ? t(`还有 ${remaining} 位`, `${remaining} ${remaining === 1 ? 'place' : 'places'} open`) : t('满员 · 可申请候补', 'Full · waitlist available')}</strong><span>{t('查看安排', 'View plan')} →</span></div></a>;
       })}</div>
       <a className="baybay-outing-all" href={path} onClick={event => follow(event, path)}>{result.more ? t('继续查看全部匹配小队', 'Explore all matching outings') : t('查看完整搜索与筛选', 'Open search and filters')}<ArrowUpRight size={14}/></a>
-      {!result.items.length && !result.more && <a className="baybay-outing-all ml-4" href="/this-month" onClick={event => follow(event, '/this-month')}>{t('先看看活动', 'Explore events first')}<ArrowUpRight size={14}/></a>}
+      {!result.items.length && !result.more && <a className="baybay-outing-all ml-4" href="/this-month" onClick={event => follow(event, '/this-month')}>{t('先看看活动', 'Explore events first')}<ChevronRight size={14}/></a>}
       <p className="baybay-outing-note">{t('这是本次查询结果，时间为湾区当地时间。名额以详情为准；申请须经发起人确认，候补不会自动加入。官方报名和门票另行处理。', 'These are results from this search, in Bay Area time. Check details for current availability. The host must approve requests; waitlisting does not join you automatically. Official registration and tickets are separate.')}</p>
     </>}
   </section>;

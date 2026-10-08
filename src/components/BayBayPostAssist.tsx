@@ -196,7 +196,7 @@ export const BayBayPostAssist = ({
         </div>
       </div>
 
-      <label className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-baylink-text-secondary" translate="no">
+      <label className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-normal text-baylink-text-secondary" translate="no">
         {tr('生成语言')}
         <select className="min-h-11 max-w-full rounded-lg border border-baylink-border/60 bg-white px-3 text-xs text-baylink-text" value={languageChoice} onChange={event => setLanguageChoice(event.target.value as AiAssistLanguage | 'auto')}>
           <option value="auto">{tr('跟随界面语言')}</option>
@@ -220,7 +220,7 @@ export const BayBayPostAssist = ({
             disabled={aiLoading}
           />
           <div className="mt-2">
-            <p className="mb-1 text-[11px] font-medium text-baylink-muted">语气</p>
+            <p className="mb-1 text-[11px] font-normal text-baylink-muted">语气</p>
             <div className="flex flex-wrap gap-1">
               {TONE_OPTIONS.map((opt) => (
                 <button
@@ -228,7 +228,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => setTone(opt.id)}
-                  className={`min-h-11 rounded-full px-3 py-1 text-[11px] font-medium transition ${
+                  className={`min-h-11 rounded-full px-3 py-1 text-[11px] font-normal transition ${
                     tone === opt.id
                       ? 'bg-baylink-green text-white'
                       : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
@@ -259,15 +259,15 @@ export const BayBayPostAssist = ({
         <div className="mt-2.5 rounded-lg border border-baylink-border/50 bg-white p-3 text-xs">
           <p className="mb-2 font-semibold text-baylink-text">BayBay 草稿预览</p>
           <div className="max-h-36 space-y-1.5 overflow-y-auto text-[11px] text-baylink-text-secondary">
-            <p><span className="font-medium text-baylink-muted">标题：</span><span translate="no">{aiDraft.title}</span></p>
-            <p className="whitespace-pre-wrap"><span className="font-medium text-baylink-muted">正文：</span><span translate="no">{aiDraft.description}</span></p>
-            <p><span className="font-medium text-baylink-muted">分类：</span>{categoryLabel(aiDraft.category)}</p>
-            {aiDraft.area && <p><span className="font-medium text-baylink-muted">地区：</span><span translate="no">{tr(aiDraft.area)}</span></p>}
-            {aiDraft.budget && <p><span className="font-medium text-baylink-muted">预算：</span><span translate="no">{aiDraft.budget}</span></p>}
-            {aiDraft.timeInfo && <p><span className="font-medium text-baylink-muted">时间：</span><span translate="no">{aiDraft.timeInfo}</span></p>}
+            <p><span className="font-normal text-baylink-muted">标题：</span><span translate="no">{aiDraft.title}</span></p>
+            <p className="whitespace-pre-wrap"><span className="font-normal text-baylink-muted">正文：</span><span translate="no">{aiDraft.description}</span></p>
+            <p><span className="font-normal text-baylink-muted">分类：</span>{categoryLabel(aiDraft.category)}</p>
+            {aiDraft.area && <p><span className="font-normal text-baylink-muted">地区：</span><span translate="no">{tr(aiDraft.area)}</span></p>}
+            {aiDraft.budget && <p><span className="font-normal text-baylink-muted">预算：</span><span translate="no">{aiDraft.budget}</span></p>}
+            {aiDraft.timeInfo && <p><span className="font-normal text-baylink-muted">时间：</span><span translate="no">{aiDraft.timeInfo}</span></p>}
             {aiDraft.quickTags?.length > 0 && (
               <div>
-                <p><span className="font-medium text-baylink-muted">标签：</span><span translate="no">{aiDraft.quickTags.join(' · ')}</span></p>
+                <p><span className="font-normal text-baylink-muted">标签：</span><span translate="no">{aiDraft.quickTags.join(' · ')}</span></p>
                 <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[11px] text-baylink-muted">
                   <input
                     type="checkbox"
@@ -283,7 +283,7 @@ export const BayBayPostAssist = ({
               <p translate="no" className="rounded-md bg-baylink-section/60 p-1.5 text-[11px] text-baylink-muted">{aiDraft.safetyTip}</p>
             )}
             {suggestedCover && (
-              <p className="flex items-center gap-2"><img src={suggestedCover.url} alt="" className="h-12 w-12 rounded-md object-cover" /><span><span className="font-medium text-baylink-muted">封面建议：</span><span translate="no">{tr(suggestedCover.title)}</span></span></p>
+              <p className="flex items-center gap-2"><img src={suggestedCover.url} alt="" className="h-12 w-12 rounded-md object-cover" /><span><span className="font-normal text-baylink-muted">封面建议：</span><span translate="no">{tr(suggestedCover.title)}</span></span></p>
             )}
           </div>
 
@@ -303,7 +303,7 @@ export const BayBayPostAssist = ({
                   type="button"
                   disabled={aiLoading}
                   onClick={() => runAssist(opt.mode)}
-                  className="min-h-11 rounded-lg border border-baylink-border px-3 py-1 text-[11px] font-medium text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
+                  className="min-h-11 rounded-lg border border-baylink-border px-3 py-1 text-[11px] font-normal text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
                 >
                   {aiLoading ? '…' : opt.label}
                 </button>

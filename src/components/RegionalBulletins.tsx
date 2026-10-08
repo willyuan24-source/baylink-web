@@ -1,4 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { getActiveRegionalBulletins } from '../data/october-2026-bulletins';
 import { getListingImage } from '../lib/offer-media';
 import { GuideImageCaption } from './GuideVisuals';
@@ -8,7 +9,7 @@ export function RegionalBulletins({ today }: { today: string }) {
   const items = getActiveRegionalBulletins(today);
   if (!items.length) return null;
   return <section className="regional-bulletins" id="monthly-news" aria-labelledby="monthly-news-heading">
-    <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">AROUND THE BAY</span><h2 id="monthly-news-heading">五区生活快讯</h2></div><p>交通、图书馆与生活服务的近期变动，按地区快速查阅。</p></div>
+    <div className="bl-monthly-section-heading"><div><EnglishOnly><span className="bl-monthly-eyebrow">AROUND THE BAY</span></EnglishOnly><h2 id="monthly-news-heading">五区生活快讯</h2></div><p>交通、图书馆与生活服务的近期变动，按地区快速查阅。</p></div>
     <div className="regional-bulletins-grid">{items.map(item => {
       const image = getListingImage(item.imageKey);
       return <article key={item.id}>

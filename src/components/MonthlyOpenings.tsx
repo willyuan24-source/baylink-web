@@ -1,6 +1,7 @@
 import { recordProductEvent } from '../lib/product-events';
+import { EnglishOnly } from './EnglishOnly';
 import { useState } from 'react';
-import { ArrowDown, ArrowUpRight, CalendarDays, MapPin, Store } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, CalendarDays, ChevronRight, MapPin, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SeptemberOpening } from '../data/september-openings';
 import { currentOpenings } from '../data/local-discoveries';
@@ -58,7 +59,7 @@ export function MonthlyOpenings({ today }: { today: string }) {
   const filtered = currentOpenings.filter(shop => (status === 'all' || shop.status === status) && (region === 'all' || shop.region === region));
   const visible = expanded ? filtered : filtered.slice(0, 6);
   return <section id="monthly-openings" className="bl-monthly-openings" aria-labelledby="monthly-openings-heading">
-    <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">NEW AROUND THE CORNER</span><h2 id="monthly-openings-heading">{locale === 'en' ? reviewEnglish['湾区开业消息与店铺记录'] : '湾区开业消息与店铺记录'}</h2></div><p>咖啡、晚餐与街区新面孔。先确认开门，再安排这一趟。</p></div>
+    <div className="bl-monthly-section-heading"><div><EnglishOnly><span className="bl-monthly-eyebrow">NEW AROUND THE CORNER</span></EnglishOnly><h2 id="monthly-openings-heading">{locale === 'en' ? reviewEnglish['湾区开业消息与店铺记录'] : '湾区开业消息与店铺记录'}</h2></div><p>咖啡、晚餐与街区新面孔。先确认开门，再安排这一趟。</p></div>
     <div className="bl-openings-note"><Store size={20} aria-hidden="true" /><p>已开业、开业庆典与预告分别标示。庆典日期不等于首日营业；推荐基于公开资料整理，尚未实地探店。</p></div>
     <div className="bl-openings-controls">
       <div className="bl-openings-filters" role="group" aria-label="按开业状态筛选">{([
@@ -67,6 +68,6 @@ export function MonthlyOpenings({ today }: { today: string }) {
       <label className="bl-openings-region"><MapPin size={16} aria-hidden="true" /><span className="sr-only">新店所在地区</span><select aria-label="新店所在地区" value={region} onChange={event => { setRegion(event.target.value); setExpanded(false); }}><option value="all">所有新店地区</option>{Object.entries(regionLabels).filter(([key]) => currentOpenings.some(shop => shop.region === key)).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
     </div>
     {visible.length ? <div className="bl-opening-grid">{visible.map(shop => <OpeningCard key={shop.id} shop={shop} today={today} />)}</div> : <div className="bl-monthly-empty"><Store size={28} aria-hidden="true" /><p>这个地区暂没有符合条件的已核实新店。</p><button type="button" onClick={() => { setStatus('all'); setRegion('all'); }}>查看全部新店</button></div>}
-    <div className="bl-openings-footer">{filtered.length > visible.length && <button type="button" onClick={() => setExpanded(true)}>展开其余新店 <ArrowDown size={15} aria-hidden="true" /></button>}<Link to={`/guides/${OPENINGS_GUIDE_SLUG}`}>收藏新店手册 <ArrowUpRight size={15} aria-hidden="true" /></Link></div>
+    <div className="bl-openings-footer">{filtered.length > visible.length && <button type="button" onClick={() => setExpanded(true)}>展开其余新店 <ArrowDown size={15} aria-hidden="true" /></button>}<Link to={`/guides/${OPENINGS_GUIDE_SLUG}`}>收藏新店手册 <ChevronRight size={15} aria-hidden="true" /></Link></div>
   </section>;
 }

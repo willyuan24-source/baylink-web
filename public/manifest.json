@@ -1,13 +1,13 @@
 {
-  "name": "BAYLINK 湾区华人本地生活平台",
+  "name": "BAYLINK · 湾区去哪、怎么办",
   "short_name": "BAYLINK",
-  "description": "找房、找室友、二手交易、本地服务、接送和湾区生活指南",
+  "description": "湾区去哪、怎么办——有来源的中文答案：本周末去哪、办事怎么准备，每条附官方来源和核对日期。",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F7F4EC",
-  "theme_color": "#F7F4EC",
-  "lang": "zh-CN",
+  "background_color": "#FFFFFF",
+  "theme_color": "#FFFFFF",
+  "lang": "zh-Hans",
   "icons": [
     {
       "src": "/brand/icon-192.png",

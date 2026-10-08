@@ -132,3 +132,22 @@ test('a Sunday never recommends yesterday and an empty future weekend offers an 
   assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
   assert.equal(view.container.querySelectorAll('.home-offer-list article').length, 0, 'expired offers never look current');
 });
+
+test('home hero: the English H1 reads as a sentence, the hero image is fetched first, and only links that leave the site carry ↗', async () => {
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
+  assert.equal(doc.querySelector('.home-hero-feature img')!.getAttribute('fetchpriority'), 'high', 'the prerendered LCP image carries the hint for the preload scanner');
+  assert.equal(doc.querySelector('.home-hero-feature img')!.getAttribute('loading'), 'eager');
+  for (const link of doc.querySelectorAll('a')) {
+    const external = link.getAttribute('target') === '_blank';
+    if (link.querySelector('.lucide-arrow-up-right') || link.textContent!.includes('↗')) assert.ok(external, `internal link shows ↗: ${link.getAttribute('href')}`);
+  }
+  const { setLocale } = await import('../src/i18n/locale');
+  try {
+    await setLocale('en', false);
+    const view = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today="2026-10-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
+    assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Good days start closer to home.');
+    view.unmount();
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+});

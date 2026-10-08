@@ -1,5 +1,5 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowUpRight, Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
+import { ChevronRight, Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
 import { useLocale } from '../../i18n/locale';
 import type { ShowToast } from '../../app/context';
@@ -22,7 +22,7 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
   const CurrentIcon = ICONS[current.icon];
   return <div className="life-tools">
     <header className="tools-hero"><div><span className="tools-eyebrow" translate="no">{locale === 'en' ? 'Everyday tools' : locale === 'zh-Hant' ? '日常實用工具' : '日常实用工具'}</span><h1>生活的小麻烦，<br /><em>顺手解决。</em></h1><p>从一句英文、一笔账，到搬家前的一张清单。<br />给湾区日常，准备一套用得上的小工具。</p></div><div className="tools-hero-art" aria-hidden="true"><div><Sparkles /><span>表达清楚</span></div><div><Calculator /><span>心里有数</span></div><div><CheckCheck /><span>慢慢办妥</span></div></div></header>
-    <nav className="tools-picker" aria-label="选择生活工具">{LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <Link key={tool.id} to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={active === tool.id ? 'page' : undefined} className={`tools-picker-card ${active === tool.id ? 'is-active' : ''}`}><span className="tools-picker-icon"><Icon size={22} /></span><span className="tools-picker-tag">{tool.tag}</span><strong>{tool.title}</strong><small>{tool.short}</small><ArrowUpRight className="tools-picker-arrow" size={17} /></Link>; })}</nav>
+    <nav className="tools-picker" aria-label="选择生活工具">{LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <Link key={tool.id} to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={active === tool.id ? 'page' : undefined} className={`tools-picker-card ${active === tool.id ? 'is-active' : ''}`}><span className="tools-picker-icon"><Icon size={22} /></span><span className="tools-picker-tag">{tool.tag}</span><strong>{tool.title}</strong><small>{tool.short}</small><ChevronRight className="tools-picker-arrow" size={17} /></Link>; })}</nav>
     <section id="tool-workspace" className="tool-workspace" aria-labelledby="active-tool-title"><header className="tool-workspace-header"><span><CurrentIcon size={24} /></span><div><p>{current.tag}</p><h2 id="active-tool-title">{current.title}</h2><p>{current.description}</p></div></header>
       <div className="tool-workspace-body">
         <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
@@ -35,6 +35,6 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
         <div hidden={active !== 'moving'}><MovingChecklistTool key={storageScope} storageScope={storageScope} onToast={onToast} /></div>
       </div>
     </section>
-    <footer className="tools-footer"><p>计算和清单在本机处理；AI 沟通仅在你点击生成后提交内容。<br />关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">需要更完整的生活攻略？<span>看看湾区指南 <ArrowUpRight size={15} /></span></Link></footer>
+    <footer className="tools-footer"><p>计算和清单在本机处理；AI 沟通仅在你点击生成后提交内容。<br />关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">需要更完整的生活攻略？<span>看看湾区指南 <ChevronRight size={15} /></span></Link></footer>
   </div>;
 }

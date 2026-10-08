@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowRight, ArrowUpRight, MapPin } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
+import { ArrowRight, ArrowUpRight, ChevronRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getGuideBySlug } from '../data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
@@ -24,10 +25,10 @@ export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => 
   if (!guide) return null;
   const { cover } = getGuideMedia(guide);
   return <section className="bl-guide-explorer" aria-labelledby="guide-explorer-title">
-    <div className="bl-guide-explorer-heading"><div><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
+    <div className="bl-guide-explorer-heading"><div><EnglishOnly><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span></EnglishOnly><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
     <div className="bl-guide-mood-picker" role="group" aria-label="选择周末灵感">{IDEAS.map((item, index) => <button type="button" key={item.slug} aria-pressed={selected === index} onClick={() => setSelected(index)}>{item.label}</button>)}</div>
     <div className="bl-guide-explorer-feature" aria-live="polite">
-      <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? getImageProvenance(cover, locale === 'en') : cover.kind === 'poster' ? '官方宣传图' : 'AI 原创插图'} <ArrowUpRight size={16} /></span></Link>
+      <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? getImageProvenance(cover, locale === 'en') : cover.kind === 'poster' ? '官方宣传图' : 'AI 原创插图'} <ChevronRight size={16} /></span></Link>
       <div className="bl-guide-explorer-copy"><span className="bl-guide-eyebrow"><MapPin size={13} /> {idea.place}</span><h3>{idea.note}</h3><p>{guide.summary}</p><span className="bl-guide-explorer-detail">{idea.detail}</span><Link to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))}>读这篇攻略 <ArrowRight size={17} /></Link><small>{guide.readMinutes} 分钟阅读 · 附官方资料</small></div>
     </div>
   </section>;

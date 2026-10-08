@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Copy, Plus, X } from 'lucide-react';
+import { ChevronRight, Copy, Plus, X } from 'lucide-react';
 import { calculateRentalBudget, splitSharedBill } from '../../lib/life-tools';
 import type { ShowToast } from '../../app/context';
 import { translateText, useLocale } from '../../i18n/locale';
@@ -44,7 +44,7 @@ export function RentalBudgetTool({ onToast }: { onToast: ShowToast }) {
     <div className="tool-budget-results" aria-live="polite"><div><span>每月固定开销</span><strong>{result ? usd(result.monthlyTotalCents) : '—'}</strong><small>月租 + 水电网 + 停车 + 其他月费</small></div><div><span>入住首月现金需求</span><strong>{result ? usd(result.firstMonthCashCents) : '—'}</strong><small>月开销 + 一次性费用 + 押金</small></div></div>
     <p className="tool-note">押金按自填金额计入现金需求，是否及何时退还需按实际约定确认。首月按整月计算；没有填写的费用未计入。</p>
     <div className="tool-actions"><button type="button" className="tool-button" disabled={!result} onClick={() => copyResult(translateText(summary), onToast)}><Copy size={16} />复制费用摘要</button><button type="button" className="tool-button-secondary" onClick={() => { setValues(EMPTY_RENT); setExample(false); }}>清空</button></div>
-    <Link className="tool-related-link" to="/guides/rental-lease-checklist-before-signing">签约前，还需要核对什么？<ArrowUpRight size={15} /></Link>
+    <Link className="tool-related-link" to="/guides/rental-lease-checklist-before-signing">签约前，还需要核对什么？<ChevronRight size={15} /></Link>
   </div>;
 }
 

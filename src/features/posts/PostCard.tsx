@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   ThumbsUp, MoreHorizontal, Flag, UserX, Star, Edit, Trash2, Share2, MessageCircle,
-  MapPin, Images, House, Armchair, Wrench, Car, BriefcaseBusiness, Truck, Sparkles, Languages, ArrowUpRight,
+  MapPin, Images, House, Armchair, Wrench, Car, BriefcaseBusiness, Truck, Sparkles, Languages, ChevronRight,
 } from 'lucide-react';
 import Avatar from '../../components/Avatar';
 import { BookmarkButton } from '../../components/BookmarkButton';
@@ -96,7 +96,7 @@ export const PostCard = ({ post, layout = 'list', onClick, onContactClick, onAva
             >
               <CategoryIcon size={44} strokeWidth={1.3} aria-hidden="true" />
               <span>{post.category || '湾区生活'}</span>
-              <ArrowUpRight size={20} className="post-card__illustration-arrow" aria-hidden="true" />
+              <ChevronRight size={20} className="post-card__illustration-arrow" aria-hidden="true" />
             </Link>
           )}
           {post.isFeatured && <span className="post-card__featured"><Star size={12} fill="currentColor" /> 编辑精选</span>}

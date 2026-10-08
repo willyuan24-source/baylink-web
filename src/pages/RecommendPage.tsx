@@ -1,5 +1,6 @@
 // 推荐页：编辑专题、精选帖子与推广信息，保留原有广告和管理行为。
 import { Sparkles, Megaphone } from 'lucide-react';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { useApp } from '../app/context';
 import { FeaturedPostsSection } from '../features/home/HomeSections';
 import { OfficialAds } from '../features/ads/OfficialAds';
@@ -15,7 +16,7 @@ export default function RecommendPage() {
   return (
     <div className="editorial-recommend-page">
       <header className="editorial-recommend-heading">
-        <span className="editorial-collections__eyebrow">SELECTED FOR LOCAL LIFE</span>
+        <EnglishOnly><span className="editorial-collections__eyebrow">SELECTED FOR LOCAL LIFE</span></EnglishOnly>
         <h1>值得了解的，放在这里。</h1>
         <p>从主题指南到邻里信息，为你的湾区生活提供一些参考。编辑精选与推广信息不代表资质认证或交易担保，联系前请核实详情。</p>
       </header>

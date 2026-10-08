@@ -32,7 +32,7 @@ const ActionButtons = ({
         key={action.id}
         type="button"
         onClick={() => onAction(action.runKey)}
-        className="flex w-full items-center gap-2 rounded-xl border border-black/[0.04] bg-white px-3 py-2.5 text-left text-[13px] font-medium text-baylink-text transition hover:border-baylink-green/20 hover:bg-baylink-green/[0.04] active:scale-[0.99]"
+        className="flex w-full items-center gap-2 rounded-xl border border-black/[0.04] bg-white px-3 py-2.5 text-left text-[13px] font-normal text-baylink-text transition hover:border-baylink-green/20 hover:bg-baylink-green/[0.04] active:scale-[0.99]"
       >
         <span className="shrink-0 text-base leading-none" aria-hidden>{action.emoji}</span>
         <span>{action.label}</span>
