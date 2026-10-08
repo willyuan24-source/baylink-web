@@ -3,8 +3,9 @@
   "counts": {
     "hexOccurrences": 3142,
     "hexDistinct": 2168,
-    "fontSizePx": 1732,
-    "fontSizePxUnder13": 1027,
+    "fontSizePx": 0,
+    "fontSizePxUnder13": 0,
+    "fontSizeUnder13": 1032,
     "radiusKinds": 77,
     "shadowKinds": 95,
     "fontWeightOutsideSet": 0,
@@ -2541,8 +2542,7 @@
       "hexOccurrences": 11
     },
     "src/components/about-baylink.css": {
-      "fontSizePx": 28,
-      "fontSizePxUnder13": 15,
+      "fontSizeUnder13": 15,
       "hexOccurrences": 36
     },
     "src/components/AboutContent.tsx": {
@@ -2581,8 +2581,7 @@
       "textArbitraryUnder13": 3
     },
     "src/components/calendar-event-map.css": {
-      "fontSizePx": 10,
-      "fontSizePxUnder13": 8,
+      "fontSizeUnder13": 8,
       "hexOccurrences": 32
     },
     "src/components/CategoryGuideStrip.tsx": {
@@ -2618,22 +2617,18 @@
       "textArbitraryUnder13": 8
     },
     "src/components/discovery-community.css": {
-      "fontSizePx": 46,
-      "fontSizePxUnder13": 20,
+      "fontSizeUnder13": 20,
       "hexOccurrences": 77
     },
     "src/components/editorial-content.css": {
-      "fontSizePx": 19,
-      "fontSizePxUnder13": 4,
+      "fontSizeUnder13": 4,
       "hexOccurrences": 23
     },
     "src/components/ErrorBoundary.tsx": {
-      "fontSizePx": 4,
       "hexOccurrences": 5
     },
     "src/components/event-calendar.css": {
-      "fontSizePx": 49,
-      "fontSizePxUnder13": 35,
+      "fontSizeUnder13": 35,
       "hexOccurrences": 74
     },
     "src/components/ForgotPasswordModal.tsx": {
@@ -2641,21 +2636,18 @@
       "textArbitraryUnder13": 2
     },
     "src/components/freebie-board.css": {
-      "fontSizePx": 50,
-      "fontSizePxUnder13": 34,
+      "fontSizeUnder13": 34,
       "hexOccurrences": 82
     },
     "src/components/FreebieBoard.tsx": {
       "arrowUpRight": 1
     },
     "src/components/guide-journal.css": {
-      "fontSizePx": 19,
-      "fontSizePxUnder13": 10,
+      "fontSizeUnder13": 10,
       "hexOccurrences": 18
     },
     "src/components/guide-visuals.css": {
-      "fontSizePx": 29,
-      "fontSizePxUnder13": 18,
+      "fontSizeUnder13": 18,
       "hexOccurrences": 47
     },
     "src/components/GuideDetail.tsx": {
@@ -2665,8 +2657,7 @@
       "arrowUpRight": 1
     },
     "src/components/guides-ui.css": {
-      "fontSizePx": 197,
-      "fontSizePxUnder13": 101,
+      "fontSizeUnder13": 101,
       "hexOccurrences": 253
     },
     "src/components/GuideVisuals.tsx": {
@@ -2685,18 +2676,15 @@
       "arrowUpRight": 4
     },
     "src/components/monthly-deals.css": {
-      "fontSizePx": 22,
-      "fontSizePxUnder13": 16,
+      "fontSizeUnder13": 16,
       "hexOccurrences": 32
     },
     "src/components/monthly-discoveries.css": {
-      "fontSizePx": 26,
-      "fontSizePxUnder13": 18,
+      "fontSizeUnder13": 18,
       "hexOccurrences": 44
     },
     "src/components/monthly-edition.css": {
-      "fontSizePx": 106,
-      "fontSizePxUnder13": 79,
+      "fontSizeUnder13": 79,
       "hexOccurrences": 135
     },
     "src/components/MonthlyEdition.tsx": {
@@ -2713,21 +2701,18 @@
       "hexOccurrences": 18
     },
     "src/components/outing-inspiration.css": {
-      "fontSizePx": 2,
-      "fontSizePxUnder13": 1,
+      "fontSizeUnder13": 1,
       "hexOccurrences": 8
     },
     "src/components/perks-gallery.css": {
-      "fontSizePx": 26,
-      "fontSizePxUnder13": 20,
+      "fontSizeUnder13": 20,
       "hexOccurrences": 32
     },
     "src/components/PerksGallery.tsx": {
       "arrowUpRight": 1
     },
     "src/components/planner-web-library.css": {
-      "fontSizePx": 8,
-      "fontSizePxUnder13": 3,
+      "fontSizeUnder13": 3,
       "hexOccurrences": 17
     },
     "src/components/PlannerWebSearch.tsx": {
@@ -2751,21 +2736,18 @@
       "baylinkClasses": 1
     },
     "src/components/product-improvements.css": {
-      "fontSizePx": 21,
-      "fontSizePxUnder13": 14,
+      "fontSizeUnder13": 14,
       "hexOccurrences": 26
     },
     "src/components/PublicContentDirectory.tsx": {
       "baylinkClasses": 10
     },
     "src/components/reader-library.css": {
-      "fontSizePx": 17,
-      "fontSizePxUnder13": 14,
+      "fontSizeUnder13": 14,
       "hexOccurrences": 30
     },
     "src/components/regional-bulletins.css": {
-      "fontSizePx": 8,
-      "fontSizePxUnder13": 6,
+      "fontSizeUnder13": 6,
       "hexOccurrences": 10
     },
     "src/components/RegionalBulletins.tsx": {
@@ -2780,13 +2762,11 @@
       "textArbitraryUnder13": 1
     },
     "src/components/school-guide-topics.css": {
-      "fontSizePx": 8,
-      "fontSizePxUnder13": 2,
+      "fontSizeUnder13": 2,
       "hexOccurrences": 12
     },
     "src/components/ServiceAvailabilityDraft.tsx": {
-      "fontSizePx": 3,
-      "fontSizePxUnder13": 2,
+      "fontSizeUnder13": 2,
       "hexOccurrences": 2
     },
     "src/components/ShoppingDirectory.tsx": {
@@ -2807,13 +2787,11 @@
       "hexOccurrences": 2
     },
     "src/components/tools/dining-calculator.css": {
-      "fontSizePx": 23,
-      "fontSizePxUnder13": 12,
+      "fontSizeUnder13": 12,
       "hexOccurrences": 44
     },
     "src/components/tools/loan-calculator.css": {
-      "fontSizePx": 23,
-      "fontSizePxUnder13": 15,
+      "fontSizeUnder13": 15,
       "hexOccurrences": 36
     },
     "src/components/tools/LoanCalculatorTool.tsx": {
@@ -2821,13 +2799,11 @@
       "hexOccurrences": 7
     },
     "src/components/tools/tools.css": {
-      "fontSizePx": 46,
-      "fontSizePxUnder13": 26,
+      "fontSizeUnder13": 26,
       "hexOccurrences": 93
     },
     "src/components/tools/unit-price.css": {
-      "fontSizePx": 23,
-      "fontSizePxUnder13": 14,
+      "fontSizeUnder13": 14,
       "hexOccurrences": 31
     },
     "src/components/ui/confirm.tsx": {
@@ -2856,8 +2832,7 @@
       "hexOccurrences": 2
     },
     "src/design.css": {
-      "fontSizePx": 117,
-      "fontSizePxUnder13": 59,
+      "fontSizeUnder13": 59,
       "hexOccurrences": 218
     },
     "src/editorial-refinement.css": {
@@ -2877,23 +2852,19 @@
       "textArbitraryUnder13": 2
     },
     "src/features/baybay-actions.css": {
-      "fontSizePx": 12,
-      "fontSizePxUnder13": 9,
+      "fontSizeUnder13": 9,
       "hexOccurrences": 24
     },
     "src/features/baybay-conversation.css": {
-      "fontSizePx": 62,
-      "fontSizePxUnder13": 43,
+      "fontSizeUnder13": 43,
       "hexOccurrences": 86
     },
     "src/features/bookings/bookings.css": {
-      "fontSizePx": 62,
-      "fontSizePxUnder13": 21,
+      "fontSizeUnder13": 21,
       "hexOccurrences": 93
     },
     "src/features/bookings/my-week-bookings.css": {
-      "fontSizePx": 17,
-      "fontSizePxUnder13": 10,
+      "fontSizeUnder13": 10,
       "hexOccurrences": 23
     },
     "src/features/home/HomeSections.tsx": {
@@ -2905,39 +2876,33 @@
       "hexOccurrences": 7
     },
     "src/features/member-ui.css": {
-      "fontSizePx": 73,
-      "fontSizePxUnder13": 42,
+      "fontSizeUnder13": 42,
       "hexOccurrences": 235
     },
     "src/features/messages/chat-ai.css": {
-      "fontSizePx": 17,
-      "fontSizePxUnder13": 13,
+      "fontSizeUnder13": 13,
       "hexOccurrences": 26
     },
     "src/features/messages/ChatView.tsx": {
       "baylinkClasses": 1
     },
     "src/features/outings/my-week-outings.css": {
-      "fontSizePx": 4,
-      "fontSizePxUnder13": 2,
+      "fontSizeUnder13": 2,
       "hexOccurrences": 28
     },
     "src/features/outings/outing-cover.css": {
-      "fontSizePx": 26,
-      "fontSizePxUnder13": 14,
+      "fontSizeUnder13": 14,
       "hexOccurrences": 49
     },
     "src/features/outings/outing-time-poll.css": {
-      "fontSizePx": 15,
-      "fontSizePxUnder13": 10,
+      "fontSizeUnder13": 10,
       "hexOccurrences": 41
     },
     "src/features/outings/OutingCover.tsx": {
       "arrowUpRight": 1
     },
     "src/features/outings/outings.css": {
-      "fontSizePx": 49,
-      "fontSizePxUnder13": 16,
+      "fontSizeUnder13": 16,
       "hexOccurrences": 78
     },
     "src/features/posts/CreatePostModal.tsx": {
@@ -2945,8 +2910,7 @@
       "textArbitraryUnder13": 26
     },
     "src/features/posts/posts-ui.css": {
-      "fontSizePx": 42,
-      "fontSizePxUnder13": 28,
+      "fontSizeUnder13": 28,
       "hexOccurrences": 121
     },
     "src/features/profile/EditProfileModal.tsx": {
@@ -2954,17 +2918,14 @@
       "textArbitraryUnder13": 9
     },
     "src/features/profile/privacy-security.css": {
-      "fontSizePx": 6,
       "hexOccurrences": 20
     },
     "src/features/profile/profile-personal-space.css": {
-      "fontSizePx": 22,
-      "fontSizePxUnder13": 18,
+      "fontSizeUnder13": 18,
       "hexOccurrences": 55
     },
     "src/features/profile/profile-personality.css": {
-      "fontSizePx": 55,
-      "fontSizePxUnder13": 44,
+      "fontSizeUnder13": 44,
       "hexOccurrences": 122
     },
     "src/features/profile/ProfileSubViews.tsx": {
@@ -2985,8 +2946,7 @@
       "baylinkClasses": 4
     },
     "src/features/source-monitor/source-monitor.css": {
-      "fontSizePx": 22,
-      "fontSizePxUnder13": 9,
+      "fontSizeUnder13": 9,
       "hexOccurrences": 34
     },
     "src/features/users/UserProfileModal.tsx": {
@@ -2994,12 +2954,11 @@
       "textArbitraryUnder13": 6
     },
     "src/i18n/languages.css": {
-      "fontSizePx": 8,
-      "fontSizePxUnder13": 4,
+      "fontSizeUnder13": 4,
       "hexOccurrences": 6
     },
     "src/index.css": {
-      "fontSizePx": 1,
+      "fontSizeUnder13": 4,
       "hexOccurrences": 63
     },
     "src/lib/planner-copy.ts": {
@@ -3021,32 +2980,27 @@
       "baylinkClasses": 6
     },
     "src/styles/attractions.css": {
-      "fontSizePx": 41,
-      "fontSizePxUnder13": 24,
+      "fontSizeUnder13": 24,
       "hexOccurrences": 77
     },
     "src/styles/discovery-workflow.css": {
-      "fontSizePx": 38,
-      "fontSizePxUnder13": 26,
+      "fontSizeUnder13": 26,
       "hexOccurrences": 60
     },
     "src/styles/event-import.css": {
-      "fontSizePx": 37,
-      "fontSizePxUnder13": 16,
+      "fontSizeUnder13": 16,
       "hexOccurrences": 62
     },
     "src/styles/modern-messaging.css": {
-      "fontSizePx": 57,
-      "fontSizePxUnder13": 36,
+      "fontSizeUnder13": 36,
       "hexOccurrences": 138
     },
     "src/styles/planner.css": {
-      "fontSizePx": 135,
-      "fontSizePxUnder13": 96,
+      "fontSizeUnder13": 96,
       "hexOccurrences": 185
     },
     "src/tokens.css": {
-      "fontSizePx": 1
+      "fontSizeUnder13": 1
     }
   }
 }
