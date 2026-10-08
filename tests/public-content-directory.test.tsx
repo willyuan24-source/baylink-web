@@ -43,7 +43,8 @@ test('the first HTML retains one canonical anchor for every discovery in each la
         assert.equal(anchors[0].closest('details')?.hasAttribute('open'), false);
       }
       for (const slug of Object.keys(SLUG_TO_CATEGORY)) assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath(`/category/${slug}`, locale)), slug);
-      assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/recommend', locale)));
+      assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/events', locale)));
+      assert.ok(![...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/recommend', locale)), '/recommend is a redirect to /events now');
       if (locale === 'en') {
         assert.equal(document.querySelector('h1')?.textContent, 'Content directory and archives');
         const fleetWeek = [...document.querySelectorAll('a')].find(anchor => anchor.getAttribute('href') === '/en/events/san-francisco-fleet-week-2026');

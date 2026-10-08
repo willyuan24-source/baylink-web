@@ -1,3 +1,5 @@
+import { matchRoute } from './app/route-table';
+
 /** Category URL slugs (English) ↔ display names (Chinese). */
 export const SLUG_TO_CATEGORY: Record<string, string> = {
   rent: '租屋',
@@ -35,13 +37,12 @@ export const getSlugFromCategory = (category: string): string | null => {
   return Object.hasOwn(CATEGORY_TO_SLUG, category) ? CATEGORY_TO_SLUG[category] : null;
 };
 
+/** A path the app renders (route table), with category slugs checked against the known list. */
 export const isKnownAppPath = (pathname: string): boolean => {
   const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-  if (['/me/bookings', '/together', '/this-week', '/archive', '/verify-email', '/notifications/unsubscribe'].includes(path)) return true;
-  if (['/', '/guides', '/this-month', '/calendar', '/explore', '/plan', '/play', '/opus-bay', '/my-week', '/ai-in-the-bay', '/tools', '/recommend', '/messages', '/me', '/about', '/privacy', '/terms', '/sms-consent', '/reset-password'].includes(path)) return true;
-  if (/^\/(posts|users|messages|guides|events|offers|openings)\/[^/]+$/.test(path)) return true;
+  if (!matchRoute(path)) return false;
   const category = path.match(/^\/category\/([^/]+)$/)?.[1];
-  return !!category && Object.hasOwn(SLUG_TO_CATEGORY, category);
+  return !category || Object.hasOwn(SLUG_TO_CATEGORY, category);
 };
 
 export const postShareUrl = (postId: string) => `${window.location.origin}/posts/${postId}`;

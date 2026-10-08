@@ -1,0 +1,11 @@
+/* /events masthead (WEB-ROUTES first cut; WEB-EVENTS restyles the column in wave 2): H1 活动, the weekend's dates and
+   the four views. Loaded with the route chunk; prerendered pages link it (scripts/prerender.tsx, RC-6). */
+.events-masthead { margin:0 0 1.75rem; }
+.events-masthead h1 { margin:0; color:var(--color-ink); font-size:calc(1.75rem * var(--reading-scale)); line-height:1.3; font-weight:700; }
+.events-masthead-range { margin:.375rem 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.events-segments { display:flex; flex-wrap:wrap; gap:.5rem; margin-top:1rem; }
+.events-segments a { display:inline-flex; align-items:center; min-height:2.75rem; padding:0 1rem; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; text-decoration:none; }
+.events-segments a:hover { border-color:var(--color-brand); color:var(--color-brand); }
+.events-segments a[aria-current=page] { border-color:var(--color-brand); background:var(--color-selected); color:var(--color-brand); }
+.events-segments a:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+@media (max-width:639px) { .events-masthead { margin-bottom:1.25rem; } .events-masthead h1 { font-size:calc(1.5rem * var(--reading-scale)); } }

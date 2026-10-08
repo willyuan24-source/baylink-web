@@ -2,9 +2,9 @@ import { octnov2026Guides } from '../data/octnov-2026-refresh';
 import { november2026Guides } from '../data/november-2026-guides';
 import { PerksGallery } from './PerksGallery';
 import { recordProductEvent } from '../lib/product-events';
-import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronDown, Expand, MapPin, Search, SlidersHorizontal, Store, Ticket } from 'lucide-react';
-import { Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../data/monthly-edition';
 import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-types';
 import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
@@ -28,7 +28,6 @@ import { EditorialShareActions } from './EditorialShareActions';
 import { eventShare } from '../lib/editorial-share';
 import { RegionalBulletins } from './RegionalBulletins';
 import { getImageProvenance } from '../lib/image-provenance';
-import { unprefixedPath } from '../lib/language-path';
 
 const REGIONS: { value: MonthlyRegion | 'all'; label: string }[] = [
   { value: 'all', label: '整个湾区' }, { value: 'sf', label: '旧金山' },
@@ -101,12 +100,15 @@ function PlaceCard({ place, index }: { place: MonthlyPlace; index: number }) {
   </article>;
 }
 
-export function MonthlyEdition({ today: suppliedToday, defaultDateFilter }: { today?: string; defaultDateFilter?: MonthlyDateFilter } = {}) {
+/**
+ * The events edition. /this-month shows every date under the autumn masthead; /events (pages/EventsPage) passes
+ * defaultDateFilter="weekend" and its own `masthead`, which replaces the breadcrumb, autumn H1 and jump links.
+ */
+export function MonthlyEdition({ today: suppliedToday, defaultDateFilter, masthead }: { today?: string; defaultDateFilter?: MonthlyDateFilter; masthead?: ReactNode } = {}) {
   const locale = useLocale();
   const [visibleCount, setVisibleCount] = useState(6);
   const [localToday, setLocalToday] = useState(getBayAreaToday);
   const [searchParams] = useSearchParams();
-  const location = useLocation();
   const today = suppliedToday || localToday;
   useEffect(() => {
     const refresh = () => setLocalToday(getBayAreaToday());
@@ -114,14 +116,13 @@ export function MonthlyEdition({ today: suppliedToday, defaultDateFilter }: { to
     const interval = window.setInterval(refresh, 60_000);
     return () => { window.removeEventListener('focus', refresh); window.clearInterval(interval); };
   }, []);
-  const weekly = unprefixedPath(location.pathname).replace(/\/$/, '') === '/this-week';
-  const dateDefault = defaultDateFilter || (weekly ? 'weekend' : 'all');
+  const dateDefault = defaultDateFilter || 'all';
   const candidates = monthlyCandidates(searchParams, dateDefault, today, locale);
   // These modes compare membership/counts across the full catalog. Ordinary
   // chronological browsing only needs counts for cards currently on screen.
   const needsAllCounts = searchParams.get('sort') === 'popular' || ['interested', 'buddies'].includes(searchParams.get('view') || '');
   const countScope = needsAllCounts ? MONTHLY_EVENTS : candidates.slice(0, visibleCount);
-  return <EventParticipationProvider events={countScope}><MonthlyEditionContent today={today} defaultDateFilter={defaultDateFilter} candidates={candidates} visibleCount={visibleCount} setVisibleCount={setVisibleCount} /></EventParticipationProvider>;
+  return <EventParticipationProvider events={countScope}><MonthlyEditionContent today={today} defaultDateFilter={defaultDateFilter} masthead={masthead} candidates={candidates} visibleCount={visibleCount} setVisibleCount={setVisibleCount} /></EventParticipationProvider>;
 }
 
 function monthlyCandidates(params: URLSearchParams, defaultDate: MonthlyDateFilter, today: string, locale: ReturnType<typeof useLocale>): MonthlyEvent[] {
@@ -137,8 +138,8 @@ function monthlyCandidates(params: URLSearchParams, defaultDate: MonthlyDateFilt
     .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
 }
 
-function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCount, setVisibleCount }: {
-  today: string; defaultDateFilter?: MonthlyDateFilter; candidates: MonthlyEvent[];
+function MonthlyEditionContent({ today, defaultDateFilter, masthead, candidates, visibleCount, setVisibleCount }: {
+  today: string; defaultDateFilter?: MonthlyDateFilter; masthead?: ReactNode; candidates: MonthlyEvent[];
   visibleCount: number; setVisibleCount: Dispatch<SetStateAction<number>>;
 }) {
   const locale = useLocale();
@@ -150,9 +151,7 @@ function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCo
   const selectedRegion = searchParams.get('region') || 'all';
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const cost = searchParams.get('cost') === 'free' ? 'free' : 'all';
-  const location = useLocation();
-  const weekly = unprefixedPath(location.pathname).replace(/\/$/, '') === '/this-week';
-  const dateDefault = defaultDateFilter || (weekly ? 'weekend' : 'all');
+  const dateDefault = defaultDateFilter || 'all';
   const date = resolveMonthlyDateFilter(searchParams.get('when') || dateDefault);
   const dateRange = getMonthlyDateRange(date, today);
   const formatDate = (value: string) => new Intl.DateTimeFormat(locale, { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00Z`));
@@ -187,6 +186,7 @@ function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCo
   }, { replace: true, preventScrollReset: true }); };
 
   return <div className="bl-monthly">
+    {masthead ?? <>
     <nav className="bl-monthly-breadcrumb" aria-label="当前位置"><Link to="/guides">生活指南</Link><span aria-hidden="true">/</span><span>{MONTHLY_EDITION.label} · 湾区月刊</span></nav>
     <header className="bl-monthly-hero">
       <div className="bl-monthly-hero-copy"><div className="bl-monthly-eyebrow" translate="no"><span className="bl-monthly-edition-dot" />{labels.edition}</div><div className="bl-monthly-edition-line"><span>{MONTHLY_EDITION.label}</span><span>{current ? '秋季湾区精选' : '往期月刊'}</span></div><h1><span className="bl-monthly-title-opening">{MONTHLY_EDITION.title.slice(0, MONTHLY_EDITION.title.indexOf('，') + 1)}</span>{locale === 'en' ? ' ' : null}{MONTHLY_EDITION.title.slice(MONTHLY_EDITION.title.indexOf('，') + 1)}</h1><p>{MONTHLY_EDITION.intro}</p><div className="bl-monthly-hero-links"><Link to="/calendar">打开活动日历与地图 <CalendarDays size={17} aria-hidden="true" /></Link><a href="#monthly-events">{current ? '挑一个秋季活动' : '浏览本期活动'} <ArrowRight size={17} aria-hidden="true" /></a>{current && <a href="#monthly-news">生活快讯 <ArrowRight size={16} aria-hidden="true" /></a>}<a href="#monthly-places">看看慢游提案 <ArrowRight size={16} aria-hidden="true" /></a></div><div className="bl-monthly-hero-stats"><span><strong>{current ? activeCount : MONTHLY_EVENTS.length}</strong>{current ? '场待赴的约' : '场活动记录'}</span><span><strong>{MONTHLY_PLACES.length}</strong>个慢游提案</span><span className="bl-monthly-checked"><Check size={14} aria-hidden="true" />最近更新 {MONTHLY_EDITION.checkedAt}</span></div></div>
@@ -198,7 +198,7 @@ function MonthlyEditionContent({ today, defaultDateFilter, candidates, visibleCo
       <a href="#monthly-perks"><Ticket size={18} aria-hidden="true" /><span>优惠福利</span><strong>{liveOffers.length}</strong></a>
       <a href="#monthly-openings"><Store size={18} aria-hidden="true" /><span>新店消息</span><strong>{currentOpenings.length}</strong></a>
       <a href="#monthly-places"><MapPin size={18} aria-hidden="true" /><span>慢游提案</span><strong>{MONTHLY_PLACES.length}</strong></a>
-    </nav>
+    </nav></>}
     <section className="bl-monthly-events" id="monthly-events" aria-labelledby="monthly-events-heading">
       <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow" translate="no">{labels.events}</span><h2 id="monthly-events-heading">{current ? '秋季活动与后续预告，找到出门的理由' : `${MONTHLY_EDITION.label} · 活动记录`}</h2></div><p>从主办方资料出发，帮你把一个周末安排得更轻松。</p></div>
       <div className="bl-monthly-filters">

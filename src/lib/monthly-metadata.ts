@@ -13,9 +13,11 @@ export const MONTHLY_METADATA: PageMetadata = {
   }],
 };
 
-export const WEEKLY_METADATA: PageMetadata = {
+/** /events (活动, 本周末 by default). /this-week is a 301 to it. */
+export const EVENTS_METADATA: PageMetadata = {
   ...MONTHLY_METADATA,
-  path: '/this-week',
+  path: '/events',
   title: '本周末湾区活动与官方来源｜BAYLINK',
   description: '按湾区当地日期查看本周末的真实活动，附日期、费用、主办方来源与出游入口。',
+  structuredData: MONTHLY_METADATA.structuredData!.map(item => ({ ...item, url: `${SITE_URL}/events` })),
 };

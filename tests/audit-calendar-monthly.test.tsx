@@ -13,6 +13,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, cleanup, fireEvent, act } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter, useLocation } = await import('react-router-dom');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
+const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const originalMatchMedia = dom.window.matchMedia;
 afterEach(() => { cleanup(); dom.window.matchMedia = originalMatchMedia; });
@@ -21,9 +22,9 @@ function LocationProbe() { const location = useLocation(); return <output data-t
 const today = '2026-10-06';
 const dateButton = (document: ParentNode) => document.querySelector('.bl-monthly-date-options button[aria-pressed="true"]')?.textContent;
 
-test('weekly SSR starts with the real Bay Area weekend across language prefixes and trailing slashes', () => {
-  for (const path of ['/this-week', '/this-week/', '/en/this-week', '/zh-Hant/this-week/']) {
-    const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={path}><MonthlyEdition today={today} /></StaticRouter>));
+test('the /events SSR (活动, 本周末) starts with the real Bay Area weekend across language prefixes and trailing slashes', () => {
+  for (const path of ['/events', '/events/', '/en/events', '/zh-Hant/events/']) {
+    const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={path}><EventsView today={today} /></StaticRouter>));
     assert.equal(dateButton(fragment), '这个周末', path);
     const range = getMonthlyDateRange('weekend', today)!;
     assert.deepEqual([...fragment.querySelectorAll('.bl-monthly-date-range time')].map(item => item.getAttribute('datetime')), [range.start, range.end]);
@@ -40,12 +41,12 @@ test('monthly SSR defaults to all dates, allows explicit initial filters, and pl
   assert.ok(sections.indexOf('monthly-news') < sections.indexOf('monthly-perks'));
   const explicit = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/this-month"><MonthlyEdition today={today} defaultDateFilter="weekend" /></StaticRouter>));
   assert.equal(dateButton(explicit), '这个周末');
-  const override = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/this-week?when=today"><MonthlyEdition today={today} defaultDateFilter="weekend" /></StaticRouter>));
+  const override = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events?when=today"><MonthlyEdition today={today} defaultDateFilter="weekend" /></StaticRouter>));
   assert.equal(dateButton(override), '今天', 'explicit URL state takes priority over the page default');
 });
 
-test('weekly all-dates selection persists in the URL and retains unrelated query filters', () => {
-  const view = render(<MemoryRouter initialEntries={['/this-week?region=sf&tracking=kept']}><MonthlyEdition today={today} /><LocationProbe /></MemoryRouter>);
+test('the /events all-dates selection persists in the URL and retains unrelated query filters', () => {
+  const view = render(<MemoryRouter initialEntries={['/events?region=sf&tracking=kept']}><EventsView today={today} /><LocationProbe /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(dateButton(view.container), '全部日期');
   const query = new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams;

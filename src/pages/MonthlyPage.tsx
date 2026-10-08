@@ -1,11 +1,10 @@
-import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import { MonthlyEdition } from '../components/MonthlyEdition';
-import { MONTHLY_METADATA, WEEKLY_METADATA } from '../lib/monthly-metadata';
+import { MONTHLY_METADATA } from '../lib/monthly-metadata';
 import { setPageMetadata } from '../lib/seo';
 
+/** /this-month: every date of the autumn edition. The weekend view is /events (pages/EventsPage). */
 export default function MonthlyPage() {
-  const { pathname } = useLocation();
-  useEffect(() => setPageMetadata(pathname.replace(/\/+$/, '') === '/this-week' ? WEEKLY_METADATA : MONTHLY_METADATA), [pathname]);
+  useEffect(() => setPageMetadata(MONTHLY_METADATA), []);
   return <MonthlyEdition />;
 }

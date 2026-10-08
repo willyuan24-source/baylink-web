@@ -3,6 +3,7 @@ import { CITY_EXPLORATION_SLUG, cityExplorationKey } from '../data/city-explorat
 import { simplifySearch } from '../i18n/locale';
 import { parseDiscoveryQuery } from './discovery-query';
 import { validCalendarDay } from './event-calendar';
+import { matchRoute } from '../app/route-table';
 import { getBayAreaToday } from './monthly';
 
 export type BayBaySearchContext = { city?: string; region?: string; date?: string };
@@ -72,8 +73,9 @@ export function resolveBayBaySearchState(message: string, previous: { searchCont
 export function bayBayPageSearchContext(path: string, today = getBayAreaToday()): BayBaySearchContext {
   if (!path.startsWith('/') || path.startsWith('//') || path.length > 3000) return {};
   const url = new URL(path, 'https://www.baylink.us');
-  const allowed = ['/calendar', '/this-month', '/plan', '/together', `/guides/${CITY_EXPLORATION_SLUG}`];
-  if (!allowed.includes(url.pathname.replace(/\/$/, ''))) return {};
+  const pathname = url.pathname.replace(/\/$/, '') || '/';
+  // Pages whose public parameters describe what the reader is looking at (route table `baybay`).
+  if (!matchRoute(pathname)?.baybay && pathname !== `/guides/${CITY_EXPLORATION_SLUG}`) return {};
   const one = (key: string) => url.searchParams.getAll(key).length === 1 ? url.searchParams.get(key) : null;
   const context: BayBaySearchContext = {};
   const city = one('city');
@@ -83,7 +85,7 @@ export function bayBayPageSearchContext(path: string, today = getBayAreaToday())
   if (region && ['sf', 'east-bay', 'south-bay', 'north-bay', 'peninsula'].includes(region)) context.region = region;
   const date = one('date');
   if (date && validCalendarDay(date)) context.date = date;
-  else if (url.pathname === '/this-month' && one('when') === 'today') context.date = today;
+  else if (['/this-month', '/events', '/this-week'].includes(pathname) && one('when') === 'today') context.date = today;
   return context;
 }
 

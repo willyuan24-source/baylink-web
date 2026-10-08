@@ -10,7 +10,7 @@ export function SiteMobileNavigation({ pathname, notificationCount, hasNotificat
   const english = useLocale() === 'en';
   const links = [
     { href: '/', label: english ? 'Home' : '首页', icon: Home },
-    { href: '/calendar', label: english ? 'Events' : '活动', icon: CalendarDays },
+    { href: '/events', label: english ? 'Events' : '活动', icon: CalendarDays },
     { href: '/guides', label: english ? 'Guides' : '指南', icon: BookOpen },
     { href: '/me', label: english ? 'Me' : '我的', icon: UserRound },
   ];

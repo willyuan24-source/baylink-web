@@ -58,10 +58,10 @@ export function PublicContentDirectory({ today = getBayAreaToday(), items = loca
     { kind: 'opening', id: 'directory-openings', title: label(locale, '新店记录', 'Opening records') },
   ] as const;
   const sections = [
-    ['/', '首页', 'Home'], ['/guides', '全部指南', 'Guide library'], ['/this-month', '当期发现', 'Current edition'],
-    ['/calendar', '活动日历', 'Event calendar'], ['/explore', '景点探索', 'Explore places'], ['/plan', '出游计划', 'Plan an outing'],
+    ['/', '首页', 'Home'], ['/guides', '全部指南', 'Guide library'], ['/events', '本周末活动', 'Events this weekend'],
+    ['/this-month', '当期发现', 'Current edition'], ['/calendar', '活动日历', 'Event calendar'], ['/explore', '景点探索', 'Explore places'], ['/plan', '出游计划', 'Plan an outing'],
     ['/opus-bay', '3D 旧金山', '3D San Francisco'], ['/ai-in-the-bay', '湾区 AI 现场', 'AI in the Bay'],
-    ['/tools', '生活工具', 'Life tools'], ['/recommend', '编辑推荐', 'Editorial collections'], ['/about', '关于与核验方法', 'About and sources'],
+    ['/tools', '生活工具', 'Life tools'], ['/about', '关于与核验方法', 'About and sources'],
   ];
   return <div className="public-content-directory mx-auto max-w-4xl space-y-8 px-5 py-8">
     <header className="space-y-4">

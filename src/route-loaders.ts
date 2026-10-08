@@ -1,11 +1,15 @@
+import { matchRoute, type PageKey } from './app/route-table';
+
 /** Shared promises let startup load the current page before replacing its prerendered content. */
 const cached = <T,>(load: () => Promise<T>) => {
   let promise: Promise<T> | undefined;
   return () => promise ||= load().catch(error => { promise = undefined; throw error; });
 };
+/** One loader per route-table page key (PAGE_MODULES; tests/route-table.test.ts checks the files match). */
 export const pageLoaders = {
   home: cached(() => import('./pages/HomePage')),
   guides: cached(() => import('./pages/GuidesPage')),
+  events: cached(() => import('./pages/EventsPage')),
   monthly: cached(() => import('./pages/MonthlyPage')),
   calendar: cached(() => import('./pages/CalendarPage')),
   discovery: cached(() => import('./pages/LocalDiscoveryPage')),
@@ -16,7 +20,6 @@ export const pageLoaders = {
   ai: cached(() => import('./pages/AiLocalPage')),
   guide: cached(() => import('./pages/GuideDetailPage')),
   messages: cached(() => import('./pages/MessagesPage')),
-  recommend: cached(() => import('./pages/RecommendPage')),
   profile: cached(() => import('./pages/ProfilePage')),
   bookings: cached(() => import('./pages/ServiceBookingsPage')),
   together: cached(() => import('./pages/TogetherPage')),
@@ -28,19 +31,9 @@ export const pageLoaders = {
   sms: cached(() => import('./components/SmsConsentView').then(m => ({ default: m.SmsConsentView }))),
   notificationToken: cached(() => import('./pages/NotificationTokenPage')),
   opus: cached(() => import('./opus-bay/OpusBayPage')),
-};
+} satisfies Record<PageKey, unknown>;
+
+/** The page chunk for a URL path (language prefix already removed), loaded before the app replaces the prerender. */
 export function currentPageLoader(path: string) {
-  if (/^\/(category|posts|users)\//.test(path) || path === '/' || path === '/reset-password') return pageLoaders.home;
-  if (path.startsWith('/guides/')) return pageLoaders.guide;
-  if (/^\/(events|offers|openings)\//.test(path)) return pageLoaders.discovery;
-  if (path.startsWith('/messages')) return pageLoaders.messages;
-  if (path === '/me/bookings') return pageLoaders.bookings;
-  const route: Record<string, keyof typeof pageLoaders> = {
-    '/guides': 'guides', '/this-month': 'monthly', '/this-week': 'monthly', '/calendar': 'calendar',
-    '/tools': 'tools', '/explore': 'explore', '/plan': 'plan', '/my-week': 'myWeek',
-    '/ai-in-the-bay': 'ai', '/recommend': 'recommend', '/me': 'profile', '/together': 'together',
-    '/about': 'about', '/archive': 'archive', '/privacy': 'privacy', '/terms': 'terms', '/sms-consent': 'sms', '/opus-bay': 'opus',
-    '/verify-email': 'notificationToken', '/notifications/unsubscribe': 'notificationToken',
-  };
-  return pageLoaders[route[path.replace(/\/$/, '')] || 'notFound'];
+  return pageLoaders[matchRoute(path)?.page || 'notFound'];
 }

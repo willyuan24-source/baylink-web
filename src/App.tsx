@@ -3,9 +3,11 @@
 // 页面区继续按"背景位置"渲染（来源页保持挂载），覆盖层本身由 AppLayout 按真实 URL 渲染。
 // 直接深链 /posts/:id、/users/:id（无背景）时，以首页 feed 作为覆盖层背景。
 // 除首页外全部路由懒加载（Suspense 边界在 AppLayout 的 <Outlet> 外层）。
+// 路由表：src/app/route-table.ts 是唯一来源（加载器、栏目高亮、预渲染、站点地图、托管路由）；这里的 <Route path> 与它保持一致
+// （tests/route-table.test.ts 双向检查），新增页面先改路由表。
 import { lazy, Suspense, useEffect } from 'react';
 import './i18n/router';
-import { Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams, type Location } from 'react-router-dom';
 import AppLayout from './app/AppLayout';
 import { pageLoaders } from './route-loaders';
 const HomePage = lazy(pageLoaders.home);
@@ -15,8 +17,10 @@ import { opusBayInHalloween } from './lib/opus-bay-metadata';
 import { PlayRedirect } from './components/PlayRedirect';
 import { LocaleContentGate } from './components/LocaleContentGate';
 import { useLocale } from './i18n/locale';
+import { matchRoute } from './app/route-table';
 
 const GuidesPage = lazy(pageLoaders.guides);
+const EventsPage = lazy(pageLoaders.events);
 const MonthlyPage = lazy(pageLoaders.monthly);
 const CalendarPage = lazy(pageLoaders.calendar);
 const LocalDiscoveryPage = lazy(pageLoaders.discovery);
@@ -30,7 +34,6 @@ const MyWeekPage = lazy(pageLoaders.myWeek);
 const AiLocalPage = lazy(pageLoaders.ai);
 const GuideDetailPage = lazy(pageLoaders.guide);
 const MessagesPage = lazy(pageLoaders.messages);
-const RecommendPage = lazy(pageLoaders.recommend);
 const ProfilePage = lazy(pageLoaders.profile);
 const ServiceBookingsPage = lazy(pageLoaders.bookings);
 const TogetherPage = lazy(pageLoaders.together);
@@ -41,6 +44,13 @@ const PrivacyPolicyView = lazy(pageLoaders.privacy);
 const TermsView = lazy(pageLoaders.terms);
 const SmsConsentView = lazy(pageLoaders.sms);
 const NotificationTokenPage = lazy(pageLoaders.notificationToken);
+
+/** Legacy URLs (/this-week, /recommend) inside the app: the route table's target, keeping the query and hash.
+ * The host answers a direct load with the same redirect (vercel.json, generated from the table). */
+const LegacyRedirect = () => {
+  const { pathname, search, hash } = useLocation();
+  return <Navigate replace to={{ pathname: matchRoute(pathname)?.redirect?.to || '/', search, hash }} />;
+};
 
 const CategoryPage = () => {
   const { categorySlug } = useParams();
@@ -72,8 +82,9 @@ export default function App() {
         <Route path="/users/:userId" element={<HomePage />} />
         <Route path="/reset-password" element={<HomePage />} />
         <Route path="/guides" element={<GuidesPage />} />
+        <Route path="/events" element={<EventsPage />} />
         <Route path="/this-month" element={<MonthlyPage />} />
-        <Route path="/this-week" element={<MonthlyPage />} />
+        <Route path="/this-week" element={<LegacyRedirect />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} />
         <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
@@ -86,7 +97,7 @@ export default function App() {
         <Route path="/guides/:slug" element={<GuideDetailPage />} />
         <Route path="/messages" element={<MessagesPage />} />
         <Route path="/messages/:threadId" element={<MessagesPage />} />
-        <Route path="/recommend" element={<RecommendPage />} />
+        <Route path="/recommend" element={<LegacyRedirect />} />
         <Route path="/me" element={<ProfilePage />} />
         <Route path="/me/bookings" element={<ServiceBookingsPage />} />
         <Route path="/together" element={<TogetherPage />} />

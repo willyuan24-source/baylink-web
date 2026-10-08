@@ -10,7 +10,8 @@ import '../src/i18n/metadata';
 import { setLocale, translateText, normalizeText, type Locale } from '../src/i18n/locale';
 import { languagePath, languagePrefix } from '../src/lib/language-path';
 import { renderHtmlDocument } from '../src/lib/seo';
-import { MONTHLY_METADATA, WEEKLY_METADATA } from '../src/lib/monthly-metadata';
+import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { EventsView } from '../src/components/EventsView';
 import { MONTHLY_EDITION } from '../src/data/monthly-settings';
 import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import PlannerPage from '../src/pages/PlannerPage';
@@ -33,7 +34,7 @@ import { GuidesHome } from '../src/components/GuidesHome';
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const routes = [
   { metadata: MONTHLY_METADATA, content: <MonthlyEdition defaultDateFilter="all" /> },
-  { metadata: WEEKLY_METADATA, content: <MonthlyEdition defaultDateFilter="weekend" /> },
+  { metadata: EVENTS_METADATA, content: <EventsView /> },
   { metadata: PLAN_METADATA, content: <PlannerPage /> },
   { metadata: EXPLORE_METADATA, content: <AttractionExplorer /> },
   { metadata: GUIDES_METADATA, content: <GuidesHome onOpenGuide={() => {}} /> },
@@ -67,7 +68,7 @@ test('actual calendar route scope translates every compact schedule note without
   }
 });
 
-test('monthly, weekend, planner, explore and guides SSR have translated English text and accurate three-language metadata', async () => {
+test('monthly, events (weekend), planner, explore and guides SSR have translated English text and accurate three-language metadata', async () => {
   const [, month, day] = MONTHLY_EDITION.throughDate.split('-').map(Number);
   const chineseDeadline = `${month} 月 ${day} 日`;
   const englishDeadline = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${MONTHLY_EDITION.throughDate}T12:00:00Z`));
