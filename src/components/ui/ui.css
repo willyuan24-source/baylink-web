@@ -193,7 +193,7 @@
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
 /* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
 .ui-row-card__thumb .ui-stickers { display:none; }
-.ui-row-card__thumb .ui-provenance { top:auto; bottom:4px; left:4px; max-width:calc(100% - 8px); padding:1px 4px; }
+.ui-row-card__thumb .ui-provenance { top:auto; right:0; bottom:0; left:0; max-width:none; padding:2px 4px; border-radius:0; text-align:center; }
 :is(.ui-row-card__meta,.ui-feed-card__meta)>svg { display:inline-block; vertical-align:-2px; }
 
 /* Segmented tabs (column switch) and the segmented control (DayToggle). */
