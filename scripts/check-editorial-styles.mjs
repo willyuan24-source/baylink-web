@@ -13,6 +13,7 @@ export const editorialStyleScopes = [
   { file: 'src/features/outings/outings.css', after: '/* Editorial refinement and shared reading controls.' },
   { file: 'src/features/posts/posts-ui.css', selectors: /^\.post-translation(?:\s|$)/ },
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
+  { file: 'src/pages/profile-page.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

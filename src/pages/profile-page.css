@@ -1,0 +1,3 @@
+/* /me settings stack: the reading-size and notification cards share the profile's container and gutters (SYS-13). */
+.member-profile-settings { width:100%; max-width:1000px; margin:0 auto; padding:8px 32px 0; }
+@media (max-width:639px) { .member-profile-settings { padding:4px 18px 0; } }
