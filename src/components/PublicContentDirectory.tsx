@@ -58,7 +58,7 @@ export function PublicContentDirectory({ today = getBayAreaToday(), items = loca
     { kind: 'opening', id: 'directory-openings', title: label(locale, '新店记录', 'Opening records') },
   ] as const;
   const sections = [
-    ['/', '首页', 'Home'], ['/guides', '全部指南', 'Guide library'], ['/events', '本周末活动', 'Events this weekend'],
+    ['/', '首页', 'Home'], ['/guides', '全部指南', 'Guide library'], ['/events', '本周末', 'This weekend'],
     ['/this-month', '当期发现', 'Current edition'], ['/calendar', '活动日历', 'Event calendar'], ['/explore', '景点探索', 'Explore places'], ['/plan', '出游计划', 'Plan an outing'],
     ['/opus-bay', '3D 旧金山', '3D San Francisco'], ['/ai-in-the-bay', '湾区 AI 现场', 'AI in the Bay'],
     ['/tools', '生活工具', 'Life tools'], ['/about', '关于与核验方法', 'About and sources'],
