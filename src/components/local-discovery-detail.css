@@ -46,3 +46,5 @@
 .local-discovery-detail :is(a,button,summary):focus-visible{outline:2px solid var(--color-brand);outline-offset:4px}
 @media(max-width:760px){.local-discovery-detail{padding:22px 20px 48px}.local-discovery-detail .discovery-detail-brand{padding:15px 0;margin-bottom:20px}.local-discovery-detail .discovery-detail-header h1{font-size:calc(1.875rem * var(--reading-scale));line-height:1.4}.local-discovery-detail .discovery-detail-main-actions{flex-direction:column}.local-discovery-detail .discovery-detail-main-actions>a{width:100%}.local-discovery-detail .discovery-return>div{gap:4px}}
 @media(max-width:480px){.local-discovery-detail .discovery-detail-offer h1{font-size:calc(1.7rem * var(--reading-scale));line-height:1.35}}
+/* Under 360px a full 8-character or 14-letter title unit is wider than the H1 at extra-large Aa, so units may wrap. */
+@media(max-width:359px){.local-discovery-detail .discovery-detail-header h1 .title-keep{white-space:normal}}

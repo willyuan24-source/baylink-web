@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
-import postcss, { type Rule } from 'postcss';
+import postcss, { type AtRule, type Rule } from 'postcss';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/calendar' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
@@ -50,4 +50,15 @@ test('title links in event and calendar cards take the heading size while card a
   for (const action of actions) {
     assert.ok(matching(action).includes(controls) && !matching(action).includes(headingLinks), `${action.textContent}: actions stay controls`);
   }
+});
+
+test('detail title units stay whole from 360px and may wrap on narrower phones', () => {
+  const sheet = postcss.parse(readFileSync(new URL('../src/components/local-discovery-detail.css', import.meta.url), 'utf8'));
+  const keep = (inMedia: string | undefined) => {
+    let found: Rule | undefined;
+    sheet.walkRules('.local-discovery-detail .discovery-detail-header h1 .title-keep', rule => { if ((rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : undefined) === inMedia) found = rule; });
+    return found && declarations(found).get('white-space');
+  };
+  assert.equal(keep(undefined), 'nowrap');
+  assert.equal(keep('(max-width:359px)'), 'normal');
 });
