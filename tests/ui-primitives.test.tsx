@@ -206,6 +206,13 @@ test('carousel: labelled slides, a polite counter, arrow keys and edge-aware pre
   const calls: number[] = [];
   const original = dom.window.HTMLElement.prototype.scrollTo;
   dom.window.HTMLElement.prototype.scrollTo = function (options?: ScrollToOptions | number) { calls.push(typeof options === 'object' ? options.left ?? -1 : -1); } as typeof original;
+  // Phone geometry: the positioned track sits at -16px (bleed margin) with 16px padding; slides are 300px + 12px gap.
+  const offsetLeft = Object.getOwnPropertyDescriptor(dom.window.HTMLElement.prototype, 'offsetLeft')!;
+  Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetLeft', { configurable: true, get(this: HTMLElement) {
+    if (this.classList.contains('ui-carousel__track')) return -16;
+    if (this.classList.contains('ui-carousel__slide')) return 16 + Array.from(this.parentElement!.children).indexOf(this) * 312;
+    return 0;
+  } });
   try {
     const view = wrap(<ui.Carousel label="长者服务图解"><div>一</div><div>二</div><div>三</div></ui.Carousel>);
     const region = view.getByRole('region', { name: '长者服务图解' });
@@ -224,9 +231,13 @@ test('carousel: labelled slides, a polite counter, arrow keys and edge-aware pre
     assert.equal(view.getByRole('button', { name: '下一张' }).hasAttribute('disabled'), true);
     fireEvent.keyDown(track, { key: 'ArrowRight' });
     assert.equal(counter.textContent, '3/3', 'stops at the last slide');
-    assert.equal(calls.length, 2, 'each real move scrolls the track; a move past the end does nothing');
+    assert.deepEqual(calls, [312, 624], 'each real move scrolls to the slide\'s snap position; a move past the end does nothing');
+    Object.defineProperty(track, 'scrollLeft', { configurable: true, value: 300 });
+    fireEvent.scroll(track);
+    assert.equal(counter.textContent, '2/3', 'a swipe that lands near slide 2 updates the counter');
   } finally {
     dom.window.HTMLElement.prototype.scrollTo = original;
+    Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetLeft', offsetLeft);
   }
 });
 
@@ -243,8 +254,9 @@ test('hero card and page header: one link, one H1, facts only on a photo', () =>
   assert.equal(typed.container.querySelector('.ui-hero-card__scrim'), null, 'a TypeCover already shows its facts');
   assert.equal(typed.container.querySelector('.ui-hero-card__facts'), null);
   cleanup();
-  const header = wrap(<ui.PageContainer size="content"><ui.PageHeader title="活动" size="display" lede="63 场 · 26 场免费" actions={<ui.Button variant="primary">问 BayBay</ui.Button>} /></ui.PageContainer>);
+  const header = wrap(<ui.PageContainer size="content"><ui.PageHeader title="活动" size="display" breadcrumb={<a href="/">首页</a>} lede="63 场 · 26 场免费" actions={<ui.Button variant="primary">问 BayBay</ui.Button>} /></ui.PageContainer>);
   assert.equal(header.getAllByRole('heading', { level: 1 }).length, 1);
+  assert.ok(header.getByRole('navigation', { name: '当前位置' }), 'the breadcrumb is named in the page language');
   assert.equal(header.container.querySelector('.ui-container')?.getAttribute('data-size'), 'content');
   assert.equal(header.container.querySelector('.ui-page-header')?.getAttribute('data-size'), 'display');
 });

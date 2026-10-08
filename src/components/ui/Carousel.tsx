@@ -17,6 +17,13 @@ export type CarouselProps = {
 const reducedMotion = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
+ * Snap position of a slide = its distance from the first slide. The track is positioned (it is the slides'
+ * offsetParent) and on phones has a 16px padding with a matching scroll-padding, so measuring from the first
+ * slide stays right at every breakpoint.
+ */
+const slideScrollLeft = (track: HTMLElement, slide: HTMLElement) => slide.offsetLeft - ((track.children[0] as HTMLElement | undefined)?.offsetLeft ?? 0);
+
+/**
  * Scroll-snap carousel (design.md §4.5): slides are `role="group"` with "2 / 9" labels, a polite "1/9" counter,
  * dots, 44px previous/next buttons on desktop and ←/→ when the track has focus. Never autoplays.
  */
@@ -35,7 +42,7 @@ export function Carousel({ label, children, variant = 'slides', className }: Car
       let nearest = 0;
       let distance = Number.POSITIVE_INFINITY;
       Array.from(track.children).forEach((slide, position) => {
-        const gap = Math.abs((slide as HTMLElement).offsetLeft - track.offsetLeft - start);
+        const gap = Math.abs(slideScrollLeft(track, slide as HTMLElement) - start);
         if (gap < distance) { distance = gap; nearest = position; }
       });
       setIndex(nearest);
@@ -49,7 +56,7 @@ export function Carousel({ label, children, variant = 'slides', className }: Car
     if (target === index) return;
     const track = trackRef.current;
     const slide = track?.children[target] as HTMLElement | undefined;
-    if (track && slide && typeof track.scrollTo === 'function') track.scrollTo({ left: slide.offsetLeft - track.offsetLeft, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    if (track && slide && typeof track.scrollTo === 'function') track.scrollTo({ left: slideScrollLeft(track, slide), behavior: reducedMotion() ? 'auto' : 'smooth' });
     setIndex(target);
   }, [count, index]);
 

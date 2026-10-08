@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import './ui.css';
-import { cx } from './ui-copy';
+import { cx, useUiCopy } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
 
 export type HeroCardProps = {
@@ -61,8 +61,9 @@ export type PageHeaderProps = {
 
 /** Breadcrumb → H1 → lede → actions. No masthead, sticker, highlighter, two-tone H1 or gradient banner. */
 export function PageHeader({ title, size = 'title', breadcrumb, lede, actions, className }: PageHeaderProps) {
+  const { t } = useUiCopy();
   return <header className={cx('ui-page-header', className)} data-size={size}>
-    {breadcrumb && <nav className="ui-page-header__crumbs" aria-label="breadcrumb">{breadcrumb}</nav>}
+    {breadcrumb && <nav className="ui-page-header__crumbs" aria-label={t('当前位置', 'Breadcrumb')}>{breadcrumb}</nav>}
     <h1 className="ui-page-header__title"><SegmentedTitle text={title} /></h1>
     {lede && <p className="ui-page-header__lede">{lede}</p>}
     {actions && <div className="ui-page-header__actions">{actions}</div>}
