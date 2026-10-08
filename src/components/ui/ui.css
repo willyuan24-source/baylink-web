@@ -80,7 +80,7 @@
 .ui-save[aria-pressed=true]>svg { fill:currentColor; }
 
 /* Covers. One ratio per feed; a single-column feed switches every cover to 3:2. */
-.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--ui-cover-radius, 16px); }
+.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:16px; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
@@ -125,7 +125,7 @@
 }
 @container ui-type-cover (max-height:12rem) { .ui-type-cover__title,.ui-type-cover__note { -webkit-line-clamp:1; } }
 .ui-type-cover[data-size=mini] .ui-type-cover__body { gap:0; padding:8px; justify-content:center; align-items:center; text-align:center; }
-.ui-type-cover[data-size=mini] { --ui-cover-radius:10px; }
+.ui-type-cover[data-size=mini],.ui-row-card__thumb :is(.ui-cover,.ui-type-cover) { border-radius:10px; }
 .ui-type-cover[data-size=mini] .ui-type-cover__date { justify-content:center; font-size:calc(1.375rem * var(--reading-scale)); }
 .ui-type-cover[data-size=mini] .ui-type-cover__date-small { flex-basis:100%; font-size:var(--text-caption); }
 @supports not (container-type:size) {
@@ -181,7 +181,7 @@
 
 /* Row card: lists, calendar, search, saved items. One trailing action only. */
 .ui-row-card { position:relative; display:grid; grid-template-columns:5.5rem minmax(0, 1fr) auto; grid-template-areas:"thumb body trailing"; gap:12px; align-items:start; min-height:7rem; padding:12px 0; border-bottom:1px solid var(--color-line); }
-.ui-row-card__thumb { grid-area:thumb; width:5.5rem; height:5.5rem; overflow:hidden; border-radius:10px; --ui-cover-radius:10px; }
+.ui-row-card__thumb { grid-area:thumb; width:5.5rem; height:5.5rem; overflow:hidden; border-radius:10px; }
 .ui-row-card__thumb>* { height:100%; }
 .ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:2px; min-width:0; }
 .ui-row-card .ui-card-link::after { border-radius:10px; }
@@ -202,8 +202,8 @@
 .ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:600; }
 .ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:2px; background:var(--color-brand); }
 .ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:999px; background:var(--color-surface-2); }
-.ui-segmented__item { flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); font-size:calc(.9375rem * var(--reading-scale)); line-height:1.25; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
-.ui-segmented__item[aria-checked=true] { background:var(--color-surface); color:var(--color-ink); font-weight:600; box-shadow:0 1px 2px 0 var(--color-line-strong); }
+.ui-segmented__item { flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:999px; background:transparent; color:var(--color-ink-2); font-size:calc(.9375rem * var(--reading-scale)); line-height:1.25; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
 
 /* Sheet: bottom sheet on phones, right drawer on desktop; focus and Esc come from ModalShell. */
 .ui-sheet-backdrop { position:fixed; inset:0; display:flex; align-items:flex-end; justify-content:center; background:var(--ui-scrim); animation:ui-fade 200ms ease; }
@@ -246,7 +246,8 @@
 
 /* Keyboard focus on photos and dark surfaces: a white ring inside the brand ring. */
 :is(.ui-chip,.ui-save,.ui-icon-button,.ui-button,.ui-tabs__item,.ui-segmented__item):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-.ui-save:focus-visible { box-shadow:0 0 0 2px var(--color-surface); }
+/* On photos the light ring inside the brand outline keeps focus visible on dark pixels. */
+.ui-save:focus-visible { box-shadow:0 0 0 3px var(--color-brand-tint); }
 
 /* Simple mode (html[data-simple], WEB-TOKENS-A): text ≥16px, targets 48px. */
 html[data-simple] :is(.ui-provenance,.ui-sticker,.ui-status,.ui-chip,.ui-chip__count,.ui-feed-card__meta,.ui-feed-card__trust,.ui-type-cover__note) { font-size:var(--text-body); }
