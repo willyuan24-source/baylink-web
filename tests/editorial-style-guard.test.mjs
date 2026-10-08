@@ -31,7 +31,14 @@ test('with root Aa, rem / em / % / tokens grow; px, a second --reading-scale and
   const sizes = value => checkEditorialStyles([{ file: 'sizes.css', text: `.x{font-size:${value}}` }], tokens).map(issue => issue.rule);
   for (const value of ['1rem', '.8125rem', '.9em', '90%', 'inherit', 'var(--text-fact)', 'max(1rem,var(--text-body))', 'clamp(1.875rem,calc(4vw * var(--fluid-scale)),2.875rem)']) assert.deepEqual(sizes(value), [], value);
   for (const value of ['13px', 'max(16px,var(--text-body))', 'calc(2rem * var(--reading-scale))', 'clamp(1.875rem,4vw,2.875rem)']) assert.deepEqual(sizes(value), ['reading-scale'], value);
-  assert.deepEqual(checkEditorialStyles([{ file: 'font.css', text: '.x{font:600 12px/1.4 sans-serif}.y{font:600 .75rem/1.4 sans-serif}' }], tokens).map(issue => issue.selector), ['.x']);
+  assert.deepEqual(checkEditorialStyles([{ file: 'font.css', text: '.x{font:600 12px/1.4 sans-serif}.y{font:600 .875rem/1.4 sans-serif}' }], tokens).map(issue => issue.selector), ['.x']);
+});
+
+test('the reviewed scopes keep rem text at 13px or larger, so token discipline survives the rem codemod', () => {
+  const sizes = value => checkEditorialStyles([{ file: 'small.css', text: `.x{font-size:${value}}` }], tokens).map(issue => issue.rule);
+  for (const value of ['.6875rem', '.75rem', '0.625rem', 'max(.75rem,var(--text-body))', 'clamp(.75rem,calc(3vw * var(--fluid-scale)),1rem)']) assert.deepEqual(sizes(value), ['reading-scale'], value);
+  for (const value of ['.8125rem', '1.25rem', '10.5rem', 'var(--text-caption)', '.75em']) assert.deepEqual(sizes(value), [], value);
+  assert.deepEqual(checkEditorialStyles([{ file: 'font.css', text: '.y{font:600 .75rem/1.4 sans-serif}' }], tokens).map(issue => issue.rule), ['reading-scale']);
 });
 
 test('palette contrast checks catch a muted source color that is too faint even when it uses a token', () => {

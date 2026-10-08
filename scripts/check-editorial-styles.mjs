@@ -25,6 +25,9 @@ const readingSizeIssue = value => {
   if (/\d(?:\.\d+)?px\b/.test(value)) return `Text size ${value} is in px, which the root reading scale cannot grow.`;
   if (value.includes('--reading-scale')) return `Text size ${value} multiplies by --reading-scale; the root already scales rem (125% x 1.25 = 156%).`;
   if (/\d(?:vw|vh|vmin|vmax|svw|svh|dvw|dvh|cqw|cqi)\b/.test(value) && !value.includes('--fluid-scale')) return `Text size ${value} has a viewport term without var(--fluid-scale), so it does not grow with Aa.`;
+  // The reviewed scopes keep their smallest text at --text-caption (.8125rem = 13px at the standard size).
+  const small = [...value.matchAll(/(?<![\w.-])(\d*\.?\d+)rem\b/g)].find(match => Number(match[1]) < .8125);
+  if (small) return `Text size ${value} is below 13px (${small[0]}); use var(--text-caption) or larger.`;
   return null;
 };
 const tokenNames = value => [...value.matchAll(/var\((--[a-zA-Z0-9-]+)/g)].map(match => match[1]);
