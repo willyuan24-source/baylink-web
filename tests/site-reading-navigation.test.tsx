@@ -12,8 +12,8 @@ const { render, fireEvent, cleanup, act } = await import('@testing-library/react
 const { MemoryRouter } = await import('react-router-dom');
 const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
 const { ReadingPreferencesButton } = await import('../src/components/ReadingPreferences');
-const { getReadingSize, setReadingSize, initializeReadingSize, READING_SIZE_KEY } = await import('../src/lib/reading-preferences');
-afterEach(() => { cleanup(); setReadingSize('standard'); dom.window.localStorage.clear(); });
+const { getReadingSize, setReadingSize, initializeReadingSize, READING_SIZE_KEY, getSimpleDisplay, setSimpleDisplay, SIMPLE_DISPLAY_KEY, withFamilyReading } = await import('../src/lib/reading-preferences');
+afterEach(() => { cleanup(); setReadingSize('standard'); setSimpleDisplay(false); dom.window.localStorage.clear(); });
 
 test('events and personal routes have one correct tab, while BayBay opens in one action', () => {
   let asked = 0;
@@ -50,6 +50,39 @@ test('reading choices persist, initialize from a shared link, and close with res
   act(() => initializeReadingSize());
   assert.equal(getReadingSize(), 'large');
   dom.window.history.replaceState({}, '', '/');
+});
+
+test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', () => {
+  const view = render(<ReadingPreferencesButton />);
+  fireEvent.click(view.getByRole('button', { name: '调整阅读字号' }));
+  const toggle = view.getByRole('switch', { name: /简洁显示（适合长辈）/ });
+  assert.equal(toggle.getAttribute('aria-checked'), 'false');
+  fireEvent.click(toggle);
+  assert.equal(toggle.getAttribute('aria-checked'), 'true');
+  assert.equal(getSimpleDisplay(), true);
+  assert.ok(document.documentElement.hasAttribute('data-simple'));
+  assert.equal(dom.window.localStorage.getItem(SIMPLE_DISPLAY_KEY), '1');
+  fireEvent.click(toggle);
+  assert.equal(document.documentElement.hasAttribute('data-simple'), false);
+  const tokens = postcss.parse(readFileSync(new URL('../src/tokens.css', import.meta.url), 'utf8'));
+  let minHeight = '';
+  tokens.walkRules(rule => { if (toggle.matches(rule.selector)) rule.walkDecls('min-height', declaration => { minHeight = declaration.value; }); });
+  assert.equal(minHeight, 'max(48px,var(--control-height))');
+  view.unmount();
+  dom.window.history.replaceState({}, '', '/guides?reading=extra-large&simple=1');
+  act(() => initializeReadingSize());
+  assert.equal(getReadingSize(), 'extra-large'); assert.equal(getSimpleDisplay(), true);
+  assert.ok(document.documentElement.hasAttribute('data-simple'));
+  dom.window.history.replaceState({}, '', '/guides?simple=0');
+  act(() => initializeReadingSize());
+  assert.equal(getSimpleDisplay(), false); assert.equal(document.documentElement.hasAttribute('data-simple'), false);
+  dom.window.history.replaceState({}, '', '/');
+});
+
+test('a family link carries 特大 and 简洁显示 and keeps the page’s own parameters and anchor', () => {
+  assert.equal(withFamilyReading('/guides?topic=elders'), '/guides?topic=elders&reading=extra-large&simple=1');
+  assert.equal(withFamilyReading('https://www.baylink.us/offers/sfmta-free-muni-seniors#apply'), 'https://www.baylink.us/offers/sfmta-free-muni-seniors?reading=extra-large&simple=1#apply');
+  assert.equal(withFamilyReading('/x?reading=large&simple=0'), '/x?reading=extra-large&simple=1');
 });
 
 test('blocked storage still changes text size for this session', () => {
@@ -91,7 +124,7 @@ test('actual sign-in and MFA safety facts use reading tokens, including registra
     assert.ok(matched, `${element.tagName}.${element.className}: ${property} must use ${value}`);
   };
   act(() => setReadingSize('extra-large'));
-  usesToken(document.documentElement, '--reading-scale', '1.25');
+  usesToken(document.documentElement, 'font-size', '125%');
   const login = render(<LoginModal onClose={() => {}} onLogin={() => {}} showToast={() => {}} onForgotPassword={() => {}} />);
   const dialog = login.getByRole('dialog');
   assert.equal(dialog.closest('.site-app'), null);
