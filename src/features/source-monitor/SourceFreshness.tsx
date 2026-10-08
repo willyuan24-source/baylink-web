@@ -15,7 +15,7 @@ export function SourceFreshness({ contentId, item = { kind: 'event' }, officialU
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const freshness = getReaderFreshness(item, rows, { today: day, now: receivedAt });
   if ((freshness.state !== 'soft' && freshness.state !== 'hard') || !include.includes(freshness.state)) return null;
-  const [pageZh, pageEn] = pageNames[item.kind];
+  const { zh: pageZh, en: pageEn } = pageNames[item.kind];
   const changed = freshness.changedAt ? readerDate(freshness.changedAt, locale, day) : null;
   const text = freshness.state === 'hard' ? t(`${pageZh}显示可能改期或取消，`, `${pageEn} suggests a date change or cancellation. `)
     : freshness.reason === 'date-near-unconfirmed' ? t('日期就在这几天，', 'This is coming up soon. ')

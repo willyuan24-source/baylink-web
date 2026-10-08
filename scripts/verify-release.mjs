@@ -1,6 +1,21 @@
 import { readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
+import { formatRouteBudgets, measureRouteBudgets } from './route-budgets.mjs';
+
+// Per-route JS budgets, KiB gzip: the shell plus the page's static module graph,
+// plus opencc for zh-Hant and the route's English scopes for en. Ceilings are the
+// 10/08 measurements + 2% and only ratchet down (plan §3.0 rule 8): lower a
+// ceiling when a PR makes a route smaller; raising one needs the owner's approval.
+// Home zh-Hans keeps the 220 KiB gate below. /events joins when WEB-ROUTES adds it.
+const ROUTE_JS_BUDGETS = [
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 220.0, 'zh-Hant': 731.6, en: 365.3 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1504.5, en: 1635.1 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1547.0, en: 2207.3 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1573.9, en: 1361.3 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1533.8, en: 1664.4 } },
+  { route: '/this-week', module: 'src/pages/MonthlyPage.tsx', kib: { 'zh-Hans': 993.8, 'zh-Hant': 1504.3, en: 1634.9 } },
+];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
 function visit(key) { const item=manifest[key]; if(!item) throw new Error(`Missing build module ${key}`); if(files.has(item.file))return;files.add(item.file);for(const dependency of item.imports||[]) visit(dependency); }
@@ -16,6 +31,11 @@ for(const scope of ['ui','home']) visit(`src/data/generated/english-scopes/${sco
 const englishTotal=(await Promise.all([...files].map(async file=>gzipSync(await readFile(`dist/${file}`)).length))).reduce((sum,value)=>sum+value,0);
 if(englishTotal>360*1024) throw new Error(`English homepage including dictionaries exceeds 360 KiB gzip: ${(englishTotal/1024).toFixed(1)} KiB`);
 if(initialFiles.some(file=>file === manifest['src/data/generated/english.json']?.file)) throw new Error('Full English editorial dictionary entered the initial shell');
+const routeBudgets=await measureRouteBudgets(ROUTE_JS_BUDGETS,{manifest});
+console.log(`Per-route JS (gzip):
+${formatRouteBudgets(routeBudgets)}`);
+const overBudget=routeBudgets.filter(row=>row.over);
+if(overBudget.length) throw new Error(`Route JS exceeds its budget: ${overBudget.map(row=>`${row.route} ${row.locale} ${row.kib.toFixed(1)} KiB > ${row.ceiling.toFixed(1)} KiB`).join('; ')}`);
 for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of ['index','guides','archive','calendar','plan','opus-bay','events/san-francisco-fleet-week-2026']) {
   const path=`dist/${locale}${page}.html`; const html=await readFile(path,'utf8');
   if(!html.includes('rel="canonical"') || !html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"')) throw new Error(`Missing language metadata: ${path}`);
@@ -35,4 +55,4 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of ['index','guides'
 }
 const release=JSON.parse(await readFile('dist/release.json','utf8'));if(!/^[a-f0-9]{40}$/.test(release.commit))throw new Error('Release commit missing');
 await verifyStaticLinks();
-console.log(`Release verified: shell ${(shell/1024).toFixed(1)} KiB, homepage route graph ${(total/1024).toFixed(1)} KiB; English homepage with dictionaries ${(englishTotal/1024).toFixed(1)} KiB gzip; translated prerenders and Event schema present.`);
+console.log(`Release verified: shell ${(shell/1024).toFixed(1)} KiB, homepage route graph ${(total/1024).toFixed(1)} KiB; English homepage with dictionaries ${(englishTotal/1024).toFixed(1)} KiB gzip; ${routeBudgets.length} route × locale JS budgets hold; translated prerenders and Event schema present.`);
