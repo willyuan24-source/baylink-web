@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import './ui.css';
 import { cx } from './ui-copy';
+import { SegmentedTitle } from '../SegmentedTitle';
 
 type Heading = 'h2' | 'h3' | 'h4';
 type CardLink = {
@@ -19,8 +20,9 @@ type CardLink = {
 
 function CardTitleLink({ title, to, href, onOpen, titleLang }: CardLink) {
   const external = href && /^https?:/.test(href);
-  if (to) return <Link className="ui-card-link" to={to} onClick={onOpen} lang={titleLang}>{title}</Link>;
-  return <a className="ui-card-link" href={href} onClick={onOpen} lang={titleLang} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{title}</a>;
+  const text = <SegmentedTitle text={title} />;
+  if (to) return <Link className="ui-card-link" to={to} onClick={onOpen} lang={titleLang}>{text}</Link>;
+  return <a className="ui-card-link" href={href} onClick={onOpen} lang={titleLang} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{text}</a>;
 }
 
 export type FeedCardProps = CardLink & {

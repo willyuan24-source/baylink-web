@@ -59,3 +59,10 @@ test('TypeCover and sticker pairs are contrast-checked wherever a guarded file d
   assert.equal(issues.length, 1);
   assert.match(issues[0].message, /^--tc-family-fg on --tc-family-bg is \d/);
 });
+
+test('a cover clamp() passes only when its floor, cap and container term all follow Aa', () => {
+  const sizes = value => checkEditorialStyles([{ file: 'cover.css', text: `.c{font-size:${value}}` }], tokens).map(issue => issue.rule);
+  assert.deepEqual(sizes('clamp(.8125rem, min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem)'), []);
+  // a second --reading-scale on the floor double-scales, a px floor never grows, a bare cqw term ignores Aa, .75rem is 12px
+  for (const value of ['clamp(calc(.8125rem * var(--reading-scale)), 7cqw, 1.125rem)', 'clamp(13px, calc(7cqw * var(--fluid-scale)), 1.125rem)', 'clamp(.8125rem, 7cqw, 1.125rem)', 'clamp(.75rem, calc(7cqw * var(--fluid-scale)), 1.125rem)']) assert.deepEqual(sizes(value), ['reading-scale'], value);
+});

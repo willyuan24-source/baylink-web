@@ -130,9 +130,10 @@ test('every TypeCover and status pair is at least 4.5:1', () => {
   for (const [fg, bg] of pairs) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)}:1`);
 });
 
-test('TypeCover text scales with Aa: every size is a text token, an em, or a calc() with --reading-scale', () => {
+test('TypeCover text scales with Aa: every size is a text token, an em, or has a --reading-scale term (a cover floor)', () => {
   postcss.parse(css).walkDecls('font-size', declaration => {
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|calc\(.*var\(--reading-scale\)\)|[\d.]+em)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`);
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|(?:calc|clamp)\(.*var\(--reading-scale\).*\)|[\d.]+em)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`);
+    if (declaration.value.startsWith('clamp(')) assert.match(declaration.value, /^clamp\(calc\([\d.]+rem \* var\(--reading-scale\)\),/, 'the floor is the part that follows Aa');
     const rem = [...declaration.value.matchAll(/([\d.]+)rem/g)].map(match => Number(match[1]));
     if (rem.length) assert.ok(Math.min(...rem) >= .8125, `${(declaration.parent as postcss.Rule).selector}: never below 13px`);
   });

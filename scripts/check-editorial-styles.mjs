@@ -23,6 +23,8 @@ const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary
 // Aa scales the root font size (src/tokens.css), so a text size follows it when it is in rem, em, % or a --text-* token.
 // px never grows; --reading-scale is pinned at 1 (multiplying a rem by it again would double-scale); a vw term grows only
 // when it is multiplied by --fluid-scale.
+// clamp()/min()/max() pass when every term does, e.g. a TypeCover's rem floor and cap around its container term:
+// clamp(.8125rem, min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem).
 const readingSizeIssue = value => {
   if (/\d(?:\.\d+)?px\b/.test(value)) return `Text size ${value} is in px, which the root reading scale cannot grow.`;
   if (value.includes('--reading-scale')) return `Text size ${value} multiplies by --reading-scale; the root already scales rem (125% x 1.25 = 156%).`;

@@ -3,6 +3,7 @@ import { Bike, BookOpen, Dog, Film, Gift, HeartHandshake, Landmark, Music, Palet
 import './ui.css';
 import { ProvenanceBadge, Sticker, type StickerTone } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
+import { SegmentedTitle } from '../SegmentedTitle';
 import type { CoverRatio } from './CoverImage';
 import { translateText } from '../../i18n/locale';
 import { typeCoverProvenance } from '../../lib/image-provenance';
@@ -15,7 +16,8 @@ import type { SeptemberOpening } from '../../data/september-openings';
 const TONE_ICONS: Record<CoverTone, LucideIcon> = { family: Users, culture: Palette, outdoors: Trees, food: UtensilsCrossed, seniors: HeartHandshake, free: Gift };
 /** Optional per-item texture icons (e.g. `plane` for Fleet Week). A closed list keeps the bundle small. */
 const COVER_ICONS: Record<string, LucideIcon> = { plane: Plane, music: Music, book: BookOpen, film: Film, store: Store, landmark: Landmark, dog: Dog, bike: Bike };
-const iconFor = (tone: CoverTone, key?: string): LucideIcon => key && Object.hasOwn(COVER_ICONS, key) ? COVER_ICONS[key] : TONE_ICONS[tone];
+/** The texture icon belongs to the item (its `iconKey` or its own category), not to a rotated neighbour palette. */
+const iconFor = (tone: CoverTone, key?: string): LucideIcon => key && Object.hasOwn(COVER_ICONS, key) ? COVER_ICONS[key] : key && Object.hasOwn(TONE_ICONS, key) ? TONE_ICONS[key as CoverTone] : TONE_ICONS[tone];
 const HAN = /[\u3400-\u9fff]/;
 
 export type TypeCoverProps = {
@@ -57,20 +59,22 @@ export function TypeCover({ tone, family = 'event', label, date, title, value, b
     className: cx('ui-type-cover', className), 'data-cover': 'type', 'data-family': family, 'data-tone': tone,
     'data-ratio': ratio, 'data-ratio-lock': ratioLock ? '' : undefined, 'aria-hidden': ariaHidden || undefined,
   };
-  if (size === 'mini') return <div {...common} data-size="mini">{dateParts ?? <p className="ui-type-cover__label">{label}</p>}</div>;
+  if (size === 'mini') return <div {...common} data-size="mini"><div className="ui-type-cover__body">{dateParts ?? <p className="ui-type-cover__label">{label}</p>}</div></div>;
   return <div {...common}>
     {createElement(iconFor(tone, icon), { className: 'ui-type-cover__icon', 'aria-hidden': true, strokeWidth: 1.5 })}
     <ProvenanceBadge label={typeCoverProvenance(english)} />
-    <p className="ui-type-cover__label">{label}</p>
-    {dateParts}
-    {value && <p className="ui-type-cover__value">{value}</p>}
-    {brand && <p className="ui-type-cover__brand" lang={HAN.test(brand) ? undefined : 'en'} translate="no">{brand}</p>}
-    {title && <p className="ui-type-cover__title" lang={HAN.test(title) ? undefined : 'en'}>{title}</p>}
-    {note && <p className="ui-type-cover__note">{note}</p>}
-    {(place || sticker) && <div className="ui-type-cover__footer">
-      <span className="ui-type-cover__place">{place}</span>
-      {sticker && <Sticker tone={sticker.tone}>{sticker.text}</Sticker>}
-    </div>}
+    <div className="ui-type-cover__body">
+      <p className="ui-type-cover__label">{label}</p>
+      {dateParts}
+      {value && <p className="ui-type-cover__value">{value}</p>}
+      {brand && <p className="ui-type-cover__brand" lang={HAN.test(brand) ? undefined : 'en'} translate="no">{brand}</p>}
+      {title && <p className="ui-type-cover__title" lang={HAN.test(title) ? undefined : 'en'}><SegmentedTitle text={title} /></p>}
+      {note && <p className="ui-type-cover__note">{note}</p>}
+      {(place || sticker) && <div className="ui-type-cover__footer">
+        <span className="ui-type-cover__place">{place}</span>
+        {sticker && <Sticker tone={sticker.tone}>{sticker.text}</Sticker>}
+      </div>}
+    </div>
   </div>;
 }
 
@@ -94,7 +98,7 @@ export function EventTypeCover({ event, today, days, tone, ...layout }: CoverLay
   const price = eventPriceChip(event);
   return <TypeCover {...layout} family="event" tone={tone ?? ownTone} label={pick(toneLabel(ownTone))}
     date={formatDateChip(eventDateChip(event, today, days), english)} title={shortTitleFor(event, english)}
-    place={eventPlace(event)} sticker={price ? { tone: price.tone, text: pick(price.text) } : undefined} icon={event.iconKey} />;
+    place={eventPlace(event)} sticker={price ? { tone: price.tone, text: pick(price.text) } : undefined} icon={event.iconKey ?? ownTone} />;
 }
 
 /** Family B: the value large, the brand in normal case, the condition line and a deadline sticker. */
@@ -105,7 +109,7 @@ export function OfferTypeCover({ offer, today, tone, ...layout }: CoverLayout & 
   const title = english ? translateText(offer.title, 'en') : offer.title;
   return <TypeCover {...layout} family="offer" tone={tone ?? offerTone(offer)} label={pick(offerKindLabel(offer))}
     value={value ? pick(value) : undefined} brand={brandCase(offer.brand)} title={value ? undefined : title} note={value ? title : undefined}
-    sticker={deadline ? { tone: deadline.tone, text: pick(deadline.text) } : undefined} ratio={layout.ratio ?? '1:1'} />;
+    sticker={deadline ? { tone: deadline.tone, text: pick(deadline.text) } : undefined} icon={offerTone(offer) === 'free' ? 'free' : 'store'} ratio={layout.ratio ?? '1:1'} />;
 }
 
 const OPENING_LABELS: Record<SeptemberOpening['openingType'], Copy> = {
@@ -122,5 +126,5 @@ export function OpeningTypeCover({ opening, today, tone, ...layout }: CoverLayou
   const restaurant = opening.openingType === 'new-restaurant';
   return <TypeCover {...layout} family="opening" tone={tone ?? (restaurant ? 'food' : 'family')}
     label={pick(OPENING_LABELS[opening.openingType])} title={opening.name} place={opening.city}
-    sticker={{ tone: opening.status === 'open' ? 'success' : 'neutral', text: pick(openingChip(opening, today)) }} icon={restaurant ? undefined : 'store'} />;
+    sticker={{ tone: opening.status === 'open' ? 'success' : 'neutral', text: pick(openingChip(opening, today)) }} icon={restaurant ? 'food' : 'store'} />;
 }
