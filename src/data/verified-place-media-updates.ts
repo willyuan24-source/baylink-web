@@ -1,4 +1,5 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
+import officialEventMedia from './official-event-media.json';
 
 /**
  * Reviewed venue-to-photo matches, 2026-10-05. Sources and original photo dates
@@ -12,8 +13,7 @@ const venuePhotos = [
     eventIds: [
       'sf-mandarin-conversation-oct6-2026', 'sfpl-career-coaching-oct8-2026',
       'sfpl-writing-gravity-oct8-2026', 'sfpl-garden-green-bin-oct10-2026',
-      'sf-main-halloween-costume-swap-oct15-2026', 'sf-filbookfest-2026',
-      'sf-halloween-broadside-printing-oct17-2026', 'sf-financial-planning-day-oct24-2026',
+      'sf-main-halloween-costume-swap-oct15-2026', 'sf-financial-planning-day-oct24-2026',
     ],
   },
   {
@@ -32,19 +32,14 @@ const venuePhotos = [
     eventIds: ['san-carlos-hiller-halloween-paint-plane-2026'],
   },
   {
-    key: 'verified-san-mateo-b-street', sourceKey: 'sanmateo',
-    caption: 'San Mateo 的 B Street 街道与建筑，2023 年资料照片；展示活动街区，不是 2026 年万圣节活动现场或现行封街示意。',
-    eventIds: ['san-mateo-boos-brews-2026'],
-  },
-  {
     key: 'verified-yerba-buena-gardens', sourceKey: 'coverage-yerba-buena',
-    caption: 'Yerba Buena Gardens，2023 年资料照片；展示活动所在园区，不是 2026 年书市、儿童游行现场或具体舞台位置。',
-    eventIds: ['litquake-out-loud-2026', 'sf-halloween-hoopla-2026'],
+    caption: 'Yerba Buena Gardens，2023 年资料照片；展示活动所在园区，不是 2026 年书市现场或具体舞台位置。',
+    eventIds: ['litquake-out-loud-2026'],
   },
   {
     key: 'verified-ferry-building', sourceKey: 'ferry-market',
-    caption: 'Ferry Building 外的农夫市集，2022 年 5 月资料照片；展示活动所在滨水街区，不是 2026 年饺子节、Latine Makers Market 或当日摊位与商品。',
-    eventIds: ['ferry-plaza-farmers-market-2026-autumn', 'sf-foodwise-latine-makers-oct3-2026', 'sf-world-of-dumplings-2026'],
+    caption: 'Ferry Building 外的农夫市集，2022 年 5 月资料照片；展示活动所在滨水街区，不是 2026 年 Latine Makers Market 或当日摊位与商品。',
+    eventIds: ['sf-foodwise-latine-makers-oct3-2026'],
   },
   {
     key: 'verified-napa-library', sourceKey: 'roundup-north-napa',
@@ -79,6 +74,17 @@ VERIFIED_EVENT_PLACE_MEDIA_UPDATES['san-mateo-shred-ewaste-october-2026'] = { im
 // reviewed 2026-10-07. It shows a past edition of this event, not a venue alias,
 // so it is not a contextual photo approval; its caption dates it to 2024.
 VERIFIED_EVENT_PLACE_MEDIA_UPDATES['san-francisco-fleet-week-2026'] = { imageKey: 'dvids-blue-angels-sffw-2024' };
+
+// Organisers' own images of the same event (owner decision 2026-10-08: same-event coverage,
+// labelled 官方图 with a link to the official page; takedown contact on About). Each record in
+// official-event-media.json names its event. They replace venue aliases, AI illustrations or text
+// cards, never a newer real photo of the event. monthly-edition applies OCTNOV_EVENT_MEDIA_UPDATES
+// and octnov-2026-extra-image-updates.json after this map, so those must not list these events;
+// tests/official-event-media.test.ts guards that.
+export const OFFICIAL_EVENT_IMAGE_UPDATES: Readonly<Record<string, { imageKey: string }>> = Object.fromEntries(
+  officialEventMedia.map(({ key, eventId }) => [eventId, { imageKey: key }]),
+);
+Object.assign(VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES);
 
 export const VERIFIED_EVENT_CONTEXT_PHOTOS = Object.fromEntries(
   venuePhotos.map(({ key, eventIds }) => [key, { purpose: 'venue' as const, eventIds }]),
