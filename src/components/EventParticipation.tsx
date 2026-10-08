@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Check, Heart, MessageCircle, RefreshCw, Users, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp, type AppContextValue } from '../app/context';
@@ -8,7 +9,6 @@ import { getBayAreaToday } from '../lib/monthly';
 import { translateText, useLocale } from '../i18n/locale';
 import { ModalShell } from './ui/Modal';
 import { EventParticipationContext, useEventParticipation } from '../lib/event-participation-context';
-import { EnglishOnly } from './EnglishOnly';
 
 export function EventParticipationProvider({ events, children }: { events: MonthlyEvent[]; children: ReactNode }) {
   const app = useApp() as AppContextValue | undefined;

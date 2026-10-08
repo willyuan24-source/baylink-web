@@ -1,11 +1,11 @@
 // 推荐页：编辑专题、精选帖子与推广信息，保留原有广告和管理行为。
 import { Sparkles, Megaphone } from 'lucide-react';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { useApp } from '../app/context';
 import { FeaturedPostsSection } from '../features/home/HomeSections';
 import { OfficialAds } from '../features/ads/OfficialAds';
 import { EditorialCollections } from '../components/EditorialCollections';
 import { MonthlySpotlight } from '../components/MonthlySpotlight';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 export default function RecommendPage() {
   const {

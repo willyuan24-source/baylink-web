@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, MessageCircle, RefreshCw, ShieldCheck } from 'lucide-react';
 import { bookingDisplayStatus, serviceBookings, type BookingAction, type BookingRescheduleAction, type ServiceBooking, type ServiceBookingInbox } from '../../lib/service-bookings';
@@ -8,7 +9,6 @@ import { BookingError, BookingNotice, BookingNotificationNotice, BookingStatusLa
 import { bookingError, bookingSessionKey, useBookingSession, type BookingToast } from './booking-session';
 import { BookingReschedulePanel } from './BookingReschedulePanel';
 import './bookings.css';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 export type ServiceBookingsDashboardProps = { user: UserData | null; onLoginNeeded: () => void; showToast: BookingToast };
 function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDashboardProps) {

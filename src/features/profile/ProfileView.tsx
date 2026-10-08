@@ -1,5 +1,6 @@
 // 「我的」页：个人名片 / 信任信息 / 资料审核 / 子视图入口（含管理员入口）
 import { useState } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import {
   LogOut, Edit, BadgeCheck, Phone, UserX, Eye, MapPin,
   ChevronRight, Info, Flag, House, MessageCircle, Sparkles,
@@ -24,7 +25,6 @@ import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
 import { ProfileActivityLinks, ProfilePersonalSpace } from './ProfilePersonalSpace';
 import { PrivacySecurity } from './PrivacySecurity';
 import { translateText, useLocale } from '../../i18n/locale';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 

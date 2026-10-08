@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowUpRight, CalendarDays, Loader2, MapPin, RotateCcw, Users, ChevronRight } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, ChevronRight, Loader2, MapPin, RotateCcw, Users } from 'lucide-react';
 import { outings, type Outing } from '../lib/outings';
 import { getStoredUser } from '../lib/session';
 import { bayBayOutingPath, type BayBayOutingSearch } from '../lib/baybay-conversation';

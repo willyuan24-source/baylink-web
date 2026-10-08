@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Bookmark, Check, ChevronRight, Clock3, Sparkles, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide } from '../data/guides';
@@ -9,7 +10,6 @@ import { useLocale } from '../i18n/locale';
 import { EditorialShareActions } from './EditorialShareActions';
 import { guideShare } from '../lib/editorial-share';
 import { bayBayPageQuestions } from '../lib/baybay-conversation';
-import { EnglishOnly } from './EnglishOnly';
 
 export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
   useLocale();

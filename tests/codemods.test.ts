@@ -34,7 +34,7 @@ test('arrows codemod: internal links and buttons lose ↗, links that leave the 
   ].join('\n');
   const result = rewriteArrows(source, 'src/components/A.tsx', dictionary);
   assert.equal(result.replacedIcons, 2);
-  assert.match(result.text, /^import \{ ArrowUpRight, Mail, ChevronRight \} from 'lucide-react';/, 'still used by the external link, so it stays imported');
+  assert.match(result.text, /^import \{ ArrowUpRight, ChevronRight, Mail \} from 'lucide-react';/, 'ArrowUpRight stays for the external link; ChevronRight joins in alphabetical position');
   assert.match(result.text, /<Link to="\/guides">指南<ChevronRight size=\{16\} \/><\/Link>/);
   assert.match(result.text, /target="_blank" rel="noreferrer">官方<ArrowUpRight size=\{14\} \/>/);
   assert.match(result.text, /<button type="button">登录<ChevronRight size=\{18\} \/>/);
@@ -45,6 +45,8 @@ test('arrows codemod: internal links and buttons lose ↗, links that leave the 
   assert.match(result.text, /外部 ↗/);
   assert.equal(rewriteArrows(result.text, 'src/components/A.tsx', dictionary).replacedIcons, 0, 'idempotent');
   const onlyInternal = rewriteArrows("import {\n  ArrowRight,\n  ArrowUpRight,\n  ChevronRight,\n} from 'lucide-react';\nconst B = () => <Link to=\"/\">x<ArrowUpRight /></Link>;", 'src/B.tsx', {});
+  const sortedInsert = rewriteArrows("import {\n  ArrowRight,\n  Check,\n  Clock3,\n  ShieldCheck,\n} from 'lucide-react';\nconst E = () => <><Link to=\"/\">x<ArrowUpRight /></Link><a href=\"https://x.org\" target=\"_blank\"><ArrowUpRight /></a></>;", 'src/E.tsx', {});
+  assert.match(sortedInsert.text, /^import \{\n {2}ArrowRight,\n {2}Check,\n {2}ChevronRight,\n {2}Clock3,\n {2}ShieldCheck,\n\} from 'lucide-react';/, 'a new name goes on its own line in order, not at the end where other lanes append');
   assert.equal(onlyInternal.text, "import {\n  ArrowRight,\n  ChevronRight,\n} from 'lucide-react';\nconst B = () => <Link to=\"/\">x<ChevronRight /></Link>;", 'a multi-line import keeps its layout');
 });
 

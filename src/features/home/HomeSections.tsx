@@ -1,5 +1,6 @@
 // 首页区块组件：筛选 chips / Hero / 频道 / 编辑精选 / 精选帖 / feed 切换 / 空态
 import { useState, useEffect } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { Link } from 'react-router-dom';
 import { getSlugFromCategory } from '../../routing';
 import { ArrowDown, ChevronRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
@@ -9,7 +10,6 @@ import { formatChineseDate } from '../../lib/format';
 import type { PostData, PostType, UserData } from '../../lib/types';
 import { PostCard } from '../posts/PostCard';
 import { FeedSkeleton, HotRecommendSkeleton } from '../../components/ui/Skeleton';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 export const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <button type="button" onClick={onClick} aria-pressed={active} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{label}</button>

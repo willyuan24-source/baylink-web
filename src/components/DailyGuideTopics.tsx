@@ -1,8 +1,8 @@
 import { ArrowRight, ChevronRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link } from 'react-router-dom';
 import { DAILY_GUIDE_TOPICS } from '../data/daily-guide-topics';
 import { handleGuideLinkClick } from './GuideCard';
-import { EnglishOnly } from './EnglishOnly';
 
 export function DailyGuideTopics({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   return <section className="daily-guide-topics" aria-labelledby="daily-guide-title">

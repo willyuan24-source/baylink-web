@@ -1,10 +1,10 @@
 import { ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link } from 'react-router-dom';
 import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { handleGuideLinkClick } from './GuideCard';
 import { SCHOOL_REGIONS } from '../data/school-regions';
-import { EnglishOnly } from './EnglishOnly';
 
 
 

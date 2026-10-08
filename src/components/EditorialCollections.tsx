@@ -1,7 +1,7 @@
 import { ChevronRight, Compass, KeyRound, MessagesSquare } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link } from 'react-router-dom';
 import { editorialCollections } from '../data/editorial-collections';
-import { EnglishOnly } from './EnglishOnly';
 
 const icons = [KeyRound, MessagesSquare, Compass];
 

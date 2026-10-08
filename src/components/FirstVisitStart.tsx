@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link } from 'react-router-dom';
 import { FIRST_VISIT_PATHS } from '../data/first-visit-paths';
 import { handleGuideLinkClick } from './GuideCard';
-import { EnglishOnly } from './EnglishOnly';
 
 export function FirstVisitStart({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   return <section className="daily-guide-topics" aria-labelledby="first-visit-title">

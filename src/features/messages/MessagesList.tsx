@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { MessageCircle, ChevronRight, MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
@@ -9,7 +10,6 @@ import { formatChineseDate, friendlyErrorMessage } from '../../lib/format';
 import { readMessageDraft, readMessagePins, saveMessagePins } from './messageState';
 import { simplifySearch, translateText, useLocale } from '../../i18n/locale';
 import type { Conversation, UserData } from '../../lib/types';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 type MessagesListProps = {
   currentUser: UserData | null;

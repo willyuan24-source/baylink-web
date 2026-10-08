@@ -1,4 +1,5 @@
 import { getListingImage } from '../lib/offer-media';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Sparkles, Heart, Plus, X, Share2, ArrowUp, CalendarDays, ChevronRight, SlidersHorizontal, Square } from 'lucide-react';
@@ -32,7 +33,6 @@ import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommend
 import { PlannerStopOffers } from '../components/PlannerStopOffers';
 import type { CompleteOuting } from '../lib/planner-outings';
 import { defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 export default function PlannerPage() {
   const app = useApp();

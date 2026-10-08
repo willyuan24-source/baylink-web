@@ -1,4 +1,5 @@
 import { PerksGallery } from './PerksGallery';
+import { EnglishOnly } from './EnglishOnly';
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SaveToWeek } from './SaveToWeek';
 import {
@@ -9,12 +10,12 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  ChevronRight,
   Clock3,
   Copy,
   Lightbulb,
   List,
   ShieldCheck,
-  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -36,7 +37,6 @@ import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { guideContentReviewRecord } from '../lib/content-review';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
-import { EnglishOnly } from './EnglishOnly';
 
 type GuideDetailProps = {
   slug: string;

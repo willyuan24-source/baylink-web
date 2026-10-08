@@ -71,13 +71,14 @@ export function rewrite(source, fileName) {
     && ts.isNamedImports(statement.importClause.namedBindings) && statement.importClause.namedBindings.elements.some(element => element.name.text === 'EnglishOnly'));
   if (!imported) {
     const imports = file.statements.filter(ts.isImportDeclaration);
-    const last = imports.at(-1);
+    // After the first import: the end of the import block is where parallel lanes add theirs.
+    const anchor = imports[0];
     let specifier = relative(dirname(fileName), 'src/components/EnglishOnly').split(sep).join('/');
     if (!specifier.startsWith('.')) specifier = `./${specifier}`;
-    const quote = last ? source[last.moduleSpecifier.getStart(file)] : "'";
+    const quote = anchor ? source[anchor.moduleSpecifier.getStart(file)] : "'";
     const eol = source.includes('\r\n') ? '\r\n' : '\n';
     const line = `import { EnglishOnly } from ${quote}${specifier}${quote};`;
-    if (last) edits.push({ at: last.getEnd(), text: `${eol}${line}` });
+    if (anchor) edits.push({ at: anchor.getEnd(), text: `${eol}${line}` });
     else edits.push({ at: 0, text: `${line}${eol}` });
   }
   let text = source;

@@ -1,6 +1,7 @@
 import { recordProductEvent } from '../lib/product-events';
+import { EnglishOnly } from './EnglishOnly';
 import { useState } from 'react';
-import { ArrowDown, ArrowUpRight, CalendarDays, MapPin, Store, ChevronRight } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, CalendarDays, ChevronRight, MapPin, Store } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { SeptemberOpening } from '../data/september-openings';
 import { currentOpenings } from '../data/local-discoveries';
@@ -13,7 +14,6 @@ import { openingStatusLabel } from '../lib/opening-status';
 import { getImageProvenance } from '../lib/image-provenance';
 import { openingFreshnessLabel } from '../lib/opening-freshness';
 import reviewEnglish from '../i18n/opening-review-en.json';
-import { EnglishOnly } from './EnglishOnly';
 
 export const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const regionLabels = { sf: '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', peninsula: '半岛', 'north-bay': '北湾' };

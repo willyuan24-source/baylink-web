@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
 import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
@@ -8,7 +9,6 @@ import { EditorialShareActions } from './EditorialShareActions';
 import { offerShare } from '../lib/editorial-share';
 import type { MonthlyRegion } from '../data/monthly-types';
 import { simplifySearch, translateText, useLocale } from '../i18n/locale';
-import { EnglishOnly } from './EnglishOnly';
 
 export type FreebieOffer = {
   id: string;

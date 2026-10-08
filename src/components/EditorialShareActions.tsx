@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Copy, Download, Image as ImageIcon, Share2, X } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
 import { copyText } from '../utils/postShare';
 import { editorialShareText, editorialShareUrl, shareCardPath, type EditorialShare } from '../lib/editorial-share';
 import { translateText, useLocale } from '../i18n/locale';
-import { EnglishOnly } from './EnglishOnly';
 
 export function EditorialShareActions({ item }: { item: EditorialShare }) {
   useLocale();

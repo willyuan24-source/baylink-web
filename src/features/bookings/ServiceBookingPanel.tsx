@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { Link } from 'react-router-dom';
 import { CalendarDays, Clock3, Plus, RefreshCw, X } from 'lucide-react';
 import { bayAreaBookingDate, bookingDisplayStatus, serviceBookings, type BookingNotifications, type BookingSettings, type ServiceAvailability, type ServiceBooking, type ServiceSlot } from '../../lib/service-bookings';
@@ -8,7 +9,6 @@ import { useBookingCopy, type BookingTranslate } from './booking-copy';
 import { BookingError, BookingNotice, BookingReceipt } from './booking-shared';
 import { bookingError, bookingSessionKey, useBookingSession, type BookingToast } from './booking-session';
 import './bookings.css';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 export type ServiceBookingPanelProps = { post: PostData; currentUser: UserData | null; onLoginNeeded: () => void; showToast: BookingToast; onRequestTime?: () => void };
 type SlotDraft = Pick<ServiceSlot, 'date' | 'startTime' | 'endTime'>;

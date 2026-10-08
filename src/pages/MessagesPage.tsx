@@ -1,11 +1,11 @@
 // 消息页：联系方式请求收件箱 + 会话列表（/messages/:threadId 时主区留空，聊天由布局层覆盖渲染）
 import { Link, useParams } from 'react-router-dom';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { MessageCircle, LockKeyhole, ArrowLeft } from 'lucide-react';
 import { api } from '../lib/api';
 import { useApp } from '../app/context';
 import { ContactRequestInboxPanel } from '../components/ContactRequestInboxPanel';
 import { MessagesList } from '../features/messages/MessagesList';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 export default function MessagesPage() {
   const { threadId } = useParams();

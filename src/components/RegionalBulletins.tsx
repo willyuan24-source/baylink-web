@@ -1,9 +1,9 @@
 import { ArrowUpRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { getActiveRegionalBulletins } from '../data/october-2026-bulletins';
 import { getListingImage } from '../lib/offer-media';
 import { GuideImageCaption } from './GuideVisuals';
 import { recordProductEvent } from '../lib/product-events';
-import { EnglishOnly } from './EnglishOnly';
 
 export function RegionalBulletins({ today }: { today: string }) {
   const items = getActiveRegionalBulletins(today);

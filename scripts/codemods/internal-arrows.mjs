@@ -132,8 +132,8 @@ export function rewrite(source, fileName, dictionary) {
       const swapped = edits.filter(edit => edit.text === 'ChevronRight').length;
       return count - swapped;
     })();
-    // Minimal edits keep the import's layout (one line or one name per line), so line numbers do not move
-    // under other lanes' work: the swapped name takes ArrowUpRight's place, or is added after the last name.
+    // Minimal edits keep the import's layout (one line or one name per line): the swapped name takes ArrowUpRight's
+    // place, or is added in alphabetical position (not at the end, where other lanes add their icons).
     const arrow = bindings.elements.find(element => element.getText(file) === 'ArrowUpRight');
     const hasChevron = names.includes('ChevronRight');
     if (arrow && remaining <= 0 && !hasChevron) edits.push({ start: arrow.getStart(file), end: arrow.getEnd(), text: 'ChevronRight' });
@@ -148,15 +148,24 @@ export function rewrite(source, fileName, dictionary) {
         else edits.push({ start: bindings.elements[index - 1].getEnd(), end: arrow.getEnd(), text: '' });
       }
       if (!hasChevron) {
-        const last = bindings.elements.at(-1);
-        const multiline = /\n/.test(source.slice(bindings.getStart(file), bindings.getEnd()));
-        if (multiline) {
-          const eol = source.includes('\r\n') ? '\r\n' : '\n';
-          const lineStart = source.lastIndexOf('\n', last.getStart(file)) + 1;
-          const indent = /^[ \t]*/.exec(source.slice(lineStart, last.getStart(file)))[0];
-          const trailingComma = bindings.elements.hasTrailingComma;
-          edits.push({ start: last.getEnd() + (trailingComma ? 1 : 0), end: last.getEnd() + (trailingComma ? 1 : 0), text: `${trailingComma ? '' : ','}${eol}${indent}ChevronRight${trailingComma ? ',' : ''}` });
-        } else edits.push({ start: last.getEnd(), end: last.getEnd(), text: ', ChevronRight' });
+        const eol = source.includes('\r\n') ? '\r\n' : '\n';
+        const elements = bindings.elements.filter(element => element !== arrow || remaining > 0);
+        const anchor = elements.filter(element => element.getText(file) < 'ChevronRight').at(-1);
+        const alone = element => {
+          const start = source.lastIndexOf('\n', element.getStart(file)) + 1; const end = source.indexOf('\n', element.getEnd()) + 1;
+          return end > 0 && /^\s*[A-Za-z0-9_$]+,?\s*$/.test(source.slice(start, end)) ? { start, end, indent: /^[ \t]*/.exec(source.slice(start, end))[0] } : null;
+        };
+        if (!anchor) {
+          const first = elements[0]; const line = alone(first);
+          if (line) edits.push({ start: line.start, end: line.start, text: `${line.indent}ChevronRight,${eol}` });
+          else edits.push({ start: first.getStart(file), end: first.getStart(file), text: 'ChevronRight, ' });
+        } else {
+          const line = alone(anchor);
+          const lastWithoutComma = anchor === bindings.elements.at(-1) && !bindings.elements.hasTrailingComma;
+          if (line && !lastWithoutComma) edits.push({ start: line.end, end: line.end, text: `${line.indent}ChevronRight,${eol}` });
+          else if (line) edits.push({ start: anchor.getEnd(), end: anchor.getEnd(), text: `,${eol}${line.indent}ChevronRight` });
+          else edits.push({ start: anchor.getEnd(), end: anchor.getEnd(), text: ', ChevronRight' });
+        }
       }
     }
   }

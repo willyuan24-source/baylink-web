@@ -1,8 +1,8 @@
 import { ArrowRight, ChevronRight, BookOpen, Compass } from "lucide-react";
+import { EnglishOnly } from "./EnglishOnly";
 import { Link } from "react-router-dom";
 import { getFeaturedGuides, getGuideBySlug } from "../data/guides";
 import { GuideCardMini, handleGuideLinkClick } from "./GuideCard";
-import { EnglishOnly } from "./EnglishOnly";
 
 type GuideSectionProps = {
   onOpenGuide: (slug: string) => void;

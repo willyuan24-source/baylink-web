@@ -1,6 +1,6 @@
 import { useId } from 'react';
-import { ArrowUpRight, MapPin } from 'lucide-react';
 import { EnglishOnly } from '../../components/EnglishOnly';
+import { ArrowUpRight, MapPin } from 'lucide-react';
 
 const areas = [
   { name: '北湾', city: 'Marin · Napa · Sonoma', x: 30, y: 19 },

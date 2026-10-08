@@ -1,10 +1,10 @@
 import { useId, useState } from 'react';
-import { ArrowUpRight, Copy, Download, Images, ChevronRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
+import { ArrowUpRight, ChevronRight, Copy, Download, Images } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateText, useLocale } from '../i18n/locale';
 import { copyText } from '../utils/postShare';
 import { PERKS_POSTER_CHECKED, perksPosters, perksPosterCaption, type PerksPoster } from '../data/perks-posters';
-import { EnglishOnly } from './EnglishOnly';
 
 export function PerksGallery({ compact = false, topic }: { compact?: boolean; topic?: PerksPoster['topic'] }) {
   const locale = useLocale();

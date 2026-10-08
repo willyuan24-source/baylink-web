@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, MapPin, Ticket, X } from 'lucide-react';
 import { PLANNER_EVENTS } from '../data/planner-catalog';
@@ -12,7 +13,6 @@ import { recordProductEvent } from '../lib/product-events';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 import { useApp } from '../app/context';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 const EventMap = lazy(() => import('../components/CalendarEventMap').then(module => ({ default: module.CalendarEventMap })));
 const categories = [{ id: 'culture', label: '艺术文化' }, { id: 'family', label: '亲子活动' }, { id: 'outdoors', label: '户外探索' }, { id: 'food', label: '美食市集' }];

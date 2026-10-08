@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowDown, ArrowRight, ArrowUp, Check, Clock3, Compass, Copy, MapPin, Plus, Search, Share2, Sparkles, Ticket, X } from 'lucide-react';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } from '../data/attractions';
@@ -9,7 +10,6 @@ import { translateText, useLocale } from '../i18n/locale';
 import { ATTRACTION_REGION_INTROS } from '../data/attraction-region-intros';
 import { CITY_EXPLORATION_SLUG } from '../data/city-exploration-types';
 import { opusBayAttractionEntry } from '../lib/opus-bay-attraction-entry';
-import { EnglishOnly } from './EnglishOnly';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
 

@@ -1,4 +1,5 @@
 import { getListingImage } from '../lib/offer-media';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -22,7 +23,6 @@ import { MyWeekBookings } from '../features/bookings/MyWeekBookings';
 import { PlannerPreferenceMemory } from '../components/PlannerPreferenceMemory';
 import { GuideFigure } from '../components/GuideVisuals';
 import { UnifiedSavedItems } from '../components/UnifiedSavedItems';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 export default function MyWeekPage() {
   const app = useApp(); const locale = useLocale();

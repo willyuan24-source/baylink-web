@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Mail, MapPin, MessageCircle, Sparkles, Wrench, ChevronRight } from 'lucide-react';
-import { BRAND } from '../brandAssets';
 import { EnglishOnly } from './EnglishOnly';
+import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, ChevronRight, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
+import { BRAND } from '../brandAssets';
 
 const discoveries = [
   { icon: CalendarDays, number: '01', title: '找活动和优惠', text: '看看本月活动、免费福利和周末好去处。', href: '/this-month', action: '去看活动' },

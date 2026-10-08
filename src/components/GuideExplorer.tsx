@@ -1,12 +1,12 @@
 import { useState } from 'react';
-import { ArrowRight, ArrowUpRight, MapPin, ChevronRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
+import { ArrowRight, ArrowUpRight, ChevronRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getGuideBySlug } from '../data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
 import { handleGuideLinkClick } from './GuideCard';
 import { getImageProvenance } from '../lib/image-provenance';
 import { useLocale } from '../i18n/locale';
-import { EnglishOnly } from './EnglishOnly';
 
 const IDEAS = [
   { label: '去海边', slug: 'half-moon-bay-coastal-half-day-guide', place: 'HALF MOON BAY', note: '风有点大，日程可以慢一点。', detail: '海岸短走 / 看海休息 / 随时折返' },

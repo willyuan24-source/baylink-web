@@ -1,8 +1,8 @@
 import { ChevronRight } from 'lucide-react';
+import { EnglishOnly } from './EnglishOnly';
 import { Link, useSearchParams } from 'react-router-dom';
 import { READER_PATHS } from '../data/reader-paths';
 import { handleGuideLinkClick } from './GuideCard';
-import { EnglishOnly } from './EnglishOnly';
 
 export function ReaderPaths({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   const [params, setParams] = useSearchParams();

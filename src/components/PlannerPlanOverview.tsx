@@ -1,8 +1,8 @@
 import { translateText, useLocale } from '../i18n/locale';
+import { EnglishOnly } from './EnglishOnly';
 import { buildItinerary, clockLabel, planBudget, stopKey, planDetailsError } from '../lib/planner-itinerary';
 import { stopTitle, type PlanDetails, type Stop } from '../lib/planner';
 import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
-import { EnglishOnly } from './EnglishOnly';
 
 export function PlannerPlanOverview({ stops, date, details, admissionOverride }: { stops: Stop[]; date: string; details: PlanDetails; admissionOverride?: BayBayAdmissionOverride }) {
   const locale = useLocale();

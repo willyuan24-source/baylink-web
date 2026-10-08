@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { EnglishOnly } from '../components/EnglishOnly';
 import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowRight, ChevronRight, BookOpen, Compass, LayoutGrid, List, Loader2, MapPin, Plus, RotateCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { useApp } from '../app/context';
@@ -13,7 +14,6 @@ import { RegionExplorer } from '../features/home/RegionExplorer';
 import { PostCard } from '../features/posts/PostCard';
 import { OfficialAds } from '../features/ads/OfficialAds';
 import { PostCardSkeleton } from '../components/ui/Skeleton';
-import { EnglishOnly } from '../components/EnglishOnly';
 
 const VIEW_KEY = 'baylink.feed-view.v2';
 const getSavedView = (): 'grid' | 'list' => {

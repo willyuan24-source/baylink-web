@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
+import { EnglishOnly } from './EnglishOnly';
 import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
 import { BayBayEntityCards } from './BayBayEntityCards';
 import { recordProductEvent } from '../lib/product-events';
@@ -20,7 +21,6 @@ import {
 } from '../lib/baybay-conversation';
 import { translateText, useLocale } from '../i18n/locale';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
-import { EnglishOnly } from './EnglishOnly';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 /** An explicit guest sign-in carries only this tab's in-memory draft, never account history. */

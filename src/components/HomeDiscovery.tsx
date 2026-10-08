@@ -1,6 +1,6 @@
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useId, useState } from 'react';
-import { ArrowRight, ArrowUpRight, CalendarDays, Check, MapPin, Search, ShieldCheck, Ticket, TramFront, ChevronRight } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronRight, MapPin, Search, ShieldCheck, Ticket, TramFront } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getGuideBySlug, guideCount, getGuideMedia, GUIDE_IMAGES, MONTHLY_EVENTS, currentFreebies } from '../lib/home-catalog';
 import { HOME_FEATURED_GUIDE, HOME_PATHWAYS as pathways } from '../data/home-pathways';

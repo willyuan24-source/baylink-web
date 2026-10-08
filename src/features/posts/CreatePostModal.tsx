@@ -1,5 +1,6 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useEffect, useRef, useState } from 'react';
+import { EnglishOnly } from '../../components/EnglishOnly';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
@@ -24,7 +25,6 @@ import {
   compressImageFile, fileToDataUrl, isLikelyImageFile,
   MAX_IMAGE_UPLOAD_BYTES, UnsupportedImageError,
 } from '../../utils/imageCompression';
-import { EnglishOnly } from '../../components/EnglishOnly';
 
 const DefaultCoverPicker = ({
   type,
