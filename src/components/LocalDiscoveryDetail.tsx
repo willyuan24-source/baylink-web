@@ -14,6 +14,7 @@ import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { SaveToWeek } from './SaveToWeek';
 import { OutingInspirationLink } from './OutingInspirationLink';
+import { SegmentedTitle } from './SegmentedTitle';
 import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { eventOccursOn } from '../lib/event-calendar';
@@ -67,7 +68,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
     <Link className="discovery-back" to={`/this-month${item.kind === 'offer' ? '#monthly-perks' : item.kind === 'opening' ? '#monthly-openings' : '#monthly-events'}`}><ArrowLeft size={16} />发现更多湾区好去处</Link>
     <header className={`discovery-detail-header discovery-detail-${item.kind}`}>
       <div className="discovery-detail-brand"><span>BAYLINK</span><span translate="no">{copy('湾区生活手记', '灣區生活手記', 'Notes on life in the Bay')}</span></div>
-      <span className="discovery-eyebrow">{share.label}{item.kind === 'offer' && <> · {item.offer.brand}</>}</span><h1>{item.kind === 'offer' ? item.offer.title : share.title}</h1>{item.kind !== 'offer' && <p className="discovery-detail-summary">{share.summary}</p>}
+      <span className="discovery-eyebrow">{share.label}{item.kind === 'offer' && <> · {item.offer.brand}</>}</span><h1><SegmentedTitle text={item.kind === 'offer' ? item.offer.title : share.title} /></h1>{item.kind !== 'offer' && <p className="discovery-detail-summary">{share.summary}</p>}
       <div className="discovery-detail-facts"><span><CalendarDays size={17} aria-hidden="true" />{share.date}</span><span><MapPin size={17} aria-hidden="true" />{item.kind === 'offer' ? <span translate="no">{offerLocation}</span> : share.area}</span>{item.kind === 'event' && <span><Ticket size={17} aria-hidden="true" />{item.event.costLabel}</span>}</div>
       <ContentReviewNotice record={discoveryContentReviewRecord(item)} today={today} />
       {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
