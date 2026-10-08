@@ -2,7 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "git": {
     "deploymentEnabled": {
-      "opus-bay": false
+      "opus-bay": false,
+      "claude/*": false,
+      "wip/*": false
     }
   },
   "buildCommand": "npm run release:hosting",
