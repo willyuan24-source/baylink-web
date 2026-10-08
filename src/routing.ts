@@ -58,7 +58,6 @@ export const tabFromPathname = (pathname: string): AppTab => {
   if (/^\/(events|offers|openings)\//.test(pathname)) return 'guides';
   if (pathname === '/tools' || pathname === '/tools/') return 'tools';
   if (pathname.startsWith('/guides') || /^\/archive\/?$/.test(pathname)) return 'guides';
-  if (pathname.startsWith('/recommend')) return 'notifications';
   if (pathname.startsWith('/messages')) return 'messages';
   if (pathname === '/me' || /^\/me\/bookings\/?$/.test(pathname)) return 'profile';
   return 'home';
