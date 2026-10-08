@@ -151,3 +151,15 @@ test('home hero: the English H1 reads as a sentence, the hero image is fetched f
     await setLocale('zh-Hans', false);
   }
 });
+
+test('home sends weekend and today links to the 活动 column (/events) and keeps an eager, client-side 按日历看 link (WEB-ROUTES)', () => {
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
+  const quick = [...doc.querySelectorAll('.home-search-suggestions a')].map(link => [link.textContent, link.getAttribute('href')]);
+  assert.deepEqual(quick.filter(([label]) => label !== '不开车也能去'), [['今天去哪', '/events?when=today'], ['本周末免费', '/events?cost=free'], ['按日历看', '/calendar']]);
+  assert.match(doc.querySelector('.home-weekend .home-section-heading a')!.getAttribute('href')!, /^\/events$/);
+  assert.ok(![...doc.querySelectorAll('a')].some(link => /^\/this-week|^\/recommend/.test(link.getAttribute('href')!)), 'no link into a redirect');
+  // client-side: clicking 按日历看 moves the router (the OPUS contract test relies on this link)
+  const view = render(<MemoryRouter initialEntries={['/']}><HomeDiscovery today="2026-10-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
+  const calendar = view.getByRole('link', { name: '按日历看' });
+  assert.equal(fireEvent.click(calendar), false, 'the router handles it (default prevented), no full page load');
+});

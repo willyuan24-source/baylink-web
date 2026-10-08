@@ -5,17 +5,21 @@ import { fileURLToPath } from 'node:url';
 /**
  * Walks vercel.json `routes` the way Vercel answers a direct load: the first terminal match wins; `continue` routes only
  * add headers; `has` query conditions must all match (named captures become `$name`); `handle: filesystem` serves real
- * files (only `/` → index.html is modelled). Redirects and rewrites keep the request's query (Vercel passes it through:
- * a `redirects` entry compiles to the same {src, status, headers.Location} route and keeps it).
+ * files (only `/` → index.html is modelled). Redirects and rewrites keep the request's query: Vercel passes it through
+ * (checked on production 10/08, see withQuery).
  * Used by tests/legacy-urls.test.ts, scripts/verify-release.mjs and the post-deploy check below.
  */
 export function resolveHosting(routes, url) {
   const request = new URL(url, 'https://www.baylink.us');
   const headers = {};
+  // Observed on production 10/08: /n/sf?probe=1&from=x → 302 /this-week?probe=1&from=card-sf&region=sf — the request's
+  // query comes first and the target's own parameters replace same-named ones.
   const withQuery = target => {
     const next = new URL(target, 'https://www.baylink.us');
-    for (const [key, value] of request.searchParams) if (!next.searchParams.has(key)) next.searchParams.append(key, value);
-    return `${next.pathname}${next.search}`;
+    const query = new URLSearchParams(request.search);
+    for (const [key, value] of next.searchParams) query.set(key, value);
+    const search = query.toString();
+    return `${next.pathname}${search ? `?${search}` : ''}`;
   };
   for (const route of routes) {
     if (route.handle === 'filesystem') {

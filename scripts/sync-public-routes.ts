@@ -90,11 +90,11 @@ export function tableHostingRoutes() {
     ...ROUTES.filter(route => route.path !== '/' && route.hosting !== 'token' && !(LANG_REDIRECT_EXCLUDED as readonly string[]).includes(route.path)).map(route => routeSource(route.path)),
     `n/(?:${CARD_REGIONS.join('|')})`,
   ];
-  const lang = { type: 'query', key: 'lang', value: '(?<lang>en|zh-Hant)' };
-  const langRedirects: HostingRoute[] = [
-    { src: '^/$', has: [lang], status: 301, headers: { Location: '/$lang' } },
-    { src: `^/(${langPaths.join('|')})/?$`, has: [lang], status: 301, headers: { Location: '/$lang/$1' } },
-  ];
+  // One route per language: plain `has` values, no named-capture interpolation in Location.
+  const langRedirects: HostingRoute[] = (['en', 'zh-Hant'] as const).flatMap(locale => [
+    { src: '^/$', has: [{ type: 'query', key: 'lang', value: locale }], status: 301, headers: { Location: `/${locale}` } },
+    { src: `^/(${langPaths.join('|')})/?$`, has: [{ type: 'query', key: 'lang', value: locale }], status: 301, headers: { Location: `/${locale}/$1` } },
+  ]);
   return {
     staticPages: { src: `^/(${pages.join('|')})/?$`, dest: '/$1.html' } as HostingRoute,
     spaShell: { src: `^/(?:${spa.join('|')})/?$`, dest: '/index.html' } as HostingRoute,

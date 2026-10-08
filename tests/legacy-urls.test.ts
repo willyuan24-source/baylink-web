@@ -25,6 +25,8 @@ test('/events is a prerendered page; /this-week and /recommend are 301s to it; /
     assert.deepEqual([card.status, card.location, card.headers['Cache-Control']], [302, `${prefix}/events?region=peninsula&from=card-peninsula`, 'no-store']);
   }
   assert.equal(hosted('/n/elsewhere').kind, 'missing', 'only the printed regions');
+  // Vercel's merge, as observed on production: request query first, the target's parameters win on the same name
+  assert.equal(hosted('/n/sf?probe=1&from=x').location, '/events?probe=1&from=card-sf&region=sf');
 });
 
 test('?lang= sends an unprefixed URL to its language, keeps date/region/from/stops, and never touches the game or loops', () => {
