@@ -62,6 +62,8 @@
 .home-weekend-card .home-weekend-facts { display:flex; align-items:flex-start; gap:8px; }
 .home-weekend-facts svg { flex:none; margin-top:4px; }
 .home-weekend-card .home-source { font-size:var(--text-caption); color:var(--color-ink-3); }
+.home-weekend-card .home-weekend-pick { font-size:var(--text-fact); line-height:1.6; color:var(--color-ink-2); margin:0 0 6px; }
+.home-weekend-pick>span { color:var(--color-brand); font-weight:600; margin-right:6px; }
 .home-weekend-actions { display:flex; align-items:center; flex-wrap:wrap; gap:5px 14px; margin-top:auto; padding-top:18px; }
 .home-weekend-actions>a,.home-offer-list>article>a { display:inline-flex; align-items:center; justify-content:center; min-height:var(--control-height); gap:5px; font-size:var(--text-fact); color:var(--color-brand); }
 .home-weekend-actions .home-tonal-button { padding:8px 13px; border-radius:9px; background:var(--color-brand-tint); font-weight:600; }

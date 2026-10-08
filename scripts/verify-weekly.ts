@@ -4,20 +4,44 @@ import { PNG } from 'pngjs';
 import jsQR from 'jsqr';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { eventOccursOn, addCalendarDays } from '../src/lib/event-calendar';
-import { getHomeWeekend } from '../src/lib/home-weekend';
+import { HOME_GENERATED_AT, HOME_WEEKENDS } from '../src/lib/home-catalog';
+import { getWeeklyCardDays } from '../src/lib/home-weekend';
+import { getBuildWeekend } from '../src/lib/home-weekend-build';
 
-const regions = ['all', 'sf', 'east-bay', 'peninsula', 'south-bay', 'north-bay'];
-let occurrences = 0;
-for (const region of regions) {
-  const card = JSON.parse(await readFile(`public/weekly/${region}.json`, 'utf8'));
+type CardPick = { id: string; date: string; verifiedAt: string; editorial?: { rank: number; reason: { zh: string; en: string } } };
+const snapshots = HOME_WEEKENDS as Record<string, { ids: string[] }>;
+const stale = new Map<string, string[]>();
+const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_EVENTS, day?: string) => {
+  const card = JSON.parse(await readFile(`public/weekly/${name}.json`, 'utf8'));
   assert.match(card.generatedAt, /^\d{4}-\d{2}-\d{2}$/);
-  const catalog = MONTHLY_EVENTS.filter(event => region === 'all' || event.region === region);
-  const expected = getHomeWeekend(card.generatedAt, catalog).picks.map(({ event, date }) => ({ id: event.id, date }));
-  assert.deepEqual(card.picks.map(({ id, date }: { id: string; date: string }) => ({ id, date })), expected);
-  const png = PNG.sync.read(await readFile(`public/weekly/${region}.png`));
+  assert.equal(card.day, day ?? card.generatedAt, `${name}: card day`);
+  const picks: CardPick[] = card.picks;
+  const expected = getBuildWeekend(card.day, catalog).picks.map(({ event, date, editorial }) => ({ id: event.id, date, editorial }));
+  assert.deepEqual(picks.map(({ id, date, editorial }) => ({ id, date, editorial })), expected, `${name}: same selection as the build`);
+  // The share card matches the home page on its day. Snapshots end at the
+  // edition's throughDate; after that there is nothing to compare against.
+  if (region === 'all' && snapshots[card.day]) assert.deepEqual(picks.map(pick => pick.id), snapshots[card.day].ids, `${name}: same picks as the home page on ${card.day}`);
+  assert.ok(picks.every((pick, index) => !pick.editorial || picks.slice(0, index).every(before => before.editorial)), `${name}: editor picks come first`);
+  for (const pick of picks) {
+    if (pick.editorial) assert.ok(pick.editorial.reason.zh.trim() && pick.editorial.reason.en.trim(), `${name}: ${pick.id} has a reason`);
+    // The card prints 核对 dates; content review marks an entry due after 7 days.
+    if (region === 'all' && pick.verifiedAt <= addCalendarDays(card.day, -7)) stale.set(name, [...stale.get(name) || [], `${pick.id} (核对 ${pick.verifiedAt})`]);
+  }
+  const png = PNG.sync.read(await readFile(`public/weekly/${name}.png`));
   assert.equal(png.width, 1080); assert.equal(png.height, 1440);
   const qr = jsQR(new Uint8ClampedArray(png.data), png.width, png.height, { inversionAttempts: 'dontInvert' });
   assert.equal(qr?.data, `https://www.baylink.us/n/${region}`);
+  return card;
+};
+
+const regions = ['all', 'sf', 'east-bay', 'peninsula', 'south-bay', 'north-bay'];
+let occurrences = 0;
+// The home page links /weekly/all-<today>.png on these days, so each card must exist.
+const days = getWeeklyCardDays(HOME_GENERATED_AT);
+for (const day of days) await checkCard(`all-${day}`, 'all', MONTHLY_EVENTS, day);
+for (const region of regions) {
+  const catalog = MONTHLY_EVENTS.filter(event => region === 'all' || event.region === region);
+  const card = await checkCard(region, region, catalog);
   const raw = await readFile(`public/calendars/${region}.ics`, 'utf8');
   assert.ok(raw.endsWith('END:VCALENDAR\r\n'));
   for (const line of raw.split('\r\n')) assert.ok(Buffer.byteLength(line) <= 75, `${region}: RFC line length`);
@@ -37,4 +61,6 @@ for (const region of regions) {
     occurrences++;
   }
 }
-console.log(`Verified six 1080×1440 cards, all stable QR links, and ${occurrences} actual calendar occurrences.`);
+// A warning, not a failure: re-verifying an event is content work, not a build fault.
+if (stale.size) console.warn(`Weekly cards print 核对 dates older than 7 days. Re-verify these events before sharing:\n${[...stale].map(([name, picks]) => `  ${name}.png: ${picks.join(', ')}`).join('\n')}`);
+console.log(`Verified six 1080×1440 cards and ${days.length} dated Bay Area cards matching the home page, all stable QR links, and ${occurrences} actual calendar occurrences.`);
