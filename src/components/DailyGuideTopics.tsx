@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DAILY_GUIDE_TOPICS } from '../data/daily-guide-topics';
 import { handleGuideLinkClick } from './GuideCard';
@@ -11,7 +11,7 @@ export function DailyGuideTopics({ onOpenGuide }: { onOpenGuide: (slug: string) 
     </div>
     <div className="daily-guide-grid">
       {DAILY_GUIDE_TOPICS.map((topic, index) => <Link key={topic.slug} to={`/guides/${topic.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(topic.slug))}>
-        <span className="daily-guide-number">{String(index + 1).padStart(2, '0')}</span><span><h3>{topic.label}</h3><p>{topic.text}</p></span><ArrowUpRight size={17} aria-hidden="true" />
+        <span className="daily-guide-number">{String(index + 1).padStart(2, '0')}</span><span><h3>{topic.label}</h3><p>{topic.text}</p></span><ChevronRight size={17} aria-hidden="true" />
       </Link>)}
     </div>
   </section>;

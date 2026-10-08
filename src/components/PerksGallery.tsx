@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { ArrowUpRight, Copy, Download, Images } from 'lucide-react';
+import { ArrowUpRight, Copy, Download, Images, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { translateText, useLocale } from '../i18n/locale';
 import { copyText } from '../utils/postShare';
@@ -21,7 +21,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
     setManualId(copied ? null : id);
   };
   return <section className={`perks-gallery${compact ? ' perks-gallery--compact' : ''}`} aria-labelledby={headingId}>
-    <Link className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠<ArrowUpRight size={15} aria-hidden="true" /></Link>
+    <Link className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠<ChevronRight size={15} aria-hidden="true" /></Link>
     <div className="perks-gallery-heading">
       <div><span className="perks-gallery-eyebrow"><Images size={15} aria-hidden="true" />BAYLINK · SAVE & SHARE</span><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
       <span className="perks-gallery-date">{t('静态快照')}<time dateTime={PERKS_POSTER_CHECKED}>{PERKS_POSTER_CHECKED}</time></span>
@@ -34,7 +34,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
         </a>
         <div className="perks-gallery-body"><span className="perks-gallery-number">{String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}</span><h3>{poster.title}</h3>
           <div className="perks-gallery-actions"><a href={poster.path} download={`BAYLINK-${poster.id}-2026-10.png`}><Download size={15} aria-hidden="true" />下载 PNG</a><button type="button" onClick={() => void copy(poster.id)} aria-label={`${t('复制贴文')}：${t(poster.title)}`}><Copy size={15} aria-hidden="true" />复制贴文</button></div>
-          <Link to={poster.guidePath} className="perks-gallery-source">领取规则与官网来源<ArrowUpRight size={14} aria-hidden="true" /></Link>
+          <Link to={poster.guidePath} className="perks-gallery-source">领取规则与官网来源<ChevronRight size={14} aria-hidden="true" /></Link>
           {(!compact || manualId === poster.id) && <details className="perks-gallery-caption" open={manualId === poster.id || undefined}><summary>查看或手动复制贴文</summary><textarea aria-label={`${t('可复制贴文')}：${t(poster.title)}`} readOnly value={perksPosterCaption(poster, t)} onFocus={event => event.currentTarget.select()} rows={7} /></details>}
         </div>
       </article>)}

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import {
   LogOut, Edit, BadgeCheck, Phone, UserX, Eye, MapPin,
-  ChevronRight, Info, Flag, ArrowUpRight, House, MessageCircle, Sparkles,
+  ChevronRight, Info, Flag, House, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { BRAND } from '../../brandAssets';
 import { api } from '../../lib/api';
@@ -51,13 +51,13 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
     <div className="member-profile-guest">
       <div className="member-page-heading"><div><span className="member-eyebrow">MAKE YOURSELF AT HOME</span><h1>我的 BAYLINK</h1></div></div>
       <SavedPostsPanel />
-      <Link to="/my-week" className="member-guide-link"><span>我的这周</span><ArrowUpRight size={18} /></Link>
+      <Link to="/my-week" className="member-guide-link"><span>我的这周</span><ChevronRight size={18} /></Link>
       <section className="member-welcome-card">
         <div className="member-welcome-copy">
           <span className="member-welcome-label"><span /> 你好，新邻居</span>
           <h2>让湾区，<br />多一点熟悉。</h2>
           <p>找到需要的，分享拥有的。<br />从这一刻开始，连接属于你的湾区生活。</p>
-          <button onClick={onLogin} className="member-primary member-primary--lime">立即登录 / 注册<ArrowUpRight size={18} aria-hidden="true" /></button>
+          <button onClick={onLogin} className="member-primary member-primary--lime">立即登录 / 注册<ChevronRight size={18} aria-hidden="true" /></button>
         </div>
         <div className="member-welcome-art" aria-hidden="true">
           <div className="member-welcome-orbit" />
@@ -70,8 +70,8 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
         <div><span><MessageCircle size={22} aria-hidden="true" /></span><h3>与邻里聊一聊</h3><p>私信沟通，按需请求联系方式</p></div>
         <div><span><Sparkles size={22} aria-hidden="true" /></span><h3>分享你的生活</h3><p>发布资源，让需要的人发现你</p></div>
       </div>
-      <a href="/guides" className="member-guide-link"><span>刚来湾区？先看看 <strong>湾区生活指南</strong></span><ArrowUpRight size={18} aria-hidden="true" /></a>
-      <Link to="/about" className="member-guide-link"><span>认识 BAYLINK</span><ArrowUpRight size={18} aria-hidden="true" /></Link>
+      <a href="/guides" className="member-guide-link"><span>刚来湾区？先看看 <strong>湾区生活指南</strong></span><ChevronRight size={18} aria-hidden="true" /></a>
+      <Link to="/about" className="member-guide-link"><span>认识 BAYLINK</span><ChevronRight size={18} aria-hidden="true" /></Link>
     </div>
   );
 
@@ -143,9 +143,9 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
           </div>
 
           <div className="member-profile-actions">
-            <button onClick={() => setSubView('privacy')} className="member-action-tile" translate="no"><span className="member-action-icon"><UserX size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>{locale === 'en' ? 'Privacy and security' : translateText('隐私与安全', locale)}</strong><span>{locale === 'en' ? 'Export data, manage sign-in and delete account' : translateText('导出资料、管理登录与注销账号', locale)}</span></button>
-            <button onClick={() => setSubView('my_posts')} className="member-action-tile"><span className="member-action-icon"><Edit size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>我的发布</strong><span>管理帖子与发布状态</span></button>
-            <button onClick={() => setSubView('support')} className="member-action-tile"><span className="member-action-icon member-action-icon--warm"><Phone size={22} /></span><ArrowUpRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>联系客服</strong><span>获取帮助与支持</span></button>
+            <button onClick={() => setSubView('privacy')} className="member-action-tile" translate="no"><span className="member-action-icon"><UserX size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>{locale === 'en' ? 'Privacy and security' : translateText('隐私与安全', locale)}</strong><span>{locale === 'en' ? 'Export data, manage sign-in and delete account' : translateText('导出资料、管理登录与注销账号', locale)}</span></button>
+            <button onClick={() => setSubView('my_posts')} className="member-action-tile"><span className="member-action-icon"><Edit size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>我的发布</strong><span>管理帖子与发布状态</span></button>
+            <button onClick={() => setSubView('support')} className="member-action-tile"><span className="member-action-icon member-action-icon--warm"><Phone size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>联系客服</strong><span>获取帮助与支持</span></button>
           </div>
           <button onClick={onOpenBlockedUsers} className="member-menu-row">
             <div className="flex items-center gap-4">

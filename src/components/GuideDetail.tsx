@@ -14,6 +14,7 @@ import {
   Lightbulb,
   List,
   ShieldCheck,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -167,7 +168,7 @@ const GuideDetailSession = ({
       <li>
         <a href="#guide-sources">
           <span>
-            <ArrowUpRight size={13} aria-hidden="true" />
+            <ChevronRight size={13} aria-hidden="true" />
           </span>
           官方参考资料
         </a>
@@ -475,7 +476,7 @@ const BlockRenderer = ({
                     }
                   >
                     {choice.label}
-                    <ArrowUpRight size={15} aria-hidden="true" />
+                    <ChevronRight size={15} aria-hidden="true" />
                   </button>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { FIRST_VISIT_PATHS } from '../data/first-visit-paths';
 import { handleGuideLinkClick } from './GuideCard';
@@ -14,7 +14,7 @@ export function FirstVisitStart({ onOpenGuide }: { onOpenGuide: (slug: string) =
     <div className="daily-guide-grid">{FIRST_VISIT_PATHS.map((path, index) => <Link key={path.slug} to={`/guides/${path.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(path.slug))}>
       <span className="daily-guide-number">0{index + 1}</span>
       <span><h3>{path.label}</h3><p>{path.text}</p></span>
-      <ArrowUpRight size={17} aria-hidden="true" />
+      <ChevronRight size={17} aria-hidden="true" />
     </Link>)}</div>
   </section>;
 }

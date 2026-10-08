@@ -1,4 +1,4 @@
-import { ArrowUpRight, MapPin } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import { postAvailability } from '../lib/postAvailability';
 
 export type BayBayMatchingPost = {
@@ -27,7 +27,7 @@ export const BayBayMatchingPosts = ({ posts, note, onNavigate }: {
         return <a key={post.id} href={path} onClick={event => {
           if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) { event.preventDefault(); onNavigate(path); }
         }} className="block min-h-11 rounded-xl border border-baylink-border bg-white p-3 text-baylink-text transition hover:border-baylink-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-baylink-green">
-          <div className="flex items-start justify-between gap-2"><h4 className="text-sm font-semibold leading-relaxed">{post.title}</h4><ArrowUpRight size={16} className="mt-1 shrink-0" aria-hidden="true" /></div>
+          <div className="flex items-start justify-between gap-2"><h4 className="text-sm font-semibold leading-relaxed">{post.title}</h4><ChevronRight size={16} className="mt-1 shrink-0" aria-hidden="true" /></div>
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-baylink-text-secondary">
             {typeof post.city === 'string' && post.city && <span className="inline-flex items-center gap-1"><MapPin size={12} aria-hidden="true" />{post.city}</span>}
             {typeof post.budget === 'string' && post.budget && <span>{post.budget}</span>}

@@ -67,7 +67,7 @@ test('StrictMode loads sorted real plans, marks reconfirmation, and keeps reques
   assert.equal(view.queryByText('已经取消'), null);
   assert.equal(view.container.querySelector('.week-outing-requests button'), null, 'pending requests cannot be exported');
   assert.equal(view.getByRole('link', { name: '已约好的公园散步' }).getAttribute('href'), '/together?view=mine&outing=calendar-fixture');
-  assert.equal(view.getByRole('link', { name: '找同行 ↗' }).getAttribute('href'), '/together');
+  assert.equal(view.getByRole('link', { name: '找同行' }).getAttribute('href'), '/together');
 });
 
 test('My Week shows source-backed covers and a private time-vote task only for upcoming unanswered polls', async t => {
@@ -81,9 +81,9 @@ test('My Week shows source-backed covers and a private time-vote task only for u
     fixture({ id: 'started', title: '已经开始', date: '2026-10-16', startTime: '10:00', endTime: '12:00', startAt: Date.parse('2026-10-16T17:00:00Z'), endAt: Date.parse('2026-10-16T19:00:00Z'), timePoll: poll }),
     fixture({ id: 'cancelled', title: '已经取消', status: 'cancelled', timePoll: poll })] }));
   const view = render(page());
-  const link = await view.findByRole('link', { name: '时间待投票 ↗' });
+  const link = await view.findByRole('link', { name: '时间待投票' });
   assert.equal(link.getAttribute('href'), '/together?view=mine&outing=needs-vote');
-  assert.equal(view.getAllByRole('link', { name: '时间待投票 ↗' }).length, 1);
+  assert.equal(view.getAllByRole('link', { name: '时间待投票' }).length, 1);
   assert.ok(view.container.querySelectorAll('.week-outing-card .outing-cover').length >= 3);
   const photo = view.container.querySelector('.week-outing-card .outing-cover-image');
   assert.ok(photo); assert.equal(photo.getAttribute('loading'), 'lazy');

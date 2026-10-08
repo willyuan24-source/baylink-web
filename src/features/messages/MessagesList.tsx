@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircle, ChevronRight, ArrowUpRight, MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
+import { MessageCircle, ChevronRight, MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
@@ -86,7 +86,7 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
     setPins(next); setPinNotice('');
   };
 
-  if (!currentUser) return <div className="member-messages-guest"><div className="member-empty-card"><div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div><span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span><h2>身边的联系，都在这里。</h2><p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p><button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ArrowUpRight size={17} aria-hidden="true" /></button><Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link></div></div>;
+  if (!currentUser) return <div className="member-messages-guest"><div className="member-empty-card"><div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div><span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span><h2>身边的联系，都在这里。</h2><p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p><button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ChevronRight size={17} aria-hidden="true" /></button><Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link></div></div>;
 
   const terms = simplifySearch(query.trim()).toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const unreadConversations = convs.filter(conversation => (conversation.unreadCount || 0) > 0).length;
@@ -111,6 +111,6 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
         <button type="button" onClick={() => onOpenChat(conversation)} className="modern-inbox-conversation"><span className="modern-inbox-row-heading"><span className="modern-inbox-name"><strong translate="no">{other.nickname}</strong><TrustBadge user={other} size={12} />{pinned && <Pin size={12} aria-label={tr('已置顶')} />}</span><time dateTime={new Date(conversation.updatedAt).toISOString()}>{formatChineseDate(conversation.updatedAt)}</time></span>{other.statusText && <span className="modern-inbox-person-status" translate="no">{other.statusText}</span>}<span className="modern-inbox-preview"><span className="modern-inbox-preview-text">{draft ? <><em>草稿</em><span translate="no">{draft}</span></> : conversation.lastMessage ? <span translate="no">{conversation.lastMessage}</span> : <span>点击开始聊天</span>}</span>{unread > 0 && <span className="modern-inbox-unread" aria-label={`${tr('未读消息')} · ${unread}`} translate="no">{unread > 99 ? '99+' : unread}</span>}</span></button>
         <button type="button" className="modern-inbox-pin" translate="no" aria-label={`${tr(pinned ? '取消置顶' : '置顶对话')} · ${other.nickname}`} aria-pressed={pinned} onClick={() => togglePin(conversation.id)}>{pinned ? <PinOff size={15} /> : <Pin size={15} />}</button>
       </div>;
-    })}</div> : !error && <div className="member-empty-card member-empty-card--compact"><span className="member-empty-icon"><Inbox size={28} aria-hidden="true" /></span><h2>{convs.length ? filter === 'unread' && !query ? '消息都看完了。' : '没有找到这个对话' : '还没有消息'}</h2><p>{convs.length ? '试试切换筛选，或搜索昵称和最近聊过的内容。' : '看到合适的房源、二手或服务，可以点「私信」开始沟通。'}</p>{convs.length ? <button type="button" className="member-secondary mt-5" onClick={() => { setQuery(''); setFilter('all'); }}>查看全部对话</button> : <Link to="/" className="member-secondary mt-5">发现身边好物与服务<ArrowUpRight size={16} aria-hidden="true" /></Link>}</div>}
+    })}</div> : !error && <div className="member-empty-card member-empty-card--compact"><span className="member-empty-icon"><Inbox size={28} aria-hidden="true" /></span><h2>{convs.length ? filter === 'unread' && !query ? '消息都看完了。' : '没有找到这个对话' : '还没有消息'}</h2><p>{convs.length ? '试试切换筛选，或搜索昵称和最近聊过的内容。' : '看到合适的房源、二手或服务，可以点「私信」开始沟通。'}</p>{convs.length ? <button type="button" className="member-secondary mt-5" onClick={() => { setQuery(''); setFilter('all'); }}>查看全部对话</button> : <Link to="/" className="member-secondary mt-5">发现身边好物与服务<ChevronRight size={16} aria-hidden="true" /></Link>}</div>}
   </div>;
 };

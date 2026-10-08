@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getSlugFromCategory } from '../../routing';
-import { ArrowDown, ArrowUpRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
+import { ArrowDown, ChevronRight, Building2, CarFront, HeartHandshake, Sofa, Sparkles, Shield, Clock, BookOpen, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { CATEGORY_EMOJI, HOME_CHANNELS, normalizePostImages } from '../../lib/constants';
 import { formatChineseDate } from '../../lib/format';
@@ -54,7 +54,7 @@ export const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: (
       <span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span>
       <h1>在湾区，<br />找到生活的<span>更多可能。</span></h1>
       <p>一个家，一份好物，一位靠谱的邻居。<br className="hidden sm:block" />你需要的生活连接，都从这里开始。</p>
-      <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ArrowUpRight size={17} /></button></div>
+      <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ChevronRight size={17} /></button></div>
     </div>
     <div className="bay-hero-art"><img src="/brand/bay-area-diorama-v2.webp" alt="金门大桥、海湾与湾区街屋组成的微缩景观" width="1254" height="1254" {...{ fetchpriority: 'high' }} /><span className="bay-hero-coordinate">37.8199° N &nbsp; 122.4783° W</span></div>
     <div className="bay-hero-sticker"><span className="bay-hero-sticker-icon"><HeartHandshake size={19} /></span><span>让附近，变得更亲近<small>Good things happen locally.</small></span></div>
@@ -66,7 +66,7 @@ export const ChannelShortcuts = ({ onChannel, compact = false }: { onChannel: (c
   <section className={`bay-channels${compact ? ' bay-channels--compact' : ''}`} aria-label="探索生活分类">
     {HOME_CHANNELS.map((channel, index) => {
       const Icon = channelIcons[channel.id as keyof typeof channelIcons];
-      return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ArrowUpRight size={15} className="bay-channel-arrow" /></button>;
+      return <button key={channel.id} type="button" onClick={() => onChannel(channel)} className={`bay-channel bay-channel--${channel.id}`}><span className="bay-channel-icon"><Icon size={24} strokeWidth={1.6} /></span><span className="bay-channel-text"><strong>{channel.title}</strong><small>{channel.sub.replace(/ \/ /g, ' · ')}</small></span><span className="bay-channel-index">0{index + 1}</span><ChevronRight size={15} className="bay-channel-arrow" /></button>;
     })}
   </section>
 );

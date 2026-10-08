@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, GraduationCap } from 'lucide-react';
+import { ArrowRight, ChevronRight, GraduationCap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
@@ -16,7 +16,7 @@ export function SchoolGuideTopics({ onOpenGuide }: { onOpenGuide: (slug: string)
       const image = getGuideMedia(guide).cover;
       return <Link key={region.slug} to={`/guides/${region.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(region.slug))}>
         <img src={image.src} srcSet={image.srcSet} sizes="(max-width:599px) 90vw, (max-width:1023px) 45vw, 240px" width={image.width} height={image.height} alt={image.alt} loading="lazy" />
-        <span><strong>{region.label}<ArrowUpRight size={16} aria-hidden="true" /></strong><small>{region.note}</small></span>
+        <span><strong>{region.label}<ChevronRight size={16} aria-hidden="true" /></strong><small>{region.note}</small></span>
       </Link>;
     })}</div>
     <p className="school-guide-note">AI 原创主题插图 · 不代表实际学校。学区边界、录取和学年安排请通过文中官方入口核验。</p>

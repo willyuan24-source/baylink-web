@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Mail, MapPin, MessageCircle, Sparkles, Wrench, ChevronRight } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 
 const discoveries = [
@@ -30,7 +30,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
     <section className="about-discover" aria-labelledby="about-discover-title">
       <div className="about-section-heading"><h2 id="about-discover-title">你可以在这里做什么？</h2></div>
       <div className="about-discover-grid">{discoveries.map(({ icon: Icon, number, title, text, href, action }) => <section className="about-discover-item" key={number}>
-        <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ArrowUpRight size={16} /></Link>
+        <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ChevronRight size={16} /></Link>
       </section>)}</div>
     </section>
 
@@ -52,7 +52,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
 
     <section className="about-basics" aria-label="使用说明">
       <p>浏览无需登录，发布信息和发私信请先登录。</p>
-      <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ArrowUpRight size={15} /></Link>
+      <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ChevronRight size={15} /></Link>
     </section>
 
     <footer className="about-contact"><div><h2>联系我们</h2><p>有问题、建议，或发现信息有误，欢迎发邮件告诉我们。</p></div>

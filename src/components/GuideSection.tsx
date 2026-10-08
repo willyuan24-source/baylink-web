@@ -1,4 +1,4 @@
-import { ArrowRight, ArrowUpRight, BookOpen, Compass } from "lucide-react";
+import { ArrowRight, ChevronRight, BookOpen, Compass } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getFeaturedGuides, getGuideBySlug } from "../data/guides";
 import { GuideCardMini, handleGuideLinkClick } from "./GuideCard";
@@ -49,7 +49,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
           <p>{spotlight.summary}</p>
           <span className="bl-home-guide-spotlight-bottom">
             {spotlight.readMinutes} 分钟阅读{" "}
-            <ArrowUpRight size={22} aria-hidden="true" />
+            <ChevronRight size={22} aria-hidden="true" />
           </span>
         </Link>
         <div className="bl-home-guide-list">

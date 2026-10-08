@@ -19,7 +19,7 @@
 .editorial-collection__links a > span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .editorial-collection__links a > svg { flex-shrink: 0; transition: transform 160ms ease; }
 .editorial-collection__links a:hover { color: #176b52; text-decoration: underline; text-underline-offset: 4px; }
-.editorial-collection__links a:hover > svg { transform: translate(2px, -2px); }
+.editorial-collection__links a:hover > svg { transform: translateX(2px); }
 .editorial-collection__links a:focus-visible { outline: 3px solid #176b52; outline-offset: 3px; border-radius: 5px; }
 .editorial-collections--compact { padding: 22px 18px 0; background: #fff; border: 1px solid #e0e7d7; border-radius: 17px; }
 .editorial-collections--compact .editorial-collections__heading { margin-bottom: 10px; }

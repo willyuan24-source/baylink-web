@@ -1,4 +1,4 @@
-import { ArrowUpRight, Compass, KeyRound, MessagesSquare } from 'lucide-react';
+import { ChevronRight, Compass, KeyRound, MessagesSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { editorialCollections } from '../data/editorial-collections';
 
@@ -23,7 +23,7 @@ export function EditorialCollections({ compact = false }: { compact?: boolean })
             <p className="editorial-collection__intro">{intro}</p>
             <ol className="editorial-collection__links">
               {(compact ? guides.slice(0, 1) : guides).map((guide) => (
-                <li key={guide.slug}><Link to={`/guides/${guide.slug}`}><span>{guide.label}</span><ArrowUpRight size={16} aria-hidden="true" /></Link></li>
+                <li key={guide.slug}><Link to={`/guides/${guide.slug}`}><span>{guide.label}</span><ChevronRight size={16} aria-hidden="true" /></Link></li>
               ))}
             </ol>
           </article>

@@ -1,6 +1,6 @@
 // 登录 / 注册弹层
 import React, { useEffect, useRef, useState } from 'react';
-import { X, AlertCircle, ArrowUpRight, LockKeyhole } from 'lucide-react';
+import { X, AlertCircle, ChevronRight, LockKeyhole } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
 import { api } from '../../lib/api';
 import { mapAuthError, showAccountStatusNotice, validateContactValue, validateEmail, validatePassword } from '../../lib/format';
@@ -152,7 +152,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
                 <a href="/privacy" className="mx-0.5 font-semibold text-baylink-green hover:underline">《隐私政策》</a>
               </p>
             )}
-            <button disabled={loading} className="member-primary member-auth-submit">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}<ArrowUpRight size={18} aria-hidden="true" /></button>
+            <button disabled={loading} className="member-primary member-auth-submit">{loading ? '处理中...' : (mode === 'register' ? '注册账号' : '立即登录')}<ChevronRight size={18} aria-hidden="true" /></button>
         </form>
         <button disabled={loading} onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="member-auth-switch">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <p className="member-auth-privacy"><LockKeyhole size={12} aria-hidden="true" />你的联系方式不会公开显示</p>

@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { READER_PATHS } from '../data/reader-paths';
 import { handleGuideLinkClick } from './GuideCard';
@@ -27,7 +27,7 @@ export function ReaderPaths({ onOpenGuide }: { onOpenGuide: (slug: string) => vo
         onClick={event => handleGuideLinkClick(event, () => onOpenGuide(path.slug))}>
         <span className="daily-guide-number">{String(index + 1).padStart(2, '0')}</span>
         <span><h3>{path.label}</h3><p>{path.text}</p></span>
-        <ArrowUpRight size={17} aria-hidden="true" />
+        <ChevronRight size={17} aria-hidden="true" />
       </Link>)}</div>
     </div>
     <p className="reader-path-note">每篇附核验日期与来源；具体余位、服务状态和个人资格请在办理前再确认。</p>
