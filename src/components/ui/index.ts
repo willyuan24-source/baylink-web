@@ -12,6 +12,8 @@ export { COVER_SIZES } from './cover-sizes';
 export { TypeCover, EventTypeCover, OfferTypeCover, OpeningTypeCover, type TypeCoverProps } from './TypeCover';
 export { Cover, EventCover, OfferCover, OpeningCover } from './Cover';
 export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card';
+export { HeroCard, PageHeader, PageContainer, type HeroCardProps, type PageHeaderProps } from './HeroCard';
+export { Carousel, type CarouselProps } from './Carousel';
 export { FeedGrid, FeedItem, FeedLayoutToggle, type FeedGridProps } from './FeedGrid';
 export { useFeedLayout, readFeedLayout, writeFeedLayout, automaticLayout, FEED_LAYOUT_KEY, type FeedLayout } from './feed-layout';
 export { Sheet, type SheetProps } from './Sheet';

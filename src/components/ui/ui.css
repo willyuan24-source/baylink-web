@@ -22,6 +22,8 @@
   --color-highlight:#DFF3A6;
   --color-badge-bg:rgb(18 60 49 / .78);
   --ui-scrim:rgb(22 46 41 / .48);
+  /* Text on photos only below 62% of the height: white ≥5.52:1, highlight ≥4.6:1 (design.md §4.2). */
+  --ui-scrim-photo:linear-gradient(180deg, rgb(8 24 18 / 0) 40%, rgb(8 24 18 / .64) 62%, rgb(8 24 18 / .82) 100%);
 }
 
 /* Provenance badge: top-left on every cover, text only from getImageProvenance(). */
@@ -262,7 +264,65 @@ html[data-simple] .ui-save::before { inset:-8px; }
   .ui-button:active { transform:none; }
 }
 
+/* Carousel / rail: scroll-snap, a peek of the next slide, no autoplay. Bleeds to the screen edge on phones. */
+.ui-carousel { position:relative; }
+.ui-carousel__track { position:relative; display:flex; gap:12px; margin:0 -16px; padding:0 16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:16px; list-style:none; scrollbar-width:none; }
+.ui-carousel__track::-webkit-scrollbar { display:none; }
+.ui-carousel__slide { flex:0 0 calc(100% - 20px); min-width:0; scroll-snap-align:start; }
+.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 16px); }
+.ui-carousel__controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; }
+.ui-carousel__dots { display:inline-flex; align-items:center; gap:6px; }
+.ui-carousel__dots>span { width:6px; height:6px; border-radius:999px; background:var(--color-line-strong); }
+.ui-carousel__dots>span[data-active] { width:18px; background:var(--color-brand); }
+.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; }
+.ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:none; }
+@media (min-width:1024px) {
+  .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
+  .ui-carousel__slide { flex-basis:420px; }
+  .ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 24px) / 3); }
+  .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; }
+}
+@media (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-carousel__slide { flex-basis:calc(100% - 8px); } }
+
+/* Hero card 4:5 (本周封面 / 编辑精选): text on the photo only on the bottom scrim. */
+.ui-hero-card { position:relative; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.ui-hero-card__media { position:relative; overflow:hidden; border-radius:24px; }
+.ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:24px; }
+.ui-hero-card__scrim { position:absolute; inset:0; z-index:1; background:var(--ui-scrim-photo); pointer-events:none; }
+.ui-hero-card[data-overlay] .ui-stickers { display:none; }
+.ui-hero-card__text { display:flex; flex-direction:column; gap:8px; padding-top:8px; }
+.ui-hero-card[data-overlay] .ui-hero-card__text { position:absolute; left:18px; right:18px; bottom:18px; z-index:1; padding:0; }
+.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:calc(1.5rem * var(--reading-scale)); line-height:1.333; font-weight:600; }
+.ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
+.ui-hero-card .ui-card-link::after { border-radius:24px; }
+.ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
+.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:999px; background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:1.429; font-variant-numeric:tabular-nums; }
+.ui-hero-card__save { position:absolute; top:8px; right:8px; z-index:3; }
+.ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }
+.ui-hero-card__trust { display:flex; align-items:center; gap:4px; margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.ui-hero-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
+
+/* Page header and containers: one H1 spec, three widths, gutters 16/24/32. */
+.ui-page-header { display:flex; flex-direction:column; gap:8px; margin:0 0 24px; }
+.ui-page-header__crumbs { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.ui-page-header__title { margin:0; color:var(--color-ink); font-size:calc(1.625rem * var(--reading-scale)); line-height:1.308; font-weight:600; letter-spacing:0; text-wrap:balance; }
+.ui-page-header[data-size=display] .ui-page-header__title { font-size:calc(1.75rem * var(--reading-scale)); line-height:1.286; }
+.ui-page-header__lede { max-width:40em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
+.ui-page-header__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.ui-container { box-sizing:content-box; max-width:1216px; margin-inline:auto; padding-inline:16px; }
+.ui-container[data-size=content] { max-width:960px; }
+.ui-container[data-size=reading] { max-width:720px; }
+@media (min-width:768px) { .ui-container { padding-inline:24px; } }
+@media (min-width:1024px) {
+  .ui-container { padding-inline:32px; }
+  .ui-page-header__title { font-size:calc(2rem * var(--reading-scale)); line-height:1.3125; }
+  .ui-page-header[data-size=display] .ui-page-header__title { font-size:calc(clamp(2.5rem, 1.6rem + 1.25vw, 3.25rem) * var(--reading-scale)); line-height:1.2; }
+  .ui-hero-card__title { font-size:calc(1.75rem * var(--reading-scale)); line-height:1.286; }
+}
+
 /* Titles wrap between words (a2 SegmentedTitle; units are at most 8 Han / 14 Latin characters, which fit a 173px card). */
-:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep { white-space:nowrap; }
+:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title,.ui-page-header__title) .title-keep { white-space:nowrap; }
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }

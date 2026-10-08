@@ -201,3 +201,50 @@ test('English pages get English control names without a dictionary entry', async
   assert.ok(view.getByRole('button', { name: 'Two columns' }));
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/);
 });
+
+test('carousel: labelled slides, a polite counter, arrow keys and edge-aware previous/next; no autoplay', () => {
+  const calls: number[] = [];
+  const original = dom.window.HTMLElement.prototype.scrollTo;
+  dom.window.HTMLElement.prototype.scrollTo = function (options?: ScrollToOptions | number) { calls.push(typeof options === 'object' ? options.left ?? -1 : -1); } as typeof original;
+  try {
+    const view = wrap(<ui.Carousel label="长者服务图解"><div>一</div><div>二</div><div>三</div></ui.Carousel>);
+    const region = view.getByRole('region', { name: '长者服务图解' });
+    assert.equal(region.getAttribute('aria-roledescription'), '轮播');
+    const slides = view.getAllByRole('group');
+    assert.deepEqual(slides.map(slide => slide.getAttribute('aria-label')), ['1 / 3', '2 / 3', '3 / 3']);
+    assert.equal(slides[0].getAttribute('aria-roledescription'), '幻灯片');
+    const counter = region.querySelector('[aria-live="polite"]')!;
+    assert.equal(counter.textContent, '1/3');
+    assert.equal(view.getByRole('button', { name: '上一张' }).hasAttribute('disabled'), true);
+    const track = region.querySelector('.ui-carousel__track')!;
+    fireEvent.keyDown(track, { key: 'ArrowRight' });
+    assert.equal(counter.textContent, '2/3');
+    fireEvent.click(view.getByRole('button', { name: '下一张' }));
+    assert.equal(counter.textContent, '3/3');
+    assert.equal(view.getByRole('button', { name: '下一张' }).hasAttribute('disabled'), true);
+    fireEvent.keyDown(track, { key: 'ArrowRight' });
+    assert.equal(counter.textContent, '3/3', 'stops at the last slide');
+    assert.equal(calls.length, 2, 'each real move scrolls the track; a move past the end does nothing');
+  } finally {
+    dom.window.HTMLElement.prototype.scrollTo = original;
+  }
+});
+
+test('hero card and page header: one link, one H1, facts only on a photo', () => {
+  const photo = wrap(<ui.HeroCard title="Fleet Week 蓝天使航展" to="/events/fleet" overlay cover={<div data-cover="image" />} kicker="San Francisco · 旧金山"
+    facts={['10/9–11', '免费观看', '码头人多', '第四条不显示']} reason={{ label: '编辑推荐', text: '一年一次的航展' }} trust="官网核对 10/7" save={<ui.SaveButton saved={false} title="Fleet Week" onToggle={() => {}} />} />);
+  const article = photo.container.querySelector('article')!;
+  assert.equal(within(article).getAllByRole('link').length, 1);
+  assert.equal(photo.getByRole('heading', { level: 2 }).textContent, 'Fleet Week 蓝天使航展');
+  assert.deepEqual([...article.querySelectorAll('.ui-hero-card__facts li')].map(item => item.textContent), ['10/9–11', '免费观看', '码头人多']);
+  assert.ok(article.querySelector('.ui-hero-card__scrim'));
+  cleanup();
+  const typed = wrap(<ui.HeroCard title="长者太极" to="/events/taichi" overlay={false} cover={<div data-cover="type" />} kicker="Cupertino" facts={['10/10']} />);
+  assert.equal(typed.container.querySelector('.ui-hero-card__scrim'), null, 'a TypeCover already shows its facts');
+  assert.equal(typed.container.querySelector('.ui-hero-card__facts'), null);
+  cleanup();
+  const header = wrap(<ui.PageContainer size="content"><ui.PageHeader title="活动" size="display" lede="63 场 · 26 场免费" actions={<ui.Button variant="primary">问 BayBay</ui.Button>} /></ui.PageContainer>);
+  assert.equal(header.getAllByRole('heading', { level: 1 }).length, 1);
+  assert.equal(header.container.querySelector('.ui-container')?.getAttribute('data-size'), 'content');
+  assert.equal(header.container.querySelector('.ui-page-header')?.getAttribute('data-size'), 'display');
+});
