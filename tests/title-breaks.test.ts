@@ -16,6 +16,18 @@ test('detail titles break between words: festival names, Chinese compounds and L
   assert.deepEqual(units('Marinwood 萬聖節收穫慶典', 'zh-Hant'), ['萬聖節', '收穫', '慶典']);
 });
 
+test('a long run of English words is grouped in linear time', () => {
+  const words = Array.from({ length: 30 }, (_, index) => ['a', 'of', 'Bay', 'Art', 'the', 'Fair'][index % 6]).join(' ');
+  titleBreakPieces('Marinwood 万圣节', 'zh-Hans');
+  const started = performance.now();
+  const pieces = titleBreakPieces(`${words} 活动`, 'zh-Hans')!;
+  const elapsed = performance.now() - started;
+  // Trying every grouping took about 5 s at 24 words and doubled with each word; one plan per start word takes well under 1 ms.
+  assert.ok(elapsed < 50, `${elapsed.toFixed(1)}ms`);
+  assert.equal(pieces.map(piece => piece.text).join(''), `${words} 活动`);
+  assert.ok(pieces.filter(piece => piece.keep && !/\p{Script=Han}/u.test(piece.text)).every(piece => piece.text.length <= 14));
+});
+
 test('pieces join back to the exact title and units stay within the phone width', async () => {
   await loadLocale('zh-Hant');
   for (const item of localDiscoveries) {

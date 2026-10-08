@@ -66,24 +66,25 @@ function hanUnits(segments: string[]): string[] {
 /**
  * Split a run of Latin words into name groups of at most MAX_LATIN characters: as few groups as possible, then none
  * ending on a word that binds to the next, then the most even (San Francisco | Fleet Week, South | San Francisco).
+ * Solved from the end of the run with one best plan per start word, so a long English name costs linear time
+ * instead of one pass per possible grouping.
  */
 function latinGroups(words: string[]): string[][] {
-  const cost = (groups: string[][]) => [groups.length, groups.slice(0, -1).filter(group => BINDS_NEXT.test(group.at(-1)!)).length, Math.max(...groups.map(group => group.join(' ').length))];
-  let best: string[][] = [words];
-  let bestCost = [Infinity];
-  const visit = (start: number, groups: string[][]) => {
-    if (start === words.length) {
-      const next = cost(groups);
-      const index = next.findIndex((value, i) => value !== bestCost[i]);
-      if (index >= 0 && next[index] < bestCost[index]) { best = groups; bestCost = next; }
-      return;
-    }
+  const better = (cost: number[], than: number[]) => { const index = cost.findIndex((value, i) => value !== than[i]); return index >= 0 && cost[index] < than[index]; };
+  // plans[start] is the best grouping of words[start..]: where its first group ends, and its cost
+  // [groups, groups ending on a binding word, longest group].
+  const plans: { end: number; cost: number[] }[] = [];
+  plans[words.length] = { end: words.length, cost: [0, 0, 0] };
+  for (let start = words.length - 1; start >= 0; start--) {
     for (let end = start + 1; end <= words.length && (end === start + 1 || words.slice(start, end).join(' ').length <= MAX_LATIN); end++) {
-      visit(end, [...groups, words.slice(start, end)]);
+      const rest = plans[end].cost;
+      const cost = [rest[0] + 1, rest[1] + (end < words.length && BINDS_NEXT.test(words[end - 1]) ? 1 : 0), Math.max(rest[2], words.slice(start, end).join(' ').length)];
+      if (!plans[start] || better(cost, plans[start].cost)) plans[start] = { end, cost };
     }
-  };
-  visit(0, []);
-  return best;
+  }
+  const groups: string[][] = [];
+  for (let start = 0; start < words.length; start = plans[start].end) groups.push(words.slice(start, plans[start].end));
+  return groups;
 }
 
 /**
