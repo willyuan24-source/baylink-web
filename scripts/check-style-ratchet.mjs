@@ -29,6 +29,11 @@ export const STYLE_METRICS = {
   baylinkClasses: 'Tailwind *-baylink-* colour classes',
   arrowUpRight: 'ArrowUpRight icon uses (↗ belongs to external links only)',
 };
+/** The two non-style counts. Both count distinct items, so reusing an already-listed one does not raise them. */
+export const OTHER_METRICS = {
+  englishUiUntranslated: 'distinct Chinese UI strings with no English; a new use of an already-listed string does not raise it',
+  lazyCssDuplicateSelectors: 'selectors defined in two lazily loaded CSS files',
+};
 
 const toPosix = path => path.split('\\').join('/');
 const normalizeValue = value => value.toLowerCase().replace(/\s*!important\s*$/, '').replace(/\s+/g, ' ').replace(/\s*,\s*/g, ',').trim();
@@ -136,6 +141,16 @@ export function measureStyle(sources) {
 const normalizeText = text => text.trim().replace(/\s+/g, ' ');
 const englishOnly = node => node && (ts.isStringLiteralLike(node) || ts.isTemplateExpression(node)) && !han.test(node.getText()) && /[A-Za-z]/.test(node.getText());
 const unwrap = node => { let current = node; while (current.parent && (ts.isParenthesizedExpression(current.parent) || ts.isAsExpression(current.parent))) current = current.parent; return current; };
+/** Callees whose (zh, en) argument pair is a translation by contract. */
+const translateCallee = /^(?:t|tr|text|translate|locali[sz]e|pickLocale|bilingual)$/;
+const calleeName = call => {
+  const expression = call.expression;
+  if (ts.isIdentifier(expression)) return expression.text;
+  if (ts.isPropertyAccessExpression(expression)) return expression.name.text;
+  return '';
+};
+/** Prose, not an id: elsewhere an English neighbour needs a space or a capital letter, so track('点击', 'cta') is not a translation. */
+const englishProse = node => englishOnly(node) && /\s|[A-Z]/.test(node.getText().slice(1, -1));
 
 /** True when the literal is shipped with its English next to it: t(zh, en), {zh, en} or locale === 'en' ? en : zh. */
 function hasColocatedEnglish(node) {
@@ -143,7 +158,8 @@ function hasColocatedEnglish(node) {
   const parent = self.parent;
   if (parent && (ts.isCallExpression(parent) || ts.isNewExpression(parent)) && parent.arguments) {
     const index = parent.arguments.indexOf(self);
-    if (index >= 0 && [parent.arguments[index - 1], parent.arguments[index + 1]].some(englishOnly)) return true;
+    const looksEnglish = translateCallee.test(calleeName(parent)) ? englishOnly : englishProse;
+    if (index >= 0 && [parent.arguments[index - 1], parent.arguments[index + 1]].some(looksEnglish)) return true;
   }
   if (parent && ts.isPropertyAssignment(parent) && parent.initializer === self && ts.isObjectLiteralExpression(parent.parent)) {
     if (parent.parent.properties.some(property => ts.isPropertyAssignment(property) && ['en', 'english', 'En'].includes(propertyName(property.name)) && englishOnly(property.initializer))) return true;
@@ -308,6 +324,8 @@ export function baselineFrom(measured) {
   };
 }
 
+const describe = metric => STYLE_METRICS[metric] || OTHER_METRICS[metric];
+
 /** Human-readable reasons each increased count went up; empty when the ratchet holds. */
 export function compareWithBaseline(measured, baseline) {
   const current = baselineFrom(measured);
@@ -333,7 +351,7 @@ export function compareWithBaseline(measured, baseline) {
         if ((counts[metric] || 0) > before) details.push(`${file}: ${before} → ${counts[metric]}`);
       }
     }
-    problems.push(`${metric} rose from ${allowed} to ${value}${STYLE_METRICS[metric] ? ` (${STYLE_METRICS[metric]})` : ''}${details.length ? `\n    ${details.slice(0, 20).join('\n    ')}${details.length > 20 ? `\n    …and ${details.length - 20} more` : ''}` : ''}`);
+    problems.push(`${metric} rose from ${allowed} to ${value}${describe(metric) ? ` (${describe(metric)})` : ''}${details.length ? `\n    ${details.slice(0, 20).join('\n    ')}${details.length > 20 ? `\n    …and ${details.length - 20} more` : ''}` : ''}`);
   }
   return problems;
 }

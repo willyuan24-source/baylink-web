@@ -19,6 +19,23 @@ test('Chinese UI literals count unless the dictionary or the same expression sup
   assert.deepEqual(result.occurrences.map(item => `${item.file}:${item.line}`), ['src/components/Example.tsx:8', 'src/components/Example.tsx:9']);
 });
 
+test('an id-like neighbour argument is not English unless the callee translates', () => {
+  const source = `
+    track('点击', 'cta');
+    showToast('已保存', 'error');
+    showToast('已复制', 'Copied to clipboard');
+    text('人', 'people');
+    ui.t('站', 'stops');
+    const again = <p>没有英文</p>;
+    const twice = <span>没有英文</span>;
+  `;
+  const result = measureEnglishUi([{ file: 'src/components/Example.tsx', text: source }], {});
+  assert.deepEqual(result.strings, ['已保存', '没有英文', '点击']);
+  // Distinct strings: a second use of an already-listed literal does not raise the count.
+  assert.equal(result.count, 3);
+  assert.equal(result.occurrences.length, 4);
+});
+
 test('the dictionary is read from its sources, not the generated copy', () => {
   const keys = englishDictionaryKeys();
   assert.ok(Object.keys(keys).length > 10000);
